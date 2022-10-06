@@ -10,8 +10,13 @@
 #include <algorithm>
 #include "item_updater.hpp"
 #include "bsod.h"
+#include "freertos_mutex.hpp"
+#include <mutex>
 
 namespace configuration_store { // helper structs
+
+FreeRTOS_Mutex &get_item_mutex();
+
 struct Key {
     uint32_t key;
     template <class Packer>
@@ -121,8 +126,14 @@ public:
      * @return true if it will fit false otherwise
      */
     bool check_size(uint8_t size);
+
+    /**
+     * @brief Removes duplicates of data and saves unique keys to the beginning of eeprom
+     */
+    void cleanup();
     uint8_t bank_selector;
     bool initialized = false;
+    FreeRTOS_Mutex mutex;
 
 public:
     /**
@@ -131,11 +142,6 @@ public:
      * Iterates through eeprom, checks validity of the data and adds them to index
      */
     void init(ItemUpdater &updater);
-
-    /**
-     * @brief Removes duplicates of data and saves unique keys to the beginning of eeprom
-     */
-    void cleanup();
 
     /**
      * @brief Saves data item after last item in eeprom
@@ -164,6 +170,8 @@ void EepromAccess::set(const char *key, const T &data) {
         fatal_error("Eeprom used uninitialized", "eeprom");
     }
     auto serialized = serialize_data(key, data);
+
+    std::unique_lock lock(mutex);
     store_item(serialized);
 }
 struct IndexComparator {
@@ -189,9 +197,15 @@ DataItem<T> EepromAccess::deserialize_data(std::vector<uint8_t> data) {
 
 template <class T, class CovertTo>
 void MemConfigItem<T, CovertTo>::set(T new_data) {
+    std::unique_lock<FreeRTOS_Mutex> lock(get_item_mutex());
     data = new_data;
     // using eeprom access singleton directly, because I don't want to have pointer in every item
     EepromAccess::instance().template set(key, data);
+}
+template <class T, class CovertTo>
+T MemConfigItem<T, CovertTo>::get() {
+    std::unique_lock<FreeRTOS_Mutex> lock(get_item_mutex());
+    return data;
 }
 
 template <class T, class CovertTo>
@@ -206,22 +220,33 @@ void MemConfigItem<std::array<T, SIZE>>::init(const std::array<T, SIZE> &new_dat
 
 template <class T, size_t SIZE>
 void MemConfigItem<std::array<T, SIZE>>::set(const std::array<T, SIZE> &new_data) {
-    if (new_data != data) {
-        data = new_data;
-        // using eeprom access singleton directly, because I don't want to have pointer in every item
-        EepromAccess::instance().template set(key, data);
-    }
+    std::unique_lock<FreeRTOS_Mutex> lock(get_item_mutex());
+    data = new_data;
+    // using eeprom access singleton directly, because I don't want to have pointer in every item
+    EepromAccess::instance().template set(key, data);
+}
+template <class T, size_t SIZE>
+std::array<T, SIZE> MemConfigItem<std::array<T, SIZE>>::get() {
+    std::unique_lock<FreeRTOS_Mutex> lock(get_item_mutex());
+    return data;
 }
 template <size_t SIZE>
 void MemConfigItem<std::array<char, SIZE>>::set(const char *new_data) {
     if (strcmp((char *)(data.data()), new_data) != 0) {
+        std::unique_lock<FreeRTOS_Mutex> lock(get_item_mutex());
         strcpy((char *)(data.data()), new_data);
         // using eeprom access singleton directly, because I don't want to have pointer in every item
         EepromAccess::instance().template set(key, data);
     }
 }
 template <size_t SIZE>
+std::array<char, SIZE> MemConfigItem<std::array<char, SIZE>>::get() {
+    std::unique_lock<FreeRTOS_Mutex> lock(get_item_mutex());
+    return data;
+}
+template <size_t SIZE>
 void MemConfigItem<std::array<char, SIZE>>::init(const std::array<char, SIZE> &new_data) {
     data = new_data;
 }
+
 }

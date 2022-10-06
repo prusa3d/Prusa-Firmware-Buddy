@@ -31,14 +31,8 @@ class MemConfigItem {
 public:
     void init(const T &new_data);
 
-    operator T const &() const {
-        return data;
-    }
-
     void set(T new_data);
-    T get() {
-        return data;
-    }
+    T get();
 
     constexpr MemConfigItem(EepromKey key, const T def_val)
         : key(key)
@@ -57,16 +51,11 @@ struct MemConfigItem<std::array<T, SIZE>> {
         data.fill(def_val);
     }
 
-    operator std::array<T, SIZE> const &() const {
-        return data;
-    }
     void init(const std::array<T, SIZE> &new_data);
 
     void set(const std::array<T, SIZE> &new_data);
 
-    const std::array<T, SIZE> &get() {
-        return data;
-    }
+    std::array<T, SIZE> get();
 
     constexpr MemConfigItem(EepromKey key, const T def_val)
         : key(key)
@@ -85,17 +74,11 @@ struct MemConfigItem<std::array<char, SIZE>> {
         strcpy(data.data(), def_val);
     }
 
-    operator std::array<char, SIZE> const &() const {
-        return data;
-    }
     void init(const std::array<char, SIZE> &new_data);
 
     void set(const std::array<char, SIZE> &new_data);
     void set(const char *new_data);
-
-    const char *get() {
-        return data.data();
-    }
+    std::array<char, SIZE> get();
 
     constexpr MemConfigItem(EepromKey key, const char *def_val)
         : key(key)

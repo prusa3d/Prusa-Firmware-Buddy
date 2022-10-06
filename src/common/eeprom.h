@@ -4,7 +4,6 @@
 
 #include <stdbool.h>
 #include "variant8.h"
-#include "eeprom_function_api.h"
 #include "selftest_eeprom.hpp"
 #include <stddef.h>
 
@@ -165,8 +164,8 @@ enum {
     CONNECT_HOST_SIZE = 20,
     CONNECT_TOKEN_SIZE = 20,
     PL_API_KEY_SIZE = 16,
-    LAN_EEFLG_ONOFF = 1,     //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
-    LAN_EEFLG_TYPE = 2,      //EEPROM flag for user-defined settings (Switch between dhcp and static)
+    LAN_EEFLG_ONOFF = 1,     // EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
+    LAN_EEFLG_TYPE = 2,      // EEPROM flag for user-defined settings (Switch between dhcp and static)
     WIFI_EEFLG_SEC = 0b1100, // Wifi security (ap_sec_t).
     WIFI_MAX_SSID_LEN = 32,
     WIFI_MAX_PASSWD_LEN = 64,

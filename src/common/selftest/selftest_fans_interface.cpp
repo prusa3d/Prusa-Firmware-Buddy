@@ -7,7 +7,7 @@
 #include "selftest_fans_type.hpp"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
-#include "eeprom.h"
+#include "configuration_store.hpp"
 
 namespace selftest {
 static SelftestFan_t staticResultPrintFan;
@@ -41,10 +41,10 @@ bool phaseFans(IPartHandler *&pPrintFan, IPartHandler *&pHeatbreakFan, const Fan
     }
 
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = config_store().selftest_result.get();
     eeres.printFan = uint8_t(pPrintFan->GetResult());
     eeres.heatBreakFan = uint8_t(pHeatbreakFan->GetResult());
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+    config_store().selftest_result.set(eeres.ui32);
     delete pPrintFan;
     pPrintFan = nullptr;
     delete pHeatbreakFan;

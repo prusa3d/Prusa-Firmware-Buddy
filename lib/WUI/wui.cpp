@@ -29,6 +29,7 @@
 #include "main.h"
 
 #include "netdev.h"
+#include "configuration_store.hpp"
 
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
@@ -292,7 +293,7 @@ private:
         // Lock (even the desired config can be read from other threads, eg. the tcpip_thread from a callback :-(
         // (using unique_lock instead of scoped_lock as at other places, we need "pause")
         unique_lock lock(mutex);
-        const uint32_t active_local = eeprom_get_ui8(EEVAR_ACTIVE_NETDEV);
+        const uint32_t active_local = config_store().active_netdev.get();
         // Store into the atomic variable, but keep working with the stack copy.
         active = active_local;
         load_net_params(&ifaces[NETDEV_ETH_ID].desired_config, nullptr, NETDEV_ETH_ID);
@@ -330,7 +331,7 @@ private:
 
         lock.unlock();
 
-        if (eeprom_get_ui8(EEVAR_PL_RUN) == 1) {
+        if (config_store().pl_run.get() == 1) {
             httpd_start();
         } else {
             httpd_close();
@@ -596,7 +597,7 @@ void notify_reconfigure() {
 void netdev_set_active_id(uint32_t netdev_id) {
     assert(netdev_id <= NETDEV_COUNT);
 
-    eeprom_set_ui8(EEVAR_ACTIVE_NETDEV, (uint8_t)(netdev_id & 0xFF));
+    config_store().active_netdev.set((uint8_t)(netdev_id & 0xFF));
 
     notify_reconfigure();
 }
@@ -605,17 +606,8 @@ namespace {
 
 template <class F>
 void modify_flag(uint32_t netdev_id, F &&f) {
-    eevar_id var = EEVAR_LAN_FLAG;
-    switch (netdev_id) {
-    case NETDEV_ETH_ID:
-        var = EEVAR_LAN_FLAG;
-        break;
-    case NETDEV_ESP_ID:
-        var = EEVAR_WIFI_FLAG;
-        break;
-    default:
-        assert(0);
-    }
+    auto &flag_access = netdev_id == NETDEV_ETH_ID ? config_store().lan_flag : config_store().wifi_flag;
+    static_assert(NETDEV_COUNT == 2, "There could be unsupported interface id");
 
     // Read it from the EEPROM, not from the state. For two reasons:
     // * While it likely can't happen, it's unclear what should happen if the
@@ -624,10 +616,10 @@ void modify_flag(uint32_t netdev_id, F &&f) {
     //   as fresh value as possible. This still leaves the possibility of a
     //   race condition (two threads messing with the same variable), but that
     //   is unlikely.
-    const uint8_t old = eeprom_get_ui8(var);
+    const uint8_t old = flag_access.get();
     uint8_t flag = f(old);
     if (old != flag) {
-        eeprom_set_ui8(var, flag);
+        flag_access.set(flag);
         notify_reconfigure();
     }
 }

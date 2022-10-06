@@ -244,6 +244,7 @@ def main():
     parser.add_argument("OutputSwitch",
                         help="Path to where to store the output file",
                         type=Path)
+    # parser.add_argument("Printer", help="Name of the printer", type=str)
 
     args = parser.parse_args()
     items = []
@@ -256,7 +257,7 @@ def main():
 
     with open(args.Output, "w") as file:
         file.write("#pragma once\n")
-        file.write("#include \"configuration_store/mem_config_item.hpp\"\n")
+        file.write("#include \"structure_includes.hpp\"\n")
         file.write("namespace configuration_store{\n")
         for item in items:
             additional = item.get_additional_definitions()

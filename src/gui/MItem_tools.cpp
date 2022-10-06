@@ -1,6 +1,5 @@
 #include "MItem_tools.hpp"
 #include "dump.h"
-#include "eeprom.h"
 #include "eeprom_loadsave.h"
 #include "marlin_client.h"
 #include "gui.hpp"
@@ -25,6 +24,7 @@
 #include <time.h>
 #include "sys.h"
 #include "w25x.h"
+#include "configuration_store.hpp"
 
 /**********************************************************************************************/
 //MI_FILAMENT_SENSOR
@@ -338,7 +338,7 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
     } else {
         Screens::Access()->DisableMenuTimeout();
     }
-    eeprom_set_bool(EEVAR_MENU_TIMEOUT, uint8_t(Screens::Access()->GetMenuTimeout()));
+    config_store().menu_timeout.set(Screens::Access()->GetMenuTimeout());
 }
 
 /*****************************************************************************/
@@ -390,7 +390,7 @@ void MI_SOUND_VOLUME::OnClick() {
 /*****************************************************************************/
 //MI_SORT_FILES
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(eeprom_get_ui8(EEVAR_FILE_SORT), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
+    : WI_SWITCH_t<2>(GuiFileSort::Get(), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         GuiFileSort::Set(WF_SORT_BY_NAME);
@@ -446,7 +446,7 @@ MI_FAN_CHECK::MI_FAN_CHECK()
     : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_FAN_CHECK::OnChange(size_t old_index) {
     marlin_set_bool(MARLIN_VAR_FAN_CHECK_ENABLED, !old_index);
-    eeprom_set_bool(EEVAR_FAN_CHECK_ENABLED, marlin_get_bool(MARLIN_VAR_FAN_CHECK_ENABLED));
+    config_store().fan_check.set(!old_index);
 }
 
 /*****************************************************************************/
@@ -459,7 +459,7 @@ MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
     : WI_SWITCH_OFF_ON_t(marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED), _(label), IDR_NULL, is_enabled_t::yes, hide_autoload_item()) {}
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
     marlin_set_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED, !old_index);
-    eeprom_set_bool(EEVAR_FS_AUTOLOAD_ENABLED, marlin_get_bool(MARLIN_VAR_FS_AUTOLOAD_ENABLED));
+    config_store().fs_autoload.set(!old_index);
 }
 MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, id_icon, enabled, hidden, initVal, [&](char *buffer) {

@@ -13,6 +13,8 @@ namespace configuration_store {
  *
  * To add new item to configuration store, you need to add it to json from which it is generated
  *
+ * The values are stored in RAM so reads does not read data from the eeprom.
+ *
  * To access the values get singleton instance of the store and access the items like members of any other class. To change the items use their Set and Get methods.
  */
 template <class CONFIG>
@@ -53,4 +55,4 @@ void ConfigurationStore<CONFIG>::factory_reset() {
     EepromAccess::instance().reset();
 }
 }
-configuration_store::ConfigurationStore<configuration_store::ConfigurationStoreStructure> &store();
+configuration_store::ConfigurationStore<configuration_store::ConfigurationStoreStructure> &config_store();

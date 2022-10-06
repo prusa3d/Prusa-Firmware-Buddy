@@ -1,6 +1,6 @@
 #include "sound.hpp"
 #include "hwio.h"
-#include "eeprom.h"
+#include "configuration_store.hpp"
 
 static bool SOUND_INIT = false;
 
@@ -96,11 +96,11 @@ Sound::Sound()
  * [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
  */
 void Sound::init() {
-    eSoundMode = static_cast<eSOUND_MODE>(eeprom_get_ui8(EEVAR_SOUND_MODE));
+    eSoundMode = static_cast<eSOUND_MODE>(config_store().sound_mode.get());
     if (eSoundMode == eSOUND_MODE::UNDEF) {
         setMode(eSOUND_MODE::DEFAULT_SOUND);
     }
-    varVolume = real_volume(eeprom_get_ui8(EEVAR_SOUND_VOLUME));
+    varVolume = real_volume(config_store().sound_volume.get());
     /// GLOBAL FLAG set on demand when first sound method is called
     SOUND_INIT = true;
 }
@@ -121,12 +121,12 @@ void Sound::setVolume(int vol) {
 
 /// Store new Sound mode value into a EEPROM. Stored value size is 1byte
 void Sound::saveMode() {
-    eeprom_set_ui8(EEVAR_SOUND_MODE, (uint8_t)eSoundMode);
+    config_store().sound_mode.set((uint8_t)eSoundMode);
 }
 
 /// Store new Sound VOLUME value into a EEPROM.
 void Sound::saveVolume() {
-    eeprom_set_ui8(EEVAR_SOUND_VOLUME, displayed_volume(varVolume));
+    config_store().sound_volume.set(displayed_volume(varVolume));
 }
 
 /// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode

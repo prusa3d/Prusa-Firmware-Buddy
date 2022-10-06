@@ -8,6 +8,7 @@
 #include "qrcodegen.h"
 #include "scratch_buffer.hpp"
 #include "support_utils.h"
+#include "configuration_store.hpp"
 
 /// QR Window
 window_qr_t::window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num)
@@ -33,7 +34,7 @@ window_qr_t::window_qr_t(window_t *parent, Rect16 rect, const char *txt)
 
 void window_qr_t::SetQRHeader(uint16_t err_num) {
     error_num = err_num;
-    bool devhash_in_qr = eeprom_get_bool(EEVAR_DEVHASH_IN_QR);
+    bool devhash_in_qr = config_store().dev_hash_qr.get();
     if (devhash_in_qr) {
         error_url_long(text, sizeof(text), err_num);
     } else {

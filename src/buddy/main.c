@@ -5,6 +5,7 @@
 #include "crc32.h"
 #include "eeprom.h"
 #include "tick_timer_api.h"
+#include "configuration_store.h"
 
 static void enable_trap_on_division_by_zero() {
     SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
@@ -52,6 +53,7 @@ static void startup_task(void const *argument) {
     // init eeprom module itself
     taskENTER_CRITICAL();
     eeprom_init();
+    init_configuration_store();
     taskEXIT_CRITICAL();
 
     // init global variables and call constructors

@@ -1,18 +1,9 @@
-/**
- * @file eeprom_function_api.h
- * @author Radek Vana
- * @brief api alowing access to eeprom via functions
- * @date 2021-08-26
- */
-
 #pragma once
-
-#include <stdbool.h>
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
+
+void init_configuration_store();
 
 /**
  * @brief function set to read value from eeprom

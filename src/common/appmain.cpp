@@ -116,7 +116,6 @@ void app_run(void) {
     app_setup_marlin_logging();
 
     LangEEPROM::getInstance();
-    store().init();
 
     marlin_server_init();
     marlin_server_idle_cb = app_idle;

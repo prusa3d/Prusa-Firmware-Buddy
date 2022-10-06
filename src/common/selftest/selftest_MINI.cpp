@@ -15,7 +15,6 @@
 #include "wizard_config.hpp"
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
-#include "eeprom.h"
 #include "selftest_fans_type.hpp"
 #include "selftest_axis_type.hpp"
 #include "selftest_heaters_type.hpp"
@@ -29,7 +28,8 @@
 #include "fanctl.h"
 #include "timing.h"
 #include "selftest_result_type.hpp"
-#include "configuration_store/configuration_store.hpp"
+#include "configuration_store.hpp"
+#include "configuration_store.hpp"
 using namespace selftest;
 
 #define HOMING_TIME 15000 // ~15s when X and Y axes are at opposite side to home position
@@ -270,7 +270,7 @@ void CSelftest::Loop() {
 
 void CSelftest::phaseShowResult() {
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = config_store().selftest_result.get();
     m_result = SelftestResult_t(eeres);
 
     fsm::PhaseData data = m_result.Serialize();
@@ -282,14 +282,14 @@ void CSelftest::phaseDidSelftestPass() {
     // currently fsm::PhaseData structure equals SelftestResultEEprom_t
     // but they will wary later
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = config_store().selftest_result.get();
     m_result = SelftestResult_t(eeres);
     m_result.Log();
     // dont run wizard again
     if (m_result.Passed()) {
-        ConfigurationStore<>::GetStore().run_selftest.set(false);
-        ConfigurationStore<>::GetStore().run_xyz_calib.set(false);
-        ConfigurationStore<>::GetStore().run_firstlay.set(false);
+        config_store().run_selftest.set(false);
+        config_store().run_xyz_calib.set(false);
+        config_store().run_firstlay.set(false);
     }
 }
 
@@ -298,9 +298,9 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        ConfigurationStore<>::GetStore().run_selftest.set(false);
-        ConfigurationStore<>::GetStore().run_xyz_calib.set(false);
-        ConfigurationStore<>::GetStore().run_firstlay.set(false);
+        config_store().run_selftest.set(false);
+        config_store().run_xyz_calib.set(false);
+        config_store().run_firstlay.set(false);
         Abort();
     }
     return response == Response::_none;
@@ -335,7 +335,7 @@ void CSelftest::phaseSelftestStart() {
         marlin_server_set_temp_to_display(0);
     }
     SelftestResultEEprom_t eeres; // read previous result
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = config_store().selftest_result.get();
 
     if (m_Mask & stmFans) {
         eeres.printFan = 0;
@@ -351,7 +351,7 @@ void CSelftest::phaseSelftestStart() {
         eeres.nozzle = 0;
         eeres.bed = 0;
     }
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32)); // reset status for all selftest parts in eeprom
+    config_store().selftest_result.set(eeres.ui32);
 }
 
 void CSelftest::restoreAfterSelftest() {
@@ -379,7 +379,7 @@ void CSelftest::next() {
     // check, if state can run
     // this must be done after mask check
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = config_store().selftest_result.get();
     switch (m_State) {
     case stsZAxis: // both X and Y must be OK to test Z
         if (TestResult_t(eeres.xaxis) == TestResult_t::Passed && TestResult_t(eeres.yaxis) == TestResult_t::Passed)

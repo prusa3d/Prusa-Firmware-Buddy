@@ -199,6 +199,7 @@ add_library(Marlin_Config INTERFACE)
 # TODO: fix dependency on src/common and src/gui
 target_include_directories(
   Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
+                          src/configuration_store "${CMAKE_BINARY_DIR}/src/configuration_store"
   )
 if(HAS_SELFTEST)
   target_include_directories(Marlin_Config INTERFACE src/common/selftest)
@@ -428,6 +429,7 @@ target_include_directories(
           src/logging
           src/syslog
           include/mbedtls
+          src/configuration_store
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)

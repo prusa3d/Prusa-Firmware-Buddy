@@ -5,8 +5,7 @@
 #include "selftest_firstlayer.hpp"
 #include "selftest_sub_state.hpp"
 #include "selftest_part.hpp"
-#include "eeprom.h"
-
+#include "configuration_store.hpp"
 namespace selftest {
 SelftestFirstLayer_t staticResult; // automatically initialized by PartHandler
 
@@ -37,9 +36,7 @@ bool phaseFirstLayer(IPartHandler *&pFirstLayer, const FirstLayerConfig_t &confi
     if (in_progress) {
         return true;
     }
-
-    eeprom_set_bool(EEVAR_RUN_FIRSTLAY, false);
-
+    config_store().run_firstlay.set(false);
     delete pFirstLayer;
     pFirstLayer = nullptr;
     return false;

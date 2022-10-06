@@ -10,7 +10,7 @@
 #include "marlin_server.hpp"
 #include "../../Marlin/src/module/stepper.h"
 #include "selftest_part.hpp"
-#include "eeprom.h"
+#include "configuration_store.hpp"
 
 namespace selftest {
 SelftestSingleAxis_t staticResults[axis_count]; // automatically initialized by PartHandler
@@ -28,7 +28,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis) {
     // clang-format on
 
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = config_store().selftest_result.get();
 
     bool in_progress = m_pAxis->Loop();
     SelftestAxis_t result = SelftestAxis_t(staticResults[0], staticResults[1], staticResults[2]);
@@ -49,7 +49,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis) {
         eeres.zaxis = uint8_t(m_pAxis->GetResult());
         break;
     }
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+    config_store().selftest_result.set(eeres.ui32);
 
     delete m_pAxis;
     m_pAxis = nullptr;

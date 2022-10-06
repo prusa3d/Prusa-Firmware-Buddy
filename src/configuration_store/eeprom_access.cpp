@@ -1,7 +1,10 @@
 #include "eeprom_access.hpp"
 #include "hash_table.hpp"
+#include "timing.h"
+LOG_COMPONENT_DEF(EEPROM_ACCESS, LOG_SEVERITY_DEBUG);
 using namespace configuration_store;
 void EepromAccess::store_item(const std::vector<uint8_t> &data) {
+    log_debug(EEPROM_ACCESS, "Store item with size %d", data.size());
     if (!initialized) {
         fatal_error("Eeprom used uninitialized", "eeprom");
     }
@@ -70,6 +73,8 @@ std::optional<std::vector<uint8_t>> EepromAccess::load_item(uint16_t address) {
 }
 
 void EepromAccess::cleanup() {
+    log_info(EEPROM_ACCESS, "Cleanup started");
+    uint32_t start = ticks_ms();
     HashMap<NUM_OF_ITEMS> map;
     uint16_t address = get_start_offset();
     for (auto item = load_item(address); item.has_value(); item = load_item(address)) {
@@ -95,9 +100,14 @@ void EepromAccess::cleanup() {
 
     // update bank selector to current bank
     st25dv64k_user_write(BANK_SELECTOR_ADDRESS, bank_selector);
+
+    log_info(EEPROM_ACCESS, "Cleanup took %u ms", ticks_diff(ticks_ms(), start));
 }
 
 void EepromAccess::init(ItemUpdater &updater) {
+    std::unique_lock lock(mutex);
+    uint32_t start = ticks_ms();
+
     bank_selector = st25dv64k_user_read(BANK_SELECTOR_ADDRESS);
     if (bank_selector > 1) {
         bank_selector = 0;
@@ -106,10 +116,12 @@ void EepromAccess::init(ItemUpdater &updater) {
     uint16_t address = get_start_offset();
     bool res = init_from(updater, address);
     if (!res) {
+        log_error(EEPROM_ACCESS, "Initialization from bank: %d failed", bank_selector);
         // we have not iterated to the last item, this could mean that the eeprom is corrupted or not initialized
         switch_bank();
         address = get_start_offset();
         if (!init_from(updater, address)) {
+            log_error(EEPROM_ACCESS, "Initialization from bank: %d failed,selecting bank 1", bank_selector);
             // both banks not valid, init on the start of the second bank because in the first one could be the old eeprom
             bank_selector = 1;
             address = get_start_offset();
@@ -118,32 +130,44 @@ void EepromAccess::init(ItemUpdater &updater) {
         st25dv64k_user_write(BANK_SELECTOR_ADDRESS, bank_selector);
     }
 
+    log_debug(EEPROM_ACCESS, "Eeprom initialized");
+
     first_free_space = address;
     uint16_t free_space = BANK_SIZE - (address - get_start_offset());
     initialized = true;
     if (free_space < MIN_FREE_SPACE) {
         cleanup();
     }
+    log_info(EEPROM_ACCESS, "Eeprom init took %u ms", ticks_diff(ticks_ms(), start));
 }
 EepromAccess &EepromAccess::instance() {
     static EepromAccess eeprom;
     return eeprom;
 }
 bool EepromAccess::init_from(ItemUpdater &updater, uint16_t &address) {
+    size_t num_of_items = 0;
     for (auto item = load_item(address); item.has_value(); item = load_item(address)) {
         auto data = item.value();
         Key key = msgpack::unpack<Key>(data);
         updater(key.key, data);
         address += HEADER_SIZE + CRC_SIZE + data.size();
+        num_of_items++;
     }
+    log_info(EEPROM_ACCESS, "Loaded %d items", num_of_items);
     uint8_t ending_flag = st25dv64k_user_read(address);
     return ending_flag == LAST_ITEM_STOP;
 }
 bool EepromAccess::check_size(uint8_t size) {
     uint16_t free_space = BANK_SIZE - (first_free_space - get_start_offset());
+    log_debug(EEPROM_ACCESS, "Free space lef %d", free_space);
     return free_space < size;
 }
 void EepromAccess::reset() {
+    std::unique_lock lock(mutex);
     st25dv64k_user_write(START_OFFSET, 0xff);
     st25dv64k_user_write(START_OFFSET + BANK_SIZE, 0xff);
+}
+FreeRTOS_Mutex &configuration_store::get_item_mutex() {
+    static FreeRTOS_Mutex mutex;
+    return mutex;
 }

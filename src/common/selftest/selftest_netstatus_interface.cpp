@@ -3,7 +3,7 @@
  */
 #include "selftest_netstatus_interface.hpp"
 #include "netdev.h"
-#include "eeprom.h"
+#include "configuration_store.hpp"
 #include "selftest_eeprom.hpp"
 #include "selftest_log.hpp"
 
@@ -43,10 +43,10 @@ void phaseNetStatus() {
     netdev_status_t wifi = netdev_get_status(NETDEV_ESP_ID);
 
     SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
+    eeres.ui32 = config_store().selftest_result.get();
     eeres.eth = uint8_t(convert(eth));
     eeres.wifi = uint8_t(convert(wifi));
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+    config_store().selftest_result.set(eeres.ui32);
 
     log_info(Selftest, "Eth %s", to_string(eth));
     log_info(Selftest, "Wifi %s", to_string(wifi));

@@ -7,9 +7,9 @@
 #include "sound.hpp"
 #include "dump.h"
 #include "sys.h"
-#include "eeprom.h"
 #include "support_utils.h"
 #include "version.h"
+#include "configuration_store.hpp"
 
 static const constexpr Rect16 title_rect = Rect16(13, 12, display::GetW() - 26, 20);
 static const constexpr Rect16 hand_rect = Rect16(20, 165, 64, 82);
@@ -88,7 +88,7 @@ ScreenErrorQR::ScreenErrorQR()
         help_txt.Hide();
         help_link.SetText(_(qr_text));
 
-        if (eeprom_get_bool(EEVAR_DEVHASH_IN_QR)) {
+        if (config_store().dev_hash_qr.get()) {
             static char p_code[PRINTER_CODE_SIZE + 1];
             printerCode(p_code);
             qr_code_txt.SetText(string_view_utf8::MakeRAM((const uint8_t *)p_code));

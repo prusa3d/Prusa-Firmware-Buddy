@@ -50,9 +50,9 @@ screen_splash_data_t::screen_splash_data_t()
     text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_version_buffer));
 
 #if HAS_SELFTEST
-    const bool run_selftest = ConfigurationStore<>::GetStore().run_selftest;
-    const bool run_xyzcalib = ConfigurationStore<>::GetStore().run_xyz_calib;
-    const bool run_firstlay = ConfigurationStore<>::GetStore().run_firstlay;
+    const bool run_selftest = config_store().run_selftest.get();
+    const bool run_xyzcalib = config_store().run_xyz_calib.get();
+    const bool run_firstlay = config_store().run_firstlay.get();
     const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
 #endif
     const bool run_lang = !LangEEPROM::getInstance().IsValid();
