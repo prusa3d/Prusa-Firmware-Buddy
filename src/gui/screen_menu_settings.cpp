@@ -11,6 +11,7 @@
 #include "netdev.h"
 #include "wui.h"
 #include "SteelSheets.hpp"
+#include "feature/has_selftest.h"
 #ifdef BUDDY_ENABLE_CONNECT
     #include <connect/marlin_printer.hpp>
 #endif

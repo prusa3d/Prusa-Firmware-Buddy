@@ -1,6 +1,7 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../lib/Marlin/Marlin/src/gcode/queue.h"
 #include "PrusaGcodeSuite.hpp"
+#include "feature/has_selftest.h"
 #if HAS_SELFTEST
     #include "selftest_esp.hpp"
 #endif // HAS_SELFTEST

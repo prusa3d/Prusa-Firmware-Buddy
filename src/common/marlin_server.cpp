@@ -46,6 +46,7 @@
 #include "fsm_types.hpp"
 #include "odometer.hpp"
 #include "metric.h"
+#include "feature/has_selftest.h"
 
 #if HAS_SELFTEST
     #include "printer_selftest.hpp"

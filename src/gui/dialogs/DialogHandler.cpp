@@ -7,6 +7,7 @@
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
+#include "feature/has_selftest.h"
 
 #if HAS_SELFTEST
     #include "ScreenSelftest.hpp"
