@@ -1,5 +1,6 @@
 #include <device/board.h>
 #include <device/peripherals.h>
+#include <device/mcu.h>
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "main.h"

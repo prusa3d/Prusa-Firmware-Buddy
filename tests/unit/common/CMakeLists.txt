@@ -53,6 +53,7 @@ add_executable(timing_tests ${CMAKE_SOURCE_DIR}/src/common/timing.c timing_tests
 target_compile_definitions(timing_tests PRIVATE MCU=STM32F407VG)
 target_include_directories(
   timing_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/include
+                      ${CMAKE_CURRENT_SOURCE_DIR}/include
   )
 
 add_executable(
