@@ -15,7 +15,6 @@
 #include "resources/revision_bootloader.hpp"
 #include "bootloader/bootloader.hpp"
 #include "bootloader/required_version.hpp"
-#include "feature/bootloader_update.h"
 
 // FIXME: Those includes are here only for the RNG.
 // We should add support for the stdlib's standard random function

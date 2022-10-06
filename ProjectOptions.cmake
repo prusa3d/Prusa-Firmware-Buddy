@@ -92,6 +92,9 @@ foreach(OPTION "PRINTER" "BOARD" "MCU" "BOOTLOADER")
   endif()
 endforeach()
 
+# define simple options
+define_boolean_option(BOOTLOADER ${BOOTLOADER})
+
 # set board to its default if not specified
 if(${BOARD} STREQUAL "<default>")
   if(${PRINTER} MATCHES "^(MINI)$")
@@ -184,6 +187,7 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_RESOURCES AND BOARD MATCHES ".*BUDDY")
 else()
   set(RESOURCES NO)
 endif()
+define_boolean_option(RESOURCES ${RESOURCES})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_GUI AND BOARD MATCHES ".*BUDDY")
   set(GUI YES)
@@ -239,11 +243,10 @@ else()
 endif()
 
 # define enabled features
-define_feature(BOOTLOADER ${BOOTLOADER})
-define_feature(RESOURCES ${RESOURCES})
 
 if(BOOTLOADER AND ${PRINTER} STREQUAL "MINI")
-  define_feature(BOOTLOADER_UPDATE ON)
+  set(BOOTLOADER_UPDATE YES)
 else()
-  define_feature(BOOTLOADER_UPDATE OFF)
+  set(BOOTLOADER_UPDATE NO)
 endif()
+define_boolean_option(BOOTLOADER_UPDATE ${BOOTLOADER_UPDATE})

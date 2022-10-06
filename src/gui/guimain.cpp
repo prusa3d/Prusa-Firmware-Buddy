@@ -32,15 +32,15 @@
 #include "gui_fsensor_api.hpp"
 #include "gcode_info.hpp"
 
-#include <feature/bootloader.h>
-#include <feature/bootloader_update.h>
-#include <feature/resources.h>
+#include <option/bootloader.h>
+#include <option/bootloader_update.h>
+#include <option/resources.h>
 
-#if ENABLED(RESOURCES)
+#if ENABLED(RESOURCES())
     #include "resources/bootstrap.hpp"
     #include "resources/revision_standard.hpp"
 #endif
-#if BOTH(RESOURCES, BOOTLOADER)
+#if BOTH(RESOURCES(), BOOTLOADER())
     #include "bootloader/bootloader.hpp"
 #endif
 int guimain_spi_test = 0;
@@ -140,7 +140,7 @@ void client_gui_refresh() {
     }
 }
 
-#if ENABLED(RESOURCES)
+#if ENABLED(RESOURCES())
 static void finish_update() {
 
     #if ENABLED(BOOTLOADER_UPDATE)
@@ -264,7 +264,7 @@ void gui_run(void) {
 
     Screens::Access()->Loop();
 
-#if ENABLED(RESOURCES)
+#if ENABLED(RESOURCES())
     finish_update();
 #endif
 
