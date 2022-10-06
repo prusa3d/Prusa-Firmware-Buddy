@@ -483,18 +483,6 @@ set_property(
   )
 
 set_property(
-  SOURCE src/common/marlin_server.cpp
-         src/gui/screen_splash.cpp
-         src/gui/screen_menu_settings.cpp
-         src/gui/screen_menu_hw_setup.cpp
-         src/gui/test/screen_test.cpp
-         src/gui/dialogs/DialogHandler.cpp
-         src/marlin_stubs/M997.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_SELFTEST=$<BOOL:${HAS_SELFTEST}>
-  )
-
-set_property(
   SOURCE src/buddy/main.cpp
          src/gui/screen_menu_settings.cpp
          src/gui/screen_menu_footer_settings.cpp

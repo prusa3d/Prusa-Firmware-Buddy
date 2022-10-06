@@ -13,6 +13,7 @@
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 #include "bsod.h"
+#include "feature/has_selftest.h"
 
 #include <option/bootloader.h>
 

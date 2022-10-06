@@ -253,6 +253,9 @@ else()
 endif()
 
 # define enabled features
+define_feature(BOOTLOADER ${BOOTLOADER})
+define_feature(RESOURCES ${RESOURCES})
+define_feature(HAS_SELFTEST ${HAS_SELFTEST})
 
 if(BOOTLOADER AND ${PRINTER} STREQUAL "MINI")
   set(BOOTLOADER_UPDATE YES)
