@@ -196,7 +196,7 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
                                    return buffer.header(extra_hdrs->name, val, extra_hdrs->size_limit);
                                },
                                [&](size_t val) {
-                                   snprintf(buff, buff_size, "%u", val);
+                                   snprintf(buff, buff_size, "%zu", val);
                                    return buffer.header(extra_hdrs->name, buff, extra_hdrs->size_limit);
                                },
                            },
