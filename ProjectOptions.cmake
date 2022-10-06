@@ -206,6 +206,7 @@ else()
   set(GUI NO)
 endif()
 message(STATUS "Graphical User Interface: ${GUI}")
+define_boolean_option(HAS_GUI ${GUI})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
   set(INIT_TRINAMIC_FROM_MARLIN_ONLY YES)

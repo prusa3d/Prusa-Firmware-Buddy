@@ -214,9 +214,7 @@ void app_tim14_tick(void) {
     fanctl_tick();
     record_fanctl_metrics();
 #endif //NEW_FANCTL
-#ifndef HAS_GUI
-    #error "HAS_GUI not defined."
-#elif HAS_GUI
+#if HAS_GUI()
     jogwheel.Update1msFromISR();
 #endif
     Sound_Update1ms();

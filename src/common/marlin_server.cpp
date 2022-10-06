@@ -47,6 +47,8 @@
 #include "odometer.hpp"
 #include "metric.h"
 
+#include <option/has_gui.h>
+
 #if HAS_SELFTEST
     #include "printer_selftest.hpp"
 #endif
@@ -894,7 +896,7 @@ static void _server_print_loop(void) {
         break;
     case mpsWaitGui:
         // without gui just act as if state == mpsPrintPreviewInit
-#if HAS_GUI
+#if HAS_GUI()
         break;
 #endif
     case mpsPrintPreviewInit:
