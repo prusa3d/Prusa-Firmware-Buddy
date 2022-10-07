@@ -2031,11 +2031,7 @@ void set_axis_is_at_home(const AxisEnum axis) {
         update_workspace_offset(axis);
       }
     #else
-      current_position[axis] = base_home_pos(axis)
-        #if ENABLED(PRECISE_HOMING)
-          - calibrated_home_offset(axis)
-        #endif // ENABLED(PRECISE_HOMING)
-      ;
+      current_position[axis] = base_home_pos(axis) - TERN0(PRECISE_HOMING, calibrated_home_offset(axis));
     #endif
   #endif
 
