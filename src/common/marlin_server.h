@@ -78,7 +78,7 @@ extern void marlin_server_manage_heater(void);
 extern void marlin_server_quick_stop(void);
 
 // direct print file with SFM format
-void marlin_server_print_start(const char *filename, bool skip_preview);
+void marlin_server_print_start(const char *filename, bool skip_preview, bool skip_gui);
 
 //
 extern uint32_t marlin_server_get_command(void);

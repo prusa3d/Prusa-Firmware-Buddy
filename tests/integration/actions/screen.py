@@ -35,11 +35,24 @@ async def read(printer: Printer):
 
 
 @timeoutable
+async def wait_for(condition):
+    while True:
+        if await condition():
+            break
+
+
+@timeoutable
 async def wait_for_text(printer: Printer, text):
     while True:
         text_on_screen = await read(printer)
         if text in text_on_screen:
             return text_on_screen
+
+
+async def is_on_homescreen(printer: Printer):
+    text = await read(printer)
+    fragments = 'preheat', 'settings'
+    return all(fragment in text.lower() for fragment in fragments)
 
 
 async def is_booting(printer: Printer):
@@ -49,5 +62,6 @@ async def is_booting(printer: Printer):
         return True
     if printer.machine == MachineType.MINI and text.strip():
         # after the black screen, we might catch MINI's loading screen
-        return 'loadin' in text.lower()
+        fragments = 'loadin', 'looking for bbf', 'preparing bootstrap', 'copying', 'installing files'
+        return any(fragment in text.lower() for fragment in fragments)
     return False

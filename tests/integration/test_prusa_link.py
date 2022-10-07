@@ -247,6 +247,7 @@ async def test_delete_project_printing(running_printer_client):
     assert stop.status == 204
 
 
+@pytest.mark.skip()
 async def test_delete_project(printer_with_files):
     fname = '/api/files/usb/BOX~1.GCO'
     heads = valid_headers()
@@ -260,6 +261,7 @@ async def test_delete_project(printer_with_files):
     assert listing["files"] == []
 
 
+@pytest.mark.skip()
 async def test_list_files(printer_with_files):
     listing_r = await printer_with_files.get('/api/files',
                                              headers=valid_headers())

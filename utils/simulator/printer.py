@@ -1,10 +1,12 @@
+import sys
 from enum import Enum, auto
 from PIL import Image
 
-try:
+if sys.version_info < (3, 8):
     from typing import Protocol
-except ImportError:
+else:
     # Protocol isn't available on Python < 3.8
+    # More pythonic way would be to catch ImportError, but this breaks pyright analysis
     class Protocol:
         pass
 
