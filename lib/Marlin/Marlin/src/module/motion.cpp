@@ -1166,44 +1166,31 @@ void prepare_move_to_destination() {
 
 #if HAS_ENDSTOPS
 
-  /**
-   * axis_homed
-   *   Flags that each linear axis was homed.
-   *   XYZ on cartesian, ABC on delta, ABZ on SCARA.
-   *
-   * axis_known_position
-   *   Flags that the position is known in each linear axis. Set when homed.
-   *   Cleared whenever a stepper powers off, potentially losing its position.
-   */
-  uint8_t axis_homed, axis_known_position; // = 0
+  main_axes_bits_t axes_homed, axes_trusted; // = 0
 
-  uint8_t axes_need_homing(uint8_t axis_bits/*=0x07*/) {
-    #if ENABLED(HOME_AFTER_DEACTIVATE)
-      #define HOMED_FLAGS axis_known_position
-    #else
-      #define HOMED_FLAGS axis_homed
-    #endif
-    // Clear test bits that are homed
-    if (TEST(axis_bits, X_AXIS) && TEST(HOMED_FLAGS, X_AXIS)) CBI(axis_bits, X_AXIS);
-    if (TEST(axis_bits, Y_AXIS) && TEST(HOMED_FLAGS, Y_AXIS)) CBI(axis_bits, Y_AXIS);
-    if (TEST(axis_bits, Z_AXIS) && TEST(HOMED_FLAGS, Z_AXIS)) CBI(axis_bits, Z_AXIS);
+  main_axes_bits_t axes_should_home(main_axes_bits_t axis_bits/*=main_axes_mask*/) {
+    auto set_should = [](main_axes_bits_t &b, AxisEnum a) {
+      if (TEST(b, a) && TERN(HOME_AFTER_DEACTIVATE, axis_is_trusted, axis_was_homed)(a))
+        CBI(b, a);
+    };
+    // Clear test bits that are trusted
+    NUM_AXIS_CODE(
+      set_should(axis_bits, X_AXIS), set_should(axis_bits, Y_AXIS), set_should(axis_bits, Z_AXIS),
+      set_should(axis_bits, I_AXIS), set_should(axis_bits, J_AXIS), set_should(axis_bits, K_AXIS),
+      set_should(axis_bits, U_AXIS), set_should(axis_bits, V_AXIS), set_should(axis_bits, W_AXIS)
+    );
     return axis_bits;
   }
 
-  bool axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
-    if ((axis_bits = axes_need_homing(axis_bits))) {
+  bool homing_needed_error(main_axes_bits_t axis_bits/*=main_axes_mask*/) {
+    if ((axis_bits = axes_should_home(axis_bits))) {
       PGM_P home_first = GET_TEXT(MSG_HOME_FIRST);
-      char msg[strlen_P(home_first)+1];
-      sprintf_P(msg, home_first,
-        TEST(axis_bits, X_AXIS) ? "X" : "",
-        TEST(axis_bits, Y_AXIS) ? "Y" : "",
-        TEST(axis_bits, Z_AXIS) ? "Z" : ""
-      );
+      char msg[30];
+      #define _AXIS_CHAR(N) TEST(axis_bits, _AXIS(N)) ? STR_##N : ""
+      sprintf_P(msg, home_first, MAPLIST(_AXIS_CHAR, MAIN_AXIS_NAMES));
       SERIAL_ECHO_START();
       SERIAL_ECHOLN(msg);
-      #if HAS_DISPLAY
-        ui.set_status(msg);
-      #endif
+      ui.set_status(msg);
       return true;
     }
     return false;
@@ -1555,19 +1542,19 @@ void prepare_move_to_destination() {
   }
 
   /**
-   * Set an axis' to be unhomed.
+   * Set an axis to be unhomed. (Unless we are on a machine - e.g. a cheap Chinese CNC machine -
+   * that has no endstops. Such machines should always be considered to be in a "known" and
+   * "trusted" position).
    */
-  void set_axis_is_not_at_home(const AxisEnum axis) {
-    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> set_axis_is_not_at_home(", axis_codes[axis], ")");
+  void set_axis_never_homed(const AxisEnum axis) {
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM(">>> set_axis_never_homed(", AS_CHAR(AXIS_CHAR(axis)), ")");
 
-    CBI(axis_known_position, axis);
-    CBI(axis_homed, axis);
+    set_axis_untrusted(axis);
+    set_axis_unhomed(axis);
 
-    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< set_axis_is_not_at_home(", axis_codes[axis], ")");
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< set_axis_never_homed(", AS_CHAR(AXIS_CHAR(axis)), ")");
 
-    #if ENABLED(I2C_POSITION_ENCODERS)
-      I2CPEM.unhomed(axis);
-    #endif
+    TERN_(I2C_POSITION_ENCODERS, I2CPEM.unhomed(axis));
   }
 
   // declare function used by homeaxis
@@ -1971,7 +1958,7 @@ void prepare_move_to_destination() {
  *
  * DELTA should wait until all homing is done before setting the XYZ
  * current_position to home, because homing is a single operation.
- * In the case where the axis positions are already known and previously
+ * In the case where the axis positions are trusted and previously
  * homed, DELTA could home to X or Y individually by moving either one
  * to the center. However, homing Z always homes XY and Z.
  *
@@ -1982,10 +1969,10 @@ void prepare_move_to_destination() {
  * Callers must sync the planner position after calling this!
  */
 void set_axis_is_at_home(const AxisEnum axis) {
-  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> set_axis_is_at_home(", axis_codes[axis], ")");
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM(">>> set_axis_is_at_home(", AS_CHAR(AXIS_CHAR(axis)), ")");
 
-  SBI(axis_known_position, axis);
-  SBI(axis_homed, axis);
+  set_axis_trusted(axis);
+  set_axis_homed(axis);
 
   #if ENABLED(DUAL_X_CARRIAGE)
     if (axis == X_AXIS && (active_extruder == 1 || dual_x_carriage_mode == DXC_DUPLICATION_MODE)) {
@@ -1994,14 +1981,10 @@ void set_axis_is_at_home(const AxisEnum axis) {
     }
   #endif
 
-  #if ENABLED(MORGAN_SCARA)
+  #if EITHER(MORGAN_SCARA, AXEL_TPARA)
     scara_set_axis_is_at_home(axis);
   #elif ENABLED(DELTA)
-    current_position[axis] = (axis == Z_AXIS ? delta_height
-    #if HAS_BED_PROBE
-      - probe_offset.z
-    #endif
-    : base_home_pos(axis));
+    current_position[axis] = (axis == Z_AXIS) ? DIFF_TERN(HAS_BED_PROBE, delta_height, probe.offset.z) : base_home_pos(axis);
   #else
     #ifdef WORKSPACE_HOME
       /*Fill workspace_homes[] with data from config*/

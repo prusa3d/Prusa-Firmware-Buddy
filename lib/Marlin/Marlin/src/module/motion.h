@@ -38,24 +38,6 @@
   #include "scara.h"
 #endif
 
-// Axis homed and known-position states
-extern uint8_t axis_homed, axis_known_position;
-constexpr uint8_t xyz_bits = _BV(X_AXIS) | _BV(Y_AXIS) | _BV(Z_AXIS);
-FORCE_INLINE bool all_axes_homed() { return (axis_homed & xyz_bits) == xyz_bits; }
-FORCE_INLINE bool all_axes_known() { return (axis_known_position & xyz_bits) == xyz_bits; }
-FORCE_INLINE void set_all_unhomed() { axis_homed = 0; }
-FORCE_INLINE void set_all_unknown() { axis_known_position = 0; }
-
-FORCE_INLINE bool homing_needed() {
-  return !(
-    #if ENABLED(HOME_AFTER_DEACTIVATE)
-      all_axes_known()
-    #else
-      all_axes_homed()
-    #endif
-  );
-}
-
 // Error margin to work around float imprecision
 constexpr float slop = 0.0001;
 
@@ -327,15 +309,16 @@ void restore_feedrate_and_scaling();
   inline void do_z_clearance(float, bool=false) {}
 #endif
 
-//
-// Homing
-//
+/**
+ * Homing and Trusted Axes
+ */
+typedef IF<(NUM_AXES > 8), uint16_t, uint8_t>::type main_axes_bits_t;
+constexpr main_axes_bits_t main_axes_mask = _BV(NUM_AXES) - 1;
 
-uint8_t axes_need_homing(uint8_t axis_bits=0x07);
-bool axis_unhomed_error(uint8_t axis_bits=0x07);
+typedef IF<(NUM_AXES + EXTRUDERS > 8), uint16_t, uint8_t>::type e_axis_bits_t;
+constexpr e_axis_bits_t e_axis_mask = (_BV(EXTRUDERS) - 1) << NUM_AXES;
 
-static inline bool axes_should_home(uint8_t axis_bits=0x07) { return axes_need_homing(axis_bits); }
-static inline bool homing_needed_error(uint8_t axis_bits=0x07) { return axis_unhomed_error(axis_bits); }
+void set_axis_is_at_home(const AxisEnum axis);
 
 #if ENABLED(NO_MOTION_BEFORE_HOMING)
   #define MOTION_CONDITIONS (IsRunning() && !axis_unhomed_error())
@@ -343,9 +326,55 @@ static inline bool homing_needed_error(uint8_t axis_bits=0x07) { return axis_unh
   #define MOTION_CONDITIONS IsRunning()
 #endif
 
-void set_axis_is_at_home(const AxisEnum axis);
+#if HAS_ENDSTOPS
+  /**
+   * axes_homed
+   *   Flags that each linear axis was homed.
+   *   XYZ on cartesian, ABC on delta, ABZ on SCARA.
+   *
+   * axes_trusted
+   *   Flags that the position is trusted in each linear axis. Set when homed.
+   *   Cleared whenever a stepper powers off, potentially losing its position.
+   */
+  extern main_axes_bits_t axes_homed, axes_trusted;
+  void set_axis_never_homed(const AxisEnum axis);
+  main_axes_bits_t axes_should_home(main_axes_bits_t axes_mask=main_axes_mask);
+  bool homing_needed_error(main_axes_bits_t axes_mask=main_axes_mask);
+  inline void set_axis_unhomed(const AxisEnum axis)   { CBI(axes_homed, axis); }
+  inline void set_axis_untrusted(const AxisEnum axis) { CBI(axes_trusted, axis); }
+  inline void set_all_unhomed()                       { axes_homed = axes_trusted = 0; }
+  inline void set_axis_homed(const AxisEnum axis)     { SBI(axes_homed, axis); }
+  inline void set_axis_trusted(const AxisEnum axis)   { SBI(axes_trusted, axis); }
+  inline void set_all_homed()                         { axes_homed = axes_trusted = main_axes_mask; }
+#else
+  constexpr main_axes_bits_t axes_homed = main_axes_mask, axes_trusted = main_axes_mask; // Zero-endstop machines are always homed and trusted
+  inline void set_axis_never_homed(const AxisEnum)    {}
+  inline main_axes_bits_t axes_should_home(main_axes_bits_t=main_axes_mask) { return 0; }
+  inline bool homing_needed_error(main_axes_bits_t=main_axes_mask) { return false; }
+  inline void set_axis_unhomed(const AxisEnum axis)   {}
+  inline void set_axis_untrusted(const AxisEnum axis) {}
+  inline void set_all_unhomed()                       {}
+  inline void set_axis_homed(const AxisEnum axis)     {}
+  inline void set_axis_trusted(const AxisEnum axis)   {}
+  inline void set_all_homed()                         {}
+#endif
 
-void set_axis_is_not_at_home(const AxisEnum axis);
+inline bool axis_was_homed(const AxisEnum axis)       { return TEST(axes_homed, axis); }
+inline bool axis_is_trusted(const AxisEnum axis)      { return TEST(axes_trusted, axis); }
+inline bool axis_should_home(const AxisEnum axis)     { return (axes_should_home() & _BV(axis)) != 0; }
+inline bool no_axes_homed()                           { return !axes_homed; }
+inline bool all_axes_homed()                          { return main_axes_mask == (axes_homed & main_axes_mask); }
+inline bool homing_needed()                           { return !all_axes_homed(); }
+inline bool all_axes_trusted()                        { return main_axes_mask == (axes_trusted & main_axes_mask); }
+
+// STUBS for Marlin 2.0.x
+static inline bool axis_unhomed_error(main_axes_bits_t=main_axes_mask) { return homing_needed_error(main_axes_mask); }
+static inline main_axes_bits_t axes_need_homing(main_axes_bits_t=main_axes_mask) { return axes_should_home(main_axes_mask); }
+static inline bool all_axes_known() { return all_axes_trusted(); }
+static inline void set_all_unknown() { set_all_unhomed(); }
+static main_axes_bits_t& axis_homed = axes_homed;
+static main_axes_bits_t& axis_known_position = axes_trusted;
+// END STUBS
 
 #if ENABLED(PRECISE_HOMING)
   void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false, bool can_calibrate = true);
