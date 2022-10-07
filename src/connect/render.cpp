@@ -4,6 +4,7 @@
 #include <eeprom.h>
 #include <lfn.h>
 #include <gcode_filename.h>
+#include <gcode_file.h>
 
 #include <cassert>
 #include <cstring>
@@ -281,6 +282,55 @@ namespace {
         }
     }
 
+    enum class MetaFilter {
+        Ignore,
+        String,
+        Int,
+        Float,
+        Bool,
+    };
+
+    struct MetaRecord {
+        const char *name;
+        MetaFilter filter;
+    };
+
+    // TODO: We probably can come up with some way of not storing the long
+    // strings in here and save some flash size with maybe CRCs of the strings?
+    static constexpr MetaRecord meta_records[] = {
+        { "estimated printing time (normal mode)", MetaFilter::String },
+        { "filament cost", MetaFilter::Float },
+        { "filament used [mm]", MetaFilter::Float },
+        { "filament used [cm3]", MetaFilter::Float },
+        { "filament used [mm3]", MetaFilter::Float },
+        { "filament used [g]", MetaFilter::Float },
+        { "filament used [m]", MetaFilter::Float },
+        { "bed_temperature", MetaFilter::Int },
+        { "brim_width", MetaFilter::Int },
+        { "filament_type", MetaFilter::String },
+        // Yes, really, a string, because it contains the % sign.
+        { "fill_density", MetaFilter::String },
+        { "layer_height", MetaFilter::Float },
+        { "nozzle_diameter", MetaFilter::Float },
+        { "printer_model", MetaFilter::String },
+        { "temperature", MetaFilter::Int },
+        // Note: These two should actually be Bools. But it seems the server is
+        // currently expecting 0/1, the gcode also contains 0/1, so we adhere
+        // to the rest because of compatibility.
+        { "ironing", MetaFilter::Int },
+        { "support_material", MetaFilter::Int },
+    };
+
+    MetaFilter meta_filter(const char *name) {
+        for (size_t i = 0; i < sizeof meta_records / sizeof *meta_records; i++) {
+            if (strcmp(name, meta_records[i].name) == 0) {
+                return meta_records[i].filter;
+            }
+        }
+
+        return MetaFilter::Ignore;
+    }
+
 }
 
 PreviewRenderer::PreviewRenderer(FILE *f)
@@ -339,6 +389,109 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     return make_tuple(result, written);
 }
 
+tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buffer_size) {
+    // Special case, we "start" not an the beginning, but some amount from the
+    // end ‒ we don't want to read through all the long gcode in the middle.
+    // Of course, if the file is shorter, we just start from the beginning instead.
+    if (resume_position == 0) {
+        if (fseek(f, -f_gcode_search_last_x_bytes, SEEK_END) != 0) {
+            fseek(f, 0, SEEK_SET);
+        }
+    } else {
+        // The last one didn't fit, so return before that one and retry.
+        // (we are fine not checking the errors; they'd be result of maybe
+        // removed USB drive or such and that'll just explode a bit lower in
+        // the code).
+        fseek(f, resume_position, SEEK_SET);
+    }
+
+    char name_buffer[64];
+    char value_buffer[32];
+
+    size_t buffer_size_rest = buffer_size;
+    // We are reusing the JsonOutput here, but not using the resume point
+    // feature of it. We still need to provide the variable to it, though.
+    size_t resume_point = 0;
+    JsonOutput output(buffer, buffer_size_rest, resume_point);
+    // The output does track how much it used. But we need to track it in the
+    // whole fields resolution, including commas ‒ otherwise the code would
+    // become significantly more complicated by a comma being able to overflow
+    // to the next buffer of data.
+    size_t pos = 0;
+
+    while (f_gcode_get_next_comment_assignment(f, name_buffer, sizeof name_buffer, value_buffer, sizeof value_buffer)) {
+        JsonResult result = JsonResult::Complete;
+
+        const auto filter = meta_filter(name_buffer);
+        switch (filter) {
+        case MetaFilter::Ignore:
+            goto SKIP;
+
+        case MetaFilter::String:
+            result = output.output_field_str(0, name_buffer, value_buffer);
+            break;
+
+        case MetaFilter::Float: {
+            char *end = nullptr;
+            double v = strtod(value_buffer, &end);
+            if (end != nullptr && *end != '\0') {
+                goto SKIP;
+            }
+
+            result = output.output_field_float_fixed(0, name_buffer, v, 2);
+            break;
+        }
+
+        case MetaFilter::Int:
+        case MetaFilter::Bool: {
+            char *end = nullptr;
+            long v = strtol(value_buffer, &end, 10);
+            if (end != nullptr && *end != '\0') {
+                // Not really an int there.
+                goto SKIP;
+            }
+
+            if (filter == MetaFilter::Int) {
+                result = output.output_field_int(0, name_buffer, v);
+            } else {
+                // The gcode encodes bools as 0/1, JSON has True and False.
+                result = output.output_field_bool(0, name_buffer, v);
+            }
+            break;
+        }
+        }
+
+        if (result == JsonResult::Complete) {
+            result = output.output(0, ",");
+        }
+
+        switch (result) {
+        case JsonResult::Complete:
+            // Successfully put into the buffer.
+            break;
+        case JsonResult::Abort:
+            // We use only the primitive output functions and they are not
+            // capable of returning Abort.
+            assert(0);
+            break;
+        case JsonResult::Incomplete:
+        case JsonResult::BufferTooSmall:
+            // The primitive functions get "confused" a little bit by always
+            // using the resume point of 0 and reports BufferTooSmall. But
+            // that's fine, we don't really need to make that distinction here.
+            return make_tuple(JsonResult::Incomplete, pos);
+        }
+
+    SKIP:
+        // Adjust these only after the whole field, including comma. Not in
+        // case it doesn't fit.
+        resume_position = ftell(f);
+        pos = buffer_size - buffer_size_rest;
+    }
+
+    return make_tuple(JsonResult::Complete, pos);
+}
+
 DirRenderer::DirRenderer(const char *base_path, unique_dir_ptr dir)
     : JsonRenderer(DirState { move(dir), base_path }) {}
 
@@ -377,7 +530,7 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
 
 FileExtra::FileExtra(unique_file_ptr file)
     : file(move(file))
-    , renderer(move(PreviewRenderer(this->file.get()))) {}
+    , renderer(move(GcodeExtra(PreviewRenderer(this->file.get()), GcodeMetaRenderer(this->file.get())))) {}
 
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
