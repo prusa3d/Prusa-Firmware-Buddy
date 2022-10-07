@@ -517,12 +517,13 @@ void restore_feedrate_and_scaling() {
 
 #if HAS_SOFTWARE_ENDSTOPS
 
-  bool soft_endstops_enabled = true;
-
   // Software Endstops are based on the configured limits.
-  axis_limits_t soft_endstop = {
-    { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-    { X_MAX_POS, Y_MAX_POS, Z_MAX_POS }
+  #define _AMIN(A) A##_MIN_POS
+  #define _AMAX(A) A##_MAX_POS
+  soft_endstops_t soft_endstop = {
+    true, false,
+    { MAPLIST(_AMIN, MAIN_AXIS_NAMES) },
+    { MAPLIST(_AMAX, MAIN_AXIS_NAMES) },
   };
 
   /**
@@ -535,9 +536,7 @@ void restore_feedrate_and_scaling() {
    * at the same positions relative to the machine.
    */
   void update_software_endstops(const AxisEnum axis
-    #if HAS_HOTEND_OFFSET
-      , const uint8_t old_tool_index/*=0*/, const uint8_t new_tool_index/*=0*/
-    #endif
+    OPTARG(HAS_HOTEND_OFFSET, const uint8_t old_tool_index/*=0*/, const uint8_t new_tool_index/*=0*/)
   ) {
 
     #if ENABLED(DUAL_X_CARRIAGE)
@@ -552,7 +551,7 @@ void restore_feedrate_and_scaling() {
           soft_endstop.min.x = X2_MIN_POS;
           soft_endstop.max.x = dual_max_x;
         }
-        else if (dxc_is_duplicating()) {
+        else if (idex_is_duplicating()) {
           // In Duplication Mode, T0 can move as far left as X1_MIN_POS
           // but not so far to the right that T1 would move past the end
           soft_endstop.min.x = X1_MIN_POS;
@@ -569,11 +568,7 @@ void restore_feedrate_and_scaling() {
     #elif ENABLED(DELTA)
 
       soft_endstop.min[axis] = base_min_pos(axis);
-      soft_endstop.max[axis] = (axis == Z_AXIS ? delta_height
-      #if HAS_BED_PROBE
-        - probe_offset.z
-      #endif
-      : base_max_pos(axis));
+      soft_endstop.max[axis] = (axis == Z_AXIS) ? DIFF_TERN(HAS_BED_PROBE, delta_height, probe.offset.z) : base_max_pos(axis);
 
       switch (axis) {
         case X_AXIS:
@@ -583,7 +578,7 @@ void restore_feedrate_and_scaling() {
           delta_max_radius_2 = sq(delta_max_radius);
           break;
         case Z_AXIS:
-          delta_clip_start_height = soft_endstop.max[axis] - delta_safe_distance_from_top();
+          refresh_delta_clip_start_height();
         default: break;
       }
 
@@ -592,15 +587,16 @@ void restore_feedrate_and_scaling() {
       // Software endstops are relative to the tool 0 workspace, so
       // the movement limits must be shifted by the tool offset to
       // retain the same physical limit when other tools are selected.
-      if (old_tool_index != new_tool_index) {
-        const float offs = hotend_offset[new_tool_index][axis] - hotend_offset[old_tool_index][axis];
-        soft_endstop.min[axis] += offs;
-        soft_endstop.max[axis] += offs;
-      }
-      else {
-        const float offs = hotend_offset[active_extruder][axis];
+
+      if (new_tool_index == old_tool_index || axis == Z_AXIS) { // The Z axis is "special" and shouldn't be modified
+        const float offs = (axis == Z_AXIS) ? 0 : hotend_offset[active_extruder][axis];
         soft_endstop.min[axis] = base_min_pos(axis) + offs;
         soft_endstop.max[axis] = base_max_pos(axis) + offs;
+      }
+      else {
+        const float diff = hotend_offset[new_tool_index][axis] - hotend_offset[old_tool_index][axis];
+        soft_endstop.min[axis] += diff;
+        soft_endstop.max[axis] += diff;
       }
 
     #else
@@ -610,9 +606,9 @@ void restore_feedrate_and_scaling() {
 
     #endif
 
-  if (DEBUGGING(LEVELING))
-    SERIAL_ECHOLNPAIR("Axis ", axis_codes[axis], " min:", soft_endstop.min[axis], " max:", soft_endstop.max[axis]);
-}
+    if (DEBUGGING(LEVELING))
+      SERIAL_ECHOLNPAIR("Axis ", axis_codes[axis], " min:", soft_endstop.min[axis], " max:", soft_endstop.max[axis]);
+  }
 
   /**
    * Constrain the given coordinates to the software endstops.
@@ -622,11 +618,13 @@ void restore_feedrate_and_scaling() {
    */
   void apply_motion_limits(xyz_pos_t &target) {
 
-    if (!soft_endstops_enabled || !all_axes_homed()) return;
+    if (!soft_endstop._enabled) return;
 
     #if IS_KINEMATIC
 
-      #if HAS_HOTEND_OFFSET && ENABLED(DELTA)
+      if (TERN0(DELTA, !all_axes_homed())) return;
+
+      #if BOTH(HAS_HOTEND_OFFSET, DELTA)
         // The effector center position will be the target minus the hotend offset.
         const xy_pos_t offs = hotend_offset[active_extruder];
       #else
@@ -634,36 +632,113 @@ void restore_feedrate_and_scaling() {
         constexpr xy_pos_t offs{0};
       #endif
 
-      const float dist_2 = HYPOT2(target.x - offs.x, target.y - offs.y);
-      if (dist_2 > delta_max_radius_2)
-        target *= delta_max_radius / SQRT(dist_2); // 200 / 300 = 0.66
+      if (TERN1(IS_SCARA, axis_was_homed(X_AXIS) && axis_was_homed(Y_AXIS))) {
+        const float dist_2 = HYPOT2(target.x - offs.x, target.y - offs.y);
+        if (dist_2 > delta_max_radius_2)
+          target *= float(delta_max_radius / SQRT(dist_2)); // 200 / 300 = 0.66
+      }
 
     #else
 
-      #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_X)
-        NOLESS(target.x, soft_endstop.min.x);
-      #endif
-      #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_X)
-        NOMORE(target.x, soft_endstop.max.x);
-      #endif
-      #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_Y)
-        NOLESS(target.y, soft_endstop.min.y);
-      #endif
-      #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_Y)
-        NOMORE(target.y, soft_endstop.max.y);
+      if (axis_was_homed(X_AXIS)) {
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_X)
+          NOLESS(target.x, soft_endstop.min.x);
+        #endif
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_X)
+          NOMORE(target.x, soft_endstop.max.x);
+        #endif
+      }
+
+      #if HAS_Y_AXIS
+        if (axis_was_homed(Y_AXIS)) {
+          #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_Y)
+            NOLESS(target.y, soft_endstop.min.y);
+          #endif
+          #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_Y)
+            NOMORE(target.y, soft_endstop.max.y);
+          #endif
+        }
       #endif
 
     #endif
 
-    #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_Z)
-      NOLESS(target.z, soft_endstop.min.z);
+    #if HAS_Z_AXIS
+      if (axis_was_homed(Z_AXIS)) {
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_Z)
+          NOLESS(target.z, soft_endstop.min.z);
+        #endif
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_Z)
+          NOMORE(target.z, soft_endstop.max.z);
+        #endif
+      }
     #endif
-    #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_Z)
-      NOMORE(target.z, soft_endstop.max.z);
+    #if HAS_I_AXIS
+      if (axis_was_homed(I_AXIS)) {
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_I)
+          NOLESS(target.i, soft_endstop.min.i);
+        #endif
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_I)
+          NOMORE(target.i, soft_endstop.max.i);
+        #endif
+      }
+    #endif
+    #if HAS_J_AXIS
+      if (axis_was_homed(J_AXIS)) {
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_J)
+          NOLESS(target.j, soft_endstop.min.j);
+        #endif
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_J)
+          NOMORE(target.j, soft_endstop.max.j);
+        #endif
+      }
+    #endif
+    #if HAS_K_AXIS
+      if (axis_was_homed(K_AXIS)) {
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_K)
+          NOLESS(target.k, soft_endstop.min.k);
+        #endif
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_K)
+          NOMORE(target.k, soft_endstop.max.k);
+        #endif
+      }
+    #endif
+    #if HAS_U_AXIS
+      if (axis_was_homed(U_AXIS)) {
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_U)
+          NOLESS(target.u, soft_endstop.min.u);
+        #endif
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_U)
+          NOMORE(target.u, soft_endstop.max.u);
+        #endif
+      }
+    #endif
+    #if HAS_V_AXIS
+      if (axis_was_homed(V_AXIS)) {
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_V)
+          NOLESS(target.v, soft_endstop.min.v);
+        #endif
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_V)
+          NOMORE(target.v, soft_endstop.max.v);
+        #endif
+      }
+    #endif
+    #if HAS_W_AXIS
+      if (axis_was_homed(W_AXIS)) {
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MIN_SOFTWARE_ENDSTOP_W)
+          NOLESS(target.w, soft_endstop.min.w);
+        #endif
+        #if !HAS_SOFTWARE_ENDSTOPS || ENABLED(MAX_SOFTWARE_ENDSTOP_W)
+          NOMORE(target.w, soft_endstop.max.w);
+        #endif
+      }
     #endif
   }
 
-#endif // HAS_SOFTWARE_ENDSTOPS
+#else // !HAS_SOFTWARE_ENDSTOPS
+
+  soft_endstops_t soft_endstop;
+
+#endif // !HAS_SOFTWARE_ENDSTOPS
 
 #if IS_KINEMATIC
 

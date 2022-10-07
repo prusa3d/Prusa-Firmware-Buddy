@@ -137,25 +137,98 @@ XYZ_DEFS(signed char, home_dir, HOME_DIR);
   constexpr xyz_pos_t hotend_offset[1] = { { 0 } };
 #endif
 
-typedef struct { xyz_pos_t min, max; } axis_limits_t;
 #if HAS_SOFTWARE_ENDSTOPS
-  extern bool soft_endstops_enabled;
-  extern axis_limits_t soft_endstop;
+
+  typedef struct {
+    bool _enabled, _loose;
+    bool enabled() { return _enabled && !_loose; }
+
+    xyz_pos_t min, max;
+    void get_manual_axis_limits(const AxisEnum axis, float &amin, float &amax) {
+      amin = -100000; amax = 100000; // "No limits"
+      #if HAS_SOFTWARE_ENDSTOPS
+        if (enabled()) switch (axis) {
+          case X_AXIS:
+            TERN_(MIN_SOFTWARE_ENDSTOP_X, amin = min.x);
+            TERN_(MAX_SOFTWARE_ENDSTOP_X, amax = max.x);
+            break;
+          #if HAS_Y_AXIS
+            case Y_AXIS:
+              TERN_(MIN_SOFTWARE_ENDSTOP_Y, amin = min.y);
+              TERN_(MAX_SOFTWARE_ENDSTOP_Y, amax = max.y);
+              break;
+          #endif
+          #if HAS_Z_AXIS
+            case Z_AXIS:
+              TERN_(MIN_SOFTWARE_ENDSTOP_Z, amin = min.z);
+              TERN_(MAX_SOFTWARE_ENDSTOP_Z, amax = max.z);
+              break;
+          #endif
+          #if HAS_I_AXIS
+            case I_AXIS:
+              TERN_(MIN_SOFTWARE_ENDSTOP_I, amin = min.i);
+              TERN_(MIN_SOFTWARE_ENDSTOP_I, amax = max.i);
+              break;
+          #endif
+          #if HAS_J_AXIS
+            case J_AXIS:
+              TERN_(MIN_SOFTWARE_ENDSTOP_J, amin = min.j);
+              TERN_(MIN_SOFTWARE_ENDSTOP_J, amax = max.j);
+              break;
+          #endif
+          #if HAS_K_AXIS
+            case K_AXIS:
+              TERN_(MIN_SOFTWARE_ENDSTOP_K, amin = min.k);
+              TERN_(MIN_SOFTWARE_ENDSTOP_K, amax = max.k);
+              break;
+          #endif
+          #if HAS_U_AXIS
+            case U_AXIS:
+              TERN_(MIN_SOFTWARE_ENDSTOP_U, amin = min.u);
+              TERN_(MIN_SOFTWARE_ENDSTOP_U, amax = max.u);
+              break;
+          #endif
+          #if HAS_V_AXIS
+            case V_AXIS:
+              TERN_(MIN_SOFTWARE_ENDSTOP_V, amin = min.v);
+              TERN_(MIN_SOFTWARE_ENDSTOP_V, amax = max.v);
+              break;
+          #endif
+          #if HAS_W_AXIS
+            case W_AXIS:
+              TERN_(MIN_SOFTWARE_ENDSTOP_W, amin = min.w);
+              TERN_(MIN_SOFTWARE_ENDSTOP_W, amax = max.w);
+              break;
+          #endif
+          default: break;
+        }
+      #endif
+    }
+  } soft_endstops_t;
+
+  extern soft_endstops_t soft_endstop;
   void apply_motion_limits(xyz_pos_t &target);
   void update_software_endstops(const AxisEnum axis
     #if HAS_HOTEND_OFFSET
       , const uint8_t old_tool_index=0, const uint8_t new_tool_index=0
     #endif
   );
-  #define SET_SOFT_ENDSTOP_LOOSE(loose) NOOP
+  #define SET_SOFT_ENDSTOP_LOOSE(loose) (soft_endstop._loose = loose)
+
+  static bool& soft_endstops_enabled = soft_endstop._enabled; // stub
 
 #else // !HAS_SOFTWARE_ENDSTOPS
 
-  constexpr bool soft_endstops_enabled = false;
-  //constexpr axis_limits_t soft_endstop = {
-  //  { X_MIN_POS, Y_MIN_POS, Z_MIN_POS },
-  //  { X_MAX_POS, Y_MAX_POS, Z_MAX_POS } };
-  #define apply_motion_limits(V)    NOOP
+  typedef struct {
+    bool enabled() { return false; }
+    void get_manual_axis_limits(const AxisEnum axis, float &amin, float &amax) {
+      // No limits
+      amin = current_position[axis] - 1000;
+      amax = current_position[axis] + 1000;
+    }
+  } soft_endstops_t;
+  extern soft_endstops_t soft_endstop;
+  #define apply_motion_limits(V)        NOOP
   #define update_software_endstops(...) NOOP
   #define SET_SOFT_ENDSTOP_LOOSE(V)     NOOP
 
