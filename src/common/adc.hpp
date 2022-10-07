@@ -34,13 +34,8 @@ public:
     AdcDma()
         : m_data() {};
     void init() {
-#ifndef SIM_HEATER
         HAL_ADC_Init(&adc);
         HAL_ADC_Start_DMA(&adc, reinterpret_cast<uint32_t *>(m_data), channels); // Start ADC in DMA mode and
-#else
-        m_data[0] = ADC_SIM_VAL4;
-        m_data[1] = ADC_SIM_VAL1;
-#endif
     };
     void deinit() {
         HAL_ADC_Stop_DMA(&adc);
@@ -50,9 +45,6 @@ public:
 private:
     uint16_t m_data[channels];
     friend class AdcGet;
-#ifdef SIM_HEATER
-    friend class AdcSet;
-#endif
 };
 
 using AdcDma1 = AdcDma<hadc1, AdcChannel::ADC1_CH_CNT>;
@@ -66,14 +58,3 @@ public:
     static uint16_t pinda() { return adcDma1.m_data[AdcChannel::pinda_T]; };
     static uint16_t bedMon() { return adcDma1.m_data[AdcChannel::heatbed_U]; };
 };
-
-#ifdef SIM_HEATER
-class AdcSet {
-public:
-    static void nozzle(uint16_t value) { adcDma1.m_data[AdcChannel::hotend_T] = value; };
-    static void bed(uint16_t value) { adcDma1.m_data[AdcChannel::heatbed_T] = value; };
-    static void temp2(uint16_t value) { adcDma1.m_data[AdcChannel::board_T] = value; };
-    static void pinda(uint16_t value) { adcDma1.m_data[AdcChannel::pinda_T] = value; };
-    static void bedMon(uint16_t value) { adcDma1.m_data[AdcChannel::heatbed_U] = value; };
-};
-#endif

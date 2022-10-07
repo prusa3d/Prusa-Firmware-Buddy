@@ -58,9 +58,6 @@ if(BOARD MATCHES ".*BUDDY")
             safe_state.cpp
             scratch_buffer.cpp
             segmented_json.cpp
-            sim_bed.c
-            sim_heater.cpp
-            sim_nozzle.c
             sound.cpp
             st25dv64k.c
             SteelSheets.cpp
