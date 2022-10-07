@@ -19,7 +19,20 @@ private:
 
 public:
     PreviewRenderer(FILE *f);
-    virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size);
+    virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;
+};
+
+class GcodeMetaRenderer final : public json::ChunkRenderer {
+private:
+    FILE *f;
+    long resume_position = 0;
+
+public:
+    GcodeMetaRenderer(FILE *f)
+        : f(f) {}
+    GcodeMetaRenderer(GcodeMetaRenderer &&other) = default;
+    GcodeMetaRenderer &operator=(GcodeMetaRenderer &&other) = default;
+    virtual std::tuple<json::JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override;
 };
 
 struct DirState {
@@ -43,9 +56,12 @@ struct FileExtra {
 private:
     // Just to make sure it's automatically closed when the time comes.
     unique_file_ptr file;
+    // Note: The order matters, GcodeMetaRenderer is able to "rewind" the file as
+    // needed, the PreviewRenderer doesn't do so.
+    using GcodeExtra = json::PairRenderer<PreviewRenderer, GcodeMetaRenderer>;
 
 public:
-    json::VariantRenderer<json::EmptyRenderer, PreviewRenderer, DirRenderer> renderer;
+    json::VariantRenderer<json::EmptyRenderer, GcodeExtra, DirRenderer> renderer;
     FileExtra() = default;
     FileExtra(unique_file_ptr file);
     FileExtra(const char *base_path, unique_dir_ptr dir);

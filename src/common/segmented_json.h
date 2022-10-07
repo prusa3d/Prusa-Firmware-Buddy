@@ -45,13 +45,13 @@ private:
     uint8_t *buffer;
     size_t &buffer_size;
     size_t &resume_point;
-    friend class LowLevelJsonRenderer;
+
+public:
     JsonOutput(uint8_t *buffer, size_t &buffer_size, size_t &resume_point)
         : buffer(buffer)
         , buffer_size(buffer_size)
         , resume_point(resume_point) {}
 
-public:
     JsonResult output(size_t resume_point, const char *format, ...);
     // TODO: Add others as needed.
     JsonResult output_field_bool(size_t resume_point, const char *name, bool value);
