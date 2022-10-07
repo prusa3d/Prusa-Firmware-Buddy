@@ -11,8 +11,6 @@
 #include "cmsis_os.h"
 #include "gpio.h"
 #include "adc.hpp"
-#include "sim_nozzle.h"
-#include "sim_bed.h"
 #include "Arduino.h"
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
