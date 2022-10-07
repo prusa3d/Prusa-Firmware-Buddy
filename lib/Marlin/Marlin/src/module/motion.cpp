@@ -97,17 +97,6 @@ XYZ_CONSTS(float, max_length,     MAX_LENGTH);
 XYZ_CONSTS(float, home_bump_mm,   HOME_BUMP_MM);
 XYZ_CONSTS(signed char, home_dir, HOME_DIR);
 
-/**
- * axis_homed
- *   Flags that each linear axis was homed.
- *   XYZ on cartesian, ABC on delta, ABZ on SCARA.
- *
- * axis_known_position
- *   Flags that the position is known in each linear axis. Set when homed.
- *   Cleared whenever a stepper powers off, potentially losing its position.
- */
-uint8_t axis_homed, axis_known_position; // = 0
-
 // Relative Mode. Enable with G91, disable with G90.
 bool relative_mode; // = false;
 
@@ -1100,49 +1089,62 @@ void prepare_move_to_destination() {
   current_position = destination;
 }
 
-uint8_t axes_need_homing(uint8_t axis_bits/*=0x07*/) {
-  #if ENABLED(HOME_AFTER_DEACTIVATE)
-    #define HOMED_FLAGS axis_known_position
-  #else
-    #define HOMED_FLAGS axis_homed
-  #endif
-  // Clear test bits that are homed
-  if (TEST(axis_bits, X_AXIS) && TEST(HOMED_FLAGS, X_AXIS)) CBI(axis_bits, X_AXIS);
-  if (TEST(axis_bits, Y_AXIS) && TEST(HOMED_FLAGS, Y_AXIS)) CBI(axis_bits, Y_AXIS);
-  if (TEST(axis_bits, Z_AXIS) && TEST(HOMED_FLAGS, Z_AXIS)) CBI(axis_bits, Z_AXIS);
-  return axis_bits;
-}
+#if HAS_ENDSTOPS
 
-bool axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
-  if ((axis_bits = axes_need_homing(axis_bits))) {
-    PGM_P home_first = GET_TEXT(MSG_HOME_FIRST);
-    char msg[strlen_P(home_first)+1];
-    sprintf_P(msg, home_first,
-      TEST(axis_bits, X_AXIS) ? "X" : "",
-      TEST(axis_bits, Y_AXIS) ? "Y" : "",
-      TEST(axis_bits, Z_AXIS) ? "Z" : ""
-    );
-    SERIAL_ECHO_START();
-    SERIAL_ECHOLN(msg);
-    #if HAS_DISPLAY
-      ui.set_status(msg);
+  /**
+   * axis_homed
+   *   Flags that each linear axis was homed.
+   *   XYZ on cartesian, ABC on delta, ABZ on SCARA.
+   *
+   * axis_known_position
+   *   Flags that the position is known in each linear axis. Set when homed.
+   *   Cleared whenever a stepper powers off, potentially losing its position.
+   */
+  uint8_t axis_homed, axis_known_position; // = 0
+
+  uint8_t axes_need_homing(uint8_t axis_bits/*=0x07*/) {
+    #if ENABLED(HOME_AFTER_DEACTIVATE)
+      #define HOMED_FLAGS axis_known_position
+    #else
+      #define HOMED_FLAGS axis_homed
     #endif
-    return true;
+    // Clear test bits that are homed
+    if (TEST(axis_bits, X_AXIS) && TEST(HOMED_FLAGS, X_AXIS)) CBI(axis_bits, X_AXIS);
+    if (TEST(axis_bits, Y_AXIS) && TEST(HOMED_FLAGS, Y_AXIS)) CBI(axis_bits, Y_AXIS);
+    if (TEST(axis_bits, Z_AXIS) && TEST(HOMED_FLAGS, Z_AXIS)) CBI(axis_bits, Z_AXIS);
+    return axis_bits;
   }
-  return false;
-}
 
-/**
- * Homing bump feedrate (mm/s)
- */
-feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
-  uint8_t hbd = pgm_read_byte(&homing_bump_divisor[axis]);
-  if (hbd < 1) {
-    hbd = 10;
-    SERIAL_ECHO_MSG("Warning: Homing Bump Divisor < 1");
+  bool axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
+    if ((axis_bits = axes_need_homing(axis_bits))) {
+      PGM_P home_first = GET_TEXT(MSG_HOME_FIRST);
+      char msg[strlen_P(home_first)+1];
+      sprintf_P(msg, home_first,
+        TEST(axis_bits, X_AXIS) ? "X" : "",
+        TEST(axis_bits, Y_AXIS) ? "Y" : "",
+        TEST(axis_bits, Z_AXIS) ? "Z" : ""
+      );
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLN(msg);
+      #if HAS_DISPLAY
+        ui.set_status(msg);
+      #endif
+      return true;
+    }
+    return false;
   }
-  return homing_feedrate(axis) / float(hbd);
-}
+
+  /**
+   * Homing bump feedrate (mm/s)
+   */
+  feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
+    uint8_t hbd = pgm_read_byte(&homing_bump_divisor[axis]);
+    if (hbd < 1) {
+      hbd = 10;
+      SERIAL_ECHO_MSG("Warning: Homing Bump Divisor < 1");
+    }
+    return homing_feedrate(axis) / float(hbd);
+  }
 
   #if ENABLED(SENSORLESS_HOMING)
     /**
@@ -1353,129 +1355,538 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
 
   #endif // SENSORLESS_HOMING
 
-/**
- * Home an individual linear axis
- */
-void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s
-  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-    , bool can_move_back_before_homing
-  #endif
-) {
+  /**
+   * Home an individual linear axis
+   */
+  void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s
+    #if ENABLED(MOVE_BACK_BEFORE_HOMING)
+      , bool can_move_back_before_homing
+    #endif
+  ) {
 
-  if (DEBUGGING(LEVELING)) {
-    DEBUG_ECHOPAIR(">>> do_homing_move(", axis_codes[axis], ", ", distance, ", ");
-    if (fr_mm_s)
-      DEBUG_ECHO(fr_mm_s);
-    else
-      DEBUG_ECHOPAIR("[", homing_feedrate(axis), "]");
-    DEBUG_ECHOLNPGM(")");
-  }
-
-  #if HOMING_Z_WITH_PROBE && HAS_HEATED_BED && ENABLED(WAIT_FOR_BED_HEATER)
-    // Wait for bed to heat back up between probing points
-    if (axis == Z_AXIS && distance < 0 && thermalManager.isHeatingBed()) {
-      serialprintPGM(msg_wait_for_bed_heating);
-      LCD_MESSAGEPGM(MSG_BED_HEATING);
-      thermalManager.wait_for_bed();
-      ui.reset_status();
+    if (DEBUGGING(LEVELING)) {
+      DEBUG_ECHOPAIR(">>> do_homing_move(", axis_codes[axis], ", ", distance, ", ");
+      if (fr_mm_s)
+        DEBUG_ECHO(fr_mm_s);
+      else
+        DEBUG_ECHOPAIR("[", homing_feedrate(axis), "]");
+      DEBUG_ECHOLNPGM(")");
     }
-  #endif
 
-#if HOMING_Z_WITH_PROBE && 0
-    // Only do some things when moving towards an endstop
-    const int8_t axis_home_dir =
-    #if ENABLED(DUAL_X_CARRIAGE)
-      (axis == X_AXIS) ? x_home_dir(active_extruder) :
-    #endif
-    home_dir(axis);
-#endif //PRECISE_HOMING
-
-    #if ENABLED(SENSORLESS_HOMING)
-      sensorless_t stealth_states;
+    #if HOMING_Z_WITH_PROBE && HAS_HEATED_BED && ENABLED(WAIT_FOR_BED_HEATER)
+      // Wait for bed to heat back up between probing points
+      if (axis == Z_AXIS && distance < 0 && thermalManager.isHeatingBed()) {
+        serialprintPGM(msg_wait_for_bed_heating);
+        LCD_MESSAGEPGM(MSG_BED_HEATING);
+        thermalManager.wait_for_bed();
+        ui.reset_status();
+      }
     #endif
 
-  #if HOMING_Z_WITH_PROBE && QUIET_PROBING
-    if (axis == Z_AXIS) probing_pause(true);
-  #endif
+  #if HOMING_Z_WITH_PROBE && 0
+      // Only do some things when moving towards an endstop
+      const int8_t axis_home_dir =
+      #if ENABLED(DUAL_X_CARRIAGE)
+        (axis == X_AXIS) ? x_home_dir(active_extruder) :
+      #endif
+      home_dir(axis);
+  #endif //PRECISE_HOMING
 
-      // Disable stealthChop if used. Enable diag1 pin on driver.
       #if ENABLED(SENSORLESS_HOMING)
-        stealth_states = start_sensorless_homing_per_axis(axis);
-        #if SENSORLESS_STALLGUARD_DELAY
-          safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
-        #endif
+        sensorless_t stealth_states;
       #endif
 
-  const feedRate_t real_fr_mm_s = fr_mm_s ?: homing_feedrate(axis);
+    #if HOMING_Z_WITH_PROBE && QUIET_PROBING
+      if (axis == Z_AXIS) probing_pause(true);
+    #endif
 
-  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-    if (can_move_back_before_homing && ((axis == X_AXIS) || (axis == Y_AXIS))) {
+        // Disable stealthChop if used. Enable diag1 pin on driver.
+        #if ENABLED(SENSORLESS_HOMING)
+          stealth_states = start_sensorless_homing_per_axis(axis);
+          #if SENSORLESS_STALLGUARD_DELAY
+            safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
+          #endif
+        #endif
+
+    const feedRate_t real_fr_mm_s = fr_mm_s ?: homing_feedrate(axis);
+
+    #if ENABLED(MOVE_BACK_BEFORE_HOMING)
+      if (can_move_back_before_homing && ((axis == X_AXIS) || (axis == Y_AXIS))) {
+        abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+        target[axis] = 0;
+        planner.set_machine_position_mm(target);
+        float dist = (distance > 0) ? -MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE;
+        target[axis] = dist;
+
+        #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+          const xyze_float_t delta_mm_cart{0};
+        #endif
+
+        // Set delta/cartesian axes directly
+        planner.buffer_segment(target      
+          #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+            , delta_mm_cart
+          #endif
+          , real_fr_mm_s, active_extruder
+        );
+
+        planner.synchronize();
+    }
+    #endif
+
+    #if IS_SCARA
+      // Tell the planner the axis is at 0
+      current_position[axis] = 0;
+      sync_plan_position();
+      current_position[axis] = distance;
+      line_to_current_position(real_fr_mm_s);
+    #else
       abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
       target[axis] = 0;
       planner.set_machine_position_mm(target);
-      float dist = (distance > 0) ? -MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE;
-      target[axis] = dist;
-      
+      target[axis] = distance;
+
       #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
         const xyze_float_t delta_mm_cart{0};
       #endif
-      
+
       // Set delta/cartesian axes directly
-      planner.buffer_segment(target      
+      planner.buffer_segment(target
         #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
           , delta_mm_cart
         #endif
         , real_fr_mm_s, active_extruder
       );
 
-      planner.synchronize();
-  }
-  #endif
-
-  #if IS_SCARA
-    // Tell the planner the axis is at 0
-    current_position[axis] = 0;
-    sync_plan_position();
-    current_position[axis] = distance;
-    line_to_current_position(real_fr_mm_s);
-  #else
-    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
-    target[axis] = 0;
-    planner.set_machine_position_mm(target);
-    target[axis] = distance;
-
-    #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
-      const xyze_float_t delta_mm_cart{0};
     #endif
 
-    // Set delta/cartesian axes directly
-    planner.buffer_segment(target
-      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
-        , delta_mm_cart
+    planner.synchronize();
+
+    #if HOMING_Z_WITH_PROBE && QUIET_PROBING
+      if (axis == Z_AXIS) probing_pause(false);
+    #endif
+
+    endstops.validate_homing_move();
+
+        // Re-enable stealthChop if used. Disable diag1 pin on driver.
+        #if ENABLED(SENSORLESS_HOMING)
+          end_sensorless_homing_per_axis(axis, stealth_states);
+          #if SENSORLESS_STALLGUARD_DELAY
+            safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
+          #endif
+        #endif
+
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< do_homing_move(", axis_codes[axis], ")");
+  }
+
+  /**
+   * Set an axis' to be unhomed.
+   */
+  void set_axis_is_not_at_home(const AxisEnum axis) {
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> set_axis_is_not_at_home(", axis_codes[axis], ")");
+
+    CBI(axis_known_position, axis);
+    CBI(axis_homed, axis);
+
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< set_axis_is_not_at_home(", axis_codes[axis], ")");
+
+    #if ENABLED(I2C_POSITION_ENCODERS)
+      I2CPEM.unhomed(axis);
+    #endif
+  }
+
+  // declare function used by homeaxis
+  static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s=0.0, bool invert_home_dir=false);
+
+  // those metrics are intentionally not static, as it is expected that they might be referenced
+  // from outside this file for early registration
+  metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+
+  /**
+   * Home an individual "raw axis" to its endstop.
+   * This applies to XYZ on Cartesian and Core robots, and
+   * to the individual ABC steppers on DELTA and SCARA.
+   *
+   * At the end of the procedure the axis is marked as
+   * homed and the current position of that axis is updated.
+   * Kinematic robots should wait till all axes are homed
+   * before updating the current position.
+   *
+   * @param axis Axist to home
+   * @param fr_mm_s Homing feed rate in millimeters per second
+   * @param invert_home_dir
+   *  @arg @c false Default homing direction
+   *  @arg @c true Home to opposite end of axis than default.
+   *               Warning - axis is considered homed and in known position.
+   *               @todo Current position is wrong in case of invert_home_dir true after this call.
+   * @param can_calibrate allows/avoids re-calibration if homing is not successful
+   */
+
+  #if ENABLED(PRECISE_HOMING)
+    void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_dir, bool can_calibrate) {
+  #else
+    void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_dir) {
+  #endif
+
+    // clear the axis state while running
+    CBI(axis_known_position, axis);
+
+    #if ENABLED(CRASH_RECOVERY)
+      Crash_Temporary_Deactivate ctd;
+    #endif
+
+    #if IS_SCARA
+      // Only Z homing (with probe) is permitted
+      if (axis != Z_AXIS) { BUZZ(100, 880); return; }
+    #else
+      #define _CAN_HOME(A) \
+        (axis == _AXIS(A) && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
+      #if X_SPI_SENSORLESS
+        #define CAN_HOME_X true
+      #else
+        #define CAN_HOME_X _CAN_HOME(X)
       #endif
-      , real_fr_mm_s, active_extruder
+      #if Y_SPI_SENSORLESS
+        #define CAN_HOME_Y true
+      #else
+        #define CAN_HOME_Y _CAN_HOME(Y)
+      #endif
+      #if Z_SPI_SENSORLESS
+        #define CAN_HOME_Z true
+      #else
+        #define CAN_HOME_Z _CAN_HOME(Z)
+      #endif
+      if (!CAN_HOME_X && !CAN_HOME_Y && !CAN_HOME_Z) return;
+    #endif
+
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> homeaxis(", axis_codes[axis], ")");
+
+    const int axis_home_dir = (
+      #if ENABLED(DUAL_X_CARRIAGE)
+        axis == X_AXIS ? x_home_dir(active_extruder) :
+      #endif
+        invert_home_dir ? (-home_dir(axis)) : home_dir(axis)
     );
 
-  #endif
+    #ifdef HOMING_MAX_ATTEMPTS
+      float probe_offset;
+      size_t attempts_left = HOMING_MAX_ATTEMPTS;
+      while(attempts_left--) {
+        #if ENABLED(PRECISE_HOMING)
+          if ((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir) {
+            probe_offset = home_axis_precise(axis, axis_home_dir, can_calibrate);
+            attempts_left = 0; // call home_axis_precise() just once
+          }
+          else
+        #endif // ENABLED(PRECISE_HOMING)
+          {
+            probe_offset = homeaxis_single_run(axis, axis_home_dir, fr_mm_s, invert_home_dir) * static_cast<float>(axis_home_dir);
+          }
+        if (planner.draining()) {
+          // move intentionally aborted, do not retry/kill
+          return;
+        }
+        metric_record_custom(&metric_home_diff, ",ax=%u v=%.3f", (unsigned)axis, probe_offset);
+        if (invert_home_dir) {
+          if (axis_home_invert_min_diff <= probe_offset && probe_offset <= axis_home_invert_max_diff)
+            break; // OK offset in range
+        }
+        else {
+          if (axis_home_min_diff[axis] <= probe_offset && probe_offset <= axis_home_max_diff[axis])
+            break; // OK offset in range
+        }
+        if (attempts_left == 0)
+          kill(GET_TEXT(MSG_ERR_HOMING)); // not OK run out attempts
 
-  planner.synchronize();
+        if((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir){
+          //print only for normal homing, messages from precise homing are taken care inside precise homing
+          ui.status_printf_P(0,"%c  axis homing failed, retrying",axis_codes[axis]);
+        }
+      }
+    #else // HOMING_MAX_ATTEMPTS 
+      homeaxis_single_run(axis, axis_home_dir);
+    #endif // HOMING_MAX_ATTEMPTS
 
-  #if HOMING_Z_WITH_PROBE && QUIET_PROBING
-    if (axis == Z_AXIS) probing_pause(false);
-  #endif
-
-  endstops.validate_homing_move();
-
-      // Re-enable stealthChop if used. Disable diag1 pin on driver.
-      #if ENABLED(SENSORLESS_HOMING)
-        end_sensorless_homing_per_axis(axis, stealth_states);
-        #if SENSORLESS_STALLGUARD_DELAY
-          safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
+    #ifdef HOMING_BACKOFF_POST_MM
+      constexpr xyz_float_t endstop_backoff = HOMING_BACKOFF_POST_MM;
+      const float backoff_mm = endstop_backoff[
+        #if ENABLED(DELTA)
+          Z_AXIS
+        #else
+          axis
         #endif
+      ];
+      if (backoff_mm) {
+        current_position[axis] -= ABS(backoff_mm) * axis_home_dir;
+        line_to_current_position(
+          #if HOMING_Z_WITH_PROBE
+            (axis == Z_AXIS) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
+          #endif
+          homing_feedrate(axis)
+        );
+        planner.synchronize();
+        SERIAL_ECHO_START();
+        SERIAL_ECHOLNPAIR_F("Backoff ipos:", stepper.position_from_startup(axis));
+      }
+    #endif
+  }
+
+  /**
+   * home axis and
+   * return distance between fast and slow probe
+   */
+  static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s, bool invert_home_dir) {
+    int steps;
+
+    // Homing Z towards the bed? Deploy the Z probe or endstop.
+    #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS && DEPLOY_PROBE()) return NAN;
+    #endif
+
+    // Set flags for X, Y, Z motor locking
+    #if HAS_EXTRA_ENDSTOPS
+      switch (axis) {
+        #if ENABLED(X_DUAL_ENDSTOPS)
+          case X_AXIS:
+        #endif
+        #if ENABLED(Y_DUAL_ENDSTOPS)
+          case Y_AXIS:
+        #endif
+        #if Z_MULTI_ENDSTOPS
+          case Z_AXIS:
+        #endif
+        stepper.set_separate_multi_axis(true);
+        default: break;
+      }
+    #endif
+
+    // Fast move towards endstop until triggered
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 1 Fast:");
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+      if (axis == Z_AXIS && bltouch.deploy()) return NAN; // The initial DEPLOY
+    #endif
+
+    do_homing_move(axis, 1.5f * max_length(
+      #if ENABLED(DELTA)
+        Z_AXIS
+      #else
+        axis
+      #endif
+        ) * axis_home_dir, fr_mm_s
+    #if ENABLED(MOVE_BACK_BEFORE_HOMING)
+        , true
+    #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
+    );
+
+    steps = stepper.position_from_startup(axis);
+
+    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
+      if (axis == Z_AXIS) bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
+    #endif
+
+    // When homing Z with probe respect probe clearance
+    float bump = axis_home_dir * (
+      #if HOMING_Z_WITH_PROBE
+        (axis == Z_AXIS && (Z_HOME_BUMP_MM)) ? _MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_HOME_BUMP_MM) :
+      #endif
+      home_bump_mm(axis)
+    );
+
+    // If a second homing move is configured...
+    if (bump) {
+      // Move away from the endstop by the axis HOME_BUMP_MM
+      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move Away:");
+      do_homing_move(axis, -bump
+        #if HOMING_Z_WITH_PROBE
+          , MMM_TO_MMS(((axis == Z_AXIS) && (axis_home_dir < 0)) ? Z_PROBE_SPEED_FAST : 0)
+        #else
+          , 0
+        #endif // HOMING_Z_WITH_PROBE
+      );
+
+      // Slow move towards endstop until triggered
+      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 2 Slow:");
+
+      #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
+        if (axis == Z_AXIS && bltouch.deploy()) return NAN; // Intermediate DEPLOY (in LOW SPEED MODE)
       #endif
 
-  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< do_homing_move(", axis_codes[axis], ")");
-}
+      MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0();
+
+      #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS) {
+        if (axis_home_dir < 0) {
+          do_homing_move(axis, 2 * bump,
+              MMM_TO_MMS(Z_PROBE_SPEED_SLOW)
+          );
+        }
+        else {
+          do_homing_move(axis, 2 * bump, HOMING_FEEDRATE_INVERTED_Z);
+        }
+      }
+      else {
+      #else //HOMING_Z_WITH_PROBE
+      {
+      #endif //HOMING_Z_WITH_PROBE
+        do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+      }  
+      steps -= stepper.position_from_startup(axis);
+
+      #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
+        if (axis == Z_AXIS) bltouch.stow(); // The final STOW
+      #endif
+    }  
+
+    #if HAS_EXTRA_ENDSTOPS
+      const bool pos_dir = axis_home_dir > 0;
+      #if ENABLED(X_DUAL_ENDSTOPS)
+        if (axis == X_AXIS) {
+          const float adj = ABS(endstops.x2_endstop_adj);
+          if (adj) {
+            if (pos_dir ? (endstops.x2_endstop_adj > 0) : (endstops.x2_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
+            do_homing_move(axis, pos_dir ? -adj : adj);
+            stepper.set_x_lock(false);
+            stepper.set_x2_lock(false);
+          }
+        }
+      #endif
+      #if ENABLED(Y_DUAL_ENDSTOPS)
+        if (axis == Y_AXIS) {
+          const float adj = ABS(endstops.y2_endstop_adj);
+          if (adj) {
+            if (pos_dir ? (endstops.y2_endstop_adj > 0) : (endstops.y2_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
+            do_homing_move(axis, pos_dir ? -adj : adj);
+            stepper.set_y_lock(false);
+            stepper.set_y2_lock(false);
+          }
+        }
+      #endif
+      #if ENABLED(Z_DUAL_ENDSTOPS)
+        if (axis == Z_AXIS) {
+          const float adj = ABS(endstops.z2_endstop_adj);
+          if (adj) {
+            if (pos_dir ? (endstops.z2_endstop_adj > 0) : (endstops.z2_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
+            do_homing_move(axis, pos_dir ? -adj : adj);
+            stepper.set_z_lock(false);
+            stepper.set_z2_lock(false);
+          }
+        }
+      #endif
+      #if ENABLED(Z_TRIPLE_ENDSTOPS)
+        if (axis == Z_AXIS) {
+          // we push the function pointers for the stepper lock function into an array
+          void (*lock[3]) (bool)= {&stepper.set_z_lock, &stepper.set_z2_lock, &stepper.set_z3_lock};
+          float adj[3] = {0, endstops.z2_endstop_adj, endstops.z3_endstop_adj};
+
+          void (*tempLock) (bool);
+          float tempAdj;
+
+          // manual bubble sort by adjust value
+          if (adj[1] < adj[0]) {
+            tempLock = lock[0], tempAdj = adj[0];
+            lock[0] = lock[1], adj[0] = adj[1];
+            lock[1] = tempLock, adj[1] = tempAdj;
+          }
+          if (adj[2] < adj[1]) {
+            tempLock = lock[1], tempAdj = adj[1];
+            lock[1] = lock[2], adj[1] = adj[2];
+            lock[2] = tempLock, adj[2] = tempAdj;
+          }
+          if (adj[1] < adj[0]) {
+            tempLock = lock[0], tempAdj = adj[0];
+            lock[0] = lock[1], adj[0] = adj[1];
+            lock[1] = tempLock, adj[1] = tempAdj;
+          }
+
+          if (pos_dir) {
+            // normalize adj to smallest value and do the first move
+            (*lock[0])(true);
+            do_homing_move(axis, adj[1] - adj[0]);
+            // lock the second stepper for the final correction
+            (*lock[1])(true);
+            do_homing_move(axis, adj[2] - adj[1]);
+          }
+          else {
+            (*lock[2])(true);
+            do_homing_move(axis, adj[1] - adj[2]);
+            (*lock[1])(true);
+            do_homing_move(axis, adj[0] - adj[1]);
+          }
+
+          stepper.set_z_lock(false);
+          stepper.set_z2_lock(false);
+          stepper.set_z3_lock(false);
+        }
+      #endif
+
+      // Reset flags for X, Y, Z motor locking
+      switch (axis) {
+        #if ENABLED(X_DUAL_ENDSTOPS)
+          case X_AXIS:
+        #endif
+        #if ENABLED(Y_DUAL_ENDSTOPS)
+          case Y_AXIS:
+        #endif
+        #if Z_MULTI_ENDSTOPS
+          case Z_AXIS:
+        #endif
+        stepper.set_separate_multi_axis(false);
+        default: break;
+      }
+    #endif
+
+      // Check if any of the moves were aborted and avoid setting any state
+      if (planner.draining())
+        return NAN;
+
+    #if IS_SCARA
+
+      set_axis_is_at_home(axis);
+      sync_plan_position();
+
+    #elif ENABLED(DELTA)
+
+      // Delta has already moved all three towers up in G28
+      // so here it re-homes each tower in turn.
+      // Delta homing treats the axes as normal linear axes.
+
+      // retrace by the amount specified in delta_endstop_adj + additional dist in order to have minimum steps
+      if (delta_endstop_adj[axis] * Z_HOME_DIR <= 0) {
+        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("delta_endstop_adj:");
+        do_homing_move(axis, delta_endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * planner.mm_per_step[axis] * Z_HOME_DIR);
+      }
+
+    #else // CARTESIAN / CORE
+
+      if (!invert_home_dir) {
+        set_axis_is_at_home(axis);
+      }
+      sync_plan_position();
+
+      destination[axis] = current_position[axis];
+
+      if (DEBUGGING(LEVELING)) DEBUG_POS("> AFTER set_axis_is_at_home", current_position);
+
+    #endif
+
+    // Put away the Z probe
+    #if HOMING_Z_WITH_PROBE
+      if (axis == Z_AXIS && STOW_PROBE()) return NAN;
+    #endif
+
+    // Clear retracted status if homing the Z axis
+    #if ENABLED(FWRETRACT)
+      if (axis == Z_AXIS) fwretract.current_hop = 0.0;
+    #endif
+
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< homeaxis(", axis_codes[axis], ")");
+
+    if (bump) return static_cast<float>(steps) * planner.mm_per_step[axis];
+    return 0;
+  } // homeaxis()
+
+#endif // HAS_ENDSTOPS
 
 /**
  * Set an axis' current position to its home position (after homing).
@@ -1517,7 +1928,7 @@ void set_axis_is_at_home(const AxisEnum axis) {
     #endif
     : base_home_pos(axis));
   #else
-    #ifdef WORKSPACE_HOME 
+    #ifdef WORKSPACE_HOME
       /*Fill workspace_homes[] with data from config*/
       xyz_pos_t workspace_homes[MAX_COORDINATE_SYSTEMS]={{{{0}}}};
 
@@ -1551,7 +1962,7 @@ void set_axis_is_at_home(const AxisEnum axis) {
       #ifdef WORKSPACE_9_X_POS
         workspace_homes[9].set(WORKSPACE_9_X_POS, WORKSPACE_9_Y_POS, WORKSPACE_9_Z_POS);
       #endif
-      
+
 
       int8_t active_coordinate_system = GcodeSuite::get_coordinate_system();
       if (active_coordinate_system == -1){ /*If base coordinate system, proceed as usual*/
@@ -1559,7 +1970,7 @@ void set_axis_is_at_home(const AxisEnum axis) {
       } else { /*If in alternate system, update position shift and system offset from base system*/
         position_shift[axis] = - current_position[axis] + workspace_homes[active_coordinate_system][axis];
         GcodeSuite::set_coordinate_system_offset(0, axis, position_shift[axis]);
-        update_workspace_offset(axis);        
+        update_workspace_offset(axis);
       }
     #else
       current_position[axis] = base_home_pos(axis)
@@ -1605,413 +2016,6 @@ void set_axis_is_at_home(const AxisEnum axis) {
     DEBUG_ECHOLNPAIR("<<< set_axis_is_at_home(", axis_codes[axis], ")");
   }
 }
-
-/**
- * Set an axis' to be unhomed.
- */
-void set_axis_is_not_at_home(const AxisEnum axis) {
-  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> set_axis_is_not_at_home(", axis_codes[axis], ")");
-
-  CBI(axis_known_position, axis);
-  CBI(axis_homed, axis);
-
-  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< set_axis_is_not_at_home(", axis_codes[axis], ")");
-
-  #if ENABLED(I2C_POSITION_ENCODERS)
-    I2CPEM.unhomed(axis);
-  #endif
-}
-
-// declare function used by homeaxis
-static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s=0.0, bool invert_home_dir=false);
-
-// those metrics are intentionally not static, as it is expected that they might be referenced
-// from outside this file for early registration
-metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
-
-/**
- * Home an individual "raw axis" to its endstop.
- * This applies to XYZ on Cartesian and Core robots, and
- * to the individual ABC steppers on DELTA and SCARA.
- *
- * At the end of the procedure the axis is marked as
- * homed and the current position of that axis is updated.
- * Kinematic robots should wait till all axes are homed
- * before updating the current position.
- *
- * @param axis Axist to home
- * @param fr_mm_s Homing feed rate in millimeters per second
- * @param invert_home_dir
- *  @arg @c false Default homing direction
- *  @arg @c true Home to opposite end of axis than default.
- *               Warning - axis is considered homed and in known position.
- *               @todo Current position is wrong in case of invert_home_dir true after this call.
- * @param can_calibrate allows/avoids re-calibration if homing is not successful
- */
-
-#if ENABLED(PRECISE_HOMING)
-  void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_dir, bool can_calibrate) {
-#else
-  void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_dir) {
-#endif
-
-  // clear the axis state while running
-  CBI(axis_known_position, axis);
-
-  #if ENABLED(CRASH_RECOVERY)
-    Crash_Temporary_Deactivate ctd;
-  #endif
-
-  #if IS_SCARA
-    // Only Z homing (with probe) is permitted
-    if (axis != Z_AXIS) { BUZZ(100, 880); return; }
-  #else
-    #define _CAN_HOME(A) \
-      (axis == _AXIS(A) && ((A##_MIN_PIN > -1 && A##_HOME_DIR < 0) || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0)))
-    #if X_SPI_SENSORLESS
-      #define CAN_HOME_X true
-    #else
-      #define CAN_HOME_X _CAN_HOME(X)
-    #endif
-    #if Y_SPI_SENSORLESS
-      #define CAN_HOME_Y true
-    #else
-      #define CAN_HOME_Y _CAN_HOME(Y)
-    #endif
-    #if Z_SPI_SENSORLESS
-      #define CAN_HOME_Z true
-    #else
-      #define CAN_HOME_Z _CAN_HOME(Z)
-    #endif
-    if (!CAN_HOME_X && !CAN_HOME_Y && !CAN_HOME_Z) return;
-  #endif
-
-  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> homeaxis(", axis_codes[axis], ")");
-
-  const int axis_home_dir = (
-    #if ENABLED(DUAL_X_CARRIAGE)
-      axis == X_AXIS ? x_home_dir(active_extruder) :
-    #endif
-      invert_home_dir ? (-home_dir(axis)) : home_dir(axis)
-  );
-
-  #ifdef HOMING_MAX_ATTEMPTS
-    float probe_offset;
-    size_t attempts_left = HOMING_MAX_ATTEMPTS;
-    while(attempts_left--) {
-      #if ENABLED(PRECISE_HOMING)
-        if ((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir) {
-          probe_offset = home_axis_precise(axis, axis_home_dir, can_calibrate);
-          attempts_left = 0; // call home_axis_precise() just once
-        }
-        else
-      #endif // ENABLED(PRECISE_HOMING)
-        {
-          probe_offset = homeaxis_single_run(axis, axis_home_dir, fr_mm_s, invert_home_dir) * static_cast<float>(axis_home_dir);
-        }
-      if (planner.draining()) {
-        // move intentionally aborted, do not retry/kill
-        return;
-      }
-      metric_record_custom(&metric_home_diff, ",ax=%u v=%.3f", (unsigned)axis, probe_offset);
-      if (invert_home_dir) {
-        if (axis_home_invert_min_diff <= probe_offset && probe_offset <= axis_home_invert_max_diff)
-          break; // OK offset in range
-      }
-      else {
-        if (axis_home_min_diff[axis] <= probe_offset && probe_offset <= axis_home_max_diff[axis])
-          break; // OK offset in range
-      }
-      if (attempts_left == 0)
-        kill(GET_TEXT(MSG_ERR_HOMING)); // not OK run out attempts
-
-      if((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir){
-        //print only for normal homing, messages from precise homing are taken care inside precise homing
-        ui.status_printf_P(0,"%c  axis homing failed, retrying",axis_codes[axis]);
-      }
-    }
-  #else // HOMING_MAX_ATTEMPTS 
-    homeaxis_single_run(axis, axis_home_dir);
-  #endif // HOMING_MAX_ATTEMPTS
-
-  #ifdef HOMING_BACKOFF_POST_MM
-    constexpr xyz_float_t endstop_backoff = HOMING_BACKOFF_POST_MM;
-    const float backoff_mm = endstop_backoff[
-      #if ENABLED(DELTA)
-        Z_AXIS
-      #else
-        axis
-      #endif
-    ];
-    if (backoff_mm) {
-      current_position[axis] -= ABS(backoff_mm) * axis_home_dir;
-      line_to_current_position(
-        #if HOMING_Z_WITH_PROBE
-          (axis == Z_AXIS) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
-        #endif
-        homing_feedrate(axis)
-      );
-      planner.synchronize();
-      SERIAL_ECHO_START();
-      SERIAL_ECHOLNPAIR_F("Backoff ipos:", stepper.position_from_startup(axis));
-    }
-  #endif
-}
-
-/**
- * home axis and
- * return distance between fast and slow probe
- */
-static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s, bool invert_home_dir) {
-  int steps;
-
-  // Homing Z towards the bed? Deploy the Z probe or endstop.
-  #if HOMING_Z_WITH_PROBE
-    if (axis == Z_AXIS && DEPLOY_PROBE()) return NAN;
-  #endif
-
-  // Set flags for X, Y, Z motor locking
-  #if HAS_EXTRA_ENDSTOPS
-    switch (axis) {
-      #if ENABLED(X_DUAL_ENDSTOPS)
-        case X_AXIS:
-      #endif
-      #if ENABLED(Y_DUAL_ENDSTOPS)
-        case Y_AXIS:
-      #endif
-      #if Z_MULTI_ENDSTOPS
-        case Z_AXIS:
-      #endif
-      stepper.set_separate_multi_axis(true);
-      default: break;
-    }
-  #endif
-
-  // Fast move towards endstop until triggered
-  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 1 Fast:");
-
-  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-    if (axis == Z_AXIS && bltouch.deploy()) return NAN; // The initial DEPLOY
-  #endif
-
-  do_homing_move(axis, 1.5f * max_length(
-    #if ENABLED(DELTA)
-      Z_AXIS
-    #else
-      axis
-    #endif
-      ) * axis_home_dir, fr_mm_s
-  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-      , true
-  #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
-  );
-
-  steps = stepper.position_from_startup(axis);
-
-  #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
-    if (axis == Z_AXIS) bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
-  #endif
-
-  // When homing Z with probe respect probe clearance
-  float bump = axis_home_dir * (
-    #if HOMING_Z_WITH_PROBE
-      (axis == Z_AXIS && (Z_HOME_BUMP_MM)) ? _MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_HOME_BUMP_MM) :
-    #endif
-    home_bump_mm(axis)
-  );
-
-  // If a second homing move is configured...
-  if (bump) {
-    // Move away from the endstop by the axis HOME_BUMP_MM
-    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move Away:");
-    do_homing_move(axis, -bump
-      #if HOMING_Z_WITH_PROBE
-        , MMM_TO_MMS(((axis == Z_AXIS) && (axis_home_dir < 0)) ? Z_PROBE_SPEED_FAST : 0)
-      #else
-        , 0
-      #endif // HOMING_Z_WITH_PROBE
-    );
-
-    // Slow move towards endstop until triggered
-    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 2 Slow:");
-
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
-      if (axis == Z_AXIS && bltouch.deploy()) return NAN; // Intermediate DEPLOY (in LOW SPEED MODE)
-    #endif
-
-    MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0();
-
-    #if HOMING_Z_WITH_PROBE
-    if (axis == Z_AXIS) {
-      if (axis_home_dir < 0) {
-        do_homing_move(axis, 2 * bump,
-            MMM_TO_MMS(Z_PROBE_SPEED_SLOW)
-        );
-      }
-      else {
-        do_homing_move(axis, 2 * bump, HOMING_FEEDRATE_INVERTED_Z);
-      }
-    }
-    else {
-    #else //HOMING_Z_WITH_PROBE
-    {
-    #endif //HOMING_Z_WITH_PROBE
-      do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
-    }  
-    steps -= stepper.position_from_startup(axis);
-
-    #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-      if (axis == Z_AXIS) bltouch.stow(); // The final STOW
-    #endif
-  }  
-
-  #if HAS_EXTRA_ENDSTOPS
-    const bool pos_dir = axis_home_dir > 0;
-    #if ENABLED(X_DUAL_ENDSTOPS)
-      if (axis == X_AXIS) {
-        const float adj = ABS(endstops.x2_endstop_adj);
-        if (adj) {
-          if (pos_dir ? (endstops.x2_endstop_adj > 0) : (endstops.x2_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
-          do_homing_move(axis, pos_dir ? -adj : adj);
-          stepper.set_x_lock(false);
-          stepper.set_x2_lock(false);
-        }
-      }
-    #endif
-    #if ENABLED(Y_DUAL_ENDSTOPS)
-      if (axis == Y_AXIS) {
-        const float adj = ABS(endstops.y2_endstop_adj);
-        if (adj) {
-          if (pos_dir ? (endstops.y2_endstop_adj > 0) : (endstops.y2_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
-          do_homing_move(axis, pos_dir ? -adj : adj);
-          stepper.set_y_lock(false);
-          stepper.set_y2_lock(false);
-        }
-      }
-    #endif
-    #if ENABLED(Z_DUAL_ENDSTOPS)
-      if (axis == Z_AXIS) {
-        const float adj = ABS(endstops.z2_endstop_adj);
-        if (adj) {
-          if (pos_dir ? (endstops.z2_endstop_adj > 0) : (endstops.z2_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
-          do_homing_move(axis, pos_dir ? -adj : adj);
-          stepper.set_z_lock(false);
-          stepper.set_z2_lock(false);
-        }
-      }
-    #endif
-    #if ENABLED(Z_TRIPLE_ENDSTOPS)
-      if (axis == Z_AXIS) {
-        // we push the function pointers for the stepper lock function into an array
-        void (*lock[3]) (bool)= {&stepper.set_z_lock, &stepper.set_z2_lock, &stepper.set_z3_lock};
-        float adj[3] = {0, endstops.z2_endstop_adj, endstops.z3_endstop_adj};
-
-        void (*tempLock) (bool);
-        float tempAdj;
-
-        // manual bubble sort by adjust value
-        if (adj[1] < adj[0]) {
-          tempLock = lock[0], tempAdj = adj[0];
-          lock[0] = lock[1], adj[0] = adj[1];
-          lock[1] = tempLock, adj[1] = tempAdj;
-        }
-        if (adj[2] < adj[1]) {
-          tempLock = lock[1], tempAdj = adj[1];
-          lock[1] = lock[2], adj[1] = adj[2];
-          lock[2] = tempLock, adj[2] = tempAdj;
-        }
-        if (adj[1] < adj[0]) {
-          tempLock = lock[0], tempAdj = adj[0];
-          lock[0] = lock[1], adj[0] = adj[1];
-          lock[1] = tempLock, adj[1] = tempAdj;
-        }
-
-        if (pos_dir) {
-          // normalize adj to smallest value and do the first move
-          (*lock[0])(true);
-          do_homing_move(axis, adj[1] - adj[0]);
-          // lock the second stepper for the final correction
-          (*lock[1])(true);
-          do_homing_move(axis, adj[2] - adj[1]);
-        }
-        else {
-          (*lock[2])(true);
-          do_homing_move(axis, adj[1] - adj[2]);
-          (*lock[1])(true);
-          do_homing_move(axis, adj[0] - adj[1]);
-        }
-
-        stepper.set_z_lock(false);
-        stepper.set_z2_lock(false);
-        stepper.set_z3_lock(false);
-      }
-    #endif
-
-    // Reset flags for X, Y, Z motor locking
-    switch (axis) {
-      #if ENABLED(X_DUAL_ENDSTOPS)
-        case X_AXIS:
-      #endif
-      #if ENABLED(Y_DUAL_ENDSTOPS)
-        case Y_AXIS:
-      #endif
-      #if Z_MULTI_ENDSTOPS
-        case Z_AXIS:
-      #endif
-      stepper.set_separate_multi_axis(false);
-      default: break;
-    }
-  #endif
-
-    // Check if any of the moves were aborted and avoid setting any state
-    if (planner.draining())
-      return NAN;
-
-  #if IS_SCARA
-
-    set_axis_is_at_home(axis);
-    sync_plan_position();
-
-  #elif ENABLED(DELTA)
-
-    // Delta has already moved all three towers up in G28
-    // so here it re-homes each tower in turn.
-    // Delta homing treats the axes as normal linear axes.
-
-    // retrace by the amount specified in delta_endstop_adj + additional dist in order to have minimum steps
-    if (delta_endstop_adj[axis] * Z_HOME_DIR <= 0) {
-      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("delta_endstop_adj:");
-      do_homing_move(axis, delta_endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * planner.mm_per_step[axis] * Z_HOME_DIR);
-    }
-
-  #else // CARTESIAN / CORE
-
-    if (!invert_home_dir) {
-      set_axis_is_at_home(axis);
-    }
-    sync_plan_position();
-
-    destination[axis] = current_position[axis];
-
-    if (DEBUGGING(LEVELING)) DEBUG_POS("> AFTER set_axis_is_at_home", current_position);
-
-  #endif
-
-  // Put away the Z probe
-  #if HOMING_Z_WITH_PROBE
-    if (axis == Z_AXIS && STOW_PROBE()) return NAN;
-  #endif
-
-  // Clear retracted status if homing the Z axis
-  #if ENABLED(FWRETRACT)
-    if (axis == Z_AXIS) fwretract.current_hop = 0.0;
-  #endif
-
-  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< homeaxis(", axis_codes[axis], ")");
-
-  if (bump) return static_cast<float>(steps) * planner.mm_per_step[axis];
-  return 0;
-} // homeaxis()
 
 #if HAS_WORKSPACE_OFFSET
   void update_workspace_offset(const AxisEnum axis) {
