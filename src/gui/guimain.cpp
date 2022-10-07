@@ -281,6 +281,8 @@ void gui_run(void) {
     gui::fsensor::validate_for_cyclical_calls();
 
     redraw_cmd_t redraw;
+
+    marlin_gcode("M118 E1 bootstrap finished");
     //TODO make some kind of registration
     while (1) {
         gui::StartLoop();
