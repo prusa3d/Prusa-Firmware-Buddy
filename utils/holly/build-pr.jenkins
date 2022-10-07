@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        dockerfile {
-            label 'docker'
-            filename 'utils/holly/Dockerfile'
-            additionalBuildArgs '-t prusa-firmware-buddy'
-        }
-    }
+    agent none
 
     parameters {
         string(name: 'VERSION_SUFFIX', defaultValue: '<default>', description: 'Specify custom version suffix for the build (e.g. "-RC1+1010"). Set to "<default>" to use the default one. Leave empty to make a final-version build without any suffix.')
@@ -18,6 +12,13 @@ pipeline {
 
     stages {
         stage('Check Formatting') {
+            agent {
+                dockerfile {
+                    label 'docker'
+                    filename 'utils/holly/Dockerfile'
+                    additionalBuildArgs '-t prusa-firmware-buddy'
+                }
+            }
             when {
                 expression { env.CHANGE_TARGET }
             }
@@ -39,11 +40,19 @@ pipeline {
         }
 
         stage('Prepare Build Stages') {
+            agent {
+                dockerfile {
+                    label 'docker'
+                    filename 'utils/holly/Dockerfile'
+                    additionalBuildArgs '-t prusa-firmware-buddy'
+                }
+            }
             steps {
                 script {
                     // required configurations
                     def configurations = [
                         [preset: "mini", build_type: "release", bootloader: "yes"],
+                        [preset: "mini", build_type: "release", bootloader: "no"],
                     ]
 
                     // prepare version suffix
@@ -97,11 +106,19 @@ pipeline {
                             }
                         }
                     }
+                    stash name: "artifacts", includes: "build/mini_release_noboot/*.bin,build/mini_release_noboot/*.bbf"
                 }
             }
         }
 
         stage('Test') {
+            agent {
+                dockerfile {
+                    label 'docker'
+                    filename 'utils/holly/Dockerfile'
+                    additionalBuildArgs '-t prusa-firmware-buddy'
+                }
+            }
             steps {
                 sh """
                 export PATH=/work/.dependencies/cmake-3.22.5/bin:/work/.dependencies/ninja-1.10.2:\$PATH
@@ -115,24 +132,39 @@ pipeline {
             }
         }
         
-        state('IntegrationTests') {
+        stage('IntegrationTests') {
+            agent {
+                dockerfile {
+                    label 'docker'
+                    filename 'utils/holly/IntegrationTestsDockerfile'
+                    additionalBuildArgs '-t it-prusa-firmware-buddy'
+                }
+            }
             steps {
-                sh """
-                pytest tests/integration --firmware <firmware.bin to test>
-                """
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    unstash "artifacts"
+                    sh """
+                    python3 -m pip install -r tests/integration/requirements.txt
+                    python3 -m pytest tests/integration --firmware build/mini_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S"
+                    """
+                }
             }
         }
     }
 
     post {
         always {
-            // archive build products
-            archiveArtifacts artifacts: 'build/products/*', fingerprint: true
-            // archive test products
-            archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
+            node('master') {
+                // archive build products
+                archiveArtifacts artifacts: 'build/products/*', fingerprint: true
+                // archive test products
+                archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
+            }
         }
         cleanup {
-            deleteDir()
+            node('master') {
+                deleteDir()
+            }
         }
     }
 }

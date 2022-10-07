@@ -17,7 +17,7 @@ async def take_screenshot(printer: Printer) -> Image.Image:
 
 
 async def read(printer: Printer):
-    ocr_reader = Reader(['en'])
+    ocr_reader = Reader(['en'], verbose=False)
     screenshot = await take_screenshot(printer)
     screenshot_io = io.BytesIO()
     screenshot.save(screenshot_io, format='PNG')
@@ -42,6 +42,12 @@ async def wait_for_text(printer: Printer, text):
             return text_on_screen
 
 
+async def is_on_homescreen(printer: Printer):
+    text = await read(printer)
+    fragments = 'preheat', 'settings'
+    return all(fragment in text.lower() for fragment in fragments)
+
+
 async def is_booting(printer: Printer):
     text = await read(printer)
     if not text.strip():
@@ -49,5 +55,6 @@ async def is_booting(printer: Printer):
         return True
     if printer.machine == MachineType.MINI and text.strip():
         # after the black screen, we might catch MINI's loading screen
-        return 'loadin' in text.lower()
+        fragments = 'loadin', 'looking for bbf', 'preparing bootstrap', 'copying', 'installing files'
+        return any(fragment in text.lower() for fragment in fragments)
     return False

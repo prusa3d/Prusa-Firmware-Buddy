@@ -1,0 +1,32 @@
+FROM buildpack-deps:bullseye
+RUN apt-get clean && \
+    apt-get update -qq -y
+RUN apt-get install -y curl python3 python3-pip libncurses5 g++-multilib
+RUN apt-get install -y git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
+RUN apt-get install -y libaio-dev libbluetooth-dev libcapstone-dev libbrlapi-dev libbz2-dev
+RUN apt-get install -y libcap-ng-dev libcurl4-gnutls-dev libgtk-3-dev
+RUN apt-get install -y libibverbs-dev libncurses5-dev libnuma-dev
+RUN apt-get install -y librbd-dev librdmacm-dev
+RUN apt-get install -y libsasl2-dev libsdl2-dev libseccomp-dev libsnappy-dev libssh-dev
+RUN apt-get install -y libvde-dev libvdeplug-dev libvte-2.91-dev libxen-dev liblzo2-dev
+RUN apt-get install -y valgrind xfslibs-dev
+RUN apt-get install -y libgl1 libglu1 freeglut3 libglew2.1 libepoxy-dev libusb-1.0-0-dev
+RUN apt-get remove -y libjpeg62-turbo-dev
+RUN TEMP_DEB="$(mktemp)" && \
+    wget -O "$TEMP_DEB" 'https://snapshot.debian.org/archive/debian/20190501T215844Z/pool/main/g/glibc/multiarch-support_2.28-10_amd64.deb' && \
+    dpkg -i "$TEMP_DEB" && \
+    rm -f "$TEMP_DEB"
+RUN TEMP_DEB="$(mktemp)" && \
+    wget -O "$TEMP_DEB" 'https://snapshot.debian.org/archive/debian/20141009T042436Z/pool/main/libj/libjpeg8/libjpeg8_8d1-2_amd64.deb' && \
+    dpkg -i "$TEMP_DEB" && \
+    rm -f "$TEMP_DEB"
+RUN TEMP_DEB="$(mktemp)" && \
+    wget -O "$TEMP_DEB" 'http://snapshot.debian.org/archive/debian/20141009T042436Z/pool/main/libj/libjpeg8/libjpeg8-dev_8d1-2_amd64.deb' && \
+    dpkg -i "$TEMP_DEB" && \
+    rm -f "$TEMP_DEB"
+RUN pip3 install --upgrade pip
+WORKDIR /work
+ADD utils/bootstrap.py utils/bootstrap.py
+ADD utils/debug utils/debug
+RUN python3 utils/bootstrap.py && rm -rf utils
+RUN python3 -m pip install pytest pytest-asyncio easyocr aiohttp

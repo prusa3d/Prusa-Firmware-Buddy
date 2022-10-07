@@ -3,7 +3,7 @@ import functools
 import pytest
 
 
-def timeoutable(func=None, *, timeout=120):
+def timeoutable(func=None, *, timeout=20):
     __tracebackhide__ = True
 
     if not func:

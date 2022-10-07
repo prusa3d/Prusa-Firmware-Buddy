@@ -1,17 +1,17 @@
+import socket
 from pathlib import Path
 import logging
 import asyncio
 import uuid
 from typing import Optional, Tuple
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, closing
 
 from PIL import Image
 from bootstrap import get_dependency_directory
 from .pubsub import Publisher
 from .printer import Thermistor, MachineType, NetworkInterface
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger('simulator')
 
 
 class Simulator:
@@ -27,6 +27,16 @@ class Simulator:
         self.scriptio_writer = scriptio_writer
         self.http_proxy_port = http_proxy_port
 
+
+    @staticmethod
+    def _get_available_port():
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+            s.bind(('', 0))
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            return s.getsockname()[1]
+
+    
+
     @staticmethod
     @asynccontextmanager
     async def run(simulator_path: Path,
@@ -39,6 +49,7 @@ class Simulator:
                   eeprom_content: Tuple[Path, Path] = None,
                   xflash_content: Path = None,
                   nographic=False):
+        monitor_port = Simulator._get_available_port()
         # prepare the arguments
         params = ['-machine', machine.value]
         params += ['-kernel', str(firmware_path)]
@@ -163,8 +174,9 @@ class Simulator:
     # screen primitives
     #
 
-    async def screen_take_screenshot(self) -> Image.Image:
-        screenshot_path = self.tmpdir / (str(uuid.uuid4()) + '.png')
+    async def screen_take_screenshot(self, path=None) -> Image.Image:
+        screenshot_path = path if path else self.tmpdir / (str(uuid.uuid4()) +
+                                                           '.png')
         await self.command(f'st7789v::Screenshot({screenshot_path})')
         return Image.open(screenshot_path)
 

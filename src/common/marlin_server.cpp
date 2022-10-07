@@ -627,7 +627,7 @@ bool marlin_server_printer_paused() {
     return marlin_server.print_state == mpsPaused;
 }
 
-void marlin_server_print_start(const char *filename, bool skip_preview) {
+void marlin_server_print_start(const char *filename, bool skip_preview, bool skip_gui) {
 #if HAS_SELFTEST
     if (SelftestInstance().IsInProgress())
         return;
@@ -660,12 +660,13 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
     case mpsPrintPreviewImage:
     case mpsPrintPreviewQuestions:
         media_print_start__prepare(filename);
-        marlin_server.print_state = mpsWaitGui;
+        marlin_server.print_state = skip_gui ? mpsPrintInit : mpsWaitGui;
         _set_notify_change(MARLIN_VAR_FILEPATH);
         _set_notify_change(MARLIN_VAR_FILENAME);
         _set_notify_change(MARLIN_VAR_PRNSTATE);
 
-        skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
+        if (!skip_gui)
+            skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
         break;
     default:
         break;
@@ -774,7 +775,7 @@ void marlin_server_print_resume(void) {
         marlin_server.print_state = mpsPowerPanic_Resume;
 #endif
     } else
-        marlin_server_print_start(nullptr, true);
+        marlin_server_print_start(nullptr, true, false);
 }
 
 void marlin_server_print_reheat_start(void) {
@@ -2008,7 +2009,7 @@ bool _process_server_valid_request(const char *request, int client_id) {
         marlin_server_quick_stop();
         return true;
     case MARLIN_MSG_PRINT_START:
-        marlin_server_print_start(data + 1, data[0] == '1');
+        marlin_server_print_start(data + 1, data[0] == '1', false);
         return true;
     case MARLIN_MSG_GUI_PRINT_READY:
         marlin_server_gui_ready_to_print();

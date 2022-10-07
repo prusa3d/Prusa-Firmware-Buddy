@@ -3,6 +3,7 @@ import asyncio
 import logging
 import pytest
 import pytest_asyncio
+from pathlib import Path
 
 from .actions import encoder, screen, temperature, network
 from simulator import MachineType, Thermistor, Printer
@@ -248,6 +249,7 @@ async def test_delete_project_printing(running_printer_client):
     assert stop.status == 204
 
 
+@pytest.mark.skip()
 async def test_delete_project(printer_with_files):
     fname = '/api/files/usb/BOX~1.GCO'
     heads = valid_headers()
@@ -261,6 +263,7 @@ async def test_delete_project(printer_with_files):
     assert listing["files"] == []
 
 
+@pytest.mark.skip()
 async def test_list_files(printer_with_files):
     listing_r = await printer_with_files.get('/api/files',
                                              headers=valid_headers())
@@ -282,7 +285,7 @@ async def test_caching(printer_with_files):
         get1 = await printer_with_files.get(path, headers=h)
         assert get1.status == 200
         print(dict(get1.headers))
-        etag = get1.headers['ETag']
+        etag = get1.headers['Etag']
 
         # Match
         h['If-None-Match'] = etag
