@@ -71,8 +71,7 @@ void GCodeInfo::PreviewInit(FILE &file, time_buff &printing_time, filament_buff 
     unsigned &filament_used_g, unsigned &filament_used_mm,
     bool &filament_described, bool &valid_printer_settings) {
     // TODO read this value from comment, if it does not contain it, it must be added!!!
-    const int search_last_x_bytes = 14000; // With increasing size of the comment section, this will have to be increased either
-    if (fseek(&file, -search_last_x_bytes, SEEK_END) != 0) {
+    if (fseek(&file, -f_gcode_search_last_x_bytes, SEEK_END) != 0) {
         fseek(&file, 0, SEEK_SET);
     }
     char name_buffer[64];
