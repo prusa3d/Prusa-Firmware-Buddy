@@ -5,7 +5,7 @@
 #include "display.h"
 #include "errors.h"
 #include "sound.hpp"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "sys.h"
 #include "eeprom.h"
 #include "support_utils.h"

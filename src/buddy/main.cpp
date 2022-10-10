@@ -13,7 +13,7 @@
 #include "sys.h"
 #include "app.h"
 #include "wdt.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "timer_defaults.h"
 #include "tick_timer_api.h"
 #include "thread_measurement.h"
