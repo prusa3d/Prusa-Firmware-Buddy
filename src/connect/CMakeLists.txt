@@ -3,6 +3,7 @@ target_sources(
   PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
           command.cpp
           connect.cpp
+          hostname.cpp
           marlin_printer.cpp
           planner.cpp
           printer.cpp

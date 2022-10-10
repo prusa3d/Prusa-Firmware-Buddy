@@ -11,9 +11,11 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/hostname.cpp
   command.cpp
   missing_functions.cpp
   render.cpp
+  hostname.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
