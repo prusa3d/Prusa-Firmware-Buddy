@@ -52,6 +52,7 @@ target_sources(
           screen_splash.cpp
           screen_sysinf.cpp
           screen_watchdog.cpp
+          screen_bed_leveling.cpp
           ScreenFactory.cpp
           ScreenHandler.cpp
           ScreenPrintingModel.cpp
