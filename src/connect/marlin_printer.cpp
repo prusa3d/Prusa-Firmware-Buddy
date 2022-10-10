@@ -1,4 +1,5 @@
 #include "marlin_printer.hpp"
+#include "hostname.hpp"
 
 #include <eeprom.h>
 #include <ini.h>
@@ -40,8 +41,9 @@ namespace {
         size_t len = strlen(value);
 
         if (ini_string_match(section, INI_SECTION, name, "hostname")) {
-            if (len <= CONNECT_HOST_SIZE) {
-                strlcpy(config->host, value, sizeof config->host);
+            char buffer[sizeof config->host];
+            if (compress_host(value, buffer, sizeof buffer)) {
+                strlcpy(config->host, buffer, sizeof config->host);
             } else {
                 return 0;
             }
@@ -253,6 +255,7 @@ Printer::Config MarlinPrinter::load_config() {
     if (configuration.enabled) {
         // Just avoiding to read it when disabled, only to save some CPU
         strextract(configuration.host, sizeof configuration.host, EEVAR_CONNECT_HOST);
+        decompress_host(configuration.host, sizeof configuration.host);
         strextract(configuration.token, sizeof configuration.token, EEVAR_CONNECT_TOKEN);
         configuration.tls = eeprom_get_bool(EEVAR_CONNECT_TLS);
         configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
