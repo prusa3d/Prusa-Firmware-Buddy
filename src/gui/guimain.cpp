@@ -290,6 +290,8 @@ void gui_run(void) {
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 
     redraw_cmd_t redraw;
+
+    marlin_gcode("M118 E1 bootstrap finished");
     // TODO make some kind of registration
     while (1) {
         gui::StartLoop();
