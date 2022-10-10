@@ -1,7 +1,7 @@
 // bsod_gui.cpp - blue screen of death
 #include "bsod.h"
 #include "wdt.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "safe_state.h"
 
 #include "FreeRTOS.h"

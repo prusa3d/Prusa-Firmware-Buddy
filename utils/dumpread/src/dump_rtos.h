@@ -2,7 +2,7 @@
 #ifndef _DUMP_RTOS_H
 #define _DUMP_RTOS_H
 
-#include "dump.h"
+#include <crash_dump/dump.h>
 
 #define DUMP_RTOS_MAX_TASKS      16 // actually 8 tasks used
 #define DUMP_RTOS_MAX_PRIORITIES 7  // configMAX_PRIORITIES = 7

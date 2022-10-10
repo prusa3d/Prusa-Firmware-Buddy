@@ -13,7 +13,6 @@ if(BOARD MATCHES ".*BUDDY")
             client_response_texts.cpp
             crc32.c
             crc32_zlib.c
-            dump.cpp
             eeprom.cpp
             eeprom_loadsave.c
             errors.cpp
@@ -119,6 +118,7 @@ endif()
 if(HAS_SELFTEST)
   add_subdirectory(selftest)
 endif()
+add_subdirectory(crash_dump)
 
 add_subdirectory(automata)
 add_subdirectory(http)
