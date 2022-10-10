@@ -1,1 +1,1 @@
-target_sources(firmware PRIVATE SEGGER_SYSVIEW_FreeRTOS.c SEGGER_SYSVIEW_Config_FreeRTOS.c)
+target_sources(firmware PRIVATE SEGGER_SYSVIEW_Config_FreeRTOS.c SEGGER_SYSVIEW_FreeRTOS.c)

@@ -6,7 +6,6 @@
  *  Refactoring by DRracer 2020-04-08
  */
 #include <algorithm>
-
 #include "window_file_list.hpp"
 #include "gui.hpp"
 #include "config.h"
@@ -18,6 +17,27 @@
 #if _DEBUG
     #include "bsod.h"
 #endif
+
+GuiFileSort::GuiFileSort() {
+    sort = WF_Sort_t(eeprom_get_ui8(EEVAR_FILE_SORT));
+}
+
+GuiFileSort &GuiFileSort::instance() {
+    static GuiFileSort ret;
+    return ret;
+}
+
+WF_Sort_t GuiFileSort::Get() {
+    return instance().sort;
+}
+
+void GuiFileSort::Set(WF_Sort_t val) {
+    if (instance().sort == val)
+        return;
+
+    eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)val);
+    instance().sort = val;
+}
 
 // static definitions
 char *window_file_list_t::root = nullptr;
@@ -76,8 +96,8 @@ const char *window_file_list_t::TopItemSFN() {
     return ldv.ShortFileNameAt(0).first;
 }
 
-window_file_list_t::window_file_list_t(window_t *parent, point_i16_t top_left, Rect16::Width_t width)
-    : AddSuperWindow<window_aligned_t>(parent, Rect16(top_left, width, item_height * LazyDirViewSize))
+window_file_list_t::window_file_list_t(window_t *parent)
+    : AddSuperWindow<window_aligned_t>(parent, DefaultRC)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , entire_window_invalid(true)
@@ -186,7 +206,6 @@ void window_file_list_t::inc(int dif) {
     valid_items.fill(false);
     activeItem.clrFocus();
     selectNewItem();
-    activeItem.Roll(); // first call causes additional invalidation, it does not matter here, but would flicker in case it was not called
     super::invalidate(GetRect());
 }
 

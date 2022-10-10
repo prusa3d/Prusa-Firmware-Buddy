@@ -69,7 +69,7 @@ extern "C" {
 #define LWIP_SINGLE_NETIF            0
 #define LWIP_NETIF_HOSTNAME          1
 #define LWIP_HTTPD_SUPPORT_POST      0
-#define LWIP_COMPAT_SOCKETS          1
+#define LWIP_COMPAT_SOCKETS          2
 #define LWIP_ALTCP                   0
 #define LWIP_HTTPD_DYNAMIC_FILE_READ 0
 #define LWIP_TIMERS                  1
@@ -91,6 +91,8 @@ extern "C" {
  */
 #define MEMP_NUM_TCP_PCB 12
 #define SO_REUSE         1 // Allow SOF_REUSEADDR to do something useful.
+
+#define MEMP_NUM_UDP_PCB 5
 
 #ifdef __cplusplus
 }

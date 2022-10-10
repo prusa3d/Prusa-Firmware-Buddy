@@ -12,7 +12,7 @@
  * TODO make some automatic checks names vs enum
  */
 const std::array<std::pair<const char *, ResourceId>, static_cast<size_t>(Response::_last) + 1> BtnResponse::texts_and_icons {
-    std::make_pair( "", IDR_PNG_question_48px ),                  // _none
+    std::make_pair( "", IDR_NULL ),                  // _none
     std::make_pair( N_("ABORT"), IDR_PNG_disconnect_48px ),       // Abort
     std::make_pair( "ABS", IDR_PNG_spool_58px ),                  // ABS filament, do not translate
     std::make_pair( "ASA", IDR_PNG_spool_58px ),                  // ASA filament, do not translate
@@ -23,6 +23,7 @@ const std::array<std::pair<const char *, ResourceId>, static_cast<size_t>(Respon
     std::make_pair( N_("COOLDOWN"), IDR_NULL ),                   // Cooldown
     std::make_pair( N_("DISABLE SENSOR"), IDR_NULL ),             // Filament_removed
     std::make_pair( "FLEX", IDR_PNG_spool_58px ),                 // FLEX filament, do not translate
+    std::make_pair( N_("DISABLE FS"), IDR_NULL ),                 // FS_disable
     std::make_pair( "HIPS", IDR_PNG_spool_58px ),                 // HIPS filament, do not translate
     std::make_pair( N_("IGNORE"), IDR_NULL ),                     // Ignore
     std::make_pair( N_("LOAD"), IDR_PNG_spool_58px ),             // Load

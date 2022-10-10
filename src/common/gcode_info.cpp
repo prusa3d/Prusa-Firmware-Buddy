@@ -13,16 +13,13 @@ bool GCodeInfo::IsSettingsValid() {
     return valid_printer_settings;
 }
 
-void GCodeInfo::SetGcodeFilename(const char *fname) {
+void GCodeInfo::Init(const char *fname, const char *fpath) {
     gcode_file_name = fname;
+    gcode_file_path = fpath;
 }
 
 const char *GCodeInfo::GetGcodeFilename() {
     return gcode_file_name;
-}
-
-void GCodeInfo::SetGcodeFilepath(const char *fpath) {
-    gcode_file_path = fpath;
 }
 
 const char *GCodeInfo::GetGcodeFilepath() {
@@ -32,7 +29,7 @@ const char *GCodeInfo::GetGcodeFilepath() {
 bool GCodeInfo::hasThumbnail(FILE *file, size_ui16_t size) {
     FILE f = { 0 };
     bool thumbnail_valid = false;
-    GCodeThumbDecoder gd(file, size.w, size.h);
+    GCodeThumbDecoder gd(file, size.w, size.h, true);
     if (f_gcode_thumb_open(&gd, &f) == 0) {
         char buffer;
         thumbnail_valid = fread((void *)&buffer, 1, 1, &f) > 0;

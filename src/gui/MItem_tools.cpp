@@ -180,7 +180,7 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");
-    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), IDR_PNG_info_16px);
+    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), PNG::info_16x16);
     gui::TickLoop();
     gui_loop();
 }
@@ -393,11 +393,9 @@ MI_SORT_FILES::MI_SORT_FILES()
     : WI_SWITCH_t<2>(eeprom_get_ui8(EEVAR_FILE_SORT), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
     if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
-        eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)WF_SORT_BY_NAME);
-        screen_filebrowser_sort = WF_SORT_BY_NAME;
+        GuiFileSort::Set(WF_SORT_BY_NAME);
     } else if (old_index == WF_SORT_BY_NAME) { // was sorted by name, set by time
-        eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)WF_SORT_BY_TIME);
-        screen_filebrowser_sort = WF_SORT_BY_TIME;
+        GuiFileSort::Set(WF_SORT_BY_TIME);
     }
 }
 

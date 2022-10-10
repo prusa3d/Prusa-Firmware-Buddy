@@ -21,9 +21,9 @@ void window_icon_t::SetIdRes(ResourceId id) {
     }
 }
 
-void window_icon_t::setFileName(const char *filename) {
-    if (strcmp(dataSource.filename, filename) != 0) {
-        dataSource.set(filename);
+void window_icon_t::SetFilePath(const char *filepath) {
+    if (strcmp(dataSource.filename, filepath) != 0) {
+        dataSource.set(filepath);
         assert(dataSource.isFromFile());
         Invalidate();
     }
@@ -334,7 +334,7 @@ void WindowPreviewThumbnail::unconditionalDraw() {
         return;
     FILE f = { 0 };
     fseek(gcode_info.file, 0, SEEK_SET);
-    GCodeThumbDecoder gd(gcode_info.file, Width(), Height());
+    GCodeThumbDecoder gd(gcode_info.file, Width(), Height(), true);
     if (f_gcode_thumb_open(&gd, &f) == 0) {
         display::DrawPng(point_ui16(Left(), Top()), &f);
         f_gcode_thumb_close(&f);

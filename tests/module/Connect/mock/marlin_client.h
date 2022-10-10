@@ -67,7 +67,6 @@ typedef struct _marlin_vars_t {
     uint8_t print_fan_speed;     // print fan speed [0..255]
     uint8_t wait_heat;           // wait_for_heatup
     uint8_t wait_user;           // wait_for_user
-    uint8_t sd_printing;         // card.flag.sdprinting
     uint8_t sd_percent_done;     // card.percentDone() [%]
     uint8_t media_inserted;      // media_is_inserted()
     uint8_t fan_check_enabled;   // fan_check [on/off]

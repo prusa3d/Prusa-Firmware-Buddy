@@ -5,7 +5,6 @@
 #include "ScreenHandler.hpp"
 #include "screen_menus.hpp"
 #include <ctime>
-#include "wui_api.h"
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"
 #include "odometer.hpp"
@@ -86,6 +85,7 @@ void screen_printing_data_t::pauseAction() {
         marlin_print_resume();
         change_print_state();
         break;
+    case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
         screen_printing_reprint();
         change_print_state();
@@ -100,8 +100,9 @@ void screen_printing_data_t::stopAction() {
         return;
     }
     switch (GetState()) {
+    case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
-        Screens::Access()->Close();
+        marlin_print_exit();
         return;
     case printing_state_t::PAUSING:
     case printing_state_t::RESUMING:
@@ -217,7 +218,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
         } else {
-            Screens::Access()->Close();
+            marlin_print_exit();
             return;
         }
     }
@@ -231,8 +232,8 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     }
 
     /// -- close screen when print is done / stopped and USB media is removed
-    if (!marlin_vars()->media_inserted && p_state == printing_state_t::PRINTED) {
-        Screens::Access()->Close();
+    if (!marlin_vars()->media_inserted && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
+        marlin_print_exit();
         return;
     }
 
@@ -244,7 +245,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (event == GUI_event_t::HELD_RELEASED) {
         if (marlin_vars()->curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
             LiveAdjustZ::Show();
-        } else if (p_state == printing_state_t::PRINTED) {
+        } else if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
             DialogMoveZ::Show();
         }
         return;
@@ -254,7 +255,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 }
 
 void screen_printing_data_t::change_etime() {
-    time_t sec = sntp_get_system_time();
+    time_t sec = time(nullptr);
     if (sec != 0) {
         // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
         // theoretically it can be removed completely in case the string is constant for the whole run of the screen
@@ -468,6 +469,7 @@ void screen_printing_data_t::set_pause_icon_and_label() {
         disable_button(p_button);
         set_icon_and_label(item_id_t::reheating, p_button, pLabel);
         break;
+    case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
         enable_button(p_button);
         set_icon_and_label(item_id_t::reprint, p_button, pLabel);
@@ -504,6 +506,7 @@ void screen_printing_data_t::set_stop_icon_and_label() {
     window_text_t *const pLabel = &btn_stop.txt;
 
     switch (GetState()) {
+    case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
         enable_button(p_button);
         set_icon_and_label(item_id_t::home, p_button, pLabel);
@@ -528,9 +531,10 @@ void screen_printing_data_t::change_print_state() {
 
     switch (marlin_vars()->print_state) {
     case mpsIdle:
-    case mspPrintPreviewInit:
-    case mspPrintPreviewLoop:
-    case mspPrintInit:
+    case mpsWaitGui:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+    case mpsPrintInit:
         st = printing_state_t::INITIAL;
         break;
     case mpsPrinting:
@@ -577,9 +581,10 @@ void screen_printing_data_t::change_print_state() {
         break;
     case mpsAborted:
         stop_pressed = false;
-        st = printing_state_t::PRINTED;
+        st = printing_state_t::STOPPED;
         break;
     case mpsFinished:
+    case mpsExit:
         st = printing_state_t::PRINTED;
         break;
     case mpsPowerPanic_acFault:
@@ -596,7 +601,7 @@ void screen_printing_data_t::change_print_state() {
         set_tune_icon_and_label();
         set_stop_icon_and_label();
     }
-    if (st == printing_state_t::PRINTED || st == printing_state_t::PAUSED) {
+    if (st == printing_state_t::PRINTED || st == printing_state_t::STOPPED || st == printing_state_t::PAUSED) {
         Odometer_s::instance().force_to_eeprom();
     }
 #if ENABLED(CRASH_RECOVERY)

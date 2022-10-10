@@ -61,6 +61,7 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 #if ENABLED(CRASH_RECOVERY)
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
     #include "crash_recovery_type.hpp"
+    #include "selftest_axis.h"
 #endif
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -245,7 +246,7 @@ static void _server_update_and_notify(int client_id, uint64_t update);
 
 void marlin_server_init(void) {
     int i;
-    memset(&marlin_server, 0, sizeof(marlin_server_t));
+    marlin_server = marlin_server_t();
     osMessageQDef(serverQueue, MARLIN_SERVER_QUEUE, uint8_t);
     marlin_server_queue = osMessageCreate(osMessageQ(serverQueue), NULL);
     osSemaphoreDef(serverSema);
@@ -401,7 +402,6 @@ void static marlin_server_finalize_print() {
     power_panic::reset();
 #endif
     Odometer_s::instance().add_time(marlin_server.vars.print_duration);
-    fsm_destroy(ClientFSM::Printing);
     print_area.reset_bounding_rect();
 }
 
@@ -618,20 +618,48 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
 #endif
     if (filename == nullptr)
         return;
+
+    // handle preview / reprint
+    switch (marlin_server.print_state) {
+    case mpsFinished:
+    case mpsAborted:
+        // correctly end previous print
+        marlin_server_finalize_print();
+        fsm_destroy(ClientFSM::Printing);
+        break;
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+        PrintPreview::Instance().ChangeState(IPrintPreview::State::inactive); // close preview
+        break;
+    default:
+        break;
+    }
+
     switch (marlin_server.print_state) {
     case mpsIdle:
     case mpsFinished:
     case mpsAborted:
-    case mspPrintPreviewInit:
-    case mspPrintPreviewLoop:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
         media_print_start__prepare(filename);
-        marlin_server.print_state = mspPrintPreviewInit;
+        marlin_server.print_state = mpsWaitGui;
         _set_notify_change(MARLIN_VAR_FILEPATH);
         _set_notify_change(MARLIN_VAR_FILENAME);
 
         skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
         break;
     default:
+        break;
+    }
+}
+
+void marlin_server_gui_ready_to_print() {
+    switch (marlin_server.print_state) {
+    case mpsWaitGui:
+        marlin_server.print_state = mpsPrintPreviewInit;
+        break;
+    default:
+        log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", mpsWaitGui, marlin_server.print_state);
         break;
     }
 }
@@ -649,6 +677,24 @@ void marlin_server_print_abort(void) {
         marlin_server.print_state = mpsAborting_Begin;
         break;
     default:
+        break;
+    }
+}
+
+void marlin_server_print_exit(void) {
+    switch (marlin_server.print_state) {
+#if ENABLED(POWER_PANIC)
+    case mpsPowerPanic_Resume:
+    case mpsPowerPanic_AwaitingResume:
+#endif
+    case mpsPrinting:
+    case mpsPaused:
+    case mpsResuming_Reheating:
+    case mpsFinishing_WaitIdle:
+        // do nothing
+        break;
+    default:
+        marlin_server.print_state = mpsExit;
         break;
     }
 }
@@ -754,19 +800,13 @@ enum class Axis_length_t {
 };
 
 static Axis_length_t axis_length_ok(AxisEnum axis) {
-    // const int axis_len[2] = { X_MAX_POS - X_MIN_POS, Y_MAX_POS - Y_MIN_POS };
-    // const int gap = axis == X_AXIS ? X_END_GAP : Y_END_GAP;
     const float len = marlin_server.axis_length.pos[axis];
 
     switch (axis) {
     case X_AXIS:
-        // FIXME: remove once the printer specs are finalized
-        return len < 230 ? Axis_length_t::shorter : (len > 290 ? Axis_length_t::longer : Axis_length_t::ok);
+        return len < selftest::Config_XAxis.length_min ? Axis_length_t::shorter : (len > selftest::Config_XAxis.length_max ? Axis_length_t::longer : Axis_length_t::ok);
     case Y_AXIS:
-        // FIXME: remove once the printer specs are finalized
-        return len < 190 ? Axis_length_t::shorter : (len > 250 ? Axis_length_t::longer : Axis_length_t::ok);
-        // return axis_len[axis] < len
-        //     && len <= axis_len[axis] + gap;
+        return len < selftest::Config_YAxis.length_min ? Axis_length_t::shorter : (len > selftest::Config_YAxis.length_max ? Axis_length_t::longer : Axis_length_t::ok);
     default:;
     }
     return Axis_length_t::shorter;
@@ -780,7 +820,7 @@ static Axis_length_t xy_axes_length_ok() {
     if (alx == aly && aly == Axis_length_t::ok)
         return Axis_length_t::ok;
     // shorter is worse than longer
-    if (alx == Axis_length_t::shorter || alx == Axis_length_t::shorter)
+    if (alx == Axis_length_t::shorter || aly == Axis_length_t::shorter)
         return Axis_length_t::shorter;
     return Axis_length_t::longer;
 }
@@ -852,11 +892,17 @@ static void _server_print_loop(void) {
     switch (marlin_server.print_state) {
     case mpsIdle:
         break;
-    case mspPrintPreviewInit:
+    case mpsWaitGui:
+        // without gui just act as if state == mpsPrintPreviewInit
+#if HAS_GUI
+        break;
+#endif
+    case mpsPrintPreviewInit:
+        did_not_start_print = true;
         if (media_print_filepath()) {
             PrintPreview::Instance().Init(media_print_filepath());
         }
-        marlin_server.print_state = mspPrintPreviewLoop;
+        marlin_server.print_state = mpsPrintPreviewLoop;
         break;
         /*
         TODO thia used to be in original implamentation, but we dont do that anymore
@@ -869,7 +915,7 @@ static void _server_print_loop(void) {
         if (!gcode_file_exists()) {
             Screens::Access()->Close(); //if an dialog is opened, it will be closed first
         */
-    case mspPrintPreviewLoop: // button evaluation
+    case mpsPrintPreviewLoop: // button evaluation
         switch (PrintPreview::Instance().Loop()) {
         case PrintPreview::Result::InProgress:
             break;
@@ -879,11 +925,11 @@ static void _server_print_loop(void) {
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
             did_not_start_print = false;
-            marlin_server.print_state = mspPrintInit;
+            marlin_server.print_state = mpsPrintInit;
             break;
         }
         break;
-    case mspPrintInit:
+    case mpsPrintInit:
         feedrate_percentage = 100;
         // First, reserve the job_id in eeprom. In case we get reset, we need
         // that to not get reused by accident.
@@ -1071,6 +1117,11 @@ static void _server_print_loop(void) {
             marlin_server_finalize_print();
         }
         break;
+    case mpsExit:
+        marlin_server_finalize_print();
+        fsm_destroy(ClientFSM::Printing);
+        marlin_server.print_state = mpsIdle;
+        break;
 
 #if ENABLED(CRASH_RECOVERY)
     case mpsCrashRecovery_Begin: {
@@ -1224,7 +1275,7 @@ void marlin_server_resuming_begin(void) {
         marlin_server.print_state = mpsResuming_UnparkHead_XY;
     } else {
         thermalManager.setTargetHotend(marlin_server.resume.nozzle_temp, 0);
-        marlin_set_display_nozzle(marlin_server.resume.nozzle_temp);
+        marlin_server_set_temp_to_display(marlin_server.resume.nozzle_temp);
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0); //disable print fan
 #endif
@@ -1713,14 +1764,6 @@ static uint64_t _server_update_vars(uint64_t update) {
         }
     }
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT)) {
-        uint8_t media = media_print_get_state() != media_print_state_NONE;
-        if (marlin_server.vars.sd_printing != media) {
-            marlin_server.vars.sd_printing = media;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PRINT);
-        }
-    }
-
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
         if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
 
@@ -1919,6 +1962,9 @@ bool _process_server_valid_request(const char *request, int client_id) {
     case MARLIN_MSG_PRINT_START:
         marlin_server_print_start(data + 1, data[0] == '1');
         return true;
+    case MARLIN_MSG_GUI_PRINT_READY:
+        marlin_server_gui_ready_to_print();
+        return true;
     case MARLIN_MSG_PRINT_ABORT:
         marlin_server_print_abort();
         return true;
@@ -1927,6 +1973,9 @@ bool _process_server_valid_request(const char *request, int client_id) {
         return true;
     case MARLIN_MSG_PRINT_RESUME:
         marlin_server_print_resume();
+        return true;
+    case MARLIN_MSG_PRINT_EXIT:
+        marlin_server_print_exit();
         return true;
     case MARLIN_MSG_PARK:
         marlin_server_park_head();
@@ -2134,45 +2183,11 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
-//todo remove me after new thermal manager
-int _is_thermal_error(PGM_P const msg) {
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_HEATING_FAILED_LCD_CHAMBER)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_REDUNDANT_TEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_THERMAL_RUNAWAY_CHAMBER)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MAXTEMP_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_MINTEMP_BED)))
-        return 1;
-    if (!strcmp(msg, GET_TEXT(MSG_ERR_HOMING)))
-        return 1;
-    return 0;
-}
-
 void onPrinterKilled(PGM_P const msg, PGM_P const component) {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
     vTaskEndScheduler();
-    wdt_iwdg_refresh();           //watchdog reset
-    if (_is_thermal_error(msg)) { //todo remove me after new thermal manager
-        const marlin_vars_t &vars = marlin_server.vars;
-        temp_error(msg, component, vars.temp_nozzle, vars.target_nozzle, vars.temp_bed, vars.target_bed);
-    } else {
-        general_error(msg, component);
-    }
+    wdt_iwdg_refresh(); //watchdog reset
+    fatal_error(msg, component);
 }
 
 void onMediaInserted() {

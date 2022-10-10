@@ -36,7 +36,7 @@
 
 extern RTC_HandleTypeDef hrtc;
 
-static bool sntp_time_init = false;
+bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 static std::atomic<uint32_t> uploaded_gcodes;
@@ -304,30 +304,6 @@ void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
     }
 }
 
-time_t sntp_get_system_time(void) {
-
-    if (sntp_time_init) {
-        RTC_TimeTypeDef currTime;
-        RTC_DateTypeDef currDate;
-        HAL_RTC_GetTime(&hrtc, &currTime, RTC_FORMAT_BIN);
-        HAL_RTC_GetDate(&hrtc, &currDate, RTC_FORMAT_BIN);
-        time_t secs;
-        struct tm system_time;
-        system_time.tm_isdst = -1; // Is DST on? 1 = yes, 0 = no, -1 = unknown
-        system_time.tm_hour = currTime.Hours;
-        system_time.tm_min = currTime.Minutes;
-        system_time.tm_sec = currTime.Seconds;
-        system_time.tm_mday = currDate.Date;
-        system_time.tm_mon = currDate.Month;
-        system_time.tm_year = currDate.Year;
-        system_time.tm_wday = currDate.WeekDay;
-        secs = mktime(&system_time);
-        return secs;
-    } else {
-        return 0;
-    }
-}
-
 void sntp_set_system_time(uint32_t sec) {
 
     RTC_TimeTypeDef currTime;
@@ -366,41 +342,36 @@ uint32_t wui_gcodes_uploaded() {
     return uploaded_gcodes;
 }
 
-bool wui_start_print(char *filename) {
-    // Note: By checking now and starting it later, we are introducing a short
-    // race condition. Doing it properly would be kind of hard and the risk is
-    // we maybe start the print and don't get the print screen or something
-    // like that ‒ annoying, but not entirely dangerous.
-    //
-    // We assume marlin does another check when asked to print and won't start
-    // a print inside a print or such.
-    //
-    // Also, this introduces another code dependency in the „wrong direction“.
-    // GUI should be a neighbor of WUI and should not depend on each other.
-    // But, well, …
+bool wui_start_print(char *filename, bool autostart_if_able) {
+    marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
+    const bool printer_can_print = !marlin_is_printing();
+    const bool can_start_print = printer_can_print && autostart_if_able;
 
-    // FIXME: How is it with the lifetime of that screen & locking?
-    const screen_t *screen = Screens::Access()->Get();
-    const bool allowed_screen = (dynamic_cast<const screen_home_data_t *>(screen) != nullptr) || (dynamic_cast<const ScreenPrintPreview *>(screen) != nullptr);
-    const bool can_start_print = !marlin_vars()->sd_printing && allowed_screen;
-
-    if (can_start_print) {
-        strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
-        // Turn it into the short name, to improve buffer length, avoid strange
-        // chars like spaces in it, etc.
-        get_SFN_path(filename);
-        print_begin(filename, true);
+    strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
+    // Turn it into the short name, to improve buffer length, avoid strange
+    // chars like spaces in it, etc.
+    get_SFN_path(filename);
+    if (printer_can_print) {
+        print_begin(filename, can_start_print);
     }
 
-    return can_start_print;
+    return printer_can_print;
 }
 
 bool wui_uploaded_gcode(char *filename, bool start_print) {
     uploaded_gcodes++;
 
-    if (start_print) {
-        return wui_start_print(filename);
-    } else {
-        return true;
+    return wui_start_print(filename, start_print);
+}
+
+bool wui_is_file_being_printed(const char *filename) {
+    marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
+    if (!marlin_is_printing()) {
+        return false;
     }
+
+    char sfn[FILE_PATH_BUFFER_LEN];
+    strlcpy(sfn, filename, sizeof(sfn));
+    get_SFN_path(sfn);
+    return strcasecmp(sfn, marlin_vars()->media_SFN_path) == 0;
 }

@@ -7,7 +7,7 @@
 #include "buffered_serial.hpp"
 #include "bsod.h"
 #ifdef BUDDY_ENABLE_CONNECT
-    #include "connect.hpp"
+    #include "connect/run.hpp"
 #endif
 
 #include "sys.h"
@@ -128,7 +128,7 @@ extern "C" void main_cpp(void) {
      */
     if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
         int dump_type = dump_in_xflash_get_type();
-        if (dump_type == DUMP_HARDFAULT || dump_type == DUMP_TEMPERROR) {
+        if (dump_type == DUMP_HARDFAULT || dump_type == DUMP_FATALERROR) {
             /*
              * This corresponds to booting into a bluescreen or serious
              * redscreen. In such case, the GUI is blocked. Similar logic
@@ -167,7 +167,7 @@ extern "C" void main_cpp(void) {
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
     if (HAS_GUI) {
-        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024);
+        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024 + 256);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 
@@ -263,12 +263,7 @@ void StartDisplayTask(void const *argument) {
 
 #ifdef BUDDY_ENABLE_CONNECT
 void StartConnectTask(void const *argument) {
-    con::connect client;
-    client.run();
-    /* Infinite loop */
-    for (;;) {
-        osDelay(1);
-    }
+    connect_client::run();
 }
 #endif
 

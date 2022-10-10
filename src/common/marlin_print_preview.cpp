@@ -128,7 +128,7 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::filament_not_inserted_wait_user:
         switch (response) {
-        case Response::Ignore:
+        case Response::FS_disable:
             FSensors_instance().Disable();
             ChangeState(State::done);
             break;
@@ -180,7 +180,7 @@ PrintPreview::Result PrintPreview::Loop() {
             return Result::Abort;
         case Response::Change:
             ChangeState(State::wrong_filament_change);
-            marlin_server_enqueue_gcode("M1600 W2"); // change, return option
+            marlin_server_enqueue_gcode("M1600 R"); // change, return option
             break;
         default:
             break;

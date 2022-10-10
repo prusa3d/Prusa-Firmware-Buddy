@@ -136,150 +136,6 @@ void addText(char *buffer, const int size, int &position, const char *text) {
     addFormatText(buffer, size, position, "%s", text);
 }
 
-//! @brief Marlin stopped
-//!
-//! Disable interrupts, print red error message and stop in infinite loop.
-//!
-//! Known possible reasons.
-//! @n MSG_INVALID_EXTRUDER_NUM
-//! @n MSG_T_THERMAL_RUNAWAY
-//! @n MSG_T_HEATING_FAILED
-//! @n MSG_T_MAXTEMP
-//! @n MSG_T_MINTEMP
-//! @n "Emergency stop (M112)"
-//! @n "Inactive time kill"
-//!
-//! @param error Null terminated string shown in header
-//! @param module Null terminated string shown in the rest of the screen
-void general_error(const char *error, const char *module) {
-    __disable_irq();
-    stop_common();
-    display::Clear(COLOR_RED_ALERT);
-    const int COLS = 20;
-    const int ROWS = 16;
-    int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
-    /// Buffer for text. PNG RAM cannot be used (font drawing).
-    char buffer[buffer_size];
-    int buffer_pos = 0; ///< position in buffer
-
-    display::DrawText(Rect16(PADDING, PADDING, X_MAX, 22), string_view_utf8::MakeCPUFLASH((const uint8_t *)error), resource_font(IDR_FNT_NORMAL), //resource_font(IDR_FNT_NORMAL),
-        COLOR_RED_ALERT, COLOR_WHITE);
-    display::DrawLine(point_ui16(PADDING, 30), point_ui16(display::GetW() - 1 - PADDING, 30), COLOR_WHITE);
-
-    addFormatText(buffer, buffer_size, buffer_pos, "%s\n", module);
-    render_text_align(Rect16(PADDING, 60, 240, 260), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_NORMAL), COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
-
-    static const char rp[] = "RESET PRINTER"; // intentionally not translated yet
-    render_text_align(Rect16(PADDING, 260, X_MAX, 30), string_view_utf8::MakeCPUFLASH((const uint8_t *)rp), resource_font(IDR_FNT_NORMAL), COLOR_WHITE, COLOR_BLACK, { 0, 0, 0, 0 }, Align_t::Center());
-
-    //questionable placement - where now, in almost every BSOD timers are
-    //stopped and Sound class cannot update itself for timing sound signals.
-    //GUI is in the middle of refactoring and should be showned after restart
-    //when timers and everything else is running again (info by - Robert/Radek)
-    Sound_Play(eSOUND_TYPE::CriticalAlert);
-
-    //cannot use jogwheel_signals  (disabled interrupt)
-    while (1) {
-        wdt_iwdg_refresh();
-        if (!jogwheel.GetJogwheelButtonPinState())
-            sys_reset(); //button press
-    }
-}
-
-void general_error_init() {
-    __disable_irq();
-    stop_common();
-
-    //questionable placement - where now, in almost every BSOD timers are
-    //stopped and Sound class cannot update itself for timing sound signals.
-    //GUI is in the middle of refactoring and should be showned after restart
-    //when timers and everything else is running again (info by - Rober/Radek)
-
-    Sound_Play(eSOUND_TYPE::CriticalAlert);
-}
-
-void general_error_run() {
-    //cannot use jogwheel_signals  (disabled interrupt)
-    while (1) {
-        wdt_iwdg_refresh();
-        if (!jogwheel.GetJogwheelButtonPinState())
-            sys_reset(); //button press
-    }
-}
-
-//! Known possible reasons.
-//! @n MSG_T_THERMAL_RUNAWAY
-//! @n MSG_T_TEMPERATURE_SENSOR_STUCK
-//! @n MSG_T_HEATING_FAILED
-//! @n MSG_T_MAXTEMP
-//! @n MSG_T_MINTEMP
-//! @n "Emergency stop (M112)"
-void draw_error_screen(const uint16_t error_code_short) {
-
-    const uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
-
-    /// search for proper text according to error code
-    const char *text_title;
-    const char *text_body;
-
-    uint32_t i = 0;
-    uint32_t count = sizeof(error_list) / sizeof(err_t);
-
-    while (i < count && error_code_short != error_list[i].err_num) {
-        ++i;
-    }
-    if (i == count) {
-        /// no text found => leave blank screen
-    } else {
-        text_title = error_list[i].err_title;
-        text_body = error_list[i].err_text;
-
-        /// draw header & main text
-        display::DrawText(Rect16(13, 12, display::GetW() - 13, display::GetH() - 12), _(text_title), resource_font(IDR_FNT_NORMAL), COLOR_RED_ALERT, COLOR_WHITE);
-        display::DrawLine(point_ui16(10, 33), point_ui16(229, 33), COLOR_WHITE);
-        render_text_align(Rect16(PADDING, 31 + PADDING, X_MAX, 220), _(text_body), resource_font(IDR_FNT_NORMAL), COLOR_RED_ALERT, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
-
-        /// draw "Hand QR" icon
-        render_icon_align(Rect16(20, 165, 64, 82), IDR_PNG_hand_qr, COLOR_RED_ALERT, Align_t::LeftTop());
-
-        constexpr uint8_t qr_size_px = 140;
-        const Rect16 qr_rect = { 160 - qr_size_px / 2, 200 - qr_size_px / 2, qr_size_px, qr_size_px }; /// center = [120,223]
-        window_qr_t win(nullptr, qr_rect, error_code);
-        win.Draw();
-
-        char qr_text[window_qr_t::MAX_LEN_4QR + 1];
-        /// draw short URL
-        error_url_short(qr_text, sizeof(qr_text), error_code);
-        // this MakeRAM is safe - qr_text is a local buffer on stack
-        render_text_align(Rect16(0, 270, display::GetW(), display::GetH() - 255), string_view_utf8::MakeRAM((const uint8_t *)qr_text), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
-
-        /// draw footer information
-        /// fw version, hash, [appendix], [fw signed]
-        /// fw version
-        char fw_version[13]; // intentionally limited to the number of practically printable characters without overwriting the nearby hash text
-                             // snprintf will clamp the text if the input is too long
-        snprintf(fw_version, sizeof(fw_version), "%s%s", project_version, project_version_suffix_short);
-        render_text_align(Rect16(6, 295, 80, 10), string_view_utf8::MakeRAM((const uint8_t *)fw_version), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
-        /// hash
-        if (eeprom_get_bool(EEVAR_DEVHASH_IN_QR)) {
-            char p_code[PRINTER_CODE_SIZE + 1];
-            printerCode(p_code);
-            render_text_align(Rect16(98, 295, 64, 10), string_view_utf8::MakeRAM((const uint8_t *)p_code), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
-        }
-        /// [appendix, fw signed]
-        /// signed fw
-        if (signature_exist()) {
-            static const char signed_fw_str[] = "[S]";
-            render_text_align(Rect16(160, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)signed_fw_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
-        }
-        /// appendix
-        if (appendix_exist()) {
-            static const char appendix_str[] = "[A]";
-            render_text_align(Rect16(185, 295, 40, 10), string_view_utf8::MakeCPUFLASH((const uint8_t *)appendix_str), resource_font(IDR_FNT_SMALL), COLOR_RED_ALERT, COLOR_WHITE, padding_ui8(0, 0, 0, 0), Align_t::CenterTop());
-        }
-    }
-}
-
 /// \returns nth character of the string
 /// \returns \0 if the string is too short
 char nth_char(const char str[], uint16_t nth) {
@@ -290,61 +146,44 @@ char nth_char(const char str[], uint16_t nth) {
     return str[0];
 }
 
-//! Known possible reasons.
-//! @n MSG_T_THERMAL_RUNAWAY
-//! @n MSG_T_HEATING_FAILED
-//! @n MSG_T_MAXTEMP
-//! @n MSG_T_MINTEMP
-//! @n "Emergency stop (M112)"
-void temp_error(const char *error, const char *module, float t_noz, float tt_noz, float t_bed, float tt_bed) {
+//! Fatal error that causes Redscreen
+void fatal_error(const char *error, const char *module) {
     uint16_t *perror_code_short = (uint16_t *)(DUMP_INFO_ADDR + 1);
-    //*((unsigned short *)(DUMP_INFO_ADDR + 1)) = code;
 
     /// Decision tree to define error code
     using namespace Language_en;
-    if (module == nullptr) {
-        /// TODO share these strings (saves ~100 B of binary size)
-        if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
-            *perror_code_short = 0;
-        } else if (strcmp("Emergency stop (M112)", error) == 0) {
-            *perror_code_short = 510;
-        } else if (strcmp("Inactive time kill", error) == 0) {
-            *perror_code_short = 0;
-        } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
-            *perror_code_short = 301;
-        }
+    /// TODO share these strings (saves ~100 B of binary size)
+    if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
+        *perror_code_short = 0;
+    } else if (strcmp("Emergency stop (M112)", error) == 0) {
+        *perror_code_short = 510;
+    } else if (strcmp("Inactive time kill", error) == 0) {
+        *perror_code_short = 0;
+    } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
+        *perror_code_short = 301;
+    } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
+        *perror_code_short = 201;
+    } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
+        *perror_code_short = 202;
+    } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
+        *perror_code_short = 203;
+    } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
+        *perror_code_short = 204;
+    } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
+        *perror_code_short = 205;
+    } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
+        *perror_code_short = 206;
+    } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
+        *perror_code_short = 207;
+    } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
+        *perror_code_short = 208;
     } else {
-        if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
-            *perror_code_short = 201;
-        } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
-            *perror_code_short = 202;
-        } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
-            *perror_code_short = 203;
-        } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
-            *perror_code_short = 204;
-
-        } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
-            *perror_code_short = 205;
-        } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
-            *perror_code_short = 206;
-        } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
-            *perror_code_short = 207;
-        } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
-            *perror_code_short = 208;
-        }
+        *perror_code_short = 0;
     }
 
-    DUMP_TEMPERROR_TO_CCRAM();
+    DUMP_FATALERROR_TO_CCRAM();
     dump_to_xflash();
     sys_reset();
-}
-
-/// Draws error screen
-/// Use for Debug only
-void temp_error_code(const uint16_t error_code) {
-    //    general_error_init();
-    display::Clear(COLOR_RED_ALERT);
-    draw_error_screen(error_code);
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
@@ -362,8 +201,8 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 #ifdef PSOD_BSOD
 
     display::Clear(COLOR_BLACK); //clear with black color
-    //display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_64px, COLOR_BLACK, 0);
-    display::DrawIcon(point_ui16(75, 40), IDR_PNG_pepa_140px, COLOR_BLACK, 0);
+    // DrawIcon requires ResourceId, but pepa png has new destination - DrawIcon will have to require window_icon_t::DataResourceId
+    //display::DrawIcon(point_ui16(75, 40), PNG::pepa_92x140, COLOR_BLACK, 0);
     display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
 
 #else

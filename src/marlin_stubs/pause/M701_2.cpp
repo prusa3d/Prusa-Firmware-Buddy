@@ -205,16 +205,24 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
     FSensors_instance().ClrAutoloadSent();
 }
 
-void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
+void filament_gcodes::M1600_no_parser(uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament) {
     FS_EventAutolock autoload_lock;
     InProgress progress;
     filament_t filament = Filaments::CurrentIndex();
-    if (filament == filament_t::NONE) {
+    if (filament == filament_t::NONE && ask_filament == AskFilament_t::Never) {
         PreheatStatus::SetResult(PreheatStatus::Result::DoneNoFilament);
         return;
-    } else {
-        PreheatStatus::SetResult(PreheatStatus::Result::DoneHasFilament);
     }
+
+    if (ask_filament == AskFilament_t::Always || (filament == filament_t::NONE && ask_filament == AskFilament_t::IfUnknown)) {
+        M1700_no_parser(preheat, target_extruder, true, true); // need to save filament to check if operation went well
+        filament = Filaments::CurrentIndex();
+        if (filament == filament_t::NONE)
+            return; // no need to set PreheatStatus::Result::DoneNoFilament, M1700 did that
+    }
+
+    PreheatStatus::SetResult(PreheatStatus::Result::DoneHasFilament);
+
     preheat_to(filament);
     xyze_pos_t current_position_tmp = current_position;
 
@@ -233,7 +241,7 @@ void filament_gcodes::M1600_no_parser(uint8_t target_extruder) {
 
     // LOAD
     // cannot do normal preheat, since printer is already preheated from unload
-    PreheatData data(PreheatMode::Change_phase2, RetAndCool_t::Return);
+    PreheatData data(PreheatMode::Change_phase2, preheat);
     auto preheat_ret = preheat_for_change_load(data);
     if (preheat_ret.first) {
         // canceled

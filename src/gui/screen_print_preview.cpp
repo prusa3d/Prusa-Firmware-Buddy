@@ -17,9 +17,7 @@
 #include "printers.h"
 
 static GCodeInfo &gcode_init() {
-    marlin_vars_t *vars = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
-    GCodeInfo::getInstance().SetGcodeFilepath(vars->media_SFN_path);
-    GCodeInfo::getInstance().SetGcodeFilename(vars->media_LFN);
+    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
     GCodeInfo::getInstance().initFile(GCodeInfo::GI_INIT_t::PREVIEW);
     return GCodeInfo::getInstance();
 }
@@ -83,7 +81,7 @@ void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, window_t *s
 }
 
 ScreenPrintPreview::UniquePtr ScreenPrintPreview::makeMsgBox(const PhaseResponses &resp, string_view_utf8 caption, string_view_utf8 text) {
-    return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, resp, 0, nullptr, text, is_multiline::yes, caption, IDR_PNG_warning_16px, is_closed_on_click_t::no);
+    return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, resp, 0, nullptr, text, is_multiline::yes, caption, PNG::warning_16x16, is_closed_on_click_t::no);
 }
 
 void ScreenPrintPreview::Change(fsm::BaseData data) {
@@ -103,7 +101,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         pMsgbox = makeMsgBox(Responses_IgnoreAbort, _(labelWarning), _(txt_wrong_printer_type));
         break;
     case PhasesPrintPreview::filament_not_inserted:
-        pMsgbox = makeMsgBox(Responses_YesNoIgnore, _(labelWarning), _(txt_fil_not_detected));
+        pMsgbox = makeMsgBox(Responses_YesNoFSDisable, _(labelWarning), _(txt_fil_not_detected));
         break;
     case PhasesPrintPreview::mmu_filament_inserted:
         pMsgbox = makeMsgBox(Responses_YesNo, _(labelWarning), _(txt_fil_detected_mmu));

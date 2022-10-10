@@ -6,6 +6,7 @@
 
 #include <segmented_json_macros.h>
 
+#include <dirent.h>
 #include <cstring>
 #include <cstdio>
 
@@ -28,7 +29,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     bool ready = true;
     bool busy = false;
 
-    marlin_client_loop();
+    marlin_update_vars(MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK4(MARLIN_VAR_PRNSPEED, MARLIN_VAR_POS_Z, MARLIN_VAR_PRNSPEED, MARLIN_VAR_PRNSTATE));
 
     switch (vars->print_state) {
     case mpsCrashRecovery_Begin:
@@ -78,10 +79,12 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         break;
     case mpsAborted:
     case mpsFinished:
+    case mpsExit:
     case mpsIdle:
-    case mspPrintPreviewInit:
-    case mspPrintPreviewLoop:
-    case mspPrintInit:
+    case mpsWaitGui:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+    case mpsPrintInit:
         break;
     }
 
@@ -147,7 +150,10 @@ JsonResult get_version(size_t resume_point, JsonOutput &output) {
         // PrusaLink API to replace this?
         JSON_FIELD_STR("server", LWIP_VERSION_STRING) JSON_COMMA;
         JSON_FIELD_STR("text", "PrusaLink MINI") JSON_COMMA;
-        JSON_FIELD_STR("hostname", hostname);
+        JSON_FIELD_STR("hostname", hostname) JSON_COMMA;
+        JSON_FIELD_OBJ("capabilities");
+            JSON_FIELD_BOOL("upload-by-put", true);
+        JSON_OBJ_END;
     JSON_OBJ_END;
     JSON_END;
     // clang-format on
@@ -159,7 +165,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
     marlin_vars_t *vars = marlin_vars();
-    marlin_client_loop();
+    marlin_update_vars(MARLIN_VAR_MSK5(MARLIN_VAR_PRNSTATE, MARLIN_VAR_DURATION, MARLIN_VAR_TIMTOEND, MARLIN_VAR_FILEPATH, MARLIN_VAR_SD_PDONE));
 
     bool has_job = false;
     const char *state = "Unknown";
@@ -210,10 +216,12 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
         break;
     case mpsAborted:
     case mpsFinished:
+    case mpsExit:
     case mpsIdle:
-    case mspPrintPreviewInit:
-    case mspPrintPreviewLoop:
-    case mspPrintInit:
+    case mpsWaitGui:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewLoop:
+    case mpsPrintInit:
         state = "Operational";
         break;
     }
@@ -241,6 +249,40 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
             JSON_CONTROL("\"job\": null,\"progress\": null");
         }
     JSON_OBJ_END;
+    JSON_END;
+    // clang-format on
+}
+
+namespace {
+
+    bool usb_available() {
+        bool available = false;
+        // ideally we would use something more lightweight, like stat()
+        // but fatfs doesn't support calling it on root and from it's
+        // perspective /usb is root
+        if (DIR *dir = opendir("/usb"); dir != nullptr) {
+            available = true;
+            closedir(dir);
+        }
+        return available;
+    }
+
+}
+
+JsonResult get_storage(size_t resume_point, JsonOutput &output) {
+    // Keep the indentation of the JSON in here!
+    // clang-format off
+    JSON_START;
+        JSON_OBJ_START
+            JSON_FIELD_ARR("storage_list");
+                JSON_OBJ_START
+                    JSON_FIELD_STR("path", "/usb") JSON_COMMA;
+                    JSON_FIELD_STR("type", "USB") JSON_COMMA;
+                    JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
+                    JSON_FIELD_BOOL("available", usb_available());
+                JSON_OBJ_END;
+            JSON_ARR_END;
+        JSON_OBJ_END;
     JSON_END;
     // clang-format on
 }

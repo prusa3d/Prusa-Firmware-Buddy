@@ -569,8 +569,16 @@ void marlin_print_start(const char *filename, bool skip_preview) {
     _send_request_to_server_and_wait(request);
 }
 
+void marlin_gui_ready_to_print() {
+    _send_request_id_to_server_and_wait(MARLIN_MSG_GUI_PRINT_READY);
+}
+
 void marlin_print_abort(void) {
     _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_ABORT);
+}
+
+void marlin_print_exit(void) {
+    _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_EXIT);
 }
 
 void marlin_print_pause(void) {
@@ -609,7 +617,7 @@ void marlin_encoded_response(uint32_t enc_phase_and_response) {
     _send_request_to_server_and_wait(request);
 }
 bool marlin_is_printing() {
-    switch (marlin_vars()->print_state) {
+    switch (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
     case mpsAborted:
     case mpsIdle:
     case mpsFinished:

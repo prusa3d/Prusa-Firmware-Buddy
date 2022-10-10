@@ -45,6 +45,7 @@ class CSelftestPart_FirstLayer {
 
     LogTimer log;
     FirstLayerProgressLock lock; // this ensures properly working progress
+    bool enqueueGcode(const char *gcode) const;
 
 public:
     CSelftestPart_FirstLayer(IPartHandler &state_machine, const FirstLayerConfig_t &config,

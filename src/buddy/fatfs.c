@@ -1,5 +1,6 @@
 #include "fatfs.h"
-#include <wui_api.h>
+
+#include <time.h>
 
 uint8_t retUSBH;  /* Return value for USBH */
 char USBHPath[4]; /* USBH logical drive path */
@@ -16,7 +17,7 @@ void MX_FATFS_Init(void) {
  * @retval Time in DWORD
  */
 DWORD get_fattime(void) {
-    time_t timestamp = sntp_get_system_time();
+    time_t timestamp = time(NULL);
     struct tm time;
     localtime_r(&timestamp, &time);
 

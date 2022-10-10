@@ -217,6 +217,15 @@ typedef struct {
   #endif
 } motion_parameters_t;
 
+#if ENABLED(IMPROVE_HOMING_RELIABILITY)
+  struct motion_state_t {
+    TERN(DELTA, xyz_ulong_t, xy_ulong_t) acceleration;
+    #if HAS_CLASSIC_JERK
+      TERN(DELTA, xyz_float_t, xy_float_t) jerk_state;
+    #endif
+  };
+#endif
+
 #if DISABLED(SKEW_CORRECTION)
   #define XY_SKEW_FACTOR 0
   #define XZ_SKEW_FACTOR 0
@@ -395,7 +404,10 @@ class Planner {
      * Static (class) Methods
      */
 
+    // Recalculate steps/s^2 accelerations based on mm/s^2 settings
     static void reset_acceleration_rates();
+    static inline void refresh_acceleration_rates() { reset_acceleration_rates(); }
+
     static void refresh_positioning();
     static void set_max_acceleration(const uint8_t axis, float targetValue);
     static void set_max_feedrate(const uint8_t axis, float targetValue);
@@ -427,6 +439,10 @@ class Planner {
             : volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
         );
       }
+    #endif
+
+    #if ENABLED(IMPROVE_HOMING_RELIABILITY)
+      void enable_stall_prevention(const bool onoff);
     #endif
 
     #if DISABLED(NO_VOLUMETRICS)

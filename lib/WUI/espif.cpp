@@ -90,7 +90,7 @@ enum MessageType {
     MSG_INTRON = 5,
 };
 
-static const uint32_t SUPPORTED_FW_VERSION = 4;
+static const uint32_t SUPPORTED_FW_VERSION = 8;
 
 // NIC state
 static std::atomic<uint16_t> fw_version;
@@ -168,32 +168,18 @@ static bool is_running(ESPIFOperatingMode mode) {
  * \param[in]       len: Number of bytes to send
  * \return          Operation result, ERR_OK if succeeded
  */
-static err_t espif_transmit_data(const void *data, size_t len, bool pauses = false) {
+static err_t espif_transmit_data(uint8_t *data, size_t len) {
     if (!is_running(esp_operating_mode)) {
         return ERR_USE;
     }
 
-    const size_t chunk = 128;
-
-    for (size_t i = 0; i * chunk < len; i++) {
-        // FIXME: Big transfers sometimes need pauses in them so the ESP side
-        // doesn't miss parts. These numbers (128 and 150) were discovered by a
-        // trial-error approach.
-        //
-        // For some reason, for the big packets one need to insert the pause at
-        // the _beginning_ of the transfer too!
-        if (pauses) {
-            delay_us(150);
-        }
-        size_t l = std::min(chunk, len - i * chunk);
-        int ret = HAL_UART_Transmit(&huart6, (uint8_t *)data + i * chunk, l, l * CHARACTER_TIMEOUT_MS);
-        if (ret == HAL_OK) {
-        } else {
-            log_error(ESPIF, "UART TX fail: %d", ret);
-            return ERR_TIMEOUT;
-        }
+    int ret = HAL_UART_Transmit(&huart6, data, len, len * CHARACTER_TIMEOUT_MS);
+    if (ret == HAL_OK) {
+        return ERR_OK;
+    } else {
+        log_error(ESPIF, "UART TX fail: %d", ret);
+        return ERR_TIMEOUT;
     }
-    return ERR_OK;
 }
 
 static err_t espif_reconfigure_uart(const uint32_t baudrate) {
@@ -492,16 +478,16 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
         return ERR_IF;
     }
 
-    const uint32_t len = p->tot_len;
+    uint32_t len = p->tot_len;
     log_debug(ESPIF, "Low level output packet size: %d", len);
 
     xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
     espif_transmit_data(intron, sizeof(intron));
     uint8_t msg_type = MSG_PACKET;
     espif_transmit_data(&msg_type, 1);
-    espif_transmit_data(&len, sizeof(len));
+    espif_transmit_data((uint8_t *)&len, sizeof(len));
     while (p != NULL) {
-        if (espif_transmit_data(p->payload, p->len, p->len > 128) != ERR_OK) {
+        if (espif_transmit_data((uint8_t *)p->payload, p->len) != ERR_OK) {
             log_error(ESPIF, "Low level output packet failed");
             xSemaphoreGive(uart_write_mutex);
             return ERR_IF;
@@ -639,10 +625,20 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     espif_transmit_data(&msg_type, sizeof(msg_type));
     uint8_t ssid_len = strlen(ssid);
     uint8_t pass_len = strlen(pass);
+    uint8_t ssid_buf[ssid_len];
+    uint8_t pass_buf[pass_len];
+    // No idea why, but the HAL_UART_Transmit takes non-const uint8_t *.
+    // Casting const->non-const is sketchy at best, but probably an immediate
+    // UB.
+    //
+    // To avoid that, we just make a copy. Should be fine, these things are
+    // short.
+    memcpy(ssid_buf, ssid, ssid_len);
+    memcpy(pass_buf, pass, pass_len);
     espif_transmit_data(&ssid_len, sizeof(ssid_len));
-    espif_transmit_data(ssid, ssid_len);
+    espif_transmit_data(ssid_buf, ssid_len);
     espif_transmit_data(&pass_len, sizeof(pass_len));
-    espif_transmit_data(pass, pass_len);
+    espif_transmit_data(pass_buf, pass_len);
     xSemaphoreGive(uart_write_mutex);
 
     return ERR_OK;

@@ -39,12 +39,12 @@ endif()
 # eclipse sets those variables, so lets just use them so we don't get a warning about unused
 # variables
 set(unused "${CMAKE_VERBOSE_MAKEFILE} ${CMAKE_RULE_MESSAGES}")
+set(CMAKE_CXX_STANDARD 20)
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
 add_compile_options(
-  $<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
-  $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
+  $<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
   )
 
 # append custom C/C++ flags
@@ -104,20 +104,19 @@ set(HAS_MARLIN TRUE)
 
 target_compile_definitions(
   BuddyHeaders
-  INTERFACE
-  MOTHERBOARD=1823
-  MCU=${MCU}
-  GUI=${GUI}
-  PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
-  BOARD=BOARD_${BOARD}
-  BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
-  BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR}
-  BOARD_VERSION_PATCH=${BOARD_VERSION_PATCH}
-  MARLIN_DISABLE_INFINITE_LOOP
-  PROCESS_CUSTOM_GCODE
-  HAS_MMU2=$<BOOL:${HAS_MMU2}>
-  HAS_MARLIN=$<BOOL:${HAS_MARLIN}>
-  _EXTUI
+  INTERFACE MOTHERBOARD=1823
+            MCU=${MCU}
+            GUI=${GUI}
+            PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
+            BOARD=BOARD_${BOARD}
+            BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
+            BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR}
+            BOARD_VERSION_PATCH=${BOARD_VERSION_PATCH}
+            MARLIN_DISABLE_INFINITE_LOOP
+            PROCESS_CUSTOM_GCODE
+            HAS_MMU2=$<BOOL:${HAS_MMU2}>
+            HAS_MARLIN=$<BOOL:${HAS_MARLIN}>
+            _EXTUI
   )
 
 if(MCU MATCHES "STM32")
@@ -228,7 +227,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(MCU MATCHES "STM32F40")
     add_compile_options(-Og)
   else()
-    add_compile_options(-O0)
+    # O0 should be compiled with -fomit-frame-pointer to make sure there is enough registers for asm
+    # functions
+    add_compile_options(-O0 -fomit-frame-pointer)
   endif()
 else() # != "Debug"
   add_compile_options(-Os)
@@ -306,8 +307,6 @@ add_subdirectory(lib)
 add_executable(firmware)
 
 add_subdirectory(src)
-
-set_target_properties(firmware PROPERTIES CXX_STANDARD 17)
 
 if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
@@ -482,8 +481,13 @@ set_property(
   )
 
 set_property(
-  SOURCE src/buddy/main.cpp src/common/appmain.cpp src/common/sys.cpp src/marlin_stubs/gcode.cpp
-         src/common/hwio_buddy_2209_02.cpp src/gui/guimain.cpp
+  SOURCE src/buddy/main.cpp
+         src/common/appmain.cpp
+         src/common/sys.cpp
+         src/marlin_stubs/gcode.cpp
+         src/common/hwio_buddy_2209_02.cpp
+         src/gui/guimain.cpp
+         src/common/marlin_server.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )

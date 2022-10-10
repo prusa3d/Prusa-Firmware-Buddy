@@ -272,7 +272,7 @@ void protected_pin_err() {
 void quickstop_stepper() {
   planner.quick_stop();
   planner.synchronize();
-  set_current_from_steppers_for_axis(ALL_AXES);
+  set_current_from_steppers_for_axis(ALL_AXES_ENUM);
   sync_plan_position();
 }
 

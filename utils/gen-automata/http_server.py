@@ -1,4 +1,4 @@
-from http import accept_header, connection_header, read_boundary, read_header_value, request, print_after_upload_header
+from http import accept_header, connection_header, read_boundary, read_header_value, request, print_after_upload_header, overwrite_file_header
 
 if __name__ == "__main__":
     want_headers = {
@@ -6,6 +6,7 @@ if __name__ == "__main__":
         'Content-Length': read_header_value('ContentLength'),
         'If-None-Match': read_header_value('IfNoneMatch'),
         'Print-After-Upload': print_after_upload_header(),
+        'Overwrite': overwrite_file_header(),
         'Content-Type': read_boundary(),
         'Connection': connection_header(),
         'Accept': accept_header(),

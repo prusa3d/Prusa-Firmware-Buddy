@@ -53,8 +53,8 @@ public:
     }
 
     // bucket_count is being computed at compile time (lang.py is searching for the lowest possible number of buckets where collisions do not occur)
-    // 310 is the maximum total number of strings the translator array can hold. To be increased in the future as new strings come into the FW
-    using SHashTable = string_hash_table<hash_djb2, buckets_count, 310>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
+    // 355 is the maximum total number of strings the translator array can hold. To be increased in the future as new strings come into the FW
+    using SHashTable = string_hash_table<hash_djb2, buckets_count, 355>; ///< beware of low numbers of buckets - collisions may occur unexpectedly
 #ifndef TRANSLATIONS_UNITTEST
 protected:
 #endif

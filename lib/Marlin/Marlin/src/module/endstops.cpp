@@ -87,6 +87,9 @@ Endstops::esbits_t Endstops::live_state = 0;
 #if ENABLED(SPI_ENDSTOPS)
   Endstops::tmc_spi_homing_t Endstops::tmc_spi_homing; // = 0
 #endif
+#if ENABLED(IMPROVE_HOMING_RELIABILITY) && HOMING_SG_GUARD_DURATION > 0
+  millis_t sg_guard_period; // = 0
+#endif
 
 /**
  * Class and Instance Methods
@@ -396,7 +399,7 @@ static void print_es_state(const bool is_hit, PGM_P const label=nullptr) {
   SERIAL_EOL();
 }
 
-void _O2 Endstops::M119() {
+void __O2 Endstops::M119() {
   #if ENABLED(BLTOUCH)
     bltouch._set_SW_mode();
   #endif

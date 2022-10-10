@@ -4,7 +4,7 @@
 #include "screen_menu.hpp"
 #include "ScreenHandler.hpp"
 #include "MItem_tools.hpp"
-#include "window_menu.hpp"
+#include "window_menu_adv.hpp"
 #include "DialogMoveZ.hpp"
 #include "fs_autoload_autolock.hpp"
 

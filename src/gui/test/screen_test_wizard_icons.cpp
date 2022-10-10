@@ -14,6 +14,9 @@ static const char label_wizard_icon_hourglass[] = "icon_hourglass";
 static const char label_wizard_icon_autohome[] = "icon_autohome";
 static const char label_wizard_icon_search[] = "icon_search";
 static const char label_wizard_icon_measure[] = "icon_measure";
+static const char wizard_icon_autohome_resource_addr[] = "/internal/res/png/wizard_icon_autohome.png";
+static const char wizard_icon_search_resource_addr[] = "/internal/res/png/wizard_icon_search.png";
+static const char wizard_icon_measure_resource_addr[] = "/internal/res/png/wizard_icon_measure.png";
 
 screen_test_wizard_icons::screen_test_wizard_icons()
     : AddSuperWindow<screen_t>()
@@ -25,9 +28,6 @@ screen_test_wizard_icons::screen_test_wizard_icons()
     , txt_ip0(this, this->GenerateRect(ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_ip0))
     , txt_ip1(this, this->GenerateRect(ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_ip1))
     , txt_hourglass(this, this->GenerateRect(ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_hourglass))
-    , txt_autohome(this, this->GenerateRect(ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_autohome))
-    , txt_search(this, this->GenerateRect(ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_search))
-    , txt_measure(this, this->GenerateRect(ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_measure))
 
     , ico_na(this, Rect16(220 - 22, 76, 22, 22), IDR_PNG_dash_18px)
     , ico_ok(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_ok_color_18px)
@@ -35,9 +35,6 @@ screen_test_wizard_icons::screen_test_wizard_icons()
     , ico_ip0(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_spinner1_16px)
     , ico_ip1(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_spinner2_16px)
     , ico_hourglass(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_hourglass_39px)
-    , ico_autohome(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_wizard_icon_autohome)
-    , ico_search(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_wizard_icon_search)
-    , ico_measure(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_wizard_icon_measure)
 
 {
     // testing code - intentionally not translated

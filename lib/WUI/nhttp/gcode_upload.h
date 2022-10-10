@@ -32,6 +32,7 @@ public:
     struct PutParams {
         std::array<char, FILE_PATH_BUFFER_LEN> filepath;
         bool print_after_upload;
+        bool overwrite;
     };
     using UploadParams = std::variant<PutParams, UploadState>;
 

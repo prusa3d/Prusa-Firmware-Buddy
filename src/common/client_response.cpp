@@ -45,7 +45,7 @@ const PhaseResponses ClientResponses::PreheatResponses[CountPhases<PhasesPreheat
 const PhaseResponses ClientResponses::PrintPreviewResponses[CountPhases<PhasesPrintPreview>()] = {
     { Response::Print, Response::Back },                    // main_dialog,
     { Response::Abort, Response::Ignore },                  // wrong_printer
-    { Response::Yes, Response::No, Response::Ignore },      // filament_not_inserted
+    { Response::Yes, Response::No, Response::FS_disable },  // filament_not_inserted
     { Response::Yes, Response::No },                        // mmu_filament_inserted
     { Response::Change, Response::Ignore, Response::Abort } // wrong_filament
 };

@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdlib>
+#include <cassert>
 
 namespace http {
 
@@ -13,6 +14,41 @@ enum Method {
     Delete,
     UnknownMethod,
 };
+
+constexpr const char *to_str(Method method) {
+    switch (method) {
+    case Head:
+        return "HEAD";
+    case Get:
+        return "GET";
+    case Post:
+        return "POST";
+    case Put:
+        return "PUT";
+    case Delete:
+        return "DELETE";
+    default:
+        assert(0);
+    case UnknownMethod:
+        return "UNKNOWNMETHOD";
+    }
+}
+
+constexpr bool has_out_body(Method method) {
+    switch (method) {
+    case Post:
+    case Put:
+        return true;
+    case Get:
+    case Head:
+    case Delete:
+        return false;
+    default:
+    case UnknownMethod:
+        assert(0);
+        return false;
+    }
+}
 
 enum class ContentType {
     TextPlain,
@@ -27,7 +63,33 @@ enum class ContentType {
     ApplicationOctetStream,
 };
 
-const char *to_str(ContentType content_type);
+constexpr const char *to_str(ContentType content_type) {
+    switch (content_type) {
+    case ContentType::TextPlain:
+        return "text/plain";
+    case ContentType::TextHtml:
+        return "text/html; charset=utf-8";
+    case ContentType::TextCss:
+        return "text/css";
+    case ContentType::TextGcode:
+        return "text/g-code";
+    case ContentType::ImageIco:
+        return "image/vnd.microsoft.icon";
+    case ContentType::ImagePng:
+        return "image/png";
+    case ContentType::ImageSvg:
+        return "image/svg+xml";
+    case ContentType::ApplicationJavascript:
+        return "application/javascript";
+    case ContentType::ApplicationJson:
+        return "application/json";
+    case ContentType::ApplicationOctetStream:
+        return "application/octet-stream";
+    default:
+        assert(0);
+        return "application/octet-stream";
+    }
+}
 
 enum class ConnectionHandling {
     Close,

@@ -21,7 +21,7 @@
  * @brief Declare all pins supplied in PIN_TABLE parameter
  * @par Usage:
  * @code
- * DECLARE_PINS(PIN_TABLE)
+ * PIN_TABLE(DECLARE_PINS)
  * @endcode
  */
 #define DECLARE_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) inline constexpr TYPE NAME(PORTPIN, PARAMETERS);
@@ -30,7 +30,7 @@
  * @brief Declare all pins supplied in VIRTUAL_PIN_TABLE parameter
  * @par Usage:
  * @code
- * DECLARE_VIRTUAL_PINS(VIRTUAL_PIN_TABLE)
+ * VIRTUAL_PIN_TABLE(DECLARE_VIRTUAL_PINS)
  * @endcode
  */
 #define DECLARE_VIRTUAL_PINS(TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS) inline constexpr TYPE<READ_FN, ISR_FN> NAME(PARAMETERS);
@@ -43,16 +43,28 @@
  * @endcode
  */
 #define CONFIGURE_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) buddy::hw::NAME.configure();
+
 /**
  * @brief Generate array of physical location of all pins supplied in PIN_TABLE parameter
  * @par Usage:
  * @code
  * constexpr PinChecker pinsToCheck[] = {
- *   PINS_TO_CHECK(PIN_TABLE)
+ *   PIN_TABLE(PINS_TO_CHECK)
  * };
  * @endcode
  */
 #define PINS_TO_CHECK(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) { PORTPIN },
+
+/**
+ * @brief Generate array of physical location of all pins supplied in VIRTUAL_PIN_TABLE parameter
+ * @par Usage:
+ * @code
+ * constexpr PinChecker pinsToCheck[] = {
+ *   VIRTUAL_PIN_TABLE(VIRTUAL_PINS_TO_CHECK)
+ * };
+ * @endcode
+ */
+#define VIRTUAL_PINS_TO_CHECK(TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS) { PORTPIN },
 /**@}*/
 
 namespace buddy::hw {

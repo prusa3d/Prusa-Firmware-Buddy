@@ -33,7 +33,7 @@ void vPortFree(void *pv) PRIVILEGED_FUNCTION {
 };
 
 void vApplicationMallocFailedHook() {
-    general_error("malloc", "Out of memory");
+    fatal_error("malloc", "Out of memory");
 }
 
 size_t xPortGetFreeHeapSize(void) PRIVILEGED_FUNCTION {

@@ -2,16 +2,14 @@
 
 /* System support */
 #define MBEDTLS_HAVE_ASM
-// FIXME: BFW-2767 Time verification always fails
-// #define MBEDTLS_HAVE_TIME
+#define MBEDTLS_HAVE_TIME
 
 /* mbed TLS feature support */
 #define MBEDTLS_PKCS1_V15
 #define MBEDTLS_SSL_PROTO_TLS1_2
 
 // Needed for certificate expiration checks.
-// FIXME: BFW-2767 Time verification always fails
-// #define MBEDTLS_HAVE_TIME_DATE
+#define MBEDTLS_HAVE_TIME_DATE
 // Don't disable important security checks.
 #define MBEDTLS_X509_CHECK_KEY_USAGE
 #define MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE

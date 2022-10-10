@@ -21,6 +21,7 @@ enum class Response : uint8_t {
     Cooldown,
     Filament_removed,
     FLEX,
+    FS_disable,
     HIPS,
     Ignore,
     Load,

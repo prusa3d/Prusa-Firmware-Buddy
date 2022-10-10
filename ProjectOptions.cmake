@@ -39,7 +39,7 @@ set(MCU
     )
 set(GENERATE_BBF
     "NO"
-    CACHE STRING "Whether a .bbf version should be generated."
+    CACHE BOOL "Whether a .bbf version should be generated."
     )
 set(GENERATE_DFU
     "NO"
@@ -158,7 +158,7 @@ message(STATUS "Resources: ${RESOURCES}")
 
 # Set printer features
 set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
-set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
+set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI")
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI")
 set(PRINTERS_WITH_POWER_PANIC)
 set(PRINTERS_WITH_SELFTEST "MINI")

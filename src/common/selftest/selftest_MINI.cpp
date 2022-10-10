@@ -74,9 +74,9 @@ static const FanConfig_t Config_PrintFan = { .partname = "Print fan", .fanctl = 
 
 static const FanConfig_t Config_HeatBreakFan = { .partname = "Heatbreak fan", .fanctl = fanCtlHeatBreak, .pwm_start = 10, .pwm_step = 10, .rpm_min_table = heatBreakFanMin_rpm_table, .rpm_max_table = heatBreakFanMax_rpm_table, .steps = 5 };
 
-static const AxisConfig_t Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = -1 };
+const AxisConfig_t selftest::Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = -1 };
 
-static const AxisConfig_t Config_YAxis = { .partname = "Y-Axis", .length = 185, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 179, .length_max = 189, .axis = Y_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = 1 };
+const AxisConfig_t selftest::Config_YAxis = { .partname = "Y-Axis", .length = 185, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 179, .length_max = 189, .axis = Y_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = 1 };
 
 static const AxisConfig_t Config_ZAxis = { .partname = "Z-Axis", .length = get_z_max_pos_mm(), .fr_table_fw = Zfr_table_fw, .fr_table_bw = Zfr_table_bw, .length_min = get_z_max_pos_mm() - 4, .length_max = get_z_max_pos_mm() + 6, .axis = Z_AXIS, .steps = z_fr_tables_size, .movement_dir = 1 };
 

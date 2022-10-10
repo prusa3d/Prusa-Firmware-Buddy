@@ -27,5 +27,6 @@ namespace nhttp::link_content {
 json::JsonResult get_version(size_t resume_point, json::JsonOutput &output);
 json::JsonResult get_printer(size_t resume_point, json::JsonOutput &output);
 json::JsonResult get_job(size_t resume_point, json::JsonOutput &output);
+json::JsonResult get_storage(size_t resume_point, json::JsonOutput &output);
 
 }

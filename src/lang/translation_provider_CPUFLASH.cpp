@@ -5,8 +5,8 @@
 #include "translation_provider_CPUFLASH.hpp"
 
 #ifdef _DEBUG
-    #define ENABLE_TRANSLATION_CZ
-    #define ENABLE_TRANSLATION_DE
+//    #define ENABLE_TRANSLATION_CZ
+//    #define ENABLE_TRANSLATION_DE
 //    #define ENABLE_TRANSLATION_ES
 //    #define ENABLE_TRANSLATION_FR
 //    #define ENABLE_TRANSLATION_IT

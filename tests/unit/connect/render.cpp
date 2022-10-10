@@ -1,21 +1,27 @@
 #include <render.hpp>
 
+#include "mock_printer.h"
+
 #include <catch2/catch.hpp>
 
 #include <cstring>
 #include <string_view>
 
+using std::nullopt;
+using std::optional;
 using std::string_view;
-using namespace con;
+using namespace connect_client;
 using namespace json;
 
 namespace {
 
-constexpr const char *const print_file = "/usb/box.gco";
-constexpr const char *const rejected_event = "{\"command_id\":11,\"event\":\"REJECTED\"}";
+constexpr const char *print_file = "/usb/box.gco";
+constexpr const char *rejected_event_printing = R"({"reason":"Job ID doesn't match","state":"PRINTING","command_id":11,"event":"REJECTED"})";
+constexpr const char *rejected_event_idle = R"({"state":"IDLE","command_id":11,"event":"REJECTED"})";
+constexpr const char *rejected_event_idle_no_job = R"({"reason":"No job in progress","state":"IDLE","command_id":11,"event":"REJECTED"})";
 
-constexpr device_params_t params_printing() {
-    device_params_t params {};
+constexpr Printer::Params params_printing() {
+    Printer::Params params {};
 
     params.job_id = 42;
     params.progress_percent = 12;
@@ -24,37 +30,16 @@ constexpr device_params_t params_printing() {
     params.temp_nozzle = 200;
     params.target_bed = 70;
     params.target_nozzle = 195;
-    params.state = DeviceState::Printing;
+    params.state = Printer::DeviceState::Printing;
 
     return params;
 };
-
-constexpr device_params_t params_idle() {
-    device_params_t params {};
-
-    params.job_id = 13;
-    params.state = DeviceState::Idle;
-
-    return params;
-}
-
-constexpr printer_info_t printer_info() {
-    printer_info_t info {};
-
-    info.appendix = false;
-    strcpy(info.fingerprint, "DEADBEEF");
-    strcpy(info.firmware_version, "TST-1234");
-    strcpy(info.serial_number, "FAKE-1234");
-
-    return info;
-}
 
 }
 
 TEST_CASE("Render") {
     string_view expected;
-    printer_info_t info = printer_info();
-    device_params_t params {};
+    Printer::Params params {};
     Action action;
 
     SECTION("Telemetry - empty") {
@@ -72,10 +57,10 @@ TEST_CASE("Render") {
             "\"temp_bed\":65.0,"
             "\"target_nozzle\":195.0,"
             "\"target_bed\":70.0,"
-            "\"axis_z\":0.00,"
-            "\"job_id\":42,"
             "\"speed\":0,"
             "\"flow\":0,"
+            "\"axis_z\":0.00,"
+            "\"job_id\":42,"
             "\"time_printing\":0,"
             "\"time_remaining\":0,"
             "\"progress\":12,"
@@ -96,6 +81,8 @@ TEST_CASE("Render") {
             "\"temp_bed\":0.0,"
             "\"target_nozzle\":0.0,"
             "\"target_bed\":0.0,"
+            "\"speed\":0,"
+            "\"flow\":0,"
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
@@ -110,7 +97,7 @@ TEST_CASE("Render") {
             11,
         };
         params = params_idle();
-        expected = rejected_event;
+        expected = rejected_event_idle;
     }
 
     SECTION("Event - job info") {
@@ -123,7 +110,8 @@ TEST_CASE("Render") {
         // clang-format off
         expected = "{"
             "\"job_id\":42,"
-            "\"data\":{\"path\":\"/usb/box.gco\"},"
+            R"("data":{"path_sfn":"/usb/box.gco","path":"/usb/box.gco"},)"
+            "\"state\":\"PRINTING\","
             "\"command_id\":11,"
             "\"event\":\"JOB_INFO\""
         "}";
@@ -137,7 +125,7 @@ TEST_CASE("Render") {
             42,
         };
         params = params_idle();
-        expected = rejected_event;
+        expected = rejected_event_idle_no_job;
     }
 
     SECTION("Even - job info - invalid job ID") {
@@ -147,7 +135,7 @@ TEST_CASE("Render") {
             13,
         };
         params = params_printing();
-        expected = rejected_event;
+        expected = rejected_event_printing;
     }
 
     SECTION("Event - info") {
@@ -163,19 +151,19 @@ TEST_CASE("Render") {
                 "\"firmware\":\"TST-1234\","
                 "\"sn\":\"FAKE-1234\","
                 "\"appendix\":false,"
-                "\"fingerprint\":\"DEADBEEF\""
+                "\"fingerprint\":\"DEADBEEF\","
+                "\"storages\":[],"
+                "\"network_info\":{}"
             "},"
+            "\"state\":\"IDLE\","
             "\"command_id\":11,"
             "\"event\":\"INFO\""
         "}";
         // clang-format on
     }
 
-    RenderState state {
-        info,
-        params,
-        action,
-    };
+    MockPrinter printer(params);
+    RenderState state(printer, action);
     Renderer renderer(std::move(state));
     uint8_t buffer[1024];
     const auto [result, amount] = renderer.render(buffer, sizeof buffer);

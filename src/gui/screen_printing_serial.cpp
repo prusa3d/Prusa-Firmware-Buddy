@@ -22,7 +22,7 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     ClrMenuTimeoutClose();
     ClrOnSerialClose(); // don't close on Serial print
 
-    octo_icon.setFileName("/internal/res/png/screen_printing_serial.png");
+    octo_icon.SetFilePath("/internal/res/png/screen_printing_serial.png");
     octo_icon.Disable();
     octo_icon.Unshadow();
 

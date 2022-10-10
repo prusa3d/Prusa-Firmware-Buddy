@@ -6,13 +6,13 @@
 #include <array>
 
 class ScreenFactory {
-    // menu settings is the biggest, but I cannot access it from here (to use it as argument of aligned_union)
+    // menu tune  is the biggest, but I cannot access it from here (to use it as argument of aligned_union)
     // so i have to define minimal size like this
-    //to calculate the size use this char (*size_msg_as_error)[sizeof( ScreenMenuSettings )] = 1;
+    //to calculate the size use this char (*size_msg_as_error)[sizeof( ScreenMenuTune )] = 1;
 #if _DEBUG
-    static constexpr size_t min_union_size = 3620;
+    static constexpr size_t min_union_size = 3476;
 #else
-    static constexpr size_t min_union_size = 2840;
+    static constexpr size_t min_union_size = 2980;
 #endif
 
     ScreenFactory() = delete;
@@ -28,5 +28,10 @@ public:
     static UniquePtr Screen() {
         static_assert(sizeof(T) <= sizeof(mem_space), "Screen memory space is too small");
         return make_static_unique_ptr<T>(&all_screens);
+    }
+
+    template <class T>
+    static bool DoesCreatorHoldType(Creator cr) {
+        return Screen<T> == cr;
     }
 };

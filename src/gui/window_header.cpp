@@ -35,6 +35,11 @@ void window_header_t::SetIcon(ResourceId id_res) {
     Invalidate();
 }
 
+void window_header_t::SetIconFilePath(const char *filepath) {
+    icon_base.SetFilePath(filepath);
+    Invalidate();
+}
+
 void window_header_t::SetText(string_view_utf8 txt) {
     label.SetText(txt);
     Invalidate();
@@ -50,7 +55,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
     , icon_base(this, Rect16(GetRect().TopLeft(), icon_base_width, Height() - 5), IDR_NULL)
     , label(this, GetRect() - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt, Align_t::LeftBottom())
-    , icon_usb(this, (GetRect() + Rect16::Left_t(Width() - icon_usb_width)) = icon_usb_width, IDR_PNG_usb_16px)
+    , icon_usb(this, (GetRect() + Rect16::Left_t(Width() - icon_usb_width)) = icon_usb_width, PNG::usb_32x16)
     , icon_network(this, (GetRect() + Rect16::Left_t(Width() - icons_width)) = icon_lan_width, window_header_t::networkIcon(netdev_get_active_id()))
     , active_netdev_id(netdev_get_active_id())
     , active_netdev_status(netdev_get_status(active_netdev_id)) {

@@ -3,6 +3,7 @@
 #include "guitypes.hpp"
 #include "Rect16.h"
 #include "display.h"
+#include "guiconfig.h"
 #include "align.hpp"
 #include "footer_def.hpp"
 #include "color_scheme.hpp"
@@ -21,6 +22,7 @@ struct GuiDefaults {
     static font_t *FooterFont;                                              //TODO constexpr, font_9x16, IT MUST MATCH OR BE SMALLER THAN FooterItemHeight!!!
 
     //display specific defaults
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     //TODO bind this values
     static constexpr size_t ScreenWidth = 240;
     static constexpr size_t ScreenHeight = 320;
@@ -28,11 +30,13 @@ struct GuiDefaults {
     static constexpr size_t HeaderHeight = 32;
     static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };
     static constexpr Rect16 ProgressThumbnailRect = { 0, 0, 200, 240 };
-    static constexpr size_t infoDefaultLen = ScreenWidth > 240 ? 22 : 10; // null included, mac address must fit - need to be at least 18
-    static constexpr uint8_t ButtonHeight = 30;                           // default button height
-    static constexpr uint8_t ButtonSpacing = 6;                           // default button spacing
+    static constexpr uint8_t ButtonHeight = 30; // default button height
+    static constexpr uint8_t ButtonSpacing = 6; // default button spacing
+
+#endif // USE_<display>
 
     // COMMON DEFAULTS
+    static constexpr size_t infoDefaultLen = ScreenWidth > 240 ? 22 : 10; // null included, mac address must fit - need to be at least 18
 
     // Color settings
     static constexpr color_t ColorBack = COLOR_BLACK;
@@ -41,7 +45,7 @@ struct GuiDefaults {
     static constexpr color_t ColorSelected = COLOR_ORANGE;
     static constexpr color_t COLOR_VALUE_VALID = COLOR_WHITE;
     static constexpr color_t COLOR_VALUE_INVALID = COLOR_WHITE; //COLOR_YELLOW
-    static constexpr color_scheme ClickableIconColorScheme = { COLOR_BLACK, COLOR_WHITE, ColorBack, ColorDisabled };
+    static constexpr color_scheme ClickableIconColorScheme = { ScreenWidth > 240 ? COLOR_DARK_GRAY : COLOR_BLACK, COLOR_WHITE, ColorBack, ColorDisabled };
     // Menu color settings
     static constexpr color_t MenuColorBack = ColorBack;
     static constexpr color_t MenuColorFocusedBack = COLOR_WHITE;
@@ -85,36 +89,60 @@ struct GuiDefaults {
         227, rc_frame.Width() - 2 * ButtonSpacing, 70 + 22); } //TODO calculate
     static constexpr Rect16 GetButtonRect_AvoidFooter(Rect16 rc_frame) { return GetButtonRect(rc_frame - Rect16::Height_t(FooterHeight)); }
 
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     static constexpr uint8_t FrameWidth = 10;          // default frame padding
+#endif                                                 // USE_<display>
     static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4; // maximum number of radio buttons
 
     // Menu settings
-    static constexpr EFooter MenuFooter = EFooter::On; // Menu has footer or not
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+    static constexpr EFooter MenuFooter = EFooter::Off; // Menu has footer or not
+#endif
     static constexpr size_t MenuIconWidth = 25;
 
     // Menu text settings
     static font_t *FontMenuItems;   // for menu items
     static font_t *FontMenuSpecial; // for units in menu
     static constexpr Align_t MenuAlignment() { return Align_t::LeftTop(); }
-    static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 6, 6, 6, 6 });
-    static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
 
     // Enable new menu features
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     static constexpr bool MenuLinesBetweenItems = false;
     static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
     static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
-    static constexpr bool MenuHasScrollbar = false;
-    static constexpr bool ShowDevelopmentTools = true; // Show menu items for development
+#endif                                                   // USE_<display>
+    static constexpr bool ShowDevelopmentTools = true;   // Show menu items for development
 
     // New menu feature settings
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     static constexpr size_t MenuUseFixedUnitWidth = 28; // 0 == calculate in runtime
-    static constexpr size_t MenuScrollbarWidth = 2;
+    static constexpr Rect16::Width_t MenuScrollbarWidth = MENU_HAS_SCROLLBAR ? 2 : 0;
+    static constexpr uint8_t MenuItemCornerRadius = 0;
     static constexpr padding_ui8_t MenuItemDelimiterPadding = padding_ui8_t({ 6, 0, 6, 0 });
+    static constexpr padding_ui8_t MenuPaddingItems = padding_ui8_t({ 6, 6, 6, 6 });
+    static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
+#endif
+
+    static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 14, 0, 5, 0 });
     static constexpr size_t MenuItemDelimeterHeight = MenuLinesBetweenItems ? 1 : 0;
 
+    static constexpr Rect16::Width_t MenuIcon_w = MENU_HAS_BUTTONS ? 39 : 0;  // 64;
+    static constexpr Rect16::Height_t MenuIcon_h = MENU_HAS_BUTTONS ? 39 : 0; // 64;
+
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+    static constexpr padding_ui8_t FileBrowserPadding = padding_ui8_t({ 0, 0, 0, 0 });
+#endif
+    static constexpr Rect16 FileBrowserRect = Rect16::CutPadding(RectScreenNoHeader, FileBrowserPadding);
+
     // New msgbox
-    static constexpr Rect16 MsgBoxLayoutRect = { 0, 0, 0, 0 }; // TODO: Connect with dialogs
+    static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, 120 };                                                                                 // Msgbox rect for drawing icon + text
+    static constexpr Rect16 MessageTextRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left() + 48 + 15, GuiDefaults::MsgBoxLayoutRect.Top(), 300, 120); // 48px icon + 10px icon-text delimeter
+    static constexpr Rect16 MessageIconRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), GuiDefaults::MsgBoxLayoutRect.Top(), 48, 48);
+    static constexpr uint8_t DefaultCornerRadius = 8;
+    static constexpr uint8_t IconButtonSize = 64;
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     static constexpr Rect16 DialogFrameRect = RectScreenBody;
     static constexpr uint16_t RadioButtonCornerRadius = 0;
-    static constexpr uint8_t IconButtonSize = 64;
+    static constexpr bool EnableDialogBigLayout = false;
+#endif // USE_<DISPLAY>
 };

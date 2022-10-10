@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <string.h>
+#include <optional>
 
 // jeste budu asi potrebovat nacitac cele radky, pricemz musim dat pozor, aby se
 // precetlo max 80 znaku a vse ostatni az do \n se zahodilo
@@ -55,7 +56,7 @@ struct SLine {
 // to, ze dekodovaci automaty nejsou bezestavove a musi nekde svoje stavy
 // pamatovat.
 class GCodeThumbDecoder {
-    Base64StreamDecoder base64SD;
+    std::optional<Base64StreamDecoder> base64SD;
 
     // dale budu potrebovat jednoduchy kruhovy buffer, kam se zdekoduje base64
     // radka radka ma max 80 znaku, z cehoz je 77 platnych base64 Jelikoz base64
@@ -140,8 +141,9 @@ class GCodeThumbDecoder {
     uint16_t expected_height;
 
 public:
-    inline GCodeThumbDecoder(FILE *f, uint16_t expected_width, uint16_t expected_height)
-        : f(f)
+    inline GCodeThumbDecoder(FILE *f, uint16_t expected_width, uint16_t expected_height, bool decode_base64)
+        : base64SD(decode_base64 ? std::make_optional(Base64StreamDecoder()) : std::nullopt)
+        , f(f)
         , expected_width(expected_width)
         , expected_height(expected_height) {}
 
@@ -155,7 +157,9 @@ public:
         // opakovani pokusu - cteni po vice bajtech
         // nutno resetovat automaty, coz je taky potreba vyresit
         state = States::Searching;
-        base64SD.Reset();
+        if (base64SD.has_value()) {
+            base64SD->Reset();
+        }
         while (!bytesQ.isEmpty())
             bytesQ.dequeue();
     }

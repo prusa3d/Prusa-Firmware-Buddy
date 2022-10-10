@@ -10,7 +10,7 @@ if(CONNECT)
   if(NOT WUI)
     message(FATAL_ERROR "Connect needs WUI!")
   endif()
-  add_subdirectory(Connect)
+  add_subdirectory(connect)
 endif()
 
 if(RESOURCES)

@@ -4,6 +4,7 @@
 #include "status_page.h"
 #include "../../src/common/lfn.h"
 #include "../../src/common/gcode_filename.h"
+#include "../wui_api.h"
 
 #include <http/chunked.h>
 #include <json_encode.h>
@@ -103,10 +104,11 @@ JsonResult FileInfo::FileRenderer::renderState(size_t resume_point, JsonOutput &
     // clang-format on
 }
 
-FileInfo::FileInfo(const char *filename, bool can_keep_alive, bool json_errors, bool after_upload)
+FileInfo::FileInfo(const char *filename, bool can_keep_alive, bool json_errors, bool after_upload, ReqMethod method)
     : can_keep_alive(can_keep_alive)
     , after_upload(after_upload)
-    , json_errors(json_errors) {
+    , json_errors(json_errors)
+    , method(method) {
     strlcpy(this->filename, filename, sizeof this->filename);
     /*
      * Eat the last slash on directories.
@@ -123,7 +125,7 @@ FileInfo::FileInfo(const char *filename, bool can_keep_alive, bool json_errors, 
 Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size) {
     const size_t last_chunk_len = strlen(LAST_CHUNK);
     size_t written = 0;
-    const ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
+    const ConnectionHandling handling = can_keep_alive ? (method == ReqMethod::Head ? ConnectionHandling::ContentLengthKeep : ConnectionHandling::ChunkedKeep) : ConnectionHandling::Close;
     bool first_packet = false;
 
     if (holds_alternative<Uninitialized>(renderer)) {
@@ -147,7 +149,17 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
         } else {
             return Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors) };
         }
-        written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling);
+
+        const char *extra_hdrs[] = {
+            "Read-Only: false\r\n",
+            wui_is_file_being_printed(filename) ? "Currently-Printing: true\r\n" : "Currently-Printing: false\r\n",
+            nullptr
+        };
+        written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling, std::nullopt, std::nullopt, extra_hdrs);
+
+        if (method == ReqMethod::Head) {
+            return Step { 0, written, Terminating::for_handling(handling) };
+        }
 
         if (output_size - written <= MIN_CHUNK_SIZE) {
             return { 0, written, Continue() };

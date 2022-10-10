@@ -13,7 +13,7 @@
 SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
     , text(this, Positioner::textRect(), is_multiline::yes)
-    , icon_phone(this, Positioner::phoneIconRect(), IDR_PNG_hand_qr)
+    , icon_phone(this, Positioner::phoneIconRect(), PNG::hand_qr_59x72)
     , qr(this, Positioner::qrcodeRect(), QR_ADDR)
 
 {
@@ -28,10 +28,10 @@ void SelftestFrameESP_qr::change() {
     //texts
     switch (phase_current) {
     case PhasesSelftest::ESP_qr_instructions_flash:
-        txt = N_("Use the online guide\nto setup your Wi-Fi\n" QR_ADDR_IN_TEXT);
+        txt = N_("Use the online guide\nto setup your Wi-Fi\nprusa.io/wifimini");
         break;
     case PhasesSelftest::ESP_qr_instructions:
-        txt = N_("To setup or troubleshoot your Wi-Fi, please visit:\n" QR_ADDR_IN_TEXT);
+        txt = N_("To setup or troubleshoot your Wi-Fi, please visit:\nprusa.io/wifimini");
         break;
     default:
         break;

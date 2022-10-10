@@ -20,6 +20,7 @@
 #include "DialogMoveZ.hpp"
 #include "DialogHandler.hpp"
 
+#include "lazyfilelist.h"
 #include "i18n.h"
 
 bool screen_home_data_t::ever_been_openned = false;
@@ -46,7 +47,6 @@ const char *labels[7] = {
     N_("Info"),
     N_("No USB") // label variant for first button
 };
-static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 
 bool screen_home_data_t::usbWasAlreadyInserted = false;
 uint32_t screen_home_data_t::lastUploadCount = 0;
@@ -78,11 +78,11 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     screen_filebrowser_data_t::SetRoot("/usb");
 
-    header.SetIcon(IDR_PNG_home_shape_16px);
+    header.SetIconFilePath(PNG::home_16x16);
 #ifndef _DEBUG
     header.SetText(_("HOME"));
 #else
-    static const uint8_t msgHomeDebugRolling[] = "HOME - DEBUG - what a beautifull rolling text";
+    static const uint8_t msgHomeDebugRolling[] = "HOME - DEBUG - what a beautiful rolling text";
     header.SetText(string_view_utf8::MakeCPUFLASH(msgHomeDebugRolling)); // intentionally not translated
 #endif
 
@@ -157,20 +157,21 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
             marlin_gcode("M997 S1 O");
             return;
         } else {
-            // on esp audate, can use one click print
-            if (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded()) {
+            // on esp update, can use one click print
+            if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
 
                 // we are using marlin variables for filename and filepath buffers
                 marlin_vars_t *vars = marlin_vars();
                 // check if the variables filename and filepath are allocated
                 if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
+
+                    // TODO this should be done in main thread before MARLIN_EVT_MediaInserted is generated
+                    // if it is not the latest gcode might not be selected
                     if (find_latest_gcode(
                             vars->media_SFN_path,
                             FILE_PATH_BUFFER_LEN,
                             vars->media_LFN,
                             FILE_NAME_BUFFER_LEN)) {
-                        gcode.SetGcodeFilepath(vars->media_SFN_path);
-                        gcode.SetGcodeFilename(vars->media_LFN);
                         print_begin(vars->media_SFN_path, false);
                     }
                 }
@@ -185,11 +186,12 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     SuperWindowEvent(sender, event, param);
 }
 
-static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {
+bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len) {
+    FileSort::LessFE_t LessFE = &FileSort::LessByTimeFE;
+    FileSort::MakeEntry_t MakeLastEntry = &FileSort::MakeLastEntryByTime;
 
     fname[0] = 0;
     strlcpy(fpath, "/usb", fpath_len);
-    time_t latest_time = 0;
     F_DIR_RAII_Iterator dir(fpath);
     fpath[4] = '/';
 
@@ -197,16 +199,20 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
         return false;
     }
 
+    // prepare the item at the zeroth position according to sort policy
+    FileSort::Entry entry = MakeLastEntry(); // last entry is greater than any file
+
     while (dir.FindNext()) {
         // skip folders
         if ((dir.fno->d_type & DT_DIR) != 0) {
             continue;
         }
-        bool is_newer = latest_time < dir.fno->time;
 
-        if (is_newer) {
+        if (LessFE(dir.fno, entry)) {
+            entry.CopyFrom(dir.fno);
+
             strlcpy(fpath + 5, dir.fno->d_name, fpath_len - 5);
-            strlcpy(fname, dir.fno->lfn, fname_len);
+            strlcpy(fname, entry.lfn, fname_len);
         }
     }
 
