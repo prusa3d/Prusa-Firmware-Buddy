@@ -52,7 +52,7 @@ int guimain_spi_test = 0;
 #include "hwio.h"
 #include "sys.h"
 #include "wdt.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "gui_media_events.hpp"
 #include "main.h"
 #include "bsod.h"

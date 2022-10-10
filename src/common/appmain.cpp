@@ -25,7 +25,7 @@
 #include "eeprom.h"
 #include "safe_state.h"
 #include "crc32.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 
 #include <Arduino.h>
 #include "trinamic.h"

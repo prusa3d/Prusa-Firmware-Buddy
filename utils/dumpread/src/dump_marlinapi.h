@@ -2,7 +2,7 @@
 #ifndef _DUMP_MARLINAPI_H
 #define _DUMP_MARLINAPI_H
 
-#include "dump.h"
+#include <crash_dump/dump.h>
 
 //marlin api config
 #define MARLIN_MAX_CLIENTS  3   // maximum number of clients registered in same time

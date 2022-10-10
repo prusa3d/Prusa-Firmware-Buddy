@@ -1,7 +1,7 @@
 // dump.c
 
 #include <string.h>
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include <stdio.h>
 #include "w25x.h"
 #include "FreeRTOS.h"
