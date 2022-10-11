@@ -11,6 +11,8 @@
 #include "netdev.h"
 #include "wui.h"
 #include "SteelSheets.hpp"
+#include "MItem_crash.hpp"
+#include "Configuration_MINI_adv.h"
 #ifdef BUDDY_ENABLE_CONNECT
     #include <connect/marlin_printer.hpp>
 #endif
@@ -61,6 +63,9 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PRO
     #ifdef BUDDY_ENABLE_ETHERNET
     MI_USB_MSC_ENABLE,
     MI_NETWORK,
+    #if ENABLED(CRASH_RECOVERY)
+        MI_CRASH_DETECTION,
+    #endif // ENABLED(CRASH_RECOVERY)
     MI_TIMEZONE,
     MI_LOAD_SETTINGS,
     #endif // BUDDY_ENABLE_ETHERNET
