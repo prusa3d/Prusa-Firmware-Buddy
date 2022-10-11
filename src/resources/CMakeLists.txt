@@ -88,6 +88,7 @@ add_resource("png/question_48px.png" "/png/question_48px.png")
 add_resource("png/warning_48px.png" "/png/warning_48px.png")
 add_resource("png/error_white_48px.png" "/png/error_white_48px.png")
 add_resource("png/info_48px.png" "/png/info_48px.png")
+add_resource("png/marlin_logo_76x61.png" "/png/marlin_logo_76x61.png")
 # generate header with hash
 add_header_with_revision(standard resources-image)
 
