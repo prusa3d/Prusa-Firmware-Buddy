@@ -273,11 +273,18 @@ void dump_err_in_xflash_set_displayed(void) {
 }
 
 int dump_err_in_xflash_get_message(char *msg_dst, uint16_t msg_dst_size, char *tit_dst, uint16_t tit_dst_size) {
-    dumpmessage_t dump_message;
-    w25x_rd_data(w25x_error_start_adress, (uint8_t *)(&dump_message), sizeof(dumpmessage_t));
+    const size_t title_max_size = sizeof(dumpmessage_t::title) > tit_dst_size ? tit_dst_size : sizeof(dumpmessage_t::title);
+    const size_t msg_max_size = sizeof(dumpmessage_t::msg) > msg_dst_size ? msg_dst_size : sizeof(dumpmessage_t::msg);
+
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), (uint8_t *)(tit_dst), title_max_size);
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), (uint8_t *)(msg_dst), msg_max_size);
+
+    if (title_max_size)
+        tit_dst[title_max_size - 1] = '\0';
+    if (msg_max_size)
+        msg_dst[msg_max_size - 1] = '\0';
+
     if (w25x_fetch_error())
         return 0;
-    strlcpy(tit_dst, dump_message.title, sizeof(dump_message.title) > tit_dst_size ? tit_dst_size : sizeof(dump_message.title));
-    strlcpy(msg_dst, dump_message.msg, sizeof(dump_message.msg) > msg_dst_size ? msg_dst_size : sizeof(dump_message.msg));
     return 1;
 }
