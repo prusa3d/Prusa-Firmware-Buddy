@@ -31,7 +31,7 @@ screen_splash_data_t::screen_splash_data_t()
     , text_version(this, Rect16(0, 295, 240, 22), is_multiline::no)
     , icon_logo_buddy(this, Rect16(), IDR_NULL)  //unused?
     , icon_logo_marlin(this, Rect16(), IDR_NULL) //unused?
-    , icon_debug(this, Rect16(80, 215, 80, 80), IDR_PNG_marlin_logo) {
+    , icon_debug(this, Rect16(80, 215, 80, 80), PNG::marlin_logo_76x61) {
     super::ClrMenuTimeoutClose();
 
 #if defined(USE_ST7789)
