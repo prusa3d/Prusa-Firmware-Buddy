@@ -16,10 +16,6 @@
 #include "sound.hpp"
 #include "language_eeprom.hpp"
 
-#ifdef SIM_HEATER
-    #include "sim_heater.h"
-#endif //SIM_HEATER
-
 #include "marlin_server.h"
 #include "bsod.h"
 #include "eeprom.h"
@@ -119,10 +115,6 @@ void app_run(void) {
     marlin_server_init();
     marlin_server_idle_cb = app_idle;
 
-#ifdef SIM_HEATER
-    sim_heater_init();
-#endif //SIM_HEATER
-
     log_info(Marlin, "Starting setup");
 
     app_setup();
@@ -215,14 +207,6 @@ static void record_fanctl_metrics() {
 #endif
 
 void adc_tick_1ms(void) {
-#ifdef SIM_HEATER
-    static uint8_t cnt_sim_heater = 0;
-    if (++cnt_sim_heater >= 50) // sim_heater freq = 20Hz
-    {
-        sim_heater_cycle();
-        cnt_sim_heater = 0;
-    }
-#endif //SIM_HEATER
 }
 
 void app_tim14_tick(void) {

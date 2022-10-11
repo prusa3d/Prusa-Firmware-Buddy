@@ -76,9 +76,7 @@ extern "C" void main_cpp(void) {
     hw_gpio_init();
     hw_dma_init();
 
-#ifndef SIM_HEATER
     hw_adc1_init();
-#endif
 
     hw_uart1_init();
 
