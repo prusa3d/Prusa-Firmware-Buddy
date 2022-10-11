@@ -94,7 +94,7 @@ function(define_enum_option)
   string(TOLOWER "${option_value}" option_value_lower)
   file(
     APPEND "${header_file}"
-    "constexpr ${option_name_pascal} ${option_name_lower} = ${option_name_pascal}::${option_value_lower};\n\n"
+    "inline constexpr ${option_name_pascal} ${option_name_lower} = ${option_name_pascal}::${option_value_lower};\n\n"
     )
 
   file(APPEND "${header_file}" "};\n")
