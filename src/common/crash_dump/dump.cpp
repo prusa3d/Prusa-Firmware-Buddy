@@ -6,7 +6,6 @@
 #include "w25x.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include <cstddef>
 
 static constexpr uint32_t dump_offset = w25x_dump_start_address;
 static constexpr uint16_t dump_buff_size = 0x100;
@@ -239,14 +238,14 @@ int dump_hardfault_test_1(void) {
 
 void dump_err_to_xflash(const char *error, const char *title) {
     w25x_sector_erase(w25x_error_start_adress);
-    w25x_fetch_error();
 
-    dumpmessage_t dump_message;
-    dump_message.invalid = 0;
-    strlcpy(dump_message.title, title, sizeof(dump_message.title));
-    strlcpy(dump_message.msg, error, sizeof(dump_message.msg));
-    // not_displayed have to stay untouched
-    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->invalid), reinterpret_cast<uint8_t *>(&dump_message.invalid), sizeof(dumpmessage_t) - offsetof(dumpmessage_t, invalid));
+    decltype(dumpmessage_t::invalid) invalid = 0;
+    const size_t title_len = strnlen(title, sizeof(dumpmessage_t::title));
+    const size_t msg_len = strnlen(error, sizeof(dumpmessage_t::msg));
+
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->invalid), reinterpret_cast<uint8_t *>(&invalid), sizeof(invalid));
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), reinterpret_cast<const uint8_t *>(title), title_len);
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), reinterpret_cast<const uint8_t *>(error), msg_len);
     w25x_fetch_error();
 }
 
