@@ -9,13 +9,6 @@
 //#include "res/cc/font_9x15.c"  //IDR_FNT_TERMINAL TODO, unused to save space
 #include "res/cc/font_9x16.c" //IDR_FNT_SPECIAL
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #include "res/cc/png_prusa_mini_splash.c" //IDR_PNG_prusa_printer_splash
-    #include "res/cc/png_prusa_mini_logo.c"   //IDR_PNG_prusa_printer_logo
-#else
-    #error "Unknown PRINTER_TYPE."
-#endif // PRINTER_TYPE
-
 #include "res/cc/png_nozzle_16px.c"           //IDR_PNG_nozzle_16px
 #include "res/cc/png_heatbed_16px.c"          //IDR_PNG_heatbed_16px
 #include "res/cc/png_speed_16px.c"            //IDR_PNG_speed_16px
@@ -100,9 +93,6 @@ RESOURCE_ENTRY_FNT(font_9x16) //IDR_FNT_TERMINAL TODO used same font as special 
 RESOURCE_ENTRY_FNT(font_9x16) //IDR_FNT_SPECIAL
 
 //pngs
-RESOURCE_ENTRY_PNG(png_prusa_printer_splash) //IDR_PNG_prusa_printer_splash
-RESOURCE_ENTRY_PNG(png_prusa_printer_logo)   //IDR_PNG_prusa_printer_logo
-
 RESOURCE_ENTRY_PNG(png_nozzle_16px)
 RESOURCE_ENTRY_PNG(png_heatbed_16px)
 RESOURCE_ENTRY_PNG(png_speed_16px)
