@@ -108,7 +108,7 @@ public:
                     // However, if it is less than the zeroth entry, we must increment windowStartsFrom
                     ++windowStartingFrom;
                 } else {
-                    if (strcmp(files[0].lfn, dir.fno->d_name) != 0) {
+                    if (strcmp(files[0].lfn, dir.fno->lfn) != 0) {
                         // i.e. we didn't get the same entry as the zeroth entry (which may occur when populating the window with non-null firstDirEntry)
                         // Make place in the window by standard item rotation downwards (to the right)
                         std::rotate(files.rbegin(), files.rbegin() + 1, make_reverse_iterator(i)); // solves also the case, when there are less files in the window
