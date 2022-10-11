@@ -66,6 +66,11 @@ add_gzip_resource("web/main.2db555ec7e6e55de710c.js" "/web/main.2db555ec7e6e55de
 add_gzip_resource("web/main.112d6e1a4344fea4f149.css" "/web/main.112d6e1a4344fea4f149.css")
 
 # /png directory
+if(PRINTER STREQUAL "MINI")
+  add_resource("png/prusa_mini_logo_153x40.png" "/png/prusa_printer_logo.png")
+  add_resource("png/prusa_mini_splash_207x47.png" "/png/prusa_printer_splash.png")
+endif()
+
 add_resource("png/pepa_64px.png" "/png/pepa_64px.png")
 add_resource("png/pepa_140px.png" "/png/pepa_140px.png")
 add_resource("png/pepa_original_140px.png" "/png/pepa_original_140px.png")
@@ -89,6 +94,7 @@ add_resource("png/warning_48px.png" "/png/warning_48px.png")
 add_resource("png/error_white_48px.png" "/png/error_white_48px.png")
 add_resource("png/info_48px.png" "/png/info_48px.png")
 add_resource("png/marlin_logo_76x61.png" "/png/marlin_logo_76x61.png")
+
 # generate header with hash
 add_header_with_revision(standard resources-image)
 

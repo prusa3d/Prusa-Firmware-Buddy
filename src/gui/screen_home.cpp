@@ -57,7 +57,7 @@ screen_home_data_t::screen_home_data_t()
     , esp_flash_being_openned(false)
     , header(this)
     , footer(this)
-    , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
+    , logo(this, Rect16(41, 31, 158, 40), PNG::prusa_printer_logo)
     , w_buttons { { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), IDR_NULL, []() { marlin_gcode_printf("M1700"); } },
         { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuFilament); } },

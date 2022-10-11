@@ -26,6 +26,8 @@ struct PNG {
     static constexpr const char error_white_48x48[] = "/internal/res/png/error_white_48px.png";
     static constexpr const char info_48x48[] = "/internal/res/png/info_48px.png";
     static constexpr const char marlin_logo_76x61[] = "/internal/res/png/marlin_logo_76x61.png";
+    static constexpr const char prusa_printer_logo[] = "/internal/res/png/prusa_printer_logo.png";
+    static constexpr const char prusa_printer_splash[] = "/internal/res/png/prusa_printer_splash.png";
 };
 
 enum ResourceId : uint8_t {
@@ -41,9 +43,6 @@ enum ResourceId : uint8_t {
     IDR_FNT_SPECIAL,
 
     //pngs
-    IDR_PNG_prusa_printer_splash,
-    IDR_PNG_prusa_printer_logo,
-
     IDR_PNG_nozzle_16px,
     IDR_PNG_heatbed_16px,
     IDR_PNG_speed_16px,

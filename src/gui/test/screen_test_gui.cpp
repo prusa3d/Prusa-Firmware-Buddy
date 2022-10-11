@@ -7,7 +7,7 @@
 
 screen_test_gui_data_t::screen_test_gui_data_t()
     : AddSuperWindow<screen_t>()
-    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash, is_closed_on_click_t::yes)
+    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), PNG::prusa_printer_splash, is_closed_on_click_t::yes)
     , text0(this, Rect16(10, 70, 60, 22), is_multiline::no)
     , text1(this, Rect16(80, 70, 60, 22), is_multiline::no)
     , text2(this, Rect16(150, 70, 60, 22), is_multiline::no)
