@@ -9,6 +9,7 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
+            "openOCDPreConfigLaunchCommands": ["set bbf_over_debugger_path ./build-vscode-buddy/firmware.bbf"],
             "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32F429VI",
@@ -40,6 +41,7 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
+            "openOCDPreConfigLaunchCommands": ["set bbf_over_debugger_path ./build-vscode-buddy/firmware.bbf"],
             "configFiles": ["${workspaceRoot}/utils/debug/00_common.cfg", "${workspaceRoot}/utils/debug/10_custom_config.cfg", "${workspaceRoot}/utils/debug/20_board_buddy.cfg", "${workspaceRoot}/utils/debug/30_rtt_workaround.cfg"],
             "toolchainPrefix": "arm-none-eabi",
             "device": "STM32F429VI",
@@ -78,7 +80,9 @@
                     "-pflash", "${workspaceFolder}/build-vscode-buddy/simulator/eeprom_bank1.bin",
                     "-pflash", "${workspaceFolder}/build-vscode-buddy/simulator/eeprom_bank2.bin",
                     "-nodefaults",
-                    "-chardev", "stdio,id=stm32_itm"
+                    "-chardev", "stdio,id=stm32_itm",
+                    "-append", "4x_flash",
+                    "-semihosting-config", "enable=on,target=gdb,arg=firmware ./build-vscode-buddy/firmware.bbf",
                 ],
             },
             "windows": {
@@ -91,7 +95,9 @@
                     "-pflash", "${workspaceFolder}\\build-vscode-buddy\\simulator\\eeprom_bank1.bin",
                     "-pflash", "${workspaceFolder}\\build-vscode-buddy\\simulator\\eeprom_bank2.bin",
                     "-nodefaults",
-                    "-chardev", "stdio,id=stm32_itm"
+                    "-chardev", "stdio,id=stm32_itm",
+                    "-append", "4x_flash",
+                    "-semihosting-config", "enable=on,target=gdb,arg=firmware ./build-vscode-buddy/firmware.bbf",
                 ],
             },
             "linux": {
@@ -104,11 +110,13 @@
                     "-pflash", "${workspaceFolder}/build-vscode-buddy/simulator/eeprom_bank1.bin",
                     "-pflash", "${workspaceFolder}/build-vscode-buddy/simulator/eeprom_bank2.bin",
                     "-nodefaults",
-                    "-chardev", "stdio,id=stm32_itm"
+                    "-chardev", "stdio,id=stm32_itm",
+                    "-append", "4x_flash",
+                    "-semihosting-config", "enable=on,target=gdb,arg=firmware ./build-vscode-buddy/firmware.bbf",
                 ],
             },
             "preLaunchTask": "Prepare Simulator State Directory",
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
             "request": "launch",
         },

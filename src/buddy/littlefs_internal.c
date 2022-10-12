@@ -42,7 +42,7 @@ static struct lfs_config littlefs_config = {
     .prog_size = 1,
     .block_size = BLOCK_SIZE,
     .block_count = 0, // to be initialized at runtime
-    .cache_size = 16,
+    .cache_size = 128,
     .lookahead_size = 16,
     .block_cycles = 500,
 };
