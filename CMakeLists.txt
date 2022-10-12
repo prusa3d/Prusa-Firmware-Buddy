@@ -685,6 +685,8 @@ target_sources(
           src/filesystem_littlefs_internal.c
           src/filesystem_littlefs_bbf.cpp
           src/filesystem_root.c
+          src/filesystem_semihosting.cpp
+          src/semihosting/semihosting.cpp
           src/libsysbase_syscalls.c
           src/usb_host.c
           src/usbh_conf.c

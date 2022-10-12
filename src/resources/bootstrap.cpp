@@ -1,16 +1,20 @@
+#include <stdio.h>
 #include <dirent.h>
 #include <memory>
 #include <string.h>
 #include <optional>
 #include <cerrno>
 #include <sys/stat.h>
+#include <sys/iosupport.h>
 
 #include "bsod.h"
 #include "bbf.hpp"
 #include "log.h"
 #include "timing.h"
 #include "cmsis_os.h"
+#include "stm32f4xx.h"
 
+#include "semihosting/semihosting.hpp"
 #include "resources/bootstrap.hpp"
 #include "resources/hash.hpp"
 
@@ -175,22 +179,16 @@ static bool has_bbf_suffix(const char *fname) {
     return strcasecmp(dot, ".bbf") == 0;
 }
 
-static bool is_relevant_bbf_for_bootstrap(const char *fname, const buddy::resources::Revision &revision, buddy::bbf::TLVType tlv_entry) {
-    std::unique_ptr<FILE, FILEDeleter> bbf(fopen(fname, "rb"));
-    if (bbf.get() == nullptr) {
-        log(LOG_SEVERITY_ERROR, "Failed to open %s", fname);
-        return false;
-    }
-
+static bool is_relevant_bbf_for_bootstrap(FILE *bbf, const char *path, const buddy::resources::Revision &revision, buddy::bbf::TLVType tlv_entry) {
     uint32_t hash_len;
-    if (!buddy::bbf::seek_to_tlv_entry(bbf.get(), tlv_entry, hash_len)) {
-        log(LOG_SEVERITY_ERROR, "Failed to seek to resources revision %s", fname);
+    if (!buddy::bbf::seek_to_tlv_entry(bbf, tlv_entry, hash_len)) {
+        log_error(Resources, "Failed to seek to resources revision %s", path);
         return false;
     }
 
     buddy::resources::Revision bbf_revision;
-    if (fread(&bbf_revision.hash[0], 1, revision.hash.size(), bbf.get()) != hash_len) {
-        log(LOG_SEVERITY_ERROR, "Failed to read resources revision %s", fname);
+    if (fread(&bbf_revision.hash[0], 1, revision.hash.size(), bbf) != hash_len) {
+        log_error(Resources, "Failed to read resources revision %s", path);
         return false;
     }
 
@@ -384,6 +382,56 @@ static bool copy_resources_directory(Path &source, Path &target, BootstrapProgre
     return true;
 }
 
+static bool bootstrap_over_debugger_possible() {
+    // debugger flag is located at the beginning of the CCMRAM
+    // to enable bootstrap over debugger, the debugger has to set the flag to 0xABCDABCD
+    static uint32_t debugger_flag __attribute__((__section__(".ccmram_beginning"), used));
+
+    bool flag_set = debugger_flag == 0xABCDABCD;
+    bool debugger_connected = DBGMCU->CR != 0;
+
+    return debugger_connected && flag_set;
+}
+
+static FILE *open_bbf_over_debugger(Path &path_buffer, const buddy::resources::Revision &revision, buddy::bbf::TLVType &bbf_entry) {
+    // find the path first
+    auto retval = semihosting::sys_getcmdline(path_buffer.get_buffer(), path_buffer.maximum_length());
+    if (retval != 0) {
+        return nullptr;
+    }
+    const char *first_space = strchr(path_buffer.get(), ' ');
+    if (first_space == nullptr) {
+        return nullptr;
+    }
+    const char *filepath = first_space + 1;
+    log_warning(Resources, "BBF over debugger filename: %s", filepath);
+
+    // open the bbf file
+    // we have to keep this within the critical section, as
+    // setDefaultDevice does not work per-task and we need to make
+    // sure someone else does not set it to something different before
+    // we open the file
+    taskENTER_CRITICAL();
+    setDefaultDevice(FindDevice("/semihosting"));
+    FILE *bbf = fopen(filepath, "rb");
+    taskEXIT_CRITICAL();
+    if (bbf == nullptr) {
+        return nullptr;
+    }
+
+    if (is_relevant_bbf_for_bootstrap(bbf, filepath, revision, buddy::bbf::TLVType::RESOURCES_IMAGE_HASH)) {
+        log_info(Resources, "Found suitable bbf provided by debugger: %s", filepath);
+        bbf_entry = buddy::bbf::TLVType::RESOURCES_IMAGE;
+        return bbf;
+    } else if (is_relevant_bbf_for_bootstrap(bbf, filepath, revision, buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE_HASH)) {
+        log_info(Resources, "Found suitable bbf provided by debugger: %s", filepath);
+        bbf_entry = buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE;
+        return bbf;
+    } else {
+        return nullptr;
+    }
+}
+
 static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, Path &bbf, buddy::bbf::TLVType &bbf_entry) {
     log(LOG_SEVERITY_DEBUG, "Searching for a bbf...");
 
@@ -406,14 +454,21 @@ static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, P
         // create full path
         bbf.set("/usb");
         bbf.push(entry->d_name);
+        // open the bbf
+        std::unique_ptr<FILE, FILEDeleter> bbf_file(fopen(bbf.get(), "rb"));
+        if (bbf.get() == nullptr) {
+            log_error(Resources, "Failed to open %s", bbf.get());
+            continue;
+        }
+
         // check if the file contains required resources
-        if (is_relevant_bbf_for_bootstrap(bbf.get(), revision, buddy::bbf::TLVType::RESOURCES_IMAGE_HASH)) {
-            log(LOG_SEVERITY_INFO, "Found suitable bbf for bootstraping: %s", bbf.get());
+        if (is_relevant_bbf_for_bootstrap(bbf_file.get(), bbf.get(), revision, buddy::bbf::TLVType::RESOURCES_IMAGE_HASH)) {
+            log_info(Resources, "Found suitable bbf for bootstraping: %s", bbf.get());
             bbf_found = true;
             bbf_entry = buddy::bbf::TLVType::RESOURCES_IMAGE;
             break;
-        } else if (is_relevant_bbf_for_bootstrap(bbf.get(), revision, buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE_HASH)) {
-            log(LOG_SEVERITY_INFO, "Found suitable bbf for bootstraping: %s", bbf.get());
+        } else if (is_relevant_bbf_for_bootstrap(bbf_file.get(), bbf.get(), revision, buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE_HASH)) {
+            log_info(Resources, "Found suitable bbf for bootstraping: %s", bbf.get());
             bbf_found = true;
             bbf_entry = buddy::bbf::TLVType::RESOURCES_BOOTLOADER_IMAGE;
             break;
@@ -434,21 +489,32 @@ static bool find_suitable_bbf_file(const buddy::resources::Revision &revision, P
 static bool do_bootstrap(const buddy::resources::Revision &revision, buddy::resources::ProgressHook progress_hook) {
     BootstrapProgressReporter reporter(progress_hook, BootstrapStage::LookingForBbf);
     Path source_path("/");
+    std::unique_ptr<FILE, FILEDeleter> bbf;
+    buddy::bbf::TLVType bbf_entry = buddy::bbf::TLVType::RESOURCES_IMAGE;
 
     reporter.report(); // initial report
-    buddy::bbf::TLVType bbf_entry;
-    if (!find_suitable_bbf_file(revision, source_path, bbf_entry)) {
+
+    // try to find required BBF on attached USB drive
+    if (find_suitable_bbf_file(revision, source_path, bbf_entry)) {
+        bbf.reset(fopen(source_path.get(), "rb"));
+    }
+
+    // try to open BBF supplied over semihosting (connected debugger)
+    if (bbf.get() == nullptr && bootstrap_over_debugger_possible()) {
+        bbf.reset(open_bbf_over_debugger(source_path, revision, bbf_entry));
+    }
+
+    if (bbf.get() == nullptr) {
         return false;
     }
 
     reporter.update_stage(BootstrapStage::PreparingBootstrap);
 
-    // open the bbf
-    std::unique_ptr<FILE, FILEDeleter> bbf(fopen(source_path.get(), "rb"));
     if (bbf.get() == nullptr) {
-        log(LOG_SEVERITY_WARNING, "Failed to open %s", source_path.get());
         return false;
     }
+    // use a small buffer for the BBF
+    setvbuf(bbf.get(), NULL, _IOFBF, 32);
 
     // mount the filesystem stored in the bbf
     ScopedFileSystemLittlefsBBF scoped_bbf_mount(bbf.get(), bbf_entry);
