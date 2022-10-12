@@ -7,6 +7,7 @@ target_sources(
           filesystem_littlefs_bbf.cpp
           filesystem_littlefs_internal.c
           filesystem_root.c
+          filesystem_semihosting.cpp
           libsysbase_syscalls.c
           littlefs_bbf.cpp
           littlefs_internal.c
