@@ -183,7 +183,7 @@ void hw_dma_init() {
 void static config_adc(ADC_HandleTypeDef *hadc, ADC_TypeDef *ADC_NUM, uint32_t NbrOfConversion) {
     hadc->Instance = ADC_NUM;
     hadc->Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
-    hadc->Init.Resolution = ADC_RESOLUTION_10B;
+    hadc->Init.Resolution = ADC_RESOLUTION_12B;
     hadc->Init.ScanConvMode = ENABLE;
     hadc->Init.ContinuousConvMode = ENABLE;
     hadc->Init.DiscontinuousConvMode = DISABLE;

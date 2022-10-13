@@ -26,7 +26,7 @@ enum AD1 { //ADC1 channels
     heatbed_U,
     ADC1_CH_CNT
 };
-};
+}
 
 template <ADC_HandleTypeDef &adc, size_t channels>
 class AdcDma {
@@ -37,12 +37,13 @@ public:
         HAL_ADC_Init(&adc);
         HAL_ADC_Start_DMA(&adc, reinterpret_cast<uint32_t *>(m_data), channels); // Start ADC in DMA mode and
     };
+
     void deinit() {
         HAL_ADC_Stop_DMA(&adc);
         HAL_ADC_DeInit(&adc);
     }
 
-    uint16_t get_channel(uint8_t index) const {
+    [[nodiscard]] uint16_t get_channel(uint8_t index) const {
         return m_data[index];
     }
 
@@ -53,11 +54,11 @@ private:
 using AdcDma1 = AdcDma<hadc1, AdcChannel::ADC1_CH_CNT>;
 extern AdcDma1 adcDma1;
 
-class AdcGet {
-public:
-    static uint16_t nozzle() { return adcDma1.get_channel(AdcChannel::hotend_T); };
-    static uint16_t bed() { return adcDma1.get_channel(AdcChannel::heatbed_T); };
-    static uint16_t boardTemp() { return adcDma1.get_channel(AdcChannel::board_T); };
-    static uint16_t pinda() { return adcDma1.get_channel(AdcChannel::pinda_T); };
-    static uint16_t bedMon() { return adcDma1.get_channel(AdcChannel::heatbed_U); };
-};
+namespace AdcGet {
+[[nodiscard]] inline uint16_t get_and_shift(uint8_t channel) { return adcDma1.get_channel(channel) >> 2; } //This function is need for convert 12bit to 10bit
+inline uint16_t nozzle() { return get_and_shift(AdcChannel::hotend_T); }
+inline uint16_t bed() { return get_and_shift(AdcChannel::heatbed_T); }
+inline uint16_t boardTemp() { return get_and_shift(AdcChannel::board_T); }
+inline uint16_t pinda() { return get_and_shift(AdcChannel::pinda_T); }
+inline uint16_t bedMon() { return get_and_shift(AdcChannel::heatbed_U); }
+}
