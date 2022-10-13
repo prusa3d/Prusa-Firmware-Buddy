@@ -55,6 +55,7 @@ int guimain_spi_test = 0;
 #include "gui_media_events.hpp"
 #include "main.h"
 #include "bsod.h"
+#include "log.h"
 
 LOG_COMPONENT_REF(Buddy);
 extern void blockISR(); // do not want to include marlin temperature
@@ -207,8 +208,12 @@ static void finish_update() {
  *
  */
 static void manufacture_report() {
-    assert((log_component_t buddy_component = log_component_find("Buddy")) && (buddy_component->lowest_severity <= LOG_SEVERITY_INFO));
-    assert((log_destination_t usb_destination = log_destination_find("USB")) && (usb_destination->lowest_severity <= LOG_SEVERITY_INFO));
+#ifndef NDEBUG
+    log_component_t *buddy_component = log_component_find("Buddy");
+    log_destination_t *usb_destination = log_destination_find("USB");
+#endif
+    assert(buddy_component && (buddy_component->lowest_severity <= LOG_SEVERITY_INFO));
+    assert(usb_destination && (usb_destination->lowest_severity <= LOG_SEVERITY_INFO));
     static_assert(LOG_LOWEST_SEVERITY <= LOG_SEVERITY_INFO, "Mandatory info messages are not logged.");
 
     log_info(Buddy, "bootstrap finished");
