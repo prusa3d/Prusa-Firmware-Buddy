@@ -9,7 +9,7 @@
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_SWITCH_OFF_ON_t(0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
     index = crash_s.is_enabled();
 }
 
