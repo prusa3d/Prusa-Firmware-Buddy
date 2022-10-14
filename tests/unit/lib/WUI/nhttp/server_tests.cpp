@@ -466,7 +466,7 @@ TEST_CASE("Authenticated Digest") {
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
 
-    string request = digest_auth_header("GET", "user", "aaaaaaaa00000000", "/secret.html", "98d83e2a0dfd67eb0c3a13bae4dff1c7");
+    string request = digest_auth_header("GET", "maker", "aaaaaaaa00000000", "/secret.html", "0cbf0ac5ca4c879c35a3b91430214a47");
     INFO(request);
     server.send(client_conn, request);
     const auto response = server.recv_all(client_conn);
@@ -488,7 +488,7 @@ TEST_CASE("Not authenticated Digest") {
     }
 
     SECTION("Invalid nonce") {
-        string request = digest_auth_header("GET", "user", "not a valid nonce", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        string request = digest_auth_header("GET", "maker", "not a valid nonce", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
         server.send(client_conn, request);
     }
 
@@ -515,7 +515,7 @@ TEST_CASE("Digest stale nonce") {
 
     SECTION("Real stale nonce") {
         set_time(0x0000000f);
-        string request = digest_auth_header("GET", "user", "aaaaaaaa00000000", "/secret.html", "98d83e2a0dfd67eb0c3a13bae4dff1c7");
+        string request = digest_auth_header("GET", "maker", "aaaaaaaa00000000", "/secret.html", "0cbf0ac5ca4c879c35a3b91430214a47");
         server.send(client_conn, request);
     }
 
@@ -523,7 +523,7 @@ TEST_CASE("Digest stale nonce") {
     // In this case, we don't want to bother the client with unnecessary login prompting
     // so we say its stale.
     SECTION("Wrong nonce, correct user and password") {
-        string request = digest_auth_header("GET", "user", "dcd98b7102dd2f0e", "/secret.html", "491a37d687a1604d170aeaf12f7a67ec");
+        string request = digest_auth_header("GET", "maker", "dcd98b7102dd2f0e", "/secret.html", "285b9c363d25d31c5867bca2bd4121af");
         server.send(client_conn, request);
     }
 

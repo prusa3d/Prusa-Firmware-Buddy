@@ -11,14 +11,14 @@
 
 #include "wui_api.h"
 
-#define api_key_format "Current Api Key\n    %s"
+#define api_key_format "Username\n    " PRUSA_LINK_USERNAME "\nCurrent Password\n    %s"
 static constexpr size_t API_KEY_STR_LENGTH = PL_API_KEY_SIZE + sizeof(api_key_format) - sizeof("%s"); // don't need space for '%s' and '\0' since PL_API_KEY_SIZE contains '\0' too
 typedef char api_key_str_t[API_KEY_STR_LENGTH];
 
 // ----------------------------------------------------------------
 // GUI Prusa Link X-Api_Key regenerate
 class MI_PL_REGENERATE_API_KEY : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Generate Api key");
+    constexpr static const char *const label = N_("Generate Password");
 
 public:
     MI_PL_REGENERATE_API_KEY()

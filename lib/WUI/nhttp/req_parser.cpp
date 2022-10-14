@@ -5,6 +5,7 @@
 #include <timing.h>
 #include <inttypes.h> // PRI* macros (not available in <cinttypes>)
 #include "random.h"
+#include "../wui_api.h"
 
 #include <mbedtls/md5.h>
 
@@ -367,7 +368,7 @@ namespace {
 bool RequestParser::check_digest_auth(uint64_t nonce_to_use) const {
     if (auto digest_params = get_if<DigestAuthParams>(&auth_status)) {
 
-        auto hash_a1 = md5_hash("user:", AUTH_REALM, ":", server->get_api_key());
+        auto hash_a1 = md5_hash(PRUSA_LINK_USERNAME, ":", AUTH_REALM, ":", server->get_api_key());
         auto hash_a2 = md5_hash(to_str(method), ":", uri());
 
         char ha1[MD5_HEX_SIZE];
