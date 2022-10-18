@@ -193,7 +193,8 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             s_retry_num++;
             ESP_LOGI(TAG, "retry to connect to the AP");
         }
-        ESP_LOGI(TAG,"connect to the AP fail");
+        ESP_LOGI(TAG,"connect to the AP fail, now lowering RF power to reduce interference");
+	esp_wifi_set_max_tx_power(48); // 12dB (down from 20dB) to reduce antenna reflections, needed for some modules (see ESP8266_RTOS_SDK#1200)
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
         last_inbound_seen = now_seconds();
         associated = true;
