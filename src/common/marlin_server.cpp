@@ -25,7 +25,7 @@
 #include "../Marlin/src/module/endstops.h"
 #include "../Marlin/src/module/temperature.h"
 #include "../Marlin/src/module/probe.h"
-#include "../Marlin/src/module/configuration_store.h"
+#include "../Marlin/src/module/settings.h"
 #include "../Marlin/src/module/printcounter.h"
 #include "../Marlin/src/feature/babystep.h"
 #include "../Marlin/src/feature/bedlevel/bedlevel.h"
