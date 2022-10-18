@@ -2,7 +2,7 @@
 #include <tuple>
 #include <optional>
 #include <functional>
-#include "feature/bootloader_update.h"
+#include <option/bootloader_update.h>
 
 namespace buddy::bootloader {
 
@@ -15,7 +15,7 @@ struct Version {
 /// Return version of installed bootloader.
 Version get_version();
 
-#if ENABLED(BOOTLOADER_UPDATE)
+#if BOOTLOADER_UPDATE()
 
 /// Return true if the bootloader needs to be updated/reflashed
 bool needs_update();

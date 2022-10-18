@@ -41,7 +41,7 @@ static constexpr Rect16 getTextIconRect() {
 SelftestFrameWizardEpilogue::SelftestFrameWizardEpilogue(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
 
-    , icon(this, getIconRect(), iconName)
+    , icon(this, getIconRect(), PNG::pepa_92x140)
     , text_icon(this, getTextIconRect(), is_multiline::yes) {
 
     icon.SetAlignment(Align_t::CenterTop());

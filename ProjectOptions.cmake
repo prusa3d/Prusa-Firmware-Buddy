@@ -92,6 +92,9 @@ foreach(OPTION "PRINTER" "BOARD" "MCU" "BOOTLOADER")
   endif()
 endforeach()
 
+# define simple options
+define_boolean_option(BOOTLOADER ${BOOTLOADER})
+
 # set board to its default if not specified
 if(${BOARD} STREQUAL "<default>")
   if(${PRINTER} MATCHES "^(MINI)$")
@@ -118,6 +121,9 @@ if(${MCU} STREQUAL "<default>")
     message(FATAL_ERROR "Don't know what MCU to set as default for this board/version")
   endif()
 endif()
+# define MCU option
+list(REMOVE_ITEM MCU_VALID_OPTS "<default>")
+define_enum_option(NAME MCU VALUE ${MCU} ALL_VALUES ${MCU_VALID_OPTS})
 
 # parse board version into its components
 string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" BOARD_VERSION_MATCH ${BOARD_VERSION})
@@ -157,7 +163,7 @@ message(STATUS "Connect client: ${CONNECT}")
 message(STATUS "Resources: ${RESOURCES}")
 
 # Set printer features
-set(PRINTERS_WITH_FILAMENT_SENSOR_YES "MINI")
+set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI")
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI")
 set(PRINTERS_WITH_POWER_PANIC)
@@ -173,17 +179,19 @@ set(PRINTERS_WITH_SERIAL_PRINTING "MINI")
 # Set printer board
 set(BOARDS_WITH_ST7789V "BUDDY")
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_YES AND BOARD MATCHES ".*BUDDY")
-  set(FILAMENT_SENSOR YES)
+if(${PRINTER} IN_LIST PRINTERS_WITH_FILAMENT_SENSOR_BINARY AND BOARD MATCHES ".*BUDDY")
+  set(FILAMENT_SENSOR BINARY)
 else()
   set(FILAMENT_SENSOR NO)
 endif()
+define_enum_option(NAME FILAMENT_SENSOR VALUE "${FILAMENT_SENSOR}" ALL_VALUES "BINARY;NO")
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_RESOURCES AND BOARD MATCHES ".*BUDDY")
   set(RESOURCES YES)
 else()
   set(RESOURCES NO)
 endif()
+define_boolean_option(RESOURCES ${RESOURCES})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_GUI AND BOARD MATCHES ".*BUDDY")
   set(GUI YES)
@@ -198,6 +206,7 @@ else()
   set(GUI NO)
 endif()
 message(STATUS "Graphical User Interface: ${GUI}")
+define_boolean_option(HAS_GUI ${GUI})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
   set(INIT_TRINAMIC_FROM_MARLIN_ONLY YES)
@@ -239,11 +248,10 @@ else()
 endif()
 
 # define enabled features
-define_feature(BOOTLOADER ${BOOTLOADER})
-define_feature(RESOURCES ${RESOURCES})
 
 if(BOOTLOADER AND ${PRINTER} STREQUAL "MINI")
-  define_feature(BOOTLOADER_UPDATE ON)
+  set(BOOTLOADER_UPDATE YES)
 else()
-  define_feature(BOOTLOADER_UPDATE OFF)
+  set(BOOTLOADER_UPDATE NO)
 endif()
+define_boolean_option(BOOTLOADER_UPDATE ${BOOTLOADER_UPDATE})

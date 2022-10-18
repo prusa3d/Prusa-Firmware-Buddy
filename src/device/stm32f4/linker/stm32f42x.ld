@@ -157,6 +157,7 @@ SECTIONS
   {
     . = ALIGN(4);
     _sccmram = .;       /* create a global symbol at ccmram start */
+    *(.ccmram_beginning)
     *(.ccmram)
     *(.ccmram*)
 

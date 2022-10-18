@@ -5,7 +5,7 @@
 #include "display.h"
 #include "errors.h"
 #include "sound.hpp"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "sys.h"
 #include "eeprom.h"
 #include "support_utils.h"
@@ -30,7 +30,7 @@ ScreenErrorQR::ScreenErrorQR()
     : AddSuperWindow<screen_reset_error_data_t>()
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
-    , hand_icon(this, hand_rect, IDR_PNG_hand_qr)
+    , hand_icon(this, hand_rect, PNG::hand_qr_59x72)
     , qr(this, QR_rect, 1) // error code is passed in the constructor
     , help_txt(this, Rect16(0, 0, 0, 0), is_multiline::no)
     , help_link(this, link_rect, is_multiline::no)
@@ -41,6 +41,7 @@ ScreenErrorQR::ScreenErrorQR()
     , title_line(this, title_line_rect) {
 
     SetRedLayout();
+    hand_icon.SetRedLayout();
     title_line.SetBackColor(COLOR_WHITE);
     help_link.font = resource_font(IDR_FNT_SMALL);
     qr_code_txt.font = resource_font(IDR_FNT_SMALL);
@@ -67,15 +68,23 @@ ScreenErrorQR::ScreenErrorQR()
         ++i;
     }
     if (i == count) {
-        // error not found => Print unspecified error
-        err_title.SetText(_(unknown_err_txt));
-        err_description.Hide();
+        // error not found => Print error message from dump
+        static char err_title_buff[DUMP_MSG_TITLE_MAX_LEN] = { 0 };
+        static char err_message_buff[DUMP_MSG_MAX_LEN] = { 0 };
+        if (dump_err_in_xflash_is_valid() && dump_err_in_xflash_get_message(err_message_buff, DUMP_MSG_MAX_LEN, err_title_buff, DUMP_MSG_TITLE_MAX_LEN)) {
+            err_title.SetText(err_title_buff[0] ? _(err_title_buff) : _(unknown_err_txt));
+            err_description.SetText(_(err_message_buff));
+        } else {
+            err_title.SetText(_(unknown_err_txt));
+            err_description.Hide();
+            title_line.Hide();
+        }
+        dump_err_in_xflash_set_displayed();
         help_txt.Hide();
         help_link.Hide();
         hand_icon.Hide();
         qr.Hide();
         qr_code_txt.Hide();
-        title_line.Hide();
     } else {
         // error found
         qr.SetQRHeader(error_code);

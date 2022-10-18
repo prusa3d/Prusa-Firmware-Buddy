@@ -13,7 +13,6 @@ if(BOARD MATCHES ".*BUDDY")
             client_response_texts.cpp
             crc32.c
             crc32_zlib.c
-            dump.cpp
             eeprom.cpp
             eeprom_loadsave.c
             errors.cpp
@@ -35,15 +34,14 @@ if(BOARD MATCHES ".*BUDDY")
             ini_handler.c
             jsmn.c
             json_encode.c
-            segmented_json.cpp
             lang.cpp
             language_eeprom.cpp
             lfn.cpp
             marlin_client.c
             marlin_errors.c
             marlin_events.c
-            marlin_server.cpp
             marlin_print_preview.cpp
+            marlin_server.cpp
             marlin_vars.c
             MarlinPin.cpp
             media.cpp
@@ -58,18 +56,17 @@ if(BOARD MATCHES ".*BUDDY")
             print_utils.cpp
             safe_state.cpp
             scratch_buffer.cpp
-            sim_bed.c
-            sim_heater.cpp
-            sim_nozzle.c
+            segmented_json.cpp
             sound.cpp
             st25dv64k.c
             SteelSheets.cpp
             str_utils.cpp
             stubs.c
-            support_utils_lib.cpp
             support_utils.cpp
+            support_utils_lib.cpp
             sys.cpp
             sys_time.c
+            tasks.cpp
             timing.c
             trinamic.cpp
             uartrxbuff.c
@@ -80,7 +77,6 @@ if(BOARD MATCHES ".*BUDDY")
             wdt.cpp
             z_calibration_fsm.cpp
             Z_probe.cpp
-            tasks.cpp
     )
 endif()
 
@@ -119,6 +115,7 @@ endif()
 if(HAS_SELFTEST)
   add_subdirectory(selftest)
 endif()
+add_subdirectory(crash_dump)
 
 add_subdirectory(automata)
 add_subdirectory(http)

@@ -21,9 +21,9 @@ void window_icon_t::SetIdRes(ResourceId id) {
     }
 }
 
-void window_icon_t::setFileName(const char *filename) {
-    if (strcmp(dataSource.filename, filename) != 0) {
-        dataSource.set(filename);
+void window_icon_t::SetFilePath(const char *filepath) {
+    if (strcmp(dataSource.filename, filepath) != 0) {
+        dataSource.set(filepath);
         assert(dataSource.isFromFile());
         Invalidate();
     }

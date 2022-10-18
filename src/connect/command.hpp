@@ -11,7 +11,9 @@ namespace connect_client {
 using CommandId = uint32_t;
 
 struct UnknownCommand {};
-struct BrokenCommand {};
+struct BrokenCommand {
+    const char *reason = nullptr;
+};
 struct ProcessingOtherCommand {};
 struct ProcessingThisCommand {};
 struct GcodeTooLarge {};

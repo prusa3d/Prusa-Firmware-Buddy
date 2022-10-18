@@ -13,7 +13,7 @@
 #include "sys.h"
 #include "app.h"
 #include "wdt.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "timer_defaults.h"
 #include "tick_timer_api.h"
 #include "thread_measurement.h"
@@ -29,6 +29,8 @@
 #include "adc.hpp"
 #include "logging.h"
 #include "common/disable_interrupts.h"
+#include <option/filament_sensor.h>
+#include <option/has_gui.h>
 #include "tasks.h"
 
 #if ENABLED(POWER_PANIC)
@@ -76,9 +78,7 @@ extern "C" void main_cpp(void) {
     hw_gpio_init();
     hw_dma_init();
 
-#ifndef SIM_HEATER
     hw_adc1_init();
-#endif
 
     hw_uart1_init();
 
@@ -87,7 +87,7 @@ extern "C" void main_cpp(void) {
 
     SPI_INIT(flash);
 
-#if HAS_GUI
+#if HAS_GUI()
     SPI_INIT(lcd);
 #endif
 
@@ -97,7 +97,7 @@ extern "C" void main_cpp(void) {
     UART_INIT(esp);
 #endif
 
-#if HAS_GUI
+#if HAS_GUI()
     hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
 #endif
 
@@ -166,7 +166,7 @@ extern "C" void main_cpp(void) {
     osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-    if (HAS_GUI) {
+    if (option::has_gui) {
         osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024 + 256);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
@@ -194,7 +194,7 @@ extern "C" void main_cpp(void) {
     power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
 #endif
 
-    if (FILAMENT_SENSOR) {
+    if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
         osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
         osThreadCreate(osThread(measurementTask), NULL);

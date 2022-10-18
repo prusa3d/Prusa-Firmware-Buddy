@@ -1,13 +1,14 @@
 target_sources(
   firmware
-  PRIVATE connect.cpp
+  PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
           command.cpp
-          render.cpp
+          connect.cpp
+          hostname.cpp
+          marlin_printer.cpp
           planner.cpp
           printer.cpp
-          marlin_printer.cpp
+          render.cpp
           run.cpp
-          ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   )
 
 add_subdirectory(tls)

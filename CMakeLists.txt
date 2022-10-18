@@ -3,7 +3,7 @@ include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
 include(cmake/Littlefs.cmake)
-include(cmake/Features.cmake)
+include(cmake/Options.cmake)
 
 project(
   Buddy
@@ -76,7 +76,7 @@ endif()
 add_library(BuddyHeaders INTERFACE)
 target_include_directories(
   BuddyHeaders INTERFACE include include/usb_host include/usb_device include/marlin
-                         include/freertos ${FEATURES_INCLUDE_DIR}
+                         include/freertos ${OPTIONS_INCLUDE_DIR}
   )
 
 if(MCU MATCHES "STM32F4")
@@ -104,20 +104,17 @@ set(HAS_MARLIN TRUE)
 
 target_compile_definitions(
   BuddyHeaders
-  INTERFACE
-  MOTHERBOARD=1823
-  MCU=${MCU}
-  GUI=${GUI}
-  PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
-  BOARD=BOARD_${BOARD}
-  BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
-  BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR}
-  BOARD_VERSION_PATCH=${BOARD_VERSION_PATCH}
-  MARLIN_DISABLE_INFINITE_LOOP
-  PROCESS_CUSTOM_GCODE
-  HAS_MMU2=$<BOOL:${HAS_MMU2}>
-  HAS_MARLIN=$<BOOL:${HAS_MARLIN}>
-  _EXTUI
+  INTERFACE MOTHERBOARD=1823
+            PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
+            BOARD=BOARD_${BOARD}
+            BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
+            BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR}
+            BOARD_VERSION_PATCH=${BOARD_VERSION_PATCH}
+            MARLIN_DISABLE_INFINITE_LOOP
+            PROCESS_CUSTOM_GCODE
+            HAS_MMU2=$<BOOL:${HAS_MMU2}>
+            HAS_MARLIN=$<BOOL:${HAS_MARLIN}>
+            _EXTUI
   )
 
 if(MCU MATCHES "STM32")
@@ -313,10 +310,6 @@ if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
 endif()
 
-if(NOT (BOOTLOADER STREQUAL "NO"))
-  add_compile_definitions(BOOTLOADER)
-endif()
-
 # generate firmware.bin file
 objcopy(firmware "binary" ".bin")
 
@@ -473,24 +466,6 @@ set_property(
            FW_VERSION=${PROJECT_VERSION}
            FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
            FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
-  )
-
-set_property(
-  SOURCE src/buddy/main.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS FILAMENT_SENSOR=$<BOOL:${FILAMENT_SENSOR}>
-  )
-
-set_property(
-  SOURCE src/buddy/main.cpp
-         src/common/appmain.cpp
-         src/common/sys.cpp
-         src/marlin_stubs/gcode.cpp
-         src/common/hwio_buddy_2209_02.cpp
-         src/gui/guimain.cpp
-         src/common/marlin_server.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_GUI=$<BOOL:${GUI}>
   )
 
 set_property(

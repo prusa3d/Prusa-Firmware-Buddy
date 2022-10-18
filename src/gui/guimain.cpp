@@ -32,15 +32,15 @@
 #include "gui_fsensor_api.hpp"
 #include "gcode_info.hpp"
 
-#include <feature/bootloader.h>
-#include <feature/bootloader_update.h>
-#include <feature/resources.h>
+#include <option/bootloader.h>
+#include <option/bootloader_update.h>
+#include <option/resources.h>
 
-#if ENABLED(RESOURCES)
+#if ENABLED(RESOURCES())
     #include "resources/bootstrap.hpp"
     #include "resources/revision_standard.hpp"
 #endif
-#if BOTH(RESOURCES, BOOTLOADER)
+#if BOTH(RESOURCES(), BOOTLOADER())
     #include "bootloader/bootloader.hpp"
 #endif
 int guimain_spi_test = 0;
@@ -50,7 +50,7 @@ int guimain_spi_test = 0;
 #include "hwio.h"
 #include "sys.h"
 #include "wdt.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "gui_media_events.hpp"
 #include "main.h"
 #include "bsod.h"
@@ -140,7 +140,7 @@ void client_gui_refresh() {
     }
 }
 
-#if ENABLED(RESOURCES)
+#if ENABLED(RESOURCES())
 static void finish_update() {
 
     #if ENABLED(BOOTLOADER_UPDATE)
@@ -264,7 +264,7 @@ void gui_run(void) {
 
     Screens::Access()->Loop();
 
-#if ENABLED(RESOURCES)
+#if ENABLED(RESOURCES())
     finish_update();
 #endif
 
@@ -290,6 +290,8 @@ void gui_run(void) {
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 
     redraw_cmd_t redraw;
+
+    marlin_gcode("M118 E1 bootstrap finished");
     // TODO make some kind of registration
     while (1) {
         gui::StartLoop();

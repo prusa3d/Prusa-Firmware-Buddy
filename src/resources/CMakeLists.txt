@@ -45,14 +45,14 @@ endfunction()
 # General
 #
 
-target_sources(firmware PUBLIC bootstrap.cpp revision.cpp hash.cpp)
+target_sources(firmware PUBLIC bootstrap.cpp hash.cpp revision.cpp)
 target_include_directories(firmware PUBLIC "${resources_include_dir}")
 
 #
 # Standard Resources Image
 #
 
-add_lfs_image(resources-image BLOCK_SIZE 256 BLOCK_COUNT 3000)
+add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 256)
 
 # /esp directory
 add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
@@ -70,9 +70,24 @@ add_resource("png/pepa_64px.png" "/png/pepa_64px.png")
 add_resource("png/pepa_140px.png" "/png/pepa_140px.png")
 add_resource("png/pepa_original_140px.png" "/png/pepa_original_140px.png")
 add_resource("png/png_serial_printing.png" "/png/png_serial_printing.png")
-add_resource("png/wizard_icon_autohome.png" "/png/wizard_icon_autohome.png")
-add_resource("png/wizard_icon_search.png" "/png/wizard_icon_search.png")
-add_resource("png/wizard_icon_measure.png" "/png/wizard_icon_measure.png")
+add_resource("png/home_shape_16px.png" "/png/home_shape_16px.png")
+add_resource("png/print_16px.png" "/png/print_16px.png")
+add_resource("png/hand_154x65.png" "/png/hand_154x65.png")
+add_resource("png/nozzle_34x32.png" "/png/nozzle_34x32.png")
+add_resource("png/usb_16px.png" "/png/usb_16px.png")
+add_resource("png/info_16px.png" "/png/info_16px.png")
+add_resource("png/warning_16px.png" "/png/warning_16px.png")
+add_resource("png/question_16px.png" "/png/question_16px.png")
+add_resource("png/nozzle_shape_48px.png" "/png/nozzle_shape_48px.png")
+add_resource("png/arrow_up_16px.png" "/png/arrow_up_16px.png")
+add_resource("png/arrow_down_16px.png" "/png/arrow_down_16px.png")
+add_resource("png/arrow_left_16px.png" "/png/arrow_left_16px.png")
+add_resource("png/hand_qr.png" "/png/hand_qr.png")
+add_resource("png/turn_knob.png" "/png/turn_knob.png")
+add_resource("png/question_48px.png" "/png/question_48px.png")
+add_resource("png/warning_48px.png" "/png/warning_48px.png")
+add_resource("png/error_white_48px.png" "/png/error_white_48px.png")
+add_resource("png/info_48px.png" "/png/info_48px.png")
 # generate header with hash
 add_header_with_revision(standard resources-image)
 
@@ -81,7 +96,7 @@ add_header_with_revision(standard resources-image)
 #
 if(BOOTLOADER_UPDATE)
 
-  add_lfs_image(resources-bootloader-image BLOCK_SIZE 256 BLOCK_COUNT 1000)
+  add_lfs_image(resources-bootloader-image BLOCK_SIZE 4096 BLOCK_COUNT 64)
 
   get_dependency_directory("bootloader-${BOOTLOADER_VARIANT}" bootloader_dir)
   get_dependency_version("bootloader-${BOOTLOADER_VARIANT}" bootloader_version_str)

@@ -36,6 +36,7 @@
 
 #if defined(BOARD) && BOARD == BOARD_BUDDY
     #define BOARD_IS_BUDDY 1
+    #define BOARD_STRING   "Buddy"
 #else
     #error Please define the BOARD macro
 #endif

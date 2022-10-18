@@ -10,7 +10,7 @@ namespace http {
 
 struct HeaderOut {
     const char *name = nullptr;
-    const char *value = nullptr;
+    const std::variant<const char *, size_t> value = nullptr;
     const std::optional<size_t> size_limit = std::nullopt;
 };
 

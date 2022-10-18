@@ -11,8 +11,6 @@
 #include "cmsis_os.h"
 #include "gpio.h"
 #include "adc.hpp"
-#include "sim_nozzle.h"
-#include "sim_bed.h"
 #include "Arduino.h"
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
@@ -360,7 +358,7 @@ void hwio_beeper_set_vol(float vol) {
     hwio_beeper_vol = vol;
 }
 
-#if HAS_GUI
+#if HAS_GUI()
 void hwio_beeper_set_pwm(uint32_t per, uint32_t pul) {
     TIM_OC_InitTypeDef sConfigOC = { 0 };
     if (per) {
@@ -522,18 +520,10 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
 #endif //_DEBUG
     switch (marlinPin) {
     case MARLIN_PIN(BED_HEAT):
-#ifdef SIM_HEATER_BED_ADC
-        sim_bed_set_power(ulVal ? 100 : 0);
-#else //SIM_HEATER_BED_ADC
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max : 0);
-#endif
         return;
     case MARLIN_PIN(HEAT0):
-#ifdef SIM_HEATER_NOZZLE_ADC
-        sim_nozzle_set_power(ulVal ? 40 : 0);
-#else //SIM_HEATER_NOZZLE_ADC
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max : 0);
-#endif
         return;
     case MARLIN_PIN(FAN1):
 #ifdef NEW_FANCTL

@@ -5,7 +5,7 @@
 namespace http {
 class PostFile : public Request {
 public:
-    PostFile(const char *file_path, const char *url_string, const char *file_size);
+    PostFile(const char *file_path, const char *url_string, size_t file_size);
     virtual ~PostFile() = default;
     const char *url() const override;
     ContentType content_type() const override;

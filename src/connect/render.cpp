@@ -113,27 +113,28 @@ namespace {
         const bool has_extra = (event.type != EventType::Accepted) && (event.type != EventType::Rejected);
         const bool printing = is_printing(params.state);
 
-        bool reject = false;
+        const char *reject_with = nullptr;
         Printer::NetCreds creds = {};
 
         if (event.type == EventType::JobInfo && (!printing || event.job_id != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
             //
             // Can't provide historic/future jobs.
-            reject = true;
+            reject_with = printing ? "Job ID doesn't match" : "No job in progress";
         }
 
         if (event.type == EventType::FileInfo && !state.has_stat && !state.file_extra.renderer.holds_alternative<DirRenderer>()) {
             // The file probably doesn't exist or something
             // Exception for /usb, as that one doesn't have stat even though it exists.
-            reject = true;
+            reject_with = "File not found";
         }
 
-        if (reject) {
+        if (reject_with != nullptr) {
             // The fact we can render in multiple steps doesn't matter, we would
             // descend into here every time and resume the Rejected event.
             Event rejected(event);
             rejected.type = EventType::Rejected;
+            rejected.reason = reject_with;
             return render_msg(resume_point, output, state, rejected);
         }
 
@@ -143,6 +144,10 @@ namespace {
         JSON_OBJ_START;
             if (has_extra && printing) {
                 JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
+            }
+
+            if (event.reason != nullptr) {
+                JSON_FIELD_STR("reason", event.reason) JSON_COMMA;
             }
 
             // Relevant "data" block, if any
@@ -175,10 +180,14 @@ namespace {
                             // * Name of the filesystem if it is set/known.
                             JSON_FIELD_STR("mountpoint", "/usb") JSON_COMMA;
                             JSON_FIELD_STR("type", "USB") JSON_COMMA;
-                            // Technically, there are USB drives with RO
-                            // switches, but they are rare and nothing in the
-                            // FW takes that into account, so...
-                            JSON_FIELD_BOOL("ro", false) JSON_COMMA;
+                            // TODO: We lie about the USB storage being read
+                            // only. The reason is, we don't implement (in the
+                            // software) any commands to actually manipulate
+                            // and write to it, so this is a temporary hack to
+                            // hide all the buttons and such.
+                            //
+                            // We'll set it to false once we support something of it.
+                            JSON_FIELD_BOOL("ro", true) JSON_COMMA;
                             JSON_FIELD_BOOL("is_sfn", true);
                         JSON_OBJ_END;
                     }
@@ -255,6 +264,21 @@ namespace {
         // Sleep is handled on upper layers, not through renderer.
         assert(0);
         return JsonResult::Abort;
+    }
+
+    off_t child_size(const char *base_path, const char *child_name) {
+        char path_buf[FILE_PATH_BUFFER_LEN];
+        int formatted = snprintf(path_buf, sizeof path_buf, "%s/%s", base_path, child_name);
+        // Name didn't fit. That, in theory, should not happen, but better safe than sorry...
+        if (formatted >= FILE_NAME_BUFFER_LEN - 1) {
+            return -1;
+        }
+        struct stat st = {};
+        if (stat(path_buf, &st) == 0) {
+            return st.st_size;
+        } else {
+            return -1;
+        }
     }
 
 }
@@ -334,17 +358,12 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
 
         JSON_OBJ_START;
             JSON_FIELD_STR("name_sfn", state.ent->d_name) JSON_COMMA;
-            JSON_FIELD_STR_FORMAT("path_sfn", "%s/%s", state.base_path, state.ent->d_name) JSON_COMMA;
 #ifdef UNITTESTS
             JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
-            JSON_FIELD_STR_FORMAT("path", "%s/%s", state.base_path, state.ent->d_name) JSON_COMMA;
 #else
             JSON_FIELD_STR("name", state.ent->lfn) JSON_COMMA;
-            // This is kind of "hybrid" path. The basename / last segment is
-            // LFN, but the stuff before it is _likely_ SFN (because we expect
-            // to get SFN there).
-            JSON_FIELD_STR_FORMAT("path", "%s/%s", state.base_path, state.ent->lfn) JSON_COMMA;
 #endif
+            JSON_FIELD_INT("size", child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
             // We assume USB is not read only for us.
             JSON_FIELD_BOOL("ro", false) JSON_COMMA;
             JSON_FIELD_STR("type", file_type(state.ent));

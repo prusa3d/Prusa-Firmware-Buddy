@@ -9,9 +9,11 @@
 #include "guiconfig.h" // GUI_WINDOW_SUPPORT
 #include "unistd.h"
 
+#include <option/bootloader.h>
+
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
-    #ifdef BOOTLOADER
+    #if BOOTLOADER()
         #include "sys.h" // support for bootloader<1.2.3
     #endif
 #endif
@@ -46,7 +48,7 @@ void run_once_after_boot() {
         // the PP cycle due to a short power burst) OR brown-out has been detected. Clear the data
         // if the user pressed the reset button explicitly!
         bool reset_pp = !((HAL_RCC_CSR & (RCC_CSR_SFTRSTF | RCC_CSR_BORRSTF)));
-    #ifdef BOOTLOADER
+    #if BOOTLOADER()
         if (version_less_than(&boot_version, 1, 2, 3)) {
             // bootloader<1.2.3 clears the RCC_CSR register, so ignore reset flags completely.
             // TODO: remove this compatibility hack for the final release

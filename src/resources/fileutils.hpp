@@ -70,4 +70,12 @@ public:
         }
         *slash = 0;
     }
+
+    char *get_buffer() {
+        return path;
+    }
+
+    static int maximum_length() {
+        return sizeof(path);
+    }
 };

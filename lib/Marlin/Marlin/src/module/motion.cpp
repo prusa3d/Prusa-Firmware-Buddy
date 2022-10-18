@@ -1582,7 +1582,7 @@ void prepare_line_to_destination() {
       #endif
 
       #if ENABLED(IMPROVE_HOMING_RELIABILITY) && HOMING_SG_GUARD_DURATION > 0
-        sg_guard_period = millis() + default_sg_guard_duration);
+        sg_guard_period = millis() + default_sg_guard_duration;
       #endif
 
       return stealth_states;

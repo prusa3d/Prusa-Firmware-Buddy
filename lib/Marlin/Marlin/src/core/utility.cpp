@@ -52,6 +52,18 @@ void safe_delay(millis_t ms) {
   }
 #endif
 
+// A delay to provide brittle hosts time to receive bytes
+#if ENABLED(SERIAL_OVERRUN_PROTECTION)
+
+  #include "../gcode/gcode.h" // for set_autoreport_paused
+
+  void serial_delay(const millis_t ms) {
+    const bool was = suspend_auto_report;
+    safe_delay(ms);
+    suspend_auto_report = was;
+  }
+#endif
+
 #if ENABLED(DEBUG_LEVELING_FEATURE)
 
   #include "../module/probe.h"
