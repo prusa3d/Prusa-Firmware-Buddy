@@ -22,6 +22,7 @@
 
 #include "lazyfilelist.h"
 #include "i18n.h"
+#include <crash_dump/crash_dump_handlers.hpp>
 
 bool screen_home_data_t::ever_been_openned = false;
 bool screen_home_data_t::try_esp_flash = true;
@@ -120,9 +121,47 @@ void screen_home_data_t::draw() {
 #endif //_DEBUG
 }
 
+void screen_home_data_t::handle_crash_dump() {
+    crash_dump::BufferT dump_buffer;
+    const auto &present_dumps { crash_dump::get_present_dumps(dump_buffer) };
+    if (present_dumps.size() == 0) {
+        return;
+    }
+    if (MsgBoxWarning(_("Crash detected. Download it to USB and send it to Prusa?"), Responses_YesNo)
+        == Response::Yes) {
+        auto do_stage = [&](string_view_utf8 msg, std::invocable<const crash_dump::DumpHandler *> auto fp) {
+            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, IDR_PNG_info_58px);
+            box.Show();
+            draw();
+            for (const auto &dump_handler : present_dumps) {
+                fp(dump_handler);
+            }
+            box.Hide();
+        };
+
+        do_stage(_("Downloading to USB"), [](const crash_dump::DumpHandler *handler) { handler->usb_download(); });
+        do_stage(_("Sending to Prusa"), [](const crash_dump::DumpHandler *handler) { handler->server_upload(); });
+    }
+
+    for (const auto &dump_handler : present_dumps) {
+        dump_handler->remove();
+    }
+}
+
+void screen_home_data_t::on_enter() {
+    if (!first_event) {
+        return;
+    }
+    first_event = false;
+
+    handle_crash_dump();
+}
+
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (esp_flash_being_openned)
         return;
+
+    on_enter();
 
     if (event == GUI_event_t::MEDIA) {
         switch (MediaState_t(int(param))) {

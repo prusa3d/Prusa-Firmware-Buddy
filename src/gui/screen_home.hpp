@@ -17,6 +17,7 @@ private:
 
     bool usbInserted;
     bool esp_flash_being_openned;
+    bool first_event { true };
 
     window_header_t header;
     StatusFooter footer;
@@ -46,4 +47,7 @@ private:
     bool moreGcodesUploaded();
 
     static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
+
+    void on_enter();
+    void handle_crash_dump();
 };
