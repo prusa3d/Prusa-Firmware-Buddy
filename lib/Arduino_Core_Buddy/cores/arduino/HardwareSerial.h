@@ -4,6 +4,7 @@
 
 #include <inttypes.h>
 #include "Stream.h"
+#include "uart.h"
 
 class HardwareSerial : public Stream {
 public:

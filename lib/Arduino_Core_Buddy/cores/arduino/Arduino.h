@@ -26,7 +26,7 @@
 //#include "wiring_digital.h"
 #include "wiring.h"
 #include "variant.h"
-//#include "HardwareSerial.h"
+#include "HardwareSerial.h"
 //#include "binary.h"
 
 //typedef uint8_t byte;
