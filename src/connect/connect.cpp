@@ -37,6 +37,8 @@ LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
 
 namespace connect_client {
 
+inline constexpr uint8_t SOCKET_TIMEOUT_SEC = 3;
+
 namespace {
 
     std::atomic<OnlineStatus> last_known_status = OnlineStatus::Unknown;
@@ -289,10 +291,10 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     conn_factory.refresh(config.host, [&](Cache &cache) {
         Connection *connection;
         if (config.tls) {
-            cache.emplace<tls>();
+            cache.emplace<tls>(SOCKET_TIMEOUT_SEC);
             connection = &std::get<tls>(cache);
         } else {
-            cache.emplace<socket_con>();
+            cache.emplace<socket_con>(SOCKET_TIMEOUT_SEC);
             connection = &std::get<socket_con>(cache);
         }
 

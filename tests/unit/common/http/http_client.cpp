@@ -6,8 +6,6 @@
 #include <string>
 #include <string_view>
 
-using http::ContentType;
-using http::Status;
 using std::get;
 using std::holds_alternative;
 using std::min;
@@ -22,6 +20,8 @@ namespace {
 
 class DummyConnection final : public Connection {
 public:
+    DummyConnection()
+        : Connection(5) {}
     string sent;
     string received;
     virtual optional<Error> connection(const char *, uint16_t) override {

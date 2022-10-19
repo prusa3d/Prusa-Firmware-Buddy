@@ -5,7 +5,7 @@
 namespace http {
 class SocketConnectionFactory : public ConnectionFactory {
 public:
-    SocketConnectionFactory(const char *host, uint16_t port);
+    SocketConnectionFactory(const char *host, uint16_t port, uint8_t timeout_s);
     virtual ~SocketConnectionFactory() = default;
 
 protected:

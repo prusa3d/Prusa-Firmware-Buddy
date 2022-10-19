@@ -39,7 +39,8 @@ public:
 
 namespace http {
 
-socket_con::socket_con() {
+socket_con::socket_con(uint8_t timeout_s)
+    : Connection(timeout_s) {
     fd = -1;
     connected = false;
     if ((fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
@@ -59,7 +60,7 @@ socket_con::~socket_con() {
 
 std::optional<Error> socket_con::connection(const char *host, uint16_t port) {
 
-    const struct timeval timeout = { SOCKET_TIMEOUT_SEC, 0 };
+    const struct timeval timeout = { get_timeout_s(), 0 };
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
         return Error::SetSockOpt;
     }
