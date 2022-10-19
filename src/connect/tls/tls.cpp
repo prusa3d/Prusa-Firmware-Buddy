@@ -7,7 +7,8 @@ using http::Error;
 
 namespace connect_client {
 
-tls::tls() {
+tls::tls(uint8_t timeout_s)
+    : http::Connection(timeout_s) {
     mbedtls_net_init(&net_context);
     mbedtls_ssl_init(&ssl_context);
     mbedtls_ssl_config_init(&ssl_config);

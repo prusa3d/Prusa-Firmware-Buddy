@@ -1,6 +1,7 @@
 target_sources(
   firmware
-  PRIVATE httpc.cpp
+  PRIVATE connection.cpp
+          httpc.cpp
           os_porting.cpp
           post_file_request.cpp
           resp_parser.cpp
