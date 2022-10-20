@@ -41,7 +41,7 @@
 #include <device/board.h>
 #include "FreeRTOS.h"
 #include "MarlinPin.hpp"
-#include "../../lib/Marlin/Marlin/src/HAL/STM32/endstop_interrupts.h"
+#include "../../lib/Marlin/Marlin/src/HAL/STM32/endstop_ISR.h"
 #include <type_traits>
 
 #if (!defined(PRINTER_PRUSA_MINI))
