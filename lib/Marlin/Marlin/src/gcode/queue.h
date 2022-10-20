@@ -79,7 +79,7 @@ public:
 #if ENABLED(CRASH_RECOVERY)
         sdpos = get_current_sdpos();
 #endif
-        length = index_r = index_w = 0; }
+        length = index_r = index_w = 0;
     }
 
     void advance_pos(uint8_t &p, const int inc) { if (++p >= BUFSIZE) p = 0; length += inc; }
