@@ -157,6 +157,7 @@ typedef struct _dumpinfo_t {
 typedef struct _dumpmessage_t {
     uint8_t not_displayed; // not displayed == 0xFF, displayed == 0x00
     uint8_t invalid;       // valid == 0x00, empty == 0xFF
+    uint16_t error_code;   // error_code (0 == unknown error code -> we read dumped message
     char title[DUMP_MSG_TITLE_MAX_LEN];
     char msg[DUMP_MSG_MAX_LEN];
 } dumpmessage_t;
@@ -199,10 +200,11 @@ extern int dump_hardfault_test_1(void);
 extern void dump_to_xflash(void);
 
 /** Save error message to xflash
+ * @param error_code [in] - code for known errors
  * @param error [in] - pointer to dumped error message
  * @param title [in] - pointer to dumped error title
 */
-extern void dump_err_to_xflash(const char *error, const char *title);
+extern void dump_err_to_xflash(uint16_t error_code, const char *error, const char *title);
 /** Get pointers to dumped error title and error message
  * @param msg_dst [out] - will be filled with adress to dumped error message
  * @param msg_dst_size [in] - size of passed message buffer
@@ -224,6 +226,10 @@ extern int dump_err_in_xflash_is_valid(void);
 extern int dump_err_in_xflash_is_displayed(void);
 /** Set displayed flag to 'Already displayed' == 0x00 */
 extern void dump_err_in_xflash_set_displayed(void);
+/** Returns error code
+ * @retval 0 - Unknown error code
+*/
+extern uint16_t dump_err_in_xflash_get_error_code(void);
 
 #ifdef __cplusplus
 }
