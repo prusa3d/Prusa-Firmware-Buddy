@@ -39,7 +39,8 @@
  *
  */
 #define CONFIGURATION_H_VERSION 02010100
-#define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
+// TODO: this approach no longer works with Marlin 2.1.x
+//#define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     #include "eeprom_function_api.h"
