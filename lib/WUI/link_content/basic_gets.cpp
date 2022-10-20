@@ -28,6 +28,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     bool pausing = false;
     bool ready = true;
     bool busy = false;
+    bool error = false;
 
     marlin_update_vars(MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK4(MARLIN_VAR_PRNSPEED, MARLIN_VAR_POS_Z, MARLIN_VAR_PRNSPEED, MARLIN_VAR_PRNSTATE));
 
@@ -83,8 +84,12 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsIdle:
     case mpsWaitGui:
     case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
+    case mpsPrintPreviewImage:
     case mpsPrintInit:
+        break;
+    case mpsPrintPreviewQuestions:
+        // The "preview" is abused to ask questions about the filament and such.
+        busy = printing = error = true;
         break;
     }
 
@@ -125,8 +130,9 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
                 JSON_FIELD_BOOL("printing", printing) JSON_COMMA;
                 JSON_FIELD_BOOL("cancelling", cancelling) JSON_COMMA;
                 JSON_FIELD_BOOL("pausing", pausing) JSON_COMMA;
+                JSON_FIELD_BOOL("error", error) JSON_COMMA;
                 // We don't have an SD card!
-                JSON_CONTROL("\"sdReady\":false,\"error\":false,\"closedOnError\":false,");
+                JSON_CONTROL("\"sdReady\":false,\"closedOnError\":false,");
                 JSON_FIELD_BOOL("ready", ready) JSON_COMMA;
                 JSON_FIELD_BOOL("busy", busy);
             JSON_OBJ_END;
@@ -220,9 +226,13 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     case mpsIdle:
     case mpsWaitGui:
     case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
+    case mpsPrintPreviewImage:
     case mpsPrintInit:
         state = "Operational";
+        break;
+    case mpsPrintPreviewQuestions:
+        has_job = true;
+        state = "Error";
         break;
     }
 

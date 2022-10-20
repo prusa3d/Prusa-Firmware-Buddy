@@ -628,7 +628,8 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
         fsm_destroy(ClientFSM::Printing);
         break;
     case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
+    case mpsPrintPreviewImage:
+    case mpsPrintPreviewQuestions:
         PrintPreview::Instance().ChangeState(IPrintPreview::State::inactive); // close preview
         break;
     default:
@@ -640,7 +641,8 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
     case mpsFinished:
     case mpsAborted:
     case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
+    case mpsPrintPreviewImage:
+    case mpsPrintPreviewQuestions:
         media_print_start__prepare(filename);
         marlin_server.print_state = mpsWaitGui;
         _set_notify_change(MARLIN_VAR_FILEPATH);
@@ -902,7 +904,7 @@ static void _server_print_loop(void) {
         if (media_print_filepath()) {
             PrintPreview::Instance().Init(media_print_filepath());
         }
-        marlin_server.print_state = mpsPrintPreviewLoop;
+        marlin_server.print_state = mpsPrintPreviewImage;
         break;
         /*
         TODO thia used to be in original implamentation, but we dont do that anymore
@@ -915,9 +917,17 @@ static void _server_print_loop(void) {
         if (!gcode_file_exists()) {
             Screens::Access()->Close(); //if an dialog is opened, it will be closed first
         */
-    case mpsPrintPreviewLoop: // button evaluation
+    case mpsPrintPreviewImage:
+    case mpsPrintPreviewQuestions:
+        // button evaluation
+        // We don't particularly care about the
+        // difference, but downstream users do.
         switch (PrintPreview::Instance().Loop()) {
-        case PrintPreview::Result::InProgress:
+        case PrintPreview::Result::Image:
+            marlin_server.print_state = mpsPrintPreviewImage;
+            break;
+        case PrintPreview::Result::Questions:
+            marlin_server.print_state = mpsPrintPreviewQuestions;
             break;
         case PrintPreview::Result::Abort:
             marlin_server.print_state = did_not_start_print ? mpsIdle : mpsFinishing_WaitIdle;
