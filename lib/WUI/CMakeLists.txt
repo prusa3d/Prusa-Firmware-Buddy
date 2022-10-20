@@ -30,7 +30,10 @@ target_sources(
             nhttp/static_mem.cpp
             nhttp/status_page.cpp
             nhttp/upload_state.cpp
+            random.cpp
             sntp/sntp.c
+            sntp/sntp.c
+            sntp/sntp_client.c
             sntp/sntp_client.c
             wui.cpp
             wui_api.cpp

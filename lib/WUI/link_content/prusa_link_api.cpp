@@ -128,8 +128,8 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
 
     const auto suffix = *suffix_opt;
 
-    if (!parser.authenticated()) {
-        return StatusPage(Status::Unauthorized, parser.status_page_handling(), parser.accepts_json);
+    if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
+        return std::visit([](auto unauth_status) -> ConnectionState { return std::move(unauth_status); }, *unauthorized_status);
     }
 
     const auto get_only = [parser](ConnectionState state) -> ConnectionState {
