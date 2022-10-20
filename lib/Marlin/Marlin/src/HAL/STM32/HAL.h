@@ -30,7 +30,11 @@
 #include "../shared/HAL_SPI.h"
 #include "fastio.h"
 #include "Servo.h"
-#include "MarlinSerial.h"
+#ifdef USBCON
+  #include <HardwareSerial.h>
+#else
+  #include "MarlinSerial.h"
+#endif
 
 #include "../../inc/MarlinConfigPre.h"
 
