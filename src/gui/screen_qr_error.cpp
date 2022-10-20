@@ -41,7 +41,6 @@ ScreenErrorQR::ScreenErrorQR()
     , title_line(this, title_line_rect) {
 
     SetRedLayout();
-    hand_icon.SetRedLayout();
     title_line.SetBackColor(COLOR_WHITE);
     help_link.font = resource_font(IDR_FNT_SMALL);
     qr_code_txt.font = resource_font(IDR_FNT_SMALL);
@@ -58,7 +57,7 @@ ScreenErrorQR::ScreenErrorQR()
     appendix_txt.SetAlignment(Align_t::CenterTop());
 
     // Extract error code from xflash
-    uint16_t error_code_short = dump_in_xflash_get_code();
+    uint16_t error_code_short = dump_err_in_xflash_get_error_code(); // Unknow code == 0x00
     uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
     uint32_t i = 0;
     uint32_t count = sizeof(error_list) / sizeof(err_t);
@@ -79,7 +78,6 @@ ScreenErrorQR::ScreenErrorQR()
             err_description.Hide();
             title_line.Hide();
         }
-        dump_err_in_xflash_set_displayed();
         help_txt.Hide();
         help_link.Hide();
         hand_icon.Hide();
