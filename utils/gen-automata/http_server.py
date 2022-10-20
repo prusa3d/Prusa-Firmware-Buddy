@@ -1,8 +1,9 @@
-from http import accept_header, connection_header, read_boundary, read_header_value, request, print_after_upload_header, overwrite_file_header
+from http import accept_header, connection_header, read_boundary, read_header_value, request, print_after_upload_header, overwrite_file_header, authorization_header
 
 if __name__ == "__main__":
     want_headers = {
         'X-Api-Key': read_header_value('XApiKey'),
+        'Authorization': authorization_header(),
         'Content-Length': read_header_value('ContentLength'),
         'If-None-Match': read_header_value('IfNoneMatch'),
         'Print-After-Upload': print_after_upload_header(),

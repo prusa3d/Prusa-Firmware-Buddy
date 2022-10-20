@@ -17,6 +17,8 @@
 #include "netif_settings.h"
 #include "marlin_vars.h"
 
+#define PRUSA_LINK_USERNAME "maker"
+
 #define FW_VER_STR_LEN    32  // length of full Firmware version string
 #define MAC_ADDR_STR_LEN  18  // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
 #define SER_NUM_STR_LEN   16  // length of serial number string

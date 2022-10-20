@@ -23,8 +23,8 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
     }
 
     // Content of the USB drive is only for authenticated, don't ever try anything without it.
-    if (!parser.authenticated()) {
-        return StatusPage(Status::Unauthorized, parser.status_page_handling(), parser.accepts_json);
+    if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
+        return std::visit([](auto unauth_status) -> ConnectionState { return std::move(unauth_status); }, *unauthorized_status);
     }
 
     char fname[FILE_PATH_BUFFER_LEN];

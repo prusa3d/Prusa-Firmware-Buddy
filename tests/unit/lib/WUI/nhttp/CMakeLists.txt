@@ -4,6 +4,8 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/multipart_upload.cpp
   # Not really tests, just stuffings to satisfy the linker.
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/random_mock.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/time_mock.cpp
   # Some handlers are stubbed out.
   ${CMAKE_CURRENT_SOURCE_DIR}/server_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/req_parser_tests.cpp
@@ -35,6 +37,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/sha256.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/md5.c
   # Dependencies.
   # It seems it's not possible to just link the damn LwIP library:
   # * Somehow, the target_link_libraries directive poisons include

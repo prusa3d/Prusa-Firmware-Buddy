@@ -17,11 +17,6 @@ namespace nhttp {
 
 namespace {
 
-    const char *const authenticate_hdrs[] = {
-        "WWW-Authenticate: ApiKey realm=\"Printer API\"\r\n",
-        nullptr,
-    };
-
     const constexpr StatusText texts[] = {
         { Status::UnknownStatus, "???" },
         { Status::Ok, "OK" },
@@ -30,7 +25,7 @@ namespace {
         { Status::NotModified, "Not Modified" },
         { Status::BadRequest, "Bad Request" },
         { Status::Forbidden, "Forbidden" },
-        { Status::Unauthorized, "Unauthorized", authenticate_hdrs },
+        { Status::Unauthorized, "Unauthorized" },
         { Status::NotFound, "Not Found" },
         { Status::MethodNotAllowed, "Method Not Allowed" },
         { Status::RequestTimeout, "Request Timeout" },
