@@ -44,8 +44,6 @@ struct mesh_index_pair;
 #if ENABLED(OPTIMIZED_MESH_STORAGE)
   typedef int16_t mesh_store_t[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
 #endif
-    static xy_float_t g29_size;
-    static bool g29_size_seen;
 
 typedef struct {
   bool      C_seen;
@@ -58,6 +56,8 @@ typedef struct {
             C_constant;
   xy_pos_t  XY_pos;
   xy_bool_t XY_seen;
+  xy_float_t g29_size;
+  bool g29_size_seen;
   #if HAS_BED_PROBE
     uint8_t J_grid_size;
   #endif
