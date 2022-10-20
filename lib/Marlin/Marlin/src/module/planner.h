@@ -980,7 +980,7 @@ class Planner {
 
     // Blocks are queued, or we're running out moves, or the closed loop controller is waiting
     static bool busy() {
-      return !draining_buffer && (has_blocks_queued() || cleaning_buffer_counter
+      return !draining_buffer && (has_blocks_queued()
           || TERN0(EXTERNAL_CLOSED_LOOP_CONTROLLER, CLOSED_LOOP_WAITING())
       );
     }
