@@ -621,6 +621,8 @@ bool marlin_is_printing() {
     case mpsAborted:
     case mpsIdle:
     case mpsFinished:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewImage:
         return false;
     default:
         return true;

@@ -40,6 +40,8 @@ namespace {
             return "ERROR";
         case Printer::DeviceState::Busy:
             return "BUSY";
+        case Printer::DeviceState::Attention:
+            return "ATTENTION";
         case Printer::DeviceState::Unknown:
         default:
             return "UNKNOWN";

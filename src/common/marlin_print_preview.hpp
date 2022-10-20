@@ -52,10 +52,15 @@ class PrintPreview : public IPrintPreview {
     static constexpr uint32_t max_run_period_ms = 50;
 
 public:
-    enum class Result { InProgress,
+    enum class Result {
+        // Showing the image and asking if print.
+        Image,
+        // Asking the user something (wrong printer, etc).
+        Questions,
         Abort,
         Print,
-        Inactive };
+        Inactive
+    };
 
     static PrintPreview &Instance() {
         static PrintPreview ret;
@@ -83,4 +88,5 @@ private:
     State stateFromFilamentType() const;
 
     State evaluateStateOnPrintClick();
+    Result stateToResult() const;
 };

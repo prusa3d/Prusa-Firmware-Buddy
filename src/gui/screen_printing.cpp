@@ -533,7 +533,8 @@ void screen_printing_data_t::change_print_state() {
     case mpsIdle:
     case mpsWaitGui:
     case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
+    case mpsPrintPreviewImage:
+    case mpsPrintPreviewQuestions:
     case mpsPrintInit:
         st = printing_state_t::INITIAL;
         break;
