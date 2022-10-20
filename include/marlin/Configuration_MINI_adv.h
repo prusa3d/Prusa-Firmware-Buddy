@@ -364,7 +364,11 @@
 #if ENABLED(PIDTEMP)
     // this adds an experimental additional term to the heating power, proportional to the extrusion speed.
     // if Kc is chosen well, the additional required power due to increased melting should be compensated.
-    #define PID_EXTRUSION_SCALING
+
+    // TODO: Temporarily disabled. Following DEFAULT_Kc and absence of LPQ_MAX_LEN is configuration
+    // for MODEL_BASED_HOTEND_REGULATOR which is currently not ported from Prusa Marlin fork to
+    // Marlin 2.1.x
+    //#define PID_EXTRUSION_SCALING
     #if ENABLED(PID_EXTRUSION_SCALING)
         /**
          * Increase in PWM duty cycle needed to to extrude 1 mm^2 per second
