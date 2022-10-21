@@ -1329,7 +1329,7 @@ void test_tmc_connection(LOGICAL_AXIS_ARGS(const bool)) {
   }
 
   if (axis_connection) {
-	  ui.set_status_P(GET_TEXT(MSG_ERROR_TMC));
+	  ui.set_status(GET_TEXT(MSG_ERROR_TMC));
 	  bsod(GET_TEXT(MSG_ERROR_TMC));
   }
 }
