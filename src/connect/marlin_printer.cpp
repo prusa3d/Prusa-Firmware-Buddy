@@ -354,12 +354,8 @@ bool MarlinPrinter::start_print(const char *path) {
         return false;
     }
 
-    // TODO: We _had_ checks for certain screens in which printing is allowed
-    // (and not allow it in others). But they seem to be gone now, so we can't reuse them.
-    // BFW-2855.
-
     print_begin(path, true);
-    return true;
+    return marlin_print_started();
 }
 
 void MarlinPrinter::submit_gcode(const char *code) {

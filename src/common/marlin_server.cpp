@@ -647,6 +647,7 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
         marlin_server.print_state = mpsWaitGui;
         _set_notify_change(MARLIN_VAR_FILEPATH);
         _set_notify_change(MARLIN_VAR_FILENAME);
+        _set_notify_change(MARLIN_VAR_PRNSTATE);
 
         skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
         break;
@@ -659,6 +660,17 @@ void marlin_server_gui_ready_to_print() {
     switch (marlin_server.print_state) {
     case mpsWaitGui:
         marlin_server.print_state = mpsPrintPreviewInit;
+        break;
+    default:
+        log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", mpsWaitGui, marlin_server.print_state);
+        break;
+    }
+}
+
+void marlin_server_gui_cant_print() {
+    switch (marlin_server.print_state) {
+    case mpsWaitGui:
+        marlin_server.print_state = mpsIdle;
         break;
     default:
         log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", mpsWaitGui, marlin_server.print_state);
@@ -1974,6 +1986,9 @@ bool _process_server_valid_request(const char *request, int client_id) {
         return true;
     case MARLIN_MSG_GUI_PRINT_READY:
         marlin_server_gui_ready_to_print();
+        return true;
+    case MARLIN_MSG_GUI_CANT_PRINT:
+        marlin_server_gui_cant_print();
         return true;
     case MARLIN_MSG_PRINT_ABORT:
         marlin_server_print_abort();
