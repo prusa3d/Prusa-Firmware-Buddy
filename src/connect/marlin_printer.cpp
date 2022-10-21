@@ -349,8 +349,7 @@ bool MarlinPrinter::job_control(JobControl control) {
 }
 
 bool MarlinPrinter::start_print(const char *path) {
-    // Renew was presumably called before short, it's up-to-date-ish
-    if (marlin_is_printing()) {
+    if (!marlin_remote_print_ready()) {
         return false;
     }
 
