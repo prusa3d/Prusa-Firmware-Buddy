@@ -351,11 +351,10 @@ bool wui_start_print(char *filename, bool autostart_if_able) {
     // chars like spaces in it, etc.
     get_SFN_path(filename);
     if (autostart_if_able) {
-        // FIXME: print_begin shall return boolean if it actually worked.
-        if (printer_can_print && (print_begin(filename, true), true)) {
-            return true;
+        if (printer_can_print) {
+            print_begin(filename, true);
+            return marlin_print_started();
         } else {
-            // We wanted to print, but can't right now.
             return false;
         }
     } else {
