@@ -337,7 +337,7 @@ bool MarlinPrinter::job_control(JobControl control) {
             return false;
         }
     case JobControl::Stop:
-        if (state == DeviceState::Paused || state == DeviceState::Printing) {
+        if (state == DeviceState::Paused || state == DeviceState::Printing || state == DeviceState::Attention) {
             marlin_print_abort();
             return true;
         } else {

@@ -49,7 +49,14 @@ namespace {
     }
 
     bool is_printing(Printer::DeviceState state) {
-        return state == Printer::DeviceState::Printing || state == Printer::DeviceState::Paused;
+        switch (state) {
+        case Printer::DeviceState::Printing:
+        case Printer::DeviceState::Paused:
+        case Printer::DeviceState::Attention:
+            return true;
+        default:
+            return false;
+        }
     }
 
     bool filename_is_firmware(const char *fname) {

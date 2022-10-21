@@ -690,6 +690,13 @@ void marlin_server_print_abort(void) {
     case mpsFinishing_WaitIdle:
         marlin_server.print_state = mpsAborting_Begin;
         break;
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewImage:
+    case mpsPrintPreviewQuestions:
+        // Can go directly to Aborted because we didn't really start printing.
+        marlin_server.print_state = mpsAborted;
+        PrintPreview::Instance().ChangeState(IPrintPreview::State::inactive);
+        break;
     default:
         break;
     }
