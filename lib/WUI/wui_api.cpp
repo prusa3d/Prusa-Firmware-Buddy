@@ -344,7 +344,7 @@ uint32_t wui_gcodes_uploaded() {
 
 bool wui_start_print(char *filename, bool autostart_if_able) {
     marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
-    const bool printer_can_print = !marlin_is_printing();
+    const bool printer_can_print = marlin_remote_print_ready();
 
     strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
     // Turn it into the short name, to improve buffer length, avoid strange

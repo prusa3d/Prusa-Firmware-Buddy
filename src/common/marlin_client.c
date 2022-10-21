@@ -668,6 +668,16 @@ bool marlin_is_printing() {
         return true;
     }
 }
+bool marlin_remote_print_ready() {
+    switch (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
+    case mpsIdle:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewImage:
+        return true;
+    default:
+        return false;
+    }
+}
 
 //-----------------------------------------------------------------------------
 // private functions
