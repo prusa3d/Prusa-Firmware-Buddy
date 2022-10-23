@@ -114,6 +114,7 @@ public:
     bool IsSelected() const { return selected == is_selected_t::yes; }
 
     bool IsHidden() const;
+    bool IsDevOnly() const;
 
     bool IsFocused() const { return focused == is_focused_t::yes; }
     void SetIconId(ResourceId id) {
@@ -151,6 +152,6 @@ public:
 
     // some friend classes to be able to access / private hide/show methods
     // those methods must not be public, because their usage will break menu!!!
-    friend class WindowMenu;
+    friend class IWinMenuContainer;
     friend class window_file_list_t;
 };

@@ -160,6 +160,10 @@ bool IWindowMenuItem::IsHidden() const {
     return (hidden == (uint8_t)is_hidden_t::yes) || (hidden == (uint8_t)is_hidden_t::dev && !GuiDefaults::ShowDevelopmentTools);
 }
 
+bool IWindowMenuItem::IsDevOnly() const {
+    return hidden == (uint8_t)is_hidden_t::dev && GuiDefaults::ShowDevelopmentTools;
+}
+
 void IWindowMenuItem::SetLabel(string_view_utf8 text) {
     if (label != text) {
         label = text;
