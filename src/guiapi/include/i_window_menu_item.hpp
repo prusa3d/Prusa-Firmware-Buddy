@@ -1,8 +1,6 @@
 /**
- * @file IWindowMenuItem.hpp
- * @author Radek Vana
+ * @file i_window_menu_item.hpp
  * @brief Parent of all menu items like label or spinner
- * @date 2020-11-09
  */
 #pragma once
 
@@ -12,7 +10,7 @@
 #include "display_helper.h"
 #include "super.hpp"
 #include "i18n.h"
-#include "Iwindow_menu.hpp" //needed invalidate for click
+#include "i_window_menu.hpp" //needed invalidate for click
 #include "text_roll.hpp"
 #include "resource.h"
 
