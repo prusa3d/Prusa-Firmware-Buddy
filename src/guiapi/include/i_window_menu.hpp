@@ -1,3 +1,8 @@
+/**
+ * @file i_window_menu.hpp
+ * @brief abstract menu
+ */
+
 #pragma once
 
 #include "window.hpp"

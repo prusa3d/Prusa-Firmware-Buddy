@@ -7,6 +7,7 @@
 
 #include "Iwindow_menu.hpp"
 #include "IWinMenuContainer.hpp"
+#include "i_window_menu.hpp"
 #include "screen_init_variant.hpp"
 #include "window_icon.hpp"
 #include "window_frame.hpp"

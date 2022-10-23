@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "IWindowMenuItem.hpp"
+#include "i_window_menu_item.hpp"
 #include "WindowMenuLabel.hpp"
 #include "WindowMenuSpin.hpp"
 #include "WindowMenuSwitch.hpp"

@@ -1,10 +1,8 @@
 /**
- * @file IWindowMenuItem.cpp
- * @author Radek Vana
- * @date 2020-11-09
+ * @file i_window_menu_item.cpp
  */
 
-#include "IWindowMenuItem.hpp"
+#include "i_window_menu_item.hpp"
 #include "resource.h"
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
