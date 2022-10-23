@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "IWinMenuContainer.hpp"
+#include "i_window_menu_container.hpp"
 #include <tuple>
 
 //helper functions to get Nth element at runtime
@@ -21,7 +21,7 @@ template <std::size_t I = 0, typename... Tp>
 template <class... T>
 class WinMenuContainer : public IWinMenuContainer {
 public:
-    std::tuple<T...> menu_items;
+    mutable std::tuple<T...> menu_items; // mutable to be able to make const methods for getting index etc
 
     void Init(const char *label, T... args) {
         menu_items = std::tuple<T...>(args...);
@@ -38,18 +38,18 @@ public:
         return std::get<TYPE>(menu_items);
     }
 
-    virtual size_t GetRawCount() override {
+    virtual size_t GetRawCount() const override {
         return std::tuple_size<std::tuple<T...>>::value;
     }
 
-    virtual IWindowMenuItem *GetItemByRawIndex(size_t pos) override {
+    virtual IWindowMenuItem *GetItemByRawIndex(size_t pos) const override {
         if (pos > GetRawCount())
             return nullptr;
         else
             return get_ptr_for_index((int)pos, menu_items);
     }
 
-    virtual size_t GetRawIndex(IWindowMenuItem &item) override {
+    virtual size_t GetRawIndex(IWindowMenuItem &item) const override {
         size_t pos = 0;
         for (; pos < GetRawCount(); ++pos) {
             if (GetItemByRawIndex(pos) == &item)
