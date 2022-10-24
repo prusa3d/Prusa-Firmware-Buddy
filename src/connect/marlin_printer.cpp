@@ -349,7 +349,7 @@ bool MarlinPrinter::job_control(JobControl control) {
 }
 
 bool MarlinPrinter::start_print(const char *path) {
-    if (!marlin_remote_print_ready()) {
+    if (!marlin_remote_print_ready(false)) {
         return false;
     }
 

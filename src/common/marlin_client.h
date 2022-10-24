@@ -215,7 +215,7 @@ extern void marlin_notify_server_about_knob_click(void);
 
 //returns true if printer is printing, else false;
 extern bool marlin_is_printing();
-extern bool marlin_remote_print_ready();
+extern bool marlin_remote_print_ready(bool preview_only);
 
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);
