@@ -324,6 +324,8 @@
 // Never translate these strings
 #define MSG_X "X"
 #define MSG_Y "Y"
+#define STR_X MSG_X
+#define STR_Y MSG_Y
 #define MSG_Z "Z"
 #define MSG_E "E"
 #if IS_KINEMATIC
