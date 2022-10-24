@@ -15,7 +15,7 @@ ProviderRegistrator prEN("en", EmptyTranslationProvider::Instance());
 Translations::Translations()
     : currentProvider(EmptyTranslationProvider::Instance()) {
     // this is a safety precaution - initialize the array with valid pointers even if the cells are empty
-    std::fill(translations.begin(), translations.end(), TranRec({ currentProvider, 0U }));
+    translations.fill(TranRec({ currentProvider, 0U }));
 }
 
 bool Translations::RegisterProvider(uint16_t langCode, const ITranslationProvider *provider) {
