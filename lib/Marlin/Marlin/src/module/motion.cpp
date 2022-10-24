@@ -1155,10 +1155,6 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
         default: break;
         #if X_SENSORLESS
           case X_AXIS:
-            #if ENABLED(CRASH_RECOVERY)
-              crash_s.start_sensorless_homing_per_axis(axis);
-            #endif
-
             stealth_states.x = tmc_enable_stallguard(stepperX);
             TERN_(X2_SENSORLESS, stealth_states.x2 = tmc_enable_stallguard(stepperX2));
             #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && Y_SENSORLESS
@@ -1166,20 +1162,22 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
             #elif CORE_IS_XZ && Z_SENSORLESS
               stealth_states.z = tmc_enable_stallguard(stepperZ);
             #endif
+            #if ENABLED(CRASH_RECOVERY)
+              crash_s.start_sensorless_homing_per_axis(axis);
+            #endif
             break;
         #endif
         #if Y_SENSORLESS
           case Y_AXIS:
-            #if ENABLED(CRASH_RECOVERY)
-              crash_s.start_sensorless_homing_per_axis(axis);
-            #endif
-
             stealth_states.y = tmc_enable_stallguard(stepperY);
             TERN_(Y2_SENSORLESS, stealth_states.y2 = tmc_enable_stallguard(stepperY2));
             #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && X_SENSORLESS
               stealth_states.x = tmc_enable_stallguard(stepperX);
             #elif CORE_IS_YZ && Z_SENSORLESS
               stealth_states.z = tmc_enable_stallguard(stepperZ);
+            #endif
+            #if ENABLED(CRASH_RECOVERY)
+              crash_s.start_sensorless_homing_per_axis(axis);
             #endif
             break;
         #endif
