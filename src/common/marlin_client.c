@@ -668,12 +668,16 @@ bool marlin_is_printing() {
         return true;
     }
 }
-bool marlin_remote_print_ready() {
+bool marlin_remote_print_ready(bool preview_only) {
     switch (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
     case mpsIdle:
+        return true;
     case mpsPrintPreviewInit:
     case mpsPrintPreviewImage:
-        return true;
+        // We want to replace the one-click print / preview when we want to
+        // start printing. But we don't want to change one print preview to
+        // another just by uploading stuff.
+        return !preview_only;
     default:
         return false;
     }
