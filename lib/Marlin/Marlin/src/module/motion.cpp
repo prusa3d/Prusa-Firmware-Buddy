@@ -1262,6 +1262,7 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
             #if ENABLED(CRASH_RECOVERY)
               crash_s.end_sensorless_homing_per_axis(axis, enable_stealth.x);
             #else
+              tmc_disable_stallguard(stepperX, enable_stealth.x);
               TERN_(X2_SENSORLESS, tmc_disable_stallguard(stepperX2, enable_stealth.x2));
               #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX) && Y_SENSORLESS
                 tmc_disable_stallguard(stepperY, enable_stealth.y);
