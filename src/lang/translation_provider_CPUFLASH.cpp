@@ -12,12 +12,14 @@
 //    #define ENABLE_TRANSLATION_IT
 //    #define ENABLE_TRANSLATION_PL
 #else
+/*
     #define ENABLE_TRANSLATION_CZ
     #define ENABLE_TRANSLATION_DE
     #define ENABLE_TRANSLATION_ES
     #define ENABLE_TRANSLATION_FR
     #define ENABLE_TRANSLATION_IT
     #define ENABLE_TRANSLATION_PL
+*/
 #endif
 
 using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
