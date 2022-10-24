@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 
 extern "C" {
 
@@ -14,4 +15,8 @@ uint32_t ticks_ms() {
 void get_LFN(char *lfn, size_t lfn_size, char *path) {
     strlcpy(lfn, basename(path), lfn_size);
 }
+}
+
+bool f_gcode_get_next_comment_assignment(FILE *, char *, int, char *, int) {
+    return false;
 }

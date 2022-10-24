@@ -10,7 +10,7 @@
 #include "i18n.h"
 #include "config_features.h"
 
-class MI_CRASH_DETECTION : public WI_ICON_SWITCH_OFF_ON_t {
+class MI_CRASH_DETECTION : public WI_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Crash Detection");
 
 public:
