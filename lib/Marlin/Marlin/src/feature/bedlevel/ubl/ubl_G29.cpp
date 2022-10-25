@@ -688,13 +688,13 @@ void unified_bed_leveling::G29() {
   if (parser.seen_test('T'))
     display_map(param.T_map_type);
 
-    if (!parser.seen_any()) {
-        // backward compatibility with ABL
-        gcode.process_subcommands_now_P("G29 P1 X0 Y0");
-        gcode.process_subcommands_now_P("G29 P3.2");
-        gcode.process_subcommands_now_P("G29 P3.13");
-        gcode.process_subcommands_now_P("G29 A");
-    }
+  if (!parser.seen_any()) {
+    // backward compatibility with ABL
+    gcode.process_subcommands_now(F("G29 P1 X0 Y0"));
+    gcode.process_subcommands_now(F("G29 P3.2"));
+    gcode.process_subcommands_now(F("G29 P3.13"));
+    gcode.process_subcommands_now(F("G29 A"));
+  }
 
     #if ENABLED(EEPROM_SETTINGS)
   LEAVE:
