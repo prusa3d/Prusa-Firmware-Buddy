@@ -56,8 +56,8 @@ typedef struct {
             C_constant;
   xy_pos_t  XY_pos;
   xy_bool_t XY_seen;
-  xy_float_t g29_size;
-  bool g29_size_seen;
+  xy_float_t WH_size;
+  bool WH_seen;
   #if HAS_BED_PROBE
     uint8_t J_grid_size;
   #endif

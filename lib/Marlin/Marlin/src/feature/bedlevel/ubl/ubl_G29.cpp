@@ -609,7 +609,7 @@ void unified_bed_leveling::G29() {
       case 5: adjust_mesh_to_mean(param.C_seen, param.C_constant); break;
 
       case 6: shift_mesh_height(); break;
-        case 10: probe_at_point(g29_pos, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); break;
+      case 10: probe.probe_at_point(param.XY_pos, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, param.V_verbosity); break;
     }
   }
 
@@ -696,9 +696,9 @@ void unified_bed_leveling::G29() {
     gcode.process_subcommands_now(F("G29 A"));
   }
 
-    #if ENABLED(EEPROM_SETTINGS)
-  LEAVE:
-    #endif
+  #if ENABLED(EEPROM_SETTINGS)
+    LEAVE:
+  #endif
 
   #if HAS_MARLINUI_MENU
     ui.reset_alert_level();
@@ -783,7 +783,7 @@ void unified_bed_leveling::shift_mesh_height() {
       int xStep = is_odd_y_position ? GRID_MAJOR_STEP : -GRID_MAJOR_STEP;
 
       for (int x = x0; GRID_BORDER <= x && x < GRID_MAX_POINTS_X - GRID_BORDER; x += xStep) {
-        xy_pos_t pos = {mesh_index_to_xpos(x), mesh_index_to_ypos(y)};
+        xy_pos_t pos = {get_mesh_x(x), get_mesh_y(y)};
 
         if (probe_area.contains(pos))
           num_of_points_to_probe ++;
@@ -808,7 +808,7 @@ void unified_bed_leveling::shift_mesh_height() {
     save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
     uint16_t count = GRID_MAX_POINTS;
 
-    mesh_index_pair best = find_closest_mesh_point_of_type(INVALID, near);
+    mesh_index_pair best = find_closest_mesh_point_of_type(INVALID, nearby);
     TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(best.pos, ExtUI::G29_START));
     do {
       if (do_ubl_mesh_map) display_map(param.T_map_type);
@@ -886,10 +886,10 @@ void unified_bed_leveling::shift_mesh_height() {
         int xStep = is_odd_y_position ? GRID_MAJOR_STEP : -GRID_MAJOR_STEP;
 
         for (int x = x0; GRID_BORDER <= x && x < GRID_MAX_POINTS_X - GRID_BORDER; x += xStep) {
-          xy_pos_t pos = {mesh_index_to_xpos(x), mesh_index_to_ypos(y)};
+          xy_pos_t pos = {get_mesh_x(x), get_mesh_y(y)};
 
           // skip points the probe can't reach
-          if (!position_is_reachable_by_probe(pos.x, pos.y))
+          if (!probe.can_reach(pos.x, pos.y))
             continue;
 
           // skip points outside print area
@@ -898,7 +898,7 @@ void unified_bed_leveling::shift_mesh_height() {
 
           // print UBL map if we were told to do so
           if (do_ubl_mesh_map)
-            display_map(g29_map_type);
+            display_map(param.T_map_type);
 
           // make initial move manually (has a different speed)
           if (is_initial_probe)
@@ -906,14 +906,14 @@ void unified_bed_leveling::shift_mesh_height() {
           is_initial_probe = false;
           num_of_probed_points ++;
           // and finally, probe
-          ui.status_printf_P(0, PSTR(S_FMT " %i/%i"), GET_TEXT(MSG_PROBING_MESH), num_of_probed_points,num_of_points_to_probe);
-          const float measured_z = probe_at_point(
+          ui.status_printf(0, F(S_FMT " %i/%i"), GET_TEXT(MSG_PROBING_POINT), num_of_probed_points,num_of_points_to_probe);
+          const float measured_z = probe.probe_at_point(
                         pos,
-                        stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level
+                        stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, param.V_verbosity
                       );
           if(std::isnan(measured_z)){
-            LCD_MESSAGEPGM(MSG_LCD_PROBING_FAILED);
-            STOW_PROBE();
+            LCD_MESSAGE(MSG_LCD_PROBING_FAILED);
+            probe.stow();
             return;
           }
           z_values[x][y] = measured_z;
@@ -924,10 +924,10 @@ void unified_bed_leveling::shift_mesh_height() {
       }
 
       // make sure the probe is stowed when finished no matter the `stow_probe` argument
-      STOW_PROBE();
+      probe.stow();
 
       #ifdef Z_AFTER_PROBING
-        move_z_after_probing();
+        probe.move_z_after_probing();
       #endif
       #ifdef HAS_DISPLAY
         ui.reset_status();
@@ -1292,10 +1292,10 @@ bool unified_bed_leveling::G29_parse_parameters() {
   param.XY_pos.set(sx, sy);
 
     if (parser.seenval('W') && parser.seenval('H')) {
-      g29_size.set(parser.floatval('W'), parser.floatval('H'));
-      g29_size_seen = true;
+      param.WH_size.set(parser.floatval('W'), parser.floatval('H'));
+      param.WH_seen = true;
     } else {
-      g29_size_seen = false;
+      param.WH_seen = false;
     }
 
   /**
