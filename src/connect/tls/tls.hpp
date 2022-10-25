@@ -21,7 +21,7 @@ private:
     mbedtls_ssl_context ssl_context;
 
 public:
-    tls();
+    tls(uint8_t timeout_s);
     ~tls();
     tls(const tls &other) = delete;
     tls(tls &&other) = delete;

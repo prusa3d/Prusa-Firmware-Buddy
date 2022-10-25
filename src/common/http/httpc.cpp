@@ -66,7 +66,7 @@ namespace {
                 // FIXME: Conceptually, how do we handle timeouts? This is timeout
                 // for a single write. We may write multiple times per request.
                 // Also, what is the timeout in the tx?
-                if ((epoch_time + SOCKET_TIMEOUT_SEC * 1000) < ticks_ms()) {
+                if ((epoch_time + conn->get_timeout_s() * 1000) < ticks_ms()) {
                     break;
                 }
             }

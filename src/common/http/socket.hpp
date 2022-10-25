@@ -12,7 +12,7 @@ private:
     bool connected;
 
 public:
-    socket_con();
+    socket_con(uint8_t timeout_s);
     ~socket_con();
     socket_con(const socket_con &other);
     socket_con(socket_con &&other);

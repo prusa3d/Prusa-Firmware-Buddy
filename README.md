@@ -59,7 +59,7 @@ operable program or batch file.` Open `manage app execution aliases` and disable
 The `build.py` script wants to install some python packages. If you prefer not to have your system modified, it is possible to use `virtualenv` or a similar tool.
 
 ```bash
-virtualnev venv
+virtualenv venv
 . venv/bin/activate
 ```
 

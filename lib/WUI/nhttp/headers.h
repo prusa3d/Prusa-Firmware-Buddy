@@ -23,12 +23,6 @@ struct StatusText {
     http::Status status;
     /// Text acompanied for the status.
     const char *text;
-    /**
-     * \brief Recommended extra headers for that status.
-     *
-     * Most have an empty list.
-     */
-    const char *const *extra_hdrs = nullptr;
 
     /**
      * \brief Performs a lookup of the text.

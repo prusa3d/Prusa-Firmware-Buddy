@@ -11,14 +11,13 @@
 
 #include "wui_api.h"
 
-#define api_key_format "Current Api Key\n    %s"
-static constexpr size_t API_KEY_STR_LENGTH = PL_API_KEY_SIZE + sizeof(api_key_format) - sizeof("%s"); // don't need space for '%s' and '\0' since PL_API_KEY_SIZE contains '\0' too
-typedef char api_key_str_t[API_KEY_STR_LENGTH];
+#define api_key_format "%s"
+static constexpr size_t PASSWD_STR_LENGTH = PL_API_KEY_SIZE + 1; // don't need space for '%s' and '\0' since PL_API_KEY_SIZE contains '\0' too
 
 // ----------------------------------------------------------------
 // GUI Prusa Link X-Api_Key regenerate
 class MI_PL_REGENERATE_API_KEY : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Generate Api key");
+    constexpr static const char *const label = N_("Generate Password");
 
 public:
     MI_PL_REGENERATE_API_KEY()
@@ -52,7 +51,42 @@ protected:
     }
 };
 
-using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_API_KEY>;
+class MI_PL_PASSWORD : public WI_LABEL_t {
+    constexpr static const char *const label = N_("Password");
+    char passwd_buffer[PASSWD_STR_LENGTH];
+
+protected:
+    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override {
+        render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(passwd_buffer)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
+    }
+    void click(IWindowMenu &window_menu) override {
+    }
+
+public:
+    void print_password(const char *passwd) {
+        snprintf(passwd_buffer, PASSWD_STR_LENGTH, api_key_format, passwd);
+        InValidateExtension();
+    }
+    MI_PL_PASSWORD()
+        : WI_LABEL_t(_(label), PL_API_KEY_SIZE * GuiDefaults::FontMenuSpecial->w) {}
+};
+
+class MI_PL_USER : public WI_LABEL_t {
+    constexpr static const char *const label = N_("User");
+
+protected:
+    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override {
+        render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(PRUSA_LINK_USERNAME)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
+    }
+    void click(IWindowMenu &window_menu) override {
+    }
+
+public:
+    MI_PL_USER()
+        : WI_LABEL_t(_(label), sizeof(PRUSA_LINK_USERNAME) * GuiDefaults::FontMenuSpecial->w) {}
+};
+
+using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_API_KEY, MI_PL_USER, MI_PL_PASSWORD>;
 
 class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("PRUSA LINK");
@@ -61,14 +95,9 @@ class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     PLMenuContainer container;
     window_menu_t menu;
     window_header_t header;
-    window_text_t canvas;
 
-    api_key_str_t api_key_str;
-
-    inline void display_api_key(const char *api_key) {
-        snprintf(api_key_str, API_KEY_STR_LENGTH, api_key_format, api_key);
-        canvas.text = string_view_utf8::MakeRAM((const uint8_t *)api_key_str);
-        canvas.Invalidate();
+    inline void display_passwd(const char *api_key) {
+        container.Item<MI_PL_PASSWORD>().print_password(api_key);
     }
 
 public:
@@ -85,12 +114,10 @@ protected:
 ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     : AddSuperWindow<screen_t>(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(canvas_font_height()), &container)
-    , header(this)
-    , canvas(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectScreen.Height()) - 12 * canvas_font_height(), GuiDefaults::RectScreen.Width(), 3 * canvas_font_height()), is_multiline::yes) {
+    , header(this) {
     header.SetText(_(label));
-    canvas.font = resource_font(canvas_font);
     CaptureNormalWindow(menu); // set capture to list
-    display_api_key(wui_get_api_key());
+    display_passwd(wui_get_api_key());
     // The user might want to read the API key from here, don't time it out on them.
     ClrMenuTimeoutClose();
 }
@@ -109,7 +136,7 @@ void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *
             char api_key[PL_API_KEY_SIZE] = { 0 };
             wui_generate_api_key(api_key, PL_API_KEY_SIZE);
             wui_store_api_key(api_key, PL_API_KEY_SIZE);
-            display_api_key(api_key);
+            display_passwd(api_key);
             break;
         }
         case MI_PL_ENABLED::EventMask::value:

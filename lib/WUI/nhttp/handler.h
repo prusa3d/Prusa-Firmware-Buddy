@@ -129,6 +129,8 @@ using ConnectionState = std::variant<
     Idle,
     RequestParser,
     StatusPage,
+    // special case for handling authenticate header
+    UnauthenticatedStatusPage,
     SendStaticMemory,
     SendFile,
     StatelessJson,

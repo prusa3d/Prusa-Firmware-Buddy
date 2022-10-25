@@ -28,4 +28,4 @@ def post_dump():
     with open(metadata_filepath, 'w') as f:
         f.write(json.dumps(metadata))
 
-    return 'ok'
+    return '', 204

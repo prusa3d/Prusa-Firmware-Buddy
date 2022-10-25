@@ -14,6 +14,8 @@ static constexpr uint32_t dump_xflash_size = DUMP_RAM_SIZE + DUMP_CCRAM_SIZE;
 static_assert(dump_xflash_size <= w25x_error_start_adress, "Dump overflows reserved space.");
 static_assert(sizeof(dumpmessage_t) <= (w25x_pp_start_address - w25x_error_start_adress), "Error message overflows reserved space.");
 
+static const dumpmessage_t *dumpmessage_flash = reinterpret_cast<dumpmessage_t *>(w25x_error_start_adress);
+
 #define _STR(arg)  #arg
 #define __STR(arg) _STR(arg)
 
@@ -236,19 +238,20 @@ int dump_hardfault_test_1(void) {
 
 void dump_err_to_xflash(const char *error, const char *title) {
     w25x_sector_erase(w25x_error_start_adress);
-    w25x_fetch_error();
 
-    dumpmessage_t dump_message;
-    dump_message.invalid = 0;
-    strlcpy(dump_message.title, title, sizeof(dump_message.title));
-    strlcpy(dump_message.msg, error, sizeof(dump_message.msg));
-    w25x_program(w25x_error_start_adress + sizeof(dumpmessage_t::not_displayed), ((uint8_t *)(&dump_message)) + sizeof(dumpmessage_t::not_displayed), sizeof(dumpmessage_t) - sizeof(dumpmessage_t::not_displayed)); // not_displayed have to stay untouched
+    decltype(dumpmessage_t::invalid) invalid = 0;
+    const size_t title_len = strnlen(title, sizeof(dumpmessage_t::title));
+    const size_t msg_len = strnlen(error, sizeof(dumpmessage_t::msg));
+
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->invalid), reinterpret_cast<uint8_t *>(&invalid), sizeof(invalid));
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), reinterpret_cast<const uint8_t *>(title), title_len);
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), reinterpret_cast<const uint8_t *>(error), msg_len);
     w25x_fetch_error();
 }
 
 int dump_err_in_xflash_is_valid() {
     uint8_t invalid;
-    w25x_rd_data(w25x_error_start_adress + sizeof(dumpmessage_t::not_displayed), &invalid, sizeof(dumpmessage_t::invalid)); // reading second byte of error space (invalid flag)
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->invalid), &invalid, sizeof(dumpmessage_t::invalid));
     if (w25x_fetch_error())
         return 0; // Behave as invalid message
     return invalid ? 0 : 1;
@@ -256,7 +259,7 @@ int dump_err_in_xflash_is_valid() {
 
 int dump_err_in_xflash_is_displayed() {
     uint8_t not_displayed;
-    w25x_rd_data(w25x_error_start_adress, &not_displayed, sizeof(dumpmessage_t::not_displayed)); // reading first byte of error space (not_displayed flag)
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->not_displayed), &not_displayed, sizeof(dumpmessage_t::not_displayed));
     if (w25x_fetch_error())
         return 0;
     return not_displayed == 0 ? 1 : 0;
@@ -264,16 +267,23 @@ int dump_err_in_xflash_is_displayed() {
 
 void dump_err_in_xflash_set_displayed(void) {
     uint8_t not_displayed = 0;
-    w25x_program(w25x_error_start_adress, &not_displayed, sizeof(dumpmessage_t::not_displayed)); // writing to second byte of error space (not_displayed flag)
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->not_displayed), &not_displayed, sizeof(dumpmessage_t::not_displayed));
     w25x_fetch_error();
 }
 
 int dump_err_in_xflash_get_message(char *msg_dst, uint16_t msg_dst_size, char *tit_dst, uint16_t tit_dst_size) {
-    dumpmessage_t dump_message;
-    w25x_rd_data(w25x_error_start_adress, (uint8_t *)(&dump_message), sizeof(dumpmessage_t));
+    const size_t title_max_size = sizeof(dumpmessage_t::title) > tit_dst_size ? tit_dst_size : sizeof(dumpmessage_t::title);
+    const size_t msg_max_size = sizeof(dumpmessage_t::msg) > msg_dst_size ? msg_dst_size : sizeof(dumpmessage_t::msg);
+
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), (uint8_t *)(tit_dst), title_max_size);
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), (uint8_t *)(msg_dst), msg_max_size);
+
+    if (title_max_size)
+        tit_dst[title_max_size - 1] = '\0';
+    if (msg_max_size)
+        msg_dst[msg_max_size - 1] = '\0';
+
     if (w25x_fetch_error())
         return 0;
-    strlcpy(tit_dst, dump_message.title, sizeof(dump_message.title) > tit_dst_size ? tit_dst_size : sizeof(dump_message.title));
-    strlcpy(msg_dst, dump_message.msg, sizeof(dump_message.msg) > msg_dst_size ? msg_dst_size : sizeof(dump_message.msg));
     return 1;
 }

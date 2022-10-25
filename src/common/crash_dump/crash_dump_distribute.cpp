@@ -11,6 +11,8 @@ LOG_COMPONENT_DEF(CrashDump, LOG_SEVERITY_INFO);
 
 namespace crash_dump {
 
+inline constexpr uint8_t socket_timeout_s { 6 };
+
 bool escape_url_string(std::span<char> escaped_url_string, const std::array<char, url_buff_size> &url_buff) {
     // escaping of special characters, should probably be done elswhere (somewhere that handles the url string)
     size_t cur_written { 0 };
@@ -51,7 +53,7 @@ void create_url_string(std::array<char, url_buff_size> &url_buff, std::array<cha
 }
 
 bool upload_dump_to_server(http::Request &req) {
-    http::SocketConnectionFactory conn_factory(server, port);
+    http::SocketConnectionFactory conn_factory(server, port, socket_timeout_s);
     http::HttpClient http(conn_factory);
 
     if (auto result = http.send(req); std::holds_alternative<http::Error>(result)) {
