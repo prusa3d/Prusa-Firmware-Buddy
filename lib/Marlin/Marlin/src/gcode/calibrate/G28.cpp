@@ -226,7 +226,7 @@
  * 
  */
 void GcodeSuite::G28() {
-  float R = parser.seenval('R') ? parser.value_linear_units() : NaN;
+  float R = parser.seenval('R') ? parser.value_linear_units() : NAN;
   G28_flags flags{
     .S = parser.seen('S'),
     .O = parser.seen_test('O'),
@@ -275,7 +275,7 @@ void GcodeSuite::G28_no_parser(float R, GcodeSuite::G28_flags flags) {
   #endif
 
   // Home (O)nly if position is unknown
-  if (!axes_should_home() && flags.O)) {
+  if (!axes_should_home() && flags.O) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip");
     return;
   }
