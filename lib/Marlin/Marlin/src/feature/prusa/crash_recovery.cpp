@@ -79,7 +79,7 @@ void Crash_s::stop_and_save() {
 
     // save planner state
     leveling_active = planner.leveling_active;
-    crash_axis_known_position = axis_known_position;
+    crash_axis_known_position = axes_trusted;
     // TODO: this is incomplete, as some of the planner state is ahead of the stepper state
     //       marlin state is also not saved, notably: absolute/relative axis state
     //marlin_server.motion_param.save();

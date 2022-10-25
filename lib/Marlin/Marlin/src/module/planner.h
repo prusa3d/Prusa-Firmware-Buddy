@@ -945,6 +945,13 @@ class Planner {
       return out;
     }
 
+    #if HAS_POSITION_FLOAT
+      /**
+       * Get planner's axis position in mm
+       */
+      static abce_pos_t get_machine_position_mm() { return position_float; }
+    #endif
+
     // SCARA AB axes are in degrees, not mm
     #if IS_SCARA
       FORCE_INLINE static float get_axis_position_degrees(const AxisEnum axis) { return get_axis_position_mm(axis); }
