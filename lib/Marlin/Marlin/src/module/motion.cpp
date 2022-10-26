@@ -32,7 +32,6 @@
 #include "../gcode/gcode.h"
 #include "../lcd/marlinui.h"
 #include "../inc/MarlinConfig.h"
-#include "../Marlin.h"
 
 #include "metric.h"
 #include "PersistentStorage.h"

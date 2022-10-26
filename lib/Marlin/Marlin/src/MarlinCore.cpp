@@ -418,7 +418,7 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
   SafetyTimer::expired_t expired = SafetyTimer::Instance().Loop();
   if (expired ==  SafetyTimer::expired_t::yes)  {
     #ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
-      host_action_safety_timer_expired();
+      HostUI::safety_timer_expired();
     #endif
   }
 
@@ -433,9 +433,9 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
     SERIAL_ERROR_START();
     SERIAL_ECHOPGM(STR_KILL_PRE);
     SERIAL_ECHOLNPGM(STR_KILL_INACTIVE_TIME, parser.command_ptr);
-    kill(PSTR("Inactive time kill")
+    kill(F("Inactive time kill")
 #if PROGMEM_EMULATED
-    		, parser.command_ptr
+    		, FPSTR(parser.command_ptr)
 #endif
     		);
   }

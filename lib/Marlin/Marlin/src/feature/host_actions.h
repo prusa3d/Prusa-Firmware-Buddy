@@ -43,7 +43,7 @@ class HostUI {
   static void action(FSTR_P const fstr, const bool eol=true);
 
   #ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
-    void safety_timer_expired();
+    static void safety_timer_expired();
   #endif
   #ifdef ACTION_ON_KILL
     static void kill();
