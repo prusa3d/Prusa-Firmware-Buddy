@@ -4,7 +4,7 @@ add_library(
   )
 
 target_include_directories(
-  CoreBuddy PUBLIC variants/BUDDY_F407VET6_2209 cores/arduino/stm32 cores/arduino
+  CoreBuddy PUBLIC variants/BUDDY_F407VET6_2209 cores/arduino/stm32 cores/arduino lib/IWatchdog
   )
 
 target_compile_definitions(CoreBuddy PUBLIC ARDUINO=187 HAVE_HWSERIAL2 USBD_USE_CDC USBCON)
