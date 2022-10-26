@@ -1,0 +1,19 @@
+/**
+ * @file png_id.gen
+ * @brief this file is generated ...
+ */
+
+// clang-format off
+
+// ordered by width, height and alphabetically
+
+// 58x58
+spool_58x58,
+settings_58x58,
+print_58x58,
+preheat_58x58,
+info_58x58,
+calibrate_58x58,
+// 64x64
+
+// clang-format on

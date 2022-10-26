@@ -2,6 +2,8 @@
 #pragma once
 #include <stdint.h>
 
+#include "png_resources.hpp"
+
 struct PNG {
     static constexpr const char home_16x16[] = "/internal/res/png/home_shape_16px.png";
     static constexpr const char print_16x16[] = "/internal/res/png/print_16px.png";

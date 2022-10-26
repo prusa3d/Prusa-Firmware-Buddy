@@ -4,7 +4,7 @@
 
 #include "window.hpp"
 #include "gcode_info.hpp"
-#include "resource.h"
+#include "png_resources.hpp"
 
 /** @brief Creates an image rendered to the screen
  *  that is redrawn by the GUI loop as needed
@@ -14,6 +14,8 @@
  *  setFile or on its destruction.
  */
 struct window_icon_t : public AddSuperWindow<window_aligned_t> {
+
+    const png::Resource *pRes = nullptr;
 
     /** @brief Identifies a source of data
      *
@@ -47,18 +49,21 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
         }
     };
 
-    DataSourceId dataSource { IDR_NULL };
-
     ResourceId GetIdRes() const {
-        assert(dataSource.isFromResource());
-        return dataSource.id_res;
+        return ResourceId::IDR_NULL;
     }
 
     void SetIdRes(ResourceId id);
 
+    void SetRes(const png::Resource *res) {
+        if (pRes != res) {
+            pRes = res;
+            Invalidate();
+        }
+    }
+
     const char *getFileName() const {
-        assert(dataSource.isFromFile());
-        return dataSource.filename;
+        return nullptr;
     }
     void SetFilePath(const char *file);
 

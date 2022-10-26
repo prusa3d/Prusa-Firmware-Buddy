@@ -1,0 +1,49 @@
+/**
+ * @file png_resources.gen
+ * @brief this file is generated ...
+ */
+
+// clang-format off
+
+{
+    .name = "spool_58x58",
+    .offset = 0,
+    .size = 1218,
+    .w = 58,
+    .h = 58
+},
+{
+    .name = "settings_58x58",
+    .offset = 1218,
+    .size = 738,
+    .w = 58,
+    .h = 58
+},
+{
+    .name = "print_58x58",
+    .offset = 1218 + 738,
+    .size = 952,
+    .w = 58,
+    .h = 58
+},
+{
+    .name = "preheat_58x58",
+    .offset = 1218 + 738 + 952,
+    .size = 695,
+    .w = 58,
+    .h = 58
+},
+{
+    .name = "info_58x58",
+    .offset = 1218 + 738 + 952 + 695,
+    .size = 841,
+    .w = 58,
+    .h = 58
+},
+{
+    .name = "calibrate_58x58",
+    .offset = 1218 + 738 + 952 + 695 + 841,
+    .size = 859,
+    .w = 58,
+    .h = 58
+},

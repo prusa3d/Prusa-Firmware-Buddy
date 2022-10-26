@@ -18,3 +18,4 @@ void Sound_Play(eSOUND_TYPE eSoundType) {}
 void gui_loop() {}
 extern "C" void marlin_notify_server_about_encoder_move() {}
 extern "C" void marlin_notify_server_about_knob_click() {}
+FILE *png::Resource::Get() const { return nullptr; }

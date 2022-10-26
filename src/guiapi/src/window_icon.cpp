@@ -14,24 +14,23 @@
 LOG_COMPONENT_REF(GUI);
 
 void window_icon_t::SetIdRes(ResourceId id) {
-    if (dataSource.id_res != id) {
+    /*if (dataSource.id_res != id) {
         dataSource.set(id);
         assert(dataSource.isFromResource());
         Invalidate();
-    }
+    }*/
 }
 
 void window_icon_t::SetFilePath(const char *filepath) {
-    if (strcmp(dataSource.filename, filepath) != 0) {
+    /*if (strcmp(dataSource.filename, filepath) != 0) {
         dataSource.set(filepath);
         assert(dataSource.isFromFile());
         Invalidate();
-    }
+    }*/
 }
 
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, DataSourceId source, is_closed_on_click_t close)
-    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
-    , dataSource(source) {
+    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close) {
     SetAlignment(Align_t::Center());
 }
 
@@ -55,37 +54,42 @@ void window_icon_t::unconditionalDraw() {
     raster_op.shadow = IsShadowed() ? is_shadowed::yes : is_shadowed::no;
     raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
-    super::unconditionalDraw();
-    if (this->dataSource.isFromResource()) {
-        render_icon_align(GetRect(), dataSource.id_res, GetBackColor(), icon_flags(GetAlignment(), raster_op));
-    } else {
-        FILE *file = fopen(dataSource.filename, "rb");
-        if (!file) {
-            log_debug(GUI, "Tried to open a nonexistent file: %s", dataSource.filename);
-            assert(false);
-            return;
-        }
+    FILE *file = nullptr;
+    file = pRes->Get();
+
+    // no PNG assigned
+    if (!pRes)
+        return;
+
+    point_ui16_t wh_ico = { pRes->w, pRes->h };
+
+    // measure dimensions if unknown
+    if (wh_ico.x == 0 || wh_ico.y == 0) {
+        fseek(file, pRes->offset, SEEK_SET);
         uint8_t data[32] { 0 };
         const uint8_t *ptr = data;
-        if (dataSource.isFromFile()) {
+        {
             size_t sz = fread(&data[0], 1, 32, file);
-            fseek(file, 0, SEEK_SET);
             if (sz < 32)
                 return;
         }
-
-        point_ui16_t wh_ico = icon_meas(ptr);
-        if (wh_ico.x && wh_ico.y) {
-            Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
-            rc_ico.Align(GetRect(), GetAlignment());
-            rc_ico = rc_ico.Intersection(GetRect());
-            display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), file);
-        } else {
-            log_debug(GUI, "Drawing empty rect");
-            display::FillRect(GetRect(), GetBackColor());
-        }
-        fclose(file);
+        wh_ico = icon_meas(ptr); // set measured
     }
+
+    if (wh_ico.x < Width() || wh_ico.y < Height()) {
+        super::unconditionalDraw(); // draw background
+    }
+
+    if (wh_ico.x == 0 || wh_ico.y == 0) {
+        log_debug(GUI, "Drawing Icon failed");
+    }
+
+    fseek(file, pRes->offset, SEEK_SET);
+
+    Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
+    rc_ico.Align(GetRect(), GetAlignment());
+    rc_ico = rc_ico.Intersection(GetRect());
+    display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), file, GetBackColor(), raster_op);
 }
 
 size_ui16_t window_icon_t::CalculateMinimalSize(window_icon_t::DataSourceId source) {

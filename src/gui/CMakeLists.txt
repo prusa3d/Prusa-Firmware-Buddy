@@ -16,6 +16,7 @@ target_sources(
           MItem_print.cpp
           MItem_tools.cpp
           network_gui_tools.cpp
+          png_resources.cpp
           resource.c
           screen_crash_recovery.cpp
           screen_dialog_does_not_exist.cpp
