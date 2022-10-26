@@ -1828,7 +1828,7 @@ bool Planner::_buffer_steps(const xyze_long_t &target
   // If we are cleaning, do not accept queuing of movements
   // This must be after get_next_free_block() because it calls idle()
   // where cleaning_buffer_counter can be changed
-  if (cleaning_buffer_counter) return false;
+  if (draining()) return false;
 
   // Fill the block with the specified movement
   if (!_populate_block(block, target
