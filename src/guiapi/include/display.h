@@ -29,7 +29,7 @@ typedef uint32_t(display_buffer_pixel_size_t)();
 typedef void(display_store_char_in_buffer_t)(uint16_t char_cnt, uint16_t curr_char_idx, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_from_buffer_t)(point_ui16_t pt, uint16_t w, uint16_t h);
 typedef void(display_draw_icon_t)(point_ui16_t pt, ResourceId id_res, color_t clr_back, ropfn rop);
-typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf);
+typedef void(display_draw_png_t)(point_ui16_t pt, FILE *pf, color_t clr_back, ropfn rop);
 typedef void(display_read_madctl_t)(uint8_t *pdata, uint8_t size);
 
 template <
@@ -87,7 +87,7 @@ public:
     }
     constexpr static void DrawFromBuffer(point_ui16_t pt, uint16_t w, uint16_t h) { DRAW_FROM_BUFFER(pt, w, h); }
     constexpr static void DrawIcon(point_ui16_t pt, ResourceId id_res, color_t clr_back, ropfn rop) { DRAW_ICON(pt, id_res, clr_back, rop); }
-    constexpr static void DrawPng(point_ui16_t pt, FILE *pf) { DRAW_PNG(pt, pf); }
+    constexpr static void DrawPng(point_ui16_t pt, FILE *pf, color_t clr_back = 0, ropfn rop = ropfn()) { DRAW_PNG(pt, pf, clr_back, rop); }
     constexpr static void ReadMADCTL(uint8_t *pdata, uint8_t size) { READ_MADCLT(pdata, size); }
 };
 
