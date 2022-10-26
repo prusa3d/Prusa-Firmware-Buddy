@@ -415,7 +415,7 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
 
   const millis_t ms = millis();
 
-  SafetyTimer::expired_t expired = SafetyTimer::Instance().Loop()
+  SafetyTimer::expired_t expired = SafetyTimer::Instance().Loop();
   if (expired ==  SafetyTimer::expired_t::yes)  {
     #ifdef ACTION_ON_SAFETY_TIMER_EXPIRED
       host_action_safety_timer_expired();
