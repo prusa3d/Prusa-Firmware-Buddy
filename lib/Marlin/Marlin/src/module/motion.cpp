@@ -1823,18 +1823,6 @@ void prepare_line_to_destination() {
 
     TERN_(I2C_POSITION_ENCODERS, I2CPEM.unhomed(axis));
   }
-      } else { /*If in alternate system, update position shift and system offset from base system*/
-        position_shift[axis] = - current_position[axis] + workspace_homes[active_coordinate_system][axis];
-        GcodeSuite::set_coordinate_system_offset(0, axis, position_shift[axis]);
-        update_workspace_offset(axis);        
-      }
-    #else
-      current_position[axis] = base_home_pos(axis)
-        #if ENABLED(PRECISE_HOMING)
-          - calibrated_home_offset(axis)
-        #endif // ENABLED(PRECISE_HOMING)
-      ;
-    #endif
 
   #ifdef TMC_HOME_PHASE
     /**
@@ -2486,7 +2474,8 @@ void set_axis_is_at_home(const AxisEnum axis) {
   #elif ENABLED(DELTA)
     current_position[axis] = (axis == Z_AXIS) ? DIFF_TERN(HAS_BED_PROBE, delta_height, probe.offset.z) : base_home_pos(axis);
   #else
-    current_position[axis] = base_home_pos(axis);    #ifdef WORKSPACE_HOME 
+    current_position[axis] = base_home_pos(axis);
+    #ifdef WORKSPACE_HOME
       /*Fill workspace_homes[] with data from config*/
       xyz_pos_t workspace_homes[MAX_COORDINATE_SYSTEMS]={{{{0}}}};
 

@@ -580,11 +580,11 @@
     if (report) {
       #if ENABLED(CRASH_RECOVERY)
         SERIAL_ECHOPGM("X homing sensitivity: ");
-        SERIAL_PRINTLN(crash_s.home_sensitivity[0], DEC);
+        SERIAL_PRINTLN(crash_s.home_sensitivity[0], PrintBase::Dec);
         SERIAL_ECHOPGM("Y homing sensitivity: ");
-        SERIAL_PRINTLN(crash_s.home_sensitivity[1], DEC);
+        SERIAL_PRINTLN(crash_s.home_sensitivity[1], PrintBase::Dec);
         SERIAL_ECHOPGM("Z homing sensitivity: ");
-        SERIAL_PRINTLN(crash_s.home_sensitivity[2], DEC);
+        SERIAL_PRINTLN(crash_s.home_sensitivity[2], PrintBase::Dec);
       #else
         TERN_(X_SENSORLESS, tmc_print_sgt(stepperX));
         TERN_(X2_SENSORLESS, tmc_print_sgt(stepperX2));
@@ -614,15 +614,27 @@
 
     #if X_SENSORLESS || Y_SENSORLESS || Z_SENSORLESS
       say_M914(forReplay);
+      #if ENABLED(CRASH_RECOVERY)
         #if X_SENSORLESS
-        SERIAL_ECHOPGM_P(SP_X_STR, stepperX.homing_threshold());
-      #endif
-      #if Y_SENSORLESS
-        SERIAL_ECHOPGM_P(SP_Y_STR, stepperY.homing_threshold());
-      #endif
-      #if Z_SENSORLESS
-        SERIAL_ECHOPGM_P(SP_Z_STR, stepperZ.homing_threshold());
+          SERIAL_ECHOPGM_P(SP_X_STR, crash_s.home_sensitivity[0]);
         #endif
+        #if Y_SENSORLESS
+          SERIAL_ECHOPGM_P(SP_Y_STR, crash_s.home_sensitivity[1]);
+        #endif
+        #if Z_SENSORLESS
+          SERIAL_ECHOPGM_P(SP_Z_STR, crash_s.home_sensitivity[2]);
+        #endif
+      #else
+        #if X_SENSORLESS
+          SERIAL_ECHOPGM_P(SP_X_STR, stepperX.homing_threshold());
+        #endif
+        #if Y_SENSORLESS
+          SERIAL_ECHOPGM_P(SP_Y_STR, stepperY.homing_threshold());
+        #endif
+        #if Z_SENSORLESS
+          SERIAL_ECHOPGM_P(SP_Z_STR, stepperZ.homing_threshold());
+        #endif
+      #endif
       SERIAL_EOL();
     #endif
 
