@@ -134,7 +134,6 @@ bool GCodeQueue::enqueue_one(const char * const cmd, bool echo /*=true*/) {
 
   if (ring_buffer.enqueue(cmd)) {
     if (echo) SERIAL_ECHO_MSG(STR_ENQUEUEING, cmd, "\"");
-	}
     return true;
   }
   return false;
