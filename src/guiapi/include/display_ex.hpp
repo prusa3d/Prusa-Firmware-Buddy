@@ -32,6 +32,6 @@ void display_ex_set_pixel_displayNativeColor(point_ui16_t pt, uint16_t noClr);
 
 uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt);
 
-void display_ex_draw_png(point_ui16_t pt, FILE *pf);
+void display_ex_draw_png(point_ui16_t pt, FILE *pf, color_t clr0 = 0, ropfn rop = ropfn());
 
 void display_ex_draw_icon(point_ui16_t pt, ResourceId id_res, color_t clr0, ropfn rop);

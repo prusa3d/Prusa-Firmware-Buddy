@@ -353,6 +353,6 @@ void display_ex_draw_icon(point_ui16_t pt, ResourceId id_res, color_t clr0, ropf
     fclose(pf);
 }
 
-void display_ex_draw_png(point_ui16_t pt, FILE *pf) {
-    draw_png_ex_C(pt.x, pt.y, pf, 0, ropfn());
+void display_ex_draw_png(point_ui16_t pt, FILE *pf, color_t clr0, ropfn rop) {
+    draw_png_ex_C(pt.x, pt.y, pf, clr0, rop);
 }
