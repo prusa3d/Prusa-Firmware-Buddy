@@ -1,0 +1,1 @@
+copy /B spool_58x58.png + settings_58x58.png + print_58x58.png + preheat_58x58.png + info_58x58.png + calibrate_58x58.png resources.pngs

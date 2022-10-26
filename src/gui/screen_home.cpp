@@ -19,6 +19,7 @@
 #include "window_dlg_load_unload.hpp"
 #include "DialogMoveZ.hpp"
 #include "DialogHandler.hpp"
+#include "png_resources.hpp"
 
 #include "lazyfilelist.h"
 #include "i18n.h"
@@ -27,13 +28,13 @@
 bool screen_home_data_t::ever_been_openned = false;
 bool screen_home_data_t::try_esp_flash = true;
 
-const ResourceId icons[] = {
-    IDR_PNG_print_58px,
-    IDR_PNG_preheat_58px,
-    IDR_PNG_spool_58px,
-    IDR_PNG_calibrate_58px,
-    IDR_PNG_settings_58px,
-    IDR_PNG_info_58px
+static constexpr const png::Resource *icons[] = {
+    png::Get<png::Id::print_58x58>(),
+    png::Get<png::Id::preheat_58x58>(),
+    png::Get<png::Id::spool_58x58>(),
+    png::Get<png::Id::calibrate_58x58>(),
+    png::Get<png::Id::settings_58x58>(),
+    png::Get<png::Id::info_58x58>()
 };
 
 constexpr size_t labelPrintId = 0;
@@ -91,7 +92,7 @@ screen_home_data_t::screen_home_data_t()
         for (uint8_t col = 0; col < 3; col++) {
             const size_t i = row * 3 + col;
             w_buttons[i].SetRect(Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64));
-            w_buttons[i].SetIdRes(icons[i]);
+            w_buttons[i].SetRes(icons[i]);
 
             w_labels[i].SetRect(Rect16(80 * col, 154 + (15 + 64) * row, 80, 14));
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
