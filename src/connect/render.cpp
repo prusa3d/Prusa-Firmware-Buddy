@@ -365,7 +365,18 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
 
     const size_t available = buffer_size - outro_len;
     assert(available > 0);
-    size_t decoded = decoder.Read(reinterpret_cast<char *>(buffer), available);
+    int decoded = decoder.Read(reinterpret_cast<char *>(buffer), available);
+    if (decoded == -1) {
+        // -1 signals error.
+        if (started) {
+            // At least terminate the field/string, so we don't destroy the
+            // whole JSON, even if the preview data is truncated.
+            memcpy(buffer, outro, outro_len);
+            return make_tuple(JsonResult::Complete, outro_len);
+        } else {
+            return make_tuple(JsonResult::Complete, 0);
+        }
+    }
 
     if (decoded == 0 && !started) {
         // No preview -> just say we didn't do anything at all.
@@ -379,7 +390,7 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
 
     JsonResult result = JsonResult::Incomplete;
 
-    if (decoded < available) {
+    if (decoded < static_cast<int>(available)) {
         // This is the end!
         result = JsonResult::Complete;
         memcpy(buffer, outro, outro_len);
