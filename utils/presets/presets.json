@@ -9,7 +9,8 @@
                 "PRINTER": "MINI",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
-                "PRESET_COMPILE_OPTIONS": ""
+                "PRESET_COMPILE_OPTIONS": "",
+                "DEVELOPMENT_ITEMS_ENABLED": true
             }
         }
     ]

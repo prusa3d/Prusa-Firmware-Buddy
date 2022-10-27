@@ -9,6 +9,7 @@
 #include "color_scheme.hpp"
 #include "window_types.hpp"
 #include <optional>
+#include "option/development_items.h"
 
 struct GuiDefaults {
     // Footer settings
@@ -108,10 +109,10 @@ struct GuiDefaults {
     // Enable new menu features
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     static constexpr bool MenuLinesBetweenItems = false;
-    static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
-    static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
-#endif                                                   // USE_<display>
-    static constexpr bool ShowDevelopmentTools = true;   // Show menu items for development
+    static constexpr bool MenuSwitchHasBrackets = false;                                       // draw brackets around switch values in menus
+    static constexpr bool MenuSpinHasUnits = false;                                            // draw units behind spin
+#endif                                                                                         // USE_<display>
+    static constexpr bool ShowDevelopmentTools = static_cast<bool>(option::development_items); // Show menu items for development
 
     // New menu feature settings
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)

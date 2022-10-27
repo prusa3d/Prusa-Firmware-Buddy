@@ -35,6 +35,10 @@
                     "type": "STRING",
                     "value": ""
                 },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -97,6 +101,10 @@
                 "PRESET_COMPILE_OPTIONS": {
                     "type": "STRING",
                     "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -161,6 +169,10 @@
                     "type": "STRING",
                     "value": ""
                 },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -223,6 +235,10 @@
                 "PRESET_COMPILE_OPTIONS": {
                     "type": "STRING",
                     "value": ""
+                },
+                "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
