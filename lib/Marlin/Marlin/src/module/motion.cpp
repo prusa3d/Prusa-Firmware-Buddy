@@ -1694,8 +1694,8 @@ void prepare_line_to_destination() {
    */
   void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, const bool final_approach=true
     #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-    , bool can_move_back_before_homing
-  #endif
+      , bool can_move_back_before_homing = false
+    #endif
 ) {
     DEBUG_SECTION(log_move, "do_homing_move", DEBUGGING(LEVELING));
 
