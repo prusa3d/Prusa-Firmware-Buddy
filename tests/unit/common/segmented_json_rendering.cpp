@@ -206,3 +206,14 @@ TEST_CASE("Composed JSON - with content") {
     REQUIRE(result == JsonResult::Complete);
     REQUIRE(string_view(reinterpret_cast<const char *>(buffer), written) == EXPECTED);
 }
+
+TEST_CASE("Seq Renderer") {
+    PairRenderer<TestJsonRenderer, TestJsonRenderer> renderer { TestJsonRenderer(), TestJsonRenderer() };
+
+    uint8_t buffer[2048];
+    const auto [result, written] = renderer.render(buffer, sizeof buffer);
+    REQUIRE(result == JsonResult::Complete);
+    string exp = EXPECTED;
+    exp += EXPECTED;
+    REQUIRE(string_view(reinterpret_cast<const char *>(buffer), written) == exp);
+}
