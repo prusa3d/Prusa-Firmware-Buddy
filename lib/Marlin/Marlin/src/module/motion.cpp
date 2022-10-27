@@ -506,7 +506,7 @@ void do_blocking_move_to(NUM_AXIS_ARGS(const float), const_feedRate_t fr_mm_s/*=
   DEBUG_SECTION(log_move, "do_blocking_move_to", DEBUGGING(LEVELING));
   if (DEBUGGING(LEVELING)) DEBUG_XYZ("> ", NUM_AXIS_ARGS());
 
-  plan_park_move_to(rx, ry, rz, fr_mm_s, fr_mm_s);
+  plan_park_move_to(x, y, z, fr_mm_s, fr_mm_s);
   planner.synchronize();
 }
 
