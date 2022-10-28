@@ -131,7 +131,7 @@ void screen_home_data_t::handle_crash_dump() {
     if (MsgBoxWarning(_("Crash detected. Download it to USB and send it to Prusa?"), Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const crash_dump::DumpHandler *> auto fp) {
-            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, IDR_PNG_info_58px);
+            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, png::Get<png::Id::info_58x58>());
             box.Show();
             draw();
             for (const auto &dump_handler : present_dumps) {

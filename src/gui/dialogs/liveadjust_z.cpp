@@ -175,7 +175,7 @@ static constexpr const point_i16_t scale_pt = point_i16_t(45, 125);
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
     , text(this, textRect, is_multiline::yes, is_closed_on_click_t::no)
-    , nozzle_icon(this, nozzleRect, PNG::nozzle_48x48)
+    , nozzle_icon(this, nozzleRect, png::Get<png::Id::nozzle_shape_48x48>())
     , adjuster(this, adjuster_pt)
     , scale(this, scale_pt) {
 

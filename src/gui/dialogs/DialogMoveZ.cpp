@@ -19,7 +19,7 @@ DialogMoveZ::DialogMoveZ()
     , arrows(this, text_rc.TopRight(), { 0, 6, 0, 6 })
     , numb(this, numb_rc, marlin_vars()->pos[2], "%d mm", GuiDefaults::FontBig)
     , header(this, _(headerLabel))
-    , icon(this, icon_rc, PNG::turn_knob_81x55) {
+    , icon(this, icon_rc, png::Get<png::Id::turn_knob_81x55>()) {
     DialogShown = true;
 
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
