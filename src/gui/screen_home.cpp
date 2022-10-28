@@ -59,7 +59,7 @@ screen_home_data_t::screen_home_data_t()
     , esp_flash_being_openned(false)
     , header(this)
     , footer(this)
-    , logo(this, Rect16(41, 31, 158, 40), IDR_NULL)
+    , logo(this, Rect16(41, 31, 158, 40), png::Get<png::Id::prusa_mini_logo_153x40>())
     , w_buttons { { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), IDR_NULL, []() { marlin_gcode_printf("M1700"); } },
         { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
@@ -80,7 +80,7 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     screen_filebrowser_data_t::SetRoot("/usb");
 
-    header.SetIconFilePath(PNG::home_16x16);
+    header.SetIcon(png::Get<png::Id::home_shape_16x16>());
 #ifndef _DEBUG
     header.SetText(_("HOME"));
 #else

@@ -27,7 +27,7 @@ DialogMoveZ::DialogMoveZ()
     marlin_gcode("M204 T200");
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;
-    header.SetIcon(IDR_PNG_z_axis_16px);
+    header.SetIcon(png::Get<png::Id::z_axis_16x16>());
 
     constexpr static padding_ui8_t padding({ 6, 0, 6, 0 });
 

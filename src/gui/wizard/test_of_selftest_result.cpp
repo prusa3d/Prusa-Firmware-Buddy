@@ -14,7 +14,7 @@ TestResult::TestResult()
     , header(this, string_view_utf8::MakeCPUFLASH((uint8_t *)"RESULT TEST"))
     , result(this, PhasesSelftest::Result, somethingToShow()) {
     ClrMenuTimeoutClose(); // don't close on menu timeout
-    header.SetIcon(IDR_PNG_selftest_16x16);
+    header.SetIcon(png::Get<png::Id::selftest_16x16>());
 
     ReleaseCaptureOfNormalWindow(); // release is not automatic !!!
     CaptureNormalWindow(result);

@@ -5,8 +5,6 @@
 #include "png_resources.hpp"
 
 struct PNG {
-    static constexpr const char home_16x16[] = "/internal/res/png/home_shape_16px.png";
-    static constexpr const char print_16x16[] = "/internal/res/png/print_16px.png";
     static constexpr const char hand_154x65[] = "/internal/res/png/hand_154x65.png";
     static constexpr const char nozzle_34x32[] = "/internal/res/png/nozzle_34x32.png";
     static constexpr const char usb_32x16[] = "/internal/res/png/usb_16px.png";

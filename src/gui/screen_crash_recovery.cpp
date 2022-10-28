@@ -218,7 +218,7 @@ ScreenCrashRecovery::ScreenCrashRecovery()
 
     ScreenCrashRecovery::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetText(_("CRASH DETECTED"));
-    header.SetIcon(IDR_PNG_nozzle_empty_16px);
+    header.SetIcon(png::Get<png::Id::nozzle_16x16>());
     ths = this;
 }
 
