@@ -111,7 +111,8 @@ typedef enum {
     mpsIdle = 0,
     mpsWaitGui,
     mpsPrintPreviewInit,
-    mpsPrintPreviewLoop,
+    mpsPrintPreviewImage,
+    mpsPrintPreviewQuestions,
     mpsPrintInit,
     mpsPrinting,
     mpsPausing_Begin,
@@ -173,6 +174,7 @@ typedef enum {
     MARLIN_MSG_FSM = 'Z',
     MARLIN_MSG_MOVE = 'a',
     MARLIN_MSG_GUI_PRINT_READY = 'b',
+    MARLIN_MSG_GUI_CANT_PRINT = 'c',
 } marlin_msg_t;
 
 // variables structure - used in server and client

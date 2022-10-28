@@ -115,10 +115,12 @@ namespace {
 
     Printer::DeviceState to_device_state(marlin_print_state_t state, bool ready) {
         switch (state) {
+        case mpsPrintPreviewQuestions:
+            return Printer::DeviceState::Attention;
         case mpsIdle:
         case mpsWaitGui:
         case mpsPrintPreviewInit:
-        case mpsPrintPreviewLoop:
+        case mpsPrintPreviewImage:
         case mpsPrintInit:
         case mpsAborted:
         case mpsExit:
@@ -335,7 +337,7 @@ bool MarlinPrinter::job_control(JobControl control) {
             return false;
         }
     case JobControl::Stop:
-        if (state == DeviceState::Paused || state == DeviceState::Printing) {
+        if (state == DeviceState::Paused || state == DeviceState::Printing || state == DeviceState::Attention) {
             marlin_print_abort();
             return true;
         } else {
@@ -347,17 +349,12 @@ bool MarlinPrinter::job_control(JobControl control) {
 }
 
 bool MarlinPrinter::start_print(const char *path) {
-    // Renew was presumably called before short, it's up-to-date-ish
-    if (marlin_is_printing()) {
+    if (!marlin_remote_print_ready(false)) {
         return false;
     }
 
-    // TODO: We _had_ checks for certain screens in which printing is allowed
-    // (and not allow it in others). But they seem to be gone now, so we can't reuse them.
-    // BFW-2855.
-
     print_begin(path, true);
-    return true;
+    return marlin_print_started();
 }
 
 void MarlinPrinter::submit_gcode(const char *code) {
