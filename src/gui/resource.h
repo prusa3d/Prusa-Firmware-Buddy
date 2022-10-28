@@ -4,29 +4,6 @@
 
 #include "png_resources.hpp"
 
-struct PNG {
-    static constexpr const char hand_154x65[] = "/internal/res/png/hand_154x65.png";
-    static constexpr const char nozzle_34x32[] = "/internal/res/png/nozzle_34x32.png";
-    static constexpr const char usb_32x16[] = "/internal/res/png/usb_16px.png";
-    static constexpr const char info_16x16[] = "/internal/res/png/info_16px.png";
-    static constexpr const char warning_16x16[] = "/internal/res/png/warning_16px.png";
-    static constexpr const char question_16x16[] = "/internal/res/png/question_16px.png";
-    static constexpr const char nozzle_48x48[] = "/internal/res/png/nozzle_shape_48px.png";
-    static constexpr const char arrow_up_16x16[] = "/internal/res/png/arrow_up_16px.png";
-    static constexpr const char arrow_down_16x16[] = "/internal/res/png/arrow_down_16px.png";
-    static constexpr const char arrow_left_16x16[] = "/internal/res/png/arrow_left_16px.png";
-    static constexpr const char hand_qr_59x72[] = "/internal/res/png/hand_qr.png";
-    static constexpr const char turn_knob_81x55[] = "/internal/res/png/turn_knob.png";
-    static constexpr const char pepa_42x64[] = "/internal/res/png/pepa_64px.png";
-    static constexpr const char pepa_92x140[] = "/internal/res/png/pepa_140px.png";
-    static constexpr const char pepa_original_90x137[] = "/internal/res/png/pepa_original_140px.png";
-    static constexpr const char serial_printing_172x138[] = "/internal/res/png/png_serial_printing.png";
-    static constexpr const char question_48x48[] = "/internal/res/png/question_48px.png";
-    static constexpr const char warning_48x48[] = "/internal/res/png/warning_48px.png";
-    static constexpr const char error_white_48x48[] = "/internal/res/png/error_white_48px.png";
-    static constexpr const char info_48x48[] = "/internal/res/png/info_48px.png";
-};
-
 enum ResourceId : uint8_t {
 
     //null resource - test
