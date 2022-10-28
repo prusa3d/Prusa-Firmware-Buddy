@@ -17,7 +17,7 @@ protected:
     static string_view_utf8 static_makeViewIntoBuff(int value, buffer_t &buff);
 
 public:
-    IFooterItemFan(window_t *parent, ResourceId icon_id, view_maker_cb view_maker, reader_cb value_reader);
+    IFooterItemFan(window_t *parent, const png::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
 };
 
 /**

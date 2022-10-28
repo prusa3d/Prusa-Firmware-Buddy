@@ -81,5 +81,5 @@ public:
 
     static inline color_t ColorFromState(HeatState st) { return colors[std::min(size_t(st), size_t(HeatState::_last))]; }
 
-    FooterItemHeater(window_t *parent, ResourceId icon_id, view_maker_cb view_maker, reader_cb value_reader);
+    FooterItemHeater(window_t *parent, const png::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
 };

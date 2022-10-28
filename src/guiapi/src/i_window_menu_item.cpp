@@ -9,11 +9,11 @@
 
 static_assert(sizeof(IWindowMenuItem) <= sizeof(string_view_utf8) + sizeof(txtroll_t) + sizeof(font_t) + sizeof(int), "error inefficient size of IWindowMenuItem");
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands, font_t *label_font)
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands, font_t *label_font)
     : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden, label_font) {
 }
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, font_t *label_font)
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, font_t *label_font)
     : label(label)
     , hidden((uint8_t)hidden)
     , enabled(enabled)
@@ -119,7 +119,7 @@ void IWindowMenuItem::printIcon(Rect16 icon_rect, ropfn raster_op, color_t color
 }
 
 void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
-    render_icon_align(extension_rect, IDR_PNG_arrow_right_16px, color_back, icon_flags(Align_t::Center(), raster_op));
+    render_icon_align(extension_rect, png::Get<png::Id::arrow_right_10x16>(), color_back, icon_flags(Align_t::Center(), raster_op));
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {

@@ -260,6 +260,19 @@ void render_icon_align(Rect16 rc, ResourceId id_res, color_t clr_back, icon_flag
     }
 }
 
+void render_icon_align(Rect16 rc, const png::Resource *res, color_t clr_back, icon_flags flags) {
+
+    if (res) {
+        point_ui16_t wh_ico = { res->w, res->h };
+        Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
+        rc_ico.Align(rc, flags.align);
+        rc_ico = rc_ico.Intersection(rc);
+        display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), res->file, clr_back, flags.raster_flags);
+    } else {
+        display::FillRect(rc, clr_back);
+    }
+}
+
 size_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars) {
     int x = 0;
     int y = 0;

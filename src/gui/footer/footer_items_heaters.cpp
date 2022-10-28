@@ -50,8 +50,8 @@ void FooterItemHeater::ResetDrawMode() {
     setDrawMode(footer::ItemDrawCnf::Default());
 }
 
-FooterItemHeater::FooterItemHeater(window_t *parent, ResourceId icon_id, view_maker_cb view_maker, reader_cb value_reader)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, icon_id, view_maker, value_reader) {
+FooterItemHeater::FooterItemHeater(window_t *parent, const png::Resource *icon, view_maker_cb view_maker, reader_cb value_reader)
+    : AddSuperWindow<FooterIconText_IntVal>(parent, icon, view_maker, value_reader) {
 }
 
 //Must not contain buffer!!! every child must provide own buffer

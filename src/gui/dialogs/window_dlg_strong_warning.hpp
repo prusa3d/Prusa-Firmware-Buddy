@@ -29,7 +29,7 @@ protected: // inherited by unit tests, must be protected
     static constexpr const char *USBFlashDiskError = N_("USB drive error, the print is now paused. Reconnect the drive.");
 
     struct icon_title_text_t {
-        ResourceId icon;
+        const png::Resource *icon;
         const char *title;
         const char *text;
     };
@@ -45,11 +45,11 @@ protected: // inherited by unit tests, must be protected
 
     // order must match to enum types
     static constexpr icon_title_text_t icon_title_text[types::count_] = {
-        { IDR_PNG_fan_error, Title, HotendFanErrorMsg },
-        { IDR_PNG_fan_error, Title, PrintFanErrorMsg },
-        { IDR_NULL, TitleNozzle, HotendTempDiscrepancyMsg },
-        { IDR_PNG_exposure_times_48px, Title, HeaterTimeoutMsg },
-        { IDR_PNG_usb_error, Title, USBFlashDiskError },
+        { png::Get<png::Id::fan_error_48x48>(), Title, HotendFanErrorMsg },
+        { png::Get<png::Id::fan_error_48x48>(), Title, PrintFanErrorMsg },
+        { nullptr, TitleNozzle, HotendTempDiscrepancyMsg },
+        { png::Get<png::Id::exposure_times_48x48>(), Title, HeaterTimeoutMsg },
+        { png::Get<png::Id::usb_error_48x48>(), Title, USBFlashDiskError },
     };
 
     static std::bitset<types::count_> shown; // mask of all "active" dialogs
@@ -72,7 +72,7 @@ protected: // inherited by unit tests, must be protected
 
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     void show(types type);
-    void setIcon(ResourceId resId);
+    void setIcon(const png::Resource *icon);
 
 public:
     static void ShowHotendFan();

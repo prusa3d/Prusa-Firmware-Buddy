@@ -113,10 +113,10 @@ protected:
 
 #include "wizard_config.hpp"
 class WindowIcon_OkNg : public AddSuperWindow<window_aligned_t> {
-    static const ResourceId id_res_na;                // not available
-    static const ResourceId id_res_ok;                // ok
-    static const ResourceId id_res_ng;                // not good
-    static const std::array<ResourceId, 4> id_res_ip; // in progress - 4 state animation
+    static const png::Resource *id_res_na;                       // not available
+    static const png::Resource *id_res_ok;                       // ok
+    static const png::Resource *id_res_ng;                       // not good
+    static const std::array<const png::Resource *, 4> id_res_ip; // in progress - 4 state animation
     enum { ANIMATION_STEP_MS = 128 };
 
 public:

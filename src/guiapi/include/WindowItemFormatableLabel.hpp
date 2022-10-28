@@ -30,8 +30,8 @@ protected:
     virtual void click(IWindowMenu &window_menu) override {}
 
 public:
-    WI_LAMBDA_LABEL_t(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, std::function<void(char *)> printAs)
-        : AddSuper<WI_LABEL_t>(label, id_icon ? icon_width : GuiDefaults::infoDefaultLen * InfoFont->w, id_icon, enabled, hidden)
+    WI_LAMBDA_LABEL_t(string_view_utf8 label, const png::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, std::function<void(char *)> printAs)
+        : AddSuper<WI_LABEL_t>(label, icon ? icon_width : GuiDefaults::infoDefaultLen * InfoFont->w, icon, enabled, hidden)
         , printAs(printAs) {}
 };
 
@@ -46,8 +46,8 @@ protected:
     virtual void click(IWindowMenu &window_menu) {}
 
 public:
-    WI_FORMATABLE_LABEL_t(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, std::function<void(char *)> printAs)
-        : WI_LAMBDA_LABEL_t(label, id_icon, enabled, hidden, printAs)
+    WI_FORMATABLE_LABEL_t(string_view_utf8 label, const png::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, ValueType initVal, std::function<void(char *)> printAs)
+        : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
         , value(initVal)
         , oldVal(initVal) {
     }

@@ -20,7 +20,7 @@ class MI_UPDATE_LABEL : public WI_LABEL_t {
 
 public:
     MI_UPDATE_LABEL()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {};
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {};
@@ -49,7 +49,7 @@ size_t MI_UPDATE::init_index() const {
 }
 
 MI_UPDATE::MI_UPDATE()
-    : WI_SWITCH_t<3>(init_index(), string_view_utf8::MakeNULLSTR(), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
+    : WI_SWITCH_t<3>(init_index(), string_view_utf8::MakeNULLSTR(), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_0), _(str_1), _(str_2)) {
 }
 
 void MI_UPDATE::OnChange(size_t /*old_index*/) {

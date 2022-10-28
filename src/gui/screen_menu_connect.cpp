@@ -15,7 +15,7 @@ class MI_CONNECT_ENABLED : public WI_ICON_SWITCH_OFF_ON_t {
 
 public:
     MI_CONNECT_ENABLED()
-        : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_CONNECT_ENABLED), string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_CONNECT_ENABLED), string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void OnChange(size_t old_index) override {
@@ -29,7 +29,7 @@ class MI_CONNECT_STATUS : public WI_INFO_t {
 
 public:
     MI_CONNECT_STATUS()
-        : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+        : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
     }
 };
 
@@ -38,7 +38,7 @@ class MI_CONNECT_LOAD_SETTINGS : public WI_LABEL_t {
 
 public:
     MI_CONNECT_LOAD_SETTINGS()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {}
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {}
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {

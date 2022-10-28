@@ -7,7 +7,7 @@
 //MI_NOZZLE
 MI_NOZZLE::MI_NOZZLE()
     : WiSpinInt(uint16_t(marlin_vars()->target_nozzle),
-        SpinCnf::nozzle, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        SpinCnf::nozzle, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_NOZZLE::OnClick() {
     marlin_set_target_nozzle(GetVal());
     marlin_set_display_nozzle(GetVal());
@@ -17,7 +17,7 @@ void MI_NOZZLE::OnClick() {
 //MI_HEATBED
 MI_HEATBED::MI_HEATBED()
     : WiSpinInt(uint8_t(marlin_vars()->target_bed),
-        SpinCnf::bed, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        SpinCnf::bed, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_HEATBED::OnClick() {
     marlin_set_target_bed(GetVal());
 }
@@ -26,7 +26,7 @@ void MI_HEATBED::OnClick() {
 //MI_PRINTFAN
 MI_PRINTFAN::MI_PRINTFAN()
     : WiSpinInt(uint8_t(marlin_vars()->print_fan_speed),
-        SpinCnf::printfan, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        SpinCnf::printfan, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_PRINTFAN::OnClick() {
     marlin_set_fan_speed(GetVal());
 }
@@ -35,7 +35,7 @@ void MI_PRINTFAN::OnClick() {
 //MI_SPEED
 MI_SPEED::MI_SPEED()
     : WiSpinInt(uint16_t(marlin_vars()->print_speed),
-        SpinCnf::feedrate, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        SpinCnf::feedrate, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_SPEED::OnClick() {
     marlin_set_print_speed(GetVal());
 }
@@ -44,7 +44,7 @@ void MI_SPEED::OnClick() {
 //MI_FLOWFACT
 MI_FLOWFACT::MI_FLOWFACT()
     : WiSpinInt(uint16_t(marlin_vars()->flow_factor),
-        SpinCnf::flowfact, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        SpinCnf::flowfact, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_FLOWFACT::OnClick() {
     marlin_set_flow_factor(GetVal());
 }
