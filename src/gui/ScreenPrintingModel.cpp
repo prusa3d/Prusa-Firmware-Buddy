@@ -19,14 +19,13 @@ void ScreenPrintingModel::initBtnText(btn &ref_button) {
     ref_button.txt.SetAlignment(Align_t::Center());
 }
 
-void ScreenPrintingModel::setIconAndLabel(btn &ref_button, const btn_resource &res) {
-    if (ref_button.ico.GetIdRes() != res.ico)
-        ref_button.ico.SetIdRes(res.ico);
+void ScreenPrintingModel::setIconAndLabel(btn &ref_button, const BtnResource &res) {
+    ref_button.ico.SetRes(res.second);
     // disregard comparing strings - just set the label every time
-    ref_button.txt.SetText(_(res.txt));
+    ref_button.txt.SetText(_(res.first));
 }
 
-void ScreenPrintingModel::initAndSetIconAndLabel(btn &ref_button, const btn_resource &res) {
+void ScreenPrintingModel::initAndSetIconAndLabel(btn &ref_button, const BtnResource &res) {
     initBtnText(ref_button);
     setIconAndLabel(ref_button, res);
 }

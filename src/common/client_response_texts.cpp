@@ -10,7 +10,7 @@
  * order and count must match to enum class Response in general_response.hpp!
  * TODO make some automatic checks names vs enum
  */
-const std::array<std::pair<const char *, const png::Resource*>, static_cast<size_t>(Response::_last) + 1> BtnResponse::texts_and_icons {
+const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnResponse::texts_and_icons {
     std::make_pair( "",                     nullptr ),                  // _none
     std::make_pair( N_("ABORT"),            png::Get<png::Id::disconnect_48x48>() ),// Abort
     std::make_pair( "ABS",                  png::Get<png::Id::spool_58x58>() ),     // ABS filament, do not translate

@@ -5,16 +5,11 @@
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "resource.h"
+#include "png_resources.hpp"
 
-struct btn_resource {
-    ResourceId ico;
-    const char *txt;
-};
-
-static constexpr btn_resource res_tune = { IDR_PNG_settings_58px, N_("Tune") };
-static constexpr btn_resource res_pause = { IDR_PNG_pause_58px, (const char *)(N_("Pause")) };
-static constexpr btn_resource res_stop = { IDR_PNG_stop_58px, N_("Stop") };
+static constexpr BtnResource res_tune = { N_("Tune"), png::Get<png::Id::settings_58x58>() };
+static constexpr BtnResource res_pause = { N_("Pause"), png::Get<png::Id::pause_58x58>() };
+static constexpr BtnResource res_stop = { N_("Stop"), png::Get<png::Id::stop_58x58>() };
 
 class ScreenPrintingModel : public AddSuperWindow<IScreenPrinting> {
 protected:
@@ -28,8 +23,8 @@ protected:
     btn btn_stop;
 
     void initBtnText(btn &ref_button); // could access just text, but accessing entire button is more general
-    void setIconAndLabel(btn &ref_button, const btn_resource &res);
-    void initAndSetIconAndLabel(btn &ref_button, const btn_resource &res);
+    void setIconAndLabel(btn &ref_button, const BtnResource &res);
+    void initAndSetIconAndLabel(btn &ref_button, const BtnResource &res);
 
 public:
     ScreenPrintingModel(string_view_utf8 caption);
