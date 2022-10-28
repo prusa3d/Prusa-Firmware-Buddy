@@ -71,6 +71,10 @@ struct window_icon_t : public AddSuperWindow<window_aligned_t> {
 
     window_icon_t(window_t *parent, DataSourceId source, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
 
+    window_icon_t(window_t *parent, Rect16 rect, const png::Resource *res, is_closed_on_click_t close = is_closed_on_click_t::no);
+
+    window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
+
     static size_ui16_t CalculateMinimalSize(DataSourceId source); //works for center alignment
 
 protected:

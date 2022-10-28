@@ -49,6 +49,26 @@ window_icon_t::window_icon_t(window_t *parent, DataSourceId source, point_i16_t 
         source, close) {
 }
 
+window_icon_t::window_icon_t(window_t *parent, Rect16 rect, const png::Resource *res, is_closed_on_click_t close)
+    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close) {
+    SetAlignment(Align_t::Center());
+}
+
+//Icon rect is increased by padding, icon is centered inside it
+window_icon_t::window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
+    : window_icon_t(
+        parent,
+        [pt, res, padding] {
+            size_ui16_t sz = { 0, 0 }; // CalculateMinimalSize(source);
+            if (!(sz.h && sz.w))
+                return Rect16();
+            return Rect16(pt,
+                sz.w + padding.left + padding.right,
+                sz.h + padding.top + padding.bottom);
+        }(),
+        res, close) {
+}
+
 void window_icon_t::unconditionalDraw() {
     ropfn raster_op;
     raster_op.shadow = IsShadowed() ? is_shadowed::yes : is_shadowed::no;
