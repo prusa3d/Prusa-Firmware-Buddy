@@ -9,7 +9,7 @@ void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {
     uint32_t netdev_status = netdev_get_status(netdev_id);
 
     if (netdev_id != active_netdev_id) {
-        icon_network.SetIdRes(window_header_t::networkIcon(netdev_id));
+        icon_network.SetRes(window_header_t::networkIcon(netdev_id));
         invalidate = true;
         active_netdev_id = netdev_id;
     }
@@ -30,13 +30,8 @@ void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {
     }
 }
 
-void window_header_t::SetIcon(ResourceId id_res) {
-    icon_base.SetIdRes(id_res);
-    Invalidate();
-}
-
-void window_header_t::SetIconFilePath(const char *filepath) {
-    icon_base.SetFilePath(filepath);
+void window_header_t::SetIcon(const png::Resource *res) {
+    icon_base.SetRes(res);
     Invalidate();
 }
 
@@ -104,19 +99,19 @@ void window_header_t::updateMedia(MediaState_t state) {
     }
 };
 
-ResourceId window_header_t::networkIcon(uint32_t netdev_id) {
-    ResourceId res_id = IDR_NULL;
+const png::Resource *window_header_t::networkIcon(uint32_t netdev_id) {
+    const png::Resource *res = nullptr;
 
     switch (netdev_id) {
     case NETDEV_ETH_ID:
-        res_id = IDR_PNG_lan_16px;
+        res = png::Get<png::Id::lan_16x16>();
         break;
     case NETDEV_ESP_ID:
-        res_id = IDR_PNG_wifi_16px;
+        res = png::Get<png::Id::wifi_16x16>();
         break;
     default:
         break;
     }
 
-    return res_id;
+    return res;
 }
