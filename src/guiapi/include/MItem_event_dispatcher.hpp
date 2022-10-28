@@ -16,6 +16,6 @@ protected:
 
 public:
     explicit MI_event_dispatcher(string_view_utf8 label)
-        : WI_LABEL_t(label, IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_LABEL_t(label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void Do() = 0;
 };

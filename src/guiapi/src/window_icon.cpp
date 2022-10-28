@@ -173,7 +173,7 @@ void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t 
 /*****************************************************************************/
 //window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
-    : AddSuperWindow<window_icon_t>(parent, IDR_PNG_hourglass_39px, pt, padding, close)
+    : AddSuperWindow<window_icon_t>(parent, png::Get<png::Id::hourglass_26x39>(), pt, padding, close)
     , start_time(gui::GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {
@@ -277,17 +277,17 @@ void window_icon_hourglass_t::invalidate(Rect16 validation_rect) {
 //WindowIcon_OkNg
 
 //both must be same size
-const ResourceId WindowIcon_OkNg::id_res_na = IDR_PNG_dash_18px;
-const ResourceId WindowIcon_OkNg::id_res_ok = IDR_PNG_ok_color_18px;
-const ResourceId WindowIcon_OkNg::id_res_ng = IDR_PNG_nok_color_18px;
-const std::array<ResourceId, 4> WindowIcon_OkNg::id_res_ip = { { IDR_PNG_spinner1_16px, IDR_PNG_spinner2_16px, IDR_PNG_spinner3_16px, IDR_PNG_spinner4_16px } };
+const png::Resource *WindowIcon_OkNg::id_res_na = png::Get<png::Id::dash_18x18>();
+const png::Resource *WindowIcon_OkNg::id_res_ok = png::Get<png::Id::ok_color_18x18>();
+const png::Resource *WindowIcon_OkNg::id_res_ng = png::Get<png::Id::nok_color_18x18>();
+const std::array<const png::Resource *, 4> WindowIcon_OkNg::id_res_ip = { { png::Get<png::Id::spinner0_16x16>(), png::Get<png::Id::spinner1_16x16>(), png::Get<png::Id::spinner2_16x16>(), png::Get<png::Id::spinner3_16x16>() } };
 
 //Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
     : AddSuperWindow<window_aligned_t>(
         parent,
         [pt, padding] {
-            size_ui16_t sz = window_icon_t::CalculateMinimalSize(WindowIcon_OkNg::id_res_ok);
+            size_ui16_t sz = { 0, 0 }; // TODO window_icon_t::CalculateMinimalSize(WindowIcon_OkNg::id_res_ok);
             if (!(sz.h && sz.w))
                 return Rect16();
             return Rect16(pt,
@@ -310,7 +310,7 @@ void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
 }
 
 void WindowIcon_OkNg::unconditionalDraw() {
-    ResourceId id_res = IDR_NULL;
+    const png::Resource *id_res = nullptr;
     switch (GetState()) {
     case SelftestSubtestState_t::ok:
         id_res = id_res_ok;

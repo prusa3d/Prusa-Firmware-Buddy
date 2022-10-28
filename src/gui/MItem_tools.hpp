@@ -14,7 +14,7 @@ class MI_FILAMENT_SENSOR : public WI_SWITCH_OFF_ON_t {
 
 public:
     MI_FILAMENT_SENSOR()
-        : WI_SWITCH_OFF_ON_t(init_index(), _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_SWITCH_OFF_ON_t(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void OnChange(size_t old_index) override;
@@ -335,7 +335,7 @@ public:
 };
 class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {
 public:
-    MI_ODOMETER_DIST(string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
+    MI_ODOMETER_DIST(string_view_utf8 label, const png::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
 };
 
 class MI_ODOMETER_DIST_X : public MI_ODOMETER_DIST {

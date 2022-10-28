@@ -51,7 +51,7 @@ void MI_PURGE::Do() {
 /*****************************************************************************/
 //MI_COOLDOWN
 MI_COOLDOWN::MI_COOLDOWN()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_COOLDOWN::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);

@@ -29,12 +29,12 @@ screen_test_wizard_icons::screen_test_wizard_icons()
     , txt_ip1(this, this->GenerateRect(ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_ip1))
     , txt_hourglass(this, this->GenerateRect(ShiftDir_t::Bottom), is_multiline::no, is_closed_on_click_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_wizard_icon_hourglass))
 
-    , ico_na(this, Rect16(220 - 22, 76, 22, 22), IDR_PNG_dash_18px)
-    , ico_ok(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_ok_color_18px)
-    , ico_ng(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_nok_color_18px)
-    , ico_ip0(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_spinner1_16px)
-    , ico_ip1(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_spinner2_16px)
-    , ico_hourglass(this, this->GenerateRect(ShiftDir_t::Bottom), IDR_PNG_hourglass_39px)
+    , ico_na(this, Rect16(220 - 22, 76, 22, 22), png::Get<png::Id::dash_18x18>())
+    , ico_ok(this, this->GenerateRect(ShiftDir_t::Bottom), png::Get<png::Id::ok_color_18x18>())
+    , ico_ng(this, this->GenerateRect(ShiftDir_t::Bottom), png::Get<png::Id::nok_color_18x18>())
+    , ico_ip0(this, this->GenerateRect(ShiftDir_t::Bottom), png::Get<png::Id::spinner0_16x16>())
+    , ico_ip1(this, this->GenerateRect(ShiftDir_t::Bottom), png::Get<png::Id::spinner1_16x16>())
+    , ico_hourglass(this, this->GenerateRect(ShiftDir_t::Bottom), png::Get<png::Id::hourglass_26x39>())
 
 {
     // testing code - intentionally not translated

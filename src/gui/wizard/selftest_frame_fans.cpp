@@ -29,10 +29,10 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
     : AddSuperWindow<SelftestFrameNamed>(parent, ph, data, _(en_text_fan_test))
     , footer(this, 0, footer::items::ItemPrintFan, footer::items::ItemHeatbreakFan)
     , progress(this, WizardDefaults::row_1)
-    , icon_hotend_fan(this, IDR_PNG_fan_16x16, point_i16_t({ WizardDefaults::col_0, row_2 }))
+    , icon_hotend_fan(this, png::Get<png::Id::fan_16x16>(), point_i16_t({ WizardDefaults::col_0, row_2 }))
     , text_hotend_fan(this, Rect16(col_texts, row_2, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_hotend_fan))
     , icon_hotend_fan_state(this, { col_results, row_2 })
-    , icon_print_fan(this, IDR_PNG_turbine_16x16, point_i16_t({ WizardDefaults::col_0, row_3 }))
+    , icon_print_fan(this, png::Get<png::Id::turbine_16x16>(), point_i16_t({ WizardDefaults::col_0, row_3 }))
     , text_print_fan(this, Rect16(col_texts, row_3, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_print_fan))
     , icon_print_fan_state(this, { col_results, row_3 })
     , text_info(this, Rect16(col_texts, row_4, WizardDefaults::X_space, GetRect().Height() - GetRect().Top() - row_4), is_multiline::yes, is_closed_on_click_t::no, _(en_text_info)) {

@@ -20,7 +20,7 @@ class MI_PL_REGENERATE_API_KEY : public WI_LABEL_t {
 
 public:
     MI_PL_REGENERATE_API_KEY()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 public:
     enum EventMask { value = 1 << 18 };
@@ -39,7 +39,7 @@ class MI_PL_ENABLED : public WI_SWITCH_OFF_ON_t {
 public:
     MI_PL_ENABLED()
         : WI_SWITCH_OFF_ON_t(eeprom_get_ui8(EEVAR_PL_RUN),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 public:
     enum EventMask { value = 1 << 19 };

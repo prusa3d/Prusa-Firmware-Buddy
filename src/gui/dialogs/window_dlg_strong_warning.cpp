@@ -17,7 +17,7 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes)
     , header(this, _(Title))
     , footer(this)
-    , icon(this, IDR_PNG_exposure_times_48px, { 120 - 24, 48 })
+    , icon(this, png::Get<png::Id::exposure_times_48x48>(), { 120 - 24, 48 })
     , text(this, textRectIcon, is_multiline::yes)
     , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(64), dlg_responses, &ph_txt_continue) {
 }
@@ -28,9 +28,9 @@ void window_dlg_strong_warning_t::show(types type) {
     shown[type] = true;
     on_top = type;
 
-    icon.SetIdRes(icon_title_text[type].icon);
+    icon.SetRes(icon_title_text[type].icon);
     header.SetText(_(icon_title_text[type].title));
-    if (IDR_NULL == icon_title_text[type].icon)
+    if (!icon_title_text[type].icon)
         text.SetRect(GuiDefaults::RectScreenBody);
     else
         text.SetRect(textRectIcon);

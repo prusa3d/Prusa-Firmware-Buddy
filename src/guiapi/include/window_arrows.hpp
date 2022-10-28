@@ -1,14 +1,8 @@
 #pragma once
 
 #include "window.hpp"
-#include "resource.h"
 
 class WindowArrows : public window_aligned_t {
-    static const ResourceId id_res_grey_up;
-    static const ResourceId id_res_grey_down;
-    static const ResourceId id_res_orange_up;
-    static const ResourceId id_res_orange_down;
-
 public:
     enum class State_t : uint8_t { undef,
         up,

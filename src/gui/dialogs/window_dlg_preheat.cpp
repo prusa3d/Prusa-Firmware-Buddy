@@ -22,7 +22,7 @@ void NsPreheat::I_MI_Filament::click_at(filament_t filament_index) {
 /*****************************************************************************/
 //NsPreheat::MI_RETURN
 NsPreheat::MI_RETURN::MI_RETURN()
-    : WI_LABEL_t(_(label), IDR_PNG_folder_up_16px, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), png::Get<png::Id::folder_up_16x16>(), is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {

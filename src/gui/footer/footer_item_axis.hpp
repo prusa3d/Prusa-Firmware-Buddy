@@ -19,8 +19,8 @@ class FooterItemAxisPos : public AddSuperWindow<FooterIconText_FloatVal> {
     static string_view_utf8 static_makeViewIntoBuff(float value);
 
 public:
-    FooterItemAxisPos(window_t *parent, ResourceId icon_id)
-        : AddSuperWindow<FooterIconText_FloatVal>(parent, icon_id, static_makeViewIntoBuff, static_readValue) {}
+    FooterItemAxisPos(window_t *parent, const png::Resource *icon)
+        : AddSuperWindow<FooterIconText_FloatVal>(parent, icon, static_makeViewIntoBuff, static_readValue) {}
 };
 
 template <size_t AXIS>
@@ -54,8 +54,8 @@ class FooterItemAxisCurrPos : public AddSuperWindow<FooterIconText_FloatVal> {
     static string_view_utf8 static_makeViewIntoBuff(float value);
 
 public:
-    FooterItemAxisCurrPos(window_t *parent, ResourceId icon_id)
-        : AddSuperWindow<FooterIconText_FloatVal>(parent, icon_id, static_makeViewIntoBuff, static_readValue) {}
+    FooterItemAxisCurrPos(window_t *parent, const png::Resource *icon)
+        : AddSuperWindow<FooterIconText_FloatVal>(parent, icon, static_makeViewIntoBuff, static_readValue) {}
 };
 
 template <size_t AXIS>
@@ -83,13 +83,13 @@ class FooterItemAxisX : FooterItemAxisPos<0> {
 public:
     static string_view_utf8 GetName() { return _("X Axis"); }
     FooterItemAxisX(window_t *parent)
-        : FooterItemAxisPos<0>(parent, IDR_PNG_x_axis_16x16) {}
+        : FooterItemAxisPos<0>(parent, png::Get<png::Id::x_axis_16x16>()) {}
 };
 class FooterItemAxisY : FooterItemAxisPos<1> {
 public:
     static string_view_utf8 GetName() { return _("Y Axis"); }
     FooterItemAxisY(window_t *parent)
-        : FooterItemAxisPos<1>(parent, IDR_PNG_y_axis_16x16) {}
+        : FooterItemAxisPos<1>(parent, png::Get<png::Id::y_axis_16x16>()) {}
 };
 
 class FooterItemAxisZ : FooterItemAxisPos<2> {
@@ -97,7 +97,7 @@ public:
     static string_view_utf8 GetName() { return _("Z Axis"); }
 
     FooterItemAxisZ(window_t *parent)
-        : FooterItemAxisPos<2>(parent, IDR_PNG_z_axis_16x16) {}
+        : FooterItemAxisPos<2>(parent, png::Get<png::Id::z_axis_16x16>()) {}
 };
 
 class FooterItemZHeight : FooterItemAxisCurrPos<2> {
@@ -105,5 +105,5 @@ public:
     static string_view_utf8 GetName() { return _("Z Heigth"); }
 
     FooterItemZHeight(window_t *parent)
-        : FooterItemAxisCurrPos<2>(parent, IDR_PNG_z_axis_16x16) {}
+        : FooterItemAxisCurrPos<2>(parent, png::Get<png::Id::z_axis_16x16>()) {}
 };

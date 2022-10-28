@@ -4,17 +4,18 @@
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
+#include "png_reources.hpp"
 
 screen_test_gui_data_t::screen_test_gui_data_t()
     : AddSuperWindow<screen_t>()
-    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash, is_closed_on_click_t::yes)
+    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), png::Get<png::Id::prusa_mini_splash_207x47>(), is_closed_on_click_t::yes)
     , text0(this, Rect16(10, 70, 60, 22), is_multiline::no)
     , text1(this, Rect16(80, 70, 60, 22), is_multiline::no)
     , text2(this, Rect16(150, 70, 60, 22), is_multiline::no)
     , numb0(this, Rect16(10, 100, 60, 22))
-    , icon0(this, Rect16(10, 234, 64, 64), IDR_PNG_print_58px)
-    , icon1(this, Rect16(80, 234, 64, 64), IDR_PNG_preheat_58px)
-    , icon2(this, Rect16(150, 234, 64, 64), IDR_PNG_spool_58px)
+    , icon0(this, Rect16(10, 234, 64, 64), png::Get<png::Id::print_58x58>())
+    , icon1(this, Rect16(80, 234, 64, 64), png::Get<png::Id::preheat_58x58>())
+    , icon2(this, Rect16(150, 234, 64, 64), png::Get<png::Id::spool_58x58>())
     , progress(this, Rect16(0, 200, 240, 30))
     , text_terminal(this, Rect16(0, 298, 240, 22), is_multiline::no) {
 

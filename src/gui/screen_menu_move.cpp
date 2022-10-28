@@ -22,7 +22,7 @@ protected:
 public:
     MI_AXIS<INDEX, LONG_SEG, BUFFER_LEN>()
         : WiSpinInt(int32_t(marlin_vars()->pos[INDEX]),
-            SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), IDR_NULL, is_enabled_t::yes, is_hidden_t::no)
+            SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), nullptr, is_enabled_t::yes, is_hidden_t::no)
         , lastQueuedPos(int32_t(marlin_vars()->pos[INDEX])) {}
 
     // enqueue next moves according to value of spinners;
@@ -81,7 +81,7 @@ public:
             && (int(marlin_vars()->target_nozzle + 0.9F) >= Filaments::Current().nozzle); // target temperature is high enough - +0.9 to avoid float round error
     }
     DUMMY_AXIS_E()
-        : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, 0,
+        : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), nullptr, is_enabled_t::yes, is_hidden_t::no, 0,
             // this lambda is used during print, but does require item to be invalidated
             [&](char *buffer) {
                 if (value) {

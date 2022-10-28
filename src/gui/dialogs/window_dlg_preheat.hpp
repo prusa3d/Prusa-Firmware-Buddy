@@ -17,7 +17,7 @@ namespace NsPreheat {
 class I_MI_Filament : public WI_LABEL_t {
 public:
     I_MI_Filament(string_view_utf8 long_name)
-        : WI_LABEL_t(long_name, IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_LABEL_t(long_name, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     void click_at(filament_t filament_index);

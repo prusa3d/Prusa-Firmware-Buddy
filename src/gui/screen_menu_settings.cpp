@@ -23,7 +23,7 @@ class MI_LOAD_SETTINGS : public WI_LABEL_t {
 
 public:
     MI_LOAD_SETTINGS()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
         // FIXME: Some error handling/reporting
         // TODO: Loading other things than just network

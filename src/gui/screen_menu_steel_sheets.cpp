@@ -55,7 +55,7 @@ class MI_SHEET_OFFSET : public WI_LAMBDA_LABEL_t {
 
 public:
     MI_SHEET_OFFSET()
-        : WI_LAMBDA_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::yes, [this](char *buffer) {
+        : WI_LAMBDA_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::yes, [this](char *buffer) {
             snprintf(buffer, GuiDefaults::infoDefaultLen, "%.3f mm", static_cast<double>(this->offset));
         }) {
     }
@@ -74,7 +74,7 @@ class MI_SHEET_SELECT : public WI_LABEL_t {
 
 public:
     MI_SHEET_SELECT()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {};
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -87,7 +87,7 @@ class MI_SHEET_CALIBRATE : public WI_LABEL_t {
 
 public:
     MI_SHEET_CALIBRATE()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {};
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -100,7 +100,7 @@ class MI_SHEET_RENAME : public WI_LABEL_t {
 
 public:
     MI_SHEET_RENAME()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {};
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -113,7 +113,7 @@ class MI_SHEET_RESET : public WI_LABEL_t {
 
 public:
     MI_SHEET_RESET()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::no, is_hidden_t::no) {};
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {};
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -201,7 +201,7 @@ template <typename Index>
 struct ProfileRecord : public WI_LABEL_t {
     char name[MAX_SHEET_NAME_LENGTH + 1];
     ProfileRecord()
-        : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+        : WI_LABEL_t(string_view_utf8::MakeNULLSTR(), nullptr, is_enabled_t::yes, is_hidden_t::no) {
         memset(name, 0, MAX_SHEET_NAME_LENGTH + 1);
         SteelSheets::SheetName(Index::value, name, MAX_SHEET_NAME_LENGTH + 1);
         // string_view_utf8::MakeRAM is safe. "name" is member var, exists until ProfileRecord is destroyed
