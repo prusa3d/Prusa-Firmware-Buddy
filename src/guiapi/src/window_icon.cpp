@@ -155,6 +155,13 @@ window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, Resour
     Enable();
 }
 
+window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const png::Resource *res, ButtonCallback cb)
+    : AddSuperWindow<window_icon_t>(parent, rect, res)
+    , callback(cb) {
+    SetBackColor(GuiDefaults::ClickableIconColorScheme);
+    Enable();
+}
+
 void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         callback();
