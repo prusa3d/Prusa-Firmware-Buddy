@@ -88,6 +88,7 @@ class window_icon_button_t : public AddSuperWindow<window_icon_t> {
 
 public:
     window_icon_button_t(window_t *parent, Rect16 rect, ResourceId id_res, ButtonCallback cb);
+    window_icon_button_t(window_t *parent, Rect16 rect, const png::Resource *res, ButtonCallback cb);
     void SetAction(ButtonCallback cb) { callback = cb; }
 
 protected:
