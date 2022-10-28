@@ -25,11 +25,11 @@ struct Resource {
 
 // ordered by width, height and alphabetically
 enum class Id {
-#include "png_id.gen"
+#include "../gui/res/png_id.gen"
 };
 
 static constexpr Resource resources[] {
-#include "png_resources.gen"
+#include "../gui/res/png_resources.gen"
 };
 
 // I did not use reference to support array of pointers to resource
