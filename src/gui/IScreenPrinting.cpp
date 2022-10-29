@@ -9,7 +9,7 @@ IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
     , footer(this) {
     IScreenPrinting::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetText(caption);
-    header.SetIcon(png::Get<png::Id::print_16x16>());
+    header.SetIcon(&png::print_16x16);
     ths = this;
 }
 

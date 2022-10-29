@@ -17,7 +17,7 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes)
     , header(this, _(Title))
     , footer(this)
-    , icon(this, png::Get<png::Id::exposure_times_48x48>(), { 120 - 24, 48 })
+    , icon(this, &png::exposure_times_48x48, { 120 - 24, 48 })
     , text(this, textRectIcon, is_multiline::yes)
     , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(64), dlg_responses, &ph_txt_continue) {
 }

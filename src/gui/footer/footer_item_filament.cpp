@@ -9,7 +9,7 @@
 #include "filament.hpp"
 
 FooterItemFilament::FooterItemFilament(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, png::Get<png::Id::spool_16x16>(), static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::spool_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFilament::static_readValue() {

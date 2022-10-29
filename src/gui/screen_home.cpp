@@ -29,12 +29,12 @@ bool screen_home_data_t::ever_been_openned = false;
 bool screen_home_data_t::try_esp_flash = true;
 
 static constexpr const png::Resource *icons[] = {
-    png::Get<png::Id::print_58x58>(),
-    png::Get<png::Id::preheat_58x58>(),
-    png::Get<png::Id::spool_58x58>(),
-    png::Get<png::Id::calibrate_58x58>(),
-    png::Get<png::Id::settings_58x58>(),
-    png::Get<png::Id::info_58x58>()
+    &png::print_58x58,
+    &png::preheat_58x58,
+    &png::spool_58x58,
+    &png::calibrate_58x58,
+    &png::settings_58x58,
+    &png::info_58x58
 };
 
 constexpr size_t labelPrintId = 0;
@@ -59,7 +59,7 @@ screen_home_data_t::screen_home_data_t()
     , esp_flash_being_openned(false)
     , header(this)
     , footer(this)
-    , logo(this, Rect16(41, 31, 158, 40), png::Get<png::Id::prusa_mini_logo_153x40>())
+    , logo(this, Rect16(41, 31, 158, 40), &png::prusa_mini_logo_153x40)
     , w_buttons { { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), IDR_NULL, []() { marlin_gcode_printf("M1700"); } },
         { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
@@ -80,7 +80,7 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     screen_filebrowser_data_t::SetRoot("/usb");
 
-    header.SetIcon(png::Get<png::Id::home_shape_16x16>());
+    header.SetIcon(&png::home_shape_16x16);
 #ifndef _DEBUG
     header.SetText(_("HOME"));
 #else
@@ -131,7 +131,7 @@ void screen_home_data_t::handle_crash_dump() {
     if (MsgBoxWarning(_("Crash detected. Download it to USB and send it to Prusa?"), Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const crash_dump::DumpHandler *> auto fp) {
-            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, png::Get<png::Id::info_58x58>());
+            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &png::info_58x58);
             box.Show();
             draw();
             for (const auto &dump_handler : present_dumps) {

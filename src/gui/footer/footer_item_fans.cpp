@@ -25,14 +25,14 @@ IFooterItemFan::IFooterItemFan(window_t *parent, const png::Resource *icon, view
 }
 
 FooterItemPrintFan::FooterItemPrintFan(window_t *parent)
-    : AddSuperWindow<IFooterItemFan>(parent, png::Get<png::Id::turbine_16x16>(), static_makeView, static_readValue) {
+    : AddSuperWindow<IFooterItemFan>(parent, &png::turbine_16x16, static_makeView, static_readValue) {
 }
 int FooterItemPrintFan::static_readValue() {
     return marlin_vars()->print_fan_rpm;
 }
 
 FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
-    : AddSuperWindow<IFooterItemFan>(parent, png::Get<png::Id::fan_16x16>(), static_makeView, static_readValue) {
+    : AddSuperWindow<IFooterItemFan>(parent, &png::fan_16x16, static_makeView, static_readValue) {
 }
 int FooterItemHeatBreakFan::static_readValue() {
     return marlin_vars()->heatbreak_fan_rpm;

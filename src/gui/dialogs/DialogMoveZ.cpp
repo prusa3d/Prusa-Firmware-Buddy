@@ -19,7 +19,7 @@ DialogMoveZ::DialogMoveZ()
     , arrows(this, text_rc.TopRight(), { 0, 6, 0, 6 })
     , numb(this, numb_rc, marlin_vars()->pos[2], "%d mm", GuiDefaults::FontBig)
     , header(this, _(headerLabel))
-    , icon(this, icon_rc, png::Get<png::Id::turn_knob_81x55>()) {
+    , icon(this, icon_rc, &png::turn_knob_81x55) {
     DialogShown = true;
 
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
@@ -27,7 +27,7 @@ DialogMoveZ::DialogMoveZ()
     marlin_gcode("M204 T200");
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;
-    header.SetIcon(png::Get<png::Id::z_axis_16x16>());
+    header.SetIcon(&png::z_axis_16x16);
 
     constexpr static padding_ui8_t padding({ 6, 0, 6, 0 });
 

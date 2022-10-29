@@ -78,8 +78,8 @@ static constexpr const char *en_text_long_repeat = N_("Repeated collision\nhas b
 
 WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_check))
-    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, png::Get<png::Id::nozzle_crash_101x64>())
-    , icon_nozzle(&screen, icon_nozzle_rc, png::Get<png::Id::nozzle_shape_48x48>())
+    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &png::nozzle_crash_101x64)
+    , icon_nozzle(&screen, icon_nozzle_rc, &png::nozzle_shape_48x48)
     , text_checking_axis(&screen, text_checking_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_axis_test))
     , line(&screen, line_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
     , text_x_axis(&screen, text_x_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_X_axis))
@@ -94,8 +94,8 @@ WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
 
 WinsHome::WinsHome(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_check))
-    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, png::Get<png::Id::nozzle_crash_101x64>())
-    , icon_nozzle(&screen, icon_nozzle_rc, png::Get<png::Id::nozzle_shape_48x48>())
+    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &png::nozzle_crash_101x64)
+    , icon_nozzle(&screen, icon_nozzle_rc, &png::nozzle_shape_48x48)
     , line(&screen, line_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
     , text_home_axes(&screen, text_x_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_home_axes))
     , icon_home_axes(&screen, { col_2, row_4 }) {
@@ -120,8 +120,8 @@ WinsAxisNok::WinsAxisNok(ScreenCrashRecovery &screen)
 
 WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_repeat_rc + Rect16::Height_t(repeat_nozzle_shift), is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_repeat))
-    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc + Rect16::Y_t(repeat_nozzle_shift), png::Get<png::Id::nozzle_crash_101x64>())
-    , icon_nozzle(&screen, icon_nozzle_rc + Rect16::Y_t(repeat_nozzle_shift), png::Get<png::Id::nozzle_shape_48x48>())
+    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc + Rect16::Y_t(repeat_nozzle_shift), &png::nozzle_crash_101x64)
+    , icon_nozzle(&screen, icon_nozzle_rc + Rect16::Y_t(repeat_nozzle_shift), &png::nozzle_shape_48x48)
     , radio(&screen, GuiDefaults::GetButtonRect_AvoidFooter(screen.GetRect()), ClientResponses::GetResponses(PhasesCrashRecovery::repeated_crash), &texts) {
 
     text_long.SetAlignment(Align_t::Center());
@@ -218,7 +218,7 @@ ScreenCrashRecovery::ScreenCrashRecovery()
 
     ScreenCrashRecovery::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetText(_("CRASH DETECTED"));
-    header.SetIcon(png::Get<png::Id::nozzle_16x16>());
+    header.SetIcon(&png::nozzle_16x16);
     ths = this;
 }
 

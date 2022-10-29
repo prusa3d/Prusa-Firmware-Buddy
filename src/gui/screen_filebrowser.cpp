@@ -36,7 +36,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     , w_filelist(this)
     , gcode_info(GCodeInfo::getInstance()) {
 
-    header.SetIcon(png::Get<png::Id::folder_full_16x16>());
+    header.SetIcon(&png::folder_full_16x16);
     static const char sf[] = N_("PROJECTS");
     header.SetText(_(sf));
 

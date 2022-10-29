@@ -173,7 +173,7 @@ void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t 
 /*****************************************************************************/
 //window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
-    : AddSuperWindow<window_icon_t>(parent, png::Get<png::Id::hourglass_26x39>(), pt, padding, close)
+    : AddSuperWindow<window_icon_t>(parent, &png::hourglass_26x39, pt, padding, close)
     , start_time(gui::GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {
@@ -277,10 +277,10 @@ void window_icon_hourglass_t::invalidate(Rect16 validation_rect) {
 //WindowIcon_OkNg
 
 //both must be same size
-const png::Resource *WindowIcon_OkNg::id_res_na = png::Get<png::Id::dash_18x18>();
-const png::Resource *WindowIcon_OkNg::id_res_ok = png::Get<png::Id::ok_color_18x18>();
-const png::Resource *WindowIcon_OkNg::id_res_ng = png::Get<png::Id::nok_color_18x18>();
-const std::array<const png::Resource *, 4> WindowIcon_OkNg::id_res_ip = { { png::Get<png::Id::spinner0_16x16>(), png::Get<png::Id::spinner1_16x16>(), png::Get<png::Id::spinner2_16x16>(), png::Get<png::Id::spinner3_16x16>() } };
+const png::Resource *WindowIcon_OkNg::id_res_na = &png::dash_18x18;
+const png::Resource *WindowIcon_OkNg::id_res_ok = &png::ok_color_18x18;
+const png::Resource *WindowIcon_OkNg::id_res_ng = &png::nok_color_18x18;
+const std::array<const png::Resource *, 4> WindowIcon_OkNg::id_res_ip = { { &png::spinner0_16x16, &png::spinner1_16x16, &png::spinner2_16x16, &png::spinner3_16x16 } };
 
 //Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
@@ -364,6 +364,10 @@ void WindowPreviewThumbnail::unconditionalDraw() {
     if (!gcode_info.file)
         return;
     FILE f = { 0 };
+
+    png::Resource res("", 0, 0, 0, 0);
+    res.file = &f;
+
     fseek(gcode_info.file, 0, SEEK_SET);
     GCodeThumbDecoder gd(gcode_info.file, Width(), Height(), true);
     if (f_gcode_thumb_open(&gd, &f) == 0) {

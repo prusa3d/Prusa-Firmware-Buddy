@@ -45,11 +45,11 @@ protected: // inherited by unit tests, must be protected
 
     // order must match to enum types
     static constexpr icon_title_text_t icon_title_text[types::count_] = {
-        { png::Get<png::Id::fan_error_48x48>(), Title, HotendFanErrorMsg },
-        { png::Get<png::Id::fan_error_48x48>(), Title, PrintFanErrorMsg },
+        { &png::fan_error_48x48, Title, HotendFanErrorMsg },
+        { &png::fan_error_48x48, Title, PrintFanErrorMsg },
         { nullptr, TitleNozzle, HotendTempDiscrepancyMsg },
-        { png::Get<png::Id::exposure_times_48x48>(), Title, HeaterTimeoutMsg },
-        { png::Get<png::Id::usb_error_48x48>(), Title, USBFlashDiskError },
+        { &png::exposure_times_48x48, Title, HeaterTimeoutMsg },
+        { &png::usb_error_48x48, Title, USBFlashDiskError },
     };
 
     static std::bitset<types::count_> shown; // mask of all "active" dialogs

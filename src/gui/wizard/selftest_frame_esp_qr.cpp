@@ -13,7 +13,7 @@
 SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
     , text(this, Positioner::textRect(), is_multiline::yes)
-    , icon_phone(this, Positioner::phoneIconRect(), png::Get<png::Id::hand_qr_59x72>())
+    , icon_phone(this, Positioner::phoneIconRect(), &png::hand_qr_59x72)
     , qr(this, Positioner::qrcodeRect(), QR_ADDR)
 
 {

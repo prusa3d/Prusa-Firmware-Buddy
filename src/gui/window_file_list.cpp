@@ -262,10 +262,10 @@ const png::Resource *window_file_list_t::itemIcon(int index) const {
         // this should normally not happen, visible_count shall limit indices to valid items only
         return nullptr; // ... but getting ready for the unexpected
     }
-    const png::Resource *icon = isFile ? nullptr : png::Get<png::Id::folder_full_16x16>();
+    const png::Resource *icon = isFile ? nullptr : &png::folder_full_16x16;
 
     if (index == 0 && strcmp(item.first, "..") == 0 && IsPathRoot(sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
-        icon = png::Get<png::Id::folder_full_16x16>();
+        icon = &png::folder_full_16x16;
     }
     return icon;
 }

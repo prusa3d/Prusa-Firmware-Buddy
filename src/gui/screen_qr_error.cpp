@@ -30,7 +30,7 @@ ScreenErrorQR::ScreenErrorQR()
     : AddSuperWindow<screen_reset_error_data_t>()
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
-    , hand_icon(this, hand_rect, png::Get<png::Id::hand_qr_59x72>())
+    , hand_icon(this, hand_rect, &png::hand_qr_59x72)
     , qr(this, QR_rect, 1) // error code is passed in the constructor
     , help_txt(this, Rect16(0, 0, 0, 0), is_multiline::no)
     , help_link(this, link_rect, is_multiline::no)

@@ -219,7 +219,7 @@ void MI_RESET_CURRENTS::click(IWindowMenu &window_menu) {
 /*****************************************************************************/
 //MI_SAVE_AND_RETURN
 MI_SAVE_AND_RETURN::MI_SAVE_AND_RETURN()
-    : WI_LABEL_t(NOTRAN(label), png::Get<png::Id::folder_up_16x16>(), is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_LABEL_t(NOTRAN(label), &png::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_SAVE_AND_RETURN::click(IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Return);

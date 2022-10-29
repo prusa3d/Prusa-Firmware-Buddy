@@ -9,7 +9,7 @@
 #include "SteelSheets.hpp"
 
 FooterItemSheets::FooterItemSheets(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, png::Get<png::Id::sheets_profile_16x14>(), static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::sheets_profile_16x14, static_makeView, static_readValue) {
 }
 
 int FooterItemSheets::static_readValue() {
