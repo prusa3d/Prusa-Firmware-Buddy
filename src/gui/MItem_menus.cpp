@@ -125,7 +125,7 @@ void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 //MI_ETH_SETTINGS
 MI_ETH_SETTINGS::MI_ETH_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-    SetIconId(png::Get<png::Id::lan_16x16>());
+    SetIconId(&png::lan_16x16);
 }
 
 void MI_ETH_SETTINGS::click(IWindowMenu & /*window_menu*/) {
@@ -136,7 +136,7 @@ void MI_ETH_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 //MI_WIFI_SETTINGS
 MI_WIFI_SETTINGS::MI_WIFI_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-    SetIconId(png::Get<png::Id::wifi_16x16>());
+    SetIconId(&png::wifi_16x16);
 }
 
 void MI_WIFI_SETTINGS::click(IWindowMenu & /*window_menu*/) {

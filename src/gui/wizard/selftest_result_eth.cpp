@@ -25,8 +25,8 @@ static string_view_utf8 getText(TestResultNet_t res) {
 
 ResultEth::ResultEth(TestResultNet_t res)
     : SelfTestGroup(_("Ethernet connection"))
-    , connected(getText(res), png::Get<png::Id::lan_16x16>(), TestResult_t::Passed)
-    , not_connected(getText(res), png::Get<png::Id::lan_16x16>()) {
+    , connected(getText(res), &png::lan_16x16, TestResult_t::Passed)
+    , not_connected(getText(res), &png::lan_16x16) {
     switch (res) {
     case TestResultNet_t::Up:
     case TestResultNet_t::Down:

@@ -12,38 +12,38 @@
  */
 const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnResponse::texts_and_icons {
     std::make_pair( "",                     nullptr ),                  // _none
-    std::make_pair( N_("ABORT"),            png::Get<png::Id::disconnect_48x48>() ),// Abort
-    std::make_pair( "ABS",                  png::Get<png::Id::spool_58x58>() ),     // ABS filament, do not translate
-    std::make_pair( "ASA",                  png::Get<png::Id::spool_58x58>() ),     // ASA filament, do not translate
-    std::make_pair( N_("BACK"),             png::Get<png::Id::back_32x32>() ),      // Back
-    std::make_pair( N_("CANCEL"),           png::Get<png::Id::disconnect_48x48>() ),// Cancel
-    std::make_pair( N_("CHANGE"),           nullptr ),                              // Change
-    std::make_pair( N_("CONTINUE"),         png::Get<png::Id::resume_48x48>() ),    // Continue
-    std::make_pair( N_("COOLDOWN"),         nullptr ),                              // Cooldown
-    std::make_pair( N_("DISABLE SENSOR"),   nullptr ),                              // Filament_removed
-    std::make_pair( "FLEX",                 png::Get<png::Id::spool_58x58>() ),     // FLEX filament, do not translate
-    std::make_pair( N_("DISABLE FS"),       nullptr ),                              // FS_disable
-    std::make_pair( "HIPS",                 png::Get<png::Id::spool_58x58>() ),     // HIPS filament, do not translate
-    std::make_pair( N_("IGNORE"),           nullptr ),                              // Ignore
-    std::make_pair( N_("LOAD"),             png::Get<png::Id::spool_58x58>() ),     // Load
-    std::make_pair( N_("NEXT"),             nullptr ),                              // Next
-    std::make_pair( N_("NO"),               nullptr ),                              // No
-    std::make_pair( N_("OK"),               nullptr ),                              // Ok
-    std::make_pair( N_("PAUSE"),            png::Get<png::Id::pause_58x58>() ),     // Pause
-    std::make_pair( "PC",                   png::Get<png::Id::spool_58x58>() ),     // PC filament, do not translate
-    std::make_pair( "PETG",                 png::Get<png::Id::spool_58x58>() ),     // PETG filament, do not translate
-    std::make_pair( "PLA",                  png::Get<png::Id::spool_58x58>() ),     // PLA filament, do not translate
-    std::make_pair( "PP",                   png::Get<png::Id::spool_58x58>() ),     // PP filament, do not translate
-    std::make_pair( "Print",                png::Get<png::Id::print_58x58>() ),     // Print
-    std::make_pair( N_("PURGE MORE"),       png::Get<png::Id::spool_58x58>() ),     // Purge_more
-    std::make_pair( "PVB",                  png::Get<png::Id::spool_58x58>() ),     // PVB filament, do not translate
-    std::make_pair( N_("REHEAT"),           png::Get<png::Id::preheat_58x58>() ),   // Reheat
-    std::make_pair( N_("RESUME"),           png::Get<png::Id::resume_48x48>() ),    // Resume
-    std::make_pair( N_("RETRY"),            png::Get<png::Id::back_32x32>() ),      // Retry
-    std::make_pair( N_("SKIP"),             png::Get<png::Id::back_32x32>() ),      // Skip
-    std::make_pair( N_("STOP"),             png::Get<png::Id::stop_58x58>()  ),     // Stop
-    std::make_pair( N_("UNLOAD"),           png::Get<png::Id::spool_58x58>() ),     // Unload
-    std::make_pair( N_("YES"),              nullptr )                               // Yes
+    std::make_pair( N_("ABORT"),            &png::disconnect_48x48 ),   // Abort
+    std::make_pair( "ABS",                  &png::spool_58x58 ),        // ABS filament, do not translate
+    std::make_pair( "ASA",                  &png::spool_58x58 ),        // ASA filament, do not translate
+    std::make_pair( N_("BACK"),             &png::back_32x32 ),         // Back
+    std::make_pair( N_("CANCEL"),           &png::disconnect_48x48 ),   // Cancel
+    std::make_pair( N_("CHANGE"),           nullptr ),                  // Change
+    std::make_pair( N_("CONTINUE"),         &png::resume_48x48 ),       // Continue
+    std::make_pair( N_("COOLDOWN"),         nullptr ),                  // Cooldown
+    std::make_pair( N_("DISABLE SENSOR"),   nullptr ),                  // Filament_removed
+    std::make_pair( "FLEX",                 &png::spool_58x58 ),        // FLEX filament, do not translate
+    std::make_pair( N_("DISABLE FS"),       nullptr ),                  // FS_disable
+    std::make_pair( "HIPS",                 &png::spool_58x58 ),        // HIPS filament, do not translate
+    std::make_pair( N_("IGNORE"),           nullptr ),                  // Ignore
+    std::make_pair( N_("LOAD"),             &png::spool_58x58 ),        // Load
+    std::make_pair( N_("NEXT"),             nullptr ),                  // Next
+    std::make_pair( N_("NO"),               nullptr ),                  // No
+    std::make_pair( N_("OK"),               nullptr ),                  // Ok
+    std::make_pair( N_("PAUSE"),            &png::pause_58x58 ),        // Pause
+    std::make_pair( "PC",                   &png::spool_58x58 ),        // PC filament, do not translate
+    std::make_pair( "PETG",                 &png::spool_58x58 ),        // PETG filament, do not translate
+    std::make_pair( "PLA",                  &png::spool_58x58 ),        // PLA filament, do not translate
+    std::make_pair( "PP",                   &png::spool_58x58 ),        // PP filament, do not translate
+    std::make_pair( "Print",                &png::print_58x58 ),        // Print
+    std::make_pair( N_("PURGE MORE"),       &png::spool_58x58 ),        // Purge_more
+    std::make_pair( "PVB",                  &png::spool_58x58 ),        // PVB filament, do not translate
+    std::make_pair( N_("REHEAT"),           &png::preheat_58x58 ),      // Reheat
+    std::make_pair( N_("RESUME"),           &png::resume_48x48 ),       // Resume
+    std::make_pair( N_("RETRY"),            &png::back_32x32 ),         // Retry
+    std::make_pair( N_("SKIP"),             &png::back_32x32 ),         // Skip
+    std::make_pair( N_("STOP"),             &png::stop_58x58  ),        // Stop
+    std::make_pair( N_("UNLOAD"),           &png::spool_58x58 ),        // Unload
+    std::make_pair( N_("YES"),              nullptr )                   // Yes
 };
 // clang-format on
 

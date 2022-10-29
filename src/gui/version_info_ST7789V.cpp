@@ -55,7 +55,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     CaptureNormalWindow(menu); // set capture to list
 
     //=============SCREEN INIT===============
-    header.SetIcon(png::Get<png::Id::info_16x16>());
+    header.SetIcon(&png::info_16x16);
 
     //=============VARIABLES=================
 

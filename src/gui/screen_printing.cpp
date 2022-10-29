@@ -28,15 +28,15 @@ enum class Btn {
 };
 
 static constexpr BtnResource btn_res[static_cast<size_t>(item_id_t::count)] = {
-    { N_("Tune"), png::Get<png::Id::settings_58x58>() },
-    { N_("Pause"), png::Get<png::Id::pause_58x58>() },
-    { N_("Pausing..."), png::Get<png::Id::pause_58x58>() },
-    { N_("Stop"), png::Get<png::Id::stop_58x58>() },
-    { N_("Resume"), png::Get<png::Id::resume_48x48>() },
-    { N_("Resuming..."), png::Get<png::Id::resume_48x48>() },
-    { N_("Heating..."), png::Get<png::Id::resume_48x48>() }, // reheating is same as resume, but disabled
-    { N_("Reprint"), png::Get<png::Id::reprint_48x48>() },
-    { N_("Home"), png::Get<png::Id::home_58x58>() },
+    { N_("Tune"), &png::settings_58x58 },
+    { N_("Pause"), &png::pause_58x58 },
+    { N_("Pausing..."), &png::pause_58x58 },
+    { N_("Stop"), &png::stop_58x58 },
+    { N_("Resume"), &png::resume_48x48 },
+    { N_("Resuming..."), &png::resume_48x48 },
+    { N_("Heating..."), &png::resume_48x48 }, // reheating is same as resume, but disabled
+    { N_("Reprint"), &png::reprint_48x48 },
+    { N_("Home"), &png::home_58x58 },
 };
 
 void screen_printing_data_t::invalidate_print_state() {

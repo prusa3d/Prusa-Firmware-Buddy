@@ -94,7 +94,7 @@ ScreenSelftest::ScreenSelftest()
     , part_current(SelftestParts::_none)
     , part_previous(SelftestParts::_none) {
     ScreenSelftest::ClrMenuTimeoutClose(); // don't close on menu timeout
-    header.SetIcon(png::Get<png::Id::selftest_16x16>());
+    header.SetIcon(&png::selftest_16x16);
     ths = this;
 }
 
@@ -119,7 +119,7 @@ void ScreenSelftest::Change(fsm::BaseData data) {
 
     if (part_previous != part_current) {
         //update header
-        header.SetIcon(png::Get<png::Id::home_shape_16x16>());
+        header.SetIcon(&png::home_shape_16x16);
         header.SetIcon(getIconId(part_current));
         header.SetText(getCaption(part_current));
 
@@ -164,24 +164,24 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 const png::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
-        return png::Get<png::Id::wizard_16x16>();
+        return &png::wizard_16x16;
     case SelftestParts::ESP:
     case SelftestParts::ESP_progress:
     case SelftestParts::ESP_qr:
-        return png::Get<png::Id::wifi_16x16>();
+        return &png::wifi_16x16;
     case SelftestParts::Axis:
     case SelftestParts::Fans:
     case SelftestParts::Heaters:
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
     case SelftestParts::Result:
-        return png::Get<png::Id::selftest_16x16>();
+        return &png::selftest_16x16;
     case SelftestParts::WizardEpilogue:
-        return png::Get<png::Id::wizard_16x16>();
+        return &png::wizard_16x16;
     case SelftestParts::_none:
         break;
     }
-    return png::Get<png::Id::error_16x16>();
+    return &png::error_16x16;
 }
 
 void ScreenSelftest::InitState(screen_init_variant var) {
@@ -191,7 +191,7 @@ void ScreenSelftest::InitState(screen_init_variant var) {
         //check mask if contains wizard prologue
         //it is simplified method, but should work correctly for meaningfull use
         if ((*val) & stmWizardPrologue) {
-            header.SetIcon(png::Get<png::Id::wizard_16x16>());
+            header.SetIcon(&png::wizard_16x16);
             header.SetText(_(en_wizard));
         }
         //no need for else, selftest is default

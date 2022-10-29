@@ -119,7 +119,7 @@ void IWindowMenuItem::printIcon(Rect16 icon_rect, ropfn raster_op, color_t color
 }
 
 void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
-    render_icon_align(extension_rect, png::Get<png::Id::arrow_right_10x16>(), color_back, icon_flags(Align_t::Center(), raster_op));
+    render_icon_align(extension_rect, &png::arrow_right_10x16, color_back, icon_flags(Align_t::Center(), raster_op));
 }
 
 void IWindowMenuItem::Click(IWindowMenu &window_menu) {

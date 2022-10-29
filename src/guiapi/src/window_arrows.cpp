@@ -6,10 +6,10 @@
 #include "png_resources.hpp"
 
 /// must be same size
-static constexpr const png::Resource *id_res_grey_up = png::Get<png::Id::arrow_up_12x12>();
-static constexpr const png::Resource *id_res_grey_down = png::Get<png::Id::arrow_down_12x12>();
-static constexpr const png::Resource *id_res_orange_up = png::Get<png::Id::arrow_up_orange_12x12>();
-static constexpr const png::Resource *id_res_orange_down = png::Get<png::Id::arrow_down_orange_12x12>();
+static constexpr const png::Resource *id_res_grey_up = &png::arrow_up_12x12;
+static constexpr const png::Resource *id_res_grey_down = &png::arrow_down_12x12;
+static constexpr const png::Resource *id_res_orange_up = &png::arrow_up_orange_12x12;
+static constexpr const png::Resource *id_res_orange_down = &png::arrow_down_orange_12x12;
 
 /// Icon rect is increased by padding, icon is centered inside it
 WindowArrows::WindowArrows(window_t *parent, point_i16_t pt, padding_ui8_t padding)

@@ -10,11 +10,11 @@
 #include "filament.hpp"
 
 FooterItemNozzle::FooterItemNozzle(window_t *parent)
-    : AddSuperWindow<FooterItemHeater>(parent, png::Get<png::Id::nozzle_16x16>(), static_makeView, static_readValue) {
+    : AddSuperWindow<FooterItemHeater>(parent, &png::nozzle_16x16, static_makeView, static_readValue) {
 }
 
 FooterItemBed::FooterItemBed(window_t *parent)
-    : AddSuperWindow<FooterItemHeater>(parent, png::Get<png::Id::heatbed_16x16>(), static_makeView, static_readValue) {
+    : AddSuperWindow<FooterItemHeater>(parent, &png::heatbed_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemNozzle::static_readValue() {

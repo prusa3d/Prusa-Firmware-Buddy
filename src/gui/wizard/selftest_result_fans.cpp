@@ -10,8 +10,8 @@
 
 ResultFans::ResultFans(TestResult_t hb_fan, TestResult_t print_fan)
     : SelfTestGroup(_("Fans check"))
-    , heatbreak(_("Extruder fan"), png::Get<png::Id::fan_16x16>(), hb_fan)
-    , print(_("Print fan"), png::Get<png::Id::turbine_16x16>(), print_fan) {
+    , heatbreak(_("Extruder fan"), &png::fan_16x16, hb_fan)
+    , print(_("Print fan"), &png::turbine_16x16, print_fan) {
     Add(heatbreak);
     Add(print);
     if (hb_fan == TestResult_t::Failed || print_fan == TestResult_t::Failed) {

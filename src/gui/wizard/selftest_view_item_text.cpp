@@ -65,11 +65,11 @@ void SelfTestViewTextWithIconAndResult::Draw(Rect16::Top_t top) const {
 const png::Resource *SelfTestViewTextWithIconAndResult::ResultToIconId(TestResult_t res) {
     switch (res) {
     case TestResult_t::Passed:
-        return png::Get<png::Id::ok_color_18x18>();
+        return &png::ok_color_18x18;
     case TestResult_t::Failed:
-        return png::Get<png::Id::nok_color_18x18>();
+        return &png::nok_color_18x18;
     default:
         break;
     }
-    return png::Get<png::Id::dash_18x18>();
+    return &png::dash_18x18;
 }

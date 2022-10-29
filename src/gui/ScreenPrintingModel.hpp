@@ -7,9 +7,9 @@
 #include "status_footer.hpp"
 #include "png_resources.hpp"
 
-static constexpr BtnResource res_tune = { N_("Tune"), png::Get<png::Id::settings_58x58>() };
-static constexpr BtnResource res_pause = { N_("Pause"), png::Get<png::Id::pause_58x58>() };
-static constexpr BtnResource res_stop = { N_("Stop"), png::Get<png::Id::stop_58x58>() };
+static constexpr BtnResource res_tune = { N_("Tune"), &png::settings_58x58 };
+static constexpr BtnResource res_pause = { N_("Pause"), &png::pause_58x58 };
+static constexpr BtnResource res_stop = { N_("Stop"), &png::stop_58x58 };
 
 class ScreenPrintingModel : public AddSuperWindow<IScreenPrinting> {
 protected:

@@ -7,7 +7,6 @@ import dataclasses
 from PIL import Image
 
 
-@dataclasses.dataclass
 class ImageInfo:
     name: str
     offset: int
@@ -15,15 +14,17 @@ class ImageInfo:
     height: int
     width: int
 
+    def __init__(self, name: str, offset: int, size: int, height: int,
+                 width: int) -> None:
+        self.name = name.split('.')[0]
+        self.offset = offset
+        self.width = width
+        self.height = height
+        self.size = size
+
     def __str__(self) -> str:
         return \
-            f"""{{
-    .name = \"{self.name}\",
-    .offset = {self.offset},
-    .size = {self.size},
-    .w = {self.width},
-    .h = {self.height},
-}}"""
+            f"""static constexpr Resource {self.name}( \"{self.name}\", {self.offset}, {self.size}, {self.width}, {self.height});"""
 
 
 def load_images(paths: list[Path]) -> list[ImageInfo]:
@@ -47,7 +48,7 @@ def create_id_file(path: Path, images: list[ImageInfo]):
 def create_resource_file(path: Path, images: list[ImageInfo]):
     with open(path, "w") as file:
         for image in images:
-            file.write(f"{str(image)},\n")
+            file.write(f"{str(image)}\n")
 
 
 def create_data_file(path_to_file: Path, images: list[Path]):

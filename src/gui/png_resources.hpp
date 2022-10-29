@@ -20,23 +20,18 @@ struct Resource {
     uint16_t w = 0; // 0 == calculate at run time
     uint16_t h = 0; // 0 == calculate at run time
 
+    constexpr Resource(const char* name, size_t offset, size_t size, uint16_t w, uint16_t h)
+    : file(nullptr)
+    , name(name)
+    , offset(offset)
+    , size(size)
+    , w(w)
+    , h(h) {}
+
     FILE* Get() const;
 };
 
-// ordered by width, height and alphabetically
-enum class Id {
-#include "../gui/res/png_id.gen"
-};
-
-static constexpr Resource resources[] {
 #include "../gui/res/png_resources.gen"
-};
-
-// I did not use reference to support array of pointers to resource
-template<Id ID>
-constexpr const Resource* Get() {
-    return &resources[size_t(ID)];
-}
 
 } // namespace png
 
