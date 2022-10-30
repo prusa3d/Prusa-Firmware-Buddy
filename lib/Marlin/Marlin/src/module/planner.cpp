@@ -66,6 +66,7 @@
 #include "stepper.h"
 #include "motion.h"
 #include "temperature.h"
+#include "settings.h"
 #include "../lcd/marlinui.h"
 #include "../gcode/parser.h"
 
