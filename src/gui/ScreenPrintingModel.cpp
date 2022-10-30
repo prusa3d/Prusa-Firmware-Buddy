@@ -7,9 +7,9 @@
 ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
     : AddSuperWindow<IScreenPrinting>(caption)
     // clang-format off
-    , btn_tune  { { this, Rect16(8 + (15 + 64) * 0, 185, 64, 64), IDR_NULL, TuneAction  }, { this, Rect16(80 * 0, 196 + 48 + 8, 80, 16), is_multiline::no } }
-    , btn_pause { { this, Rect16(8 + (15 + 64) * 1, 185, 64, 64), IDR_NULL, PauseAction }, { this, Rect16(80 * 1, 196 + 48 + 8, 80, 16), is_multiline::no } }
-    , btn_stop  { { this, Rect16(8 + (15 + 64) * 2, 185, 64, 64), IDR_NULL, StopAction  }, { this, Rect16(80 * 2, 196 + 48 + 8, 80, 16), is_multiline::no } }
+    , btn_tune  { { this, Rect16(8 + (15 + 64) * 0, 185, 64, 64), nullptr, TuneAction  }, { this, Rect16(80 * 0, 196 + 48 + 8, 80, 16), is_multiline::no } }
+    , btn_pause { { this, Rect16(8 + (15 + 64) * 1, 185, 64, 64), nullptr, PauseAction }, { this, Rect16(80 * 1, 196 + 48 + 8, 80, 16), is_multiline::no } }
+    , btn_stop  { { this, Rect16(8 + (15 + 64) * 2, 185, 64, 64), nullptr, StopAction  }, { this, Rect16(80 * 2, 196 + 48 + 8, 80, 16), is_multiline::no } }
 // clang-format on
 {}
 

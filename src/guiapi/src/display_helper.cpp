@@ -247,19 +247,6 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     fill_between_rectangles(&rc, &rc_pad, clr_bg);
 }
 
-void render_icon_align(Rect16 rc, ResourceId id_res, color_t clr_back, icon_flags flags) {
-
-    point_ui16_t wh_ico = icon_meas(resource_ptr(id_res));
-    if (wh_ico.x && wh_ico.y) {
-        Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
-        rc_ico.Align(rc, flags.align);
-        rc_ico = rc_ico.Intersection(rc);
-        display::DrawIcon(point_ui16(rc_ico.Left(), rc_ico.Top()), id_res, clr_back, flags.raster_flags);
-    } else {
-        display::FillRect(rc, clr_back);
-    }
-}
-
 void render_icon_align(Rect16 rc, const png::Resource *res, color_t clr_back, icon_flags flags) {
 
     if (res) {
@@ -267,7 +254,7 @@ void render_icon_align(Rect16 rc, const png::Resource *res, color_t clr_back, ic
         Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
         rc_ico.Align(rc, flags.align);
         rc_ico = rc_ico.Intersection(rc);
-        display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), res->file, clr_back, flags.raster_flags);
+        display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), *res, clr_back, flags.raster_flags);
     } else {
         display::FillRect(rc, clr_back);
     }

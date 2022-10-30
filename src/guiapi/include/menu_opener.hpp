@@ -48,7 +48,7 @@ class MI_SCREEN_FN : public WI_LABEL_t {
 
 public:
     MI_SCREEN_FN()
-        : WI_LABEL_t(HIDDEN == is_hidden_t::dev ? string_view_utf8::MakeCPUFLASH((uint8_t *)make_Str()) : _(make_Str()), IDR_NULL, is_enabled_t::yes, HIDDEN, expands_t::yes) {
+        : WI_LABEL_t(HIDDEN == is_hidden_t::dev ? string_view_utf8::MakeCPUFLASH((uint8_t *)make_Str()) : _(make_Str()), nullptr, is_enabled_t::yes, HIDDEN, expands_t::yes) {
     }
 
 protected:

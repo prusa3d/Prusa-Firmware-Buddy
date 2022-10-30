@@ -8,21 +8,14 @@
 #include "odometer.hpp"
 #include "window_icon.hpp"
 
-//octo icon
-static point_ui16_t pt_ico() {
-    auto sz = window_icon_t::CalculateMinimalSize("/internal/res/png/screen_printing_serial.png");
-    return { sz.w, sz.h };
-}
-
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
-    , octo_icon(this, Rect16((240 - pt_ico().x) / 2, GuiDefaults::RectScreenBody.Top(), pt_ico().x, pt_ico().y), "/internal/res/png/screen_printing_serial.png")
+    , octo_icon(this, Rect16((240 - png::serial_printing_172x138.w) / 2, GuiDefaults::RectScreenBody.Top(), png::serial_printing_172x138.w, png::serial_printing_172x138.h), &png::serial_printing_172x138)
     , last_tick(0)
     , connection(connection_state_t::connected) {
     ClrMenuTimeoutClose();
     ClrOnSerialClose(); // don't close on Serial print
 
-    octo_icon.SetFilePath("/internal/res/png/screen_printing_serial.png");
     octo_icon.Disable();
     octo_icon.Unshadow();
 
