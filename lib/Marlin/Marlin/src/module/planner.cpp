@@ -3544,7 +3544,7 @@ void Motion_Parameters::save_reset() {
 }
 
 void Motion_Parameters::save() {
-  for (int i = 0; i < XYZE_N; ++i) {
+  LOOP_DISTINCT_AXES(i) {
     mp.max_acceleration_mm_per_s2[i] = planner.settings.max_acceleration_mm_per_s2[i];
     mp.max_feedrate_mm_s[i] = planner.settings.max_feedrate_mm_s[i];
   }
@@ -3574,7 +3574,7 @@ void Motion_Parameters::save() {
 }
 
 void Motion_Parameters::load() {
-  for (int i = 0; i < XYZE_N; ++i) {
+  LOOP_DISTINCT_AXES(i) {
     planner.settings.max_acceleration_mm_per_s2[i] = mp.max_acceleration_mm_per_s2[i];
     planner.settings.max_feedrate_mm_s[i] = mp.max_feedrate_mm_s[i];
   }
