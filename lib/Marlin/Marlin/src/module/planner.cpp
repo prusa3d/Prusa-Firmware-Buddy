@@ -3602,11 +3602,11 @@ void Motion_Parameters::load() {
     planner.max_jerk = mp.max_jerk;
   #endif
 
-  planner.reset_acceleration_rates();
+  planner.refresh_acceleration_rates();
 }
 
 void Motion_Parameters::reset() {
   MarlinSettings::reset_motion();
-  planner.reset_acceleration_rates();
+  planner.refresh_acceleration_rates();
 }
 
