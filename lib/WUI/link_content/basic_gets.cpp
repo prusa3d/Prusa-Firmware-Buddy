@@ -28,6 +28,8 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     bool pausing = false;
     bool ready = true;
     bool busy = false;
+    bool error = false;
+    const char *link_state = nullptr;
 
     marlin_update_vars(MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK4(MARLIN_VAR_PRNSPEED, MARLIN_VAR_POS_Z, MARLIN_VAR_PRNSPEED, MARLIN_VAR_PRNSTATE));
 
@@ -40,11 +42,13 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsCrashRecovery_Axis_NOK:
     case mpsCrashRecovery_Repeated_Crash:
     case mpsPowerPanic_acFault:
+        link_state = "BUSY";
         busy = true;
         // Fall through
     case mpsPrinting:
         printing = true;
         ready = operational = false;
+        link_state = "PRINTING";
         break;
     case mpsPowerPanic_AwaitingResume:
     case mpsPausing_Begin:
@@ -53,10 +57,12 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsPausing_ParkHead:
         printing = pausing = paused = busy = true;
         ready = operational = false;
+        link_state = "PAUSED";
         break;
     case mpsPaused:
         printing = paused = true;
         ready = operational = false;
+        link_state = "PAUSED";
         break;
     case mpsResuming_Begin:
     case mpsResuming_Reheating:
@@ -65,17 +71,20 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsPowerPanic_Resume:
         ready = operational = false;
         busy = printing = true;
+        link_state = "PRINTING";
         break;
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
     case mpsAborting_ParkHead:
         cancelling = busy = true;
         ready = operational = false;
+        link_state = "BUSY";
         break;
     case mpsFinishing_WaitIdle:
     case mpsFinishing_ParkHead:
         busy = true;
         ready = operational = false;
+        link_state = "BUSY";
         break;
     case mpsAborted:
     case mpsFinished:
@@ -83,8 +92,13 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsIdle:
     case mpsWaitGui:
     case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
+    case mpsPrintPreviewImage:
     case mpsPrintInit:
+        break;
+    case mpsPrintPreviewQuestions:
+        // The "preview" is abused to ask questions about the filament and such.
+        busy = printing = error = true;
+        link_state = "ATTENTION";
         break;
     }
 
@@ -120,13 +134,17 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         JSON_FIELD_OBJ("state")
             JSON_FIELD_STR("text", printing ? "Printing" : "Operational") JSON_COMMA;
             JSON_FIELD_OBJ("flags");
+                if (link_state != nullptr) {
+                    JSON_FIELD_STR("link_state", link_state) JSON_COMMA;
+                }
                 JSON_FIELD_BOOL("operational", operational) JSON_COMMA;
                 JSON_FIELD_BOOL("paused", paused) JSON_COMMA;
                 JSON_FIELD_BOOL("printing", printing) JSON_COMMA;
                 JSON_FIELD_BOOL("cancelling", cancelling) JSON_COMMA;
                 JSON_FIELD_BOOL("pausing", pausing) JSON_COMMA;
+                JSON_FIELD_BOOL("error", error) JSON_COMMA;
                 // We don't have an SD card!
-                JSON_CONTROL("\"sdReady\":false,\"error\":false,\"closedOnError\":false,");
+                JSON_CONTROL("\"sdReady\":false,\"closedOnError\":false,");
                 JSON_FIELD_BOOL("ready", ready) JSON_COMMA;
                 JSON_FIELD_BOOL("busy", busy);
             JSON_OBJ_END;
@@ -220,9 +238,13 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     case mpsIdle:
     case mpsWaitGui:
     case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
+    case mpsPrintPreviewImage:
     case mpsPrintInit:
         state = "Operational";
+        break;
+    case mpsPrintPreviewQuestions:
+        has_job = true;
+        state = "Error";
         break;
     }
 

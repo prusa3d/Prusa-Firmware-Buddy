@@ -31,6 +31,7 @@ public:
         Finished,
         Ready,
         Busy,
+        Attention,
         Error,
     };
 
