@@ -33,7 +33,7 @@ static volatile void recursive(uint64_t i) {
 class MI_STACK_OVERFLOW : public WI_LABEL_t {
 public:
     MI_STACK_OVERFLOW()
-        : WI_LABEL_t(_("Stack overflow"), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+        : WI_LABEL_t(_("Stack overflow"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
     }
 
 protected:
@@ -45,7 +45,7 @@ protected:
 class MI_DIV0 : public WI_LABEL_t {
 public:
     MI_DIV0()
-        : WI_LABEL_t(_("BSOD div 0"), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+        : WI_LABEL_t(_("BSOD div 0"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
     }
 
 protected:

@@ -25,7 +25,7 @@ class MI_STORE : public WI_LABEL_t {
 
 public:
     MI_STORE()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
@@ -103,7 +103,7 @@ public:
     variant8_t var;
 
     EepromItems()
-        : IWiSwitch(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)"RECORD"), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, GenerateItems())
+        : IWiSwitch(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)"RECORD"), nullptr, is_enabled_t::yes, is_hidden_t::no, GenerateItems())
         , var(eeprom_get_var(eevar_id(index))) // first records is int, no need to test it
     {
     }

@@ -1,4 +1,6 @@
-// window_icon.c
+/**
+ * @file window_icon.cpp
+ */
 
 #include <unistd.h>
 #include "window_icon.hpp"
@@ -13,44 +15,9 @@
 
 LOG_COMPONENT_REF(GUI);
 
-void window_icon_t::SetIdRes(ResourceId id) {
-    /*if (dataSource.id_res != id) {
-        dataSource.set(id);
-        assert(dataSource.isFromResource());
-        Invalidate();
-    }*/
-}
-
-void window_icon_t::SetFilePath(const char *filepath) {
-    /*if (strcmp(dataSource.filename, filepath) != 0) {
-        dataSource.set(filepath);
-        assert(dataSource.isFromFile());
-        Invalidate();
-    }*/
-}
-
-window_icon_t::window_icon_t(window_t *parent, Rect16 rect, DataSourceId source, is_closed_on_click_t close)
-    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close) {
-    SetAlignment(Align_t::Center());
-}
-
-//Icon rect is increased by padding, icon is centered inside it
-window_icon_t::window_icon_t(window_t *parent, DataSourceId source, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
-    : window_icon_t(
-        parent,
-        [pt, source, padding] {
-            size_ui16_t sz = CalculateMinimalSize(source);
-            if (!(sz.h && sz.w))
-                return Rect16();
-            return Rect16(pt,
-                sz.w + padding.left + padding.right,
-                sz.h + padding.top + padding.bottom);
-        }(),
-        source, close) {
-}
-
 window_icon_t::window_icon_t(window_t *parent, Rect16 rect, const png::Resource *res, is_closed_on_click_t close)
-    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close) {
+    : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
+    , pRes(res) {
     SetAlignment(Align_t::Center());
 }
 
@@ -59,26 +26,27 @@ window_icon_t::window_icon_t(window_t *parent, const png::Resource *res, point_i
     : window_icon_t(
         parent,
         [pt, res, padding] {
-            size_ui16_t sz = { 0, 0 }; // CalculateMinimalSize(source);
-            if (!(sz.h && sz.w))
+            if (!res || !res->h || !res->w)
                 return Rect16();
+
             return Rect16(pt,
-                sz.w + padding.left + padding.right,
-                sz.h + padding.top + padding.bottom);
+                res->w + padding.left + padding.right,
+                res->h + padding.top + padding.bottom);
         }(),
         res, close) {
 }
 
 void window_icon_t::unconditionalDraw() {
+    // no PNG assigned
+    if (!pRes)
+        return;
+
     ropfn raster_op;
     raster_op.shadow = IsShadowed() ? is_shadowed::yes : is_shadowed::no;
     raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
 
-    FILE *file = nullptr;
-    file = pRes->Get();
-
-    // no PNG assigned
-    if (!pRes)
+    FILE *file = pRes->Get();
+    if (!file)
         return;
 
     point_ui16_t wh_ico = { pRes->w, pRes->h };
@@ -104,37 +72,10 @@ void window_icon_t::unconditionalDraw() {
         log_debug(GUI, "Drawing Icon failed");
     }
 
-    fseek(file, pRes->offset, SEEK_SET);
-
     Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
     rc_ico.Align(GetRect(), GetAlignment());
     rc_ico = rc_ico.Intersection(GetRect());
-    display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), file, GetBackColor(), raster_op);
-}
-
-size_ui16_t window_icon_t::CalculateMinimalSize(window_icon_t::DataSourceId source) {
-    size_ui16_t ret { 0, 0 };
-    uint8_t data[32] { 0 };
-    const uint8_t *ptr = data;
-    if (source.isFromFile()) {
-        FILE *file = fopen(source.filename, "rb");
-        if (!file) {
-            log_debug(GUI, "Tried to open a nonexistent file: %s", source.filename);
-            assert(false);
-            return { 0, 0 };
-        }
-        size_t sz = fread(&data[0], 1, 32, file);
-        fseek(file, 0, SEEK_SET);
-        if (sz < 32)
-            return ret;
-        fclose(file);
-    } else {
-        ptr = resource_ptr(source.id_res);
-        if (!ptr)
-            return ret;
-    }
-    ret = icon_size(ptr);
-    return ret;
+    display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), *pRes, GetBackColor(), raster_op);
 }
 
 void window_icon_t::setRedLayout() {
@@ -148,13 +89,6 @@ void window_icon_t::setBlackLayout() {
 
 /*****************************************************************************/
 //window_icon_button_t
-window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, ResourceId id_res, ButtonCallback cb)
-    : AddSuperWindow<window_icon_t>(parent, rect, id_res)
-    , callback(cb) {
-    SetBackColor(GuiDefaults::ClickableIconColorScheme);
-    Enable();
-}
-
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const png::Resource *res, ButtonCallback cb)
     : AddSuperWindow<window_icon_t>(parent, rect, res)
     , callback(cb) {
@@ -276,23 +210,20 @@ void window_icon_hourglass_t::invalidate(Rect16 validation_rect) {
 /*****************************************************************************/
 //WindowIcon_OkNg
 
-//both must be same size
-const png::Resource *WindowIcon_OkNg::id_res_na = &png::dash_18x18;
-const png::Resource *WindowIcon_OkNg::id_res_ok = &png::ok_color_18x18;
-const png::Resource *WindowIcon_OkNg::id_res_ng = &png::nok_color_18x18;
-const std::array<const png::Resource *, 4> WindowIcon_OkNg::id_res_ip = { { &png::spinner0_16x16, &png::spinner1_16x16, &png::spinner2_16x16, &png::spinner3_16x16 } };
+//dash ok and nok must be same size
+constexpr const png::Resource &id_res_na = png::dash_18x18;
+constexpr const png::Resource &id_res_ok = png::ok_color_18x18;
+constexpr const png::Resource &id_res_ng = png::nok_color_18x18;
+constexpr const std::array<const png::Resource *, 4> id_res_ip = { { &png::spinner0_16x16, &png::spinner1_16x16, &png::spinner2_16x16, &png::spinner3_16x16 } };
 
 //Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
     : AddSuperWindow<window_aligned_t>(
         parent,
         [pt, padding] {
-            size_ui16_t sz = { 0, 0 }; // TODO window_icon_t::CalculateMinimalSize(WindowIcon_OkNg::id_res_ok);
-            if (!(sz.h && sz.w))
-                return Rect16();
             return Rect16(pt,
-                sz.w + padding.left + padding.right,
-                sz.h + padding.top + padding.bottom);
+                id_res_na.w + padding.left + padding.right,
+                id_res_na.h + padding.top + padding.bottom);
         }())
     , state(state) {
     SetAlignment(Align_t::Center());
@@ -313,13 +244,13 @@ void WindowIcon_OkNg::unconditionalDraw() {
     const png::Resource *id_res = nullptr;
     switch (GetState()) {
     case SelftestSubtestState_t::ok:
-        id_res = id_res_ok;
+        id_res = &id_res_ok;
         break;
     case SelftestSubtestState_t::not_good:
-        id_res = id_res_ng;
+        id_res = &id_res_ng;
         break;
     case SelftestSubtestState_t::undef:
-        id_res = id_res_na;
+        id_res = &id_res_na;
         break;
     case SelftestSubtestState_t::running: {
         const size_t blink_state = (flags.blink1 << 1) | flags.blink0; //sets 2 lowest bits guaranted to be 0 .. 3
@@ -345,7 +276,7 @@ void WindowIcon_OkNg::windowEvent(EventLock /*has private ctor*/, window_t *send
 //-------------------------- Thumbnail --------------------------------------
 
 WindowThumbnail::WindowThumbnail(window_t *parent, Rect16 rect)
-    : AddSuperWindow<window_icon_t>(parent, rect, IDR_NULL)
+    : AddSuperWindow<window_icon_t>(parent, rect, nullptr)
     , gcode_info(GCodeInfo::getInstance()) {
 }
 
@@ -371,7 +302,7 @@ void WindowPreviewThumbnail::unconditionalDraw() {
     fseek(gcode_info.file, 0, SEEK_SET);
     GCodeThumbDecoder gd(gcode_info.file, Width(), Height(), true);
     if (f_gcode_thumb_open(&gd, &f) == 0) {
-        display::DrawPng(point_ui16(Left(), Top()), &f);
+        display::DrawPng(point_ui16(Left(), Top()), res);
         f_gcode_thumb_close(&f);
     }
 }

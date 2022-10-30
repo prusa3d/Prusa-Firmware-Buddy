@@ -60,12 +60,12 @@ screen_home_data_t::screen_home_data_t()
     , header(this)
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), &png::prusa_mini_logo_153x40)
-    , w_buttons { { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), IDR_NULL, []() { marlin_gcode_printf("M1700"); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
+    , w_buttons { { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
+        { this, Rect16(), nullptr, []() { marlin_gcode_printf("M1700"); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
     , w_labels { { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },

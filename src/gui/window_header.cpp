@@ -48,7 +48,7 @@ static const Rect16::Width_t icon_base_width(40);
 
 window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
-    , icon_base(this, Rect16(GetRect().TopLeft(), icon_base_width, Height() - 5), IDR_NULL)
+    , icon_base(this, Rect16(GetRect().TopLeft(), icon_base_width, Height() - 5), nullptr)
     , label(this, GetRect() - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt, Align_t::LeftBottom())
     , icon_usb(this, (GetRect() + Rect16::Left_t(Width() - icon_usb_width)) = icon_usb_width, &png::usb_32x16)
     , icon_network(this, (GetRect() + Rect16::Left_t(Width() - icons_width)) = icon_lan_width, window_header_t::networkIcon(netdev_get_active_id()))
