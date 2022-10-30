@@ -1626,7 +1626,7 @@ void Stepper::isr() {
   #define ISR_MULTI_STEPS 1
 #endif
 
-#define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
+#define _APPLY_STEP(AXIS, INV, ALWAYS) AXIS ##_APPLY_STEP(INV, ALWAYS)
 #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
 
 void Stepper::slow_axis_pulse_phase_isr() {
