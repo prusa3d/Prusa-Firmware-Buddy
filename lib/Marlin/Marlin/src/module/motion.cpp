@@ -1760,7 +1760,7 @@ void prepare_line_to_destination() {
           #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
             , delta_mm_cart
           #endif
-          , real_fr_mm_s, active_extruder
+          , home_fr_mm_s, active_extruder
         );
         planner.synchronize();
       }
