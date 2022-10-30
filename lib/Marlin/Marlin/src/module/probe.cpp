@@ -909,7 +909,7 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
     const float move_away_from = measured_z - offset.z;
     if (big_raise || raise_after == PROBE_PT_RAISE) {
-      plan_park_move_to(current_position.x, current_position.y, move_away_from + (big_raise ? 25 : Z_CLEARANCE_BETWEEN_PROBES), MMM_TO_MMS(XY_PROBE_SPEED), z_probe_fast_mm_s);
+      plan_park_move_to(current_position.x, current_position.y, move_away_from + (big_raise ? 25 : Z_CLEARANCE_BETWEEN_PROBES), MMM_TO_MMS(XY_PROBE_FEEDRATE), z_probe_fast_mm_s);
     } else if (raise_after == PROBE_PT_STOW || raise_after == PROBE_PT_LAST_STOW)
       if (stow()) measured_z = NAN;   // Error on stow?
 
