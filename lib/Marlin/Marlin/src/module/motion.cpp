@@ -1984,7 +1984,7 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
   #endif
 
     // clear the axis state while running
-    CBI(axis_known_position, axis);
+    set_axis_never_homed(axis);
 
     #if ENABLED(CRASH_RECOVERY)
       Crash_Temporary_Deactivate ctd;
