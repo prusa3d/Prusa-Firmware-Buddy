@@ -3382,7 +3382,7 @@ void Planner::set_position_mm(const xyze_pos_t &xyze) {
   }
 
 void Planner::reset_position() {
-  LOOP_ABCE(i) {
+  LOOP_LOGICAL_AXES(i) {
     position[i] = stepper.position((AxisEnum)i);
     #if HAS_POSITION_FLOAT
       position_float[i] = position[i] / settings.axis_steps_per_mm[i];
