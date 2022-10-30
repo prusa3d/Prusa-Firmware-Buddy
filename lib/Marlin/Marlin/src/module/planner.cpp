@@ -3047,6 +3047,7 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   if (draining_buffer) return false;
 
   #if ENABLED(CRASH_RECOVERY)
+  auto local_hints = hints;
   {
     auto &move_start = crash_s.move_start;
     auto &gcode_state = crash_s.gcode_state;
@@ -3072,7 +3073,7 @@ bool Planner::buffer_segment(const abce_pos_t &abce
       // first real segment after recovering, manipulate the current state in order
       // to resume the segment from the crashing position
       set_machine_position_mm(crash_s.crash_position);
-      millimeters = 0.0f;
+      local_hints.millimeters = 0.0f;
 
       // continue normally
       crash_s.set_state(Crash_s::PRINTING);
@@ -3180,7 +3181,7 @@ bool Planner::buffer_segment(const abce_pos_t &abce
   if (!_buffer_steps(target
       OPTARG(HAS_POSITION_FLOAT, target_float)
       OPTARG(HAS_DIST_MM_ARG, cart_dist_mm)
-      , fr_mm_s, extruder, hints
+      , fr_mm_s, extruder, TERN(CRASH_RECOVERY, local_hints, hints)
   )) return false;
 
   stepper.wake_up();
