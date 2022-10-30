@@ -2041,7 +2041,7 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
 
       if((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir){
         //print only for normal homing, messages from precise homing are taken care inside precise homing
-        ui.status_printf_P(0,"%c  axis homing failed, retrying",axis_codes[axis]);
+        ui.status_printf(0,"%c  axis homing failed, retrying",axis_codes[axis]);
       }
     }
   #else // HOMING_MAX_ATTEMPTS 
