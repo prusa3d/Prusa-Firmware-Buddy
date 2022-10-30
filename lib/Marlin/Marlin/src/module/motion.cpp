@@ -2037,7 +2037,7 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
           break; // OK offset in range
       }
       if (attempts_left == 0)
-        kill(GET_TEXT(MSG_ERR_HOMING)); // not OK run out attempts
+        kill(F(GET_TEXT(MSG_ERR_HOMING))); // not OK run out attempts
 
       if((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir){
         //print only for normal homing, messages from precise homing are taken care inside precise homing
