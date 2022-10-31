@@ -2689,7 +2689,7 @@ void set_axis_is_at_home(const AxisEnum axis) {
       if (calibrated) {
         SERIAL_ECHOPGM(" Home position diff: ", calibration_offset);
       } else {
-        ui.status_printf(0,"Calibrating %c axis",axis_codes[axis]);
+        ui.status_printf(0,F("Calibrating %c axis"),axis_codes[axis]);
         SERIAL_ECHOLN(" Not yet calibrated.");
       }
 
@@ -2730,7 +2730,7 @@ void set_axis_is_at_home(const AxisEnum axis) {
       if ((probe_offset < axis_home_min_diff[axis])
            || (probe_offset > axis_home_max_diff[axis])) {
         SERIAL_ECHOLN("failed.");
-        ui.status_printf_P(0,"%c axis homing failed, retrying",axis_codes[axis]);
+        ui.status_printf(0,F("%c axis homing failed, retrying"),axis_codes[axis]);
       } else if (std::abs(calibration_offset) <= perfect_offset) {
         SERIAL_ECHOLN("perfect.");
         return probe_offset;
@@ -2738,15 +2738,15 @@ void set_axis_is_at_home(const AxisEnum axis) {
         SERIAL_ECHOLN("acceptable.");
         if (try_nr >= accept_perfect_only_tries) return probe_offset;
         if(first_acceptable){
-          ui.status_printf_P(0,"Updating precise home point %c axis",axis_codes[axis]);
+          ui.status_printf(0,F("Updating precise home point %c axis"),axis_codes[axis]);
         }
         first_acceptable = true;
       } else {
         SERIAL_ECHOLN("bad.");
         if(can_calibrate){
-          ui.status_printf_P(0,"Updating precise home point %c axis",axis_codes[axis]);
+          ui.status_printf(0,F("Updating precise home point %c axis"),axis_codes[axis]);
         }else{
-          ui.status_printf_P(0,"%c axis homing failed,retrying",axis_codes[axis]);
+          ui.status_printf(0,F("%c axis homing failed,retrying"),axis_codes[axis]);
         }
       }
     }
