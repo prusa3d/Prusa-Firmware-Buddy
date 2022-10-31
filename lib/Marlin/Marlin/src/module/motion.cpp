@@ -2592,11 +2592,10 @@ void set_axis_is_at_home(const AxisEnum axis) {
       bool suspend_reports = false;
     public:
       Temporary_Report_Off(){
-        suspend_reports = suspend_auto_report;
-        suspend_auto_report = true;
+        suspend_reports = gcode.set_autoreport_paused(true);
       }
       ~Temporary_Report_Off(){
-        suspend_auto_report = suspend_reports;
+        gcode.set_autoreport_paused(suspend_reports);
       }
   };
 
