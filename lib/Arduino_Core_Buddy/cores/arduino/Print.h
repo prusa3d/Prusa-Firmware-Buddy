@@ -34,13 +34,15 @@
 // uncomment next line to support printing of 64 bit ints.
 #define SUPPORT_LONGLONG
 
+#ifdef __cplusplus
+
 class Print {
 private:
     int write_error;
     size_t printNumber(unsigned long, uint8_t);
-#ifdef SUPPORT_LONGLONG
+    #ifdef SUPPORT_LONGLONG
     void printLLNumber(uint64_t, uint8_t);
-#endif
+    #endif
     size_t printFloat(double, uint8_t);
 
 protected:
@@ -95,12 +97,13 @@ public:
     size_t println(double, int = 2);
     size_t println(const Printable &);
     size_t println(void);
-#ifdef SUPPORT_LONGLONG
+    #ifdef SUPPORT_LONGLONG
     void println(int64_t, uint8_t = DEC);
     void print(int64_t, uint8_t = DEC);
     void println(uint64_t, uint8_t = DEC);
     void print(uint64_t, uint8_t = DEC);
-#endif
+    #endif
 };
 
+#endif //__cplusplus
 #endif
