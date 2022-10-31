@@ -2667,7 +2667,7 @@ void set_axis_is_at_home(const AxisEnum axis) {
     bool calibrated = false;
     bool break_loop = false;
     do {
-      const int32_t mscnt = home_and_get_mscnt(axis, axis_home_dir, homing_feedrate_mm_s[axis] / homing_bump_divisor[axis], probe_offset);
+      const int32_t mscnt = home_and_get_mscnt(axis, axis_home_dir, homing_feedrate(axis) / homing_bump_divisor[axis], probe_offset);
 
       if ((probe_offset >= axis_home_min_diff[axis])
            && (probe_offset <= axis_home_max_diff[axis])
