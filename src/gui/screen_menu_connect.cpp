@@ -27,7 +27,7 @@ class MI_CONNECT_STATUS : public WI_INFO_t {
 
 public:
     MI_CONNECT_STATUS()
-        : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+        : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
     }
 };
 
@@ -47,19 +47,19 @@ public:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
         if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
             switch (connect_client::last_status()) {
-                S(Off, "Off");
-                S(NoConfig, "No Config");
-                S(NoDNS, "DNS");
-                S(NoConnection, "Refused");
-                S(Tls, "TLS");
-                S(Auth, "Unauthorized");
-                S(ServerError, "Srv error");
-                S(InternalError, "Bug");
-                S(NetworkError, "Net fail");
-                S(Confused, "Protocol err");
-                S(Ok, "Online");
+                S(Off, _("Off"));
+                S(NoConfig, _("No Config"));
+                S(NoDNS, _("DNS error"));
+                S(NoConnection, _("Refused"));
+                S(Tls, _("TLS error"));
+                S(Auth, _("Unauthorized"));
+                S(ServerError, _("Srv error"));
+                S(InternalError, _("Bug"));
+                S(NetworkError, _("Net fail"));
+                S(Confused, _("Protocol err"));
+                S(Ok, _("Online"));
             default:
-                S(Unknown, "Unknown");
+                S(Unknown, _("Unknown"));
             }
         } else {
             SuperWindowEvent(sender, event, param);
