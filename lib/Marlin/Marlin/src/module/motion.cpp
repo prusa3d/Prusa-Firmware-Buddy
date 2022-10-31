@@ -2682,12 +2682,12 @@ void set_axis_is_at_home(const AxisEnum axis) {
       if (!calibrated) calibration_offset = 0;
 
       SERIAL_ECHO_START();
-      SERIAL_ECHOPAIR("Precise homing axis: ", axis);
-      SERIAL_ECHOPAIR(" probe_offset: ", probe_offset);
-      SERIAL_ECHOPAIR(" mscnt: ", mscnt);
-      SERIAL_ECHOPAIR(" ipos: ", stepper.position_from_startup(axis));
+      SERIAL_ECHOPGM("Precise homing axis: ", axis);
+      SERIAL_ECHOPGM(" probe_offset: ", probe_offset);
+      SERIAL_ECHOPGM(" mscnt: ", mscnt);
+      SERIAL_ECHOPGM(" ipos: ", stepper.position_from_startup(axis));
       if (calibrated) {
-        SERIAL_ECHOLNPAIR(" Home position diff: ", calibration_offset);
+        SERIAL_ECHOPGM(" Home position diff: ", calibration_offset);
       } else {
         ui.status_printf_P(0,"Calibrating %c axis",axis_codes[axis]);
         SERIAL_ECHOLN(" Not yet calibrated.");
