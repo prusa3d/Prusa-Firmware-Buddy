@@ -454,7 +454,7 @@ void set_axis_is_at_home(const AxisEnum axis);
     void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false);
   #endif
 
-  void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0
+  void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, const bool final_approach=true
     #if ENABLED(MOVE_BACK_BEFORE_HOMING)
       , bool can_move_back_before_homing = false
     #endif

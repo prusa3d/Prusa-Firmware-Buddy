@@ -1692,9 +1692,9 @@ void prepare_line_to_destination() {
   /**
    * Home an individual linear axis
    */
-  void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, const bool final_approach=true
+  void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s, const bool final_approach
     #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-      , bool can_move_back_before_homing = false
+      , bool can_move_back_before_homing
     #endif
 ) {
     DEBUG_SECTION(log_move, "do_homing_move", DEBUGGING(LEVELING));
