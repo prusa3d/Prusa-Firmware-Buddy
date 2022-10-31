@@ -46,6 +46,8 @@ enum LookaheadMode {
 
 #define NO_IGNORE_CHAR '\x01' // a char not found in a valid ASCII numeric field
 
+#ifdef __cplusplus
+
 class Stream : public Print {
 protected:
     unsigned long _timeout;                                         // number of milliseconds to wait for the next char before aborting timed read
@@ -146,6 +148,8 @@ protected:
     // Returns index of the target that is found first or -1 if timeout occurs.
     int findMulti(struct MultiTarget *targets, int tCount);
 };
+
+#endif //__cplusplus
 
 #undef NO_IGNORE_CHAR
 #endif
