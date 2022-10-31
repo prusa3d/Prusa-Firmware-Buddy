@@ -2689,7 +2689,7 @@ void set_axis_is_at_home(const AxisEnum axis) {
       if (calibrated) {
         SERIAL_ECHOPGM(" Home position diff: ", calibration_offset);
       } else {
-        ui.status_printf_P(0,"Calibrating %c axis",axis_codes[axis]);
+        ui.status_printf(0,"Calibrating %c axis",axis_codes[axis]);
         SERIAL_ECHOLN(" Not yet calibrated.");
       }
 
