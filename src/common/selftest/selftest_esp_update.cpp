@@ -249,6 +249,7 @@ void ESPUpdate::Loop() {
         case esp_upload_action::Error_wait_user:
             if (continue_pressed) {
                 progress_state = esp_upload_action::Done;
+                aborted = true;
             }
             break;
         case esp_upload_action::Aborted:
