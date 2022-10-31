@@ -2195,7 +2195,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     if (axis == Z_AXIS) {
       if (axis_home_dir < 0) {
         do_homing_move(axis, 2 * bump,
-            MMM_TO_MMS(Z_PROBE_SPEED_SLOW)
+            MMM_TO_MMS(Z_PROBE_FEEDRATE_SLOW)
         );
       }
       else {
