@@ -287,6 +287,11 @@ variant<Response, Error> HttpClient::send(Request &request) {
     const char *host = factory.host();
 
     if (auto error = send_request(host, conn, request); error.has_value()) {
+        // Note: the current architecture doesn't go well with early results
+        // from server. If a server sends a response early on (after headers or
+        // mid-body) and closes the connection hard way, we get connection
+        // reset which prevents more writing into it. But it also, at that
+        // point, prevents reading the response.
         factory.invalidate();
         return *error;
     }
