@@ -45,7 +45,7 @@ public:
 
     ~FirstLayer() {
         ++finished_n_times;
-        disable_all_steppers();
+        stepper.disable_all_steppers();
     }
 
     static uint32_t HowManyTimesFinished() {

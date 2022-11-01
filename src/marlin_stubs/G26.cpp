@@ -295,7 +295,7 @@ void FirstLayer::print_shape_1() {
 }
 
 void FirstLayer::print_shape_2() {
-    enable_all_steppers();
+    stepper.enable_all_steppers();
     //M221 S100 ; reset flow
     planner.flow_percentage[0] = 100;
     planner.refresh_e_factor(0);
