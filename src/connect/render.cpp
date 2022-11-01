@@ -269,7 +269,9 @@ namespace {
             }
 
             JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;
-            JSON_FIELD_INT("command_id", event.command_id.value_or(0)) JSON_COMMA;
+            if (event.command_id.has_value()) {
+                JSON_FIELD_INT("command_id", *event.command_id) JSON_COMMA;
+            }
             JSON_FIELD_STR("event", to_str(event.type));
         JSON_OBJ_END;
         JSON_END;
