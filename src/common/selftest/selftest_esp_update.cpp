@@ -12,7 +12,7 @@
 #include "marlin_server.hpp"
 #include <device/peripherals.h>
 
-#include "../../lib/Marlin/Marlin/src/Marlin.h"
+#include "../../lib/Marlin/Marlin/src/MarlinCore.h"
 
 #include <array>
 #include <algorithm>
