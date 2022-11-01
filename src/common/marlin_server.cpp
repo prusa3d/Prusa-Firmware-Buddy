@@ -277,11 +277,11 @@ void print_fan_spd() {
         time = ticks_ms();
         int timediff = time - last_prt;
         if (timediff >= 1000) {
-            serial_echopair_PGM("Tacho_FANPR ", fanCtlPrint.getActualRPM());
-            serialprintPGM("rpm ");
+            SERIAL_ECHOPGM("Tacho_FANPR ", fanCtlPrint.getActualRPM());
+            serial_print_P("rpm ");
             SERIAL_EOL();
-            serial_echopair_PGM("Tacho_FANHB ", fanCtlHeatBreak.getActualRPM());
-            serialprintPGM("rpm ");
+            SERIAL_ECHOPGM("Tacho_FANHB ", fanCtlHeatBreak.getActualRPM());
+            serial_print_P("rpm ");
             SERIAL_EOL();
             last_prt = time;
         }
@@ -297,8 +297,8 @@ static void print_Z_probe_cnt() {
         actual = get_Z_probe_endstop_hits();
         if (last != actual) {
             last = actual;
-            serial_echopair_PGM("Z Endstop hit ", actual);
-            serialprintPGM(" times.");
+            SERIAL_ECHOPGM("Z Endstop hit ", actual);
+            serial_print_P(" times.");
             SERIAL_EOL();
         }
     }
