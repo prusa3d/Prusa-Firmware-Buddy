@@ -6,17 +6,17 @@
 
 Z_Calib_FSM::Z_Calib_FSM(ClientFSM type, uint8_t phase, float min, float max, uint8_t progress_min, uint8_t progress_max)
     : Notifier(type, phase, min, max, progress_min, progress_max) {
-    sw_endstop_state = soft_endstops_enabled;
+    sw_endstop_state = soft_endstop._enabled;
     hw_endstop_state = endstops.global_enabled();
     if (sw_endstop_state) {
-        soft_endstops_enabled = false;
+        soft_endstop._enabled = false;
     }
     if (!hw_endstop_state) {
         endstops.enable_globally(true);
     }
 }
 Z_Calib_FSM::~Z_Calib_FSM() {
-    soft_endstops_enabled = sw_endstop_state;
+    soft_endstop._enabled = sw_endstop_state;
     endstops.enable_globally(hw_endstop_state);
 }
 
