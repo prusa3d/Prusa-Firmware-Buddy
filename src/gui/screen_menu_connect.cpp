@@ -4,7 +4,9 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "printers.h"
+#include <window_msgbox.hpp>
 #include <connect/connect.hpp>
+#include <connect/marlin_printer.hpp>
 
 using connect_client::OnlineStatus;
 
@@ -31,7 +33,24 @@ public:
     }
 };
 
-using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS>;
+class MI_CONNECT_LOAD_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Load settings");
+
+public:
+    MI_CONNECT_LOAD_SETTINGS()
+        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {}
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override {
+        if (connect_client::MarlinPrinter::load_cfg_from_ini()) {
+            MsgBoxInfo(_("Loaded successfully. Enable Connect to activate."), Responses_Ok);
+        } else {
+            MsgBoxError(_("Failed to load config. Make sure the ini file downloaded from Connect is on the USB drive and try again."), Responses_Ok);
+        }
+    }
+};
+
+using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_LOAD_SETTINGS>;
 
 #define S(STATUS, TEXT)                                    \
     case OnlineStatus::STATUS:                             \
