@@ -44,12 +44,14 @@ namespace {
             char buffer[sizeof config->host];
             if (compress_host(value, buffer, sizeof buffer)) {
                 strlcpy(config->host, buffer, sizeof config->host);
+                config->loaded = true;
             } else {
                 return 0;
             }
         } else if (ini_string_match(section, INI_SECTION, name, "token")) {
             if (len <= CONNECT_TOKEN_SIZE) {
                 strlcpy(config->token, value, sizeof config->token);
+                config->loaded = true;
             } else {
                 return 0;
             }
@@ -58,14 +60,17 @@ namespace {
             long tmp = strtol(value, &endptr, 10);
             if (*endptr == '\0' && tmp >= 0 && tmp <= 65535) {
                 config->port = (uint16_t)tmp;
+                config->loaded = true;
             } else {
                 return 0;
             }
         } else if (ini_string_match(section, INI_SECTION, name, "tls")) {
             if (strcmp(value, "1") == 0 || strcasecmp(value, "true") == 0) {
                 config->tls = true;
+                config->loaded = true;
             } else if (strcmp(value, "0") == 0 || strcasecmp(value, "false") == 0) {
                 config->tls = false;
+                config->loaded = true;
             } else {
                 return 0;
             }
@@ -269,6 +274,7 @@ Printer::Config MarlinPrinter::load_config() {
 bool MarlinPrinter::load_cfg_from_ini() {
     Config config;
     bool ok = ini_parse("/usb/prusa_printer_settings.ini", connect_ini_handler, &config) == 0;
+    ok = ok && config.loaded;
     if (ok) {
         if (config.port == 0) {
             config.port = config.tls ? 443 : 80;
