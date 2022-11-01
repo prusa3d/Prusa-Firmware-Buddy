@@ -17,7 +17,7 @@
 #include "cmsis_os.h"
 #include "log.h"
 
-#include "../Marlin/src/lcd/extensible_ui/ui_api.h"
+#include "../Marlin/src/lcd/extui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/parser.h"
 #include "../Marlin/src/module/planner.h"
