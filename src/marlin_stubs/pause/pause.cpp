@@ -6,7 +6,7 @@
  * @date 2020-12-18
  */
 
-#include "../../lib/Marlin/Marlin/src/Marlin.h"
+#include "../../lib/Marlin/Marlin/src/MarlinCore.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
@@ -18,7 +18,7 @@
     #include "fwretract.h"
 #endif
 
-#include "../../lib/Marlin/Marlin/src/lcd/extensible_ui/ui_api.h"
+#include "../../../lib/Marlin/Marlin/src/lcd/extui/ui_api.h"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
 

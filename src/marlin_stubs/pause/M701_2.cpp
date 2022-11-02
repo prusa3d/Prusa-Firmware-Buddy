@@ -10,7 +10,7 @@
 // clang-format on
 
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "../../../lib/Marlin/Marlin/src/Marlin.h"
+#include "../../../lib/Marlin/Marlin/src/MarlinCore.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
