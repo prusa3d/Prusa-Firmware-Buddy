@@ -54,6 +54,10 @@ public:
         }
     }
 
+    void ChangeInformation(string_view_utf8 str) {
+        str.copyToRAM(information, INFO_LEN - 1);
+    }
+
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override {
         printInfo(extension_rect, color_back, _(information));
     }

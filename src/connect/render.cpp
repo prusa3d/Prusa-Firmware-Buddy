@@ -125,6 +125,18 @@ namespace {
 
         const char *reject_with = nullptr;
         Printer::NetCreds creds = {};
+        if (event.type == EventType::Info) {
+            // Technically, it would be better to store this as part of
+            // the render state. But that would be a bit wasteful, so
+            // we do it here in a "late" fasion. At worst, we would get
+            // the api key and ssid from two different times, but they
+            // are not directly related to each other anyway.
+            //
+            // Prepare the creds here, before the magical switch hidden in
+            // JSON_START... Otherwise it could be skipped on further
+            // runs/resumes.
+            creds = state.printer.net_creds();
+        }
 
         if (event.type == EventType::JobInfo && (!printing || event.job_id != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
@@ -171,12 +183,6 @@ namespace {
                     JSON_FIELD_STR("sn", info.serial_number) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
-                    // Technically, it would be better to store this as part of
-                    // the render state. But that would be a bit wasteful, so
-                    // we do it here in a "late" fasion. At worst, we would get
-                    // the api key and ssid from two different times, but they
-                    // are not directly related to each other anyway.
-                    creds = state.printer.net_creds();
                     if (strlen(creds.api_key) > 0) {
                         JSON_FIELD_STR("api_key", creds.api_key) JSON_COMMA;
                     }
@@ -263,7 +269,9 @@ namespace {
             }
 
             JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;
-            JSON_FIELD_INT("command_id", event.command_id.value_or(0)) JSON_COMMA;
+            if (event.command_id.has_value()) {
+                JSON_FIELD_INT("command_id", *event.command_id) JSON_COMMA;
+            }
             JSON_FIELD_STR("event", to_str(event.type));
         JSON_OBJ_END;
         JSON_END;
