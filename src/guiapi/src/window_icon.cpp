@@ -7,7 +7,6 @@
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
 #include "guitypes.hpp"
-#include "resource.h"
 #include "gcode_thumb_decoder.h"
 #include "gcode_file.h"
 #include "gui_invalidate.hpp"

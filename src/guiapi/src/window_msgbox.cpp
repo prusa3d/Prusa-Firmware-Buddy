@@ -1,6 +1,5 @@
 // window_msgbox.cpp
 #include "window_msgbox.hpp"
-#include "resource.h"
 #include "sound.hpp"
 #include <algorithm>
 #include "ScreenHandler.hpp"

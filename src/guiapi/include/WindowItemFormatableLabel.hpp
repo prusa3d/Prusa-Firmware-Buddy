@@ -7,7 +7,6 @@
 
 #pragma once
 #include "WindowMenuLabel.hpp"
-#include "resource.h"
 #include <functional>
 
 class WI_LAMBDA_LABEL_t : public AddSuper<WI_LABEL_t> {

@@ -6,7 +6,6 @@
 
 #include "selftest_frame_fans.hpp"
 #include "i18n.h"
-#include "resource.h"
 #include "wizard_config.hpp"
 #include "selftest_fans_type.hpp"
 

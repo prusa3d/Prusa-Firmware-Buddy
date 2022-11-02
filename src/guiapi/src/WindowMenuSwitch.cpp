@@ -5,7 +5,6 @@
  */
 
 #include "WindowMenuSwitch.hpp"
-#include "resource.h"
 
 /*****************************************************************************/
 //IWiSwitch

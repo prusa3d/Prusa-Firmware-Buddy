@@ -6,7 +6,6 @@
 
 #include "selftest_result_axis.hpp"
 #include "i18n.h"
-#include "resource.h"
 
 ResultAxis::ResultAxis(TestResult_t x_res, TestResult_t y_res, TestResult_t z_res)
     : SelfTestGroup(_("Axis check"))

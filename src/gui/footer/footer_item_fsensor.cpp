@@ -6,7 +6,6 @@
 
 #include "footer_item_fsensor.hpp"
 #include "filament_sensor_api.hpp"
-#include "resource.h"
 #include <algorithm>
 #include <cmath>
 

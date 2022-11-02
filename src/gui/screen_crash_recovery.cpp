@@ -16,7 +16,6 @@
     #include "wizard_config.hpp"
     #include "crash_recovery_type.hpp"
     #include "marlin_client.hpp" // marlin_FSM_response
-    #include "resource.h"
     #include "sound.hpp"
 
 using namespace crash_recovery;

@@ -6,7 +6,6 @@
 
 #include "mock_windows.hpp"
 #include "ScreenHandler.hpp"
-#include "resource.h"
 
 void MockScreen::ParrentCheck() const {
     //check parrent

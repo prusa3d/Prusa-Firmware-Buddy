@@ -4,7 +4,6 @@
 #include "window_text.hpp"
 #include "window_frame.hpp"
 #include "media_state.hpp"
-#include "resource.h"
 
 struct window_header_t : public AddSuperWindow<window_frame_t> {
 

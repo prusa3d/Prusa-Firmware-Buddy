@@ -8,7 +8,6 @@
 #include "window_icon.hpp"  // CalculateMinimalSize
 #include "display_helper.h" // font_meas_text
 #include "GuiDefaults.hpp"
-#include "resource.h"
 
 SelfTestViewText::SelfTestViewText(string_view_utf8 txt, is_multiline multiln)
     : SelfTestViewItem(Rect16::Height_t(font_meas_text(GuiDefaults::Font, &txt, &strlen_text_dummy).h))

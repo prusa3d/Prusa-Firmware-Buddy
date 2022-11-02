@@ -7,7 +7,6 @@
 #include "window_event.hpp"
 #include "align.hpp"
 #include "color_scheme.hpp"
-#include "resource.h"
 #include "gui_time.hpp" // not needed here, but will save lot of includes
                         // !!! all windows should use gui::GetTick() to access tick value!!!
 

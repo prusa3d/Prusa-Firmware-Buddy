@@ -3,7 +3,6 @@
 #include "ScreenHandler.hpp"
 #include "marlin_client.h"
 #include "menu_vars.h"
-#include "resource.h"
 
 bool DialogMoveZ::DialogShown = false;
 

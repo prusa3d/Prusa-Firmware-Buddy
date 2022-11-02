@@ -7,7 +7,6 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "marlin_client.hpp"
-#include "resource.h"
 
 static constexpr size_t icon_sz = 64;
 static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::row_h + WizardDefaults::txt_h;

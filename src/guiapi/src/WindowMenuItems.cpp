@@ -5,7 +5,6 @@
  */
 
 #include "WindowMenuItems.hpp"
-#include "resource.h"
 #include "ScreenHandler.hpp"
 
 MI_RETURN::MI_RETURN()

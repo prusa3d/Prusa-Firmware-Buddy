@@ -6,7 +6,6 @@
 
 #include "footer_item_live_z.hpp"
 #include "marlin_client.h"
-#include "resource.h"
 #include <algorithm>
 #include <cmath>
 

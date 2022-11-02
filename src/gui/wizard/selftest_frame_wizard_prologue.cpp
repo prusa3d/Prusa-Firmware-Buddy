@@ -5,7 +5,6 @@
 #include "selftest_frame_wizard_prologue.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
-#include "resource.h"
 #include "printers.h"
 
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)

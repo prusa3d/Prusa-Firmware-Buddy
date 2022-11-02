@@ -1,8 +1,6 @@
 //guitypes.cpp
 
 #include "guitypes.hpp"
-#include "guitypes.h"
-#include "resource.h"
 #include <algorithm>
 
 //intersection of positive intervals p0-p1 and p2-p3, result is stored in p4-p5

@@ -6,7 +6,6 @@
 
 #include "footer_items_nozzle_bed.hpp"
 #include "marlin_client.h"
-#include "resource.h"
 #include "filament.hpp"
 
 FooterItemNozzle::FooterItemNozzle(window_t *parent)

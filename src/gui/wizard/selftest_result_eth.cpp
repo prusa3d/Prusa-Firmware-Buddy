@@ -6,7 +6,6 @@
 
 #include "selftest_result_eth.hpp"
 #include "i18n.h"
-#include "resource.h"
 #include "selftest_eeprom.hpp"
 
 static string_view_utf8 getText(TestResultNet_t res) {

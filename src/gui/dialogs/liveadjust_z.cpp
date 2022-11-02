@@ -1,7 +1,6 @@
 // liveadjustz.cpp
 
 #include "liveadjust_z.hpp"
-#include "resource.h"
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 #include "GuiDefaults.hpp"
