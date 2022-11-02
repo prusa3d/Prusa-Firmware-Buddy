@@ -1557,6 +1557,9 @@
     #define Z_MAX_LEN_LIMIT 10000
     #define Z_MAX_POS (get_z_max_pos_mm())
 #else
+    #define DEFAULT_Z_MAX_POS 185
+    #define Z_MIN_LEN_LIMIT 1
+    #define Z_MAX_LEN_LIMIT 10000
     #define Z_MAX_POS 185
 #endif
 
