@@ -173,7 +173,9 @@ void Planner::action_done(ActionResult result) {
             // server, for example, which, due to our limitations, we are
             // unable to distinguish from just a network error while sending
             // the data), so avoid some kind of infinite loop/blocked state.
-            planned_event.reset();
+            if (planned_event.has_value() && planned_event->type != EventType::Info) {
+                planned_event.reset();
+            }
             failed_attempts = 0;
         }
 
