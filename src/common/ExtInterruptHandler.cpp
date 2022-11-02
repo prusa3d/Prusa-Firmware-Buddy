@@ -5,7 +5,7 @@
  */
 
 #include "inc/MarlinConfig.h"
-#include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
+#include "../../lib/Marlin/Marlin/src/HAL/STM32/endstop_ISR.h"
 #include <type_traits>
 
 #include "power_panic.hpp"
