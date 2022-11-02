@@ -571,7 +571,7 @@ void marlin_server_settings_reset(void) {
 }
 
 void marlin_server_manage_heater(void) {
-    thermalManager.manage_heater();
+    thermalManager.task();
 }
 
 void marlin_server_quick_stop(void) {
