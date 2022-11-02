@@ -69,6 +69,13 @@ void GcodeSuite::M600() {
         NOZZLE_PARK_POINT;
 #endif
 
+    // get fan speed before stopping it
+    uint8_t pwm_value;
+    pwm_value = marlin_server_read_vars().print_fan_speed;
+
+    // fan stop during material change
+    thermalManager.set_fan_speed(0, 0);
+
     // Lift Z axis
     if (parser.seenval('Z'))
         park_point.z = parser.linearval('Z');
@@ -111,4 +118,7 @@ void GcodeSuite::M600() {
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, target_extruder);
     }
+
+    // fan speed return
+    thermalManager.set_fan_speed(0, pwm_value);
 }
