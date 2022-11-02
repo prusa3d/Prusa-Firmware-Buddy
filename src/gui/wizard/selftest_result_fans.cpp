@@ -6,6 +6,7 @@
 
 #include "selftest_result_fans.hpp"
 #include "i18n.h"
+#include "png_resources.hpp"
 
 ResultFans::ResultFans(TestResult_t hb_fan, TestResult_t print_fan)
     : SelfTestGroup(_("Fans check"))

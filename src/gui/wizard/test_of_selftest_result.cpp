@@ -7,6 +7,7 @@
 #include "test_of_selftest_result.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "png_resources.hpp"
 
 TestResult::TestResult()
     : AddSuperWindow<screen_t>()

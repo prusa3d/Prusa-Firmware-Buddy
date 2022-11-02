@@ -7,7 +7,6 @@
 
 #include "window.hpp"
 #include "gcode_info.hpp"
-#include "png_resources.hpp"
 
 /** @brief Creates an image rendered to the screen
  *  that is redrawn by the GUI loop as needed

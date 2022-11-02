@@ -3,6 +3,7 @@
 
 #include "client_response_texts.hpp"
 #include "i18n.h"
+#include "png_resources.hpp"
 
 // clang-format off
 /**

@@ -5,6 +5,7 @@
  */
 
 #include "selftest_result_heaters.hpp"
+#include "png_resources.hpp"
 #include "i18n.h"
 
 ResultHeaters::ResultHeaters(TestResult_t res_noz, TestResult_t res_bed)

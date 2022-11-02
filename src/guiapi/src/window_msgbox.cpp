@@ -5,6 +5,8 @@
 #include "ScreenHandler.hpp"
 #include "client_response_texts.hpp"
 #include "GuiDefaults.hpp"
+#include "png_resources.hpp"
+
 /*****************************************************************************/
 //MsgBoxBase
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt,

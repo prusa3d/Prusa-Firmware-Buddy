@@ -11,7 +11,6 @@
 #include "string_view_utf8.hpp"
 #include "selftest_eeprom.hpp"
 #include "font_flags.hpp" // is_multiline
-#include "png_resources.hpp"
 
 class SelfTestViewText : public SelfTestViewItem {
     string_view_utf8 text;

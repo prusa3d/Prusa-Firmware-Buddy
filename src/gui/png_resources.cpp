@@ -4,7 +4,7 @@
 
 #include "png_resources.hpp"
 
-static constexpr const char *InternalFlash = "/internal/res/pngs2";
+static constexpr const char *InternalFlash = "/internal/res/pngs";
 
 static FILE *open_file_and_disable_buff(const char *fname) {
     FILE *file = fopen(fname, "rb");
@@ -16,7 +16,7 @@ static FILE *open_file_and_disable_buff(const char *fname) {
 static FILE *getDefaultFile() {
     static FILE *file = nullptr;
     if (!file)
-        open_file_and_disable_buff(InternalFlash);
+        file = open_file_and_disable_buff(InternalFlash);
     return file;
 }
 

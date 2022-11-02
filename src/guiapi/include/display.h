@@ -9,7 +9,6 @@
 #include "Rect16.h"
 #include "display_ex.hpp"
 #include "resource.h"
-#include "png_resources.hpp"
 
 typedef uint16_t(display_size_t)(void);
 typedef void(display_init_t)(void);

@@ -1,6 +1,7 @@
 
 #include "DialogMoveZ.hpp"
 #include "ScreenHandler.hpp"
+#include "png_resources.hpp"
 #include "marlin_client.h"
 #include "menu_vars.h"
 

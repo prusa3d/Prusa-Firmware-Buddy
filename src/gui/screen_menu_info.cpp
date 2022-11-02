@@ -6,6 +6,7 @@
 #include "MItem_menus.hpp"
 #include "screen_menus.hpp"
 #include "DialogMoveZ.hpp"
+#include "png_resources.hpp"
 
 using Screen = ScreenMenu<EFooter::On, MI_RETURN,
 #ifdef _DEBUG

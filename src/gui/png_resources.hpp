@@ -6,30 +6,9 @@
 // clang-format off
 
 #pragma once
-#include <cstdint>
-#include <cstddef>
-#include <cstdio>
+#include "guitypes.hpp" //png::Resource
 
 namespace png {
-
-struct Resource {
-    FILE* file = nullptr; // default file
-    const char* name = nullptr; // name is optional, external file might not need it
-    size_t offset = 0; // 0 == no offset, all "normal" png files containing only one png has no offset
-    size_t size = 0; // 0 == calculate at run time
-    uint16_t w = 0; // 0 == calculate at run time
-    uint16_t h = 0; // 0 == calculate at run time
-
-    constexpr Resource(const char* name, size_t offset, size_t size, uint16_t w, uint16_t h)
-    : file(nullptr)
-    , name(name)
-    , offset(offset)
-    , size(size)
-    , w(w)
-    , h(h) {}
-
-    FILE* Get() const;
-};
 
 #include "../gui/res/png_resources.gen"
 

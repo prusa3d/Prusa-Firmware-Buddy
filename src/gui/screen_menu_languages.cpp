@@ -13,6 +13,7 @@
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 #include "ScreenHandler.hpp"
+#include "png_resources.hpp"
 
 class MI_LangBase : public WI_LABEL_t {
 public:

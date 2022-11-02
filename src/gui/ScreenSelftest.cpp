@@ -6,6 +6,7 @@
 #include "ScreenSelftest.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "png_resources.hpp"
 #include "marlin_client.h"
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {

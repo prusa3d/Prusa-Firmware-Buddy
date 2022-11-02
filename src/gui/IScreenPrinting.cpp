@@ -2,6 +2,7 @@
 #include "config.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "png_resources.hpp"
 
 IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
     : AddSuperWindow<screen_t>()

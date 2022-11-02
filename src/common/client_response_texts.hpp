@@ -4,7 +4,7 @@
 #pragma once
 
 #include "client_response.hpp" //MAX_RESPONSES
-#include "png_resources.hpp"
+#include "guitypes.hpp"
 #include <array>
 #include <utility>
 

@@ -42,12 +42,8 @@ public:
 };
 
 class WI_ICON_SWITCH_OFF_ON_t : public WI_ICON_SWITCH_t<2> {
-    constexpr static const png::Resource *iid_off = &png::switch_off_36x18;
-    constexpr static const png::Resource *iid_on = &png::switch_on_36x18;
-
 public:
-    WI_ICON_SWITCH_OFF_ON_t(bool index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-        : WI_ICON_SWITCH_t(size_t(index), label, id_icon, enabled, hidden, iid_off, iid_on) {}
+    WI_ICON_SWITCH_OFF_ON_t(bool index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
 };
 
 class MI_RETURN : public WI_LABEL_t {

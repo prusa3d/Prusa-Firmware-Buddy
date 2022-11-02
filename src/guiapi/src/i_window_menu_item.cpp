@@ -5,6 +5,7 @@
 #include "i_window_menu_item.hpp"
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
+#include "png_resources.hpp"
 
 static_assert(sizeof(IWindowMenuItem) <= sizeof(string_view_utf8) + sizeof(txtroll_t) + sizeof(font_t) + sizeof(int), "error inefficient size of IWindowMenuItem");
 

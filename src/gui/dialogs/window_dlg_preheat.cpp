@@ -6,6 +6,7 @@
  */
 
 #include "window_dlg_preheat.hpp"
+#include "png_resources.hpp"
 #include "marlin_client.h"
 #include "stdlib.h"
 #include "i18n.h"

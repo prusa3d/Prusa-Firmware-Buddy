@@ -1,5 +1,5 @@
 #include "MItem_tools.hpp"
-#include <crash_dump/dump.h>
+#include "png_resources.hpp"
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
 #include "marlin_client.h"
@@ -22,9 +22,11 @@
 #include "hwio_pindef.h"
 #include "menu_spin_config.hpp"
 #include "footer_eeprom.hpp"
-#include <time.h>
 #include "sys.h"
 #include "w25x.h"
+
+#include <crash_dump/dump.h>
+#include <time.h>
 
 /**********************************************************************************************/
 //MI_FILAMENT_SENSOR

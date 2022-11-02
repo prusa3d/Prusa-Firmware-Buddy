@@ -8,6 +8,7 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "selftest_axis_type.hpp"
+#include "png_resources.hpp"
 
 static constexpr size_t X_AXIS_PERCENT = 33;
 static constexpr size_t Y_AXIS_PERCENT = 33;
