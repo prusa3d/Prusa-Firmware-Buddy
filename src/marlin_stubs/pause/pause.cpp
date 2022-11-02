@@ -20,7 +20,7 @@
 
 #include "../../../lib/Marlin/Marlin/src/lcd/extui/ui_api.h"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
-#include "../../lib/Marlin/Marlin/src/lcd/ultralcd.h"
+#include "../../lib/Marlin/Marlin/src/lcd/marlinui.h"
 
 #include "../../lib/Marlin/Marlin/src/libs/nozzle.h"
 #include "../../lib/Marlin/Marlin/src/feature/pause.h"
