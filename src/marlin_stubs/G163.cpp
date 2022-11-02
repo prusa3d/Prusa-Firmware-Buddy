@@ -62,9 +62,9 @@ void PrusaGcodeSuite::G163() {
     }
 
     if (do_x)
-        SERIAL_ECHOLNPAIR("X length: ", ma.length().x);
+        SERIAL_ECHOLNPGM("X length: ", ma.length().x);
     if (do_y)
-        SERIAL_ECHOLNPAIR("Y length: ", ma.length().y);
+        SERIAL_ECHOLNPGM("Y length: ", ma.length().y);
 
     set_length(ma.length());
     cr_fsm.set(axis_length_ok_fsm(X_AXIS, ma.length().x), axis_length_ok_fsm(Y_AXIS, ma.length().y));

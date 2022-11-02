@@ -42,7 +42,7 @@ void PrusaGcodeSuite::M331() {
     }
 
     SERIAL_ERROR_START();
-    SERIAL_ECHOLNPAIR("Metric not found: ", parser.string_arg);
+    SERIAL_ECHOLNPGM("Metric not found: ", parser.string_arg);
 }
 
 void PrusaGcodeSuite::M332() {
@@ -63,7 +63,7 @@ void PrusaGcodeSuite::M332() {
     }
 
     SERIAL_ERROR_START();
-    SERIAL_ECHOLNPAIR("Metric not found: ", parser.string_arg);
+    SERIAL_ECHOLNPGM("Metric not found: ", parser.string_arg);
 }
 
 void PrusaGcodeSuite::M333() {
