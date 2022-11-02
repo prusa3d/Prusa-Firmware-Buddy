@@ -158,22 +158,25 @@ void fatal_error(const char *error, const char *module) {
         *perror_code_short = 510;
     } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
         *perror_code_short = 301;
-    } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
-        *perror_code_short = 201;
     } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
-        *perror_code_short = 202;
+        if (strcmp(MSG_BED, module) == 0)
+            *perror_code_short = 201;
+        else
+            *perror_code_short = 202;
     } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
         *perror_code_short = 203;
     } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
         *perror_code_short = 204;
-    } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
-        *perror_code_short = 205;
     } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
-        *perror_code_short = 206;
-    } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
-        *perror_code_short = 207;
+        if (strcmp(MSG_BED, module) == 0)
+            *perror_code_short = 205;
+        else
+            *perror_code_short = 206;
     } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
-        *perror_code_short = 208;
+        if (strcmp(MSG_BED, module) == 0)
+            *perror_code_short = 207;
+        else
+            *perror_code_short = 208;
     } else {
         *perror_code_short = 0; // Unknown error code = we don't have help.prusa3d site support for this error
         dump_error_message = true;
