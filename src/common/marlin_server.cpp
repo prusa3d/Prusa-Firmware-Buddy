@@ -528,7 +528,7 @@ bool marlin_server_inject_gcode(const char *gcode) {
 
 void marlin_server_settings_save(void) {
 #if HAS_BED_PROBE
-    if (!SteelSheets::SetZOffset(probe_offset.z)) {
+    if (!SteelSheets::SetZOffset(probe.offset.z)) {
         assert(0 /* Z offset write failed */);
     }
 #endif
@@ -547,7 +547,7 @@ void marlin_server_settings_save(void) {
 void marlin_server_settings_load(void) {
     (void)settings.reset();
 #if HAS_BED_PROBE
-    probe_offset.z = SteelSheets::GetZOffset();
+    probe.offset.z = SteelSheets::GetZOffset();
 #endif
 #if ENABLED(PIDTEMPBED)
     Temperature::temp_bed.pid.Kp = eeprom_get_flt(EEVAR_PID_BED_P);
