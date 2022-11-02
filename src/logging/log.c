@@ -30,9 +30,13 @@ void log_destination_register(log_destination_t *destination) {
 }
 
 void log_destination_unregister(log_destination_t *destination) {
-    for (log_destination_t **destination_pp = &destinations_head; *destination_pp != NULL; destination_pp++)
-        if (destination == *destination_pp)
+    for (log_destination_t **destination_pp = &destinations_head; *destination_pp != NULL;) {
+        if (destination == *destination_pp) {
             *destination_pp = destination->next;
+        } else {
+            destination_pp = &((*destination_pp)->next);
+        }
+    }
 }
 
 void _log_event(log_severity_t severity, const log_component_t *component, const char *fmt, ...) {
@@ -68,7 +72,7 @@ log_component_t *log_component_find(const char *name) {
 }
 
 log_destination_t *log_destination_find(const char *name) {
-    for (log_destination_t **destination_pp = &destinations_head; *destination_pp != NULL; destination_pp++) {
+    for (log_destination_t **destination_pp = &destinations_head; *destination_pp != NULL; destination_pp = &((*destination_pp)->next)) {
         log_destination_t *destination = *destination_pp;
         if (strcmp(destination->name, name) == 0) {
             return destination;
