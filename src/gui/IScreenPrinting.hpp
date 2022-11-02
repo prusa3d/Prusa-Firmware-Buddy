@@ -4,7 +4,6 @@
 #include "screen.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "resource.h"
 
 class IScreenPrinting : public AddSuperWindow<screen_t> {
 protected:

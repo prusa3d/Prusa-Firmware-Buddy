@@ -12,7 +12,6 @@
 #include "i18n.h"
 #include "i_window_menu.hpp" //needed invalidate for click
 #include "text_roll.hpp"
-#include "resource.h"
 
 //IWindowMenuItem
 //todo make version with constant label

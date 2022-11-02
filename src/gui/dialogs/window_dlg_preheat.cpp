@@ -7,7 +7,6 @@
 
 #include "window_dlg_preheat.hpp"
 #include "marlin_client.h"
-#include "resource.h"
 #include "stdlib.h"
 #include "i18n.h"
 #include <limits>

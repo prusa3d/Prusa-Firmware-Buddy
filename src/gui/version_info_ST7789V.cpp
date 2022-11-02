@@ -12,7 +12,6 @@
 #include "screen_menu.hpp"
 #include "config.h"
 #include "version.h"
-#include "resource.h"
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS

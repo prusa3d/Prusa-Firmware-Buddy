@@ -7,7 +7,6 @@
 #include "WinMenuContainer.hpp"
 #include "WindowMenuItems.hpp"
 #include <stdint.h>
-#include "resource.h"
 #include "screen.hpp"
 #include <new>
 

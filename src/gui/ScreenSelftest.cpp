@@ -4,7 +4,6 @@
  * @date 2021-11-25
  */
 #include "ScreenSelftest.hpp"
-#include "resource.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "marlin_client.h"

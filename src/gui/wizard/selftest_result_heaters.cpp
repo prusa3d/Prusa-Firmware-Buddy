@@ -6,7 +6,6 @@
 
 #include "selftest_result_heaters.hpp"
 #include "i18n.h"
-#include "resource.h"
 
 ResultHeaters::ResultHeaters(TestResult_t res_noz, TestResult_t res_bed)
     : SelfTestGroup(_("Heaters check"))

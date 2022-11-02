@@ -14,7 +14,6 @@
 #include "i18n.h"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "resource.h"
 #include <bitset>
 
 //Singleton dialog for messages

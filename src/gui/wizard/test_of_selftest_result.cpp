@@ -5,7 +5,6 @@
  */
 
 #include "test_of_selftest_result.hpp"
-#include "resource.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 

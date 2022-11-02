@@ -9,7 +9,6 @@
 
 #include "WindowMenuLabel.hpp"
 #include "GuiDefaults.hpp"
-#include "resource.h"
 
 /*****************************************************************************/
 //WI_INFO_t

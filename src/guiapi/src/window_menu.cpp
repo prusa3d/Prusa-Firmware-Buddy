@@ -7,7 +7,6 @@
 #include "window_menu.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
-#include "resource.h"
 #include "WindowMenuItems.hpp"
 #include "cmath_ext.h"
 #include "marlin_client.h"

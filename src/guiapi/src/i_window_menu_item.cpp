@@ -3,7 +3,6 @@
  */
 
 #include "i_window_menu_item.hpp"
-#include "resource.h"
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
 

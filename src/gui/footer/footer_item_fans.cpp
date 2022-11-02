@@ -5,7 +5,6 @@
  */
 #include "footer_item_fans.hpp"
 #include "marlin_client.h"
-#include "resource.h"
 #include <algorithm>
 
 //static variables

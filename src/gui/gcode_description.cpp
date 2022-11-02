@@ -1,7 +1,6 @@
 //gcode_description.cpp
 #include "gcode_description.hpp"
 #include <cstdarg>
-#include "resource.h"
 
 size_t description_line_t::title_width(string_view_utf8 *title_str) {
     return title_str->computeNumUtf8CharsAndRewind() * resource_font(IDR_FNT_SMALL)->w;

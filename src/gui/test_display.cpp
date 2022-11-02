@@ -6,7 +6,6 @@
 
 #include "cmsis_os.h"
 #include "gui.hpp"
-#include "resource.h"
 #include "display_helper.h"
 #include "log.h"
 

@@ -1,7 +1,6 @@
 #include "screen_menu.hpp"
 #include "config.h"
 #include "stdlib.h"
-#include "resource.h"
 
 string_view_utf8 IScreenMenu::no_label = string_view_utf8::MakeCPUFLASH((const uint8_t *)no_labelS);
 
