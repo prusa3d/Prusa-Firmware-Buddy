@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../../lib/Marlin/Marlin/src/module/planner.h"
+#include "../../lib/Marlin/Marlin/src/module/stepper.h"
 
 /**
  * @brief ensures proper progress state in marlin_server
