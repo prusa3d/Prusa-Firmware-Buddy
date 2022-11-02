@@ -142,7 +142,7 @@ void CSelftestPart_Axis::sg_sampling_disable() {
 CSelftestPart_Axis *CSelftestPart_Axis::m_pSGAxis = nullptr;
 
 LoopResult CSelftestPart_Axis::stateWaitHome() {
-    if (planner.movesplanned() || queue.length)
+    if (planner.movesplanned() || queue.ring_buffer.occupied())
         return LoopResult::RunCurrent;
     endstops.enable(true);
     endstops.enable_z_probe();
