@@ -231,7 +231,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
+    st.rms_current(mA, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -266,7 +266,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
+    st.rms_current(mA, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -688,7 +688,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
+    st.rms_current(mA, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -730,7 +730,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
+    st.rms_current(mA, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -788,7 +788,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
+    st.rms_current(mA, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current
@@ -823,7 +823,7 @@ enum StealthIndex : uint8_t {
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
     st.CHOPCONF(chopconf.sr);
 
-    st.rms_current(mA, HOLD_MULTIPLIER[AXIS_ID]);
+    st.rms_current(mA, HOLD_MULTIPLIER);
     st.microsteps(microsteps);
     st.iholddelay(10);
     st.TPOWERDOWN(128); // ~2s until driver lowers to hold current

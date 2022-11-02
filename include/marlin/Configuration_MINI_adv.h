@@ -3024,7 +3024,7 @@
  */
 #if HAS_TRINAMIC_CONFIG
 
-    constexpr float HOLD_MULTIPLIER[4] = {1, 1, 1, 1};  // Scales down the holding current from run current
+    #define HOLD_MULTIPLIER 1  // Scales down the holding current from run current
 
     /**
      * Interpolate microsteps to 256
