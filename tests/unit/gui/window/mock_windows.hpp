@@ -11,7 +11,7 @@
 #include "window_dlg_popup.hpp"
 #include "IDialog.hpp"
 #include "DialogTimed.hpp"
-#include "png_resources.hpp"
+#include "guitypes.hpp"
 
 class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
 protected: // inherited by unit tests, must be protected

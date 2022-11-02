@@ -1,15 +1,17 @@
 #include "screen_qr_error.hpp"
+#include "png_resources.hpp"
 #include "config.h"
-#include <stdlib.h>
 #include "ScreenHandler.hpp"
 #include "display.h"
 #include "errors.h"
 #include "sound.hpp"
-#include <crash_dump/dump.h>
 #include "sys.h"
 #include "eeprom.h"
 #include "support_utils.h"
 #include "version.h"
+
+#include <stdlib.h>
+#include <crash_dump/dump.h>
 
 static const constexpr Rect16 title_rect = Rect16(13, 12, display::GetW() - 26, 20);
 static const constexpr Rect16 hand_rect = Rect16(20, 165, 64, 82);

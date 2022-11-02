@@ -81,28 +81,24 @@ float FooterItemAxisCurrPos<AXIS>::static_readValue() {
 class FooterItemAxisX : FooterItemAxisPos<0> {
 public:
     static string_view_utf8 GetName() { return _("X Axis"); }
-    FooterItemAxisX(window_t *parent)
-        : FooterItemAxisPos<0>(parent, &png::x_axis_16x16) {}
+    FooterItemAxisX(window_t *parent);
 };
 class FooterItemAxisY : FooterItemAxisPos<1> {
 public:
     static string_view_utf8 GetName() { return _("Y Axis"); }
-    FooterItemAxisY(window_t *parent)
-        : FooterItemAxisPos<1>(parent, &png::y_axis_16x16) {}
+    FooterItemAxisY(window_t *parent);
 };
 
 class FooterItemAxisZ : FooterItemAxisPos<2> {
 public:
     static string_view_utf8 GetName() { return _("Z Axis"); }
 
-    FooterItemAxisZ(window_t *parent)
-        : FooterItemAxisPos<2>(parent, &png::z_axis_16x16) {}
+    FooterItemAxisZ(window_t *parent);
 };
 
 class FooterItemZHeight : FooterItemAxisCurrPos<2> {
 public:
     static string_view_utf8 GetName() { return _("Z Heigth"); }
 
-    FooterItemZHeight(window_t *parent)
-        : FooterItemAxisCurrPos<2>(parent, &png::z_axis_16x16) {}
+    FooterItemZHeight(window_t *parent);
 };

@@ -6,6 +6,7 @@
 
 #include "WindowMenuItems.hpp"
 #include "ScreenHandler.hpp"
+#include "png_resources.hpp"
 
 MI_RETURN::MI_RETURN()
     : WI_LABEL_t(_(label), &png::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
@@ -24,3 +25,6 @@ MI_TEST_DISABLED_RETURN::MI_TEST_DISABLED_RETURN()
 void MI_TEST_DISABLED_RETURN::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Close();
 }
+
+WI_ICON_SWITCH_OFF_ON_t::WI_ICON_SWITCH_OFF_ON_t(bool index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    : WI_ICON_SWITCH_t(size_t(index), label, id_icon, enabled, hidden, &png::switch_off_36x18, &png::switch_on_36x18) {}

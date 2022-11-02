@@ -6,7 +6,7 @@
 #include "config.h"
 #include "version.h"
 #include "eeprom.h"
-
+#include "png_resources.hpp"
 #include "marlin_client.h"
 
 #include "i18n.h"

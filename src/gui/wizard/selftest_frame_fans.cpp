@@ -8,6 +8,7 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "selftest_fans_type.hpp"
+#include "png_resources.hpp"
 
 static constexpr size_t col_texts = WizardDefaults::col_after_icon;
 static constexpr size_t col_results = WizardDefaults::status_icon_X_pos;

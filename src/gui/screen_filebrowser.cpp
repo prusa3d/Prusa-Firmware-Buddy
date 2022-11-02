@@ -12,10 +12,11 @@
 #include "i18n.h"
 #include "gui_media_events.hpp"
 #include "log.h"
+#include "png_resources.hpp"
+#include "GuiDefaults.hpp"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
-#include "GuiDefaults.hpp"
 
 LOG_COMPONENT_REF(GUI);
 

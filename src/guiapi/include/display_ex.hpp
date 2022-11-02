@@ -5,7 +5,6 @@
 #include "guitypes.hpp"
 #include "Rect16.h"
 #include "raster_opfn.hpp"
-#include "png_resources.hpp"
 
 void display_ex_clear(const color_t clr);
 

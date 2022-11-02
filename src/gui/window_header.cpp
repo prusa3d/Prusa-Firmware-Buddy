@@ -2,6 +2,7 @@
 #include "config.h"
 #include "i18n.h"
 #include "gui_media_events.hpp"
+#include "png_resources.hpp"
 #include "netdev.h"
 
 void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {

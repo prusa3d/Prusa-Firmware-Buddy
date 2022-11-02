@@ -16,6 +16,7 @@
 #include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.h"
+#include "png_resources.hpp"
 
 static const constexpr uint8_t VERSION_INFO_STR_MAXLEN = 150;
 static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string

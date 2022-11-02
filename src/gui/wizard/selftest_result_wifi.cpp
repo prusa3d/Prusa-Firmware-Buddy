@@ -7,6 +7,7 @@
 #include "selftest_result_wifi.hpp"
 #include "i18n.h"
 #include "selftest_eeprom.hpp"
+#include "png_resources.hpp"
 
 static string_view_utf8 getText(TestResultNet_t res) {
     switch (res) {

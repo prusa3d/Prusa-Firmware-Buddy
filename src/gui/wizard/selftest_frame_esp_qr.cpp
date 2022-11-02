@@ -7,6 +7,7 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "marlin_client.hpp"
+#include "png_resources.hpp"
 #include <cstring>
 
 SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)

@@ -8,6 +8,7 @@
 #include "menu_spin_config.hpp"
 #include "ScreenHandler.hpp"
 #include "string.h" // memcmp
+#include "png_resources.hpp"
 
 #define NOTRAN(x) string_view_utf8::MakeCPUFLASH((const uint8_t *)x)
 

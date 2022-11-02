@@ -9,6 +9,7 @@
 #include "filament_sensor_api.hpp"
 #include "translator.hpp"
 #include "SteelSheets.hpp"
+#include "png_resources.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO

@@ -14,6 +14,7 @@
 #include "ScreenHandler.hpp"
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
+#include "png_resources.hpp"
 #if _DEBUG
     #include "bsod.h"
 #endif

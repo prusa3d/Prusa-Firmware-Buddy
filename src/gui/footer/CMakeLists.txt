@@ -1,6 +1,7 @@
 target_sources(
   firmware
   PRIVATE footer_icon.cpp
+          footer_item_axis.cpp
           footer_item_fans.cpp
           footer_item_filament.cpp
           footer_item_fsensor.cpp

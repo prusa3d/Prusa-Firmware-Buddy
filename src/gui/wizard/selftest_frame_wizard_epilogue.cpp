@@ -5,6 +5,7 @@
 #include "selftest_frame_wizard_epilogue.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
+#include "png_resources.hpp"
 
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
 static constexpr size_t margin_texts = 0;

@@ -7,6 +7,7 @@
 #include "footer_items_nozzle_bed.hpp"
 #include "marlin_client.h"
 #include "filament.hpp"
+#include "png_resources.hpp"
 
 FooterItemNozzle::FooterItemNozzle(window_t *parent)
     : AddSuperWindow<FooterItemHeater>(parent, &png::nozzle_16x16, static_makeView, static_readValue) {

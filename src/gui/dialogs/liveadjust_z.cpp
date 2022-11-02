@@ -7,6 +7,7 @@
 #include "marlin_client.h"
 #include "display_helper.h"
 #include "SteelSheets.hpp"
+#include "png_resources.hpp"
 
 #include "config_features.h"
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)

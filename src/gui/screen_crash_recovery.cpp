@@ -8,6 +8,7 @@
  */
 
 #include "config_features.h"
+#include "png_resources.hpp"
 // TODO do it in cmake
 #if ENABLED(CRASH_RECOVERY)
 
