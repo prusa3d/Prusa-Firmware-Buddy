@@ -73,7 +73,9 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
 #define DUMP_REGS_GEN_EXC_TO_CCRAM()                                                    \
     asm volatile(                                                                       \
         "    ldr r1, =0x1000ff00    \n" /* hardcoded ccram addres - todo: use macro  */ \
+        "    b .dump_continue       \n" /* skip the .ltorg constants                 */ \
         "    .ltorg                 \n" /* put the immediate constant 0x1000ff00 here*/ \
+        ".dump_continue:            \n"                                                 \
         "    ldr r2, [r0, #0x00]    \n" /* load r0 from stack frame  */                 \
         "    str r2, [r1, #0x00]    \n" /* store r0 to ccram  */                        \
         "    ldr r2, [r0, #0x04]    \n" /* r1  */                                       \
