@@ -28,7 +28,8 @@ union SelftestResultEEprom_t {
         uint8_t reserved_1 : 2;   // bit 16-17
         uint8_t eth : 2;          // bit 17-19
         uint8_t wifi : 2;         // bit 20-21
-        uint16_t reserved : 10;   // bit 22-31
+        uint8_t reserved1 : 2;    // bit 22-23
+        uint8_t reserved0;        // bit 24-31
     };
 };
 

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <optional>
 
-#if defined(__unix__) || defined(__APPLE__)
+#if defined(__unix__) || defined(__APPLE__) || defined(__WIN32__)
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>

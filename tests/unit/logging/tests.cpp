@@ -10,7 +10,7 @@ TEST_CASE("once defined, component can be discovered", "[logging]") {
 }
 
 TEST_CASE("searching for undefined component returns null", "[logging]") {
-    REQUIRE(log_component_find("undefined") == NULL);
+    REQUIRE(log_component_find("undefined") == nullptr);
 }
 
 TEST_CASE("in-memory destination captures an event", "[logging]") {
