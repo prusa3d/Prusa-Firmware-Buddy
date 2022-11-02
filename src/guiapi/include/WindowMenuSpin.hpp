@@ -10,6 +10,7 @@
 #include "WindowMenuLabel.hpp"
 #include "menu_spin_config_type.hpp" //SpinConfig_t
 #include "resource.h"
+#include "eeprom.h"
 
 /*****************************************************************************/
 //IWiSpin
