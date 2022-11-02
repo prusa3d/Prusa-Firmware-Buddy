@@ -165,13 +165,7 @@ void Screens::CloseAll() {
 }
 
 void Screens::CloseSerial() {
-    /// serial close logic:
-    /// when serial printing screen (M876) is open, Screens::SerialClose() is
-    /// called and it will iterate all screens to close those that should be closed
-    while (Get() && Get()->ClosedOnSerialPrint() && stack_iterator != stack.begin()) {
-        close = true;
-        InnerLoop();
-    }
+    close_serial = true;
 }
 
 // used to close blocking dialogs
@@ -233,7 +227,25 @@ void Screens::InnerLoop() {
                 close = true;                       // set flag to close screen[1] == open screen[0] (home)
             }
         }
-        close_all = false;
+        close_all = false;    // reset close all flag
+        close_serial = false; // all screens were closed, close serial has no meaning
+    }
+
+    if (close_serial) {
+        // serial close logic:
+        // when serial printing screen (M876) is open, Screens::SerialClose() is
+        // called and it will iterate all screens to close those that should be closed
+        if (current) {                      // is there something to close?
+            auto backup = creator_node;     // backup creator (in case we need to both close and open at the same time)
+            creator_node.creator = nullptr; // erase creator node
+            close_serial = false;           // reset close serial flag now, so following InnerLoop only closes a screen
+            while (Get() && Get()->ClosedOnSerialPrint() && stack_iterator != stack.begin()) {
+                close = true;
+                InnerLoop(); // call recursively - but with only single level of recursion .. this wil  just close single screen (we already know it should be closed)
+            }
+
+            creator_node = backup; // now all screens are closed, so we just restore creator to open screen if there was a request to do it
+        }
     }
 
     // open new screen
@@ -275,7 +287,7 @@ void Screens::InnerLoop() {
             }
         }
         current->InitState(creator_node.init_data);
-        creator_node = nullptr;
+        creator_node.creator = nullptr;
     }
 }
 
