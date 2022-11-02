@@ -1,5 +1,5 @@
 #include "main.h"
-#include "config_features.h"
+#include "../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_device.h"

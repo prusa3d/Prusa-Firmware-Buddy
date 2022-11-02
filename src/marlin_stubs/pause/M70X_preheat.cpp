@@ -1,4 +1,4 @@
-#include "config_features.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "filament_sensor_api.hpp"
 
 // clang-format off

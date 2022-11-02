@@ -1,4 +1,4 @@
-#include "config_features.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 // TODO do it in cmake
 #if ENABLED(CRASH_RECOVERY)
 

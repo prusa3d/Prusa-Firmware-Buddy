@@ -20,7 +20,7 @@
  *
  */
 
-#include "config_features.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
 
