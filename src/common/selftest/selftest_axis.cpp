@@ -33,7 +33,7 @@ CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisCo
     homing_reset();
     char gcode[6];
     // we have Z safe homing enabled, so Z might need to home all axis
-    if (AxisLetter[config.axis] == 'Z' && (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS))) {
+    if (AxisLetter[config.axis] == 'Z' && (!axis_is_trusted(X_AXIS) || !axis_is_trusted(Y_AXIS))) {
         log_info(Selftest, "%s home all axis", config.partname);
         sprintf(gcode, "G28");
     } else {
