@@ -211,7 +211,7 @@ void FirstLayer::plan_destination(const float x, const float y, const float z, c
     if (isfinite(f))
         feedrate_mm_s = f / 60.f;
 
-    prepare_move_to_destination();
+    prepare_line_to_destination();
 }
 
 void FirstLayer::inc_progress() {
