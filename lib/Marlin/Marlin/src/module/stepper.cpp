@@ -1639,7 +1639,7 @@ void Stepper::slow_axis_pulse_phase_isr() {
   if (slow_axis_steps_to_do < 1) return;
 
   #define SLOW_AXIS_START_PULSE(AXIS) do{ \
-    _APPLY_STEP(AXIS)(!_INVERT_STEP_PIN(AXIS), 0); \
+    _APPLY_STEP(AXIS, !_INVERT_STEP_PIN(AXIS), 0); \
     count_position[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
     count_position_from_startup[_AXIS(AXIS)] += count_direction[_AXIS(AXIS)]; \
   }while(0)
@@ -1648,7 +1648,7 @@ void Stepper::slow_axis_pulse_phase_isr() {
   #define SLOW_AXIS_STOP_PULSE(AXIS) do { \
     delta_error[_AXIS(AXIS)] -= advance_divisor; \
     --slow_axis_steps_to_do; \
-    _APPLY_STEP(AXIS)(_INVERT_STEP_PIN(AXIS), 0); \
+    _APPLY_STEP(AXIS, _INVERT_STEP_PIN(AXIS), 0); \
   }while(0)
 
   if (X_is_slow_axis()) {
