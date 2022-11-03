@@ -1595,8 +1595,8 @@ static void _set_notify_change(uint8_t var_id) {
 }
 
 static void _server_update_gqueue(void) {
-    if (marlin_server.gqueue != queue.length) {
-        marlin_server.gqueue = queue.length;
+    if (marlin_server.gqueue != queue.ring_buffer.length) {
+        marlin_server.gqueue = queue.ring_buffer.length;
         //		_dbg("gqueue: %2d", marlin_server.gqueue);
     }
 }

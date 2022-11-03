@@ -392,7 +392,7 @@ char getByte(GCodeFilter::State *state) {
 void media_loop(void) {
     if (media_print_state == media_print_state_DRAINING) {
         close_file();
-        int index_r = queue.index_r;
+        int index_r = queue.ring_buffer.index_r;
         media_gcode_position = media_current_position = media_queue_position[index_r];
         queue.clear();
         media_print_state = media_print_state_PAUSED;
@@ -411,7 +411,7 @@ void media_loop(void) {
     }
 
     media_loop_read = 0;
-    while (queue.length < (BUFSIZE - 1)) { // Keep one free slot for serial commands
+    while (queue.ring_buffer.length < (BUFSIZE - 1)) { // Keep one free slot for serial commands
         GCodeFilter::State state;
         char *gcode = gcode_filter.nextGcode(&state);
 
