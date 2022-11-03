@@ -86,10 +86,12 @@ void GcodeSuite::M30() {
     //TODO
 }
 
+#if HAS_MEDIA_SUBCALLS
 // M32 - Select file and start SD print
 void GcodeSuite::M32() {
     //TODO
 }
+#endif
 
 //
 // M33 - Get the long name for an SD card file or folder
