@@ -3207,7 +3207,7 @@ void Stepper::report_positions() {
   // No other ISR should ever interrupt this!
   void Stepper::do_babystep(const AxisEnum axis, const bool direction) {
 
-    IF_DISABLED(INTEGRATED_BABYSTEPPING, CRITICAL_SECTION_START);
+    IF_DISABLED(INTEGRATED_BABYSTEPPING, CRITICAL_SECTION_START());
 
     switch (axis) {
 
@@ -3403,7 +3403,7 @@ void Stepper::report_positions() {
       default: break;
     }
 
-    IF_DISABLED(INTEGRATED_BABYSTEPPING, CRITICAL_SECTION_END);
+    IF_DISABLED(INTEGRATED_BABYSTEPPING, CRITICAL_SECTION_END());
   }
 
 #endif // BABYSTEPPING
