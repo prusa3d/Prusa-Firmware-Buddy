@@ -277,7 +277,7 @@ void media_print_stop(void) {
     if ((media_print_state == media_print_state_PRINTING) || (media_print_state == media_print_state_PAUSED)) {
         close_file();
         media_print_state = media_print_state_NONE;
-        queue.sdpos = MEDIA_PRINT_UNDEF_POSITION;
+        queue.set_current_sdpos(MEDIA_PRINT_UNDEF_POSITION);
     }
 }
 
@@ -452,7 +452,7 @@ void media_loop(void) {
                 skip_gcode = false;
             } else {
                 // update the gcode position for the queue
-                queue.sdpos = media_gcode_position;
+                queue.set_current_sdpos(media_gcode_position);
                 // FIXME: what if the gcode is not enqueued
                 // use 'enqueue_one_now' instead
                 queue.enqueue_one(gcode, false);

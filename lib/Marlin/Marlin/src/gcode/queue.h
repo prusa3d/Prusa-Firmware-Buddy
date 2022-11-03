@@ -112,6 +112,11 @@ public:
     inline uint32_t get_current_sdpos() {
         return length ? sdpos_buffer[index_r] : sdpos;
     }
+
+    // Set the file position of the _current_ instruction
+    inline void set_current_sdpos(uint32_t pos) {
+      sdpos = sdpos;
+    }
 #endif
   };
 
@@ -130,6 +135,11 @@ public:
    * Return the file position of the _current_ instruction
    */
   static uint32_t get_current_sdpos() { return ring_buffer.get_current_sdpos(); }
+
+  /**
+   * Return the file position of the _current_ instruction
+   */
+  static void set_current_sdpos(uint32_t pos) { ring_buffer.set_current_sdpos(pos); }
 #endif
 
   /**
