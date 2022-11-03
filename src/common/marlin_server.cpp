@@ -976,7 +976,7 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
     case mpsPausing_WaitIdle:
-        if ((planner.movesplanned() == 0) && (queue.length == 0) && gcode.busy_state == GcodeSuite::NOT_BUSY) {
+        if ((planner.movesplanned() == 0) && !queue.has_commands_queued() && gcode.busy_state == GcodeSuite::NOT_BUSY) {
             marlin_server_park_head();
             marlin_server.print_state = mpsPausing_ParkHead;
         }
@@ -1019,7 +1019,7 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsResuming_UnparkHead_ZE;
         break;
     case mpsResuming_UnparkHead_ZE:
-        if ((planner.movesplanned() != 0) || (queue.length != 0) || (media_print_get_state() != media_print_state_PAUSED))
+        if ((planner.movesplanned() != 0) || queue.has_commands_queued() || (media_print_get_state() != media_print_state_PAUSED))
             break;
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.get_state() == Crash_s::RECOVERY) {
@@ -1068,7 +1068,7 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsAborting_WaitIdle;
         break;
     case mpsAborting_WaitIdle:
-        if ((planner.movesplanned() != 0) || (queue.length != 0))
+        if ((planner.movesplanned() != 0) || queue.has_commands_queued())
             break;
 
         // allow movements again
@@ -1086,7 +1086,7 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsAborting_ParkHead;
         break;
     case mpsAborting_ParkHead:
-        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+        if ((planner.movesplanned() == 0) && !queue.has_commands_queued()) {
             disable_XY();
 #ifndef Z_ALWAYS_ON
             disable_Z();
@@ -1097,7 +1097,7 @@ static void _server_print_loop(void) {
         }
         break;
     case mpsFinishing_WaitIdle:
-        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+        if ((planner.movesplanned() == 0) && !queue.has_commands_queued()) {
 #if ENABLED(CRASH_RECOVERY)
             // TODO: the following should be moved to mpsFinishing_ParkHead once the "stopping"
             // state is handled properly
@@ -1114,7 +1114,7 @@ static void _server_print_loop(void) {
         }
         break;
     case mpsFinishing_ParkHead:
-        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+        if ((planner.movesplanned() == 0) && !queue.has_commands_queued()) {
             marlin_server.print_state = mpsFinished;
             marlin_server_finalize_print();
         }
@@ -1174,7 +1174,7 @@ static void _server_print_loop(void) {
         break;
     }
     case mpsCrashRecovery_XY_Measure: {
-        if (queue.length != 0 || planner.movesplanned() != 0)
+        if (queue.has_commands_queued() || planner.movesplanned() != 0)
             break;
 
         static metric_t crash_len = METRIC("crash_length", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
@@ -1185,7 +1185,7 @@ static void _server_print_loop(void) {
         break;
     }
     case mpsCrashRecovery_XY_HOME: {
-        if (queue.length != 0 || planner.movesplanned() != 0)
+        if (queue.has_commands_queued() || planner.movesplanned() != 0)
             break;
 
         if (!crash_s.is_repeated_crash()) {
