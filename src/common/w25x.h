@@ -19,8 +19,9 @@ extern "C" {
 #define W25X_BLOCK_SIZE         4096
 #define W25X_BLOCK64_SIZE       0x10000
 #define W25X_DUMP_START_ADDRESS 0
-#define W25X_PP_START_ADDRESS   (127 * W25X_BLOCK_SIZE)
-#define W25X_FS_START_ADDRESS   (128 * W25X_BLOCK_SIZE)
+// 48 = 192KiB offset for crash dump, which is the total RAM size
+#define W25X_PP_START_ADDRESS (48 * W25X_BLOCK_SIZE)
+#define W25X_FS_START_ADDRESS (49 * W25X_BLOCK_SIZE)
 
 #if defined(__cplusplus)
 inline constexpr uint32_t w25x_block_size = W25X_BLOCK_SIZE;
