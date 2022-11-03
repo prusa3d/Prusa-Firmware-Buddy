@@ -310,7 +310,7 @@ std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser
     if (holds_alternative<bool>(params) and get<bool>(params))
         return std::nullopt;
     else
-        return UnauthenticatedStatusPage(status_page_handling(), accepts_json, ApiKeyAuth {});
+        return UnauthenticatedStatusPage(*this, ApiKeyAuth {});
 }
 std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser::authenticated_status(const DigestAuthParams &params) const {
     if (nonce_random == 0) {
@@ -322,14 +322,14 @@ std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser
         if (check_digest_auth(params.recieved_nonce)) {
             return std::nullopt;
         } else {
-            return UnauthenticatedStatusPage(status_page_handling(), accepts_json, DigestAuth { new_nonce(), false });
+            return UnauthenticatedStatusPage(*this, DigestAuth { new_nonce(), false });
         }
     } else {
         // We set stale=true for every nonce with valid digest for that nonce,
         // because it means the client knows the username and password and we want
         // him to retry with new nonce.
         bool stale = check_digest_auth(params.recieved_nonce);
-        return UnauthenticatedStatusPage(status_page_handling(), accepts_json, DigestAuth { new_nonce(), stale });
+        return UnauthenticatedStatusPage(*this, DigestAuth { new_nonce(), stale });
     }
 }
 

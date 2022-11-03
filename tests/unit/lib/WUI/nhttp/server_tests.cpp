@@ -329,18 +329,20 @@ void check_index(const string &response) {
     REQUIRE(response.find("\r\n\r\n<h1>Hello world</h1>") != string::npos);
 }
 
-void check_unauth_api_key(const string &response) {
+void check_unauth_api_key(const string &response, const string &connection_handling) {
     INFO("Response: " + response);
     REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
     REQUIRE(response.find("Content-Type: text/plain") != string::npos);
+    REQUIRE(response.find("Connection: " + connection_handling) != string::npos);
     REQUIRE(response.find("WWW-Authenticate: ApiKey") != string::npos);
     REQUIRE(response.find("\r\n\r\n401: Unauthorized") != string::npos);
 }
 
-void check_unauth_digest(const string &response, const string &nonce, const string &stale) {
+void check_unauth_digest(const string &response, const string &nonce, const string &stale, const string &connection_handling) {
     INFO("Response: " + response);
     REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
     REQUIRE(response.find("Content-Type: text/plain") != string::npos);
+    REQUIRE(response.find("Connection: " + connection_handling) != string::npos);
     REQUIRE(response.find("WWW-Authenticate: Digest realm=\"Printer API\", nonce=\"" + nonce + "\", stale=\"" + stale + "\"") != string::npos);
     REQUIRE(response.find("\r\n\r\n401: Unauthorized") != string::npos);
 }
@@ -389,6 +391,32 @@ TEST_CASE("Not found") {
     const auto response = server.recv_all(client_conn);
     INFO("Response: " + response);
     REQUIRE(response.find("HTTP/1.1 404 Not Found\r\n") == 0);
+    REQUIRE(response.find("Connection: keep-alive") != string::npos);
+    REQUIRE(response.find("Content-Type: text/plain") != string::npos);
+    REQUIRE(response.find("\r\n\r\n404: Not Found") != string::npos);
+}
+
+// for methods other than GET, HEAD and DELETE, in case of
+// errors that occur before the body is read,
+// we want to close the connection even if keep-alive
+// in fear of a body we don't understand
+TEST_CASE("Not found error close") {
+    MockServer server;
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("POST") {
+        server.send(client_conn, "POST /not-here HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
+    }
+
+    SECTION("PUT") {
+        server.send(client_conn, "PUT /not-here HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
+    }
+
+    const auto response = server.recv_all(client_conn);
+    INFO("Response: " + response);
+    REQUIRE(response.find("HTTP/1.1 404 Not Found\r\n") == 0);
+    REQUIRE(response.find("Connection: close") != string::npos);
     REQUIRE(response.find("Content-Type: text/plain") != string::npos);
     REQUIRE(response.find("\r\n\r\n404: Not Found") != string::npos);
 }
@@ -435,7 +463,28 @@ TEST_CASE("Not authenticated ApiKey") {
     }
 
     const auto response = server.recv_all(client_conn);
-    check_unauth_api_key(response);
+    // Note: connection should be kept alive, beacause it is save to do with GET
+    check_unauth_api_key(response, "keep-alive");
+}
+
+TEST_CASE("Not authenticated ApiKey error close") {
+    MockServer server;
+    server.set_password("SECRET");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("POST") {
+        server.send(client_conn, "POST /secret.html HTTP/1.1\r\nX-Api-Key: Password!\r\n\r\n");
+    }
+
+    SECTION("PUT") {
+        server.send(client_conn, "PUT /secret.html HTTP/1.1\r\nX-Api-Key: Password!\r\n\r\n");
+    }
+
+    const auto response = server.recv_all(client_conn);
+    // Note: connection should be closed, so we don't try to parse the body as another request
+    check_unauth_api_key(response, "close");
 }
 
 // If the server doesn't have an API key set, no combination of
@@ -456,7 +505,7 @@ TEST_CASE("No Api Key configured") {
     }
 
     const auto response = server.recv_all(client_conn);
-    check_unauth_api_key(response);
+    check_unauth_api_key(response, "keep-alive");
 }
 
 TEST_CASE("Authenticated Digest") {
@@ -503,7 +552,8 @@ TEST_CASE("Not authenticated Digest") {
     }
 
     const auto response = server.recv_all(client_conn);
-    check_unauth_digest(response, "aaaaaaaa00000000", "false");
+    // Note: connection should be kept alive, beacause it is save to do with GET
+    check_unauth_digest(response, "aaaaaaaa00000000", "false", "keep-alive");
 }
 
 TEST_CASE("Digest stale nonce") {
@@ -528,7 +578,8 @@ TEST_CASE("Digest stale nonce") {
     }
 
     const auto response = server.recv_all(client_conn);
-    check_unauth_digest(response, "aaaaaaaa0000000f", "true");
+    // Note: connection should be kept alive, beacause it is save to do with GET
+    check_unauth_digest(response, "aaaaaaaa0000000f", "true", "keep-alive");
 }
 
 // should resolve to stale=false, because client should not retry with different nonce
@@ -545,9 +596,31 @@ TEST_CASE("Stale nonce and wrong auth") {
     server.send(client_conn, request);
 
     const auto response = server.recv_all(client_conn);
-    check_unauth_digest(response, "aaaaaaaa0000000f", "false");
+    // Note: connection should be kept alive, beacause it is save to do with GET
+    check_unauth_digest(response, "aaaaaaaa0000000f", "false", "keep-alive");
 }
 
+TEST_CASE("Not authenticated digest error close") {
+    MockServer server;
+    server.set_password("SECRET");
+
+    const size_t client_conn = server.new_conn();
+    REQUIRE(client_conn == 1);
+
+    SECTION("POST") {
+        string request = digest_auth_header("POST", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    SECTION("PUT") {
+        string request = digest_auth_header("PUT", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        server.send(client_conn, request);
+    }
+
+    const auto response = server.recv_all(client_conn);
+    // Note: connection should be closed, so we don't try to parse the body as another request
+    check_unauth_digest(response, "aaaaaaaa00000000", "false", "close");
+}
 /*
  * TODO: Further test ideas (non-exhaustive)
  *

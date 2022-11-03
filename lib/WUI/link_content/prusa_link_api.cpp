@@ -56,7 +56,7 @@ namespace {
         if (parser.uri_filename(filename, filename_len)) {
             size_t len = strlen(filename);
             if (prefix_len > len) {
-                return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+                return StatusPage(Status::NotFound, parser);
             }
 
             if (remapPolicy == RemapPolicy::Octoprint) {
@@ -88,7 +88,7 @@ namespace {
              * on the USB drive (eg. our xflash).
              */
             if (strncmp(fname_real, "/usb/", 5) != 0) {
-                return StatusPage(Status::Forbidden, parser.status_page_handling(), parser.accepts_json);
+                return StatusPage(Status::Forbidden, parser);
             }
 
             // We need to use memmove, because fname_real points into filename
@@ -98,21 +98,21 @@ namespace {
             filename[fname_real_len] = '\0';
             return nullopt;
         } else {
-            return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+            return StatusPage(Status::NotFound, parser);
         }
     }
 
-    StatusPage delete_file(const char *filename, StatusPage::CloseHandling close_handling, bool accepts_json) {
+    StatusPage delete_file(const char *filename, const RequestParser &parser) {
         int result = remove(filename);
         if (result == -1) {
             switch (errno) {
             case EBUSY:
-                return StatusPage(Status::Conflict, close_handling, accepts_json, "File is busy");
+                return StatusPage(Status::Conflict, parser, "File is busy");
             default:
-                return StatusPage(Status::NotFound, close_handling, accepts_json);
+                return StatusPage(Status::NotFound, parser);
             }
         } else {
-            return StatusPage(Status::NoContent, close_handling, accepts_json);
+            return StatusPage(Status::NoContent, parser);
         }
     }
 }
@@ -143,7 +143,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
 
     // Some stubs for now, to make more clients (including the web page) happier.
     if (suffix == "download") {
-        return get_only(StatusPage(Status::NoContent, parser.status_page_handling(), parser.accepts_json));
+        return get_only(StatusPage(Status::NoContent, parser));
     } else if (suffix == "settings") {
         return get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()));
     } else if (auto v1_suffix_opt = remove_prefix(suffix, "v1/"); v1_suffix_opt.has_value()) {
@@ -174,13 +174,13 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                 return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head);
             }
             case Method::Delete: {
-                return delete_file(filename, parser.status_page_handling(), parser.accepts_json);
+                return delete_file(filename, parser);
             }
             default:
                 return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
             }
         } else {
-            return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+            return StatusPage(Status::NotFound, parser);
         }
     } else if (remove_prefix(suffix, "files").has_value()) {
         // Note: The check for boundary is a bit of a hack. We probably should
@@ -221,7 +221,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                 return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
             }
             case Method::Delete: {
-                return delete_file(filename, parser.status_page_handling(), parser.accepts_json);
+                return delete_file(filename, parser);
             }
             case Method::Post:
                 if (parser.content_length.has_value()) {
@@ -256,7 +256,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
     } else if (suffix == "printer") {
         return get_only(StatelessJson(get_printer, parser.can_keep_alive()));
     } else {
-        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+        return StatusPage(Status::NotFound, parser);
     }
 }
 
