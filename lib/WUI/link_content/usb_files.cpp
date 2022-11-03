@@ -29,7 +29,7 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
 
     char fname[FILE_PATH_BUFFER_LEN];
     if (!parser.uri_filename(fname, sizeof(fname))) {
-        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json, "This doesn't look like file name");
+        return StatusPage(Status::NotFound, parser, "This doesn't look like file name");
     }
 
     if (parser.method == Method::Get) {
@@ -55,9 +55,9 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
             return std::move(step);
         }
 
-        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+        return StatusPage(Status::NotFound, parser);
     } else {
-        return StatusPage(Status::MethodNotAllowed, parser.status_page_handling(), parser.accepts_json);
+        return StatusPage(Status::MethodNotAllowed, parser);
     }
 }
 
