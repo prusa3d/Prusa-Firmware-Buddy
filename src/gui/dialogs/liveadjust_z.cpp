@@ -167,13 +167,17 @@ void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, win
 //LiveAdjustZ
 
 static constexpr const padding_ui8_t textPadding = { 10, 5, 0, 0 };
+static constexpr const Rect16 nozzleRect = Rect16((display::GetW() / 2) - 24, 120, 48, 48);
+static constexpr const Rect16 textRect = Rect16(0, 32, display::GetW(), 4 * 30);
+static constexpr const point_i16_t adjuster_pt = point_i16_t(75, 205);
+static constexpr const point_i16_t scale_pt = point_i16_t(45, 125);
 
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
-    , text(this, getTextRect(), is_multiline::yes, is_closed_on_click_t::no)
-    , nozzle_icon(this, getNozzleRect(), PNG::nozzle_48x48)
-    , adjuster(this, { 75, 215 })
-    , scale(this, { 45, 125 }) {
+    , text(this, textRect, is_multiline::yes, is_closed_on_click_t::no)
+    , nozzle_icon(this, nozzleRect, PNG::nozzle_48x48)
+    , adjuster(this, adjuster_pt)
+    , scale(this, scale_pt) {
 
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;
@@ -186,18 +190,9 @@ LiveAdjustZ::LiveAdjustZ()
     moveNozzle();
 }
 
-const Rect16 LiveAdjustZ::getTextRect() {
-    // make space for 4 rows of text rendered with the default GUI font
-    return Rect16(0, 32, 240, 4 * GuiDefaults::Font->h + textPadding.bottom + textPadding.top);
-}
-
-const Rect16 LiveAdjustZ::getNozzleRect() {
-    return Rect16(120 - 24, 120, 48, 48);
-}
-
 void LiveAdjustZ::moveNozzle() {
     uint16_t old_top = nozzle_icon.Top();
-    Rect16 moved_rect = getNozzleRect();                // starting position - 0%
+    Rect16 moved_rect = nozzleRect;                     // starting position - 0%
     float percent = adjuster.GetValue() / z_offset_min; // z_offset value in percent
 
     // set move percent for a scale line indicator
