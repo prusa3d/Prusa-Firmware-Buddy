@@ -1557,9 +1557,12 @@ void Temperature::min_temp_error(const heater_id_t heater_id) {
       temp_hotend[e].soft_pwm_amount = (temp_hotend[e].celsius > temp_range[e].mintemp || is_preheating(e)) && temp_hotend[e].celsius < temp_range[e].maxtemp ? (int)get_pid_output_hotend(e) >> soft_pwm_bit_shift : 0;
 
       #if WATCH_HOTENDS
-        if (hotend_idle[e].timed_out) 
-          start_watching_hotend(e);
-        else {
+        #if ENABLED(HOTEND_IDLE_TIMEOUT)
+          if (hotend_idle.timed_out())
+            start_watching_hotend(e);
+          else
+        #endif
+        {
           // Make sure temperature is increasing
           if (watch_hotend[e].elapsed(ms)) {          // Enabled and time to check?
             if (watch_hotend[e].check(degHotend(e)))  // Increased enough?
