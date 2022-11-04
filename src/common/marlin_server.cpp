@@ -1717,7 +1717,7 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET)) {
-        float z = probe_offset.z;
+        float z = probe.offset.z;
         if (marlin_server.vars.z_offset != z) {
             marlin_server.vars.z_offset = z;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET);
@@ -2104,8 +2104,8 @@ static int _server_set_var(const char *const name_val_str) {
                 break;
             case MARLIN_VAR_Z_OFFSET:
 #if HAS_BED_PROBE
-                changed = (probe_offset.z != marlin_server.vars.z_offset);
-                probe_offset.z = marlin_server.vars.z_offset;
+                changed = (probe.offset.z != marlin_server.vars.z_offset);
+                probe.offset.z = marlin_server.vars.z_offset;
 #endif //HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
