@@ -608,7 +608,7 @@ void app_main() {
     esp_wifi_set_ps(WIFI_PS_NONE);
 
     ESP_LOGI(TAG, "Creating RX thread");
-    xTaskCreate(&output_rx_thread, "output_rx_thread", 2048, NULL, 1, NULL);
+    xTaskCreate(&output_rx_thread, "output_rx_thread", 4096, NULL, 1, NULL);
     ESP_LOGI(TAG, "Creating WiFi-out thread");
     xTaskCreate(&wifi_egress_thread, "wifi_egress_thread", 2048, NULL, 12, NULL);
     ESP_LOGI(TAG, "Creating TX thread");
