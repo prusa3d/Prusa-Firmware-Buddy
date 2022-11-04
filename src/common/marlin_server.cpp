@@ -2269,7 +2269,7 @@ void onStatusChanged(const char *const msg) {
         if (!pending_err_msg) {
 /// FIXME: Message through Marlin's UI could be delayed and we won't pause print at the MBL command
 #if HAS_BED_PROBE
-            if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
+            if (strcmp(msg, STR_ERR_PROBING_FAILED) == 0) {
                 mbl_error(MARLIN_ERR_ProbingFailed);
                 pending_err_msg = true;
             }
