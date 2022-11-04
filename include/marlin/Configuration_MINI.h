@@ -675,7 +675,7 @@
      * this adds an experimental additional term to the heating power, regulation constants are hard coded for PRUSA MINI printer
      * there is no sense to enable it for any else printer
      */
-    #define MODEL_BASED_HOTEND_REGULATOR
+    //#define MODEL_BASED_HOTEND_REGULATOR
     #if ENABLED(MODEL_BASED_HOTEND_REGULATOR)
         /**
          * This check detect the state, when temperature reading stuck

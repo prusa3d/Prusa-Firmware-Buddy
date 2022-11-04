@@ -1034,6 +1034,15 @@ public:
       static void lcd_preheat(const uint8_t e, const int8_t indh, const int8_t indb);
     #endif
 
+    #if ENABLED(MODEL_DETECT_STUCK_THERMISTOR)
+      static bool saneTempReadingHotend(const uint8_t E_NAME) {
+          if (failed_cycles[HOTEND_INDEX] > THERMAL_PROTECTION_MODEL_PERIOD) return false;
+          else return true;
+      }
+    #else
+      static bool saneTempReadingHotend(const uint8_t){return true;}
+    #endif
+
   private:
 
     // Reading raw temperatures and converting to Celsius when ready

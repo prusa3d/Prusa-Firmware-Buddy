@@ -1033,7 +1033,7 @@ static void _server_print_loop(void) {
 #endif
 #if HAS_BED_PROBE
         if (marlin_server.mbl_failed) {
-            gcode.process_subcommands_now("G28");
+            gcode.process_subcommands_now(F("G28"));
             marlin_server.mbl_failed = false;
         }
 #endif
@@ -1087,11 +1087,12 @@ static void _server_print_loop(void) {
         break;
     case mpsAborting_ParkHead:
         if ((planner.movesplanned() == 0) && !queue.has_commands_queued()) {
-            disable_XY();
+            stepper.disable_axis(X_AXIS);
+            stepper.disable_axis(Y_AXIS);
 #ifndef Z_ALWAYS_ON
-            disable_Z();
+            stepper.disable_axis(Z_AXIS);
 #endif // Z_ALWAYS_ON
-            disable_e_steppers();
+            stepper.disable_e_steppers();
             marlin_server.print_state = mpsAborted;
             marlin_server_finalize_print();
         }
