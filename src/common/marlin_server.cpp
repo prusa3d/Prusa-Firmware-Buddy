@@ -1033,7 +1033,7 @@ static void _server_print_loop(void) {
 #endif
 #if HAS_BED_PROBE
         if (marlin_server.mbl_failed) {
-            gcode.process_subcommands_now_P("G28");
+            gcode.process_subcommands_now("G28");
             marlin_server.mbl_failed = false;
         }
 #endif
