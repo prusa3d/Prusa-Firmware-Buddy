@@ -37,10 +37,10 @@ add_custom_command(
   COMMENT "Generating http client automata"
   )
 add_custom_target(
-  generate-httpc-automata-tests DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
-                                        ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.h
+  generate-httpc-automata-tests-connect DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
+                                                ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.h
   )
-add_dependencies(connect_tests generate-httpc-automata-tests)
+add_dependencies(connect_tests generate-httpc-automata-tests-connect)
 
 # Planner tests are separate. They mock time and don't want to poison that for others.
 add_executable(
