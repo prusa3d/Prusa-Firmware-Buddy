@@ -2095,7 +2095,7 @@ bool Temperature::temperatures_ready() {
       SERIAL_ERROR_START();
       SERIAL_ECHO(e);
       SERIAL_ECHOLNPGM(STR_INVALID_EXTRUDER_NUM);
-      kill(PSTR(STR_INVALID_EXTRUDER_NUM));
+      kill(F(STR_INVALID_EXTRUDER_NUM));
       return 0;
     }
 
