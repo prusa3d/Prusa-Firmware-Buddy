@@ -1360,7 +1360,7 @@ int marlin_all_axes_homed(void) {
 }
 
 int marlin_all_axes_known(void) {
-    return all_axes_known() ? 1 : 0;
+    return all_axes_trusted() ? 1 : 0;
 }
 
 int marlin_server_get_exclusive_mode(void) {
