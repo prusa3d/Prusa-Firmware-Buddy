@@ -34,20 +34,18 @@
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
-#include "esp_aio.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 
 #include "driver/gpio.h"
 #include "driver/uart.h"
-#include "esp8266/uart_register.h"
+#include "soc/uart_reg.h"
 
 #include "esp_private/wifi.h"
-#include "esp_supplicant/esp_wpa.h"
+#include "esp_wpa.h"
 
 
 // Externals with no header
-int ieee80211_output_pbuf(esp_aio_t *aio);
 esp_err_t mac_init(void);
 
 static const uint16_t FW_VERSION = 8;
@@ -137,7 +135,6 @@ typedef struct {
 
 static void IRAM_ATTR free_wifi_receive_buff(wifi_receive_buff *buff) {
     if(buff->rx_buff) esp_wifi_internal_free_rx_buffer(buff->rx_buff);
-    if(buff->data) free(buff->data);
     free(buff);
 }
 
@@ -250,6 +247,8 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 }
 
 static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
+    // ESP_LOGI(TAG, "Received wifi packet");
+
     // Seeing some traffic - we have signal :-)
     last_inbound_seen = now_seconds();
 
@@ -257,6 +256,7 @@ static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
     if ((((const char*)buffer)[5] & 0x01) == 0) {
         for (uint i = 0; i < 6; ++i) {
             if(((const char*)buffer)[i] != mac[i]) {
+                ESP_LOGI(TAG, "Dropping packet based on mac filter");
                 goto cleanup;
             }
         }
@@ -275,16 +275,15 @@ static int IRAM_ATTR wifi_receive_cb(void *buffer, uint16_t len, void *eb) {
     return 0;
 
 cleanup:
+    ESP_LOGI(TAG, "Failed to enqueue received wifi packet");
     esp_wifi_internal_free_rx_buffer(eb);
-    free(buffer);
     return 0;
 }
 
 void wifi_init_sta(void) {
+    esp_wifi_power_domain_on();
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(mac_init());
-    esp_wifi_set_rx_pbuf_mem_type(WIFI_RX_PBUF_DRAM);
     ESP_ERROR_CHECK(esp_wifi_init_internal(&cfg));
     ESP_ERROR_CHECK(esp_supplicant_init());
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
@@ -326,7 +325,7 @@ static void IRAM_ATTR wait_for_intron() {
             if (c == intron[pos]) {
                 pos++;
             } else {
-                //ESP_LOGI(TAG, "Invalid: %c, val: %d\n", c, (int)c);
+                // ESP_LOGI(TAG, "Invalid: %c, val: %d\n", c, (int)c);
                 pos = 0;
             }
         } else {
@@ -534,9 +533,10 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
         wifi_receive_buff *buff;
         if(xQueueReceive(uart_tx_queue, &buff, (TickType_t)1000 /*portMAX_DELAY*/)) {
             if (!buff) {
+                ESP_LOGI(TAG, "Skipping packet with null buffer");
                 continue;
             }
-            //ESP_LOGI(TAG, "Printing packet to UART");
+            // ESP_LOGI(TAG, "Printing packet to UART");
             xSemaphoreTake(uart_mtx, portMAX_DELAY);
             uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
             const uint8_t t = MSG_PACKET;
@@ -545,7 +545,7 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
             uart_write_bytes(UART_NUM_0, (const char*)&l, sizeof(l));
             uart_write_bytes(UART_NUM_0, (const char*)buff->data, buff->len);
             xSemaphoreGive(uart_mtx);
-            //ESP_LOGI(TAG, "Packet UART out done");
+            // ESP_LOGI(TAG, "Packet UART out done");
             free_wifi_receive_buff(buff);
         }
     }
@@ -554,9 +554,11 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
 void app_main() {
     ESP_LOGI(TAG, "UART NIC");
 
-	esp_log_level_set("*", ESP_LOG_ERROR);
+	// esp_log_level_set("*", ESP_LOG_ERROR);
 
     ESP_ERROR_CHECK(nvs_flash_init());
+
+    uart_set_pin(UART_NUM_0, 1, 3, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
     // Configure parameters of an UART driver,
     // communication pins and install the driver
