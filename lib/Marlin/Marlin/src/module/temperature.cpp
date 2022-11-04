@@ -3275,7 +3275,7 @@ HAL_TEMP_TIMER_ISR() {
     Temperature::isr();
   } else {
       hwio_safe_state();
-      watchdog_refresh();
+      hal.watchdog_refresh();
   }
 
   HAL_timer_isr_epilogue(MF_TIMER_TEMP);
