@@ -1002,7 +1002,7 @@ static void _server_print_loop(void) {
 
         // forget the XYZ resume position if requested
         if (crash_s.inhibit_flags & Crash_s::INHIBIT_XYZ_REPOSITIONING) {
-            LOOP_XYZ(i) {
+            LOOP_LOGICAL_AXES(i) {
                 marlin_server.resume.pos[i] = current_position[i];
             }
         }
