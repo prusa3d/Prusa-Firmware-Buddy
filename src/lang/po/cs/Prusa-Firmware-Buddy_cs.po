@@ -1012,7 +1012,7 @@ msgstr "Příprava"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:18
 msgid "Preparing to ram"
-msgstr "Příprava na ramming"
+msgstr "Příprava na vysunutí"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:24
 msgid "Press CONTINUE and push filament into the extruder."
@@ -1091,7 +1091,7 @@ msgstr "ZNOVU"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:19
 msgid "Ramming"
-msgstr "Ramming"
+msgstr "Vysouvání"
 
 #: src/gui/screen_printing_serial.cpp:42
 msgid "Really Disconnect?"
