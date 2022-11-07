@@ -847,7 +847,7 @@ void Pause::loop_unload_AskUnloaded(Response response) {
         }
         if (response == Response::No) {
             setPhase(PhasesLoadUnload::ManualUnload, 100);
-            disable_e_stepper(active_extruder);
+            stepper.DISABLE_EXTRUDER(active_extruder);
             set(UnloadPhases_t::manual_unload);
         }
         break;
@@ -859,7 +859,7 @@ void Pause::loop_unload_AskUnloaded(Response response) {
         break;
     case UnloadPhases_t::manual_unload:
         if (response == Response::Continue) {
-            enable_e_steppers();
+            stepper.enable_e_steppers();
             set(UnloadPhases_t::filament_not_in_fs);
         }
         break;
@@ -942,7 +942,7 @@ void Pause::loop_unload_change(Response response) {
         }
         if (response == Response::No) {
             setPhase(PhasesLoadUnload::ManualUnload, 100);
-            disable_e_stepper(active_extruder);
+            stepper.DISABLE_EXTRUDER(active_extruder);
             set(UnloadPhases_t::manual_unload);
         }
         break;
@@ -954,7 +954,7 @@ void Pause::loop_unload_change(Response response) {
         break;
     case UnloadPhases_t::manual_unload:
         if (response == Response::Continue) {
-            enable_e_steppers();
+            stepper.enable_e_steppers();
             set(UnloadPhases_t::filament_not_in_fs);
         }
         break;
