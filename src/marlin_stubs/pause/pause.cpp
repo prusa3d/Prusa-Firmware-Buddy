@@ -1022,13 +1022,13 @@ void Pause::park_nozzle_and_notify() {
     const bool x_greater_than_y = parkMoveXGreaterThanY(current_position, settings.park_pos);
     if (x_greater_than_y) {
         if (!isnan(settings.park_pos.x)) {
-            begin_pos = axes_need_homing(_BV(X_AXIS)) ? float(X_HOME_POS) : current_position.x;
+            begin_pos = axis_is_trusted(X_AXIS) ? current_position.x : float(X_HOME_POS);
             end_pos = settings.park_pos.x;
             XY_len = begin_pos - end_pos; // sign does not matter
         }
     } else {
         if (!isnan(settings.park_pos.y)) {
-            begin_pos = axes_need_homing(_BV(Y_AXIS)) ? float(Y_HOME_POS) : current_position.y;
+            begin_pos = axis_is_trusted(Y_AXIS) ? current_position.y : float(Y_HOME_POS);
             end_pos = settings.park_pos.y;
             XY_len = begin_pos - end_pos; // sign does not matter
         }
@@ -1049,8 +1049,15 @@ void Pause::park_nozzle_and_notify() {
         //Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
         LOOP_XY(axis) {
             // TODO: make homeaxis non-blocking to allow quick_stop
-            if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis)))
-                GcodeSuite::G28_no_parser(false, false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
+            if (!isnan(settings.park_pos.pos[axis]) && !axis_is_trusted(static_cast<AxisEnum>(axis))) {
+                const GcodeSuite::G28_flags flags = [&] {
+                    GcodeSuite::G28_flags flags;
+                    flags.X = (X_AXIS == axis);
+                    flags.Y = (Y_AXIS == axis);
+                    return flags;
+                }();
+                GcodeSuite::G28_no_parser(NAN, flags);
+            }
             if (check_user_stop())
                 return;
             if (isnan(settings.park_pos.pos[axis]))
@@ -1089,8 +1096,15 @@ void Pause::unpark_nozzle_and_notify() {
     // home the axis if it is not homed
     // we can move only one axis during parking and not home the other one and then unpark and move the not homed one, so we need to home it
     LOOP_XY(axis) {
-        if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis)))
-            GcodeSuite::G28_no_parser(false, false, 0, false, axis == X_AXIS, axis == Y_AXIS, false);
+        if (!isnan(settings.park_pos.pos[axis]) && !axis_is_trusted(static_cast<AxisEnum>(axis))) {
+            const GcodeSuite::G28_flags flags = [&] {
+                GcodeSuite::G28_flags flags;
+                flags.X = (X_AXIS == axis);
+                flags.Y = (Y_AXIS == axis);
+                return flags;
+            }();
+            GcodeSuite::G28_no_parser(NAN, flags);
+        }
     }
 
     if (x_greater_than_y) {
@@ -1295,7 +1309,7 @@ Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
 
     const float min_layer_h = 0.05f;
     //do not unpark and wait for temp if not homed or z park len is 0
-    if (!axes_need_homing() && pause.settings.resume_pos.z != NAN && std::abs(current_position.z - pause.settings.resume_pos.z) >= min_layer_h) {
+    if (all_axes_trusted() && pause.settings.resume_pos.z != NAN && std::abs(current_position.z - pause.settings.resume_pos.z) >= min_layer_h) {
         if (!pause.ensureSafeTemperatureNotifyProgress(0, 100))
             return;
         pause.unpark_nozzle_and_notify();
