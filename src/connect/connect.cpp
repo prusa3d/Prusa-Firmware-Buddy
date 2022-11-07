@@ -146,8 +146,8 @@ namespace {
     // for that.
     const constexpr size_t MAX_RESP_SIZE = 256;
 
-    // Wait one second between config retries and similar.
-    const constexpr uint32_t IDLE_WAIT = 1000;
+    // Wait half a second between config retries and similar.
+    const constexpr uint32_t IDLE_WAIT = 500;
 
     using Cache = variant<monostate, tls, socket_con, Error>;
 }
@@ -275,7 +275,18 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 
     // Handle sleeping first. That one doesn't need the connection.
     if (auto *s = get_if<Sleep>(&action)) {
-        osDelay(s->milliseconds);
+        for (size_t i = 0; i < s->milliseconds / IDLE_WAIT; i++) {
+            // In case there's a change in situation during a long sleep, we
+            // want to retry sooner (new config might lead to being able to
+            // connect or something).
+            osDelay(IDLE_WAIT);
+
+            if (std::get<1>(printer.config(false))) {
+                return nullopt;
+            }
+        }
+
+        osDelay(s->milliseconds % IDLE_WAIT);
         // Don't change the status now, we just slept
         return nullopt;
     }
