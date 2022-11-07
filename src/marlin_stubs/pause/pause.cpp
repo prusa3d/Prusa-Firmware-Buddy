@@ -1259,10 +1259,10 @@ bool Pause::check_user_stop() {
     planner.resume_queuing();
     set_all_unhomed();
     xyze_pos_t real_current_position;
-    real_current_position[E_AXIS] = 0;
-    LOOP_XYZ(i) {
+    LOOP_LOGICAL_AXES(i) {
         real_current_position[i] = planner.get_axis_position_mm((AxisEnum)i);
     }
+    real_current_position[E_AXIS] = 0;
 #if HAS_POSITION_MODIFIERS
     planner.unapply_modifiers(real_current_position
     #if HAS_LEVELING
