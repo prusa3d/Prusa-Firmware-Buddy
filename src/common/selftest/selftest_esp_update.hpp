@@ -75,13 +75,16 @@ class ESPUpdate {
     static constexpr size_t buffer_length = 512;
     static constexpr size_t files_to_upload = 3;
 
+public:
+    using firmware_set_t = std::array<esp_entry, files_to_upload>;
+
+protected:
     unique_file_ptr file;
 
-    std::array<esp_entry, files_to_upload> firmware_set;
+    firmware_set_t firmware_set;
     esp_upload_action progress_state;
     esp_entry *current_file;
     uint32_t readCount;
-    loader_stm32_config_t loader_config;
     PhasesSelftest phase;
     const bool from_menu;
     const bool credentials_already_set;

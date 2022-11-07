@@ -33,26 +33,17 @@ extern "C" {
 
 LOG_COMPONENT_REF(Network);
 
-#define BOOT_ADDRESS            0x00000ul
-#define APPLICATION_ADDRESS     0x10000ul
-#define PARTITION_TABLE_ADDRESS 0x08000ul
+static constexpr ESPUpdate::firmware_set_t FIRMWARE_SET({ { { .address = 0x08000ul, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
+    { .address = 0x00000ul, .filename = "/internal/res/esp/bootloader.bin", .size = 0 },
+    { .address = 0x10000ul, .filename = "/internal/res/esp/uart_wifi.bin", .size = 0 } } });
 
 std::atomic<uint32_t> ESPUpdate::status = 0;
 
 ESPUpdate::ESPUpdate(uintptr_t mask)
-    : firmware_set({ { { .address = PARTITION_TABLE_ADDRESS, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
-        { .address = BOOT_ADDRESS, .filename = "/internal/res/esp/bootloader.bin", .size = 0 },
-        { .address = APPLICATION_ADDRESS, .filename = "/internal/res/esp/uart_wifi.bin", .size = 0 } } })
+    : firmware_set(FIRMWARE_SET)
     , progress_state(esp_upload_action::Initial)
     , current_file(firmware_set.begin())
     , readCount(0)
-    , loader_config({
-          .huart = &UART_HANDLE_FOR(esp),
-          .port_io0 = GPIOE,
-          .pin_num_io0 = GPIO_PIN_6,
-          .port_rst = GPIOC,
-          .pin_num_rst = GPIO_PIN_13,
-      })
     , phase(PhasesSelftest::_none)
     , from_menu(mask & init_mask::msk_from_menu)
     , credentials_already_set(mask & init_mask::msk_credentials_already_set)
