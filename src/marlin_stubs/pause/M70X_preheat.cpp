@@ -141,10 +141,12 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
         // cooldown pressed
         if (filament == filament_t::NONE) {
             thermalManager.set_fan_speed(0, 0);
-        } else if ((axis_homed & _BV(Z_AXIS)) != _BV(Z_AXIS)) {
+        } else {
             auto current_pos = current_position;
-            current_pos.z += 10;
-            plan_park_move_to_xyz(current_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            if (current_pos.z < 10) {
+                current_pos.z = 10;
+                plan_park_move_to_xyz(current_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            }
         }
 
         if (save)
