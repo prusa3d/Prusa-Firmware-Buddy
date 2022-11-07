@@ -54,7 +54,7 @@ void GcodeSuite::M876() {
             }
         }
         if (parser.seenval('S'))
-            host_response_handler((uint8_t)parser.value_int());
+            HostUI::handle_response((uint8_t)parser.value_int());
     }
 }
 
