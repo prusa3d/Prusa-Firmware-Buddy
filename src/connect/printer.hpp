@@ -132,8 +132,10 @@ public:
     virtual void submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
 
-    // Returns a newly reloaded config and a flag if it changed since last load.
-    std::tuple<Config, bool> config();
+    // Returns a newly reloaded config and a flag if it changed since last load
+    // (unless the reset_fingerprint is set to false, in which case the flag is
+    // kept).
+    std::tuple<Config, bool> config(bool reset_fingerprint = true);
 
     virtual ~Printer() = default;
 };
