@@ -1258,7 +1258,6 @@ bool Pause::check_user_stop() {
         loop();
     planner.resume_queuing();
     set_all_unhomed();
-    set_all_unknown();
     xyze_pos_t real_current_position;
     real_current_position[E_AXIS] = 0;
     LOOP_XYZ(i) {
