@@ -31,9 +31,9 @@ add_custom_command(
   COMMENT "Generating http client automata"
   )
 add_custom_target(
-  generate-httpc-automata-testsasdf DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
-                                            ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.h
+  generate-httpc-automata-tests DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
+                                        ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.h
   )
-add_dependencies(common_http_tests generate-httpc-automata-testsasdf)
+add_dependencies(common_http_tests generate-httpc-automata-tests)
 
 add_catch_test(common_http_tests)
