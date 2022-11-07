@@ -194,30 +194,33 @@ static void finish_update() {
 }
 #endif
 
+constexpr size_t strlen_constexpr(const char *str) {
+    return *str ? 1 + strlen_constexpr(str + 1) : 0;
+}
+
 /**
  * @brief Bootstrap finished
  *
  * Report bootstrap finished and firmware version.
  * This needs to be called after resources were successfully updated
  * in xFlash. This also needs to be called even if xFlash / resources
- * are unused. This needs to be output to USB CDC log destination.
+ * are unused. This needs to be output to standard USB CDC destination.
  * Format of the messages can not be changed as test station
  * expect those as step in manufacturing process.
  * The board needs to be able to report this with no additional
  * dependencies to connected peripherals.
  *
+ * It is expected, that the testing station opens printer's serial port at 115200 bauds to obtain these messages.
+ * Beware: previous attempts to writing these messages onto USB CDC log destination (baudrate 57600) resulted
+ * in cross-linked messages because the logging subsystem intentionally has no prevention (locks/mutexes) against such a situation.
+ * Therefore the only reliable output is the "Marlin's" serial output (before Marlin is actually started)
+ * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot).
  */
 static void manufacture_report() {
-#ifndef NDEBUG
-    log_component_t *buddy_component = log_component_find("Buddy");
-    log_destination_t *usb_destination = log_destination_find("USB");
-#endif
-    assert(buddy_component && (buddy_component->lowest_severity <= LOG_SEVERITY_INFO));
-    assert(usb_destination && (usb_destination->lowest_severity <= LOG_SEVERITY_INFO));
-    static_assert(LOG_LOWEST_SEVERITY <= LOG_SEVERITY_INFO, "Mandatory info messages are not logged.");
-
-    log_info(Buddy, "bootstrap finished");
-    log_info(Buddy, "firmware version: %s", project_version_full);
+    static const uint8_t intro[] = "bootstrap finished\nfirmware version: ";
+    SerialUSB.write(intro, sizeof(intro));
+    SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
+    SerialUSB.write('\n');
 }
 
 void gui_run(void) {
