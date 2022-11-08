@@ -66,6 +66,7 @@ add_library(
   Marlin/Marlin/src/gcode/feature/trinamic/M569.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M906.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M911-M914.cpp
+  Marlin/Marlin/src/gcode/feature/trinamic/M919.cpp
   Marlin/Marlin/src/gcode/gcode.cpp
   Marlin/Marlin/src/gcode/geometry/G53-G59.cpp
   Marlin/Marlin/src/gcode/geometry/G92.cpp
