@@ -212,9 +212,9 @@ static float get_steps_per_unit(size_t index) {
     return get_steps_per_unit_e();
 }
 #else
-static constexpr float get_steps_per_unit(size_t index) {
+static constexpr float get_steps_per_unit(uint8_t axis) {
   constexpr float _DASU[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-  return pgm_read_float(&_DASU[ALIM(index, _DASU)]);
+  return pgm_read_float(&_DASU[ALIM(axis, _DASU)]);
 }
 #endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 static const feedRate_t _DMF[] PROGMEM = DEFAULT_MAX_FEEDRATE;
