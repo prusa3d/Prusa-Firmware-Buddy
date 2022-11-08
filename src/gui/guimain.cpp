@@ -253,22 +253,24 @@ void gui_run(void) {
 
     ScreenFactory::Creator error_screen = nullptr;
 
-    // If both redscreen and bsod are pending - both are set as displayed, but bsod is displayed
+    // If both redscreen and bsod are pending - both are set as displayed, but redscreen is displayed
     if (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed()) {
         error_screen = ScreenFactory::Screen<ScreenErrorQR>;
         dump_err_in_xflash_set_displayed();
     }
     if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
-        blockISR(); // TODO delete blockISR() on this line to enable start after click
-        switch (dump_in_xflash_get_type()) {
-        case DUMP_HARDFAULT:
-            error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
-            break;
+        if (error_screen == nullptr) {
+            blockISR(); // TODO delete blockISR() on this line to enable start after click
+            switch (dump_in_xflash_get_type()) {
+            case DUMP_HARDFAULT:
+                error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
+                break;
 #ifndef _DEBUG
-        case DUMP_IWDGW:
-            error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
-            break;
+            case DUMP_IWDGW:
+                error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
+                break;
 #endif
+            }
         }
         dump_in_xflash_set_displayed();
     }
