@@ -52,33 +52,37 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
 
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
     const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
-    const Align_t align = Align_t::RightTop();
+    const Align_t align = Align_t::RightTop(); // This have to be aligned this way and set up with padding, because number and units have different fonts
+    padding_ui8_t extension_padding = Padding;
+    if constexpr (GuiDefaults::MenuSpinHasUnits) {
+        extension_padding.top = 12;
+    }
 
     // If there is spin_off_opt::yes set in SpinConfig (with units), it prints "Off" instead of "0"
     if (spin_txt.getUtf8Char() == 'O') {
         spin_txt.rewind();
         uint16_t curr_width = extension_rect.Width();
-        uint16_t off_opt_width = Font->w * spin_txt.computeNumUtf8CharsAndRewind() + Padding.left + Padding.right;
+        uint16_t off_opt_width = Font->w * spin_txt.computeNumUtf8CharsAndRewind() + extension_padding.left + extension_padding.right;
         if (curr_width < off_opt_width) {
             extension_rect -= Rect16::Left_t(off_opt_width - curr_width);
             extension_rect = Rect16::Width_t(off_opt_width);
         }
-        render_text_align(extension_rect, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
+        render_text_align(extension_rect, spin_txt, Font, color_back, cl_txt, extension_padding, align); //render spin number
         return;
     }
 
     spin_txt.rewind();
     const Rect16 spin_rc = getSpinRect(extension_rect);
     const Rect16 unit_rc = getUnitRect(extension_rect);
-    render_text_align(spin_rc, spin_txt, Font, color_back, cl_txt, Padding, align); //render spin number
+    render_text_align(spin_rc, spin_txt, Font, color_back, cl_txt, extension_padding, align); //render spin number
 
     if (has_unit) {
         string_view_utf8 un = units; //local var because of const
         un.rewind();
         uint32_t Utf8Char = un.getUtf8Char();
-        padding_ui8_t padding = Padding;
-        padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                  //177oct (127dec) todo check
-        render_text_align(unit_rc, units, Font, color_back, COLOR_SILVER, padding, align); //render unit
+        padding_ui8_t unit_padding = extension_padding;
+        unit_padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                  //177oct (127dec) todo check
+        render_text_align(unit_rc, units, Font, color_back, COLOR_SILVER, unit_padding, align); //render unit
     }
 }
 
