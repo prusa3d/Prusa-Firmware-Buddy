@@ -253,6 +253,11 @@ void gui_run(void) {
 
     ScreenFactory::Creator error_screen = nullptr;
 
+    // If both redscreen and bsod are pending - both are set as displayed, but bsod is displayed
+    if (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed()) {
+        error_screen = ScreenFactory::Screen<ScreenErrorQR>;
+        dump_err_in_xflash_set_displayed();
+    }
     if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
         blockISR(); // TODO delete blockISR() on this line to enable start after click
         switch (dump_in_xflash_get_type()) {
@@ -267,16 +272,6 @@ void gui_run(void) {
         }
         dump_in_xflash_set_displayed();
     }
-
-    if (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed()) {
-        // Redscreen rewrites bluescreen
-        error_screen = ScreenFactory::Screen<ScreenErrorQR>;
-        dump_err_in_xflash_set_displayed();
-    }
-
-#ifndef _DEBUG
-//        HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
-#endif
 
     screen_node screen_initializer[] {
         error_screen,
