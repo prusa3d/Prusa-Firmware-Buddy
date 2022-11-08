@@ -2238,11 +2238,11 @@ void onPlayTone(const uint16_t frequency, const uint16_t duration) {
     _send_notify_event(MARLIN_EVT_PlayTone, frequency, duration);
 }
 
-void onPrinterKilled(PGM_P const msg, PGM_P const component) {
+void onPrinterKilled(FSTR_P const msg, FSTR_P const component) {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
     vTaskEndScheduler();
     wdt_iwdg_refresh(); //watchdog reset
-    fatal_error(msg, component);
+    fatal_error(FTOP(msg), FTOP(component));
 }
 
 void onPrintTimerStarted() {
@@ -2258,6 +2258,10 @@ void onPrintTimerPaused() {
 void onPrintTimerStopped() {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPrintTimerStopped");
     _send_notify_event(MARLIN_EVT_PrintTimerStopped, 0, 0);
+}
+
+void onPrintDone() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPrintDone");
 }
 
 void onFilamentRunout(const extruder_t extruder) {
@@ -2314,6 +2318,22 @@ void onStatusChanged(const char *const msg) {
     }
 }
 
+void onHomingStart() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onHomingStart");
+}
+
+void onHomingDone() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onHomingDone");
+}
+
+void onSteppersDisabled() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onSteppersDisabled");
+}
+
+void onSteppersEnabled() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onSteppersEnabled");
+}
+
 void onFactoryReset() {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onFactoryReset");
     _send_notify_event(MARLIN_EVT_FactoryReset, 0, 0);
@@ -2329,13 +2349,54 @@ void onStoreSettings(char *) {
     _send_notify_event(MARLIN_EVT_StoreSettings, 0, 0);
 }
 
-void onConfigurationStoreWritten(bool success) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onConfigurationStoreWritten");
+void onPostprocessSettings() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPostprocessSettings");
 }
 
-void onConfigurationStoreRead(bool success) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onConfigurationStoreRead");
+void onSettingsStored(bool success) {
+    if (success) {
+        _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onSettingsStored");
+    } else {
+        _log_event(LOG_SEVERITY_ERROR, &LOG_COMPONENT(MarlinServer), "ExtUI: onSettingsStored failed");
+    }
 }
+
+void onSettingsLoaded(bool success) {
+    if (success) {
+        _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onSettingsLoaded");
+    } else {
+        _log_event(LOG_SEVERITY_ERROR, &LOG_COMPONENT(MarlinServer), "ExtUI: onSettingsLoaded failed");
+    }
+}
+
+#if ENABLED(POWER_LOSS_RECOVERY)
+void onPowerLossResume() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPowerLossResume");
+}
+#endif
+
+#if HAS_PID_HEATING
+static constexpr const char *result_t_to_string(result_t result) {
+    switch (result) {
+    case result_t::PID_STARTED:
+        return "PID_STARTED";
+    case result_t::PID_BAD_EXTRUDER_NUM:
+        return "PID_BAD_EXTRUDER_NUM";
+    case result_t::PID_TEMP_TOO_HIGH:
+        return "PID_TEMP_TOO_HIGH";
+    case result_t::PID_TUNING_TIMEOUT:
+        return "PID_TUNING_TIMEOUT";
+    case result_t::PID_DONE:
+        return "PID_DONE";
+    default:
+        return "???";
+    }
+}
+
+void onPidTuning(const result_t rst) {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPidTuning %s", result_t_to_string(rst));
+}
+#endif //HAS_PID_HEATING
 
 void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
     _log_event(LOG_SEVERITY_DEBUG, &LOG_COMPONENT(MarlinServer), "ExtUI: onMeshUpdate x: %u, y: %u, z: %.2f", xpos, ypos, (double)zval);
