@@ -145,7 +145,7 @@ void client_gui_refresh() {
 #if ENABLED(RESOURCES())
 static void finish_update() {
 
-    #if ENABLED(BOOTLOADER_UPDATE)
+    #if ENABLED(BOOTLOADER_UPDATE())
     if (buddy::bootloader::needs_update()) {
         buddy::bootloader::update(
             [](int percent_done, buddy::bootloader::UpdateStage stage) {
