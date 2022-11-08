@@ -2218,13 +2218,6 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
-void onPrinterKilled(PGM_P const msg, PGM_P const component) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
-    vTaskEndScheduler();
-    wdt_iwdg_refresh(); //watchdog reset
-    fatal_error(msg, component);
-}
-
 void onMediaInserted() {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onMediaInserted");
     _send_notify_event(MARLIN_EVT_MediaInserted, 0, 0);
@@ -2243,6 +2236,13 @@ void onMediaRemoved() {
 void onPlayTone(const uint16_t frequency, const uint16_t duration) {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPlayTone");
     _send_notify_event(MARLIN_EVT_PlayTone, frequency, duration);
+}
+
+void onPrinterKilled(PGM_P const msg, PGM_P const component) {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
+    vTaskEndScheduler();
+    wdt_iwdg_refresh(); //watchdog reset
+    fatal_error(msg, component);
 }
 
 void onPrintTimerStarted() {
