@@ -32,6 +32,7 @@
 #include <option/filament_sensor.h>
 #include <option/has_gui.h>
 #include "tasks.h"
+#include <appmain.hpp>
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -244,9 +245,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void StartDefaultTask(void const *argument) {
-    log_info(Buddy, "marlin task waiting for dependecies");
-    wait_for_dependecies(DEFAULT_TASK_DEPS);
-    log_info(Buddy, "marlin task is starting");
+    app_startup();
 
     app_run();
     for (;;) {

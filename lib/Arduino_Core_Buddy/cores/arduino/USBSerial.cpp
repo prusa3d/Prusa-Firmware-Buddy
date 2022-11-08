@@ -47,10 +47,12 @@ void USBSerial::flush(void) {
     if (enabled)
         tud_cdc_write_flush();
 
-    if (lineBufferUsed) {
-        lineBufferHook(&lineBuffer[0], lineBufferUsed);
-        lineBufferUsed = 0;
+    if (!lineBufferHook || !lineBufferUsed) {
+        return;
     }
+
+    lineBufferHook(&lineBuffer[0], lineBufferUsed);
+    lineBufferUsed = 0;
 }
 
 void USBSerial::LineBufferAppend(char character) {
