@@ -2405,6 +2405,12 @@ void onMeshUpdate(const int8_t xpos, const int8_t ypos, const float zval) {
     _send_notify_event(MARLIN_EVT_MeshUpdate, usr32, usr16);
 }
 
+#if HAS_LEVELING
+void onLevelingDone() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onLevelingDone");
+}
+#endif
+
 }
 
 const marlin_vars_t &marlin_server_read_vars() {
