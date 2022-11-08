@@ -11,3 +11,5 @@
 extern CFanCtl fanCtlPrint;
 extern CFanCtl fanCtlHeatBreak;
 #endif
+
+extern "C" void app_startup();
