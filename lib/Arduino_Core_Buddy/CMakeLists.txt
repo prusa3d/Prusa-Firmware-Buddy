@@ -1,6 +1,12 @@
 add_library(
-  CoreBuddy cores/arduino/Print.cpp cores/arduino/Stream.cpp cores/arduino/USBSerial.cpp
-            cores/arduino/Wire.cpp cores/arduino/wiring_time.c cores/arduino/WMath.cpp
+  CoreBuddy
+  cores/arduino/HardwareTimer.cpp
+  cores/arduino/Print.cpp
+  cores/arduino/Stream.cpp
+  cores/arduino/USBSerial.cpp
+  cores/arduino/Wire.cpp
+  cores/arduino/wiring_time.c
+  cores/arduino/WMath.cpp
   )
 
 target_include_directories(
