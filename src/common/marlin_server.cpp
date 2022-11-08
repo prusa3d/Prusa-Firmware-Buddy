@@ -2398,7 +2398,7 @@ void onPidTuning(const result_t rst) {
 }
 #endif //HAS_PID_HEATING
 
-void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
+void onMeshUpdate(const int8_t xpos, const int8_t ypos, const float zval) {
     _log_event(LOG_SEVERITY_DEBUG, &LOG_COMPONENT(MarlinServer), "ExtUI: onMeshUpdate x: %u, y: %u, z: %.2f", xpos, ypos, (double)zval);
     uint32_t usr32 = variant8_get_ui32(variant8_flt(zval));
     uint16_t usr16 = xpos | ((uint16_t)ypos << 8);
