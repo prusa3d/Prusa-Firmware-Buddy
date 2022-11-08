@@ -237,6 +237,10 @@ int dump_hardfault_test_1(void) {
 // Dumping error message
 
 void dump_err_to_xflash(uint16_t error_code, const char *error, const char *title) {
+    vTaskEndScheduler();
+    if (!w25x_init()) {
+        return;
+    }
     w25x_sector_erase(w25x_error_start_adress);
 
     decltype(dumpmessage_t::invalid) invalid = 0;
