@@ -217,10 +217,15 @@ constexpr size_t strlen_constexpr(const char *str) {
  * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot).
  */
 static void manufacture_report() {
-    static const uint8_t intro[] = "bootstrap finished\nfirmware version: ";
+    // The first '\n' is just a precaution - terminate any partially printed message from Marlin if any
+    static const uint8_t intro[] = "\nbootstrap finished\nfirmware version: ";
+
+    // prevent other tasks from dumping anything onto the serial line
+    taskENTER_CRITICAL();
     SerialUSB.write(intro, sizeof(intro));
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
+    taskEXIT_CRITICAL();
 }
 
 void gui_run(void) {
