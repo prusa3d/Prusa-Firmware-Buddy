@@ -26,6 +26,8 @@
 #include <Arduino.h>
 #include "trinamic.h"
 #include "../Marlin/src/module/configuration_store.h"
+#include <tasks.h>
+
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
 #endif
@@ -85,6 +87,36 @@ extern uartslave_t uart6slave; // PUT slave
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
 #endif                                 //BUDDY_ENABLE_ETHERNET
 
+void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
+    while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
+        size--;
+    log_severity_t severity = LOG_SEVERITY_INFO;
+    if (size == 2 && memcmp("ok", buffer, 2) == 0) {
+        // Do not log "ok" messages
+        return;
+    } else if (size >= 5 && memcmp("echo:", buffer, 5) == 0) {
+        buffer = buffer + 5;
+        size -= 5;
+    }
+    if (size >= 6 && memcmp("Error:", buffer, 6) == 0) {
+        buffer = buffer + 6;
+        size -= 6;
+        severity = LOG_SEVERITY_ERROR;
+    }
+    log_event(severity, Marlin, "%.*s", size, buffer);
+}
+
+void app_setup_marlin_logging() {
+    SerialUSB.lineBufferHook = app_marlin_serial_output_write_hook;
+}
+
+void app_startup() {
+    app_setup_marlin_logging();
+    log_info(Buddy, "marlin task waiting for dependecies");
+    wait_for_dependecies(DEFAULT_TASK_DEPS);
+    log_info(Buddy, "marlin task is starting");
+}
+
 void app_setup(void) {
     if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
         init_tmc();
@@ -105,11 +137,7 @@ void app_idle(void) {
     osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 
-void app_setup_marlin_logging();
-
 void app_run(void) {
-    app_setup_marlin_logging();
-
     LangEEPROM::getInstance();
 
     marlin_server_init();
@@ -147,29 +175,6 @@ void app_error(void) {
 
 void app_assert(uint8_t *file, uint32_t line) {
     bsod("app_assert");
-}
-
-void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
-    while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
-        size--;
-    log_severity_t severity = LOG_SEVERITY_INFO;
-    if (size == 2 && memcmp("ok", buffer, 2) == 0) {
-        // Do not log "ok" messages
-        return;
-    } else if (size >= 5 && memcmp("echo:", buffer, 5) == 0) {
-        buffer = buffer + 5;
-        size -= 5;
-    }
-    if (size >= 6 && memcmp("Error:", buffer, 6) == 0) {
-        buffer = buffer + 6;
-        size -= 6;
-        severity = LOG_SEVERITY_ERROR;
-    }
-    log_event(severity, Marlin, "%.*s", size, buffer);
-}
-
-void app_setup_marlin_logging() {
-    SerialUSB.lineBufferHook = app_marlin_serial_output_write_hook;
 }
 
 #ifdef NEW_FANCTL
