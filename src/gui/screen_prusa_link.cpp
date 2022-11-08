@@ -11,7 +11,6 @@
 
 #include "wui_api.h"
 
-#define api_key_format "%s"
 static constexpr size_t PASSWD_STR_LENGTH = PL_API_KEY_SIZE + 1; // don't need space for '%s' and '\0' since PL_API_KEY_SIZE contains '\0' too
 
 // ----------------------------------------------------------------
@@ -21,7 +20,7 @@ class MI_PL_REGENERATE_API_KEY : public WI_LABEL_t {
 
 public:
     MI_PL_REGENERATE_API_KEY()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 public:
     enum EventMask { value = 1 << 18 };
@@ -40,7 +39,7 @@ class MI_PL_ENABLED : public WI_SWITCH_OFF_ON_t {
 public:
     MI_PL_ENABLED()
         : WI_SWITCH_OFF_ON_t(eeprom_get_ui8(EEVAR_PL_RUN),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 public:
     enum EventMask { value = 1 << 19 };
@@ -51,8 +50,25 @@ protected:
     }
 };
 
-class MI_PL_PASSWORD : public WI_LABEL_t {
+class MI_PL_PASSWORD_LABEL : public WI_LABEL_t {
     constexpr static const char *const label = N_("Password");
+
+public:
+    MI_PL_PASSWORD_LABEL()
+        : WI_LABEL_t(_(label), 0) {}
+
+protected:
+    void click(IWindowMenu &window_menu) override {
+    }
+};
+
+class MI_PL_PASSWORD_VALUE : public WI_LABEL_t {
+
+#ifdef USE_ST7789
+    constexpr static const char *const label = N_("");
+#else
+    constexpr static const char *const label = N_("Password");
+#endif
     char passwd_buffer[PASSWD_STR_LENGTH];
 
 protected:
@@ -64,11 +80,11 @@ protected:
 
 public:
     void print_password(const char *passwd) {
-        snprintf(passwd_buffer, PASSWD_STR_LENGTH, api_key_format, passwd);
+        snprintf(passwd_buffer, PASSWD_STR_LENGTH + 1, "%s", passwd);
         InValidateExtension();
     }
-    MI_PL_PASSWORD()
-        : WI_LABEL_t(_(label), PL_API_KEY_SIZE * GuiDefaults::FontMenuSpecial->w) {}
+    MI_PL_PASSWORD_VALUE()
+        : WI_LABEL_t(_(label), PASSWD_STR_LENGTH * GuiDefaults::FontMenuSpecial->w) {}
 };
 
 class MI_PL_USER : public WI_LABEL_t {
@@ -83,10 +99,14 @@ protected:
 
 public:
     MI_PL_USER()
-        : WI_LABEL_t(_(label), sizeof(PRUSA_LINK_USERNAME) * GuiDefaults::FontMenuSpecial->w) {}
+        : WI_LABEL_t(_(label), (sizeof(PRUSA_LINK_USERNAME) + 1) * GuiDefaults::FontMenuSpecial->w) {}
 };
 
-using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_API_KEY, MI_PL_USER, MI_PL_PASSWORD>;
+using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_API_KEY, MI_PL_USER,
+#ifdef USE_ST7789
+    MI_PL_PASSWORD_LABEL,
+#endif
+    MI_PL_PASSWORD_VALUE>;
 
 class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     constexpr static const char *const label = N_("PRUSA LINK");
@@ -97,7 +117,7 @@ class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     window_header_t header;
 
     inline void display_passwd(const char *api_key) {
-        container.Item<MI_PL_PASSWORD>().print_password(api_key);
+        container.Item<MI_PL_PASSWORD_VALUE>().print_password(api_key);
     }
 
 public:

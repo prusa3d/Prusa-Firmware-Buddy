@@ -5,12 +5,11 @@
  */
 
 #include "footer_item_filament.hpp"
-#include "display_helper.h" // font_meas_text
-#include "resource.h"       // IDR_PNG_spool_16px
+#include "png_resources.hpp"
 #include "filament.hpp"
 
 FooterItemFilament::FooterItemFilament(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, IDR_PNG_spool_16px, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::spool_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFilament::static_readValue() {

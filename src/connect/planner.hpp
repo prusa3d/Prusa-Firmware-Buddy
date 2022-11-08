@@ -101,6 +101,13 @@ private:
     /// want to keep the value in case the retry also fails.
     bool perform_cooldown;
 
+    /// How many times we've tried and failed due to some kind of network error
+    /// or such? After enough, we give up sending a specific event because the
+    /// failure might be related to that specific event in some way (in theory,
+    /// it should not, they should be detected as Refused instead of Failed,
+    /// but there are always corner cases).
+    uint8_t failed_attempts = 0;
+
     /// Some command that is accepted but still being worked on.
     std::optional<BackgroundCommand> background_command;
 

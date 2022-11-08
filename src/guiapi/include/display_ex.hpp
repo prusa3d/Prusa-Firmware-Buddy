@@ -32,6 +32,12 @@ void display_ex_set_pixel_displayNativeColor(point_ui16_t pt, uint16_t noClr);
 
 uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt);
 
-void display_ex_draw_png(point_ui16_t pt, FILE *pf);
-
-void display_ex_draw_icon(point_ui16_t pt, ResourceId id_res, color_t clr0, ropfn rop);
+/**
+ * @brief draws png from config
+ * not taking file directly is important, because png file can contain multiple pngs (ram optimization)
+ * @param pt       top left point
+ * @param png      png config file
+ * @param clr_bck  background color
+ * @param rop      raster config struct
+ */
+void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t clr_bck = 0, ropfn rop = ropfn());

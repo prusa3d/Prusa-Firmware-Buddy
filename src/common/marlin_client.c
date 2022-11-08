@@ -569,8 +569,48 @@ void marlin_print_start(const char *filename, bool skip_preview) {
     _send_request_to_server_and_wait(request);
 }
 
+bool marlin_print_started() {
+    // The above can't really return true/false if the print started, for two reasons:
+    // * There doesn't seem to be a ready-made way to conveniently send a
+    //   yes/no from the server to the client.
+    // * Waiting for the answer could lead to a deadlock when called from the
+    //   GUI thread, because the marlin server prepares the grounds and waits for
+    //   GUI to ACK that everything is OK. But if GUI would be waiting for the
+    //   server to answer, it couldn't answer.
+    //
+    // Therefore, we provide a separate function other threads may call
+    // (connect and link) to find out if starting the print was processed or if
+    // it was rejected.
+    //
+    // We also kind of ignore the possibility of the whole print successfully
+    // happening before we can notice it. That would produce a false negative,
+    // however that would likely result only in unexpected error message to the
+    // user.
+
+    while (true) {
+        switch (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
+        case mpsWaitGui:
+            // We are still waiting for GUI to make up its mind. Do another round.
+            osDelay(10);
+            break;
+        case mpsIdle:
+        case mpsAborted:
+        case mpsFinished:
+            // Went to idle - refused by GUI
+            return false;
+        default:
+            // Doing something else ‒ there's a lot of states where we are printing.
+            return true;
+        }
+    }
+}
+
 void marlin_gui_ready_to_print() {
     _send_request_id_to_server_and_wait(MARLIN_MSG_GUI_PRINT_READY);
+}
+
+void marlin_gui_cant_print() {
+    _send_request_id_to_server_and_wait(MARLIN_MSG_GUI_CANT_PRINT);
 }
 
 void marlin_print_abort(void) {
@@ -621,9 +661,25 @@ bool marlin_is_printing() {
     case mpsAborted:
     case mpsIdle:
     case mpsFinished:
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewImage:
         return false;
     default:
         return true;
+    }
+}
+bool marlin_remote_print_ready(bool preview_only) {
+    switch (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state) {
+    case mpsIdle:
+        return true;
+    case mpsPrintPreviewInit:
+    case mpsPrintPreviewImage:
+        // We want to replace the one-click print / preview when we want to
+        // start printing. But we don't want to change one print preview to
+        // another just by uploading stuff.
+        return !preview_only;
+    default:
+        return false;
     }
 }
 

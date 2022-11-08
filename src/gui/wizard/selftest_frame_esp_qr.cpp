@@ -7,13 +7,13 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "marlin_client.hpp"
-#include "resource.h"
+#include "png_resources.hpp"
 #include <cstring>
 
 SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
     , text(this, Positioner::textRect(), is_multiline::yes)
-    , icon_phone(this, Positioner::phoneIconRect(), PNG::hand_qr_59x72)
+    , icon_phone(this, Positioner::phoneIconRect(), &png::hand_qr_59x72)
     , qr(this, Positioner::qrcodeRect(), QR_ADDR)
 
 {

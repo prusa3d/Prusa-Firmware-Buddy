@@ -5,13 +5,12 @@
  */
 
 #include "footer_item_printspeed.hpp"
-#include "display_helper.h" // font_meas_text
-#include "resource.h"       // IDR_PNG_speed_16px
+#include "png_resources.hpp"
 #include "marlin_client.h"
 #include <algorithm>
 
 FooterItemSpeed::FooterItemSpeed(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, IDR_PNG_speed_16px, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::speed_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemSpeed::static_readValue() {

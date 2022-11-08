@@ -14,6 +14,7 @@
 #include "ScreenHandler.hpp"
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
+#include "png_resources.hpp"
 #if _DEBUG
     #include "bsod.h"
 #endif
@@ -101,7 +102,7 @@ window_file_list_t::window_file_list_t(window_t *parent)
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , entire_window_invalid(true)
-    , activeItem(string_view_utf8(), IDR_NULL) {
+    , activeItem(string_view_utf8(), nullptr) {
     DisableLongHoldScreenAction();
     SetAlignment(Align_t::LeftCenter());
     Enable();
@@ -255,19 +256,19 @@ Rect16 window_file_list_t::itemRect(int index) const {
     return GetRect().Intersection(rc);
 }
 
-ResourceId window_file_list_t::itemIcon(int index) const {
+const png::Resource *window_file_list_t::itemIcon(int index) const {
     auto item = ldv.LongFileNameAt(index);
     const bool isFile = item.second == LDV::EntryType::FILE;
     if (!item.first) {
         // this should normally not happen, visible_count shall limit indices to valid items only
-        return IDR_NULL; // ... but getting ready for the unexpected
+        return nullptr; // ... but getting ready for the unexpected
     }
-    ResourceId id_icon = isFile ? IDR_NULL : IDR_PNG_folder_full_16px;
+    const png::Resource *icon = isFile ? nullptr : &png::folder_full_16x16;
 
     if (index == 0 && strcmp(item.first, "..") == 0 && IsPathRoot(sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
-        id_icon = IDR_PNG_home_full_16px;
+        icon = &png::folder_full_16x16;
     }
-    return id_icon;
+    return icon;
 }
 
 // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"

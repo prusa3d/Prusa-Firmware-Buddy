@@ -1,15 +1,17 @@
 #include "screen_qr_error.hpp"
+#include "png_resources.hpp"
 #include "config.h"
-#include <stdlib.h>
 #include "ScreenHandler.hpp"
 #include "display.h"
 #include "errors.h"
 #include "sound.hpp"
-#include <crash_dump/dump.h>
 #include "sys.h"
 #include "eeprom.h"
 #include "support_utils.h"
 #include "version.h"
+
+#include <stdlib.h>
+#include <crash_dump/dump.h>
 
 static const constexpr Rect16 title_rect = Rect16(13, 12, display::GetW() - 26, 20);
 static const constexpr Rect16 hand_rect = Rect16(20, 165, 64, 82);
@@ -30,7 +32,7 @@ ScreenErrorQR::ScreenErrorQR()
     : AddSuperWindow<screen_reset_error_data_t>()
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
-    , hand_icon(this, hand_rect, PNG::hand_qr_59x72)
+    , hand_icon(this, hand_rect, &png::hand_qr_59x72)
     , qr(this, QR_rect, 1) // error code is passed in the constructor
     , help_txt(this, Rect16(0, 0, 0, 0), is_multiline::no)
     , help_link(this, link_rect, is_multiline::no)

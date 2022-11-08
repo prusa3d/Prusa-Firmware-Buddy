@@ -5,9 +5,8 @@
  */
 
 #include "WindowMenuSpin.hpp"
-#include "resource.h"
 
-IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_)
+IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_)
     : AddSuper<WI_LABEL_t>(label, extension_width_, id_icon, enabled, hidden)
     , units(units_)
     , value(val) {
@@ -97,7 +96,7 @@ Rect16::Width_t IWiSpin::calculateExtensionWidth(size_t unit_len, char uchar, si
     return ret;
 }
 
-WI_SPIN_CRASH_PERIOD_t::WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden)
+WI_SPIN_CRASH_PERIOD_t::WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : AddSuper<IWiSpin>(std::clamp(int(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
         cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
     , config(cnf) {

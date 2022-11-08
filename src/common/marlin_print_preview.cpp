@@ -93,7 +93,7 @@ PrintPreview::Result PrintPreview::Loop() {
 
     uint32_t time = ticks_ms();
     if ((time - last_run) < max_run_period_ms)
-        return Result::InProgress;
+        return stateToResult();
     last_run = time;
     const Response response = GetResponse();
 
@@ -198,7 +198,26 @@ PrintPreview::Result PrintPreview::Loop() {
         ChangeState(State::inactive);
         return Result::Print;
     }
-    return Result::InProgress;
+    return stateToResult();
+}
+
+PrintPreview::Result PrintPreview::stateToResult() const {
+    switch (GetState()) {
+    case State::preview_wait_user:
+        return Result::Image;
+    case State::wrong_printer_wait_user:
+    case State::wrong_filament_change:
+    case State::wrong_filament_wait_user:
+    case State::filament_not_inserted_load:
+    case State::filament_not_inserted_wait_user:
+    case State::mmu_filament_inserted_unload:
+    case State::mmu_filament_inserted_wait_user:
+        return Result::Questions;
+    case State::inactive:
+    case State::done:
+        return Result::Inactive;
+    }
+    return Result::Inactive;
 }
 
 void PrintPreview::Init(const char *path) {

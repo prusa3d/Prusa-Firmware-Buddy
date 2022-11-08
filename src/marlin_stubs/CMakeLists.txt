@@ -15,3 +15,7 @@ add_subdirectory(pause)
 add_subdirectory(sdcard)
 add_subdirectory(host)
 add_subdirectory(feature)
+
+if(WUI)
+  target_sources(firmware PRIVATE M1587.cpp)
+endif()

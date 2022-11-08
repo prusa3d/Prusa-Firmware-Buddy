@@ -54,18 +54,20 @@ function(define_enum_option)
   endforeach()
 
   # create file with C header
-  set(header_file "${OPTIONS_INCLUDE_DIR}/option/${option_name_lower}.h")
-  file(WRITE "${header_file}" "#pragma once\n\n")
+  set(input_file_prefix "${OPTIONS_INCLUDE_DIR}/option/${option_name_lower}")
+  set(input_file "${input_file_prefix}.in")
+  set(output_file "${input_file_prefix}.h")
+  file(WRITE "${input_file}" "#pragma once\n\n")
 
   # list all values (C defines)
   foreach(value ${option_values})
-    file(APPEND "${header_file}" "#define ${option_name_upper}_${value} ${value_${value}_number}\n")
+    file(APPEND "${input_file}" "#define ${option_name_upper}_${value} ${value_${value}_number}\n")
   endforeach()
-  file(APPEND "${header_file}" "\n")
+  file(APPEND "${input_file}" "\n")
 
   # create main option getter: #define OPTION_NAME() <value>
-  file(APPEND "${header_file}" "#define ${option_name_upper}() ${value_${option_value}_number}\n")
-  file(APPEND "${header_file}" "\n")
+  file(APPEND "${input_file}" "#define ${option_name_upper}() ${value_${option_value}_number}\n")
+  file(APPEND "${input_file}" "\n")
 
   # define easy checks: #define OPTION_IS_X() 0
   foreach(value ${option_values})
@@ -74,29 +76,31 @@ function(define_enum_option)
     else()
       set(value_is_x "0")
     endif()
-    file(APPEND "${header_file}" "#define ${option_name_upper}_IS_${value}() ${value_is_x}\n")
+    file(APPEND "${input_file}" "#define ${option_name_upper}_IS_${value}() ${value_is_x}\n")
   endforeach()
-  file(APPEND "${header_file}" "\n")
+  file(APPEND "${input_file}" "\n")
 
-  file(APPEND "${header_file}" "#ifdef __cplusplus\n")
-  file(APPEND "${header_file}" "namespace option {\n\n")
+  file(APPEND "${input_file}" "#ifdef __cplusplus\n")
+  file(APPEND "${input_file}" "namespace option {\n\n")
 
   # add c++ enum class
   to_pascal_case(option_name_pascal "${option_name_lower}")
-  file(APPEND "${header_file}" "enum class ${option_name_pascal} {\n")
+  file(APPEND "${input_file}" "enum class ${option_name_pascal} {\n")
   foreach(value ${option_values})
     string(TOLOWER "${value}" value_lower)
-    file(APPEND "${header_file}" "    ${value_lower} = ${value_${value}_number},\n")
+    file(APPEND "${input_file}" "    ${value_lower} = ${value_${value}_number},\n")
   endforeach()
-  file(APPEND "${header_file}" "};\n\n")
+  file(APPEND "${input_file}" "};\n\n")
 
   # add C++ constexpr value
   string(TOLOWER "${option_value}" option_value_lower)
   file(
-    APPEND "${header_file}"
+    APPEND "${input_file}"
     "inline constexpr ${option_name_pascal} ${option_name_lower} = ${option_name_pascal}::${option_value_lower};\n\n"
     )
 
-  file(APPEND "${header_file}" "};\n")
-  file(APPEND "${header_file}" "#endif // __cplusplus\n")
+  file(APPEND "${input_file}" "};\n")
+  file(APPEND "${input_file}" "#endif // __cplusplus\n")
+
+  configure_file(${input_file} ${output_file} COPYONLY)
 endfunction()

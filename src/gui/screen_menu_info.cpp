@@ -6,6 +6,7 @@
 #include "MItem_menus.hpp"
 #include "screen_menus.hpp"
 #include "DialogMoveZ.hpp"
+#include "png_resources.hpp"
 
 using Screen = ScreenMenu<EFooter::On, MI_RETURN,
 #ifdef _DEBUG
@@ -30,7 +31,7 @@ public:
     ScreenMenuInfo()
         : Screen(_(label)) {
         EnableLongHoldScreenAction();
-        header.SetIconFilePath(PNG::info_16x16);
+        header.SetIcon(&png::info_16x16);
     }
 };
 

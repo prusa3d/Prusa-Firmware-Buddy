@@ -5,11 +5,10 @@
  */
 
 #include "WindowMenuSwitch.hpp"
-#include "resource.h"
 
 /*****************************************************************************/
 //IWiSwitch
-IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_)
+IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_)
     : AddSuper<WI_LABEL_t>(label, calculateExtensionWidth(items_), id_icon, enabled, hidden)
     , index(index)
     , items(items_) {
@@ -120,7 +119,7 @@ Rect16::Width_t IWiSwitch::calculateExtensionWidth_text(Items_t items) {
 Rect16::Width_t IWiSwitch::calculateExtensionWidth_icon(Items_t items) {
     size_t max_width = 0;
     for (size_t i = 0; i < items.size; ++i) {
-        size_t width = window_icon_t::CalculateMinimalSize(items.icon_resources[i]).w;
+        size_t width = items.icon_resources[i]->w;
         if (width > max_width)
             max_width = width;
     }

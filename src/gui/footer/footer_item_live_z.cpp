@@ -6,12 +6,12 @@
 
 #include "footer_item_live_z.hpp"
 #include "marlin_client.h"
-#include "resource.h"
+#include "png_resources.hpp"
 #include <algorithm>
 #include <cmath>
 
 FooterItemLiveZ::FooterItemLiveZ(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, IDR_PNG_z_axis_16px, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::z_axis_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemLiveZ::static_readValue() {

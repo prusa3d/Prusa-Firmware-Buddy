@@ -344,18 +344,30 @@ uint32_t wui_gcodes_uploaded() {
 
 bool wui_start_print(char *filename, bool autostart_if_able) {
     marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
-    const bool printer_can_print = !marlin_is_printing();
-    const bool can_start_print = printer_can_print && autostart_if_able;
+    const bool printer_can_print = marlin_remote_print_ready(!autostart_if_able);
 
     strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
     // Turn it into the short name, to improve buffer length, avoid strange
     // chars like spaces in it, etc.
     get_SFN_path(filename);
-    if (printer_can_print) {
-        print_begin(filename, can_start_print);
+    if (autostart_if_able) {
+        if (printer_can_print) {
+            print_begin(filename, true);
+            return marlin_print_started();
+        } else {
+            return false;
+        }
+    } else {
+        // The conditional here is just an optimization, to save bothering
+        // marlin. If it couldn't print/initialte the preview, it would just do
+        // nothing anyway.
+        if (printer_can_print) {
+            print_begin(filename, false);
+        }
+        // We were not asked to print. Showing the preview is "best effort",
+        // but not reported to the user.
+        return true;
     }
-
-    return printer_can_print;
 }
 
 bool wui_uploaded_gcode(char *filename, bool start_print) {

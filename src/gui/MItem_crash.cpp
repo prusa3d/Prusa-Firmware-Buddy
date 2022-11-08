@@ -9,7 +9,7 @@
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
     index = crash_s.is_enabled();
 }
 
@@ -18,7 +18,7 @@ void MI_CRASH_DETECTION::OnChange(size_t old_index) {
 }
 
 MI_CRASH_SENSITIVITY_X::MI_CRASH_SENSITIVITY_X()
-    : WiSpinInt(crash_s.get_sensitivity().x, SpinCnf::crash_sensitivity_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiSpinInt(crash_s.get_sensitivity().x, SpinCnf::crash_sensitivity_2209, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_X::OnClick() {
 
@@ -28,7 +28,7 @@ void MI_CRASH_SENSITIVITY_X::OnClick() {
 }
 
 MI_CRASH_SENSITIVITY_Y::MI_CRASH_SENSITIVITY_Y()
-    : WiSpinInt(crash_s.get_sensitivity().y, SpinCnf::crash_sensitivity_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WiSpinInt(crash_s.get_sensitivity().y, SpinCnf::crash_sensitivity_2209, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_SENSITIVITY_Y::OnClick() {
 
@@ -40,7 +40,7 @@ void MI_CRASH_SENSITIVITY_Y::OnClick() {
 constexpr float _DASU[] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
 MI_CRASH_MAX_PERIOD_X::MI_CRASH_MAX_PERIOD_X()
-    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().x, SpinCnf::crash_max_period_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().x, SpinCnf::crash_max_period_2209, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_X::OnClick() {
     xy_long_t mp = crash_s.get_max_period();
@@ -49,7 +49,7 @@ void MI_CRASH_MAX_PERIOD_X::OnClick() {
 }
 
 MI_CRASH_MAX_PERIOD_Y::MI_CRASH_MAX_PERIOD_Y()
-    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().y, SpinCnf::crash_max_period_2209, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_SPIN_CRASH_PERIOD_t(crash_s.get_max_period().y, SpinCnf::crash_max_period_2209, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 void MI_CRASH_MAX_PERIOD_Y::OnClick() {
     xy_long_t mp = crash_s.get_max_period();
@@ -78,7 +78,7 @@ MI_CRASHES_Y::MI_CRASHES_Y()
 
     #if HAS_DRIVER(TMC2130)
 MI_CRASH_FILTERING::MI_CRASH_FILTERING()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
     index = crash_s.get_filter();
 }
 

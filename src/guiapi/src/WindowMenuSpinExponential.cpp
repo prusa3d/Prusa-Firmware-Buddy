@@ -6,7 +6,7 @@
 
 #include "WindowMenuSpinExponential.hpp"
 
-WiSpinExp::WiSpinExp(int val, const Config &cnf, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden)
+WiSpinExp::WiSpinExp(int val, const Config &cnf, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : AddSuper<WiSpinInt>(val, cnf, label, id_icon, enabled, hidden) {}
 
 invalidate_t WiSpinExp::change(int dif) {

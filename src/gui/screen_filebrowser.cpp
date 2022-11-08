@@ -12,10 +12,11 @@
 #include "i18n.h"
 #include "gui_media_events.hpp"
 #include "log.h"
+#include "png_resources.hpp"
+#include "GuiDefaults.hpp"
 
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
-#include "GuiDefaults.hpp"
 
 LOG_COMPONENT_REF(GUI);
 
@@ -36,7 +37,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     , w_filelist(this)
     , gcode_info(GCodeInfo::getInstance()) {
 
-    header.SetIcon(IDR_PNG_folder_full_16px);
+    header.SetIcon(&png::folder_full_16x16);
     static const char sf[] = N_("PROJECTS");
     header.SetText(_(sf));
 

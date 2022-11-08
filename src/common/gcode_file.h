@@ -16,3 +16,7 @@ bool f_gcode_get_next_comment_assignment(FILE *fp, char *name_buffer,
     int name_buffer_len,
     char *value_buffer,
     int value_buffer_len);
+
+/// Search this many last bytes for "metadata" comments.
+/// With increasing size of the comment section, this will have to be increased either
+const long f_gcode_search_last_x_bytes = 14000;

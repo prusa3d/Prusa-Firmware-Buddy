@@ -154,14 +154,20 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentLoadWaitFinished() {
         return LoopResult::RunCurrent;
     }
     //check if we returned from preheat or finished the load
-    PreheatStatus::Result res = PreheatStatus::ConsumeResult();
-    if (res == PreheatStatus::Result::DoneNoFilament) {
+    switch (PreheatStatus::ConsumeResult()) {
+    case PreheatStatus::Result::DoneNoFilament:
         // in case it flickers, we might need to add change of state
         // IPartHandler::SetFsmPhase(PhasesSelftest::);
         return LoopResult::RunNext;
-    } else {
-        return LoopResult::GoToMark;
+    case PreheatStatus::Result::DoneHasFilament:
+        state_selected_by_user = StateSelectedByUser::Calib;
+        return LoopResult::RunNext;
+    default:
+        break;
     }
+
+    // Retry. Something went wrong. Probably user pressed abort
+    return LoopResult::GoToMark;
 }
 
 /*****************************************************************************/

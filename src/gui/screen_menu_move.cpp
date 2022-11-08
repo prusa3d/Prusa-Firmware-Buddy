@@ -22,7 +22,7 @@ protected:
 public:
     MI_AXIS<INDEX, LONG_SEG, BUFFER_LEN>()
         : WiSpinInt(int32_t(marlin_vars()->pos[INDEX]),
-            SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), IDR_NULL, is_enabled_t::yes, is_hidden_t::no)
+            SpinCnf::axis_ranges[INDEX], _(MenuVars::labels[INDEX]), nullptr, is_enabled_t::yes, is_hidden_t::no)
         , lastQueuedPos(int32_t(marlin_vars()->pos[INDEX])) {}
 
     // enqueue next moves according to value of spinners;
@@ -81,7 +81,7 @@ public:
             && (int(marlin_vars()->target_nozzle + 0.9F) >= Filaments::Current().nozzle); // target temperature is high enough - +0.9 to avoid float round error
     }
     DUMMY_AXIS_E()
-        : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, 0,
+        : WI_FORMATABLE_LABEL_t<int>(_(MenuVars::labels[MARLIN_VAR_INDEX_E]), nullptr, is_enabled_t::yes, is_hidden_t::no, 0,
             // this lambda is used during print, but does require item to be invalidated
             [&](char *buffer) {
                 if (value) {
@@ -116,29 +116,71 @@ class ScreenMenuMove : public Screen {
             Show<MI_COOLDOWN>();
             can_timeout = false; //just do not timeout whe we are heating
         } else {
-            if (Item<MI_COOLDOWN>().IsFocused()) {
+            if (menu.GetActiveItem() == &Item<MI_COOLDOWN>()) {
                 menu.Decrement(1);
             }
             Hide<MI_COOLDOWN>(); // now it is not focussed, so Hide() will succeed
         }
 
-        if (IsTempOk()) {
-            Show<MI_AXIS_E>();
-            if (Item<DUMMY_AXIS_E>().IsFocused()) {
-                menu.Decrement(1); //set focus to previous (MI_AXIS_E)
-            }
-            Hide<DUMMY_AXIS_E>();
-        } else {
-            Show<DUMMY_AXIS_E>();
-            if (Item<MI_AXIS_E>().IsFocused()) {
-                menu.Increment(1); //set focus to next (DUMMY_AXIS_E)
-            }
-            Hide<MI_AXIS_E>();
-            Item<DUMMY_AXIS_E>().Update();
+        if (IsTempOk() == Item<MI_AXIS_E>().IsHidden()) {
+            menu.SwapVisibility(Item<DUMMY_AXIS_E>(), Item<MI_AXIS_E>());
         }
 
         can_timeout ? SetMenuTimeoutClose() : ClrMenuTimeoutClose();
     }
+
+// TODO make unit test
+#if 0
+    void checkNozzleTemp() {
+        ClrMenuTimeoutClose();//dont timeout during test
+        static int state  = 0;
+
+        switch(state++) {
+        case 0: // select axis e
+            Hide<MI_AXIS_E>();
+            Hide<MI_COOLDOWN>();
+            menu.SetActiveItem(Item<DUMMY_AXIS_E>());
+            break;
+        case 1: // emulate click on e - show cooldown
+            Show<MI_COOLDOWN>();
+            break;
+        case 2: // temp reached, enable working e, hide dummy part 0
+            Show<MI_AXIS_E>();
+            break;
+        case 3: // temp reached, enable working e, hide dummy part 1
+            if (menu.GetActiveItem() == &Item<DUMMY_AXIS_E>()) {
+                menu.SetActiveItem(Item<MI_AXIS_E>());
+            }
+            break;
+        case 4: // temp reached, enable working e, hide dummy part 2
+            Hide<DUMMY_AXIS_E>();
+            break;
+        case 5: // cooldown click part 0
+            Show<DUMMY_AXIS_E>();
+            if (menu.GetActiveItem() == &Item<MI_AXIS_E>()) {
+                menu.SetActiveItem(Item<DUMMY_AXIS_E>());
+            }
+             break;
+        case 6: // cooldown click part 1
+            Item<DUMMY_AXIS_E>().Update();
+            break;
+
+        case 7: // cooldown click part 2
+            Hide<MI_AXIS_E>();
+            break;
+        case 8: // cooldown click part 3
+            if (menu.GetActiveItem() == &Item<MI_COOLDOWN>()) {
+                menu.Decrement(1);
+            }
+            Hide<MI_COOLDOWN>(); // now it is not focussed, so Hide() will succeed
+            break;
+        default:
+            state = 0;
+        }
+
+        ClrMenuTimeoutClose();
+    }
+#endif // 0 .. make unit test
 
 public:
     constexpr static const char *label = N_("MOVE AXIS");
@@ -153,6 +195,7 @@ public:
         marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
         prev_accel = marlin_vars()->travel_acceleration;
         marlin_gcode("M204 T200");
+        Hide<MI_AXIS_E>(); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
         checkNozzleTemp();
     }
     ~ScreenMenuMove() {
@@ -170,11 +213,11 @@ void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sende
         marlin_set_target_nozzle(0);
         marlin_set_display_nozzle(0);
         marlin_set_target_bed(0);
-        return;
     }
 
     if (event == GUI_event_t::LOOP) {
         checkNozzleTemp();
+        Item<DUMMY_AXIS_E>().Update();
     }
 
     SuperWindowEvent(sender, event, param);

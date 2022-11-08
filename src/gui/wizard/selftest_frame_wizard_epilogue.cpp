@@ -5,7 +5,7 @@
 #include "selftest_frame_wizard_epilogue.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
-#include "resource.h"
+#include "png_resources.hpp"
 
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
 static constexpr size_t margin_texts = 0;
@@ -41,7 +41,7 @@ static constexpr Rect16 getTextIconRect() {
 SelftestFrameWizardEpilogue::SelftestFrameWizardEpilogue(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
 
-    , icon(this, getIconRect(), PNG::pepa_92x140)
+    , icon(this, getIconRect(), &png::pepa_92x140)
     , text_icon(this, getTextIconRect(), is_multiline::yes) {
 
     icon.SetAlignment(Align_t::CenterTop());

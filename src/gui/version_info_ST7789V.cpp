@@ -12,11 +12,11 @@
 #include "screen_menu.hpp"
 #include "config.h"
 #include "version.h"
-#include "resource.h"
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.h"
+#include "png_resources.hpp"
 
 static const constexpr uint8_t VERSION_INFO_STR_MAXLEN = 150;
 static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
@@ -55,7 +55,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     CaptureNormalWindow(menu); // set capture to list
 
     //=============SCREEN INIT===============
-    header.SetIconFilePath(PNG::info_16x16);
+    header.SetIcon(&png::info_16x16);
 
     //=============VARIABLES=================
 

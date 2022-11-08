@@ -4,7 +4,6 @@
 #include "log.h"
 #include "gcode_file.h"
 #include "marlin_client.h"
-#include "resource.h"
 #include "window_dlg_load_unload.hpp"
 #include "filament_sensor_api.hpp"
 #include <stdarg.h>
@@ -81,7 +80,7 @@ void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, window_t *s
 }
 
 ScreenPrintPreview::UniquePtr ScreenPrintPreview::makeMsgBox(const PhaseResponses &resp, string_view_utf8 caption, string_view_utf8 text) {
-    return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, resp, 0, nullptr, text, is_multiline::yes, caption, PNG::warning_16x16, is_closed_on_click_t::no);
+    return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, resp, 0, nullptr, text, is_multiline::yes, caption, &png::warning_16x16, is_closed_on_click_t::no);
 }
 
 void ScreenPrintPreview::Change(fsm::BaseData data) {

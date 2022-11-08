@@ -66,28 +66,8 @@ add_gzip_resource("web/main.5740edc19739165967f7.js" "/web/main.5740edc197391659
 add_gzip_resource("web/main.b0ff766dede9aa4490a1.css" "/web/main.b0ff766dede9aa4490a1.css")
 
 # /png directory
-add_resource("png/pepa_64px.png" "/png/pepa_64px.png")
-add_resource("png/pepa_140px.png" "/png/pepa_140px.png")
-add_resource("png/pepa_original_140px.png" "/png/pepa_original_140px.png")
-add_resource("png/png_serial_printing.png" "/png/png_serial_printing.png")
-add_resource("png/home_shape_16px.png" "/png/home_shape_16px.png")
-add_resource("png/print_16px.png" "/png/print_16px.png")
-add_resource("png/hand_154x65.png" "/png/hand_154x65.png")
-add_resource("png/nozzle_34x32.png" "/png/nozzle_34x32.png")
-add_resource("png/usb_16px.png" "/png/usb_16px.png")
-add_resource("png/info_16px.png" "/png/info_16px.png")
-add_resource("png/warning_16px.png" "/png/warning_16px.png")
-add_resource("png/question_16px.png" "/png/question_16px.png")
-add_resource("png/nozzle_shape_48px.png" "/png/nozzle_shape_48px.png")
-add_resource("png/arrow_up_16px.png" "/png/arrow_up_16px.png")
-add_resource("png/arrow_down_16px.png" "/png/arrow_down_16px.png")
-add_resource("png/arrow_left_16px.png" "/png/arrow_left_16px.png")
-add_resource("png/hand_qr.png" "/png/hand_qr.png")
-add_resource("png/turn_knob.png" "/png/turn_knob.png")
-add_resource("png/question_48px.png" "/png/question_48px.png")
-add_resource("png/warning_48px.png" "/png/warning_48px.png")
-add_resource("png/error_white_48px.png" "/png/error_white_48px.png")
-add_resource("png/info_48px.png" "/png/info_48px.png")
+add_resource("png/resources.pngs" "pngs")
+
 # generate header with hash
 add_header_with_revision(standard resources-image)
 

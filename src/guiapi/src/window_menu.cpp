@@ -7,7 +7,6 @@
 #include "window_menu.hpp"
 #include "gui.hpp"
 #include "sound.hpp"
-#include "resource.h"
 #include "WindowMenuItems.hpp"
 #include "cmath_ext.h"
 #include "marlin_client.h"
@@ -15,6 +14,7 @@
 WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : AddSuperWindow<IWindowMenu>(parent, rect)
     , max_items_on_screen(Height() / (ItemHeight() + GuiDefaults::MenuItemDelimeterHeight))
+    , visible_count_at_last_draw(0)
     , pContainer(pContainer) {
     setIndex(index);
     index_of_first = 0;
@@ -23,30 +23,22 @@ WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContai
 
 //private, for ctor (cannot fail)
 void WindowMenu::setIndex(uint8_t new_index) {
-    if (new_index && (!pContainer))
-        new_index = 0;
-    if (new_index >= GetCount())
-        new_index = 0;
-    auto item = GetItem(new_index);
-    if (item)
-        item->setFocus(); //set focus on new item
-    index_of_focused = new_index;
+    if (!pContainer)
+        return;
+    if (!pContainer->SetIndex(new_index))
+        pContainer->SetIndex(0); // setting 0 could fail if menu has no visible item
+                                 // but if it happens, container will have focused nullptr, which is valid
 }
 
 //public version of setIndex
 bool WindowMenu::SetIndex(uint8_t index) {
-    if (index && (!pContainer))
-        return false; //cannot set non 0 without container
-    if (index >= GetCount())
-        return false;
-    if (this->index_of_focused == index)
-        return true;
-    IWindowMenuItem *activeItem = GetActiveItem();
-    if (activeItem)
-        activeItem->clrFocus(); //remove focus from old item
-    GetItem(index)->setFocus(); //set focus on new item
-    this->index_of_focused = index;
-    return true;
+    return pContainer && pContainer->SetIndex(index);
+}
+
+std::optional<size_t> WindowMenu::GetIndex() const {
+    if (!pContainer)
+        return std::nullopt;
+    return pContainer->GetFocusedIndex();
 }
 
 uint8_t WindowMenu::GetCount() const {
@@ -61,16 +53,22 @@ IWindowMenuItem *WindowMenu::GetItem(uint8_t index) const {
     return pContainer->GetItemByVisibleIndex(index);
 }
 
-IWindowMenuItem *WindowMenu::GetActiveItem() {
-    return GetItem(index_of_focused);
+IWindowMenuItem *WindowMenu::GetActiveItem() const {
+    if (!pContainer)
+        return nullptr;
+    return pContainer->GetFocused();
 }
 
 bool WindowMenu::moveToNextVisibleItem(int moveIndex) {
-    int old_index = index_of_focused;
-    // in case container does not exist index_of_focused == 0 and new_index will be 0, so this state is OK
+    std::optional<size_t> opt_old_index = GetIndex();
+    if (!opt_old_index)
+        return false; // no item can be focused (container does not exist, or does not have visible items)
+
+    int old_index = *opt_old_index;
+
     int new_index = (moveIndex >= 0) ? std::min(old_index + moveIndex, GetCount() - 1) : std::max(old_index + moveIndex, 0);
-    if (new_index == int(old_index)) // cannot move
-        return false;
+    if (new_index == old_index) // no move required
+        return false;           // TODO validate this false
 
     /// sets new cursor position to a visible item, also invalidates items at old and new index
     if (!SetIndex(new_index))
@@ -86,19 +84,30 @@ bool WindowMenu::moveToNextVisibleItem(int moveIndex) {
 }
 
 bool WindowMenu::updateTopIndex_IsRedrawNeeded() {
-    if (index_of_focused < index_of_first) {
-        index_of_first = index_of_focused;
-        return true; /// move the window up
-    }
+    std::optional<size_t> opt_index = GetIndex();
 
-    if (index_of_focused == index_of_first)
+    // no item can be focused (container does not exist, or does not have visible items), no redraw needed
+    if (!opt_index)
+        return false;
+    uint8_t focused = *opt_index;
+
+    // first item is focused, most common scenario, no redraw needed
+    if (focused == index_of_first)
         return false;
 
-    if (index_of_focused < (index_of_first + max_items_on_screen))
-        return false; /// cursor is still in the window
+    // some item before first is focused, roll the window up
+    if (focused < index_of_first) {
+        index_of_first = focused;
+        return true;
+    }
 
-    index_of_first = std::max(0, index_of_focused - max_items_on_screen + 1);
-    return true; /// move the window down
+    // cursor is still in the window
+    if (focused < (index_of_first + max_items_on_screen))
+        return false;
+
+    // cursor is behind visible area, roll the window down
+    index_of_first = std::max(0, focused - max_items_on_screen + 1);
+    return true;
 }
 
 bool WindowMenu::updateTopIndex() {
@@ -212,6 +221,8 @@ void WindowMenu::draw() {
     if (!GetActiveItem())
         return;
 
+    size_t drawn_cnt = 0;
+
     Node last_valid_node = Node::Empty();
     for (Node node = findFirst(); node.HasValue(); node = findNext(node)) {
         last_valid_node = node;
@@ -221,12 +232,16 @@ void WindowMenu::draw() {
         //this can draw just a part or entire item
         if (node.item->IsInvalid()) {
             std::optional<Rect16> rc = getItemRC(node.current_slot);
-            if (rc)
+            if (rc) {
                 printItem(*(node.item), *rc);
+                ++drawn_cnt;
+            }
         }
     }
 
-    if (flags.invalid_background) {
+    // background is invalid or we used to have more items on screen
+    // just redraw the rest of the window
+    if (flags.invalid_background || visible_count_at_last_draw > drawn_cnt) {
         if (last_valid_node.HasValue()) {
             /// fill the rest of the window by background
             const int menu_h = (last_valid_node.current_slot + 1) * (ItemHeight() + GuiDefaults::MenuItemDelimeterHeight);
@@ -241,6 +256,8 @@ void WindowMenu::draw() {
             unconditionalDraw();
         }
     }
+
+    visible_count_at_last_draw = drawn_cnt;
 }
 
 std::optional<size_t> WindowMenu::slotFromCoord(point_ui16_t point) {
@@ -309,7 +326,10 @@ void WindowMenu::Show(IWindowMenuItem &item) {
         return;
     }
 
-    item.show();
+    if (!pContainer)
+        return;
+
+    pContainer->Show(item);
 
     if (!updateTopIndex()) {
         // screen did not roll, but some items still need invalidation
@@ -331,17 +351,22 @@ bool WindowMenu::Hide(IWindowMenuItem &item) {
         return true;
     }
 
-    std::optional<size_t> hidden_index = GetIndex(item);
-    if (!hidden_index)
-        return false; // this should never happen
-    item.hide();
+    std::optional<size_t> index_to_hide = GetIndex(item);
+
+    // item is not member of container
+    // normally could be hidden, but it is filtered by item.IsHidden() check
+    if (!index_to_hide)
+        return false;
+
+    if (!pContainer->Hide(item))
+        return false;
 
     // screen might need to roll
     if (!updateTopIndex()) {
         // roll is not needed, but still must invalidate remaining items
         // hidden_index now points to first item after hidden one, so we need to invalidate it too
         for (Node node = findFirst(); node.HasValue(); node = findNext(node)) {
-            if (node.index >= hidden_index)
+            if (node.index >= *index_to_hide)
                 node.item->Invalidate();
         }
     }
@@ -349,6 +374,11 @@ bool WindowMenu::Hide(IWindowMenuItem &item) {
     return true;
 }
 
+// unlike show / hide does not need any other action, number of items and positions remains the same
+bool WindowMenu::SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1) {
+    return pContainer && pContainer->SwapVisibility(item0, item1);
+}
+
 screen_init_variant::menu_t WindowMenu::GetCurrentState() const {
-    return { index_of_focused, index_of_first };
+    return { GetIndex() ? uint8_t(*GetIndex()) : uint8_t(0), index_of_first };
 }

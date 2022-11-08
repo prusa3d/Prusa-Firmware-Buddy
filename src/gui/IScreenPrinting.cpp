@@ -2,6 +2,7 @@
 #include "config.h"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "png_resources.hpp"
 
 IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
     : AddSuperWindow<screen_t>()
@@ -9,7 +10,7 @@ IScreenPrinting::IScreenPrinting(string_view_utf8 caption)
     , footer(this) {
     IScreenPrinting::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetText(caption);
-    header.SetIconFilePath(PNG::print_16x16);
+    header.SetIcon(&png::print_16x16);
     ths = this;
 }
 

@@ -2,6 +2,7 @@
 #include "config.h"
 #include "i18n.h"
 #include "gui_media_events.hpp"
+#include "png_resources.hpp"
 #include "netdev.h"
 
 void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {
@@ -9,7 +10,7 @@ void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {
     uint32_t netdev_status = netdev_get_status(netdev_id);
 
     if (netdev_id != active_netdev_id) {
-        icon_network.SetIdRes(window_header_t::networkIcon(netdev_id));
+        icon_network.SetRes(window_header_t::networkIcon(netdev_id));
         invalidate = true;
         active_netdev_id = netdev_id;
     }
@@ -30,13 +31,8 @@ void window_header_t::updateNetwork(uint32_t netdev_id, bool force) {
     }
 }
 
-void window_header_t::SetIcon(ResourceId id_res) {
-    icon_base.SetIdRes(id_res);
-    Invalidate();
-}
-
-void window_header_t::SetIconFilePath(const char *filepath) {
-    icon_base.SetFilePath(filepath);
+void window_header_t::SetIcon(const png::Resource *res) {
+    icon_base.SetRes(res);
     Invalidate();
 }
 
@@ -53,9 +49,9 @@ static const Rect16::Width_t icon_base_width(40);
 
 window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
-    , icon_base(this, Rect16(GetRect().TopLeft(), icon_base_width, Height() - 5), IDR_NULL)
+    , icon_base(this, Rect16(GetRect().TopLeft(), icon_base_width, Height() - 5), nullptr)
     , label(this, GetRect() - Rect16::Width_t(icons_width + span + icon_base_width) + Rect16::Left_t(icon_base_width), txt, Align_t::LeftBottom())
-    , icon_usb(this, (GetRect() + Rect16::Left_t(Width() - icon_usb_width)) = icon_usb_width, PNG::usb_32x16)
+    , icon_usb(this, (GetRect() + Rect16::Left_t(Width() - icon_usb_width)) = icon_usb_width, &png::usb_32x16)
     , icon_network(this, (GetRect() + Rect16::Left_t(Width() - icons_width)) = icon_lan_width, window_header_t::networkIcon(netdev_get_active_id()))
     , active_netdev_id(netdev_get_active_id())
     , active_netdev_status(netdev_get_status(active_netdev_id)) {
@@ -104,19 +100,19 @@ void window_header_t::updateMedia(MediaState_t state) {
     }
 };
 
-ResourceId window_header_t::networkIcon(uint32_t netdev_id) {
-    ResourceId res_id = IDR_NULL;
+const png::Resource *window_header_t::networkIcon(uint32_t netdev_id) {
+    const png::Resource *res = nullptr;
 
     switch (netdev_id) {
     case NETDEV_ETH_ID:
-        res_id = IDR_PNG_lan_16px;
+        res = &png::lan_16x16;
         break;
     case NETDEV_ESP_ID:
-        res_id = IDR_PNG_wifi_16px;
+        res = &png::wifi_16x16;
         break;
     default:
         break;
     }
 
-    return res_id;
+    return res;
 }

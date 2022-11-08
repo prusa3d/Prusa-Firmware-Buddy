@@ -13,6 +13,7 @@ static const uint8_t DUMP_NOT_SAVED = 0x80;  // dump not saved flag - (unsaved d
 static const uint8_t DUMP_NOT_DISPL = 0x40;  // dump not displayed after startup
 
 enum {
+#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     // dumped ram area (128kb)
     DUMP_RAM_ADDR = 0x20000000,
     DUMP_RAM_SIZE = 0x00020000,
@@ -20,6 +21,9 @@ enum {
     // dumped ccram area (64kb), last 256 bytes used for register dump etc.
     DUMP_CCRAM_ADDR = 0x10000000,
     DUMP_CCRAM_SIZE = 0x00010000,
+#else
+    #error "Unknown PRINTER_TYPE!"
+#endif
 
     // dumped otp area (32kb)
     DUMP_OTP_ADDR = 0x1FFF0000,
@@ -73,6 +77,9 @@ static const uint32_t DUMP_INFO_SIZE = 0x00000010;
 #define DUMP_REGS_GEN_EXC_TO_CCRAM()                                                    \
     asm volatile(                                                                       \
         "    ldr r1, =0x1000ff00    \n" /* hardcoded ccram addres - todo: use macro  */ \
+        "    b .dump_continue       \n" /* skip the .ltorg constants                 */ \
+        "    .ltorg                 \n" /* put the immediate constant 0x1000ff00 here*/ \
+        ".dump_continue:            \n"                                                 \
         "    ldr r2, [r0, #0x00]    \n" /* load r0 from stack frame  */                 \
         "    str r2, [r1, #0x00]    \n" /* store r0 to ccram  */                        \
         "    ldr r2, [r0, #0x04]    \n" /* r1  */                                       \

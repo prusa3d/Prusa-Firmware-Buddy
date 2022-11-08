@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "Iwindow_menu.hpp"
-#include "IWinMenuContainer.hpp"
+#include "i_window_menu.hpp"
+#include "i_window_menu_container.hpp"
 #include "screen_init_variant.hpp"
 #include "window_icon.hpp"
 #include "window_frame.hpp"
@@ -18,9 +18,9 @@
 //use template instead IWinMenuContainer *pContainer;
 //I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class WindowMenu : public AddSuperWindow<IWindowMenu> {
-    uint8_t index_of_focused; /// container index of focused item
-    uint8_t index_of_first;   /// container index of first item on screen
+    uint8_t index_of_first; /// container index of first item on screen
     uint8_t max_items_on_screen;
+    uint8_t visible_count_at_last_draw; // to redraw last item, if it was hidden, has no effect in case entire window is invalid
     IWinMenuContainer *pContainer;
 
     std::optional<Rect16> getItemRC(size_t position_on_screen) const;
@@ -66,19 +66,27 @@ public:
     bool SetIndex(uint8_t index); //must check container
     void Increment(int dif);
     void Decrement(int dif) { Increment(-dif); }
-    uint8_t GetIndex() const { return index_of_focused; }
+    std::optional<size_t> GetIndex() const;
     /// \returns visible index of item
     std::optional<size_t> GetIndex(IWindowMenuItem &item) const;
     /// \returns number of all menu items including hidden ones
     uint8_t GetCount() const;                      // count of all visible items in container
     IWindowMenuItem *GetItem(uint8_t index) const; // nth visible item in container
-    IWindowMenuItem *GetActiveItem();              // focused item
+    IWindowMenuItem *GetActiveItem() const;        // focused item
+    bool SetActiveItem(IWindowMenuItem &item) {
+        std::optional<size_t> index = GetIndex(item);
+        if (!index)
+            return false;
+
+        return SetIndex(*index);
+    }
 
     void InitState(screen_init_variant::menu_t var);
     screen_init_variant::menu_t GetCurrentState() const;
 
     void Show(IWindowMenuItem &item);
     bool Hide(IWindowMenuItem &item);
+    bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
 
     uint8_t GetMaxItemsOnScreen() const { return max_items_on_screen; }
     uint8_t GetIndexOfFirst() const { return index_of_first; }

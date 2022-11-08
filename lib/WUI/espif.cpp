@@ -573,7 +573,7 @@ err_t espif_init(struct netif *netif) {
     return ERR_OK;
 }
 
-err_t espif_flash_initialize() {
+void espif_flash_initialize() {
     // NOTE: There is no extra synchronization with reader thread. This assumes
     // it is not a problem if reader thread reads some garbage until it notices
     // operating mode change.
@@ -594,7 +594,6 @@ err_t espif_flash_initialize() {
     loader_port_stm32_init(&loader_config);
     xSemaphoreGive(uart_write_mutex);
     force_down();
-    return ERR_OK;
 }
 
 void espif_flash_deinitialize() {

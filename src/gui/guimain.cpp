@@ -31,6 +31,7 @@
 #include "w25x.h"
 #include "gui_fsensor_api.hpp"
 #include "gcode_info.hpp"
+#include "version.h"
 
 #include <option/bootloader.h>
 #include <option/bootloader_update.h>
@@ -54,6 +55,7 @@ int guimain_spi_test = 0;
 #include "gui_media_events.hpp"
 #include "main.h"
 #include "bsod.h"
+#include "log.h"
 
 LOG_COMPONENT_REF(Buddy);
 extern void blockISR(); // do not want to include marlin temperature
@@ -192,6 +194,35 @@ static void finish_update() {
 }
 #endif
 
+constexpr size_t strlen_constexpr(const char *str) {
+    return *str ? 1 + strlen_constexpr(str + 1) : 0;
+}
+
+/**
+ * @brief Bootstrap finished
+ *
+ * Report bootstrap finished and firmware version.
+ * This needs to be called after resources were successfully updated
+ * in xFlash. This also needs to be called even if xFlash / resources
+ * are unused. This needs to be output to standard USB CDC destination.
+ * Format of the messages can not be changed as test station
+ * expect those as step in manufacturing process.
+ * The board needs to be able to report this with no additional
+ * dependencies to connected peripherals.
+ *
+ * It is expected, that the testing station opens printer's serial port at 115200 bauds to obtain these messages.
+ * Beware: previous attempts to writing these messages onto USB CDC log destination (baudrate 57600) resulted
+ * in cross-linked messages because the logging subsystem intentionally has no prevention (locks/mutexes) against such a situation.
+ * Therefore the only reliable output is the "Marlin's" serial output (before Marlin is actually started)
+ * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot).
+ */
+static void manufacture_report() {
+    static const uint8_t intro[] = "bootstrap finished\nfirmware version: ";
+    SerialUSB.write(intro, sizeof(intro));
+    SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
+    SerialUSB.write('\n');
+}
+
 void gui_run(void) {
 #ifdef USE_ST7789
     st7789v_config = st7789v_cfg;
@@ -267,6 +298,7 @@ void gui_run(void) {
 #if ENABLED(RESOURCES())
     finish_update();
 #endif
+    manufacture_report();
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_vars->media_LFN = gui_media_LFN;
@@ -291,7 +323,6 @@ void gui_run(void) {
 
     redraw_cmd_t redraw;
 
-    marlin_gcode("M118 E1 bootstrap finished");
     // TODO make some kind of registration
     while (1) {
         gui::StartLoop();
@@ -317,26 +348,31 @@ void gui_run(void) {
 
         // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
         bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>());
+        bool in_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
         // this code handles start of print
         // it must be in main gui loop just before screen handler to ensure no FSM is opened
         // !DialogHandler::Access().IsAnyOpen() - wait until all FSMs are closed (including one click print)
         // one click print is closed automatically from main thread, because it is opened for wrong gcode
-        if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui) && (!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
-            Screens::Access()->CloseAll(); // set flag to close all screens
-            Screens::Access()->Loop();     // close those screens before marlin_gui_ready_to_printp
+        if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui)) {
+            if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
+                Screens::Access()->CloseAll(); // set flag to close all screens
+                Screens::Access()->Loop();     // close those screens before marlin_gui_ready_to_printp
 
-            // notify server, that GUI is ready to print
-            marlin_gui_ready_to_print();
+                // notify server, that GUI is ready to print
+                marlin_gui_ready_to_print();
 
-            // wait for start of the print - to prevent any unwanted gui action
-            while (
-                (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state != mpsIdle) // main thread is processing a print
-                && (!DialogHandler::Access().IsAnyOpen())                                         // wait for print screen to open, any fsm can break waiting (not only open of print screen)
-            ) {
-                gui_timers_cycle();   // refresh GUI time
-                marlin_client_loop(); // refresh fsm - required for dialog handler
-                DialogHandler::Access().Loop();
-            }
+                // wait for start of the print - to prevent any unwanted gui action
+                while (
+                    (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state != mpsIdle) // main thread is processing a print
+                    && (!DialogHandler::Access().IsAnyOpen())                                         // wait for print screen to open, any fsm can break waiting (not only open of print screen)
+                ) {
+                    gui_timers_cycle();   // refresh GUI time
+                    marlin_client_loop(); // refresh fsm - required for dialog handler
+                    DialogHandler::Access().Loop();
+                }
+            } else if (!in_preview) {
+                marlin_gui_cant_print();
+            } // else -> we are in the preview screen. It closes itself from another thread, so we just wait for it to happen.
         }
 
         Screens::Access()->Loop();

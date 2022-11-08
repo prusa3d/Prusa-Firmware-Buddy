@@ -8,6 +8,7 @@
 #include "menu_spin_config.hpp"
 #include "ScreenHandler.hpp"
 #include "string.h" // memcmp
+#include "png_resources.hpp"
 
 #define NOTRAN(x) string_view_utf8::MakeCPUFLASH((const uint8_t *)x)
 
@@ -77,7 +78,7 @@ void MI_RESET_STEPS_PER_UNIT::click(IWindowMenu &window_menu) {
 /*****************************************************************************/
 //WiSwitchDirection
 WiSwitchDirection::WiSwitchDirection(bool current_direction_wrong, string_view_utf8 label_view)
-    : WI_SWITCH_t<2>(current_direction_wrong, label_view, IDR_NULL, is_enabled_t::yes, is_hidden_t::no,
+    : WI_SWITCH_t<2>(current_direction_wrong, label_view, nullptr, is_enabled_t::yes, is_hidden_t::no,
         NOTRAN(str_prusa), NOTRAN(str_wrong)) {
 }
 
@@ -219,7 +220,7 @@ void MI_RESET_CURRENTS::click(IWindowMenu &window_menu) {
 /*****************************************************************************/
 //MI_SAVE_AND_RETURN
 MI_SAVE_AND_RETURN::MI_SAVE_AND_RETURN()
-    : WI_LABEL_t(NOTRAN(label), IDR_PNG_folder_up_16px, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_LABEL_t(NOTRAN(label), &png::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_SAVE_AND_RETURN::click(IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Return);

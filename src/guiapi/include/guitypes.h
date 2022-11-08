@@ -65,6 +65,5 @@ enum {
     const uint16_t resource_table_size = sizeof(resource_table); \
     const uint16_t resource_count = sizeof(resource_table) / sizeof(resource_entry_t);
 
-#define RESOURCE_ENTRY_NUL()  { 0, 0 },
 #define RESOURCE_ENTRY_PNG(v) { v, sizeof(v) },
 #define RESOURCE_ENTRY_FNT(v) { (uint8_t *)&v, sizeof(font_t) },

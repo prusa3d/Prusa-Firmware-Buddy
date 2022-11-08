@@ -6,15 +6,15 @@
 
 #include "footer_items_nozzle_bed.hpp"
 #include "marlin_client.h"
-#include "resource.h"
 #include "filament.hpp"
+#include "png_resources.hpp"
 
 FooterItemNozzle::FooterItemNozzle(window_t *parent)
-    : AddSuperWindow<FooterItemHeater>(parent, IDR_PNG_nozzle_16px, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterItemHeater>(parent, &png::nozzle_16x16, static_makeView, static_readValue) {
 }
 
 FooterItemBed::FooterItemBed(window_t *parent)
-    : AddSuperWindow<FooterItemHeater>(parent, IDR_PNG_heatbed_16px, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterItemHeater>(parent, &png::heatbed_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemNozzle::static_readValue() {

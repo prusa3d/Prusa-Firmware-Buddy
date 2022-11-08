@@ -64,7 +64,7 @@ public:
     IMiFooter()
         : WI_SWITCH_t(size_t(StatusFooter::GetSlotInit(INDEX)),
             string_view_utf8::MakeCPUFLASH((const uint8_t *)labels[INDEX]),
-            IDR_NULL, is_enabled_t::yes, is_hidden_t::no,
+            nullptr, is_enabled_t::yes, is_hidden_t::no,
             // TODO modify ctor to accept an array
             FooterItemNozzle::GetName(),
             FooterItemBed::GetName(),
@@ -103,7 +103,7 @@ class MI_LEFT_ALIGN_TEMP : public WI_SWITCH_t<3> {
 public:
     MI_LEFT_ALIGN_TEMP()
         : WI_SWITCH_t(size_t(FooterItemHeater::GetDrawType()),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no,
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no,
             string_view_utf8::MakeCPUFLASH((const uint8_t *)str_0),
             string_view_utf8::MakeCPUFLASH((const uint8_t *)str_1),
             string_view_utf8::MakeCPUFLASH((const uint8_t *)str_2)) {}
@@ -119,7 +119,7 @@ class MI_SHOW_ZERO_TEMP_TARGET : public WI_SWITCH_OFF_ON_t {
 public:
     MI_SHOW_ZERO_TEMP_TARGET()
         : WI_SWITCH_OFF_ON_t(FooterItemHeater::IsZeroTargetDrawn(),
-            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+            string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
     virtual void OnChange(size_t old_index) override {
         old_index == 0 ? FooterItemHeater::EnableDrawZeroTarget() : FooterItemHeater::DisableDrawZeroTarget();
@@ -132,7 +132,7 @@ class MI_FOOTER_CENTER_N : public WiSpinInt {
 public:
     MI_FOOTER_CENTER_N()
         : WiSpinInt(uint8_t(FooterLine::GetCenterN()),
-            SpinCnf::footer_center_N_range, _(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+            SpinCnf::footer_center_N_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void OnClick() override {
         FooterLine::SetCenterN(GetVal());
     }

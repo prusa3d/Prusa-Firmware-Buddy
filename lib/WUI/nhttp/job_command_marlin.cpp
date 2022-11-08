@@ -18,6 +18,7 @@ namespace {
         Printing,
         Paused,
         Busy,
+        Attention,
     };
 
     SimplePrintState get_state() {
@@ -58,6 +59,8 @@ namespace {
         case mpsIdle:
         case mpsExit:
             return SimplePrintState::Idle;
+        case mpsPrintPreviewQuestions:
+            return SimplePrintState::Attention;
         default:
             assert(0);
             return SimplePrintState::Idle;
@@ -70,7 +73,7 @@ namespace {
 
 bool JobCommand::stop() {
     const auto state = get_state();
-    if (state == SimplePrintState::Printing || state == SimplePrintState::Paused) {
+    if (state == SimplePrintState::Printing || state == SimplePrintState::Paused || state == SimplePrintState::Attention) {
         marlin_print_abort();
         return true;
     } else {

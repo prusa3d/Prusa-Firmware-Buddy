@@ -11,11 +11,11 @@
 #include "marlin_client.h"
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
-    : WI_INFO_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::dev) {
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 MI_WIFI_INIT_t::MI_WIFI_INIT_t()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_INIT_t::click(IWindowMenu &window_menu) {
@@ -23,7 +23,7 @@ void MI_WIFI_INIT_t::click(IWindowMenu &window_menu) {
 }
 
 MI_WIFI_CREDENTIALS_t::MI_WIFI_CREDENTIALS_t()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_CREDENTIALS_t::click(IWindowMenu &window_menu) {
@@ -31,7 +31,7 @@ void MI_WIFI_CREDENTIALS_t::click(IWindowMenu &window_menu) {
 }
 
 MI_WIFI_CREDENTIALS_INI_FILE_t::MI_WIFI_CREDENTIALS_INI_FILE_t()
-    : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_WIFI_CREDENTIALS_INI_FILE_t::click(IWindowMenu &window_menu) {
@@ -39,7 +39,7 @@ void MI_WIFI_CREDENTIALS_INI_FILE_t::click(IWindowMenu &window_menu) {
 }
 
 MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
-    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_off), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {
+    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_off), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {
     if (netdev_get_active_id() == NETDEV_ESP_ID) {
         this->SetIndex(2);
     } else if (netdev_get_active_id() == NETDEV_ETH_ID) {
@@ -55,7 +55,7 @@ void MI_NET_INTERFACE_t::OnChange(size_t old_index) {
 }
 
 MI_NET_IP_t::MI_NET_IP_t()
-    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static)) {
+    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_DHCP), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_static)) {
     this->index = netdev_get_ip_obtained_type(netdev_get_active_id()) == NETDEV_DHCP
         ? 0
         : 1;
@@ -66,22 +66,22 @@ void MI_NET_IP_t::OnChange(size_t old_index) {
 }
 
 MI_NET_IP_VER_t::MI_NET_IP_VER_t()
-    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), IDR_NULL, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v4), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v6)) {
+    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v4), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v6)) {
     this->index = 0;
 }
 
 MI_IP4_ADDR::MI_IP4_ADDR()
-    : WiInfo<ADDR_LEN>(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<ADDR_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_IP4_NMSK::MI_IP4_NMSK()
-    : WiInfo<ADDR_LEN>(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<ADDR_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_IP4_GWAY::MI_IP4_GWAY()
-    : WiInfo<ADDR_LEN>(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<ADDR_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 MI_MAC_ADDR::MI_MAC_ADDR()
-    : WiInfo<MAC_LEN>(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {
+    : WiInfo<MAC_LEN>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }

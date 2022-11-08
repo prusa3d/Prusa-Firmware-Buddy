@@ -27,28 +27,16 @@ enum class Btn {
     Stop
 };
 
-const ResourceId printing_icons[static_cast<size_t>(item_id_t::count)] = {
-    IDR_PNG_settings_58px,
-    IDR_PNG_pause_58px,
-    IDR_PNG_pause_58px, //same as pause
-    IDR_PNG_stop_58px,
-    IDR_PNG_resume_48px,
-    IDR_PNG_resume_48px,
-    IDR_PNG_resume_48px, //reheating is same as resume, bud disabled
-    IDR_PNG_reprint_48px,
-    IDR_PNG_home_58px,
-};
-
-const char *printing_labels[static_cast<size_t>(item_id_t::count)] = {
-    N_("Tune"),
-    N_("Pause"),
-    N_("Pausing..."),
-    N_("Stop"),
-    N_("Resume"),
-    N_("Resuming..."),
-    N_("Heating..."),
-    N_("Reprint"),
-    N_("Home"),
+static constexpr BtnResource btn_res[static_cast<size_t>(item_id_t::count)] = {
+    { N_("Tune"), &png::settings_58x58 },
+    { N_("Pause"), &png::pause_58x58 },
+    { N_("Pausing..."), &png::pause_58x58 },
+    { N_("Stop"), &png::stop_58x58 },
+    { N_("Resume"), &png::resume_48x48 },
+    { N_("Resuming..."), &png::resume_48x48 },
+    { N_("Heating..."), &png::resume_48x48 }, // reheating is same as resume, but disabled
+    { N_("Reprint"), &png::reprint_48x48 },
+    { N_("Home"), &png::home_58x58 },
 };
 
 void screen_printing_data_t::invalidate_print_state() {
@@ -386,8 +374,8 @@ void screen_printing_data_t::update_print_duration(time_t rawtime) {
 void screen_printing_data_t::screen_printing_reprint() {
     print_begin(marlin_vars()->media_SFN_path, true);
     w_etime_label.SetText(_("Remaining"));
-    btn_stop.txt.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)printing_labels[static_cast<size_t>(item_id_t::stop)]));
-    btn_stop.ico.SetIdRes(printing_icons[static_cast<size_t>(item_id_t::stop)]);
+    btn_stop.txt.SetText(_(btn_res[static_cast<size_t>(item_id_t::stop)].first));
+    btn_stop.ico.SetRes(btn_res[static_cast<size_t>(item_id_t::stop)].second);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     header.SetText(_("PRINTING"));
@@ -414,9 +402,8 @@ void screen_printing_data_t::screen_printing_reprint() {
 
 void screen_printing_data_t::set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
     size_t index = static_cast<size_t>(id_to_set);
-    if (p_button->GetIdRes() != printing_icons[index])
-        p_button->SetIdRes(printing_icons[index]);
-    lbl->SetText(_(printing_labels[index]));
+    p_button->SetRes(btn_res[index].second);
+    lbl->SetText(_(btn_res[index].first));
 }
 
 void screen_printing_data_t::enable_button(window_icon_t *p_button) {
@@ -533,7 +520,8 @@ void screen_printing_data_t::change_print_state() {
     case mpsIdle:
     case mpsWaitGui:
     case mpsPrintPreviewInit:
-    case mpsPrintPreviewLoop:
+    case mpsPrintPreviewImage:
+    case mpsPrintPreviewQuestions:
     case mpsPrintInit:
         st = printing_state_t::INITIAL;
         break;

@@ -42,6 +42,11 @@ namespace {
     // communication with a new init event.
     const constexpr Duration RECONNECT_AFTER = 1000 * 10;
 
+    // Max number of attempts per specific event before we throw it out of the
+    // window. Safety measure, as it may be related to that specific event and
+    // we would never recover if the failure is repeateble with it.
+    const constexpr uint8_t GIVE_UP_AFTER_ATTEMPTS = 5;
+
     // Just rename for better readability
     Timestamp now() {
         return ticks_ms();
@@ -102,6 +107,7 @@ void Planner::reset() {
     last_telemetry = nullopt;
     cooldown = nullopt;
     perform_cooldown = false;
+    failed_attempts = 0;
 }
 
 Action Planner::next_action() {
@@ -149,6 +155,7 @@ void Planner::action_done(ActionResult result) {
         last_success = n;
         perform_cooldown = false;
         cooldown = nullopt;
+        failed_attempts = 0;
         if (planned_event.has_value()) {
             planned_event = nullopt;
             // Enforce telemetry now. We may get a new command with it.
@@ -159,6 +166,19 @@ void Planner::action_done(ActionResult result) {
         break;
     }
     case ActionResult::Failed:
+        if (++failed_attempts >= GIVE_UP_AFTER_ATTEMPTS) {
+            // Give up after too many failed attemts when trying to send the
+            // same thing. The failure may be related to the specific event in
+            // some way (we have seen a "payload too large" error from the
+            // server, for example, which, due to our limitations, we are
+            // unable to distinguish from just a network error while sending
+            // the data), so avoid some kind of infinite loop/blocked state.
+            if (planned_event.has_value() && planned_event->type != EventType::Info) {
+                planned_event.reset();
+            }
+            failed_attempts = 0;
+        }
+
         if (const auto since_success = since(last_success); since_success.value_or(0) >= RECONNECT_AFTER && !planned_event.has_value()) {
             // We have talked to the server long time ago (it's probably in
             // a galaxy far far away), so next time we manage to do so,

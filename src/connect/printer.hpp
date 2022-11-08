@@ -31,6 +31,7 @@ public:
         Finished,
         Ready,
         Busy,
+        Attention,
         Error,
     };
 
@@ -75,6 +76,8 @@ public:
         uint16_t port = 0;
         bool tls = true;
         bool enabled = false;
+        // Used only through loading.
+        bool loaded = false;
 
         uint32_t crc() const;
     };

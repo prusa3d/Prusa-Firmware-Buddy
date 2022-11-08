@@ -8,7 +8,7 @@
 #include "DialogMoveZ.hpp"
 #include "fs_autoload_autolock.hpp"
 
-#include "IWinMenuContainer.hpp"
+#include "i_window_menu_container.hpp"
 #include <tuple>
 
 using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA>;

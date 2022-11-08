@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(__unix__) || defined(__APPLE__)
+#if defined(__unix__) || defined(__APPLE__) || defined(__WIN32__)
     #include <stdio.h>
     #include <stdlib.h>
     #include <unistd.h>

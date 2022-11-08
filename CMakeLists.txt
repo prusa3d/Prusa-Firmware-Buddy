@@ -303,7 +303,6 @@ add_subdirectory(lib)
 #
 
 add_executable(firmware)
-
 add_subdirectory(src)
 
 if(WUI)
@@ -315,6 +314,13 @@ objcopy(firmware "binary" ".bin")
 
 # generate linker map file
 target_link_options(firmware PUBLIC -Wl,-Map=firmware.map)
+
+# link time optimizations
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  if(MCU MATCHES "STM32F40")
+    set_target_properties(firmware PROPERTIES INTERPROCEDURAL_OPTIMIZATION True)
+  endif()
+endif() # "Release"
 
 # inform about the firmware's size in terminal
 report_size(firmware)

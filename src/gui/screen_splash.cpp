@@ -6,7 +6,7 @@
 #include "config.h"
 #include "version.h"
 #include "eeprom.h"
-
+#include "png_resources.hpp"
 #include "marlin_client.h"
 
 #include "i18n.h"
@@ -27,13 +27,13 @@
 
 screen_splash_data_t::screen_splash_data_t()
     : AddSuperWindow<screen_t>()
-    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), IDR_PNG_prusa_printer_splash)
+    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), &png::prusa_mini_splash_207x47)
     , text_progress(this, Rect16(10, 171, 220, 29), is_multiline::no)
     , progress(this, Rect16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
     , text_version(this, Rect16(0, 295, 240, 22), is_multiline::no)
-    , icon_logo_buddy(this, Rect16(), IDR_NULL)  //unused?
-    , icon_logo_marlin(this, Rect16(), IDR_NULL) //unused?
-    , icon_debug(this, Rect16(80, 215, 80, 80), IDR_PNG_marlin_logo) {
+    , icon_logo_buddy(this, Rect16(), nullptr)  //unused?
+    , icon_logo_marlin(this, Rect16(), nullptr) //unused?
+    , icon_debug(this, Rect16(80, 215, png::marlin_logo_79x61.w, png::marlin_logo_79x61.h), &png::marlin_logo_79x61) {
     super::ClrMenuTimeoutClose();
 
 #if defined(USE_ST7789)

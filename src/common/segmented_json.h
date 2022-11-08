@@ -45,13 +45,13 @@ private:
     uint8_t *buffer;
     size_t &buffer_size;
     size_t &resume_point;
-    friend class LowLevelJsonRenderer;
+
+public:
     JsonOutput(uint8_t *buffer, size_t &buffer_size, size_t &resume_point)
         : buffer(buffer)
         , buffer_size(buffer_size)
         , resume_point(resume_point) {}
 
-public:
     JsonResult output(size_t resume_point, const char *format, ...);
     // TODO: Add others as needed.
     JsonResult output_field_bool(size_t resume_point, const char *name, bool value);
@@ -106,6 +106,56 @@ public:
     }
     template <class T>
     bool holds_alternative() { return std::holds_alternative<T>(data); }
+};
+
+// An abitily to join two renderers after each other and compose them into a single renderer.
+//
+// This in theory should be possible in a variadic form (eg. arbitrary number
+// of renderers). But my template-fu is not strong enough and, honestly, I'm
+// not sure the code would be remotely readable.
+template <class A, class B>
+class PairRenderer : public ChunkRenderer {
+private:
+    A a;
+    B b;
+    bool consumed_a = false;
+
+public:
+    PairRenderer() = default;
+    PairRenderer(A &&a, B &&b)
+        : a(std::move(a))
+        , b(std::move(b)) {}
+    PairRenderer(PairRenderer<A, B> &&other) = default;
+    PairRenderer<A, B> &operator=(PairRenderer<A, B> &&other) = default;
+    virtual std::tuple<JsonResult, size_t> render(uint8_t *buffer, size_t buffer_size) override {
+        if (consumed_a) {
+            // Yes, the easy thing.
+            return b.render(buffer, buffer_size);
+        }
+
+        const auto [result_a, used_a] = a.render(buffer, buffer_size);
+
+        switch (result_a) {
+        case JsonResult::Complete: {
+            consumed_a = true;
+            if (buffer_size == used_a) {
+                // a is complete, b is not and there's no buffer left to call into b.
+                return std::make_tuple(JsonResult::Incomplete, used_a);
+            }
+
+            const auto [result_b, used_b] = b.render(buffer + used_a, buffer_size - used_a);
+            switch (result_b) {
+            case JsonResult::BufferTooSmall:
+                // Next time we'll have a bit more of the buffer, so retry.
+                return std::make_tuple(JsonResult::Incomplete, used_a);
+            default:
+                return std::make_tuple(result_b, used_a + used_b);
+            }
+        }
+        default:
+            return std::make_tuple(result_a, used_a);
+        }
+    }
 };
 
 /// Support for rendering JSON by parts.

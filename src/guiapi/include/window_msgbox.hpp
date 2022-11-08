@@ -53,7 +53,7 @@ class MsgBoxIconned : public AddSuperWindow<MsgBoxBase> {
 
 public:
     MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, window_icon_t::DataSourceId icon_id_res,
+        string_view_utf8 txt, is_multiline multiline, const png::Resource *icon_id_res,
         is_closed_on_click_t close = is_closed_on_click_t::yes);
 
 protected:
@@ -69,7 +69,7 @@ protected:
 class MsgBoxTitled : public AddSuperWindow<MsgBoxIconned> {
 public:
     MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-        string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, window_icon_t::DataSourceId title_icon_id_res,
+        string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const png::Resource *title_icon_id_res,
         is_closed_on_click_t close = is_closed_on_click_t::yes);
 
 protected:
@@ -93,6 +93,6 @@ Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Response
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, window_icon_t::DataSourceId icon = IDR_NULL, is_multiline multiline = is_multiline::yes);
-Response MsgBoxIcon(string_view_utf8 txt, window_icon_t::DataSourceId icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
+Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, const png::Resource *icon = nullptr, is_multiline multiline = is_multiline::yes);
+Response MsgBoxIcon(string_view_utf8 txt, const png::Resource *icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);

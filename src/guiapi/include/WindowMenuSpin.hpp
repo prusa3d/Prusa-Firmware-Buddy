@@ -9,7 +9,6 @@
 
 #include "WindowMenuLabel.hpp"
 #include "menu_spin_config_type.hpp" //SpinConfig_t
-#include "resource.h"
 #include "eeprom.h"
 
 /*****************************************************************************/
@@ -38,7 +37,7 @@ protected:
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 
 public:
-    IWiSpin(SpinType val, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
+    IWiSpin(SpinType val, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
     virtual void OnClick() {}
     inline void SetVal(SpinType val) {
         value = val;
@@ -62,7 +61,7 @@ protected:
     virtual invalidate_t change(int dif) override;
 
 public:
-    WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const png::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
 
     /// returns the same type to be on the safe side (SpinType is not type safe)
     T GetVal() const { return value; }
@@ -72,7 +71,7 @@ public:
 //template definitions
 //WI_SPIN_t
 template <class T>
-WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, ResourceId id_icon, is_enabled_t enabled, is_hidden_t hidden)
+WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : AddSuper<IWiSpin>(std::clamp(T(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
         cnf.Unit() == nullptr ? string_view_utf8::MakeNULLSTR() : _(cnf.Unit()), 0)
     , config(cnf) {
@@ -147,7 +146,7 @@ protected:
     }
 
 public:
-    WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    WI_SPIN_CRASH_PERIOD_t(int val, const Config &cnf, string_view_utf8 label, const png::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual invalidate_t change(int dif) override;
     /// returns the same type to be on the safe side (SpinType is not type safe)
     int GetVal() const { return value; }

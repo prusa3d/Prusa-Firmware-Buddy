@@ -11,6 +11,8 @@
 #include "netdev.h"
 #include "wui.h"
 #include "SteelSheets.hpp"
+#include "MItem_crash.hpp"
+#include "Configuration_MINI_adv.h"
 #ifdef BUDDY_ENABLE_CONNECT
     #include <connect/marlin_printer.hpp>
 #endif
@@ -21,7 +23,7 @@ class MI_LOAD_SETTINGS : public WI_LABEL_t {
 
 public:
     MI_LOAD_SETTINGS()
-        : WI_LABEL_t(_(label), IDR_NULL, is_enabled_t::yes, is_hidden_t::no) {}
+        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
     virtual void click(IWindowMenu & /*window_menu*/) override {
         // FIXME: Some error handling/reporting
         // TODO: Loading other things than just network
@@ -64,6 +66,9 @@ using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PRO
     MI_TIMEZONE,
     MI_LOAD_SETTINGS,
     #endif // BUDDY_ENABLE_ETHERNET
+    #if ENABLED(CRASH_RECOVERY)
+    MI_CRASH_DETECTION,
+    #endif // ENABLED(CRASH_RECOVERY)
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_DEVHASH_IN_QR,
     MI_LANGUAGE, MI_FACTORY_DEFAULTS>;
 #endif

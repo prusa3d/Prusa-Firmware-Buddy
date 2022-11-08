@@ -5,8 +5,9 @@ target_sources(
           gui.cpp
           gui_timer.cpp
           guitypes.cpp
+          i_window_menu_container.cpp
+          i_window_menu_item.cpp
           i_window_text.cpp
-          IWindowMenuItem.cpp
           Jogwheel.cpp
           knob_event.cpp
           menu_spin_config_types.cpp

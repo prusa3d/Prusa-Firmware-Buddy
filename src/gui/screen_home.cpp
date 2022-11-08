@@ -19,6 +19,7 @@
 #include "window_dlg_load_unload.hpp"
 #include "DialogMoveZ.hpp"
 #include "DialogHandler.hpp"
+#include "png_resources.hpp"
 
 #include "lazyfilelist.h"
 #include "i18n.h"
@@ -27,13 +28,13 @@
 bool screen_home_data_t::ever_been_openned = false;
 bool screen_home_data_t::try_esp_flash = true;
 
-const ResourceId icons[] = {
-    IDR_PNG_print_58px,
-    IDR_PNG_preheat_58px,
-    IDR_PNG_spool_58px,
-    IDR_PNG_calibrate_58px,
-    IDR_PNG_settings_58px,
-    IDR_PNG_info_58px
+static constexpr const png::Resource *icons[] = {
+    &png::print_58x58,
+    &png::preheat_58x58,
+    &png::spool_58x58,
+    &png::calibrate_58x58,
+    &png::settings_58x58,
+    &png::info_58x58
 };
 
 constexpr size_t labelPrintId = 0;
@@ -58,13 +59,13 @@ screen_home_data_t::screen_home_data_t()
     , esp_flash_being_openned(false)
     , header(this)
     , footer(this)
-    , logo(this, Rect16(41, 31, 158, 40), IDR_PNG_prusa_printer_logo)
-    , w_buttons { { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), IDR_NULL, []() { marlin_gcode_printf("M1700"); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
-        { this, Rect16(), IDR_NULL, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
+    , logo(this, Rect16(41, 31, 158, 40), &png::prusa_mini_logo_153x40)
+    , w_buttons { { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
+        { this, Rect16(), nullptr, []() { marlin_gcode_printf("M1700"); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
     , w_labels { { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
@@ -79,7 +80,7 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     screen_filebrowser_data_t::SetRoot("/usb");
 
-    header.SetIconFilePath(PNG::home_16x16);
+    header.SetIcon(&png::home_shape_16x16);
 #ifndef _DEBUG
     header.SetText(_("HOME"));
 #else
@@ -91,7 +92,7 @@ screen_home_data_t::screen_home_data_t()
         for (uint8_t col = 0; col < 3; col++) {
             const size_t i = row * 3 + col;
             w_buttons[i].SetRect(Rect16(8 + (15 + 64) * col, 88 + (14 + 64) * row, 64, 64));
-            w_buttons[i].SetIdRes(icons[i]);
+            w_buttons[i].SetRes(icons[i]);
 
             w_labels[i].SetRect(Rect16(80 * col, 154 + (15 + 64) * row, 80, 14));
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
@@ -130,7 +131,7 @@ void screen_home_data_t::handle_crash_dump() {
     if (MsgBoxWarning(_("Crash detected. Download it to USB and send it to Prusa?"), Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const crash_dump::DumpHandler *> auto fp) {
-            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, IDR_PNG_info_58px);
+            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &png::info_58x58);
             box.Show();
             draw();
             for (const auto &dump_handler : present_dumps) {

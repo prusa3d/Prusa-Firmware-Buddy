@@ -6,17 +6,16 @@
 
 #include "footer_icon.hpp"
 #include "guitypes.hpp"
-#include "resource.h"
 
-FooterIcon::FooterIcon(window_t *parent, ResourceId id_res)
+FooterIcon::FooterIcon(window_t *parent, const png::Resource *icon)
     : AddSuperWindow<window_icon_t>(
         parent,
-        [parent, id_res] {
-            if (!parent)
+        [parent, icon] {
+            if (!parent || !icon)
                 return Rect16(); //does not have parrent, cannot calculate X and Y pos
 
             point_i16_t pt = { 0, 0 };
-            size_ui16_t sz = CalculateMinimalSize(id_res);
+            size_ui16_t sz = { icon->w, icon->h };
             size_ui16_t parent_sz = parent->GetRect().Size();
 
             //limit width
@@ -32,5 +31,5 @@ FooterIcon::FooterIcon(window_t *parent, ResourceId id_res)
 
             return Rect16(pt, sz);
         }(),
-        id_res) {
+        icon) {
 }

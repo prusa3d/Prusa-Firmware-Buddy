@@ -11,6 +11,6 @@
 
 class WiSpinExp : public AddSuper<WiSpinInt> {
 public:
-    WiSpinExp(int val, const Config &cnf, string_view_utf8 label, ResourceId id_icon = IDR_NULL, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
+    WiSpinExp(int val, const Config &cnf, string_view_utf8 label, const png::Resource *id_icon = nullptr, is_enabled_t enabled = is_enabled_t::yes, is_hidden_t hidden = is_hidden_t::no);
     virtual invalidate_t change(int dif) override;
 };

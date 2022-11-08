@@ -194,8 +194,10 @@ extern void marlin_test_start(uint64_t mask);
 extern void marlin_test_abort(void);
 
 extern void marlin_print_start(const char *filename, bool skip_preview);
+extern bool marlin_print_started();
 
 extern void marlin_gui_ready_to_print();
+extern void marlin_gui_cant_print();
 
 extern void marlin_print_abort(void);
 
@@ -211,8 +213,9 @@ extern void marlin_notify_server_about_encoder_move(void);
 
 extern void marlin_notify_server_about_knob_click(void);
 
-//returns 1 if printer is printing, else 0;
+//returns true if printer is printing, else false;
 extern bool marlin_is_printing();
+extern bool marlin_remote_print_ready(bool preview_only);
 
 // returns 1 if reheating is in progress, otherwise 0
 extern int marlin_reheating(void);

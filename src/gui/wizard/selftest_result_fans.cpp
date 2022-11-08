@@ -6,12 +6,12 @@
 
 #include "selftest_result_fans.hpp"
 #include "i18n.h"
-#include "resource.h"
+#include "png_resources.hpp"
 
 ResultFans::ResultFans(TestResult_t hb_fan, TestResult_t print_fan)
     : SelfTestGroup(_("Fans check"))
-    , heatbreak(_("Extruder fan"), IDR_PNG_fan_16x16, hb_fan)
-    , print(_("Print fan"), IDR_PNG_turbine_16x16, print_fan) {
+    , heatbreak(_("Extruder fan"), &png::fan_16x16, hb_fan)
+    , print(_("Print fan"), &png::turbine_16x16, print_fan) {
     Add(heatbreak);
     Add(print);
     if (hb_fan == TestResult_t::Failed || print_fan == TestResult_t::Failed) {

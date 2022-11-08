@@ -7,7 +7,6 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "marlin_client.hpp"
-#include "resource.h"
 #include <cstring>
 
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
