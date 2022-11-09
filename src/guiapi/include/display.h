@@ -1,10 +1,15 @@
-//display.h
+/**
+ * @file display.h
+ * @brief display api
+ */
 #pragma once
 
 #include <inttypes.h>
 #include <algorithm>
 #include "guiconfig.h"
 #include "guitypes.hpp"
+#include "printers.h"
+#include "guiconfig.h"
 #include "display_helper.h"
 #include "Rect16.h"
 #include "display_ex.hpp"
@@ -28,7 +33,8 @@ typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const 
 typedef uint32_t(display_buffer_pixel_size_t)();
 typedef void(display_store_char_in_buffer_t)(uint16_t char_cnt, uint16_t curr_char_idx, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_from_buffer_t)(point_ui16_t pt, uint16_t w, uint16_t h);
-typedef void(display_draw_png_t)(point_ui16_t pt, const png::Resource &png, color_t clr_back, ropfn rop);
+typedef void(display_draw_png_t)(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line);
+typedef void(display_backlight_t)(uint8_t bck);
 typedef void(display_read_madctl_t)(uint8_t *pdata, uint8_t size);
 
 template <
@@ -41,7 +47,7 @@ template <
     display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK,
     display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR,
     display_draw_text_t *DRAW_TEXT, display_buffer_pixel_size_t *BUFFER_PIXEL_SIZE, display_store_char_in_buffer_t *STORE_CHAR_IN_BUFFER,
-    display_draw_from_buffer_t *DRAW_FROM_BUFFER, display_draw_png_t *DRAW_PNG,
+    display_draw_from_buffer_t *DRAW_FROM_BUFFER, display_draw_png_t *DRAW_PNG, display_backlight_t *BACKLIGHT,
     display_read_madctl_t *READ_MADCLT>
 class Display {
     // sorted raw array of known utf8 character indices
@@ -85,7 +91,15 @@ public:
         STORE_CHAR_IN_BUFFER(char_cnt, curr_char_idx, charX, charY, pf, clr_bg, clr_fg);
     }
     constexpr static void DrawFromBuffer(point_ui16_t pt, uint16_t w, uint16_t h) { DRAW_FROM_BUFFER(pt, w, h); }
-    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t clr_back = 0, ropfn rop = ropfn()) { DRAW_PNG(pt, png, clr_back, rop); }
+
+    // DrawPng functions intentionally don't have default parameters - to optimize multiple calls
+    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png) { DRAW_PNG(pt, png, 0, ropfn(), Rect16(0, 0, 0, 0), 0); }
+    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t back_color) { DRAW_PNG(pt, png, back_color, ropfn(), Rect16(0, 0, 0, 0), 0); }
+    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop) { DRAW_PNG(pt, png, back_color, rop, Rect16(0, 0, 0, 0), 0); }
+    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect) { DRAW_PNG(pt, png, back_color, rop, subrect, 0); }
+    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, uint16_t local_desatur_line) { DRAW_PNG(pt, png, back_color, rop, Rect16(0, 0, 0, 0), local_desatur_line); }
+
+    constexpr static void SetBacklight(uint8_t bck) { BACKLIGHT(bck); }
     constexpr static void ReadMADCTL(uint8_t *pdata, uint8_t size) { READ_MADCLT(pdata, size); }
 };
 
@@ -106,6 +120,7 @@ using display = Display<ST7789V_COLS, ST7789V_ROWS,
     display_ex_store_char_in_buffer,
     display_ex_draw_from_buffer,
     display_ex_draw_png,
+    st7789v_set_backlight,
     st7789v_cmd_madctlrd>;
 #endif
 
@@ -126,5 +141,6 @@ using display = Display<MockDisplay::Cols, MockDisplay::Rows,
     display_ex_store_char_in_buffer,
     display_ex_draw_from_buffer,
     display_ex_draw_png,
+    MockDisplay::set_backlight,
     MockDisplay::ReadMadctl>;
 #endif
