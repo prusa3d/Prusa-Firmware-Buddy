@@ -376,4 +376,8 @@ bool MarlinPrinter::set_ready(bool ready) {
     return true;
 }
 
+bool MarlinPrinter::is_printing() const {
+    return marlin_is_printing();
+}
+
 }

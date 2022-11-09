@@ -65,6 +65,10 @@ public:
     virtual bool set_ready(bool) override {
         return true;
     }
+
+    virtual bool is_printing() const override {
+        return false;
+    }
 };
 
 }
