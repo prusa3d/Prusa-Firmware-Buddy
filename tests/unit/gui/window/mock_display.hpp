@@ -1,9 +1,7 @@
 /**
  * @file mock_display.hpp
- * @author Radek Vana
  * @brief class for display emulation
  *  all methods are static, because I need to pass them by function pointers
- * @date 2021-01-11
  */
 
 //mock_display.hpp
@@ -79,6 +77,7 @@ public:
     static uint16_t BuffRows();
     static void init();
     static void done() {}
+    static void set_backlight(uint8_t bck) {}
 
     static void ReadMadctl(uint8_t *pdata, uint8_t size) {
         pdata[0] = 0x00;

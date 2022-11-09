@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "guitypes.h"
+#include "Rect16.h"
+#include "guiconfig.h"
 #include "display_math_helper.h"
 
 //public flags (config)
@@ -48,9 +50,11 @@ inline uint32_t color_from_565(uint16_t clr565) {
 extern void st7789v_init(void);
 extern void st7789v_done(void);
 extern void st7789v_clear(uint16_t clr565);
+extern void st7789v_wr(uint8_t *pdata, uint16_t size);
 extern void st7789v_fill_rect_colorFormat565(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint16_t clr565);
 
-extern void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, uint8_t rop);
+extern void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect, uint16_t local_desatur_line);
+inline void st7789v_set_backlight(uint8_t bck) {}
 
 extern void st7789v_inversion_on(void);
 extern void st7789v_inversion_off(void);

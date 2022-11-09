@@ -1,5 +1,8 @@
-//display_ex.hpp
-//C++ wrappers over low level display api (like) st7789v so it does not need to know advanced types like font or rectangle
+/**
+ * @file display_ex.hpp
+ * @brief C++ wrappers over low level display api (like) st7789v so it does not need to know advanced types like font or rectangle
+ */
+
 #pragma once
 
 #include "guitypes.hpp"
@@ -35,9 +38,11 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt);
 /**
  * @brief draws png from config
  * not taking file directly is important, because png file can contain multiple pngs (ram optimization)
- * @param pt       top left point
- * @param png      png config file
- * @param clr_bck  background color
- * @param rop      raster config struct
+ * @param pt                    top left point
+ * @param png                   png config file
+ * @param back_color            background color
+ * @param rop                   raster config struct
+ * @param subrect               sub rectangle inside png - area to draw
+ * @param local_desatur_line    pixels above this line (relative to png) are in grayscale, ugly unclear parameter, but is needed for a smooth draw
  */
-void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t clr_bck = 0, ropfn rop = ropfn());
+void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line);

@@ -1,4 +1,6 @@
-//display_helper.cpp
+/**
+ * @file display_helper.cpp
+ */
 
 #include <algorithm>
 
@@ -11,6 +13,7 @@
 #include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
+#include <math.h>
 #include "guitypes.hpp"
 #include "cmath_ext.h"
 
@@ -178,7 +181,7 @@ static RectTextLayout multiline_loop(uint8_t MaxColsInRect, uint8_t MaxRowsInRec
 
 /// Draws text into the specified rectangle with proper alignment (@flags)
 /// This cannot horizontally align a text spread over more lines (multiline text).
-void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, text_flags flags) {
+void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr_bg, color_t clr_fg, padding_ui8_t padding, text_flags flags, bool fill_rect) {
     Rect16 rc_pad = rc;
     rc_pad.CutPadding(padding);
 
@@ -187,7 +190,8 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     const size_ui16_t txt_size = font_meas_text(font, &text, &strlen_text);
     if (txt_size.w == 0 || txt_size.h == 0) {
         /// empty text => draw background rectangle only
-        display::FillRect(rc, clr_bg);
+        if (fill_rect)
+            display::FillRect(rc, clr_bg);
         return;
     }
 
@@ -244,7 +248,9 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     }
 
     /// fill borders (padding)
-    fill_between_rectangles(&rc, &rc_pad, clr_bg);
+    if (fill_rect) {
+        fill_between_rectangles(&rc, &rc_pad, clr_bg);
+    }
 }
 
 void render_icon_align(Rect16 rc, const png::Resource *res, color_t clr_back, icon_flags flags) {
