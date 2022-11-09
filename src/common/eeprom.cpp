@@ -153,7 +153,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ODOMETER_TIME",   VARIANT8_UI32,  1, 0 }, // EEVAR_LAN_ODOMETER_TIME
     { "ACTIVE_NETDEV",   VARIANT8_UI8,   1, 0 },
     { "PL_RUN",          VARIANT8_UI8,   1, 0 },    // EEVAR_PL_RUN
-    { "PL_API_KEY",      VARIANT8_PCHAR, PL_API_KEY_SIZE, 0 }, // EEVAR_PL_API_KEY
+    { "PL_PASSWORD",      VARIANT8_PCHAR, PL_PASSWORD_SIZE, 0 }, // EEVAR_PL_PASSWORD
     { "WIFI_FLAG",       VARIANT8_UI8,   1, 0 }, // EEVAR_WIFI_FLAG
     { "WIFI_IP4_ADDR",   VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_ADDR
     { "WIFI_IP4_MSK",    VARIANT8_UI32,  1, 0 }, // EEVAR_WIFI_IP4_MSK

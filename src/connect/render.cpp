@@ -183,8 +183,8 @@ namespace {
                     JSON_FIELD_STR("sn", info.serial_number) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
-                    if (strlen(creds.api_key) > 0) {
-                        JSON_FIELD_STR("api_key", creds.api_key) JSON_COMMA;
+                    if (strlen(creds.pl_password) > 0) {
+                        JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
                     }
                     JSON_FIELD_ARR("storages");
                     if (params.has_usb) {
