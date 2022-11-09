@@ -359,8 +359,11 @@ void gui_run(void) {
         // one click print is closed automatically from main thread, because it is opened for wrong gcode
         if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui)) {
             if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
+                bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
                 Screens::Access()->CloseAll(); // set flag to close all screens
-                Screens::Access()->Loop();     // close those screens before marlin_gui_ready_to_printp
+                if (have_file_browser)
+                    Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
+                Screens::Access()->Loop(); // close those screens before marlin_gui_ready_to_print
 
                 // notify server, that GUI is ready to print
                 marlin_gui_ready_to_print();
