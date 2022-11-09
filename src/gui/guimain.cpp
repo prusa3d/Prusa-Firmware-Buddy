@@ -222,7 +222,8 @@ static void manufacture_report() {
 
     // prevent other tasks from dumping anything onto the serial line
     taskENTER_CRITICAL();
-    SerialUSB.write(intro, sizeof(intro));
+    static_assert(sizeof(intro) > 1);          // prevent accidental buffer underrun below
+    SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
     taskEXIT_CRITICAL();
