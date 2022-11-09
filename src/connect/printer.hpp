@@ -133,6 +133,7 @@ public:
     // it in. But that doesn't meen it has been executed.
     virtual void submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
+    virtual bool is_printing() const = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is

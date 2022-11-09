@@ -37,7 +37,9 @@ namespace {
     // Don't do retries less often than once a minute.
     const constexpr Duration COOLDOWN_MAX = 1000 * 60;
     // Telemetry every 4 seconds. We may want to have something more clever later on.
-    const constexpr Duration TELEMETRY_INTERVAL = 1000 * 4;
+    const constexpr Duration TELEMETRY_INTERVAL_LONG = 1000 * 4;
+    // Except when we are printing or processing something, we want it more often.
+    const constexpr Duration TELEMETRY_INTERVAL_SHORT = 1000;
     // If we don't manage to talk to the server for this long, re-init the
     // communication with a new init event.
     const constexpr Duration RECONNECT_AFTER = 1000 * 10;
@@ -126,10 +128,11 @@ Action Planner::next_action() {
     }
 
     if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
-        if (*since_telemetry >= TELEMETRY_INTERVAL) {
+        const Duration telemetry_interval = printer.is_printing() || background_command.has_value() ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
+        if (*since_telemetry >= telemetry_interval) {
             return SendTelemetry { false };
         } else {
-            Duration sleep_amount = TELEMETRY_INTERVAL - *since_telemetry;
+            Duration sleep_amount = telemetry_interval - *since_telemetry;
             Duration bt = background_processing(sleep_amount);
             if (planned_event.has_value()) {
                 // A new event appeared as part of the background
