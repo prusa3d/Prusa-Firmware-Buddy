@@ -21,7 +21,7 @@ namespace eeprom::v11 {
 struct vars_body_t : public eeprom::v10::vars_body_t {
     uint8_t EEVAR_ACTIVE_NETDEV;
     uint8_t EEVAR_PL_RUN;
-    char EEVAR_PL_API_KEY[PL_API_KEY_SIZE];
+    char EEVAR_PL_PASSWORD[PL_PASSWORD_SIZE];
     uint8_t WIFI_FLAG;
     uint32_t WIFI_IP4_ADDR;
     uint32_t WIFI_IP4_MSK;
@@ -36,13 +36,13 @@ struct vars_body_t : public eeprom::v10::vars_body_t {
 
 #pragma pack(pop)
 
-static_assert(sizeof(vars_body_t) == sizeof(eeprom::v10::vars_body_t) + sizeof(uint8_t) * 3 + PL_API_KEY_SIZE + LAN_HOSTNAME_MAX_LEN + 1 + WIFI_MAX_SSID_LEN + 1 + WIFI_MAX_PASSWD_LEN + 1 + 1 + sizeof(uint32_t) * 5, "eeprom body size does not match");
+static_assert(sizeof(vars_body_t) == sizeof(eeprom::v10::vars_body_t) + sizeof(uint8_t) * 3 + PL_PASSWORD_SIZE + LAN_HOSTNAME_MAX_LEN + 1 + WIFI_MAX_SSID_LEN + 1 + WIFI_MAX_PASSWD_LEN + 1 + 1 + sizeof(uint32_t) * 5, "eeprom body size does not match");
 
 constexpr vars_body_t body_defaults = {
     eeprom::v10::body_defaults,
     0,                 // EEVAR_ACTIVE_NETDEV
     1,                 // EEVAR_PL_RUN
-    "",                // EEVAR_PL_API_KEY
+    "",                // EEVAR_PL_PASSWORD
     0,                 // EEVAR_WIFI_FLAG
     0,                 // EEVAR_WIFI_IP4_ADDR
     0,                 // EEVAR_WIFI_IP4_MSK

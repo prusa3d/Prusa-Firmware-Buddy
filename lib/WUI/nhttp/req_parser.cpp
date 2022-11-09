@@ -214,7 +214,7 @@ Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *
         return Step { 0, 0, Continue() };
     }
 
-    api_key = server->get_api_key();
+    api_key = server->get_password();
     const auto [result, consumed] = consume(input);
     api_key = nullptr;
 
@@ -368,7 +368,7 @@ namespace {
 bool RequestParser::check_digest_auth(uint64_t nonce_to_use) const {
     if (auto digest_params = get_if<DigestAuthParams>(&auth_status)) {
 
-        auto hash_a1 = md5_hash(PRUSA_LINK_USERNAME, ":", AUTH_REALM, ":", server->get_api_key());
+        auto hash_a1 = md5_hash(PRUSA_LINK_USERNAME, ":", AUTH_REALM, ":", server->get_password());
         auto hash_a2 = md5_hash(to_str(method), ":", uri());
 
         char ha1[MD5_HEX_SIZE];

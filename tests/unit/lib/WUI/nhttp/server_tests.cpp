@@ -224,13 +224,13 @@ private:
         infos.push_back(conn->info);
         return conn;
     }
-    string api_key;
+    string password;
 
 public:
     MockServerDefs(vector<shared_ptr<ConnInfo>> &conn_infos)
         : infos(conn_infos) {}
     virtual const Selector *const *selectors() const override { return selectors_array; }
-    virtual const char *get_api_key() const override { return api_key.c_str(); }
+    virtual const char *get_password() const override { return password.c_str(); }
     virtual altcp_pcb *listener_alloc() const override {
         auto conn = new_conn();
         return altcp_listen(conn);
@@ -312,8 +312,8 @@ public:
         return result;
     }
 
-    void set_api_key(string key) {
-        server_defs.api_key = std::move(key);
+    void set_password(string key) {
+        server_defs.password = std::move(key);
     }
 };
 
@@ -395,7 +395,7 @@ TEST_CASE("Not found") {
 
 TEST_CASE("Authenticated ApiKey") {
     MockServer server;
-    server.set_api_key("SECRET");
+    server.set_password("SECRET");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
@@ -409,7 +409,7 @@ TEST_CASE("Authenticated ApiKey") {
 
 TEST_CASE("Not authenticated ApiKey") {
     MockServer server;
-    server.set_api_key("SECRET");
+    server.set_password("SECRET");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
@@ -461,7 +461,7 @@ TEST_CASE("No Api Key configured") {
 
 TEST_CASE("Authenticated Digest") {
     MockServer server;
-    server.set_api_key("password");
+    server.set_password("password");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
@@ -478,7 +478,7 @@ TEST_CASE("Authenticated Digest") {
 
 TEST_CASE("Not authenticated Digest") {
     MockServer server;
-    server.set_api_key("password");
+    server.set_password("password");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
@@ -508,7 +508,7 @@ TEST_CASE("Not authenticated Digest") {
 
 TEST_CASE("Digest stale nonce") {
     MockServer server;
-    server.set_api_key("password");
+    server.set_password("password");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);
@@ -535,7 +535,7 @@ TEST_CASE("Digest stale nonce") {
 // without prompting the user for new auth info
 TEST_CASE("Stale nonce and wrong auth") {
     MockServer server;
-    server.set_api_key("password");
+    server.set_password("password");
 
     const size_t client_conn = server.new_conn();
     REQUIRE(client_conn == 1);

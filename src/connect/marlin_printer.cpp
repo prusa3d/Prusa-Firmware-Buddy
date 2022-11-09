@@ -318,7 +318,7 @@ std::optional<Printer::NetInfo> MarlinPrinter::net_info(Printer::Iface iface) co
 
 Printer::NetCreds MarlinPrinter::net_creds() const {
     NetCreds result = {};
-    strextract(result.api_key, sizeof result.api_key, EEVAR_PL_API_KEY);
+    strextract(result.pl_password, sizeof result.pl_password, EEVAR_PL_PASSWORD);
     strextract(result.ssid, sizeof result.ssid, EEVAR_WIFI_AP_SSID);
     return result;
 }
