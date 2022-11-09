@@ -36,6 +36,7 @@ private:
     Planner planner;
     Printer &printer;
     SharedBuffer &buffer;
+    std::optional<uint32_t> telemetry_fingerprint;
 
     using ServerResp = std::variant<std::monostate, Command, http::Error>;
 

@@ -54,6 +54,9 @@ TEST_CASE("Render") {
         action = SendTelemetry { false };
         // clang-format off
         expected = "{"
+            "\"time_printing\":0,"
+            "\"time_remaining\":0,"
+            "\"progress\":12,"
             "\"temp_nozzle\":200.0,"
             "\"temp_bed\":65.0,"
             "\"target_nozzle\":195.0,"
@@ -62,9 +65,6 @@ TEST_CASE("Render") {
             "\"flow\":0,"
             "\"axis_z\":0.00,"
             "\"job_id\":42,"
-            "\"time_printing\":0,"
-            "\"time_remaining\":0,"
-            "\"progress\":12,"
             "\"fan_extruder\":0,"
             "\"fan_print\":0,"
             "\"filament\":0.0,"
@@ -164,7 +164,8 @@ TEST_CASE("Render") {
     }
 
     MockPrinter printer(params);
-    RenderState state(printer, action);
+    uint32_t fingerprint_out = 0;
+    RenderState state(printer, action, nullopt, fingerprint_out);
     Renderer renderer(std::move(state));
     uint8_t buffer[1024];
     const auto [result, amount] = renderer.render(buffer, sizeof buffer);

@@ -76,8 +76,10 @@ struct RenderState {
     // XXX: Variantize
     std::optional<Printer::NetInfo> lan;
     std::optional<Printer::NetInfo> wifi;
+    std::optional<uint32_t> last_telemetry_fingerprint;
+    uint32_t &telemetry_fingerprint_out;
 
-    RenderState(const Printer &printer, const Action &action);
+    RenderState(const Printer &printer, const Action &action, std::optional<uint32_t> last_telemetry_fingerprint, uint32_t &telemetry_fingerprint_out);
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {
