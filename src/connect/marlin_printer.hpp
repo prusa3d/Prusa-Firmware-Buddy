@@ -33,6 +33,7 @@ public:
     virtual bool start_print(const char *path) override;
     virtual void submit_gcode(const char *code) override;
     virtual bool set_ready(bool ready) override;
+    virtual bool is_printing() const override;
 
     static bool load_cfg_from_ini();
 };
