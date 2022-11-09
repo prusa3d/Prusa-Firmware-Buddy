@@ -88,7 +88,7 @@ namespace {
         }
 
     public:
-        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action)
+        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, optional<uint32_t> last_telemetry_fingerprint, uint32_t &telemetry_fingerprint_out)
             : hdrs {
                 // Even though the fingerprint is on a temporary, that
                 // pointer is guaranteed to stay stable.
@@ -96,7 +96,7 @@ namespace {
                 { "Token", config.token, nullopt },
                 { nullptr, nullptr, nullopt }
             }
-            , renderer(RenderState(printer, action))
+            , renderer(RenderState(printer, action, last_telemetry_fingerprint, telemetry_fingerprint_out))
             , target_url(visit([](const auto &action) { return url(action); }, action)) {}
         virtual const char *url() const override {
             return target_url;
@@ -283,6 +283,8 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     // Make sure to reconnect if the configuration changes .
     if (cfg_changed) {
         conn_factory.invalidate();
+        // Possibly new server, new telemetry cache...
+        telemetry_fingerprint = nullopt;
     }
 
     // Let it reconnect if it needs it.
@@ -305,7 +307,10 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 
     HttpClient http(conn_factory);
 
-    BasicRequest request(printer, config, action);
+    uint32_t telemetry_out = 0;
+    const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
+
+    BasicRequest request(printer, config, action, telemetry_fingerprint, telemetry_out);
     const auto result = http.send(request);
 
     if (holds_alternative<Error>(result)) {
@@ -322,8 +327,16 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     // The server has nothing to tell us
     case Status::NoContent:
         planner.action_done(ActionResult::Ok);
+        if (is_full_telemetry) {
+            telemetry_fingerprint = telemetry_out;
+        }
         return OnlineStatus::Ok;
     case Status::Ok: {
+        if (is_full_telemetry) {
+            // Yes, even before checking the command we got is OK. We did send
+            // the telemetry, what happens to the command doesn't matter.
+            telemetry_fingerprint = telemetry_out;
+        }
         if (resp.command_id.has_value()) {
             const auto sub_resp = handle_server_resp(resp);
             return visit([&](auto &&arg) -> optional<OnlineStatus> {

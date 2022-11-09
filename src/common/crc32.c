@@ -1,8 +1,10 @@
 #include <inttypes.h>
-#include "cmsis_os.h"
 #include "crc32.h"
 #include <config.h>
-#include "stm32f4xx_hal.h"
+#ifdef CRC32_USE_HW
+    #include "cmsis_os.h"
+    #include "stm32f4xx_hal.h"
+#endif
 
 #ifdef CRC32_USE_HW
 osMutexDef(crc32_hw_mutex);
@@ -17,6 +19,7 @@ void crc32_init(void) {
 #endif //CRC32_USE_HW
 }
 
+#ifdef CRC32_USE_HW
 static uint32_t reverse_crc32(uint32_t current_crc, uint32_t desired_crc) {
     static const uint32_t table[16] = {
         0x00000000, 0xB2B4BCB6, 0x61A864DB, 0xD31CD86D, 0xC350C9B6, 0x71E47500, 0xA2F8AD6D, 0x104C11DB,
@@ -77,6 +80,7 @@ uint32_t crc32_eeprom(const uint32_t *buffer, uint32_t length) {
     osMutexRelease(crc32_hw_mutex_id);
     return result;
 }
+#endif
 
 static uint32_t crc32_sw(const uint8_t *buffer, uint32_t length, uint32_t crc) {
     uint32_t value = crc ^ 0xFFFFFFFF;

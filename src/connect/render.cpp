@@ -14,6 +14,7 @@ using json::JsonResult;
 using std::get_if;
 using std::make_tuple;
 using std::move;
+using std::optional;
 using std::tuple;
 using std::visit;
 
@@ -84,32 +85,46 @@ namespace {
     JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
         const bool printing = is_printing(params.state);
+
+        const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
+        const bool update_telemetry = !state.last_telemetry_fingerprint.has_value() || state.last_telemetry_fingerprint.value() != current_fingerprint;
+        state.telemetry_fingerprint_out = current_fingerprint;
         // Keep the indentation of the JSON in here!
         // clang-format off
         JSON_START;
         JSON_OBJ_START;
             if (!telemetry.empty) {
-                JSON_FIELD_FFIXED("temp_nozzle", params.temp_nozzle, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
-                JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
-                JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                if (!printing) {
-                    // To avoid spamming the DB, connect doesn't want positions during printing
-                    JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
-                    JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
-                }
-                JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
+                // These are not included in the fingerprint as they are changing a lot.
                 if (printing) {
-                    JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
                     JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
                     JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
-                    JSON_FIELD_INT("fan_extruder", params.heatbreak_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_INT("fan_print", params.print_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
+
+                if (update_telemetry) {
+                    JSON_FIELD_FFIXED("temp_nozzle", params.temp_nozzle, 1) JSON_COMMA;
+                    JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
+                    JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
+                    JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
+                    JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
+                    JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
+                    if (!printing) {
+                        // To avoid spamming the DB, connect doesn't want positions during printing
+                        JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
+                        JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
+                    }
+                    JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
+                    if (printing) {
+                        JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
+                        JSON_FIELD_INT("fan_extruder", params.heatbreak_fan_rpm) JSON_COMMA;
+                        JSON_FIELD_INT("fan_print", params.print_fan_rpm) JSON_COMMA;
+                        JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
+                    }
+                }
+
+                // State is sent always, first because it seems important, but
+                // also, we want something that doesn't have the final comma on
+                // it.
                 JSON_FIELD_STR("state", to_str(params.state));
             }
         JSON_OBJ_END;
@@ -563,11 +578,13 @@ FileExtra::FileExtra(unique_file_ptr file)
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
-RenderState::RenderState(const Printer &printer, const Action &action)
+RenderState::RenderState(const Printer &printer, const Action &action, optional<uint32_t> last_telemetry_fingerprint, uint32_t &fingerprint_out)
     : printer(printer)
     , action(action)
     , lan(printer.net_info(Printer::Iface::Ethernet))
-    , wifi(printer.net_info(Printer::Iface::Wifi)) {
+    , wifi(printer.net_info(Printer::Iface::Wifi))
+    , last_telemetry_fingerprint(last_telemetry_fingerprint)
+    , telemetry_fingerprint_out(fingerprint_out) {
     memset(&st, 0, sizeof st);
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {

@@ -63,6 +63,8 @@ public:
         uint8_t progress_percent;
         bool has_usb;
         DeviceState state;
+
+        uint32_t telemetry_fingerprint(bool include_xy_axes) const;
     };
 
     struct Config {
