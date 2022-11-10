@@ -19,12 +19,14 @@ uint32_t Printer::Config::crc() const {
     return crc;
 }
 
-tuple<Printer::Config, bool> Printer::config() {
+tuple<Printer::Config, bool> Printer::config(bool reset_fingerprint) {
     Config result = load_config();
 
     const uint32_t new_fingerprint = result.crc();
     const bool changed = new_fingerprint != cfg_fingerprint;
-    cfg_fingerprint = new_fingerprint;
+    if (reset_fingerprint) {
+        cfg_fingerprint = new_fingerprint;
+    }
     return make_tuple(result, changed);
 }
 
