@@ -692,7 +692,8 @@ void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
                                 break;
                             }
                             if (pixsize == 4) { // Mix pixel after rast operations with background
-                                *((uint32_t *)ppx888) = color_alpha(back_color, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
+                                uint32_t clr = color_alpha(back_color, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
+                                memcpy(ppx888, &clr, sizeof(clr));
                             }
                             *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
                         }
