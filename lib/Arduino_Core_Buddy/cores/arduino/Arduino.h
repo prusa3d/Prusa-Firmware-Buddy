@@ -41,3 +41,6 @@ void yield(void);
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
+
+// Include pins variant
+#include "pins_arduino.h"

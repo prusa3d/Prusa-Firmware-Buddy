@@ -280,6 +280,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         app_tim14_tick();
     } else if (htim->Instance == TICK_TIMER) {
         app_tick_timer_overflow();
+    } else {
+        HardwareTimer::updateCallback(htim);
     }
 }
 

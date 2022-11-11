@@ -551,6 +551,7 @@ void HardwareTimer::setMode(uint32_t channel, TimerModes_t mode, uint32_t pin) {
     setMode(channel, mode, digitalPinToPinName(pin));
 }
 
+    #if 0
 /**
   * @brief  Set channel mode
   * @param  channel: Arduino channel [1..4]
@@ -576,15 +577,15 @@ void HardwareTimer::setMode(uint32_t channel, TimerModes_t mode, PinName pin) {
     channelOC.Pulse = __HAL_TIM_GET_COMPARE(&(_timerObj.handle), timChannel); // keep same value already written in hardware <register
     channelOC.OCPolarity = TIM_OCPOLARITY_HIGH;
     channelOC.OCFastMode = TIM_OCFAST_DISABLE;
-    #if defined(TIM_CR2_OIS1)
-    channelOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-    #endif
-    #if defined(TIM_CCER_CC1NE)
-    channelOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
         #if defined(TIM_CR2_OIS1)
-    channelOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+    channelOC.OCIdleState = TIM_OCIDLESTATE_RESET;
         #endif
-    #endif
+        #if defined(TIM_CCER_CC1NE)
+    channelOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+            #if defined(TIM_CR2_OIS1)
+    channelOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+            #endif
+        #endif
     channelIC.ICPolarity = TIMER_NOT_USED;
     channelIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
     channelIC.ICPrescaler = TIM_ICPSC_DIV1;
@@ -662,24 +663,24 @@ void HardwareTimer::setMode(uint32_t channel, TimerModes_t mode, PinName pin) {
         if ((int)get_pwm_channel(pin) == timChannel) {
             /* Configure PWM GPIO pins */
             pinmap_pinout(pin, PinMap_PWM);
-    #if defined(STM32F1xx)
+        #if defined(STM32F1xx)
             if ((mode == TIMER_INPUT_CAPTURE_RISING) || (mode == TIMER_INPUT_CAPTURE_FALLING)
                 || (mode == TIMER_INPUT_CAPTURE_BOTHEDGE) || (mode == TIMER_INPUT_FREQ_DUTY_MEASUREMENT)) {
                 // on F1 family, input alternate function must configure GPIO in input mode
                 pinMode(pinNametoDigitalPin(pin), INPUT);
             }
-    #endif
+        #endif
         } else {
             // Pin doesn't match with timer output channels
             Error_Handler();
         }
 
-    #if defined(TIM_CCER_CC1NE)
+        #if defined(TIM_CCER_CC1NE)
         isComplementaryChannel[channel - 1] = STM_PIN_INVERTED(pinmap_function(pin, PinMap_PWM));
-    #endif
+        #endif
     }
 }
-
+    #endif //0
 /**
   * @brief  Retrieves channel mode configured
   * @param  channel: Arduino channel [1..4]
@@ -1357,10 +1358,6 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim) {
     HardwareTimer::captureCompareCallback(htim);
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    HardwareTimer::updateCallback(htim);
-}
-
     #if defined(TIM1_BASE)
 /**
     * @brief  TIM1 IRQHandler common with TIM10 and TIM16 on some STM32F1xx
@@ -1437,7 +1434,7 @@ void TIM4_IRQHandler(void) {
 }
     #endif //TIM4_BASE
 
-    #if defined(TIM5_BASE)
+    #if 0 && defined(TIM5_BASE)
 /**
     * @brief  TIM5 IRQHandler
     * @param  None
@@ -1572,7 +1569,7 @@ void TIM13_IRQHandler(void) {
         #endif
     #endif //TIM13_BASE
 
-    #if defined(TIM14_BASE)
+    #if 0 && defined(TIM14_BASE)
 /**
     * @brief  TIM14 IRQHandler
     * @param  None

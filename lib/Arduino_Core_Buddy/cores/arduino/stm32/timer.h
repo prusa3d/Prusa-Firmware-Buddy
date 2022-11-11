@@ -256,6 +256,9 @@ uint8_t getTimerClkSrc(TIM_TypeDef *tim);
 IRQn_Type getTimerUpIrq(TIM_TypeDef *tim);
 IRQn_Type getTimerCCIrq(TIM_TypeDef *tim);
 
+void Arduino_HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base);
+void Arduino_HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim_base);
+
     #endif /* HAL_TIM_MODULE_ENABLED && !HAL_TIM_MODULE_ONLY */
 
     #ifdef __cplusplus

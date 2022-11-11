@@ -1,4 +1,5 @@
 #include "main.h"
+#include "timer.h"
 #include "FreeRTOSConfig.h"
 #include <device/peripherals.h>
 
@@ -381,6 +382,8 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
         /* TIM14 interrupt Init */
         HAL_NVIC_SetPriority(TIM8_TRG_COM_TIM14_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
         HAL_NVIC_EnableIRQ(TIM8_TRG_COM_TIM14_IRQn);
+    } else {
+        Arduino_HAL_TIM_Base_MspInit(htim_base);
     }
 }
 
@@ -439,6 +442,8 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim_base) {
 
         /* TIM14 interrupt DeInit */
         HAL_NVIC_DisableIRQ(TIM8_TRG_COM_TIM14_IRQn);
+    } else {
+        Arduino_HAL_TIM_Base_MspDeInit(htim_base);
     }
 }
 

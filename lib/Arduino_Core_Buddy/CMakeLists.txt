@@ -7,6 +7,7 @@ add_library(
   cores/arduino/Wire.cpp
   cores/arduino/wiring_time.c
   cores/arduino/WMath.cpp
+  lib/SrcWrapper/src/stm32/timer.c
   )
 
 target_include_directories(
