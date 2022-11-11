@@ -4,6 +4,7 @@
 #include "status_footer.hpp"
 #include "gui.hpp"
 #include "screen.hpp"
+#include "gcode_info.hpp"
 
 class screen_home_data_t : public AddSuperWindow<screen_t> {
 public:

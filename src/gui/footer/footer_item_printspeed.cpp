@@ -1,12 +1,11 @@
 /**
  * @file footer_item_printspeed.cpp
- * @author Radek Vana
- * @date 2021-04-16
  */
 
 #include "footer_item_printspeed.hpp"
 #include "png_resources.hpp"
 #include "marlin_client.h"
+#include "i18n.h"
 #include <algorithm>
 
 FooterItemSpeed::FooterItemSpeed(window_t *parent)
@@ -23,3 +22,5 @@ string_view_utf8 FooterItemSpeed::static_makeView(int value) {
     snprintf(buff, sizeof(buff), "%d%%", value_to_print);
     return string_view_utf8::MakeRAM((const uint8_t *)buff);
 }
+
+string_view_utf8 FooterItemSpeed::GetName() { return _("Speed"); }

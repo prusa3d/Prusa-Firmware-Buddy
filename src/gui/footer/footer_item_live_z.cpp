@@ -1,12 +1,11 @@
 /**
  * @file footer_item_live_z.cpp
- * @author Radek Vana
- * @date 2021-04-17
  */
 
 #include "footer_item_live_z.hpp"
 #include "marlin_client.h"
 #include "png_resources.hpp"
+#include "i18n.h"
 #include <algorithm>
 #include <cmath>
 
@@ -35,3 +34,5 @@ string_view_utf8 FooterItemLiveZ::static_makeView(int value) {
 
     return string_view_utf8::MakeRAM((const uint8_t *)buff.data());
 }
+
+string_view_utf8 FooterItemLiveZ::GetName() { return _("Live Z"); }

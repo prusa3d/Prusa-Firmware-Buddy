@@ -1,12 +1,11 @@
 /**
  * @file footer_item_fsensor.cpp
- * @author Radek Vana
- * @date 2021-12-12
  */
 
 #include "footer_item_fsensor.hpp"
 #include "filament_sensor_api.hpp"
 #include "png_resources.hpp"
+#include "i18n.h"
 #include <algorithm>
 #include <cmath>
 
@@ -51,3 +50,5 @@ string_view_utf8 FooterItemFSensor::static_makeView(int value) {
 
     return string_view_utf8(_(txt));
 }
+
+string_view_utf8 FooterItemFSensor::GetName() { return _("F. Sensor"); }
