@@ -1,8 +1,6 @@
 /**
  * @file footer_items_nozzle_bed.hpp
- * @author Radek Vana
  * @brief nozzle and bed heater items for footer
- * @date 2021-04-14
  */
 
 #pragma once
@@ -13,7 +11,7 @@ class FooterItemNozzle : public AddSuperWindow<FooterItemHeater> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName() { return _("Nozzle"); }
+    static string_view_utf8 GetName();
     FooterItemNozzle(window_t *parent);
 };
 
@@ -22,6 +20,6 @@ class FooterItemBed : public AddSuperWindow<FooterItemHeater> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName() { return _("Bed"); }
+    static string_view_utf8 GetName();
     FooterItemBed(window_t *parent);
 };
