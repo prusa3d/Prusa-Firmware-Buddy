@@ -18,6 +18,7 @@
 #include "main.h"
 #include "fanctl.h"
 #include "MarlinPin.hpp"
+#include "../lib/Marlin/Marlin/src/HAL/HAL.h"
 
 namespace {
 /**
@@ -569,34 +570,37 @@ uint32_t analogRead(uint32_t ulPin) {
     return 0;
 }
 
-void analogWrite(uint32_t ulPin, uint32_t ulValue) {
-    if (HAL_PWM_Initialized) {
-        switch (ulPin) {
-        case MARLIN_PIN(FAN1):
+void MarlinHAL::set_pwm_duty(const pin_t pin, const uint16_t v, const uint16_t v_size /*=255*/, const bool invert /*=false*/) {
+    if (!HAL_PWM_Initialized) {
+        hwio_arduino_error(HWIO_ERR_UNINI_ANA_WR, pin); //error: uninitialized analog write
+    }
+
+    const uint16_t duty = invert ? v_size - v : v;
+
+    switch (pin) {
+    case MARLIN_PIN(FAN1):
 #ifdef NEW_FANCTL
-            fanctl_set_pwm(1, ulValue * 50 / 255);
+        fanctl_set_pwm(1, duty * 50 / 255);
 #else
-            _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulValue);
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulValue);
 #endif
-            return;
-        case MARLIN_PIN(FAN):
+        return;
+    case MARLIN_PIN(FAN):
 #ifdef NEW_FANCTL
-            fanctl_set_pwm(0, ulValue * 50 / 255);
+        fanctl_set_pwm(0, duty * 50 / 255);
 #else  //NEW_FANCTL
-            _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulValue);
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN, ulValue);
 #endif //NEW_FANCTL
-            return;
-        case MARLIN_PIN(BED_HEAT):
-            _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulValue);
-            return;
-        case MARLIN_PIN(HEAT0):
-            _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulValue);
-            return;
-        default:
-            hwio_arduino_error(HWIO_ERR_UNDEF_ANA_WR, ulPin); //error: undefined pin analog write
-        }
-    } else
-        hwio_arduino_error(HWIO_ERR_UNINI_ANA_WR, ulPin); //error: uninitialized analog write
+        return;
+    case MARLIN_PIN(BED_HEAT):
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, duty);
+        return;
+    case MARLIN_PIN(HEAT0):
+        _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, duty);
+        return;
+    default:
+        hwio_arduino_error(HWIO_ERR_UNDEF_ANA_WR, pin); //error: undefined pin analog write
+    }
 }
 
 void pinMode(uint32_t ulPin, uint32_t ulMode) {
