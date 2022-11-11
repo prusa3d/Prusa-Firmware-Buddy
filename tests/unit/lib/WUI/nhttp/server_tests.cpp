@@ -242,6 +242,8 @@ private:
     vector<shared_ptr<ConnInfo>> infos;
     MockServerDefs server_defs;
     Server server;
+    unique_ptr<char[]> nonconst_data;
+    pbuf buffer;
 
 public:
     MockServer()
@@ -279,10 +281,9 @@ public:
         // Strictly speaking, this is incorrect as the recipient may decide to
         // hold onto the buffer after we are done here (by incrementing the ref
         // count). For this test know it currently doesn't happen.
-        pbuf buffer;
         memset(&buffer, 0, sizeof buffer);
         // Un-constify the thing...
-        unique_ptr<char[]> nonconst_data(new char[data.size() + 1]);
+        nonconst_data.reset(new char[data.size() + 1]);
         strcpy(nonconst_data.get(), data.c_str());
         buffer.payload = nonconst_data.get();
         buffer.len = data.size();
@@ -410,7 +411,7 @@ TEST_CASE("Not found error close") {
     }
 
     SECTION("PUT") {
-        server.send(client_conn, "PUT /not-here HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
+        server.send(client_conn, "PUT /not-here HTTP/1.1\r\nContent-Length: 44\r\nConnection: keep-alive\r\n\r\nSome dummy body, whatever somehow something.");
     }
 
     const auto response = server.recv_all(client_conn);
@@ -479,7 +480,7 @@ TEST_CASE("Not authenticated ApiKey error close") {
     }
 
     SECTION("PUT") {
-        server.send(client_conn, "PUT /secret.html HTTP/1.1\r\nX-Api-Key: Password!\r\n\r\n");
+        server.send(client_conn, "PUT /secret.html HTTP/1.1\r\nX-Api-Key: Password!\r\nContent-Length: 44\r\n\r\nSome dummy body, whatever somehow something.");
     }
 
     const auto response = server.recv_all(client_conn);
@@ -613,7 +614,7 @@ TEST_CASE("Not authenticated digest error close") {
     }
 
     SECTION("PUT") {
-        string request = digest_auth_header("PUT", "invaliduser", "aaaaaaaa00000000", "/secret.html", "1dd8be56e6996b274258d7412e671e5f");
+        string request = "PUT /secret.html HTTP/1.1\r\nContent-Length: 44\r\nAuthorization: Digest username=\"invaliduser\", realm=\"Printer API\", nonce=\"aaaaaaaa00000000\", uri=\"/secret.html\", response=\"1dd8be56e6996b274258d7412e671e5f\"\r\n\r\nSome dummy body, whatever somehow something.";
         server.send(client_conn, request);
     }
 
