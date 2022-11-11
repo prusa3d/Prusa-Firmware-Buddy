@@ -122,6 +122,7 @@ add_library(
   Marlin/Marlin/src/HAL/shared/backtrace/unwinder.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwmemaccess.cpp
   Marlin/Marlin/src/HAL/shared/Delay.cpp
+  Marlin/Marlin/src/HAL/shared/esp_wifi.cpp
   Marlin/Marlin/src/HAL/STM32/HAL.cpp
   Marlin/Marlin/src/HAL/STM32/Servo.cpp
   Marlin/Marlin/src/HAL/STM32/timers.cpp
