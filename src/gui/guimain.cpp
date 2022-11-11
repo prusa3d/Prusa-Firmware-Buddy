@@ -145,7 +145,7 @@ void client_gui_refresh() {
 #if ENABLED(RESOURCES())
 static void finish_update() {
 
-    #if ENABLED(BOOTLOADER_UPDATE)
+    #if ENABLED(BOOTLOADER_UPDATE())
     if (buddy::bootloader::needs_update()) {
         buddy::bootloader::update(
             [](int percent_done, buddy::bootloader::UpdateStage stage) {
@@ -217,10 +217,16 @@ constexpr size_t strlen_constexpr(const char *str) {
  * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot).
  */
 static void manufacture_report() {
-    static const uint8_t intro[] = "bootstrap finished\nfirmware version: ";
-    SerialUSB.write(intro, sizeof(intro));
+    // The first '\n' is just a precaution - terminate any partially printed message from Marlin if any
+    static const uint8_t intro[] = "\nbootstrap finished\nfirmware version: ";
+
+    // prevent other tasks from dumping anything onto the serial line
+    taskENTER_CRITICAL();
+    static_assert(sizeof(intro) > 1);          // prevent accidental buffer underrun below
+    SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
+    taskEXIT_CRITICAL();
 }
 
 void gui_run(void) {
@@ -253,29 +259,27 @@ void gui_run(void) {
 
     ScreenFactory::Creator error_screen = nullptr;
 
+    // If both redscreen and bsod are pending - both are set as displayed, but redscreen is displayed
+    if (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed()) {
+        error_screen = ScreenFactory::Screen<ScreenErrorQR>;
+        dump_err_in_xflash_set_displayed();
+    }
     if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
-        blockISR(); // TODO delete blockISR() on this line to enable start after click
-        switch (dump_in_xflash_get_type()) {
-        case DUMP_HARDFAULT:
-            error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
-            break;
-        case DUMP_FATALERROR:
-            // TODO uncomment to enable start after click
-            // blockISR();
-            error_screen = ScreenFactory::Screen<ScreenErrorQR>;
-            break;
+        if (error_screen == nullptr) {
+            blockISR(); // TODO delete blockISR() on this line to enable start after click
+            switch (dump_in_xflash_get_type()) {
+            case DUMP_HARDFAULT:
+                error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
+                break;
 #ifndef _DEBUG
-        case DUMP_IWDGW:
-            error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
-            break;
+            case DUMP_IWDGW:
+                error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
+                break;
 #endif
+            }
         }
         dump_in_xflash_set_displayed();
     }
-
-#ifndef _DEBUG
-//        HAL_IWDG_Reset ? ScreenFactory::Screen<screen_watchdog_data_t> : nullptr, // wdt
-#endif
 
     screen_node screen_initializer[] {
         error_screen,
@@ -355,8 +359,11 @@ void gui_run(void) {
         // one click print is closed automatically from main thread, because it is opened for wrong gcode
         if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui)) {
             if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
+                bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
                 Screens::Access()->CloseAll(); // set flag to close all screens
-                Screens::Access()->Loop();     // close those screens before marlin_gui_ready_to_printp
+                if (have_file_browser)
+                    Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
+                Screens::Access()->Loop(); // close those screens before marlin_gui_ready_to_print
 
                 // notify server, that GUI is ready to print
                 marlin_gui_ready_to_print();

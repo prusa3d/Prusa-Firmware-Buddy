@@ -1,4 +1,6 @@
-// st7789v.c
+/**
+ * @file st7789v.cpp
+ */
 #include "st7789v.hpp"
 #include <guiconfig.h>
 #include <string.h>
@@ -508,7 +510,18 @@ void _pngfree(png_structp pp, png_voidp mem) {
     }
 }
 
-void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, uint8_t rop) {
+/**
+ * @brief draw png from FILE
+ *
+ * @param pf                    pointer to file
+ * @param point_x               X coordinate where to draw png on screen
+ * @param point_y               Y coordinate where to draw png on screen
+ * @param back_color            color of background
+ * @param rop                   raster operations
+ * @param subrect               sub rectangle inside png - area to draw
+ * @param local_desatur_line    pixels above this line (relative to png) are in grayscale, ugly unclear parameter, but is needed for a smooth draw
+ */
+void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect, uint16_t local_desatur_line) {
     static const png_byte unused_chunks[] = {
         98, 75, 71, 68, '\0',   /* bKGD */
         99, 72, 82, 77, '\0',   /* cHRM */
@@ -525,7 +538,6 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
         116, 73, 77, 69, '\0',  /* tIME */
         122, 84, 88, 116, '\0'  /* zTXt */
     };
-    //	rewind(pf);
 
     {
         png_structp pp = png_create_read_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, _pngmalloc, _pngfree);
@@ -596,47 +608,101 @@ void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t 
                 //_dbg("display_ex_draw_png rowsize = %i", rowsize);
                 if (rowsize > ST7789V_COLS * 4)
                     goto _e_1;
+                if (point_x + subrect.Left() >= ST7789V_COLS || point_y + subrect.Top() >= ST7789V_ROWS
+                    || point_x + subrect.Left() >= point_x + w || point_y + subrect.Top() >= point_y + h) {
+                    goto _e_1;
+                }
                 //_dbg("display_ex_draw_png pixsize = %i", pixsize);
-                int i;
-                int j;
+
                 st7789v_clr_cs();
                 if (setjmp(png_jmpbuf(pp)))
                     goto _e_2;
-                st7789v_cmd_caset(point_x, point_x + w - 1);
-                st7789v_cmd_raset(point_y, point_y + h - 1);
-                st7789v_cmd_ramwr(0, 0);
-
-                for (i = 0; i < h; i++) {
-                    png_read_row(pp, st7789v_buff, NULL);
-                    for (j = 0; j < w; j++) {
-
-                        uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
-                        uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
-
-                        switch (rop) {
-                        case ROPFN_SWAPBW | ROPFN_SHADOW:
-                            // TODO
-                            break;
-                        case ROPFN_INVERT:
-                            rop_rgb888_invert(ppx888);
-                            break;
-                        case ROPFN_SWAPBW:
-                            rop_rgb888_swapbw(ppx888);
-                            break;
-                        case ROPFN_SHADOW:
-                            rop_rgb888_disabled(ppx888);
-                            break;
-                        }
-
-                        if (pixsize == 4) { // Mix pixel after rast operations with background
-                            *((uint32_t *)ppx888) = color_alpha(clr_back, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
-                        }
-                        *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                {
+                    uint16_t x_end, y_end;
+                    // Set up rect we want to print out
+                    // Default: 0 in width means, that we want whole PNG's width
+                    if (subrect.Width() == 0) {
+                        x_end = MIN(point_x + w, ST7789V_COLS);
+                    } else {
+                        x_end = MIN(point_x + subrect.Left() + subrect.Width(), MIN(point_x + w, ST7789V_COLS));
                     }
-                    st7789v_wr(st7789v_buff, 2 * w);
-                _e_2:
-                    st7789v_set_cs();
+                    // Default: 0 in height means, that we want whole PNG's height
+                    if (subrect.Height() == 0) {
+                        y_end = MIN(point_y + h, ST7789V_ROWS);
+                    } else {
+                        y_end = MIN(point_y + subrect.Top() + subrect.Height(), MIN(point_y + h, ST7789V_ROWS));
+                    }
+
+                    st7789v_cmd_caset(point_x + subrect.Left(), x_end - 1);
+                    st7789v_cmd_raset(point_y + subrect.Top(), y_end - 1);
+                    st7789v_cmd_ramwr(0, 0);
+
+                    uint16_t png_rows_left = y_end - (point_y + subrect.Top());
+                    uint16_t png_cols = x_end - (point_x + subrect.Left());
+                    uint16_t buff_row_space = (ST7789V_BUFF_ROWS * ST7789V_COLS * 2) / (png_cols * pixsize);
+                    // Skip unwanted PNG rows
+                    for (int k = 0; k < subrect.Top(); k++) {
+                        // png is compressed, there is no other way to access specific row
+                        png_read_row(pp, st7789v_buff, NULL); // Not using png_read_rows() because buffer can be both 1D or 2D array
+                    }
+
+                    while (png_rows_left) {
+
+                        // Calculate how many rows to draw in this cicle
+                        int png_rows_read = png_rows_left < buff_row_space ? png_rows_left : buff_row_space;
+
+                        // Load as many png rows to buffer as possible
+                        for (int i = 0; i < png_rows_read; i++) {
+                            if (subrect.Left() == 0 && subrect.Width() == 0) {
+                                png_read_row(pp, st7789v_buff + i * png_cols * pixsize, NULL);
+                            } else {
+                                // Skip unwanted cols from the row
+                                uint8_t row[w * pixsize] = { 0 };
+                                png_read_row(pp, row, NULL);
+                                memcpy(st7789v_buff + i * png_cols * pixsize, row + subrect.Left() * pixsize, png_cols * pixsize);
+                            }
+                        }
+
+                        // Manipulate all loaded pixels
+                        for (int j = 0; j < png_rows_read * png_cols; j++) {
+                            uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
+                            uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
+
+                            switch (rop) {
+                            case ROPFN_SWAPBW | ROPFN_SHADOW:
+                                // TODO
+                                break;
+                            case ROPFN_INVERT:
+                                rop_rgb888_invert(ppx888);
+                                break;
+                            case ROPFN_SWAPBW:
+                                rop_rgb888_swapbw(ppx888);
+                                break;
+                            case ROPFN_SHADOW:
+                                rop_rgb888_disabled(ppx888);
+                                break;
+                            case ROPFN_DESATURATE:
+                                if (local_desatur_line) {
+                                    if (h - (png_rows_left - j / png_cols) < local_desatur_line) {
+                                        rop_rgb888_desaturate(ppx888);
+                                    }
+                                } else {
+                                    rop_rgb888_desaturate(ppx888);
+                                }
+                                break;
+                            }
+                            if (pixsize == 4) { // Mix pixel after rast operations with background
+                                uint32_t clr = color_alpha(back_color, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
+                                memcpy(ppx888, &clr, sizeof(clr));
+                            }
+                            *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                        }
+                        st7789v_wr(st7789v_buff, 2 * png_cols * png_rows_read);
+                        png_rows_left -= png_rows_read;
+                    }
                 }
+            _e_2:
+                st7789v_set_cs();
             }
         _e_1:
             png_destroy_read_struct(&pp, &ppi, 0);
@@ -732,7 +798,7 @@ void st7789v_ctrl_set(uint8_t ctrl) {
 
 #else // ST7789V_PNG_SUPPORT
 
-void st7789v_draw_png_ex(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, uint8_t rop) {}
+void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect, uint16_t local_desatur_line) {}
 
 #endif // ST7789V_PNG_SUPPORT
 

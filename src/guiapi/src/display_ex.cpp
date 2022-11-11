@@ -1,4 +1,6 @@
-// display_ex.cpp
+/**
+ * @file display_ex.cpp
+ */
 #include "display_ex.hpp"
 #include <functional>
 #include <cmath>
@@ -26,6 +28,9 @@ static constexpr size_t FontMaxBitLen = 4;         // used in mask and buffer si
 using BuffDATA_TYPE = uint16_t;                    // type of buffer internally used in TDispBuffer
 using BuffPTR_TYPE = uint16_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
 static constexpr size_t BuffNATIVE_PIXEL_SIZE = 2; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
+static constexpr size_t STORE_FN_PIXEL_SIZE = 1;   // TODO find out why it is != BuffNATIVE_PIXEL_SIZE
+
+static constexpr size_t buffROWS = ST7789V_BUFF_ROWS;
 
 static constexpr uint8_t *getBuff() { return st7789v_buff; }
 
@@ -41,8 +46,8 @@ void display_ex_clear(const color_t clr) {
     st7789v_clear(color_to_native(clr));
 }
 
-static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr_back, ropfn rop) {
-    st7789v_draw_png_ex(point_x, point_y, pf, clr_back, rop.ConvertToC());
+static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line) {
+    st7789v_draw_png_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect, local_desatur_line);
 }
 
 static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
@@ -83,6 +88,8 @@ static constexpr size_t FontMaxBitLen = 8;         // used in mask and buffer si
 using BuffDATA_TYPE = uint32_t;                    // type of buffer internally used in TDispBuffer
 using BuffPTR_TYPE = uint32_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
 static constexpr size_t BuffNATIVE_PIXEL_SIZE = 4; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
+static constexpr size_t STORE_FN_PIXEL_SIZE = 1;   // TODO find out why it is != BuffNATIVE_PIXEL_SIZE
+static constexpr size_t buffROWS = 256;            // TODO mock display has this value variable
 
 static inline uint8_t *getBuff() { return MockDisplay::Instance().getBuff(); }
 
@@ -98,7 +105,7 @@ void display_ex_clear(const color_t clr) {
     MockDisplay::Instance().clear(clr);
 }
 
-static inline void draw_png_ex_C(uint16_t point_x, uint16_t point_y, FILE *pf, uint32_t clr0, ropfn rop) {
+static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line) {
     //todo
 }
 
@@ -148,7 +155,13 @@ public:
 
     void inline OffsetInsert(size_t clr_pos, uint32_t offset) {
         PTR_TYPE *ptr = (PTR_TYPE *)getBuff() + offset;
-        *(DATA_TYPE *)ptr = clr_native[clr_pos];
+        if constexpr (sizeof(BuffDATA_TYPE) == sizeof(BuffPTR_TYPE)) {
+            *(DATA_TYPE *)ptr = clr_native[clr_pos];
+        } else {
+            for (uint8_t i = 0; i < NATIVE_PIXEL_SIZE; i++) {
+                *(ptr + i) = (PTR_TYPE)(clr_native[clr_pos] >> (i * 8));
+            }
+        }
     }
     void inline Draw(point_ui16_t pt, uint16_t w, uint16_t h) { display_ex_draw_from_buffer(pt, w, h); }
 };
@@ -212,9 +225,11 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
 
     pch = (uint8_t *)(pf->pcs) + ((chr /*- pf->asc_min*/) * bpc);
 
+    uint8_t pixel_size = STORE_FN_PIXEL_SIZE;
+
     for (uint16_t j = 0; j < char_h; j++) {
         pc = pch + j * bpr;
-        buffer_offset = j * char_cnt * char_w + curr_char_idx * char_w;
+        buffer_offset = j * char_cnt * char_w * pixel_size + curr_char_idx * char_w * pixel_size;
         for (uint16_t i = 0; i < char_w; i++) {
             if ((i % ppb) == 0) {
                 if (flags.swap == is_swap::yes) {
@@ -224,10 +239,10 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
                     crd = *(pc++);
             }
             if (flags.lsb == fnt_lsb::yes) {
-                buff.OffsetInsert(crd & pms, buffer_offset + i);
+                buff.OffsetInsert(crd & pms, buffer_offset + i * pixel_size);
                 crd >>= bpp;
             } else {
-                buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i);
+                buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i * pixel_size);
                 crd <<= bpp;
             }
         }
@@ -342,10 +357,10 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
     return get_pixel_directColor_C(pt.x, pt.y);
 }
 
-void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t clr_bck, ropfn rop) {
+void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line) {
     FILE *file = png.Get();
     if (!file)
         return;
     fseek(file, png.offset, SEEK_SET);
-    draw_png_ex_C(pt.x, pt.y, file, clr_bck, rop);
+    draw_png_ex_C(file, pt.x, pt.y, back_color, rop, subrect, local_desatur_line);
 }

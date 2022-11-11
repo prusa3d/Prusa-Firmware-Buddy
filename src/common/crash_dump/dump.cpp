@@ -236,7 +236,11 @@ int dump_hardfault_test_1(void) {
 
 // Dumping error message
 
-void dump_err_to_xflash(const char *error, const char *title) {
+void dump_err_to_xflash(uint16_t error_code, const char *error, const char *title) {
+    vTaskEndScheduler();
+    if (!w25x_init()) {
+        return;
+    }
     w25x_sector_erase(w25x_error_start_adress);
 
     decltype(dumpmessage_t::invalid) invalid = 0;
@@ -244,6 +248,7 @@ void dump_err_to_xflash(const char *error, const char *title) {
     const size_t msg_len = strnlen(error, sizeof(dumpmessage_t::msg));
 
     w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->invalid), reinterpret_cast<uint8_t *>(&invalid), sizeof(invalid));
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->error_code), reinterpret_cast<uint8_t *>(&error_code), sizeof(error_code));
     w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), reinterpret_cast<const uint8_t *>(title), title_len);
     w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), reinterpret_cast<const uint8_t *>(error), msg_len);
     w25x_fetch_error();
@@ -286,4 +291,15 @@ int dump_err_in_xflash_get_message(char *msg_dst, uint16_t msg_dst_size, char *t
     if (w25x_fetch_error())
         return 0;
     return 1;
+}
+
+uint16_t dump_err_in_xflash_get_error_code(void) {
+    uint16_t error_code;
+    w25x_rd_data(
+        reinterpret_cast<uint32_t>(&dumpmessage_flash->error_code),
+        reinterpret_cast<uint8_t *>(&error_code),
+        sizeof(dumpmessage_t::error_code));
+    if (w25x_fetch_error())
+        return 0;
+    return error_code;
 }

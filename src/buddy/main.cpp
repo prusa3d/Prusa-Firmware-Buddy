@@ -32,6 +32,7 @@
 #include <option/filament_sensor.h>
 #include <option/has_gui.h>
 #include "tasks.h"
+#include <appmain.hpp>
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -126,17 +127,14 @@ extern "C" void main_cpp(void) {
      * Checking this first, before starting the GUI thread. The GUI thread
      * resets/consumes the dump as a side effect.
      */
-    if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
-        int dump_type = dump_in_xflash_get_type();
-        if (dump_type == DUMP_HARDFAULT || dump_type == DUMP_FATALERROR) {
-            /*
-             * This corresponds to booting into a bluescreen or serious
-             * redscreen. In such case, the GUI is blocked. Similar logic
-             * should apply to any network communication ‒ one probably shall
-             * not eg. start a print from there.
-             */
-            block_networking = true;
-        }
+    if ((dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed() && dump_in_xflash_get_type() == DUMP_HARDFAULT) || (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed())) {
+        /*
+        * This corresponds to booting into a bluescreen or serious
+        * redscreen. In such case, the GUI is blocked. Similar logic
+        * should apply to any network communication ‒ one probably shall
+        * not eg. start a print from there.
+        */
+        block_networking = true;
     }
 
     eeprom_init_status_t status = eeprom_init();
@@ -244,9 +242,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void StartDefaultTask(void const *argument) {
-    log_info(Buddy, "marlin task waiting for dependecies");
-    wait_for_dependecies(DEFAULT_TASK_DEPS);
-    log_info(Buddy, "marlin task is starting");
+    app_startup();
 
     app_run();
     for (;;) {

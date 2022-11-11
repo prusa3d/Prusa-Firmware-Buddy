@@ -85,6 +85,11 @@ set(CONNECT
     "YES"
     CACHE BOOL "Enable Connect client"
     )
+set(DEVELOPMENT_ITEMS_ENABLED
+    "YES"
+    CACHE BOOL "Show development (green) items  in menus"
+    )
+define_boolean_option(DEVELOPMENT_ITEMS ${DEVELOPMENT_ITEMS_ENABLED})
 # Validate options
 foreach(OPTION "PRINTER" "BOARD" "MCU" "BOOTLOADER")
   if(NOT ${OPTION} IN_LIST ${OPTION}_VALID_OPTS)

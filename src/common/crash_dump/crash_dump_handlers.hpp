@@ -8,7 +8,7 @@ void upload_buddy_dump_to_server();
 
 struct DumpHandler {
     bool (*presence_check)();
-    void (*usb_download)();
+    void (*usb_save)();
     void (*server_upload)();
     void (*remove)();
 };
@@ -16,7 +16,7 @@ struct DumpHandler {
 inline constexpr auto dump_handlers { std::to_array<DumpHandler>({
     {
         .presence_check = []() { return static_cast<bool>(dump_in_xflash_is_valid()); },
-        .usb_download = []() { dump_save_to_usb(buddy_dump_usb_path); },
+        .usb_save = []() { dump_save_to_usb(buddy_dump_usb_path); },
         .server_upload = []() { upload_buddy_dump_to_server(); },
         .remove = []() { dump_in_xflash_reset(); },
     },
@@ -24,7 +24,7 @@ inline constexpr auto dump_handlers { std::to_array<DumpHandler>({
 
 inline constexpr auto dump_handlers_have_valid_pointers { []() {
     for (const auto &handle : dump_handlers) {
-        if (!handle.presence_check || !handle.usb_download || !handle.server_upload || !handle.remove) {
+        if (!handle.presence_check || !handle.usb_save || !handle.server_upload || !handle.remove) {
             return false;
         }
     }

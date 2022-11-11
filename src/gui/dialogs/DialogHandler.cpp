@@ -101,12 +101,12 @@ void DialogHandler::close(fsm::destroy_t o) {
 
         switch (dialog) {
         case ClientFSM::Serial_printing:
+        case ClientFSM::Printing:
             Screens::Access()->CloseAll();
             break;
         case ClientFSM::PrintPreview:
         case ClientFSM::CrashRecovery:
         case ClientFSM::Selftest:
-        case ClientFSM::Printing:
             Screens::Access()->Close();
             break;
         default:
