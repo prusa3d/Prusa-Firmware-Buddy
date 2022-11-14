@@ -149,6 +149,9 @@ namespace {
     // Wait half a second between config retries and similar.
     const constexpr uint32_t IDLE_WAIT = 500;
 
+    // Send a full telemetry every 5 minutes.
+    const constexpr uint32_t FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
+
     using Cache = variant<monostate, tls, socket_con, Error>;
 }
 
@@ -318,6 +321,16 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 
     HttpClient http(conn_factory);
 
+    uint32_t now = ticks_ms();
+    // Underflow should naturally work
+    if (now - last_full_telemetry >= FULL_TELEMETRY_EVERY) {
+        // The server wants to get a full telemetry from time to time, despite
+        // it not being changed. Some caching reasons/recovery/whatever?
+        //
+        // If we didn't send a new telemetry for too long, reset the
+        // fingerprint, which'll trigger the resend.
+        telemetry_fingerprint = nullopt;
+    }
     uint32_t telemetry_out = 0;
     const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
 
@@ -338,15 +351,17 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     // The server has nothing to tell us
     case Status::NoContent:
         planner.action_done(ActionResult::Ok);
-        if (is_full_telemetry) {
+        if (is_full_telemetry && telemetry_fingerprint != telemetry_out) {
             telemetry_fingerprint = telemetry_out;
+            last_full_telemetry = now;
         }
         return OnlineStatus::Ok;
     case Status::Ok: {
-        if (is_full_telemetry) {
+        if (is_full_telemetry && telemetry_fingerprint != telemetry_out) {
             // Yes, even before checking the command we got is OK. We did send
             // the telemetry, what happens to the command doesn't matter.
             telemetry_fingerprint = telemetry_out;
+            last_full_telemetry = now;
         }
         if (resp.command_id.has_value()) {
             const auto sub_resp = handle_server_resp(resp);

@@ -37,6 +37,9 @@ private:
     Printer &printer;
     SharedBuffer &buffer;
     std::optional<uint32_t> telemetry_fingerprint;
+    // We want to make sure to send a full telemetry every now and then even if nothing changed.
+    // (There seems to be a problem on the server, not being able to cope with that).
+    uint32_t last_full_telemetry;
 
     using ServerResp = std::variant<std::monostate, Command, http::Error>;
 
