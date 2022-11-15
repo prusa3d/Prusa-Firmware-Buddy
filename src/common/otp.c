@@ -13,16 +13,3 @@ const char *otp_get_mac_address_str() {
     }
     return mac_address_str;
 }
-
-const char *otp_get_serial_number() {
-    static char serial_number_str[OTP_SERIAL_NUMBER_SIZE] = { 0 };
-
-    // if the string is empty, read the serial number
-    if (serial_number_str[0] == 0) {
-        // we need to do this to avoid UB when casting volatile variable to non-volatile
-        for (uint8_t i = 0; i < OTP_SERIAL_NUMBER_SIZE; ++i) {
-            serial_number_str[i] = *((volatile char *)(OTP_MAC_ADDRESS_SIZE + i));
-        }
-    }
-    return serial_number_str;
-}
