@@ -67,7 +67,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     for (uint8_t i = 0; i < 3; i++) {
         board_version[i] = *(volatile uint8_t *)(OTP_BOARD_REVISION_ADDR + i);
     }
-    for (uint8_t i = 0; i < 14; i++) {
+    for (uint8_t i = 0; i < 15; i++) {
         serial_numbers[i] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
     }
     serial_numbers[14] = '\0';
