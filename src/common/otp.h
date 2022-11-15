@@ -33,3 +33,4 @@ enum {
 
 /// Returns MAC address formatted as "XX:XX:XX:XX:XX:XX" string
 const char *otp_get_mac_address_str();
+const char *otp_get_serial_number();
