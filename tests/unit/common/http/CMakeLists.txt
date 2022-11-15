@@ -17,6 +17,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/jsmn
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/src/common/http
+          ${CMAKE_SOURCE_DIR}/src/common/utils
   )
 add_definitions(-DUNITTESTS)
 
