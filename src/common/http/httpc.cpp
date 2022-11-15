@@ -181,7 +181,7 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
     CHECKED(buffer.write_fmt("%s %s HTTP/1.1\r\n", to_str(method), request.url()));
     CHECKED(buffer.header("Host", host, nullopt));
     CHECKED(buffer.header("Connection", "keep-alive", nullopt));
-    if (has_out_body(method)) {
+    if (has_body(method)) {
         CHECKED(buffer.header("Transfer-Encoding", "chunked", nullopt));
         CHECKED(buffer.header("Content-Type", to_str(request.content_type()), nullopt));
     }
@@ -195,7 +195,7 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
 
     optional<Error> err_out = nullopt;
 
-    if (has_out_body(method)) {
+    if (has_body(method)) {
         bool has_more = true;
         while (has_more) {
             // Currently, the body generation doesn't handle split/small buffer. So
