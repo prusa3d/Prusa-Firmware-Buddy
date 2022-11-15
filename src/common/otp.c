@@ -23,3 +23,6 @@ uint32_t otp_get_timestamp() {
 const STM32_UUID *otp_get_STM32_UUID() {
     return (const STM32_UUID *)OTP_STM32_UUID_ADDR;
 }
+const char *otp_get_serial_number() {
+    return (const char *)(OTP_SERIAL_NUMBER_ADDR);
+}
