@@ -23,7 +23,9 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 #define USBD_STACK_SIZE (128 * 5)
 
 static void usb_device_task_run();
-static char serial_number[OTP_SERIAL_NUMBER_SIZE + 4];
+
+#define CZXP_SIZE 4
+static char serial_number[OTP_SERIAL_NUMBER_SIZE + CZXP_SIZE];
 
 osThreadDef(usb_device_task, usb_device_task_run, osPriorityRealtime, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
@@ -69,9 +71,13 @@ static void usb_device_task_run() {
     USB_OTG_FS->GCCFG |= USB_OTG_GCCFG_NOVBUSSENS;
     USB_OTG_FS->GCCFG &= ~USB_OTG_GCCFG_VBUSBSEN;
 
-    //init serial number
-    memcpy(serial_number, "CZXP", 4);
-    memcpy(serial_number + 4, otp_get_serial_number(), OTP_SERIAL_NUMBER_SIZE);
+    // init serial number
+    memcpy(serial_number, "CZXP", CZXP_SIZE);
+    for (uint8_t i = 0; i < OTP_SERIAL_NUMBER_SIZE; ++i) {
+        // we need to do this to avoid UB when casting volatile variable to non-volatile
+        // Serial number is null terminated we don't need to add null termination
+        serial_number[i + CZXP_SIZE] = *((volatile char *)(OTP_SERIAL_NUMBER_ADDR + i));
+    }
 
     // initialize tinyusb stack
     tusb_init();
