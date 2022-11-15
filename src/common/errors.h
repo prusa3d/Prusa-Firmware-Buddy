@@ -1,8 +1,7 @@
 // errors.h
 #pragma once
 
-/// for MINI
-#include "../../../Prusa-Error-Codes/12_MINI/errors_list.h"
+#include "error_codes.hpp"
 
-extern void set_actual_error(err_num_t err_item);
-extern const err_t *get_actual_error(void);
+extern void set_actual_error(ErrCode error_code);
+extern const ErrDesc *get_actual_error(void);

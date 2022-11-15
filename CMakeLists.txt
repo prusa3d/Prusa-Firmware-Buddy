@@ -461,6 +461,7 @@ if(BOARD MATCHES "BUDDY")
             tinyusb::tinyusb
             $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
             mbedTLS
+            error_codes
     )
 else()
   target_link_libraries(firmware PRIVATE)

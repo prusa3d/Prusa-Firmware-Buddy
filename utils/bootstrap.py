@@ -73,7 +73,7 @@ dependencies = {
         }
     },
 }
-pip_dependencies = ['ecdsa', 'polib', 'littlefs-python',"Pillow"]
+pip_dependencies = ['ecdsa', 'polib', 'pyyaml', 'littlefs-python',"Pillow"]
 # yapf: enable
 
 
