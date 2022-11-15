@@ -137,7 +137,7 @@ enum {
     INTERFACE_COUNT
 };
 
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_MSC_DESC_LEN)
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN)
 
 #define EPNUM_CDC_NOTIF 0x81
 #define EPNUM_CDC_OUT   0x02
@@ -153,8 +153,6 @@ uint8_t const desc_fs_configuration[] = {
     // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
     TUD_CDC_DESCRIPTOR(INTERFACE_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
 
-    // Interface number, string index, EP Out & EP In address, EP size
-    TUD_MSC_DESCRIPTOR(INTERFACE_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, 64),
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
@@ -170,7 +168,6 @@ char const *string_desc_arr[] = {
     USBD_PRODUCT_STRING_FS,        // 2: Product
     serial_number,                 // 3: Serials, should use chip ID
     "CDC",                         // 4: CDC Interface
-    "MSC",                         // 5: MSC Interface
 };
 
 // Invoked when received GET STRING DESCRIPTOR request
