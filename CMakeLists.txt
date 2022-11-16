@@ -96,8 +96,9 @@ target_link_libraries(BuddyHeaders INTERFACE FreeRTOS::FreeRTOS)
 
 if(PRINTER STREQUAL "MINI")
   set(PRINTER_TYPE "2")
+  set(PRINTER_CODE "12")
 else()
-  message(FATAL_ERROR "Don't know how to encode printer type for ${PRINTER}.")
+  message(FATAL_ERROR "Unknown printer \"${PRINTER}\".")
 endif()
 
 set(HAS_MARLIN TRUE)
@@ -107,6 +108,7 @@ target_compile_definitions(
   INTERFACE MOTHERBOARD=1823
             PRINTER_MODEL="${PRINTER}"
             PRINTER_TYPE=${PRINTER_TYPE}
+            PRINTER_CODE=${PRINTER_CODE}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
             BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR}
