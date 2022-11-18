@@ -88,7 +88,7 @@ namespace {
         }
 
     public:
-        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, optional<uint32_t> last_telemetry_fingerprint, uint32_t &telemetry_fingerprint_out)
+        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, Tracked &telemetry_changes)
             : hdrs {
                 // Even though the fingerprint is on a temporary, that
                 // pointer is guaranteed to stay stable.
@@ -96,7 +96,7 @@ namespace {
                 { "Token", config.token, nullopt },
                 { nullptr, nullptr, nullopt }
             }
-            , renderer(RenderState(printer, action, last_telemetry_fingerprint, telemetry_fingerprint_out))
+            , renderer(RenderState(printer, action, telemetry_changes))
             , target_url(visit([](const auto &action) { return url(action); }, action)) {}
         virtual const char *url() const override {
             return target_url;
@@ -298,7 +298,7 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     if (cfg_changed) {
         conn_factory.invalidate();
         // Possibly new server, new telemetry cache...
-        telemetry_fingerprint = nullopt;
+        telemetry_changes.mark_dirty();
     }
 
     // Let it reconnect if it needs it.
@@ -329,12 +329,10 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         //
         // If we didn't send a new telemetry for too long, reset the
         // fingerprint, which'll trigger the resend.
-        telemetry_fingerprint = nullopt;
+        telemetry_changes.mark_dirty();
     }
-    uint32_t telemetry_out = 0;
-    const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
 
-    BasicRequest request(printer, config, action, telemetry_fingerprint, telemetry_out);
+    BasicRequest request(printer, config, action, telemetry_changes);
     const auto result = http.send(request);
 
     if (holds_alternative<Error>(result)) {
@@ -347,20 +345,24 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     if (!resp.can_keep_alive) {
         conn_factory.invalidate();
     }
+    const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
     switch (resp.status) {
     // The server has nothing to tell us
     case Status::NoContent:
         planner.action_done(ActionResult::Ok);
-        if (is_full_telemetry && telemetry_fingerprint != telemetry_out) {
-            telemetry_fingerprint = telemetry_out;
+        if (is_full_telemetry && telemetry_changes.is_dirty()) {
+            // We check the is_dirty too, because if it was _not_ dirty, we
+            // sent only partial telemetry and don't want to reset the
+            // last_full_telemetry.
+            telemetry_changes.mark_clean();
             last_full_telemetry = now;
         }
         return OnlineStatus::Ok;
     case Status::Ok: {
-        if (is_full_telemetry && telemetry_fingerprint != telemetry_out) {
+        if (is_full_telemetry && telemetry_changes.is_dirty()) {
             // Yes, even before checking the command we got is OK. We did send
             // the telemetry, what happens to the command doesn't matter.
-            telemetry_fingerprint = telemetry_out;
+            telemetry_changes.mark_clean();
             last_full_telemetry = now;
         }
         if (resp.command_id.has_value()) {
