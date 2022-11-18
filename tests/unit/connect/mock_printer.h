@@ -69,6 +69,10 @@ public:
     virtual bool is_printing() const override {
         return false;
     }
+
+    virtual uint32_t files_hash() const override {
+        return 0;
+    }
 };
 
 }

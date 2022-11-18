@@ -112,6 +112,7 @@ namespace {
                 return StatusPage(Status::NotFound, parser);
             }
         } else {
+            wui_gcode_modified();
             return StatusPage(Status::NoContent, parser);
         }
     }

@@ -232,6 +232,9 @@ namespace {
                             //
                             // We'll set it to false once we support something of it.
                             JSON_FIELD_BOOL("ro", true) JSON_COMMA;
+                            if (event.info_rescan_files) {
+                                JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
+                            }
                             JSON_FIELD_BOOL("is_sfn", true);
                         JSON_OBJ_END;
                     }
