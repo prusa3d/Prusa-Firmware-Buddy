@@ -88,8 +88,20 @@ namespace {
         const bool printing = is_printing(params.state);
 
         const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
-        const bool update_telemetry = !state.last_telemetry_fingerprint.has_value() || state.last_telemetry_fingerprint.value() != current_fingerprint;
-        state.telemetry_fingerprint_out = current_fingerprint;
+        // Note:
+        // We don't adhere to the best practice of JSON renderers, that we
+        // prepare everything up-front, store it and then render it. That's
+        // because we don't want to store the copy of the structure while
+        // sending, to be able to reuse the stack space.
+        //
+        // This isn't a big issue because:
+        // * We don't call the printer.renew() / marlin_update_vars() in
+        //   between, so the values _should_ be the same.
+        // * The only way it can concievably change if it changes is to go from
+        //   not changed -> changed telemetry. If it happens before entering the
+        //   update_telemetry block, we just enter it. If it happens after, it
+        //   has no effect (it's been already skipped).
+        const bool update_telemetry = state.telemetry_changes.set_hash(current_fingerprint);
         // Keep the indentation of the JSON in here!
         // clang-format off
         JSON_START;
@@ -586,13 +598,12 @@ FileExtra::FileExtra(unique_file_ptr file)
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
-RenderState::RenderState(const Printer &printer, const Action &action, optional<uint32_t> last_telemetry_fingerprint, uint32_t &fingerprint_out)
+RenderState::RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes)
     : printer(printer)
     , action(action)
+    , telemetry_changes(telemetry_changes)
     , lan(printer.net_info(Printer::Iface::Ethernet))
-    , wifi(printer.net_info(Printer::Iface::Wifi))
-    , last_telemetry_fingerprint(last_telemetry_fingerprint)
-    , telemetry_fingerprint_out(fingerprint_out) {
+    , wifi(printer.net_info(Printer::Iface::Wifi)) {
     memset(&st, 0, sizeof st);
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {

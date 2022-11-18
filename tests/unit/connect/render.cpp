@@ -165,7 +165,8 @@ TEST_CASE("Render") {
 
     MockPrinter printer(params);
     uint32_t fingerprint_out = 0;
-    RenderState state(printer, action, nullopt, fingerprint_out);
+    Tracked telemetry_changes;
+    RenderState state(printer, action, telemetry_changes);
     Renderer renderer(std::move(state));
     uint8_t buffer[1024];
     const auto [result, amount] = renderer.render(buffer, sizeof buffer);
