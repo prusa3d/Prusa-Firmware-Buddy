@@ -40,6 +40,7 @@ bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 static std::atomic<uint32_t> uploaded_gcodes;
+static std::atomic<uint32_t> modified_gcodes;
 
 // example of simple callback automatically sending print response (click on print button) in preview fsm
 // it would be better to use queue to fet rid of no longer current commands
@@ -342,6 +343,10 @@ uint32_t wui_gcodes_uploaded() {
     return uploaded_gcodes;
 }
 
+uint32_t wui_gcodes_mods() {
+    return modified_gcodes;
+}
+
 bool wui_start_print(char *filename, bool autostart_if_able) {
     marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
     const bool printer_can_print = marlin_remote_print_ready(!autostart_if_able);
@@ -371,9 +376,14 @@ bool wui_start_print(char *filename, bool autostart_if_able) {
 }
 
 bool wui_uploaded_gcode(char *filename, bool start_print) {
+    modified_gcodes++;
     uploaded_gcodes++;
 
     return wui_start_print(filename, start_print);
+}
+
+void wui_gcode_modified() {
+    modified_gcodes++;
 }
 
 bool wui_is_file_being_printed(const char *filename) {

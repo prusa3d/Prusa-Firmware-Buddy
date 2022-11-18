@@ -125,10 +125,13 @@ Action Planner::next_action() {
         return *planned_event;
     }
 
-    if (info_changes.set_hash(printer.info_fingerprint())) {
+    if (info_changes.set_hash(printer.info_fingerprint()) || file_changes.set_hash(printer.files_hash())) {
         planned_event = Event {
             EventType::Info,
         };
+        if (file_changes.is_dirty()) {
+            planned_event->info_rescan_files = true;
+        }
         return *planned_event;
     }
 
@@ -167,6 +170,9 @@ void Planner::action_done(ActionResult result) {
         if (planned_event.has_value()) {
             if (planned_event->type == EventType::Info) {
                 info_changes.mark_clean();
+                if (planned_event->info_rescan_files) {
+                    file_changes.mark_clean();
+                }
             }
             planned_event = nullopt;
             // Enforce telemetry now. We may get a new command with it.

@@ -9,6 +9,7 @@
 #include <odometer.hpp>
 #include <netdev.h>
 #include <print_utils.hpp>
+#include <wui_api.h>
 
 #include <cassert>
 #include <cstdlib>
@@ -379,6 +380,10 @@ bool MarlinPrinter::set_ready(bool ready) {
 
 bool MarlinPrinter::is_printing() const {
     return marlin_is_printing();
+}
+
+uint32_t MarlinPrinter::files_hash() const {
+    return wui_gcodes_mods();
 }
 
 }

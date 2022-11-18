@@ -106,7 +106,7 @@ uint32_t Printer::info_fingerprint() const {
 
     return crc
         .add_str(creds.ssid)
-        .add_str(creds.api_key)
+        .add_str(creds.pl_password)
         .add(params().has_usb)
         .done();
 }

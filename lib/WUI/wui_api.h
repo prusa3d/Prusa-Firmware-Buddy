@@ -189,6 +189,16 @@ bool wui_uploaded_gcode(char *path, bool start_print);
 /// Thread safe.
 uint32_t wui_gcodes_uploaded();
 
+/// Number of gcode modifications - uploaded, deleted, ...
+///
+/// Similar purpose as with wui_gcodes_uploaded (to watch for something
+/// changing), but also includes deletes (and in future, possible other
+/// operations like renames).
+uint32_t wui_gcodes_mods();
+
+/// A gcode was modified, count it into the number of modifications.
+void wui_gcode_modified();
+
 ////////////////////////////////////////////////////////////////////////////
 /// @brief initialize marlin client for tcpip thread
 ///

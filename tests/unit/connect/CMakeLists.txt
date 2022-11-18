@@ -49,9 +49,14 @@ add_dependencies(connect_tests generate-httpc-automata-tests-connect)
 # Planner tests are separate. They mock time and don't want to poison that for others.
 add_executable(
   connect_planner_tests
-  ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
-  ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  time_mock.cpp planner.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/crc32.c
+  ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  time_mock.cpp
+  planner.cpp
   )
 target_include_directories(
   connect_planner_tests
