@@ -5,6 +5,7 @@
 
 namespace nhttp::link_content {
 
+using http::Method;
 using http::Status;
 using nhttp::printer::GCodePreview;
 using std::nullopt;
@@ -39,23 +40,27 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
         width = 220;
         height = 140;
     } else {
-        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json, "Thumbnail size specification not recognized");
+        return StatusPage(Status::NotFound, parser, "Thumbnail size specification not recognized");
     }
 
     char fname[FILE_PATH_BUFFER_LEN + extra_size];
     if (!parser.uri_filename(fname, sizeof(fname))) {
-        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json, "This doesn't look like file name");
+        return StatusPage(Status::NotFound, parser, "This doesn't look like file name");
     }
 
     // Strip the extra prefix (without the last /)
     memmove(fname, fname + extra_size - 1, FILE_NAME_BUFFER_LEN);
 
-    FILE *f = fopen(fname, "rb");
+    if (parser.method == Method::Get) {
+        FILE *f = fopen(fname, "rb");
 
-    if (f) {
-        return GCodePreview(f, fname, parser.can_keep_alive(), parser.accepts_json, width, height, parser.if_none_match);
+        if (f) {
+            return GCodePreview(f, fname, parser.can_keep_alive(), parser.accepts_json, width, height, parser.if_none_match);
+        } else {
+            return StatusPage(Status::NotFound, parser);
+        }
     } else {
-        return StatusPage(Status::NotFound, parser.status_page_handling(), parser.accepts_json);
+        return StatusPage(Status::MethodNotAllowed, parser);
     }
 }
 

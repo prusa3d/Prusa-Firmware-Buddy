@@ -18,7 +18,7 @@ optional<ConnectionState> ValidateRequest::accept(const RequestParser &request) 
     }
 
     if (request.method == Method::UnknownMethod) {
-        return StatusPage(Status::MethodNotAllowed, request.status_page_handling(), request.accepts_json, "Unrecognized method");
+        return StatusPage(Status::MethodNotAllowed, request, "Unrecognized method");
     }
     return nullopt;
 }
@@ -26,7 +26,7 @@ optional<ConnectionState> ValidateRequest::accept(const RequestParser &request) 
 const ValidateRequest validate_request;
 
 optional<ConnectionState> UnknownRequest::accept(const RequestParser &request) const {
-    return StatusPage(Status::NotFound, request.status_page_handling(), request.accepts_json);
+    return StatusPage(Status::NotFound, request);
 }
 
 const UnknownRequest unknown_request;

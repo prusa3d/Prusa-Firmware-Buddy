@@ -13,6 +13,8 @@
 
 namespace nhttp::handler {
 
+class RequestParser;
+
 class StatusPage {
 public:
     enum class CloseHandling {
@@ -37,11 +39,9 @@ protected:
     Step step_impl(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, const char *const *extra_hdrs);
 
 public:
-    StatusPage(http::Status status, CloseHandling close_handling, bool json_content, const char *extra_content = "")
-        : extra_content(extra_content)
-        , status(status)
-        , close_handling(close_handling)
-        , json_content(json_content) {}
+    StatusPage(http::Status status, const RequestParser &parser, const char *extra_content = "");
+    StatusPage(http::Status status, CloseHandling close_handling, bool json_content, const char *extra_content = "");
+
     bool want_read() const { return false; }
     bool want_write() const { return true; }
     virtual Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size);
@@ -60,7 +60,7 @@ private:
     Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, ApiKeyAuth api_key_auth);
 
 public:
-    UnauthenticatedStatusPage(CloseHandling close_handling, bool json_content, AuthMethod auth_method);
+    UnauthenticatedStatusPage(const RequestParser &parser, AuthMethod auth_method);
 
     Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size) override;
 };

@@ -96,7 +96,7 @@ public:
         static constexpr size_t SSID_BUF = 33;
         static constexpr size_t KEY_BUF = 17;
         char ssid[SSID_BUF];
-        char api_key[KEY_BUF];
+        char pl_password[KEY_BUF];
     };
 
     enum class JobControl {
