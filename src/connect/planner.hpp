@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer.hpp"
+#include "changes.hpp"
 #include "command.hpp"
 #include "printer.hpp"
 
@@ -146,6 +147,9 @@ private:
     };
 
     BackgroundResult background_task(BackgroundGcode &);
+
+    // Tracking if we should resend the INFO message due to some changes.
+    Tracked info_changes;
 
 public:
     Planner(Printer &printer)

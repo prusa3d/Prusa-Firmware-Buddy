@@ -102,10 +102,8 @@ const char *to_str(EventType event) {
 }
 
 void Planner::reset() {
-    // TODO: Specific Info event
-    planned_event = Event {
-        EventType::Info,
-    };
+    // Will trigger an Info message on the next one.
+    info_changes.mark_dirty();
     last_telemetry = nullopt;
     cooldown = nullopt;
     perform_cooldown = false;
@@ -124,6 +122,13 @@ Action Planner::next_action() {
 
     if (planned_event.has_value()) {
         // We don't take it out yet. Only after it's successfuly sent.
+        return *planned_event;
+    }
+
+    if (info_changes.set_hash(printer.info_fingerprint())) {
+        planned_event = Event {
+            EventType::Info,
+        };
         return *planned_event;
     }
 
@@ -160,6 +165,9 @@ void Planner::action_done(ActionResult result) {
         cooldown = nullopt;
         failed_attempts = 0;
         if (planned_event.has_value()) {
+            if (planned_event->type == EventType::Info) {
+                info_changes.mark_clean();
+            }
             planned_event = nullopt;
             // Enforce telemetry now. We may get a new command with it.
             last_telemetry = nullopt;
