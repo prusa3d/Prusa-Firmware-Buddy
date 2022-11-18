@@ -346,7 +346,7 @@ bool wui_start_print(char *filename, bool autostart_if_able) {
     marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
     const bool printer_can_print = marlin_remote_print_ready(!autostart_if_able);
 
-    strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
+    strlcpy(marlin_vars()->media_LFN, basename_b(filename), FILE_NAME_BUFFER_LEN);
     // Turn it into the short name, to improve buffer length, avoid strange
     // chars like spaces in it, etc.
     get_SFN_path(filename);

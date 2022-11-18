@@ -1,6 +1,7 @@
 #include "status_page.h"
 #include "handler.h"
 #include "headers.h"
+#include "req_parser.h"
 
 #include <json_encode.h>
 
@@ -21,6 +22,28 @@ using http::ContentType;
 using http::Status;
 
 namespace nhttp::handler {
+
+StatusPage::StatusPage(http::Status status, const RequestParser &parser, const char *extra_content)
+    : extra_content(extra_content)
+    , status(status)
+    , json_content(parser.accepts_json) {
+    auto default_close_handling = parser.can_keep_alive() ? CloseHandling::KeepAlive : CloseHandling::Close;
+    switch (parser.method) {
+    case http::Get:
+    case http::Head:
+    case http::Delete:
+        close_handling = default_close_handling;
+        break;
+    default:
+        close_handling = status >= 300 ? CloseHandling::ErrorClose : default_close_handling;
+        break;
+    }
+}
+StatusPage::StatusPage(http::Status status, CloseHandling close_handling, bool json_content, const char *extra_content)
+    : extra_content(extra_content)
+    , status(status)
+    , close_handling(close_handling)
+    , json_content(json_content) {}
 Step StatusPage::step_impl(std::string_view, bool, uint8_t *output, size_t output_size, const char *const *extra_hdrs) {
     /*
      * Note: we assume the buffers has reasonable size and our payload fits. We
@@ -70,8 +93,8 @@ Step StatusPage::step(std::string_view input, bool terminated_by_client, uint8_t
     return step_impl(input, terminated_by_client, output, output_size, nullptr);
 }
 
-UnauthenticatedStatusPage::UnauthenticatedStatusPage(CloseHandling close_handling, bool json_content, AuthMethod auth_method)
-    : StatusPage(Status::Unauthorized, close_handling, json_content, "")
+UnauthenticatedStatusPage::UnauthenticatedStatusPage(const RequestParser &parser, AuthMethod auth_method)
+    : StatusPage(Status::Unauthorized, parser, "")
     , auth_method(auth_method) {}
 
 Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, DigestAuth digest_auth) {

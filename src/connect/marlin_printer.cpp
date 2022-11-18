@@ -245,6 +245,7 @@ Printer::Params MarlinPrinter::params() const {
     params.flow_factor = marlin_vars->flow_factor;
     params.job_id = marlin_vars->job_id;
     params.job_path = marlin_vars->media_SFN_path;
+    params.job_lfn = marlin_vars->media_LFN;
     params.print_fan_rpm = marlin_vars->print_fan_rpm;
     params.heatbreak_fan_rpm = marlin_vars->heatbreak_fan_rpm;
     params.print_duration = marlin_vars->print_duration;
@@ -318,7 +319,7 @@ std::optional<Printer::NetInfo> MarlinPrinter::net_info(Printer::Iface iface) co
 
 Printer::NetCreds MarlinPrinter::net_creds() const {
     NetCreds result = {};
-    strextract(result.api_key, sizeof result.api_key, EEVAR_PL_API_KEY);
+    strextract(result.pl_password, sizeof result.pl_password, EEVAR_PL_PASSWORD);
     strextract(result.ssid, sizeof result.ssid, EEVAR_WIFI_AP_SSID);
     return result;
 }

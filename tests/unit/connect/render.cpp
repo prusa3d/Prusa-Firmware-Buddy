@@ -26,6 +26,7 @@ constexpr Printer::Params params_printing() {
     params.job_id = 42;
     params.progress_percent = 12;
     params.job_path = print_file;
+    params.job_lfn = "box.gcode";
     params.temp_bed = 65;
     params.temp_nozzle = 200;
     params.target_bed = 70;
@@ -110,7 +111,7 @@ TEST_CASE("Render") {
         // clang-format off
         expected = "{"
             "\"job_id\":42,"
-            R"("data":{"path_sfn":"/usb/box.gco","path":"/usb/box.gco"},)"
+            R"("data":{"display_name":"box.gcode","path":"/usb/box.gco"},)"
             "\"state\":\"PRINTING\","
             "\"command_id\":11,"
             "\"event\":\"JOB_INFO\""

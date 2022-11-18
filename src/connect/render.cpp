@@ -5,6 +5,7 @@
 #include <lfn.h>
 #include <gcode_filename.h>
 #include <gcode_file.h>
+#include <basename.h>
 
 #include <cassert>
 #include <cstring>
@@ -183,8 +184,8 @@ namespace {
                     JSON_FIELD_STR("sn", info.serial_number) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
-                    if (strlen(creds.api_key) > 0) {
-                        JSON_FIELD_STR("api_key", creds.api_key) JSON_COMMA;
+                    if (strlen(creds.pl_password) > 0) {
+                        JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
                     }
                     JSON_FIELD_ARR("storages");
                     if (params.has_usb) {
@@ -234,7 +235,7 @@ namespace {
                         JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("path_sfn", params.job_path) JSON_COMMA;
+                    JSON_FIELD_STR("display_name", params.job_lfn != nullptr ? params.job_lfn : basename_b(params.job_path)) JSON_COMMA;
                     JSON_FIELD_STR("path", params.job_path);
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
@@ -258,8 +259,7 @@ namespace {
                     // Warning: the path->name() is there (hidden) for FileInfo
                     // but _not_ for JobInfo. Do not just copy that into that
                     // part!
-                    JSON_FIELD_STR("name", event.path->name()) JSON_COMMA;
-                    JSON_FIELD_STR("path_sfn", event.path->path()) JSON_COMMA;
+                    JSON_FIELD_STR("display_name", event.path->name()) JSON_COMMA;
                     JSON_FIELD_STR("type", state.file_extra.renderer.holds_alternative<DirRenderer>() ? "FOLDER" : file_type_by_ext(event.path->path())) JSON_COMMA;
                     JSON_FIELD_STR("path", event.path->path());
                     // TODO: There's a lot of other things we want to extract
@@ -348,6 +348,18 @@ namespace {
         return MetaFilter::Ignore;
     }
 
+    const char *display_name(const dirent *ent) {
+#ifdef UNITTESTS
+        return ent->d_name;
+#else
+        if (ent->lfn != nullptr) {
+            return ent->lfn;
+        } else {
+            // Fatfs without long file name...
+            return ent->d_name;
+        }
+#endif
+    }
 }
 
 PreviewRenderer::PreviewRenderer(FILE *f)
@@ -538,12 +550,8 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
         }
 
         JSON_OBJ_START;
-            JSON_FIELD_STR("name_sfn", state.ent->d_name) JSON_COMMA;
-#ifdef UNITTESTS
             JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
-#else
-            JSON_FIELD_STR("name", state.ent->lfn) JSON_COMMA;
-#endif
+            JSON_FIELD_STR("display_name", display_name(state.ent)) JSON_COMMA;
             JSON_FIELD_INT("size", child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
             // We assume USB is not read only for us.
             JSON_FIELD_BOOL("ro", false) JSON_COMMA;
