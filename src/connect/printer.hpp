@@ -141,6 +141,8 @@ public:
     std::tuple<Config, bool> config(bool reset_fingerprint = true);
 
     virtual ~Printer() = default;
+
+    uint32_t info_fingerprint() const;
 };
 
 }

@@ -87,4 +87,28 @@ tuple<Printer::Config, bool> Printer::config(bool reset_fingerprint) {
     return make_tuple(result, changed);
 }
 
+uint32_t Printer::info_fingerprint() const {
+    // The actual INFO message contains more info. But most of it doesn't
+    // actually change (eg. our own firmware version) - at least not at
+    // runtime.
+    Crc crc;
+
+    auto update_net = [&](Iface iface) {
+        if (const auto info = net_info(iface); info.has_value()) {
+            crc.add(info->ip).add(info->mac);
+        }
+    };
+
+    update_net(Iface::Ethernet);
+    update_net(Iface::Wifi);
+
+    const auto creds = net_creds();
+
+    return crc
+        .add_str(creds.ssid)
+        .add_str(creds.api_key)
+        .add(params().has_usb)
+        .done();
+}
+
 }

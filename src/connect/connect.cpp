@@ -274,6 +274,8 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         return OnlineStatus::NoConfig;
     }
 
+    printer.renew();
+
     auto action = planner.next_action();
 
     // Handle sleeping first. That one doesn't need the connection.
@@ -316,8 +318,6 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
             cache = *result;
         }
     });
-
-    printer.renew();
 
     HttpClient http(conn_factory);
 
