@@ -123,7 +123,7 @@ enum class Pause_Type {
     Crash
 };
 
-fsm::SmartQueue fsm_event_queues[MARLIN_MAX_CLIENTS];
+fsm::QueueWrapper<MARLIN_MAX_CLIENTS> fsm_event_queues;
 
 template <WarningType p_warning, bool p_disableHotend>
 class ErrorChecker {
@@ -1467,7 +1467,7 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 // send all FSM messages from the FSM queue
 static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
     while (1) {
-        fsm::variant_t variant = fsm_event_queues[client_id].Front();
+        fsm::variant_t variant = fsm_event_queues.Front(client_id);
         if (variant.GetCommand() == ClientFSM_Command::none)
             return true; // no event to send, return 'sent' to erase 'send' flag
 
@@ -1476,7 +1476,7 @@ static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
             return false;
 
         //erase sent item from queue
-        fsm_event_queues[client_id].Pop();
+        fsm_event_queues.Pop(client_id);
     }
 }
 
@@ -2363,39 +2363,18 @@ const marlin_vars_t &marlin_server_read_vars() {
     return marlin_server.vars;
 }
 
-/// Array of the last phase per fsm
-/// Used for better logging experience in fsm_change
-static int fsm_last_phase[int(ClientFSM::_count)];
-
 void fsm_create(ClientFSM type, uint8_t data) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Creating state machine [%d]", int(type));
-    fsm_last_phase[static_cast<int>(type)] = -1;
-
-    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        fsm_event_queues[i].PushCreate(type, data);
-    }
-
+    fsm_event_queues.PushCreate(type, data);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
 void fsm_destroy(ClientFSM type) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Destroying state machine [%d]", int(type));
-
-    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        fsm_event_queues[i].PushDestroy(type);
-    }
+    fsm_event_queues.PushDestroy(type);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
 void _fsm_change(ClientFSM type, fsm::BaseData data) {
-    if (fsm_last_phase[static_cast<int>(type)] != static_cast<int>(data.GetPhase())) {
-        _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Change state of [%i] to %" PRIu8, static_cast<int>(type), data.GetPhase());
-        fsm_last_phase[static_cast<int>(type)] = static_cast<int>(data.GetPhase());
-    }
-
-    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        fsm_event_queues[i].PushChange(type, data);
-    }
+    fsm_event_queues.PushChange(type, data);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 

@@ -189,9 +189,9 @@ public:
  */
 class SmartQueue {
 protected:
-    Queue queue0;                    // base queue
-    Queue queue1;                    // next level queue
-    size_t prior_commands_in_queue0; //when inserting create to queue1, last inserted create in queue0 has priority
+    Queue queue0;                        // base queue
+    Queue queue1;                        // next level queue
+    size_t prior_commands_in_queue0 = 0; // when inserting create to queue1, last inserted create in queue0 has priority
 
     constexpr void clear() {
         queue0.Clear();
@@ -199,16 +199,62 @@ protected:
     }
 
 public:
-    constexpr SmartQueue()
-        : prior_commands_in_queue0(0) {}
+    enum class Selector { q0,
+        q1,
+        error,
+        count_ = error }; // return type
 
-    variant_t Front() const; // returns ClientFSM_Command::none on empty
-    variant_t Back() const;  // returns ClientFSM_Command::none on empty
-    void Push(variant_t v);  // this method calls specific ones (PushCreate ...)
-    void Pop();
-    void PushCreate(ClientFSM type, uint8_t data);
-    void PushDestroy(ClientFSM type);
-    void PushChange(ClientFSM type, BaseData data);
+    variant_t Front() const;    // returns ClientFSM_Command::none on empty
+    variant_t Back() const;     // returns ClientFSM_Command::none on empty
+    Selector Push(variant_t v); // this method calls specific ones (PushCreate ...)
+    Selector Pop();
+    Selector PushCreate(ClientFSM type, uint8_t data);
+    Selector PushDestroy(ClientFSM type);
+    Selector PushChange(ClientFSM type, BaseData data);
+};
+
+/**
+ * @brief Abstract parent of template QueueWrapper
+ */
+class IQueueWrapper {
+    ClientFSM fsm0 = ClientFSM::_none; // active fsm level 0
+    ClientFSM fsm1 = ClientFSM::_none; // active fsm level 1
+
+    /// Array of the last phase per fsm
+    /// Used for better logging experience in fsm_change
+    int fsm_last_phase[int(ClientFSM::_count)];
+
+protected:
+    bool pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, uint8_t data);
+    bool pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type);
+    bool pushChange(SmartQueue *pQueues, size_t sz, ClientFSM type, BaseData data);
+
+public:
+    ClientFSM GetFsm0() const { return fsm0; }
+    ClientFSM GetFsm1() const { return fsm1; }
+};
+
+/**
+ * @brief wraps smart queues fo clients
+ * to be used on server side only
+ */
+template <size_t SZ>
+class QueueWrapper : public IQueueWrapper {
+    SmartQueue queues[SZ];
+
+public:
+    inline bool PushCreate(ClientFSM type, uint8_t data) {
+        return pushCreate(queues, SZ, type, data);
+    }
+    inline bool PushDestroy(ClientFSM type) {
+        return pushDestroy(queues, SZ, type);
+    }
+    inline bool PushChange(ClientFSM type, BaseData data) {
+        return pushChange(queues, SZ, type, data);
+    }
+
+    inline variant_t Front(size_t queue) const { return queues[queue].Front(); }
+    inline bool Pop(size_t queue) { return queues[queue].Pop() != SmartQueue::Selector::error; }
 };
 
 }; //namespace fsm
