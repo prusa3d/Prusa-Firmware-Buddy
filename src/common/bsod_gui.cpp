@@ -147,6 +147,12 @@ char nth_char(const char str[], uint16_t nth) {
 }
 
 //! Fatal error that causes Redscreen
+void fatal_error_code(const char *error, const char *module, uint16_t error_code) {
+    dump_err_to_xflash(error_code, error, module);
+    sys_reset();
+}
+
+//! Fatal error that causes Redscreen
 void fatal_error(const char *error, const char *module) {
     uint16_t error_code = 0;
 
@@ -179,8 +185,7 @@ void fatal_error(const char *error, const char *module) {
         error_code = 0;
     }
 
-    dump_err_to_xflash(error_code, error, module);
-    sys_reset();
+    fatal_error_code(error, module, error_code);
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
