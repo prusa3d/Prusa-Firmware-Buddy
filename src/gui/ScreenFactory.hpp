@@ -6,9 +6,11 @@
 #include <array>
 
 class ScreenFactory {
-    // menu tune  is the biggest, but I cannot access it from here (to use it as argument of aligned_union)
-    // so i have to define minimal size like this
-    //to calculate the size use this char (*size_msg_as_error)[sizeof( ScreenMenuTune )] = 1;
+    // The various menu sizes cannot be accessed from here (as we use them as an argument of
+    // aligned_union) so the minimal size is currently hard-coded.
+    // The tune menu is usually the biggest: to calculate the size put something like this this:
+    //   char (*size_msg_as_error)[sizeof( ScreenMenuTune )] = 1;
+    // somewhere in the affected source file (changing the menu class appropriately).
 #if _DEBUG
     static constexpr size_t min_union_size = 3496;
 #else
