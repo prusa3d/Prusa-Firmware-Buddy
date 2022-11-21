@@ -28,16 +28,7 @@ StatusPage::StatusPage(http::Status status, const RequestParser &parser, const c
     , status(status)
     , json_content(parser.accepts_json) {
     auto default_close_handling = parser.can_keep_alive() ? CloseHandling::KeepAlive : CloseHandling::Close;
-    switch (parser.method) {
-    case http::Get:
-    case http::Head:
-    case http::Delete:
-        close_handling = default_close_handling;
-        break;
-    default:
-        close_handling = status >= 300 ? CloseHandling::ErrorClose : default_close_handling;
-        break;
-    }
+    close_handling = has_body(parser.method) and status >= 300 ? CloseHandling::ErrorClose : default_close_handling;
 }
 StatusPage::StatusPage(http::Status status, CloseHandling close_handling, bool json_content, const char *extra_content)
     : extra_content(extra_content)

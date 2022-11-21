@@ -1,5 +1,6 @@
 #pragma once
 
+#include "changes.hpp"
 #include "printer.hpp"
 #include "planner.hpp"
 
@@ -70,6 +71,7 @@ public:
 struct RenderState {
     const Printer &printer;
     const Action &action;
+    Tracked &telemetry_changes;
     bool has_stat = false;
     struct stat st;
     FileExtra file_extra;
@@ -77,7 +79,7 @@ struct RenderState {
     std::optional<Printer::NetInfo> lan;
     std::optional<Printer::NetInfo> wifi;
 
-    RenderState(const Printer &printer, const Action &action);
+    RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes);
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

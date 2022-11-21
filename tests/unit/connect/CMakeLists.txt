@@ -2,6 +2,7 @@ add_executable(
   connect_tests
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/crc32.c
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/basename.c
@@ -12,11 +13,13 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/hostname.cpp
   command.cpp
   missing_functions.cpp
   render.cpp
   hostname.cpp
+  printer.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
@@ -46,9 +49,14 @@ add_dependencies(connect_tests generate-httpc-automata-tests-connect)
 # Planner tests are separate. They mock time and don't want to poison that for others.
 add_executable(
   connect_planner_tests
-  ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
-  ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  time_mock.cpp planner.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/crc32.c
+  ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  time_mock.cpp
+  planner.cpp
   )
 target_include_directories(
   connect_planner_tests
