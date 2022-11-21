@@ -2,7 +2,6 @@ import argparse
 import os
 import json
 from pathlib import Path
-import wand
 import dataclasses
 from PIL import Image
 
@@ -27,7 +26,7 @@ class ImageInfo:
             f"""static constexpr Resource {self.name}( \"{self.name}\", {self.offset}, {self.size}, {self.width}, {self.height});"""
 
 
-def load_images(paths: list[Path]) -> list[ImageInfo]:
+def load_images(paths):
     images = []
     offset = 0
     for path in paths:
@@ -39,19 +38,19 @@ def load_images(paths: list[Path]) -> list[ImageInfo]:
     return images
 
 
-def create_id_file(path: Path, images: list[ImageInfo]):
+def create_id_file(path: Path, images):
     with open(path, "w") as file:
         for image in images:
             file.write(f"{image.name},\n")
 
 
-def create_resource_file(path: Path, images: list[ImageInfo]):
+def create_resource_file(path: Path, images):
     with open(path, "w") as file:
         for image in images:
             file.write(f"{str(image)}\n")
 
 
-def create_data_file(path_to_file: Path, images: list[Path]):
+def create_data_file(path_to_file: Path, images):
     with open(path_to_file, "wb+") as dest_file:
         for image in images:
             with open(image, "rb") as img_file:
@@ -60,14 +59,11 @@ def create_data_file(path_to_file: Path, images: list[Path]):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', type=Path, help="path to folder with pngs")
-    parser.add_argument('--id',
-                        type=Path,
-                        help="Path to file where to store ids")
-    parser.add_argument('--resources',
+    parser.add_argument('input', type=Path, help="path to folder with pngs")
+    parser.add_argument('resources',
                         type=Path,
                         help="Path to file where to store info about data")
-    parser.add_argument('--data_file',
+    parser.add_argument('data_file',
                         type=Path,
                         help="Path to file where to create png file")
     images = []
@@ -77,7 +73,6 @@ def main():
             images.append((args.input.resolve() / filename).resolve())
     imageInfo = load_images(images)
     create_resource_file(args.resources, imageInfo)
-    create_id_file(args.id, imageInfo)
     create_data_file(args.data_file, images)
 
 
