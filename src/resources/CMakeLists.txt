@@ -1,3 +1,4 @@
+include(PngGenerator.cmake)
 #
 # Common Functions
 #
@@ -37,7 +38,7 @@ function(add_header_with_revision revision_name image_name)
     )
 
   # set dependency on the main target
-  add_custom_target(resources-header-${revision_name} DEPENDS "${header_hash_file}")
+  add_custom_target(resources-header-${revision_name} DEPENDS "${header_hash_file}" png_generator)
   add_dependencies(firmware resources-header-${revision_name})
 endfunction()
 
@@ -66,7 +67,7 @@ add_gzip_resource("web/main.5740edc19739165967f7.js" "/web/main.5740edc197391659
 add_gzip_resource("web/main.b0ff766dede9aa4490a1.css" "/web/main.b0ff766dede9aa4490a1.css")
 
 # /png directory
-add_resource("png/resources.pngs" "pngs")
+add_resource("${png_data_file}" "pngs")
 
 # generate header with hash
 add_header_with_revision(standard resources-image)

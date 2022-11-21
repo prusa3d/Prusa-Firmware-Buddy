@@ -10,7 +10,7 @@
 
 namespace png {
 
-#include "../gui/res/png_resources.gen"
+#include "png_resources.gen"
 
 } // namespace png
 
