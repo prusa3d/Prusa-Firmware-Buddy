@@ -63,6 +63,8 @@ public:
         uint8_t progress_percent;
         bool has_usb;
         DeviceState state;
+
+        uint32_t telemetry_fingerprint(bool include_xy_axes) const;
     };
 
     struct Config {
@@ -131,6 +133,8 @@ public:
     // it in. But that doesn't meen it has been executed.
     virtual void submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
+    virtual bool is_printing() const = 0;
+    virtual uint32_t files_hash() const = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is
@@ -138,6 +142,8 @@ public:
     std::tuple<Config, bool> config(bool reset_fingerprint = true);
 
     virtual ~Printer() = default;
+
+    uint32_t info_fingerprint() const;
 };
 
 }

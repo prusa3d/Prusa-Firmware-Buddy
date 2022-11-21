@@ -37,7 +37,9 @@ namespace {
     // Don't do retries less often than once a minute.
     const constexpr Duration COOLDOWN_MAX = 1000 * 60;
     // Telemetry every 4 seconds. We may want to have something more clever later on.
-    const constexpr Duration TELEMETRY_INTERVAL = 1000 * 4;
+    const constexpr Duration TELEMETRY_INTERVAL_LONG = 1000 * 4;
+    // Except when we are printing or processing something, we want it more often.
+    const constexpr Duration TELEMETRY_INTERVAL_SHORT = 1000;
     // If we don't manage to talk to the server for this long, re-init the
     // communication with a new init event.
     const constexpr Duration RECONNECT_AFTER = 1000 * 10;
@@ -100,10 +102,8 @@ const char *to_str(EventType event) {
 }
 
 void Planner::reset() {
-    // TODO: Specific Info event
-    planned_event = Event {
-        EventType::Info,
-    };
+    // Will trigger an Info message on the next one.
+    info_changes.mark_dirty();
     last_telemetry = nullopt;
     cooldown = nullopt;
     perform_cooldown = false;
@@ -125,11 +125,22 @@ Action Planner::next_action() {
         return *planned_event;
     }
 
+    if (info_changes.set_hash(printer.info_fingerprint()) || file_changes.set_hash(printer.files_hash())) {
+        planned_event = Event {
+            EventType::Info,
+        };
+        if (file_changes.is_dirty()) {
+            planned_event->info_rescan_files = true;
+        }
+        return *planned_event;
+    }
+
     if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
-        if (*since_telemetry >= TELEMETRY_INTERVAL) {
+        const Duration telemetry_interval = printer.is_printing() || background_command.has_value() ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
+        if (*since_telemetry >= telemetry_interval) {
             return SendTelemetry { false };
         } else {
-            Duration sleep_amount = TELEMETRY_INTERVAL - *since_telemetry;
+            Duration sleep_amount = telemetry_interval - *since_telemetry;
             Duration bt = background_processing(sleep_amount);
             if (planned_event.has_value()) {
                 // A new event appeared as part of the background
@@ -157,6 +168,12 @@ void Planner::action_done(ActionResult result) {
         cooldown = nullopt;
         failed_attempts = 0;
         if (planned_event.has_value()) {
+            if (planned_event->type == EventType::Info) {
+                info_changes.mark_clean();
+                if (planned_event->info_rescan_files) {
+                    file_changes.mark_clean();
+                }
+            }
             planned_event = nullopt;
             // Enforce telemetry now. We may get a new command with it.
             last_telemetry = nullopt;
