@@ -316,8 +316,9 @@ void sntp_set_system_time(uint32_t sec, int8_t last_timezone) {
 
     int8_t config_timezone = eeprom_get_i8(EEVAR_TIMEZONE);
 
-    RTC_TimeTypeDef currTime;
-    RTC_DateTypeDef currDate;
+    // RTC_TimeTypeDef has attributes like TimeFormat (AM/PM) and DayLightSaving, which we don't use
+    RTC_TimeTypeDef currTime = { 0 };
+    RTC_DateTypeDef currDate = { 0 };
 
     struct tm current_time_val;
     int8_t diff = config_timezone - last_timezone;
