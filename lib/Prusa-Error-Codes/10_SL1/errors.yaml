@@ -36,6 +36,12 @@ Errors:
   id: "TOWER_MOVE_FAILED"
   approved: true
 
+- code: "10104"
+  title: "TILT MOVING FAILED"
+  text: "Moving the tilt failed. Make sure there is no obstacle in its path and repeat the action."
+  id: "TILT_MOVE_FAILED"
+  approved: false
+
 # Deprecated, use FAN_FAILED_ID
 - code: "10106"
   title: "FAN FAILURE"

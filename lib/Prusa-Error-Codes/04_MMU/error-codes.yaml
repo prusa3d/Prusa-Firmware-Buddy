@@ -24,213 +24,308 @@ Errors:
 
 - code: "04101"
   title: "FINDA DIDNT TRIGGER"
-  text: "FINDA didn't trigger while loading filament. Ensure that the steel FINDA ball can move freely and check the wiring."
-  action: [Repeat]
+  text: "FINDA didn't trigger while loading the filament. Ensure the filament can move and FINDA works."
+  action: [Retry]
   id: ""
-  approved: false
-  #suggestion1: add to the screen sensor state: FINDA (ON/OFF), Fsensor (ON/OFF)
-  #suggestion2: test and verify the amount of action buttons needed ("repeat" might be enough)
+  approved: true
+
 - code: "04102"
-  title: "FINDA DIDNT SWITCH OFF"
-  text: "FINDA didn't switch off while unloading filament. Try unloading the filament manually and ensure steel FINDA ball can move freely. "
-  action: [Repeat]
+  title: "FINDA: FILAM. STUCK"
+  text: "FINDA didn't switch off while unloading filament. Try unloading manually. Ensure filament can move and FINDA works."
+  action: [Retry]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04103"
   title: "FSENSOR DIDNT TRIGGER"
-  text: "Filament sensor didn't trigger while loading the filament. Check that the filament reached the fsensor and check the wiring."
-  action: [Repeat]
+  text: "Filament sensor didn't trigger while loading the filament. Ensure the filament reached the fsensor and the sensor works."
+  action: [Retry]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04104"
-  title: "FSENSOR DIDNT SWITCH OFF"
-  text: "Filament sensor didn't switch off while unloading the filament. The filament is probably stuck near the sensor or the sensor is malfunctioning."
-  action: [Repeat]
+  title: "FSENSOR: FIL. STUCK"
+  text: "Filament sensor didn't switch off while unloading filament. Ensure filament can move and the sensor works."
+  action: [Retry]
   id: ""
-  approved: false
-  #suggestion1: collect stall-guard data on the pulley, possibly increase the torque on second attempt
+  approved: true
+
 - code: "04105"
-  title: "PULLEY STALLED"
-  text: "The Pulley stalled - check for anything blocking the filament from being pushed/pulled to/from the extruder."
+  title: "PULLEY CANNOT MOVE"
+  text: "Pulley motor stalled. Ensure the pulley can move and check the wiring."
+  action: [Retry]
+  id: ""
+  approved: true
+
+  code: "04106"
+  title: "FSENSOR TOO EARLY"
+  text: "Filament sensor triggered too early while loading to extruder. Check there isn't anything stuck in PTFE tube. Check that sensor reads properly."
   action: [Retry]
   id: ""
   approved: false
+  # FSENSOR_TOO_EARLY = E32777 
+  # FSensor triggered while doing FastFeedToBondtech. ShortPFTE? Piece of filament in PTFE? Sensor malfunction?
+
+  code: "04107"
+  title: "INSPECT FINDA"
+  text: "Selector can't move due to FINDA detecting a filament. Make sure no filament is in selector and FINDA works properly."
+  action: [Retry]
+  id: ""
+  approved: false
+  # FINDA_FLICKERS
+  
 - code: "04115"
   title: "SELECTOR CANNOT HOME"
-  text: "The Selector cannot home properly - check for anything blocking its movement."
+  text: "The Selector cannot home properly. Check for anything blocking its movement."
   action: [Retry]
   id: ""
-  approved: false
+  approved: true
+
+- code: "04116"
+  title: "SELECTOR CANNOT MOVE"
+  text: "The Selector cannot move. Check for anything blocking its movement. Check the wiring is correct."
+  action: [Retry]
+  id: ""
+  approved: true
+
 - code: "04125"
   title: "IDLER CANNOT HOME"
-  text: "The Idler cannot home properly - check for anything blocking its movement."
+  text: "The Idler cannot home properly. Check for anything blocking its movement."
   action: [Retry]
   id: ""
-  approved: false
-
+  approved: true
+  
+  code: "04126"
+  title: "IDLER CANNOT MOVE"
+  text: "The Idler cannot move properly. Check for anything blocking its movement. Check the wiring is correct."
+  action: [Retry]
+  id: ""
+  approved: true
 
 # TEMPERATURE    xx2xx   # Temperature measurement
 - code: "04201"
   title: "WARNING TMC TOO HOT"
-  text: "TMC driver for the Pulley motor is almost overheated. Make sure there is sufficient airflow near the MMU board."
-  action: [Continue, Restart MMU]
+  text: "TMC driver for the Pulley motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
+  text_short: "More details online."
+  action: [Continue, Reset MMU]
   id: ""
-  approved: false
-  #suggestion1: select the default "restart" method as full restart, evaluation of this after the tests
-  #suggestion2: first restart is automatic, only afterwards the user is asked to intervene (restart counter?)
+  approved: true
+
 - code: "04211"
   title: "WARNING TMC TOO HOT"
-  text: "TMC driver for the Selector motor is almost overheated. Make sure there is sufficient airflow near the MMU board."
-  action: [Continue, Restart MMU]
+  text: "TMC driver for the Selector motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
+  text_short: "More details online." 
+  action: [Continue, Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04221"
   title: "WARNING TMC TOO HOT"
-  text: "TMC driver for the Idler motor is almost overheated. Make sure there is sufficient airflow near the MMU board."
-  action: [Continue, Restart MMU]  
+  text: "TMC driver for the Idler motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
+  text_short: "More details online."
+  action: [Continue, Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04202"
   title: "TMC OVERHEAT ERROR"
-  text: "TMC driver for the Pulley motor is overheated. Cool down the MMU board and restart MMU."
-  action: [Restart MMU] 
+  text: "TMC driver for the Pulley motor is overheated. Cool down the MMU board and reset MMU."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
-  #suggestion1: Try automatic power cycle first? Mention this info somewhere? (e.g. unit restarted 1x)
-  #suggestion2: Einsy unable to power cycle the unit, how to solve it?
+  approved: true
+
 - code: "04212"
   title: "TMC OVERHEAT ERROR"
-  text: "TMC driver for the Selector motor is overheated. Cool down the MMU board and restart MMU."
-  action: [Restart MMU] 
+  text: "TMC driver for the Selector motor is overheated. Cool down the MMU board and reset MMU."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04222"
   title: "TMC OVERHEAT ERROR"
-  text: "TMC driver for the Idler motor is overheated. Cool down the MMU board and restart MMU."
-  action: [Restart MMU] 
+  text: "TMC driver for the Idler motor is overheated. Cool down the MMU board and reset MMU."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
 
 # ELECTRICAL     xx3xx
 - code: "04301"
   title: "TMC DRIVER ERROR"
-  text: "TMC driver for the Pulley motor is not responding. Try restarting the MMU. If the issue persist contact the support."
-  action: [Restart MMU]   
+  text: "TMC driver for the Pulley motor is not responding. Try resetting the MMU. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04311"
   title: "TMC DRIVER ERROR"
-  text: "TMC driver for the Selector motor is not responding. Try restarting the MMU. If the issue persist contact the support."
-  action: [Restart MMU] 
+  text: "TMC driver for the Selector motor is not responding. Try resetting the MMU. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04321"
   title: "TMC DRIVER ERROR"
-  text: "TMC driver for the Idler motor is not responding. Try restarting the MMU. If the issue persist contact the support."
-  action: [Restart MMU] 
+  text: "TMC driver for the Idler motor is not responding. Try resetting the MMU. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
 
 - code: "04302"
   title: "TMC DRIVER RESET"
   text: "TMC driver for the Pulley motor was restarted. There is probably an issue with the electronics. Check the wiring and connectors."
-  action: [Restart MMU] 
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04312"
   title: "TMC DRIVER RESET"
   text: "TMC driver for the Selector motor was restarted. There is probably an issue with the electronics. Check the wiring and connectors."
-  action: [Restart MMU] 
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04322"
   title: "TMC DRIVER RESET"
   text: "TMC driver for the Idler motor was restarted. There is probably an issue with the electronics. Check the wiring and connectors."
-  action: [Restart MMU] 
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
 
 - code: "04303"
   title: "TMC UNDERVOLTAGE ERROR"
   text: "Not enough current for the Pulley TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
-  action: [Restart MMU]
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04313"
   title: "TMC UNDERVOLTAGE ERROR"
   text: "Not enough current for the Selector TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
-  action: [Restart MMU]
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04323"
   title: "TMC UNDERVOLTAGE ERROR"
   text: "Not enough current for the Idler TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
-  action: [Restart MMU]
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
 
 - code: "04304"
   title: "TMC DRIVER SHORTED"
-  text: "Short circuit on the Pulley TMC driver. Check the wiring and connectors. If the issue persist contact the support."
-  action: [Restart MMU]
+  text: "Short circuit on the Pulley TMC driver. Check the wiring and connectors. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04314"
   title: "TMC DRIVER SHORTED"
-  text: "Short circuit on the Selector TMC driver. Check the wiring and connectors. If the issue persist contact the support."
-  action: [Restart MMU]
+  text: "Short circuit on the Selector TMC driver. Check the wiring and connectors. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04324"
   title: "TMC DRIVER SHORTED"
-  text: "Short circuit on the Idler TMC driver. Check the wiring and connectors. If the issue persist contact the support."
-  action: [Restart MMU]
+  text: "Short circuit on the Idler TMC driver. Check the wiring and connectors. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
+  id: ""
+  approved: true
+
+- code: "04305"
+  title: "MMU SELFTEST FAILED"
+  text: "MMU selftest failed on the Pulley TMC driver. Check the wiring and connectors. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
+  id: ""
+  approved: false
+
+- code: "04315"
+  title: "MMU SELFTEST FAILED"
+  text: "MMU selftest failed on the Selector TMC driver. Check the wiring and connectors. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
+  id: ""
+  approved: false
+
+- code: "04325"
+  title: "MMU SELFTEST FAILED"
+  text: "MMU selftest failed on the Idler TMC driver. Check the wiring and connectors. If the issue persists contact support."
+  text_short: "More details online."
+  action: [Reset MMU]
   id: ""
   approved: false
 
 # CONNECTIVITY
 - code: "04401"
   title: "MMU NOT RESPONDING"
-  text: "MMU unit not responding. Check the wiring and connectors. If the issue persist contact the support."
-  action: [Restart MMU]
+  text: "MMU unit not responding. Check the wiring and connectors. If the issue persists, contact support."
+  action: [Reset MMU]
   id: ""
-  approved: false
-  #suggestion1: can we verify the unit is connected? if user runs MMU G-code on a non-MMU printer
-  #suggestion2: how to ensure this won't appear on non-MMU printers? store previous info?
+  approved: true
+
 - code: "04402"
   title: "COMMUNICATION ERROR"
-  text: "MMU unit not responding correctly. Check the wiring and connectors. If the issue persist contact the support."
-  action: [Restart MMU]
+  text: "MMU unit not responding correctly. Check the wiring and connectors. If the issue persists, contact support."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
 
 # SYSTEM
 - code: "04501"
   title: "FILAMENT ALREADY LOADED"
   text: "Cannot perform the action, filament is already loaded. Unload it first."
-  action: [Unload, Proceed, Restart MMU]
+  action: [Unload, Proceed]
   id: ""
-  approved: false
-  #suggestion: how about doing automatic unload first? if needed show #04102 or #04104?  
+  approved: true
+
 - code: "04502"
   title: "INVALID TOOL"
-  text: "Requested filament tool is not available on this hardware. Check the G-code file for possible issue."
-  action: [Stop Print, Restart MMU]  
+  text: "Requested filament tool is not available on this hardware. Check the G-code for tool index out of range (T0-T4)."
+  action: [Stop Print, Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04503"
   title: "QUEUE FULL"
-  text: "Internal runtime error of the firmware, please restart the MMU."
-  action: [Restart MMU]  
+  text: "MMU Firmware internal error, please reset the MMU."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04504"
-  title: "FW VERSION MISMATCH"
-  text: "The MMU unit reports its FW version incompatible with the printer's firmware. Make sure the MMU firmware is up to date"
+  title: "FW UPDATE NEEDED"
+  text: "The MMU unit reports its FW version incompatible with the printer's firmware. Make sure the MMU firmware is up to date."
+  action: [Update, Disable MMU]
   id: ""
-  approved: false
+  approved: true
+
 - code: "04505"
   title: "FW RUNTIME ERROR"
-  text: "Internal runtime error. Try restarting the MMU unit or updating the firmware. If the issue persist contact the support."
+  text: "Internal runtime error. Try resetting the MMU unit or updating the firmware. If the issue persists, contact support."
+  action: [Reset MMU]
   id: ""
-  approved: false
+  approved: true
+
+- code: "04506"
+  title: "UNLOAD MANUALLY"
+  text: "Unexpected FINDA reading. Ensure no filament is under FINDA and the selector is free. Check FINDA connection."
+  action: [Retry]
+  id: ""
+  approved: true
