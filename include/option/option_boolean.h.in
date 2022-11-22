@@ -5,7 +5,7 @@
 #ifdef __cplusplus
 
 namespace option {
-    constexpr bool ${OPTION_NAME_lowered} = ${OPTION_ENABLED};
+    inline constexpr bool ${OPTION_NAME_lowered} = ${OPTION_ENABLED};
 }
 
 #endif
