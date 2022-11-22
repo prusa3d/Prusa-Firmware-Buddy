@@ -280,9 +280,9 @@ void marlin_vars_set_var(marlin_vars_t *vars, marlin_var_id_t var_id, variant8_t
         break;
     case MARLIN_VAR_FAN_CHECK_ENABLED:
         vars->fan_check_enabled = variant8_get_bool(var);
+        break;
     case MARLIN_VAR_ENDSTOPS:
         vars->endstops = variant8_get_ui32(var);
-        break;
         break;
     case MARLIN_VAR_FS_AUTOLOAD_ENABLED:
         vars->fs_autoload_enabled = variant8_get_bool(var);
