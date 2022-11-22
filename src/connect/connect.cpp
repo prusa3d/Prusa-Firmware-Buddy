@@ -188,7 +188,6 @@ public:
         }
         assert(!holds_alternative<monostate>(cache));
     }
-    uint32_t cfg_fingerprint = 0;
 };
 
 connect::ServerResp connect::handle_server_resp(Response resp) {
