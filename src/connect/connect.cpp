@@ -414,8 +414,8 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         // Switch just to provide proper error message
         switch (resp.status) {
         case Status::BadRequest:
-        case Status::Forbidden:
             return OnlineStatus::InternalError;
+        case Status::Forbidden:
         case Status::Unauthorized:
             return OnlineStatus::Auth;
         default:
