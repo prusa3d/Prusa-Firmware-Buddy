@@ -31,6 +31,7 @@
 #include "eeprom.h"
 #include "w25x.h"
 #include "gui_fsensor_api.hpp"
+#include "tasks.h"
 #include "gcode_info.hpp"
 #include "version.h"
 
@@ -215,19 +216,17 @@ constexpr size_t strlen_constexpr(const char *str) {
  * Beware: previous attempts to writing these messages onto USB CDC log destination (baudrate 57600) resulted
  * in cross-linked messages because the logging subsystem intentionally has no prevention (locks/mutexes) against such a situation.
  * Therefore the only reliable output is the "Marlin's" serial output (before Marlin is actually started)
- * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot).
+ * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot),
+ * and Marlin itself is guaranteed to not have been started due to dependency USBSERIAL_READY.
  */
 static void manufacture_report() {
     // The first '\n' is just a precaution - terminate any partially printed message from Marlin if any
     static const uint8_t intro[] = "\nbootstrap finished\nfirmware version: ";
 
-    // prevent other tasks from dumping anything onto the serial line
-    taskENTER_CRITICAL();
     static_assert(sizeof(intro) > 1);          // prevent accidental buffer underrun below
     SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
-    taskEXIT_CRITICAL();
 }
 
 void gui_error_run(void) {
@@ -301,6 +300,7 @@ void gui_run(void) {
     finish_update();
 #endif
     manufacture_report();
+    provide_dependecy(ComponentDependencies::USBSERIAL_READY); // postpone starting Marlin after USBSerial handling in manufacture_report()
 
     gui_marlin_vars = marlin_client_init();
     gui_marlin_vars->media_LFN = gui_media_LFN;
