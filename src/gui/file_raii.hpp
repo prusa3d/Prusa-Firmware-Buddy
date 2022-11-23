@@ -45,7 +45,8 @@ struct F_DIR_RAII_Iterator {
             return true; // all normal directories are accepted
         }
         // files are being filtered by their extension
-        return filename_is_gcode(fno->d_name);
+        // Also ignore files starting with '.'
+        return filename_is_gcode(fno->lfn) && (fno->lfn[0] != '.');
     }
 
     ~F_DIR_RAII_Iterator() {
