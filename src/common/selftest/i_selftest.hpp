@@ -12,8 +12,6 @@
 #define SELFTEST_MAX_LOG_PRINTF 128
 #define SELFTEST_LOOP_PERIODE   50
 
-class FSM_Holder;
-
 // parent of class representing whole self-test
 class ISelftest {
 
