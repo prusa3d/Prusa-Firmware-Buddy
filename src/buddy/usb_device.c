@@ -4,6 +4,7 @@
 #include "main.h"
 #include "usb_device.h"
 #include "log.h"
+#include "otp.h"
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -21,7 +22,7 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
 #define USBD_LANGID_STRING          1033
 #define USBD_MANUFACTURER_STRING    "Prusa Research (prusa3d.com)"
-#define USBD_PRODUCT_STRING_FS      ("Original Prusa " stringify(PRINTER))
+#define USBD_PRODUCT_STRING_FS      ("Original Prusa " PRINTER_MODEL)
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 
 #define USB_SIZ_BOS_DESC 0x0C
@@ -29,6 +30,9 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 #define USBD_STACK_SIZE (128 * 5)
 
 static void usb_device_task_run();
+
+#define CZPX_SIZE 4
+static char serial_number[OTP_SERIAL_NUMBER_SIZE + CZPX_SIZE];
 
 osThreadDef(usb_device_task, usb_device_task_run, osPriorityRealtime, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
@@ -73,6 +77,14 @@ static void usb_device_task_run() {
     // disable vbus sensing
     USB_OTG_FS->GCCFG |= USB_OTG_GCCFG_NOVBUSSENS;
     USB_OTG_FS->GCCFG &= ~USB_OTG_GCCFG_VBUSBSEN;
+
+    // init serial number
+    memcpy(serial_number, "CZPX", CZPX_SIZE);
+    for (uint8_t i = 0; i < OTP_SERIAL_NUMBER_SIZE; ++i) {
+        // we need to do this to avoid UB when casting volatile variable to non-volatile
+        // Serial number is null terminated we don't need to add null termination
+        serial_number[i + CZPX_SIZE] = *((volatile char *)(OTP_SERIAL_NUMBER_ADDR + i));
+    }
 
     // initialize tinyusb stack
     tusb_init();
@@ -138,7 +150,7 @@ enum {
     INTERFACE_COUNT
 };
 
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_MSC_DESC_LEN)
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN)
 
 #define EPNUM_CDC_NOTIF 0x81
 #define EPNUM_CDC_OUT   0x02
@@ -154,8 +166,6 @@ uint8_t const desc_fs_configuration[] = {
     // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
     TUD_CDC_DESCRIPTOR(INTERFACE_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
 
-    // Interface number, string index, EP Out & EP In address, EP size
-    TUD_MSC_DESCRIPTOR(INTERFACE_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, 64),
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
@@ -169,9 +179,8 @@ char const *string_desc_arr[] = {
     (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
     USBD_MANUFACTURER_STRING,      // 1: Manufacturer
     USBD_PRODUCT_STRING_FS,        // 2: Product
-    USBD_SERIALNUMBER_STRING_FS,   // 3: Serials, should use chip ID
+    serial_number,                 // 3: Serials, should use chip ID
     "CDC",                         // 4: CDC Interface
-    "MSC",                         // 5: MSC Interface
 };
 
 // Invoked when received GET STRING DESCRIPTOR request
