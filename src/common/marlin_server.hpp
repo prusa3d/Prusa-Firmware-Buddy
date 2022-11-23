@@ -97,8 +97,8 @@ public:
 template <marlin_var_id_t VAR_ID, class T>
 class Notifier : public FSM_notifier {
 public:
-    Notifier(ClientFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max) {};
-    //        : FSM_notifier(type, phase, min, max, progress_min, progress_max, VAR_ID) {}
+    Notifier(ClientFSM type, uint8_t phase, T min, T max, uint8_t progress_min, uint8_t progress_max)
+        : FSM_notifier(type, phase, min, max, progress_min, progress_max, VAR_ID) {}
 };
 
 template <marlin_var_id_t VAR_ID>
