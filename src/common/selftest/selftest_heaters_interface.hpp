@@ -11,7 +11,6 @@
 
 class CFanCtl;
 class IPartHandler;
-class FSM_Holder;
 
 namespace selftest {
 

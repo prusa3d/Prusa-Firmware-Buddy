@@ -10,7 +10,6 @@
 #include "selftest_fan_config.hpp"
 
 class IPartHandler;
-class FSM_Holder;
 
 namespace selftest {
 
