@@ -44,7 +44,6 @@ typedef struct {
 const char *otp_get_mac_address_str();
 uint32_t otp_get_timestamp();
 const STM32_UUID *otp_get_STM32_UUID();
-
 const char *otp_get_serial_number();
 
 #ifdef __cplusplus

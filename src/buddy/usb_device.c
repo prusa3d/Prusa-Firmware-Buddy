@@ -22,7 +22,7 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
 #define USBD_LANGID_STRING          1033
 #define USBD_MANUFACTURER_STRING    "Prusa Research (prusa3d.com)"
-#define USBD_PRODUCT_STRING_FS      ("Original Prusa " stringify(PRINTER))
+#define USBD_PRODUCT_STRING_FS      ("Original Prusa " PRINTER_MODEL)
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
 
 #define USB_SIZ_BOS_DESC 0x0C
@@ -31,8 +31,8 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
 static void usb_device_task_run();
 
-#define CZXP_SIZE 4
-static char serial_number[OTP_SERIAL_NUMBER_SIZE + CZXP_SIZE];
+#define CZPX_SIZE 4
+static char serial_number[OTP_SERIAL_NUMBER_SIZE + CZPX_SIZE];
 
 osThreadDef(usb_device_task, usb_device_task_run, osPriorityRealtime, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
@@ -79,11 +79,11 @@ static void usb_device_task_run() {
     USB_OTG_FS->GCCFG &= ~USB_OTG_GCCFG_VBUSBSEN;
 
     // init serial number
-    memcpy(serial_number, "CZXP", CZXP_SIZE);
+    memcpy(serial_number, "CZPX", CZPX_SIZE);
     for (uint8_t i = 0; i < OTP_SERIAL_NUMBER_SIZE; ++i) {
         // we need to do this to avoid UB when casting volatile variable to non-volatile
         // Serial number is null terminated we don't need to add null termination
-        serial_number[i + CZXP_SIZE] = *((volatile char *)(OTP_SERIAL_NUMBER_ADDR + i));
+        serial_number[i + CZPX_SIZE] = *((volatile char *)(OTP_SERIAL_NUMBER_ADDR + i));
     }
 
     // initialize tinyusb stack
