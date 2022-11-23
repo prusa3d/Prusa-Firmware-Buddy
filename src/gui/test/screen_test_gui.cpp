@@ -4,7 +4,7 @@
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include "ScreenHandler.hpp"
-#include "png_reources.hpp"
+#include "png_resources.hpp"
 
 screen_test_gui_data_t::screen_test_gui_data_t()
     : AddSuperWindow<screen_t>()

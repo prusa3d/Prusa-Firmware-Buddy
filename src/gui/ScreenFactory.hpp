@@ -12,7 +12,7 @@ class ScreenFactory {
     //   char (*size_msg_as_error)[sizeof( ScreenMenuTune )] = 1;
     // somewhere in the affected source file (changing the menu class appropriately).
 #if _DEBUG
-    static constexpr size_t min_union_size = 3496;
+    static constexpr size_t min_union_size = 3628;
 #else
     static constexpr size_t min_union_size = 3000;
 #endif
