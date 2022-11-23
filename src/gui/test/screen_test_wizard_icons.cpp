@@ -1,6 +1,7 @@
 // screen_test_wizard_icons.cpp
 
 #include "screen_test_wizard_icons.hpp"
+#include "png_resources.hpp"
 #include "config.h"
 #include "i18n.h"
 
