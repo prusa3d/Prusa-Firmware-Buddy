@@ -304,6 +304,34 @@ static void print_Z_probe_cnt() {
     }
 }
 #endif
+
+uint64_t server_update_vars() {
+    uint32_t tick = ticks_ms();
+    uint64_t changes = 0;
+    if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
+        marlin_server.last_update = tick;
+        changes = _server_update_vars(marlin_server.update_vars);
+    }
+    return changes;
+}
+
+void send_notifications_to_clients(uint64_t changes) {
+    osMessageQId queue;
+    uint64_t msk = 0;
+    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
+        if ((queue = marlin_client_queue[client_id]) != 0) {
+            marlin_server.client_changes[client_id] |= (changes & marlin_server.notify_changes[client_id]);
+            // send change notifications, clear bits for successful sent notification
+            if ((msk = marlin_server.client_changes[client_id]) != 0)
+                marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
+            // send events to client only if all variables were sent already, otherwise, the message buffer is full
+            // clear bits for successful sent notification
+            if ((marlin_server.client_changes[client_id]) == 0)
+                if ((msk = marlin_server.client_events[client_id]) != 0)
+                    marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
+        }
+}
+
 int marlin_server_cycle(void) {
 
     static int processing = 0;
@@ -330,13 +358,6 @@ int marlin_server_cycle(void) {
 #endif
 
     int count = 0;
-    int client_id;
-    uint64_t msk = 0;
-    uint64_t changes = 0;
-    osMessageQId queue;
-    osEvent ose;
-    uint32_t tick;
-    char ch;
     if (marlin_server.flags & MARLIN_SFLG_PENDREQ) {
         if (_process_server_request(marlin_server.request)) {
             marlin_server.request_len = 0;
@@ -344,9 +365,11 @@ int marlin_server_cycle(void) {
             marlin_server.flags &= ~MARLIN_SFLG_PENDREQ;
         }
     }
+
+    osEvent ose;
     if ((marlin_server.flags & MARLIN_SFLG_PENDREQ) == 0)
         while ((ose = osMessageGet(marlin_server_queue, 0)).status == osEventMessage) {
-            ch = (char)((uint8_t)(ose.value.v));
+            char ch = (char)((uint8_t)(ose.value.v));
             switch (ch) {
             case '\r':
             case '\n':
@@ -374,29 +397,20 @@ int marlin_server_cycle(void) {
     // update pqueue (planner queue)
     _server_update_pqueue();
     // update variables
-    tick = ticks_ms();
-    if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
-        marlin_server.last_update = tick;
-        changes = _server_update_vars(marlin_server.update_vars);
-    }
 
-    // send notifications to clients
-    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if ((queue = marlin_client_queue[client_id]) != 0) {
-            marlin_server.client_changes[client_id] |= (changes & marlin_server.notify_changes[client_id]);
-            // send change notifications, clear bits for successful sent notification
-            if ((msk = marlin_server.client_changes[client_id]) != 0)
-                marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
-            // send events to client only if all variables were sent already, otherwise, the message buffer is full
-            // clear bits for successful sent notification
-            if ((marlin_server.client_changes[client_id]) == 0)
-                if ((msk = marlin_server.client_events[client_id]) != 0)
-                    marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
-        }
+    uint64_t changes = server_update_vars();
+    send_notifications_to_clients(changes);
+
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
         wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
     processing = 0;
     return count;
+}
+
+void marlin_server_forced_client_refresh() {
+    FSM_notifier::SendNotification();
+    uint64_t changes = server_update_vars();
+    send_notifications_to_clients(changes);
 }
 
 void static marlin_server_finalize_print() {
