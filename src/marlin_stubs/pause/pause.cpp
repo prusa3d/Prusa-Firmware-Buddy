@@ -132,7 +132,7 @@ PausePrivatePhase::PausePrivatePhase()
 void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress) {
     phase = ph;
     ProgressSerializer serializer(progress);
-    fsm_change(ClientFSM::Load_unload, phase, serializer.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(Load_unload, phase, serializer.Serialize());
 }
 
 PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }
@@ -675,44 +675,44 @@ void Pause::loop_load_change(Response response) {
 }
 
 bool Pause::UnloadFromGear() {
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
     return filamentUnload(&Pause::loop_unloadFromGear);
 }
 
 bool Pause::FilamentUnload(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
     return filamentUnload(FSensors_instance().HasMMU() ? &Pause::loop_unload_mmu : &Pause::loop_unload);
 }
 
 bool Pause::FilamentUnload_AskUnloaded(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
     return filamentUnload(&Pause::loop_unload_AskUnloaded);
     // TODO specifi behavior for FSensors_instance().HasMMU()
 }
 
 bool Pause::FilamentLoad(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, settings.fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, settings.fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
     return filamentLoad(FSensors_instance().HasMMU() ? &Pause::loop_load_mmu : (settings.fast_load_length ? &Pause::loop_load : &Pause::loop_load_purge));
 }
 
 bool Pause::FilamentLoadNotBlocking(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_load_not_blocking);
 }
 
 bool Pause::FilamentAutoload(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_autoload);
 }
 
 bool Pause::LoadToGear(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_loadToGear);
 }
 
@@ -1155,7 +1155,7 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
 #endif
 
     {
-        FSM_HolderLoadUnload H(*this, LoadUnloadMode::Change);
+        FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Change);
 
         if (settings.unload_length) // Unload the filament
             filamentUnload(&Pause::loop_unload_change);
@@ -1282,15 +1282,17 @@ void Pause::FSM_HolderLoadUnload::unbindFromSafetyTimer() {
     SafetyTimer::Instance().UnbindPause(pause);
 }
 
-Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
-    : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode))
+Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode, const char *fnc, const char *file, int line)
+    : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode), fnc, file, line)
     , pause(p) {
     pause.clrRestoreTemp();
     bindToSafetyTimer();
     pause.park_nozzle_and_notify();
+    active = true;
 }
 
 Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
+    active = false;
     pause.RestoreTemp();
 
     const float min_layer_h = 0.05f;
@@ -1302,3 +1304,5 @@ Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
     }
     unbindFromSafetyTimer(); //unbind must be last action, without it Pause cannot block safety timer
 }
+
+bool Pause::FSM_HolderLoadUnload::active = false;

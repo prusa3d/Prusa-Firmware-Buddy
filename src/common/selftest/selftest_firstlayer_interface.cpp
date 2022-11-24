@@ -32,7 +32,7 @@ bool phaseFirstLayer(IPartHandler *&pFirstLayer, const FirstLayerConfig_t &confi
     // clang-format on
 
     bool in_progress = pFirstLayer->Loop();
-    fsm_change(ClientFSM::Selftest, IPartHandler::GetFsmPhase(), staticResult.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), staticResult.Serialize());
 
     if (in_progress) {
         return true;

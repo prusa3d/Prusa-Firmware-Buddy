@@ -32,7 +32,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis) {
 
     bool in_progress = m_pAxis->Loop();
     SelftestAxis_t result = SelftestAxis_t(staticResults[0], staticResults[1], staticResults[2]);
-    fsm_change(ClientFSM::Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
 
     if (in_progress) {
         return true;

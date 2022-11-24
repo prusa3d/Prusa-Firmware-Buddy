@@ -214,7 +214,7 @@ public:
 };
 
 /**
- * @brief Abstract parent of template QueueWrapper
+ * @brie parent of template QueueWrapper
  */
 class IQueueWrapper {
     ClientFSM fsm0 = ClientFSM::_none; // active fsm level 0
@@ -225,9 +225,9 @@ class IQueueWrapper {
     int fsm_last_phase[int(ClientFSM::_count)];
 
 protected:
-    bool pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, uint8_t data);
-    bool pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type);
-    bool pushChange(SmartQueue *pQueues, size_t sz, ClientFSM type, BaseData data);
+    bool pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, uint8_t data, const char *fnc, const char *file, int line);
+    bool pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type, const char *fnc, const char *file, int line);
+    bool pushChange(SmartQueue *pQueues, size_t sz, ClientFSM type, BaseData data, const char *fnc, const char *file, int line);
 
 public:
     ClientFSM GetFsm0() const { return fsm0; }
@@ -243,18 +243,18 @@ class QueueWrapper : public IQueueWrapper {
     SmartQueue queues[SZ];
 
 public:
-    inline bool PushCreate(ClientFSM type, uint8_t data) {
-        return pushCreate(queues, SZ, type, data);
+    bool PushCreate(ClientFSM type, uint8_t data, const char *fnc, const char *file, int line) {
+        return pushCreate(queues, SZ, type, data, fnc, file, line);
     }
-    inline bool PushDestroy(ClientFSM type) {
-        return pushDestroy(queues, SZ, type);
+    bool PushDestroy(ClientFSM type, const char *fnc, const char *file, int line) {
+        return pushDestroy(queues, SZ, type, fnc, file, line);
     }
-    inline bool PushChange(ClientFSM type, BaseData data) {
-        return pushChange(queues, SZ, type, data);
+    bool PushChange(ClientFSM type, BaseData data, const char *fnc, const char *file, int line) {
+        return pushChange(queues, SZ, type, data, fnc, file, line);
     }
 
-    inline variant_t Front(size_t queue) const { return queues[queue].Front(); }
-    inline bool Pop(size_t queue) { return queues[queue].Pop() != SmartQueue::Selector::error; }
+    variant_t Front(size_t queue) const { return queues[queue].Front(); }
+    bool Pop(size_t queue) { return queues[queue].Pop() != SmartQueue::Selector::error; }
 };
 
 }; //namespace fsm

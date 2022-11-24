@@ -377,7 +377,7 @@ void EspCredentials::Loop() {
 
         // update
         if (phase)
-            rfsm.Change(*phase, {}); //we dont need data, only phase
+            FSM_HOLDER_CHANGE_METHOD__LOGGING(rfsm, *phase, {}); //we dont need data, only phase
 
         //call idle loop to prevent watchdog
         idle(true, true);
@@ -588,7 +588,7 @@ void update_esp(bool force) {
         return;
 
     task_state = ESPUpdate::state::did_not_finished;
-    FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
+    FSM_HOLDER__LOGGING(Selftest, 0);
     status_t status;
     status.Empty();
 
@@ -599,7 +599,7 @@ void update_esp(bool force) {
         if (current != status) {
             status = current;
             SelftestESP_t data(status.progress, status.current_file, status.count_of_files);
-            fsm_holder.Change(status.phase, data);
+            FSM_HOLDER_CHANGE_METHOD__LOGGING(Selftest_from_macro, status.phase, data);
         }
 
         // call idle loop to prevent watchdog
@@ -612,24 +612,24 @@ void update_esp(bool force) {
 
     // need scope to not have 2 instances of credentials at time
     {
-        EspCredentials credentials(fsm_holder, EspCredentials::type_t::ini_creation);
+        EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::ini_creation);
         credentials.Loop();
     }
     // credentials will run even when ini file was skipped
     {
-        EspCredentials credentials(fsm_holder, EspCredentials::type_t::credentials_sequence);
+        EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::credentials_sequence);
         credentials.Loop();
     }
 }
 
 void update_esp_credentials() {
-    FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
-    EspCredentials credentials(fsm_holder, EspCredentials::type_t::credentials_standalone);
+    FSM_HOLDER__LOGGING(Selftest, 0);
+    EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::credentials_standalone);
     credentials.Loop();
 }
 
 void credentials_generate_ini() {
-    FSM_Holder fsm_holder(ClientFSM::Selftest, 0);
-    EspCredentials credentials(fsm_holder, EspCredentials::type_t::ini_creation);
+    FSM_HOLDER__LOGGING(Selftest, 0);
+    EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::ini_creation);
     credentials.Loop();
 }

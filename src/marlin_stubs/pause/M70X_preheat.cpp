@@ -24,7 +24,7 @@ static Response preheatTempKnown() {
 
 static Response preheatTempUnKnown(PreheatData preheat_data, bool break_on_autoload = false) {
     Response ret;
-    FSM_Holder H(ClientFSM::Preheat, preheat_data.Data());
+    FSM_HOLDER__LOGGING(Preheat, preheat_data.Data());
     while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
         if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().HasNotFilament()) {
             return Response::Abort;

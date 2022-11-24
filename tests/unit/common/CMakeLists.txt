@@ -30,7 +30,11 @@ add_executable(
   fsm_types_test ${CMAKE_CURRENT_SOURCE_DIR}/fsm_types_test.cpp
                  ${CMAKE_SOURCE_DIR}/src/common/fsm_types.cpp
   )
-target_include_directories(fsm_types_test PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+target_include_directories(
+  fsm_types_test
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/common
+  )
 
 add_executable(
   fsm_serializers_test ${CMAKE_CURRENT_SOURCE_DIR}/fsm_serializers_test.cpp
@@ -38,6 +42,7 @@ add_executable(
   )
 target_include_directories(
   fsm_serializers_test
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC ${CMAKE_SOURCE_DIR}/src/common
   PUBLIC ${CMAKE_SOURCE_DIR}/src/gui/wizard
   )

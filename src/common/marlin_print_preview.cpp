@@ -52,16 +52,16 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
     case FSM_action::no_action:
         break;
     case FSM_action::create:
-        fsm_create(ClientFSM::PrintPreview);
+        FSM_CREATE__LOGGING(PrintPreview);
         if (wantedPhase && *wantedPhase != PhasesPrintPreview::_first) {
-            fsm_change(ClientFSM::PrintPreview, *wantedPhase);
+            FSM_CHANGE__LOGGING(PrintPreview, *wantedPhase);
         }
         break;
     case FSM_action::destroy:
-        fsm_destroy(ClientFSM::PrintPreview);
+        FSM_DESTROY__LOGGING(PrintPreview);
         break;
     case FSM_action::change:
-        fsm_change(ClientFSM::PrintPreview, *wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
+        FSM_CHANGE__LOGGING(PrintPreview, *wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
         break;
     }
     phase = wantedPhase;

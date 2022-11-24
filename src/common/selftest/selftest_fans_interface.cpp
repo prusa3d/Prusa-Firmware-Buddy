@@ -35,7 +35,7 @@ bool phaseFans(IPartHandler *&pPrintFan, IPartHandler *&pHeatbreakFan, const Fan
     bool print_fan_in_progress = pPrintFan->Loop();
     bool heatbreak_fan_in_progress = pHeatbreakFan->Loop();
     SelftestFans_t result(staticResultPrintFan, staticResultHeatbreakFan);
-    fsm_change(ClientFSM::Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
     if (print_fan_in_progress || heatbreak_fan_in_progress) {
         return true;
     }
