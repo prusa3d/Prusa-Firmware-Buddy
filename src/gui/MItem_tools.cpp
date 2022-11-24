@@ -127,7 +127,7 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
     Response response = Response::No;
     do {
         //home if we repeat MBL, nozzle may be in different position than expected
-        if (!marlin_all_axes_homed() || response == Response::Yes) {
+        if (!marlin_all_axes_homed() || !marlin_all_axes_known() || response == Response::Yes) {
             marlin_event_clr(MARLIN_EVT_CommandBegin);
             marlin_gcode("G28");
             while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
