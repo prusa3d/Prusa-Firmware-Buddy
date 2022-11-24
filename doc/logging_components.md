@@ -7,6 +7,7 @@ This file is generated automatically so don't edit it directly
 - CrashDump: LOG_SEVERITY_INFO, src/common/crash_dump/crash_dump_distribute.cpp
 - EEPROM: LOG_SEVERITY_INFO, src/common/eeprom.cpp
 - ESPIF: LOG_SEVERITY_INFO, lib/WUI/espif.cpp
+- FSM: LOG_SEVERITY_INFO, src/common/fsm_types.cpp
 - FileSystem: LOG_SEVERITY_INFO, src/buddy/filesystem.c
 - GUI: LOG_SEVERITY_DEBUG, src/gui/logger.c
 - Marlin: LOG_SEVERITY_INFO, src/common/appmain.cpp

@@ -23,13 +23,13 @@ ISelftest::ISelftest()
 void ISelftest::phaseStart() {
     FSensors_instance().IncEvLock(); // block autoload and M600
     marlin_server_set_exclusive_mode(1);
-    fsm_create(ClientFSM::Selftest); // TODO data 0/1 selftest/wizard
+    FSM_CREATE__LOGGING(Selftest); // TODO data 0/1 selftest/wizard
     log_open();
 }
 
 void ISelftest::phaseFinish() {
     log_close();
-    fsm_destroy(ClientFSM::Selftest);
+    FSM_DESTROY__LOGGING(Selftest);
     marlin_server_set_exclusive_mode(0);
     FSensors_instance().DecEvLock(); // stop blocking autoload and M600
 }

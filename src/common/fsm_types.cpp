@@ -9,7 +9,7 @@
 
 using namespace fsm;
 
-LOG_COMPONENT_REF(MarlinServer);
+LOG_COMPONENT_DEF(FSM, LOG_SEVERITY_INFO);
 
 /**
  * @brief push create command into queue if able
@@ -215,7 +215,7 @@ SmartQueue::Selector SmartQueue::Pop() {
 SmartQueue::Selector SmartQueue::PushCreate(ClientFSM type, uint8_t data) {
     //error upper queue contains opened dialog
     if (queue1.GetOpenFsm() != ClientFSM::_none) {
-        log_error(MarlinServer, "Attempt to create 3rd level of fsm");
+        log_error(FSM, "Attempt to create 3rd level");
         return Selector::error;
     }
 
@@ -245,30 +245,30 @@ SmartQueue::Selector SmartQueue::PushChange(ClientFSM type, BaseData data) {
     return queue0.PushChange(type, data) == Queue::ret_val::ok ? Selector::q0 : Selector::error;
 }
 
-bool IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, uint8_t data) {
+bool IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, uint8_t data, const char *fnc, const char *file, int line) {
     if (!pQueues || sz == 0)
         return false;
 
     if (fsm0 == type) {
-        log_error(MarlinServer, "State machine already opened at level 0");
+        log_error(FSM, "CREATE: %s, %s, ln %i, already opened at level 0", fnc, file, line);
         return false;
     }
 
     if (fsm1 == type) {
-        log_error(MarlinServer, "State machine already opened at level 1");
+        log_error(FSM, "CREATE: %s, %s, ln %i, already opened at level 1", fnc, file, line);
         return false;
     }
 
     bool ret = true;
 
-    log_info(MarlinServer, "Creating state machine [%d]", int(type));
+    log_info(FSM, "CREATE [%d]: %s, %s, ln %i", int(type), fnc, file, line);
     fsm_last_phase[static_cast<int>(type)] = -1;
 
     for (size_t i = 0; i < sz; ++i) {
         switch (pQueues[i].PushCreate(type, data)) {
         case SmartQueue::Selector::error:
             ret = false;
-            log_error(MarlinServer, "Create state machine failed on queue [%i]", i);
+            log_error(FSM, "CREATE - failed on queue [%i]: %s, %s, ln %i", i, fnc, file, line);
             break;
         case SmartQueue::Selector::q0:
             fsm0 = type;
@@ -281,29 +281,29 @@ bool IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, u
     return ret;
 }
 
-bool IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type) {
+bool IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type, const char *fnc, const char *file, int line) {
     if (!pQueues || sz == 0)
         return false;
 
     if (fsm0 != type && fsm1 != type) {
-        log_error(MarlinServer, "Cannot close not opened state machine");
+        log_error(FSM, "DESTROY - does not exist: %s, %s, ln %i", fnc, file, line);
         return false;
     }
 
     if (fsm1 != type && fsm1 != ClientFSM::_none) {
-        log_error(MarlinServer, "Cannot close state machine while there is a different one above it");
+        log_error(FSM, "DESTROY - blocked by higher level FSM: %s, %s, ln %i", fnc, file, line);
         return false;
     }
 
     bool ret = true;
 
-    log_info(MarlinServer, "Destroying state machine [%d]", int(type));
+    log_info(FSM, "DESTROY [%d]: %s, %s, ln %i", int(type), fnc, file, line);
 
     for (size_t i = 0; i < sz; ++i) {
         switch (pQueues[i].PushDestroy(type)) {
         case SmartQueue::Selector::error:
             ret = false;
-            log_error(MarlinServer, "Destroy state failed on queue [%i]", i);
+            log_error(FSM, "DESTROY - failed on queue [%i]: %s, %s, ln %i", i, fnc, file, line);
             break;
         case SmartQueue::Selector::q0:
             fsm0 = ClientFSM::_none;
@@ -316,20 +316,26 @@ bool IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type) 
     return ret;
 }
 
-bool IQueueWrapper::pushChange(SmartQueue *pQueues, size_t sz, ClientFSM type, BaseData data) {
+bool IQueueWrapper::pushChange(SmartQueue *pQueues, size_t sz, ClientFSM type, BaseData data, const char *fnc, const char *file, int line) {
     if (!pQueues || sz == 0)
         return false;
     bool ret = true;
 
+    // top level type is wrong (none is ok) or required type is in neither queue
+    if ((fsm1 != type && fsm1 != ClientFSM::_none) || (fsm0 != type && fsm1 != type)) {
+        log_error(FSM, "CHANGE type mismatch: %s, %s, ln %i", fnc, file, line);
+        return false;
+    }
+
     if (fsm_last_phase[static_cast<int>(type)] != static_cast<int>(data.GetPhase())) {
-        log_info(MarlinServer, "Change state of [%i] to %" PRIu8, static_cast<int>(type), data.GetPhase());
+        log_info(FSM, "CHANGE of [%i] to %" PRIu8 " %s, %s, ln %i", static_cast<int>(type), data.GetPhase(), fnc, file, line);
         fsm_last_phase[static_cast<int>(type)] = static_cast<int>(data.GetPhase());
     }
 
     for (size_t i = 0; i < sz; ++i) {
         if (pQueues[i].PushChange(type, data) == SmartQueue::Selector::error) {
             ret = false;
-            log_error(MarlinServer, "Change state failed on queue [%i]", i);
+            log_error(FSM, "CHANGE failed on queue [%i]: %s, %s, ln %i", i, fnc, file, line);
         }
     }
     return ret;

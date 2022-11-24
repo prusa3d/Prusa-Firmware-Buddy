@@ -641,7 +641,7 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
     case mpsAborted:
         // correctly end previous print
         marlin_server_finalize_print();
-        fsm_destroy(ClientFSM::Printing);
+        FSM_DESTROY__LOGGING(Printing);
         break;
     case mpsPrintPreviewInit:
     case mpsPrintPreviewImage:
@@ -991,7 +991,7 @@ static void _server_print_loop(void) {
 
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
-        fsm_create(ClientFSM::Printing);
+        FSM_CREATE__LOGGING(Printing);
 #if HAS_BED_PROBE
         marlin_server.mbl_failed = false;
 #endif
@@ -1038,7 +1038,7 @@ static void _server_print_loop(void) {
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.is_repeated_crash() && xy_axes_length_ok() != Axis_length_t::ok) {
             /// resuming after a crash but axes are not ok => check again
-            fsm_create(ClientFSM::CrashRecovery);
+            FSM_CREATE__LOGGING(CrashRecovery);
             marlin_server.print_state = mpsCrashRecovery_Lifting;
             break;
         }
@@ -1164,7 +1164,7 @@ static void _server_print_loop(void) {
         break;
     case mpsExit:
         marlin_server_finalize_print();
-        fsm_destroy(ClientFSM::Printing);
+        FSM_DESTROY__LOGGING(Printing);
         marlin_server.print_state = mpsIdle;
         break;
 
@@ -1180,12 +1180,12 @@ static void _server_print_loop(void) {
         crash_s.set_state(Crash_s::RECOVERY);
 
         /// TODO: create FSM with different state
-        fsm_create(ClientFSM::CrashRecovery);
+        FSM_CREATE__LOGGING(CrashRecovery);
         Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
         if (crash_s.is_repeated_crash()) {
-            fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
+            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
         } else {
-            fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
+            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
         }
 
         // save the current resume position
@@ -1233,7 +1233,7 @@ static void _server_print_loop(void) {
 
         if (!crash_s.is_repeated_crash()) {
             marlin_server.print_state = mpsResuming_Begin;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
             break;
         }
         marlin_server.paused_ticks = ticks_ms(); //time when printing paused
@@ -1242,11 +1242,11 @@ static void _server_print_loop(void) {
             marlin_server.print_state = mpsCrashRecovery_Axis_NOK;
             Crash_recovery_fsm cr_fsm(axis_length_check(X_AXIS), axis_length_check(Y_AXIS));
             PhasesCrashRecovery pcr = (alok == Axis_length_t::shorter) ? PhasesCrashRecovery::axis_short : PhasesCrashRecovery::axis_long;
-            fsm_change(ClientFSM::CrashRecovery, pcr, cr_fsm.Serialize());
+            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, pcr, cr_fsm.Serialize());
             break;
         }
         Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
-        fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
+        FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
         marlin_server.print_state = mpsCrashRecovery_Repeated_Crash;
         break;
     }
@@ -1258,14 +1258,14 @@ static void _server_print_loop(void) {
             break;
         case Response::Resume: /// ignore wrong length of axes
             marlin_server.print_state = mpsResuming_Begin;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
             axes_length_set_ok(); /// ignore re-test of lengths
             break;
         case Response::_none:
             break;
         default:
             marlin_server.print_state = mpsPaused;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
         }
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;
@@ -1275,13 +1275,13 @@ static void _server_print_loop(void) {
         switch (ClientResponseHandler::GetResponseFromPhase(PhasesCrashRecovery::repeated_crash)) {
         case Response::Resume:
             marlin_server.print_state = mpsResuming_Begin;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
             break;
         case Response::_none:
             break;
         default:
             marlin_server.print_state = mpsPaused;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
         }
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;
@@ -2363,18 +2363,18 @@ const marlin_vars_t &marlin_server_read_vars() {
     return marlin_server.vars;
 }
 
-void fsm_create(ClientFSM type, uint8_t data) {
-    fsm_event_queues.PushCreate(type, data);
+void fsm_create(ClientFSM type, uint8_t data, const char *fnc, const char *file, int line) {
+    fsm_event_queues.PushCreate(type, data, fnc, file, line);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
-void fsm_destroy(ClientFSM type) {
-    fsm_event_queues.PushDestroy(type);
+void fsm_destroy(ClientFSM type, const char *fnc, const char *file, int line) {
+    fsm_event_queues.PushDestroy(type, fnc, file, line);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
-void _fsm_change(ClientFSM type, fsm::BaseData data) {
-    fsm_event_queues.PushChange(type, data);
+void _fsm_change(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line) {
+    fsm_event_queues.PushChange(type, data, fnc, file, line);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
@@ -2434,7 +2434,7 @@ void FSM_notifier::SendNotification() {
     if (progress > s_data.last_progress_sent) {
         s_data.last_progress_sent = progress;
         ProgressSerializer serializer(progress);
-        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, serializer.Serialize()));
+        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, serializer.Serialize()), __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
     activeInstance->postSendNotification();
 }

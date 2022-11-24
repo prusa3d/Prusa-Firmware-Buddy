@@ -200,10 +200,14 @@ private:
 
         void bindToSafetyTimer();
         void unbindFromSafetyTimer();
-
+        static bool active; // we currently support only 1 instance
     public:
-        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode);
+        FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode, const char *fnc, const char *file, int line);
         ~FSM_HolderLoadUnload();
         friend class Pause;
     };
+#define FSM_HOLDER_LOAD_UNLOAD_LOGGING(pause, mode) FSM_HolderLoadUnload load_unload_from_macro(pause, mode, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+
+public:
+    static bool IsFsmActive() { return FSM_HolderLoadUnload::active; }
 };

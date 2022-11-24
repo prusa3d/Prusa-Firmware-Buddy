@@ -12,20 +12,6 @@
 /*****************************************************************************/
 //C++ only features
 
-//todo ensure signature match
-//notify all clients to create finite statemachine
-void fsm_create(ClientFSM type, uint8_t data = 0);
-//notify all clients to destroy finite statemachine, must match fsm_destroy_t signature
-void fsm_destroy(ClientFSM type);
-//notify all clients to change state of finite statemachine, must match fsm_change_t signature
-//can be called inside while, notification is send only when is different from previous one
-void _fsm_change(ClientFSM type, fsm::BaseData data);
-
-template <class T>
-void fsm_change(ClientFSM type, T phase, fsm::PhaseData data = fsm::PhaseData({ 0, 0, 0, 0 })) {
-    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), data));
-}
-
 // user can stop waiting for heating/cooling by pressing a button
 bool can_stop_wait_for_heatup();
 void can_stop_wait_for_heatup(bool val);
@@ -134,14 +120,42 @@ using Notifier_WAITUSER = Notifier<MARLIN_VAR_WAITUSER, uint8_t>;
 using Notifier_SD_PDONE = Notifier<MARLIN_VAR_SD_PDONE, uint8_t>;
 using Notifier_DURATION = Notifier<MARLIN_VAR_DURATION, uint32_t>;
 
-//create finite state machine and automatically destroy it at the end of scope
+// macros to call automatically fsm_create/change/destroy the way it logs __PRETTY_FUNCTION__, __FILE__, __LINE__
+#define FSM_CREATE_WITH_DATA__LOGGING(fsm_type, data)        fsm_create(ClientFSM::fsm_type, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CREATE__LOGGING(fsm_type)                        fsm_create(ClientFSM::fsm_type, 0, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_DESTROY__LOGGING(fsm_type)                       fsm_destroy(ClientFSM::fsm_type, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CHANGE_WITH_DATA__LOGGING(fsm_type, phase, data) fsm_change(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define FSM_CHANGE__LOGGING(fsm_type, phase)                 fsm_change(ClientFSM::fsm_type, phase, fsm::PhaseData({ 0, 0, 0, 0 }), __PRETTY_FUNCTION__, __FILE__, __LINE__)
+//notify all clients to create finite statemachine
+void fsm_create(ClientFSM type, uint8_t data, const char *fnc, const char *file, int line);
+//notify all clients to destroy finite statemachine, must match fsm_destroy_t signature
+void fsm_destroy(ClientFSM type, const char *fnc, const char *file, int line);
+//notify all clients to change state of finite statemachine, must match fsm_change_t signature
+//can be called inside while, notification is send only when is different from previous one
+void _fsm_change(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line);
+
+template <class T>
+void fsm_change(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, const char *file, int line) {
+    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), data), fnc, file, line);
+}
+
+/**
+ * @brief create finite state machine and automatically destroy it at the end of scope
+ * do not create it directly, use FSM_HOLDER__LOGGING instead
+ */
 class FSM_Holder {
     ClientFSM dialog;
+    const char *fnc;
+    const char *file;
+    int line;
 
 public:
-    FSM_Holder(ClientFSM type, uint8_t data) //any data to send to dialog, could have different meaning for different dialogs
-        : dialog(type) {
-        fsm_create(type, data);
+    FSM_Holder(ClientFSM type, uint8_t data, const char *fnc, const char *file, int line) //any data to send to dialog, could have different meaning for different dialogs
+        : dialog(type)
+        , fnc(fnc)
+        , file(file)
+        , line(line) {
+        fsm_create(type, data, fnc, file, line);
     }
 
     template <class T>
@@ -150,20 +164,26 @@ public:
     }
 
     template <class T>
-    void Change(T phase, uint8_t progress) const {
+    void Change(T phase, uint8_t progress, const char *fnc, const char *file, int line) const {
         ProgressSerializer serializer(progress);
-        fsm_change(dialog, phase, serializer.Serialize());
+        fsm_change(dialog, phase, serializer.Serialize(), fnc, file, line);
     }
 
     template <class T, class U>
-    void Change(T phase, const U &serializer) const {
-        fsm_change(dialog, phase, serializer.Serialize());
+    void Change(T phase, const U &serializer, const char *fnc, const char *file, int line) const {
+        fsm_change(dialog, phase, serializer.Serialize(), fnc, file, line);
     }
 
     ~FSM_Holder() {
-        fsm_destroy(dialog);
+        fsm_destroy(dialog, fnc, file, line);
     }
 };
+// macro to create automatically FSM_Holder instance the way it logs __PRETTY_FUNCTION__, __FILE__, __LINE__
+// instance name is fsm_type##_from_macro - for example Selftest_from_macro in case of ClientFSM::Selftest
+#define FSM_HOLDER__LOGGING(fsm_type, data) FSM_Holder fsm_type##_from_macro(ClientFSM::fsm_type, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
+// macro to call change over FSM_Holder instance the way it logs __PRETTY_FUNCTION__, __FILE__, __LINE__
+// first parameter is instance name
+#define FSM_HOLDER_CHANGE_METHOD__LOGGING(fsm, phase, data) fsm.Change(phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 uint8_t get_var_sd_percent_done();
 void set_var_sd_percent_done(uint8_t value);
