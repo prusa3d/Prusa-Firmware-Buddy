@@ -41,12 +41,14 @@ struct F_DIR_RAII_Iterator {
     }
 
     bool EntryAccepted() const {
+        if (fno->lfn[0] == '.') { // ignore hidden files/directories
+            return false;
+        }
         if ((fno->d_type & DT_DIR) != 0) {
             return true; // all normal directories are accepted
         }
         // files are being filtered by their extension
-        // Also ignore files starting with '.'
-        return filename_is_gcode(fno->lfn) && (fno->lfn[0] != '.');
+        return filename_is_gcode(fno->lfn);
     }
 
     ~F_DIR_RAII_Iterator() {
