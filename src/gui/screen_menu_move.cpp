@@ -110,11 +110,8 @@ class ScreenMenuMove : public Screen {
     float prev_accel;
 
     void checkNozzleTemp() {
-        bool can_timeout = true;
-
         if (DUMMY_AXIS_E::IsTargetTempOk()) {
             Show<MI_COOLDOWN>();
-            can_timeout = false; //just do not timeout whe we are heating
         } else {
             if (menu.GetActiveItem() == &Item<MI_COOLDOWN>()) {
                 menu.Decrement(1);
@@ -125,8 +122,6 @@ class ScreenMenuMove : public Screen {
         if (IsTempOk() == Item<MI_AXIS_E>().IsHidden()) {
             menu.SwapVisibility(Item<DUMMY_AXIS_E>(), Item<MI_AXIS_E>());
         }
-
-        can_timeout ? SetMenuTimeoutClose() : ClrMenuTimeoutClose();
     }
 
 // TODO make unit test
@@ -197,6 +192,7 @@ public:
         marlin_gcode("M204 T200");
         Hide<MI_AXIS_E>(); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
         checkNozzleTemp();
+        ClrMenuTimeoutClose(); // No timeout for move screen
     }
     ~ScreenMenuMove() {
         char msg[20];
