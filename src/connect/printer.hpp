@@ -53,6 +53,8 @@ public:
         //   renew() - that would set it to NULL in such case.
         const char *job_path;
         const char *job_lfn;
+        // Type of filament loaded. Constant (in-code) strings.
+        const char *material;
         uint16_t flow_factor;
         uint16_t job_id;
         uint16_t print_fan_rpm;
