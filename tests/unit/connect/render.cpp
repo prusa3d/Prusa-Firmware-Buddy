@@ -164,7 +164,6 @@ TEST_CASE("Render") {
     }
 
     MockPrinter printer(params);
-    uint32_t fingerprint_out = 0;
     Tracked telemetry_changes;
     RenderState state(printer, action, telemetry_changes);
     Renderer renderer(std::move(state));

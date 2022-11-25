@@ -321,8 +321,9 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     char fname[TMP_BUFF_LEN];
     snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
 
+    // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
+    (void)ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
     // Close the file first, otherwise it can't be moved
-    ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
     tmp_upload_file.reset();
     auto putParams = std::get_if<PutParams>(&upload);
     bool overwrite = putParams != nullptr && putParams->overwrite;
