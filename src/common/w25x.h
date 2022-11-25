@@ -36,6 +36,7 @@ inline constexpr uint32_t w25x_dump_start_address = W25X_DUMP_START_ADDRESS;
 inline constexpr uint32_t w25x_error_start_adress = W25X_ERR_START_ADDRESS;
 inline constexpr uint32_t w25x_pp_start_address = W25X_PP_START_ADDRESS;
 inline constexpr uint32_t w25x_fs_start_address = W25X_FS_START_ADDRESS;
+inline constexpr size_t w25x_pp_size = w25x_fs_start_address - w25x_pp_start_address;
 #endif // defined(__cplusplus)
 
 /// Initialize the w25x module

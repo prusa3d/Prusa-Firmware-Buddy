@@ -66,7 +66,7 @@ void ac_fault_main(void const *argument) {
 }
 
 static constexpr uint32_t FLASH_OFFSET = w25x_pp_start_address;
-static constexpr uint32_t FLASH_SIZE = w25x_pp_start_address - w25x_fs_start_address;
+static constexpr uint32_t FLASH_SIZE = w25x_pp_size;
 
 // WARNING: mind the alignment, the following structures are not automatically packed
 // as they're shared also for the on-memory copy. The on-memory copy can be avoided
@@ -249,7 +249,9 @@ void flash_data::state_t::load() {
 }
 
 void flash_data::erase() {
-    w25x_sector_erase(FLASH_OFFSET);
+    for (uintptr_t addr = 0; addr < FLASH_SIZE; addr += W25X_BLOCK_SIZE) {
+        w25x_sector_erase(FLASH_OFFSET + addr);
+    }
 }
 
 void flash_data::sync() {
