@@ -121,6 +121,9 @@ namespace {
                     JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
                     JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
                     JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
+                    if (params.material != nullptr) {
+                        JSON_FIELD_STR("material", params.material) JSON_COMMA;
+                    }
                     if (!printing) {
                         // To avoid spamming the DB, connect doesn't want positions during printing
                         JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
