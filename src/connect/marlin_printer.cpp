@@ -10,6 +10,7 @@
 #include <netdev.h>
 #include <print_utils.hpp>
 #include <wui_api.h>
+#include <filament.h> //get_selected_filament_name
 
 #include <cassert>
 #include <cstdlib>
@@ -234,6 +235,7 @@ void MarlinPrinter::renew() {
 
 Printer::Params MarlinPrinter::params() const {
     Params params = {};
+    params.material = get_selected_filament_name();
     params.state = to_device_state(marlin_vars->print_state, ready);
     params.temp_bed = marlin_vars->temp_bed;
     params.target_bed = marlin_vars->target_bed;

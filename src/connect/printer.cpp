@@ -47,6 +47,10 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
             .add(int(pos[Printer::Y_AXIS_POS]));
     }
 
+    if (material != nullptr) {
+        crc.add_str(material);
+    }
+
     return crc
         .add(int(pos[Printer::Z_AXIS_POS]))
         .add(print_speed)
