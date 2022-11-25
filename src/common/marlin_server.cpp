@@ -802,8 +802,14 @@ bool marlin_server_print_reheat_ready() {
 
 #if ENABLED(POWER_PANIC)
 void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool start_paused) {
-    // Open the file and immediately stop to set the print position
+    // Open the file
     marlin_server_print_start(media_SFN_path, true);
+
+    // Start media server as followup actions from start will not be taken as we block state transitions
+    media_print_start();
+    crash_s.set_state(Crash_s::PRINTING);
+
+    // Immediately stop to set the print position
     media_print_quick_stop(pos);
 
     //open printing screen
