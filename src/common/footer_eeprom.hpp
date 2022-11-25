@@ -106,7 +106,7 @@ uint8_t GetCenterNAndFewer();
  * @return constexpr uint32_t
  */
 constexpr uint32_t Encode(record rec) {
-    uint32_t ret = uint32_t(rec[0]);
+    uint32_t ret = uint32_t(rec[0]) << count_of_trailing_ones;
     for (size_t i = 1; i < count; ++i) {
         ret |= uint32_t(rec[i]) << ((value_bit_size * i) + count_of_trailing_ones);
     }
