@@ -83,7 +83,7 @@ public:
         inline string_view_light(const char *s)
             : s(s) {}
         inline bool operator<(const string_view_light &s2) const {
-            return strcmp(s, s2.s) < 0;
+            return strcasecmp(s, s2.s) < 0;
         }
     };
 
