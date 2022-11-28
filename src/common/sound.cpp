@@ -156,12 +156,8 @@ void Sound::_playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[],
  */
 void Sound::play(eSOUND_TYPE eSoundType) {
     int t_size = 0;
-    eSOUND_MODE mode = eSoundMode;
 
-    if (eSoundType == eSOUND_TYPE::CriticalAlert)
-        mode = eSOUND_MODE::LOUD;
-
-    switch (mode) {
+    switch (eSoundMode) {
     case eSOUND_MODE::ONCE:
         t_size = sizeof(onceTypes) / sizeof(onceTypes[0]);
         _playSound(eSoundType, onceTypes, onceRepeats, onceDurations, onceDelays, t_size);

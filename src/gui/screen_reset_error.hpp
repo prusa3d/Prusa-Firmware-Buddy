@@ -3,6 +3,7 @@
 #include "gui.hpp"
 #include "window_text.hpp"
 #include "screen.hpp"
+#include "sound.hpp"
 
 class screen_reset_error_data_t : public AddSuperWindow<screen_t> {
 

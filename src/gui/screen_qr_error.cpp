@@ -113,6 +113,15 @@ ScreenErrorQR::ScreenErrorQR()
         }
     } else {
         // error found
+        const uint16_t maxtemp_bed_err_num = 205;
+        const uint16_t maxtemp_hotend_err_num = 206;
+        // For Maxtemp errors ignore user preferences and beep very loudly
+        if (error_code_short != maxtemp_bed_err_num && error_code_short != maxtemp_hotend_err_num) {
+            // Redscreens play CriticalAlert, which beeps indefinetly
+            // Only MAXTEMP errors should beep in SILENT mode
+            if (Sound_GetMode() == eSOUND_MODE::SILENT)
+                Sound_Stop();
+        }
         err_title.SetText(_(corresponding_error->err_title));
         err_description.SetText(_(corresponding_error->err_text));
         show_qr();

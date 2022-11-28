@@ -3,7 +3,6 @@
 #include "screen_reset_error.hpp"
 #include "config.h"
 #include "ScreenHandler.hpp"
-#include "sound.hpp"
 
 screen_reset_error_data_t::screen_reset_error_data_t()
     : AddSuperWindow<screen_t>()
