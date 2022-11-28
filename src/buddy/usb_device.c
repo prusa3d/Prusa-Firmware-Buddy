@@ -146,7 +146,6 @@ uint8_t const *tud_descriptor_device_cb(void) {
 enum {
     INTERFACE_CDC = 0,
     INTERFACE_CDC_DATA,
-    INTERFACE_MSC,
     INTERFACE_COUNT
 };
 
