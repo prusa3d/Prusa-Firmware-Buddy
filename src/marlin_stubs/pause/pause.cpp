@@ -8,6 +8,7 @@
 
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../lib/Marlin/Marlin/src/module/endstops.h"
 #include "../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
@@ -1036,10 +1037,20 @@ void Pause::park_nozzle_and_notify() {
 
     // move by z_lift, scope for Notifier_POS_Z
     if (isfinite(target_Z)) {
-        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
-        plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
-        if (wait_or_stop())
-            return;
+        if (axes_need_homing(_BV(Z_AXIS))) {
+            TemporaryGlobalEndstopsState park_move_endstops(true);
+            do_homing_move((AxisEnum)(Z_AXIS), target_Z, HOMING_FEEDRATE_INVERTED_Z // warning: the speed must probably be exactly this, otherwise endstops don't work
+#if ENABLED(MOVE_BACK_BEFORE_HOMING)
+                ,
+                false
+#endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
+            );
+        } else {
+            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
+            plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
+            if (wait_or_stop())
+                return;
+        }
     }
 
     // move to (x_pos, y_pos)
