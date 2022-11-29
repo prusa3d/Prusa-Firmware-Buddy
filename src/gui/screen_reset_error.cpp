@@ -3,6 +3,7 @@
 #include "screen_reset_error.hpp"
 #include "config.h"
 #include "ScreenHandler.hpp"
+#include "sound.hpp"
 
 screen_reset_error_data_t::screen_reset_error_data_t()
     : AddSuperWindow<screen_t>()
@@ -11,6 +12,8 @@ screen_reset_error_data_t::screen_reset_error_data_t()
     ClrMenuTimeoutClose();
     ClrOnSerialClose();
     SetBackColor(COLOR_RED);
+    volume_changed = false;
+    prev_volume = Sound_GetVolume();
     start_sound();
 }
 
@@ -30,6 +33,9 @@ void screen_reset_error_data_t::windowEvent(EventLock /*has private ctor*/, wind
     case GUI_event_t::CLICK:
     case GUI_event_t::HOLD:
         Sound_Stop();
+        if (volume_changed) {
+            Sound_SetVolume(prev_volume);
+        }
     default:
         break;
     }

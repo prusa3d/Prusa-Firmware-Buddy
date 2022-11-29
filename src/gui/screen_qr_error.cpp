@@ -115,12 +115,14 @@ ScreenErrorQR::ScreenErrorQR()
         // error found
         const uint16_t maxtemp_bed_err_num = 205;
         const uint16_t maxtemp_hotend_err_num = 206;
-        // For Maxtemp errors ignore user preferences and beep very loudly
         if (error_code_short != maxtemp_bed_err_num && error_code_short != maxtemp_hotend_err_num) {
-            // Redscreens play CriticalAlert, which beeps indefinetly
-            // Only MAXTEMP errors should beep in SILENT mode
+            // Redscreens play CriticalAlert, which beeps indefinetly in all modes
             if (Sound_GetMode() == eSOUND_MODE::SILENT)
                 Sound_Stop();
+        } else {
+            // Only MAXTEMP errors should beep in SILENT mode - very loudly
+            volume_changed = true;
+            Sound_SetVolume(10);
         }
         err_title.SetText(_(corresponding_error->err_title));
         err_description.SetText(_(corresponding_error->err_text));
