@@ -41,6 +41,9 @@ extern uint8_t gui_get_nesting(void);
 extern void gui_loop_cb();
 
 extern void gui_loop(void);
+extern void gui_error_run(void);
+
+extern void gui_bare_loop(void);
 
 extern void gui_reset_menu_timer();
 

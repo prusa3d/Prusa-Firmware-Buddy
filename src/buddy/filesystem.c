@@ -16,6 +16,7 @@ void filesystem_init() {
 #if !defined(_RETARGETABLE_LOCKING)
     libsysbase_syscalls_init();
 #endif
+
     filesystem_fatfs_init();
     filesystem_littlefs_internal_init();
 
@@ -26,6 +27,17 @@ void filesystem_init() {
 
     int device = filesystem_root_init();
 
+    if (device != -1) {
+        setDefaultDevice(device);
+    }
+}
+void init_only_littlefs() {
+#if !defined(_RETARGETABLE_LOCKING)
+    libsysbase_syscalls_init();
+#endif
+
+    filesystem_littlefs_internal_init();
+    int device = filesystem_root_init();
     if (device != -1) {
         setDefaultDevice(device);
     }

@@ -19,6 +19,7 @@ void main_cpp();
 extern int HAL_GPIO_Initialized;
 extern int HAL_ADC_Initialized;
 extern int HAL_PWM_Initialized;
+extern void init_error_screen();
 
 extern uartrxbuff_t uart1rxbuff;
 
