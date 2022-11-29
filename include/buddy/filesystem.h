@@ -15,6 +15,7 @@ extern "C" {
 #endif //defined(__cplusplus)
 
 void filesystem_init();
+void init_only_littlefs();
 
 static inline const char *process_path(const char *path, const char *dev_name) {
     unsigned int dev_name_len = strlen(dev_name);

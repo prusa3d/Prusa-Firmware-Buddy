@@ -33,6 +33,7 @@
 #include <option/has_gui.h>
 #include "tasks.h"
 #include <appmain.hpp>
+#include "safe_state.h"
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -73,20 +74,33 @@ extern "C" void main_cpp(void) {
     HAL_RCC_CSR = RCC->CSR;
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
-    logging_init();
-    components_init();
-
     hw_gpio_init();
     hw_dma_init();
 
-    hw_adc1_init();
-
-    hw_uart1_init();
-
     hw_tim1_init();
-    hw_tim3_init();
+    hw_tim14_init();
 
     SPI_INIT(flash);
+    // initialize SPI flash
+    w25x_spi_assign(&SPI_HANDLE_FOR(flash));
+    if (!w25x_init())
+        bsod("failed to initialize ext flash");
+
+    /*
+     * If we have BSOD or red screen we want to have as small boot proces as we can.
+     * We want to init just xflash, display and start gui task to display the bsod or redscreen
+     */
+    if ((dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) || (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed())) {
+        hwio_safe_state();
+        init_error_screen();
+        return;
+    }
+
+    logging_init();
+    components_init();
+    hw_adc1_init();
+    hw_uart1_init();
+    hw_tim3_init();
 
 #if HAS_GUI()
     SPI_INIT(lcd);
@@ -102,14 +116,8 @@ extern "C" void main_cpp(void) {
     hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
 #endif
 
-    hw_tim14_init();
     hw_rtc_init();
     hw_rng_init();
-
-    // initialize SPI flash
-    w25x_spi_assign(&SPI_HANDLE_FOR(flash));
-    if (!w25x_init())
-        bsod("failed to initialize ext flash");
 
     MX_USB_HOST_Init();
 
@@ -121,21 +129,6 @@ extern "C" void main_cpp(void) {
     HAL_ADC_Initialized = 1;
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
-
-    bool block_networking = false;
-    /*
-     * Checking this first, before starting the GUI thread. The GUI thread
-     * resets/consumes the dump as a side effect.
-     */
-    if ((dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed() && dump_in_xflash_get_type() == DUMP_HARDFAULT) || (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed())) {
-        /*
-        * This corresponds to booting into a bluescreen or serious
-        * redscreen. In such case, the GUI is blocked. Similar logic
-        * should apply to any network communication ‒ one probably shall
-        * not eg. start a print from there.
-        */
-        block_networking = true;
-    }
 
     eeprom_init_status_t status = eeprom_init();
     if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
@@ -170,20 +163,13 @@ extern "C" void main_cpp(void) {
     }
 
 #ifdef BUDDY_ENABLE_WUI
-    if (!block_networking) {
-        start_network_task();
-    }
-#else
-    // Avoid unused warning.
-    (void)block_networking;
+    start_network_task();
 #endif
 
 #ifdef BUDDY_ENABLE_CONNECT
-    if (!block_networking) {
-        /* definition and creation of connectTask */
-        osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2048);
-        connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
-    }
+    /* definition and creation of connectTask */
+    osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2048);
+    connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
 #if ENABLED(POWER_PANIC)
@@ -252,6 +238,13 @@ void StartDefaultTask(void const *argument) {
 
 void StartDisplayTask(void const *argument) {
     gui_run();
+    for (;;) {
+        osDelay(1);
+    }
+}
+
+void StartErrorDisplayTask(void const *argument) {
+    gui_error_run();
     for (;;) {
         osDelay(1);
     }
@@ -328,6 +321,19 @@ void spi_set_prescaler(SPI_HandleTypeDef *hspi, int prescaler_num) {
     HAL_SPI_DeInit(hspi);
     hspi->Init.BaudRatePrescaler = _spi_prescaler(prescaler_num);
     HAL_SPI_Init(hspi);
+}
+
+void init_error_screen() {
+    if constexpr (option::has_gui) {
+        // init lcd spi and timer for buzzer
+        SPI_INIT(lcd);
+        hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+
+        init_only_littlefs();
+
+        osThreadDef(displayTask, StartErrorDisplayTask, osPriorityNormal, 0, 1024 + 256);
+        displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+    }
 }
 
 #ifdef USE_FULL_ASSERT

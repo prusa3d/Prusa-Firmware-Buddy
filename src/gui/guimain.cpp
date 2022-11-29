@@ -230,36 +230,14 @@ static void manufacture_report() {
     taskEXIT_CRITICAL();
 }
 
-void gui_run(void) {
+void gui_error_run(void) {
 #ifdef USE_ST7789
     st7789v_config = st7789v_cfg;
 #endif
 
     gui_init();
 
-    // select jogwheel type by measured 'reset delay'
-    // original displays with 15 position encoder returns values 1-2 (short delay - no capacitor)
-    // new displays with MK3 encoder returns values around 16000 (long delay - 100nF capacitor)
-#ifdef GUI_JOGWHEEL_SUPPORT
-    #ifdef USE_ST7789
-    // run-time jogwheel type detection decides which type of jogwheel device has (each type has different encoder behaviour)
-    jogwheel.SetJogwheelType(st7789v_reset_delay);
-    #else /* ! USE_ST7789 */
-    jogwheel.SetJogwheelType(0);
-    #endif
-#endif
-
-    GuiDefaults::Font = resource_font(IDR_FNT_NORMAL);
-    GuiDefaults::FontBig = resource_font(IDR_FNT_BIG);
-    GuiDefaults::FontMenuItems = resource_font(IDR_FNT_NORMAL);
-    GuiDefaults::FontMenuSpecial = resource_font(IDR_FNT_SPECIAL);
-    GuiDefaults::FooterFont = resource_font(IDR_FNT_SPECIAL);
-
-    gui::knob::RegisterHeldLeftAction(TakeAScreenshot);
-    gui::knob::RegisterLongPressScreenAction(DialogMoveZ::Show);
-
     ScreenFactory::Creator error_screen = nullptr;
-
     // If both redscreen and bsod are pending - both are set as displayed, but redscreen is displayed
     if (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed()) {
         error_screen = ScreenFactory::Screen<ScreenErrorQR>;
@@ -267,7 +245,6 @@ void gui_run(void) {
     }
     if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
         if (error_screen == nullptr) {
-            blockISR(); // TODO delete blockISR() on this line to enable start after click
             switch (dump_in_xflash_get_type()) {
             case DUMP_HARDFAULT:
                 error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
@@ -282,8 +259,28 @@ void gui_run(void) {
         dump_in_xflash_set_displayed();
     }
 
+    screen_node screen_initializer { error_screen };
+    Screens::Init(screen_initializer);
+
+    while (true) {
+        gui::StartLoop();
+        Screens::Access()->Loop();
+        gui_bare_loop();
+        gui::EndLoop();
+    }
+}
+
+void gui_run(void) {
+#ifdef USE_ST7789
+    st7789v_config = st7789v_cfg;
+#endif
+
+    gui_init();
+
+    gui::knob::RegisterHeldLeftAction(TakeAScreenshot);
+    gui::knob::RegisterLongPressScreenAction(DialogMoveZ::Show);
+
     screen_node screen_initializer[] {
-        error_screen,
         ScreenFactory::Screen<screen_splash_data_t>, // splash
         ScreenFactory::Screen<screen_home_data_t>    // home
     };
