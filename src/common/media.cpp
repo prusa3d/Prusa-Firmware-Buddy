@@ -95,7 +95,7 @@ static uint32_t file_buff_pos;
 static osThreadId prefetch_thread_id;
 static GCodeFilter::State prefetch_state;
 osMutexDef(prefetch_mutex);
-osMutexId(prefetch_mutex_id);
+osMutexId prefetch_mutex_id;
 
 static void media_prefetch(const void *) {
     file_buff_level = file_buff_pos = 0;
