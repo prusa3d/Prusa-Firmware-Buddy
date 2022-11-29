@@ -7,6 +7,9 @@
 #include "bsod.h"
 #include <string.h>
 #include "sys.h"
+#include <stdio.h>
+#include <dirent.h>
+#include <cerrno>
 
 #include "scratch_buffer.hpp"
 #include "resources/bootstrap.hpp"
