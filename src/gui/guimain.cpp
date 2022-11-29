@@ -20,6 +20,7 @@
 #include "screen_qr_error.hpp"
 #include "screen_watchdog.hpp"
 #include "screen_filebrowser.hpp"
+#include "screen_printing.hpp"
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
@@ -351,7 +352,7 @@ void gui_run(void) {
             gui_redraw();
 
         // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
-        bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>());
+        bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && (Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>() || Screens::Access()->IsScreenOpened<screen_printing_data_t>()));
         bool in_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
         // this code handles start of print
         // it must be in main gui loop just before screen handler to ensure no FSM is opened
