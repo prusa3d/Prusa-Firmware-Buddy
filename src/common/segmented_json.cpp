@@ -91,6 +91,9 @@ JsonResult JsonOutput::output_chunk(size_t resume_point, ChunkRenderer &renderer
     assert(written <= buffer_size);
     buffer += written;
     buffer_size -= written;
+    if (written > 0) {
+        written_something = true;
+    }
     if (result != JsonResult::Complete) {
         this->resume_point = resume_point;
     }
