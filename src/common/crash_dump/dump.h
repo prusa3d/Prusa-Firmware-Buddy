@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include "stm32f4xx_hal.h"
+#include "printers.h"
 
 // dump types and flags
 static const uint8_t DUMP_UNDEFINED = 0xff;  // undefined - memory erased/empty/failed to read
