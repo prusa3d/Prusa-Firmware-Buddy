@@ -105,6 +105,7 @@ set(HAS_MARLIN TRUE)
 target_compile_definitions(
   BuddyHeaders
   INTERFACE MOTHERBOARD=1823
+            PRINTER_MODEL="${PRINTER}"
             PRINTER_TYPE=${PRINTER_TYPE}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
