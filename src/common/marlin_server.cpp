@@ -806,7 +806,7 @@ void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t p
     marlin_server_print_start(media_SFN_path, true);
 
     // Start media server as followup actions from start will not be taken as we block state transitions
-    media_print_start();
+    media_print_start(false);
     crash_s.set_state(Crash_s::PRINTING);
 
     // Immediately stop to set the print position
@@ -997,7 +997,7 @@ static void _server_print_loop(void) {
         endstops.enable_globally(true);
         crash_s.set_state(Crash_s::PRINTING);
 #endif // ENABLED(CRASH_RECOVERY)
-        media_print_start();
+        media_print_start(true);
 
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;

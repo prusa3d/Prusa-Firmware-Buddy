@@ -38,7 +38,7 @@ extern media_state_t media_get_state(void);
 extern void media_print_start__prepare(const char *sfnFilePath);
 
 /// Start printing by issuing M23 into Marlin with a file path set by media_print_start__prepare
-extern void media_print_start();
+extern void media_print_start(const bool prefetch_start);
 
 extern void media_print_stop(void);
 /// \brief Pauses print.
