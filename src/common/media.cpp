@@ -238,7 +238,7 @@ void media_print_start__prepare(const char *sfnFilePath) {
     }
 }
 
-void media_print_start() {
+void media_print_start(const bool prefetch_start) {
     if (media_print_state != media_print_state_NONE) {
         return;
     }
@@ -256,6 +256,10 @@ void media_print_start() {
         prefetch_mutex_id = osMutexCreate(osMutex(prefetch_mutex));
         prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
         // sanity check
+    }
+
+    if (!prefetch_start) {
+        return;
     }
 
     if ((media_print_file = fopen(media_print_SFN_path, "rb")) != nullptr) {
@@ -406,6 +410,9 @@ void media_loop(void) {
         if (media_print_file) {
             // complete closing the file in the main loop (for media_print_quick_stop)
             close_file();
+
+            // TODO: The this(media_loop) is run by marlin server thread while the media_prefetch
+            // thread can be already reading the the file as this closes it.
         }
         return;
     }
