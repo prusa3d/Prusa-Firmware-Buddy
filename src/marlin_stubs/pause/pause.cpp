@@ -1045,6 +1045,7 @@ void Pause::park_nozzle_and_notify() {
                 false
 #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
             );
+            current_position.z += target_Z;
         } else {
             Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
             plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
