@@ -201,12 +201,12 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         return;
     }
 
-    if (p_state == printing_state_t::PRINTED && marlin_error(MARLIN_ERR_ProbingFailed)) {
+    if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
             screen_printing_reprint();
         } else {
-            marlin_print_exit();
+            marlin_print_abort();
             return;
         }
     }
