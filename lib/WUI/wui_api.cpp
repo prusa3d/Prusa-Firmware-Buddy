@@ -307,8 +307,9 @@ void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
 
 void sntp_set_system_time(uint32_t sec) {
 
-    RTC_TimeTypeDef currTime;
-    RTC_DateTypeDef currDate;
+    // RTC_TimeTypeDef has attributes like TimeFormat (AM/PM) and DayLightSaving, which we don't use
+    RTC_TimeTypeDef currTime = { 0 };
+    RTC_DateTypeDef currDate = { 0 };
 
     struct tm current_time_val;
     time_t current_time = (time_t)sec;
