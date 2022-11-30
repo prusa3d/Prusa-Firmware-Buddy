@@ -44,8 +44,19 @@ JsonResult JsonOutput::output_field_str_format(size_t resume_point, const char *
     // First, discover how much space we need for the formatted string.
     char first_buffer[1];
     // +1 for \0
-    const size_t needed = vsnprintf(first_buffer, 1, format, params1) + 1;
+    size_t needed = vsnprintf(first_buffer, 1, format, params1) + 1;
     va_end(params1);
+
+    if (needed > buffer_size) {
+        // This won't fit. We want to reuse the output mechanism to handle all
+        // the nuances of not fitting in the correct way, but we want to cap
+        // the on-stack size to something sane (because the input could, in
+        // theory, be huge and we could risk overflow).
+        //
+        // Therefore, if we are _sure_ we won't fit, we shrink it to something
+        // that still won't fit, but not too much.
+        needed = buffer_size + 1;
+    }
 
     // Now, get the buffer of the right size and format it.
     char buffer[needed];
@@ -80,6 +91,9 @@ JsonResult JsonOutput::output_chunk(size_t resume_point, ChunkRenderer &renderer
     assert(written <= buffer_size);
     buffer += written;
     buffer_size -= written;
+    if (written > 0) {
+        written_something = true;
+    }
     if (result != JsonResult::Complete) {
         this->resume_point = resume_point;
     }
