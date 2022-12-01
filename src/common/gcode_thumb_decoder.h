@@ -47,14 +47,10 @@ struct SLine {
         return (const char *)(l);
     }
 
-    bool IsBeginThumbnail() const;
+    bool IsBeginThumbnail(uint16_t expected_width, uint16_t expected_height, bool allow_larder) const;
     bool IsEndThumbnail() const;
 };
 
-// zamerne je to singleton, aby se vsude vynutilo, ze je opravdu jen jedna
-// instance v celem programu Lze to pripadne predelat, ale je potreba myslet na
-// to, ze dekodovaci automaty nejsou bezestavove a musi nekde svoje stavy
-// pamatovat.
 class GCodeThumbDecoder {
     std::optional<Base64StreamDecoder> base64SD;
 
@@ -137,13 +133,15 @@ class GCodeThumbDecoder {
     States state = States::Searching;
 
     FILE *f;
+    bool allow_larger;
     uint16_t expected_width;
     uint16_t expected_height;
 
 public:
-    inline GCodeThumbDecoder(FILE *f, uint16_t expected_width, uint16_t expected_height, bool decode_base64)
+    inline GCodeThumbDecoder(FILE *f, uint16_t expected_width, uint16_t expected_height, bool decode_base64, bool allow_larger = false)
         : base64SD(decode_base64 ? std::make_optional(Base64StreamDecoder()) : std::nullopt)
         , f(f)
+        , allow_larger(allow_larger)
         , expected_width(expected_width)
         , expected_height(expected_height) {}
 

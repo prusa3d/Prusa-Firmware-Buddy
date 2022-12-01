@@ -31,14 +31,17 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
 
     uint16_t width;
     uint16_t height;
+    bool allow_larger;
 
     if (uri[prefix.size()] == 's') {
         width = 16;
         height = 16;
+        allow_larger = false;
     } else if (uri[prefix.size()] == 'l') {
-        // TODO: Can we say "something bigger than 16" instead of hardcoding?
-        width = 220;
-        height = 140;
+        // Anything bigger than 16
+        width = 17;
+        height = 17;
+        allow_larger = true;
     } else {
         return StatusPage(Status::NotFound, parser, "Thumbnail size specification not recognized");
     }
@@ -55,7 +58,7 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
         FILE *f = fopen(fname, "rb");
 
         if (f) {
-            return GCodePreview(f, fname, parser.can_keep_alive(), parser.accepts_json, width, height, parser.if_none_match);
+            return GCodePreview(f, fname, parser.can_keep_alive(), parser.accepts_json, width, height, allow_larger, parser.if_none_match);
         } else {
             return StatusPage(Status::NotFound, parser);
         }

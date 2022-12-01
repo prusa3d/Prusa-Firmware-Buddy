@@ -295,9 +295,6 @@ namespace {
                     JSON_FIELD_STR("display_name", event.path->name()) JSON_COMMA;
                     JSON_FIELD_STR("type", state.file_extra.renderer.holds_alternative<DirRenderer>() ? "FOLDER" : file_type_by_ext(event.path->path())) JSON_COMMA;
                     JSON_FIELD_STR("path", event.path->path());
-                    // TODO: There's a lot of other things we want to extract
-                    // from the file. To do that, we would also pre-open the
-                    // file, extract the preview, extract the info...
                 JSON_OBJ_END JSON_COMMA;
             }
 
@@ -396,8 +393,8 @@ namespace {
 }
 
 PreviewRenderer::PreviewRenderer(FILE *f)
-    // FIXME: The 16x16 request gives us 220x124 image. Any idea why? :-O
-    : decoder(f, 16, 16, false) {}
+    // Ask for anything bigger than 16x16 (at least 17x17).
+    : decoder(f, 17, 17, false, true) {}
 
 tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer_size) {
     constexpr const char *intro = "\"preview\":\"";

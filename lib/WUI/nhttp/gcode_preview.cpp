@@ -19,9 +19,9 @@ using http::ContentType;
 using http::Status;
 using std::string_view;
 
-GCodePreview::GCodePreview(FILE *f, const char *path, bool can_keep_alive, bool json_errors, uint16_t width, uint16_t height, uint32_t if_none_match)
+GCodePreview::GCodePreview(FILE *f, const char *path, bool can_keep_alive, bool json_errors, uint16_t width, uint16_t height, bool allow_larger, uint32_t if_none_match)
     : gcode(f)
-    , decoder(f, width, height, true)
+    , decoder(f, width, height, true, allow_larger)
     , can_keep_alive(can_keep_alive)
     , json_errors(json_errors) {
     struct stat finfo;
