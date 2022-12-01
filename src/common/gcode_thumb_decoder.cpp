@@ -1,6 +1,6 @@
 #include "gcode_thumb_decoder.h"
 
-bool SLine::IsBeginThumbnail() const {
+bool SLine::IsBeginThumbnail(uint16_t expected_width, uint16_t expected_height, bool allow_larder) const {
     static const char thumbnailBegin[] = "; thumbnail begin "; // pozor na tu mezeru na konci
     // pokud zacina radka na ; thumbnail, lze se tim zacit zabyvat
     // nemuzu pouzivat zadne pokrocile algoritmy, musim vystacit se strcmp
@@ -17,7 +17,7 @@ bool SLine::IsBeginThumbnail() const {
         int ss = sscanf(lc, "%ux%u %lu", &x, &y, &bytes);
         if (ss == 3) { // 3 uspesne prectene itemy - rozliseni
             // je to platny zacatek thumbnailu, je to ten muj?
-            if (x == 220 && y == 124) {
+            if ((x == expected_width && y == expected_height) || (allow_larder && x >= expected_width && y >= expected_height)) {
                 // je to ten muj, ktery chci
                 return true;
             }
@@ -92,7 +92,7 @@ int GCodeThumbDecoder::Read(char *pc, int n) {
                 state = States::Error;
                 break; // konec souboru
             }
-            if (l.IsBeginThumbnail()) {
+            if (l.IsBeginThumbnail(expected_width, expected_height, allow_larger)) {
                 state = States::Base64;
                 break; // nalezen png meho rozmeru, budu cist jeho data
             }
