@@ -52,7 +52,7 @@ target_include_directories(firmware PUBLIC "${resources_include_dir}")
 # Standard Resources Image
 #
 
-add_lfs_image(resources-image BLOCK_SIZE 256 BLOCK_COUNT 3000)
+add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 256)
 
 # /esp directory
 add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
@@ -92,7 +92,7 @@ add_header_with_revision(standard resources-image)
 #
 if(BOOTLOADER_UPDATE)
 
-  add_lfs_image(resources-bootloader-image BLOCK_SIZE 256 BLOCK_COUNT 1000)
+  add_lfs_image(resources-bootloader-image BLOCK_SIZE 4096 BLOCK_COUNT 64)
 
   get_dependency_directory("bootloader-${BOOTLOADER_VARIANT}" bootloader_dir)
   get_dependency_version("bootloader-${BOOTLOADER_VARIANT}" bootloader_version_str)

@@ -31,6 +31,7 @@ if(BOARD MATCHES "BUDDY")
   add_subdirectory(lang)
   add_subdirectory(marlin_stubs)
   add_subdirectory(syslog)
+  add_subdirectory(semihosting)
 endif()
 
 target_sources(firmware PRIVATE freertos.c freertos_openocd.c)
