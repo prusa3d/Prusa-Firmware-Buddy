@@ -222,22 +222,71 @@ UploadHooks::Result GcodeUpload::data(std::string_view data) {
 
 namespace {
 
-    UploadHooks::Result prepend_usb_path(const char *filename, char *filepath_out, size_t filepath_size) {
-        const uint32_t fname_length = strlen(filename);
-
-        if ((fname_length + USB_MOUNT_POINT_LENGTH) >= filepath_size) {
+    UploadHooks::Result prepend_usb_path(string_view filename, char *filepath_out, size_t filepath_size) {
+        if ((filename.length() + USB_MOUNT_POINT_LENGTH) >= filepath_size) {
             // The Request header fields too large is a bit of a stretch...
             return make_tuple(Status::RequestHeaderFieldsTooLarge, "File name too long");
         }
         strlcpy(filepath_out, USB_MOUNT_POINT, USB_MOUNT_POINT_LENGTH + 1);
-        strlcat(filepath_out, filename, FILE_PATH_BUFFER_LEN - USB_MOUNT_POINT_LENGTH);
+        strncat(filepath_out, filename.data(), filename.length());
+        filepath_out[USB_MOUNT_POINT_LENGTH + filename.length()] = '\0';
 
         return make_tuple(Status::Ok, nullptr);
+    }
+
+    UploadHooks::Result make_dir(string_view dir) {
+        char path[USB_MOUNT_POINT_LENGTH + dir.length() + 1];
+
+        auto error = prepend_usb_path(dir, path, sizeof(path));
+        if (std::get<0>(error) != Status::Ok) {
+            return error;
+        }
+        if (mkdir(path, 777) != 0) {
+            // teoretically could fail not on the first
+            // folder and we would then leave some previous
+            // folder in place ,but this is improbable...
+            if (errno != EEXIST)
+                return make_tuple(Status::InternalServerError, "Failed to create a folder");
+        }
+        return make_tuple(Status::Ok, nullptr);
+    }
+
+    UploadHooks::Result make_dirs(string_view path) {
+        size_t pos = path.find('/');
+        while (pos != path.npos) {
+            if (auto error = make_dir(path.substr(0, pos)); std::get<0>(error) != Status::Ok)
+                return error;
+            pos = path.find('/', pos + 1);
+        }
+
+        return make_tuple(Status::Ok, nullptr);
+    }
+
+    std::variant<bool, UploadHooks::Result> file_dir_exists(string_view path) {
+        size_t pos = path.find_last_of('/');
+        if (pos == path.npos) {
+            return true;
+        }
+        char last_dir[pos + USB_MOUNT_POINT_LENGTH + 1];
+        auto error = prepend_usb_path(path.substr(0, pos), last_dir, sizeof(last_dir));
+        if (std::get<0>(error) != Status::Ok) {
+            return error;
+        }
+        struct stat st;
+        if (stat(last_dir, &st) == 0) {
+            if (S_ISDIR(st.st_mode)) {
+                return true;
+            } else {
+                return make_tuple(Status::Conflict, "Conflicting upload path");
+            }
+        }
+        return false;
     }
 
     template <class F>
     UploadHooks::Result try_rename(const char *src, const char *dest_fname, bool overwrite, F f) {
         char fn[FILE_NAME_BUFFER_LEN];
+
         auto error = prepend_usb_path(dest_fname, fn, sizeof(fn));
         if (std::get<0>(error) != Status::Ok) {
             return error;
@@ -280,6 +329,19 @@ UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
         return make_tuple(Status::UnsupportedMediaType, "Not a GCODE");
     }
 
+    // Note: If the directory we want to upload to doesn't exist,
+    // we assume the filename is OK. If it is not OK for any reason
+    // (weird chars in filename or whatever), we just fail at the end of the download
+    // which is still fine. Alternativelly we would have to create all those dirs
+    // and then delete them, we don't want to do that for simplicity and performance.
+    if (auto result = file_dir_exists(filename); holds_alternative<bool>(result)) {
+        if (!get<bool>(result)) {
+            return make_tuple(Status::Ok, nullptr);
+        }
+    } else {
+        return get<UploadHooks::Result>(result);
+    }
+
     auto putParams = std::get_if<PutParams>(&upload);
     bool overwrite = putParams != nullptr && putParams->overwrite;
     if (overwrite) {
@@ -287,6 +349,7 @@ UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
         auto error = prepend_usb_path(filename, filepath, sizeof(filepath));
         if (std::get<0>(error) != Status::Ok)
             return error;
+
         if (wui_is_file_being_printed(filepath)) {
             return make_tuple(Status::Conflict, "File is busy");
         } else {
@@ -309,6 +372,11 @@ UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
 
 UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_print) {
     const auto fname = transfer_name(file_idx);
+
+    // create directories if uploading points to non existing one
+    if (auto error = make_dirs(final_filename); get<0>(error) != Status::Ok) {
+        return error;
+    }
 
     // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
     (void)ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
