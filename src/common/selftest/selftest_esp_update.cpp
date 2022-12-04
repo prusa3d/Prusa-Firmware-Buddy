@@ -583,7 +583,7 @@ void update_esp(bool force) {
         &xHandle);        // Used to pass out the created task's handle.
 
     // update did not start yet
-    // no fsm was openned, it is safe to just return in case sask was not created
+    // no fsm was opened, it is safe to just return in case sask was not created
     if (!xHandle)
         return;
 

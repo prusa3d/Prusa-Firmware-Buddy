@@ -113,7 +113,7 @@ Queue::ret_val Queue::PushChange(ClientFSM type, BaseData data) {
 }
 
 // must be empty or last command must create or change
-// if openned ClientFSM must match
+// if opened ClientFSM must match
 // no need to check size queue behavior does not allow push more than 3 items
 Queue::ret_val Queue::pushChange(change_t change) {
     if (count == 0) {

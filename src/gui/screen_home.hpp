@@ -13,8 +13,8 @@ public:
 private:
     static bool usbWasAlreadyInserted; // usb inserted at least once
     static uint32_t lastUploadCount;
-    static bool ever_been_openned; //set by ctor
-    static bool try_esp_flash;     // we try this maximum once
+    static bool ever_been_opened; //set by ctor
+    static bool try_esp_flash;    // we try this maximum once
 
     bool usbInserted;
     bool event_in_progress;
@@ -30,7 +30,7 @@ private:
     GCodeInfo &gcode;
 
 public:
-    static bool EverBeenOpenned() { return ever_been_openned; }
+    static bool EverBeenOpened() { return ever_been_opened; }
     screen_home_data_t();
     virtual ~screen_home_data_t() override;
 
