@@ -486,6 +486,7 @@ set_property(
 set_property(
   SOURCE src/common/marlin_server.cpp
          src/gui/screen_splash.cpp
+         src/gui/screen_home.cpp
          src/gui/screen_menu_settings.cpp
          src/gui/screen_menu_hw_setup.cpp
          src/gui/test/screen_test.cpp
