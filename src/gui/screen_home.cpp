@@ -26,7 +26,7 @@
 #include "i18n.h"
 #include <crash_dump/crash_dump_handlers.hpp>
 
-bool screen_home_data_t::ever_been_openned = false;
+bool screen_home_data_t::ever_been_opened = false;
 bool screen_home_data_t::try_esp_flash = true;
 
 static constexpr const png::Resource *icons[] = {
@@ -108,7 +108,7 @@ screen_home_data_t::screen_home_data_t()
     } else {
         usbWasAlreadyInserted = true;
     }
-    ever_been_openned = true;
+    ever_been_opened = true;
 }
 
 screen_home_data_t::~screen_home_data_t() {

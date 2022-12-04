@@ -89,7 +89,7 @@ MsgBuff_t &MsgCircleBuffer() {
 
 void MsgCircleBuffer_cb(const char *txt) {
     MsgCircleBuffer().push_back(txt);
-    // cannot open == already openned
+    // cannot open == already opened
     IScreenPrinting *const prt_screen = IScreenPrinting::GetInstance();
     if (prt_screen && (!prt_screen->GetPopUpRect().IsEmpty())) {
         // message for MakeRAM must exist at least as long as string_view_utf8 exists
@@ -331,7 +331,7 @@ void gui_run(void) {
     // TODO make some kind of registration
     while (1) {
         gui::StartLoop();
-        if (screen_home_data_t::EverBeenOpenned()) {
+        if (screen_home_data_t::EverBeenOpened()) {
             gui::fsensor::validate_for_cyclical_calls();
         }
 
