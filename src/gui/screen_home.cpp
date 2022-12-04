@@ -24,7 +24,12 @@
 #include "RAII.hpp"
 #include "lazyfilelist.h"
 #include "i18n.h"
+#include "netdev.h"
+
 #include <crash_dump/crash_dump_handlers.hpp>
+
+// TODO remove netdev_is_enabled after it is defined
+bool __attribute__((weak)) netdev_is_enabled(const uint32_t netdev_id) { return true; }
 
 bool screen_home_data_t::ever_been_opened = false;
 bool screen_home_data_t::try_esp_flash = true;
@@ -160,10 +165,14 @@ void screen_home_data_t::on_enter() {
 }
 
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    // TODO: This easily freezes home screen when flash action fails to start.
+    // There are several places in the code where executing a flash gcode can
+    // result in no-op and home screen stays active with events disabled.
     if (event_in_progress)
         return;
 
     AutoRestore avoid_recursion(event_in_progress, true);
+
     on_enter();
 
     if (event == GUI_event_t::MEDIA) {
@@ -190,35 +199,42 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         }
     }
 
-    if (event == GUI_event_t::LOOP && !DialogHandler::Access().IsOpen()) {
-        //esp update has bigger priority tha one click print
-        const auto fw_state = esp_fw_state();
-        if (try_esp_flash && (fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware)) {
-            try_esp_flash = false; // do esp flash only once (user can press abort)
-            marlin_gcode("M997 S1 O");
-            return;
-        } else {
-            // on esp update, can use one click print
-            if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
+    if (event == GUI_event_t::LOOP) {
 
-                // we are using marlin variables for filename and filepath buffers
-                marlin_vars_t *vars = marlin_vars();
-                // check if the variables filename and filepath are allocated
-                if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
+#if HAS_SELFTEST
+        if (!DialogHandler::Access().IsOpen()) {
+            //esp update has bigger priority tha one click print
+            const auto fw_state = esp_fw_state();
+            const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
+            if (try_esp_flash && esp_need_flash && netdev_is_enabled(NETDEV_ESP_ID)) {
+                try_esp_flash = false; // do esp flash only once (user can press abort)
+                marlin_gcode("M997 S1 O");
+                return;
+            } else {
+                // on esp update, can use one click print
+                if (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded()) {
 
-                    // TODO this should be done in main thread before MARLIN_EVT_MediaInserted is generated
-                    // if it is not the latest gcode might not be selected
-                    if (find_latest_gcode(
-                            vars->media_SFN_path,
-                            FILE_PATH_BUFFER_LEN,
-                            vars->media_LFN,
-                            FILE_NAME_BUFFER_LEN)) {
-                        print_begin(vars->media_SFN_path, false);
+                    // we are using marlin variables for filename and filepath buffers
+                    marlin_vars_t *vars = marlin_vars();
+                    // check if the variables filename and filepath are allocated
+                    if (vars->media_SFN_path != nullptr && vars->media_LFN != nullptr) {
+
+                        // TODO this should be done in main thread before MARLIN_EVT_MediaInserted is generated
+                        // if it is not the latest gcode might not be selected
+                        if (find_latest_gcode(
+                                vars->media_SFN_path,
+                                FILE_PATH_BUFFER_LEN,
+                                vars->media_LFN,
+                                FILE_NAME_BUFFER_LEN)) {
+                            print_begin(vars->media_SFN_path, false);
+                        }
                     }
                 }
             }
         }
+#endif // HAS_SELFTEST
     }
+
     if (event == GUI_event_t::HELD_RELEASED) {
         DialogMoveZ::Show();
         return;
