@@ -21,6 +21,7 @@
 #include "DialogHandler.hpp"
 #include "png_resources.hpp"
 
+#include "RAII.hpp"
 #include "lazyfilelist.h"
 #include "i18n.h"
 #include <crash_dump/crash_dump_handlers.hpp>
@@ -56,7 +57,7 @@ uint32_t screen_home_data_t::lastUploadCount = 0;
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
     , usbInserted(marlin_vars()->media_inserted)
-    , esp_flash_being_openned(false)
+    , event_in_progress(false)
     , header(this)
     , footer(this)
     , logo(this, Rect16(41, 31, 158, 40), &png::prusa_mini_logo_153x40)
@@ -159,9 +160,10 @@ void screen_home_data_t::on_enter() {
 }
 
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (esp_flash_being_openned)
+    if (event_in_progress)
         return;
 
+    AutoRestore avoid_recursion(event_in_progress, true);
     on_enter();
 
     if (event == GUI_event_t::MEDIA) {
@@ -192,8 +194,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         //esp update has bigger priority tha one click print
         const auto fw_state = esp_fw_state();
         if (try_esp_flash && (fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware)) {
-            try_esp_flash = false;          // do esp flash only once (user can press abort)
-            esp_flash_being_openned = true; // wait for process of gcode == open of flash screen
+            try_esp_flash = false; // do esp flash only once (user can press abort)
             marlin_gcode("M997 S1 O");
             return;
         } else {

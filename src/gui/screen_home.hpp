@@ -17,7 +17,7 @@ private:
     static bool try_esp_flash;     // we try this maximum once
 
     bool usbInserted;
-    bool esp_flash_being_openned;
+    bool event_in_progress;
     bool first_event { true };
 
     window_header_t header;
