@@ -219,6 +219,7 @@ static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname
         if (is_newer) {
             strlcpy(fpath + 5, dir.fno->d_name, fpath_len - 5);
             strlcpy(fname, dir.fno->lfn, fname_len);
+            latest_time = dir.fno->time;
         }
     }
 
