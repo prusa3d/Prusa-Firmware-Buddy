@@ -263,6 +263,13 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
 optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     const auto [config, cfg_changed] = printer.config();
 
+    // Make sure to reconnect if the configuration changes .
+    if (cfg_changed) {
+        conn_factory.invalidate();
+        // Possibly new server, new telemetry cache...
+        telemetry_changes.mark_dirty();
+    }
+
     if (!config.enabled) {
         planner.reset();
         osDelay(IDLE_WAIT);
@@ -295,13 +302,6 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         osDelay(s->milliseconds % IDLE_WAIT);
         // Don't change the status now, we just slept
         return nullopt;
-    }
-
-    // Make sure to reconnect if the configuration changes .
-    if (cfg_changed) {
-        conn_factory.invalidate();
-        // Possibly new server, new telemetry cache...
-        telemetry_changes.mark_dirty();
     }
 
     // Let it reconnect if it needs it.
