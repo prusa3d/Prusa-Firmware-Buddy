@@ -366,6 +366,7 @@ namespace {
         // to the rest because of compatibility.
         { "ironing", MetaFilter::Int },
         { "support_material", MetaFilter::Int },
+        { "max_layer_z", MetaFilter::Float },
     };
 
     MetaFilter meta_filter(const char *name) {
