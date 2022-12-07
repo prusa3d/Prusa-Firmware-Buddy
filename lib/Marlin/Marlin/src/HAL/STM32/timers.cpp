@@ -78,7 +78,7 @@
   #define MCU_TEMP_TIMER 10
 #elif defined(STM32F4xx) || defined(STM32F7xx) || defined(STM32H7xx)
   #define MCU_STEP_TIMER  6
-  #define MCU_TEMP_TIMER 14           // TIM7 is consumed by Software Serial if used.
+  #define MCU_TEMP_TIMER  7
 #endif
 
 #ifndef HAL_TIMER_RATE
