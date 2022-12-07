@@ -2,6 +2,14 @@
 
 #include <stdbool.h>
 
+struct dirent;
+
+bool filename_is_firmware(const char *fname);
+
+const char *file_type_by_ext(const char *fname);
+
+const char *file_type(const dirent *ent);
+
 bool filename_has_ext(const char *fname, const char *ext);
 
 /**

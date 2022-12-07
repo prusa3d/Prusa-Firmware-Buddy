@@ -168,10 +168,10 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                 return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
             }
             case Method::Get: {
-                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1);
             }
             case Method::Head: {
-                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head);
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head, FileInfo::APIVersion::v1);
             }
             case Method::Delete: {
                 return delete_file(filename, parser);
@@ -218,7 +218,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
 
             switch (parser.method) {
             case Method::Get: {
-                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get);
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint);
             }
             case Method::Delete: {
                 return delete_file(filename, parser);
