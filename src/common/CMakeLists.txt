@@ -17,11 +17,11 @@ if(BOARD MATCHES ".*BUDDY")
             errors.cpp
             ExtInterruptHandler.cpp
             fanctl.cpp
+            filename_type.cpp
             footer_eeprom.cpp
             freertos_mutex.cpp
             fsm_types.cpp
             gcode_file.cpp
-            gcode_filename.cpp
             gcode_filter.cpp
             gcode_info.cpp
             gcode_thumb_decoder.cpp

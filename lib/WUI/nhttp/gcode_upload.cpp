@@ -2,7 +2,7 @@
 #include "upload_state.h"
 #include "file_info.h"
 #include "handler.h"
-#include "../../src/common/gcode_filename.hpp"
+#include "../../src/common/filename_type.hpp"
 #include "../wui_api.h"
 
 #include <transfers/files.hpp>
@@ -164,7 +164,7 @@ Step GcodeUpload::step(string_view input, const size_t read, UploadState &upload
             strcpy(filename, USB_MOUNT_POINT);
             const char *orig_filename = uploader.get_filename();
             strlcpy(filename + USB_MOUNT_POINT_LENGTH, orig_filename, sizeof(filename) - USB_MOUNT_POINT_LENGTH);
-            return { read, 0, FileInfo(filename, false, json_errors, true, FileInfo::ReqMethod::Get) };
+            return { read, 0, FileInfo(filename, false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint) };
         } else {
             return { read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing file") };
         }
@@ -198,7 +198,7 @@ Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParam
         if (std::get<0>(finish_error) != Status::Ok)
             return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(finish_error)) };
 
-        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true, FileInfo::ReqMethod::Get) };
+        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1) };
     }
 
     return { read, 0, Continue() };

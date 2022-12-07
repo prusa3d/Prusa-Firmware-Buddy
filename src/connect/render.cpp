@@ -3,7 +3,7 @@
 #include <segmented_json_macros.h>
 #include <eeprom.h>
 #include <lfn.h>
-#include <gcode_filename.hpp>
+#include <filename_type.hpp>
 #include <gcode_file.h>
 #include <basename.h>
 #include <timing.h>
@@ -62,28 +62,6 @@ namespace {
             return true;
         default:
             return false;
-        }
-    }
-
-    bool filename_is_firmware(const char *fname) {
-        return filename_has_ext(fname, ".bbf");
-    };
-
-    const char *file_type_by_ext(const char *fname) {
-        if (filename_is_gcode(fname)) {
-            return "PRINT_FILE";
-        } else if (filename_is_firmware(fname)) {
-            return "FIRMWARE";
-        } else {
-            return "FILE";
-        }
-    }
-
-    const char *file_type(const dirent *ent) {
-        if (ent->d_type == DT_DIR) {
-            return "FOLDER";
-        } else {
-            return file_type_by_ext(ent->d_name);
         }
     }
 
