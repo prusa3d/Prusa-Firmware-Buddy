@@ -186,7 +186,7 @@ void Rect16::Align(Rect16 rc, Align_t align) {
     }
 }
 
-void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, uint8_t text_width[]) const {
+void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, const uint8_t text_width[]) const {
     if (count == 0)
         return;
     if (count == 1) {
@@ -227,7 +227,7 @@ void Rect16::HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t coun
 }
 
 /// TODO: this is not used, should share the code with HorizontalSplit
-void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, uint8_t ratio[]) const {
+void Rect16::VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing, const uint8_t ratio[]) const {
     if (count == 0)
         return;
     if (count == 1) {
