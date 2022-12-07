@@ -36,6 +36,9 @@ void prepare();
 // Start resuming a stored print
 void resume_print(bool start_paused);
 
+// Actually resume the print after starting paused
+void resume_continue();
+
 // Main resume loop handler
 void resume_loop();
 

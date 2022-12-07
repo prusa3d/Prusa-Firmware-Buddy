@@ -771,6 +771,7 @@ void marlin_server_print_resume(void) {
         marlin_server.print_state = mpsResuming_Begin;
 #if ENABLED(POWER_PANIC)
     } else if (marlin_server.print_state == mpsPowerPanic_AwaitingResume) {
+        power_panic::resume_continue();
         marlin_server.print_state = mpsPowerPanic_Resume;
 #endif
     } else
@@ -1294,6 +1295,7 @@ static void _server_print_loop(void) {
     case mpsPowerPanic_acFault:
         power_panic::ac_fault_loop();
         break;
+    case mpsPowerPanic_AwaitingResume:
     case mpsPowerPanic_Resume:
         power_panic::resume_loop();
         break;
