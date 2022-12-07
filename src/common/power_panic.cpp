@@ -337,6 +337,7 @@ void prepare() {
 
 enum class ResumeState : uint8_t {
     Setup,
+    Resume,
     WaitForHeaters,
     Unpark,
     ParkForPause,
@@ -378,12 +379,25 @@ void resume_print(bool start_paused) {
 
     log_info(PowerPanic, "resuming print");
     state_buf.nested_fault = true;
+    if (resume_state == ResumeState::Setup && !start_paused) {
+        resume_state = ResumeState::Resume;
+    }
     marlin_server_powerpanic_resume_loop(state_buf.media_SFN_path, state_buf.crash.sdpos, start_paused);
+}
+
+void resume_continue() {
+    if (resume_state == ResumeState::Setup) {
+        resume_state = ResumeState::Resume;
+    }
 }
 
 void resume_loop() {
     switch (resume_state) {
     case ResumeState::Setup:
+        // Set bed temperature to prevent bed from cooling down
+        thermalManager.setTargetBed(state_buf.planner.target_bed);
+        break;
+    case ResumeState::Resume:
         if (state_buf.planner.was_paused) {
             // setup the paused state
             resume_state_t resume;
@@ -394,6 +408,9 @@ void resume_loop() {
         } else {
             // setup nozzle temperature
             thermalManager.setTargetHotend(state_buf.planner.target_nozzle, 0);
+#if FAN_COUNT > 0
+            thermalManager.set_fan_speed(0, state_buf.planner.fan_speed);
+#endif
             marlin_server_set_temp_to_display(state_buf.planner.target_nozzle);
         }
 
