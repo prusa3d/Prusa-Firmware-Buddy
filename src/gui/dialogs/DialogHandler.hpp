@@ -24,14 +24,14 @@ class DialogHandler {
 
     void close(fsm::destroy_t o);
     void change(fsm::change_t o);
-    void open(fsm::create_t o); //can be enforced (pre openned), unlike change/close
+    void open(fsm::create_t o); //can be enforced (pre opened), unlike change/close
     void command(fsm::variant_t variant);
 
 public:
     //accessor for static methods
     static DialogHandler &Access();
     static void Command(uint32_t u32, uint16_t u16);     //static method to be registered as callback, marlin client is in C, so cannot pass fsm::variant_t
-    static void PreOpen(ClientFSM dialog, uint8_t data); //can be enforced (pre openned), unlike change/close
+    static void PreOpen(ClientFSM dialog, uint8_t data); //can be enforced (pre opened), unlike change/close
 
     redraw_cmd_t Loop();                                  //synchronization loop, call it outside event
     void WaitUntilClosed(ClientFSM dialog, uint8_t data); // opens dialog, waits until closed, auto loops

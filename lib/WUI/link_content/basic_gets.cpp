@@ -167,7 +167,7 @@ JsonResult get_version(size_t resume_point, JsonOutput &output) {
         // the version is supposed to mean anyway. Waiting for the new
         // PrusaLink API to replace this?
         JSON_FIELD_STR("server", LWIP_VERSION_STRING) JSON_COMMA;
-        JSON_FIELD_STR("text", "PrusaLink MINI") JSON_COMMA;
+        JSON_FIELD_STR("text", "PrusaLink") JSON_COMMA;
         JSON_FIELD_STR("hostname", hostname) JSON_COMMA;
         JSON_FIELD_OBJ("capabilities");
             JSON_FIELD_BOOL("upload-by-put", true);

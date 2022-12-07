@@ -142,25 +142,25 @@ void sntp_set_system_time(uint32_t sec);
 void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp);
 
 ////////////////////////////////////////////////////////////////////////////
-/// @brief Authorization key for PrusaLink
+/// @brief Authorization password for PrusaLink
 ///
-/// @return Return an x-api-key
-const char *wui_get_api_key();
+/// @return Return a password
+const char *wui_get_password();
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Generate authorization password for PrusaLink
+///
+/// @param[out] buffer password buffer
+/// @param[in] length Size of the buffer
+/// @return Return a password
+const char *wui_generate_password(char *, uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Generate authorization key for PrusaLink
 ///
-/// @param[out] buffer api key buffer
+/// @param[out] password password buffer
 /// @param[in] length Size of the buffer
-/// @return Return an x-api-key
-const char *wui_generate_api_key(char *, uint32_t);
-
-////////////////////////////////////////////////////////////////////////////
-/// @brief Generate authorization key for PrusaLink
-///
-/// @param[out] api_key api key buffer
-/// @param[in] length Size of the buffer
-void wui_store_api_key(char *, uint32_t);
+void wui_store_password(char *, uint32_t);
 
 /// Start a print of a given filename.
 ///
@@ -188,6 +188,16 @@ bool wui_uploaded_gcode(char *path, bool start_print);
 ///
 /// Thread safe.
 uint32_t wui_gcodes_uploaded();
+
+/// Number of gcode modifications - uploaded, deleted, ...
+///
+/// Similar purpose as with wui_gcodes_uploaded (to watch for something
+/// changing), but also includes deletes (and in future, possible other
+/// operations like renames).
+uint32_t wui_gcodes_mods();
+
+/// A gcode was modified, count it into the number of modifications.
+void wui_gcode_modified();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief initialize marlin client for tcpip thread

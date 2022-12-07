@@ -121,7 +121,7 @@ enum eevar_id {
     EEVAR_ODOMETER_TIME = 0x3f,       // uin32_t total print duration
     EEVAR_ACTIVE_NETDEV = 0x40,       // active network device
     EEVAR_PL_RUN = 0x41,              // active network device
-    EEVAR_PL_API_KEY = 0x42,          // active network device
+    EEVAR_PL_PASSWORD = 0x42,         // active network device
 
 // wifi variables (comes under the same feature flag as eth LAN)
 // FIXME: EEPROM_FEATURE_LAN probably can't be turned off, the .cpp file won't work then.
@@ -164,7 +164,7 @@ enum {
     LAN_HOSTNAME_MAX_LEN = 20,
     CONNECT_HOST_SIZE = 20,
     CONNECT_TOKEN_SIZE = 20,
-    PL_API_KEY_SIZE = 16,
+    PL_PASSWORD_SIZE = 16,
     LAN_EEFLG_ONOFF = 1,     //EEPROM flag for user-defined settings (SW turn OFF/ON of the LAN)
     LAN_EEFLG_TYPE = 2,      //EEPROM flag for user-defined settings (Switch between dhcp and static)
     WIFI_EEFLG_SEC = 0b1100, // Wifi security (ap_sec_t).

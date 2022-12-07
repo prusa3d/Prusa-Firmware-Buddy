@@ -44,14 +44,14 @@ public:
      */
     virtual const handler::Selector *const *selectors() const = 0;
     /**
-     * \brief Looks up an API key.
+     * \brief Looks up a password.
      *
-     * Provides the API key. If this is null, all access to restricted
+     * Provides the password. If this is null, all access to restricted
      * resources is denied.
      *
      * FIXME: there are (probably) thread synchronization issues:
      *
-     * * If the API key changes in the middle of parsing of the one provided in
+     * * If the password changes in the middle of parsing of the one provided in
      *   the headers, half of it is checked against the old one and half against
      *   the new one. We probably can live with that (it'll likely result in
      *   refusing the request; if someone can guess where the change happens
@@ -62,7 +62,7 @@ public:
      *   deleting the old one is a data race/UB. We need to find a solution,
      *   but for now, changing the key is very rare and happens in-place.
      */
-    virtual const char *get_api_key() const = 0;
+    virtual const char *get_password() const = 0;
     /**
      * \brief Allocate the listener socket.
      */
@@ -296,8 +296,8 @@ public:
         return defs.selectors();
     }
 
-    const char *get_api_key() const {
-        return defs.get_api_key();
+    const char *get_password() const {
+        return defs.get_password();
     }
 };
 

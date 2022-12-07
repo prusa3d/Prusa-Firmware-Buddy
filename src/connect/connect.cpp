@@ -90,7 +90,7 @@ namespace {
         }
 
     public:
-        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action)
+        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, Tracked &telemetry_changes)
             : hdrs {
                 // Even though the fingerprint is on a temporary, that
                 // pointer is guaranteed to stay stable.
@@ -98,7 +98,7 @@ namespace {
                 { "Token", config.token, nullopt },
                 { nullptr, nullptr, nullopt }
             }
-            , renderer(RenderState(printer, action))
+            , renderer(RenderState(printer, action, telemetry_changes))
             , target_url(visit([](const auto &action) { return url(action); }, action)) {}
         virtual const char *url() const override {
             return target_url;
@@ -148,8 +148,11 @@ namespace {
     // for that.
     const constexpr size_t MAX_RESP_SIZE = 256;
 
-    // Wait one second between config retries and similar.
-    const constexpr uint32_t IDLE_WAIT = 1000;
+    // Wait half a second between config retries and similar.
+    const constexpr uint32_t IDLE_WAIT = 500;
+
+    // Send a full telemetry every 5 minutes.
+    const constexpr uint32_t FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
 
     using Cache = variant<monostate, tls, socket_con, Error>;
 }
@@ -187,7 +190,6 @@ public:
         }
         assert(!holds_alternative<monostate>(cache));
     }
-    uint32_t cfg_fingerprint = 0;
 };
 
 connect::ServerResp connect::handle_server_resp(Response resp) {
@@ -261,6 +263,13 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
 optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     const auto [config, cfg_changed] = printer.config();
 
+    // Make sure to reconnect if the configuration changes .
+    if (cfg_changed) {
+        conn_factory.invalidate();
+        // Possibly new server, new telemetry cache...
+        telemetry_changes.mark_dirty();
+    }
+
     if (!config.enabled) {
         planner.reset();
         osDelay(IDLE_WAIT);
@@ -273,18 +282,26 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         return OnlineStatus::NoConfig;
     }
 
+    printer.renew();
+
     auto action = planner.next_action();
 
     // Handle sleeping first. That one doesn't need the connection.
     if (auto *s = get_if<Sleep>(&action)) {
-        osDelay(s->milliseconds);
+        for (size_t i = 0; i < s->milliseconds / IDLE_WAIT; i++) {
+            // In case there's a change in situation during a long sleep, we
+            // want to retry sooner (new config might lead to being able to
+            // connect or something).
+            osDelay(IDLE_WAIT);
+
+            if (std::get<1>(printer.config(false))) {
+                return nullopt;
+            }
+        }
+
+        osDelay(s->milliseconds % IDLE_WAIT);
         // Don't change the status now, we just slept
         return nullopt;
-    }
-
-    // Make sure to reconnect if the configuration changes .
-    if (cfg_changed) {
-        conn_factory.invalidate();
     }
 
     // Let it reconnect if it needs it.
@@ -303,11 +320,20 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         }
     });
 
-    printer.renew();
-
     HttpClient http(conn_factory);
 
-    BasicRequest request(printer, config, action);
+    uint32_t now = ticks_ms();
+    // Underflow should naturally work
+    if (now - last_full_telemetry >= FULL_TELEMETRY_EVERY) {
+        // The server wants to get a full telemetry from time to time, despite
+        // it not being changed. Some caching reasons/recovery/whatever?
+        //
+        // If we didn't send a new telemetry for too long, reset the
+        // fingerprint, which'll trigger the resend.
+        telemetry_changes.mark_dirty();
+    }
+
+    BasicRequest request(printer, config, action, telemetry_changes);
     const auto result = http.send(request);
 
     if (holds_alternative<Error>(result)) {
@@ -320,12 +346,26 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     if (!resp.can_keep_alive) {
         conn_factory.invalidate();
     }
+    const bool is_full_telemetry = holds_alternative<SendTelemetry>(action) && !get<SendTelemetry>(action).empty;
     switch (resp.status) {
     // The server has nothing to tell us
     case Status::NoContent:
         planner.action_done(ActionResult::Ok);
+        if (is_full_telemetry && telemetry_changes.is_dirty()) {
+            // We check the is_dirty too, because if it was _not_ dirty, we
+            // sent only partial telemetry and don't want to reset the
+            // last_full_telemetry.
+            telemetry_changes.mark_clean();
+            last_full_telemetry = now;
+        }
         return OnlineStatus::Ok;
     case Status::Ok: {
+        if (is_full_telemetry && telemetry_changes.is_dirty()) {
+            // Yes, even before checking the command we got is OK. We did send
+            // the telemetry, what happens to the command doesn't matter.
+            telemetry_changes.mark_clean();
+            last_full_telemetry = now;
+        }
         if (resp.command_id.has_value()) {
             const auto sub_resp = handle_server_resp(resp);
             return visit([&](auto &&arg) -> optional<OnlineStatus> {
@@ -375,8 +415,8 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         // Switch just to provide proper error message
         switch (resp.status) {
         case Status::BadRequest:
-        case Status::Forbidden:
             return OnlineStatus::InternalError;
+        case Status::Forbidden:
         case Status::Unauthorized:
             return OnlineStatus::Auth;
         default:

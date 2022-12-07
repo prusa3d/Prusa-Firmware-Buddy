@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdlib>
 #include <cassert>
+#include <cstdint>
 
 namespace http {
 
@@ -34,7 +35,7 @@ constexpr const char *to_str(Method method) {
     }
 }
 
-constexpr bool has_out_body(Method method) {
+constexpr bool has_body(Method method) {
     switch (method) {
     case Post:
     case Put:
@@ -134,5 +135,13 @@ enum Status {
 // That saves quite some space compared with having two buffers.
 static const size_t MAX_URL_LEN = 100;
 using Url = std::array<char, MAX_URL_LEN>;
+
+// # of seconds after which nonce becomes stale for digest authentication
+// the extended version is used for requests with body, so that PrusaLink
+// hopefully never gets stale nonce for request uploading a gcode, which
+// can cause an infinit upload loop, if the browser does not read errors
+// before sending the whole body.
+static const uint32_t valid_nonce_period = 5;
+static const uint32_t extended_valid_nonce_period = 8;
 
 }

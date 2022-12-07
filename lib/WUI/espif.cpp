@@ -113,6 +113,7 @@ static std::atomic<bool> esp_was_ok = false;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
 SemaphoreHandle_t uart_write_mutex = NULL;
+static bool uart_has_recovered_from_error = false;
 static uint8_t intron[8] = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' };
 
 static void uart_input(uint8_t *data, size_t size, struct netif *netif);
@@ -141,7 +142,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
         }
         old_dma_pos = 0;
         __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
-        log_error(ESPIF, "Recovered from UART error");
+        uart_has_recovered_from_error = true;
         esp_detected = true;
     }
 }
@@ -650,6 +651,11 @@ bool espif_tick() {
         // Nevertheless, we have only one thread that writes in there and it's
         // atomic to allow reading things at the same time.
         init_countdown.store(current_init - 1);
+    }
+
+    if (uart_has_recovered_from_error) {
+        log_info(ESPIF, "Recovered from UART error");
+        uart_has_recovered_from_error = false;
     }
 
     if (espif_link()) {

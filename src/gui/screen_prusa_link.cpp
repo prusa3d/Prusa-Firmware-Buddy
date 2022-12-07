@@ -11,15 +11,15 @@
 
 #include "wui_api.h"
 
-static constexpr size_t PASSWD_STR_LENGTH = PL_API_KEY_SIZE + 1; // don't need space for '%s' and '\0' since PL_API_KEY_SIZE contains '\0' too
+static constexpr size_t PASSWD_STR_LENGTH = PL_PASSWORD_SIZE + 1; // don't need space for '%s' and '\0' since PL_PASSWORD_SIZE contains '\0' too
 
 // ----------------------------------------------------------------
-// GUI Prusa Link X-Api_Key regenerate
-class MI_PL_REGENERATE_API_KEY : public WI_LABEL_t {
+// GUI Prusa Link Password regenerate
+class MI_PL_REGENERATE_PASSWORD : public WI_LABEL_t {
     constexpr static const char *const label = N_("Generate Password");
 
 public:
-    MI_PL_REGENERATE_API_KEY()
+    MI_PL_REGENERATE_PASSWORD()
         : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 public:
@@ -102,7 +102,7 @@ public:
         : WI_LABEL_t(_(label), (sizeof(PRUSA_LINK_USERNAME) + 1) * GuiDefaults::FontMenuSpecial->w) {}
 };
 
-using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_API_KEY, MI_PL_USER,
+using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENERATE_PASSWORD, MI_PL_USER,
 #ifdef USE_ST7789
     MI_PL_PASSWORD_LABEL,
 #endif
@@ -116,8 +116,8 @@ class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
     window_menu_t menu;
     window_header_t header;
 
-    inline void display_passwd(const char *api_key) {
-        container.Item<MI_PL_PASSWORD_VALUE>().print_password(api_key);
+    inline void display_passwd(const char *password) {
+        container.Item<MI_PL_PASSWORD_VALUE>().print_password(password);
     }
 
 public:
@@ -137,8 +137,8 @@ ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     , header(this) {
     header.SetText(_(label));
     CaptureNormalWindow(menu); // set capture to list
-    display_passwd(wui_get_api_key());
-    // The user might want to read the API key from here, don't time it out on them.
+    display_passwd(wui_get_password());
+    // The user might want to read the password from here, don't time it out on them.
     ClrMenuTimeoutClose();
 }
 
@@ -152,11 +152,11 @@ void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *
         uint32_t action = ((uint32_t)param) & 0xFFFF;
         uint32_t type = ((uint32_t)param) & 0xFFFF0000;
         switch (type) {
-        case MI_PL_REGENERATE_API_KEY::EventMask::value: {
-            char api_key[PL_API_KEY_SIZE] = { 0 };
-            wui_generate_api_key(api_key, PL_API_KEY_SIZE);
-            wui_store_api_key(api_key, PL_API_KEY_SIZE);
-            display_passwd(api_key);
+        case MI_PL_REGENERATE_PASSWORD::EventMask::value: {
+            char password[PL_PASSWORD_SIZE] = { 0 };
+            wui_generate_password(password, PL_PASSWORD_SIZE);
+            wui_store_password(password, PL_PASSWORD_SIZE);
+            display_passwd(password);
             break;
         }
         case MI_PL_ENABLED::EventMask::value:

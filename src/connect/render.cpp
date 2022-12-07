@@ -5,6 +5,7 @@
 #include <lfn.h>
 #include <gcode_filename.h>
 #include <gcode_file.h>
+#include <basename.h>
 
 #include <cassert>
 #include <cstring>
@@ -14,6 +15,7 @@ using json::JsonResult;
 using std::get_if;
 using std::make_tuple;
 using std::move;
+using std::optional;
 using std::tuple;
 using std::visit;
 
@@ -84,32 +86,61 @@ namespace {
     JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
         const bool printing = is_printing(params.state);
+
+        const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
+        // Note:
+        // We don't adhere to the best practice of JSON renderers, that we
+        // prepare everything up-front, store it and then render it. That's
+        // because we don't want to store the copy of the structure while
+        // sending, to be able to reuse the stack space.
+        //
+        // This isn't a big issue because:
+        // * We don't call the printer.renew() / marlin_update_vars() in
+        //   between, so the values _should_ be the same.
+        // * The only way it can concievably change if it changes is to go from
+        //   not changed -> changed telemetry. If it happens before entering the
+        //   update_telemetry block, we just enter it. If it happens after, it
+        //   has no effect (it's been already skipped).
+        const bool update_telemetry = state.telemetry_changes.set_hash(current_fingerprint);
         // Keep the indentation of the JSON in here!
         // clang-format off
         JSON_START;
         JSON_OBJ_START;
             if (!telemetry.empty) {
-                JSON_FIELD_FFIXED("temp_nozzle", params.temp_nozzle, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
-                JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
-                JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
-                if (!printing) {
-                    // To avoid spamming the DB, connect doesn't want positions during printing
-                    JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
-                    JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
-                }
-                JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
+                // These are not included in the fingerprint as they are changing a lot.
                 if (printing) {
-                    JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
                     JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
                     JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
-                    JSON_FIELD_INT("fan_extruder", params.heatbreak_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_INT("fan_print", params.print_fan_rpm) JSON_COMMA;
-                    JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
                 }
+
+                if (update_telemetry) {
+                    JSON_FIELD_FFIXED("temp_nozzle", params.temp_nozzle, 1) JSON_COMMA;
+                    JSON_FIELD_FFIXED("temp_bed", params.temp_bed, 1) JSON_COMMA;
+                    JSON_FIELD_FFIXED("target_nozzle", params.target_nozzle, 1) JSON_COMMA;
+                    JSON_FIELD_FFIXED("target_bed", params.target_bed, 1) JSON_COMMA;
+                    JSON_FIELD_INT("speed", params.print_speed) JSON_COMMA;
+                    JSON_FIELD_INT("flow", params.flow_factor) JSON_COMMA;
+                    if (params.material != nullptr) {
+                        JSON_FIELD_STR("material", params.material) JSON_COMMA;
+                    }
+                    if (!printing) {
+                        // To avoid spamming the DB, connect doesn't want positions during printing
+                        JSON_FIELD_FFIXED("axis_x", params.pos[Printer::X_AXIS_POS], 2) JSON_COMMA;
+                        JSON_FIELD_FFIXED("axis_y", params.pos[Printer::Y_AXIS_POS], 2) JSON_COMMA;
+                    }
+                    JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
+                    if (printing) {
+                        JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
+                        JSON_FIELD_INT("fan_extruder", params.heatbreak_fan_rpm) JSON_COMMA;
+                        JSON_FIELD_INT("fan_print", params.print_fan_rpm) JSON_COMMA;
+                        JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
+                    }
+                }
+
+                // State is sent always, first because it seems important, but
+                // also, we want something that doesn't have the final comma on
+                // it.
                 JSON_FIELD_STR("state", to_str(params.state));
             }
         JSON_OBJ_END;
@@ -183,8 +214,8 @@ namespace {
                     JSON_FIELD_STR("sn", info.serial_number) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
-                    if (strlen(creds.api_key) > 0) {
-                        JSON_FIELD_STR("api_key", creds.api_key) JSON_COMMA;
+                    if (strlen(creds.pl_password) > 0) {
+                        JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
                     }
                     JSON_FIELD_ARR("storages");
                     if (params.has_usb) {
@@ -204,6 +235,9 @@ namespace {
                             //
                             // We'll set it to false once we support something of it.
                             JSON_FIELD_BOOL("ro", true) JSON_COMMA;
+                            if (event.info_rescan_files) {
+                                JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
+                            }
                             JSON_FIELD_BOOL("is_sfn", true);
                         JSON_OBJ_END;
                     }
@@ -234,7 +268,7 @@ namespace {
                         JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("path_sfn", params.job_path) JSON_COMMA;
+                    JSON_FIELD_STR("display_name", params.job_lfn != nullptr ? params.job_lfn : basename_b(params.job_path)) JSON_COMMA;
                     JSON_FIELD_STR("path", params.job_path);
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
@@ -258,13 +292,9 @@ namespace {
                     // Warning: the path->name() is there (hidden) for FileInfo
                     // but _not_ for JobInfo. Do not just copy that into that
                     // part!
-                    JSON_FIELD_STR("name", event.path->name()) JSON_COMMA;
-                    JSON_FIELD_STR("path_sfn", event.path->path()) JSON_COMMA;
+                    JSON_FIELD_STR("display_name", event.path->name()) JSON_COMMA;
                     JSON_FIELD_STR("type", state.file_extra.renderer.holds_alternative<DirRenderer>() ? "FOLDER" : file_type_by_ext(event.path->path())) JSON_COMMA;
                     JSON_FIELD_STR("path", event.path->path());
-                    // TODO: There's a lot of other things we want to extract
-                    // from the file. To do that, we would also pre-open the
-                    // file, extract the preview, extract the info...
                 JSON_OBJ_END JSON_COMMA;
             }
 
@@ -336,6 +366,7 @@ namespace {
         // to the rest because of compatibility.
         { "ironing", MetaFilter::Int },
         { "support_material", MetaFilter::Int },
+        { "max_layer_z", MetaFilter::Float },
     };
 
     MetaFilter meta_filter(const char *name) {
@@ -348,11 +379,23 @@ namespace {
         return MetaFilter::Ignore;
     }
 
+    const char *display_name(const dirent *ent) {
+#ifdef UNITTESTS
+        return ent->d_name;
+#else
+        if (ent->lfn != nullptr) {
+            return ent->lfn;
+        } else {
+            // Fatfs without long file name...
+            return ent->d_name;
+        }
+#endif
+    }
 }
 
 PreviewRenderer::PreviewRenderer(FILE *f)
-    // FIXME: The 16x16 request gives us 220x124 image. Any idea why? :-O
-    : decoder(f, 16, 16, false) {}
+    // Ask for anything bigger than 16x16 (at least 17x17).
+    : decoder(f, 17, 17, false, true) {}
 
 tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer_size) {
     constexpr const char *intro = "\"preview\":\"";
@@ -538,12 +581,8 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
         }
 
         JSON_OBJ_START;
-            JSON_FIELD_STR("name_sfn", state.ent->d_name) JSON_COMMA;
-#ifdef UNITTESTS
             JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
-#else
-            JSON_FIELD_STR("name", state.ent->lfn) JSON_COMMA;
-#endif
+            JSON_FIELD_STR("display_name", display_name(state.ent)) JSON_COMMA;
             JSON_FIELD_INT("size", child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
             // We assume USB is not read only for us.
             JSON_FIELD_BOOL("ro", false) JSON_COMMA;
@@ -563,9 +602,10 @@ FileExtra::FileExtra(unique_file_ptr file)
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
-RenderState::RenderState(const Printer &printer, const Action &action)
+RenderState::RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes)
     : printer(printer)
     , action(action)
+    , telemetry_changes(telemetry_changes)
     , lan(printer.net_info(Printer::Iface::Ethernet))
     , wifi(printer.net_info(Printer::Iface::Wifi)) {
     memset(&st, 0, sizeof st);

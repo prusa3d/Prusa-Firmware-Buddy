@@ -53,6 +53,8 @@ public:
         //   renew() - that would set it to NULL in such case.
         const char *job_path;
         const char *job_lfn;
+        // Type of filament loaded. Constant (in-code) strings.
+        const char *material;
         uint16_t flow_factor;
         uint16_t job_id;
         uint16_t print_fan_rpm;
@@ -63,6 +65,8 @@ public:
         uint8_t progress_percent;
         bool has_usb;
         DeviceState state;
+
+        uint32_t telemetry_fingerprint(bool include_xy_axes) const;
     };
 
     struct Config {
@@ -96,7 +100,7 @@ public:
         static constexpr size_t SSID_BUF = 33;
         static constexpr size_t KEY_BUF = 17;
         char ssid[SSID_BUF];
-        char api_key[KEY_BUF];
+        char pl_password[KEY_BUF];
     };
 
     enum class JobControl {
@@ -131,11 +135,17 @@ public:
     // it in. But that doesn't meen it has been executed.
     virtual void submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
+    virtual bool is_printing() const = 0;
+    virtual uint32_t files_hash() const = 0;
 
-    // Returns a newly reloaded config and a flag if it changed since last load.
-    std::tuple<Config, bool> config();
+    // Returns a newly reloaded config and a flag if it changed since last load
+    // (unless the reset_fingerprint is set to false, in which case the flag is
+    // kept).
+    std::tuple<Config, bool> config(bool reset_fingerprint = true);
 
     virtual ~Printer() = default;
+
+    uint32_t info_fingerprint() const;
 };
 
 }

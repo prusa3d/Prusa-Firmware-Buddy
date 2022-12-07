@@ -47,7 +47,7 @@ static void OpenPrintScreen(ClientFSM dialog) {
 //method definitions
 void DialogHandler::open(fsm::create_t o) {
     if (ptr)
-        return; //the dialog is already openned
+        return; //the dialog is already opened
 
     const ClientFSM dialog = o.type.GetType();
 
@@ -61,7 +61,7 @@ void DialogHandler::open(fsm::create_t o) {
         if (IScreenPrinting::GetInstance() == nullptr) {
             OpenPrintScreen(dialog);
         } else {
-            //openned, notify it
+            //opened, notify it
             IScreenPrinting::NotifyMarlinStart();
         }
         break;

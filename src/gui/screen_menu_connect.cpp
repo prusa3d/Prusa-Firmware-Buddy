@@ -58,6 +58,25 @@ using Screen = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CONNECT_ENABLED
         break;
 
 class ScreenMenuConnect : public Screen {
+private:
+    void updateStatus() {
+        switch (connect_client::last_status()) {
+            S(Off, _("Off"));
+            S(NoConfig, _("No Config"));
+            S(NoDNS, _("DNS error"));
+            S(NoConnection, _("Refused"));
+            S(Tls, _("TLS error"));
+            S(Auth, _("Unauthorized"));
+            S(ServerError, _("Srv error"));
+            S(InternalError, _("Bug"));
+            S(NetworkError, _("Net fail"));
+            S(Confused, _("Protocol err"));
+            S(Ok, _("Online"));
+        default:
+            S(Unknown, _("Unknown"));
+        }
+    }
+
 public:
     constexpr static const char *label = N_("PRUSA CONNECT");
     ScreenMenuConnect()
@@ -65,21 +84,7 @@ public:
     }
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
         if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
-            switch (connect_client::last_status()) {
-                S(Off, _("Off"));
-                S(NoConfig, _("No Config"));
-                S(NoDNS, _("DNS error"));
-                S(NoConnection, _("Refused"));
-                S(Tls, _("TLS error"));
-                S(Auth, _("Unauthorized"));
-                S(ServerError, _("Srv error"));
-                S(InternalError, _("Bug"));
-                S(NetworkError, _("Net fail"));
-                S(Confused, _("Protocol err"));
-                S(Ok, _("Online"));
-            default:
-                S(Unknown, _("Unknown"));
-            }
+            updateStatus();
         } else {
             SuperWindowEvent(sender, event, param);
         }

@@ -59,42 +59,17 @@ ScreenErrorQR::ScreenErrorQR()
     appendix_txt.SetAlignment(Align_t::CenterTop());
 
     // Extract error code from xflash
-    uint16_t error_code_short = dump_err_in_xflash_get_error_code(); // Unknow code == 0x00
-    uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
-    uint32_t i = 0;
-    uint32_t count = sizeof(error_list) / sizeof(err_t);
+    const uint16_t error_code_short = dump_err_in_xflash_get_error_code(); // Unknow code == 0x00
+    const uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
 
-    // Iterating through error_list to find the error extracted from xflash
-    while (i < count && error_code_short != error_list[i].err_num) {
-        ++i;
-    }
-    if (i == count) {
-        // error not found => Print error message from dump
-        static char err_title_buff[DUMP_MSG_TITLE_MAX_LEN] = { 0 };
-        static char err_message_buff[DUMP_MSG_MAX_LEN] = { 0 };
-        if (dump_err_in_xflash_is_valid() && dump_err_in_xflash_get_message(err_message_buff, DUMP_MSG_MAX_LEN, err_title_buff, DUMP_MSG_TITLE_MAX_LEN)) {
-            err_title.SetText(err_title_buff[0] ? _(err_title_buff) : _(unknown_err_txt));
-            err_description.SetText(_(err_message_buff));
-        } else {
-            err_title.SetText(_(unknown_err_txt));
-            err_description.Hide();
-            title_line.Hide();
-        }
-        help_txt.Hide();
-        help_link.Hide();
-        hand_icon.Hide();
-        qr.Hide();
-        qr_code_txt.Hide();
-    } else {
-        // error found
+    const auto show_qr = [&]() {
         qr.SetQRHeader(error_code);
-        err_title.SetText(_(error_list[i].err_title));
-        err_description.SetText(_(error_list[i].err_text));
-
         /// draw short URL
         const char *qr_text = qr.GetQRShortText();
-        //help_txt.SetText(_(help_text));
-        help_txt.Hide();
+        if (GuiDefaults::EnableDialogBigLayout)
+            help_txt.SetText(_(help_text));
+        else
+            help_txt.Hide();
         help_link.SetText(_(qr_text));
 
         if (eeprom_get_bool(EEVAR_DEVHASH_IN_QR)) {
@@ -104,6 +79,43 @@ ScreenErrorQR::ScreenErrorQR()
         } else {
             qr_code_txt.Hide();
         }
+    };
+
+    const auto hide_qr = [&]() {
+        help_txt.Hide();
+        help_link.Hide();
+        hand_icon.Hide();
+        qr.Hide();
+        qr_code_txt.Hide();
+    };
+
+    // Iterating through error_list to find the error extracted from xflash
+    if (const auto corresponding_error = std::ranges::find_if(error_list, [error_code_short](const auto &elem) { return elem.err_num == error_code_short; });
+        corresponding_error == std::end(error_list)) {
+
+        // error not found => Print error message from dump
+        static char err_title_buff[DUMP_MSG_TITLE_MAX_LEN] {};
+        static char err_message_buff[DUMP_MSG_MAX_LEN] {};
+        if (dump_err_in_xflash_is_valid() && dump_err_in_xflash_get_message(err_message_buff, DUMP_MSG_MAX_LEN, err_title_buff, DUMP_MSG_TITLE_MAX_LEN)) {
+            err_title.SetText(err_title_buff[0] ? _(err_title_buff) : _(unknown_err_txt));
+            err_description.SetText(_(err_message_buff));
+
+            if (error_code_short > 0) {
+                show_qr();
+            } else {
+                hide_qr();
+            }
+        } else {
+            err_title.SetText(_(unknown_err_txt));
+            err_description.Hide();
+            title_line.Hide();
+            hide_qr();
+        }
+    } else {
+        // error found
+        err_title.SetText(_(corresponding_error->err_title));
+        err_description.SetText(_(corresponding_error->err_text));
+        show_qr();
     }
 
     /// draw footer information

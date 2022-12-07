@@ -6,7 +6,6 @@
 #pragma once
 
 #include "window.hpp"
-#include "gcode_info.hpp"
 
 /** @brief Creates an image rendered to the screen
  *  that is redrawn by the GUI loop as needed
@@ -78,22 +77,4 @@ protected:
 
 private:
     SelftestSubtestState_t state;
-};
-
-class WindowThumbnail : public AddSuperWindow<window_icon_t> {
-public:
-    WindowThumbnail(window_t *parent, Rect16 rect);
-
-protected:
-    virtual void unconditionalDraw() = 0;
-    GCodeInfo &gcode_info; /**< information about current gcode (singleton)*/
-};
-
-class WindowPreviewThumbnail : public AddSuperWindow<WindowThumbnail> {
-public:
-    WindowPreviewThumbnail(window_t *parent, Rect16 rect);
-    ~WindowPreviewThumbnail();
-
-protected:
-    virtual void unconditionalDraw() override;
 };

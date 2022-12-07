@@ -123,7 +123,7 @@ enum class Pause_Type {
     Crash
 };
 
-fsm::SmartQueue fsm_event_queues[MARLIN_MAX_CLIENTS];
+fsm::QueueWrapper<MARLIN_MAX_CLIENTS> fsm_event_queues;
 
 template <WarningType p_warning, bool p_disableHotend>
 class ErrorChecker {
@@ -304,6 +304,34 @@ static void print_Z_probe_cnt() {
     }
 }
 #endif
+
+uint64_t server_update_vars() {
+    uint32_t tick = ticks_ms();
+    uint64_t changes = 0;
+    if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
+        marlin_server.last_update = tick;
+        changes = _server_update_vars(marlin_server.update_vars);
+    }
+    return changes;
+}
+
+void send_notifications_to_clients(uint64_t changes) {
+    osMessageQId queue;
+    uint64_t msk = 0;
+    for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
+        if ((queue = marlin_client_queue[client_id]) != 0) {
+            marlin_server.client_changes[client_id] |= (changes & marlin_server.notify_changes[client_id]);
+            // send change notifications, clear bits for successful sent notification
+            if ((msk = marlin_server.client_changes[client_id]) != 0)
+                marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
+            // send events to client only if all variables were sent already, otherwise, the message buffer is full
+            // clear bits for successful sent notification
+            if ((marlin_server.client_changes[client_id]) == 0)
+                if ((msk = marlin_server.client_events[client_id]) != 0)
+                    marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
+        }
+}
+
 int marlin_server_cycle(void) {
 
     static int processing = 0;
@@ -330,13 +358,6 @@ int marlin_server_cycle(void) {
 #endif
 
     int count = 0;
-    int client_id;
-    uint64_t msk = 0;
-    uint64_t changes = 0;
-    osMessageQId queue;
-    osEvent ose;
-    uint32_t tick;
-    char ch;
     if (marlin_server.flags & MARLIN_SFLG_PENDREQ) {
         if (_process_server_request(marlin_server.request)) {
             marlin_server.request_len = 0;
@@ -344,9 +365,11 @@ int marlin_server_cycle(void) {
             marlin_server.flags &= ~MARLIN_SFLG_PENDREQ;
         }
     }
+
+    osEvent ose;
     if ((marlin_server.flags & MARLIN_SFLG_PENDREQ) == 0)
         while ((ose = osMessageGet(marlin_server_queue, 0)).status == osEventMessage) {
-            ch = (char)((uint8_t)(ose.value.v));
+            char ch = (char)((uint8_t)(ose.value.v));
             switch (ch) {
             case '\r':
             case '\n':
@@ -374,29 +397,20 @@ int marlin_server_cycle(void) {
     // update pqueue (planner queue)
     _server_update_pqueue();
     // update variables
-    tick = ticks_ms();
-    if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
-        marlin_server.last_update = tick;
-        changes = _server_update_vars(marlin_server.update_vars);
-    }
 
-    // send notifications to clients
-    for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if ((queue = marlin_client_queue[client_id]) != 0) {
-            marlin_server.client_changes[client_id] |= (changes & marlin_server.notify_changes[client_id]);
-            // send change notifications, clear bits for successful sent notification
-            if ((msk = marlin_server.client_changes[client_id]) != 0)
-                marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
-            // send events to client only if all variables were sent already, otherwise, the message buffer is full
-            // clear bits for successful sent notification
-            if ((marlin_server.client_changes[client_id]) == 0)
-                if ((msk = marlin_server.client_events[client_id]) != 0)
-                    marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
-        }
+    uint64_t changes = server_update_vars();
+    send_notifications_to_clients(changes);
+
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
         wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
     processing = 0;
     return count;
+}
+
+void marlin_server_forced_client_refresh() {
+    FSM_notifier::SendNotification();
+    uint64_t changes = server_update_vars();
+    send_notifications_to_clients(changes);
 }
 
 void static marlin_server_finalize_print() {
@@ -627,7 +641,7 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
     case mpsAborted:
         // correctly end previous print
         marlin_server_finalize_print();
-        fsm_destroy(ClientFSM::Printing);
+        FSM_DESTROY__LOGGING(Printing);
         break;
     case mpsPrintPreviewInit:
     case mpsPrintPreviewImage:
@@ -977,7 +991,7 @@ static void _server_print_loop(void) {
 
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
-        fsm_create(ClientFSM::Printing);
+        FSM_CREATE__LOGGING(Printing);
 #if HAS_BED_PROBE
         marlin_server.mbl_failed = false;
 #endif
@@ -1024,7 +1038,7 @@ static void _server_print_loop(void) {
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.is_repeated_crash() && xy_axes_length_ok() != Axis_length_t::ok) {
             /// resuming after a crash but axes are not ok => check again
-            fsm_create(ClientFSM::CrashRecovery);
+            FSM_CREATE__LOGGING(CrashRecovery);
             marlin_server.print_state = mpsCrashRecovery_Lifting;
             break;
         }
@@ -1151,7 +1165,7 @@ static void _server_print_loop(void) {
         break;
     case mpsExit:
         marlin_server_finalize_print();
-        fsm_destroy(ClientFSM::Printing);
+        FSM_DESTROY__LOGGING(Printing);
         marlin_server.print_state = mpsIdle;
         break;
 
@@ -1167,12 +1181,12 @@ static void _server_print_loop(void) {
         crash_s.set_state(Crash_s::RECOVERY);
 
         /// TODO: create FSM with different state
-        fsm_create(ClientFSM::CrashRecovery);
+        FSM_CREATE__LOGGING(CrashRecovery);
         Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
         if (crash_s.is_repeated_crash()) {
-            fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
+            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
         } else {
-            fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
+            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
         }
 
         // save the current resume position
@@ -1220,7 +1234,7 @@ static void _server_print_loop(void) {
 
         if (!crash_s.is_repeated_crash()) {
             marlin_server.print_state = mpsResuming_Begin;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
             break;
         }
         marlin_server.paused_ticks = ticks_ms(); //time when printing paused
@@ -1229,11 +1243,11 @@ static void _server_print_loop(void) {
             marlin_server.print_state = mpsCrashRecovery_Axis_NOK;
             Crash_recovery_fsm cr_fsm(axis_length_check(X_AXIS), axis_length_check(Y_AXIS));
             PhasesCrashRecovery pcr = (alok == Axis_length_t::shorter) ? PhasesCrashRecovery::axis_short : PhasesCrashRecovery::axis_long;
-            fsm_change(ClientFSM::CrashRecovery, pcr, cr_fsm.Serialize());
+            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, pcr, cr_fsm.Serialize());
             break;
         }
         Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
-        fsm_change(ClientFSM::CrashRecovery, PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
+        FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
         marlin_server.print_state = mpsCrashRecovery_Repeated_Crash;
         break;
     }
@@ -1245,14 +1259,14 @@ static void _server_print_loop(void) {
             break;
         case Response::Resume: /// ignore wrong length of axes
             marlin_server.print_state = mpsResuming_Begin;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
             axes_length_set_ok(); /// ignore re-test of lengths
             break;
         case Response::_none:
             break;
         default:
             marlin_server.print_state = mpsPaused;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
         }
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;
@@ -1262,13 +1276,13 @@ static void _server_print_loop(void) {
         switch (ClientResponseHandler::GetResponseFromPhase(PhasesCrashRecovery::repeated_crash)) {
         case Response::Resume:
             marlin_server.print_state = mpsResuming_Begin;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
             break;
         case Response::_none:
             break;
         default:
             marlin_server.print_state = mpsPaused;
-            fsm_destroy(ClientFSM::CrashRecovery);
+            FSM_DESTROY__LOGGING(CrashRecovery);
         }
         gcode.reset_stepper_timeout(); //prevent disable axis
         break;
@@ -1454,7 +1468,7 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 // send all FSM messages from the FSM queue
 static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
     while (1) {
-        fsm::variant_t variant = fsm_event_queues[client_id].Front();
+        fsm::variant_t variant = fsm_event_queues.Front(client_id);
         if (variant.GetCommand() == ClientFSM_Command::none)
             return true; // no event to send, return 'sent' to erase 'send' flag
 
@@ -1463,7 +1477,7 @@ static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
             return false;
 
         //erase sent item from queue
-        fsm_event_queues[client_id].Pop();
+        fsm_event_queues.Pop(client_id);
     }
 }
 
@@ -2417,39 +2431,18 @@ const marlin_vars_t &marlin_server_read_vars() {
     return marlin_server.vars;
 }
 
-/// Array of the last phase per fsm
-/// Used for better logging experience in fsm_change
-static int fsm_last_phase[int(ClientFSM::_count)];
-
-void fsm_create(ClientFSM type, uint8_t data) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Creating state machine [%d]", int(type));
-    fsm_last_phase[static_cast<int>(type)] = -1;
-
-    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        fsm_event_queues[i].PushCreate(type, data);
-    }
-
+void fsm_create(ClientFSM type, uint8_t data, const char *fnc, const char *file, int line) {
+    fsm_event_queues.PushCreate(type, data, fnc, file, line);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
-void fsm_destroy(ClientFSM type) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Destroying state machine [%d]", int(type));
-
-    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        fsm_event_queues[i].PushDestroy(type);
-    }
+void fsm_destroy(ClientFSM type, const char *fnc, const char *file, int line) {
+    fsm_event_queues.PushDestroy(type, fnc, file, line);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
-void _fsm_change(ClientFSM type, fsm::BaseData data) {
-    if (fsm_last_phase[static_cast<int>(type)] != static_cast<int>(data.GetPhase())) {
-        _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Change state of [%i] to %" PRIu8, static_cast<int>(type), data.GetPhase());
-        fsm_last_phase[static_cast<int>(type)] = static_cast<int>(data.GetPhase());
-    }
-
-    for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
-        fsm_event_queues[i].PushChange(type, data);
-    }
+void _fsm_change(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line) {
+    fsm_event_queues.PushChange(type, data, fnc, file, line);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
@@ -2509,7 +2502,7 @@ void FSM_notifier::SendNotification() {
     if (progress > s_data.last_progress_sent) {
         s_data.last_progress_sent = progress;
         ProgressSerializer serializer(progress);
-        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, serializer.Serialize()));
+        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, serializer.Serialize()), __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
     activeInstance->postSendNotification();
 }

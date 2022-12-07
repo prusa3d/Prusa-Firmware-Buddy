@@ -142,7 +142,7 @@ void CSelftest::Loop() {
         phaseStart();
         break;
     case stsPrologueAskRun:
-        fsm_change(ClientFSM::Selftest, PhasesSelftest::WizardPrologue_ask_run);
+        FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardPrologue_ask_run);
         break;
     case stsPrologueAskRun_wait_user:
         if (phaseWaitUser(PhasesSelftest::WizardPrologue_ask_run))
@@ -152,14 +152,14 @@ void CSelftest::Loop() {
         phaseSelftestStart();
         break;
     case stsPrologueInfo:
-        fsm_change(ClientFSM::Selftest, PhasesSelftest::WizardPrologue_info);
+        FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardPrologue_info);
         break;
     case stsPrologueInfo_wait_user:
         if (phaseWaitUser(PhasesSelftest::WizardPrologue_info))
             return;
         break;
     case stsPrologueInfoDetailed:
-        fsm_change(ClientFSM::Selftest, PhasesSelftest::WizardPrologue_info_detailed);
+        FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardPrologue_info_detailed);
         break;
     case stsPrologueInfoDetailed_wait_user:
         if (phaseWaitUser(PhasesSelftest::WizardPrologue_info_detailed))
@@ -227,7 +227,7 @@ void CSelftest::Loop() {
         break;
     case stsEpilogue_nok:
         if (m_result.Failed()) {
-            fsm_change(ClientFSM::Selftest, PhasesSelftest::WizardEpilogue_nok);
+            FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_nok);
         }
         break;
     case stsEpilogue_nok_wait_user:
@@ -249,7 +249,7 @@ void CSelftest::Loop() {
         break;
     case stsEpilogue_ok:
         if (m_result.Passed()) {
-            fsm_change(ClientFSM::Selftest, PhasesSelftest::WizardEpilogue_ok);
+            FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
         }
         break;
     case stsEpilogue_ok_wait_user:
@@ -274,7 +274,7 @@ void CSelftest::phaseShowResult() {
     m_result = SelftestResult_t(eeres);
 
     fsm::PhaseData data = m_result.Serialize();
-    fsm_change(ClientFSM::Selftest, PhasesSelftest::Result, data);
+    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, PhasesSelftest::Result, data);
 }
 
 void CSelftest::phaseDidSelftestPass() {

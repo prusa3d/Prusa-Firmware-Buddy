@@ -1,8 +1,6 @@
 /**
  * @file footer_item_fsensor.hpp
- * @author Radek Vana
  * @brief footer item displaying filament sensor state
- * @date 2021-12-12
  */
 
 #pragma once
@@ -14,6 +12,6 @@ class FooterItemFSensor : public AddSuperWindow<FooterIconText_IntVal> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName() { return _("F. Sensor"); }
+    static string_view_utf8 GetName();
     FooterItemFSensor(window_t *parent);
 };

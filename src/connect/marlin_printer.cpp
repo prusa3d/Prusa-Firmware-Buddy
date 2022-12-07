@@ -9,6 +9,8 @@
 #include <odometer.hpp>
 #include <netdev.h>
 #include <print_utils.hpp>
+#include <wui_api.h>
+#include <filament.h> //get_selected_filament_name
 
 #include <cassert>
 #include <cstdlib>
@@ -233,6 +235,7 @@ void MarlinPrinter::renew() {
 
 Printer::Params MarlinPrinter::params() const {
     Params params = {};
+    params.material = get_selected_filament_name();
     params.state = to_device_state(marlin_vars->print_state, ready);
     params.temp_bed = marlin_vars->temp_bed;
     params.target_bed = marlin_vars->target_bed;
@@ -245,6 +248,7 @@ Printer::Params MarlinPrinter::params() const {
     params.flow_factor = marlin_vars->flow_factor;
     params.job_id = marlin_vars->job_id;
     params.job_path = marlin_vars->media_SFN_path;
+    params.job_lfn = marlin_vars->media_LFN;
     params.print_fan_rpm = marlin_vars->print_fan_rpm;
     params.heatbreak_fan_rpm = marlin_vars->heatbreak_fan_rpm;
     params.print_duration = marlin_vars->print_duration;
@@ -318,7 +322,7 @@ std::optional<Printer::NetInfo> MarlinPrinter::net_info(Printer::Iface iface) co
 
 Printer::NetCreds MarlinPrinter::net_creds() const {
     NetCreds result = {};
-    strextract(result.api_key, sizeof result.api_key, EEVAR_PL_API_KEY);
+    strextract(result.pl_password, sizeof result.pl_password, EEVAR_PL_PASSWORD);
     strextract(result.ssid, sizeof result.ssid, EEVAR_WIFI_AP_SSID);
     return result;
 }
@@ -374,6 +378,14 @@ bool MarlinPrinter::set_ready(bool ready) {
 
     this->ready = ready;
     return true;
+}
+
+bool MarlinPrinter::is_printing() const {
+    return marlin_is_printing();
+}
+
+uint32_t MarlinPrinter::files_hash() const {
+    return wui_gcodes_mods();
 }
 
 }

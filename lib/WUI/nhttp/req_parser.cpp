@@ -214,7 +214,7 @@ Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *
         return Step { 0, 0, Continue() };
     }
 
-    api_key = server->get_api_key();
+    api_key = server->get_password();
     const auto [result, consumed] = consume(input);
     api_key = nullptr;
 
@@ -294,10 +294,13 @@ bool RequestParser::nonce_valid(uint64_t nonce_to_check) const {
     uint32_t random = static_cast<uint32_t>(nonce_to_check >> 32);
     uint32_t time = nonce_to_check & 0xffffffff;
     auto age = ticks_s() - time;
+    // Make valid period for POST and PUT longer, to avoid infinit uploading
+    // loops if nonce get stale for upload request.
+    uint32_t max_valid_age = has_body(method) ? http::extended_valid_nonce_period : http::valid_nonce_period;
     // sanity check
     if (age >= 0 && nonce_random != 0) {
         // really valid?
-        if (random == nonce_random && age < 5)
+        if (random == nonce_random && age < max_valid_age)
             return true;
     }
     return false;
@@ -310,7 +313,7 @@ std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser
     if (holds_alternative<bool>(params) and get<bool>(params))
         return std::nullopt;
     else
-        return UnauthenticatedStatusPage(status_page_handling(), accepts_json, ApiKeyAuth {});
+        return UnauthenticatedStatusPage(*this, ApiKeyAuth {});
 }
 std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser::authenticated_status(const DigestAuthParams &params) const {
     if (nonce_random == 0) {
@@ -322,14 +325,14 @@ std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser
         if (check_digest_auth(params.recieved_nonce)) {
             return std::nullopt;
         } else {
-            return UnauthenticatedStatusPage(status_page_handling(), accepts_json, DigestAuth { new_nonce(), false });
+            return UnauthenticatedStatusPage(*this, DigestAuth { new_nonce(), false });
         }
     } else {
         // We set stale=true for every nonce with valid digest for that nonce,
         // because it means the client knows the username and password and we want
         // him to retry with new nonce.
         bool stale = check_digest_auth(params.recieved_nonce);
-        return UnauthenticatedStatusPage(status_page_handling(), accepts_json, DigestAuth { new_nonce(), stale });
+        return UnauthenticatedStatusPage(*this, DigestAuth { new_nonce(), stale });
     }
 }
 
@@ -368,7 +371,7 @@ namespace {
 bool RequestParser::check_digest_auth(uint64_t nonce_to_use) const {
     if (auto digest_params = get_if<DigestAuthParams>(&auth_status)) {
 
-        auto hash_a1 = md5_hash(PRUSA_LINK_USERNAME, ":", AUTH_REALM, ":", server->get_api_key());
+        auto hash_a1 = md5_hash(PRUSA_LINK_USERNAME, ":", AUTH_REALM, ":", server->get_password());
         auto hash_a2 = md5_hash(to_str(method), ":", uri());
 
         char ha1[MD5_HEX_SIZE];

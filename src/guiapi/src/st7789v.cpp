@@ -539,176 +539,180 @@ void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
         122, 84, 88, 116, '\0'  /* zTXt */
     };
 
-    {
-        png_structp pp = png_create_read_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, _pngmalloc, _pngfree);
-        // Ignore unused chunks: see https://libpng.sourceforge.io/decompression_bombs.html
-        png_set_keep_unknown_chunks(pp, 1, unused_chunks, (int)sizeof(unused_chunks) / 5);
-        if (pp == NULL)
-            goto _e_0;
+    if ((point_x >= ST7789V_COLS) || (point_y >= ST7789V_ROWS))
+        return;
 
-        { // explicitly limit the scope of the local vars in order to enable use of goto
-            // which is the preffered error recovery system in libpng
-            // the vars must be destroyed before label _e_0
-            png_infop ppi = png_create_info_struct(pp);
-            if (ppi == NULL)
+    png_structp pp = png_create_read_struct_2(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL, NULL, _pngmalloc, _pngfree);
+    // Ignore unused chunks: see https://libpng.sourceforge.io/decompression_bombs.html
+    png_set_keep_unknown_chunks(pp, 1, unused_chunks, (int)sizeof(unused_chunks) / 5);
+    if (pp == NULL)
+        goto _e_0;
+
+    { // explicitly limit the scope of the local vars in order to enable use of goto
+        // which is the preffered error recovery system in libpng
+        // the vars must be destroyed before label _e_0
+        png_infop ppi = png_create_info_struct(pp);
+        if (ppi == NULL)
+            goto _e_1;
+        if (setjmp(png_jmpbuf(pp)))
+            goto _e_1;
+        png_init_io(pp, pf);
+        {
+            uint8_t sig[8];
+            if (fread(sig, 1, 8, pf) < 8)
                 goto _e_1;
-            if (setjmp(png_jmpbuf(pp)))
-                goto _e_1;
-            png_init_io(pp, pf);
-            {
-                uint8_t sig[8];
-                if (fread(sig, 1, 8, pf) < 8)
-                    goto _e_1;
-                if (!png_check_sig(sig, 8))
-                    goto _e_1; /* bad signature */
-                png_set_sig_bytes(pp, 8);
+            if (!png_check_sig(sig, 8))
+                goto _e_1; /* bad signature */
+            png_set_sig_bytes(pp, 8);
+        }
+        png_read_info(pp, ppi);
+        { // these vars must be destroyed before label _e_1
+            uint16_t w = png_get_image_width(pp, ppi);
+            uint16_t h = png_get_image_height(pp, ppi);
+
+            int rowsize = png_get_rowbytes(pp, ppi);
+            int pixsize = rowsize / w;
+
+            // check image type (indexed or other color type)
+            png_byte colorType = png_get_color_type(pp, ppi);
+
+            switch (colorType) {
+            case PNG_COLOR_TYPE_GRAY:
+                // transform grayscale image to rgb 24 color depth
+                png_set_gray_to_rgb(pp);
+                // pixel size is 3 bytes
+                pixsize = 3;
+                // check if alpha channel is present if yes then add it and increase pixelSize
+                if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
+                    png_set_tRNS_to_alpha(pp);
+                    pixsize += 1;
+                }
+                break;
+            case PNG_COLOR_TYPE_PALETTE:
+                // bit depth in palette is always 8 bits per sample (24 bits per color) so pixel size is 3 bytes
+                pixsize = 3;
+                png_set_palette_to_rgb(pp);
+                // check if alpha channel is present if yes then add it and increase pixelSize
+                if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
+                    png_set_tRNS_to_alpha(pp);
+                    pixsize += 1;
+                }
+                break;
+            case PNG_COLOR_TYPE_GRAY_ALPHA:
+                png_set_gray_to_rgb(pp);
+                pixsize = 4;
+                break;
+            case PNG_COLOR_TYPE_RGB_ALPHA:
+                pixsize = 4;
+                break;
             }
-            png_read_info(pp, ppi);
-            { // these vars must be destroyed before label _e_1
-                uint16_t w = png_get_image_width(pp, ppi);
-                uint16_t h = png_get_image_height(pp, ppi);
 
-                int rowsize = png_get_rowbytes(pp, ppi);
-                int pixsize = rowsize / w;
+            //_dbg("display_ex_draw_png rowsize = %i", rowsize);
+            if (rowsize > ST7789V_COLS * 4)
+                goto _e_1;
 
-                // check image type (indexed or other color type)
-                png_byte colorType = png_get_color_type(pp, ppi);
+            //target coordinates have to be substracted form display sizes to be able to fit it on the screen
+            const Rect16 MaxSubrect(0, 0, MIN(w, ST7789V_COLS - point_x), MIN(h, ST7789V_ROWS - point_y));
 
-                switch (colorType) {
-                case PNG_COLOR_TYPE_GRAY:
-                    // transform grayscale image to rgb 24 color depth
-                    png_set_gray_to_rgb(pp);
-                    // pixel size is 3 bytes
-                    pixsize = 3;
-                    // check if alpha channel is present if yes then add it and increase pixelSize
-                    if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
-                        png_set_tRNS_to_alpha(pp);
-                        pixsize += 1;
-                    }
-                    break;
-                case PNG_COLOR_TYPE_PALETTE:
-                    // bit depth in palette is always 8 bits per sample (24 bits per color) so pixel size is 3 bytes
-                    pixsize = 3;
-                    png_set_palette_to_rgb(pp);
-                    // check if alpha channel is present if yes then add it and increase pixelSize
-                    if (png_get_valid(pp, ppi, PNG_INFO_tRNS)) {
-                        png_set_tRNS_to_alpha(pp);
-                        pixsize += 1;
-                    }
-                    break;
-                case PNG_COLOR_TYPE_GRAY_ALPHA:
-                    png_set_gray_to_rgb(pp);
-                    pixsize = 4;
-                    break;
-                case PNG_COLOR_TYPE_RGB_ALPHA:
-                    pixsize = 4;
-                    break;
+            // recalculate subrect
+            if (subrect.IsEmpty())
+                subrect = MaxSubrect;
+            else
+                subrect.Intersection(MaxSubrect);
+
+            // make there is something to print
+            if (subrect.IsEmpty()) {
+                goto _e_1;
+            }
+
+            //_dbg("display_ex_draw_png pixsize = %i", pixsize);
+            st7789v_clr_cs();
+            if (setjmp(png_jmpbuf(pp)))
+                goto _e_2;
+            {
+                Rect16 print_rect(subrect.Left() + point_x, subrect.Top() + point_y, subrect.Width(), subrect.Height());
+                const uint16_t x_end = print_rect.Left() + print_rect.Width();
+                const uint16_t y_end = print_rect.Top() + print_rect.Height();
+
+                st7789v_cmd_caset(print_rect.Left(), x_end - 1);
+                st7789v_cmd_raset(print_rect.Top(), y_end - 1);
+                st7789v_cmd_ramwr(0, 0);
+
+                uint16_t png_rows_left = print_rect.Height();
+                uint16_t png_cols = print_rect.Width();
+                uint16_t buff_row_space = (ST7789V_BUFF_ROWS * ST7789V_COLS * 2) / (png_cols * pixsize);
+
+                // Skip unwanted PNG rows
+                for (int k = 0; k < subrect.Top(); k++) {
+                    // png is compressed, there is no other way to access specific row
+                    png_read_row(pp, st7789v_buff, NULL); // Not using png_read_rows() because buffer can be both 1D or 2D array
                 }
 
-                //_dbg("display_ex_draw_png rowsize = %i", rowsize);
-                if (rowsize > ST7789V_COLS * 4)
-                    goto _e_1;
-                if (point_x + subrect.Left() >= ST7789V_COLS || point_y + subrect.Top() >= ST7789V_ROWS
-                    || point_x + subrect.Left() >= point_x + w || point_y + subrect.Top() >= point_y + h) {
-                    goto _e_1;
-                }
-                //_dbg("display_ex_draw_png pixsize = %i", pixsize);
+                while (png_rows_left) {
 
-                st7789v_clr_cs();
-                if (setjmp(png_jmpbuf(pp)))
-                    goto _e_2;
-                {
-                    uint16_t x_end, y_end;
-                    // Set up rect we want to print out
-                    // Default: 0 in width means, that we want whole PNG's width
-                    if (subrect.Width() == 0) {
-                        x_end = MIN(point_x + w, ST7789V_COLS);
-                    } else {
-                        x_end = MIN(point_x + subrect.Left() + subrect.Width(), MIN(point_x + w, ST7789V_COLS));
-                    }
-                    // Default: 0 in height means, that we want whole PNG's height
-                    if (subrect.Height() == 0) {
-                        y_end = MIN(point_y + h, ST7789V_ROWS);
-                    } else {
-                        y_end = MIN(point_y + subrect.Top() + subrect.Height(), MIN(point_y + h, ST7789V_ROWS));
-                    }
+                    // Calculate how many rows to draw in this cicle
+                    int png_rows_to_read_in_this_loop = png_rows_left < buff_row_space ? png_rows_left : buff_row_space;
 
-                    st7789v_cmd_caset(point_x + subrect.Left(), x_end - 1);
-                    st7789v_cmd_raset(point_y + subrect.Top(), y_end - 1);
-                    st7789v_cmd_ramwr(0, 0);
-
-                    uint16_t png_rows_left = y_end - (point_y + subrect.Top());
-                    uint16_t png_cols = x_end - (point_x + subrect.Left());
-                    uint16_t buff_row_space = (ST7789V_BUFF_ROWS * ST7789V_COLS * 2) / (png_cols * pixsize);
-                    // Skip unwanted PNG rows
-                    for (int k = 0; k < subrect.Top(); k++) {
-                        // png is compressed, there is no other way to access specific row
-                        png_read_row(pp, st7789v_buff, NULL); // Not using png_read_rows() because buffer can be both 1D or 2D array
-                    }
-
-                    while (png_rows_left) {
-
-                        // Calculate how many rows to draw in this cicle
-                        int png_rows_read = png_rows_left < buff_row_space ? png_rows_left : buff_row_space;
-
-                        // Load as many png rows to buffer as possible
-                        for (int i = 0; i < png_rows_read; i++) {
-                            if (subrect.Left() == 0 && subrect.Width() == 0) {
-                                png_read_row(pp, st7789v_buff + i * png_cols * pixsize, NULL);
-                            } else {
-                                // Skip unwanted cols from the row
-                                uint8_t row[w * pixsize] = { 0 };
-                                png_read_row(pp, row, NULL);
-                                memcpy(st7789v_buff + i * png_cols * pixsize, row + subrect.Left() * pixsize, png_cols * pixsize);
-                            }
+                    // Load as many png rows to ili9488 buffer as possible
+                    // it is more effitient to have 2 for cycles inside if/else than other way around
+                    if (subrect.Left() == 0 && subrect.Width() <= w) { // subrect is correct here, not a bug
+                        for (int i = 0; i < png_rows_to_read_in_this_loop; i++) {
+                            png_read_row(pp, st7789v_buff + i * png_cols * pixsize, NULL);
                         }
+                    } else {
+                        for (int i = 0; i < png_rows_to_read_in_this_loop; i++) {
+                            // Skip unwanted cols from the row (relative to subrect)
+                            uint8_t row[w * pixsize] = { 0 };
+                            png_read_row(pp, row, NULL);
+                            memcpy(st7789v_buff + i * png_cols * pixsize, row + subrect.Left() * pixsize, png_cols * pixsize);
+                        }
+                    }
 
-                        // Manipulate all loaded pixels
-                        for (int j = 0; j < png_rows_read * png_cols; j++) {
-                            uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
-                            uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
+                    // Manipulate all loaded pixels
+                    for (int j = 0; j < png_rows_to_read_in_this_loop * png_cols; j++) {
+                        uint16_t *ppx565 = (uint16_t *)(st7789v_buff + j * 2);
+                        uint8_t *ppx888 = (uint8_t *)(st7789v_buff + j * pixsize);
 
-                            switch (rop) {
-                            case ROPFN_SWAPBW | ROPFN_SHADOW:
-                                // TODO
-                                break;
-                            case ROPFN_INVERT:
-                                rop_rgb888_invert(ppx888);
-                                break;
-                            case ROPFN_SWAPBW:
-                                rop_rgb888_swapbw(ppx888);
-                                break;
-                            case ROPFN_SHADOW:
-                                rop_rgb888_disabled(ppx888);
-                                break;
-                            case ROPFN_DESATURATE:
-                                if (local_desatur_line) {
-                                    if (h - (png_rows_left - j / png_cols) < local_desatur_line) {
-                                        rop_rgb888_desaturate(ppx888);
-                                    }
-                                } else {
+                        switch (rop) {
+                        case ROPFN_SWAPBW | ROPFN_SHADOW:
+                            // TODO
+                            break;
+                        case ROPFN_INVERT:
+                            rop_rgb888_invert(ppx888);
+                            break;
+                        case ROPFN_SWAPBW:
+                            rop_rgb888_swapbw(ppx888);
+                            break;
+                        case ROPFN_SHADOW:
+                            rop_rgb888_disabled(ppx888);
+                            break;
+                        case ROPFN_DESATURATE:
+                            if (local_desatur_line) {
+                                if (h - (png_rows_left - j / png_cols) < local_desatur_line) {
                                     rop_rgb888_desaturate(ppx888);
                                 }
-                                break;
+                            } else {
+                                rop_rgb888_desaturate(ppx888);
                             }
-                            if (pixsize == 4) { // Mix pixel after rast operations with background
-                                uint32_t clr = color_alpha(back_color, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
-                                memcpy(ppx888, &clr, sizeof(clr));
-                            }
-                            *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
+                            break;
                         }
-                        st7789v_wr(st7789v_buff, 2 * png_cols * png_rows_read);
-                        png_rows_left -= png_rows_read;
+                        if (pixsize == 4) { // Mix pixel after rast operations with background
+                            uint32_t clr = color_alpha(back_color, color_rgb(ppx888[0], ppx888[1], ppx888[2]), ppx888[3]);
+                            memcpy(ppx888, &clr, sizeof(clr));
+                        }
+                        *ppx565 = color_to_565(color_rgb(ppx888[0], ppx888[1], ppx888[2]));
                     }
+                    st7789v_wr(st7789v_buff, 2 * png_cols * png_rows_to_read_in_this_loop);
+                    png_rows_left -= png_rows_to_read_in_this_loop;
                 }
-            _e_2:
-                st7789v_set_cs();
             }
-        _e_1:
-            png_destroy_read_struct(&pp, &ppi, 0);
+        _e_2:
+            st7789v_set_cs();
         }
-    _e_0:; // enforce an empty statement just to make the compiler happy
+    _e_1:
+        png_destroy_read_struct(&pp, &ppi, 0);
     }
+_e_0:; // enforce an empty statement just to make the compiler happy
 }
 
 void st7789v_inversion_on(void) {

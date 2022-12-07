@@ -434,7 +434,7 @@ TEST_CASE("Timed dialog tests", "[window]") {
         REQUIRE(screen.GetInvalidationRect().IsEmpty()); //cleared by draw
     }
 
-    hal_tick = 1000;                                   //set openned on popup
+    hal_tick = 1000;                                   //set opened on popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop will initialize popup timeout
     hal_tick = 10000;                                  //timeout popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); //loop event will unregister popup

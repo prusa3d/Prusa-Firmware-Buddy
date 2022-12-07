@@ -121,7 +121,7 @@ bool phaseHeaters(IPartHandler *&pNozzle, IPartHandler *&pBed) {
     // change dialog state
     // in case pNozzle/pBed is nullptr its result is undefined, use default one instead
     SelftestHeaters_t result(nozzle_result_valid ? staticResultNoz : SelftestHeater_t(), bed_result_valid ? staticResultBed : SelftestHeater_t());
-    fsm_change(ClientFSM::Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
 
     // just finished noz or bed, it is extremely unlikely they would finish both at same time
     SelftestResultEEprom_t eeres;

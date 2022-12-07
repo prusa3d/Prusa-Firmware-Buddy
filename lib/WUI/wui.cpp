@@ -41,9 +41,9 @@ using std::unique_lock;
 
 #define LOOP_EVT_TIMEOUT 500UL
 
-static variant8_t prusa_link_api_key;
+static variant8_t prusa_link_password;
 
-const char *wui_generate_api_key(char *api_key, uint32_t length) {
+const char *wui_generate_password(char *password, uint32_t length) {
     // Avoid confusing character pairs ‒ 1/l/I, 0/O.
     static char charset[] = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     // One less, as the above contains '\0' at the end which we _do not_ want to generate.
@@ -54,28 +54,28 @@ const char *wui_generate_api_key(char *api_key, uint32_t length) {
         uint32_t random = 0;
         HAL_StatusTypeDef status = HAL_RNG_GenerateRandomNumber(&hrng, &random);
         if (HAL_OK == status) {
-            api_key[i++] = charset[random % charset_length];
+            password[i++] = charset[random % charset_length];
         }
     }
-    api_key[i] = 0;
-    return api_key;
+    password[i] = 0;
+    return password;
 }
 
-void wui_store_api_key(char *api_key, uint32_t length) {
-    variant8_t *p_prusa_link_api_key = &prusa_link_api_key;
-    variant8_done(&p_prusa_link_api_key);
-    prusa_link_api_key = variant8_init(VARIANT8_PCHAR, length, api_key);
-    eeprom_set_var(EEVAR_PL_API_KEY, prusa_link_api_key);
+void wui_store_password(char *password, uint32_t length) {
+    variant8_t *p_prusa_link_password = &prusa_link_password;
+    variant8_done(&p_prusa_link_password);
+    prusa_link_password = variant8_init(VARIANT8_PCHAR, length, password);
+    eeprom_set_var(EEVAR_PL_PASSWORD, prusa_link_password);
 }
 
 namespace {
 
-void prusalink_api_key_init(void) {
-    prusa_link_api_key = eeprom_get_var(EEVAR_PL_API_KEY);
-    if (!strcmp(variant8_get_pch(prusa_link_api_key), "")) {
-        char api_key[PL_API_KEY_SIZE] = { 0 };
-        wui_generate_api_key(api_key, PL_API_KEY_SIZE);
-        wui_store_api_key(api_key, PL_API_KEY_SIZE);
+void prusalink_password_init(void) {
+    prusa_link_password = eeprom_get_var(EEVAR_PL_PASSWORD);
+    if (!strcmp(variant8_get_pch(prusa_link_password), "")) {
+        char password[PL_PASSWORD_SIZE] = { 0 };
+        wui_generate_password(password, PL_PASSWORD_SIZE);
+        wui_store_password(password, PL_PASSWORD_SIZE);
     }
 }
 
@@ -344,7 +344,7 @@ private:
         // Q: Do other threads, like connect, need to wait for this?
         tcpip_init(tcpip_init_done_raw, this);
 
-        prusalink_api_key_init();
+        prusalink_password_init();
 
         httpd_init();
 
@@ -557,8 +557,8 @@ void start_network_task() {
     NetworkState::run_task();
 }
 
-const char *wui_get_api_key() {
-    return variant8_get_pch(prusa_link_api_key);
+const char *wui_get_password() {
+    return variant8_get_pch(prusa_link_password);
 }
 
 void notify_esp_data() {

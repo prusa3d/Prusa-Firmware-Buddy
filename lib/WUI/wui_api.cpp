@@ -40,6 +40,7 @@ bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 static std::atomic<uint32_t> uploaded_gcodes;
+static std::atomic<uint32_t> modified_gcodes;
 
 // example of simple callback automatically sending print response (click on print button) in preview fsm
 // it would be better to use queue to fet rid of no longer current commands
@@ -306,8 +307,9 @@ void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
 
 void sntp_set_system_time(uint32_t sec) {
 
-    RTC_TimeTypeDef currTime;
-    RTC_DateTypeDef currDate;
+    // RTC_TimeTypeDef has attributes like TimeFormat (AM/PM) and DayLightSaving, which we don't use
+    RTC_TimeTypeDef currTime = { 0 };
+    RTC_DateTypeDef currDate = { 0 };
 
     struct tm current_time_val;
     time_t current_time = (time_t)sec;
@@ -342,11 +344,15 @@ uint32_t wui_gcodes_uploaded() {
     return uploaded_gcodes;
 }
 
+uint32_t wui_gcodes_mods() {
+    return modified_gcodes;
+}
+
 bool wui_start_print(char *filename, bool autostart_if_able) {
     marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
     const bool printer_can_print = marlin_remote_print_ready(!autostart_if_able);
 
-    strlcpy(marlin_vars()->media_LFN, basename(filename), FILE_NAME_BUFFER_LEN);
+    strlcpy(marlin_vars()->media_LFN, basename_b(filename), FILE_NAME_BUFFER_LEN);
     // Turn it into the short name, to improve buffer length, avoid strange
     // chars like spaces in it, etc.
     get_SFN_path(filename);
@@ -371,9 +377,14 @@ bool wui_start_print(char *filename, bool autostart_if_able) {
 }
 
 bool wui_uploaded_gcode(char *filename, bool start_print) {
+    modified_gcodes++;
     uploaded_gcodes++;
 
     return wui_start_print(filename, start_print);
+}
+
+void wui_gcode_modified() {
+    modified_gcodes++;
 }
 
 bool wui_is_file_being_printed(const char *filename) {

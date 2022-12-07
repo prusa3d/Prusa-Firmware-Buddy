@@ -8,6 +8,7 @@
 
 #include "../../lib/Marlin/Marlin/src/MarlinCore.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../lib/Marlin/Marlin/src/module/endstops.h"
 #include "../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
@@ -132,7 +133,7 @@ PausePrivatePhase::PausePrivatePhase()
 void PausePrivatePhase::setPhase(PhasesLoadUnload ph, uint8_t progress) {
     phase = ph;
     ProgressSerializer serializer(progress);
-    fsm_change(ClientFSM::Load_unload, phase, serializer.Serialize());
+    FSM_CHANGE_WITH_DATA__LOGGING(Load_unload, phase, serializer.Serialize());
 }
 
 PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }
@@ -675,44 +676,44 @@ void Pause::loop_load_change(Response response) {
 }
 
 bool Pause::UnloadFromGear() {
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
     return filamentUnload(&Pause::loop_unloadFromGear);
 }
 
 bool Pause::FilamentUnload(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
     return filamentUnload(FSensors_instance().HasMMU() ? &Pause::loop_unload_mmu : &Pause::loop_unload);
 }
 
 bool Pause::FilamentUnload_AskUnloaded(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Unload);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Unload);
     return filamentUnload(&Pause::loop_unload_AskUnloaded);
     // TODO specifi behavior for FSensors_instance().HasMMU()
 }
 
 bool Pause::FilamentLoad(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, settings.fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, settings.fast_load_length ? LoadUnloadMode::Load : LoadUnloadMode::Purge);
     return filamentLoad(FSensors_instance().HasMMU() ? &Pause::loop_load_mmu : (settings.fast_load_length ? &Pause::loop_load : &Pause::loop_load_purge));
 }
 
 bool Pause::FilamentLoadNotBlocking(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_load_not_blocking);
 }
 
 bool Pause::FilamentAutoload(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_autoload);
 }
 
 bool Pause::LoadToGear(const pause::Settings &settings_) {
     settings = settings_;
-    FSM_HolderLoadUnload H(*this, LoadUnloadMode::Load);
+    FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Load);
     return filamentLoad(&Pause::loop_loadToGear);
 }
 
@@ -1036,10 +1037,21 @@ void Pause::park_nozzle_and_notify() {
 
     // move by z_lift, scope for Notifier_POS_Z
     if (isfinite(target_Z)) {
-        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
-        plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
-        if (wait_or_stop())
-            return;
+        if (!axis_is_trusted(Z_AXIS)) {
+            TemporaryGlobalEndstopsState park_move_endstops(true);
+            do_homing_move((AxisEnum)(Z_AXIS), target_Z, HOMING_FEEDRATE_INVERTED_Z // warning: the speed must probably be exactly this, otherwise endstops don't work
+#if ENABLED(MOVE_BACK_BEFORE_HOMING)
+                ,
+                false
+#endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
+            );
+            current_position.z += target_Z;
+        } else {
+            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
+            plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
+            if (wait_or_stop())
+                return;
+        }
     }
 
     // move to (x_pos, y_pos)
@@ -1169,7 +1181,7 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
 #endif
 
     {
-        FSM_HolderLoadUnload H(*this, LoadUnloadMode::Change);
+        FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, LoadUnloadMode::Change);
 
         if (settings.unload_length) // Unload the filament
             filamentUnload(&Pause::loop_unload_change);
@@ -1295,15 +1307,17 @@ void Pause::FSM_HolderLoadUnload::unbindFromSafetyTimer() {
     SafetyTimer::Instance().UnbindPause(pause);
 }
 
-Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode)
-    : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode))
+Pause::FSM_HolderLoadUnload::FSM_HolderLoadUnload(Pause &p, LoadUnloadMode mode, const char *fnc, const char *file, int line)
+    : FSM_Holder(ClientFSM::Load_unload, uint8_t(mode), fnc, file, line)
     , pause(p) {
     pause.clrRestoreTemp();
     bindToSafetyTimer();
     pause.park_nozzle_and_notify();
+    active = true;
 }
 
 Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
+    active = false;
     pause.RestoreTemp();
 
     const float min_layer_h = 0.05f;
@@ -1315,3 +1329,5 @@ Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
     }
     unbindFromSafetyTimer(); //unbind must be last action, without it Pause cannot block safety timer
 }
+
+bool Pause::FSM_HolderLoadUnload::active = false;

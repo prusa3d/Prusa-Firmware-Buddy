@@ -85,8 +85,10 @@ bool syslog_transport_open(syslog_transport_t *transport, const char *host, int 
         transport->last_resolve_state = Progress;
         return false;
     }
-    // failed return false
-    log_error(Syslog, "DNS resolving failed with value %s", host);
+    if (transport->last_resolve_state != Error) {
+        log_error(Syslog, "DNS resolving failed with value %s", host);
+    }
     transport->last_resolve_state = Error;
+    // failed return false
     return false;
 }

@@ -105,7 +105,8 @@ set(HAS_MARLIN TRUE)
 target_compile_definitions(
   BuddyHeaders
   INTERFACE MOTHERBOARD=1823
-            PRINTER_TYPE=PRINTER_PRUSA_${PRINTER}
+            PRINTER_MODEL="${PRINTER}"
+            PRINTER_TYPE=${PRINTER_TYPE}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
             BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR}
@@ -485,6 +486,7 @@ set_property(
 set_property(
   SOURCE src/common/marlin_server.cpp
          src/gui/screen_splash.cpp
+         src/gui/screen_home.cpp
          src/gui/screen_menu_settings.cpp
          src/gui/screen_menu_hw_setup.cpp
          src/gui/test/screen_test.cpp

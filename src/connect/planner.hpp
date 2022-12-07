@@ -1,6 +1,7 @@
 #pragma once
 
 #include "buffer.hpp"
+#include "changes.hpp"
 #include "command.hpp"
 #include "printer.hpp"
 
@@ -45,6 +46,7 @@ struct Event {
     /// Reasons are constant strings, therefore the non-owned const char * ‒
     /// they are not supposed to get "constructed" or interpolated.
     const char *reason = nullptr;
+    bool info_rescan_files = false;
 };
 
 using Action = std::variant<
@@ -146,6 +148,11 @@ private:
     };
 
     BackgroundResult background_task(BackgroundGcode &);
+
+    // Tracking if we should resend the INFO message due to some changes.
+    Tracked info_changes;
+    // Tracking if we should ask for rescan of our files.
+    Tracked file_changes;
 
 public:
     Planner(Printer &printer)

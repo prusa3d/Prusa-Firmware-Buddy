@@ -11,7 +11,7 @@
 #include "filesystem.h"
 #include "filesystem_fatfs.h"
 
-//#define FATFS_FSTAT 1
+// #define FATFS_FSTAT 1
 
 #define FAT_MAX_FILES         268435437
 #define FAT_MAX_FILES_PER_DIR 65534
@@ -638,6 +638,9 @@ static int dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struc
         strlcpy(filename + len + 1, fno.fname, NAME_MAX - len - 1);
     } else {
         strlcpy(filename, fno.fname, NAME_MAX);
+        // put zero on first byte of lfn to disable lfn for this file/folder
+        uint8_t len = strnlen(filename, NAME_MAX);
+        filename[len + 1] = 0;
     }
 
     filestat->st_mode = fno.fattrib & AM_DIR ? S_IFDIR : S_IFREG;
