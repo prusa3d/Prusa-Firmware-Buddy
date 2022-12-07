@@ -23,7 +23,7 @@ class ImageInfo:
 
     def __str__(self) -> str:
         return \
-            f"""static constexpr Resource {self.name}( \"{self.name}\", {self.offset}, {self.size}, {self.width}, {self.height});"""
+            f"""inline constexpr Resource {self.name}( \"{self.name}\", {self.offset}, {self.size}, {self.width}, {self.height});"""
 
 
 def load_images(paths):
