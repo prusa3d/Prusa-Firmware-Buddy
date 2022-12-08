@@ -90,7 +90,7 @@ enum MessageType {
     MSG_INTRON = 5,
 };
 
-static const uint32_t SUPPORTED_FW_VERSION = 8;
+static const uint32_t SUPPORTED_FW_VERSION = 9;
 
 // NIC state
 static std::atomic<uint16_t> fw_version;
