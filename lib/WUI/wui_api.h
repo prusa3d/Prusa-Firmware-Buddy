@@ -162,13 +162,19 @@ const char *wui_generate_password(char *, uint32_t);
 /// @param[in] length Size of the buffer
 void wui_store_password(char *, uint32_t);
 
+#ifdef __cplusplus
+enum class StartPrintResult {
+    Failed,       /// uploading file failed
+    Uploaded,     /// uploading succeeded, able to print
+    PrintStarted, /// uploading succeeded and print started immediately
+};
+
 /// Start a print of a given filename.
 ///
-/// Returns false if can't print right now. Note that this doesn't check the
-/// existence of the file.
 /// @param[in] autostart_if_able true  - printer will start print without asking (in case filament, printer type and other checks are satisfied)
 ///                              false - printer will not start print without asking, but it will show one click print if able to
-bool wui_start_print(char *filename, bool autostart_if_able);
+StartPrintResult wui_start_print(char *filename, bool autostart_if_able);
+#endif /* __cplusplus */
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief A new gcode was uploaded, take appropriate actions
@@ -185,6 +191,8 @@ bool wui_uploaded_gcode(char *path, bool start_print);
 ///
 /// May be used to check if a file was uploaded since last check.
 /// Guaranteed to start at 0, but may wrap around (unlikely).
+///
+/// @warning Gcodes that were immediately printed after upload do not count.
 ///
 /// Thread safe.
 uint32_t wui_gcodes_uploaded();
