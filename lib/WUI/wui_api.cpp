@@ -348,7 +348,7 @@ uint32_t wui_gcodes_mods() {
     return modified_gcodes;
 }
 
-bool wui_start_print(char *filename, bool autostart_if_able) {
+StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
     marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
     const bool printer_can_print = marlin_remote_print_ready(!autostart_if_able);
 
@@ -359,9 +359,9 @@ bool wui_start_print(char *filename, bool autostart_if_able) {
     if (autostart_if_able) {
         if (printer_can_print) {
             print_begin(filename, true);
-            return marlin_print_started();
+            return marlin_print_started() ? StartPrintResult::PrintStarted : StartPrintResult::Failed;
         } else {
-            return false;
+            return StartPrintResult::Failed;
         }
     } else {
         // The conditional here is just an optimization, to save bothering
@@ -372,15 +372,20 @@ bool wui_start_print(char *filename, bool autostart_if_able) {
         }
         // We were not asked to print. Showing the preview is "best effort",
         // but not reported to the user.
-        return true;
+        return StartPrintResult::Uploaded;
     }
 }
 
 bool wui_uploaded_gcode(char *filename, bool start_print) {
-    modified_gcodes++;
-    uploaded_gcodes++;
 
-    return wui_start_print(filename, start_print);
+    StartPrintResult res = wui_start_print(filename, start_print);
+    if (res != StartPrintResult::Failed) {
+        modified_gcodes++;
+    }
+    if (res == StartPrintResult::Uploaded) {
+        uploaded_gcodes++;
+    }
+    return (res != StartPrintResult::Failed);
 }
 
 void wui_gcode_modified() {
