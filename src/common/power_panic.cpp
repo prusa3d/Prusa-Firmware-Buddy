@@ -88,8 +88,9 @@ struct flash_planner_t {
     int16_t extrude_min_temp;
     int16_t flow_percentage;
     uint8_t allow_cold_extrude;
-
     uint8_t _padding[3]; // silence warning
+    planner_settings_t settings;
+    xyze_pos_t max_jerk;
 };
 
 // fully independent state that persist across panics until the end of the print
@@ -420,6 +421,10 @@ void resume_loop() {
         thermalManager.extrude_min_temp = state_buf.planner.extrude_min_temp;
         thermalManager.allow_cold_extrude = state_buf.planner.allow_cold_extrude;
 #endif
+        // planner settings
+        planner.settings = state_buf.planner.settings;
+        planner.reset_acceleration_rates();
+        planner.max_jerk = state_buf.planner.max_jerk;
 
         // initial planner state (order is relevant!)
         assert(!planner.leveling_active);
@@ -869,6 +874,8 @@ void ac_fault_isr() {
         state_buf.planner.flow_percentage = planner.flow_percentage[0];
         state_buf.planner.extruder_advance_K = planner.extruder_advance_K[0];
         state_buf.planner.axis_relative = gcode.axis_relative;
+        state_buf.planner.settings = planner.settings;
+        state_buf.planner.max_jerk = planner.max_jerk;
     }
 
     if (state_buf.planner.was_crashed) {
