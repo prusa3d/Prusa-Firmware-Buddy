@@ -53,6 +53,7 @@ void screen_printing_data_t::tuneAction() {
     switch (GetState()) {
     case printing_state_t::PRINTING:
     case printing_state_t::PAUSED:
+    case printing_state_t::RESUMING:
         Screens::Access()->Open(GetScreenMenuTune);
         break;
     default:
@@ -477,6 +478,7 @@ void screen_printing_data_t::set_tune_icon_and_label() {
     switch (GetState()) {
     case printing_state_t::PRINTING:
     case printing_state_t::PAUSED:
+    case printing_state_t::RESUMING:
         enable_tune_button();
         break;
     case printing_state_t::ABORTING:
