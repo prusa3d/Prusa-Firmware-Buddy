@@ -471,12 +471,12 @@ void screen_printing_data_t::set_tune_icon_and_label() {
     window_icon_t *const p_button = &btn_tune.ico;
     window_text_t *const pLabel = &btn_tune.txt;
 
-    //must be before switch
+    // must be before switch
     set_icon_and_label(item_id_t::settings, p_button, pLabel);
 
     switch (GetState()) {
     case printing_state_t::PRINTING:
-        // case printing_state_t::PAUSED:
+    case printing_state_t::PAUSED:
         enable_tune_button();
         break;
     case printing_state_t::ABORTING:
