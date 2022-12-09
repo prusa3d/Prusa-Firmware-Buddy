@@ -327,7 +327,9 @@ MI_M600::MI_M600()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
-    marlin_gcode_push_front("M600");
+    if (marlin_vars() == NULL || marlin_vars()->print_state == mpsPrinting || marlin_vars()->print_state == mpsPaused) {
+        marlin_gcode_push_front("M600");
+    }
 }
 
 /*****************************************************************************/
