@@ -13,11 +13,11 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, 
     is_multiline multiline, is_closed_on_click_t close)
     : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
-    , buttons(this, GuiDefaults::GetButtonRect(rect), resp, labels)
+    , pButtons(new (&radio_mem_space) RadioButton(this, GuiDefaults::GetButtonRect(rect), resp, labels))
     , result(Response::_none) {
     flags.close_on_click = close;
-    buttons.SetBtnIndex(def_btn);
-    CaptureNormalWindow(buttons);
+    pButtons->SetBtnIndex(def_btn);
+    CaptureNormalWindow(*pButtons);
 }
 
 Rect16 MsgBoxBase::getTextRect() {

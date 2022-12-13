@@ -3,6 +3,7 @@
 
 #include "IDialog.hpp"
 #include "radio_button.hpp"
+#include "radio_button_fsm.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
 #include "../../lang/i18n.h"
@@ -35,12 +36,42 @@ static constexpr PhaseResponses Responses_YesNoFSDisable       = { Response::Yes
 class MsgBoxBase : public AddSuperWindow<IDialog> {
 protected:
     window_text_t text;
-    RadioButton buttons;
+
+    // memory space to store radio buttons
+    // template parameter <PhasesPrintPreview> is irrelevant - same size
+    // in case it changes swap <PhasesPrintPreview> with the biggest type
+    // it is checked in BindToFSM method
+    using RadioMemSpace = std::aligned_union<0, RadioButton, RadioButtonFsm<PhasesPrintPreview>>::type;
+    RadioMemSpace radio_mem_space;
+    IRadioButton *pButtons = nullptr;
     Response result; //return value
 public:
     MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline = is_multiline::yes, is_closed_on_click_t close = is_closed_on_click_t::yes);
     Response GetResult();
+
+    template <class FSM_PHASE>
+    void BindToFSM(FSM_PHASE phase) {
+        static_assert(sizeof(RadioButtonFsm<FSM_PHASE>) <= sizeof(radio_mem_space), "RadioMemSpace is too small");
+
+        if (!pButtons) { // pButtons can never be null
+            assert("unassigned msgbox");
+            return;
+        }
+
+        Rect16 rc = pButtons->GetRect();
+        bool has_icon = pButtons->HasIcon();
+        color_t back = pButtons->GetBackColor();
+
+        ReleaseCaptureOfNormalWindow();
+        pButtons->~IRadioButton();
+
+        pButtons = new (&radio_mem_space) RadioButtonFsm<FSM_PHASE>(this, rc, phase);
+        has_icon ? pButtons->SetHasIcon() : pButtons->ClrHasIcon();
+        pButtons->SetBackColor(back);
+
+        CaptureNormalWindow(*pButtons);
+    }
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
