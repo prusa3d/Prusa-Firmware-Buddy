@@ -1037,7 +1037,7 @@ void Pause::park_nozzle_and_notify() {
 
     // move by z_lift, scope for Notifier_POS_Z
     if (isfinite(target_Z)) {
-        if (axes_need_homing(_BV(Z_AXIS))) {
+        if (axes_need_homing(_BV(Z_AXIS)) && current_position.z < target_Z) {
             TemporaryGlobalEndstopsState park_move_endstops(true);
             do_homing_move((AxisEnum)(Z_AXIS), target_Z, HOMING_FEEDRATE_INVERTED_Z // warning: the speed must probably be exactly this, otherwise endstops don't work
 #if ENABLED(MOVE_BACK_BEFORE_HOMING)
