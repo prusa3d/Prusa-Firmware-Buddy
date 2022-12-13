@@ -81,4 +81,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         pMsgbox = makeMsgBox(Responses_ChangeIgnoreAbort, _(labelWarning), _(txt_wrong_fil_type));
         break;
     }
+
+    if (pMsgbox)
+        pMsgbox->BindToFSM(phase);
 }
