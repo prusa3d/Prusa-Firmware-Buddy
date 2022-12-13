@@ -14,9 +14,7 @@ typedef uint8_t dependency_t;
 
 /// Definition fo different dependencies
 enum class ComponentDependencies {
-    NETWORKING_READY_IDX = 2,
-    FILESYSTEM_READY_IDX = 3,
-    // To be continued...
+    USBSERIAL_READY = 4,
 };
 
 /// Allow shifting
@@ -24,9 +22,11 @@ constexpr dependency_t operator<<(const dependency_t &a, const ComponentDependen
     return a << static_cast<dependency_t>(b);
 };
 
+static constexpr dependency_t USBSERIAL_READY = 1 << ComponentDependencies::USBSERIAL_READY;
 /// Definitions of dependecies for different tasks/components
-static constexpr dependency_t DEFAULT_TASK_DEPS = 0; // Default task has no dependecies
-static constexpr dependency_t EXAMPLE_TASK_DEPS = 1 << ComponentDependencies::NETWORKING_READY_IDX | 1 << ComponentDependencies::FILESYSTEM_READY_IDX;
+static constexpr dependency_t DEFAULT_TASK_DEPS =
+
+    USBSERIAL_READY | 0;
 
 // Needed for inline mthods being embedded to different compilation modules
 extern EventGroupHandle_t components_ready;
