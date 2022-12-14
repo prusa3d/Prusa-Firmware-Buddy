@@ -6,6 +6,10 @@ add_subdirectory(hw)
 add_subdirectory(logging)
 add_subdirectory(common)
 
+if(CONNECT OR WUI)
+  add_subdirectory(transfers)
+endif()
+
 if(CONNECT)
   if(NOT WUI)
     message(FATAL_ERROR "Connect needs WUI!")
