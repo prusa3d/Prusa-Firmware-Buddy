@@ -83,7 +83,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
         analog_gpio_init(GPIOA, BED_MON_Pin | THERM_1_Pin | THERM_2_Pin | THERM_PINDA_Pin);
 
         /* ADC1 DMA Init */
-        adc_dma_init(&hdma_adc1, DMA2_Stream0, DMA_CHANNEL_0);
+        adc_dma_init(&hdma_adc1, DMA2_Stream4, DMA_CHANNEL_0);
 
         /*Link ADC to DMA stram+channel*/
         __HAL_LINKDMA(hadc, DMA_Handle, hdma_adc1);

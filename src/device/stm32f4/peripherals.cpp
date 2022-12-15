@@ -175,9 +175,9 @@ void hw_dma_init() {
     // DMA2_Stream2_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-    // DMA2_Stream0_IRQn interrupt configuration
-    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+    // DMA2_Stream2_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
 }
 
 void static config_adc(ADC_HandleTypeDef *hadc, ADC_TypeDef *ADC_NUM, uint32_t NbrOfConversion) {
@@ -217,7 +217,7 @@ void hw_adc1_init() {
     config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::pinda_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::heatbed_U);
 
-    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn); // Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
+    HAL_NVIC_DisableIRQ(DMA2_Stream4_IRQn); // Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
 }
 
 void hw_uart1_init() {
