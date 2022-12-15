@@ -363,6 +363,11 @@ static void MX_RTC_Init(void) {
     if (HAL_RTC_Init(&hrtc) != HAL_OK) {
         Error_Handler();
     }
+    HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A);
+    HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_B);
+    HAL_RTCEx_DeactivateCalibrationOutPut(&hrtc);
+    HAL_RTCEx_DeactivateTamper(&hrtc, RTC_TAFCR_TAMP1E);
+    HAL_RTCEx_DeactivateTimeStamp(&hrtc);
 }
 
 static void MX_SPI2_Init(void) {
