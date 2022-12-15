@@ -183,9 +183,9 @@ void DMA2_Stream2_IRQHandler(void) {
 #endif
 
 /**
- * @brief This function handles DMA2 stream0 global interrupt.
+ * @brief This function handles DMA2 stream4 global interrupt.
  */
-void DMA2_Stream0_IRQHandler(void) {
+void DMA2_Stream4_IRQHandler(void) {
     // traceISR_ENTER();
     HAL_DMA_IRQHandler(&hdma_adc1);
     // traceISR_EXIT();
