@@ -1,9 +1,16 @@
 #pragma once
 
+#include <freertos_mutex.hpp>
+// Why is the FILE_PATH_BUFFER_LEN in gui?
+#include <gui/file_list_defs.h>
+
+#include <array>
+#include <atomic>
 #include <cstdint>
 #include <optional>
+#include <mutex>
 
-namespace Transfers {
+namespace transfers {
 
 using TeamId = uint64_t;
 using TransferId = uint32_t;
@@ -26,7 +33,7 @@ using Timestamp = uint32_t;
 /// # Expected usage
 ///
 /// The thread that desires to perform a transfer tries to claim the slot by
-/// one of the allocate_* methods. These may fail when the slot is already
+/// one of the allocate method. These may fail when the slot is already
 /// taken. If successful, it is supposed to hold onto the returned object for
 /// the time of running the transfer and push all updates to it through that
 /// object. Once the object is destroyed, the transfer is considered done and
@@ -53,7 +60,7 @@ using Timestamp = uint32_t;
 ///   communications or other slow operations.
 /// * As a consequence, the values between two Statuses may be different. It is
 ///   recommended to check that the transfer ID stays the same.
-/// * As another consequence, calling any allocate_ method while the same
+/// * As another consequence, calling the allocate method while the same
 ///   threads holds a Status will deadlock. It is, however, possible (and
 ///   expected) to get a Status after the thread acquired the Slot and it is
 ///   guaranteed that the Status will be for the same transfer as the Status.
@@ -65,6 +72,10 @@ using Timestamp = uint32_t;
 /// * The outcome and current_id are independent of the main locking and
 ///   never deadlock.
 class Monitor {
+private:
+    using Mutex = FreeRTOS_Mutex;
+    using Lock = std::unique_lock<Mutex>;
+
 public:
     /// What kind of transfer it is.
     enum class Type {
@@ -105,7 +116,16 @@ public:
 
     /// A Status of a running transfer.
     class Status {
+    private:
+        friend class Monitor;
+        Lock lock;
+        Status(Lock &&lock);
+
     public:
+        Status(Status &&other) = default;
+        Status &operator=(Status &&other) = default;
+        Status(const Status &other) = delete;
+        Status &operator=(const Status &other) = delete;
         Type type;
         TransferId id;
 
@@ -113,6 +133,8 @@ public:
         ///
         /// In our own internal timestamp ‒ not necessarily anchored to
         /// anything and may wrap around!
+        ///
+        /// In milliseconds.
         Timestamp start;
 
         /// The expected size.
@@ -132,7 +154,19 @@ public:
     ///
     /// Keep alive while the transfer is running.
     class Slot {
+    private:
+        friend class Monitor;
+        Monitor &owner;
+        Slot(Monitor &owner);
+        // Set to false when moved from.
+        bool live;
+
     public:
+        Slot(Slot &&other);
+        Slot &operator=(Slot &&other) = delete;
+        Slot(const Slot &other) = delete;
+        Slot &operator=(const Slot &other) = delete;
+        ~Slot();
         /// Update the progress report.
         ///
         /// More bytes were transferred, account for them in the tracking.
@@ -147,8 +181,39 @@ public:
         void done(Outcome reason);
     };
 
-    std::optional<Slot> allocate_connect(TeamId team, const char *hash, const char *dest, size_t expected_size);
-    std::optional<Slot> allocate_link(const char *dest, size_t expected_size);
+    friend class Slot;
+
+private:
+    // Mutex for the "active transfer" information.
+    mutable Mutex main_mutex;
+    // Mutex for the history of outcomes.
+    mutable Mutex history_mutex;
+    // Changes to these _are_ protected by a mutex, but it is possible to
+    // _read_ them without locking.
+    //
+    // A bit of care needs to be employed when dealing with them, to avoid
+    // races, etc.
+    std::atomic<bool> transfer_active = false;
+    std::atomic<TransferId> current_id;
+
+    // Transfer related
+    bool used = false;
+    Type type;
+    Timestamp start;
+    size_t expected;
+    size_t transferred;
+    char destination_path[FILE_PATH_BUFFER_LEN];
+
+    // History related
+    static constexpr size_t HISTORY_MAX_LEN = 2;
+    size_t history_len = 0;
+    TransferId history_latest;
+    std::array<Outcome, HISTORY_MAX_LEN> history;
+
+public:
+    Monitor();
+
+    std::optional<Slot> allocate(Type type, const char *dest, size_t expected_size);
 
     /// Request the status of currently running transfer.
     ///
@@ -183,7 +248,7 @@ public:
     ///
     /// This doesn't lock and can be used to quickly check if anything
     /// important changed without really going through the whole Status thing.
-    std::optional<TransferId> current_id();
+    std::optional<TransferId> id() const;
 
     /// The global instance.
     static Monitor instance;
