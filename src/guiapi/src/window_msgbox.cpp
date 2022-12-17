@@ -13,11 +13,11 @@ MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, 
     is_multiline multiline, is_closed_on_click_t close)
     : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
-    , buttons(this, GuiDefaults::GetButtonRect(rect), resp, labels)
+    , pButtons(new (&radio_mem_space) RadioButton(this, GuiDefaults::GetButtonRect(rect), resp, labels))
     , result(Response::_none) {
     flags.close_on_click = close;
-    buttons.SetBtnIndex(def_btn);
-    //buttons.SetCapture(); //todo make this work
+    pButtons->SetBtnIndex(def_btn);
+    CaptureNormalWindow(*pButtons);
 }
 
 Rect16 MsgBoxBase::getTextRect() {
@@ -28,25 +28,17 @@ Response MsgBoxBase::GetResult() {
     return result;
 }
 
-//todo make radio button events behave like normal button
 void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    event_conversion_union un;
+    un.pvoid = param;
+
     switch (event) {
-    case GUI_event_t::CLICK:
-        result = buttons.Click();
+    case GUI_event_t::CHILD_CLICK:
+        result = un.response;
         if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();
-        } else {
-            event_conversion_union un;
-            un.response = result;
-            if (GetParent())
-                GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
-        }
-        break;
-    case GUI_event_t::ENC_UP:
-        ++buttons;
-        break;
-    case GUI_event_t::ENC_DN:
-        --buttons;
+        } else if (GetParent())
+            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
         break;
     default:
         SuperWindowEvent(sender, event, param);

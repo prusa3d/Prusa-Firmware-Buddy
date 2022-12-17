@@ -3,7 +3,7 @@
 #include "IDialog.hpp"
 #include <array>
 #include <optional>
-#include "DialogRadioButton.hpp"
+#include "radio_button_fsm.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
 #include "i18n.h"
@@ -47,7 +47,7 @@ protected:
     window_text_t title;
     window_progress_t progress;
     window_text_t label;
-    RadioButton radio;
+
     uint8_t phase;
 
     virtual bool can_change(uint8_t phase) = 0;
@@ -74,17 +74,23 @@ public:
     using States = std::array<State, SZ>;
 
 protected:
-    States states; //phase text and radiobutton + onEnter & onExit cb
+    States states; //phase text and radio button + onEnter & onExit cb
+    RadioButtonFsm<T> radio;
+
 public:
     DialogStateful(string_view_utf8 name, States st, std::optional<has_footer> child_has_footer = std::nullopt)
         : IDialogStateful(name, child_has_footer)
-        , states(st) {};
+        , states(st)
+        , radio(this, (child_has_footer == has_footer::yes) ? GuiDefaults::GetButtonRect_AvoidFooter(GetRect()) : GuiDefaults::GetButtonRect(GetRect()), T::_first) {
+        CaptureNormalWindow(radio);
+    }
 
 protected:
     virtual bool can_change(uint8_t phase) { return phase < SZ; }
     // get arguments callbacks and call them
     virtual void phaseEnter() {
-        radio.Change(states[phase].btn_resp, &states[phase].btn_labels);
+        T fsm_phase = GetEnumFromPhaseIndex<T>(phase);
+        radio.Change(fsm_phase /*, states[phase].btn_resp, &states[phase].btn_labels*/); // TODO alternative button label support
         label.SetText(_(states[phase].label));
         if (states[phase].onEnter) {
             states[phase].onEnter();
@@ -95,30 +101,4 @@ protected:
             states[phase].onExit();
         }
     }
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param) override;
 };
-
-/*****************************************************************************/
-//template definitions
-
-//todo make radio button events behave like normal button
-template <class T>
-void DialogStateful<T>::windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param) {
-    switch (event) {
-    case GUI_event_t::CLICK: {
-        Response response = radio.Click();
-        marlin_FSM_response(GetEnumFromPhaseIndex<T>(phase), response);
-        break;
-    }
-    case GUI_event_t::ENC_UP:
-        ++radio;
-        break;
-    case GUI_event_t::ENC_DN:
-        --radio;
-        break;
-    default:
-        break;
-    }
-}

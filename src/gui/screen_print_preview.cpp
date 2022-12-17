@@ -23,7 +23,7 @@ static GCodeInfo &gcode_init() {
 
 ScreenPrintPreview::ScreenPrintPreview()
     : title_text(this, Rect16(PADDING, PADDING, display::GetW() - 2 * PADDING, TITLE_HEIGHT))
-    , radio(this, GuiDefaults::GetIconnedButtonRect(GetRect()), ClientResponses::GetResponses(PhasesPrintPreview::main_dialog))
+    , radio(this, GuiDefaults::GetIconnedButtonRect(GetRect()), PhasesPrintPreview::main_dialog)
     , gcode(gcode_init())
     , gcode_description(this, gcode)
     , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
@@ -38,6 +38,7 @@ ScreenPrintPreview::ScreenPrintPreview()
     radio.SetHasIcon();
     radio.SetBlackLayout(); // non iconned buttons have orange background
     radio.SetBtnCount(2);
+    CaptureNormalWindow(radio);
     ths = this;
 }
 
@@ -49,35 +50,6 @@ ScreenPrintPreview::~ScreenPrintPreview() {
 ScreenPrintPreview *ScreenPrintPreview::ths = nullptr;
 
 ScreenPrintPreview *ScreenPrintPreview::GetInstance() { return ths; }
-
-/*
-TODO
-Sound_Play(eSOUND_TYPE::SingleBeep); in case of failure of print action
-*/
-void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    switch (event) {
-    case GUI_event_t::CLICK: {
-        Response response = radio.Click();
-        marlin_FSM_response(phase, response);
-        break;
-    }
-    case GUI_event_t::CHILD_CLICK: {
-        event_conversion_union un;
-        un.pvoid = param;
-        Response response = un.response;
-        marlin_FSM_response(phase, response);
-        break;
-    }
-    case GUI_event_t::ENC_UP:
-        ++radio;
-        break;
-    case GUI_event_t::ENC_DN:
-        --radio;
-        break;
-    default:
-        SuperWindowEvent(sender, event, param);
-    }
-}
 
 ScreenPrintPreview::UniquePtr ScreenPrintPreview::makeMsgBox(const PhaseResponses &resp, string_view_utf8 caption, string_view_utf8 text) {
     return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, resp, 0, nullptr, text, is_multiline::yes, caption, &png::warning_16x16, is_closed_on_click_t::no);
@@ -109,4 +81,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         pMsgbox = makeMsgBox(Responses_ChangeIgnoreAbort, _(labelWarning), _(txt_wrong_fil_type));
         break;
     }
+
+    if (pMsgbox)
+        pMsgbox->BindToFSM(phase);
 }

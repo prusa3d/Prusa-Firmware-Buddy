@@ -14,6 +14,8 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "_none";
     case PhasesSelftest::WizardPrologue_ask_run:
         return "WizardPrologue_ask_run";
+    case PhasesSelftest::WizardPrologue_ask_run_dev:
+        return "WizardPrologue_ask_run_dev";
     case PhasesSelftest::WizardPrologue_info:
         return "WizardPrologue_info";
     case PhasesSelftest::WizardPrologue_info_detailed:

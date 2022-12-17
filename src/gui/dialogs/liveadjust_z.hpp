@@ -19,7 +19,12 @@ class WindowScale : public AddSuperWindow<window_frame_t> {
 
 public:
     WindowScale(window_t *parent, point_i16_t pt);
-    void SetMark(float percent);
+
+    /**
+     * @brief Set mark position.
+     * @param relative position, 0 - top, 1 - bottom
+     */
+    void SetMark(float relative);
 
 protected:
     virtual void unconditionalDraw() override;

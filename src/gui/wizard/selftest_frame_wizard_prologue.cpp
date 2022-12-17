@@ -62,17 +62,8 @@ void SelftestFrameWizardPrologue::change() {
     //texts
     switch (phase_current) {
     case PhasesSelftest::WizardPrologue_ask_run:
+    case PhasesSelftest::WizardPrologue_ask_run_dev:
         txt_icon = txt_prologue;
-
-        if constexpr (!GuiDefaults::ShowDevelopmentTools) {
-            //original responses
-            const PhaseResponses &rResp = ClientResponses::GetResponses(PhasesSelftest::WizardPrologue_ask_run);
-            //convert to radio button responses and mask out Ignore button
-            //local variable is ok, RadioButton makes a copy
-            RadioButton::Responses_t resp = { { rResp[0], rResp[1], Response::_none, Response::_none } };
-
-            radio.Change(resp);
-        }
         show_icon = true;
         break;
     case PhasesSelftest::WizardPrologue_info:

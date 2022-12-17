@@ -654,7 +654,7 @@ public:
     /// @param[in] count number of splits
     /// @param[in] spacing width of spaces between rectangle's splits (optional = 0)
     /// @param[in] text_width[] width of texts (optional = nullptr)
-    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t text_width[] = nullptr) const;
+    void HorizontalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, const uint8_t text_width[] = nullptr) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Horizontal split with dynamic spaces from parent Rect16
@@ -701,7 +701,7 @@ public:
     /// @param[in] count number of splits
     /// @param[in] spacing with of spaces between rectangle's splits (optional = 0)
     /// @param[in] text_width[] text_width of wanted splits (optional = nullptr)
-    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, uint8_t text_width[] = nullptr) const;
+    void VerticalSplit(Rect16 splits[], Rect16 spaces[], const size_t count, const uint16_t spacing = 0, const uint8_t text_width[] = nullptr) const;
 
     ////////////////////////////////////////////////////////////////////////////
     /// @brief Line operation substracts subtrahend

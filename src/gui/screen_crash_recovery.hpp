@@ -6,7 +6,7 @@
 #include "fsm_base_types.hpp"
 #include "window_icon.hpp"
 #include "window_wizard_progress.hpp"
-#include "DialogRadioButton.hpp"
+#include "radio_button.hpp"
 
 class ScreenCrashRecovery;
 

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "IDialog.hpp"
-#include "DialogRadioButton.hpp"
+#include "radio_button.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
 #include "i18n.h"

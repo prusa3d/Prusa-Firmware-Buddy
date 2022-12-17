@@ -21,10 +21,9 @@
 
 WindowScale::WindowScale(window_t *parent, point_i16_t pt)
     : AddSuperWindow<window_frame_t>(parent, Rect16(pt, 10, 100))
-    , scaleNum0(parent, getNumRect(pt), 0)
-    , scaleNum1(parent, getNumRect(pt), -1)
-    , scaleNum2(parent, getNumRect(pt), -2) {
-    scaleNum0.SetFormat("% .0f");
+    , scaleNum0(parent, getNumRect(pt), z_offset_max, "% f")
+    , scaleNum1(parent, getNumRect(pt), (z_offset_max + z_offset_min) / 2, "% f")
+    , scaleNum2(parent, getNumRect(pt), z_offset_min, "% f") {
 
     scaleNum0 -= Rect16::Top_t(8);
     scaleNum1 += Rect16::Top_t((Height() / 2) - 8);
@@ -35,10 +34,10 @@ Rect16 WindowScale::getNumRect(point_i16_t pt) const {
     return Rect16(pt.x - 30, pt.y, 30, 20);
 }
 
-void WindowScale::SetMark(float percent) {
+void WindowScale::SetMark(float relative) {
     if (!mark_old_y)
         mark_old_y = mark_new_y;
-    mark_new_y = Height() * std::clamp(percent, 0.f, 100.f);
+    mark_new_y = Height() * std::clamp(relative, 0.f, 1.f);
     if (mark_old_y != mark_new_y) {
         Invalidate();
     } else {
@@ -94,7 +93,7 @@ void WindowLiveAdjustZ::Save() {
 
 void WindowLiveAdjustZ::Change(int dif) {
     float old = number.GetValue();
-    float z_offset = number.value;
+    float z_offset = number.GetValue();
 
     z_offset += (float)dif * z_offset_step;
     z_offset = dif >= 0 ? std::max(z_offset, old) : std::min(z_offset, old); //check overflow/underflow
@@ -192,13 +191,13 @@ LiveAdjustZ::LiveAdjustZ()
 
 void LiveAdjustZ::moveNozzle() {
     uint16_t old_top = nozzle_icon.Top();
-    Rect16 moved_rect = nozzleRect;                     // starting position - 0%
-    float percent = adjuster.GetValue() / z_offset_min; // z_offset value in percent
+    Rect16 moved_rect = nozzleRect;                                                        // starting position - 0%
+    float relative = (z_offset_max - adjuster.GetValue()) / (z_offset_max - z_offset_min); // relative z_offset value
 
-    // set move percent for a scale line indicator
-    scale.SetMark(percent);
+    // set move for a scale line indicator
+    scale.SetMark(relative);
 
-    moved_rect += Rect16::Top_t(int(40 * percent)); // how much will nozzle move
+    moved_rect += Rect16::Top_t(int(40 * relative)); // how much will nozzle move
     nozzle_icon.SetRect(moved_rect);
     if (old_top != nozzle_icon.Top()) {
         nozzle_icon.Invalidate();

@@ -63,7 +63,8 @@ const PhaseResponses ClientResponses::CrashRecoveryResponses[CountPhases<PhasesC
 const PhaseResponses ClientResponses::SelftestResponses[CountPhases<PhasesSelftest>()] = {
     {}, // _none == _first
 
-    { Response::Continue, Response::Cancel, Response::Ignore }, // WizardPrologue_ask_run
+    { Response::Continue, Response::Cancel },                   // WizardPrologue_ask_run
+    { Response::Continue, Response::Cancel, Response::Ignore }, // WizardPrologue_ask_run_dev
     { Response::Continue, Response::Cancel },                   // WizardPrologue_info
     { Response::Continue, Response::Cancel },                   // WizardPrologue_info_detailed
 
