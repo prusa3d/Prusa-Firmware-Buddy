@@ -335,7 +335,7 @@ void Pause::loop_load(Response response) {
         if (response == Response::Retry) {
             set(LoadPhases_t::eject);
         }
-        if (response == Response::Continue) {
+        if (response == Response::Yes) {
             set(LoadPhases_t::_finish);
         }
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
@@ -384,7 +384,7 @@ void Pause::loop_load_purge(Response response) {
         if (response == Response::Purge_more) {
             set(LoadPhases_t::purge);
         }
-        if (response == Response::Continue) {
+        if (response == Response::Yes) {
             set(LoadPhases_t::_finish);
         }
     } break;
@@ -474,7 +474,7 @@ void Pause::loop_load_mmu(Response response) {
         if (response == Response::Retry) {
             set(LoadPhases_t::eject);
         }
-        if (response == Response::Continue) {
+        if (response == Response::Yes) {
             set(LoadPhases_t::_finish);
         }
     } break;
@@ -558,7 +558,7 @@ void Pause::loop_autoload(Response response) {
         if (response == Response::Retry) {
             set(LoadPhases_t::eject);
         }
-        if (response == Response::Continue) {
+        if (response == Response::Yes) {
             set(LoadPhases_t::_finish);
         }
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
@@ -654,7 +654,7 @@ void Pause::loop_load_change(Response response) {
         if (response == Response::Retry) {
             set(LoadPhases_t::eject);
         }
-        if (response == Response::Continue) {
+        if (response == Response::Yes) {
             set(LoadPhases_t::_finish);
         }
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
