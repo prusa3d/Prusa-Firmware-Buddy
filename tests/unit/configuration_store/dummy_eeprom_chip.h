@@ -16,5 +16,6 @@ public:
     uint8_t get(uint16_t address);
     void check_data(uint16_t address, std::vector<uint8_t> data);
     void clear();
+    bool is_clear();
 };
 extern DummyEepromChip eeprom_chip;

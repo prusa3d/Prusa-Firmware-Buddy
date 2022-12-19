@@ -3,6 +3,7 @@
 #include "eeprom_access.hpp"
 #include "configuration_store/configuration_store.hpp"
 #include "dummy_eeprom_chip.h"
+#include "language_eeprom.hpp"
 using namespace configuration_store;
 static constexpr const char *key = "data";
 static constexpr size_t header_size = 1;
@@ -81,7 +82,7 @@ TEST_CASE("Cleanup") {
     std::mt19937 g(rd());
     std::uniform_int_distribution<int32_t> distribution(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max());
     eeprom_chip.clear();
-    auto eeprom = new ConfigurationStore(EepromAccess {});
+    new (&config_store()) ConfigurationStore(EepromAccess {});
     config_store().init();
     // size of crc + header + data
     int32_t data = 0;
@@ -93,16 +94,13 @@ TEST_CASE("Cleanup") {
         config_store().SimpleType.set(data);
         REQUIRE(address < get<EepromAccess>(config_store().backend).first_free_space);
         address = get<EepromAccess>(config_store().backend).first_free_space;
-        delete eeprom;
-        eeprom = new ConfigurationStore(EepromAccess {});
+        new (&config_store()) ConfigurationStore(EepromAccess {});
         config_store().init();
         // if we change bank in init the address will be different
         REQUIRE((bank != get<EepromAccess>(config_store().backend).bank_selector || address == get<EepromAccess>(config_store().backend).first_free_space));
         REQUIRE(config_store().SimpleType.get() == data);
     }
-    delete eeprom;
-    eeprom = new ConfigurationStore(EepromAccess {});
-    config_store().init();
+    new (&config_store()) ConfigurationStore(EepromAccess {});
     REQUIRE(EepromAccess::instance().bank_selector == 0);
 
     REQUIRE(config_store().SimpleType.get() == data);
@@ -139,6 +137,7 @@ TEST_CASE("Factory reset") {
     config_store().SimpleType.set(10);
     REQUIRE(config_store().SimpleType.get() == 10);
     config_store().factory_reset();
+    REQUIRE(eeprom_chip.is_clear());
     new (&config_store()) ConfigurationStore(EepromAccess {});
     config_store().init();
     struct_type = config_store().struct_type.get();
@@ -223,4 +222,11 @@ TEST_CASE("Failed init") {
     eeprom_chip.clear();
     new (&config_store()) ConfigurationStore(EepromAccess {});
     config_store().init();
+}
+
+TEST_CASE("Languague eeprom") {
+    eeprom_chip.clear();
+    new (&config_store()) ConfigurationStore(EepromAccess {});
+    config_store().init();
+    REQUIRE(LangEEPROM::getInstance().IsValid() == false);
 }

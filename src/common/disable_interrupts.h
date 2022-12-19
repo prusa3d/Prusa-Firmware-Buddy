@@ -6,7 +6,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <cmsis_gcc.h>
 
 namespace buddy {
 

@@ -31,6 +31,16 @@ uint8_t DummyEepromChip::get(uint16_t address) {
 void DummyEepromChip::clear() {
     data.fill(0xff);
 }
+bool DummyEepromChip::is_clear() {
+    for (size_t i = 0; i < data.size(); i++) {
+        INFO("Current pos is " << i);
+        REQUIRE(data[i] == 0xff);
+        if (data[i] != 0xff) {
+            return false;
+        }
+    }
+    return true;
+}
 
 void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size) {
     eeprom_chip.get(address, static_cast<uint8_t *>(pdata), size);

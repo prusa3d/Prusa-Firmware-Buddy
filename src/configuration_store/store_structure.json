@@ -124,7 +124,7 @@
   },
   "language": {
     "data_type": "uint16_t",
-    "default": 0
+    "default": 65535
   },
   "file_sort": {
     "data_type": "uint8_t",

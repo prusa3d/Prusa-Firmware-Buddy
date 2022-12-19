@@ -7,10 +7,7 @@
 #include "item_updater.hpp"
 #include "mem_config_item.hpp"
 #include <variant>
-
-#ifndef EEPROM_UNITTEST
-    #include "disable_interrupts.h"
-#endif
+#include "disable_interrupts.h"
 
 LOG_COMPONENT_REF(ConfigurationStoreLog);
 namespace configuration_store {

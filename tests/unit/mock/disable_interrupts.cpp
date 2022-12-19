@@ -1,9 +1,8 @@
 #include "disable_interrupts.h"
-#include <cmsis_gcc.h>
 using namespace buddy;
 
 DisableInterrupts::DisableInterrupts(bool disableNow)
-    : m_primask(__get_PRIMASK()) {
+    : m_primask(0) {
     if (disableNow)
         disable();
 }
@@ -13,9 +12,7 @@ DisableInterrupts::~DisableInterrupts() {
 }
 
 void DisableInterrupts::disable() {
-    __disable_irq();
 }
 
 void DisableInterrupts::resume() {
-    __set_PRIMASK(m_primask);
 }

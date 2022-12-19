@@ -52,7 +52,6 @@ static void startup_task(void const *argument) {
 
     // init eeprom module itself
     taskENTER_CRITICAL();
-    eeprom_init();
     init_configuration_store();
     taskEXIT_CRITICAL();
 

@@ -170,7 +170,8 @@ public:
     /**
      * @brief Invalidates the values stored in eeprom in both banks
      *
-     * Writes 0xff on the first byte of each eeprom bank
+     * Writes 0xff to each address in eeprom
+     * Restart or reinitialization of eeprom is needed after this function
      */
     void reset();
     EepromAccess() = default;

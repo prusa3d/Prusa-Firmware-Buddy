@@ -1,10 +1,13 @@
 #include "eeprom_access.hpp"
 #include "hash_table.hpp"
 #include "timing.h"
-#include "HAL/HAL.h"
+#ifndef EEPROM_UNITTEST
+    #include "HAL/HAL.h"
+#endif
 LOG_COMPONENT_DEF(EEPROM_ACCESS, LOG_SEVERITY_DEBUG);
 using namespace configuration_store;
 bool EepromAccess::store_item(const std::vector<uint8_t> &data) {
+
     log_debug(EEPROM_ACCESS, "Store item with size %d", data.size());
     // we have only one byte to store length of the data and 0xff is invalid length value
     if (data.size() >= (std::numeric_limits<uint8_t>::max() - 1)) {
@@ -204,14 +207,13 @@ void EepromAccess::reset() {
     std::unique_lock lock(mutex);
     uint16_t a;
     uint32_t data = 0xffffffff;
-    for (a = 0x0000; a < 0x2000; a += 4) {
+    for (a = 0; a < 8096; a += 4) {
         st25dv64k_user_write_bytes(a, &data, 4);
+#ifndef EEPROM_UNITTEST
         if ((a % 0x200) == 0)   // clear entire eeprom take ~4s
             watchdog_refresh(); // we will reset watchdog every ~1s for sure
+#endif
     }
-    bank_selector = 0;
-    st25dv64k_user_write(BANK_SELECTOR_ADDRESS, bank_selector);
-    first_free_space = START_OFFSET;
 }
 EepromAccess::EepromAccess(EepromAccess &&other)
     : first_free_space(other.first_free_space)

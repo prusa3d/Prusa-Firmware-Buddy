@@ -3,15 +3,19 @@ add_executable(
   eeprom_unit_tests
   ${CMAKE_CURRENT_SOURCE_DIR}/eeprom_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/dummy_eeprom_chip.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/crc32.c
   ${CMAKE_SOURCE_DIR}/src/logging/log.c
   ../logging/utils.cpp
   ${CMAKE_SOURCE_DIR}/src/configuration_store/configuration_store.cpp
   ${CMAKE_SOURCE_DIR}/src/configuration_store/eeprom_access.cpp
+  ${CMAKE_SOURCE_DIR}/src/configuration_store/migration_functions.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/language_eeprom.cpp
+  ${CMAKE_SOURCE_DIR}/src/lang/translator.cpp
   set_tests.cpp
   bsod.cpp
   ../mock/timing_dummy.cpp
   ../mock/freertos_mutex.cpp
+  ../mock/crc32_sw.cpp
+  ../mock/disable_interrupts.cpp
   )
 
 # define custom macros
@@ -20,6 +24,8 @@ target_include_directories(
   eeprom_unit_tests
   PUBLIC ${CMAKE_SOURCE_DIR}/src/configuration_store eeprom_unit_tests
   PUBLIC ${CMAKE_SOURCE_DIR}/src
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/common
+  PUBLIC ${CMAKE_SOURCE_DIR}/include
   )
 target_include_directories(eeprom_unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 add_catch_test(eeprom_unit_tests)

@@ -16,6 +16,10 @@
       "default": 0
     }
   },
+  "language": {
+    "data_type": "uint16_t",
+    "default": 65535
+  },
   "array_multiple_default_items": {
     "data_type": "std::array<int32_t,3>",
     "default": [

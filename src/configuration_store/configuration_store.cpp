@@ -19,14 +19,16 @@ void ConfigurationStore::init() {
         backend);
     updater.migrate();
 
+#ifndef EEPROM_UNITTEST
+    // TODO mock old eeprom api for migration testing
     auto eeprom_init_state = eeprom_init();
     switch (eeprom_init_state) {
     case EEPROM_INIT_Defaults:
-        //we have already migrated to configuration store
+        // we have already migrated to configuration store
         break;
     case EEPROM_INIT_Upgraded:
     case EEPROM_INIT_Normal:
-        //migrate old eeprom, invalidate it and reset the system to initialize FW with valid data
+        // migrate old eeprom, invalidate it and reset the system to initialize FW with valid data
         migrate_from_old_eeprom();
         eeprom_clear();
         sys_reset();
@@ -34,6 +36,7 @@ void ConfigurationStore::init() {
     default:
         break;
     }
+#endif
 }
 
 ConfigurationStore &ConfigurationStore::GetStore() {
