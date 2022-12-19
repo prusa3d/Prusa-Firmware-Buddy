@@ -10,6 +10,12 @@ using std::nullopt;
 using std::optional;
 using std::unique_lock;
 
+extern "C" {
+
+// Inject for tests, which are compiled on systems without it in the header.
+size_t strlcpy(char *, const char *, size_t);
+}
+
 namespace transfers {
 
 Monitor::Slot::Slot(Monitor &owner)
@@ -51,7 +57,7 @@ void Monitor::Slot::done(Outcome outcome) {
     memmove(owner.history.begin() + 1, owner.history.begin(), preserved * sizeof *owner.history.begin());
     // Include the new item.
     owner.history[0] = outcome;
-    owner.history_len += 1;
+    owner.history_len = preserved + 1;
     // We are reading an atomic that changes only when the main_mutex is
     // locked. Note that the change can't happen here even though we _don't_
     // lock the mutex, because the only way it can change is to allocate a new
