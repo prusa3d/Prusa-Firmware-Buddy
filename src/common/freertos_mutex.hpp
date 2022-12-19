@@ -27,6 +27,7 @@ public:
     void lock();
     FreeRTOS_Mutex() noexcept;
     FreeRTOS_Mutex(const FreeRTOS_Mutex &) = delete;
+    ~FreeRTOS_Mutex();
 
 private:
     void *xSemaphore = nullptr;     // SemaphoreHandle_t

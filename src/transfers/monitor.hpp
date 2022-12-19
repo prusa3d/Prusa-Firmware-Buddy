@@ -33,9 +33,9 @@ using Timestamp = uint32_t;
 /// # Expected usage
 ///
 /// The thread that desires to perform a transfer tries to claim the slot by
-/// one of the allocate method. These may fail when the slot is already
-/// taken. If successful, it is supposed to hold onto the returned object for
-/// the time of running the transfer and push all updates to it through that
+/// the allocate method. These may fail when the slot is already taken. If
+/// successful, caller is supposed to hold onto the returned object for the
+/// time of running the transfer and push all updates to it through that
 /// object. Once the object is destroyed, the transfer is considered done and
 /// the slot is returned.
 ///
@@ -60,10 +60,11 @@ using Timestamp = uint32_t;
 ///   communications or other slow operations.
 /// * As a consequence, the values between two Statuses may be different. It is
 ///   recommended to check that the transfer ID stays the same.
-/// * As another consequence, calling the allocate method while the same
-///   threads holds a Status will deadlock. It is, however, possible (and
-///   expected) to get a Status after the thread acquired the Slot and it is
-///   guaranteed that the Status will be for the same transfer as the Status.
+/// * As another consequence, calling the allocate method or dropping the Slot
+///   while the same threads holds a Status will deadlock. It is, however,
+///   possible (and expected) to get a Status after the thread acquired the Slot
+///   and it is guaranteed that the Status will be for the same transfer as the
+///   Status.
 /// * Similarly, calling methods on the Slot while holding a Status will deadlock.
 /// * Neither Status nor Slot are allowed to outlive the Monitor they came from
 ///   (not an issue with the global instance, of course).
@@ -119,7 +120,8 @@ public:
     private:
         friend class Monitor;
         Lock lock;
-        Status(Lock &&lock);
+        Status(Lock &&lock)
+            : lock(std::move(lock)) {}
 
     public:
         Status(Status &&other) = default;
