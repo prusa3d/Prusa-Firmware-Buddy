@@ -3,6 +3,7 @@
 #include <timing.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cstring>
 
 using std::min;
@@ -41,6 +42,17 @@ Monitor::Slot::~Slot() {
 
         owner.transfer_active = false;
     }
+}
+
+Monitor::Slot &Monitor::Slot::operator=(Slot &&other) {
+    // This is just to satisfy optional<Slot>::operator=, but doesn't do anything really.
+    //
+    // It's not needed in reality, as we aren't supposed to have two slots at
+    // the same time anyway and it would be a bit involved to write - first
+    // dropping the old one properly if live, then gutting the new one, the
+    // owner would have to be pointer instead of referrence...
+    assert(0);
+    return *this;
 }
 
 void Monitor::Slot::progress(size_t additional_bytes) {
@@ -145,5 +157,7 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
 
     return Slot(*this);
 }
+
+Monitor Monitor::instance;
 
 }

@@ -88,3 +88,7 @@ TEST_CASE("Start print - missing args") {
 TEST_CASE("Set printer ready") {
     command_test<SetPrinterReady>("{\"command\": \"SET_PRINTER_READY\", \"args\": [], \"kwargs\": {}}");
 }
+
+TEST_CASE("Send transfer info") {
+    command_test<SendTransferInfo>("{\"command\": \"SEND_TRANSFER_INFO\", \"args\": [], \"kwargs\": {}}");
+}

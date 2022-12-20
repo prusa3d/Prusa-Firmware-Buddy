@@ -91,6 +91,8 @@ const char *to_str(EventType event) {
         return "JOB_INFO";
     case EventType::FileInfo:
         return "FILE_INFO";
+    case EventType::TransferInfo:
+        return "TRANSFER_INFO";
     case EventType::Finished:
         return "FINISHED";
     case EventType::Failed:
@@ -300,6 +302,13 @@ void Planner::command(const Command &command, const SendFileInfo &params) {
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, "Forbidden path" };
     }
+}
+
+void Planner::command(const Command &command, const SendTransferInfo &params) {
+    planned_event = Event {
+        EventType::TransferInfo,
+        command.id,
+    };
 }
 
 void Planner::command(const Command &command, const SetPrinterReady &) {
