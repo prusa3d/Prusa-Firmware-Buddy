@@ -146,7 +146,6 @@ uint8_t const *tud_descriptor_device_cb(void) {
 enum {
     INTERFACE_CDC = 0,
     INTERFACE_CDC_DATA,
-    INTERFACE_MSC,
     INTERFACE_COUNT
 };
 
@@ -155,9 +154,6 @@ enum {
 #define EPNUM_CDC_NOTIF 0x81
 #define EPNUM_CDC_OUT   0x02
 #define EPNUM_CDC_IN    0x82
-
-#define EPNUM_MSC_OUT 0x03
-#define EPNUM_MSC_IN  0x83
 
 uint8_t const desc_fs_configuration[] = {
     // Config number, interface count, string index, total length, attribute, power in mA
