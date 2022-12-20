@@ -155,9 +155,6 @@ enum {
 #define EPNUM_CDC_OUT   0x02
 #define EPNUM_CDC_IN    0x82
 
-#define EPNUM_MSC_OUT 0x03
-#define EPNUM_MSC_IN  0x83
-
 uint8_t const desc_fs_configuration[] = {
     // Config number, interface count, string index, total length, attribute, power in mA
     TUD_CONFIG_DESCRIPTOR(1, INTERFACE_COUNT, 0, CONFIG_TOTAL_LEN, 0x00, 100),
