@@ -165,7 +165,11 @@ public:
 
     public:
         Slot(Slot &&other);
-        Slot &operator=(Slot &&other) = delete;
+        /// Exists only to satisfy compiler in the optional<Slot>::operator=.
+        /// But not to be called in reality (because there shall _not_ be two
+        /// living slots at the same time anyway), the left side of that
+        /// optional shall be nullopt!
+        Slot &operator=(Slot &&other);
         Slot(const Slot &other) = delete;
         Slot &operator=(const Slot &other) = delete;
         ~Slot();

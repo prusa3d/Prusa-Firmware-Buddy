@@ -80,6 +80,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("SEND_INFO", SendInfo)
             T("SEND_JOB_INFO", SendJobInfo)
             T("SEND_FILE_INFO", SendFileInfo)
+            T("SEND_TRANSFER_INFO", SendTransferInfo)
             T("PAUSE_PRINT", PausePrint)
             T("STOP_PRINT", StopPrint)
             T("RESUME_PRINT", ResumePrint)

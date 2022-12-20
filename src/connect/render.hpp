@@ -8,6 +8,7 @@
 #include <gcode_thumb_decoder.h>
 #include <unique_file_ptr.hpp>
 #include <unique_dir_ptr.hpp>
+#include <transfers/monitor.hpp>
 
 #include <sys/stat.h>
 
@@ -78,6 +79,8 @@ struct RenderState {
     // XXX: Variantize
     std::optional<Printer::NetInfo> lan;
     std::optional<Printer::NetInfo> wifi;
+
+    std::optional<transfers::TransferId> transfer_id = std::nullopt;
 
     RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes);
 };

@@ -15,6 +15,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/hostname.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   command.cpp
   missing_functions.cpp
   render.cpp
@@ -22,6 +23,7 @@ add_executable(
   printer.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   )
 target_include_directories(
   connect_tests

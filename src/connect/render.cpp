@@ -6,6 +6,7 @@
 #include <gcode_filename.h>
 #include <gcode_file.h>
 #include <basename.h>
+#include <timing.h>
 
 #include <cassert>
 #include <cstring>
@@ -18,6 +19,7 @@ using std::move;
 using std::optional;
 using std::tuple;
 using std::visit;
+using transfers::Monitor;
 
 #define JSON_MAC(NAME, VAL) JSON_FIELD_STR_FORMAT(NAME, "%02hhX:%02hhX:%02hhX:%02hhX:%02hhX:%02hhX", VAL[0], VAL[1], VAL[2], VAL[3], VAL[4], VAL[5])
 #define JSON_IP(NAME, VAL)  JSON_FIELD_STR_FORMAT(NAME, "%hhu.%hhu.%hhu.%hhu", VAL[0], VAL[1], VAL[2], VAL[3])
@@ -47,6 +49,18 @@ namespace {
         case Printer::DeviceState::Unknown:
         default:
             return "UNKNOWN";
+        }
+    }
+
+    const char *to_str(Monitor::Type type) {
+        switch (type) {
+        case Monitor::Type::Connect:
+            return "FROM_CONNECT";
+        case Monitor::Type::Link:
+            return "FROM_CLIENT";
+        default:
+            assert(0);
+            return "NO_TRANSFER";
         }
     }
 
@@ -182,6 +196,22 @@ namespace {
             reject_with = "File not found";
         }
 
+        optional<Monitor::Status> transfer_status;
+
+        if (event.type == EventType::TransferInfo) {
+            // If we've seen a transfer info previously, allow using a stale one to continue there.
+            transfer_status = Monitor::instance.status(resume_point != 0);
+            if (transfer_status.has_value()) {
+                if (resume_point != 0 && transfer_status->id != state.transfer_id) {
+                    // But if the ID changed mid-report, bail out.
+                    transfer_status.reset();
+                } else {
+                    // Just store the ID for next time so we know when it changes in the future.
+                    state.transfer_id = transfer_status->id;
+                }
+            }
+        }
+
         if (reject_with != nullptr) {
             // The fact we can render in multiple steps doesn't matter, we would
             // descend into here every time and resume the Rejected event.
@@ -295,6 +325,34 @@ namespace {
                     JSON_FIELD_STR("display_name", event.path->name()) JSON_COMMA;
                     JSON_FIELD_STR("type", state.file_extra.renderer.holds_alternative<DirRenderer>() ? "FOLDER" : file_type_by_ext(event.path->path())) JSON_COMMA;
                     JSON_FIELD_STR("path", event.path->path());
+                JSON_OBJ_END JSON_COMMA;
+            } else if (event.type == EventType::TransferInfo) {
+                JSON_FIELD_OBJ("data");
+                if (transfer_status.has_value()) {
+                    // Warning: The transfer_status was observed to have a
+                    // value. But as we don't want to copy to the render state,
+                    // we re-acquire it at every resume of this "coroutine".
+                    //
+                    // And it may become nullopt at that point (because the
+                    // transfer has changed in between and we don't want to mix
+                    // two inconsistent values).
+                    //
+                    // Therefore, we use the guards here ‒ in the very rare
+                    // occasion (one transfer would have to end and another
+                    // _start_ between the callS), we would just abort and
+                    // hopefully retry / get asked to retry later on.
+                    //
+                    // And we really do need the guard on each one, because we
+                    // can resume at each spot.
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "size", transfer_status->expected) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", (transfer_status->start - ticks_ms()) / 1000) JSON_COMMA;
+                    JSON_FIELD_STR_G(transfer_status.has_value(), "path", transfer_status->destination) JSON_COMMA;
+                    JSON_FIELD_STR_G(transfer_status.has_value(), "type", to_str(transfer_status->type));
+               } else {
+                    JSON_FIELD_STR("type", "NO_TRANSFER");
+                }
                 JSON_OBJ_END JSON_COMMA;
             }
 

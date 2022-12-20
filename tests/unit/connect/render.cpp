@@ -1,15 +1,21 @@
 #include <render.hpp>
+#include <transfers/monitor.hpp>
 
 #include "mock_printer.h"
 
 #include <catch2/catch.hpp>
 
 #include <cstring>
+#include <string>
 #include <string_view>
+#include <sstream>
 
 using std::nullopt;
 using std::optional;
+using std::string;
 using std::string_view;
+using std::stringstream;
+using transfers::Monitor;
 using namespace connect_client;
 using namespace json;
 
@@ -39,9 +45,10 @@ constexpr Printer::Params params_printing() {
 }
 
 TEST_CASE("Render") {
-    string_view expected;
+    string expected;
     Printer::Params params {};
     Action action;
+    optional<Monitor::Slot> transfer_slot = nullopt;
 
     SECTION("Telemetry - empty") {
         params = params_printing();
@@ -161,6 +168,53 @@ TEST_CASE("Render") {
             "\"event\":\"INFO\""
         "}";
         // clang-format on
+    }
+
+    SECTION("Event - transfer info, no transfer") {
+        action = Event {
+            EventType::TransferInfo,
+            11,
+        };
+        params = params_idle();
+        // clang-format off
+        expected = "{"
+            "\"data\":{"
+                "\"type\":\"NO_TRANSFER\""
+            "},"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"event\":\"TRANSFER_INFO\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Event - transfer info") {
+        action = Event {
+            EventType::TransferInfo,
+            11,
+        };
+        params = params_idle();
+        transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/whatever.gcode", 1024);
+        REQUIRE(transfer_slot.has_value());
+        auto id = Monitor::instance.id();
+        REQUIRE(id.has_value());
+        stringstream e;
+        // clang-format off
+        e << "{"
+            "\"data\":{"
+                "\"transfer_id\":" << *id << ","
+                "\"size\":1024,"
+                "\"transferred\":0,"
+                "\"time_transferring\":0,"
+                "\"path\":\"/usb/whatever.gcode\","
+                "\"type\":\"FROM_CONNECT\""
+            "},"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"event\":\"TRANSFER_INFO\""
+        "}";
+        // clang-format on
+        expected = e.str();
     }
 
     MockPrinter printer(params);

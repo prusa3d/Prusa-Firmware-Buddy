@@ -1,7 +1,7 @@
 add_executable(
   transfers_tests
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
-  fake_freertos_mutex.cpp monitor.cpp missing_functions.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp monitor.cpp missing_functions.c
   )
 target_include_directories(
   transfers_tests PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common

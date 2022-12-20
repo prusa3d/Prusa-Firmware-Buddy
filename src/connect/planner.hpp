@@ -28,6 +28,7 @@ enum class EventType {
     Info,
     JobInfo,
     FileInfo,
+    TransferInfo,
     Rejected,
     Accepted,
     Finished,
@@ -123,6 +124,7 @@ private:
     void command(const Command &, const SendInfo &);
     void command(const Command &, const SendJobInfo &);
     void command(const Command &, const SendFileInfo &);
+    void command(const Command &, const SendTransferInfo &);
     void command(const Command &, const PausePrint &);
     void command(const Command &, const ResumePrint &);
     void command(const Command &, const StopPrint &);
