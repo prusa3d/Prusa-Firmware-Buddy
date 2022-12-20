@@ -158,129 +158,58 @@
     "data_type": "bool",
     "default": true
   },
-  "odometer_x": {
-    "data_type": "float",
-    "default": 0
-  },
-  "odometer_y": {
-    "data_type": "float",
-    "default": 0
-  },
-  "odometer_z": {
-    "data_type": "float",
-    "default": 0
-  },
-  "odometer_e0": {
-    "data_type": "float",
-    "default": 0
-  },
-  "odometer_time": {
-    "data_type": "uint32_t",
-    "default": 0
-  },
-  "steps_per_unit_x": {
-    "data_type": "float",
-    "default": "default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f)"
-  },
-  "steps_per_unit_y": {
-    "data_type": "float",
-    "default": "default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f)"
-  },
-  "steps_per_unit_z": {
-    "data_type": "float",
-    "default": "default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f)"
-  },
-  "steps_per_unit_e": {
-    "data_type": "float",
-    "default": "default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f)"
-  },
-  "microsteps_x": {
-    "data_type": "uint16_t",
-    "default": "X_MICROSTEPS"
-  },
-  "microsteps_y": {
-    "data_type": "uint16_t",
-    "default": "Y_MICROSTEPS"
-  },
-  "microsteps_z": {
-    "data_type": "uint16_t",
-    "default": "Z_MICROSTEPS"
-  },
-  "microsteps_e": {
-    "data_type": "uint16_t",
-    "default": "E0_MICROSTEPS"
-  },
-  "rms_curr_ma_x": {
-    "data_type": "uint16_t",
-    "default": "X_CURRENT"
-  },
-  "rms_curr_ma_y": {
-    "data_type": "uint16_t",
-    "default": "Y_CURRENT"
-  },
-  "rms_curr_ma_z": {
-    "data_type": "uint16_t",
-    "default": "Z_CURRENT"
-  },
-  "rms_curr_ma_e": {
-    "data_type": "uint16_t",
-    "default": "E0_CURRENT"
-  },
-  "z_max_pos": {
-    "data_type": "float",
-    "default": "\n#ifdef DEFAULT_Z_MAX_POS\n    DEFAULT_Z_MAX_POS // AXIS_Z_MAX_POS_MM\n#else\n    0\n#endif\n"
+  "odometer": {
+    "data_type": "struct",
+    "type_name": "OdometerData",
+    "members": {
+      "axis": {
+        "data_type": "array",
+        "length": 4,
+        "item": {
+          "data_type": "float",
+          "default": 0
+        }
+      },
+      "time": {
+        "data_type": "uint32_t",
+        "default": 0
+      }
+    }
   },
   "printer_config": {
     "data_type": "struct",
     "type_name": "PrinterSetting",
+    "functions": [
+      "float get_current_steps_per_unit(AxisEnum axis)",
+      "void set_axis_positive_dir(AxisEnum axis)"
+    ],
     "members": {
-      "steps_per_unit_x": {
-        "data_type": "float",
-        "default": "default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f)"
+      "microsteps": {
+        "data_type": "std::array<uint16_t,AxisEnum::NUM_AXIS_ENUMS>",
+        "default": [
+          "X_MICROSTEPS",
+          "Y_MICROSTEPS",
+          "Z_MICROSTEPS",
+          "E0_MICROSTEPS"
+        ]
       },
-      "steps_per_unit_y": {
-        "data_type": "float",
-        "default": "default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f)"
+      "steps_per_unit": {
+        "data_type": "std::array<float,AxisEnum::NUM_AXIS_ENUMS>",
+        "default": [
+          "(default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f))",
+          "(default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f))",
+          "(default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f))",
+          "(default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f))"
+        ]
       },
-      "steps_per_unit_z": {
-        "data_type": "float",
-        "default": "default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f)"
-      },
-      "steps_per_unit_e": {
-        "data_type": "float",
-        "default": "default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f)"
-      },
-      "microsteps_x": {
-        "data_type": "uint16_t",
-        "default": "X_MICROSTEPS"
-      },
-      "microsteps_y": {
-        "data_type": "uint16_t",
-        "default": "Y_MICROSTEPS"
-      },
-      "microsteps_z": {
-        "data_type": "uint16_t",
-        "default": "Z_MICROSTEPS"
-      },
-      "microsteps_e": {
-        "data_type": "uint16_t",
-        "default": "E0_MICROSTEPS"
-      },
-      "rms_curr_ma_x": {
-        "data_type": "uint16_t",
-        "default": "X_CURRENT"
-      },
-      "rms_curr_ma_y": {
-        "data_type": "uint16_t",
-        "default": "Y_CURRENT"
-      },
-      "rms_curr_ma_z": {
-        "data_type": "uint16_t",
-        "default": "Z_CURRENT"
-      },
-      "rms_curr_ma_e": {
-        "data_type": "uint16_t",
-        "default": "E0_CURRENT"
+      "rms_curr": {
+        "data_type": "std::array<float,AxisEnum::NUM_AXIS_ENUMS>",
+        "default": [
+          "X_CURRENT",
+          "Y_CURRENT",
+          "Z_CURRENT",
+          "E0_CURRENT"
+        ]
       },
       "z_max_pos": {
         "data_type": "float",

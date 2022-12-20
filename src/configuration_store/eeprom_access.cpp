@@ -16,9 +16,9 @@ bool EepromAccess::store_item(const std::vector<uint8_t> &data) {
     // add 4 to size,because we will add crc at the end of the data
     uint8_t len = data.size() + 4;
 
-    uint32_t crc = crc32_sw(&len, sizeof(len), 0);
+    uint32_t crc = crc32_calc(&len, sizeof(len));
 
-    crc = crc32_sw(data.data(), data.size(), crc);
+    crc = crc32_calc_ex(crc, data.data(), data.size());
 
     uint16_t size_of_item = sizeof(len) + data.size() + sizeof(crc);
 
@@ -60,8 +60,8 @@ std::optional<std::vector<uint8_t>> EepromAccess::load_item(uint16_t address) {
 
     st25dv64k_user_read_bytes(address + sizeof(len), data.data(), data.size());
 
-    uint32_t crc = crc32_sw(&len, sizeof(len), 0);
-    crc = crc32_sw(data.data(), data.size() - sizeof(crc), crc);
+    uint32_t crc = crc32_calc(&len, sizeof(len));
+    crc = crc32_calc_ex(crc, data.data(), data.size() - sizeof(crc));
 
     uint32_t crc_read = *(uint32_t *)((data.data() + data.size() - sizeof(crc)));
 

@@ -35,34 +35,45 @@ extern "C" void set_z_max_pos_mm(float max_pos) {
     log_error(EEPROM, "called %s while USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES is disabled", __PRETTY_FUNCTION__);
 #endif
 }
+static float get_steps_per_unit(AxisEnum axis) {
+    if (axis >= AxisEnum::NUM_AXIS_ENUMS) {
+        fatal_error("Invalid axis number", "Configuration store");
+    }
+    return std::abs(config_store().printer_config.get().steps_per_unit[axis]);
+}
+
 // AXIS_STEPS_PER_UNIT
 extern "C" float get_steps_per_unit_x() {
-    return std::abs(config_store().printer_config.get().steps_per_unit_x);
+    return get_steps_per_unit(X_AXIS);
 }
 extern "C" float get_steps_per_unit_y() {
-    return std::abs(config_store().printer_config.get().steps_per_unit_y);
+    return get_steps_per_unit(Y_AXIS);
 }
 extern "C" float get_steps_per_unit_z() {
-    return std::abs(config_store().printer_config.get().steps_per_unit_z);
+    return get_steps_per_unit(Z_AXIS);
 }
 extern "C" float get_steps_per_unit_e() {
-    return std::abs(config_store().printer_config.get().steps_per_unit_e);
+    return get_steps_per_unit(E0_AXIS);
+}
+
+static bool has_inverted_axis(AxisEnum axis) {
+    return std::signbit(get_steps_per_unit(axis));
 }
 
 extern "C" bool has_inverted_x() {
-    return std::signbit(config_store().printer_config.get().microsteps_x);
+    return has_inverted_axis(X_AXIS);
 }
 
 extern "C" bool has_inverted_y() {
-    return std::signbit(config_store().printer_config.get().steps_per_unit_y);
+    return has_inverted_axis(Y_AXIS);
 }
 
 extern "C" bool has_inverted_z() {
-    return std::signbit(config_store().printer_config.get().steps_per_unit_z);
+    return has_inverted_axis(Z_AXIS);
 }
 
 extern "C" bool has_inverted_e() {
-    return std::signbit(config_store().printer_config.get().steps_per_unit_e);
+    return has_inverted_axis(E_AXIS);
 }
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
@@ -113,81 +124,76 @@ extern "C" uint16_t get_steps_per_unit_e_rounded() {
     return static_cast<uint16_t>(std::lround(get_steps_per_unit_e()));
 }
 
-bool is_current_axis_value_inverted(MemConfigItem<float> &item) {
-    return std::signbit(item.get());
-}
-
-void set_steps_per_unit(float steps, MemConfigItem<float> &item) {
+static void set_steps_per_unit(AxisEnum axis, float steps) {
+    if (axis >= AxisEnum::NUM_AXIS_ENUMS) {
+        fatal_error("Invalid axis number", "Configuration store");
+    }
     if (steps > 0) {
-        bool negative_direction = is_current_axis_value_inverted(item);
-        item.set(negative_direction ? -steps : steps);
+        bool negative_dir = has_inverted_axis(axis);
+        float steps_adjusted = negative_dir ? -steps : steps;
+        auto steps_config = config_store().printer_config.get().steps_per_unit;
+        steps_config[axis] = steps_adjusted;
+        config_store().printer_config.get().set_steps_per_unit(steps_config);
     }
 }
 
 extern "C" void set_steps_per_unit_x(float steps) {
-    if (steps > 0) {
-        bool negative_direction = std::signbit(config_store().printer_config.get().steps_per_unit_x);
-        config_store().printer_config.get().set_steps_per_unit_x(negative_direction ? -steps : steps);
-    }
+    set_steps_per_unit(X_AXIS, steps);
 }
 extern "C" void set_steps_per_unit_y(float steps) {
-    if (steps > 0) {
-        bool negative_direction = std::signbit(config_store().printer_config.get().steps_per_unit_y);
-        config_store().printer_config.get().set_steps_per_unit_y(negative_direction ? -steps : steps);
-    }
+    set_steps_per_unit(Y_AXIS, steps);
 }
 extern "C" void set_steps_per_unit_z(float steps) {
-    if (steps > 0) {
-        bool negative_direction = std::signbit(config_store().printer_config.get().steps_per_unit_z);
-        config_store().printer_config.get().set_steps_per_unit_z(negative_direction ? -steps : steps);
-    }
+    set_steps_per_unit(Z_AXIS, steps);
 }
 extern "C" void set_steps_per_unit_e(float steps) {
-    if (steps > 0) {
-        bool negative_direction = std::signbit(config_store().printer_config.get().steps_per_unit_e);
-        config_store().printer_config.get().set_steps_per_unit_e(negative_direction ? -steps : steps);
+    set_steps_per_unit(E_AXIS, steps);
+}
+
+void set_axis_positive_direction(AxisEnum axis) {
+    if (axis >= AxisEnum::NUM_AXIS_ENUMS) {
+        fatal_error("Invalid axis number", "Configuration store");
     }
-}
-
-float get_current_steps_per_unit(MemConfigItem<float> &item) {
-    return std::abs(item.get());
-}
-
-void set_axis_positive_direction(MemConfigItem<float> &item) {
-    float steps = get_current_steps_per_unit(item);
-    item.set(steps);
+    float steps = std::abs(get_steps_per_unit(axis));
+    auto steps_config = config_store().printer_config.get().steps_per_unit;
+    steps_config[axis] = steps;
+    config_store().printer_config.get().set_steps_per_unit(steps_config);
 }
 
 extern "C" void set_positive_direction_x() {
-    set_axis_positive_direction(config_store().steps_per_unit_x);
+    set_axis_positive_direction(X_AXIS);
 }
 extern "C" void set_positive_direction_y() {
-    set_axis_positive_direction(config_store().steps_per_unit_y);
+    set_axis_positive_direction(Y_AXIS);
 }
 extern "C" void set_positive_direction_z() {
-    set_axis_positive_direction(config_store().steps_per_unit_z);
+    set_axis_positive_direction(Z_AXIS);
 }
 extern "C" void set_positive_direction_e() {
-    set_axis_positive_direction(config_store().steps_per_unit_e);
+    set_axis_positive_direction(E_AXIS);
 }
 
-void set_axis_negative_direction(MemConfigItem<float> &item) {
-    float steps = get_current_steps_per_unit(item);
-    item.set(-steps);
+void set_axis_negative_direction(AxisEnum axis) {
+    if (axis >= AxisEnum::NUM_AXIS_ENUMS) {
+        fatal_error("Invalid axis number", "Configuration store");
+    }
+    float steps = std::abs(get_steps_per_unit(axis));
+    auto steps_config = config_store().printer_config.get().steps_per_unit;
+    steps_config[axis] = -steps;
+    config_store().printer_config.get().set_steps_per_unit(steps_config);
 }
 
 extern "C" void set_negative_direction_x() {
-    set_axis_negative_direction(config_store().steps_per_unit_x);
+    set_axis_negative_direction(X_AXIS);
 }
 extern "C" void set_negative_direction_y() {
-    set_axis_negative_direction(config_store().steps_per_unit_y);
+    set_axis_negative_direction(Y_AXIS);
 }
-
 extern "C" void set_negative_direction_z() {
-    set_axis_negative_direction(config_store().steps_per_unit_z);
+    set_axis_negative_direction(Z_AXIS);
 }
 extern "C" void set_negative_direction_e() {
-    set_axis_negative_direction(config_store().steps_per_unit_e);
+    set_axis_negative_direction(E_AXIS);
 }
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
@@ -233,9 +239,15 @@ bool is_microstep_value_valid(uint16_t microsteps) {
     return bs.count() == 1; // 1,2,4,8...
 }
 
+static uint16_t get_microsteps(AxisEnum axis) {
+    if (axis >= AxisEnum::NUM_AXIS_ENUMS) {
+        fatal_error("Invalid axis number", "Configuration store");
+    }
+    return config_store().printer_config.get().microsteps[axis];
+}
 // return default value if eeprom value is invalid
 extern "C" uint16_t get_microsteps_X() {
-    uint16_t ret = config_store().microsteps_x.get();
+    uint16_t ret = get_microsteps(X_AXIS);
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = X_MICROSTEPS;
@@ -243,7 +255,7 @@ extern "C" uint16_t get_microsteps_X() {
     return ret;
 }
 extern "C" uint16_t get_microsteps_Y() {
-    uint16_t ret = config_store().microsteps_y.get();
+    uint16_t ret = get_microsteps(Y_AXIS);
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = Y_MICROSTEPS;
@@ -251,7 +263,7 @@ extern "C" uint16_t get_microsteps_Y() {
     return ret;
 }
 extern "C" uint16_t get_microsteps_Z() {
-    uint16_t ret = config_store().microsteps_z.get();
+    uint16_t ret = get_microsteps(Z_AXIS);
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = Z_MICROSTEPS;
@@ -259,7 +271,7 @@ extern "C" uint16_t get_microsteps_Z() {
     return ret;
 }
 extern "C" uint16_t get_microsteps_E0() {
-    uint16_t ret = config_store().microsteps_e.get();
+    uint16_t ret = get_microsteps(E_AXIS);
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = E0_MICROSTEPS;
@@ -267,9 +279,14 @@ extern "C" uint16_t get_microsteps_E0() {
     return ret;
 }
 
-void set_microsteps(uint16_t microsteps, MemConfigItem<uint16_t> item) {
+void set_microsteps(uint16_t microsteps, AxisEnum axis) {
+    if (axis >= AxisEnum::NUM_AXIS_ENUMS) {
+        fatal_error("Invalid axis number", "Configuration store");
+    }
     if (is_microstep_value_valid(microsteps)) {
-        item.set(microsteps);
+        auto microsteps_arr = config_store().printer_config.get().get_microsteps();
+        microsteps_arr[axis] = microsteps;
+        config_store().printer_config.get().set_microsteps(microsteps_arr);
         log_debug(EEPROM, "%s: microsteps %d ", __PRETTY_FUNCTION__, microsteps);
     } else {
         log_error(EEPROM, "%s: microsteps %d not set", __PRETTY_FUNCTION__, microsteps);
@@ -277,23 +294,29 @@ void set_microsteps(uint16_t microsteps, MemConfigItem<uint16_t> item) {
 }
 
 extern "C" void set_microsteps_x(uint16_t microsteps) {
-    set_microsteps(microsteps, config_store().microsteps_x);
+    set_microsteps(microsteps, X_AXIS);
 }
 extern "C" void set_microsteps_y(uint16_t microsteps) {
-    set_microsteps(microsteps, config_store().microsteps_y);
+    set_microsteps(microsteps, Y_AXIS);
 }
 extern "C" void set_microsteps_z(uint16_t microsteps) {
-    set_microsteps(microsteps, config_store().microsteps_z);
+    set_microsteps(microsteps, Z_AXIS);
 }
 extern "C" void set_microsteps_e(uint16_t microsteps) {
-    set_microsteps(microsteps, config_store().microsteps_e);
+    set_microsteps(microsteps, E_AXIS);
 }
 
 /*****************************************************************************/
 // AXIS_RMS_CURRENT_MA_X
 // current must be > 0, return default value if it is not
+uint16_t get_rms_current_mx(AxisEnum axis) {
+    if (axis >= AxisEnum::NUM_AXIS_ENUMS) {
+        fatal_error("Invalid axis number", "Configuration store");
+    }
+    return config_store().printer_config.get().rms_curr[axis];
+}
 extern "C" uint16_t get_rms_current_ma_X() {
-    uint16_t ret = config_store().rms_curr_ma_x.get();
+    uint16_t ret = get_rms_current_mx(X_AXIS);
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = X_CURRENT;
@@ -302,7 +325,7 @@ extern "C" uint16_t get_rms_current_ma_X() {
     return ret;
 }
 extern "C" uint16_t get_rms_current_ma_Y() {
-    uint16_t ret = config_store().rms_curr_ma_y.get();
+    uint16_t ret = get_rms_current_mx(Y_AXIS);
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = Y_CURRENT;
@@ -311,7 +334,7 @@ extern "C" uint16_t get_rms_current_ma_Y() {
     return ret;
 }
 extern "C" uint16_t get_rms_current_ma_Z() {
-    uint16_t ret = config_store().rms_curr_ma_z.get();
+    uint16_t ret = get_rms_current_mx(Z_AXIS);
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = Z_CURRENT;
@@ -320,7 +343,7 @@ extern "C" uint16_t get_rms_current_ma_Z() {
     return ret;
 }
 extern "C" uint16_t get_rms_current_ma_E0() {
-    uint16_t ret = config_store().rms_curr_ma_e.get();
+    uint16_t ret = get_rms_current_mx(E_AXIS);
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         ret = E0_CURRENT;
@@ -329,26 +352,31 @@ extern "C" uint16_t get_rms_current_ma_E0() {
     return ret;
 }
 
-void set_rms_current_ma(uint16_t current, MemConfigItem<uint16_t> item) {
+void set_rms_current_ma(uint16_t current, AxisEnum axis) {
+    if (axis >= AxisEnum::NUM_AXIS_ENUMS) {
+        fatal_error("Invalid axis number", "Configuration store");
+    }
     if (current > 0) {
-        item.set(current);
         log_debug(EEPROM, "%s: current %d ", __PRETTY_FUNCTION__, current);
+        auto rms_currents = config_store().printer_config.get().get_microsteps();
+        rms_currents[axis] = current;
+        config_store().printer_config.get().set_microsteps(rms_currents);
     } else {
         log_error(EEPROM, "%s: current must be greater than 0", __PRETTY_FUNCTION__);
     }
 }
 
 extern "C" void set_rms_current_ma_x(uint16_t current) {
-    set_rms_current_ma(current, config_store().rms_curr_ma_x);
+    set_rms_current_ma(current, X_AXIS);
 }
 extern "C" void set_rms_current_ma_y(uint16_t current) {
-    set_rms_current_ma(current, config_store().rms_curr_ma_y);
+    set_rms_current_ma(current, Y_AXIS);
 }
 extern "C" void set_rms_current_ma_z(uint16_t current) {
-    set_rms_current_ma(current, config_store().rms_curr_ma_z);
+    set_rms_current_ma(current, Z_AXIS);
 }
 extern "C" void set_rms_current_ma_e(uint16_t current) {
-    set_rms_current_ma(current, config_store().rms_curr_ma_e);
+    set_rms_current_ma(current, E_AXIS);
 }
 
 extern "C" bool get_msc_enabled() {

@@ -38,7 +38,10 @@ static uint32_t reverse_crc32(uint32_t current_crc, uint32_t desired_crc) {
 }
 
     #ifdef CRC32_USE_HW
-static uint32_t crc32_hw(const uint32_t *buffer, uint32_t length, uint32_t crc) {
+static uint32_t crc32_hw(const uint8_t *buffer, uint32_t length, uint32_t crc) {
+    if (length == 0) {
+        return crc;
+    }
     // ensure nobody else uses the peripheral
     osMutexWait(crc32_hw_mutex_id, osWaitForever);
 
