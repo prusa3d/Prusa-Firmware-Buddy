@@ -207,10 +207,17 @@ public:
     variant_t Front() const;    // returns ClientFSM_Command::none on empty
     variant_t Back() const;     // returns ClientFSM_Command::none on empty
     Selector Push(variant_t v); // this method calls specific ones (PushCreate ...)
+    bool TryPush(variant_t v);  // this method calls specific ones (TryPushCreate ...)
     Selector Pop();
     Selector PushCreate(ClientFSM type, uint8_t data);
     Selector PushDestroy(ClientFSM type);
     Selector PushChange(ClientFSM type, BaseData data);
+    bool TryPushCreate(ClientFSM type, uint8_t data);
+    bool TryPushDestroy(ClientFSM type);
+    bool TryPushChange(ClientFSM type, BaseData data);
+
+    constexpr ClientFSM GetOpenFsmQ0() const { return queue0.GetOpenFsm(); }
+    constexpr ClientFSM GetOpenFsmQ1() const { return queue1.GetOpenFsm(); }
 };
 
 /**

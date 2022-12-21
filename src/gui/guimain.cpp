@@ -342,6 +342,9 @@ void gui_run(void) {
             cnt_scan_register_update = 0;
         }
 
+        // I must do it before screen and dialog loops
+        volatile bool print_processor_waiting = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui;
+
         redraw = DialogHandler::Access().Loop();
 
         if (redraw == redraw_cmd_t::redraw)
@@ -355,7 +358,7 @@ void gui_run(void) {
         // it must be in main gui loop just before screen handler to ensure no FSM is opened
         // !DialogHandler::Access().IsAnyOpen() - wait until all FSMs are closed (including one click print)
         // one click print is closed automatically from main thread, because it is opened for wrong gcode
-        if ((marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui)) {
+        if (print_processor_waiting) {
             if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
                 bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
                 Screens::Access()->CloseAll(); // set flag to close all screens
