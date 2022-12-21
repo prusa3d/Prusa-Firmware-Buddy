@@ -7,6 +7,8 @@
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
+#include "log.h"
+LOG_COMPONENT_REF(GUI);
 
 #if HAS_SELFTEST
     #include "ScreenSelftest.hpp"
@@ -46,12 +48,12 @@ static void OpenPrintScreen(ClientFSM dialog) {
 //*****************************************************************************
 //method definitions
 void DialogHandler::open(fsm::create_t o) {
-    if (ptr)
-        return; //the dialog is already opened
-
     const ClientFSM dialog = o.type.GetType();
+    ++opened_times[size_t(dialog)]; // preopen can mess this up
+    log_info(GUI, "Dialog opened_times[%u] = %u", size_t(dialog), opened_times[size_t(dialog)]);
 
-    ++opened_times[size_t(dialog)];
+    if (ptr)
+        return; //the dialog is already opened, not an error, we can preopen dialogs or even screens (wizard)
 
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
@@ -93,6 +95,7 @@ void DialogHandler::close(fsm::destroy_t o) {
     const ClientFSM dialog = o.type.GetType();
 
     ++closed_times[size_t(dialog)];
+    log_info(GUI, "Dialog closed_times[%u] = %u", size_t(dialog), closed_times[size_t(dialog)]);
 
     if (waiting_closed == dialog) {
         waiting_closed = ClientFSM::_none;
@@ -160,7 +163,7 @@ void DialogHandler::Command(uint32_t u32, uint16_t u16) {
 
     // not sure about buffering ClientFSM_Command::change, it could work without it
     // but it is buffered too to be simpler
-    Access().command_queue.Push(variant);
+    Access().command_queue.TryPush(variant);
 }
 
 void DialogHandler::command(fsm::variant_t variant) {
@@ -197,8 +200,8 @@ void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
 redraw_cmd_t DialogHandler::Loop() {
     fsm::variant_t variant = command_queue.Front();
     // execute 1 command (don't use "while") because
-    // screen open only pushes factory method on top of the stack - in this case we would loose folowing change !!!
-    // queue merges states, longest possible sequence for not nested fsm is destroy -> craate -> change
+    // screen open only pushes factory method on top of the stack - in this case we would loose following change !!!
+    // queue merges states, longest possible sequence for not nested fsm is destroy -> create -> change
     if (variant.GetCommand() == ClientFSM_Command::none)
         return redraw_cmd_t::none;
 
@@ -209,4 +212,16 @@ redraw_cmd_t DialogHandler::Loop() {
     if (variant.GetCommand() == ClientFSM_Command::none)
         return redraw_cmd_t::redraw;
     return redraw_cmd_t::skip;
+}
+
+bool DialogHandler::IsOpen(ClientFSM fsm) const {
+    const ClientFSM q0 = command_queue.GetOpenFsmQ0();
+    const ClientFSM q1 = command_queue.GetOpenFsmQ1();
+
+    return fsm == q0 || fsm == q1;
+}
+
+bool DialogHandler::IsAnyOpen() const {
+    const ClientFSM q0 = command_queue.GetOpenFsmQ0();
+    return q0 != ClientFSM::_none; // cannot have q1 without q0
 }

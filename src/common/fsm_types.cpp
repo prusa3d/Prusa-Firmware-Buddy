@@ -201,6 +201,20 @@ SmartQueue::Selector SmartQueue::Push(variant_t v) {
     return Selector::error;
 }
 
+bool SmartQueue::TryPush(variant_t v) {
+    switch (v.GetCommand()) {
+    case ClientFSM_Command::create:
+        return TryPushCreate(v.GetType(), v.create.data);
+    case ClientFSM_Command::destroy:
+        return TryPushDestroy(v.GetType());
+    case ClientFSM_Command::change:
+        return TryPushChange(v.GetType(), v.change.data);
+    default:
+        break;
+    }
+    return false;
+}
+
 SmartQueue::Selector SmartQueue::Pop() {
     if (prior_commands_in_queue0) {
         --prior_commands_in_queue0;
@@ -243,6 +257,32 @@ SmartQueue::Selector SmartQueue::PushChange(ClientFSM type, BaseData data) {
         return Selector::q1;
 
     return queue0.PushChange(type, data) == Queue::ret_val::ok ? Selector::q0 : Selector::error;
+}
+
+bool SmartQueue::TryPushCreate(ClientFSM type, uint8_t data) {
+    if (queue1.GetOpenFsm() == type || queue0.GetOpenFsm() == type) {
+        return false;
+    }
+
+    Selector ret = PushCreate(type, data);
+
+    return ret == Selector::q0 || ret == Selector::q1;
+}
+
+bool SmartQueue::TryPushDestroy(ClientFSM type) {
+    if (queue1.GetOpenFsm() != type && queue0.GetOpenFsm() != type) {
+        return false;
+    }
+
+    Selector ret = PushDestroy(type);
+
+    return ret == Selector::q0 || ret == Selector::q1;
+}
+
+bool SmartQueue::TryPushChange(ClientFSM type, BaseData data) {
+    Selector ret = PushChange(type, data);
+
+    return ret == Selector::q0 || ret == Selector::q1;
 }
 
 bool IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, uint8_t data, const char *fnc, const char *file, int line) {
