@@ -198,17 +198,12 @@ namespace {
 
         optional<Monitor::Status> transfer_status;
 
-        if (event.type == EventType::TransferInfo) {
+        if (event.type == EventType::TransferInfo && state.transfer_id.has_value()) {
             // If we've seen a transfer info previously, allow using a stale one to continue there.
             transfer_status = Monitor::instance.status(resume_point != 0);
-            if (transfer_status.has_value()) {
-                if (resume_point != 0 && transfer_status->id != state.transfer_id) {
-                    // But if the ID changed mid-report, bail out.
-                    transfer_status.reset();
-                } else {
-                    // Just store the ID for next time so we know when it changes in the future.
-                    state.transfer_id = transfer_status->id;
-                }
+            if (transfer_status.has_value() && transfer_status->id != state.transfer_id) {
+                // But if the ID changed mid-report, bail out.
+                transfer_status.reset();
             }
         }
 
@@ -359,6 +354,10 @@ namespace {
             JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;
             if (event.command_id.has_value()) {
                 JSON_FIELD_INT("command_id", *event.command_id) JSON_COMMA;
+            }
+            if (state.transfer_id.has_value()) {
+                // In case of the TRANSFER_ID event, this is actually duplicated.
+                JSON_FIELD_INT("transfer_id", *state.transfer_id) JSON_COMMA;
             }
             JSON_FIELD_STR("event", to_str(event.type));
         JSON_OBJ_END;
@@ -665,7 +664,8 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
     , action(action)
     , telemetry_changes(telemetry_changes)
     , lan(printer.net_info(Printer::Iface::Ethernet))
-    , wifi(printer.net_info(Printer::Iface::Wifi)) {
+    , wifi(printer.net_info(Printer::Iface::Wifi))
+    , transfer_id(Monitor::instance.id()) {
     memset(&st, 0, sizeof st);
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {
