@@ -27,8 +27,13 @@ add_executable(
   )
 target_include_directories(
   connect_tests
-  PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/connect
-          ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/lib/jsmn ${CMAKE_SOURCE_DIR}/src
+  PRIVATE .
+          ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_SOURCE_DIR}/src/connect
+          ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/lib/jsmn
+          ${CMAKE_SOURCE_DIR}/src
+          ${CMAKE_SOURCE_DIR}/tests/stubs
   )
 add_definitions(-DUNITTESTS)
 

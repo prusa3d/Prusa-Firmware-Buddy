@@ -134,8 +134,8 @@ TEST_CASE("Transfer history") {
 
     slot.reset();
 
-    // The new one is auto-set to Dropped, as nobody set the outcome
-    REQUIRE(monitor.outcome(*id4) == Monitor::Outcome::Dropped);
+    // Nobody called the done() method, the default should be Error.
+    REQUIRE(monitor.outcome(*id4) == Monitor::Outcome::Error);
 
     // Already out of history (yes, we abuse the knowledge of the history size in this test).
     REQUIRE_FALSE(monitor.outcome(id1).has_value());

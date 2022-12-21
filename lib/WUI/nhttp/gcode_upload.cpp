@@ -34,12 +34,15 @@ using handler::StatusPage;
 using handler::Step;
 using http::Status;
 using std::get;
+using std::holds_alternative;
 using std::make_tuple;
 using std::move;
 using std::string_view;
+using transfers::Monitor;
 
-GcodeUpload::GcodeUpload(UploadParams &&uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
+GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
     : upload(move(uploader))
+    , monitor_slot(move(slot))
     , uploaded_notify(uploaded)
     , size_rest(length)
     , json_errors(json_errors)
@@ -51,6 +54,7 @@ GcodeUpload::GcodeUpload(UploadParams &&uploader, bool json_errors, size_t lengt
 
 GcodeUpload::GcodeUpload(GcodeUpload &&other)
     : upload(move(other.upload))
+    , monitor_slot(move(other.monitor_slot))
     , uploaded_notify(other.uploaded_notify)
     , size_rest(other.size_rest)
     , json_errors(other.json_errors)
@@ -113,6 +117,14 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
         return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, json_errors);
     }
 
+    const char *path = holds_alternative<PutParams>(uploadParams) ? get<PutParams>(uploadParams).filepath.data() : nullptr;
+    auto slot = Monitor::instance.allocate(Monitor::Type::Link, path, *parser.content_length);
+    if (!slot.has_value()) {
+        //FIXME: Is this the right status to return? Change would need to be
+        // defined in the API spec first.
+        return StatusPage(Status::Conflict, parser, "Another transfer in progress");
+    }
+
     static size_t upload_idx = 0;
     const size_t file_idx = upload_idx++;
     char fname[TMP_BUFF_LEN];
@@ -144,7 +156,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     fsync(fileno(file.get()));
     fseek(file.get(), 0, SEEK_SET);
 
-    return GcodeUpload(move(uploadParams), json_errors, *parser.content_length, file_idx, move(file), uploaded);
+    return GcodeUpload(move(uploadParams), move(*slot), json_errors, *parser.content_length, file_idx, move(file), uploaded);
 }
 
 Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
@@ -152,11 +164,12 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
         return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated body") };
     }
 
-    return std::visit([input, this](auto &uploadParams) -> Step { return step(input, uploadParams); }, upload);
+    const size_t read = std::min(input.size(), size_rest);
+    monitor_slot.progress(read);
+    return std::visit([input, read, this](auto &uploadParams) -> Step { return step(input, read, uploadParams); }, upload);
 }
 
-Step GcodeUpload::step(string_view input, UploadState &uploader) {
-    const size_t read = std::min(input.size(), size_rest);
+Step GcodeUpload::step(string_view input, const size_t read, UploadState &uploader) {
     uploader.setup(this);
 
     uploader.feed(input.substr(0, read));
@@ -184,8 +197,7 @@ Step GcodeUpload::step(string_view input, UploadState &uploader) {
     }
 }
 
-Step GcodeUpload::step(string_view input, PutParams &putParams) {
-    const size_t read = std::min(input.size(), size_rest);
+Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParams) {
     // remove the "/usb/" prefix
     const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
 
@@ -200,8 +212,9 @@ Step GcodeUpload::step(string_view input, PutParams &putParams) {
     }
 
     auto error = data(input.substr(0, read));
-    if (std::get<0>(error) != Status::Ok)
+    if (std::get<0>(error) != Status::Ok) {
         return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(error)) };
+    }
 
     size_rest -= read;
     if (size_rest == 0) {
@@ -250,8 +263,9 @@ namespace {
     UploadHooks::Result try_rename(const char *src, const char *dest_fname, bool overwrite, F f) {
         char fn[FILE_NAME_BUFFER_LEN];
         auto error = prepend_usb_path(dest_fname, fn, sizeof(fn));
-        if (std::get<0>(error) != Status::Ok)
+        if (std::get<0>(error) != Status::Ok) {
             return error;
+        }
 
         FILE *attempt = fopen(fn, "r");
         if (attempt) {
@@ -328,6 +342,7 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     auto putParams = std::get_if<PutParams>(&upload);
     bool overwrite = putParams != nullptr && putParams->overwrite;
     return try_rename(fname, final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
+        monitor_slot.done(Monitor::Outcome::Finished);
         if (uploaded_notify != nullptr) {
             if (uploaded_notify(filename, start_print)) {
                 return make_tuple(Status::Ok, nullptr);
