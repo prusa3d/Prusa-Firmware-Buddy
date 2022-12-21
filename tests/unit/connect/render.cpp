@@ -211,7 +211,29 @@ TEST_CASE("Render") {
             "},"
             "\"state\":\"IDLE\","
             "\"command_id\":11,"
+            "\"transfer_id\":" << *id << ","
             "\"event\":\"TRANSFER_INFO\""
+        "}";
+        // clang-format on
+        expected = e.str();
+    }
+
+    SECTION("Event - rejected with transfer") {
+        action = Event {
+            EventType::Rejected,
+            11,
+        };
+        params = params_idle();
+        transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/whatever.gcode", 1024);
+        auto id = Monitor::instance.id();
+        REQUIRE(id.has_value());
+        stringstream e;
+        // clang-format off
+        e << "{"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"transfer_id\":" << *id << ","
+            "\"event\":\"REJECTED\""
         "}";
         // clang-format on
         expected = e.str();
