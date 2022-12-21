@@ -37,6 +37,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/basename.c
   ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/sha256.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/md5.c
   # Dependencies.
@@ -73,6 +74,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/buddy/lwip.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
 target_include_directories(
@@ -85,6 +87,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system

@@ -30,14 +30,14 @@ Monitor::Slot::Slot(Slot &&other)
 Monitor::Slot::~Slot() {
     if (live) {
         Lock lock(owner.main_mutex);
-        bool forgot_to_done;
+        bool destruction_handled;
         {
             Lock lock(owner.history_mutex);
-            forgot_to_done = (owner.current_id != owner.history_latest);
+            destruction_handled = (owner.current_id == owner.history_latest);
         }
 
-        if (forgot_to_done) {
-            done(Outcome::Dropped);
+        if (!destruction_handled) {
+            done(Outcome::Error);
         }
 
         owner.transfer_active = false;

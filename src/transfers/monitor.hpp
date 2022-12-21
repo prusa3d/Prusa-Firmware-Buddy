@@ -98,21 +98,20 @@ public:
     enum class Outcome {
         /// It finished successfuly.
         Finished,
-        /// Something bad happened.
-        ///
-        /// Currently, specifics are not stored. But something like a network
-        /// error, write error, etc.
-        Error,
 
         /// The (or some other system) asked us to bail out.
         Stopped,
 
-        /// The corresponding Slot got dropped without providing an outcome.
+        /// Something bad happened.
         ///
-        /// This, in general, shall not happen, but may be a result of a
-        /// programming error ‒ the Slot got destroyed and released, but nobody
-        /// bothered to call the done method there.
-        Dropped,
+        /// Currently, specifics are not stored. But something like a network
+        /// error, write error, etc.
+        ///
+        /// As it seems to be the most common call we
+        /// just make it the default handling and rely
+        /// on it, so that we don't clutter the code
+        /// and also get things like timeout to be Error.
+        Error,
     };
 
     /// A Status of a running transfer.
@@ -188,6 +187,8 @@ public:
         ///
         /// This reports the outcome of this transfer. The Slot shall not be
         /// used more and shall be dropped consequently.
+        ///
+        /// If not called before dropping Error is automatically assigned.
         void done(Outcome reason);
     };
 

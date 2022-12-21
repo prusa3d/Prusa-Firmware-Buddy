@@ -11,6 +11,7 @@
 
 #include <unique_file_ptr.hpp>
 #include <http/types.h>
+#include <transfers/monitor.hpp>
 
 #include <memory>
 #include <optional>
@@ -38,6 +39,7 @@ public:
 
 private:
     UploadParams upload;
+    transfers::Monitor::Slot monitor_slot;
 
     UploadedNotify *uploaded_notify;
     size_t size_rest;
@@ -56,10 +58,10 @@ private:
     virtual Result finish(const char *final_filename, bool start_print) override;
     virtual Result check_filename(const char *filename) const override;
 
-    handler::Step step(std::string_view input, PutParams &putParams);
-    handler::Step step(std::string_view input, UploadState &uploader);
+    handler::Step step(std::string_view input, const size_t read, PutParams &putParams);
+    handler::Step step(std::string_view input, const size_t read, UploadState &uploader);
 
-    GcodeUpload(UploadParams &&uploader, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded);
+    GcodeUpload(UploadParams &&uploader, transfers::Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded);
 
 public:
     bool want_read() const { return size_rest > 0; }
