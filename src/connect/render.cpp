@@ -16,6 +16,7 @@ using json::JsonResult;
 using std::get_if;
 using std::make_tuple;
 using std::move;
+using std::nullopt;
 using std::optional;
 using std::tuple;
 using std::visit;
@@ -97,11 +98,28 @@ namespace {
         }
     }
 
+    std::optional<transfers::Monitor::Status> get_transfer_status(size_t resume_point, const RenderState &state) {
+        if (state.transfer_id.has_value()) {
+            // If we've seen a transfer info previously, allow using a stale one to continue there.
+            auto transfer_status = Monitor::instance.status(resume_point != 0);
+            if (transfer_status.has_value() && transfer_status->id != state.transfer_id) {
+                // But if the ID changed mid-report, bail out.
+                return nullopt;
+            }
+            return transfer_status;
+        } else {
+            return nullopt;
+        }
+    }
+
     JsonResult render_msg(size_t resume_point, JsonOutput &output, const RenderState &state, const SendTelemetry &telemetry) {
         const auto params = state.printer.params();
         const bool printing = is_printing(params.state);
 
         const uint32_t current_fingerprint = params.telemetry_fingerprint(!printing);
+
+        const optional<Monitor::Status> transfer_status = get_transfer_status(resume_point, state);
+
         // Note:
         // We don't adhere to the best practice of JSON renderers, that we
         // prepare everything up-front, store it and then render it. That's
@@ -121,6 +139,21 @@ namespace {
         JSON_START;
         JSON_OBJ_START;
             if (!telemetry.empty) {
+                if (transfer_status.has_value()) {
+                    // We use the guard-versions here, because we re-acquire
+                    // the status on each resume of this "coroutine". In the
+                    // very rare case the transfer ends and a new one starts in
+                    // between, it might go away and we need to abort this
+                    // attempt (we'll retry later on).
+                    //
+                    // To minimize the risk, we place these first.
+                    //
+                    // And yes, we need the guard on each one, because we can
+                    // resume at each and every of these fields.
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_transferred", transfer_status->transferred) JSON_COMMA;
+                }
+
                 // These are not included in the fingerprint as they are changing a lot.
                 if (printing) {
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
@@ -196,16 +229,7 @@ namespace {
             reject_with = "File not found";
         }
 
-        optional<Monitor::Status> transfer_status;
-
-        if (event.type == EventType::TransferInfo && state.transfer_id.has_value()) {
-            // If we've seen a transfer info previously, allow using a stale one to continue there.
-            transfer_status = Monitor::instance.status(resume_point != 0);
-            if (transfer_status.has_value() && transfer_status->id != state.transfer_id) {
-                // But if the ID changed mid-report, bail out.
-                transfer_status.reset();
-            }
-        }
+        const optional<Monitor::Status> transfer_status = event.type == EventType::TransferInfo ? get_transfer_status(resume_point, state) : nullopt;
 
         if (reject_with != nullptr) {
             // The fact we can render in multiple steps doesn't matter, we would
