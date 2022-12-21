@@ -99,6 +99,33 @@ TEST_CASE("Render") {
         // clang-format on
     }
 
+    SECTION("Telemetry - transferring") {
+        params = params_idle();
+        action = SendTelemetry { false };
+        transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/whatever.gcode", 1024);
+        REQUIRE(transfer_slot.has_value());
+        auto id = Monitor::instance.id();
+        REQUIRE(id.has_value());
+        stringstream e;
+        // clang-format off
+        e << "{"
+            "\"transfer_id\":" << *id << ","
+            "\"transfer_transferred\":0,"
+            "\"temp_nozzle\":0.0,"
+            "\"temp_bed\":0.0,"
+            "\"target_nozzle\":0.0,"
+            "\"target_bed\":0.0,"
+            "\"speed\":0,"
+            "\"flow\":0,"
+            "\"axis_x\":0.00,"
+            "\"axis_y\":0.00,"
+            "\"axis_z\":0.00,"
+            "\"state\":\"IDLE\""
+        "}";
+        // clang-format on
+        expected = e.str();
+    }
+
     SECTION("Event - rejected") {
         action = Event {
             EventType::Rejected,
