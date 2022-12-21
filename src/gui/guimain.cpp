@@ -52,7 +52,7 @@ int guimain_spi_test = 0;
 #include "hwio.h"
 #include "sys.h"
 #include "wdt.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "gui_media_events.hpp"
 #include "main.h"
 #include "bsod.h"
@@ -264,11 +264,6 @@ void gui_run(void) {
         case DUMP_HARDFAULT:
             error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
             break;
-        case DUMP_FATALERROR:
-            // TODO uncomment to enable start after click
-            // blockISR();
-            error_screen = ScreenFactory::Screen<ScreenErrorQR>;
-            break;
 #ifndef _DEBUG
         case DUMP_IWDGW:
             error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
@@ -276,6 +271,12 @@ void gui_run(void) {
 #endif
         }
         dump_in_xflash_set_displayed();
+    }
+
+    if (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed()) {
+        // Redscreen rewrites bluescreen
+        error_screen = ScreenFactory::Screen<ScreenErrorQR>;
+        dump_err_in_xflash_set_displayed();
     }
 
 #ifndef _DEBUG

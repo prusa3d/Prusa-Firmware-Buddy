@@ -34,6 +34,9 @@ enum {
     DUMP_FLASH_SIZE = 0x00100000,
 };
 
+// DUMP constants for error message
+#define DUMP_MSG_TITLE_MAX_LEN 20
+#define DUMP_MSG_MAX_LEN       107
 // general registers stored to ccram
 // r0-r12, sp, lr, pc - 64 bytes
 // xpsr, fpcsr, PRIMASK, BASEPRI, FAULTMASK, CONTROL, MSP, PSP - 32 bytes
@@ -148,13 +151,19 @@ typedef struct _dumpinfo_t {
     unsigned short code;        //
     unsigned char reserved[13]; // TODO: RTC time
 } dumpinfo_t;
+
+typedef struct _dumpmessage_t {
+    uint8_t not_displayed; // not displayed == 0xFF, displayed == 0x00
+    uint8_t invalid;       // valid == 0x00, empty == 0xFF
+    uint16_t error_code;   // error_code (0 == unknown error code -> we read dumped message
+    char title[DUMP_MSG_TITLE_MAX_LEN];
+    char msg[DUMP_MSG_MAX_LEN];
+} dumpmessage_t;
 #pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-
-extern void dump_to_xflash(void);
 
 extern int dump_in_xflash_is_valid(void);
 
@@ -185,6 +194,40 @@ extern int dump_save_to_usb(const char *fn);
 extern void dump_hardfault_test_0(void);
 
 extern int dump_hardfault_test_1(void);
+
+extern void dump_to_xflash(void);
+
+/** Save error message to xflash
+ * @param error_code [in] - code for known errors
+ * @param error [in] - pointer to dumped error message
+ * @param title [in] - pointer to dumped error title
+*/
+extern void dump_err_to_xflash(uint16_t error_code, const char *error, const char *title);
+/** Get pointers to dumped error title and error message
+ * @param msg_dst [out] - will be filled with adress to dumped error message
+ * @param msg_dst_size [in] - size of passed message buffer
+ * @param title_dst [out] - will be filled with adress to dumped error title
+ * @param msg_dst_size [in] - size of passed title buffer
+ * @retval 1 - valid read
+ * @retval 0 - read error occured
+*/
+extern int dump_err_in_xflash_get_message(char *msg_dst, uint16_t msg_dst_size, char *tit_dst, uint16_t tit_dst_size);
+/** Returns dumped message valid flag byte
+ * @retval 1 - message is valid
+ * @retval 0 - message space in xflash is empty / not valid
+*/
+extern int dump_err_in_xflash_is_valid(void);
+/** Returns if error message was already displayed
+ * @retval 1 - Yes
+ * @retval 0 - No
+*/
+extern int dump_err_in_xflash_is_displayed(void);
+/** Set displayed flag to 'Already displayed' == 0x00 */
+extern void dump_err_in_xflash_set_displayed(void);
+/** Returns error code
+ * @retval 0 - Unknown error code
+*/
+extern uint16_t dump_err_in_xflash_get_error_code(void);
 
 #ifdef __cplusplus
 }

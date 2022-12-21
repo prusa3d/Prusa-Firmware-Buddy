@@ -5,7 +5,7 @@
 #include "display.h"
 #include "errors.h"
 #include "sound.hpp"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "sys.h"
 #include "eeprom.h"
 #include "support_utils.h"
@@ -57,7 +57,7 @@ ScreenErrorQR::ScreenErrorQR()
     appendix_txt.SetAlignment(Align_t::CenterTop());
 
     // Extract error code from xflash
-    uint16_t error_code_short = dump_in_xflash_get_code();
+    uint16_t error_code_short = dump_err_in_xflash_get_error_code(); // Unknow code == 0x00
     uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
     uint32_t i = 0;
     uint32_t count = sizeof(error_list) / sizeof(err_t);
@@ -67,15 +67,22 @@ ScreenErrorQR::ScreenErrorQR()
         ++i;
     }
     if (i == count) {
-        // error not found => Print unspecified error
-        err_title.SetText(_(unknown_err_txt));
-        err_description.Hide();
+        // error not found => Print error message from dump
+        static char err_title_buff[DUMP_MSG_TITLE_MAX_LEN] = { 0 };
+        static char err_message_buff[DUMP_MSG_MAX_LEN] = { 0 };
+        if (dump_err_in_xflash_is_valid() && dump_err_in_xflash_get_message(err_message_buff, DUMP_MSG_MAX_LEN, err_title_buff, DUMP_MSG_TITLE_MAX_LEN)) {
+            err_title.SetText(err_title_buff[0] ? _(err_title_buff) : _(unknown_err_txt));
+            err_description.SetText(_(err_message_buff));
+        } else {
+            err_title.SetText(_(unknown_err_txt));
+            err_description.Hide();
+            title_line.Hide();
+        }
         help_txt.Hide();
         help_link.Hide();
         hand_icon.Hide();
         qr.Hide();
         qr_code_txt.Hide();
-        title_line.Hide();
     } else {
         // error found
         qr.SetQRHeader(error_code);

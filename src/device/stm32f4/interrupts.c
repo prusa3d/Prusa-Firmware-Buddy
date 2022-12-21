@@ -2,7 +2,7 @@
 #include "cmsis_os.h"
 #include "config.h"
 #include "bsod.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "sys.h"
 #include "buffered_serial.hpp"
 #include "tusb.h"

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "mapfile.h"
 
 dump_t *pdump = 0;

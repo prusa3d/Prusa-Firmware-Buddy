@@ -21,8 +21,9 @@ extern "C" {
 #define W25X_DUMP_START_ADDRESS 0
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     // 48 = 192KiB offset for crash dump, which is the total RAM size
-    #define W25X_PP_START_ADDRESS (48 * W25X_BLOCK_SIZE)
-    #define W25X_FS_START_ADDRESS (49 * W25X_BLOCK_SIZE)
+    #define W25X_ERR_START_ADDRESS (48 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (49 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (50 * W25X_BLOCK_SIZE)
 #else
     #error "Unknown PRINTER_TYPE!"
 #endif
@@ -31,6 +32,7 @@ extern "C" {
 inline constexpr uint32_t w25x_block_size = W25X_BLOCK_SIZE;
 inline constexpr uint32_t w25x_block64_size = W25X_BLOCK64_SIZE;
 inline constexpr uint32_t w25x_dump_start_address = W25X_DUMP_START_ADDRESS;
+inline constexpr uint32_t w25x_error_start_adress = W25X_ERR_START_ADDRESS;
 inline constexpr uint32_t w25x_pp_start_address = W25X_PP_START_ADDRESS;
 inline constexpr uint32_t w25x_fs_start_address = W25X_FS_START_ADDRESS;
 #endif // defined(__cplusplus)

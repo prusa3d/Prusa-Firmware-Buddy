@@ -1,7 +1,7 @@
 // bsod_gui.cpp - blue screen of death
 #include "bsod.h"
 #include "wdt.h"
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include "safe_state.h"
 
 #include "FreeRTOS.h"
@@ -147,43 +147,45 @@ char nth_char(const char str[], uint16_t nth) {
 }
 
 //! Fatal error that causes Redscreen
+void fatal_error_code(const char *error, const char *module, uint16_t error_code) {
+    dump_err_to_xflash(error_code, error, module);
+    sys_reset();
+}
+
+//! Fatal error that causes Redscreen
 void fatal_error(const char *error, const char *module) {
-    uint16_t *perror_code_short = (uint16_t *)(DUMP_INFO_ADDR + 1);
+    uint16_t error_code = 0;
 
     /// Decision tree to define error code
     using namespace Language_en;
     /// TODO share these strings (saves ~100 B of binary size)
-    if (strcmp(MSG_INVALID_EXTRUDER_NUM, error) == 0) {
-        *perror_code_short = 0;
-    } else if (strcmp("Emergency stop (M112)", error) == 0) {
-        *perror_code_short = 510;
-    } else if (strcmp("Inactive time kill", error) == 0) {
-        *perror_code_short = 0;
+    if (strcmp("Emergency stop (M112)", error) == 0) {
+        error_code = 510;
     } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
-        *perror_code_short = 301;
+        error_code = 301;
     } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
-        *perror_code_short = 201;
+        error_code = 201;
     } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
-        *perror_code_short = 202;
+        error_code = 202;
     } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
-        *perror_code_short = 203;
+        error_code = 203;
     } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
-        *perror_code_short = 204;
+        error_code = 204;
     } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
-        *perror_code_short = 205;
+        error_code = 205;
     } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
-        *perror_code_short = 206;
+        error_code = 206;
     } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
-        *perror_code_short = 207;
+        error_code = 207;
     } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
-        *perror_code_short = 208;
+        error_code = 208;
     } else {
-        *perror_code_short = 0;
+        // Unknown error code = we don't have help.prusa3d site support for this error
+        // In this case we have to dump error message and error title
+        error_code = 0;
     }
 
-    DUMP_FATALERROR_TO_CCRAM();
-    dump_to_xflash();
-    sys_reset();
+    fatal_error_code(error, module, error_code);
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {

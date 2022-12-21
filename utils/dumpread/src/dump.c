@@ -1,6 +1,6 @@
 // dump.c
 
-#include "dump.h"
+#include <crash_dump/dump.h>
 #include <stdlib.h>
 #include <string.h>
 #include "dump_rtos.h"
