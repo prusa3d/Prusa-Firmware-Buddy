@@ -96,7 +96,7 @@ optional<Monitor::Status> Monitor::status(bool allow_stale) const {
     result.start = start;
     result.expected = expected;
     result.transferred = transferred;
-    result.destination = destination_path;
+    result.destination = strlen(destination_path) > 0 ? destination_path : nullptr;
 
     return result;
 }
@@ -153,7 +153,11 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
     expected = expected_size;
     transferred = 0;
     start = ticks_ms();
-    strlcpy(destination_path, dest, sizeof(destination_path));
+    if (dest != nullptr) {
+        strlcpy(destination_path, dest, sizeof(destination_path));
+    } else {
+        destination_path[0] = '\0';
+    }
 
     return Slot(*this);
 }
