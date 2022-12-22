@@ -805,6 +805,9 @@ void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t p
     marlin_server_print_start(media_SFN_path, true);
     media_print_quick_stop(pos);
 
+    //open printing screen
+    FSM_CREATE__LOGGING(Printing);
+
     // enter the main powerpanic resume loop
     marlin_server.print_state = start_paused ? mpsPowerPanic_AwaitingResume : mpsPowerPanic_Resume;
     static metric_t power = METRIC("power_panic", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
