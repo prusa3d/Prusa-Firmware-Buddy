@@ -9,7 +9,6 @@ ScreenFactory::UniquePtr GetScreenMenuMove();
 ScreenFactory::UniquePtr GetScreenMenuSensorInfo();
 ScreenFactory::UniquePtr GetScreenMenuOdometer();
 ScreenFactory::UniquePtr GetScreenMenuVersionInfo();
-ScreenFactory::UniquePtr GetScreenMenuTune();
 //ScreenFactory::UniquePtr GetScreenMenuService();
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate();
 ScreenFactory::UniquePtr GetScreenMenuLanguages();

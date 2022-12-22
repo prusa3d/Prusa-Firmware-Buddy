@@ -7,6 +7,7 @@
 #include "screen_menus.hpp"
 #include "odometer.hpp"
 #include "window_icon.hpp"
+#include "screen_menu_tune.hpp"
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
@@ -67,7 +68,7 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
 }
 
 void screen_printing_serial_data_t::tuneAction() {
-    Screens::Access()->Open(GetScreenMenuTune);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTune>);
 }
 
 void screen_printing_serial_data_t::pauseAction() {
