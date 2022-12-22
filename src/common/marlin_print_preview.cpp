@@ -175,7 +175,7 @@ PrintPreview::Result PrintPreview::Loop() {
         case Response::Ignore:
             ChangeState(State::done);
             break;
-        case Response::Abort:
+        case Response::Ok:
             ChangeState(State::inactive);
             return Result::Abort;
         case Response::Change:
