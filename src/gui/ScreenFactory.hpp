@@ -9,6 +9,7 @@
 #include "screen_menu_filament.hpp"
 #include "screen_menu_temperature.hpp"
 #include "screen_menu_move.hpp"
+#include "screen_menu_sensor_info.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -32,6 +33,7 @@ class ScreenFactory {
         ScreenMenuFilament,
         ScreenMenuInfo,
         ScreenMenuMove,
+        ScreenMenuSensorInfo,
         ScreenMenuSettings,
         ScreenMenuTemperature,
         ScreenMenuTune,
