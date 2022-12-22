@@ -10,6 +10,7 @@
 #include "translator.hpp"
 #include "SteelSheets.hpp"
 #include "png_resources.hpp"
+#include "screen_menu_filament.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -47,7 +48,7 @@ MI_FILAMENT::MI_FILAMENT()
 }
 
 void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuFilament);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
 }
 
 /*****************************************************************************/
