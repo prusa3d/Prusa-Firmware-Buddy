@@ -7,6 +7,7 @@
 #include "DialogHandler.hpp"
 #include "window_dlg_load_unload.hpp"
 #include "marlin_client.h"
+#include "ScreenHandler.hpp"
 
 /*****************************************************************************/
 //MI_LOAD
