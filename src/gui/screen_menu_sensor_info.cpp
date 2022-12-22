@@ -1,35 +1,16 @@
-// screen_menu_sensors.cpp
+/**
+ * @file screen_menu_sensor_info.cpp
+ */
 
-#include "gui.hpp"
-#include "screen_menu.hpp"
+#include "screen_menu_sensor_info.hpp"
 #include "ScreenHandler.hpp"
 #include "MItem_tools.hpp"
-#include "window_menu_adv.hpp"
 #include "DialogMoveZ.hpp"
-#include "fs_autoload_autolock.hpp"
 
-#include "i_window_menu_container.hpp"
-#include <tuple>
-
-using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA>;
-
-class ScreenMenuSensorInfo : public Screen {
-    FS_AutoloadAutolock lock;
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-
-public:
-    constexpr static const char *label = N_("SENSOR INFO");
-    ScreenMenuSensorInfo()
-        : Screen(_(label)) {
-        EnableLongHoldScreenAction();
-        ClrMenuTimeoutClose();
-    }
-};
-
-ScreenFactory::UniquePtr GetScreenMenuSensorInfo() {
-    return ScreenFactory::Screen<ScreenMenuSensorInfo>();
+ScreenMenuSensorInfo::ScreenMenuSensorInfo()
+    : ScreenMenuSensorInfo__(_(label)) {
+    EnableLongHoldScreenAction();
+    ClrMenuTimeoutClose();
 }
 
 void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -38,5 +19,5 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
         return;
     }
 
-    Screen::SuperWindowEvent(sender, event, param);
+    SuperWindowEvent(sender, event, param);
 }

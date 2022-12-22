@@ -13,6 +13,7 @@
 #include "screen_menu_filament.hpp"
 #include "screen_menu_temperature.hpp"
 #include "screen_menu_move.hpp"
+#include "screen_menu_sensor_info.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -31,7 +32,7 @@ MI_SENSOR_INFO::MI_SENSOR_INFO()
 }
 
 void MI_SENSOR_INFO::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuSensorInfo);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSensorInfo>);
 }
 
 /*****************************************************************************/
