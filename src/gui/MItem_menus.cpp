@@ -12,6 +12,7 @@
 #include "png_resources.hpp"
 #include "screen_menu_filament.hpp"
 #include "screen_menu_temperature.hpp"
+#include "screen_menu_move.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -91,7 +92,7 @@ MI_MOVE_AXIS::MI_MOVE_AXIS()
 }
 
 void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuMove);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMove>);
 }
 
 /*****************************************************************************/
