@@ -10,6 +10,7 @@ target_sources(
           i_window_text.cpp
           Jogwheel.cpp
           knob_event.cpp
+          menu_item_event_dispatcher.cpp
           menu_spin_config_types.cpp
           Rect16.cpp
           screen.cpp

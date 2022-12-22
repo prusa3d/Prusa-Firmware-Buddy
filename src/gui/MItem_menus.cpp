@@ -11,6 +11,7 @@
 #include "SteelSheets.hpp"
 #include "png_resources.hpp"
 #include "screen_menu_filament.hpp"
+#include "screen_menu_temperature.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -80,7 +81,7 @@ MI_TEMPERATURE::MI_TEMPERATURE()
 }
 
 void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuTemperature);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTemperature>);
 }
 
 /*****************************************************************************/

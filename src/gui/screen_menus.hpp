@@ -2,7 +2,6 @@
 #pragma once
 #include "ScreenFactory.hpp"
 
-ScreenFactory::UniquePtr GetScreenMenuTemperature();
 ScreenFactory::UniquePtr GetScreenMenuMove();
 ScreenFactory::UniquePtr GetScreenMenuSensorInfo();
 ScreenFactory::UniquePtr GetScreenMenuOdometer();

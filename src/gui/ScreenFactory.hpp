@@ -7,6 +7,7 @@
 #include "screen_menu_tune.hpp"
 #include "screen_menu_calibration.hpp"
 #include "screen_menu_filament.hpp"
+#include "screen_menu_temperature.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -30,6 +31,7 @@ class ScreenFactory {
         ScreenMenuFilament,
         ScreenMenuInfo,
         ScreenMenuSettings,
+        ScreenMenuTemperature,
         ScreenMenuTune,
         screen_home_data_t, screen_splash_data_t>::type;
 
