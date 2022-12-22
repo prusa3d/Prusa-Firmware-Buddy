@@ -81,15 +81,17 @@ void window_file_list_t::SetItemIndex(int index) {
     }
 }
 
-const char *window_file_list_t::CurrentLFN(bool *isFile) {
+const char *window_file_list_t::CurrentLFN(bool *isFile) const {
     auto i = ldv.LongFileNameAt(index);
-    *isFile = i.second == LDV::EntryType::FILE;
+    if (isFile)
+        *isFile = i.second == LDV::EntryType::FILE;
     return i.first;
 }
 
-const char *window_file_list_t::CurrentSFN(bool *isFile) {
+const char *window_file_list_t::CurrentSFN(bool *isFile) const {
     auto i = ldv.ShortFileNameAt(index);
-    *isFile = i.second == LDV::EntryType::FILE;
+    if (isFile)
+        *isFile = i.second == LDV::EntryType::FILE;
     return i.first;
 }
 
@@ -97,8 +99,8 @@ const char *window_file_list_t::TopItemSFN() {
     return ldv.ShortFileNameAt(0).first;
 }
 
-window_file_list_t::window_file_list_t(window_t *parent)
-    : AddSuperWindow<window_aligned_t>(parent, DefaultRC)
+window_file_list_t::window_file_list_t(window_t *parent, Rect16 rc)
+    : AddSuperWindow<window_aligned_t>(parent, rc = Rect16::Height_t(item_height * LazyDirViewSize))
     , color_text(GuiDefaults::ColorText)
     , font(GuiDefaults::Font)
     , entire_window_invalid(true)
@@ -149,9 +151,11 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         selectNewItem();
         break;
     case GUI_event_t::TEXT_ROLL:
-        activeItem.Roll();
-        if (activeItem.IsInvalid()) {
-            invalidateItem(index);
+        if (IsFocused()) {
+            activeItem.Roll();
+            if (activeItem.IsInvalid()) {
+                invalidateItem(index);
+            }
         }
         break;
     default:
@@ -185,6 +189,53 @@ void window_file_list_t::inc(int dif) {
             } else {
                 --index;
             }
+        }
+    }
+
+    if (!middle) {
+        Sound_Play(eSOUND_TYPE::BlindAlert);
+    } else {
+        Sound_Play(eSOUND_TYPE::EncoderMove);
+    }
+
+    if (!repaint) {
+        if (index != old_index) {
+            invalidateItem(index);
+            invalidateItem(old_index);
+            selectNewItem();
+        }
+        return;
+    }
+
+    //can not use Invalidate, it would cause redraw of background
+    valid_items.fill(false);
+    activeItem.clrFocus();
+    selectNewItem();
+    super::invalidate(GetRect());
+}
+
+/**
+ * @brief ugly copy od inc method with some modifications
+ * TODO make window_file_list_t child of
+ *
+ * @param dif
+ */
+void window_file_list_t::roll_screen(int dif) {
+    if (dif == 0)
+        return;
+
+    bool repaint = false;
+    bool middle = true; ///< cursor ended in the middle of the list, not at the end (or start)
+    int old_index = index;
+    if (dif > 0) {
+        while (dif-- && middle) {
+            middle = ldv.MoveDown();     ///< last result defines end of list
+            repaint = repaint || middle; ///< any movement triggers repaint
+        }
+    } else {
+        while (dif++ && middle) {
+            middle = ldv.MoveUp();       ///< last result defines end of list
+            repaint = repaint || middle; ///< any movement triggers repaint
         }
     }
 
@@ -284,4 +335,12 @@ string_view_utf8 window_file_list_t::itemText(int index) const {
         itemText = string_view_utf8::MakeRAM((const uint8_t *)item.first);
     }
     return itemText;
+}
+
+void window_file_list_t::RollUp() {
+    roll_screen(1 - int(LazyDirViewSize));
+}
+
+void window_file_list_t::RollDown() {
+    roll_screen(LazyDirViewSize - 1);
 }

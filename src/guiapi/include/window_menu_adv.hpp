@@ -6,6 +6,7 @@
 #pragma once
 
 #include "window_menu.hpp"
+#include "window_filebrowser.hpp"
 #include "window_menu_bar.hpp"
 #include "guiconfig.h"
 
@@ -40,8 +41,27 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
+class WindowFileBrowserAdv : public AddSuperWindow<window_frame_t> {
+    WindowFileBrowser file_browser;
+    //MenuScrollbar bar; TODO
+public:
+    WindowFileBrowserAdv(window_t *parent, Rect16 rect, const char *media_SFN_path);
+
+    const char *CurrentLFN() const { return file_browser.CurrentLFN(); }
+    const char *CurrentSFN() const { return file_browser.CurrentSFN(); }
+    int WriteNameToPrint(char *buff, size_t sz) { return file_browser.WriteNameToPrint(buff, sz); }
+    void SaveTopSFN() { file_browser.SaveTopSFN(); }
+
+    static void CopyRootTo(char *path) { WindowFileBrowser::CopyRootTo(path); }
+
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+};
+
 #if (MENU_HAS_SCROLLBAR)
 using window_menu_t = WindowMenuAdv;
+using FileBrowser = WindowFileBrowserAdv;
 #else
 using window_menu_t = WindowMenu;
+using FileBrowser = WindowFileBrowser;
 #endif

@@ -84,7 +84,7 @@ screen_home_data_t::screen_home_data_t()
     EnableLongHoldScreenAction();
     window_frame_t::ClrMenuTimeoutClose();
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
-    screen_filebrowser_data_t::SetRoot("/usb");
+    WindowFileBrowser::SetRoot("/usb");
 
     header.SetIcon(&png::home_shape_16x16);
 #ifndef _DEBUG
