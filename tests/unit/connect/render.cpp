@@ -265,6 +265,36 @@ TEST_CASE("Render") {
         // clang-format on
         expected = e.str();
     }
+    // if nullptr passed instead of a path, the resulting
+    // response should omit the path param.
+    SECTION("Event - transfer info no upload path") {
+        action = Event {
+            EventType::TransferInfo,
+            11,
+        };
+        params = params_idle();
+        transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, nullptr, 1024);
+        REQUIRE(transfer_slot.has_value());
+        auto id = Monitor::instance.id();
+        REQUIRE(id.has_value());
+        stringstream e;
+        // clang-format off
+        e << "{"
+            "\"data\":{"
+                "\"transfer_id\":" << *id << ","
+                "\"size\":1024,"
+                "\"transferred\":0,"
+                "\"time_transferring\":0,"
+                "\"type\":\"FROM_CONNECT\""
+            "},"
+            "\"state\":\"IDLE\","
+            "\"command_id\":11,"
+            "\"transfer_id\":" << *id << ","
+            "\"event\":\"TRANSFER_INFO\""
+        "}";
+        // clang-format on
+        expected = e.str();
+    }
 
     MockPrinter printer(params);
     Tracked telemetry_changes;

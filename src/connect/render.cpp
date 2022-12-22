@@ -367,7 +367,11 @@ namespace {
                     JSON_FIELD_INT_G(transfer_status.has_value(), "size", transfer_status->expected) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", (transfer_status->start - ticks_ms()) / 1000) JSON_COMMA;
-                    JSON_FIELD_STR_G(transfer_status.has_value(), "path", transfer_status->destination) JSON_COMMA;
+                    // Note: This works, because destination cannot go from non null to null
+                    // (if one transfer ends and another starts mid report, we bail out)
+                    if (transfer_status->destination) {
+                        JSON_FIELD_STR_G(transfer_status.has_value(), "path", transfer_status->destination) JSON_COMMA;
+                    }
                     JSON_FIELD_STR_G(transfer_status.has_value(), "type", to_str(transfer_status->type));
                } else {
                     JSON_FIELD_STR("type", "NO_TRANSFER");

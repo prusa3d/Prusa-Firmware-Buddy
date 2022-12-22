@@ -149,6 +149,10 @@ public:
         ///
         /// Note that usually the file doesn't yet exist, the data is being
         /// saved into some kind of temp file and then moved.
+        ///
+        /// Also this could be nullptr if uploading by POST in Link,
+        /// because in that case the path is not known from the beginning of
+        /// the upload.
         const char *destination;
     };
 
@@ -208,6 +212,7 @@ private:
     Timestamp start;
     size_t expected;
     size_t transferred;
+
     char destination_path[FILE_PATH_BUFFER_LEN];
 
     // History related
