@@ -73,7 +73,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>); } } }
     , w_labels { { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
