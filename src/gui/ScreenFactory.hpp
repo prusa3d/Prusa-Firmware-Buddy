@@ -10,6 +10,7 @@
 #include "screen_menu_temperature.hpp"
 #include "screen_menu_move.hpp"
 #include "screen_menu_sensor_info.hpp"
+#include "screen_menu_odometer.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -33,6 +34,7 @@ class ScreenFactory {
         ScreenMenuFilament,
         ScreenMenuInfo,
         ScreenMenuMove,
+        ScreenMenuOdometer,
         ScreenMenuSensorInfo,
         ScreenMenuSettings,
         ScreenMenuTemperature,
