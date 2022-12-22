@@ -2,6 +2,8 @@
 
 #include "screen_home.hpp"
 #include "screen_splash.hpp"
+#include "screen_menu_settings.hpp"
+
 #include "static_alocation_ptr.hpp"
 #include <array>
 
@@ -19,7 +21,10 @@ class ScreenFactory {
 
     ScreenFactory() = delete;
     ScreenFactory(const ScreenFactory &) = delete;
-    using mem_space = std::aligned_union<min_union_size, screen_home_data_t, screen_splash_data_t>::type;
+    using mem_space = std::aligned_union<min_union_size,
+        ScreenMenuSettings,
+        screen_home_data_t, screen_splash_data_t>::type;
+
     static mem_space all_screens;
 
 public:
