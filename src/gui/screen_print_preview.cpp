@@ -78,7 +78,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         pMsgbox = makeMsgBox(Responses_YesNo, _(labelWarning), _(txt_fil_detected_mmu));
         break;
     case PhasesPrintPreview::wrong_filament:
-        pMsgbox = makeMsgBox(Responses_ChangeIgnoreAbort, _(labelWarning), _(txt_wrong_fil_type));
+        pMsgbox = makeMsgBox(Responses_ChangeOkAbort, _(labelWarning), _(txt_wrong_fil_type));
         break;
     }
 
