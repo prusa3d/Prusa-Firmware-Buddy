@@ -1,35 +1,20 @@
-// screen_menu_filament.cpp
+/**
+ * @file screen_menu_filament.cpp
+ */
 
-#include "gui.hpp"
-#include "screen_menus.hpp"
-#include "screen_menu.hpp"
-#include "WindowMenuItems.hpp"
+#include "screen_menu_filament.hpp"
 #include "filament.hpp"
 #include "filament_sensor_api.hpp"
-#include "i18n.h"
-#include "MItem_filament.hpp"
 
 enum {
     F_EEPROM = 0x01, // filament is known
     F_SENSED = 0x02  // filament is not in sensor
 };
 
-using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
-
-class ScreenMenuFilament : public Screen {
-public:
-    constexpr static const char *label = N_("FILAMENT");
-    ScreenMenuFilament()
-        : Screen(_(label)) {
-        deactivate_item();
-    }
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-
-private:
-    void deactivate_item();
-};
+ScreenMenuFilament::ScreenMenuFilament()
+    : ScreenMenuFilament__(_(label)) {
+    deactivate_item();
+}
 
 void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // This check is periodically executed even when it's hidden under filament dialogs.
@@ -83,8 +68,4 @@ void ScreenMenuFilament::deactivate_item() {
         EnableItem<MI_PURGE>();
         break;
     }
-}
-
-ScreenFactory::UniquePtr GetScreenMenuFilament() {
-    return ScreenFactory::Screen<ScreenMenuFilament>();
 }

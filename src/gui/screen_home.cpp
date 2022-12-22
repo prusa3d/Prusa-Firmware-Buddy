@@ -28,6 +28,7 @@
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_calibration.hpp"
+#include "screen_menu_filament.hpp"
 
 #include <crash_dump/crash_dump_handlers.hpp>
 
@@ -71,7 +72,7 @@ screen_home_data_t::screen_home_data_t()
     , logo(this, Rect16(41, 31, 158, 40), &png::prusa_mini_logo_153x40)
     , w_buttons { { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), nullptr, []() { marlin_gcode_printf("M1700"); } },
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCalibration>); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>); } } }

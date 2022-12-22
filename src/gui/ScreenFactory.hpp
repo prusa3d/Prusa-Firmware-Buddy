@@ -6,6 +6,7 @@
 #include "screen_menu_settings.hpp"
 #include "screen_menu_tune.hpp"
 #include "screen_menu_calibration.hpp"
+#include "screen_menu_filament.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -26,6 +27,7 @@ class ScreenFactory {
     ScreenFactory(const ScreenFactory &) = delete;
     using mem_space = std::aligned_union<min_union_size,
         ScreenMenuCalibration,
+        ScreenMenuFilament,
         ScreenMenuInfo,
         ScreenMenuSettings,
         ScreenMenuTune,
