@@ -14,6 +14,7 @@
 #include "screen_menu_temperature.hpp"
 #include "screen_menu_move.hpp"
 #include "screen_menu_sensor_info.hpp"
+#include "screen_menu_odometer.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -41,7 +42,7 @@ MI_ODOMETER::MI_ODOMETER()
 }
 
 void MI_ODOMETER::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuOdometer);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuOdometer>);
 }
 
 /*****************************************************************************/
