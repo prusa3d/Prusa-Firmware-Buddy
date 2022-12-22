@@ -193,4 +193,7 @@ public:
     MockDialogTimed(window_t *parent, Rect16 rc, uint32_t time = 500)
         : AddSuperWindow<DialogTimed>(parent, rc, time) {
     }
+
+protected:
+    virtual void updateLoop(visibility_changed_t visibility_changed) override {};
 };
