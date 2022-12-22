@@ -58,6 +58,7 @@ target_sources(
           ScreenPrintingModel.cpp
           test_display.cpp
           window_file_list.cpp
+          window_filebrowser.cpp
           window_header.cpp
           window_print_progress.cpp
           window_temp_graph.cpp
