@@ -23,13 +23,6 @@ static bool run_once_done = false;
 static uint32_t current_time = 0;
 static uint32_t rescan_delay = 1500;
 static uint32_t max_rescan_time = 10000;
-static bool powerpanic_print_resumed = false;
-
-bool powerpanic_resumed_get_and_clear() {
-    bool temp = powerpanic_print_resumed;
-    powerpanic_print_resumed = false;
-    return temp;
-}
 
 #if ENABLED(POWER_PANIC)
 static bool file_exists(const char *filename) {
@@ -70,7 +63,6 @@ void run_once_after_boot() {
             if (resume) {
                 // resume and bypass g-code autostart
                 power_panic::resume_print(!auto_recover);
-                powerpanic_print_resumed = true;
                 return;
             }
         }
