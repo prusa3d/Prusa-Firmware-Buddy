@@ -25,6 +25,7 @@ static constexpr PhaseResponses Responses_YesRetry             = { Response::Yes
 static constexpr PhaseResponses Responses_RetryCancel          = { Response::Retry,    Response::Cancel, Response::_none,  Response::_none };
 static constexpr PhaseResponses Responses_ChangeIgnoreCancel   = { Response::Change,   Response::Ignore, Response::Cancel, Response::_none };
 static constexpr PhaseResponses Responses_ChangeIgnoreAbort    = { Response::Change,   Response::Ignore, Response::Abort,  Response::_none };
+static constexpr PhaseResponses Responses_ChangeOkAbort        = { Response::Change,   Response::Ok, Response::Abort,  Response::_none };
 static constexpr PhaseResponses Responses_IgnoreAbort          = { Response::Ignore,   Response::Abort,  Response::_none,  Response::_none };
 
 // clang-format on
