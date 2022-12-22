@@ -26,6 +26,8 @@
 #include "i18n.h"
 #include "netdev.h"
 
+#include "screen_menu_settings.hpp"
+
 #include <crash_dump/crash_dump_handlers.hpp>
 
 // TODO remove netdev_is_enabled after it is defined
@@ -70,7 +72,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), nullptr, []() { marlin_gcode_printf("M1700"); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuFilament); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuCalibration); } },
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuSettings); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(GetScreenMenuInfo); } } }
     , w_labels { { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
