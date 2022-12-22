@@ -300,6 +300,15 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         osDelay(s->milliseconds % IDLE_WAIT);
         // Don't change the status now, we just slept
         return nullopt;
+    } else if (auto *e = get_if<Event>(&action); e && e->type == EventType::Info) {
+        // The server may delete its latest copy of telemetry in various case, in particular:
+        // * When it thinks we were offline for a while.
+        // * When it went through an update.
+        //
+        // In either case, we send or the server asks us to send the INFO
+        // event. We may send INFO for other reasons too, but don't bother to
+        // make that distinction for simplicity.
+        telemetry_changes.mark_dirty();
     }
 
     // Let it reconnect if it needs it.
