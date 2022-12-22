@@ -1,50 +1,16 @@
-// screen_menu_tune.cpp
+/**
+ * @file screen_menu_tune.cpp
+ */
 
-#include "gui.hpp"
-#include "screen_menu.hpp"
-#include "screen_menus.hpp"
+#include "screen_menu_tune.hpp"
 #include "marlin_client.h"
-#include "MItem_print.hpp"
-#include "MItem_tools.hpp"
-#include "MItem_crash.hpp"
-#include "MItem_menus.hpp"
 
-/*****************************************************************************/
-//parent alias
-using Screen = ScreenMenu<EFooter::On, MI_RETURN, MI_LIVE_ADJUST_Z, MI_M600, MI_SPEED, MI_NOZZLE,
-    MI_HEATBED, MI_PRINTFAN, MI_FLOWFACT, MI_FILAMENT_SENSOR, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_FAN_CHECK
-
-#if ENABLED(CRASH_RECOVERY)
-    ,
-    MI_CRASH_DETECTION, MI_CRASH_SENSITIVITY_X, MI_CRASH_MAX_PERIOD_X, MI_CRASH_SENSITIVITY_Y, MI_CRASH_MAX_PERIOD_Y
-    #if HAS_DRIVER(TMC2130)
-    ,
-    MI_CRASH_FILTERING
-    #endif // HAS_DRIVER(TMC2130)
-#endif     // ENABLED(CRASH_RECOVERY)
-
-    ,
-    MI_NETWORK, MI_TIMEZONE, MI_VERSION_INFO,
-
-#ifdef _DEBUG
-    MI_TEST,
-#endif                       //_DEBUG
-    /* MI_FOOTER_SETTINGS,*/ //currently experimental, but we want it in future
-    MI_MESSAGES>;
-
-class ScreenMenuTune : public Screen {
-public:
-    constexpr static const char *label = N_("TUNE");
-    ScreenMenuTune()
-        : Screen(_(label)) {
-        Screen::ClrMenuTimeoutClose();
-        //todo test if needed
-        //marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
-    }
-
-protected:
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-};
+ScreenMenuTune::ScreenMenuTune()
+    : ScreenMenuTune__(_(label)) {
+    ScreenMenuTune__::ClrMenuTimeoutClose();
+    //TODO test if needed
+    //marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
+}
 
 void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
@@ -59,8 +25,4 @@ void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sende
         break;
     }
     SuperWindowEvent(sender, event, param);
-}
-
-ScreenFactory::UniquePtr GetScreenMenuTune() {
-    return ScreenFactory::Screen<ScreenMenuTune>();
 }

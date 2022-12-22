@@ -10,6 +10,7 @@
 #include "odometer.hpp"
 #include "liveadjust_z.hpp"
 #include "DialogMoveZ.hpp"
+#include "screen_menu_tune.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensor_api.hpp"
@@ -53,7 +54,7 @@ void screen_printing_data_t::tuneAction() {
     switch (GetState()) {
     case printing_state_t::PRINTING:
     case printing_state_t::PAUSED:
-        Screens::Access()->Open(GetScreenMenuTune);
+        Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTune>);
         break;
     default:
         break;

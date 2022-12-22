@@ -4,6 +4,7 @@
 #include "screen_splash.hpp"
 #include "screen_menu_info.hpp"
 #include "screen_menu_settings.hpp"
+#include "screen_menu_tune.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -25,6 +26,7 @@ class ScreenFactory {
     using mem_space = std::aligned_union<min_union_size,
         ScreenMenuInfo,
         ScreenMenuSettings,
+        ScreenMenuTune,
         screen_home_data_t, screen_splash_data_t>::type;
 
     static mem_space all_screens;
