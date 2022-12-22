@@ -70,11 +70,11 @@ static bool check_filament_type(GCodeInfo &gcode) {
          gcode.filament_described && filament_known(curr_filament) && !is_same(curr_filament, gcode.filament_type);
          curr_filament = Filaments::Current().name) {
         string_view_utf8 txt_wrong_fil_type = _("This G-CODE was set up for another filament type.");
-        switch (MsgBoxWarning(txt_wrong_fil_type, Responses_ChangeIgnoreAbort, 0, GuiDefaults::RectScreenNoHeader)) {
+        switch (MsgBoxWarning(txt_wrong_fil_type, Responses_ChangeOkAbort, 0, GuiDefaults::RectScreenNoHeader)) {
         case Response::Change:
             PreheatStatus::DialogBlockingChangeLoad(RetAndCool_t::Return);
             break;
-        case Response::Ignore:
+        case Response::Ok:
             return true;
         case Response::Abort:
             return false;
