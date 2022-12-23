@@ -16,6 +16,7 @@
 #include "screen_menu_languages.hpp"
 #include "screen_menu_lan_settings.hpp"
 #include "screen_menu_hw_setup.hpp"
+#include "screen_menu_steel_sheets.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -47,6 +48,7 @@ class ScreenFactory {
         ScreenMenuOdometer,
         ScreenMenuSensorInfo,
         ScreenMenuSettings,
+        ScreenMenuSteelSheets,
         ScreenMenuTemperature,
         ScreenMenuTune,
         ScreenMenuVersionInfo,
