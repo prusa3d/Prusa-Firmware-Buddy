@@ -14,6 +14,7 @@
 #include "screen_menu_version_info.hpp"
 #include "screen_menu_fw_update.hpp"
 #include "screen_menu_languages.hpp"
+#include "screen_menu_lan_settings.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -34,6 +35,7 @@ class ScreenFactory {
     ScreenFactory(const ScreenFactory &) = delete;
     using mem_space = std::aligned_union<min_union_size,
         ScreenMenuCalibration,
+        ScreenMenuEthernetSettings,
         ScreenMenuFilament,
         ScreenMenuFwUpdate,
         ScreenMenuInfo,
@@ -46,6 +48,7 @@ class ScreenFactory {
         ScreenMenuTemperature,
         ScreenMenuTune,
         ScreenMenuVersionInfo,
+        ScreenMenuWifiSettings,
         screen_home_data_t, screen_splash_data_t>::type;
 
     static mem_space all_screens;

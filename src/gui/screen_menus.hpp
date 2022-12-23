@@ -2,8 +2,6 @@
 #pragma once
 #include "ScreenFactory.hpp"
 
-ScreenFactory::UniquePtr GetScreenMenuEthernetSettings();
-ScreenFactory::UniquePtr GetScreenMenuWifiSettings();
 ScreenFactory::UniquePtr GetScreenMenuHwSetup();
 ScreenFactory::UniquePtr GetScreenMenuSteelSheets();
 ScreenFactory::UniquePtr GetScreenEeprom();
