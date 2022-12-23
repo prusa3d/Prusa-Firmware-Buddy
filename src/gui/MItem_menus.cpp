@@ -17,6 +17,7 @@
 #include "screen_menu_odometer.hpp"
 #include "screen_menu_version_info.hpp"
 #include "screen_menu_fw_update.hpp"
+#include "screen_menu_languages.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -168,7 +169,7 @@ MI_LANGUAGE::MI_LANGUAGE()
 }
 
 void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuLanguages);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuLanguages>);
 }
 
 /*****************************************************************************/
