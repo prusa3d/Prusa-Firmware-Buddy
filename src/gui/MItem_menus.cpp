@@ -18,6 +18,7 @@
 #include "screen_menu_version_info.hpp"
 #include "screen_menu_fw_update.hpp"
 #include "screen_menu_languages.hpp"
+#include "screen_menu_lan_settings.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -138,7 +139,7 @@ MI_ETH_SETTINGS::MI_ETH_SETTINGS()
 }
 
 void MI_ETH_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuEthernetSettings);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuEthernetSettings>);
 }
 
 /*****************************************************************************/
@@ -149,7 +150,7 @@ MI_WIFI_SETTINGS::MI_WIFI_SETTINGS()
 }
 
 void MI_WIFI_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuWifiSettings);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuWifiSettings>);
 }
 
 /*****************************************************************************/
