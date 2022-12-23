@@ -16,6 +16,7 @@
 #include "screen_menu_sensor_info.hpp"
 #include "screen_menu_odometer.hpp"
 #include "screen_menu_version_info.hpp"
+#include "screen_menu_fw_update.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -125,7 +126,7 @@ MI_FW_UPDATE::MI_FW_UPDATE()
 }
 
 void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuFwUpdate);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFwUpdate>);
 }
 
 /*****************************************************************************/

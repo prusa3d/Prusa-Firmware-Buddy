@@ -1,44 +1,15 @@
-/*
- * screen_menu_fw_update.cpp
- *
- *  Created on: Dec 18, 2019
- *      Author: Migi
+/**
+ * @file screen_menu_fw_update.cpp
  */
 
+#include "screen_menu_fw_update.hpp"
 #include "sys.h"
-#include "gui.hpp"
-#include "screen_menu.hpp"
-#include "screen_menus.hpp"
-#include "WindowMenuItems.hpp"
-#include "i18n.h"
 #include "ScreenHandler.hpp"
 
 static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
 
-class MI_UPDATE_LABEL : public WI_LABEL_t {
-    static constexpr const char *const label = N_("FW Update");
-
-public:
-    MI_UPDATE_LABEL()
-        : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override {};
-};
-
-class MI_UPDATE : public WI_SWITCH_t<3> {
-    constexpr static const char *const str_0 = N_("Off");
-    constexpr static const char *const str_1 = N_("On Restart");
-    constexpr static const char *const str_2 = N_("Always");
-
-    size_t init_index() const;
-
-public:
-    MI_UPDATE();
-
-protected:
-    virtual void OnChange(size_t) override;
-};
+MI_UPDATE_LABEL::MI_UPDATE_LABEL()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 size_t MI_UPDATE::init_index() const {
     return (size_t)sys_fw_update_on_restart_is_enabled()
@@ -65,28 +36,6 @@ void MI_UPDATE::OnChange(size_t /*old_index*/) {
     }
 }
 
-using MenuContainer = WinMenuContainer<MI_RETURN, MI_UPDATE_LABEL, MI_UPDATE>;
-
-class ScreenMenuFwUpdate : public AddSuperWindow<screen_t> {
-    constexpr static const char *const label = N_("FW UPDATE");
-    static constexpr size_t helper_lines = 4;
-    static constexpr ResourceId helper_font = IDR_FNT_SPECIAL;
-
-    MenuContainer container;
-    window_menu_t menu;
-    window_header_t header;
-    window_text_t help;
-    StatusFooter footer;
-
-public:
-    ScreenMenuFwUpdate();
-
-protected:
-    static inline uint16_t get_help_h() {
-        return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
-    }
-};
-
 ScreenMenuFwUpdate::ScreenMenuFwUpdate()
     : AddSuperWindow<screen_t>(nullptr)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(get_help_h()), &container)
@@ -99,6 +48,6 @@ ScreenMenuFwUpdate::ScreenMenuFwUpdate()
     CaptureNormalWindow(menu); // set capture to list
 }
 
-ScreenFactory::UniquePtr GetScreenMenuFwUpdate() {
-    return ScreenFactory::Screen<ScreenMenuFwUpdate>();
+uint16_t ScreenMenuFwUpdate::get_help_h() {
+    return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
 }

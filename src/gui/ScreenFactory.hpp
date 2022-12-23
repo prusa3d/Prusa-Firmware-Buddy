@@ -12,6 +12,7 @@
 #include "screen_menu_sensor_info.hpp"
 #include "screen_menu_odometer.hpp"
 #include "screen_menu_version_info.hpp"
+#include "screen_menu_fw_update.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -33,6 +34,7 @@ class ScreenFactory {
     using mem_space = std::aligned_union<min_union_size,
         ScreenMenuCalibration,
         ScreenMenuFilament,
+        ScreenMenuFwUpdate,
         ScreenMenuInfo,
         ScreenMenuMove,
         ScreenMenuOdometer,
