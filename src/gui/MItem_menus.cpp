@@ -19,6 +19,7 @@
 #include "screen_menu_fw_update.hpp"
 #include "screen_menu_languages.hpp"
 #include "screen_menu_lan_settings.hpp"
+#include "screen_menu_hw_setup.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -180,7 +181,7 @@ MI_HW_SETUP::MI_HW_SETUP()
 }
 
 void MI_HW_SETUP::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuHwSetup);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuHwSetup>);
 }
 
 /*****************************************************************************/
