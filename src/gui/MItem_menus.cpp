@@ -15,6 +15,7 @@
 #include "screen_menu_move.hpp"
 #include "screen_menu_sensor_info.hpp"
 #include "screen_menu_odometer.hpp"
+#include "screen_menu_version_info.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -23,7 +24,7 @@ MI_VERSION_INFO::MI_VERSION_INFO()
 }
 
 void MI_VERSION_INFO::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuVersionInfo);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuVersionInfo>);
 }
 
 /*****************************************************************************/
