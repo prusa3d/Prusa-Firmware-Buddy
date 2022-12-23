@@ -2,8 +2,6 @@
 #pragma once
 #include "ScreenFactory.hpp"
 
-ScreenFactory::UniquePtr GetScreenMenuVersionInfo();
-//ScreenFactory::UniquePtr GetScreenMenuService();
 ScreenFactory::UniquePtr GetScreenMenuFwUpdate();
 ScreenFactory::UniquePtr GetScreenMenuLanguages();
 ScreenFactory::UniquePtr GetScreenMenuLanguagesNoRet();

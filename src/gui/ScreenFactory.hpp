@@ -11,6 +11,7 @@
 #include "screen_menu_move.hpp"
 #include "screen_menu_sensor_info.hpp"
 #include "screen_menu_odometer.hpp"
+#include "screen_menu_version_info.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -39,6 +40,7 @@ class ScreenFactory {
         ScreenMenuSettings,
         ScreenMenuTemperature,
         ScreenMenuTune,
+        ScreenMenuVersionInfo,
         screen_home_data_t, screen_splash_data_t>::type;
 
     static mem_space all_screens;

@@ -1,48 +1,18 @@
-/*
- * 	screen_version_info.cpp
- *
- *  Created on: 2019-10-14
- *      Author: Michal Rudolf
+/**
+ * @file version_info_ST7789V.cpp
  */
-//todo THIS SHOULD NOT BE MENU!!!
-#include <stdlib.h>
 
-#include "gui.hpp"
-#include "screen_menus.hpp"
+#include "screen_menu_version_info.hpp"
 #include "screen_menu.hpp"
 #include "config.h"
 #include "version.h"
-#include "WindowMenuItems.hpp"
-#include "i18n.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.h"
 #include "png_resources.hpp"
 
-static const constexpr uint8_t VERSION_INFO_STR_MAXLEN = 150;
-static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
-
-using MenuContainer = WinMenuContainer<MI_RETURN>;
-
-class ScreenMenuVersionInfo : public AddSuperWindow<screen_t> {
-    std::array<char, VERSION_INFO_STR_MAXLEN> version_info_str;
-    constexpr static const char *label = N_("VERSION INFO");
-    static constexpr size_t helper_lines = 10;
-    static constexpr ResourceId helper_font = IDR_FNT_NORMAL;
-
-    MenuContainer container;
-    window_menu_t menu;
-    window_header_t header;
-    window_text_t help;
-    StatusFooter footer;
-
-public:
-    ScreenMenuVersionInfo();
-
-protected:
-    static inline uint16_t get_help_h() {
-        return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
-    }
-};
+uint16_t ScreenMenuVersionInfo::get_help_h() {
+    return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
+}
 
 ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     : AddSuperWindow<screen_t>(nullptr)
@@ -112,8 +82,4 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of this
     help.SetText(string_view_utf8::MakeRAM((const uint8_t *)version_info_str.data()));
     EnableLongHoldScreenAction();
-}
-
-ScreenFactory::UniquePtr GetScreenMenuVersionInfo() {
-    return ScreenFactory::Screen<ScreenMenuVersionInfo>();
 }
