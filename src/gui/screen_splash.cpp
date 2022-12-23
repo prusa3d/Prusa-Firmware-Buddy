@@ -12,6 +12,7 @@
 #include "i18n.h"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
+#include "screen_menu_languages.hpp"
 #include "bsod.h"
 
 #include <option/bootloader.h>
@@ -58,7 +59,7 @@ screen_splash_data_t::screen_splash_data_t()
     const bool run_lang = !LangEEPROM::getInstance().IsValid();
 
     const screen_node screens[] {
-        { run_lang ? GetScreenMenuLanguagesNoRet : nullptr }, // lang
+        { run_lang ? ScreenFactory::Screen<ScreenMenuLanguagesNoRet> : nullptr }, // lang
 
 #if HAS_SELFTEST
         {

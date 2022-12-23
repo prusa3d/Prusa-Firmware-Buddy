@@ -13,6 +13,7 @@
 #include "screen_menu_odometer.hpp"
 #include "screen_menu_version_info.hpp"
 #include "screen_menu_fw_update.hpp"
+#include "screen_menu_languages.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -36,6 +37,8 @@ class ScreenFactory {
         ScreenMenuFilament,
         ScreenMenuFwUpdate,
         ScreenMenuInfo,
+        ScreenMenuLanguages,
+        ScreenMenuLanguagesNoRet,
         ScreenMenuMove,
         ScreenMenuOdometer,
         ScreenMenuSensorInfo,
