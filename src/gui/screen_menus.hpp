@@ -2,7 +2,6 @@
 #pragma once
 #include "ScreenFactory.hpp"
 
-ScreenFactory::UniquePtr GetScreenMenuFwUpdate();
 ScreenFactory::UniquePtr GetScreenMenuLanguages();
 ScreenFactory::UniquePtr GetScreenMenuLanguagesNoRet();
 ScreenFactory::UniquePtr GetScreenMenuEthernetSettings();
