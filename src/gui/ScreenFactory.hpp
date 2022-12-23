@@ -17,6 +17,7 @@
 #include "screen_menu_lan_settings.hpp"
 #include "screen_menu_hw_setup.hpp"
 #include "screen_menu_steel_sheets.hpp"
+#include "screen_menu_eeprom.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -37,6 +38,7 @@ class ScreenFactory {
     ScreenFactory(const ScreenFactory &) = delete;
     using mem_space = std::aligned_union<min_union_size,
         ScreenMenuCalibration,
+        ScreenMenuEeprom,
         ScreenMenuEthernetSettings,
         ScreenMenuFilament,
         ScreenMenuFwUpdate,

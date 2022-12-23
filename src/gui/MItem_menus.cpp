@@ -20,6 +20,7 @@
 #include "screen_menu_languages.hpp"
 #include "screen_menu_lan_settings.hpp"
 #include "screen_menu_hw_setup.hpp"
+#include "screen_menu_eeprom.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -214,7 +215,7 @@ MI_EEPROM::MI_EEPROM()
 }
 
 void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenEeprom);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuEeprom>);
 }
 
 /*****************************************************************************/
