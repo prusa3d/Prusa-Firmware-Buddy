@@ -2,7 +2,6 @@
 #pragma once
 #include "ScreenFactory.hpp"
 
-ScreenFactory::UniquePtr GetScreenMenuSteelSheets();
 ScreenFactory::UniquePtr GetScreenEeprom();
 ScreenFactory::UniquePtr GetScreenMenuFooterSettings();
 ScreenFactory::UniquePtr GetScreenMenuFooterSettingsAdv();
