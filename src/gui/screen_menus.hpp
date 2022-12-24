@@ -2,8 +2,6 @@
 #pragma once
 #include "ScreenFactory.hpp"
 
-ScreenFactory::UniquePtr GetScreenMenuFooterSettings();
-ScreenFactory::UniquePtr GetScreenMenuFooterSettingsAdv();
 ScreenFactory::UniquePtr GetScreenPrusaLink();
 ScreenFactory::UniquePtr GetScreenMenuConnect();
 ScreenFactory::UniquePtr GetScreenMenuExperimentalSettings();

@@ -21,6 +21,7 @@
 #include "screen_menu_lan_settings.hpp"
 #include "screen_menu_hw_setup.hpp"
 #include "screen_menu_eeprom.hpp"
+#include "screen_menu_footer_settings.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -233,7 +234,7 @@ MI_FOOTER_SETTINGS::MI_FOOTER_SETTINGS()
 }
 
 void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuFooterSettings);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFooterSettings>);
 }
 
 /*****************************************************************************/
@@ -243,7 +244,7 @@ MI_FOOTER_SETTINGS_ADV::MI_FOOTER_SETTINGS_ADV()
 }
 
 void MI_FOOTER_SETTINGS_ADV::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuFooterSettingsAdv);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFooterSettingsAdv>);
 }
 
 /*****************************************************************************/
