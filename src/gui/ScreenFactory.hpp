@@ -18,6 +18,7 @@
 #include "screen_menu_hw_setup.hpp"
 #include "screen_menu_steel_sheets.hpp"
 #include "screen_menu_eeprom.hpp"
+#include "screen_menu_footer_settings.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -41,6 +42,8 @@ class ScreenFactory {
         ScreenMenuEeprom,
         ScreenMenuEthernetSettings,
         ScreenMenuFilament,
+        ScreenMenuFooterSettings,
+        ScreenMenuFooterSettingsAdv,
         ScreenMenuFwUpdate,
         ScreenMenuHwSetup,
         ScreenMenuInfo,
