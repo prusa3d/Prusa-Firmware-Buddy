@@ -22,6 +22,7 @@
 #include "screen_menu_hw_setup.hpp"
 #include "screen_menu_eeprom.hpp"
 #include "screen_menu_footer_settings.hpp"
+#include "screen_prusa_link.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -293,7 +294,7 @@ MI_PRUSALINK::MI_PRUSALINK()
 }
 
 void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenPrusaLink);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuPrusaLink>);
 }
 
 /*****************************************************************************/

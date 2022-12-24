@@ -19,6 +19,7 @@
 #include "screen_menu_steel_sheets.hpp"
 #include "screen_menu_eeprom.hpp"
 #include "screen_menu_footer_settings.hpp"
+#include "screen_prusa_link.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -58,7 +59,7 @@ class ScreenFactory {
         ScreenMenuTune,
         ScreenMenuVersionInfo,
         ScreenMenuWifiSettings,
-        screen_home_data_t, screen_splash_data_t>::type;
+        ScreenMenuPrusaLink, screen_home_data_t, screen_splash_data_t>::type;
 
     static mem_space all_screens;
 
