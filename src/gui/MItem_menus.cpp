@@ -24,6 +24,7 @@
 #include "screen_menu_footer_settings.hpp"
 #include "screen_prusa_link.hpp"
 #include "screen_menu_connect.hpp"
+#include "screen_menu_experimental_settings.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -325,7 +326,7 @@ MI_EXPERIMENTAL_SETTINGS::MI_EXPERIMENTAL_SETTINGS()
 }
 
 void MI_EXPERIMENTAL_SETTINGS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuExperimentalSettings);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuExperimentalSettings>);
 }
 
 /**********************************************************************************************/
