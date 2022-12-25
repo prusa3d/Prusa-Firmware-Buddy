@@ -33,7 +33,7 @@ ScreenMenuSettings::ScreenMenuSettings()
     : ScreenMenuSettings__(_(label))
     , old_action(gui::knob::GetLongPressScreenAction()) { // backup hold action
 
-    gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(GetScreenMenuExperimentalSettings); }); // new hold action
+    gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuExperimentalSettings>); }); // new hold action
     EnableLongHoldScreenAction();
 }
 

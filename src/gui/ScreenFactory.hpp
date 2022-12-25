@@ -21,6 +21,7 @@
 #include "screen_menu_footer_settings.hpp"
 #include "screen_prusa_link.hpp"
 #include "screen_menu_connect.hpp"
+#include "screen_menu_experimental_settings.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -44,6 +45,7 @@ class ScreenFactory {
         ScreenMenuConnect,
         ScreenMenuEeprom,
         ScreenMenuEthernetSettings,
+        ScreenMenuExperimentalSettings,
         ScreenMenuFilament,
         ScreenMenuFooterSettings,
         ScreenMenuFooterSettingsAdv,
