@@ -20,6 +20,7 @@
 #include "screen_menu_eeprom.hpp"
 #include "screen_menu_footer_settings.hpp"
 #include "screen_prusa_link.hpp"
+#include "screen_menu_connect.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -40,6 +41,7 @@ class ScreenFactory {
     ScreenFactory(const ScreenFactory &) = delete;
     using mem_space = std::aligned_union<min_union_size,
         ScreenMenuCalibration,
+        ScreenMenuConnect,
         ScreenMenuEeprom,
         ScreenMenuEthernetSettings,
         ScreenMenuFilament,
