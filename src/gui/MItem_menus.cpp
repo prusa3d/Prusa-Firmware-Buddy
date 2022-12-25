@@ -23,6 +23,7 @@
 #include "screen_menu_eeprom.hpp"
 #include "screen_menu_footer_settings.hpp"
 #include "screen_prusa_link.hpp"
+#include "screen_menu_connect.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -304,7 +305,7 @@ MI_PRUSA_CONNECT::MI_PRUSA_CONNECT()
 }
 
 void MI_PRUSA_CONNECT::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuConnect);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuConnect>);
 }
 
 /**********************************************************************************************/
