@@ -1,5 +1,4 @@
 #include "MItem_menus.hpp"
-#include "screen_menus.hpp"
 #include "ScreenHandler.hpp"
 #include "screen_sysinf.hpp"
 #include "screen_qr_error.hpp"
@@ -26,6 +25,7 @@
 #include "screen_menu_connect.hpp"
 #include "screen_menu_experimental_settings.hpp"
 #include "screen_menu_network.hpp"
+#include "screen_menu_eeprom_diagnostics.hpp"
 #include "gui/test/screen_menu_test.hpp"
 
 /*****************************************************************************/
@@ -338,7 +338,7 @@ MI_EEPROM_DIAGNOSTICS::MI_EEPROM_DIAGNOSTICS()
 }
 
 void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuEepromDiagnostics);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuEepromDiagnostics>);
 }
 
 /**********************************************************************************************/

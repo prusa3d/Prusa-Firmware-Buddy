@@ -23,6 +23,7 @@
 #include "screen_menu_connect.hpp"
 #include "screen_menu_experimental_settings.hpp"
 #include "screen_menu_network.hpp"
+#include "screen_menu_eeprom_diagnostics.hpp"
 #include "gui/test/screen_menu_test.hpp"
 
 #include "static_alocation_ptr.hpp"
@@ -46,6 +47,7 @@ class ScreenFactory {
         ScreenMenuCalibration,
         ScreenMenuConnect,
         ScreenMenuEeprom,
+        ScreenMenuEepromDiagnostics,
         ScreenMenuEthernetSettings,
         ScreenMenuExperimentalSettings,
         ScreenMenuFilament,

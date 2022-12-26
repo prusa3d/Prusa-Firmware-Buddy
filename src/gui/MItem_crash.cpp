@@ -3,7 +3,6 @@
 #if ENABLED(CRASH_RECOVERY)
 
     #include "MItem_crash.hpp"
-    #include "screen_menus.hpp"
     #include "menu_spin_config.hpp"
     #include "../lib/Marlin/Marlin/src/module/stepper/trinamic.h"
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
