@@ -11,6 +11,7 @@ target_sources(
           Jogwheel.cpp
           knob_event.cpp
           menu_item_event_dispatcher.cpp
+          menu_opener.cpp
           menu_spin_config_types.cpp
           Rect16.cpp
           screen.cpp

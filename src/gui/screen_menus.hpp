@@ -4,4 +4,3 @@
 
 ScreenFactory::UniquePtr GetScreenMenuEepromDiagnostics();
 ScreenFactory::UniquePtr GetScreenMenuNetwork();
-ScreenFactory::UniquePtr GetScreenMenuTest();
