@@ -11,8 +11,6 @@
     #include <connect/marlin_printer.hpp>
 #endif
 
-#include "screen_menus.hpp"
-
 MI_LOAD_SETTINGS::MI_LOAD_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
