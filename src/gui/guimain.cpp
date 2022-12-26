@@ -7,6 +7,7 @@
 
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
+#include "screen_finder.hpp"
 #include "window_file_list.hpp"
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
@@ -235,7 +236,7 @@ void gui_error_run(void) {
 
     gui_init();
 
-    ScreenFactory::Creator error_screen = nullptr;
+    screen_t::Creator error_screen = nullptr;
     // If both redscreen and bsod are pending - both are set as displayed, but redscreen is displayed
     if (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed()) {
         error_screen = ScreenFactory::Screen<ScreenErrorQR>;
@@ -358,11 +359,11 @@ void gui_run(void) {
         if (print_processor_waiting) {
 
             // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
-            bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && (Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>() || Screens::Access()->IsScreenOpened<screen_printing_data_t>()));
-            bool in_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
+            bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && (ScreenFinder::IsScreenOpened<screen_filebrowser_data_t>() || ScreenFinder::IsScreenOpened<screen_printing_data_t>()));
+            bool in_preview = Screens::Access()->Count() == 1 && ScreenFinder::IsScreenOpened<ScreenPrintPreview>();
 
             if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
-                bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
+                bool have_file_browser = ScreenFinder::IsScreenOnStack<screen_filebrowser_data_t>();
                 Screens::Access()->CloseAll(); // set flag to close all screens
                 if (have_file_browser)
                     Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);

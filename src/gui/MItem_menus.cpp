@@ -1,5 +1,6 @@
 #include "MItem_menus.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "screen_sysinf.hpp"
 #include "screen_qr_error.hpp"
 #include "screen_messages.hpp"

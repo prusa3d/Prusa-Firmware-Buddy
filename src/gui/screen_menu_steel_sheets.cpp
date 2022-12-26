@@ -8,6 +8,7 @@
 #include "log.h"
 #include "GuiDefaults.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "SteelSheets.hpp"
 
 LOG_COMPONENT_REF(GUI);

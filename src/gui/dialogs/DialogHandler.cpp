@@ -4,6 +4,7 @@
 #include "DialogFactory.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"

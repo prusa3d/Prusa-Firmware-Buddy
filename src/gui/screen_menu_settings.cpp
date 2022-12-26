@@ -4,6 +4,7 @@
 
 #include "screen_menu_settings.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "netdev.h"
 #include "wui.h"
 

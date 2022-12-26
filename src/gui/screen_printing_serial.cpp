@@ -4,6 +4,7 @@
 #include "filament.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "odometer.hpp"
 #include "window_icon.hpp"
 #include "screen_menu_tune.hpp"

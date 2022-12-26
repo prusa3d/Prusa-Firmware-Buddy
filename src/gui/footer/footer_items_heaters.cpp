@@ -10,6 +10,7 @@
 #include <cmath>
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"
+#include "footer_item_union.hpp"
 
 footer::ItemDrawType FooterItemHeater::GetDrawType() {
     return footer::eeprom::GetItemDrawType();
