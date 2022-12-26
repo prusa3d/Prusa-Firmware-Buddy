@@ -25,6 +25,7 @@
 #include "screen_prusa_link.hpp"
 #include "screen_menu_connect.hpp"
 #include "screen_menu_experimental_settings.hpp"
+#include "screen_menu_network.hpp"
 #include "gui/test/screen_menu_test.hpp"
 
 /*****************************************************************************/
@@ -318,7 +319,7 @@ MI_NETWORK::MI_NETWORK()
 }
 
 void MI_NETWORK::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuNetwork);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuNetwork>);
 }
 
 //MI_EXPERIMENTAL_SETTINGS

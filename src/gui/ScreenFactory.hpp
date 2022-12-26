@@ -22,6 +22,7 @@
 #include "screen_prusa_link.hpp"
 #include "screen_menu_connect.hpp"
 #include "screen_menu_experimental_settings.hpp"
+#include "screen_menu_network.hpp"
 #include "gui/test/screen_menu_test.hpp"
 
 #include "static_alocation_ptr.hpp"
@@ -56,6 +57,7 @@ class ScreenFactory {
         ScreenMenuLanguages,
         ScreenMenuLanguagesNoRet,
         ScreenMenuMove,
+        ScreenMenuNetwork,
         ScreenMenuOdometer,
         ScreenMenuSensorInfo,
         ScreenMenuSettings,
