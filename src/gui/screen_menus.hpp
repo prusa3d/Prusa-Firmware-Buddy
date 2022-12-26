@@ -3,4 +3,3 @@
 #include "ScreenFactory.hpp"
 
 ScreenFactory::UniquePtr GetScreenMenuEepromDiagnostics();
-ScreenFactory::UniquePtr GetScreenMenuNetwork();
