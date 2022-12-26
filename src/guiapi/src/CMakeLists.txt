@@ -5,6 +5,7 @@ target_sources(
           gui.cpp
           gui_timer.cpp
           guitypes.cpp
+          i_screen.cpp
           i_window_menu_container.cpp
           i_window_menu_item.cpp
           i_window_text.cpp
@@ -14,7 +15,6 @@ target_sources(
           menu_opener.cpp
           menu_spin_config_types.cpp
           Rect16.cpp
-          screen.cpp
           ScreenShot.cpp
           scroll_bar.cpp
           term.cpp

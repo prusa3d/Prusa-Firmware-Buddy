@@ -26,7 +26,6 @@
 #include "screen_menu_eeprom_diagnostics.hpp"
 #include "gui/test/screen_menu_test.hpp"
 
-#include "static_alocation_ptr.hpp"
 #include <array>
 
 class ScreenFactory {
@@ -63,17 +62,14 @@ class ScreenFactory {
     static mem_space all_screens;
 
 public:
-    using UniquePtr = static_unique_ptr<screen_t>;
-    using Creator = static_unique_ptr<screen_t> (*)(); //function pointer definition
-
     template <class T>
-    static UniquePtr Screen() {
+    static screen_t::UniquePtr Screen() {
         static_assert(sizeof(T) <= sizeof(mem_space), "Screen memory space is too small");
         return make_static_unique_ptr<T>(&all_screens);
     }
 
     template <class T>
-    static bool DoesCreatorHoldType(Creator cr) {
+    static bool DoesCreatorHoldType(screen_t::Creator cr) {
         return Screen<T> == cr;
     }
 };

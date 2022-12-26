@@ -3,6 +3,7 @@
 #include "print_utils.hpp"
 #include "ffconf.h"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include <ctime>
 #include "../lang/format_print_will_end.hpp"
 #include "window_dlg_popup.hpp"

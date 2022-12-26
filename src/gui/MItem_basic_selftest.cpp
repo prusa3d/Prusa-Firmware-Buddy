@@ -4,6 +4,7 @@
 #include "sys.h"
 #include "DialogHandler.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "printer_selftest.hpp"
 #include "main.h"
 #include "Pin.hpp"

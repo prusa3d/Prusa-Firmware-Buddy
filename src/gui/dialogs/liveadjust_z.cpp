@@ -8,6 +8,7 @@
 #include "display_helper.h"
 #include "SteelSheets.hpp"
 #include "png_resources.hpp"
+#include "menu_vars.h"
 
 #include "config_features.h"
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)

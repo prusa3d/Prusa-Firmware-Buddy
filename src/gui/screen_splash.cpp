@@ -1,6 +1,7 @@
 //screen_splash.cpp
 #include "screen_splash.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 
 #include "config.h"
 #include "version.h"

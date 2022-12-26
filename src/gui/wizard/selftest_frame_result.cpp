@@ -12,6 +12,7 @@
 #include "selftest_eeprom.hpp"
 #include "marlin_client.hpp"
 #include "client_response.hpp"
+#include "i18n.h"
 
 static constexpr size_t view_msg_gap = 10;
 static constexpr size_t msg_bottom_gap = 6;

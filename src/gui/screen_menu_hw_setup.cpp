@@ -3,6 +3,7 @@
  */
 #include "screen_menu_hw_setup.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "screen_menu_steel_sheets.hpp"
 
 MI_STEEL_SHEETS::MI_STEEL_SHEETS()

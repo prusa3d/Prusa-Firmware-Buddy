@@ -1,4 +1,5 @@
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "bsod.h"
 
 Screens *Screens::instance = nullptr;
@@ -152,7 +153,7 @@ void Screens::Open(screen_node screen_creator) {
     creator_node = screen_creator;
 }
 
-void Screens::Open(const ScreenFactory::Creator screen_creator) {
+void Screens::Open(const screen_t::Creator screen_creator) {
     Open(screen_node(screen_creator));
 }
 
