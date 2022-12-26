@@ -25,6 +25,7 @@
 #include "screen_prusa_link.hpp"
 #include "screen_menu_connect.hpp"
 #include "screen_menu_experimental_settings.hpp"
+#include "gui/test/screen_menu_test.hpp"
 
 /*****************************************************************************/
 //MI_VERSION_INFO
@@ -124,7 +125,7 @@ MI_TEST::MI_TEST()
 }
 
 void MI_TEST::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(GetScreenMenuTest);
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTest>);
 }
 
 /*****************************************************************************/

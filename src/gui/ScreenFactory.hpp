@@ -22,6 +22,7 @@
 #include "screen_prusa_link.hpp"
 #include "screen_menu_connect.hpp"
 #include "screen_menu_experimental_settings.hpp"
+#include "gui/test/screen_menu_test.hpp"
 
 #include "static_alocation_ptr.hpp"
 #include <array>
@@ -60,6 +61,7 @@ class ScreenFactory {
         ScreenMenuSettings,
         ScreenMenuSteelSheets,
         ScreenMenuTemperature,
+        ScreenMenuTest,
         ScreenMenuTune,
         ScreenMenuVersionInfo,
         ScreenMenuWifiSettings,

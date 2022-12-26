@@ -1,6 +1,5 @@
 //screen_test_gui.hpp
 #pragma once
-#include "gui.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
 #include "window_term.hpp"

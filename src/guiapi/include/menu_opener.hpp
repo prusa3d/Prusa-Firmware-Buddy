@@ -6,9 +6,9 @@
 #pragma once
 
 #include "WindowMenuLabel.hpp"
+#include "ScreenFactory.hpp"
+#include "screen.hpp"
 #include <algorithm>
-#include "ScreenHandler.hpp"
-#include "screen_menus.hpp"
 
 /**
  * @brief macros to convert "String" to 'S','t','r','i','n','g','\0' ... '\0'
@@ -31,6 +31,12 @@
 
 #define STRING_TO_LETTERS_STR(str) STRING_TO_LETTERS_16(str, 0), 0 //guard for longer strings
 
+// cannot use ScreenFactory::Screen because of cyclical dependency
+// here is workaround
+using ScreenUniquePtr = static_unique_ptr<screen_t>;
+using ScreenCreator = static_unique_ptr<screen_t> (*)(); //function pointer definition
+void open_screen(const ScreenCreator open_fn);
+
 /**
  * @brief menu item template to open a screen via factory method
  * do not use directly use GENERATE_SCREEN_FN_ITEM or GENERATE_SCREEN_FN_ITEM_DEV
@@ -39,7 +45,8 @@
  * @tparam OPEN_FN factory method
  * @tparam LETTERS string convertedt to letters by STRING_TO_LETTERS_STR
  */
-template <is_hidden_t HIDDEN, const ScreenFactory::Creator OPEN_FN, const char... LETTERS>
+
+template <is_hidden_t HIDDEN, const ScreenCreator OPEN_FN, const char... LETTERS>
 class MI_SCREEN_FN : public WI_LABEL_t {
     static const char *make_Str() {
         static const char arr[] = { LETTERS... };
@@ -53,7 +60,7 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {
-        Screens::Access()->Open(OPEN_FN);
+        open_screen(OPEN_FN);
     }
 };
 

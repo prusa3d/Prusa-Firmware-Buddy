@@ -489,7 +489,7 @@ set_property(
          src/gui/screen_home.cpp
          src/gui/screen_menu_settings.cpp
          src/gui/screen_menu_hw_setup.cpp
-         src/gui/test/screen_test.cpp
+         src/gui/test/screen_menu_test.cpp
          src/gui/dialogs/DialogHandler.cpp
          src/marlin_stubs/M997.cpp
   APPEND
