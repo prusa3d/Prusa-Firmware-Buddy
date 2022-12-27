@@ -30,20 +30,9 @@
 #include <array>
 
 class ScreenFactory {
-    // The various menu sizes cannot be accessed from here (as we use them as an argument of
-    // aligned_union) so the minimal size is currently hard-coded.
-    // The tune menu is usually the biggest: to calculate the size put something like this this:
-    //   char (*size_msg_as_error)[sizeof( ScreenMenuTune )] = 1;
-    // somewhere in the affected source file (changing the menu class appropriately).
-#if _DEBUG
-    static constexpr size_t min_union_size = 3628;
-#else
-    static constexpr size_t min_union_size = 3000;
-#endif
-
     ScreenFactory() = delete;
     ScreenFactory(const ScreenFactory &) = delete;
-    using mem_space = std::aligned_union<min_union_size,
+    using mem_space = std::aligned_union<0,
         ScreenMenuCalibration,
         ScreenMenuConnect,
         ScreenMenuEeprom,
