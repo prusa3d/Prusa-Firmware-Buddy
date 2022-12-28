@@ -70,7 +70,7 @@ protected:
  *
  * @tparam HIDDEN hidden items are not transalted and have green color
  * @tparam SCREEN screen type to open
- * @tparam LETTERS string convertedt to letters by STRING_TO_LETTERS_STR
+ * @tparam LETTERS string converted to letters by STRING_TO_LETTERS_STR
  */
 template <is_hidden_t HIDDEN, class SCREEN, const char... LETTERS>
 class MI_SCREEN : public MI_SCREEN_FN<HIDDEN, ScreenFactory::Screen<SCREEN>, LETTERS...> {
