@@ -110,14 +110,7 @@ class ScreenMenuMove : public Screen {
     float prev_accel;
 
     void checkNozzleTemp() {
-        if (DUMMY_AXIS_E::IsTargetTempOk()) {
-            Show<MI_COOLDOWN>();
-        } else {
-            if (menu.GetActiveItem() == &Item<MI_COOLDOWN>()) {
-                menu.Decrement(1);
-            }
-            Hide<MI_COOLDOWN>(); // now it is not focussed, so Hide() will succeed
-        }
+        DUMMY_AXIS_E::IsTargetTempOk() ? EnableItem<MI_COOLDOWN>() : DisableItem<MI_COOLDOWN>();
 
         if (IsTempOk() == Item<MI_AXIS_E>().IsHidden()) {
             menu.SwapVisibility(Item<DUMMY_AXIS_E>(), Item<MI_AXIS_E>());
