@@ -85,6 +85,11 @@ LoopResult CSelftestPart_Axis::wait(int8_t dir) {
     if (planner.movesplanned())
         return LoopResult::RunCurrent;
     sg_sampling_disable();
+
+    set_current_from_steppers();
+    sync_plan_position();
+    report_current_position();
+
     int32_t endPos_usteps = stepper.position((AxisEnum)config.axis);
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
     float length_mm = (length_usteps * planner.mm_per_step[(AxisEnum)config.axis]);
