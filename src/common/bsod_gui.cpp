@@ -180,7 +180,7 @@ void fatal_error(const char *error, const char *module) {
     } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
         error_code = 208;
     } else {
-        // Unknown error code = we don't have help.prusa3d site support for this error
+        // Unknown error code = we don't have prusa.io/###### site support for this error
         // In this case we have to dump error message and error title
         error_code = 0;
     }

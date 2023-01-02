@@ -19,9 +19,9 @@
 
 #include <option/bootloader.h>
 
-static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
-static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://HELP.PRUSA3D.COM";
-static constexpr char ERROR_URL_SHORT_PREFIX[] = "help.prusa3d.com";
+static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://PRUSA.IO";
+static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://PRUSA.IO";
+static constexpr char ERROR_URL_SHORT_PREFIX[] = "prusa.io";
 static constexpr char SERIAL_PREFIX[] = "CZPX";
 
 /// FIXME same code in support_utils_lib
@@ -105,7 +105,7 @@ void error_url_long(char *str, const uint32_t str_size, const int error_code) {
     /// fixed prefix
     strlcpy(str, ERROR_URL_LONG_PREFIX, str_size);
 
-    addLanguage(str, str_size);
+    // Website prusa.io doesn't require language specification
 
     /// error code
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
@@ -127,7 +127,7 @@ void error_url_short(char *str, const uint32_t str_size, const int error_code) {
     /// help....com/
     strlcpy(str, ERROR_URL_SHORT_PREFIX, str_size);
 
-    addLanguage(str, str_size);
+    // Website prusa.io doesn't require language specification
 
     /// /12201
     snprintf(eofstr(str), str_size - strlen(str), "/%d", error_code);
