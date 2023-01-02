@@ -2,6 +2,7 @@
 #include "mock_printer.h"
 
 #include <planner.hpp>
+#include <transfers/monitor.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -10,6 +11,7 @@ using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::move;
+using transfers::Monitor;
 
 namespace {
 
@@ -232,6 +234,89 @@ TEST_CASE("Background command resubmit") {
 
     // But the background command is still being processed
     REQUIRE(test.planner.background_command_id() == 1);
+}
+
+TEST_CASE("Transport ended") {
+    Test test;
+
+    auto slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/stuff.gcode", 1024);
+    REQUIRE(slot.has_value());
+    auto id = Monitor::instance.id();
+    REQUIRE(id.has_value());
+
+    test.consume_telemetry();
+
+    // As long as the transfer is running, nothing much happens
+    auto action1 = test.planner.next_action();
+    REQUIRE(holds_alternative<Sleep>(action1));
+
+    // Finish the transfer
+    slot->done(Monitor::Outcome::Finished);
+    slot.reset();
+
+    // Now that the transfer is done, we get an event about it.
+    auto action2 = test.planner.next_action();
+    auto event = get_if<Event>(&action2);
+    REQUIRE(event != nullptr);
+    REQUIRE(event->type == EventType::TransferFinished);
+    REQUIRE(event->transfer_id == id);
+}
+
+TEST_CASE("Transport ended and started") {
+    Test test;
+
+    auto slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/stuff.gcode", 1024);
+    REQUIRE(slot.has_value());
+    auto id = Monitor::instance.id();
+    REQUIRE(id.has_value());
+
+    test.consume_telemetry();
+
+    // As long as the transfer is running, nothing much happens
+    auto action1 = test.planner.next_action();
+    REQUIRE(holds_alternative<Sleep>(action1));
+
+    // Finish the transfer
+    slot->done(Monitor::Outcome::Finished);
+    slot.reset();
+
+    // Start a new one.
+    slot = Monitor::instance.allocate(Monitor::Type::Link, "/usb/stuff.gcode", 1024);
+
+    // The info/notification that the previous one ended is still available.
+    auto action2 = test.planner.next_action();
+    auto event = get_if<Event>(&action2);
+    REQUIRE(event != nullptr);
+    REQUIRE(event->type == EventType::TransferFinished);
+    REQUIRE(event->transfer_id == id);
+}
+
+// When lost in history, we lose the notification, but doesn't crash or do anything extra weird.
+TEST_CASE("Transport ended, lost in history") {
+    Test test;
+
+    auto slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/stuff.gcode", 1024);
+    REQUIRE(slot.has_value());
+
+    test.consume_telemetry();
+
+    // As long as the transfer is running, nothing much happens
+    auto action1 = test.planner.next_action();
+    REQUIRE(holds_alternative<Sleep>(action1));
+
+    // Finish the transfer
+    slot->done(Monitor::Outcome::Finished);
+    slot.reset();
+
+    // Start many new ones, to push the old one from the history.
+    for (size_t i = 0; i < 5; i++) {
+        slot = Monitor::instance.allocate(Monitor::Type::Link, "/usb/stuff.gcode", 1024);
+        slot.reset();
+    }
+
+    // The info/notification that the previous one ended is still available.
+    auto action2 = test.planner.next_action();
+    REQUIRE(holds_alternative<Sleep>(action2));
 }
 
 // TODO: Tests for unknown commands and such

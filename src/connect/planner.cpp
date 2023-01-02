@@ -11,6 +11,7 @@ using std::min;
 using std::nullopt;
 using std::optional;
 using std::visit;
+using transfers::Monitor;
 
 namespace connect_client {
 
@@ -97,6 +98,12 @@ const char *to_str(EventType event) {
         return "FINISHED";
     case EventType::Failed:
         return "FAILED";
+    case EventType::TransferStopped:
+        return "TRANSFER_STOPPED";
+    case EventType::TransferAborted:
+        return "TRANSFER_ABORTED";
+    case EventType::TransferFinished:
+        return "TRANSFER_FINISHED";
     default:
         assert(false);
         return "???";
@@ -135,6 +142,36 @@ Action Planner::next_action() {
             planned_event->info_rescan_files = true;
         }
         return *planned_event;
+    }
+
+    if (auto current_transfer = Monitor::instance.id(); observed_transfer != current_transfer) {
+        optional<Monitor::Outcome> outcome = observed_transfer.has_value() ? Monitor::instance.outcome(*observed_transfer) : nullopt;
+
+        if (outcome.has_value()) {
+            EventType type;
+
+            switch (*outcome) {
+            case Monitor::Outcome::Finished:
+                type = EventType::TransferFinished;
+                break;
+            case Monitor::Outcome::Error:
+                type = EventType::TransferAborted;
+                break;
+            case Monitor::Outcome::Stopped:
+                type = EventType::TransferStopped;
+                break;
+            }
+            planned_event = Event {
+                type,
+            };
+            planned_event->transfer_id = *observed_transfer;
+            return *planned_event;
+        }
+        // No info:
+        // * It may be out of history
+        // * Or there was no transfer to start with, we are changing from nullopt
+
+        observed_transfer = current_transfer;
     }
 
     if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
@@ -217,19 +254,19 @@ void Planner::action_done(ActionResult result) {
 }
 
 void Planner::command(const Command &command, const UnknownCommand &) {
-    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, "Unknown command" };
+    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Unknown command" };
 }
 
 void Planner::command(const Command &command, const BrokenCommand &c) {
-    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, c.reason };
+    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, c.reason };
 }
 
 void Planner::command(const Command &command, const GcodeTooLarge &) {
-    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, "GCode too large" };
+    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "GCode too large" };
 }
 
 void Planner::command(const Command &command, const ProcessingOtherCommand &) {
-    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, "Processing other command" };
+    planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Processing other command" };
 }
 
 void Planner::command(const Command &command, const Gcode &gcode) {
@@ -244,13 +281,13 @@ void Planner::command(const Command &command, const Gcode &gcode) {
     planned_event = Event { EventType::Accepted, command.id };
 }
 
-#define JC(CMD, REASON)                                                                          \
-    void Planner::command(const Command &command, const CMD##Print &) {                          \
-        if (printer.job_control(Printer::JobControl::CMD)) {                                     \
-            planned_event = Event { EventType::Finished, command.id };                           \
-        } else {                                                                                 \
-            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, REASON }; \
-        }                                                                                        \
+#define JC(CMD, REASON)                                                                                   \
+    void Planner::command(const Command &command, const CMD##Print &) {                                   \
+        if (printer.job_control(Printer::JobControl::CMD)) {                                              \
+            planned_event = Event { EventType::Finished, command.id };                                    \
+        } else {                                                                                          \
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, REASON }; \
+        }                                                                                                 \
     }
 
 JC(Pause, "No print to pause")
@@ -272,7 +309,7 @@ void Planner::command(const Command &command, const StartPrint &params) {
     if (reason == nullptr) {
         planned_event = Event { EventType::Finished, command.id };
     } else {
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, reason };
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
     }
 }
 
@@ -300,7 +337,7 @@ void Planner::command(const Command &command, const SendFileInfo &params) {
             params.path,
         };
     } else {
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, "Forbidden path" };
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Forbidden path" };
     }
 }
 
@@ -314,7 +351,7 @@ void Planner::command(const Command &command, const SendTransferInfo &params) {
 void Planner::command(const Command &command, const SetPrinterReady &) {
     auto result = printer.set_ready(true) ? EventType::Finished : EventType::Rejected;
     const char *reason = (result == EventType::Rejected) ? "Can't set ready now" : nullptr;
-    planned_event = Event { result, command.id, nullopt, nullopt, reason };
+    planned_event = Event { result, command.id, nullopt, nullopt, nullopt, reason };
 }
 
 void Planner::command(const Command &command, const CancelPrinterReady &) {

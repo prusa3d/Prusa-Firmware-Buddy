@@ -373,9 +373,14 @@ namespace {
                         JSON_FIELD_STR_G(transfer_status.has_value(), "path", transfer_status->destination) JSON_COMMA;
                     }
                     JSON_FIELD_STR_G(transfer_status.has_value(), "type", to_str(transfer_status->type));
-               } else {
+                } else {
                     JSON_FIELD_STR("type", "NO_TRANSFER");
                 }
+                JSON_OBJ_END JSON_COMMA;
+            } else if (event.type == EventType::TransferStopped || event.type == EventType::TransferAborted || event.type == EventType::TransferFinished) {
+                JSON_FIELD_OBJ("data");
+                    assert(event.transfer_id.has_value());
+                    JSON_FIELD_INT("transfer_id", *event.transfer_id);
                 JSON_OBJ_END JSON_COMMA;
             }
 

@@ -60,8 +60,10 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   time_mock.cpp
   planner.cpp
   )

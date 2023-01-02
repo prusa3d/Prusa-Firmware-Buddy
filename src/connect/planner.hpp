@@ -5,6 +5,8 @@
 #include "command.hpp"
 #include "printer.hpp"
 
+#include <transfers/monitor.hpp>
+
 #include <cstdint>
 #include <optional>
 #include <variant>
@@ -33,6 +35,9 @@ enum class EventType {
     Accepted,
     Finished,
     Failed,
+    TransferStopped,
+    TransferAborted,
+    TransferFinished,
 };
 
 const char *to_str(EventType event);
@@ -42,6 +47,7 @@ struct Event {
     std::optional<CommandId> command_id;
     std::optional<uint16_t> job_id;
     std::optional<SharedPath> path;
+    std::optional<transfers::TransferId> transfer_id;
     /// Reason for the event. May be null.
     ///
     /// Reasons are constant strings, therefore the non-owned const char * ‒
@@ -155,6 +161,8 @@ private:
     Tracked info_changes;
     // Tracking if we should ask for rescan of our files.
     Tracked file_changes;
+    // Tracking of ongoing transfers.
+    std::optional<transfers::TransferId> observed_transfer;
 
 public:
     Planner(Printer &printer)
