@@ -160,7 +160,6 @@ public:
 private:
     static constexpr const char *file_str = "[wifi]\n"
                                             "ssid=\n"
-                                            "key_mgmt=WPA\n"
                                             "psk=\n";
 
     static constexpr const char *file_name = "/usb/prusa_printer_settings.ini";

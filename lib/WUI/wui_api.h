@@ -54,10 +54,8 @@ typedef enum {
     ETHVAR_DNS1_IP4,     // ip_addr_t, dns1_ip4
     ETHVAR_DNS2_IP4,     // ip_addr_t, dns2_ip4
 
-    // Is it too much abuse to include the flags for the AP in the var_mask of related ETH_config_t?
-    APVAR_SECURITY, // ap_entry_t::security, saved together in the same byte as LAN_FLAGS
-    APVAR_SSID,     // char[32 + 1], ap_entry_t::ssid
-    APVAR_PASS,     // char[64 + 1], ap_entry_t::pass
+    APVAR_SSID, // char[32 + 1], ap_entry_t::ssid
+    APVAR_PASS, // char[64 + 1], ap_entry_t::pass
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];

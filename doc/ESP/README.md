@@ -26,8 +26,6 @@ Be aware please, that the Prusa-Firmware-Buddy/Master repository is a **developm
 ssid= enter here the SSID of your wireless network
 
 psk= enter here the valid password
-
-key_mgmt=WPA
 ```
 
 - Store the `prusa_printer_settings.ini` file in the root folder of the USB flash drive and plug in to the printer
