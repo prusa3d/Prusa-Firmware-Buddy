@@ -35,22 +35,14 @@ typedef struct {
     uint32_t var_mask;                   // mask for setting ethvars
 } ETH_config_t;
 
-// The security of the AP.
-//
-// We store this into the eeprom as part of the device flags, on bits 2 and 3.
-// Therefore the specific values. (0b1100 is free for future uses).
-enum ap_sec_t {
-    AP_SEC_NONE = 0b0000,
-    AP_SEC_WEP = 0b0100,
-    AP_SEC_WPA = 0b1000,
-};
-
-#define APSEC_MASK 0b1100
+// those bits were previously assigned to distinguish WPA/WEP/none
+// this is no longer used, but don't use them since some long-ago-inited
+// eeproms may contain them
+#define RESERVED_MASK 0b1100
 
 typedef struct {
     char ssid[SSID_MAX_LEN + 1];
     char pass[WIFI_PSK_MAX + 1];
-    enum ap_sec_t security;
 } ap_entry_t;
 
 #ifdef __cplusplus
