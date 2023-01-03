@@ -38,7 +38,6 @@ class CSelftestPart_FirstLayer {
     int temp_bed;
 
     uint32_t how_many_times_finished;
-    bool filament_known_but_detected_as_not_inserted;
     bool current_offset_is_default;
     bool reprint;
     StateSelectedByUser state_selected_by_user;
