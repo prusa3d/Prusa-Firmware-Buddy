@@ -98,7 +98,7 @@ public:
 
 class FooterItemZHeight : FooterItemAxisCurrPos<2> {
 public:
-    static string_view_utf8 GetName() { return _("Z Heigth"); }
+    static string_view_utf8 GetName() { return _("Z Height"); }
 
     FooterItemZHeight(window_t *parent);
 };
