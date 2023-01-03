@@ -25,7 +25,6 @@ CSelftestPart_FirstLayer::CSelftestPart_FirstLayer(IPartHandler &state_machine, 
     : rStateMachine(state_machine)
     , rConfig(config)
     , rResult(result)
-    , filament_known_but_detected_as_not_inserted(false)
     , state_selected_by_user(StateSelectedByUser::Calib)
     , log(1000) {
     rStateMachine.SetTimeToShowResult(0);
@@ -59,16 +58,12 @@ static filament_status get_filament_status() {
  */
 LoopResult CSelftestPart_FirstLayer::stateAskFilamentInit() {
     filament_status filament = get_filament_status();
-
-    filament_known_but_detected_as_not_inserted = false;
-
     switch (filament) {
     case filament_status::TypeKnown_SensorValid: // do not allow load
         rStateMachine.SetFsmPhase(PhasesSelftest::FirstLayer_filament_known_and_not_unsensed);
         rResult.preselect_response = Response::Next;
         break;
     case filament_status::TypeKnown_SensorNoFilament: // allow load, prepick UNLOAD, force ask preheat
-        filament_known_but_detected_as_not_inserted = true;
         rStateMachine.SetFsmPhase(PhasesSelftest::FirstLayer_filament_not_known_or_unsensed);
         rResult.preselect_response = Response::Unload;
         break;
@@ -86,10 +81,16 @@ LoopResult CSelftestPart_FirstLayer::stateAskFilamentInit() {
 LoopResult CSelftestPart_FirstLayer::stateAskFilament() {
     const Response response = rStateMachine.GetButtonPressed();
     switch (response) {
-    case Response::Next:
-        state_selected_by_user = filament_known_but_detected_as_not_inserted ? StateSelectedByUser::Preheat : StateSelectedByUser::Calib;
+    case Response::Next: {
+        filament_status filament = get_filament_status();
+        if (filament == filament_status::TypeKnown_SensorValid) {
+            state_selected_by_user = StateSelectedByUser::Calib;
+        } else {
+            state_selected_by_user = StateSelectedByUser::Preheat;
+        }
         log_info(Selftest, "%s user pressed Next", rConfig.partname);
         return LoopResult::RunNext;
+    }
     case Response::Load:
         state_selected_by_user = StateSelectedByUser::Load;
         log_info(Selftest, "%s user pressed Load", rConfig.partname);
