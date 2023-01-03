@@ -277,7 +277,7 @@ void media_print_stop(void) {
     if ((media_print_state == media_print_state_PRINTING) || (media_print_state == media_print_state_PAUSED)) {
         close_file();
         media_print_state = media_print_state_NONE;
-        queue.sdpos = MEDIA_PRINT_UNDEF_POSITION;
+        queue.set_current_sdpos(MEDIA_PRINT_UNDEF_POSITION);
     }
 }
 
@@ -392,7 +392,7 @@ char getByte(GCodeFilter::State *state) {
 void media_loop(void) {
     if (media_print_state == media_print_state_DRAINING) {
         close_file();
-        int index_r = queue.index_r;
+        int index_r = queue.ring_buffer.index_r;
         media_gcode_position = media_current_position = media_queue_position[index_r];
         queue.clear();
         media_print_state = media_print_state_PAUSED;
@@ -411,7 +411,7 @@ void media_loop(void) {
     }
 
     media_loop_read = 0;
-    while (queue.length < (BUFSIZE - 1)) { // Keep one free slot for serial commands
+    while (queue.ring_buffer.length < (BUFSIZE - 1)) { // Keep one free slot for serial commands
         GCodeFilter::State state;
         char *gcode = gcode_filter.nextGcode(&state);
 
@@ -452,7 +452,7 @@ void media_loop(void) {
                 skip_gcode = false;
             } else {
                 // update the gcode position for the queue
-                queue.sdpos = media_gcode_position;
+                queue.set_current_sdpos(media_gcode_position);
                 // FIXME: what if the gcode is not enqueued
                 // use 'enqueue_one_now' instead
                 queue.enqueue_one(gcode, false);

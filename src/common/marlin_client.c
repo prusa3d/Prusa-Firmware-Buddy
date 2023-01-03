@@ -758,10 +758,15 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
         client->events |= ((uint64_t)1 << id);
         switch ((MARLIN_EVT_t)id) {
         case MARLIN_EVT_MeshUpdate: {
-            uint8_t x = variant8_get_usr16(msg) & 0xff;
-            uint8_t y = variant8_get_usr16(msg) >> 8;
-            float z = variant8_get_flt(msg);
-            client->mesh.z[x + client->mesh.xc * y] = z;
+            const int8_t x = variant8_get_usr16(msg) & 0xff;
+            const int8_t y = variant8_get_usr16(msg) >> 8;
+            const float z = variant8_get_flt(msg);
+            const int index = x + client->mesh.xc * y;
+            if ((index >= 0) && (index < MARLIN_MAX_MESH_POINTS)) {
+                client->mesh.z[index] = z;
+            } else {
+                log_error(MarlinClient, "MeshUpdate index: %d x: %d y: %d out of range.", index, x, y);
+            }
             break;
         }
         case MARLIN_EVT_StartProcessing:
@@ -832,9 +837,9 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             switch (id) {
             // Event MARLIN_EVT_MeshUpdate - ui32 is float z, ui16 low byte is x index, high byte y index
             case MARLIN_EVT_MeshUpdate: {
-                uint8_t x = msg.usr16 & 0xff;
-                uint8_t y = msg.usr16 >> 8;
-                float z = msg.flt;
+                const int8_t x = msg.usr16 & 0xff;
+                const int8_t y = msg.usr16 >> 8;
+                const float z = msg.flt;
                 DBG_EVT("CL%c: EVT %s %d %d %.3f", '0' + client->id, marlin_events_get_name(id),
                     x, y, (double)z);
                 x = x;

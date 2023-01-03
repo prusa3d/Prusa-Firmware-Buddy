@@ -1,5 +1,5 @@
 #include "main.h"
-#include "config_features.h"
+#include "../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_device.h"
@@ -269,6 +269,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         app_tim14_tick();
     } else if (htim->Instance == TICK_TIMER) {
         app_tick_timer_overflow();
+    } else {
+        HardwareTimer::updateCallback(htim);
     }
 }
 

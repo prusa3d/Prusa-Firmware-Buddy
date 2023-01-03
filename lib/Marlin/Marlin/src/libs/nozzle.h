@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 #pragma once
@@ -62,7 +62,7 @@ class Nozzle {
      * @param strokes number of strokes to execute
      * @param radius radius of circle
      */
-    static void circle(const xyz_pos_t &start, const xyz_pos_t &middle, const uint8_t &strokes, const float &radius) __Os;
+    static void circle(const xyz_pos_t &start, const xyz_pos_t &middle, const uint8_t &strokes, const_float_t radius) __Os;
 
   #endif // NOZZLE_CLEAN_FEATURE
 
@@ -77,12 +77,13 @@ class Nozzle {
      * @param pattern one of the available patterns
      * @param argument depends on the cleaning pattern
      */
-    static void clean(const uint8_t &pattern, const uint8_t &strokes, const float &radius, const uint8_t &objects, const uint8_t cleans) __Os;
+    static void clean(const uint8_t &pattern, const uint8_t &strokes, const_float_t radius, const uint8_t &objects, const uint8_t cleans) __Os;
 
   #endif // NOZZLE_CLEAN_FEATURE
 
   #if ENABLED(NOZZLE_PARK_FEATURE)
 
+    static float park_mode_0_height(const_float_t park_z) __Os;
     static void park(const uint8_t z_action, const xyz_pos_t &park=NOZZLE_PARK_POINT) __Os;
 
   #endif

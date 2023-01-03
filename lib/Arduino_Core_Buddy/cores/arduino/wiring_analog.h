@@ -3,6 +3,7 @@
 #define _WIRING_ANALOG_H
 
 #include <inttypes.h>
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +17,11 @@ extern "C" {
 extern void analogWrite(uint32_t ulPin, uint32_t ulValue);
 
 extern uint32_t analogRead(uint32_t ulPin);
+
+inline void analogReadResolution(int res) {
+    assert(12 == res);
+    return;
+}
 
 #ifdef __cplusplus
 }

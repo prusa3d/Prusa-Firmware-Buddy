@@ -21,7 +21,7 @@ typedef enum {
     MARLIN_EVT_FactoryReset,        // onFactoryReset()
     MARLIN_EVT_LoadSettings,        // onLoadSettings()
     MARLIN_EVT_StoreSettings,       // onStoreSettings()
-    MARLIN_EVT_MeshUpdate,          // onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval)
+    MARLIN_EVT_MeshUpdate,          // onMeshUpdate(const int8_t xpos, const int8_t ypos, const float zval)
                                     // Marlin events - other
     MARLIN_EVT_StartProcessing,     // sent from marlin_server_start_processing
     MARLIN_EVT_StopProcessing,      // sent from marlin_server_stop_processing

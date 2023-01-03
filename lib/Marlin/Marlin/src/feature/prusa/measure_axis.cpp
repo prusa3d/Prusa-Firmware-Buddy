@@ -240,7 +240,7 @@ void Measure_axis::state_start() {
     case RAISE_Z: {
         // TODO: raise Z with Z stallguard
         destination = current_position;
-        if (TEST(axis_homed, Z_AXIS)) {
+        if (TEST(axes_homed, Z_AXIS)) {
             destination.z = std::max(raise_z, destination.z); //< lift at least to raise_z
         } else {
             destination.z += raise_z; //< lift by raise_z because we don't know where the Z is

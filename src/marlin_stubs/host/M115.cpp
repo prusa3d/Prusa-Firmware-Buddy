@@ -25,7 +25,7 @@
 #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
 static void cap_line(PGM_P const name, bool ena = false) {
     SERIAL_ECHOPGM("Cap:");
-    serialprintPGM(name);
+    serial_print_P(name);
     SERIAL_CHAR(':');
     SERIAL_ECHOLN(int(ena ? 1 : 0));
 }

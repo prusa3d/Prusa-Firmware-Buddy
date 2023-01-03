@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../../lib/Marlin/Marlin/src/module/planner.h"
+#include "../../lib/Marlin/Marlin/src/module/stepper.h"
 
 /**
  * @brief ensures proper progress state in marlin_server
@@ -45,7 +45,7 @@ public:
 
     ~FirstLayer() {
         ++finished_n_times;
-        disable_all_steppers();
+        stepper.disable_all_steppers();
     }
 
     static uint32_t HowManyTimesFinished() {

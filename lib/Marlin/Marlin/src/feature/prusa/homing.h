@@ -1,6 +1,5 @@
 #pragma once
-#include "config_features.h"
-#include "../../core/types.h"
+#include "../../inc/MarlinConfig.h"
 #include "../../module/planner.h"
 
 #ifndef Z_HOMING_HEIGHT

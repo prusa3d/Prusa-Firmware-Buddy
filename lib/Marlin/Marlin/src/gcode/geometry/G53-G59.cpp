@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -51,7 +51,7 @@ bool GcodeSuite::select_coordinate_system(const int8_t _new) {
       }
     #endif
 
-  LOOP_XYZ(i) {
+  LOOP_NUM_AXES(i) {
     if (position_shift[i] != new_offset[i]) {
       position_shift[i] = new_offset[i];
       update_workspace_offset((AxisEnum)i);
@@ -67,8 +67,6 @@ int8_t GcodeSuite::get_coordinate_system(){
 void GcodeSuite::set_coordinate_system_offset(int8_t system, AxisEnum axis, float offset){
   coordinate_system[system][axis] = offset;
 }
-
-
 
 /**
  * G53: Apply native workspace to the current move
@@ -91,7 +89,7 @@ void GcodeSuite::G53() {
     process_parsed_command(); // ...process the chained command
     select_coordinate_system(old_system);
     #ifdef DEBUG_M53
-      SERIAL_ECHOLNPAIR("Go back to workspace ", old_system);
+      SERIAL_ECHOLNPGM("Go back to workspace ", old_system);
       report_current_position();
     #endif
   }
@@ -109,7 +107,7 @@ void GcodeSuite::G53() {
 void G54_59(uint8_t subcode=0) {
   const int8_t _space = parser.codenum - 54 + subcode;
   if (gcode.select_coordinate_system(_space)) {
-    SERIAL_ECHOLNPAIR("Select workspace ", _space);
+    SERIAL_ECHOLNPGM("Select workspace ", _space);
     report_current_position();
   }
 }

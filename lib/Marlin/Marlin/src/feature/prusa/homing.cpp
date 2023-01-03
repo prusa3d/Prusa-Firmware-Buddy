@@ -13,8 +13,7 @@
 static workspace_xyz_t disable_workspace(bool do_x, bool do_y, bool do_z) {
     bool changed = false;
     workspace_xyz_t res;
-
-    LOOP_XYZ(axis) {
+    LOOP_NUM_AXES(axis) {
         if (!((do_x && axis == X_AXIS) || (do_y && axis == Y_AXIS) || (do_z && axis == Z_AXIS))) {
             res.position_shift.pos[axis] = NAN;
             res.home_offset.pos[axis] = NAN;
@@ -90,7 +89,7 @@ Motion_Parameters reset_acceleration_if(bool condition) {
     planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
     #endif
 #endif
-    planner.reset_acceleration_rates();
+    planner.refresh_acceleration_rates();
     remember_feedrate_scaling_off();
     return mp;
 }
@@ -101,7 +100,7 @@ void restore_acceleration_if(bool condition, Motion_Parameters &mp) {
 
     restore_feedrate_and_scaling();
     mp.load();
-    planner.reset_acceleration_rates();
+    planner.refresh_acceleration_rates();
 }
 
 el_current_xyz_t reset_current_if(bool condition) {

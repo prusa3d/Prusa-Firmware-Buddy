@@ -1,7 +1,7 @@
 #include "../../inc/MarlinConfig.h"
 
 #include "../gcode.h"
-#include "../../lcd/ultralcd.h"
+#include "../../lcd/marlinui.h"
 #include "../../sd/cardreader.h"
 
 #include "M73_PE.h"

@@ -163,22 +163,25 @@ void fatal_error(const char *error, const char *module) {
         error_code = 510;
     } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
         error_code = 301;
-    } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
-        error_code = 201;
     } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
-        error_code = 202;
+        if (strcmp(MSG_BED, module) == 0)
+            error_code = 201;
+        else
+            error_code = 202;
     } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
         error_code = 203;
     } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
         error_code = 204;
-    } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
-        error_code = 205;
     } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
-        error_code = 206;
-    } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
-        error_code = 207;
+        if (strcmp(MSG_BED, module) == 0)
+            error_code = 205;
+        else
+            error_code = 206;
     } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
-        error_code = 208;
+        if (strcmp(MSG_BED, module) == 0)
+            error_code = 207;
+        else
+            error_code = 208;
     } else {
         // Unknown error code = we don't have prusa.io/###### site support for this error
         // In this case we have to dump error message and error title

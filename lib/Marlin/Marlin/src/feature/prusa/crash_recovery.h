@@ -72,7 +72,7 @@ public:
 
     uint32_t sdpos;                    /// sdpos of the gcode instruction being aborted
     xyze_pos_t start_current_position; /// absolute logical starting XYZE position of the gcode instruction
-    xyze_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
+    abce_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
     abce_pos_t crash_position;         /// absolute physical ABCE position of the crash location
     #if ENABLED(LIN_ADVANCE)
     float advance_mm = 0; /// accumulated linear advance mm

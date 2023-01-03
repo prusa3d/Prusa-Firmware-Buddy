@@ -185,6 +185,7 @@ typedef IF<(NUM_AXIS_ENUMS > 8), uint16_t, uint8_t>::type axis_bits_t;
 //
 // Loop over axes
 //
+#define LOOP_XY(VAR) LOOP_S_LE_N(VAR, X_AXIS, Y_AXIS)
 #define LOOP_ABC(VAR) LOOP_S_LE_N(VAR, A_AXIS, C_AXIS)
 #define LOOP_NUM_AXES(VAR) LOOP_S_L_N(VAR, X_AXIS, NUM_AXES)
 #define LOOP_LOGICAL_AXES(VAR) LOOP_S_L_N(VAR, X_AXIS, LOGICAL_AXES)
@@ -291,6 +292,7 @@ typedef xyze_long_t abce_long_t;
 typedef xyz_ulong_t abc_ulong_t;
 typedef xyze_ulong_t abce_ulong_t;
 
+typedef float pos_t;
 typedef xy_float_t xy_pos_t;
 typedef xyz_float_t xyz_pos_t;
 typedef xyze_float_t xyze_pos_t;
@@ -680,7 +682,7 @@ struct XYZEval {
   FI const T&    operator[](const int n)            const { return pos[n]; }
 
   // Assignment operator overrides do the expected thing
-  FI XYZEval<T>& operator= (const T v)                    { set(LOGICAL_AXIS_LIST_1(v)); return *this; }
+  FI XYZEval<T>& operator= (const T v)                    { set(LIST_N_1(NUM_AXES, v)); return *this; }
   FI XYZEval<T>& operator= (const XYval<T>   &rs)         { set(rs.x, rs.y); return *this; }
   FI XYZEval<T>& operator= (const XYZval<T>  &rs)         { set(NUM_AXIS_ELEM(rs)); return *this; }
 
@@ -753,10 +755,3 @@ struct XYZEval {
 #undef _LS
 #undef _RS
 #undef FI
-
-// TODO: remove or integrate these local/legacy exceptions
-#define LOOP_XY(VAR) LOOP_S_LE_N(VAR, X_AXIS, Y_AXIS)
-#define LOOP_XYZ(VAR) LOOP_S_LE_N(VAR, X_AXIS, Z_AXIS)
-#define LOOP_XYZE(VAR) LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
-#define LOOP_XYZE_N(VAR) LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
-#define LOOP_ABCE(VAR) LOOP_S_LE_N(VAR, A_AXIS, E_AXIS)

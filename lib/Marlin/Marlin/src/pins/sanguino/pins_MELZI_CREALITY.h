@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 #pragma once
@@ -28,16 +28,25 @@
  * If you don't have a chip programmer you can use a spare Arduino plus a few
  * electronic components to write the bootloader.
  *
- * See http://www.instructables.com/id/Burn-Arduino-Bootloader-with-Arduino-MEGA/
+ * See https://www.instructables.com/id/Burn-Arduino-Bootloader-with-Arduino-MEGA/
+ *
+ * Schematic: https://bit.ly/2XOnsWb
  */
 
 #define BOARD_INFO_NAME "Melzi (Creality)"
 
-#include "pins_MELZI.h"
+// Alter timing for graphical display
+#if IS_U8GLIB_ST7920
+  #define BOARD_ST7920_DELAY_1               125
+  #define BOARD_ST7920_DELAY_2               125
+  #define BOARD_ST7920_DELAY_3               125
+#endif
 
-// For the stock CR-10 use the REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER
-//   option for the display in Configuration.h
+#include "pins_MELZI.h" // ... SANGUINOLOLU_12 ... SANGUINOLOLU_11
 
+//
+// For the stock CR-10 enable CR10_STOCKDISPLAY in Configuration.h
+//
 #undef LCD_SDSS
 #undef LED_PIN
 #undef LCD_PINS_RS
@@ -46,32 +55,31 @@
 #undef LCD_PINS_D5
 #undef LCD_PINS_D6
 #undef LCD_PINS_D7
-#undef FIL_RUNOUT_PIN           // Uses Beeper/LED Pin Pulled to GND
 
-#define LCD_SDSS           31   // Smart Controller SD card reader (rather than the Melzi)
-#define LCD_PINS_RS        28   // ST9720 CS
-#define LCD_PINS_ENABLE    17   // ST9720 DAT
-#define LCD_PINS_D4        30   // ST9720 CLK
+#define LCD_SDSS                              31  // Smart Controller SD card reader (rather than the Melzi)
+#define LCD_PINS_RS                           28  // ST9720 CS
+#define LCD_PINS_ENABLE                       17  // ST9720 DAT
+#define LCD_PINS_D4                           30  // ST9720 CLK
 
 #if ENABLED(BLTOUCH)
-  #define SERVO0_PIN 27
-  #undef BEEPER_PIN
-#endif
-
-// Alter timing for graphical display
-#ifndef ST7920_DELAY_1
-  #define ST7920_DELAY_1 DELAY_NS(125)
-#endif
-#ifndef ST7920_DELAY_2
-  #define ST7920_DELAY_2 DELAY_NS(125)
-#endif
-#ifndef ST7920_DELAY_3
-  #define ST7920_DELAY_3 DELAY_NS(125)
+  #ifndef SERVO0_PIN
+    #define SERVO0_PIN                        27
+  #endif
+  #if SERVO0_PIN == BEEPER_PIN
+    #undef BEEPER_PIN
+  #endif
+#elif HAS_FILAMENT_SENSOR
+  #ifndef FIL_RUNOUT_PIN
+    #define FIL_RUNOUT_PIN                    27
+  #endif
+  #if FIL_RUNOUT_PIN == BEEPER_PIN
+    #undef BEEPER_PIN
+  #endif
 #endif
 
 #if ENABLED(MINIPANEL)
   #undef DOGLCD_CS
-  #define DOGLCD_CS        LCD_PINS_RS
+  #define DOGLCD_CS                  LCD_PINS_RS
 #endif
 
 /**
@@ -81,13 +89,13 @@
   PIN:   3   Port: B3        Z_STEP_PIN                  protected
   PIN:   4   Port: B4        AVR_SS_PIN                  protected
   .                          FAN_PIN                     protected
-  .                          SS_PIN                      protected
+  .                       SD_SS_PIN                      protected
   PIN:   5   Port: B5        AVR_MOSI_PIN                Output = 1
-  .                          MOSI_PIN                    Output = 1
+  .                       SD_MOSI_PIN                    Output = 1
   PIN:   6   Port: B6        AVR_MISO_PIN                Input  = 0    TIMER3A   PWM:     0    WGM: 1    COM3A: 0    CS: 3    TCCR3A: 1    TCCR3B: 3    TIMSK3: 0
-  .                          MISO_PIN                    Input  = 0
+  .                       SD_MISO_PIN                    Input  = 0
   PIN:   7   Port: B7        AVR_SCK_PIN                 Output = 0    TIMER3B   PWM:     0    WGM: 1    COM3B: 0    CS: 3    TCCR3A: 1    TCCR3B: 3    TIMSK3: 0
-  .                          SCK_PIN                     Output = 0
+  .                       SD_SCK_PIN                     Output = 0
   PIN:   8   Port: D0        RXD                         Input  = 1
   PIN:   9   Port: D1        TXD                         Input  = 0
   PIN:  10   Port: D2        BTN_EN2                     Input  = 1
@@ -120,3 +128,14 @@
   PIN:  30   Port: A1        LCD_PINS_D4                 Output = 1
   PIN:  31   Port: A0        SDSS                        Output = 1
 */
+
+/**
+ *    EXP1 Connector                      EXP1 as CR10 STOCKDISPLAY
+ *        ------                                      ------
+ *   PA4 |10  9 | PC0                     BEEPER_PIN |10  9 | BTN_ENC
+ *   PD3 | 8  7 | RESET                      BTN_EN1 | 8  7 | RESET
+ *   PD2   6  5 | PA1                        BTN_EN2   6  5 | LCD_PINS_D4     (ST9720 CLK)
+ *   PA3 | 4  3 | PC1        (ST9720 CS) LCD_PINS_RS | 4  3 | LCD_PINS_ENABLE (ST9720 DAT)
+ *   GND | 2  1 | 5V                             GND | 2  1 | 5V
+ *        ------                                      ------
+ */

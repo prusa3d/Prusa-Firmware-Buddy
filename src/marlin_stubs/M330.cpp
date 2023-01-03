@@ -18,7 +18,7 @@ void PrusaGcodeSuite::M330() {
     }
     if (handler_found) {
         SERIAL_ECHO_START();
-        SERIAL_ECHOLNPAIR_F("Configuring handler ", parser.string_arg);
+        SERIAL_ECHOLNPGM("Configuring handler ", parser.string_arg);
     } else {
         SERIAL_ERROR_MSG("Handler not found");
     }
@@ -35,14 +35,14 @@ void PrusaGcodeSuite::M331() {
         if (strcmp(metric->name, parser.string_arg) == 0) {
             metric_enable_for_handler(metric, selected_handler);
             SERIAL_ECHO_START();
-            SERIAL_ECHOLNPAIR_F("Metric enabled: ", parser.string_arg);
+            SERIAL_ECHOLNPGM("Metric enabled: ", parser.string_arg);
             return;
         }
         metric = metric->next;
     }
 
     SERIAL_ERROR_START();
-    SERIAL_ECHOLNPAIR("Metric not found: ", parser.string_arg);
+    SERIAL_ECHOLNPGM("Metric not found: ", parser.string_arg);
 }
 
 void PrusaGcodeSuite::M332() {
@@ -56,14 +56,14 @@ void PrusaGcodeSuite::M332() {
         if (strcmp(metric->name, parser.string_arg) == 0) {
             metric_disable_for_handler(metric, selected_handler);
             SERIAL_ECHO_START();
-            SERIAL_ECHOLNPAIR_F("Metric disabled: ", parser.string_arg);
+            SERIAL_ECHOLNPGM("Metric disabled: ", parser.string_arg);
             return;
         }
         metric = metric->next;
     }
 
     SERIAL_ERROR_START();
-    SERIAL_ECHOLNPAIR("Metric not found: ", parser.string_arg);
+    SERIAL_ECHOLNPGM("Metric not found: ", parser.string_arg);
 }
 
 void PrusaGcodeSuite::M333() {
@@ -76,7 +76,7 @@ void PrusaGcodeSuite::M333() {
     while (metric) {
         bool is_enabled = metric->enabled_handlers & (1 << selected_handler->identifier);
         SERIAL_ECHO_START();
-        SERIAL_ECHOLNPAIR_F(metric->name, is_enabled ? '1' : '0');
+        SERIAL_ECHOLNPGM(metric->name, is_enabled ? '1' : '0');
         metric = metric->next;
     }
 }

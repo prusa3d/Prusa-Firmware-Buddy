@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -26,57 +26,64 @@
 
 #include "../../inc/MarlinConfigPre.h"
 
-#if HAS_LCD_MENU
+#if HAS_MARLINUI_MENU
 
-#include "menu.h"
+#include "menu_item.h"
 #include "../../module/motion.h"
 #include "../../module/planner.h"
 #include "../../module/temperature.h"
-#include "../../Marlin.h"
+#include "../../MarlinCore.h"
+
+#if ENABLED(SINGLENOZZLE_STANDBY_TEMP)
+  #include "../../module/tool_change.h"
+#endif
 
 #if HAS_LEVELING
   #include "../../feature/bedlevel/bedlevel.h"
-#endif
-
-#if ENABLED(SINGLENOZZLE)
-  #include "../../module/tool_change.h"
 #endif
 
 #if ENABLED(BABYSTEPPING)
 
   #include "../../feature/babystep.h"
   #include "../lcdprint.h"
-  #if HAS_GRAPHICAL_LCD
-    #include "../dogm/ultralcd_DOGM.h"
+  #if HAS_MARLINUI_U8GLIB
+    #include "../dogm/marlinui_DOGM.h"
   #endif
 
-  void _lcd_babystep(const AxisEnum axis, PGM_P const msg) {
+  // TODO: Replace fmsg with MSG_BABYSTEP_N and index substitution
+
+  void _lcd_babystep(const AxisEnum axis, FSTR_P const fmsg) {
     if (ui.use_click()) return ui.goto_previous_screen_no_defer();
     if (ui.encoderPosition) {
-      const int16_t steps = int16_t(ui.encoderPosition) * (BABYSTEP_MULTIPLICATOR);
+      const int16_t steps = int16_t(ui.encoderPosition) * (
+        #if ENABLED(BABYSTEP_XY)
+          axis == X_AXIS ? BABYSTEP_SIZE_X :
+          axis == Y_AXIS ? BABYSTEP_SIZE_Y :
+        #endif
+        BABYSTEP_SIZE_Z
+      );
       ui.encoderPosition = 0;
       ui.refresh(LCDVIEW_REDRAW_NOW);
       babystep.add_steps(axis, steps);
     }
     if (ui.should_draw()) {
-      const float spm = planner.mm_per_step[axis];
-      draw_edit_screen(msg, ftostr54sign(spm * babystep.accum));
+      const float mps = planner.mm_per_step[axis];
+      MenuEditItemBase::draw_edit_screen(fmsg, BABYSTEP_TO_STR(mps * babystep.accum));
       #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
-        const bool in_view = (true
-          #if HAS_GRAPHICAL_LCD
-            && PAGE_CONTAINS(LCD_PIXEL_HEIGHT - MENU_FONT_HEIGHT, LCD_PIXEL_HEIGHT - 1)
-          #endif
-        );
+        const bool in_view = TERN1(HAS_MARLINUI_U8GLIB, PAGE_CONTAINS(LCD_PIXEL_HEIGHT - MENU_FONT_HEIGHT, LCD_PIXEL_HEIGHT - 1));
         if (in_view) {
-          #if HAS_GRAPHICAL_LCD
-            ui.set_font(FONT_MENU);
-            lcd_moveto(0, LCD_PIXEL_HEIGHT - MENU_FONT_DESCENT);
+          TERN_(HAS_MARLINUI_U8GLIB, ui.set_font(FONT_MENU));
+          #if ENABLED(TFT_COLOR_UI)
+            lcd_moveto(4, 3);
+            lcd_put_u8str(GET_TEXT_F(MSG_BABYSTEP_TOTAL));
+            lcd_put_lchar(':');
+            lcd_moveto(10, 3);
           #else
-            lcd_moveto(0, LCD_HEIGHT - 1);
+            lcd_moveto(0, TERN(HAS_MARLINUI_U8GLIB, LCD_PIXEL_HEIGHT - MENU_FONT_DESCENT, LCD_HEIGHT - 1));
+            lcd_put_u8str(GET_TEXT_F(MSG_BABYSTEP_TOTAL));
+            lcd_put_lchar(':');
           #endif
-          lcd_put_u8str_P(GET_TEXT(MSG_BABYSTEP_TOTAL));
-          lcd_put_wchar(':');
-          lcd_put_u8str(ftostr54sign(spm * babystep.axis_total[BS_TOTAL_AXIS(axis)]));
+          lcd_put_u8str(BABYSTEP_TO_STR(mps * babystep.axis_total[BS_TOTAL_IND(axis)]));
         }
       #endif
     }
@@ -89,12 +96,12 @@
   }
 
   #if ENABLED(BABYSTEP_XY)
-    void _lcd_babystep_x() { _lcd_babystep(X_AXIS, GET_TEXT(MSG_BABYSTEP_X)); }
-    void _lcd_babystep_y() { _lcd_babystep(Y_AXIS, GET_TEXT(MSG_BABYSTEP_Y)); }
+    void _lcd_babystep_x() { _lcd_babystep(X_AXIS, GET_TEXT_F(MSG_BABYSTEP_X)); }
+    void _lcd_babystep_y() { _lcd_babystep(Y_AXIS, GET_TEXT_F(MSG_BABYSTEP_Y)); }
   #endif
 
   #if DISABLED(BABYSTEP_ZPROBE_OFFSET)
-    void _lcd_babystep_z() { _lcd_babystep(Z_AXIS, GET_TEXT(MSG_BABYSTEP_Z)); }
+    void _lcd_babystep_z() { _lcd_babystep(Z_AXIS, GET_TEXT_F(MSG_BABYSTEP_Z)); }
     void lcd_babystep_z()  { _lcd_babystep_go(_lcd_babystep_z); }
   #endif
 
@@ -113,7 +120,7 @@ void menu_tune() {
   // Manual bed leveling, Bed Z:
   //
   #if BOTH(MESH_BED_LEVELING, LCD_BED_LEVELING)
-    EDIT_ITEM(float43, MSG_BED_Z, &mbl.z_offset, -1, 1);
+    EDIT_ITEM(float43, MSG_BED_Z, &bedlevel.z_offset, -1, 1);
   #endif
 
   //
@@ -121,94 +128,95 @@ void menu_tune() {
   // Nozzle [1-4]:
   //
   #if HOTENDS == 1
-    EDIT_ITEM_FAST(int3, MSG_NOZZLE, &thermalManager.temp_hotend[0].target, 0, HEATER_0_MAXTEMP - 15, [](){ thermalManager.start_watching_hotend(0); });
-  #elif HOTENDS > 1
-    #define EDIT_NOZZLE(N) EDIT_ITEM_FAST(int3, MSG_NOZZLE_##N, &thermalManager.temp_hotend[N].target, 0, HEATER_##N##_MAXTEMP - 15, [](){ thermalManager.start_watching_hotend(N); })
-    EDIT_NOZZLE(0);
-    EDIT_NOZZLE(1);
-    #if HOTENDS > 2
-      EDIT_NOZZLE(2);
-      #if HOTENDS > 3
-        EDIT_NOZZLE(3);
-        #if HOTENDS > 4
-          EDIT_NOZZLE(4);
-          #if HOTENDS > 5
-            EDIT_NOZZLE(5);
-          #endif // HOTENDS > 5
-        #endif // HOTENDS > 4
-      #endif // HOTENDS > 3
-    #endif // HOTENDS > 2
-  #endif // HOTENDS > 1
+    EDIT_ITEM_FAST(int3, MSG_NOZZLE, &thermalManager.temp_hotend[0].target, 0, thermalManager.hotend_max_target(0), []{ thermalManager.start_watching_hotend(0); });
+  #elif HAS_MULTI_HOTEND
+    HOTEND_LOOP()
+      EDIT_ITEM_FAST_N(int3, e, MSG_NOZZLE_N, &thermalManager.temp_hotend[e].target, 0, thermalManager.hotend_max_target(e), []{ thermalManager.start_watching_hotend(MenuItemBase::itemIndex); });
+  #endif
 
-  #if ENABLED(SINGLENOZZLE)
-    EDIT_ITEM_FAST(uint16_3, MSG_NOZZLE_STANDBY, &singlenozzle_temp[active_extruder ? 0 : 1], 0, HEATER_0_MAXTEMP - 15);
+  #if ENABLED(SINGLENOZZLE_STANDBY_TEMP)
+    LOOP_S_L_N(e, 1, EXTRUDERS)
+      EDIT_ITEM_FAST_N(int3, e, MSG_NOZZLE_STANDBY, &thermalManager.singlenozzle_temp[e], 0, thermalManager.hotend_max_target(0));
   #endif
 
   //
   // Bed:
   //
   #if HAS_HEATED_BED
-    EDIT_ITEM_FAST(int3, MSG_BED, &thermalManager.temp_bed.target, 0, BED_MAXTEMP - 10, thermalManager.start_watching_bed);
+    EDIT_ITEM_FAST(int3, MSG_BED, &thermalManager.temp_bed.target, 0, BED_MAX_TARGET, thermalManager.start_watching_bed);
   #endif
 
   //
   // Fan Speed:
   //
-  #if FAN_COUNT > 0
+  #if HAS_FAN
+
+    DEFINE_SINGLENOZZLE_ITEM();
+
     #if HAS_FAN0
-      #if FAN_COUNT == 1
-        #define MSG_FIRST_FAN_SPEED       MSG_FAN_SPEED
-        #define MSG_FIRST_EXTRA_FAN_SPEED MSG_EXTRA_FAN_SPEED
-      #else
-        #define MSG_FIRST_FAN_SPEED       MSG_FAN_SPEED_1
-        #define MSG_FIRST_EXTRA_FAN_SPEED MSG_EXTRA_FAN_SPEED_1
-      #endif
-      editable.uint8 = thermalManager.fan_speed[0];
-      EDIT_ITEM_FAST(percent, MSG_FIRST_FAN_SPEED, &editable.uint8, 0, 255, [](){ thermalManager.set_fan_speed(0, editable.uint8); });
-      #if ENABLED(EXTRA_FAN_SPEED)
-        EDIT_ITEM_FAST(percent, MSG_FIRST_EXTRA_FAN_SPEED, &thermalManager.new_fan_speed[0], 3, 255);
-      #endif
+      _FAN_EDIT_ITEMS(0,FIRST_FAN_SPEED);
     #endif
-    #if HAS_FAN1 || (ENABLED(SINGLENOZZLE) && EXTRUDERS > 1)
-      editable.uint8 = thermalManager.fan_speed[1];
-      EDIT_ITEM_FAST(percent, MSG_FAN_SPEED_2, &editable.uint8, 0, 255, [](){ thermalManager.set_fan_speed(1, editable.uint8); });
-      #if ENABLED(EXTRA_FAN_SPEED)
-        EDIT_ITEM_FAST(percent, MSG_EXTRA_FAN_SPEED_2, &thermalManager.new_fan_speed[1], 3, 255);
-      #endif
+    #if HAS_FAN1
+      FAN_EDIT_ITEMS(1);
+    #elif SNFAN(1)
+      singlenozzle_item(1);
     #endif
-    #if HAS_FAN2 || (ENABLED(SINGLENOZZLE) && EXTRUDERS > 2)
-      editable.uint8 = thermalManager.fan_speed[2];
-      EDIT_ITEM_FAST(percent, MSG_FAN_SPEED_3, &editable.uint8, 0, 255, [](){ thermalManager.set_fan_speed(2, editable.uint8); });
-      #if ENABLED(EXTRA_FAN_SPEED)
-        EDIT_ITEM_FAST(percent, MSG_EXTRA_FAN_SPEED_3, &thermalManager.new_fan_speed[2], 3, 255);
-      #endif
+    #if HAS_FAN2
+      FAN_EDIT_ITEMS(2);
+    #elif SNFAN(2)
+      singlenozzle_item(2);
     #endif
-  #endif // FAN_COUNT > 0
+    #if HAS_FAN3
+      FAN_EDIT_ITEMS(3);
+    #elif SNFAN(3)
+      singlenozzle_item(3);
+    #endif
+    #if HAS_FAN4
+      FAN_EDIT_ITEMS(4);
+    #elif SNFAN(4)
+      singlenozzle_item(4);
+    #endif
+    #if HAS_FAN5
+      FAN_EDIT_ITEMS(5);
+    #elif SNFAN(5)
+      singlenozzle_item(5);
+    #endif
+    #if HAS_FAN6
+      FAN_EDIT_ITEMS(6);
+    #elif SNFAN(6)
+      singlenozzle_item(6);
+    #endif
+    #if HAS_FAN7
+      FAN_EDIT_ITEMS(7);
+    #elif SNFAN(7)
+      singlenozzle_item(7);
+    #endif
+
+  #endif // HAS_FAN
 
   //
   // Flow:
-  // Flow [1-5]:
   //
-  #if EXTRUDERS == 1
-    EDIT_ITEM(int3, MSG_FLOW, &planner.flow_percentage[0], 10, 999, [](){ planner.refresh_e_factor(0); });
-  #elif EXTRUDERS
-    EDIT_ITEM(int3, MSG_FLOW, &planner.flow_percentage[active_extruder], 10, 999, [](){ planner.refresh_e_factor(active_extruder); });
-    #define EDIT_FLOW(N) EDIT_ITEM(int3, MSG_FLOW_##N, &planner.flow_percentage[N], 10, 999, [](){ planner.refresh_e_factor(N); })
-    EDIT_FLOW(0);
-    EDIT_FLOW(1);
-    #if EXTRUDERS > 2
-      EDIT_FLOW(2);
-      #if EXTRUDERS > 3
-        EDIT_FLOW(3);
-        #if EXTRUDERS > 4
-          EDIT_FLOW(4);
-          #if EXTRUDERS > 5
-            EDIT_FLOW(5);
-          #endif // EXTRUDERS > 5
-        #endif // EXTRUDERS > 4
-      #endif // EXTRUDERS > 3
-    #endif // EXTRUDERS > 2
-  #endif // EXTRUDERS
+  #if HAS_EXTRUDERS
+    EDIT_ITEM(int3, MSG_FLOW, &planner.flow_percentage[active_extruder], 10, 999, []{ planner.refresh_e_factor(active_extruder); });
+    // Flow En:
+    #if HAS_MULTI_EXTRUDER
+      EXTRUDER_LOOP()
+        EDIT_ITEM_N(int3, e, MSG_FLOW_N, &planner.flow_percentage[e], 10, 999, []{ planner.refresh_e_factor(MenuItemBase::itemIndex); });
+    #endif
+  #endif
+
+  //
+  // Advance K:
+  //
+  #if ENABLED(LIN_ADVANCE) && DISABLED(SLIM_LCD_MENUS)
+    #if EXTRUDERS == 1
+      EDIT_ITEM(float42_52, MSG_ADVANCE_K, &planner.extruder_advance_K[0], 0, 10);
+    #elif HAS_MULTI_EXTRUDER
+      EXTRUDER_LOOP()
+        EDIT_ITEM_N(float42_52, e, MSG_ADVANCE_K_E, &planner.extruder_advance_K[e], 0, 10);
+    #endif
+  #endif
 
   //
   // Babystep X:
@@ -217,17 +225,17 @@ void menu_tune() {
   //
   #if ENABLED(BABYSTEPPING)
     #if ENABLED(BABYSTEP_XY)
-      SUBMENU(MSG_BABYSTEP_X, [](){ _lcd_babystep_go(_lcd_babystep_x); });
-      SUBMENU(MSG_BABYSTEP_Y, [](){ _lcd_babystep_go(_lcd_babystep_y); });
+      SUBMENU_N(X_AXIS, MSG_BABYSTEP_N, []{ _lcd_babystep_go(_lcd_babystep_x); });
+      SUBMENU_N(Y_AXIS, MSG_BABYSTEP_N, []{ _lcd_babystep_go(_lcd_babystep_y); });
     #endif
     #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
       SUBMENU(MSG_ZPROBE_ZOFFSET, lcd_babystep_zoffset);
     #else
-      SUBMENU(MSG_BABYSTEP_Z, lcd_babystep_z);
+      SUBMENU_N(Z_AXIS, MSG_BABYSTEP_N, lcd_babystep_z);
     #endif
   #endif
 
   END_MENU();
 }
 
-#endif // HAS_LCD_MENU
+#endif // HAS_MARLINUI_MENU

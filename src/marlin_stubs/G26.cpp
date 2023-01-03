@@ -211,7 +211,7 @@ void FirstLayer::plan_destination(const float x, const float y, const float z, c
     if (isfinite(f))
         feedrate_mm_s = f / 60.f;
 
-    prepare_move_to_destination();
+    prepare_line_to_destination();
 }
 
 void FirstLayer::inc_progress() {
@@ -295,7 +295,7 @@ void FirstLayer::print_shape_1() {
 }
 
 void FirstLayer::print_shape_2() {
-    enable_all_steppers();
+    stepper.enable_all_steppers();
     //M221 S100 ; reset flow
     planner.flow_percentage[0] = 100;
     planner.refresh_e_factor(0);

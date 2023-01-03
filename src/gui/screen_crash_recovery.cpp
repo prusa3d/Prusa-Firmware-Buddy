@@ -7,7 +7,7 @@
  *
  */
 
-#include "config_features.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "png_resources.hpp"
 // TODO do it in cmake
 #if ENABLED(CRASH_RECOVERY)

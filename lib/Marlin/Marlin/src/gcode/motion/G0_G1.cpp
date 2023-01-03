@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,14 +16,14 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
 #include "../gcode.h"
 #include "../../module/motion.h"
 
-#include "../../Marlin.h"
+#include "../../MarlinCore.h"
 
 #if BOTH(FWRETRACT, FWRETRACT_AUTORETRACT)
   #include "../../feature/fwretract.h"
@@ -44,20 +44,25 @@ extern xyze_pos_t destination;
 /**
  * G0, G1: Coordinated movement of X Y Z E axes
  */
-void GcodeSuite::G0_G1(
-  #if IS_SCARA || defined(G0_FEEDRATE)
-    const bool fast_move/*=false*/
-  #endif
-) {
+void GcodeSuite::G0_G1(TERN_(HAS_FAST_MOVES, const bool fast_move/*=false*/)) {
 
   if (IsRunning()
     #if ENABLED(NO_MOTION_BEFORE_HOMING)
-      && !axis_unhomed_error(
-          (parser.seen('X') ? _BV(X_AXIS) : 0)
-        | (parser.seen('Y') ? _BV(Y_AXIS) : 0)
-        | (parser.seen('Z') ? _BV(Z_AXIS) : 0) )
+      && !homing_needed_error(
+        NUM_AXIS_GANG(
+            (parser.seen_test('X') ? _BV(X_AXIS) : 0),
+          | (parser.seen_test('Y') ? _BV(Y_AXIS) : 0),
+          | (parser.seen_test('Z') ? _BV(Z_AXIS) : 0),
+          | (parser.seen_test(AXIS4_NAME) ? _BV(I_AXIS) : 0),
+          | (parser.seen_test(AXIS5_NAME) ? _BV(J_AXIS) : 0),
+          | (parser.seen_test(AXIS6_NAME) ? _BV(K_AXIS) : 0),
+          | (parser.seen_test(AXIS7_NAME) ? _BV(U_AXIS) : 0),
+          | (parser.seen_test(AXIS8_NAME) ? _BV(V_AXIS) : 0),
+          | (parser.seen_test(AXIS9_NAME) ? _BV(W_AXIS) : 0))
+      )
     #endif
   ) {
+    TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_RUNNING));
 
     #ifdef G0_FEEDRATE
       feedRate_t old_feedrate;
@@ -69,7 +74,7 @@ void GcodeSuite::G0_G1(
       #endif
     #endif
 
-    get_destination_from_command();                 // Process X Y Z E F parameters
+    get_destination_from_command();                 // Get X Y [Z[I[J[K]]]] [E] F (and set cutter power)
 
     #ifdef G0_FEEDRATE
       if (fast_move) {
@@ -86,7 +91,9 @@ void GcodeSuite::G0_G1(
 
       if (MIN_AUTORETRACT <= MAX_AUTORETRACT) {
         // When M209 Autoretract is enabled, convert E-only moves to firmware retract/recover moves
-        if (fwretract.autoretract_enabled && parser.seen('E') && !(parser.seen('X') || parser.seen('Y') || parser.seen('Z'))) {
+        if (fwretract.autoretract_enabled && parser.seen_test('E')
+          && !parser.seen(STR_AXES_MAIN)
+        ) {
           const float echange = destination.e - current_position.e;
           // Is this a retract or recover move?
           if (WITHIN(ABS(echange), MIN_AUTORETRACT, MAX_AUTORETRACT) && fwretract.retracted[active_extruder] == (echange > 0.0)) {
@@ -100,9 +107,9 @@ void GcodeSuite::G0_G1(
     #endif // FWRETRACT
 
     #if IS_SCARA
-      fast_move ? prepare_fast_move_to_destination() : prepare_move_to_destination();
+      fast_move ? prepare_fast_move_to_destination() : prepare_line_to_destination();
     #else
-      prepare_move_to_destination();
+      prepare_line_to_destination();
     #endif
 
     #ifdef G0_FEEDRATE
@@ -118,8 +125,11 @@ void GcodeSuite::G0_G1(
       #endif
       if (_MOVE_SYNC) {
         planner.synchronize();
-        SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
+        SERIAL_ECHOLNPGM(STR_Z_MOVE_COMP);
       }
+      TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_IDLE));
+    #else
+      TERN_(FULL_REPORT_TO_HOST_FEATURE, report_current_grblstate_moving());
     #endif
   }
 }

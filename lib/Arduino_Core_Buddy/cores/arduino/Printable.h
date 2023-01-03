@@ -22,6 +22,8 @@
 
 #include <stdlib.h>
 
+#ifdef __cplusplus
+
 class Print;
 
 /** The Printable class provides a way for new classes to allow themselves to be printed.
@@ -34,5 +36,7 @@ class Printable {
 public:
     virtual size_t printTo(Print &p) const = 0;
 };
+
+#endif
 
 #endif

@@ -17,7 +17,7 @@
 #include "cmsis_os.h"
 #include "log.h"
 
-#include "../Marlin/src/lcd/extensible_ui/ui_api.h"
+#include "../Marlin/src/lcd/extui/ui_api.h"
 #include "../Marlin/src/gcode/queue.h"
 #include "../Marlin/src/gcode/parser.h"
 #include "../Marlin/src/module/planner.h"
@@ -25,7 +25,7 @@
 #include "../Marlin/src/module/endstops.h"
 #include "../Marlin/src/module/temperature.h"
 #include "../Marlin/src/module/probe.h"
-#include "../Marlin/src/module/configuration_store.h"
+#include "../Marlin/src/module/settings.h"
 #include "../Marlin/src/module/printcounter.h"
 #include "../Marlin/src/feature/babystep.h"
 #include "../Marlin/src/feature/bedlevel/bedlevel.h"
@@ -277,11 +277,11 @@ void print_fan_spd() {
         time = ticks_ms();
         int timediff = time - last_prt;
         if (timediff >= 1000) {
-            serial_echopair_PGM("Tacho_FANPR ", fanCtlPrint.getActualRPM());
-            serialprintPGM("rpm ");
+            SERIAL_ECHOPGM("Tacho_FANPR ", fanCtlPrint.getActualRPM());
+            serial_print_P("rpm ");
             SERIAL_EOL();
-            serial_echopair_PGM("Tacho_FANHB ", fanCtlHeatBreak.getActualRPM());
-            serialprintPGM("rpm ");
+            SERIAL_ECHOPGM("Tacho_FANHB ", fanCtlHeatBreak.getActualRPM());
+            serial_print_P("rpm ");
             SERIAL_EOL();
             last_prt = time;
         }
@@ -297,8 +297,8 @@ static void print_Z_probe_cnt() {
         actual = get_Z_probe_endstop_hits();
         if (last != actual) {
             last = actual;
-            serial_echopair_PGM("Z Endstop hit ", actual);
-            serialprintPGM(" times.");
+            SERIAL_ECHOPGM("Z Endstop hit ", actual);
+            serial_print_P(" times.");
             SERIAL_EOL();
         }
     }
@@ -542,7 +542,7 @@ bool marlin_server_inject_gcode(const char *gcode) {
 
 void marlin_server_settings_save(void) {
 #if HAS_BED_PROBE
-    if (!SteelSheets::SetZOffset(probe_offset.z)) {
+    if (!SteelSheets::SetZOffset(probe.offset.z)) {
         assert(0 /* Z offset write failed */);
     }
 #endif
@@ -561,7 +561,7 @@ void marlin_server_settings_save(void) {
 void marlin_server_settings_load(void) {
     (void)settings.reset();
 #if HAS_BED_PROBE
-    probe_offset.z = SteelSheets::GetZOffset();
+    probe.offset.z = SteelSheets::GetZOffset();
 #endif
 #if ENABLED(PIDTEMPBED)
     Temperature::temp_bed.pid.Kp = eeprom_get_flt(EEVAR_PID_BED_P);
@@ -585,7 +585,7 @@ void marlin_server_settings_reset(void) {
 }
 
 void marlin_server_manage_heater(void) {
-    thermalManager.manage_heater();
+    thermalManager.task();
 }
 
 void marlin_server_quick_stop(void) {
@@ -1022,7 +1022,7 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
     case mpsPausing_WaitIdle:
-        if ((planner.movesplanned() == 0) && (queue.length == 0) && gcode.busy_state == GcodeSuite::NOT_BUSY) {
+        if ((planner.movesplanned() == 0) && !queue.has_commands_queued() && gcode.busy_state == GcodeSuite::NOT_BUSY) {
             marlin_server_park_head();
             marlin_server.print_state = mpsPausing_ParkHead;
         }
@@ -1048,7 +1048,7 @@ static void _server_print_loop(void) {
 
         // forget the XYZ resume position if requested
         if (crash_s.inhibit_flags & Crash_s::INHIBIT_XYZ_REPOSITIONING) {
-            LOOP_XYZ(i) {
+            LOOP_LOGICAL_AXES(i) {
                 marlin_server.resume.pos[i] = current_position[i];
             }
         }
@@ -1065,7 +1065,7 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsResuming_UnparkHead_ZE;
         break;
     case mpsResuming_UnparkHead_ZE:
-        if ((planner.movesplanned() != 0) || (queue.length != 0) || (media_print_get_state() != media_print_state_PAUSED))
+        if ((planner.movesplanned() != 0) || queue.has_commands_queued() || (media_print_get_state() != media_print_state_PAUSED))
             break;
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.get_state() == Crash_s::RECOVERY) {
@@ -1079,7 +1079,7 @@ static void _server_print_loop(void) {
 #endif
 #if HAS_BED_PROBE
         if (marlin_server.mbl_failed) {
-            gcode.process_subcommands_now_P("G28");
+            gcode.process_subcommands_now(F("G28"));
             marlin_server.mbl_failed = false;
         }
 #endif
@@ -1114,7 +1114,7 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsAborting_WaitIdle;
         break;
     case mpsAborting_WaitIdle:
-        if ((planner.movesplanned() != 0) || (queue.length != 0))
+        if ((planner.movesplanned() != 0) || queue.has_commands_queued())
             break;
 
         // allow movements again
@@ -1132,18 +1132,19 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsAborting_ParkHead;
         break;
     case mpsAborting_ParkHead:
-        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
-            disable_XY();
+        if ((planner.movesplanned() == 0) && !queue.has_commands_queued()) {
+            stepper.disable_axis(X_AXIS);
+            stepper.disable_axis(Y_AXIS);
 #ifndef Z_ALWAYS_ON
-            disable_Z();
+            stepper.disable_axis(Z_AXIS);
 #endif // Z_ALWAYS_ON
-            disable_e_steppers();
+            stepper.disable_e_steppers();
             marlin_server.print_state = mpsAborted;
             marlin_server_finalize_print();
         }
         break;
     case mpsFinishing_WaitIdle:
-        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+        if ((planner.movesplanned() == 0) && !queue.has_commands_queued()) {
 #if ENABLED(CRASH_RECOVERY)
             // TODO: the following should be moved to mpsFinishing_ParkHead once the "stopping"
             // state is handled properly
@@ -1160,7 +1161,7 @@ static void _server_print_loop(void) {
         }
         break;
     case mpsFinishing_ParkHead:
-        if ((planner.movesplanned() == 0) && (queue.length == 0)) {
+        if ((planner.movesplanned() == 0) && !queue.has_commands_queued()) {
             marlin_server.print_state = mpsFinished;
             marlin_server_finalize_print();
         }
@@ -1220,7 +1221,7 @@ static void _server_print_loop(void) {
         break;
     }
     case mpsCrashRecovery_XY_Measure: {
-        if (queue.length != 0 || planner.movesplanned() != 0)
+        if (queue.has_commands_queued() || planner.movesplanned() != 0)
             break;
 
         static metric_t crash_len = METRIC("crash_length", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
@@ -1231,7 +1232,7 @@ static void _server_print_loop(void) {
         break;
     }
     case mpsCrashRecovery_XY_HOME: {
-        if (queue.length != 0 || planner.movesplanned() != 0)
+        if (queue.has_commands_queued() || planner.movesplanned() != 0)
             break;
 
         if (!crash_s.is_repeated_crash()) {
@@ -1405,7 +1406,7 @@ int marlin_all_axes_homed(void) {
 }
 
 int marlin_all_axes_known(void) {
-    return all_axes_known() ? 1 : 0;
+    return all_axes_trusted() ? 1 : 0;
 }
 
 int marlin_server_get_exclusive_mode(void) {
@@ -1641,8 +1642,8 @@ static void _set_notify_change(uint8_t var_id) {
 }
 
 static void _server_update_gqueue(void) {
-    if (marlin_server.gqueue != queue.length) {
-        marlin_server.gqueue = queue.length;
+    if (marlin_server.gqueue != queue.ring_buffer.length) {
+        marlin_server.gqueue = queue.ring_buffer.length;
         //		_dbg("gqueue: %2d", marlin_server.gqueue);
     }
 }
@@ -1762,7 +1763,7 @@ static uint64_t _server_update_vars(uint64_t update) {
     }
 
     if (update & MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET)) {
-        float z = probe_offset.z;
+        float z = probe.offset.z;
         if (marlin_server.vars.z_offset != z) {
             marlin_server.vars.z_offset = z;
             changes |= MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET);
@@ -2152,8 +2153,8 @@ static int _server_set_var(const char *const name_val_str) {
                 break;
             case MARLIN_VAR_Z_OFFSET:
 #if HAS_BED_PROBE
-                changed = (probe_offset.z != marlin_server.vars.z_offset);
-                probe_offset.z = marlin_server.vars.z_offset;
+                changed = (probe.offset.z != marlin_server.vars.z_offset);
+                probe.offset.z = marlin_server.vars.z_offset;
 #endif //HAS_BED_PROBE
                 break;
             case MARLIN_VAR_FANSPEED:
@@ -2234,13 +2235,6 @@ void onIdle() {
         marlin_server_idle_cb();
 }
 
-void onPrinterKilled(PGM_P const msg, PGM_P const component) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
-    vTaskEndScheduler();
-    wdt_iwdg_refresh(); //watchdog reset
-    fatal_error(msg, component);
-}
-
 void onMediaInserted() {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onMediaInserted");
     _send_notify_event(MARLIN_EVT_MediaInserted, 0, 0);
@@ -2261,6 +2255,13 @@ void onPlayTone(const uint16_t frequency, const uint16_t duration) {
     _send_notify_event(MARLIN_EVT_PlayTone, frequency, duration);
 }
 
+void onPrinterKilled(FSTR_P const msg, FSTR_P const component) {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "Printer killed: %s", msg);
+    vTaskEndScheduler();
+    wdt_iwdg_refresh(); //watchdog reset
+    fatal_error(FTOP(msg), FTOP(component));
+}
+
 void onPrintTimerStarted() {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPrintTimerStarted");
     _send_notify_event(MARLIN_EVT_PrintTimerStarted, 0, 0);
@@ -2274,6 +2275,10 @@ void onPrintTimerPaused() {
 void onPrintTimerStopped() {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPrintTimerStopped");
     _send_notify_event(MARLIN_EVT_PrintTimerStopped, 0, 0);
+}
+
+void onPrintDone() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPrintDone");
 }
 
 void onFilamentRunout(const extruder_t extruder) {
@@ -2317,7 +2322,7 @@ void onStatusChanged(const char *const msg) {
         if (!pending_err_msg) {
 /// FIXME: Message through Marlin's UI could be delayed and we won't pause print at the MBL command
 #if HAS_BED_PROBE
-            if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
+            if (strcmp(msg, STR_ERR_PROBING_FAILED) == 0) {
                 mbl_error(MARLIN_ERR_ProbingFailed);
                 pending_err_msg = true;
             }
@@ -2328,6 +2333,22 @@ void onStatusChanged(const char *const msg) {
             }
         }
     }
+}
+
+void onHomingStart() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onHomingStart");
+}
+
+void onHomingDone() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onHomingDone");
+}
+
+void onSteppersDisabled() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onSteppersDisabled");
+}
+
+void onSteppersEnabled() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onSteppersEnabled");
 }
 
 void onFactoryReset() {
@@ -2345,20 +2366,67 @@ void onStoreSettings(char *) {
     _send_notify_event(MARLIN_EVT_StoreSettings, 0, 0);
 }
 
-void onConfigurationStoreWritten(bool success) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onConfigurationStoreWritten");
+void onPostprocessSettings() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPostprocessSettings");
 }
 
-void onConfigurationStoreRead(bool success) {
-    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onConfigurationStoreRead");
+void onSettingsStored(bool success) {
+    if (success) {
+        _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onSettingsStored");
+    } else {
+        _log_event(LOG_SEVERITY_ERROR, &LOG_COMPONENT(MarlinServer), "ExtUI: onSettingsStored failed");
+    }
 }
 
-void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
+void onSettingsLoaded(bool success) {
+    if (success) {
+        _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onSettingsLoaded");
+    } else {
+        _log_event(LOG_SEVERITY_ERROR, &LOG_COMPONENT(MarlinServer), "ExtUI: onSettingsLoaded failed");
+    }
+}
+
+#if ENABLED(POWER_LOSS_RECOVERY)
+void onPowerLossResume() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPowerLossResume");
+}
+#endif
+
+#if HAS_PID_HEATING
+static constexpr const char *result_t_to_string(result_t result) {
+    switch (result) {
+    case result_t::PID_STARTED:
+        return "PID_STARTED";
+    case result_t::PID_BAD_EXTRUDER_NUM:
+        return "PID_BAD_EXTRUDER_NUM";
+    case result_t::PID_TEMP_TOO_HIGH:
+        return "PID_TEMP_TOO_HIGH";
+    case result_t::PID_TUNING_TIMEOUT:
+        return "PID_TUNING_TIMEOUT";
+    case result_t::PID_DONE:
+        return "PID_DONE";
+    default:
+        return "???";
+    }
+}
+
+void onPidTuning(const result_t rst) {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onPidTuning %s", result_t_to_string(rst));
+}
+#endif //HAS_PID_HEATING
+
+void onMeshUpdate(const int8_t xpos, const int8_t ypos, const float zval) {
     _log_event(LOG_SEVERITY_DEBUG, &LOG_COMPONENT(MarlinServer), "ExtUI: onMeshUpdate x: %u, y: %u, z: %.2f", xpos, ypos, (double)zval);
     uint32_t usr32 = variant8_get_ui32(variant8_flt(zval));
     uint16_t usr16 = xpos | ((uint16_t)ypos << 8);
     _send_notify_event(MARLIN_EVT_MeshUpdate, usr32, usr16);
 }
+
+#if HAS_LEVELING
+void onLevelingDone() {
+    _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onLevelingDone");
+}
+#endif
 
 }
 

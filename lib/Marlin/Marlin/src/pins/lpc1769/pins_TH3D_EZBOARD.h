@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 #pragma once
@@ -25,9 +25,9 @@
  * TH3D EZBoard pin assignments
  */
 
-#ifndef LPC1769
-  #error "Oops! Make sure you have the LPC1769 environment selected in your IDE."
-#endif
+#include "env_validate.h"
+
+//#define V3_EZABL_ON_SERVO                       // As in TH3D Firmware Config
 
 #define BOARD_INFO_NAME   "TH3D EZBoard"
 #define BOARD_WEBSITE_URL "th3dstudio.com"
@@ -35,140 +35,193 @@
 //
 // Servos
 //
-#define SERVO0_PIN         P2_04
+#if ENABLED(V3_EZABL_ON_SERVO)
+  #define SERVO0_PIN                       -1
+#else
+  #define SERVO0_PIN                       P2_04
+#endif
 
 //
 // Limit Switches
 //
-#define X_STOP_PIN         P1_24
-#define Y_STOP_PIN         P1_25
-#define Z_STOP_PIN         P1_26
+#define X_STOP_PIN                         P1_24
+#define Y_STOP_PIN                         P1_25
+#if ENABLED(V3_EZABL_ON_SERVO)
+  #define Z_STOP_PIN                       P2_04
+#else
+  #define Z_STOP_PIN                       P1_26
+#endif
 
 //
 // Filament Runout Sensor
 //
 #ifndef FIL_RUNOUT_PIN
-  #define FIL_RUNOUT_PIN   P1_27
+  #define FIL_RUNOUT_PIN                   P1_27
 #endif
 
 //
 // Steppers
 //
-#define X_STEP_PIN         P2_00
-#define X_DIR_PIN          P1_16
-#define X_ENABLE_PIN       P1_17
+#define X_STEP_PIN                         P2_00
+#define X_DIR_PIN                          P1_16
+#define X_ENABLE_PIN                       P1_17
 
-#define Y_STEP_PIN         P2_01
-#define Y_DIR_PIN          P1_10
-#define Y_ENABLE_PIN       P1_09
+#define Y_STEP_PIN                         P2_01
+#define Y_DIR_PIN                          P1_10
+#define Y_ENABLE_PIN                       P1_09
 
-#define Z_STEP_PIN         P2_02
-#define Z_DIR_PIN          P1_15
-#define Z_ENABLE_PIN       P1_14
+#define Z_STEP_PIN                         P2_02
+#define Z_DIR_PIN                          P1_15
+#define Z_ENABLE_PIN                       P1_14
 
-#define E0_STEP_PIN        P2_03
-#define E0_DIR_PIN         P1_04
-#define E0_ENABLE_PIN      P1_08
+#define E0_STEP_PIN                        P2_03
+#define E0_DIR_PIN                         P1_04
+#define E0_ENABLE_PIN                      P1_08
 
-#define E1_STEP_PIN        P2_08
-#define E1_DIR_PIN         P2_13
-#define E1_ENABLE_PIN      P4_29
+#define E1_STEP_PIN                        P2_08
+#define E1_DIR_PIN                         P2_13
+#define E1_ENABLE_PIN                      P4_29
 
-#if HAS_DRIVER(TMC2208)
+#if HAS_TMC_UART
   //
-  // TMC2208 stepper drivers
-  // Software serial
+  // TMC220x stepper drivers
   //
-  #define X_SERIAL_TX_PIN  P0_04
-  #define X_SERIAL_RX_PIN  P0_05
-  #define Y_SERIAL_TX_PIN  P0_10
-  #define Y_SERIAL_RX_PIN  P0_11
-  #define Z_SERIAL_TX_PIN  P0_19
-  #define Z_SERIAL_RX_PIN  P0_20
-  #define E0_SERIAL_TX_PIN P0_22
-  #define E0_SERIAL_RX_PIN P0_21
+  #define X_SERIAL_TX_PIN                  P0_04
+  #define X_SERIAL_RX_PIN                  P0_05
+
+  #define Y_SERIAL_TX_PIN                  P0_10
+  #define Y_SERIAL_RX_PIN                  P0_11
+
+  #define Z_SERIAL_TX_PIN                  P0_19
+  #define Z_SERIAL_RX_PIN                  P0_20
+
+  #define E0_SERIAL_TX_PIN                 P0_22
+  #define E0_SERIAL_RX_PIN                 P0_21
+
+  // Reduce baud rate to improve software serial reliability
+  #define TMC_BAUD_RATE                    19200
 #endif
 
 //
 // Temp Sensors
 //  3.3V max when defined as an Analog Input!
 //
-#if TEMP_SENSOR_0 == 20         // PT100 Adapter
-  #define TEMP_0_PIN        7   // Analog Input
+#if TEMP_SENSOR_0 == 20                           // PT100 Adapter
+  #define TEMP_0_PIN                    P0_02_A7  // Analog Input
 #else
-  #define TEMP_0_PIN        0   // Analog Input P0_23
+  #define TEMP_0_PIN                    P0_23_A0  // Analog Input P0_23
 #endif
 
-#define TEMP_BED_PIN        1   // Analog Input P0_24
-#define TEMP_1_PIN          2   // Analog Input P0_25
-
-#if ENABLED(FILAMENT_WIDTH_SENSOR)
-  #define FILWIDTH_PIN      3   // Analog Input P0_26
-#else
-  #define TEMP_2_PIN        3   // Analog Input P0_26
-#endif
+#define TEMP_BED_PIN                    P0_24_A1  // Analog Input P0_24
 
 //
 // Heaters / Fans
 //
-#define HEATER_BED_PIN     P2_05
-#define HEATER_0_PIN       P2_07
+#define HEATER_BED_PIN                     P2_05
+#define HEATER_0_PIN                       P2_07
 #ifndef FAN_PIN
-  #define FAN_PIN          P2_06
+  #define FAN_PIN                          P2_06
 #endif
-#define FAN1_PIN           P1_22
+#define FAN1_PIN                           P1_22
 
 //
 // Auto fans
 //
-#define AUTO_FAN_PIN       P1_22   // FET 3
-#define ORIG_E0_AUTO_FAN_PIN  AUTO_FAN_PIN
-#define ORIG_E1_AUTO_FAN_PIN  AUTO_FAN_PIN
-#define ORIG_E2_AUTO_FAN_PIN  AUTO_FAN_PIN
+#define AUTO_FAN_PIN                       P1_22  // FET 3
+#ifndef E0_AUTO_FAN_PIN
+  #define E0_AUTO_FAN_PIN           AUTO_FAN_PIN
+#endif
+#ifndef E1_AUTO_FAN_PIN
+  #define E1_AUTO_FAN_PIN           AUTO_FAN_PIN
+#endif
+#ifndef E2_AUTO_FAN_PIN
+  #define E2_AUTO_FAN_PIN           AUTO_FAN_PIN
+#endif
 
 //
 // SD Card
 //
 
-#define SDCARD_CONNECTION ONBOARD
+#define SDCARD_CONNECTION                ONBOARD
 
-#define SCK_PIN            P0_07
-#define MISO_PIN           P0_08
-#define MOSI_PIN           P0_09
-#define ONBOARD_SD_CS_PIN  P0_06
-#define SS_PIN             ONBOARD_SD_CS_PIN
+//#define SD_DETECT_PIN                    P0_25  // SD_CD
+#define SD_SCK_PIN                         P0_07
+#define SD_MISO_PIN                        P0_08
+#define SD_MOSI_PIN                        P0_09
+#define ONBOARD_SD_CS_PIN                  P0_06
+#define SD_SS_PIN              ONBOARD_SD_CS_PIN
 
 //
 // LCD / Controller
 //
 
 /**
- *                  _____
- *              5V | · · | GND
- *  (LCD_EN) P0_18 | · · | P0_16 (LCD_RS)
- *  (LCD_D4) P0_15 | · · | P3_25 (BTN_EN2)
- *   (RESET) P2_11 | · · | P3_26 (BTN_EN1)
- * (BTN_ENC) P1_30 | · · | P1_31 (BEEPER)
- *                  -----
- *                  EXP1
+ *         ------
+ *  P1_31 |10  9 | P1_30
+ *  P3_26 | 8  7 | P2_11
+ *  P3_25   6  5 | P0_15
+ *  P0_16 | 4  3 | P0_18
+ *    GND | 2  1 | 5V
+ *         ------
+ *          EXP1
  *
  * LCD_PINS_D5, D6, and D7 are not present in the EXP1 connector, and will need to be
  * defined to use the REPRAP_DISCOUNT_SMART_CONTROLLER.
  *
  * A remote SD card is currently not supported because the pins routed to the EXP2
  * connector are shared with the onboard SD card.
- *
  */
+#define EXP1_03_PIN                        P0_18
+#define EXP1_04_PIN                        P0_16
+#define EXP1_05_PIN                        P0_15
+#define EXP1_06_PIN                        P3_25
+#define EXP1_07_PIN                        P2_11
+#define EXP1_08_PIN                        P3_26
+#define EXP1_09_PIN                        P1_30
+#define EXP1_10_PIN                        P1_31
 
 #if ENABLED(CR10_STOCKDISPLAY)
-  #define BEEPER_PIN       P1_31
-  #define BTN_EN1          P3_26
-  #define BTN_EN2          P3_25
-  #define BTN_ENC          P1_30
-  #define LCD_PINS_RS      P0_16
-  #define LCD_PINS_ENABLE  P0_18
-  #define LCD_PINS_D4      P0_15
-  #define KILL_PIN         P2_11
-#elif HAS_SPI_LCD
-  #error "Only the CR10_STOCKDISPLAY is supported with TH3D EZBoard."
+  /**          ------
+   *   BEEPER |10  9 | ENC
+   *      EN1 | 8  7 | KILL
+   *      EN2   6  5 | LCD_D4
+   *   LCD_RS | 4  3 | LCD_EN
+   *      GND | 2  1 | 5V
+   *           ------
+   */
+  #define BEEPER_PIN                 EXP1_10_PIN
+  #define LCD_PINS_RS                EXP1_04_PIN
+  #define LCD_PINS_ENABLE            EXP1_03_PIN
+  #define LCD_PINS_D4                EXP1_05_PIN
+  #define KILL_PIN                   EXP1_07_PIN
+
+#elif ENABLED(MKS_MINI_12864)
+  /**          ------
+   *      SCK |10  9 | ENC
+   *      EN1 | 8  7 | --
+   *      EN2   6  5 | A0
+   *       CS | 4  3 | MOSI
+   *      GND | 2  1 | 5V
+   *           ------
+   */
+  #define DOGLCD_CS                  EXP1_04_PIN
+  #define DOGLCD_A0                  EXP1_05_PIN
+  #define DOGLCD_SCK                 EXP1_10_PIN
+  #define DOGLCD_MOSI                EXP1_03_PIN
+  #define LCD_CONTRAST_INIT                  160
+  #define LCD_CONTRAST_MIN                   120
+  #define LCD_CONTRAST_MAX                   180
+  #define FORCE_SOFT_SPI
+  #define LCD_BACKLIGHT_PIN                -1
+
+#elif HAS_WIRED_LCD
+
+  #error "Only CR10_STOCKDISPLAY or MKS_MINI_12864 are supported with TH3D EZBoard."
+
+#endif
+
+#if EITHER(CR10_STOCKDISPLAY, MKS_MINI_12864)
+  #define BTN_EN1                    EXP1_08_PIN
+  #define BTN_EN2                    EXP1_06_PIN
+  #define BTN_ENC                    EXP1_09_PIN
 #endif

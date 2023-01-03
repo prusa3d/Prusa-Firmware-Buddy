@@ -4,22 +4,18 @@ endif()
 
 add_library(
   Marlin
-  Marlin/Marlin/src/core/multi_language.cpp
   Marlin/Marlin/src/core/serial.cpp
   Marlin/Marlin/src/core/utility.cpp
   Marlin/Marlin/src/feature/babystep.cpp
   Marlin/Marlin/src/feature/backlash.cpp
-  Marlin/Marlin/src/feature/bedlevel/abl/abl.cpp
   Marlin/Marlin/src/feature/bedlevel/bedlevel.cpp
   Marlin/Marlin/src/feature/bedlevel/mbl/mesh_bed_leveling.cpp
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl.cpp
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl_G29.cpp
   Marlin/Marlin/src/feature/bedlevel/ubl/ubl_motion.cpp
-  Marlin/Marlin/src/feature/binary_protocol.cpp
   Marlin/Marlin/src/feature/host_actions.cpp
   Marlin/Marlin/src/feature/joystick.cpp
   Marlin/Marlin/src/feature/power.cpp
-  Marlin/Marlin/src/feature/power_loss_recovery.cpp
   Marlin/Marlin/src/feature/print_area.cpp
   Marlin/Marlin/src/feature/prusa/crash_recovery.cpp
   Marlin/Marlin/src/feature/prusa/homing.cpp
@@ -27,7 +23,6 @@ add_library(
   Marlin/Marlin/src/feature/runout.cpp
   Marlin/Marlin/src/feature/spindle_laser.cpp
   Marlin/Marlin/src/feature/tmc_util.cpp
-  Marlin/Marlin/src/feature/touch/xpt2046.cpp
   Marlin/Marlin/src/gcode/bedlevel/abl/G29.cpp
   Marlin/Marlin/src/gcode/bedlevel/abl/M421.cpp
   Marlin/Marlin/src/gcode/bedlevel/G26.cpp
@@ -71,6 +66,7 @@ add_library(
   Marlin/Marlin/src/gcode/feature/trinamic/M569.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M906.cpp
   Marlin/Marlin/src/gcode/feature/trinamic/M911-M914.cpp
+  Marlin/Marlin/src/gcode/feature/trinamic/M919.cpp
   Marlin/Marlin/src/gcode/gcode.cpp
   Marlin/Marlin/src/gcode/geometry/G53-G59.cpp
   Marlin/Marlin/src/gcode/geometry/G92.cpp
@@ -97,34 +93,26 @@ add_library(
   Marlin/Marlin/src/gcode/probe/M401_M402.cpp
   Marlin/Marlin/src/gcode/probe/M851.cpp
   Marlin/Marlin/src/gcode/queue.cpp
-  Marlin/Marlin/src/gcode/sdcard/M20.cpp
-  Marlin/Marlin/src/gcode/sdcard/M21_M22.cpp
-  Marlin/Marlin/src/gcode/sdcard/M23.cpp
-  Marlin/Marlin/src/gcode/sdcard/M24_M25.cpp
-  Marlin/Marlin/src/gcode/sdcard/M26.cpp
-  Marlin/Marlin/src/gcode/sdcard/M27.cpp
-  Marlin/Marlin/src/gcode/sdcard/M28_M29.cpp
-  Marlin/Marlin/src/gcode/sdcard/M30.cpp
-  Marlin/Marlin/src/gcode/sdcard/M32.cpp
-  Marlin/Marlin/src/gcode/sdcard/M524.cpp
-  Marlin/Marlin/src/gcode/sdcard/M928.cpp
+  Marlin/Marlin/src/gcode/sd/M20.cpp
+  Marlin/Marlin/src/gcode/sd/M21_M22.cpp
+  Marlin/Marlin/src/gcode/sd/M23.cpp
+  Marlin/Marlin/src/gcode/sd/M24_M25.cpp
+  Marlin/Marlin/src/gcode/sd/M26.cpp
+  Marlin/Marlin/src/gcode/sd/M27.cpp
+  Marlin/Marlin/src/gcode/sd/M28_M29.cpp
+  Marlin/Marlin/src/gcode/sd/M30.cpp
+  Marlin/Marlin/src/gcode/sd/M32.cpp
+  Marlin/Marlin/src/gcode/sd/M524.cpp
+  Marlin/Marlin/src/gcode/sd/M928.cpp
   Marlin/Marlin/src/gcode/stats/M31.cpp
   Marlin/Marlin/src/gcode/stats/M75-M78.cpp
-  Marlin/Marlin/src/gcode/temperature/M104_M109.cpp
-  Marlin/Marlin/src/gcode/temperature/M105.cpp
-  Marlin/Marlin/src/gcode/temperature/M106_M107.cpp
-  Marlin/Marlin/src/gcode/temperature/M140_M190.cpp
-  Marlin/Marlin/src/gcode/temperature/M155.cpp
-  Marlin/Marlin/src/gcode/temperature/M303.cpp
+  Marlin/Marlin/src/gcode/temp/M104_M109.cpp
+  Marlin/Marlin/src/gcode/temp/M105.cpp
+  Marlin/Marlin/src/gcode/temp/M106_M107.cpp
+  Marlin/Marlin/src/gcode/temp/M140_M190.cpp
+  Marlin/Marlin/src/gcode/temp/M155.cpp
+  Marlin/Marlin/src/gcode/temp/M303.cpp
   Marlin/Marlin/src/gcode/units/M82_M83.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/eeprom_emul.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/EmulatedEeprom.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/HAL.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/persistent_store_eeprom.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/Servo.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F4/timers.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F7/timers.cpp
-  Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/STM32F7/TMC2660.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/backtrace.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwarm.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwarm_arm.cpp
@@ -133,22 +121,23 @@ add_library(
   Marlin/Marlin/src/HAL/shared/backtrace/unwarmmem.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwinder.cpp
   Marlin/Marlin/src/HAL/shared/backtrace/unwmemaccess.cpp
-  Marlin/Marlin/src/HAL/shared/eeprom_spi.cpp
-  Marlin/Marlin/src/HAL/shared/HAL_spi_L6470.cpp
-  Marlin/Marlin/src/HAL/shared/persistent_store_api.cpp
-  Marlin/Marlin/src/lcd/extensible_ui/ui_api.cpp
-  Marlin/Marlin/src/lcd/ultralcd.cpp
+  Marlin/Marlin/src/HAL/shared/Delay.cpp
+  Marlin/Marlin/src/HAL/shared/esp_wifi.cpp
+  Marlin/Marlin/src/HAL/STM32/HAL.cpp
+  Marlin/Marlin/src/HAL/STM32/Servo.cpp
+  Marlin/Marlin/src/HAL/STM32/timers.cpp
+  Marlin/Marlin/src/lcd/extui/ui_api.cpp
+  Marlin/Marlin/src/lcd/marlinui.cpp
   Marlin/Marlin/src/libs/buzzer.cpp
   Marlin/Marlin/src/libs/crc16.cpp
   Marlin/Marlin/src/libs/heatshrink/heatshrink_decoder.cpp
-  Marlin/Marlin/src/libs/hex_print_routines.cpp
+  Marlin/Marlin/src/libs/hex_print.cpp
   Marlin/Marlin/src/libs/least_squares_fit.cpp
   Marlin/Marlin/src/libs/nozzle.cpp
   Marlin/Marlin/src/libs/numtostr.cpp
   Marlin/Marlin/src/libs/stopwatch.cpp
   Marlin/Marlin/src/libs/vector_3.cpp
-  Marlin/Marlin/src/Marlin.cpp
-  Marlin/Marlin/src/module/configuration_store.cpp
+  Marlin/Marlin/src/MarlinCore.cpp
   Marlin/Marlin/src/module/delta.cpp
   Marlin/Marlin/src/module/endstops.cpp
   Marlin/Marlin/src/module/motion.cpp
@@ -159,9 +148,9 @@ add_library(
   Marlin/Marlin/src/module/probe.cpp
   Marlin/Marlin/src/module/scara.cpp
   Marlin/Marlin/src/module/servo.cpp
+  Marlin/Marlin/src/module/settings.cpp
   Marlin/Marlin/src/module/stepper.cpp
   Marlin/Marlin/src/module/stepper/indirection.cpp
-  Marlin/Marlin/src/module/stepper/L6470.cpp
   Marlin/Marlin/src/module/stepper/TMC26X.cpp
   Marlin/Marlin/src/module/stepper/trinamic.cpp
   Marlin/Marlin/src/module/temperature.cpp

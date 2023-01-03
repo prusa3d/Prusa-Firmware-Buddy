@@ -21,7 +21,7 @@
  */
 #pragma once
 
-#ifndef __has_include
+#if !defined(__has_include)
   #define __has_include(...) 1
 #endif
 

@@ -1,4 +1,4 @@
-#include "config_features.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "../PrusaGcodeSuite.hpp"
 #include "RAII.hpp"
 #include "M70X.hpp"

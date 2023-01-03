@@ -217,11 +217,11 @@ static constexpr float nozzle_to_probe[] = NOZZLE_TO_PROBE_OFFSET;
 static constexpr float z_offset_def = nozzle_to_probe[AxisEnum::Z_AXIS];
 
 LoopResult CSelftestPart_FirstLayer::stateInitialDistanceInit() {
-    float diff = probe_offset.z - z_offset_def;
+    float diff = probe.offset.z - z_offset_def;
     if ((diff <= -z_offset_step) || (diff >= z_offset_step)) {
         IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_use_val);
         current_offset_is_default = false;
-        rResult.current_offset = probe_offset.z;
+        rResult.current_offset = probe.offset.z;
     } else {
         current_offset_is_default = true;
     }
@@ -235,7 +235,7 @@ LoopResult CSelftestPart_FirstLayer::stateInitialDistance() {
 
     switch (rStateMachine.GetButtonPressed()) {
     case Response::No:
-        probe_offset.z = z_offset_def;
+        probe.offset.z = z_offset_def;
         // don't return / break
     case Response::Yes:
         return LoopResult::RunNext;

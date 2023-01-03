@@ -76,9 +76,7 @@ extern "C" {
 // weaked functions declaration
 void SystemClock_Config(void);
 
-//void _Error_Handler(const char *, int);
-
-//#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+#include "main.h"
 
 #ifdef __cplusplus
 } // extern "C"

@@ -3,7 +3,7 @@
  * @brief Parsing of M170X g-codes
  */
 
-#include "config_features.h"
+#include "../../lib/Marlin/Marlin/src/inc/MarlinConfig.h"
 #include "../PrusaGcodeSuite.hpp"
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "M70X.hpp"

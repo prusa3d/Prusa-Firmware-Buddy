@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:prusa3d/Marlin.git
 	branch = buddy
-	commit = f00b48f9a8da77d0d603b74c843359b82ee306e3
-	parent = fd46d65e36d3ef556d6adc483994126aac5b1248
+	commit = 733ca940c0ed582fcd0e0a39b10b1fe8986b574c
+	parent = 6e15d6c382c7f875bbedf46ff02ff11aba5c7b87
 	method = merge
-	cmdver = 0.4.1
+	cmdver = 0.4.3

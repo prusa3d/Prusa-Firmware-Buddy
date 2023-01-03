@@ -366,7 +366,7 @@ void CSelftest::restoreAfterSelftest() {
     fanCtlHeatBreak.ExitSelftestMode();
 
     thermalManager.disable_all_heaters();
-    disable_all_steppers();
+    stepper.disable_all_steppers();
 }
 
 void CSelftest::next() {

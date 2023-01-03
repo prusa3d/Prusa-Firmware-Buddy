@@ -25,7 +25,7 @@
 
 #include <Arduino.h>
 #include "trinamic.h"
-#include "../Marlin/src/module/configuration_store.h"
+#include "../Marlin/src/module/settings.h"
 #include <tasks.h>
 
 #if ENABLED(POWER_PANIC)

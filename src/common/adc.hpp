@@ -55,10 +55,10 @@ using AdcDma1 = AdcDma<hadc1, AdcChannel::ADC1_CH_CNT>;
 extern AdcDma1 adcDma1;
 
 namespace AdcGet {
-[[nodiscard]] inline uint16_t get_and_shift(uint8_t channel) { return adcDma1.get_channel(channel) >> 2; } //This function is need for convert 12bit to 10bit
-inline uint16_t nozzle() { return get_and_shift(AdcChannel::hotend_T); }
-inline uint16_t bed() { return get_and_shift(AdcChannel::heatbed_T); }
-inline uint16_t boardTemp() { return get_and_shift(AdcChannel::board_T); }
-inline uint16_t pinda() { return get_and_shift(AdcChannel::pinda_T); }
-inline uint16_t bedMon() { return get_and_shift(AdcChannel::heatbed_U); }
+[[nodiscard]] inline uint16_t get(uint8_t channel) { return adcDma1.get_channel(channel); }
+inline uint16_t nozzle() { return get(AdcChannel::hotend_T); }
+inline uint16_t bed() { return get(AdcChannel::heatbed_T); }
+inline uint16_t boardTemp() { return get(AdcChannel::board_T); }
+inline uint16_t pinda() { return get(AdcChannel::pinda_T); }
+inline uint16_t bedMon() { return get(AdcChannel::heatbed_U); }
 }

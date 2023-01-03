@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -48,7 +48,7 @@ void MarlinGame::draw_game_over() {
     u8g.setColorIndex(0);
     u8g.drawBox(lx - 1, ly - gohigh - 1, gowide + 2, gohigh + 2);
     u8g.setColorIndex(1);
-    if (ui.get_blink()) lcd_put_u8str_P(lx, ly, PSTR("GAME OVER"));
+    if (ui.get_blink()) lcd_put_u8str(lx, ly, F("GAME OVER"));
   }
 }
 

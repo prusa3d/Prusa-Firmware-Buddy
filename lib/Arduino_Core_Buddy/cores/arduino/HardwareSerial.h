@@ -2,8 +2,11 @@
 #ifndef _HARDWARESERIAL_H
 #define _HARDWARESERIAL_H
 
-#include <inttypes.h>
-#include "Stream.h"
+#ifdef __cplusplus
+
+    #include <inttypes.h>
+    #include "Stream.h"
+    #include "uart.h"
 
 class HardwareSerial : public Stream {
 public:
@@ -22,4 +25,5 @@ public:
 
 extern HardwareSerial Serial3;
 
+#endif //__cplusplus
 #endif //_HARDWARESERIAL_H

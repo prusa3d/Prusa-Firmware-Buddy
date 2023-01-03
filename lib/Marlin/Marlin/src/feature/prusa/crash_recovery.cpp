@@ -79,7 +79,7 @@ void Crash_s::stop_and_save() {
 
     // save planner state
     leveling_active = planner.leveling_active;
-    crash_axis_known_position = axis_known_position;
+    crash_axis_known_position = axes_trusted;
     // TODO: this is incomplete, as some of the planner state is ahead of the stepper state
     //       marlin state is also not saved, notably: absolute/relative axis state
     //marlin_server.motion_param.save();
@@ -96,9 +96,8 @@ void Crash_s::stop_and_save() {
 
     // update crash_current_position. WARNING: this is NOT intended to be fully reversible (doing so
     // would require keeping more state), it's only usable to abort or return to the same position.
-    LOOP_XYZE(i) {
-        crash_current_position[i] = planner.get_axis_position_mm((AxisEnum)i);
-    }
+    crash_current_position = planner.get_axis_positions_mm();
+
     #if HAS_POSITION_MODIFIERS
     planner.unapply_modifiers(crash_current_position
         #if HAS_LEVELING
@@ -136,7 +135,7 @@ void Crash_s::restore_state() {
 
     if (inhibit_flags & INHIBIT_XYZ_REPOSITIONING) {
         // also reset internal crash locations to current_position
-        LOOP_XYZ(i) {
+        LOOP_NUM_AXES(i) {
             start_current_position[i] = current_position[i];
             crash_position[i] = current_position[i];
         }

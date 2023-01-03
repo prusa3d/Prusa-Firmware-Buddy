@@ -3,7 +3,7 @@
  * @author Radek Vana
  * @date 2020-12-15
  */
-#include "../../lib/Marlin/Marlin/src/Marlin.h"
+#include "../../lib/Marlin/Marlin/src/MarlinCore.h"
 #include "../../lib/Marlin/Marlin/src/module/temperature.h"
 #include "safety_timer_stubbed.hpp"
 #include "marlin_server.hpp"
