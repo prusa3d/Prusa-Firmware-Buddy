@@ -1,3 +1,5 @@
+target_include_directories(firmware PRIVATE include_${PRINTER})
+
 target_sources(
   firmware
   PRIVATE gcode_description.cpp

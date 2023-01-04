@@ -1,5 +1,11 @@
-// gui_config_mini.h
+/**
+ * @file gui_config_printer.hpp
+ * @brief printer specific gui config
+ */
+
 #pragma once
+
+#include <cstdint>
 
 // axis length [mm] - PRINTER MINI
 inline constexpr uint8_t X_LEN = 184;

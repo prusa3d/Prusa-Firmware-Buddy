@@ -4,11 +4,7 @@
 
 #include "../Marlin/src/module/temperature.h"
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #include "gui_config_mini.h"
-#else
-    #error "Unknown PRINTER_TYPE."
-#endif
+#include "gui_config_printer.hpp"
 
 #include "eeprom.h"
 
