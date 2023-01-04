@@ -92,3 +92,25 @@ TEST_CASE("Set printer ready") {
 TEST_CASE("Send transfer info") {
     command_test<SendTransferInfo>("{\"command\": \"SEND_TRANSFER_INFO\", \"args\": [], \"kwargs\": {}}");
 }
+
+TEST_CASE("Start connect download - missing params") {
+    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {}}");
+    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"hash\": \"abcdef\"}}");
+    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42}}");
+    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"team_id\": 42, \"hash\": \"abcdef\"}}");
+}
+
+TEST_CASE("Start connect download") {
+    auto cmd = command_test<StartConnectDownload>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\"}}");
+    REQUIRE(strcmp(cmd.hash, "abcdef") == 0);
+    REQUIRE(cmd.team == 42);
+    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
+}
+
+TEST_CASE("Start connect download - reversed") {
+    // The command field is after the args, check that we are able to deal with it in the wrong order too.
+    auto cmd = command_test<StartConnectDownload>("{\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\"}, \"command\": \"START_CONNECT_DOWNLOAD\"}");
+    REQUIRE(strcmp(cmd.hash, "abcdef") == 0);
+    REQUIRE(cmd.team == 42);
+    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
+}

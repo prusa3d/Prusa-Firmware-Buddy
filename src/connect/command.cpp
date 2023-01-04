@@ -30,6 +30,19 @@ namespace {
     // stack, so likely fine to overshoot a bit.
     const constexpr size_t MAX_TOKENS = 60;
 
+    optional<uint64_t> convert_int(const Event &event) {
+        // Does anyone know of a way to convert size-bounded (not null-terminated) string to number in C/C++? :-(
+        const size_t len = event.value->size();
+        char id_str[len + 1];
+        strlcpy(id_str, event.value->data(), len + 1);
+        char *err = nullptr;
+        auto result = strtoull(id_str, &err, 0);
+        if (err && *err) {
+            return nullopt;
+        } else {
+            return result;
+        }
+    }
 }
 
 Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
@@ -66,6 +79,8 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
 
     bool in_kwargs = false;
     optional<uint16_t> job_id = nullopt;
+    optional<uint64_t> team_id = nullopt;
+    char hash[StartConnectDownload::HASH_BUFF] = {};
 
     bool has_path = false;
 
@@ -87,6 +102,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("START_PRINT", StartPrint)
             T("SET_PRINTER_READY", SetPrinterReady)
             T("CANCEL_PRINTER_READY", CancelPrinterReady)
+            T("START_CONNECT_DOWNLOAD", StartConnectDownload)
             return;
         }
 
@@ -95,19 +111,16 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
         } else if (event.depth == 1 && event.type == Type::Pop) {
             in_kwargs = false;
         } else if (event.depth == 2 && in_kwargs && event.type == Type::Primitive && event.key == "job_id") {
-            // Does anyone know of a way to convert size-bounded (not null-terminated) string to number in C/C++? :-(
-            const size_t len = event.value->size();
-            char id_str[len + 1];
-            strlcpy(id_str, event.value->data(), len + 1);
-            char *err = nullptr;
-            job_id = strtoul(id_str, &err, 0);
-            if (err && *err) {
-                job_id = nullopt;
-            }
+            job_id = convert_int(event);
         } else if (event.depth == 2 && in_kwargs && event.type == Type::String && (event.key == "path" || event.key == "path_sfn")) {
             const size_t len = min(event.value->size() + 1, buff.size());
             strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
             has_path = true;
+        } else if (event.depth == 2 && in_kwargs && event.type == Type::Primitive && event.key == "team_id") {
+            team_id = convert_int(event);
+        } else if (event.depth == 2 && in_kwargs && event.type == Type::String && event.key == "hash") {
+            const size_t len = min(event.value->size() + 1, sizeof hash);
+            strlcpy(hash, event.value->data(), len);
         }
     });
 
@@ -132,6 +145,17 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
     } else if (auto *start = get_if<StartPrint>(&data); start != nullptr) {
         if (has_path) {
             start->path = SharedPath(move(buff));
+        } else {
+            // Missing parameters
+            data = BrokenCommand {};
+        }
+    } else if (auto *download = get_if<StartConnectDownload>(&data); download != nullptr) {
+        const bool ok = has_path && team_id.has_value() && hash[0] != '\0';
+        if (ok) {
+            download->path = SharedPath(move(buff));
+            download->team = *team_id;
+            static_assert(sizeof hash == sizeof download->hash);
+            strlcpy(download->hash, hash, sizeof hash);
         } else {
             // Missing parameters
             data = BrokenCommand {};
