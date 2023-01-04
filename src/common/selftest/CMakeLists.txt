@@ -1,4 +1,4 @@
-target_include_directories(firmware PRIVATE ${PRINTER})
+target_include_directories(firmware PRIVATE include_${PRINTER})
 
 target_sources(
   firmware
