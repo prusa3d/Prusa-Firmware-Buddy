@@ -1,5 +1,5 @@
 /**
- * @file screen_menu_experimental_settings_mini.hpp
+ * @file screen_menu_experimental_settings_release.hpp
  * @brief experimental settings for MINI printer
  * !! DO not include directly, include screen_menu_experimental_settings.hpp instead
  */
