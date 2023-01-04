@@ -59,10 +59,11 @@ constexpr const char *ToString(TestResult_t res) {
 }
 
 enum class TestResultNet_t : uint8_t {
-    Unknown,  //test did not run
-    Unlinked, // wifi not present, eth cable unplugged
-    Down,     // wifi present, eth cable plugged, not selected in lan settings
-    Up,       // wifi present, eth cable plugged, selected in lan settings
+    Unknown,   //test did not run
+    Unlinked,  // wifi not present, eth cable unplugged
+    Down,      // wifi present, eth cable plugged, not selected in lan settings
+    NoAddress, // wifi present, no address obtained from DHCP
+    Up,        // wifi present, eth cable plugged, selected in lan settings
 };
 
 constexpr const char *ToString(TestResultNet_t res) {
@@ -73,6 +74,8 @@ constexpr const char *ToString(TestResultNet_t res) {
         return "Unlinked";
     case TestResultNet_t::Down:
         return "Down";
+    case TestResultNet_t::NoAddress:
+        return "NoAddress";
     case TestResultNet_t::Up:
         return "Up";
     default:
