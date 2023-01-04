@@ -1,1 +1,1 @@
-target_sources(firmware PRIVATE monitor.cpp)
+target_sources(firmware PRIVATE download.cpp monitor.cpp)

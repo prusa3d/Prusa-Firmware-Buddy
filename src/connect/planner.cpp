@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <cstdio>
+#include <cinttypes>
 #include <sys/stat.h>
 
 using std::holds_alternative;
@@ -78,6 +80,9 @@ namespace {
         // This could give some false negatives, in practice rare (we don't have permissions, and such).
         return stat(path, &st) == 0;
     }
+
+    template <class>
+    inline constexpr bool always_false_v = false;
 }
 
 const char *to_str(EventType event) {
@@ -375,7 +380,71 @@ void Planner::command(const Command &command, const ProcessingThisCommand &) {
 }
 
 void Planner::command(const Command &command, const StartConnectDownload &download) {
-    // TODO
+    // Get the config (we need it for the connection); don't reset the "changed" flag.
+    auto [config, config_changed] = printer.config(false);
+    if (config_changed) {
+        // If the config changed, there's a chance the old server send us a
+        // command to download stuff and we would download it from the new one,
+        // which a) wouldn't have it, b) we could leak some info to the new
+        // server we are not supposed to. Better safe than sorry.
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Switching config" };
+        return;
+    }
+
+    if (config.tls) {
+        // TODO Once we have the support for symmetric encryption, we refuse
+        // this only if we have no decryption key ready.
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Encryption of downloads not supported" };
+        return;
+    }
+
+    // TODO: Support overriding port:
+    // By a field in the message
+    // Going from 443 to 80 on TLS connections
+    const uint16_t port = config.port;
+    const char *host = config.host;
+
+    const char *prefix = "/p/teams/";
+    const char *infix = "/files/";
+    const char *suffix = "/raw";
+    const size_t buffer_len = strlen(prefix) + 21 /* max len of 64bit number */ + strlen(infix) + strlen(download.hash) + strlen(suffix) + 1;
+    char path[buffer_len];
+    size_t written = snprintf(path, buffer_len, "%s%" PRIu64 "%s%s%s", prefix, download.team, infix, download.hash, suffix);
+    // Written is number of chars that _would_ be written if there's enough
+    // space, which means that if it's size or longer, we got it truncated.
+    //
+    // That would mean we somehow miscalculated the buffer estimate.
+    assert(written < buffer_len);
+    // Avoid warning about unused in release builds (assert off)
+    (void)written;
+
+    auto down_result = transfers::start_connect_download(host, port, path, download.path);
+
+    visit([&](auto &&arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, transfers::Download>) {
+            // If there was another download, it wouldn't have succeeded
+            // because it wouldn't acquire the transfer slot.
+            assert(!this->download.has_value());
+
+            this->download = arg;
+            planned_event = Event { EventType::Finished, command.id };
+        } else if constexpr (std::is_same_v<T, transfers::NoTransferSlot>) {
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress" };
+        } else if constexpr (std::is_same_v<T, transfers::Filename>) {
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Invalid characters in the filename" };
+        } else if constexpr (std::is_same_v<T, transfers::AlreadyExists>) {
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "File already exists" };
+        } else if constexpr (std::is_same_v<T, transfers::RefusedRequest>) {
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Failed to download" };
+        } else {
+            static_assert(always_false_v<T>, "non-exhaustive visitor!");
+        }
+    },
+        down_result);
+
+    // TODO: This is temporary. As we don't do the actual download, so release the slot.
+    this->download.reset();
 }
 
 // FIXME: Handle the case when we are resent a command we are already

@@ -10,8 +10,6 @@
 #include <cstring>
 #include <memory>
 
-namespace connect_client {
-
 template <size_t S>
 class Buffer {
 private:
@@ -115,5 +113,3 @@ public:
         return path + plen + 1;
     }
 };
-
-}

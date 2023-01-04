@@ -1,11 +1,12 @@
 #pragma once
 
-#include "buffer.hpp"
 #include "changes.hpp"
 #include "command.hpp"
 #include "printer.hpp"
 
+#include <common/shared_buffer.hpp>
 #include <transfers/monitor.hpp>
+#include <transfers/download.hpp>
 
 #include <cstdint>
 #include <optional>
@@ -164,6 +165,11 @@ private:
     Tracked file_changes;
     // Tracking of ongoing transfers.
     std::optional<transfers::TransferId> observed_transfer;
+    // A download running in background.
+    //
+    // As we may have a background _task_ and a download at the same time, we
+    // need to have variables for both.
+    std::optional<transfers::Download> download;
 
 public:
     Planner(Printer &printer)

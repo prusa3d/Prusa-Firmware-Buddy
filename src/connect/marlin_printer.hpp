@@ -1,8 +1,8 @@
 #pragma once
 
-#include "buffer.hpp"
 #include "printer.hpp"
 
+#include <common/shared_buffer.hpp>
 #include <marlin_client.h>
 
 namespace connect_client {

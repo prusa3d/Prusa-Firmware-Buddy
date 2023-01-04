@@ -1,6 +1,6 @@
 #pragma once
 
-#include "buffer.hpp"
+#include <common/shared_buffer.hpp>
 
 #include <cstdint>
 #include <string_view>
