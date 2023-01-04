@@ -9,7 +9,7 @@
 #include "MItem_tools.hpp"
 #include "knob_event.hpp"
 #include "MItem_crash.hpp"
-#include "Configuration_MINI_adv.h"
+#include "Configuration_adv.h"
 
 /*****************************************************************************/
 
