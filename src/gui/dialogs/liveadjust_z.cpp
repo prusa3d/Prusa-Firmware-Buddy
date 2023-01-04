@@ -10,11 +10,7 @@
 #include "png_resources.hpp"
 
 #include "config_features.h"
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #include "gui_config_mini.h"
-#else
-    #error "Unknown PRINTER_TYPE."
-#endif
+#include "gui_config_printer.hpp"
 
 /*****************************************************************************/
 //WindowScale
