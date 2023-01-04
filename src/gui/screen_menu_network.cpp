@@ -20,7 +20,8 @@ ScreenMenuNetwork::ScreenMenuNetwork()
 
 void ScreenMenuNetwork::refresh_address() {
     const uint32_t active_netdev = netdev_get_active_id();
-    if (netdev_get_status(active_netdev) == NETDEV_NETIF_UP) {
+    netdev_status_t n_status = netdev_get_status(active_netdev);
+    if (n_status == NETDEV_NETIF_UP || n_status == NETDEV_NETIF_NOADDR) {
         char str[ADDR_LEN];
         lan_t ethconfig = {};
         netdev_get_ipv4_addresses(active_netdev, &ethconfig);

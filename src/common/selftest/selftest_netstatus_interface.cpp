@@ -15,6 +15,8 @@ static TestResultNet_t convert(netdev_status_t status) {
         return TestResultNet_t::Unlinked;
     case NETDEV_NETIF_DOWN:
         return TestResultNet_t::Down;
+    case NETDEV_NETIF_NOADDR:
+        return TestResultNet_t::NoAddress;
     case NETDEV_NETIF_UP:
         return TestResultNet_t::Up;
     default:
@@ -29,6 +31,8 @@ static const char *to_string(netdev_status_t status) {
         return "Unlinked";
     case NETDEV_NETIF_DOWN:
         return "Down";
+    case NETDEV_NETIF_NOADDR:
+        return "NoAddress";
     case NETDEV_NETIF_UP:
         return "Up";
     default:

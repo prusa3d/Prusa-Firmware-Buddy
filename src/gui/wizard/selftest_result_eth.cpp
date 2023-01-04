@@ -14,6 +14,7 @@ static string_view_utf8 getText(TestResultNet_t res) {
     case TestResultNet_t::Unknown:
         return _("Test did not run");
     case TestResultNet_t::Down:
+    case TestResultNet_t::NoAddress:
         return _("Inactive");
     case TestResultNet_t::Up:
         return _("Connected");
@@ -29,6 +30,7 @@ ResultEth::ResultEth(TestResultNet_t res)
     , not_connected(getText(res), &png::lan_16x16) {
     switch (res) {
     case TestResultNet_t::Up:
+    case TestResultNet_t::NoAddress:
     case TestResultNet_t::Down:
         Add(connected);
         break;

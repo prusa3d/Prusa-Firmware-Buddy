@@ -532,7 +532,11 @@ public:
         netdev_status_t status = NETDEV_NETIF_DOWN;
         with_iface(netdev_id, [&](netif &iface, NetworkState &instance) {
             if (netif_is_link_up(&iface)) {
-                status = instance.netif_link(netdev_id) ? NETDEV_NETIF_UP : NETDEV_UNLINKED;
+                if (instance.netif_link(netdev_id)) {
+                    status = netif_ip4_addr(&iface)->addr != 0 ? NETDEV_NETIF_UP : NETDEV_NETIF_NOADDR;
+                } else {
+                    status = NETDEV_UNLINKED;
+                }
             }
         });
         return status;
