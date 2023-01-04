@@ -6,10 +6,8 @@
 #include "config.h"
 
 #ifndef _DEBUG
-    #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-        #include "screen_menu_experimental_settings_mini.hpp"
-    #endif //PRINTER_PRUSA_MINI
-#else      // _DEBUG
+    #include "screen_menu_experimental_settings_release.hpp"
+#else // _DEBUG
     #include "screen_menu_experimental_settings_debug.hpp"
 #endif // _DEBUG
 

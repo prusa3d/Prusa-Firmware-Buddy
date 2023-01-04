@@ -1,5 +1,5 @@
 /**
- * @file screen_menu_experimental_settings_mini.cpp
+ * @file screen_menu_experimental_settings_release.cpp
  */
 
 #include "screen_menu_experimental_settings.hpp"
