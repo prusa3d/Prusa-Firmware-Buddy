@@ -38,8 +38,16 @@ struct StartPrint {
 };
 struct SetPrinterReady {};
 struct CancelPrinterReady {};
+struct StartConnectDownload {
+    // The hash itself is max 28 chars
+    static constexpr size_t HASH_BUFF = 29;
+    SharedPath path;
+    uint64_t team;
+    // In the original string form
+    char hash[HASH_BUFF];
+};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartConnectDownload>;
 
 struct Command {
     CommandId id;

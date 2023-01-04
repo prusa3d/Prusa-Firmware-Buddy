@@ -137,6 +137,7 @@ private:
     void command(const Command &, const StartPrint &);
     void command(const Command &, const CancelPrinterReady &);
     void command(const Command &, const SetPrinterReady &);
+    void command(const Command &, const StartConnectDownload &);
 
     // Try to perform some background work, if any is available.
     //

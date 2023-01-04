@@ -374,6 +374,10 @@ void Planner::command(const Command &command, const ProcessingThisCommand &) {
     assert(0);
 }
 
+void Planner::command(const Command &command, const StartConnectDownload &download) {
+    // TODO
+}
+
 // FIXME: Handle the case when we are resent a command we are already
 // processing for a while. In that case, we want to re-Accept it. Nevertheless,
 // we may not be able to parse it again because the background command might be
