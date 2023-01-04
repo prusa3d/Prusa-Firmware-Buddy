@@ -1,11 +1,11 @@
 #pragma once
 
-#include "buffer.hpp"
 #include "changes.hpp"
 #include "planner.hpp"
 #include "printer.hpp"
 
 #include <http/httpc.hpp>
+#include <common/shared_buffer.hpp>
 
 namespace connect_client {
 
