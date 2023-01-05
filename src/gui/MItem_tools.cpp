@@ -322,6 +322,16 @@ void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+//MI_EE_CLEAR
+MI_EE_CLEAR::MI_EE_CLEAR()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+}
+
+void MI_EE_CLEAR::click(IWindowMenu & /*window_menu*/) {
+    eeprom_clear();
+}
+
+/*****************************************************************************/
 //MI_M600
 MI_M600::MI_M600()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
