@@ -6,6 +6,8 @@
 #include "marlin_client.h"
 #include "menu_spin_config.hpp"
 
+#include "png_resources.hpp"
+
 I_MI_AXIS::I_MI_AXIS(size_t index)
     : WiSpinInt(int32_t(marlin_vars()->pos[index]),
         SpinCnf::axis_ranges[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
@@ -147,6 +149,9 @@ bool ScreenMenuMove::IsTempOk() {
 
 ScreenMenuMove::ScreenMenuMove()
     : ScreenMenuMove__(_(label)) {
+#if PRINTER_TYPE != PRINTER_PRUSA_MINI
+    header.SetIcon(&png::move_16x16);
+#endif
     marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
     prev_accel = marlin_vars()->travel_acceleration;
     marlin_gcode("M204 T200");

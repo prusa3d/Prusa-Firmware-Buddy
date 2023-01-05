@@ -5,6 +5,7 @@
 #include "screen_menu_filament.hpp"
 #include "filament.hpp"
 #include "filament_sensor_api.hpp"
+#include "png_resources.hpp"
 
 enum {
     F_EEPROM = 0x01, // filament is known
@@ -13,6 +14,9 @@ enum {
 
 ScreenMenuFilament::ScreenMenuFilament()
     : ScreenMenuFilament__(_(label)) {
+#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+    header.SetIcon(&png::spool_white_16x16);
+#endif //PRINTER_PRUSA_MINI
     deactivate_item();
 }
 

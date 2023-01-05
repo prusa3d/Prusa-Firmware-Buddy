@@ -9,6 +9,10 @@
 ScreenMenuTemperature::ScreenMenuTemperature()
     : ScreenMenuTemperature__(_(label)) {
     EnableLongHoldScreenAction();
+
+#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+    header.SetIcon(&png::temperature_white_16x16);
+#endif //PRINTER_PRUSA_MINI
 }
 
 void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
