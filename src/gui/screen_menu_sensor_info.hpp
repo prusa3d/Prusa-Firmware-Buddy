@@ -3,11 +3,8 @@
  */
 #pragma once
 
-#include "screen_menu.hpp"
-#include "MItem_tools.hpp"
+#include "screen_menu_sensor_info_parent_alias.hpp"
 #include "fs_autoload_autolock.hpp"
-
-using ScreenMenuSensorInfo__ = ScreenMenu<EFooter::On, MI_RETURN, MI_FILAMENT_SENSOR_STATE, MI_MINDA>;
 
 class ScreenMenuSensorInfo : public ScreenMenuSensorInfo__ {
     FS_AutoloadAutolock lock;
