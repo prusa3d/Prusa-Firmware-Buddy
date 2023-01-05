@@ -7,6 +7,8 @@
 #include "netdev.h"
 #include "wui.h"
 
+#include "png_resources.hpp"
+
 #ifdef BUDDY_ENABLE_CONNECT
     #include <connect/marlin_printer.hpp>
 #endif
@@ -30,6 +32,10 @@ void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 ScreenMenuSettings::ScreenMenuSettings()
     : ScreenMenuSettings__(_(label))
     , old_action(gui::knob::GetLongPressScreenAction()) { // backup hold action
+
+#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+    header.SetIcon(&png::settings_16x16);
+#endif //PRINTER_PRUSA_MINI
 
     gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuExperimentalSettings>); }); // new hold action
     EnableLongHoldScreenAction();
