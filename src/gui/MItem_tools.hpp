@@ -212,6 +212,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_EE_CLEAR : public WI_LABEL_t {
+    static constexpr const char *const label = "EE clear"; // intentionally not translated, only for debugging
+
+public:
+    MI_EE_CLEAR();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_M600 : public WI_LABEL_t {
     static constexpr const char *const label = N_("Change Filament");
 
