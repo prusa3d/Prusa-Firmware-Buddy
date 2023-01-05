@@ -148,7 +148,10 @@ Action Planner::next_action() {
         optional<Monitor::Outcome> outcome = observed_transfer.has_value() ? Monitor::instance.outcome(*observed_transfer) : nullopt;
 
         if (outcome.has_value()) {
-            EventType type;
+            // The default value will never be used, it
+            // is set only to shut up the compiler about
+            // uninitialized use
+            EventType type = EventType::Failed;
 
             switch (*outcome) {
             case Monitor::Outcome::Finished:
