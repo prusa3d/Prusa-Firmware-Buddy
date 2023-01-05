@@ -40,7 +40,6 @@ target_sources(
           screen_menu_network.cpp
           screen_menu_odometer.cpp
           screen_menu_sensor_info.cpp
-          screen_menu_service.cpp
           screen_menu_settings.cpp
           screen_menu_steel_sheets.cpp
           screen_menu_temperature.cpp
