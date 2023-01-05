@@ -2370,7 +2370,7 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
      * => normalize the complete junction vector
      * Also always normalize when float position is not available and there is E component.
      */
-    if (IS_CORE || (!HAS_POSITION_FLOAT && (esteps > 0)))
+    if (ENABLED(IS_CORE) || (!HAS_POSITION_FLOAT && (esteps > 0)))
       normalize_junction_vector(unit_vec);
     else
       unit_vec *= inverse_millimeters;
