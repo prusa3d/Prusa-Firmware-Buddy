@@ -90,6 +90,8 @@ if(HAS_SELFTEST)
             ScreenSelftest.cpp
             selftest_frame.cpp
     )
+else()
+  target_sources(firmware PRIVATE MItem_basic_selftest_disabled.cpp)
 endif()
 
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
