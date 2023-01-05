@@ -16,7 +16,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuHwSetup__ = ScreenMenu<EFooter::On, MI_RETURN, MI_STEEL_SHEETS>;
+using ScreenMenuHwSetup__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_STEEL_SHEETS>;
 
 class ScreenMenuHwSetup : public ScreenMenuHwSetup__ {
 public:

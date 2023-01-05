@@ -7,7 +7,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_filament.hpp"
 
-using ScreenMenuFilament__ = ScreenMenu<EFooter::On, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
+using ScreenMenuFilament__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_LOAD, MI_UNLOAD, MI_CHANGE, MI_PURGE>;
 
 class ScreenMenuFilament : public ScreenMenuFilament__ {
 public:

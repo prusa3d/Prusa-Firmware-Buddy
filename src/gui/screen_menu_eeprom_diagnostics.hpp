@@ -8,7 +8,7 @@
 #include "screen_menu.hpp"
 #include "MItem_eeprom.hpp"
 
-using ScreenMenuEepromDiagnostics__ = ScreenMenu<EFooter::On, MI_RETURN,
+using ScreenMenuEepromDiagnostics__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_I2C_TRANSMIT_RESULTS_HAL_OK,
     MI_I2C_TRANSMIT_RESULTS_HAL_ERROR,
     MI_I2C_TRANSMIT_RESULTS_HAL_BUSY,

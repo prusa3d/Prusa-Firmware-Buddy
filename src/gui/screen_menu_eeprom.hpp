@@ -10,7 +10,7 @@
 
 /*****************************************************************************/
 //parent alias
-using ScreenMenuEeprom__ = ScreenMenu<EFooter::On, MI_RETURN, MI_EE_LOAD_400, MI_EE_LOAD_401,
+using ScreenMenuEeprom__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_EE_LOAD_400, MI_EE_LOAD_401,
     MI_EE_LOAD_402, MI_EE_LOAD_403RC1, MI_EE_LOAD_403,
     MI_EE_LOAD, MI_EE_SAVE, MI_EE_SAVEXML, MI_EE_CLEAR>;
 

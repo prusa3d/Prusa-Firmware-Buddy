@@ -10,7 +10,7 @@
 #include "MItem_tools.hpp"
 #include "MItem_lan.hpp"
 
-using ScreenMenuNetwork__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_PRUSALINK,
+using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_PRUSALINK,
 #ifdef BUDDY_ENABLE_CONNECT
     MI_PRUSA_CONNECT,
 #endif
