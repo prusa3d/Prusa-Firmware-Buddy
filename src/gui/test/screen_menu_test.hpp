@@ -49,7 +49,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuTest__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
+using ScreenMenuTest__ = ScreenMenu<EFooter::Off, MI_RETURN,
 
     // GENERATE_SCREEN_FN_ITEM_DEV(GetScreenMenuEepromTest, "test EEPROM"),
     /* TODO make it work

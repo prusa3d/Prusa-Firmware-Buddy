@@ -97,6 +97,8 @@ struct GuiDefaults {
 
     // Menu settings
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+    static constexpr EFooter MenuFooter = EFooter::On; // Menu has footer or not
+#else
     static constexpr EFooter MenuFooter = EFooter::Off; // Menu has footer or not
 #endif
     static constexpr size_t MenuIconWidth = 25;
