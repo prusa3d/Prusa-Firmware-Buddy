@@ -77,7 +77,7 @@ void wui_marlin_client_init(void) {
     marlin_vars_t *vars = marlin_client_init(); // init the client
     // force update variables when starts
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, NULL);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_WUI, NULL);
     marlin_client_set_fsm_cb(fsm_cb);
     if (vars) {
         /*

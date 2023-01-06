@@ -194,7 +194,7 @@ MarlinPrinter::MarlinPrinter(SharedBuffer &buffer)
     : buffer(buffer) {
     marlin_vars = marlin_client_init();
     assert(marlin_vars != nullptr);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI, NULL);
+    marlin_client_set_change_notify(MARLIN_VAR_MSK_WUI, NULL);
 
     info.firmware_version = project_version_full;
     info.appendix = appendix_exist();
@@ -223,7 +223,7 @@ void MarlinPrinter::renew() {
         marlin_vars->media_LFN = nullptr;
         marlin_vars->media_SFN_path = nullptr;
     }
-    marlin_update_vars(MARLIN_VAR_MSK_DEF | MARLIN_VAR_MSK_WUI);
+    marlin_update_vars(MARLIN_VAR_MSK_WUI);
     // Any suspicious state, like Busy or Printing will cancel the printer-ready state.
     //
     // (We kind of assume there's no chance of renew not being called between a
