@@ -339,6 +339,7 @@ void EspCredentials::Loop() {
             switch (ClientResponseHandler::GetResponseFromPhase(*phase)) {
             case Response::Continue:
             case Response::Retry:
+            case Response::Yes:
                 continue_pressed = true;
                 break;
             case Response::Abort:
