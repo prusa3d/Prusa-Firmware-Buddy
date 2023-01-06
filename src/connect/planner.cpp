@@ -13,6 +13,7 @@ using std::min;
 using std::nullopt;
 using std::optional;
 using std::visit;
+using transfers::Download;
 using transfers::Monitor;
 
 namespace connect_client {
@@ -418,7 +419,7 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
     // Avoid warning about unused in release builds (assert off)
     (void)written;
 
-    auto down_result = transfers::start_connect_download(host, port, path, download.path);
+    auto down_result = Download::start_connect_download(host, port, path, download.path);
 
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
@@ -427,16 +428,16 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
             // because it wouldn't acquire the transfer slot.
             assert(!this->download.has_value());
 
-            this->download = arg;
+            this->download = std::move(arg);
             planned_event = Event { EventType::Finished, command.id };
         } else if constexpr (std::is_same_v<T, transfers::NoTransferSlot>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress" };
-        } else if constexpr (std::is_same_v<T, transfers::Filename>) {
-            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Invalid characters in the filename" };
         } else if constexpr (std::is_same_v<T, transfers::AlreadyExists>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "File already exists" };
         } else if constexpr (std::is_same_v<T, transfers::RefusedRequest>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Failed to download" };
+        } else if constexpr (std::is_same_v<T, transfers::Storage>) {
+            planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, arg.msg };
         } else {
             static_assert(always_false_v<T>, "non-exhaustive visitor!");
         }

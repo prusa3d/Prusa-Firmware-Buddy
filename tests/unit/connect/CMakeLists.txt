@@ -10,6 +10,10 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/gcode_filename.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
@@ -17,8 +21,10 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/hostname.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   command.cpp
   missing_functions.cpp
+  missing_functions_time.cpp
   render.cpp
   hostname.cpp
   printer.cpp
@@ -57,16 +63,25 @@ add_dependencies(connect_tests generate-httpc-automata-tests-connect)
 # Planner tests are separate. They mock time and don't want to poison that for others.
 add_executable(
   connect_planner_tests
+  ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/crc32.c
+  ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   time_mock.cpp
+  missing_functions.cpp
   planner.cpp
   )
 target_include_directories(
@@ -75,6 +90,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/lib/jsmn
   )
 add_definitions(-DUNITTESTS)
+add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
 
 add_catch_test(connect_tests)
 add_catch_test(connect_planner_tests)

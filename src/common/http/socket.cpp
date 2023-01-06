@@ -19,6 +19,7 @@
 #endif
 #undef log_debug
 #define log_debug(...)
+#include <log.h>
 
 #include <memory>
 

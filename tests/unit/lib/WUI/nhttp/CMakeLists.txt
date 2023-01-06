@@ -38,6 +38,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/basename.c
   ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/sha256.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/md5.c
   # Dependencies.
