@@ -82,7 +82,6 @@ void filament_gcodes::preheat_to(filament_t filament) {
     if (thermalManager.degTargetHotend(0) < fil_cnf.nozzle) {
         thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
         marlin_server_set_temp_to_display(fil_cnf.nozzle);
-        thermalManager.setTargetBed(fil_cnf.heatbed);
     }
 }
 
@@ -109,7 +108,6 @@ std::pair<std::optional<PreheatStatus::Result>, filament_t> filament_gcodes::pre
     // change temp every time (unlike normal preheat)
     thermalManager.setTargetHotend(fil_cnf.nozzle, 0);
     marlin_server_set_temp_to_display(fil_cnf.nozzle);
-    thermalManager.setTargetBed(fil_cnf.heatbed);
 
     return { std::nullopt, filament };
 }
