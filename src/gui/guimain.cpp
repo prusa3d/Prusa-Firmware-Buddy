@@ -342,7 +342,8 @@ void gui_run(void) {
         }
 
         // I must do it before screen and dialog loops
-        volatile bool print_processor_waiting = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state == mpsWaitGui;
+        // do not use marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state, it can make gui freeze in case main thread is unresponsive
+        volatile bool print_processor_waiting = marlin_vars()->print_state == mpsWaitGui;
 
         redraw = DialogHandler::Access().Loop();
 
@@ -350,14 +351,16 @@ void gui_run(void) {
             // all messages received, redraw changes immediately
             gui_redraw();
 
-        // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
-        bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && (Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>() || Screens::Access()->IsScreenOpened<screen_printing_data_t>()));
-        bool in_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
         // this code handles start of print
         // it must be in main gui loop just before screen handler to ensure no FSM is opened
         // !DialogHandler::Access().IsAnyOpen() - wait until all FSMs are closed (including one click print)
         // one click print is closed automatically from main thread, because it is opened for wrong gcode
         if (print_processor_waiting) {
+
+            // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
+            bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && (Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>() || Screens::Access()->IsScreenOpened<screen_printing_data_t>()));
+            bool in_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
+
             if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
                 bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
                 Screens::Access()->CloseAll(); // set flag to close all screens
@@ -370,7 +373,7 @@ void gui_run(void) {
 
                 // wait for start of the print - to prevent any unwanted gui action
                 while (
-                    (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state != mpsIdle) // main thread is processing a print
+                    (marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state != mpsIdle) // main thread is processing a print. Here we need to call marlin_update_vars
                     && (!DialogHandler::Access().IsAnyOpen())                                         // wait for print screen to open, any fsm can break waiting (not only open of print screen)
                 ) {
                     gui_timers_cycle();   // refresh GUI time
