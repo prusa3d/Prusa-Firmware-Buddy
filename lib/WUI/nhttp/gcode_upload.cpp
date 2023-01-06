@@ -5,11 +5,12 @@
 #include "../../src/common/gcode_filename.h"
 #include "../wui_api.h"
 
+#include <transfers/files.hpp>
+
 #include <cassert>
 #include <cstring>
 #include <unistd.h>
 #include <errno.h>
-#include <sys/statvfs.h>
 
 extern "C" {
 
@@ -17,14 +18,6 @@ extern "C" {
 size_t strlcpy(char *, const char *, size_t);
 size_t strlcat(char *, const char *, size_t);
 }
-
-#define USB_MOUNT_POINT        "/usb/"
-#define USB_MOUNT_POINT_LENGTH (strlen(USB_MOUNT_POINT))
-// Length of the temporary file name. Due to the template below, we are sure to
-// fit.
-static const size_t TMP_BUFF_LEN = 20;
-static const char *const UPLOAD_TEMPLATE = USB_MOUNT_POINT "%zu.tmp";
-static const char *const CHECK_FILENAME = USB_MOUNT_POINT "check.tmp";
 
 namespace nhttp::printer {
 
@@ -34,11 +27,18 @@ using handler::StatusPage;
 using handler::Step;
 using http::Status;
 using std::get;
+using std::get_if;
 using std::holds_alternative;
 using std::make_tuple;
 using std::move;
 using std::string_view;
+using transfers::CHECK_FILENAME;
+using transfers::file_preallocate;
 using transfers::Monitor;
+using transfers::next_transfer_idx;
+using transfers::transfer_name;
+using transfers::USB_MOUNT_POINT;
+using transfers::USB_MOUNT_POINT_LENGTH;
 
 GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
     : upload(move(uploader))
@@ -99,9 +99,8 @@ GcodeUpload::~GcodeUpload() {
         // case where we closed the file before renaming and failed to rename.
         // Even in that case we want to remove the temp file.
         tmp_upload_file.reset();
-        char fname[TMP_BUFF_LEN];
-        snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
-        remove(fname);
+        const auto fname = transfer_name(file_idx);
+        remove(fname.begin());
     } else {
         // Leftover open file in moved object :-O
         assert(tmp_upload_file.get() == nullptr);
@@ -125,38 +124,15 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
         return StatusPage(Status::Conflict, parser, "Another transfer in progress");
     }
 
-    static size_t upload_idx = 0;
-    const size_t file_idx = upload_idx++;
-    char fname[TMP_BUFF_LEN];
-    snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
-    unique_file_ptr file(fopen(fname, "wb"));
-    if (!file) {
-        // Missing USB -> Insufficient storage.
-        return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing USB drive");
-    }
-    struct statvfs svfs;
-    if (statvfs(fname, &svfs) || (svfs.f_bavail * svfs.f_frsize * svfs.f_bsize) < *parser.content_length) {
-        file.reset();
-        remove(fname);
-        return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "USB drive full");
-    }
-    const size_t csize = svfs.f_frsize * svfs.f_bsize;
-    /* Pre-allocate the area needed for the file to prevent frequent metadata updates during the upload.
-       We do the pre-allocation incrementally cluster-by-cluster to minimize the chance of stalling
-       the media and blocking other tasks potentially waiting for the file system lock.
-       The file size doesn't need to be exactly the size of the uploaded content. We will truncate
-       the file later on. */
-    for (unsigned long sz = csize; sz < *parser.content_length; sz += csize) {
-        if (fseek(file.get(), sz, SEEK_SET)) {
-            file.reset();
-            remove(fname);
-            return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, "USB drive full");
-        }
-    }
-    fsync(fileno(file.get()));
-    fseek(file.get(), 0, SEEK_SET);
+    const size_t file_idx = next_transfer_idx();
+    const auto fname = transfer_name(file_idx);
 
-    return GcodeUpload(move(uploadParams), move(*slot), json_errors, *parser.content_length, file_idx, move(file), uploaded);
+    auto preallocated = file_preallocate(fname.begin(), *parser.content_length);
+    if (const char **err = get_if<const char *>(&preallocated); err != nullptr) {
+        return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, *err);
+    } else {
+        return GcodeUpload(move(uploadParams), move(*slot), json_errors, *parser.content_length, file_idx, move(get<unique_file_ptr>(preallocated)), uploaded);
+    }
 }
 
 Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
@@ -332,8 +308,7 @@ UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
 }
 
 UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_print) {
-    char fname[TMP_BUFF_LEN];
-    snprintf(fname, sizeof fname, UPLOAD_TEMPLATE, file_idx);
+    const auto fname = transfer_name(file_idx);
 
     // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
     (void)ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
@@ -341,7 +316,7 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     tmp_upload_file.reset();
     auto putParams = std::get_if<PutParams>(&upload);
     bool overwrite = putParams != nullptr && putParams->overwrite;
-    return try_rename(fname, final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
+    return try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
         monitor_slot.done(Monitor::Outcome::Finished);
         if (uploaded_notify != nullptr) {
             if (uploaded_notify(filename, start_print)) {
