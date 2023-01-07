@@ -13,6 +13,7 @@ target_sources(
           menu_item_event_dispatcher.cpp
           menu_opener.cpp
           menu_spin_config_types.cpp
+          png_measure.cpp
           Rect16.cpp
           screen.cpp
           ScreenShot.cpp
