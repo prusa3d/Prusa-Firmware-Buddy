@@ -15,6 +15,8 @@
 #include "st7789v_impl.hpp"
 #include "disable_interrupts.h"
 
+#include "png_measure.hpp"
+
 #ifdef ST7789V_USE_RTOS
     #include "cmsis_os.h"
 #endif // ST7789V_USE_RTOS
@@ -522,6 +524,8 @@ void _pngfree(png_structp pp, png_voidp mem) {
  * @param local_desatur_line    pixels above this line (relative to png) are in grayscale, ugly unclear parameter, but is needed for a smooth draw
  */
 void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect, uint16_t local_desatur_line) {
+    PNGMeasure PM;
+
     static const png_byte unused_chunks[] = {
         98, 75, 71, 68, '\0',   /* bKGD */
         99, 72, 82, 77, '\0',   /* cHRM */
