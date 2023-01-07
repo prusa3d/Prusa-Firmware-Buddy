@@ -40,7 +40,10 @@ png_read_data(png_structrp png_ptr, png_bytep data, size_t length)
       png_error(png_ptr, "Call to NULL read function");
 }
 
+#define USE_FASTER_READ_DATA
+
 #ifdef PNG_STDIO_SUPPORTED
+#ifndef USE_FASTER_READ_DATA
 /* This is the function that does the actual reading of data.  If you are
  * not reading from a standard C stream, you should create a replacement
  * read_data function and use it at run time with png_set_read_fn(), rather
@@ -62,6 +65,36 @@ png_default_read_data(png_structp png_ptr, png_bytep data, size_t length)
    if (check != length)
       png_error(png_ptr, "Read Error");
 }
+
+#else // USE_FASTER_READ_DATA
+
+/* Faster version of png_default_read_data
+ * this function makes entire png draw about 4% faster (I don't know how much faster is read itself)
+ * handling png in fread as multitude of 4B objects seems to be the most optimal (I have tried many different sizes)
+ * I could not easily define this function outside this library
+ * because png_structp is declared png_struct_def and it is zlib dependent and I really did not want to add zlib include path in main project
+ */
+void PNGCBAPI
+png_default_read_data(png_structp png_ptr, png_bytep data, size_t length)
+{
+   size_t check;
+
+   if (png_ptr == NULL)
+      return;
+
+   const size_t sz = 4;
+
+   check = fread(data, sz, length/sz, png_voidcast(png_FILE_p, png_ptr->io_ptr));
+
+   if (check != length/sz)
+      png_error(png_ptr, "Read Error");
+
+   check = fread(data + (length/sz) * sz, 1, length%sz, png_voidcast(png_FILE_p, png_ptr->io_ptr));
+
+   if (check != length%sz)
+      png_error(png_ptr, "Read Error");
+}
+#endif // USE_FASTER_READ_DATA
 #endif
 
 /* This function allows the application to supply a new input function
