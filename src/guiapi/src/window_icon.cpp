@@ -11,6 +11,7 @@
 #include "gcode_file.h"
 #include "gui_invalidate.hpp"
 #include "syslog.h"
+#include "timing.h"
 
 LOG_COMPONENT_REF(GUI);
 
@@ -96,6 +97,53 @@ window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const 
 }
 
 void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::CLICK) {
+        callback();
+    } else {
+        SuperWindowEvent(sender, event, param);
+    }
+}
+
+/*****************************************************************************/
+//WindowMultiIconButton
+WindowMultiIconButton::WindowMultiIconButton(window_t *parent, point_i16_t pt, const Pngs *res, ButtonCallback cb)
+    : WindowMultiIconButton(
+        parent,
+        [pt, res] {
+            if (!res || !res->normal.h || !res->normal.w)
+                return Rect16();
+
+            return Rect16(pt, res->normal.w, res->normal.h);
+        }(),
+        res, cb) {
+}
+
+WindowMultiIconButton::WindowMultiIconButton(window_t *parent, Rect16 rc, const Pngs *res, ButtonCallback cb)
+    : AddSuperWindow<window_t>(parent, rc)
+    , pRes(res)
+    , callback(cb) {
+    Enable();
+}
+
+void WindowMultiIconButton::unconditionalDraw() {
+    // no PNG assigned
+    if (!pRes)
+        return;
+
+    const png::Resource *pPng = &pRes->normal;
+    if (IsShadowed())
+        pPng = &pRes->disabled;
+    if (IsFocused())
+        pPng = &pRes->focused;
+
+    FILE *file = pPng->Get();
+    if (!file)
+        return;
+
+    display::DrawPng(point_ui16(Left(), Top()), *pPng, GetBackColor());
+}
+
+void WindowMultiIconButton::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CLICK) {
         callback();
     } else {
