@@ -46,6 +46,40 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
+/**
+ * @brief Iconned button - fast draw
+ * Special version requiring 3 pngs with matching size (normal, focused, disabled)
+ * does not support padding
+ */
+class WindowMultiIconButton : public AddSuperWindow<window_t> {
+public:
+    struct Pngs {
+        const png::Resource &normal;
+        const png::Resource &focused;
+        const png::Resource &disabled;
+    };
+
+private:
+    const Pngs *pRes = nullptr; // [normal, focused, shadowed(disabled)]
+    ButtonCallback callback;
+
+public:
+    void SetRes(const Pngs *res) {
+        if (pRes != res) {
+            pRes = res;
+            Invalidate();
+        }
+    }
+
+    WindowMultiIconButton(window_t *parent, Rect16 rc, const Pngs *res, ButtonCallback cb);
+    WindowMultiIconButton(window_t *parent, point_i16_t pt, const Pngs *res, ButtonCallback cb);
+    void SetAction(ButtonCallback cb) { callback = cb; }
+
+protected:
+    virtual void unconditionalDraw() override;
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+};
+
 class window_icon_hourglass_t : public AddSuperWindow<window_icon_t> {
     enum { ANIMATION_STEPS = 5,
         ANIMATION_STEP_MS = 500 };
