@@ -178,14 +178,15 @@ void Screens::CloseAll() {
     creator_node.MakeEmpty();
 }
 
+/**
+ * @brief close all screens with WindowFlags::serial_close (but top one - home)
+ * it sets flag to close all screens closable on serial print
+ * it also clears creator_node, because order matters!
+ * In case you want to open new screen, you must call CloseSerial() first and Open() after
+ */
 void Screens::CloseSerial() {
-    /// serial close logic:
-    /// when serial printing screen (M876) is open, Screens::SerialClose() is
-    /// called and it will iterate all screens to close those that should be closed
-    while (Get() && Get()->ClosedOnSerialPrint() && stack_iterator != stack.begin()) {
-        close = true;
-        InnerLoop();
-    }
+    close_serial = true;
+    creator_node.MakeEmpty();
 }
 
 // used to close blocking dialogs
@@ -242,13 +243,15 @@ void Screens::Loop() {
  * top screen cannot be closed
  *
  * combinations are allowed
- * close + close_all == close_all
- * close_all + open  == keep top screen + open new one
- * close + open      == replace current screen with new one, will not work with top one
+ * close + close_all   == close_all
+ * close_all + open    == keep top screen + open new one
+ * close + open        == replace current screen with new one, will not work with top one
+ * close_serial + open == close all screens closable on serial print and open new one (until it finds one it cannot close)
  *
  * duplicity is not checked, so it is possible to open multiple screens of the same type
  * it would complicate code and it is probably not necessary
  * there is an exception combination of close/close_all + open, it does check opened screen type and does not recreate it
+ * if close_serial finds screen of the same type that should be opened, it will close it too
  */
 void Screens::InnerLoop() {
     screen_init_variant screen_state;
@@ -270,7 +273,25 @@ void Screens::InnerLoop() {
                 close = true;                                            // set flag to close screen[1] == open screen[0] (home)
             }
         }
-        close_all = false;
+        close_all = false;    // reset close all flag
+        close_serial = false; // all screens were closed, close serial has no meaning
+    }
+
+    if (close_serial) {
+        // serial close logic:
+        // when serial printing screen (M876) is open, Screens::SerialClose() is
+        // called and it will iterate all screens to close those that should be closed
+        if (stack_iterator != stack.begin()) { // is there something to close?
+            auto backup = creator_node;        // backup creator (in case we need to both close and open at the same time)
+            creator_node.creator = nullptr;    // erase creator node
+            close_serial = false;              // reset close serial flag now, so following InnerLoop only closes a screen
+            while (stack_iterator != stack.begin() && ((Get() && Get()->ClosedOnSerialPrint()) || (stack_iterator)->creator == backup.creator)) {
+                close = true;
+                InnerLoop(); // call recursively - but with only single level of recursion .. this will just close single screen (we already know it should be closed)
+            }
+
+            creator_node = backup; // now all screens are closed, so we just restore creator to open screen if there was a request to do it
+        }
     }
 
     // special case open + close
