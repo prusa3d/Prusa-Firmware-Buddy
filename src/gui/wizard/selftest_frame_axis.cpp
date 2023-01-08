@@ -25,9 +25,9 @@ static constexpr size_t row_4 = row_3 + WizardDefaults::row_h;
 static constexpr size_t row_5 = row_4 + WizardDefaults::row_h + 20;
 
 static constexpr const char *en_text_axis_test = N_("Checking axes");
-static constexpr const char *en_text_X_axis = N_("X-axis");
-static constexpr const char *en_text_Y_axis = N_("Y-axis");
-static constexpr const char *en_text_Z_axis = N_("Z-axis");
+static constexpr const char *en_text_X_axis = N_("axis");
+static constexpr const char *en_text_Y_axis = N_("axis");
+static constexpr const char *en_text_Z_axis = N_("axis");
 static constexpr const char *en_text_info = N_("During the test, the heatbed, and extruder will move in full range.");
 
 SelftestFrametAxis::SelftestFrametAxis(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
