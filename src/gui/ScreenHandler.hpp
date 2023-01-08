@@ -13,15 +13,22 @@ struct screen_node {
     screen_node(ScreenFactory::Creator creator = nullptr, screen_init_variant init_data = screen_init_variant())
         : creator(creator)
         , init_data(init_data) {}
+    void MakeEmpty() {
+        creator = nullptr;
+        init_data = screen_init_variant();
+    }
+    bool IsEmpty() {
+        return creator == nullptr;
+    }
 };
 using ScreenArray = std::array<screen_node, MAX_SCREENS>;
 
 class Screens {
     ScreenArray stack;
-    ScreenArray::iterator stack_iterator;
+    ScreenArray::iterator stack_iterator; // points at creator of currently opened screen, init data not valid, because they are set when closed
 
-    ScreenFactory::UniquePtr current;
-    screen_node creator_node; // set by Open
+    ScreenFactory::UniquePtr current; // pointer obtained by screen creation
+    screen_node creator_node;         // set by Open
 
     bool close;
     bool close_all;
@@ -29,9 +36,6 @@ class Screens {
     bool display_reinitialized;
 
     uint32_t timeout_tick;
-
-    //void stack_push(int16_t screen_id) {}
-    //int16_t stack_pop(void) {}
 
     Screens(screen_node screen_creator);
     Screens(const Screens &) = delete;
