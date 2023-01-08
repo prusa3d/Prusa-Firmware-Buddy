@@ -70,6 +70,11 @@ public:
         return selftest_mask;
     }
 #endif
+
+    constexpr bool IsValid() {
+        return type != type_t::data_not_valid;
+    }
+
 private:
     type_t type;
     union {

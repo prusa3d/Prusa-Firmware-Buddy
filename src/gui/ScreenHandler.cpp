@@ -156,12 +156,26 @@ void Screens::Open(const ScreenFactory::Creator screen_creator) {
     Open(screen_node(screen_creator));
 }
 
+/**
+ * @brief close current screen
+ * it sets flag to close current screen
+ * it also clears creator_node, because order matters!
+ * In case you want to replace current screen, you must call Close() first and Open() after
+ */
 void Screens::Close() {
     close = true;
+    creator_node.MakeEmpty();
 }
 
+/**
+ * @brief close all screens (but top one - home)
+ * it sets flag to close all screens
+ * it also clears creator_node, because order matters!
+ * In case you want to open new screen, you must call CloseAll() first and Open() after
+ */
 void Screens::CloseAll() {
     close_all = true;
+    creator_node.MakeEmpty();
 }
 
 void Screens::CloseSerial() {
@@ -221,26 +235,64 @@ void Screens::Loop() {
     InnerLoop();
 }
 
+/**
+ * @brief inner loop, actually does all the work
+ * it closes and opens screens
+ * open is indicated by creator_node
+ * top screen cannot be closed
+ *
+ * combinations are allowed
+ * close + close_all == close_all
+ * close_all + open  == keep top screen + open new one
+ * close + open      == replace current screen with new one, will not work with top one
+ *
+ * duplicity is not checked, so it is possible to open multiple screens of the same type
+ * it would complicate code and it is probably not necessary
+ * there is an exception combination of close/close_all + open, it does check opened screen type and does not recreate it
+ */
 void Screens::InnerLoop() {
     screen_init_variant screen_state;
     if (close_all) {
-        if (current) {                              // is there something to close?
-            if (creator_node.creator) {             // have creator, have to emulate opening
-                stack_iterator = stack.begin();     // point to screen[0], (screen[0] is home)
-                close = false;                      // clr close flag, creator will be pushed into screen[1] position
-            } else {                                // do not have creator, have to emulate closing
-                stack_iterator = stack.begin() + 1; // point behind screen[0], (screen[0] is home)
-                close = true;                       // set flag to close screen[1] == open screen[0] (home)
+        if (stack_iterator != stack.begin()) {                           // is there something to close? (we never close screen[0])
+            if (!creator_node.IsEmpty()) {                               // have creator, have to emulate opening
+                if ((stack_iterator)->creator == creator_node.creator) { // screen to be opened is already opened (on top of stack)
+                    *(stack.begin() + 1) = *stack_iterator;              // move (copy) current screen_node, init data does not matter - they are set after screen is closed
+                    stack_iterator = stack.begin() + 1;                  // point to current screen_node
+                    if (creator_node.init_data.IsValid())                // have some new meaningful data
+                        current->InitState(creator_node.init_data);      // reinitialize
+                    creator_node.MakeEmpty();                            // erase creator pointer, so we dont continue to open part of tis function
+                } else {                                                 // screen to be opened is not currently opened (but might be between the closed ones)
+                    stack_iterator = stack.begin();                      // point to screen[0] (screen[0]), keep creator_node, we will continue to open part of tis function
+                }                                                        //
+                close = false;                                           // clr close flag, creator will be pushed into screen[1] position
+            } else {                                                     // do not have creator, have to emulate closing
+                stack_iterator = stack.begin() + 1;                      // point behind screen[0], (screen[0] is home)
+                close = true;                                            // set flag to close screen[1] == open screen[0] (home)
             }
         }
         close_all = false;
     }
 
-    // open new screen
-    if (creator_node.creator || close) {
+    // special case open + close
+    if (close && !creator_node.IsEmpty()) {
+        if (stack_iterator != stack.begin()) {                       // is there something to close? (we never close screen[0])
+            if ((stack_iterator)->creator == creator_node.creator) { // screen to be opened is already opened (on top of stack)
+                *(stack_iterator - 1) = *stack_iterator;             // move (copy) current screen_node 1 position up on stack, init data does not matter - they are set after screen is closed
+                --stack_iterator;                                    // point to current screen_node
+                if (creator_node.init_data.IsValid())                // have some new meaningful data
+                    current->InitState(creator_node.init_data);      // reinitialize
+                creator_node.MakeEmpty();                            // erase creator pointer, so we dont continue to open part of tis function
+            } else {                                                 // screen to be opened is not currently opened (but might be between the closed ones)
+                --stack_iterator;                                    // point to screen_node 1 position up on stack
+            }
+        }
+        close = false; // clr close flag
+    }
+
+    // open new screen .. close means open old one from stack
+    if (!creator_node.IsEmpty() || close) {
         if (current) {
             screen_state = current->GetCurrentState();
-            current.reset(); // without a reset screens do not behave correctly, because they occupy the same memory space as the new screen to be created
             if (close) {
                 if (stack_iterator != stack.begin()) {
                     --stack_iterator;               // point to previous screen - will become "behind last creator"
@@ -260,6 +312,10 @@ void Screens::InnerLoop() {
             }
         }
 
+        /// without a reset screens does not behave correctly, because they occupy the same memory space as the new screen to be created
+        if (current)
+            current.reset();
+
         /// need to reset focused and capture ptr before calling current = creator();
         /// screen ctor can change those pointers
         /// screen was destroyed by unique_ptr.release()
@@ -275,7 +331,7 @@ void Screens::InnerLoop() {
             }
         }
         current->InitState(creator_node.init_data);
-        creator_node = nullptr;
+        creator_node.MakeEmpty();
     }
 }
 
