@@ -426,7 +426,11 @@ void resume_loop() {
         // planner settings
         planner.settings = state_buf.planner.settings;
         planner.reset_acceleration_rates();
+#if HAS_CLASSIC_JERK
         planner.max_jerk = state_buf.planner.max_jerk;
+#else
+        planner.max_e_jerk = state_buf.planner.max_jerk.e;
+#endif
 
         // initial planner state (order is relevant!)
         assert(!planner.leveling_active);
@@ -877,7 +881,11 @@ void ac_fault_isr() {
         state_buf.planner.extruder_advance_K = planner.extruder_advance_K[0];
         state_buf.planner.axis_relative = gcode.axis_relative;
         state_buf.planner.settings = planner.settings;
+#if HAS_CLASSIC_JERK
         state_buf.planner.max_jerk = planner.max_jerk;
+#else
+        state_buf.planner.max_jerk.e = planner.max_e_jerk;
+#endif
     }
 
     if (state_buf.planner.was_crashed) {
