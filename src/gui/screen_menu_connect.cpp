@@ -43,7 +43,11 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override {
         if (connect_client::MarlinPrinter::load_cfg_from_ini()) {
-            MsgBoxInfo(_("Loaded successfully. Enable Connect to activate."), Responses_Ok);
+            if (eeprom_get_bool(EEVAR_CONNECT_ENABLED)) {
+                MsgBoxInfo(_("Loaded successfully. Connect will activate shortly."), Responses_Ok);
+            } else {
+                MsgBoxInfo(_("Loaded successfully. Enable Connect to activate."), Responses_Ok);
+            }
         } else {
             MsgBoxError(_("Failed to load config. Make sure the ini file downloaded from Connect is on the USB drive and try again."), Responses_Ok);
         }
@@ -72,6 +76,7 @@ private:
             S(NetworkError, _("Net fail"));
             S(Confused, _("Protocol err"));
             S(Ok, _("Online"));
+            S(Connecting, _("Connecting"));
         default:
             S(Unknown, _("Unknown"));
         }
