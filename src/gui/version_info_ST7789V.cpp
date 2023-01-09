@@ -30,17 +30,17 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     //=============VARIABLES=================
 
     uint8_t board_version[3];
-    char serial_numbers[15];
+    char serial_numbers[16];
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
 
     //=============ACCESS IN ADDR=================
     for (uint8_t i = 0; i < 3; i++) {
         board_version[i] = *(volatile uint8_t *)(OTP_BOARD_REVISION_ADDR + i);
     }
-    for (uint8_t i = 0; i < 15; i++) {
+    for (uint8_t i = 0; i < 16; i++) {
         serial_numbers[i] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
     }
-    serial_numbers[14] = '\0';
+    serial_numbers[15] = '\0';
 
     //=============SET TEXT================
     auto begin = version_info_str.begin();
