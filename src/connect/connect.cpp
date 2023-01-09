@@ -272,12 +272,12 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         planner.reset();
         osDelay(IDLE_WAIT);
         return OnlineStatus::Off;
-    }
-
-    if (config.host[0] == '\0' || config.token[0] == '\0') {
+    } else if (config.host[0] == '\0' || config.token[0] == '\0') {
         planner.reset();
         osDelay(IDLE_WAIT);
         return OnlineStatus::NoConfig;
+    } else if ((last_known_status == OnlineStatus::Off) || (last_known_status == OnlineStatus::NoConfig)) {
+        last_known_status = OnlineStatus::Connecting;
     }
 
     printer.renew();

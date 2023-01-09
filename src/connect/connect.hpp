@@ -22,6 +22,7 @@ enum class OnlineStatus {
     NetworkError,
     Confused,
     Ok,
+    Connecting, ///< Connecting in progress but no result yet
 };
 
 OnlineStatus last_status();
