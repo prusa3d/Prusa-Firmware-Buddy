@@ -1714,6 +1714,29 @@
     #define AXIS_MEASURE_STALL_GUARD 130
     #define AXIS_MEASURE_CRASH_PERIOD 210
 
+    /**
+     * Recovery from power failure. This is a distinct implementation from
+     * POWER_LOSS_RECOVERY specific to Prusa printers.
+     */
+    #define POWER_PANIC
+
+    #ifdef POWER_PANIC
+        #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
+        #define POWER_PANIC_MAX_BED_DIFF 10 // Maximum bed temperature (C) difference for auto-recovery
+
+        // Milliseconds to wait on hold before auto-restarting during short power failures
+        #define POWER_PANIC_HOLD_RST_MS 5000
+
+        // TODO: currently arbitrary, needs to include optimal feedrates too
+        #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
+        #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
+
+        #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
+        #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
+
+        #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
+    #endif
+
 /**
    * TMC2130, TMC2160, TMC2660, TMC5130, and TMC5160 only
    * Use StallGuard2 to sense an obstacle and trigger an endstop.
