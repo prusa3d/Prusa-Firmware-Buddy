@@ -152,7 +152,7 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
     this->type = type;
     expected = expected_size;
     transferred = 0;
-    start = ticks_ms();
+    start = ticks_s();
     if (dest != nullptr) {
         strlcpy(destination_path, dest, sizeof(destination_path));
     } else {

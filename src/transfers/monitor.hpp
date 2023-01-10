@@ -135,7 +135,7 @@ public:
         /// In our own internal timestamp ‒ not necessarily anchored to
         /// anything and may wrap around!
         ///
-        /// In milliseconds.
+        /// In seconds.
         Timestamp start;
 
         /// The expected size.

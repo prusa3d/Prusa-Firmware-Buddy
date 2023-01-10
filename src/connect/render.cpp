@@ -366,7 +366,7 @@ namespace {
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "size", transfer_status->expected) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", (transfer_status->start - ticks_ms()) / 1000) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", ticks_s() - transfer_status->start) JSON_COMMA;
                     // Note: This works, because destination cannot go from non null to null
                     // (if one transfer ends and another starts mid report, we bail out)
                     if (transfer_status->destination) {
