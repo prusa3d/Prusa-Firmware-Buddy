@@ -11,60 +11,126 @@
 # SYSTEM         xx5xx   # System - BSOD, ...
 # BOOTLOADER     xx6xx   #
 # WARNINGS       xx7xx   # Category-less warnings
+
+
 Errors:
-# TEMPERATURE    xx2xx   # Temperature measurement, thermistors, heating
 - code: "12201"
   title: "PREHEAT ERROR"
   text: "Check the heatbed heater & thermistor wiring for possible damage."
-  id: ""
+  id: "BED_PREHEAT_ERROR"
   approved: true
 - code: "12202"
   title: "PREHEAT ERROR"
   text: "Check the print head heater & thermistor wiring for possible damage."
-  id: ""
+  id: "HOTEND_PREHEAT_ERROR"
   approved: true
 - code: "12203"
   title: "THERMAL RUNAWAY"
   text: "Check the heatbed thermistor wiring for possible damage."
-  id: ""
+  id: "BED_THERMAL_RUNAWAY"
   approved: true
 - code: "12204"
   title: "THERMAL RUNAWAY"
   text: "Check the print head thermistor wiring for possible damage."
-  id: ""
+  id: "HOTEND_THERMAL_RUNAWAY"
   approved: true
 - code: "12205"
   title: "MAXTEMP ERROR"
   text: "Check the heatbed thermistor wiring for possible damage."
-  id: ""
+  id: "BED_MAXTEMP_ERROR"
   approved: true
 - code: "12206"
   title: "MAXTEMP ERROR"
   text: "Check the print head thermistor wiring for possible damage."
-  id: ""
+  id: "HOTEND_MAXTEMP_ERROR"
   approved: true
 - code: "12207"
   title: "MINTEMP ERROR"
   text: "Check the heatbed thermistor wiring for possible damage."
-  id: ""
+  id: "BED_MINTEMP_ERROR"
   approved: true
 - code: "12208"
   title: "MINTEMP ERROR"
   text: "Check the print head thermistor wiring for possible damage."
-  id: ""
+  id: "HOTEND_MINTEMP_ERROR"
   approved: true
 - code: "12209"
   title: "TEMP NOT MATCHING"
   text: "Measured temperature is not matching expected value. Check the thermistor is in contact with heatbed. In case of damage, replace it."
-  id: ""
+  id: "BED_TEMP_NOT_MATCHING"
   approved: true
 - code: "12210"
   title: "TEMP NOT MATCHING"
   text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
-  id: ""
+  id: "HOTEND_TEMP_NOT_MATCHING"
   approved: true
 - code: "12301"
   title: "HOMING ERROR"
   text: "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."
-  id: ""
+  id: "HOMING_ERROR"
+  approved: true
+- code: "12510"
+  title: "EMERGENCY STOP"
+  text: "Emergency stop invoked from G-code (M112)."
+  id: "EMERGENCY_STOP"
+  approved: true
+- code: "12602"
+  title: ""
+  text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."
+  id: "USB_NOT_CONNECTED"
+  approved: true
+- code: "12603"
+  title: ""
+  text: "Firmware file has\ninvalid size!\nCheck the file\non the USB drive\nand try again."
+  id: "INVALID_FW_SIZE_ON_USB"
+  approved: true
+- code: "12604"
+  title: ""
+  text: "Firmware file\nmissing in the USB\nflash!"
+  id: "NO_FW_ON_USB"
+  approved: true
+- code: "12605"
+  title: ""
+  text: "Error erasing\n flash! Restart\nthe printer and\ntry again."
+  id: "FLASH_ERASE_ERROR"
+  approved: true
+- code: "12606"
+  title: ""
+  text: "Firmware signature\nverification failed!\nOnly official\nsigned firmware can\nbe flashed."
+  id: "SIGNATURE_VERIFICATION_FAILED"
+  approved: true
+- code: "12607"
+  title: ""
+  text: "Firmware hash\nverification failed!\nFirmware file is\ndamaged. Try\ndownloading and\ncopying it onto the\nUSB drive again."
+  id: "HASH_VERIFICATION_FAILED"
+  approved: true
+- code: "12608"
+  title: ""
+  text: "Firmware in the\ninternal flash\ncorrupted! Please\nreflash the\nfirmware."
+  id: "FW_IN_INTERNAL_FLASH_CORRUPTED"
+  approved: true
+- code: "12610"
+  title: ""
+  text: "Firmware/printer\ntypes do not match.\nMake sure you have\nthe right firmware\nfile for your\nprinter model."
+  id: "UNSUPPORTED_PRINTER_TYPE"
+  approved: true
+- code: "12611"
+  title: ""
+  text: "Firmware/printer\nversions do not\nmatch! You are\ntrying to flash\nFW meant for other\nrevision of the\nBuddy board."
+  id: "UNSUPPORTED_PRINTER_VERSION"
+  approved: true
+- code: "12612"
+  title: ""
+  text: "No firmware found\nin the internal\nflash! Please\nflash firmware\nfirst!"
+  id: "NO_FW_IN_INTERNAL_FLASH"
+  approved: true
+- code: "12613"
+  title: ""
+  text: "File system error!\nTry a different USB\ndrive or format the\ndrive with FAT32\nfilesystem (all \ndata will be lost)!"
+  id: "FILE_SYSTEM_ERROR"
+  approved: true
+- code: "12614"
+  title: ""
+  text: "USB flash drive contains\nunsupported firmware BBF file."
+  id: "UNSUPPORTED_BBF_VERSION"
   approved: true
