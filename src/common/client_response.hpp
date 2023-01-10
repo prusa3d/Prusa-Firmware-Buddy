@@ -304,11 +304,11 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::CrashRecoveryResponses) == CountPhases<PhasesCrashRecovery>());
 
     //methods to "bind" button array with enum type
-    static const PhaseResponses &getResponsesInPhase(PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
-    static const PhaseResponses &getResponsesInPhase(PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
-    static const PhaseResponses &getResponsesInPhase(PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
-    static const PhaseResponses &getResponsesInPhase(PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
-    static const PhaseResponses &getResponsesInPhase(PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
 
 public:
     //get index of single response in PhaseResponses
@@ -325,20 +325,20 @@ public:
 
     //get response from PhaseResponses by index
     template <class T>
-    static Response GetResponse(T phase, uint8_t index) {
+    static const Response &GetResponse(const T phase, const uint8_t index) {
         if (index >= MAX_RESPONSES)
-            return Response::_none;
+            return ResponseNone;
         const PhaseResponses &cmds = getResponsesInPhase(phase);
         return cmds[index];
     }
 
     //get all responses accepted in phase
     template <class T>
-    static const PhaseResponses &GetResponses(T phase) {
+    static const PhaseResponses &GetResponses(const T phase) {
         return getResponsesInPhase(phase);
     }
     template <class T>
-    static bool HasButton(T phase) {
+    static bool HasButton(const T phase) {
         return GetResponse(phase, 0) != Response::_none; // this phase has no responses
     }
 
