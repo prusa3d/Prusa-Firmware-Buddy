@@ -45,7 +45,7 @@ struct Test {
         const auto sleep_typed = get_if<Sleep>(&sleep);
         REQUIRE(sleep_typed != nullptr);
         // Pretend to sleep a bit by moving the clock.
-        advance_time(sleep_typed->milliseconds);
+        advance_time_ms(sleep_typed->milliseconds);
 
         return sleep_typed->milliseconds;
     }
