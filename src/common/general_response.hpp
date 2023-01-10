@@ -45,3 +45,5 @@ enum class Response : uint8_t {
     Yes,
     _last = Yes
 };
+
+constexpr const Response ResponseNone = Response::_none;
