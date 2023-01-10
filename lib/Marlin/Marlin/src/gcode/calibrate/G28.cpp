@@ -288,8 +288,12 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     }
   #endif
 
-  // Home (O)nly if position is unknown
-  if (!axes_should_home() && O) {
+  // Home (O)nly if position is unknown with respect to the required axes
+  uint8_t required_axis_bits = 0;
+  if(X) SBI(required_axis_bits, X_AXIS);
+  if(Y) SBI(required_axis_bits, Y_AXIS);
+  if(Z) SBI(required_axis_bits, Z_AXIS);
+  if (!axes_should_home(required_axis_bits) && O) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip");
     return;
   }
