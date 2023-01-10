@@ -9,7 +9,6 @@ if(BOARD MATCHES ".*BUDDY")
             base64_stream_decoder.cpp
             basename.c
             bbf.cpp
-            client_response.cpp
             client_response_texts.cpp
             crc32.c
             crc32_zlib.c
