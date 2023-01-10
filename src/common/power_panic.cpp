@@ -87,6 +87,9 @@ struct flash_planner_t {
     float extruder_advance_K;
     int16_t extrude_min_temp;
     int16_t flow_percentage;
+#if DISABLED(CLASSIC_JERK)
+    float junction_deviation_mm;
+#endif
     uint8_t allow_cold_extrude;
     uint8_t _padding[3]; // silence warning
     planner_settings_t settings;
@@ -430,6 +433,7 @@ void resume_loop() {
         planner.max_jerk = state_buf.planner.max_jerk;
 #else
         planner.max_e_jerk = state_buf.planner.max_jerk.e;
+        planner.junction_deviation_mm = state_buf.planner.junction_deviation_mm;
 #endif
 
         // initial planner state (order is relevant!)
@@ -885,6 +889,7 @@ void ac_fault_isr() {
         state_buf.planner.max_jerk = planner.max_jerk;
 #else
         state_buf.planner.max_jerk.e = planner.max_e_jerk;
+        state_buf.planner.junction_deviation_mm = planner.junction_deviation_mm;
 #endif
     }
 
