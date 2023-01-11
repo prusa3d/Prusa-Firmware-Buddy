@@ -38,7 +38,7 @@ class ScreenPrintPreview : public AddSuperWindow<screen_t> {
     using MsgBoxMemSpace = std::aligned_union<0, MsgBoxTitled>::type;
     MsgBoxMemSpace msgBoxMemSpace;
 
-    UniquePtr makeMsgBox(const PhaseResponses &resp, string_view_utf8 caption, string_view_utf8 text);
+    UniquePtr makeMsgBox(string_view_utf8 caption, string_view_utf8 text);
 
 public:
     ScreenPrintPreview();
