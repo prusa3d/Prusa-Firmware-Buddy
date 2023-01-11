@@ -2,11 +2,13 @@
 
 #include <search_json.h>
 
-#include <cstring>
 #include <cstdlib>
+#include <charconv>
 
 using json::Event;
 using json::Type;
+using std::errc;
+using std::from_chars;
 using std::get_if;
 using std::make_shared;
 using std::min;
@@ -30,17 +32,12 @@ namespace {
     // stack, so likely fine to overshoot a bit.
     const constexpr size_t MAX_TOKENS = 60;
 
-    optional<uint64_t> convert_int(const Event &event) {
-        // Does anyone know of a way to convert size-bounded (not null-terminated) string to number in C/C++? :-(
-        const size_t len = event.value->size();
-        char id_str[len + 1];
-        strlcpy(id_str, event.value->data(), len + 1);
-        char *err = nullptr;
-        auto result = strtoull(id_str, &err, 0);
-        if (err && *err) {
-            return nullopt;
-        } else {
+    template <class R>
+    optional<R> convert_int(const Event &event) {
+        if (R result; from_chars(event.value->begin(), event.value->end(), result).ec == errc {}) {
             return result;
+        } else {
+            return nullopt;
         }
     }
 }
@@ -111,13 +108,13 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
         } else if (event.depth == 1 && event.type == Type::Pop) {
             in_kwargs = false;
         } else if (event.depth == 2 && in_kwargs && event.type == Type::Primitive && event.key == "job_id") {
-            job_id = convert_int(event);
+            job_id = convert_int<uint16_t>(event);
         } else if (event.depth == 2 && in_kwargs && event.type == Type::String && (event.key == "path" || event.key == "path_sfn")) {
             const size_t len = min(event.value->size() + 1, buff.size());
             strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
             has_path = true;
         } else if (event.depth == 2 && in_kwargs && event.type == Type::Primitive && event.key == "team_id") {
-            team_id = convert_int(event);
+            team_id = convert_int<uint64_t>(event);
         } else if (event.depth == 2 && in_kwargs && event.type == Type::String && event.key == "hash") {
             const size_t len = min(event.value->size() + 1, sizeof hash);
             strlcpy(hash, event.value->data(), len);
