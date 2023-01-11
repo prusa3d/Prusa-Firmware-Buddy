@@ -65,11 +65,11 @@ dependencies = {
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-v2.0.2-FF7C65BF-1853-43B3-869C-C846FA39AB75.zip',
     },
     'mini404': {
-        'version': 'e72651a',
+        'version': '0.9.6',
         'url': {
-            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-e72651a-linux.tar.bz2',
-            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-e72651a-w64.zip',
-            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-e72651a-macos.tar.bz2',
+            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/Mini404-v0.9.6-linux.tar.bz2',
+            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/Mini404-v0.9.6-w64.zip',
+            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/Mini404-v0.9.6-macos.tar.bz2',
         }
     },
 }
