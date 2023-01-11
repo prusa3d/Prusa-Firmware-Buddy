@@ -130,7 +130,6 @@ TEST_CASE("Render") {
     SECTION("Telemetry with background command") {
         params = params_idle();
         action = SendTelemetry { false };
-        stringstream e;
         background_command_id = 13;
         // clang-format off
         expected = "{"
