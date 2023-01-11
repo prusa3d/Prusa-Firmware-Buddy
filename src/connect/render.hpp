@@ -79,7 +79,9 @@ struct RenderState {
     std::optional<Printer::NetInfo> lan;
     std::optional<Printer::NetInfo> wifi;
 
-    RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes);
+    std::optional<CommandId> background_command_id = std::nullopt;
+
+    RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes, std::optional<CommandId> background_command_id);
 };
 
 class Renderer : public json::JsonRenderer<RenderState> {

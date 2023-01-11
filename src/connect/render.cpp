@@ -138,6 +138,10 @@ namespace {
                     }
                 }
 
+                if (state.background_command_id.has_value()) {
+                    JSON_FIELD_INT("command_id", *state.background_command_id) JSON_COMMA;
+                }
+
                 // State is sent always, first because it seems important, but
                 // also, we want something that doesn't have the final comma on
                 // it.
@@ -604,12 +608,13 @@ FileExtra::FileExtra(unique_file_ptr file)
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
 
-RenderState::RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes)
+RenderState::RenderState(const Printer &printer, const Action &action, Tracked &telemetry_changes, optional<CommandId> background_command_id)
     : printer(printer)
     , action(action)
     , telemetry_changes(telemetry_changes)
     , lan(printer.net_info(Printer::Iface::Ethernet))
-    , wifi(printer.net_info(Printer::Iface::Wifi)) {
+    , wifi(printer.net_info(Printer::Iface::Wifi))
+    , background_command_id(background_command_id) {
     memset(&st, 0, sizeof st);
 
     if (const auto *event = get_if<Event>(&action); event != nullptr) {
