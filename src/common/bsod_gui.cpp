@@ -17,7 +17,7 @@
 #include "version.h"
 #include "support_utils.h"
 #include "str_utils.hpp"
-#include "../../lib/Prusa-Error-Codes/12_MINI/errors_list.h"
+#include "error_codes.hpp"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "scratch_buffer.hpp"
 
@@ -146,43 +146,45 @@ char nth_char(const char str[], uint16_t nth) {
     return str[0];
 }
 
-//! Fatal error that causes Redscreen
-void fatal_error_code(const char *error, const char *module, uint16_t error_code) {
-    dump_err_to_xflash(error_code, error, module);
+/** Fatal error that causes redscreen
+ * @param error - error message, that will be displayed as error description (MAX length 107 chars)
+ * @param module - module affected by error will be displayed as error title (MAX length 20 chars)
+ * @param error_code - error code to be shown with QR code
+*/
+__attribute__((noreturn)) void fatal_error_code(const char *error, const char *module, ErrCode error_code) {
+    dump_err_to_xflash(static_cast<std::underlying_type_t<ErrCode>>(error_code), error, module);
     sys_reset();
 }
 
 //! Fatal error that causes Redscreen
 void fatal_error(const char *error, const char *module) {
-    uint16_t error_code = 0;
+    // Unknown error code = we don't have prusa.io/###### site support for this error
+    // In this case we have to dump error message and error title
+    ErrCode error_code = ErrCode::ERR_UNDEF;
 
     /// Decision tree to define error code
     using namespace Language_en;
     /// TODO share these strings (saves ~100 B of binary size)
     if (strcmp("Emergency stop (M112)", error) == 0) {
-        error_code = 510;
-    } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
-        error_code = 301;
+        error_code = ErrCode::ERR_SYSTEM_EMERGENCY_STOP;
     } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
-        error_code = 201;
+        error_code = ErrCode::ERR_TEMPERATURE_BED_PREHEAT_ERROR;
     } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
-        error_code = 202;
+        error_code = ErrCode::ERR_TEMPERATURE_HOTEND_PREHEAT_ERROR;
     } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
-        error_code = 203;
+        error_code = ErrCode::ERR_TEMPERATURE_BED_THERMAL_RUNAWAY;
     } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
-        error_code = 204;
+        error_code = ErrCode::ERR_TEMPERATURE_HOTEND_THERMAL_RUNAWAY;
     } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
-        error_code = 205;
+        error_code = ErrCode::ERR_TEMPERATURE_BED_MAXTEMP_ERROR;
     } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
-        error_code = 206;
+        error_code = ErrCode::ERR_TEMPERATURE_HOTEND_MAXTEMP_ERROR;
     } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
-        error_code = 207;
+        error_code = ErrCode::ERR_TEMPERATURE_BED_MINTEMP_ERROR;
     } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
-        error_code = 208;
-    } else {
-        // Unknown error code = we don't have prusa.io/###### site support for this error
-        // In this case we have to dump error message and error title
-        error_code = 0;
+        error_code = ErrCode::ERR_TEMPERATURE_HOTEND_MINTEMP_ERROR;
+    } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
+        error_code = ErrCode::ERR_ELECTRO_HOMING_ERROR;
     }
 
     fatal_error_code(error, module, error_code);

@@ -59,8 +59,7 @@ ScreenErrorQR::ScreenErrorQR()
     appendix_txt.SetAlignment(Align_t::CenterTop());
 
     // Extract error code from xflash
-    const uint16_t error_code_short = dump_err_in_xflash_get_error_code(); // Unknow code == 0x00
-    const uint16_t error_code = ERR_PRINTER_CODE * 1000 + error_code_short;
+    const uint16_t error_code = dump_err_in_xflash_get_error_code(); // Unknow code == ERR_UNDEF == 0
 
     const auto show_qr = [&]() {
         qr.SetQRHeader(error_code);
@@ -90,7 +89,7 @@ ScreenErrorQR::ScreenErrorQR()
     };
 
     // Iterating through error_list to find the error extracted from xflash
-    if (const auto corresponding_error = std::ranges::find_if(error_list, [error_code_short](const auto &elem) { return elem.err_num == error_code_short; });
+    if (const auto corresponding_error = std::ranges::find_if(error_list, [error_code](const auto &elem) { return static_cast<std::underlying_type_t<ErrCode>>(elem.err_code) == error_code; });
         corresponding_error == std::end(error_list)) {
 
         // error not found => Print error message from dump
@@ -100,7 +99,7 @@ ScreenErrorQR::ScreenErrorQR()
             err_title.SetText(err_title_buff[0] ? _(err_title_buff) : _(unknown_err_txt));
             err_description.SetText(_(err_message_buff));
 
-            if (error_code_short > 0) {
+            if (error_code != static_cast<std::underlying_type_t<ErrCode>>(ErrCode::ERR_UNDEF)) {
                 show_qr();
             } else {
                 hide_qr();
