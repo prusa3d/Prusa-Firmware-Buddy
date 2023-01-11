@@ -88,7 +88,7 @@ namespace {
         }
 
     public:
-        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, Tracked &telemetry_changes)
+        BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, Tracked &telemetry_changes, optional<CommandId> background_command_id)
             : hdrs {
                 // Even though the fingerprint is on a temporary, that
                 // pointer is guaranteed to stay stable.
@@ -96,7 +96,7 @@ namespace {
                 { "Token", config.token, nullopt },
                 { nullptr, nullptr, nullopt }
             }
-            , renderer(RenderState(printer, action, telemetry_changes))
+            , renderer(RenderState(printer, action, telemetry_changes, background_command_id))
             , target_url(visit([](const auto &action) { return url(action); }, action)) {}
         virtual const char *url() const override {
             return target_url;
@@ -340,7 +340,9 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
         telemetry_changes.mark_dirty();
     }
 
-    BasicRequest request(printer, config, action, telemetry_changes);
+    const auto background_command_id = planner.background_command_id();
+
+    BasicRequest request(printer, config, action, telemetry_changes, background_command_id);
     const auto result = http.send(request);
 
     if (holds_alternative<Error>(result)) {

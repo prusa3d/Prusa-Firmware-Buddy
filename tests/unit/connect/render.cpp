@@ -42,6 +42,7 @@ TEST_CASE("Render") {
     string_view expected;
     Printer::Params params {};
     Action action;
+    optional<CommandId> background_command_id = nullopt;
 
     SECTION("Telemetry - empty") {
         params = params_printing();
@@ -87,6 +88,27 @@ TEST_CASE("Render") {
             "\"axis_x\":0.00,"
             "\"axis_y\":0.00,"
             "\"axis_z\":0.00,"
+            "\"state\":\"IDLE\""
+        "}";
+        // clang-format on
+    }
+
+    SECTION("Telemetry with background command") {
+        params = params_idle();
+        action = SendTelemetry { false };
+        background_command_id = 13;
+        // clang-format off
+        expected = "{"
+            "\"temp_nozzle\":0.0,"
+            "\"temp_bed\":0.0,"
+            "\"target_nozzle\":0.0,"
+            "\"target_bed\":0.0,"
+            "\"speed\":0,"
+            "\"flow\":0,"
+            "\"axis_x\":0.00,"
+            "\"axis_y\":0.00,"
+            "\"axis_z\":0.00,"
+            "\"command_id\":13,"
             "\"state\":\"IDLE\""
         "}";
         // clang-format on
@@ -166,7 +188,7 @@ TEST_CASE("Render") {
     MockPrinter printer(params);
     uint32_t fingerprint_out = 0;
     Tracked telemetry_changes;
-    RenderState state(printer, action, telemetry_changes);
+    RenderState state(printer, action, telemetry_changes, background_command_id);
     Renderer renderer(std::move(state));
     uint8_t buffer[1024];
     const auto [result, amount] = renderer.render(buffer, sizeof buffer);
