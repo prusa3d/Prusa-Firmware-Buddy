@@ -172,16 +172,16 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::wrong_filament_wait_user: // change / ignore / abort
         switch (response) {
-        case Response::Ignore:
-            ChangeState(State::done);
-            break;
-        case Response::Ok:
-            ChangeState(State::inactive);
-            return Result::Abort;
         case Response::Change:
             ChangeState(State::wrong_filament_change);
             marlin_server_enqueue_gcode("M1600 R"); // change, return option
             break;
+        case Response::Ok:
+            ChangeState(State::done);
+            break;
+        case Response::Abort:
+            ChangeState(State::inactive);
+            return Result::Abort;
         default:
             break;
         }

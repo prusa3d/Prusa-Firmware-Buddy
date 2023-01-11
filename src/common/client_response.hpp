@@ -231,11 +231,11 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
     static constexpr PhaseResponses PrintPreviewResponses[] = {
-        { Response::Print, Response::Back },                    // main_dialog,
-        { Response::Abort, Response::Ignore },                  // wrong_printer
-        { Response::Yes, Response::No, Response::FS_disable },  // filament_not_inserted
-        { Response::Yes, Response::No },                        // mmu_filament_inserted
-        { Response::Change, Response::Ignore, Response::Abort } // wrong_filament
+        { Response::Print, Response::Back },                   // main_dialog,
+        { Response::Abort, Response::Ignore },                 // wrong_printer
+        { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
+        { Response::Yes, Response::No },                       // mmu_filament_inserted
+        { Response::Change, Response::Ok, Response::Abort }    // wrong_filament
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 

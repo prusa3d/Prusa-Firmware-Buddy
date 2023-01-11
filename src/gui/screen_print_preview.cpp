@@ -51,8 +51,8 @@ ScreenPrintPreview *ScreenPrintPreview::ths = nullptr;
 
 ScreenPrintPreview *ScreenPrintPreview::GetInstance() { return ths; }
 
-ScreenPrintPreview::UniquePtr ScreenPrintPreview::makeMsgBox(const PhaseResponses &resp, string_view_utf8 caption, string_view_utf8 text) {
-    return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, resp, 0, nullptr, text, is_multiline::yes, caption, &png::warning_16x16, is_closed_on_click_t::no);
+ScreenPrintPreview::UniquePtr ScreenPrintPreview::makeMsgBox(string_view_utf8 caption, string_view_utf8 text) {
+    return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &png::warning_16x16, is_closed_on_click_t::no);
 }
 
 void ScreenPrintPreview::Change(fsm::BaseData data) {
@@ -69,16 +69,16 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     case PhasesPrintPreview::main_dialog:
         break;
     case PhasesPrintPreview::wrong_printer:
-        pMsgbox = makeMsgBox(Responses_IgnoreAbort, _(labelWarning), _(txt_wrong_printer_type));
+        pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_printer_type));
         break;
     case PhasesPrintPreview::filament_not_inserted:
-        pMsgbox = makeMsgBox(Responses_YesNoFSDisable, _(labelWarning), _(txt_fil_not_detected));
+        pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_not_detected));
         break;
     case PhasesPrintPreview::mmu_filament_inserted:
-        pMsgbox = makeMsgBox(Responses_YesNo, _(labelWarning), _(txt_fil_detected_mmu));
+        pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_detected_mmu));
         break;
     case PhasesPrintPreview::wrong_filament:
-        pMsgbox = makeMsgBox(Responses_ChangeOkAbort, _(labelWarning), _(txt_wrong_fil_type));
+        pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_fil_type));
         break;
     }
 
