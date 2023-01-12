@@ -41,11 +41,11 @@ private:
     // pointer to it and we need to move the Download around.
     ConnFactory conn_factory;
     http::Response response;
+    // Note: Abused to also hold the path where the file goes eventually.
     Monitor::Slot slot;
-    std::array<char, FILE_PATH_BUFFER_LEN> filepath;
     unique_file_ptr dest_file;
     size_t transfer_idx;
-    Download(ConnFactory &&factory, http::Response &&response, Monitor::Slot &&slot, const char *filepath, unique_file_ptr &&dest_file, size_t transfer_idx);
+    Download(ConnFactory &&factory, http::Response &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx);
 
 public:
     using DownloadResult = std::variant<Download, NoTransferSlot, AlreadyExists, RefusedRequest, Storage>;
