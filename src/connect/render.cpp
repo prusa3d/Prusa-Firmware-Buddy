@@ -53,18 +53,6 @@ namespace {
         }
     }
 
-    const char *to_str(Monitor::Type type) {
-        switch (type) {
-        case Monitor::Type::Connect:
-            return "FROM_CONNECT";
-        case Monitor::Type::Link:
-            return "FROM_CLIENT";
-        default:
-            assert(0);
-            return "NO_TRANSFER";
-        }
-    }
-
     bool is_printing(Printer::DeviceState state) {
         switch (state) {
         case Printer::DeviceState::Printing:

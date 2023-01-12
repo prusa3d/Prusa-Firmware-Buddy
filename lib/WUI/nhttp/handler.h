@@ -35,7 +35,7 @@
 #include "job_command.h"
 #include "req_parser.h"
 #include "send_file.h"
-#include "stateless_json.h"
+#include "send_json.h"
 #include "static_mem.h"
 #include "status_page.h"
 
@@ -133,7 +133,8 @@ using ConnectionState = std::variant<
     UnauthenticatedStatusPage,
     SendStaticMemory,
     SendFile,
-    StatelessJson,
+    SendJson<EmptyRenderer>,
+    SendJson<TransferRenderer>,
     printer::GcodeUpload,
     printer::GCodePreview,
     printer::JobCommand,

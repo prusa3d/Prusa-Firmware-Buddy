@@ -5,9 +5,10 @@
 #include "../nhttp/headers.h"
 #include "../nhttp/gcode_upload.h"
 #include "../nhttp/job_command.h"
-#include "../nhttp/stateless_json.h"
+#include "../nhttp/send_json.h"
 #include "../wui_api.h"
 
+#include <transfers/monitor.hpp>
 #include <cstring>
 #include <cstdio>
 #include <cerrno>
@@ -143,14 +144,12 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
     };
 
     // Some stubs for now, to make more clients (including the web page) happier.
-    if (suffix == "download") {
-        return get_only(StatusPage(Status::NoContent, parser));
-    } else if (suffix == "settings") {
+    if (suffix == "settings") {
         return get_only(SendStaticMemory("{\"printer\": {}}", http::ContentType::ApplicationJson, parser.can_keep_alive()));
     } else if (auto v1_suffix_opt = remove_prefix(suffix, "v1/"); v1_suffix_opt.has_value()) {
         const auto v1_suffix = *v1_suffix_opt;
         if (v1_suffix == "storage") {
-            return get_only(StatelessJson(get_storage, parser.can_keep_alive()));
+            return get_only(SendJson(EmptyRenderer(get_storage), parser.can_keep_alive()));
         } else if (remove_prefix(v1_suffix, "files").has_value()) {
             static const auto prefix = "/api/v1/files";
             static const size_t prefix_len = strlen(prefix);
@@ -238,11 +237,11 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
         }
         // The real API endpoints
     } else if (suffix == "version") {
-        return get_only(StatelessJson(get_version, parser.can_keep_alive()));
+        return get_only(SendJson(EmptyRenderer(get_version), parser.can_keep_alive()));
     } else if (suffix == "job") {
         switch (parser.method) {
         case Method::Get:
-            return StatelessJson(get_job, parser.can_keep_alive());
+            return SendJson(EmptyRenderer(get_job), parser.can_keep_alive());
         case Method::Post: {
             if (parser.content_length.has_value()) {
                 return JobCommand(*parser.content_length, parser.can_keep_alive(), parser.accepts_json);
@@ -255,7 +254,13 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
         }
     } else if (suffix == "printer") {
-        return get_only(StatelessJson(get_printer, parser.can_keep_alive()));
+        return get_only(SendJson(EmptyRenderer(get_printer), parser.can_keep_alive()));
+    } else if (suffix == "download" || suffix == "transfer") {
+        if (auto status = transfers::Monitor::instance.status(); status.has_value()) {
+            return get_only(SendJson(TransferRenderer(status->id), parser.can_keep_alive()));
+        } else {
+            return StatusPage(Status::NoContent, parser);
+        }
     } else {
         return StatusPage(Status::NotFound, parser);
     }

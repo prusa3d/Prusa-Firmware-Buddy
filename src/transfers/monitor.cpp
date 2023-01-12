@@ -95,6 +95,7 @@ optional<Monitor::Status> Monitor::status(bool allow_stale) const {
     result.id = current_id;
     result.start = start;
     result.expected = expected;
+    result.print_after_upload = print_after_upload;
     result.transferred = transferred;
     result.destination = strlen(destination_path) > 0 ? destination_path : nullptr;
 
@@ -134,7 +135,7 @@ optional<TransferId> Monitor::id() const {
     }
 }
 
-optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t expected_size) {
+optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t expected_size, bool print_after_upload) {
     Lock lock(main_mutex);
 
     if (transfer_active) {
@@ -152,6 +153,7 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
     this->type = type;
     expected = expected_size;
     transferred = 0;
+    this->print_after_upload = print_after_upload;
     start = ticks_s();
     if (dest != nullptr) {
         strlcpy(destination_path, dest, sizeof(destination_path));
@@ -163,5 +165,17 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
 }
 
 Monitor Monitor::instance;
+
+const char *to_str(Monitor::Type type) {
+    switch (type) {
+    case Monitor::Type::Connect:
+        return "FROM_CONNECT";
+    case Monitor::Type::Link:
+        return "FROM_CLIENT";
+    default:
+        assert(0);
+        return "NO_TRANSFER";
+    }
+}
 
 }

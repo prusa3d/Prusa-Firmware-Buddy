@@ -25,8 +25,8 @@ target_sources(
             nhttp/multipart_parser.c
             nhttp/req_parser.cpp
             nhttp/send_file.cpp
+            nhttp/send_json.cpp
             nhttp/server.cpp
-            nhttp/stateless_json.cpp
             nhttp/static_mem.cpp
             nhttp/status_page.cpp
             nhttp/upload_state.cpp

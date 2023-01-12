@@ -118,7 +118,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     }
 
     const char *path = holds_alternative<PutParams>(uploadParams) ? get<PutParams>(uploadParams).filepath.data() : nullptr;
-    auto slot = Monitor::instance.allocate(Monitor::Type::Link, path, *parser.content_length);
+    auto slot = Monitor::instance.allocate(Monitor::Type::Link, path, *parser.content_length, parser.print_after_upload);
     if (!slot.has_value()) {
         //FIXME: Is this the right status to return? Change would need to be
         // defined in the API spec first.
