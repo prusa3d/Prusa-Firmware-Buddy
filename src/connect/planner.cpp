@@ -492,7 +492,7 @@ Planner::BackgroundResult Planner::background_task(BackgroundGcode &gcode) {
 
     const char *newline = reinterpret_cast<const char *>(memchr(start, '\n', tail_size));
     // If there's no newline at all, pretend that there's one just behind the end.
-    const size_t end_pos = newline != nullptr ? newline - start : tail_size + 1;
+    const size_t end_pos = newline != nullptr ? newline - start : tail_size;
 
     // We'll replace the \n with \0
     char gcode_buf[end_pos + 1];
