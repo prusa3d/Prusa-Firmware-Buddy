@@ -217,6 +217,7 @@ void Crash_s::update_machine() {
     if(!m_axis_is_homing[0])
     {
         if (enabled) {
+            tmc_enable_stallguard(stepperX);
             stepperX.stall_max_period(0);
             #if AXIS_DRIVER_TYPE_X(TMC2130)
                 stepperX.sfilt(filter);
@@ -229,6 +230,7 @@ void Crash_s::update_machine() {
     }
     if(!m_axis_is_homing[1]) {
         if (enabled) {
+            tmc_enable_stallguard(stepperY);
             stepperY.stall_max_period(0);
             #if AXIS_DRIVER_TYPE_Y(TMC2130)
                 stepperY.sfilt(filter);
