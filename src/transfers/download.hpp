@@ -2,7 +2,6 @@
 
 #include "monitor.hpp"
 
-#include <common/shared_buffer.hpp>
 #include <common/http/httpc.hpp>
 #include <common/http/socket_connection_factory.hpp>
 #include <common/unique_file_ptr.hpp>
@@ -49,7 +48,7 @@ private:
 
 public:
     using DownloadResult = std::variant<Download, NoTransferSlot, AlreadyExists, RefusedRequest, Storage>;
-    static DownloadResult start_connect_download(const char *host, uint16_t port, const char *url_path, SharedPath destination);
+    static DownloadResult start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination);
     // TODO: A way to read the body + some timeouts (timeout for now / total timeout / error)
 };
 

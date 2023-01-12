@@ -419,7 +419,7 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
     // Avoid warning about unused in release builds (assert off)
     (void)written;
 
-    auto down_result = Download::start_connect_download(host, port, path, download.path);
+    auto down_result = Download::start_connect_download(host, port, path, download.path.path());
 
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
