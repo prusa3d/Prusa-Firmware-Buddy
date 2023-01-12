@@ -26,7 +26,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_file.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/headers.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/status_page.cpp
-  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/stateless_json.cpp
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_json.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/req_parser.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/handler.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.c

@@ -141,6 +141,9 @@ public:
         /// The expected size.
         size_t expected;
 
+        /// Only valid for Link, otherwise false
+        bool print_after_upload;
+
         /// How much got already transferred.
         size_t transferred;
 
@@ -213,6 +216,7 @@ private:
     Timestamp start;
     size_t expected;
     size_t transferred;
+    bool print_after_upload { false };
 
     char destination_path[FILE_PATH_BUFFER_LEN];
 
@@ -225,7 +229,7 @@ private:
 public:
     Monitor();
 
-    std::optional<Slot> allocate(Type type, const char *dest, size_t expected_size);
+    std::optional<Slot> allocate(Type type, const char *dest, size_t expected_size, bool print_after_upload = false);
 
     /// Request the status of currently running transfer.
     ///
@@ -265,5 +269,7 @@ public:
     /// The global instance.
     static Monitor instance;
 };
+
+const char *to_str(Monitor::Type type);
 
 }
