@@ -29,7 +29,7 @@ Download::Download(ConnFactory &&factory, Response &&response, Monitor::Slot &&s
     , dest_file(move(dest_file))
     , transfer_idx(transfer_idx) {}
 
-Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, SharedPath destination) {
+Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination) {
     // Early check for free transfer slot. This is not perfect, there's a race
     // and we can _lose_ the slot before we start the download. But we can
     // allocate it only once we know the size and for that we need to do the
@@ -48,7 +48,7 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
     // We still want to check early if the file already exists (improper sync
     // of the file tree is quite possible).
     struct stat st = {};
-    if (stat(destination.path(), &st) == 0) {
+    if (stat(destination, &st) == 0) {
         return AlreadyExists {};
     }
 
@@ -67,7 +67,7 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
             return RefusedRequest {};
         }
 
-        auto slot = Monitor::instance.allocate(Monitor::Type::Connect, destination.path(), resp->content_length());
+        auto slot = Monitor::instance.allocate(Monitor::Type::Connect, destination, resp->content_length());
         if (!slot.has_value()) {
             return NoTransferSlot {};
         }
