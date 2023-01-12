@@ -85,7 +85,7 @@ def eeprom_variables():
     return {
         'LANGUAGE': get_language_code('en'),  # default lang for tests
         'RUN_SELFTEST': 0,  # skip wizard
-        'PL_API_KEY': "0123456789",
+        'PL_PASSWORD': "0123456789",
     }
 
 
