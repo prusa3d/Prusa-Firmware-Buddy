@@ -13,15 +13,15 @@ struct SelftestFirstLayer_t {
     union {
         float current_offset;
         Response preselect_response;
-        uint32_t dummy; // can erase union to zeroes
-        std::array<uint8_t, 4> converter;
+        fsm::PhaseData converter;
     };
 
     constexpr SelftestFirstLayer_t(float current_offset)
         : current_offset(current_offset) {}
 
-    constexpr SelftestFirstLayer_t()
-        : dummy(0) {}
+    constexpr SelftestFirstLayer_t() {
+        converter.fill(0);
+    }
 
     constexpr SelftestFirstLayer_t(Response preselect_response)
         : preselect_response(preselect_response) {}
@@ -53,4 +53,4 @@ struct SelftestFirstLayer_t {
     void Abort() {} // currently not needed
 };
 
-static_assert(sizeof(SelftestFirstLayer_t::dummy) == sizeof(SelftestFirstLayer_t), "Erase of SelftestFirstLayer_t does not work properly");
+static_assert(sizeof(SelftestFirstLayer_t) == sizeof(fsm::PhaseData), "Data fits into phase data");
