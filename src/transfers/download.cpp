@@ -22,14 +22,12 @@ size_t strlcat(char *, const char *, size_t);
 
 namespace transfers {
 
-Download::Download(ConnFactory &&factory, Response &&response, Monitor::Slot &&slot, const char *filepath, unique_file_ptr &&dest_file, size_t transfer_idx)
+Download::Download(ConnFactory &&factory, Response &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx)
     : conn_factory(move(factory))
     , response(move(response))
     , slot(move(slot))
     , dest_file(move(dest_file))
-    , transfer_idx(transfer_idx) {
-    strlcpy(this->filepath.begin(), filepath, this->filepath.size());
-}
+    , transfer_idx(transfer_idx) {}
 
 Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, SharedPath destination) {
     // Early check for free transfer slot. This is not perfect, there's a race
@@ -81,7 +79,7 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
             return Storage { *err };
         }
 
-        return Download(move(factory), move(*resp), move(*slot), destination.path(), move(get<unique_file_ptr>(preallocated)), transfer_idx);
+        return Download(move(factory), move(*resp), move(*slot), move(get<unique_file_ptr>(preallocated)), transfer_idx);
     } else {
         return RefusedRequest {};
     }
