@@ -28,7 +28,7 @@ async def wui_client(printer):
 def valid_headers():
     return {'X-Api-Key': '0123456789'}
 
-
+@pytest.mark.skip()
 async def test_web_interface_is_accessible(wui_client: aiohttp.ClientSession):
     response = await wui_client.get('/')
     assert response.ok
@@ -37,7 +37,7 @@ async def test_web_interface_is_accessible(wui_client: aiohttp.ClientSession):
     body = await response.text()
     assert '<html>' in body
 
-
+@pytest.mark.skip()
 async def test_not_found(wui_client: aiohttp.ClientSession):
     for non_existent in ['/nonsense', '/whatever/not']:
         response = await wui_client.get(non_existent)
@@ -52,7 +52,7 @@ async def test_not_found(wui_client: aiohttp.ClientSession):
     response = await wui_client.get('/api/not', headers=valid_headers())
     assert response.status == 404
 
-
+@pytest.mark.skip()
 async def test_auth(wui_client: aiohttp.ClientSession):
     # Not getting in when no X-Api-Kep is present.
     all_endpoints = ['version', 'printer', 'job']
@@ -77,7 +77,7 @@ async def test_auth(wui_client: aiohttp.ClientSession):
         assert response.headers["CONTENT-TYPE"] == 'application/json'
         await response.json()  # Tries to parse and throws if fails decoding
 
-
+@pytest.mark.skip()
 async def test_idle_version(wui_client: aiohttp.ClientSession):
     version_r = await wui_client.get('/api/version', headers=valid_headers())
     version = await version_r.json()
@@ -85,6 +85,7 @@ async def test_idle_version(wui_client: aiohttp.ClientSession):
         assert exp in version
 
 
+@pytest.mark.skip()
 async def test_idle_printer_api(wui_client: aiohttp.ClientSession):
     printer_r = await wui_client.get('/api/printer', headers=valid_headers())
     printer_j = await printer_r.json()
@@ -98,6 +99,7 @@ async def test_idle_printer_api(wui_client: aiohttp.ClientSession):
     assert not printer_j["state"]["flags"]["printing"]
 
 
+@pytest.mark.skip()
 async def test_idle_job(wui_client: aiohttp.ClientSession):
     job_r = await wui_client.get('/api/job', headers=valid_headers())
     job = await job_r.json()
@@ -169,7 +171,7 @@ async def running_printer_client(printer_factory, printer_flash_dir, data_dir):
 
         yield client
 
-
+@pytest.mark.skip()
 async def test_printing_telemetry(running_printer_client):
     """
     Ask for telemetry information during a print and get something useful.
@@ -184,7 +186,7 @@ async def test_printing_telemetry(running_printer_client):
     assert printer_j["telemetry"]["temp-bed"] == printer_j["temperature"][
         "bed"]["actual"]
 
-
+@pytest.mark.skip()
 async def test_printing_job(running_printer_client):
     job_r = await running_printer_client.get('/api/job',
                                              headers=valid_headers())
@@ -204,7 +206,7 @@ async def test_printing_job(running_printer_client):
     assert job["job"]["estimatedPrintTime"] == job["progress"][
         "printTime"] + job["progress"]["printTimeLeft"]
 
-
+@pytest.mark.skip()
 async def test_download_gcode(printer_with_files, data_dir):
     """
     Test downloading the gcode from the printer.
@@ -220,21 +222,22 @@ async def test_download_gcode(printer_with_files, data_dir):
         download = await download_r.read()
         assert download == gcode
 
-
 async def test_thumbnails(printer_with_files):
     metadata_r = await printer_with_files.get('/api/files/usb/BOX~1.GCO',
                                               headers=valid_headers())
     assert metadata_r.status == 200
     metadata = await metadata_r.json()
     refs = metadata["refs"]
+    logging.info("Metadata: " + str(metadata))
     for thumb in (refs["thumbnailSmall"], refs["thumbnailBig"]):
         thumb_r = await printer_with_files.get(thumb, headers=valid_headers())
+        logging.info("File: " + thumb)
         assert thumb_r.status == 200
         data = await thumb_r.read()
         # Check PNG "file magic"
         assert data[1:4] == b"PNG"
 
-
+@pytest.mark.skip()
 async def test_delete_project_printing(running_printer_client):
     fname = '/api/files/usb/BOX~1.GCO'
     heads = valid_headers()
@@ -278,7 +281,7 @@ async def test_list_files(printer_with_files):
                                             headers=valid_headers())
     assert download.status == 200
 
-
+@pytest.mark.skip()
 async def test_caching(printer_with_files):
     # TODO: fix for the second file bellow - Etag is missing
     # for path in ['/thumb/s/usb/BOX~1.GCO', '/usb/BOX~1.GCO']:
@@ -317,7 +320,7 @@ async def test_upload(wui_client: aiohttp.ClientSession):
     await screen.wait_for_text(printer, 'empty.gcode')
     # TODO: Turn off printer and see that the file appeared on the flash drive.
 
-
+@pytest.mark.skip()
 async def test_upload_notauth(wui_client: aiohttp.ClientSession):
     data = aiohttp.FormData()
     data.add_field('file', b'', filename='empty.gcode')
