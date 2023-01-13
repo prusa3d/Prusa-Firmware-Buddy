@@ -76,7 +76,7 @@ struct GuiDefaults {
     static constexpr Rect16 RectFooter = { 0, ScreenHeight - FooterHeight, ScreenWidth, FooterHeight };         // default footer location & size
 
     static constexpr Rect16 GetButtonRect(Rect16 rc_frame) { return Rect16(rc_frame.Left() + ButtonSpacing,
-        rc_frame.Top() + (rc_frame.Height() - ButtonHeight - FrameWidth), rc_frame.Width() - 2 * ButtonSpacing, ButtonHeight); }
+        rc_frame.Top() + (rc_frame.Height() - ButtonHeight - FramePadding), rc_frame.Width() - 2 * ButtonSpacing, ButtonHeight); }
     static constexpr Rect16 GetDialogRect(std::optional<has_footer> footer) {
         if (!footer) {
             return DialogFrameRect;
@@ -91,9 +91,10 @@ struct GuiDefaults {
     static constexpr Rect16 GetButtonRect_AvoidFooter(Rect16 rc_frame) { return GetButtonRect(rc_frame - Rect16::Height_t(FooterHeight)); }
 
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
-    static constexpr uint8_t FrameWidth = 10;          // default frame padding
-#endif                                                 // USE_<display>
-    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4; // maximum number of radio buttons
+    static constexpr uint8_t FramePadding = 10;                                   // default frame padding
+    static constexpr Rect16::Width_t FrameWidth = ScreenWidth - 2 * FramePadding; // default frame padding
+#endif                                                                            // USE_<display>
+    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                            // maximum number of radio buttons
 
     // Menu settings
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
