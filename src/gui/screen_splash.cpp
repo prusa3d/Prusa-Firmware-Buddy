@@ -27,13 +27,16 @@
 
 screen_splash_data_t::screen_splash_data_t()
     : AddSuperWindow<screen_t>()
+#if defined(USE_ST7789)
     , png_printer("/internal/res/printer_logo.png") // dimensions are printer dependent
     , png_marlin("/internal/res/marlin_logo_79x61.png")
     , icon_logo_printer(this, &png_printer, point_i16_t(0, 84), window_icon_t::Center::x, GuiDefaults::ScreenWidth)
-    , text_progress(this, Rect16(10, 171, 220, 29), is_multiline::no)
-    , progress(this, Rect16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
-    , text_version(this, Rect16(0, 295, 240, 22), is_multiline::no)
-    , icon_logo_marlin(this, &png_marlin, point_i16_t(80, 215)) {
+    , text_progress(this, Rect16(GuiDefaults::FramePadding, 171, GuiDefaults::FrameWidth, 29), is_multiline::no)
+    , progress(this, Rect16(GuiDefaults::FramePadding, 200, GuiDefaults::FrameWidth, 15), 15, COLOR_ORANGE, COLOR_GRAY)
+    , text_version(this, Rect16(0, 295, GuiDefaults::ScreenWidth, 22), is_multiline::no)
+    , icon_logo_marlin(this, &png_marlin, point_i16_t(80, 225))
+#endif // USE_ST7789
+{
     super::ClrMenuTimeoutClose();
 
 #if defined(USE_ST7789)
@@ -44,10 +47,7 @@ screen_splash_data_t::screen_splash_data_t()
     text_version.SetAlignment(Align_t::Center());
 #endif // USE_ST7789
 
-    snprintf(text_version_buffer, sizeof(text_version_buffer), "%s%s",
-        project_version, project_version_suffix_short);
-    // this MakeRAM is safe - text_version_buffer is globally allocated
-    text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_version_buffer));
+    text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)project_version_full));
 
 #if HAS_SELFTEST
     const bool run_selftest = eeprom_get_bool(EEVAR_RUN_SELFTEST);
