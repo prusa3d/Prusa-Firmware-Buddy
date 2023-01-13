@@ -68,6 +68,10 @@ add_gzip_resource("web/main.5ef6c0edd56eb3f4bc75.css" "/web/main.5ef6c0edd56eb3f
 
 # /png directory
 add_resource("${png_data_file}" "pngs")
+add_resource("pre_bootstrap_pngs/marlin_logo_79x61.png" "marlin_logo_79x61.png")
+if(PRINTER STREQUAL "MINI")
+  add_resource("pre_bootstrap_pngs/prusa_mini_splash_207x47.png" "printer_logo.png")
+endif()
 
 # generate header with hash
 add_header_with_revision(standard resources-image)

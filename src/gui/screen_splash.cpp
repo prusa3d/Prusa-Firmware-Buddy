@@ -27,13 +27,13 @@
 
 screen_splash_data_t::screen_splash_data_t()
     : AddSuperWindow<screen_t>()
-    , logo_prusa_mini(this, Rect16(0, 84, 240, 62), &png::prusa_mini_splash_207x47)
+    , png_printer("/internal/res/printer_logo.png") // dimensions are printer dependent
+    , png_marlin("/internal/res/marlin_logo_79x61.png")
+    , icon_logo_printer(this, &png_printer, point_i16_t(0, 84), window_icon_t::Center::x, GuiDefaults::ScreenWidth)
     , text_progress(this, Rect16(10, 171, 220, 29), is_multiline::no)
     , progress(this, Rect16(10, 200, 220, 15), 15, COLOR_ORANGE, COLOR_GRAY)
     , text_version(this, Rect16(0, 295, 240, 22), is_multiline::no)
-    , icon_logo_buddy(this, Rect16(), nullptr)  //unused?
-    , icon_logo_marlin(this, Rect16(), nullptr) //unused?
-    , icon_debug(this, Rect16(80, 215, png::marlin_logo_79x61.w, png::marlin_logo_79x61.h), &png::marlin_logo_79x61) {
+    , icon_logo_marlin(this, &png_marlin, point_i16_t(80, 215)) {
     super::ClrMenuTimeoutClose();
 
 #if defined(USE_ST7789)
@@ -67,6 +67,10 @@ screen_splash_data_t::screen_splash_data_t()
 #endif
     };
     Screens::Access()->PushBeforeCurrent(screens, screens + (sizeof(screens) / sizeof(screens[0])));
+}
+
+screen_splash_data_t::~screen_splash_data_t() {
+    png::Resource::EnableDefaultFile(); // now it is safe to use resources from xFlash
 }
 
 void screen_splash_data_t::draw() {

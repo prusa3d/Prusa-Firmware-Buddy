@@ -7,6 +7,14 @@
 #include <optional>
 
 namespace png {
+/**
+ * @brief this struct handles PNG resources
+ * all pngs share single file and have offset
+ * this shred file os opened at first acces and never closed
+ *
+ * If this struct is used for some temporary file, close of that file must be called manually (we need trivial destructor)
+ * There is a child structure ResourceSingleFile to handle it automatically
+ */
 struct Resource {
     FILE *file = nullptr;       // default file
     const char *name = nullptr; // name is optional, external file might not need it
@@ -15,6 +23,9 @@ struct Resource {
     uint16_t w = 0;             // 0 == calculate at run time
     uint16_t h = 0;             // 0 == calculate at run time
 
+    /**
+     * @brief ctor for multiple pngs contained in single file
+     */
     constexpr Resource(const char *name, size_t offset, size_t size, uint16_t w, uint16_t h)
         : file(nullptr)
         , name(name)
@@ -23,7 +34,23 @@ struct Resource {
         , w(w)
         , h(h) {}
 
+    Resource(const char *name);
+
     FILE *Get() const;
+
+    static void EnableDefaultFile() { enabled = true; }
+
+private:
+    static bool enabled; // wait after bootstrap !!!
+};
+
+/**
+ * @brief Child of Resource with non trivial destructor
+ * designed to open file in ctor and close it in dtor
+ */
+struct ResourceSingleFile : public Resource {
+    ResourceSingleFile(const char *name);
+    ~ResourceSingleFile();
 };
 
 } // namespace png
