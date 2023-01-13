@@ -18,6 +18,9 @@ class window_icon_t : public AddSuperWindow<window_aligned_t> {
     const png::Resource *pRes = nullptr;
 
 public:
+    enum class Center { x,
+        y };
+
     void SetRes(const png::Resource *res) {
         if (pRes != res) {
             pRes = res;
@@ -28,6 +31,18 @@ public:
     window_icon_t(window_t *parent, Rect16 rect, const png::Resource *res, is_closed_on_click_t close = is_closed_on_click_t::no);
 
     window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
+
+    /**
+     * @brief ctor co center in one axis (for both axis different parameters would be needed)
+     *
+     * @param parent        higher level window (frame / screen)
+     * @param res           pointer to png resource
+     * @param pt            point where png can be drawn (1 coordinate will be shifted)
+     * @param center        which axis shall be centered
+     * @param center_size   size limiting centering; for example 1px image pt = {0,0}, center_size = 3, will be drown at {1,0}
+     * @param close
+     */
+    window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, Center center, size_t center_size, is_closed_on_click_t close = is_closed_on_click_t::no);
 
 protected:
     virtual void unconditionalDraw() override;
