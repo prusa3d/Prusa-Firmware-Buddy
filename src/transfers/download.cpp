@@ -8,7 +8,9 @@
 using http::GetRequest;
 using http::HttpClient;
 using http::Response;
+using http::ResponseBody;
 using http::Status;
+using std::get;
 using std::get_if;
 using std::make_unique;
 using std::move;
@@ -22,7 +24,7 @@ size_t strlcat(char *, const char *, size_t);
 
 namespace transfers {
 
-Download::Download(ConnFactory &&factory, Response &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx)
+Download::Download(ConnFactory &&factory, ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx)
     : conn_factory(move(factory))
     , response(move(response))
     , slot(move(slot))
@@ -79,7 +81,19 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
             return Storage { *err };
         }
 
-        return Download(move(factory), move(*resp), move(*slot), move(get<unique_file_ptr>(preallocated)), transfer_idx);
+        auto file = move(get<unique_file_ptr>(preallocated));
+        auto [initial_chunk, initial_chunk_size, body] = resp->into_body();
+
+        if (initial_chunk_size > 0) {
+            // We make our life easier by saying that this is one "item", so it
+            // can't be split up.
+            auto written = fwrite(initial_chunk, initial_chunk_size, 1, file.get());
+            if (written != 1) {
+                return Storage { "Can't write to the file" };
+            }
+        }
+
+        return Download(move(factory), move(body), move(*slot), move(file), transfer_idx);
     } else {
         return RefusedRequest {};
     }
