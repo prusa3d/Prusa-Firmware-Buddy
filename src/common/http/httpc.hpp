@@ -24,6 +24,19 @@ public:
     virtual std::variant<size_t, Error> write_body_chunk(char *data, size_t size);
 };
 
+/// Lighter variant of Response, with only the capability to consume the body.
+///
+/// Created by Response::into_body
+class ResponseBody {
+private:
+    friend class Response;
+    size_t content_length_rest;
+    Connection *conn;
+
+public:
+    std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size);
+};
+
 class Response {
 private:
     friend class HttpClient;
@@ -47,6 +60,14 @@ public:
     // Either returns the number of bytes available or returns an error.
     // Returns 0 if no more data available.
     std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size);
+
+    /// Returns a smaller response object capable of only consuming the body.
+    ///
+    /// This returns the first chunk of body (may be empty) and the object to
+    /// consume the rest. The pointer to the chunk still lives in this object,
+    /// so process that before destroying this. After that, only the
+    /// ResponseBody shall be used instead.
+    std::tuple<const uint8_t *, size_t, ResponseBody> into_body();
 };
 
 class ConnectionFactory {

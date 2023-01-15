@@ -17,10 +17,12 @@ using http::parser::ResponseParser;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
+using std::make_tuple;
 using std::min;
 using std::nullopt;
 using std::optional;
 using std::string_view;
+using std::tuple;
 using std::variant;
 
 LOG_COMPONENT_DEF(httpc, LOG_SEVERITY_DEBUG);
@@ -172,6 +174,32 @@ variant<size_t, Error> Response::read_body(uint8_t *buffer, size_t size) {
 
     content_length_rest -= pos;
     return pos;
+}
+
+tuple<const uint8_t *, size_t, ResponseBody> Response::into_body() {
+    ResponseBody body;
+    body.conn = conn;
+    body.content_length_rest = content_length_rest - leftover_size;
+    size_t leftover = leftover_size;
+    // We have "donated" the body to the result.
+    content_length_rest = 0;
+    leftover_size = 0;
+
+    return make_tuple(body_leftover.begin(), leftover, body);
+}
+
+variant<size_t, Error> ResponseBody::read_body(uint8_t *buffer, size_t size) {
+    // TODO: Dealing with chunked and connection-closed bodies
+
+    const size_t available = min(size, content_length_rest);
+    const auto result = conn->rx(buffer, available);
+
+    if (const auto *read = get_if<size_t>(&result); read != nullptr) {
+        assert(content_length_rest >= *read);
+        content_length_rest -= *read;
+    }
+
+    return result;
 }
 
 optional<Error> HttpClient::send_request(const char *host, Connection *conn, Request &request) {
