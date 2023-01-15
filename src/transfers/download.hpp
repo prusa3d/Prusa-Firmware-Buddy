@@ -39,12 +39,12 @@ private:
     // We need to hide it behind a pointer, because the Response holds a
     // pointer to it and we need to move the Download around.
     ConnFactory conn_factory;
-    http::Response response;
+    http::ResponseBody response;
     // Note: Abused to also hold the path where the file goes eventually.
     Monitor::Slot slot;
     unique_file_ptr dest_file;
     size_t transfer_idx;
-    Download(ConnFactory &&factory, http::Response &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx);
+    Download(ConnFactory &&factory, http::ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx);
 
 public:
     using DownloadResult = std::variant<Download, NoTransferSlot, AlreadyExists, RefusedRequest, Storage>;
