@@ -168,7 +168,7 @@ extern "C" void main_cpp(void) {
 
 #ifdef BUDDY_ENABLE_CONNECT
     /* definition and creation of connectTask */
-    osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2304);
+    osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2176);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
