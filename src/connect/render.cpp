@@ -3,7 +3,7 @@
 #include <segmented_json_macros.h>
 #include <eeprom.h>
 #include <lfn.h>
-#include <gcode_filename.h>
+#include <gcode_filename.hpp>
 #include <gcode_file.h>
 #include <basename.h>
 #include <timing.h>
