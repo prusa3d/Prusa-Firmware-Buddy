@@ -1,5 +1,5 @@
 #include "planner.hpp"
-#include <timing.h>
+#include "printer.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -52,11 +52,6 @@ namespace {
     // window. Safety measure, as it may be related to that specific event and
     // we would never recover if the failure is repeateble with it.
     const constexpr uint8_t GIVE_UP_AFTER_ATTEMPTS = 5;
-
-    // Just rename for better readability
-    Timestamp now() {
-        return ticks_ms();
-    }
 
     optional<Duration> since(optional<Timestamp> past_event) {
         // optional::transform would be nice, but it's C++23
@@ -125,14 +120,24 @@ void Planner::reset() {
     failed_attempts = 0;
 }
 
+Sleep Planner::sleep(Duration amount) {
+    // Note for the case where planned_event.has_value():
+    //
+    // Processing of background command could generate another event that
+    // would overwrite this one, which we don't want. We want to send that one
+    // out first.
+    //
+    // Why are we sleeping anyway? Because we have trouble sending it?
+
+    BackgroundCmd *cmd = (background_command.has_value() && !planned_event.has_value()) ? &background_command->command : nullptr;
+    return Sleep(amount, cmd);
+}
+
 Action Planner::next_action() {
     if (perform_cooldown) {
         perform_cooldown = false;
         assert(cooldown.has_value());
-        Duration bt = background_processing(*cooldown);
-        return Sleep {
-            *cooldown - bt
-        };
+        return sleep(*cooldown);
     }
 
     if (planned_event.has_value()) {
@@ -190,15 +195,7 @@ Action Planner::next_action() {
             return SendTelemetry { false };
         } else {
             Duration sleep_amount = telemetry_interval - *since_telemetry;
-            Duration bt = background_processing(sleep_amount);
-            if (planned_event.has_value()) {
-                // A new event appeared as part of the background
-                // processing, that one takes precedence!
-                return next_action();
-            } else {
-                // This shall not underflow, as the since_telemetry is small.
-                return Sleep { sleep_amount - bt };
-            }
+            return sleep(sleep_amount);
         }
     } else {
         // TODO: Optimization: When can we send just empty telemetry instead of full one?
@@ -475,92 +472,27 @@ void Planner::command(Command command) {
         command.command_data);
 }
 
-Planner::BackgroundResult Planner::background_task(BackgroundGcode &gcode) {
-    if (gcode.size <= gcode.position) {
-        // FIXME: We need a way to know if the commands are not just submitted,
-        // but also processed. Some kind of additional "cork" command that'll
-        // report back to us and we can check it, maybe?
-
-        // All gcode submitted.
-        return BackgroundResult::Success;
-    }
-
-    // In C++, it's a lot of work to convert void * -> char * or uint8_t * ->
-    // char *, although it's both legal conversion (at least in this case). In
-    // C, that works out of the box without casts.
-    const char *start = reinterpret_cast<const char *>(gcode.data->data()) + gcode.position;
-    const size_t tail_size = gcode.size - gcode.position;
-
-    const char *newline = reinterpret_cast<const char *>(memchr(start, '\n', tail_size));
-    // If there's no newline at all, pretend that there's one just behind the end.
-    const size_t end_pos = newline != nullptr ? newline - start : tail_size;
-
-    // We'll replace the \n with \0
-    char gcode_buf[end_pos + 1];
-    memcpy(gcode_buf, start, end_pos);
-    gcode_buf[end_pos] = '\0';
-
-    // Skip whitespace at the start and the end
-    // (\0 isn't a space, so it works as a stop implicitly)
-    char *g_start = gcode_buf;
-    while (isspace(*g_start)) {
-        g_start++;
-    }
-
-    char *g_end = g_start + strlen(g_start) - 1;
-    while (g_end >= g_start && isspace(*g_end)) {
-        *g_end = '\0';
-        g_end--;
-    }
-
-    // Skip over empty ones to not hog the queue
-    if (strlen(g_start) > 0) {
-        // FIXME: This can block if the queue is full.
-        printer.submit_gcode(g_start);
-    }
-
-    gcode.position += end_pos + 1;
-
-    return BackgroundResult::More;
-}
-
-Duration Planner::background_processing(Duration limit) {
-    if (background_command.has_value()) {
-        Timestamp start = now();
-
-        BackgroundResult last_result;
-        do {
-            last_result = visit([&](auto &arg) {
-                return this->background_task(arg);
-            },
-                background_command->command);
-
-            if (last_result == BackgroundResult::Success || last_result == BackgroundResult::Failure) {
-                planned_event = Event {
-                    last_result == BackgroundResult::Success ? EventType::Finished : EventType::Failed,
-                    background_command->id,
-                };
-                background_command = nullopt;
-            }
-
-            if (last_result == BackgroundResult::More && since(start) > limit) {
-                last_result = BackgroundResult::Later;
-            }
-        } while (last_result == BackgroundResult::More);
-
-        // Note: we always pass value in, so we get one out.
-        return min(limit, since(start).value());
-    } else {
-        return 0;
-    }
-}
-
 optional<CommandId> Planner::background_command_id() const {
     if (background_command.has_value()) {
         return background_command->id;
     } else {
         return nullopt;
     }
+}
+
+void Planner::background_done(BackgroundResult result) {
+    // Function contract, caller not supposed to supply anything else.
+    assert(result == BackgroundResult::Success || result == BackgroundResult::Failure);
+    // We give out the background task only as part of a sleep and we do so
+    // only in case we don't have an event to be sent out.
+    assert(!planned_event.has_value());
+    // Obviously, it can be done only in case there's one.
+    assert(background_command.has_value());
+    planned_event = Event {
+        result == BackgroundResult::Success ? EventType::Finished : EventType::Failed,
+        background_command_id(),
+    };
+    background_command.reset();
 }
 
 }

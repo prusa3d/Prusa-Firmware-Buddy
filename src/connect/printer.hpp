@@ -115,7 +115,7 @@ protected:
 
 private:
     // For checking if config changed. We ignore the 1:2^32 possibility of collision.
-    uint32_t cfg_fingerprint;
+    uint32_t cfg_fingerprint = 0;
 
 public:
     virtual void renew(/* TODO: Flags? */) = 0;

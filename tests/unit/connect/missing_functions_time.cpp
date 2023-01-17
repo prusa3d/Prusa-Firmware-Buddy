@@ -12,3 +12,8 @@ uint32_t ticks_s() {
     return 0;
 }
 }
+
+uint32_t osDelay(uint32_t) {
+    // Mock only
+    return 0;
+}

@@ -41,13 +41,17 @@ struct Test {
     }
 
     Duration consume_sleep() {
-        const auto sleep = planner.next_action();
-        const auto sleep_typed = get_if<Sleep>(&sleep);
+        printer.config();
+        auto sleep = planner.next_action();
+        auto sleep_typed = get_if<Sleep>(&sleep);
         REQUIRE(sleep_typed != nullptr);
+        Duration orig_sleep = sleep_typed->milliseconds;
+        // Mark config as not modified
+        printer.config();
         // Pretend to sleep a bit by moving the clock.
-        advance_time_ms(sleep_typed->milliseconds);
+        sleep_typed->perform(printer, planner);
 
-        return sleep_typed->milliseconds;
+        return orig_sleep - sleep_typed->milliseconds;
     }
 
     void consume_telemetry() {
@@ -178,8 +182,12 @@ TEST_CASE("Submit gcode") {
     // (Still no background processing with the Accepted, that happens right away).
     REQUIRE(test.printer.submitted_gcodes.size() == 0);
 
-    // More processing will cause Finished, because the background processing
-    // is "fast", no blocking in here.
+    // The gcode is processed as part of sleep.
+    //
+    // The sleep doesn't get around to sleeping in fact.
+    REQUIRE(test.consume_sleep() == 0);
+
+    // Processed as part of the short-circuited sleep.
     test.event_type(EventType::Finished);
     REQUIRE(test.printer.submitted_gcodes.size() == 3);
 

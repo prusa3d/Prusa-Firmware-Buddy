@@ -2,7 +2,7 @@
 
 #include "changes.hpp"
 #include "command.hpp"
-#include "printer.hpp"
+#include "sleep.hpp"
 
 #include <common/shared_buffer.hpp>
 #include <transfers/monitor.hpp>
@@ -14,14 +14,7 @@
 
 namespace connect_client {
 
-// Just make the code a bit more readable by making this distinction.
-// Unfortunately, not checked at compile time.
-using Timestamp = uint32_t;
-using Duration = uint32_t;
-
-struct Sleep {
-    Duration milliseconds;
-};
+class Printer;
 
 struct SendTelemetry {
     bool empty;
@@ -58,9 +51,9 @@ struct Event {
 };
 
 using Action = std::variant<
-    Sleep,
     SendTelemetry,
-    Event>;
+    Event,
+    Sleep>;
 
 enum class ActionResult {
     Ok,
@@ -79,16 +72,9 @@ enum class ActionResult {
 /// similar after something bad happens.
 class Planner {
 private:
-    struct BackgroundGcode {
-        // Stored without \0 at the back.
-        SharedBorrow data;
-        size_t size;
-        size_t position;
-    };
-
     struct BackgroundCommand {
         CommandId id;
-        std::variant<BackgroundGcode> command;
+        BackgroundCmd command;
     };
 
     Printer &printer;
@@ -140,25 +126,6 @@ private:
     void command(const Command &, const SetPrinterReady &);
     void command(const Command &, const StartConnectDownload &);
 
-    // Try to perform some background work, if any is available.
-    //
-    // Will run at most for time_limit and return the time it actually took
-    // (yes, it will never be larger than that, you can rely on it).
-    //
-    // Note that due to technical reasons, it can take a bit longer, but the
-    // return value is still capped at the time_limit value to avoid underflows
-    // when handling.
-    Duration background_processing(Duration time_limit);
-
-    enum class BackgroundResult {
-        Success,
-        Failure,
-        More,
-        Later,
-    };
-
-    BackgroundResult background_task(BackgroundGcode &);
-
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;
     // Tracking if we should ask for rescan of our files.
@@ -170,6 +137,9 @@ private:
     // As we may have a background _task_ and a download at the same time, we
     // need to have variables for both.
     std::optional<transfers::Download> download;
+
+    /// Constructs corresponding Sleep action.
+    Sleep sleep(Duration duration);
 
 public:
     Planner(Printer &printer)
@@ -197,6 +167,9 @@ public:
     Action next_action();
     // Note: *Not* for Sleep. Only for stuff that sends.
     void action_done(ActionResult action);
+
+    // Only for Success/Failure.
+    void background_done(BackgroundResult result);
 
     // ID of a command being executed in the background, if any.
     std::optional<CommandId> background_command_id() const;
