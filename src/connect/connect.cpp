@@ -1,11 +1,9 @@
 #include "connect.hpp"
 #include <http/httpc.hpp>
-#include <http/os_porting.hpp>
 #include "tls/tls.hpp"
 #include "render.hpp"
 #include <http/socket.hpp>
 
-#include <cmsis_os.h>
 #include <log.h>
 
 #include <atomic>
@@ -24,7 +22,6 @@ using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::is_same_v;
-using std::min;
 using std::monostate;
 using std::move;
 using std::nullopt;
@@ -148,9 +145,6 @@ namespace {
     // for that.
     const constexpr size_t MAX_RESP_SIZE = 256;
 
-    // Wait half a second between config retries and similar.
-    const constexpr uint32_t IDLE_WAIT = 500;
-
     // Send a full telemetry every 5 minutes.
     const constexpr uint32_t FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
 
@@ -272,11 +266,11 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 
     if (!config.enabled) {
         planner.reset();
-        osDelay(IDLE_WAIT);
+        Sleep::idle().perform(printer, planner);
         return OnlineStatus::Off;
     } else if (config.host[0] == '\0' || config.token[0] == '\0') {
         planner.reset();
-        osDelay(IDLE_WAIT);
+        Sleep::idle().perform(printer, planner);
         return OnlineStatus::NoConfig;
     } else if ((last_known_status == OnlineStatus::Off) || (last_known_status == OnlineStatus::NoConfig)) {
         last_known_status = OnlineStatus::Connecting;
@@ -288,19 +282,7 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 
     // Handle sleeping first. That one doesn't need the connection.
     if (auto *s = get_if<Sleep>(&action)) {
-        for (size_t i = 0; i < s->milliseconds / IDLE_WAIT; i++) {
-            // In case there's a change in situation during a long sleep, we
-            // want to retry sooner (new config might lead to being able to
-            // connect or something).
-            osDelay(IDLE_WAIT);
-
-            if (std::get<1>(printer.config(false))) {
-                return nullopt;
-            }
-        }
-
-        osDelay(s->milliseconds % IDLE_WAIT);
-        // Don't change the status now, we just slept
+        s->perform(printer, planner);
         return nullopt;
     } else if (auto *e = get_if<Event>(&action); e && e->type == EventType::Info) {
         // The server may delete its latest copy of telemetry in various case, in particular:
@@ -331,9 +313,9 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 
     HttpClient http(conn_factory);
 
-    uint32_t now = ticks_ms();
+    uint32_t start = now();
     // Underflow should naturally work
-    if (now - last_full_telemetry >= FULL_TELEMETRY_EVERY) {
+    if (start - last_full_telemetry >= FULL_TELEMETRY_EVERY) {
         // The server wants to get a full telemetry from time to time, despite
         // it not being changed. Some caching reasons/recovery/whatever?
         //
@@ -367,7 +349,7 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
             // sent only partial telemetry and don't want to reset the
             // last_full_telemetry.
             telemetry_changes.mark_clean();
-            last_full_telemetry = now;
+            last_full_telemetry = start;
         }
         return OnlineStatus::Ok;
     case Status::Ok: {
@@ -375,7 +357,7 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
             // Yes, even before checking the command we got is OK. We did send
             // the telemetry, what happens to the command doesn't matter.
             telemetry_changes.mark_clean();
-            last_full_telemetry = now;
+            last_full_telemetry = start;
         }
         if (resp.command_id.has_value()) {
             const auto sub_resp = handle_server_resp(resp);
@@ -438,9 +420,6 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
 
 void connect::run() {
     log_debug(connect, "%s", "Connect client starts\n");
-    // waits for file-system and network interface to be ready
-    //FIXME! some mechanisms to know that file-system and network are ready.
-    osDelay(IDLE_WAIT);
 
     CachedFactory conn_factory;
 

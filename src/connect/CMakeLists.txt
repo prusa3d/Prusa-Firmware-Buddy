@@ -1,6 +1,7 @@
 target_sources(
   firmware
-  PRIVATE command.cpp
+  PRIVATE background.cpp
+          command.cpp
           connect.cpp
           hostname.cpp
           marlin_printer.cpp
@@ -8,6 +9,7 @@ target_sources(
           printer.cpp
           render.cpp
           run.cpp
+          sleep.cpp
   )
 
 add_subdirectory(tls)

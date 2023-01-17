@@ -14,11 +14,13 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/hostname.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/sleep.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
@@ -71,9 +73,11 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/command.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/sleep.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
@@ -86,8 +90,13 @@ add_executable(
   )
 target_include_directories(
   connect_planner_tests
-  PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src/connect
-          ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/lib/jsmn
+  PRIVATE .
+          ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_SOURCE_DIR}/src/connect
+          ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/src
+          ${CMAKE_SOURCE_DIR}/lib/jsmn
+          ${CMAKE_SOURCE_DIR}/tests/stubs
   )
 add_definitions(-DUNITTESTS)
 add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
