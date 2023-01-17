@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../common/gcode_filename.h"
+#include "../common/gcode_filename.hpp"
 #include <stdio.h>
 #include "dirent.h"
 #include <strings.h>

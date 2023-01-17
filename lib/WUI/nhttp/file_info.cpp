@@ -3,7 +3,7 @@
 #include "headers.h"
 #include "status_page.h"
 #include "../../src/common/lfn.h"
-#include "../../src/common/gcode_filename.h"
+#include "../../src/common/gcode_filename.hpp"
 #include "../wui_api.h"
 
 #include <http/chunked.h>
