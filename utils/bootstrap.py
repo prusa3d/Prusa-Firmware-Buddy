@@ -214,7 +214,7 @@ def main() -> int:
             continue
         print('Installing Python package %s' % package)
         run(sys.executable, '-m', 'pip', 'install', package,
-            '--disable-pip-version-check')
+            '--disable-pip-version-check', '--user')
 
     # also, install openocd config meant for customization
     install_openocd_config_template()
