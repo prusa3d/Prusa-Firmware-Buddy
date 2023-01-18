@@ -128,7 +128,10 @@ std::variant<size_t, Error> tls::tx(const uint8_t *send_buffer, size_t data_len)
     return bytes_sent;
 }
 
-std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len) {
+std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len, bool nonblock) {
+    // Non-blocking reading is not supported on TLS sockets right now
+    // (it probably _can_ be done, we just didn't need it).
+    assert(!nonblock);
     size_t bytes_received = 0;
 
     int status = mbedtls_ssl_read(&ssl_context, (unsigned char *)read_buffer, buffer_len);
@@ -140,6 +143,12 @@ std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len) {
     bytes_received = (size_t)status;
 
     return bytes_received;
+}
+
+bool tls::poll_readable(uint32_t) {
+    // Not supported on tls connections (because not needed right now).
+    assert(false);
+    return true;
 }
 
 }

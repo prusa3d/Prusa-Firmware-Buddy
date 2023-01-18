@@ -24,6 +24,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/notify_filechange.cpp
   command.cpp
   missing_functions.cpp
   missing_functions_time.cpp
@@ -81,6 +82,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/notify_filechange.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp

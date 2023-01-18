@@ -170,6 +170,7 @@ public:
 
     // Only for Success/Failure.
     void background_done(BackgroundResult result);
+    void download_done();
 
     // ID of a command being executed in the background, if any.
     std::optional<CommandId> background_command_id() const;

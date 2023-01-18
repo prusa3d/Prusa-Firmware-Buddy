@@ -12,6 +12,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include <unistd.h>
+    #include <poll.h>
 #else
     #include "sockets.h"
     #include "lwip/inet.h"
@@ -116,10 +117,14 @@ std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t da
 
     size_t bytes_sent = 0;
 
-    int status = ::write(fd, (const unsigned char *)send_buffer, data_len);
+    int status = send(fd, (const unsigned char *)send_buffer, data_len, 0);
 
     if (status < 0) {
-        return Error::Network;
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            return Error::Timeout;
+        } else {
+            return Error::Network;
+        }
     }
 
     bytes_sent = (size_t)status;
@@ -128,21 +133,37 @@ std::variant<size_t, Error> socket_con::tx(const uint8_t *send_buffer, size_t da
     return bytes_sent;
 }
 
-std::variant<size_t, Error> socket_con::rx(uint8_t *read_buffer, size_t buffer_len) {
+std::variant<size_t, Error> socket_con::rx(uint8_t *read_buffer, size_t buffer_len, bool nonblock) {
     if (!connected)
         return Error::InternalError;
 
     size_t bytes_received = 0;
 
-    int status = ::read(fd, (unsigned char *)read_buffer, buffer_len);
+    int flags = nonblock ? MSG_DONTWAIT : 0;
+    int status = recv(fd, (unsigned char *)read_buffer, buffer_len, flags);
 
     if (status < 0) {
-        return Error::Network;
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            return Error::Timeout;
+        } else {
+            return Error::Network;
+        }
     }
 
     bytes_received = (size_t)status;
     log_debug(socket, "read %zu bytes\n", bytes_received);
     return bytes_received;
+}
+
+bool socket_con::poll_readable(uint32_t timeout) {
+    pollfd descriptor = {};
+    descriptor.fd = fd;
+    descriptor.events = POLLIN;
+    if (poll(&descriptor, 1, timeout) == 1) {
+        return descriptor.revents & POLLIN;
+    } else {
+        return false;
+    }
 }
 
 }

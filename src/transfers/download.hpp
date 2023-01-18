@@ -1,7 +1,6 @@
 #pragma once
 
 #include "monitor.hpp"
-
 #include <common/http/httpc.hpp>
 #include <common/http/socket_connection_factory.hpp>
 #include <common/unique_file_ptr.hpp>
@@ -11,12 +10,21 @@
 
 namespace transfers {
 
+class NotifyFilechange;
+
 // Some error states
 struct NoTransferSlot {};
 struct RefusedRequest {};
 struct AlreadyExists {};
 struct Storage {
     const char *msg;
+};
+
+enum class DownloadStep {
+    Continue,
+    Finished,
+    // Do we want more details?
+    Failed,
 };
 
 // TODO:
@@ -44,12 +52,19 @@ private:
     Monitor::Slot slot;
     unique_file_ptr dest_file;
     size_t transfer_idx;
-    Download(ConnFactory &&factory, http::ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx);
+    uint32_t last_activity;
+    NotifyFilechange *notify_done;
+    Download(ConnFactory &&factory, http::ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, NotifyFilechange *notify_done);
 
 public:
+    ~Download();
+    Download(Download &&other) = default;
+    Download(const Download &other) = delete;
+    Download &operator=(Download &&other) = default;
+    Download &operator=(const Download &other) = delete;
     using DownloadResult = std::variant<Download, NoTransferSlot, AlreadyExists, RefusedRequest, Storage>;
-    static DownloadResult start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination);
-    // TODO: A way to read the body + some timeouts (timeout for now / total timeout / error)
+    static DownloadResult start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, NotifyFilechange *notify_done);
+    DownloadStep step(uint32_t max_duration_ms);
 };
 
 }

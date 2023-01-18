@@ -1,5 +1,7 @@
 #pragma once
 
+#include <transfers/notify_filechange.hpp>
+
 #include <cstdint>
 #include <cstddef>
 #include <tuple>
@@ -7,7 +9,7 @@
 
 namespace connect_client {
 
-class Printer {
+class Printer : public transfers::NotifyFilechange {
 public:
     struct PrinterInfo {
         static constexpr size_t SER_NUM_STR_LEN = 19;

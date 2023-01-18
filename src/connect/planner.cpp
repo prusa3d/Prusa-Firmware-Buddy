@@ -14,6 +14,7 @@ using std::nullopt;
 using std::optional;
 using std::visit;
 using transfers::Download;
+using transfers::DownloadStep;
 using transfers::Monitor;
 
 namespace connect_client {
@@ -128,9 +129,14 @@ Sleep Planner::sleep(Duration amount) {
     // out first.
     //
     // Why are we sleeping anyway? Because we have trouble sending it?
-
-    BackgroundCmd *cmd = (background_command.has_value() && !planned_event.has_value()) ? &background_command->command : nullptr;
-    return Sleep(amount, cmd);
+    const bool has_event = planned_event.has_value();
+    BackgroundCmd *cmd = (background_command.has_value() && !has_event) ? &background_command->command : nullptr;
+    // This is not the case for downloads, download-finished events are sent by
+    // "passively" watching what is or is not being transferred and the event
+    // is generated after the fact anyway. No reason to block downloading for
+    // that.
+    Download *down = download.has_value() ? &*download : nullptr;
+    return Sleep(amount, cmd, down);
 }
 
 Action Planner::next_action() {
@@ -156,9 +162,9 @@ Action Planner::next_action() {
     }
 
     if (auto current_transfer = Monitor::instance.id(); observed_transfer != current_transfer) {
-        optional<Monitor::Outcome> outcome = observed_transfer.has_value() ? Monitor::instance.outcome(*observed_transfer) : nullopt;
+        auto terminated_transfer = observed_transfer;
+        optional<Monitor::Outcome> outcome = terminated_transfer.has_value() ? Monitor::instance.outcome(*terminated_transfer) : nullopt;
 
-        auto terminated_transfer = *observed_transfer;
         observed_transfer = current_transfer;
 
         if (outcome.has_value()) {
@@ -181,7 +187,8 @@ Action Planner::next_action() {
             planned_event = Event {
                 type,
             };
-            planned_event->transfer_id = terminated_transfer;
+            // Not nullopt, otherwise we wouldn't get an outcome.
+            planned_event->transfer_id = *terminated_transfer;
             return *planned_event;
         }
         // No info:
@@ -417,7 +424,7 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
     // Avoid warning about unused in release builds (assert off)
     (void)written;
 
-    auto down_result = Download::start_connect_download(host, port, path, download.path.path());
+    auto down_result = Download::start_connect_download(host, port, path, download.path.path(), &printer);
 
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
@@ -441,9 +448,6 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
         }
     },
         down_result);
-
-    // TODO: This is temporary. As we don't do the actual download, so release the slot.
-    this->download.reset();
 }
 
 // FIXME: Handle the case when we are resent a command we are already
@@ -493,6 +497,19 @@ void Planner::background_done(BackgroundResult result) {
         background_command_id(),
     };
     background_command.reset();
+}
+
+void Planner::download_done() {
+    // Similar reasons as with background_done
+    assert(download.has_value());
+    // We do _not_ set the event here. We do so in watching the transfer.
+    //
+    // But we make sure the observed_transfer is set even if there was no
+    // next_event in the meantime or if it was short-circuited.
+
+    observed_transfer = Monitor::instance.id();
+    assert(observed_transfer.has_value()); // Because download still holds the slot.
+    download.reset();
 }
 
 }

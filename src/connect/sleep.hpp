@@ -2,6 +2,10 @@
 
 #include "background.hpp"
 
+namespace transfers {
+class Download;
+}
+
 namespace connect_client {
 
 class Printer;
@@ -23,6 +27,7 @@ private:
     //
     // We would prefer optional<&T>, but that doesn't exist in C++.
     BackgroundCmd *background_cmd;
+    transfers::Download *download;
 
 #ifdef UNITTESTS
 public:
@@ -32,8 +37,9 @@ private:
     Duration milliseconds;
 
 public:
-    Sleep(Duration duration, BackgroundCmd *cmd)
+    Sleep(Duration duration, BackgroundCmd *cmd, transfers::Download *download)
         : background_cmd(cmd)
+        , download(download)
         , milliseconds(duration) {}
     static Sleep idle();
     /// Sleeps up to the given time, processing any background tasks if possible.
