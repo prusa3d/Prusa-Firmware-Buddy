@@ -388,4 +388,13 @@ uint32_t MarlinPrinter::files_hash() const {
     return wui_gcodes_mods();
 }
 
+void MarlinPrinter::notify_filechange(const char *) {
+    // Currently, we upload only gcodes.
+    //
+    // Once we allow uploading other things, renaming of the function might be in place 😇
+    //
+    // (For now, we don't use the file name for anything interesting)
+    wui_gcode_modified();
+}
+
 }

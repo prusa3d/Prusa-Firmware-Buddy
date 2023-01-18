@@ -21,7 +21,8 @@ public:
 
     virtual std::optional<Error> connection(const char *host, uint16_t port) override;
     virtual std::variant<size_t, Error> tx(const uint8_t *buffer, size_t data_len) override;
-    virtual std::variant<size_t, Error> rx(uint8_t *buffer, size_t buffer_len) override;
+    virtual std::variant<size_t, Error> rx(uint8_t *buffer, size_t buffer_len, bool nonblock) override;
+    virtual bool poll_readable(uint32_t timeout) override;
 };
 
 }

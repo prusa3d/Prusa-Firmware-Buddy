@@ -34,7 +34,7 @@ private:
     Connection *conn;
 
 public:
-    std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size);
+    std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size, std::optional<uint32_t> timeout_ms = std::nullopt);
 };
 
 class Response {

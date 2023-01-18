@@ -156,7 +156,7 @@ variant<size_t, Error> Response::read_body(uint8_t *buffer, size_t size) {
             memmove(body_leftover.data(), body_leftover.data() + chunk, leftover_size);
             pos += chunk;
         } else {
-            auto read_resp = conn->rx(write_pos, available);
+            auto read_resp = conn->rx(write_pos, available, false);
             if (holds_alternative<Error>(read_resp)) {
                 return get<Error>(read_resp);
             }
@@ -188,11 +188,21 @@ tuple<const uint8_t *, size_t, ResponseBody> Response::into_body() {
     return make_tuple(body_leftover.begin(), leftover, body);
 }
 
-variant<size_t, Error> ResponseBody::read_body(uint8_t *buffer, size_t size) {
+variant<size_t, Error> ResponseBody::read_body(uint8_t *buffer, size_t size, optional<uint32_t> timeout_ms) {
     // TODO: Dealing with chunked and connection-closed bodies
 
     const size_t available = min(size, content_length_rest);
-    const auto result = conn->rx(buffer, available);
+    if (available == 0) {
+        // Short-circuit for the readability check below
+        return static_cast<size_t>(0); // Type hint for conversion to variant.
+    }
+
+    if (timeout_ms.has_value()) {
+        if (!conn->poll_readable(*timeout_ms)) {
+            return Error::Timeout;
+        }
+    }
+    const auto result = conn->rx(buffer, available, timeout_ms.has_value());
 
     if (const auto *read = get_if<size_t>(&result); read != nullptr) {
         assert(content_length_rest >= *read);
@@ -270,7 +280,7 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
 
     // TODO: Timeouts
     for (;;) {
-        auto read = conn->rx(buffer, sizeof buffer);
+        auto read = conn->rx(buffer, sizeof buffer, false);
         if (holds_alternative<Error>(read)) {
             return get<Error>(read);
         }

@@ -1,10 +1,14 @@
 #include "download.hpp"
 #include "files.hpp"
+#include "notify_filechange.hpp"
 
 #include <common/http/get_request.hpp>
+#include <timing.h>
 
 #include <sys/stat.h>
+#include <unistd.h>
 
+using http::Error;
 using http::GetRequest;
 using http::HttpClient;
 using http::Response;
@@ -15,6 +19,14 @@ using std::get_if;
 using std::make_unique;
 using std::move;
 
+namespace {
+// TODO: Tune?
+const constexpr size_t BUF_SIZE = 256;
+// Time out after 5 seconds of downloading
+// (downloading of body doesn't block the main activity, so we can be generous)
+const constexpr uint32_t DOWNLOAD_INACTIVITY_LIMIT = 5000;
+}
+
 extern "C" {
 
 // Inject for tests, which are compiled on systems without it in the header.
@@ -24,14 +36,29 @@ size_t strlcat(char *, const char *, size_t);
 
 namespace transfers {
 
-Download::Download(ConnFactory &&factory, ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx)
+Download::Download(ConnFactory &&factory, ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, NotifyFilechange *notify_done)
     : conn_factory(move(factory))
     , response(move(response))
     , slot(move(slot))
     , dest_file(move(dest_file))
-    , transfer_idx(transfer_idx) {}
+    , transfer_idx(transfer_idx)
+    , last_activity(ticks_ms())
+    , notify_done(notify_done) {}
 
-Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination) {
+Download::~Download() {
+    if (dest_file.get() != nullptr) {
+        // We are being destroyed without properly finishing the transfer. Try
+        // to clean up the temp file.
+        //
+        // Close it first.
+        dest_file.reset();
+        const auto fname = transfer_name(transfer_idx);
+        // No error handling - nothing we could concievably do if it fails anyway.
+        remove(fname.begin());
+    }
+}
+
+Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, NotifyFilechange *notify_done) {
     // Early check for free transfer slot. This is not perfect, there's a race
     // and we can _lose_ the slot before we start the download. But we can
     // allocate it only once we know the size and for that we need to do the
@@ -54,9 +81,12 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
         return AlreadyExists {};
     }
 
-    // TODO: The timeout is a dummy for now, will be tuned once we start
-    // reading the body.
-    ConnFactory factory(make_unique<http::SocketConnectionFactory>(host, port, 42));
+    // 3 seconds timeout.
+    //
+    // Will be used only for the blocking operations, timeouts on the body are
+    // handled separately in our code with combination of poll / tracking of
+    // time.
+    ConnFactory factory(make_unique<http::SocketConnectionFactory>(host, port, 3000));
     HttpClient client(*factory.get());
     GetRequest request {
         url_path,
@@ -91,11 +121,68 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
             if (written != 1) {
                 return Storage { "Can't write to the file" };
             }
+            slot->progress(initial_chunk_size);
         }
 
-        return Download(move(factory), move(body), move(*slot), move(file), transfer_idx);
+        return Download(move(factory), move(body), move(*slot), move(file), transfer_idx, notify_done);
     } else {
         return RefusedRequest {};
+    }
+}
+
+DownloadStep Download::step(uint32_t max_duration_ms) {
+    uint8_t buffer[BUF_SIZE];
+
+    const auto result = response.read_body(buffer, sizeof buffer, max_duration_ms);
+
+    if (const size_t *amt = get_if<size_t>(&result); amt != nullptr) {
+        if (*amt == 0) {
+            { // Scope the status, so we release it before calling .done.
+                const auto status = Monitor::instance.status();
+                assert(status.has_value());
+                assert(status->destination != nullptr);
+                // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
+                (void)ftruncate(fileno(dest_file.get()), ftell(dest_file.get()));
+                // Close the file so we can rename it.
+                dest_file.reset();
+                const auto fname = transfer_name(transfer_idx);
+                if (rename(fname.begin(), status->destination) == -1) {
+                    // Failed to rename :-(.
+                    // At least try cleaning the temp file up.
+                    // (no error handling here, we have no backup plan there).
+                    remove(fname.begin());
+                    return DownloadStep::Failed;
+                } else {
+                    if (notify_done != nullptr) {
+                        notify_done->notify_filechange(status->destination);
+                    }
+                }
+            }
+            // This must be outside of the block with status, otherwise we would deadlock.
+            slot.done(Monitor::Outcome::Finished);
+            return DownloadStep::Finished;
+        } else {
+            auto written = fwrite(buffer, *amt, 1, dest_file.get());
+            if (written != 1) {
+                return DownloadStep::Failed;
+            }
+
+            slot.progress(*amt);
+            last_activity = ticks_ms();
+            return DownloadStep::Continue;
+        }
+    } else {
+        auto err = get<Error>(result);
+        if (err == Error::Timeout) {
+            auto now = ticks_ms();
+            if (now - last_activity >= DOWNLOAD_INACTIVITY_LIMIT) {
+                return DownloadStep::Failed;
+            } else {
+                return DownloadStep::Continue;
+            }
+        } else {
+            return DownloadStep::Failed;
+        }
     }
 }
 

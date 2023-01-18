@@ -27,7 +27,7 @@ public:
     virtual optional<Error> connection(const char *, uint16_t) override {
         return nullopt;
     }
-    virtual variant<size_t, Error> rx(uint8_t *buffer, size_t len) override {
+    virtual variant<size_t, Error> rx(uint8_t *buffer, size_t len, bool /*nonblock: we never block here*/) override {
         size_t amnt = min(len, received.size());
         memcpy(buffer, received.data(), amnt);
         received.erase(0, amnt);
@@ -36,6 +36,9 @@ public:
     virtual variant<size_t, Error> tx(const uint8_t *buffer, size_t len) override {
         sent += string_view(reinterpret_cast<const char *>(buffer), len);
         return len;
+    }
+    virtual bool poll_readable(uint32_t /*timeout: no more data will ever arrive*/) override {
+        return received.size() > 0;
     }
 };
 

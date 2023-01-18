@@ -73,6 +73,8 @@ public:
     virtual uint32_t files_hash() const override {
         return 0;
     }
+
+    virtual void notify_filechange(const char *) override {}
 };
 
 }
