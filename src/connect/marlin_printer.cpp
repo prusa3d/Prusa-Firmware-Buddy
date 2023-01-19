@@ -87,7 +87,7 @@ namespace {
     // board.
     bool serial_valid(const char *sn) {
         for (const char *c = sn; *c; c++) {
-            if (!isalnum(*c)) {
+            if (!isprint(*c)) {
                 return false;
             }
         }
