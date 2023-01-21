@@ -153,6 +153,9 @@ Action Planner::next_action() {
     if (auto current_transfer = Monitor::instance.id(); observed_transfer != current_transfer) {
         optional<Monitor::Outcome> outcome = observed_transfer.has_value() ? Monitor::instance.outcome(*observed_transfer) : nullopt;
 
+        auto terminated_transfer = *observed_transfer;
+        observed_transfer = current_transfer;
+
         if (outcome.has_value()) {
             // The default value will never be used, it
             // is set only to shut up the compiler about
@@ -173,14 +176,12 @@ Action Planner::next_action() {
             planned_event = Event {
                 type,
             };
-            planned_event->transfer_id = *observed_transfer;
+            planned_event->transfer_id = terminated_transfer;
             return *planned_event;
         }
         // No info:
         // * It may be out of history
         // * Or there was no transfer to start with, we are changing from nullopt
-
-        observed_transfer = current_transfer;
     }
 
     if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
