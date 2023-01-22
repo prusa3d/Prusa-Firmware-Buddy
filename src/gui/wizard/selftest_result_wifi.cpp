@@ -26,8 +26,8 @@ static string_view_utf8 getText(TestResultNet_t res) {
 
 ResultWifi::ResultWifi(TestResultNet_t res)
     : SelfTestGroup(_("WiFi connection"))
-    , connected(getText(res), &png::wifi_16x16, TestResult_t::Passed)
-    , not_connected(getText(res), &png::wifi_16x16) {
+    , connected(getText(res), png::wifi_16x16, TestResult_t::Passed, is_multiline::yes)
+    , not_connected(getText(res), png::wifi_16x16, is_multiline::yes) {
     switch (res) {
     case TestResultNet_t::Up:
     case TestResultNet_t::NoAddress:
