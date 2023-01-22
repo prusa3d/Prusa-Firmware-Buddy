@@ -266,6 +266,109 @@ void render_icon_align(Rect16 rc, const png::Resource *res, color_t clr_back, ic
     }
 }
 
+/**
+ * @brief calculate size (in number of characters) of required rectangle, independent on font
+ * TODO use common algorithm with draw and merge those functions in one
+ *
+ * @param str                           text to be measured
+ * @param max_chars_per_line            max returned number of characters per line
+ * @param ret_numOfUTF8Chars            optional return number of characters (use nullptr if not needed)
+ * @return std::optional<size_ui16_t>   size of needed rectangle, it might be narrower than max_width
+ */
+std::optional<size_ui16_t> characters_meas_text(string_view_utf8 &str, uint16_t max_chars_per_line, uint16_t *numOfUTF8Chars) {
+    if (max_chars_per_line == 0)
+        return std::nullopt;
+
+    std::optional<int> last_space_index = std::nullopt;
+    unichar c = 0;
+
+    int chars_this_line = 0;
+    int chars_longest_line = 0;
+    int chars_tot = 0;
+    int row_no = 0;
+
+    while ((c = str.getUtf8Char()) != 0) {
+        ++chars_tot;
+        switch (c) {
+        case '\n': // new line
+            if (chars_this_line >= chars_longest_line)
+                chars_longest_line = chars_this_line;
+            ++row_no;
+            chars_this_line = 0;
+            last_space_index = std::nullopt;
+            break;
+        case ' ': // remember space position, discard multiple spaces
+
+            // erase multiple spaces
+            if (last_space_index && (*last_space_index == chars_this_line)) {
+                break; // break to avoid ++chars_this_line
+            }
+
+            // erase start space
+            if (chars_this_line == 0) {
+                break; // break to avoid ++chars_this_line
+            }
+
+            last_space_index = chars_this_line;
+
+            // DO NOT break!!!
+        default:
+            if ((chars_this_line + 1) >= max_chars_per_line) {
+                if (!last_space_index)
+                    return std::nullopt; // error, text does not fit
+
+                //  01234567890123
+                // "Hello world!!!"
+                // let's say last '!' does not fit
+                // last_space_index is 5
+                // chars_this_line is 13
+                // chars_longest_line become last_space_index (5)
+                // than we do new line
+                // and set chars_this_line 13 - 5 - 1 (1 = space) + 1 (1 = newly added char)
+
+                // chars_longest_line can become last_space_index
+                chars_longest_line = std::max(chars_longest_line, *last_space_index);
+
+                // new line
+                ++row_no;
+
+                // count chars in next line
+                chars_this_line -= ((*last_space_index) + 1 - 1); // +1 space, -1 missing ++
+                last_space_index = std::nullopt;
+
+            } else {
+                ++chars_this_line;
+            }
+        }
+    }
+    str.rewind();
+
+    chars_longest_line = std::max(chars_longest_line, chars_this_line);
+
+    if (numOfUTF8Chars)
+        *numOfUTF8Chars = chars_tot;
+    return size_ui16_t({ uint16_t(chars_longest_line), uint16_t(row_no + 1) });
+}
+
+/**
+ * @brief calculate size of required rectangle
+ *
+ * @param font                          font
+ * @param str                           text to be measured
+ * @param max_width                     max returned width
+ * @param ret_numOfUTF8Chars            optional return number of characters (use nullptr if not needed)
+ * @return std::optional<size_ui16_t>   size of needed rectangle, it might be narrower than max_width
+ */
+std::optional<size_ui16_t> font_meas_text(const font_t &font, string_view_utf8 &str, uint16_t max_width, uint16_t *numOfUTF8Chars) {
+    std::optional<size_ui16_t> sz_in_chars = characters_meas_text(str, max_width / font.w, numOfUTF8Chars);
+    if (sz_in_chars) {
+        return size_ui16_t({ uint16_t(font.w * sz_in_chars->w), uint16_t(font.h * sz_in_chars->h) });
+    }
+    return std::nullopt;
+}
+
+// TODO call previous function with max_width == UINT16_MAX
+// currently not called to not break anything
 size_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *numOfUTF8Chars) {
     int x = 0;
     int y = 0;
