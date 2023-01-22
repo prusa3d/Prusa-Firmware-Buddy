@@ -15,13 +15,14 @@
 
 static constexpr size_t view_msg_gap = 10;
 static constexpr size_t msg_bottom_gap = 6;
-static Rect16::Height_t msg_height() { return 2 * GuiDefaults::Font->h; }
+static Rect16::Height_t msg_height() { return (GuiDefaults::ScreenWidth > 240 ? 2 : 3) * GuiDefaults::Font->h; } // cannot be constexpr, because of font
 static Rect16::Height_t view_height() { return WizardDefaults::Y_space - msg_height() - view_msg_gap - msg_bottom_gap; }
 
 SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrame>(parent, ph, data)
-    , view(this, { WizardDefaults::col_0, WizardDefaults::row_0, WizardDefaults::X_space, view_height() })
-    , msg(this, this->GenerateRect(msg_height(), view_msg_gap), is_multiline::yes)
+    , msg(this, { WizardDefaults::col_0, WizardDefaults::row_0, WizardDefaults::X_space, msg_height() }, is_multiline::yes)
+    , view(this, this->GenerateRect(view_height(), view_msg_gap))
+
     , bar(this)
 
     , fans(SelftestResult_t(data).heatBreakFan, SelftestResult_t(data).printFan)
@@ -31,11 +32,11 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
     , wifi(SelftestResult_t(data).wifi) {
 
     if (SelftestResult_t(data).Passed()) {
-        msg.SetText(_("Selftest passed.\nCheck summary for more information."));
+        msg.SetText(_("Selftest OK!\nDetails below, use knob to scroll"));
     } else if (SelftestResult_t(data).Failed()) {
-        msg.SetText(_("Selftest failed.\nPlease check summary for failed checks."));
+        msg.SetText(_("Selftest failed!\nDetails below, use knob to scroll"));
     } else
-        msg.SetText(_("Some tests did not run or were skipped. Check summary for more information."));
+        msg.SetText(_("Selftest incomplete!\nDetails below, use knob to scroll"));
 
     //TODO automatic
     view.Add(fans);
