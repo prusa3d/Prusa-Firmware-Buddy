@@ -19,9 +19,9 @@
 #include "window_text.hpp"
 
 class SelftestFrameResult : public AddSuperWindow<SelftestFrame> {
-    SelfTestView view;
     window_text_t msg;
-    ScrollBar bar;
+    SelfTestView view;
+    ScrollBar bar; // TODO it does not show, partially unimplemented???
 
     //used int to be able to do std::min/max
     Rect16::Height_t height_draw_offset;
