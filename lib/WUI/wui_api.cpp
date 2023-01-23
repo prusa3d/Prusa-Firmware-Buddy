@@ -162,17 +162,7 @@ static int ini_handler_func(void *user, const char *section, const char *name, c
     }
 
     if (def->ap) {
-        if (ini_string_match(section, "wifi", name, "key_mgmt")) {
-            if (strcasecmp("WPA", value) == 0) {
-                def->ap->security = AP_SEC_WPA;
-            } else if (strcasecmp("WEP", value) == 0) {
-                def->ap->security = AP_SEC_WEP;
-            } else if (strcasecmp("NONE", value) == 0) {
-                def->ap->security = AP_SEC_NONE;
-            }
-            // TODO: else -> ??? Any way to tell the user?
-            tmp_config->var_mask |= ETHVAR_MSK(APVAR_SECURITY);
-        } else if (ini_string_match(section, "wifi", name, "ssid")) {
+        if (ini_string_match(section, "wifi", name, "ssid")) {
             strlcpy(def->ap->ssid, value, SSID_MAX_LEN + 1);
             tmp_config->var_mask |= ETHVAR_MSK(APVAR_SSID);
         } else if (ini_string_match(section, "wifi", name, "psk")) {
@@ -218,11 +208,8 @@ static enum eevar_id vid(enum eevar_id id, uint32_t net_id) {
 }
 
 void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
-    if (ethconfig->var_mask & (ETHVAR_MSK(ETHVAR_LAN_FLAGS) | ETHVAR_MSK(APVAR_SECURITY))) {
+    if (ethconfig->var_mask & (ETHVAR_MSK(ETHVAR_LAN_FLAGS))) {
         uint8_t flags = ethconfig->lan.flag;
-        if (ap != NULL) {
-            flags |= ap->security;
-        }
         eeprom_set_ui8(vid(EEVAR_LAN_FLAG, netdev_id), flags);
     }
     if (ethconfig->var_mask & ETHVAR_MSK(ETHVAR_LAN_ADDR_IP4)) {
@@ -278,7 +265,7 @@ static void strextract(char *into, size_t maxlen, enum eevar_id var) {
 
 void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id) {
     // Just the flags, without (possibly) the wifi secutiry
-    ethconfig->lan.flag = eeprom_get_ui8(vid(EEVAR_LAN_FLAG, netdev_id)) & ~APSEC_MASK;
+    ethconfig->lan.flag = eeprom_get_ui8(vid(EEVAR_LAN_FLAG, netdev_id)) & ~RESERVED_MASK;
     ethconfig->lan.addr_ip4.addr = eeprom_get_ui32(vid(EEVAR_LAN_IP4_ADDR, netdev_id));
     ethconfig->dns1_ip4.addr = eeprom_get_ui32(vid(EEVAR_LAN_IP4_DNS1, netdev_id));
     ethconfig->dns2_ip4.addr = eeprom_get_ui32(vid(EEVAR_LAN_IP4_DNS2, netdev_id));
@@ -289,7 +276,6 @@ void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
     if (ap != NULL) {
         assert(netdev_id == NETDEV_ESP_ID);
 
-        ap->security = static_cast<ap_sec_t>(eeprom_get_ui8(EEVAR_WIFI_FLAG) & APSEC_MASK);
         strextract(ap->ssid, SSID_MAX_LEN + 1, EEVAR_WIFI_AP_SSID);
         strextract(ap->pass, WIFI_PSK_MAX + 1, EEVAR_WIFI_AP_PASSWD);
     }
@@ -348,7 +334,7 @@ uint32_t wui_gcodes_mods() {
     return modified_gcodes;
 }
 
-bool wui_start_print(char *filename, bool autostart_if_able) {
+StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
     marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
     const bool printer_can_print = marlin_remote_print_ready(!autostart_if_able);
 
@@ -359,9 +345,9 @@ bool wui_start_print(char *filename, bool autostart_if_able) {
     if (autostart_if_able) {
         if (printer_can_print) {
             print_begin(filename, true);
-            return marlin_print_started();
+            return marlin_print_started() ? StartPrintResult::PrintStarted : StartPrintResult::Failed;
         } else {
-            return false;
+            return StartPrintResult::Failed;
         }
     } else {
         // The conditional here is just an optimization, to save bothering
@@ -372,15 +358,20 @@ bool wui_start_print(char *filename, bool autostart_if_able) {
         }
         // We were not asked to print. Showing the preview is "best effort",
         // but not reported to the user.
-        return true;
+        return StartPrintResult::Uploaded;
     }
 }
 
 bool wui_uploaded_gcode(char *filename, bool start_print) {
-    modified_gcodes++;
-    uploaded_gcodes++;
 
-    return wui_start_print(filename, start_print);
+    StartPrintResult res = wui_start_print(filename, start_print);
+    if (res != StartPrintResult::Failed) {
+        modified_gcodes++;
+    }
+    if (res == StartPrintResult::Uploaded) {
+        uploaded_gcodes++;
+    }
+    return (res != StartPrintResult::Failed);
 }
 
 void wui_gcode_modified() {

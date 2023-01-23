@@ -54,10 +54,8 @@ typedef enum {
     ETHVAR_DNS1_IP4,     // ip_addr_t, dns1_ip4
     ETHVAR_DNS2_IP4,     // ip_addr_t, dns2_ip4
 
-    // Is it too much abuse to include the flags for the AP in the var_mask of related ETH_config_t?
-    APVAR_SECURITY, // ap_entry_t::security, saved together in the same byte as LAN_FLAGS
-    APVAR_SSID,     // char[32 + 1], ap_entry_t::ssid
-    APVAR_PASS,     // char[64 + 1], ap_entry_t::pass
+    APVAR_SSID, // char[32 + 1], ap_entry_t::ssid
+    APVAR_PASS, // char[64 + 1], ap_entry_t::pass
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];
@@ -162,13 +160,19 @@ const char *wui_generate_password(char *, uint32_t);
 /// @param[in] length Size of the buffer
 void wui_store_password(char *, uint32_t);
 
+#ifdef __cplusplus
+enum class StartPrintResult {
+    Failed,       /// uploading file failed
+    Uploaded,     /// uploading succeeded, able to print
+    PrintStarted, /// uploading succeeded and print started immediately
+};
+
 /// Start a print of a given filename.
 ///
-/// Returns false if can't print right now. Note that this doesn't check the
-/// existence of the file.
 /// @param[in] autostart_if_able true  - printer will start print without asking (in case filament, printer type and other checks are satisfied)
 ///                              false - printer will not start print without asking, but it will show one click print if able to
-bool wui_start_print(char *filename, bool autostart_if_able);
+StartPrintResult wui_start_print(char *filename, bool autostart_if_able);
+#endif /* __cplusplus */
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief A new gcode was uploaded, take appropriate actions
@@ -185,6 +189,8 @@ bool wui_uploaded_gcode(char *path, bool start_print);
 ///
 /// May be used to check if a file was uploaded since last check.
 /// Guaranteed to start at 0, but may wrap around (unlikely).
+///
+/// @warning Gcodes that were immediately printed after upload do not count.
 ///
 /// Thread safe.
 uint32_t wui_gcodes_uploaded();

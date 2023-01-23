@@ -140,7 +140,7 @@ private:
     static const constexpr uint32_t RESET_FAULTY_AFTER = 60 * 1000;
 
     std::array<Iface, NETDEV_COUNT> ifaces;
-    ap_entry_t ap = { "", "", AP_SEC_NONE };
+    ap_entry_t ap = { "", "" };
     uint32_t last_esp_ok;
 
     TaskHandle_t network_task;
@@ -270,19 +270,7 @@ private:
 
     void join_ap() {
         unique_lock lock(mutex);
-        const char *passwd;
-        switch (ap.security) {
-        case AP_SEC_NONE:
-            passwd = NULL;
-            break;
-        case AP_SEC_WEP:
-        case AP_SEC_WPA:
-            passwd = ap.pass;
-            break;
-        default:
-            assert(0 /* Unhandled AP_SEC_* value*/);
-            return;
-        }
+        const char *passwd = ap.pass[0] == '\0' ? NULL : ap.pass;
         espif_join_ap(ap.ssid, passwd);
     }
 
@@ -532,7 +520,11 @@ public:
         netdev_status_t status = NETDEV_NETIF_DOWN;
         with_iface(netdev_id, [&](netif &iface, NetworkState &instance) {
             if (netif_is_link_up(&iface)) {
-                status = instance.netif_link(netdev_id) ? NETDEV_NETIF_UP : NETDEV_UNLINKED;
+                if (instance.netif_link(netdev_id)) {
+                    status = netif_ip4_addr(&iface)->addr != 0 ? NETDEV_NETIF_UP : NETDEV_NETIF_NOADDR;
+                } else {
+                    status = NETDEV_UNLINKED;
+                }
             }
         });
         return status;

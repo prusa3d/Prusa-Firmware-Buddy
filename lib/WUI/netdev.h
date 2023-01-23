@@ -27,6 +27,7 @@
 typedef enum {
     NETDEV_UNLINKED,
     NETDEV_NETIF_DOWN,
+    NETDEV_NETIF_NOADDR,
     NETDEV_NETIF_UP
 } netdev_status_t;
 

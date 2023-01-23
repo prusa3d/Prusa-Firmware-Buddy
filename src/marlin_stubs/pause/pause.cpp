@@ -8,6 +8,7 @@
 
 #include "../../lib/Marlin/Marlin/src/Marlin.h"
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "../../lib/Marlin/Marlin/src/module/endstops.h"
 #include "../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
@@ -69,6 +70,21 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
     current_position.e += length / planner.e_factor[active_extruder];
     line_to_current_position(fr_mm_s);
     planner.synchronize();
+}
+
+void unhomed_z_lift(float amount_mm) {
+    if (amount_mm > current_position.z) {
+        TemporaryGlobalEndstopsState park_move_endstops(true);
+        do_homing_move((AxisEnum)(Z_AXIS), amount_mm, HOMING_FEEDRATE_INVERTED_Z // warning: the speed must probably be exactly this, otherwise endstops don't work
+#if ENABLED(MOVE_BACK_BEFORE_HOMING)
+            ,
+            false
+#endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
+        );
+        // note: do_homing_move() resets the Marlin's internal position (Planner::position) to 0 (in Z axis) at the beginning
+        current_position.z = amount_mm;
+        sync_plan_position();
+    }
 }
 
 class RammingSequence {
@@ -1036,10 +1052,14 @@ void Pause::park_nozzle_and_notify() {
 
     // move by z_lift, scope for Notifier_POS_Z
     if (isfinite(target_Z)) {
-        Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
-        plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
-        if (wait_or_stop())
-            return;
+        if (axes_need_homing(_BV(Z_AXIS))) {
+            unhomed_z_lift(target_Z);
+        } else {
+            Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
+            plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
+            if (wait_or_stop())
+                return;
+        }
     }
 
     // move to (x_pos, y_pos)

@@ -16,6 +16,9 @@
 #include "IPause.hpp"
 #include <array>
 
+// @brief With Z unhomed, ensure that it is at least amount_mm above bed.
+void unhomed_z_lift(float amount_mm);
+
 class PausePrivatePhase : public IPause {
     PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
     int load_unload_shared_phase; //shared variable for UnloadPhases_t and LoadPhases_t
