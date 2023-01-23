@@ -8,13 +8,13 @@ target_sources(
           guimain.cpp
           IScreenPrinting.cpp
           logger.c
+          menu_items_open.cpp
           menu_vars.cpp
           MItem_crash.cpp
           MItem_eeprom.cpp
           MItem_experimental_tools.cpp
           MItem_filament.cpp
           MItem_lan.cpp
-          MItem_menus.cpp
           MItem_print.cpp
           MItem_tools.cpp
           network_gui_tools.cpp

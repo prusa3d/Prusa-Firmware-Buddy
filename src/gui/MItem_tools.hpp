@@ -388,3 +388,62 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+class MI_CURRENT_PROFILE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Current Profile");
+    char name[MAX_SHEET_NAME_LENGTH + 3];
+
+public:
+    MI_CURRENT_PROFILE();
+
+    void UpdateLabel();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_DEVHASH_IN_QR : public WI_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Device Hash in QR");
+
+public:
+    MI_DEVHASH_IN_QR();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_LANGUAGUE_USB : public WI_LABEL_t {
+    static constexpr const char *const label = "Load lang from USB";
+
+public:
+    MI_LANGUAGUE_USB();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_LOAD_LANG : public WI_LABEL_t {
+    static constexpr const char *const label = "Load lang to XFLASH";
+
+public:
+    MI_LOAD_LANG();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
+    static constexpr const char *const label = "Load lang from XFLASH";
+
+public:
+    MI_LANGUAGUE_XFLASH();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_USB_MSC_ENABLE : public WI_SWITCH_OFF_ON_t {
+    constexpr static char const *label = "USB MSC";
+
+public:
+    MI_USB_MSC_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};

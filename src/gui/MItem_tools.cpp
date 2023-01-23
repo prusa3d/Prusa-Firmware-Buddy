@@ -4,10 +4,11 @@
 #include "eeprom_loadsave.h"
 #include "marlin_client.h"
 #include "gui.hpp"
-#include "sys.h"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_calib_z.hpp"
 #include "window_file_list.hpp"
+#include "SteelSheets.hpp"
+#include "translation_provider_FILE.hpp"
 #include "sound.hpp"
 #include "wui_api.h"
 #include "i18n.h"
@@ -528,4 +529,86 @@ void MI_FOOTER_RESET::click(IWindowMenu &window_menu) {
     footer::eeprom::Store(footer::DefaultItems);
     //send event for all footers
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
+}
+
+/*****************************************************************************/
+//MI_CURRENT_PROFILE
+MI_CURRENT_PROFILE::MI_CURRENT_PROFILE()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, SteelSheets::NumOfCalibrated() > 1 ? is_hidden_t::no : is_hidden_t::yes) {
+    if (SteelSheets::NumOfCalibrated() > 1) {
+        UpdateLabel();
+    }
+}
+
+void MI_CURRENT_PROFILE::click(IWindowMenu & /*window_menu*/) {
+    SteelSheets::NextSheet();
+    UpdateLabel();
+}
+
+void MI_CURRENT_PROFILE::UpdateLabel() {
+    name[0] = '[';
+    uint32_t cnt = SteelSheets::ActiveSheetName(name + 1, MAX_SHEET_NAME_LENGTH);
+    name[cnt + 1] = ']';
+    name[cnt + 2] = 0;
+    // string_view_utf8::MakeRAM is safe. "name" is member var, exists until MI_CURRENT_PROFILE is destroyed
+    SetLabel(string_view_utf8::MakeRAM((const uint8_t *)name));
+}
+
+/*****************************************************************************/
+//
+MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
+    : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_DEVHASH_IN_QR), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
+    eeprom_set_bool(EEVAR_DEVHASH_IN_QR, !old_index);
+}
+
+/*****************************************************************************/
+//MI_LANGUAGUE_USB
+MI_LANGUAGUE_USB::MI_LANGUAGUE_USB()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_LANGUAGUE_USB::click(IWindowMenu &windowMenu) {
+    if (fileProviderUSB.EnsureFile())
+        Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderUSB);
+}
+
+/*****************************************************************************/
+//MI_LOAD_LANG
+MI_LOAD_LANG::MI_LOAD_LANG()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_LOAD_LANG::click(IWindowMenu &windowMenu) {
+    const uint8_t buffLen = 16;
+
+    uint8_t buff[buffLen];
+
+    FILE *srcDir = fopen("/usb/lang/ts.mo", "rb");
+    FILE *dstDir = fopen("/internal/ts.mo", "wb");
+    //copy languague from usb to xflash
+    if (dstDir && srcDir) {
+        for (size_t readBytes = fread(buff, 1, buffLen, srcDir); readBytes != 0; readBytes = fread(buff, 1, buffLen, srcDir)) {
+            fwrite(buff, 1, readBytes, dstDir);
+        }
+    }
+    fclose(dstDir);
+    fclose(srcDir);
+}
+
+/*****************************************************************************/
+//MI_LANGUAGUE_XFLASH
+MI_LANGUAGUE_XFLASH::MI_LANGUAGUE_XFLASH()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_LANGUAGUE_XFLASH::click(IWindowMenu &windowMenu) {
+    if (fileProviderInternal.EnsureFile())
+        Translations::Instance().RegisterProvider(Translations::MakeLangCode("ts"), &fileProviderInternal);
+}
+
+/**********************************************************************************************/
+// MI_USB_MSC_ENABLE
+MI_USB_MSC_ENABLE::MI_USB_MSC_ENABLE()
+    : WI_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_USB_MSC_ENABLED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+
+void MI_USB_MSC_ENABLE::OnChange(size_t old_index) {
+    eeprom_set_bool(EEVAR_USB_MSC_ENABLED, !old_index);
 }

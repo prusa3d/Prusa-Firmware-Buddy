@@ -8,7 +8,7 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
-#include "MItem_menus.hpp"
+#include "menu_items_open.hpp"
 
 class IMiFooter : public WI_SWITCH_t<size_t(footer::items::count_) + 1> {
 public:
