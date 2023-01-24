@@ -11,7 +11,6 @@
 
 struct Filament {
     const char *name;
-    const char *long_name;
     uint16_t nozzle;
     uint16_t nozzle_preheat;
     uint16_t heatbed;

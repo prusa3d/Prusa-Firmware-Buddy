@@ -14,10 +14,9 @@
 #include "MItem_tools.hpp"
 
 namespace NsPreheat {
-class I_MI_Filament : public WI_LABEL_t {
+class I_MI_Filament : public WI_INFO_t {
 public:
-    I_MI_Filament(string_view_utf8 long_name)
-        : WI_LABEL_t(long_name, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    I_MI_Filament(string_view_utf8 name, unsigned t_noz, unsigned t_bed);
 
 protected:
     void click_at(filament_t filament_index);
@@ -27,7 +26,7 @@ template <filament_t T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(_(Filaments::Get(T).long_name)) {}
+        : I_MI_Filament(_(Filaments::Get(T).name), Filaments::Get(T).nozzle, Filaments::Get(T).heatbed) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
@@ -45,6 +44,14 @@ protected:
     virtual void click(IWindowMenu &window_menu);
 };
 
+class MI_COOLDOWN : public WI_LABEL_t {
+public:
+    MI_COOLDOWN();
+
+protected:
+    virtual void click(IWindowMenu &window_menu);
+};
+
 #define ALL_FILAMENTS MI_Filament<filament_t::PLA>,  \
                       MI_Filament<filament_t::PETG>, \
                       MI_Filament<filament_t::ASA>,  \
@@ -57,13 +64,13 @@ protected:
 
 //TODO try to use HIDDEN on return and filament_t::NONE
 //has both return and cooldown
-using MenuContainerHasRetCool = WinMenuContainer<MI_RETURN, ALL_FILAMENTS, MI_Filament<filament_t::NONE>>;
+using MenuContainerHasRetCool = WinMenuContainer<MI_RETURN, ALL_FILAMENTS, MI_COOLDOWN>;
 
 //has return
 using MenuContainerHasRet = WinMenuContainer<MI_RETURN, ALL_FILAMENTS>;
 
 //has cooldown
-using MenuContainerHasCool = WinMenuContainer<ALL_FILAMENTS, MI_Filament<filament_t::NONE>>;
+using MenuContainerHasCool = WinMenuContainer<ALL_FILAMENTS, MI_COOLDOWN>;
 
 // no extra fields
 using MenuContainer = WinMenuContainer<ALL_FILAMENTS>;

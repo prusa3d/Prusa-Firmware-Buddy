@@ -14,6 +14,13 @@
 
 /*****************************************************************************/
 //NsPreheat::I_MI_Filament
+NsPreheat::I_MI_Filament::I_MI_Filament(string_view_utf8 name, unsigned t_noz, unsigned t_bed)
+    : WI_INFO_t(name, nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    char buff[sizeof("999/999 ")];
+    snprintf(buff, sizeof(buff), "%3u/%3u ", t_noz, t_bed); // extra space at the end is intended
+    ChangeInformation(buff);
+}
+
 void NsPreheat::I_MI_Filament::click_at(filament_t filament_index) {
     const Response response = Filaments::Get(filament_index).response;
     marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
@@ -28,6 +35,17 @@ NsPreheat::MI_RETURN::MI_RETURN()
 void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
     window_menu.Validate(); /// don't redraw since we leave the menu
     marlin_FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
+}
+
+/*****************************************************************************/
+//NsPreheat::MI_COOLDOWN
+NsPreheat::MI_COOLDOWN::MI_COOLDOWN()
+    : WI_LABEL_t(_(BtnResponse::GetText(Response::Cooldown)), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void NsPreheat::MI_COOLDOWN::click(IWindowMenu &window_menu) {
+    const Response response = Filaments::Get(filament_t::NONE).response;
+    marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 
 /*****************************************************************************/
