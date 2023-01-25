@@ -76,7 +76,7 @@ char gui_media_LFN[FILE_NAME_BUFFER_LEN];
 char gui_media_SFN_path[FILE_PATH_BUFFER_LEN];
 
 static uint8_t cnt_scan_register_update = 0;
-uint8_t data_buff[2] = { 0x00 };
+uint8_t data_buff[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
 
 #ifdef GUI_JOGWHEEL_SUPPORT
 Jogwheel jogwheel;
@@ -332,7 +332,7 @@ void gui_run(void) {
         }
 
         if (++cnt_scan_register_update >= 100) {
-            display::ReadMADCTL(data_buff, 1);
+            display::ReadMADCTL(data_buff);
             if (data_buff[1] != 0xE0 && data_buff[1] != 0xF0) {
                 display::Init();
                 Screens::Access()->SetDisplayReinitialized();

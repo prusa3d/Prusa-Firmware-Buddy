@@ -35,7 +35,7 @@ typedef void(display_store_char_in_buffer_t)(uint16_t char_cnt, uint16_t curr_ch
 typedef void(display_draw_from_buffer_t)(point_ui16_t pt, uint16_t w, uint16_t h);
 typedef void(display_draw_png_t)(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line);
 typedef void(display_backlight_t)(uint8_t bck);
-typedef void(display_read_madctl_t)(uint8_t *pdata, uint8_t size);
+typedef void(display_read_madctl_t)(uint8_t *pdata);
 
 template <
 #ifndef USE_MOCK_DISPLAY // mock display has dynamical size
@@ -100,7 +100,7 @@ public:
     constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, uint16_t local_desatur_line) { DRAW_PNG(pt, png, back_color, rop, Rect16(0, 0, 0, 0), local_desatur_line); }
 
     constexpr static void SetBacklight(uint8_t bck) { BACKLIGHT(bck); }
-    constexpr static void ReadMADCTL(uint8_t *pdata, uint8_t size) { READ_MADCLT(pdata, size); }
+    constexpr static void ReadMADCTL(uint8_t *pdata) { READ_MADCLT(pdata); }
 };
 
 #ifdef USE_ST7789
