@@ -230,17 +230,22 @@ void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
         st7789v_set_cs(); // CS = H
 }
 
-void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata, uint8_t size) {
+#pragma GCC push_options
+#pragma GCC optimize("O3")
+void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS)
         st7789v_clr_cs(); // CS = L
     if (st7789v_flg & FLG_RS)
         st7789v_clr_rs(); // RS = L
-    uint8_t data_to_write[2] = { cmd, 0x00 };
-    HAL_SPI_TransmitReceive(st7789v_config.phspi, data_to_write, pdata, 2 + size, HAL_MAX_DELAY);
+    uint8_t data_to_write[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
+    data_to_write[0] = cmd;
+    data_to_write[1] = 0x00;
+    HAL_SPI_TransmitReceive(st7789v_config.phspi, data_to_write, pdata, ST7789V_MAX_COMMAND_READ_LENGHT, HAL_MAX_DELAY);
     if (tmp_flg & FLG_CS)
         st7789v_set_cs();
 }
+#pragma GCC pop_options
 
 void st7789v_wr(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
@@ -303,8 +308,8 @@ void st7789v_cmd_ramrd(uint8_t *pdata, uint16_t size) {
     st7789v_rd(pdata, size);
 }
 
-void st7789v_cmd_madctlrd(uint8_t *pdata, uint8_t size) {
-    st7789v_cmd_rd(CMD_MADCTLRD, pdata, size);
+void st7789v_cmd_madctlrd(uint8_t *pdata) {
+    st7789v_cmd_rd(CMD_MADCTLRD, pdata);
 }
 
 /*void st7789v_test_miso(void)

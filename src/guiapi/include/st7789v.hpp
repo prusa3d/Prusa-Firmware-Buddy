@@ -38,6 +38,8 @@ typedef struct _st7789v_config_t {
     uint8_t control;
 } st7789v_config_t;
 
+static constexpr uint8_t ST7789V_MAX_COMMAND_READ_LENGHT = 4;
+
 inline uint16_t color_to_565(uint32_t clr) {
     return swap_ui16(((clr >> 19) & 0x001f) | ((clr >> 5) & 0x07e0) | ((clr << 8) & 0xf800));
 }
@@ -83,4 +85,4 @@ extern uint16_t st7789v_reset_delay;
 extern void st7789v_enable_safe_mode(void);
 
 extern void st7789v_spi_tx_complete(void);
-extern void st7789v_cmd_madctlrd(uint8_t *pdata, uint8_t size);
+extern void st7789v_cmd_madctlrd(uint8_t *pdata);

@@ -79,7 +79,7 @@ public:
     static void done() {}
     static void set_backlight(uint8_t bck) {}
 
-    static void ReadMadctl(uint8_t *pdata, uint8_t size) {
+    static void ReadMadctl(uint8_t *pdata) {
         pdata[0] = 0x00;
         pdata[1] = 0xE0;
     }
