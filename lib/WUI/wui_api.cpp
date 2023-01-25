@@ -363,11 +363,8 @@ StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
 }
 
 bool wui_uploaded_gcode(char *filename, bool start_print) {
-
     StartPrintResult res = wui_start_print(filename, start_print);
-    if (res != StartPrintResult::Failed) {
-        modified_gcodes++;
-    }
+    wui_gcode_modified();
     if (res == StartPrintResult::Uploaded) {
         uploaded_gcodes++;
     }
