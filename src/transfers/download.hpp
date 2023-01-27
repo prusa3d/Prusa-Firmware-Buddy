@@ -63,7 +63,7 @@ public:
     Download &operator=(Download &&other) = default;
     Download &operator=(const Download &other) = delete;
     using DownloadResult = std::variant<Download, NoTransferSlot, AlreadyExists, RefusedRequest, Storage>;
-    static DownloadResult start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, NotifyFilechange *notify_done);
+    static DownloadResult start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const char *token, const char *fingerprint, size_t fingerprint_size, NotifyFilechange *notify_done);
     DownloadStep step(uint32_t max_duration_ms);
 };
 

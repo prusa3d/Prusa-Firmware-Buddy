@@ -7,6 +7,7 @@ namespace http {
 class GetRequest : public Request {
 private:
     const char *url_path;
+    const HeaderOut *hdrs;
 
 public:
     virtual const char *url() const override {
@@ -20,8 +21,12 @@ public:
         // is not called. But we need to provide anyway to make C++ happy.
         return ContentType::ApplicationOctetStream;
     }
-    GetRequest(const char *url_path)
-        : url_path(url_path) {}
+    virtual const HeaderOut *extra_headers() const override {
+        return hdrs;
+    }
+    GetRequest(const char *url_path, const HeaderOut *hdrs = nullptr)
+        : url_path(url_path)
+        , hdrs(hdrs) {}
 };
 
 }

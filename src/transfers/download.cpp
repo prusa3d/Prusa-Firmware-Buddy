@@ -10,6 +10,7 @@
 
 using http::Error;
 using http::GetRequest;
+using http::HeaderOut;
 using http::HttpClient;
 using http::Response;
 using http::ResponseBody;
@@ -18,6 +19,7 @@ using std::get;
 using std::get_if;
 using std::make_unique;
 using std::move;
+using std::nullopt;
 
 namespace {
 // TODO: Tune?
@@ -58,7 +60,7 @@ Download::~Download() {
     }
 }
 
-Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, NotifyFilechange *notify_done) {
+Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const char *token, const char *fingerprint, size_t fingerprint_size, NotifyFilechange *notify_done) {
     // Early check for free transfer slot. This is not perfect, there's a race
     // and we can _lose_ the slot before we start the download. But we can
     // allocate it only once we know the size and for that we need to do the
@@ -88,9 +90,12 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
     // time.
     ConnFactory factory(make_unique<http::SocketConnectionFactory>(host, port, 3000));
     HttpClient client(*factory.get());
-    GetRequest request {
-        url_path,
+    HeaderOut hdrs[] = {
+        { "Fingerprint", fingerprint, fingerprint_size },
+        { "Token", token, nullopt },
+        { nullptr, nullptr, nullopt },
     };
+    GetRequest request(url_path, hdrs);
 
     auto resp_any = client.send(request);
 
