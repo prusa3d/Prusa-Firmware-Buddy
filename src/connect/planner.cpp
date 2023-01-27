@@ -409,6 +409,10 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
     // Going from 443 to 80 on TLS connections
     const uint16_t port = config.port;
     const char *host = config.host;
+    const char *token = config.token;
+    // Even though we get it from a temporary, the pointer itself is stable.
+    const char *fingerprint = printer.printer_info().fingerprint;
+    const size_t fingerprint_size = Printer::PrinterInfo::FINGERPRINT_HDR_SIZE;
 
     const char *prefix = "/p/teams/";
     const char *infix = "/files/";
@@ -424,7 +428,14 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
     // Avoid warning about unused in release builds (assert off)
     (void)written;
 
-    auto down_result = Download::start_connect_download(host, port, path, download.path.path(), &printer);
+    // FIXME:
+    // We can pass the fingerprint/token now, because we only support the
+    // "development" case where even the main connection is plaintext.
+    //
+    // We can't use this in production, where we would have a TLS main
+    // connection but plaintext download connection (with encrypted file). That
+    // would leak the info.
+    auto down_result = Download::start_connect_download(host, port, path, download.path.path(), token, fingerprint, fingerprint_size, &printer);
 
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
