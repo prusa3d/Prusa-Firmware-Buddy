@@ -17,6 +17,7 @@
 #include <cstring>
 #include <cctype>
 #include <mbedtls/sha256.h>
+#include <sys/statvfs.h>
 
 using std::nullopt;
 
@@ -256,6 +257,21 @@ Printer::Params MarlinPrinter::params() const {
     params.progress_percent = marlin_vars->sd_percent_done;
     params.filament_used = Odometer_s::instance().get(Odometer_s::axis_t::E);
     params.has_usb = marlin_vars->media_inserted;
+
+    struct statvfs fsbuf = {};
+    if (params.has_usb && statvfs("/usb/", &fsbuf) == 0) {
+        // Contrary to the "unix" documentation for statvfs, our FAT implementation stores:
+        // * Number of free *clusters*, not blocks in bfree.
+        // * Number of blocks per cluster in frsize.
+        //
+        // Do we dare fix it (should we), or would that potentially break
+        // something somewhere else?
+        //
+        // Do I even interpret the documentation correctly, or is the code right?
+        //
+        // (Either way, this yields the correct results now).
+        params.usb_space_free = static_cast<uint64_t>(fsbuf.f_frsize) * static_cast<uint64_t>(fsbuf.f_bsize) * static_cast<uint64_t>(fsbuf.f_bfree);
+    }
 
     return params;
 }

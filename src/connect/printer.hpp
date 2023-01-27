@@ -66,6 +66,7 @@ public:
         uint32_t time_to_end;
         uint8_t progress_percent;
         bool has_usb;
+        uint64_t usb_space_free;
         DeviceState state;
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;

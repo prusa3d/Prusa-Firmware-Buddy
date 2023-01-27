@@ -272,6 +272,7 @@ namespace {
                             if (event.info_rescan_files) {
                                 JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
                             }
+                            JSON_FIELD_INT("free_space", params.usb_space_free) JSON_COMMA;
                             JSON_FIELD_BOOL("is_sfn", true);
                         JSON_OBJ_END;
                     }
