@@ -18,7 +18,9 @@
 #include "footer_eeprom.hpp"
 #include <bitset>
 #include "eeprom_current.hpp"
+#include "eeprom_structure.hpp"
 #include "bsod.h"
+
 using namespace eeprom::current;
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
@@ -38,21 +40,6 @@ struct eeprom_entry_t {
     uint8_t type;   // variant8 data type
     uint8_t count;  // number of elements
     uint16_t flags; // flags
-};
-
-struct eeprom_head_t {
-    uint16_t VERSION;
-    uint16_t FEATURES;
-    uint16_t DATASIZE;
-    uint16_t FWVERSION;
-    uint16_t FWBUILD;
-};
-
-// eeprom vars structure (used for defaults, packed - see above pragma)
-struct eeprom_vars_t {
-    eeprom_head_t head;
-    vars_body_t body;
-    uint32_t CRC32;
 };
 
 /**
