@@ -423,6 +423,39 @@ static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_siz
     eeprom_unlock();
 }
 
+static size_t read_without_buffer__index = 0;
+
+/**
+ * @brief read first few bytes of eeprom and setup eeprom_read_to_buffer__next
+ *
+ * @param output    write buffer
+ * @return size_t   number of bytes written to buffer
+ */
+size_t eeprom_read_to_buffer__first(char *output, size_t read_size) {
+    read_without_buffer__index = 0;
+    return eeprom_read_to_buffer__next(output, read_size);
+}
+
+/**
+ * @brief read few bytes of eeprom and inc read index
+ *
+ * @param output    write buffer
+ * @return size_t   number of bytes written to buffer
+ */
+size_t eeprom_read_to_buffer__next(char *output, size_t read_size) {
+    eeprom_lock();
+
+    const size_t sz_to_read_this_cycle = std::min(read_size, sizeof(eeprom_ram_mirror) - read_without_buffer__index);
+
+    if (sz_to_read_this_cycle) {
+        st25dv64k_user_read_bytes(EEPROM_ADDRESS + read_without_buffer__index, output, sz_to_read_this_cycle); // read
+        read_without_buffer__index += sz_to_read_this_cycle;                                                   // modify index
+    }
+    eeprom_unlock();
+
+    return sz_to_read_this_cycle;
+}
+
 void eeprom_set_i8(enum eevar_id id, int8_t i8) { eeprom_set_var(id, variant8_i8(i8)); }
 void eeprom_set_bool(enum eevar_id id, bool b) { eeprom_set_var(id, variant8_bool(b)); }
 void eeprom_set_ui8(enum eevar_id id, uint8_t ui8) { eeprom_set_var(id, variant8_ui8(ui8)); }

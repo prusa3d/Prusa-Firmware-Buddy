@@ -250,6 +250,9 @@ extern void eeprom_clear(void);
 // PUT test
 int8_t eeprom_test_PUT(const unsigned int);
 
+size_t eeprom_read_to_buffer__first(char *output, size_t read_size);
+size_t eeprom_read_to_buffer__next(char *output, size_t read_size);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif //__cplusplus
