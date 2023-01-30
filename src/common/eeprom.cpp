@@ -402,13 +402,55 @@ static void eeprom_set_var(enum eevar_id id, void const *var_ptr) {
     eeprom_vars_t &vars = eeprom_startup_vars();
     void *var_ram_addr = eeprom_var_ptr(id, vars);
     // critical section
-    eeprom_lock();
-    if (memcmp(var_ram_addr, var_ptr, var_size)) {
-        memcpy(var_ram_addr, var_ptr, var_size);
-        st25dv64k_user_write_bytes(eeprom_var_addr(id), var_ptr, var_size);
-        update_crc32_both_ram_eeprom(vars);
+    const size_t max_try = 3;
+    bool ok = false;
+
+    // dump data
+    int iteration = -1;
+    char buff[16]; // buffer for reading
+
+    for (size_t i = 0; i < max_try; ++i) {
+        eeprom_lock();
+        if (memcmp(var_ram_addr, var_ptr, var_size)) {
+            memcpy(var_ram_addr, var_ptr, var_size);
+            st25dv64k_user_write_bytes(eeprom_var_addr(id), var_ptr, var_size);
+            update_crc32_both_ram_eeprom(vars);
+        }
+
+        // test_crc
+        size_t crc;
+        st25dv64k_user_read_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - sizeof(crc), &crc, sizeof(crc));
+
+        if (crc == vars.CRC32) {
+            // check data
+            int remaining_sz = var_size;
+            iteration = 0;
+            ok = true;
+
+            // read buffer is smaller than eeprom .. need cycle
+            while (ok && (remaining_sz > 0)) {
+                const size_t sz_to_read_this_cycle = std::min(sizeof(buff), var_size - iteration * sizeof(buff));
+
+                st25dv64k_user_read_bytes(eeprom_var_addr(id) + iteration * sizeof(buff), buff, sz_to_read_this_cycle);
+                if (memcmp(((const char *)var_ram_addr) + sizeof(buff) * iteration, buff, sz_to_read_this_cycle) != 0) {
+                    ok = false;
+                }
+                remaining_sz -= sizeof(buff);
+            }
+        } else {
+            memcpy(buff, &crc, sizeof(crc)); // store crc for dump
+        }
+
+        eeprom_unlock();
+        if (ok) {
+            break;
+        } else {
+            //TODO dump
+        }
     }
-    eeprom_unlock();
+    if (!ok) {
+        //TODO dump
+    }
 }
 
 static size_t read_without_buffer__index = 0;
