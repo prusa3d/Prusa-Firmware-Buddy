@@ -151,7 +151,7 @@ namespace {
     using Cache = variant<monostate, tls, socket_con, Error>;
 }
 
-class connect::CachedFactory final : public ConnectionFactory {
+class Connect::CachedFactory final : public ConnectionFactory {
 private:
     const char *hostname = nullptr;
     Cache cache;
@@ -186,7 +186,7 @@ public:
     }
 };
 
-connect::ServerResp connect::handle_server_resp(Response resp) {
+Connect::ServerResp Connect::handle_server_resp(Response resp) {
     if (resp.content_length() > MAX_RESP_SIZE) {
         return Error::ResponseTooLong;
     }
@@ -254,7 +254,7 @@ connect::ServerResp connect::handle_server_resp(Response resp) {
     }
 }
 
-optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
+optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     const auto [config, cfg_changed] = printer.config();
 
     // Make sure to reconnect if the configuration changes .
@@ -418,7 +418,7 @@ optional<OnlineStatus> connect::communicate(CachedFactory &conn_factory) {
     }
 }
 
-void connect::run() {
+void Connect::run() {
     log_debug(connect, "%s", "Connect client starts\n");
 
     CachedFactory conn_factory;
@@ -431,7 +431,7 @@ void connect::run() {
     }
 }
 
-connect::connect(Printer &printer, SharedBuffer &buffer)
+Connect::Connect(Printer &printer, SharedBuffer &buffer)
     : planner(printer)
     , printer(printer)
     , buffer(buffer) {}
