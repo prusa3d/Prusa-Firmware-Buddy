@@ -238,8 +238,8 @@ static constexpr bool is_version_supported(uint16_t version) {
 };
 
 // forward declarations of private functions
-static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_size);
-static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size);
+static void eeprom_set_var(enum eevar_id id, void const *var_ptr);
+static void eeprom_get_var(enum eevar_id id, void *var_ptr);
 static void eeprom_write_vars();
 static uint16_t eeprom_var_size(enum eevar_id id);
 static uint16_t eeprom_var_addr(enum eevar_id id, uint16_t addr = EEPROM_ADDRESS);
@@ -318,7 +318,7 @@ variant8_t eeprom_get_var(enum eevar_id id) {
     variant8_t var = variant8_empty();
     if (id < EEPROM_VARCOUNT) {
         var = variant8_init(eeprom_map[id].type, eeprom_map[id].count, 0);
-        eeprom_get_var(id, variant8_data_ptr(&var), variant8_data_size(&var));
+        eeprom_get_var(id, variant8_data_ptr(&var));
     } else {
         assert(0 /* EEProm var Id out of range */);
     }
@@ -342,7 +342,7 @@ Sheet eeprom_get_sheet(uint32_t index) {
         return Sheet { "UNDEF", eeprom_z_offset_uncalibrated };
     }
     Sheet sheet;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(sheet));
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet);
     return sheet;
 }
 
@@ -351,23 +351,17 @@ Sheet eeprom_get_sheet(uint32_t index) {
  *
  * @param id eeprom record index
  * @param var_ptr pointer to variable to be read
- * @param var_size size of variable
  */
-static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size) {
+static void eeprom_get_var(enum eevar_id id, void *var_ptr) {
     if (id < EEPROM_VARCOUNT) {
         size_t size = eeprom_var_size(id);
-        if (size == var_size) {
-            eeprom_vars_t &vars = eeprom_startup_vars();
-            const void *var_addr = eeprom_var_ptr(id, vars);
-            // need to lock even if it is not accesing eeprom
-            // because RAM structure changes during write also
-            eeprom_lock();
-            memcpy(var_ptr, var_addr, size);
-            eeprom_unlock();
-        } else {
-            // TODO:error
-            log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
-        }
+        eeprom_vars_t &vars = eeprom_startup_vars();
+        const void *var_addr = eeprom_var_ptr(id, vars);
+        // need to lock even if it is not accessing eeprom
+        // because RAM structure changes during write also
+        eeprom_lock();
+        memcpy(var_ptr, var_addr, size);
+        eeprom_unlock();
     } else {
         assert(0 /* EEProm var Id out of range */);
     }
@@ -382,7 +376,7 @@ static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size) {
 void eeprom_set_var(enum eevar_id id, variant8_t var) {
     if (id < EEPROM_VARCOUNT) {
         if (variant8_get_type(var) == eeprom_map[id].type) {
-            eeprom_set_var(id, variant8_data_ptr(&var), eeprom_var_size(id));
+            eeprom_set_var(id, variant8_data_ptr(&var));
         } else {
             // TODO: error
             log_error(EEPROM, "%s: variant type missmatch on id: %x", __FUNCTION__, id);
@@ -398,18 +392,12 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
  * If the same value is in EEPROM then no writing is done.
  * @param id eeprom record index
  * @param var_ptr pointer to variable to be written
- * @param var_size size of variable
  */
-static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_size) {
+static void eeprom_set_var(enum eevar_id id, void const *var_ptr) {
     if (id >= EEPROM_VARCOUNT) {
-        assert(0 /* EEProm var Id out of range */);
         return;
     }
-    if (var_size != eeprom_var_size(id)) {
-        // TODO: error
-        log_error(EEPROM, "%s: invalid data size", __FUNCTION__);
-        return;
-    }
+    size_t var_size = eeprom_var_size(id);
 
     eeprom_vars_t &vars = eeprom_startup_vars();
     void *var_ram_addr = eeprom_var_ptr(id, vars);
@@ -476,7 +464,7 @@ bool eeprom_set_sheet(uint32_t index, Sheet sheet) {
     if (index > eeprom_num_sheets) {
         return false;
     }
-    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet, sizeof(Sheet));
+    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_SHEET_PROFILE0 + index), &sheet);
     return true;
 }
 
