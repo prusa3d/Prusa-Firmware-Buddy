@@ -35,5 +35,6 @@ bool dump_variant_mismatch(int enum_eevar_id, variant8_t var);
  */
 bool dump_write_err(const eeprom_vars_t &ram_data, int iteration, int var_id, const char *iteration_buff, size_t iteration_buff_sz);
 
+size_t count_of_dumps();
 size_t erase_all_dumps();
 };
