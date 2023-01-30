@@ -32,7 +32,7 @@ enum class RequestType {
     SendInfo,
 };
 
-class connect {
+class Connect {
 private:
     class CachedFactory;
 
@@ -51,11 +51,11 @@ private:
     // transmission and reception with Connect server
     std::optional<OnlineStatus> communicate(CachedFactory &conn_factory);
     ServerResp handle_server_resp(http::Response response);
-    connect(const connect &other) = delete;
-    connect(connect &&other) = delete;
+    Connect(const Connect &other) = delete;
+    Connect(Connect &&other) = delete;
 
 public:
-    connect(Printer &printer, SharedBuffer &buffer);
+    Connect(Printer &printer, SharedBuffer &buffer);
     void run(void) __attribute__((noreturn));
 };
 
