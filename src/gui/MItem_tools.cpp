@@ -24,6 +24,7 @@
 #include "footer_eeprom.hpp"
 #include "sys.h"
 #include "w25x.h"
+#include "eeprom_dump.hpp"
 
 #include <crash_dump/dump.h>
 #include <time.h>
@@ -329,6 +330,26 @@ MI_EE_CLEAR::MI_EE_CLEAR()
 
 void MI_EE_CLEAR::click(IWindowMenu & /*window_menu*/) {
     eeprom_clear();
+}
+
+/*****************************************************************************/
+//MI_EE_ERASE_DUMPS
+MI_EE_ERASE_DUMPS::MI_EE_ERASE_DUMPS()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+}
+
+void MI_EE_ERASE_DUMPS::click(IWindowMenu & /*window_menu*/) {
+    eeprom::erase_all_dumps();
+}
+
+/*****************************************************************************/
+//MI_EE_STORE_DUMPS
+MI_EE_STORE_DUMPS::MI_EE_STORE_DUMPS()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+}
+
+void MI_EE_STORE_DUMPS::click(IWindowMenu & /*window_menu*/) {
+    eeprom::store_dumps_to_usb();
 }
 
 /*****************************************************************************/

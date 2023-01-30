@@ -222,6 +222,26 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_EE_ERASE_DUMPS : public WI_LABEL_t {
+    static constexpr const char *const label = "Erase EE dumps"; // intentionally not translated, only for debugging
+
+public:
+    MI_EE_ERASE_DUMPS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_EE_STORE_DUMPS : public WI_LABEL_t {
+    static constexpr const char *const label = "Store EE dumps"; // intentionally not translated, only for debugging
+
+public:
+    MI_EE_STORE_DUMPS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_M600 : public WI_LABEL_t {
     static constexpr const char *const label = N_("Change Filament");
 
