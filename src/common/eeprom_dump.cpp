@@ -68,6 +68,28 @@ static uint32_t sort_files_find_new_index_delete_old_files(const char *dir_name)
 }
 
 /**
+ * @brief erase dumps within directory
+ *
+ * @param dir_name  name (path) of directory
+ * @return int   count of deleted dumps, negative number on error
+ */
+static int erase_dumps_in_folder(const char *dir_name) {
+    struct dirent **namelist;
+
+    int cnt = scandir(dir_name, &namelist, nullptr, nullptr);
+    if (cnt > 0) {
+        for (int i = 0; i < cnt; ++i) {
+            char full_name[128];
+            if (snprintf(full_name, sizeof(full_name), "%s%s", dir_name, namelist[i]->d_name) > 0)
+                remove(full_name);
+            free(namelist[i]);
+        }
+        free(namelist);
+    }
+    return cnt;
+}
+
+/**
  * @brief copy eeprom to file using internal (small) buffer
  *
  * @param dump_file
@@ -234,4 +256,10 @@ bool eeprom::dump_write_err(const eeprom_vars_t &ram_data, int iteration, int va
         return true;
     }
     return false;
+}
+
+size_t eeprom::erase_all_dumps() {
+    int write_err = erase_dumps_in_folder(EEPROM_WRITE_ERR_DUMP_PATH);
+    int init_err = erase_dumps_in_folder(EEPROM_INIT_DUMP_PATH);
+    return std::max(0, init_err) + std::max(0, write_err);
 }
