@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <cstring>
 #include <array>
+#include <filesystem>
 
 #define EEPROM_DEFAULT_FILE "000000000"
 #define EEPROM_FILE_TYPE    ".dump"
@@ -65,6 +66,52 @@ static uint32_t sort_files_find_new_index_delete_old_files(const char *dir_name)
         free(namelist);
         return last_name + 1; // new file name
     }
+}
+
+static bool copy_file(const char *dst_dir, const char *src_dir, const char *file_name) {
+    bool ret = false;
+
+    char src[128]; // I think we support about 104B in fatfs, not sure about littlefs
+    char dst[128];
+
+    snprintf(src, sizeof(src), "%s%s", src_dir, file_name);
+    snprintf(dst, sizeof(dst), "%s%s", dst_dir, file_name);
+
+    FILE *src_file = fopen(src, "rb");
+    FILE *dst_file = fopen(dst, "wb");
+
+    if (src_file && dst_file) {
+        int c;
+        while ((c = fgetc(src_file)) != EOF) {
+            fputc(c, dst_file);
+        }
+        ret = true;
+    }
+
+    if (src_file)
+        fclose(src_file);
+    if (dst_file)
+        fclose(dst_file);
+
+    return ret;
+}
+
+static uint32_t copy_files(const char *dst_dir, const char *src_dir) {
+    struct dirent **namelist;
+
+    int cnt = scandir(src_dir, &namelist, name_filter, nullptr);
+    int cnt_ok = 0;
+    if (cnt > 0) {
+        for (int i = 0; i < cnt; ++i) {
+            if (copy_file(dst_dir, src_dir, namelist[i]->d_name)) {
+                ++cnt_ok;
+            }
+
+            free(namelist[i]);
+        }
+        free(namelist);
+    }
+    return cnt_ok;
 }
 
 /**
@@ -287,4 +334,19 @@ size_t eeprom::count_of_dumps() {
     int write_cnt = dumps_in_folder(EEPROM_WRITE_ERR_DUMP_PATH);
     int init_cnt = dumps_in_folder(EEPROM_INIT_DUMP_PATH);
     return std::max(0, init_cnt) + std::max(0, write_cnt);
+}
+
+/**
+ * @brief copy dumps to usb
+ * since we do not have symlinks cannot use std::filesystem::copy(EEPROM_INIT_DUMP_PATH, "/usb/eeprom_dump/init/", ec);
+ * std::filesystem::copy_options::skip_symlinks does not help
+ * std::filesystem::copy_file does not work too ..  undefined reference to `fchmod'
+ * std::filesystem::create_directories("/usb/eeprom_dump/init/", ec); does not work ec returns 17
+ */
+void eeprom::store_dumps_to_usb() {
+    std::error_code ec;
+    std::filesystem::create_directory("/usb/eeprom_dump_init/", ec);
+    std::filesystem::create_directory("/usb/eeprom_dump_write/", ec);
+    copy_files("/usb/eeprom_dump_init/", EEPROM_INIT_DUMP_PATH);
+    copy_files("/usb/eeprom_dump_write/", EEPROM_WRITE_ERR_DUMP_PATH);
 }
