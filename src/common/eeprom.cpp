@@ -17,9 +17,21 @@
 #include "cmath_ext.h"
 #include "footer_eeprom.hpp"
 #include <bitset>
-#include "eeprom_current.hpp"
 #include "eeprom_structure.hpp"
+#include "eeprom_dump.hpp"
+#include "scratch_buffer.hpp"
 #include "bsod.h"
+
+enum class enum_dump {
+    nothing,               // don't dump eeprom write errors
+    any_bad_write,         // dump each failed write verification
+    only_when_retry_failed // dump only when retry does not help
+};
+
+/**
+ * @brief Choose what to dum here
+ */
+constexpr enum_dump what_to_dump = enum_dump::any_bad_write;
 
 using namespace eeprom::current;
 
@@ -264,13 +276,23 @@ eeprom_init_status_t eeprom_init(void) {
     eeprom_init_ram_mirror();
     eeprom_vars_t &eevars = eeprom_startup_vars();
 
-    if (!eeprom_check_crc32())
+    buddy::scratch_buffer::ScratchBuffer &dump = buddy::scratch_buffer::forced_get();
+
+    if (!eeprom_check_crc32()) {
         status = EEPROM_INIT_Defaults;
-    else if ((eevars.head.VERSION != EEPROM_VERSION) || (eevars.head.FEATURES != EEPROM_FEATURES)) {
-        if (eeprom_convert_from(eeprom_ram_mirror)) {
-            status = EEPROM_INIT_Upgraded;
-        } else {
-            status = EEPROM_INIT_Defaults;
+        //dump
+        static_assert(sizeof(eevars) + 2 <= buddy::scratch_buffer::ScratchBuffer::size(), "cannot dump eeprom"); // need 2 extra byte to store size
+        dump.buffer[0] = sizeof(eevars) & 0xFF;
+        dump.buffer[1] = sizeof(eevars) >> 8;
+        memcpy(&dump.buffer[2], &eevars, sizeof(eevars));
+    } else {
+        dump.buffer[0] = 0; // no error, dump is used
+        if ((eevars.head.VERSION != EEPROM_VERSION) || (eevars.head.FEATURES != EEPROM_FEATURES)) {
+            if (eeprom_convert_from(eeprom_ram_mirror)) {
+                status = EEPROM_INIT_Upgraded;
+            } else {
+                status = EEPROM_INIT_Defaults;
+            }
         }
     }
     switch (status) {
@@ -378,11 +400,11 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
         if (variant8_get_type(var) == eeprom_map[id].type) {
             eeprom_set_var(id, variant8_data_ptr(&var));
         } else {
-            // TODO: error
-            log_error(EEPROM, "%s: variant type missmatch on id: %x", __FUNCTION__, id);
+            eeprom::dump_variant_mismatch(id, var);
+            log_error(EEPROM, "%s: variant type mismatch on id: %x", __FUNCTION__, id);
         }
     } else {
-        assert(0 /* EEProm var Id out of range */);
+        eeprom::dump_wrong_id__var_known(id, var);
     }
 }
 
@@ -395,6 +417,7 @@ void eeprom_set_var(enum eevar_id id, variant8_t var) {
  */
 static void eeprom_set_var(enum eevar_id id, void const *var_ptr) {
     if (id >= EEPROM_VARCOUNT) {
+        eeprom::dump_wrong_id__var_unknown(id); // I dont know the length of war without correct id
         return;
     }
     size_t var_size = eeprom_var_size(id);
@@ -445,11 +468,15 @@ static void eeprom_set_var(enum eevar_id id, void const *var_ptr) {
         if (ok) {
             break;
         } else {
-            //TODO dump
+            if constexpr (what_to_dump == enum_dump::any_bad_write) {
+                eeprom::dump_write_err(vars, iteration, id, buff, sizeof(buff));
+            }
         }
     }
     if (!ok) {
-        //TODO dump
+        if constexpr (what_to_dump == enum_dump::only_when_retry_failed) {
+            eeprom::dump_write_err(vars, iteration, id, buff, sizeof(buff));
+        }
     }
 }
 

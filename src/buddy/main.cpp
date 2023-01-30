@@ -34,6 +34,7 @@
 #include "tasks.h"
 #include <appmain.hpp>
 #include "safe_state.h"
+#include "eeprom_dump.hpp"
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
@@ -145,6 +146,9 @@ extern "C" void main_cpp(void) {
     uartrxbuff_reset(&uart1rxbuff);
 
     filesystem_init();
+
+    // in case of eeprom error dump it
+    eeprom::dump_init_crc_err();
 
     adcDma1.init();
 

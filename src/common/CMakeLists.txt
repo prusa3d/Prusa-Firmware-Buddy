@@ -13,6 +13,7 @@ if(BOARD MATCHES ".*BUDDY")
             crc32.c
             crc32_zlib.c
             eeprom.cpp
+            eeprom_dump.cpp
             eeprom_loadsave.c
             errors.cpp
             ExtInterruptHandler.cpp
