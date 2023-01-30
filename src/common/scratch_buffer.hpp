@@ -17,7 +17,7 @@ namespace buddy::scratch_buffer {
 struct ScratchBuffer {
     uint8_t buffer[49152];
 
-    size_t size() const {
+    static constexpr size_t size() {
         return sizeof(buffer);
     }
 };
@@ -35,5 +35,12 @@ public:
 
     ~Ownership();
 };
+
+/**
+ * @brief Do not use unless you know what you are doing!!!
+ * valid use is for example dumping eeprom during startup
+ * than reading it after xflash is initialized
+ */
+ScratchBuffer &forced_get();
 
 };

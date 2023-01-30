@@ -40,3 +40,7 @@ void buddy::scratch_buffer::Ownership::release() {
 buddy::scratch_buffer::Ownership::~Ownership() {
     release();
 }
+
+buddy::scratch_buffer::ScratchBuffer &buddy::scratch_buffer::forced_get() {
+    return buffer;
+}
