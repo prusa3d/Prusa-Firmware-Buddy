@@ -15,6 +15,7 @@ using json::JsonOutput;
 using json::JsonResult;
 using std::get_if;
 using std::make_tuple;
+using std::min;
 using std::move;
 using std::nullopt;
 using std::optional;
@@ -140,6 +141,8 @@ namespace {
                     // resume at each and every of these fields.
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_transferred", transfer_status->transferred) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
+                    JSON_FIELD_FFIXED_G(transfer_status.has_value(), "transfer_progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
                 }
 
                 // These are not included in the fingerprint as they are changing a lot.
@@ -352,6 +355,8 @@ namespace {
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "size", transfer_status->expected) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred) JSON_COMMA;
+                    JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", ticks_s() - transfer_status->start) JSON_COMMA;
                     // Note: This works, because destination cannot go from non null to null
                     // (if one transfer ends and another starts mid report, we bail out)

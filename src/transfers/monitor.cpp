@@ -187,4 +187,24 @@ const char *to_str(Monitor::Type type) {
     }
 }
 
+double Monitor::Status::progress_estimate() const {
+    if (expected > 0) {
+        return static_cast<double>(transferred) / static_cast<double>(expected);
+    } else {
+        return 0;
+    }
+}
+
+uint32_t Monitor::Status::time_remaining_estimate() const {
+    uint32_t elapsed = ticks_s() - start;
+    double progress = progress_estimate();
+    if (progress > 0.0) {
+        double total_expected = elapsed / progress;
+        return total_expected - elapsed;
+    } else {
+        // No estimate yet, just give them a 0
+        return 0;
+    }
+}
+
 }
