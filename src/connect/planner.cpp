@@ -1,6 +1,7 @@
 #include "planner.hpp"
 #include "printer.hpp"
 
+#include <alloca.h>
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -490,20 +491,25 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
     // Even though we get it from a temporary, the pointer itself is stable.
     const char *fingerprint = printer.printer_info().fingerprint;
     const size_t fingerprint_size = Printer::PrinterInfo::FINGERPRINT_HDR_SIZE;
+    char *path = nullptr;
 
-    const char *prefix = "/p/teams/";
-    const char *infix = "/files/";
-    const char *suffix = "/raw";
-    const size_t buffer_len = strlen(prefix) + 21 /* max len of 64bit number */ + strlen(infix) + strlen(download.hash) + strlen(suffix) + 1;
-    char path[buffer_len];
-    size_t written = snprintf(path, buffer_len, "%s%" PRIu64 "%s%s%s", prefix, download.team, infix, download.hash, suffix);
-    // Written is number of chars that _would_ be written if there's enough
-    // space, which means that if it's size or longer, we got it truncated.
-    //
-    // That would mean we somehow miscalculated the buffer estimate.
-    assert(written < buffer_len);
-    // Avoid warning about unused in release builds (assert off)
-    (void)written;
+    if (auto *plain = get_if<StartConnectDownload::Plain>(&download.details); plain != nullptr) {
+        const char *prefix = "/p/teams/";
+        const char *infix = "/files/";
+        const char *suffix = "/raw";
+        const size_t buffer_len = strlen(prefix) + 21 /* max len of 64bit number */ + strlen(infix) + strlen(plain->hash) + strlen(suffix) + 1;
+        path = reinterpret_cast<char *>(alloca(buffer_len));
+        size_t written = snprintf(path, buffer_len, "%s%" PRIu64 "%s%s%s", prefix, plain->team, infix, plain->hash, suffix);
+        // Written is number of chars that _would_ be written if there's enough
+        // space, which means that if it's size or longer, we got it truncated.
+        //
+        // That would mean we somehow miscalculated the buffer estimate.
+        assert(written < buffer_len);
+        // Avoid warning about unused in release builds (assert off)
+        (void)written;
+    } else {
+        assert(0);
+    }
 
     // FIXME:
     // We can pass the fingerprint/token now, because we only support the
