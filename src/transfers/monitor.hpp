@@ -156,6 +156,9 @@ public:
         /// because in that case the path is not known from the beginning of
         /// the upload.
         const char *destination;
+
+        double progress_estimate() const;
+        uint32_t time_remaining_estimate() const;
     };
 
     /// An allocated transfer slot.

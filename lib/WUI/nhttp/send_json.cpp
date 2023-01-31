@@ -43,13 +43,8 @@ JsonResult TransferRenderer::renderState(size_t resume_point, json::JsonOutput &
             if (transfer_status->destination) {
                 JSON_FIELD_STR_G(transfer_status.has_value(), "destination", transfer_status->destination) JSON_COMMA;
             }
-            // Note: To prevent division by zero, this is in fact secure,
-            // because once the check passes once, it can never stop being true
-            // since neither transferred nor ticks_s can ever decrease
-            if (transfer_status->transferred !=0 && ticks_s() > transfer_status->start) {
-                JSON_FIELD_STR_FORMAT_G(transfer_status.has_value(), "remaining_time", "%.2f", static_cast<double>(transfer_status->expected - transfer_status->transferred) / (static_cast<double>(transfer_status->transferred) / (ticks_s() - transfer_status->start))) JSON_COMMA;
-                JSON_FIELD_STR_FORMAT_G(transfer_status.has_value(), "progress", "%.2f", static_cast<double>(transfer_status->transferred) / transfer_status->expected);
-            }
+            JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate(), 2) JSON_COMMA;
+            JSON_FIELD_INT_G(transfer_status.has_value(), "remaining_time", transfer_status->time_remaining_estimate());
         JSON_OBJ_END
     JSON_END;
     // clang-format on

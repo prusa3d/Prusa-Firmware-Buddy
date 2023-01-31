@@ -140,3 +140,15 @@ TEST_CASE("Transfer history") {
     // Already out of history (yes, we abuse the knowledge of the history size in this test).
     REQUIRE_FALSE(monitor.outcome(id1).has_value());
 }
+
+TEST_CASE("Transfer Estimates") {
+    Monitor monitor;
+
+    auto slot = monitor.allocate(Monitor::Type::Connect, "/usb/path.gcode", 1024);
+    REQUIRE(slot.has_value());
+    slot->progress(512);
+
+    auto status = monitor.status();
+    REQUIRE(status.has_value());
+    REQUIRE(50 == (100.0 * status->progress_estimate()));
+}
