@@ -15,3 +15,8 @@ void get_LFN(char *lfn, size_t lfn_size, char *path) {
 bool f_gcode_get_next_comment_assignment(FILE *, char *, int, char *, int) {
     return false;
 }
+
+bool random32bit(uint32_t *output) {
+    *output = random();
+    return true;
+}

@@ -1,4 +1,5 @@
 #include "monitor.hpp"
+#include "../../lib/WUI/random.h"
 
 #include <timing.h>
 
@@ -78,11 +79,6 @@ void Monitor::Slot::done(Outcome outcome) {
     owner.history_latest = owner.current_id;
 }
 
-Monitor::Monitor() {
-    // TODO: Does this generate a new ID or is it the same every time?
-    current_id = random();
-};
-
 optional<Monitor::Status> Monitor::status(bool allow_stale) const {
     Lock lock(main_mutex);
 
@@ -141,6 +137,19 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
     if (transfer_active) {
         // There's another tranfer ongoing, can't start another one.
         return nullopt;
+    }
+
+    if (current_id == 0) {
+        // Special-case: lazy initialize by a random number. Initialization in
+        // the construction was too early and the HW generator wasn't ready.
+        // Using the usual `random` call also produced predictable, always the
+        // same results.
+        //
+        // Yes, if we overflow to 0, we re-initialize it to some random number,
+        // but, not a big deal.
+        uint32_t init = 0;
+        random32bit(&init);
+        current_id = init;
     }
 
     // Order matters, these are atomics, and observable from another thread.
