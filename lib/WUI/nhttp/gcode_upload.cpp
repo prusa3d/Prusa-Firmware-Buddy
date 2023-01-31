@@ -7,6 +7,7 @@
 
 #include <transfers/files.hpp>
 
+#include <sys/stat.h>
 #include <cassert>
 #include <cstring>
 #include <unistd.h>
