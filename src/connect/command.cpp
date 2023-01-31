@@ -40,6 +40,30 @@ namespace {
             return nullopt;
         }
     }
+
+    struct DownloadAccumulator {
+        bool ok = true;
+        optional<StartConnectDownload::Details> details;
+        bool has_team = false;
+        template <class V, class C>
+        void set(C &&callback) {
+            if (!details.has_value()) {
+                details = V();
+            }
+
+            if (auto *v = get_if<V>(&details.value()); v != nullptr) {
+                callback(*v);
+            } else {
+                ok = false;
+            }
+        }
+        bool validate(const StartConnectDownload::Plain &plain) const {
+            return has_team && plain.hash[0] != '\0';
+        }
+        bool validate() const {
+            return ok && details.has_value() && visit([&](const auto &d) { return validate(d); }, *details);
+        }
+    };
 }
 
 Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
@@ -76,9 +100,8 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
 
     bool in_kwargs = false;
     optional<uint16_t> job_id = nullopt;
-    optional<uint64_t> team_id = nullopt;
-    char hash[StartConnectDownload::HASH_BUFF] = {};
 
+    DownloadAccumulator download_acc;
     bool has_path = false;
 
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
@@ -118,10 +141,19 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
             has_path = true;
         } else if (event.depth == 2 && in_kwargs && event.type == Type::Primitive && event.key == "team_id") {
-            team_id = convert_int<uint64_t>(event);
+            if (auto val = convert_int<uint64_t>(event); val.has_value()) {
+                download_acc.set<StartConnectDownload::Plain>([&](StartConnectDownload::Plain &d) {
+                    d.team = *val;
+                    download_acc.has_team = true;
+                });
+            } else {
+                download_acc.ok = false;
+            }
         } else if (event.depth == 2 && in_kwargs && event.type == Type::String && event.key == "hash") {
-            const size_t len = min(event.value->size() + 1, sizeof hash);
-            strlcpy(hash, event.value->data(), len);
+            download_acc.set<StartConnectDownload::Plain>([&](StartConnectDownload::Plain &d) {
+                const size_t len = min(event.value->size() + 1, sizeof d.hash);
+                strlcpy(d.hash, event.value->data(), len);
+            });
         }
     });
 
@@ -156,14 +188,12 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
     } else if (auto *create_folder = get_if<CreateFolder>(&data); create_folder != nullptr) {
         get_path(create_folder->path);
     } else if (auto *download = get_if<StartConnectDownload>(&data); download != nullptr) {
-        const bool ok = has_path && team_id.has_value() && hash[0] != '\0';
+        const bool ok = has_path && download_acc.validate();
         if (ok) {
             download->path = SharedPath(move(buff));
-            download->team = *team_id;
-            static_assert(sizeof hash == sizeof download->hash);
-            strlcpy(download->hash, hash, sizeof hash);
+            download->details = move(*download_acc.details);
         } else {
-            // Missing parameters
+            // Missing parameters, conflicting parameters, etc..
             data = BrokenCommand {};
         }
     }

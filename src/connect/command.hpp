@@ -39,12 +39,18 @@ struct StartPrint {
 struct SetPrinterReady {};
 struct CancelPrinterReady {};
 struct StartConnectDownload {
-    // The hash itself is max 28 chars
-    static constexpr size_t HASH_BUFF = 29;
     SharedPath path;
-    uint64_t team;
-    // In the original string form
-    char hash[HASH_BUFF];
+    // For unencrypted downloads
+    struct Plain {
+        // The hash itself is max 28 chars
+        static constexpr size_t HASH_BUFF = 29;
+        // In the original string form
+        char hash[HASH_BUFF];
+        uint64_t team;
+    };
+
+    using Details = std::variant<Plain>;
+    Details details;
 };
 struct DeleteFile {
     SharedPath path;

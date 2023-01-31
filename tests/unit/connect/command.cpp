@@ -102,15 +102,19 @@ TEST_CASE("Start connect download - missing params") {
 
 TEST_CASE("Start connect download") {
     auto cmd = command_test<StartConnectDownload>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\"}}");
-    REQUIRE(strcmp(cmd.hash, "abcdef") == 0);
-    REQUIRE(cmd.team == 42);
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
+    auto plain = get_if<StartConnectDownload::Plain>(&cmd.details);
+    REQUIRE(plain != nullptr);
+    REQUIRE(strcmp(plain->hash, "abcdef") == 0);
+    REQUIRE(plain->team == 42);
 }
 
 TEST_CASE("Start connect download - reversed") {
     // The command field is after the args, check that we are able to deal with it in the wrong order too.
     auto cmd = command_test<StartConnectDownload>("{\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\"}, \"command\": \"START_CONNECT_DOWNLOAD\"}");
-    REQUIRE(strcmp(cmd.hash, "abcdef") == 0);
-    REQUIRE(cmd.team == 42);
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
+    auto plain = get_if<StartConnectDownload::Plain>(&cmd.details);
+    REQUIRE(plain != nullptr);
+    REQUIRE(strcmp(plain->hash, "abcdef") == 0);
+    REQUIRE(plain->team == 42);
 }
