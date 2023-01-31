@@ -75,7 +75,11 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
                 JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
                 JSON_FIELD_BOOL("ro", false) JSON_COMMA;
                 JSON_FIELD_STR("type", file_type(state.ent)) JSON_COMMA;
+#ifdef UNITTESTS
+                JSON_FIELD_INT("m_timestamp", 0) JSON_COMMA;
+#else
                 JSON_FIELD_INT("m_timestamp", state.ent->time) JSON_COMMA;
+#endif
                 if (state.ent->d_type != DT_DIR) {
                     JSON_FIELD_OBJ("refs");
                         if (filename_is_gcode(state.ent->d_name)) {
@@ -85,7 +89,11 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
                         JSON_FIELD_STR_FORMAT("download", "%s/%s", state.filepath, state.ent->d_name);
                     JSON_OBJ_END JSON_COMMA;
                 }
+#ifdef UNITTESTS
+                JSON_FIELD_STR("display_name", state.ent->d_name);
+#else
                 JSON_FIELD_STR("display_name", state.ent->lfn);
+#endif
             JSON_OBJ_END;
         }
         JSON_ARR_END;

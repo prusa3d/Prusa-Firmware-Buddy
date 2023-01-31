@@ -74,3 +74,10 @@ void mbedtls_platform_zeroize(void *b, size_t size) {
 bool wui_is_file_being_printed(const char *filename) {
     return false;
 }
+
+int mkdir(const char *path, mode_t mode) {
+    return 0;
+}
+
+void get_SFN_path(char *path) {
+}

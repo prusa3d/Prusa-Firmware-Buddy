@@ -33,7 +33,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode_filename.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/basename.c
   ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
