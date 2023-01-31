@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
 #include <cstdint>
 
 // simple wrapper around HAL_RNG_GenerateRandomNumber,

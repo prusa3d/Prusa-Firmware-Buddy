@@ -208,7 +208,7 @@ private:
     // A bit of care needs to be employed when dealing with them, to avoid
     // races, etc.
     std::atomic<bool> transfer_active = false;
-    std::atomic<TransferId> current_id;
+    std::atomic<TransferId> current_id = 0;
 
     // Transfer related
     bool used = false;
@@ -227,8 +227,6 @@ private:
     std::array<Outcome, HISTORY_MAX_LEN> history;
 
 public:
-    Monitor();
-
     std::optional<Slot> allocate(Type type, const char *dest, size_t expected_size, bool print_after_upload = false);
 
     /// Request the status of currently running transfer.
