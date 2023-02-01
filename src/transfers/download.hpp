@@ -1,5 +1,6 @@
 #pragma once
 
+#include "decrypt.hpp"
 #include "monitor.hpp"
 #include <common/http/httpc.hpp>
 #include <common/http/socket_connection_factory.hpp>
@@ -54,7 +55,8 @@ private:
     size_t transfer_idx;
     uint32_t last_activity;
     NotifyFilechange *notify_done;
-    Download(ConnFactory &&factory, http::ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, NotifyFilechange *notify_done);
+    std::unique_ptr<Decryptor> decryptor;
+    Download(ConnFactory &&factory, http::ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, std::unique_ptr<Decryptor> &&decryptor, NotifyFilechange *notify_done);
 
 public:
     ~Download();
@@ -63,7 +65,7 @@ public:
     Download &operator=(Download &&other) = default;
     Download &operator=(const Download &other) = delete;
     using DownloadResult = std::variant<Download, NoTransferSlot, AlreadyExists, RefusedRequest, Storage>;
-    static DownloadResult start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const char *token, const char *fingerprint, size_t fingerprint_size, NotifyFilechange *notify_done);
+    static DownloadResult start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const http::HeaderOut *extra_hdrs, std::unique_ptr<Decryptor> &&decryptor, NotifyFilechange *notify_done);
     DownloadStep step(uint32_t max_duration_ms);
 };
 

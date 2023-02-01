@@ -63,4 +63,7 @@
 #define MBEDTLS_AES_FEWER_TABLES
 #define MBEDTLS_SHA256_SMALLER
 
+// For symmetric connect transfer encrypiton
+#define MBEDTLS_CIPHER_MODE_CBC
+
 #include "mbedtls/check_config.h"
