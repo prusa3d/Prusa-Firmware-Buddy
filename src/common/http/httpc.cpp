@@ -181,7 +181,7 @@ variant<size_t, Error> Response::read_body(uint8_t *buffer, size_t size) {
     return pos;
 }
 
-tuple<const uint8_t *, size_t, ResponseBody> Response::into_body() {
+tuple<uint8_t *, size_t, ResponseBody> Response::into_body() {
     ResponseBody body;
     body.conn = conn;
     body.content_length_rest = content_length_rest - leftover_size;

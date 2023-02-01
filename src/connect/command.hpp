@@ -49,7 +49,16 @@ struct StartConnectDownload {
         uint64_t team;
     };
 
-    using Details = std::variant<Plain>;
+    struct Encrypted {
+        static constexpr size_t BLOCK_SIZE = 16;
+        using Block = std::array<uint8_t, BLOCK_SIZE>;
+        Block key;
+        Block iv;
+        // Fatfs can't do bigger than 4GB files anyway, right?
+        uint32_t orig_size;
+    };
+
+    using Details = std::variant<Plain, Encrypted>;
     Details details;
 };
 struct DeleteFile {

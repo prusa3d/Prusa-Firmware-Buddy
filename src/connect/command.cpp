@@ -7,6 +7,7 @@
 
 using json::Event;
 using json::Type;
+using std::array;
 using std::errc;
 using std::from_chars;
 using std::get_if;
@@ -41,10 +42,17 @@ namespace {
         }
     }
 
+    // Allow gathering the data about a START_CONNECT_DOWNLOAD command.
+    //
+    // * Allows tracking which parts are already available.
+    // * Picks either of the flavors of the message and detects potential collisions.
     struct DownloadAccumulator {
         bool ok = true;
         optional<StartConnectDownload::Details> details;
         bool has_team = false;
+        bool has_key = false;
+        bool has_iv = false;
+        bool has_size = false;
         template <class V, class C>
         void set(C &&callback) {
             if (!details.has_value()) {
@@ -60,8 +68,24 @@ namespace {
         bool validate(const StartConnectDownload::Plain &plain) const {
             return has_team && plain.hash[0] != '\0';
         }
+        bool validate(const StartConnectDownload::Encrypted &encrypted) const {
+            return has_key && has_iv && has_size;
+        }
         bool validate() const {
             return ok && details.has_value() && visit([&](const auto &d) { return validate(d); }, *details);
+        }
+        template <size_t S>
+        bool decode_hex(const Event &event, array<uint8_t, S> &dest) {
+            if (event.value->size() != 2 * S) {
+                return false;
+            }
+            const char *input = event.value->begin();
+            for (size_t i = 0; i < dest.size(); i++) {
+                if (from_chars(input + 2 * i, input + 2 * (i + 1), dest[i], 16).ec != errc {}) {
+                    return false;
+                }
+            }
+            return true;
         }
     };
 }
@@ -106,6 +130,9 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
 
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
     const bool success = json::search(body.data(), tokens, std::max(parse_result, 0), [&](const Event &event) {
+        auto is_arg = [&](const string_view name, Type type) -> bool {
+            return event.depth == 2 && in_kwargs && event.type == type && event.key == name;
+        };
         if (event.depth == 1 && event.type == Type::String && event.key == "command") {
             // Will fill in all the insides later on, if needed
 #define T(NAME, TYPE)          \
@@ -134,26 +161,43 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             in_kwargs = true;
         } else if (event.depth == 1 && event.type == Type::Pop) {
             in_kwargs = false;
-        } else if (event.depth == 2 && in_kwargs && event.type == Type::Primitive && event.key == "job_id") {
+        } else if (is_arg("job_id", Type::Primitive)) {
             job_id = convert_int<uint16_t>(event);
-        } else if (event.depth == 2 && in_kwargs && event.type == Type::String && (event.key == "path" || event.key == "path_sfn")) {
+        } else if (is_arg("path", Type::String) || is_arg("path_sfn", Type::String)) {
             const size_t len = min(event.value->size() + 1, buff.size());
             strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
             has_path = true;
-        } else if (event.depth == 2 && in_kwargs && event.type == Type::Primitive && event.key == "team_id") {
+        } else if (is_arg("team_id", Type::Primitive)) {
             if (auto val = convert_int<uint64_t>(event); val.has_value()) {
-                download_acc.set<StartConnectDownload::Plain>([&](StartConnectDownload::Plain &d) {
+                download_acc.set<StartConnectDownload::Plain>([&](auto &d) {
                     d.team = *val;
                     download_acc.has_team = true;
                 });
             } else {
                 download_acc.ok = false;
             }
-        } else if (event.depth == 2 && in_kwargs && event.type == Type::String && event.key == "hash") {
-            download_acc.set<StartConnectDownload::Plain>([&](StartConnectDownload::Plain &d) {
+        } else if (is_arg("hash", Type::String)) {
+            download_acc.set<StartConnectDownload::Plain>([&](auto &d) {
                 const size_t len = min(event.value->size() + 1, sizeof d.hash);
                 strlcpy(d.hash, event.value->data(), len);
             });
+        } else if (is_arg("key", Type::String)) {
+            download_acc.set<StartConnectDownload::Encrypted>([&](auto &d) {
+                download_acc.has_key = download_acc.decode_hex(event, d.key);
+            });
+        } else if (is_arg("iv", Type::String)) {
+            download_acc.set<StartConnectDownload::Encrypted>([&](auto &d) {
+                download_acc.has_iv = download_acc.decode_hex(event, d.iv);
+            });
+        } else if (is_arg("orig_size", Type::Primitive)) {
+            if (auto val = convert_int<uint64_t>(event); val.has_value()) {
+                download_acc.set<StartConnectDownload::Encrypted>([&](auto &d) {
+                    d.orig_size = *val;
+                    download_acc.has_size = true;
+                });
+            } else {
+                download_acc.ok = false;
+            }
         }
     });
 

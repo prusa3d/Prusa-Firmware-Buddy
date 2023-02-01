@@ -10,8 +10,8 @@ namespace http {
 
 struct HeaderOut {
     const char *name = nullptr;
-    const std::variant<const char *, size_t> value = nullptr;
-    const std::optional<size_t> size_limit = std::nullopt;
+    std::variant<const char *, size_t> value = nullptr;
+    std::optional<size_t> size_limit = std::nullopt;
 };
 
 class Request {
@@ -67,7 +67,9 @@ public:
     /// consume the rest. The pointer to the chunk still lives in this object,
     /// so process that before destroying this. After that, only the
     /// ResponseBody shall be used instead.
-    std::tuple<const uint8_t *, size_t, ResponseBody> into_body();
+    ///
+    /// Note that the pointer to data is writable (for uses of eg. decryption in-place).
+    std::tuple<uint8_t *, size_t, ResponseBody> into_body();
 };
 
 class ConnectionFactory {

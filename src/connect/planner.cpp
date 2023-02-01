@@ -10,11 +10,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+using http::HeaderOut;
 using std::holds_alternative;
 using std::min;
 using std::nullopt;
 using std::optional;
+using std::unique_ptr;
 using std::visit;
+using transfers::Decryptor;
 using transfers::Download;
 using transfers::DownloadStep;
 using transfers::Monitor;
@@ -123,6 +126,60 @@ namespace {
         }
 
         return nullptr;
+    }
+
+    Download::DownloadResult init_download(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
+        // TODO: Support overriding port:
+        // By a field in the message
+        // Going from 443 to 80 on TLS connections
+        const uint16_t port = config.port;
+        const char *host = config.host;
+
+        char *path = nullptr;
+        HeaderOut *extra_hdrs = nullptr;
+        unique_ptr<Decryptor> decryptor;
+
+        if (auto *plain = get_if<StartConnectDownload::Plain>(&download.details); plain != nullptr) {
+            const char *prefix = "/p/teams/";
+            const char *infix = "/files/";
+            const char *suffix = "/raw";
+            const size_t buffer_len = strlen(prefix) + 21 /* max len of 64bit number */ + strlen(infix) + strlen(plain->hash) + strlen(suffix) + 1;
+            path = reinterpret_cast<char *>(alloca(buffer_len));
+            size_t written = snprintf(path, buffer_len, "%s%" PRIu64 "%s%s%s", prefix, plain->team, infix, plain->hash, suffix);
+            // Written is number of chars that _would_ be written if there's enough
+            // space, which means that if it's size or longer, we got it truncated.
+            //
+            // That would mean we somehow miscalculated the buffer estimate.
+            assert(written < buffer_len);
+            // Avoid warning about unused in release builds (assert off)
+            (void)written;
+            const char *token = config.token;
+            // Even though we get it from a temporary, the pointer itself is stable.
+            const char *fingerprint = printer.printer_info().fingerprint;
+            const size_t fingerprint_size = Printer::PrinterInfo::FINGERPRINT_HDR_SIZE;
+            extra_hdrs = reinterpret_cast<HeaderOut *>(alloca(3 * sizeof *extra_hdrs));
+            extra_hdrs[0] = { "Fingerprint", fingerprint, fingerprint_size };
+            extra_hdrs[1] = { "Token", token, nullopt };
+            extra_hdrs[2] = { nullptr, nullptr, nullopt };
+        } else if (auto *encrypted = get_if<StartConnectDownload::Encrypted>(&download.details); encrypted != nullptr) {
+            // TODO: The URL scheme needs to be agreed on.
+            const char *prefix = "/p/enc/";
+            const size_t prefix_len = strlen(prefix);
+            const size_t buffer_len = prefix_len + 2 * encrypted->iv.size() + 1;
+            path = reinterpret_cast<char *>(alloca(buffer_len));
+            strcpy(path, prefix);
+
+            for (size_t i = 0; i < encrypted->iv.size(); i++) {
+                sprintf(path + prefix_len + 2 * i, "%02hhX", encrypted->iv[i]);
+            }
+            path[prefix_len + 2 * encrypted->iv.size()] = '\0';
+            // TODO: Any additional headers, once they are agreed on.
+            decryptor = make_unique<Decryptor>(encrypted->key, encrypted->iv, encrypted->orig_size);
+        } else {
+            assert(0);
+        }
+
+        return Download::start_connect_download(host, port, path, download.path.path(), extra_hdrs, move(decryptor), &printer);
     }
 }
 
@@ -475,51 +532,12 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
         return;
     }
 
-    if (config.tls) {
-        // TODO Once we have the support for symmetric encryption, we refuse
-        // this only if we have no decryption key ready.
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Encryption of downloads not supported" };
+    if (config.tls && !holds_alternative<StartConnectDownload::Encrypted>(download.details)) {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Requested a non-encrypted download from TLS connection" };
         return;
     }
 
-    // TODO: Support overriding port:
-    // By a field in the message
-    // Going from 443 to 80 on TLS connections
-    const uint16_t port = config.port;
-    const char *host = config.host;
-    const char *token = config.token;
-    // Even though we get it from a temporary, the pointer itself is stable.
-    const char *fingerprint = printer.printer_info().fingerprint;
-    const size_t fingerprint_size = Printer::PrinterInfo::FINGERPRINT_HDR_SIZE;
-    char *path = nullptr;
-
-    if (auto *plain = get_if<StartConnectDownload::Plain>(&download.details); plain != nullptr) {
-        const char *prefix = "/p/teams/";
-        const char *infix = "/files/";
-        const char *suffix = "/raw";
-        const size_t buffer_len = strlen(prefix) + 21 /* max len of 64bit number */ + strlen(infix) + strlen(plain->hash) + strlen(suffix) + 1;
-        path = reinterpret_cast<char *>(alloca(buffer_len));
-        size_t written = snprintf(path, buffer_len, "%s%" PRIu64 "%s%s%s", prefix, plain->team, infix, plain->hash, suffix);
-        // Written is number of chars that _would_ be written if there's enough
-        // space, which means that if it's size or longer, we got it truncated.
-        //
-        // That would mean we somehow miscalculated the buffer estimate.
-        assert(written < buffer_len);
-        // Avoid warning about unused in release builds (assert off)
-        (void)written;
-    } else {
-        assert(0);
-    }
-
-    // FIXME:
-    // We can pass the fingerprint/token now, because we only support the
-    // "development" case where even the main connection is plaintext.
-    //
-    // We can't use this in production, where we would have a TLS main
-    // connection but plaintext download connection (with encrypted file). That
-    // would leak the info.
-    auto down_result = Download::start_connect_download(host, port, path, download.path.path(), token, fingerprint, fingerprint_size, &printer);
-
+    auto down_result = init_download(printer, config, download);
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, transfers::Download>) {

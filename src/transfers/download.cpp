@@ -20,6 +20,8 @@ using std::get_if;
 using std::make_unique;
 using std::move;
 using std::nullopt;
+using std::optional;
+using std::unique_ptr;
 
 namespace {
 // TODO: Tune?
@@ -36,16 +38,33 @@ size_t strlcpy(char *, const char *, size_t);
 size_t strlcat(char *, const char *, size_t);
 }
 
+namespace {
+
+bool write_chunk(const uint8_t *data, size_t size, FILE *f) {
+    // It seems fwrite is not capable of handling a 0-sized element :-O, causes division by 0.
+    if (size == 0) {
+        return true;
+    }
+
+    // We make our life easier by saying that this is one "item", so it
+    // can't be split up.
+    auto written = fwrite(data, size, 1, f);
+    return written == 1;
+}
+
+}
+
 namespace transfers {
 
-Download::Download(ConnFactory &&factory, ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, NotifyFilechange *notify_done)
+Download::Download(ConnFactory &&factory, ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, unique_ptr<Decryptor> &&decryptor, NotifyFilechange *notify_done)
     : conn_factory(move(factory))
     , response(move(response))
     , slot(move(slot))
     , dest_file(move(dest_file))
     , transfer_idx(transfer_idx)
     , last_activity(ticks_ms())
-    , notify_done(notify_done) {}
+    , notify_done(notify_done)
+    , decryptor(move(decryptor)) {}
 
 Download::~Download() {
     if (dest_file.get() != nullptr) {
@@ -60,7 +79,7 @@ Download::~Download() {
     }
 }
 
-Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const char *token, const char *fingerprint, size_t fingerprint_size, NotifyFilechange *notify_done) {
+Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const HeaderOut *extra_hdrs, unique_ptr<Decryptor> &&decryptor, NotifyFilechange *notify_done) {
     // Early check for free transfer slot. This is not perfect, there's a race
     // and we can _lose_ the slot before we start the download. But we can
     // allocate it only once we know the size and for that we need to do the
@@ -90,12 +109,7 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
     // time.
     ConnFactory factory(make_unique<http::SocketConnectionFactory>(host, port, 3000));
     HttpClient client(*factory.get());
-    HeaderOut hdrs[] = {
-        { "Fingerprint", fingerprint, fingerprint_size },
-        { "Token", token, nullopt },
-        { nullptr, nullptr, nullopt },
-    };
-    GetRequest request(url_path, hdrs);
+    GetRequest request(url_path, extra_hdrs);
 
     auto resp_any = client.send(request);
 
@@ -116,20 +130,31 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
             return Storage { *err };
         }
 
+        // TODO: At this point, we no longer need a lot of stuff on the stack, eg:
+        // * The URL (parent stack)
+        // * The extra headers (parent stack)
+        // * The request itself
+        //
+        // On the other hand, we don't need the decryptor until here. If we
+        // ever discover the stack is too deep here, we shall split this
+        // function in half here, call the first half from the parent, then
+        // create the decryptor and then proceed on processing the body.
+
         auto file = move(get<unique_file_ptr>(preallocated));
         auto [initial_chunk, initial_chunk_size, body] = resp->into_body();
 
         if (initial_chunk_size > 0) {
-            // We make our life easier by saying that this is one "item", so it
-            // can't be split up.
-            auto written = fwrite(initial_chunk, initial_chunk_size, 1, file.get());
-            if (written != 1) {
+            size_t size = initial_chunk_size;
+            if (decryptor.get() != nullptr) {
+                size = decryptor->decrypt(initial_chunk, size);
+            }
+            if (!write_chunk(initial_chunk, size, file.get())) {
                 return Storage { "Can't write to the file" };
             }
             slot->progress(initial_chunk_size);
         }
 
-        return Download(move(factory), move(body), move(*slot), move(file), transfer_idx, notify_done);
+        return Download(move(factory), move(body), move(*slot), move(file), transfer_idx, move(decryptor), notify_done);
     } else {
         return RefusedRequest {};
     }
@@ -137,6 +162,7 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
 
 DownloadStep Download::step(uint32_t max_duration_ms) {
     uint8_t buffer[BUF_SIZE];
+    static_assert(BUF_SIZE % Decryptor::BlockSize == 0, "Must be multiple of cipher block size to never overflow on decryption");
 
     if (slot.is_stopped()) {
         slot.done(Monitor::Outcome::Stopped);
@@ -172,8 +198,11 @@ DownloadStep Download::step(uint32_t max_duration_ms) {
             slot.done(Monitor::Outcome::Finished);
             return DownloadStep::Finished;
         } else {
-            auto written = fwrite(buffer, *amt, 1, dest_file.get());
-            if (written != 1) {
+            size_t size = *amt;
+            if (decryptor.get() != nullptr) {
+                size = decryptor->decrypt(buffer, size);
+            }
+            if (!write_chunk(buffer, size, dest_file.get())) {
                 return DownloadStep::Failed;
             }
 
