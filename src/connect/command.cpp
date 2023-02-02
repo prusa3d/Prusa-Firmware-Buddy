@@ -100,6 +100,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("SET_PRINTER_READY", SetPrinterReady)
             T("CANCEL_PRINTER_READY", CancelPrinterReady)
             T("START_CONNECT_DOWNLOAD", StartConnectDownload)
+            T("DELETE_FILE", DeleteFile)
             return;
         }
 
@@ -142,6 +143,13 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
     } else if (auto *start = get_if<StartPrint>(&data); start != nullptr) {
         if (has_path) {
             start->path = SharedPath(move(buff));
+        } else {
+            // Missing parameters
+            data = BrokenCommand {};
+        }
+    } else if (auto *del = get_if<DeleteFile>(&data); del != nullptr) {
+        if (has_path) {
+            del->path = SharedPath(move(buff));
         } else {
             // Missing parameters
             data = BrokenCommand {};
