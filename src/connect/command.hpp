@@ -46,8 +46,11 @@ struct StartConnectDownload {
     // In the original string form
     char hash[HASH_BUFF];
 };
+struct DeleteFile {
+    SharedPath path;
+};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartConnectDownload>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartConnectDownload, DeleteFile>;
 
 struct Command {
     CommandId id;

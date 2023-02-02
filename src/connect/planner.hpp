@@ -125,6 +125,7 @@ private:
     void command(const Command &, const CancelPrinterReady &);
     void command(const Command &, const SetPrinterReady &);
     void command(const Command &, const StartConnectDownload &);
+    void command(const Command &, const DeleteFile &);
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;

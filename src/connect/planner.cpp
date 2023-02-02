@@ -80,6 +80,18 @@ namespace {
 
     template <class>
     inline constexpr bool always_false_v = false;
+
+    const char *delete_file(const char *path) {
+        int result = remove(path);
+        if (result == -1) {
+            if (errno == EBUSY) {
+                return "File is busy";
+            } else {
+                return "Error deleting file";
+            }
+        }
+        return nullptr;
+    }
 }
 
 const char *to_str(EventType event) {
@@ -459,6 +471,28 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
         }
     },
         down_result);
+}
+
+void Planner::command(const Command &command, const DeleteFile &params) {
+    const char *path = params.path.path();
+
+    const char *reason = nullptr;
+    if (!path_allowed(path)) {
+        reason = "Forbidden path";
+        //TODO: we probably want to check if it is a file
+        // and not a folder
+    } else if (!path_exists(path)) {
+        reason = "File not found";
+    } else if (auto err = delete_file(path); err != nullptr) {
+        reason = err;
+    }
+
+    if (reason == nullptr) {
+        printer.notify_filechange(path);
+        planned_event = Event { EventType::Finished, command.id };
+    } else {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
+    }
 }
 
 // FIXME: Handle the case when we are resent a command we are already
