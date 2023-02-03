@@ -111,6 +111,18 @@ namespace {
         }
         return nullptr;
     }
+
+    const char *make_dir(const char *path) {
+        if (mkdir(path, 777) != 0) {
+            if (errno == EEXIST) {
+                return "Directory already exists";
+            } else {
+                return "Error creating directory";
+            }
+        }
+
+        return nullptr;
+    }
 }
 
 const char *to_str(EventType event) {
@@ -521,6 +533,24 @@ void Planner::command(const Command &command, const DeleteFolder &params) {
     } else if (!dir_exists(path)) {
         reason = "File not found";
     } else if (auto err = delete_dir(path); err != nullptr) {
+        reason = err;
+    }
+
+    if (reason == nullptr) {
+        printer.notify_filechange(path);
+        planned_event = Event { EventType::Finished, command.id };
+    } else {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
+    }
+}
+
+void Planner::command(const Command &command, const CreateFolder &params) {
+    const char *path = params.path.path();
+
+    const char *reason = nullptr;
+    if (!path_allowed(path)) {
+        reason = "Forbidden path";
+    } else if (auto err = make_dir(path); err != nullptr) {
         reason = err;
     }
 
