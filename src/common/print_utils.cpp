@@ -74,7 +74,7 @@ void run_once_after_boot() {
     // g-code autostart
     if (access(autostart_filename, F_OK) == 0) {
         //call directly marlin server start print. This function is not safe
-        marlin_server_print_start(autostart_filename, true);
+        marlin_server_print_start(autostart_filename, true, true);
         oProgressData.mInit();
     }
 }

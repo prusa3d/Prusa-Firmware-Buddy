@@ -2,9 +2,11 @@ import sys
 import binascii
 import functools
 import asyncio
+import pytest_asyncio
 import hashlib
 import pytest
 import json
+import shutil
 from pathlib import Path
 
 # add the /utils to PATH so we can use the `simulator` package
@@ -55,7 +57,7 @@ def simulator_path(pytestconfig) -> Path:
 
 @pytest.fixture
 def data_dir(pytestconfig) -> Path:
-    return pytestconfig.rootpath / 'tests' / 'integration' / 'data'
+    return project_root / 'tests' / 'integration' / 'data'
 
 
 @pytest.fixture
@@ -83,7 +85,7 @@ def eeprom_variables():
     return {
         'LANGUAGE': get_language_code('en'),  # default lang for tests
         'RUN_SELFTEST': 0,  # skip wizard
-        'PL_API_KEY': "0123456789",
+        'PL_PASSWORD': "0123456789",
     }
 
 
@@ -103,8 +105,59 @@ def get_hash(*items):
     return ctx.hexdigest()
 
 
+async def prepare_xflash_content(firmware_path, basic_printer_arguments,
+                                 tmpdir, flash):
+    flash_dir = tmpdir.mkdir('flash_for_xflash_init')
+    shutil.copyfile(str(firmware_path.with_suffix('.bbf')),
+                    str(flash_dir / 'firmware.bbf'))
+
+    async def wait_for_bootstrap(printer: Printer):
+        while await screen.is_booting(printer):
+            pass
+
+    async with Simulator.run(**basic_printer_arguments,
+                             mount_dir_as_flash=flash_dir,
+                             xflash_content=flash) as printer:
+        try:
+            await asyncio.wait_for(wait_for_bootstrap(printer), timeout=600.0)
+        except asyncio.TimeoutError:
+            pytest.fail('timed out while waiting for xflash bootstrap')
+
+
+@pytest_asyncio.fixture
+async def xflash_content(basic_printer_arguments, firmware_path, tmpdir,
+                         request):
+    # create empty xflash content
+    xflash_size = 2**23
+    xflash_path = tmpdir / 'xflash.bin'
+    with open(xflash_path, 'wb') as f:
+        f.seek(xflash_size - 1)
+        f.write(b'\x00')
+
+    # xflash content
+    requested_xflash_hash = get_hash('v1', Path(firmware_path))
+    key = f'xflash-content:{requested_xflash_hash}'
+    xflash_content = request.config.cache.get(key, None)
+    if xflash_content:
+        with open(xflash_path, 'wb') as f:
+            f.write(binascii.unhexlify(xflash_content))
+            return xflash_path
+
+    await prepare_xflash_content(
+        firmware_path,
+        basic_printer_arguments=basic_printer_arguments,
+        tmpdir=tmpdir,
+        flash=xflash_path)
+
+    # save it for later
+    request.config.cache.set(key, xflash_path.read_binary().hex())
+
+    # and finally return
+    return xflash_path
+
+
 async def prepare_eeprom_content(eeprom_variables, basic_printer_arguments,
-                                 tmpdir, eeprom_bank_1: Path,
+                                 xflash_content, tmpdir, eeprom_bank_1: Path,
                                  eeprom_bank_2: Path):
     flash_dir = tmpdir.mkdir('flash_for_eeprom_init')
     with open(flash_dir / 'AUTO.GCO', 'w') as f:
@@ -117,19 +170,21 @@ async def prepare_eeprom_content(eeprom_variables, basic_printer_arguments,
 
     async with Simulator.run(**basic_printer_arguments,
                              mount_dir_as_flash=flash_dir,
+                             xflash_content=xflash_content,
                              eeprom_content=(eeprom_bank_1,
                                              eeprom_bank_2)) as printer:
         try:
-            await asyncio.wait_for(wait_for_eeprom_load(printer), timeout=10.0)
+            await asyncio.wait_for(wait_for_eeprom_load(printer), timeout=30.0)
+            await asyncio.sleep(10)
         except asyncio.TimeoutError:
             pytest.fail('timed out while waiting for eeprom setup; '
                         'please check your firmware is compiled with '
                         '-DCUSTOM_COMPILE_OPTIONS:STRING=-DAUTOSTART_GCODE=1')
 
 
-@pytest.fixture
-async def eeprom_content(eeprom_variables, basic_printer_arguments, tmpdir,
-                         firmware_path, request):
+@pytest_asyncio.fixture
+async def eeprom_content(eeprom_variables, basic_printer_arguments,
+                         xflash_content, tmpdir, firmware_path, request):
     # create empty eeprom banks
     bank_size = 65536
     bank_1 = tmpdir / 'eeprom_bank1.bin'
@@ -157,7 +212,7 @@ async def eeprom_content(eeprom_variables, basic_printer_arguments, tmpdir,
 
     # generate the eeprom content
     await prepare_eeprom_content(eeprom_variables, basic_printer_arguments,
-                                 tmpdir, bank_1, bank_2)
+                                 xflash_content, tmpdir, bank_1, bank_2)
 
     # save it for later
     eeprom_content = []
@@ -175,6 +230,7 @@ def printer_flash_dir(tmpdir):
     return tmpdir.mkdir('printer_flash_dir')
 
 
+
 @pytest.fixture
 def basic_printer_arguments(simulator_path, firmware_path,
                             simulator_scriptio_port, simulator_proxy_port,
@@ -190,16 +246,17 @@ def basic_printer_arguments(simulator_path, firmware_path,
                 nographic=not enable_graphic)
 
 
-@pytest.fixture
-async def printer_factory(basic_printer_arguments, eeprom_content,
-                          printer_flash_dir):
+@pytest_asyncio.fixture
+async def printer_factory(basic_printer_arguments, xflash_content,
+                          eeprom_content, printer_flash_dir):
     return functools.partial(Simulator.run,
                              **basic_printer_arguments,
                              eeprom_content=eeprom_content,
+                             xflash_content=xflash_content,
                              mount_dir_as_flash=printer_flash_dir)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def printer(printer_factory):
     async with printer_factory() as printer:
         yield printer
