@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cinttypes>
 #include <sys/stat.h>
+#include <unistd.h>
 
 using std::holds_alternative;
 using std::min;
@@ -72,10 +73,16 @@ namespace {
         return is_on_usb && !contains_upper;
     }
 
-    bool path_exists(const char *path) {
+    bool file_exists(const char *path) {
         struct stat st = {};
         // This could give some false negatives, in practice rare (we don't have permissions, and such).
-        return stat(path, &st) == 0;
+        return stat(path, &st) == 0 and !S_ISDIR(st.st_mode);
+    }
+
+    bool dir_exists(const char *path) {
+        struct stat st = {};
+        // This could give some false negatives, in practice rare (we don't have permissions, and such).
+        return stat(path, &st) == 0 and S_ISDIR(st.st_mode);
     }
 
     template <class>
@@ -88,6 +95,18 @@ namespace {
                 return "File is busy";
             } else {
                 return "Error deleting file";
+            }
+        }
+        return nullptr;
+    }
+
+    const char *delete_dir(const char *path) {
+        int result = rmdir(path);
+        if (result == -1) {
+            if (errno == EACCES) {
+                return "Directory not empty";
+            } else {
+                return "Error deleting directory";
             }
         }
         return nullptr;
@@ -357,7 +376,7 @@ void Planner::command(const Command &command, const StartPrint &params) {
     const char *reason = nullptr;
     if (!path_allowed(path)) {
         reason = "Forbidden path";
-    } else if (!path_exists(path)) {
+    } else if (!file_exists(path)) {
         reason = "File not found";
     } else if (!printer.start_print(path)) {
         reason = "Can't print now";
@@ -514,11 +533,29 @@ void Planner::command(const Command &command, const DeleteFile &params) {
     const char *reason = nullptr;
     if (!path_allowed(path)) {
         reason = "Forbidden path";
-        //TODO: we probably want to check if it is a file
-        // and not a folder
-    } else if (!path_exists(path)) {
+    } else if (!file_exists(path)) {
         reason = "File not found";
     } else if (auto err = delete_file(path); err != nullptr) {
+        reason = err;
+    }
+
+    if (reason == nullptr) {
+        printer.notify_filechange(path);
+        planned_event = Event { EventType::Finished, command.id };
+    } else {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
+    }
+}
+
+void Planner::command(const Command &command, const DeleteFolder &params) {
+    const char *path = params.path.path();
+
+    const char *reason = nullptr;
+    if (!path_allowed(path)) {
+        reason = "Forbidden path";
+    } else if (!dir_exists(path)) {
+        reason = "File not found";
+    } else if (auto err = delete_dir(path); err != nullptr) {
         reason = err;
     }
 

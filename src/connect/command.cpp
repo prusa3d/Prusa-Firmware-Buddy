@@ -101,6 +101,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("CANCEL_PRINTER_READY", CancelPrinterReady)
             T("START_CONNECT_DOWNLOAD", StartConnectDownload)
             T("DELETE_FILE", DeleteFile)
+            T("DELETE_FOLDER", DeleteFolder)
             return;
         }
 
@@ -147,9 +148,16 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             // Missing parameters
             data = BrokenCommand {};
         }
-    } else if (auto *del = get_if<DeleteFile>(&data); del != nullptr) {
+    } else if (auto *del_file = get_if<DeleteFile>(&data); del_file != nullptr) {
         if (has_path) {
-            del->path = SharedPath(move(buff));
+            del_file->path = SharedPath(move(buff));
+        } else {
+            // Missing parameters
+            data = BrokenCommand {};
+        }
+    } else if (auto *del_folder = get_if<DeleteFolder>(&data); del_folder != nullptr) {
+        if (has_path) {
+            del_folder->path = SharedPath(move(buff));
         } else {
             // Missing parameters
             data = BrokenCommand {};
