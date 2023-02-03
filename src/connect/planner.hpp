@@ -47,6 +47,7 @@ struct Event {
     /// they are not supposed to get "constructed" or interpolated.
     const char *reason = nullptr;
     bool info_rescan_files = false;
+    std::optional<CommandId> start_cmd_id;
 };
 
 using Action = std::variant<
@@ -153,6 +154,8 @@ private:
     Tracked info_changes;
     // Tracking if we should ask for rescan of our files.
     Tracked file_changes;
+
+    std::optional<CommandId> print_start_cmd = std::nullopt;
 
 public:
     Planner(Printer &printer)

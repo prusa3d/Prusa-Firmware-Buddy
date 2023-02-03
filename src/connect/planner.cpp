@@ -111,6 +111,35 @@ void Planner::reset() {
 }
 
 Action Planner::next_action() {
+    if (!printer.is_printing()) {
+        // The idea is, we set the ID when we start the print and remove it
+        // once we see we are no longer printing. This is not completely
+        // correct, because:
+        //
+        // * A print can end and a new one start (without using Connect)
+        //   between two calls to next_action, not resetting the command as
+        //   necessary.
+        // * On the other hand, currently we _probably_ can reach some state
+        //   that is not considered "printing" while really printing (eg. the
+        //   Busy state in crash detection, maybe?), in which case we reset it
+        //   even if we shouldn't.
+        // * We don't keep this info across a power panic.
+        //
+        // Nevertheless, this has low impact. Connect asks for JOB_INFO at the
+        // first opportunity it sees a new job, to know if it may remove it
+        // from the queue. In the first case, it would have nothing to remove
+        // (done in the previous job), and the latter likely doesn't happen
+        // because it asks at the beginning and has it already.
+        //
+        // Finding a 100% correct tracking for this would be really complex,
+        // because the start of the print is asynchronous (we don't get an
+        // answer from the marlin right away), we don't know at that point what
+        // job ID we'll have, we don't get notifications about terminated
+        // prints, etc. Out of the just-slightly broken solutions, this one
+        // seems the simplest.
+        print_start_cmd.reset();
+    }
+
     if (perform_cooldown) {
         perform_cooldown = false;
         assert(cooldown.has_value());
@@ -268,6 +297,7 @@ void Planner::command(const Command &command, const StartPrint &params) {
     }
 
     if (reason == nullptr) {
+        print_start_cmd = command.id;
         planned_event = Event { EventType::Finished, command.id };
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, reason };
@@ -287,6 +317,7 @@ void Planner::command(const Command &command, const SendJobInfo &params) {
         command.id,
         params.job_id,
     };
+    planned_event->start_cmd_id = print_start_cmd;
 }
 
 void Planner::command(const Command &command, const SendFileInfo &params) {
