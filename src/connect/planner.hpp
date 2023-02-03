@@ -138,7 +138,9 @@ private:
     // As we may have a background _task_ and a download at the same time, we
     // need to have variables for both.
     std::optional<transfers::Download> download;
+
     std::optional<CommandId> transfer_start_cmd = std::nullopt;
+    std::optional<CommandId> print_start_cmd = std::nullopt;
 
     /// Constructs corresponding Sleep action.
     Sleep sleep(Duration duration);
