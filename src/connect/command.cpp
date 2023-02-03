@@ -102,6 +102,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("START_CONNECT_DOWNLOAD", StartConnectDownload)
             T("DELETE_FILE", DeleteFile)
             T("DELETE_FOLDER", DeleteFolder)
+            T("CREATE_FOLDER", CreateFolder)
             return;
         }
 
@@ -158,6 +159,13 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
     } else if (auto *del_folder = get_if<DeleteFolder>(&data); del_folder != nullptr) {
         if (has_path) {
             del_folder->path = SharedPath(move(buff));
+        } else {
+            // Missing parameters
+            data = BrokenCommand {};
+        }
+    } else if (auto *create_folder = get_if<CreateFolder>(&data); create_folder != nullptr) {
+        if (has_path) {
+            create_folder->path = SharedPath(move(buff));
         } else {
             // Missing parameters
             data = BrokenCommand {};

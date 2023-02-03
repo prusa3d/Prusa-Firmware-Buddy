@@ -52,8 +52,11 @@ struct DeleteFile {
 struct DeleteFolder {
     SharedPath path;
 };
+struct CreateFolder {
+    SharedPath path;
+};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartConnectDownload, DeleteFile, DeleteFolder>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartConnectDownload, DeleteFile, DeleteFolder, CreateFolder>;
 
 struct Command {
     CommandId id;
