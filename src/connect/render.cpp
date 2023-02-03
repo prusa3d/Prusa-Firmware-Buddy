@@ -285,6 +285,9 @@ namespace {
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
                     JSON_FIELD_STR("display_name", params.job_lfn != nullptr ? params.job_lfn : basename_b(params.job_path)) JSON_COMMA;
+                    if (event.start_cmd_id.has_value()) {
+                        JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
+                    }
                     JSON_FIELD_STR("path", params.job_path);
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
@@ -341,6 +344,9 @@ namespace {
                     if (transfer_status->destination) {
                         JSON_FIELD_STR_G(transfer_status.has_value(), "path", transfer_status->destination) JSON_COMMA;
                     }
+                    if (event.start_cmd_id.has_value()) {
+                        JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
+                    }
                     JSON_FIELD_STR_G(transfer_status.has_value(), "type", to_str(transfer_status->type));
                 } else {
                     JSON_FIELD_STR("type", "NO_TRANSFER");
@@ -349,6 +355,9 @@ namespace {
             } else if (event.type == EventType::TransferStopped || event.type == EventType::TransferAborted || event.type == EventType::TransferFinished) {
                 JSON_FIELD_OBJ("data");
                     assert(event.transfer_id.has_value());
+                    if (event.start_cmd_id.has_value()) {
+                        JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
+                    }
                     JSON_FIELD_INT("transfer_id", *event.transfer_id);
                 JSON_OBJ_END JSON_COMMA;
             }
