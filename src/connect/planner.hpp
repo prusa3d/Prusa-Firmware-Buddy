@@ -48,6 +48,7 @@ struct Event {
     /// they are not supposed to get "constructed" or interpolated.
     const char *reason = nullptr;
     bool info_rescan_files = false;
+    std::optional<CommandId> start_cmd_id;
 };
 
 using Action = std::variant<
@@ -137,6 +138,7 @@ private:
     // As we may have a background _task_ and a download at the same time, we
     // need to have variables for both.
     std::optional<transfers::Download> download;
+    std::optional<CommandId> transfer_start_cmd = std::nullopt;
 
     /// Constructs corresponding Sleep action.
     Sleep sleep(Duration duration);

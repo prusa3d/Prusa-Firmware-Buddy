@@ -189,6 +189,8 @@ Action Planner::next_action() {
             };
             // Not nullopt, otherwise we wouldn't get an outcome.
             planned_event->transfer_id = *terminated_transfer;
+            planned_event->start_cmd_id = transfer_start_cmd;
+            transfer_start_cmd = nullopt;
             return *planned_event;
         }
         // No info:
@@ -360,6 +362,7 @@ void Planner::command(const Command &command, const SendTransferInfo &params) {
         EventType::TransferInfo,
         command.id,
     };
+    planned_event->start_cmd_id = transfer_start_cmd;
 }
 
 void Planner::command(const Command &command, const SetPrinterReady &) {
@@ -446,6 +449,7 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
 
             this->download = std::move(arg);
             planned_event = Event { EventType::Finished, command.id };
+            transfer_start_cmd = command.id;
         } else if constexpr (std::is_same_v<T, transfers::NoTransferSlot>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress" };
         } else if constexpr (std::is_same_v<T, transfers::AlreadyExists>) {
