@@ -128,6 +128,15 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
         data = BrokenCommand {};
     }
 
+    auto get_path = [&](SharedPath &path) -> void {
+        if (has_path) {
+            path = SharedPath(move(buff));
+        } else {
+            // Missing parameters
+            data = BrokenCommand {};
+        }
+    };
+
     if (auto *info = get_if<SendJobInfo>(&data); info != nullptr) {
         if (job_id.has_value()) {
             info->job_id = *job_id;
@@ -136,40 +145,15 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             data = BrokenCommand {};
         }
     } else if (auto *info = get_if<SendFileInfo>(&data); info != nullptr) {
-        if (has_path) {
-            info->path = SharedPath(move(buff));
-        } else {
-            // Missing parameters
-            data = BrokenCommand {};
-        }
+        get_path(info->path);
     } else if (auto *start = get_if<StartPrint>(&data); start != nullptr) {
-        if (has_path) {
-            start->path = SharedPath(move(buff));
-        } else {
-            // Missing parameters
-            data = BrokenCommand {};
-        }
+        get_path(start->path);
     } else if (auto *del_file = get_if<DeleteFile>(&data); del_file != nullptr) {
-        if (has_path) {
-            del_file->path = SharedPath(move(buff));
-        } else {
-            // Missing parameters
-            data = BrokenCommand {};
-        }
+        get_path(del_file->path);
     } else if (auto *del_folder = get_if<DeleteFolder>(&data); del_folder != nullptr) {
-        if (has_path) {
-            del_folder->path = SharedPath(move(buff));
-        } else {
-            // Missing parameters
-            data = BrokenCommand {};
-        }
+        get_path(del_folder->path);
     } else if (auto *create_folder = get_if<CreateFolder>(&data); create_folder != nullptr) {
-        if (has_path) {
-            create_folder->path = SharedPath(move(buff));
-        } else {
-            // Missing parameters
-            data = BrokenCommand {};
-        }
+        get_path(create_folder->path);
     } else if (auto *download = get_if<StartConnectDownload>(&data); download != nullptr) {
         const bool ok = has_path && team_id.has_value() && hash[0] != '\0';
         if (ok) {
