@@ -248,10 +248,10 @@ class ClientResponses {
         { Response::Continue, Response::Cancel },                   // WizardPrologue_info_detailed
 
         { Response::Continue, Response::Abort }, // ESP_instructions
-        { Response::Continue, Response::Skip },  // ESP_USB_not_inserted
-        { Response::Continue, Response::Skip },  // ESP_ask_gen
+        { Response::Yes, Response::Skip },       // ESP_USB_not_inserted
+        { Response::Yes, Response::Skip },       // ESP_ask_gen
         { Response::Yes, Response::Skip },       // ESP_ask_gen_overwrite
-        { Response::Continue, Response::Skip },  // ESP_makefile_failed
+        { Response::Yes, Response::Skip },       // ESP_makefile_failed
         { Response::Continue },                  // ESP_eject_USB
         { Response::Continue, Response::Abort }, // ESP_insert_USB
         { Response::Retry, Response::Abort },    // ESP_invalid
