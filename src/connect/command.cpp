@@ -103,6 +103,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("DELETE_FILE", DeleteFile)
             T("DELETE_FOLDER", DeleteFolder)
             T("CREATE_FOLDER", CreateFolder)
+            T("STOP_TRANSFER", StopTransfer)
             return;
         }
 

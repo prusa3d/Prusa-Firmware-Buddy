@@ -157,6 +157,7 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
     current_id++;
     transfer_active = true;
     used = true;
+    stopped = false;
 
     // Store the details.
     this->type = type;
@@ -171,6 +172,21 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
     }
 
     return Slot(*this);
+}
+
+bool Monitor::signal_stop() {
+    Lock lock(main_mutex);
+    if (transfer_active) {
+        stopped = true;
+        return true;
+    }
+
+    return false;
+}
+
+bool Monitor::Slot::is_stopped() {
+    Lock lock(owner.main_mutex);
+    return owner.stopped;
 }
 
 Monitor Monitor::instance;

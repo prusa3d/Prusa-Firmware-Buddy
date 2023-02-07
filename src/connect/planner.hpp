@@ -129,6 +129,7 @@ private:
     void command(const Command &, const DeleteFile &);
     void command(const Command &, const DeleteFolder &);
     void command(const Command &, const CreateFolder &);
+    void command(const Command &, const StopTransfer &);
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;
