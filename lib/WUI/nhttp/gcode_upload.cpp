@@ -142,6 +142,10 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
     }
 
     const size_t read = std::min(input.size(), size_rest);
+    if (monitor_slot.is_stopped()) {
+        monitor_slot.done(Monitor::Outcome::Stopped);
+        return { 0, 0, StatusPage(Status::ServiceTemporarilyUnavailable, StatusPage::CloseHandling::ErrorClose, json_errors, "Upload stopped from connect") };
+    }
     monitor_slot.progress(read);
     return std::visit([input, read, this](auto &uploadParams) -> Step { return step(input, read, uploadParams); }, upload);
 }

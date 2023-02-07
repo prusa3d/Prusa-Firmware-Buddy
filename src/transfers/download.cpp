@@ -138,6 +138,11 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
 DownloadStep Download::step(uint32_t max_duration_ms) {
     uint8_t buffer[BUF_SIZE];
 
+    if (slot.is_stopped()) {
+        slot.done(Monitor::Outcome::Stopped);
+        return DownloadStep::Finished;
+    }
+
     const auto result = response.read_body(buffer, sizeof buffer, max_duration_ms);
 
     if (const size_t *amt = get_if<size_t>(&result); amt != nullptr) {

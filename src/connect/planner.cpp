@@ -597,6 +597,18 @@ void Planner::command(const Command &command, const CreateFolder &params) {
     }
 }
 
+void Planner::command(const Command &command, const StopTransfer &params) {
+    const char *reason = nullptr;
+    if (!Monitor::instance.signal_stop()) {
+        reason = "No transfer in progress";
+    }
+    if (reason == nullptr) {
+        planned_event = { EventType::Finished, command.id };
+    } else {
+        planned_event = { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
+    }
+}
+
 // FIXME: Handle the case when we are resent a command we are already
 // processing for a while. In that case, we want to re-Accept it. Nevertheless,
 // we may not be able to parse it again because the background command might be

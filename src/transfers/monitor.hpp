@@ -189,6 +189,7 @@ public:
         /// This is the increment, not the accumulated total.
         void progress(size_t add_bytes);
 
+        bool is_stopped();
         /// The transfer is done.
         ///
         /// This reports the outcome of this transfer. The Slot shall not be
@@ -215,6 +216,7 @@ private:
 
     // Transfer related
     bool used = false;
+    bool stopped = false;
     Type type;
     Timestamp start;
     size_t expected;
@@ -230,6 +232,15 @@ private:
     std::array<Outcome, HISTORY_MAX_LEN> history;
 
 public:
+    /// Signals to stop a transfer if running.
+    ///
+    /// The code responsible for doing the transfer should
+    /// periodically check the stop signal by calling Slot::is_stopped().
+    ///
+    /// Returns true, if transfer is running, therefore we can stop it,
+    /// false otherwise.
+    bool signal_stop();
+
     std::optional<Slot> allocate(Type type, const char *dest, size_t expected_size, bool print_after_upload = false);
 
     /// Request the status of currently running transfer.
