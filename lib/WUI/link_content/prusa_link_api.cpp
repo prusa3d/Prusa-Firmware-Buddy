@@ -12,6 +12,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cerrno>
+#include <unistd.h>
 
 namespace nhttp::link_content {
 
@@ -117,6 +118,24 @@ namespace {
             return StatusPage(Status::NoContent, parser);
         }
     }
+
+    StatusPage print_file(char *filename, const RequestParser &parser) {
+        // if not exists
+        if (access(filename, R_OK) != 0) {
+            return StatusPage(Status::NotFound, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+        }
+
+        if (wui_start_print(filename, true) == StartPrintResult::PrintStarted) {
+            // We ErrorClose the connection here, because theoretically
+            // according to the API there could be a body, that we should
+            // ignore. To ignore it explicitly, but with empty POST still working
+            // ,would requier a lot more work. Closing it is not a big deal, because
+            // starting a print does not happen very often.
+            return StatusPage(Status::NoContent, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+        } else {
+            return StatusPage(Status::Conflict, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
+        }
+    }
 }
 
 optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) const {
@@ -175,6 +194,9 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             }
             case Method::Delete: {
                 return delete_file(filename, parser);
+            }
+            case Method::Post: {
+                return print_file(filename, parser);
             }
             default:
                 return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
