@@ -316,7 +316,7 @@ endif()
 objcopy(firmware "binary" ".bin")
 
 # generate linker map file
-target_link_options(firmware PUBLIC -Wl,-Map=firmware.map)
+target_link_options(firmware PUBLIC -Wl,-Map=firmware.map,--print-memory-usage)
 
 # link time optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
