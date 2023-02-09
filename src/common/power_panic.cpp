@@ -902,7 +902,6 @@ void ac_fault_isr() {
     // heaters are *already* disabled via HW, but stop temperature and fan regulation too
     thermalManager.disable_all_heaters();
     thermalManager.zero_fan_speeds();
-    thermalManager.suspend_heatbreak_fan(2000);
 
     // stop & disable endstops
     media_print_quick_stop(MEDIA_PRINT_UNDEF_POSITION);
