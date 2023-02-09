@@ -269,7 +269,6 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
                 }
                 JSON_FIELD_FFIXED("completion", ((float)vars->sd_percent_done / 100.0f), 2) JSON_COMMA;
                 JSON_FIELD_INT("printTime", vars->print_duration);
-
             JSON_OBJ_END;
         } else {
             JSON_CONTROL("\"job\": null,\"progress\": null");
