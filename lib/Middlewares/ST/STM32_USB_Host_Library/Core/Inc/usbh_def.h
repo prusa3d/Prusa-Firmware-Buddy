@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2015 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2015 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                      www.st.com/SLA0044
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -33,8 +32,8 @@ extern "C" {
   */
 
 /** @addtogroup USBH_LIB_CORE
-* @{
-*/
+  * @{
+  */
 
 /** @defgroup USBH_DEF
   * @brief This file is includes USB descriptors
@@ -60,6 +59,14 @@ extern "C" {
 #define ValBit(VAR,POS)                               (VAR & (1 << POS))
 #define SetBit(VAR,POS)                               (VAR |= (1 << POS))
 #define ClrBit(VAR,POS)                               (VAR &= ((1 << POS)^255))
+
+#ifndef MIN
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#endif
 
 #define LE16(addr)        (((uint16_t)(addr)[0]) | \
                            ((uint16_t)(((uint32_t)(addr)[1]) << 8)))
@@ -87,7 +94,11 @@ extern "C" {
 #define LE32S(addr)       ((int32_t)(LE32((addr))))
 #define LE64S(addr)       ((int64_t)(LE64((addr))))
 
+#ifndef USBH_MAX_DATA_BUFFER
+#define USBH_MAX_DATA_BUFFER                               0x400U
+#endif
 
+#define USBH_MAX_EP_PACKET_SIZE                            0x400U
 
 #define  USB_LEN_DESC_HDR                                  0x02U
 #define  USB_LEN_DEV_DESC                                  0x12U
@@ -171,7 +182,7 @@ extern "C" {
 #define  USB_EP_DIR_MSK                                    0x80U
 
 #ifndef USBH_MAX_PIPES_NBR
-#define USBH_MAX_PIPES_NBR                                15U
+#define USBH_MAX_PIPES_NBR                                 16U
 #endif /* USBH_MAX_PIPES_NBR */
 
 #define USBH_DEVICE_ADDRESS_DEFAULT                        0x00U
@@ -190,12 +201,12 @@ extern "C" {
 
 
 #define USBH_CONFIGURATION_DESCRIPTOR_SIZE (USB_CONFIGURATION_DESC_SIZE \
-                                           + USB_INTERFACE_DESC_SIZE\
-                                           + (USBH_MAX_NUM_ENDPOINTS * USB_ENDPOINT_DESC_SIZE))
+                                            + USB_INTERFACE_DESC_SIZE\
+                                            + (USBH_MAX_NUM_ENDPOINTS * USB_ENDPOINT_DESC_SIZE))
 
 
 #define CONFIG_DESC_wTOTAL_LENGTH (ConfigurationDescriptorData.ConfigDescfield.\
-                                          ConfigurationDescriptor.wTotalLength)
+                                   ConfigurationDescriptor.wTotalLength)
 
 
 typedef union
@@ -245,9 +256,9 @@ typedef struct _DeviceDescriptor
   code if equal to 0xFF, the class code is vendor specified.
   Otherwise field is valid Class Code.*/
   uint8_t   bMaxPacketSize;
-  uint16_t  idVendor;      /* Vendor ID (Assigned by USB Org) */
-  uint16_t  idProduct;     /* Product ID (Assigned by Manufacturer) */
-  uint16_t  bcdDevice;     /* Device Release Number */
+  uint16_t   idVendor;      /* Vendor ID (Assigned by USB Org) */
+  uint16_t   idProduct;     /* Product ID (Assigned by Manufacturer) */
+  uint16_t   bcdDevice;     /* Device Release Number */
   uint8_t   iManufacturer;  /* Index of Manufacturer String Descriptor */
   uint8_t   iProduct;       /* Index of Product String Descriptor */
   uint8_t   iSerialNumber;  /* Index of Serial Number String Descriptor */
@@ -261,7 +272,7 @@ typedef struct _EndpointDescriptor
   uint8_t   bDescriptorType;
   uint8_t   bEndpointAddress;   /* indicates what endpoint this descriptor is describing */
   uint8_t   bmAttributes;       /* specifies the transfer type. */
-  uint16_t  wMaxPacketSize;    /* Maximum Packet Size this endpoint is capable of sending or receiving */
+  uint16_t  wMaxPacketSize;     /* Maximum Packet Size this endpoint is capable of sending or receiving */
   uint8_t   bInterval;          /* is used to specify the polling interval of certain transfers. */
 }
 USBH_EpDescTypeDef;
@@ -286,12 +297,12 @@ typedef struct _ConfigurationDescriptor
 {
   uint8_t   bLength;
   uint8_t   bDescriptorType;
-  uint16_t  wTotalLength;        /* Total Length of Data Returned */
+  uint16_t  wTotalLength;         /* Total Length of Data Returned */
   uint8_t   bNumInterfaces;       /* Number of Interfaces */
   uint8_t   bConfigurationValue;  /* Value to use as an argument to select this configuration*/
-  uint8_t   iConfiguration;       /*Index of String Descriptor Describing this configuration */
+  uint8_t   iConfiguration;       /* Index of String Descriptor Describing this configuration */
   uint8_t   bmAttributes;         /* D7 Bus Powered , D6 Self Powered, D5 Remote Wakeup , D4..0 Reserved (0)*/
-  uint8_t   bMaxPower;            /*Maximum Power Consumption */
+  uint8_t   bMaxPower;            /* Maximum Power Consumption */
   USBH_InterfaceDescTypeDef        Itf_Desc[USBH_MAX_NUM_INTERFACES];
 }
 USBH_CfgDescTypeDef;
@@ -495,5 +506,3 @@ typedef struct _USBH_HandleTypeDef
 #endif
 
 #endif /* USBH_DEF_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
