@@ -129,10 +129,15 @@ namespace {
     }
 
     Download::DownloadResult init_download(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
-        // TODO: Support overriding port:
-        // By a field in the message
-        // Going from 443 to 80 on TLS connections
-        const uint16_t port = config.port;
+        uint16_t port = config.port;
+        if (port == 443 && config.tls) {
+            // Go from encrypted to the unencrypted port automatically.
+            port = 80;
+        }
+        if (download.port.has_value()) {
+            // Manual override always takes precedence.
+            port = *download.port;
+        }
         const char *host = config.host;
 
         char *path = nullptr;
@@ -538,6 +543,7 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
     }
 
     auto down_result = init_download(printer, config, download);
+
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, transfers::Download>) {
