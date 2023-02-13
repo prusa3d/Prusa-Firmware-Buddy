@@ -173,6 +173,11 @@ variant<size_t, Error> Response::read_body(uint8_t *buffer, size_t size) {
     }
 
     content_length_rest -= pos;
+
+    if (pos == 0 && content_length_rest > 0) {
+        // Early EOF
+        return Error::Network;
+    }
     return pos;
 }
 
@@ -207,6 +212,11 @@ variant<size_t, Error> ResponseBody::read_body(uint8_t *buffer, size_t size, opt
     if (const auto *read = get_if<size_t>(&result); read != nullptr) {
         assert(content_length_rest >= *read);
         content_length_rest -= *read;
+
+        if (*read == 0 && content_length_rest > 0) {
+            // Early EOF
+            return Error::Network;
+        }
     }
 
     return result;
