@@ -40,6 +40,8 @@ struct SetPrinterReady {};
 struct CancelPrinterReady {};
 struct StartConnectDownload {
     SharedPath path;
+    // Port override.
+    std::optional<uint16_t> port;
     // For unencrypted downloads
     struct Plain {
         // The hash itself is max 28 chars

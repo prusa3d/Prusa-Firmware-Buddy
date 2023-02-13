@@ -104,6 +104,17 @@ TEST_CASE("Start connect download - missing params") {
 TEST_CASE("Start connect download") {
     auto cmd = command_test<StartConnectDownload>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\"}}");
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
+    REQUIRE_FALSE(cmd.port.has_value());
+    auto plain = get_if<StartConnectDownload::Plain>(&cmd.details);
+    REQUIRE(plain != nullptr);
+    REQUIRE(strcmp(plain->hash, "abcdef") == 0);
+    REQUIRE(plain->team == 42);
+}
+
+TEST_CASE("Start connect download with port") {
+    auto cmd = command_test<StartConnectDownload>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\", \"port\": 444}}");
+    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
+    REQUIRE(cmd.port == 444);
     auto plain = get_if<StartConnectDownload::Plain>(&cmd.details);
     REQUIRE(plain != nullptr);
     REQUIRE(strcmp(plain->hash, "abcdef") == 0);

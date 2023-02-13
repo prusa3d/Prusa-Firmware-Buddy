@@ -124,6 +124,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
 
     bool in_kwargs = false;
     optional<uint16_t> job_id = nullopt;
+    optional<uint16_t> port = nullopt;
 
     DownloadAccumulator download_acc;
     bool has_path = false;
@@ -176,6 +177,8 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             } else {
                 download_acc.ok = false;
             }
+        } else if (is_arg("port", Type::Primitive)) {
+            port = convert_int<uint16_t>(event);
         } else if (is_arg("hash", Type::String)) {
             download_acc.set<StartConnectDownload::Plain>([&](auto &d) {
                 const size_t len = min(event.value->size() + 1, sizeof d.hash);
@@ -236,6 +239,7 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
         if (ok) {
             download->path = SharedPath(move(buff));
             download->details = move(*download_acc.details);
+            download->port = port;
         } else {
             // Missing parameters, conflicting parameters, etc..
             data = BrokenCommand {};
