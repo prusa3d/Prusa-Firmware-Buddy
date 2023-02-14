@@ -253,7 +253,6 @@ TEST_CASE("Render") {
         // clang-format off
         e << "{"
             "\"data\":{"
-                "\"transfer_id\":" << *id << ","
                 "\"size\":1024,"
                 "\"transferred\":0,"
                 "\"progress\":0.0,"
@@ -307,7 +306,6 @@ TEST_CASE("Render") {
         // clang-format off
         e << "{"
             "\"data\":{"
-                "\"transfer_id\":" << *id << ","
                 "\"size\":1024,"
                 "\"transferred\":0,"
                 "\"progress\":0.0,"
