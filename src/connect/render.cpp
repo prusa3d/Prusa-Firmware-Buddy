@@ -333,7 +333,6 @@ namespace {
                     //
                     // And we really do need the guard on each one, because we
                     // can resume at each spot.
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "size", transfer_status->expected) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred) JSON_COMMA;
                     JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
@@ -353,13 +352,11 @@ namespace {
                 }
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::TransferStopped || event.type == EventType::TransferAborted || event.type == EventType::TransferFinished) {
-                JSON_FIELD_OBJ("data");
-                    assert(event.transfer_id.has_value());
-                    if (event.start_cmd_id.has_value()) {
-                        JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
-                    }
-                    JSON_FIELD_INT("transfer_id", *event.transfer_id);
-                JSON_OBJ_END JSON_COMMA;
+                if (event.start_cmd_id.has_value()) {
+                    JSON_FIELD_OBJ("data");
+                        JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id);
+                    JSON_OBJ_END JSON_COMMA;
+                }
             }
 
             JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;
@@ -367,7 +364,6 @@ namespace {
                 JSON_FIELD_INT("command_id", *event.command_id) JSON_COMMA;
             }
             if (state.transfer_id.has_value()) {
-                // In case of the TRANSFER_ID event, this is actually duplicated.
                 JSON_FIELD_INT("transfer_id", *state.transfer_id) JSON_COMMA;
             }
             JSON_FIELD_STR("event", to_str(event.type));
@@ -717,6 +713,14 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
 
         if (!error && path != nullptr && stat(path, &st) == 0) {
             has_stat = true;
+        }
+
+        // Some events override their transfer_id from another source, so we
+        // replace it here to simplify the actual rendering. These events are
+        // "after the fact" reports about the transfer, because they are
+        // generated at the time when the transfer is _no longer running_.
+        if (event->transfer_id.has_value()) {
+            transfer_id = event->transfer_id;
         }
     }
 }
