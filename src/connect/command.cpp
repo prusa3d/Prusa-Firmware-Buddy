@@ -150,12 +150,19 @@ Command Command::parse_json_command(CommandId id, const string_view &body, Share
             T("START_PRINT", StartPrint)
             T("SET_PRINTER_READY", SetPrinterReady)
             T("CANCEL_PRINTER_READY", CancelPrinterReady)
-            T("START_CONNECT_DOWNLOAD", StartConnectDownload)
             T("DELETE_FILE", DeleteFile)
             T("DELETE_FOLDER", DeleteFolder)
             T("CREATE_FOLDER", CreateFolder)
             T("STOP_TRANSFER", StopTransfer)
-            return;
+            if (event.value == "START_CONNECT_DOWNLOAD") {
+                data = StartConnectDownload {};
+                download_acc.set<StartConnectDownload::Plain>([&](auto &d) {});
+            } else if (event.value == "START_ENCRYPTED_DOWNLOAD") {
+                data = StartConnectDownload {};
+                download_acc.set<StartConnectDownload::Encrypted>([&](auto &d) {});
+            } else {
+                return;
+            }
         }
 
         if (event.depth == 1 && event.type == Type::Object && event.key == "kwargs") {
