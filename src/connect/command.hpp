@@ -38,6 +38,9 @@ struct StartPrint {
 };
 struct SetPrinterReady {};
 struct CancelPrinterReady {};
+// This command actually implements both the START_CONNECT_DOWNLOAD and
+// START_ENCRYPTED_DOWNLOAD. The reason is, for us, the commands are really
+// similar and we reuse a lot of code for it.
 struct StartConnectDownload {
     SharedPath path;
     // Port override.
