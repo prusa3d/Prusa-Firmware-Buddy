@@ -167,18 +167,20 @@ namespace {
             extra_hdrs[1] = { "Token", token, nullopt };
             extra_hdrs[2] = { nullptr, nullptr, nullopt };
         } else if (auto *encrypted = get_if<StartConnectDownload::Encrypted>(&download.details); encrypted != nullptr) {
-            // TODO: The URL scheme needs to be agreed on.
-            const char *prefix = "/p/enc/";
+            const char *prefix = "/f/";
             const size_t prefix_len = strlen(prefix);
-            const size_t buffer_len = prefix_len + 2 * encrypted->iv.size() + 1;
+            const char *suffix = "/raw";
+            const size_t suffix_len = strlen(suffix);
+            const size_t buffer_len = prefix_len + 2 * encrypted->iv.size() + suffix_len + 1;
             path = reinterpret_cast<char *>(alloca(buffer_len));
             strcpy(path, prefix);
 
             for (size_t i = 0; i < encrypted->iv.size(); i++) {
-                sprintf(path + prefix_len + 2 * i, "%02hhX", encrypted->iv[i]);
+                sprintf(path + prefix_len + 2 * i, "%02hhx", encrypted->iv[i]);
             }
+
             path[prefix_len + 2 * encrypted->iv.size()] = '\0';
-            // TODO: Any additional headers, once they are agreed on.
+            strcat(path, suffix);
             decryptor = make_unique<Decryptor>(encrypted->key, encrypted->iv, encrypted->orig_size);
         } else {
             assert(0);
