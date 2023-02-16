@@ -126,8 +126,11 @@ namespace {
                 // These are not included in the fingerprint as they are changing a lot.
                 if (printing) {
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
-                    JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
                     JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
+                    //Send only valid time_to_end value
+                    if(params.time_to_end != (uint32_t)-1){
+                        JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
+                    }
                 }
 
                 if (update_telemetry) {
