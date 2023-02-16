@@ -963,35 +963,53 @@ static void _server_print_loop(void) {
             Screens::Access()->Close(); //if an dialog is opened, it will be closed first
         */
     case mpsPrintPreviewImage:
-    case mpsPrintPreviewQuestions:
+    case mpsPrintPreviewQuestions: {
         // button evaluation
         // We don't particularly care about the
         // difference, but downstream users do.
+
+        auto old_state = marlin_server.print_state;
+        auto new_state = old_state;
         switch (PrintPreview::Instance().Loop()) {
         case PrintPreview::Result::Image:
-            marlin_server.print_state = mpsPrintPreviewImage;
+            new_state = mpsPrintPreviewImage;
             break;
         case PrintPreview::Result::Questions:
-            marlin_server.print_state = mpsPrintPreviewQuestions;
+            new_state = mpsPrintPreviewQuestions;
             break;
         case PrintPreview::Result::Abort:
-            marlin_server.print_state = did_not_start_print ? mpsIdle : mpsFinishing_WaitIdle;
+            new_state = did_not_start_print ? mpsIdle : mpsFinishing_WaitIdle;
             break;
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
             did_not_start_print = false;
-            marlin_server.print_state = mpsPrintInit;
+            new_state = mpsPrintInit;
             break;
         }
+
+        // The job_id is used to identify a job for Connect & Link. We want to
+        // have a unique one for each job, but have the same one through the
+        // whole job. From UI perspective, the questions about filament /
+        // printer type / etc are already part of the job (there's a preview in
+        // Connect for whatever is being printed).
+        //
+        // Therefore, we need to change it if we enter the questions state or
+        // if we skip the questions state directly to printing (in case there's
+        // nothing to ask about).
+        if ((new_state == mpsPrintPreviewQuestions && old_state != mpsPrintPreviewQuestions) || (new_state == mpsPrintInit && old_state != mpsPrintPreviewQuestions)) {
+            // First, reserve the job_id in eeprom. In case we get reset, we need
+            // that to not get reused by accident.
+            eeprom_set_var(EEVAR_JOB_ID, variant8_ui16(job_id + 1));
+            // And increment the job ID before we actually stop printing.
+            job_id++;
+            _set_notify_change(MARLIN_VAR_JOB_ID);
+        }
+        marlin_server.print_state = new_state;
+
         break;
+    }
     case mpsPrintInit:
         feedrate_percentage = 100;
-        // First, reserve the job_id in eeprom. In case we get reset, we need
-        // that to not get reused by accident.
-        eeprom_set_var(EEVAR_JOB_ID, variant8_ui16(job_id + 1));
-        // And increment the job ID before we actually stop printing.
-        job_id++;
-        _set_notify_change(MARLIN_VAR_JOB_ID);
 #if ENABLED(CRASH_RECOVERY)
         crash_s.reset();
         endstops.enable_globally(true);
