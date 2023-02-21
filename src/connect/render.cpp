@@ -249,7 +249,7 @@ namespace {
                             // * Name of the filesystem if it is set/known.
                             JSON_FIELD_STR("mountpoint", "/usb") JSON_COMMA;
                             JSON_FIELD_STR("type", "USB") JSON_COMMA;
-                            JSON_FIELD_BOOL("ro", false) JSON_COMMA;
+                            JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
                             if (event.info_rescan_files) {
                                 JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
                             }
