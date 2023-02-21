@@ -98,6 +98,7 @@ extern "C" {
 typedef struct mbedtls_net_context
 {
     int fd;             /**< The underlying file descriptor                 */
+    uint8_t timeout_s;
 }
 mbedtls_net_context;
 
