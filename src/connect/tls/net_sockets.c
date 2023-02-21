@@ -33,6 +33,7 @@
 
 void mbedtls_net_init(mbedtls_net_context *ctx) {
     ctx->fd = -1;
+    ctx->timeout_s = 0;
 }
 
 /*
@@ -63,11 +64,22 @@ int mbedtls_net_connect(mbedtls_net_context *ctx, const char *host, const char *
             continue;
         }
 
+        if (ctx->timeout_s != 0) {
+            const struct timeval timeout = { ctx->timeout_s, 0 };
+            if (setsockopt(ctx->fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
+                goto ERR;
+            }
+            if (setsockopt(ctx->fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) == -1) {
+                goto ERR;
+            }
+        }
+
         if (connect(ctx->fd, cur->ai_addr, cur->ai_addrlen) == 0) {
             ret = 0;
             break;
         }
 
+    ERR:
         close(ctx->fd);
 
         ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
