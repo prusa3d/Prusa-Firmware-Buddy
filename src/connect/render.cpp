@@ -649,7 +649,7 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
             JSON_FIELD_STR("display_name", display_name(state.ent)) JSON_COMMA;
             JSON_FIELD_INT("size", child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
             // We assume USB is not read only for us.
-            JSON_FIELD_BOOL("ro", false) JSON_COMMA;
+            JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
             JSON_FIELD_STR("type", file_type(state.ent));
         JSON_OBJ_END;
     }
