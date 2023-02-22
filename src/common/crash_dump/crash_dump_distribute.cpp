@@ -53,6 +53,10 @@ void create_url_string(std::array<char, url_buff_size> &url_buff, std::array<cha
 }
 
 bool upload_dump_to_server(http::Request &req) {
+    if (server[0] == '\0') {
+        // No server set up -> disable crash dumps.
+        return false;
+    }
     http::SocketConnectionFactory conn_factory(server, port, socket_timeout_s);
     http::HttpClient http(conn_factory);
 
