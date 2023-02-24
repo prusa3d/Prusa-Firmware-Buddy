@@ -89,7 +89,7 @@ namespace {
              * Now, we make 100% sure the user won't get a file that's not
              * on the USB drive (eg. our xflash).
              */
-            if (strncmp(fname_real, "/usb/", 5) != 0) {
+            if (strncmp(fname_real, "/usb/", 5) != 0 && strcmp(fname_real, "/usb") != 0) {
                 return StatusPage(Status::Forbidden, parser);
             }
 
