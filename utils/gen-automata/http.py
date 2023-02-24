@@ -278,6 +278,7 @@ def accept_header():
 def print_after_upload_header():
     return keyworded_header({
         'true': 'PrintAfterUpload',
+        '1': 'PrintAfterUploadNumeric',
     })
 
 
