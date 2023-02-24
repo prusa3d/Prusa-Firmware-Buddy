@@ -220,11 +220,16 @@ def keyworded_header(keywords, entry_name=None):
         kw_start = auto.add_state()
         kw_start.mark_enter()
         start.add_transition(kw[0], LabelType.CharNoCase, kw_start)
-        kw_start.set_path(kw[1:], nocase=True)  # Will lead to the next state
-        end = auto.add_state(keywords[kw])
-        end.mark_enter()
-        terminals.append(kw_start)
-        terminals.append(end)
+        if len(kw) > 1:
+            kw_start.set_path(kw[1:],
+                              nocase=True)  # Will lead to the next state
+            end = auto.add_state(keywords[kw])
+            end.mark_enter()
+            terminals.append(kw_start)
+            terminals.append(end)
+        else:
+            kw_start.set_name(keywords[kw])
+            terminals.append(kw_start)
 
     # Now handle all the rest by a header-parsing automaton that doesn't emit
     # any events.
