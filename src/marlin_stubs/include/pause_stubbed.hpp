@@ -25,6 +25,7 @@ class PausePrivatePhase : public IPause {
 
     float nozzle_restore_temp;
     float bed_restore_temp;
+    uint8_t m_pwm_value;
 
 public:
     static constexpr int intFinishVal = INT_MAX;
@@ -101,7 +102,7 @@ protected:
 public:
     virtual void RestoreTemp() override;
     virtual bool CanSafetyTimerExpire() const override; //evaluate if client can click == safety timer can expire
-    virtual void NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) override;
+    virtual void NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp, uint8_t pwm_value) override;
     virtual bool HasTempToRestore() const override;
 };
 

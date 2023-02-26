@@ -59,7 +59,12 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
 
     //timer is expired
     if (pBoundPause) {
-        pBoundPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
+
+        auto fanSpeed = marlin_server_read_vars().print_fan_speed;
+        pBoundPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed(), fanSpeed);
+
+        thermalManager.set_fan_speed(0, 0);
+
         if (printingIsPaused()) {
             thermalManager.disable_hotend();
             set_warning(WarningType::NozzleTimeout);

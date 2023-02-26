@@ -170,10 +170,11 @@ bool PausePrivatePhase::CanSafetyTimerExpire() const {
     return ClientResponses::HasButton(getPhase());                                                                                      // button in current phase == can wait on user == can timeout
 }
 
-void PausePrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) {
+void PausePrivatePhase::NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp, uint8_t pwm_value) {
     if (CanSafetyTimerExpire()) {
         nozzle_restore_temp = hotend_temp;
         bed_restore_temp = bed_temp;
+        m_pwm_value = pwm_value;
     }
 }
 
@@ -188,6 +189,9 @@ void PausePrivatePhase::RestoreTemp() {
         marlin_server_set_temp_to_display(nozzle_restore_temp);
         nozzle_restore_temp = NAN;
     }
+
+    thermalManager.set_fan_speed(0, m_pwm_value);
+
     if (!isnan(bed_restore_temp)) {
         thermalManager.setTargetBed(bed_restore_temp);
         bed_restore_temp = NAN;
