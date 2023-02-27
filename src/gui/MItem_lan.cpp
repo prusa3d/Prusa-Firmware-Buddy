@@ -39,10 +39,8 @@ void MI_WIFI_CREDENTIALS_INI_FILE_t::click(IWindowMenu &window_menu) {
 }
 
 MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
-    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_off), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {
+    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {
     if (netdev_get_active_id() == NETDEV_ESP_ID) {
-        this->SetIndex(2);
-    } else if (netdev_get_active_id() == NETDEV_ETH_ID) {
         this->SetIndex(1);
     } else {
         this->SetIndex(0);
@@ -50,7 +48,7 @@ MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
 }
 
 void MI_NET_INTERFACE_t::OnChange(size_t old_index) {
-    uint32_t param = EventMask::value + (this->index == 0 ? 2 : this->index - 1);
+    uint32_t param = EventMask::value + this->index;
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)param);
 }
 
