@@ -267,7 +267,7 @@ void screen_home_data_t::handle_crash_dump() {
     if (present_dumps.size() == 0) {
         return;
     }
-    if (MsgBoxWarning(_("Crash detected. Save it to USB and send it to Prusa?"), Responses_YesNo)
+    if (MsgBoxWarning(_("Crash detected. Save it to USB?"), Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const ::crash_dump::DumpHandler *> auto fp) {
             MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &img::info_58x58);
@@ -280,7 +280,6 @@ void screen_home_data_t::handle_crash_dump() {
         };
 
         do_stage(_("Saving to USB"), [](const ::crash_dump::DumpHandler *handler) { handler->usb_save(); });
-        do_stage(_("Sending to Prusa"), [](const ::crash_dump::DumpHandler *handler) { handler->server_upload(); });
     }
 
     for (const auto &dump_handler : present_dumps) {
