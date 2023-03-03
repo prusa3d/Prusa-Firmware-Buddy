@@ -49,6 +49,7 @@ if(BOARD MATCHES ".*BUDDY")
             non_file_printing_counter.cpp
             odometer.cpp
             otp.c
+            path_utils.c
             PersistentStorage.cpp
             Pin.cpp
             print_processor.cpp
