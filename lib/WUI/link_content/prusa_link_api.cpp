@@ -8,6 +8,7 @@
 #include "../nhttp/send_json.h"
 #include "../wui_api.h"
 
+#include <common/path_utils.h>
 #include <transfers/monitor.hpp>
 #include <cstring>
 #include <cstdio>
@@ -98,6 +99,9 @@ namespace {
             size_t fname_real_len = strlen(fname_real);
             memmove(filename, fname_real, fname_real_len);
             filename[fname_real_len] = '\0';
+            // Slicer sometimes produces duplicate slashes in the URL and
+            // this may confuse eg. marlin.
+            dedup_slashes(filename);
             return nullopt;
         } else {
             return StatusPage(Status::NotFound, parser);
