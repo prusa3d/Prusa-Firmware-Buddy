@@ -87,6 +87,7 @@ ExecutionControl RequestParser::event(Event event) {
     switch (event.entering_state) {
     case Names::PrintAfterUpload:
     case Names::PrintAfterUploadNumeric:
+    case Names::PrintAfterUploadRFC:
         print_after_upload = true;
         return ExecutionControl::Continue;
     case Names::Url:
