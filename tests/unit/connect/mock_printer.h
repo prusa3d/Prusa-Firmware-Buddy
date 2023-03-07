@@ -75,6 +75,7 @@ public:
     }
 
     virtual void notify_filechange(const char *) override {}
+    virtual void init_connect(char *) override {}
 };
 
 }

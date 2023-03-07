@@ -62,6 +62,11 @@ public:
     // Returns 0 if no more data available.
     std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size);
 
+    // Reads everything from the response to the buffer.
+    //
+    // If it doesn't fit, it returns Error::ResponseTooLong.
+    std::variant<size_t, Error> read_all(uint8_t *buffer, size_t buffer_size);
+
     /// Returns a smaller response object capable of only consuming the body.
     ///
     /// This returns the first chunk of body (may be empty) and the object to

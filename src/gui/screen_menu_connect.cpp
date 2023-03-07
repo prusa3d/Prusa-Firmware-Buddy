@@ -56,6 +56,12 @@ void ScreenMenuConnect::updateStatus() {
         S(Confused, _("Protocol err"));
         S(Ok, _("Online"));
         S(Connecting, _("Connecting"));
+        // These are unlikely to be shown, we have another screen when
+        // registering. But we shall cover the complete set anyway.
+        S(RegistrationRequesting, _("Registering"));
+        S(RegistrationCode, _("Reg. code"));
+        S(RegistrationDone, _("Reg. done"));
+        S(RegistrationError, _("Reg. error"));
     default:
         S(Unknown, _("Unknown"));
     }
@@ -64,6 +70,7 @@ void ScreenMenuConnect::updateStatus() {
 ScreenMenuConnect::ScreenMenuConnect()
     : ScreenMenuConnect__(_(label)) {
 }
+
 void ScreenMenuConnect::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
         updateStatus();

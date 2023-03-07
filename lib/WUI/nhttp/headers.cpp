@@ -21,6 +21,7 @@ namespace {
         { Status::UnknownStatus, "???" },
         { Status::Ok, "OK" },
         { Status::Created, "Created" },
+        { Status::Accepted, "Accepted" },
         { Status::NoContent, "No Content" },
         { Status::PartialContent, "Partial Content" },
         { Status::NotModified, "Not Modified" },

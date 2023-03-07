@@ -181,6 +181,25 @@ variant<size_t, Error> Response::read_body(uint8_t *buffer, size_t size) {
     return pos;
 }
 
+variant<size_t, Error> Response::read_all(uint8_t *buffer, size_t size) {
+    if (content_length() > size) {
+        return Error::ResponseTooLong;
+    }
+
+    size_t pos = 0;
+
+    while (content_length() > 0) {
+        const auto result = read_body(buffer + pos, content_length());
+        if (holds_alternative<size_t>(result)) {
+            pos += get<size_t>(result);
+        } else {
+            return get<Error>(result);
+        }
+    }
+
+    return pos;
+}
+
 tuple<uint8_t *, size_t, ResponseBody> Response::into_body() {
     ResponseBody body;
     body.conn = conn;

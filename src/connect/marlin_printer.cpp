@@ -279,16 +279,19 @@ Printer::Params MarlinPrinter::params() const {
 Printer::Config MarlinPrinter::load_config() {
     Config configuration = {};
     configuration.enabled = eeprom_get_bool(EEVAR_CONNECT_ENABLED);
-    if (configuration.enabled) {
-        // Just avoiding to read it when disabled, only to save some CPU
-        strextract(configuration.host, sizeof configuration.host, EEVAR_CONNECT_HOST);
-        decompress_host(configuration.host, sizeof configuration.host);
-        strextract(configuration.token, sizeof configuration.token, EEVAR_CONNECT_TOKEN);
-        configuration.tls = eeprom_get_bool(EEVAR_CONNECT_TLS);
-        configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
-    }
+    // (We need it even if disabled for registration phase)
+    strextract(configuration.host, sizeof configuration.host, EEVAR_CONNECT_HOST);
+    decompress_host(configuration.host, sizeof configuration.host);
+    strextract(configuration.token, sizeof configuration.token, EEVAR_CONNECT_TOKEN);
+    configuration.tls = eeprom_get_bool(EEVAR_CONNECT_TLS);
+    configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
 
     return configuration;
+}
+
+void MarlinPrinter::init_connect(char *token) {
+    eeprom_set_pchar(EEVAR_CONNECT_TOKEN, token, 0, 1);
+    eeprom_set_bool(EEVAR_CONNECT_ENABLED, true);
 }
 
 bool MarlinPrinter::load_cfg_from_ini() {

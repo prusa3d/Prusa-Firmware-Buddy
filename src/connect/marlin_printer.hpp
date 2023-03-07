@@ -35,6 +35,7 @@ public:
     virtual bool set_ready(bool ready) override;
     virtual bool is_printing() const override;
     virtual uint32_t files_hash() const override;
+    virtual void init_connect(char *token) override;
 
     virtual void notify_filechange(const char *filename) override;
 

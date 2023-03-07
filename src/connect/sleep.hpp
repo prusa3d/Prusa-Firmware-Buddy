@@ -21,6 +21,8 @@ using Duration = uint32_t;
 // Renamed ticks_ms for readability.
 Timestamp now();
 
+void sleep_raw(Duration sleep_for);
+
 class Sleep {
 private:
     // Non-owning.

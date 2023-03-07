@@ -32,6 +32,10 @@ Timestamp now() {
     return ticks_ms();
 }
 
+void sleep_raw(Duration sleep_for) {
+    osDelay(sleep_for);
+}
+
 Sleep Sleep::idle() {
     return Sleep(IDLE_WAIT, nullptr, nullptr, false);
 }
@@ -134,7 +138,7 @@ void Sleep::perform(Printer &printer, Planner &planner) {
             }
             break;
         case Mode::Delay:
-            osDelay(max_step_time);
+            sleep_raw(max_step_time);
             break;
         }
 

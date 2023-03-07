@@ -140,6 +140,14 @@ public:
     virtual bool set_ready(bool ready) = 0;
     virtual bool is_printing() const = 0;
     virtual uint32_t files_hash() const = 0;
+    // Turn connect on and set the token.
+    //
+    // Part of registration.
+    //
+    // (The other config ‒ hostname, port, … ‒ are left unchanged).
+    //
+    // (Not const char * for technical reasons).
+    virtual void init_connect(char *token) = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is
