@@ -39,7 +39,6 @@ extern RTC_HandleTypeDef hrtc;
 bool sntp_time_init = false;
 static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
 static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
-static std::atomic<uint32_t> uploaded_gcodes;
 static std::atomic<uint32_t> modified_gcodes;
 
 // example of simple callback automatically sending print response (click on print button) in preview fsm
@@ -326,10 +325,6 @@ void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
     localtime_r(&current_time, timestamp);
 }
 
-uint32_t wui_gcodes_uploaded() {
-    return uploaded_gcodes;
-}
-
 uint32_t wui_gcodes_mods() {
     return modified_gcodes;
 }
@@ -365,9 +360,7 @@ StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
 bool wui_uploaded_gcode(char *filename, bool start_print) {
     StartPrintResult res = wui_start_print(filename, start_print);
     wui_gcode_modified();
-    if (res == StartPrintResult::Uploaded) {
-        uploaded_gcodes++;
-    }
+
     return (res != StartPrintResult::Failed);
 }
 

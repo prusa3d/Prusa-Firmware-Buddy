@@ -12,9 +12,8 @@ public:
 
 private:
     static bool usbWasAlreadyInserted; // usb inserted at least once
-    static uint32_t lastUploadCount;
-    static bool ever_been_opened; //set by ctor
-    static bool try_esp_flash;    // we try this maximum once
+    static bool ever_been_opened;      //set by ctor
+    static bool try_esp_flash;         // we try this maximum once
 
     bool usbInserted;
     bool event_in_progress;
@@ -45,7 +44,6 @@ private:
 
     void printBtnEna();
     void printBtnDis();
-    bool moreGcodesUploaded();
 
     static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 

@@ -60,7 +60,6 @@ const char *labels[7] = {
 };
 
 bool screen_home_data_t::usbWasAlreadyInserted = false;
-uint32_t screen_home_data_t::lastUploadCount = 0;
 
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
@@ -215,7 +214,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 return;
             } else {
                 // on esp update, can use one click print
-                if (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded()) {
+                if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
 
                     // we are using marlin variables for filename and filepath buffers
                     marlin_vars_t *vars = marlin_vars();
@@ -296,13 +295,6 @@ void screen_home_data_t::printBtnDis() {
     w_buttons[0].Disable(); // cant't be focused
     w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelNoUSBId]));
-}
-
-bool screen_home_data_t::moreGcodesUploaded() {
-    const uint32_t total = wui_gcodes_uploaded();
-    const bool result = total != lastUploadCount;
-    lastUploadCount = total;
-    return result;
 }
 
 void screen_home_data_t::InitState(screen_init_variant var) {
