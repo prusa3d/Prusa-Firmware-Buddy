@@ -37,13 +37,47 @@ void MI_CONNECT_LOAD_SETTINGS::click(IWindowMenu &window_menu) {
     }
 }
 
+MI_CONNECT_REGISTER::MI_CONNECT_REGISTER()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::no) {
+}
+
+void MI_CONNECT_REGISTER::click(IWindowMenu &window_menu) {
+    const auto status = connect_client::last_status();
+    bool in_registration;
+    switch (status) {
+    case OnlineStatus::RegistrationCode:
+    case OnlineStatus::RegistrationDone:
+    case OnlineStatus::RegistrationRequesting:
+    case OnlineStatus::RegistrationError:
+        in_registration = true;
+        break;
+    default:
+        in_registration = false;
+        break;
+    }
+    if (in_registration) {
+        connect_client::leave_registration();
+    } else {
+        connect_client::request_registration();
+    }
+}
+
+MI_CONNECT_CODE::MI_CONNECT_CODE()
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+    ChangeInformation("");
+}
+
 #define S(STATUS, TEXT)                                    \
     case OnlineStatus::STATUS:                             \
         Item<MI_CONNECT_STATUS>().ChangeInformation(TEXT); \
         break;
 
 void ScreenMenuConnect::updateStatus() {
-    switch (connect_client::last_status()) {
+    const auto status = connect_client::last_status();
+    if (status == OnlineStatus::RegistrationCode || status == OnlineStatus::RegistrationDone) {
+        Item<MI_CONNECT_CODE>().ChangeInformation(connect_client::registration_code());
+    }
+    switch (status) {
         S(Off, _("Off"));
         S(NoConfig, _("No Config"));
         S(NoDNS, _("DNS error"));

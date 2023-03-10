@@ -35,7 +35,24 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_LOAD_SETTINGS>;
+class MI_CONNECT_REGISTER : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Register");
+
+public:
+    MI_CONNECT_REGISTER();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_CONNECT_CODE : public WI_INFO_t {
+    constexpr static const char *const label = N_("Code");
+
+public:
+    MI_CONNECT_CODE();
+};
+
+using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_LOAD_SETTINGS, MI_CONNECT_REGISTER, MI_CONNECT_CODE>;
 
 #define S(STATUS, TEXT)                                    \
     case OnlineStatus::STATUS:                             \
