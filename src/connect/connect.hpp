@@ -50,7 +50,7 @@ private:
 
     // transmission and reception with Connect server
     std::optional<OnlineStatus> communicate(CachedFactory &conn_factory);
-    ServerResp handle_server_resp(http::Response response);
+    ServerResp handle_server_resp(http::Response response, CommandId command_id);
     Connect(const Connect &other) = delete;
     Connect(Connect &&other) = delete;
 

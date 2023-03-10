@@ -18,8 +18,9 @@ const automata::Automaton http_response(con::parser::response::paths, con::parse
 
 namespace http::parser {
 
-ResponseParser::ResponseParser()
+ResponseParser::ResponseParser(ExtraHeader *extra_hdr)
     : Execution(&http_response)
+    , extra_hdr(extra_hdr)
     , version_major(0)
     , version_minor(0) {}
 
@@ -48,10 +49,13 @@ ExecutionControl ResponseParser::event(Event event) {
         content_type = ContentType::TextGcode;
         return ExecutionControl::Continue;
     case Names::CommandId:
-        if (!command_id.has_value()) {
-            command_id = 0;
-        }
-        *command_id = 10 * *command_id + (event.payload - '0');
+        extra(event.payload, HeaderName::CommandId);
+        return ExecutionControl::Continue;
+    case Names::Code:
+        extra(event.payload, HeaderName::Code);
+        return ExecutionControl::Continue;
+    case Names::Token:
+        extra(event.payload, HeaderName::Token);
         return ExecutionControl::Continue;
     case Names::ConnectionHeader:
         // This comes when we see a connection header. If we understand it and it's keep-alive one, we amend it.
@@ -72,6 +76,12 @@ ExecutionControl ResponseParser::event(Event event) {
         }
     default:
         return ExecutionControl::Continue;
+    }
+}
+
+void ResponseParser::extra(char c, HeaderName name) {
+    if (extra_hdr != nullptr) {
+        extra_hdr->character(c, name);
     }
 }
 

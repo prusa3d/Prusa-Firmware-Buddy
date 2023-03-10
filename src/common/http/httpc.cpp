@@ -283,8 +283,8 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
     return err_out;
 }
 
-variant<Response, Error> HttpClient::parse_response(Connection *conn) {
-    ResponseParser parser;
+variant<Response, Error> HttpClient::parse_response(Connection *conn, ExtraHeader *extra_resp_hdr) {
+    ResponseParser parser(extra_resp_hdr);
 
     uint8_t buffer[Response::MAX_LEFTOVER];
 
@@ -314,7 +314,6 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
             response.content_length_rest = parser.content_length.value_or(0);
             response.leftover_size = rest;
             response.content_type = parser.content_type;
-            response.command_id = parser.command_id;
             if (parser.keep_alive.has_value()) {
                 response.can_keep_alive = *parser.keep_alive;
             } else {
@@ -325,7 +324,7 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
     }
 }
 
-variant<Response, Error> HttpClient::send(Request &request) {
+variant<Response, Error> HttpClient::send(Request &request, ExtraHeader *extra_resp_hdr) {
     auto conn_raw = factory.connection();
     if (holds_alternative<Error>(conn_raw)) {
         return get<Error>(conn_raw);
@@ -344,7 +343,7 @@ variant<Response, Error> HttpClient::send(Request &request) {
         return *error;
     }
 
-    return HttpClient::parse_response(conn);
+    return HttpClient::parse_response(conn, extra_resp_hdr);
 }
 
 }

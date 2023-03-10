@@ -2,6 +2,7 @@ target_sources(
   firmware
   PRIVATE background.cpp
           command.cpp
+          command_id.cpp
           connect.cpp
           hostname.cpp
           marlin_printer.cpp

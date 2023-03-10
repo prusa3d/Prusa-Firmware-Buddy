@@ -1,6 +1,8 @@
 #include "connect.hpp"
 #include <http/httpc.hpp>
 #include "tls/tls.hpp"
+#include "command_id.hpp"
+#include "segmented_json.h"
 #include "render.hpp"
 #include <http/socket.hpp>
 
@@ -186,11 +188,7 @@ public:
     }
 };
 
-Connect::ServerResp Connect::handle_server_resp(Response resp) {
-    if (resp.content_length() > MAX_RESP_SIZE) {
-        return Error::ResponseTooLong;
-    }
-
+Connect::ServerResp Connect::handle_server_resp(Response resp, CommandId command_id) {
     // TODO We want to make this buffer smaller, eventually. In case of custom
     // gcode, we can load directly into the shared buffer. In case of JSON, we
     // want to implement stream/iterative parsing.
@@ -210,9 +208,6 @@ Connect::ServerResp Connect::handle_server_resp(Response resp) {
             return get<Error>(result);
         }
     }
-
-    // Note: missing command ID is already checked at upper level.
-    CommandId command_id = resp.command_id.value();
 
     if (command_id == planner.background_command_id()) {
         return Command {
@@ -327,7 +322,8 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     const auto background_command_id = planner.background_command_id();
 
     BasicRequest request(printer, config, action, telemetry_changes, background_command_id);
-    const auto result = http.send(request);
+    ExtractCommanId cmd_id;
+    const auto result = http.send(request, &cmd_id);
 
     if (holds_alternative<Error>(result)) {
         planner.action_done(ActionResult::Failed);
@@ -359,8 +355,8 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
             telemetry_changes.mark_clean();
             last_full_telemetry = start;
         }
-        if (resp.command_id.has_value()) {
-            const auto sub_resp = handle_server_resp(resp);
+        if (cmd_id.command_id.has_value()) {
+            const auto sub_resp = handle_server_resp(resp, *cmd_id.command_id);
             return visit([&](auto &&arg) -> optional<OnlineStatus> {
                 // Trick out of std::visit documentation. Switch by the type of arg.
                 using T = decay_t<decltype(arg)>;
@@ -375,7 +371,7 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
                 } else if constexpr (is_same_v<T, Error>) {
                     planner.action_done(ActionResult::Failed);
                     planner.command(Command {
-                        resp.command_id.value(),
+                        cmd_id.command_id.value(),
                         BrokenCommand {},
                     });
                     conn_factory.invalidate();

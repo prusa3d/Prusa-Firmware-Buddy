@@ -1,4 +1,5 @@
 #include <http/httpc.hpp>
+#include <http/resp_parser.h>
 
 #include <catch2/catch.hpp>
 #include <cstring>
@@ -73,6 +74,26 @@ public:
     }
 };
 
+class ExtractExtra : public ExtraHeader {
+public:
+    string command_id;
+    string code;
+    string token;
+    virtual void character(char c, HeaderName name) override {
+        switch (name) {
+        case HeaderName::CommandId:
+            command_id += c;
+            break;
+        case HeaderName::Code:
+            code += c;
+            break;
+        case HeaderName::Token:
+            token += c;
+            break;
+        }
+    }
+};
+
 class Factory final : public ConnectionFactory {
 private:
     Connection *conn;
@@ -116,9 +137,11 @@ constexpr const char *mock_resp_no_connection = "HTTP/1.1 204 No Content\r\n"
                                                 "\r\n";
 
 constexpr const char *mock_resp_ancient = "HTTP/1.0 204 No Content\r\n"
+                                          "Code: Hello\r\n"
+                                          "Token: toktok\r\n"
                                           "\r\n";
 
-Response test_resp_req(const char *server_resp, Status status, ContentType content_type, optional<uint32_t> command_id, const char *body) {
+Response test_resp_req(const char *server_resp, Status status, ContentType content_type, const char *body, string command_id = "", string code = "", string token = "") {
     DummyConnection conn;
     conn.received = server_resp;
     Factory factory(&conn);
@@ -126,7 +149,8 @@ Response test_resp_req(const char *server_resp, Status status, ContentType conte
     HttpClient client(factory);
 
     DummyRequest request;
-    auto resp = client.send(request);
+    ExtractExtra extra;
+    auto resp = client.send(request, &extra);
     REQUIRE(holds_alternative<Response>(resp));
 
     REQUIRE(conn.sent == expected_req);
@@ -149,7 +173,9 @@ Response test_resp_req(const char *server_resp, Status status, ContentType conte
     REQUIRE(r.content_length() == 0);
 
     REQUIRE(r.content_type == content_type);
-    REQUIRE(r.command_id == command_id);
+    REQUIRE(extra.command_id == command_id);
+    REQUIRE(extra.code == code);
+    REQUIRE(extra.token == token);
 
     return r;
 }
@@ -158,22 +184,22 @@ Response test_resp_req(const char *server_resp, Status status, ContentType conte
 
 TEST_CASE("Request - response no content") {
     // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"
-    auto r = test_resp_req(mock_resp, Status::NoContent, ContentType::ApplicationOctetStream, nullopt, "");
+    auto r = test_resp_req(mock_resp, Status::NoContent, ContentType::ApplicationOctetStream, "");
     REQUIRE_FALSE(r.can_keep_alive);
 }
 
 TEST_CASE("Request - response with body") {
-    auto r = test_resp_req(mock_resp_body, Status::Ok, ContentType::ApplicationJson, 42, "Hello world");
+    auto r = test_resp_req(mock_resp_body, Status::Ok, ContentType::ApplicationJson, "Hello world", "42");
     REQUIRE(r.can_keep_alive);
 }
 
 TEST_CASE("Request - no connection header") {
     // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"
-    auto r = test_resp_req(mock_resp_no_connection, Status::NoContent, ContentType::ApplicationOctetStream, nullopt, "");
+    auto r = test_resp_req(mock_resp_no_connection, Status::NoContent, ContentType::ApplicationOctetStream, "");
     REQUIRE(r.can_keep_alive); // Implicit by HTTP/1.1
 }
 TEST_CASE("Request - ancient") {
     // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"
-    auto r = test_resp_req(mock_resp_ancient, Status::NoContent, ContentType::ApplicationOctetStream, nullopt, "");
+    auto r = test_resp_req(mock_resp_ancient, Status::NoContent, ContentType::ApplicationOctetStream, "", "", "Hello", "toktok");
     REQUIRE_FALSE(r.can_keep_alive); // Implicit by HTTP/1.0
 }
