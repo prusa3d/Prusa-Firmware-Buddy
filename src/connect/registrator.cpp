@@ -103,7 +103,7 @@ namespace {
 
     public:
         PollRequest(const char *code)
-            : headers({ { "code", code, nullopt },
+            : headers({ { "Code", code, nullopt },
                 { nullptr, nullptr, nullopt } }) {}
         virtual const char *url() const override {
             return REGISTER_URL;
@@ -143,7 +143,7 @@ namespace {
     };
 }
 
-optional<OnlineStatus> Registrator::communicate(CachedFactory &conn_factory) {
+optional<OnlineStatus> Registrator::communicate(RefreshableFactory &conn_factory) {
     const auto [config, cfg_changed] = printer.config();
 
     if (cfg_changed) {
@@ -235,6 +235,10 @@ optional<OnlineStatus> Registrator::communicate(CachedFactory &conn_factory) {
 OnlineStatus Registrator::bail() {
     status = Status::Error;
     return OnlineStatus::RegistrationError;
+}
+
+const char *Registrator::get_code() const {
+    return code.begin();
 }
 
 }

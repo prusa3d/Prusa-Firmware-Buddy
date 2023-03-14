@@ -18,7 +18,7 @@ constexpr Printer::Params params_idle() {
     return params;
 }
 
-class MockPrinter final : public Printer {
+class MockPrinter : public Printer {
 private:
     const Params &p;
 

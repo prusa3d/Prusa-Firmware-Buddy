@@ -1,5 +1,5 @@
 #include "json_out.hpp"
-#include "types.h"
+#include <http/types.h>
 #include <segmented_json.h>
 
 using http::ContentType;

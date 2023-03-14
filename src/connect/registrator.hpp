@@ -16,7 +16,6 @@ using Code = std::array<char, CODE_SIZE + 1>;
 
 class Registrator {
 private:
-    friend class Connect;
     Code code = {};
     enum class Status {
         Init,
@@ -35,7 +34,8 @@ private:
 public:
     Registrator(Printer &printer)
         : printer(printer) {}
-    std::optional<OnlineStatus> communicate(CachedFactory &conn_factory);
+    std::optional<OnlineStatus> communicate(RefreshableFactory &conn_factory);
+    const char *get_code() const;
 };
 
 }

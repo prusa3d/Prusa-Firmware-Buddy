@@ -342,7 +342,7 @@ void Connect::run() {
             guts.emplace<Registrator>(printer);
             last_known_status = OnlineStatus::Unknown;
             conn_factory.invalidate();
-            registration_code_ptr = get<Registrator>(guts).code.begin();
+            registration_code_ptr = get<Registrator>(guts).get_code();
         } else if (!reg_wanted && reg_running) {
             last_known_status = OnlineStatus::Unknown;
             registration_code_ptr = nullptr;
