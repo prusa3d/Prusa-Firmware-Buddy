@@ -3,7 +3,6 @@ include(ExternalProject)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
-include(cmake/CheckRemotes.cmake)
 include(cmake/Littlefs.cmake)
 include(cmake/Options.cmake)
 
