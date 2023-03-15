@@ -90,6 +90,10 @@
   #include "../../feature/bedlevel/bedlevel.h"
 #endif
 
+#if ENABLED(CRASH_RECOVERY)
+  #include "../../feature/prusa/crash_recovery.h"
+#endif
+
 #if HAS_FILAMENT_SENSOR
   #include "../../feature/runout.h"
 #endif
@@ -323,14 +327,14 @@ namespace ExtUI {
 
   float getAxisPosition_mm(const extruder_t extruder) {
     const extruder_t old_tool = getActiveTool();
-    setActiveTool(extruder, true);
+    setActiveTool(extruder);
     const float epos = (
       #if ENABLED(JOYSTICK)
         flags.jogging ? destination.e :
       #endif
       current_position.e
     );
-    setActiveTool(old_tool, true);
+    setActiveTool(old_tool);
     return epos;
   }
 
@@ -383,20 +387,19 @@ namespace ExtUI {
   }
 
   void setAxisPosition_mm(const float position, const extruder_t extruder) {
-    setActiveTool(extruder, true);
+    setActiveTool(extruder);
 
     current_position.e = position;
     line_to_current_position(MMM_TO_MMS(manual_feedrate_mm_m.e));
   }
 
-  void setActiveTool(const extruder_t extruder, bool no_move) {
+  void setActiveTool(const extruder_t extruder) {
     #if EXTRUDERS > 1
       const uint8_t e = extruder - E0;
-      if (e != active_extruder) tool_change(e, no_move);
+      if (e != active_extruder) tool_change(e, tool_return_t::no_move);
       active_extruder = e;
     #else
       UNUSED(extruder);
-      UNUSED(no_move);
     #endif
   }
 

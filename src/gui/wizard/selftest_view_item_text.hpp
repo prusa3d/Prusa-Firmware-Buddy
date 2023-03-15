@@ -9,7 +9,7 @@
 
 #include "selftest_view_item.hpp"
 #include "string_view_utf8.hpp"
-#include "selftest_eeprom.hpp"
+#include "selftest_result_type.hpp"
 #include "font_flags.hpp" // is_multiline
 
 class SelfTestViewText : public SelfTestViewItem {
@@ -38,7 +38,8 @@ class SelfTestViewTextWithIconAndResult : public SelfTestViewTextWithIcon {
     const png::Resource *icon_result;
 
 public:
-    SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource &icon, TestResult_t result, is_multiline multiln = is_multiline::no, Rect16::Width_t width = 0);
+    SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource &icon, TestResult result, is_multiline multiln = is_multiline::no, Rect16::Width_t width = 0);
     virtual void Draw(Rect16::Top_t top) const override;
-    static const png::Resource *ResultToIconId(TestResult_t res);
+    static const png::Resource *ResultToIconId(TestResult res);
+    void SetState(TestResult res);
 };

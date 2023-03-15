@@ -234,7 +234,7 @@ int sys_sscg_get_config(float *pfreq, float *pdepth) {
 }
 
 void sys_spi_set_prescaler(int prescaler_num) {
-#if HAS_GUI()
+#if (HAS_GUI())
     spi_set_prescaler(&SPI_HANDLE_FOR(lcd), prescaler_num);
 #endif
 }

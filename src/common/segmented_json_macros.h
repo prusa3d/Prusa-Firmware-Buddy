@@ -32,10 +32,13 @@
 #define JSON_ARR_END   JSON_CONTROL("]")
 #define JSON_COMMA     JSON_CONTROL(",")
 
-#define JSON_START          \
-    (void)__COUNTER__;      \
-    switch (resume_point) { \
+#define JSON_START                                                \
+    _Pragma("GCC diagnostic push");                               \
+    _Pragma("GCC diagnostic ignored \"-Wimplicit-fallthrough\""); \
+    (void)__COUNTER__;                                            \
+    switch (resume_point) {                                       \
     case 0:;
-#define JSON_END \
-    }            \
-    return ::json::JsonResult::Complete;
+#define JSON_END                         \
+    }                                    \
+    return ::json::JsonResult::Complete; \
+    _Pragma("GCC diagnostic pop");

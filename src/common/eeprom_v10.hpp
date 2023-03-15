@@ -48,7 +48,7 @@ struct vars_body_t : public eeprom::v9::vars_body_t {
 
 static_assert(sizeof(vars_body_t) == sizeof(eeprom::v9::vars_body_t) + sizeof(uint32_t) * 3 + sizeof(uint8_t) * 2 + sizeof(float) * 9 + sizeof(uint16_t) * 8, "eeprom body size does not match");
 
-static constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
+inline constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
 constexpr vars_body_t body_defaults = {
     eeprom::v9::body_defaults,

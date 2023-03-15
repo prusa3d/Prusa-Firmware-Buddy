@@ -8,20 +8,22 @@
 #pragma once
 
 #include "IDialog.hpp"
+#include "string_view_utf8.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
 
 class window_dlg_wait_t : public IDialog {
     window_text_t text;
+    window_text_t second_text;
     window_icon_hourglass_t animation;
 
 public:
-    window_dlg_wait_t(Rect16 rect);
+    window_dlg_wait_t(Rect16 rect, string_view_utf8 second_string = string_view_utf8::MakeNULLSTR());
 };
 
-static const constexpr uint8_t DLG_W8_DRAW_HOURGLASS = 0x04; // Draw hourglass animation
-static const constexpr uint8_t DLG_W8_DRAW_FRAME = 0x01;     // Draw grey frame
-static const constexpr uint8_t DLG_W8_DRAW_PROGRESS = 0x02;  // Draw progress bar
+inline constexpr uint8_t DLG_W8_DRAW_HOURGLASS = 0x04; // Draw hourglass animation
+inline constexpr uint8_t DLG_W8_DRAW_FRAME = 0x01;     // Draw grey frame
+inline constexpr uint8_t DLG_W8_DRAW_PROGRESS = 0x02;  // Draw progress bar
 
 /*!*********************************************************************************************************************
 * \brief GUI dialog for processes that require user to wait calmly.

@@ -42,11 +42,13 @@ target_include_directories(
   connect_tests
   PRIVATE .
           ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_SOURCE_DIR}/include
+          ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/src/connect
           ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/src/common/http
           ${CMAKE_SOURCE_DIR}/lib/jsmn
-          ${CMAKE_SOURCE_DIR}/src
+          ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
   )

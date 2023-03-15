@@ -8,7 +8,7 @@
 #include <array>
 #include "non_file_printing_counter.hpp"
 
-static constexpr BtnResource res_disconnect = { N_("Disconnect"), &png::disconnect_48x48 };
+inline constexpr BtnResource res_disconnect = { N_("Disconnect"), &png::disconnect_48x48 };
 
 class screen_printing_serial_data_t : public AddSuperWindow<ScreenPrintingModel> {
     NonFilePrintingCounter fs_lock; // filament sensor will think printer is in printing state

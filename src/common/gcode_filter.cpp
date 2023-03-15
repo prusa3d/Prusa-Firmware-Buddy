@@ -4,7 +4,12 @@ char *GCodeFilter::nextGcode(State *state) {
     for (;;) {
         const char nextByte = getByte(state);
         if (*state == Eof) {
-            return buffer;
+            if (offset != 0 && !wait_new_line) {
+                //process the read data
+                return prepareGcode();
+            }
+            //no bytes read return NULL
+            return NULL;
         }
         if (*state != Ok) {
             return NULL;

@@ -30,6 +30,10 @@
 #include "../../../module/planner.h"
 #include "../../queue.h"
 
+#if ENABLED(CRASH_RECOVERY)
+  #include "../../feature/prusa/crash_recovery.h"
+#endif
+
 #if ENABLED(MONITOR_DRIVER_STATUS)
 
   #define M91x_USE(ST) (AXIS_DRIVER_TYPE(ST, TMC2130) || AXIS_DRIVER_TYPE(ST, TMC2160) || AXIS_DRIVER_TYPE(ST, TMC2208) || AXIS_DRIVER_TYPE(ST, TMC2209) || AXIS_DRIVER_TYPE(ST, TMC2660) || AXIS_DRIVER_TYPE(ST, TMC5130) || AXIS_DRIVER_TYPE(ST, TMC5160))

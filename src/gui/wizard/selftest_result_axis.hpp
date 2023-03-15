@@ -8,7 +8,7 @@
 #pragma once
 
 #include "selftest_group.hpp"
-#include "selftest_eeprom.hpp"
+#include "selftest_result_type.hpp"
 
 class ResultAxis : public SelfTestGroup {
     SelfTestViewTextWithIconAndResult x;
@@ -17,5 +17,7 @@ class ResultAxis : public SelfTestGroup {
     SelfTestViewText txt;
 
 public:
-    ResultAxis(TestResult_t x_res, TestResult_t y_res, TestResult_t z_res);
+    ResultAxis();
+
+    void SetState(TestResult x_res, TestResult y_res, TestResult z_res);
 };

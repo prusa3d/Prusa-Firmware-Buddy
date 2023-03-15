@@ -230,3 +230,6 @@ void reset_trinamic_drivers();
     #define E5_STEP_WRITE(STATE) do{ if(STATE) TOGGLE(E5_STEP_PIN); }while(0)
   #endif
 #endif
+
+// Return the stepper instance of an axis
+TMCStepper &stepper_axis(const AxisEnum axis);

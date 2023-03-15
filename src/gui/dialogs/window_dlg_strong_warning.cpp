@@ -5,6 +5,8 @@
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
 #include "client_response_texts.hpp"
+#include "window_msgbox.hpp" // due AdjustLayout function
+#include "config_features.h"
 
 std::bitset<window_dlg_strong_warning_t::types::count_> window_dlg_strong_warning_t::shown;
 window_dlg_strong_warning_t::types window_dlg_strong_warning_t::on_top = window_dlg_strong_warning_t::types::count_;
@@ -14,12 +16,38 @@ const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Resp
 static constexpr Rect16 textRectIcon = { 0, 104, 240, 120 };
 
 window_dlg_strong_warning_t::window_dlg_strong_warning_t()
-    : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes)
+    : AddSuperWindow<IDialog>(GuiDefaults::DialogFrameRect, IsStrong::yes)
     , header(this, _(Title))
     , footer(this)
-    , icon(this, &png::exposure_times_48x48, { 120 - 24, 48 })
-    , text(this, textRectIcon, is_multiline::yes)
-    , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(64), dlg_responses, &ph_txt_continue) {
+    , icon(this, { 0, 0, 0, 0 }, &png::exposure_times_48x48)
+    , text(this, { 0, 0, 0, 0 }, is_multiline::yes)
+    , button(this, GuiDefaults::GetButtonRect(GetRect()) - (GuiDefaults::EnableDialogBigLayout ? Rect16::Top_t(0) : Rect16::Top_t(64)), dlg_responses, &ph_txt_continue) {
+    if (GuiDefaults::EnableDialogBigLayout) {
+        footer.Hide();
+        header.Hide();
+    } else {
+        icon.SetRect(Rect16(120 - 24, 48, 48, 48));
+        text.SetRect(textRectIcon);
+    }
+}
+
+void window_dlg_strong_warning_t::adjustLayout() {
+    icon.SetRect(GuiDefaults::MessageIconRect);
+    text.SetRect(GuiDefaults::MessageTextRect);
+    AdjustLayout(text, icon);
+}
+
+void window_dlg_strong_warning_t::setWarningText(types type) {
+
+    icon.SetRes(icon_title_text[type].icon);
+    header.SetText(_(icon_title_text[type].title));
+    if (!icon_title_text[type].icon) {
+        text.SetRect(GuiDefaults::RectScreenBody);
+    } else {
+        text.SetRect(textRectIcon);
+    }
+    text.SetText(_(icon_title_text[type].text));
+    adjustLayout(); //this could cause invalidation issue
 }
 
 void window_dlg_strong_warning_t::show(types type) {
@@ -28,19 +56,25 @@ void window_dlg_strong_warning_t::show(types type) {
     shown[type] = true;
     on_top = type;
 
-    icon.SetRes(icon_title_text[type].icon);
-    header.SetText(_(icon_title_text[type].title));
-    if (!icon_title_text[type].icon)
-        text.SetRect(GuiDefaults::RectScreenBody);
-    else
-        text.SetRect(textRectIcon);
-    text.SetText(_(icon_title_text[type].text));
+    setWarningText(type);
 
     if (!GetParent()) {
         window_t *parent = Screens::Access()->Get();
         if (parent) {
             Sound_Play(eSOUND_TYPE::StandardAlert);
             parent->RegisterSubWin(*this);
+        }
+    }
+}
+
+//Relaunch correct window
+void window_dlg_strong_warning_t::screenJump() {
+    for (types t = types(0); t < types::count_; t = types(t + 1)) {
+
+        if (shown[t]) {
+            setWarningText(t);
+            Screens::Access()->Get()->RegisterSubWin(*this);
+            return;
         }
     }
 }
@@ -68,6 +102,13 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
     }
 }
 
+void window_dlg_strong_warning_t::ScreenJumpCheck() {
+    //Check warning flag and if current screen has no warning window, create one
+    if (shown.any() && !Screens::Access()->Get()->GetFirstStrongDialog()) { //&& !Instance().IsVisible()){
+        Instance().screenJump();
+    }
+}
+
 void window_dlg_strong_warning_t::ShowHotendFan() {
     Instance().show(HotendFan);
 }
@@ -84,6 +125,20 @@ void window_dlg_strong_warning_t::ShowHeatersTimeout() {
     Instance().show(HeatersTimeout);
 }
 
+void window_dlg_strong_warning_t::ShowSteppersTimeout() {
+    Instance().show(SteppersTimeout);
+}
+
 void window_dlg_strong_warning_t::ShowUSBFlashDisk() {
     Instance().show(USBFlashDisk);
 }
+
+void window_dlg_strong_warning_t::ShowHeatBreakThermistorFail() {
+    Instance().show(HBThermistorFail);
+}
+
+#if ENABLED(POWER_PANIC)
+void window_dlg_strong_warning_t::ShowHeatbedColdAfterPP() {
+    Instance().show(HeatbedColdAfterPP);
+}
+#endif

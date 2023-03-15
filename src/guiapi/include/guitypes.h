@@ -48,6 +48,19 @@ typedef struct _font_t {
     char asc_max; //max ascii code (last character)
 } font_t;
 
+// Menu item corners - background rounded corners
+enum {
+    MIC_TOP_RIGHT = 1 << 0,
+    MIC_TOP_LEFT = 1 << 1,
+    MIC_BOT_RIGHT = 1 << 2,
+    MIC_BOT_LEFT = 1 << 3,
+    MIC_ALL_CORNERS = (MIC_TOP_RIGHT | MIC_TOP_LEFT | MIC_BOT_RIGHT | MIC_BOT_LEFT),
+    MIC_ALT_CL_TOP_RIGHT = 1 << 4,
+    MIC_ALT_CL_TOP_LEFT = 1 << 5,
+    MIC_ALT_CL_BOT_RIGHT = 1 << 6,
+    MIC_ALT_CL_BOT_LEFT = 1 << 7,
+};
+
 //resource type definition
 enum {
     RESOURCE_TYPE_RAW, //raw binary resource

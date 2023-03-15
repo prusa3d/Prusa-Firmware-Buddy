@@ -134,7 +134,7 @@ static void st7789v_clr_rst(void) {
     st7789v_flg &= ~FLG_RST;
 }
 
-static void st7789v_reset(void) {
+void st7789v_reset(void) {
     st7789v_clr_rst();
     st7789v_delay_ms(15);
     volatile uint16_t delay = 0;
@@ -466,6 +466,7 @@ void st7789v_draw_char_from_buffer(uint16_t x, uint16_t y, uint16_t w, uint16_t 
     #include "scratch_buffer.hpp"
     #include <optional>
     #include <png.h>
+    #include "bsod_gui.hpp"
 enum {
     PNG_MAX_CHUNKS = 10
 };
@@ -482,7 +483,7 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
         png_memory->acquire(/*wait=*/true);
     }
     if (png_mem_total + size >= png_memory->get().size()) {
-        fatal_error("pngmalloc", "out of memory");
+        fatal_error(ErrCode::ERR_SYSTEM_PNG_MALLOC_ERROR);
     }
     void *p = ((uint8_t *)png_memory->get().buffer) + png_mem_total;
     {
@@ -526,9 +527,8 @@ void _pngfree(png_structp pp, png_voidp mem) {
  * @param back_color            color of background
  * @param rop                   raster operations
  * @param subrect               sub rectangle inside png - area to draw
- * @param local_desatur_line    pixels above this line (relative to png) are in grayscale, ugly unclear parameter, but is needed for a smooth draw
  */
-void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect, uint16_t local_desatur_line) {
+void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect) {
     PNGMeasure PM;
 
     static const png_byte unused_chunks[] = {
@@ -696,13 +696,7 @@ void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
                             rop_rgb888_disabled(ppx888);
                             break;
                         case ROPFN_DESATURATE:
-                            if (local_desatur_line) {
-                                if (h - (png_rows_left - j / png_cols) < local_desatur_line) {
-                                    rop_rgb888_desaturate(ppx888);
-                                }
-                            } else {
-                                rop_rgb888_desaturate(ppx888);
-                            }
+                            rop_rgb888_desaturate(ppx888);
                             break;
                         }
                         if (pixsize == 4) { // Mix pixel after rast operations with background
@@ -811,7 +805,7 @@ void st7789v_ctrl_set(uint8_t ctrl) {
 
 #else // ST7789V_PNG_SUPPORT
 
-void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect, uint16_t local_desatur_line) {}
+void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect) {}
 
 #endif // ST7789V_PNG_SUPPORT
 

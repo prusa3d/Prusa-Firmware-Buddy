@@ -41,3 +41,9 @@ target_include_directories(lang PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_library(Buddy::Lang ALIAS lang)
 add_library(Buddy::Lang::Translations ALIAS translations)
+
+target_compile_definitions(
+  translations
+  INTERFACE BOARD=BOARD_${BOARD} BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
+            BOARD_VERSION_MINOR=${BOARD_VERSION_MINOR} BOARD_VERSION_PATCH=${BOARD_VERSION_PATCH}
+  )

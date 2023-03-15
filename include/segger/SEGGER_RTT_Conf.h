@@ -143,7 +143,12 @@ Revision: $Rev: 21386 $
     // or define SEGGER_RTT_LOCK() to completely disable interrupts.
     //
     #ifndef SEGGER_RTT_MAX_INTERRUPT_PRIORITY
-        #define SEGGER_RTT_MAX_INTERRUPT_PRIORITY (0x20) // Interrupt priority to lock on SEGGER_RTT_LOCK on Cortex-M3/4 (Default: 0x20)
+        #include <device/mcu.h>
+        #if MCU_IS_STM32F4()
+            #define SEGGER_RTT_MAX_INTERRUPT_PRIORITY (5 << (8 - 4)) // Interrupt priority to lock on SEGGER_RTT_LOCK on Cortex-M3/4 (Default: 0x20)
+        #elif MCU_IS_STM32G0()
+            #define SEGGER_RTT_MAX_INTERRUPT_PRIORITY (0) // Interrupt priority to lock on SEGGER_RTT_LOCK on Cortex-M3/4 (Default: 0x20)
+        #endif
     #endif
 
     /*********************************************************************

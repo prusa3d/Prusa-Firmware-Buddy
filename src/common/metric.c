@@ -15,7 +15,7 @@ osThreadDef(metric_system_task, metric_system_task_run, osPriorityAboveNormal,
 static osThreadId metric_system_task;
 
 // queue definition
-osMailQDef(metric_system_queue, 5, metric_point_t);
+osMailQDef(metric_system_queue, 100, metric_point_t);
 static osMessageQId metric_system_queue;
 
 // internal variables
@@ -71,9 +71,9 @@ static void metric_system_task_run() {
     }
 }
 
-static bool check_min_interval(metric_t *metric) {
+static bool check_min_interval(metric_t *metric, uint32_t timestamp) {
     if (metric->min_interval_ms)
-        return ticks_diff(ticks_ms(), metric->_last_update_timestamp) >= (int32_t)metric->min_interval_ms;
+        return ticks_diff(timestamp, metric->_last_update_timestamp) >= (int32_t)metric->min_interval_ms;
     else
         return true;
 }
@@ -82,12 +82,12 @@ static void update_min_interval(metric_t *metric) {
     metric->_last_update_timestamp = ticks_ms();
 }
 
-static metric_point_t *point_check_and_prepare(metric_t *metric, metric_value_type_t type) {
+static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timestamp, metric_value_type_t type) {
     if (!metric_system_initialized)
         return NULL;
     if (!metric->_registered)
         metric_register(metric);
-    if (!check_min_interval(metric))
+    if (!check_min_interval(metric, timestamp))
         return NULL;
     if (metric->type != type) {
         log_error(Metrics, "Attempt to record an invalid value type for metric %s", metric->name);
@@ -104,7 +104,7 @@ static metric_point_t *point_check_and_prepare(metric_t *metric, metric_value_ty
     }
     point->metric = metric;
     point->error = false;
-    point->timestamp = ticks_ms();
+    point->timestamp = timestamp;
     return point;
 }
 
@@ -130,16 +130,16 @@ void metric_register(metric_t *metric) {
     metric_linked_list_append(metric);
 }
 
-void metric_record_float(metric_t *metric, float value) {
-    metric_point_t *recording = point_check_and_prepare(metric, METRIC_VALUE_FLOAT);
+void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value) {
+    metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_FLOAT);
     if (!recording)
         return;
     recording->value_float = value;
     point_enqueue(recording);
 }
 
-void metric_record_string(metric_t *metric, const char *fmt, ...) {
-    metric_point_t *recording = point_check_and_prepare(metric, METRIC_VALUE_STRING);
+void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+    metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_STRING);
     if (!recording)
         return;
     va_list args;
@@ -149,8 +149,8 @@ void metric_record_string(metric_t *metric, const char *fmt, ...) {
     point_enqueue(recording);
 }
 
-void metric_record_custom(metric_t *metric, const char *fmt, ...) {
-    metric_point_t *recording = point_check_and_prepare(metric, METRIC_VALUE_CUSTOM);
+void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+    metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_CUSTOM);
     if (!recording)
         return;
     va_list args;
@@ -160,15 +160,15 @@ void metric_record_custom(metric_t *metric, const char *fmt, ...) {
     point_enqueue(recording);
 }
 
-void metric_record_event(metric_t *metric) {
-    metric_point_t *recording = point_check_and_prepare(metric, METRIC_VALUE_EVENT);
+void metric_record_event_at_time(metric_t *metric, uint32_t timestamp) {
+    metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_EVENT);
     if (!recording)
         return;
     point_enqueue(recording);
 }
 
-void metric_record_integer(metric_t *metric, int value) {
-    metric_point_t *recording = point_check_and_prepare(metric, METRIC_VALUE_INTEGER);
+void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value) {
+    metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_INTEGER);
     if (!recording)
         return;
     recording->value_int = value;
@@ -177,7 +177,7 @@ void metric_record_integer(metric_t *metric, int value) {
 
 void metric_record_error(metric_t *metric, const char *fmt, ...) {
     // TODO: we might want separate throttling for errors
-    metric_point_t *recording = point_check_and_prepare(metric, metric->type);
+    metric_point_t *recording = point_check_and_prepare(metric, ticks_ms(), metric->type);
     if (!recording)
         return;
     recording->error = true;

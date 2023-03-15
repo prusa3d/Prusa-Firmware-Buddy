@@ -32,6 +32,7 @@ const char *__evt_name[] = {
     "Reheat",
     "DialogOpenCloseChange",
     "Acknowledge",
+    "Not Acknowledge",
 };
 
 _Static_assert((sizeof(__evt_name) / sizeof(__evt_name[0])) == (MARLIN_EVT_MAX + 1), "Incorrect number of event names");

@@ -71,6 +71,7 @@ handler::StatusPage FileCommand::process() {
         case StartResult::Started:
             return StatusPage(Status::NoContent, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         }
+        [[fallthrough]];
     default:
         assert(0);
         return StatusPage(Status::InternalServerError, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Invalid command");

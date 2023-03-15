@@ -3,8 +3,11 @@
  */
 
 #include "screen_menu_temperature.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
+#include "DialogMoveZ.hpp"
+#include "png_resources.hpp"
+#include <option/has_toolchanger.h>
 
 ScreenMenuTemperature::ScreenMenuTemperature()
     : ScreenMenuTemperature__(_(label)) {
@@ -21,8 +24,13 @@ void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t
         marlin_set_display_nozzle(0);
         marlin_set_target_bed(0);
         marlin_set_fan_speed(0);
-
-        Item<MI_NOZZLE>().SetVal(0);
+        Item<MI_NOZZLE<0>>().SetVal(0);
+#if HAS_TOOLCHANGER()
+        Item<MI_NOZZLE<1>>().SetVal(0);
+        Item<MI_NOZZLE<2>>().SetVal(0);
+        Item<MI_NOZZLE<3>>().SetVal(0);
+        Item<MI_NOZZLE<4>>().SetVal(0);
+#endif
         Item<MI_HEATBED>().SetVal(0);
         Item<MI_PRINTFAN>().SetVal(0);
     } else {

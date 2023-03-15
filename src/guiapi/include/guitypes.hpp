@@ -66,6 +66,13 @@ struct point_t {
         return (x == rhs.x) && (y == rhs.y);
     }
     constexpr bool operator!=(const point_t &rhs) const { return !((*this) == rhs); }
+
+    point_t operator+(const point_t &rhs) const {
+        return {
+            .x = static_cast<T>(x + rhs.x),
+            .y = static_cast<T>(y + rhs.y)
+        };
+    }
 };
 
 using point_i16_t = point_t<int16_t>;
@@ -96,10 +103,10 @@ static_assert(sizeof(event_conversion_union::point) <= sizeof(event_conversion_u
 struct size_ui16_t {
     uint16_t w;
     uint16_t h;
-    constexpr bool operator==(const size_ui16_t &rhs) {
+    constexpr bool operator==(const size_ui16_t &rhs) const {
         return (w == rhs.w) && (h == rhs.h);
     }
-    constexpr bool operator!=(const size_ui16_t &rhs) { return !((*this) == rhs); }
+    constexpr bool operator!=(const size_ui16_t &rhs) const { return !((*this) == rhs); }
 };
 
 template <class T>
@@ -109,10 +116,10 @@ struct padding_t {
     T right;
     T bottom;
 
-    constexpr bool operator==(const padding_t &rhs) {
+    constexpr bool operator==(const padding_t &rhs) const {
         return (left == rhs.left) && (top == rhs.top) && (right == rhs.right) && (bottom == rhs.bottom);
     }
-    constexpr bool operator!=(const padding_t &rhs) { return !((*this) == rhs); }
+    constexpr bool operator!=(const padding_t &rhs) const { return !((*this) == rhs); }
 };
 
 using padding_ui8_t = padding_t<uint8_t>;

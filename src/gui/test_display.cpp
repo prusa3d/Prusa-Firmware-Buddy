@@ -124,7 +124,7 @@ void test_display_random_chars_big(uint16_t cnt) {
 }
 
 void test_display_random_chars_terminal(uint16_t cnt) {
-    font_t *font = resource_font(IDR_FNT_TERMINAL);
+    font_t *font = resource_font(IDR_FNT_SPECIAL);
     test_display_random_chars(cnt, font);
 }
 

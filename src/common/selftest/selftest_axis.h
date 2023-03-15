@@ -38,6 +38,8 @@ class CSelftestPart_Axis {
 public:
     using Config = AxisConfig_t;
 
+    static constexpr float EXTRA_LEN_MM = 10; // How far to move behind expected axis end
+
     CSelftestPart_Axis(IPartHandler &state_machine, const AxisConfig_t &config,
         SelftestSingleAxis_t &result);
     ~CSelftestPart_Axis();

@@ -33,8 +33,9 @@ typedef enum {
     MARLIN_EVT_Warning,             // important messages like fan error or heater timeout
     MARLIN_EVT_Reheat,              //
     MARLIN_EVT_Acknowledge,         // onAcknowledge - lowest priority
+    MARLIN_EVT_NotAcknowledge,      // onNotAcknowledge - lowest priority
 
-    MARLIN_EVT_MAX = MARLIN_EVT_Acknowledge
+    MARLIN_EVT_MAX = MARLIN_EVT_NotAcknowledge
 } MARLIN_EVT_t;
 
 // event masks
@@ -58,15 +59,7 @@ enum {
     MARLIN_CMD_M701 = MARLIN_CMD_M + 701,
     MARLIN_CMD_M702 = MARLIN_CMD_M + 702,
     MARLIN_CMD_M876 = MARLIN_CMD_M + 876,
-
-    MARLIN_MAX_MESH_POINTS = (4 * 4),
 };
-
-typedef struct _marlin_mesh_t {
-    float z[MARLIN_MAX_MESH_POINTS];
-    uint8_t xc;
-    uint8_t yc;
-} marlin_mesh_t;
 
 #ifdef __cplusplus
 extern "C" {

@@ -37,6 +37,10 @@ target_sources(
             wui_api.cpp
   )
 
+if(HAS_EMBEDDED_ESP32)
+  target_sources(WUI INTERFACE esp_flash.cpp)
+endif()
+
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
 add_custom_command(

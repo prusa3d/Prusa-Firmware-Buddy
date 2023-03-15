@@ -53,9 +53,20 @@ struct WinsRepeatedCrash {
     window_text_t text_long;
     window_icon_t icon_nozzle_crash;
     window_icon_t icon_nozzle;
+    window_text_t text_info;
     RadioButton radio;
     static constexpr PhaseTexts texts = { { "Resume", "Pause" } };
     WinsRepeatedCrash(ScreenCrashRecovery &screen);
+};
+
+struct WinsToolRecovery {
+    window_text_t text_long;
+    window_text_t text_careful;
+    window_text_t text_tool[EXTRUDERS];
+    WindowIcon_OkNg icon_tool[EXTRUDERS];
+    RadioButton radio;
+    static constexpr PhaseTexts texts = { { "Continue" } };
+    WinsToolRecovery(ScreenCrashRecovery &screen);
 };
 
 struct WinUnion {
@@ -64,16 +75,18 @@ struct WinUnion {
         WinsHome *home;
         WinsAxisNok *axisNok;
         WinsRepeatedCrash *repeatedCrash;
+        WinsToolRecovery *toolRecovery;
     };
 
     enum screen_type {
         CheckAxis,
         Home,
         AxisNok,
-        RepeatedCrash
+        RepeatedCrash,
+        ToolRecovery,
     };
 
-    using MemSpace = std::aligned_union<0, WinsCheckAxis, WinsHome, WinsAxisNok, WinsRepeatedCrash>::type;
+    using MemSpace = std::aligned_union<0, WinsCheckAxis, WinsHome, WinsAxisNok, WinsRepeatedCrash, WinsToolRecovery>::type;
 
     PhasesCrashRecovery phase;
 

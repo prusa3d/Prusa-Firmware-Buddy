@@ -26,7 +26,7 @@ public:
 };
 
 class MI_RESET_Z_AXIS_LEN : public WI_LABEL_t {
-    static constexpr const char *const label = "Default Z-length";
+    static constexpr const char *const label = "Reset Z-length";
 
 public:
     MI_RESET_Z_AXIS_LEN();
@@ -68,7 +68,7 @@ public:
 };
 
 class MI_RESET_STEPS_PER_UNIT : public WI_LABEL_t {
-    static constexpr const char *const label = "Default steps per unit";
+    static constexpr const char *const label = "Reset steps per unit";
 
 public:
     MI_RESET_STEPS_PER_UNIT();
@@ -118,7 +118,7 @@ public:
 };
 
 class MI_RESET_DIRECTION : public WI_LABEL_t {
-    static constexpr const char *const label = "Default directions";
+    static constexpr const char *const label = "Reset directions";
 
 public:
     MI_RESET_DIRECTION();

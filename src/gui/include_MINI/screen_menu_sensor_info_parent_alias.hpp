@@ -1,6 +1,8 @@
 /**
  * @file screen_menu_sensor_info_parent_alias.hpp
+ * @brief alias for MINI printer info menu parent
  */
+
 #pragma once
 
 #include "screen_menu.hpp"

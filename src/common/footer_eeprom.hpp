@@ -12,9 +12,9 @@
 
 namespace footer::eeprom {
 
-static constexpr size_t count = FOOTER_ITEMS_PER_LINE__;
-static constexpr size_t count_of_trailing_ones = 3;
-static const size_t value_bit_size = 5; // 32 different items should be enough
+inline constexpr size_t count = FOOTER_ITEMS_PER_LINE__;
+inline constexpr size_t count_of_trailing_ones = 3;
+inline constexpr size_t value_bit_size = 5; // 32 different items should be enough
 static_assert(count * value_bit_size <= 32, "Encoded eeprom record is too big");
 
 /**

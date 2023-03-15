@@ -1,4 +1,6 @@
+add_subdirectory(probe_analysis)
 add_subdirectory(automata)
+add_subdirectory(Leds)
 add_subdirectory(http)
 
 add_executable(
@@ -45,6 +47,8 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
   PUBLIC ${CMAKE_SOURCE_DIR}/src/common
   PUBLIC ${CMAKE_SOURCE_DIR}/src/gui/wizard
+  PUBLIC ${CMAKE_SOURCE_DIR}/tests/stubs/
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/gui
   )
 
 add_executable(
@@ -75,8 +79,17 @@ target_include_directories(algorithm_range_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/
 add_executable(algorithm_scale_tests algorithm_scale_tests.cpp)
 target_include_directories(algorithm_scale_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
-add_executable(median_tests ${CMAKE_CURRENT_SOURCE_DIR}/median_test.cpp)
+add_executable(
+  median_tests ${CMAKE_CURRENT_SOURCE_DIR}/median_test.cpp
+               ${CMAKE_SOURCE_DIR}/src/common/filters/median_filter.cpp
+  )
 target_include_directories(median_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+
+add_executable(
+  otp_tests ${CMAKE_CURRENT_SOURCE_DIR}/otp_test.cpp ${CMAKE_SOURCE_DIR}/src/common/otp.c
+  )
+target_compile_definitions(otp_tests PUBLIC UNITTEST)
+target_include_directories(otp_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
 
 add_executable(
   url_decode_tests ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
@@ -114,6 +127,7 @@ add_catch_test(weighted_modus_tests)
 add_catch_test(algorithm_range_tests)
 add_catch_test(algorithm_scale_tests)
 add_catch_test(median_tests)
+add_catch_test(otp_tests)
 add_catch_test(url_decode_tests)
 add_catch_test(json_tests)
 add_catch_test(path_utils_tests)

@@ -12,12 +12,6 @@
 #include "window_wizard_progress.hpp"
 
 #include "printers.h"
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-    #define QR_ADDR         "prusa.io/wifiminiqr"
-    #define QR_ADDR_IN_TEXT "prusa.io/wifimini"
-#else
-    #error "WIFI not supported"
-#endif
 
 class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
     /** @brief Calculates the position of individual elements of the frame
@@ -34,7 +28,6 @@ class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
         static constexpr size_t qrcodeHeight { 140 };
         static constexpr size_t phoneWidth { 64 };
         static constexpr size_t phoneHeight { 82 };
-        static constexpr size_t textWidth { WizardDefaults::X_space };
         static constexpr size_t textHeight { WizardDefaults::txt_h * 4 };
 
     public:
@@ -46,14 +39,32 @@ class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
 
         /** @returns Rect16 position and size of the text widget */
         static constexpr Rect16 textRect();
+
+        /** @returns Rect16 position and size of the link widget */
+        static constexpr Rect16 linkRect();
     };
 
     window_text_t text;
+    window_text_t link;
     window_icon_t icon_phone;
     window_qr_t qr;
 
 protected:
     virtual void change() override;
+
+private:
+#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+    static auto constexpr QR_ADDR = "prusa.io/wifiminiqr";
+    static auto constexpr ADDR_IN_TEXT = "prusa.io/wifimini";
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK404)
+    static auto constexpr QR_ADDR = "prusa.io/wifimk404qr";
+    static auto constexpr ADDR_IN_TEXT = "prusa.io/wifimk404";
+#elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
+    static auto constexpr QR_ADDR = "prusa.io/wifixlqr";
+    static auto constexpr ADDR_IN_TEXT = "prusa.io/wifixl";
+#else
+    #error "WIFI not supported"
+#endif
 
 public:
     SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);

@@ -22,8 +22,9 @@ void unhomed_z_lift(float amount_mm);
 class PausePrivatePhase : public IPause {
     PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
     int load_unload_shared_phase; //shared variable for UnloadPhases_t and LoadPhases_t
+    std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
 
-    float nozzle_restore_temp;
+    float nozzle_restore_temp[HOTENDS];
     float bed_restore_temp;
 
 public:
@@ -67,10 +68,6 @@ protected:
     // cannot guarante that SafetyTimer will happen first, so have to do it on both places
     Response getResponse();
 
-    constexpr uint8_t getPhaseIndex() const {
-        return GetPhaseIndex(phase);
-    }
-
     //use UnloadPhases_t or LoadPhases_t
     template <class ENUM>
     ENUM get() {
@@ -99,10 +96,18 @@ protected:
     void clrRestoreTemp();
 
 public:
+    constexpr uint8_t getPhaseIndex() const {
+        return GetPhaseIndex(phase);
+    }
+
     virtual void RestoreTemp() override;
     virtual bool CanSafetyTimerExpire() const override; //evaluate if client can click == safety timer can expire
-    virtual void NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) override;
+    virtual void NotifyExpiredFromSafetyTimer() override;
     virtual bool HasTempToRestore() const override;
+
+    void set_mode(LoadUnloadMode mode) { load_unload_mode = mode; }
+    void clr_mode() { load_unload_mode = std::nullopt; }
+    std::optional<LoadUnloadMode> get_mode() const { return load_unload_mode; }
 };
 
 class RammingSequence;
@@ -110,6 +115,7 @@ class RammingSequence;
 //used by load / unlaod /change filament
 class Pause : public PausePrivatePhase {
     pause::Settings settings;
+
     //singleton
     Pause() = default;
     Pause(const Pause &) = delete;

@@ -20,7 +20,7 @@ static bool syslog_transport_open_ip4(syslog_transport_t *transport, ip_addr_t i
         return false;
 
     // open udp socket
-    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    int sock = lwip_socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         report_error(transport, "socket: error", errno);
         return false;
@@ -46,7 +46,7 @@ bool syslog_transport_send(syslog_transport_t *transport, const char *message, i
     if (!syslog_transport_check_is_open(transport))
         return false;
 
-    int retval = sendto(transport->sock, message, message_len, 0, (struct sockaddr *)&transport->addr, sizeof(transport->addr));
+    int retval = lwip_sendto(transport->sock, message, message_len, 0, (struct sockaddr *)&transport->addr, sizeof(transport->addr));
 
     if (retval < 0) {
         report_error(transport, "sendto: error", errno);
@@ -58,7 +58,7 @@ bool syslog_transport_send(syslog_transport_t *transport, const char *message, i
 
 void syslog_transport_close(syslog_transport_t *transport) {
     if (transport->is_open && transport->sock >= 0) {
-        close(transport->sock);
+        lwip_close(transport->sock);
         transport->sock = -1;
     }
     transport->is_open = false;

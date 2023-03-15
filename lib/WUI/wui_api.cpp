@@ -18,6 +18,7 @@
 #include "print_utils.hpp"
 #include "marlin_client.hpp"
 #include "fsm_types.hpp"
+#include "printers.h"
 
 #include <basename.h>
 #include <lfn.h>
@@ -31,14 +32,14 @@
 #include <cstdio>
 #include <atomic>
 
+#include <lwip/netif.h>
+
 #define USB_MOUNT_POINT        "/usb/"
 #define USB_MOUNT_POINT_LENGTH 5
 
 extern RTC_HandleTypeDef hrtc;
 
-bool sntp_time_init = false;
-static char wui_media_LFN[FILE_NAME_BUFFER_LEN]; // static buffer for gcode file name
-static char wui_media_SFN_path[FILE_PATH_BUFFER_LEN];
+static bool sntp_time_init = false;
 static std::atomic<uint32_t> modified_gcodes;
 
 // example of simple callback automatically sending print response (click on print button) in preview fsm
@@ -73,19 +74,10 @@ static void fsm_cb(uint32_t u32, uint16_t u16) {
 #endif //0
 
 void wui_marlin_client_init(void) {
-    marlin_vars_t *vars = marlin_client_init(); // init the client
+    marlin_client_init(); // init the client
     // force update variables when starts
     marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, NULL);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_WUI, NULL);
     marlin_client_set_fsm_cb(fsm_cb);
-    if (vars) {
-        /*
-         * Note: We currently have only a single marlin client for
-         * WUI/networking. So we can use a single buffer there.
-         */
-        vars->media_LFN = wui_media_LFN;
-        vars->media_SFN_path = wui_media_SFN_path;
-    }
 }
 
 struct ini_load_def {
@@ -330,13 +322,13 @@ uint32_t wui_gcodes_mods() {
 }
 
 StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
-    marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
+
     const bool printer_can_print = marlin_remote_print_ready(!autostart_if_able);
 
-    strlcpy(marlin_vars()->media_LFN, basename_b(filename), FILE_NAME_BUFFER_LEN);
     // Turn it into the short name, to improve buffer length, avoid strange
     // chars like spaces in it, etc.
     get_SFN_path(filename);
+
     if (autostart_if_able) {
         if (printer_can_print) {
             print_begin(filename, true);
@@ -369,7 +361,7 @@ void wui_gcode_modified() {
 }
 
 bool wui_is_file_being_printed(const char *filename) {
-    marlin_update_vars(MARLIN_VAR_MSK2(MARLIN_VAR_PRNSTATE, MARLIN_VAR_FILENAME));
+
     if (!marlin_is_printing()) {
         return false;
     }
@@ -377,5 +369,5 @@ bool wui_is_file_being_printed(const char *filename) {
     char sfn[FILE_PATH_BUFFER_LEN];
     strlcpy(sfn, filename, sizeof(sfn));
     get_SFN_path(sfn);
-    return strcasecmp(sfn, marlin_vars()->media_SFN_path) == 0;
+    return marlin_vars()->media_SFN_path.equals(sfn);
 }

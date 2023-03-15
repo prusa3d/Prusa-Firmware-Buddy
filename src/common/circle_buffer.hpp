@@ -17,21 +17,18 @@ protected:
     T data[SIZE];
     size_t begin; // position of first element
     size_t end;   // position behind last element == write position
-    size_t pushed;
     static void incrementIndex(size_t &index) { index = (index + 1) % SIZE; }
     static void decrementIndex(size_t &index) { index = (index + SIZE - 1) % SIZE; }
 
 public:
     CircleBuffer()
         : begin(0)
-        , end(0)
-        , pushed(0) {}
+        , end(0) {}
 
     void push_back(T elem);
     bool push_back_DontRewrite(T elem);
     size_t Count() const { return (end + SIZE - begin) % SIZE; }
     bool IsEmpty() const { return begin == end; }
-    size_t PushedCount() const { return pushed; }
 
     constexpr size_t Size() const { return SIZE; }
 
@@ -48,18 +45,19 @@ void CircleBuffer<T, SIZE>::push_back(T elem) {
     if (begin == end) { //begin just was erased, set new begin
         incrementIndex(begin);
     }
-    ++pushed;
 }
 
 template <class T, size_t SIZE>
 bool CircleBuffer<T, SIZE>::push_back_DontRewrite(T elem) {
-    size_t index = begin;
+    size_t index = end;
     incrementIndex(index);
-    if (index != end) {
-        push_back(elem);
+    if (begin == index) { // full
+        return false;
+    } else {
+        data[index] = elem;
+        end = index;
         return true;
     }
-    return false;
 }
 
 template <class T, size_t SIZE>

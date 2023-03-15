@@ -34,7 +34,7 @@ enum EndstopEnum : char {
   X2_MIN, X2_MAX,
   Y2_MIN, Y2_MAX,
   Z2_MIN, Z2_MAX,
-  Z3_MIN, Z3_MAX
+  Z3_MIN, Z3_MAX, XY_PROBE
 };
 
 class Endstops {
@@ -82,6 +82,9 @@ class Endstops {
       return (enabled
         #if HAS_BED_PROBE
           || z_probe_enabled
+        #endif
+        #ifdef PRUSA_TOOLCHANGER
+          || xy_probe_enabled
         #endif
       );
     }
@@ -149,8 +152,14 @@ class Endstops {
 
     // Enable / disable endstop z-probe checking
     #if HAS_BED_PROBE
-      static volatile bool z_probe_enabled;
+      static std::atomic<bool> z_probe_enabled;
       static void enable_z_probe(const bool onoff=true);
+    #endif
+
+    // Enable / disable endstop xy-probe checking
+    #ifdef PRUSA_TOOLCHANGER
+      static std::atomic<bool> xy_probe_enabled;
+      static void enable_xy_probe(const bool onoff=true);
     #endif
 
     static void resync();

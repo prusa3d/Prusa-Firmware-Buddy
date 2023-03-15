@@ -151,6 +151,8 @@ public:
 
     int Read(char *pc, int n);
 
+    void SetThumbnailExpectedSize(uint16_t width, uint16_t height);
+
     void Reset() {
         // opakovani pokusu - cteni po vice bajtech
         // nutno resetovat automaty, coz je taky potreba vyresit

@@ -1,11 +1,9 @@
 #pragma once
 
-#include "gui.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
-#include "ScreenFactory.hpp"
 #include "screen.hpp"
 
 struct screen_sheet_rename_t : public screen_t {

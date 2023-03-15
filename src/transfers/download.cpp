@@ -184,7 +184,7 @@ Download::RecoverResult Download::recover_encrypted_connect_download(const char 
             slot.reset_progress();
             decryptor->reset(reset_iv, reset_size);
             result = FromStart {};
-            // No break
+            [[fallthrough]];
         case Status::PartialContent: {
             auto [initial_chunk, initial_chunk_size, body] = resp.into_body();
 

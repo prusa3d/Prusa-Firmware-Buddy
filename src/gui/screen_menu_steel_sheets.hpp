@@ -130,7 +130,7 @@ protected:
     }
 };
 
-using ScreenMenuSteelSheets__ = ScreenMenu<EFooter::On, MI_RETURN
+using ScreenMenuSteelSheets__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 #if (EEPROM_FEATURES & EEPROM_FEATURE_SHEETS)
     ,
     ProfileRecord<sheet_index_0>, ProfileRecord<sheet_index_1>, ProfileRecord<sheet_index_2>, ProfileRecord<sheet_index_3>, ProfileRecord<sheet_index_4>, ProfileRecord<sheet_index_5>, ProfileRecord<sheet_index_6>, ProfileRecord<sheet_index_7>

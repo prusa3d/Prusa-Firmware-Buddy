@@ -1,11 +1,13 @@
 // bsod_gui.cpp - blue screen of death
 #include "bsod.h"
+#include "bsod_gui.hpp"
 #include "wdt.h"
 #include <crash_dump/dump.h>
 #include "safe_state.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "led_animations/animation.hpp"
 
 #include <stdarg.h>
 
@@ -112,8 +114,16 @@ static const constexpr uint16_t X_MAX = display::GetW() - PADDING * 2;
 //! @brief Put HW into safe state, activate display safe mode and initialize it twice
 static void stop_common(void) {
     hwio_safe_state();
+
+#ifdef USE_ST7789
     st7789v_enable_safe_mode();
-    hwio_beeper_set_pwm(0, 0);
+#endif
+
+#ifdef USE_ILI9488
+    ili9488_enable_safe_mode();
+#endif
+
+    hwio_beeper_notone();
     display::Init();
     display::Init();
 }
@@ -146,12 +156,14 @@ char nth_char(const char str[], uint16_t nth) {
     return str[0];
 }
 
-/** Fatal error that causes redscreen
- * @param error - error message, that will be displayed as error description (MAX length 107 chars)
- * @param module - module affected by error will be displayed as error title (MAX length 20 chars)
- * @param error_code - error code to be shown with QR code
-*/
-__attribute__((noreturn)) void fatal_error_code(const char *error, const char *module, ErrCode error_code) {
+void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
+#ifdef _DEBUG
+    // Breakpoint if debugger is connected
+    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
+        __BKPT(0);
+    }
+#endif /*_DEBUG*/
+
     dump_err_to_xflash(static_cast<std::underlying_type_t<ErrCode>>(error_code), error, module);
     sys_reset();
 }
@@ -166,31 +178,49 @@ void fatal_error(const char *error, const char *module) {
     using namespace Language_en;
     /// TODO share these strings (saves ~100 B of binary size)
     if (strcmp("Emergency stop (M112)", error) == 0) {
-        error_code = ErrCode::ERR_SYSTEM_EMERGENCY_STOP;
-    } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
-        error_code = ErrCode::ERR_TEMPERATURE_BED_PREHEAT_ERROR;
+        fatal_error(ErrCode::ERR_SYSTEM_EMERGENCY_STOP);
     } else if (strcmp(MSG_HEATING_FAILED_LCD, error) == 0) {
-        error_code = ErrCode::ERR_TEMPERATURE_HOTEND_PREHEAT_ERROR;
-    } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
-        error_code = ErrCode::ERR_TEMPERATURE_BED_THERMAL_RUNAWAY;
+        fatal_error(ErrCode::ERR_TEMPERATURE_HOTEND_PREHEAT_ERROR);
     } else if (strcmp(MSG_THERMAL_RUNAWAY, error) == 0) {
-        error_code = ErrCode::ERR_TEMPERATURE_HOTEND_THERMAL_RUNAWAY;
-    } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
-        error_code = ErrCode::ERR_TEMPERATURE_BED_MAXTEMP_ERROR;
+        fatal_error(ErrCode::ERR_TEMPERATURE_HOTEND_THERMAL_RUNAWAY);
     } else if (strcmp(MSG_ERR_MAXTEMP, error) == 0) {
-        error_code = ErrCode::ERR_TEMPERATURE_HOTEND_MAXTEMP_ERROR;
-    } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
-        error_code = ErrCode::ERR_TEMPERATURE_BED_MINTEMP_ERROR;
+        fatal_error(ErrCode::ERR_TEMPERATURE_HOTEND_MAXTEMP_ERROR);
     } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
-        error_code = ErrCode::ERR_TEMPERATURE_HOTEND_MINTEMP_ERROR;
-    } else if (strcmp(MSG_ERR_HOMING, error) == 0) {
-        error_code = ErrCode::ERR_ELECTRO_HOMING_ERROR;
+        fatal_error(ErrCode::ERR_TEMPERATURE_HOTEND_MINTEMP_ERROR);
+#if PRINTER_TYPE != PRINTER_PRUSA_XL
+    } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_BED_PREHEAT_ERROR);
+    } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_BED_THERMAL_RUNAWAY);
+    } else if (strcmp(MSG_ERR_MAXTEMP_BED, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_BED_MAXTEMP_ERROR);
+    } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_BED_MINTEMP_ERROR);
+#endif // PRINTER_TYPE != PRINTER_PRUSA_XL
+    } else if (strcmp(MSG_ERR_HOMING_X, error) == 0) {
+        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X);
+    } else if (strcmp(MSG_ERR_HOMING_Y, error) == 0) {
+        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Y);
+    } else if (strcmp(MSG_ERR_HOMING_Z, error) == 0) {
+        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
+    } else if (strcmp(MSG_ERR_MINTEMP_HEATBREAK, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MINTEMP_ERR);
+    } else if (strcmp(MSG_ERR_MAXTEMP_HEATBREAK, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MAXTEMP_ERR);
     }
 
-    fatal_error_code(error, module, error_code);
+    //error code is not defined, raise redscreen with custom error message and error title
+    raise_redscreen(error_code, error, module);
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
+#ifdef _DEBUG
+    // Breakpoint if debugger is connected
+    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
+        __BKPT(0);
+    }
+#endif /*_DEBUG*/
+
     va_list args;
     va_start(args, line_number);
     __disable_irq(); //disable irq
@@ -206,7 +236,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     display::Clear(COLOR_BLACK); //clear with black color
     // DrawIcon requires ResourceId, but pepa png has new destination - DrawIcon will have to require window_icon_t::DataResourceId
-    //display::DrawIcon(point_ui16(75, 40), PNG::pepa_92x140, COLOR_BLACK, 0);
+    //display::DrawIcon(point_ui16(75, 40), &png::pepa_92x140, COLOR_BLACK, 0);
     display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
 
 #else

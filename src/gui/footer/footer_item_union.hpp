@@ -8,6 +8,7 @@
 #pragma once
 #include <type_traits>
 #include "footer_items_nozzle_bed.hpp"
+#include "footer_item_heatbreak.hpp"
 #include "footer_item_filament.hpp"
 #include "footer_item_fsensor.hpp"
 #include "footer_item_printspeed.hpp"
@@ -16,6 +17,7 @@
 #include "footer_def.hpp"
 #include "footer_item_axis.hpp"
 #include "footer_item_fans.hpp"
+#include "footer_item_multitool.hpp"
 
 namespace footer {
 using ItemUnion = std::aligned_union<
@@ -39,13 +41,24 @@ using ItemUnion = std::aligned_union<
     ,
     FooterItemSheets
 #endif
+    ,
+    FooterItemHeatBreak
+#if HAS_MMU2
+    ,
+    FooterItemFinda
+#endif
+#if defined(FOOTER_HAS_TOOL_NR)
+    ,
+    FooterItemCurrentTool,
+    FooterItemAllNozzles
+#endif
     >::type;
 
-constexpr void *EncodeItemForEvent(items item) {
-    return reinterpret_cast<void *>(static_cast<int>(item));
+inline void *const EncodeItemForEvent(items item) {
+    return reinterpret_cast<void *const>(static_cast<int>(item));
 }
 
-constexpr items DecodeItemFromEvent(void *encoded) {
+inline items DecodeItemFromEvent(const void *const encoded) {
     return static_cast<items>(reinterpret_cast<int>(encoded));
 }
 

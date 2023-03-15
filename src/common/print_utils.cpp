@@ -1,9 +1,9 @@
 #include "print_utils.hpp"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "../lib/Marlin/Marlin/src/module/temperature.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "media.h"
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "timing.h"
 #include "config.h"    // GUI_WINDOW_SUPPORT
 #include "guiconfig.h" // GUI_WINDOW_SUPPORT
@@ -22,7 +22,7 @@ static const char *autostart_filename = "/usb/AUTO.GCO";
 static bool run_once_done = false;
 static uint32_t current_time = 0;
 static uint32_t rescan_delay = 1500;
-static uint32_t max_rescan_time = 10000;
+static uint32_t max_rescan_time = 100000;
 
 #if ENABLED(POWER_PANIC)
 static bool file_exists(const char *filename) {
@@ -44,7 +44,7 @@ void run_once_after_boot() {
     #if BOOTLOADER()
         if (version_less_than(&boot_version, 1, 2, 3)) {
             // bootloader<1.2.3 clears the RCC_CSR register, so ignore reset flags completely.
-            // TODO: remove this compatibility hack for the final release
+            // TODO: remove this compatibility hack for the final MK404 release
             reset_pp = false;
         }
     #endif
@@ -62,7 +62,7 @@ void run_once_after_boot() {
             }
             if (resume) {
                 // resume and bypass g-code autostart
-                power_panic::resume_print(!auto_recover);
+                power_panic::resume_print(auto_recover);
                 return;
             }
         }

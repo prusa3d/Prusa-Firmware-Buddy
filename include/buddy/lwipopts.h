@@ -9,17 +9,16 @@ extern "C" {
 
 #define WITH_RTOS            1
 #define CHECKSUM_BY_HARDWARE 0
-
 #define LWIP_DHCP            1
 #define MEM_ALIGNMENT        4
-#define MEMP_NUM_SYS_TIMEOUT 7
+#define MEMP_NUM_SYS_TIMEOUT 8
 #define LWIP_ETHERNET        1
 #define LWIP_DNS_SECURE      7
 #define DNS_MAX_NAME_LENGTH  128
 
 #define TCP_MSS                536
 #define TCP_WND                (2 * TCP_MSS)
-#define TCPIP_THREAD_STACKSIZE 1024
+#define TCPIP_THREAD_STACKSIZE 1088
 
 #define TCPIP_MBOX_SIZE 6
 
@@ -39,8 +38,7 @@ extern "C" {
 #define CHECKSUM_CHECK_TCP        1
 #define CHECKSUM_CHECK_ICMP       1
 #define CHECKSUM_CHECK_ICMP6      1
-
-#define HTTPD_USE_CUSTOM_FSDATA 0
+#define HTTPD_USE_CUSTOM_FSDATA   0
 
 /*
  * FIXME:
@@ -77,7 +75,6 @@ extern "C" {
 #define LWIP_SO_SNDTIMEO             1
 
 #define LWIP_DNS 1
-
 /*
  * We have a HTTP server (PrusaLink). The browsers tend to keep few
  * connections at ready and take up the slots. In general it works better

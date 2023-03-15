@@ -16,6 +16,12 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 /// Product ID
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     #define USBD_PID 0x000C
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK404)
+    #define USBD_PID 0x000D
+#elif (PRINTER_TYPE == PRINTER_PRUSA_IXL)
+    #define USBD_PID 0x0010
+#elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
+    #define USBD_PID 0x0011
 #else
     #error "Unknown PRINTER_TYPE!"
 #endif
@@ -31,8 +37,7 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
 static void usb_device_task_run();
 
-#define CZPX_SIZE 4
-static char serial_number[OTP_SERIAL_NUMBER_SIZE + CZPX_SIZE];
+static serial_nr_t serial_nr;
 
 osThreadDef(usb_device_task, usb_device_task_run, osPriorityRealtime, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
@@ -79,12 +84,8 @@ static void usb_device_task_run() {
     USB_OTG_FS->GCCFG &= ~USB_OTG_GCCFG_VBUSBSEN;
 
     // init serial number
-    memcpy(serial_number, "CZPX", CZPX_SIZE);
-    for (uint8_t i = 0; i < OTP_SERIAL_NUMBER_SIZE; ++i) {
-        // we need to do this to avoid UB when casting volatile variable to non-volatile
-        // Serial number is null terminated we don't need to add null termination
-        serial_number[i + CZPX_SIZE] = *((volatile char *)(OTP_SERIAL_NUMBER_ADDR + i));
-    }
+    //this function correctly initializes the data and null terminates them
+    otp_get_serial_nr(&serial_nr);
 
     // initialize tinyusb stack
     tusb_init();
@@ -175,7 +176,7 @@ char const *string_desc_arr[] = {
     (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
     USBD_MANUFACTURER_STRING,      // 1: Manufacturer
     USBD_PRODUCT_STRING_FS,        // 2: Product
-    serial_number,                 // 3: Serials, should use chip ID
+    serial_nr.txt,                 // 3: Serials, should use chip ID
     "CDC",                         // 4: CDC Interface
 };
 

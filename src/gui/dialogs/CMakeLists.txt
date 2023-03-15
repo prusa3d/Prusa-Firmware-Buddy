@@ -9,6 +9,7 @@ target_sources(
           i_radio_button.cpp
           IDialog.cpp
           liveadjust_z.cpp
+          print_progress.cpp
           radio_button.cpp
           window_dlg_calib_z.cpp
           window_dlg_load_unload.cpp

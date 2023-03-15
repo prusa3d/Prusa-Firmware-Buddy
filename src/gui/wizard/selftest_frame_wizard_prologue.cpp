@@ -12,8 +12,18 @@
 static constexpr size_t margin_texts = 0;
 static constexpr Align_t align_text_icon = Align_t::LeftTop();
 static const char *txt_prologue = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK404)
+static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
+static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa MK404 printer.\n"
+                                     "I would like to guide you\nthrough the setup process.");
+#elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
+static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
+static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa XL printer.\n"
+                                     "I would like to guide you\nthrough the setup process.");
 #else
-    #error "Unknown PRINTER_TYPE!"
+    #error "Unknown printer type"
 #endif
 
 static constexpr Rect16 getTextRect() {

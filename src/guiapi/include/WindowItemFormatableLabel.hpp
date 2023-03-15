@@ -15,6 +15,8 @@ protected:
     static constexpr uint16_t icon_width = 16;
 
     const std::function<void(char *)> printAs;
+
+protected:
     constexpr static const char *NA = N_("N/A");
     constexpr static const char *NI = N_("Not initialized");
 
@@ -24,7 +26,7 @@ protected:
         printAs(text);
         stringView = string_view_utf8::MakeRAM((uint8_t *)text);
         render_text_align(extension_rect, stringView, InfoFont, color_back,
-            (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
+            (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter(), false);
     }
     virtual void click(IWindowMenu &window_menu) override {}
 

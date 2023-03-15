@@ -47,7 +47,7 @@ struct SpinConfig {
 
     size_t txtMeas(T val) const;
 
-    //calculate all possible values
+    // calculate all possible values
     size_t calculateMaxDigits() const {
         size_t max_len = txtMeas(Max());
         for (T step_sum = Min(); step_sum < Max(); step_sum += Step()) {

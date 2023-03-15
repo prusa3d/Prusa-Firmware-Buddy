@@ -1,8 +1,11 @@
 //HardwareSerial.cpp - Buddy/STM32
-#include <Arduino.h>
-#include "buffered_serial.hpp"
-#include "cmsis_os.h"
-#include "bsod.h"
+#include <device/board.h>
+
+#if (BOARD_IS_BUDDY)
+    #include <Arduino.h>
+    #include "buffered_serial.hpp"
+    #include "cmsis_os.h"
+    #include "bsod.h"
 
 using namespace buddy::hw;
 
@@ -52,3 +55,4 @@ HardwareSerial::operator bool() {
 }
 
 HardwareSerial Serial3(USART3);
+#endif

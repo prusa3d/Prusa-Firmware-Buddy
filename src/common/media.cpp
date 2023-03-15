@@ -55,22 +55,6 @@ static void _usbhost_reenum(void) {};
 
 extern "C" {
 
-/// File name (Long-File-Name) of the file being printed
-static char media_print_LFN[FILE_NAME_BUFFER_LEN] = { 0 };
-
-/// Absolute path to the file being printed.
-/// MUST be in Short-File-Name (DOS 8.3) notation, since
-/// the transfer buffer is ~120B long (LFN paths would run out of space easily)
-static char media_print_SFN_path[FILE_PATH_BUFFER_LEN] = { 0 };
-
-char *media_print_filename() {
-    return media_print_LFN;
-}
-
-char *media_print_filepath() {
-    return media_print_SFN_path;
-}
-
 static volatile media_state_t media_state = media_state_REMOVED;
 static volatile media_error_t media_error = media_error_OK;
 
@@ -93,14 +77,10 @@ static bool skip_gcode = false;
 static uint32_t usbh_error_count = 0;
 uint32_t usb_host_reset_timestamp = 0; // USB Host timestamp in seconds
 
-static uint32_t usb_host_power_cycle_delay = 1; // USB Host pulse delay in seconds
-
 typedef enum {
     USB_host_recovery_start = 0,
     USB_host_recovery_end = 1,
 } USB_host_recovery_state_t;
-
-static USB_host_recovery_state_t USB_host_recovery_state = USB_host_recovery_state_t::USB_host_recovery_start;
 
 static metric_t usbh_error_cnt = METRIC("usbh_err_cnt", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
@@ -229,12 +209,16 @@ static void media_prefetch(const void *) {
         }
     }
 }
-osThreadDef(media_prefetch, media_prefetch, osPriorityHigh, 0, 320);
+osThreadDef(media_prefetch, media_prefetch, osPriorityHigh, 0, 380);
 
 void media_print_start__prepare(const char *sfnFilePath) {
     if (sfnFilePath) {
-        strlcpy(media_print_SFN_path, sfnFilePath, sizeof(media_print_SFN_path));
-        get_LFN(media_print_LFN, sizeof(media_print_LFN), media_print_SFN_path);
+        auto lock = MarlinVarsLockGuard();
+        // update media_SFN_path
+        strlcpy(marlin_vars()->media_SFN_path.get_modifiable_ptr(lock), sfnFilePath, marlin_vars()->media_SFN_path.max_length());
+
+        // set media_LFN
+        get_LFN(marlin_vars()->media_LFN.get_modifiable_ptr(lock), marlin_vars()->media_LFN.max_length(), marlin_vars()->media_SFN_path.get_modifiable_ptr(lock));
     }
 }
 
@@ -244,7 +228,7 @@ void media_print_start(const bool prefetch_start) {
     }
 
     struct stat info = { 0 };
-    int result = stat(media_print_SFN_path, &info);
+    int result = stat(marlin_vars()->media_SFN_path.get_ptr(), &info);
 
     if (result != 0) {
         return;
@@ -262,7 +246,7 @@ void media_print_start(const bool prefetch_start) {
         return;
     }
 
-    if ((media_print_file = fopen(media_print_SFN_path, "rb")) != nullptr) {
+    if ((media_print_file = fopen(marlin_vars()->media_SFN_path.get_ptr(), "rb")) != nullptr) {
         media_gcode_position = media_current_position = 0;
         media_print_state = media_print_state_PRINTING;
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
@@ -315,7 +299,7 @@ void media_print_resume(void) {
     if (media_print_state == media_print_state_PAUSED || media_print_state == media_print_state_DRAINING) {
         if (!media_print_file) {
             // file was closed by media_print_pause, reopen
-            media_print_file = fopen(media_print_SFN_path, "rb");
+            media_print_file = fopen(marlin_vars()->media_SFN_path.get_ptr(), "rb");
         }
         if (media_print_file != nullptr) {
             // file was left open between pause/resume or re-opened successfully
@@ -494,28 +478,6 @@ void media_set_error(media_error_t error) {
 
 void media_reset_usbh_error() {
     usbh_error_count = 0;
-}
-
-void media_reset_USB_host() {
-
-    switch (USB_host_recovery_state) {
-    case USB_host_recovery_state_t::USB_host_recovery_start:
-        log_error(USBHost, "Start recovering from USB Host error");
-        buddy::hw::hsUSBEnable.write(buddy::hw::Pin::State::high); // power off USB Host
-        usb_host_reset_timestamp = ticks_s();
-        USB_host_recovery_state = USB_host_recovery_state_t::USB_host_recovery_end;
-        break;
-    case USB_host_recovery_state_t::USB_host_recovery_end:
-        if (ticks_diff(ticks_s(), usb_host_reset_timestamp) > (int32_t)usb_host_power_cycle_delay) {
-            buddy::hw::hsUSBEnable.write(buddy::hw::Pin::State::low); //power on USB Host
-            if (media_get_state() == media_state_t::media_state_INSERTED) {
-                media_print_resume();
-                log_error(USBHost, "Recovery from USB Host error is done");
-                USB_host_recovery_state = USB_host_recovery_state_t::USB_host_recovery_start;
-            }
-        }
-        break;
-    }
 }
 
 } //extern "C"

@@ -30,6 +30,8 @@ public:
     LoopResult stateCycleMark() { return LoopResult::MarkLoop; }
     LoopResult stateWaitRpm();
     LoopResult stateMeasureRpm();
+
+    const char *get_partname();
 };
 
 };

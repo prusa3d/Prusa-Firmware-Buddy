@@ -4,6 +4,7 @@
 
 #include "fatfs.h"
 #include "media.h"
+#include <device/board.h>
 
 USBH_HandleTypeDef hUsbHostHS;
 ApplicationTypeDef Appli_state = APPLICATION_IDLE;
@@ -11,10 +12,15 @@ ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
 
 void MX_USB_HOST_Init(void) {
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
+    HAL_Delay(200);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET);
+#else
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
     HAL_Delay(200);
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
-
+#endif
     if (USBH_Init(&hUsbHostHS, USBH_UserProcess, HOST_HS) != USBH_OK) {
         Error_Handler();
     }

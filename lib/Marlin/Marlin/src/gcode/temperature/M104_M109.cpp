@@ -40,7 +40,7 @@
 #endif
 
 #if ENABLED(PRUSA_MARLIN_API)
-  #include "marlin_server.h"
+  #include "marlin_server.hpp"
 #endif
 
 /**
@@ -85,7 +85,7 @@ void GcodeSuite::M104() {
   }
 
   #if ENABLED(PRUSA_MARLIN_API)
-    marlin_server_set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder));
+    marlin_server_set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
   #endif
 
   #if ENABLED(AUTOTEMP)
@@ -124,6 +124,7 @@ void GcodeSuite::M109() {
     #endif
 
     #if ENABLED(PRINTJOB_TIMER_AUTOSTART)
+      // TODO: this doesn't work properly for multitool, temperature of last tool decides whenever printjob timer is started or not
       /**
        * Use half EXTRUDE_MINTEMP to allow nozzles to be put into hot
        * standby mode, (e.g., in a dual extruder setup) without affecting
@@ -149,7 +150,7 @@ void GcodeSuite::M109() {
 
   if (set_temp) {
     #if ENABLED(PRUSA_MARLIN_API)
-      marlin_server_set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder));
+      marlin_server_set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
     #endif
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
   }

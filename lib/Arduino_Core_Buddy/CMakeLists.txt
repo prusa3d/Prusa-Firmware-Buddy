@@ -1,5 +1,5 @@
 add_library(
-  CoreBuddy cores/arduino/Print.cpp cores/arduino/Stream.cpp cores/arduino/USBSerial.cpp
+  CoreBuddy cores/arduino/Print.cpp cores/arduino/SPI.cpp cores/arduino/Stream.cpp
             cores/arduino/Wire.cpp cores/arduino/wiring_time.c cores/arduino/WMath.cpp
   )
 
@@ -9,9 +9,12 @@ target_include_directories(
 
 target_compile_definitions(CoreBuddy PUBLIC ARDUINO=187 HAVE_HWSERIAL2 USBD_USE_CDC USBCON)
 
-target_link_libraries(
-  CoreBuddy PUBLIC STM32::USBHost FreeRTOS::FreeRTOS tinyusb::tinyusb CoreBuddy_Config
-  )
+target_link_libraries(CoreBuddy PUBLIC FreeRTOS::FreeRTOS CoreBuddy_Config)
+
+if(ARDUINO_CORE_BUDDY_USB_SUPPORT)
+  target_sources(CoreBuddy PRIVATE cores/arduino/USBSerial.cpp)
+  target_link_libraries(CoreBuddy PUBLIC STM32::USBHost tinyusb::tinyusb)
+endif()
 
 add_library(Arduino::CoreBuddy ALIAS CoreBuddy)
 add_library(Arduino::Core ALIAS CoreBuddy)

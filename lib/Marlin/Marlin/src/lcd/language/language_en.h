@@ -277,6 +277,7 @@ namespace Language_en {
   PROGMEM Language_Str MSG_NOZZLE_5                        = _UxGT("Nozzle ") LCD_STR_N5;
   PROGMEM Language_Str MSG_BED                             = _UxGT("Bed");
   PROGMEM Language_Str MSG_CHAMBER                         = _UxGT("Enclosure");
+  PROGMEM Language_Str MSG_HEATBREAK                       = _UxGT("Heatbreak");
   PROGMEM Language_Str MSG_FAN_SPEED                       = _UxGT("Fan Speed");
   PROGMEM Language_Str MSG_FAN_SPEED_1                     = _UxGT("Fan Speed 1");
   PROGMEM Language_Str MSG_FAN_SPEED_2                     = _UxGT("Fan Speed 2");
@@ -517,12 +518,16 @@ namespace Language_en {
   PROGMEM Language_Str MSG_THERMAL_RUNAWAY_CHAMBER         = _UxGT("CHAMBER T. RUNAWAY");
   PROGMEM Language_Str MSG_ERR_MAXTEMP                     = _UxGT("Err: MAXTEMP");
   PROGMEM Language_Str MSG_ERR_MINTEMP                     = _UxGT("Err: MINTEMP");
+  PROGMEM Language_Str MSG_ERR_MINTEMP_HEATBREAK           = _UxGT("Err: MINTEMP HBR");
+  PROGMEM Language_Str MSG_ERR_MAXTEMP_HEATBREAK           = _UxGT("Err: MAXTEMP HBR");
   PROGMEM Language_Str MSG_ERR_MAXTEMP_BED                 = _UxGT("Err: MAXTEMP BED");
   PROGMEM Language_Str MSG_ERR_MINTEMP_BED                 = _UxGT("Err: MINTEMP BED");
   PROGMEM Language_Str MSG_ERR_MAXTEMP_CHAMBER             = _UxGT("Err: MAXTEMP CHAMBER");
   PROGMEM Language_Str MSG_ERR_MINTEMP_CHAMBER             = _UxGT("Err: MINTEMP CHAMBER");
   PROGMEM Language_Str MSG_ERR_Z_HOMING                    = _UxGT("Home XY First");
-  PROGMEM Language_Str MSG_ERR_HOMING                      = _UxGT("HOMING ERROR");
+  PROGMEM Language_Str MSG_ERR_HOMING_X                    = _UxGT("HOMING ERROR X");
+  PROGMEM Language_Str MSG_ERR_HOMING_Y                    = _UxGT("HOMING ERROR Y");
+  PROGMEM Language_Str MSG_ERR_HOMING_Z                    = _UxGT("HOMING ERROR Z");
   PROGMEM Language_Str MSG_HALTED                          = _UxGT("PRINTER HALTED");
   PROGMEM Language_Str MSG_PLEASE_RESET                    = _UxGT("Please Reset");
   PROGMEM Language_Str MSG_SHORT_DAY                       = _UxGT("d"); // One character only

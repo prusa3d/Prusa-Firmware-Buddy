@@ -38,6 +38,11 @@
   #include "../../../gcode/gcode.h"
   #include "../../../libs/least_squares_fit.h"
   #include "../../../feature/print_area.h"
+  #include "../../../feature/bed_preheat.hpp"
+
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    #include "feature/prusa/loadcell.h"
+  #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)
     #include "../../../module/tool_change.h"
@@ -72,6 +77,7 @@
          unified_bed_leveling::g29_storage_slot = 0,
          unified_bed_leveling::g29_map_type;
   bool   unified_bed_leveling::g29_c_flag;
+  bool   unified_bed_leveling::g29_wait_for_preheat;
   float  unified_bed_leveling::g29_card_thickness = 0,
          unified_bed_leveling::g29_constant = 0;
   xy_bool_t unified_bed_leveling::xy_seen;
@@ -124,12 +130,12 @@
    *                    If omitted, Z_CLEARANCE_BETWEEN_PROBES will be used.
    *
    *   I #   Invalidate Invalidate the specified number of Mesh Points near the given 'X' 'Y'. If X or Y are omitted,
-   *                    the nozzle location is used. If no 'I' value is given, only the point nearest to the location
-   *                    is invalidated. Use 'T' to produce a map afterward. This command is useful to invalidate a
-   *                    portion of the Mesh so it can be adjusted using other UBL tools. When attempting to invalidate
-   *                    an isolated bad mesh point, the 'T' option shows the nozzle position in the Mesh with (#). You
-   *                    can move the nozzle around and use this feature to select the center of the area (or cell) to
-   *                    invalidate.
+   *                    the nozzle location is used. If no 'I' value is given, only the point nearest to the location is
+   *                    invalidated. If a negative value is given, invalidate the entire mesh. Use 'T' to produce a map
+   *                    afterward. This command is useful to invalidate a portion of the Mesh so it can be adjusted
+   *                    using other UBL tools. When attempting to invalidate an isolated bad mesh point, the 'T' option
+   *                    shows the nozzle position in the Mesh with (#). You can move the nozzle around and use this
+   *                    feature to select the center of the area (or cell) to invalidate.
    *
    *   J #   Grid       Perform a Grid Based Leveling of the current Mesh using a grid with n points on a side.
    *                    Not specifying a grid size will invoke the 3-Point leveling function.
@@ -195,7 +201,8 @@
    *                    go down:
    *
    *                    - If a 'C' constant is specified, the closest invalid mesh points to the nozzle will be filled,
-   *                      and a repeat count can then also be specified with 'R'.
+   *                      and a repeat count can then also be specified with 'R'. If a negative count is given,
+   *                      the entire mesh is filled.
    *
    *                    - Leaving out 'C' invokes Smart Fill, which scans the mesh from the edges inward looking for
    *                      invalid mesh points. Adjacent points are used to determine the bed slope. If the bed is sloped
@@ -311,6 +318,10 @@
     bool probe_deployed = false;
     if (g29_parameter_parsing()) return; // Abort on parameter error
 
+    if (g29_wait_for_preheat) {
+        bed_preheat.wait_for_preheat();
+    }
+
     const int8_t p_val = parser.intval('P', -1);
     const bool may_move = p_val == 1 || p_val == 2 || p_val == 4 || parser.seen('J');
 
@@ -328,7 +339,7 @@
     if (parser.seen('I')) {
       uint8_t cnt = 0;
       g29_repetition_cnt = parser.has_value() ? parser.value_int() : 1;
-      if (g29_repetition_cnt >= GRID_MAX_POINTS) {
+      if (g29_repetition_cnt >= GRID_MAX_POINTS || g29_repetition_cnt < 0) {
         set_all_mesh_points_to_value(NAN);
       }
       else {
@@ -453,7 +464,14 @@
               SERIAL_ECHOLNPGM("Mesh invalidated. Probing mesh.");
             }
 
-            probe_major_points(parser.seen('T'), parser.seen('E'));
+            if (xy_seen && g29_size_seen) {
+              probe_major_points(g29_pos, g29_pos + g29_size, parser.seen('T'), parser.seen('E'));
+            } else {
+              /// probe area is print area enlarged by one major point
+              auto probe_area = print_area.get_bounding_rect().inset(-MESH_X_DIST * GRID_MAJOR_STEP,
+                                                                     -MESH_Y_DIST * GRID_MAJOR_STEP);
+              probe_major_points(probe_area.a, probe_area.b, parser.seen('T'), parser.seen('E'));
+            }
 
             report_current_position();
             probe_deployed = true;
@@ -525,7 +543,7 @@
            */
 
           if (g29_c_flag) {
-            if (g29_repetition_cnt >= GRID_MAX_POINTS) {
+            if (g29_repetition_cnt >= GRID_MAX_POINTS || g29_repetition_cnt < 0) {
               set_all_mesh_points_to_value(g29_constant);
             }
             else {
@@ -592,6 +610,19 @@
         case 5: adjust_mesh_to_mean(g29_c_flag, g29_constant); break;
 
         case 6: shift_mesh_height(); break;
+
+        #if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
+          case 9: {
+            if (g29_size_seen && xy_seen) {
+              cleanup_probe(g29_pos, g29_pos + g29_size);
+            } else {
+              SERIAL_ECHOLNPGM("G29 P9 requires X, Y, W and H arguments");
+              return;
+            }
+            break;
+          }
+        #endif
+
         case 10: probe_at_point(g29_pos, parser.seen('E') ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level); break;
       }
     }
@@ -841,15 +872,23 @@
       );
     }
 
-    void unified_bed_leveling::probe_major_points(const bool do_ubl_mesh_map, const bool stow_probe) {
+    void unified_bed_leveling::probe_major_points(const xy_pos_t area_a, const xy_pos_t area_b, const bool do_ubl_mesh_map, const bool stow_probe) {
       save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
 
-      /// probe area is print area enlarged by one major point
-      auto probe_area = print_area.get_bounding_rect().inset(-MESH_X_DIST * GRID_MAJOR_STEP,
-                                                             -MESH_Y_DIST * GRID_MAJOR_STEP);
+      #if UBL_TRAVEL_ACCELERATION
+        auto saved_acceleration = planner.settings.travel_acceleration;
+        planner.settings.travel_acceleration = UBL_TRAVEL_ACCELERATION;
+      #endif
 
+      PrintArea::rect_t probe_area(area_a, area_b);
+
+      #if ENABLED(NOZZLE_LOAD_CELL) & ENABLED(NOZZLE_LOAD_CELL_ALLOWS_LONG_HIGH_PRECISION)
+        auto enabler = Loadcell::HighPrecisionEnabler(loadcell);
+      #endif
       bool is_initial_probe = true;
+      #if DISABLED(UBL_DONT_REPORT_POINT_COUNT)
       const int  num_of_points_to_probe = count_points_to_probe();
+      #endif /*DISABLED(UBL_DONT_REPORT_POINT_COUNT)*/
       int num_of_probed_points = 0;
        // enumerate over all major points
       for (int y = GRID_MAX_POINTS_Y - GRID_BORDER - 1; y >= GRID_BORDER; y -= GRID_MAJOR_STEP) {
@@ -869,6 +908,13 @@
           if (!probe_area.contains(pos))
             continue;
 
+          // skip points having meaningful value already
+          // note: zero might be meaningful and we don't skip it; that is just to be conservative
+          // because bedlevel.reset() and others simetimes sets everything to zero instead setting it to NAN
+          if (z_values[x][y] != 0 && !isnan(z_values[x][y])) {
+            continue;
+          }
+
           // print UBL map if we were told to do so
           if (do_ubl_mesh_map)
             display_map(g29_map_type);
@@ -879,7 +925,11 @@
           is_initial_probe = false;
           num_of_probed_points ++;
           // and finally, probe
-          ui.status_printf_P(0, PSTR(S_FMT " %i/%i"), GET_TEXT(MSG_PROBING_MESH), num_of_probed_points,num_of_points_to_probe);
+          #if ENABLED(UBL_DONT_REPORT_POINT_COUNT)
+            ui.status_printf_P(0, PSTR(S_FMT " %i"), GET_TEXT(MSG_PROBING_MESH), num_of_probed_points);
+          #else
+            ui.status_printf_P(0, PSTR(S_FMT " %i/%i"), GET_TEXT(MSG_PROBING_MESH), num_of_probed_points, num_of_points_to_probe);
+          #endif /*ENABLED(UBL_DONT_REPORT_POINT_COUNT)*/
           const float measured_z = probe_at_point(
                         pos,
                         stow_probe ? PROBE_PT_STOW : PROBE_PT_RAISE, g29_verbose_level
@@ -904,6 +954,10 @@
       #endif
       #ifdef HAS_DISPLAY
         ui.reset_status();
+      #endif
+
+      #if UBL_TRAVEL_ACCELERATION
+        planner.settings.travel_acceleration = saved_acceleration;
       #endif
 
       restore_ubl_active_state_and_leave();
@@ -1183,6 +1237,8 @@
 
     g29_constant = 0;
     g29_repetition_cnt = 0;
+
+    g29_wait_for_preheat = parser.seen('G');
 
     if (parser.seen('R')) {
       g29_repetition_cnt = parser.has_value() ? parser.value_int() : GRID_MAX_POINTS;

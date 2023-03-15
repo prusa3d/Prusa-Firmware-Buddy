@@ -2,7 +2,7 @@
  * @file footer_item_fans.cpp
  */
 #include "footer_item_fans.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "png_resources.hpp"
 #include "i18n.h"
 #include <algorithm>
@@ -28,7 +28,7 @@ FooterItemPrintFan::FooterItemPrintFan(window_t *parent)
 }
 
 int FooterItemPrintFan::static_readValue() {
-    return marlin_vars()->print_fan_rpm;
+    return marlin_vars()->active_hotend().print_fan_rpm;
 }
 
 string_view_utf8 FooterItemPrintFan::GetName() { return _("Print Fan"); }
@@ -38,7 +38,7 @@ FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
 }
 
 int FooterItemHeatBreakFan::static_readValue() {
-    return marlin_vars()->heatbreak_fan_rpm;
+    return marlin_vars()->active_hotend().heatbreak_fan_rpm;
 }
 
 string_view_utf8 FooterItemHeatBreakFan::GetName() { return _("Hotend Fan"); }

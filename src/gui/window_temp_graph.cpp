@@ -2,7 +2,7 @@
 #include <window_temp_graph.hpp>
 #include "display_helper.h"
 #include "gui.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include <stdlib.h>
 
 window_temp_graph_t::window_temp_graph_t(window_t *parent, Rect16 rect)
@@ -68,8 +68,8 @@ void window_temp_graph_t::unconditionalDraw() {
     marlin_vars_t *vars = marlin_vars();
 
     y_bed_c[0] = (uint8_t)(179 - (vars->temp_bed * 0.5F));
-    y_nozzle_c[0] = (uint8_t)(179 - (vars->temp_nozzle * 0.5F));
-    y_nozzle_t[0] = (uint8_t)(179 - (vars->target_nozzle * 0.5F));
+    y_nozzle_c[0] = (uint8_t)(179 - (vars->active_hotend().temp_nozzle * 0.5F));
+    y_nozzle_t[0] = (uint8_t)(179 - (vars->active_hotend().target_nozzle * 0.5F));
     y_bed_t[0] = (uint8_t)(179 - (vars->target_bed * 0.5F));
 
     if (redraw_graph) {

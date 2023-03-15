@@ -29,7 +29,6 @@
 
 #include <TMCStepper.h>
 #include "../module/planner.h"
-#include "prusa/crash_recovery.h"
 
 #define TMC_X_LABEL 'X', '0'
 #define TMC_Y_LABEL 'Y', '0'
@@ -174,6 +173,9 @@ template<char AXIS_LETTER, char DRIVER_ID, AxisEnum AXIS_ID>
 class TMCMarlin<TMC2130Stepper, AXIS_LETTER, DRIVER_ID, AXIS_ID> : public TMC2130Stepper, public TMCStorage<AXIS_LETTER, DRIVER_ID> {
 
   public:
+    TMCMarlin(bool remote, const float RS) :
+      TMC2130Stepper(remote, RS)
+      {}
     TMCMarlin(const uint16_t cs_pin, const float RS) :
       TMC2130Stepper(cs_pin, RS)
       {}

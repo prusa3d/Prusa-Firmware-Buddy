@@ -39,6 +39,10 @@
                     "type": "BOOL",
                     "value": "YES"
                 },
+                "TRANSLATIONS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -103,6 +107,10 @@
                     "value": ""
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "TRANSLATIONS_ENABLED": {
                     "type": "BOOL",
                     "value": "YES"
                 },
@@ -173,6 +181,10 @@
                     "type": "BOOL",
                     "value": "YES"
                 },
+                "TRANSLATIONS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -240,6 +252,3478 @@
                     "type": "BOOL",
                     "value": "YES"
                 },
+                "TRANSLATIONS_ENABLED": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy027c-400step-planetary_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy027c-400step-planetary_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy027c-400step-planetary_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy027c-400step-planetary_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk426-xBuddy027c-200step-planetary_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk426-xBuddy027c-200step-planetary_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk426-xBuddy027c-200step-planetary_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk426-xBuddy027c-200step-planetary_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.3.4"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.3.4"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.3.4"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.3.4"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step-planetary_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.3.4"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step-planetary_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.3.4"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step-planetary_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.3.4"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step-planetary_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "MK404"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.3.4"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "iX-xBuddy027c-200step_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "IXL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "iX-xBuddy027c-200step_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "IXL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "iX-xBuddy027c-200step_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "IXL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "iX-xBuddy027c-200step_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "IXL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.2.7"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": "-DLOVEBOARD_HAS_NTC"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.5.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.5.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.5.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.5.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-knoblet_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.5.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "TRUE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-knoblet_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.5.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "TRUE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-knoblet_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.5.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "TRUE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-knoblet_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.5.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "TRUE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-knoblet-xbuddy04_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "TRUE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-knoblet-xbuddy04_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "TRUE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-knoblet-xbuddy04_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "TRUE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-knoblet-xbuddy04_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "TRUE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-xbuddy04_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-xbuddy04_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-xbuddy04_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-xbuddy04_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-buddy",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "<default>"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "IS_KNOBLET": {
+                    "type": "STRING",
+                    "value": "FALSE"
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-dwarf_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-dwarf",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "DWARF"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.6.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-dwarf_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-dwarf",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "DWARF"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.6.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-dwarf_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-dwarf",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "DWARF"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.6.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-dwarf_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-dwarf",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "DWARF"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.6.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-dwarf-04_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-dwarf",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "DWARF"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-dwarf-04_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-dwarf",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "DWARF"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-dwarf-04_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-dwarf",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "DWARF"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-dwarf-04_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-dwarf",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "DWARF"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.4.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-modularbed_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-modularbed",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "MODULARBED"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.7.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-modularbed_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-modularbed",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "MODULARBED"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.7.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-modularbed_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-modularbed",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "MODULARBED"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.7.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-modularbed_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-modularbed",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "MODULARBED"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.7.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-modularbed-06_debug_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-modularbed",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "MODULARBED"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.6.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-modularbed-06_debug_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-modularbed",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "MODULARBED"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.6.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "NO"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "FALSE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-modularbed-06_release_boot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-modularbed",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "MODULARBED"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.6.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
+                "BOOTLOADER": {
+                    "type": "STRING",
+                    "value": "YES"
+                },
+                "GENERATE_BBF": {
+                    "type": "BOOL",
+                    "value": "TRUE"
+                },
+                "GENERATE_DFU": {
+                    "type": "BOOL",
+                    "value": "OFF"
+                },
+                "SIGNING_KEY": {
+                    "type": "FILEPATH",
+                    "value": ""
+                },
+                "CMAKE_TOOLCHAIN_FILE": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/cmake/GccArmNoneEabi.cmake"
+                },
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                },
+                "PROJECT_VERSION_SUFFIX": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                },
+                "PROJECT_VERSION_SUFFIX_SHORT": {
+                    "type": "STRING",
+                    "value": "<auto>"
+                }
+            }
+        },
+        {
+            "name": "xl-modularbed-06_release_noboot",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-modularbed",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "STRING",
+                    "value": "ON"
+                },
+                "PRINTER": {
+                    "type": "STRING",
+                    "value": "XL"
+                },
+                "BOARD": {
+                    "type": "STRING",
+                    "value": "MODULARBED"
+                },
+                "BOARD_VERSION": {
+                    "type": "STRING",
+                    "value": "0.6.0"
+                },
+                "PRESET_COMPILE_OPTIONS": {
+                    "type": "STRING",
+                    "value": ""
+                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "NO"
@@ -298,6 +3782,10 @@
                 "MAKEFSDATA_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
+                },
+                "UNITTESTS_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
                 }
             }
         },
@@ -323,6 +3811,10 @@
                     "value": "NO"
                 },
                 "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "UNITTESTS_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
                 }
@@ -352,6 +3844,10 @@
                 "MAKEFSDATA_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
+                },
+                "UNITTESTS_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
                 }
             }
         },
@@ -377,6 +3873,10 @@
                     "value": "NO"
                 },
                 "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "UNITTESTS_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
                 }
@@ -406,6 +3906,10 @@
                 "MAKEFSDATA_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
+                },
+                "UNITTESTS_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
                 }
             }
         },
@@ -431,6 +3935,10 @@
                     "value": "YES"
                 },
                 "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "UNITTESTS_ENABLE": {
                     "type": "BOOL",
                     "value": "NO"
                 }
@@ -460,6 +3968,10 @@
                 "MAKEFSDATA_ENABLE": {
                     "type": "BOOL",
                     "value": "YES"
+                },
+                "UNITTESTS_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
                 }
             }
         },
@@ -485,6 +3997,72 @@
                     "value": "NO"
                 },
                 "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                },
+                "UNITTESTS_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                }
+            }
+        },
+        {
+            "name": "unittests_debug",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "UNITTESTS_ENABLE": {
+                    "type": "BOOL",
+                    "value": "YES"
+                }
+            }
+        },
+        {
+            "name": "unittests_release",
+            "generator": "Ninja",
+            "binaryDir": "build-vscode-host",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": {
+                    "type": "FILEPATH",
+                    "value": "${sourceDir}/.dependencies/ninja-1.10.2/ninja"
+                },
+                "PNG2FONT_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "BIN2CC_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "HEX2DFU_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "MAKEFSDATA_ENABLE": {
+                    "type": "BOOL",
+                    "value": "NO"
+                },
+                "UNITTESTS_ENABLE": {
                     "type": "BOOL",
                     "value": "YES"
                 }

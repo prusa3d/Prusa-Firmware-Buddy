@@ -54,10 +54,9 @@ private:
         const Response response = ClientResponseHandler::GetResponseFromPhase(phase_enum);
         return response;
     }
-
-    virtual void pass() { refResult.Pass(); }
-    virtual void fail() { refResult.Fail(); }
-    virtual void abort() { refResult.Abort(); }
+    virtual void pass() override { refResult.Pass(); }
+    virtual void fail() override { refResult.Fail(); }
+    virtual void abort() override { refResult.Abort(); }
 
 public:
     // ctor needs to pass reference to result and last result

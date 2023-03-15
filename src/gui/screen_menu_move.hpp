@@ -43,6 +43,7 @@ public:
 
 class DUMMY_AXIS_E : public WI_FORMATABLE_LABEL_t<int> {
     virtual void click(IWindowMenu &window_menu) override;
+    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) override;
 
 public:
     static bool IsTargetTempOk();
@@ -54,7 +55,11 @@ public:
 
 using MI_AXIS_X = MI_AXIS<0, 5, 8>;
 using MI_AXIS_Y = MI_AXIS<1, 5, 8>;
+#if PRINTER_TYPE == PRINTER_PRUSA_MINI
 using MI_AXIS_Z = MI_AXIS<2, 1, 4>;
+#else
+using MI_AXIS_Z = MI_AXIS<2, 1, 12>;
+#endif
 
 using ScreenMenuMove__ = ScreenMenu<EFooter::On, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E, DUMMY_AXIS_E, MI_COOLDOWN>;
 

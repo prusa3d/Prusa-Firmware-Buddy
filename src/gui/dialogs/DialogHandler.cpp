@@ -47,21 +47,20 @@ static void OpenPrintScreen(ClientFSM dialog) {
 
 //*****************************************************************************
 //method definitions
-void DialogHandler::open(fsm::create_t o) {
-    const ClientFSM dialog = o.type.GetType();
-    ++opened_times[size_t(dialog)]; // preopen can mess this up
-    log_info(GUI, "Dialog opened_times[%u] = %u", size_t(dialog), opened_times[size_t(dialog)]);
+void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
+    ++opened_times[size_t(fsm_type)]; // preopen can mess this up
+    log_info(GUI, "Dialog opened_times[%u] = %u", size_t(fsm_type), opened_times[size_t(fsm_type)]);
 
     if (ptr)
         return; //the dialog is already opened, not an error, we can preopen dialogs or even screens (wizard)
 
     //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     // only ptr = dialog_creators[dialog](data); should remain
-    switch (dialog) {
+    switch (fsm_type) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
         if (IScreenPrinting::GetInstance() == nullptr) {
-            OpenPrintScreen(dialog);
+            OpenPrintScreen(fsm_type);
         } else {
             //opened, notify it
             IScreenPrinting::NotifyMarlinStart();
@@ -87,22 +86,20 @@ void DialogHandler::open(fsm::create_t o) {
 #endif // HAS_SELFTEST
         break;
     default:
-        ptr = dialog_ctors[size_t(dialog)](o.data);
+        ptr = dialog_ctors[size_t(fsm_type)](data);
     }
 }
 
-void DialogHandler::close(fsm::destroy_t o) {
-    const ClientFSM dialog = o.type.GetType();
+void DialogHandler::close(ClientFSM fsm_type) {
+    ++closed_times[size_t(fsm_type)];
+    log_info(GUI, "Dialog closed_times[%u] = %u", size_t(fsm_type), closed_times[size_t(fsm_type)]);
 
-    ++closed_times[size_t(dialog)];
-    log_info(GUI, "Dialog closed_times[%u] = %u", size_t(dialog), closed_times[size_t(dialog)]);
-
-    if (waiting_closed == dialog) {
+    if (waiting_closed == fsm_type) {
         waiting_closed = ClientFSM::_none;
     } else {
-        //hack get_scr_printing_serial() is no dialog but screen ... todo change to dialog?
 
-        switch (dialog) {
+        //following are screens (not dialogs)
+        switch (fsm_type) {
         case ClientFSM::Serial_printing:
         case ClientFSM::Printing:
             Screens::Access()->CloseAll();
@@ -120,30 +117,29 @@ void DialogHandler::close(fsm::destroy_t o) {
     ptr = nullptr; //destroy current dialog
 }
 
-void DialogHandler::change(fsm::change_t o) {
-    const ClientFSM dialogType = o.type.GetType();
+void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
 
-    switch (dialogType) {
+    switch (fsm_type) {
     case ClientFSM::PrintPreview:
         if (ScreenPrintPreview::GetInstance()) {
-            ScreenPrintPreview::GetInstance()->Change(o.data);
+            ScreenPrintPreview::GetInstance()->Change(data);
         }
         break;
     case ClientFSM::CrashRecovery:
         if (CrashRecovery::GetInstance()) {
-            CrashRecovery::GetInstance()->Change(o.data);
+            CrashRecovery::GetInstance()->Change(data);
         }
         break;
     case ClientFSM::Selftest:
 #if HAS_SELFTEST
         if (ScreenSelftest::GetInstance()) {
-            ScreenSelftest::GetInstance()->Change(o.data);
+            ScreenSelftest::GetInstance()->Change(data);
         }
 #endif // HAS_SELFTEST
         break;
     default:
         if (ptr)
-            ptr->Change(o.data);
+            ptr->Change(data);
     }
 }
 
@@ -158,31 +154,59 @@ DialogHandler &DialogHandler::Access() {
     return ret;
 }
 
-void DialogHandler::Command(uint32_t u32, uint16_t u16) {
-    fsm::variant_t variant(u32, u16);
+void DialogHandler::Command(std::pair<uint32_t, uint16_t> serialized) {
 
-    // not sure about buffering ClientFSM_Command::change, it could work without it
-    // but it is buffered too to be simpler
-    Access().command_queue.TryPush(variant);
+    fsm::Change change(serialized);
+    Access().command_queue.force_push(change);
 }
 
-void DialogHandler::command(fsm::variant_t variant) {
-    switch (variant.GetCommand()) {
-    case ClientFSM_Command::create:
-        open(variant.create);
-        break;
-    case ClientFSM_Command::destroy:
-        close(variant.destroy);
-        break;
-    case ClientFSM_Command::change:
-        change(variant.change);
-        break;
-    default:
-        break;
+/**
+ * @brief determine correct operation with data
+ * 3 possibilities: create(open), change(modify), destroy(destroy)
+ * can contain close screen + open dialog
+ * preopen can put data in queue too!!!
+ *
+ * @param change data containing description of a change, can be even open + close
+ */
+void DialogHandler::command(fsm::DequeStates changes) {
+    log_debug(GUI, "fsm changes from %d, to %d", static_cast<int>(changes.last_sent.get_fsm_type()), static_cast<int>(changes.current.get_fsm_type()));
+
+    // destroy
+    // new fsm is ClientFSM::_none, old fsm being ClientFSM::_none should not happen
+    if (changes.current.get_fsm_type() == ClientFSM::_none) {
+        close(changes.last_sent.get_fsm_type());
+        return;
     }
+
+    // create
+    // last command was no fsm, new command has fsm
+    // or last command was different fsm
+    if (changes.current.get_fsm_type() != changes.last_sent.get_fsm_type()) {
+        if (changes.last_sent.get_fsm_type() == ClientFSM::_none) {
+            // regular open
+            open(changes.current.get_fsm_type(), changes.current.get_data());
+            Screens::Access()->Loop(); // ensure screen is opened before call of Draw
+            // now continue to change
+            // open currently does not support change directly
+            // TODO make it so .. than Screens::Access()->Loop(); could be removed
+        } else {
+            // close + open
+            close(changes.last_sent.get_fsm_type());
+            Screens::Access()->Loop(); // currently it is the simplest way to ensure screen is closed in case close called it
+            open(changes.current.get_fsm_type(), changes.current.get_data());
+            Screens::Access()->Loop(); // ensure screen is opened before call of Draw
+            return;
+        }
+    }
+
+    // change
+    // last and new command fsms are the same
+    // no need to check if data changed, queue handles it
+    change(changes.current.get_fsm_type(), changes.current.get_data());
+    return;
 }
 
-void DialogHandler::WaitUntilClosed(ClientFSM dialog, uint8_t data) {
+void DialogHandler::WaitUntilClosed(ClientFSM dialog, fsm::BaseData data) {
     PreOpen(dialog, data);
     waiting_closed = dialog;
     while (waiting_closed == dialog) {
@@ -192,26 +216,17 @@ void DialogHandler::WaitUntilClosed(ClientFSM dialog, uint8_t data) {
     }
 }
 
-void DialogHandler::PreOpen(ClientFSM dialog, uint8_t data) {
-    const fsm::variant_t var(fsm::create_t(dialog, data));
-    Command(var.u32, var.u16);
+void DialogHandler::PreOpen(ClientFSM dialog, fsm::BaseData data) {
+    const fsm::Change change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
+    Command(change.serialize());
 }
 
-redraw_cmd_t DialogHandler::Loop() {
-    fsm::variant_t variant = command_queue.Front();
-    // execute 1 command (don't use "while") because
-    // screen open only pushes factory method on top of the stack - in this case we would loose following change !!!
-    // queue merges states, longest possible sequence for not nested fsm is destroy -> create -> change
-    if (variant.GetCommand() == ClientFSM_Command::none)
-        return redraw_cmd_t::none;
+void DialogHandler::Loop() {
+    std::optional<fsm::DequeStates> change = command_queue.dequeue();
+    if (!change)
+        return;
 
-    command(variant);
-    command_queue.Pop(); //erase item from queue
-
-    variant = command_queue.Front();
-    if (variant.GetCommand() == ClientFSM_Command::none)
-        return redraw_cmd_t::redraw;
-    return redraw_cmd_t::skip;
+    command(*change);
 }
 
 bool DialogHandler::IsOpen(ClientFSM fsm) const {

@@ -24,6 +24,7 @@
 #include "../../Marlin.h" // for stepper_inactive_time, disable_e_steppers
 #include "../../lcd/ultralcd.h"
 #include "../../module/stepper.h"
+#include "gcode/parser.h"
 
 #if BOTH(AUTO_BED_LEVELING_UBL, ULTRA_LCD)
   #include "../../feature/bedlevel/bedlevel.h"
@@ -34,8 +35,12 @@
  */
 void GcodeSuite::M17() {
   if (parser.seen("XYZE")) {
-    if (parser.seen('X')) enable_X();
-    if (parser.seen('Y')) enable_Y();
+    #if ENABLED(XY_LINKED_ENABLE)
+      if (parser.seen('X') || parser.seen('Y')) enable_XY();
+    #else
+      if (parser.seen('X')) enable_X();
+      if (parser.seen('Y')) enable_Y();
+    #endif
     if (parser.seen('Z')) enable_Z();
     #if HAS_E_STEPPER_ENABLE
       if (parser.seen('E')) enable_e_steppers();
@@ -57,8 +62,14 @@ void GcodeSuite::M18_M84() {
   else {
     if (parser.seen("XYZE")) {
       planner.synchronize();
-      if (parser.seen('X')) disable_X();
-      if (parser.seen('Y')) disable_Y();
+      #if ENABLED(XY_LINKED_ENABLE)
+        if (parser.seen('X') || parser.seen('Y')) {
+          disable_XY();
+        }
+      #else
+        if (parser.seen('X')) disable_X();
+        if (parser.seen('Y')) disable_Y();
+      #endif
       if (parser.seen('Z')) disable_Z();
       #if HAS_E_STEPPER_ENABLE
         if (parser.seen('E')) disable_e_steppers();

@@ -26,7 +26,7 @@ public:
 };
 
 class MI_CONNECT_LOAD_SETTINGS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Load settings");
+    static constexpr const char *const label = N_("Load Settings");
 
 public:
     MI_CONNECT_LOAD_SETTINGS();
@@ -36,11 +36,6 @@ protected:
 };
 
 using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_LOAD_SETTINGS>;
-
-#define S(STATUS, TEXT)                                    \
-    case OnlineStatus::STATUS:                             \
-        Item<MI_CONNECT_STATUS>().ChangeInformation(TEXT); \
-        break;
 
 class ScreenMenuConnect : public ScreenMenuConnect__ {
 private:

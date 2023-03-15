@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/adamgreen/CrashCatcher.git
+	branch = master
+	commit = 1c7755c875c0890ba98ab77cd2e23f64f3e1922f
+	parent = 88ec43eda054c98cca9df0e3c669a32f1ac27c88
+	method = merge
+	cmdver = 0.4.3

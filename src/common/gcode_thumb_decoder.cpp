@@ -103,7 +103,7 @@ int GCodeThumbDecoder::Read(char *pc, int n) {
             return -1;
         }
     }
-    // [[fallthrough]];  // here is no break intentionally
+        [[fallthrough]];
     case States::Base64: {
         int i = 0; // spravne by to melo byt unsigned, ale chci eliminovat
                    // warning i == n, pricemz n je definitoricky int

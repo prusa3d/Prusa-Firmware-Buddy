@@ -35,7 +35,7 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     numb0.SetFormat((const char *)"%.0f");
     numb0.SetValue(100.0F);
 
-    text_terminal.font = resource_font(IDR_FNT_TERMINAL);
+    text_terminal.font = resource_font(IDR_FNT_SPECIAL);
     static const char tf[] = "Terminal Font IBM ISO9";
     text_terminal.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tf));
 }

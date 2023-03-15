@@ -29,7 +29,7 @@ using namespace filament_gcodes;
  *  Default values are used for omitted arguments.
  */
 void GcodeSuite::M701() {
-    filament_t filament_to_be_loaded = filament_t::NONE;
+    auto filament_to_be_loaded = filament::Type::NONE;
     const char *text_begin = 0;
     if (parser.seen('S')) {
         text_begin = strchr(parser.string_arg, '"');
@@ -37,8 +37,8 @@ void GcodeSuite::M701() {
             ++text_begin; // move pointer from '"' to first letter
             const char *text_end = strchr(text_begin, '"');
             if (text_end) {
-                filament_t filament = Filaments::FindByName(text_begin, text_end - text_begin);
-                if (filament != filament_t::NONE) {
+                auto filament = filament::get_type(text_begin, text_end - text_begin);
+                if (filament != filament::Type::NONE) {
                     filament_to_be_loaded = filament;
                 }
             }

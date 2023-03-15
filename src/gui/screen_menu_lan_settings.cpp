@@ -10,7 +10,8 @@
 #include "network_gui_tools.hpp"
 #include <http_lifetime.h>
 #include <espif.h>
-#include "marlin_client.h"
+#include "marlin_client.hpp"
+#include <option/has_embedded_esp32.h>
 
 ScreenMenuConnectionBase::ScreenMenuConnectionBase(uint32_t dev_id, const char *label)
     : ScreenMenuConnectionBase__(_(label))
@@ -135,6 +136,16 @@ ScreenMenuEthernetSettings::ScreenMenuEthernetSettings()
 // ------------------------ WIFI -----------------------------------
 ScreenMenuWifiSettings::ScreenMenuWifiSettings()
     : ScreenMenuConnectionBase(NETDEV_ESP_ID, wifi_label) {
+
+#if BOARD_VER_EQUAL_TO(0, 5, 0)
+    // This is temporary, remove once everyone has compatible hardware.
+    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+
+    #if HAS_EMBEDDED_ESP32()
+    Hide<MI_WIFI_INIT_t>();
+    #endif
+#endif
+
     if (marlin_is_printing()) {
         DisableItem<MI_WIFI_INIT_t>();
         DisableItem<MI_WIFI_CREDENTIALS_INI_FILE_t>();

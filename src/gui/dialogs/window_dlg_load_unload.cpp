@@ -5,7 +5,7 @@
  */
 
 #include "window_dlg_load_unload.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "gui.hpp" // gui_loop
 #include "DialogHandler.hpp"
 

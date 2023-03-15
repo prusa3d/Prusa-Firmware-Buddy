@@ -64,12 +64,13 @@ function(get_dependency_version dependency var)
 endfunction()
 
 function(objcopy target format suffix)
+  set(bin_filename "${CMAKE_CURRENT_BINARY_DIR}/${target}${suffix}")
   add_custom_command(
     TARGET ${target}
     POST_BUILD
-    COMMAND "${CMAKE_OBJCOPY}" -O ${format} -S "$<TARGET_FILE:${target}>"
-            "${CMAKE_CURRENT_BINARY_DIR}/${target}${suffix}"
+    COMMAND "${CMAKE_OBJCOPY}" -O ${format} -S "$<TARGET_FILE:${target}>" "${bin_filename}"
     COMMENT "Generating ${format} from ${target}..."
+    BYPRODUCTS "${bin_filename}"
     )
 endfunction()
 
@@ -85,7 +86,15 @@ endfunction()
 
 function(pack_firmware target)
   # parse arguments
-  set(one_value_args FW_VERSION BUILD_NUMBER PRINTER_TYPE SIGNING_KEY BBF_VERSION OUTPUT_PATH)
+  set(one_value_args
+      FW_VERSION
+      BUILD_NUMBER
+      PRINTER_TYPE
+      PRINTER_VERSION
+      SIGNING_KEY
+      BBF_VERSION
+      OUTPUT_PATH
+      )
   set(multi_value_args RESOURCE_IMAGES RESOURCE_IMAGE_NAMES)
   cmake_parse_arguments(ARG "" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
@@ -162,9 +171,9 @@ function(pack_firmware target)
             # generate .bbf file
     COMMAND
       "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${ARG_FW_VERSION}"
-      --printer-type "${ARG_PRINTER_TYPE}" --printer-version "1" --build-number
-      "${ARG_BUILD_NUMBER}" ${sign_opts} ${resources_opts} ${bbf_version_opts} ${output_path_opts}
-      -- "${bin_firmware_path}"
+      --printer-type "${ARG_PRINTER_TYPE}" --printer-version "${ARG_PRINTER_VERSION}"
+      --build-number "${ARG_BUILD_NUMBER}" ${sign_opts} ${resources_opts} ${bbf_version_opts}
+      ${output_path_opts} -- "${bin_firmware_path}"
     )
 endfunction()
 

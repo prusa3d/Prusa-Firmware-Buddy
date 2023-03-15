@@ -64,13 +64,13 @@ dependencies = {
         'version': '2.0.2',
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-v2.0.2-FF7C65BF-1853-43B3-869C-C846FA39AB75.zip',
     },
-    'mini404': {
-        'version': 'e72651a',
-        'url': {
-            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-e72651a-linux.tar.bz2',
-            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-e72651a-w64.zip',
-            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-e72651a-macos.tar.bz2',
-        }
+    'bootloader-xl': {
+        'version': '2.0.7',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.0.7-2BB59278-CED8-4CA6-AE95-4692646671D5.zip',
+    },
+    'cmsis-svd': {
+        'version': '0.4.9999',
+        'url': 'https://github.com/posborne/cmsis-svd/archive/45a1e90afe488f01df94b3e0eb89a67c1a900a9a.zip',
     },
 }
 pip_dependencies = ['ecdsa', 'polib', 'pyyaml', 'littlefs-python',"Pillow"]

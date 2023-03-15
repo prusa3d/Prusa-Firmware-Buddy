@@ -6,7 +6,7 @@
  */
 
 #include "screen_messages.hpp"
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "ScreenHandler.hpp"
 #include <stdlib.h>
 #include <stdint.h>

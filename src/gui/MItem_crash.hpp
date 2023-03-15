@@ -10,7 +10,7 @@
 #include "i18n.h"
 #include "config_features.h"
 
-class MI_CRASH_DETECTION : public WI_SWITCH_OFF_ON_t {
+class MI_CRASH_DETECTION : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Crash Detection");
 
 public:
@@ -36,6 +36,40 @@ public:
     virtual void OnClick() override;
 };
 
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+// XL set Crash Sensitivity in user friendly was (Low/Medium/High), whereas other printers set integer directly and its development menu only
+
+class MI_CRASH_SENSITIVITY_XY : public WI_SWITCH_t<3> {
+private:
+    constexpr static const char *const label = N_("Crash Sensitivity XY");
+
+    struct item_t {
+        const char *name;
+        uint8_t value;
+    };
+
+    constexpr static item_t ITEMS[3] = {
+        { N_("Low"), 3 },
+        { N_("Medium"), 2 },
+        { N_("High"), 1 },
+    };
+    constexpr size_t get_item_id_from_sensitivity(int32_t sensitivity);
+
+public:
+    MI_CRASH_SENSITIVITY_XY();
+    virtual void OnChange(size_t old_index) override;
+};
+#else
+class MI_CRASH_SENSITIVITY_XY : public WiSpinInt {
+private:
+    constexpr static const char *const label = N_("Crash Sensitivity XY");
+
+public:
+    MI_CRASH_SENSITIVITY_XY();
+    virtual void OnClick() override;
+};
+#endif
+
 class MI_CRASH_MAX_PERIOD_X : public WI_SPIN_CRASH_PERIOD_t {
 private:
     constexpr static const char *const label = "Crash Min. Speed X";
@@ -56,35 +90,35 @@ public:
 
 #if ANY(CRASH_RECOVERY, POWER_PANIC)
 class MI_POWER_PANICS : public WI_INFO_t {
-    constexpr static const char *const label = N_("Power failures");
+    constexpr static const char *const label = N_("Power Failures");
 
 public:
     MI_POWER_PANICS();
 };
 
 class MI_CRASHES_X_LAST : public WI_INFO_t {
-    constexpr static const char *const label = N_("Last print crashes on X axis");
+    constexpr static const char *const label = N_("Last Print Crashes on X Axis");
 
 public:
     MI_CRASHES_X_LAST();
 };
 
 class MI_CRASHES_Y_LAST : public WI_INFO_t {
-    constexpr static const char *const label = N_("Last print crashes on Y axis");
+    constexpr static const char *const label = N_("Last Print Crashes on Y Axis");
 
 public:
     MI_CRASHES_Y_LAST();
 };
 
 class MI_CRASHES_X : public WI_INFO_t {
-    constexpr static const char *const label = N_("Crashes on X axis");
+    constexpr static const char *const label = N_("Crashes on X Axis");
 
 public:
     MI_CRASHES_X();
 };
 
 class MI_CRASHES_Y : public WI_INFO_t {
-    constexpr static const char *const label = N_("Crashes on Y axis");
+    constexpr static const char *const label = N_("Crashes on Y Axis");
 
 public:
     MI_CRASHES_Y();

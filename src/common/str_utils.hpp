@@ -4,13 +4,14 @@
 #include <string.h>
 #include <array>
 #include <cstdint>
+#include <algorithm>
 
-static const constexpr char CHAR_SPACE = ' ';
-static const constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
-#define NBSP "\xA0"                             /// Non Breaking Space
-static const constexpr char CHAR_NL = '\n';     /// New Line
-#define NL "\n"                                 /// New Line
-static const constexpr char EOS = '\0';         /// End Of String
+inline constexpr char CHAR_SPACE = ' ';
+inline constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space
+#define NBSP "\xA0"                       /// Non Breaking Space
+inline constexpr char CHAR_NL = '\n';     /// New Line
+#define NL "\n"                           /// New Line
+inline constexpr char EOS = '\0';         /// End Of String
 
 enum str_err {
     nullptr_err = -1,

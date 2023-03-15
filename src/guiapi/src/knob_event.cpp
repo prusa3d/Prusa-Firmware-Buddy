@@ -3,9 +3,14 @@
  */
 
 #include "knob_event.hpp"
-#include "marlin_client.h"   // marlin_notify_server_about_encoder_move
+#include "marlin_client.hpp" // marlin_notify_server_about_encoder_move
 #include "ScreenHandler.hpp" // GetCapturedWindow
 #include "sound.hpp"
+#include <option/has_side_leds.h>
+
+#if HAS_SIDE_LEDS()
+    #include <leds/side_strip_control.hpp>
+#endif
 
 using namespace gui::knob;
 
@@ -62,6 +67,10 @@ bool gui::knob::EventEncoder(int diff) {
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::ENC_CHANGE, (void *)(intptr_t)diff);
 
+#if HAS_SIDE_LEDS()
+    leds::side_strip_control.ActivityPing();
+#endif
+
     if (!capture_ptr)
         return false;
 
@@ -79,6 +88,10 @@ bool gui::knob::EventClick(BtnState_t state) {
     static bool dont_click_on_next_release = false;
     marlin_notify_server_about_knob_click();
     window_t *capture_ptr = Screens::Access()->Get()->GetCapturedWindow();
+
+#if HAS_SIDE_LEDS()
+    leds::side_strip_control.ActivityPing();
+#endif
 
     switch (state) {
     case BtnState_t::Pressed:

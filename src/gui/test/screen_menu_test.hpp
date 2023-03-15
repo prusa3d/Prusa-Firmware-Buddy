@@ -49,8 +49,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuTest__ = ScreenMenu<EFooter::Off, MI_RETURN,
+class MI_LOAD_UNLOAD_TEST : public WI_LABEL_t {
+public:
+    MI_LOAD_UNLOAD_TEST();
 
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+using ScreenMenuTest__ = ScreenMenu<EFooter::Off, MI_RETURN,
+    MI_LOAD_UNLOAD_TEST,
     // GENERATE_SCREEN_FN_ITEM_DEV(GetScreenMenuEepromTest, "test EEPROM"),
     /* TODO make it work
     GENERATE_SCREEN_ITEM_DEV(screen_test_gui_data_t, "test GUI"),

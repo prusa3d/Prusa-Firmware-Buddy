@@ -1,9 +1,12 @@
 #pragma once
+
 #include "config_features.h"
-#include "../../core/types.h"
-#include "../../module/planner.h"
-#include "homing.h"
-#include "../tmc_util.h"
+#if ENABLED(AXIS_MEASURE)
+
+    #include "../../core/types.h"
+    #include "../../module/planner.h"
+    #include "homing.h"
+    #include "../tmc_util.h"
 
 class Measure_axis {
 public:
@@ -35,10 +38,10 @@ public:
     xy_float_t length() {
         return axis_length;
     }
-#if ENABLED(SENSORLESS_HOMING)
+    #if ENABLED(SENSORLESS_HOMING)
     void set_sensitivity(xy_long_t sensitivity) { this->sensitivity = sensitivity; }
     void set_period(xy_long_t max_period) { this->max_period = max_period; }
-#endif
+    #endif
 
 private:
     xy_feedrate_t fr;
@@ -46,16 +49,16 @@ private:
     Motion_Parameters mp;
     el_current_xyz_t current;
     xy_float_t axis_length = { NAN, NAN };
-#if ENABLED(SENSORLESS_HOMING)
+    #if ENABLED(SENSORLESS_HOMING)
     sensorless_t stealth_states;
-#endif
-#if HAS_WORKSPACE_OFFSET
+    #endif
+    #if HAS_WORKSPACE_OFFSET
     workspace_xyz_t workspace;
-#endif
-#if ENABLED(SENSORLESS_HOMING)
+    #endif
+    #if ENABLED(SENSORLESS_HOMING)
     std::optional<xy_long_t> sensitivity;
     std::optional<xy_long_t> max_period;
-#endif
+    #endif
 
     state_t state_; //< state of measuring, don't change directly
     xy_bool_t invert_dir;
@@ -93,3 +96,5 @@ private:
     void save_length(AxisEnum axis);
     void finish();
 };
+
+#endif

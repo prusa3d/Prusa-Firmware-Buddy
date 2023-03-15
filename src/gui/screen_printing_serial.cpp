@@ -1,12 +1,17 @@
 #include "screen_printing_serial.hpp"
 #include "config.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "filament.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "odometer.hpp"
+#include "config_features.h"
 #include "window_icon.hpp"
 #include "screen_menu_tune.hpp"
+
+#if ENABLED(CRASH_RECOVERY)
+    #include "../Marlin/src/feature/prusa/crash_recovery.h"
+#endif
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
@@ -50,13 +55,16 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
         }
     }
 
-    if (connection == connection_state_t::disconnecting && marlin_get_gqueue() < 1) {
+    if (connection == connection_state_t::disconnecting && marlin_vars()->gqueue < 1) {
         connection = connection_state_t::disconnected;
         marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
         marlin_gcode("M104 S0 D0"); /// set temperatures to zero
         marlin_gcode("M140 S0");    /// set temperatures to zero
         marlin_gcode("M107");       /// print fan off.
         Odometer_s::instance().force_to_eeprom();
+#if ENABLED(CRASH_RECOVERY)
+        crash_s.write_stat_to_eeprom();
+#endif
         return;
     }
     if (connection == connection_state_t::disconnected) {

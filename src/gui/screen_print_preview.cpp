@@ -3,9 +3,9 @@
 #include "screen_print_preview.hpp"
 #include "log.h"
 #include "gcode_file.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "window_dlg_load_unload.hpp"
-#include "filament_sensor_api.hpp"
+#include "filament_sensors_handler.hpp"
 #include <stdarg.h>
 #include "sound.hpp"
 #include "DialogHandler.hpp"
@@ -14,16 +14,46 @@
 #include "print_utils.hpp"
 #include "client_response.hpp"
 #include "printers.h"
+#include "RAII.hpp"
+#include "box_unfinished_selftest.hpp"
+#include "window_msgbox_wrong_printer.hpp"
 
 static GCodeInfo &gcode_init() {
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FILENAME) | MARLIN_VAR_MSK(MARLIN_VAR_FILEPATH));
+    {
+        // update printed filename from marlin_server, sample LFN+SFN atomically
+        auto lock = MarlinVarsLockGuard();
+        marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN), lock);
+        marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path), lock);
+    }
     GCodeInfo::getInstance().initFile(GCodeInfo::GI_INIT_t::PREVIEW);
     return GCodeInfo::getInstance();
 }
 
+#ifdef USE_ILI9488
+static const constexpr Rect16 title_rect = {
+    GuiDefaults::PreviewThumbnailRect.Left(),
+    GuiDefaults::HeaderHeight + 8,
+    display::GetW() - 2 * GuiDefaults::PreviewThumbnailRect.Left(),
+    TITLE_HEIGHT
+};
+static const constexpr Rect16 vertical_radio_buttons_rect = {
+    int16_t(title_rect.Left() + title_rect.Width() - GuiDefaults::IconButtonSize),
+    GuiDefaults::PreviewThumbnailRect.Top(),
+    GuiDefaults::IconButtonSize,
+    GuiDefaults::PreviewThumbnailRect.Height()
+};
+#endif
+
 ScreenPrintPreview::ScreenPrintPreview()
+#ifdef USE_ST7789
     : title_text(this, Rect16(PADDING, PADDING, display::GetW() - 2 * PADDING, TITLE_HEIGHT))
     , radio(this, GuiDefaults::GetIconnedButtonRect(GetRect()), PhasesPrintPreview::main_dialog)
+#endif // USE_ST7789
+#ifdef USE_ILI9488
+    : header(this)
+    , title_text(this, title_rect)
+    , radio(this, vertical_radio_buttons_rect, PhasesPrintPreview::main_dialog)
+#endif // USE_ILI9488
     , gcode(gcode_init())
     , gcode_description(this, gcode)
     , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
@@ -31,8 +61,13 @@ ScreenPrintPreview::ScreenPrintPreview()
 
     super::ClrMenuTimeoutClose();
 
-    //title_text.font = GuiDefaults::FontBig; //TODO big font somehow does not work
-    // this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
+#ifdef USE_ILI9488 // It was not included in condition above because it broke clang formating
+    header.SetText(_("PRINT"));
+    header.SetIcon(&png::print_16x16);
+#endif // USE_ILI9488
+
+    // title_text.font = GuiDefaults::FontBig; //TODO big font somehow does not work
+    //  this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()));
 
     radio.SetHasIcon();
@@ -46,7 +81,7 @@ ScreenPrintPreview::~ScreenPrintPreview() {
     ths = nullptr;
 }
 
-//static variables and member functions
+// static variables and member functions
 ScreenPrintPreview *ScreenPrintPreview::ths = nullptr;
 
 ScreenPrintPreview *ScreenPrintPreview::GetInstance() { return ths; }
@@ -62,14 +97,15 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     if (phase == old_phase)
         return;
 
-    //need to call deleter before pointer is assigned, because new object is in same area of memory
+    // need to call deleter before pointer is assigned, because new object is in same area of memory
     pMsgbox.reset();
 
     switch (phase) {
     case PhasesPrintPreview::main_dialog:
         break;
     case PhasesPrintPreview::wrong_printer:
-        pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_printer_type));
+    case PhasesPrintPreview::wrong_printer_abort:
+        pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(labelWarning), &png::warning_16x16);
         break;
     case PhasesPrintPreview::filament_not_inserted:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_not_detected));
@@ -84,4 +120,24 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 
     if (pMsgbox)
         pMsgbox->BindToFSM(phase);
+}
+
+void ScreenPrintPreview::on_enter() {
+    if (!first_event) {
+        return;
+    }
+    first_event = false;
+
+#if (!DEVELOPER_MODE() && PRINTER_TYPE == PRINTER_PRUSA_XL)
+    warn_unfinished_selftest_msgbox();
+#endif
+}
+
+void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event_in_progress)
+        return;
+
+    AutoRestore avoid_recursion(event_in_progress, true);
+
+    on_enter();
 }

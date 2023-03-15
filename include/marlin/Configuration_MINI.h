@@ -876,6 +876,12 @@
 //   Set to 3 or more for slow probes, averaging the results.
 #define MULTIPLE_PROBING 2
 
+// Extra probing  for loadcell to remove out of bounds measured values caused by external non interesting things
+#define EXTRA_PROBING 1
+#define EXTRA_PROBING_TOL 0.1 // If the measured Z value is larger than this value, remove it and remeasure
+#define EXTRA_PROBING_RAIL 1.2 // Maximum value of Z measurement
+#define EXTRA_PROBING_MAXFAIL 5 // Maximum allowed number of failed probing measurements
+
 /**
  * Z probes require clearance when deploying, stowing, and moving between
  * probe points to avoid hitting the bed and other hardware.

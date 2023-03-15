@@ -33,6 +33,15 @@
   #include "../feature/power.h"
 #endif
 
+
+#if ENABLED(MODULAR_HEATBED)
+  #include "modular_heatbed.h"
+#endif
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+  #include "prusa/toolchanger.h"
+#endif
+
 #ifndef SOFT_PWM_SCALE
   #define SOFT_PWM_SCALE 0
 #endif
@@ -48,9 +57,13 @@
 // Identifiers for other heaters
 typedef enum : int8_t {
   INDEX_NONE = -5,
-  H_REDUNDANT, H_CHAMBER, H_BED, H_BOARD,
-  H_E0, H_E1, H_E2, H_E3, H_E4, H_E5
+  H_REDUNDANT, H_CHAMBER, H_BOARD, H_BED,
+  H_E0, H_E1, H_E2, H_E3, H_E4, H_E5,
+  H_HEATBREAK_E0, H_HEATBREAK_E1, H_HEATBREAK_E2, H_HEATBREAK_E3, H_HEATBREAK_E4, H_HEATBREAK_E5,
 } heater_ind_t;
+static_assert(H_E0 == 0); // lots of places in are indexed by this, and assumes H_E0 is zero
+static_assert(EXTRUDERS <= 6);
+
 
 // PID storage
 typedef struct { float Kp, Ki, Kd;     } PID_t;
@@ -95,9 +108,12 @@ enum ADCSensorState : char {
   #if HAS_TEMP_CHAMBER
     PrepareTemp_CHAMBER, MeasureTemp_CHAMBER,
   #endif
-    #if HAS_TEMP_BOARD
+  #if HAS_TEMP_HEATBREAK
+    PrepareTemp_HEATBREAK, MeasureTemp_HEATBREAK,
+  #endif
+  #if HAS_TEMP_BOARD
     PrepareTemp_BOARD, MeasureTemp_BOARD,
-  #endif   
+  #endif
   #if HAS_TEMP_ADC_1
     PrepareTemp_1, MeasureTemp_1,
   #endif
@@ -141,6 +157,7 @@ enum ADCSensorState : char {
 
 #if HAS_PID_HEATING
   #define PID_K2 (1-float(PID_K1))
+  #define HEATBREAK_PID_K2 (1-float(HEATBREAK_PID_K1))
   #define PID_dT ((OVERSAMPLENR * float(ACTUAL_ADC_SAMPLES)) / TEMP_TIMER_FREQUENCY)
 
   // Apply the scale factors to the PID values
@@ -174,6 +191,14 @@ struct PIDHeaterInfo : public HeaterInfo {
   T pid;  // Initialized by settings.load()
 };
 
+// Modular heater
+#if ENABLED(MODULAR_HEATBED)
+struct ModularBedHeater: public HeaterInfo {
+  HeaterInfo bedlets[X_HBL_COUNT][Y_HBL_COUNT];
+  uint16_t enabled_mask = 0xffff;
+};
+#endif
+
 #if ENABLED(PIDTEMP)
   typedef struct PIDHeaterInfo<hotend_pid_t> hotend_info_t;
 #else
@@ -182,6 +207,8 @@ struct PIDHeaterInfo : public HeaterInfo {
 #if HAS_HEATED_BED
   #if ENABLED(PIDTEMPBED)
     typedef struct PIDHeaterInfo<PID_t> bed_info_t;
+  #elif ENABLED(MODULAR_HEATBED)
+    typedef ModularBedHeater bed_info_t;
   #else
     typedef heater_info_t bed_info_t;
   #endif
@@ -192,9 +219,20 @@ struct PIDHeaterInfo : public HeaterInfo {
   typedef temp_info_t chamber_info_t;
 #endif
 
+#if HAS_TEMP_HEATBREAK
+  #if ENABLED(PIDTEMPHEATBREAK)
+    typedef struct PIDHeaterInfo<PID_t> heatbreak_info_t;
+  #elif HAS_TEMP_HEATBREAK_CONTROL
+    typedef heater_info_t heatbreak_info_t;
+  #else
+    typedef temp_info_t heatbreak_info_t;
+  #endif
+
+#endif
+
 #if HAS_TEMP_BOARD
   typedef temp_info_t board_info_t;
-#endif 
+#endif
 
 // Heater idle handling
 typedef struct {
@@ -250,9 +288,12 @@ typedef struct { int16_t raw_min, raw_max, mintemp, maxtemp; } temp_range_t;
     #if ENABLED(HEATER_CHAMBER_USER_THERMISTOR)
       CTI_CHAMBER,
     #endif
+    #if ENABLED(HEATBREAK_USER_THERMISTOR)
+      CTI_HEATBREAK,
+    #endif
     #if ENABLED(BOARD_USER_THERMISTOR)
       CTI_BOARD,
-    #endif  
+    #endif
     USER_THERMISTORS
   };
 
@@ -293,7 +334,11 @@ class Temperature {
     #endif
     #if HAS_TEMP_BOARD
       static board_info_t temp_board;
-    #endif 
+    #endif
+
+    #if HAS_TEMP_HEATBREAK
+      static heatbreak_info_t temp_heatbreak[HOTENDS];
+    #endif
 
     #if ENABLED(AUTO_POWER_E_FANS)
       static uint8_t autofan_speed[HOTENDS];
@@ -382,14 +427,28 @@ class Temperature {
       #endif
     #endif
 
-    #if HAS_TEMP_BOARD 
+    #if HAS_TEMP_HEATBREAK
+      #if WATCH_HEATBREAK
+        static heater_watch_t watch_heatbreak;
+      #endif
+      static millis_t next_heatbreak_check_ms;
+      #ifdef HEATBREAK_MINTEMP
+        static int16_t mintemp_raw_HEATBREAK;
+      #endif
+      #ifdef HEATBREAK_MAXTEMP
+        static int16_t maxtemp_raw_HEATBREAK;
+      #endif
+    #endif
+
+    #if HAS_TEMP_BOARD
       #ifdef BOARD_MINTEMP
         static int16_t mintemp_raw_BOARD;
       #endif
       #ifdef BOARD_MAXTEMP
         static int16_t maxtemp_raw_BOARD;
       #endif
-    #endif  
+    #endif
+
     #if HAS_HEATED_CHAMBER
       #if WATCH_CHAMBER
         static heater_watch_t watch_chamber;
@@ -482,7 +541,11 @@ class Temperature {
     #endif
     #if HAS_TEMP_BOARD
       static float analog_to_celsius_board(const int raw);
-    #endif  
+    #endif
+
+    #if HAS_TEMP_HEATBREAK
+      static float analog_to_celsius_heatbreak(const int raw);
+    #endif
 
     #if FAN_COUNT > 0
 
@@ -615,6 +678,10 @@ class Temperature {
         #endif
         temp_hotend[ee].target = _MIN(celsius, temp_range[ee].maxtemp - 15);
         start_watching_hotend(ee);
+        #if ENABLED(PRUSA_TOOLCHANGER)
+          prusa_toolchanger.getTool(ee).set_hotend_target_temp(temp_hotend[ee].target);
+        #endif
+
       }
 
       FORCE_INLINE static bool isHeatingHotend(const uint8_t E_NAME) {
@@ -644,10 +711,38 @@ class Temperature {
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
         FORCE_INLINE static int16_t rawBedTemp()  { return temp_bed.raw; }
       #endif
+
       FORCE_INLINE static float degBed()          { return temp_bed.celsius; }
       FORCE_INLINE static int16_t degTargetBed()  { return temp_bed.target; }
       FORCE_INLINE static bool isHeatingBed()     { return temp_bed.target > temp_bed.celsius; }
       FORCE_INLINE static bool isCoolingBed()     { return temp_bed.target < temp_bed.celsius; }
+
+      #if ENABLED(MODULAR_HEATBED)
+        FORCE_INLINE static float degBedlet(const uint8_t x, const uint8_t y) {
+          return temp_bed.bedlets[x][y].celsius;
+        }
+        FORCE_INLINE static uint16_t getEnabledBedletMask() {
+          return temp_bed.enabled_mask;
+        }
+        FORCE_INLINE static void setEnabledBedletMask(const uint16_t enabled_mask) {
+          temp_bed.enabled_mask = enabled_mask;
+          for(uint8_t x = 0; x < X_HBL_COUNT; ++x) {
+            for(uint8_t y = 0; y < Y_HBL_COUNT; ++y) {
+              int16_t target_temp = 0;
+              if(temp_bed.enabled_mask & (1 << advanced_modular_bed->idx(x, y))) {
+                target_temp = temp_bed.target;
+              }
+              temp_bed.bedlets[x][y].target = target_temp;
+              advanced_modular_bed->set_target(x, y, target_temp);
+            }
+          }
+          advanced_modular_bed->update_bedlet_temps(temp_bed.enabled_mask, temp_bed.target);
+          updateModularBedTemperature(); // update current temperature of modular bed - it will be now calculated from different bedlets
+
+        }
+        static void updateModularBedTemperature(); // will update temp_bed.celsius based on currently enabled bedlets
+
+      #endif
 
       #if WATCH_BED
         static void start_watching_bed();
@@ -666,6 +761,21 @@ class Temperature {
             celsius
           #endif
         ;
+
+        #if ENABLED(MODULAR_HEATBED)
+          for(uint8_t x = 0; x < X_HBL_COUNT; ++x) {
+            for(uint8_t y = 0; y < Y_HBL_COUNT; ++y) {
+              int16_t target_temp = 0;
+              if(temp_bed.enabled_mask & (1 << advanced_modular_bed->idx(x, y))) {
+                target_temp = temp_bed.target;
+              }
+              temp_bed.bedlets[x][y].target = target_temp;
+              advanced_modular_bed->set_target(x, y, target_temp);
+            }
+          }
+          advanced_modular_bed->update_bedlet_temps(temp_bed.enabled_mask, temp_bed.target);
+        #endif
+
         start_watching_bed();
       }
 
@@ -710,7 +820,41 @@ class Temperature {
       }
     #endif // HAS_HEATED_CHAMBER
 
+    #if HAS_TEMP_HEATBREAK
+      #if ENABLED(SHOW_TEMP_ADC_VALUES)
+        FORCE_INLINE static int16_t rawHeatbreakTemp(const uint8_t E_NAME)    { return temp_heatbreak[HOTEND_INDEX].raw; }
+      #endif
+      FORCE_INLINE static float degHeatbreak(const uint8_t E_NAME)            { return temp_heatbreak[HOTEND_INDEX].celsius; }
+      #if HAS_TEMP_HEATBREAK_CONTROL
+        FORCE_INLINE static int16_t degTargetHeatbreak(const uint8_t E_NAME)  { return temp_heatbreak[HOTEND_INDEX].target; }
+        FORCE_INLINE static bool isHeatingHeatbreak(const uint8_t E_NAME)     { return temp_heatbreak[HOTEND_INDEX].target > temp_heatbreak[HOTEND_INDEX].celsius; }
+        FORCE_INLINE static bool isCoolingHeatbreak(const uint8_t E_NAME)     { return temp_heatbreak[HOTEND_INDEX].target < temp_heatbreak[HOTEND_INDEX].celsius; }
 
+        static void suspend_heatbreak_fan(millis_t ms);
+      #endif
+    #endif // HAS_TEMP_HEATBREAK
+
+    #if WATCH_HEATBREAK
+      static void start_watching_heatbreak();
+    #else
+      static inline void start_watching_heatbreak() {}
+    #endif
+
+    #if HAS_TEMP_HEATBREAK_CONTROL
+      static void setTargetHeatbreak(const int16_t celsius, const uint8_t E_NAME) {
+        temp_heatbreak[HOTEND_INDEX].target =
+          #ifdef HEATBREAK_MAXTEMP
+            _MIN(celsius, HEATBREAK_MAXTEMP)
+          #else
+            celsius
+          #endif
+        ;
+        #if ENABLED(PRUSA_TOOLCHANGER)
+          prusa_toolchanger.getTool(HOTEND_INDEX).set_heatbreak_target_temp(celsius);
+        #endif
+        start_watching_heatbreak();
+      }
+    #endif // HAS_TEMP_HEATBREAK
 
     #if HAS_TEMP_BOARD
       #if ENABLED(SHOW_TEMP_ADC_VALUES)
@@ -718,7 +862,7 @@ class Temperature {
       #endif
       FORCE_INLINE static float degBoard()            { return temp_board.celsius; }
     #endif // HAS_TEMP_BOARD
-    
+
     /**
      * The software PWM power for a heater
      */
@@ -856,6 +1000,10 @@ public:
 
     #if HAS_HEATED_CHAMBER
       static float get_pid_output_chamber();
+    #endif
+
+    #if ENABLED(PIDTEMPHEATBREAK)
+      static float get_pid_output_heatbreak();
     #endif
 
     static void _temp_error(const heater_ind_t e, PGM_P const serial_msg, PGM_P const lcd_msg);

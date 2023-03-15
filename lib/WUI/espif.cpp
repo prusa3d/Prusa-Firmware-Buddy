@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <atomic>
 #include <cassert>
+#include <cinttypes>
 #include <timing.h>
 
 #include <FreeRTOS.h>
@@ -12,7 +13,10 @@
 #include <semphr.h>
 
 #include "main.h"
+#include "../metric.h"
 #include "wui.h"
+#include <tasks.h>
+#include <option/has_embedded_esp32.h>
 
 #include "stm32f4xx_hal_rng.h"
 
@@ -72,6 +76,8 @@ static_assert(ETHARP_HWADDR_LEN == 6);
  *
  */
 
+#define ESP_UART_HANDLE UART_HANDLE_FOR(esp)
+
 enum ESPIFOperatingMode {
     ESPIF_UNINITIALIZED_MODE,
     ESPIF_WAIT_INIT,
@@ -90,7 +96,13 @@ enum MessageType {
     MSG_INTRON = 5,
 };
 
+#if PRINTER_TYPE == PRINTER_PRUSA_XL
+// ESP32 FW version
+static const uint32_t SUPPORTED_FW_VERSION = 8;
+#else
+// ESP8266 FW version
 static const uint32_t SUPPORTED_FW_VERSION = 9;
+#endif
 
 // NIC state
 static std::atomic<uint16_t> fw_version;
@@ -173,8 +185,13 @@ static err_t espif_transmit_data(uint8_t *data, size_t len) {
     if (!is_running(esp_operating_mode)) {
         return ERR_USE;
     }
+    // record metrics↵
+    static metric_t metric_esp_out = METRIC("esp_out", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+    static uint32_t bytes_sent = 0;
+    bytes_sent += len;
+    metric_record_custom(&metric_esp_out, " sent=%" PRIu32 "i", bytes_sent);
 
-    int ret = HAL_UART_Transmit(&huart6, data, len, len * CHARACTER_TIMEOUT_MS);
+    int ret = HAL_UART_Transmit(&ESP_UART_HANDLE, data, len, len * CHARACTER_TIMEOUT_MS);
     if (ret == HAL_OK) {
         return ERR_OK;
     } else {
@@ -185,14 +202,14 @@ static err_t espif_transmit_data(uint8_t *data, size_t len) {
 
 static err_t espif_reconfigure_uart(const uint32_t baudrate) {
     log_info(ESPIF, "Reconfiguring UART for %d baud", baudrate);
-    huart6.Init.BaudRate = baudrate;
-    int hal_uart_res = HAL_UART_Init(&huart6);
+    ESP_UART_HANDLE.Init.BaudRate = baudrate;
+    int hal_uart_res = HAL_UART_Init(&ESP_UART_HANDLE);
     if (hal_uart_res != HAL_OK) {
         log_error(ESPIF, "ESP LL: HAL_UART_Init failed with: %d", hal_uart_res);
         return ERR_IF;
     }
 
-    int hal_dma_res = HAL_UART_Receive_DMA(&huart6, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
+    int hal_dma_res = HAL_UART_Receive_DMA(&ESP_UART_HANDLE, (uint8_t *)dma_buffer_rx, RX_BUFFER_LEN);
     if (hal_dma_res != HAL_OK) {
         log_error(ESPIF, "ESP LL: HAL_UART_Receive_DMA failed with: %d", hal_dma_res);
         return ERR_IF;
@@ -205,7 +222,8 @@ void espif_input_once(struct netif *netif) {
     /* Read data */
     size_t pos = 0;
 
-    uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(huart6.hdmarx); // no. of bytes left for buffer full
+    /* Read data */
+    uint32_t dma_bytes_left = __HAL_DMA_GET_COUNTER(ESP_UART_HANDLE.hdmarx); // no. of bytes left for buffer full
     pos = sizeof(dma_buffer_rx) - dma_bytes_left;
     if (pos != old_dma_pos && is_running(esp_operating_mode)) {
         if (pos > old_dma_pos) {
@@ -267,6 +285,12 @@ static void process_link_change(bool link_up, struct netif *netif) {
 static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     log_debug(ESPIF, "Received ESP data len: %d", size);
     esp_detected = true;
+
+    // record metrics
+    static metric_t metric_esp_in = METRIC("esp_in", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+    static uint32_t bytes_received = 0;
+    bytes_received += size;
+    metric_record_custom(&metric_esp_in, " recv=%" PRIu32 "i", bytes_received);
 
     static enum ProtocolState {
         Intron,
@@ -506,7 +530,7 @@ static void force_down() {
     process_link_change(false, iface);
 }
 
-static void reset() {
+static void reset(const bool take_down_interfaces = true) {
     // Reset our expectation of the intron, the ESP will forget the
     // auto-generated one.
     xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
@@ -515,7 +539,9 @@ static void reset() {
     }
     xSemaphoreGive(uart_write_mutex);
 
-    force_down();
+    if (take_down_interfaces) {
+        force_down();
+    }
 
     // Capture this task handle to manage wakeup from input thread
     init_task_handle = xTaskGetCurrentTaskHandle();
@@ -525,6 +551,26 @@ static void reset() {
     hard_reset_device();
     esp_operating_mode = ESPIF_WAIT_INIT;
 }
+
+err_t espif_init_hw() {
+    log_info(ESPIF, "LwIP init hw");
+    if (uart_write_mutex) {
+        log_error(ESPIF, "Already initialized !!!");
+        assert(0);
+        return ERR_ALREADY;
+    }
+
+    espif_reconfigure_uart(NIC_UART_BAUDRATE);
+    esp_operating_mode = ESPIF_WAIT_INIT;
+
+    // Create mutex to protect UART writes
+    uart_write_mutex = xSemaphoreCreateMutex();
+    if (!uart_write_mutex) {
+        return ERR_IF;
+    }
+
+    return ERR_OK;
+};
 
 /**
  * @brief Initalize ESPIF network interface
@@ -536,24 +582,19 @@ static void reset() {
  */
 err_t espif_init(struct netif *netif) {
     log_info(ESPIF, "LwIP init");
-    if (uart_write_mutex) {
-        log_error(ESPIF, "Already initialized !!!");
-        assert(0);
-        return ERR_ALREADY;
-    }
+
+#if BOARD_VER_EQUAL_TO(0, 5, 0)
+    // This is temporary, remove once everyone has compatible hardware.
+    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+
+    #if HAS_EMBEDDED_ESP32()
+    wait_for_dependecies(ESP_FLASHED);
+    #endif
+#endif
 
     struct netif *previous = active_esp_netif.exchange(netif);
     assert(previous == nullptr);
     (void)previous; // Avoid warnings in release
-
-    espif_reconfigure_uart(NIC_UART_BAUDRATE);
-    esp_operating_mode = ESPIF_WAIT_INIT;
-
-    // Create mutex to protect UART writes
-    uart_write_mutex = xSemaphoreCreateMutex();
-    if (!uart_write_mutex) {
-        return ERR_IF;
-    }
 
     // Initialize lwip netif
     netif->name[0] = 'w';
@@ -574,7 +615,7 @@ err_t espif_init(struct netif *netif) {
     return ERR_OK;
 }
 
-void espif_flash_initialize() {
+void espif_flash_initialize(const bool take_down_interfaces) {
     // NOTE: There is no extra synchronization with reader thread. This assumes
     // it is not a problem if reader thread reads some garbage until it notices
     // operating mode change.
@@ -586,21 +627,27 @@ void espif_flash_initialize() {
     esp_operating_mode = ESPIF_FLASHING_MODE;
     espif_reconfigure_uart(FLASH_UART_BAUDRATE);
     loader_stm32_config_t loader_config = {
-        .huart = &huart6,
+        .huart = &ESP_UART_HANDLE,
         .port_io0 = GPIOE,
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+        .pin_num_io0 = GPIO_PIN_15,
+#else
         .pin_num_io0 = GPIO_PIN_6,
+#endif
         .port_rst = GPIOC,
         .pin_num_rst = GPIO_PIN_13,
     };
     loader_port_stm32_init(&loader_config);
     xSemaphoreGive(uart_write_mutex);
-    force_down();
+    if (take_down_interfaces) {
+        force_down();
+    }
 }
 
 void espif_flash_deinitialize() {
     espif_reconfigure_uart(NIC_UART_BAUDRATE);
     esp_operating_mode = ESPIF_RUNNING_MODE;
-    reset();
+    reset(false);
 }
 
 /**

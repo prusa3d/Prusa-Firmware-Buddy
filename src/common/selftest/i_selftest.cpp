@@ -1,8 +1,6 @@
 // selftest.cpp
 
 #include "i_selftest.hpp"
-#include <fcntl.h>
-#include <unistd.h>
 #include "stdarg.h"
 #include "log.h"
 #include "app.h"
@@ -10,14 +8,13 @@
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
-#include "filament_sensor_api.hpp"
+#include "filament_sensors_handler.hpp"
 
 LOG_COMPONENT_DEF(Selftest, LOG_SEVERITY_DEBUG);
 
 ISelftest::ISelftest()
     : m_Time(0)
-    , m_fd(0)
-    , m_filIsValid(false) {
+    , m_USBLog_fp(NULL) {
 }
 
 void ISelftest::phaseStart() {
@@ -39,55 +36,63 @@ bool ISelftest::phaseWait() {
     if (tick == 0) {
         tick = m_Time;
         return true;
-    } else if ((m_Time - tick) < 2000)
+    } else if ((m_Time - tick) < 2000) {
         return true;
+    }
     tick = 0;
     return false;
 }
 
 void ISelftest::log_open() {
-    // TODO
-    /*
+#ifndef _DEBUG
+    return; // Enabling USB logs only in debug builds
+#endif      // _DEBUG
+
     const char *suffix = get_log_suffix();
-
     char fname[64];
-
     serial_nr_t sn;
-    uint8_t sn_length =  otp_get_serial_nr(&sn);
-
+    uint8_t sn_length = otp_get_serial_nr(&sn);
     static const char unk[] = "unknown";
     char const *serial = sn_length != 0 ? sn.txt : unk;
-
     snprintf(fname, sizeof(fname), "/usb/test_%s%s.txt", serial, suffix);
-    m_fd = open(fname, O_WRONLY | O_CREAT);
-    if (m_fd >= 0) {
-        m_filIsValid = true;
+
+    m_USBLog_fp = fopen(fname, "w+");
+    if (m_USBLog_fp) {
         log_printf("SELFTEST START\n");
         log_printf("printer serial: %s\n\n", serial);
-    } else
-        m_filIsValid = false;
-    */
+    }
 }
 
 void ISelftest::log_close() {
-    if (m_filIsValid) {
-        log_printf("SELFTEST END\n");
-        close(m_fd);
-        m_filIsValid = false;
+    if (!m_USBLog_fp) {
+        return;
     }
+    log_printf("SELFTEST END\n");
+    fclose(m_USBLog_fp);
+    m_USBLog_fp = NULL;
 }
 
-int ISelftest::log_printf(const char *fmt, ...) {
+void ISelftest::log_printf(const char *fmt, ...) {
+    if (!m_USBLog_fp) {
+        return;
+    }
     char line[SELFTEST_MAX_LOG_PRINTF];
     va_list va;
     va_start(va, fmt);
-    int len = vsnprintf(line, SELFTEST_MAX_LOG_PRINTF, fmt, va);
+    int str_len = vsnprintf(line, SELFTEST_MAX_LOG_PRINTF, fmt, va);
     va_end(va);
-    if (m_filIsValid) {
-        write(m_fd, line, len);
-        fsync(m_fd);
+
+    while (str_len > 0) {
+        int chunk_size = fprintf(m_USBLog_fp, line);
+        if (chunk_size < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+            continue;
+        }
+        if (chunk_size < 0) {
+            return;
+        }
+        str_len -= chunk_size;
     }
-    return len;
+    return;
 }
 
 bool ISelftest::abort_part(selftest::IPartHandler **pppart) {

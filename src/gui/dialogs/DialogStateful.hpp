@@ -48,13 +48,14 @@ protected:
     window_progress_t progress;
     window_text_t label;
 
-    uint8_t phase;
+    std::optional<uint8_t> phase = std::nullopt;
 
     virtual bool can_change(uint8_t phase) = 0;
     // must be virtual because of `states` list is in template protected
     virtual void phaseEnter() = 0;
     virtual void phaseExit() = 0;
     virtual bool change(uint8_t phase, fsm::PhaseData data) override;
+    virtual float deserialize_progress(fsm::PhaseData data) const { return 0.F; }
 
     static Rect16 get_title_rect(Rect16 rect);
     static Rect16 get_progress_rect(Rect16 rect);
@@ -66,7 +67,7 @@ public:
 
 /*****************************************************************************/
 //parent for stateful dialogs dialog
-//use one of enumclass from "client_response.hpp" as T
+//use one of enum class from "client_response.hpp" as T
 template <class T>
 class DialogStateful : public IDialogStateful {
 public:
@@ -89,16 +90,22 @@ protected:
     virtual bool can_change(uint8_t phase) { return phase < SZ; }
     // get arguments callbacks and call them
     virtual void phaseEnter() {
-        T fsm_phase = GetEnumFromPhaseIndex<T>(phase);
+        if (!phase)
+            return;
+
+        T fsm_phase = GetEnumFromPhaseIndex<T>(*phase);
         radio.Change(fsm_phase /*, states[phase].btn_resp, &states[phase].btn_labels*/); // TODO alternative button label support
-        label.SetText(_(states[phase].label));
-        if (states[phase].onEnter) {
-            states[phase].onEnter();
+        label.SetText(_(states[*phase].label));
+        if (states[*phase].onEnter) {
+            states[*phase].onEnter();
         }
     }
     virtual void phaseExit() {
-        if (states[phase].onExit) {
-            states[phase].onExit();
+        if (!phase)
+            return;
+
+        if (states[*phase].onExit) {
+            states[*phase].onExit();
         }
     }
 };

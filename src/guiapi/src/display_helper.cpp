@@ -310,8 +310,7 @@ std::optional<size_ui16_t> characters_meas_text(string_view_utf8 &str, uint16_t 
             }
 
             last_space_index = chars_this_line;
-
-            // DO NOT break!!!
+            [[fallthrough]];
         default:
             if ((chars_this_line + 1) >= max_chars_per_line) {
                 if (!last_space_index)
@@ -395,4 +394,8 @@ size_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *nu
 
 void render_rect(Rect16 rc, color_t clr) {
     display::FillRect(rc, clr);
+}
+
+void render_rounded_rect(Rect16 rc, color_t bg_clr, color_t fg_clr, uint8_t rad, uint8_t flag) {
+    display::DrawRoundedRect(rc, bg_clr, fg_clr, rad, flag);
 }

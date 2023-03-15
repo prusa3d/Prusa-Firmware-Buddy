@@ -25,9 +25,12 @@ class IWiInfo : public AddSuper<WI_LABEL_t> {
 
 protected:
     void printInfo(Rect16 extension_rect, color_t color_back, string_view_utf8 info_str) const;
+    static constexpr uint16_t calculate_extension_width(ExtensionLikeLabel extension_like_label, size_t max_characters) {
+        return max_characters * (extension_like_label == ExtensionLikeLabel::yes ? GuiDefaults::FontMenuItems->w : InfoFont->w);
+    }
 
 public:
-    IWiInfo(string_view_utf8 label, const png::Resource *id_icon, size_t info_len, is_enabled_t enabled, is_hidden_t hidden);
+    IWiInfo(string_view_utf8 label, const png::Resource *id_icon, size_t info_len, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no);
     IWiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const png::Resource *id_icon = nullptr);
 
     virtual void click(IWindowMenu &window_menu) {}
@@ -38,8 +41,8 @@ class WiInfo : public AddSuper<IWiInfo> {
     char information[INFO_LEN];
 
 public:
-    WiInfo(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-        : AddSuper<IWiInfo>(label, id_icon, INFO_LEN, enabled, hidden) {}
+    WiInfo(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
+        : AddSuper<IWiInfo>(label, id_icon, INFO_LEN, enabled, hidden, extension_like_label) {}
     WiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const png::Resource *id_icon = nullptr)
         : WiInfo(label, id_icon, is_enabled_t::yes, hidden) {
         itoa(num_to_print, information, 10);

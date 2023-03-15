@@ -79,6 +79,23 @@ void netdev_set_dhcp(uint32_t);
 void netdev_set_static(uint32_t);
 
 ////////////////////////////////////////////////////////////////////////////
+/// @brief Set device enabled
+///
+/// @param[in] netdev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+/// @param[in] enabled Whenever the device is enabled
+void netdev_set_enabled(const uint32_t netdev_id, const bool enabled);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Get device enabled
+///
+/// @param[in] netdev_id device ID. One of
+///             - #NETDEV_ETH_ID
+///             - #NETDEV_ESP_ID
+bool netdev_is_enabled(const uint32_t netdev_id);
+
+////////////////////////////////////////////////////////////////////////////
 /// @brief Return device id which is currently active for communication
 ///
 /// @return network device id
@@ -128,6 +145,11 @@ void netdev_get_hostname(uint32_t, char *buffer, size_t buffer_len);
 ///             - #NETDEV_ESP_ID
 /// @param[out] ipv4_configuration Structure to store IPv4 configuration
 void netdev_get_ipv4_addresses(uint32_t, lan_t *);
+
+/// Load ini file to both runtime and eeprom configuration.
+///
+/// @return If it was successful.
+bool netdev_load_ini_to_eeprom();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Retrive MAC address

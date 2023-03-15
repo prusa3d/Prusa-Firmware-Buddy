@@ -7,7 +7,7 @@
 #pragma once
 #include "ifooter_item.hpp"
 #include "menu_vars.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 // XYZE position
 template <size_t AXIS>

@@ -11,22 +11,25 @@
 #include "../../lang/string_view_utf8.hpp"
 #include "screen_menu.hpp"
 #include "DialogStateful.hpp"
+#include "fsm_preheat_type.hpp"
 #include "MItem_tools.hpp"
 
 namespace NsPreheat {
-class I_MI_Filament : public WI_INFO_t {
+
+inline constexpr size_t info_len = sizeof("999/999 "); // extra space at the end is intended
+class I_MI_Filament : public WiInfo<info_len> {
 public:
     I_MI_Filament(string_view_utf8 name, unsigned t_noz, unsigned t_bed);
 
 protected:
-    void click_at(filament_t filament_index);
+    void click_at(filament::Type filament_index);
 };
 
-template <filament_t T>
+template <filament::Type T>
 class MI_Filament : public I_MI_Filament {
 public:
     MI_Filament()
-        : I_MI_Filament(_(Filaments::Get(T).name), Filaments::Get(T).nozzle, Filaments::Get(T).heatbed) {}
+        : I_MI_Filament(_(filament::get_description(T).name), filament::get_description(T).nozzle, filament::get_description(T).heatbed) {}
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override {
@@ -52,15 +55,30 @@ protected:
     virtual void click(IWindowMenu &window_menu);
 };
 
-#define ALL_FILAMENTS MI_Filament<filament_t::PLA>,  \
-                      MI_Filament<filament_t::PETG>, \
-                      MI_Filament<filament_t::ASA>,  \
-                      MI_Filament<filament_t::PC>,   \
-                      MI_Filament<filament_t::PVB>,  \
-                      MI_Filament<filament_t::ABS>,  \
-                      MI_Filament<filament_t::HIPS>, \
-                      MI_Filament<filament_t::PP>,   \
-                      MI_Filament<filament_t::FLEX>
+#if (PRINTER_TYPE == PRINTER_PRUSA_IXL)
+    #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,     \
+                          MI_Filament<filament::Type::PETG>,    \
+                          MI_Filament<filament::Type::PETG_NH>, \
+                          MI_Filament<filament::Type::ASA>,     \
+                          MI_Filament<filament::Type::PC>,      \
+                          MI_Filament<filament::Type::PVB>,     \
+                          MI_Filament<filament::Type::ABS>,     \
+                          MI_Filament<filament::Type::HIPS>,    \
+                          MI_Filament<filament::Type::PP>,      \
+                          MI_Filament<filament::Type::PA>,      \
+                          MI_Filament<filament::Type::FLEX>
+#else
+    #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,  \
+                          MI_Filament<filament::Type::PETG>, \
+                          MI_Filament<filament::Type::ASA>,  \
+                          MI_Filament<filament::Type::PC>,   \
+                          MI_Filament<filament::Type::PVB>,  \
+                          MI_Filament<filament::Type::ABS>,  \
+                          MI_Filament<filament::Type::HIPS>, \
+                          MI_Filament<filament::Type::PP>,   \
+                          MI_Filament<filament::Type::PA>,   \
+                          MI_Filament<filament::Type::FLEX>
+#endif
 
 //TODO try to use HIDDEN on return and filament_t::NONE
 //has both return and cooldown
@@ -89,8 +107,11 @@ class DialogMenuPreheat : public AddSuperWindow<IDialogMarlin> {
     window_header_t header;
 
 public:
-    DialogMenuPreheat(string_view_utf8 name, PreheatData type);
+    DialogMenuPreheat(fsm::BaseData data);
 
 protected:
     virtual bool change(uint8_t phase, fsm::PhaseData data) override;
+
+    static PreheatData get_type(fsm::BaseData data);
+    static string_view_utf8 get_title(fsm::BaseData data);
 };

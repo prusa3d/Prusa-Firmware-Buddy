@@ -6,6 +6,7 @@
 #include "main.h"
 #include "adc.hpp"
 #include "timer_defaults.h"
+#include "PCA9557.hpp"
 
 //
 // I2C
@@ -26,6 +27,7 @@ SPI_HandleTypeDef hspi3;
 DMA_HandleTypeDef hdma_spi3_rx;
 DMA_HandleTypeDef hdma_spi3_tx;
 SPI_HandleTypeDef hspi4;
+DMA_HandleTypeDef hdma_spi4_tx;
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi5_tx;
 DMA_HandleTypeDef hdma_spi5_rx;
@@ -41,8 +43,12 @@ UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
+UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart3_rx;
+DMA_HandleTypeDef hdma_usart3_tx;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart6_rx;
+DMA_HandleTypeDef hdma_usart6_tx;
 UART_HandleTypeDef huart8;
 DMA_HandleTypeDef hdma_uart8_rx;
 DMA_HandleTypeDef hdma_uart8_tx;
@@ -73,6 +79,10 @@ TIM_HandleTypeDef htim14;
 
 RTC_HandleTypeDef hrtc;
 RNG_HandleTypeDef hrng;
+
+#if BOARD_IS_XLBUDDY
+buddy::hw::PCA9557 io_expander1(I2C_HANDLE_FOR(io_extender), 0x1);
+#endif
 
 //
 // Initialization
@@ -128,11 +138,24 @@ void hw_gpio_init() {
     //       followed by ESP GPIO low as this sequence can switch esp to boot mode */
 
     // Configure ESP GPIO0 (PROG, High for ESP module boot from Flash)
-    GPIO_InitStruct.Pin = GPIO_PIN_6;
+    GPIO_InitStruct.Pin =
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+        GPIO_PIN_15
+#else
+        GPIO_PIN_6
+#endif
+        ;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE,
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+        GPIO_PIN_15
+#else
+        GPIO_PIN_6
+#endif
+        ,
+        GPIO_PIN_SET);
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
     // Configure GPIO pins : ESP_RST_Pin
@@ -150,6 +173,9 @@ void hw_gpio_init() {
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     PIN_TABLE(CONFIGURE_PINS);
+#if defined(EXTENDER_PIN_TABLE)
+    EXTENDER_PIN_TABLE(CONFIGURE_PINS);
+#endif
 }
 
 void hw_dma_init() {
@@ -157,9 +183,52 @@ void hw_dma_init() {
     __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
 
+#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+    // DMA1_Stream3_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+#endif
+
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     // DMA1_Stream0_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+    // DMA1_Stream2_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+    // DMA1_Stream6_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+    // DMA2_Stream3_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+    // DMA2_Stream4_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
+    // DMA2_Stream5_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
+    // DMA2_Stream6_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
+    // DMA2_Stream7_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+#endif
+    // DMA1_Stream0_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+
+#if BOARD_IS_XLBUDDY
+    // DMA1_Stream1_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+
+    // DMA2_Stream0_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+#endif
+
     // DMA1_Stream4_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
@@ -211,14 +280,58 @@ void hw_adc1_init() {
     config_adc(&hadc1, ADC1, AdcChannel::ADC1_CH_CNT);
 
     // Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+#if (BOARD_IS_BUDDY)
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::board_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::pinda_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::heatbed_U);
+#elif (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
+    config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
+    config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
+    config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::heatbreak_T);
+    config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::hotend_U);
+#elif (BOARD_IS_XBUDDY && BOARD_VER_LOWER_THAN(0, 3, 4))
+    config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
+    config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
+    config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
+    config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::heatbreak_T);
+    config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::hotend_U);
+#elif BOARD_IS_XLBUDDY
+    config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::dwarf_I);
+    config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::mux1_y);
+    config_adc_ch(&hadc1, ADC_CHANNEL_8, AdcChannel::mux1_x);
+#else
+    #error Unknown board
+#endif
 
     HAL_NVIC_DisableIRQ(DMA2_Stream4_IRQn); // Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
 }
+
+#ifdef HAS_ADC3
+void hw_adc3_init() {
+    // Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+    config_adc(&hadc3, ADC3, AdcChannel::ADC3_CH_CNT);
+
+    // Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+    #if BOARD_IS_XBUDDY
+    config_adc_ch(&hadc3, ADC_CHANNEL_4, AdcChannel::MMU_I);
+    config_adc_ch(&hadc3, ADC_CHANNEL_8, AdcChannel::board_T);
+    config_adc_ch(&hadc3, ADC_CHANNEL_9, AdcChannel::hotend_I);
+    config_adc_ch(&hadc3, ADC_CHANNEL_14, AdcChannel::board_I);
+    config_adc_ch(&hadc3, ADC_CHANNEL_15, AdcChannel::case_T);
+    #elif BOARD_IS_XLBUDDY
+    config_adc_ch(&hadc3, ADC_CHANNEL_8, AdcChannel::board_T);
+    config_adc_ch(&hadc3, ADC_CHANNEL_4, AdcChannel::mux2_y);
+    config_adc_ch(&hadc3, ADC_CHANNEL_10, AdcChannel::mux2_x);
+
+    #else
+        #error Unknown board
+    #endif
+
+    HAL_NVIC_DisableIRQ(DMA2_Stream1_IRQn); // Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
+}
+#endif
 
 void hw_uart1_init() {
     huart1.Instance = USART1;
@@ -248,6 +361,20 @@ void hw_uart2_init() {
     }
 }
 
+void hw_uart3_init() {
+    huart3.Instance = USART3;
+    huart3.Init.BaudRate = 230400;
+    huart3.Init.WordLength = UART_WORDLENGTH_8B;
+    huart3.Init.StopBits = UART_STOPBITS_1;
+    huart3.Init.Parity = UART_PARITY_NONE;
+    huart3.Init.Mode = UART_MODE_TX_RX;
+    huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+    if (HAL_UART_Init(&huart3) != HAL_OK) {
+        Error_Handler();
+    }
+}
+
 void hw_uart6_init() {
     huart6.Instance = USART6;
     huart6.Init.BaudRate = 115200;
@@ -262,9 +389,25 @@ void hw_uart6_init() {
     }
 }
 
+#if MCU_IS_STM32F42X()
+void hw_uart8_init() {
+    huart8.Instance = UART8;
+    huart8.Init.BaudRate = 4600000;
+    huart8.Init.WordLength = UART_WORDLENGTH_8B;
+    huart8.Init.StopBits = UART_STOPBITS_1;
+    huart8.Init.Parity = UART_PARITY_NONE;
+    huart8.Init.Mode = UART_MODE_TX_RX;
+    huart8.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart8.Init.OverSampling = UART_OVERSAMPLING_8;
+    if (HAL_UART_Init(&huart8) != HAL_OK) {
+        Error_Handler();
+    }
+}
+#endif
+
 void hw_i2c1_init() {
     hi2c1.Instance = I2C1;
-    hi2c1.Init.ClockSpeed = 100000;
+    hi2c1.Init.ClockSpeed = 400000;
 
     hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
     hi2c1.Init.OwnAddress1 = 0;
@@ -276,6 +419,70 @@ void hw_i2c1_init() {
     if (HAL_I2C_Init(&hi2c1) != HAL_OK) {
         Error_Handler();
     }
+
+#if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
+    // Configure Analog filter
+    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
+        Error_Handler();
+    }
+    // Configure Digital filter
+    if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK) {
+        Error_Handler();
+    }
+#endif
+}
+
+void hw_i2c2_init() {
+    hi2c2.Instance = I2C2;
+    hi2c2.Init.ClockSpeed = 100000;
+
+    hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+    hi2c2.Init.OwnAddress1 = 0;
+    hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+    hi2c2.Init.OwnAddress2 = 0;
+    hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+    hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+    if (HAL_I2C_Init(&hi2c2) != HAL_OK) {
+        Error_Handler();
+    }
+
+#if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
+    // Configure Analog filter
+    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
+        Error_Handler();
+    }
+    // Configure Digital filter
+    if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK) {
+        Error_Handler();
+    }
+#endif
+}
+
+void hw_i2c3_init() {
+    hi2c3.Instance = I2C3;
+    hi2c3.Init.ClockSpeed = 100000;
+    hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
+    hi2c3.Init.OwnAddress1 = 0;
+    hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+    hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+    hi2c3.Init.OwnAddress2 = 0;
+    hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+    hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+    if (HAL_I2C_Init(&hi2c3) != HAL_OK) {
+        Error_Handler();
+    }
+
+#if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
+    // Configure Analogue filter
+    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
+        Error_Handler();
+    }
+    // Configure Digital filter
+    if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK) {
+        Error_Handler();
+    }
+#endif
 }
 
 void hw_spi2_init() {
@@ -286,7 +493,13 @@ void hw_spi2_init() {
     hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi2.Init.NSS = SPI_NSS_SOFT;
-    hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    hspi2.Init.BaudRatePrescaler =
+#if spi_accelerometer == 2
+        SPI_BAUDRATEPRESCALER_8
+#elif spi_lcd == 2
+        SPI_BAUDRATEPRESCALER_2
+#endif
+        ;
     hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
     hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -304,7 +517,11 @@ void hw_spi3_init() {
     hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi3.Init.NSS = SPI_NSS_SOFT;
+#if (BOARD_IS_BUDDY)
     hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+#else
+    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+#endif
     hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
     hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -313,6 +530,66 @@ void hw_spi3_init() {
         Error_Handler();
     }
 }
+
+#if MCU_IS_STM32F42X()
+void hw_spi4_init() {
+    hspi4.Instance = SPI4;
+    hspi4.Init.Mode = SPI_MODE_MASTER;
+    hspi4.Init.Direction = SPI_DIRECTION_2LINES;
+    hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi4.Init.CLKPolarity = SPI_POLARITY_LOW;
+    hspi4.Init.CLKPhase = SPI_PHASE_1EDGE;
+    hspi4.Init.NSS = SPI_NSS_SOFT;
+    hspi4.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+    hspi4.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    hspi4.Init.TIMode = SPI_TIMODE_DISABLE;
+    hspi4.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    hspi4.Init.CRCPolynomial = 10;
+    if (HAL_SPI_Init(&hspi4) != HAL_OK) {
+        Error_Handler();
+    }
+}
+
+void hw_spi5_init() {
+    hspi5.Instance = SPI5;
+    hspi5.Init.Mode = SPI_MODE_MASTER;
+    hspi5.Init.Direction = SPI_DIRECTION_2LINES;
+    hspi5.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi5.Init.CLKPolarity = SPI_POLARITY_LOW;
+    hspi5.Init.CLKPhase = SPI_PHASE_1EDGE;
+    hspi5.Init.NSS = SPI_NSS_SOFT;
+    hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    hspi5.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    hspi5.Init.TIMode = SPI_TIMODE_DISABLE;
+    hspi5.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    hspi5.Init.CRCPolynomial = 10;
+    if (HAL_SPI_Init(&hspi5) != HAL_OK) {
+        Error_Handler();
+    }
+}
+
+void hw_spi6_init() {
+    hspi6.Instance = SPI6;
+    hspi6.Init.Mode = SPI_MODE_MASTER;
+    hspi6.Init.Direction = SPI_DIRECTION_2LINES;
+    hspi6.Init.DataSize = SPI_DATASIZE_8BIT;
+    hspi6.Init.CLKPolarity = SPI_POLARITY_LOW;
+    hspi6.Init.CLKPhase = SPI_PHASE_1EDGE;
+    hspi6.Init.NSS = SPI_NSS_SOFT;
+    #if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK404)
+    hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    #else
+    hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+    #endif
+    hspi6.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    hspi6.Init.TIMode = SPI_TIMODE_DISABLE;
+    hspi6.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    hspi6.Init.CRCPolynomial = 10;
+    if (HAL_SPI_Init(&hspi6) != HAL_OK) {
+        Error_Handler();
+    }
+}
+#endif
 
 void hw_tim1_init() {
     TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
@@ -408,7 +685,11 @@ void hw_tim3_init() {
     TIM_OC_InitTypeDef sConfigOC = { 0 };
 
     htim3.Instance = TIM3;
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
+    htim3.Init.Prescaler = 11; // 36us, 33.0kHz
+#else
     htim3.Init.Prescaler = TIM3_default_Prescaler; // 49ms, 20.3Hz
+#endif
     htim3.Init.CounterMode = TIM_COUNTERMODE_DOWN;
     htim3.Init.Period = TIM3_default_Period; // 0xff was 42000
     htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

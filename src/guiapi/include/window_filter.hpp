@@ -75,7 +75,7 @@ public:
     constexpr WinFilterIntersectingDialog(Rect16 rc)
         : rect(rc) {}
     virtual bool operator()(const window_t &win) const override {
-        return (win.IsDialog() && rect.HasIntersection(win.GetRect()));
+        return (win.IsDialog() && rect.HasIntersection(win.GetRect()) && win.IsVisible());
     };
 };
 

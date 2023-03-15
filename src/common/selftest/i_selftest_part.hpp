@@ -5,7 +5,7 @@
  * @date 2021-10-14
  */
 #pragma once
-#include "selftest_eeprom.hpp"
+#include "selftest_result_type.hpp"
 #include <array>
 #include "selftest_sub_state.hpp"
 #include "selftest_loop_result.hpp"
@@ -27,7 +27,7 @@ public:
     inline int IndexFailed() const { return state_count + 2; }
 
     bool Loop();
-    TestResult_t GetResult() const; // used to write status to eeprom
+    TestResult GetResult() const; // used to write status to eeprom
 
     static PhasesSelftest GetFsmPhase() { return fsm_phase_index; }
     static void SetFsmPhase(PhasesSelftest phase) { fsm_phase_index = phase; }

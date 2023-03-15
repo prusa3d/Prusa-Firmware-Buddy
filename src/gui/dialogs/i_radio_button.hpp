@@ -81,4 +81,9 @@ protected:
     static size_t cnt_labels(const PhaseTexts *labels);
     static size_t cnt_responses(Responses_t resp);
     static size_t cnt_buttons(const PhaseTexts *labels, Responses_t resp);
+
+    //radio buttons currently do not support layout change
+    //it is done by having multiple radio buttons and show/hide them
+    virtual void setRedLayout() override {}
+    virtual void setBlackLayout() override {}
 };

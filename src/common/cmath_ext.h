@@ -28,11 +28,6 @@
     ({ __typeof__ (x) _x = (x); \
     (_x >= 0) - (_x < 0); })
 
-/// \returns positive value always
-#define ABS(a) \
-    ({ __typeof__ (a) _a = (a); \
-    _a >= 0 ? _a : (-_a); })
-
 /// swap values
 #define SWAP(a, b) \
     ({ __typeof__ (a) c = (a); \

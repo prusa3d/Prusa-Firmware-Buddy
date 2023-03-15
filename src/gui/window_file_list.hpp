@@ -57,7 +57,6 @@ protected:
     LDV ldv;
     static char *root; // this is a Short-File-Name path to the root of the dialog
 
-    static constexpr const char *home_str_en = N_("Main"); // @@TODO reuse from elsewhere ...
     color_t color_text;
     font_t *font;
 
@@ -99,5 +98,9 @@ protected:
     Rect16 itemRect(int index) const; // get rectangle of item with target index
     string_view_utf8 itemText(int index) const;
     const png::Resource *itemIcon(int index) const;
-    FL_LABEL activeItem; ///< used for text rolling
+    FL_LABEL activeItem;   ///< used for text rolling
+    MI_RETURN return_item; ///< used for return item
+
+private:
+    [[nodiscard]] bool is_return_item(const int index) const;
 };

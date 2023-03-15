@@ -10,7 +10,13 @@
 
 /*****************************************************************************/
 //parent alias
-using ScreenMenuTemperature__ = ScreenMenu<EFooter::On, MI_RETURN, MI_NOZZLE, MI_HEATBED, MI_PRINTFAN, MI_COOLDOWN>;
+using ScreenMenuTemperature__ = ScreenMenu<
+    EFooter::On, MI_RETURN, MI_HEATBED,
+    MI_NOZZLE<0>,
+#if HAS_TOOLCHANGER()
+    MI_NOZZLE<1>, MI_NOZZLE<2>, MI_NOZZLE<3>, MI_NOZZLE<4>,
+#endif
+    MI_PRINTFAN, MI_COOLDOWN>;
 
 class ScreenMenuTemperature : public ScreenMenuTemperature__ {
 public:

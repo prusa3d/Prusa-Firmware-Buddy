@@ -54,6 +54,8 @@ static bool read_line(FILE *fp, SLine &line) {
             return line.size > 0;
         if (fread(&byte, 1, 1, fp) == 0)
             return false;
+        if (byte == '\r') // ignore windows line endings
+            continue;
         if (byte == '\n')
             break;
         line.AppendByte(byte);
@@ -124,4 +126,32 @@ bool f_gcode_get_next_comment_assignment(FILE *fp, char *name_buffer,
 
         return true;
     }
+}
+
+std::optional<std::span<char>> f_gcode_iter_items(std::span<char> &buffer, char separator) {
+    // skip leading spaces
+    while (buffer[0] && isspace(*buffer.data())) {
+        buffer = buffer.subspan(1);
+    }
+
+    // find end of the item
+    size_t item_length = 0;
+    for (; item_length < buffer.size(); item_length++) {
+        if (buffer[item_length] == 0 || buffer[item_length] == separator) {
+            break;
+        }
+    }
+    std::span<char> next_buffer = buffer.subspan(buffer[item_length] == separator ? item_length + 1 : item_length);
+
+    // strip trailing whitespaces
+    while (item_length && isspace(buffer[item_length - 1])) {
+        item_length--;
+    }
+
+    auto item = buffer.subspan(0, item_length);
+    buffer = next_buffer;
+    if (item_length == 0) {
+        return std::nullopt;
+    }
+    return item;
 }

@@ -6,8 +6,33 @@
 #include "sound.hpp"
 #include "DialogHandler.hpp"
 #include "window_dlg_load_unload.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include "module/prusa/toolchanger.h"
+    #include "window_tool_action_box.hpp"
+    #include "screen_menu_filament_changeall.hpp"
+#endif
+
+#if HAS_TOOLCHANGER()
+/// @brief  will show dialog where user can pick tool
+/// @param is_tool_enabled callback function that should return true when tool is available for that action, false when not available
+[[nodiscard]] ToolBox::DialogResult show_tool_selector_dialog(ToolBox::DialogToolActionBox<ToolBox::MenuPickAndGo>::IsToolEnabledFP available_for_tool = nullptr) {
+    if (prusa_toolchanger.is_toolchanger_enabled()) {
+        ToolBox::DialogToolActionBox<ToolBox::MenuPickAndGo> d;
+        if (available_for_tool) {
+            d.DisableNotAvailable(available_for_tool);
+        }
+        d.Preselect(prusa_toolchanger.get_active_tool_nr() + 1); // PickAndGo has return;
+        d.MakeBlocking();
+        Screens::Access()->Get()->Validate();
+        return d.get_result();
+    }
+
+    return ToolBox::DialogResult::Unknown;
+}
+#endif
 
 /*****************************************************************************/
 //MI_LOAD
@@ -15,7 +40,13 @@ MI_LOAD::MI_LOAD()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_LOAD::Do() {
-    if ((Filaments::CurrentIndex() == filament_t::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
+#if HAS_TOOLCHANGER()
+    if (show_tool_selector_dialog() == ToolBox::DialogResult::Return) {
+        return;
+    }
+#endif
+    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+    if ((current_filament == filament::Type::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
         marlin_gcode("M701 W2"); // load with return option
     }
 }
@@ -26,6 +57,11 @@ MI_UNLOAD::MI_UNLOAD()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_UNLOAD::Do() {
+#if HAS_TOOLCHANGER()
+    if (show_tool_selector_dialog() == ToolBox::DialogResult::Return) {
+        return;
+    }
+#endif
     marlin_gcode("M702 W2"); // unload with return option
     Sound_Stop();            // TODO what is Sound_Stop(); doing here?
 }
@@ -35,10 +71,47 @@ void MI_UNLOAD::Do() {
 MI_CHANGE::MI_CHANGE()
     : MI_event_dispatcher(_(label)) {}
 
+bool MI_CHANGE::AvailableForTool(uint8_t tool) {
+    bool has_filament_eeprom = filament::get_type_in_extruder(tool) != filament::Type::NONE;
+    //todo: this should also take into account if filament is really in filament sensor
+    return has_filament_eeprom;
+}
+
+bool MI_CHANGE::AvailableForAnyTool() {
+    HOTEND_LOOP() {
+        if (AvailableForTool(e))
+            return true;
+    }
+    return false;
+}
+
+void MI_CHANGE::UpdateEnableState() {
+    if (!AvailableForAnyTool())
+        Disable();
+    else
+        Enable();
+}
+
 void MI_CHANGE::Do() {
+#if HAS_TOOLCHANGER()
+    if (show_tool_selector_dialog(AvailableForTool) == ToolBox::DialogResult::Return) {
+        return;
+    }
+#endif
     marlin_gcode("M1600 R"); // non print filament change
     Sound_Stop();            // TODO what is Sound_Stop(); doing here?
 }
+
+#if HAS_TOOLCHANGER()
+/*****************************************************************************/
+//MI_CHANGEALL
+MI_CHANGEALL::MI_CHANGEALL()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
+
+void MI_CHANGEALL::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenChangeAllFilaments>);
+}
+#endif /*HAS_TOOLCHANGER()*/
 
 /*****************************************************************************/
 //MI_PURGE
@@ -46,7 +119,42 @@ MI_PURGE::MI_PURGE()
     : MI_event_dispatcher(_(label)) {}
 
 void MI_PURGE::Do() {
+#if HAS_TOOLCHANGER()
+    if (show_tool_selector_dialog(AvailableForTool) == ToolBox::DialogResult::Return) {
+        return;
+    }
+#endif
     marlin_gcode("M701 L0 W2"); // load with distance 0 and return option
+}
+
+bool MI_PURGE::AvailableForTool(uint8_t tool) {
+    bool has_filament_eeprom = filament::get_type_in_extruder(tool) != filament::Type::NONE;
+    bool has_filament_fs = true;
+    if (tool == marlin_vars()->active_extruder) {
+        //todo: Do this also for inactive extruders, when filament sensors are ready to supply info for non-picked tools
+        FilamentSensors::BothSensors sensors = FSensors_instance().GetBothSensors();
+#if PRINTER_TYPE == PRINTER_PRUSA_XL
+        has_filament_fs = (sensors.extruder == fsensor_t::HasFilament && sensors.side == fsensor_t::HasFilament);
+#else
+        has_filament_fs = sensors.extruder == fsensor_t::HasFilament;
+#endif
+    }
+    return has_filament_eeprom && has_filament_fs;
+}
+
+bool MI_PURGE::AvailableForAnyTool() {
+    HOTEND_LOOP() {
+        if (AvailableForTool(e))
+            return true;
+    }
+    return false;
+}
+
+void MI_PURGE::UpdateEnableState() {
+    if (!AvailableForAnyTool())
+        Disable();
+    else
+        Enable();
 }
 
 /*****************************************************************************/

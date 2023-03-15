@@ -1,15 +1,14 @@
 // marlin_server.cpp
 
-#include "marlin_server.h"
 #include "marlin_server.hpp"
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h> //strncmp
 #include <assert.h>
+#include <charconv>
 
-#include "marlin_server.h"
-#include "marlin_server.hpp"
+#include "marlin_events.h"
 #include "marlin_print_preview.hpp"
 #include "app.h"
 #include "bsod.h"
@@ -37,6 +36,11 @@
 #include "../Marlin/src/gcode/gcode.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "../Marlin/src/feature/print_area.h"
+#include "../Marlin/src/feature/prusa/MMU2/mmu2mk404.h"
+
+#if ENABLED(CANCEL_OBJECTS)
+    #include "../Marlin/src/feature/cancel_object.h"
+#endif
 
 #include "hwio.h"
 #include "eeprom.h"
@@ -46,15 +50,19 @@
 #include "fsm_types.hpp"
 #include "odometer.hpp"
 #include "metric.h"
+#if HAS_LEDS
+    #include "led_animations/printer_animation_state.hpp"
+#endif
+#include "fanctl.hpp"
 
 #include <option/has_gui.h>
+#include <option/has_toolchanger.h>
 
 #if HAS_SELFTEST
     #include "printer_selftest.hpp"
 #endif
 
 #include "SteelSheets.hpp"
-static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "Z_probe.hpp" //get_Z_probe_endstop_hits
@@ -69,22 +77,24 @@ static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
     #include "power_panic.hpp"
 #endif
 
-static_assert(MARLIN_VAR_MAX < 64, "MarlinAPI: Too many variables");
+#if ENABLED(PRUSA_TOOLCHANGER)
+    #include "module/prusa/toolchanger.h"
+#endif
 
 namespace {
 
 struct marlin_server_t {
-    marlin_vars_t vars;                            // cached variables
     uint64_t notify_events[MARLIN_MAX_CLIENTS];    // event notification mask - message filter
     uint64_t notify_changes[MARLIN_MAX_CLIENTS];   // variable change notification mask - message filter
     uint64_t client_events[MARLIN_MAX_CLIENTS];    // client event mask - unsent messages
-    uint64_t client_changes[MARLIN_MAX_CLIENTS];   // client variable change mask - unsent messages
     variant8_t event_messages[MARLIN_MAX_CLIENTS]; // last MARLIN_EVT_Message for clients, cannot use cvariant, destructor would free memory
-    uint64_t update_vars;                          // variable update mask
     marlin_print_state_t print_state;              // printing state (printing, paused, ...)
+#if ENABLED(CRASH_RECOVERY)                        //
+    bool aborting_did_crash_trigger = false;       // To remember crash_s state when aborting
+#endif                                             /*ENABLED(CRASH_RECOVERY)*/
     uint32_t paused_ticks;                         // tick count in moment when printing paused
     resume_state_t resume;                         // resume data (state before pausing)
-    bool enable_nozzle_temp_timeout;               //enables nozzle temperature timeout in print pause
+    bool enable_nozzle_temp_timeout;               // enables nozzle temperature timeout in print pause
     struct {
         uint32_t usr32;
         uint16_t usr16;
@@ -104,13 +114,16 @@ struct marlin_server_t {
     uint8_t pqueue_tail; // copy of planner.block_buffer_tail
     uint8_t pqueue;      // calculated number of records in planner queue
     uint8_t gqueue;      // copy of queue.length - number of commands in gcode queue
-#if ENABLED(CRASH_RECOVERY)
+    //Motion_Parameters motion_param;
+
+#if ENABLED(AXIS_MEASURE)
     /// length of axes measured after crash
     /// negative numbers represent undefined length
     xy_float_t axis_length = { -1, -1 };
     Measure_axis *measure_axis = nullptr;
-#endif // ENABLED(CRASH_RECOVERY)
-#if HAS_BED_PROBE
+#endif // ENABLED(AXIS_MEASURE)
+
+#if HAS_BED_PROBE || ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
     bool mbl_failed;
 #endif
 };
@@ -138,8 +151,9 @@ public:
                 marlin_server.print_state = mpsPausing_Begin;
             }
             if (p_disableHotend) {
-                static_assert(1 == HOTENDS, "Unimplemented for more hotends.");
-                thermalManager.setTargetHotend(0, 0);
+                HOTEND_LOOP() {
+                    thermalManager.setTargetHotend(0, e);
+                }
             }
             m_failed = true;
         }
@@ -181,17 +195,14 @@ private:
 };
 
 #ifdef NEW_FANCTL
-ErrorChecker<WarningType::HotendFanError, true> hotendFanErrorChecker;
+ErrorChecker<WarningType::HotendFanError, true> hotendFanErrorChecker[HOTENDS];
 ErrorChecker<WarningType::PrintFanError, false> printFanErrorChecker;
+#endif
+#ifdef HAS_TEMP_HEATBREAK
+ErrorChecker<WarningType::HeatBreakThermistorFail, true> heatBreakThermistorErrorChecker[HOTENDS];
 #endif
 HotendErrorChecker hotendErrorChecker;
 } //end anonymous namespace
-
-bool can_stop_wait_for_heatup_var = false;
-bool can_stop_wait_for_heatup() { return can_stop_wait_for_heatup_var; }
-void can_stop_wait_for_heatup(bool val) { can_stop_wait_for_heatup_var = val; }
-
-extern "C" {
 
 LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
 
@@ -233,15 +244,11 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg);
 static bool _send_notify_event_to_client(int client_id, osMessageQId queue, MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
 static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue, uint64_t evt_msk);
 static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t usr16);
-static int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var);
-static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk);
-static void _set_notify_change(uint8_t var_id);
 static void _server_update_gqueue(void);
 static void _server_update_pqueue(void);
-static uint64_t _server_update_vars(uint64_t force_update_msk);
+static void _server_update_vars();
 static bool _process_server_request(const char *request);
-static int _server_set_var(const char *const name_val_str);
-static void _server_update_and_notify(int client_id, uint64_t update);
+static void _server_set_var(const char *const name_val_str);
 
 //-----------------------------------------------------------------------------
 // server side functions
@@ -259,14 +266,11 @@ void marlin_server_init(void) {
         marlin_server.notify_changes[i] = 0;                                                                                                                       // by default nothing
     }
     marlin_server_task = osThreadGetId();
-    marlin_server.update_vars = MARLIN_VAR_MSK_DEF;
-    marlin_server.vars.media_LFN = media_print_filename();
-    marlin_server.vars.media_SFN_path = media_print_filepath();
     marlin_server.enable_nozzle_temp_timeout = true;
-    can_stop_wait_for_heatup(false);
-#if HAS_BED_PROBE
+#if HAS_BED_PROBE || ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
     marlin_server.mbl_failed = false;
 #endif
+    marlin_vars()->init();
 }
 
 void print_fan_spd() {
@@ -277,10 +281,10 @@ void print_fan_spd() {
         time = ticks_ms();
         int timediff = time - last_prt;
         if (timediff >= 1000) {
-            serial_echopair_PGM("Tacho_FANPR ", fanCtlPrint.getActualRPM());
+            serial_echopair_PGM("Tacho_FANPR ", fanCtlPrint[active_extruder].getActualRPM());
             serialprintPGM("rpm ");
             SERIAL_EOL();
-            serial_echopair_PGM("Tacho_FANHB ", fanCtlHeatBreak.getActualRPM());
+            serial_echopair_PGM("Tacho_FANHB ", fanCtlHeatBreak[active_extruder].getActualRPM());
             serialprintPGM("rpm ");
             SERIAL_EOL();
             last_prt = time;
@@ -305,30 +309,21 @@ static void print_Z_probe_cnt() {
 }
 #endif
 
-uint64_t server_update_vars() {
+void server_update_vars() {
     uint32_t tick = ticks_ms();
-    uint64_t changes = 0;
     if ((tick - marlin_server.last_update) > MARLIN_UPDATE_PERIOD) {
         marlin_server.last_update = tick;
-        changes = _server_update_vars(marlin_server.update_vars);
+        _server_update_vars();
     }
-    return changes;
 }
 
-void send_notifications_to_clients(uint64_t changes) {
+void send_notifications_to_clients() {
     osMessageQId queue;
     uint64_t msk = 0;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if ((queue = marlin_client_queue[client_id]) != 0) {
-            marlin_server.client_changes[client_id] |= (changes & marlin_server.notify_changes[client_id]);
-            // send change notifications, clear bits for successful sent notification
-            if ((msk = marlin_server.client_changes[client_id]) != 0)
-                marlin_server.client_changes[client_id] &= ~_send_notify_changes_to_client(client_id, queue, msk);
-            // send events to client only if all variables were sent already, otherwise, the message buffer is full
-            // clear bits for successful sent notification
-            if ((marlin_server.client_changes[client_id]) == 0)
-                if ((msk = marlin_server.client_events[client_id]) != 0)
-                    marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
+            if ((msk = marlin_server.client_events[client_id]) != 0)
+                marlin_server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
 }
 
@@ -356,6 +351,15 @@ int marlin_server_cycle(void) {
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     print_Z_probe_cnt();
 #endif
+
+#if HAS_TOOLCHANGER()
+    bool printing = (marlin_server.print_state != mpsIdle)
+        && (marlin_server.print_state != mpsFinished)
+        && (marlin_server.print_state != mpsAborted)
+        && (marlin_server.print_state != mpsPaused);
+    // Check if tool didn't fall off
+    prusa_toolchanger.loop(printing);
+#endif /*HAS_TOOLCHANGER()*/
 
     int count = 0;
     if (marlin_server.flags & MARLIN_SFLG_PENDREQ) {
@@ -397,9 +401,8 @@ int marlin_server_cycle(void) {
     // update pqueue (planner queue)
     _server_update_pqueue();
     // update variables
-
-    uint64_t changes = server_update_vars();
-    send_notifications_to_clients(changes);
+    send_notifications_to_clients();
+    server_update_vars();
 
     if ((marlin_server.flags & MARLIN_SFLG_PROCESS) == 0)
         wdt_iwdg_refresh(); // this prevents iwdg reset while processing disabled
@@ -407,17 +410,11 @@ int marlin_server_cycle(void) {
     return count;
 }
 
-void marlin_server_forced_client_refresh() {
-    FSM_notifier::SendNotification();
-    uint64_t changes = server_update_vars();
-    send_notifications_to_clients(changes);
-}
-
 void static marlin_server_finalize_print() {
 #if ENABLED(POWER_PANIC)
     power_panic::reset();
 #endif
-    Odometer_s::instance().add_time(marlin_server.vars.print_duration);
+    Odometer_s::instance().add_time(marlin_vars()->print_duration);
     print_area.reset_bounding_rect();
 }
 
@@ -435,7 +432,12 @@ static void marlin_server_check_crash() {
         return;
     }
     #endif
-    if (crash_s.get_state() == Crash_s::TRIGGERED_ISR) {
+
+    // Start crash recovery if TRIGGERED, but not if print is already being aborted
+    if ((marlin_server.print_state != mpsAborting_Begin)
+        && ((crash_s.get_state() == Crash_s::TRIGGERED_ISR)
+            || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL)
+            || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH))) {
         marlin_server.print_state = mpsCrashRecovery_Begin;
         return;
     }
@@ -515,10 +517,6 @@ void marlin_server_stop_processing(void) {
     _send_notify_event(MARLIN_EVT_StopProcessing, 0, 0);
 }
 
-marlin_vars_t *marlin_server_vars(void) {
-    return &(marlin_server.vars);
-}
-
 void marlin_server_do_babystep_Z(float offs) {
     babystep.add_steps(Z_AXIS, offs * planner.settings.axis_steps_per_mm[Z_AXIS]);
     babystep.task();
@@ -533,6 +531,16 @@ extern void marlin_server_move_axis(float pos, float feedrate, size_t axis) {
 
 bool marlin_server_enqueue_gcode(const char *gcode) {
     return queue.enqueue_one(gcode);
+}
+
+bool marlin_server_enqueue_gcode_printf(const char *gcode, ...) {
+    char request[MARLIN_MAX_REQUEST];
+    va_list ap;
+    va_start(ap, gcode);
+    const int ret = vsnprintf(request, MARLIN_MAX_REQUEST, gcode, ap);
+    va_end(ap);
+    marlin_server_enqueue_gcode(request);
+    return ret;
 }
 
 bool marlin_server_inject_gcode(const char *gcode) {
@@ -574,22 +582,19 @@ void marlin_server_settings_load(void) {
     Temperature::temp_hotend[0].pid.Kd = eeprom_get_flt(EEVAR_PID_NOZ_D);
     thermalManager.updatePID();
 #endif
-    marlin_server.vars.fan_check_enabled = eeprom_get_bool(EEVAR_FAN_CHECK_ENABLED);
-    marlin_server.vars.fs_autoload_enabled = eeprom_get_bool(EEVAR_FS_AUTOLOAD_ENABLED);
+    marlin_vars()->fan_check_enabled = eeprom_get_bool(EEVAR_FAN_CHECK_ENABLED);
+    marlin_vars()->fs_autoload_enabled = eeprom_get_bool(EEVAR_FS_AUTOLOAD_ENABLED);
 
     job_id = variant8_get_ui16(eeprom_get_var(EEVAR_JOB_ID));
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+    // TODO: This is temporary until better offset store method is implemented
+    prusa_toolchanger.load_tool_offsets();
+#endif
 }
 
 void marlin_server_settings_reset(void) {
     (void)settings.reset();
-}
-
-void marlin_server_manage_heater(void) {
-    thermalManager.manage_heater();
-}
-
-void marlin_server_quick_stop(void) {
-    planner.quick_stop();
 }
 
 uint32_t marlin_server_get_command(void) {
@@ -600,10 +605,10 @@ void marlin_server_set_command(uint32_t command) {
     marlin_server.command = command;
 }
 
-void marlin_server_test_start(uint64_t mask) {
+void marlin_server_test_start(const uint64_t test_mask, const uint8_t tool_mask) {
 #if HAS_SELFTEST
     if (((marlin_server.print_state == mpsIdle) || (marlin_server.print_state == mpsFinished) || (marlin_server.print_state == mpsAborted)) && (!SelftestInstance().IsInProgress())) {
-        SelftestInstance().Start(mask);
+        SelftestInstance().Start(test_mask, tool_mask);
     }
 #endif
 }
@@ -661,9 +666,6 @@ void marlin_server_print_start(const char *filename, bool skip_preview) {
     case mpsPrintPreviewQuestions:
         media_print_start__prepare(filename);
         marlin_server.print_state = mpsWaitGui;
-        _set_notify_change(MARLIN_VAR_FILEPATH);
-        _set_notify_change(MARLIN_VAR_FILENAME);
-        _set_notify_change(MARLIN_VAR_PRNSTATE);
 
         skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
         break;
@@ -704,6 +706,7 @@ void marlin_server_print_abort(void) {
     case mpsPaused:
     case mpsResuming_Reheating:
     case mpsFinishing_WaitIdle:
+    case mpsCrashRecovery_Tool_Pickup:
         marlin_server.print_state = mpsAborting_Begin;
         break;
     case mpsPrintPreviewInit:
@@ -756,8 +759,10 @@ static void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos
     }
 
     print_job_timer.pause();
-    marlin_server.resume.nozzle_temp = marlin_server.vars.target_nozzle; //save nozzle target temp
-    marlin_server.resume.fan_speed = marlin_server.vars.print_fan_speed; //save fan speed
+    HOTEND_LOOP() {
+        marlin_server.resume.nozzle_temp[e] = marlin_vars()->hotend(e).target_nozzle; //save nozzle target temp
+    }
+    marlin_server.resume.fan_speed = marlin_vars()->print_fan_speed; //save fan speed
 #if FAN_COUNT > 0
     if (hotendErrorChecker.runFullFan())
         thermalManager.set_fan_speed(0, 255);
@@ -765,6 +770,18 @@ static void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos
         thermalManager.set_fan_speed(0, 0); //disable print fan
 #endif
 }
+
+#if HAS_TOOLCHANGER()
+/**
+ * @brief Deselect tool, disable XY steppers and switch to Tool_Pickup marlin_server print_state.
+ */
+static void prepare_tool_pickup() {
+    // Deselect any dwarf without move, cannot be done with T5 code, it might crash into the fallen dwarf
+    prusa_toolchanger.request_active_switch(nullptr);
+    disable_XY();                                             // Let user move the carriage
+    marlin_server.print_state = mpsCrashRecovery_Tool_Pickup; // Continue with screen to wait for user to pick tools
+}
+#endif /*HAS_TOOLCHANGER()*/
 
 void marlin_server_print_resume(void) {
     if (marlin_server.print_state == mpsPaused) {
@@ -780,7 +797,9 @@ void marlin_server_print_resume(void) {
 
 void marlin_server_print_reheat_start(void) {
     if ((marlin_server.print_state == mpsPaused) && marlin_server_print_reheat_ready()) {
-        thermalManager.setTargetHotend(marlin_server.resume.nozzle_temp, 0);
+        HOTEND_LOOP() {
+            thermalManager.setTargetHotend(marlin_server.resume.nozzle_temp[e], e);
+        }
         // No need to set bed temperature because we keep it on all the time.
     }
 }
@@ -788,20 +807,23 @@ void marlin_server_print_reheat_start(void) {
 // Fast temperature recheck.
 // Does not check stability of the temperature.
 bool marlin_server_print_reheat_ready() {
-    // check nozzle
-    if (marlin_server.vars.target_nozzle != marlin_server.resume.nozzle_temp
-        || marlin_server.vars.temp_nozzle < (marlin_server.vars.target_nozzle - TEMP_HYSTERESIS)) {
-        return false;
+
+    // check nozzles
+    HOTEND_LOOP() {
+        auto &extruder = marlin_vars()->hotend(e);
+        if (extruder.target_nozzle != marlin_server.resume.nozzle_temp[e] || extruder.temp_nozzle < (extruder.target_nozzle - TEMP_HYSTERESIS)) {
+            return false;
+        }
     }
     // check bed
-    if (marlin_server.vars.temp_bed < (marlin_server.vars.target_bed - TEMP_BED_HYSTERESIS))
+    if (marlin_vars()->temp_bed < (marlin_vars()->target_bed - TEMP_BED_HYSTERESIS))
         return false;
 
     return true;
 }
 
 #if ENABLED(POWER_PANIC)
-void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool start_paused) {
+void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_recover) {
     // Open the file
     marlin_server_print_start(media_SFN_path, true);
 
@@ -815,8 +837,12 @@ void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t p
     //open printing screen
     FSM_CREATE__LOGGING(Printing);
 
+    //Warn user of possible print fail caused by cold heatbed during PP
+    if (!auto_recover)
+        set_warning(WarningType::HeatbedColdAfterPP);
+
     // enter the main powerpanic resume loop
-    marlin_server.print_state = start_paused ? mpsPowerPanic_AwaitingResume : mpsPowerPanic_Resume;
+    marlin_server.print_state = auto_recover ? mpsPowerPanic_Resume : mpsPowerPanic_AwaitingResume;
     static metric_t power = METRIC("power_panic", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
     metric_record_event(&power);
 }
@@ -839,7 +865,7 @@ void marlin_server_powerpanic_finish(bool paused) {
 }
 #endif
 
-#if ENABLED(CRASH_RECOVERY)
+#if ENABLED(AXIS_MEASURE)
 enum class Axis_length_t {
     shorter,
     longer,
@@ -847,6 +873,7 @@ enum class Axis_length_t {
 };
 
 static Axis_length_t axis_length_ok(AxisEnum axis) {
+    #if HAS_SELFTEST
     const float len = marlin_server.axis_length.pos[axis];
 
     switch (axis) {
@@ -857,6 +884,9 @@ static Axis_length_t axis_length_ok(AxisEnum axis) {
     default:;
     }
     return Axis_length_t::shorter;
+    #else
+    return Axis_length_t::ok;
+    #endif // HAS_SELFTEST
 }
 
 /// \returns true if X and Y axes have correct lengths.
@@ -884,7 +914,11 @@ static void axes_length_set_ok() {
         marlin_server.axis_length.pos[axis] = axis_len[axis] + gap;
     }
 }
-#endif // ENABLED(CRASH_RECOVERY)
+
+void set_axes_length(xy_float_t xy) {
+    marlin_server.axis_length = xy;
+}
+#endif // ENABLED(AXIS_MEASURE)
 
 void marlin_server_nozzle_timeout_on() {
     marlin_server.enable_nozzle_temp_timeout = true;
@@ -893,9 +927,13 @@ void marlin_server_nozzle_timeout_off() {
     marlin_server.enable_nozzle_temp_timeout = false;
 }
 void marlin_server_nozzle_timeout_loop() {
-    if ((marlin_server.vars.target_nozzle > 0) && (ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)) && marlin_server.enable_nozzle_temp_timeout) {
-        thermalManager.setTargetHotend(0, 0);
-        marlin_server_set_temp_to_display(0);
+    if ((ticks_ms() - marlin_server.paused_ticks > (1000 * PAUSE_NOZZLE_TIMEOUT)) && marlin_server.enable_nozzle_temp_timeout) {
+        HOTEND_LOOP() {
+            if ((marlin_vars()->hotend(e).target_nozzle > 0)) {
+                thermalManager.setTargetHotend(0, e);
+                marlin_server_set_temp_to_display(0, e);
+            }
+        }
     }
 }
 
@@ -909,12 +947,9 @@ static void marlin_server_resuming_reheating() {
         marlin_server.print_state = mpsPaused;
     }
 
-    if (!marlin_server_print_reheat_ready())
-        return;
-
 #ifdef NEW_FANCTL
-    if (marlin_server.vars.fan_check_enabled) {
-        if (!fanCtlHeatBreak.getRPMIsOk()) {
+    if (marlin_vars()->fan_check_enabled) {
+        if (!fanCtlHeatBreak[active_extruder].getRPMIsOk()) {
             set_warning(WarningType::HotendFanError);
             thermalManager.setTargetHotend(0, 0);
             marlin_server.print_state = mpsPaused;
@@ -923,7 +958,10 @@ static void marlin_server_resuming_reheating() {
     }
 #endif
 
-#if HAS_BED_PROBE
+    if (!marlin_server_print_reheat_ready())
+        return;
+
+#if HAS_BED_PROBE || ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
     // There's homing after MBL fail so no need to unpark at all
     if (marlin_server.mbl_failed) {
         marlin_server.print_state = mpsResuming_UnparkHead_ZE;
@@ -946,9 +984,7 @@ static void _server_print_loop(void) {
 #endif
     case mpsPrintPreviewInit:
         did_not_start_print = true;
-        if (media_print_filepath()) {
-            PrintPreview::Instance().Init(media_print_filepath());
-        }
+        PrintPreview::Instance().Init(marlin_vars()->media_SFN_path.get_ptr());
         marlin_server.print_state = mpsPrintPreviewImage;
         break;
         /*
@@ -979,6 +1015,7 @@ static void _server_print_loop(void) {
             break;
         case PrintPreview::Result::Abort:
             new_state = did_not_start_print ? mpsIdle : mpsFinishing_WaitIdle;
+            FSM_DESTROY__LOGGING(PrintPreview);
             break;
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
@@ -1002,7 +1039,6 @@ static void _server_print_loop(void) {
             eeprom_set_var(EEVAR_JOB_ID, variant8_ui16(job_id + 1));
             // And increment the job ID before we actually stop printing.
             job_id++;
-            _set_notify_change(MARLIN_VAR_JOB_ID);
         }
         marlin_server.print_state = new_state;
 
@@ -1012,15 +1048,19 @@ static void _server_print_loop(void) {
         feedrate_percentage = 100;
 #if ENABLED(CRASH_RECOVERY)
         crash_s.reset();
+        crash_s.reset_crash_counter();
         endstops.enable_globally(true);
         crash_s.set_state(Crash_s::PRINTING);
 #endif // ENABLED(CRASH_RECOVERY)
+#if ENABLED(CANCEL_OBJECTS)
+        cancelable.reset();
+#endif
         media_print_start(true);
 
         print_job_timer.start();
         marlin_server.print_state = mpsPrinting;
-        FSM_CREATE__LOGGING(Printing);
-#if HAS_BED_PROBE
+        FSM_DESTROY_AND_CREATE__LOGGING(PrintPreview, Printing);
+#if HAS_BED_PROBE || ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
         marlin_server.mbl_failed = false;
 #endif
         break;
@@ -1036,13 +1076,12 @@ static void _server_print_loop(void) {
             marlin_server.print_state = mpsFinishing_WaitIdle;
             break;
         case media_print_state_DRAINING:
-            media_reset_USB_host();
             break;
         }
         break;
     case mpsPausing_Begin:
         pause_print();
-        // no break
+        [[fallthrough]];
     case mpsPausing_Failed_Code:
         marlin_server.print_state = mpsPausing_WaitIdle;
         break;
@@ -1064,12 +1103,14 @@ static void _server_print_loop(void) {
         break;
     case mpsResuming_Begin:
 #if ENABLED(CRASH_RECOVERY)
+    #if ENABLED(AXIS_MEASURE)
         if (crash_s.is_repeated_crash() && xy_axes_length_ok() != Axis_length_t::ok) {
             /// resuming after a crash but axes are not ok => check again
             FSM_CREATE__LOGGING(CrashRecovery);
             marlin_server.print_state = mpsCrashRecovery_Lifting;
             break;
         }
+    #endif
 
         // forget the XYZ resume position if requested
         if (crash_s.inhibit_flags & Crash_s::INHIBIT_XYZ_REPOSITIONING) {
@@ -1102,7 +1143,7 @@ static void _server_print_loop(void) {
             assert(crash_s.get_state() == Crash_s::PRINTING);
         }
 #endif
-#if HAS_BED_PROBE
+#if HAS_BED_PROBE || ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
         if (marlin_server.mbl_failed) {
             gcode.process_subcommands_now_P("G28");
             marlin_server.mbl_failed = false;
@@ -1118,13 +1159,24 @@ static void _server_print_loop(void) {
         marlin_server.print_state = mpsPrinting;
         break;
     case mpsAborting_Begin:
+#if ENABLED(CRASH_RECOVERY)
+        if (crash_s.is_toolchange_in_progress()) {
+            break; // Wait for toolchange to end
+        }
+#endif /*ENABLED(CRASH_RECOVERY)*/
+        if (marlin_server.command == MARLIN_CMD_G28) {
+            break; // Wait for homing to end
+        }
+
         media_print_stop();
         queue.clear();
         thermalManager.disable_all_heaters();
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0);
 #endif
-        marlin_server_set_temp_to_display(0);
+        HOTEND_LOOP() {
+            marlin_server_set_temp_to_display(0, e);
+        }
         print_job_timer.stop();
         planner.quick_stop();
         wait_for_heatup = false; // This is necessary because M109/wait_for_hotend can be in progress, we need to abort it
@@ -1133,6 +1185,8 @@ static void _server_print_loop(void) {
         // TODO: the following should be moved to mpsAborting_ParkHead once the "stopping"
         // state is handled properly
         endstops.enable_globally(false);
+        crash_s.write_stat_to_eeprom();
+        marlin_server.aborting_did_crash_trigger = crash_s.did_trigger(); // Remember as it is cleared by crash_s.reset()
         crash_s.reset();
 #endif // ENABLED(CRASH_RECOVERY)
 
@@ -1148,9 +1202,13 @@ static void _server_print_loop(void) {
         sync_plan_position();
         report_current_position();
 
-        if (crash_s.did_trigger()) {
-            marlin_server_lift_head();
-        } else {
+        if (axes_need_homing()
+#if ENABLED(CRASH_RECOVERY)
+            || marlin_server.aborting_did_crash_trigger
+#endif /*ENABLED(CRASH_RECOVERY)*/
+        )
+            marlin_server_lift_head(); // It would be dangerous to move XY
+        else {
             marlin_server_park_head();
         }
 
@@ -1173,6 +1231,7 @@ static void _server_print_loop(void) {
             // TODO: the following should be moved to mpsFinishing_ParkHead once the "stopping"
             // state is handled properly
             endstops.enable_globally(false);
+            crash_s.write_stat_to_eeprom();
             crash_s.reset();
 #endif // ENABLED(CRASH_RECOVERY)
 
@@ -1205,15 +1264,56 @@ static void _server_print_loop(void) {
         endstops.enable_globally(false);
         crash_s.send_reports();
         crash_s.count_crash();
-        crash_s.set_state(Crash_s::RECOVERY);
-
-        /// TODO: create FSM with different state
-        FSM_CREATE__LOGGING(CrashRecovery);
-        Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
-        if (crash_s.is_repeated_crash()) {
-            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
+        if (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH) {
+            crash_s.set_state(Crash_s::TOOLCRASH);
         } else {
-            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
+            crash_s.set_state(Crash_s::RECOVERY);
+        }
+
+    /**
+     * those macros make this part of code super unreadable
+     * there are posibilites 4 posibilites
+     *
+     * HAS_TOOLCHANGER() && ENABLED(AXIS_MEASURE)
+     * if {part1} -> else if {part2} -> else {part3}
+     *
+     * HAS_TOOLCHANGER() && !ENABLED(AXIS_MEASURE)
+     * if {part1} -> else {part3}
+     *
+     * !HAS_TOOLCHANGER() && ENABLED(AXIS_MEASURE)
+     * if {part2} -> else {part3}
+     *
+     * !HAS_TOOLCHANGER() && !ENABLED(AXIS_MEASURE)
+     * {part3}
+     *
+     * there is in all cases exactly one part called
+     * and each part has one FSM_CREATE_WITH_DATA__LOGGING
+     * so FSM gets created correctly
+     */
+    #if HAS_TOOLCHANGER()
+        if (crash_s.is_toolchange_event()) {
+            //part1
+            Crash_recovery_tool_fsm cr_fsm(prusa_toolchanger.get_enabled_mask(), 0);
+            FSM_CREATE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize()); // Ask user to park all dwarves
+
+            // If crash happens during toolchange, skip crash recovery and go directly to tool pickup
+            if (crash_s.get_state() == Crash_s::TOOLCRASH) {
+                prepare_tool_pickup();
+                break;
+            }
+        } else
+    #endif /*HAS_TOOLCHANGER()*/
+    #if ENABLED(AXIS_MEASURE)
+            if (crash_s.is_repeated_crash()) {
+            //part2
+            Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
+            FSM_CREATE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
+        } else
+    #endif /*ENABLED(AXIS_MEASURE)*/
+        {
+            //part3
+            Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
+            FSM_CREATE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
         }
 
         // save the current resume position
@@ -1239,21 +1339,91 @@ static void _server_print_loop(void) {
         if (planner.movesplanned() != 0)
             break;
 
+    #if HAS_TOOLCHANGER()
+        if (crash_s.is_toolchange_event()) {
+            prepare_tool_pickup(); // Go to tool pickup instead of homing
+            break;
+        }
+    #endif /*HAS_TOOLCHANGER()*/
+    #if ENABLED(AXIS_MEASURE)
         if (crash_s.is_repeated_crash())
             marlin_server_enqueue_gcode("G163 X Y S" STRINGIFY(AXIS_MEASURE_STALL_GUARD) " P" STRINGIFY(AXIS_MEASURE_CRASH_PERIOD));
         marlin_server.print_state = mpsCrashRecovery_XY_Measure;
+    #else
+        // bypass the axis check prompt completely
+        marlin_server_enqueue_gcode("G28 X Y R0 D");
+        marlin_server.print_state = mpsCrashRecovery_XY_HOME;
+    #endif
         break;
     }
     case mpsCrashRecovery_XY_Measure: {
         if (queue.length != 0 || planner.movesplanned() != 0)
             break;
 
+    #if ENABLED(AXIS_MEASURE)
         static metric_t crash_len = METRIC("crash_length", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
         metric_record_custom(&crash_len, " x=%.3f,y=%.3f", (double)marlin_server.axis_length[X_AXIS], (double)marlin_server.axis_length[Y_AXIS]);
+    #endif
 
         marlin_server_enqueue_gcode("G28 X Y R0 D");
         marlin_server.print_state = mpsCrashRecovery_XY_HOME;
         break;
+    }
+    case mpsCrashRecovery_Tool_Pickup: {
+    #if HAS_TOOLCHANGER()
+        if (queue.length != 0 || planner.movesplanned() != 0)
+            break;
+
+        if ((ClientResponseHandler::GetResponseFromPhase(PhasesCrashRecovery::tool_recovery) == Response::Continue)
+            && (prusa_toolchanger.get_enabled_mask() == prusa_toolchanger.get_parked_mask())) {
+
+            // Show homing screen, TODO: perhaps a new screen would be better
+            Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
+            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
+
+            {
+                TemporaryBedLevelingState tbls(false);                                // Temporarily disable leveling (important is to restore it after homing)
+                GcodeSuite::G28_no_parser(false, false, 0, false, true, true, false); // Home
+                remember_feedrate_and_scaling();
+                feedrate_mm_s = PrusaToolChanger::TRAVEL_MOVE_MM_S;                                   // Set feedrate, tool_change() would use value left by lift_head()
+                if (prusa_toolchanger.tool_change(prusa_toolchanger.get_active_tool_nr()) == false) { // Pickup lost tool
+                    restore_feedrate_and_scaling();
+
+                    // Toolchange failed again, ask user again to park all dwarves
+                    Crash_recovery_tool_fsm cr_fsm(prusa_toolchanger.get_enabled_mask(), 0);
+                    FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
+
+                    prepare_tool_pickup();
+                    break;
+                }
+                restore_feedrate_and_scaling();
+            }
+
+            if (crash_s.get_state() == Crash_s::TOOLCRASH) {
+                // If crash happened during toolchange, just resume printing
+                FSM_DESTROY__LOGGING(CrashRecovery);
+                endstops.enable_globally(true);
+                crash_s.set_state(Crash_s::PRINTING);
+
+                media_print_resume();
+                if (print_job_timer.isPaused())
+                    print_job_timer.start();
+        #if FAN_COUNT > 0
+                thermalManager.set_fan_speed(0, marlin_server.resume.fan_speed); // restore fan speed
+        #endif
+                marlin_server.print_state = mpsPrinting;
+            } else {
+                marlin_server.print_state = mpsCrashRecovery_XY_HOME; // If crash happened during printing, do crash recovery
+            }
+        } else {
+            Crash_recovery_tool_fsm cr_fsm(prusa_toolchanger.get_enabled_mask(), prusa_toolchanger.get_parked_mask());
+            FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::tool_recovery, cr_fsm.Serialize());
+            gcode.reset_stepper_timeout(); // Prevent disable axis
+        }
+        break;
+    #else  /*HAS_TOOLCHANGER()*/
+        bsod("Tool pickup without toolchanger");
+    #endif /*HAS_TOOLCHANGER()*/
     }
     case mpsCrashRecovery_XY_HOME: {
         if (queue.length != 0 || planner.movesplanned() != 0)
@@ -1265,6 +1435,7 @@ static void _server_print_loop(void) {
             break;
         }
         marlin_server.paused_ticks = ticks_ms(); //time when printing paused
+    #if ENABLED(AXIS_MEASURE)
         Axis_length_t alok = xy_axes_length_ok();
         if (alok != Axis_length_t::ok) {
             marlin_server.print_state = mpsCrashRecovery_Axis_NOK;
@@ -1273,6 +1444,7 @@ static void _server_print_loop(void) {
             FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, pcr, cr_fsm.Serialize());
             break;
         }
+    #endif
         Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
         FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::repeated_crash, cr_fsm.Serialize());
         marlin_server.print_state = mpsCrashRecovery_Repeated_Crash;
@@ -1287,7 +1459,9 @@ static void _server_print_loop(void) {
         case Response::Resume: /// ignore wrong length of axes
             marlin_server.print_state = mpsResuming_Begin;
             FSM_DESTROY__LOGGING(CrashRecovery);
+    #if ENABLED(AXIS_MEASURE)
             axes_length_set_ok(); /// ignore re-test of lengths
+    #endif
             break;
         case Response::_none:
             break;
@@ -1329,15 +1503,36 @@ static void _server_print_loop(void) {
     }
 
 #ifdef NEW_FANCTL
-    if (marlin_server.vars.fan_check_enabled) {
-        hotendFanErrorChecker.checkTrue(fanCtlHeatBreak.getState() != CFanCtl::error_running);
-        printFanErrorChecker.checkTrue(fanCtlPrint.getState() != CFanCtl::error_running);
+    if (marlin_vars()->fan_check_enabled) {
+        HOTEND_LOOP() {
+            hotendFanErrorChecker[e].checkTrue(fanCtlHeatBreak[e].getState() != CFanCtl::error_running);
+        }
+        printFanErrorChecker.checkTrue(fanCtlPrint[active_extruder].getState() != CFanCtl::error_running);
     }
-    if (fanCtlHeatBreak.getRPMIsOk())
-        hotendFanErrorChecker.reset();
-    if (fanCtlPrint.getRPMIsOk())
+
+    HOTEND_LOOP() {
+        if (fanCtlHeatBreak[e].getRPMIsOk())
+            hotendFanErrorChecker[e].reset();
+    }
+    if (fanCtlPrint[active_extruder].getRPMIsOk())
         printFanErrorChecker.reset();
 #endif //NEW_FANCTL
+
+#if HAS_TEMP_HEATBREAK
+    if (ticks_s() >= 2) { // Start checking 2 seconds after system start
+        // This gives 0 deg celsius MINTEMP for heat break temperature reading
+        HOTEND_LOOP() {
+    #if ENABLED(PRUSA_TOOLCHANGER)
+            if (!prusa_toolchanger.is_tool_enabled(e))
+                continue;
+    #endif
+
+            heatBreakThermistorErrorChecker[e].checkTrue(!NEAR_ZERO(thermalManager.degHeatbreak(e)));
+            if (thermalManager.degHeatbreak(e) > 10)
+                heatBreakThermistorErrorChecker[e].reset();
+        }
+    }
+#endif
 
     hotendErrorChecker.checkTrue(Temperature::saneTempReadingHotend(0));
 }
@@ -1348,13 +1543,16 @@ void marlin_server_resuming_begin(void) {
         marlin_server_unpark_head_XY();
         marlin_server.print_state = mpsResuming_UnparkHead_XY;
     } else {
-        thermalManager.setTargetHotend(marlin_server.resume.nozzle_temp, 0);
-        marlin_server_set_temp_to_display(marlin_server.resume.nozzle_temp);
+        HOTEND_LOOP() {
+            thermalManager.setTargetHotend(marlin_server.resume.nozzle_temp[e], e);
+            marlin_server_set_temp_to_display(marlin_server.resume.nozzle_temp[e], e);
+        }
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, 0); //disable print fan
 #endif
         marlin_server.print_state = mpsResuming_Reheating;
     }
+    media_reset_usbh_error();
 }
 
 void marlin_server_retract() {
@@ -1384,6 +1582,16 @@ void marlin_server_park_head() {
     marlin_server.resume.pos = current_position;
     marlin_server_retract();
     marlin_server_lift_head();
+
+    #if HAS_TOOLCHANGER()
+    // Check that we are not in kennel
+    // Can happen if stopped during toolchanging, toolchange will finish but last move doesn't wait for planner.synchronize();
+    if (current_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) {
+        current_position.y = PrusaToolChanger::SAFE_Y_WITH_TOOL;
+        line_to_current_position(NOZZLE_PARK_XY_FEEDRATE); // Move to safe Y
+    }
+    #endif /*HAS_TOOLCHANGER()*/
+
     xyz_pos_t park = NOZZLE_PARK_POINT;
     #ifdef NOZZLE_PARK_POINT_M600
     const xyz_pos_t park_clean = NOZZLE_PARK_POINT_M600;
@@ -1399,11 +1607,12 @@ void marlin_server_unpark_head_XY(void) {
 #if ENABLED(NOZZLE_PARK_FEATURE)
     // TODO: double check this condition: when recovering from a crash, Z is not known, but we *can*
     // unpark, so we bypass this check as we need to move back
-    if (!crash_s.did_trigger() && !all_axes_homed())
+    if (TERN1(CRASH_RECOVERY, !crash_s.did_trigger()) && !all_axes_homed())
         return;
 
     current_position.x = marlin_server.resume.pos.x;
     current_position.y = marlin_server.resume.pos.y;
+    NOMORE(current_position.y, Y_BED_SIZE); // Prevent crashing into parked tools
     line_to_current_position(NOZZLE_PARK_XY_FEEDRATE);
 #endif //NOZZLE_PARK_FEATURE
 }
@@ -1448,16 +1657,12 @@ void marlin_server_set_exclusive_mode(int exclusive) {
     }
 }
 
-void marlin_server_set_temp_to_display(float value) {
-    marlin_server.vars.display_nozzle = value;
-    _set_notify_change(MARLIN_VAR_DTEM_NOZ); //set change flag
-}
-float marlin_server_get_temp_to_display(void) {
-    return marlin_server.vars.display_nozzle;
+void marlin_server_set_temp_to_display(float value, uint8_t extruder) {
+    marlin_vars()->hotend(extruder).display_nozzle = value;
 }
 
-float marlin_server_get_temp_nozzle(void) {
-    return marlin_server.vars.temp_nozzle;
+bool marlin_server_get_media_inserted(void) {
+    return marlin_vars()->media_inserted;
 }
 
 resume_state_t *marlin_server_get_resume_data() {
@@ -1496,16 +1701,16 @@ static int _send_notify_to_client(osMessageQId queue, variant8_t msg) {
 // send all FSM messages from the FSM queue
 static bool _send_FSM_event_to_client(int client_id, osMessageQId queue) {
     while (1) {
-        fsm::variant_t variant = fsm_event_queues.Front(client_id);
-        if (variant.GetCommand() == ClientFSM_Command::none)
+        std::optional<fsm::DequeStates> commands = fsm_event_queues.dequeue(client_id);
+        if (!commands)
             return true; // no event to send, return 'sent' to erase 'send' flag
 
-        if (!_send_notify_to_client(queue, variant8_user(variant.u32, variant.u16, MARLIN_EVT_FSM)))
+        std::pair<uint32_t, uint16_t> data = commands->current.serialize();
+        log_debug(FSM, "data sent u32 %d, u16 %d, client %d", data.first, data.second, client_id);
+
+        if (!_send_notify_to_client(queue, variant8_user(data.first, data.second, MARLIN_EVT_FSM)))
             // unable to send all messages
             return false;
-
-        //erase sent item from queue
-        fsm_event_queues.Pop(client_id);
     }
 }
 
@@ -1584,6 +1789,7 @@ static uint64_t _send_notify_events_to_client(int client_id, osMessageQId queue,
                         marlin_server.last_mesh_evt.usr32, marlin_server.last_mesh_evt.usr16))
                     sent |= msk; // event sent, set bit
                 break;
+            case MARLIN_EVT_NotAcknowledge:
             case MARLIN_EVT_Acknowledge:
                 if (_send_notify_event_to_client(client_id, queue, evt_id, 0, 0))
                     sent |= msk; // event sent, set bit
@@ -1633,39 +1839,6 @@ static uint8_t _send_notify_event(MARLIN_EVT_t evt_id, uint32_t usr32, uint16_t 
     return client_msk;
 }
 
-// send variable change notification to client (called from server thread)
-static int _send_notify_change_to_client(osMessageQId queue, uint8_t var_id, variant8_t var) {
-    variant8_set_usr8(&var, var_id | MARLIN_USR8_VAR_FLG);
-    return _send_notify_to_client(queue, var);
-}
-
-// send variable change notification to client - multiple vars (called from server thread)
-static uint64_t _send_notify_changes_to_client(int client_id, osMessageQId queue, uint64_t var_msk) {
-    variant8_t var;
-    uint64_t sent = 0;
-    uint64_t msk = 1;
-    for (int var_id = 0; var_id <= MARLIN_VAR_MAX; var_id++) {
-        if (msk & var_msk) {
-            var = marlin_vars_get_var(&(marlin_server.vars), (marlin_var_id_t)var_id);
-            // if the variable is readable then send else try next time
-            if (variant8_get_type(var) != VARIANT8_EMPTY) {
-                if (_send_notify_change_to_client(queue, var_id, var))
-                    sent |= msk;
-                else
-                    break; //skip sending if queue is full
-            }
-        }
-        msk <<= 1;
-    }
-    return sent;
-}
-
-static void _set_notify_change(uint8_t var_id) {
-    uint64_t msk = MARLIN_VAR_MSK(var_id);
-    for (int id = 0; id < MARLIN_MAX_CLIENTS; id++)
-        marlin_server.client_changes[id] |= msk;
-}
-
 static void _server_update_gqueue(void) {
     if (marlin_server.gqueue != queue.length) {
         marlin_server.gqueue = queue.length;
@@ -1682,295 +1855,111 @@ static void _server_update_pqueue(void) {
     }
 }
 
-// update server variables defined by 'update', returns changed variables mask (called from server thread)
-static uint64_t _server_update_vars(uint64_t update) {
+// update all server variables
+static void _server_update_vars() {
     int i;
-    uint64_t changes = 0;
 
-    if (update == 0)
-        return 0;
+    marlin_vars()->gqueue = marlin_server.gqueue;
+    marlin_vars()->pqueue = marlin_server.pqueue;
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE))
-        if (marlin_server.vars.gqueue != marlin_server.gqueue) {
-            marlin_server.vars.gqueue = marlin_server.gqueue;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_GQUEUE);
+    for (i = 0; i < 4; i++) {
+        float pos_mm;
+        if (i < 3) {
+            pos_mm = planner.get_axis_position_mm((AxisEnum)i) + workspace_offset.pos[i];
+        } else {
+            pos_mm = planner.get_axis_position_mm((AxisEnum)i);
         }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE))
-        if (marlin_server.vars.pqueue != marlin_server.pqueue) {
-            marlin_server.vars.pqueue = marlin_server.pqueue;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE);
-        }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_MOTION)) {
-        uint8_t flags = 0;
-        if (stepper.axis_is_moving(X_AXIS))
-            flags |= 0x01;
-        if (stepper.axis_is_moving(Y_AXIS))
-            flags |= 0x02;
-        if (stepper.axis_is_moving(Z_AXIS))
-            flags |= 0x04;
-        if (stepper.axis_is_moving(E_AXIS))
-            flags |= 0x08;
-        if (marlin_server.vars.motion != flags) {
-            marlin_server.vars.motion = flags;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_MOTION);
-        }
+        marlin_vars()->pos[i] = pos_mm;
     }
 
-    if (update & MARLIN_VAR_MSK_IPOS_XYZE) {
-        for (i = 0; i < 4; i++)
-            if (update & MARLIN_VAR_MSK(MARLIN_VAR_IPOS_X + i)) {
-                int32_t pos = stepper.position((AxisEnum)i);
-                if (marlin_server.vars.ipos[i] != pos) {
-                    marlin_server.vars.ipos[i] = pos;
-                    changes |= MARLIN_VAR_MSK(MARLIN_VAR_IPOS_X + i);
-                }
-            }
+    for (i = 0; i < 4; i++) {
+        float pos_mm = current_position[i];
+        marlin_vars()->curr_pos[i] = pos_mm;
     }
 
-    if (update & MARLIN_VAR_MSK_POS_XYZE) {
-        for (i = 0; i < 4; i++)
-            if (update & MARLIN_VAR_MSK(MARLIN_VAR_POS_X + i)) {
-                float pos_mm;
-                if (i < 3) {
-                    pos_mm = planner.get_axis_position_mm((AxisEnum)i) + workspace_offset.pos[i];
-                } else {
-                    pos_mm = planner.get_axis_position_mm((AxisEnum)i);
-                }
-                if (marlin_server.vars.pos[i] != pos_mm) {
-                    marlin_server.vars.pos[i] = pos_mm;
-                    changes |= MARLIN_VAR_MSK(MARLIN_VAR_POS_X + i);
-                }
-            }
-    }
-    if (update & MARLIN_VAR_MSK_CURR_POS_XYZE) {
-        for (i = 0; i < 4; i++)
-            if (update & MARLIN_VAR_MSK(MARLIN_VAR_CURR_POS_X + i)) {
-                float pos_mm = current_position[i];
-                if (marlin_server.vars.curr_pos[i] != pos_mm) {
-                    marlin_server.vars.curr_pos[i] = pos_mm;
-                    changes |= MARLIN_VAR_MSK(MARLIN_VAR_CURR_POS_X + i);
-                }
-            }
-    }
+    HOTEND_LOOP() {
+        auto &extruder = marlin_vars()->hotend(e);
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ)) {
-        float temp = thermalManager.temp_hotend[0].celsius;
-        if (marlin_server.vars.temp_nozzle != temp) {
-            marlin_server.vars.temp_nozzle = temp;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_TEMP_NOZ);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ)) {
-        float temp = thermalManager.temp_hotend[0].target;
-        if (marlin_server.vars.target_nozzle != temp) {
-            marlin_server.vars.target_nozzle = temp;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_TTEM_NOZ);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED)) {
-        float temp = thermalManager.temp_bed.celsius;
-        if (marlin_server.vars.temp_bed != temp) {
-            marlin_server.vars.temp_bed = temp;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_TEMP_BED);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED)) {
-        float temp = thermalManager.temp_bed.target;
-        if (marlin_server.vars.target_bed != temp) {
-            marlin_server.vars.target_bed = temp;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_TTEM_BED);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET)) {
-        float z = probe_offset.z;
-        if (marlin_server.vars.z_offset != z) {
-            marlin_server.vars.z_offset = z;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED)) {
-        uint8_t speed = 0;
-#if FAN_COUNT > 0
-        speed = thermalManager.fan_speed[0];
+        extruder.temp_nozzle = thermalManager.degHotend(e);
+        extruder.target_nozzle = thermalManager.degTargetHotend(e);
+#if (TEMP_SENSOR_HEATBREAK > 0)
+        // TODO: this should track multiple extruders
+        extruder.temp_heatbreak = thermalManager.temp_heatbreak[e].celsius;
+        extruder.target_heatbreak = thermalManager.temp_heatbreak[e].target;
 #endif
-        if (marlin_server.vars.print_fan_speed != speed) {
-            marlin_server.vars.print_fan_speed = speed;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED)) {
-        uint16_t feed = static_cast<uint16_t>(feedrate_percentage);
-        if (marlin_server.vars.print_speed != feed) {
-            marlin_server.vars.print_speed = feed;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT)) {
-        uint16_t flow = static_cast<uint16_t>(planner.flow_percentage[0]);
-        if (marlin_server.vars.flow_factor != flow) {
-            marlin_server.vars.flow_factor = flow;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT)) {
-        uint8_t wait = wait_for_heatup ? 1 : 0;
-        if (marlin_server.vars.wait_heat != wait) {
-            marlin_server.vars.wait_heat = wait;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_WAITHEAT);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER)) {
-        uint8_t wait = wait_for_user ? 1 : 0;
-        if (marlin_server.vars.wait_user != wait) {
-            marlin_server.vars.wait_user = wait;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_WAITUSER);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE)) {
-        if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
-
-            uint8_t progress = 0;
-            if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
-                progress = static_cast<uint8_t>(oProgressData.oPercentDone.mGetValue());
-            else
-                progress = static_cast<uint8_t>(media_print_get_percent_done());
-            if (marlin_server.vars.sd_percent_done != progress) {
-                marlin_server.vars.sd_percent_done = progress;
-                changes |= MARLIN_VAR_MSK(MARLIN_VAR_SD_PDONE);
-            }
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_DURATION)) {
-        uint32_t timer = print_job_timer.duration();
-        if (marlin_server.vars.print_duration != timer) {
-            marlin_server.vars.print_duration = timer;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_DURATION);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS)) {
-        uint8_t media = media_get_state() == media_state_INSERTED ? 1 : 0;
-        if (marlin_server.vars.media_inserted != media) {
-            marlin_server.vars.media_inserted = media;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS);
-            _send_notify_event(marlin_server.vars.media_inserted ? MARLIN_EVT_MediaInserted : MARLIN_EVT_MediaRemoved, 0, 0);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE)) {
-        uint8_t print = marlin_server.print_state;
-        if (marlin_server.vars.print_state != print) {
-            marlin_server.vars.print_state = static_cast<marlin_print_state_t>(print);
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE);
-        }
-    }
-
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND)) {
-        uint32_t progress = -1;
-        if (oProgressData.oPercentDone.mIsActual(marlin_server.vars.print_duration))
-            progress = oProgressData.oTime2End.mGetValue();
-        if (marlin_server.vars.time_to_end != progress) {
-            marlin_server.vars.time_to_end = progress;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_TIMTOEND);
-        }
-    }
+        extruder.flow_factor = static_cast<uint16_t>(planner.flow_percentage[e]);
 #ifdef NEW_FANCTL
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_PRINT_FAN_RPM)) {
-        uint16_t rpm = fanctl_get_rpm(0);
-        if (marlin_server.vars.print_fan_rpm != rpm) {
-            marlin_server.vars.print_fan_rpm = rpm;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_PRINT_FAN_RPM);
-        }
+        extruder.print_fan_rpm = fanCtlPrint[e].getActualRPM();
+        extruder.heatbreak_fan_rpm = fanCtlHeatBreak[e].getActualRPM();
+#endif
     }
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_HEATBREAK_FAN_RPM)) {
-        uint16_t rpm = fanctl_get_rpm(1);
-        if (marlin_server.vars.heatbreak_fan_rpm != rpm) {
-            marlin_server.vars.heatbreak_fan_rpm = rpm;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_HEATBREAK_FAN_RPM);
-        }
-    }
+    marlin_vars()->temp_bed = thermalManager.degBed();
+    marlin_vars()->target_bed = thermalManager.degTargetBed();
+#if ENABLED(MODULAR_HEATBED)
+    marlin_vars()->enabled_bedlet_mask = thermalManager.getEnabledBedletMask();
 #endif
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_JOB_ID)) {
-        if (marlin_server.vars.job_id != job_id) {
-            marlin_server.vars.job_id = job_id;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_JOB_ID);
-        }
-    }
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL)) {
-        if (marlin_server.vars.travel_acceleration != planner.settings.travel_acceleration) {
-            marlin_server.vars.travel_acceleration = planner.settings.travel_acceleration;
-        }
-        changes |= MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL);
-    }
+    marlin_vars()->z_offset = probe_offset.z;
+#if FAN_COUNT > 0
+    marlin_vars()->print_fan_speed = thermalManager.fan_speed[0];
+#endif
+    marlin_vars()->print_speed = static_cast<uint16_t>(feedrate_percentage);
 
-#define ES_STATE(S) READ(S##_PIN) // != S##_ENDSTOP_INVERTING
+    if (!FirstLayer::isPrinting()) { /// push notifications used for first layer calibration
+        uint8_t progress = 0;
+        if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration))
+            progress = static_cast<uint8_t>(oProgressData.oPercentDone.mGetValue());
+        else
+            progress = static_cast<uint8_t>(media_print_get_percent_done());
 
-    if (update & MARLIN_VAR_MSK(MARLIN_VAR_ENDSTOPS)) {
-        uint32_t endstops = 0;
-#if HAS_X_MIN
-        endstops = endstops | (ES_STATE(X_MIN) << 0);
-#endif
-#if HAS_Y_MIN
-        endstops = endstops | (ES_STATE(Y_MIN) << 1);
-#endif
-#if HAS_Z_MIN
-        endstops = endstops | (ES_STATE(Z_MIN) << 2);
-#endif
-#if HAS_X_MAX
-        endstops = endstops | (ES_STATE(X_MAX) << 4);
-#endif
-#if HAS_Y_MAX
-        endstops = endstops | (ES_STATE(Y_MAX) << 5);
-#endif
-#if HAS_Z_MAX
-        endstops = endstops | (ES_STATE(Z_MAX) << 6);
-#endif
-#if HAS_X2_MIN
-        endstops = endstops | (ES_STATE(X2_MIN) << 7);
-#endif
-#if HAS_X2_MAX
-        endstops = endstops | (ES_STATE(X2_MAX) << 8);
-#endif
-#if HAS_Y2_MIN
-        endstops = endstops | (ES_STATE(Y2_MIN) << 9);
-#endif
-#if HAS_Y2_MAX
-        endstops = endstops | (ES_STATE(Y2_MAX) << 10);
-#endif
-#if HAS_Z2_MIN
-        endstops = endstops | (ES_STATE(Z2_MIN) << 11);
-#endif
-#if HAS_Z2_MAX
-        endstops = endstops | (ES_STATE(Z2_MAX) << 12);
-#endif
-#if HAS_Z3_MIN
-        endstops = endstops | (ES_STATE(Z3_MIN) << 13);
-#endif
-#if HAS_Z3_MAX
-        endstops = endstops | (ES_STATE(Z3_MAX) << 14);
-#endif
-        if (marlin_server.vars.endstops != endstops) {
-            marlin_server.vars.endstops = endstops;
-            changes |= MARLIN_VAR_MSK(MARLIN_VAR_ENDSTOPS);
-        }
+        marlin_vars()->sd_percent_done = progress;
     }
 
-    return changes;
+    marlin_vars()->print_duration = print_job_timer.duration();
+
+    uint8_t media = media_get_state() == media_state_INSERTED ? 1 : 0;
+    if (marlin_vars()->media_inserted != media) {
+        marlin_vars()->media_inserted = media;
+        _send_notify_event(marlin_vars()->media_inserted ? MARLIN_EVT_MediaInserted : MARLIN_EVT_MediaRemoved, 0, 0);
+    }
+
+    uint32_t progress = TIME_TO_END_INVALID;
+    if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration)) {
+        progress = oProgressData.oTime2End.mGetValue();
+    }
+
+    if (marlin_vars()->print_speed == 100 || progress == TIME_TO_END_INVALID) {
+        marlin_vars()->time_to_end = progress;
+    } else {
+        // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
+        marlin_vars()->time_to_end = (progress * 100) / marlin_vars()->print_speed;
+    }
+
+    marlin_vars()->job_id = job_id;
+    marlin_vars()->travel_acceleration = planner.settings.travel_acceleration;
+
+    uint8_t mmu2State =
+#if HAS_MMU2
+        uint8_t(MMU2::mmu2.State());
+#else
+        2;
+#endif
+    marlin_vars()->mmu2_state = mmu2State;
+
+    bool mmu2FindaPressed =
+#if HAS_MMU2
+        MMU2::mmu2.FindaDetectsFilament();
+#else
+        false;
+#endif
+
+    marlin_vars()->mmu2_finda = mmu2FindaPressed;
+
+    marlin_vars()->active_extruder = active_extruder;
+
+    // print state is updated last, to make sure other related variables (like job_id, filenames) are already set when we start print
+    marlin_vars()->print_state = static_cast<marlin_print_state_t>(marlin_server.print_state);
 }
 
 void bsod_unknown_request(const char *request) {
@@ -1981,12 +1970,10 @@ void bsod_unknown_request(const char *request) {
 bool _process_server_valid_request(const char *request, int client_id) {
     const char *data = request + 2;
     uint32_t msk32[2];
+    uint32_t tool_mask;
     int ival;
 
-    // Log everything except !update
-    if (request[1] != MARLIN_MSG_UPDATE_VARIABLE) {
-        log_info(MarlinServer, "Processing %s (from %u)", request, client_id);
-    }
+    log_info(MarlinServer, "Processing %s (from %u)", request, client_id);
 
     switch (request[1]) {
 
@@ -2006,11 +1993,6 @@ bool _process_server_valid_request(const char *request, int client_id) {
     case MARLIN_MSG_SET_VARIABLE:
         _server_set_var(data);
         return true;
-    case MARLIN_MSG_UPDATE_VARIABLE:
-        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2)
-            return 0;
-        _server_update_and_notify(client_id, msk32[0] + (((uint64_t)msk32[1]) << 32));
-        return true;
     case MARLIN_MSG_BABYSTEP: {
         float offs;
         if (sscanf(data, "%f", &offs) != 1)
@@ -2026,12 +2008,6 @@ bool _process_server_valid_request(const char *request, int client_id) {
         return true;
     case MARLIN_MSG_CONFIG_RESET:
         marlin_server_settings_reset();
-        return true;
-    case MARLIN_MSG_UPDATE:
-        marlin_server_manage_heater();
-        return true;
-    case MARLIN_MSG_QUICK_STOP:
-        marlin_server_quick_stop();
         return true;
     case MARLIN_MSG_PRINT_START:
         marlin_server_print_start(data + 1, data[0] == '1');
@@ -2066,12 +2042,6 @@ bool _process_server_valid_request(const char *request, int client_id) {
     case MARLIN_MSG_FSM:
         if (sscanf(data, "%d", &ival) != 1)
             return false;
-        // Allows to interrupt blocking waiting for heating/cooling
-        // Remove once the Marlin's heating is non-blocking
-        if (can_stop_wait_for_heatup() && ival >= 0) {
-            marlin_server.vars.wait_heat = false;
-            wait_for_heatup = false;
-        }
         ClientResponseHandler::SetResponse(ival);
         return true;
     case MARLIN_MSG_EVENT_MASK:
@@ -2082,30 +2052,14 @@ bool _process_server_valid_request(const char *request, int client_id) {
         // This is temporary solution, MARLIN_EVT_MediaInserted and MARLIN_EVT_MediaRemoved events are replaced
         // with variable media_inserted, but some parts of application still using the events.
         // We need this workaround for app startup.
-        if ((marlin_server.notify_events[client_id] & MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted)) && marlin_server.vars.media_inserted)
+        if ((marlin_server.notify_events[client_id] & MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted)) && marlin_vars()->media_inserted)
             marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_MediaInserted);
         return true;
-    case MARLIN_MSG_CHANGE_MASK:
-        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2)
-            return false;
-        marlin_server.notify_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
-        marlin_server.client_changes[client_id] = msk32[0] + (((uint64_t)msk32[1]) << 32);
-        return true;
-    case MARLIN_MSG_EXCLUSIVE:
-        if (sscanf(data, "%d", &ival) != 1)
-            return false;
-        //set exclusive mode
-        if (ival) {
-            marlin_server.flags |= MARLIN_SFLG_EXCMODE;
-            queue.clear();
-        } else
-            marlin_server.flags &= ~MARLIN_SFLG_EXCMODE;
-        return true;
     case MARLIN_MSG_TEST_START:
-        if (sscanf(data, "%08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1) != 2)
+        if (sscanf(data, "%08" SCNx32 " %08" SCNx32 " %08" SCNx32, msk32 + 0, msk32 + 1, &tool_mask) != 3)
             return false;
         //start selftest
-        marlin_server_test_start(msk32[0] + (((uint64_t)msk32[1]) << 32));
+        marlin_server_test_start(msk32[0] + (((uint64_t)msk32[1]) << 32), tool_mask);
         return true;
     case MARLIN_MSG_TEST_ABORT:
         marlin_server_test_abort();
@@ -2144,101 +2098,94 @@ static bool _process_server_request(const char *request) {
     }
 
     const bool processed = _process_server_valid_request(request, client_id);
-    if (processed)
-        if (!_send_notify_event_to_client(client_id, marlin_client_queue[client_id], MARLIN_EVT_Acknowledge, 0, 0))
-            // FIXME: Take care of resending process elsewhere.
-            marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge); // set bit if notification not sent immediately
+
+    // force update of marlin variables after proecssing request -> to ensure client can read latest variables after request completion
+    _server_update_vars();
+
+    MARLIN_EVT_t evt_result = processed ? MARLIN_EVT_Acknowledge : MARLIN_EVT_NotAcknowledge;
+    if (!_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_result, 0, 0)) {
+        // FIXME: Take care of resending process elsewhere.
+        marlin_server.client_events[client_id] |= MARLIN_EVT_MSK(evt_result); // set bit if notification not sent
+    }
     return processed;
 }
 
 // set variable from string request
-static int _server_set_var(const char *const name_val_str) {
-    if (name_val_str == nullptr)
-        return 0;
-    marlin_var_id_t var_id;
-    bool changed = false;
-    char *val_str = strchr(name_val_str, ' ');
-    *(val_str++) = 0;
-    if ((var_id = marlin_vars_get_id_by_name(name_val_str)) <= MARLIN_VAR_MAX) {
-        if (marlin_vars_str_to_value(&(marlin_server.vars), var_id, val_str) == 1) {
-            switch (var_id) {
-            case MARLIN_VAR_TTEM_NOZ:
-                changed = (thermalManager.temp_hotend[0].target != marlin_server.vars.target_nozzle);
-                // if print is paused we want to change the resume temp and turn off timeout
-                // this prevents going back to temperature before pause and enables to heat nozzle during pause
-                if (marlin_server.print_state == mpsPaused) {
-                    marlin_server_nozzle_timeout_off();
-                    marlin_server.resume.nozzle_temp = marlin_server.vars.target_nozzle;
-                }
-                thermalManager.setTargetHotend(marlin_server.vars.target_nozzle, 0);
-                break;
-            case MARLIN_VAR_TTEM_BED:
-                changed = (thermalManager.temp_bed.target != marlin_server.vars.target_bed);
-                thermalManager.setTargetBed(marlin_server.vars.target_bed);
-                break;
-            case MARLIN_VAR_Z_OFFSET:
+static void _server_set_var(const char *const request) {
+    const char *request_end = request + MARLIN_MAX_REQUEST; // todo: this is not exactly correct, but we don't know the correct length anymore
+
+    uintptr_t variable_identifier;
+    auto [request_value, error] = std::from_chars(request, request_end, variable_identifier);
+    if (error != std::errc {}) {
+        bsod("_server_set_var: identifier");
+    }
+    // skip space after variable_identifier
+    request_value += 1;
+
+    // Set normal (non-extruder) variables
+    switch (variable_identifier) {
+    case marlin_vars()->target_bed.get_identifier(): {
+        marlin_vars()->target_bed.from_string(request_value, request_end);
+        thermalManager.setTargetBed(marlin_vars()->target_bed);
+        return;
+    }
+    case marlin_vars()->z_offset.get_identifier(): {
+        marlin_vars()->z_offset.from_string(request_value, request_end);
 #if HAS_BED_PROBE
-                changed = (probe_offset.z != marlin_server.vars.z_offset);
-                probe_offset.z = marlin_server.vars.z_offset;
-#endif //HAS_BED_PROBE
-                break;
-            case MARLIN_VAR_FANSPEED:
+        probe_offset.z = marlin_vars()->z_offset;
+#endif // HAS_BED_PROBE
+        return;
+    }
+    case marlin_vars()->print_fan_speed.get_identifier(): {
+        marlin_vars()->print_fan_speed.from_string(request_value, request_end);
 #if FAN_COUNT > 0
-                changed = (thermalManager.fan_speed[0] != marlin_server.vars.print_fan_speed);
-                thermalManager.set_fan_speed(0, marlin_server.vars.print_fan_speed);
+        thermalManager.set_fan_speed(0, marlin_vars()->print_fan_speed);
 #endif
-                break;
-            case MARLIN_VAR_PRNSPEED:
-                changed = (feedrate_percentage != (int16_t)marlin_server.vars.print_speed);
-                feedrate_percentage = (int16_t)marlin_server.vars.print_speed;
-                break;
-            case MARLIN_VAR_FLOWFACT:
-                changed = (planner.flow_percentage[0] != (int16_t)marlin_server.vars.flow_factor);
-                planner.flow_percentage[0] = (int16_t)marlin_server.vars.flow_factor;
-                planner.refresh_e_factor(0);
-                break;
-            case MARLIN_VAR_WAITHEAT:
-                changed = true;
-                wait_for_heatup = marlin_server.vars.wait_heat ? true : false;
-                break;
-            case MARLIN_VAR_WAITUSER:
-                changed = true;
-                wait_for_user = marlin_server.vars.wait_user ? true : false;
-                break;
-            default:
-                log_error(MarlinServer, "unimplemented _server_set_var for var_id %i", (int)var_id);
-                break;
+        return;
+    }
+    case marlin_vars()->print_speed.get_identifier(): {
+        marlin_vars()->print_speed.from_string(request_value, request_end);
+        feedrate_percentage = (int16_t)marlin_vars()->print_speed;
+        return;
+    }
+    case marlin_vars()->fan_check_enabled.get_identifier(): {
+        marlin_vars()->fan_check_enabled.from_string(request_value, request_end);
+        return;
+    }
+    case marlin_vars()->fs_autoload_enabled.get_identifier(): {
+        marlin_vars()->fs_autoload_enabled.from_string(request_value, request_end);
+        return;
+    }
+    }
+
+    // Now see if extruder variable is set
+    HOTEND_LOOP() {
+        auto &extruder = marlin_vars()->hotend(e);
+        if (extruder.target_nozzle.get_identifier() == variable_identifier) {
+            extruder.target_nozzle.from_string(request_value, request_end);
+
+            // if print is paused we want to change the resume temp and turn off timeout
+            // this prevents going back to temperature before pause and enables to heat nozzle during pause
+            if (marlin_server.print_state == mpsPaused) {
+                marlin_server_nozzle_timeout_off();
+                marlin_server.resume.nozzle_temp[e] = extruder.target_nozzle;
             }
-            if (changed) {
-                int client_id;
-                uint64_t var_msk = MARLIN_VAR_MSK(var_id);
-                for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-                    marlin_server.client_changes[client_id] |= (var_msk & marlin_server.notify_changes[client_id]);
-            }
-        } else {
-            log_error(MarlinServer, "Unable to parse var-value pair %s", val_str);
+            thermalManager.setTargetHotend(extruder.target_nozzle, e);
+            return;
+        } else if (extruder.flow_factor.get_identifier() == variable_identifier) {
+            extruder.flow_factor.from_string(request_value, request_end);
+            planner.flow_percentage[e] = (int16_t)extruder.flow_factor;
+            planner.refresh_e_factor(e);
+            return;
+        } else if (extruder.display_nozzle.get_identifier() == variable_identifier) {
+            extruder.display_nozzle.from_string(request_value, request_end);
+            return;
         }
     }
-    //	_dbg("_server_set_var %d %s %s", var_id, name_val_str, val_str);
-    return 1;
-}
 
-// update variables defined by 'update' mask and send notification to client that requested updating
-// other clients will receive notification in next cycle
-static void _server_update_and_notify(int client_id, uint64_t update) {
-    int id;
-    osMessageQId queue;
-    uint64_t changes = _server_update_vars(update);
-    for (id = 0; id < MARLIN_MAX_CLIENTS; id++)
-        if (id == client_id) {
-            marlin_server.client_changes[id] |= changes;
-            if ((queue = marlin_client_queue[id]) != 0)
-                marlin_server.client_changes[id] &= ~_send_notify_changes_to_client(id, queue, update);
-        } else
-            marlin_server.client_changes[id] |= (changes & marlin_server.notify_changes[id]);
+    // if we got here, no variable was set, return error
+    bsod("unimplemented _server_set_var for var_id %i", (int)variable_identifier);
 }
-
-} // extern "C"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
 int _is_in_M600_flg = 0;
@@ -2312,7 +2259,7 @@ void onUserConfirmRequired(const char *const msg) {
     _send_notify_event(MARLIN_EVT_UserConfirmRequired, 0, 0);
 }
 
-#if HAS_BED_PROBE
+#if HAS_BED_PROBE || ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
 static void mbl_error(int error_code) {
     if (marlin_server.print_state != mpsPrinting && marlin_server.print_state != mpsPausing_Begin)
         return;
@@ -2332,12 +2279,12 @@ void onStatusChanged(const char *const msg) {
     static bool pending_err_msg = false;
 
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onStatusChanged: %s", msg);
-    _send_notify_event(MARLIN_EVT_StatusChanged, 0, 0);
+    _send_notify_event(MARLIN_EVT_StatusChanged, 0, 0); // this includes MMU:P progress messages - just plain textual information
     if (msg != nullptr && strcmp(msg, "Prusa-mini Ready.") == 0) {
     } //TODO
-    else if (msg != nullptr && strcmp(msg, "TMC CONNECTION ERROR") == 0)
+    else if (strcmp(msg, "TMC CONNECTION ERROR") == 0) {
         _send_notify_event(MARLIN_EVT_Error, MARLIN_ERR_TMCDriverError, 0);
-    else {
+    } else {
         if (!is_abort_state(marlin_server.print_state))
             pending_err_msg = false;
         if (!pending_err_msg) {
@@ -2345,6 +2292,12 @@ void onStatusChanged(const char *const msg) {
 #if HAS_BED_PROBE
             if (strcmp(msg, MSG_ERR_PROBING_FAILED) == 0) {
                 mbl_error(MARLIN_ERR_ProbingFailed);
+                pending_err_msg = true;
+            }
+#endif
+#if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
+            if (strcmp(msg, MSG_ERR_NOZZLE_CLEANING_FAILED) == 0) {
+                mbl_error(MARLIN_ERR_NozzleCleaningFailed);
                 pending_err_msg = true;
             }
 #endif
@@ -2388,11 +2341,7 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
 
 }
 
-const marlin_vars_t &marlin_server_read_vars() {
-    return marlin_server.vars;
-}
-
-void fsm_create(ClientFSM type, uint8_t data, const char *fnc, const char *file, int line) {
+void _fsm_create(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line) {
     fsm_event_queues.PushCreate(type, data, fnc, file, line);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
@@ -2404,6 +2353,11 @@ void fsm_destroy(ClientFSM type, const char *fnc, const char *file, int line) {
 
 void _fsm_change(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line) {
     fsm_event_queues.PushChange(type, data, fnc, file, line);
+    _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
+}
+
+void _fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data, const char *fnc, const char *file, int line) {
+    fsm_event_queues.PushDestroyAndCreate(old_type, new_type, data, fnc, file, line);
     _send_notify_event(MARLIN_EVT_FSM, 0, 0); // do not send data, _send_notify_event_to_client does not use them for this event
 }
 
@@ -2419,16 +2373,16 @@ void set_warning(WarningType type) {
 FSM_notifier::data FSM_notifier::s_data;
 FSM_notifier *FSM_notifier::activeInstance = nullptr;
 
-FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, variant8_t min, variant8_t max,
-    uint8_t progress_min, uint8_t progress_max, marlin_var_id_t var_id)
+FSM_notifier::FSM_notifier(ClientFSM type, uint8_t phase, float min, float max,
+    uint8_t progress_min, uint8_t progress_max, const MarlinVariable<float> &var_id)
     : temp_data(s_data) {
     s_data.type = type;
     s_data.phase = phase;
-    s_data.scale = static_cast<float>(progress_max - progress_min) / static_cast<float>(variant8_get_flt(max) - variant8_get_flt(min));
-    s_data.offset = -variant8_get_flt(min) * s_data.scale + static_cast<float>(progress_min);
+    s_data.scale = static_cast<float>(progress_max - progress_min) / (max - min);
+    s_data.offset = -min * s_data.scale + static_cast<float>(progress_min);
     s_data.progress_min = progress_min;
     s_data.progress_max = progress_max;
-    s_data.var_id = var_id;
+    s_data.var_id = &var_id;
     s_data.last_progress_sent = std::nullopt;
     activeInstance = this;
 }
@@ -2446,10 +2400,8 @@ void FSM_notifier::SendNotification() {
         return;
     if (s_data.type == ClientFSM::_none)
         return;
-    activeInstance->preSendNotification();
-    variant8_t temp = marlin_vars_get_var(&(marlin_server.vars), s_data.var_id);
 
-    float actual = variant8_get_flt(temp);
+    float actual = *s_data.var_id;
     actual = actual * s_data.scale + s_data.offset;
 
     int progress = static_cast<int>(actual); //int - must be signed
@@ -2462,10 +2414,8 @@ void FSM_notifier::SendNotification() {
     // no value: comparison returns true
     if (progress > s_data.last_progress_sent) {
         s_data.last_progress_sent = progress;
-        ProgressSerializer serializer(progress);
-        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, serializer.Serialize()), __PRETTY_FUNCTION__, __FILE__, __LINE__);
+        _fsm_change(s_data.type, fsm::BaseData(s_data.phase, activeInstance->serialize(progress)), __PRETTY_FUNCTION__, __FILE__, __LINE__);
     }
-    activeInstance->postSendNotification();
 }
 
 FSM_notifier::~FSM_notifier() {
@@ -2480,16 +2430,12 @@ FSM_notifier::~FSM_notifier() {
 std::atomic<uint32_t> ClientResponseHandler::server_side_encoded_response = UINT32_MAX;
 
 uint8_t get_var_sd_percent_done() {
-    return marlin_server.vars.sd_percent_done;
+    return marlin_vars()->sd_percent_done;
 }
 
 void set_var_sd_percent_done(uint8_t value) {
-    marlin_server.vars.sd_percent_done = value;
-    _set_notify_change(MARLIN_VAR_SD_PDONE);
+    marlin_vars()->sd_percent_done = value;
 }
 
-#if ENABLED(CRASH_RECOVERY)
-void set_length(xy_float_t xy) {
-    marlin_server.axis_length = xy;
-}
-#endif
+alignas(std::max_align_t) uint8_t FSMExtendedDataManager::extended_data_buffer[FSMExtendedDataManager::buffer_size] = { 0 };
+size_t FSMExtendedDataManager::identifier = { 0 };

@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/Jacajack/liblightmodbus.git
+	branch = master
+	commit = 3f8ebeba2d14767c12f502025844463c6a04ecba
+	parent = e41ecc38ef486fda26e35c34c85a59484e6d2b19
+	method = merge
+	cmdver = 0.4.3

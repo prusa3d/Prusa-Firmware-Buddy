@@ -107,6 +107,8 @@ uint8_t TMC2208Stepper::calcCRC(uint8_t datagram[], uint8_t len) {
 }
 
 void TMC2208Stepper::write(uint8_t addr, uint32_t regVal) {
+	tmc_register_write_hook(slave_address, addr, regVal);
+
 	if (addr == SLAVECONF_register.address) {
 		// When writing to the SLAVECONF register (adjusting reply delay), make an exception
 		// and let's not check the IFCNT. Why? We would have to read the IFCNT _before_ setting
@@ -250,6 +252,8 @@ uint32_t TMC2208Stepper::read(uint8_t addr) {
 			break;
 		}
 	}
+
+	tmc_register_read_hook(slave_address, addr, out >> 8);
 
 	if (CRCerror) {
 		tmc_communication_error();

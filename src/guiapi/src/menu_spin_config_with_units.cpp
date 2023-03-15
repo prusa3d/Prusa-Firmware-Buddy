@@ -6,7 +6,7 @@
  * @date 2020-11-04
  */
 #include "menu_spin_config.hpp"
-#include "config_buddy_2209_02.h"
+#include "config_features.h"
 
 static constexpr const char *Celsius = "\177C";
 static constexpr const char *Percent = "%";
@@ -20,11 +20,15 @@ static constexpr const char *Second = "s";
 // SpinConfig_t == SpinConfigWithUnit
 const SpinConfigInt SpinCnf::nozzle = SpinConfigInt(MenuVars::GetNozzleRange(), Celsius, spin_off_opt_t::yes);
 const SpinConfigInt SpinCnf::bed = SpinConfigInt(MenuVars::GetBedRange(), Celsius, spin_off_opt_t::yes);
-const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::printfan_range, rpm, spin_off_opt_t::yes);
+const SpinConfigInt SpinCnf::printfan = SpinConfigInt(MenuVars::percent_range, Percent, spin_off_opt_t::yes);
 const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range, Percent);
 const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range, Percent);
 const SpinConfigInt SpinCnf::timezone_range = { { -12, 12, 1 }, Hour };
+#if BOARD_IS_BUDDY
 const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 }, None, spin_off_opt_t::yes }; //crank it up to 11
+#else
+const SpinConfigInt SpinCnf::volume_range = { { 0, 3, 1 }, None, spin_off_opt_t::yes };
+#endif
 const SpinConfigInt SpinCnf::footer_center_N_range = { { 0, 5, 1 }, None, spin_off_opt_t::yes };
 const SpinConfigInt SpinCnf::axis_z_max_range = SpinConfigInt(MenuVars::GetMaximumZRange(), mm);
 const std::array<SpinConfigInt, MenuVars::AXIS_CNT> SpinCnf::axis_ranges = { { SpinConfigInt(MenuVars::GetAxisRanges()[0], mm), SpinConfigInt(MenuVars::GetAxisRanges()[1], mm),
@@ -33,5 +37,23 @@ const SpinConfigInt SpinCnf::steps_per_unit = SpinConfigInt(MenuVars::steps_per_
 const SpinConfigInt SpinCnf::microstep_exponential = SpinConfigInt(MenuVars::microstep_exponential_range, None);
 const SpinConfigInt SpinCnf::rms_current = SpinConfigInt(MenuVars::axis_rms_currents_range, mA);
 const SpinConfigInt SpinCnf::two_digits_uint = { { 0, 15, 1 }, None };
-const SpinConfigInt SpinCnf::crash_sensitivity_2209 = SpinConfigInt({ 0, 255, 1 }, None, spin_off_opt_t::no);
-const SpinConfigInt SpinCnf::crash_max_period_2209 = SpinConfigInt({ 0, 0xFFFFF, 1 }, None, spin_off_opt_t::no);
+#if AXIS_DRIVER_TYPE_X(TMC2209)
+const SpinConfigInt SpinCnf::crash_sensitivity = SpinConfigInt({ 0, 255, 1 }, None, spin_off_opt_t::no);
+#elif AXIS_DRIVER_TYPE_X(TMC2130)
+const SpinConfigInt SpinCnf::crash_sensitivity = SpinConfigInt({ -64, 63, 1 }, None, spin_off_opt_t::no);
+#else
+    #error "Unknown driver type."
+#endif
+const SpinConfigInt SpinCnf::crash_max_period = SpinConfigInt({ 0, 0xFFFFF, 1 }, None, spin_off_opt_t::no);
+
+//private repo
+#ifdef LOVEBOARD_HAS_PT100
+const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50, 300, 10 }, None);
+#elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
+const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50, 1500, 10 }, None);
+#else
+const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50000, 2500000, 1000 }, None);
+#endif
+const SpinConfigInt SpinCnf::loadcell_range = { { 5, 30, 1 }, None };
+const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 29, 200, 1 }, Second, spin_off_opt_t::yes); // lowest value is off
+const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, int(0xEFFF'FFFF), 1 }, None, spin_off_opt_t::no);

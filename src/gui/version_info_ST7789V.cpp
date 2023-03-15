@@ -3,7 +3,6 @@
  */
 
 #include "screen_menu_version_info.hpp"
-#include "screen_menu.hpp"
 #include "config.h"
 #include "version.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
@@ -29,18 +28,16 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     //=============VARIABLES=================
 
-    uint8_t board_version[3];
-    char serial_numbers[15];
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
 
     //=============ACCESS IN ADDR=================
-    for (uint8_t i = 0; i < 3; i++) {
-        board_version[i] = *(volatile uint8_t *)(OTP_BOARD_REVISION_ADDR + i);
+    board_revision_t board_revision;
+    if (otp_get_board_revision(&board_revision) == false) {
+        board_revision.br = 0;
     }
-    for (uint8_t i = 0; i < 15; i++) {
-        serial_numbers[i] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
-    }
-    serial_numbers[14] = '\0';
+
+    serial_nr_t serial_nr;
+    otp_get_serial_nr(&serial_nr);
 
     //=============SET TEXT================
     auto begin = version_info_str.begin();
@@ -69,14 +66,14 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     if (end > begin) {
         // c=20 r=4
-        static const char fmt2Translate[] = N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d.%d\n%s");
+        static const char fmt2Translate[] = N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d\n%s");
         char fmt[20 * 4];
         _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
         begin += snprintf(begin, end - begin,
             fmt,
             bootloader->major, bootloader->minor, bootloader->patch,
-            board_version[0], board_version[1], board_version[2],
-            serial_numbers);
+            board_revision.bytes[0], board_revision.bytes[1],
+            serial_nr.txt);
     }
 
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of this

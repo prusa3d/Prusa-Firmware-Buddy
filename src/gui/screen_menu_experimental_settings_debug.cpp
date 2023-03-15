@@ -68,14 +68,14 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         break;
     case ClickCommand::Reset_Z:
         Item<MI_Z_AXIS_LEN>().SetVal(default_Z_max_pos);
-        menu.Invalidate(); // its broken, does not work
+        Invalidate();
         break;
     case ClickCommand::Reset_steps:
         Item<MI_STEPS_PER_UNIT_X>().SetVal(MenuVars::GetDefaultStepsPerUnit()[0]);
         Item<MI_STEPS_PER_UNIT_Y>().SetVal(MenuVars::GetDefaultStepsPerUnit()[1]);
         Item<MI_STEPS_PER_UNIT_Z>().SetVal(MenuVars::GetDefaultStepsPerUnit()[2]);
         Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::GetDefaultStepsPerUnit()[3]);
-        menu.Invalidate(); // its broken, does not work
+        Invalidate();
         break;
     case ClickCommand::Reset_directions:
         //set index to Prusa
@@ -83,21 +83,21 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         Item<MI_DIRECTION_Y>().SetIndex(0);
         Item<MI_DIRECTION_Z>().SetIndex(0);
         Item<MI_DIRECTION_E>().SetIndex(0);
-        menu.Invalidate(); // its broken, does not work
+        Invalidate();
         break;
     case ClickCommand::Reset_microsteps:
         Item<MI_MICROSTEPS_X>().SetVal(MenuVars::GetDefaultMicrosteps()[0]);
         Item<MI_MICROSTEPS_Y>().SetVal(MenuVars::GetDefaultMicrosteps()[1]);
         Item<MI_MICROSTEPS_Z>().SetVal(MenuVars::GetDefaultMicrosteps()[2]);
         Item<MI_MICROSTEPS_E>().SetVal(MenuVars::GetDefaultMicrosteps()[3]);
-        menu.Invalidate(); // its broken, does not work
+        Invalidate();
         break;
     case ClickCommand::Reset_currents:
         Item<MI_CURRENT_X>().SetVal(MenuVars::GetDefaultCurrents()[0]);
         Item<MI_CURRENT_Y>().SetVal(MenuVars::GetDefaultCurrents()[1]);
         Item<MI_CURRENT_Z>().SetVal(MenuVars::GetDefaultCurrents()[2]);
         Item<MI_CURRENT_E>().SetVal(MenuVars::GetDefaultCurrents()[3]);
-        menu.Invalidate(); // its broken, does not work
+        Invalidate();
         break;
     }
 }
@@ -122,4 +122,6 @@ ExperimentalSettingsValues::ExperimentalSettingsValues(ScreenMenuExperimentalSet
     , rms_current_ma_x(parent.Item<MI_CURRENT_X>().GetVal())
     , rms_current_ma_y(parent.Item<MI_CURRENT_Y>().GetVal())
     , rms_current_ma_z(parent.Item<MI_CURRENT_Z>().GetVal())
-    , rms_current_ma_e(parent.Item<MI_CURRENT_E>().GetVal()) {}
+    , rms_current_ma_e(parent.Item<MI_CURRENT_E>().GetVal())
+
+{}

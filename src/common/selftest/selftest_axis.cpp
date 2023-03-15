@@ -12,6 +12,11 @@
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"
 
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <module/prusa/toolchanger.h>
+#endif /*HAS_TOOLCHANGER()*/
+
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);
 
@@ -41,9 +46,19 @@ CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisCo
         log_info(Selftest, "%s home single axis", config.partname);
     }
     queue.enqueue_one_now(gcode);
+
+#if HAS_TOOLCHANGER()
+    // Z axis check needs to be done with a tool
+    if (AxisLetter[config.axis] == 'Z' && prusa_toolchanger.is_toolchanger_enabled() && (prusa_toolchanger.has_tool() == false)) {
+        queue.enqueue_one_now("T0 S1");
+    }
+#endif /*HAS_TOOLCHANGER()*/
 }
 
-CSelftestPart_Axis::~CSelftestPart_Axis() { endstops.enable(false); }
+CSelftestPart_Axis::~CSelftestPart_Axis() {
+    endstops.enable(false);
+    endstops.enable_z_probe(false);
+}
 
 void CSelftestPart_Axis::phaseMove(int8_t dir) {
     const float feedrate = dir > 0 ? config.fr_table_fw[m_Step / 2] : config.fr_table_bw[m_Step / 2];
@@ -60,12 +75,12 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
 
     // Disable stealthChop if used. Enable diag1 pin on driver.
 #if ENABLED(SENSORLESS_HOMING)
-    #if HOMING_Z_WITH_PROBE && 0
+    #if HOMING_Z_WITH_PROBE && ENABLED(NOZZLE_LOAD_CELL)
     const bool is_home_dir = (home_dir(AxisEnum(config.axis)) > 0) == (dir > 0);
     const bool moving_probe_toward_bed = (is_home_dir && (Z_AXIS == config.axis));
     #endif
     bool enable_sensorless_homing =
-    #if HOMING_Z_WITH_PROBE && 0
+    #if HOMING_Z_WITH_PROBE && ENABLED(NOZZLE_LOAD_CELL)
         !moving_probe_toward_bed
     #else
         true
@@ -76,7 +91,7 @@ void CSelftestPart_Axis::phaseMove(int8_t dir) {
         start_sensorless_homing_per_axis(AxisEnum(config.axis));
 #endif
 
-    current_position.pos[config.axis] += dir * (config.length + 10);
+    current_position.pos[config.axis] += dir * (config.length + EXTRA_LEN_MM);
     line_to_current_position(feedrate);
 }
 
@@ -90,9 +105,24 @@ LoopResult CSelftestPart_Axis::wait(int8_t dir) {
     sync_plan_position();
     report_current_position();
 
+#if HAS_HOTEND_OFFSET
+    // Tool offset was just trashed, moreover this home was not precise
+    // Force home on next toolchange
+    CBI(axis_known_position, X_AXIS);
+    CBI(axis_known_position, Y_AXIS);
+#endif
+
     int32_t endPos_usteps = stepper.position((AxisEnum)config.axis);
     int32_t length_usteps = dir * (endPos_usteps - m_StartPos_usteps);
     float length_mm = (length_usteps * planner.mm_per_step[(AxisEnum)config.axis]);
+
+// Core kinematic has inverted Y steps compared to axis move direction
+#if CORE_IS_XY || CORE_IS_YZ
+    if (static_cast<AxisEnum>(config.axis) == AxisEnum::Y_AXIS) {
+        length_mm *= -1;
+    }
+#endif
+
     if ((length_mm < config.length_min) || (length_mm > config.length_max)) {
         log_error(Selftest, "%s measured length = %fmm out of range <%f,%f>", config.partname, (double)length_mm, (double)config.length_min, (double)config.length_max);
         return LoopResult::Fail;
@@ -150,7 +180,9 @@ LoopResult CSelftestPart_Axis::stateWaitHome() {
     if (planner.movesplanned() || queue.length)
         return LoopResult::RunCurrent;
     endstops.enable(true);
-    endstops.enable_z_probe();
+    if (config.axis == Z_AXIS) {
+        endstops.enable_z_probe(); // Enable Z probe only during Z axis test
+    }
     return LoopResult::RunNext;
 }
 

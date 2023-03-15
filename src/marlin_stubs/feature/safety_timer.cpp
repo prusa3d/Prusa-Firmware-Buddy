@@ -59,7 +59,7 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
 
     //timer is expired
     if (pBoundPause) {
-        pBoundPause->NotifyExpiredFromSafetyTimer(thermalManager.degTargetHotend(0), thermalManager.degTargetBed());
+        pBoundPause->NotifyExpiredFromSafetyTimer();
         if (printingIsPaused()) {
             thermalManager.disable_hotend();
             set_warning(WarningType::NozzleTimeout);
@@ -67,7 +67,9 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
             thermalManager.disable_all_heaters();
             set_warning(WarningType::HeatersTimeout);
         }
-        marlin_server_set_temp_to_display(0);
+        HOTEND_LOOP() {
+            marlin_server_set_temp_to_display(0, e);
+        }
         return expired_t::yes;
     }
     if (printingIsPaused()) {
@@ -81,7 +83,9 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     } else {
         // disable nozzle and bed
         thermalManager.disable_all_heaters();
-        marlin_server_set_temp_to_display(0);
+        HOTEND_LOOP() {
+            marlin_server_set_temp_to_display(0, e);
+        }
         set_warning(WarningType::HeatersTimeout);
     }
 

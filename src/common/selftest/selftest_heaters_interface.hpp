@@ -8,14 +8,14 @@
  */
 #pragma once
 #include "selftest_heater_config.hpp"
+#include <span>
 
-class CFanCtl;
 class IPartHandler;
 
 namespace selftest {
 
-void phaseHeaters_noz_ena(IPartHandler *&pNozzle, const HeaterConfig_t &config_nozzle);
+void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const std::span<const HeaterConfig_t> config_nozzle);
 void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed);
-bool phaseHeaters(IPartHandler *&pNozzle, IPartHandler *&pBed);
+bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&pBed);
 
 };

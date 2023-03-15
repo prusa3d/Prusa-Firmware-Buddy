@@ -122,14 +122,14 @@ Screens *Screens::Access() {
     return instance;
 }
 
-void Screens::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
+void Screens::ScreenEvent(window_t *sender, GUI_event_t event, void *const param) {
     if (current == nullptr)
         return;
     // todo shouldn't I use "sender ? sender : current.get()"?
     current->ScreenEvent(current.get(), event, param);
 }
 
-void Screens::WindowEvent(GUI_event_t event, void *param) {
+void Screens::WindowEvent(GUI_event_t event, void *const param) {
     if (current == nullptr)
         return;
     current->WindowEvent(current.get(), event, param);

@@ -8,8 +8,9 @@
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 #include "selftest_axis.h"
 
-#if ENABLED(CRASH_RECOVERY)
+#if ENABLED(AXIS_MEASURE)
 static bool axis_length_ok(AxisEnum axis, float length) {
+    #if HAS_SELFTEST
     switch (axis) {
     case X_AXIS:
         return ((length <= selftest::Config_XAxis.length_max) && (length >= selftest::Config_XAxis.length_min));
@@ -18,6 +19,9 @@ static bool axis_length_ok(AxisEnum axis, float length) {
     default:;
     }
     return false;
+    #else
+    return true;
+    #endif // HAS_SELFTEST
 }
 
 static SelftestSubtestState_t axis_length_ok_fsm(AxisEnum axis, float length) {
@@ -26,7 +30,7 @@ static SelftestSubtestState_t axis_length_ok_fsm(AxisEnum axis, float length) {
 #endif
 
 void PrusaGcodeSuite::G163() {
-#if ENABLED(CRASH_RECOVERY)
+#if ENABLED(AXIS_MEASURE)
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
     FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize());
     bool do_x = parser.seen('X');
@@ -66,7 +70,7 @@ void PrusaGcodeSuite::G163() {
     if (do_y)
         SERIAL_ECHOLNPAIR("Y length: ", ma.length().y);
 
-    set_length(ma.length());
+    set_axes_length(ma.length());
     cr_fsm.set(axis_length_ok_fsm(X_AXIS, ma.length().x), axis_length_ok_fsm(Y_AXIS, ma.length().y));
     FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
 #endif

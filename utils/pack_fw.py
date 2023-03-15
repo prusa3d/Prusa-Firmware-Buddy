@@ -26,7 +26,10 @@ SemVer = namedtuple('SemVer',
 
 
 class PrinterType(Enum):
+    MK404 = 1
     MINI = 2
+    XL = 3
+    IXL = 4
 
 
 class TLVType(Enum):
@@ -164,6 +167,7 @@ def main():
     check_byte(args.board, "Board major version")
     printer_type = PrinterType(args.printer_type)  # could raise ValueError
     check_byte(args.printer_version, "Printer type version")
+    check_byte(args.printer_subversion, "Printer type subversion")
     fw_file = splitext(args.firmware)[0]
     if args.build_number is not None:
         build_number = args.build_number
@@ -199,6 +203,8 @@ def main():
     printer_name = printer_type.name
     if args.printer_version > 1:
         printer_name += "%s" % args.printer_version
+    if args.printer_subversion > 0:
+        printer_name += ".%s" % args.printer_subversion
 
     print("\tboard: %d" % args.board)
     print("\tprinter: %s" % printer_name)

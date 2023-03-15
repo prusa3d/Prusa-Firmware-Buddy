@@ -12,6 +12,9 @@
 
 static constexpr bool use_long_text = GuiDefaults::infoDefaultLen >= 16;
 // dev only, don't translate
+constexpr static const char *label_CRC_ERR = (use_long_text) ? "INIT_CRC_ERROR" : "I_CRC";
+constexpr static const char *label_UPGRADED = (use_long_text) ? "INIT_UPGRADED" : "I_UPG";
+constexpr static const char *label_UPGRADE_FAILED = (use_long_text) ? "INIT_UPG_FAILED" : "I_UPF";
 constexpr static const char *label_TRANSMIT_OK = (use_long_text) ? "TRANSMIT_OK" : "T_OK";
 constexpr static const char *label_TRANSMIT_ERROR = (use_long_text) ? "TRANSMIT_ERROR" : "T_ERROR";
 constexpr static const char *label_TRANSMIT_BUSY = (use_long_text) ? "TRANSMIT_BUSY" : "T_BUSY";
@@ -26,6 +29,18 @@ constexpr static const char *label_RECEIVE_UNDEF = (use_long_text) ? "RECEIVE_UN
 // accessing extern variables from other thread
 // uint32_t will be most likely atomic, if it is not it will not break anything because it is "read only"
 // meant to be used in dev mode
+
+MI_EEPROM_INIT_CRC_ERROR::MI_EEPROM_INIT_CRC_ERROR()
+    : WI_INFO_DEV_t(eeprom_init_crc_error(), string_view_utf8::MakeCPUFLASH((const uint8_t *)label_CRC_ERR)) {
+}
+
+MI_EEPROM_INIT_UPGRADED::MI_EEPROM_INIT_UPGRADED()
+    : WI_INFO_DEV_t(eeprom_init_upgraded(), string_view_utf8::MakeCPUFLASH((const uint8_t *)label_UPGRADED)) {
+}
+
+MI_EEPROM_INIT_UPGRADE_FAILED::MI_EEPROM_INIT_UPGRADE_FAILED()
+    : WI_INFO_DEV_t(eeprom_init_upgrade_failed(), string_view_utf8::MakeCPUFLASH((const uint8_t *)label_UPGRADE_FAILED)) {
+}
 
 MI_I2C_TRANSMIT_RESULTS_HAL_OK::MI_I2C_TRANSMIT_RESULTS_HAL_OK()
     : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_OK, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_OK)) {

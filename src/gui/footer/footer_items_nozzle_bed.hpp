@@ -5,6 +5,8 @@
 
 #pragma once
 #include "footer_items_heaters.hpp"
+#include "config_features.h"
+#include <option/has_toolchanger.h>
 
 class FooterItemNozzle : public AddSuperWindow<FooterItemHeater> {
     static string_view_utf8 static_makeView(int value);
@@ -22,4 +24,39 @@ class FooterItemBed : public AddSuperWindow<FooterItemHeater> {
 public:
     static string_view_utf8 GetName();
     FooterItemBed(window_t *parent);
+
+protected:
+#if ENABLED(MODULAR_HEATBED)
+    uint16_t last_enabled_bedlet_mask;
+    uint16_t last_warm_bedlet_mask;
+#endif
+    void unconditionalDraw() override;
+    changed_t updateValue() override;
+
+    static constexpr uint COLD = 40;
+};
+
+/**
+ * @brief Show all temperatures, cycle all nozzles.
+ */
+class FooterItemAllNozzles : public AddSuperWindow<FooterIconText_IntVal> {
+    static string_view_utf8 static_makeView(int value);
+    static int static_readValue();
+    static footer::ItemDrawType GetDrawType();
+
+    void unconditionalDraw() override;
+    changed_t updateValue() override;
+
+    static uint nozzle_n;                        ///< Cycle through nozzles, 0 is "Tool 1" displayed as "T1"
+    static constexpr uint32_t CYCLE_TIME = 2000; ///< Time to cycle nozzles [ms]
+    static constexpr uint COLD = 45;             ///< Nozzle is cold under this [deg C]
+
+#if HAS_TOOLCHANGER()
+    static constexpr uint NOZZLES_COUNT = 5; ///< This icon only works for 5 nozzles
+    static_assert(NOZZLES_COUNT <= EXTRUDERS);
+#endif /*HAS_TOOLCHANGER()*/
+
+public:
+    static string_view_utf8 GetName();
+    FooterItemAllNozzles(window_t *parent);
 };

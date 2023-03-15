@@ -1,6 +1,5 @@
 #pragma once
 #include "inc/MarlinConfigPre.h"
-#include "bsod.h"
 
 #if ENABLED(CRASH_RECOVERY)
 
@@ -28,12 +27,15 @@ class Crash_s {
 public:
     /// Crash detection/recovery states
     typedef enum {
-        IDLE,               /// initial/disabled state
-        PRINTING,           /// printer is working in a usual way (also in pause)
-        TRIGGERED_ISR,      /// crash was detected, handling ISR
-        TRIGGERED_AC_FAULT, /// crash was triggered during an AC fault
-        RECOVERY,           /// crash was detected and recovery is being done
-        REPLAY,             /// printer was re-homed and the last G code is being replayed
+        IDLE,                /// initial/disabled state
+        PRINTING,            /// printer is working in a usual way (also in pause)
+        TRIGGERED_ISR,       /// crash was detected, handling ISR
+        TRIGGERED_AC_FAULT,  /// crash was triggered during an AC fault
+        TRIGGERED_TOOLFALL,  /// dwarf fell off the toolchanger, not during toolchange, regular crash recovery + tool pickup
+        TRIGGERED_TOOLCRASH, /// crash during toolchange, no recovery, just pause and wait for tool pickup
+        TOOLCRASH,           /// waiting for user to repark dwarves
+        RECOVERY,            /// crash was detected and recovery is being done
+        REPLAY,              /// printer was re-homed and the last G code is being replayed
     } state_t;
 
     /// Recovery inhibition types
@@ -111,21 +113,28 @@ private:
     state_t state;
     uint8_t crash_timestamps_idx; ///< index for round buffer
     bool repeated_crash;
-    bool stats_saved; ///< statistics were saved to EEPROM
-    bool enabled;     ///< has to cache EEPROM to avoid IRQ deadlock
+    bool enabled;             ///< has to cache EEPROM to avoid IRQ deadlock
     bool m_axis_is_homing[2]; ///< Axis is sensorlessly homing now
     bool m_enable_stealth[2]; ///< Stealth mode should be enabled if crash detection is disabled
-#if HAS_DRIVER(TMC2130)
-    bool filter;      /// use TMC filtering
-#endif
+    #if HAS_DRIVER(TMC2130)
+    bool filter; /// use TMC filtering
+    #endif
     AxisEnum axis_hit;
+    bool toolchange_event;       ///< True if the event was triggered by TRIGGERED_TOOLCRASH or TRIGGERED_TOOLFALL
+    bool toolchange_in_progress; ///< True while changing tools, set externally by the prusa_toolchanger
 
     /// methods
 public:
     void start_sensorless_homing_per_axis(const AxisEnum axis);
     void end_sensorless_homing_per_axis(const AxisEnum axis, const bool enable_stealth);
     void reset();
+
+    /**
+     * @brief Set crash state.
+     * @param new_state set this
+     */
     void set_state(state_t new_state);
+
     state_t get_state() { return state; }
 
     /// Enable/disable crash detection depending on user
@@ -155,19 +164,40 @@ public:
 
     void set_sensitivity(xy_long_t sens);
     xy_long_t get_sensitivity() { return sensitivity; }
+
     void set_max_period(xy_long_t mp);
     xy_long_t get_max_period() { return max_period; }
+
     /// Sends metrics/logs
     /// Takes axis stored in ISR
     void send_reports();
     void axis_hit_isr(AxisEnum axis) { axis_hit = axis; }
     void write_stat_to_eeprom();
+    void reset_crash_counter();
     bool is_repeated_crash() { return repeated_crash; }
     void count_crash();
-#if HAS_DRIVER(TMC2130)
+    #if HAS_DRIVER(TMC2130)
     bool get_filter() { return filter; }
     void set_filter(bool on);
-#endif
+    #endif
+
+    /**
+     * @brief Whether the crash event involves toolchanger and all dwarves need to be picked up.
+     * @return true if it involves toolchanger
+     */
+    bool is_toolchange_event() { return toolchange_event; }
+
+    /**
+     * @brief Know if toolchange is in progress.
+     * @return true if toolchange is currently in progress
+     */
+    bool is_toolchange_in_progress() { return toolchange_in_progress; }
+
+    /**
+     * @brief Set when changing tools, when regular crash recovery would be dangerous.
+     * @param toolchange_in_progress true when changing tools
+     */
+    void set_toolchange_in_progress(bool toolchange_in_progress) { this->toolchange_in_progress = toolchange_in_progress; }
 
 private:
     void update_machine();
@@ -175,7 +205,6 @@ private:
     void restore_state();   ///< Restore planner state for a saved crash. *Must* be called one server loop later!
     void resume_movement(); ///< Release the planner from a stop. *Must* be called one server loop later!
 
-    void reset_crash_counter();
     uint32_t clean_history(); /// remove old timestamps, returns number of valid timestamps
     void reset_history();     /// remove all timestamps
     void reset_repeated_crash() {
@@ -203,7 +232,7 @@ class Crash_Temporary_Deactivate {
     bool orig_state;
 
 public:
-    Crash_Temporary_Deactivate() {
+    [[nodiscard]] Crash_Temporary_Deactivate() {
         orig_state = crash_s.is_active();
         if (orig_state) {
             // Crash state shouldn't be changed within an active block. This check is not perfect nor

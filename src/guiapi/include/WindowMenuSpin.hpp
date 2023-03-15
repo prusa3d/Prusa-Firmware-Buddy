@@ -18,7 +18,6 @@ protected:
     static constexpr padding_ui8_t Padding = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::MenuPaddingSpecial : GuiDefaults::MenuPaddingItems;
     static constexpr size_t unit__half_space_padding = 6;
     static constexpr bool has_unit = GuiDefaults::MenuSpinHasUnits;
-    static constexpr const char *const off_opt = N_("Off");
 
     using SpinTextArray = std::array<char, 10>;
     SpinTextArray spin_text_buff; //temporary buffer to print value for text measurements
@@ -33,6 +32,7 @@ protected:
     void changeExtentionWidth(size_t unit_len, char uchar, size_t width);
 
     virtual void click(IWindowMenu &window_menu) final;
+    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 
 public:

@@ -15,16 +15,24 @@
 class SelftestFrameFans : public AddSuperWindow<SelftestFrameNamed> {
     FooterLine footer;
     window_wizard_progress_t progress;
+    window_text_t text_info;
 
     window_icon_t icon_hotend_fan;
     window_text_t text_hotend_fan;
-    WindowIcon_OkNg icon_hotend_fan_state;
 
     window_icon_t icon_print_fan;
     window_text_t text_print_fan;
-    WindowIcon_OkNg icon_print_fan_state;
 
-    window_text_t text_info;
+    struct fan_state_t {
+        WindowIcon_OkNg icon_print_fan_state;
+        WindowIcon_OkNg icon_heatbreak_fan_state;
+    };
+    std::array<fan_state_t, HOTENDS> fan_states;
+
+    fan_state_t make_fan_row(size_t index);
+
+    template <size_t... Is>
+    std::array<fan_state_t, sizeof...(Is)> make_fan_row_array(std::index_sequence<Is...> index_sequence);
 
 protected:
     virtual void change() override;

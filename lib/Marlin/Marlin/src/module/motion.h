@@ -95,6 +95,9 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis);
 
 extern feedRate_t feedrate_mm_s;
 
+extern float homing_bump_divisor[];
+#define HOMING_BUMP_DIVISOR_STEP (1.03f)
+
 /**
  * Feedrate scaling is applied to all G0/G1, G2/G3, and G5 moves
  */
@@ -130,6 +133,7 @@ XYZ_DEFS(signed char, home_dir, HOME_DIR);
 
 #if HAS_HOTEND_OFFSET
   extern xyz_pos_t hotend_offset[HOTENDS];
+  extern xyz_pos_t hotend_currently_applied_offset; // Difference to position without hotend offset. Used for tool park/pickup
   void reset_hotend_offsets();
 #elif HOTENDS
   constexpr xyz_pos_t hotend_offset[HOTENDS] = { { 0 } };
@@ -274,17 +278,21 @@ void set_axis_is_at_home(const AxisEnum axis);
 
 void set_axis_is_not_at_home(const AxisEnum axis);
 
-#if ENABLED(PRECISE_HOMING)
-  void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false, bool can_calibrate = true);
-#else
-  void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false);
-#endif
+void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false OPTARG(PRECISE_HOMING, bool can_calibrate = true));
 
 void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0
   #if ENABLED(MOVE_BACK_BEFORE_HOMING)
     , bool can_move_back_before_homing = false
   #endif
+  #if HOMING_Z_WITH_PROBE
+    , bool homing_z_with_probe = HOMING_Z_WITH_PROBE
+  #endif /*HOMING_Z_WITH_PROBE*/
 );
+
+#if ENABLED(PRECISE_HOMING_COREXY)
+  void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm);
+  void refine_corexy_origin();
+#endif
 
 /**
  * Workspace offsets
@@ -304,14 +312,25 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   #else
     #define _WS position_shift
   #endif
-  #define NATIVE_TO_LOGICAL(POS, AXIS) ((POS) + _WS[AXIS])
-  #define LOGICAL_TO_NATIVE(POS, AXIS) ((POS) - _WS[AXIS])
-  FORCE_INLINE void toLogical(xy_pos_t &raw)   { raw += _WS; }
-  FORCE_INLINE void toLogical(xyz_pos_t &raw)  { raw += _WS; }
-  FORCE_INLINE void toLogical(xyze_pos_t &raw) { raw += _WS; }
-  FORCE_INLINE void toNative(xy_pos_t &raw)    { raw -= _WS; }
-  FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS; }
-  FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS; }
+  #if DISABLED(PRUSA_TOOLCHANGER)
+    #define NATIVE_TO_LOGICAL(POS, AXIS) ((POS) + _WS[AXIS])
+    #define LOGICAL_TO_NATIVE(POS, AXIS) ((POS) - _WS[AXIS])
+    FORCE_INLINE void toLogical(xy_pos_t &raw)   { raw += _WS; }
+    FORCE_INLINE void toLogical(xyz_pos_t &raw)  { raw += _WS; }
+    FORCE_INLINE void toLogical(xyze_pos_t &raw) { raw += _WS; }
+    FORCE_INLINE void toNative(xy_pos_t &raw)    { raw -= _WS; }
+    FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS; }
+    FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS; }
+  #else
+    #define NATIVE_TO_LOGICAL(POS, AXIS) ((POS) + _WS[AXIS] + hotend_currently_applied_offset[AXIS])
+    #define LOGICAL_TO_NATIVE(POS, AXIS) ((POS) - _WS[AXIS] - hotend_currently_applied_offset[AXIS])
+    FORCE_INLINE void toLogical(xy_pos_t &raw)   { raw += _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toLogical(xyz_pos_t &raw)  { raw += _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toLogical(xyze_pos_t &raw) { raw += _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xy_pos_t &raw)    { raw -= _WS - hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS - hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS - hotend_currently_applied_offset; }
+  #endif
 #else
   #define NATIVE_TO_LOGICAL(POS, AXIS) (POS)
   #define LOGICAL_TO_NATIVE(POS, AXIS) (POS)
@@ -483,3 +502,12 @@ FORCE_INLINE bool position_is_reachable_by_probe(const xy_pos_t &pos) { return p
   float home_axis_precise(AxisEnum axis, int axis_home_dir, bool can_calibrate = true);
 
 #endif // ENABLED(PRECISE_HOMING)
+
+#if ENABLED(PRECISE_HOMING_COREXY)
+
+  /**
+  * Convert raw AB steps to XY mm
+  */
+  void corexy_ab_to_xy(const xy_long_t& steps, xy_pos_t& mm);
+
+#endif // ENABLED(PRECISE_HOMING_COREXY)

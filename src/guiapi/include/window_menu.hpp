@@ -42,6 +42,12 @@ class WindowMenu : public AddSuperWindow<IWindowMenu> {
     /// \returns input
     bool playEncoderSound(bool changed);
 
+    using roll_fn = std::optional<uint8_t> (WindowMenu::*)() const;
+    std::optional<uint8_t> calc_up_index() const;
+    std::optional<uint8_t> calc_down_index() const;
+
+    bool roll(roll_fn fn);
+
     std::optional<size_t> slotFromCoord(point_ui16_t point);
     IWindowMenuItem *itemFromSlot(size_t slot);
 
@@ -90,6 +96,9 @@ public:
 
     uint8_t GetMaxItemsOnScreen() const { return max_items_on_screen; }
     uint8_t GetIndexOfFirst() const { return index_of_first; }
+
+    void RollUp();
+    void RollDown();
 
 protected:
     virtual void draw() override;

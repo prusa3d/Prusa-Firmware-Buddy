@@ -9,7 +9,7 @@
 #include "sound.hpp"
 #include "WindowMenuItems.hpp"
 #include "cmath_ext.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index)
     : AddSuperWindow<IWindowMenu>(parent, rect)
@@ -163,6 +163,31 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
     case GUI_event_t::CAPT_1:
         //TODO: change flag to checked
         break;
+    case GUI_event_t::TOUCH: {
+        if (!pContainer->GetFocusedIndex())
+            return;
+        event_conversion_union un;
+        un.pvoid = param;
+        std::optional<size_t> slot = slotFromCoord(un.point);
+        if (!slot)
+            break;
+
+        // calculate diff
+        int dif = int(*slot) - (int(*(pContainer->GetFocusedIndex())) - int(index_of_first));
+
+        // set index
+        if (dif != 0)
+            Increment(dif);
+
+        // do touched items action
+        if (GetActiveItem()) {
+            std::optional<Rect16> rc = getItemRC(*slot);
+            if (rc) {
+                point_ui16_t relative_touch_point = { un.point.x, un.point.y };
+                GetActiveItem()->Touch(*this, relative_touch_point);
+            }
+        }
+    } break;
     case GUI_event_t::TEXT_ROLL:
         item->Roll();
         break;
@@ -174,6 +199,82 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
     default:
         break;
     }
+}
+
+/**
+ * @brief roll method
+ * uses other member function to calculate new index
+ *
+ * @param fn     member fnc pointer
+ * @return true  changed
+ * @return false unchanged
+ */
+bool WindowMenu::roll(roll_fn fn) {
+    std::optional<uint8_t> new_index = std::invoke(fn, *this);
+
+    if (!new_index)
+        return false;
+
+    if (pContainer && pContainer->SetIndex(*new_index)) {
+        index_of_first = *new_index; // set focus to first
+        Invalidate();
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * @brief calculates roll up index
+ *
+ * @return std::optional<uint8_t> new top and focused index
+ */
+std::optional<uint8_t> WindowMenu::calc_up_index() const {
+    if (!pContainer)
+        return std::nullopt;
+
+    // roll impossible due small count if items
+    if (pContainer->GetVisibleCount() <= max_items_on_screen) {
+        return std::nullopt;
+    }
+
+    // we are at the top nothing to do
+    if (index_of_first == 0) {
+        return std::nullopt;
+    }
+
+    return uint8_t(std::max(int(index_of_first) - int(max_items_on_screen - 1), 0));
+}
+
+/**
+ * @brief calculates roll down index
+ *
+ * @return std::optional<uint8_t> new top and focused index
+ */
+std::optional<uint8_t> WindowMenu::calc_down_index() const {
+    if (!pContainer)
+        return std::nullopt;
+
+    uint8_t count = pContainer->GetVisibleCount();
+
+    // roll impossible due small count if items
+    if (count <= max_items_on_screen) {
+        return std::nullopt;
+    }
+
+    // we are at the bottom nothing to do
+    if (index_of_first >= (count - max_items_on_screen)) {
+        return std::nullopt;
+    }
+    return std::min(index_of_first + max_items_on_screen - uint8_t(1), count - max_items_on_screen);
+}
+
+void WindowMenu::RollUp() {
+    playEncoderSound(roll(&WindowMenu::calc_up_index));
+}
+
+void WindowMenu::RollDown() {
+    playEncoderSound(roll(&WindowMenu::calc_down_index));
 }
 
 Rect16::Height_t WindowMenu::ItemHeight() {

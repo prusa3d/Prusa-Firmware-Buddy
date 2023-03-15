@@ -59,10 +59,10 @@ public:
     window_t *GetParent() const;
     bool IsChildOf(window_t *win) const;
     void Draw();
-    void ScreenEvent(window_t *sender, GUI_event_t event, void *param); //try to handle, frame resends children
-    void WindowEvent(window_t *sender, GUI_event_t event, void *param); //try to handle, can sent click to parent
-    bool IsVisible() const;                                             // visible and not hidden by dialog
-    bool HasVisibleFlag() const;                                        // visible, but still can be hidden behind dialog
+    void ScreenEvent(window_t *sender, GUI_event_t event, void *const param); //try to handle, frame resends children
+    void WindowEvent(window_t *sender, GUI_event_t event, void *const param); //try to handle, can sent click to parent
+    bool IsVisible() const;                                                   // visible and not hidden by dialog
+    bool HasVisibleFlag() const;                                              // visible, but still can be hidden behind dialog
     bool IsHiddenBehindDialog() const;
     bool IsEnabled() const;
     bool IsInvalid() const;
@@ -101,6 +101,7 @@ public:
     void SetBackColor(const color_scheme &clr);
     color_t GetBackColor() const;
     void SetRelativeSubwins() { flags.has_relative_subwins = true; }
+    void SetRoundCorners() { flags.has_round_corners = true; }
     void SetHasIcon();
     void ClrHasIcon();
     void SetRedLayout();
@@ -127,8 +128,8 @@ public:
 protected:
     virtual void unconditionalDraw();
     virtual void draw();
-    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
-    virtual void screenEvent(window_t *sender, GUI_event_t event, void *param);
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *const param);
+    virtual void screenEvent(window_t *sender, GUI_event_t event, void *const param);
 
     virtual bool registerSubWin(window_t &win);
     virtual void unregisterSubWin(window_t &win);
@@ -157,7 +158,7 @@ struct AddSuperWindow : public Base {
 
 protected:
     typedef Base super;
-    void SuperWindowEvent(window_t *sender, GUI_event_t event, void *param) {
+    void SuperWindowEvent(window_t *sender, GUI_event_t event, void *const param) {
         static const char txt[] = "WindowEvent via super";
         super::windowEvent(EventLock(txt, sender, event), sender, event, param);
     }

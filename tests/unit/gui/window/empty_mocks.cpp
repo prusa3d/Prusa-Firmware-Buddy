@@ -16,6 +16,6 @@ void gui_invalidate(void) {}
 EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {}
 void Sound_Play(eSOUND_TYPE eSoundType) {}
 void gui_loop() {}
-extern "C" void marlin_notify_server_about_encoder_move() {}
-extern "C" void marlin_notify_server_about_knob_click() {}
+void marlin_notify_server_about_encoder_move() {}
+void marlin_notify_server_about_knob_click() {}
 FILE *png::Resource::Get() const { return nullptr; }

@@ -181,6 +181,7 @@ ExecutionControl RequestParser::event(Event event) {
             version_minor = 10 * version_minor + (event.payload - '0');
             return ExecutionControl::Continue;
         }
+        [[fallthrough]];
     case Names::IfNoneMatch:
         /*
          * We use numeric etags. If we get anything else, it's probably bogus

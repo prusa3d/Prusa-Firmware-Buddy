@@ -44,7 +44,7 @@ MI_RESULT_TEST::MI_RESULT_TEST()
 
 void MI_RESULT_TEST::click(IWindowMenu &window_menu) {
 #if HAS_SELFTEST
-    Screens::Access()->Open(ScreenFactory::Screen<TestResult>);
+    Screens::Access()->Open(ScreenFactory::Screen<TestResultScreen>);
 #endif // HAS_SELFTEST
 }
 
@@ -56,6 +56,14 @@ void MI_SELFTEST_TEST::click(IWindowMenu &window_menu) {
 #if HAS_SELFTEST
     Screens::Access()->Open(ScreenFactory::Screen<ScreenTestSelftest>);
 #endif // HAS_SELFTEST
+}
+
+MI_LOAD_UNLOAD_TEST::MI_LOAD_UNLOAD_TEST()
+    : WI_LABEL_t(_("test of load dialog"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+}
+
+void MI_LOAD_UNLOAD_TEST::click(IWindowMenu &window_menu) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenTestMMU>);
 }
 
 //TODO rewrite this tests

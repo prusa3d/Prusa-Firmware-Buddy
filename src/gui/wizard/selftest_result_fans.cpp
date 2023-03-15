@@ -8,13 +8,19 @@
 #include "i18n.h"
 #include "png_resources.hpp"
 
-ResultFans::ResultFans(TestResult_t hb_fan, TestResult_t print_fan)
+ResultFans::ResultFans()
     : SelfTestGroup(_("Fans check"))
-    , heatbreak(_("Extruder fan"), png::fan_16x16, hb_fan)
-    , print(_("Print fan"), png::turbine_16x16, print_fan) {
+    , heatbreak(_("Hotend fan"), png::fan_16x16, TestResult_Unknown)
+    , print(_("Print fan"), png::turbine_16x16, TestResult_Unknown) {
     Add(heatbreak);
     Add(print);
-    if (hb_fan == TestResult_t::Failed || print_fan == TestResult_t::Failed) {
-        failed = true;
-    }
+
+    failed = false;
+}
+
+void ResultFans::SetState(TestResult hb_fan, TestResult print_fan) {
+    heatbreak.SetState(hb_fan);
+    print.SetState(print_fan);
+
+    failed = (hb_fan == TestResult_Failed || print_fan == TestResult_Failed);
 }

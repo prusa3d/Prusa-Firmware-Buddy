@@ -390,6 +390,11 @@
 #undef EXTENDABLE_EMU_MMU2
 #undef EXTENDABLE_EMU_MMU2S
 
+#ifdef HAS_PRUSA_MMU2
+  // TODO: compatibility stub for Marlin 2.0. Remove after merge. Use HAS_PRUSA_MMU2 instead.
+  #define PRUSA_MMU2 1
+#endif
+
 /**
  * Extruders have some combination of stepper motors and hotends
  * so we separate these concepts into the defines:
@@ -457,7 +462,9 @@
 
   #define E_STEPPERS      1
   #define E_MANUAL        1
-
+#elif ENABLED(PRUSA_TOOLCHANGER)
+  #define E_STEPPERS      1
+  #define E_MANUAL        EXTRUDERS
 #endif
 
 // No inactive extruders with SWITCHING_NOZZLE or Průša MMU1

@@ -1,0 +1,5 @@
+project(liblightmodbus-cmake-build)
+cmake_minimum_required(VERSION 3.17)
+find_package(lightmodbus PATHS "../../" REQUIRED)
+add_executable(main "main.c")
+target_link_libraries(main lightmodbus::lightmodbus)

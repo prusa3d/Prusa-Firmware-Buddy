@@ -25,6 +25,18 @@ extern "C" {
     #define W25X_ERR_START_ADDRESS (48 * W25X_BLOCK_SIZE)
     #define W25X_PP_START_ADDRESS  (49 * W25X_BLOCK_SIZE)
     #define W25X_FS_START_ADDRESS  (50 * W25X_BLOCK_SIZE)
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_IXL)
+    // 8M = 2K of 4K blocks
+    // 64 = 256KiB offset for crash dump, which is the total RAM size
+    #define W25X_ERR_START_ADDRESS (64 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (65 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (66 * W25X_BLOCK_SIZE)
+#elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
+    // 8M = 2K of 4K blocks
+    // 64 = 256KiB offset for crash dump, which is the total RAM size
+    #define W25X_ERR_START_ADDRESS (64 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (65 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (67 * W25X_BLOCK_SIZE)
 #else
     #error "Unknown PRINTER_TYPE!"
 #endif

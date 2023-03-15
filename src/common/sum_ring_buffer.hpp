@@ -1,15 +1,12 @@
-#include <inttypes.h>
-#include <stdlib.h>
+#include <cinttypes>
+#include <cstdlib>
+#include <concepts>
 
-template <class T, size_t SIZE>
+template <std::integral T, size_t SIZE>
 class SumRingBuffer {
 public:
-    SumRingBuffer()
-        : count(0)
-        , index(0)
-        , sum(0) {};
+    static_assert(SIZE > 0, "Invalid input");
 
-public:
     void Clear() {
         count = 0;
         index = 0;
@@ -25,10 +22,10 @@ public:
         if (++index >= SIZE)
             index = 0;
     };
-    uint32_t GetSize() {
+    size_t GetSize() {
         return SIZE;
     };
-    uint32_t GetCount() {
+    size_t GetCount() {
         return count;
     };
     T GetSum() {
@@ -36,9 +33,8 @@ public:
     };
 
 protected:
-    uint32_t size;
-    uint32_t count;
-    uint32_t index;
-    T pdata[SIZE];
-    T sum;
+    size_t count { 0 };
+    size_t index { 0 };
+    T pdata[SIZE] {};
+    T sum { 0 };
 };

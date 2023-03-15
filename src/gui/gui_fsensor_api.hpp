@@ -5,42 +5,29 @@
 
 #pragma once
 #include "window_msgbox.hpp"
-#include "filament_sensor_api.hpp"
+#include "filament_sensors_handler.hpp"
 #include "RAII.hpp"
 
 namespace gui::fsensor {
 
+// do not call directly
+// msgbox calls guiloop and it would open another msgbox
+// use validate_for_cyclical_calls() instead
 inline void validate() {
-    while (true) {
-        const FilamentSensors::init_status_t status = FSensors_instance().GetInitStatus();
-        switch (status) {
-        case FilamentSensors::init_status_t::Ok:
-        case FilamentSensors::init_status_t::NotReady:
-            return;
-        case FilamentSensors::init_status_t::BothNotInitialized:
-            if (MsgBoxWarning(_("Both MMU and printer filament sensor not initialized. Disable them?"), Responses_YesRetry) == Response::Yes) {
-                FSensors_instance().Disable(); // will automatically disable MMU as well
-                return;
-            }
-            break;
-        case FilamentSensors::init_status_t::MmuNotInitialized:
-            if (MsgBoxWarning(_("MMU not initialized. Disable MMU?"), Responses_YesRetry) == Response::Yes) {
-                FSensors_instance().DisableMMU();
-                return;
-            }
-            break;
-        case FilamentSensors::init_status_t::PrinterNotInitialized:
-#if PRINTER_TYPE == PRINTER_PRUSA_MINI
-            FSensors_instance().Disable(); // will automatically disable MMU as well
-            return;
-#else
-            if (MsgBoxWarning(_("Filament sensor not ready: calibration required. Disable printer filament sensor to continue anyway? To enable it you must perform calibration first. It is accessible from menu \"Calibrate\"."), Responses_YesRetry) == Response::Yes) {
-                FSensors_instance().Disable(); // will automatically disable MMU as well
-                return;
-            }
-#endif
-            break;
-        }
+    const filament_sensor::init_status_t status = FSensors_instance().get_active_init_status();
+    switch (status) {
+    case filament_sensor::init_status_t::Ok:
+    case filament_sensor::init_status_t::NotReady:
+    case filament_sensor::init_status_t::BothNotInitialized:
+    case filament_sensor::init_status_t::SideNotInitialized:
+    case filament_sensor::init_status_t::ExtruderNotInitialized:
+        return;
+    case filament_sensor::init_status_t::BothNotCalibrated:
+    case filament_sensor::init_status_t::SideNotCalibrated:
+    case filament_sensor::init_status_t::ExtruderNotCalibrated:
+        MsgBoxWarning(_("The filament sensors are not fully calibrated and must be disabled to proceed.\n\nYou can calibrate them from the \"Control\" menu."), Responses_Disable);
+        FSensors_instance().Disable(); // will automatically disable side sensor (or MMU) as well
+        return;
     }
 }
 

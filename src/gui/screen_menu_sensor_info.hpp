@@ -5,6 +5,7 @@
 
 #include "screen_menu_sensor_info_parent_alias.hpp"
 #include "fs_autoload_autolock.hpp"
+#include "../../common/sensor_data_buffer.hpp"
 
 class ScreenMenuSensorInfo : public ScreenMenuSensorInfo__ {
     FS_AutoloadAutolock lock;
@@ -14,5 +15,6 @@ protected:
 
 public:
     constexpr static const char *label = N_("SENSOR INFO");
+    SensorData::SensorDataBuffer buffer;
     ScreenMenuSensorInfo();
 };

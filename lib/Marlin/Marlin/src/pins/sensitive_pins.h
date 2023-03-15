@@ -89,7 +89,11 @@
   #define _Y_MS3
 #endif
 
+#ifdef Y_ENABLE_PIN
 #define _Y_PINS Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, _Y_MIN _Y_MAX _Y_MS1 _Y_MS2 _Y_MS3 _Y_CS
+#else
+#define _Y_PINS Y_STEP_PIN, Y_DIR_PIN, _Y_MIN _Y_MAX _Y_MS1 _Y_MS2 _Y_MS3 _Y_CS
+#endif
 
 #if PIN_EXISTS(Z_MIN)
   #define _Z_MIN Z_MIN_PIN,

@@ -18,6 +18,12 @@ repos:
       language: script
       files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
       args: ['-i', '-style=file']
+    - id: generate-log-components-overview
+      name: log-components-doc-generate
+      description: This hook generate an overview of currently defined Log Components.
+      entry: python utils/logging/generate_overview.py
+      language: python
+      language_version: python3
     - id: generate-cmake-presets
       name: generate-cmake-presets
       description: This hook generates CMakePresets.json file based on utils/presets/presets.json
@@ -44,11 +50,16 @@ exclude: |
     ^tests/unit/lang/translator/(keys|cs|es|fr|de|pl|it)\.txt$|
     ^lib/printf|
     ^lib/inih/|
-    ^lib/Marlin/|
+    ^lib/Marlin/(?!
+        Marlin/src/feature/prusa/|
+        Marlin/src/gcode/feature/prusa/|
+        Marlin/src/module/prusa/
+      )|
     ^lib/Prusa-Error-Codes/|
     ^lib/TMCStepper/|
     ^lib/Middlewares/Third_Party/LwIP/|
     ^lib/jsmn/|
+    ^lib/Drivers/|
     ^lib/ESP/serial-flasher/|
     ^lib/ESP/lwesp/|
     ^lib/ESP/prusa/src/serial-flasher/serial_comm.c|
@@ -62,5 +73,9 @@ exclude: |
     ^lib/Segger|
     ^lib/tinyusb|
     ^lib/Middlewares/Third_Party/littlefs/|
-    ^lib/Middlewares/Third_Party/mbedtls/
+    ^lib/Prusa-Firmware-MMU/|
+    ^lib/Middlewares/Third_Party/CycloneTCP/|
+    ^lib/Middlewares/Third_Party/mbedtls/|
+    ^lib/liblightmodbus/|
+    ^lib/CrashCatcher/
   )

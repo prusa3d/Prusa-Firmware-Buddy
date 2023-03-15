@@ -58,7 +58,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
         TimerHandle[timer_num].handle.Init.Prescaler      = step_prescaler;
         TimerHandle[timer_num].handle.Init.CounterMode    = TIM_COUNTERMODE_UP;
         TimerHandle[timer_num].handle.Init.ClockDivision  = TIM_CLOCKDIVISION_DIV1;
-        TimerHandle[timer_num].callback = (uint32_t)TC5_Handler;
+        TimerHandle[timer_num].callback = (uint32_t)TC6_Handler;
         HAL_NVIC_SetPriority(STEP_TIMER_IRQ_ID, STEP_TIMER_IRQ_PRIO, 0);
         break;
 

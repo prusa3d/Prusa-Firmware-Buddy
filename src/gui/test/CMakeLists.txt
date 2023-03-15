@@ -13,3 +13,7 @@ target_sources(
           screen_test_term.cpp
           screen_test_wizard_icons.cpp
   )
+
+if(FILAMENT_SENSOR STREQUAL "HX711")
+  target_sources(firmware PRIVATE screen_test_HX711.cpp)
+endif()

@@ -53,12 +53,23 @@ target_include_directories(firmware PUBLIC "${resources_include_dir}")
 # Standard Resources Image
 #
 
-add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 256)
+add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 512)
 
 # /esp directory
-add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
-add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
-add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
+if(PRINTER STREQUAL "XL")
+  add_resource("esp32/uart_wifi.bin" "/esp32/uart_wifi.bin")
+  add_resource("esp32/bootloader.bin" "/esp32/bootloader.bin")
+  add_resource("esp32/partition-table.bin" "/esp32/partition-table.bin")
+else()
+  add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
+  add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
+  add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
+endif()
+
+if(PUPPY_FLASH_FW)
+  add_resource("${DWARF_BINARY_PATH}" "/puppies/fw-dwarf.bin")
+  add_resource("${MODULARBED_BINARY_PATH}" "/puppies/fw-modularbed.bin")
+endif()
 
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")

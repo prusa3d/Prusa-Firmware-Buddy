@@ -5,10 +5,7 @@
 
 #ifdef __cplusplus
 
-    #include "fanctl.h"
-
-extern CFanCtl fanCtlPrint;
-extern CFanCtl fanCtlHeatBreak;
+    #include "fanctl.hpp"
 
 extern "C" {
 

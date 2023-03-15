@@ -81,8 +81,10 @@
   #error "SDSLOW deprecated. Set SPI_SPEED to SPI_HALF_SPEED instead."
 #elif defined(SDEXTRASLOW)
   #error "SDEXTRASLOW deprecated. Set SPI_SPEED to SPI_QUARTER_SPEED instead."
-#elif defined(FILAMENT_SENSOR)
-  #error "FILAMENT_SENSOR is now FILAMENT_WIDTH_SENSOR. Please update your configuration."
+// Disable this check in the Buddy Project, as we use FILAMENT_SENSOR macro for something else and
+// it is ok for it to be defined.
+//#elif defined(FILAMENT_SENSOR)
+//  #error "FILAMENT_SENSOR is now FILAMENT_WIDTH_SENSOR. Please update your configuration."
 #elif defined(ENDSTOPPULLUP_FIL_RUNOUT)
   #error "ENDSTOPPULLUP_FIL_RUNOUT is now FIL_RUNOUT_PULLUP. Please update your configuration."
 #elif defined(DISABLE_MAX_ENDSTOPS) || defined(DISABLE_MIN_ENDSTOPS)
@@ -1237,8 +1239,8 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 
   #if IS_SCARA
     #error "AUTO_BED_LEVELING_UBL does not yet support SCARA printers."
-  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 23) || !WITHIN(GRID_MAX_POINTS_Y, 3, 23)
-    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 23."
+  #elif !WITHIN(GRID_MAX_POINTS_X, 3, 36) || !WITHIN(GRID_MAX_POINTS_Y, 3, 36)
+    #error "GRID_MAX_POINTS_[XY] must be a whole number between 3 and 36."
   #elif !defined(RESTORE_LEVELING_AFTER_G28)
     #error "AUTO_BED_LEVELING_UBL used to enable RESTORE_LEVELING_AFTER_G28. To keep this behavior enable RESTORE_LEVELING_AFTER_G28. Otherwise define it as 'false'."
   #endif
@@ -1466,9 +1468,11 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #error "TEMP_SENSOR_BED 1000 requires BED_PULLUP_RESISTOR_OHMS, BED_RESISTANCE_25C_OHMS and BED_BETA in Configuration_adv.h."
 #elif ENABLED(HEATER_CHAMBER_USER_THERMISTOR) && !(defined(CHAMBER_PULLUP_RESISTOR_OHMS) && defined(CHAMBER_RESISTANCE_25C_OHMS) && defined(CHAMBER_BETA))
   #error "TEMP_SENSOR_CHAMBER 1000 requires CHAMBER_PULLUP_RESISTOR_OHMS, CHAMBER_RESISTANCE_25C_OHMS and CHAMBER_BETA in Configuration_adv.h."
+#elif ENABLED(HEATBREAK_USER_THERMISTOR) && !(defined(HEATBREAK_PULLUP_RESISTOR_OHMS) && defined(HEATBREAK_RESISTANCE_25C_OHMS) && defined(HEATBREAK_BETA))
+  #error "TEMP_SENSOR_HEATBREAK 1000 requires HEATBREAK_PULLUP_RESISTOR_OHMS, HEATBREAK_RESISTANCE_25C_OHMS and HEATBREAK_BETA in Configuration_adv.h."
 #elif ENABLED(BOARD_USER_THERMISTOR) && !(defined(BOARD_PULLUP_RESISTOR_OHMS) && defined(BOARD_RESISTANCE_25C_OHMS) && defined(BOARD_BETA))
   #error "TEMP_SENSOR_BOARD 2000 requires BOARD_PULLUP_RESISTOR_OHMS, BOARD_RESISTANCE_25C_OHMS and BOARD_BETA in Configuration_adv.h."
-#endif 
+#endif
 
 /**
  * Test Heater, Temp Sensor, and Extruder Pins; Sensor Type must also be set.
@@ -2344,6 +2348,10 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
 
 #if ENABLED(POWER_PANIC) && DISABLED(CRASH_RECOVERY)
   #error "POWER_PANIC requires CRASH_RECOVERY."
+#endif
+
+#if ENABLED(AXIS_MEASURE) && DISABLED(CRASH_RECOVERY)
+  #error "AXIS_MEASURE requires CRASH_RECOVERY."
 #endif
 
 #if ENABLED(Z_STEPPER_AUTO_ALIGN)

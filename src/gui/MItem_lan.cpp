@@ -8,7 +8,7 @@
 #include "wui_api.h"
 #include "netdev.h"
 #include "ScreenHandler.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 MI_WIFI_STATUS_t::MI_WIFI_STATUS_t()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {

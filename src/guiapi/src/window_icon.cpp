@@ -94,10 +94,6 @@ void window_icon_t::unconditionalDraw() {
         super::unconditionalDraw(); // draw background
     }
 
-    if (wh_ico.x == 0 || wh_ico.y == 0) {
-        log_debug(GUI, "Drawing Icon failed");
-    }
-
     Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
     rc_ico.Align(GetRect(), GetAlignment());
     rc_ico = rc_ico.Intersection(GetRect());
@@ -118,6 +114,7 @@ void window_icon_t::setBlackLayout() {
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const png::Resource *res, ButtonCallback cb)
     : AddSuperWindow<window_icon_t>(parent, rect, res)
     , callback(cb) {
+    SetRoundCorners();
     SetBackColor(GuiDefaults::ClickableIconColorScheme);
     Enable();
 }

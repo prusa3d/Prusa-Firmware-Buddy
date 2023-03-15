@@ -3,13 +3,12 @@
 #include "printer.hpp"
 
 #include <common/shared_buffer.hpp>
-#include <marlin_client.h>
+#include <marlin_client.hpp>
 
 namespace connect_client {
 
 class MarlinPrinter final : public Printer {
 private:
-    marlin_vars_t *marlin_vars;
     SharedBuffer &buffer;
     // The SET_PRINTER_READY & friends support. Eventually, this shall sync
     // with GUI and other places somehow. For now, only Connect-internal flag.
@@ -17,6 +16,9 @@ private:
 
 protected:
     virtual Config load_config() override;
+
+    char *job_path_ptr;
+    char *job_lfn_ptr;
 
 public:
     MarlinPrinter(SharedBuffer &buffer);

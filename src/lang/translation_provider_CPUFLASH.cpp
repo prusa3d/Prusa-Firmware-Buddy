@@ -3,22 +3,27 @@
 #include "string_hash.hpp"
 #include "translator.hpp"
 #include "translation_provider_CPUFLASH.hpp"
+#include "../../include/option/has_translations.h" // #include <option/has_translations.h> does not work
 
-#ifdef _DEBUG
-//    #define ENABLE_TRANSLATION_CZ
-//    #define ENABLE_TRANSLATION_DE
-//    #define ENABLE_TRANSLATION_ES
-//    #define ENABLE_TRANSLATION_FR
-//    #define ENABLE_TRANSLATION_IT
-//    #define ENABLE_TRANSLATION_PL
-#else
+#ifdef TRANSLATIONS_UNITTEST
     #define ENABLE_TRANSLATION_CZ
     #define ENABLE_TRANSLATION_DE
     #define ENABLE_TRANSLATION_ES
     #define ENABLE_TRANSLATION_FR
     #define ENABLE_TRANSLATION_IT
     #define ENABLE_TRANSLATION_PL
-#endif
+#else
+    #ifndef _DEBUG
+        #if HAS_TRANSLATIONS()
+            #define ENABLE_TRANSLATION_CZ
+            #define ENABLE_TRANSLATION_DE
+            #define ENABLE_TRANSLATION_ES
+            #define ENABLE_TRANSLATION_FR
+            #define ENABLE_TRANSLATION_IT
+            #define ENABLE_TRANSLATION_PL
+        #endif //HAS_TRANSLATIONS()
+    #endif     //!_DEBUG
+#endif         //TRANSLATIONS_UNITTEST
 
 using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
 #ifndef TRANSLATIONS_UNITTEST

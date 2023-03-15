@@ -341,24 +341,26 @@ void FirstLayer::print_shape_2() {
  */
 void PrusaGcodeSuite::G26() {
     // is filament selected
-    if (Filaments::Current().response == Response::Cooldown) {
+    auto filament = filament::get_type_in_extruder(active_extruder);
+    if (filament == filament::Type::NONE) {
         return;
     }
 
     FirstLayer fl;
 
-    const int temp_nozzle = Filaments::Current().nozzle;
+    auto filament_description = filament::get_description(filament);
+    const int temp_nozzle = filament_description.nozzle;
 
     // nozzle temperature print
     thermalManager.setTargetHotend(temp_nozzle, 0);
-    marlin_server_set_temp_to_display(temp_nozzle);
+    marlin_server_set_temp_to_display(temp_nozzle, 0);
     thermalManager.wait_for_hotend(0, false);
 
     //fl.print_shape_1();
     fl.print_shape_2();
 
     thermalManager.setTargetHotend(0, 0);
-    marlin_server_set_temp_to_display(0);
+    marlin_server_set_temp_to_display(0, 0);
 
     thermalManager.setTargetBed(0);
 }

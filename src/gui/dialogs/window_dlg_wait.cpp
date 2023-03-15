@@ -9,18 +9,26 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 
-static const constexpr uint16_t ANIMATION_MILISEC_DELAY = 500; // number of milisecond for frame change
+static const constexpr uint16_t ANIMATION_MILISEC_DELAY = 500;                                  // number of milisecond for frame change
+static const constexpr int animation_y = GuiDefaults::EnableDialogBigLayout ? 120 : 50;         // animation anchor point on Y axis
+static const constexpr int animation_x = GuiDefaults::EnableDialogBigLayout ? 220 : 110;        // animation anchor point on X axis
+static const constexpr int text_y_offset = GuiDefaults::EnableDialogBigLayout ? 30 : 10;        // text point on y axis
+static const constexpr int second_text_y_offset = GuiDefaults::EnableDialogBigLayout ? 67 : 45; // text point on y axis
 
-window_dlg_wait_t::window_dlg_wait_t(Rect16 rect)
+window_dlg_wait_t::window_dlg_wait_t(Rect16 rect, string_view_utf8 second_text_string)
     : IDialog(rect)
-    , text(this, { rect.Left(), int16_t(rect.Top() + 10), rect.Width(), uint16_t(30) }, is_multiline::no, is_closed_on_click_t::no, _("Please wait"))
-    , animation(this, { int16_t(rect.Left() + 110), int16_t(rect.Top() + 50) }) {
+    , text(this, { rect.Left(), int16_t(rect.Top() + text_y_offset), rect.Width(), uint16_t(30) }, is_multiline::no, is_closed_on_click_t::no, _("Please wait"))
+    , second_text(this, { rect.Left(), int16_t(rect.Top() + second_text_y_offset), rect.Width(), uint16_t(30) }, is_multiline::no, is_closed_on_click_t::no, second_text_string)
+    , animation(this, { int16_t(rect.Left() + animation_x), int16_t(rect.Top() + animation_y) }) {
     text.font = GuiDefaults::FontBig;
     text.SetAlignment(Align_t::Center());
+
+    second_text.font = GuiDefaults::FooterFont;
+    second_text.SetAlignment(Align_t::Center());
 }
 
 void gui_dlg_wait(std::function<void()> closing_callback) {
 
-    window_dlg_wait_t dlg(GuiDefaults::RectScreenBody);
+    window_dlg_wait_t dlg(GuiDefaults::DialogFrameRect);
     dlg.MakeBlocking(closing_callback);
 }

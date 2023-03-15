@@ -18,6 +18,7 @@ public:
         preview_wait_user,
 
         wrong_printer_wait_user,
+        wrong_printer_wait_user_abort,
 
         filament_not_inserted_wait_user,
         filament_not_inserted_load,
@@ -76,9 +77,9 @@ public:
 private:
     uint32_t last_run = 0;
 
-    GCodeInfo::filament_buff filament_type;
+    GCodeInfo::GCodePerExtruderInfo gcode_per_extruder_info;
     bool filament_described = false;
-    bool valid_printer_settings = false;
+    GCodeInfo::ValidPrinterSettings valid_printer_settings;
     bool skip_if_able = false;
 
     PrintPreview() = default;

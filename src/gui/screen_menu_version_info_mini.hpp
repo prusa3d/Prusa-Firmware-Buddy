@@ -2,11 +2,11 @@
  * @file screen_menu_version_info_mini.hpp
  */
 
+#pragma once
+
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-#include "i18n.h"
-
-#pragma once
+#include "resource.h"
 
 using MenuInfoContainer = WinMenuContainer<MI_RETURN>;
 

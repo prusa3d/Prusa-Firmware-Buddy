@@ -32,9 +32,6 @@ class string_view_utf8 {
         struct FromCPUFLASH_RAM {
             const uint8_t *utf8raw; ///< pointer to raw utf8 data
             const uint8_t *readp;   ///< read pointer, aka read iterator
-            constexpr FromCPUFLASH_RAM()
-                : utf8raw(nullptr)
-                , readp(nullptr) {}
         } cpuflash;
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
@@ -42,10 +39,17 @@ class string_view_utf8 {
             uint16_t startOfs;   ///< start offset in input file
             uint16_t currentOfs; ///<position of next byt to read
         } file;
-        constexpr Attrs()
-            : cpuflash() {}
     };
     Attrs attrs;
+
+    /// Extracts one byte from source media and advances internal read ptr, implementation defined in derived classes
+    /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
+    /// @return 0 in case of end of input data or an error
+    uint8_t (*getbyte)(Attrs &);
+
+    /// Rewinds the input data stream to its beginning
+    /// Simple for memory-based sources, more complex for files
+    void (*rewind_impl)(Attrs &);
 
     /// cached length of string. Computed at various spots where not too costly.
     /// Deliberately typed as signed int, because -1 means "not computed yet"
@@ -62,10 +66,10 @@ class string_view_utf8 {
 
     mutable uint8_t s; ///< must remember the last read character
 
-    static constexpr uint8_t CPUFLASH_getbyte(Attrs &attrs) {
+    static uint8_t CPUFLASH_getbyte(Attrs &attrs) {
         return *attrs.cpuflash.readp++; // beware - expecting, that the input string is null-terminated! No other checks are done
     }
-    static constexpr void CPUFLASH_rewind(Attrs &attrs) {
+    static void CPUFLASH_rewind(Attrs &attrs) {
         attrs.cpuflash.readp = attrs.cpuflash.utf8raw;
     }
 
@@ -85,29 +89,14 @@ class string_view_utf8 {
         }
     }
 
-    static constexpr uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
+    static uint8_t NULLSTR_getbyte(Attrs & /*attrs*/) {
         return 0;
     }
-    static constexpr void NULLSTR_rewind(Attrs & /*attrs*/) {
-    }
-
-    /// Extracts one byte from source media and advances internal read ptr depending on the type of string_view (type of source data)
-    /// The caller of this function makes sure it does not get called repeatedly after returning the end of input data.
-    /// @return 0 in case of end of input data or an error
-    constexpr uint8_t getbyte() {
-        switch (type) {
-        case EType::RAM:
-        case EType::CPUFLASH:
-            return CPUFLASH_getbyte(attrs);
-        case EType::FILE:
-            return FILE_getbyte(attrs);
-        default: // behave as nullstr
-            return NULLSTR_getbyte(attrs);
-        }
+    static void NULLSTR_rewind(Attrs & /*attrs*/) {
     }
 
 public:
-    constexpr string_view_utf8()
+    inline string_view_utf8()
         : utf8Length(-1)
         , type(EType::NULLSTR)
         , s(0xff) {}
@@ -117,7 +106,7 @@ public:
     /// and advances internal pointers (in derived classes) to the next one
     unichar getUtf8Char() {
         if (s == 0xff) { // in case we don't have any character from the last run, get a new one from the input stream
-            s = getbyte();
+            s = getbyte(attrs);
         }
         unichar ord = s;
         if (!UTF8_IS_NONASCII(ord)) {
@@ -128,10 +117,10 @@ public:
         for (unichar mask = 0x40; ord & mask; mask >>= 1) {
             ord &= ~mask;
         }
-        s = getbyte();
+        s = getbyte(attrs);
         while (UTF8_IS_CONT(s)) {
             ord = (ord << 6) | (s & 0x3F);
-            s = getbyte();
+            s = getbyte(attrs);
         }
         return ord;
     }
@@ -143,28 +132,19 @@ public:
     /// Therefore it is not a const method.
     uint16_t computeNumUtf8CharsAndRewind() {
         if (utf8Length < 0) {
-            rewind();
+            rewind_impl(attrs);
             do {
                 ++utf8Length;
             } while (getUtf8Char());
         }
-        rewind(); // always return stream back to the beginning @@TODO subject to change
+        rewind_impl(attrs); // always return stream back to the beginning @@TODO subject to change
         // now we have either 0 or some positive number in utf8Length, can be safely cast to unsigned int
         return uint32_t(utf8Length);
     }
 
-    /// Rewinds the input data stream to its beginning
-    /// Simple for memory-based sources, more complex for files
+    /// rewind the stream to its beginning
     void rewind() {
-        switch (type) {
-        case EType::RAM:
-        case EType::CPUFLASH:
-            return CPUFLASH_rewind(attrs);
-        case EType::FILE:
-            return FILE_rewind(attrs);
-        default: // behave as nullstr
-            return NULLSTR_rewind(attrs);
-        }
+        rewind_impl(attrs);
     }
 
     /// returns true if the string is of type NULLSTR - typically used as a replacement for nullptr or "" strings
@@ -182,7 +162,7 @@ public:
     size_t copyToRAM(char *dst, size_t max_size) {
         size_t bytesCopied = 0;
         for (size_t i = 0; i < max_size; ++i) {
-            *dst = getbyte();
+            *dst = getbyte(attrs);
             if (*dst == 0)
                 return bytesCopied;
             ++dst;
@@ -193,38 +173,46 @@ public:
     }
 
     /// Construct string_view_utf8 to provide data from CPU FLASH
-    static constexpr string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
+    static string_view_utf8 MakeCPUFLASH(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
+        s.getbyte = &string_view_utf8::CPUFLASH_getbyte;
+        s.rewind_impl = &string_view_utf8::CPUFLASH_rewind;
         s.type = EType::CPUFLASH;
         return s;
     }
 
     /// Construct string_view_utf8 to provide data from RAM
     /// basically the same as from CPU FLASH, only the string_view_utf8's type differs of course
-    static constexpr string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
+    static string_view_utf8 MakeRAM(const uint8_t *utf8raw) {
         string_view_utf8 s;
         s.attrs.cpuflash.readp = s.attrs.cpuflash.utf8raw = utf8raw;
+        s.getbyte = &string_view_utf8::CPUFLASH_getbyte;
+        s.rewind_impl = &string_view_utf8::CPUFLASH_rewind;
         s.type = EType::RAM;
         return s;
     }
 
     /// Construct string_view_utf8 to provide data from FILE
-    /// The FILE *f shall already be positioned to the spot, where the string starts
-    static constexpr string_view_utf8 MakeFILE(::FILE *f, uint16_t offset) {
+    /// The FILE *f shall aready be positioned to the spot, where the string starts
+    static string_view_utf8 MakeFILE(::FILE *f, uint16_t offset) {
         string_view_utf8 s;
         s.attrs.file.f = f;
         if (f) {
             s.attrs.file.startOfs = offset;
             s.attrs.file.currentOfs = offset;
         }
+        s.getbyte = &string_view_utf8::FILE_getbyte;
+        s.rewind_impl = &string_view_utf8::FILE_rewind;
         s.type = EType::FILE;
         return s;
     }
 
     /// Construct an empty string_view_utf8 - behaves like a "" but is a special type NULL
-    static constexpr string_view_utf8 MakeNULLSTR() {
+    static string_view_utf8 MakeNULLSTR() {
         string_view_utf8 s;
+        s.getbyte = &string_view_utf8::NULLSTR_getbyte;
+        s.rewind_impl = &string_view_utf8::NULLSTR_rewind;
         s.type = EType::NULLSTR;
         return s;
     }
