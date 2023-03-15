@@ -9,22 +9,26 @@
 #pragma once
 
 #include "general_response.hpp"
+#include "device/board.h"
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include "printers.h"
+#include "option/has_loadcell.h"
+#include "option/filament_sensor.h"
 
-enum { RESPONSE_BITS = 4,                   //number of bits used to encode response
-    MAX_RESPONSES = (1 << RESPONSE_BITS) }; //maximum number of responses in one phase
+enum { RESPONSE_BITS = 4,                   // number of bits used to encode response
+    MAX_RESPONSES = (1 << RESPONSE_BITS) }; // maximum number of responses in one phase
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
 
-//count enum class members (if "_first" and "_last" is defined)
+// count enum class members (if "_first" and "_last" is defined)
 template <class T>
 constexpr size_t CountPhases() {
     return static_cast<size_t>(T::_last) - static_cast<size_t>(T::_first) + 1;
 }
-//use this when creating an event
-//encodes enum to position in phase
+// use this when creating an event
+// encodes enum to position in phase
 template <class T>
 constexpr uint8_t GetPhaseIndex(T phase) {
     return static_cast<size_t>(phase) - static_cast<size_t>(T::_first);
@@ -35,11 +39,11 @@ constexpr T GetEnumFromPhaseIndex(size_t index) {
     return static_cast<T>(static_cast<size_t>(T::_first) + index);
 }
 
-//define enum classes for responses here
-//and YES phase can have 0 responses
-//every enum must have "_first" and "_last"
+// define enum classes for responses here
+// and YES phase can have 0 responses
+// every enum must have "_first" and "_last"
 //"_first" ==  "previous_enum::_last" + 1
-//EVERY response shall have a unique ID (so every button in GUI is unique)
+// EVERY response shall have a unique ID (so every button in GUI is unique)
 enum class PhasesLoadUnload : uint16_t {
     _first = 0,
     Parking_stoppable,
@@ -72,7 +76,39 @@ enum class PhasesLoadUnload : uint16_t {
     IsColor,
     IsColorPurge,
     Unparking,
+
+#if HAS_MMU2
+    // internal states of the MMU
+    MMU_EngagingIdler,
+    MMU_DisengagingIdler,
+    MMU_UnloadingToFinda,
+    MMU_UnloadingToPulley,
+    MMU_FeedingToFinda,
+    MMU_FeedingToBondtech,
+    MMU_FeedingToNozzle,
+    MMU_AvoidingGrind,
+    MMU_FinishingMoves,
+    MMU_ERRDisengagingIdler,
+    MMU_ERREngagingIdler,
+    MMU_ERRWaitingForUser,
+    MMU_ERRInternal,
+    MMU_ERRHelpingFilament,
+    MMU_ERRTMCFailed,
+    MMU_UnloadingFilament,
+    MMU_LoadingFilament,
+    MMU_SelectingFilamentSlot,
+    MMU_PreparingBlade,
+    MMU_PushingFilament,
+    MMU_PerformingCut,
+    MMU_ReturningSelector,
+    MMU_ParkingSelector,
+    MMU_EjectingFilament,
+    MMU_RetractingFromFinda,
+
+    _last = MMU_RetractingFromFinda
+#else
     _last = Unparking
+#endif
 };
 
 enum class PhasesPreheat : uint16_t {
@@ -85,6 +121,7 @@ enum class PhasesPrintPreview : uint16_t {
     _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
     main_dialog = _first,
     wrong_printer,
+    wrong_printer_abort,
     filament_not_inserted,
     mmu_filament_inserted,
     wrong_filament,
@@ -133,6 +170,34 @@ enum class PhasesSelftest : uint16_t {
     Fans = _first_Fans,
     _last_Fans = Fans,
 
+    _first_Loadcell,
+    Loadcell_prepare = _first_Loadcell,
+    Loadcell_move_away,
+    Loadcell_tool_select,
+    Loadcell_cooldown,
+    Loadcell_user_tap_ask_abort,
+    Loadcell_user_tap_countdown,
+    Loadcell_user_tap_check,
+    Loadcell_user_tap_ok,
+    Loadcell_fail,
+    _last_Loadcell = Loadcell_fail,
+
+    _first_FSensor,
+    FSensor_ask_have_filament = _first_FSensor,
+    FSensor_wait_tool_pick,
+    FSensor_ask_unload,
+    FSensor_unload,
+    FSensor_calibrate,
+    FSensor_insertion_check,
+    FSensor_insertion_ok,
+    Fsensor_enforce_remove,
+    FSensor_fail,
+    _last_FSensor = FSensor_fail,
+
+    _first_CalibZ,
+    CalibZ = _first_CalibZ,
+    _last_CalibZ = CalibZ,
+
     _first_Axis,
     Axis = _first_Axis,
     _last_Axis = Axis,
@@ -157,6 +222,34 @@ enum class PhasesSelftest : uint16_t {
     FirstLayer_failed,
     _last_FirstLayerQuestions = FirstLayer_failed,
 
+    _first_Kennel,
+    Kennel_needs_calibration = _first_Kennel,
+    Kennel_wait_user_park1,
+    Kennel_wait_user_park2,
+    Kennel_wait_user_park3,
+    Kennel_pin_remove_prepare,
+    Kennel_wait_user_remove_pins,
+    Kennel_wait_user_loosen_pillar,
+    Kennel_wait_user_lock_tool,
+    Kennel_wait_user_tighten_top_screw,
+    Kennel_measure,
+    Kennel_wait_user_install_pins,
+    Kennel_wait_user_tighten_bottom_screw,
+    Kennel_selftest_park_test,
+    _last_Kennel = Kennel_selftest_park_test,
+
+    _first_Tool_Offsets,
+    ToolOffsets_wait_user_confirm_start = _first_Tool_Offsets,
+    ToolOffsets_wait_user_clean_nozzle_cold,
+    ToolOffsets_wait_user_clean_nozzle_hot,
+    ToolOffsets_wait_user_install_sheet,
+    ToolOffsets_pin_install_prepare,
+    ToolOffsets_wait_user_install_pin,
+    ToolOffsets_wait_calibrate,
+    ToolOffsets_wait_final_park,
+    ToolOffsets_wait_user_remove_pin,
+    _last_Tool_Offsets = ToolOffsets_wait_user_remove_pin,
+
     _first_Result,
     Result = _first_Result,
     _last_Result = Result,
@@ -171,71 +264,109 @@ enum class PhasesSelftest : uint16_t {
 
 enum class PhasesCrashRecovery : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftest::_last) + 1,
-    check_X = _first, //in this case is safe to have check_X == _first
+    check_X = _first, // in this case is safe to have check_X == _first
     check_Y,
     home,
     axis_NOK, //< just for unification of the two below
     axis_short,
     axis_long,
     repeated_crash,
-    _last = repeated_crash
+    tool_recovery, //< Toolchanger recovery, tool fell off
+    _last = tool_recovery
 };
 
-//static class for work with fsm responses (like button click)
-//encode responses - get them from marlin client, to marlin server and decode them again
+// static class for work with fsm responses (like button click)
+// encode responses - get them from marlin client, to marlin server and decode them again
 class ClientResponses {
     ClientResponses() = delete;
     ClientResponses(ClientResponses &) = delete;
 
-    //declare 2d arrays of single buttons for radio buttons
+    // declare 2d arrays of single buttons for radio buttons
     static constexpr PhaseResponses LoadUnloadResponses[] = {
         {},                                                       //_first
-        { Response::Stop },                                       //Parking_stoppable
-        {},                                                       //Parking_unstoppable,
-        { Response::Stop },                                       //WaitingTemp_stoppable,
-        {},                                                       //WaitingTemp_unstoppable,
-        { Response::Stop },                                       //PreparingToRam_stoppable,
-        {},                                                       //PreparingToRam_unstoppable
-        { Response::Stop },                                       //Ramming_stoppable,
-        {},                                                       //Ramming_unstoppable,
-        { Response::Stop },                                       //Unloading_stoppable,
-        {},                                                       //Unloading_unstoppable,
-        { Response::Filament_removed },                           //RemoveFilament,
-        { Response::Yes, Response::No },                          //IsFilamentUnloaded,
-        {},                                                       //FilamentNotInFS
-        { Response::Continue },                                   //ManualUnload,
-        { Response::Continue, Response::Stop },                   //UserPush_stoppable,
-        { Response::Continue },                                   //UserPush_unstoppable,
-        { Response::Stop },                                       //MakeSureInserted_stoppable,
-        {},                                                       //MakeSureInserted_unstoppable,
-        { Response::Stop },                                       //Inserting_stoppable,
-        {},                                                       //Inserting_unstoppable,
-        { Response::Yes, Response::No },                          //IsFilamentInGear,
-        { Response::Stop },                                       //Ejecting_stoppable,
-        {},                                                       //Ejecting_unstoppable,
-        { Response::Stop },                                       //Loading_stoppable,
-        {},                                                       //Loading_unstoppable,
-        { Response::Stop },                                       //Purging_stoppable,
-        {},                                                       //Purging_unstoppable,
-        { Response::Yes, Response::Purge_more, Response::Retry }, //IsColor,
-        { Response::Yes, Response::Purge_more },                  //IsColorPurge
-        {},                                                       //Unparking
+        { Response::Stop },                                       // Parking_stoppable
+        {},                                                       // Parking_unstoppable,
+        { Response::Stop },                                       // WaitingTemp_stoppable,
+        {},                                                       // WaitingTemp_unstoppable,
+        { Response::Stop },                                       // PreparingToRam_stoppable,
+        {},                                                       // PreparingToRam_unstoppable
+        { Response::Stop },                                       // Ramming_stoppable,
+        {},                                                       // Ramming_unstoppable,
+        { Response::Stop },                                       // Unloading_stoppable,
+        {},                                                       // Unloading_unstoppable,
+        { Response::Filament_removed },                           // RemoveFilament,
+        { Response::Yes, Response::No },                          // IsFilamentUnloaded,
+        {},                                                       // FilamentNotInFS
+        { Response::Continue },                                   // ManualUnload,
+        { Response::Continue, Response::Stop },                   // UserPush_stoppable,
+        { Response::Continue },                                   // UserPush_unstoppable,
+        { Response::Stop },                                       // MakeSureInserted_stoppable,
+        {},                                                       // MakeSureInserted_unstoppable,
+        { Response::Stop },                                       // Inserting_stoppable,
+        {},                                                       // Inserting_unstoppable,
+        { Response::Yes, Response::No },                          // IsFilamentInGear,
+        { Response::Stop },                                       // Ejecting_stoppable,
+        {},                                                       // Ejecting_unstoppable,
+        { Response::Stop },                                       // Loading_stoppable,
+        {},                                                       // Loading_unstoppable,
+        { Response::Stop },                                       // Purging_stoppable,
+        {},                                                       // Purging_unstoppable,
+        { Response::Yes, Response::Purge_more, Response::Retry }, // IsColor,
+        { Response::Yes, Response::Purge_more },                  // IsColorPurge
+        {},                                                       // Unparking
+
+#if HAS_MMU2
+        {}, // MMU_EngagingIdler,
+        {}, // MMU_DisengagingIdler,
+        {}, // MMU_UnloadingToFinda,
+        {}, // MMU_UnloadingToPulley,
+        {}, // MMU_FeedingToFinda,
+        {}, // MMU_FeedingToBondtech,
+        {}, // MMU_FeedingToNozzle,
+        {}, // MMU_AvoidingGrind,
+        {}, // MMU_FinishingMoves,
+        {}, // MMU_ERRDisengagingIdler,
+        {}, // MMU_ERREngagingIdler,
+        { Response::Retry, Response::Slowly, Response::Continue, Response::Restart,
+            Response::Unload, Response::Stop, Response::MMU_disable }, // MMU_ERRWaitingForUser,
+        {},                                                            // MMU_ERRInternal,
+        {},                                                            // MMU_ERRHelpingFilament,
+        {},                                                            // MMU_ERRTMCFailed,
+        {},                                                            // MMU_UnloadingFilament,
+        {},                                                            // MMU_LoadingFilament,
+        {},                                                            // MMU_SelectingFilamentSlot,
+        {},                                                            // MMU_PreparingBlade,
+        {},                                                            // MMU_PushingFilament,
+        {},                                                            // MMU_PerformingCut,
+        {},                                                            // MMU_ReturningSelector,
+        {},                                                            // MMU_ParkingSelector,
+        {},                                                            // MMU_EjectingFilament,
+        {},                                                            // MMU_RetractingFromFinda,
+#endif
     };
     static_assert(std::size(ClientResponses::LoadUnloadResponses) == CountPhases<PhasesLoadUnload>());
 
     static constexpr PhaseResponses PreheatResponses[] = {
         {}, //_first
         { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG,
-            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB }, //UserTempSelection
+#if (PRINTER_TYPE == PRINTER_PRUSA_IXL)
+            Response::PETG_NH,
+#endif
+            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB }, // UserTempSelection
     };
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
     static constexpr PhaseResponses PrintPreviewResponses[] = {
         { Response::Print, Response::Back },                   // main_dialog,
         { Response::Abort, Response::Ignore },                 // wrong_printer
+        { Response::Abort },                                   // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
         { Response::Yes, Response::No },                       // mmu_filament_inserted
-        { Response::Change, Response::Ok, Response::Abort }    // wrong_filament
+        {
+#if PRINTER_TYPE != PRINTER_PRUSA_XL
+            Response::Change,
+#endif
+            Response::Ok, Response::Abort } // wrong_filament
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
@@ -264,10 +395,33 @@ class ClientResponses {
         { Response::Continue },                  // ESP_progress_passed
         { Response::Continue },                  // ESP_progress_failed
 
-        { Response::Continue, Response::Abort }, // ESP_qr_instructions_flash
-        { Response::Continue, Response::Abort }, // ESP_qr_instructions
+        { Response::Continue, Response::NotNow, Response::Never }, // ESP_qr_instructions_flash
+        { Response::Continue, Response::Abort },                   // ESP_qr_instructions
 
         {}, // Fans
+
+        {},                  // Loadcell_prepare
+        {},                  // Loadcell_move_away
+        {},                  // Loadcell_tool_select
+        { Response::Abort }, // Loadcell_cooldown
+
+        { Response::Continue, Response::Abort }, // Loadcell_user_tap_ask_abort
+        {},                                      // Loadcell_user_tap_countdown
+        {},                                      // Loadcell_user_tap_check
+        {},                                      // Loadcell_user_tap_ok
+        {},                                      // Loadcell_fail
+
+        { Response::Yes, Response::No },                         // FSensor_ask_have_filament
+        {},                                                      // FSensor_wait_tool_pick
+        { Response::Unload, Response::Continue },                // FSensor_ask_unload
+        { Response::Continue },                                  // FSensor_unload
+        {},                                                      // FSensor_calibrate
+        { Response::Abort_invalidate_test },                     // FSensor_insertion_check
+        { Response::Continue, Response::Abort_invalidate_test }, // FSensor_insertion_ok
+        { Response::Abort_invalidate_test },                     // Fsensor_enforce_remove
+        {},                                                      // FSensor_fail
+
+        {}, // CalibZ
 
         {}, // Axis
 
@@ -285,6 +439,30 @@ class ClientResponses {
         { Response::Next },                                   // FirstLayer_clean_sheet
         { Response::Next },                                   // FirstLayer_failed
 
+        { Response::Continue, Response::Abort }, // Kennel_needs_calibartion
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_park1
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_park2
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_park3
+        { Response::Abort },                     // Kennel_pin_remove_prepare
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_remove_pins
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_loosen_pillar
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_lock_tool
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_tighten_top_screw
+        { Response::Abort },                     // Kennel_measure
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_install_pins
+        { Response::Continue, Response::Abort }, // Kennel_wait_user_tighten_bottom_screw
+        { Response::Abort },                     // Kennel_selftest_park_test
+
+        { Response::Continue, Response::Abort },    // ToolOffsets_wait_user_confirm_start
+        { Response::Heatup, Response::Continue },   // ToolOffsets_wait_user_clean_nozzle_cold
+        { Response::Cooldown, Response::Continue }, // ToolOffsets_wait_user_clean_nozzle_hot
+        { Response::Continue },                     // ToolOffsets_wait_user_install_sheet
+        {},                                         // ToolOffsets_pin_install_prepare
+        { Response::Continue },                     // ToolOffsets_wait_user_install_pin
+        {},                                         // ToolOffsets_wait_calibrate
+        {},                                         // ToolOffsets_state_final_park
+        { Response::Continue },                     // ToolOffsets_wait_user_remove_pin
+
         { Response::Next }, // Result
 
         { Response::Continue }, // WizardEpilogue_ok
@@ -293,17 +471,18 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
 
     static constexpr PhaseResponses CrashRecoveryResponses[] = {
-        {},                                                     //check X == _first
-        {},                                                     //check Y
-        {},                                                     //home
-        { Response::Retry, Response::Pause, Response::Resume }, //axis NOK
-        {},                                                     //axis short
-        {},                                                     //axis long
-        { Response::Resume, Response::Pause },                  //repeated crash
+        {},                                                     // check X == _first
+        {},                                                     // check Y
+        {},                                                     // home
+        { Response::Retry, Response::Pause, Response::Resume }, // axis NOK
+        {},                                                     // axis short
+        {},                                                     // axis long
+        { Response::Resume, Response::Pause },                  // repeated crash
+        { Response::Continue },                                 // toolchanger recovery
     };
     static_assert(std::size(ClientResponses::CrashRecoveryResponses) == CountPhases<PhasesCrashRecovery>());
 
-    //methods to "bind" button array with enum type
+    // methods to "bind" button array with enum type
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
@@ -311,8 +490,8 @@ class ClientResponses {
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
 
 public:
-    //get index of single response in PhaseResponses
-    //return -1 (maxval) if does not exist
+    // get index of single response in PhaseResponses
+    // return -1 (maxval) if does not exist
     template <class T>
     static uint8_t GetIndex(T phase, Response response) {
         const PhaseResponses &cmds = getResponsesInPhase(phase);
@@ -323,7 +502,7 @@ public:
         return -1;
     }
 
-    //get response from PhaseResponses by index
+    // get response from PhaseResponses by index
     template <class T>
     static const Response &GetResponse(const T phase, const uint8_t index) {
         if (index >= MAX_RESPONSES)
@@ -332,7 +511,7 @@ public:
         return cmds[index];
     }
 
-    //get all responses accepted in phase
+    // get all responses accepted in phase
     template <class T>
     static const PhaseResponses &GetResponses(const T phase) {
         return getResponsesInPhase(phase);
@@ -342,9 +521,9 @@ public:
         return GetResponse(phase, 0) != Response::_none; // this phase has no responses
     }
 
-    //encode phase and client response (in GUI radio button and clicked index) into int
-    //use on client side
-    //return -1 (maxval) if does not exist
+    // encode phase and client response (in GUI radio button and clicked index) into int
+    // use on client side
+    // return -1 (maxval) if does not exist
     template <class T>
     static uint32_t Encode(T phase, Response response) {
         uint8_t clicked_index = GetIndex(phase, response);
@@ -361,12 +540,23 @@ enum class SelftestParts {
     ESP_qr,
     Axis,
     Fans,
+#if HAS_LOADCELL()
+    Loadcell,
+#endif
+    CalibZ,
     Heaters,
+#if FILAMENT_SENSOR_IS_ADC()
+    FSensor,
+#endif
     FirstLayer,
     FirstLayerQuestions,
     Result,
     WizardEpilogue,
-    _none, //cannot be created, must have same index as _count
+#if BOARD_IS_XLBUDDY
+    Kennel,
+    ToolOffsets,
+#endif
+    _none, // cannot be created, must have same index as _count
     _count = _none
 };
 
@@ -384,12 +574,28 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
         return PhasesSelftest::_first_Axis;
     case SelftestParts::Fans:
         return PhasesSelftest::_first_Fans;
+#if HAS_LOADCELL()
+    case SelftestParts::Loadcell:
+        return PhasesSelftest::_first_Loadcell;
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    case SelftestParts::FSensor:
+        return PhasesSelftest::_first_FSensor;
+#endif
+    case SelftestParts::CalibZ:
+        return PhasesSelftest::_first_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_first_Heaters;
     case SelftestParts::FirstLayer:
         return PhasesSelftest::_first_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
         return PhasesSelftest::_first_FirstLayerQuestions;
+#if BOARD_IS_XLBUDDY
+    case SelftestParts::Kennel:
+        return PhasesSelftest::_first_Kennel;
+    case SelftestParts::ToolOffsets:
+        return PhasesSelftest::_first_Tool_Offsets;
+#endif
     case SelftestParts::Result:
         return PhasesSelftest::_first_Result;
     case SelftestParts::WizardEpilogue:
@@ -414,12 +620,28 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
         return PhasesSelftest::_last_Axis;
     case SelftestParts::Fans:
         return PhasesSelftest::_last_Fans;
+#if HAS_LOADCELL()
+    case SelftestParts::Loadcell:
+        return PhasesSelftest::_last_Loadcell;
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    case SelftestParts::FSensor:
+        return PhasesSelftest::_last_FSensor;
+#endif
+    case SelftestParts::CalibZ:
+        return PhasesSelftest::_last_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_last_Heaters;
     case SelftestParts::FirstLayer:
         return PhasesSelftest::_last_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
         return PhasesSelftest::_last_FirstLayerQuestions;
+#if BOARD_IS_XLBUDDY
+    case SelftestParts::Kennel:
+        return PhasesSelftest::_last_Kennel;
+    case SelftestParts::ToolOffsets:
+        return PhasesSelftest::_last_Tool_Offsets;
+#endif
     case SelftestParts::Result:
         return PhasesSelftest::_last_Result;
     case SelftestParts::WizardEpilogue:
@@ -455,11 +677,22 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
     if (SelftestPartContainsPhase(SelftestParts::Fans, ph))
         return SelftestParts::Fans;
 
+#if HAS_LOADCELL()
+    if (SelftestPartContainsPhase(SelftestParts::Loadcell, ph))
+        return SelftestParts::Loadcell;
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    if (SelftestPartContainsPhase(SelftestParts::FSensor, ph))
+        return SelftestParts::FSensor;
+#endif
     if (SelftestPartContainsPhase(SelftestParts::Axis, ph))
         return SelftestParts::Axis;
 
     if (SelftestPartContainsPhase(SelftestParts::Heaters, ph))
         return SelftestParts::Heaters;
+
+    if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph))
+        return SelftestParts::CalibZ;
 
     if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue, ph))
         return SelftestParts::WizardEpilogue;
@@ -467,6 +700,11 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
     if (SelftestPartContainsPhase(SelftestParts::Result, ph))
         return SelftestParts::Result;
 
+#if BOARD_IS_XLBUDDY
+    if (SelftestPartContainsPhase(SelftestParts::Kennel, ph))
+        return SelftestParts::Kennel;
+
+#endif
     return SelftestParts::_none;
 };
 

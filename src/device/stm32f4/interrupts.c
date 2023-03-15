@@ -5,6 +5,8 @@
 #include <crash_dump/dump.h>
 #include "sys.h"
 #include "buffered_serial.hpp"
+#include <device/board.h>
+#include "log.h"
 #include "tusb.h"
 #include <device/peripherals.h>
 #include "wdt.h"
@@ -30,6 +32,13 @@ void NMI_Handler(void) {
  * @brief This function handles Hard fault interrupt.
  */
 void __attribute__((naked)) HardFault_Handler(void) {
+#ifdef _DEBUG
+    // Breakpoint if debugger is connected
+    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
+        __BKPT(0);
+    }
+#endif /*_DEBUG*/
+
     DUMP_HARDFAULT_TO_CCRAM();
     dump_to_xflash();
     sys_reset();
@@ -74,7 +83,9 @@ void USART2_IRQHandler() {
     traceISR_ENTER();
     if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart2);
-        uart2_idle_cb(&huart2);
+#if BOARD_IS_BUDDY
+        uart2_idle_cb();
+#endif
     }
     HAL_UART_IRQHandler(&huart2);
     traceISR_EXIT();
@@ -85,12 +96,37 @@ void USART6_IRQHandler(void) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
 #if defined(BUDDY_ENABLE_WUI) && uart_esp == 6
         espif_receive_data(&huart6);
-#else
-        uartrxbuff_idle_cb(&uart6rxbuff);
+#elif BOARD_IS_XBUDDY
+        uart6_idle_cb();
 #endif
     }
     HAL_UART_IRQHandler(&huart6);
 }
+
+/**
+ * @brief This function handles UART8 global interrupt.
+ */
+void UART8_IRQHandler(void) {
+#if defined(BUDDY_ENABLE_WUI) && uart_esp == 8
+    if (__HAL_UART_GET_FLAG(&huart8, UART_FLAG_IDLE)) {
+        __HAL_UART_CLEAR_IDLEFLAG(&huart8);
+        espif_receive_data(&huart8);
+    }
+#endif
+
+    HAL_UART_IRQHandler(&huart8);
+}
+
+#if BOARD_IS_XLBUDDY
+extern void uart3_idle_cb();
+void USART3_IRQHandler(void) {
+    if (__HAL_UART_GET_FLAG(&huart3, UART_FLAG_IDLE)) {
+        __HAL_UART_CLEAR_IDLEFLAG(&huart3);
+        uart3_idle_cb();
+    }
+    HAL_UART_IRQHandler(&huart3);
+}
+#endif
 
 /**
  * @brief This function handles Window watchdog interrupt.
@@ -100,6 +136,41 @@ void WWDG_IRQHandler(void) {
     HAL_WWDG_IRQHandler(&hwwdg);
     traceISR_EXIT();
 }
+
+#if ((BOARD_IS_XBUDDY && BOARD_VER_HIGHER_OR_EQUAL_TO(0, 2, 0)) || BOARD_IS_XLBUDDY)
+
+/**
+ * @brief This function handles DMA1 stream5 global interrupt.
+ */
+void DMA1_Stream5_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_DMA_IRQHandler(&hdma_spi3_tx);
+    traceISR_EXIT();
+}
+/**
+ * @brief This function handles DMA2 stream3 global interrupt.
+ */
+void DMA2_Stream3_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_spi5_rx);
+}
+
+/**
+ * @brief This function handles DMA2 stream6 global interrupt.
+ */
+void DMA2_Stream6_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_spi5_tx);
+}
+
+/**
+ * @brief This function handles DMA2 stream5 global interrupt.
+ */
+void DMA2_Stream5_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_DMA_IRQHandler(&hdma_spi6_tx);
+    traceISR_EXIT();
+}
+
+#elif (BOARD_IS_BUDDY)
 
 /**
  * @brief This function handles DMA1 stream0 global interrupt.
@@ -146,6 +217,25 @@ void DMA1_Stream7_IRQHandler(void) {
     traceISR_EXIT();
 }
 
+#else
+    #error "Unknown board."
+#endif
+
+#if BOARD_IS_XLBUDDY
+void DMA1_Stream1_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_usart3_rx);
+}
+
+void DMA1_Stream3_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_usart3_tx);
+}
+
+void DMA2_Stream1_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_spi4_tx);
+}
+
+#endif
+
 /**
  * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.
  */
@@ -156,40 +246,77 @@ void TIM8_TRG_COM_TIM14_IRQHandler(void) {
 }
 
 /**
+ * @brief This function handles DMA2 stream0 global interrupt.
+ */
+#if ((BOARD_IS_XBUDDY && BOARD_VER_HIGHER_OR_EQUAL_TO(0, 2, 0)) || BOARD_IS_XLBUDDY)
+void DMA2_Stream4_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_adc1);
+}
+
+void DMA2_Stream0_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_adc3);
+}
+#endif
+
+/**
  * @brief This function handles DMA2 stream1 global interrupt.
  */
+#if (BOARD_IS_BUDDY)
 void DMA2_Stream1_IRQHandler(void) {
     traceISR_ENTER();
 
-#ifdef BUDDY_ENABLE_WUI
+    // HAL_DMA_IRQHandler(&hdma_usart6_rx);
     if (__HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_HT) != RESET || __HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_TC) != RESET) {
+    #ifdef BUDDY_ENABLE_WUI
         espif_receive_data(&huart6);
+    #endif // BUDDY_ENABLE_WUI
     }
-#endif
-
     HAL_DMA_IRQHandler(&hdma_usart6_rx);
     traceISR_EXIT();
 }
+#endif
 
-#ifndef USE_ESP01_WITH_UART6
+#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
 /**
  * @brief This function handles DMA2 stream2 global interrupt.
  */
 void DMA2_Stream2_IRQHandler(void) {
     traceISR_ENTER();
+    #if (BOARD_IS_BUDDY)
     HAL_DMA_IRQHandler(&hdma_usart1_rx);
+    #elif (BOARD_IS_XBUDDY)
+    HAL_DMA_IRQHandler(&hdma_usart6_rx);
+    #endif
+    traceISR_EXIT();
+}
+
+void DMA2_Stream7_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_DMA_IRQHandler(&hdma_usart6_tx);
     traceISR_EXIT();
 }
 #endif
 
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
 /**
- * @brief This function handles DMA2 stream4 global interrupt.
+ * @brief This function handles DMA1 stream0 global interrupt.
  */
-void DMA2_Stream4_IRQHandler(void) {
-    // traceISR_ENTER();
-    HAL_DMA_IRQHandler(&hdma_adc1);
-    // traceISR_EXIT();
+void DMA1_Stream0_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_uart8_tx);
 }
+
+/**
+ * @brief This function handles DMA1 stream6 global interrupt.
+ */
+void DMA1_Stream6_IRQHandler(void) {
+    if (__HAL_DMA_GET_IT_SOURCE(&hdma_uart8_rx, DMA_IT_HT) != RESET || __HAL_DMA_GET_IT_SOURCE(&hdma_uart8_rx, DMA_IT_TC) != RESET) {
+    #ifdef BUDDY_ENABLE_WUI
+        espif_receive_data(&huart8);
+    #endif // BUDDY_ENABLE_WUI
+    }
+    HAL_DMA_IRQHandler(&hdma_uart8_rx);
+}
+#endif
 
 /**
  * @brief This function handles Ethernet global interrupt.

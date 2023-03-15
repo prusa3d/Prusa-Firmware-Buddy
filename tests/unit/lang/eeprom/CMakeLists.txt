@@ -5,8 +5,10 @@ add_executable(
   )
 
 # define required search paths
-target_include_directories(language_eeprom_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/lang)
-target_include_directories(language_eeprom_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/common)
+target_include_directories(
+  language_eeprom_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/lang ${CMAKE_SOURCE_DIR}/src/common
+                               ${CMAKE_SOURCE_DIR}/src/gui ${CMAKE_SOURCE_DIR}/include
+  )
 
 # define custom macros
 target_compile_definitions(language_eeprom_tests PUBLIC LANGEEPROM_UNITTEST)

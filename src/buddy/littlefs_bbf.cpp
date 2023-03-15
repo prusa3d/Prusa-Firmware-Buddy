@@ -8,6 +8,7 @@
 #include "log.h"
 #include "scratch_buffer.hpp"
 #include "bsod.h"
+#include "bsod_gui.hpp"
 
 LOG_COMPONENT_REF(FileSystem);
 
@@ -49,7 +50,7 @@ struct LruCache {
         } else {
             Slot *current = head;
             if (current == nullptr) {
-                fatal_error("could not allocate any block", "littlebbf");
+                fatal_error(ErrCode::ERR_SYSTEM_BBF_ALLOCATION_FAILED);
             }
             while (current->next) {
                 current = current->next;
@@ -125,7 +126,7 @@ static int _read(const struct lfs_config *c, lfs_block_t block,
     LruCache &cache = bbf_context.block_cache.value();
 
     if (bbf_context.block_cache.has_value() == false) {
-        fatal_error("init failed", "littlebbf");
+        fatal_error(ErrCode::ERR_SYSTEM_BBF_INIT_FAILED);
     }
 
     LruCache::Slot *slot;

@@ -6,6 +6,34 @@
 #include "sys.h"
 #include "ScreenHandler.hpp"
 
+constexpr static const char *const label = N_("FW UPDATE");
+
+#ifdef USE_ILI9488
+/*****************************************************************************/
+//MI_ALWAYS
+MI_ALWAYS::MI_ALWAYS()
+    : WI_ICON_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? 1 : 0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_ALWAYS::OnChange(size_t old_index) {
+    old_index == 0 ? sys_fw_update_enable() : sys_fw_update_disable();
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)index);
+}
+
+/*****************************************************************************/
+//MI_ON_RESTART
+MI_ON_RESTART::MI_ON_RESTART()
+    : WI_ICON_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? true : (sys_fw_update_on_restart_is_enabled() ? true : false), _(label), nullptr, sys_fw_update_is_enabled() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_ON_RESTART::OnChange(size_t old_index) {
+    old_index == 0 ? sys_fw_update_on_restart_enable() : sys_fw_update_on_restart_disable();
+}
+
+ScreenMenuFwUpdate::ScreenMenuFwUpdate()
+    : ScreenMenuFwUpdate__(_(label)) {
+}
+
+#else // !USE_ILI9488
+static constexpr const char *en_txt_helper = N_("Select when you want to automatically flash updated firmware from USB flash disk.");
 static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
 
 MI_UPDATE_LABEL::MI_UPDATE_LABEL()
@@ -44,10 +72,12 @@ ScreenMenuFwUpdate::ScreenMenuFwUpdate()
     , footer(this) {
     header.SetText(_(label));
     help.font = resource_font(helper_font);
-    help.SetText(_("Select when you want to automatically flash updated firmware from USB flash disk."));
+    help.SetText(_(en_txt_helper));
     CaptureNormalWindow(menu); // set capture to list
 }
 
 uint16_t ScreenMenuFwUpdate::get_help_h() {
     return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
 }
+
+#endif // USE_ILI9488

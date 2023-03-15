@@ -227,7 +227,14 @@ void screen_test_disp_mem_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_SPIN, id0, Rect16(col_1, row2draw, col_2_w, row_h), &(pd->spinGamma));
     pd->spinGamma.SetFormat("%1.0f");
     pd->spinGamma.SetMinMaxStep(0.0F, 3.0F, 1.0F);
+
+    #ifdef USE_ST7789
     pd->spinGamma.SetValue((float)st7789v_gamma_get());
+    #endif
+
+    #ifdef USE_ILI9488
+    pd->spinGamma.SetValue((float)ili9488_gamma_get());
+    #endif
 
     //INVERSION
     window_create_ptr(WINDOW_CLS_LIST, id0, Rect16(col_1 + col_2_w, row2draw, col_1_w - col_2_w, row_h), &(pd->spinInversion));
@@ -245,7 +252,15 @@ void screen_test_disp_mem_init(screen_t *screen) {
     window_create_ptr(WINDOW_CLS_SPIN, id0, Rect16(col_1, row2draw, col_2_w, row_h), &(pd->spinBrightness));
     pd->spinBrightness.SetFormat("%1.0f");
     pd->spinBrightness.SetMinMaxStep(0.0F, 255.0F, 5.0F);
+
+    #ifdef USE_ST7789
     pd->spinBrightness.SetValue((float)st7789v_brightness_get());
+    #endif
+
+    #ifdef USE_ILI9488
+    pd->spinBrightness.SetValue((float)ili9488_brightness_get());
+    #endif
+
     pd->spinBrightness.SetTag(TAG_BRIGHTNESS);
 
     //Brightness enabled
@@ -514,6 +529,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
         isBrightness_ena_actual = pd->spinBrigt_ena.GetItemIndex();
         brightness_actual = pd->spinBrightness.GetValue();
 
+    #ifdef USE_ST7789
         if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
             st7789v_brightness_set(brightness_actual);
             brightness_last = brightness_actual;
@@ -524,6 +540,20 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
                 st7789v_brightness_disable();
             isBrightness_ena_last = isBrightness_ena_actual;
         }
+    #endif
+
+    #ifdef USE_ILI9488
+        if ((isBrightness_ena_actual != isBrightness_ena_last) || (brightness_actual != brightness_last)) {
+            ili9488_brightness_set(brightness_actual);
+            brightness_last = brightness_actual;
+
+            if (isBrightness_ena_actual)
+                ili9488_brightness_enable();
+            else
+                ili9488_brightness_disable();
+            isBrightness_ena_last = isBrightness_ena_actual;
+        }
+    #endif
 
         mode = pd->spinMode.GetItemIndex();
 
@@ -536,6 +566,7 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
         clrG = (pd->spinStrG0.GetItemIndex() << 4) | pd->spinStrG1.GetItemIndex();
         clrB = (pd->spinStrB0.GetItemIndex() << 4) | pd->spinStrB1.GetItemIndex();
 
+    #ifdef USE_ST7789
         gamma_actual = pd->spinGamma.GetItemIndex();
         if (gamma_actual != gamma_last) {
             st7789v_gamma_set(gamma_actual);
@@ -550,6 +581,24 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
                 st7789v_inversion_off();
             isInverted_last = isInverted_actual;
         }
+    #endif // USE_ST7789
+
+    #ifdef USE_ILI9488
+        gamma_actual = pd->spinGamma.GetItemIndex();
+        if (gamma_actual != gamma_last) {
+            ili9488_gamma_set(gamma_actual);
+            gamma_last = gamma_actual;
+        }
+
+        isInverted_actual = pd->spinInversion.GetItemIndex();
+        if (isInverted_actual != isInverted_last) {
+            if (isInverted_actual)
+                ili9488_inversion_on();
+            else
+                ili9488_inversion_off();
+            isInverted_last = isInverted_actual;
+        }
+    #endif //USE_ILI9488
 
         //check if spin changed
         spinSpiClkVal_actual = pd->spinSpiClk.GetItemIndex();
@@ -563,4 +612,4 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
 
     return 0;
 }
-#endif //#if 0
+#endif     //#if 0

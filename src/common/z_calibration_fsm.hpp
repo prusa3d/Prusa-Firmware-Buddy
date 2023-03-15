@@ -16,7 +16,7 @@
  *
  * Derived Finite state machine class for smooth progress of Z calibration
  */
-class Z_Calib_FSM : public Notifier_POS_Z {
+class Z_Calib_FSM : public FSM_notifier {
 public:
     /**
      * Constructor

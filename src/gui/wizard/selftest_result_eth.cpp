@@ -6,36 +6,43 @@
 
 #include "selftest_result_eth.hpp"
 #include "i18n.h"
-#include "selftest_eeprom.hpp"
+#include "selftest_result_type.hpp"
 #include "png_resources.hpp"
 
-static string_view_utf8 getText(TestResultNet_t res) {
-    switch (res) {
-    case TestResultNet_t::Unknown:
-        return _("Test did not run");
-    case TestResultNet_t::Down:
-    case TestResultNet_t::NoAddress:
-        return _("Inactive");
-    case TestResultNet_t::Up:
-        return _("Connected");
-    case TestResultNet_t::Unlinked:
-        break;
-    }
-    return _("Ethernet cable not plugged in");
+ResultEth::ResultEth(bool is_wifi)
+    : SelfTestGroup(is_wifi ? _("WiFi connection") : _("Ethernet connection"))
+    , skipped(_("Test did not run"), is_wifi ? png::wifi_16x16 : png::lan_16x16, is_multiline::yes)
+    , not_connected(is_wifi ? _("WiFi not connected") : _("Ethernet cable not plugged in"), is_wifi ? png::wifi_16x16 : png::lan_16x16, is_multiline::yes)
+    , inactive(_("Inactive"), is_wifi ? png::wifi_16x16 : png::lan_16x16, TestResult_Passed, is_multiline::yes)
+    , connected(_("Connected"), is_wifi ? png::wifi_16x16 : png::lan_16x16, TestResult_Passed, is_multiline::yes) {
 }
 
-ResultEth::ResultEth(TestResultNet_t res)
-    : SelfTestGroup(_("Ethernet connection"))
-    , connected(getText(res), png::lan_16x16, TestResult_t::Passed, is_multiline::yes)
-    , not_connected(getText(res), png::lan_16x16, is_multiline::yes) {
+void ResultEth::SetState(TestResultNet res) {
     switch (res) {
-    case TestResultNet_t::Up:
-    case TestResultNet_t::NoAddress:
-    case TestResultNet_t::Down:
-        Add(connected);
+    case TestResultNet_Unknown:
+        Remove(not_connected);
+        Remove(inactive);
+        Remove(connected);
+        Add(skipped);
         break;
-    default:
+    case TestResultNet_Unlinked:
+        Remove(skipped);
+        Remove(inactive);
+        Remove(connected);
         Add(not_connected);
+        break;
+    case TestResultNet_Down:
+    case TestResultNet_NoAddress:
+        Remove(skipped);
+        Remove(not_connected);
+        Remove(connected);
+        Add(inactive);
+        break;
+    case TestResultNet_Up:
+        Remove(skipped);
+        Remove(not_connected);
+        Remove(inactive);
+        Add(connected);
         break;
     }
 }

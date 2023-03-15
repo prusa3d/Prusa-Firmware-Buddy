@@ -1,7 +1,7 @@
 #include "wui.h"
 #include "netif_settings.h"
 
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "wui_api.h"
 #include "ethernetif.h"
 #include "espif.h"
@@ -30,6 +30,8 @@
 
 #include "netdev.h"
 
+#include "otp.h"
+
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
 
@@ -43,9 +45,10 @@ using std::unique_lock;
 
 static variant8_t prusa_link_password;
 
-const char *wui_generate_password(char *password, uint32_t length) {
-    // Avoid confusing character pairs ‒ 1/l/I, 0/O.
-    static char charset[] = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+// Avoid confusing character pairs ‒ 1/l/I, 0/O.
+static char charset[] = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+void wui_generate_password(char *password, uint32_t length) {
     // One less, as the above contains '\0' at the end which we _do not_ want to generate.
     const uint32_t charset_length = sizeof(charset) / sizeof(char) - 1;
     uint32_t i = 0;
@@ -58,7 +61,6 @@ const char *wui_generate_password(char *password, uint32_t length) {
         }
     }
     password[i] = 0;
-    return password;
 }
 
 void wui_store_password(char *password, uint32_t length) {
@@ -489,12 +491,12 @@ public:
         });
     }
 
-    static bool get_mac(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
+    static bool get_mac(uint32_t netdev_id, uint8_t mac[6]) {
         NetworkState *state = instance;
         if (netdev_id == NETDEV_ETH_ID) {
             // TODO: Why not to copy address from netif? Maybe because we need
             // it sooner than when it's initialized?
-            memcpy(mac, (void *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
+            memcpy(mac, otp_get_mac_address()->mac, sizeof(otp_get_mac_address()->mac));
             return true;
         } else if (state != nullptr && netdev_id == NETDEV_ESP_ID) {
             unique_lock lock(state->mutex);
@@ -505,7 +507,7 @@ public:
                 return false;
             }
         } else {
-            memset(mac, 0, OTP_MAC_ADDRESS_SIZE);
+            memset(mac, 0, sizeof(otp_get_mac_address()->mac));
             return false;
         }
     }
@@ -565,7 +567,7 @@ void netdev_get_ipv4_addresses(uint32_t netdev_id, lan_t *config) {
     NetworkState::get_addresses(netdev_id, config);
 }
 
-bool netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[OTP_MAC_ADDRESS_SIZE]) {
+bool netdev_get_MAC_address(uint32_t netdev_id, uint8_t mac[6]) {
     return NetworkState::get_mac(netdev_id, mac);
 }
 
@@ -642,7 +644,22 @@ void netdev_set_dhcp(uint32_t netdev_id) {
     });
 }
 
-// TODO: Do we want an ability to turn a device off?
+// Support for enable disable device (i.e. to disable wifi)
+void netdev_set_enabled(const uint32_t netdev_id, const bool enabled) {
+    modify_flag(netdev_id, [&enabled](uint8_t flag) -> uint8_t {
+        if (enabled) {
+            TURN_FLAG_ON(flag);
+        } else {
+            TURN_FLAG_OFF(flag);
+        }
+        return flag;
+    });
+}
+
+bool netdev_is_enabled(const uint32_t netdev_id) {
+    const uint8_t flag = eeprom_get_ui8(EEVAR_WIFI_FLAG);
+    return IS_LAN_ON(flag);
+}
 
 netdev_ip_obtained_t netdev_get_ip_obtained_type(uint32_t netdev_id) {
     // FIXME: This API is subtly wrong. What if the device is off or not exist?

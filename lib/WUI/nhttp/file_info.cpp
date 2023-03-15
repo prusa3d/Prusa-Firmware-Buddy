@@ -303,6 +303,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
                 // Too small, but possibly because we've taken up a part by the headers.
                 return { 0, written, Continue() };
             }
+            [[fallthrough]];
         case JsonResult::Abort:
             // Something unexpected got screwed up. We don't have a way to
             // return a 500 error, we have sent the headers out already

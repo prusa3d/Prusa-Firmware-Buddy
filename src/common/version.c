@@ -16,6 +16,18 @@ const int project_build_number = FW_BUILD_NUMBER;
 
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
 const char project_firmware_name[] = "Buddy_MINI";
+#elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
+    #if (BOARD_IS_DWARF)
+const char project_firmware_name[] = "Dwarf";
+    #elif (BOARD_IS_MODULARBED)
+const char project_firmware_name[] = "ModularBed";
+    #else
+const char project_firmware_name[] = "Buddy_XL";
+    #endif
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK404)
+const char project_firmware_name[] = "Buddy_MK404";
+#elif (PRINTER_TYPE == PRINTER_PRUSA_IXL)
+const char project_firmware_name[] = "Buddy_iX";
 #else
-    #error "unknown printer type"
+    #error "Unknown PRINTER_TYPE."
 #endif

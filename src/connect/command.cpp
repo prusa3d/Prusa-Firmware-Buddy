@@ -108,7 +108,7 @@ Command Command::gcode_command(CommandId id, const string_view &body, SharedBuff
     };
 }
 
-Command Command::parse_json_command(CommandId id, char *body, size_t body_size, SharedBuffer::Borrow buff) {
+Command Command::parse_json_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
     jsmntok_t tokens[MAX_TOKENS];
 
     int parse_result;
@@ -117,7 +117,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         jsmn_parser parser;
         jsmn_init(&parser);
 
-        parse_result = jsmn_parse(&parser, body, body_size, tokens, sizeof tokens / sizeof *tokens);
+        parse_result = jsmn_parse(&parser, body.data(), body.size(), tokens, sizeof tokens / sizeof *tokens);
     } // Free the parser
 
     CommandData data = UnknownCommand {};
@@ -130,7 +130,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     bool has_path = false;
 
     // Error from jsmn_parse will lead to -1 -> converted to 0, refused by json::search as Broken.
-    const bool success = json::search(body, tokens, std::max(parse_result, 0), [&](const Event &event) {
+    const bool success = json::search(body.data(), tokens, std::max(parse_result, 0), [&](const Event &event) {
         auto is_arg = [&](const string_view name, Type type) -> bool {
             return event.depth == 2 && in_kwargs && event.type == type && event.key == name;
         };

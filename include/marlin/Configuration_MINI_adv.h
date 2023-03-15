@@ -484,8 +484,8 @@
     // ranges in mm - allowed distance between homing probes for XYZ axes
     constexpr float axis_home_min_diff[] = {-0.2, -0.2, -0.1};
     constexpr float axis_home_max_diff[] = { 0.2,  0.2,  0.1};
-    constexpr float axis_home_invert_min_diff = -1;
-    constexpr float axis_home_invert_max_diff = 1;
+    constexpr float axis_home_invert_min_diff[] = {-1, -1, -1};
+    constexpr float axis_home_invert_max_diff[] = { 1,  1,  1};
 #endif// HOMING_MAX_ATTEMPTS
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
@@ -1701,18 +1701,23 @@
      * Provides crash detection during printing and proper crash recovery.
      * Sensorless homing must be turned on and sensitivities set accordingly.
      */
-    #define CRASH_RECOVERY
+//    #define CRASH_RECOVERY
     #ifdef CRASH_RECOVERY
-        #define CRASH_STALL_GUARD { 50, 40 } // internal value representing sensitivity
-        #define CRASH_PERIOD { 381, 381 }  // (steps per tick) - reciprocal value of minimal speed
-        #define CRASH_FILTER (false)        // Stallguard filtering for crash detection
-        #define CRASH_TIMER 45             // seconds before counter reset
-        #define CRASH_COUNTER_MAX 3        // max crashes with automatic recovery
-
+        #define CRASH_STALL_GUARD { 50, 40 }  // internal value representing sensitivity
+        #define CRASH_MAX_PERIOD { 381, 381 } // (steps per tick) - reciprocal value of minimal speed
+        #define CRASH_FILTER (false)          // Stallguard filtering for crash detection
+        #define CRASH_TIMER 45                // seconds before counter reset
+        #define CRASH_COUNTER_MAX 3           // max crashes with automatic recovery
     #endif
 
-    #define AXIS_MEASURE_STALL_GUARD 130
-    #define AXIS_MEASURE_CRASH_PERIOD 210
+    /**
+     * Measure and check axis length on repeated crashes
+     */
+//    #define AXIS_MEASURE
+    #ifdef AXIS_MEASURE
+        #define AXIS_MEASURE_STALL_GUARD 1
+        #define AXIS_MEASURE_CRASH_PERIOD 210
+    #endif
 
 /**
    * TMC2130, TMC2160, TMC2660, TMC5130, and TMC5160 only
@@ -2429,3 +2434,8 @@
  * M999 reset MCU. Prusa STM32 platform specific
  */
 #define M999_MCU_RESET
+
+/**
+ * M862.x support for print checking Q commands (P are always supported)
+ */
+#define PRINT_CHECKING_Q_CMDS

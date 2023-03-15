@@ -1,5 +1,6 @@
 #pragma once
 
+#include <otp.h>
 #include <transfers/notify_filechange.hpp>
 
 #include <cstdint>
@@ -21,7 +22,7 @@ public:
 
         bool appendix;
         const char *firmware_version;
-        char serial_number[SER_NUM_BUFR_LEN];
+        serial_nr_t serial_number;
         char fingerprint[FINGERPRINT_BUFF_LEN];
     };
 

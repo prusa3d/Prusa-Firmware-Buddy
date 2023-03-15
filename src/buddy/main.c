@@ -5,6 +5,7 @@
 #include "crc32.h"
 #include "eeprom.h"
 #include "tick_timer_api.h"
+#include <assert.h>
 
 static void enable_trap_on_division_by_zero() {
     SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
@@ -17,6 +18,10 @@ static void enable_backup_domain() {
 }
 
 static void enable_segger_sysview() {
+    // enable the cycle counter for correct time reporting
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
     SEGGER_SYSVIEW_Conf();
 }
 

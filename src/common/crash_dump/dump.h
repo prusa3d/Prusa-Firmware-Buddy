@@ -18,13 +18,17 @@ enum {
     // dumped ram area (128kb)
     DUMP_RAM_ADDR = 0x20000000,
     DUMP_RAM_SIZE = 0x00020000,
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL)
+    // dumped ram area (192kb)
+    DUMP_RAM_ADDR = 0x20000000,
+    DUMP_RAM_SIZE = 0x00030000,
+#else
+    #error "Unknown PRINTER_TYPE!"
+#endif
 
     // dumped ccram area (64kb), last 256 bytes used for register dump etc.
     DUMP_CCRAM_ADDR = 0x10000000,
     DUMP_CCRAM_SIZE = 0x00010000,
-#else
-    #error "Unknown PRINTER_TYPE!"
-#endif
 
     // dumped otp area (32kb)
     DUMP_OTP_ADDR = 0x1FFF0000,

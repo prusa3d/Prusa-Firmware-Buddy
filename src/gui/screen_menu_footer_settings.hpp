@@ -39,7 +39,7 @@ public:
     virtual void OnChange(size_t /*old_index*/) override;
 };
 
-class MI_SHOW_ZERO_TEMP_TARGET : public WI_SWITCH_OFF_ON_t {
+class MI_SHOW_ZERO_TEMP_TARGET : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Temp. show zero");
 
 public:
@@ -48,7 +48,7 @@ public:
 };
 
 class MI_FOOTER_CENTER_N : public WiSpinInt {
-    constexpr static const char *const label = N_("Center N and fewer items");
+    constexpr static const char *const label = N_("Center N and Fewer Items");
 
 public:
     MI_FOOTER_CENTER_N();

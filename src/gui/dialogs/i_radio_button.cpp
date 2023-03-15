@@ -89,6 +89,51 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
     case GUI_event_t::ENC_DN:
         --(*this);
         return;
+    case GUI_event_t::TOUCH: {
+        event_conversion_union un;
+        un.pvoid = param;
+        std::optional<size_t> new_index = std::nullopt;
+
+        if (HasIcon()) {
+            for (size_t i = 0; i < max_icons; ++i) {
+                if (getIconRect(i).Contain(un.point)) {
+                    new_index = i;
+                    break;
+                }
+            }
+        } else {
+            size_t btn_count = GetBtnCount();
+            switch (btn_count) {
+            case 0:
+                break;
+            case 1:
+                new_index = 0; // single button fils entire area, no need to test if it was clicked, just return it
+                break;
+            default: {
+                Layout layout = getNormalBtnRects(btn_count);
+                for (uint8_t i = 0; i < btn_count; ++i) {
+                    if (layout.splits[i].Contain(un.point)) {
+                        new_index = i;
+                        break;
+                    }
+                }
+            }
+            }
+        }
+
+        if (new_index) {
+            // select button
+            SetBtnIndex(*new_index);
+
+            // generate click sound??
+            // Sound_Play(eSOUND_TYPE::ButtonEcho);
+
+            // generate click and send it to itself
+            // child class might handle it, if not GUI_event_t::CLICK from this switch will be called
+            WindowEvent(this, GUI_event_t::CLICK, param);
+        }
+    }
+        return;
     default:
         SuperWindowEvent(sender, event, param);
     }
@@ -141,7 +186,7 @@ void IRadioButton::unconditionalDraw() {
                     focused_ptr = nullptr;
                 }
             } else {
-                display::DrawRect(rcIcon, GetBackColor());
+                display::DrawRoundedRect(rcIcon, GetBackColor(), COLOR_ORANGE, GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
             }
         }
         focused_ptr = prev_focus; //return focus
@@ -212,7 +257,7 @@ void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent
     color_t button_cl = is_selected ? back_color : COLOR_GRAY;
     color_t text_cl = is_selected ? COLOR_BLACK : COLOR_WHITE;
     if (GuiDefaults::RadioButtonCornerRadius) {
-        display::DrawRect(rc_btn, parent_color);
+        display::DrawRoundedRect(rc_btn, parent_color, button_cl, GuiDefaults::RadioButtonCornerRadius, MIC_ALL_CORNERS);
         rc_btn += Rect16::Left_t(GuiDefaults::RadioButtonCornerRadius);
         rc_btn -= Rect16::Width_t(2 * GuiDefaults::RadioButtonCornerRadius);
     }

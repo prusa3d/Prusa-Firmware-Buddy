@@ -5,6 +5,7 @@ target_sources(
           footer_item_fans.cpp
           footer_item_filament.cpp
           footer_item_fsensor.cpp
+          footer_item_heatbreak.cpp
           footer_item_live_z.cpp
           footer_item_printspeed.cpp
           footer_item_sheet_profile.cpp
@@ -17,6 +18,12 @@ target_sources(
           ifooter_string_item.cpp
   )
 
-if(BOARD IN_LIST BOARDS_WITH_ST7789V)
+if(BOARD IN_LIST BOARDS_WITH_ILI9488)
+  target_sources(firmware PRIVATE footer_singleline.cpp)
+elseif(BOARD IN_LIST BOARDS_WITH_ST7789V)
   target_sources(firmware PRIVATE footer_doubleline.cpp)
+endif()
+
+if(HAS_MMU2 OR HAS_TOOLCHANGER)
+  target_sources(firmware PRIVATE footer_item_multitool.cpp)
 endif()

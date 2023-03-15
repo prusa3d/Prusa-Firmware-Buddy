@@ -3,7 +3,7 @@
  */
 
 #include "screen_menu_move.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "menu_spin_config.hpp"
 
 #include "png_resources.hpp"
@@ -19,7 +19,6 @@ invalidate_t I_MI_AXIS::change(int diff) {
 }
 
 void I_MI_AXIS::loop__(size_t index, int8_t long_seg, uint8_t buffer_len) {
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
     if (marlin_vars()->pqueue <= buffer_len) {
         int difference = (int)value - lastQueuedPos;
         if (difference != 0) {
@@ -58,9 +57,22 @@ void DUMMY_AXIS_E::click(IWindowMenu &window_menu) {
     marlin_gcode_printf("M1700 S E W2"); // set filament, preheat to target, return option
 }
 
+/**
+ * @brief handle touch
+ * it behaves the same as click, but only when extension was clicked
+ */
+void DUMMY_AXIS_E::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
+    Rect16::Width_t width = window_menu.GetRect().Width();
+    if (width >= relative_touch_point.x && (width - extension_width) <= relative_touch_point.x) {
+        click(window_menu);
+    }
+}
+
 bool DUMMY_AXIS_E::IsTargetTempOk() {
-    return (Filaments::Current().nozzle > 0)                                          // filament is selected
-        && (int(marlin_vars()->target_nozzle + 0.9F) >= Filaments::Current().nozzle); // target temperature is high enough - +0.9 to avoid float round error
+    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+    auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle;
+    return (current_filament != filament::Type::NONE)                                                    // filament is selected
+        && (int(marlin_vars()->active_hotend().target_nozzle + 0.9F) >= current_filament_nozzle_target); // target temperature is high enough - +0.9 to avoid float round error
 }
 
 DUMMY_AXIS_E::DUMMY_AXIS_E()
@@ -143,8 +155,10 @@ void ScreenMenuMove::checkNozzleTemp() {
 #endif // 0 .. make unit test
 
 bool ScreenMenuMove::IsTempOk() {
-    return DUMMY_AXIS_E::IsTargetTempOk()                                                // target correctly set
-        && (marlin_vars()->temp_nozzle > (Filaments::Current().nozzle - temp_ok_range)); // temperature nearly reached
+    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+    auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle;
+    return DUMMY_AXIS_E::IsTargetTempOk()                                                                   // target correctly set
+        && (marlin_vars()->active_hotend().temp_nozzle > (current_filament_nozzle_target - temp_ok_range)); // temperature nearly reached
 }
 
 ScreenMenuMove::ScreenMenuMove()
@@ -152,7 +166,6 @@ ScreenMenuMove::ScreenMenuMove()
 #if PRINTER_TYPE != PRINTER_PRUSA_MINI
     header.SetIcon(&png::move_16x16);
 #endif
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
     prev_accel = marlin_vars()->travel_acceleration;
     marlin_gcode("M204 T200");
     Hide<MI_AXIS_E>(); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work

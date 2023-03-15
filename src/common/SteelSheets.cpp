@@ -93,9 +93,7 @@ bool SteelSheets::setSheet(uint32_t index, Sheet sheet) {
 }
 void SteelSheets::updateMarlin(float offset) {
     offset = std::clamp(offset, zOffsetMin, zOffsetMax);
-    marlin_set_var(MARLIN_VAR_Z_OFFSET, variant8_flt(offset));
-    // force update marlin vars
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET));
+    marlin_set_z_offset(offset);
 }
 bool SteelSheets::SetZOffset(float offset) {
     if (!std::isfinite(offset))

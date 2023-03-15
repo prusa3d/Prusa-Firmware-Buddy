@@ -62,11 +62,6 @@ void Monitor::Slot::progress(size_t additional_bytes) {
     owner.transferred += additional_bytes;
 }
 
-void Monitor::Slot::reset_progress() {
-    Lock lock(owner.main_mutex);
-    owner.transferred = 0;
-}
-
 void Monitor::Slot::done(Outcome outcome) {
     Lock lock(owner.history_mutex);
 

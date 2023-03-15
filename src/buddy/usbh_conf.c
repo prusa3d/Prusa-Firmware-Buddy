@@ -2,6 +2,7 @@
 
 #include "main.h"
 #include "log.h"
+#include "device/board.h"
 
 LOG_COMPONENT_DEF(USBHost, LOG_SEVERITY_INFO);
 
@@ -25,6 +26,29 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef *hcdHandle) {
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF12_OTG_HS_FS;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+#if (BOARD_IS_XBUDDY)
+        GPIO_InitStruct.Pin = GPIO_PIN_8;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_PULLUP;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
+#elif (BOARD_IS_XLBUDDY)
+        GPIO_InitStruct.Pin = GPIO_PIN_13;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_PULLUP;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+        HAL_GPIO_WritePin(GPIOF, GPIO_PIN_13, GPIO_PIN_SET);
+#else
+        GPIO_InitStruct.Pin = GPIO_PIN_5;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_PULLUP;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
+#endif
 
         /* Peripheral clock enable */
         __HAL_RCC_USB_OTG_HS_CLK_ENABLE();
@@ -98,7 +122,7 @@ USBH_StatusTypeDef USBH_LL_Init(USBH_HandleTypeDef *phost) {
         hhcd_USB_OTG_HS.Instance = USB_OTG_HS;
         hhcd_USB_OTG_HS.Init.Host_channels = 12;
         hhcd_USB_OTG_HS.Init.speed = HCD_SPEED_FULL;
-        hhcd_USB_OTG_HS.Init.dma_enable = ENABLE;
+        hhcd_USB_OTG_HS.Init.dma_enable = DISABLE;
         hhcd_USB_OTG_HS.Init.phy_itface = USB_OTG_EMBEDDED_PHY;
         hhcd_USB_OTG_HS.Init.Sof_enable = DISABLE;
         hhcd_USB_OTG_HS.Init.low_power_enable = DISABLE;
@@ -328,10 +352,22 @@ USBH_StatusTypeDef USBH_LL_DriverVBUS(USBH_HandleTypeDef *phost, uint8_t state) 
     if (phost->id == HOST_HS) {
         if (state == 0) {
             /* Drive high Charge pump */
-            /* ToDo: Add IOE driver control */
+#if (BOARD_IS_XBUDDY)
+            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
+#elif (BOARD_IS_XLBUDDY)
+            HAL_GPIO_WritePin(GPIOF, GPIO_PIN_13, GPIO_PIN_SET);
+#else
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_SET);
+#endif
         } else {
             /* Drive low Charge pump */
-            /* ToDo: Add IOE driver control */
+#if (BOARD_IS_XBUDDY)
+            HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_RESET);
+#elif (BOARD_IS_XLBUDDY)
+            HAL_GPIO_WritePin(GPIOF, GPIO_PIN_13, GPIO_PIN_RESET);
+#else
+            HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, GPIO_PIN_RESET);
+#endif
         }
     }
     HAL_Delay(200);

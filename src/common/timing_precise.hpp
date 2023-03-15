@@ -67,10 +67,13 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
             switch (x) {
             case 4:
                 nop();
+                [[fallthrough]];
             case 3:
                 nop();
+                [[fallthrough]];
             case 2:
                 nop();
+                [[fallthrough]];
             case 1:
                 nop();
             }
@@ -79,8 +82,10 @@ FORCE_INLINE static void timing_delay_cycles(uint32_t x) {
             switch (rem) {
             case 3:
                 nop();
+                [[fallthrough]];
             case 2:
                 nop();
+                [[fallthrough]];
             case 1:
                 nop();
             }

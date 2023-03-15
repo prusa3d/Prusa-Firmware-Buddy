@@ -3,7 +3,7 @@
  */
 
 #include "footer_item_live_z.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "png_resources.hpp"
 #include "i18n.h"
 #include <algorithm>

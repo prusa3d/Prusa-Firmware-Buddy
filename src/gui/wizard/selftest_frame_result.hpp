@@ -12,11 +12,13 @@
 #include "selftest_view_item_text.hpp"
 #include "selftest_result_fans.hpp"
 #include "selftest_result_axis.hpp"
+#include "selftest_result_loadcell.hpp"
 #include "selftest_result_heaters.hpp"
 #include "selftest_result_eth.hpp"
-#include "selftest_result_wifi.hpp"
+#include "selftest_result_fsensor.hpp"
 #include "scroll_bar.hpp"
 #include "window_text.hpp"
+#include "device/board.h"
 
 class SelftestFrameResult : public AddSuperWindow<SelftestFrame> {
     window_text_t msg;
@@ -29,9 +31,15 @@ class SelftestFrameResult : public AddSuperWindow<SelftestFrame> {
 
     ResultFans fans;
     ResultAxis axis;
+#if HAS_LOADCELL()
+    ResultLoadcell loadcell;
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    ResultFSensor fsensor;
+#endif
     ResultHeaters heaters;
     ResultEth eth;
-    ResultWifi wifi;
+    ResultEth wifi;
 
     static constexpr int pixels_per_knob_move = 32;
 

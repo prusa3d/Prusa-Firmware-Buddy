@@ -3,14 +3,17 @@
  */
 
 #include "screen_menu_languages.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "../lang/translator.hpp"
 #include "language_eeprom.hpp"
 #include "ScreenHandler.hpp"
+#include "DialogMoveZ.hpp"
 #include "png_resources.hpp"
 
 MI_LangBase::MI_LangBase(const char *label, const png::Resource *icon)
-    : WI_LABEL_t(_(label), icon, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_LABEL_t(_(label), icon, is_enabled_t::yes, is_hidden_t::no) {
+    setLabelFont(GuiDefaults::FontMenuSpecial);
+}
 
 void MI_LangBase::click(IWindowMenu & /*window_menu*/) {
     LangEEPROM::getInstance().setLanguage(LangCode());
@@ -81,10 +84,20 @@ uint16_t MI_TEST_LANG::LangCode() const {
 ScreenMenuLanguages::ScreenMenuLanguages()
     : ScreenMenuLanguages__(_(label)) {
     EnableLongHoldScreenAction();
+    header.SetIcon(&png::language_white_16x16);
 }
 
 ScreenMenuLanguagesNoRet::ScreenMenuLanguagesNoRet()
     : ScreenMenuLanguagesNoReturn__(_(label)) {
     window_frame_t::ClrMenuTimeoutClose();
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
+}
+
+void ScreenMenuLanguagesNoRet::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    if (event == GUI_event_t::HELD_RELEASED) {
+        DialogMoveZ::Show();
+        return;
+    }
+
+    SuperWindowEvent(sender, event, param);
 }

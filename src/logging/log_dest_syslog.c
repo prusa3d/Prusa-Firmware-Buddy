@@ -33,15 +33,15 @@ static int log_severity_to_syslog_severity(log_severity_t severity) {
 }
 
 typedef struct {
-    char *buffer;
-    int buffer_len;
+    char *data;
+    int len;
     int used;
 } buffer_output_state_t;
 
 void buffer_output(char character, void *arg) {
     buffer_output_state_t *state = (buffer_output_state_t *)arg;
-    if (state->buffer_len - state->used > 0) {
-        state->buffer[state->used] = character;
+    if (state->len - state->used > 0) {
+        state->data[state->used] = character;
         state->used += 1;
     }
 }
@@ -101,8 +101,8 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
     if (osMutexWait(syslog_buffer_lock_id, osWaitForever) != osOK)
         goto cleanup_and_return;
     buffer_output_state_t buffer_state = {
-        .buffer = buffer,
-        .buffer_len = sizeof(buffer),
+        .data = buffer,
+        .len = sizeof(buffer),
         .used = 0,
     };
     destination->log_format_fn(event, buffer_output, &buffer_state);

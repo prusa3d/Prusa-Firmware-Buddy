@@ -14,8 +14,10 @@ class IPartHandler;
 
 namespace selftest {
 static constexpr size_t axis_count = 3;
-extern SelftestSingleAxis_t staticResults[axis_count];
 
-bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis);
+/**
+ * @param separate set true to show progress for each axis separately, gives config_axis.axis to GUI
+ */
+bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool separate = false);
 
 };

@@ -48,6 +48,27 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
 
     case GUI_event_t::CLICK:
         break;
+    case GUI_event_t::TOUCH: {
+        ::event_conversion_union un;
+        un.pvoid = param;
+        if (itemRect(index).Contain(un.point))
+            break;
+
+        const int visible_slots = LazyDirViewSize;
+        const int ldv_visible_files = ldv.VisibleFilesCount();
+        const int maxi = std::min(count, std::min(visible_slots, ldv_visible_files));
+
+        for (int i = 0; i < maxi; i++) {
+            if (itemRect(i).Contain(un.point)) {
+
+                invalidateItem(index); // invalidate flag of old item
+                index = i;
+                invalidateItem(index); // invalidate flag of new item
+                selectNewItem();
+                break;
+            }
+        }
+    } break;
     default:
         SuperWindowEvent(sender, event, param);
         return;

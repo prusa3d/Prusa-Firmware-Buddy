@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "cmsis_os.h"
 
+#include "Marlin/src/feature/prusa/crash_recovery.h"
+
 namespace power_panic {
 
 enum class AcFaultState : uint8_t {
@@ -12,6 +14,10 @@ enum class AcFaultState : uint8_t {
     SaveState,
     WaitingToDie,
 };
+
+// A power panic is triggered only in the event of an AC power failure in the print state
+// ac_power_fault is set in all cases of AC power failure (it is used to disable EEPROM writing)
+extern std::atomic_bool ac_power_fault;
 
 // TODO: internal state can be hidden by improving the interface
 extern AcFaultState ac_fault_state;
@@ -52,5 +58,8 @@ void ac_fault_isr();
 extern osThreadId ac_fault_task;
 
 void ac_fault_main(void const *argument);
+
+// Current acFault pin status
+bool is_panic_signal();
 
 };

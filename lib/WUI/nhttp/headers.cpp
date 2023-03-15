@@ -22,7 +22,6 @@ namespace {
         { Status::Ok, "OK" },
         { Status::Created, "Created" },
         { Status::NoContent, "No Content" },
-        { Status::PartialContent, "Partial Content" },
         { Status::NotModified, "Not Modified" },
         { Status::BadRequest, "Bad Request" },
         { Status::Forbidden, "Forbidden" },

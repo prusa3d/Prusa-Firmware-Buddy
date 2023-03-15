@@ -74,7 +74,7 @@
 #endif
 
 #if ENABLED(PRUSA_MMU2)
-  #include "../feature/prusa_MMU2/mmu2.h"
+  #include "../feature/prusa/MMU2/mmu2mk404.h"
 #endif
 
 #if HAS_LCD_MENU
@@ -768,7 +768,7 @@ inline void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_a
  * Perform a tool-change, which may result in moving the
  * previous tool out of the way and the new tool into place.
  */
-void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
+void tool_change(const uint8_t new_tool, tool_return_t return_type/*=tool_change_return_t::to_current*/) {
 
   #if ENABLED(MAGNETIC_SWITCHING_TOOLHEAD)
     if (new_tool == active_extruder) return;
@@ -776,7 +776,7 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
 
   #if ENABLED(MIXING_EXTRUDER)
 
-    UNUSED(no_move);
+    UNUSED(return_type);
 
     if (new_tool >= MIXING_VIRTUAL_TOOLS)
       return invalid_extruder_error(new_tool);
@@ -788,18 +788,18 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
 
   #elif ENABLED(PRUSA_MMU2)
 
-    UNUSED(no_move);
+    UNUSED(return_type);
 
-    mmu2.tool_change(new_tool);
+    MMU2::mmu2.tool_change(new_tool);
 
   #elif EXTRUDERS == 0
 
     // Nothing to do
-    UNUSED(new_tool); UNUSED(no_move);
+    UNUSED(new_tool); UNUSED(return_type);
 
   #elif EXTRUDERS < 2
 
-    UNUSED(no_move);
+    UNUSED(return_type);
 
     if (new_tool) invalid_extruder_error(new_tool);
     return;
@@ -816,10 +816,12 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
     if (new_tool >= EXTRUDERS)
       return invalid_extruder_error(new_tool);
 
-    if (!no_move && !all_axes_homed()) {
-      no_move = true;
-      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("No move (not homed)");
-    }
+    #if DISABLED(PRUSA_TOOLCHANGER)
+      if ((return_type != tool_return_t::no_move) && !all_axes_homed()) {
+        return_type = tool_return_t::no_move;
+        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("No move (not homed)");
+      }
+    #endif
 
     #if HAS_LCD_MENU
       ui.return_to_status();
@@ -832,7 +834,7 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
     #endif
 
     const uint8_t old_tool = active_extruder;
-    const bool can_move_away = !no_move && !idex_full_control;
+    const bool can_move_away = (return_type != tool_return_t::no_move) && !idex_full_control;
 
     #if ENABLED(TOOLCHANGE_FILAMENT_SWAP)
       const bool should_swap = can_move_away && toolchange_settings.swap_length;
@@ -861,17 +863,27 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
       }
     #endif // TOOLCHANGE_FILAMENT_SWAP
 
-    #if HAS_LEVELING
-      // Set current position to the physical position
-      TEMPORARY_BED_LEVELING_STATE(false);
-    #endif
+    // update the destination
+    if (return_type == tool_return_t::to_current) {
+      if (all_axes_known())
+        destination = current_position;
+      else
+        return_type = tool_return_t::no_move;
+    }
 
     if (new_tool != old_tool) {
+      #if HAS_LEVELING
+        // Set current position to the physical position
+        TEMPORARY_BED_LEVELING_STATE(false);
+      #endif
 
       #if SWITCHING_NOZZLE_TWO_SERVOS
         raise_nozzle(old_tool);
       #endif
 
+      #if ENABLED(PRUSA_TOOLCHANGER)
+        prusa_toolchanger.set_feedrate(feedrate_mm_s); // Use this feedrate for the toolchange
+      #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
       REMEMBER(fr, feedrate_mm_s, XY_PROBE_FEEDRATE_MM_S);
 
       #if HAS_SOFTWARE_ENDSTOPS
@@ -886,8 +898,6 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
           update_software_endstops(Z_AXIS _EXT_ARGS);
         #endif
       #endif
-
-      destination = current_position;
 
       #if DISABLED(SWITCHING_NOZZLE)
         if (can_move_away) {
@@ -905,13 +915,11 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
         }
       #endif
 
-      #if HAS_HOTEND_OFFSET
-        xyz_pos_t diff = hotend_offset[new_tool] - hotend_offset[old_tool];
+      #if HAS_HOTEND_OFFSET && DISABLED(PRUSA_TOOLCHANGER)
+        xyz_pos_t diff = hotend_offset[new_tool] - hotend_currently_applied_offset;
         #if ENABLED(DUAL_X_CARRIAGE)
           diff.x = 0;
         #endif
-      #else
-        constexpr xyz_pos_t diff{0};
       #endif
 
       #if ENABLED(DUAL_X_CARRIAGE)
@@ -935,18 +943,29 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
         #endif
         if (!no_move) fast_line_to_current(Z_AXIS);
         move_nozzle_servo(new_tool);
+      #elif ENABLED(PRUSA_TOOLCHANGER)
+        if (prusa_toolchanger.tool_change(new_tool)) {
+          // Update destination to the new working offset
+          destination += prusa_toolchanger.last_tool_change_offset();
+        }
       #endif
 
       #if DISABLED(DUAL_X_CARRIAGE)
         active_extruder = new_tool; // Set the new active extruder
       #endif
 
-      // The newly-selected extruder XYZ is actually at...
-      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("Offset Tool XY by { ", diff.x, ", ", diff.y, ", ", diff.z, " }");
-      current_position += diff;
+      #if DISABLED(PRUSA_TOOLCHANGER)
+        // The newly-selected extruder XYZ is actually at...
+        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("Offset Tool XY by { ", diff.x, ", ", diff.y, ", ", diff.z, " }");
+        current_position += diff;
 
-      // Tell the planner the new "current position"
-      sync_plan_position();
+        #if HAS_HOTEND_OFFSET
+          hotend_currently_applied_offset += diff;
+        #endif
+
+        // Tell the planner the new "current position"
+        sync_plan_position();
+      #endif
 
       #if ENABLED(DELTA)
         //LOOP_XYZ(i) update_software_endstops(i); // or modify the constrain function
@@ -956,7 +975,7 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
       #endif
 
       // Return to position and lower again
-      if (safe_to_move && !no_move && IsRunning()) {
+      if (safe_to_move && (return_type != tool_return_t::no_move) && IsRunning()) {
 
         #if ENABLED(SINGLENOZZLE)
           #if FAN_COUNT > 0
@@ -1003,7 +1022,7 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
         #endif
 
         // Should the nozzle move back to the old position?
-        if (can_move_away) {
+        if ((return_type != tool_return_t::no_move) && all_axes_known()) {
           #if ENABLED(TOOLCHANGE_NO_RETURN)
             // Just move back down
             if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move back Z only");
@@ -1011,7 +1030,16 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
           #else
             // Move back to the original (or adjusted) position
             if (DEBUGGING(LEVELING)) DEBUG_POS("Move back", destination);
-            do_blocking_move_to(destination);
+
+            // Move Z away first, if farther
+            if (destination.z > current_position.z)
+              do_blocking_move_to_z(destination.z, planner.settings.max_feedrate_mm_s[Z_AXIS]);
+
+            // Move across the XY plane without MBL
+            xyze_pos_t orig_destination = destination;
+            destination.z = current_position.z;
+            prepare_move_to_destination();
+            destination = orig_destination;
           #endif
         }
         else if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move back skipped");
@@ -1037,7 +1065,9 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
 
     } // (new_tool != old_tool)
 
-    planner.synchronize();
+    // Finally move to destination if possible/wanted, blocking only when necessary
+    if ((return_type != tool_return_t::no_move) && all_axes_known() && destination != current_position)
+      do_blocking_move_to(destination);
 
     #if ENABLED(EXT_SOLENOID) && DISABLED(PARKING_EXTRUDER)
       disable_all_solenoids();
@@ -1063,3 +1093,9 @@ void tool_change(const uint8_t new_tool, bool no_move/*=false*/) {
 
   #endif // EXTRUDERS > 1
 }
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+  void tool_detect() {
+    active_extruder = prusa_toolchanger.detect_tool_nr();
+  }
+#endif

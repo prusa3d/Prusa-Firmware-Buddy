@@ -4,17 +4,6 @@
 #include "eeprom.h" // SelftestResult_Passed, SelftestResult_Failed
 #include "GuiDefaults.hpp"
 
-constexpr SelftestSubtestState_t SelftestStateFromEeprom(uint8_t state) {
-    switch (state) {
-    case SelftestResult_Passed:
-        return SelftestSubtestState_t::ok;
-    case SelftestResult_Failed:
-        return SelftestSubtestState_t::not_good;
-    default:
-        return SelftestSubtestState_t::undef;
-    }
-}
-
 namespace WizardDefaults {
 static constexpr size_t row_0 = 40;
 static constexpr size_t txt_h = 22;

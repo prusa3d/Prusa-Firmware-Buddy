@@ -28,14 +28,21 @@ enum class is_shadowed : bool {
     yes
 };
 
+enum class is_desaturated : bool {
+    no,
+    yes
+};
+
 struct ropfn {
     is_inverted invert : 1;
     has_swapped_bw swap_bw : 1;
     is_shadowed shadow : 1;
-    constexpr ropfn(is_inverted invert = is_inverted::no, has_swapped_bw swap_bw = has_swapped_bw::no, is_shadowed shadow = is_shadowed::no)
+    is_desaturated desatur : 1;
+    constexpr ropfn(is_inverted invert = is_inverted::no, has_swapped_bw swap_bw = has_swapped_bw::no, is_shadowed shadow = is_shadowed::no, is_desaturated desatur = is_desaturated::no)
         : invert(invert)
         , swap_bw(swap_bw)
-        , shadow(shadow) {}
+        , shadow(shadow)
+        , desatur(desatur) {}
 
     constexpr uint8_t ConvertToC() const {
         uint8_t ret = 0;
@@ -45,6 +52,9 @@ struct ropfn {
             ret |= ROPFN_SWAPBW;
         if (shadow == is_shadowed::yes)
             ret |= ROPFN_SHADOW;
+        if (desatur == is_desaturated::yes)
+            ret |= ROPFN_DESATURATE;
+
         return ret;
     }
 };
@@ -59,4 +69,5 @@ struct icon_flags {
     constexpr bool IsInverted() { return raster_flags.invert == is_inverted::yes; }
     constexpr bool HasSwappedBW() { return raster_flags.swap_bw == has_swapped_bw::yes; }
     constexpr bool IsShadowed() { return raster_flags.shadow == is_shadowed::yes; }
+    constexpr bool IsDesaturated() { return raster_flags.desatur == is_desaturated::yes; }
 };

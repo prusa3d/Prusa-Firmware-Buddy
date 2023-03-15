@@ -5,6 +5,8 @@
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
 #include "client_response_texts.hpp"
+#include "window_msgbox.hpp" // due AdjustLayout function
+#include "config_features.h"
 
 std::bitset<window_dlg_strong_warning_t::types::count_> window_dlg_strong_warning_t::shown;
 window_dlg_strong_warning_t::types window_dlg_strong_warning_t::on_top = window_dlg_strong_warning_t::types::count_;
@@ -14,12 +16,25 @@ const PhaseResponses dlg_responses = { Response::Continue, Response::_none, Resp
 static constexpr Rect16 textRectIcon = { 0, 104, 240, 120 };
 
 window_dlg_strong_warning_t::window_dlg_strong_warning_t()
-    : AddSuperWindow<IDialog>(GuiDefaults::RectScreen, IDialog::IsStrong::yes)
+    : AddSuperWindow<IDialog>()
     , header(this, _(Title))
     , footer(this)
-    , icon(this, &png::exposure_times_48x48, { 120 - 24, 48 })
-    , text(this, textRectIcon, is_multiline::yes)
-    , button(this, GuiDefaults::GetButtonRect(GetRect()) - Rect16::Top_t(64), dlg_responses, &ph_txt_continue) {
+    , icon(this, { 0, 0, 0, 0 }, &png::exposure_times_48x48)
+    , text(this, { 0, 0, 0, 0 }, is_multiline::yes)
+    , button(this, GuiDefaults::GetButtonRect(GetRect()) - (GuiDefaults::EnableDialogBigLayout ? Rect16::Top_t(0) : Rect16::Top_t(64)), dlg_responses, &ph_txt_continue) {
+    if (GuiDefaults::EnableDialogBigLayout) {
+        footer.Hide();
+        header.Hide();
+    } else {
+        icon.SetRect(Rect16(120 - 24, 48, 48, 48));
+        text.SetRect(textRectIcon);
+    }
+}
+
+void window_dlg_strong_warning_t::adjustLayout() {
+    icon.SetRect(GuiDefaults::MessageIconRect);
+    text.SetRect(GuiDefaults::MessageTextRect);
+    AdjustLayout(text, icon);
 }
 
 void window_dlg_strong_warning_t::show(types type) {
@@ -35,6 +50,7 @@ void window_dlg_strong_warning_t::show(types type) {
     else
         text.SetRect(textRectIcon);
     text.SetText(_(icon_title_text[type].text));
+    adjustLayout(); //this could cause invalidation issue
 
     if (!GetParent()) {
         window_t *parent = Screens::Access()->Get();
@@ -86,4 +102,8 @@ void window_dlg_strong_warning_t::ShowHeatersTimeout() {
 
 void window_dlg_strong_warning_t::ShowUSBFlashDisk() {
     Instance().show(USBFlashDisk);
+}
+
+void window_dlg_strong_warning_t::ShowHeatBreakThermistorFail() {
+    Instance().show(HBThermistorFail);
 }

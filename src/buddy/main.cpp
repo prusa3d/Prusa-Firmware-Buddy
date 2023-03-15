@@ -1,4 +1,6 @@
 #include "main.h"
+#include "platform.h"
+#include <device/board.h>
 #include "config_features.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
@@ -29,15 +31,29 @@
 #include "adc.hpp"
 #include "logging.h"
 #include "common/disable_interrupts.h"
+#include <option/has_puppies_bootloader.h>
 #include <option/filament_sensor.h>
 #include <option/has_gui.h>
+#include <option/has_side_leds.h>
+#include <option/has_embedded_esp32.h>
 #include "tasks.h"
 #include <appmain.hpp>
 #include "safe_state.h"
+#include <espif.h>
+
+#if BOARD_IS_XLBUDDY
+    #include "puppies/PuppyBus.hpp"
+    #include "puppies/puppy_task.hpp"
+#endif
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
 #endif
+
+#if HAS_SIDE_LEDS()
+    #include <leds/task.hpp>
+#endif
+
 #ifdef BUDDY_ENABLE_WUI
     #include "wui.h"
 #endif
@@ -47,7 +63,8 @@ LOG_COMPONENT_REF(Buddy);
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
-uint HAL_RCC_CSR = 0;
+
+unsigned HAL_RCC_CSR = 0;
 int HAL_GPIO_Initialized = 0;
 int HAL_ADC_Initialized = 0;
 int HAL_PWM_Initialized = 0;
@@ -60,13 +77,9 @@ void StartConnectTask(void const *argument);
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
+#if (BOARD_IS_BUDDY)
 uartrxbuff_t uart1rxbuff;
-static uint8_t uart1rx_data[200];
-#ifndef USE_ESP01_WITH_UART6
-uartrxbuff_t uart6rxbuff;
-uint8_t uart6rx_data[128];
-uartslave_t uart6slave;
-char uart6slave_line[32];
+static uint8_t uart1rx_data[32];
 #endif
 
 extern "C" void main_cpp(void) {
@@ -77,7 +90,9 @@ extern "C" void main_cpp(void) {
     hw_gpio_init();
     hw_dma_init();
 
+#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim1_init();
+#endif
     hw_tim14_init();
 
     SPI_INIT(flash);
@@ -99,21 +114,60 @@ extern "C" void main_cpp(void) {
     logging_init();
     components_init();
     hw_adc1_init();
+
+#if (BOARD_IS_BUDDY)
     hw_uart1_init();
+#endif
+
+#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim3_init();
+#endif
+
+#ifdef HAS_ADC3
+    hw_adc3_init();
+#endif
 
 #if HAS_GUI()
     SPI_INIT(lcd);
 #endif
 
+#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+    I2C_INIT(usbc);
+#endif
+
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    I2C_INIT(touch);
+#endif
+
+#if (BOARD_IS_XBUDDY)
+    SPI_INIT(extconn);
+    SPI_INIT(accelerometer);
+#endif
+
+#if defined(spi_tmc)
+    SPI_INIT(tmc);
+#elif defined(uart_tmc)
     UART_INIT(tmc);
+#else
+    #error Do not know how to init TMC communication channel
+#endif
 
 #ifdef BUDDY_ENABLE_WUI
     UART_INIT(esp);
 #endif
 
-#if HAS_GUI()
+#if HAS_MMU2
+    UART_INIT(mmu);
+#endif
+
+#if HAS_GUI() && !(BOARD_IS_XLBUDDY)
     hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+#endif
+
+#if BOARD_IS_XLBUDDY
+    UART_INIT(puppies);
+    SPI_INIT(led);
+    buddy::puppies::PuppyBus::Open();
 #endif
 
     hw_rtc_init();
@@ -138,31 +192,60 @@ extern "C" void main_cpp(void) {
 
     wdt_iwdg_warning_cb = iwdg_warning_cb;
 
+#if (BOARD_IS_BUDDY)
     buddy::hw::BufferedSerial::uart2.Open();
+#endif
 
-    uartrxbuff_init(&uart1rxbuff, &huart1, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
+#if (BOARD_IS_BUDDY)
+    uartrxbuff_init(&uart1rxbuff, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
+#endif
+
+#if (BOARD_IS_XBUDDY)
+    buddy::hw::BufferedSerial::uart6.Open();
+#endif
 
     filesystem_init();
 
     adcDma1.init();
 
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    adcDma3.init();
+#endif
+
     static metric_handler_t *handlers[] = {
         &metric_handler_syslog,
+        &metric_handler_info_screen,
         NULL
     };
     metric_system_init(handlers);
+
+#ifdef BUDDY_ENABLE_WUI
+    espif_init_hw();
+#endif
 
     osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
     if (option::has_gui) {
-        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024 + 256);
+        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024 + 256 + 128);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 
+#if BOARD_IS_XLBUDDY
+    buddy::puppies::start_puppy_task();
+#endif
+
 #ifdef BUDDY_ENABLE_WUI
+    #if HAS_EMBEDDED_ESP32()
+        #if BOARD_VER_EQUAL_TO(0, 5, 0)
+    // This is temporary, remove once everyone has compatible hardware.
+    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+
+    wait_for_dependecies(ESP_FLASHED);
+        #endif
+    #endif
     start_network_task();
 #endif
 
@@ -178,6 +261,11 @@ extern "C" void main_cpp(void) {
     power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
 #endif
 
+#if HAS_SIDE_LEDS()
+    osThreadDef(ledsTask, leds::run_task, osPriorityNormal, 0, 256);
+    osThreadCreate(osThread(ledsTask), NULL);
+#endif
+
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
         osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
@@ -185,11 +273,23 @@ extern "C" void main_cpp(void) {
     }
 }
 
+#ifdef USE_ST7789
 extern void st7789v_spi_tx_complete(void);
+#endif
+
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
+
+#if HAS_GUI() && defined(USE_ST7789)
     if (hspi == st7789v_config.phspi) {
         st7789v_spi_tx_complete();
     }
+#endif
+
+#if HAS_GUI() && defined(USE_ILI9488)
+    if (hspi == ili9488_config.phspi) {
+        ili9488_spi_tx_complete();
+    }
+#endif
 
     if (hspi == &SPI_HANDLE_FOR(flash)) {
         w25x_spi_transfer_complete_callback();
@@ -197,33 +297,83 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
+
+#if HAS_GUI() && defined(USE_ILI9488)
+    if (hspi == ili9488_config.phspi) {
+        ili9488_spi_rx_complete();
+    }
+#endif
+
     if (hspi == &SPI_HANDLE_FOR(flash)) {
         w25x_spi_receive_complete_callback();
     }
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
-    if (haurt == &huart2)
+#if (BOARD_IS_BUDDY)
+    if (haurt == &huart2) {
         buddy::hw::BufferedSerial::uart2.WriteFinishedISR();
+    }
+#endif
+
+#if BOARD_IS_XLBUDDY
+    if (haurt == &huart3) {
+        buddy::puppies::PuppyBus::bufferedSerial.WriteFinishedISR();
+    }
+#endif
+
+#if (BOARD_IS_XBUDDY)
+    if (haurt == &huart6) {
+        //        log_debug(Buddy, "HAL_UART6_TxCpltCallback");
+        buddy::hw::BufferedSerial::uart6.WriteFinishedISR();
+    #if HAS_MMU2
+            // instruct the RS485 converter, that we have finished sending data and from now on we are expecting a response from the MMU
+            // set to high in hwio_pindef.h
+            // buddy::hw::RS485FlowControl.write(buddy::hw::Pin::State::high);
+    #endif
+    }
+#endif
 }
 
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart == &huart2)
+
+#if (BOARD_IS_BUDDY)
+    if (huart == &huart2) {
         buddy::hw::BufferedSerial::uart2.FirstHalfReachedISR();
-#if 0
-    else if (huart == &huart6)
-        uartrxbuff_rxhalf_cb(&uart6rxbuff);
+    }
+#endif
+
+#if BOARD_IS_XLBUDDY
+    if (huart == &huart3) {
+        buddy::puppies::PuppyBus::bufferedSerial.FirstHalfReachedISR();
+    }
+#endif
+
+#if (BOARD_IS_XBUDDY)
+
+    if (huart == &huart6) {
+        buddy::hw::BufferedSerial::uart6.FirstHalfReachedISR();
+    }
 #endif
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    if (huart == &huart1)
-        uartrxbuff_rxcplt_cb(&uart1rxbuff);
-    else if (huart == &huart2)
+#if (BOARD_IS_BUDDY)
+    if (huart == &huart2) {
         buddy::hw::BufferedSerial::uart2.SecondHalfReachedISR();
-#ifndef USE_ESP01_WITH_UART6
-    else if (huart == &huart6)
-        uartrxbuff_rxcplt_cb(&uart6rxbuff);
+    }
+#endif
+
+#if (BOARD_IS_XLBUDDY)
+    if (huart == &huart3) {
+        buddy::puppies::PuppyBus::bufferedSerial.SecondHalfReachedISR();
+    }
+#endif
+
+#if (BOARD_IS_XBUDDY)
+    if (huart == &huart6) {
+        buddy::hw::BufferedSerial::uart6.SecondHalfReachedISR();
+    }
 #endif
 }
 
@@ -286,12 +436,21 @@ void system_core_error_handler() {
 }
 
 void iwdg_warning_cb(void) {
+#ifdef _DEBUG
+    ///@note Watchdog is disabled in debug but,
+    /// so this will be helpful only if it is manually enabled or ifdef commented out
+
+    // Breakpoint if debugger is connected
+    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
+        __BKPT(0);
+    }
+#endif /*_DEBUG*/
     DUMP_IWDGW_TO_CCRAM(0x10);
     wdt_iwdg_refresh();
     dump_to_xflash();
     while (1)
         ;
-    //	sys_reset();
+    //  sys_reset();
 }
 
 static uint32_t _spi_prescaler(int prescaler_num) {
@@ -327,7 +486,9 @@ void init_error_screen() {
     if constexpr (option::has_gui) {
         // init lcd spi and timer for buzzer
         SPI_INIT(lcd);
+#if !(BOARD_IS_XLBUDDY && _DEBUG)
         hw_tim2_init(); // TIM2 is used to generate buzzer PWM. Not needed without display.
+#endif
 
         init_only_littlefs();
 

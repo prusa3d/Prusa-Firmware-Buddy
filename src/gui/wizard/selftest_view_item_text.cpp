@@ -90,9 +90,13 @@ static constexpr size_t status_icon_width = WizardDefaults::status_icon_w;
  * @param multiln   multiline flag
  * @param width     width to be able to measure height (number of lines) needed for multiline text
  */
-SelfTestViewTextWithIconAndResult::SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource &icon, TestResult_t result, is_multiline multiln, Rect16::Width_t width)
+SelfTestViewTextWithIconAndResult::SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource &icon, TestResult result, is_multiline multiln, Rect16::Width_t width)
     : SelfTestViewTextWithIcon(txt, icon, multiln, width == 0 ? Rect16::Width_t(GuiDefaults::ScreenWidth) : Rect16::Width_t(width - status_icon_width))
     , icon_result(ResultToIconId(result)) {}
+
+void SelfTestViewTextWithIconAndResult::SetState(TestResult res) {
+    icon_result = ResultToIconId(res);
+}
 
 void SelfTestViewTextWithIconAndResult::Draw(Rect16::Top_t top) const {
     Rect16 rc = Rect(top);
@@ -103,11 +107,11 @@ void SelfTestViewTextWithIconAndResult::Draw(Rect16::Top_t top) const {
     render_icon_align(Rect16(WizardDefaults::status_icon_X_pos, rc.Top(), icon.w, icon.h), icon_result, GuiDefaults::ColorBack, Align_t::LeftTop());
 }
 
-const png::Resource *SelfTestViewTextWithIconAndResult::ResultToIconId(TestResult_t res) {
+const png::Resource *SelfTestViewTextWithIconAndResult::ResultToIconId(TestResult res) {
     switch (res) {
-    case TestResult_t::Passed:
+    case TestResult_Passed:
         return &png::ok_color_18x18;
-    case TestResult_t::Failed:
+    case TestResult_Failed:
         return &png::nok_color_18x18;
     default:
         break;

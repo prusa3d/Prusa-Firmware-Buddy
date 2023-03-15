@@ -4,6 +4,7 @@
 #include <string.h>
 #include <array>
 #include <cstdint>
+#include <algorithm>
 
 static const constexpr char CHAR_SPACE = ' ';
 static const constexpr char CHAR_NBSP = '\xA0'; /// Non Breaking Space

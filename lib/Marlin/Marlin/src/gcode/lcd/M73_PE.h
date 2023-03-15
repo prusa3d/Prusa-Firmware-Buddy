@@ -3,9 +3,15 @@
 
 #include <stdint.h>
 #include <optional>
-#define PROGRESS_DATA_VALIDITY_PERIOD (60*5)      // [s] ~ 5min
-//#define PROGRESS_DATA_VALIDITY_PERIOD 20
 
+#include "config.h"
+
+#if PRINTER_TYPE == PRINTER_PRUSA_XL
+    // XL needs more time for initial 5 tool preheat/cleanup and MBL
+    #define PROGRESS_DATA_VALIDITY_PERIOD (60*10) // [s] ~ 10min
+#else
+    #define PROGRESS_DATA_VALIDITY_PERIOD (60*5) // [s] ~ 5min
+#endif
 
 class ClValidityValue
 {

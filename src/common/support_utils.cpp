@@ -22,7 +22,6 @@
 static constexpr char INFO_URL_LONG_PREFIX[] = "HTTPS://PRUSA.IO";
 static constexpr char ERROR_URL_LONG_PREFIX[] = "HTTPS://PRUSA.IO";
 static constexpr char ERROR_URL_SHORT_PREFIX[] = "prusa.io";
-static constexpr char SERIAL_PREFIX[] = "CZPX";
 
 /// FIXME same code in support_utils_lib
 /// but linker cannot find it
@@ -36,21 +35,23 @@ void append_crc(char *str, const uint32_t str_size) {
 }
 
 void printerHash(char *str, size_t size, bool state_prefix) {
-    const size_t prefix_len = strlen(SERIAL_PREFIX);
-    constexpr uint8_t SNSize = prefix_len + OTP_SERIAL_NUMBER_SIZE - 1; // + fixed header, - trailing 0
-    constexpr uint8_t bufferSize = OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE + SNSize;
+    serial_nr_t serial_nr;
+    const uint8_t serial_nr_len = otp_get_serial_nr(&serial_nr);
+
+    constexpr uint8_t bufferSize = sizeof(STM32_UUID) + sizeof(otp_get_mac_address()->mac) + sizeof(serial_nr);
     uint8_t toHash[bufferSize];
     /// CPU ID
-    memcpy(toHash, (char *)OTP_STM32_UUID_ADDR, OTP_STM32_UUID_SIZE);
+    memcpy(toHash, otp_get_STM32_UUID(), sizeof(STM32_UUID));
+    //snprintf((char *)toHash, buffer, "/%08lX%08lX%08lX", *(uint32_t *)(OTP_STM32_UUID_ADDR), *(uint32_t *)(OTP_STM32_UUID_ADDR + sizeof(uint32_t)), *(uint32_t *)(OTP_STM32_UUID_ADDR + 2 * sizeof(uint32_t)));
     /// MAC
-    memcpy(&toHash[OTP_STM32_UUID_SIZE], (char *)OTP_MAC_ADDRESS_ADDR, OTP_MAC_ADDRESS_SIZE);
+    memcpy(&toHash[sizeof(STM32_UUID)], otp_get_mac_address()->mac, sizeof(otp_get_mac_address()->mac));
     /// SN
-    memcpy(&toHash[OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE], SERIAL_PREFIX, prefix_len);
-    memcpy(&toHash[OTP_STM32_UUID_SIZE + OTP_MAC_ADDRESS_SIZE + prefix_len], (char *)OTP_SERIAL_NUMBER_ADDR, SNSize - prefix_len);
+    memcpy(&toHash[sizeof(STM32_UUID) + sizeof(otp_get_mac_address()->mac)], serial_nr.txt, serial_nr_len);
 
     uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
     /// get hash;
-    mbedtls_sha256_ret(toHash, sizeof(toHash), (unsigned char *)hash, false);
+    const size_t hash_len = sizeof(STM32_UUID) + sizeof(otp_get_mac_address()->mac) + serial_nr_len;
+    mbedtls_sha256_ret(toHash, hash_len, (unsigned char *)hash, false);
 
     if (state_prefix) {
         /// shift hash by 2 bits

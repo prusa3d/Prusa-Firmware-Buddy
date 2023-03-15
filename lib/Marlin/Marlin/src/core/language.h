@@ -250,6 +250,7 @@
 #define MSG_ERR_HOTEND_TOO_COLD             "Hotend too cold"
 #define MSG_ERR_Z_HOMING_SER                "Home XY first"
 #define MSG_ERR_EEPROM_WRITE                "Error writing to EEPROM!"
+#define MSG_ERR_NOZZLE_CLEANING_FAILED      "Nozzle Cleaning Failed"
 
 #define MSG_FILAMENT_CHANGE_HEAT_LCD        "Press button to heat nozzle"
 #define MSG_FILAMENT_CHANGE_INSERT_LCD      "Insert filament and press button"

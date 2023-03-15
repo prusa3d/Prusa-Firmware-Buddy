@@ -141,7 +141,7 @@ static time_t get_posix_time(DWORD fdate, DWORD ftime) {
     memset(&tm, 0, sizeof(struct tm));
 
     tm.tm_year = FF_VALUE(fdate, FF_YEAR) + 80; // FAT year origin from 1980, tm_year origin from 1900
-    tm.tm_mon = FF_VALUE(fdate, FF_MONTH);
+    tm.tm_mon = FF_VALUE(fdate, FF_MONTH) - 1;  // FAT count months from 1, tm from 0 :-O
     tm.tm_mday = FF_VALUE(fdate, FF_DAY);
     tm.tm_hour = FF_VALUE(ftime, FF_HOUR);
     tm.tm_min = FF_VALUE(ftime, FF_MINUTE);

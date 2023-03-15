@@ -33,12 +33,23 @@ extern "C" {
 
 LOG_COMPONENT_REF(Network);
 
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+static constexpr ESPUpdate::firmware_set_t FIRMWARE_SET({ { { .address = 0x08000, .filename = "/internal/res/esp32/partition-table.bin", .size = 0 },
+    { .address = 0x01000ul, .filename = "/internal/res/esp32/bootloader.bin", .size = 0 },
+    { .address = 0x10000ul, .filename = "/internal/res/esp32/uart_wifi.bin", .size = 0 } } });
+#else
 static constexpr ESPUpdate::firmware_set_t FIRMWARE_SET({ { { .address = 0x08000ul, .filename = "/internal/res/esp/partition-table.bin", .size = 0 },
     { .address = 0x00000ul, .filename = "/internal/res/esp/bootloader.bin", .size = 0 },
     { .address = 0x10000ul, .filename = "/internal/res/esp/uart_wifi.bin", .size = 0 } } });
+#endif
 
 std::atomic<uint32_t> ESPUpdate::status = 0;
 
+/*****************************************************************
+ *
+ * TODO: BIG FAT WARNING: This needs to be merged with ESPFlash to avoid code/functionality duplication
+ *
+*/
 ESPUpdate::ESPUpdate(uintptr_t mask)
     : firmware_set(FIRMWARE_SET)
     , progress_state(esp_upload_action::Initial)
@@ -71,8 +82,14 @@ void ESPUpdate::Loop() {
         switch (ClientResponseHandler::GetResponseFromPhase(phase)) {
         case Response::Continue:
             continue_pressed = true;
+            netdev_set_enabled(NETDEV_ESP_ID, true);
             break;
         case Response::Abort:
+        case Response::NotNow:
+            progress_state = esp_upload_action::Aborted;
+            break;
+        case Response::Never:
+            netdev_set_enabled(NETDEV_ESP_ID, false);
             progress_state = esp_upload_action::Aborted;
             break;
         default:
@@ -86,7 +103,7 @@ void ESPUpdate::Loop() {
             break;
         case esp_upload_action::Initial_wait_user:
             if (continue_pressed) {
-                espif_flash_initialize();
+                espif_flash_initialize(true);
                 struct stat fs;
                 for (esp_entry *chunk = firmware_set.begin();
                      chunk != firmware_set.end(); ++chunk) {
@@ -329,7 +346,7 @@ void EspCredentials::Loop() {
             capture_timestamp();
             last_state = progress_state;
         }
-        usb_inserted = marlin_server_read_vars().media_inserted;
+        usb_inserted = marlin_server_get_media_inserted();
         wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
         continue_pressed = false;
 

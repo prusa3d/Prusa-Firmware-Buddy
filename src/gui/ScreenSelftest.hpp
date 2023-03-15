@@ -15,18 +15,29 @@
 #include "selftest_frame_esp_qr.hpp"
 #include "selftest_frame_axis.hpp"
 #include "selftest_frame_fans.hpp"
+#include "selftest_frame_fsensor.hpp"
+#include "selftest_frame_loadcell.hpp"
+#include "selftest_frame_calib_z.hpp"
 #include "selftest_frame_temp.hpp"
 #include "selftest_frame_firstlayer.hpp"
 #include "selftest_frame_firstlayer_questions.hpp"
 #include "selftest_frame_result.hpp"
 #include "selftest_frame_wizard_prologue.hpp"
 #include "selftest_frame_wizard_epilogue.hpp"
+#include "selftest_frame_kennel.hpp"
+#include "selftest_frame_tool_offsets.hpp"
 #include "selftest_invalid_state.hpp"
 #include "static_alocation_ptr.hpp"
 #include "printer_selftest.hpp" // SelftestMask_t
 
 class ScreenSelftest : public AddSuperWindow<screen_t> {
-    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, ScreenSelftestTemp, SelftestFrameFirstLayerQuestions>::type;
+    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions
+#if BOARD_IS_BUDDY
+        ,
+        SelftestFrameFirstLayer
+#endif
+        >::type;
+
     mem_space all_tests;
 
     //safer than make_static_unique_ptr, checks storage size
@@ -42,7 +53,10 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static static_unique_ptr<SelftestFrame> creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_axis(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_fans(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_fsensor(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_loadcell(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_firstlayer(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_firstlayer_questions(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_result(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
@@ -50,6 +64,8 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static static_unique_ptr<SelftestFrame> creator_esp_progress(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_esp_qr(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_epilogue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_kennel(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_tool_offsets(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
 
     fnc Get(SelftestParts part); //returns factory method

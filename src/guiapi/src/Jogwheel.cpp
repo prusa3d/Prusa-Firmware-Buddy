@@ -43,8 +43,6 @@ static const constexpr uint16_t JG_HOLD_INTERVAL = 1000; // [ms] jogwheel min ho
 static const constexpr int32_t JG_ENCODER_MAX = INT_MAX;
 static const constexpr int32_t JG_ENCODER_MIN = INT_MIN;
 
-static_assert(sizeof(Jogwheel::encoder_t) == 4, "encoder_t must be 32bit to have atomic read");
-
 // signal flags
 enum : uint8_t {
     JG_PHASE_0 = 0x01,

@@ -123,6 +123,9 @@ public:
 using ScreenMenuLanguagesNoReturn__ = ScreenMenu<EFooter::Off, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
 class ScreenMenuLanguagesNoRet : public ScreenMenuLanguagesNoReturn__ {
+protected:
+    virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
 public:
     constexpr static const char *label = N_("SELECT LANGUAGE");
     ScreenMenuLanguagesNoRet();

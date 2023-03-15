@@ -4,7 +4,7 @@
 #include "stdlib.h"
 #include "usb_host.h"
 #include "cmsis_os.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "screen_print_preview.hpp"
 #include "print_utils.hpp"
 #include "ScreenHandler.hpp"
@@ -23,8 +23,9 @@ LOG_COMPONENT_REF(GUI);
 screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<screen_t>()
     , header(this)
-    , file_browser(this, GuiDefaults::RectScreenNoHeader, marlin_vars()->media_SFN_path) {
-
+    , file_browser(this, GuiDefaults::RectScreenNoHeader, gui_media_SFN_path)
+    , please_wait_msg(GuiDefaults::DialogFrameRect, _("Loading the file")) // Non-blocking please wait screen
+{
     header.SetIcon(&png::folder_full_16x16);
     static const char sf[] = N_("PROJECTS");
     header.SetText(_(sf));
@@ -60,37 +61,27 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, wind
 }
 
 void screen_filebrowser_data_t::clearFirstVisibleSFN() {
-    FileBrowser::CopyRootTo(marlin_vars()->media_SFN_path);
+    FileBrowser::CopyRootTo(gui_media_SFN_path);
 }
 
-/**
- * @brief write to (vars->media_LFN && vars->media_SFN_path to start print
- * super unsafe code
- * it is being done without any lock,
- *  - pointer can change during write (potential to write to deleted memory)
- *  - or multiple threads can write it at the same time
- *  - even read while another thread is writing can be corrupted
- */
 void screen_filebrowser_data_t::printTheFile() {
-    marlin_vars_t *vars = marlin_vars();
-    if (vars->media_LFN && vars->media_SFN_path) {
-        int written;
-        //@@TODO:check for "/" on last place of path and if yes do not add "/"
-        written = file_browser.WriteNameToPrint(vars->media_SFN_path, FILE_PATH_BUFFER_LEN);
-        if (written < 0 || written >= (int)FILE_PATH_BUFFER_LEN) {
-            log_error(GUI, "Failed to prepare file path for print");
-            return;
-        }
-
-        // displayed text - can be a 8.3 DOS name or a LFN
-        strlcpy(vars->media_LFN, file_browser.CurrentLFN(), FILE_NAME_BUFFER_LEN);
-        // save the top browser item
-        file_browser.SaveTopSFN();
-
-        print_begin(vars->media_SFN_path, false);
-
+    int written;
+    //@@TODO:check for "/" on last place of path and if yes do not add "/"
+    written = file_browser.WriteNameToPrint(gui_media_SFN_path, FILE_PATH_BUFFER_LEN);
+    if (written < 0 || written >= (int)FILE_PATH_BUFFER_LEN) {
+        log_error(GUI, "Failed to prepare file path for print");
         return;
     }
+
+    // displayed text - can be a 8.3 DOS name or a LFN
+    strlcpy(gui_media_LFN, file_browser.CurrentLFN(), FILE_NAME_BUFFER_LEN);
+    // save the top browser item
+    file_browser.SaveTopSFN();
+
+    please_wait_msg.Draw(); // Non-blocking please wait screen
+    print_begin(gui_media_SFN_path, false);
+
+    return;
 }
 
 void screen_filebrowser_data_t::goHome() {

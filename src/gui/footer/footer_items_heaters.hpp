@@ -31,17 +31,20 @@ public:
 
     //to be able to work with int
     struct StateAndTemps {
+        bool disabled;
         HeatState state;
         uint16_t current : 12;
         uint16_t target_or_display : 12;
 
         constexpr StateAndTemps(int data = 0)
-            : state(HeatState(uint(data) & 0xff))
+            : disabled(data & 0b1)
+            , state(HeatState((uint(data) >> 1) & 0b01111111))
             , current((uint(data) >> 8) & 0x0fff)
             , target_or_display((uint(data) >> 20) & 0x0fff) {}
 
-        constexpr StateAndTemps(HeatState state, uint16_t current, uint16_t target_or_display)
-            : state(state)
+        constexpr StateAndTemps(HeatState state, uint16_t current, uint16_t target_or_display, bool disabled)
+            : disabled(disabled)
+            , state(state)
             , current(current)
             , target_or_display(target_or_display) {}
 
@@ -49,8 +52,10 @@ public:
             uint32_t ret = target_or_display;
             ret = ret << 12;
             ret |= current;
-            ret = ret << 8;
-            ret |= uint8_t(state);
+            ret = ret << 7;
+            ret |= (uint8_t(state) & 0b01111111);
+            ret = ret << 1;
+            ret |= disabled ? 1 : 0;
             return ret;
         }
     };

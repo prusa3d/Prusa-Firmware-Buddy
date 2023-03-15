@@ -75,7 +75,10 @@
     _GRIDPOS(X,  8), _GRIDPOS(X,  9), _GRIDPOS(X, 10), _GRIDPOS(X, 11),
     _GRIDPOS(X, 12), _GRIDPOS(X, 13), _GRIDPOS(X, 14), _GRIDPOS(X, 15),
     _GRIDPOS(X, 16), _GRIDPOS(X, 17), _GRIDPOS(X, 18), _GRIDPOS(X, 19),
-    _GRIDPOS(X, 20), _GRIDPOS(X, 21), _GRIDPOS(X, 22), _GRIDPOS(X, 23)
+    _GRIDPOS(X, 20), _GRIDPOS(X, 21), _GRIDPOS(X, 22), _GRIDPOS(X, 23),
+    _GRIDPOS(X, 24), _GRIDPOS(X, 25), _GRIDPOS(X, 26), _GRIDPOS(X, 27),
+    _GRIDPOS(X, 28), _GRIDPOS(X, 29), _GRIDPOS(X, 30), _GRIDPOS(X, 31),
+    _GRIDPOS(X, 32), _GRIDPOS(X, 33), _GRIDPOS(X, 34), _GRIDPOS(X, 35)
   ),
   unified_bed_leveling::_mesh_index_to_ypos[GRID_MAX_POINTS_Y] PROGMEM = ARRAY_N(GRID_MAX_POINTS_Y,
     _GRIDPOS(Y,  0), _GRIDPOS(Y,  1), _GRIDPOS(Y,  2), _GRIDPOS(Y,  3),
@@ -83,7 +86,10 @@
     _GRIDPOS(Y,  8), _GRIDPOS(Y,  9), _GRIDPOS(Y, 10), _GRIDPOS(Y, 11),
     _GRIDPOS(Y, 12), _GRIDPOS(Y, 13), _GRIDPOS(Y, 14), _GRIDPOS(Y, 15),
     _GRIDPOS(Y, 16), _GRIDPOS(Y, 17), _GRIDPOS(Y, 18), _GRIDPOS(Y, 19),
-    _GRIDPOS(Y, 20), _GRIDPOS(Y, 21), _GRIDPOS(Y, 22), _GRIDPOS(Y, 23)
+    _GRIDPOS(Y, 20), _GRIDPOS(Y, 21), _GRIDPOS(Y, 22), _GRIDPOS(Y, 23),
+    _GRIDPOS(Y, 24), _GRIDPOS(Y, 25), _GRIDPOS(Y, 26), _GRIDPOS(Y, 27),
+    _GRIDPOS(Y, 28), _GRIDPOS(Y, 29), _GRIDPOS(Y, 30), _GRIDPOS(Y, 31),
+    _GRIDPOS(Y, 32), _GRIDPOS(Y, 33), _GRIDPOS(Y, 34), _GRIDPOS(Y, 35)
   );
 
   #if HAS_LCD_MENU
@@ -125,7 +131,7 @@
     }
   }
 
-  static void serial_echo_xy(const uint8_t sp, const int16_t x, const int16_t y) {
+  static void serial_echo_xy(const uint16_t sp, const int16_t x, const int16_t y) {
     SERIAL_ECHO_SP(sp);
     SERIAL_CHAR('(');
     if (x < 100) { SERIAL_CHAR(' '); if (x < 10) SERIAL_CHAR(' '); }
@@ -159,8 +165,8 @@
       suspend_auto_report = true;
     #endif
 
-    constexpr uint8_t eachsp = 1 + 6 + 1,                           // [-3.567]
-                      twixt = eachsp * (GRID_MAX_POINTS_X) - 9 * 2; // Leading 4sp, Coordinates 9sp each
+    constexpr uint16_t eachsp = 1 + 6 + 1,                           // [-3.567]
+                       twixt = eachsp * (GRID_MAX_POINTS_X) - 9 * 2; // Leading 4sp, Coordinates 9sp each
 
     const bool human = !(map_type & 0x3), csv = map_type == 1, lcd = map_type == 2, comp = map_type & 0x4;
 

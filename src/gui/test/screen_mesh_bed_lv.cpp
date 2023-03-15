@@ -9,7 +9,7 @@
 #include "config.h"
 #include "ScreenHandler.hpp"
 #include "math.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "../../lang/i18n.h"
 
 static const char *btnMeshStrings[] = { "Run mesh", "Mesh in progress" };
@@ -93,7 +93,7 @@ void screen_mesh_bed_lv_data_t::windowEvent(EventLock /*has private ctor*/, wind
             break;
         case mesh_state_t::homed:
             mesh_state = mesh_state_t::mesh;
-            //there is no break;
+            [[fallthrough]];
         case mesh_state_t::mesh:
             marlin_event_clr(MARLIN_EVT_CommandBegin);
             marlin_event_clr(MARLIN_EVT_CommandEnd);

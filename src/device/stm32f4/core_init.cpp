@@ -3,9 +3,17 @@
 
 inline constexpr RCC_OscInitTypeDef RCC_OscInitStruct = [] {
     RCC_OscInitTypeDef rcc_OscInit {};
+#if (BOARD_IS_BUDDY)
     rcc_OscInit.OscillatorType = RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_HSE;
+#else
+    rcc_OscInit.OscillatorType = RCC_OSCILLATORTYPE_LSE | RCC_OSCILLATORTYPE_HSE;
+#endif
     rcc_OscInit.HSEState = RCC_HSE_ON;
+#if (BOARD_IS_BUDDY)
     rcc_OscInit.LSIState = RCC_LSI_ON;
+#else
+    rcc_OscInit.LSEState = RCC_LSE_ON;
+#endif
     rcc_OscInit.PLL = {
         .PLLState = RCC_PLL_ON,
         .PLLSource = RCC_PLLSOURCE_HSE,
@@ -46,7 +54,13 @@ void system_core_init(void) {
 
     RCC_PeriphCLKInitTypeDef periph_clk_init = { 0 };
     periph_clk_init.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-    periph_clk_init.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+    periph_clk_init.RTCClockSelection =
+#if (BOARD_IS_BUDDY)
+        RCC_RTCCLKSOURCE_LSI
+#else
+        RCC_RTCCLKSOURCE_LSE
+#endif
+        ;
     if (HAL_RCCEx_PeriphCLKConfig(&periph_clk_init) != HAL_OK) {
         system_core_error_handler();
     }

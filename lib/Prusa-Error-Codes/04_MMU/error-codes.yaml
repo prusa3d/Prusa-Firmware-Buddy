@@ -73,7 +73,7 @@ Errors:
   approved: false
   # FINDA_FLICKERS
 
-  code: "04108"
+- code: "04108"
   title: "LOAD TO EXTR. FAILED"
   text: "Loading to extruder failed. Inspect the filament tip shape. Refine the sensor calibration, if needed."
   action: [Retry]

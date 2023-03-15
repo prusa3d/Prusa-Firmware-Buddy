@@ -8,12 +8,14 @@
 #pragma once
 
 #include "selftest_group.hpp"
-#include "selftest_eeprom.hpp"
+#include "selftest_result_type.hpp"
 
 class ResultFans : public SelfTestGroup {
     SelfTestViewTextWithIconAndResult heatbreak;
     SelfTestViewTextWithIconAndResult print;
 
 public:
-    ResultFans(TestResult_t hb_fan, TestResult_t print_fan);
+    ResultFans();
+
+    void SetState(TestResult hb_fan, TestResult print_fan);
 };

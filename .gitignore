@@ -8,6 +8,7 @@
 /CMakeLists.txt.user
 CMakeUserPresets.json
 .ccls-cache
+.cache/clangd
 .idea
 compile_commands.json
 /.vscode/*.peripherals.state.json

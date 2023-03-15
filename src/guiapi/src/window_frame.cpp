@@ -3,6 +3,7 @@
 #include "gui_invalidate.hpp"
 #include "sound.hpp"
 #include "display.h"
+#include "marlin_client.hpp"
 
 window_frame_t::window_frame_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_timeout_t timeout, is_closed_on_serial_t serial)
     : AddSuperWindow<window_t>(parent, rect, type)
@@ -224,6 +225,29 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sende
         }
 
         break;
+    case GUI_event_t::TOUCH:
+        if (pWin) { //check if a window has focus, to not give it if it does not
+            pWin = GetFirstEnabledSubWin();
+            event_conversion_union un;
+            un.pvoid = param;
+            while (pWin) {
+                Rect16 rc = pWin->GetRect();
+                if (rc.Contain(un.point)) {
+                    break; //found it
+                }
+                pWin = GetNextEnabledSubWin(pWin);
+            }
+        }
+        if (pWin) {
+            pWin->SetFocus();
+            if (pWin->IsFocused()) {
+                // sending click if sitting of focus failed can be harmful
+                // DialogTimed resends capture events if it is not active
+                // this generates unwanted click on focused window
+                pWin->WindowEvent(this, GUI_event_t::CLICK, nullptr);
+            }
+        }
+        break;
     case GUI_event_t::ENC_DN:
         while (pWin && dif--) {
             window_t *const pPrev = GetPrevEnabledSubWin(pWin);
@@ -242,11 +266,12 @@ void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sende
     case GUI_event_t::ENC_UP:
         while (pWin && dif--) {
             window_t *const pNext = GetNextEnabledSubWin(pWin);
-            if (!pNext) {
+
+            if (pNext && pNext->IsVisible()) {
+                Sound_Play(eSOUND_TYPE::EncoderMove);
+            } else {
                 Sound_Play(eSOUND_TYPE::BlindAlert);
                 break;
-            } else {
-                Sound_Play(eSOUND_TYPE::EncoderMove);
             }
             pWin = pNext;
         }
@@ -301,6 +326,7 @@ void window_frame_t::validate(Rect16 validation_rect) {
         ptr->Validate(validation_rect);
         ptr = ptr->GetNext();
     }
+    invalid_area = Rect16();
 }
 
 bool window_frame_t::IsChildFocused() {

@@ -26,14 +26,9 @@ typedef enum {
 extern "C" {
 #endif //__cplusplus
 
-/// Do not use this anywhere - the accessor functions are here just because marlin_server.cpp needs the allocated buffer.
-/// @@TODO to be improved in the future
-extern char *media_print_filename();
-extern char *media_print_filepath();
-
 extern media_state_t media_get_state(void);
 
-/// Copies the content of sfnFilePath into marlin_vars->media_SFN_path (aka media_print_filepath)
+/// Copies the content of sfnFilePath into marlin_vars->media_SFN_path
 /// Updates marlin_vars->media_LFN as a side-effect by opening the marlin_vars->media_SFN_path and reading its LFN
 extern void media_print_start__prepare(const char *sfnFilePath);
 

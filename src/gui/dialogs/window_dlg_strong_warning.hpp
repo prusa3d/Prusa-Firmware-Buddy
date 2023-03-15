@@ -27,6 +27,7 @@ protected: // inherited by unit tests, must be protected
     static constexpr const char *HotendTempDiscrepancyMsg = N_("Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it.");
     static constexpr const char *HeaterTimeoutMsg = N_("Heating disabled due to 30 minutes of inactivity.");
     static constexpr const char *USBFlashDiskError = N_("USB drive error, the print is now paused. Reconnect the drive.");
+    static constexpr const char *HeatBreakThermistorFail = N_("Heatbreak thermistor is disconnected. Inspect the wiring.");
 
     struct icon_title_text_t {
         const png::Resource *icon;
@@ -40,6 +41,7 @@ protected: // inherited by unit tests, must be protected
         HotendTempDiscrepancy,
         HeatersTimeout,
         USBFlashDisk,
+        HBThermistorFail,
         count_
     };
 
@@ -50,6 +52,7 @@ protected: // inherited by unit tests, must be protected
         { nullptr, TitleNozzle, HotendTempDiscrepancyMsg },
         { &png::exposure_times_48x48, Title, HeaterTimeoutMsg },
         { &png::usb_error_48x48, Title, USBFlashDiskError },
+        { nullptr, Title, HeatBreakThermistorFail } //TODO need icon for heatbreak thermistor disconect
     };
 
     static std::bitset<types::count_> shown; // mask of all "active" dialogs
@@ -73,6 +76,7 @@ protected: // inherited by unit tests, must be protected
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     void show(types type);
     void setIcon(const png::Resource *icon);
+    void adjustLayout();
 
 public:
     static void ShowHotendFan();
@@ -80,4 +84,5 @@ public:
     static void ShowHotendTempDiscrepancy();
     static void ShowHeatersTimeout();
     static void ShowUSBFlashDisk();
+    static void ShowHeatBreakThermistorFail();
 };

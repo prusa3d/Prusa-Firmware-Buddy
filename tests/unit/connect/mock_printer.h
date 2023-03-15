@@ -28,7 +28,7 @@ public:
         info.appendix = false;
         strcpy(info.fingerprint, "DEADBEEF");
         info.firmware_version = "TST-1234";
-        strcpy(info.serial_number, "FAKE-1234");
+        strcpy(info.serial_number.txt, "FAKE-1234");
     }
 
     std::vector<std::string> submitted_gcodes;

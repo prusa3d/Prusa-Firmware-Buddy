@@ -4,7 +4,7 @@
 #include "display_ex.hpp"
 #include <functional>
 #include <cmath>
-#include "guiconfig.h" //USE_ST7789
+#include "guiconfig.h" //USE_ST7789 USE_ILI9488
 #include "display_math_helper.h"
 #include "font_flags.hpp"
 
@@ -46,8 +46,8 @@ void display_ex_clear(const color_t clr) {
     st7789v_clear(color_to_native(clr));
 }
 
-static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line) {
-    st7789v_draw_png_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect, local_desatur_line);
+static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
+    st7789v_draw_png_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect);
 }
 
 static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
@@ -68,6 +68,67 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 //end st7789v specific variables objects and function aliases
 /*****************************************************************************/
 #endif //USE_ST7789
+
+#ifdef USE_ILI9488
+    #include "ili9488.hpp"
+    #include "ili9488_impl.hpp"
+/*****************************************************************************/
+//ili9488 specific variables objects and function aliases
+static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS); }
+
+inline uint32_t color_to_native(uint32_t clr) {
+    return color_to_666(clr);
+}
+
+inline uint32_t color_from_native(uint32_t clr) {
+    return color_from_666(clr);
+}
+
+//TDispBuffer configuration
+static constexpr size_t FontMaxBitLen = 4;         // used in mask and buffer size
+using BuffDATA_TYPE = uint32_t;                    // type of buffer internally used in TDispBuffer
+using BuffPTR_TYPE = uint8_t;                      // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
+static constexpr size_t BuffNATIVE_PIXEL_SIZE = 3; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
+static constexpr size_t STORE_FN_PIXEL_SIZE = 3;
+static constexpr size_t buffROWS = ILI9488_BUFF_ROWS;
+
+static constexpr uint8_t *getBuff() { return ili9488_buff; }
+
+uint32_t display_ex_buffer_pixel_size() {
+    return sizeof(ili9488_buff) / BuffNATIVE_PIXEL_SIZE;
+}
+
+void display_ex_draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
+    ili9488_draw_from_buffer(pt.x, pt.y, w, h);
+}
+
+void display_ex_clear(const color_t clr) {
+    ili9488_clear(color_to_native(clr));
+}
+
+static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
+    ili9488_draw_png_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect);
+}
+
+static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
+    return ili9488_get_block(start_x, start_y, end_x, end_y);
+}
+
+static inline uint16_t get_pixel_directColor_C(uint16_t point_x, uint16_t point_y) {
+    return ili9488_get_pixel_colorFormat666(point_x, point_y);
+}
+
+static inline void set_pixel_colorFormatNative(uint16_t point_x, uint16_t point_y, uint32_t nativeclr) {
+    ili9488_set_pixel(point_x, point_y, nativeclr);
+}
+
+static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) {
+    ili9488_fill_rect_colorFormat666(rect_x, rect_y, rect_w, rect_h, nativeclr);
+}
+
+//end ili9488 specific variables objects and function aliases
+/*****************************************************************************/
+#endif //USE_ILI9488
 
 #ifdef USE_MOCK_DISPLAY
     #include "mock_display.hpp"
@@ -105,7 +166,7 @@ void display_ex_clear(const color_t clr) {
     MockDisplay::Instance().clear(clr);
 }
 
-static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line) {
+static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
     //todo
 }
 
@@ -337,6 +398,121 @@ uint8_t *display_ex_get_block(point_ui16_t start, point_ui16_t end) {
     return get_block_C(start.x, start.y, end.x, end.y);
 }
 
+// Draws rounded rect with only one pixel radius (draw_rounded_rect() process is not compatible with such a low radius)
+
+void display_ex_draw_rounded_rect_rad1(Rect16 rect, color_t back, color_t front, uint8_t flag, uint8_t loop, color_t secondary_color) {
+
+    uint16_t h_left = rect.Height();
+    for (uint8_t i = 0; i < loop; i++) { // If rectangle is higher than buffROWS (8 on ILI9488), it has to be separated
+        uint8_t buff_rows_to_draw = (h_left < buffROWS ? h_left : buffROWS);
+        // We paint whole rect with front color and then paint the round edge's complement in back color TO AVOID FLICKERING
+        store_to_buffer(Rect16(0, 0, rect.Width(), buff_rows_to_draw), rect.Width(), front);
+
+        if (i == 0) { // Draw background color over the top row (1 px on each side)
+            if (flag & MIC_TOP_LEFT) {
+                store_to_buffer(Rect16(0, 0, 1, 1), rect.Width(), flag & MIC_ALT_CL_TOP_LEFT ? secondary_color : back);
+            }
+            if (flag & MIC_TOP_RIGHT) {
+                store_to_buffer(Rect16(rect.Width() - 1, 0, 1, 1), rect.Width(), flag & MIC_ALT_CL_TOP_RIGHT ? secondary_color : back);
+            }
+        }
+        if (h_left == buff_rows_to_draw) { // Draw background color over the last row (1 px on each side)
+            if (flag & MIC_BOT_LEFT) {
+                store_to_buffer(Rect16(0, buff_rows_to_draw - 1, 1, 1), rect.Width(), flag & MIC_ALT_CL_BOT_LEFT ? secondary_color : back);
+            }
+            if (flag & MIC_BOT_RIGHT) {
+                store_to_buffer(Rect16(rect.Width() - 1, buff_rows_to_draw - 1, 1, 1), rect.Width(), flag & MIC_ALT_CL_BOT_RIGHT ? secondary_color : back);
+            }
+        }
+        display_ex_draw_from_buffer({ uint16_t(rect.Left()), uint16_t(rect.Top() + i * buffROWS) }, rect.Width(), buff_rows_to_draw);
+        h_left -= buff_rows_to_draw;
+    }
+}
+
+/// Draws rounded rectangle with parametric corner radius
+/// flag parameter determines which corners will be drawn rounded
+
+void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint8_t cor_rad, uint8_t flag, color_t secondary_color) {
+    if (cor_rad == 0) {
+        // front color is color of rext
+        // back is not used (would be drawn behind corners)
+        display_ex_fill_rect(rect, front);
+        return;
+    }
+
+    if (rect.Width() <= 0 || rect.Height() <= 0 || !DisplayClip().Contain(rect))
+        return;
+
+    uint16_t buff_rows = buffROWS;
+
+    uint16_t div = rect.Height() / buff_rows;
+    bool carry = true;
+    if (div) {
+        carry = rect.Height() % buff_rows != 0; // ILI9488 display buffer has only 8 rows, we need to separate
+    }
+    uint16_t h_left = rect.Height();
+
+    if (cor_rad == 1) {
+        // If corner radius is 1 px, we will use simpler and more effective process
+        display_ex_draw_rounded_rect_rad1(rect, back, front, flag, (carry ? div + 1 : div), secondary_color);
+        return;
+    }
+
+    for (int part = 0; part < (carry ? div + 1 : div); part++) { // seperated parts
+        // clear buffer
+        uint16_t buff_rows_to_draw = (h_left < buff_rows ? h_left : buff_rows);
+        store_to_buffer(Rect16(0, 0, rect.Width(), buff_rows_to_draw), rect.Width(), front); // We paint whole rect with front color and then paint the round edge's complement in back color TO AVOID FLICKERING
+
+        // cycle trough buffer rows
+        for (int i = 0; i < buff_rows_to_draw; i++) {
+            uint16_t curr_row = part * buff_rows + i;
+
+            // draw top edges
+            if (curr_row < cor_rad) {
+                int cnt = 0; // number of pixels that will be drawn (in one line)
+                for (int col = 0; col < cor_rad; col++) {
+                    if (col * col + (cor_rad - curr_row - 1) * (cor_rad - curr_row - 1) < cor_rad * cor_rad) {
+                        cnt++;
+                    }
+                }
+
+                if (cnt > 0) {
+                    // top right corner
+                    if (flag & MIC_TOP_RIGHT) {
+                        store_to_buffer(Rect16(rect.Width() - cor_rad + cnt, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_TOP_RIGHT ? secondary_color : back);
+                    }
+                    // top left corner
+                    if (flag & MIC_TOP_LEFT) {
+                        store_to_buffer(Rect16(0, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_TOP_LEFT ? secondary_color : back);
+                    }
+                }
+
+                // draw bottom edges
+            } else if (curr_row >= rect.Height() - cor_rad) {
+                int cnt = 0; // number of pixels that will be drawn (in one line)
+                for (int col = 0; col < cor_rad; col++) {
+                    if (col * col + (curr_row - (rect.Height() - cor_rad)) * (curr_row - (rect.Height() - cor_rad)) < cor_rad * cor_rad) {
+                        cnt++;
+                    }
+                }
+
+                if (cnt > 0) {
+                    // bottom right corner
+                    if (flag & MIC_BOT_RIGHT) {
+                        store_to_buffer(Rect16(rect.Width() - cor_rad + cnt, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_BOT_RIGHT ? secondary_color : back);
+                    }
+                    // bottom left corner
+                    if (flag & MIC_BOT_LEFT) {
+                        store_to_buffer(Rect16(0, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_BOT_LEFT ? secondary_color : back);
+                    }
+                }
+            }
+        }
+        display_ex_draw_from_buffer({ uint16_t(rect.Left()), uint16_t(rect.Top() + part * buff_rows) }, rect.Width(), buff_rows_to_draw);
+        h_left -= buff_rows;
+    }
+}
+
 /// Turns the specified pixel to the specified color
 void display_ex_set_pixel(point_ui16_t pt, color_t clr) {
     if (!DisplayClip().Contain(pt))
@@ -357,10 +533,10 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
     return get_pixel_directColor_C(pt.x, pt.y);
 }
 
-void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect, uint16_t local_desatur_line) {
+void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect) {
     FILE *file = png.Get();
     if (!file)
         return;
     fseek(file, png.offset, SEEK_SET);
-    draw_png_ex_C(file, pt.x, pt.y, back_color, rop, subrect, local_desatur_line);
+    draw_png_ex_C(file, pt.x, pt.y, back_color, rop, subrect);
 }

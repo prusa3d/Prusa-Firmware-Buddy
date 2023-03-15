@@ -13,7 +13,7 @@
 
 size_t txtroll_t::instance_counter = 0;
 
-//invalidate at phase change
+// invalidate at phase change
 invalidate_t txtroll_t::Tick() {
     invalidate_t ret = invalidate_t::no;
     switch (phase) {
@@ -69,32 +69,34 @@ void txtroll_t::Init(Rect16 rc, string_view_utf8 text, const font_t *font,
 }
 
 void txtroll_t::RenderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
-    color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment) const {
+    color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const {
     switch (phase) {
     case phase_t::uninitialized:
     case phase_t::idle:
     case phase_t::init_roll:
     case phase_t::wait_before_roll:
-        render_text_align(rc, text, font, clr_back, clr_text, padding, alignment); // normal render
+        render_text_align(rc, text, font, clr_back, clr_text, padding, alignment, fill_rect); // normal render
         break;
     default:
-        renderTextAlign(rc, text, font, clr_back, clr_text, padding, alignment); // rolling render
+        renderTextAlign(rc, text, font, clr_back, clr_text, padding, alignment, fill_rect); // rolling render
         break;
     }
 }
 
 void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font,
-    color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment) const {
+    color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const {
 
     if (text.isNULLSTR()) {
-        display::FillRect(rc, clr_back);
+        if (fill_rect)
+            display::FillRect(rc, clr_back);
         return;
     }
 
     uint8_t unused_pxls = rect.Width() % font->w;
     if (unused_pxls) {
         Rect16 rc_unused_pxls = { int16_t(rect.Left() + rect.Width() - unused_pxls), rect.Top(), unused_pxls, rect.Height() };
-        display::FillRect(rc_unused_pxls, clr_back);
+        if (fill_rect)
+            display::FillRect(rc_unused_pxls, clr_back);
     }
 
     //@@TODO make rolling native ability of render text - solves also character clipping
@@ -114,9 +116,11 @@ void txtroll_t::renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *
 
     if (!set_txt_rc.IsEmpty()) {
         Rect16 text_drawn_at(set_txt_rc.TopLeft(), render_text_singleline(set_txt_rc, text, font, clr_back, clr_text));
-        fill_between_rectangles(&rc, &text_drawn_at, clr_back);
+        if (fill_rect)
+            fill_between_rectangles(&rc, &text_drawn_at, clr_back);
     } else {
-        display::FillRect(rc, clr_back);
+        if (fill_rect)
+            display::FillRect(rc, clr_back);
     }
 }
 

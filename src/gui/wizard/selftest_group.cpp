@@ -60,6 +60,32 @@ void SelfTestGroup::Add(SelfTestViewItem &item) {
     SelfTestViewItem *last = first;
     while (last->GetNext()) {
         last = last->GetNext();
+        if (last == &item) { // Trying to add item that is already present
+            return;
+        }
     }
     last->SetNext(&item);
+}
+
+void SelfTestGroup::Remove(SelfTestViewItem &item) {
+    if (!first) {
+        return;
+    }
+
+    if (first == &item) {
+        first = item.GetNext();
+        item.SetNext(nullptr);
+        return;
+    }
+
+    SelfTestViewItem *last = first;
+    while (last) {
+        if (last == &item) {
+            last->SetNext(item.GetNext());
+            item.SetNext(nullptr);
+            return;
+        }
+
+        last = last->GetNext();
+    }
 }

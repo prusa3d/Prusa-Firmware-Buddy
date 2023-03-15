@@ -24,27 +24,59 @@
 #include "screen_menu_experimental_settings.hpp"
 #include "screen_menu_network.hpp"
 #include "screen_menu_eeprom_diagnostics.hpp"
+#include "screen_menu_fail_stat.hpp"
+#include "screen_menu_diagnostics.hpp"
+#include "screen_menu_user_interface.hpp"
+#include "screen_menu_lang_and_time.hpp"
+#include "screen_menu_hardware.hpp"
+#include "screen_menu_hardware_checks.hpp"
+#include "screen_menu_system.hpp"
+#include "screen_menu_statistics.hpp"
+#include "screen_menu_cancel_object.hpp"
+#include "screen_menu_control.hpp"
+#include "screen_touch_error.hpp"
+
 #include "gui/test/screen_menu_test.hpp"
+
+#if HAS_MMU2
+    #include "screen_menu_mmu_load_filament.hpp"
+    #include "screen_menu_mmu_eject_filament.hpp"
+    #include "screen_menu_mmu_cut_filament.hpp"
+    #include "screen_menu_mmu_load_to_nozzle.hpp"
+    #include "screen_menu_mmu_fail_stats.hpp"
+    #include "screen_menu_filament_mmu.hpp"
+#endif
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+    #include "screen_menu_tools.hpp"
+#endif
 
 #include "static_alocation_ptr.hpp"
 #include <array>
+#include "config.h"
 
 class ScreenFactory {
     ScreenFactory() = delete;
     ScreenFactory(const ScreenFactory &) = delete;
     using mem_space = std::aligned_union<0,
         ScreenMenuCalibration,
+        ScreenMenuCancelObject,
         ScreenMenuConnect,
+        ScreenMenuDiagnostics,
         ScreenMenuEeprom,
         ScreenMenuEepromDiagnostics,
         ScreenMenuEthernetSettings,
         ScreenMenuExperimentalSettings,
+        ScreenMenuFailStat,
         ScreenMenuFilament,
         ScreenMenuFooterSettings,
         ScreenMenuFooterSettingsAdv,
         ScreenMenuFwUpdate,
+        ScreenMenuHardware,
+        ScreenMenuHardwareChecks,
         ScreenMenuHwSetup,
         ScreenMenuInfo,
+        ScreenMenuLangAndTime,
         ScreenMenuLanguages,
         ScreenMenuLanguagesNoRet,
         ScreenMenuMove,
@@ -52,19 +84,33 @@ class ScreenFactory {
         ScreenMenuOdometer,
         ScreenMenuSensorInfo,
         ScreenMenuSettings,
+        ScreenMenuStatistics,
         ScreenMenuSteelSheets,
+        ScreenMenuSystem,
         ScreenMenuTemperature,
         ScreenMenuTest,
+        ScreenTouchError,
         ScreenMenuTune,
+        ScreenMenuUserInterfaceInSettings,
+        ScreenMenuUserInterfaceInTune,
         ScreenMenuVersionInfo,
         ScreenMenuWifiSettings,
-        ScreenMenuPrusaLink, screen_home_data_t, screen_splash_data_t>::type;
+        ScreenMenuPrusaLink,
+#if HAS_MMU2
+        ScreenMenuFilamentMMU,
+        ScreenMenuMMUCutFilament,
+        ScreenMenuMMUEjectFilament,
+        ScreenMenuMMUFailStats,
+        ScreenMenuMMULoadFilament,
+        ScreenMenuMMULoadToNozzle,
+#endif
+        screen_home_data_t, screen_splash_data_t>::type;
 
     static mem_space all_screens;
 
 public:
     using UniquePtr = static_unique_ptr<screen_t>;
-    using Creator = static_unique_ptr<screen_t> (*)(); //function pointer definition
+    using Creator = static_unique_ptr<screen_t> (*)(); // function pointer definition
 
     template <class T>
     static UniquePtr Screen() {

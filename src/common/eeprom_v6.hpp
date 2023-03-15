@@ -91,7 +91,7 @@ constexpr vars_body_t body_defaults = {
     0,                 // EEVAR_LAN_IP4_DNS1
     0,                 // EEVAR_LAN_IP4_DNS2
     DEFAULT_HOST_NAME, // EEVAR_LAN_HOSTNAME
-    0,                 // EEVAR_TIMEZONE
+    1,                 // EEVAR_TIMEZONE
     0xff,              // EEVAR_SOUND_MODE
 };
 

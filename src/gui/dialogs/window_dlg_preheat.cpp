@@ -7,7 +7,7 @@
 
 #include "window_dlg_preheat.hpp"
 #include "png_resources.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "stdlib.h"
 #include "i18n.h"
 #include <limits>
@@ -15,14 +15,14 @@
 /*****************************************************************************/
 //NsPreheat::I_MI_Filament
 NsPreheat::I_MI_Filament::I_MI_Filament(string_view_utf8 name, unsigned t_noz, unsigned t_bed)
-    : WI_INFO_t(name, nullptr, is_enabled_t::yes, is_hidden_t::no) {
-    char buff[sizeof("999/999 ")];
-    snprintf(buff, sizeof(buff), "%3u/%3u ", t_noz, t_bed); // extra space at the end is intended
+    : WiInfo<info_len>(name, nullptr, is_enabled_t::yes, is_hidden_t::no, ExtensionLikeLabel::yes) {
+    char buff[info_len];
+    snprintf(buff, sizeof(buff), t_bed > 100 ? "%3u/%3u " : "%3u/%2u  ", t_noz, t_bed); // extra space(s) at the end are intended .. "260/100 " or  "215/60  "
     ChangeInformation(buff);
 }
 
-void NsPreheat::I_MI_Filament::click_at(filament_t filament_index) {
-    const Response response = Filaments::Get(filament_index).response;
+void NsPreheat::I_MI_Filament::click_at(filament::Type filament) {
+    const Response response = filament::get_description(filament).response;
     marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 
@@ -44,7 +44,7 @@ NsPreheat::MI_COOLDOWN::MI_COOLDOWN()
 }
 
 void NsPreheat::MI_COOLDOWN::click(IWindowMenu &window_menu) {
-    const Response response = Filaments::Get(filament_t::NONE).response;
+    const Response response = filament::get_description(filament::Type::NONE).response;
     marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 

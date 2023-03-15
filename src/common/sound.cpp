@@ -187,11 +187,16 @@ void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool
     /// forced non-repeat sounds - can be played when another
     /// repeating sound is playing
     float tmpVol;
+
+#if BOARD_IS_BUDDY
     if (varVolume > 1) {
         tmpVol = 1.F;
     } else {
         tmpVol = f ? 0.3F : (vol * varVolume) * 0.3F;
     }
+#else
+    tmpVol = varVolume;
+#endif
     if (rep == 1) {
         singleSound(frq, dur, tmpVol);
     } else {
@@ -212,7 +217,7 @@ void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool
         }
 
         /// end previous beep
-        hwio_beeper_set_pwm(0, 0);
+        hwio_beeper_notone();
         nextRepeat();
     }
 }
@@ -229,18 +234,26 @@ void Sound::nextRepeat() {
 }
 
 float Sound::real_volume(int displayed_volume) {
+#if BOARD_IS_BUDDY
     return displayed_volume == 11 ? displayed_volume : displayed_volume / 10.F;
+#else
+    return displayed_volume == 0 ? 0 : 1.51F - displayed_volume / 2.F;
+#endif
 }
 
 uint8_t Sound::displayed_volume(float real_volume) {
+#if BOARD_IS_BUDDY
     return real_volume > 1.1F ? real_volume : real_volume * 10.F;
+#else
+    return real_volume == 0 ? 0 : -(real_volume - 1.51F) * 2.F;
+#endif
 }
 
 /// starts single sound when it's not playing another
 /// this is usable when some infinitely repeating sound is playing.
 void Sound::singleSound(float frq, int16_t dur, float vol) {
     if (duration_active <= 0) {
-        hwio_beeper_set_pwm(0, 0);
+        hwio_beeper_notone();
         hwio_beeper_tone2(frq, dur, vol);
     }
 }

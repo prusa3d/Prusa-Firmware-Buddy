@@ -1,8 +1,9 @@
+#include <cstdint>
+
 #include "catch2/catch.hpp"
 #include "gui_time.hpp"
 
-static uint32_t tick = 0;
-uint32_t ticks_ms() { return tick; }
+uint32_t tick = 0;
 
 TEST_CASE("gui time test", "[gui_time]") {
 

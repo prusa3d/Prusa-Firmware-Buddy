@@ -7,6 +7,32 @@
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 
+#ifdef USE_ILI9488
+class MI_ALWAYS : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("Always");
+
+public:
+    MI_ALWAYS();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_ON_RESTART : public WI_ICON_SWITCH_OFF_ON_t {
+    constexpr static const char *const label = N_("On Restart");
+
+public:
+    MI_ON_RESTART();
+    virtual void OnChange(size_t old_index) override;
+};
+
+using ScreenMenuFwUpdate__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_ALWAYS, MI_ON_RESTART>;
+class ScreenMenuFwUpdate : public ScreenMenuFwUpdate__ {
+
+public:
+    ScreenMenuFwUpdate();
+};
+
+#else
+
 class MI_UPDATE_LABEL : public WI_LABEL_t {
     static constexpr const char *const label = N_("FW Update");
 
@@ -50,3 +76,4 @@ public:
 protected:
     uint16_t get_help_h();
 };
+#endif

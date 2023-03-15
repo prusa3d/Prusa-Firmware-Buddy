@@ -17,7 +17,7 @@ public:
 };
 
 class MI_WIFI_INIT_t : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Setup Wi-Fi module");
+    constexpr static const char *const label = N_("Setup Wi-Fi Module");
 
 public:
     MI_WIFI_INIT_t();
@@ -27,7 +27,7 @@ protected:
 };
 
 class MI_WIFI_CREDENTIALS_t : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Load credentials");
+    constexpr static const char *const label = N_("Load Credentials");
 
 public:
     MI_WIFI_CREDENTIALS_t();
@@ -37,7 +37,7 @@ protected:
 };
 
 class MI_WIFI_CREDENTIALS_INI_FILE_t : public WI_LABEL_t {
-    constexpr static const char *const label = N_("Create credentials");
+    constexpr static const char *const label = N_("Create Credentials");
 
 public:
     MI_WIFI_CREDENTIALS_INI_FILE_t();

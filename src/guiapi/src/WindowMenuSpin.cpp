@@ -20,6 +20,17 @@ void IWiSpin::click(IWindowMenu & /*window_menu*/) {
     selected = selected == is_selected_t::yes ? is_selected_t::no : is_selected_t::yes;
 }
 
+/**
+ * @brief handle touch
+ * it behaves the same as click, but only when extension was clicked
+ */
+void IWiSpin::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
+    Rect16::Width_t width = window_menu.GetRect().Width();
+    if (width >= relative_touch_point.x && (width - extension_width) <= relative_touch_point.x) {
+        click(window_menu);
+    }
+}
+
 Rect16 IWiSpin::getSpinRect(Rect16 extension_rect) const {
     extension_rect -= getUnitRect(extension_rect).Width();
     return extension_rect;
@@ -27,11 +38,13 @@ Rect16 IWiSpin::getSpinRect(Rect16 extension_rect) const {
 
 Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     Rect16 ret = extension_rect;
-    if (has_unit) {
+    if (has_unit && !units.isNULLSTR()) {
         string_view_utf8 un = units; //local var because of const
+        char uchar = un.getUtf8Char();
+        size_t half_space_padding = (uchar == 0 || uchar == '\177') ? 0 : unit__half_space_padding;
         un.rewind();
-        Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w;
-        unit_width = unit_width + Padding.left + Padding.right;
+        Rect16::Width_t unit_width = un.computeNumUtf8CharsAndRewind() * GuiDefaults::FontMenuSpecial->w + Rect16::Width_t(half_space_padding);
+        unit_width = unit_width + GuiDefaults::MenuPaddingSpecial.left + GuiDefaults::MenuPaddingSpecial.right;
         ret = unit_width;
     } else {
         ret = Rect16::Width_t(0);
@@ -81,8 +94,8 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
         un.rewind();
         uint32_t Utf8Char = un.getUtf8Char();
         padding_ui8_t unit_padding = extension_padding;
-        unit_padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                  //177oct (127dec) todo check
-        render_text_align(unit_rc, units, Font, color_back, COLOR_SILVER, unit_padding, align); //render unit
+        unit_padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                                                  //177oct (127dec) todo check
+        render_text_align(unit_rc, units, Font, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER, unit_padding, align); //render unit
     }
 }
 

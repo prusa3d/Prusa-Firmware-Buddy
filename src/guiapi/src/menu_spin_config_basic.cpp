@@ -6,6 +6,7 @@
  * @date 2020-11-04
  */
 #include "menu_spin_config.hpp"
+#include "config_features.h"
 
 // SpinConfig_t == SpinConfig
 const SpinConfigInt SpinCnf::nozzle = SpinConfigInt(MenuVars::GetNozzleRange());
@@ -23,5 +24,17 @@ const SpinConfigInt SpinCnf::steps_per_unit = SpinConfigInt(MenuVars::steps_per_
 const SpinConfigInt SpinCnf::microstep_exponential = SpinConfigInt(MenuVars::microstep_exponential_range);
 const SpinConfigInt SpinCnf::rms_current = SpinConfigInt(MenuVars::axis_rms_currents_range);
 const SpinConfigInt SpinCnf::two_digits_uint = { { 0, 15, 1 } };
-const SpinConfigInt SpinCnf::crash_sensitivity_2209 = SpinConfigInt({ 0, 255, 1 }, spin_off_opt_t::no);
-const SpinConfigInt SpinCnf::crash_max_period_2209 = SpinConfigInt({ 0, 0xFFFFF, 1 }, spin_off_opt_t::no);
+#if AXIS_DRIVER_TYPE_X(TMC2209)
+const SpinConfigInt SpinCnf::crash_sensitivity = SpinConfigInt({ 0, 255, 1 }, spin_off_opt_t::no);
+#elif AXIS_DRIVER_TYPE_X(TMC2130)
+const SpinConfigInt SpinCnf::crash_sensitivity = SpinConfigInt({ -64, 63, 1 }, spin_off_opt_t::no);
+#else
+    #error "Unknown driver type."
+#endif
+const SpinConfigInt SpinCnf::crash_max_period = SpinConfigInt({ 0, 0xFFFFF, 1 }, spin_off_opt_t::no);
+
+//private repo
+const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50000, 2500000, 1000 });
+const SpinConfigInt SpinCnf::loadcell_range = SpinConfigInt({ 5, 30, 1 });
+const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 30, 200, 1 });
+const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, int(0xEFFF'FFFF), 1 }, spin_off_opt_t::no);

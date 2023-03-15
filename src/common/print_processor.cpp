@@ -5,8 +5,8 @@
  */
 
 #include "print_processor.hpp"
-#include "marlin_client.h"
-#include "filament_sensor_api.hpp"
+#include "marlin_client.hpp"
+#include "filament_sensors_handler.hpp"
 #include "fsm_types.hpp"
 #include "non_file_printing_counter.hpp"
 
@@ -25,13 +25,12 @@ void PrintProcessor::fsm_cb(uint32_t u32, uint16_t u16) {
     }
 }
 
-void PrintProcessor::Update() { marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FS_AUTOLOAD_ENABLED)); }
+void PrintProcessor::Update() {}
 void PrintProcessor::InjectGcode(const char *str) { marlin_gcode_push_front(str); }
 bool PrintProcessor::IsPrinting() {
     return marlin_is_printing();
 }
 bool PrintProcessor::IsAutoloadEnabled() {
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_FS_AUTOLOAD_ENABLED));
     return marlin_vars()->fs_autoload_enabled;
 }
 void PrintProcessor::Init() {

@@ -9,7 +9,7 @@
 #include "ScreenHandler.hpp"
 #include "png_resources.hpp"
 
-TestResult::TestResult()
+TestResultScreen::TestResultScreen()
     : AddSuperWindow<screen_t>()
     , header(this, string_view_utf8::MakeCPUFLASH((uint8_t *)"RESULT TEST"))
     , result(this, PhasesSelftest::Result, somethingToShow()) {

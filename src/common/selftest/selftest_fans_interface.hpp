@@ -7,12 +7,13 @@
  * @date 2021-09-24
  */
 #pragma once
+#include <span>
 #include "selftest_fan_config.hpp"
 
 class IPartHandler;
 
 namespace selftest {
 
-bool phaseFans(IPartHandler *&pPrintFan, IPartHandler *&pHeatbreakFan, const FanConfig_t &config_print_fan, const FanConfig_t &config_heatbreak_fan);
-
+inline constexpr auto NUM_SELFTEST_FANS = HOTENDS * 2;
+bool phaseFans(std::array<IPartHandler *, NUM_SELFTEST_FANS> &fans_parts, const std::span<const FanConfig_t> config_fans);
 };

@@ -10,7 +10,7 @@
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
-#include "filament_sensor_api.hpp"
+#include "filament_sensors_handler.hpp"
 
 LOG_COMPONENT_DEF(Selftest, LOG_SEVERITY_DEBUG);
 
@@ -46,14 +46,12 @@ bool ISelftest::phaseWait() {
 }
 
 void ISelftest::log_open() {
-    // TODO
-    /*
     const char *suffix = get_log_suffix();
 
     char fname[64];
 
     serial_nr_t sn;
-    uint8_t sn_length =  otp_get_serial_nr(&sn);
+    uint8_t sn_length = otp_get_serial_nr(&sn);
 
     static const char unk[] = "unknown";
     char const *serial = sn_length != 0 ? sn.txt : unk;
@@ -66,7 +64,6 @@ void ISelftest::log_open() {
         log_printf("printer serial: %s\n\n", serial);
     } else
         m_filIsValid = false;
-    */
 }
 
 void ISelftest::log_close() {

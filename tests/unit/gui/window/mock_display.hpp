@@ -84,6 +84,8 @@ public:
         pdata[1] = 0xE0;
     }
 
+    static void Reset() {}
+
     static IMockDisplay &Instance();
     static void Bind(IMockDisplay &disp);
 

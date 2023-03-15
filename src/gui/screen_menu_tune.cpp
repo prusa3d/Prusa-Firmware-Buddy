@@ -3,13 +3,11 @@
  */
 
 #include "screen_menu_tune.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 ScreenMenuTune::ScreenMenuTune()
     : ScreenMenuTune__(_(label)) {
     ScreenMenuTune__::ClrMenuTimeoutClose();
-    //TODO test if needed
-    //marlin_update_vars(MARLIN_VAR_MSK_TEMP_TARG | MARLIN_VAR_MSK(MARLIN_VAR_Z_OFFSET) | MARLIN_VAR_MSK(MARLIN_VAR_FANSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_PRNSPEED) | MARLIN_VAR_MSK(MARLIN_VAR_FLOWFACT));
 }
 
 void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

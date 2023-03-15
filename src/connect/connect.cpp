@@ -232,18 +232,18 @@ Connect::ServerResp Connect::handle_server_resp(Response resp) {
         };
     }
 
+    const string_view body(reinterpret_cast<const char *>(recv_buffer), pos);
+
     // Note: Anything of these can result in an "Error"-style command (Unknown,
     // Broken...). Nevertheless, we return a Command, which'll consider the
     // whole request-response pair a successful one. That's OK, because on the
     // lower-level it is - we consumed all the data and are allowed to reuse
     // the connection and all that.
     switch (resp.content_type) {
-    case ContentType::TextGcode: {
-        const string_view body(reinterpret_cast<const char *>(recv_buffer), pos);
+    case ContentType::TextGcode:
         return Command::gcode_command(command_id, body, move(*buff));
-    }
     case ContentType::ApplicationJson:
-        return Command::parse_json_command(command_id, reinterpret_cast<char *>(recv_buffer), pos, move(*buff));
+        return Command::parse_json_command(command_id, body, move(*buff));
     default:;
         // If it's unknown content type, then it's unknown command because we
         // have no idea what to do about it / how to even parse it.

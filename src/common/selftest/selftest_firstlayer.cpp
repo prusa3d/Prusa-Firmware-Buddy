@@ -5,7 +5,7 @@
 #include "selftest_firstlayer.hpp"
 #include "wizard_config.hpp"
 #include "i_selftest.hpp"
-#include "filament_sensor_api.hpp"
+#include "filament_sensors_handler.hpp"
 #include "filament.hpp"
 #include "../../Marlin/src/gcode/queue.h"
 #include "../../lib/Marlin/Marlin/src/gcode/lcd/M73_PE.h"
@@ -45,9 +45,10 @@ enum class filament_status {
 };
 
 static filament_status get_filament_status() {
-    uint8_t eeprom = Filaments::CurrentIndex() != filament_t::NONE ? static_cast<uint8_t>(filament_status::TypeKnown_SensorNoFilament) : uint8_t(0);          // set eeprom flag
-    uint8_t sensor = FSensors_instance().GetPrinter() != fsensor_t::NoFilament ? static_cast<uint8_t>(filament_status::TypeUnknown_SensorValid) : uint8_t(0); // set sensor flag
-    return static_cast<filament_status>(eeprom | sensor);                                                                                                     // combine flags
+    auto filament = filament::get_type_in_extruder(0);                                                                                                              // first layer calib is on single tool printers only, so should be fine
+    uint8_t eeprom = filament != filament::Type::NONE ? static_cast<uint8_t>(filament_status::TypeKnown_SensorNoFilament) : uint8_t(0);                             // set eeprom flag
+    uint8_t sensor = FSensors_instance().GetPrimaryRunout() != fsensor_t::NoFilament ? static_cast<uint8_t>(filament_status::TypeUnknown_SensorValid) : uint8_t(0); // set sensor flag
+    return static_cast<filament_status>(eeprom | sensor);                                                                                                           // combine flags
 }
 
 /**
@@ -237,7 +238,7 @@ LoopResult CSelftestPart_FirstLayer::stateInitialDistance() {
     switch (rStateMachine.GetButtonPressed()) {
     case Response::No:
         probe_offset.z = z_offset_def;
-        // don't return / break
+        [[fallthrough]];
     case Response::Yes:
         return LoopResult::RunNext;
     default:
@@ -256,13 +257,15 @@ LoopResult CSelftestPart_FirstLayer::statePrintInit() {
     set_var_sd_percent_done(0);
 
     IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_mbl);
-    const int temp_nozzle = Filaments::Current().nozzle;
-    temp_nozzle_preheat = Filaments::Current().nozzle_preheat;
-    temp_bed = Filaments::Current().heatbed;
+    auto filament = filament::get_type_in_extruder(active_extruder);
+    auto filament_desc = filament::get_description(filament);
+    const int temp_nozzle = filament_desc.nozzle;
+    temp_nozzle_preheat = filament_desc.nozzle_preheat;
+    temp_bed = filament_desc.heatbed;
 
     // nozzle temperature preheat
     thermalManager.setTargetHotend(temp_nozzle_preheat, 0);
-    marlin_server_set_temp_to_display(temp_nozzle);
+    marlin_server_set_temp_to_display(temp_nozzle, 0);
 
     // bed temperature
     thermalManager.setTargetBed(temp_bed);

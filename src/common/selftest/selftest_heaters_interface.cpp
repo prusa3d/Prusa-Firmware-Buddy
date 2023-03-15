@@ -20,12 +20,22 @@
     #include "power_check_both.hpp"
 #endif
 namespace selftest {
-static SelftestHeater_t staticResultNoz;
-static SelftestHeater_t staticResultBed;
-static bool nozzle_result_valid = false;
-static bool bed_result_valid = false;
 
+static SelftestHeaters_t resultHeaters;
+
+#if HAS_TEMP_HEATBREAK_CONTROL
+static void HeatbreakCorrelation(CSelftestPart_Heater &h) {
+    assert(h.m_config.type == heater_type_t::Nozzle);
+    const uint8_t tool_nr = h.m_config.tool_nr;
+    int32_t temp = thermalManager.degHeatbreak(tool_nr);
+    if ((temp > h.m_config.heatbreak_max_temp) || (temp < h.m_config.heatbreak_min_temp)) {
+        resultHeaters.noz[tool_nr].heatbreak_error = true;
+        h.state_machine.Fail();
+    }
+}
+#else
 static void HeatbreakCorrelation(CSelftestPart_Heater &h) {}
+#endif // HAS_TEMP_HEATBREAK_CONTROL
 
 #ifndef HAS_ADVANCED_POWER
 // Dummy class in case there is no advanced power
@@ -48,40 +58,49 @@ public:
 };
 #endif
 
-void phaseHeaters_noz_ena(IPartHandler *&pNozzle, const HeaterConfig_t &config_nozzle) {
-    if (!pNozzle) {
-        // brr unnecessary dynamic allocation .. not my code, I just moved it .. TODO rewrite
-        // clang-format off
-        auto pNoz = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_nozzle,
-            staticResultNoz,
-            &CSelftestPart_Heater::stateStart,
-            &CSelftestPart_Heater::stateTakeControlOverFans, &CSelftestPart_Heater::stateFansActivate,
-            &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
-            &CSelftestPart_Heater::stateFansDeactivate,
-            &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,
-            &CSelftestPart_Heater::stateMeasure);
-        // clang-format on
+void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const std::span<const HeaterConfig_t> config_nozzle) {
 
-        pNozzle = pNoz;
-        //add same hooks for both "states changes" and "does not change"
-        pNoz->SetStateChangedHook([](CSelftestPart_Heater &h) {
-            HeatbreakCorrelation(h);
-            PowerCheckBoth::Instance().Callback();
-        });
-        pNoz->SetStateRemainedHook([](CSelftestPart_Heater &h) {
-            HeatbreakCorrelation(h);
-            PowerCheckBoth::Instance().Callback();
-        });
-        PowerCheckBoth::Instance().BindNozzle(pNoz->GetInstance());
+    for (size_t i = 0; i < config_nozzle.size(); i++) {
+        // reset result
+        resultHeaters.noz[i] = SelftestHeater_t(0, SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
+
+        if (pNozzles[i] == nullptr) {
+            // clang-format off
+            auto pNoz = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_nozzle[i],
+                resultHeaters.noz[i],
+                &CSelftestPart_Heater::stateStart,
+                &CSelftestPart_Heater::stateTakeControlOverFans, &CSelftestPart_Heater::stateFansActivate,
+                &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
+                &CSelftestPart_Heater::stateFansDeactivate,
+                &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,
+                &CSelftestPart_Heater::stateMeasure);
+            // clang-format on
+
+            pNozzles[i] = pNoz;
+            //add same hooks for both "states changes" and "does not change"
+            pNoz->SetStateChangedHook([](CSelftestPart_Heater &h) {
+                HeatbreakCorrelation(h);
+                PowerCheckBoth::Instance().Callback();
+            });
+            pNoz->SetStateRemainedHook([](CSelftestPart_Heater &h) {
+                HeatbreakCorrelation(h);
+                PowerCheckBoth::Instance().Callback();
+            });
+            //todo: not working properly for multiple nozzles
+            PowerCheckBoth::Instance().BindNozzle(pNoz->GetInstance());
+        }
     }
 }
 
 void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed) {
-    if (!pBed) {
+    // reset result
+    resultHeaters.bed = SelftestHeater_t(0, SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
+
+    if (pBed == nullptr) {
         // brr unnecessary dynamic allocation .. not my code, I just moved it .. TODO rewrite
         // clang-format off
         auto pBed_ = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_bed,
-            staticResultBed,
+            resultHeaters.bed,
             &CSelftestPart_Heater::stateStart,
             &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
             &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,
@@ -102,57 +121,57 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
 
 // data for both subtests must be sent together
 // we could loose some events, so we must be sending entire state of both parts
-bool phaseHeaters(IPartHandler *&pNozzle, IPartHandler *&pBed) {
-    //nothing to test
-    if ((pNozzle == nullptr) && (pBed == nullptr))
-        return false;
+bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&pBed) {
+    // true when nozzle just finished test
+    bool just_finished_noz[HOTENDS] = { false };
+    for (size_t i = 0; i < HOTENDS; i++) {
+        if (pNozzles[i]) {
+            just_finished_noz[i] = !pNozzles[i]->Loop();
+        }
+    }
 
-    // show result even after one part of selftest ended
-    if (pNozzle)
-        nozzle_result_valid = true;
-    if (pBed)
-        bed_result_valid = true;
-
-    bool in_progress_noz = pNozzle && (pNozzle->Loop());
-    bool in_progress_bed = pBed && (pBed->Loop());
-    bool finished_noz = pNozzle && (!in_progress_noz);
-    bool finished_bed = pBed && (!in_progress_bed);
+    // true when just finished nozzle test
+    bool just_finished_bed = pBed && !pBed->Loop();
 
     // change dialog state
-    // in case pNozzle/pBed is nullptr its result is undefined, use default one instead
-    SelftestHeaters_t result(nozzle_result_valid ? staticResultNoz : SelftestHeater_t(), bed_result_valid ? staticResultBed : SelftestHeater_t());
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
+    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), resultHeaters);
+
+    // Continue below only if some of the tests just finished, if not, just run this again until some finishes
+    if (!just_finished_bed && !std::ranges::any_of(just_finished_noz, [](bool val) { return val; })) {
+        return true;
+    }
 
     // just finished noz or bed, it is extremely unlikely they would finish both at same time
-    SelftestResultEEprom_t eeres;
-    eeres.ui32 = variant8_get_ui32(eeprom_get_var(EEVAR_SELFTEST_RESULT));
-    if (finished_noz) {
-        eeres.nozzle = uint8_t(pNozzle->GetResult());
+    SelftestResult eeres;
+    eeprom_get_selftest_results(&eeres);
+    HOTEND_LOOP() {
+        if (just_finished_noz[e]) {
+            eeres.tools[e].nozzle = pNozzles[e]->GetResult();
+        }
     }
-    if (finished_bed) {
-        eeres.bed = uint8_t(pBed->GetResult());
+    if (just_finished_bed) {
+        eeres.bed = pBed->GetResult();
     }
-    eeprom_set_var(EEVAR_SELFTEST_RESULT, variant8_ui32(eeres.ui32));
+    eeprom_set_selftest_results(&eeres);
 
-    if (finished_noz) {
-        PowerCheckBoth::Instance().UnBindNozzle();
-        delete pNozzle;
-        pNozzle = nullptr;
+    for (size_t i = 0; i < HOTENDS; i++) {
+        if (just_finished_noz[i]) {
+            PowerCheckBoth::Instance().UnBindNozzle();
+            delete pNozzles[i];
+            pNozzles[i] = nullptr;
+        }
     }
 
-    if (finished_bed) {
+    if (just_finished_bed) {
         PowerCheckBoth::Instance().UnBindBed();
         delete pBed;
         pBed = nullptr;
     }
 
-    if (in_progress_noz || in_progress_bed) {
+    // if any is still in progress, return true to run this again, otherwise end test
+    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || pBed != nullptr) {
         return true;
     }
-
-    // must clear this flags, so result is shown properly next run
-    nozzle_result_valid = false;
-    bed_result_valid = false;
 
     return false; // finished
 }

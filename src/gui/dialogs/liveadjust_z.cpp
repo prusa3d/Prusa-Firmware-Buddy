@@ -4,7 +4,7 @@
 #include "sound.hpp"
 #include "ScreenHandler.hpp"
 #include "GuiDefaults.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "display_helper.h"
 #include "SteelSheets.hpp"
 #include "png_resources.hpp"
@@ -160,12 +160,17 @@ void WindowLiveAdjustZ_withText::windowEvent(EventLock /*has private ctor*/, win
 
 /*****************************************************************************/
 //LiveAdjustZ
-
 static constexpr const padding_ui8_t textPadding = { 10, 5, 0, 0 };
 static constexpr const Rect16 nozzleRect = Rect16((display::GetW() / 2) - 24, 120, 48, 48);
+#if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
 static constexpr const Rect16 textRect = Rect16(0, 32, display::GetW(), 4 * 30);
 static constexpr const point_i16_t adjuster_pt = point_i16_t(75, 205);
 static constexpr const point_i16_t scale_pt = point_i16_t(45, 125);
+#elif defined(USE_ILI9488)
+static constexpr const Rect16 textRect = Rect16(20, 40, display::GetW() - 40, 3 * 30);
+static constexpr const point_i16_t adjuster_pt = point_i16_t(210, 205);
+static constexpr const point_i16_t scale_pt = point_i16_t(180, 125);
+#endif
 
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)

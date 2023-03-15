@@ -10,9 +10,6 @@
 /** @brief Creates an image rendered to the screen
  *  that is redrawn by the GUI loop as needed
  *
- *  If the image is specified by an open file, the object takes
- *  ownership of it and will close it on SetIdRes,
- *  setFile or on its destruction.
  */
 class window_icon_t : public AddSuperWindow<window_aligned_t> {
     const png::Resource *pRes = nullptr;

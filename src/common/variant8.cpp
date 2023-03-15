@@ -556,11 +556,13 @@ variant8_t variant8_from_str(uint8_t type, char *str) {
             }
         }
     }
+        [[fallthrough]];
     case VARIANT8_FLT: {
         float f;
         if (sscanf(str, "%f", &f)) {
             return variant8_flt(f);
         }
+        [[fallthrough]];
     }
     case VARIANT8_CHAR: {
         char c;
@@ -568,6 +570,7 @@ variant8_t variant8_from_str(uint8_t type, char *str) {
             _variant8_t v = _VARIANT8_TYPE(VARIANT8_CHAR, 0, 0, .ch = c);
             return *pack(&v);
         }
+        [[fallthrough]];
     }
     case VARIANT8_USER: {
         uint32_t usr32;
@@ -576,6 +579,7 @@ variant8_t variant8_from_str(uint8_t type, char *str) {
         int n = sscanf(str, "%" SCNu32 " %" SCNu16 " %" SCNu16, &usr32, &usr16, &usr8);
         if (n == 3)
             return variant8_user(usr32, usr16, usr8);
+        [[fallthrough]];
     }
     case VARIANT8_PCHAR:
         return variant8_pchar(str, 0, 1);

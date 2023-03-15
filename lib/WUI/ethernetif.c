@@ -1,4 +1,6 @@
+#include <inttypes.h>
 #include "main.h"
+#include "metric.h"
 #include "wui.h"
 #include "lwip/opt.h"
 #include "lwip/timeouts.h"
@@ -40,6 +42,9 @@ __ALIGN_BEGIN uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __ALIGN_END; /* Ethe
     #pragma data_alignment = 4
 #endif
 __ALIGN_BEGIN uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __ALIGN_END; /* Ethernet Transmit Buffer */
+
+static metric_t metric_eth_out = METRIC("eth_out", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
+static metric_t metric_eth_in = METRIC("eth_in", METRIC_VALUE_CUSTOM, 1000, METRIC_HANDLER_ENABLE_ALL);
 
 /* Global Ethernet handle */
 ETH_HandleTypeDef heth;
@@ -153,7 +158,7 @@ static void low_level_init(struct netif *netif) {
     heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
     heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
     // set  mac address from OTP memory
-    heth.Init.MACAddr = (uint8_t *)OTP_MAC_ADDRESS_ADDR;
+    heth.Init.MACAddr = (uint8_t *)otp_get_mac_address()->mac;
     heth.Init.RxMode = ETH_RXINTERRUPT_MODE;
     heth.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
     heth.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
@@ -278,6 +283,11 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 
     errval = ERR_OK;
 
+    // record metrics
+    static uint32_t bytes_sent_count = 0;
+    bytes_sent_count += framelength;
+    metric_record_custom(&metric_eth_out, " sent=%" PRIu32 "i", bytes_sent_count);
+
 error:
 
     /* When Transmit Underflow flag is set, clear it and issue a Transmit Poll Demand to resume transmission */
@@ -317,6 +327,11 @@ static struct pbuf *low_level_input(struct netif *netif) {
     /* Obtain the size of the packet and put it into the "len" variable. */
     len = heth.RxFrameInfos.length;
     buffer = (uint8_t *)heth.RxFrameInfos.buffer;
+
+    // record metrics
+    static uint32_t bytes_received_count = 0;
+    bytes_received_count += len;
+    metric_record_custom(&metric_eth_in, " recv=%" PRIu32 "i", bytes_received_count);
 
     if (len > 0) {
         /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
@@ -415,7 +430,7 @@ err_t ethernetif_init(struct netif *netif) {
 
 #if LWIP_NETIF_HOSTNAME
     /* Initialize interface hostname */
-    netif->hostname = "MINI";
+    netif->hostname = "";
 #endif /* LWIP_NETIF_HOSTNAME */
 
     netif->name[0] = IFNAME0;

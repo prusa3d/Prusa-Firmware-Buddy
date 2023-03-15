@@ -23,7 +23,7 @@ class PausePrivatePhase : public IPause {
     PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
     int load_unload_shared_phase; //shared variable for UnloadPhases_t and LoadPhases_t
 
-    float nozzle_restore_temp;
+    float nozzle_restore_temp[HOTENDS];
     float bed_restore_temp;
 
 public:
@@ -101,7 +101,7 @@ protected:
 public:
     virtual void RestoreTemp() override;
     virtual bool CanSafetyTimerExpire() const override; //evaluate if client can click == safety timer can expire
-    virtual void NotifyExpiredFromSafetyTimer(float hotend_temp, float bed_temp) override;
+    virtual void NotifyExpiredFromSafetyTimer() override;
     virtual bool HasTempToRestore() const override;
 };
 

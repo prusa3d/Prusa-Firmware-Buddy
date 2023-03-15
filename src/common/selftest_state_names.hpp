@@ -56,6 +56,44 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "ESP_qr_instructions";
     case PhasesSelftest::Fans:
         return "Fans";
+    case PhasesSelftest::Loadcell_prepare:
+        return "Loadcell_prepare";
+    case PhasesSelftest::Loadcell_move_away:
+        return "Loadcell_move_away";
+    case PhasesSelftest::Loadcell_tool_select:
+        return "Loadcell_tool_select";
+    case PhasesSelftest::Loadcell_cooldown:
+        return "Loadcell_cooldown";
+    case PhasesSelftest::Loadcell_user_tap_ask_abort:
+        return "Loadcell_user_tap_ask_abort";
+    case PhasesSelftest::Loadcell_user_tap_countdown:
+        return "Loadcell_user_tap_countdown";
+    case PhasesSelftest::Loadcell_user_tap_check:
+        return "Loadcell_user_tap_check";
+    case PhasesSelftest::Loadcell_user_tap_ok:
+        return "Loadcell_user_tap_ok";
+    case PhasesSelftest::Loadcell_fail:
+        return "Loadcell_fail";
+    case PhasesSelftest::FSensor_ask_have_filament:
+        return "FSensor_ask_have_filament";
+    case PhasesSelftest::FSensor_wait_tool_pick:
+        return "FSensor_wait_tool_pick";
+    case PhasesSelftest::FSensor_ask_unload:
+        return "FSensor_ask_unload";
+    case PhasesSelftest::FSensor_unload:
+        return "FSensor_unload";
+    case PhasesSelftest::FSensor_calibrate:
+        return "FSensor_calibrate";
+    case PhasesSelftest::FSensor_insertion_check:
+        return "FSensor_insertion_check";
+    case PhasesSelftest::FSensor_insertion_ok:
+        return "FSensor_insertion_ok";
+    case PhasesSelftest::Fsensor_enforce_remove:
+        return "Fsensor_enforce_remove";
+    case PhasesSelftest::FSensor_fail:
+        return "FSensor_fail";
+    case PhasesSelftest::CalibZ:
+        return "CalibZ";
     case PhasesSelftest::Axis:
         return "Axis";
     case PhasesSelftest::Heaters:
@@ -86,6 +124,50 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "WizardEpilogue_ok";
     case PhasesSelftest::WizardEpilogue_nok:
         return "WizardEpilogue_nok";
+    case PhasesSelftest::Kennel_wait_user_park1:
+        return "KennelCalibration_wait_park1";
+    case PhasesSelftest::Kennel_wait_user_park2:
+        return "KennelCalibration_wait_park2";
+    case PhasesSelftest::Kennel_wait_user_park3:
+        return "KennelCalibration_wait_park3";
+    case PhasesSelftest::Kennel_pin_remove_prepare:
+        return "KennelCalibration_pin_remove_prepare";
+    case PhasesSelftest::Kennel_wait_user_remove_pins:
+        return "KennelCalibration_wait_user_remove_pins";
+    case PhasesSelftest::Kennel_wait_user_loosen_pillar:
+        return "KennelCalibration_wait_user_loosen_pillar";
+    case PhasesSelftest::Kennel_wait_user_lock_tool:
+        return "KennelCalibration_wait_user_lock_tool";
+    case PhasesSelftest::Kennel_wait_user_install_pins:
+        return "KennelCalibration_wait_user_install_pins";
+    case PhasesSelftest::Kennel_needs_calibration:
+        return "Kennel_needs_calibration";
+    case PhasesSelftest::Kennel_measure:
+        return "KennelCalibration_measure";
+    case PhasesSelftest::Kennel_wait_user_tighten_bottom_screw:
+        return "KennelCalibration_wait_user_tighten_bottom_screw";
+    case PhasesSelftest::Kennel_selftest_park_test:
+        return "KennelCalibration_selftest_park_test";
+    case PhasesSelftest::Kennel_wait_user_tighten_top_screw:
+        return "KennelCalibration_wait_user_tighten_pilar";
+    case PhasesSelftest::ToolOffsets_wait_calibrate:
+        return "ToolOffsets_wait_calibrate";
+    case PhasesSelftest::ToolOffsets_pin_install_prepare:
+        return "ToolOffsets_pin_install_prepare";
+    case PhasesSelftest::ToolOffsets_wait_user_install_pin:
+        return "ToolOffsets_wait_user_install_pin";
+    case PhasesSelftest::ToolOffsets_wait_user_confirm_start:
+        return "ToolOffsets_wait_user_confirm_start";
+    case PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold:
+        return "ToolOffsets_wait_user_clean_nozzle_cold";
+    case PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_hot:
+        return "ToolOffsets_wait_user_clean_nozzle_hot";
+    case PhasesSelftest::ToolOffsets_wait_user_install_sheet:
+        return "ToolOffsets_wait_user_install_sheet";
+    case PhasesSelftest::ToolOffsets_wait_final_park:
+        return "ToolOffsets_wait_final_park";
+    case PhasesSelftest::ToolOffsets_wait_user_remove_pin:
+        return "ToolOffsets_wait_user_remove_pin";
     }
     return "ERROR_not_a_selftest_state";
 }

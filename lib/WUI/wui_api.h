@@ -15,7 +15,6 @@
 #include <stdint.h>
 
 #include "netif_settings.h"
-#include "marlin_vars.h"
 
 #define PRUSA_LINK_USERNAME "maker"
 
@@ -25,8 +24,7 @@
 #define UUID_STR_LEN      32  // length of unique identifier string
 #define PRI_STATE_STR_LEN 10  // length of printer state string
 #define IP4_ADDR_STR_SIZE 16  // length of ip4 address string ((0-255).(0-255).(0-255).(0-255))
-#define MAX_INI_SIZE      200 // length of ini file string
-#define LAN_DESCP_SIZE    150 // length of lan description string with screen format
+#define MAX_INI_SIZE      320 // length of ini file string
 
 #define ETHVAR_MSK(n_id) ((uint32_t)1 << (n_id))
 #define ETHVAR_STATIC_LAN_ADDRS \
@@ -51,8 +49,10 @@ typedef enum {
     ETHVAR_LAN_ADDR_IP4, // ip4_addr_t, lan.addr_ip4
     ETHVAR_LAN_MSK_IP4,  // ip4_addr_t, lan.msk_ip4
     ETHVAR_LAN_GW_IP4,   // ip4_addr_t, lan.gw_ip4
+    ETHVAR_TIMEZONE,     // int8_t, timezone
     ETHVAR_DNS1_IP4,     // ip_addr_t, dns1_ip4
     ETHVAR_DNS2_IP4,     // ip_addr_t, dns2_ip4
+    ETHVAR_MAC_ADDRESS,  // is not included in ethconfig (used in stringifying for screen)
 
     APVAR_SSID, // char[32 + 1], ap_entry_t::ssid
     APVAR_PASS, // char[64 + 1], ap_entry_t::pass
@@ -60,17 +60,6 @@ typedef enum {
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];
 typedef char ini_file_str_t[MAX_INI_SIZE];
-typedef char lan_descp_str_t[LAN_DESCP_SIZE];
-
-typedef struct {
-    uint8_t printer_type;                  // Printer type (defined in CMakeLists.txt)
-    uint8_t printer_version;               // Printer varsion (Stored in FLASH)
-    char firmware_version[FW_VER_STR_LEN]; // Full project's version (4.0.3-BETA+1035.PR111.B4)
-    mac_address_t mac_address;             // MAC address string "MM:MM:MM:SS:SS:SS"
-    char serial_number[SER_NUM_STR_LEN];   // serial number without first four characters "CZPX" (total 15 chars, zero terminated)
-    char mcu_uuid[UUID_STR_LEN];           // Unique identifier (96bits) into string format "%08lx-%08lx-%08lx"
-    char printer_state[PRI_STATE_STR_LEN]; // state of the printer, have to be set in wui
-} printer_info_t;
 
 /*!*************************************************************************************************
 * \brief saves the network parameters to non-volatile memory
@@ -150,14 +139,8 @@ const char *wui_get_password();
 ///
 /// @param[out] buffer password buffer
 /// @param[in] length Size of the buffer
-/// @return Return a password
-const char *wui_generate_password(char *, uint32_t);
+void wui_generate_password(char *, uint32_t);
 
-////////////////////////////////////////////////////////////////////////////
-/// @brief Generate authorization key for PrusaLink
-///
-/// @param[out] password password buffer
-/// @param[in] length Size of the buffer
 void wui_store_password(char *, uint32_t);
 
 #ifdef __cplusplus
@@ -184,6 +167,17 @@ StartPrintResult wui_start_print(char *filename, bool autostart_if_able);
 ///   the print was not possible to start.
 bool wui_uploaded_gcode(char *path, bool start_print);
 
+////////////////////////////////////////////////////////////////////////////
+/// @brief Return the number of gcodes uploaded since boot.
+///
+/// May be used to check if a file was uploaded since last check.
+/// Guaranteed to start at 0, but may wrap around (unlikely).
+///
+/// @warning Gcodes that were immediately printed after upload do not count.
+///
+/// Thread safe.
+uint32_t wui_gcodes_uploaded();
+
 /// Number of gcode modifications - uploaded, deleted, ...
 ///
 /// Similar purpose as with wui_gcodes_uploaded (to watch for something
@@ -198,6 +192,11 @@ void wui_gcode_modified();
 /// @brief initialize marlin client for tcpip thread
 ///
 void wui_marlin_client_init(void);
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief get system time
+///
+time_t sntp_get_system_time(void);
 
 bool wui_is_file_being_printed(const char *filename);
 

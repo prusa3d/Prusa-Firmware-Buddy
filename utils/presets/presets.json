@@ -12,6 +12,174 @@
                 "PRESET_COMPILE_OPTIONS": "",
                 "DEVELOPMENT_ITEMS_ENABLED": true
             }
+        },
+        {
+            "name": "mk404-xBuddy027c-400step-planetary",
+            "description": "Original Prusa MK404 with xBuddy 0.2.7c, 400-step motors and planetary gearbox",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "MK404",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.2.7",
+                "PRESET_COMPILE_OPTIONS": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step",
+            "description": "Original Prusa MK404 with xBuddy 0.3.4 and 400-step motors",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "MK404",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.3.4",
+                "PRESET_COMPILE_OPTIONS": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DLOVEBOARD_HAS_EEPROM"
+            }
+        },
+        {
+            "name": "mk404-xBuddy034-400step-planetary",
+            "description": "Original Prusa MK404 with xBuddy 0.3.4, 400-step motors and planetary gearbox",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "MK404",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.3.4",
+                "PRESET_COMPILE_OPTIONS": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
+            }
+        },
+        {
+            "name": "iX-xBuddy027c-200step",
+            "description": "Original Prusa iX with xBuddy 0.2.7c and 200-step motors",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "IXL",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.2.7",
+                "PRESET_COMPILE_OPTIONS": "-DLOVEBOARD_HAS_NTC"
+            }
+        },
+        {
+            "name": "xl",
+            "description": "Original Prusa XL",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.5.0",
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": "",
+                "IS_KNOBLET":"FALSE"
+            }
+        },
+        {
+            "name": "xl-knoblet",
+            "description": "Knoblet of Original Prusa XL",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.5.0",
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": "",
+                "IS_KNOBLET":"TRUE"
+            }
+        },
+        {
+            "name": "xl-knoblet-xbuddy04",
+            "description": "Knoblet of Original Prusa XL",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.4.0",
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": "",
+                "IS_KNOBLET":"TRUE"
+            }
+        },
+        {
+            "name": "xl-xbuddy04",
+            "description": "Original Prusa XL with XLBuddy 04",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.4.0",
+                "DWARF_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-dwarf"
+                },
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-modularbed"
+                },
+                "PRESET_COMPILE_OPTIONS": "",
+                "IS_KNOBLET":"FALSE"
+            }
+        },
+        {
+            "name": "xl-dwarf",
+            "description": "Original Prusa XL's Dwarf (the extruder puppy)",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "DWARF",
+                "BOARD_VERSION": "0.6.0",
+                "PRESET_COMPILE_OPTIONS": ""
+            }
+        },
+        {
+            "name": "xl-dwarf-04",
+            "description": "Original Prusa XL's Dwarf v04(the extruder puppy)",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "DWARF",
+                "BOARD_VERSION": "0.4.0",
+                "PRESET_COMPILE_OPTIONS": ""
+            }
+        },
+        {
+            "name": "xl-modularbed",
+            "description": "Original Prusa XL's Modular Bed",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "MODULARBED",
+                "BOARD_VERSION": "0.7.0",
+                "PRESET_COMPILE_OPTIONS": ""
+            }
+        },
+        {
+            "name": "xl-modularbed-06",
+            "description": "Original Prusa XL's Modular Bed v06",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "XL",
+                "BOARD": "MODULARBED",
+                "BOARD_VERSION": "0.6.0",
+                "PRESET_COMPILE_OPTIONS": ""
+            }
         }
     ]
 }

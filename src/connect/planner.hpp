@@ -137,30 +137,11 @@ private:
     Tracked file_changes;
     // Tracking of ongoing transfers.
     std::optional<transfers::TransferId> observed_transfer;
-
-    // We are able to resume _encrypted_ downloads.
-    //
-    // In theory, we could also try to recover plain-text ones. But they need a
-    // lot more info for that to work, and we won't be using them in practice
-    // (likely someone may be using them on a private copy of Connect, but that
-    // will likely happen on a local network that should be reliable, not on
-    // the wide broken internet).
-    //
-    // In case of a plain-text download, we simply set the number of allowed
-    // retries to 0 to "disable" them.
-    struct ResumableDownload {
-        transfers::Download download;
-        uint32_t orig_size = 0;
-        std::optional<uint16_t> port;
-        transfers::Decryptor::Block orig_iv;
-        bool need_retry = false;
-        uint8_t allowed_retries = 0;
-    };
     // A download running in background.
     //
     // As we may have a background _task_ and a download at the same time, we
     // need to have variables for both.
-    std::optional<ResumableDownload> download;
+    std::optional<transfers::Download> download;
 
     std::optional<CommandId> transfer_start_cmd = std::nullopt;
     std::optional<CommandId> print_start_cmd = std::nullopt;
@@ -197,8 +178,7 @@ public:
 
     // Only for Success/Failure.
     void background_done(BackgroundResult result);
-    void download_done(transfers::DownloadStep result);
-    void recover_download();
+    void download_done();
 
     // ID of a command being executed in the background, if any.
     std::optional<CommandId> background_command_id() const;

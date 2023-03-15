@@ -97,8 +97,21 @@
   void est_init();
 #endif
 
+enum class tool_return_t {
+  to_current, // return to the current position
+  no_move, // don't perform any extra movement (such as raising/return) besides toolchanging
+  to_destination, // return to destination
+};
+
 /**
- * Perform a tool-change, which may result in moving the
- * previous tool out of the way and the new tool into place.
+ * Perform a tool-change which may result in moving the previous tool out of the way and the new
+ * tool into place. Unless no_move is set, return to destination.
  */
-void tool_change(const uint8_t tmp_extruder, bool no_move=false);
+void tool_change(const uint8_t tmp_extruder, tool_return_t return_type=tool_return_t::to_current);
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+  /**
+  * Performs tool detect, auto detect active tool
+  */
+  void tool_detect();
+#endif

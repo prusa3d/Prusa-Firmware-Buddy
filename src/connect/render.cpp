@@ -233,7 +233,7 @@ namespace {
             if (event.type == EventType::Info) {
                 JSON_FIELD_OBJ("data");
                     JSON_FIELD_STR("firmware", info.firmware_version) JSON_COMMA;
-                    JSON_FIELD_STR("sn", info.serial_number) JSON_COMMA;
+                    JSON_FIELD_STR("sn", info.serial_number.txt) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
                     if (strlen(creds.pl_password) > 0) {
@@ -297,6 +297,7 @@ namespace {
                     // * In theory, it can be EmptyRenderer (though that should not happen in practice?)
                     // * In case of the PreviewRenderer, it could be that it is
                     //   not a gcode at all or doesn't contain the preview.
+
                     //
                     // For that reason, the renderer is responsible for
                     // rendering a trailing comma if it outputs anything at
@@ -648,12 +649,6 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
             JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
             JSON_FIELD_STR("display_name", display_name(state.ent)) JSON_COMMA;
             JSON_FIELD_INT("size", child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
-#ifdef UNITTESTS
-            // While "our" dirent contains time, the "real" one doesn't, so disable for unit tests
-            JSON_FIELD_INT("m_timestamp", 0) JSON_COMMA;
-#else
-            JSON_FIELD_INT("m_timestamp", state.ent->time) JSON_COMMA;
-#endif
             // We assume USB is not read only for us.
             JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
             JSON_FIELD_STR("type", file_type(state.ent));

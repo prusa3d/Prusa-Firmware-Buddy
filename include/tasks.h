@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <FreeRTOS.h>
 #include <event_groups.h>
+#include "printers.h"
 
 /**
  * Code in this module handles task/component dependencies
@@ -14,7 +15,12 @@ typedef uint8_t dependency_t;
 
 /// Definition fo different dependencies
 enum class ComponentDependencies {
+    PUPPIES_READY_IDX = 1,
+    RESOURCES_READY_IDX = 2,
+    DEFAULT_TASK_READY_IDX = 3,
     USBSERIAL_READY = 4,
+    ESP_FLASHED = 5,
+    // To be continued...
 };
 
 /// Allow shifting
@@ -22,17 +28,34 @@ constexpr dependency_t operator<<(const dependency_t &a, const ComponentDependen
     return a << static_cast<dependency_t>(b);
 };
 
+/// Define dependecy masks
+static constexpr dependency_t PUPPIES_READY = 1 << ComponentDependencies::PUPPIES_READY_IDX;
+static constexpr dependency_t RESOURCES_READY = 1 << ComponentDependencies::RESOURCES_READY_IDX;
+static constexpr dependency_t DEFAULT_TASK_READY = 1 << ComponentDependencies::DEFAULT_TASK_READY_IDX;
 static constexpr dependency_t USBSERIAL_READY = 1 << ComponentDependencies::USBSERIAL_READY;
+static constexpr dependency_t ESP_FLASHED = 1 << ComponentDependencies::ESP_FLASHED;
+
 /// Definitions of dependecies for different tasks/components
 static constexpr dependency_t DEFAULT_TASK_DEPS =
-
+#if PRINTER_TYPE == PRINTER_PRUSA_XL
+    PUPPIES_READY |
+#endif
     USBSERIAL_READY | 0;
+static constexpr dependency_t PUPPY_TASK_START_DEPS = RESOURCES_READY;
+static constexpr dependency_t PUPPY_TASK_RUN_DEPS = DEFAULT_TASK_READY;
 
-// Needed for inline mthods being embedded to different compilation modules
+// Needed for inline methods being embedded to different compilation modules
 extern EventGroupHandle_t components_ready;
 
 /// Initialize component dependecy resolution
 extern void components_init();
+
+/**
+ * Return true if dependencies are fulfilled already
+ */
+inline bool check_dependencies(const dependency_t dependencies) {
+    return xEventGroupGetBits(components_ready) & dependencies;
+}
 
 /**
  * Wait for dependecies of the task/component

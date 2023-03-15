@@ -21,7 +21,7 @@
  *
  */
 
-#if defined(STM32GENERIC) && (defined(STM32F4) || defined(STM32F7))
+#if defined(STM32GENERIC) && (defined(STM32F4) || defined(STM32F7) || defined(STM32G0))
 
 #include "HAL.h"
 
@@ -49,7 +49,9 @@ uint8_t HAL_get_reset_source() {
   if (HAL_RCC_CSR & RCC_CSR_IWDGRSTF) return RST_WATCHDOG;
   if (HAL_RCC_CSR & RCC_CSR_SFTRSTF)  return RST_SOFTWARE;
   if (HAL_RCC_CSR & RCC_CSR_PINRSTF)  return RST_EXTERNAL;
+#if !defined(STM32G0)
   if (HAL_RCC_CSR & RCC_CSR_PORRSTF)  return RST_POWER_ON;
+#endif
   return 0;
 }
 

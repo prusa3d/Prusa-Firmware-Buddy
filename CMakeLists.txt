@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
+include(ExternalProject)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
@@ -10,6 +11,9 @@ project(
   LANGUAGES C CXX ASM
   VERSION ${PROJECT_VERSION}
   )
+
+# Enable initialization of subprojects without their submodules
+cmake_policy(SET CMP0097 NEW)
 
 if(NOT CMAKE_CROSSCOMPILING)
   #
@@ -75,11 +79,23 @@ endif()
 
 add_library(BuddyHeaders INTERFACE)
 target_include_directories(
-  BuddyHeaders INTERFACE include include/usb_host include/usb_device include/marlin
-                         include/freertos ${OPTIONS_INCLUDE_DIR}
+  BuddyHeaders
+  INTERFACE include
+            include/usb_host
+            include/usb_device
+            include/marlin
+            include/freertos
+            src/hw
+            src/common
+            ${OPTIONS_INCLUDE_DIR}
   )
 
-if(MCU MATCHES "STM32F4")
+if(MCU MATCHES "STM32G0")
+  target_include_directories(
+    BuddyHeaders BEFORE INTERFACE include/stm32g0_hal include/device/stm32g0
+    )
+  target_link_libraries(BuddyHeaders INTERFACE STM32G0::HAL)
+elseif(MCU MATCHES "STM32F4")
   target_include_directories(
     BuddyHeaders BEFORE INTERFACE include/stm32f4_hal include/device/stm32f4
     )
@@ -88,26 +104,63 @@ endif()
 
 if(BOARD MATCHES "BUDDY")
   target_include_directories(BuddyHeaders INTERFACE include/buddy)
+elseif(BOARD MATCHES "DWARF")
+  target_include_directories(BuddyHeaders INTERFACE include/dwarf)
+elseif(BOARD MATCHES "MODULARBED")
+  target_include_directories(BuddyHeaders INTERFACE include/modularbed)
 endif()
 
 target_include_directories(BuddyHeaders INTERFACE include)
 
 target_link_libraries(BuddyHeaders INTERFACE FreeRTOS::FreeRTOS)
 
-if(PRINTER STREQUAL "MINI")
+# Define printer type and version
+set(PRINTER_VERSION "1") # default version
+
+# The PRINTER_TYPE is (besides being used in the code) being stored in the .bbf and checked by the
+# bootloader (which contains the same "enum" as below). Preferably do not use it on an interface
+# though, there should be a better number to use there, e.g. the PRINTER_CODE (USB PID)
+if(PRINTER STREQUAL "MK404")
+  set(PRINTER_TYPE "1")
+  set(PRINTER_VERSION "4")
+  set(PRINTER_CODE "13")
+elseif(PRINTER STREQUAL "MINI")
   set(PRINTER_TYPE "2")
   set(PRINTER_CODE "12")
+elseif(PRINTER STREQUAL "XL")
+  set(PRINTER_TYPE "3")
+  set(PRINTER_CODE "17")
+elseif(PRINTER STREQUAL "IXL")
+  set(PRINTER_TYPE "4")
+  set(PRINTER_CODE "16")
 else()
   message(FATAL_ERROR "Unknown printer \"${PRINTER}\".")
 endif()
 
-set(HAS_MARLIN TRUE)
+if(${BOARD} STREQUAL "DWARF" OR ${BOARD} STREQUAL "MODULARBED")
+  set(HAS_MARLIN FALSE)
+else()
+  set(HAS_MARLIN TRUE)
+endif()
+
+if(BOARD STREQUAL "BUDDY" OR BOARD STREQUAL "XBUDDY")
+  set(MARLIN_BOARD_NUM 1823)
+elseif(BOARD STREQUAL "XLBUDDY")
+  set(MARLIN_BOARD_NUM 1824)
+elseif(BOARD MATCHES "DWARF")
+  set(MARLIN_BOARD_NUM 1825)
+elseif(BOARD MATCHES "MODULARBED")
+  set(MARLIN_BOARD_NUM -1)
+else()
+  message(FATAL_ERROR "Unknown board")
+endif()
 
 target_compile_definitions(
   BuddyHeaders
-  INTERFACE MOTHERBOARD=1823
+  INTERFACE MOTHERBOARD=${MARLIN_BOARD_NUM}
             PRINTER_MODEL="${PRINTER}"
             PRINTER_TYPE=${PRINTER_TYPE}
+            PRINTER_VERSION=${PRINTER_VERSION}
             PRINTER_CODE=${PRINTER_CODE}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
@@ -126,6 +179,8 @@ endif()
 
 if(MCU MATCHES "STM32F4")
   target_compile_definitions(BuddyHeaders INTERFACE STM32F4 STM32F4xx)
+elseif(MCU MATCHES "STM32G0")
+  target_compile_definitions(BuddyHeaders INTERFACE STM32G0 STM32G0xx)
 endif()
 
 add_library(BuddyLogging INTERFACE)
@@ -136,6 +191,11 @@ target_link_libraries(BuddyHeaders INTERFACE BuddyLogging)
 # Configure Arduino Core
 #
 
+if(MCU MATCHES "STM32F4")
+  set(ARDUINO_CORE_BUDDY_USB_SUPPORT TRUE)
+else()
+  set(ARDUINO_CORE_BUDDY_USB_SUPPORT FALSE)
+endif()
 add_library(CoreBuddy_Config ALIAS BuddyHeaders)
 
 #
@@ -154,6 +214,10 @@ if(MCU MATCHES "STM32F4")
   add_library(STM32F4_HAL_Config INTERFACE)
   target_compile_definitions(STM32F4_HAL_Config INTERFACE ${STM32F4_HAL_TARGET} USE_HAL_DRIVER)
   target_include_directories(STM32F4_HAL_Config INTERFACE include/stm32f4_hal)
+elseif(MCU MATCHES "STM32G0")
+  add_library(STM32G0_HAL_Config INTERFACE)
+  target_compile_definitions(STM32G0_HAL_Config INTERFACE STM32G070xx USE_HAL_DRIVER)
+  target_include_directories(STM32G0_HAL_Config INTERFACE include/stm32g0_hal)
 else()
   message(FATAL_ERROR "Unknown hardware platform of mcu ${MCU}")
 endif()
@@ -169,6 +233,7 @@ add_library(STM32_Utilities_CPU_Config ALIAS BuddyHeaders)
 #
 add_library(Segger_Config INTERFACE)
 target_include_directories(Segger_Config INTERFACE include/segger src/segger)
+target_link_libraries(Segger_Config INTERFACE BuddyHeaders)
 
 #
 # Configure FreeRTOS
@@ -201,9 +266,7 @@ add_library(Marlin_Config INTERFACE)
 target_include_directories(
   Marlin_Config INTERFACE include/marlin src/common src/gui src/marlin_stubs/include
   )
-if(HAS_SELFTEST)
-  target_include_directories(Marlin_Config INTERFACE src/common/selftest)
-endif()
+target_include_directories(Marlin_Config INTERFACE src/common/selftest)
 target_link_libraries(Marlin_Config INTERFACE BuddyHeaders FreeRTOS::FreeRTOS)
 
 #
@@ -225,22 +288,29 @@ add_compile_options(-g)
 
 # optimizations
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  if(MCU MATCHES "STM32F40")
+  if(MCU MATCHES "STM32F40"
+     OR MCU MATCHES "STM32G0"
+     OR PRINTER STREQUAL "MK404"
+     OR PRINTER STREQUAL "XL"
+     OR PRINTER STREQUAL "IXL"
+     )
     add_compile_options(-Og)
   else()
     # O0 should be compiled with -fomit-frame-pointer to make sure there is enough registers for asm
     # functions
     add_compile_options(-O0 -fomit-frame-pointer)
   endif()
-else() # != "Debug"
+else()
   add_compile_options(-Os)
-endif() # "Debug"
+endif()
 
 if(CMAKE_CROSSCOMPILING)
   # mcu related settings
   set(MCU_FLAGS -mthumb)
   if(MCU MATCHES "STM32F4")
     list(APPEND MCU_FLAGS -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
+  elseif(MCU MATCHES "STM32G0")
+    list(APPEND MCU_FLAGS -mcpu=cortex-m0plus -mfloat-abi=soft)
   endif()
   add_compile_options(${MCU_FLAGS})
   add_link_options(${MCU_FLAGS})
@@ -255,6 +325,9 @@ if(CMAKE_CROSSCOMPILING)
   # disable exceptions and related metadata
   add_compile_options(-fno-exceptions -fno-unwind-tables)
   add_link_options(-Wl,--defsym,__exidx_start=0,--defsym,__exidx_end=0)
+
+  # wrap _dtoa to ensure formatting of floats isn't being called from ISR
+  add_link_options(-Wl,--wrap=_dtoa_r)
 
   # use custom printf implementation instead of the one in newlib (see lib/printf)
   add_link_options(
@@ -290,6 +363,8 @@ if(CMAKE_CROSSCOMPILING)
     set(LINKER_SCRIPT "src/device/stm32f4/linker/stm32f42x${BOOT_SUFFIX}.ld")
   elseif(MCU MATCHES "STM32F407")
     set(LINKER_SCRIPT "src/device/stm32f4/linker/stm32f407vg${BOOT_SUFFIX}.ld")
+  elseif(MCU MATCHES "STM32G070")
+    set(LINKER_SCRIPT "src/device/stm32g0/linker/stm32g070rb${BOOT_SUFFIX}.ld")
   endif()
   set(LINKER_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${LINKER_SCRIPT}")
   add_link_options("-Wl,-T,${LINKER_SCRIPT}")
@@ -302,14 +377,88 @@ endif()
 add_subdirectory(lib)
 
 #
+# Build Puppy Firmwares
+#
+
+if(BOARD STREQUAL "XLBUDDY" AND HAS_PUPPIES_BOOTLOADER)
+  string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower)
+
+  if(PRINTER STREQUAL "XL" AND BOARD_VERSION VERSION_EQUAL "0.4.0")
+    set(dwarf_version_suffix "-04")
+    set(modular_bed_version_suffix "-06")
+  endif()
+
+  if(NOT DWARF_BINARY_PATH)
+    get_filename_component(
+      DWARF_BINARY_DIR "${DWARF_BINARY_DIR}" REALPATH BASE_DIR "${CMAKE_SOURCE_DIR}"
+      )
+    get_filename_component(DWARF_BINARY_PATH "firmware.bin" REALPATH BASE_DIR "${DWARF_BINARY_DIR}")
+    ExternalProject_Add(
+      dwarf
+      SOURCE_DIR "${DWARF_SOURCE_DIR}"
+      BINARY_DIR "${DWARF_BINARY_DIR}"
+      CMAKE_ARGS --preset xl-dwarf${dwarf_version_suffix}_${CMAKE_BUILD_TYPE_lower}_boot -B
+                 "${DWARF_BINARY_DIR}"
+      INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step"
+      BUILD_BYPRODUCTS "${DWARF_BINARY_PATH}" "${DWARF_BINARY_DIR}/firmware"
+      STEP_TARGETS build
+      USES_TERMINAL_BUILD TRUE
+      USES_TERMINAL_INSTALL FALSE
+      BUILD_ALWAYS TRUE
+      )
+  endif()
+
+  if(NOT MODULARBED_BINARY_PATH)
+    get_filename_component(
+      MODULARBED_BINARY_DIR "${MODULARBED_BINARY_DIR}" REALPATH BASE_DIR "${CMAKE_SOURCE_DIR}"
+      )
+    get_filename_component(
+      MODULARBED_BINARY_PATH "firmware.bin" REALPATH BASE_DIR "${MODULARBED_BINARY_DIR}"
+      )
+    ExternalProject_Add(
+      modularbed
+      SOURCE_DIR "${MODULARBED_SOURCE_DIR}"
+      BINARY_DIR "${MODULARBED_BINARY_DIR}"
+      CMAKE_ARGS --preset xl-modularbed${modular_bed_version_suffix}_${CMAKE_BUILD_TYPE_lower}_boot
+                 -B "${MODULARBED_BINARY_DIR}"
+      INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step"
+      BUILD_BYPRODUCTS "${MODULARBED_BINARY_PATH}" "${MODULARBED_BINARY_DIR}/firmware"
+      STEP_TARGETS build
+      USES_TERMINAL_BUILD TRUE
+      USES_TERMINAL_INSTALL FALSE
+      BUILD_ALWAYS TRUE
+      )
+  endif()
+endif()
+
+#
 # Buddy firmware
 #
 
 add_executable(firmware)
 add_subdirectory(src)
 
+target_compile_options(firmware PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wimplicit-fallthrough>)
+
 if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
+endif()
+
+# Appending fw descriptor (with calculated fingerprint) to the ELF
+if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "MODULARBED")
+  add_custom_command(
+    TARGET firmware
+    POST_BUILD
+    # Generate a binary without fingerprint
+    COMMAND "${CMAKE_OBJCOPY}" -O binary -S "$<TARGET_FILE:firmware>" "firmware_no_descriptor.bin"
+    # Create the fw descriptor with calculated fingerprint of binary
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/gen_puppies_descriptor.py"
+            "firmware_no_descriptor.bin" "fw_descriptor.bin"
+    # Set the firmware's fw descriptor in the firmware's ELF file
+    COMMAND "${CMAKE_OBJCOPY}" "--update-section" ".fw_descriptor=fw_descriptor.bin"
+            "$<TARGET_FILE:firmware>" "$<TARGET_FILE:firmware>"
+    VERBATIM
+    )
 endif()
 
 # generate firmware.bin file
@@ -365,6 +514,8 @@ if(GENERATE_BBF)
     "${BUILD_NUMBER}"
     PRINTER_TYPE
     "${PRINTER_TYPE}"
+    PRINTER_VERSION
+    "${PRINTER_VERSION}"
     SIGNING_KEY
     "${SIGNING_KEY}"
     BBF_VERSION
@@ -375,21 +526,26 @@ if(GENERATE_BBF)
     ${resource_image_names}
     )
 
-  pack_firmware(
-    firmware
-    FW_VERSION
-    "${PROJECT_VERSION_FULL}"
-    BUILD_NUMBER
-    "${BUILD_NUMBER}"
-    PRINTER_TYPE
-    "${PRINTER_TYPE}"
-    SIGNING_KEY
-    "${SIGNING_KEY}"
-    BBF_VERSION
-    "1"
-    OUTPUT_PATH
-    "firmware_update_pre_4.4.bbf"
-    )
+  if(PRINTER STREQUAL "MINI")
+    pack_firmware(
+      firmware
+      FW_VERSION
+      "${PROJECT_VERSION_FULL}"
+      BUILD_NUMBER
+      "${BUILD_NUMBER}"
+      PRINTER_TYPE
+      "${PRINTER_TYPE}"
+      PRINTER_VERSION
+      "${PRINTER_VERSION}"
+      SIGNING_KEY
+      "${SIGNING_KEY}"
+      BBF_VERSION
+      "1"
+      OUTPUT_PATH
+      "firmware_update_pre_4.4.bbf"
+      )
+  endif()
+
 elseif(SIGNING_KEY)
   message(WARNING "SIGNING_KEY specified but BBF generation is not enabled.")
 endif()
@@ -430,12 +586,14 @@ target_include_directories(
           src/segger
           src/logging
           src/syslog
+          src/mmu2
           include/mbedtls
   )
 
 target_compile_options(firmware PRIVATE -Wdouble-promotion)
 
 target_link_libraries(firmware PRIVATE BuddyHeaders Segger printf::printf)
+
 if(BOARD MATCHES "BUDDY")
   target_link_libraries(
     firmware
@@ -461,10 +619,15 @@ if(BOARD MATCHES "BUDDY")
             tinyusb::tinyusb
             $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
             mbedTLS
+            $<$<STREQUAL:${PRINTER},XL>:lightmodbus>
             error_codes
     )
-else()
-  target_link_libraries(firmware PRIVATE)
+elseif(BOARD STREQUAL "DWARF")
+  target_link_libraries(
+    firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper CrashCatcher
+    )
+elseif(BOARD STREQUAL "MODULARBED")
+  target_link_libraries(firmware PRIVATE BuddyHeaders CrashCatcher)
 endif()
 
 set_property(
@@ -488,31 +651,56 @@ set_property(
 
 set_property(
   SOURCE src/common/marlin_server.cpp
+         src/gui/guimain.cpp
+         src/gui/MItem_menus.cpp
          src/gui/screen_splash.cpp
          src/gui/screen_home.cpp
          src/gui/screen_menu_settings.cpp
          src/gui/screen_menu_hw_setup.cpp
          src/gui/test/screen_menu_test.cpp
          src/gui/dialogs/DialogHandler.cpp
+         src/marlin_stubs/G163.cpp
          src/marlin_stubs/M997.cpp
+         src/gui/MItem_basic_selftest.cpp
+         src/gui/ScreenSelftest.cpp
+         src/gui/MItem_loadcell.cpp
+         src/common/marlin_client.cpp
+         src/gui/screen_menu_tools.cpp
+         src/guiapi/src/window_tool_action_box.cpp
+         src/gui/screen_menu_selftest_snake.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_SELFTEST=$<BOOL:${HAS_SELFTEST}>
   )
 
 set_property(
   SOURCE src/buddy/main.cpp
+         src/mmu2/mmu2_serial.cpp
+         src/mmu2_mmu2_power.cpp
          src/gui/screen_menu_settings.cpp
          src/gui/screen_menu_footer_settings.cpp
          src/gui/footer/footer_line.cpp
+         src/gui/footer/footer_item_multitool.cpp
          src/gui/test/screen_test_load.cpp
          src/common/marlin_server.cpp
+         src/common/filament_sensors_handler.cpp
          src/marlin_stubs/pause/pause.cpp
          src/gui/dialogs/DialogLoadUnload.cpp
          src/gui/guimain.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_MMU2=$<BOOL:${HAS_MMU2}>
   )
-
+set_property(
+  SOURCE src/gui/guimain.cpp
+         src/marlin_stubs/M150.cpp
+         src/marlin_stubs/gcode.cpp
+         src/marlin_stubs/pause/M600.cpp
+         src/marlin_stubs/pause/M601_2.cpp
+         src/gui/MItem_menus.cpp
+         src/gui/screen_menu_user_interface.cpp
+         src/gui/screen_qr_error.cpp
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_LEDS=$<BOOL:${HAS_LEDS}>
+  )
 set_property(
   SOURCE src/marlin_stubs/pause/pause.cpp src/marlin_stubs/pause/M70X.cpp
          src/marlin_stubs/pause/M701_2.cpp
@@ -526,7 +714,20 @@ set_property(
   PROPERTY COMPILE_DEFINITIONS HAS_SERIAL_PRINT=$<BOOL:${HAS_SERIAL_PRINT}>
   )
 
+set_property(
+  SOURCE src/guiapi/src/gui.cpp src/gui/guimain.cpp src/gui/screen_splash.cpp
+  APPEND
+  PROPERTY COMPILE_DEFINITIONS HAS_TOUCH=$<BOOL:${HAS_XLCD_TOUCH_DRIVER}>
+  )
+
+if(HAS_ADVANCED_POWER)
+  add_compile_definitions(HAS_ADVANCED_POWER)
+endif()
+
 if(NOT CMAKE_CROSSCOMPILING)
-  enable_testing()
-  add_subdirectory(tests)
+  option(UNITTESTS_ENABLE "Enable building of unittest" ON)
+  if(UNITTESTS_ENABLE)
+    enable_testing()
+    add_subdirectory(tests)
+  endif()
 endif()

@@ -217,15 +217,6 @@ typedef struct {
   #endif
 } motion_parameters_t;
 
-#if ENABLED(IMPROVE_HOMING_RELIABILITY)
-  struct motion_state_t {
-    TERN(DELTA, xyz_ulong_t, xy_ulong_t) acceleration;
-    #if HAS_CLASSIC_JERK
-      TERN(DELTA, xyz_float_t, xy_float_t) jerk_state;
-    #endif
-  };
-#endif
-
 #if DISABLED(SKEW_CORRECTION)
   #define XY_SKEW_FACTOR 0
   #define XZ_SKEW_FACTOR 0
@@ -334,6 +325,8 @@ class Planner {
       static xyze_pos_t position_cart;
     #endif
 
+    xyze_long_t get_position() const { return position; };
+
     static skew_factor_t skew_factor;
 
     #if ENABLED(SD_ABORT_ON_ENDSTOP_HIT)
@@ -439,10 +432,6 @@ class Planner {
             : volumetric_multiplier[FILAMENT_SENSOR_EXTRUDER_NUM]
         );
       }
-    #endif
-
-    #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-      void enable_stall_prevention(const bool onoff);
     #endif
 
     #if DISABLED(NO_VOLUMETRICS)
@@ -622,6 +611,33 @@ class Planner {
     }
 
     /**
+     * Planner::_buffer_steps_raw
+     *
+     * Add a new linear movement to the buffer (in terms of steps) without implicit kinematic
+     * translation, compensation or queuing restrictions.
+     *
+     *  target      - target position in steps units
+     *  delta_abce  - steps to perform for ABC axes
+     *  fr_mm_s     - (target) speed of the move
+     *  extruder    - target extruder
+     *  millimeters - the length of the movement, if known
+     *
+     * Returns true if movement was buffered, false otherwise
+     */
+    static bool _buffer_steps_raw(const xyze_long_t &target
+      #if HAS_POSITION_FLOAT
+        , const xyze_pos_t &target_float
+      #endif
+      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+        , const xyze_float_t &delta_mm_cart
+      #endif
+      #if IS_CORE
+        , const xyze_long_t &delta_abce
+      #endif
+      , feedRate_t fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+    );
+
+    /**
      * Planner::_buffer_steps
      *
      * Add a new linear movement to the buffer (in terms of steps).
@@ -649,9 +665,11 @@ class Planner {
      * Fills a new linear movement in the block (in terms of steps).
      *
      *  target      - target position in steps units
+     *  delta_abce  - steps to perform for ABC axes
      *  fr_mm_s     - (target) speed of the move
      *  extruder    - target extruder
      *  millimeters - the length of the movement, if known
+     *  raw_block   - always enqueue without changes
      *
      * Returns true is movement is acceptable, false otherwise
      */
@@ -663,7 +681,11 @@ class Planner {
       #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
         , const xyze_float_t &delta_mm_cart
       #endif
+      #if IS_CORE
+        , const xyze_long_t &delta_abce
+      #endif
       , feedRate_t fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
+      , const bool raw_block=false
     );
 
     /**
@@ -1041,7 +1063,7 @@ class Motion_Parameters {
     // reset motion parameters
     static void reset();
     // load motion parameters back
-    void load();
+    void load() const;
 
   private:
     motion_parameters_t mp;

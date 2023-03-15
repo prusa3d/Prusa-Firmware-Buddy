@@ -277,6 +277,7 @@
  *
  * T0-T3 - Select an extruder (tool) by index: "T<n> F<units/min>"
  *
+ * R1 - Redirect nested gcode to another machine using uart
  */
 
 #include "../inc/MarlinConfig.h"
@@ -342,7 +343,7 @@ public:
   #if ENABLED(PROCESS_CUSTOM_GCODE)
     static bool process_parsed_command_custom(const bool no_ok=false);
   #endif
-  
+
   // Execute G-code in-place, preserving current G-code parameters
   static void process_subcommands_now_P(PGM_P pgcode);
   static void process_subcommands_now(char * gcode);
@@ -373,7 +374,9 @@ public:
   #endif
 
   static void dwell(millis_t time);
-  static void G28_no_parser(bool always_home_all = true, bool O = false, float R = false, bool S = false, bool X = false, bool Y = false,bool Z = false);
+  static void G28_no_parser(bool always_home_all = true, bool O = false, float R = false, bool S = false, bool X = false, bool Y = false, bool Z = false
+    , bool no_change = false OPTARG(PRECISE_HOMING_COREXY, bool precise = true));
+  static void T(const uint8_t tool_index);
 
 private:
 
@@ -432,6 +435,10 @@ private:
     #endif
     static G29_TYPE G29();
   #endif
+  #if ENABLED(ADVANCED_HOMING)
+    static void G65();
+  #endif
+
 
   #if HAS_BED_PROBE
     static void G30();
@@ -541,6 +548,8 @@ private:
     static void M43();
   #endif
 
+  static void M46();
+
   #if ENABLED(Z_MIN_PROBE_REPEATABILITY_TEST)
     static void M48();
   #endif
@@ -635,6 +644,10 @@ private:
   #if HAS_HEATED_CHAMBER
     static void M141();
     static void M191();
+  #endif
+
+  #if HAS_TEMP_HEATBREAK_CONTROL
+    static void M142();
   #endif
 
   #if HOTENDS && HAS_LCD_MENU
@@ -815,6 +828,10 @@ private:
     static void M428();
   #endif
 
+  #if ENABLED(CANCEL_OBJECTS)
+    static void M486();
+  #endif
+
   static void M500();
   static void M501();
   static void M502();
@@ -834,6 +851,11 @@ private:
   #endif
 
   static void M555();
+
+  #if ENABLED(MODULAR_HEATBED)
+    static void M556();
+    static void M557();
+  #endif
 
   #if ENABLED(BAUD_RATE_GCODE)
     static void M575();
@@ -952,7 +974,9 @@ private:
     static void M7219();
   #endif
 
-  static void T(const uint8_t tool_index);
+  #if ENABLED(REDIRECT_GCODE_SUPPORT)
+    static void R(const uint8_t machine_index);
+  #endif
 
 };
 

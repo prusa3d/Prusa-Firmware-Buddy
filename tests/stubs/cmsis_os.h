@@ -6,5 +6,7 @@ typedef void *osSemaphoreId;
 typedef void *osMessageQid;
 typedef void *osThreadId;
 typedef void *osMessageQId;
-
+typedef void *osMutexId;
+#define osMutexDef(name)
+void *osThreadGetId();
 uint32_t osDelay(uint32_t);

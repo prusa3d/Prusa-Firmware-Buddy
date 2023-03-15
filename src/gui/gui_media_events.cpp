@@ -5,7 +5,7 @@
  */
 
 #include "gui_media_events.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "marlin_events.h"
 #include "gui_time.hpp" //gui::GetTick()
 
@@ -33,7 +33,7 @@ void GuiMediaEventsHandler::tick() {
             marlin_event_clr(MARLIN_EVT_MediaInserted);
             marlin_event_clr(MARLIN_EVT_MediaError);
             is_starting = false;
-            media_state = marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_MEDIAINS))->media_inserted ? MediaState_t::inserted : MediaState_t::removed;
+            media_state = marlin_vars()->media_inserted ? MediaState_t::inserted : MediaState_t::removed;
             state_sent = false;
         }
         return;

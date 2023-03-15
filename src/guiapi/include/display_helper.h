@@ -22,3 +22,6 @@ size_ui16_t font_meas_text(const font_t *pf, string_view_utf8 *str, uint16_t *nu
 void fill_between_rectangles(const Rect16 *r_out, const Rect16 *r_in, color_t color);
 
 void render_rect(Rect16 rc, color_t clr); // to prevent direct access to display
+
+//private only
+void render_rounded_rect(Rect16 rc, color_t bg_clr, color_t fg_clr, uint8_t rad, uint8_t flag);

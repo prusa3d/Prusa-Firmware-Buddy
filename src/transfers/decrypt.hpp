@@ -52,8 +52,6 @@ public:
     // * Pass the data in through that buffer, specifying the amount of data available.
     // * Process the amount returned from the function.
     uint32_t decrypt(uint8_t *data, uint32_t size);
-    // Reset the decryption, start again from the beginning.
-    void reset(const Block &iv, uint32_t size);
 };
 
 }

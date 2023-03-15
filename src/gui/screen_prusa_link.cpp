@@ -24,7 +24,7 @@ void MI_PL_REGENERATE_PASSWORD::click(IWindowMenu &) {
 // ----------------------------------------------------------------
 // GUI Prusa Link start after printer startup
 MI_PL_ENABLED::MI_PL_ENABLED()
-    : WI_SWITCH_OFF_ON_t(eeprom_get_ui8(EEVAR_PL_RUN),
+    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_ui8(EEVAR_PL_RUN),
         string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_PL_ENABLED::OnChange(size_t old_index) {

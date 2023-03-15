@@ -87,7 +87,6 @@ ExecutionControl RequestParser::event(Event event) {
     switch (event.entering_state) {
     case Names::PrintAfterUpload:
     case Names::PrintAfterUploadNumeric:
-    case Names::PrintAfterUploadRFC:
         print_after_upload = true;
         return ExecutionControl::Continue;
     case Names::Url:
@@ -181,6 +180,7 @@ ExecutionControl RequestParser::event(Event event) {
             version_minor = 10 * version_minor + (event.payload - '0');
             return ExecutionControl::Continue;
         }
+        [[fallthrough]];
     case Names::IfNoneMatch:
         /*
          * We use numeric etags. If we get anything else, it's probably bogus

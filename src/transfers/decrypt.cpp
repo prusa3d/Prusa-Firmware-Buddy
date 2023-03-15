@@ -71,10 +71,4 @@ uint32_t Decryptor::decrypt(uint8_t *buffer, uint32_t input_size) {
     return output_size;
 }
 
-void Decryptor::reset(const Block &iv, uint32_t orig_size) {
-    this->iv = iv;
-    this->size_left = orig_size;
-    leftover_size = 0;
-}
-
 }

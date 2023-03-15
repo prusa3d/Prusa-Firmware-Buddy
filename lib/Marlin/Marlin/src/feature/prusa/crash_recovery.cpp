@@ -17,18 +17,19 @@ Crash_s &Crash_s::instance() {
 }
 
 Crash_s::Crash_s()
-    : home_sensitivity { X_STALL_SENSITIVITY, Y_STALL_SENSITIVITY, Z_STALL_SENSITIVITY },
-      m_axis_is_homing{false, false},
-      m_enable_stealth{false, false} {
+    : home_sensitivity { X_STALL_SENSITIVITY, Y_STALL_SENSITIVITY, Z_STALL_SENSITIVITY }
+    , m_axis_is_homing { false, false }
+    , m_enable_stealth { false, false }
+    , toolchange_in_progress(false) {
     reset();
     enabled = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_ENABLED));
-    max_period.x = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_PERIOD_X));
-    max_period.y = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_PERIOD_Y));
+    max_period.x = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_MAX_PERIOD_X));
+    max_period.y = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_MAX_PERIOD_Y));
     sensitivity.x = variant8_get_i16(eeprom_get_var(EEVAR_CRASH_SENS_X));
     sensitivity.y = variant8_get_i16(eeprom_get_var(EEVAR_CRASH_SENS_Y));
-#if HAS_DRIVER(TMC2130)
+    #if HAS_DRIVER(TMC2130)
     filter = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_FILTER));
-#endif
+    #endif
 }
 
 // Called from ISR
@@ -99,6 +100,7 @@ void Crash_s::stop_and_save() {
     LOOP_XYZE(i) {
         crash_current_position[i] = planner.get_axis_position_mm((AxisEnum)i);
     }
+
     #if HAS_POSITION_MODIFIERS
     planner.unapply_modifiers(crash_current_position
         #if HAS_LEVELING
@@ -165,7 +167,11 @@ void Crash_s::set_state(state_t new_state) {
             bsod("crash replay");
         case TRIGGERED_ISR:
         case TRIGGERED_AC_FAULT:
+        case TRIGGERED_TOOLFALL:
+        case TRIGGERED_TOOLCRASH:
             bsod("crash double trigger");
+        case TOOLCRASH:
+            bsod("toolcrash repeat");
         case PRINTING:
             bsod("crash printing");
         }
@@ -182,12 +188,33 @@ void Crash_s::set_state(state_t new_state) {
         // FALLTHRU
     case TRIGGERED_AC_FAULT:
         // transition to AC_FAULT is _always_ possible from any state
+        toolchange_event = false;
         stop_and_save();
+        break;
+
+    case TRIGGERED_TOOLFALL:
+        if (state != PRINTING || !is_active()) // Allow toolfall recovery even if user disables crash recovery
+            bsod("crash not active");
+
+        toolchange_event = true;
+        stop_and_save();
+        break;
+
+    case TRIGGERED_TOOLCRASH:
+        if (state != PRINTING || !is_active())
+            bsod("crash not active");
+
+        toolchange_event = true;
+        sdpos = queue.get_current_sdpos();
+        break;
+
+    case TOOLCRASH:
+        // Just wait for user to pick up tools
         break;
 
     case RECOVERY:
         // TODO: the following checks are too broad (should check for existing state)
-        if (state != PRINTING && state != TRIGGERED_ISR && state != TRIGGERED_AC_FAULT)
+        if (state != PRINTING && state != TRIGGERED_ISR && state != TRIGGERED_TOOLFALL && state != TRIGGERED_AC_FAULT)
             bsod("invalid recovery transition");
         resume_movement();
         break;
@@ -200,7 +227,7 @@ void Crash_s::set_state(state_t new_state) {
         break;
 
     case PRINTING:
-        if (state != RECOVERY && state != IDLE && state != REPLAY)
+        if (state != RECOVERY && state != TOOLCRASH && state != IDLE && state != REPLAY)
             bsod("invalid printing transition");
         reset_repeated_crash();
         if (state != REPLAY)
@@ -214,25 +241,26 @@ void Crash_s::set_state(state_t new_state) {
  * @brief Update sensitivity and threshold to drivers
  */
 void Crash_s::update_machine() {
-    if(!m_axis_is_homing[0])
-    {
+    if (!m_axis_is_homing[0] && TERN1(CORE_IS_XY, !m_axis_is_homing[1])) {
         if (enabled) {
             stepperX.stall_max_period(0);
-            #if AXIS_DRIVER_TYPE_X(TMC2130)
-                stepperX.sfilt(filter);
-            #endif
+    #if AXIS_DRIVER_TYPE_X(TMC2130)
+            stepperX.sfilt(filter);
+            stepperX.diag1_stall(true);
+    #endif
             stepperX.stall_sensitivity(crash_s.sensitivity.x);
             stepperX.stall_max_period(crash_s.max_period.x);
         } else {
             tmc_disable_stallguard(stepperX, m_enable_stealth[0]);
         }
     }
-    if(!m_axis_is_homing[1]) {
+    if (!m_axis_is_homing[1] && TERN1(CORE_IS_XY, !m_axis_is_homing[0])) {
         if (enabled) {
             stepperY.stall_max_period(0);
-            #if AXIS_DRIVER_TYPE_Y(TMC2130)
-                stepperY.sfilt(filter);
-            #endif
+    #if AXIS_DRIVER_TYPE_Y(TMC2130)
+            stepperY.sfilt(filter);
+            stepperY.diag1_stall(true);
+    #endif
             stepperY.stall_sensitivity(crash_s.sensitivity.y);
             stepperY.stall_max_period(crash_s.max_period.y);
         } else {
@@ -261,13 +289,9 @@ void Crash_s::set_sensitivity(xy_long_t sens) {
 void Crash_s::reset_crash_counter() {
     counter_crash = xy_uint_t({ 0, 0 });
     counter_power_panic = 0;
-    stats_saved = false;
 }
 
 void Crash_s::send_reports() {
-    if (stats_saved)
-        reset_crash_counter();
-
     if (axis_hit != X_AXIS && axis_hit != Y_AXIS)
         return;
 
@@ -286,16 +310,13 @@ void Crash_s::send_reports() {
 void Crash_s::set_max_period(xy_long_t mp) {
     if (max_period != mp) {
         max_period = mp;
-        eeprom_set_var(EEVAR_CRASH_PERIOD_X, variant8_ui16(max_period.x));
-        eeprom_set_var(EEVAR_CRASH_PERIOD_Y, variant8_ui16(max_period.y));
+        eeprom_set_var(EEVAR_CRASH_MAX_PERIOD_X, variant8_ui16(max_period.x));
+        eeprom_set_var(EEVAR_CRASH_MAX_PERIOD_Y, variant8_ui16(max_period.y));
         update_machine();
     }
 }
 
 void Crash_s::write_stat_to_eeprom() {
-    if (stats_saved)
-        return;
-    stats_saved = true;
     xy_uint_t total({ variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_X_TOT)), variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_Y_TOT)) });
     uint16_t power_panics = variant8_get_ui16(eeprom_get_var(EEVAR_POWER_COUNT_TOT));
 
@@ -348,7 +369,7 @@ void Crash_s::count_crash() {
 void Crash_s::reset() {
     reset_history();
     repeated_crash = false;
-    reset_crash_counter();
+    toolchange_in_progress = false;
     segments_finished = 0;
     inhibit_flags = 0;
     state = IDLE;
@@ -360,12 +381,18 @@ void Crash_s::reset() {
 void Crash_s::start_sensorless_homing_per_axis(const AxisEnum axis) {
     if (axis < (sizeof(m_axis_is_homing) / sizeof(m_axis_is_homing[0]))) {
         m_axis_is_homing[axis] = true;
-        if (X_AXIS == axis) {
+    #if ENABLED(CORE_IS_XY)
+        if (X_AXIS == axis || Y_AXIS == axis) {
             stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
-        }
-        else if (Y_AXIS == axis) {
             stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
         }
+    #else
+        if (X_AXIS == axis) {
+            stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
+        } else if (Y_AXIS == axis) {
+            stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
+        }
+    #endif
     }
 }
 
@@ -380,12 +407,12 @@ void Crash_s::end_sensorless_homing_per_axis(const AxisEnum axis, const bool ena
 }
 
     #if HAS_DRIVER(TMC2130)
-        void Crash_s::set_filter(bool on) {
-            if (filter == on)
-                return;
-            filter = on;
-            eeprom_set_var(EEVAR_CRASH_FILTER, variant8_bool(on));
-            update_machine();
-        }
+void Crash_s::set_filter(bool on) {
+    if (filter == on)
+        return;
+    filter = on;
+    eeprom_set_var(EEVAR_CRASH_FILTER, variant8_bool(on));
+    update_machine();
+}
     #endif
 #endif // ENABLED(CRASH_RECOVERY)

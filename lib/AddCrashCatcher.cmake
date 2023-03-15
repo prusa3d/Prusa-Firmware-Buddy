@@ -1,0 +1,3 @@
+add_library(CrashCatcher INTERFACE)
+
+target_include_directories(CrashCatcher INTERFACE CrashCatcher/include)

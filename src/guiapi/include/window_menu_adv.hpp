@@ -12,6 +12,10 @@
 
 class WindowMenuAdv : public AddSuperWindow<window_frame_t> {
     WindowMenu menu;
+#if (MENU_HAS_BUTTONS)
+    window_icon_button_t up;
+    window_icon_button_t down;
+#endif
     MenuScrollbar bar;
 
 public:
@@ -41,8 +45,18 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
+/**
+ * @brief File browser window containing touchable buttons and scrollbar
+ * this is all wrong !!!
+ * should have been inherited from IWinMenuContainer
+ * than drawing, touch, scrollbar ... all would work automatically
+ */
 class WindowFileBrowserAdv : public AddSuperWindow<window_frame_t> {
     WindowFileBrowser file_browser;
+#if (MENU_HAS_BUTTONS)
+    window_icon_button_t up;
+    window_icon_button_t down;
+#endif
     //MenuScrollbar bar; TODO
 public:
     WindowFileBrowserAdv(window_t *parent, Rect16 rect, const char *media_SFN_path);
@@ -62,6 +76,6 @@ protected:
 using window_menu_t = WindowMenuAdv;
 using FileBrowser = WindowFileBrowserAdv;
 #else
-using window_menu_t = WindowMenu;
-using FileBrowser = WindowFileBrowser;
+using window_menu_t = WindowMenuAdv;
+using FileBrowser = WindowFileBrowserAdv;
 #endif

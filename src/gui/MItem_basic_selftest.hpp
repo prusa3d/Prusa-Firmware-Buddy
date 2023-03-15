@@ -9,6 +9,10 @@
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "WindowItemFormatableLabel.hpp"
+#include "WindowItemFanLabel.hpp"
+#include "WindowItemTempLabel.hpp"
+#include <option/has_toolchanger.h>
+#include <option/filament_sensor.h>
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");
@@ -130,8 +134,20 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+#if FILAMENT_SENSOR_IS_ADC()
+class MI_CALIB_FSENSOR : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Filament Sensor Calibration");
+
+public:
+    MI_CALIB_FSENSOR();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+#endif
+
 class MI_ADVANCED_FAN_TEST : public WI_LABEL_t {
-    static constexpr const char *const label = "Advanced fan test"; // debug only - not translated
+    static constexpr const char *const label = "Advanced Fan Test"; // debug only - not translated
 
 public:
     MI_ADVANCED_FAN_TEST();
@@ -139,3 +155,41 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+#if HAS_TOOLCHANGER()
+class MI_CALIBRATE_TOOL_OFFSETS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Calibrate Tool Offsets");
+
+public:
+    MI_CALIBRATE_TOOL_OFFSETS();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_RESTORE_CALIBRATION_FROM_USB : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Restore Calibration from USB");
+
+public:
+    MI_RESTORE_CALIBRATION_FROM_USB();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+
+private:
+    bool restore_fs_calibration();
+};
+
+class MI_BACKUP_CALIBRATION_TO_USB : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Backup Calibration to USB");
+
+public:
+    MI_BACKUP_CALIBRATION_TO_USB();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+
+private:
+    bool backup_fs_calibration();
+};
+#endif

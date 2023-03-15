@@ -60,14 +60,18 @@ string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array
     static constexpr const char *const_size_str = "%3u/%3u\177C";
     static constexpr const char *left_aligned_str_no_0 = "%u\177C";
     static constexpr const char *const_size_str_no_0 = "%3u\177C";
+    static constexpr const char *disabled_str = "---";
 
     const StateAndTemps temps(value);
     const uint current = std::clamp(int(temps.current), 0, 999);
     const uint target_or_display = std::clamp(int(temps.target_or_display), 0, 999);
+    const bool disabled = temps.disabled;
 
     int printed_chars;
 
-    if ((target_or_display == 0) && (!IsZeroTargetDrawn())) {
+    if (disabled) {
+        printed_chars = snprintf(buff.data(), buff.size(), disabled_str);
+    } else if ((target_or_display == 0) && (!IsZeroTargetDrawn())) {
         const char *const str = (GetDrawType() == footer::ItemDrawType::Static) ? const_size_str_no_0 : left_aligned_str_no_0;
         printed_chars = snprintf(buff.data(), buff.size(), str, current);
     } else {

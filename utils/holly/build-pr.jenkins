@@ -44,6 +44,10 @@ pipeline {
                     // required configurations
                     def configurations = [
                         [preset: "mini", build_type: "release", bootloader: "yes"],
+                        [preset: "mk404-xBuddy027c-400step-planetary", build_type: "release", bootloader: "no"],
+                        [preset: "xl", build_type: "release", bootloader: "yes"],
+                        [preset: "xl-xbuddy04", build_type: "release", bootloader: "yes"],
+                        [preset: "ix-xBuddy027c-200step", build_type: "release", bootloader: "empty"],
                     ]
 
                     // prepare version suffix
@@ -69,6 +73,10 @@ pipeline {
                         dev_items = "yes"
                     }
 
+                    if (env.BRANCH_NAME == "xl") {
+                        dev_items = "no"
+                    }
+
                     if (params.VERSION_SUFFIX != '<default>') {
                         full_suffix = params.VERSION_SUFFIX
                     }
@@ -80,20 +88,26 @@ pipeline {
                     configurations.each { config ->
                         stage("Build - ${config.preset},${config.build_type},${config.bootloader}boot") {
                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                sh """
-                                    ln -fs /work/.dependencies
-                                    python3 utils/build.py \
-                                        --preset ${config.preset} \
-                                        --build-type ${config.build_type} \
-                                        --bootloader ${config.bootloader} \
-                                        --generate-bbf \
-                                        --generate-dfu \
-                                        --no-store-output \
-                                        --version-suffix=${full_suffix} \
-                                        --version-suffix-short=${short_suffix} \
-                                        -DCUSTOM_COMPILE_OPTIONS:STRING=-Werror \
+                                sshagent(credentials: ['prusa_holly']) {
+                                    sh """
+                                        [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
+                                        ssh-keyscan -t rsa,dsa github.com >> ~/.ssh/known_hosts
+                                    """
+                                    sh """
+                                        ln -fs /work/.dependencies
+                                        python3 utils/build.py \
+                                            --preset ${config.preset} \
+                                            --build-type ${config.build_type} \
+                                            --bootloader ${config.bootloader} \
+                                            --generate-bbf \
+                                            --generate-dfu \
+                                            --no-store-output \
+                                            --version-suffix=${full_suffix} \
+                                            --version-suffix-short=${short_suffix} \
+                                            -DCUSTOM_COMPILE_OPTIONS:STRING="-Werror" \
                                         -DDEVELOPMENT_ITEMS_ENABLED:BOOL=${dev_items}
-                                """
+                                    """
+                                }
                             }
                         }
                     }

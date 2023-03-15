@@ -30,7 +30,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME() {}
 static inline void MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME() {}
 static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1() {}
 static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
-#endif   
+#endif
 
 #include "../gcode.h"
 
@@ -55,6 +55,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
   #include "../../feature/tmc_util.h"
 #endif
 
+#if ENABLED(CRASH_RECOVERY)
+  #include "../../feature/prusa/crash_recovery.h"
+#endif
+
 #include "../../module/probe.h"
 
 #if ENABLED(BLTOUCH)
@@ -73,6 +77,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 #if ENABLED(LASER_FEATURE)
   #include "../../feature/spindle_laser.h"
+#endif
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+  #include "../../module/prusa/toolchanger.h"
 #endif
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
@@ -183,42 +191,37 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       LCD_MESSAGE(MSG_ZPROBE_OUT);
       SERIAL_ECHO_MSG(STR_ZPROBE_OUT_SER);
     }
+
   }
 
 #endif // Z_SAFE_HOMING
 
 #if ENABLED(IMPROVE_HOMING_RELIABILITY)
 
-  motion_state_t begin_slow_homing() {
-    motion_state_t motion_state{0};
-    motion_state.acceleration.set(planner.settings.max_acceleration_mm_per_s2[X_AXIS],
-                                 planner.settings.max_acceleration_mm_per_s2[Y_AXIS]
-                                 OPTARG(DELTA, planner.settings.max_acceleration_mm_per_s2[Z_AXIS])
-                               );
+  Motion_Parameters begin_slow_homing() {
+    Motion_Parameters motion_parameters;
+    motion_parameters.save();
+
     planner.settings.max_acceleration_mm_per_s2[X_AXIS] = XY_HOMING_ACCELERATION;
     planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = XY_HOMING_ACCELERATION;
-    TERN_(DELTA, planner.settings.max_acceleration_mm_per_s2[Z_AXIS] = 100);
+    planner.settings.travel_acceleration = XY_HOMING_ACCELERATION;
     #if HAS_CLASSIC_JERK
-      motion_state.jerk_state = planner.max_jerk;
-      planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK OPTARG(DELTA, 0));
+      planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
     #endif
+
     planner.refresh_acceleration_rates();
-    return motion_state;
+    return motion_parameters;
   }
 
-  void end_slow_homing(const motion_state_t &motion_state) {
-    planner.settings.max_acceleration_mm_per_s2[X_AXIS] = motion_state.acceleration.x;
-    planner.settings.max_acceleration_mm_per_s2[Y_AXIS] = motion_state.acceleration.y;
-    TERN_(DELTA, planner.settings.max_acceleration_mm_per_s2[Z_AXIS] = motion_state.acceleration.z);
-    TERN_(HAS_CLASSIC_JERK, planner.max_jerk = motion_state.jerk_state);
-    planner.refresh_acceleration_rates();
+  void end_slow_homing(const Motion_Parameters &motion_parameters) {
+    motion_parameters.load();
   }
 
 #endif // IMPROVE_HOMING_RELIABILITY
 
 /**
  * G28: Home all axes according to settings
- * 
+ *
  * If PRECISE_HOMING is enabled, there are specific amount
  * of tries to home an X/Y axis. If it fails it runs re-calibration
  * (if it's not disabled by D).
@@ -239,9 +242,9 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
  *  Z   Home to the Z endstop
  *
  * PRECISE_HOMING only:
- * 
+ *
  *  D   Avoid home calibration
- * 
+ *
  */
 void GcodeSuite::G28(const bool always_home_all) {
   bool S = false;
@@ -253,12 +256,18 @@ void GcodeSuite::G28(const bool always_home_all) {
   bool X = parser.seen('X');
   bool Y = parser.seen('Y');
   bool Z = parser.seen('Z');
+  bool no_change = parser.seen('N'); // no-change mode (do not change any motion setting such as feedrate)
+  #if ENABLED(PRECISE_HOMING_COREXY)
+    bool precise = !parser.seen('I'); // imprecise: do not perform precise refinement
+  #endif
   float R = parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT;
 
-  G28_no_parser(always_home_all, O, R, S, X, Y, Z);
+  G28_no_parser(always_home_all, O, R, S, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise));
 }
 
-void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y,bool Z) {
+void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y, bool Z
+  , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise)) {
+
   MINDA_BROKEN_CABLE_DETECTION__BEGIN();
 
   DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
@@ -293,6 +302,12 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   if(X) SBI(required_axis_bits, X_AXIS);
   if(Y) SBI(required_axis_bits, Y_AXIS);
   if(Z) SBI(required_axis_bits, Z_AXIS);
+  if(!X && !Y && !Z) {
+    // None specified -> need all
+    SBI(required_axis_bits, X_AXIS);
+    SBI(required_axis_bits, Y_AXIS);
+    SBI(required_axis_bits, Z_AXIS);
+  }
   if (!axes_should_home(required_axis_bits) && O) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip");
     return;
@@ -338,58 +353,80 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     };
     #if HAS_CURRENT_HOME(X)
       const int16_t tmc_save_current_X = stepperX.getMilliamps();
-      stepperX.rms_current(X_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_X), tmc_save_current_X, X_CURRENT_HOME);
+      if(!no_change) {
+        stepperX.rms_current(X_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_X), tmc_save_current_X, X_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(X2)
       const int16_t tmc_save_current_X2 = stepperX2.getMilliamps();
-      stepperX2.rms_current(X2_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_X2), tmc_save_current_X2, X2_CURRENT_HOME);
+      if(!no_change) {
+        stepperX2.rms_current(X2_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_X2), tmc_save_current_X2, X2_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(Y)
       const int16_t tmc_save_current_Y = stepperY.getMilliamps();
-      stepperY.rms_current(Y_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_Y), tmc_save_current_Y, Y_CURRENT_HOME);
+      if(!no_change) {
+        stepperY.rms_current(Y_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_Y), tmc_save_current_Y, Y_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(Y2)
       const int16_t tmc_save_current_Y2 = stepperY2.getMilliamps();
-      stepperY2.rms_current(Y2_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_Y2), tmc_save_current_Y2, Y2_CURRENT_HOME);
+      if(!no_change) {
+        stepperY2.rms_current(Y2_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_Y2), tmc_save_current_Y2, Y2_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(Z) && ENABLED(DELTA)
       const int16_t tmc_save_current_Z = stepperZ.getMilliamps();
-      stepperZ.rms_current(Z_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_Z), tmc_save_current_Z, Z_CURRENT_HOME);
+      if(!no_change) {
+        stepperZ.rms_current(Z_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_Z), tmc_save_current_Z, Z_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(I)
       const int16_t tmc_save_current_I = stepperI.getMilliamps();
-      stepperI.rms_current(I_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_I), tmc_save_current_I, I_CURRENT_HOME);
+      if(!no_change) {
+        stepperI.rms_current(I_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_I), tmc_save_current_I, I_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(J)
       const int16_t tmc_save_current_J = stepperJ.getMilliamps();
-      stepperJ.rms_current(J_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_J), tmc_save_current_J, J_CURRENT_HOME);
+      if(!no_change) {
+        stepperJ.rms_current(J_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_J), tmc_save_current_J, J_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(K)
       const int16_t tmc_save_current_K = stepperK.getMilliamps();
-      stepperK.rms_current(K_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_K), tmc_save_current_K, K_CURRENT_HOME);
+      if(!no_change) {
+        stepperK.rms_current(K_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_K), tmc_save_current_K, K_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(U)
       const int16_t tmc_save_current_U = stepperU.getMilliamps();
-      stepperU.rms_current(U_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_U), tmc_save_current_U, U_CURRENT_HOME);
+      if(!no_change) {
+        stepperU.rms_current(U_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_U), tmc_save_current_U, U_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(V)
       const int16_t tmc_save_current_V = stepperV.getMilliamps();
-      stepperV.rms_current(V_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_V), tmc_save_current_V, V_CURRENT_HOME);
+      if(!no_change) {
+        stepperV.rms_current(V_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_V), tmc_save_current_V, V_CURRENT_HOME);
+      }
     #endif
     #if HAS_CURRENT_HOME(W)
       const int16_t tmc_save_current_W = stepperW.getMilliamps();
-      stepperW.rms_current(W_CURRENT_HOME);
-      if (DEBUGGING(LEVELING)) debug_current(F(STR_W), tmc_save_current_W, W_CURRENT_HOME);
+      if(!no_change) {
+        stepperW.rms_current(W_CURRENT_HOME);
+        if (DEBUGGING(LEVELING)) debug_current(F(STR_W), tmc_save_current_W, W_CURRENT_HOME);
+      }
     #endif
     #if SENSORLESS_STALLGUARD_DELAY
       safe_delay(SENSORLESS_STALLGUARD_DELAY); // Short delay needed to settle
@@ -397,7 +434,10 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   #endif
 
   #if ENABLED(IMPROVE_HOMING_RELIABILITY)
-    motion_state_t saved_motion_state = begin_slow_homing();
+    Motion_Parameters saved_motion_state;
+    if (!no_change) {
+      saved_motion_state = begin_slow_homing();
+    }
   #endif
 
   // Always home with tool 0 active
@@ -405,15 +445,19 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     #if DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       const uint8_t old_tool_index = active_extruder;
     #endif
-    // PARKING_EXTRUDER homing requires different handling of movement / solenoid activation, depending on the side of homing
-    #if ENABLED(PARKING_EXTRUDER)
-      const bool pe_final_change_must_unpark = parking_extruder_unpark_after_homing(old_tool_index, X_HOME_DIR + 1 == old_tool_index * 2);
+    #if DISABLED(PRUSA_TOOLCHANGER)
+      // PARKING_EXTRUDER homing requires different handling of movement / solenoid activation, depending on the side of homing
+      #if ENABLED(PARKING_EXTRUDER)
+        const bool pe_final_change_must_unpark = parking_extruder_unpark_after_homing(old_tool_index, X_HOME_DIR + 1 == old_tool_index * 2);
+      #endif
+      tool_change(0, true);
     #endif
-    tool_change(0, true);
   #endif
 
   TERN_(HAS_DUPLICATION_MODE, set_duplication_enabled(false));
 
+  // Homing feedrate
+  float fr_mm_s = no_change ? feedrate_mm_s : 0.0f;
   remember_feedrate_scaling_off();
 
   endstops.enable(true); // Enable endstops for next homing move
@@ -486,11 +530,7 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
     // Home Y (before X)
     if (ENABLED(HOME_Y_BEFORE_X) && (doY || TERN0(CODEPENDENT_XY_HOMING, doX)))
-      homeaxis(Y_AXIS
-      #if ENABLED(PRECISE_HOMING)
-        , 0.0f, false, !parser.seen('D')
-      #endif
-      );
+      homeaxis(Y_AXIS, fr_mm_s, false OPTARG(PRECISE_HOMING, !parser.seen('D')));
 
     // Home X
     if (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X))) {
@@ -513,11 +553,7 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
       #else
 
-        homeaxis(X_AXIS
-          #if ENABLED(PRECISE_HOMING)
-            , 0.0f, false, !parser.seen('D')
-          #endif
-        );
+        homeaxis(X_AXIS, fr_mm_s, false OPTARG(PRECISE_HOMING, !parser.seen('D')));
 
       #endif
     }
@@ -529,18 +565,19 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
     // Home Y (after X)
     if (DISABLED(HOME_Y_BEFORE_X) && doY)
-      homeaxis(Y_AXIS
-        #if ENABLED(PRECISE_HOMING)
-          , 0.0f, false, !parser.seen('D')
-        #endif
-      );
+      homeaxis(Y_AXIS, fr_mm_s, false OPTARG(PRECISE_HOMING, !parser.seen('D')));
 
     #if BOTH(FOAMCUTTER_XYUV, HAS_J_AXIS)
       // Home J (after Y)
       if (doJ) homeaxis(J_AXIS);
     #endif
 
-    TERN_(IMPROVE_HOMING_RELIABILITY, end_slow_homing(saved_motion_state));
+    #if ENABLED(PRECISE_HOMING_COREXY)
+      // absolute refinement requires both axes to be already probed
+      if (doX && doY && precise) refine_corexy_origin();
+    #endif
+
+    TERN_(IMPROVE_HOMING_RELIABILITY, if(!no_change) end_slow_homing(saved_motion_state));
 
     #if ENABLED(FOAMCUTTER_XYUV)
       // skip homing of unused Z axis for foamcutters
@@ -553,6 +590,11 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
           #if EITHER(Z_MULTI_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
             stepper.set_all_z_lock(false);
             stepper.set_separate_multi_axis(false);
+          #endif
+
+          #if ENABLED(PRUSA_TOOLCHANGER)
+            // when toolchanger is enabled, pick Tool 0 before homing
+            tool_change(0, tool_return_t::no_move);
           #endif
 
           #if ENABLED(Z_SAFE_HOMING)
@@ -573,6 +615,14 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
         if (doV) homeaxis(V_AXIS),
         if (doW) homeaxis(W_AXIS)
       );
+    #endif
+
+    #if HAS_HOTEND_OFFSET
+      if(doZ) {
+        // After establishing the zero position for _this_ tool, apply the current Z offset so that
+        // the machine Z position is always relative to reference (tool zero).
+        current_position.z += hotend_currently_applied_offset.z;
+      }
     #endif
 
     sync_plan_position();
@@ -626,8 +676,14 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   restore_feedrate_and_scaling();
 
   // Restore the active tool after homing
-  #if HAS_MULTI_HOTEND && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE))
+  #if HAS_MULTI_HOTEND && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE)) && DISABLED(PRUSA_TOOLCHANGER)
     tool_change(old_tool_index, TERN(PARKING_EXTRUDER, !pe_final_change_must_unpark, DISABLED(DUAL_X_CARRIAGE)));   // Do move if one of these
+  #endif
+  #if ENABLED(PRUSA_TOOLCHANGER)
+    // Restore tool (if one was picked)
+    if(old_tool_index != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+      tool_change(old_tool_index, tool_return_t::no_move);
+    }
   #endif
 
   #if HAS_HOMING_CURRENT

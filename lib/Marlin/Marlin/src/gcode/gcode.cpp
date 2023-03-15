@@ -25,8 +25,6 @@
  *             Most will migrate to classes, by feature.
  */
 
-// clang-format off
-
 #include "gcode.h"
 GcodeSuite gcode;
 
@@ -48,8 +46,16 @@ GcodeSuite gcode;
   #include "../feature/power_loss_recovery.h"
 #endif
 
+#if ENABLED(CANCEL_OBJECTS)
+  #include "../feature/cancel_object.h"
+#endif
+
 #if ENABLED(CRASH_RECOVERY)
   #include "../feature/prusa/crash_recovery.h"
+#endif
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+  #include "module/prusa/toolchanger.h"
 #endif
 
 #include "../Marlin.h" // for idle() and suspend_auto_report
@@ -88,7 +94,13 @@ uint8_t GcodeSuite::axis_relative = (
 int8_t GcodeSuite::get_target_extruder_from_command() {
   if (parser.seenval('T')) {
     const int8_t e = parser.value_byte();
-    if (e < EXTRUDERS) return e;
+
+    bool valid_extruder = (e < EXTRUDERS);
+    #if ENABLED(PRUSA_TOOLCHANGER)
+      valid_extruder = valid_extruder && prusa_toolchanger.is_tool_enabled(e);
+    #endif
+    if (valid_extruder) return e;
+
     SERIAL_ECHO_START();
     SERIAL_CHAR('M'); SERIAL_ECHO(parser.codenum);
     SERIAL_ECHOLNPAIR(" " MSG_INVALID_EXTRUDER " ", int(e));
@@ -122,11 +134,20 @@ int8_t GcodeSuite::get_target_e_stepper_from_command() {
  *  - Set the feedrate, if included
  */
 void GcodeSuite::get_destination_from_command() {
+  #if ENABLED(CANCEL_OBJECTS)
+    const bool &skip_move = cancelable.skipping;
+  #else
+    constexpr bool skip_move = false;
+  #endif
+
   xyze_bool_t seen = { false, false, false, false };
   LOOP_XYZE(i) {
     if ( (seen[i] = parser.seenval(axis_codes[i])) ) {
       const float v = parser.value_axis_units((AxisEnum)i);
-      destination[i] = axis_is_relative(AxisEnum(i)) ? current_position[i] + v : (i == E_AXIS) ? v : LOGICAL_TO_NATIVE(v, i);
+      if (skip_move)
+        destination[i] = current_position[i];
+      else
+        destination[i] = axis_is_relative(AxisEnum(i)) ? current_position[i] + v : (i == E_AXIS) ? v : LOGICAL_TO_NATIVE(v, i);
     }
     else
       destination[i] = current_position[i];
@@ -144,7 +165,7 @@ void GcodeSuite::get_destination_from_command() {
     feedrate_mm_s = parser.value_feedrate();
 
   #if ENABLED(PRINTCOUNTER)
-    if (!DEBUGGING(DRYRUN))
+    if (!DEBUGGING(DRYRUN) && !skip_move)
       print_job_timer.incFilamentUsed(destination.e - current_position.e);
   #endif
 
@@ -216,7 +237,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
     if (process_parsed_command_custom(/*no_ok=*/no_ok))
       return;
   #endif
-  
+
   // Handle a known G, M, or T
   switch (parser.command_letter) {
     case 'G': switch (parser.codenum) {
@@ -318,6 +339,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 59: G59(); break;
       #endif
 
+      #if ENABLED(ADVANCED_HOMING)                                //G65: Advanced Homing/measurment cycle
+        case 65: G65(); break;
+      #endif
+
       #if ENABLED(GCODE_MOTION_MODES)
         case 80: G80(); break;                                    // G80: Reset the current motion mode
       #endif
@@ -405,6 +430,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       case 31: M31(); break;                                      // M31: Report time since the start of SD print or last M109
       case 42: M42(); break;                                      // M42: Change pin state
+      case 46: M46(); break;                                      // M46: Report ip4 address
 
       #if ENABLED(PINS_DEBUGGING)
         case 43: M43(); break;                                    // M43: Read pin state
@@ -518,6 +544,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 119: M119(); break;                                    // M119: Report endstop states
       case 120: M120(); break;                                    // M120: Enable endstops
       case 121: M121(); break;                                    // M121: Disable endstops
+
+      #if HAS_TEMP_HEATBREAK_CONTROL
+        case 142: M142(); break;
+      #endif
 
       #if HOTENDS && HAS_LCD_MENU
         case 145: M145(); break;                                  // M145: Set material heatup parameters
@@ -719,6 +749,11 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       case 555: M555(); break;                                    // M555: Set print area
 
+      #if ENABLED(MODULAR_HEATBED)
+        case 556: M556(); break;                                  // M556: Override modular bedled active
+        case 557: M557(); break;                                  // M557: Set modular bed gradient parameters
+      #endif
+
       #if ENABLED(BAUD_RATE_GCODE)
         case 575: M575(); break;                                  // M575: Set serial baudrate
       #endif
@@ -808,6 +843,10 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 355: M355(); break;                                  // M355: Set case light brightness
       #endif
 
+      #if ENABLED(CANCEL_OBJECTS)
+        case 486: M486(); break;                                  // M486: Identify and cancel objects
+      #endif
+
       #if ENABLED(DEBUG_GCODE_PARSER)
         case 800: parser.debug(); break;                          // M800: GCode Parser Test for M
       #endif
@@ -849,7 +888,9 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
     break;
 
     case 'T': T(parser.codenum); break;                           // Tn: Tool Change
-
+#if ENABLED(REDIRECT_GCODE_SUPPORT)
+    case 'R': R(parser.codenum); break;                           // Rn: Redirect command
+#endif
     default: parser.unknown_command_error();
   }
 

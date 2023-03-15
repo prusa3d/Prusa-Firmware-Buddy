@@ -63,7 +63,7 @@ StatusPage JobCommand::process() {
     Command pause_command = Command::ErrUnknownCommand;
     Command top_command = Command::ErrUnknownCommand;
 
-    const auto parse_result = parse_command(reinterpret_cast<char *>(buffer.data()), buffer_used, [&](const Event &event) {
+    const auto parse_result = parse_command(reinterpret_cast<const char *>(buffer.data()), buffer_used, [&](const Event &event) {
         if (event.depth != 1 || event.type != Type::String) {
             return;
         }

@@ -9,6 +9,7 @@
 #include "ScreenShot.hpp"
 #include "selftest_state_names.hpp"
 #include "selftest_result_type.hpp"
+#include "selftest_loadcell_type.hpp"
 
 #include <dirent.h>
 
@@ -49,18 +50,19 @@ static void LoadUnloadTest() {
         WaitAndShot(get_selftest_state_name(i));
     }
 
+    //alternative state for Loadcell_user_tap_ask_abort
+    SelftestLoadcell_t loadcell_data;
+    loadcell_data.pressed_too_soon = true;
+    data.SetData(loadcell_data.Serialize());
+    data.SetPhase(int(PhasesSelftest::Loadcell_user_tap_ask_abort) - int(PhasesSelftest::_first));
+    //push change
+    var = fsm::variant_t(fsm::change_t(ClientFSM::Selftest, data));
+    DialogHandler::Command(var.u32, var.u16);
+    WaitAndShot("Loadcell_user_tap_ask_abort__soon");
+
     //alternative stated for Result (default state is unknown == some tests did not pass)
-    SelftestResult_t result_data;
     data.SetPhase(int(PhasesSelftest::Result) - int(PhasesSelftest::_first));
-    //passed
-    result_data.printFan = TestResult_t::Passed;
-    result_data.heatBreakFan = TestResult_t::Passed;
-    result_data.xaxis = TestResult_t::Passed;
-    result_data.yaxis = TestResult_t::Passed;
-    result_data.zaxis = TestResult_t::Passed;
-    result_data.nozzle = TestResult_t::Passed;
-    result_data.bed = TestResult_t::Passed;
-    data.SetData(result_data.Serialize());
+    data.SetData(FsmSelftestResult(0xaa).Serialize()); // 0xaa is 4 times Passed state
     //push change
     var = fsm::variant_t(fsm::change_t(ClientFSM::Selftest, data));
     DialogHandler::Command(var.u32, var.u16);
@@ -75,14 +77,7 @@ static void LoadUnloadTest() {
 
     //1x failed
     data.SetPhase(int(PhasesSelftest::Result) - int(PhasesSelftest::_first));
-    result_data.printFan = TestResult_t::Failed;
-    result_data.heatBreakFan = TestResult_t::Passed;
-    result_data.xaxis = TestResult_t::Passed;
-    result_data.yaxis = TestResult_t::Passed;
-    result_data.zaxis = TestResult_t::Passed;
-    result_data.nozzle = TestResult_t::Passed;
-    result_data.bed = TestResult_t::Passed;
-    data.SetData(result_data.Serialize());
+    data.SetData(FsmSelftestResult(0xa8).Serialize()); //3 passed, one failed
     //push change
     var = fsm::variant_t(fsm::change_t(ClientFSM::Selftest, data));
     DialogHandler::Command(var.u32, var.u16);

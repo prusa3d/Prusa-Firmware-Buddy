@@ -1,5 +1,5 @@
 #pragma once
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "eeprom.h"
 #include <optional>
 

@@ -21,6 +21,35 @@
             "windows": {
                 "command": "python ${workspaceFolder}\\.vscode\\prepare_simulator_dir.py ${workspaceFolder}\\build-vscode-buddy ${workspaceFolder}\\build-vscode-buddy\\simulator"
             }
-        }
+        },
+        {
+            "label": "Wait 1",
+            "type": "shell",
+            "command": "sleep 1",
+            "hide": true,
+            "windows": {
+                "command": "ping 127.0.0.1 -n 1 > $null"
+            }
+        },
+        {
+            "label": "Wait 2",
+            "type": "shell",
+            "command": "sleep 2",
+            "hide": true,
+            "windows": {
+                "command": "ping 127.0.0.1 -n 2 > $null"
+            }
+        },
+        {
+            "label": "Backup current ELF",
+            "type": "shell",
+            "command": "python3 utils/backup_elf.py",
+            "windows": {
+                "command": "python utils/backup_elf.py",
+            },
+            "presentation": {
+                "reveal": "silent",
+            }
+        },
     ]
 }

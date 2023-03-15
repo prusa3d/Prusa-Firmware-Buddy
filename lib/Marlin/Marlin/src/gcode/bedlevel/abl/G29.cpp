@@ -55,6 +55,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {}
   #include "../../../libs/vector_3.h"
 #endif
 
+#if ENABLED(NOZZLE_LOAD_CELL)
+  #include "feature/prusa/loadcell.h"
+#endif
+
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../../../core/debug_out.h"
 
@@ -165,7 +169,8 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {}
  *
  */
 G29_TYPE GcodeSuite::G29() {
-    MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN();
+  MINDA_BROKEN_CABLE_DETECTION__MBL_BEGIN();
+
   #if EITHER(DEBUG_LEVELING_FEATURE, PROBE_MANUALLY)
     const bool seenQ = parser.seen('Q');
   #else

@@ -10,6 +10,7 @@
 #include <cstddef> //size_t
 #include "guiconfig.h"
 #include <array>
+#include <option/has_side_fsensor.h>
 
 // sadly this must be macros, it is used in preprocessor
 #if (defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
@@ -17,6 +18,12 @@
     #define FOOTER_HAS_SHEETS
     #define FOOTER_LINES__          2
     #define FOOTER_ITEMS_PER_LINE__ 3
+#else // if defined(USE_ILI9488)
+    #if (defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_XL)
+        #define FOOTER_HAS_TOOL_NR
+    #endif
+    #define FOOTER_LINES__          1
+    #define FOOTER_ITEMS_PER_LINE__ 5
 #endif
 
 namespace footer {
@@ -45,9 +52,20 @@ enum class items : uint8_t { // stored in eeprom, must be small
 #if defined(FOOTER_HAS_LIVE_Z)
     ItemLiveZ,
 #endif
+    ItemHeatbreak,
 #if defined(FOOTER_HAS_SHEETS)
     ItemSheets,
 #endif
+#if HAS_MMU2
+    ItemFinda,
+#endif
+#if defined(FOOTER_HAS_TOOL_NR)
+    ItemCurrentTool,
+    ItemAllNozzles,
+#endif
+#if HAS_SIDE_FSENSOR()
+    ItemFSensorSide,
+#endif /*HAS_SIDE_FSENSOR()*/
     count_
 };
 
@@ -61,6 +79,14 @@ static constexpr record DefaultItems = { { items::ItemSpeed,
     items::ItemZHeight,
     items::ItemFilament } };
 #endif // FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
+
+#if FOOTER_LINES__ == 1 && FOOTER_ITEMS_PER_LINE__ == 5
+static constexpr record DefaultItems = { { items::ItemNozzle,
+    items::ItemBed,
+    items::ItemFilament,
+    items::count_,
+    items::count_ } };
+#endif // FOOTER_LINES__ == 1 && FOOTER_ITEMS_PER_LINE__ == 5
 
 enum class ItemDrawType : uint8_t {
     Static,            // numbers at fixed positions

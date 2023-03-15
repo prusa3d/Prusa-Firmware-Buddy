@@ -4,10 +4,11 @@
 #include "hwio.h"
 #include "wizard_config.hpp"
 #include "selftest_log.hpp"
-#include "fanctl.h"
+#include "fanctl.hpp"
 #include "../../Marlin/src/module/temperature.h"
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"
+#include <option/has_toolchanger.h>
 
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);
@@ -27,16 +28,6 @@ CSelftestPart_Heater::CSelftestPart_Heater(IPartHandler &state_machine, const He
     , storedKd(config.refKd)
     , last_progress(0)
     , log(2000) {
-
-    //looked into marlin and it seems all PID values are used as numerator
-    //switch regulator into on/off mode
-    config.refKp = 1000000;
-    config.refKi = 0;
-    config.refKd = 0;
-    thermalManager.updatePID();
-    log_info(Selftest, "%s Started");
-    log_info(Selftest, "target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
-    log_info(Selftest, "%s heater PID regulator changed to P regulator", m_config.partname);
 }
 
 CSelftestPart_Heater::~CSelftestPart_Heater() {
@@ -55,6 +46,26 @@ uint32_t CSelftestPart_Heater::estimate(const HeaterConfig_t &config) {
 }
 
 LoopResult CSelftestPart_Heater::stateStart() {
+#if HAS_TOOLCHANGER()
+    // if this tool is not enabled, end this test immediately and set result to undefined
+    if (!prusa_toolchanger.is_tool_enabled(m_config.tool_nr)) {
+        m_StartTime = m_EndTime = SelftestInstance().GetTime();
+        rResult.prep_state = SelftestSubtestState_t::undef;
+        rResult.heat_state = SelftestSubtestState_t::undef;
+        return LoopResult::Abort;
+    }
+#endif
+
+    //looked into marlin and it seems all PID values are used as numerator
+    //switch regulator into on/off mode
+    m_config.refKp = 1000000;
+    m_config.refKi = 0;
+    m_config.refKd = 0;
+    thermalManager.updatePID();
+    log_info(Selftest, "%s Started");
+    log_info(Selftest, "target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
+    log_info(Selftest, "%s heater PID regulator changed to P regulator", m_config.partname);
+
     m_StartTime = SelftestInstance().GetTime();
     m_EndTime = m_StartTime + estimate(m_config);
     //m_TempDiffSum = 0;

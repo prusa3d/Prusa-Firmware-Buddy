@@ -2,7 +2,7 @@
 #include "rtos_api.hpp"
 #include "semphr.h"
 
-// uncomment this to get buffer size as compile time error message
+// uncomment this to get buffer size ass compile time error message
 // char (*__give_me_buffere_size)[sizeof( StaticSemaphore_t )] = 1;
 // use that size in header as buffer_size
 

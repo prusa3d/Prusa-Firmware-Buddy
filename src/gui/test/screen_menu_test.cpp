@@ -44,7 +44,7 @@ MI_RESULT_TEST::MI_RESULT_TEST()
 
 void MI_RESULT_TEST::click(IWindowMenu &window_menu) {
 #if HAS_SELFTEST
-    Screens::Access()->Open(ScreenFactory::Screen<TestResult>);
+    Screens::Access()->Open(ScreenFactory::Screen<TestResultScreen>);
 #endif // HAS_SELFTEST
 }
 

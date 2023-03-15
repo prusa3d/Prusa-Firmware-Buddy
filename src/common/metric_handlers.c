@@ -8,6 +8,7 @@
 #include "timing.h"
 #include "syslog.h"
 #include "otp.h"
+#include "sensor_data_buffer.h"
 
 #define TEXTPROTOCOL_POINT_MAXLEN 63
 #define BUFFER_OLD_MS             1000 // after how many ms we flush the buffer
@@ -70,12 +71,13 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
 //
 
 // TODO: encapsulate huart6 access in hwio.h (and get rid of externs!)
-extern UART_HandleTypeDef huart6;
+// extern UART_HandleTypeDef huart6;
 
 static void uart_send_line(const char *line) {
     // TODO: Use DMA
-    HAL_UART_Transmit(&huart6, (uint8_t *)line, strlen(line), HAL_MAX_DELAY);
-    HAL_UART_Transmit(&huart6, (uint8_t *)"\r\n", 2, HAL_MAX_DELAY);
+    // @@TODO solve usart clash with MMU
+    //    HAL_UART_Transmit(&huart6, (uint8_t *)line, strlen(line), HAL_MAX_DELAY);
+    //    HAL_UART_Transmit(&huart6, (uint8_t *)"\r\n", 2, HAL_MAX_DELAY);
 }
 
 static void uart_handler(metric_point_t *point) {
@@ -113,31 +115,28 @@ static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp)
     // https://tools.ietf.org/html/rfc5424
     return snprintf(
         buffer, buffer_len,
-        "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=2 ",
+        "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=3 ",
         facility * 8 + severity, otp_get_mac_address_str(), appname, message_id++, timestamp);
 }
 
 static void syslog_handler(metric_point_t *point) {
-    static uint32_t buffer_oldest_timestamp = 0;
-    static uint32_t buffer_newest_timestamp = 0;
+    static uint32_t buffer_reference_timestamp = 0;
     static char buffer_has_header = false;
     static char buffer[1024] __attribute__((section(".ccmram")));
     static unsigned int buffer_used = 0;
 
     if (!buffer_has_header) {
-        buffer_oldest_timestamp = point->timestamp;
-        buffer_newest_timestamp = point->timestamp;
-        buffer_used = syslog_message_init(buffer, sizeof(buffer), buffer_oldest_timestamp);
+        buffer_reference_timestamp = ticks_ms();
+        buffer_used = syslog_message_init(buffer, sizeof(buffer), buffer_reference_timestamp);
         buffer_has_header = true;
     }
 
-    int timestamp_diff = point->timestamp - buffer_newest_timestamp;
+    int timestamp_diff = ticks_diff(point->timestamp, buffer_reference_timestamp);
     buffer_used += textprotocol_append_point(
         buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
-    buffer_newest_timestamp = point->timestamp;
 
     bool buffer_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
-    bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_oldest_timestamp) > BUFFER_OLD_MS;
+    bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_reference_timestamp) > BUFFER_OLD_MS;
 
     // send the buffer if it's full or old enough
     if (buffer_full || buffer_becoming_old) {
@@ -168,4 +167,11 @@ metric_handler_t metric_handler_syslog = {
     .name = "SYSLOG",
     .on_metric_registered_fn = NULL,
     .handle_fn = syslog_handler,
+};
+
+metric_handler_t metric_handler_info_screen = {
+    .identifier = METRIC_HANDLER_INFO_SCREEN,
+    .name = "SENSOR_INFO_SCREEN",
+    .on_metric_registered_fn = NULL,
+    .handle_fn = info_screen_handler,
 };

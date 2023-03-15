@@ -15,4 +15,24 @@ target_sources(
           selftest_heaters_interface.cpp
           selftest_netstatus_interface.cpp
           selftest_part.cpp
+          selftest_tool_helper.cpp
   )
+
+if(HAS_LOADCELL)
+  target_sources(firmware PRIVATE selftest_loadcell.cpp selftest_loadcell_interface.cpp)
+endif()
+
+if(HAS_ADVANCED_POWER)
+  target_sources(firmware PRIVATE power_check.cpp power_check_both.cpp)
+endif()
+
+if(FILAMENT_SENSOR STREQUAL ADC)
+  target_sources(firmware PRIVATE selftest_fsensor.cpp selftest_fsensor_interface.cpp)
+endif()
+
+if(HAS_PUPPIES)
+  target_sources(
+    firmware PRIVATE selftest_kennel.cpp selftest_kennel_interface.cpp selftest_tool_offsets.cpp
+                     selftest_tool_offsets_interface.cpp
+    )
+endif()

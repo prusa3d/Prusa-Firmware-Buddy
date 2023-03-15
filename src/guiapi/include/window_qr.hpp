@@ -6,9 +6,9 @@
 
 class window_qr_t : public AddSuperWindow<window_t> {
 public:
-    window_qr_t(window_t *parent, Rect16 rect, uint16_t error_num);
+    window_qr_t(window_t *parent, Rect16 rect, uint16_t error_num, Align_t align = Align_t::Center());
     window_qr_t(window_t *parent, Rect16 rect, const char *txt);
-    window_qr_t(window_t *parent, Rect16 rect);
+    window_qr_t(window_t *parent, Rect16 rect, Align_t align = Align_t::LeftTop());
 
     static constexpr uint16_t MAX_LEN_4QR = 256;
     void SetQRHeader(uint16_t err_num);

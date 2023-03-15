@@ -3,6 +3,8 @@
 
 #include <inttypes.h>
 
+#undef CHANGE /// collision with Arduino macro
+
 //window events
 enum class GUI_event_t {
     LOOP = 1,      // gui loop (every 50ms)
@@ -27,7 +29,9 @@ enum class GUI_event_t {
     MEDIA,         // marlin media change
     GUI_STARTUP,   // finish splash screen => initialization finish
     CHILD_CHANGED, // notify parent about child window change, bahavior depends on implementation
-    REINIT_FOOTER  // forces reinitialization of all footers in GUI
+    REINIT_FOOTER, // forces reinitialization of all footers in GUI
+    TOUCH,         // event from touch screen
+    HEADER_COMMAND // commands header to do something
 };
 
 // lower lever knob events
@@ -48,6 +52,7 @@ constexpr bool GUI_event_IsCaptureEv(GUI_event_t event) {
     case GUI_event_t::ENC_UP:
     case GUI_event_t::CLICK:
     case GUI_event_t::HOLD:
+    case GUI_event_t::TOUCH:
         return true;
     default:
         return false;
@@ -122,6 +127,10 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
         return "child changed";
     case GUI_event_t::REINIT_FOOTER:
         return "footers items invalid";
+    case GUI_event_t::TOUCH:
+        return "touch";
+    case GUI_event_t::HEADER_COMMAND:
+        return "header command";
     }
 
     return "error bad index";

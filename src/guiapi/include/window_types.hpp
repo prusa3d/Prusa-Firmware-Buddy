@@ -69,8 +69,8 @@ union WindowFlags {
         bool blink0 : 1;                           // 11 - for 2 state blinking
         bool blink1 : 1;                           // 12 - for 4 state blinking
         bool has_long_hold_screen_action : 1;      // 13 - screen will use default callback for long press
-        bool has_icon : 1;                         // 14 - optional icon for window
-        bool custom2 : 1;                          // 15 - this flag can be defined in child class
+        bool has_icon : 1;                         // 14 - optional or alternative icon for window
+        bool has_round_corners : 1;                // 15 - window has round corners with default corner radius
         bool custom1 : 1;                          // 16 - this flag can be defined in child class
         bool custom0 : 1;                          // 17 - this flag can be defined in child class
         union {                                    // 18 .. 1F - 8bit variable used in child classes

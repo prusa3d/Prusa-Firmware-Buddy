@@ -34,4 +34,5 @@ struct Pixel {
 
     Pixel(const uint8_t data[3]);
     void SwapBlueAndRed();
+    void ShiftColorsUp(int bits);
 };

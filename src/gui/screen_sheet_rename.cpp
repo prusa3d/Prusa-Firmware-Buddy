@@ -1,5 +1,6 @@
 #include "screen_sheet_rename.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenFactory.hpp"
 #include "log.h"
 #include "SteelSheets.hpp"
 

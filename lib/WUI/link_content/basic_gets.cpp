@@ -1,6 +1,6 @@
 #include "basic_gets.h"
-#include "filament.h" //get_selected_filament_name
-#include "marlin_client.h"
+#include "filament.hpp"
+#include "marlin_client.hpp"
 #include "lwip/init.h"
 #include "netdev.h"
 
@@ -9,6 +9,7 @@
 #include <dirent.h>
 #include <cstring>
 #include <cstdio>
+#include "printers.h"
 
 using namespace json;
 namespace nhttp::link_content {
@@ -19,7 +20,8 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
     marlin_vars_t *vars = marlin_vars();
-    const char *filament_material = get_selected_filament_name();
+    auto filament = filament::get_type_in_extruder(vars->active_extruder);
+    const char *filament_material = filament::get_description(filament).name;
 
     bool operational = true;
     bool paused = false;
@@ -31,13 +33,12 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     bool error = false;
     const char *link_state = nullptr;
 
-    marlin_update_vars(MARLIN_VAR_MSK_TEMP_ALL | MARLIN_VAR_MSK4(MARLIN_VAR_PRNSPEED, MARLIN_VAR_POS_Z, MARLIN_VAR_PRNSPEED, MARLIN_VAR_PRNSTATE));
-
     switch (vars->print_state) {
     case mpsCrashRecovery_Begin:
     case mpsCrashRecovery_Lifting:
     case mpsCrashRecovery_Retracting:
     case mpsCrashRecovery_XY_Measure:
+    case mpsCrashRecovery_Tool_Pickup:
     case mpsCrashRecovery_XY_HOME:
     case mpsCrashRecovery_Axis_NOK:
     case mpsCrashRecovery_Repeated_Crash:
@@ -108,20 +109,20 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     JSON_OBJ_START;
         JSON_FIELD_OBJ("telemetry");
             JSON_FIELD_FFIXED("temp-bed", vars->temp_bed, 1) JSON_COMMA;
-            JSON_FIELD_FFIXED("temp-nozzle", vars->temp_nozzle, 1) JSON_COMMA;
+            JSON_FIELD_FFIXED("temp-nozzle", vars->active_hotend().temp_nozzle, 1) JSON_COMMA;
             JSON_FIELD_INT("print-speed", vars->print_speed) JSON_COMMA;
             // XYZE, mm
-            JSON_FIELD_FFIXED("z-height", vars->pos[2], 1) JSON_COMMA;
+            JSON_FIELD_FFIXED("z-height", vars->curr_pos[2], 1) JSON_COMMA;
             JSON_FIELD_STR("material", filament_material);
         JSON_OBJ_END JSON_COMMA;
 
         JSON_FIELD_OBJ("temperature");
             JSON_FIELD_OBJ("tool0");
-                JSON_FIELD_FFIXED("actual", vars->temp_nozzle, 1) JSON_COMMA;
-                JSON_FIELD_FFIXED("target", vars->target_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("actual", vars->hotend(0).temp_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("target", vars->hotend(0).target_nozzle, 1) JSON_COMMA;
                 // Note: our own extension, because our printers sometimes display
                 // different "target" temperature than what they heat towards.
-                JSON_FIELD_FFIXED("display", vars->display_nozzle, 1) JSON_COMMA;
+                JSON_FIELD_FFIXED("display", vars->hotend(0).display_nozzle, 1) JSON_COMMA;
                 JSON_FIELD_INT("offset", 0);
             JSON_OBJ_END JSON_COMMA;
             JSON_FIELD_OBJ("bed");
@@ -183,7 +184,6 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
     marlin_vars_t *vars = marlin_vars();
-    marlin_update_vars(MARLIN_VAR_MSK5(MARLIN_VAR_PRNSTATE, MARLIN_VAR_DURATION, MARLIN_VAR_TIMTOEND, MARLIN_VAR_FILEPATH, MARLIN_VAR_SD_PDONE));
 
     bool has_job = false;
     const char *state = "Unknown";
@@ -200,6 +200,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     case mpsCrashRecovery_Lifting:
     case mpsCrashRecovery_Retracting:
     case mpsCrashRecovery_XY_Measure:
+    case mpsCrashRecovery_Tool_Pickup:
     case mpsCrashRecovery_XY_HOME:
     case mpsCrashRecovery_Axis_NOK:
     case mpsCrashRecovery_Repeated_Crash:
@@ -248,6 +249,14 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
         break;
     }
 
+    char lfn_buffer[FILE_NAME_MAX_LEN];
+    char sfn_buffer[FILE_PATH_MAX_LEN];
+    {
+        auto lock = MarlinVarsLockGuard();
+        marlin_vars()->media_LFN.copy_to(lfn_buffer, sizeof(lfn_buffer), lock);
+        marlin_vars()->media_SFN_path.copy_to(sfn_buffer, sizeof(sfn_buffer), lock);
+    }
+
     // Keep the indentation of the JSON in here!
     // clang-format off
     JSON_START;
@@ -257,9 +266,9 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
             JSON_FIELD_OBJ("job");
                 JSON_FIELD_INT("estimatedPrintTime", vars->print_duration + vars->time_to_end) JSON_COMMA;
                 JSON_FIELD_OBJ("file")
-                    JSON_FIELD_STR("name", vars->media_LFN) JSON_COMMA;
-                    JSON_FIELD_STR("path", vars->media_SFN_path) JSON_COMMA;
-                    JSON_FIELD_STR("display", vars->media_LFN);
+                    JSON_FIELD_STR("name", lfn_buffer) JSON_COMMA;
+                    JSON_FIELD_STR("path", sfn_buffer) JSON_COMMA;
+                    JSON_FIELD_STR("display", lfn_buffer);
                 JSON_OBJ_END;
             JSON_OBJ_END JSON_COMMA;
             JSON_FIELD_OBJ("progress");

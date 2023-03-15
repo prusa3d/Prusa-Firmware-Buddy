@@ -1,9 +1,10 @@
 /*****************************************************************************/
-//Screen openning menu items
+// Screen openning menu items
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
 #include "eeprom.h"
+#include <option/has_toolchanger.h>
 
 class MI_VERSION_INFO : public WI_LABEL_t {
     static constexpr const char *const label = N_("Version Info");
@@ -55,14 +56,24 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FAIL_STAT_disabled : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Fail Stats");
+class MI_STATISTIC_disabled : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Statistic");
 
 public:
-    MI_FAIL_STAT_disabled();
+    MI_STATISTIC_disabled();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override {}
+};
+
+class MI_FAIL_STAT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Fail Stats");
+
+public:
+    MI_FAIL_STAT();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
 };
 
 class MI_SUPPORT_disabled : public WI_LABEL_t {
@@ -146,7 +157,7 @@ protected:
 };
 
 class MI_MESSAGES : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Messages");
+    static constexpr const char *const label = N_("Message History");
 
 public:
     MI_MESSAGES();
@@ -208,7 +219,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_DEVHASH_IN_QR : public WI_SWITCH_OFF_ON_t {
+class MI_DEVHASH_IN_QR : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Device Hash in QR");
 
 public:
@@ -217,13 +228,31 @@ public:
 };
 
 class MI_FOOTER_SETTINGS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Footer Settings");
+    static constexpr const char *const label = N_("Footer");
 
 public:
     MI_FOOTER_SETTINGS();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_WAVETABLE_XYZ : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Change Wave Table XYZ");
+
+public:
+    MI_WAVETABLE_XYZ();
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_INDEPT_STEP : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Independent Stepping");
+
+public:
+    MI_INDEPT_STEP();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
 };
 
 class MI_FOOTER_SETTINGS_ADV : public WI_LABEL_t {
@@ -247,7 +276,7 @@ protected:
 };
 
 class MI_EEPROM_DIAGNOSTICS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Experimental Settings");
+    static constexpr const char *const label = N_("Eeprom Diagnostics");
 
 public:
     MI_EEPROM_DIAGNOSTICS();
@@ -257,7 +286,7 @@ protected:
 };
 
 class MI_LANGUAGUE_USB : public WI_LABEL_t {
-    static constexpr const char *const label = "Load lang from USB";
+    static constexpr const char *const label = "Load Lang from USB";
 
 public:
     MI_LANGUAGUE_USB();
@@ -267,7 +296,7 @@ protected:
 };
 
 class MI_LOAD_LANG : public WI_LABEL_t {
-    static constexpr const char *const label = "load lang to XFLASH";
+    static constexpr const char *const label = "Load Lang to XFLASH";
 
 public:
     MI_LOAD_LANG();
@@ -277,10 +306,119 @@ protected:
 };
 
 class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
-    static constexpr const char *const label = "Load lang from XFLASH";
+    static constexpr const char *const label = "Load Lang from XFLASH";
 
 public:
     MI_LANGUAGUE_XFLASH();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_DIAGNOSTICS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Diagnostics");
+
+public:
+    MI_DIAGNOSTICS();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_USER_INTERFACE_IN_SETTINGS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("User Interface");
+
+public:
+    MI_USER_INTERFACE_IN_SETTINGS();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_USER_INTERFACE_IN_TUNE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("User Interface");
+
+public:
+    MI_USER_INTERFACE_IN_TUNE();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_LANG_AND_TIME : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Language & Time");
+
+public:
+    MI_LANG_AND_TIME();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_LOAD_SETTINGS : public WI_LABEL_t {
+    constexpr static const char *const label = N_("Load Settings from File");
+
+public:
+    MI_LOAD_SETTINGS();
+
+    virtual void click(IWindowMenu &) override;
+};
+
+class MI_NETWORK : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Network");
+
+public:
+    MI_NETWORK();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_HARDWARE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Hardware");
+
+public:
+    MI_HARDWARE();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_HARDWARE_TUNE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Hardware");
+
+public:
+    MI_HARDWARE_TUNE();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_SYSTEM : public WI_LABEL_t {
+    static constexpr const char *const label = N_("System");
+
+public:
+    MI_SYSTEM();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_PRINT_STATISTICS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Print Statistics");
+
+public:
+    MI_PRINT_STATISTICS();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_INFO : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Info");
+
+public:
+    MI_INFO();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
@@ -296,20 +434,79 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_NETWORK : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Network");
-
-public:
-    MI_NETWORK();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
-class MI_USB_MSC_ENABLE : public WI_SWITCH_OFF_ON_t {
+class MI_USB_MSC_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static char const *label = "USB MSC";
 
 public:
     MI_USB_MSC_ENABLE();
     virtual void OnChange(size_t old_index) override;
+};
+#if HAS_LEDS
+class MI_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("RGB Status Bar");
+
+public:
+    MI_LEDS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
+class MI_TOOLS_SETUP : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Tools");
+
+public:
+    MI_TOOLS_SETUP();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_TRIGGER_POWER_PANIC : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Trigger Power Panic");
+
+public:
+    MI_TRIGGER_POWER_PANIC();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_CALIBRATE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Calibrate");
+
+public:
+    MI_CALIBRATE();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_PICK_PARK_TOOL : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Pick/Park Tool");
+
+public:
+    MI_PICK_PARK_TOOL();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_CALIBRATE_KENNEL : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Calibrate Kennel Position");
+
+public:
+    MI_CALIBRATE_KENNEL();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_SELFTEST_SNAKE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Calibrations & Tests");
+
+public:
+    MI_SELFTEST_SNAKE();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
 };

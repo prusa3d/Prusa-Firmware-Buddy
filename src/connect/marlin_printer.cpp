@@ -10,7 +10,7 @@
 #include <netdev.h>
 #include <print_utils.hpp>
 #include <wui_api.h>
-#include <filament.h> //get_selected_filament_name
+#include <filament.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -96,9 +96,9 @@ namespace {
     }
 
     // "Make up" some semi-unique, semi-stable serial number.
-    uint8_t synthetic_serial(char sn[Printer::PrinterInfo::SER_NUM_BUFR_LEN]) {
-        memset(sn, 0, Printer::PrinterInfo::SER_NUM_BUFR_LEN);
-        strlcpy(sn, "DEVX", Printer::PrinterInfo::SER_NUM_BUFR_LEN);
+    uint8_t synthetic_serial(serial_nr_t *sn) {
+        memset(sn->txt, 0, sizeof sn->txt);
+        strlcpy(sn->txt, "DEVX", sizeof sn->txt);
         // Make sure different things generated based on these data produce different hashes.
         static const char salt[] = "Nj20je98gje";
         mbedtls_sha256_context ctx;
@@ -116,7 +116,7 @@ namespace {
         for (size_t i = 0; i < 15; i++) {
             // With 25 letters in the alphabet, this should provide us with nice
             // readable characters.
-            sn[i + offset] = 'a' + (hash[i] & 0x0f);
+            sn->txt[i + offset] = 'a' + (hash[i] & 0x0f);
         }
         return 20;
     }
@@ -153,6 +153,7 @@ namespace {
         case mpsCrashRecovery_Retracting:
         case mpsCrashRecovery_Lifting:
         case mpsCrashRecovery_XY_Measure:
+        case mpsCrashRecovery_Tool_Pickup:
         case mpsCrashRecovery_XY_HOME:
         case mpsCrashRecovery_Repeated_Crash:
             return Printer::DeviceState::Busy;
@@ -193,21 +194,15 @@ namespace {
 
 MarlinPrinter::MarlinPrinter(SharedBuffer &buffer)
     : buffer(buffer) {
-    marlin_vars = marlin_client_init();
-    assert(marlin_vars != nullptr);
-    marlin_client_set_change_notify(MARLIN_VAR_MSK_WUI, NULL);
+    marlin_client_init();
 
     info.firmware_version = project_version_full;
     info.appendix = appendix_exist();
 
-    memcpy(info.serial_number, "CZPX", 4);
-    for (int i = 0; i < OTP_SERIAL_NUMBER_SIZE; i++) {
-        info.serial_number[i + 4] = *(volatile char *)(OTP_SERIAL_NUMBER_ADDR + i);
-    }
-    info.serial_number[sizeof(info.serial_number) - 1] = 0;
+    otp_get_serial_nr(&info.serial_number);
 
-    if (!serial_valid(info.serial_number)) {
-        synthetic_serial(info.serial_number);
+    if (!serial_valid(info.serial_number.txt)) {
+        synthetic_serial(&info.serial_number);
     }
 
     printerHash(info.fingerprint, sizeof(info.fingerprint) - 1, false);
@@ -218,45 +213,65 @@ MarlinPrinter::MarlinPrinter(SharedBuffer &buffer)
 
 void MarlinPrinter::renew() {
     if (auto b = buffer.borrow(); b.has_value()) {
-        marlin_vars->media_LFN = reinterpret_cast<char *>(b->data());
-        marlin_vars->media_SFN_path = reinterpret_cast<char *>(b->data() + FILE_NAME_BUFFER_LEN);
+
+        // TODO: FIXME: BFW-3334
+        // this stores filenames into shared buffer, but then immediately releases borrow of that buffer.
+        // But somehow we assume that buffer will not be written to in the mean time, and data will be still valid.
+
+        job_lfn_ptr = reinterpret_cast<char *>(b->data());
+        job_path_ptr = reinterpret_cast<char *>(b->data() + FILE_NAME_BUFFER_LEN);
+
+        static_assert(SharedBuffer::SIZE >= FILE_NAME_BUFFER_LEN + FILE_PATH_BUFFER_LEN);
+        {
+            // update variables from marlin server, sample LFN+SFN atomically
+            auto lock = MarlinVarsLockGuard();
+            marlin_vars()->media_LFN.copy_to(job_lfn_ptr, FILE_NAME_BUFFER_LEN, lock);
+            marlin_vars()->media_SFN_path.copy_to(job_path_ptr, FILE_PATH_BUFFER_LEN, lock);
+        }
+
     } else {
-        marlin_vars->media_LFN = nullptr;
-        marlin_vars->media_SFN_path = nullptr;
+        job_path_ptr = nullptr;
+        job_lfn_ptr = nullptr;
     }
-    marlin_update_vars(MARLIN_VAR_MSK_WUI);
+
     // Any suspicious state, like Busy or Printing will cancel the printer-ready state.
     //
     // (We kind of assume there's no chance of renew not being called between a
     // print starts and ends and that we'll see it.).
-    if (to_device_state(marlin_vars->print_state, ready) != DeviceState::Ready) {
+    if (to_device_state(marlin_vars()->print_state, ready) != DeviceState::Ready) {
         ready = false;
     }
 }
 
 Printer::Params MarlinPrinter::params() const {
+    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+
     Params params = {};
-    params.material = get_selected_filament_name();
-    params.state = to_device_state(marlin_vars->print_state, ready);
-    params.temp_bed = marlin_vars->temp_bed;
-    params.target_bed = marlin_vars->target_bed;
-    params.temp_nozzle = marlin_vars->temp_nozzle;
-    params.target_nozzle = marlin_vars->target_nozzle;
-    params.pos[X_AXIS_POS] = marlin_vars->pos[X_AXIS_POS];
-    params.pos[Y_AXIS_POS] = marlin_vars->pos[Y_AXIS_POS];
-    params.pos[Z_AXIS_POS] = marlin_vars->pos[Z_AXIS_POS];
-    params.print_speed = marlin_vars->print_speed;
-    params.flow_factor = marlin_vars->flow_factor;
-    params.job_id = marlin_vars->job_id;
-    params.job_path = marlin_vars->media_SFN_path;
-    params.job_lfn = marlin_vars->media_LFN;
-    params.print_fan_rpm = marlin_vars->print_fan_rpm;
-    params.heatbreak_fan_rpm = marlin_vars->heatbreak_fan_rpm;
-    params.print_duration = marlin_vars->print_duration;
-    params.time_to_end = marlin_vars->time_to_end;
-    params.progress_percent = marlin_vars->sd_percent_done;
+    params.material = filament::get_description(current_filament).name;
+    params.state = to_device_state(marlin_vars()->print_state, ready);
+    params.temp_bed = marlin_vars()->temp_bed;
+    params.target_bed = marlin_vars()->target_bed;
+    params.temp_nozzle = marlin_vars()->active_hotend().temp_nozzle;
+    params.target_nozzle = marlin_vars()->active_hotend().target_nozzle;
+    params.pos[X_AXIS_POS] = marlin_vars()->curr_pos[X_AXIS_POS];
+    params.pos[Y_AXIS_POS] = marlin_vars()->curr_pos[Y_AXIS_POS];
+    params.pos[Z_AXIS_POS] = marlin_vars()->curr_pos[Z_AXIS_POS];
+    params.print_speed = marlin_vars()->print_speed;
+    params.flow_factor = marlin_vars()->active_hotend().flow_factor;
+    params.job_id = marlin_vars()->job_id;
+
+    // TODO: FIXME: BFW-3334
+    // this accesses filenames from shared buffer, but doesn't check borrow at all. Its possible that buffer is no longer valid here.
+    params.job_path = job_path_ptr;
+    params.job_lfn = job_lfn_ptr;
+
+    params.print_fan_rpm = marlin_vars()->active_hotend().print_fan_rpm;
+    params.heatbreak_fan_rpm = marlin_vars()->active_hotend().heatbreak_fan_rpm;
+    params.print_duration = marlin_vars()->print_duration;
+    params.time_to_end = marlin_vars()->time_to_end;
+    params.progress_percent = marlin_vars()->sd_percent_done;
     params.filament_used = Odometer_s::instance().get(Odometer_s::axis_t::E);
-    params.has_usb = marlin_vars->media_inserted;
+    params.has_usb = marlin_vars()->media_inserted;
 
     struct statvfs fsbuf = {};
     if (params.has_usb && statvfs("/usb/", &fsbuf) == 0) {
@@ -345,7 +360,7 @@ Printer::NetCreds MarlinPrinter::net_creds() const {
 
 bool MarlinPrinter::job_control(JobControl control) {
     // Renew was presumably called before short.
-    DeviceState state = to_device_state(marlin_vars->print_state, false);
+    DeviceState state = to_device_state(marlin_vars()->print_state, false);
 
     switch (control) {
     case JobControl::Pause:

@@ -7,7 +7,7 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "png_resources.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameWizardPrologue>(&rThs, phase, data);
@@ -21,8 +21,22 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_fans(ScreenSelftest &rT
     return rThs.makePtr<SelftestFrameFans>(&rThs, phase, data);
 }
 
+#if HAS_LOADCELL()
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_fsensor(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameFSensor>(&rThs, phase, data);
+}
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_loadcell(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameLoadcell>(&rThs, phase, data);
+}
+#endif
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<ScreenSelftestTemp>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameCalibZ>(&rThs, phase, data);
 }
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_firstlayer(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
@@ -53,6 +67,15 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_qr(ScreenSelftest &
     return rThs.makePtr<SelftestFrameESP_qr>(&rThs, phase, data);
 }
 
+#if BOARD_IS_XLBUDDY
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_kennel(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameKennel>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_tool_offsets(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameToolOffsets>(&rThs, phase, data);
+}
+#endif
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<ScreenSelftestInvalidState>(&rThs, phase, data);
 }
@@ -71,8 +94,24 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator_axis;
     case SelftestParts::Fans:
         return creator_fans;
+#if HAS_LOADCELL()
+    case SelftestParts::Loadcell:
+        return creator_loadcell;
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    case SelftestParts::FSensor:
+        return creator_fsensor;
+#endif
+#if BOARD_IS_XLBUDDY
+    case SelftestParts::Kennel:
+        return creator_kennel;
+    case SelftestParts::ToolOffsets:
+        return creator_tool_offsets;
+#endif
     case SelftestParts::Heaters:
         return creator_temp;
+    case SelftestParts::CalibZ:
+        return creator_calib_z;
     case SelftestParts::FirstLayer:
         return creator_firstlayer;
     case SelftestParts::FirstLayerQuestions:
@@ -147,8 +186,19 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
         return _(en_esp);
     case SelftestParts::Axis:
     case SelftestParts::Fans:
+#if HAS_LOADCELL()
+    case SelftestParts::Loadcell:
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    case SelftestParts::FSensor:
+#endif
     case SelftestParts::Heaters:
+    case SelftestParts::CalibZ:
     case SelftestParts::Result:
+#if BOARD_IS_XLBUDDY
+    case SelftestParts::Kennel:
+    case SelftestParts::ToolOffsets:
+#endif
         return _(en_selftest);
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
@@ -171,10 +221,21 @@ const png::Resource *ScreenSelftest::getIconId(SelftestParts part) {
         return &png::wifi_16x16;
     case SelftestParts::Axis:
     case SelftestParts::Fans:
+#if HAS_LOADCELL()
+    case SelftestParts::Loadcell:
+#endif
+#if FILAMENT_SENSOR_IS_ADC()
+    case SelftestParts::FSensor:
+#endif
     case SelftestParts::Heaters:
+    case SelftestParts::CalibZ:
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
     case SelftestParts::Result:
+#if BOARD_IS_XLBUDDY
+    case SelftestParts::Kennel:
+    case SelftestParts::ToolOffsets:
+#endif
         return &png::selftest_16x16;
     case SelftestParts::WizardEpilogue:
         return &png::wizard_16x16;

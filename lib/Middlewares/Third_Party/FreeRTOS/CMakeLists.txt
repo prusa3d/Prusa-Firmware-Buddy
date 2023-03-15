@@ -4,6 +4,8 @@ endif()
 
 if(MCU MATCHES "STM32F4")
   set(port_subdir "Source/portable/GCC/ARM_CM4F")
+elseif(MCU MATCHES "STM32G0")
+  set(port_subdir "Source/portable/GCC/ARM_CM0")
 else()
   message(FATAL_ERROR "Unknown HW platform of mcu \"${MCU}\"")
 endif()

@@ -6,7 +6,7 @@
 #include "ScreenHandler.hpp"
 #include "gui_timer.h"
 #include "display.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "knob_event.hpp"
 
 bool window_t::IsVisible() const { return flags.visible && !flags.hidden_behind_dialog; }
@@ -402,15 +402,20 @@ void window_t::addInvalidationRect(Rect16 rc) {
 }
 
 void window_t::unconditionalDraw() {
-    display::FillRect(GetRect(), GetBackColor());
+    if (flags.has_round_corners) {
+        color_t parent_back_color = GetParent() ? GetParent()->GetBackColor() : GetBackColor();
+        display::DrawRoundedRect(GetRect(), parent_back_color, GetBackColor(), GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
+    } else {
+        display::FillRect(GetRect(), GetBackColor());
+    }
 }
 
-void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_t::WindowEvent(window_t *sender, GUI_event_t event, void *const param) {
     static constexpr const char txt[] = "WindowEvent via public";
     windowEvent(EventLock(txt, sender, event), sender, event, param);
 }
 
-void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *const param) {
     static constexpr const char txt[] = "ScreenEvent via public";
     if (event == GUI_event_t::HELD_RELEASED && flags.has_long_hold_screen_action) {
         gui::knob::LongPressScreenAction();
@@ -423,13 +428,13 @@ void window_t::ScreenEvent(window_t *sender, GUI_event_t event, void *param) {
 //frame does something else - resend to all children
 // MUST BE PRIVATE
 // call nonvirtual ScreenEvent instead (contains debug output)
-void window_t::screenEvent(window_t *sender, GUI_event_t event, void *param) {
+void window_t::screenEvent(window_t *sender, GUI_event_t event, void *const param) {
     WindowEvent(sender, event, param);
 }
 
 // MUST BE PRIVATE
 // call nonvirtual WindowEvent instead (contains debug output)
-void window_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void window_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *const param) {
     if (event == GUI_event_t::CLICK && parent) {
         if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();

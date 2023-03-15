@@ -30,8 +30,8 @@ struct vars_body_t : public eeprom::v11::vars_body_t {
     int8_t CRASH_ENABLED;
     int16_t EEVAR_CRASH_SENS_X;
     int16_t EEVAR_CRASH_SENS_Y;
-    uint16_t EEVAR_CRASH_PERIOD_X;
-    uint16_t EEVAR_CRASH_PERIOD_Y;
+    uint16_t EEVAR_CRASH_MAX_PERIOD_X;
+    uint16_t EEVAR_CRASH_MAX_PERIOD_Y;
     uint8_t EEVAR_CRASH_FILTER;
     uint16_t EEVAR_CRASH_COUNT_X_TOT;
     uint16_t EEVAR_CRASH_COUNT_Y_TOT;
@@ -50,9 +50,9 @@ static constexpr int crash_sens[2] =
     { 0, 0 };
 #endif // ENABLED(CRASH_RECOVERY)
 
-static constexpr int crash_period[2] =
+static constexpr int crash_max_period[2] =
 #if ENABLED(CRASH_RECOVERY)
-    CRASH_PERIOD;
+    CRASH_MAX_PERIOD;
 #else
     { 0, 0 };
 #endif // ENABLED(CRASH_RECOVERY)
@@ -66,21 +66,21 @@ static constexpr bool crash_filter =
 
 constexpr vars_body_t body_defaults = {
     eeprom::v11::body_defaults,
-    "",              // CONNECT_HOST
-    "",              // CONNECT_TOKEN
-    80,              // CONNECT_PORT
-    true,            // CONNECT_TLS
-    false,           // CONNECT_ENABLED
-    0,               // EEVAR_JOB_ID
-    1,               // EEVAR_CRASH_ENABLED
-    crash_sens[0],   // EEVAR_CRASH_SENS_X,
-    crash_sens[1],   // EEVAR_CRASH_SENS_Y,
-    crash_period[0], // EEVAR_CRASH_PERIOD_X,
-    crash_period[1], // EEVAR_CRASH_PERIOD_Y,
-    crash_filter,    // EEVAR_CRASH_FILTER,
-    0,               // EEVAR_CRASH_COUNT_X_TOT
-    0,               // EEVAR_CRASH_COUNT_Y_TOT
-    0,               // EEVAR_POWER_COUNT_TOT
+    "",                  // CONNECT_HOST
+    "",                  // CONNECT_TOKEN
+    80,                  // CONNECT_PORT
+    true,                // CONNECT_TLS
+    false,               // CONNECT_ENABLED
+    0,                   // EEVAR_JOB_ID
+    1,                   // EEVAR_CRASH_ENABLED
+    crash_sens[0],       // EEVAR_CRASH_SENS_X,
+    crash_sens[1],       // EEVAR_CRASH_SENS_Y,
+    crash_max_period[0], // EEVAR_CRASH_MAX_PERIOD_X,
+    crash_max_period[1], // EEVAR_CRASH_MAX_PERIOD_Y,
+    crash_filter,        // EEVAR_CRASH_FILTER,
+    0,                   // EEVAR_CRASH_COUNT_X_TOT
+    0,                   // EEVAR_CRASH_COUNT_Y_TOT
+    0,                   // EEVAR_POWER_COUNT_TOT
 };
 
 inline vars_body_t convert(const eeprom::v11::vars_body_t &src) {

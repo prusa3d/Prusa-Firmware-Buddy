@@ -48,31 +48,35 @@ typedef enum {
     stsAborted,
 } SelftestState_t;
 
+consteval uint64_t to_one_hot(SelftestState_t state) {
+    return static_cast<uint64_t>(1) << state;
+}
+
 enum SelftestMask_t : uint64_t {
     stmNone = 0,
-    stmFans = (uint64_t(1) << stsFans),
-    stmWait_fans = (uint64_t(1) << stsWait_fans),
-    stmXAxis = (uint64_t(1) << stsXAxis),
-    stmYAxis = (uint64_t(1) << stsYAxis),
-    stmZAxis = (uint64_t(1) << stsZAxis),
-    stmMoveZup = (uint64_t(1) << stsMoveZup),
-    stmXYAxis = (stmXAxis | stmYAxis),
-    stmXYZAxis = (stmXAxis | stmYAxis | stmZAxis),
-    stmWait_axes = (uint64_t(1) << stsWait_axes),
-    stmHeaters_noz = ((uint64_t(1) << stsHeaters) | (uint64_t(1) << stsHeaters_noz_ena)),
-    stmHeaters_bed = ((uint64_t(1) << stsHeaters) | (uint64_t(1) << stsHeaters_bed_ena)),
-    stmHeaters = (stmHeaters_bed | stmHeaters_noz),
-    stmWait_heaters = (uint64_t(1) << stsWait_heaters),
-    stmSelftestStart = (uint64_t(1) << stsSelftestStart),
-    stmSelftestStop = (uint64_t(1) << stsSelftestStop),
-    stmNet_status = (uint64_t(1) << stsNet_status),
-    stmShow_result = ((uint64_t(1) << stsShow_result) | (uint64_t(1) << stsResult_wait_user)),
-    stmFullSelftest = (stmFans | stmXYZAxis | stmHeaters | stmNet_status | stmShow_result) | (uint64_t(1) << stsDidSelftestPass),
-    stmWizardPrologue = (uint64_t(1) << stsPrologueAskRun) | (uint64_t(1) << stsPrologueAskRun_wait_user) | (uint64_t(1) << stsPrologueInfo) | (uint64_t(1) << stsPrologueInfo_wait_user) | (uint64_t(1) << stsPrologueInfoDetailed) | (uint64_t(1) << stsPrologueInfoDetailed_wait_user),
-    stmEpilogue = (uint64_t(1) << stsEpilogue_nok) | (uint64_t(1) << stsEpilogue_nok_wait_user) | (uint64_t(1) << stsEpilogue_ok) | (uint64_t(1) << stsEpilogue_ok_wait_user),
-    stmFirstLayer = (uint64_t(1) << stsFirstLayer),
+    stmFans = to_one_hot(stsFans),
+    stmWait_fans = to_one_hot(stsWait_fans),
+    stmXAxis = to_one_hot(stsXAxis),
+    stmYAxis = to_one_hot(stsYAxis),
+    stmZAxis = to_one_hot(stsZAxis),
+    stmMoveZup = to_one_hot(stsMoveZup),
+    stmXYAxis = stmXAxis | stmYAxis,
+    stmXYZAxis = stmXAxis | stmYAxis | stmZAxis,
+    stmWait_axes = to_one_hot(stsWait_axes),
+    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena),
+    stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena),
+    stmHeaters = stmHeaters_bed | stmHeaters_noz,
+    stmWait_heaters = to_one_hot(stsWait_heaters),
+    stmSelftestStart = to_one_hot(stsSelftestStart),
+    stmSelftestStop = to_one_hot(stsSelftestStop),
+    stmNet_status = to_one_hot(stsNet_status),
+    stmShow_result = to_one_hot(stsShow_result) | to_one_hot(stsResult_wait_user),
+    stmFullSelftest = stmFans | stmXYZAxis | stmHeaters | stmNet_status | stmShow_result | to_one_hot(stsDidSelftestPass),
+    stmWizardPrologue = to_one_hot(stsPrologueAskRun) | to_one_hot(stsPrologueAskRun_wait_user) | to_one_hot(stsPrologueInfo) | to_one_hot(stsPrologueInfo_wait_user) | to_one_hot(stsPrologueInfoDetailed) | to_one_hot(stsPrologueInfoDetailed_wait_user),
+    stmEpilogue = to_one_hot(stsEpilogue_nok) | to_one_hot(stsEpilogue_nok_wait_user) | to_one_hot(stsEpilogue_ok) | to_one_hot(stsEpilogue_ok_wait_user),
+    stmFirstLayer = to_one_hot(stsFirstLayer),
     stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue | stmFirstLayer,
-    stmFans_fine = (uint64_t(1) << stsFans_fine),
+    stmFans_fine = to_one_hot(stsFans_fine),
 };
 
 // class representing whole self-test
@@ -82,7 +86,7 @@ public:
 
 public:
     virtual bool IsInProgress() const override;
-    virtual bool Start(uint64_t mask) override; // parent has no clue about SelftestMask_t
+    virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) override; // parent has no clue about SelftestMask_t
     virtual void Loop() override;
     virtual bool Abort() override;
 
@@ -98,14 +102,13 @@ protected:
 protected:
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
-    selftest::IPartHandler *pPrintFan;
-    selftest::IPartHandler *pHeatbreakFan;
+    std::array<selftest::IPartHandler *, HOTENDS * 2> pFans;
     selftest::IPartHandler *pXAxis;
     selftest::IPartHandler *pYAxis;
     selftest::IPartHandler *pZAxis;
-    selftest::IPartHandler *pNozzle;
+    std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
     selftest::IPartHandler *pBed;
     selftest::IPartHandler *pFirstLayer;
 
-    SelftestResult_t m_result;
+    SelftestResult m_result;
 };

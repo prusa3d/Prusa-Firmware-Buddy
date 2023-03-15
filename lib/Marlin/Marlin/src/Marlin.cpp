@@ -43,6 +43,7 @@
 #include "module/printcounter.h" // PrintCounter or Stopwatch
 #include "feature/closedloop.h"
 #include "feature/safety_timer.h"
+#include "feature/bed_preheat.hpp"
 #include "marlin_server.hpp"
 
 #include "HAL/shared/Delay.h"
@@ -86,6 +87,10 @@
 
 #if ENABLED(BLTOUCH)
   #include "feature/bltouch.h"
+#endif
+
+#if ENABLED(NOZZLE_LOAD_CELL)
+  #include "feature/prusa/loadcell.h"
 #endif
 
 #if ENABLED(POLL_JOG)
@@ -169,7 +174,7 @@
 #endif
 
 #if ENABLED(PRUSA_MMU2)
-  #include "feature/prusa_MMU2/mmu2.h"
+  #include "feature/prusa/MMU2/mmu2mk404.h"
 #endif
 
 #if HAS_DRIVER(L6470)
@@ -669,6 +674,10 @@ void idle(
 
   thermalManager.manage_heater();
 
+  #if HAS_HEATED_BED
+    bed_preheat.update();
+  #endif
+
   #if ENABLED(PRINTCOUNTER)
     print_job_timer.tick();
   #endif
@@ -708,7 +717,7 @@ void idle(
   #endif
 
   #if ENABLED(PRUSA_MMU2)
-    mmu2.mmu_loop();
+    MMU2::mmu2.mmu_loop();
   #endif
 
   #if ENABLED(POLL_JOG)
@@ -717,6 +726,8 @@ void idle(
   if (waiting) delay(1);
 }
 
+
+#if DISABLED(OVERRIDE_KILL_METHOD)
 /**
  * Kill all activity and lock the machine.
  * After this the machine will need to be reset.
@@ -741,6 +752,7 @@ void kill(PGM_P const lcd_error/*=nullptr*/, PGM_P const lcd_component/*=nullptr
 
   minkill(steppers_off);
 }
+#endif
 
 void minkill(const bool steppers_off/*=false*/) {
 
@@ -1120,11 +1132,17 @@ void setup() {
   #endif
 
   #if HAS_TRINAMIC && DISABLED(PS_DEFAULT_OFF)
+    #if ENABLED(PRUSA_DWARF)
+      test_tmc_connection(false, false, false, true); // we have the extruder only
+    #else
       test_tmc_connection(true, true, true, true);
+    #endif
   #endif
 
-  #if ENABLED(PRUSA_MMU2)
-    mmu2.init();
+  #if HAS_TEMP_HEATBREAK_CONTROL
+    HOTEND_LOOP(){
+      thermalManager.setTargetHeatbreak(DEFAULT_HEATBREAK_TEMPERATURE, e);
+    }
   #endif
 }
 

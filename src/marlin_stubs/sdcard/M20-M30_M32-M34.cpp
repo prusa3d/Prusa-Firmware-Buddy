@@ -1,8 +1,9 @@
 #include <dirent.h>
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
-#include "marlin_server.h"
+#include "marlin_server.hpp"
 #include "media.h"
+#include "marlin_vars.hpp"
 
 // M20 - List SD card
 void GcodeSuite::M20() {
@@ -35,7 +36,7 @@ void GcodeSuite::M23() {
     for (char *fn = parser.string_arg; *fn; ++fn)
         if (*fn == ' ')
             *fn = '\0';
-    strlcpy(media_print_filepath(), parser.string_arg, FILE_PATH_BUFFER_LEN);
+    marlin_vars()->media_SFN_path.set(parser.string_arg);
 }
 
 // M24 - Start/resume SD print
@@ -58,7 +59,7 @@ void GcodeSuite::M26() {
 void GcodeSuite::M27() {
     if (parser.seen('C')) {
         SERIAL_ECHOPGM("Current file: ");
-        SERIAL_ECHOLN(media_print_filepath());
+        SERIAL_ECHOLN(marlin_vars()->media_SFN_path.get_ptr());
     } else {
         if (media_print_get_state() != media_print_state_NONE) {
             SERIAL_ECHOPGM(MSG_SD_PRINTING_BYTE);

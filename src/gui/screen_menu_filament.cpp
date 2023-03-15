@@ -4,8 +4,15 @@
 
 #include "screen_menu_filament.hpp"
 #include "filament.hpp"
-#include "filament_sensor_api.hpp"
+#include "filament_sensors_handler.hpp"
+
 #include "png_resources.hpp"
+
+#include "DialogHandler.hpp"
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <window_tool_action_box.hpp>
+#endif
 
 enum {
     F_EEPROM = 0x01, // filament is known
@@ -29,6 +36,7 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
+
             item->Do();               //do action (load filament ...)
             header.SetText(_(label)); //restore label
         }
@@ -52,24 +60,6 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
  * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+
  */
 void ScreenMenuFilament::deactivate_item() {
-
-    uint8_t filament = 0;
-    filament |= Filaments::CurrentIndex() != filament_t::NONE ? F_EEPROM : 0;
-    filament |= FSensors_instance().HasFilament() ? F_SENSED : 0;
-    switch (filament) {
-    case 0:        //filament not loaded
-    case F_SENSED: //user pushed filament into sensor, but it is not loaded
-        DisableItem<MI_CHANGE>();
-        DisableItem<MI_PURGE>();
-        break;
-    case F_EEPROM: //filament loaded but just runout
-        EnableItem<MI_CHANGE>();
-        DisableItem<MI_PURGE>();
-        break;
-    case F_SENSED | F_EEPROM: //filament loaded
-    default:
-        EnableItem<MI_CHANGE>();
-        EnableItem<MI_PURGE>();
-        break;
-    }
+    Item<MI_CHANGE>().UpdateEnableState();
+    Item<MI_PURGE>().UpdateEnableState();
 }

@@ -20,7 +20,7 @@ public:
     virtual ~ISelftest() = default;
 
     virtual bool IsInProgress() const = 0;
-    virtual bool Start(uint64_t mask) = 0;
+    virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) = 0;
     virtual void Loop() = 0;
     virtual bool Abort() = 0;
     uint32_t GetTime() { return m_Time; } // to synchronize time in selftest by loop ticks

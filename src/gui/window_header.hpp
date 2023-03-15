@@ -5,17 +5,34 @@
 #include "window_frame.hpp"
 #include "media_state.hpp"
 
+#include <time.h>
+
 struct window_header_t : public AddSuperWindow<window_frame_t> {
 
     window_icon_t icon_base;
     window_roll_text_t label;
+    window_text_t time_val;
     window_icon_t icon_usb;
     window_icon_t icon_network;
     uint32_t active_netdev_id;
     uint32_t active_netdev_status;
 
+    struct tm last_t;
+    char time_str[sizeof("HH:MM AM")]; // "HH:MM AM" == Max length
+    bool redraw_usb : 1;
+    bool redraw_network : 1;
+    bool force_network : 1;
+    bool cpu_warning_on : 1;
+    bool time_on : 1;
+
     void updateMedia(MediaState_t state);
-    void updateNetwork(uint32_t netdev_id, bool force = false);
+    void updateNetwork(uint32_t netdev_id);
+
+    void updateIcons();
+    void updateTime();
+
+    uint16_t calculate_lan_icon_x();
+    uint16_t calculate_usb_icon_x();
 
     void USB_Off();
     void USB_On();

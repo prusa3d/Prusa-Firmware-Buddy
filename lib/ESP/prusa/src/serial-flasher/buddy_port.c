@@ -21,10 +21,12 @@
 #include "stm32_port.h"
 #include <FreeRTOS.h>
 #include <task.h>
-#include "espif.h"
-
-#define _dbg(...)
-// #define SERIAL_DEBUG_ENABLE
+#include <espif.h>
+#if 0
+    #include "dbg.h"
+#else
+    #define _dbg(...)
+#endif //0
 
 static UART_HandleTypeDef *uart;
 static GPIO_TypeDef *gpio_port_io0, *gpio_port_rst;

@@ -9,6 +9,7 @@
 #include "footer_eeprom.hpp"
 #include "DialogMoveZ.hpp"
 #include "footer_def.hpp"
+#include <option/has_side_fsensor.h>
 
 static constexpr std::array<const char *, FOOTER_ITEMS_PER_LINE__> labels = { { N_("Item 1")
 #if FOOTER_ITEMS_PER_LINE__ > 1
@@ -68,10 +69,20 @@ IMiFooter::IMiFooter(size_t index_)
 #if defined(FOOTER_HAS_LIVE_Z)
         FooterItemLiveZ::GetName(),
 #endif // FOOTER_HAS_LIVE_Z
+        FooterItemHeatBreak::GetName(),
 #if defined(FOOTER_HAS_SHEETS)
         FooterItemSheets::GetName(),
 #endif // FOOTER_HAS_SHEETS
-
+#if HAS_MMU2
+        FooterItemFinda::GetName(),
+#endif
+#if defined(FOOTER_HAS_TOOL_NR)
+        FooterItemCurrentTool::GetName(),
+        FooterItemAllNozzles::GetName(),
+#endif
+#if HAS_SIDE_FSENSOR()
+        FooterItemFSensorSide::GetName(),
+#endif /*HAS_SIDE_FSENSOR()*/
         _("none")) {
 }
 
@@ -87,7 +98,7 @@ void MI_LEFT_ALIGN_TEMP::OnChange(size_t /*old_index*/) {
 }
 
 MI_SHOW_ZERO_TEMP_TARGET::MI_SHOW_ZERO_TEMP_TARGET()
-    : WI_SWITCH_OFF_ON_t(FooterItemHeater::IsZeroTargetDrawn(),
+    : WI_ICON_SWITCH_OFF_ON_t(FooterItemHeater::IsZeroTargetDrawn(),
         string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_SHOW_ZERO_TEMP_TARGET::OnChange(size_t old_index) {

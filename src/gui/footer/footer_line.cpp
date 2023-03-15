@@ -8,6 +8,7 @@
 #include "footer_positioning.hpp"
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"
+#include <option/has_side_fsensor.h>
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)
     : AddSuperWindow<window_frame_t>(parent, footer::LineRect(line_no), positioning::relative) {
@@ -87,6 +88,27 @@ bool FooterLine::Create(footer::items item_id, size_t index) {
         new (&items[index]) FooterItemSheets(this);
         break;
 #endif
+    case footer::items::ItemHeatbreak:
+        new (&items[index]) FooterItemHeatBreak(this);
+        break;
+#if HAS_MMU2
+    case footer::items::ItemFinda:
+        new (&items[index]) FooterItemFinda(this);
+        break;
+#endif
+#if defined(FOOTER_HAS_TOOL_NR)
+    case footer::items::ItemCurrentTool:
+        new (&items[index]) FooterItemCurrentTool(this);
+        break;
+    case footer::items::ItemAllNozzles:
+        new (&items[index]) FooterItemAllNozzles(this);
+        break;
+#endif
+#if HAS_SIDE_FSENSOR()
+    case footer::items::ItemFSensorSide:
+        new (&items[index]) FooterItemFSensorSide(this);
+        break;
+#endif /*HAS_SIDE_FSENSOR()*/
     case footer::items::count_:
         break;
     }

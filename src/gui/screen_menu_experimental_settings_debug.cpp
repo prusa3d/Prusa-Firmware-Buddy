@@ -122,4 +122,6 @@ ExperimentalSettingsValues::ExperimentalSettingsValues(ScreenMenuExperimentalSet
     , rms_current_ma_x(parent.Item<MI_CURRENT_X>().GetVal())
     , rms_current_ma_y(parent.Item<MI_CURRENT_Y>().GetVal())
     , rms_current_ma_z(parent.Item<MI_CURRENT_Z>().GetVal())
-    , rms_current_ma_e(parent.Item<MI_CURRENT_E>().GetVal()) {}
+    , rms_current_ma_e(parent.Item<MI_CURRENT_E>().GetVal())
+
+{}

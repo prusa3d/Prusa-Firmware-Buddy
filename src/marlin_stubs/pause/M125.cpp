@@ -70,7 +70,7 @@ void GcodeSuite::M125() {
     if (parser.seenval('Z'))
         park_point.z = parser.linearval('Z');
 
-    #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA)
+    #if HAS_HOTEND_OFFSET && NONE(DUAL_X_CARRIAGE, DELTA) && DISABLED(PRUSA_TOOLCHANGER)
     park_point += hotend_offset[active_extruder];
     #endif
 

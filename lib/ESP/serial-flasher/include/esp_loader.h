@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -199,6 +200,21 @@ esp_loader_error_t esp_loader_read_register(uint32_t address, uint32_t *reg_valu
   *     - ESP_LOADER_ERROR_UNSUPPORTED_FUNC Unsupported on the target
   */
 esp_loader_error_t esp_loader_change_baudrate(uint32_t baudrate);
+
+/**
+  * @brief Let ESP compute MD5 checksum of flash region
+  *
+  * @param address[in]     Start of region
+  * @param size[in]        Size of region
+  * @param checksum[out]   MD5 checksum as hex string
+  *
+  * @return
+  *     - ESP_LOADER_SUCCESS Success
+  *     - ESP_LOADER_ERROR_TIMEOUT Timeout
+  *     - ESP_LOADER_ERROR_INVALID_RESPONSE Internal error
+  *     - ESP_LOADER_ERROR_UNSUPPORTED_FUNC Unsupported on the target
+  */
+esp_loader_error_t esp_loader_md5_region(const uintptr_t address, const size_t size, uint8_t checksum_string[32]);
 
 /**
   * @brief Verify target's flash integrity by checking MD5.

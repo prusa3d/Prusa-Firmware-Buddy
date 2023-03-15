@@ -11,7 +11,8 @@
 static constexpr size_t margin_texts = 0;
 static constexpr Align_t align_text_icon = Align_t::LeftTop();
 #else
-    #error "Unknown PRINTER_TYPE!"
+static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
+static constexpr Align_t align_text_icon = Align_t::CenterTop();
 #endif
 
 static constexpr Rect16 getTextRect() {

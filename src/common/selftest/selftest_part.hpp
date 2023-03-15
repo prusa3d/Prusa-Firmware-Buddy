@@ -54,7 +54,6 @@ private:
         const Response response = ClientResponseHandler::GetResponseFromPhase(phase_enum);
         return response;
     }
-
     virtual void pass() { refResult.Pass(); }
     virtual void fail() { refResult.Fail(); }
     virtual void abort() { refResult.Abort(); }

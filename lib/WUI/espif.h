@@ -15,11 +15,18 @@ void espif_receive_data(UART_HandleTypeDef *);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESP for flash write
-void espif_flash_initialize();
+/// @param [in] take_down_interfaces Deinitialize network interfaces,
+///             set to false when run before networking is started.
+void espif_flash_initialize(const bool take_down_interfaces);
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Return to normal omode
 void espif_flash_deinitialize();
+
+////////////////////////////////////////////////////////////////////////////
+/// @brief Initialize hw access
+/// , shared mutex, uart config and state used by normal and flash mode.
+err_t espif_init_hw();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESPIF (part of LwIP netif setup)

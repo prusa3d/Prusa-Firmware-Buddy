@@ -50,6 +50,7 @@ class SelftestFrameNamed : public AddSuperWindow<SelftestFrame> {
 
 public:
     SelftestFrameNamed(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name);
+    void SetName(string_view_utf8 txt);
 };
 
 /**

@@ -14,13 +14,11 @@ namespace {
 SharedBuffer buffer;
 
 template <class D>
-D command_test(const char *cmd) {
+D command_test(const string_view cmd) {
     auto borrow = buffer.borrow();
-    char *cmd_str = new char[strlen(cmd) + 1];
-    strcpy(cmd_str, cmd);
     // Not claimed / left hanging by previous test.
     REQUIRE(borrow.has_value());
-    const auto command = Command::parse_json_command(13, cmd_str, strlen(cmd_str), std::move(*borrow));
+    const auto command = Command::parse_json_command(13, cmd, std::move(*borrow));
     REQUIRE(command.id == 13);
     REQUIRE(holds_alternative<D>(command.command_data));
     return get<D>(command.command_data);

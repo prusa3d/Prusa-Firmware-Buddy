@@ -21,5 +21,6 @@ public:
 };
 
 extern HardwareSerial Serial3;
+extern HardwareSerial SerialUART3;
 
 #endif //_HARDWARESERIAL_H

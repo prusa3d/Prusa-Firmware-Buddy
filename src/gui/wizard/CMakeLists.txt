@@ -3,6 +3,7 @@ target_include_directories(firmware PRIVATE .)
 target_sources(
   firmware
   PRIVATE selftest_frame_axis.cpp
+          selftest_frame_calib_z.cpp
           selftest_frame_esp.cpp
           selftest_frame_esp_progress.cpp
           selftest_frame_esp_qr.cpp
@@ -19,10 +20,20 @@ target_sources(
           selftest_result_eth.cpp
           selftest_result_fans.cpp
           selftest_result_heaters.cpp
-          selftest_result_wifi.cpp
+          selftest_result_loadcell.cpp
           selftest_view.cpp
           selftest_view_item.cpp
           selftest_view_item_separator.cpp
           selftest_view_item_text.cpp
           test_of_selftest_result.cpp
   )
+if(NOT (${PRINTER} STREQUAL "MINI"))
+  target_sources(
+    firmware PRIVATE selftest_frame_fsensor.cpp selftest_frame_loadcell.cpp
+                     selftest_result_fsensor.cpp selftest_result_loadcell.cpp
+    )
+endif()
+
+if(${PRINTER} STREQUAL "XL")
+  target_sources(firmware PRIVATE selftest_frame_kennel.cpp selftest_frame_tool_offsets.cpp)
+endif()

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include "config_buddy_2209_02.h"
 #include "metric.h"
 
 //low level I/O classes
@@ -28,7 +29,6 @@ enum {
 extern "C" {
 #endif //__cplusplus
 
-//--------------------------------------
 // low level I/O functions
 
 //analog outputs
@@ -75,6 +75,20 @@ extern void hwio_beeper_notone(void);
 
 //cycle 1ms
 extern void hwio_update_1ms(void);
+
+//hotend raw data from HX717
+#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
+extern void hwio_set_hotend_temp_raw(int32_t hotend_temp_raw);
+    #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM && defined LOVEBOARD_HAS_PT100)
+extern int32_t hwio_get_hotend_temp_raw();
+extern float hwio_get_hotend_resistance();
+    #endif
+#endif
+
+//data from loveboard eeprom
+#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM && !defined LOVEBOARD_HAS_PT100)
+extern uint8_t hwio_get_loveboard_bomid();
+#endif
 
 #ifdef __cplusplus
 }

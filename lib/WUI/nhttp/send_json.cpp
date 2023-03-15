@@ -64,7 +64,7 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
         if (buffer_size - written <= MIN_CHUNK_SIZE) {
             return { 0, written, Continue() };
         }
-        // Fall through, see if something more fits.
+        [[fallthrough]]; // Fall through, see if something more fits.
     case Progress::SendPayload:
         JsonResult render_result;
 
@@ -88,7 +88,7 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
             if (first_packet) {
                 return { 0, written, Continue() };
             }
-            // Fall through to the error state.
+            [[fallthrough]]; // Fall through to the error state.
         case JsonResult::Abort:
             // Something unexpected got screwed up. We don't have a way to
             // return a 500 error, we have sent the headers out already
@@ -96,8 +96,7 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
             // connection.
             return { 0, 0, Terminating { 0, Done::CloseFast } };
         }
-
-        // Fall through: the last chunk may fit
+        [[fallthrough]]; // Fall through: the last chunk may fit
     case Progress::EndChunk:
         if (connection_handling == ConnectionHandling::ChunkedKeep) {
             if (written + last_chunk_len > buffer_size) {

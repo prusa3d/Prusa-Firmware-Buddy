@@ -57,7 +57,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
       timerConfig[0].timerdef.Init.CounterMode       = TIM_COUNTERMODE_UP;
       timerConfig[0].timerdef.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
       timerConfig[0].IRQ_Id = TIM5_IRQn;
-      timerConfig[0].callback = (uint32_t)TC5_Handler;
+      timerConfig[0].callback = (uint32_t)TC6_Handler;
       HAL_NVIC_SetPriority(timerConfig[0].IRQ_Id, 1, 0);
       #if PIN_EXISTS(STEPPER_ENABLE)
         OUT_WRITE(STEPPER_ENABLE_PIN, HIGH);

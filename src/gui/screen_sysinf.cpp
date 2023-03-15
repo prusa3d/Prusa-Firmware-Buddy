@@ -12,7 +12,7 @@
 #include "sys.h"
 #include "../hw/cpu_utils.hpp"
 #include "i18n.h"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include <ctime>
 
 /******************************************************************************************************/
@@ -59,6 +59,9 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
 
 #ifdef DEBUG_NTP
     time_t sec = time(nullptr);
+    if (sec == (time_t)-1) {
+        sec = 0;
+    }
     struct tm now;
     localtime_r(&sec, &now);
     static char buff[40];
@@ -76,10 +79,10 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textHeatBreakFan_RPM.SetText(_(cl1));
 
     textPrintFan_RPM_val.SetFormat((const char *)"%0.0f");
-    textPrintFan_RPM_val.SetValue(marlin_vars()->print_fan_rpm);
+    textPrintFan_RPM_val.SetValue(marlin_vars()->active_hotend().print_fan_rpm);
 
     textHeatBreakFan_RPM_val.SetFormat((const char *)"%0.0f");
-    textHeatBreakFan_RPM_val.SetValue(marlin_vars()->heatbreak_fan_rpm);
+    textHeatBreakFan_RPM_val.SetValue(marlin_vars()->active_hotend().heatbreak_fan_rpm);
 
     textExit.font = resource_font(IDR_FNT_BIG);
 
@@ -94,10 +97,9 @@ void screen_sysinfo_data_t::windowEvent(EventLock /*has private ctor*/, window_t
             textCPU_load_val.SetValue(actual_CPU_load);
             last_CPU_load = actual_CPU_load;
         }
-        if (marlin_change_clr(MARLIN_VAR_PRINT_FAN_RPM))
-            textPrintFan_RPM_val.SetValue(marlin_vars()->print_fan_rpm);
-        if (marlin_change_clr(MARLIN_VAR_HEATBREAK_FAN_RPM))
-            textHeatBreakFan_RPM_val.SetValue(marlin_vars()->heatbreak_fan_rpm);
+
+        textPrintFan_RPM_val.SetValue(marlin_vars()->active_hotend().print_fan_rpm);
+        textHeatBreakFan_RPM_val.SetValue(marlin_vars()->active_hotend().heatbreak_fan_rpm);
     }
     SuperWindowEvent(sender, event, param);
 }

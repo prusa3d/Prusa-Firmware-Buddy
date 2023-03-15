@@ -13,6 +13,7 @@
 SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
     , text(this, Positioner::textRect(), is_multiline::yes)
+    , link(this, Positioner::linkRect(), is_multiline::no)
     , icon_phone(this, Positioner::phoneIconRect(), &png::hand_qr_59x72)
     , qr(this, Positioner::qrcodeRect(), QR_ADDR)
 
@@ -28,16 +29,17 @@ void SelftestFrameESP_qr::change() {
     //texts
     switch (phase_current) {
     case PhasesSelftest::ESP_qr_instructions_flash:
-        txt = N_("Use the online guide\nto setup your Wi-Fi\nprusa.io/wifimini");
+        txt = N_("Use the online guide\nto setup your Wi-Fi");
         break;
     case PhasesSelftest::ESP_qr_instructions:
-        txt = N_("To setup or troubleshoot your Wi-Fi, please visit:\nprusa.io/wifimini");
+        txt = N_("To setup or troubleshoot your Wi-Fi, please visit:");
         break;
     default:
         break;
     }
 
     text.SetText(_(txt));
+    link.SetText(string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(ADDR_IN_TEXT)));
 };
 
 constexpr Rect16 SelftestFrameESP_qr::Positioner::qrcodeRect() {
@@ -70,8 +72,17 @@ constexpr Rect16 SelftestFrameESP_qr::Positioner::phoneIconRect() {
 /** @returns Rect16 position and size of the text widget */
 constexpr Rect16 SelftestFrameESP_qr::Positioner::textRect() {
     if (GuiDefaults::ScreenWidth > 240) {
-        return Rect16 { WizardDefaults::col_0, WizardDefaults::row_1, textWidth, textHeight };
+        return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, phoneIconRect().Left() - WizardDefaults::col_0, textHeight };
     } else {
-        return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, textWidth, textHeight };
+        return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, WizardDefaults::X_space, textHeight };
+    }
+}
+
+/** @returns Rect16 position and size of the link widget */
+constexpr Rect16 SelftestFrameESP_qr::Positioner::linkRect() {
+    if (GuiDefaults::ScreenWidth > 240) {
+        return Rect16 { WizardDefaults::col_0, WizardDefaults::Y_space - textHeight, phoneIconRect().Left() - WizardDefaults::col_0, textHeight };
+    } else {
+        return Rect16 { WizardDefaults::col_0, WizardDefaults::Y_space - textHeight, WizardDefaults::X_space, textHeight };
     }
 }

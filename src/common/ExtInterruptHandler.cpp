@@ -6,13 +6,23 @@
 
 #include "inc/MarlinConfig.h"
 #include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
+#include "log.h"
 #include <type_traits>
 
 #include "power_panic.hpp"
 #if DISABLED(POWER_PANIC)
 namespace power_panic {
+std::atomic_bool ac_power_fault = false;
+
+bool is_panic_signal() {
+    return false;
+}
+
 // stub definition due to usage in the board pin macro table
-void ac_fault_isr() {}
+void ac_fault_isr() {
+    // disable EEPROM writes
+    ac_power_fault = true;
+}
 }
 #endif
 
@@ -86,45 +96,59 @@ static constexpr bool isEXTI15_10Pin(buddy::hw::IoPort ioPort, buddy::hw::IoPin 
 #define HANDLE_EXTI0_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER)   \
     if (std::is_same_v<TYPE, buddy::hw::InterruptPin> && isEXTI0Pin(PORTPIN)) { \
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);                                   \
+        traceISR_ENTER();                                                       \
         INTERRUPT_HANDLER();                                                    \
+        traceISR_EXIT();                                                        \
     }
 
 #define HANDLE_EXTI1_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER)   \
     if (std::is_same_v<TYPE, buddy::hw::InterruptPin> && isEXTI1Pin(PORTPIN)) { \
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_1);                                   \
+        traceISR_ENTER();                                                       \
         INTERRUPT_HANDLER();                                                    \
+        traceISR_EXIT();                                                        \
     }
 
 #define HANDLE_EXTI2_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER)   \
     if (std::is_same_v<TYPE, buddy::hw::InterruptPin> && isEXTI2Pin(PORTPIN)) { \
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_2);                                   \
+        traceISR_ENTER();                                                       \
         INTERRUPT_HANDLER();                                                    \
+        traceISR_EXIT();                                                        \
     }
 
 #define HANDLE_EXTI3_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER)   \
     if (std::is_same_v<TYPE, buddy::hw::InterruptPin> && isEXTI3Pin(PORTPIN)) { \
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_3);                                   \
+        traceISR_ENTER();                                                       \
         INTERRUPT_HANDLER();                                                    \
+        traceISR_EXIT();                                                        \
     }
 
 #define HANDLE_EXTI4_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER)   \
     if (std::is_same_v<TYPE, buddy::hw::InterruptPin> && isEXTI4Pin(PORTPIN)) { \
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_4);                                   \
+        traceISR_ENTER();                                                       \
         INTERRUPT_HANDLER();                                                    \
+        traceISR_EXIT();                                                        \
     }
 
 #define HANDLE_EXTI9_5_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) \
     if (std::is_same_v<TYPE, buddy::hw::InterruptPin> && isEXTI9_5Pin(PORTPIN)  \
         && (__HAL_GPIO_EXTI_GET_IT(getIoHalPin(PORTPIN)) != RESET)) {           \
         __HAL_GPIO_EXTI_CLEAR_IT(getIoHalPin(PORTPIN));                         \
+        traceISR_ENTER();                                                       \
         INTERRUPT_HANDLER();                                                    \
+        traceISR_EXIT();                                                        \
     }
 
 #define HANDLE_EXTI15_10_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) \
     if (std::is_same_v<TYPE, buddy::hw::InterruptPin> && isEXTI15_10Pin(PORTPIN)  \
         && (__HAL_GPIO_EXTI_GET_IT(getIoHalPin(PORTPIN)) != RESET)) {             \
         __HAL_GPIO_EXTI_CLEAR_IT(getIoHalPin(PORTPIN));                           \
+        traceISR_ENTER();                                                         \
         INTERRUPT_HANDLER();                                                      \
+        traceISR_EXIT();                                                          \
     }
 
 extern "C" {

@@ -8,12 +8,14 @@
 #pragma once
 
 #include "selftest_group.hpp"
-#include "selftest_eeprom.hpp"
+#include "selftest_result_type.hpp"
 
 class ResultHeaters : public SelfTestGroup {
     SelfTestViewTextWithIconAndResult noz;
     SelfTestViewTextWithIconAndResult bed;
 
 public:
-    ResultHeaters(TestResult_t res_noz, TestResult_t res_bed);
+    ResultHeaters();
+
+    void SetState(TestResult res_noz, TestResult res_bed);
 };

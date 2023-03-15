@@ -1,5 +1,6 @@
+// screen_printing.cpp
 #include "screen_printing.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "print_utils.hpp"
 #include "ffconf.h"
 #include "ScreenHandler.hpp"
@@ -9,13 +10,15 @@
 #include "odometer.hpp"
 #include "liveadjust_z.hpp"
 #include "DialogMoveZ.hpp"
+#include "metric.h"
 #include "screen_menu_tune.hpp"
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
-    #include "filament_sensor_api.hpp"
+    #include "filament_sensors_handler.hpp"
 #endif
 
-#include "../Marlin/src/module/motion.h"
+#include "Marlin/src/module/motion.h"
+#include "Marlin/src/feature/bed_preheat.hpp"
 
 #if ENABLED(CRASH_RECOVERY)
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
@@ -37,6 +40,7 @@ static constexpr BtnResource btn_res[static_cast<size_t>(item_id_t::count)] = {
     { N_("Heating..."), &png::resume_48x48 }, // reheating is same as resume, but disabled
     { N_("Reprint"), &png::reprint_48x48 },
     { N_("Home"), &png::home_58x58 },
+    { N_("Skip"), &png::resume_48x48 },
 };
 
 void screen_printing_data_t::invalidate_print_state() {
@@ -52,6 +56,7 @@ void screen_printing_data_t::tuneAction() {
     }
     switch (GetState()) {
     case printing_state_t::PRINTING:
+    case printing_state_t::ABSORBING_HEAT:
     case printing_state_t::PAUSED:
         Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuTune>);
         break;
@@ -67,6 +72,10 @@ void screen_printing_data_t::pauseAction() {
     switch (GetState()) {
     case printing_state_t::PRINTING:
         marlin_print_pause();
+        change_print_state();
+        break;
+    case printing_state_t::ABSORBING_HEAT:
+        bed_preheat.skip_preheat();
         change_print_state();
         break;
     case printing_state_t::PAUSED:
@@ -100,6 +109,7 @@ void screen_printing_data_t::stopAction() {
             == Response::Yes) {
             stop_pressed = true;
             waiting_for_abort = true;
+            marlin_print_abort();
             change_print_state();
         } else
             return;
@@ -111,67 +121,103 @@ void screen_printing_data_t::stopAction() {
 
 screen_printing_data_t::screen_printing_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
+#if (defined(USE_ILI9488))
+    , print_progress(this)
+#endif
+#if defined(USE_ST7789)
     , w_filename(this, Rect16(10, 33, 220, 29))
     , w_progress(this, Rect16(10, 70, GuiDefaults::RectScreen.Width() - 2 * 10, 16))
-    , w_progress_txt(this, Rect16(10, 86, GuiDefaults::RectScreen.Width() - 2 * 10, 30))
+    , w_progress_txt(this, Rect16(10, 86, GuiDefaults::RectScreen.Width() - 2 * 10, 30)) // font: Normal (11x18 px)
     , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
     , w_etime_value(this, Rect16(30, 148, 201, 20), is_multiline::no)
-    , last_print_duration(-1)
-    , last_time_to_end(-1)
+#elif defined(USE_ILI9488)
+    , w_filename(this, Rect16(30, 38, 420, 24))
+    , w_progress(this, Rect16(30, 65, GuiDefaults::RectScreen.Width() - 2 * 30, 16))
+    , w_progress_txt(this, Rect16(300, 115, 150, 54))                 // Left side option: 30, 115, 100, 54 | font: Large (53x30 px)
+    , w_etime_label(this, Rect16(30, 114, 150, 20), is_multiline::no) // Right side option: 300, 118, 150, 20
+    , w_etime_value(this, Rect16(30, 138, 200, 23), is_multiline::no) // Right side option: 250, 138, 200, 23
+#endif // USE_<display>
     , message_timer(0)
     , stop_pressed(false)
     , waiting_for_abort(false)
     , state__readonly__use_change_print_state(printing_state_t::COUNT)
-    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() }))) {
+#if defined(USE_ST7789)
+    , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() })))
+#elif defined(USE_ILI9488)
+    , popup_rect(Rect16(30, 115, 250, 70))                            // Rect for printing messages from marlin.
+#endif // USE_<display>
+    , time_end_format(PT_t::init) {
     marlin_error_clr(MARLIN_ERR_ProbingFailed);
     // we will handle HELD_RELEASED event in this window
     DisableLongHoldScreenAction();
 
-    marlin_vars_t *vars = marlin_vars();
-
-    strlcpy(text_time_dur.data(), "0m", text_time_dur.size());
     strlcpy(text_filament.data(), "999m", text_filament.size());
+
+#if defined(USE_ST7789)
+    // ST7789 specific adjustments
+    Align_t align = Align_t::RightBottom();
+    w_filename.SetAlignment(Align_t::LeftBottom());
+    w_progress_txt.SetAlignment(Align_t::Center());
+    w_etime_label.SetAlignment(Align_t::RightBottom());
+    w_etime_value.SetAlignment(Align_t::RightBottom());
+
+    ResourceId etime_val_font = IDR_FNT_SMALL;
+    w_progress_txt.SetFont(resource_font(IDR_FNT_NORMAL));
+
+    // ST7789 specific variable and it's label
+    w_time_label.font = resource_font(IDR_FNT_SMALL);
+    w_time_label.SetAlignment(align);
+    w_time_label.SetPadding({ 0, 2, 0, 2 });
+    w_time_label.SetText(_("Printing time"));
+
+    w_time_value.font = resource_font(IDR_FNT_SMALL);
+    w_time_value.SetAlignment(align);
+    w_time_value.SetPadding({ 0, 2, 0, 2 });
+#elif defined(USE_ILI9488)
+    // ILI_9488 specific adjustments
+    w_filename.SetAlignment(Align_t::LeftTop());
+    w_progress_txt.SetAlignment(Align_t::RightTop());
+    w_etime_label.SetAlignment(Align_t::LeftBottom());
+    w_etime_value.SetAlignment(Align_t::LeftBottom());
+
+    w_etime_label.SetTextColor(COLOR_SILVER);
+    ResourceId etime_val_font = IDR_FNT_NORMAL;
+    w_progress_txt.SetFont(resource_font(IDR_FNT_LARGE));
+#endif // USE_<display>
 
     w_filename.font = resource_font(IDR_FNT_BIG);
     w_filename.SetPadding({ 0, 0, 0, 0 });
-    w_filename.SetAlignment(Align_t::LeftBottom());
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
-    w_filename.SetText(vars->media_LFN ? string_view_utf8::MakeRAM((const uint8_t *)vars->media_LFN) : string_view_utf8::MakeNULLSTR());
+    marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN));
+    w_filename.SetText(string_view_utf8::MakeRAM((const uint8_t *)gui_media_LFN));
 
-    // we could use shadow flag and color scheme for labels and values to be more clear
     w_etime_label.font = resource_font(IDR_FNT_SMALL);
-    w_etime_label.SetAlignment(Align_t::RightBottom());
-    w_etime_label.SetPadding({ 0, 2, 0, 2 });
-    w_etime_label.SetText(_("Remaining"));
 
-    w_etime_value.font = resource_font(IDR_FNT_SMALL);
-    w_etime_value.SetAlignment(Align_t::RightBottom());
+    // Execute first print time update loop
+    updateTimes();
+
+    w_etime_value.font = resource_font(etime_val_font);
     w_etime_value.SetPadding({ 0, 2, 0, 2 });
-    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
-    w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
 
-    w_time_label.font = resource_font(IDR_FNT_SMALL);
-    w_time_label.SetAlignment(Align_t::RightBottom());
-    w_time_label.SetPadding({ 0, 2, 0, 2 });
-    w_time_label.SetText(_("Elapsed"));
-
-    w_time_value.font = resource_font(IDR_FNT_SMALL);
-    w_time_value.SetAlignment(Align_t::RightBottom());
-    w_time_value.SetPadding({ 0, 2, 0, 2 });
-    // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
-    w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
+#if defined(USE_ILI9488)
+    print_progress.Pause();
+    last_e_axis_position = marlin_vars()->curr_pos[MARLIN_VAR_INDEX_E];
+#endif
 
     initAndSetIconAndLabel(btn_tune, res_tune);
     initAndSetIconAndLabel(btn_pause, res_pause);
     initAndSetIconAndLabel(btn_stop, res_stop);
-    change_etime();
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
 extern int _is_in_M600_flg;
 extern uint32_t *pCommand;
+#endif
+
+#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE()
+static metric_t print_successful = METRIC("Print_successful", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_ENABLE_ALL);
 #endif
 
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -201,23 +247,60 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         return;
     }
 
-    if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
-        marlin_error_clr(MARLIN_ERR_ProbingFailed);
-        if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
-            screen_printing_reprint();
+#if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
+    if (marlin_error(MARLIN_ERR_NozzleCleaningFailed)) {
+        marlin_error_clr(MARLIN_ERR_NozzleCleaningFailed);
+        if (MsgBox(_("Nozzle cleaning failed."), Responses_RetryAbort) == Response::Retry) {
+            marlin_print_resume();
         } else {
             marlin_print_abort();
             return;
         }
     }
+#endif
+
+#if HAS_BED_PROBE
+    if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
+        marlin_error_clr(MARLIN_ERR_ProbingFailed);
+        marlin_print_abort();
+        while (marlin_vars()->print_state == mpsAborting_Begin
+            || marlin_vars()->print_state == mpsAborting_WaitIdle
+            || marlin_vars()->print_state == mpsAborting_ParkHead) {
+            gui_loop(); // Wait while aborting
+        }
+        if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
+            screen_printing_reprint(); // Restart print
+        } else {
+            return;
+        }
+    }
+#endif
 
     change_print_state();
 
-    if (marlin_vars()->print_duration != last_print_duration)
-        update_print_duration(marlin_vars()->print_duration);
-    if (marlin_vars()->time_to_end != last_time_to_end) {
-        change_etime();
+#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE()
+    if (p_state == printing_state_t::PRINTING)
+        print_feedback_pending = true;
+
+    if (p_state == printing_state_t::PRINTED && print_feedback_pending) {
+        print_feedback_pending = false;
+        switch (MsgBox(_("Was the print successful?"), Responses_YesNoIgnore, 2)) {
+        case Response::Yes:
+            metric_record_integer(&print_successful, 1);
+            break;
+        case Response::No:
+            metric_record_integer(&print_successful, 0);
+            break;
+        case Response::Ignore:
+            metric_record_integer(&print_successful, -1);
+        default:
+            break;
+        }
     }
+#endif
+
+    /// -- Print time update loop
+    updateTimes();
 
     /// -- close screen when print is done / stopped and USB media is removed
     if (!marlin_vars()->media_inserted && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
@@ -238,25 +321,61 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         }
         return;
     }
+#if defined(USE_ILI9488)
+    if (event == GUI_event_t::LOOP && p_state == printing_state_t::PRINTING) {
+        auto vars = marlin_vars();
+        const bool midprint = vars->curr_pos[MARLIN_VAR_INDEX_Z] >= 0.0f;
+        const bool extruder_moved = (vars->curr_pos[MARLIN_VAR_INDEX_E] - last_e_axis_position) > 0;
+        if (print_progress.isPaused() && midprint && extruder_moved) {
+            print_progress.Resume();
+        } else if (print_progress.isPaused()) {
+            last_e_axis_position = vars->curr_pos[MARLIN_VAR_INDEX_E];
+        }
+    }
+#endif
+
+    if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
+#if defined(USE_ILI9488)
+        if (p_state == printing_state_t::PRINTED)
+            print_progress.FinishedMode();
+        else
+            print_progress.StoppedMode();
+#endif
+        w_etime_label.Hide();
+        w_etime_value.Hide();
+    } else {
+#if defined(USE_ILI9488)
+        print_progress.PrintingMode();
+#endif
+        w_etime_label.Show();
+        w_etime_value.Show();
+    }
 
     SuperWindowEvent(sender, event, param);
 }
 
-void screen_printing_data_t::change_etime() {
-    time_t sec = time(nullptr);
-    if (sec != 0) {
-        // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-        // theoretically it can be removed completely in case the string is constant for the whole run of the screen
-        int8_t timezone = eeprom_get_i8(EEVAR_TIMEZONE);
-        sec += 3600 * timezone;
-        w_etime_label.SetText(label_etime = _("Print will end"));
-        update_end_timestamp(sec, marlin_vars()->print_speed);
-    } else {
-        // store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-        w_etime_label.SetText(label_etime = _("Remaining"));
-        update_remaining_time(marlin_vars()->time_to_end, marlin_vars()->print_speed);
+void screen_printing_data_t::updateTimes() {
+    PT_t time_format = print_time.update_loop(time_end_format, &w_etime_value
+#if defined(USE_ST7789)
+        ,
+        &w_time_value
+#endif // USE_ST7789
+    );
+
+    if (time_format != time_end_format) {
+        switch (time_format) {
+        case PT_t::init: // should not happen
+            return;
+        case PT_t::countdown:
+            w_etime_label.SetText(_(PrintTime::EN_STR_COUNTDOWN));
+            break;
+        case PT_t::timestamp:
+            w_etime_label.SetText(_(PrintTime::EN_STR_TIMESTAMP));
+            break;
+        }
+
+        time_end_format = time_format;
     }
-    last_time_to_end = marlin_vars()->time_to_end;
 }
 
 void screen_printing_data_t::disable_tune_button() {
@@ -276,104 +395,9 @@ void screen_printing_data_t::enable_tune_button() {
     btn_tune.ico.Invalidate();
 }
 
-void screen_printing_data_t::update_remaining_time(uint32_t sec, uint16_t print_speed) {
-    bool is_time_valid = sec < (60 * 60 * 24 * 365); // basic check, check of year in tm struct, does not work
-    w_etime_value.SetTextColor(is_time_valid ? GuiDefaults::COLOR_VALUE_VALID : GuiDefaults::COLOR_VALUE_INVALID);
-    if (is_time_valid) {
-        time_t rawtime = time_t(sec);
-        if (print_speed != 100) {
-            // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
-            rawtime = (rawtime * 100) / print_speed;
-        }
-        const struct tm *timeinfo = localtime(&rawtime);
-        //standard would be:
-        //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
-        if (timeinfo->tm_yday) {
-            snprintf(text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
-        } else if (timeinfo->tm_hour) {
-            snprintf(text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-        } else {
-            snprintf(text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%im", timeinfo->tm_min);
-        }
-    } else {
-        if (print_speed != 100)
-            strlcat(text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
-        else
-            strlcpy(text_etime.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
-    }
-    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
-    w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
-    w_etime_value.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
-}
-
-void screen_printing_data_t::update_end_timestamp(time_t now_sec, uint16_t print_speed) {
-
-    bool time_invalid = false;
-    if (marlin_vars()->time_to_end == TIME_TO_END_INVALID) {
-        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_INVALID);
-        time_invalid = true;
-    } else {
-        w_etime_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
-    }
-
-    static const uint32_t full_day_in_seconds = 86400;
-    time_t print_end_sec, tomorrow_sec;
-
-    if (print_speed != 100)
-        // multiply by 100 is safe, it limits time_to_end to ~21mil. seconds (248 days)
-        print_end_sec = now_sec + (100 * marlin_vars()->time_to_end / print_speed);
-    else
-        print_end_sec = now_sec + marlin_vars()->time_to_end;
-
-    tomorrow_sec = now_sec + full_day_in_seconds;
-
-    struct tm tomorrow, print_end, now;
-    localtime_r(&now_sec, &now);
-    localtime_r(&tomorrow_sec, &tomorrow);
-    localtime_r(&print_end_sec, &print_end);
-
-    if (now.tm_mday == print_end.tm_mday && // if print end is today
-        now.tm_mon == print_end.tm_mon && now.tm_year == print_end.tm_year) {
-        //strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "Today at %H:%M?", &print_end); //@@TODO translate somehow
-        FormatMsgPrintWillEnd::Today(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
-    } else if (tomorrow.tm_mday == print_end.tm_mday && // if print end is tomorrow
-        tomorrow.tm_mon == print_end.tm_mon && tomorrow.tm_year == print_end.tm_year) {
-        //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%a at %H:%MM", &print_end);
-        FormatMsgPrintWillEnd::DayOfWeek(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true);
-    } else {
-        //        strftime(pw->text_etime.data(), MAX_END_TIMESTAMP_SIZE, "%m-%d at %H:%MM", &print_end);
-        FormatMsgPrintWillEnd::Date(text_etime.data(), MAX_END_TIMESTAMP_SIZE, &print_end, true, FormatMsgPrintWillEnd::ISO);
-    }
-    if (print_speed != 100)
-        strlcat(text_etime.data(), "?", MAX_END_TIMESTAMP_SIZE);
-
-    if (time_invalid == false) {
-        text_etime[text_etime.size() - 1] = 0; // safety \0 termination in all cases
-    }
-    // this MakeRAM is safe - text_etime is allocated in RAM for the lifetime of pw
-    w_etime_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_etime.data()));
-    w_etime_value.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
-}
-void screen_printing_data_t::update_print_duration(time_t rawtime) {
-    w_time_value.SetTextColor(GuiDefaults::COLOR_VALUE_VALID);
-    const struct tm *timeinfo = localtime(&rawtime);
-    if (timeinfo->tm_yday) {
-        snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
-    } else if (timeinfo->tm_hour) {
-        snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%ih %2im", timeinfo->tm_hour, timeinfo->tm_min);
-    } else if (timeinfo->tm_min) {
-        snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%im %2is", timeinfo->tm_min, timeinfo->tm_sec);
-    } else {
-        snprintf(text_time_dur.data(), MAX_TIMEDUR_STR_SIZE, "%is", timeinfo->tm_sec);
-    }
-    // this MakeRAM is safe - text_time_dur is allocated in RAM for the lifetime of pw
-    w_time_value.SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
-    w_time_value.Invalidate(); // invalidation is needed here because we are using the same static array for the text and text will invalidate only when the memory address is different
-}
-
 void screen_printing_data_t::screen_printing_reprint() {
-    print_begin(marlin_vars()->media_SFN_path, true);
-    w_etime_label.SetText(_("Remaining"));
+    print_begin(gui_media_SFN_path, true);
+    screen_printing_data_t::updateTimes(); // reinit, but should be already set correctly
     btn_stop.txt.SetText(_(btn_res[static_cast<size_t>(item_id_t::stop)].first));
     btn_stop.ico.SetRes(btn_res[static_cast<size_t>(item_id_t::stop)].second);
 
@@ -382,7 +406,7 @@ void screen_printing_data_t::screen_printing_reprint() {
 #endif
 }
 
-//todo use it
+// todo use it
 /*static void mesh_err_stop_print() {
     float target_nozzle = marlin_vars()->target_nozzle;
     float target_bed = marlin_vars()->target_bed;
@@ -426,8 +450,8 @@ void screen_printing_data_t::set_pause_icon_and_label() {
     window_icon_t *const p_button = &btn_pause.ico;
     window_text_t *const pLabel = &btn_pause.txt;
 
-    //todo it is static, because menu tune is not dialog
-    //switch (state__readonly__use_change_print_state)
+    // todo it is static, because menu tune is not dialog
+    // switch (state__readonly__use_change_print_state)
     switch (GetState()) {
     case printing_state_t::COUNT:
     case printing_state_t::INITIAL:
@@ -435,6 +459,10 @@ void screen_printing_data_t::set_pause_icon_and_label() {
     case printing_state_t::MBL_FAILED:
         enable_button(p_button);
         set_icon_and_label(item_id_t::pause, p_button, pLabel);
+        break;
+    case printing_state_t::ABSORBING_HEAT:
+        enable_button(p_button);
+        set_icon_and_label(item_id_t::skip, p_button, pLabel);
         break;
     case printing_state_t::PAUSING:
         disable_button(p_button);
@@ -471,12 +499,13 @@ void screen_printing_data_t::set_tune_icon_and_label() {
     window_icon_t *const p_button = &btn_tune.ico;
     window_text_t *const pLabel = &btn_tune.txt;
 
-    //must be before switch
+    // must be before switch
     set_icon_and_label(item_id_t::settings, p_button, pLabel);
 
     switch (GetState()) {
     case printing_state_t::PRINTING:
-        // case printing_state_t::PAUSED:
+    case printing_state_t::ABSORBING_HEAT:
+    case printing_state_t::PAUSED:
         enable_tune_button();
         break;
     case printing_state_t::ABORTING:
@@ -503,6 +532,10 @@ void screen_printing_data_t::set_stop_icon_and_label() {
         disable_button(p_button);
         set_icon_and_label(item_id_t::stop, p_button, pLabel);
         break;
+    case printing_state_t::REHEATING:
+        enable_button(p_button);
+        set_icon_and_label(item_id_t::stop, p_button, pLabel);
+        break;
     case printing_state_t::ABORTING:
         disable_button(p_button);
         break;
@@ -526,7 +559,11 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::INITIAL;
         break;
     case mpsPrinting:
-        st = printing_state_t::PRINTING;
+        if (bed_preheat.is_waiting()) {
+            st = printing_state_t::ABSORBING_HEAT;
+        } else {
+            st = printing_state_t::PRINTING;
+        }
         break;
     case mpsPowerPanic_AwaitingResume:
     case mpsPaused:
@@ -538,6 +575,11 @@ void screen_printing_data_t::change_print_state() {
     case mpsPausing_WaitIdle:
     case mpsPausing_ParkHead:
         st = printing_state_t::PAUSING;
+// When print is paused, progress screen needs to reinit it's thumbnail file handler
+// because USB removal error crashes file handler access. Progress screen should not be enabled during pause -> reinit on EVERY pause
+#if defined(USE_ILI9488)
+        print_progress.Pause();
+#endif
         break;
     case mpsResuming_Reheating:
         stop_pressed = false;
@@ -550,12 +592,16 @@ void screen_printing_data_t::change_print_state() {
     case mpsCrashRecovery_Retracting:
     case mpsCrashRecovery_Lifting:
     case mpsCrashRecovery_XY_Measure:
+    case mpsCrashRecovery_Tool_Pickup:
     case mpsCrashRecovery_XY_HOME:
     case mpsCrashRecovery_Axis_NOK:
     case mpsCrashRecovery_Repeated_Crash:
     case mpsPowerPanic_Resume:
         stop_pressed = false;
         st = printing_state_t::RESUMING;
+#if (PRINTER_TYPE != PRINTER_PRUSA_IXL && defined(USE_ILI9488))
+        print_progress.Resume();
+#endif
         break;
     case mpsAborting_Begin:
     case mpsAborting_WaitIdle:
@@ -592,9 +638,4 @@ void screen_printing_data_t::change_print_state() {
     if (st == printing_state_t::PRINTED || st == printing_state_t::STOPPED || st == printing_state_t::PAUSED) {
         Odometer_s::instance().force_to_eeprom();
     }
-#if ENABLED(CRASH_RECOVERY)
-    if (st == printing_state_t::PRINTED) {
-        crash_s.write_stat_to_eeprom();
-    }
-#endif
 }

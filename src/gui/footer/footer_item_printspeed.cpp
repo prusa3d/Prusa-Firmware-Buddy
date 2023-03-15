@@ -4,7 +4,7 @@
 
 #include "footer_item_printspeed.hpp"
 #include "png_resources.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "i18n.h"
 #include <algorithm>
 

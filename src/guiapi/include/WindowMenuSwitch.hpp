@@ -69,10 +69,11 @@ public:
     size_t GetIndex() const;
 
 protected:
-    static Rect16::Width_t calculateExtensionWidth(Items_t items);
-    static Rect16::Width_t calculateExtensionWidth_text(Items_t items);
+    static Rect16::Width_t calculateExtensionWidth(Items_t items, int32_t index);
+    static Rect16::Width_t calculateExtensionWidth_text(Items_t items, int32_t index);
     static Rect16::Width_t calculateExtensionWidth_icon(Items_t items);
 
+    void changeExtentionWidth();
     Rect16 getSwitchRect(Rect16 extension_rect) const;
     Rect16 getLeftBracketRect(Rect16 extension_rect) const;
     Rect16 getRightBracketRect(Rect16 extension_rect) const;
@@ -80,6 +81,7 @@ protected:
     virtual invalidate_t change(int dif) override;
     virtual void OnChange(size_t old_index) {};
     virtual void click(IWindowMenu &window_menu) final;
+    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
     void printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const;
     void printExtension_icon(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const;

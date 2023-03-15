@@ -31,8 +31,11 @@ metric_handler_t *SensorDataBuffer::getHandler() {
     return nullptr;
 }
 
+#if BOARD_IS_XLBUDDY
+static constexpr Sensor first_sensor_to_log = Sensor::splitter5VCurrent;
+#else
 static constexpr Sensor first_sensor_to_log = Sensor::printFan;
-
+#endif
 bool SensorDataBuffer::enableMetrics() {
 
     if (allMetricsEnabled)
@@ -98,7 +101,7 @@ void SensorDataBuffer::HandleNewData(metric_point_t *point) {
         auto it = std::lower_bound(sensors.begin(), sensors.end(), pair { point->metric->name, first_sensor_to_log }, compareFN {});
         if (it != sensors.end() && strcmp(it->first, point->metric->name) == 0) {
             if (xSemaphoreTake(mutex, (TickType_t)portMAX_DELAY) == pdTRUE) {
-                sensorValues[static_cast<uint16_t>(it->second)].float_val = point->value_float;
+                sensorValues[static_cast<uint16_t>(it->second)].float_val = point->value_float; // This can be int, but both are union of float/int
                 sensorValues[static_cast<uint16_t>(it->second)].attribute.valid = true;
                 sensorValues[static_cast<uint16_t>(it->second)].attribute.type = point->metric->type == METRIC_VALUE_FLOAT ? Type::floatType : Type::intType;
                 xSemaphoreGive(mutex);
@@ -114,6 +117,7 @@ void initMutex() {
 }
 
 void SensorData::RegisterBuffer(SensorDataBuffer *buff) {
+    assert(buffer == nullptr); // some other SensorData is already registered
     initMutex();
     if (xSemaphoreTake(mutex, (TickType_t)portMAX_DELAY) == pdTRUE) {
         buffer = buff;

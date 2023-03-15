@@ -1,6 +1,6 @@
 #include "job_command.h"
 
-#include "../../../src/common/marlin_client.h"
+#include "../../../src/common/marlin_client.hpp"
 
 #include <cassert>
 
@@ -23,7 +23,6 @@ namespace {
 
     SimplePrintState get_state() {
         marlin_vars_t *vars = marlin_vars();
-        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE));
 
         switch (vars->print_state) {
         case mpsPrinting:

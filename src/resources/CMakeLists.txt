@@ -53,18 +53,29 @@ target_include_directories(firmware PUBLIC "${resources_include_dir}")
 # Standard Resources Image
 #
 
-add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 256)
+add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 512)
 
 # /esp directory
-add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
-add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
-add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
+if(PRINTER STREQUAL "XL")
+  add_resource("esp32/uart_wifi.bin" "/esp32/uart_wifi.bin")
+  add_resource("esp32/bootloader.bin" "/esp32/bootloader.bin")
+  add_resource("esp32/partition-table.bin" "/esp32/partition-table.bin")
+else()
+  add_resource("esp/uart_wifi.bin" "/esp/uart_wifi.bin")
+  add_resource("esp/bootloader.bin" "/esp/bootloader.bin")
+  add_resource("esp/partition-table.bin" "/esp/partition-table.bin")
+endif()
+
+if(PUPPY_FLASH_FW)
+  add_resource("${DWARF_BINARY_PATH}" "/puppies/fw-dwarf.bin")
+  add_resource("${MODULARBED_BINARY_PATH}" "/puppies/fw-modularbed.bin")
+endif()
 
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.20b2d74deb75509b00f2.js" "/web/main.20b2d74deb75509b00f2.js")
-add_gzip_resource("web/main.4f2649b873ffe3770e59.css" "/web/main.4f2649b873ffe3770e59.css")
+add_gzip_resource("web/main.bc8a0b73424dc62038c4.js" "/web/main.bc8a0b73424dc62038c4.js")
+add_gzip_resource("web/main.06c3456edb83cfb04a3d.css" "/web/main.06c3456edb83cfb04a3d.css")
 
 # /png directory
 add_resource("${png_data_file}" "pngs")

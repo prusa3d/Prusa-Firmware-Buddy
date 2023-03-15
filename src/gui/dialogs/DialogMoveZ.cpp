@@ -2,27 +2,31 @@
 #include "DialogMoveZ.hpp"
 #include "ScreenHandler.hpp"
 #include "png_resources.hpp"
-#include "marlin_client.h"
+#include "marlin_client.hpp"
 #include "menu_vars.h"
 
 bool DialogMoveZ::DialogShown = false;
 
 DialogMoveZ::DialogMoveZ()
-    : AddSuperWindow<IDialog>(GuiDefaults::RectScreenNoFoot)
+    : AddSuperWindow<IDialog>(GuiDefaults::EnableDialogBigLayout ? GuiDefaults::RectScreen : GuiDefaults::RectScreenNoFoot)
     , value(marlin_vars()->pos[2])
     , lastQueuedPos(marlin_vars()->pos[2])
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))
     , infoText(this, infoText_rc, is_multiline::yes, is_closed_on_click_t::no, _(infoTextContent))
     , closeText(this, closeText_rc, is_multiline::no, is_closed_on_click_t::no, _(closeTextContent))
-    , upText(this, upText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
-    , downText(this, downText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL) // XL moves bed down while Z goes up
+    , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
+    , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
+#else  /*PRINTER_TYPE*/
+    , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
+    , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
+#endif /*PRINTER_TYPE*/
     , arrows(this, text_rc.TopRight(), { 0, 6, 0, 6 })
     , numb(this, numb_rc, marlin_vars()->pos[2], "%d mm", GuiDefaults::FontBig)
     , header(this, _(headerLabel))
     , icon(this, icon_rc, &png::turn_knob_81x55) {
     DialogShown = true;
 
-    marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_TRAVEL_ACCEL));
     prev_accel = marlin_vars()->travel_acceleration;
     marlin_gcode("M204 T200");
     /// using window_t 1bit flag
@@ -41,9 +45,11 @@ DialogMoveZ::DialogMoveZ()
     closeText.font = GuiDefaults::FontMenuSpecial;
     closeText.SetAlignment(Align_t::Center());
 
-    upText.font = GuiDefaults::FontBig;
-
-    downText.font = GuiDefaults::FontBig;
+    //  UP DOWN texts
+    rightText.font = GuiDefaults::FontBig;
+    rightText.SetAlignment(Align_t::Left());
+    leftText.font = GuiDefaults::FontBig;
+    leftText.SetAlignment(Align_t::Right());
 
     // axis text
     axisText.font = GuiDefaults::FontBig;
@@ -60,7 +66,11 @@ DialogMoveZ::DialogMoveZ()
 };
 
 void DialogMoveZ::windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) {
+#if PRINTER_TYPE == PRINTER_PRUSA_MINI
     constexpr static uint8_t len = 4;
+#else
+    constexpr static uint8_t len = 12;
+#endif
 
     switch (event) {
     case GUI_event_t::CLICK: {
@@ -77,19 +87,26 @@ void DialogMoveZ::windowEvent(EventLock, window_t *sender, GUI_event_t event, vo
         const int enc_change = int(param);
         change(-enc_change);
         numb.SetValue(value);
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL) // XL moves bed down while Z goes up
+        arrows.SetState(WindowArrows::State_t::up);
+#else  /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::down);
+#endif /*PRINTER_TYPE*/
         return;
     }
     case GUI_event_t::ENC_UP: {
         const int enc_change = int(param);
         change(enc_change);
         numb.SetValue(value);
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL) // XL moves bed down while Z goes up
+        arrows.SetState(WindowArrows::State_t::down);
+#else  /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::up);
+#endif /*PRINTER_TYPE*/
         return;
     }
     case GUI_event_t::LOOP: {
 
-        marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PQUEUE));
         if (marlin_vars()->pqueue <= len) {
             int difference = value - lastQueuedPos;
             uint8_t freeSlots = len - marlin_vars()->pqueue;

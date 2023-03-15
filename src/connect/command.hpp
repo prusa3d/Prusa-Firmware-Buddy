@@ -85,7 +85,7 @@ struct Command {
     // Note: Might be a "Broken" command or something like that. In both cases.
     static Command gcode_command(CommandId id, const std::string_view &body, SharedBuffer::Borrow buff);
     // The buffer is either used and embedded inside the returned command or destroyed, releasing the ownership.
-    static Command parse_json_command(CommandId id, char *body, size_t body_size, SharedBuffer::Borrow buff);
+    static Command parse_json_command(CommandId id, const std::string_view &body, SharedBuffer::Borrow buff);
 };
 
 }

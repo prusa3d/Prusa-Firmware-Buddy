@@ -12,12 +12,9 @@
 
 using http::HeaderOut;
 using std::holds_alternative;
-using std::is_same_v;
-using std::make_tuple;
 using std::min;
 using std::nullopt;
 using std::optional;
-using std::tuple;
 using std::unique_ptr;
 using std::visit;
 using transfers::Decryptor;
@@ -61,8 +58,6 @@ namespace {
     // window. Safety measure, as it may be related to that specific event and
     // we would never recover if the failure is repeateble with it.
     const constexpr uint8_t GIVE_UP_AFTER_ATTEMPTS = 5;
-
-    const constexpr uint8_t MAX_DOWNLOAD_RETRIES = 5;
 
     optional<Duration> since(optional<Timestamp> past_event) {
         // optional::transform would be nice, but it's C++23
@@ -133,41 +128,17 @@ namespace {
         return nullptr;
     }
 
-    tuple<const char *, uint16_t> host_and_port(const Printer::Config &config, optional<uint16_t> port_override) {
+    Download::DownloadResult init_download(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
         uint16_t port = config.port;
         if (port == 443 && config.tls) {
             // Go from encrypted to the unencrypted port automatically.
             port = 80;
         }
-        if (port_override.has_value()) {
+        if (download.port.has_value()) {
             // Manual override always takes precedence.
-            port = *port_override;
+            port = *download.port;
         }
         const char *host = config.host;
-
-        return make_tuple(host, port);
-    }
-
-    constexpr const char *const enc_prefix = "/f/";
-    constexpr const char *const enc_suffix = "/raw";
-    const size_t enc_prefix_len = strlen(enc_prefix);
-    const size_t enc_suffix_len = strlen(enc_suffix);
-    const size_t iv_len = 2 /* Binary->hex conversion*/ * StartConnectDownload::Encrypted::BLOCK_SIZE;
-    const size_t enc_url_len = enc_prefix_len + enc_suffix_len + iv_len + 1;
-
-    void make_enc_url(char *buffer /* assumed to be at least enc_url_len large */, const Decryptor::Block &iv) {
-        strcpy(buffer, enc_prefix);
-
-        for (size_t i = 0; i < iv.size(); i++) {
-            sprintf(buffer + enc_prefix_len + 2 * i, "%02hhx", iv[i]);
-        }
-
-        buffer[enc_prefix_len + 2 * iv.size()] = '\0';
-        strcat(buffer, enc_suffix);
-    }
-
-    Download::DownloadResult init_download(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
-        const auto [host, port] = host_and_port(config, download.port);
 
         char *path = nullptr;
         HeaderOut *extra_hdrs = nullptr;
@@ -196,8 +167,20 @@ namespace {
             extra_hdrs[1] = { "Token", token, nullopt };
             extra_hdrs[2] = { nullptr, nullptr, nullopt };
         } else if (auto *encrypted = get_if<StartConnectDownload::Encrypted>(&download.details); encrypted != nullptr) {
-            path = reinterpret_cast<char *>(alloca(enc_url_len));
-            make_enc_url(path, encrypted->iv);
+            const char *prefix = "/f/";
+            const size_t prefix_len = strlen(prefix);
+            const char *suffix = "/raw";
+            const size_t suffix_len = strlen(suffix);
+            const size_t buffer_len = prefix_len + 2 * encrypted->iv.size() + suffix_len + 1;
+            path = reinterpret_cast<char *>(alloca(buffer_len));
+            strcpy(path, prefix);
+
+            for (size_t i = 0; i < encrypted->iv.size(); i++) {
+                sprintf(path + prefix_len + 2 * i, "%02hhx", encrypted->iv[i]);
+            }
+
+            path[prefix_len + 2 * encrypted->iv.size()] = '\0';
+            strcat(path, suffix);
             decryptor = make_unique<Decryptor>(encrypted->key, encrypted->iv, encrypted->orig_size);
         } else {
             assert(0);
@@ -260,9 +243,8 @@ Sleep Planner::sleep(Duration amount) {
     // "passively" watching what is or is not being transferred and the event
     // is generated after the fact anyway. No reason to block downloading for
     // that.
-    bool recover_download = download.has_value() ? download->need_retry : false;
-    Download *down = download.has_value() ? &download->download : nullptr;
-    return Sleep(amount, cmd, down, recover_download);
+    Download *down = download.has_value() ? &*download : nullptr;
+    return Sleep(amount, cmd, down);
 }
 
 Action Planner::next_action() {
@@ -566,28 +548,21 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
 
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
-        if constexpr (is_same_v<T, transfers::Download>) {
+        if constexpr (std::is_same_v<T, transfers::Download>) {
             // If there was another download, it wouldn't have succeeded
             // because it wouldn't acquire the transfer slot.
             assert(!this->download.has_value());
 
-            this->download = ResumableDownload { std::move(arg) };
-            this->download->port = download.port;
-            if (auto *enc = get_if<StartConnectDownload::Encrypted>(&download.details); enc != nullptr) {
-                this->download->orig_size = enc->orig_size;
-                this->download->orig_iv = enc->iv;
-                // TODO: Alternatively, do we want to allow more retries on larger files? Something like 3 + size / 1MB?
-                this->download->allowed_retries = MAX_DOWNLOAD_RETRIES;
-            }
+            this->download = std::move(arg);
             planned_event = Event { EventType::Finished, command.id };
             transfer_start_cmd = command.id;
-        } else if constexpr (is_same_v<T, transfers::NoTransferSlot>) {
+        } else if constexpr (std::is_same_v<T, transfers::NoTransferSlot>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress" };
-        } else if constexpr (is_same_v<T, transfers::AlreadyExists>) {
+        } else if constexpr (std::is_same_v<T, transfers::AlreadyExists>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "File already exists" };
-        } else if constexpr (is_same_v<T, transfers::RefusedRequest>) {
+        } else if constexpr (std::is_same_v<T, transfers::RefusedRequest>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Failed to download" };
-        } else if constexpr (is_same_v<T, transfers::Storage>) {
+        } else if constexpr (std::is_same_v<T, transfers::Storage>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, arg.msg };
         } else {
             static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -715,60 +690,17 @@ void Planner::background_done(BackgroundResult result) {
     background_command.reset();
 }
 
-void Planner::download_done(DownloadStep result) {
+void Planner::download_done() {
     // Similar reasons as with background_done
     assert(download.has_value());
-    if (result == DownloadStep::FailedNetwork && download->allowed_retries > 0) {
-        assert(!download->need_retry);
-        download->allowed_retries--;
-        download->need_retry = true;
-    } else {
-        // We do _not_ set the event here. We do so in watching the transfer.
-        //
-        // But we make sure the observed_transfer is set even if there was no
-        // next_event in the meantime or if it was short-circuited.
+    // We do _not_ set the event here. We do so in watching the transfer.
+    //
+    // But we make sure the observed_transfer is set even if there was no
+    // next_event in the meantime or if it was short-circuited.
 
-        observed_transfer = Monitor::instance.id();
-        assert(observed_transfer.has_value()); // Because download still holds the slot.
-        download.reset();
-    }
-}
-
-void Planner::recover_download() {
-    assert(download.has_value());
-    assert(download->need_retry);
-    download->need_retry = false;
-    uint32_t position = download->download.position();
-
-    const auto [config, config_changed] = printer.config(false);
-    const auto [host, port] = host_and_port(config, download->port);
-
-    char url[enc_url_len];
-    make_enc_url(url, download->orig_iv);
-
-    char range[6 /* bytes = */ + 10 /* 2^32 in text */ + 1 /* - */ + 1 /* \0 */];
-    snprintf(range, sizeof range, "bytes=%" PRIu32 "-", position);
-    HeaderOut hdrs[2] = {
-        { "Range", range, nullopt },
-        { nullptr, nullptr, nullopt },
-    };
-
-    const auto result = download->download.recover_encrypted_connect_download(host, port, url, hdrs, download->orig_iv, download->orig_size);
-    visit([&](auto &&arg) {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (is_same_v<T, transfers::Continued> || is_same_v<T, transfers::FromStart>) {
-            // Everything is fine!
-        } else if constexpr (is_same_v<T, transfers::Storage>) {
-            // This is not recoverable, abort the download.
-            download_done(DownloadStep::FailedOther);
-        } else if constexpr (is_same_v<T, transfers::RefusedRequest>) {
-            // Something network related. Do more retries later.
-            download_done(DownloadStep::FailedNetwork);
-        } else {
-            static_assert(always_false_v<T>, "non-exhaustive visitor!");
-        }
-    },
-        result);
+    observed_transfer = Monitor::instance.id();
+    assert(observed_transfer.has_value()); // Because download still holds the slot.
+    download.reset();
 }
 
 }

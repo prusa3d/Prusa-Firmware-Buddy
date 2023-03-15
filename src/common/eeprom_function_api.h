@@ -39,6 +39,7 @@ bool has_wrong_x();
 bool has_wrong_y();
 bool has_wrong_z();
 bool has_wrong_e();
+bool get_print_area_based_heating_enabled();
 
 /**
  * @brief function set to read float value from eeprom and round it

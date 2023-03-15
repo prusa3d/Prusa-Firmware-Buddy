@@ -279,7 +279,6 @@ def print_after_upload_header():
     return keyworded_header({
         'true': 'PrintAfterUpload',
         '1': 'PrintAfterUploadNumeric',
-        '?1': 'PrintAfterUploadRFC',
     })
 
 

@@ -42,6 +42,17 @@ target_sources(
           WindowMenuSwitch.cpp
   )
 
+# has LEDS
+if(HAS_LEDS)
+  target_sources(firmware PRIVATE gui_leds.cpp led_lcd_cs_selector.cpp)
+endif()
+
+if(HAS_TOOLCHANGER)
+  target_sources(firmware PRIVATE window_tool_action_box.cpp)
+endif()
+
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
   target_sources(firmware PRIVATE menu_spin_config_basic.cpp st7789v.cpp)
+elseif(BOARD IN_LIST BOARDS_WITH_ILI9488)
+  target_sources(firmware PRIVATE ili9488.cpp menu_spin_config_with_units.cpp)
 endif()

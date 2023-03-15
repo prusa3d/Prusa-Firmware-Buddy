@@ -24,7 +24,7 @@ protected:
 
 // ----------------------------------------------------------------
 // GUI Prusa Link start after printer startup
-class MI_PL_ENABLED : public WI_SWITCH_OFF_ON_t {
+class MI_PL_ENABLED : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Enabled");
 
 public:

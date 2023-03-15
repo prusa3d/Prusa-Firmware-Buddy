@@ -34,6 +34,8 @@ struct ExperimentalSettingsValues {
     int32_t rms_current_ma_z;
     int32_t rms_current_ma_e;
 
+    size_t touch_ena;
+
     // this is only safe as long as there are no gaps between variabes
     // all variables are 32bit now, so it is safe
     bool operator==(const ExperimentalSettingsValues &other) const;

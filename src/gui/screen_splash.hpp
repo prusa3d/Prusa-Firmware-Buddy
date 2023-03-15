@@ -14,6 +14,12 @@ class screen_splash_data_t : public AddSuperWindow<screen_t> {
     window_icon_t icon_logo_marlin;
 #endif // USE_7789
 
+#if defined(USE_ILI9488)
+    window_text_t text_version;
+    window_numberless_progress_t progress;
+    window_text_t text_progress;
+#endif // USE_ILI9488
+
     char text_progress_buffer[32];
 
 public:

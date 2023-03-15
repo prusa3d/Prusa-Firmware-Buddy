@@ -9,35 +9,51 @@
 
 static_assert(sizeof(IWindowMenuItem) <= sizeof(string_view_utf8) + sizeof(txtroll_t) + sizeof(font_t) + sizeof(int), "error inefficient size of IWindowMenuItem");
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands, font_t *label_font)
-    : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden, label_font) {
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
+    : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden) {
 }
 
-IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, font_t *label_font)
+IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extension_width_, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : label(label)
     , hidden((uint8_t)hidden)
     , enabled(enabled)
-    , focused(is_focused_t::no)
-    , selected(is_selected_t::no)
     , extension_width(extension_width_)
-    , invalid_icon(true)
-    , invalid_label(true)
-    , invalid_extension(true)
-    , id_icon(id_icon)
-    , label_font(label_font) {
+    , id_icon(id_icon) {
+}
+
+void IWindowMenuItem::setLabelFont(font_t *src) {
+    label_font = src;
+}
+
+font_t *IWindowMenuItem::getLabelFont() const {
+    return label_font;
 }
 
 /*****************************************************************************/
 //rectangles
 
 Rect16 IWindowMenuItem::getIconRect(Rect16 rect) const {
+    if (icon_position == IconPosition::right) {
+        rect = Rect16::Left_t { static_cast<int16_t>(rect.EndPoint().x - (icon_width * 3 - icon_width / 2)) };
+    } else if (icon_position == IconPosition::replaces_extends) {
+        rect = Rect16::Left_t { static_cast<int16_t>(rect.EndPoint().x - (icon_width * 2 - icon_width / 2)) };
+    }
     rect = icon_width;
     return rect;
 }
 
 Rect16 IWindowMenuItem::getLabelRect(Rect16 rect) const {
-    rect -= icon_width;
-    rect -= Rect16::Width_t(extension_width);
+    if (icon_position == IconPosition::right) {
+        rect -= Rect16::Width_t { icon_width * 4 - icon_width / 2 };
+    } else if (icon_position == IconPosition::replaces_extends) {
+        rect -= Rect16::Width_t { icon_width * 3 - icon_width / 2 };
+    } else {
+        rect -= icon_width;
+    }
+
+    if (icon_position != IconPosition::replaces_extends) {
+        rect -= Rect16::Width_t(extension_width);
+    }
     rect += Rect16::Left_t(icon_width);
     return rect;
 }
@@ -50,18 +66,27 @@ Rect16 IWindowMenuItem::getExtensionRect(Rect16 rect) const {
 
 void IWindowMenuItem::Print(Rect16 rect) {
     ropfn raster_op;
-    raster_op.shadow = IsEnabled() ? is_shadowed::no : is_shadowed::yes;
-    raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
+    if (clr_scheme) {
+        raster_op = IsFocused() ? clr_scheme->rop.focused : clr_scheme->rop.unfocused;
+    } else {
+        raster_op.shadow = IsEnabled() ? is_shadowed::no : is_shadowed::yes;
+        raster_op.swap_bw = IsFocused() ? has_swapped_bw::yes : has_swapped_bw::no;
+    }
 
     color_t mi_color_back = GetBackColor();
     color_t mi_color_text = GetTextColor();
 
     if (IsIconInvalid() && IsLabelInvalid() && IsExtensionInvalid()) {
-        render_rect(rect, mi_color_back);
+        render_rounded_rect(rect, GuiDefaults::MenuColorBack, mi_color_back, GuiDefaults::MenuItemCornerRadius, MIC_ALL_CORNERS);
     }
 
+    // Adjust menu item rectangle (simple padding on the sides)
+    rect += Rect16::Left_t(GuiDefaults::MenuItemCornerRadius);
+    rect -= Rect16::Width_t(2 * GuiDefaults::MenuItemCornerRadius);
+
     if (IsIconInvalid()) {
-        //render_rect(getIconRect(rect), mi_color_back); // Unnessessary invalidation (use this if changing icons causes artefacts)
+        // Unnecessary invalidation of bg - use commented code if reprinting causes drawing artefacts
+        //render_rounded_rect(getIconRect(rect), GuiDefaults::MenuColorBack, mi_color_back, GuiDefaults::MenuItemCornerRadius, MIC_TOP_LEFT | MIC_BOT_LEFT);
         printIcon(getIconRect(rect), raster_op, mi_color_back);
     }
 
@@ -69,8 +94,8 @@ void IWindowMenuItem::Print(Rect16 rect) {
         roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
     }
 
-    if (IsExtensionInvalid() && extension_width) {
-        //render_rect(getExtensionRect(rect), mi_color_back); // Unnessessary invalidation (use this if there are artefacts in extention)
+    if (IsExtensionInvalid() && extension_width && icon_position != IconPosition::replaces_extends) {
+        render_rect(getExtensionRect(rect), mi_color_back);
         printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
     }
 
@@ -85,6 +110,10 @@ void IWindowMenuItem::Print(Rect16 rect) {
 *   MenuColorDisabled            | 000
 */
 color_t IWindowMenuItem::GetTextColor() const {
+    if (clr_scheme) {
+        return IsFocused() ? clr_scheme->text.focused : clr_scheme->text.unfocused;
+    }
+
     color_t ret;
     if (IsEnabled() && hidden == (uint8_t)is_hidden_t::dev) {
         ret = GuiDefaults::MenuColorDevelopment;
@@ -106,6 +135,10 @@ color_t IWindowMenuItem::GetTextColor() const {
 *   MenuColorDisabled            | 01
 */
 color_t IWindowMenuItem::GetBackColor() const {
+    if (clr_scheme) {
+        return IsFocused() ? clr_scheme->back.focused : clr_scheme->back.unfocused;
+    }
+
     color_t ret = GuiDefaults::MenuColorBack;
     if (IsFocused()) {
         ret = IsEnabled() ? GuiDefaults::MenuColorFocusedBack : GuiDefaults::MenuColorDisabled;
@@ -114,8 +147,9 @@ color_t IWindowMenuItem::GetBackColor() const {
 }
 
 void IWindowMenuItem::printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const {
-    //do not check id. id == 0 will render as black, it is needed
-    render_icon_align(icon_rect, id_icon, color_back, icon_flags(Align_t::Center(), raster_op));
+    if (id_icon) {
+        render_icon_align(icon_rect, id_icon, color_back, icon_flags(Align_t::Center(), raster_op));
+    }
 }
 
 void IWindowMenuItem::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
@@ -128,6 +162,18 @@ void IWindowMenuItem::Click(IWindowMenu &window_menu) {
         InValidateExtension();
         click(window_menu);
     }
+}
+
+void IWindowMenuItem::Touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
+    if (IsEnabled()) {
+        roll.Deinit();
+        InValidateExtension();
+        touch(window_menu, relative_touch_point);
+    }
+}
+
+void IWindowMenuItem::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) {
+    click(window_menu);
 }
 
 void IWindowMenuItem::setFocus() {
@@ -215,6 +261,22 @@ void IWindowMenuItem::InValidateLabel() {
 void IWindowMenuItem::InValidateExtension() {
     invalid_extension = true;
     gui_invalidate();
+}
+
+void IWindowMenuItem::set_color_scheme(const ColorScheme *scheme) {
+    clr_scheme = scheme;
+}
+
+void IWindowMenuItem::reset_color_scheme() {
+    clr_scheme = nullptr;
+}
+
+void IWindowMenuItem::set_icon_position(const IconPosition position) {
+    icon_position = position;
+}
+
+auto IWindowMenuItem::get_icon_position() const -> IconPosition {
+    return icon_position;
 }
 
 void IWindowMenuItem::Roll() {

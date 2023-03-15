@@ -53,9 +53,28 @@ void SelftestFrametAxis::change() {
 
     icon_x_axis_state.SetState(dt.x_state);
     icon_y_axis_state.SetState(dt.y_state);
-    icon_z_axis_state.SetState(dt.z_state);
-    progress.SetProgressPercent(
-        (
-            dt.x_progress * X_AXIS_PERCENT + dt.y_progress * Y_AXIS_PERCENT + dt.z_progress * Z_AXIS_PERCENT)
-        / 100);
+    if (dt.axis < Z_AXIS) { // Hide Z axis when testing X or Y
+        icon_z_axis.Hide();
+        icon_z_axis_state.Hide();
+        text_z_axis.Hide();
+    } else {
+        icon_z_axis_state.SetState(dt.z_state);
+        icon_z_axis.Show();
+        icon_z_axis_state.Show();
+        text_z_axis.Show();
+    }
+    switch (dt.axis) {
+    case X_AXIS:
+        progress.SetProgressPercent(dt.x_progress);
+        break;
+    case Y_AXIS:
+        progress.SetProgressPercent(dt.y_progress);
+        break;
+    case Z_AXIS:
+        progress.SetProgressPercent(dt.z_progress);
+        break;
+    default: // Show joined progress when testing all 3 axes together
+        progress.SetProgressPercent((dt.x_progress * X_AXIS_PERCENT + dt.y_progress * Y_AXIS_PERCENT + dt.z_progress * Z_AXIS_PERCENT) / 100);
+        break;
+    }
 };
