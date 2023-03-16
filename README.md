@@ -4,7 +4,7 @@
 
 This repository includes source code and firmware releases for the Original Prusa 3D printers based on the 32-bit ARM microcontrollers.
 
-The currently supported model is:
+The currently supported models are:
 - Original Prusa MINI
 - Original Prusa XL
 
@@ -32,16 +32,10 @@ Run `python utils/build.py`. The binaries are then going to be stored under `./b
 
 #### Examples:
 
-Build the firmware for MINI and iX in `debug` mode:
+Build the firmware for MINI and XL in `debug` mode:
 
 ```bash
-python utils/build.py --preset mini,ix --build-type debug
-```
-
-Build _final_ version for all printers and create signed `.bbf` versions:
-
-```bash
-python utils/build.py --final --generate-bbf --signing-key <path-to-ecdsa-private-key>
+python utils/build.py --preset mini,xl --build-type debug
 ```
 
 Build the firmware for MINI using a custom version of gcc-arm-none-eabi (available in `$PATH`) and use `Make` instead of `Ninja` (not recommended):
@@ -85,23 +79,23 @@ If you want to contribute, make sure to install [pre-commit](https://pre-commit.
 
 #### XL and Puppies
 
-With the XL, the situation gets a bit more complex. The firmware of xlBuddy contains firmwares for the puppies (Dwarf and Modularbed) to flash them when necessary. We support several ways of dealing with those firmwares when developing:
+With the XL, the situation gets a bit more complex. The firmware of XLBuddy contains firmwares for the puppies (Dwarf and Modularbed) to flash them when necessary. We support several ways of dealing with those firmwares when developing:
 
-1. Build Dwarf/Modularbed firmware automatically and flash it on startup by xlBuddy (the default)
-    - The Dwarf firmware will be built from this repo's state.
-    - The Modularbed firmware is going to be built from https://github.com/prusa3d/Prusa-Firmware-ModularBed.
+1. Build Dwarf/Modularbed firmware automatically and flash it on startup by XLBuddy (the default)
+    - The Dwarf & ModularBed firmware will be built from this repo.
+    - The puppies are going to be flashed on startup by the XLBuddy. The puppies have to be running the [Puppy Bootloader](http://github.com/prusa3d/Prusa-Bootloader-Puppy).
 
-2. Build Dwarf/Modularbed from a given source directory and flash it on startup by xlBuddy.
+2. Build Dwarf/Modularbed from a given source directory and flash it on startup by XLBuddy.
     - Specify `DWARF_SOURCE_DIR`/`MODULARBED_SOURCE_DIR` CMake cache variable with the local repo you want to use.
-    - Example below would build modularbed's firmware from /Projects/Prusa-Firmware-ModularBed and include it in the xlBuddy firmware.
+    - Example below would build modularbed's firmware from /Projects/Prusa-Firmware-Buddy-ModularBed and include it in the xlBuddy firmware.
     ```
-    cmake .. --preset xl_release_boot -DMODULARBED_SOURCE_DIR=/Projects/Prusa-Firmware-ModularBed
+    cmake .. --preset xl_release_boot -DMODULARBED_SOURCE_DIR=/Projects/Prusa-Firmware-Buddy-ModularBed
     ```
     - You can also specify the build directory you want to use:
     ```
     cmake .. --preset xl_release_boot \
-        -DMODULARBED_SOURCE_DIR=/Projects/Prusa-Firmware-ModularBed  \
-        -DMODULARBED_BINARY_DIR=/Projects/Prusa-Firmware-ModularBed/build
+        -DMODULARBED_SOURCE_DIR=/Projects/Prusa-Firmware-Buddy-ModularBed  \
+        -DMODULARBED_BINARY_DIR=/Projects/Prusa-Firmware-Buddy-ModularBed/build
     ```
 3. Use pre-built Dwarf/Modularbed firmware and flash it on startup by xlBuddy
     - Specify the location of the .bin file with `DWARF_BINARY_PATH`/`MODULARBED_BINARY_PATH`.
@@ -110,7 +104,7 @@ With the XL, the situation gets a bit more complex. The firmware of xlBuddy cont
     cmake .. --preset xl_release_boot -DDWARF_BINARY_PATH=/Downloads/dwarf-4.4.0-boot.bin
     ```
 
-4. Do not include any puppy firmware, and do not flash the puppies by xlBuddy.
+4. Do not include any puppy firmware, and do not flash the puppies by XLBuddy.
     ```
     -DENABLE_PUPPY_BOOTLOAD=NO
     ```
