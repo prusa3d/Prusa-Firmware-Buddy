@@ -22,7 +22,7 @@ public:
     using RenderResult = std::variant<size_t, http::Error>;
     virtual http::ContentType content_type() const override;
     virtual http::Method method() const override;
-    RenderResult write_body_chunk(char *data, size_t size);
+    virtual RenderResult write_body_chunk(char *data, size_t size) override;
 };
 
 }
