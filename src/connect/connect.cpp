@@ -363,7 +363,7 @@ Planner &Connect::planner() {
 }
 
 Connect::Connect(Printer &printer, SharedBuffer &buffer)
-    : guts(move(Planner(printer)))
+    : guts(Planner(printer))
     , printer(printer)
     , buffer(buffer) {}
 
