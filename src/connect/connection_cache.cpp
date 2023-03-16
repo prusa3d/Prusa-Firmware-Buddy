@@ -38,8 +38,8 @@ void CachedFactory::invalidate() {
 }
 
 void CachedFactory::refresh(const Printer::Config &config) {
+    hostname = config.host;
     if (holds_alternative<monostate>(cache)) {
-        hostname = config.host;
         Connection *connection;
 
         if (config.tls) {
