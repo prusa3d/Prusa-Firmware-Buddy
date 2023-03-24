@@ -121,7 +121,11 @@ bool MI_PURGE::AvailableForTool(uint8_t tool) {
     if (tool == marlin_vars()->active_extruder) {
         //todo: Do this also for inactive extruders, when filament sensors are ready to supply info for non-picked tools
         FilamentSensors::BothSensors sensors = FSensors_instance().GetBothSensors();
+#if PRINTER_TYPE == PRINTER_PRUSA_XL
         has_filament_fs = (sensors.extruder == fsensor_t::HasFilament && sensors.side == fsensor_t::HasFilament);
+#else
+        has_filament_fs = sensors.extruder == fsensor_t::HasFilament;
+#endif
     }
     return has_filament_eeprom && has_filament_fs;
 }

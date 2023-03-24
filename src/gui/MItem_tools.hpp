@@ -107,16 +107,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_XFLASH_DELETE : public WI_LABEL_t {
-    static constexpr const char *const label = "Clear External Flash"; // intentionally not translated, only for debugging
-
-public:
-    MI_XFLASH_DELETE();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_XFLASH_RESET : public WI_LABEL_t {
     static constexpr const char *const label = "Delete Crash Dump"; // intentionally not translated, only for debugging
 
@@ -762,8 +752,10 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_HEATUP_BED : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Heatup Bed During Filament Operations");
+class MI_HEATUP_BED : public WI_SWITCH_t<2> {
+    static constexpr const char *const label = N_("For filament change, preheat");
+    static constexpr const char *const nozzle = N_("Nozzle");
+    static constexpr const char *const nozzle_bed = N_("Noz&Bed");
 
 public:
     MI_HEATUP_BED();

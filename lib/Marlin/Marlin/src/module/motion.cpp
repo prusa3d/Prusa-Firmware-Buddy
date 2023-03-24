@@ -34,6 +34,7 @@
 
 #include "../inc/MarlinConfig.h"
 #include "../Marlin.h"
+#include "../../../../../src/common/eeprom.h"
 
 #include "metric.h"
 #include "PersistentStorage.h"
@@ -90,6 +91,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0(){}
 
 #if ENABLED(PRECISE_HOMING)
   #include "precise_homing.h"
+#endif
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+#include "../../../lib/Marlin/Marlin/src/module/prusa/toolchanger.h"
 #endif
 
 #define XYZ_CONSTS(T, NAME, OPT) const PROGMEM XYZval<T> NAME##_P = { X_##OPT, Y_##OPT, Z_##OPT }
@@ -172,7 +177,14 @@ const feedRate_t homing_feedrate_mm_s[XYZ] PROGMEM = {
   MMM_TO_MMS(HOMING_FEEDRATE_Z)
 };
 
-static const uint8_t homing_bump_divisor[] PROGMEM = HOMING_BUMP_DIVISOR;
+#if ENABLED(PRECISE_HOMING)
+float homing_bump_divisor[] = { 0, 0, 0 }; // on printers with PRECISE_HOMING, the divisor will be loaded from eeprom
+static const float homing_bump_divisor_dflt[] PROGMEM = HOMING_BUMP_DIVISOR;
+static const float homing_bump_divisor_max[] PROGMEM = HOMING_BUMP_DIVISOR_MAX;
+static const float homing_bump_divisor_min[] PROGMEM = HOMING_BUMP_DIVISOR_MIN;
+#else
+float homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
+#endif
 
 // Cartesian conversion result goes here:
 xyz_pos_t cartes;
@@ -1141,10 +1153,10 @@ bool axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
  * Homing bump feedrate (mm/s)
  */
 feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
-  uint8_t hbd = pgm_read_byte(&homing_bump_divisor[axis]);
-  if (hbd < 1) {
+  float hbd = homing_bump_divisor[axis];
+  if (hbd < 0.5) {
     hbd = 10;
-    SERIAL_ECHO_MSG("Warning: Homing Bump Divisor < 1");
+    SERIAL_ECHO_MSG("Warning: Homing Bump Divisor < 0.5");
   }
   return homing_feedrate(axis) / float(hbd);
 }
@@ -1513,6 +1525,67 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< do_homing_move(", axis_codes[axis], ")");
 }
 
+static void do_blocking_move_axis(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s, bool homing_z_with_probe) {
+  if (DEBUGGING(LEVELING)) {
+    DEBUG_ECHOPAIR(">>> do_blocking_move_axis(", axis_codes[axis], ", ", distance, ", ");
+    if (fr_mm_s)
+      DEBUG_ECHO(fr_mm_s);
+    else
+      DEBUG_ECHOPAIR("[", homing_feedrate(axis), "]");
+    DEBUG_ECHOLNPGM(")");
+  }
+
+  #if HOMING_Z_WITH_PROBE && ENABLED(NOZZLE_LOAD_CELL)
+    bool moving_probe_toward_bed = false;
+    if (homing_z_with_probe) {
+      // Only do some things when moving towards an endstop
+      const int8_t axis_home_dir =
+      #if ENABLED(DUAL_X_CARRIAGE)
+        (axis == X_AXIS) ? x_home_dir(active_extruder) :
+      #endif
+      home_dir(axis);
+      const bool is_home_dir = (axis_home_dir > 0) == (distance > 0);
+      moving_probe_toward_bed = (is_home_dir && (Z_AXIS == axis));
+      auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, moving_probe_toward_bed);
+      if (moving_probe_toward_bed)
+        loadcell.Tare(Loadcell::TareMode::Continuous);
+      auto H = loadcell.CreateLoadAboveErrEnforcer(3000, moving_probe_toward_bed);
+    }
+  #endif
+
+  const feedRate_t real_fr_mm_s = fr_mm_s ?: homing_feedrate(axis);
+
+  #if IS_SCARA
+    // Tell the planner the axis is at 0
+    current_position[axis] = 0;
+    sync_plan_position();
+    current_position[axis] = distance;
+    line_to_current_position(real_fr_mm_s);
+  #else
+    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    target[axis] = 0;
+    planner.set_machine_position_mm(target);
+    target[axis] = distance;
+
+    #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+      const xyze_float_t delta_mm_cart{0};
+    #endif
+
+    // Set delta/cartesian axes directly
+    planner.buffer_segment(target
+      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+        , delta_mm_cart
+      #endif
+      , real_fr_mm_s, active_extruder
+    );
+
+  #endif
+
+  planner.synchronize();
+
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< do_blocking_move_axis(", axis_codes[axis], ")");
+}
+
 /**
  * Set an axis' current position to its home position (after homing).
  *
@@ -1685,7 +1758,7 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
   }
 
   // convert raw AB steps to XY mm, filling others from current state
-  static void corexy_ab_to_xyze(const xy_long_t& steps, xyze_pos_t& mm) {
+  void corexy_ab_to_xyze(const xy_long_t& steps, xyze_pos_t& mm) {
     corexy_ab_to_xy(steps, mm);
     LOOP_S_L_N(i, C_AXIS, XYZE_N) {
       mm[i] = planner.get_axis_position_mm((AxisEnum)i);
@@ -2119,6 +2192,12 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     if (axis == Z_AXIS && bltouch.deploy()) return NAN; // The initial DEPLOY
   #endif
 
+  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
+    if ((axis == X_AXIS) || (axis == Y_AXIS)) {
+      do_blocking_move_axis(axis, axis_home_dir * -MOVE_BACK_BEFORE_HOMING_DISTANCE, fr_mm_s, false);
+    }
+  #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
+
   do_homing_move(axis, 1.5f * max_length(
     #if ENABLED(DELTA)
       Z_AXIS
@@ -2127,7 +2206,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     #endif
       ) * axis_home_dir, fr_mm_s
   #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-      , true
+      , false
   #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
   );
 
@@ -2149,15 +2228,13 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
   if (bump) {
     // Move away from the endstop by the axis HOME_BUMP_MM
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move Away:");
-    do_homing_move(axis, -bump , fr_mm_s
-    #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-      , false
-    #endif
-    #if HOMING_Z_WITH_PROBE
-      , false // Just homed to the axis end, can move without probe with very little risk
-      // This is needed to align Z if no tool is picked
-    #endif /*HOMING_Z_WITH_PROBE*/
-    ); 
+    do_blocking_move_axis(axis, -bump, fr_mm_s,
+      #if ENABLED(PRUSA_TOOLCHANGER)
+          prusa_toolchanger.has_tool()
+      #else
+          true
+      #endif
+    );
 
     // Slow move towards endstop until triggered
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 2 Slow:");
@@ -2465,6 +2542,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
       SERIAL_ECHO_START();
       SERIAL_ECHOPAIR("Precise homing axis: ", axis);
       SERIAL_ECHOPAIR(" probe_offset: ", probe_offset);
+      SERIAL_ECHOPAIR(" HB divisor: ", homing_bump_divisor[axis]);
       SERIAL_ECHOPAIR(" mscnt: ", mscnt);
       SERIAL_ECHOPAIR(" ipos: ", stepper.position_from_startup(axis));
       if (calibrated) {
@@ -2477,6 +2555,41 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     } while(store_samples && !calibrated && !break_loop);
 
     return calibration_offset;
+  }
+
+  static void load_divisor_from_eeprom() {
+      for (int axis = 0; axis < XY; axis++) {
+          const float max = pgm_read_float(&homing_bump_divisor_max[axis]);
+          const float min = pgm_read_float(&homing_bump_divisor_min[axis]);
+          const float hbd = homing_bump_divisor[axis];
+          if (hbd >= min && hbd <= max) {
+              continue;
+          }
+
+          const float loaded = eeprom_get_flt(axis ? EEVAR_HOMING_BDIVISOR_Y : EEVAR_HOMING_BDIVISOR_X);
+          if (loaded >= min && loaded <= max) {
+              homing_bump_divisor[axis] = loaded;
+          } else {
+              homing_bump_divisor[axis] = pgm_read_float(&homing_bump_divisor_dflt[axis]);
+          }
+      }
+  }
+
+  static void homing_failed_update_divisor(AxisEnum axis) {
+      homing_bump_divisor[axis] *= HOMING_BUMP_DIVISOR_STEP;
+      const float max = pgm_read_float(&homing_bump_divisor_max[axis]);
+      const float min = pgm_read_float(&homing_bump_divisor_min[axis]);
+      const float hbd = homing_bump_divisor[axis];
+      __attribute__((unused)) const float dflt = pgm_read_float(&homing_bump_divisor_dflt[axis]);
+      if (hbd > max || /* shouldnt happen, just to make sure */ hbd < min) {
+          homing_bump_divisor[axis] = min;
+      }
+  }
+
+  static void save_divisor_to_eeprom(int try_nr, AxisEnum axis) {
+      if (try_nr > 0 && axis < XY) {
+          eeprom_set_flt(axis ? EEVAR_HOMING_BDIVISOR_Y : EEVAR_HOMING_BDIVISOR_X, homing_bump_divisor[axis]);
+      }
   }
 
   /**
@@ -2498,6 +2611,8 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     float probe_offset;
     bool first_acceptable = false;
 
+    load_divisor_from_eeprom();
+
     for (int try_nr = 0; try_nr < tries; ++try_nr){
       const int32_t calibration_offset = home_and_get_calibration_offset(axis, axis_home_dir, probe_offset, can_calibrate);
       if (planner.draining()) {
@@ -2512,14 +2627,20 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
            || (probe_offset > axis_home_max_diff[axis])) {
         SERIAL_ECHOLN("failed.");
         ui.status_printf_P(0,"%c axis homing failed, retrying",axis_codes[axis]);
+        homing_failed_update_divisor(axis);
       } else if (std::abs(calibration_offset) <= perfect_offset) {
         SERIAL_ECHOLN("perfect.");
+        save_divisor_to_eeprom(try_nr, axis);
         return probe_offset;
       } else if ((std::abs(calibration_offset) <= acceptable_offset)) {
         SERIAL_ECHOLN("acceptable.");
-        if (try_nr >= accept_perfect_only_tries) return probe_offset;
+        if (try_nr >= accept_perfect_only_tries) {
+            save_divisor_to_eeprom(try_nr, axis);
+            return probe_offset;
+        }
         if(first_acceptable){
           ui.status_printf_P(0,"Updating precise home point %c axis",axis_codes[axis]);
+          homing_failed_update_divisor(axis);
         }
         first_acceptable = true;
       } else {

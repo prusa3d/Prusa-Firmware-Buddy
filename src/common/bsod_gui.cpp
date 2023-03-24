@@ -203,6 +203,10 @@ void fatal_error(const char *error, const char *module) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Y);
     } else if (strcmp(MSG_ERR_HOMING_Z, error) == 0) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
+    } else if (strcmp(MSG_ERR_MINTEMP_HEATBREAK, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MINTEMP_ERR);
+    } else if (strcmp(MSG_ERR_MAXTEMP_HEATBREAK, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MAXTEMP_ERR);
     }
 
     //error code is not defined, raise redscreen with custom error message and error title

@@ -518,6 +518,8 @@ namespace Language_en {
   PROGMEM Language_Str MSG_THERMAL_RUNAWAY_CHAMBER         = _UxGT("CHAMBER T. RUNAWAY");
   PROGMEM Language_Str MSG_ERR_MAXTEMP                     = _UxGT("Err: MAXTEMP");
   PROGMEM Language_Str MSG_ERR_MINTEMP                     = _UxGT("Err: MINTEMP");
+  PROGMEM Language_Str MSG_ERR_MINTEMP_HEATBREAK           = _UxGT("Err: MINTEMP HBR");
+  PROGMEM Language_Str MSG_ERR_MAXTEMP_HEATBREAK           = _UxGT("Err: MAXTEMP HBR");
   PROGMEM Language_Str MSG_ERR_MAXTEMP_BED                 = _UxGT("Err: MAXTEMP BED");
   PROGMEM Language_Str MSG_ERR_MINTEMP_BED                 = _UxGT("Err: MINTEMP BED");
   PROGMEM Language_Str MSG_ERR_MAXTEMP_CHAMBER             = _UxGT("Err: MAXTEMP CHAMBER");

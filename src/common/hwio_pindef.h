@@ -45,7 +45,7 @@
 #include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include <type_traits>
 
-#if (!defined(PRINTER_PRUSA_MINI) || !defined(PRINTER_PRUSA_MK404) \
+#if (!defined(PRINTER_PRUSA_MINI) || !defined(PRINTER_PRUSA_MK4) \
     || !defined(PRINTER_PRUSA_XL) || !defined(PRINTER_PRUSA_IXL))
     #error "Some printer type not defined."
 #endif

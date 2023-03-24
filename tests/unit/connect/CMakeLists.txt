@@ -52,7 +52,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
   )
-add_definitions(-DUNITTESTS)
+add_definitions(-DUNITTESTS -DPRINTER_VERSION=3)
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
@@ -76,6 +76,7 @@ add_executable(
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/crc32.c
+  ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
@@ -114,5 +115,45 @@ target_include_directories(
 add_definitions(-DUNITTESTS)
 add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
 
+add_executable(
+  connect_registration_tests
+  ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aes.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aesni.c
+  ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/crc32.c
+  ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/json_encode.c
+  ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/json_out.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/registrator.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/sleep.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/notify_filechange.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
+  ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
+  missing_functions.cpp
+  registrator.cpp
+  time_mock.cpp
+  )
+target_include_directories(
+  connect_registration_tests
+  PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
+          ${CMAKE_SOURCE_DIR}/tests/stubs
+  )
+add_dependencies(connect_registration_tests generate-httpc-automata-tests-connect)
+
 add_catch_test(connect_tests)
 add_catch_test(connect_planner_tests)
+add_catch_test(connect_registration_tests)

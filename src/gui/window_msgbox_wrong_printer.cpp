@@ -14,7 +14,6 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, co
     , valid_printer_settings(GCodeInfo::getInstance().valid_printer_settings)
     , messages { { { this, txt_wrong_nozzle_diameter, valid_printer_settings.wrong_nozzle_diameters[0].get_severity(), valid_printer_settings.nozzle_diameters_valid() },
           { this, txt_wrong_printer_model, valid_printer_settings.wrong_printer_model.get_severity(), valid_printer_settings.wrong_printer_model.is_valid() },
-          { this, txt_wrong_firmware_version, valid_printer_settings.wrong_firmware_version.get_severity(), valid_printer_settings.wrong_firmware_version.is_valid() },
           { this, txt_wrong_gcode_level, valid_printer_settings.wrong_gcode_level.get_severity(), valid_printer_settings.wrong_gcode_level.is_valid() } } } {
     Rect16::Width_t icon_margin = GuiDefaults::InvalidPrinterIconMargin;
     Rect16::Height_t line_spacing = GuiDefaults::InvalidPrinterLineSpacing;

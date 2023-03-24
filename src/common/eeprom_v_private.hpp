@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include "printers.h"
 #include "eeprom_current.hpp"
 #include "led_animations/led_types.h"
 
@@ -116,6 +115,9 @@ struct vars_body_t : public eeprom::current::vars_body_t {
     uint8_t EEVAR_HWCHECK_FIRMW;
     uint8_t EEVAR_HWCHECK_GCODE;
     SelftestResult SELFTEST_RESULT;
+    float HOMING_BDIVISOR_X;
+    float HOMING_BDIVISOR_Y;
+    bool EEVAR_ENABLE_SIDE_LEDS;
 };
 
 #pragma pack(pop)
@@ -212,26 +214,20 @@ constexpr vars_body_t body_defaults = {
     0,           // EEVAR_FILAMENT_TYPE_4
     0,           // EEVAR_FILAMENT_TYPE_5
     false,       // eevar_heatup_bed
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
-    0.60f, // EEVAR_NOZZLE_DIA_0
-    0.60f, // EEVAR_NOZZLE_DIA_1
-    0.60f, // EEVAR_NOZZLE_DIA_2
-    0.60f, // EEVAR_NOZZLE_DIA_3
-    0.60f, // EEVAR_NOZZLE_DIA_4
-    0.60f, // EEVAR_NOZZLE_DIA_5
-#else
-    0.40f, // EEVAR_NOZZLE_DIA_0
-    0.40f, // EEVAR_NOZZLE_DIA_1
-    0.40f, // EEVAR_NOZZLE_DIA_2
-    0.40f, // EEVAR_NOZZLE_DIA_3
-    0.40f, // EEVAR_NOZZLE_DIA_4
-    0.40f, // EEVAR_NOZZLE_DIA_5
-#endif
-    1,  // EEVAR_HWCHECK_NOZZLE
-    1,  // EEVAR_HWCHECK_MODEL
-    1,  // EEVAR_HWCHECK_FIRMW
-    1,  // EEVAR_HWCHECK_GCODE
-    {}, // EEVAR_SELFTEST_RESULT_V2
+    0.40f,       // EEVAR_NOZZLE_DIA_0
+    0.40f,       // EEVAR_NOZZLE_DIA_1
+    0.40f,       // EEVAR_NOZZLE_DIA_2
+    0.40f,       // EEVAR_NOZZLE_DIA_3
+    0.40f,       // EEVAR_NOZZLE_DIA_4
+    0.40f,       // EEVAR_NOZZLE_DIA_5
+    1,           // EEVAR_HWCHECK_NOZZLE
+    1,           // EEVAR_HWCHECK_MODEL
+    1,           // EEVAR_HWCHECK_FIRMW
+    1,           // EEVAR_HWCHECK_GCODE
+    {},          // EEVAR_SELFTEST_RESULT_V2
+    0.0f,        // homing bump divisor
+    0.0f,        // homing bump divisor
+    true,        // EEVAR_ENABLE_SIDE_LEDS
 };
 
 } // namespace

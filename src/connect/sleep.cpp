@@ -32,8 +32,12 @@ Timestamp now() {
     return ticks_ms();
 }
 
+void sleep_raw(Duration sleep_for) {
+    osDelay(sleep_for);
+}
+
 Sleep Sleep::idle() {
-    return Sleep(IDLE_WAIT, nullptr, nullptr);
+    return Sleep(IDLE_WAIT, nullptr, nullptr, false);
 }
 
 void Sleep::perform(Printer &printer, Planner &planner) {
@@ -111,13 +115,22 @@ void Sleep::perform(Printer &printer, Planner &planner) {
             need_download = false;
             assert(download != nullptr);
 
+            if (recover_download) {
+                planner.recover_download();
+                // An attempt to recover can actually "kill" the download
+                // completely. Therefore, just bail out and let the outer loop
+                // figure everything out.
+                return;
+            }
+
             switch (auto result = download->step(max_step_time); result) {
             case DownloadStep::Continue:
                 // Go for another iteration (now or during next sleep).
                 break;
+            case DownloadStep::FailedNetwork:
+            case DownloadStep::FailedOther:
             case DownloadStep::Finished:
-            case DownloadStep::Failed:
-                planner.download_done();
+                planner.download_done(result);
                 download = nullptr;
                 // Something likely changed as a result of the download
                 // being done, let the outer loop deal with that.
@@ -125,7 +138,7 @@ void Sleep::perform(Printer &printer, Planner &planner) {
             }
             break;
         case Mode::Delay:
-            osDelay(max_step_time);
+            sleep_raw(max_step_time);
             break;
         }
 

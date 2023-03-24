@@ -44,7 +44,7 @@ void run_once_after_boot() {
     #if BOOTLOADER()
         if (version_less_than(&boot_version, 1, 2, 3)) {
             // bootloader<1.2.3 clears the RCC_CSR register, so ignore reset flags completely.
-            // TODO: remove this compatibility hack for the final MK404 release
+            // TODO: remove this compatibility hack for the final MK4 release
             reset_pp = false;
         }
     #endif

@@ -1113,8 +1113,8 @@
 #define Z_SIZE 370
 
 // Travel limits (mm) after homing, corresponding to endstop positions. default x -2.5 y -7.3
-#define X_MIN_POS -8
-#define Y_MIN_POS -9
+#define X_MIN_POS -9
+#define Y_MIN_POS -10
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE
 #define Y_MAX_POS (Y_BED_SIZE + 100) // extra distance in Y to reach toolchanger

@@ -258,12 +258,15 @@ static void finish_update() {
             });
     }
     provide_dependecy(ComponentDependencies::RESOURCES_READY_IDX);
+}
+#endif
 
-    #if BOARD_VER_EQUAL_TO(0, 5, 0)
-        // This is temporary, remove once everyone has compatible hardware.
-        // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+#if BOARD_VER_EQUAL_TO(0, 5, 0)
+// This is temporary, remove once everyone has compatible hardware.
+// Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 
-        #if HAS_EMBEDDED_ESP32()
+    #if HAS_EMBEDDED_ESP32()
+static void finish_update_ESP32() {
     // Show ESP flash progress
     while (check_dependencies(ESP_FLASHED) == false) {
         const ESPFlash::Progress progress = ESPFlash::get_progress();
@@ -287,10 +290,12 @@ static void finish_update() {
         gui_redraw();
         osDelay(20);
     }
-        #endif
+}
     #endif
+#endif
 
-    #if ENABLED(HAS_PUPPIES())
+#if ENABLED(HAS_PUPPIES())
+static void finish_update_puppies() {
     // wait for puppies to become available
     while (check_dependencies(PUPPIES_READY) == false) {
         auto progress = buddy::puppies::get_bootstrap_progress();
@@ -300,7 +305,6 @@ static void finish_update() {
         }
         osDelay(20);
     }
-    #endif
 }
 #endif
 
@@ -443,8 +447,22 @@ void gui_run(void) {
 #if ENABLED(RESOURCES())
     finish_update();
 #endif
+
     manufacture_report();
     provide_dependecy(ComponentDependencies::USBSERIAL_READY); // postpone starting Marlin after USBSerial handling in manufacture_report()
+
+#if BOARD_VER_EQUAL_TO(0, 5, 0)
+    // This is temporary, remove once everyone has compatible hardware.
+    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+
+    #if HAS_EMBEDDED_ESP32()
+    finish_update_ESP32();
+    #endif
+#endif
+
+#if ENABLED(HAS_PUPPIES())
+    finish_update_puppies();
+#endif
 
     marlin_client_init();
     GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);

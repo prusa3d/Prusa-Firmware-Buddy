@@ -5,7 +5,9 @@ if __name__ == "__main__":
         'Content-Length': read_header_value('ContentLength'),
         'Content-Type': content_type(),
         'Command-Id': read_header_value('CommandId'),
+        'Code': read_header_value('Code'),
         'Connection': connection_header(),
+        'Token': read_header_value('Token'),
     }
     http, final = response(want_headers)
     compiled = http.compile("con::parser::response")

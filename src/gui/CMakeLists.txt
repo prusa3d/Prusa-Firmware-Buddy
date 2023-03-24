@@ -45,7 +45,6 @@ target_sources(
           screen_menu_info.cpp
           screen_menu_lan_settings.cpp
           screen_menu_lang_and_time.cpp
-          screen_menu_languages.cpp
           screen_menu_move.cpp
           screen_menu_network.cpp
           screen_menu_odometer.cpp
@@ -82,6 +81,12 @@ target_sources(
 
 if(HAS_SERIAL_PRINT)
   target_sources(firmware PRIVATE screen_printing_serial.cpp)
+endif()
+
+if(TRANSLATIONS_ENABLED)
+  target_sources(firmware PRIVATE menu_items_languages.cpp screen_menu_languages.cpp)
+else()
+  target_sources(firmware PRIVATE menu_items_no_languages.cpp)
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)

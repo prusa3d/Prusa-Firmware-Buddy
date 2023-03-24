@@ -188,6 +188,8 @@ public:
         ///
         /// This is the increment, not the accumulated total.
         void progress(size_t add_bytes);
+        // Damn. We have to start over from the beginning...
+        void reset_progress();
 
         bool is_stopped();
         /// The transfer is done.

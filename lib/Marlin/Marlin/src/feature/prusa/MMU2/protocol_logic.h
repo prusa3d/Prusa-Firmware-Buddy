@@ -1,14 +1,12 @@
 #pragma once
 #include <stdint.h>
 #include <array>
-#include "../../inc/MarlinConfig.h"
 
-#if HAS_MMU2
-    #include "../../../../../../Prusa-Firmware-MMU/src/logic/error_codes.h"
-    #include "../../../../../../Prusa-Firmware-MMU/src/logic/progress_codes.h"
-    #include "../../../../../../Prusa-Firmware-MMU/src/modules/protocol.h"
+#include "../../../../../../Prusa-Firmware-MMU/src/logic/error_codes.h"
+#include "../../../../../../Prusa-Firmware-MMU/src/logic/progress_codes.h"
+#include "../../../../../../Prusa-Firmware-MMU/src/modules/protocol.h"
 
-    #include "mmu2_serial.h"
+#include "mmu2_serial.h"
 
 /// New MMU2 protocol logic
 namespace MMU2 {
@@ -221,9 +219,9 @@ public:
         return findaPressed;
     }
 
-    #ifndef UNITTEST
+#ifndef UNITTEST
 private:
-    #endif
+#endif
 
     StepStatus ProcessUARTByte(uint8_t c);
     StepStatus ExpectingMessage(uint32_t timeout);
@@ -302,5 +300,3 @@ private:
 };
 
 } // namespace MMU2
-
-#endif

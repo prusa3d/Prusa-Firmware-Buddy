@@ -24,8 +24,8 @@ const char project_firmware_name[] = "ModularBed";
     #else
 const char project_firmware_name[] = "Buddy_XL";
     #endif
-#elif (PRINTER_TYPE == PRINTER_PRUSA_MK404)
-const char project_firmware_name[] = "Buddy_MK404";
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4)
+const char project_firmware_name[] = "Buddy_MK4";
 #elif (PRINTER_TYPE == PRINTER_PRUSA_IXL)
 const char project_firmware_name[] = "Buddy_iX";
 #else

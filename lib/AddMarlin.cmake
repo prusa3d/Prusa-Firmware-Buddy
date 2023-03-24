@@ -4,9 +4,9 @@ endif()
 
 add_library(
   Marlin
-  $<$<BOOL:${HAS_MMU2}>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2mk404.cpp>
-  $<$<BOOL:${HAS_MMU2}>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
-  $<$<BOOL:${HAS_MMU2}>:Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp>
+  $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2mk4.cpp>
+  $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
+  $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp>
   $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/toolchanger.cpp>
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/EmulatedEeprom.cpp
   Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/HAL.cpp

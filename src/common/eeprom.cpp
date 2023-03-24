@@ -24,13 +24,14 @@
 #include "bsod.h"
 #include "led_animations/led_types.h"
 #include "power_panic.hpp"
+#include "rtos_api.hpp"
 
 using namespace eeprom::ver_private;
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;       // maximum name length (with '\0')
-static const constexpr uint16_t EEPROM_MAX_DATASIZE = 920; // maximum datasize
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 928; // maximum datasize
 static const constexpr auto EEPROM_DATA_INIT_TRIES = 3;    // maximum tries to read crc32 ok data on init
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
@@ -281,7 +282,9 @@ static const eeprom_entry_t eeprom_map[] = {
     { "HWCHECK_FIRMW",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_FIRMW
     { "HWCHECK_GCODE",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_GCODE
     { "SELFTEST_RES_V2", VARIANT8_PUI8,  sizeof(SelftestResult), 0 }, // EEVAR_SELFTEST_RESULT_V2
-
+    { "HOMING_DIVISORX", VARIANT8_FLT,   1, 0 }, // homing bump divisor
+    { "HOMING_DIVISORY", VARIANT8_FLT,   1, 0 }, // homing bump divisor
+    { "SIDE_LEDS_ENA"  , VARIANT8_BOOL,   1, 0}, // EEVAR_ENABLE_SIDE_LEDS
 // crc
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -323,7 +326,10 @@ static eeprom_data eeprom_ram_mirror; // must be zero initialized
 
 static void eeprom_init_ram_mirror() {
     eeprom_lock();
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&eeprom_ram_mirror, sizeof(eeprom_ram_mirror));
+    {
+        CriticalSection critical_section;
+        st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&eeprom_ram_mirror, sizeof(eeprom_ram_mirror));
+    }
     eeprom_unlock();
 }
 
@@ -363,7 +369,6 @@ static void *eeprom_var_ptr(enum eevar_id id, eeprom_vars_t &pVars);
 static bool eeprom_convert_from(eeprom_data &data);
 
 static bool eeprom_check_crc32();
-static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars);
 static void update_crc32_in_ram(eeprom_vars_t &eevars);
 
 static uint16_t eeprom_fwversion_ui16(void);
@@ -432,7 +437,10 @@ static void eeprom_write_vars() {
     eeprom_lock();
     vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+    {
+        CriticalSection critical_section;
+        st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+    }
     eeprom_unlock();
 }
 
@@ -594,8 +602,17 @@ static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_siz
     if (memcmp(var_ram_addr, var_ptr, var_size)) {
         memcpy(var_ram_addr, var_ptr, var_size);
         uint32_t time = ticks_us();
-        update_crc32_both_ram_eeprom(vars);
-        st25dv64k_user_write_bytes(eeprom_var_addr(id), var_ram_addr, var_size);
+
+        // ST25DV64K eeprom does not accept t_CHCL and t_CLCH durations exceeding 25 ms (datasheet 6.2.2)
+        // with normal priority, it could happen that this restriction was not respected,
+        // eeprom then contained invalid data (crc error) and was reset
+        update_crc32_in_ram(vars);
+        {
+            CriticalSection critical_section;
+            st25dv64k_user_write_bytes(eeprom_var_addr(id), var_ram_addr, var_size);
+            // write crc to eeprom
+            st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
+        }
         log_info(EEPROM, "Update took %u us", ticks_diff(ticks_us(), time));
     }
     eeprom_unlock();
@@ -815,7 +832,10 @@ void eeprom_clear(void) {
     uint32_t data = 0xffffffff;
     eeprom_lock();
     for (a = 0x0000; a < 0x0800; a += 4) {
-        st25dv64k_user_write_bytes(a, &data, 4);
+        {
+            CriticalSection critical_section;
+            st25dv64k_user_write_bytes(a, &data, 4);
+        }
         if ((a % 0x200) == 0)   // clear entire eeprom take ~4s
             wdt_iwdg_refresh(); // we will reset watchdog every ~1s for sure
     }
@@ -935,12 +955,6 @@ static bool eeprom_check_crc32() {
     return crc_from_eeprom == crc;
 }
 
-static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars) {
-    update_crc32_in_ram(eevars);
-    // write crc to eeprom
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(eevars.CRC32), 4);
-}
-
 static void update_crc32_in_ram(eeprom_vars_t &eevars) {
     // calculate crc32
     if (eevars.head.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
@@ -967,7 +981,10 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
     unsigned int count = bytes / 16;
 
     for (i = 0; i < count; i++) {
-        st25dv64k_user_write_bytes(EEPROM_ADDRESS + i * size, &line, size);
+        {
+            CriticalSection critical_section;
+            st25dv64k_user_write_bytes(EEPROM_ADDRESS + i * size, &line, size);
+        }
         if ((i % 16) == 0)
             wdt_iwdg_refresh();
     }
@@ -975,7 +992,10 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
     int8_t res_flag = 1;
 
     for (i = 0; i < count; i++) {
-        st25dv64k_user_read_bytes(EEPROM_ADDRESS + i * size, &line2, size);
+        {
+            CriticalSection critical_section;
+            st25dv64k_user_read_bytes(EEPROM_ADDRESS + i * size, &line2, size);
+        }
         if (strcmp(line2, line))
             res_flag = 0;
         if ((i % 16) == 0)

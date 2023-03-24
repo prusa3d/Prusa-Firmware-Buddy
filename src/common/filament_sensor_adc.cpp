@@ -136,63 +136,81 @@ void FSensorADC::invalidate_calibration() {
 }
 
 void FSensorAdcExtruder::record_state() {
-    metric_record_custom(&get_metric_state__static(), ",n=%d v=%di", tool_index, static_cast<int>(Get()));
+    if (limit_record_state()) {
+        metric_record_custom(&get_metric_state__static(), ",n=%d v=%di", tool_index, static_cast<int>(Get()));
+    }
 }
 
 void FSensorAdcSide::record_state() {
-    metric_record_custom(&get_metric_state__static(), ",n=%d v=%di", tool_index, static_cast<int>(Get()));
+    if (limit_record_state()) {
+        metric_record_custom(&get_metric_state__static(), ",n=%d v=%di", tool_index, static_cast<int>(Get()));
+    }
 }
 
 void FSensorAdcExtruder::record_raw(int32_t val) {
-    metric_record_custom(&get_metric_raw__static(), ",n=%d v=%di", tool_index, val);
+    if (limit_record_raw()) {
+        metric_record_custom(&get_metric_raw__static(), ",n=%d v=%di", tool_index, val);
+    }
 }
 
 void FSensorAdcSide::record_raw(int32_t val) {
-    metric_record_custom(&get_metric_raw__static(), ",n=%d v=%di", tool_index, val);
+    if (limit_record_raw()) {
+        metric_record_custom(&get_metric_raw__static(), ",n=%d v=%di", tool_index, val);
+    }
 }
 
 void FSensorAdcExtruder::record_filtered() {
-    metric_record_custom(&get_metric_filtered__static(), ",n=%d v=%di", tool_index, fs_filtered_value.load());
+    if (limit_record_filtered()) {
+        metric_record_custom(&get_metric_filtered__static(), ",n=%d v=%di", tool_index, fs_filtered_value.load());
+    }
 }
 
 void FSensorAdcSide::record_filtered() {
-    metric_record_custom(&get_metric_filtered__static(), ",n=%d v=%di", tool_index, fs_filtered_value.load());
+    if (limit_record_filtered()) {
+        metric_record_custom(&get_metric_filtered__static(), ",n=%d v=%di", tool_index, fs_filtered_value.load());
+    }
 }
 
 #define METRIC_HANDLER METRIC_HANDLER_DISABLE_ALL
 
 metric_s &FSensorAdcExtruder::get_metric_raw__static() {
-    static metric_t ret = METRIC("fsensor_raw", METRIC_VALUE_CUSTOM, 60, METRIC_HANDLER);
+    static metric_t ret = METRIC("fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
     return ret;
 }
 
 metric_s &FSensorAdcExtruder::get_metric_state__static() {
-    static metric_t ret = METRIC("fsensor", METRIC_VALUE_CUSTOM, 49, METRIC_HANDLER);
+    static metric_t ret = METRIC("fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
     return ret;
 }
 
 metric_s &FSensorAdcExtruder::get_metric_filtered__static() {
-    static metric_t ret = METRIC("fsensor_filtered", METRIC_VALUE_CUSTOM, 60, METRIC_HANDLER);
+    static metric_t ret = METRIC("fsensor_filtered", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_filtered
     return ret;
 }
 
 metric_s &FSensorAdcSide::get_metric_raw__static() {
-    static metric_t ret = METRIC("side_fsensor_raw", METRIC_VALUE_CUSTOM, 60, METRIC_HANDLER);
+    static metric_t ret = METRIC("side_fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
     return ret;
 }
 
 metric_s &FSensorAdcSide::get_metric_state__static() {
-    static metric_t ret = METRIC("side_fsensor", METRIC_VALUE_CUSTOM, 49, METRIC_HANDLER);
+    static metric_t ret = METRIC("side_fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
     return ret;
 }
 
 metric_s &FSensorAdcSide::get_metric_filtered__static() {
-    static metric_t ret = METRIC("side_fsensor_filtered", METRIC_VALUE_CUSTOM, 60, METRIC_HANDLER);
+    static metric_t ret = METRIC("side_fsensor_filtered", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_filtered
     return ret;
 }
 
 FSensorAdcExtruder::FSensorAdcExtruder(eevar_id span_value, eevar_id ref_value, uint8_t tool_index)
-    : FSensorADC(span_value, ref_value, tool_index) {}
+    : FSensorADC(span_value, ref_value, tool_index)
+    , limit_record_state(49)
+    , limit_record_filtered(60)
+    , limit_record_raw(60) {}
 
 FSensorAdcSide::FSensorAdcSide(eevar_id span_value, eevar_id ref_value, uint8_t tool_index)
-    : FSensorADC(span_value, ref_value, tool_index) {}
+    : FSensorADC(span_value, ref_value, tool_index)
+    , limit_record_state(49)
+    , limit_record_filtered(60)
+    , limit_record_raw(60) {}

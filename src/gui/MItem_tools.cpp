@@ -181,7 +181,7 @@ MI_DISABLE_STEP::MI_DISABLE_STEP()
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_XL)
     marlin_gcode("M18 X Y E");
 #else
     marlin_gcode("M18");
@@ -195,12 +195,26 @@ MI_FACTORY_DEFAULTS::MI_FACTORY_DEFAULTS()
 }
 
 void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
-    if (MsgBoxWarning(_("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
+#if PRINTER_TYPE == PRUSA_XL
+    if (MsgBoxWarning(_("This operation can't be undone, current configuration will be lost!\nYou will need a valid BBF on the USB to start the printer again.\nAre you really sure to reset printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
+        auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, _("Erasing everything,\nit will take some time..."));
+        msg.Draw(); // Non-blocking info
+        PersistentStorage::erase();
+        eeprom_defaults();
+        w25x_chip_erase();
+        MsgBoxInfo(_("Factory defaults loaded. The system will now restart."), Responses_Ok);
+        sys_reset();
+    }
+#else
+    if (MsgBoxWarning(_("This operation can't be undone, current configuration will be lost!\nAre you really sure to reset printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
+        window_dlg_wait_t please_wait_msg(GuiDefaults::DialogFrameRect, _("Erasing eeprom"));
+        please_wait_msg.Draw();
         PersistentStorage::erase();
         eeprom_defaults();
         MsgBoxInfo(_("Factory defaults loaded. The system will now restart."), Responses_Ok);
         sys_reset();
     }
+#endif
 }
 
 /*****************************************************************************/
@@ -230,23 +244,9 @@ void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_XFLASH_DELETE
-MI_XFLASH_DELETE::MI_XFLASH_DELETE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_XFLASH_DELETE::click(IWindowMenu & /*window_menu*/) {
-    auto res = MsgBoxWarning(_("Do you want to erase the external flash? The system will restart when complete."), Responses_YesNo);
-    if (res == Response::Yes) {
-        w25x_chip_erase();
-        sys_reset();
-    }
-}
-
-/*****************************************************************************/
 //MI_XFLASH_RESET
 MI_XFLASH_RESET::MI_XFLASH_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
@@ -843,6 +843,9 @@ void MI_FOOTER_RESET::click(IWindowMenu &window_menu) {
     footer::eeprom::Store(footer::DefaultItems);
     //send event for all footers
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
+
+    // close this menu, because it is no longer valid and needs to be redrawn
+    Screens::Access()->Close();
 }
 
 /*****************************************************************************/
@@ -874,7 +877,7 @@ MI_INFO_MODULAR_BED_BOARD_TEMPERATURE::MI_INFO_MODULAR_BED_BOARD_TEMPERATURE()
 }
 #endif
 MI_HEATUP_BED::MI_HEATUP_BED()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_HEATUP_BED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_SWITCH_t<2>(eeprom_get_bool(EEVAR_HEATUP_BED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(nozzle), _(nozzle_bed)) {
 }
 void MI_HEATUP_BED::OnChange(size_t old_index) {
     eeprom_set_bool(EEVAR_HEATUP_BED, !old_index);

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "filament_sensor.hpp"
+#include <app_metrics.h>
 
 struct metric_s;
 
@@ -77,6 +78,11 @@ public:
 
 class FSensorAdcExtruder : public FSensorADC {
 protected:
+    // Limit metrics recording for each tool
+    Buddy::Metrics::RunApproxEvery limit_record_state;
+    Buddy::Metrics::RunApproxEvery limit_record_filtered;
+    Buddy::Metrics::RunApproxEvery limit_record_raw;
+
     virtual void record_state() override; // record metrics
     virtual void record_filtered() override;
 
@@ -92,6 +98,11 @@ public:
 
 class FSensorAdcSide : public FSensorADC {
 protected:
+    // Limit metrics recording for each tool
+    Buddy::Metrics::RunApproxEvery limit_record_state;
+    Buddy::Metrics::RunApproxEvery limit_record_filtered;
+    Buddy::Metrics::RunApproxEvery limit_record_raw;
+
     virtual void record_state() override; // record metrics
     virtual void record_filtered() override;
 

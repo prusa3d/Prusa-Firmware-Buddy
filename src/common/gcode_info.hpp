@@ -44,7 +44,8 @@ constexpr uint32_t printer_model2code(const char *model) {
         { "MK3S", 302 },
         { "MK3SMMU2S", 20302 },
         { "MINI", 120 },
-        { "MK404", 130 },
+        { "MK4", 130 },
+        { "MK4MMU3", 30130 },
         { "IXL", 160 },
         { "XL", 170 },
     };
@@ -112,7 +113,6 @@ public:
 
         std::vector<Feature> wrong_nozzle_diameters { HOTENDS, eevar_id::EEVAR_HWCHECK_NOZZLE }; // M862.1 disagree (or M862.10 - M862.15 for multihotend gcode)
         Feature wrong_printer_model { eevar_id::EEVAR_HWCHECK_MODEL };                           // M862.2 or M862.3 or printer_model (from comments) disagree
-        Feature wrong_firmware_version { eevar_id::EEVAR_HWCHECK_FIRMW };                        // M862.4 disagree
         Feature wrong_gcode_level { eevar_id::EEVAR_HWCHECK_GCODE };                             // M862.5 disagree
 
         /**

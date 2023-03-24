@@ -7,7 +7,7 @@
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_mmu.hpp"
 #include "filament_sensor_adc.hpp"
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2mk404.h"
+#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2mk4.h"
 #include "eeprom.h"
 #include "marlin_client.hpp"
 #include "metric.h"

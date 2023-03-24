@@ -35,7 +35,7 @@
 #include "../Marlin/src/gcode/gcode.h"
 #include "../Marlin/src/gcode/lcd/M73_PE.h"
 #include "../Marlin/src/feature/print_area.h"
-#include "../Marlin/src/feature/prusa/MMU2/mmu2mk404.h"
+#include "../Marlin/src/feature/prusa/MMU2/mmu2mk4.h"
 
 #if ENABLED(CANCEL_OBJECTS)
     #include "../Marlin/src/feature/cancel_object.h"
@@ -762,6 +762,7 @@ static void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos
         marlin_server.resume.nozzle_temp[e] = marlin_vars()->hotend(e).target_nozzle; //save nozzle target temp
     }
     marlin_server.resume.fan_speed = marlin_vars()->print_fan_speed; //save fan speed
+    marlin_server.resume.print_speed = marlin_vars()->print_speed;
 #if FAN_COUNT > 0
     if (hotendErrorChecker.runFullFan())
         thermalManager.set_fan_speed(0, 255);
@@ -932,6 +933,17 @@ void marlin_server_nozzle_timeout_loop() {
     }
 }
 
+bool heatbreak_fan_check() {
+#ifdef NEW_FANCTL
+    if (marlin_vars()->fan_check_enabled) {
+        if (!fanCtlHeatBreak[active_extruder].getRPMIsOk()) {
+            return true;
+        }
+    }
+#endif // NEW_FANCTL
+    return false;
+}
+
 static void marlin_server_resuming_reheating() {
     if (hotendErrorChecker.isFailed()) {
         set_warning(WarningType::HotendTempDiscrepancy);
@@ -942,19 +954,13 @@ static void marlin_server_resuming_reheating() {
         marlin_server.print_state = mpsPaused;
     }
 
+    if (heatbreak_fan_check()) {
+        marlin_server.print_state = mpsPaused;
+        return;
+    }
+
     if (!marlin_server_print_reheat_ready())
         return;
-
-#ifdef NEW_FANCTL
-    if (marlin_vars()->fan_check_enabled) {
-        if (!fanCtlHeatBreak[active_extruder].getRPMIsOk()) {
-            set_warning(WarningType::HotendFanError);
-            thermalManager.setTargetHotend(0, 0);
-            marlin_server.print_state = mpsPaused;
-            return;
-        }
-    }
-#endif
 
 #if HAS_BED_PROBE || ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
     // There's homing after MBL fail so no need to unpark at all
@@ -968,7 +974,7 @@ static void marlin_server_resuming_reheating() {
 }
 
 static void _server_print_loop(void) {
-    static bool did_not_start_print = true;
+    static bool did_not_start_print = true, abort_resuming = false;
     switch (marlin_server.print_state) {
     case mpsIdle:
         break;
@@ -1119,12 +1125,18 @@ static void _server_print_loop(void) {
         marlin_server_resuming_reheating();
         break;
     case mpsResuming_UnparkHead_XY:
+        if (heatbreak_fan_check()) {
+            abort_resuming = true;
+        }
         if (planner.movesplanned() != 0)
             break;
         marlin_server_unpark_head_ZE();
         marlin_server.print_state = mpsResuming_UnparkHead_ZE;
         break;
     case mpsResuming_UnparkHead_ZE:
+        if (heatbreak_fan_check()) {
+            abort_resuming = true;
+        }
         if ((planner.movesplanned() != 0) || (queue.length != 0) || (media_print_get_state() != media_print_state_PAUSED))
             break;
 #if ENABLED(CRASH_RECOVERY)
@@ -1143,6 +1155,11 @@ static void _server_print_loop(void) {
             marlin_server.mbl_failed = false;
         }
 #endif
+        if (abort_resuming) {
+            marlin_server.print_state = mpsPausing_WaitIdle;
+            abort_resuming = false;
+            break;
+        }
         //marlin_server.motion_param.load();  // TODO: currently disabled (see Crash_s::save_parameters())
         media_print_resume();
         if (print_job_timer.isPaused())
@@ -1150,6 +1167,7 @@ static void _server_print_loop(void) {
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, marlin_server.resume.fan_speed); // restore fan speed
 #endif
+        feedrate_percentage = marlin_server.resume.print_speed;
         marlin_server.print_state = mpsPrinting;
         break;
     case mpsAborting_Begin:

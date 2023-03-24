@@ -20,32 +20,32 @@ Errors:
   id: "ERR_TOOLCHANGER"
   approved: true
 - code: "17202"
-  title: "EXTRUDER PREHEAT ERROR"
-  text: "Check the heater and thermistor wiring for potential damage."
+  title: "PREHEAT ERROR"
+  text: "Check the print head heater & thermistor wiring for possible damage."
   id: "HOTEND_PREHEAT_ERROR"
   approved: true
 # XX203 reserved
 - code: "17204"
-  title: "EXTRUDER THERMAL RUNAWAY"
-  text: "Check the thermistor wiring for potential damage."
+  title: "THERMAL RUNAWAY"
+  text: "Check the print head thermistor wiring for possible damage."
   id: "HOTEND_THERMAL_RUNAWAY"
   approved: true
-# XX205 reserved
+  # XX205 reserved
 - code: "17206"
-  title: "EXTRUDER MAXTEMP ERROR"
-  text: "Check the thermistor wiring for potential damage."
+  title: "MAXTEMP ERROR"
+  text: "Check the print head thermistor wiring for possible damage."
   id: "HOTEND_MAXTEMP_ERROR"
   approved: true
-# XX207 reserved
+  # XX207 reserved
 - code: "17208"
-  title: "EXTRUDER MINTEMP ERROR"
-  text: "Check the thermistor wiring for potential damage."
+  title: "MINTEMP ERROR"
+  text: "Check the print head thermistor wiring for possible damage."
   id: "HOTEND_MINTEMP_ERROR"
   approved: true
-# XX209 reserved
+  # XX209 reserved
 - code: "17210"
-  title: "EXTRUDER TEMP NOT MATCHING"
-  text: "Measured temperature is not matching expected value. Check if the thermistor is in contact with the heaterblock. In case of damage, replace it."
+  title: "TEMP NOT MATCHING"
+  text: "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
   id: "HOTEND_TEMP_NOT_MATCHING"
   approved: true
 - code: "17211"
@@ -59,68 +59,68 @@ Errors:
   id: "HEATBREAK_MAXTEMP_ERR"
   approved: true
 - code: "17250"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nHeater Disconnected.\nBedlet heater open circuit."
   id: "MB_HEATER_DISCONNECTED"
   approved: false
 - code: "17251"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nBedlet heater short circuit."
   id: "MB_HEATER_SHORT"
   approved: false
 - code: "17252"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nTemperature below Minimum."
   id: "MB_MINTEMP_ERR"
   approved: false
 - code: "17253"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nTemperature above Maximum."
   id: "MB_MAXTEMP_ERR"
   approved: false
 - code: "17254"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d: \nUnexpected temperature drop detected."
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nTemperature drop detected."
   id: "MB_DROP_TEMP"
   approved: false 
 - code: "17255"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d:\n Unexpected temperature peak detected."
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nTemperature peak detected."
   id: "MB_PEAK_TEMP"
   approved: false 
 - code: "17256"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d:\nPreheat error."
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nPreheat error."
   id: "MB_PREHEAT_ERR"
   approved: false 
 - code: "17257"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d:\nTest heating error."
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nTest heating error."
   id: "MB_TEST_HEATING_ERR"
   approved: false 
 - code: "17301"
   title: "HOMING ERROR Z"
-  text: "Failed to home the Z-axis, make sure the loadcell is working."
+  text: "Failed to home the tool in Z-axis, make sure the loadcell is working."
   id: "HOMING_ERROR_Z"
   approved: true
 - code: "17302"
-  title: "MODULAR BED ERROR"
+  title: "MODULAR BED"
   text: "Overcurrent detected."
   id: "MB_OVERCURRENT"
   approved: false
 - code: "17303"
-  title: "MODULAR BED ERROR"
+  title: "MODULAR BED"
   text: "Unexpected invalid current."
   id: "MB_INVALID_CURRENT"
   approved: false
 - code: "17304"
   title: "HOMING ERROR X"
-  text: "Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-axis."
+  text: "Failed to home the tool in X-axis, make sure there is no obstacle on X-axis or Y-axis."
   id: "HOMING_ERROR_X"
   approved: true
 - code: "17305"
   title: "HOMING ERROR Y"
-  text: "Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-axis."
+  text: "Failed to home the tool in Y-axis, make sure there is no obstacle on X-axis or Y-axis."
   id: "HOMING_ERROR_Y"
   approved: true
 - code: "17306"
@@ -130,10 +130,10 @@ Errors:
   approved: true
 - code: "17307"
   title: "USB DEVICE OVERCURRENT"
-  text: "Overcurrent detected on the connected USB device, disconnect it."
+  text: "Overcurrent detected on connected USB device, disconnect it."
   id: "USB_DEVICE_OVERCURRENT"
   approved: true
-# XX308-XX310 reserved
+  # XX308-XX310 reserved
 - code: "17311"
   title: "I2C SEND FAILED"
   text: "HAL detected an I2C error when sending data via I2C."
@@ -141,7 +141,7 @@ Errors:
   approved: true
 - code: "17312"
   title: "I2C SEND BUSY"
-  text: "HAL detected an I2C busy state when sending data via I2C."
+  text: "HAL detected an I2C busy when sending data via I2C."
   id: "I2C_TX_BUSY"
   approved: true
 - code: "17313"
@@ -161,7 +161,7 @@ Errors:
   approved: true
 - code: "17316"
   title: "EEPROM I2C RECEIVE BUSY"
-  text: "HAL detected an I2C busy state when receiving data via I2C."
+  text: "HAL detected an I2C busy when receiving data via I2C."
   id: "I2C_RX_BUSY"
   approved: true
 - code: "17317"
@@ -175,28 +175,28 @@ Errors:
   id: "I2C_RX_UNDEFINED"
   approved: true
 - code: "17319"
-  title: "MODULAR BED ERROR"
-  text: "Power failure"
+  title: "MODULAR BED"
+  text: "Power fault"
   id: "MB_FAULT"
   approved: true
 - code: "17320"
-  title: "MODULAR BED ERROR"
+  title: "MODULAR BED"
   text: "Power panic"
   id: "MB_PANIC"
   approved: true
 - code: "17501"
-  title: "MODULAR BED ERROR"
-  text: "Heatbed tile no. %d:\nUnknown error: %d"
+  title: "MODULAR BED"
+  text: "Bedlet number %d:\nUnknown error: %d"
   id: "MB_UNKNOWN_ERR"
   approved: true
 - code: "17502"
-  title: "DWARF ERROR"
-  text: "Dwarf board encountered the following problem: \n%s"
+  title: "DWARF"
+  text: "Dwarf has following problem: \n%s"
   id: "DWARF_UNKNOWN_ERR"
   approved: false
 - code: "17503"
-  title: "DWARF ERROR"
-  text: "Dwarf board %d fault: %s"
+  title: "DWARF"
+  text: "Dwarf %d fault: %s"
   id: "DWARF_MARLIN_ERR"
   approved: false
 - code: "17504"
@@ -206,12 +206,12 @@ Errors:
   approved: true
 - code: "17505"
   title: "ESP ERROR"
-  text: "Command error"
+  text: "ESP detected command error."
   id: "ESP_COMMAND_ERR"
   approved: true
 - code: "17506"
   title: "ESP ERROR"
-  text: "Unknown error"
+  text: "ESP detected unknown error."
   id: "ESP_UNKNOWN_ERR"
   approved: true
 - code: "17507"
@@ -226,22 +226,22 @@ Errors:
   approved: true
 - code: "17510"
   title: "EMERGENCY STOP"
-  text: "Emergency stop invoked by G-code (M112)."
+  text: "Emergency stop invoked from G-code (M112)."
   id: "EMERGENCY_STOP"
   approved: true
 - code: "17511"
   title: "PUPPY ERROR"
-  text: "Address assignment error"
+  text: "Adress assignment error"
   id: "PUPPY_ADDR_ASSIGN_ERR"
   approved: false
 - code: "17512"
   title: "PUPPY ERROR"
-  text: "Unassigned puppy found"
+  text: "Unassigned puppy exist"
   id: "PUPPY_NO_ADDR"
   approved: false
 - code: "17513"
   title: "PUPPY ERROR"
-  text: "Puppy discovery error. No puppy found"
+  text: "Puppy discover error. No puppy found"
   id: "PUPPY_DISCOVER_ERR"
   approved: false
 - code: "17514"
@@ -251,7 +251,7 @@ Errors:
   approved: false
 - code: "17515"
   title: "PUPPY ERROR"
-  text: "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
+  text: "Puppy uses incompatible bootloader protocol %04x, buddy wants %04x"
   id: "PUPPY_INCOMPATIBLE_BOOTLODER"
   approved: false
 - code: "17516"
@@ -276,7 +276,7 @@ Errors:
   approved: false 
 - code: "17520"
   title: "PUPPY ERROR"
-  text: "Puppy %s firmware fingerprint mismatch"
+  text: "Puppy %s flashed fingerprint mismatch"
   id: "PUPPY_FINGERPRINT_MISMATCH"
   approved: false 
 - code: "17521"
@@ -286,12 +286,12 @@ Errors:
   approved: false 
 - code: "17522"
   title: "PUPPY ERROR"
-  text: "Waiting for puppies to start timed out"
+  text: "Waiting for puppies running timed out"
   id: "PUPPY_RUN_TIMEOUT"
   approved: false
 - code: "17523"
   title: "LOADCELL NOT CALIBRATED"
-  text: "Loadcell calibration is incomplete. Restart the printer and calibrate loadcell."
+  text: "Loadcell calibration is incomplete. Restart the printer."
   id: "LOADCELL_INCOMPLETE_CONFIGURATION_ERROR"
   approved: true
 - code: "17524"
@@ -340,62 +340,62 @@ Errors:
   id: "BBF_INIT_FAILED"
   approved: true
 - code: "17602"
-  title: "USB FLASH DRIVE NOT CONNECTED"
-  text: "USB drive not connected! \nPlease insert a USB drive with a valid firmware file."
+  title: ""
+  text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."
   id: "USB_NOT_CONNECTED"
   approved: true
 - code: "17603"
-  title: "INVALID FW SIZE ON USB FLASH DRIVE"
+  title: ""
   text: "Firmware file has\ninvalid size!\nCheck the file\non the USB drive\nand try again."
   id: "INVALID_FW_SIZE_ON_USB"
   approved: true
 - code: "17604"
-  title: "NO FW ON USB FLASH DRIVE"
+  title: ""
   text: "Firmware file\nmissing in the USB\nflash!"
   id: "NO_FW_ON_USB"
   approved: true
 - code: "17605"
-  title: "FLASH ERASE ERROR"
+  title: ""
   text: "Error erasing\n flash! Restart\nthe printer and\ntry again."
   id: "FLASH_ERASE_ERROR"
   approved: true
 - code: "17606"
-  title: "IMPOSTER! FAKE SIGNATURE"
+  title: ""
   text: "Firmware signature\nverification failed!\nOnly official\nsigned firmware can\nbe flashed."
   id: "SIGNATURE_VERIFICATION_FAILED"
   approved: true
 - code: "17607"
-  title: "HASH VERIFICATION FAILED"
+  title: ""
   text: "Firmware hash\nverification failed!\nFirmware file is\ndamaged. Try\ndownloading and\ncopying it onto the\nUSB drive again."
   id: "HASH_VERIFICATION_FAILED"
   approved: true
 - code: "17608"
-  title: "FW IN INTERNAL FLASH CORRUPTED"
+  title: ""
   text: "Firmware in the\ninternal flash\ncorrupted! Please\nreflash the\nfirmware."
   id: "FW_IN_INTERNAL_FLASH_CORRUPTED"
   approved: true
 - code: "17610"
-  title: "UNSUPPORTED PRINTER MODEL"
+  title: ""
   text: "Firmware/printer\ntypes do not match.\nMake sure you have\nthe right firmware\nfile for your\nprinter model."
   id: "UNSUPPORTED_PRINTER_TYPE"
   approved: true
 - code: "17611"
-  title: "UNSUPPORTED BUDDY FW"
+  title: ""
   text: "Firmware/printer\nversions do not\nmatch! You are\ntrying to flash\nFW meant for other\nrevision of the\nBuddy board."
   id: "UNSUPPORTED_PRINTER_VERSION"
   approved: true
 - code: "17612"
-  title: "FIRMWARE MISSING"
+  title: ""
   text: "No firmware found\nin the internal\nflash! Please\nflash firmware\nfirst!"
   id: "NO_FW_IN_INTERNAL_FLASH"
   approved: true
 - code: "17613"
-  title: "USB FLASH ERROR"
+  title: ""
   text: "File system error!\nTry a different USB\ndrive or format the\ndrive with FAT32\nfilesystem (all \ndata will be lost)!"
   id: "FILE_SYSTEM_ERROR"
   approved: true
 - code: "17614"
-  title: "UNSUPPORTED FIRMWARE BBF FILE"
+  title: ""
   text: "USB flash drive contains\nunsupported firmware BBF file."
   id: "UNSUPPORTED_BBF_VERSION"
   approved: true

@@ -28,8 +28,6 @@ bool phaseKennels(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &
                 &CSelftestPart_Kennel::state_wait_user_manual_park2,
                 &CSelftestPart_Kennel::state_wait_user_manual_park3,
                 // Remove pins, loosen pillar
-                &CSelftestPart_Kennel::state_initiate_pin_removal,
-                &CSelftestPart_Kennel::state_wait_moves_done,
                 &CSelftestPart_Kennel::state_ask_user_remove_pin,
                 &CSelftestPart_Kennel::state_wait_user,
                 &CSelftestPart_Kennel::state_ask_user_loosen_pillar,

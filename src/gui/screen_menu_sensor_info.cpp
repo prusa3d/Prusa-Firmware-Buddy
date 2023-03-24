@@ -25,25 +25,26 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
         Item<MI_INFO_BOARD_TEMP>().UpdateValue(boardRes);
 #endif
 
-#if PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_IXL
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_IXL
     #if (TEMP_SENSOR_HEATBREAK > 0)
-        Item<MI_INFO_HEATBREAK_N_TEMP<0>>().UpdateValue(buffer.GetValue(SensorData::Sensor::heatBreakTemp));
+        Item<MI_INFO_HEATBREAK_N_TEMP<0>>().UpdateValue(marlin_vars()->hotend(0).temp_heatbreak.get());
     #endif
 
         SensorData::Value res = buffer.GetValue(SensorData::Sensor::bedTemp);
         Item<MI_INFO_BED_TEMP>().UpdateValue(res);
 
-        res = buffer.GetValue(SensorData::Sensor::nozzleTemp);
-        Item<MI_INFO_NOZZLE_TEMP>().UpdateValue(res);
+        Item<MI_INFO_NOZZLE_TEMP>().UpdateValue(marlin_vars()->hotend(0).temp_nozzle.get());
 
         Item<MI_INFO_LOADCELL>().UpdateValue(buffer.GetValue(SensorData::Sensor::loadCell));
 
-        res = buffer.GetValue(SensorData::Sensor::fillSensor);
-        SensorData::Value res1 = buffer.GetValue(SensorData::Sensor::fillSensorRaw);
-        Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(res, res1));
+        if (auto fsensor = GetExtruderFSensor(marlin_vars()->active_extruder.get()); fsensor) { // Try to get extruder filament sensor
+            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue(std::make_pair(static_cast<int>(fsensor->Get()), static_cast<int>(fsensor->GetFilteredValue())));
+        } else {
+            Item<MI_INFO_PRINTER_FILL_SENSOR>().UpdateValue({ {}, {} });
+        }
 
         res = buffer.GetValue(SensorData::Sensor::printFan);
-        res1 = buffer.GetValue(SensorData::Sensor::printFanAct);
+        SensorData::Value res1 = buffer.GetValue(SensorData::Sensor::printFanAct);
         Item<MI_INFO_PRINT_FAN>().UpdateValue(std::make_pair(res, res1));
 
         res = buffer.GetValue(SensorData::Sensor::hbrFan);

@@ -1,6 +1,7 @@
 target_sources(
   firmware
-  PRIVATE DialogFactory.cpp
+  PRIVATE DialogConnectReg.cpp
+          DialogFactory.cpp
           DialogHandler.cpp
           DialogLoadUnload.cpp
           DialogMoveZ.cpp

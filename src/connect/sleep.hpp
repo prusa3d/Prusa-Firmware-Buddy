@@ -21,6 +21,8 @@ using Duration = uint32_t;
 // Renamed ticks_ms for readability.
 Timestamp now();
 
+void sleep_raw(Duration sleep_for);
+
 class Sleep {
 private:
     // Non-owning.
@@ -28,6 +30,7 @@ private:
     // We would prefer optional<&T>, but that doesn't exist in C++.
     BackgroundCmd *background_cmd;
     transfers::Download *download;
+    bool recover_download;
 
 #ifdef UNITTESTS
 public:
@@ -37,9 +40,10 @@ private:
     Duration milliseconds;
 
 public:
-    Sleep(Duration duration, BackgroundCmd *cmd, transfers::Download *download)
+    Sleep(Duration duration, BackgroundCmd *cmd, transfers::Download *download, bool recover_download)
         : background_cmd(cmd)
         , download(download)
+        , recover_download(recover_download)
         , milliseconds(duration) {}
     static Sleep idle();
     /// Sleeps up to the given time, processing any background tasks if possible.

@@ -1,4 +1,4 @@
-// TODO: This is just copy of MK404 selftest
+// TODO: This is just copy of MK4 selftest
 #pragma once
 
 #include "i_selftest.hpp"

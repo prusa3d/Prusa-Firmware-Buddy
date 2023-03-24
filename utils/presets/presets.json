@@ -10,37 +10,38 @@
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
                 "PRESET_COMPILE_OPTIONS": "",
-                "DEVELOPMENT_ITEMS_ENABLED": true
+                "DEVELOPMENT_ITEMS_ENABLED": true,
+                "TRANSLATIONS_ENABLED": true
             }
         },
         {
-            "name": "mk404-xBuddy027c-400step-planetary",
-            "description": "Original Prusa MK404 with xBuddy 0.2.7c, 400-step motors and planetary gearbox",
+            "name": "mk4-xBuddy027c-400step-planetary",
+            "description": "Original Prusa MK4 with xBuddy 0.2.7c, 400-step motors and planetary gearbox",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "MK404",
+                "PRINTER": "MK4",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.2.7",
                 "PRESET_COMPILE_OPTIONS": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"
             }
         },
         {
-            "name": "mk404-xBuddy034-400step",
-            "description": "Original Prusa MK404 with xBuddy 0.3.4 and 400-step motors",
+            "name": "mk4-xBuddy034-400step",
+            "description": "Original Prusa MK4 with xBuddy 0.3.4 and 400-step motors",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "MK404",
+                "PRINTER": "MK4",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.3.4",
                 "PRESET_COMPILE_OPTIONS": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DLOVEBOARD_HAS_EEPROM"
             }
         },
         {
-            "name": "mk404-xBuddy034-400step-planetary",
-            "description": "Original Prusa MK404 with xBuddy 0.3.4, 400-step motors and planetary gearbox",
+            "name": "mk4-xBuddy034-400step-planetary",
+            "description": "Original Prusa MK4 with xBuddy 0.3.4, 400-step motors and planetary gearbox",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "MK404",
+                "PRINTER": "MK4",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.3.4",
                 "PRESET_COMPILE_OPTIONS": "-DLOVEBOARD_HAS_NTC -DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX -DLOVEBOARD_HAS_EEPROM"

@@ -511,6 +511,8 @@
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
     { 1, 1, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+#define HOMING_BUMP_DIVISOR_MAX HOMING_BUMP_DIVISOR
+#define HOMING_BUMP_DIVISOR_MIN HOMING_BUMP_DIVISOR
 
 // If homing includes X and Y, do a diagonal move initially
 //#define QUICK_HOME

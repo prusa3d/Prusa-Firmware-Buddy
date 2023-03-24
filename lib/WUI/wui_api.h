@@ -167,17 +167,6 @@ StartPrintResult wui_start_print(char *filename, bool autostart_if_able);
 ///   the print was not possible to start.
 bool wui_uploaded_gcode(char *path, bool start_print);
 
-////////////////////////////////////////////////////////////////////////////
-/// @brief Return the number of gcodes uploaded since boot.
-///
-/// May be used to check if a file was uploaded since last check.
-/// Guaranteed to start at 0, but may wrap around (unlikely).
-///
-/// @warning Gcodes that were immediately printed after upload do not count.
-///
-/// Thread safe.
-uint32_t wui_gcodes_uploaded();
-
 /// Number of gcode modifications - uploaded, deleted, ...
 ///
 /// Similar purpose as with wui_gcodes_uploaded (to watch for something

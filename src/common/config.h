@@ -19,8 +19,8 @@ enum {
 };
 
 // default string used as LAN hostname
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404))
-    #define LAN_HOSTNAME_DEF "PrusaMK404"
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4))
+    #define LAN_HOSTNAME_DEF "PrusaMK4"
 #elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
     #define LAN_HOSTNAME_DEF "PrusaXL"
 #elif (PRINTER_TYPE == PRINTER_PRUSA_IXL)
@@ -36,8 +36,8 @@ enum {
 //display PSOD instead of BSOD
 //#define PSOD_BSOD
 
-//Enabled Z calibration (MK3, MK404, XL)
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_XL))
+//Enabled Z calibration (MK3, MK4, XL)
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_XL))
     #define WIZARD_Z_CALIBRATION
 #endif
 

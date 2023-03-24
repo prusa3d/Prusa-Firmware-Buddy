@@ -14,9 +14,8 @@ public:
 
 private:
     static bool usbWasAlreadyInserted; // usb inserted at least once
-    static uint32_t lastUploadCount;
-    static bool ever_been_opened; //set by ctor
-    static bool try_esp_flash;    // we try this maximum once
+    static bool ever_been_opened;      //set by ctor
+    static bool try_esp_flash;         // we try this maximum once
     static bool touch_broken_during_run;
 
     bool usbInserted;
@@ -54,7 +53,6 @@ private:
     void printBtnEna();
     void printBtnDis();
     void filamentBtnSetState(MMU2::State_t mmu);
-    bool moreGcodesUploaded();
 
     static bool find_latest_gcode(char *fpath, int fpath_len, char *fname, int fname_len);
 

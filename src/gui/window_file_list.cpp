@@ -124,12 +124,21 @@ void window_file_list_t::unconditionalDraw() {
         if (valid_items[i])
             continue;
 
+        // Return item
+        if (is_return_item(i)) {
+            return_item.Print(itemRect(i));
+            continue;
+        }
+
+        // Focused item, scrolling text
         if (IsFocused() && index == i) {
             activeItem.Print(itemRect(i));
-        } else {
-            FL_LABEL label(itemText(i), itemIcon(i));
-            label.Print(itemRect(i));
+            continue;
         }
+
+        // General list item
+        FL_LABEL label(itemText(i), itemIcon(i));
+        label.Print(itemRect(i));
     }
 
     // no need fill the rest of the window with background, since there is no rest of the window
@@ -275,6 +284,12 @@ void window_file_list_t::selectNewItem() {
         activeItem.SetIconId(itemIcon(index));
         activeItem.InitRollIfNeeded(itemRect(index));
     }
+
+    if (is_return_item(index)) {
+        return_item.setFocus();
+    } else {
+        return_item.clrFocus();
+    }
 }
 
 void window_file_list_t::SetRoot(char *rootPath) {
@@ -314,12 +329,7 @@ const png::Resource *window_file_list_t::itemIcon(int index) const {
         // this should normally not happen, visible_count shall limit indices to valid items only
         return nullptr; // ... but getting ready for the unexpected
     }
-    const png::Resource *icon = isFile ? nullptr : &png::folder_full_16x16;
-
-    if (index == 0 && strcmp(item.first, "..") == 0 && IsPathRoot(sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
-        icon = &png::folder_full_16x16;
-    }
-    return icon;
+    return isFile ? nullptr : &png::folder_full_16x16;
 }
 
 // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"
@@ -328,13 +338,8 @@ string_view_utf8 window_file_list_t::itemText(int index) const {
     string_view_utf8 itemText;
     auto item = ldv.LongFileNameAt(index);
 
-    if (index == 0 && strcmp(item.first, "..") == 0 && IsPathRoot(sfn_path)) { // @@TODO clean up, this is probably unnecessarily complex
-        itemText = string_view_utf8::MakeCPUFLASH((const uint8_t *)home_str_en);
-    } else {
-        // this MakeRAM is safe - render_text (below) finishes its work and the local string item.first is then no longer needed
-        itemText = string_view_utf8::MakeRAM((const uint8_t *)item.first);
-    }
-    return itemText;
+    // this MakeRAM is safe - render_text (below) finishes its work and the local string item.first is then no longer needed
+    return string_view_utf8::MakeRAM((const uint8_t *)item.first);
 }
 
 void window_file_list_t::RollUp() {
@@ -343,4 +348,9 @@ void window_file_list_t::RollUp() {
 
 void window_file_list_t::RollDown() {
     roll_screen(LazyDirViewSize - 1);
+}
+
+bool window_file_list_t::is_return_item(const int index) const {
+    const auto item = ldv.LongFileNameAt(index);
+    return index == 0 && IsPathRoot(sfn_path) && strcmp(item.first, "..") == 0;
 }

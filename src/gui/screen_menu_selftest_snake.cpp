@@ -461,31 +461,16 @@ void do_menu_event(window_t *sender, GUI_event_t event, void *param, Action acti
 
     continue_snake();
 
-    if (!snake_config.in_progress) { // force redraw of current snake menu
-        Screens::Access()->Get()->Invalidate();
-    }
-
     if (is_submenu) {
         if (snake_config.last_action == action && snake_config.last_tool == get_last_enabled_tool()) { // finished testing this submenu
             Screens::Access()->Close();
         }
     }
 }
-
-inline bool is_menu_draw_enabled() {
-    return !snake_config.in_progress // don't draw if snake is ongoing
-        || querying_user;            // always draw if msgbox is being shown
-}
 } // unnamed namespace
 
 ScreenMenuKennelCalibration::ScreenMenuKennelCalibration()
     : detail::ScreenMenuKennelCalibration(_(label)) {}
-
-void ScreenMenuKennelCalibration::draw() {
-    if (is_menu_draw_enabled()) {
-        window_frame_t::draw();
-    }
-}
 
 void ScreenMenuKennelCalibration::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     do_menu_event(sender, event, param, action, true);
@@ -494,24 +479,12 @@ void ScreenMenuKennelCalibration::windowEvent(EventLock /*has private ctor*/, wi
 ScreenMenuLoadcellTest::ScreenMenuLoadcellTest()
     : detail::ScreenMenuLoadcellTest(_(label)) {}
 
-void ScreenMenuLoadcellTest::draw() {
-    if (is_menu_draw_enabled()) {
-        window_frame_t::draw();
-    }
-}
-
 void ScreenMenuLoadcellTest::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     do_menu_event(sender, event, param, action, true);
 }
 
 ScreenMenuFilamentSensorsCalibration::ScreenMenuFilamentSensorsCalibration()
     : detail::ScreenMenuFilamentSensorsCalibration(_(label)) {}
-
-void ScreenMenuFilamentSensorsCalibration::draw() {
-    if (is_menu_draw_enabled()) {
-        window_frame_t::draw();
-    }
-}
 
 void ScreenMenuFilamentSensorsCalibration::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     do_menu_event(sender, event, param, action, true);
@@ -520,12 +493,6 @@ void ScreenMenuFilamentSensorsCalibration::windowEvent(EventLock /*has private c
 ScreenMenuSelftestSnake::ScreenMenuSelftestSnake()
     : SelftestSnake::detail::ScreenMenuSelftestSnake(_(label)) {
     ClrMenuTimeoutClose(); // No timeout for snake
-}
-
-void ScreenMenuSelftestSnake::draw() {
-    if (is_menu_draw_enabled()) {
-        window_frame_t::draw();
-    }
 }
 
 void ScreenMenuSelftestSnake::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -538,43 +505,25 @@ ScreenMenuSTSWizard::ScreenMenuSTSWizard()
     ClrMenuTimeoutClose(); // No timeout for wizard's snake
 }
 
-void ScreenMenuSTSWizard::draw() {
-    if ((draw_enabled && !snake_config.in_progress) // don't draw if starting/ending or snake in progress
-        || querying_user) {                         // but always draw if asking user
-        window_frame_t::draw();
-    }
-}
-
 void ScreenMenuSTSWizard::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    if (querying_user) {
-        return;
-    }
-
     static bool ever_shown_wizard_box { false };
     if (!ever_shown_wizard_box) {
         ever_shown_wizard_box = true;
-
-        AutoRestore ar(querying_user, true);
         if (MsgBoxPepaCentered(_("Hi, this is your\nOriginal Prusa XL printer.\n"
                                  "I would like to guide you\nthrough the setup process."),
-                { Response::Continue, Response::Cancel })
+                { Response::Continue, Response::Cancel, Response::_none, Response::_none })
             == Response::Cancel) {
             Screens::Access()->Close();
-        } else {
-            do_snake(get_first_action());
+            return;
         }
+
+        do_snake(get_first_action());
         return;
     }
 
     do_menu_event(sender, event, param, get_first_action(), false);
 
-    if (snake_config.in_progress) {
-        draw_enabled = false;
-    } else {
-        draw_enabled = true;
-    }
-
-    if (get_test_result(get_last_action(), Tool::_all_tools) == TestResult_Passed && are_previous_completed(get_last_action())) {
+    if (!querying_user && get_test_result(get_last_action(), Tool::_all_tools) == TestResult_Passed && are_previous_completed(get_last_action())) {
         AutoRestore ar(querying_user, true);
 
         MsgBoxPepaCentered(_("Happy printing!"),

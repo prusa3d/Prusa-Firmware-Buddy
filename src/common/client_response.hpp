@@ -227,7 +227,6 @@ enum class PhasesSelftest : uint16_t {
     Kennel_wait_user_park1,
     Kennel_wait_user_park2,
     Kennel_wait_user_park3,
-    Kennel_pin_remove_prepare,
     Kennel_wait_user_remove_pins,
     Kennel_wait_user_loosen_pillar,
     Kennel_wait_user_lock_tool,
@@ -352,7 +351,7 @@ class ClientResponses {
 #if (PRINTER_TYPE == PRINTER_PRUSA_IXL)
             Response::PETG_NH,
 #endif
-            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB }, // UserTempSelection
+            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA }, // UserTempSelection
     };
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
@@ -443,7 +442,6 @@ class ClientResponses {
         { Response::Continue, Response::Abort }, // Kennel_wait_user_park1
         { Response::Continue, Response::Abort }, // Kennel_wait_user_park2
         { Response::Continue, Response::Abort }, // Kennel_wait_user_park3
-        { Response::Abort },                     // Kennel_pin_remove_prepare
         { Response::Continue, Response::Abort }, // Kennel_wait_user_remove_pins
         { Response::Continue, Response::Abort }, // Kennel_wait_user_loosen_pillar
         { Response::Continue, Response::Abort }, // Kennel_wait_user_lock_tool

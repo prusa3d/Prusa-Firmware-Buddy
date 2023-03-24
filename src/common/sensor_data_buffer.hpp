@@ -31,12 +31,8 @@ enum class Sensor {
 #else
 enum class Sensor {
     bedTemp,
-    heatBreakTemp,
-    nozzleTemp,
     boardTemp,
     loadCell,
-    fillSensor,
-    fillSensorRaw,
     printFan,
     hbrFan,
     printFanAct,
@@ -170,15 +166,11 @@ private:
 
 #else
     constexpr static SensorArray sensors = ConstexprQuickSort::sort(SensorArray {
-                                                                        { { "fsensor", Sensor::fillSensor },
-                                                                            { "temp_hbr", Sensor::heatBreakTemp },
-                                                                            { "temp_bed", Sensor::bedTemp },
-                                                                            { "temp_noz", Sensor::nozzleTemp },
+                                                                        { { "temp_bed", Sensor::bedTemp },
                                                                             { "temp_brd", Sensor::boardTemp },
                                                                             { "fan_speed", Sensor::printFan },
                                                                             { "loadcell_value", Sensor::loadCell },
                                                                             { "fan_hbr_speed", Sensor::hbrFan },
-                                                                            { "fsensor_raw", Sensor::fillSensorRaw },
                                                                             { "print_fan_act", Sensor::printFanAct },
                                                                             { "hbr_fan_act", Sensor::hbrFanAct },
                                                                             { "volt_nozz", Sensor::heaterVoltage },

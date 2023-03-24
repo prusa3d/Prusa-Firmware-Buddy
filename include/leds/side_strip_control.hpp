@@ -21,12 +21,16 @@ public:
 
     void Tick();
 
+    void SetEnable(bool isEnable);
+
 private:
     enum class State {
         Startup,
         Idle,
         Active,
         CustomColor,
+        SetOff,
+        Off,
     };
 
     struct HsvColor {

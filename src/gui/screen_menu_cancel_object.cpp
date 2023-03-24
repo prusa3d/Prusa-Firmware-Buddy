@@ -10,11 +10,10 @@ ScreenMenuCancelObject::ScreenMenuCancelObject()
 
 MI_CO_CANCEL_OBJECT::MI_CO_CANCEL_OBJECT()
     : WI_LABEL_t(
-        _(label), nullptr, is_enabled_t::yes,
-        []() {
-            return cancelable.object_count > 0 ? is_hidden_t::no : is_hidden_t::yes;
+        _(label), nullptr, []() {
+            return cancelable.object_count > 0 ? is_enabled_t::yes : is_enabled_t::no;
         }(),
-        expands_t::yes) {
+        is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_CO_CANCEL_OBJECT::click(IWindowMenu & /*window_menu*/) {

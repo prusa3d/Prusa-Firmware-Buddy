@@ -110,6 +110,12 @@ target_include_directories(
   json_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/lib/jsmn
   )
 
+add_executable(
+  path_utils_tests ${CMAKE_SOURCE_DIR}/src/common/path_utils.c
+                   ${CMAKE_CURRENT_SOURCE_DIR}/path_utils.cpp
+  )
+target_include_directories(path_utils_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common)
+
 add_catch_test(support_utils_tests)
 add_catch_test(variant8_tests)
 add_catch_test(str_utils_tests)
@@ -124,3 +130,4 @@ add_catch_test(median_tests)
 add_catch_test(otp_tests)
 add_catch_test(url_decode_tests)
 add_catch_test(json_tests)
+add_catch_test(path_utils_tests)

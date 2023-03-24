@@ -95,6 +95,9 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis);
 
 extern feedRate_t feedrate_mm_s;
 
+extern float homing_bump_divisor[];
+#define HOMING_BUMP_DIVISOR_STEP (1.03f)
+
 /**
  * Feedrate scaling is applied to all G0/G1, G2/G3, and G5 moves
  */
@@ -287,6 +290,7 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
 );
 
 #if ENABLED(PRECISE_HOMING_COREXY)
+  void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm);
   void refine_corexy_origin();
 #endif
 

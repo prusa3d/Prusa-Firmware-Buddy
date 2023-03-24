@@ -18,7 +18,7 @@ constexpr Printer::Params params_idle() {
     return params;
 }
 
-class MockPrinter final : public Printer {
+class MockPrinter : public Printer {
 private:
     const Params &p;
 
@@ -75,6 +75,7 @@ public:
     }
 
     virtual void notify_filechange(const char *) override {}
+    virtual void init_connect(char *) override {}
 };
 
 }

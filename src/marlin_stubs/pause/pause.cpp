@@ -14,7 +14,7 @@
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
 #include "../../lib/Marlin/Marlin/src/module/printcounter.h"
 #include "../../lib/Marlin/Marlin/src/module/temperature.h"
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2mk404.h"
+#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2mk4.h"
 
 #if ENABLED(FWRETRACT)
     #include "fwretract.h"
@@ -466,12 +466,12 @@ void Pause::loop_load_mmu(Response response) {
     // transitions
     switch (getLoadPhase()) {
     case LoadPhases_t::_init:
-#if HAS_MMU2
-        if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
-            // TODO tell user that he has already loaded filament if he really wants to continue
-            // TODO check fsensor .. how should I behave if filament is not detected ???
+        if constexpr (HAS_MMU2) {
+            if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
+                //TODO tell user that he has already loaded filament if he really wants to continue
+                //TODO check fsensor .. how should I behave if filament is not detected ???
+            }
         }
-#endif
         filament::set_type_in_extruder(filament::get_type_to_load(), settings.GetExtruder());
         set(LoadPhases_t::wait_temp);
         break;
@@ -641,7 +641,7 @@ void Pause::loop_load_change(Response response) {
         if (FSensors_instance().GetCurrentExtruder() == fsensor_t::NoFilament) {
             setPhase(PhasesLoadUnload::MakeSureInserted_unstoppable);
         } else {
-            setPhase(PhasesLoadUnload::UserPush_stoppable);
+            setPhase(PhasesLoadUnload::UserPush_unstoppable);
             if (response == Response::Continue) {
                 set(LoadPhases_t::load_in_gear);
             }
@@ -925,9 +925,8 @@ void Pause::loop_unload_mmu(Response response) {
         set(UnloadPhases_t::run_mmu_unload);
         break;
     case UnloadPhases_t::run_mmu_unload:
-#if HAS_MMU2
-        MMU2::mmu2.unload();
-#endif
+        if constexpr (HAS_MMU2)
+            MMU2::mmu2.unload();
         set(UnloadPhases_t::_finish);
         break;
     default:

@@ -120,7 +120,7 @@ const char *labels[] = {
     N_("Print"),
     N_("Preheat"),
     N_("Filament"),
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4)
     N_("Control"),
 #else
     N_("Calibrate"),
@@ -131,7 +131,6 @@ const char *labels[] = {
 };
 
 bool screen_home_data_t::usbWasAlreadyInserted = false;
-uint32_t screen_home_data_t::lastUploadCount = 0;
 
 static void FilamentBtn_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
@@ -157,7 +156,7 @@ screen_home_data_t::screen_home_data_t()
     { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), nullptr, []() { marlin_gcode_printf("M1700"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4)
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
 #else
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCalibration>); } },
@@ -329,7 +328,7 @@ void screen_home_data_t::handle_crash_dump() {
     if (present_dumps.size() == 0) {
         return;
     }
-    if (MsgBoxWarning(_("Crash detected. Save it to USB?"), Responses_YesNo)
+    if (MsgBoxWarning(_("Crash detected. Save it to USB and send it to Prusa?"), Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const ::crash_dump::DumpHandler *> auto fp) {
             MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &png::info_58x58);
@@ -342,6 +341,7 @@ void screen_home_data_t::handle_crash_dump() {
         };
 
         do_stage(_("Saving to USB"), [](const ::crash_dump::DumpHandler *handler) { handler->usb_save(); });
+        do_stage(_("Sending to Prusa"), [](const ::crash_dump::DumpHandler *handler) { handler->server_upload(); });
     }
 
     for (const auto &dump_handler : present_dumps) {
@@ -423,7 +423,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 return;
             } else {
                 // on esp update, can use one click print
-                if (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded()) {
+                if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
                     // TODO this should be done in main thread before MARLIN_EVT_MediaInserted is generated
                     // if it is not the latest gcode might not be selected
                     if (find_latest_gcode(
@@ -500,13 +500,6 @@ void screen_home_data_t::printBtnDis() {
     w_buttons[0].Disable(); // cant't be focused
     w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelNoUSBId]));
-}
-
-bool screen_home_data_t::moreGcodesUploaded() {
-    const uint32_t total = wui_gcodes_uploaded();
-    const bool result = total != lastUploadCount;
-    lastUploadCount = total;
-    return result;
 }
 
 void screen_home_data_t::InitState(screen_init_variant var) {

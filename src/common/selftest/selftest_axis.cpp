@@ -55,7 +55,10 @@ CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisCo
 #endif /*HAS_TOOLCHANGER()*/
 }
 
-CSelftestPart_Axis::~CSelftestPart_Axis() { endstops.enable(false); }
+CSelftestPart_Axis::~CSelftestPart_Axis() {
+    endstops.enable(false);
+    endstops.enable_z_probe(false);
+}
 
 void CSelftestPart_Axis::phaseMove(int8_t dir) {
     const float feedrate = dir > 0 ? config.fr_table_fw[m_Step / 2] : config.fr_table_bw[m_Step / 2];

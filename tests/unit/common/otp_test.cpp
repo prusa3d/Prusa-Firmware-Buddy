@@ -65,7 +65,7 @@ TEST_CASE("OTP test v4", "[otp_v4]") {
 
 TEST_CASE("OTP test v3", "[otp_v3]") {
 
-    // example OTP v3, taken from production MK404
+    // example OTP v3, taken from production MK4
     uint8_t otp[OTP_SIZE] = {
         3,                            // Data structure version (1 bytes)
         0x4C, 0x00,                   // Data structure size (uint16_t little endian)

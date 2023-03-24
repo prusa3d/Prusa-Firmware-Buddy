@@ -64,9 +64,21 @@ dependencies = {
         'version': '2.0.2',
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-v2.0.2-FF7C65BF-1853-43B3-869C-C846FA39AB75.zip',
     },
+    'bootloader-mk4': {
+        'version': '2.0.7',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.0.7-ECA15BB2-B24D-4F55-B83C-A362BA4998EE.zip',
+    },
     'bootloader-xl': {
         'version': '2.0.7',
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.0.7-2BB59278-CED8-4CA6-AE95-4692646671D5.zip',
+    },
+    'mini403': {
+        'version': '0.5.4',
+        'url': {
+            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini403-85e8920-v0.5.4-linux.tar.bz2',
+            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini403-85e8920-v0.5.4-w64.zip',
+            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini403-85e8920-v0.5.4-macos.tar.bz2',
+        }
     },
     'cmsis-svd': {
         'version': '0.4.9999',

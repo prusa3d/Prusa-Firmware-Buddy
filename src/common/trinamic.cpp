@@ -104,8 +104,6 @@ void tmc_set_sg_mask(uint8_t mask) { tmc_sg_mask = mask; }
 void tmc_set_sg_axis(uint8_t axis) { tmc_sg_axis = axis; }
 void tmc_set_sg_sample_cb(tmc_sg_sample_cb_t *cb) { tmc_sg_sample_cb = cb; }
 
-void tmc_enable_wavetable(bool enabled);
-
 void tmc_delay(uint16_t time) // delay for switching tmc step pin level
 {
     volatile uint16_t tmc_delay;
@@ -113,8 +111,10 @@ void tmc_delay(uint16_t time) // delay for switching tmc step pin level
     }
 }
 
+#ifdef HAS_TMC_WAVETABLE
 void tmc_enable_wavetable(bool enabled) {
     if (enabled) {
+    #ifdef HAS_LDO_400_STEP
         pStep[Y_AXIS]->write(0x69, 0x00f80000);
         pStep[Y_AXIS]->write(0x60, 0x56ad6b6a);
         pStep[Y_AXIS]->write(0x61, 0x54aaaaab);
@@ -147,6 +147,9 @@ void tmc_enable_wavetable(bool enabled) {
         pStep[Z_AXIS]->write(0x66, 0x55555ada);
         pStep[Z_AXIS]->write(0x67, 0x0102224a);
         pStep[Z_AXIS]->write(0x68, 0xff760159);
+    #else
+        #error "wavetable not defined for this motor type"
+    #endif
     } else {
         pStep[Y_AXIS]->write(0x69, 0x00F70000);
         pStep[Y_AXIS]->write(0x60, 0xAAAAB554);
@@ -182,6 +185,8 @@ void tmc_enable_wavetable(bool enabled) {
         pStep[Z_AXIS]->write(0x68, 0xFFFF8056);
     }
 }
+#endif //HAS_TMC_WAVETABLE
+
 void init_tmc(void) {
     init_tmc_bare_minimum();
     //pointers to TMCStepper instances
@@ -217,7 +222,7 @@ void init_tmc_bare_minimum(void) {
     pStep[E_AXIS]->SLAVECONF(0x300);
 #endif
 
-#if HAS_DRIVER(TMC2130)
+#ifdef HAS_TMC_WAVETABLE
     tmc_enable_wavetable(eeprom_get_bool(EEVAR_TMC_WAVETABLE_ENABLED));
 #endif
 }

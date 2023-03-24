@@ -115,6 +115,7 @@ typedef struct
     xyze_pos_t pos;               // resume position for unpark_head
     float nozzle_temp[EXTRUDERS]; // resume nozzle temperature
     uint8_t fan_speed;            // resume fan speed
+    uint8_t print_speed;          // resume printing speed
 } resume_state_t;
 
 //

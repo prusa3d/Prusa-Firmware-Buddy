@@ -130,8 +130,6 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "KennelCalibration_wait_park2";
     case PhasesSelftest::Kennel_wait_user_park3:
         return "KennelCalibration_wait_park3";
-    case PhasesSelftest::Kennel_pin_remove_prepare:
-        return "KennelCalibration_pin_remove_prepare";
     case PhasesSelftest::Kennel_wait_user_remove_pins:
         return "KennelCalibration_wait_user_remove_pins";
     case PhasesSelftest::Kennel_wait_user_loosen_pillar:

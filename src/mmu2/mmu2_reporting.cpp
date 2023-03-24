@@ -237,7 +237,7 @@ Buttons ButtonPressed(uint16_t ec) {
     const MMUErrorDesc &ed = ConvertMMUErrorCode(ec);
 
     // The list of responses which occur in mmu error dialogs
-    // Return button index or perform some action on the MK404 by itself (like restart MMU)
+    // Return button index or perform some action on the MK4 by itself (like restart MMU)
     // Based on Prusa-Error-Codes errors_list.h
     // So far hardcoded, but shall be generated in the future
     switch (ed.err_num) {

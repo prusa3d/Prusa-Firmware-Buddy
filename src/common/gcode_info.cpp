@@ -104,7 +104,7 @@ bool GCodeInfo::ValidPrinterSettings::nozzle_diameters_valid() const {
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_valid() const {
-    return nozzle_diameters_valid() && wrong_printer_model.is_valid() && wrong_firmware_version.is_valid() && wrong_gcode_level.is_valid();
+    return nozzle_diameters_valid() && wrong_printer_model.is_valid() && wrong_gcode_level.is_valid();
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_fatal() const {
@@ -118,7 +118,7 @@ bool GCodeInfo::ValidPrinterSettings::is_fatal() const {
             return true;
         }
     }
-    return wrong_printer_model.is_fatal() || wrong_firmware_version.is_fatal() || wrong_gcode_level.is_fatal();
+    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal();
 }
 
 GCodeInfo::Buffer::Buffer(FILE &file)
@@ -229,9 +229,6 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
                     break;
                 case '2':
                     valid_printer_settings.wrong_printer_model.set(cmd.get_uint() != printer_model_code);
-                    break;
-                case '4':
-                    valid_printer_settings.wrong_firmware_version.set(cmd.get_uint() != eeprom_get_ui16(EEVAR_FW_VERSION));
                     break;
                 case '5':
                     valid_printer_settings.wrong_gcode_level.set(cmd.get_uint() != gcode_level);

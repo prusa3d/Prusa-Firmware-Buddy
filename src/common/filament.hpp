@@ -27,7 +27,8 @@ enum class Type {
     HIPS,
     PP,
     FLEX,
-    _last = FLEX
+    PA,
+    _last = PA
 };
 
 constexpr Type default_type = Type::PLA;

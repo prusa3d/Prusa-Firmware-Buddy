@@ -39,6 +39,11 @@ void window_qr_t::SetQRHeader(uint16_t err_num) {
     Invalidate();
 }
 
+void window_qr_t::SetText(const char *txt) {
+    strlcpy(text, txt, sizeof(text));
+    Invalidate();
+}
+
 const char *window_qr_t::GetQRLongText() {
     error_url_long(text, sizeof(text), error_num);
     return text;

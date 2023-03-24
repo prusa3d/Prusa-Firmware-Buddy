@@ -5,6 +5,7 @@
 #include "i18n.h"
 #include "eeprom.h"
 #include <option/has_toolchanger.h>
+#include <option/has_side_leds.h>
 
 class MI_VERSION_INFO : public WI_LABEL_t {
     static constexpr const char *const label = N_("Version Info");
@@ -166,16 +167,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_LANGUAGE : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Language");
-
-public:
-    MI_LANGUAGE();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_PRUSA_CONNECT : public WI_LABEL_t {
     static constexpr const char *const label = N_("Prusa Connect");
 
@@ -283,36 +274,6 @@ public:
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_LANGUAGUE_USB : public WI_LABEL_t {
-    static constexpr const char *const label = "Load Lang from USB";
-
-public:
-    MI_LANGUAGUE_USB();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
-class MI_LOAD_LANG : public WI_LABEL_t {
-    static constexpr const char *const label = "Load Lang to XFLASH";
-
-public:
-    MI_LOAD_LANG();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
-class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
-    static constexpr const char *const label = "Load Lang from XFLASH";
-
-public:
-    MI_LANGUAGUE_XFLASH();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
 };
 
 class MI_DIAGNOSTICS : public WI_LABEL_t {
@@ -447,6 +408,16 @@ class MI_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
 
 public:
     MI_LEDS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
+#if HAS_SIDE_LEDS()
+class MI_SIDE_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("RGB Side Strip");
+
+public:
+    MI_SIDE_LEDS_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
 #endif

@@ -47,10 +47,6 @@ void SelftestFrameKennel::change() {
         set_info_layout(_(PARK3), &png::parking2);
         break;
 
-    case PhasesSelftest::Kennel_pin_remove_prepare:
-        text_info.SetText(_("Preparing for kennel pin removal."));
-        break;
-
     case PhasesSelftest::Kennel_wait_user_remove_pins:
         set_info_layout(_(REMOVE_KENNEL_PINS), &png::loosen_screws2);
         break;
@@ -142,7 +138,6 @@ const char *SelftestFrameKennel::get_phase_name() {
     case PhasesSelftest::Kennel_wait_user_park3:
         return N_("Parking tool");
 
-    case PhasesSelftest::Kennel_pin_remove_prepare:
     case PhasesSelftest::Kennel_wait_user_loosen_pillar:
     case PhasesSelftest::Kennel_wait_user_remove_pins:
         return N_("Loosen screws");

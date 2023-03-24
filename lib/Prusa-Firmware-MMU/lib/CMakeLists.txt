@@ -1,0 +1,5 @@
+if(NOT CMAKE_CROSSCOMPILING)
+  add_subdirectory(Catch2)
+else()
+  include(AddLufa.cmake)
+endif()

@@ -33,6 +33,22 @@ extern "C" {
 #endif
 
 /**
+ * \brief de-escapes json string in place
+ *
+ * De-escaping never makes the string longer, so doing it in place
+ * is ok. If used on part of the string, it will shift only size chars
+ * and the rest will be unchanged.
+ * e.g. unescape_json_i("string\\\"bla\\t1234", 17) -> "string\"bla\t123434"
+ *
+ * \param in the input string to de-escape
+ * \param size number of chars to consoder for de-escaping
+ *
+ * \return the new size after de-escaping
+ */
+
+size_t unescape_json_i(char *in, size_t size);
+
+/**
  * \brief Returns a string representing a boolean value
  *
  * This returns a constant string representation of the boolean value, suitable

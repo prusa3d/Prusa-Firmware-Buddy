@@ -46,25 +46,6 @@ extern metric_t metric_probe_z_diff;
 extern metric_t metric_home_diff;
 #endif
 
-struct RunApproxEvery {
-    uint32_t interval_ms;
-    uint32_t last_run_timestamp;
-
-    constexpr RunApproxEvery(uint32_t interval_ms)
-        : interval_ms(interval_ms)
-        , last_run_timestamp(0) {
-    }
-
-    bool operator()() {
-        if (ticks_diff(ticks_ms(), last_run_timestamp) > static_cast<int32_t>(interval_ms)) {
-            last_run_timestamp = ticks_ms();
-            return true;
-        } else {
-            return false;
-        }
-    }
-};
-
 void Buddy::Metrics::RecordRuntimeStats() {
     static metric_t fw_version = METRIC("fw_version", METRIC_VALUE_STRING, 10 * 1000, METRIC_HANDLER_ENABLE_ALL);
     metric_record_string(&fw_version, "%s", project_version_full);

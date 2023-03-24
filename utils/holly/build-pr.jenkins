@@ -43,8 +43,8 @@ pipeline {
                 script {
                     // required configurations
                     def configurations = [
-                        [preset: "mini", build_type: "release", bootloader: "yes"],
-                        [preset: "mk404-xBuddy027c-400step-planetary", build_type: "release", bootloader: "no"],
+                        //[preset: "mini", build_type: "release", bootloader: "yes"],
+                        [preset: "mk4-xBuddy027c-400step-planetary", build_type: "release", bootloader: "yes"],
                         [preset: "xl", build_type: "release", bootloader: "yes"],
                         [preset: "xl-xbuddy04", build_type: "release", bootloader: "yes"],
                         [preset: "ix-xBuddy027c-200step", build_type: "release", bootloader: "empty"],
@@ -74,6 +74,10 @@ pipeline {
                     }
 
                     if (env.BRANCH_NAME == "xl") {
+                        dev_items = "no"
+                    }
+
+                    if (env.BRANCH_NAME == "mk4-release") {
                         dev_items = "no"
                     }
 

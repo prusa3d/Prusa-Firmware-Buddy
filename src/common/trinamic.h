@@ -35,7 +35,9 @@ extern void tmc_set_sg_mask(uint8_t mask);
 extern void tmc_set_sg_axis(uint8_t axis);
 extern void tmc_set_sg_sample_cb(tmc_sg_sample_cb_t *cb);
 
+#ifdef HAS_TMC_WAVETABLE
 extern void tmc_enable_wavetable(bool enabled);
+#endif
 
 #ifdef __cplusplus
 }

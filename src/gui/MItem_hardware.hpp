@@ -48,10 +48,10 @@ protected:
     }
 };
 
-class MI_NOZZLE_DIAMETER : public MI_SWITCH_NOZZLE_DIAMETER_t<6> {
+class MI_NOZZLE_DIAMETER : public MI_SWITCH_NOZZLE_DIAMETER_t<4> {
     static constexpr const char *const label = N_("Nozzle Diameter");
-    static constexpr const std::array diameters { 0.25f, 0.3f, 0.4f, 0.5f, 0.6f, 0.8f };
-    static constexpr const size_t DEFAULT_DIAMETER_INDEX = 2;
+    static constexpr const std::array diameters { 0.25f, 0.4f, 0.6f, 0.8f };
+    static constexpr const size_t DEFAULT_DIAMETER_INDEX = 1;
 
     int tool_idx; ///< Configure this tool [indexed from 0]
 
@@ -74,11 +74,11 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_HARDWARE_CHECKS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Check");
+class MI_HARDWARE_G_CODE_CHECKS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("G-code Checks");
 
 public:
-    MI_HARDWARE_CHECKS();
+    MI_HARDWARE_G_CODE_CHECKS();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;

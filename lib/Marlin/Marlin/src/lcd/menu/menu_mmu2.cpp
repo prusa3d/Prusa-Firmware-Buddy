@@ -24,7 +24,7 @@
 
 #if HAS_LCD_MENU && ENABLED(MMU2_MENUS)
 
-#include "../../feature/prusa_MMU2/mmu2mk404.h"
+#include "../../feature/prusa_MMU2/mmu2mk4.h"
 #include "menu_mmu2.h"
 #include "menu.h"
 

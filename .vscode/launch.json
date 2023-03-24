@@ -221,14 +221,14 @@
             "request": "launch",
         },
         {
-            "name": "Launch MK404 Simulator",
+            "name": "Launch MK4 Simulator",
             "type": "cortex-debug",
             "servertype": "qemu",
             "serverpath": "${workspaceRoot}/.dependencies/mini403-0.5.4/qemu-system-buddy",
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
             "osx": {
                 "serverArgs": [
-                    "-machine", "prusa-mk404",
+                    "-machine", "prusa-mk4",
                     "-display", "cocoa",
                     "-drive", "id=usbstick,file=fat:rw:${workspaceFolder}/build-vscode-buddy/simulator/usbdir",
                     "-device", "usb-storage,drive=usbstick",
@@ -241,7 +241,7 @@
             },
             "windows": {
                 "serverArgs": [
-                    "-machine", "prusa-mk404",
+                    "-machine", "prusa-mk4",
                     "-display", "sdl",
                     "-drive", "id=usbstick,file=fat:rw:${workspaceFolder}\\build-vscode-buddy\\simulator\\usbdir",
                     "-device", "usb-storage,drive=usbstick",
@@ -254,7 +254,7 @@
             },
             "linux": {
                 "serverArgs": [
-                    "-machine", "prusa-mk404",
+                    "-machine", "prusa-mk4",
                     "-display", "gtk",
                     "-drive", "id=usbstick,file=fat:rw:${workspaceFolder}/build-vscode-buddy/simulator/usbdir",
                     "-device", "usb-storage,drive=usbstick",

@@ -64,6 +64,7 @@ protected:
                           MI_Filament<filament::Type::ABS>,     \
                           MI_Filament<filament::Type::HIPS>,    \
                           MI_Filament<filament::Type::PP>,      \
+                          MI_Filament<filament::Type::PA>,      \
                           MI_Filament<filament::Type::FLEX>
 #else
     #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,  \
@@ -74,6 +75,7 @@ protected:
                           MI_Filament<filament::Type::ABS>,  \
                           MI_Filament<filament::Type::HIPS>, \
                           MI_Filament<filament::Type::PP>,   \
+                          MI_Filament<filament::Type::PA>,   \
                           MI_Filament<filament::Type::FLEX>
 #endif
 

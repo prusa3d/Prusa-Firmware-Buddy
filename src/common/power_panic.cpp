@@ -116,10 +116,13 @@ struct flash_planner_t {
     uint8_t was_paused;
     uint8_t was_crashed;
     uint8_t fan_speed;
+    uint8_t print_speed;
     uint8_t axis_relative;
     uint8_t allow_cold_extrude;
 
-    uint8_t _padding[ENABLED(MODULAR_HEATBED) ? 1 : 3];
+#if DISABLED(MODULAR_HEATBED)
+    uint8_t _padding[2];
+#endif
 };
 
 // fully independent state that persist across panics until the end of the print
@@ -445,26 +448,20 @@ void resume_loop() {
         thermalManager.setTargetBed(state_buf.planner.target_bed);
         break;
     case ResumeState::Resume:
-        if (state_buf.planner.was_paused) {
-            // setup the paused state
-            resume_state_t resume;
-            resume.pos = state_buf.crash.crash_current_position;
-            resume.fan_speed = state_buf.planner.fan_speed;
-            HOTEND_LOOP() {
-                resume.nozzle_temp[e] = state_buf.planner.target_nozzle[e];
-            }
-            marlin_server_set_resume_data(&resume);
-        } else {
-#if FAN_COUNT > 0
-            thermalManager.set_fan_speed(0, state_buf.planner.fan_speed);
-#endif
-            HOTEND_LOOP() {
-                // setup nozzle temperature
-                thermalManager.setTargetHotend(state_buf.planner.target_nozzle[e], e);
-
+        // setup the paused state
+        // This applies for PowerPanic from paused AND from printing too
+        // because printing after power up starts from pause
+        resume_state_t resume;
+        resume.pos = state_buf.crash.crash_current_position;
+        resume.fan_speed = state_buf.planner.fan_speed;
+        resume.print_speed = state_buf.planner.print_speed;
+        HOTEND_LOOP() {
+            resume.nozzle_temp[e] = state_buf.planner.target_nozzle[e];
+            if (state_buf.planner.was_paused) {
                 marlin_server_set_temp_to_display(state_buf.planner.target_nozzle[e], e);
             }
         }
+        marlin_server_set_resume_data(&resume);
 
         // set bed temperatures
         thermalManager.setTargetBed(state_buf.planner.target_bed);
@@ -929,11 +926,13 @@ void ac_fault_isr() {
                 state_buf.planner.target_nozzle[e] = resume.nozzle_temp[e];
             }
             state_buf.planner.fan_speed = resume.fan_speed;
+            state_buf.planner.print_speed = resume.print_speed;
         } else {
             HOTEND_LOOP() {
                 state_buf.planner.target_nozzle[e] = thermalManager.degTargetHotend(e);
             }
             state_buf.planner.fan_speed = thermalManager.fan_speed[0];
+            state_buf.planner.print_speed = marlin_vars()->print_speed;
         }
         state_buf.planner.target_bed = thermalManager.degTargetBed();
 #if ENABLED(MODULAR_HEATBED)

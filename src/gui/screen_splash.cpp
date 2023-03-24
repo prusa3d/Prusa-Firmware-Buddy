@@ -17,6 +17,7 @@
 
 #include <option/bootloader.h>
 #include <option/developer_mode.h>
+#include <option/has_translations.h>
 
 #if HAS_SELFTEST
     #include "printer_selftest.hpp"
@@ -109,13 +110,13 @@ screen_splash_data_t::screen_splash_data_t()
     #endif
 #endif
 
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
-    LangEEPROM::getInstance().setLanguage(Translations::MakeLangCode("en"));
-#endif
+#if HAS_TRANSLATIONS()
     const bool run_lang = !LangEEPROM::getInstance().IsValid();
-
+#endif
     const screen_node screens[] {
+#if HAS_TRANSLATIONS()
         { run_lang ? ScreenFactory::Screen<ScreenMenuLanguagesNoRet> : nullptr }, // lang
+#endif
 #if HAS_TOUCH
             { touch::is_hw_broken() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
 #endif                                                                                     // HAS_TOUCH

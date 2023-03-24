@@ -229,7 +229,12 @@ static xy_pos_t countinuous_probe_inner(const xyz_pos_t center, const double ang
     loadcell.Tare();
 
     // Mark initial position
-    const xy_pos_t initial = current_position;
+    xyze_long_t initial_pos = planner.get_position();
+    xyze_long_t initial_steps = {
+        stepper.position(A_AXIS), stepper.position(B_AXIS),
+        stepper.position(C_AXIS), stepper.position(E_AXIS)
+    };
+    xyze_pos_t initial_mm = current_position;
 
     // Expect pin hit
     loadcell.set_xy_endstop(true);
@@ -254,19 +259,22 @@ static xy_pos_t countinuous_probe_inner(const xyz_pos_t center, const double ang
         kill("Not reached pin");
     }
 
-    // Fix position
+    // Get hit position
     endstops.hit_on_purpose();
-    set_current_from_steppers_for_axis(A_AXIS);
-    set_current_from_steppers_for_axis(B_AXIS);
-    sync_plan_position();
-    const auto hit = current_position;
+    planner.reset_position();
+    xyze_long_t hit_steps = {
+        stepper.position(A_AXIS), stepper.position(B_AXIS),
+        stepper.position(C_AXIS), stepper.position(E_AXIS)
+    };
+    xyze_pos_t hit_mm;
+    corexy_ab_to_xyze(hit_steps, hit_mm);
 
     // Return to initial
-    current_position = initial;
-    line_to_current_position(INTERPROBE_FEEDRATE_MMS);
+    planner._buffer_steps_raw(initial_pos, initial_mm, initial_steps - hit_steps, INTERPROBE_FEEDRATE_MMS, active_extruder);
     planner.synchronize();
+    current_position = initial_mm;
 
-    return hit;
+    return hit_mm;
 }
 
 static xy_pos_t synthetic_probe(const xyz_pos_t center, const float angle) {

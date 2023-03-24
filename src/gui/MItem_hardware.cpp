@@ -29,10 +29,10 @@ void MI_NOZZLE_DIAMETER::OnChange(size_t old_index) {
     eeprom_set_nozzle_dia(tool_idx, diameters[index]);
 }
 
-MI_HARDWARE_CHECKS::MI_HARDWARE_CHECKS()
+MI_HARDWARE_G_CODE_CHECKS::MI_HARDWARE_G_CODE_CHECKS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
-void MI_HARDWARE_CHECKS::click(IWindowMenu &) {
+void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuHardwareChecks>);
 }

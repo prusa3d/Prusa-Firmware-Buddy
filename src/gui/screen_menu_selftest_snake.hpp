@@ -169,7 +169,6 @@ public:
     static constexpr Action action { Action::KennelCalibration };
     ScreenMenuKennelCalibration();
 
-    virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
@@ -179,7 +178,6 @@ public:
     static constexpr Action action { Action::Loadcell };
     ScreenMenuLoadcellTest();
 
-    virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
@@ -189,7 +187,6 @@ public:
     static constexpr Action action { Action::FilamentSensorCalibration };
     ScreenMenuFilamentSensorsCalibration();
 
-    virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 } // namespace SelftestSnake
@@ -199,7 +196,6 @@ public:
     static constexpr const char *label { "CALIBRATIONS & TESTS" };
     ScreenMenuSelftestSnake();
 
-    virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
@@ -208,9 +204,7 @@ public:
     static constexpr const char *label { "Wizard" };
     ScreenMenuSTSWizard();
 
-    virtual void draw() override;
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 private:
-    bool draw_enabled { false };
 };

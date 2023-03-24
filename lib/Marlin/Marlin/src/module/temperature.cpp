@@ -874,6 +874,12 @@ void Temperature::max_temp_error(const heater_ind_t heater) {
       return;
     }
   #endif
+  #if HAS_TEMP_HEATBREAK
+    //we have multiple heartbreak thermistors and they have always the highest ID
+    if(heater >= H_HEATBREAK_E0){
+        _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MAXTEMP_HEATBREAK));
+    }
+  #endif
   _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP));
 }
 
@@ -888,6 +894,12 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
     if (H_CHAMBER == heater) {
       _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_BED));
       return;
+    }
+  #endif
+  #if HAS_TEMP_HEATBREAK
+    //we have multiple heartbreak thermistors and they have always the highest ID
+    if(heater >= H_HEATBREAK_E0){
+        _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_HEATBREAK));
     }
   #endif
   _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP));
@@ -2041,7 +2053,9 @@ void Temperature::suspend_heatbreak_fan(millis_t ms) {
     return 0;
   }
 #endif // HOTENDS
-
+float scan_thermistor_table_bed(const int raw){
+    SCAN_THERMISTOR_TABLE(BED_TEMPTABLE,BED_TEMPTABLE_LEN);
+}
 #if HAS_HEATED_BED
   // Derived from RepRap FiveD extruder::getTemperature()
   // For bed temperature measurement.
@@ -2049,7 +2063,28 @@ void Temperature::suspend_heatbreak_fan(millis_t ms) {
     #if ENABLED(HEATER_BED_USER_THERMISTOR)
       return user_thermistor_to_deg_c(CTI_BED, raw);
     #elif ENABLED(HEATER_BED_USES_THERMISTOR)
-      SCAN_THERMISTOR_TABLE(BED_TEMPTABLE, BED_TEMPTABLE_LEN);
+      float celsius = scan_thermistor_table_bed(raw);
+      #ifdef BED_OFFSET
+        float _offset = BED_OFFSET;
+        float _offset_center = BED_OFFSET_CENTER;
+        float _offset_start = BED_OFFSET_START;
+        float _first_koef = (_offset / 2) / (_offset_center - _offset_start);
+        float _second_koef = (_offset / 2) / (100 - _offset_center);
+
+        if (celsius >= _offset_start && celsius <= _offset_center)
+        {
+            celsius = celsius + (_first_koef * (celsius - _offset_start));
+        }
+        else if (celsius > _offset_center && celsius <= 100)
+        {
+            celsius = celsius + (_first_koef * (_offset_center - _offset_start)) + ( _second_koef * ( celsius - ( 100 - _offset_center ) )) ;
+        }
+        else if (celsius > 100)
+        {
+            celsius = celsius + _offset;
+        }
+      #endif
+      return celsius;
     #elif ENABLED(HEATER_BED_USES_AD595)
       return TEMP_AD595(raw);
     #elif ENABLED(HEATER_BED_USES_AD8495)
@@ -3090,8 +3125,13 @@ void Temperature::readings_ready() {
       #endif
       #if !ENABLED(PRUSA_TOOLCHANGER)
         //const bool chamber_on = (temp_chamber.target > 0);
+        const bool heater_on = (temp_hotend[e].target > 0
+                                #if ENABLED(PIDTEMP)
+                                || temp_hotend[e].soft_pwm_amount > 0
+#endif
+        );
         if (HEATBREAKCMP(temp_heatbreak[e].raw, maxtemp_raw_HEATBREAK)) max_temp_error(static_cast<heater_ind_t>(H_HEATBREAK_E0 + e));
-        //if (HEATBREAKCMP(mintemp_raw_HEATBREAK, temp_heatbreak.raw)) min_temp_error(H_HEATBREAK);
+        if (heater_on && HEATBREAKCMP(mintemp_raw_HEATBREAK, temp_heatbreak[e].raw)) min_temp_error(static_cast<heater_ind_t>(H_HEATBREAK_E0 + e));
       #endif
     }
   #endif

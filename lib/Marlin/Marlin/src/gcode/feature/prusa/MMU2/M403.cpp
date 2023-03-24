@@ -25,7 +25,7 @@
 #if ENABLED(PRUSA_MMU2)
 
     #include "../../../gcode.h"
-    #include "../../../../feature/prusa/MMU2/mmu2mk404.h"
+    #include "../../../../feature/prusa/MMU2/mmu2mk4.h"
 
 /**
  * M403: Set filament type for MMU2

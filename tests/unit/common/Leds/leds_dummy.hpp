@@ -10,6 +10,6 @@ struct LedsDummy {
     }
 };
 
-using MK404_leds = LedsDummy<3>;
+using MK4_leds = LedsDummy<3>;
 
-extern MK404_leds &GetLeds();
+extern MK4_leds &GetLeds();

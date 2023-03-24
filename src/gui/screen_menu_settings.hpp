@@ -7,6 +7,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
+#include "menu_items_languages.hpp"
 #include "knob_event.hpp"
 #include "MItem_crash.hpp"
 #include "Configuration_adv.h"
@@ -17,9 +18,9 @@
 
 /*****************************************************************************/
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL)
 using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    #if (PRINTER_TYPE != PRINTER_PRUSA_XL)
+    #if (PRINTER_TYPE != PRINTER_PRUSA_XL && PRINTER_TYPE != PRINTER_PRUSA_MK4)
     MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     #endif
     MI_FILAMENT_SENSOR,
@@ -39,7 +40,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_TEST
     #endif
     >;
-#else // PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL
+#else // PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL
 
     #ifdef _DEBUG
 using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
@@ -55,7 +56,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_T
     MI_USB_MSC_ENABLE,
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME,
     MI_DEVHASH_IN_QR, MI_LANGUAGE, MI_LANGUAGUE_USB, MI_LANGUAGUE_XFLASH, MI_LOAD_LANG, MI_SORT_FILES,
-    MI_SOUND_TYPE, MI_XFLASH_RESET, MI_XFLASH_DELETE, MI_HF_TEST_0, MI_HF_TEST_1,
+    MI_SOUND_TYPE, MI_XFLASH_RESET, MI_HF_TEST_0, MI_HF_TEST_1,
     MI_EEPROM, MI_EXPERIMENTAL_SETTINGS, MI_FACTORY_DEFAULTS>;
     #else
 using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,
@@ -75,7 +76,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_T
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME, MI_DEVHASH_IN_QR,
     MI_LANGUAGE, MI_FACTORY_DEFAULTS>;
     #endif     // _DEBUG
-#endif         // PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL
+#endif         // PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL
 
 class ScreenMenuSettings : public ScreenMenuSettings__ {
     gui::knob::screen_action_cb old_action;

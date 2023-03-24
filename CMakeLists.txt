@@ -120,7 +120,7 @@ set(PRINTER_VERSION "1") # default version
 # The PRINTER_TYPE is (besides being used in the code) being stored in the .bbf and checked by the
 # bootloader (which contains the same "enum" as below). Preferably do not use it on an interface
 # though, there should be a better number to use there, e.g. the PRINTER_CODE (USB PID)
-if(PRINTER STREQUAL "MK404")
+if(PRINTER STREQUAL "MK4")
   set(PRINTER_TYPE "1")
   set(PRINTER_VERSION "4")
   set(PRINTER_CODE "13")
@@ -290,7 +290,7 @@ add_compile_options(-g)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(MCU MATCHES "STM32F40"
      OR MCU MATCHES "STM32G0"
-     OR PRINTER STREQUAL "MK404"
+     OR PRINTER STREQUAL "MK4"
      OR PRINTER STREQUAL "XL"
      OR PRINTER STREQUAL "IXL"
      )

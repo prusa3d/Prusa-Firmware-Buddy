@@ -31,7 +31,7 @@ FilamentSensors::FilamentSensors() {
     }
 
     // Set logical sensors
-    // MK404 can be reconfigured (connecting MMU)
+    // MK4 can be reconfigured (connecting MMU)
     // MINI can not
     // XL reconfigures on tool change
     configure_sensors();
@@ -280,7 +280,7 @@ void FilamentSensors::set_corresponding_variables() {
         // if we don't have sensor it is automatically ok, "having sensor" is set by (re)configure_sensors
         const bool side_sensor_ok =
 #if HAS_MMU2
-            !has_mmu || // this might be unnecessary TODO try MK404 with MMU without it
+            !has_mmu || // this might be unnecessary TODO try MK4 with MMU without it
 #endif
             !physical_sensors.current_side || FilamentSensors::IsWorking(physical_sensors.current_side->Get());
         const bool extruder_sensor_ok = !physical_sensors.current_extruder || FilamentSensors::IsWorking(physical_sensors.current_extruder->Get()) || physical_sensors.current_extruder->Get() == fsensor_t::Disabled;

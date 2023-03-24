@@ -78,31 +78,6 @@ LoopResult CSelftestPart_Kennel::state_wait_user() {
     }
 }
 
-LoopResult CSelftestPart_Kennel::state_initiate_pin_removal() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::Kennel_pin_remove_prepare);
-    result.progress = 30;
-
-    if (needs_manual_park) {
-        // Move a bit back to ensure the head is not locked in the tool
-        marlin_server_enqueue_gcode("G91"); // Relative positioning
-        marlin_server_enqueue_gcode_printf(
-            "G0 F%d Y%f",
-            PrusaToolChanger::TRAVEL_MOVE_MM_S * 60,
-            static_cast<double>(PrusaToolChanger::SAFE_Y_WITH_TOOL - PrusaToolChanger::SAFE_Y_WITHOUT_TOOL));
-        marlin_server_enqueue_gcode("G90"); // Absolute positioning
-    }
-
-    // Select the tool to mark it, unselect all others
-    for (uint i = 0; i < HOTENDS; ++i) {
-        prusa_toolchanger.getTool(i).set_selected(i == config.kennel_id);
-    }
-
-    // Disable steppers - let use move the head
-    marlin_server_enqueue_gcode("M18 XY");
-
-    return LoopResult::RunNext;
-}
-
 LoopResult CSelftestPart_Kennel::state_wait_moves_done() {
     if (state_machine.GetButtonPressed() == Response::Abort) {
         return LoopResult::Abort;
@@ -115,6 +90,16 @@ LoopResult CSelftestPart_Kennel::state_wait_moves_done() {
 }
 
 LoopResult CSelftestPart_Kennel::state_ask_user_remove_pin() {
+    result.progress = 30;
+
+    // Select the tool to mark it, unselect all others
+    for (uint i = 0; i < HOTENDS; ++i) {
+        prusa_toolchanger.getTool(i).set_selected(i == config.kennel_id);
+    }
+
+    // Disable steppers - let user operate with the printer
+    marlin_server_enqueue_gcode("M18 XY");
+
     IPartHandler::SetFsmPhase(PhasesSelftest::Kennel_wait_user_remove_pins);
     return LoopResult::RunNext;
 }

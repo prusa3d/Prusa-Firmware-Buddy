@@ -1,4 +1,6 @@
 #include "loadcell.h"
+#include "bsod_gui.hpp"
+#include "error_codes.hpp"
 #include "gpio.h"
 #include "metric.h"
 #include "bsod.h"
@@ -131,6 +133,8 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     int32_t ticks_ms_from_now = ticks_us_from_now / 1000;
     uint32_t timestamp_ms = ticks_ms() + ticks_ms_from_now;
 
+    last_sample_time = timestamp_ms;
+
     metric_record_custom_at_time(&metric_loadcell, timestamp_ms, " r=%ii,o=%ii,s=%0.4f", loadcellRaw, offset, (double)scale);
     metric_record_float(&metric_loadcell_value, load);
 
@@ -201,6 +205,13 @@ int32_t Loadcell::WaitForNextSample() {
         fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
     }
     return loadcellRaw;
+}
+
+void Loadcell::HomingSafetyCheck() const {
+    static constexpr uint32_t MAX_LOADCELL_DATA_AGE_WHEN_HOMING = 100;
+    if (ticks_ms() - last_sample_time > MAX_LOADCELL_DATA_AGE_WHEN_HOMING) {
+        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
+    }
 }
 
 /**

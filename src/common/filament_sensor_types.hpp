@@ -23,7 +23,7 @@ struct LogicalSensors {
 
 struct PhysicalSensors {
     IFSensor *current_extruder = nullptr; // sensor on extruder, on XL it is bound to current extruder
-    IFSensor *current_side = nullptr;     // on MK404 this is MMU sensor, on XL it is currently selected side sensors, MINI does not have one
+    IFSensor *current_side = nullptr;     // on MK4 this is MMU sensor, on XL it is currently selected side sensors, MINI does not have one
     // combination XL + MMU currently unsupported
 
     auto get_array() {

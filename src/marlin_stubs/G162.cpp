@@ -40,12 +40,12 @@ void selftest::calib_Z(bool move_down_after) {
     // Z axis lift
     FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::CalibZ);
     homeaxis(Z_AXIS, HOMING_FEEDRATE_INVERTED_Z, true);
-    #if (PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_IXL || PRINTER_TYPE == PRINTER_PRUSA_XL)
+    #if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_IXL || PRINTER_TYPE == PRINTER_PRUSA_XL)
     const float target_Z = Z_MAX_POS + Z_CALIB_EXTRA_HIGHT;
     current_position.z = Z_MAX_POS;
     sync_plan_position();
     do_blocking_move_to_z(target_Z, feedRate_t(Z_CALIB_ALIGN_AXIS_FEEDRATE)); // push both Z axis few mm over HW limit to align motors
-    #endif                                                                    // (PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_IXL || PRINTER_TYPE == PRINTER_PRUSA_XL)
+    #endif                                                                    // (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_IXL || PRINTER_TYPE == PRINTER_PRUSA_XL)
     if (move_down_after) {
         safe_move_down();
     } else {

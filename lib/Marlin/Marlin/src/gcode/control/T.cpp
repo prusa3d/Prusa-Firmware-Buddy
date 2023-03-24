@@ -28,7 +28,7 @@
 #endif
 
 #if ENABLED(PRUSA_MMU2)
-  #include "../../feature/prusa/MMU2/mmu2mk404.h"
+  #include "../../feature/prusa/MMU2/mmu2mk4.h"
 #endif
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
