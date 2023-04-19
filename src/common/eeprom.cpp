@@ -30,7 +30,7 @@ using namespace eeprom::current;
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;       // maximum name length (with '\0')
-static const constexpr uint16_t EEPROM_MAX_DATASIZE = 920; // maximum datasize
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 928; // maximum datasize
 static const constexpr auto EEPROM_DATA_INIT_TRIES = 3;    // maximum tries to read crc32 ok data on init
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
@@ -81,6 +81,7 @@ union eeprom_data {
             eeprom::v10::vars_body_t v10;
             eeprom::v11::vars_body_t v11;
             eeprom::v12::vars_body_t v12;
+            eeprom::v32787::vars_body_t v32787;
             eeprom::current::vars_body_t current;
         };
     };
@@ -282,7 +283,9 @@ static const eeprom_entry_t eeprom_map[] = {
     { "HWCHECK_FIRMW",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_FIRMW
     { "HWCHECK_GCODE",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_GCODE
     { "SELFTEST_RES_V2", VARIANT8_PUI8,  sizeof(SelftestResult), 0 }, // EEVAR_SELFTEST_RESULT_V2
-
+    { "HOMING_DIVISORX", VARIANT8_FLT,   1, 0 }, // homing bump divisor
+    { "HOMING_DIVISORY", VARIANT8_FLT,   1, 0 }, // homing bump divisor
+    { "SIDE_LEDS_ENA"  , VARIANT8_BOOL,   1, 0}, // EEVAR_ENABLE_SIDE_LEDS
 // crc
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -904,8 +907,13 @@ static bool eeprom_convert_from(eeprom_data &data) {
     }
 
     if (version == 12) {
-        data.current = eeprom::current::convert(data.v12);
+        data.v32787 = eeprom::v32787::convert(data.v12);
         version = 32787; // 19 + wrongly set bit 15
+    }
+
+    if (version == 32787) {
+        data.current = eeprom::current::convert(data.v32787);
+        version = 32789; // 21 + wrongly set bit 15
     }
 
     // after body was updated we can update head

@@ -12,7 +12,7 @@
 
 enum {
     EEPROM_ADDRESS = 0x0500,                      // uint16_t
-    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 19, // uint16_t
+    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 21, // uint16_t
 };
 
 #define EEPROM_LAST_VERSION_WITH_OLD_CRC 10
@@ -341,6 +341,9 @@ enum eevar_id {
     EEVAR_HWCHECK_FIRMW = 0xB4,
     EEVAR_HWCHECK_GCODE = 0xB5,
     EEVAR_SELFTEST_RESULT_V2 = 0xB6, // Wider selftest results made for XL
+    EEVAR_HOMING_BDIVISOR_X = 0xB7,
+    EEVAR_HOMING_BDIVISOR_Y = 0xB8,
+    EEVAR_ENABLE_SIDE_LEDS = 0xB9, // bool side led on/off
 
     EEVAR_CRC32 // uint32_t crc32 for
 };
