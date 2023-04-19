@@ -30,7 +30,7 @@ using namespace eeprom::current;
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;       // maximum name length (with '\0')
-static const constexpr uint16_t EEPROM_MAX_DATASIZE = 928; // maximum datasize
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 972; // maximum datasize
 static const constexpr auto EEPROM_DATA_INIT_TRIES = 3;    // maximum tries to read crc32 ok data on init
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
@@ -82,6 +82,7 @@ union eeprom_data {
             eeprom::v11::vars_body_t v11;
             eeprom::v12::vars_body_t v12;
             eeprom::v32787::vars_body_t v32787;
+            eeprom::v32789::vars_body_t v32789;
             eeprom::current::vars_body_t current;
         };
     };
@@ -147,7 +148,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ODOMETER_X",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_X
     { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_Y
     { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_Z
-    { "ODOMETER_E",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E0
+    { "ODOMETER_E0",     VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E0
     { "STEPS_PR_UNIT_X", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_X
     { "STEPS_PR_UNIT_Y", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_Y
     { "STEPS_PR_UNIT_Z", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_Z
@@ -285,7 +286,19 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SELFTEST_RES_V2", VARIANT8_PUI8,  sizeof(SelftestResult), 0 }, // EEVAR_SELFTEST_RESULT_V2
     { "HOMING_DIVISORX", VARIANT8_FLT,   1, 0 }, // homing bump divisor
     { "HOMING_DIVISORY", VARIANT8_FLT,   1, 0 }, // homing bump divisor
-    { "SIDE_LEDS_ENA"  , VARIANT8_BOOL,   1, 0}, // EEVAR_ENABLE_SIDE_LEDS
+    { "SIDE_LEDS_ENA"  , VARIANT8_BOOL,  1, 0 }, // EEVAR_ENABLE_SIDE_LEDS
+    { "ODOMETER_E1"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E1, float, filament passed through extruder 1
+    { "ODOMETER_E2"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E2, float, filament passed through extruder 2
+    { "ODOMETER_E3"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E3, float, filament passed through extruder 3
+    { "ODOMETER_E4"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E4, float, filament passed through extruder 4
+    { "ODOMETER_E5"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E5, float, filament passed through extruder 5
+    { "ODOMETER_T0"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T0, uint32_t, tool 0 pick counter
+    { "ODOMETER_T1"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T1, uint32_t, tool 1 pick counter
+    { "ODOMETER_T2"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T2, uint32_t, tool 2 pick counter
+    { "ODOMETER_T3"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T3, uint32_t, tool 3 pick counter
+    { "ODOMETER_T4"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T4, uint32_t, tool 4 pick counter
+    { "ODOMETER_T5"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T5, uint32_t, tool 5 pick counter
+    { "HWCHECK_COMPAT" , VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_COMPATIBILITY
 // crc
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -912,8 +925,13 @@ static bool eeprom_convert_from(eeprom_data &data) {
     }
 
     if (version == 32787) {
-        data.current = eeprom::current::convert(data.v32787);
+        data.v32789 = eeprom::v32789::convert(data.v32787);
         version = 32789; // 21 + wrongly set bit 15
+    }
+
+    if (version == 32789) {
+        data.current = eeprom::current::convert(data.v32789);
+        version = 22;
     }
 
     // after body was updated we can update head

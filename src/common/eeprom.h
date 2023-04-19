@@ -7,12 +7,9 @@
 #include "eeprom_function_api.h"
 #include <stddef.h>
 
-// to avoid collision with public version
-#define PRIVATE__EEPROM_OFFSET (1 << 15)
-
 enum {
-    EEPROM_ADDRESS = 0x0500,                      // uint16_t
-    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 21, // uint16_t
+    EEPROM_ADDRESS = 0x0500, // uint16_t
+    EEPROM_VERSION = 22,     // uint16_t
 };
 
 #define EEPROM_LAST_VERSION_WITH_OLD_CRC 10
@@ -193,7 +190,7 @@ enum eevar_id {
     EEVAR_ODOMETER_X = 0x2e,          // float
     EEVAR_ODOMETER_Y = 0x2f,          // float
     EEVAR_ODOMETER_Z = 0x30,          // float
-    EEVAR_ODOMETER_E0 = 0x31,         // float
+    EEVAR_ODOMETER_E0 = 0x31,         // float, filament passed through extruder 0
     AXIS_STEPS_PER_UNIT_X = 0x32,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
     AXIS_STEPS_PER_UNIT_Y = 0x33,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
     AXIS_STEPS_PER_UNIT_Z = 0x34,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
@@ -343,7 +340,19 @@ enum eevar_id {
     EEVAR_SELFTEST_RESULT_V2 = 0xB6, // Wider selftest results made for XL
     EEVAR_HOMING_BDIVISOR_X = 0xB7,
     EEVAR_HOMING_BDIVISOR_Y = 0xB8,
-    EEVAR_ENABLE_SIDE_LEDS = 0xB9, // bool side led on/off
+    EEVAR_ENABLE_SIDE_LEDS = 0xB9,      // bool side led on/off
+    EEVAR_ODOMETER_E1 = 0xBA,           // float, filament passed through extruder 1
+    EEVAR_ODOMETER_E2 = 0xBB,           // float, filament passed through extruder 2
+    EEVAR_ODOMETER_E3 = 0xBC,           // float, filament passed through extruder 3
+    EEVAR_ODOMETER_E4 = 0xBD,           // float, filament passed through extruder 4
+    EEVAR_ODOMETER_E5 = 0xBE,           // float, filament passed through extruder 5
+    EEVAR_ODOMETER_T0 = 0xBF,           // uint32_t, tool 0 pick counter
+    EEVAR_ODOMETER_T1 = 0xC0,           // uint32_t, tool 1 pick counter
+    EEVAR_ODOMETER_T2 = 0xC1,           // uint32_t, tool 2 pick counter
+    EEVAR_ODOMETER_T3 = 0xC2,           // uint32_t, tool 3 pick counter
+    EEVAR_ODOMETER_T4 = 0xC3,           // uint32_t, tool 4 pick counter
+    EEVAR_ODOMETER_T5 = 0xC4,           // uint32_t, tool 5 pick counter
+    EEVAR_HWCHECK_COMPATIBILITY = 0xC5, // uint8_t
 
     EEVAR_CRC32 // uint32_t crc32 for
 };
