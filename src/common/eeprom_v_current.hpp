@@ -1,28 +1,22 @@
 /**
- * @file eeprom_v_private.hpp
- * @author Radek Vana
- * @brief private version of eeprom, does not support ugrades
- * @date 2022-01-21
+ * @file eeprom_current.hpp
+ * @brief current version of eeprom
  */
 
-#pragma once
-
+#include "eeprom_v12.hpp"
 #include "printers.h"
-#include "eeprom_current.hpp"
+#include "footer_eeprom.hpp"
 #include "led_animations/led_types.h"
-
-#define NO_EEPROM_UPGRADES
-
-namespace eeprom::ver_private {
+namespace eeprom::current {
 
 #pragma pack(push)
 #pragma pack(1)
 
 /**
- * @brief body of private eeprom
+ * @brief body of current eeprom
  * without head and crc
  */
-struct vars_body_t : public eeprom::current::vars_body_t {
+struct vars_body_t : public eeprom::v12::vars_body_t {
     uint8_t TIME_FORMAT;
     float LOADCELL_SCALE;
     float LOADCELL_THRS_STATIC;
@@ -120,10 +114,8 @@ struct vars_body_t : public eeprom::current::vars_body_t {
 
 #pragma pack(pop)
 
-static constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
-
 constexpr vars_body_t body_defaults = {
-    eeprom::current::body_defaults,
+    eeprom::v12::body_defaults,
     1,         // EEVAR_TIME_FORMAT
     0.0192,    // EEVAR_LOADCELL_SCALE
     -125,      // EEVAR_LOADCELL_THRS_STATIC
@@ -138,15 +130,15 @@ constexpr vars_body_t body_defaults = {
     350000, // EEVAR_FS_VALUE_SPAN_0
 #endif
     INT32_MIN, // EEVAR_FS_REF_VALUE_1, INT32_MIN == will require calibration
-    1000,
+    1000,      // FS_VALUE_SPAN_1
     INT32_MIN, // EEVAR_FS_REF_VALUE_2, INT32_MIN == will require calibration
-    1000,
+    1000,      // FS_VALUE_SPAN_2
     INT32_MIN, // EEVAR_FS_REF_VALUE_3, INT32_MIN == will require calibration
-    1000,
+    1000,      // FS_VALUE_SPAN_3
     INT32_MIN, // EEVAR_FS_REF_VALUE_4, INT32_MIN == will require calibration
-    1000,
+    1000,      // FS_VALUE_SPAN_4
     INT32_MIN, // EEVAR_FS_REF_VALUE_5, INT32_MIN == will require calibration
-    1000,
+    1000,      // FS_VALUE_SPAN_5
     INT32_MIN, // EEVAR_SIDE_FS_REF_VALUE_0, INT32_MIN == will require calibration
     310,       // EEVAR_SIDE_FS_VALUE_SPAN_0
     INT32_MIN, // EEVAR_SIDE_FS_REF_VALUE_1, INT32_MIN == will require calibration
@@ -166,52 +158,52 @@ constexpr vars_body_t body_defaults = {
     false, // EEVAR_MMU2_CUTTER
     false, // EEVAR_MMU2_STEALTH_MODE
 #endif
-    true,
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0 },
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 },
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 },
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 },
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 255, 0, 0, 0 },
-    { static_cast<uint8_t>(AnimationTypes::Fading), 255, 255, 0, 1000, 0, 0 },
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },
-    { static_cast<uint8_t>(AnimationTypes::Fading), 0, 255, 0, 1500, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    false,       // EEVAR_HEAT_ENTIRE_BED
-    false,       // EEVAR_TOUCH_ENABLED
-    { 0, 0 },    // EEVAR_KENNEL_POSITION_0
-    { 0, 0 },    // EEVAR_KENNEL_POSITION_1
-    { 0, 0 },    // EEVAR_KENNEL_POSITION_2
-    { 0, 0 },    // EEVAR_KENNEL_POSITION_3
-    { 0, 0 },    // EEVAR_KENNEL_POSITION_4
-    { 0, 0 },    // EEVAR_KENNEL_POSITION_5
-    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_0
-    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_1
-    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_2
-    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_3
-    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_4
-    { 0, 0, 0 }, // EEVAR_TOOL_OFFSET_5
-    0,           // EEVAR_FILAMENT_TYPE_1
-    0,           // EEVAR_FILAMENT_TYPE_2
-    0,           // EEVAR_FILAMENT_TYPE_3
-    0,           // EEVAR_FILAMENT_TYPE_4
-    0,           // EEVAR_FILAMENT_TYPE_5
-    false,       // eevar_heatup_bed
+    true,                                                                       // EEVAR_RUN_LEDS
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0 },           // EEVAR_ANIMATION_IDLE
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_PRINTING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_PAUSING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_RESUMING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_ABORTING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 255, 0, 0, 0 },      // EEVAR_ANIMATION_FINISHING
+    { static_cast<uint8_t>(AnimationTypes::Fading), 255, 255, 0, 1000, 0, 0 },  // EEVAR_ANIMATION_WARNING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_POWER_PANIC
+    { static_cast<uint8_t>(AnimationTypes::Fading), 0, 255, 0, 1500, 0, 0 },    // EEVAR_ANIMATION_POWER_UP
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR0
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR1
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR2
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR3
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR4
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR5
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR6
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR7
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR8
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR9
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR10
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR11
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR12
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR13
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR14
+    { 0, 0, 0, 0 },                                                             // EEVAR_ANIMATION_COLOR_LAST
+    false,                                                                      // EEVAR_HEAT_ENTIRE_BED
+    false,                                                                      // EEVAR_TOUCH_ENABLED
+    { 0, 0 },                                                                   // EEVAR_KENNEL_POSITION_0
+    { 0, 0 },                                                                   // EEVAR_KENNEL_POSITION_1
+    { 0, 0 },                                                                   // EEVAR_KENNEL_POSITION_2
+    { 0, 0 },                                                                   // EEVAR_KENNEL_POSITION_3
+    { 0, 0 },                                                                   // EEVAR_KENNEL_POSITION_4
+    { 0, 0 },                                                                   // EEVAR_KENNEL_POSITION_5
+    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_0
+    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_1
+    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_2
+    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_3
+    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_4
+    { 0, 0, 0 },                                                                // EEVAR_TOOL_OFFSET_5
+    0,                                                                          // EEVAR_FILAMENT_TYPE_1
+    0,                                                                          // EEVAR_FILAMENT_TYPE_2
+    0,                                                                          // EEVAR_FILAMENT_TYPE_3
+    0,                                                                          // EEVAR_FILAMENT_TYPE_4
+    0,                                                                          // EEVAR_FILAMENT_TYPE_5
+    false,                                                                      // EEVAR_HEATUP_BED
 #if PRINTER_TYPE == PRINTER_PRUSA_XL
     0.60f, // EEVAR_NOZZLE_DIA_0
     0.60f, // EEVAR_NOZZLE_DIA_1
@@ -233,5 +225,14 @@ constexpr vars_body_t body_defaults = {
     1,  // EEVAR_HWCHECK_GCODE
     {}, // EEVAR_SELFTEST_RESULT_V2
 };
+
+inline vars_body_t convert(const eeprom::v12::vars_body_t &src) {
+    vars_body_t ret = body_defaults;
+
+    // copy entire v12 struct
+    memcpy(&ret, &src, sizeof(eeprom::v12::vars_body_t));
+
+    return ret;
+}
 
 } // namespace

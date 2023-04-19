@@ -1,9 +1,7 @@
 /**
- * @file eeprom_current.hpp
- * @author Radek Vana
- * @brief current version of eeprom
- * without padding and crc since they are not imported and would not match anyway
- * @date 2022-01-17
+ * @file eeprom_v11.hpp
+ * @brief old version of eeprom, to be able to import it
+ * version 11 from release 4.4.0-rc1
  */
 
 #include "eeprom_v10.hpp"

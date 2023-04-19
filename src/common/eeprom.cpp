@@ -20,12 +20,12 @@
 #include <bitset>
 #include "printers.h"
 #include <device/board.h>
-#include "eeprom_v_private.hpp"
+#include "eeprom_v_current.hpp"
 #include "bsod.h"
 #include "led_animations/led_types.h"
 #include "power_panic.hpp"
 
-using namespace eeprom::ver_private;
+using namespace eeprom::current;
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
@@ -80,6 +80,7 @@ union eeprom_data {
             eeprom::v9::vars_body_t v9;
             eeprom::v10::vars_body_t v10;
             eeprom::v11::vars_body_t v11;
+            eeprom::v12::vars_body_t v12;
             eeprom::current::vars_body_t current;
         };
     };
@@ -898,8 +899,13 @@ static bool eeprom_convert_from(eeprom_data &data) {
     }
 
     if (version == 11) {
-        data.current = eeprom::current::convert(data.v11);
+        data.v12 = eeprom::v12::convert(data.v11);
         version = 12;
+    }
+
+    if (version == 12) {
+        data.current = eeprom::current::convert(data.v12);
+        version = 32787; // 19 + wrongly set bit 15
     }
 
     // after body was updated we can update head
