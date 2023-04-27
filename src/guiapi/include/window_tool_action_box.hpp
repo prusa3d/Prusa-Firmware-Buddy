@@ -27,7 +27,7 @@ enum class Tool {
 enum class Action {
     PickInactive,
     PickCurrent,
-    CalibrateKennel,
+    CalibrateDock,
     Park,
     Return,
 };
@@ -85,11 +85,11 @@ consteval auto get_label(Tool tool, Action action) -> const char * {
         { Tool::Tool2, Action::PickCurrent, N_("Pick Tool 2 (Current)") },
         { Tool::Tool4, Action::PickCurrent, N_("Pick Tool 4 (Current)") },
         { Tool::Tool5, Action::PickCurrent, N_("Pick Tool 5 (Current)") },
-        { Tool::Tool1, Action::CalibrateKennel, N_("Calibrate Kennel 1") },
-        { Tool::Tool2, Action::CalibrateKennel, N_("Calibrate Kennel 2") },
-        { Tool::Tool3, Action::CalibrateKennel, N_("Calibrate Kennel 3") },
-        { Tool::Tool4, Action::CalibrateKennel, N_("Calibrate Kennel 4") },
-        { Tool::Tool5, Action::CalibrateKennel, N_("Calibrate Kennel 5") },
+        { Tool::Tool1, Action::CalibrateDock, N_("Calibrate Dock 1") },
+        { Tool::Tool2, Action::CalibrateDock, N_("Calibrate Dock 2") },
+        { Tool::Tool3, Action::CalibrateDock, N_("Calibrate Dock 3") },
+        { Tool::Tool4, Action::CalibrateDock, N_("Calibrate Dock 4") },
+        { Tool::Tool5, Action::CalibrateDock, N_("Calibrate Dock 5") },
         { Tool::None_Any, Action::Park, N_("Park Current Tool") },
         { Tool::None_Any, Action::Return, N_("Return") },
     };
@@ -171,17 +171,17 @@ using MenuPickAndGo = WinMenuContainer<MI_Return,
     MI_PickAndGo_Inactive<Tool::Tool5>>;
 
 template <Tool tool>
-using MI_CalibrateKennel = MI_TOOL<tool, Action::CalibrateKennel, is_closed_on_click_t::yes, is_hidden_if_inactive_t::yes>;
+using MI_CalibrateDock = MI_TOOL<tool, Action::CalibrateDock, is_closed_on_click_t::yes, is_hidden_if_inactive_t::yes>;
 
-using MenuCalibrateKennel = WinMenuContainer<MI_Return,
-    MI_CalibrateKennel<Tool::Tool1>,
-    MI_CalibrateKennel<Tool::Tool2>,
-    MI_CalibrateKennel<Tool::Tool3>,
-    MI_CalibrateKennel<Tool::Tool4>,
-    MI_CalibrateKennel<Tool::Tool5>>;
+using MenuCalibrateDock = WinMenuContainer<MI_Return,
+    MI_CalibrateDock<Tool::Tool1>,
+    MI_CalibrateDock<Tool::Tool2>,
+    MI_CalibrateDock<Tool::Tool3>,
+    MI_CalibrateDock<Tool::Tool4>,
+    MI_CalibrateDock<Tool::Tool5>>;
 
 template <typename ActionMenuT>
-concept ActionMenuC = is_any_of<ActionMenuT, MenuPickPark, MenuPickAndGo, MenuCalibrateKennel>;
+concept ActionMenuC = is_any_of<ActionMenuT, MenuPickPark, MenuPickAndGo, MenuCalibrateDock>;
 
 template <typename ActionMenuT>
 concept ActionMenuHasFooterC = ActionMenuC<ActionMenuT> &&is_any_of<ActionMenuT, MenuPickPark>;

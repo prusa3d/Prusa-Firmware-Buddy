@@ -11,6 +11,8 @@
 #include "guiconfig.h"
 #include <array>
 #include <option/has_side_fsensor.h>
+#include "i18n.h"
+#include <bsod.h>
 
 // sadly this must be macros, it is used in preprocessor
 #if (defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
@@ -27,65 +29,134 @@
 #endif
 
 namespace footer {
-static constexpr uint8_t DefaultCenterNAndFewer = FOOTER_ITEMS_PER_LINE__ - 1;
+inline constexpr uint8_t DefaultCenterNAndFewer = FOOTER_ITEMS_PER_LINE__ - 1;
 
 /**
  * @brief enum enlisting all footer items
  * add items to the end of enum or it will break upgrades
  * if item is added other modifications must be made:
- * - IMiFooter          in src/gui/screen_menu_footer_settings.cpp
  * - ItemUnion          in src/gui/footer/footer_item_union.hpp
  * - FooterLine::Create in src/gui/footer/footer_line.cpp
+ * - to_string()        below
  */
-enum class items : uint8_t { // stored in eeprom, must be small
-    ItemNozzle,
-    ItemBed,
-    ItemFilament,
-    ItemFSensor,
-    ItemSpeed,
-    ItemAxisX,
-    ItemAxisY,
-    ItemAxisZ,
-    ItemZHeight,
-    ItemPrintFan,
-    ItemHeatbreakFan,
+enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::value_bit_size
+    Nozzle,
+    Bed,
+    Filament,
+    FSValue,
+    FSensor,
+    Speed,
+    AxisX,
+    AxisY,
+    AxisZ,
+    ZHeight,
+    PrintFan,
+    HeatbreakFan,
 #if defined(FOOTER_HAS_LIVE_Z)
-    ItemLiveZ,
+    LiveZ,
 #endif
-    ItemHeatbreak,
+    Heatbreak,
 #if defined(FOOTER_HAS_SHEETS)
-    ItemSheets,
+    Sheets,
 #endif
 #if HAS_MMU2
-    ItemFinda,
+    Finda,
 #endif
 #if defined(FOOTER_HAS_TOOL_NR)
-    ItemCurrentTool,
-    ItemAllNozzles,
+    CurrentTool,
+    AllNozzles,
 #endif
 #if HAS_SIDE_FSENSOR()
-    ItemFSensorSide,
+    FSensorSide,
 #endif /*HAS_SIDE_FSENSOR()*/
-    count_
+
+    /// @note ItemNone must be last for EEPROM compatibility.
+    ///  If we ever have better EEPROM system, we can move it to the beginning.
+    None,
+    _count
 };
 
-using record = std::array<items, FOOTER_ITEMS_PER_LINE__>;
+/**
+ * @brief Get name of an item.
+ * @param item get name of this item
+ * @return name of the item
+ */
+constexpr const char *to_string(Item item) {
+    switch (item) {
+    case Item::Nozzle:
+        return N_("Nozzle");
+    case Item::Bed:
+        return N_("Bed");
+    case Item::Filament:
+        return N_("Filament");
+    case Item::FSensor:
+        return N_("FSensor");
+    case Item::FSValue:
+        return N_("FS Value");
+    case Item::Speed:
+        return N_("Speed");
+    case Item::AxisX:
+        return N_("X");
+    case Item::AxisY:
+        return N_("Y");
+    case Item::AxisZ:
+        return N_("Z");
+    case Item::ZHeight:
+        return N_("Z height");
+    case Item::PrintFan:
+        return N_("Print fan");
+    case Item::HeatbreakFan:
+        return N_("Heatbreak fan");
+#if defined(FOOTER_HAS_LIVE_Z)
+    case Item::LiveZ:
+        return N_("Live Z");
+#endif
+    case Item::Heatbreak:
+        return N_("Heatbreak");
+#if defined(FOOTER_HAS_SHEETS)
+    case Item::Sheets:
+        return N_("Sheets");
+#endif
+#if HAS_MMU2
+    case Item::Finda:
+        return N_("Finda");
+#endif
+#if defined(FOOTER_HAS_TOOL_NR)
+    case Item::CurrentTool:
+        return N_("Current tool");
+    case Item::AllNozzles:
+        return N_("All nozzles");
+#endif
+#if HAS_SIDE_FSENSOR()
+    case Item::FSensorSide:
+        return N_("FSensor side");
+#endif /*HAS_SIDE_FSENSOR()*/
+
+    case Item::None:
+        return N_("None");
+    case Item::_count:
+        break;
+    }
+    bsod("Nonexistent footer item");
+}
+
+using record = std::array<Item, FOOTER_ITEMS_PER_LINE__>;
 
 /**
  * @brief default record
  */
 #if FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
-static constexpr record DefaultItems = { { items::ItemSpeed,
-    items::ItemZHeight,
-    items::ItemFilament } };
+static constexpr record DefaultItems = { { Item::Speed,
+    Item::ZHeight,
+    Item::Filament } };
 #endif // FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
 
 #if FOOTER_LINES__ == 1 && FOOTER_ITEMS_PER_LINE__ == 5
-static constexpr record DefaultItems = { { items::ItemNozzle,
-    items::ItemBed,
-    items::ItemFilament,
-    items::count_,
-    items::count_ } };
+static constexpr record DefaultItems = { { Item::Nozzle,
+    Item::Bed,
+    Item::Filament,
+    Item::None,
+    Item::None } };
 #endif // FOOTER_LINES__ == 1 && FOOTER_ITEMS_PER_LINE__ == 5
 
 enum class ItemDrawType : uint8_t {
@@ -93,7 +164,7 @@ enum class ItemDrawType : uint8_t {
     StaticLeftAligned, // numbers aligned to the left, but fix size
     Dynamic            // numbers aligned to the left, dynamic size
 };
-static constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
+inline constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
 
 // ensure meaningfull value when flash is corrupted
 constexpr ItemDrawType Ui8ToItemDrawType(uint8_t data) {
@@ -111,7 +182,7 @@ constexpr ItemDrawType Ui8ToItemDrawType(uint8_t data) {
 
 enum class draw_zero_t : bool { no,
     yes };
-static constexpr draw_zero_t DefaultDrawZero = draw_zero_t::no;
+inline constexpr draw_zero_t DefaultDrawZero = draw_zero_t::no;
 
 struct ItemDrawCnf {
     ItemDrawType type;

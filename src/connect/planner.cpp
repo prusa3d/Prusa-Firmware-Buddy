@@ -12,15 +12,22 @@
 
 using http::HeaderOut;
 using std::holds_alternative;
+using std::is_same_v;
+using std::make_tuple;
 using std::min;
 using std::nullopt;
 using std::optional;
+using std::tuple;
 using std::unique_ptr;
 using std::visit;
+using transfers::ChangedPath;
 using transfers::Decryptor;
 using transfers::Download;
 using transfers::DownloadStep;
 using transfers::Monitor;
+
+using Type = ChangedPath::Type;
+using Incident = ChangedPath::Incident;
 
 namespace connect_client {
 
@@ -58,6 +65,8 @@ namespace {
     // window. Safety measure, as it may be related to that specific event and
     // we would never recover if the failure is repeateble with it.
     const constexpr uint8_t GIVE_UP_AFTER_ATTEMPTS = 5;
+
+    const constexpr uint8_t MAX_DOWNLOAD_RETRIES = 5;
 
     optional<Duration> since(optional<Timestamp> past_event) {
         // optional::transform would be nice, but it's C++23
@@ -128,17 +137,41 @@ namespace {
         return nullptr;
     }
 
-    Download::DownloadResult init_download(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
+    tuple<const char *, uint16_t> host_and_port(const Printer::Config &config, optional<uint16_t> port_override) {
         uint16_t port = config.port;
         if (port == 443 && config.tls) {
             // Go from encrypted to the unencrypted port automatically.
             port = 80;
         }
-        if (download.port.has_value()) {
+        if (port_override.has_value()) {
             // Manual override always takes precedence.
-            port = *download.port;
+            port = *port_override;
         }
         const char *host = config.host;
+
+        return make_tuple(host, port);
+    }
+
+    constexpr const char *const enc_prefix = "/f/";
+    constexpr const char *const enc_suffix = "/raw";
+    const size_t enc_prefix_len = strlen(enc_prefix);
+    const size_t enc_suffix_len = strlen(enc_suffix);
+    const size_t iv_len = 2 /* Binary->hex conversion*/ * StartConnectDownload::Encrypted::BLOCK_SIZE;
+    const size_t enc_url_len = enc_prefix_len + enc_suffix_len + iv_len + 1;
+
+    void make_enc_url(char *buffer /* assumed to be at least enc_url_len large */, const Decryptor::Block &iv) {
+        strcpy(buffer, enc_prefix);
+
+        for (size_t i = 0; i < iv.size(); i++) {
+            sprintf(buffer + enc_prefix_len + 2 * i, "%02hhx", iv[i]);
+        }
+
+        buffer[enc_prefix_len + 2 * iv.size()] = '\0';
+        strcat(buffer, enc_suffix);
+    }
+
+    Download::DownloadResult init_download(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
+        const auto [host, port] = host_and_port(config, download.port);
 
         char *path = nullptr;
         HeaderOut *extra_hdrs = nullptr;
@@ -167,26 +200,14 @@ namespace {
             extra_hdrs[1] = { "Token", token, nullopt };
             extra_hdrs[2] = { nullptr, nullptr, nullopt };
         } else if (auto *encrypted = get_if<StartConnectDownload::Encrypted>(&download.details); encrypted != nullptr) {
-            const char *prefix = "/f/";
-            const size_t prefix_len = strlen(prefix);
-            const char *suffix = "/raw";
-            const size_t suffix_len = strlen(suffix);
-            const size_t buffer_len = prefix_len + 2 * encrypted->iv.size() + suffix_len + 1;
-            path = reinterpret_cast<char *>(alloca(buffer_len));
-            strcpy(path, prefix);
-
-            for (size_t i = 0; i < encrypted->iv.size(); i++) {
-                sprintf(path + prefix_len + 2 * i, "%02hhx", encrypted->iv[i]);
-            }
-
-            path[prefix_len + 2 * encrypted->iv.size()] = '\0';
-            strcat(path, suffix);
+            path = reinterpret_cast<char *>(alloca(enc_url_len));
+            make_enc_url(path, encrypted->iv);
             decryptor = make_unique<Decryptor>(encrypted->key, encrypted->iv, encrypted->orig_size);
         } else {
             assert(0);
         }
 
-        return Download::start_connect_download(host, port, path, download.path.path(), extra_hdrs, move(decryptor), &printer);
+        return Download::start_connect_download(host, port, path, download.path.path(), extra_hdrs, move(decryptor));
     }
 }
 
@@ -214,6 +235,8 @@ const char *to_str(EventType event) {
         return "TRANSFER_ABORTED";
     case EventType::TransferFinished:
         return "TRANSFER_FINISHED";
+    case EventType::FileChanged:
+        return "FILE_CHANGED";
     default:
         assert(false);
         return "???";
@@ -243,11 +266,12 @@ Sleep Planner::sleep(Duration amount) {
     // "passively" watching what is or is not being transferred and the event
     // is generated after the fact anyway. No reason to block downloading for
     // that.
-    Download *down = download.has_value() ? &*download : nullptr;
-    return Sleep(amount, cmd, down);
+    bool recover_download = download.has_value() ? download->need_retry : false;
+    Download *down = download.has_value() ? &download->download : nullptr;
+    return Sleep(amount, cmd, down, recover_download);
 }
 
-Action Planner::next_action() {
+Action Planner::next_action(SharedBuffer &buffer) {
     if (!printer.is_printing()) {
         // The idea is, we set the ID when we start the print and remove it
         // once we see we are no longer printing. This is not completely
@@ -288,13 +312,10 @@ Action Planner::next_action() {
         return *planned_event;
     }
 
-    if (info_changes.set_hash(printer.info_fingerprint()) || file_changes.set_hash(printer.files_hash())) {
+    if (info_changes.set_hash(printer.info_fingerprint())) {
         planned_event = Event {
             EventType::Info,
         };
-        if (file_changes.is_dirty()) {
-            planned_event->info_rescan_files = true;
-        }
         return *planned_event;
     }
 
@@ -335,6 +356,26 @@ Action Planner::next_action() {
         // * Or there was no transfer to start with, we are changing from nullopt
     }
 
+    auto changed_path_status = ChangedPath::instance.status();
+    if (changed_path_status.has_value()) {
+        auto &changed_path = *changed_path_status;
+        auto buff(buffer.borrow());
+        if (buff.has_value()) {
+            changed_path.consume_path(reinterpret_cast<char *>(buff->data()), buff->size());
+
+            EventType type = (changed_path.is_file() && changed_path.what_happend() == Incident::Created) ? EventType::FileInfo : EventType::FileChanged;
+            planned_event = Event {
+                type,
+                nullopt,
+                nullopt,
+                SharedPath(std::move(*buff)),
+            };
+            planned_event->is_file = changed_path.is_file();
+            planned_event->incident = changed_path.what_happend();
+            return *planned_event;
+        }
+    }
+
     if (const auto since_telemetry = since(last_telemetry); since_telemetry.has_value()) {
         const Duration telemetry_interval = printer.is_printing() || background_command.has_value() ? TELEMETRY_INTERVAL_SHORT : TELEMETRY_INTERVAL_LONG;
         if (*since_telemetry >= telemetry_interval) {
@@ -362,9 +403,6 @@ void Planner::action_done(ActionResult result) {
         if (planned_event.has_value()) {
             if (planned_event->type == EventType::Info) {
                 info_changes.mark_clean();
-                if (planned_event->info_rescan_files) {
-                    file_changes.mark_clean();
-                }
             }
             planned_event = nullopt;
             // Enforce telemetry now. We may get a new command with it.
@@ -496,7 +534,7 @@ void Planner::command(const Command &command, const SendFileInfo &params) {
     }
 }
 
-void Planner::command(const Command &command, const SendTransferInfo &params) {
+void Planner::command(const Command &command, [[maybe_unused]] const SendTransferInfo &params) {
     planned_event = Event {
         EventType::TransferInfo,
         command.id,
@@ -518,7 +556,7 @@ void Planner::command(const Command &command, const CancelPrinterReady &) {
     planned_event = Event { EventType::Finished, command.id };
 }
 
-void Planner::command(const Command &command, const ProcessingThisCommand &) {
+void Planner::command([[maybe_unused]] const Command &command, const ProcessingThisCommand &) {
     // Unreachable:
     // * In case we are processing this command, this is handled one level up
     //   (because we don't want to hit the safety checks there).
@@ -548,21 +586,28 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
 
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, transfers::Download>) {
+        if constexpr (is_same_v<T, transfers::Download>) {
             // If there was another download, it wouldn't have succeeded
             // because it wouldn't acquire the transfer slot.
             assert(!this->download.has_value());
 
-            this->download = std::move(arg);
+            this->download = ResumableDownload { std::move(arg) };
+            this->download->port = download.port;
+            if (auto *enc = get_if<StartConnectDownload::Encrypted>(&download.details); enc != nullptr) {
+                this->download->orig_size = enc->orig_size;
+                this->download->orig_iv = enc->iv;
+                // TODO: Alternatively, do we want to allow more retries on larger files? Something like 3 + size / 1MB?
+                this->download->allowed_retries = MAX_DOWNLOAD_RETRIES;
+            }
             planned_event = Event { EventType::Finished, command.id };
             transfer_start_cmd = command.id;
-        } else if constexpr (std::is_same_v<T, transfers::NoTransferSlot>) {
+        } else if constexpr (is_same_v<T, transfers::NoTransferSlot>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress" };
-        } else if constexpr (std::is_same_v<T, transfers::AlreadyExists>) {
+        } else if constexpr (is_same_v<T, transfers::AlreadyExists>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "File already exists" };
-        } else if constexpr (std::is_same_v<T, transfers::RefusedRequest>) {
+        } else if constexpr (is_same_v<T, transfers::RefusedRequest>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Failed to download" };
-        } else if constexpr (std::is_same_v<T, transfers::Storage>) {
+        } else if constexpr (is_same_v<T, transfers::Storage>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, arg.msg };
         } else {
             static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -584,7 +629,7 @@ void Planner::command(const Command &command, const DeleteFile &params) {
     }
 
     if (reason == nullptr) {
-        printer.notify_filechange(path);
+        ChangedPath::instance.changed_path(path, Type::File, Incident::Deleted);
         planned_event = Event { EventType::Finished, command.id };
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
@@ -604,7 +649,7 @@ void Planner::command(const Command &command, const DeleteFolder &params) {
     }
 
     if (reason == nullptr) {
-        printer.notify_filechange(path);
+        ChangedPath::instance.changed_path(path, Type::Folder, Incident::Deleted);
         planned_event = Event { EventType::Finished, command.id };
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
@@ -622,14 +667,14 @@ void Planner::command(const Command &command, const CreateFolder &params) {
     }
 
     if (reason == nullptr) {
-        printer.notify_filechange(path);
+        ChangedPath::instance.changed_path(path, Type::Folder, Incident::Created);
         planned_event = Event { EventType::Finished, command.id };
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
     }
 }
 
-void Planner::command(const Command &command, const StopTransfer &params) {
+void Planner::command(const Command &command, [[maybe_unused]] const StopTransfer &params) {
     const char *reason = nullptr;
     if (!Monitor::instance.signal_stop()) {
         reason = "No transfer in progress";
@@ -690,17 +735,60 @@ void Planner::background_done(BackgroundResult result) {
     background_command.reset();
 }
 
-void Planner::download_done() {
+void Planner::download_done(DownloadStep result) {
     // Similar reasons as with background_done
     assert(download.has_value());
-    // We do _not_ set the event here. We do so in watching the transfer.
-    //
-    // But we make sure the observed_transfer is set even if there was no
-    // next_event in the meantime or if it was short-circuited.
+    if (result == DownloadStep::FailedNetwork && download->allowed_retries > 0) {
+        assert(!download->need_retry);
+        download->allowed_retries--;
+        download->need_retry = true;
+    } else {
+        // We do _not_ set the event here. We do so in watching the transfer.
+        //
+        // But we make sure the observed_transfer is set even if there was no
+        // next_event in the meantime or if it was short-circuited.
 
-    observed_transfer = Monitor::instance.id();
-    assert(observed_transfer.has_value()); // Because download still holds the slot.
-    download.reset();
+        observed_transfer = Monitor::instance.id();
+        assert(observed_transfer.has_value()); // Because download still holds the slot.
+        download.reset();
+    }
+}
+
+void Planner::recover_download() {
+    assert(download.has_value());
+    assert(download->need_retry);
+    download->need_retry = false;
+    uint32_t position = download->download.position();
+
+    const auto [config, config_changed] = printer.config(false);
+    const auto [host, port] = host_and_port(config, download->port);
+
+    char url[enc_url_len];
+    make_enc_url(url, download->orig_iv);
+
+    char range[6 /* bytes = */ + 10 /* 2^32 in text */ + 1 /* - */ + 1 /* \0 */];
+    snprintf(range, sizeof range, "bytes=%" PRIu32 "-", position);
+    HeaderOut hdrs[2] = {
+        { "Range", range, nullopt },
+        { nullptr, nullptr, nullopt },
+    };
+
+    const auto result = download->download.recover_encrypted_connect_download(host, port, url, hdrs, download->orig_iv, download->orig_size);
+    visit([&](auto &&arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (is_same_v<T, transfers::Continued> || is_same_v<T, transfers::FromStart>) {
+            // Everything is fine!
+        } else if constexpr (is_same_v<T, transfers::Storage>) {
+            // This is not recoverable, abort the download.
+            download_done(DownloadStep::FailedOther);
+        } else if constexpr (is_same_v<T, transfers::RefusedRequest>) {
+            // Something network related. Do more retries later.
+            download_done(DownloadStep::FailedNetwork);
+        } else {
+            static_assert(always_false_v<T>, "non-exhaustive visitor!");
+        }
+    },
+        result);
 }
 
 }

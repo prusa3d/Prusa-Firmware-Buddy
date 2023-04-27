@@ -18,6 +18,7 @@
 #include "footer_item_axis.hpp"
 #include "footer_item_fans.hpp"
 #include "footer_item_multitool.hpp"
+#include "footer_item_fsvalue.hpp"
 
 namespace footer {
 using ItemUnion = std::aligned_union<
@@ -26,6 +27,7 @@ using ItemUnion = std::aligned_union<
     FooterItemBed,
     FooterItemFilament,
     FooterItemFSensor,
+    FooterItemFSValue,
     FooterItemSpeed,
     FooterItemAxisX,
     FooterItemAxisY,
@@ -54,12 +56,12 @@ using ItemUnion = std::aligned_union<
 #endif
     >::type;
 
-inline void *const EncodeItemForEvent(items item) {
-    return reinterpret_cast<void *const>(static_cast<int>(item));
+inline void *EncodeItemForEvent(Item item) {
+    return reinterpret_cast<void *>(static_cast<intptr_t>(item));
 }
 
-inline items DecodeItemFromEvent(const void *const encoded) {
-    return static_cast<items>(reinterpret_cast<int>(encoded));
+inline Item DecodeItemFromEvent(const void *const encoded) {
+    return static_cast<Item>(reinterpret_cast<intptr_t>(encoded));
 }
 
 }

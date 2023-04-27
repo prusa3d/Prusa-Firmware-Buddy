@@ -70,8 +70,8 @@ enum BitOrder {
 #define LOW  0x0
 #define HIGH 0x1
 
-#define DEFAULT  1
-#define EXTERNAL 0
+// #define DEFAULT  1
+// #define EXTERNAL 0
 
 #define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 

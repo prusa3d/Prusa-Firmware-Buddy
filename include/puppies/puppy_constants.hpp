@@ -14,8 +14,8 @@ enum PuppyType : size_t {
     MODULARBED = 1,
 };
 
-/// Kennel is a location where a Puppy can live
-enum class Kennel : uint8_t {
+/// Dock is a location where a Puppy can live
+enum class Dock : uint8_t {
     FIRST = 0,
 
     MODULAR_BED = FIRST,
@@ -28,36 +28,36 @@ enum class Kennel : uint8_t {
     LAST = DWARF_6,
 };
 
-constexpr const char *to_string(Kennel k) {
+constexpr const char *to_string(Dock k) {
     switch (k) {
-    case Kennel::MODULAR_BED:
+    case Dock::MODULAR_BED:
         return "MODULAR_BED";
-    case Kennel::DWARF_1:
+    case Dock::DWARF_1:
         return "DWARF_1";
-    case Kennel::DWARF_2:
+    case Dock::DWARF_2:
         return "DWARF_2";
-    case Kennel::DWARF_3:
+    case Dock::DWARF_3:
         return "DWARF_3";
-    case Kennel::DWARF_4:
+    case Dock::DWARF_4:
         return "DWARF_4";
-    case Kennel::DWARF_5:
+    case Dock::DWARF_5:
         return "DWARF_5";
-    case Kennel::DWARF_6:
+    case Dock::DWARF_6:
         return "DWARF_6";
     }
     return "unspecified";
 }
 
-constexpr PuppyType to_puppy_type(Kennel kennel) {
-    if (kennel == Kennel::MODULAR_BED) {
+constexpr PuppyType to_puppy_type(Dock dock) {
+    if (dock == Dock::MODULAR_BED) {
         return MODULARBED;
     } else {
         return DWARF;
     }
 }
 
-constexpr Kennel operator+(Kennel a, unsigned int b) {
-    return (Kennel)(static_cast<uint8_t>(a) + static_cast<uint8_t>(b));
+constexpr Dock operator+(Dock a, unsigned int b) {
+    return (Dock)(static_cast<uint8_t>(a) + static_cast<uint8_t>(b));
 }
 
 struct PuppyInfo {
@@ -80,16 +80,16 @@ inline constexpr std::array<PuppyInfo, 2> puppy_info { {
     },
 } };
 
-struct KennelInfo {
+struct DockInfo {
     const char *crash_dump_path; // internal path where crash dump is stored
 };
 
 /**
- * @brief Data about each kennel, indexed by the enum Kennel
+ * @brief Data about each dock, indexed by the enum Dock
  *
  */
-inline constexpr auto kennel_info {
-    std::to_array<KennelInfo>(
+inline constexpr auto dock_info {
+    std::to_array<DockInfo>(
         {
             {
                 "/internal/dump_modularbed.dmp",
@@ -115,9 +115,9 @@ inline constexpr auto kennel_info {
         })
 };
 
-constexpr uint8_t to_info_idx(Kennel kennel) {
-    return static_cast<uint8_t>(kennel);
+constexpr uint8_t to_info_idx(Dock dock) {
+    return static_cast<uint8_t>(dock);
 }
 
-static_assert(static_cast<uint8_t>(Kennel::LAST) + 1 == kennel_info.size(), "Each kennel must have defined info");
+static_assert(static_cast<uint8_t>(Dock::LAST) + 1 == dock_info.size(), "Each dock must have defined info");
 }

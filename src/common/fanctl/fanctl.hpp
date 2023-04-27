@@ -11,8 +11,6 @@ typedef CFanCtlOnPuppy CFanCtl;
     #include "local/CFanCtlLocal.hpp"
 
 typedef CFanCtlLocal CFanCtl;
-
-void fanctl_tick();
 #endif
 
 extern std::array<CFanCtl, HOTENDS> fanCtlPrint;

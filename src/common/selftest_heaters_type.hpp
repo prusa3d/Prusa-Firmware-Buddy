@@ -11,6 +11,7 @@
 #include "selftest_sub_state.hpp"
 #include "inc/MarlinConfig.h"
 #include "marlin_server_extended_fsm_data.hpp"
+#include <utility_extensions.hpp>
 
 struct SelftestHeater_t {
     uint8_t progress;
@@ -51,8 +52,16 @@ struct SelftestHeater_t {
 
 struct SelftestHeaters_t : public FSMExtendedData {
 public:
+    // class to be converted to one_hot coding
+    enum class TestedParts : uint8_t {
+        noz = 1,
+        bed = 2,
+    };
+
     std::array<SelftestHeater_t, HOTENDS> noz;
     SelftestHeater_t bed;
+
+    std::underlying_type_t<TestedParts> tested_parts { 0 };
 
     constexpr SelftestHeaters_t() {}
 
@@ -60,3 +69,7 @@ public:
         return noz == other.noz && bed == other.bed;
     }
 };
+
+constexpr std::underlying_type_t<SelftestHeaters_t::TestedParts> to_one_hot(SelftestHeaters_t::TestedParts p) {
+    return 1 << ftrstd::to_underlying(p);
+}

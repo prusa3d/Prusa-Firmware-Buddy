@@ -6,7 +6,8 @@
 #include "i18n.h"
 #include "ScreenHandler.hpp"
 #include "DialogHandler.hpp"
-#include "../../../lib/Prusa-Error-Codes/04_MMU/errors_list.h"
+#include "fsm_loadunload_type.hpp"
+#include "error_codes_mmu.hpp"
 #include "../../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
 #include "../../../src/mmu2/mmu2_error_converter.h"
 
@@ -20,64 +21,80 @@ static void WaitLoop() {
     }
 }
 
+static void set_state(PhasesLoadUnload phase, uint8_t progress) {
+    ProgressSerializerLoadUnload serializer(LoadUnloadMode::Change, progress);
+    fsm::Change change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(phase), serializer.Serialize()));
+    DialogHandler::Command(change.serialize());
+}
+
 static void LoadUnloadTest() {
-    fsm::variant_t var;
-    //push create
-    var = fsm::variant_t(fsm::create_t(ClientFSM::Load_unload, 0));
-    DialogHandler::Command(var.u32, var.u16);
-
-    WaitLoop();
-
-    //push change
-    var = fsm::variant_t(fsm::change_t(ClientFSM::Load_unload, fsm::BaseData(1, { 0, 0, 0, 25 })));
-    DialogHandler::Command(var.u32, var.u16);
-
-    WaitLoop();
-
+    uint8_t progress = 0;
+    fsm::Change change(fsm::QueueIndex::q0);
+    fsm::BaseData base_data;
 #if HAS_MMU2
-    fsm::PhaseData data;
+    for (PhasesLoadUnload i = PhasesLoadUnload::_first; i < PhasesLoadUnload::MMU_ERRWaitingForUser; i = PhasesLoadUnload(int(i) + 1)) {
+        set_state(i, progress);
+
+        WaitLoop();
+
+        progress += 10;
+        progress %= 101; // limit to 100
+    }
+
     //push change
     //focus must be on middle button
-    data = fsm::PointerSerializer<MMU2::MMUErrorDesc>(MMU2::ConvertMMUErrorCode(uint16_t(ErrorCode::FINDA_DIDNT_SWITCH_OFF))).Serialize();
-    var = fsm::variant_t(fsm::change_t(ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(PhasesLoadUnload::MMU_ERRWaitingForUser), data)));
-    DialogHandler::Command(var.u32, var.u16);
+    fsm::PhaseData data = fsm::PointerSerializer<MMU2::MMUErrDesc>(MMU2::ConvertMMUErrorCode(uint16_t(ErrorCode::FINDA_DIDNT_SWITCH_OFF))).Serialize();
+    change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(PhasesLoadUnload::MMU_ERRWaitingForUser), data));
+    DialogHandler::Command(change.serialize());
 
     WaitLoop();
 
     //push change
     //only middle button, it ha focus
-    data = fsm::PointerSerializer<MMU2::MMUErrorDesc>(MMU2::ConvertMMUErrorCode(uint16_t(ErrorCode::MMU_NOT_RESPONDING))).Serialize();
-    var = fsm::variant_t(fsm::change_t(ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(PhasesLoadUnload::MMU_ERRWaitingForUser), data)));
-    DialogHandler::Command(var.u32, var.u16);
+    data = fsm::PointerSerializer<MMU2::MMUErrDesc>(MMU2::ConvertMMUErrorCode(uint16_t(ErrorCode::MMU_NOT_RESPONDING))).Serialize();
+    change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(PhasesLoadUnload::MMU_ERRWaitingForUser), data));
+    DialogHandler::Command(change.serialize());
 
     WaitLoop();
 
     //push change
     //focus must be on middle button
-    data = fsm::PointerSerializer<MMU2::MMUErrorDesc>(MMU2::ConvertMMUErrorCode(uint16_t(ErrorCode::FINDA_DIDNT_SWITCH_ON))).Serialize();
-    var = fsm::variant_t(fsm::change_t(ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(PhasesLoadUnload::MMU_ERRWaitingForUser), data)));
-    DialogHandler::Command(var.u32, var.u16);
+    data = fsm::PointerSerializer<MMU2::MMUErrDesc>(MMU2::ConvertMMUErrorCode(uint16_t(ErrorCode::FINDA_DIDNT_SWITCH_ON))).Serialize();
+    change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(PhasesLoadUnload::MMU_ERRWaitingForUser), data));
+    DialogHandler::Command(change.serialize());
 
     WaitLoop();
 
     //push change
     //focus must be on button from previous state
-    data = fsm::PointerSerializer<MMU2::MMUErrorDesc>(MMU2::ConvertMMUErrorCode(uint16_t(ErrorCode::FSENSOR_DIDNT_SWITCH_ON))).Serialize();
-    var = fsm::variant_t(fsm::change_t(ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(PhasesLoadUnload::MMU_ERRWaitingForUser), data)));
-    DialogHandler::Command(var.u32, var.u16);
+    data = fsm::PointerSerializer<MMU2::MMUErrDesc>(MMU2::ConvertMMUErrorCode(uint16_t(ErrorCode::FSENSOR_DIDNT_SWITCH_ON))).Serialize();
+    change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Load_unload, fsm::BaseData(GetPhaseIndex(PhasesLoadUnload::MMU_ERRWaitingForUser), data));
+    DialogHandler::Command(change.serialize());
 
     WaitLoop();
+
+    for (PhasesLoadUnload i = PhasesLoadUnload(int(PhasesLoadUnload::MMU_ERRWaitingForUser) + 1); i <= PhasesLoadUnload::_last; i = PhasesLoadUnload(int(i) + 1)) {
+        set_state(i, progress);
+
+        WaitLoop();
+
+        progress += 10;
+        progress %= 110;
+    }
+#else
+    for (PhasesLoadUnload i = PhasesLoadUnload::_first; i <= PhasesLoadUnload::_last; i = PhasesLoadUnload(int(i) + 1)) {
+        set_state(i, progress);
+
+        WaitLoop();
+
+        progress += 10;
+        progress %= 110;
+    }
 #endif // HAS_MMU2
 
-    //push change
-    var = fsm::variant_t(fsm::change_t(ClientFSM::Load_unload, fsm::BaseData(3, { 0, 0, 0, 75 })));
-    DialogHandler::Command(var.u32, var.u16);
-
-    WaitLoop();
-
-    //push destroy
-    var = fsm::variant_t(fsm::destroy_t(ClientFSM::Load_unload));
-    DialogHandler::Command(var.u32, var.u16);
+    //close
+    change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::_none, base_data);
+    DialogHandler::Command(change.serialize());
 };
 
 ScreenTestMMU::ScreenTestMMU()

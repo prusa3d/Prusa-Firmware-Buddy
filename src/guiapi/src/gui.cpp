@@ -5,6 +5,7 @@
 #include "gui.hpp"
 #include "gui_time.hpp" //gui::GetTick
 #include "ScreenHandler.hpp"
+#include "window_dlg_strong_warning.hpp"
 #include "IDialog.hpp"
 #include "Jogwheel.hpp"
 #include "ScreenShot.hpp"
@@ -17,28 +18,14 @@
 #include "sw_timer.hpp"
 #include "log.h"
 
+#include <option/has_touch.h>
+
 LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Touch);
 
 static const constexpr uint16_t GUI_FLG_INVALID = 0x0001;
 
 static bool gui_invalid = false;
-
-// touch driver must redefine this function to work
-// but gui does not need single preprocessor macro to handle not having touch driver
-std::optional<point_ui16_t> __attribute__((weak)) touch::Get() {
-    //    log_error(GUI, "%s needs to be defined for touch to work", __PRETTY_FUNCTION__);
-    return std::nullopt;
-}
-bool __attribute__((weak)) touch::is_hw_broken() {
-    //    log_error(GUI, "%s needs to be defined for touch to work", __PRETTY_FUNCTION__);
-    return true;
-}
-
-bool __attribute__((weak)) touch::does_read_work() {
-    //    log_error(GUI, "%s needs to be defined for touch to work", __PRETTY_FUNCTION__);
-    return false;
-}
 
 // shadow touch weak functions, so touch driver is not dependent on eeprom
 bool touch::is_enabled() {
@@ -152,6 +139,10 @@ void gui_loop_cb() {
     GuiMediaEventsHandler::Tick();
 }
 
+void gui_loop_display_warning_check() {
+    window_dlg_strong_warning_t::ScreenJumpCheck();
+}
+
 void gui_bare_loop() {
     ++guiloop_nesting;
 
@@ -176,7 +167,7 @@ void gui_loop(void) {
     gui_handle_jogwheel();
     #endif // GUI_JOGWHEEL_SUPPORT
 
-    if (HAS_TOUCH && touch::is_enabled())
+    if (option::has_touch && touch::is_enabled())
         touch::poll();
 
     auto point = touch::Get();
@@ -192,7 +183,9 @@ void gui_loop(void) {
             // we must notify serve to so it knows user is doing something and resets menu timeout, heater timeout ...
             Screens::Access()->ResetTimeout();
             marlin_notify_server_about_knob_click();
-            capture_ptr->WindowEvent(capture_ptr, GUI_event_t::TOUCH, un.pvoid);
+            if (capture_ptr->GetRect().Contain(*point)) {
+                capture_ptr->WindowEvent(capture_ptr, GUI_event_t::TOUCH, un.pvoid);
+            }
         }
     }
 
@@ -212,6 +205,7 @@ void gui_loop(void) {
     gui_timers_cycle();
     gui_redraw();
     gui_loop_cb();
+    gui_loop_display_warning_check();
     if (gui_loop_timer.RestartIfIsOver(gui::GetTick())) {
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::LOOP, 0);
     }

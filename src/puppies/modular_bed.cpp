@@ -6,6 +6,7 @@
 #include "puppies/modular_bed.hpp"
 #include "log.h"
 #include "metric.h"
+#include "puppy/modularbed/PuppyConfig.hpp"
 #include "timing.h"
 #include "puppies/PuppyBootstrap.hpp"
 #include <stddef.h>
@@ -24,7 +25,7 @@ LOG_COMPONENT_DEF(ModularBed, LOG_SEVERITY_INFO);
 using CommunicationStatus = ModularBed::CommunicationStatus;
 
 static metric_t metric_state = METRIC("bed_state", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
-static metric_t metric_currents = METRIC("bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
+static metric_t metric_currents = METRIC("bed_curr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
 static metric_t metric_states = METRIC("bedlet_state", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
 static metric_t metric_temps = METRIC("bedlet_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
 static metric_t metric_targets = METRIC("bedlet_target", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
@@ -112,7 +113,7 @@ CommunicationStatus ModularBed::refresh() {
             log_debug(ModularBed, "Current fault: %d", general_status.value.current_fault_status);
 
             // Report panic and fault problems only when not in true system-wide power panic
-            if (!power_panic::ac_power_fault && !power_panic::is_panic_signal()) {
+            if (!power_panic::ac_power_fault_is_checked && !power_panic::is_ac_fault_signal()) {
                 if (general_status.value.current_fault_status) {
                     fatal_error(ErrCode::ERR_ELECTRO_MB_FAULT);
                 }
@@ -137,8 +138,8 @@ CommunicationStatus ModularBed::refresh() {
     }
     case 6: {
         if (modbusIsOk(bus.read(unit, currents))) {
-            metric_record_custom(&metric_currents, ",n=0 v=%.2f", static_cast<double>(currents.value[0]) / 100);
-            metric_record_custom(&metric_currents, ",n=1 v=%.2f", static_cast<double>(currents.value[1]) / 100);
+            metric_record_custom(&metric_currents, ",n=0 v=%.3f", static_cast<double>(currents.value[0]) / MODBUS_CURRENT_REGISTERS_SCALE);
+            metric_record_custom(&metric_currents, ",n=1 v=%.3f", static_cast<double>(currents.value[1]) / MODBUS_CURRENT_REGISTERS_SCALE);
         } else {
             log_error(ModularBed, "Failed to read current registers");
             communication_error = true;
@@ -157,7 +158,7 @@ CommunicationStatus ModularBed::refresh() {
                     &metric_temps,
                     ",n=%d v=%.2f",
                     i,
-                    static_cast<double>(bedlet_data.value.measured_temperature[i]) / 10);
+                    static_cast<double>(bedlet_data.value.measured_temperature[i]) / MODBUS_TEMPERATURE_REGISTERS_SCALE);
                 metric_record_custom(
                     &metric_pwms,
                     ",n=%d v=%.2f",
@@ -231,7 +232,7 @@ CommunicationStatus ModularBed::refresh() {
                     &metric_targets,
                     ",n=%d v=%.2f",
                     i,
-                    static_cast<double>(bedlet_target_temp.value[i]) / 10);
+                    static_cast<double>(bedlet_target_temp.value[i]) / MODBUS_TEMPERATURE_REGISTERS_SCALE);
             }
         } else {
             log_error(ModularBed, "Failed to write bedlet target temperature");
@@ -246,7 +247,7 @@ CommunicationStatus ModularBed::refresh() {
                     &metric_bedlet_currents,
                     ",n=%d v=%.2f",
                     i,
-                    static_cast<double>(bedlet_measured_max_current.value[i]) / 100);
+                    static_cast<double>(bedlet_measured_max_current.value[i]) / MODBUS_CURRENT_REGISTERS_SCALE);
             }
         } else {
             log_error(ModularBed, "Failed to read bedlet measured currents");
@@ -280,7 +281,7 @@ void ModularBed::clear_fault() {
 }
 
 float ModularBed::get_temp(const uint16_t idx) {
-    return bedlet_data.value.measured_temperature[idx] / 10;
+    return static_cast<float>(bedlet_data.value.measured_temperature[idx]) / MODBUS_TEMPERATURE_REGISTERS_SCALE;
 }
 
 void ModularBed::set_print_fan_active(bool value) {
@@ -297,7 +298,7 @@ float ModularBed::get_temp() {
         bedlet_data.value.measured_temperature,
         bedlet_data.value.measured_temperature + BEDLET_COUNT,
         0);
-    float ret = static_cast<float>(sum) / BEDLET_COUNT / 10;
+    float ret = (static_cast<float>(sum) / BEDLET_COUNT) / MODBUS_TEMPERATURE_REGISTERS_SCALE;
     log_debug(ModularBed, "Simple temp: %f", static_cast<double>(ret));
     return ret;
 }
@@ -307,14 +308,14 @@ void ModularBed::set_target(const uint8_t column, const uint8_t row, const float
 }
 
 void ModularBed::set_target(const uint8_t idx, const float temp) {
-    bedlet_target_temp.value[idx] = temp * 10;
+    bedlet_target_temp.value[idx] = temp * MODBUS_TEMPERATURE_REGISTERS_SCALE;
 }
 
 void ModularBed::set_target(const float temp) {
     std::fill(
         bedlet_target_temp.value,
         bedlet_target_temp.value + BEDLET_COUNT,
-        static_cast<uint16_t>(temp * 10));
+        static_cast<uint16_t>(temp * MODBUS_TEMPERATURE_REGISTERS_SCALE));
 }
 
 int ModularBed::get_pwm() {
@@ -444,7 +445,7 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
     }
 }
 
-ModularBed modular_bed(puppyModbus, PuppyBootstrap::get_modbus_address_for_kennel(Kennel::MODULAR_BED));
+ModularBed modular_bed(puppyModbus, PuppyBootstrap::get_modbus_address_for_dock(Dock::MODULAR_BED));
 }
 
 SimpleModularHeatbed *const simple_modular_bed = &buddy::puppies::modular_bed;

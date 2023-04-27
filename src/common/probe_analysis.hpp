@@ -438,6 +438,7 @@ private:
     void CompensateForSystemDelay() {
         // Shift Z samples right (to the future)
         int samplesToShift = loadDelay / samplingInterval;
+        assert(std::size(window) - static_cast<size_t>(samplesToShift) > 2);
         auto it = window.rbegin();
         for (; it < window.rend() - samplesToShift; ++it) {
             it->z = (it + samplesToShift)->z;

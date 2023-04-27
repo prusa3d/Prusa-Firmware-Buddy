@@ -1,4 +1,4 @@
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/tmp_error_converter.h"
+#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_error_converter.h"
 #include "../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
 #include <string.h>
 

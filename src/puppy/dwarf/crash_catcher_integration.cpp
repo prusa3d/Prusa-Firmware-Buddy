@@ -51,7 +51,7 @@ extern const uint32_t __flash_start;          // use as &__flash_start to get th
 // Used to read the FW_DESCRIPTOR section persistent data, attribute 'used' is so that it's not optimized away. It's unitialized because we want the data already in the section
 __attribute__((section(".fw_descriptor"), used)) const puppy_crash_dump::FWDescriptor fw_descriptor;
 
-void CrashCatcher_DumpStart(const CrashCatcherInfo *pInfo) {
+void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
     __disable_irq();
 
     // check if there is already some crashdump in flash, if yes, stop and dont overwrite it

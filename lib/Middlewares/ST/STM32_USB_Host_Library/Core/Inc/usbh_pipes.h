@@ -33,8 +33,8 @@ extern "C" {
   */
 
 /** @addtogroup USBH_LIB_CORE
-* @{
-*/
+  * @{
+  */
 
 /** @defgroup USBH_PIPES
   * @brief This file is the header file for usbh_pipes.c
@@ -115,7 +115,7 @@ USBH_StatusTypeDef USBH_FreePipe(USBH_HandleTypeDef *phost,
   */
 
 /**
-* @}
-*/
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

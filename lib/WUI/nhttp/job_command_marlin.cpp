@@ -4,6 +4,8 @@
 
 #include <cassert>
 
+using namespace marlin_server;
+
 /*
  * This file contains few of the JobCommand methods, the ones that directly
  * talk to marlin. This is a hack/trick to allow separation in testing.
@@ -40,6 +42,7 @@ namespace {
         case mpsCrashRecovery_Lifting:
         case mpsCrashRecovery_XY_Measure:
         case mpsCrashRecovery_XY_HOME:
+        case mpsCrashRecovery_HOMEFAIL:
         case mpsCrashRecovery_Repeated_Crash:
         case mpsResuming_Begin:
         case mpsResuming_Reheating:

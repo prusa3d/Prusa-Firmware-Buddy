@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "Rect16.h"
 #include "guiconfig.h"
 #include "display_math_helper.h"
@@ -22,7 +22,7 @@
 #define ILI9488_ROWS      320 //
 #define ILI9488_BUFF_ROWS 8
 
-static constexpr uint8_t ILI9488_MAX_COMMAND_READ_LENGHT = 4;
+inline constexpr uint8_t ILI9488_MAX_COMMAND_READ_LENGHT = 4;
 
 typedef struct _ili9488_config_t {
     SPI_HandleTypeDef *phspi; // spi handle pointer

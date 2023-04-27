@@ -4,15 +4,22 @@
 
     #include "MItem_crash.hpp"
     #include "menu_spin_config.hpp"
+    #include "eeprom.h"
     #include "../lib/Marlin/Marlin/src/module/stepper/trinamic.h"
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
-    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes,
+    #if ((PRINTER_TYPE == PRINTER_PRUSA_MK4))
+        is_hidden_t::dev
+    #else
+        is_hidden_t::no
+    #endif // ((PRINTER_TYPE == PRINTER_PRUSA_MK4))
+    ) {
     index = crash_s.is_enabled();
 }
 
-void MI_CRASH_DETECTION::OnChange(size_t old_index) {
+void MI_CRASH_DETECTION::OnChange([[maybe_unused]] size_t old_index) {
     crash_s.enable(index);
 }
 
@@ -63,7 +70,7 @@ constexpr size_t MI_CRASH_SENSITIVITY_XY::get_item_id_from_sensitivity(int32_t s
     return 0;
 }
 
-void MI_CRASH_SENSITIVITY_XY::OnChange(size_t old_index) {
+void MI_CRASH_SENSITIVITY_XY::OnChange([[maybe_unused]] size_t old_index) {
     int32_t sensitivity = ITEMS[index].value;
     xy_long_t se = crash_s.get_sensitivity();
     se.x = sensitivity;
@@ -128,7 +135,7 @@ MI_CRASH_FILTERING::MI_CRASH_FILTERING()
     index = crash_s.get_filter();
 }
 
-void MI_CRASH_FILTERING::OnChange(size_t old_index) {
+void MI_CRASH_FILTERING::OnChange([[maybe_unused]] size_t old_index) {
     crash_s.set_filter(index);
 }
     #endif

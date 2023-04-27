@@ -13,8 +13,8 @@ static const constexpr uint8_t WDT_WWDG_RELOAD = 127;       // ~48ms max period
 
 extern "C" {
 
-IWDG_HandleTypeDef hiwdg = { 0 }; // set Instance member to null
-WWDG_HandleTypeDef hwwdg = { 0 }; // ..
+IWDG_HandleTypeDef hiwdg {}; // set Instance member to null
+WWDG_HandleTypeDef hwwdg {}; // ..
 
 extern void Error_Handler(void);
 
@@ -74,7 +74,7 @@ void wdt_tick_1ms(void) {
 #endif //WDT_IWDG_ENABLED
 }
 
-void HAL_WWDG_EarlyWakeupCallback(WWDG_HandleTypeDef *hwwdg) {
+void HAL_WWDG_EarlyWakeupCallback([[maybe_unused]] WWDG_HandleTypeDef *hwwdg) {
     // TODO: handle this callback
 }
 

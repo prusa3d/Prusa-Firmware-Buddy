@@ -14,7 +14,7 @@
  */
 
 void PrusaGcodeSuite::M930() {
-#if ((BOARD_IS_XBUDDY && (BOARD_VER_EQUAL_TO(0, 2, 0) || BOARD_VER_EQUAL_TO(0, 1, 8))) || BOARD_IS_BUDDY) && HAS_GUI()
+#if BOARD_IS_BUDDY && HAS_GUI()
     uint16_t val = parser.value_ushort();
     spi_set_prescaler(&SPI_HANDLE_FOR(lcd), val);
 #endif
@@ -29,7 +29,7 @@ void PrusaGcodeSuite::M930() {
  */
 
 void PrusaGcodeSuite::M931() {
-#if ((BOARD_IS_XBUDDY && (BOARD_VER_EQUAL_TO(0, 2, 0) || BOARD_VER_EQUAL_TO(0, 1, 8))) || BOARD_IS_BUDDY)
+#if BOARD_IS_BUDDY
     uint16_t val = parser.value_ushort();
     spi_set_prescaler(&SPI_HANDLE_FOR(flash), val);
 #endif
@@ -44,7 +44,7 @@ void PrusaGcodeSuite::M931() {
  */
 
 void PrusaGcodeSuite::M932() {
-#if (BOARD_IS_XBUDDY && BOARD_VER_HIGHER_OR_EQUAL_TO(0, 2, 0)) || BOARD_IS_XLBUDDY
+#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
     uint16_t val = parser.value_ushort();
     spi_set_prescaler(&SPI_HANDLE_FOR(tmc), val);
 #endif

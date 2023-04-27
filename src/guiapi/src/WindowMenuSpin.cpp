@@ -61,7 +61,7 @@ void IWiSpin::changeExtentionWidth(size_t unit_len, char uchar, size_t width) {
     }
 }
 
-void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
+void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
 
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
     const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;

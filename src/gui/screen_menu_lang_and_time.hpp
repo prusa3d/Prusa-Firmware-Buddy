@@ -8,6 +8,7 @@
 #include "WindowMenuItems.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_menus.hpp"
+#include "menu_items_languages.hpp"
 
 using ScreenMenuLangAndTime__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_LANGUAGE, MI_TIMEZONE, MI_TIME_FORMAT, MI_LANGUAGUE_USB, MI_LOAD_LANG, MI_LANGUAGUE_XFLASH>;
 

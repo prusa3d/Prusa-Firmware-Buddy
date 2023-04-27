@@ -41,8 +41,8 @@ void FooterItemHeater::setDrawMode(footer::ItemDrawCnf cnf) {
     if (footer::eeprom::Set(cnf) == changed_t::yes) {
         // item type is ItemNozzle or ItemBed
         // sadly this is static method, so i can do this in children (FooterItemHeater should not need to know about ItemNozzle/ItemBed)
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemNozzle));
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::ItemBed));
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::Item::Nozzle));
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::Item::Bed));
     }
 }
 

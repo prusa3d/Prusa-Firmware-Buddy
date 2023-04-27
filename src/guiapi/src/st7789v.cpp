@@ -477,7 +477,7 @@ void *png_mem_ptrs[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_sizes[PNG_MAX_CHUNKS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
 
-png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
+png_voidp _pngmalloc([[maybe_unused]] png_structp pp, png_alloc_size_t size) {
     if (!png_memory.has_value()) {
         png_memory = buddy::scratch_buffer::Ownership();
         png_memory->acquire(/*wait=*/true);
@@ -501,7 +501,7 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
     return p;
 }
 
-void _pngfree(png_structp pp, png_voidp mem) {
+void _pngfree([[maybe_unused]] png_structp pp, png_voidp mem) {
     int i;
 
     for (i = 0; i < 10; i++)
@@ -580,7 +580,7 @@ void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
             uint16_t h = png_get_image_height(pp, ppi);
 
             int rowsize = png_get_rowbytes(pp, ppi);
-            int pixsize = rowsize / w;
+            volatile int pixsize = rowsize / w;
 
             // check image type (indexed or other color type)
             png_byte colorType = png_get_color_type(pp, ppi);
@@ -771,8 +771,8 @@ void st7789v_gamma_set(uint8_t gamma) {
 
 // returns 0 - 3
 uint8_t st7789v_gamma_get() {
-    uint8_t position = 0;
-    for (int8_t position = 3; position >= 0; --position) {
+    uint8_t position = 3;
+    for (; position != 0; --position) {
         if (st7789v_config.gamma == 1 << position)
             break;
     }

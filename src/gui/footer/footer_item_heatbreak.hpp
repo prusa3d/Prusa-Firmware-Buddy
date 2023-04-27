@@ -12,6 +12,5 @@ class FooterItemHeatBreak : public AddSuperWindow<FooterIconText_IntVal> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName();
     FooterItemHeatBreak(window_t *parent);
 };

@@ -26,11 +26,7 @@ private:
     void draw_n_btns(size_t btn_count);
 
     Rect16 getIconRect(uint8_t idx) const;
-    Rect16 getHorizontalIconRect(uint8_t idx) const;
-    Rect16 getVerticalIconRect(uint8_t idx) const;
     Rect16 getLabelRect(uint8_t idx) const;
-    Rect16 getHorizontalLabelRect(uint8_t idx) const;
-    Rect16 getVerticalLabelRect(uint8_t idx) const;
 
     struct Layout {
         PhaseTexts txts_to_print;
@@ -81,4 +77,9 @@ protected:
     static size_t cnt_labels(const PhaseTexts *labels);
     static size_t cnt_responses(Responses_t resp);
     static size_t cnt_buttons(const PhaseTexts *labels, Responses_t resp);
+
+    //radio buttons currently do not support layout change
+    //it is done by having multiple radio buttons and show/hide them
+    virtual void setRedLayout() override {}
+    virtual void setBlackLayout() override {}
 };

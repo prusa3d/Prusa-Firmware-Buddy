@@ -6,7 +6,7 @@
 
 namespace power_panic {
 
-enum class AcFaultState : uint8_t {
+enum class PPState : uint8_t {
     Inactive,
     Prepared,
     Triggered,
@@ -16,11 +16,11 @@ enum class AcFaultState : uint8_t {
 };
 
 // A power panic is triggered only in the event of an AC power failure in the print state
-// ac_power_fault is set in all cases of AC power failure (it is used to disable EEPROM writing)
-extern std::atomic_bool ac_power_fault;
+// ac_power_fault_is_checked is set in all cases of AC power failure (it is used to disable EEPROM writing)
+extern std::atomic_bool ac_power_fault_is_checked;
 
 // TODO: internal state can be hidden by improving the interface
-extern AcFaultState ac_fault_state;
+extern PPState power_panic_state;
 
 // Return true if print state has been stored
 bool state_stored();
@@ -60,6 +60,6 @@ extern osThreadId ac_fault_task;
 void ac_fault_main(void const *argument);
 
 // Current acFault pin status
-bool is_panic_signal();
+bool is_ac_fault_signal();
 
 };

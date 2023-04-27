@@ -7,6 +7,7 @@
 //inherit, use ctor ti pass additional param
 class WinFilter {
 public:
+    virtual ~WinFilter() = default;
     virtual bool operator()(const window_t &) const = 0;
 };
 

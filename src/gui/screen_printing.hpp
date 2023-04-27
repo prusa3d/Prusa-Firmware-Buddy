@@ -29,20 +29,6 @@ enum class printing_state_t : uint8_t {
     COUNT //setting this state == forced update
 };
 
-enum class item_id_t {
-    settings,
-    pause,
-    pausing,
-    stop,
-    resume,
-    resuming,
-    reheating,
-    reprint,
-    home,
-    skip,
-    count
-};
-
 constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
@@ -87,17 +73,12 @@ protected:
 
 private:
     void invalidate_print_state();
-    void disable_tune_button();
-    void enable_tune_button();
     void updateTimes();
 
 #if defined(USE_ST7789)
     void update_print_duration(time_t rawtime);
 #endif // USE_ST7789
     void screen_printing_reprint();
-    void set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl);
-    void enable_button(window_icon_t *p_button);
-    void disable_button(window_icon_t *p_button);
     void set_pause_icon_and_label();
     void set_tune_icon_and_label();
     void set_stop_icon_and_label();

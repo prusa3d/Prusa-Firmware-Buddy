@@ -25,6 +25,7 @@
  */
 
 #include "motion.h"
+#include "bsod_gui.hpp"
 #include "endstops.h"
 #include "stepper.h"
 #include "planner.h"
@@ -34,6 +35,7 @@
 
 #include "../inc/MarlinConfig.h"
 #include "../Marlin.h"
+#include "../../../../../src/common/eeprom.h"
 
 #include "metric.h"
 #include "PersistentStorage.h"
@@ -159,7 +161,12 @@ xyze_pos_t destination; // {0}
 // no other feedrate is specified. Overridden for special moves.
 // Set by the last G0 through G5 command's "F" parameter.
 // Functions that override this for custom moves *must always* restore it!
-feedRate_t feedrate_mm_s = MMM_TO_MMS(1500);
+feedRate_t feedrate_mm_s =
+  #ifdef DEFAULT_FEEDRATE
+    DEFAULT_FEEDRATE;
+  #else
+    MMM_TO_MMS(1500);
+  #endif
 int16_t feedrate_percentage = 100;
 
 // Homing feedrate is const progmem - compare to constexpr in the header
@@ -172,7 +179,14 @@ const feedRate_t homing_feedrate_mm_s[XYZ] PROGMEM = {
   MMM_TO_MMS(HOMING_FEEDRATE_Z)
 };
 
-static const uint8_t homing_bump_divisor[] PROGMEM = HOMING_BUMP_DIVISOR;
+#if ENABLED(PRECISE_HOMING)
+float homing_bump_divisor[] = { 0, 0, 0 }; // on printers with PRECISE_HOMING, the divisor will be loaded from eeprom
+static const float homing_bump_divisor_dflt[] PROGMEM = HOMING_BUMP_DIVISOR;
+static const float homing_bump_divisor_max[] PROGMEM = HOMING_BUMP_DIVISOR_MAX;
+static const float homing_bump_divisor_min[] PROGMEM = HOMING_BUMP_DIVISOR_MIN;
+#else
+float homing_bump_divisor[] = HOMING_BUMP_DIVISOR;
+#endif
 
 // Cartesian conversion result goes here:
 xyz_pos_t cartes;
@@ -1141,10 +1155,10 @@ bool axis_unhomed_error(uint8_t axis_bits/*=0x07*/) {
  * Homing bump feedrate (mm/s)
  */
 feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
-  uint8_t hbd = pgm_read_byte(&homing_bump_divisor[axis]);
-  if (hbd < 1) {
+  float hbd = homing_bump_divisor[axis];
+  if (hbd < 0.5) {
     hbd = 10;
-    SERIAL_ECHO_MSG("Warning: Homing Bump Divisor < 1");
+    SERIAL_ECHO_MSG("Warning: Homing Bump Divisor < 0.5");
   }
   return homing_feedrate(axis) / float(hbd);
 }
@@ -1361,15 +1375,9 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
 
 /**
  * Home an individual linear axis
+ * @param homing_z_with_probe false to use sensorless homing instead of probe
  */
-void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s
-  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-    , bool can_move_back_before_homing
-  #endif
-  #if HOMING_Z_WITH_PROBE
-  , bool homing_z_with_probe
-  #endif /*HOMING_Z_WITH_PROBE*/
-) {
+void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s, [[maybe_unused]] bool can_move_back_before_homing, [[maybe_unused]] bool homing_z_with_probe) {
 
   if (DEBUGGING(LEVELING)) {
     DEBUG_ECHOPAIR(">>> do_homing_move(", axis_codes[axis], ", ", distance, ", ");
@@ -1392,40 +1400,27 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
     }
   #endif
 
-  #if HOMING_Z_WITH_PROBE && ENABLED(NOZZLE_LOAD_CELL)
-    bool moving_probe_toward_bed = false;
-    if (homing_z_with_probe) {
-      // Only do some things when moving towards an endstop
-      const int8_t axis_home_dir =
-      #if ENABLED(DUAL_X_CARRIAGE)
-        (axis == X_AXIS) ? x_home_dir(active_extruder) :
-      #endif
-      home_dir(axis);
-      const bool is_home_dir = (axis_home_dir > 0) == (distance > 0);
-      moving_probe_toward_bed = (is_home_dir && (Z_AXIS == axis));
-      auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, moving_probe_toward_bed);
-      if (moving_probe_toward_bed)
-        loadcell.Tare(Loadcell::TareMode::Continuous);
-      auto H = loadcell.CreateLoadAboveErrEnforcer(3000, moving_probe_toward_bed);
-    }
-  #endif
-
-
     #if ENABLED(SENSORLESS_HOMING)
       sensorless_t stealth_states;
     #endif
 
   #if HOMING_Z_WITH_PROBE && QUIET_PROBING
-    if (homing_z_with_probe) {
-      if (axis == Z_AXIS) probing_pause(true);
+    if (axis == Z_AXIS && homing_z_with_probe) {
+      probing_pause(true);
     }
+  #endif
+
+  #if HOMING_Z_WITH_PROBE
+    [[maybe_unused]] bool moving_probe_toward_bed = false;
+    if (axis == Z_AXIS && homing_z_with_probe)
+      moving_probe_toward_bed = (home_dir(axis) > 0) == (distance > 0);
   #endif
 
       // Disable stealthChop if used. Enable diag1 pin on driver.
       #if ENABLED(SENSORLESS_HOMING)
         bool enable_sensorless_homing =
-        #if HOMING_Z_WITH_PROBE && ENABLED(NOZZLE_LOAD_CELL)
-          !moving_probe_toward_bed
+        #if HOMING_Z_WITH_PROBE && !Z_SENSORLESS
+          !moving_probe_toward_bed || !homing_z_with_probe
         #else
           true
         #endif
@@ -1464,6 +1459,16 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   }
   #endif
 
+  #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
+    if (homing_z_with_probe) {
+      endstops.enable_z_probe(moving_probe_toward_bed);
+    }
+
+    // These guards cannot be hidden behind if (homing_z_with_probe) {
+    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, moving_probe_toward_bed && homing_z_with_probe);
+    auto H = loadcell.CreateLoadAboveErrEnforcer(3000, moving_probe_toward_bed && homing_z_with_probe);
+  #endif
+
   #if IS_SCARA
     // Tell the planner the axis is at 0
     current_position[axis] = 0;
@@ -1492,9 +1497,15 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
 
   planner.synchronize();
 
-  #if HOMING_Z_WITH_PROBE && QUIET_PROBING
+  #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
     if (homing_z_with_probe) {
-      if (axis == Z_AXIS) probing_pause(false);
+      endstops.enable_z_probe(false);
+    }
+  #endif
+
+  #if HOMING_Z_WITH_PROBE && QUIET_PROBING
+    if (axis == Z_AXIS && homing_z_with_probe) {
+      probing_pause(false);
     }
   #endif
 
@@ -1511,6 +1522,49 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
       #endif
 
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< do_homing_move(", axis_codes[axis], ")");
+}
+
+static void do_blocking_move_axis(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s) {
+  if (DEBUGGING(LEVELING)) {
+    DEBUG_ECHOPAIR(">>> do_blocking_move_axis(", axis_codes[axis], ", ", distance, ", ");
+    if (fr_mm_s)
+      DEBUG_ECHO(fr_mm_s);
+    else
+      DEBUG_ECHOPAIR("[", homing_feedrate(axis), "]");
+    DEBUG_ECHOLNPGM(")");
+  }
+
+  const feedRate_t real_fr_mm_s = fr_mm_s ?: homing_feedrate(axis);
+
+  #if IS_SCARA
+    // Tell the planner the axis is at 0
+    current_position[axis] = 0;
+    sync_plan_position();
+    current_position[axis] = distance;
+    line_to_current_position(real_fr_mm_s);
+  #else
+    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    target[axis] = 0;
+    planner.set_machine_position_mm(target);
+    target[axis] = distance;
+
+    #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+      const xyze_float_t delta_mm_cart{0};
+    #endif
+
+    // Set delta/cartesian axes directly
+    planner.buffer_segment(target
+      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
+        , delta_mm_cart
+      #endif
+      , real_fr_mm_s, active_extruder
+    );
+
+  #endif
+
+  planner.synchronize();
+
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< do_blocking_move_axis(", axis_codes[axis], ")");
 }
 
 /**
@@ -1530,8 +1584,10 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
  * both are at home. Z can however be homed individually.
  *
  * Callers must sync the planner position after calling this!
+ *
+ * @param homing_z_with_probe false when sensorless homing was used instead of probe
  */
-void set_axis_is_at_home(const AxisEnum axis) {
+void set_axis_is_at_home(const AxisEnum axis, [[maybe_unused]] bool homing_z_with_probe) {
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> set_axis_is_at_home(", axis_codes[axis], ")");
 
   SBI(axis_known_position, axis);
@@ -1612,16 +1668,15 @@ void set_axis_is_at_home(const AxisEnum axis) {
   #if HAS_BED_PROBE && Z_HOME_DIR < 0
     if (axis == Z_AXIS) {
       #if HOMING_Z_WITH_PROBE
+        if (homing_z_with_probe) {
+          current_position.z -= probe_offset.z;
 
-        current_position.z -= probe_offset.z;
-
-        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("*** Z HOMED WITH PROBE (Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN) ***\n> probe_offset.z = ", probe_offset.z);
-
-      #else
-
+          if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("*** Z HOMED WITH PROBE (Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN) ***\n> probe_offset.z = ", probe_offset.z);
+        } else
+      #endif /*HOMING_Z_WITH_PROBE*/
+      {
         if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("*** Z HOMED TO ENDSTOP ***");
-
-      #endif
+      }
     }
   #endif
 
@@ -1659,7 +1714,7 @@ void set_axis_is_not_at_home(const AxisEnum axis) {
 }
 
 // declare function used by homeaxis
-static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s=0.0, bool invert_home_dir=false);
+static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s=0.0, bool invert_home_dir=false, bool homing_z_with_probe = true);
 
 // those metrics are intentionally not static, as it is expected that they might be referenced
 // from outside this file for early registration
@@ -1685,7 +1740,7 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
   }
 
   // convert raw AB steps to XY mm, filling others from current state
-  static void corexy_ab_to_xyze(const xy_long_t& steps, xyze_pos_t& mm) {
+  void corexy_ab_to_xyze(const xy_long_t& steps, xyze_pos_t& mm) {
     corexy_ab_to_xy(steps, mm);
     LOOP_S_L_N(i, C_AXIS, XYZE_N) {
       mm[i] = planner.get_axis_position_mm((AxisEnum)i);
@@ -1759,7 +1814,16 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
     return (phase_cur <= ustep_max || phase_cur >= (1024 - ustep_max));
   }
 
-  static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_t& m_steps, float& m_dist) {
+  /**
+   * @brief Part of precise homing.
+   * @param origin_steps
+   * @param dist
+   * @param m_steps
+   * @param m_dist
+   * @param orig_crash whether crash_s was active before temporarily disabling it
+   * @return
+   */
+  static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_t& m_steps, float& m_dist, const bool orig_crash) {
     // full initial position
     xyze_long_t initial_steps = { origin_steps.a, origin_steps.b, stepper.position(C_AXIS), stepper.position(E_AXIS) };
     xyze_pos_t initial_mm;
@@ -1806,10 +1870,14 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
     plan_raw_move(initial_mm, initial_pos, initial_steps - hit_steps, homing_feedrate(B_AXIS));
 
     // sanity checks
-    if(hit_steps.a != initial_steps.a || initial_steps.a != stepper.position(A_AXIS))
-      bsod("A_AXIS didn't return");
-    if(initial_steps.b != stepper.position(B_AXIS))
-      bsod("B_AXIS didn't return");
+    if(hit_steps.a != initial_steps.a || initial_steps.a != stepper.position(A_AXIS)) {
+      ui.status_printf_P(0, "A_AXIS didn't return");
+      homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
+    }
+    if(initial_steps.b != stepper.position(B_AXIS)) {
+      ui.status_printf_P(0, "B_AXIS didn't return");
+      homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
+    }
 
     // result values
     m_steps = hit_steps.b - initial_steps.b;
@@ -1817,7 +1885,23 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
     return hit;
   }
 
-  static bool measure_phase_cycles(int32_t& c_dist_a, int32_t& c_dist_b) {
+  /**
+   * @brief Return struct for measure_phase_cycles.
+   */
+  struct measure_phase_cycles_ret {
+    bool output_valid; // c_dist_n are valid and position can be refined
+    bool success; // True on success
+    measure_phase_cycles_ret(bool output_valid_, bool success_) : output_valid(output_valid_), success(success_) {}
+  };
+
+  /**
+   * @brief Part of precise homing.
+   * @param c_dist_a
+   * @param c_dist_b
+   * @param orig_crash whether crash_s was active before temporarily disabling it
+   * @return output validity and successfulness
+   */
+  static measure_phase_cycles_ret measure_phase_cycles(int32_t& c_dist_a, int32_t& c_dist_b, const bool orig_crash) {
     const int32_t measure_max_dist = (XY_HOMING_ORIGIN_OFFSET * 4) / planner.mm_per_step[B_AXIS];
     xy_long_t origin_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS) };
     const int n = 2;
@@ -1829,12 +1913,15 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
       uint8_t slot2 = (retry - 1) % n;
 
       // measure distance B+/B-
-      if(!measure_b_axis_distance(origin_steps, measure_max_dist, m_steps[slot].b, m_dist[slot].b)
-      || !measure_b_axis_distance(origin_steps, -measure_max_dist, m_steps[slot].a, m_dist[slot].a)) {
-        if(planner.draining())
-          return false;
-        else
-          bsod("endstop not reached");
+      if(!measure_b_axis_distance(origin_steps, measure_max_dist, m_steps[slot].b, m_dist[slot].b, orig_crash)
+      || !measure_b_axis_distance(origin_steps, -measure_max_dist, m_steps[slot].a, m_dist[slot].a, orig_crash)) {
+        if(planner.draining()) {
+          return {false, true}; // Do not refine position but end succesfully
+        } else {
+          ui.status_printf_P(0, "Endstop not reached");
+          homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
+          return {false, false}; // Homing failed
+        }
       }
 
       // keep signs positive
@@ -1845,8 +1932,11 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
       && ABS(m_dist[slot].b - m_dist[slot2].b) < XY_HOMING_ORIGIN_BUMPS_MAX_ERR)
         break;
     }
-    if(retry == XY_HOMING_ORIGIN_MAX_RETRIES)
-      bsod("precise refinement failed");
+    if(retry == XY_HOMING_ORIGIN_MAX_RETRIES) {
+      ui.status_printf_P(0, "Precise refinement failed"); //User is most likely to get this version of ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED
+      homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
+      return {false, false}; // Homing failed
+    }
 
     // calculate the absolute cycle coordinates
     const int32_t c_steps_a = phase_cycle_steps(A_AXIS);
@@ -1864,7 +1954,7 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
       SERIAL_ECHOLNPAIR("home B+ steps 1: ", m_steps[0].a, " 2: ", m_steps[1].a, " cycle:", c_dist_a);
       SERIAL_ECHOLNPAIR("home B- steps 1: ", m_steps[0].b, " 2: ", m_steps[1].b, " cycle:", c_dist_b);
     }
-    return true;
+    return {true, true}; // Success
   }
 
   static bool wait_for_standstill(uint8_t axis_mask, millis_t max_delay = 150) {
@@ -1888,13 +1978,20 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
     }
   }
 
-  void refine_corexy_origin() {
+  /**
+   * @brief Precise homing on core-XY.
+   * @return true on success
+   */
+  bool refine_corexy_origin() {
     // finish previous moves and disable main endstop/crash recovery handling
     planner.synchronize();
     endstops.not_homing();
     #if ENABLED(CRASH_RECOVERY)
       Crash_Temporary_Deactivate ctd;
-    #endif
+      const bool orig_crash = ctd.get_orig_state();
+    #else /*ENABLED(CRASH_RECOVERY)*/
+      constexpr bool orig_crash = false;
+    #endif /*ENABLED(CRASH_RECOVERY)*/
 
     // reposition parallel to the origin
     float fr_mm_s = homing_feedrate(A_AXIS);
@@ -1913,11 +2010,13 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
     // sanity checks
     wait_for_standstill(_BV(A_AXIS) | _BV(B_AXIS));
     if (!phase_aligned(A_AXIS) || !phase_aligned(B_AXIS)) {
-      if (planner.draining()) return;
+      if (planner.draining()) return true;
 
       SERIAL_ECHOLN("phase alignment failed");
       SERIAL_ECHOLNPAIR("phase A:", stepperX.MSCNT(), " B:", stepperY.MSCNT());
-      bsod("phase alignment failed");
+      ui.status_printf_P(0, "Phase alignment failed");
+      homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
+      return false;
     }
 
     // increase current of the holding motor
@@ -1926,8 +2025,9 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
     stepperX.rms_current(XY_HOMING_HOLDING_CURRENT_A, 1.);
 
     // measure from current origin
-    int32_t c_dist_a, c_dist_b;
-    if(measure_phase_cycles(c_dist_a, c_dist_b)) {
+    int32_t c_dist_a = 0, c_dist_b = 0;
+    auto ret = measure_phase_cycles(c_dist_a, c_dist_b, orig_crash);
+    if(ret.output_valid) {
       // convert the full cycle back to steps
       xy_long_t c_ab = { c_dist_a * phase_cycle_steps(A_AXIS), c_dist_b * phase_cycle_steps(B_AXIS) };
       xy_pos_t c_mm;
@@ -1939,8 +2039,90 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
 
     // restore current
     stepperX.rms_current(orig_cur, orig_hold);
+
+    return ret.success;
   }
 #endif // ENABLED(PRECISE_HOMING_COREXY)
+
+// in order to enable wavetable, we need to move the stepper to its zero-position so that it is safe
+// in order to reach zero-position, we must reconfigure the stepper to single-microstep stepping
+// in order to configure the stepper back, we need to step back to its natural position
+void do_blocking_move_enable_wavetable(const AxisEnum axis, void (*enable_wavetable)(AxisEnum), int direction, float min_mm, feedRate_t fdrt) {
+    float min_mm1 = min_mm / 2, min_mm2 = min_mm / 2;
+
+    uint16_t tmp_microsteps = planner.nsteps_per_qstep(axis) / 4;
+    uint16_t orig_microsteps = stepper_microsteps(axis, tmp_microsteps);
+    uint16_t ustep_ratio = tmp_microsteps / orig_microsteps; // assert tmp_microsteps % orig_microsteps == 0
+
+    // reeconfigure stepper to stepping by single-usteps, i.e. tmp_microsteps
+    float bck_steps_per_mm = planner.settings.axis_steps_per_mm[axis];
+    float bck_mm_per_step = planner.mm_per_step[axis];
+    planner.settings.axis_steps_per_mm[axis] *= ustep_ratio;
+    planner.mm_per_step[axis] /= ustep_ratio;
+    planner.position[axis] *= ustep_ratio;
+
+    // calculate distance so that we end at stepper zero, going by at least min_mm/2
+    float amount_mm = planner.mm_per_qsteps(axis, (uint32_t)(min_mm1 * planner.qsteps_per_mm(axis)) + 1);
+    amount_mm += planner.distance_to_stepper_zero(axis, has_inverted_axis(axis));
+
+    // go down the calculated distance
+    current_position[axis] += ABS(amount_mm) * direction;
+    line_to_current_position(fdrt); // NOTE by recofiguring planner, the speed is also proportionally slowed down. This is OK since we need to go slow in order not to loose steps.
+    planner.synchronize();
+
+    // enable wavetable for this axis
+    enable_wavetable(axis);
+
+    // calculate distance so we end up at stepper position valid for originally configured steps, going by at least min_mm/2
+    amount_mm = planner.mm_per_qsteps(axis, (uint32_t)(min_mm2 * planner.qsteps_per_mm(axis)) + 1);
+    uint16_t go_to_ustep = tmp_microsteps / orig_microsteps / 2;
+    amount_mm += go_to_ustep * planner.mm_per_step[axis];
+
+    // go down the calculated distance
+    current_position[axis] += ABS(amount_mm) * direction;
+    line_to_current_position(fdrt);
+    planner.synchronize();
+
+    // configure back steps to original state
+    (void)stepper_microsteps(axis, orig_microsteps);
+    planner.settings.axis_steps_per_mm[axis] = bck_steps_per_mm;
+    planner.mm_per_step[axis] = bck_mm_per_step;
+    planner.position[axis] /= ustep_ratio;
+}
+
+/**
+ * @brief Call this when homing fails, it will try to recover.
+ * After calling this, homing needs to end right away with fail return.
+ * @param fallback_error called when homing cannot be recovered
+ * @param crash_was_active true if crash recovery was active, this is used if crash_recovery was temporarily disabled
+ */
+void homing_failed(std::function<void()> fallback_error, [[maybe_unused]] bool crash_was_active) {
+  #if ENABLED(CRASH_RECOVERY)
+    const bool is_active = crash_s.is_active();
+    if ((is_active || crash_was_active) // Allow if crash recovery was temporarily disabled
+      && (crash_s.get_state() == Crash_s::PRINTING)) {
+      if (!is_active && crash_was_active) {
+        crash_s.activate(); // Reactivate temporarily disabled crash recovery
+      }
+      if (crash_s.is_toolchange_in_progress()) {
+        crash_s.set_state(Crash_s::TRIGGERED_TOOLCRASH);
+      } else {
+        crash_s.set_state(Crash_s::TRIGGERED_HOMEFAIL);
+      }
+      return;
+    }
+
+    if ((crash_s.get_state() == Crash_s::TRIGGERED_ISR)       // ISR crash happened, it will replay homing
+      || (crash_s.get_state() == Crash_s::TRIGGERED_HOMEFAIL) // Rehoming is already in progress
+      || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
+      || (crash_s.get_state() == Crash_s::RECOVERY) // Recovery in progress, it will know that homing didn't succeed from return
+      || (crash_s.get_state() == Crash_s::REPEAT_WAIT)) {
+      return; // Ignore
+    }
+  #endif /*ENABLED(CRASH_RECOVERY)*/
+
+  fallback_error();
+}
 
 /**
  * Home an individual "raw axis" to its endstop.
@@ -1959,17 +2141,22 @@ metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_H
  *  @arg @c true Home to opposite end of axis than default.
  *               Warning - axis is considered homed and in known position.
  *               @todo Current position is wrong in case of invert_home_dir true after this call.
+ * @param enable_wavetable pointer to reenable wavetable during backoff move
  * @param can_calibrate allows/avoids re-calibration if homing is not successful
+ * @param homing_z_with_probe default true, set to false to home without using probe (useful to calibrate Z on XL)
+ * @return true on success
  */
-
-void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_dir OPTARG(PRECISE_HOMING, bool can_calibrate)) {
+bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_dir, void (*enable_wavetable)(AxisEnum), [[maybe_unused]] bool can_calibrate, bool homing_z_with_probe) {
 
   // clear the axis state while running
   CBI(axis_known_position, axis);
 
   #if ENABLED(CRASH_RECOVERY)
     Crash_Temporary_Deactivate ctd;
-  #endif
+    const bool orig_crash = ctd.get_orig_state();
+  #else /*ENABLED(CRASH_RECOVERY)*/
+    constexpr bool orig_crash = false;
+  #endif /*ENABLED(CRASH_RECOVERY)*/
 
   #if IS_SCARA
     // Only Z homing (with probe) is permitted
@@ -1992,7 +2179,7 @@ void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
     #else
       #define CAN_HOME_Z _CAN_HOME(Z)
     #endif
-    if (!CAN_HOME_X && !CAN_HOME_Y && !CAN_HOME_Z) return;
+    if (!CAN_HOME_X && !CAN_HOME_Y && !CAN_HOME_Z) return true;
   #endif
 
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> homeaxis(", axis_codes[axis], ")");
@@ -2004,10 +2191,10 @@ void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
       invert_home_dir ? (-home_dir(axis)) : home_dir(axis)
   );
 
+  #ifdef HOMING_MAX_ATTEMPTS
   const float* min_diff = invert_home_dir ? axis_home_invert_min_diff : axis_home_min_diff;
   const float* max_diff = invert_home_dir ? axis_home_invert_max_diff : axis_home_max_diff;
 
-  #ifdef HOMING_MAX_ATTEMPTS
     float probe_offset;
     for(size_t attempt = 0;;) {
       #if ENABLED(PRECISE_HOMING)
@@ -2018,11 +2205,26 @@ void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
         else
       #endif // ENABLED(PRECISE_HOMING)
         {
-          probe_offset = homeaxis_single_run(axis, axis_home_dir, fr_mm_s, invert_home_dir) * static_cast<float>(axis_home_dir);
+          if (attempt > 0 && axis == Z_AXIS) {
+            // Z has no move back and after the first attempt we might be left too close on the
+            // build plate (for example, with a loadcell we're _on_ the plate). Move back now before
+            // we attempt to probe again so that we can zero the sensor again.
+            float bump = axis_home_dir * (
+              #if HOMING_Z_WITH_PROBE
+                (axis == Z_AXIS && homing_z_with_probe && (Z_HOME_BUMP_MM)) ? _MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_HOME_BUMP_MM) :
+              #endif
+              home_bump_mm(axis)
+            );
+            current_position[axis] -= bump;
+            line_to_current_position(fr_mm_s ? fr_mm_s : homing_feedrate(Z_AXIS));
+            planner.synchronize();
+          }
+
+          probe_offset = homeaxis_single_run(axis, axis_home_dir, fr_mm_s, invert_home_dir, homing_z_with_probe) * static_cast<float>(axis_home_dir);
         }
       if (planner.draining()) {
         // move intentionally aborted, do not retry/kill
-        return;
+        return true;
       }
 
       // check if the offset is acceptable
@@ -2032,22 +2234,18 @@ void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
 
       // check whether we should try again
       if (++attempt >= HOMING_MAX_ATTEMPTS) {
-        #if ENABLED(NO_HALT_ON_HOMING_ERROR)
-          return;
-        #else
-          // not OK run out attempts
-          switch (axis) {
-          case X_AXIS:
-            kill(GET_TEXT(MSG_ERR_HOMING_X));
-            break;
-          case Y_AXIS:
-            kill(GET_TEXT(MSG_ERR_HOMING_Y));
-            break;
-          default:
-            kill(GET_TEXT(MSG_ERR_HOMING_Z));
-            break;
-          }
-        #endif
+        // not OK run out attempts
+        switch (axis) {
+        case X_AXIS:
+          homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X); }, orig_crash);
+          return false;
+        case Y_AXIS:
+          homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Y); }, orig_crash);
+          return false;
+        default:
+          homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z); }, orig_crash);
+          return false;
+        }
       }
 
       if((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir){
@@ -2069,30 +2267,44 @@ void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
       #endif
     ];
     if (backoff_mm) {
-      current_position[axis] -= ABS(backoff_mm) * axis_home_dir;
-      line_to_current_position(
-        #if HOMING_Z_WITH_PROBE
-          (axis == Z_AXIS) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
-        #endif
-        homing_feedrate(axis)
-      );
-      planner.synchronize();
+      if (enable_wavetable != NULL) {
+        do_blocking_move_enable_wavetable(axis, enable_wavetable, -axis_home_dir, backoff_mm,
+          #if HOMING_Z_WITH_PROBE
+            (axis == Z_AXIS && homing_z_with_probe) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
+          #endif
+          homing_feedrate(axis)
+        );
+      } else {
+        current_position[axis] -= ABS(backoff_mm) * axis_home_dir;
+        line_to_current_position(
+          #if HOMING_Z_WITH_PROBE
+            (axis == Z_AXIS && homing_z_with_probe) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
+          #endif
+          homing_feedrate(axis)
+        );
+        planner.synchronize();
+      }
       SERIAL_ECHO_START();
       SERIAL_ECHOLNPAIR_F("Backoff ipos:", stepper.position_from_startup(axis));
     }
   #endif
+
+  return true;
 }
 
 /**
  * home axis and
  * return distance between fast and slow probe
+ * @param homing_z_with_probe default true, set to false to home without using probe (useful to calibrate Z on XL)
  */
-static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s, bool invert_home_dir) {
+static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s, bool invert_home_dir, bool homing_z_with_probe) {
   int steps;
 
   // Homing Z towards the bed? Deploy the Z probe or endstop.
   #if HOMING_Z_WITH_PROBE
-    if (axis == Z_AXIS && DEPLOY_PROBE()) return NAN;
+    if (axis == Z_AXIS && homing_z_with_probe && DEPLOY_PROBE()) {
+      return NAN;
+    }
   #endif
 
   // Set flags for X, Y, Z motor locking
@@ -2116,8 +2328,16 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 1 Fast:");
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-    if (axis == Z_AXIS && bltouch.deploy()) return NAN; // The initial DEPLOY
+    if (axis == Z_AXIS && homing_z_with_probe && bltouch.deploy()) {
+      return NAN; // The initial DEPLOY
+    }
   #endif
+
+  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
+    if ((axis == X_AXIS) || (axis == Y_AXIS)) {
+      do_blocking_move_axis(axis, axis_home_dir * -MOVE_BACK_BEFORE_HOMING_DISTANCE, fr_mm_s);
+    }
+  #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
 
   do_homing_move(axis, 1.5f * max_length(
     #if ENABLED(DELTA)
@@ -2125,22 +2345,20 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     #else
       axis
     #endif
-      ) * axis_home_dir, fr_mm_s
-  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-      , true
-  #endif // ENABLED(MOVE_BACK_BEFORE_HOMING)
-  );
+      ) * axis_home_dir, fr_mm_s, false, homing_z_with_probe);
 
   steps = stepper.position_from_startup(axis);
 
   #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
-    if (axis == Z_AXIS) bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
+    if (axis == Z_AXIS && homing_z_with_probe) {
+      bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
+    }
   #endif
 
   // When homing Z with probe respect probe clearance
   float bump = axis_home_dir * (
     #if HOMING_Z_WITH_PROBE
-      (axis == Z_AXIS && (Z_HOME_BUMP_MM)) ? _MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_HOME_BUMP_MM) :
+      (axis == Z_AXIS && homing_z_with_probe && (Z_HOME_BUMP_MM)) ? _MAX(Z_CLEARANCE_BETWEEN_PROBES, Z_HOME_BUMP_MM) :
     #endif
     home_bump_mm(axis)
   );
@@ -2149,21 +2367,15 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
   if (bump) {
     // Move away from the endstop by the axis HOME_BUMP_MM
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move Away:");
-    do_homing_move(axis, -bump , fr_mm_s
-    #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-      , false
-    #endif
-    #if HOMING_Z_WITH_PROBE
-      , false // Just homed to the axis end, can move without probe with very little risk
-      // This is needed to align Z if no tool is picked
-    #endif /*HOMING_Z_WITH_PROBE*/
-    ); 
+    do_blocking_move_axis(axis, -bump, fr_mm_s);
 
     // Slow move towards endstop until triggered
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 2 Slow:");
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
-      if (axis == Z_AXIS && bltouch.deploy()) return NAN; // Intermediate DEPLOY (in LOW SPEED MODE)
+      if (axis == Z_AXIS && homing_z_with_probe && bltouch.deploy()) {
+        return NAN; // Intermediate DEPLOY (in LOW SPEED MODE)
+      }
     #endif
 
     MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0();
@@ -2171,30 +2383,24 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     #if HOMING_Z_WITH_PROBE
     if (axis == Z_AXIS) {
       if (axis_home_dir < 0) {
-        do_homing_move(axis, 2 * bump,
-          #if ENABLED(NOZZLE_LOAD_CELL)
-            MMM_TO_MMS(Z_PROBE_SPEED_FAST)
-          #else
-            MMM_TO_MMS(Z_PROBE_SPEED_SLOW)
-          #endif
-        );
+        do_homing_move(axis, 2 * bump, fr_mm_s, false, homing_z_with_probe);
+      } else {
+        // moving away from the bed
+        do_homing_move(axis, 2 * bump, HOMING_FEEDRATE_INVERTED_Z, false, homing_z_with_probe);
       }
-      else {
-        do_homing_move(axis, 2 * bump, HOMING_FEEDRATE_INVERTED_Z);
-      }
-    }
-    else {
-    #else //HOMING_Z_WITH_PROBE
-    {
+    } else
     #endif //HOMING_Z_WITH_PROBE
-      do_homing_move(axis, 2 * bump, fr_mm_s ? fr_mm_s : get_homing_bump_feedrate(axis));
+    {
+      do_homing_move(axis, 2 * bump, fr_mm_s ? fr_mm_s : get_homing_bump_feedrate(axis), false, homing_z_with_probe);
     }  
     steps -= stepper.position_from_startup(axis);
 
     #if HOMING_Z_WITH_PROBE && ENABLED(BLTOUCH)
-      if (axis == Z_AXIS) bltouch.stow(); // The final STOW
+      if (axis == Z_AXIS && homing_z_with_probe) {
+        bltouch.stow(); // The final STOW
+      }
     #endif
-  }  
+  }
 
   #if HAS_EXTRA_ENDSTOPS
     const bool pos_dir = axis_home_dir > 0;
@@ -2203,7 +2409,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
         const float adj = ABS(endstops.x2_endstop_adj);
         if (adj) {
           if (pos_dir ? (endstops.x2_endstop_adj > 0) : (endstops.x2_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
-          do_homing_move(axis, pos_dir ? -adj : adj);
+          do_homing_move(axis, pos_dir ? -adj : adj, 0, false, homing_z_with_probe);
           stepper.set_x_lock(false);
           stepper.set_x2_lock(false);
         }
@@ -2214,7 +2420,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
         const float adj = ABS(endstops.y2_endstop_adj);
         if (adj) {
           if (pos_dir ? (endstops.y2_endstop_adj > 0) : (endstops.y2_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
-          do_homing_move(axis, pos_dir ? -adj : adj);
+          do_homing_move(axis, pos_dir ? -adj : adj, 0, false, homing_z_with_probe);
           stepper.set_y_lock(false);
           stepper.set_y2_lock(false);
         }
@@ -2225,7 +2431,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
         const float adj = ABS(endstops.z2_endstop_adj);
         if (adj) {
           if (pos_dir ? (endstops.z2_endstop_adj > 0) : (endstops.z2_endstop_adj < 0)) stepper.set_z_lock(true); else stepper.set_z2_lock(true);
-          do_homing_move(axis, pos_dir ? -adj : adj);
+          do_homing_move(axis, pos_dir ? -adj : adj, 0, false, homing_z_with_probe);
           stepper.set_z_lock(false);
           stepper.set_z2_lock(false);
         }
@@ -2260,16 +2466,16 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
         if (pos_dir) {
           // normalize adj to smallest value and do the first move
           (*lock[0])(true);
-          do_homing_move(axis, adj[1] - adj[0]);
+          do_homing_move(axis, adj[1] - adj[0], 0, false, homing_z_with_probe);
           // lock the second stepper for the final correction
           (*lock[1])(true);
-          do_homing_move(axis, adj[2] - adj[1]);
+          do_homing_move(axis, adj[2] - adj[1], 0, false, homing_z_with_probe);
         }
         else {
           (*lock[2])(true);
-          do_homing_move(axis, adj[1] - adj[2]);
+          do_homing_move(axis, adj[1] - adj[2], 0, false, homing_z_with_probe);
           (*lock[1])(true);
-          do_homing_move(axis, adj[0] - adj[1]);
+          do_homing_move(axis, adj[0] - adj[1], 0, false, homing_z_with_probe);
         }
 
         stepper.set_z_lock(false);
@@ -2312,13 +2518,13 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     // retrace by the amount specified in delta_endstop_adj + additional dist in order to have minimum steps
     if (delta_endstop_adj[axis] * Z_HOME_DIR <= 0) {
       if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("delta_endstop_adj:");
-      do_homing_move(axis, delta_endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * planner.mm_per_step[axis] * Z_HOME_DIR);
+      do_homing_move(axis, delta_endstop_adj[axis] - (MIN_STEPS_PER_SEGMENT + 1) * planner.mm_per_step[axis] * Z_HOME_DIR, 0, false, homing_z_with_probe);
     }
 
   #else // CARTESIAN / CORE
 
     if (!invert_home_dir) {
-      set_axis_is_at_home(axis);
+      set_axis_is_at_home(axis, homing_z_with_probe);
     }
     sync_plan_position();
 
@@ -2330,7 +2536,9 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
 
   // Put away the Z probe
   #if HOMING_Z_WITH_PROBE
-    if (axis == Z_AXIS && STOW_PROBE()) return NAN;
+    if (axis == Z_AXIS && homing_z_with_probe && STOW_PROBE()) {
+      return NAN;
+    }
   #endif
 
   // Clear retracted status if homing the Z axis
@@ -2465,6 +2673,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
       SERIAL_ECHO_START();
       SERIAL_ECHOPAIR("Precise homing axis: ", axis);
       SERIAL_ECHOPAIR(" probe_offset: ", probe_offset);
+      SERIAL_ECHOPAIR(" HB divisor: ", homing_bump_divisor[axis]);
       SERIAL_ECHOPAIR(" mscnt: ", mscnt);
       SERIAL_ECHOPAIR(" ipos: ", stepper.position_from_startup(axis));
       if (calibrated) {
@@ -2477,6 +2686,41 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     } while(store_samples && !calibrated && !break_loop);
 
     return calibration_offset;
+  }
+
+  static void load_divisor_from_eeprom() {
+      for (int axis = 0; axis < XY; axis++) {
+          const float max = pgm_read_float(&homing_bump_divisor_max[axis]);
+          const float min = pgm_read_float(&homing_bump_divisor_min[axis]);
+          const float hbd = homing_bump_divisor[axis];
+          if (hbd >= min && hbd <= max) {
+              continue;
+          }
+
+          const float loaded = eeprom_get_flt(axis ? EEVAR_HOMING_BDIVISOR_Y : EEVAR_HOMING_BDIVISOR_X);
+          if (loaded >= min && loaded <= max) {
+              homing_bump_divisor[axis] = loaded;
+          } else {
+              homing_bump_divisor[axis] = pgm_read_float(&homing_bump_divisor_dflt[axis]);
+          }
+      }
+  }
+
+  static void homing_failed_update_divisor(AxisEnum axis) {
+      homing_bump_divisor[axis] *= HOMING_BUMP_DIVISOR_STEP;
+      const float max = pgm_read_float(&homing_bump_divisor_max[axis]);
+      const float min = pgm_read_float(&homing_bump_divisor_min[axis]);
+      const float hbd = homing_bump_divisor[axis];
+      __attribute__((unused)) const float dflt = pgm_read_float(&homing_bump_divisor_dflt[axis]);
+      if (hbd > max || /* shouldnt happen, just to make sure */ hbd < min) {
+          homing_bump_divisor[axis] = min;
+      }
+  }
+
+  static void save_divisor_to_eeprom(int try_nr, AxisEnum axis) {
+      if (try_nr > 0 && axis < XY) {
+          eeprom_set_flt(axis ? EEVAR_HOMING_BDIVISOR_Y : EEVAR_HOMING_BDIVISOR_X, homing_bump_divisor[axis]);
+      }
   }
 
   /**
@@ -2498,6 +2742,8 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
     float probe_offset;
     bool first_acceptable = false;
 
+    load_divisor_from_eeprom();
+
     for (int try_nr = 0; try_nr < tries; ++try_nr){
       const int32_t calibration_offset = home_and_get_calibration_offset(axis, axis_home_dir, probe_offset, can_calibrate);
       if (planner.draining()) {
@@ -2512,14 +2758,20 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
            || (probe_offset > axis_home_max_diff[axis])) {
         SERIAL_ECHOLN("failed.");
         ui.status_printf_P(0,"%c axis homing failed, retrying",axis_codes[axis]);
+        homing_failed_update_divisor(axis);
       } else if (std::abs(calibration_offset) <= perfect_offset) {
         SERIAL_ECHOLN("perfect.");
+        save_divisor_to_eeprom(try_nr, axis);
         return probe_offset;
       } else if ((std::abs(calibration_offset) <= acceptable_offset)) {
         SERIAL_ECHOLN("acceptable.");
-        if (try_nr >= accept_perfect_only_tries) return probe_offset;
+        if (try_nr >= accept_perfect_only_tries) {
+            save_divisor_to_eeprom(try_nr, axis);
+            return probe_offset;
+        }
         if(first_acceptable){
           ui.status_printf_P(0,"Updating precise home point %c axis",axis_codes[axis]);
+          homing_failed_update_divisor(axis);
         }
         first_acceptable = true;
       } else {

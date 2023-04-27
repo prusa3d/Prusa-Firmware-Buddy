@@ -35,6 +35,7 @@ target_sources(
           window_roll_text.cpp
           window_term.cpp
           window_text.cpp
+          WindowItemFormatableSpin.cpp
           WindowMenuInfo.cpp
           WindowMenuItems.cpp
           WindowMenuSpin.cpp

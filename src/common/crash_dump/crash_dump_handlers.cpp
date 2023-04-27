@@ -27,12 +27,12 @@ public:
         done,
     };
 
-    BuddyDumpRequest(const char *url_string)
+    BuddyDumpRequest(const char *url_string_)
         : hdrs {
             { "Content-Length", static_cast<size_t>(DUMP_FLASH_SIZE + DUMP_OTP_SIZE + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE), std::nullopt },
             { nullptr, nullptr, std::nullopt },
         }
-        , url_string(url_string) {}
+        , url_string(url_string_) {}
     const char *url() const override { return url_string; }
     http::ContentType content_type() const override {
         return http::ContentType::ApplicationOctetStream;
@@ -48,8 +48,8 @@ public:
             return static_cast<size_t>(0);
         }
 
-        static constexpr auto calculate_to_read = [](size_t idx, size_t size, size_t read, size_t max) {
-            return std::min(max - idx, size - read);
+        static constexpr auto calculate_to_read = [](size_t idx, size_t sz, size_t read, size_t max) {
+            return std::min(max - idx, sz - read);
         };
 
         static constexpr auto update_variables = [](size_t &idx, size_t &read, ReadState &state, size_t to_read, ReadState new_state, size_t max) {

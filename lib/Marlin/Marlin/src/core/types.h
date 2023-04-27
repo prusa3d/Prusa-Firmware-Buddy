@@ -26,6 +26,9 @@
 
 #include "../inc/MarlinConfigPre.h"
 
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 //
 // Conditional type assignment magic. For example...
 //
@@ -99,8 +102,8 @@ struct Flags {
   void set(const int n)                    { b |=  (bits_t)_BV(n); }
   void clear(const int n)                  { b &= ~(bits_t)_BV(n); }
   bool test(const int n) const             { return TEST(b, n); }
-  const bool operator[](const int n)       { return test(n); }
-  const bool operator[](const int n) const { return test(n); }
+  bool operator[](const int n)       { return test(n); }
+  bool operator[](const int n) const { return test(n); }
   int size() const                         { return sizeof(b); }
 };
 
@@ -760,3 +763,5 @@ struct XYZEval {
 #define LOOP_XYZE(VAR) LOOP_S_LE_N(VAR, X_AXIS, E_AXIS)
 #define LOOP_XYZE_N(VAR) LOOP_S_L_N(VAR, X_AXIS, XYZE_N)
 #define LOOP_ABCE(VAR) LOOP_S_LE_N(VAR, A_AXIS, E_AXIS)
+
+#pragma GCC diagnostic pop

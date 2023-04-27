@@ -1,14 +1,16 @@
 // bsod_gui.cpp - blue screen of death
 #include "bsod.h"
 #include "bsod_gui.hpp"
+#include "error_list.hpp"
 #include "wdt.h"
-#include <crash_dump/dump.h>
+#include <crash_dump/dump.hpp>
 #include "safe_state.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "led_animations/animation.hpp"
 
+#include <iterator>
 #include <stdarg.h>
 
 #include "sound.hpp"
@@ -156,6 +158,15 @@ char nth_char(const char str[], uint16_t nth) {
     return str[0];
 }
 
+const ErrDesc &find_error(const ErrCode error_code) {
+    // Iterating through error_list to find the error
+    const auto error = std::ranges::find_if(error_list, [error_code](const auto &elem) { return (elem.err_code) == error_code; });
+    if (error == std::end(error_list)) {
+        bsod("Unknown error");
+    }
+    return *error;
+}
+
 void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
 #ifdef _DEBUG
     // Breakpoint if debugger is connected
@@ -164,7 +175,7 @@ void raise_redscreen(ErrCode error_code, const char *error, const char *module) 
     }
 #endif /*_DEBUG*/
 
-    dump_err_to_xflash(static_cast<std::underlying_type_t<ErrCode>>(error_code), error, module);
+    crash_dump::dump_err_to_xflash(static_cast<std::underlying_type_t<ErrCode>>(error_code), error, module);
     sys_reset();
 }
 
@@ -197,12 +208,10 @@ void fatal_error(const char *error, const char *module) {
     } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_BED_MINTEMP_ERROR);
 #endif // PRINTER_TYPE != PRINTER_PRUSA_XL
-    } else if (strcmp(MSG_ERR_HOMING_X, error) == 0) {
-        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X);
-    } else if (strcmp(MSG_ERR_HOMING_Y, error) == 0) {
-        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Y);
-    } else if (strcmp(MSG_ERR_HOMING_Z, error) == 0) {
-        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
+    } else if (strcmp(MSG_ERR_MINTEMP_HEATBREAK, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MINTEMP_ERR);
+    } else if (strcmp(MSG_ERR_MAXTEMP_HEATBREAK, error) == 0) {
+        fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MAXTEMP_ERR);
     }
 
     //error code is not defined, raise redscreen with custom error message and error title
@@ -397,9 +406,9 @@ void ScreenHardFault(void) {
     memset(tskName, '\0', sizeof(tskName) * sizeof(char)); // set to zeros to be on the safe side
 
     uint32_t __pxCurrentTCB;
-    dump_in_xflash_read_RAM(&__pxCurrentTCB, (unsigned int)&pxCurrentTCB, sizeof(uint32_t));
+    crash_dump::dump_in_xflash_read_RAM(&__pxCurrentTCB, (unsigned int)&pxCurrentTCB, sizeof(uint32_t));
     TCB_t CurrentTCB;
-    dump_in_xflash_read_RAM(&CurrentTCB, __pxCurrentTCB, sizeof(TCB_t));
+    crash_dump::dump_in_xflash_read_RAM(&CurrentTCB, __pxCurrentTCB, sizeof(TCB_t));
 
     strlcpy(tskName, CurrentTCB.pcTaskName, sizeof(tskName));
     StackType_t *pTopOfStack = (StackType_t *)CurrentTCB.pxTopOfStack;
@@ -415,7 +424,7 @@ void ScreenHardFault(void) {
     addFormatText(buffer, buffer_size, buffer_pos, "TASK: %s. ", tskName);
 
     uint32_t __SCB[35];
-    dump_in_xflash_read_regs_SCB(&__SCB, 35 * sizeof(uint32_t));
+    crash_dump::dump_in_xflash_read_regs_SCB(&__SCB, 35 * sizeof(uint32_t));
 
     uint32_t __CFSR = __SCB[0x28 >> 2];
 
@@ -560,7 +569,7 @@ void ScreenHardFault(void) {
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
         space_counter++;
         uint32_t sp = 0;
-        dump_in_xflash_read_RAM(&sp, (unsigned int)i, sizeof(uint32_t));
+        crash_dump::dump_in_xflash_read_RAM(&sp, (unsigned int)i, sizeof(uint32_t));
         addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", sp);
     }
 

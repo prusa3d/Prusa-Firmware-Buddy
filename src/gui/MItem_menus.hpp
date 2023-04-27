@@ -5,6 +5,7 @@
 #include "i18n.h"
 #include "eeprom.h"
 #include <option/has_toolchanger.h>
+#include <option/has_side_leds.h>
 
 class MI_VERSION_INFO : public WI_LABEL_t {
     static constexpr const char *const label = N_("Version Info");
@@ -63,7 +64,7 @@ public:
     MI_STATISTIC_disabled();
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override {}
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
 };
 
 class MI_FAIL_STAT : public WI_LABEL_t {
@@ -83,7 +84,7 @@ public:
     MI_SUPPORT_disabled();
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override {}
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
 };
 
 class MI_TEMPERATURE : public WI_LABEL_t {
@@ -161,16 +162,6 @@ class MI_MESSAGES : public WI_LABEL_t {
 
 public:
     MI_MESSAGES();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_LANGUAGE : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Language");
-
-public:
-    MI_LANGUAGE();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -285,36 +276,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_LANGUAGUE_USB : public WI_LABEL_t {
-    static constexpr const char *const label = "Load Lang from USB";
-
-public:
-    MI_LANGUAGUE_USB();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
-class MI_LOAD_LANG : public WI_LABEL_t {
-    static constexpr const char *const label = "Load Lang to XFLASH";
-
-public:
-    MI_LOAD_LANG();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
-class MI_LANGUAGUE_XFLASH : public WI_LABEL_t {
-    static constexpr const char *const label = "Load Lang from XFLASH";
-
-public:
-    MI_LANGUAGUE_XFLASH();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
 class MI_DIAGNOSTICS : public WI_LABEL_t {
     static constexpr const char *const label = N_("Diagnostics");
 
@@ -325,21 +286,11 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_USER_INTERFACE_IN_SETTINGS : public WI_LABEL_t {
+class MI_USER_INTERFACE : public WI_LABEL_t {
     static constexpr const char *const label = N_("User Interface");
 
 public:
-    MI_USER_INTERFACE_IN_SETTINGS();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
-class MI_USER_INTERFACE_IN_TUNE : public WI_LABEL_t {
-    static constexpr const char *const label = N_("User Interface");
-
-public:
-    MI_USER_INTERFACE_IN_TUNE();
+    MI_USER_INTERFACE();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
@@ -451,6 +402,16 @@ public:
 };
 #endif
 
+#if HAS_SIDE_LEDS()
+class MI_SIDE_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("RGB Side Strip");
+
+public:
+    MI_SIDE_LEDS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif
+
 class MI_TOOLS_SETUP : public WI_LABEL_t {
     static constexpr const char *const label = N_("Tools");
 
@@ -491,11 +452,11 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_CALIBRATE_KENNEL : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Calibrate Kennel Position");
+class MI_CALIBRATE_DOCK : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Calibrate Dock Position");
 
 public:
-    MI_CALIBRATE_KENNEL();
+    MI_CALIBRATE_DOCK();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -506,6 +467,16 @@ class MI_SELFTEST_SNAKE : public WI_LABEL_t {
 
 public:
     MI_SELFTEST_SNAKE();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_OPEN_FACTORY_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Factory Reset");
+
+public:
+    MI_OPEN_FACTORY_RESET();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;

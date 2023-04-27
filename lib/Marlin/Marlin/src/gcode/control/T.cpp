@@ -28,7 +28,11 @@
 #endif
 
 #if ENABLED(PRUSA_MMU2)
-  #include "../../feature/prusa/MMU2/mmu2mk404.h"
+  #include "../../feature/prusa/MMU2/mmu2_mk4.h"
+#endif
+
+#if ENABLED(PRUSA_TOOLCHANGER)
+  #include "../../module/prusa/toolchanger.h"
 #endif
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
@@ -55,7 +59,7 @@ void GcodeSuite::T(const uint8_t tool_index) {
 
   #if ENABLED(PRUSA_MMU2)
     if (parser.string_arg) {
-      MMU2::mmu2.tool_change(parser.string_arg);   // Special commands T?/Tx/Tc
+      // @@TODO MMU2::mmu2.tool_change(parser.string_arg);   // Special commands T?/Tx/Tc
       return;
     }
   #endif
@@ -66,11 +70,23 @@ void GcodeSuite::T(const uint8_t tool_index) {
 
   #else
 
+    int move_type = !parser.seen('S') ? 0 : parser.intval('S', 1);
+    #if DISABLED(PRUSA_TOOLCHANGER)
+      constexpr bool no_tool = false;
+    #else
+      bool no_tool = (tool_index == PrusaToolChanger::MARLIN_NO_TOOL_PICKED
+        || active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+    #endif
+    tool_return_t return_type =
+      ( (tool_index == active_extruder) || (move_type == 1) ?
+          tool_return_t::no_move // same tool or no move requested: don't move
+        : no_tool || (move_type == 2) || (!all_axes_known()) ?
+          tool_return_t::no_return // no tool, unknown position or no return requested: just lift/retract
+        : tool_return_t::to_destination
+      );
+
     get_destination_from_command();
-    tool_change(
-      tool_index, ((tool_index == active_extruder) || parser.boolval('S') ?
-        tool_return_t::no_move : tool_return_t::to_destination)
-    );
+    tool_change(tool_index, return_type);
 
   #endif
 

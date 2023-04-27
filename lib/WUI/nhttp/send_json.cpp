@@ -13,7 +13,7 @@ using namespace http;
 
 namespace nhttp::handler {
 
-json::JsonResult EmptyRenderer::renderState(size_t resume_point, json::JsonOutput &output, Empty &state) const {
+json::JsonResult EmptyRenderer::renderState(size_t resume_point, json::JsonOutput &output, [[maybe_unused]] Empty &state) const {
     return generator(resume_point, output);
 }
 
@@ -68,8 +68,8 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
     case Progress::SendPayload:
         JsonResult render_result;
 
-        written += render_chunk(connection_handling, buffer + written, buffer_size - written, [&](uint8_t *buffer, size_t buffer_size) {
-            const auto [result, written_json] = renderer.render(buffer, buffer_size);
+        written += render_chunk(connection_handling, buffer + written, buffer_size - written, [&](uint8_t *buffer_, size_t buffer_size_) {
+            const auto [result, written_json] = renderer.render(buffer_, buffer_size_);
             render_result = result;
             return written_json;
         });

@@ -25,5 +25,5 @@ public:
     ScreenDialogDoesNotExist();
     virtual ~ScreenDialogDoesNotExist() override;
     static ScreenDialogDoesNotExist *GetInstance();
-    constexpr bool Change(fsm::BaseData data) { return false; }
+    constexpr bool Change([[maybe_unused]] fsm::BaseData data) { return false; }
 };

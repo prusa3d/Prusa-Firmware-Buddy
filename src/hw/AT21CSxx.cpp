@@ -1,51 +1,49 @@
 /*
- * AT21CSxx.c
+ * AT21CSxx.cpp
  *
  *  Created on: Mar 31, 2021
  *      Author: tadeas
  *
  * @file
  */
-#include "config_buddy_2209_02.h"
-#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM)
 
-    #include "AT21CSxx.hpp"
-    #include <string.h>
-    #include "FreeRTOS.h"
-    #include "task.h"
-    #include "wdt.h"
+#include "AT21CSxx.hpp"
+#include <string.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "wdt.h"
 
 /*
  * This code is time critical and does not work with optimizations turned off.
  * Force at least -Og optimization level.
  */
-    #pragma GCC push_options
-    #ifdef _DEBUG
-        #pragma GCC optimize("Og")
-    #else
-        #pragma GCC optimize("Os")
-    #endif
+#pragma GCC push_options
+#ifdef _DEBUG
+    #pragma GCC optimize("Og")
+#else
+    #pragma GCC optimize("Os")
+#endif
 
-    /* */
+/* */
 
-    /** @addtogroup Exported_macro
+/** @addtogroup Exported_macro
   * @{
   */
-    #define SET_BIT(REG, BIT) ((REG) |= (BIT))
+#define SET_BIT(REG, BIT) ((REG) |= (BIT))
 
-    #define CLEAR_BIT(REG, BIT) ((REG) &= ~(BIT))
+#define CLEAR_BIT(REG, BIT) ((REG) &= ~(BIT))
 
-    #define READ_BIT(REG, BIT) ((REG) & (BIT))
+#define READ_BIT(REG, BIT) ((REG) & (BIT))
 
-    #define CLEAR_REG(REG) ((REG) = (0x0))
+#define CLEAR_REG(REG) ((REG) = (0x0))
 
-    #define WRITE_REG(REG, VAL) ((REG) = (VAL))
+#define WRITE_REG(REG, VAL) ((REG) = (VAL))
 
-    #define READ_REG(REG) ((REG))
+#define READ_REG(REG) ((REG))
 
-    #define MODIFY_REG(REG, CLEARMASK, SETMASK) WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
+#define MODIFY_REG(REG, CLEARMASK, SETMASK) WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
 
-    #define POSITION_VAL(VAL) (__CLZ(__RBIT(VAL)))
+#define POSITION_VAL(VAL) (__CLZ(__RBIT(VAL)))
 
 void AT21CSxx::LL_GPIO_SetPinMode(GPIO_TypeDef *GPIOx, uint32_t Pin, uint32_t Mode) {
     MODIFY_REG(GPIOx->MODER, (GPIO_MODER_MODER0 << (POSITION_VAL(Pin) * 2U)), (Mode << (POSITION_VAL(Pin) * 2U)));
@@ -464,6 +462,4 @@ int AT21CSxx::cyclic_write(uint8_t data_addr, uint8_t data, uint8_t attempts) {
     return -1;
 }
 
-    #pragma GCC pop_options //Restore optimizations. See begining of file for explanation.
-
-#endif //(BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM && defined LOVEBOARD_HAS_PT100)
+#pragma GCC pop_options //Restore optimizations. See beginning of file for explanation.

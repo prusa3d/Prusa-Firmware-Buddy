@@ -17,12 +17,12 @@ public:
         return 1;
     }
 
-    Color GetColor(int led_idx) {
+    Color GetColor([[maybe_unused]] int led_idx) {
         assert(led_idx == 0);
         return current_color;
     }
 
-    void SetColor(int led_idx, Color color) {
+    void SetColor([[maybe_unused]] int led_idx, Color color) {
         assert(led_idx == 0);
         SetColor(color);
     }

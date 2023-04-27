@@ -90,7 +90,7 @@ void GcodeSuite::M600() {
 #endif
 
     park_point.z += current_position.z;
-    static const xyze_float_t no_return = { NAN, NAN, NAN, current_position.e };
+    static const xyze_float_t no_return = { { { NAN, NAN, NAN, current_position.e } } };
 
     pause::Settings settings;
     settings.SetParkPoint(park_point);
@@ -103,10 +103,15 @@ void GcodeSuite::M600() {
         settings.SetRetractLength(std::abs(parser.value_axis_units(E_AXIS)));
     } // Initial retract before move to filament change position
 
+    // If paused restore nozzle temperature from pre-paused state
+    if (marlin_server::printer_paused()) {
+        marlin_server::unpause_nozzle(target_extruder);
+    }
+
     float disp_temp = marlin_vars()->hotend(target_extruder).display_nozzle;
     float targ_temp = Temperature::degTargetHotend(target_extruder);
 
-    marlin_server_nozzle_timeout_off();
+    marlin_server::nozzle_timeout_off();
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(disp_temp, target_extruder);
     }
@@ -115,7 +120,7 @@ void GcodeSuite::M600() {
     Pause::Instance().FilamentChange(settings);
     FSensors_instance().ClrM600Sent(); //reset filament sensor M600 sent flag
 
-    marlin_server_nozzle_timeout_on();
+    marlin_server::nozzle_timeout_on();
     if (disp_temp > targ_temp) {
         thermalManager.setTargetHotend(targ_temp, target_extruder);
     }

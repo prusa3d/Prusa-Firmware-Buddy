@@ -54,6 +54,8 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( N_("UNLOAD"),           &png::spool_58x58 ),        // Unload
     std::make_pair( N_("YES"),              nullptr ),                  // Yes
     std::make_pair( N_("HEATUP"),           nullptr ),                  // Heatup
+    std::make_pair( "PA",                   &png::spool_58x58 ),        // PA(Nylon) filament, do not translate
+    std::make_pair( "PRINT",                nullptr ),                  // PRINT
 };
 // clang-format on
 

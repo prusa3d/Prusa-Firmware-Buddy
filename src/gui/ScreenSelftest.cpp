@@ -68,8 +68,8 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_qr(ScreenSelftest &
 }
 
 #if BOARD_IS_XLBUDDY
-static_unique_ptr<SelftestFrame> ScreenSelftest::creator_kennel(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-    return rThs.makePtr<SelftestFrameKennel>(&rThs, phase, data);
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_dock(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameDock>(&rThs, phase, data);
 }
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_tool_offsets(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
@@ -103,8 +103,8 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator_fsensor;
 #endif
 #if BOARD_IS_XLBUDDY
-    case SelftestParts::Kennel:
-        return creator_kennel;
+    case SelftestParts::Dock:
+        return creator_dock;
     case SelftestParts::ToolOffsets:
         return creator_tool_offsets;
 #endif
@@ -196,7 +196,7 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::CalibZ:
     case SelftestParts::Result:
 #if BOARD_IS_XLBUDDY
-    case SelftestParts::Kennel:
+    case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:
 #endif
         return _(en_selftest);
@@ -233,7 +233,7 @@ const png::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::FirstLayerQuestions:
     case SelftestParts::Result:
 #if BOARD_IS_XLBUDDY
-    case SelftestParts::Kennel:
+    case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:
 #endif
         return &png::selftest_16x16;

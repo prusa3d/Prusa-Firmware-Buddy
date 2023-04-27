@@ -16,7 +16,7 @@ FooterDoubleLine::FooterDoubleLine(window_t *parent)
     line_1.Create(line1_defaults);
 }
 
-bool FooterDoubleLine::SetSlot(size_t slot_id, footer::items item) {
+bool FooterDoubleLine::SetSlot(size_t slot_id, footer::Item item) {
     return IFooter::SetSlot(line_0, slot_id, item);
 }
 

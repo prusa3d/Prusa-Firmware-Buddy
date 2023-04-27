@@ -8,6 +8,8 @@
 
 namespace http {
 
+class ExtraHeader;
+
 struct HeaderOut {
     const char *name = nullptr;
     std::variant<const char *, size_t> value = nullptr;
@@ -50,7 +52,6 @@ public:
     Response(Connection *conn, uint16_t status);
     http::Status status;
     http::ContentType content_type = http::ContentType::ApplicationOctetStream;
-    std::optional<uint32_t> command_id;
     size_t content_length() const {
         return content_length_rest;
     }
@@ -60,6 +61,11 @@ public:
     // Either returns the number of bytes available or returns an error.
     // Returns 0 if no more data available.
     std::variant<size_t, Error> read_body(uint8_t *buffer, size_t buffer_size);
+
+    // Reads everything from the response to the buffer.
+    //
+    // If it doesn't fit, it returns Error::ResponseTooLong.
+    std::variant<size_t, Error> read_all(uint8_t *buffer, size_t buffer_size);
 
     /// Returns a smaller response object capable of only consuming the body.
     ///
@@ -84,12 +90,12 @@ class HttpClient {
 private:
     ConnectionFactory &factory;
     std::optional<Error> send_request(const char *host, Connection *conn, Request &request);
-    std::variant<Response, Error> parse_response(Connection *conn);
+    std::variant<Response, Error> parse_response(Connection *conn, ExtraHeader *extra_resp_hdr);
 
 public:
     HttpClient(ConnectionFactory &factory)
         : factory(factory) {}
-    std::variant<Response, Error> send(Request &request);
+    std::variant<Response, Error> send(Request &request, ExtraHeader *extra_resp_headers = nullptr);
 };
 
 }

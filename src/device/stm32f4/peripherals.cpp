@@ -114,7 +114,7 @@ void hw_rng_init() {
 }
 
 void hw_gpio_init() {
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
 
     // GPIO Ports Clock Enable
     __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -434,7 +434,7 @@ void hw_i2c1_init() {
 
 void hw_i2c2_init() {
     hi2c2.Instance = I2C2;
-    hi2c2.Init.ClockSpeed = 400000;
+    hi2c2.Init.ClockSpeed = 100000;
 
     hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
     hi2c2.Init.OwnAddress1 = 0;
@@ -576,7 +576,7 @@ void hw_spi6_init() {
     hspi6.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi6.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi6.Init.NSS = SPI_NSS_SOFT;
-    #if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK404)
+    #if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4)
     hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
     #else
     hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
@@ -592,10 +592,10 @@ void hw_spi6_init() {
 #endif
 
 void hw_tim1_init() {
-    TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-    TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-    TIM_OC_InitTypeDef sConfigOC = { 0 };
-    TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = { 0 };
+    TIM_ClockConfigTypeDef sClockSourceConfig {};
+    TIM_MasterConfigTypeDef sMasterConfig {};
+    TIM_OC_InitTypeDef sConfigOC {};
+    TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig {};
 
     htim1.Instance = TIM1;
     htim1.Init.Prescaler = TIM1_default_Prescaler; // 0x3fff was 100;
@@ -644,9 +644,9 @@ void hw_tim1_init() {
 }
 
 void hw_tim2_init() {
-    TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-    TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-    TIM_OC_InitTypeDef sConfigOC = { 0 };
+    TIM_ClockConfigTypeDef sClockSourceConfig {};
+    TIM_MasterConfigTypeDef sMasterConfig {};
+    TIM_OC_InitTypeDef sConfigOC {};
 
     htim2.Instance = TIM2;
     htim2.Init.Prescaler = 100;
@@ -680,12 +680,12 @@ void hw_tim2_init() {
 }
 
 void hw_tim3_init() {
-    TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-    TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-    TIM_OC_InitTypeDef sConfigOC = { 0 };
+    TIM_ClockConfigTypeDef sClockSourceConfig {};
+    TIM_MasterConfigTypeDef sMasterConfig {};
+    TIM_OC_InitTypeDef sConfigOC {};
 
     htim3.Instance = TIM3;
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
     htim3.Init.Prescaler = 11; // 36us, 33.0kHz
 #else
     htim3.Init.Prescaler = TIM3_default_Prescaler; // 49ms, 20.3Hz

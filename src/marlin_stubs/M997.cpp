@@ -18,7 +18,7 @@ static void update_main_board(bool update_older) {
     NVIC_SystemReset();
 }
 
-static void M997_no_parser(uint module_number, uint address, bool force_update_older) {
+static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bool force_update_older) {
     switch (module_number) {
     case 0:
         update_main_board(force_update_older);

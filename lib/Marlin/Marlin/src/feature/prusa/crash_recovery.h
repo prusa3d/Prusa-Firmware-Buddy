@@ -33,7 +33,8 @@ public:
         TRIGGERED_AC_FAULT,  /// crash was triggered during an AC fault
         TRIGGERED_TOOLFALL,  /// dwarf fell off the toolchanger, not during toolchange, regular crash recovery + tool pickup
         TRIGGERED_TOOLCRASH, /// crash during toolchange, no recovery, just pause and wait for tool pickup
-        TOOLCRASH,           /// waiting for user to repark dwarves
+        TRIGGERED_HOMEFAIL,  /// couldn't home, no recovery, just rehome
+        REPEAT_WAIT,         /// waiting for user to repark dwarves or to rehome, skips parking and replay
         RECOVERY,            /// crash was detected and recovery is being done
         REPLAY,              /// printer was re-homed and the last G code is being replayed
     } state_t;
@@ -130,12 +131,16 @@ public:
     void reset();
 
     /**
-     * @brief Set crash state.
+     * @brief Transition to a new state. Has side effects. Only some transitions are allowed.
      * @param new_state set this
      */
     void set_state(state_t new_state);
 
-    state_t get_state() { return state; }
+    /**
+     * @brief Get crash state.
+     * @return current state
+     */
+    state_t get_state() const { return state; }
 
     /// Enable/disable crash detection depending on user
     void enable(bool state = true);
@@ -248,6 +253,12 @@ public:
             crash_s.activate();
         }
     }
+
+    /**
+     * @brief Whether the crash detection was originally enabled.
+     * @return true if it was enabled
+     */
+    [[nodiscard]] bool get_orig_state() const { return orig_state; }
 };
 
 #else

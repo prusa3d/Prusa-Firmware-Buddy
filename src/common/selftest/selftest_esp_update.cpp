@@ -79,7 +79,7 @@ void ESPUpdate::Loop() {
 
         //we use only 2 responses here
         //it is safe to use it from different thread as long as no other thread reads it
-        switch (ClientResponseHandler::GetResponseFromPhase(phase)) {
+        switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(phase)) {
         case Response::Continue:
             continue_pressed = true;
             netdev_set_enabled(NETDEV_ESP_ID, true);
@@ -280,7 +280,7 @@ void ESPUpdate::Loop() {
     }
 }
 
-EspCredentials::EspCredentials(FSM_Holder &fsm, type_t type)
+EspCredentials::EspCredentials(marlin_server::FSM_Holder &fsm, type_t type)
     : rfsm(fsm)
     , type(type)
     , initial_netdev_id(netdev_get_active_id())
@@ -325,7 +325,7 @@ bool EspCredentials::file_exists() {
     // no other thread should modify files in file system during upload
     // or this might fail
     fl.reset(fopen(file_name, "r"));
-    return fl.get();
+    return fl.get() != nullptr;
 }
 
 bool EspCredentials::upload_config() {
@@ -346,14 +346,14 @@ void EspCredentials::Loop() {
             capture_timestamp();
             last_state = progress_state;
         }
-        usb_inserted = marlin_server_get_media_inserted();
+        usb_inserted = marlin_server::get_media_inserted();
         wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
         continue_pressed = false;
 
         //we use only 3 responses here
         //it is safe to use it from different thread as long as no other thread reads it
         if (phase) {
-            switch (ClientResponseHandler::GetResponseFromPhase(*phase)) {
+            switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase)) {
             case Response::Continue:
             case Response::Retry:
             case Response::Yes:
@@ -395,7 +395,7 @@ void EspCredentials::Loop() {
 
         // update
         if (phase)
-            FSM_HOLDER_CHANGE_METHOD__LOGGING(rfsm, *phase, {}); //we dont need data, only phase
+            FSM_HOLDER_CHANGE_METHOD__LOGGING(rfsm, *phase, fsm::PhaseData()); //we dont need data, only phase
 
         //call idle loop to prevent watchdog
         idle(true, true);
@@ -606,7 +606,7 @@ void update_esp(bool force) {
         return;
 
     task_state = ESPUpdate::state::did_not_finished;
-    FSM_HOLDER__LOGGING(Selftest, 0);
+    FSM_HOLDER__LOGGING(Selftest);
     status_t status;
     status.Empty();
 
@@ -617,7 +617,7 @@ void update_esp(bool force) {
         if (current != status) {
             status = current;
             SelftestESP_t data(status.progress, status.current_file, status.count_of_files);
-            FSM_HOLDER_CHANGE_METHOD__LOGGING(Selftest_from_macro, status.phase, data);
+            FSM_HOLDER_CHANGE_METHOD__LOGGING(Selftest_from_macro, status.phase, data.Serialize());
         }
 
         // call idle loop to prevent watchdog
@@ -641,13 +641,13 @@ void update_esp(bool force) {
 }
 
 void update_esp_credentials() {
-    FSM_HOLDER__LOGGING(Selftest, 0);
+    FSM_HOLDER__LOGGING(Selftest);
     EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::credentials_standalone);
     credentials.Loop();
 }
 
 void credentials_generate_ini() {
-    FSM_HOLDER__LOGGING(Selftest, 0);
+    FSM_HOLDER__LOGGING(Selftest);
     EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::ini_creation);
     credentials.Loop();
 }

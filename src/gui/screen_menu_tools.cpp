@@ -20,7 +20,7 @@ MI_TOOL_NOZZLE_DIAMETER::MI_TOOL_NOZZLE_DIAMETER()
 
 static constexpr SpinConfig_t<float> POSITION_CONFIG({ 0, 500, 0.1 }, "mm");
 
-MI_POSITION::MI_POSITION(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
+MI_POSITION::MI_POSITION(string_view_utf8 label, [[maybe_unused]] const png::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
     : WiSpinFlt(initVal, POSITION_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_POSITION::OnClick() {
@@ -28,29 +28,29 @@ void MI_POSITION::OnClick() {
     prusa_toolchanger.save_tool_info();
 }
 
-MI_KENNEL_POSITION_X::MI_KENNEL_POSITION_X()
-    : MI_POSITION(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, prusa_toolchanger.get_tool_info(prusa_toolchanger.getTool(displayed_tool)).kennel_x) {}
+MI_DOCK_POSITION_X::MI_DOCK_POSITION_X()
+    : MI_POSITION(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, prusa_toolchanger.get_tool_info(prusa_toolchanger.getTool(displayed_tool)).dock_x) {}
 
-void MI_KENNEL_POSITION_X::set_pos(const float pos) {
+void MI_DOCK_POSITION_X::set_pos(const float pos) {
     const buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getTool(displayed_tool);
     PrusaToolInfo info = prusa_toolchanger.get_tool_info(dwarf);
-    info.kennel_x = pos;
+    info.dock_x = pos;
     prusa_toolchanger.set_tool_info(dwarf, info);
 }
 
-MI_KENNEL_POSITION_Y::MI_KENNEL_POSITION_Y()
-    : MI_POSITION(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, prusa_toolchanger.get_tool_info(prusa_toolchanger.getTool(displayed_tool)).kennel_y) {}
+MI_DOCK_POSITION_Y::MI_DOCK_POSITION_Y()
+    : MI_POSITION(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, prusa_toolchanger.get_tool_info(prusa_toolchanger.getTool(displayed_tool)).dock_y) {}
 
-void MI_KENNEL_POSITION_Y::set_pos(const float pos) {
+void MI_DOCK_POSITION_Y::set_pos(const float pos) {
     const buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getTool(displayed_tool);
     PrusaToolInfo info = prusa_toolchanger.get_tool_info(dwarf);
-    info.kennel_y = pos;
+    info.dock_y = pos;
     prusa_toolchanger.set_tool_info(dwarf, info);
 }
 
 static constexpr SpinConfig_t<float> OFFSET_CONFIG({ -10, 10, 0.01 }, "mm");
 
-MI_OFFSET::MI_OFFSET(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
+MI_OFFSET::MI_OFFSET(string_view_utf8 label, [[maybe_unused]] const png::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
     : WiSpinFlt(initVal, OFFSET_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 MI_OFFSET_X::MI_OFFSET_X()
@@ -81,23 +81,23 @@ MI_PICKUP_TOOL::MI_PICKUP_TOOL()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
-void MI_PICKUP_TOOL::click(IWindowMenu &window_menu) {
+void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_gcode_printf("T%d S", displayed_tool);
 }
 
-MI_KENNEL_CALIBRATE::MI_KENNEL_CALIBRATE()
+MI_DOCK_CALIBRATE::MI_DOCK_CALIBRATE()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_KENNEL_CALIBRATE::click(IWindowMenu &window_menu) {
-    marlin_test_start_for_tools(stmKennels, 1 << displayed_tool);
+void MI_DOCK_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
+    marlin_test_start_for_tools(stmDocks, 1 << displayed_tool);
 }
 
 MI_FSENSORS_CALIBRATE::MI_FSENSORS_CALIBRATE()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_FSENSORS_CALIBRATE::click(IWindowMenu &window_menu) {
+void MI_FSENSORS_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
     if (MsgBoxQuestion(_("Perform filament sensors calibration? This discards previous filament sensors calibration. The extruder will be replaced during calibration"), Responses_YesNo) == Response::No) {
         return;
     }
@@ -122,7 +122,7 @@ MI_PARK_TOOL::MI_PARK_TOOL()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
-void MI_PARK_TOOL::click(IWindowMenu &window_menu) {
+void MI_PARK_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
 }
 

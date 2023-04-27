@@ -24,24 +24,7 @@
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
 #endif
 
-enum class Btn {
-    Tune = 0,
-    Pause,
-    Stop
-};
-
-static constexpr BtnResource btn_res[static_cast<size_t>(item_id_t::count)] = {
-    { N_("Tune"), &png::settings_58x58 },
-    { N_("Pause"), &png::pause_58x58 },
-    { N_("Pausing..."), &png::pause_58x58 },
-    { N_("Stop"), &png::stop_58x58 },
-    { N_("Resume"), &png::resume_48x48 },
-    { N_("Resuming..."), &png::resume_48x48 },
-    { N_("Heating..."), &png::resume_48x48 }, // reheating is same as resume, but disabled
-    { N_("Reprint"), &png::reprint_48x48 },
-    { N_("Home"), &png::home_58x58 },
-    { N_("Skip"), &png::resume_48x48 },
-};
+using namespace marlin_server;
 
 void screen_printing_data_t::invalidate_print_state() {
     state__readonly__use_change_print_state = printing_state_t::COUNT;
@@ -51,7 +34,7 @@ printing_state_t screen_printing_data_t::GetState() const {
 }
 
 void screen_printing_data_t::tuneAction() {
-    if (btn_tune.ico.IsShadowed()) {
+    if (buttons[ftrstd::to_underlying(BtnSocket::Left)].IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -66,7 +49,7 @@ void screen_printing_data_t::tuneAction() {
 }
 
 void screen_printing_data_t::pauseAction() {
-    if (btn_pause.ico.IsShadowed()) {
+    if (buttons[ftrstd::to_underlying(BtnSocket::Middle)].IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -93,7 +76,7 @@ void screen_printing_data_t::pauseAction() {
 }
 
 void screen_printing_data_t::stopAction() {
-    if (btn_stop.ico.IsShadowed()) {
+    if (buttons[ftrstd::to_underlying(BtnSocket::Right)].IsShadowed()) {
         return;
     }
     switch (GetState()) {
@@ -191,6 +174,7 @@ screen_printing_data_t::screen_printing_data_t()
     w_filename.SetPadding({ 0, 0, 0, 0 });
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN));
+    marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path));
     w_filename.SetText(string_view_utf8::MakeRAM((const uint8_t *)gui_media_LFN));
 
     w_etime_label.font = resource_font(IDR_FNT_SMALL);
@@ -205,10 +189,6 @@ screen_printing_data_t::screen_printing_data_t()
     print_progress.Pause();
     last_e_axis_position = marlin_vars()->curr_pos[MARLIN_VAR_INDEX_E];
 #endif
-
-    initAndSetIconAndLabel(btn_tune, res_tune);
-    initAndSetIconAndLabel(btn_pause, res_pause);
-    initAndSetIconAndLabel(btn_stop, res_stop);
 }
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -378,28 +358,10 @@ void screen_printing_data_t::updateTimes() {
     }
 }
 
-void screen_printing_data_t::disable_tune_button() {
-    btn_tune.ico.Shadow();
-    btn_tune.ico.Disable(); // can't be focused
-
-    // move to reprint when tune is focused
-    if (btn_tune.ico.IsFocused()) {
-        btn_pause.ico.SetFocus();
-    }
-    btn_tune.ico.Invalidate();
-}
-
-void screen_printing_data_t::enable_tune_button() {
-    btn_tune.ico.Unshadow();
-    btn_tune.ico.Enable(); // can be focused
-    btn_tune.ico.Invalidate();
-}
-
 void screen_printing_data_t::screen_printing_reprint() {
     print_begin(gui_media_SFN_path, true);
     screen_printing_data_t::updateTimes(); // reinit, but should be already set correctly
-    btn_stop.txt.SetText(_(btn_res[static_cast<size_t>(item_id_t::stop)].first));
-    btn_stop.ico.SetRes(btn_res[static_cast<size_t>(item_id_t::stop)].second);
+    SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
     header.SetText(_("PRINTING"));
@@ -424,32 +386,7 @@ void screen_printing_data_t::screen_printing_reprint() {
     }
 }*/
 
-void screen_printing_data_t::set_icon_and_label(item_id_t id_to_set, window_icon_t *p_button, window_text_t *lbl) {
-    size_t index = static_cast<size_t>(id_to_set);
-    p_button->SetRes(btn_res[index].second);
-    lbl->SetText(_(btn_res[index].first));
-}
-
-void screen_printing_data_t::enable_button(window_icon_t *p_button) {
-    if (p_button->IsShadowed()) {
-        p_button->Unshadow();
-        p_button->Enable();
-        p_button->Invalidate();
-    }
-}
-
-void screen_printing_data_t::disable_button(window_icon_t *p_button) {
-    if (!p_button->IsShadowed()) {
-        p_button->Shadow();
-        p_button->Disable();
-        p_button->Invalidate();
-    }
-}
-
 void screen_printing_data_t::set_pause_icon_and_label() {
-    window_icon_t *const p_button = &btn_pause.ico;
-    window_text_t *const pLabel = &btn_pause.txt;
-
     // todo it is static, because menu tune is not dialog
     // switch (state__readonly__use_change_print_state)
     switch (GetState()) {
@@ -457,91 +394,84 @@ void screen_printing_data_t::set_pause_icon_and_label() {
     case printing_state_t::INITIAL:
     case printing_state_t::PRINTING:
     case printing_state_t::MBL_FAILED:
-        enable_button(p_button);
-        set_icon_and_label(item_id_t::pause, p_button, pLabel);
+        EnableButton(BtnSocket::Middle);
+        SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Pause, LabelRes::Pause);
         break;
     case printing_state_t::ABSORBING_HEAT:
-        enable_button(p_button);
-        set_icon_and_label(item_id_t::skip, p_button, pLabel);
+        EnableButton(BtnSocket::Middle);
+        SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Resume, LabelRes::Skip);
         break;
     case printing_state_t::PAUSING:
-        disable_button(p_button);
-        set_icon_and_label(item_id_t::pausing, p_button, pLabel);
+        DisableButton(BtnSocket::Middle);
+        SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Pause, LabelRes::Pausing);
         break;
     case printing_state_t::PAUSED:
-        enable_button(p_button);
-        set_icon_and_label(item_id_t::resume, p_button, pLabel);
+        EnableButton(BtnSocket::Middle);
+        SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Resume, LabelRes::Resume);
         if (!marlin_vars()->media_inserted) {
-            disable_button(p_button);
+            DisableButton(BtnSocket::Middle);
         }
         break;
     case printing_state_t::RESUMING:
-        disable_button(p_button);
-        set_icon_and_label(item_id_t::resuming, p_button, pLabel);
+        DisableButton(BtnSocket::Middle);
+        SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Resume, LabelRes::Resuming);
         break;
     case printing_state_t::REHEATING:
     case printing_state_t::REHEATING_DONE:
-        disable_button(p_button);
-        set_icon_and_label(item_id_t::reheating, p_button, pLabel);
+        DisableButton(BtnSocket::Middle);
+        SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Resume, LabelRes::Reheating);
         break;
     case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
-        enable_button(p_button);
-        set_icon_and_label(item_id_t::reprint, p_button, pLabel);
+        EnableButton(BtnSocket::Middle);
+        SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Reprint, LabelRes::Reprint);
         break;
     case printing_state_t::ABORTING:
-        disable_button(p_button);
+        DisableButton(BtnSocket::Middle);
         break;
     }
 }
 
 void screen_printing_data_t::set_tune_icon_and_label() {
-    window_icon_t *const p_button = &btn_tune.ico;
-    window_text_t *const pLabel = &btn_tune.txt;
-
-    // must be before switch
-    set_icon_and_label(item_id_t::settings, p_button, pLabel);
+    SetButtonIconAndLabel(BtnSocket::Left, BtnRes::Settings, LabelRes::Settings);
 
     switch (GetState()) {
     case printing_state_t::PRINTING:
     case printing_state_t::ABSORBING_HEAT:
     case printing_state_t::PAUSED:
-        enable_tune_button();
+        EnableButton(BtnSocket::Left);
         break;
     case printing_state_t::ABORTING:
-        disable_button(p_button);
+        DisableButton(BtnSocket::Left);
         break;
     default:
-        disable_tune_button();
+        DisableButton(BtnSocket::Left);
         break;
     }
 }
 
 void screen_printing_data_t::set_stop_icon_and_label() {
-    window_icon_t *const p_button = &btn_stop.ico;
-    window_text_t *const pLabel = &btn_stop.txt;
-
     switch (GetState()) {
     case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
-        enable_button(p_button);
-        set_icon_and_label(item_id_t::home, p_button, pLabel);
+        EnableButton(BtnSocket::Right);
+        SetButtonIconAndLabel(BtnSocket::Right, BtnRes::Home, LabelRes::Home);
         break;
     case printing_state_t::PAUSING:
     case printing_state_t::RESUMING:
-        disable_button(p_button);
-        set_icon_and_label(item_id_t::stop, p_button, pLabel);
+        DisableButton(BtnSocket::Right);
+        SetButtonIconAndLabel(BtnSocket::Right, BtnRes::Stop, LabelRes::Stop);
         break;
     case printing_state_t::REHEATING:
-        enable_button(p_button);
-        set_icon_and_label(item_id_t::stop, p_button, pLabel);
+        EnableButton(BtnSocket::Right);
+        SetButtonIconAndLabel(BtnSocket::Right, BtnRes::Stop, LabelRes::Stop);
         break;
     case printing_state_t::ABORTING:
-        disable_button(p_button);
+        DisableButton(BtnSocket::Right);
         break;
     default:
-        enable_button(p_button);
-        set_icon_and_label(item_id_t::stop, p_button, pLabel);
+        EnableButton(BtnSocket::Right);
+        SetButtonIconAndLabel(BtnSocket::Right, BtnRes::Stop, LabelRes::Stop);
         break;
     }
 }
@@ -594,6 +524,7 @@ void screen_printing_data_t::change_print_state() {
     case mpsCrashRecovery_XY_Measure:
     case mpsCrashRecovery_Tool_Pickup:
     case mpsCrashRecovery_XY_HOME:
+    case mpsCrashRecovery_HOMEFAIL:
     case mpsCrashRecovery_Axis_NOK:
     case mpsCrashRecovery_Repeated_Crash:
     case mpsPowerPanic_Resume:

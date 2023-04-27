@@ -153,7 +153,13 @@ class Endstops {
     // Enable / disable endstop z-probe checking
     #if HAS_BED_PROBE
       static std::atomic<bool> z_probe_enabled;
-      static void enable_z_probe(const bool onoff=true);
+
+      static void enable_z_probe(const bool onoff = true);
+
+      /**
+       * @brief Check if z_probe_enabled is true.
+       */
+      static inline bool is_z_probe_enabled() { return z_probe_enabled.load(); }
     #endif
 
     // Enable / disable endstop xy-probe checking

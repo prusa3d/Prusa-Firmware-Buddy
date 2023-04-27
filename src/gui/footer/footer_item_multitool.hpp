@@ -11,7 +11,6 @@ class FooterItemFinda : public AddSuperWindow<FooterIconText_IntVal> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName();
     FooterItemFinda(window_t *parent);
 };
 
@@ -20,6 +19,5 @@ class FooterItemCurrentTool : public AddSuperWindow<FooterIconText_IntVal> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName();
     FooterItemCurrentTool(window_t *parent);
 };

@@ -11,6 +11,7 @@
 #include "radio_button_fsm.hpp"
 #include "wizard_config.hpp"
 #include "window_text.hpp"
+#include "window_wizard_icon.hpp"
 
 /**
  * @brief parents of all tests

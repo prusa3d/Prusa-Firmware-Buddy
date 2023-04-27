@@ -425,7 +425,7 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
     return ERR_OK;
 }
 
-err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, err_t err) {
+err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, [[maybe_unused]] err_t err) {
     assert(raw_slot != nullptr);
     assert(conn != nullptr);
 

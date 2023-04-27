@@ -2225,8 +2225,7 @@ void Stepper::init() {
 
   #define AXIS_INIT(AXIS, PIN) \
     _STEP_INIT(AXIS); \
-    _WRITE_STEP(AXIS, _INVERT_STEP_PIN(PIN)); \
-    _DISABLE(AXIS)
+    _WRITE_STEP(AXIS, _INVERT_STEP_PIN(PIN))
 
   #define E_AXIS_INIT(NUM) AXIS_INIT(E## NUM, E)
 
@@ -2237,6 +2236,11 @@ void Stepper::init() {
       X2_STEP_WRITE(INVERT_X_STEP_PIN);
     #endif
     AXIS_INIT(X, X);
+    #if ENABLED(XY_LINKED_ENABLE)
+    _DISABLE(XY);
+    #else
+    _DISABLE(X);
+    #endif
   #endif
 
   #if HAS_Y_STEP
@@ -2245,6 +2249,11 @@ void Stepper::init() {
       Y2_STEP_WRITE(INVERT_Y_STEP_PIN);
     #endif
     AXIS_INIT(Y, Y);
+    #if ENABLED(XY_LINKED_ENABLE)
+    _DISABLE(XY);
+    #else
+    _DISABLE(Y);
+    #endif
   #endif
 
   #if HAS_Z_STEP
@@ -2257,6 +2266,7 @@ void Stepper::init() {
       Z3_STEP_WRITE(INVERT_Z_STEP_PIN);
     #endif
     AXIS_INIT(Z, Z);
+    _DISABLE(Z);
   #endif
 
   #if E_STEPPERS > 0 && HAS_E0_STEP

@@ -94,7 +94,7 @@ media_state_t media_get_state(void) {
 // These buffers are HUGE. We need to rework the prefetcher logic
 // to be more efficient and add compression.
 #define FILE_BUFF_SIZE 5120
-static char prefetch_buff[2][FILE_BUFF_SIZE];
+static char __attribute__((section(".ccmram"))) prefetch_buff[2][FILE_BUFF_SIZE];
 static char *file_buff;
 static uint32_t file_buff_level;
 static uint32_t file_buff_pos;
@@ -227,7 +227,7 @@ void media_print_start(const bool prefetch_start) {
         return;
     }
 
-    struct stat info = { 0 };
+    struct stat info {};
     int result = stat(marlin_vars()->media_SFN_path.get_ptr(), &info);
 
     if (result != 0) {
@@ -251,7 +251,7 @@ void media_print_start(const bool prefetch_start) {
         media_print_state = media_print_state_PRINTING;
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
     } else {
-        set_warning(WarningType::USBFlashDiskError);
+        marlin_server::set_warning(WarningType::USBFlashDiskError);
     }
 }
 
@@ -308,7 +308,7 @@ void media_print_resume(void) {
                 media_print_state = media_print_state_PRINTING;
                 osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_START);
             } else {
-                set_warning(WarningType::USBFlashDiskError);
+                marlin_server::set_warning(WarningType::USBFlashDiskError);
                 close_file();
             }
         }
@@ -417,7 +417,7 @@ void media_loop(void) {
                 metric_record_integer(&usbh_error_cnt, usbh_error_count);
                 media_print_drain();
             } else {
-                set_warning(WarningType::USBFlashDiskError);
+                marlin_server::set_warning(WarningType::USBFlashDiskError);
                 media_print_pause();
             }
             return;

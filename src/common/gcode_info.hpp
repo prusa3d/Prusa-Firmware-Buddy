@@ -17,12 +17,13 @@
 
 // these strings are meant NOT to be translated
 namespace gcode_info {
-static constexpr const char *time = "estimated printing time (normal mode)";
-static constexpr const char *filament_type = "filament_type";
-static constexpr const char *filament_mm = "filament used [mm]";
-static constexpr const char *filament_g = "filament used [g]";
-static constexpr const char *printer = "printer_model";
-static constexpr const char *m862 = "M862.";
+inline constexpr const char *time = "estimated printing time (normal mode)";
+inline constexpr const char *filament_type = "filament_type";
+inline constexpr const char *filament_mm = "filament used [mm]";
+inline constexpr const char *filament_g = "filament used [g]";
+inline constexpr const char *printer = "printer_model";
+inline constexpr const char *m862 = "M862.";
+inline constexpr const char *m115 = "M115";
 };
 
 constexpr uint32_t printer_model2code(const char *model) {
@@ -44,7 +45,8 @@ constexpr uint32_t printer_model2code(const char *model) {
         { "MK3S", 302 },
         { "MK3SMMU2S", 20302 },
         { "MINI", 120 },
-        { "MK404", 130 },
+        { "MK4", 130 },
+        { "MK4MMU3", 30130 },
         { "IXL", 160 },
         { "XL", 170 },
     };
@@ -107,13 +109,24 @@ public:
             Severity get_severity() const { return severity; }
             bool is_valid() const { return !wrong || severity == Severity::Ignore; }
             bool is_fatal() const { return wrong && severity == Severity::Abort; }
-            void set(bool v) { wrong = v; }
+            void fail() { wrong = true; }
         };
 
         std::vector<Feature> wrong_nozzle_diameters { HOTENDS, eevar_id::EEVAR_HWCHECK_NOZZLE }; // M862.1 disagree (or M862.10 - M862.15 for multihotend gcode)
         Feature wrong_printer_model { eevar_id::EEVAR_HWCHECK_MODEL };                           // M862.2 or M862.3 or printer_model (from comments) disagree
-        Feature wrong_firmware_version { eevar_id::EEVAR_HWCHECK_FIRMW };                        // M862.4 disagree
         Feature wrong_gcode_level { eevar_id::EEVAR_HWCHECK_GCODE };                             // M862.5 disagree
+        Feature wrong_firmware { eevar_id::EEVAR_HWCHECK_FIRMW };                                // M115 Ux.yy.z disagrees
+        Feature mk3_compatibility_mode { eevar_id::EEVAR_HWCHECK_COMPATIBILITY };
+
+        /**
+         * @brief Version read from G-code M115 Ux.yy.z.
+         * Valid only if wrong_firmware is not valid.
+         */
+        struct GcodeFwVersion {
+            int major = 0;
+            int minor = 0;
+            int patch = 0;
+        } gcode_fw_version;
 
         /**
          * @brief Are all nozzle diameters valid?
@@ -246,10 +259,11 @@ private:
 
     static void parse_gcode(Buffer::String cmd, uint32_t &gcode_counter, GCodeInfo::ValidPrinterSettings &valid_printer_settings);
     static void parse_comment(Buffer::String cmd, time_buff &printing_time, GCodePerExtruderInfo &per_extruder_info, bool &filament_described, GCodeInfo::ValidPrinterSettings &valid_printer_settings);
+    static void parse_version(GCodeInfo::ValidPrinterSettings &valid_printer_settings, const char *version);
 
     // Search this many last bytes for "metadata" comments.
     // With increasing size of the comment section, this will have to be increased either
-    static constexpr const size_t search_last_x_bytes = 25000;
+    static constexpr const size_t search_last_x_bytes = 50000;
 
     // search this many g-code at the beginning of the file for the M862.x g-codes
     static constexpr const uint32_t search_first_x_gcodes = 200;

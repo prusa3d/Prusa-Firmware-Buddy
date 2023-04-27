@@ -10,8 +10,8 @@
     #include "Configuration_XL_adv.h"
 #elif (PRINTER_TYPE == PRINTER_PRUSA_XL) && BOARD_IS_DWARF
     #include "Configuration_XL_Dwarf_adv.h"
-#elif (PRINTER_TYPE == PRINTER_PRUSA_MK404)
-    #include "Configuration_MK404_adv.h"
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4)
+    #include "Configuration_MK4_adv.h"
 #elif (PRINTER_TYPE == PRINTER_PRUSA_IXL)
     #include "Configuration_iXL_adv.h"
 #else

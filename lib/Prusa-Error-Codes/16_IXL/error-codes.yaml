@@ -157,6 +157,11 @@ Errors:
   id: "I2C_RX_UNDEFINED"
   approved: true
   # XX319-XX320 reserved
+- code: "16321"
+  title: "POWER PANIC"
+  text: "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
+  id: "ACF_AT_INIT"
+  approved: false
   # XX501-XX503 reserved
 - code: "16504"
   title: "ESP ERROR"
@@ -239,6 +244,10 @@ Errors:
   text: "BBF initialization failed, repeat the action or try another USB drive."
   id: "BBF_INIT_FAILED"
   approved: true
+- code: "16533"
+  title: "ESP NOT CONNECTED"
+  text: "ESP doesn't seem to be connected."
+  id: "ESP_NOT_CONNECTED"
 - code: "16602"
   title: ""
   text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."

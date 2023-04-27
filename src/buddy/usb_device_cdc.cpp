@@ -15,7 +15,7 @@ void usb_cdc_switch_to_logging() {
     usb_log_enable();
 }
 
-void tud_cdc_line_coding_cb(uint8_t itf, cdc_line_coding_t const *p_line_coding) {
+void tud_cdc_line_coding_cb([[maybe_unused]] uint8_t itf, cdc_line_coding_t const *p_line_coding) {
     if (p_line_coding->bit_rate == 57600) {
         usb_cdc_switch_to_logging();
     } else {

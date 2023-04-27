@@ -1,8 +1,8 @@
 #include <device/cmsis.h>
 
 void system_core_init() {
-    RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+    RCC_OscInitTypeDef RCC_OscInitStruct {};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct {};
 
     //Configure the main internal regulator output voltage
     HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);

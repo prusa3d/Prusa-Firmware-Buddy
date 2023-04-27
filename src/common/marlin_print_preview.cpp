@@ -64,13 +64,15 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
     case FSM_action::no_action:
         break;
     case FSM_action::create:
-        FSM_CREATE__LOGGING(PrintPreview);
         if (wantedPhase && *wantedPhase != PhasesPrintPreview::_first) {
-            FSM_CHANGE__LOGGING(PrintPreview, *wantedPhase);
+            FSM_CREATE_WITH_DATA__LOGGING(PrintPreview, *wantedPhase, fsm::PhaseData({ 0, 0, 0, 0 }));
+        } else {
+            FSM_CREATE__LOGGING(PrintPreview);
         }
         break;
     case FSM_action::destroy:
-        FSM_DESTROY__LOGGING(PrintPreview);
+        //do not call FSM_DESTROY__LOGGING(PrintPreview);
+        //we need to call it manually later to be atomic
         break;
     case FSM_action::change:
         FSM_CHANGE__LOGGING(PrintPreview, *wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
@@ -80,7 +82,7 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
 }
 
 Response IPrintPreview::GetResponse() {
-    return phase ? ClientResponseHandler::GetResponseFromPhase(*phase) : Response::_none;
+    return phase ? marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase) : Response::_none;
 }
 
 IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
@@ -176,7 +178,7 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::wrong_printer_wait_user:
     case State::wrong_printer_wait_user_abort:
         switch (response) {
-        case Response::Ignore:
+        case Response::PRINT:
             ChangeState(stateFromFilamentPresence());
             break;
         case Response::Abort:
@@ -198,7 +200,7 @@ PrintPreview::Result PrintPreview::Loop() {
             return Result::Abort;
         case Response::Yes:
             ChangeState(State::filament_not_inserted_load);
-            marlin_server_enqueue_gcode("M701 W2"); // load, return option
+            marlin_server::enqueue_gcode("M701 W2"); // load, return option
             break;
         default:
             break;
@@ -218,7 +220,7 @@ PrintPreview::Result PrintPreview::Loop() {
             return Result::Inactive;
         case Response::Yes:
             ChangeState(State::mmu_filament_inserted_unload);
-            marlin_server_enqueue_gcode("M702 W0"); // load, no return or cooldown
+            marlin_server::enqueue_gcode("M702 W0"); // load, no return or cooldown
             break;
         default:
             break;
@@ -235,7 +237,7 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
         case Response::Change:
             ChangeState(State::wrong_filament_change);
-            marlin_server_enqueue_gcode("M1600 R"); // change, return option
+            marlin_server::enqueue_gcode("M1600 R"); // change, return option
             break;
         case Response::Ok:
             ChangeState(State::done);

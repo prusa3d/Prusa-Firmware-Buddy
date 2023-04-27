@@ -25,7 +25,7 @@ void test_display_fade(uint16_t cnt);
 void test_display_rgbcolors(uint16_t cnt);
 void test_display_spectrum(uint16_t cnt);
 
-void do_test(test_display_t *func, int cnt, const char *name, const char *unit) {
+void do_test(test_display_t *func, int cnt, [[maybe_unused]] const char *name, [[maybe_unused]] const char *unit) {
     display::Clear(COLOR_BLACK);
 
 #if (DBG_LEVEL >= 3)
@@ -246,11 +246,11 @@ void test_display_random_png_64x64(uint16_t count) {
     fclose(res.file);
 }
 
-int __read(struct _reent *_r, void *pv, char *pc, int n) {
+int __read([[maybe_unused]] struct _reent *_r, [[maybe_unused]] void *pv, [[maybe_unused]] char *pc, [[maybe_unused]] int n) {
     return 0;
 }
 
-int __write(struct _reent *_r, void *pv, const char *pc, int n) {
+int __write([[maybe_unused]] struct _reent *_r, [[maybe_unused]] void *pv, [[maybe_unused]] const char *pc, [[maybe_unused]] int n) {
     return 0;
 }
 

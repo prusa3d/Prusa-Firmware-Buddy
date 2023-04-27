@@ -29,50 +29,18 @@ static GCodeInfo &gcode_init() {
     return GCodeInfo::getInstance();
 }
 
-#ifdef USE_ILI9488
-static const constexpr Rect16 title_rect = {
-    GuiDefaults::PreviewThumbnailRect.Left(),
-    GuiDefaults::HeaderHeight + 8,
-    display::GetW() - 2 * GuiDefaults::PreviewThumbnailRect.Left(),
-    TITLE_HEIGHT
-};
-static const constexpr Rect16 vertical_radio_buttons_rect = {
-    int16_t(title_rect.Left() + title_rect.Width() - GuiDefaults::IconButtonSize),
-    GuiDefaults::PreviewThumbnailRect.Top(),
-    GuiDefaults::IconButtonSize,
-    GuiDefaults::PreviewThumbnailRect.Height()
-};
-#endif
-
 ScreenPrintPreview::ScreenPrintPreview()
-#ifdef USE_ST7789
-    : title_text(this, Rect16(PADDING, PADDING, display::GetW() - 2 * PADDING, TITLE_HEIGHT))
-    , radio(this, GuiDefaults::GetIconnedButtonRect(GetRect()), PhasesPrintPreview::main_dialog)
-#endif // USE_ST7789
-#ifdef USE_ILI9488
-    : header(this)
-    , title_text(this, title_rect)
-    , radio(this, vertical_radio_buttons_rect, PhasesPrintPreview::main_dialog)
-#endif // USE_ILI9488
-    , gcode(gcode_init())
+    : gcode(gcode_init())
     , gcode_description(this, gcode)
     , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
     , phase(PhasesPrintPreview::_first) {
 
     super::ClrMenuTimeoutClose();
 
-#ifdef USE_ILI9488 // It was not included in condition above because it broke clang formating
-    header.SetText(_("PRINT"));
-    header.SetIcon(&png::print_16x16);
-#endif // USE_ILI9488
-
     // title_text.font = GuiDefaults::FontBig; //TODO big font somehow does not work
     //  this MakeRAM is safe - gcode_file_name is set to vars->media_LFN, which is statically allocated in RAM
     title_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)gcode.GetGcodeFilename()));
 
-    radio.SetHasIcon();
-    radio.SetBlackLayout(); // non iconned buttons have orange background
-    radio.SetBtnCount(2);
     CaptureNormalWindow(radio);
     ths = this;
 }
@@ -133,7 +101,7 @@ void ScreenPrintPreview::on_enter() {
 #endif
 }
 
-void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenPrintPreview::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
     if (event_in_progress)
         return;
 

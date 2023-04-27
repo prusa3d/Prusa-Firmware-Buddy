@@ -83,6 +83,13 @@ void SideStripControl::Tick() {
         }
         break;
     }
+    case State::SetOff: {
+        TransitionToColor(Color(0, 0, 0, 0), 500);
+        state = State::Off;
+        break;
+    }
+    case State::Off:
+        break;
     }
 
     if (current_transition.has_value()) {
@@ -176,4 +183,13 @@ SideStripControl::HsvColor SideStripControl::RgbToHsv(Color rgb) {
         hsv.h = 171 + 43 * (rgb.r - rgb.g) / (rgb_max - rgb_min);
 
     return hsv;
+}
+
+void SideStripControl::SetEnable(bool isEnable) {
+    std::unique_lock lock(mutex);
+    if (isEnable == true) {
+        state = State::Startup;
+    } else {
+        state = State::SetOff;
+    }
 }

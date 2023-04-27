@@ -13,6 +13,8 @@ size_t description_line_t::value_width(string_view_utf8 *title_str) {
 #ifdef USE_ILI9488
     return GuiDefaults::PreviewThumbnailRect.Width() - title_width(title_str);
 #endif // USE_ILI9488
+    assert(false);
+    return 0;
 }
 
 description_line_t::description_line_t(window_frame_t *frame, bool has_preview_thumbnail, size_t row, string_view_utf8 title_str, std::function<void(std::span<char> buffer)> make_value)

@@ -1,7 +1,7 @@
 #include "leds_dummy.hpp"
 
-MK404_leds &GetLeds() {
-    static MK404_leds leds;
+MK4_leds &GetLeds() {
+    static MK4_leds leds;
     return leds;
 }
 

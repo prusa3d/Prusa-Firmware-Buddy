@@ -31,6 +31,8 @@
 #include "../sd/cardreader.h"
 #include "temperature.h"
 #include "../lcd/ultralcd.h"
+#include <option/has_loadcell.h>
+#include <option/has_toolchanger.h>
 
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
   #include HAL_PATH(../HAL, endstop_interrupts.h)
@@ -50,6 +52,10 @@
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
   #include "Z_probe.hpp"
+#endif
+
+#if HAS_LOADCELL()
+  #include "loadcell.h"
 #endif
 
 Endstops endstops;
@@ -287,6 +293,17 @@ void Endstops::poll() {
     update();
   #elif ENDSTOP_NOISE_THRESHOLD
     if (endstop_poll_count) update();
+  #endif
+
+  // Call Loadcell::HomingSafetyCheck when homing (safeguard to stop homing when loadcell samples stop comming)
+  #if HAS_LOADCELL()
+  bool is_homing = z_probe_enabled;
+  #if HAS_TOOLCHANGER()
+  is_homing = is_homing || xy_probe_enabled;
+  #endif
+  if (is_homing) {
+    loadcell.HomingSafetyCheck();
+  }
   #endif
 }
 
@@ -794,7 +811,9 @@ void Endstops::update() {
         #elif ENABLED(Z_DUAL_ENDSTOPS)
           PROCESS_DUAL_ENDSTOP(Z, Z2, MIN);
         #else
-          #if ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
+          #if HAS_LOADCELL()
+            PROCESS_ENDSTOP(Z, MIN); // Loadcell is disabled elsewhere
+          #elif ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
             if (z_probe_enabled) PROCESS_ENDSTOP(Z, MIN);
           #elif HAS_CUSTOM_PROBE_PIN
             if (!z_probe_enabled) PROCESS_ENDSTOP(Z, MIN);

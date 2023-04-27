@@ -37,8 +37,9 @@ public:
  */
 #define LogInfoTimed(LOG, ...)               \
     {                                        \
-        if (LOG.CanLog())                    \
+        if (LOG.CanLog()) {                  \
             log_info(Selftest, __VA_ARGS__); \
+        }                                    \
     }
 
 /**
@@ -47,7 +48,8 @@ public:
  */
 #define LogDebugTimed(LOG, ...)               \
     {                                         \
-        if (LOG.CanLog())                     \
+        if (LOG.CanLog()) {                   \
             log_debug(Selftest, __VA_ARGS__); \
+        }                                     \
     }
 }

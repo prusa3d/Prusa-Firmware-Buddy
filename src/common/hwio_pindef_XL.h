@@ -3,6 +3,7 @@
 #pragma once
 
 #include "PCA9557.hpp"
+#include "config_buddy_2209_02.h"
 #include <device/board.h>
 
 #if (BOARD_VER_EQUAL_TO(0, 4, 0))
@@ -134,9 +135,9 @@ inline Pin::State xyProbeReadFn();
     MACRO_FUNCTION(buddy::hw::OutputPin, extFlashCs, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p2, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                          \
     MACRO_FUNCTION(buddy::hw::OutputPin, AD1setA, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p15, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                             \
     MACRO_FUNCTION(buddy::hw::OutputPin, AD1setB, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p11, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                             \
-    MACRO_FUNCTION(buddy::hw::InterruptPin, xDiag, BUDDY_PIN(X_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1) COMMA 0, endstop_ISR)                                   \
-    MACRO_FUNCTION(buddy::hw::InterruptPin, yDiag, BUDDY_PIN(Y_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1) COMMA 0, endstop_ISR)                                   \
     MACRO_FUNCTION(buddy::hw::InterruptPin, zDiag, BUDDY_PIN(Z_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1) COMMA 0, endstop_ISR)                                   \
+    MACRO_FUNCTION(buddy::hw::InterruptPin, xDiag, BUDDY_PIN(X_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA STEP_TIMER_IRQ_PRIO COMMA 0, endstop_ISR)                                                                 \
+    MACRO_FUNCTION(buddy::hw::InterruptPin, yDiag, BUDDY_PIN(Y_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA STEP_TIMER_IRQ_PRIO COMMA 0, endstop_ISR)                                                                 \
     MACRO_FUNCTION(buddy::hw::OutputPin, xyEnable, BUDDY_PIN(X_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                            \
     MACRO_FUNCTION(buddy::hw::OutputPin, zEnable, BUDDY_PIN(Z_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                             \
     MACRO_FUNCTION(buddy::hw::OutputPin, xStep, BUDDY_PIN(X_STEP), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                               \
@@ -151,7 +152,7 @@ inline Pin::State xyProbeReadFn();
     MACRO_FUNCTION(buddy::hw::OutputPin, splitter5vEnable, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                    \
     MACRO_FUNCTION(buddy::hw::OutputPin, AD2setA, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p12, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                             \
     MACRO_FUNCTION(buddy::hw::OutputPin, AD2setB, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p6, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                              \
-    MACRO_FUNCTION(buddy::hw::OutputPin, espPower, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p4, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                             \
+    MACRO_FUNCTION(buddy::hw::OutputPin, espPower, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p4, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                              \
     PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)
 
 #if (BOARD_VER_EQUAL_TO(0, 4, 0))

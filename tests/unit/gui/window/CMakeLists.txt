@@ -43,6 +43,7 @@ target_include_directories(
   window_tests
   PUBLIC .
          ${CMAKE_SOURCE_DIR}/src/guiapi/include
+         ${CMAKE_SOURCE_DIR}/src/guiconfig
          ${CMAKE_SOURCE_DIR}/src/common
          ${CMAKE_SOURCE_DIR}/src/gui/dialogs
          ${CMAKE_SOURCE_DIR}/tests/stubs
@@ -58,6 +59,7 @@ target_include_directories(
   layout_tests
   PUBLIC .
          ${CMAKE_SOURCE_DIR}/src/guiapi/include
+         ${CMAKE_SOURCE_DIR}/src/guiconfig
          ${CMAKE_SOURCE_DIR}/src/common
          ${CMAKE_SOURCE_DIR}/src/gui/dialogs
          ${CMAKE_SOURCE_DIR}/tests/stubs

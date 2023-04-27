@@ -66,7 +66,7 @@ uint32_t SteelSheets::ActiveSheetName(char *buffer, uint32_t length) {
 uint32_t SteelSheets::SheetName(uint32_t index, char *buffer, uint32_t length) {
     if (index >= eeprom_num_sheets || !buffer || !length)
         return 0;
-    uint32_t l = length < MAX_SHEET_NAME_LENGTH ? length : MAX_SHEET_NAME_LENGTH;
+    uint32_t l = length < static_cast<uint32_t>(MAX_SHEET_NAME_LENGTH) ? length : static_cast<uint32_t>(MAX_SHEET_NAME_LENGTH);
     auto sheet = getSheet(index);
     memcpy(buffer, sheet.name, l);
     while (l > 0 && !buffer[l - 1])
@@ -79,7 +79,7 @@ uint32_t SteelSheets::RenameSheet(uint32_t index, const char *buffer, uint32_t l
         return false;
 
     auto sheet = getSheet(index);
-    uint32_t l = length < MAX_SHEET_NAME_LENGTH ? length : MAX_SHEET_NAME_LENGTH;
+    uint32_t l = length < static_cast<uint32_t>(MAX_SHEET_NAME_LENGTH) ? length : static_cast<uint32_t>(MAX_SHEET_NAME_LENGTH);
     memset(sheet.name, 0, MAX_SHEET_NAME_LENGTH);
     memcpy(sheet.name, buffer, l);
     setSheet(index, sheet);

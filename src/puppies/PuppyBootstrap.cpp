@@ -10,7 +10,7 @@
 #include "mbedtls/sha256.h"
 #include "log.h"
 #include "main.h"
-#include "tasks.h"
+#include "tasks.hpp"
 #include "timing.h"
 #include "bsod.h"
 #include "otp.h"
@@ -51,19 +51,19 @@ PuppyBootstrap::PuppyBootstrap(ProgressHook aprogressHook)
     : progressHook(aprogressHook) {
 }
 
-bool PuppyBootstrap::attempt_crash_dump_download(Kennel kennel, BootloaderProtocol::Address address) {
+bool PuppyBootstrap::attempt_crash_dump_download(Dock dock, BootloaderProtocol::Address address) {
     flasher.set_address(address);
     std::array<uint8_t, BootloaderProtocol::MAX_RESPONSE_DATA_LEN> buffer;
 
     return crash_dump::download_dump_into_file(buffer, flasher,
-        puppy_info[to_puppy_type(kennel)].name,
-        kennel_info[to_info_idx(kennel)].crash_dump_path);
+        puppy_info[to_puppy_type(dock)].name,
+        dock_info[to_info_idx(dock)].crash_dump_path);
 }
 
 PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapResult minimal_config, unsigned int max_attempts) {
     PuppyBootstrap::BootstrapResult result;
 
-    progressHook({ 0, FlashingStage::START });
+    progressHook({ 0, FlashingStage::START, PuppyType::DWARF });
     auto guard = buddy::puppies::PuppyBus::LockGuard();
 
 #if HAS_PUPPIES_BOOTLOADER()
@@ -83,40 +83,40 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
                     fatal_error(ErrCode::ERR_SYSTEM_PUPPY_DISCOVER_ERR);
                 } else {
                     // signal to user that puppy is not connected properly
-                    auto get_first_missing_kennel_string = [minimal_config, result]() -> const char * {
-                        for (Kennel kennel = Kennel::FIRST; kennel <= Kennel::LAST; kennel = kennel + 1) {
-                            if (minimal_config.is_kennel_occupied(kennel) && !result.is_kennel_occupied(kennel)) {
-                                return to_string(kennel);
+                    auto get_first_missing_dock_string = [minimal_config, result]() -> const char * {
+                        for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+                            if (minimal_config.is_dock_occupied(dock) && !result.is_dock_occupied(dock)) {
+                                return to_string(dock);
                             }
                         }
                         return "unknown";
                     };
-                    fatal_error(ErrCode::ERR_SYSTEM_PUPPY_NOT_RESPONDING, get_first_missing_kennel_string());
+                    fatal_error(ErrCode::ERR_SYSTEM_PUPPY_NOT_RESPONDING, get_first_missing_dock_string());
                 }
             }
         }
     }
 
-    progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT });
+    progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PuppyType::DWARF });
     int percent_per_puppy = 80 / result.discovered_num();
     int percent_base = 20;
 
     //Select random salt for modular bed and for dwarf
     fingerprints_t fingerprints;
-    HAL_RNG_GenerateRandomNumber(&hrng, &(fingerprints.get_salt(Kennel::MODULAR_BED)));
-    HAL_RNG_GenerateRandomNumber(&hrng, &(fingerprints.get_salt(Kennel::DWARF_1)));
-    for (Kennel kennel = Kennel::DWARF_1; kennel <= Kennel::LAST; kennel = kennel + 1) {
-        fingerprints.get_salt(kennel) = fingerprints.get_salt(Kennel::DWARF_1); // Copy salt to all dwarfs
+    HAL_RNG_GenerateRandomNumber(&hrng, &(fingerprints.get_salt(Dock::MODULAR_BED)));
+    HAL_RNG_GenerateRandomNumber(&hrng, &(fingerprints.get_salt(Dock::DWARF_1)));
+    for (Dock dock = Dock::DWARF_1; dock <= Dock::LAST; dock = dock + 1) {
+        fingerprints.get_salt(dock) = fingerprints.get_salt(Dock::DWARF_1); // Copy salt to all dwarfs
     }
 
     // Ask puppies to compute fw fingerprint
-    for (Kennel kennel = Kennel::FIRST; kennel <= Kennel::LAST; kennel = kennel + 1) {
-        if (!result.is_kennel_occupied(kennel)) {
+    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+        if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to bootstrap
             continue;
         }
-        auto address = get_boot_address_for_kennel(kennel);
-        start_fingerprint_computation(address, fingerprints.get_salt(kennel));
+        auto address = get_boot_address_for_dock(dock);
+        start_fingerprint_computation(address, fingerprints.get_salt(dock));
     }
 
     auto fingerprint_wait_start = ticks_ms();
@@ -125,68 +125,68 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
     { // Modular bed
         unique_file_ptr fw_file = get_firmware(MODULARBED);
         off_t fw_size = get_firmware_size(MODULARBED);
-        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Kennel::MODULAR_BED), fingerprints.get_salt(Kennel::MODULAR_BED));
+        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::MODULAR_BED), fingerprints.get_salt(Dock::MODULAR_BED));
     }
     { // Dwarf
         unique_file_ptr fw_file = get_firmware(DWARF);
         off_t fw_size = get_firmware_size(DWARF);
-        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Kennel::DWARF_1), fingerprints.get_salt(Kennel::DWARF_1));
-        for (Kennel kennel = Kennel::DWARF_1; kennel <= Kennel::LAST; kennel = kennel + 1) {
-            fingerprints.get_fingerprint(kennel) = fingerprints.get_fingerprint(Kennel::DWARF_1); // Copy fingerprint to all dwarfs
+        calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::DWARF_1), fingerprints.get_salt(Dock::DWARF_1));
+        for (Dock dock = Dock::DWARF_1; dock <= Dock::LAST; dock = dock + 1) {
+            fingerprints.get_fingerprint(dock) = fingerprints.get_fingerprint(Dock::DWARF_1); // Copy fingerprint to all dwarfs
         }
     }
 
     // Check puppies if they finished fingerprint calculations
-    for (Kennel kennel = Kennel::FIRST; kennel <= Kennel::LAST; kennel = kennel + 1) {
-        if (!result.is_kennel_occupied(kennel)) {
+    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+        if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to check
-            kennel = kennel + 1; // Check next puppy
+            dock = dock + 1; // Check next puppy
             continue;
         }
 
-        auto address = get_boot_address_for_kennel(kennel);
+        auto address = get_boot_address_for_dock(dock);
         flasher.set_address(address);
         wait_for_fingerprint(fingerprint_wait_start);
     }
 
     // Check fingerprints and flash firmware
-    for (Kennel kennel = Kennel::FIRST; kennel <= Kennel::LAST; kennel = kennel + 1) {
-        if (!result.is_kennel_occupied(kennel)) {
+    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+        if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to bootstrap
             continue;
         }
 
-        auto address = get_boot_address_for_kennel(kennel);
-        auto puppy_type = to_puppy_type(kennel);
+        auto address = get_boot_address_for_dock(dock);
+        auto puppy_type = to_puppy_type(dock);
 
         progressHook({ percent_base, FlashingStage::CHECK_FINGERPRINT, puppy_type });
 
-        attempt_crash_dump_download(kennel, address);
+        attempt_crash_dump_download(dock, address);
     #if PUPPY_FLASH_FW()
         uint8_t offset = 0;
         uint8_t size = sizeof(fingerprint_t);
-        if (to_puppy_type(kennel) == DWARF) {
+        if (to_puppy_type(dock) == DWARF) {
             // Check this chunk from one puppy, -1 fo modular bed which has different fingerprint
             size = sizeof(fingerprint_t) / (result.discovered_num() - 1);
-            offset = size * (static_cast<uint8_t>(kennel) - 1);
+            offset = size * (static_cast<uint8_t>(dock) - 1);
         }
-        flash_firmware(kennel, fingerprints, offset, size, percent_base, percent_per_puppy);
+        flash_firmware(dock, fingerprints, offset, size, percent_base, percent_per_puppy);
     #endif
         percent_base += percent_per_puppy;
     }
 
-    progressHook({ 100, FlashingStage::DONE });
+    progressHook({ 100, FlashingStage::DONE, PuppyType::DWARF });
 
     // Start application
-    for (Kennel kennel = Kennel::FIRST; kennel <= Kennel::LAST; kennel = kennel + 1) {
-        if (!result.is_kennel_occupied(kennel)) {
+    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+        if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to start
             continue;
         }
 
-        auto address = get_boot_address_for_kennel(kennel);
-        auto puppy_type = to_puppy_type(kennel);
-        start_app(puppy_type, address, fingerprints.get_salt(kennel), fingerprints.get_fingerprint(kennel)); //Use last known salt that may already be calculated in puppy
+        auto address = get_boot_address_for_dock(dock);
+        auto puppy_type = to_puppy_type(dock);
+        start_app(puppy_type, address, fingerprints.get_salt(dock), fingerprints.get_fingerprint(dock)); //Use last known salt that may already be calculated in puppy
     }
 
 #else
@@ -199,20 +199,20 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
 
 bool PuppyBootstrap::is_puppy_config_ok(PuppyBootstrap::BootstrapResult result, PuppyBootstrap::BootstrapResult minimal_config) {
     // at least all bits that are set in minimal_config are set
-    return (result.kennels_preset & minimal_config.kennels_preset) == minimal_config.kennels_preset;
+    return (result.docks_preset & minimal_config.docks_preset) == minimal_config.docks_preset;
 }
 
 PuppyBootstrap::BootstrapResult PuppyBootstrap::run_address_assignment() {
     BootstrapResult result = {};
 
-    for (Kennel kennel = Kennel::FIRST; kennel <= Kennel::LAST; kennel = kennel + 1U) {
-        auto address = get_boot_address_for_kennel(kennel);
-        auto puppy_type = to_puppy_type(kennel);
+    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1U) {
+        auto address = get_boot_address_for_dock(dock);
+        auto puppy_type = to_puppy_type(dock);
 
-        progressHook({ (int)kennel, FlashingStage::START });
+        progressHook({ (int)dock, FlashingStage::START, puppy_type });
 
         progressHook({ 0, FlashingStage::DISCOVERY, puppy_type });
-        log_info(Puppies, "Discovering whats in kennel %s %i", puppy_info[puppy_type].name, kennel);
+        log_info(Puppies, "Discovering whats in dock %s %i", puppy_info[puppy_type].name, dock);
 
         // Wait for puppy to boot up
         osDelay(5);
@@ -225,14 +225,14 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run_address_assignment() {
         osDelay(50);
 
         // reset, all the not-bootstrapped-yet puppies which we don't care about now
-        reset_puppies_range(kennel + 1U, Kennel::LAST);
+        reset_puppies_range(dock + 1U, Dock::LAST);
 
         bool status = discover(puppy_type, address);
         if (status) {
-            log_info(Puppies, "Kennel %i: discovered puppy %s, assigned address: %d", kennel, puppy_info[puppy_type].name, address);
-            result.set_kennel_occupied(kennel);
+            log_info(Puppies, "Dock %i: discovered puppy %s, assigned address: %d", dock, puppy_info[puppy_type].name, address);
+            result.set_dock_occupied(dock);
         } else {
-            log_info(Puppies, "Kennel %i: no puppy discovered", kennel);
+            log_info(Puppies, "Dock %i: no puppy discovered", dock);
         }
     }
 
@@ -252,9 +252,9 @@ void PuppyBootstrap::assign_address(BootloaderProtocol::Address current_address,
 
 void PuppyBootstrap::verify_address_assignment(BootstrapResult result) {
     // reset every puppy that is supposed to be empty
-    for (Kennel kennel = Kennel::FIRST; kennel <= Kennel::LAST; kennel = kennel + 1U) {
-        if (!result.is_kennel_occupied(kennel)) {
-            reset_puppies_range(kennel, kennel);
+    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1U) {
+        if (!result.is_dock_occupied(dock)) {
+            reset_puppies_range(dock, dock);
         }
     }
 
@@ -268,11 +268,11 @@ void PuppyBootstrap::verify_address_assignment(BootstrapResult result) {
 }
 
 void PuppyBootstrap::reset_all_puppies() {
-    reset_puppies_range(Kennel::FIRST, Kennel::LAST);
+    reset_puppies_range(Dock::FIRST, Dock::LAST);
 }
 
-void PuppyBootstrap::reset_puppies_range(Kennel from, Kennel to) {
-    const auto write_puppies_reset_pin = [](Kennel kennelFrom, Kennel to, Pin::State state) {
+void PuppyBootstrap::reset_puppies_range(Dock from, Dock to) {
+    const auto write_puppies_reset_pin = [](Dock dockFrom, Dock dockTo, Pin::State state) {
         static const buddy::hw::PCA9557OutputPin *const reset_pins[] = {
             &buddy::hw::modularBedReset,
             &buddy::hw::dwarf1Reset,
@@ -282,7 +282,7 @@ void PuppyBootstrap::reset_puppies_range(Kennel from, Kennel to) {
             &buddy::hw::dwarf5Reset,
             &buddy::hw::dwarf6Reset,
         };
-        for (Kennel k = kennelFrom; k <= to; k = k + 1U) {
+        for (Dock k = dockFrom; k <= dockTo; k = k + 1U) {
             reset_pins[static_cast<uint8_t>(k)]->write(state);
         }
     };
@@ -322,7 +322,7 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
     }
 
     // Here it is possible to read raw puppy's OTP before flashing, perhaps to flash a different firmware
-    datamatrix_t puppy_datamatrix = { 0 };
+    datamatrix_t puppy_datamatrix {};
     if (protocol_version >= 0x0302) { // OTP read was added in protocol 0x0302
 
         uint8_t otp[32]; // OTP v5 will fit to 32 Bytes
@@ -348,7 +348,7 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
     return true;
 }
 
-void PuppyBootstrap::start_app(PuppyType type, BootloaderProtocol::Address address, uint32_t salt, const fingerprint_t &fingerprint) {
+void PuppyBootstrap::start_app([[maybe_unused]] PuppyType type, BootloaderProtocol::Address address, uint32_t salt, const fingerprint_t &fingerprint) {
     // start app
     log_info(Puppies, "Starting puppy app");
     flasher.set_address(address);
@@ -376,8 +376,8 @@ off_t PuppyBootstrap::get_firmware_size(PuppyType type) {
     return fs.st_size;
 }
 
-void PuppyBootstrap::flash_firmware(Kennel kennel, fingerprints_t &fw_fingerprints, uint8_t chunk_offset, uint8_t chunk_size, int percent_offset, int percent_span) {
-    auto puppy_type = to_puppy_type(kennel);
+void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, uint8_t chunk_offset, uint8_t chunk_size, int percent_offset, int percent_span) {
+    auto puppy_type = to_puppy_type(dock);
     unique_file_ptr fw_file = get_firmware(puppy_type);
     off_t fw_size = get_firmware_size(puppy_type);
 
@@ -386,12 +386,12 @@ void PuppyBootstrap::flash_firmware(Kennel kennel, fingerprints_t &fw_fingerprin
         return;
     }
 
-    flasher.set_address(get_boot_address_for_kennel(kennel));
+    flasher.set_address(get_boot_address_for_dock(dock));
 
     progressHook({ percent_offset, FlashingStage::CHECK_FINGERPRINT, puppy_type });
 
-    bool match = fingerprint_match(fw_fingerprints.get_fingerprint(kennel), chunk_offset, chunk_size);
-    log_info(Puppies, "Puppy %d-%s fingerprint %s", static_cast<int>(kennel), puppy_info[puppy_type].name, match ? "matched" : "didn't match");
+    bool match = fingerprint_match(fw_fingerprints.get_fingerprint(dock), chunk_offset, chunk_size);
+    log_info(Puppies, "Puppy %d-%s fingerprint %s", static_cast<int>(dock), puppy_info[puppy_type].name, match ? "matched" : "didn't match");
 
     // if application firmware fingerprint doesn't match, flash it
     if (!match) {
@@ -419,18 +419,18 @@ void PuppyBootstrap::flash_firmware(Kennel kennel, fingerprints_t &fw_fingerprin
         progressHook({ percent_offset + percent_span, FlashingStage::CHECK_FINGERPRINT, puppy_type });
 
         // Calculate new fingerprint, salt needs to be changed so the flashing cannot be faked
-        HAL_RNG_GenerateRandomNumber(&hrng, &(fw_fingerprints.get_salt(kennel)));
-        start_fingerprint_computation(get_boot_address_for_kennel(kennel), fw_fingerprints.get_salt(kennel));
+        HAL_RNG_GenerateRandomNumber(&hrng, &(fw_fingerprints.get_salt(dock)));
+        start_fingerprint_computation(get_boot_address_for_dock(dock), fw_fingerprints.get_salt(dock));
 
         auto fingerprint_wait_start = ticks_ms();
 
-        calculate_fingerprint(fw_file, fw_size, fw_fingerprints.get_fingerprint(kennel), fw_fingerprints.get_salt(kennel));
+        calculate_fingerprint(fw_file, fw_size, fw_fingerprints.get_fingerprint(dock), fw_fingerprints.get_salt(dock));
 
         // Check puppy if it finished fingerprint calculation
         wait_for_fingerprint(fingerprint_wait_start);
 
         // check fingerprint after flashing, to make sure it went well
-        if (!fingerprint_match(fw_fingerprints.get_fingerprint(kennel))) {
+        if (!fingerprint_match(fw_fingerprints.get_fingerprint(dock))) {
             fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FINGERPRINT_MISMATCH, puppy_info[puppy_type].name);
         }
     }

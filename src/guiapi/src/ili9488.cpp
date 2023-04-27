@@ -349,7 +349,7 @@ bool __attribute__((weak)) touch::set_registers() {
     return false;
 }
 
-void ili9488_set_backlight(uint8_t bck) {
+void ili9488_set_backlight([[maybe_unused]] uint8_t bck) {
 }
 
 void ili9488_set_complete_lcd_reinit() {
@@ -487,7 +487,7 @@ void *png_mem_ptrs[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_sizes[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 uint32_t png_mem_cnt = 0;
 
-png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
+png_voidp _pngmalloc([[maybe_unused]] png_structp pp, png_alloc_size_t size) {
     if (!png_memory.has_value()) {
         png_memory = buddy::scratch_buffer::Ownership();
         png_memory->acquire(/*wait=*/true);
@@ -501,6 +501,7 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
         for (i = 0; i < 10; i++)
             if (png_mem_ptrs[i] == 0)
                 break;
+        assert(static_cast<size_t>(i) <= std::size(png_mem_ptrs));
         png_mem_ptrs[i] = p;
         png_mem_sizes[i] = size;
         png_mem_total += size;
@@ -509,7 +510,7 @@ png_voidp _pngmalloc(png_structp pp, png_alloc_size_t size) {
     return p;
 }
 
-void _pngfree(png_structp pp, png_voidp mem) {
+void _pngfree([[maybe_unused]] png_structp pp, png_voidp mem) {
     int i;
 
     for (i = 0; i < 10; i++)
@@ -598,7 +599,7 @@ void ili9488_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
 
             //check image type (indexed or other color type)
             png_byte colorType = png_get_color_type(pp, ppi);
-            bool alphaChannel = false;
+            volatile bool alphaChannel = false;
 
             switch (colorType) {
             case PNG_COLOR_TYPE_GRAY:
@@ -790,8 +791,8 @@ void ili9488_gamma_set(uint8_t gamma) {
 
 //returns 0 - 3
 uint8_t ili9488_gamma_get() {
-    uint8_t position = 0;
-    for (int8_t position = 3; position >= 0; --position) {
+    uint8_t position;
+    for (position = 3; position != 0; --position) {
         if (ili9488_config.gamma == 1 << position)
             break;
     }

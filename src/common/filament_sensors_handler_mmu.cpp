@@ -7,7 +7,7 @@
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_mmu.hpp"
 #include "filament_sensor_adc.hpp"
-#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2mk404.h"
+#include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #include "eeprom.h"
 #include "marlin_client.hpp"
 #include "metric.h"
@@ -102,7 +102,7 @@ void FilamentSensors::SetToolIndex() {
 
 void FilamentSensors::configure_sensors() {
     auto side_sensor_state = mmu2.State();
-    has_mmu = !(side_sensor_state == State_t::Stopped);
+    has_mmu = !(side_sensor_state == xState::Stopped);
 
     physical_sensors.current_extruder = GetExtruderFSensor(tool_index);
     physical_sensors.current_side = GetSideFSensor(tool_index);
@@ -113,12 +113,12 @@ void FilamentSensors::configure_sensors() {
 }
 
 void FilamentSensors::reconfigure_sensors_if_needed() {
-    auto static old_mmu_state = mmu2.State();
-    auto mmu_state = mmu2.State();
-    if (mmu_state != old_mmu_state) {
-        configure_sensors();
-        old_mmu_state = mmu_state;
-    }
+    //auto static old_mmu_state = mmu2.State();
+    //auto mmu_state = mmu2.State();
+    //if (mmu_state != old_mmu_state) {
+    configure_sensors();
+    //    old_mmu_state = mmu_state;
+    //}
 }
 
 void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {
@@ -130,7 +130,7 @@ void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {
     }
 }
 
-void FilamentSensors::AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index) {
+void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
     assert("no adc sensor");
 }
 
@@ -150,5 +150,5 @@ void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
     }
 }
 
-void side_fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
+void side_fs_process_sample([[maybe_unused]] int32_t fs_raw_value, [[maybe_unused]] uint8_t tool_index) {
 }

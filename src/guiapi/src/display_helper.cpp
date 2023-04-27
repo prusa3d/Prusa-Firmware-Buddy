@@ -44,8 +44,8 @@ void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint
         *charY = (c - pf->asc_min) / 16;
     } else {
         // extended utf8 character - must search in the fontCharIndices map
-        const FCIndex *i = std::lower_bound(fontCharIndices, fontCharIndices + fontCharIndicesNumItems, c, [](const FCIndex &i, unichar c) {
-            return i.unc < c;
+        const FCIndex *i = std::lower_bound(fontCharIndices, fontCharIndices + fontCharIndicesNumItems, c, [](const FCIndex &i, unichar ch) {
+            return i.unc < ch;
         });
         if (i == fontCharIndices + fontCharIndicesNumItems || i->unc != c) {
             // character not found
@@ -140,7 +140,7 @@ size_ui16_t render_text_singleline(Rect16 rc, string_view_utf8 str, const font_t
 }
 
 //count characters in lines
-static RectTextLayout multiline_loop(uint8_t MaxColsInRect, uint8_t MaxRowsInRect, string_view_utf8 str) {
+static RectTextLayout multiline_loop(uint8_t MaxColsInRect, [[maybe_unused]] uint8_t MaxRowsInRect, string_view_utf8 str) {
     RectTextLayout layout;
 
     // prepare for stream processing

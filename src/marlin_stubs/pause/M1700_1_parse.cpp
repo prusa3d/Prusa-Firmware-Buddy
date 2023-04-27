@@ -67,14 +67,31 @@ void PrusaGcodeSuite::M1701() {
  *              - U0 - return if filament unknown (default)
  *              - U1 - ask only if filament unknown
  *              - U2 - always ask
+ *  S"Filament" - change to filament by name, for example S"PLA"
  */
 void PrusaGcodeSuite::M1600() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
 
+    auto filament_to_be_loaded = filament::Type::NONE;
+    const char *text_begin = 0;
+    if (parser.seen('S')) {
+        text_begin = strchr(parser.string_arg, '"');
+        if (text_begin) {
+            ++text_begin; // move pointer from '"' to first letter
+            const char *text_end = strchr(text_begin, '"');
+            if (text_end) {
+                auto filament = filament::get_type(text_begin, text_end - text_begin);
+                if (filament != filament::Type::NONE) {
+                    filament_to_be_loaded = filament;
+                }
+            }
+        }
+    }
+
     const filament_gcodes::AskFilament_t ask_unload = filament_gcodes::AskFilament_t(parser.byteval('U', 0));
     const bool hasReturn = parser.seen('R');
 
-    filament_gcodes::M1600_no_parser(target_extruder, hasReturn ? RetAndCool_t::Return : RetAndCool_t::Neither, ask_unload);
+    filament_gcodes::M1600_no_parser(filament_to_be_loaded, target_extruder, hasReturn ? RetAndCool_t::Return : RetAndCool_t::Neither, ask_unload);
 }

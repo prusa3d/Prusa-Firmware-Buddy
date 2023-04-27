@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "guitypes.h"
+#include "guitypes.hpp"
 #include "i18n.h"
 #include <array>
 #include "window_text.hpp"
@@ -65,7 +65,7 @@ private:
     inline static std::array<char, MAX_END_TIMESTAMP_SIZE> text_time_end; /**< Buffer for time to end (max 31 chars) */
     inline static std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;   /**< Buffer for time duration (max 9 chars) */
 
-    PT_t time_end_format = PT_t::init;                  /**< Currently used time end format */
-    uint32_t last_print_duration = TIME_TO_END_INVALID; /**< last recorded print_duration */
-    uint32_t last_time_to_end = TIME_TO_END_INVALID;    /**< last end time used for GUI update */
+    PT_t time_end_format = PT_t::init;                                 /**< Currently used time end format */
+    uint32_t last_print_duration = marlin_server::TIME_TO_END_INVALID; /**< last recorded print_duration */
+    uint32_t last_time_to_end = marlin_server::TIME_TO_END_INVALID;    /**< last end time used for GUI update */
 };

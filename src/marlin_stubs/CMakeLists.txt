@@ -1,14 +1,11 @@
 target_sources(
   firmware
-  PRIVATE G163.cpp
-          G26.cpp
-          G425.cpp
+  PRIVATE G26.cpp
           G64.cpp
           gcode.cpp
           M300.cpp
           M330.cpp
           M505.cpp
-          M650.cpp
           M862_1.cpp
           M862_2.cpp
           M862_3.cpp
@@ -27,7 +24,7 @@ add_subdirectory(host)
 add_subdirectory(feature)
 
 if(HAS_SELFTEST)
-  target_sources(firmware PRIVATE G162.cpp)
+  target_sources(firmware PRIVATE G162.cpp G163.cpp)
   if(WUI)
     target_sources(firmware PRIVATE M1587.cpp)
   endif()
@@ -38,5 +35,5 @@ if(HAS_LEDS)
 endif()
 
 if(HAS_TOOLCHANGER)
-  target_sources(firmware PRIVATE P.cpp)
+  target_sources(firmware PRIVATE G425.cpp P.cpp)
 endif()

@@ -22,7 +22,7 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept {
  *  Alternative to static_assert with dependant false
  * @param reason
  */
-inline void consteval_assert_false(const char *reason = "") {}
+inline void consteval_assert_false([[maybe_unused]] const char *reason = "") {}
 
 /**
  * @brief Will cause a (rather cryptic) compile time error if condition == false (call to non-constexpr function).

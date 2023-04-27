@@ -24,7 +24,7 @@ enum class index { backlight,
 /**
  * @brief count of LEDs
  */
-static constexpr size_t Count = size_t(index::count_);
+inline constexpr size_t Count = size_t(index::count_);
 
 /**
  * @brief call periodically, writes LED values

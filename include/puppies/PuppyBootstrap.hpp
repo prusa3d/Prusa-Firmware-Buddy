@@ -38,23 +38,23 @@ public:
     /// Minimal puppy bootloader version that works with this bootstrap
     static constexpr uint32_t MINIMAL_BOOTLOADER_VERSION = 294;
 
-    /// @brief Result of puppy bootstrap - indicates which kennels are occupied
+    /// @brief Result of puppy bootstrap - indicates which docks are occupied
     struct BootstrapResult {
-        uint8_t kennels_preset { 0 }; // every bit corresponds with one kennel
+        uint8_t docks_preset { 0 }; // every bit corresponds with one dock
 
         // number of detected puppies
         [[nodiscard]] uint8_t discovered_num() const {
-            return std::popcount(kennels_preset);
+            return std::popcount(docks_preset);
         }
 
-        /// sets that this kennel is occupied
-        void set_kennel_occupied(Kennel k) {
-            kennels_preset |= 1 << static_cast<uint8_t>(k);
+        /// sets that this dock is occupied
+        void set_dock_occupied(Dock k) {
+            docks_preset |= 1 << static_cast<uint8_t>(k);
         }
 
-        /// checks if kennel is occupied
-        [[nodiscard]] bool is_kennel_occupied(Kennel k) const {
-            return kennels_preset & (1 << static_cast<uint8_t>(k));
+        /// checks if dock is occupied
+        [[nodiscard]] bool is_dock_occupied(Dock k) const {
+            return docks_preset & (1 << static_cast<uint8_t>(k));
         }
     };
 
@@ -64,43 +64,43 @@ public:
     /// Start bootstrap procedure
     BootstrapResult run(PuppyBootstrap::BootstrapResult minimal_config, unsigned int max_attempts = 3);
 
-    /// @brief  Returns address on RS485 for bootloader protocol for each kennel
-    static constexpr BootloaderProtocol::Address get_boot_address_for_kennel(Kennel kennel) {
-        return (BootloaderProtocol::Address)((uint8_t)BootloaderProtocol::Address::FIRST_ASSIGNED + (uint8_t)kennel);
+    /// @brief  Returns address on RS485 for bootloader protocol for each dock
+    static constexpr BootloaderProtocol::Address get_boot_address_for_dock(Dock dock) {
+        return (BootloaderProtocol::Address)((uint8_t)BootloaderProtocol::Address::FIRST_ASSIGNED + (uint8_t)dock);
     }
 
-    /// @brief  Returns address on RS485 for modbus protocol for each kennel
-    static constexpr BootloaderProtocol::Address get_modbus_address_for_kennel(Kennel kennel) {
-        return (BootloaderProtocol::Address)((uint8_t)BootloaderProtocol::Address::MODBUS_OFFSET + (uint8_t)kennel);
+    /// @brief  Returns address on RS485 for modbus protocol for each dock
+    static constexpr BootloaderProtocol::Address get_modbus_address_for_dock(Dock dock) {
+        return (BootloaderProtocol::Address)((uint8_t)BootloaderProtocol::Address::MODBUS_OFFSET + (uint8_t)dock);
     }
 
     /// @brief  This is minimal puppy configuration that is needed for printer to boot up. Minimal puppy config is that we have modular bed & dwarf 1
     static constexpr inline BootstrapResult MINIMAL_PUPPY_CONFIG {
-        1 << static_cast<uint8_t>(Kennel::MODULAR_BED) | 1 << static_cast<uint8_t>(Kennel::DWARF_1)
+        1 << static_cast<uint8_t>(Dock::MODULAR_BED) | 1 << static_cast<uint8_t>(Dock::DWARF_1)
     };
 
 private:
     using fingerprint_t = BootloaderProtocol::fingerprint_t;
 
-    /// Helper to index fingerprints by the kennel
+    /// Helper to index fingerprints by the dock
     class fingerprints_t {
-        std::array<fingerprint_t, static_cast<uint8_t>(Kennel::LAST) + 1> fingerprints;
-        std::array<uint32_t, static_cast<uint8_t>(Kennel::LAST) + 1> salts;
+        std::array<fingerprint_t, static_cast<uint8_t>(Dock::LAST) + 1> fingerprints;
+        std::array<uint32_t, static_cast<uint8_t>(Dock::LAST) + 1> salts;
 
     public:
-        uint32_t &get_salt(Kennel kennel) {
-            return salts[static_cast<uint8_t>(kennel)];
+        uint32_t &get_salt(Dock dock) {
+            return salts[static_cast<uint8_t>(dock)];
         }
 
-        fingerprint_t &get_fingerprint(Kennel kennel) {
-            return fingerprints[static_cast<uint8_t>(kennel)];
+        fingerprint_t &get_fingerprint(Dock dock) {
+            return fingerprints[static_cast<uint8_t>(dock)];
         }
     };
 
     BootloaderProtocol flasher;
     ProgressHook progressHook; // Hook for bootstrap progress bar, expecting percentages from 0 - 100, which will be adjusted in guimain to fit max_bootstrap_perc constant
     void reset_all_puppies();
-    void reset_puppies_range(Kennel from, Kennel to);
+    void reset_puppies_range(Dock from, Dock to);
 
     /**
      * @brief Test if puppy bootloader is there and check some info.
@@ -114,14 +114,14 @@ private:
 
     /**
      * @brief Check fingerprint and if needed, flash new firmware.
-     * @param kennel check puppy in this kennel
+     * @param dock check puppy in this dock
      * @param fw_fingerprints salts already given to puppies and each corresponding fingerprint
      * @param chunk_offset do initial fingerprint check only with chunk starting at offset
      * @param chunk_size do initial fingerprint check only with chunk of this size bytes
      * @param percent_offset start position of the progress trackbar
      * @param percent_span length on the progress trackbar filled with this check
      */
-    void flash_firmware(Kennel kennel, fingerprints_t &fw_fingerprints, uint8_t chunk_offset, uint8_t chunk_size, int percent_offset, int percent_span);
+    void flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, uint8_t chunk_offset, uint8_t chunk_size, int percent_offset, int percent_span);
 
     /**
      * @brief Tell puppy to check fingerprint and start application.
@@ -177,6 +177,6 @@ private:
      *
      * @return true if successfully downloaded a crash dump.
      */
-    bool attempt_crash_dump_download(Kennel kennel, BootloaderProtocol::Address address);
+    bool attempt_crash_dump_download(Dock dock, BootloaderProtocol::Address address);
 };
 }

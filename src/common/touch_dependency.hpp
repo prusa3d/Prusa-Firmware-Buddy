@@ -11,4 +11,6 @@ bool set_registers();
 bool is_enabled();
 void enable();
 void disable();
+void touch_workaround();
+int get_touch_read_err_total();
 };

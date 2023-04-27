@@ -27,14 +27,15 @@ enum class Type {
     HIPS,
     PP,
     FLEX,
-    _last = FLEX
+    PA,
+    _last = PA
 };
 
 constexpr Type default_type = Type::PLA;
 constexpr float cold_nozzle = 50.f;
 constexpr float cold_bed = 45.f;
 
-const Type get_type_in_extruder(uint8_t extruder);
+Type get_type_in_extruder(uint8_t extruder);
 void set_type_in_extruder(Type filament, uint8_t extruder);
 
 Type get_type(Response resp);

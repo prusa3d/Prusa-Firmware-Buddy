@@ -3,6 +3,8 @@
 #include <cassert>
 #include <string.h>
 #include <float.h>
+#include <device/board.h>
+#include <option/development_items.h>
 
 #include "eeprom.h"
 #include "eeprom_function_api.h"
@@ -19,18 +21,29 @@
 #include "footer_eeprom.hpp"
 #include <bitset>
 #include "printers.h"
-#include <device/board.h>
-#include "eeprom_v_private.hpp"
+#include "eeprom_v_current.hpp"
 #include "bsod.h"
 #include "led_animations/led_types.h"
 #include "power_panic.hpp"
+#include "rtos_api.hpp"
 
-using namespace eeprom::ver_private;
+#if DEVELOPMENT_ITEMS()
+    #define PRIVATE__EEPROM_OFFSET (1 << 15) // to avoid collision with public version
+    #define NO_EEPROM_UPGRADES
+#else
+    #define PRIVATE__EEPROM_OFFSET 0
+#endif
+
+enum {
+    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 22, // uint16_t
+};
+
+using namespace eeprom::current;
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
 static const constexpr uint8_t EEPROM_MAX_NAME = 16;       // maximum name length (with '\0')
-static const constexpr uint16_t EEPROM_MAX_DATASIZE = 920; // maximum datasize
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 972; // maximum datasize
 static const constexpr auto EEPROM_DATA_INIT_TRIES = 3;    // maximum tries to read crc32 ok data on init
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
@@ -80,6 +93,9 @@ union eeprom_data {
             eeprom::v9::vars_body_t v9;
             eeprom::v10::vars_body_t v10;
             eeprom::v11::vars_body_t v11;
+            eeprom::v12::vars_body_t v12;
+            eeprom::v32787::vars_body_t v32787;
+            eeprom::v32789::vars_body_t v32789;
             eeprom::current::vars_body_t current;
         };
     };
@@ -145,7 +161,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ODOMETER_X",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_X
     { "ODOMETER_Y",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_Y
     { "ODOMETER_Z",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_Z
-    { "ODOMETER_E",      VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E0
+    { "ODOMETER_E0",     VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E0
     { "STEPS_PR_UNIT_X", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_X
     { "STEPS_PR_UNIT_Y", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_Y
     { "STEPS_PR_UNIT_Z", VARIANT8_FLT,   1, 0 }, // AXIS_STEPS_PER_UNIT_Z
@@ -252,12 +268,12 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ANIM_LAST",       VARIANT8_UI32,  1, 0 },
     { "HEAT_ENTIRE_BED", VARIANT8_BOOL,  1, 0 }, // EEVAR_HEAT_ENTIRE_BED
     { "TOUCH_ENABLED",   VARIANT8_BOOL,  1, 0 }, // EEVAR_TOUCH_ENABLED
-    { "KENNEL_POS_0",    VARIANT8_PUI8,  sizeof(KennelPosition), 0}, // EEVAR_KENNEL_POSITION_0
-    { "KENNEL_POS_1",    VARIANT8_PUI8,  sizeof(KennelPosition), 0}, // EEVAR_KENNEL_POSITION_1
-    { "KENNEL_POS_2",    VARIANT8_PUI8,  sizeof(KennelPosition), 0}, // EEVAR_KENNEL_POSITION_2
-    { "KENNEL_POS_3",    VARIANT8_PUI8,  sizeof(KennelPosition), 0}, // EEVAR_KENNEL_POSITION_3
-    { "KENNEL_POS_4",    VARIANT8_PUI8,  sizeof(KennelPosition), 0}, // EEVAR_KENNEL_POSITION_4
-    { "KENNEL_POS_5",    VARIANT8_PUI8,  sizeof(KennelPosition), 0}, // EEVAR_KENNEL_POSITION_5
+    { "KENNEL_POS_0",    VARIANT8_PUI8,  sizeof(DockPosition), 0}, // EEVAR_DOCK_POSITION_0, string intentionally with old name
+    { "KENNEL_POS_1",    VARIANT8_PUI8,  sizeof(DockPosition), 0}, // EEVAR_DOCK_POSITION_1, string intentionally with old name
+    { "KENNEL_POS_2",    VARIANT8_PUI8,  sizeof(DockPosition), 0}, // EEVAR_DOCK_POSITION_2, string intentionally with old name
+    { "KENNEL_POS_3",    VARIANT8_PUI8,  sizeof(DockPosition), 0}, // EEVAR_DOCK_POSITION_3, string intentionally with old name
+    { "KENNEL_POS_4",    VARIANT8_PUI8,  sizeof(DockPosition), 0}, // EEVAR_DOCK_POSITION_4, string intentionally with old name
+    { "KENNEL_POS_5",    VARIANT8_PUI8,  sizeof(DockPosition), 0}, // EEVAR_DOCK_POSITION_5, string intentionally with old name
     { "TOOL_OFFSET_0",   VARIANT8_PUI8,  sizeof(ToolOffset), 0}, // EEVAR_TOOL_OFFSET_0
     { "TOOL_OFFSET_1",   VARIANT8_PUI8,  sizeof(ToolOffset), 0}, // EEVAR_TOOL_OFFSET_1
     { "TOOL_OFFSET_2",   VARIANT8_PUI8,  sizeof(ToolOffset), 0}, // EEVAR_TOOL_OFFSET_2
@@ -281,7 +297,21 @@ static const eeprom_entry_t eeprom_map[] = {
     { "HWCHECK_FIRMW",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_FIRMW
     { "HWCHECK_GCODE",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_GCODE
     { "SELFTEST_RES_V2", VARIANT8_PUI8,  sizeof(SelftestResult), 0 }, // EEVAR_SELFTEST_RESULT_V2
-
+    { "HOMING_DIVISORX", VARIANT8_FLT,   1, 0 }, // homing bump divisor
+    { "HOMING_DIVISORY", VARIANT8_FLT,   1, 0 }, // homing bump divisor
+    { "SIDE_LEDS_ENA"  , VARIANT8_BOOL,  1, 0 }, // EEVAR_ENABLE_SIDE_LEDS
+    { "ODOMETER_E1"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E1, float, filament passed through extruder 1
+    { "ODOMETER_E2"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E2, float, filament passed through extruder 2
+    { "ODOMETER_E3"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E3, float, filament passed through extruder 3
+    { "ODOMETER_E4"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E4, float, filament passed through extruder 4
+    { "ODOMETER_E5"    , VARIANT8_FLT,   1, 0 }, // EEVAR_ODOMETER_E5, float, filament passed through extruder 5
+    { "ODOMETER_T0"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T0, uint32_t, tool 0 pick counter
+    { "ODOMETER_T1"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T1, uint32_t, tool 1 pick counter
+    { "ODOMETER_T2"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T2, uint32_t, tool 2 pick counter
+    { "ODOMETER_T3"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T3, uint32_t, tool 3 pick counter
+    { "ODOMETER_T4"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T4, uint32_t, tool 4 pick counter
+    { "ODOMETER_T5"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T5, uint32_t, tool 5 pick counter
+    { "HWCHECK_COMPAT" , VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_COMPATIBILITY
 // crc
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -323,7 +353,10 @@ static eeprom_data eeprom_ram_mirror; // must be zero initialized
 
 static void eeprom_init_ram_mirror() {
     eeprom_lock();
-    st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&eeprom_ram_mirror, sizeof(eeprom_ram_mirror));
+    {
+        CriticalSection critical_section;
+        st25dv64k_user_read_bytes(EEPROM_ADDRESS, (void *)&eeprom_ram_mirror, sizeof(eeprom_ram_mirror));
+    }
     eeprom_unlock();
 }
 
@@ -336,23 +369,6 @@ static constexpr eeprom_vars_t &eeprom_startup_vars() {
     return eeprom_ram_mirror.vars;
 }
 
-static constexpr bool is_version_supported(uint16_t version) {
-#ifdef NO_EEPROM_UPGRADES
-    return version == EEPROM_VERSION;
-#else
-    // supported versions are 4,6,7,9,10 .. current
-    if (version > EEPROM_VERSION)
-        return false;
-    if (version == 4)
-        return true;
-    if (version == 6)
-        return true;
-    if (version == 7)
-        return true;
-    return version >= 9;
-#endif
-};
-
 // forward declarations of private functions
 static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_size);
 static void eeprom_get_var(enum eevar_id id, void *var_ptr, size_t var_size);
@@ -363,7 +379,6 @@ static void *eeprom_var_ptr(enum eevar_id id, eeprom_vars_t &pVars);
 static bool eeprom_convert_from(eeprom_data &data);
 
 static bool eeprom_check_crc32();
-static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars);
 static void update_crc32_in_ram(eeprom_vars_t &eevars);
 
 static uint16_t eeprom_fwversion_ui16(void);
@@ -432,7 +447,10 @@ static void eeprom_write_vars() {
     eeprom_lock();
     vars.CRC32 = crc32_calc((uint8_t *)(&vars), EEPROM_DATASIZE - 4);
     // write data to eeprom
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+    {
+        CriticalSection critical_section;
+        st25dv64k_user_write_bytes(EEPROM_ADDRESS, (void *)&vars, EEPROM_DATASIZE);
+    }
     eeprom_unlock();
 }
 
@@ -496,7 +514,7 @@ Color_model eeprom_get_color(uint8_t index) {
 
 Animation_model eeprom_get_animation(uint32_t index, std::array<leds::Color, 16> &colors) {
     if (static_cast<PrinterState>(index) > PrinterState::_count) {
-        return Animation_model { 0, 0, 0, 0, 0, 0 };
+        return Animation_model {};
     }
     Animation_model animation;
     eeprom_get_var(static_cast<enum eevar_id>(EEVAR_ANIMATION_IDLE + index), &animation, sizeof(animation));
@@ -578,9 +596,9 @@ static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_siz
 
 #if (BOARD_IS_XBUDDY)
     // both conditions are necessary
-    // power_panic::ac_power_fault: means that a falling edge has occurred => the acFault signal is functional and not errorneously permanently LOW
+    // power_panic::ac_power_fault_is_checked: means that a falling edge has occurred => the acFault signal is functional and not errorneously permanently LOW
     // Pin::State::low: ac power has not been restored (in the non-printing mode, the printer can survive a short outage)
-    if (power_panic::ac_power_fault && power_panic::is_panic_signal()) {
+    if (power_panic::ac_power_fault_is_checked && power_panic::is_ac_fault_signal()) {
         log_info(EEPROM, "Try to set variable %s during acFault => BLOCKED ", eeprom_get_var_name(id));
         return;
     }
@@ -594,8 +612,17 @@ static void eeprom_set_var(enum eevar_id id, void const *var_ptr, size_t var_siz
     if (memcmp(var_ram_addr, var_ptr, var_size)) {
         memcpy(var_ram_addr, var_ptr, var_size);
         uint32_t time = ticks_us();
-        update_crc32_both_ram_eeprom(vars);
-        st25dv64k_user_write_bytes(eeprom_var_addr(id), var_ram_addr, var_size);
+
+        // ST25DV64K eeprom does not accept t_CHCL and t_CLCH durations exceeding 25 ms (datasheet 6.2.2)
+        // with normal priority, it could happen that this restriction was not respected,
+        // eeprom then contained invalid data (crc error) and was reset
+        update_crc32_in_ram(vars);
+        {
+            CriticalSection critical_section;
+            st25dv64k_user_write_bytes(eeprom_var_addr(id), var_ram_addr, var_size);
+            // write crc to eeprom
+            st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(vars.CRC32), 4);
+        }
         log_info(EEPROM, "Update took %u us", ticks_diff(ticks_us(), time));
     }
     eeprom_unlock();
@@ -651,16 +678,16 @@ std::pair<std::array<bool, eeprom_num_colors>, uint8_t> find_free_colors() {
     return { colors, count };
 }
 
-KennelPosition eeprom_get_kennel_position(int kennel_idx) {
-    assert(kennel_idx >= 0 && kennel_idx < EEPROM_MAX_TOOL_COUNT);
-    KennelPosition position;
-    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_KENNEL_POSITION_0 + kennel_idx), &position, sizeof(KennelPosition));
+DockPosition eeprom_get_dock_position(int dock_idx) {
+    assert(dock_idx >= 0 && dock_idx < EEPROM_MAX_TOOL_COUNT);
+    DockPosition position;
+    eeprom_get_var(static_cast<enum eevar_id>(EEVAR_DOCK_POSITION_0 + dock_idx), &position, sizeof(DockPosition));
     return position;
 }
 
-void eeprom_set_kennel_position(int kennel_idx, KennelPosition position) {
-    assert(kennel_idx >= 0 && kennel_idx < EEPROM_MAX_TOOL_COUNT);
-    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_KENNEL_POSITION_0 + kennel_idx), &position, sizeof(KennelPosition));
+void eeprom_set_dock_position(int dock_idx, DockPosition position) {
+    assert(dock_idx >= 0 && dock_idx < EEPROM_MAX_TOOL_COUNT);
+    eeprom_set_var(static_cast<enum eevar_id>(EEVAR_DOCK_POSITION_0 + dock_idx), &position, sizeof(DockPosition));
 }
 
 ToolOffset eeprom_get_tool_offset(int tool_idx) {
@@ -815,7 +842,10 @@ void eeprom_clear(void) {
     uint32_t data = 0xffffffff;
     eeprom_lock();
     for (a = 0x0000; a < 0x0800; a += 4) {
-        st25dv64k_user_write_bytes(a, &data, 4);
+        {
+            CriticalSection critical_section;
+            st25dv64k_user_write_bytes(a, &data, 4);
+        }
         if ((a % 0x200) == 0)   // clear entire eeprom take ~4s
             wdt_iwdg_refresh(); // we will reset watchdog every ~1s for sure
     }
@@ -869,7 +899,7 @@ static void *eeprom_var_ptr(enum eevar_id id, eeprom_vars_t &vars) {
  * @return true updated (changed)
  * @return false not changed, need reset to defaults
  */
-static bool eeprom_convert_from(eeprom_data &data) {
+static bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
 #ifndef NO_EEPROM_UPGRADES
     uint16_t version = data.head.VERSION;
     if (version == 4) {
@@ -898,8 +928,23 @@ static bool eeprom_convert_from(eeprom_data &data) {
     }
 
     if (version == 11) {
-        data.current = eeprom::current::convert(data.v11);
+        data.v12 = eeprom::v12::convert(data.v11);
         version = 12;
+    }
+
+    if (version == 12) {
+        data.v32787 = eeprom::v32787::convert(data.v12);
+        version = 32787; // 19 + wrongly set bit 15
+    }
+
+    if (version == 32787) {
+        data.v32789 = eeprom::v32789::convert(data.v32787);
+        version = 32789; // 21 + wrongly set bit 15
+    }
+
+    if (version == 32789) {
+        data.current = eeprom::current::convert(data.v32789);
+        version = 22;
     }
 
     // after body was updated we can update head
@@ -921,8 +966,6 @@ static bool eeprom_check_crc32() {
         return false;
     if (eeprom_ram_mirror.vars.head.DATASIZE == 0)
         return false;
-    if (!is_version_supported(eeprom_ram_mirror.vars.head.VERSION))
-        return false;
 
     uint32_t crc;
     if (eeprom_ram_mirror.vars.head.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
@@ -933,12 +976,6 @@ static bool eeprom_check_crc32() {
     uint32_t crc_from_eeprom;
     memcpy(&crc_from_eeprom, eeprom_ram_mirror.data + eeprom_ram_mirror.vars.head.DATASIZE - 4, sizeof(crc_from_eeprom));
     return crc_from_eeprom == crc;
-}
-
-static void update_crc32_both_ram_eeprom(eeprom_vars_t &eevars) {
-    update_crc32_in_ram(eevars);
-    // write crc to eeprom
-    st25dv64k_user_write_bytes(EEPROM_ADDRESS + EEPROM_DATASIZE - 4, &(eevars.CRC32), 4);
 }
 
 static void update_crc32_in_ram(eeprom_vars_t &eevars) {
@@ -967,7 +1004,10 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
     unsigned int count = bytes / 16;
 
     for (i = 0; i < count; i++) {
-        st25dv64k_user_write_bytes(EEPROM_ADDRESS + i * size, &line, size);
+        {
+            CriticalSection critical_section;
+            st25dv64k_user_write_bytes(EEPROM_ADDRESS + i * size, &line, size);
+        }
         if ((i % 16) == 0)
             wdt_iwdg_refresh();
     }
@@ -975,7 +1015,10 @@ int8_t eeprom_test_PUT(const unsigned int bytes) {
     int8_t res_flag = 1;
 
     for (i = 0; i < count; i++) {
-        st25dv64k_user_read_bytes(EEPROM_ADDRESS + i * size, &line2, size);
+        {
+            CriticalSection critical_section;
+            st25dv64k_user_read_bytes(EEPROM_ADDRESS + i * size, &line2, size);
+        }
         if (strcmp(line2, line))
             res_flag = 0;
         if ((i % 16) == 0)
@@ -1042,6 +1085,21 @@ extern "C" bool has_inverted_z() {
 
 extern "C" bool has_inverted_e() {
     return std::signbit(eeprom_startup_vars().body.AXIS_STEPS_PER_UNIT_E0);
+}
+
+extern "C" bool has_inverted_axis(const uint8_t axis) {
+    switch (axis) {
+    case X_AXIS:
+        return has_inverted_x();
+    case Y_AXIS:
+        return has_inverted_y();
+    case Z_AXIS:
+        return has_inverted_z();
+    case E_AXIS:
+        return has_inverted_e();
+    default:
+        bsod("invalid axis");
+    }
 }
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES

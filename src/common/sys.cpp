@@ -86,8 +86,8 @@ int sys_calc_flash_latency(int freq) {
 }
 
 int sys_pll_is_enabled(void) {
-    RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+    RCC_OscInitTypeDef RCC_OscInitStruct {};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct {};
     uint32_t FLatency;
     HAL_RCC_GetOscConfig(&RCC_OscInitStruct);              //read Osc config
     HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency); //read Clk config
@@ -95,8 +95,8 @@ int sys_pll_is_enabled(void) {
 }
 
 void sys_pll_disable(void) {
-    RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+    RCC_OscInitTypeDef RCC_OscInitStruct {};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct {};
     uint32_t FLatency;
     HAL_RCC_GetOscConfig(&RCC_OscInitStruct);              //read Osc config
     HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency); //read Clk config
@@ -111,12 +111,12 @@ void sys_pll_disable(void) {
 }
 
 void sys_pll_enable(void) {
-    RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+    RCC_OscInitTypeDef RCC_OscInitStruct {};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct {};
 
     /*
- 	  RCC_OscInitTypeDef RCC_OscInitStruct1 = {0};
-	  RCC_ClkInitTypeDef RCC_ClkInitStruct1 = {0};
+ 	  RCC_OscInitTypeDef RCC_OscInitStruct1 {};
+	  RCC_ClkInitTypeDef RCC_ClkInitStruct1 {};
 
 	  RCC_OscInitStruct1.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
 	  RCC_OscInitStruct1.HSEState = RCC_HSE_ON;
@@ -187,7 +187,7 @@ void sys_sscg_enable(void) {
 void sys_sscg_set_config(int freq, int depth) {
     int fpll = 2000000; //input pll frequency = 2MHz
     int plln;
-    RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+    RCC_OscInitTypeDef RCC_OscInitStruct {};
     uint32_t sscgr = RCC->SSCGR; //read current state of sscg
     uint32_t modper = ((sscgr & RCC_SSCGR_MODPER_Msk) >> RCC_SSCGR_MODPER_Pos);
     uint32_t incstep = ((sscgr & RCC_SSCGR_INCSTEP_Msk) >> RCC_SSCGR_INCSTEP_Pos);
@@ -229,7 +229,7 @@ void sys_sscg_set_config(int freq, int depth) {
     log_debug(Buddy, " SSCGEN    = 0x%08lx (%lu)", sscgen, sscgen);
 }
 
-int sys_sscg_get_config(float *pfreq, float *pdepth) {
+int sys_sscg_get_config([[maybe_unused]] float *pfreq, [[maybe_unused]] float *pdepth) {
     return 0;
 }
 
@@ -311,7 +311,11 @@ int sys_flash_write(void *dst, void *src, int size) {
 // 11     128kb  0x080E0000  0x080FFFFF
 int sys_flash_erase_sector(unsigned int sector) {
     HAL_StatusTypeDef status;
-    if ((sector < FLASH_SECTOR_0) || (sector > FLASH_SECTOR_11))
+    if (
+#if FLASH_SECTOR_0 > 0
+        (sector < FLASH_SECTOR_0) ||
+#endif
+        (sector > FLASH_SECTOR_11))
         return 0;
     status = HAL_FLASH_Unlock();
     if (status == HAL_OK) {

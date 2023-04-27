@@ -7,7 +7,7 @@
 #include "selftest_axis.h"
 #include "selftest_heater.h"
 #include "selftest_loadcell.h"
-#include "selftest_kennel.h"
+#include "selftest_dock.h"
 #include "stdarg.h"
 #include "app.h"
 #include "otp.h"
@@ -26,7 +26,7 @@
 #include "selftest_fsensor_interface.hpp"
 #include "selftest_axis_interface.hpp"
 #include "selftest_netstatus_interface.hpp"
-#include "selftest_kennel_interface.hpp"
+#include "selftest_dock_interface.hpp"
 #include "selftest_tool_offsets_interface.hpp"
 #include "selftest_axis_config.hpp"
 #include "selftest_heater_config.hpp"
@@ -195,8 +195,8 @@ static const AxisConfig_t Config_ZAxis = {
     .length = get_z_max_pos_mm(),
     .fr_table_fw = Zfr_table_fw,
     .fr_table_bw = Zfr_table_bw,
-    .length_min = get_z_max_pos_mm() - 20,
-    .length_max = get_z_max_pos_mm() + 20,
+    .length_min = get_z_max_pos_mm() - 3,
+    .length_max = get_z_max_pos_mm() + 3,
     .axis = Z_AXIS,
     .steps = z_fr_tables_size,
     .movement_dir = 1
@@ -207,7 +207,7 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .type = heater_type_t::Nozzle,
         .tool_nr = 0,
         .getTemp = []() { return thermalManager.temp_hotend[0].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server_set_temp_to_display(target_temp, 0); thermalManager.setTargetHotend(target_temp, 0); },
+        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 0); thermalManager.setTargetHotend(target_temp, 0); },
         .refKp = Temperature::temp_hotend[0].pid.Kp,
         .refKi = Temperature::temp_hotend[0].pid.Ki,
         .refKd = Temperature::temp_hotend[0].pid.Kd,
@@ -230,7 +230,7 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .type = heater_type_t::Nozzle,
         .tool_nr = 1,
         .getTemp = []() { return thermalManager.temp_hotend[1].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server_set_temp_to_display(target_temp, 1); thermalManager.setTargetHotend(target_temp, 1); },
+        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 1); thermalManager.setTargetHotend(target_temp, 1); },
         .refKp = Temperature::temp_hotend[1].pid.Kp,
         .refKi = Temperature::temp_hotend[1].pid.Ki,
         .refKd = Temperature::temp_hotend[1].pid.Kd,
@@ -253,7 +253,7 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .type = heater_type_t::Nozzle,
         .tool_nr = 2,
         .getTemp = []() { return thermalManager.temp_hotend[2].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server_set_temp_to_display(target_temp, 2); thermalManager.setTargetHotend(target_temp, 2); },
+        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 2); thermalManager.setTargetHotend(target_temp, 2); },
         .refKp = Temperature::temp_hotend[2].pid.Kp,
         .refKi = Temperature::temp_hotend[2].pid.Ki,
         .refKd = Temperature::temp_hotend[2].pid.Kd,
@@ -276,7 +276,7 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .type = heater_type_t::Nozzle,
         .tool_nr = 3,
         .getTemp = []() { return thermalManager.temp_hotend[3].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server_set_temp_to_display(target_temp, 3); thermalManager.setTargetHotend(target_temp, 3); },
+        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 3); thermalManager.setTargetHotend(target_temp, 3); },
         .refKp = Temperature::temp_hotend[3].pid.Kp,
         .refKi = Temperature::temp_hotend[3].pid.Ki,
         .refKd = Temperature::temp_hotend[3].pid.Kd,
@@ -299,7 +299,7 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .type = heater_type_t::Nozzle,
         .tool_nr = 4,
         .getTemp = []() { return thermalManager.temp_hotend[4].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server_set_temp_to_display(target_temp, 4); thermalManager.setTargetHotend(target_temp, 4); },
+        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 4); thermalManager.setTargetHotend(target_temp, 4); },
         .refKp = Temperature::temp_hotend[4].pid.Kp,
         .refKi = Temperature::temp_hotend[4].pid.Ki,
         .refKd = Temperature::temp_hotend[4].pid.Kd,
@@ -324,6 +324,8 @@ static float bed_fake_pid_constant = 0.0; // No PID change support for XL's bed 
 
 static constexpr HeaterConfig_t Config_HeaterBed = {
     .partname = "Bed",
+    .type = heater_type_t::Bed,
+    .tool_nr = 0,
     .getTemp = []() { return thermalManager.temp_bed.celsius; },
     .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); },
     .refKp = bed_fake_pid_constant,
@@ -523,13 +525,13 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensor = { {
     { .extruder_id = 5 },
 } };
 
-static constexpr std::array<const KennelConfig_t, HOTENDS> Config_Kennels = { {
-    { .kennel_id = 0 },
-    { .kennel_id = 1 },
-    { .kennel_id = 2 },
-    { .kennel_id = 3 },
-    { .kennel_id = 4 },
-    { .kennel_id = 5 },
+static constexpr std::array<const DockConfig_t, HOTENDS> Config_Docks = { {
+    { .dock_id = 0 },
+    { .dock_id = 1 },
+    { .dock_id = 2 },
+    { .dock_id = 3 },
+    { .dock_id = 4 },
+    { .dock_id = 5 },
 } };
 
 static constexpr ToolOffsetsConfig_t Config_ToolOffsets = {};
@@ -555,8 +557,8 @@ bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
     if (m_Mask & stmXYZAxis) {
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_axes));
-        if (m_result.zalign != TestResult_Passed) {
-            m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmZcalib)); // Add Z calibration if not passed already
+        if (m_result.zaxis != TestResult_Passed) {
+            m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmEnsureZAway)); // Ensure Z is away enough if Z not calibrated yet
         }
     }
     if (m_Mask & stmHeaters)
@@ -614,8 +616,8 @@ void CSelftest::Loop() {
         if (phaseWaitUser(PhasesSelftest::WizardPrologue_info_detailed))
             return;
         break;
-    case stsKennels:
-        if (prusa_toolchanger.is_toolchanger_enabled() && selftest::phaseKennels(tool_mask, pKennels, Config_Kennels))
+    case stsDocks:
+        if (prusa_toolchanger.is_toolchanger_enabled() && selftest::phaseDocks(tool_mask, pDocks, Config_Docks))
             return;
         break;
     case stsToolOffsets:
@@ -646,6 +648,10 @@ void CSelftest::Loop() {
         eeprom_get_selftest_results(&m_result);
         m_result.zalign = TestResult_Passed;
         eeprom_set_selftest_results(&m_result);
+        break;
+    }
+    case stsEnsureZAway: {
+        ensure_Z_away();
         break;
     }
     case stsXAxis: {
@@ -763,7 +769,7 @@ void CSelftest::phaseDidSelftestPass() {
 }
 
 bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
-    const Response response = ClientResponseHandler::GetResponseFromPhase(phase);
+    const Response response = marlin_server::ClientResponseHandler::GetResponseFromPhase(phase);
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
@@ -795,15 +801,18 @@ bool CSelftest::Abort() {
 }
 
 void CSelftest::phaseSelftestStart() {
-    if (m_Mask & stmHeaters) {
+    if (m_Mask & to_one_hot(stsHeaters_bed_ena)) {
         // set bed to 35°C
         // heater test will start after temperature pass tru 40°C (we dont want to entire bed and sheet to be tempered at it)
         // so don't set 40°C, it could also trigger cooldown in case temperature is or similar 40.1°C
         thermalManager.setTargetBed(35);
+    }
+
+    if (m_Mask & to_one_hot(stsHeaters_noz_ena)) {
         // no need to preheat nozzle, it heats up much faster than bed
         HOTEND_LOOP() {
             thermalManager.setTargetHotend(0, e);
-            marlin_server_set_temp_to_display(0, e);
+            marlin_server::set_temp_to_display(0, e);
         }
     }
 
@@ -822,11 +831,13 @@ void CSelftest::phaseSelftestStart() {
         m_result.zaxis = TestResult_Unknown;
     if (m_Mask & stmZcalib)
         m_result.zalign = TestResult_Unknown;
-    if (m_Mask & stmHeaters) {
+    if (m_Mask & to_one_hot(stsHeaters_bed_ena)) {
+        m_result.bed = TestResult_Unknown;
+    }
+    if (m_Mask & to_one_hot(stsHeaters_noz_ena)) {
         HOTEND_LOOP() {
             m_result.tools[e].nozzle = TestResult_Unknown;
         }
-        m_result.bed = TestResult_Unknown;
     }
     eeprom_set_selftest_results(&m_result); // reset status for all selftest parts in eeprom
 }
@@ -836,7 +847,7 @@ void CSelftest::restoreAfterSelftest() {
     thermalManager.setTargetBed(0);
     HOTEND_LOOP() {
         thermalManager.setTargetHotend(0, 0);
-        marlin_server_set_temp_to_display(0, 0);
+        marlin_server::set_temp_to_display(0, 0);
     }
 
     // restore fan behavior

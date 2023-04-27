@@ -14,7 +14,6 @@ namespace SensorData {
 enum class Sensor {
     bedTemp,
     boardTemp,
-    splitter5VCurrent,
     inputVoltage,
     sandwich5VVoltage,
     sandwich5VCurrent,
@@ -31,12 +30,8 @@ enum class Sensor {
 #else
 enum class Sensor {
     bedTemp,
-    heatBreakTemp,
-    nozzleTemp,
     boardTemp,
     loadCell,
-    fillSensor,
-    fillSensorRaw,
     printFan,
     hbrFan,
     printFanAct,
@@ -153,7 +148,6 @@ private:
                                                                             { "temp_bed", Sensor::bedTemp },
                                                                             { "temp_brd", Sensor::boardTemp },
                                                                             { "24VVoltage", Sensor::inputVoltage },
-                                                                            { "splitter_5V_current", Sensor::splitter5VCurrent },
                                                                             { "5VVoltage", Sensor::sandwich5VVoltage },
                                                                             { "Sandwitch5VCurrent", Sensor::sandwich5VCurrent },
                                                                             { "xlbuddy5VCurrent", Sensor::buddy5VCurrent },
@@ -170,15 +164,11 @@ private:
 
 #else
     constexpr static SensorArray sensors = ConstexprQuickSort::sort(SensorArray {
-                                                                        { { "fsensor", Sensor::fillSensor },
-                                                                            { "temp_hbr", Sensor::heatBreakTemp },
-                                                                            { "temp_bed", Sensor::bedTemp },
-                                                                            { "temp_noz", Sensor::nozzleTemp },
+                                                                        { { "temp_bed", Sensor::bedTemp },
                                                                             { "temp_brd", Sensor::boardTemp },
                                                                             { "fan_speed", Sensor::printFan },
                                                                             { "loadcell_value", Sensor::loadCell },
                                                                             { "fan_hbr_speed", Sensor::hbrFan },
-                                                                            { "fsensor_raw", Sensor::fillSensorRaw },
                                                                             { "print_fan_act", Sensor::printFanAct },
                                                                             { "hbr_fan_act", Sensor::hbrFanAct },
                                                                             { "volt_nozz", Sensor::heaterVoltage },

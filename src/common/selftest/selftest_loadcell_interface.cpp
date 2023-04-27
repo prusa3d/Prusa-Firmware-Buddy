@@ -49,7 +49,7 @@ bool phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> 
 
         if (m_pLoadcell[i]->Loop()) {
             current_tool = i;
-            break; // Skips next kennels as long as the current one is running
+            break; // Skips next docks as long as the current one is running
         }
     }
 
@@ -67,8 +67,10 @@ bool phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> 
             continue;
         }
 
-        // Store kennel calibration state
-        if (i < EEPROM_MAX_TOOL_COUNT) {
+        // Store loadcell test state
+        // Do not store if test was successful and now aborted, do not regress
+        if (i < EEPROM_MAX_TOOL_COUNT
+            && !(eeres.tools[i].tooloffset == TestResult_Passed && m_pLoadcell[i]->GetResult() == TestResult_Skipped)) {
             eeres.tools[i].loadcell = m_pLoadcell[i]->GetResult();
         }
 

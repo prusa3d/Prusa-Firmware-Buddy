@@ -21,12 +21,12 @@ inline constexpr const Resource &printer_logo = prusa_ix_logo_121x40;
 inline constexpr const Resource &printer_logo = prusa_mini_logo_153x40;
 
 #endif
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK404)
+#if (PRINTER_TYPE == PRINTER_PRUSA_MK4)
 
     #ifndef _DEBUG
-inline constexpr const Resource &printer_logo = prusa_mk404_logo_153x40;
+inline constexpr const Resource &printer_logo = prusa_mk4_logo_153x40;
     #else  // _DEBUG
-inline constexpr const Resource &printer_logo = prusa_mk404_logo_debug_158x40;
+inline constexpr const Resource &printer_logo = prusa_mk4_logo_debug_158x40;
     #endif // _DEBUG
 
 #endif

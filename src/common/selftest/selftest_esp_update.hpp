@@ -171,7 +171,7 @@ private:
     void capture_timestamp();
 
     unique_file_ptr file;
-    FSM_Holder &rfsm;
+    marlin_server::FSM_Holder &rfsm;
     uint32_t time_stamp;
     type_t type;
     const uint8_t initial_netdev_id; // it is not enum because of stupid C api
@@ -190,7 +190,7 @@ private:
     void loopCreateINI();
 
 public:
-    EspCredentials(FSM_Holder &fsm, type_t type);
+    EspCredentials(marlin_server::FSM_Holder &fsm, type_t type);
 
     void Loop();
     static bool AlreadySet();

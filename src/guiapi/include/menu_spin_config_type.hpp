@@ -9,7 +9,7 @@
 #include "menu_spin_config_types.hpp"
 #include "printers.h"
 
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_IXL) || (PRINTER_TYPE == PRINTER_PRUSA_XL))
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL) || (PRINTER_TYPE == PRINTER_PRUSA_XL))
 template <class T>
 using SpinConfig_t = SpinConfigWithUnit<T>;
 #else

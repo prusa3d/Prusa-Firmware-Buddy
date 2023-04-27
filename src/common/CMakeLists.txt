@@ -1,21 +1,23 @@
 target_include_directories(firmware PRIVATE . include)
 
 if(BOARD MATCHES ".*BUDDY")
+  target_sources(firmware PRIVATE calibrated_loveboard.cpp)
+endif()
+
+if(BOARD MATCHES ".*BUDDY")
   target_sources(
     firmware
     PRIVATE adc.cpp
             app_metrics.cpp
             appmain.cpp
             base64_stream_decoder.cpp
-            basename.c
+            basename.cpp
             bbf.cpp
-            calibrated_loveboard.cpp
             client_response_texts.cpp
-            crc32.c
-            crc32_zlib.c
+            crc32.cpp
+            crc32_zlib.cpp
             eeprom.cpp
-            eeprom_loadsave.c
-            errors.cpp
+            eeprom_loadsave.cpp
             ExtInterruptHandler.cpp
             filename_type.cpp
             footer_eeprom.cpp
@@ -26,30 +28,32 @@ if(BOARD MATCHES ".*BUDDY")
             gcode_info.cpp
             gcode_thumb_decoder.cpp
             hardware_serial.cpp
-            heap.c
+            heap.cpp
             hwio_pindef_check.cpp
             hx717.cpp
             i2c.cpp
-            ini_handler.c
-            jsmn.c
-            json_encode.c
+            ini_handler.cpp
+            jsmn.cpp
+            json_encode.cpp
             lang.cpp
             language_eeprom.cpp
             lfn.cpp
             marlin_client.cpp
-            marlin_errors.c
-            marlin_events.c
-            marlin_log_component.c
+            marlin_errors.cpp
+            marlin_events.cpp
+            marlin_log_component.cpp
+            marlin_move.cpp
             marlin_print_preview.cpp
             marlin_server.cpp
             marlin_vars.cpp
             MarlinPin.cpp
             media.cpp
-            metric.c
-            metric_handlers.c
+            metric.cpp
+            metric_handlers.cpp
             non_file_printing_counter.cpp
             odometer.cpp
-            otp.c
+            otp.cpp
+            path_utils.cpp
             PersistentStorage.cpp
             Pin.cpp
             print_processor.cpp
@@ -62,21 +66,21 @@ if(BOARD MATCHES ".*BUDDY")
             selftest_result_type.cpp
             sensor_data_buffer.cpp
             sound.cpp
-            st25dv64k.c
+            st25dv64k.cpp
             SteelSheets.cpp
             str_utils.cpp
-            stubs.c
+            stubs.cpp
             support_utils.cpp
             support_utils_lib.cpp
             sys.cpp
-            sys_time.c
+            sys_time.cpp
             tasks.cpp
             time_tools.cpp
-            timing.c
+            timing.cpp
             trinamic.cpp
-            uartrxbuff.c
+            uartrxbuff.cpp
             variant8.cpp
-            version.c
+            version.cpp
             w25x.cpp
             w25x_communication.cpp
             wdt.cpp
@@ -92,16 +96,16 @@ elseif(BOARD MATCHES "DWARF")
   target_sources(
     firmware
     PRIVATE adc.cpp
-            heap.c
+            heap.cpp
             hx717.cpp
-            marlin_log_component.c
-            otp.c
+            marlin_log_component.cpp
+            otp.cpp
             Pin.cpp
             safe_state.cpp
-            timing.c
+            timing.cpp
     )
 elseif(BOARD MATCHES "MODULARBED")
-  target_sources(firmware PRIVATE heap.c otp.c)
+  target_sources(firmware PRIVATE heap.cpp otp.cpp)
 endif()
 
 if(PRINTER STREQUAL "MINI")

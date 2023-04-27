@@ -1,6 +1,6 @@
 #include "download.hpp"
 #include "files.hpp"
-#include "notify_filechange.hpp"
+#include "changed_path.hpp"
 
 #include <common/http/get_request.hpp>
 #include <timing.h>
@@ -14,6 +14,7 @@ using http::HeaderOut;
 using http::HttpClient;
 using http::Response;
 using http::ResponseBody;
+using http::SocketConnectionFactory;
 using http::Status;
 using std::get;
 using std::get_if;
@@ -21,6 +22,7 @@ using std::make_unique;
 using std::move;
 using std::nullopt;
 using std::optional;
+using std::tuple;
 using std::unique_ptr;
 
 namespace {
@@ -52,18 +54,36 @@ bool write_chunk(const uint8_t *data, size_t size, FILE *f) {
     return written == 1;
 }
 
+optional<tuple<unique_ptr<SocketConnectionFactory>, Response>> send_request(const char *host, uint16_t port, const char *url_path, const HeaderOut *extra_hdrs) {
+    // 3 seconds timeout.
+    //
+    // Will be used only for the blocking operations, timeouts on the body are
+    // handled separately in our code with combination of poll / tracking of
+    // time.
+    unique_ptr<SocketConnectionFactory> factory(make_unique<http::SocketConnectionFactory>(host, port, 3000));
+    HttpClient client(*factory.get());
+    GetRequest request(url_path, extra_hdrs);
+
+    auto resp_any = client.send(request);
+
+    if (auto *resp = get_if<Response>(&resp_any); resp != nullptr) {
+        return make_tuple(move(factory), move(*resp));
+    } else {
+        return nullopt;
+    }
+}
+
 }
 
 namespace transfers {
 
-Download::Download(ConnFactory &&factory, ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, unique_ptr<Decryptor> &&decryptor, NotifyFilechange *notify_done)
+Download::Download(ConnFactory &&factory, ResponseBody &&response, Monitor::Slot &&slot, unique_file_ptr &&dest_file, size_t transfer_idx, unique_ptr<Decryptor> &&decryptor)
     : conn_factory(move(factory))
     , response(move(response))
     , slot(move(slot))
     , dest_file(move(dest_file))
     , transfer_idx(transfer_idx)
     , last_activity(ticks_ms())
-    , notify_done(notify_done)
     , decryptor(move(decryptor)) {}
 
 Download::~Download() {
@@ -79,7 +99,7 @@ Download::~Download() {
     }
 }
 
-Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const HeaderOut *extra_hdrs, unique_ptr<Decryptor> &&decryptor, NotifyFilechange *notify_done) {
+Download::DownloadResult Download::start_connect_download(const char *host, uint16_t port, const char *url_path, const char *destination, const HeaderOut *extra_hdrs, unique_ptr<Decryptor> &&decryptor) {
     // Early check for free transfer slot. This is not perfect, there's a race
     // and we can _lose_ the slot before we start the download. But we can
     // allocate it only once we know the size and for that we need to do the
@@ -102,30 +122,21 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
         return AlreadyExists {};
     }
 
-    // 3 seconds timeout.
-    //
-    // Will be used only for the blocking operations, timeouts on the body are
-    // handled separately in our code with combination of poll / tracking of
-    // time.
-    ConnFactory factory(make_unique<http::SocketConnectionFactory>(host, port, 3000));
-    HttpClient client(*factory.get());
-    GetRequest request(url_path, extra_hdrs);
+    if (auto resp_any = send_request(host, port, url_path, extra_hdrs); resp_any.has_value()) {
+        auto [factory, resp] = move(*resp_any);
 
-    auto resp_any = client.send(request);
-
-    if (auto *resp = get_if<Response>(&resp_any); resp != nullptr) {
-        if (resp->status != Status::Ok) {
+        if (resp.status != Status::Ok) {
             return RefusedRequest {};
         }
 
-        auto slot = Monitor::instance.allocate(Monitor::Type::Connect, destination, resp->content_length());
+        auto slot = Monitor::instance.allocate(Monitor::Type::Connect, destination, resp.content_length());
         if (!slot.has_value()) {
             return NoTransferSlot {};
         }
 
         const size_t transfer_idx = next_transfer_idx();
         const auto fname = transfer_name(transfer_idx);
-        auto preallocated = file_preallocate(fname.begin(), resp->content_length());
+        auto preallocated = file_preallocate(fname.begin(), resp.content_length());
         if (auto *err = get_if<const char *>(&preallocated); err != nullptr) {
             return Storage { *err };
         }
@@ -141,23 +152,68 @@ Download::DownloadResult Download::start_connect_download(const char *host, uint
         // create the decryptor and then proceed on processing the body.
 
         auto file = move(get<unique_file_ptr>(preallocated));
-        auto [initial_chunk, initial_chunk_size, body] = resp->into_body();
+        auto [initial_chunk, initial_chunk_size, body] = resp.into_body();
+
+        auto download = Download(move(factory), move(body), move(*slot), move(file), transfer_idx, move(decryptor));
 
         if (initial_chunk_size > 0) {
-            size_t size = initial_chunk_size;
-            if (decryptor.get() != nullptr) {
-                size = decryptor->decrypt(initial_chunk, size);
-            }
-            if (!write_chunk(initial_chunk, size, file.get())) {
+            if (!download.process(initial_chunk, initial_chunk_size)) {
                 return Storage { "Can't write to the file" };
             }
-            slot->progress(initial_chunk_size);
         }
 
-        return Download(move(factory), move(body), move(*slot), move(file), transfer_idx, move(decryptor), notify_done);
+        return download;
     } else {
         return RefusedRequest {};
     }
+}
+
+Download::RecoverResult Download::recover_encrypted_connect_download(const char *host, uint16_t port, const char *url_path, const http::HeaderOut *extra_hdrs, const Decryptor::Block &reset_iv, uint32_t reset_size) {
+    // Close anything related to the previous attempt first, before allocating anything new.
+    conn_factory.reset();
+
+    RecoverResult result = Continued {};
+
+    if (auto resp_any = send_request(host, port, url_path, extra_hdrs); resp_any.has_value()) {
+        auto [factory, resp] = move(*resp_any);
+
+        switch (resp.status) {
+        case Status::Ok:
+            rewind(dest_file.get());
+            slot.reset_progress();
+            decryptor->reset(reset_iv, reset_size);
+            result = FromStart {};
+            [[fallthrough]];
+        case Status::PartialContent: {
+            auto [initial_chunk, initial_chunk_size, body] = resp.into_body();
+
+            if (initial_chunk_size > 0) {
+                if (!process(initial_chunk, initial_chunk_size)) {
+                    return Storage { "Can't write to the file" };
+                }
+            }
+            response = move(body);
+            conn_factory = move(factory);
+            return result;
+        }
+        default:
+            return RefusedRequest {};
+        }
+    } else {
+        return RefusedRequest {};
+    }
+}
+
+bool Download::process(uint8_t *data, size_t size) {
+    size_t orig_size = size;
+    if (decryptor.get() != nullptr) {
+        size = decryptor->decrypt(data, size);
+    }
+    if (!write_chunk(data, size, dest_file.get())) {
+        return false;
+    }
+    slot.progress(orig_size);
+    return true;
 }
 
 DownloadStep Download::step(uint32_t max_duration_ms) {
@@ -187,26 +243,19 @@ DownloadStep Download::step(uint32_t max_duration_ms) {
                     // At least try cleaning the temp file up.
                     // (no error handling here, we have no backup plan there).
                     remove(fname.begin());
-                    return DownloadStep::Failed;
+                    return DownloadStep::FailedOther;
                 } else {
-                    if (notify_done != nullptr) {
-                        notify_done->notify_filechange(status->destination);
-                    }
+                    ChangedPath::instance.changed_path(status->destination, ChangedPath::Type::File, ChangedPath::Incident::Created);
                 }
             }
             // This must be outside of the block with status, otherwise we would deadlock.
             slot.done(Monitor::Outcome::Finished);
             return DownloadStep::Finished;
         } else {
-            size_t size = *amt;
-            if (decryptor.get() != nullptr) {
-                size = decryptor->decrypt(buffer, size);
-            }
-            if (!write_chunk(buffer, size, dest_file.get())) {
-                return DownloadStep::Failed;
+            if (!process(buffer, *amt)) {
+                return DownloadStep::FailedOther;
             }
 
-            slot.progress(*amt);
             last_activity = ticks_ms();
             return DownloadStep::Continue;
         }
@@ -215,14 +264,21 @@ DownloadStep Download::step(uint32_t max_duration_ms) {
         if (err == Error::Timeout) {
             auto now = ticks_ms();
             if (now - last_activity >= DOWNLOAD_INACTIVITY_LIMIT) {
-                return DownloadStep::Failed;
+                return DownloadStep::FailedNetwork;
             } else {
                 return DownloadStep::Continue;
             }
         } else {
-            return DownloadStep::Failed;
+            return DownloadStep::FailedNetwork;
         }
     }
+}
+
+uint32_t Download::position() const {
+    auto status = Monitor::instance.status();
+    // We hold the slot, so we must be able to get the status.
+    assert(status.has_value());
+    return status->transferred;
 }
 
 }

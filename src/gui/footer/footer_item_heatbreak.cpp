@@ -42,5 +42,3 @@ string_view_utf8 FooterItemHeatBreak::static_makeView(int value) {
     }
     return string_view_utf8::MakeRAM((const uint8_t *)buff);
 }
-
-string_view_utf8 FooterItemHeatBreak::GetName() { return _("Heatbreak"); }

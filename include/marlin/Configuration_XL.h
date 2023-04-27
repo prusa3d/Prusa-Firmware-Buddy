@@ -774,7 +774,13 @@
 #endif
 
 #define DEFAULT_MAX_FEEDRATE \
-    { 600, 600, 12, DEFAULT_MAX_MAX_E_FEEDRATE }
+    { 3000, 3000, 12, DEFAULT_MAX_MAX_E_FEEDRATE }
+
+/**
+ * Default feedrate after startup as used by G0/G1 etc
+ * First G0 F<feedrate> overrides this
+ */
+#define DEFAULT_FEEDRATE 240
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -1110,7 +1116,7 @@
 // The size of the print bed
 #define X_BED_SIZE 360
 #define Y_BED_SIZE 360
-#define Z_SIZE 370
+#define Z_SIZE 370.660f
 
 // Travel limits (mm) after homing, corresponding to endstop positions. default x -2.5 y -7.3
 #define X_MIN_POS -8

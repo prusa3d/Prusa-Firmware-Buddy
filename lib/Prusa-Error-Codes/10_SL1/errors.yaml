@@ -703,6 +703,16 @@ Errors:
   id: "OLD_EXPO_PANEL"
   approved: false
 
+- code: "10549"
+  # A generic error for crashed DBus services, parameters should specify which.
+  title: "SYSTEM SERVICE CRASHED"
+  text: "Something went wrong with the printer firmware. Please contact our support and do not forget to attach the logs.
+  
+  Crashed services are immediately started again. If, despite that, the printer does not behave correctly, try restarting it.
+  "
+  id: "SYSTEM_SERVICE_CRASHED"
+  approved: false
+
 # BOOTLOADER     xx6xx   #
 - code: "10601"
   title: "BOOTED SLOT CHANGED"

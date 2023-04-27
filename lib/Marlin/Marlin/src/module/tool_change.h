@@ -98,8 +98,9 @@
 #endif
 
 enum class tool_return_t {
+  no_move, // don't perform _any_ extra movement (such as lift/retract/return) besides toolchanging
+  no_return, // lift and/or retract as needed, but don't return to any position after toolchange
   to_current, // return to the current position
-  no_move, // don't perform any extra movement (such as raising/return) besides toolchanging
   to_destination, // return to destination
 };
 
@@ -108,10 +109,3 @@ enum class tool_return_t {
  * tool into place. Unless no_move is set, return to destination.
  */
 void tool_change(const uint8_t tmp_extruder, tool_return_t return_type=tool_return_t::to_current);
-
-#if ENABLED(PRUSA_TOOLCHANGER)
-  /**
-  * Performs tool detect, auto detect active tool
-  */
-  void tool_detect();
-#endif

@@ -91,7 +91,7 @@ UnauthenticatedStatusPage::UnauthenticatedStatusPage(const RequestParser &parser
 Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, DigestAuth digest_auth) {
     const char *stale = digest_auth.nonce_stale ? "true" : "false";
     char digest_header[88];
-    snprintf(digest_header, sizeof(digest_header), "WWW-Authenticate: Digest realm=\"" AUTH_REALM "\", nonce=\"%016" PRIx64 "\", stale=\"%s\"\r\n", digest_auth.nonce, stale);
+    snprintf(digest_header, sizeof(digest_header), "WWW-Authenticate: Digest realm=\"" AUTH_REALM "\", nonce=\"%016" PRIx64 "\", stale=%s\r\n", digest_auth.nonce, stale);
 
     const char *auth_header[] = {
         digest_header,
@@ -100,7 +100,7 @@ Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_
     return step_impl(input, terminated_by_client, output, output_size, auth_header);
 }
 
-Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, ApiKeyAuth api_key_auth) {
+Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size, [[maybe_unused]] ApiKeyAuth api_key_auth) {
 
     const char *api_key_header = "WWW-Authenticate: ApiKey realm=\"" AUTH_REALM "\"\r\n";
     const char *auth_header[] = {

@@ -28,19 +28,22 @@ bool phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &
             m_pFSensor[i] = selftest::Factory::CreateDynamical<CSelftestPart_FSensor>(
                 configs[i],
                 staticResult,
-                &CSelftestPart_FSensor::stateAskHaveFilamentInit,
+                &CSelftestPart_FSensor::stateInit,
                 &CSelftestPart_FSensor::stateWaitToolPick,
-                &CSelftestPart_FSensor::stateAskHaveFilament,
                 &CSelftestPart_FSensor::stateAskUnloadInit,
-                &CSelftestPart_FSensor::stateAskUnload,
+                &CSelftestPart_FSensor::stateAskUnloadWait,
                 &CSelftestPart_FSensor::stateFilamentUnloadEnqueueGcode,
                 &CSelftestPart_FSensor::stateFilamentUnloadWaitFinished,
-                &CSelftestPart_FSensor::stateFilamentUnloadWaitUser,
+                &CSelftestPart_FSensor::stateAskUnloadConfirmInit,
+                &CSelftestPart_FSensor::stateAskUnloadConfirmWait,
                 &CSelftestPart_FSensor::stateCalibrate,
                 &CSelftestPart_FSensor::stateCalibrateWaitFinished,
-                &CSelftestPart_FSensor::stateInsertionCheck,
+                &CSelftestPart_FSensor::stateInsertionWaitInit,
+                &CSelftestPart_FSensor::stateInsertionWait,
                 &CSelftestPart_FSensor::stateInsertionOkInit,
                 &CSelftestPart_FSensor::stateInsertionOk,
+                &CSelftestPart_FSensor::stateInsertionCalibrateStart,
+                &CSelftestPart_FSensor::stateInsertionCalibrateWait,
                 &CSelftestPart_FSensor::stateEnforceRemoveInit,
                 &CSelftestPart_FSensor::stateEnforceRemove
             );
@@ -69,7 +72,10 @@ bool phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &
             continue;
         }
 
-        if (i < EEPROM_MAX_TOOL_COUNT) {
+        // Store filament sensor calibration state
+        // Do not store if test was successful and now aborted, do not regress
+        if (i < EEPROM_MAX_TOOL_COUNT
+            && !(eeres.tools[i].fsensor == TestResult_Passed && m_pFSensor[i]->GetResult() == TestResult_Skipped)) {
             eeres.tools[i].fsensor = m_pFSensor[i]->GetResult();
         }
 

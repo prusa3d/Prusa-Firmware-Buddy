@@ -9,12 +9,11 @@
 #include "puppies/modular_bed.hpp"
 #include "puppies/Dwarf.hpp"
 #include "puppies/PuppyBootstrap.hpp"
-#include "tasks.h"
 #include "timing.h"
 #include "Marlin/src/module/stepper.h"
 #include "Marlin/src/module/prusa/toolchanger.h"
 #include <esp_flash.hpp>
-#include <tasks.h>
+#include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
 #include "bsod_gui.hpp"
 
@@ -142,14 +141,17 @@ static bool puppy_initial_scan() {
     return true;
 }
 
-static void puppy_task_body(void const *argument) {
-    wait_for_dependecies(PUPPY_TASK_START_DEPS);
+static void puppy_task_body([[maybe_unused]] void const *argument) {
+    TaskDeps::wait(TaskDeps::Tasks::puppy_start);
 
 #if BOARD_VER_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 
     #if HAS_EMBEDDED_ESP32()
+    // Power on the ESP
+    hw::espPower.write(hw::Pin::State::high);
+
     // Flash ESP
     ESPFlash esp_flash;
     auto esp_result = esp_flash.flash();
@@ -157,7 +159,7 @@ static void puppy_task_body(void const *argument) {
         log_error(Puppies, "ESP flash failed with %d", esp_result);
         ESPFlash::fatal_err(esp_result);
     }
-    provide_dependecy(ComponentDependencies::ESP_FLASHED);
+    TaskDeps::provide(TaskDeps::Dependency::esp_flashed);
     #endif
 #endif
 
@@ -173,9 +175,9 @@ static void puppy_task_body(void const *argument) {
         minimal_puppy_config = bootstrap_result;
 
         // set what puppies are connected
-        modular_bed.set_enabled(bootstrap_result.is_kennel_occupied(Kennel::MODULAR_BED));
+        modular_bed.set_enabled(bootstrap_result.is_dock_occupied(Dock::MODULAR_BED));
         for (int i = 0; i < DWARF_MAX_COUNT; i++) {
-            dwarfs[i].set_enabled(bootstrap_result.is_kennel_occupied(Kennel::DWARF_1 + i));
+            dwarfs[i].set_enabled(bootstrap_result.is_dock_occupied(Dock::DWARF_1 + i));
         }
 
         // wait for puppies to boot up, ensure they are runining
@@ -194,10 +196,10 @@ static void puppy_task_body(void const *argument) {
             }
             toolchanger_first_run = false;
 
-            provide_dependecy(ComponentDependencies::PUPPIES_READY_IDX);
+            TaskDeps::provide(TaskDeps::Dependency::puppies_ready);
             log_info(Puppies, "Puppies are ready");
 
-            wait_for_dependecies(PUPPY_TASK_RUN_DEPS);
+            TaskDeps::wait(TaskDeps::Tasks::puppy_run);
 
             // write current Marlin's state of the E TMC
             stepperE0.push();

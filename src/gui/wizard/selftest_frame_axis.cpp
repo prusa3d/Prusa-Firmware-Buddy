@@ -32,7 +32,7 @@ static constexpr const char *en_text_info = N_("During the test, the heatbed, an
 
 SelftestFrametAxis::SelftestFrametAxis(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamed>(parent, ph, data, _(en_text_axis_test))
-    , footer(this, 0, footer::items::ItemAxisX, footer::items::ItemAxisY, footer::items::ItemAxisZ)
+    , footer(this, 0, footer::Item::AxisX, footer::Item::AxisY, footer::Item::AxisZ)
     , progress(this, WizardDefaults::row_1)
     , icon_x_axis(this, &png::x_axis_16x16, point_i16_t({ WizardDefaults::col_0, row_2 }))
     , text_x_axis(this, Rect16(col_texts, row_2, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_X_axis))

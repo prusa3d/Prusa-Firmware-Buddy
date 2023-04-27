@@ -24,7 +24,7 @@ void screen_reset_error_data_t::start_sound() {
     }
 }
 
-void screen_reset_error_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void screen_reset_error_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     switch (event) {
     case GUI_event_t::ENC_UP:
     case GUI_event_t::ENC_DN:

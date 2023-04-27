@@ -18,7 +18,7 @@ MI_WIFI_INIT_t::MI_WIFI_INIT_t()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_WIFI_INIT_t::click(IWindowMenu &window_menu) {
+void MI_WIFI_INIT_t::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_gcode("M997 S1 O");
 }
 
@@ -26,7 +26,7 @@ MI_WIFI_CREDENTIALS_t::MI_WIFI_CREDENTIALS_t()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_WIFI_CREDENTIALS_t::click(IWindowMenu &window_menu) {
+void MI_WIFI_CREDENTIALS_t::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_gcode("M1587");
 }
 
@@ -34,7 +34,7 @@ MI_WIFI_CREDENTIALS_INI_FILE_t::MI_WIFI_CREDENTIALS_INI_FILE_t()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_WIFI_CREDENTIALS_INI_FILE_t::click(IWindowMenu &window_menu) {
+void MI_WIFI_CREDENTIALS_INI_FILE_t::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_gcode("M1587 I");
 }
 
@@ -47,7 +47,7 @@ MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
     }
 }
 
-void MI_NET_INTERFACE_t::OnChange(size_t old_index) {
+void MI_NET_INTERFACE_t::OnChange([[maybe_unused]] size_t old_index) {
     uint32_t param = EventMask::value + this->index;
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)param);
 }
@@ -59,7 +59,7 @@ MI_NET_IP_t::MI_NET_IP_t()
         : 1;
 }
 
-void MI_NET_IP_t::OnChange(size_t old_index) {
+void MI_NET_IP_t::OnChange([[maybe_unused]] size_t old_index) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)(EventMask::value | this->index));
 }
 

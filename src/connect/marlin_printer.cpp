@@ -20,6 +20,7 @@
 #include <sys/statvfs.h>
 
 using std::nullopt;
+using namespace marlin_server;
 
 namespace connect_client {
 
@@ -130,7 +131,6 @@ namespace {
         case mpsPrintPreviewInit:
         case mpsPrintPreviewImage:
         case mpsPrintInit:
-        case mpsAborted:
         case mpsExit:
             if (ready) {
                 return Printer::DeviceState::Ready;
@@ -155,6 +155,7 @@ namespace {
         case mpsCrashRecovery_XY_Measure:
         case mpsCrashRecovery_Tool_Pickup:
         case mpsCrashRecovery_XY_HOME:
+        case mpsCrashRecovery_HOMEFAIL:
         case mpsCrashRecovery_Repeated_Crash:
             return Printer::DeviceState::Busy;
 
@@ -170,11 +171,9 @@ namespace {
         case mpsResuming_UnparkHead_ZE:
             return Printer::DeviceState::Paused;
         case mpsFinished:
-            if (ready) {
-                return Printer::DeviceState::Ready;
-            } else {
-                return Printer::DeviceState::Finished;
-            }
+            return Printer::DeviceState::Finished;
+        case mpsAborted:
+            return Printer::DeviceState::Stopped;
         }
         return Printer::DeviceState::Unknown;
     }
@@ -270,7 +269,8 @@ Printer::Params MarlinPrinter::params() const {
     params.print_duration = marlin_vars()->print_duration;
     params.time_to_end = marlin_vars()->time_to_end;
     params.progress_percent = marlin_vars()->sd_percent_done;
-    params.filament_used = Odometer_s::instance().get(Odometer_s::axis_t::E);
+    params.filament_used = Odometer_s::instance().get_extruded_all();
+    params.nozzle_diameter = eeprom_get_nozzle_dia(0);
     params.has_usb = marlin_vars()->media_inserted;
 
     struct statvfs fsbuf = {};
@@ -294,16 +294,19 @@ Printer::Params MarlinPrinter::params() const {
 Printer::Config MarlinPrinter::load_config() {
     Config configuration = {};
     configuration.enabled = eeprom_get_bool(EEVAR_CONNECT_ENABLED);
-    if (configuration.enabled) {
-        // Just avoiding to read it when disabled, only to save some CPU
-        strextract(configuration.host, sizeof configuration.host, EEVAR_CONNECT_HOST);
-        decompress_host(configuration.host, sizeof configuration.host);
-        strextract(configuration.token, sizeof configuration.token, EEVAR_CONNECT_TOKEN);
-        configuration.tls = eeprom_get_bool(EEVAR_CONNECT_TLS);
-        configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
-    }
+    // (We need it even if disabled for registration phase)
+    strextract(configuration.host, sizeof configuration.host, EEVAR_CONNECT_HOST);
+    decompress_host(configuration.host, sizeof configuration.host);
+    strextract(configuration.token, sizeof configuration.token, EEVAR_CONNECT_TOKEN);
+    configuration.tls = eeprom_get_bool(EEVAR_CONNECT_TLS);
+    configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
 
     return configuration;
+}
+
+void MarlinPrinter::init_connect(char *token) {
+    eeprom_set_pchar(EEVAR_CONNECT_TOKEN, token, 0, 1);
+    eeprom_set_bool(EEVAR_CONNECT_ENABLED, true);
 }
 
 bool MarlinPrinter::load_cfg_from_ini() {
@@ -403,7 +406,7 @@ void MarlinPrinter::submit_gcode(const char *code) {
 }
 
 bool MarlinPrinter::set_ready(bool ready) {
-    if (ready && marlin_is_printing()) {
+    if (ready && !marlin_remote_print_ready(false)) {
         return false;
     }
 
@@ -413,19 +416,6 @@ bool MarlinPrinter::set_ready(bool ready) {
 
 bool MarlinPrinter::is_printing() const {
     return marlin_is_printing();
-}
-
-uint32_t MarlinPrinter::files_hash() const {
-    return wui_gcodes_mods();
-}
-
-void MarlinPrinter::notify_filechange(const char *) {
-    // Currently, we upload only gcodes.
-    //
-    // Once we allow uploading other things, renaming of the function might be in place 😇
-    //
-    // (For now, we don't use the file name for anything interesting)
-    wui_gcode_modified();
 }
 
 }

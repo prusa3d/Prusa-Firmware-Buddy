@@ -35,7 +35,17 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_LOAD_SETTINGS>;
+class MI_CONNECT_REGISTER : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Add printer to Connect");
+
+public:
+    MI_CONNECT_REGISTER();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_REGISTER, MI_CONNECT_LOAD_SETTINGS>;
 
 class ScreenMenuConnect : public ScreenMenuConnect__ {
 private:

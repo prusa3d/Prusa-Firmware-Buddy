@@ -22,6 +22,7 @@ void unhomed_z_lift(float amount_mm);
 class PausePrivatePhase : public IPause {
     PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
     int load_unload_shared_phase; //shared variable for UnloadPhases_t and LoadPhases_t
+    std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
 
     float nozzle_restore_temp[HOTENDS];
     float bed_restore_temp;
@@ -67,10 +68,6 @@ protected:
     // cannot guarante that SafetyTimer will happen first, so have to do it on both places
     Response getResponse();
 
-    constexpr uint8_t getPhaseIndex() const {
-        return GetPhaseIndex(phase);
-    }
-
     //use UnloadPhases_t or LoadPhases_t
     template <class ENUM>
     ENUM get() {
@@ -99,10 +96,18 @@ protected:
     void clrRestoreTemp();
 
 public:
+    constexpr uint8_t getPhaseIndex() const {
+        return GetPhaseIndex(phase);
+    }
+
     virtual void RestoreTemp() override;
     virtual bool CanSafetyTimerExpire() const override; //evaluate if client can click == safety timer can expire
     virtual void NotifyExpiredFromSafetyTimer() override;
     virtual bool HasTempToRestore() const override;
+
+    void set_mode(LoadUnloadMode mode) { load_unload_mode = mode; }
+    void clr_mode() { load_unload_mode = std::nullopt; }
+    std::optional<LoadUnloadMode> get_mode() const { return load_unload_mode; }
 };
 
 class RammingSequence;
@@ -110,6 +115,7 @@ class RammingSequence;
 //used by load / unlaod /change filament
 class Pause : public PausePrivatePhase {
     pause::Settings settings;
+
     //singleton
     Pause() = default;
     Pause(const Pause &) = delete;
@@ -140,6 +146,16 @@ public:
     bool FilamentUnload_AskUnloaded(const pause::Settings &settings_);
     bool FilamentAutoload(const pause::Settings &settings_);
     bool LoadToGear(const pause::Settings &settings_);
+
+    /**
+     * @brief Change tool before load/unload.
+     * @param target_extruder change to this tool [indexed from 0]
+     * @param mode before which operation
+     * @param settings_ config for park and othe Pause stuff
+     * @return true on success
+     */
+    bool ToolChange(uint8_t target_extruder, LoadUnloadMode mode, const pause::Settings &settings_);
+
     bool UnloadFromGear(); // does not need config
     bool FilamentLoad(const pause::Settings &settings_);
     bool FilamentLoadNotBlocking(const pause::Settings &settings_);
@@ -198,7 +214,7 @@ private:
 
     //create finite state machine and automatically destroy it at the end of scope
     //parks in ctor and unparks in dtor
-    class FSM_HolderLoadUnload : public FSM_Holder {
+    class FSM_HolderLoadUnload : public marlin_server::FSM_Holder {
         Pause &pause;
 
         void bindToSafetyTimer();

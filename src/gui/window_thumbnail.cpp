@@ -27,7 +27,7 @@ WindowPreviewThumbnail::~WindowPreviewThumbnail() {
 void WindowPreviewThumbnail::unconditionalDraw() {
     if (!gcode_info.file)
         return;
-    FILE f = { 0 };
+    FILE f {};
 
     png::Resource res("", 0, 0, 0, 0);
     res.file = &f;
@@ -65,7 +65,7 @@ void WindowProgressThumbnail::unconditionalDraw() {
         redraw_whole = true;
     }
 
-    FILE f = { 0 };
+    FILE f {};
 
     png::Resource res("", 0, 0, 0, 0);
     res.file = &f;

@@ -44,6 +44,6 @@ void PrusaGcodeSuite::M706() {
     filament_gcodes::mmu_cut(val);
 }
 
-__attribute__((weak)) void filament_gcodes::mmu_load(uint8_t data) {}
-__attribute__((weak)) void filament_gcodes::mmu_eject(uint8_t data) {}
-__attribute__((weak)) void filament_gcodes::mmu_cut(uint8_t data) {}
+__attribute__((weak)) void filament_gcodes::mmu_load([[maybe_unused]] uint8_t data) {}
+__attribute__((weak)) void filament_gcodes::mmu_eject([[maybe_unused]] uint8_t data) {}
+__attribute__((weak)) void filament_gcodes::mmu_cut([[maybe_unused]] uint8_t data) {}

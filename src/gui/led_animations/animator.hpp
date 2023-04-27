@@ -227,7 +227,7 @@ Animation *Animator<COUNT>::get_first_animation() {
     }
 }
 template <size_t COUNT>
-int Animator<COUNT>::get_next_pos(int priority) {
+int Animator<COUNT>::get_next_pos([[maybe_unused]] int priority) {
     // finds all animation with the same priority and returns one larger than the max one.
     int pos = 0;
     for (auto &elem : animations) {

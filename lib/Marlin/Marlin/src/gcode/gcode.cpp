@@ -73,6 +73,10 @@ uint8_t GcodeSuite::axis_relative = (
   | (ar_init.e ? _BV(REL_E) : 0)
 );
 
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+  GcodeSuite::CompatibilityMode GcodeSuite::compatibility_mode = CompatibilityMode::NONE;
+#endif
+
 #if ENABLED(HOST_KEEPALIVE_FEATURE)
   GcodeSuite::MarlinBusyState GcodeSuite::busy_state = NOT_BUSY;
   uint8_t GcodeSuite::host_keepalive_interval = DEFAULT_KEEPALIVE_INTERVAL;
@@ -93,8 +97,9 @@ uint8_t GcodeSuite::axis_relative = (
  */
 int8_t GcodeSuite::get_target_extruder_from_command() {
   if (parser.seenval('T')) {
-    const int8_t e = parser.value_byte();
+    const uint8_t e = parser.value_byte();
 
+    static_assert(EXTRUDERS <= INT8_MAX, "We need to return int8_t");
     bool valid_extruder = (e < EXTRUDERS);
     #if ENABLED(PRUSA_TOOLCHANGER)
       valid_extruder = valid_extruder && prusa_toolchanger.is_tool_enabled(e);
@@ -152,7 +157,11 @@ void GcodeSuite::get_destination_from_command() {
     else
       destination[i] = current_position[i];
 
-    Odometer_s::instance().add_value(i, destination[i] - current_position[i]);
+    if (i <= Z_AXIS) {
+      Odometer_s::instance().add_axis(Odometer_s::axis_t(i), destination[i] - current_position[i]);
+    } else {
+      Odometer_s::instance().add_extruded(active_extruder, destination[i] - current_position[i]);
+    }
   }
 
   #if ENABLED(POWER_LOSS_RECOVERY) && !PIN_EXISTS(POWER_LOSS)
@@ -343,7 +352,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 65: G65(); break;
       #endif
 
-      #if ENABLED(GCODE_MOTION_MODES)
+      #if ENABLED(GCODE_MOTION_MODES) || ENABLED(GCODE_COMPATIBILITY_MK3)
         case 80: G80(); break;                                    // G80: Reset the current motion mode
       #endif
 

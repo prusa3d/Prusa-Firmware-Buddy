@@ -74,24 +74,26 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "Loadcell_user_tap_ok";
     case PhasesSelftest::Loadcell_fail:
         return "Loadcell_fail";
-    case PhasesSelftest::FSensor_ask_have_filament:
-        return "FSensor_ask_have_filament";
     case PhasesSelftest::FSensor_wait_tool_pick:
         return "FSensor_wait_tool_pick";
     case PhasesSelftest::FSensor_ask_unload:
         return "FSensor_ask_unload";
-    case PhasesSelftest::FSensor_unload:
-        return "FSensor_unload";
+    case PhasesSelftest::FSensor_unload_confirm:
+        return "FSensor_unload_confirm";
     case PhasesSelftest::FSensor_calibrate:
         return "FSensor_calibrate";
-    case PhasesSelftest::FSensor_insertion_check:
-        return "FSensor_insertion_check";
+    case PhasesSelftest::FSensor_insertion_wait:
+        return "FSensor_insertion_wait";
     case PhasesSelftest::FSensor_insertion_ok:
         return "FSensor_insertion_ok";
+    case PhasesSelftest::FSensor_insertion_calibrate:
+        return "FSensor_insertion_calibrate";
     case PhasesSelftest::Fsensor_enforce_remove:
         return "Fsensor_enforce_remove";
     case PhasesSelftest::FSensor_fail:
         return "FSensor_fail";
+    case PhasesSelftest::FSensor_done:
+        return "FSensor_done";
     case PhasesSelftest::CalibZ:
         return "CalibZ";
     case PhasesSelftest::Axis:
@@ -124,32 +126,32 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "WizardEpilogue_ok";
     case PhasesSelftest::WizardEpilogue_nok:
         return "WizardEpilogue_nok";
-    case PhasesSelftest::Kennel_wait_user_park1:
-        return "KennelCalibration_wait_park1";
-    case PhasesSelftest::Kennel_wait_user_park2:
-        return "KennelCalibration_wait_park2";
-    case PhasesSelftest::Kennel_wait_user_park3:
-        return "KennelCalibration_wait_park3";
-    case PhasesSelftest::Kennel_pin_remove_prepare:
-        return "KennelCalibration_pin_remove_prepare";
-    case PhasesSelftest::Kennel_wait_user_remove_pins:
-        return "KennelCalibration_wait_user_remove_pins";
-    case PhasesSelftest::Kennel_wait_user_loosen_pillar:
-        return "KennelCalibration_wait_user_loosen_pillar";
-    case PhasesSelftest::Kennel_wait_user_lock_tool:
-        return "KennelCalibration_wait_user_lock_tool";
-    case PhasesSelftest::Kennel_wait_user_install_pins:
-        return "KennelCalibration_wait_user_install_pins";
-    case PhasesSelftest::Kennel_needs_calibration:
-        return "Kennel_needs_calibration";
-    case PhasesSelftest::Kennel_measure:
-        return "KennelCalibration_measure";
-    case PhasesSelftest::Kennel_wait_user_tighten_bottom_screw:
-        return "KennelCalibration_wait_user_tighten_bottom_screw";
-    case PhasesSelftest::Kennel_selftest_park_test:
-        return "KennelCalibration_selftest_park_test";
-    case PhasesSelftest::Kennel_wait_user_tighten_top_screw:
-        return "KennelCalibration_wait_user_tighten_pilar";
+    case PhasesSelftest::Dock_wait_user_park1:
+        return "DockCalibration_wait_park1";
+    case PhasesSelftest::Dock_wait_user_park2:
+        return "DockCalibration_wait_park2";
+    case PhasesSelftest::Dock_wait_user_park3:
+        return "DockCalibration_wait_park3";
+    case PhasesSelftest::Dock_wait_user_remove_pins:
+        return "DockCalibration_wait_user_remove_pins";
+    case PhasesSelftest::Dock_wait_user_loosen_pillar:
+        return "DockCalibration_wait_user_loosen_pillar";
+    case PhasesSelftest::Dock_wait_user_lock_tool:
+        return "DockCalibration_wait_user_lock_tool";
+    case PhasesSelftest::Dock_wait_user_install_pins:
+        return "DockCalibration_wait_user_install_pins";
+    case PhasesSelftest::Dock_needs_calibration:
+        return "Dock_needs_calibration";
+    case PhasesSelftest::Dock_measure:
+        return "DockCalibration_measure";
+    case PhasesSelftest::Dock_wait_user_tighten_bottom_screw:
+        return "DockCalibration_wait_user_tighten_bottom_screw";
+    case PhasesSelftest::Dock_selftest_park_test:
+        return "DockCalibration_selftest_park_test";
+    case PhasesSelftest::Dock_calibration_success:
+        return "Dock_calibration_success";
+    case PhasesSelftest::Dock_wait_user_tighten_top_screw:
+        return "DockCalibration_wait_user_tighten_pilar";
     case PhasesSelftest::ToolOffsets_wait_calibrate:
         return "ToolOffsets_wait_calibrate";
     case PhasesSelftest::ToolOffsets_pin_install_prepare:

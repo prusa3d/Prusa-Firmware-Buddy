@@ -46,6 +46,7 @@ constexpr T GetEnumFromPhaseIndex(size_t index) {
 // EVERY response shall have a unique ID (so every button in GUI is unique)
 enum class PhasesLoadUnload : uint16_t {
     _first = 0,
+    ChangingTool,
     Parking_stoppable,
     Parking_unstoppable,
     WaitingTemp_stoppable,
@@ -104,8 +105,19 @@ enum class PhasesLoadUnload : uint16_t {
     MMU_ParkingSelector,
     MMU_EjectingFilament,
     MMU_RetractingFromFinda,
+    MMU_Homing,
+    MMU_MovingSelector,
+    MMU_FeedingToFSensor,
+    MMU_HWTestBegin,
+    MMU_HWTestIdler,
+    MMU_HWTestSelector,
+    MMU_HWTestPulley,
+    MMU_HWTestCleanup,
+    MMU_HWTestExec,
+    MMU_HWTestDisplay,
+    MMU_ErrHwTestFailed,
 
-    _last = MMU_RetractingFromFinda
+    _last = MMU_ErrHwTestFailed
 #else
     _last = Unparking
 #endif
@@ -183,14 +195,15 @@ enum class PhasesSelftest : uint16_t {
     _last_Loadcell = Loadcell_fail,
 
     _first_FSensor,
-    FSensor_ask_have_filament = _first_FSensor,
+    FSensor_ask_unload = _first_FSensor,
     FSensor_wait_tool_pick,
-    FSensor_ask_unload,
-    FSensor_unload,
+    FSensor_unload_confirm,
     FSensor_calibrate,
-    FSensor_insertion_check,
+    FSensor_insertion_wait,
     FSensor_insertion_ok,
+    FSensor_insertion_calibrate,
     Fsensor_enforce_remove,
+    FSensor_done,
     FSensor_fail,
     _last_FSensor = FSensor_fail,
 
@@ -222,21 +235,21 @@ enum class PhasesSelftest : uint16_t {
     FirstLayer_failed,
     _last_FirstLayerQuestions = FirstLayer_failed,
 
-    _first_Kennel,
-    Kennel_needs_calibration = _first_Kennel,
-    Kennel_wait_user_park1,
-    Kennel_wait_user_park2,
-    Kennel_wait_user_park3,
-    Kennel_pin_remove_prepare,
-    Kennel_wait_user_remove_pins,
-    Kennel_wait_user_loosen_pillar,
-    Kennel_wait_user_lock_tool,
-    Kennel_wait_user_tighten_top_screw,
-    Kennel_measure,
-    Kennel_wait_user_install_pins,
-    Kennel_wait_user_tighten_bottom_screw,
-    Kennel_selftest_park_test,
-    _last_Kennel = Kennel_selftest_park_test,
+    _first_Dock,
+    Dock_needs_calibration = _first_Dock,
+    Dock_wait_user_park1,
+    Dock_wait_user_park2,
+    Dock_wait_user_park3,
+    Dock_wait_user_remove_pins,
+    Dock_wait_user_loosen_pillar,
+    Dock_wait_user_lock_tool,
+    Dock_wait_user_tighten_top_screw,
+    Dock_measure,
+    Dock_wait_user_install_pins,
+    Dock_wait_user_tighten_bottom_screw,
+    Dock_selftest_park_test,
+    Dock_calibration_success,
+    _last_Dock = Dock_calibration_success,
 
     _first_Tool_Offsets,
     ToolOffsets_wait_user_confirm_start = _first_Tool_Offsets,
@@ -271,6 +284,7 @@ enum class PhasesCrashRecovery : uint16_t {
     axis_short,
     axis_long,
     repeated_crash,
+    home_fail,     //< Homing failed, ask to retry
     tool_recovery, //< Toolchanger recovery, tool fell off
     _last = tool_recovery
 };
@@ -284,6 +298,7 @@ class ClientResponses {
     // declare 2d arrays of single buttons for radio buttons
     static constexpr PhaseResponses LoadUnloadResponses[] = {
         {},                                                       //_first
+        {},                                                       // ChangingTool,
         { Response::Stop },                                       // Parking_stoppable
         {},                                                       // Parking_unstoppable,
         { Response::Stop },                                       // WaitingTemp_stoppable,
@@ -342,6 +357,17 @@ class ClientResponses {
         {},                                                            // MMU_ParkingSelector,
         {},                                                            // MMU_EjectingFilament,
         {},                                                            // MMU_RetractingFromFinda,
+        {},                                                            // MMU_Homing,
+        {},                                                            // MMU_MovingSelector,
+        {},                                                            // MMU_FeedingToFSensor,
+        {},                                                            // MMU_HWTestBegin,
+        {},                                                            // MMU_HWTestIdler,
+        {},                                                            // MMU_HWTestSelector,
+        {},                                                            // MMU_HWTestPulley,
+        {},                                                            // MMU_HWTestCleanup,
+        {},                                                            // MMU_HWTestExec,
+        {},                                                            // MMU_HWTestDisplay,
+        {},                                                            // MMU_ErrHwTestFailed,
 #endif
     };
     static_assert(std::size(ClientResponses::LoadUnloadResponses) == CountPhases<PhasesLoadUnload>());
@@ -352,13 +378,13 @@ class ClientResponses {
 #if (PRINTER_TYPE == PRINTER_PRUSA_IXL)
             Response::PETG_NH,
 #endif
-            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB }, // UserTempSelection
+            Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA }, // UserTempSelection
     };
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
     static constexpr PhaseResponses PrintPreviewResponses[] = {
         { Response::Print, Response::Back },                   // main_dialog,
-        { Response::Abort, Response::Ignore },                 // wrong_printer
+        { Response::Abort, Response::PRINT },                  // wrong_printer
         { Response::Abort },                                   // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
         { Response::Yes, Response::No },                       // mmu_filament_inserted
@@ -411,15 +437,16 @@ class ClientResponses {
         {},                                      // Loadcell_user_tap_ok
         {},                                      // Loadcell_fail
 
-        { Response::Yes, Response::No },                         // FSensor_ask_have_filament
-        {},                                                      // FSensor_wait_tool_pick
-        { Response::Unload, Response::Continue },                // FSensor_ask_unload
-        { Response::Continue },                                  // FSensor_unload
-        {},                                                      // FSensor_calibrate
-        { Response::Abort_invalidate_test },                     // FSensor_insertion_check
-        { Response::Continue, Response::Abort_invalidate_test }, // FSensor_insertion_ok
-        { Response::Abort_invalidate_test },                     // Fsensor_enforce_remove
-        {},                                                      // FSensor_fail
+        { Response::Continue, Response::Unload, Response::Abort }, // FSensor_ask_unload
+        {},                                                        // FSensor_wait_tool_pick
+        { Response::Yes, Response::No },                           // FSensor_unload_confirm
+        {},                                                        // FSensor_calibrate
+        { Response::Abort_invalidate_test },                       // FSensor_insertion_wait
+        { Response::Continue, Response::Abort_invalidate_test },   // FSensor_insertion_ok
+        { Response::Abort_invalidate_test },                       // FSensor_insertion_calibrate
+        { Response::Abort_invalidate_test },                       // Fsensor_enforce_remove
+        {},                                                        // FSensor_done
+        {},                                                        // FSensor_fail
 
         {}, // CalibZ
 
@@ -439,19 +466,19 @@ class ClientResponses {
         { Response::Next },                                   // FirstLayer_clean_sheet
         { Response::Next },                                   // FirstLayer_failed
 
-        { Response::Continue, Response::Abort }, // Kennel_needs_calibartion
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_park1
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_park2
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_park3
-        { Response::Abort },                     // Kennel_pin_remove_prepare
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_remove_pins
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_loosen_pillar
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_lock_tool
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_tighten_top_screw
-        { Response::Abort },                     // Kennel_measure
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_install_pins
-        { Response::Continue, Response::Abort }, // Kennel_wait_user_tighten_bottom_screw
-        { Response::Abort },                     // Kennel_selftest_park_test
+        { Response::Continue, Response::Abort }, // Dock_needs_calibartion
+        { Response::Continue, Response::Abort }, // Dock_wait_user_park1
+        { Response::Continue, Response::Abort }, // Dock_wait_user_park2
+        { Response::Continue, Response::Abort }, // Dock_wait_user_park3
+        { Response::Continue, Response::Abort }, // Dock_wait_user_remove_pins
+        { Response::Continue, Response::Abort }, // Dock_wait_user_loosen_pillar
+        { Response::Continue, Response::Abort }, // Dock_wait_user_lock_tool
+        { Response::Continue, Response::Abort }, // Dock_wait_user_tighten_top_screw
+        { Response::Abort },                     // Dock_measure
+        { Response::Continue, Response::Abort }, // Dock_wait_user_install_pins
+        { Response::Continue, Response::Abort }, // Dock_wait_user_tighten_bottom_screw
+        { Response::Abort },                     // Dock_selftest_park_test
+        { Response::Continue },                  // Dock_calibration_success
 
         { Response::Continue, Response::Abort },    // ToolOffsets_wait_user_confirm_start
         { Response::Heatup, Response::Continue },   // ToolOffsets_wait_user_clean_nozzle_cold
@@ -478,6 +505,7 @@ class ClientResponses {
         {},                                                     // axis short
         {},                                                     // axis long
         { Response::Resume, Response::Pause },                  // repeated crash
+        { Response::Retry },                                    // home_fail
         { Response::Continue },                                 // toolchanger recovery
     };
     static_assert(std::size(ClientResponses::CrashRecoveryResponses) == CountPhases<PhasesCrashRecovery>());
@@ -553,7 +581,7 @@ enum class SelftestParts {
     Result,
     WizardEpilogue,
 #if BOARD_IS_XLBUDDY
-    Kennel,
+    Dock,
     ToolOffsets,
 #endif
     _none, // cannot be created, must have same index as _count
@@ -591,8 +619,8 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     case SelftestParts::FirstLayerQuestions:
         return PhasesSelftest::_first_FirstLayerQuestions;
 #if BOARD_IS_XLBUDDY
-    case SelftestParts::Kennel:
-        return PhasesSelftest::_first_Kennel;
+    case SelftestParts::Dock:
+        return PhasesSelftest::_first_Dock;
     case SelftestParts::ToolOffsets:
         return PhasesSelftest::_first_Tool_Offsets;
 #endif
@@ -637,8 +665,8 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     case SelftestParts::FirstLayerQuestions:
         return PhasesSelftest::_last_FirstLayerQuestions;
 #if BOARD_IS_XLBUDDY
-    case SelftestParts::Kennel:
-        return PhasesSelftest::_last_Kennel;
+    case SelftestParts::Dock:
+        return PhasesSelftest::_last_Dock;
     case SelftestParts::ToolOffsets:
         return PhasesSelftest::_last_Tool_Offsets;
 #endif
@@ -701,8 +729,8 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
         return SelftestParts::Result;
 
 #if BOARD_IS_XLBUDDY
-    if (SelftestPartContainsPhase(SelftestParts::Kennel, ph))
-        return SelftestParts::Kennel;
+    if (SelftestPartContainsPhase(SelftestParts::Dock, ph))
+        return SelftestParts::Dock;
 
 #endif
     return SelftestParts::_none;

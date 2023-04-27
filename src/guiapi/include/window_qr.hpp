@@ -12,6 +12,7 @@ public:
 
     static constexpr uint16_t MAX_LEN_4QR = 256;
     void SetQRHeader(uint16_t err_num);
+    void SetText(const char *txt);
     const char *GetQRShortText();
     const char *GetQRLongText();
 

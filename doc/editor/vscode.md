@@ -6,31 +6,8 @@
     - `CMake Tools` (handles configuring and building the project, requires CMake to be installed),
     - `Cortex-Debug` and `Cortex-Debug: Device Support Pack - STM32F4` (support for debugging of the firmware),
         - The most recent and working `Cortex-Debug` for `ST-LINK` is `1.1.0`
-    - `ccls` extension, which provides autocompletion and code navigation.
+    - `clangd` extension, which provides autocompletion and code navigation, download language server via this extension.
     - `Code Spell Checker` (streetsidesoftware.code-spell-checker) extension, which provides spell checking and correction suggestions.
-2. Install [ccls](https://github.com/MaskRay/ccls) on your system
-    - Linux: `sudo snap install ccls --classic` ([full instructions](https://snapcraft.io/ccls))
-        - Also, check out this: https://github.com/MaskRay/ccls/wiki/FAQ#maximum-number-of-file-descriptors
-    - Mac: `brew install ccls`
-    - <details>
-        <summary>Windows</summary>
-        1. Download our precompiled binaries from [here](https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/windows_tools.zip).
-        2. Unzip them to `C:\Tools` so your file structure looks like this:
-
-            ```
-            C:\Tools
-             ├── LLVM
-             └── lsp-ccls
-            ```
-
-        3. Add the path to the `ccls` binary to your Visual Studio Code's settings:
-            1. Ctrl+Shift+P and `Preferences: Open Settings (JSON)`
-            2. Add the following to the JSON.
-
-                ```JSON
-                "ccls.launch.command": "c:\\Tools\\lsp-ccls\\bin\\ccls.exe",
-                ```
-        </details>
 
 3. Install OpenOCD
     - Linux: `sudo apt install openocd`

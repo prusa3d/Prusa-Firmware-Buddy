@@ -160,7 +160,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc) {
 
         HAL_DMA_DeInit(hadc->DMA_Handle);
     }
-#if ((BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 1, 8)) || BOARD_IS_BUDDY || BOARD_IS_XBUDDY)
+#if (BOARD_IS_BUDDY || BOARD_IS_XBUDDY)
     if (hadc->Instance == ADC2) {
         /* Peripheral clock disable */
         __HAL_RCC_ADC2_CLK_DISABLE();

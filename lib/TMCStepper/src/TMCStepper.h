@@ -127,6 +127,7 @@ class TMCStepper {
 
 	protected:
 		TMCStepper(float RS) : Rsense(RS) {};
+	    virtual ~TMCStepper() = default;
 		INIT_REGISTER(IHOLD_IRUN){{.sr=0}};	// 32b
 		INIT_REGISTER(TPOWERDOWN){.sr=0};		// 8b
 		INIT_REGISTER(TPWMTHRS){.sr=0};			// 32b

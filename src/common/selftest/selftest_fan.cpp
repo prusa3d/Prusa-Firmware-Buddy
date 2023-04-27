@@ -4,7 +4,7 @@
 #include "wizard_config.hpp"
 #include "fanctl.hpp"
 #include "config_features.h" //EXTRUDER_AUTO_FAN_TEMPERATURE
-#include "marlin_server.hpp" //marlin_server_get_temp_nozzle()
+#include "marlin_server.hpp" //marlin_server::get_temp_nozzle()
 #include "selftest_log.hpp"
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"

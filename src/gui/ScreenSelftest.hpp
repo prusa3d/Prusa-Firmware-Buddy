@@ -24,7 +24,7 @@
 #include "selftest_frame_result.hpp"
 #include "selftest_frame_wizard_prologue.hpp"
 #include "selftest_frame_wizard_epilogue.hpp"
-#include "selftest_frame_kennel.hpp"
+#include "selftest_frame_dock.hpp"
 #include "selftest_frame_tool_offsets.hpp"
 #include "selftest_invalid_state.hpp"
 #include "static_alocation_ptr.hpp"
@@ -64,7 +64,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static static_unique_ptr<SelftestFrame> creator_esp_progress(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_esp_qr(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_epilogue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
-    static static_unique_ptr<SelftestFrame> creator_kennel(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_dock(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_tool_offsets(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
 

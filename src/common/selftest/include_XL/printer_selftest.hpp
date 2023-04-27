@@ -1,4 +1,4 @@
-// TODO: This is just copy of MK404 selftest
+// TODO: This is just copy of MK4 selftest
 #pragma once
 
 #include "i_selftest.hpp"
@@ -19,10 +19,11 @@ typedef enum {
     stsPrologueInfoDetailed_wait_user,
     stsFans,
     stsWait_fans,
-    stsZcalib,
+    stsEnsureZAway,
     stsXAxis,
     stsYAxis,
-    stsKennels,
+    stsZcalib,
+    stsDocks,
     stsLoadcell,
     stsWait_loadcell,
     stsToolOffsets,
@@ -60,6 +61,7 @@ enum SelftestMask_t : uint64_t {
     stmLoadcell = to_one_hot(stsLoadcell),
     stmWait_loadcell = to_one_hot(stsWait_loadcell),
     stmZcalib = to_one_hot(stsZcalib),
+    stmEnsureZAway = to_one_hot(stsEnsureZAway),
     stmXAxis = to_one_hot(stsXAxis),
     stmYAxis = to_one_hot(stsYAxis),
     stmZAxis = to_one_hot(stsZAxis),
@@ -75,10 +77,10 @@ enum SelftestMask_t : uint64_t {
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
     stmNet_status = to_one_hot(stsNet_status),
-    stmKennels = to_one_hot(stsKennels),
+    stmDocks = to_one_hot(stsDocks),
     stmToolOffsets = to_one_hot(stsToolOffsets),
     stmShow_result = to_one_hot(stsShow_result) | to_one_hot(stsResult_wait_user),
-    stmFullSelftest = stmFans | stmLoadcell | stmXYZAxis | stmHeaters | stmNet_status | stmShow_result | stmKennels | stmFSensor | to_one_hot(stsDidSelftestPass),
+    stmFullSelftest = stmFans | stmLoadcell | stmXYZAxis | stmHeaters | stmNet_status | stmShow_result | stmDocks | stmFSensor | to_one_hot(stsDidSelftestPass),
     stmWizardPrologue = to_one_hot(stsPrologueAskRun) | to_one_hot(stsPrologueAskRun_wait_user) | to_one_hot(stsPrologueInfo) | to_one_hot(stsPrologueInfo_wait_user) | to_one_hot(stsPrologueInfoDetailed) | to_one_hot(stsPrologueInfoDetailed_wait_user),
     stmEpilogue = to_one_hot(stsEpilogue_nok) | to_one_hot(stsEpilogue_nok_wait_user) | to_one_hot(stsEpilogue_ok) | to_one_hot(stsEpilogue_ok_wait_user),
     stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue,
@@ -116,7 +118,7 @@ protected:
     std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
     selftest::IPartHandler *pBed;
     std::array<selftest::IPartHandler *, HOTENDS> m_pLoadcell;
-    std::array<selftest::IPartHandler *, HOTENDS> pKennels;
+    std::array<selftest::IPartHandler *, HOTENDS> pDocks;
     selftest::IPartHandler *pToolOffsets;
     std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
 

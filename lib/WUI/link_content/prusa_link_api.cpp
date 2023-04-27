@@ -8,7 +8,9 @@
 #include "../nhttp/send_json.h"
 #include "../wui_api.h"
 
+#include <common/path_utils.h>
 #include <transfers/monitor.hpp>
+#include <transfers/changed_path.hpp>
 #include <cstring>
 #include <cstdio>
 #include <cerrno>
@@ -26,6 +28,10 @@ using nhttp::printer::FileCommand;
 using nhttp::printer::FileInfo;
 using nhttp::printer::GcodeUpload;
 using nhttp::printer::JobCommand;
+using transfers::ChangedPath;
+
+using Type = ChangedPath::Type;
+using Incident = ChangedPath::Incident;
 
 enum class RemapPolicy {
     Octoprint,
@@ -98,6 +104,9 @@ namespace {
             size_t fname_real_len = strlen(fname_real);
             memmove(filename, fname_real, fname_real_len);
             filename[fname_real_len] = '\0';
+            // Slicer sometimes produces duplicate slashes in the URL and
+            // this may confuse eg. marlin.
+            dedup_slashes(filename);
             return nullopt;
         } else {
             return StatusPage(Status::NotFound, parser);
@@ -114,7 +123,7 @@ namespace {
                 return StatusPage(Status::NotFound, parser);
             }
         } else {
-            wui_gcode_modified();
+            ChangedPath::instance.changed_path(filename, Type::File, Incident::Deleted);
             return StatusPage(Status::NoContent, parser);
         }
     }
@@ -150,7 +159,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
     const auto suffix = *suffix_opt;
 
     if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
-        return std::visit([](auto unauth_status) -> ConnectionState { return std::move(unauth_status); }, *unauthorized_status);
+        return std::visit([](auto unauth_status) -> ConnectionState { return unauth_status; }, *unauthorized_status);
     }
 
     const auto get_only = [parser](ConnectionState state) -> ConnectionState {
@@ -184,7 +193,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                 putParams.print_after_upload = parser.print_after_upload;
                 strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
                 auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
-                return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+                return std::visit([](auto upload) -> ConnectionState { return upload; }, std::move(upload));
             }
             case Method::Get: {
                 return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1);
@@ -228,7 +237,7 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
              * Therefore we use the visit to take the first one apart and
              * then convert each type separately into the bigger one.
              */
-            return std::visit([](auto upload) -> ConnectionState { return std::move(upload); }, std::move(upload));
+            return std::visit([](auto upload) -> ConnectionState { return upload; }, std::move(upload));
         } else {
             static const auto prefix = "/api/files";
             static const size_t prefix_len = strlen(prefix);

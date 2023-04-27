@@ -1,4 +1,5 @@
 #include "render.hpp"
+#include "printer_type.hpp"
 
 #include <segmented_json_macros.h>
 #include <eeprom.h>
@@ -10,6 +11,8 @@
 
 #include <cassert>
 #include <cstring>
+
+#include <marlin_server_shared.h>
 
 using json::JsonOutput;
 using json::JsonResult;
@@ -40,6 +43,8 @@ namespace {
             return "PAUSED";
         case Printer::DeviceState::Finished:
             return "FINISHED";
+        case Printer::DeviceState::Stopped:
+            return "STOPPED";
         case Printer::DeviceState::Ready:
             return "READY";
         case Printer::DeviceState::Error:
@@ -126,7 +131,9 @@ namespace {
                 // These are not included in the fingerprint as they are changing a lot.
                 if (printing) {
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
-                    JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
+                    if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
+                        JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
+                    }
                     JSON_FIELD_INT("progress", params.progress_percent) JSON_COMMA;
                 }
 
@@ -233,9 +240,11 @@ namespace {
             if (event.type == EventType::Info) {
                 JSON_FIELD_OBJ("data");
                     JSON_FIELD_STR("firmware", info.firmware_version) JSON_COMMA;
+                    JSON_FIELD_PRINTER_TYPE JSON_COMMA;
                     JSON_FIELD_STR("sn", info.serial_number.txt) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
+                    JSON_FIELD_FFIXED("nozzle_diameter", params.nozzle_diameter, 2) JSON_COMMA;
                     if (strlen(creds.pl_password) > 0) {
                         JSON_FIELD_STR("api_key", creds.pl_password) JSON_COMMA;
                     }
@@ -250,9 +259,6 @@ namespace {
                             JSON_FIELD_STR("mountpoint", "/usb") JSON_COMMA;
                             JSON_FIELD_STR("type", "USB") JSON_COMMA;
                             JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
-                            if (event.info_rescan_files) {
-                                JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
-                            }
                             JSON_FIELD_INT("free_space", params.usb_space_free) JSON_COMMA;
                             JSON_FIELD_BOOL("is_sfn", true);
                         JSON_OBJ_END;
@@ -358,6 +364,31 @@ namespace {
                         JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id);
                     JSON_OBJ_END JSON_COMMA;
                 }
+            } else if (event.type == EventType::FileChanged) {
+                // FIXME: This is just an educated guess, the exact protocol has not been decided yet.
+                JSON_FIELD_OBJ("data");
+                    if (params.has_usb) {
+                        JSON_FIELD_INT("free_space", params.usb_space_free) JSON_COMMA;
+                    }
+                    if (event.incident == transfers::ChangedPath::Incident::Created) {
+                        JSON_FIELD_STR("new_path", event.path->path()) JSON_COMMA;
+                    } else if (event.incident == transfers::ChangedPath::Incident::Deleted) {
+                        JSON_FIELD_STR("old_path", event.path->path()) JSON_COMMA;
+                    } else /*Combined*/ {
+                        JSON_FIELD_STR("new_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
+                    }
+                    JSON_FIELD_OBJ("file")
+                        if (state.has_stat) {
+                            // has_stat might be off in case of /usb, that one acts
+                            // "weird", as it is root of the FS.
+                            JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
+                            JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
+                        }
+                        JSON_FIELD_STR("type", event.is_file ? file_type_by_ext(event.path->path()) : "FOLDER" ) JSON_COMMA;
+                        JSON_FIELD_STR("name", event.path->name());
+                    JSON_OBJ_END;
+                JSON_OBJ_END JSON_COMMA;
             }
 
             JSON_FIELD_STR("state", to_str(params.state)) JSON_COMMA;
@@ -649,6 +680,12 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
             JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
             JSON_FIELD_STR("display_name", display_name(state.ent)) JSON_COMMA;
             JSON_FIELD_INT("size", child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
+#ifdef UNITTESTS
+            // While "our" dirent contains time, the "real" one doesn't, so disable for unit tests
+            JSON_FIELD_INT("m_timestamp", 0) JSON_COMMA;
+#else
+            JSON_FIELD_INT("m_timestamp", state.ent->time) JSON_COMMA;
+#endif
             // We assume USB is not read only for us.
             JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
             JSON_FIELD_STR("type", file_type(state.ent));
@@ -706,8 +743,17 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
             // * If this is ever called multiple times (it can be, if the same
             //   event needs to be resent), it results into the same values
             //   there.
+            get_SFN_path(spath.path());
             get_LFN(spath.name(), FILE_NAME_BUFFER_LEN, spath.path());
             break;
+        }
+        case EventType::FileChanged: {
+            assert(event->path.has_value());
+            SharedPath spath = event->path.value();
+            path = spath.path();
+
+            get_SFN_path(spath.path());
+            get_LFN(spath.name(), FILE_NAME_BUFFER_LEN, spath.path());
         }
         default:;
         }

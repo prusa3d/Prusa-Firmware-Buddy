@@ -24,6 +24,11 @@ public:
 
     void Tare(TareMode mode = TareMode::Static);
 
+    /**
+     * @brief Clear state when no tool is picked.
+     */
+    void Clear();
+
     void SetScale(float scale);
     float GetScale() const;
 
@@ -81,6 +86,9 @@ public:
 
     void SetFailsOnLoadBelow(float failsOnLoadBelow);
     float GetFailsOnLoadBelow() const;
+
+    /// @brief To be called during homing, will raise redsceen when samples stop comming during homing
+    void HomingSafetyCheck() const;
 
     class IFailureEnforcer {
     protected:
@@ -187,6 +195,10 @@ private:
     int32_t offset;
     // used when tareMode == Continuous
     HighPassFilter highPassFilter;
+
+    /// Time when last valid sample arrived
+    // atomic because its set in interrupt/puppytask, read in default task
+    std::atomic<uint32_t> last_sample_time;
 
     int32_t WaitForNextSample();
 };

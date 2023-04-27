@@ -1,3 +1,5 @@
+target_include_directories(firmware PRIVATE .)
+
 target_sources(
   firmware
   PRIVATE footer_icon.cpp
@@ -5,6 +7,7 @@ target_sources(
           footer_item_fans.cpp
           footer_item_filament.cpp
           footer_item_fsensor.cpp
+          footer_item_fsvalue.cpp
           footer_item_heatbreak.cpp
           footer_item_live_z.cpp
           footer_item_printspeed.cpp

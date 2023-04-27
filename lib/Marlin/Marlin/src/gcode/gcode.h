@@ -313,6 +313,14 @@ public:
     SBI(axis_relative, E_MODE_ABS);
   }
 
+  #if ENABLED(GCODE_COMPATIBILITY_MK3)
+    enum class CompatibilityMode {
+      NONE,
+      MK3,
+    };
+    static CompatibilityMode compatibility_mode;
+  #endif
+
   #if ENABLED(CNC_WORKSPACE_PLANES)
     /**
      * Workspace planes only apply to G2/G3 moves
@@ -374,8 +382,15 @@ public:
   #endif
 
   static void dwell(millis_t time);
-  static void G28_no_parser(bool always_home_all = true, bool O = false, float R = false, bool S = false, bool X = false, bool Y = false, bool Z = false
+
+  /**
+   * @brief Home.
+   * @param * see GcodeSuite::G28() for details
+   * @return true on success
+   */
+  static bool G28_no_parser(bool always_home_all = true, bool O = false, float R = false, bool S = false, bool X = false, bool Y = false, bool Z = false
     , bool no_change = false OPTARG(PRECISE_HOMING_COREXY, bool precise = true));
+  
   static void T(const uint8_t tool_index);
 
 private:
@@ -475,7 +490,7 @@ private:
     static void G59();
   #endif
 
-  #if ENABLED(GCODE_MOTION_MODES)
+  #if ENABLED(GCODE_MOTION_MODES) || ENABLED(GCODE_COMPATIBILITY_MK3)
     static void G80();
   #endif
 

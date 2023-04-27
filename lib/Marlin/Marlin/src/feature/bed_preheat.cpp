@@ -69,8 +69,10 @@ void BedPreheat::wait_for_preheat() {
         gcode.reset_stepper_timeout();
 
         if (millis() - last_message_timestamp > message_interval) {
-            uint32_t remaining_seconds = remaining_preheat_time() / 1000;
-            MarlinUI::status_printf_P(0, "Absorbing heat (%is)", remaining_seconds);
+            const uint32_t remaining_s = remaining_preheat_time() / 1000;
+            const uint32_t minutes = remaining_s / 60;
+            const uint32_t seconds = remaining_s % 60;
+            MarlinUI::status_printf_P(0, "Absorbing heat (%i:%02i)", minutes, seconds);
             last_message_timestamp = millis();
         }
     }

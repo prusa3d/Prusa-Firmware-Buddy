@@ -122,7 +122,7 @@ void MI_MMU_SPOOLJOIN::OnChange(size_t old_index) {
 // MI_MMU_CUTTER
 MI_MMU_CUTTER::MI_MMU_CUTTER()
     : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_MMU2_CUTTER), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-void MI_MMU_CUTTER::OnChange(size_t old_index) {
+void MI_MMU_CUTTER::OnChange([[maybe_unused]] size_t old_index) {
     bool newState = !eeprom_get_bool(EEVAR_MMU2_CUTTER);
     // @@TODO some notification to the MMU2's engine?
     eeprom_set_bool(EEVAR_MMU2_CUTTER, newState);
@@ -132,7 +132,7 @@ void MI_MMU_CUTTER::OnChange(size_t old_index) {
 // MI_MMU_STEALTH_MODE
 MI_MMU_STEALTH_MODE::MI_MMU_STEALTH_MODE()
     : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_MMU2_STEALTH_MODE), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-void MI_MMU_STEALTH_MODE::OnChange(size_t old_index) {
+void MI_MMU_STEALTH_MODE::OnChange([[maybe_unused]] size_t old_index) {
     bool newState = !eeprom_get_bool(EEVAR_MMU2_STEALTH_MODE);
     // @@TODO some notification to the MMU2's engine?
     eeprom_set_bool(EEVAR_MMU2_STEALTH_MODE, newState);

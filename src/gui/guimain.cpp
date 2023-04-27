@@ -1,12 +1,15 @@
 #include <stdio.h>
+#include "client_fsm_types.h"
 #include "gui_time.hpp"
 #include "gui.hpp"
 #include "config.h"
 #include "marlin_client.hpp"
 #include "display.h"
+#include "display_hw_checks.hpp"
 
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
+#include "screen_unknown.hpp"
 #include "window_file_list.hpp"
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
@@ -30,10 +33,10 @@
 #include "eeprom.h"
 #include "w25x.h"
 #include "../mmu2/mmu2_error_converter.h"
-#include "../../Marlin/src/feature/prusa/MMU2/tmp_progress_converter.h"
+#include "../../Marlin/src/feature/prusa/MMU2/mmu2_progress_converter.h"
 #include "screen_home.hpp"
 #include "gui_fsensor_api.hpp"
-#include "tasks.h"
+#include "tasks.hpp"
 #include "timing.h"
 #include "gcode_info.hpp"
 #include "version.h"
@@ -76,7 +79,7 @@ int guimain_spi_test = 0;
 #include "hwio.h"
 #include "sys.h"
 #include "wdt.h"
-#include <crash_dump/dump.h>
+#include <crash_dump/dump.hpp>
 #include "gui_media_events.hpp"
 #include "metric.h"
 #include "neopixel.hpp"
@@ -91,7 +94,9 @@ int guimain_spi_test = 0;
 #include "log.h"
 #include <esp_flash.hpp>
 #include <printers.h>
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
+
+#include <option/has_selftest_snake.h>
+#if HAS_SELFTEST_SNAKE()
     #include "screen_menu_selftest_snake.hpp"
 #endif
 
@@ -103,19 +108,27 @@ extern void blockISR(); // do not want to include marlin temperature
 
 #ifdef USE_ST7789
 const st7789v_config_t st7789v_cfg = {
-    &hspi2,             // spi handle pointer
-    ST7789V_FLG_DMA,    // flags (DMA, MISO)
-    ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
-    ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
+    .phspi = &hspi2,              // spi handle pointer
+    .flg = ST7789V_FLG_DMA,       // flags (DMA, MISO)
+    .colmod = ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
+    .madctl = ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
+    .gamma = 0,
+    .brightness = 0,
+    .is_inverted = 0,
+    .control = 0,
 };
 #endif // USE_ST7789
 
 #ifdef USE_ILI9488
 const ili9488_config_t ili9488_cfg = {
-    &SPI_HANDLE_FOR(lcd), // spi handle pointer
-    ILI9488_FLG_DMA,      // flags (DMA, MISO)
-    ILI9488_DEF_COLMOD,   // interface pixel format (5-6-5, hi-color)
-    ILI9488_DEF_MADCTL,   // memory data access control (no mirror XY)
+    .phspi = &SPI_HANDLE_FOR(lcd), // spi handle pointer
+    .flg = ILI9488_FLG_DMA,        // flags (DMA, MISO)
+    .colmod = ILI9488_DEF_COLMOD,  // interface pixel format (5-6-5, hi-color)
+    .madctl = ILI9488_DEF_MADCTL,  // memory data access control (no mirror XY)
+    .gamma = 0,
+    .brightness = 0,
+    .is_inverted = 0,
+    .control = 0
 };
 #endif // USE_ILI9488
 
@@ -123,14 +136,6 @@ marlin_vars_t *gui_marlin_vars = 0;
 
 char gui_media_LFN[FILE_NAME_BUFFER_LEN];
 char gui_media_SFN_path[FILE_PATH_BUFFER_LEN]; //@@TODO DR - tohle pouzit na ulozeni posledni cesty
-
-#ifdef USE_ILI9488
-uint8_t data_buff[ILI9488_MAX_COMMAND_READ_LENGHT] = { 0x00 };
-#endif
-
-#ifdef USE_ST7789
-uint8_t data_buff[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
-#endif
 
 #ifdef GUI_JOGWHEEL_SUPPORT
 Jogwheel jogwheel;
@@ -168,12 +173,22 @@ void Warning_cb(WarningType type) {
     case WarningType::NozzleTimeout:
         window_dlg_strong_warning_t::ShowHeatersTimeout();
         break;
+#if DEVELOPMENT_ITEMS()
+    case WarningType::SteppersTimeout:
+        window_dlg_strong_warning_t::ShowSteppersTimeout();
+        break;
+#endif
     case WarningType::USBFlashDiskError:
         window_dlg_strong_warning_t::ShowUSBFlashDisk();
         break;
     case WarningType::HeatBreakThermistorFail:
         window_dlg_strong_warning_t::ShowHeatBreakThermistorFail();
         break;
+#if ENABLED(POWER_PANIC)
+    case WarningType::HeatbedColdAfterPP:
+        window_dlg_strong_warning_t::ShowHeatbedColdAfterPP();
+        break;
+#endif
     default:
         break;
     }
@@ -207,6 +222,61 @@ void client_gui_refresh() {
         gui_redraw();
     }
 }
+
+namespace {
+void led_animation_step() {
+#if HAS_LEDS
+    PrinterStateAnimation::Update();
+    Animator_LCD_leds().Step();
+    leds::TickLoop();
+#endif
+}
+
+void filament_sensor_validation() {
+    if (screen_home_data_t::EverBeenOpened()
+#if HAS_SELFTEST
+    #if HAS_SELFTEST_SNAKE()
+        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
+        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
+    #else
+        && (ScreenSelftest::GetInstance() == nullptr)
+    #endif
+#endif
+    ) {
+        gui::fsensor::validate_for_cyclical_calls();
+    }
+}
+
+void make_gui_ready_to_print() {
+    // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
+    bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && (Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>() || Screens::Access()->IsScreenOpened<screen_printing_data_t>()));
+
+    bool in_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
+
+    if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
+        bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
+        Screens::Access()->CloseAll(); // set flag to close all screens
+        if (have_file_browser)
+            Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
+        Screens::Access()->Loop(); // close those screens before marlin_gui_ready_to_print
+
+        // notify server, that GUI is ready to print
+        marlin_gui_ready_to_print();
+
+        // wait for start of the print - to prevent any unwanted gui action
+        while (
+            (marlin_vars()->print_state != marlin_server::mpsIdle) // main thread is processing a print
+            && (!DialogHandler::Access().IsAnyOpen())              // wait for print screen to open, any fsm can break waiting (not only open of print screen)
+        ) {
+            gui_timers_cycle();   // refresh GUI time
+            marlin_client_loop(); // refresh fsm - required for dialog handler
+            DialogHandler::Access().Loop();
+        }
+    } else if (!in_preview) {
+        marlin_gui_cant_print();
+    } // else -> we are in the preview screen. It closes itself from another thread, so we just wait for it to happen.
+}
+} // anonymous namespace
 
 #if ENABLED(RESOURCES())
 static void finish_update() {
@@ -257,15 +327,18 @@ static void finish_update() {
                 gui_redraw();
             });
     }
-    provide_dependecy(ComponentDependencies::RESOURCES_READY_IDX);
+    TaskDeps::provide(TaskDeps::Dependency::resources_ready);
+}
+#endif
 
-    #if BOARD_VER_EQUAL_TO(0, 5, 0)
-        // This is temporary, remove once everyone has compatible hardware.
-        // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+#if BOARD_VER_EQUAL_TO(0, 5, 0)
+// This is temporary, remove once everyone has compatible hardware.
+// Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 
-        #if HAS_EMBEDDED_ESP32()
+    #if HAS_EMBEDDED_ESP32()
+static void finish_update_ESP32() {
     // Show ESP flash progress
-    while (check_dependencies(ESP_FLASHED) == false) {
+    while (TaskDeps::check(TaskDeps::Dependency::esp_flashed) == false) {
         const ESPFlash::Progress progress = ESPFlash::get_progress();
         const uint8_t percent = progress.bytes_total ? 100 * progress.bytes_flashed / progress.bytes_total : 0;
         const char *description;
@@ -287,12 +360,14 @@ static void finish_update() {
         gui_redraw();
         osDelay(20);
     }
-        #endif
+}
     #endif
+#endif
 
-    #if ENABLED(HAS_PUPPIES())
+#if ENABLED(HAS_PUPPIES())
+static void finish_update_puppies() {
     // wait for puppies to become available
-    while (check_dependencies(PUPPIES_READY) == false) {
+    while (TaskDeps::check(TaskDeps::Dependency::puppies_ready) == false) {
         auto progress = buddy::puppies::get_bootstrap_progress();
         if (progress.has_value()) {
             screen_splash_data_t::bootstrap_cb(progress->percent_done * buddy::puppies::max_bootstrap_perc / 100, progress->description());
@@ -300,7 +375,6 @@ static void finish_update() {
         }
         osDelay(20);
     }
-    #endif
 }
 #endif
 
@@ -335,14 +409,37 @@ static void manufacture_report() {
     SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
+
+    TaskDeps::provide(TaskDeps::Dependency::manufacture_report_sent);
 }
 
-namespace {
-void reinit_lcd_and_redraw() {
-    display::CompleteReinitLCD();
-    display::Init();
-    Screens::Access()->SetDisplayReinitialized();
-}
+/**
+ * @brief Get the right error page to display
+ *
+ * Error has precedence over dump.
+ */
+static ScreenFactory::Creator get_error_screen() {
+    if (crash_dump::dump_err_in_xflash_is_valid() && !crash_dump::dump_err_in_xflash_is_displayed()) {
+        return ScreenFactory::Screen<ScreenErrorQR>;
+    }
+
+    if (crash_dump::dump_in_xflash_is_valid() && !crash_dump::dump_in_xflash_is_displayed()) {
+        switch (crash_dump::dump_in_xflash_get_type()) {
+        case crash_dump::DumpType::DUMP_HARDFAULT:
+            return ScreenFactory::Screen<screen_hardfault_data_t>;
+#ifndef _DEBUG
+        case crash_dump::DumpType::DUMP_IWDGW:
+            return ScreenFactory::Screen<screen_watchdog_data_t>;
+#endif
+        default:
+            return ScreenFactory::Screen<screen_unknown_data_t>;
+        }
+    }
+
+    // Do not display nullptr page in case of all previous fails
+    // Display an unknown error page instead
+    // TODO: This is not perfect, would be better to be sure there is some error to display.
+    return ScreenFactory::Screen<screen_unknown_data_t>;
 }
 
 void gui_error_run(void) {
@@ -355,30 +452,12 @@ void gui_error_run(void) {
 #endif
     gui_init();
 
-    ScreenFactory::Creator error_screen = nullptr;
-    // If both redscreen and bsod are pending - both are set as displayed, but redscreen is displayed
-    if (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed()) {
-        error_screen = ScreenFactory::Screen<ScreenErrorQR>;
-        dump_err_in_xflash_set_displayed();
-    }
-    if (dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) {
-        if (error_screen == nullptr) {
-            switch (dump_in_xflash_get_type()) {
-            case DUMP_HARDFAULT:
-                error_screen = ScreenFactory::Screen<screen_hardfault_data_t>;
-                break;
-#ifndef _DEBUG
-            case DUMP_IWDGW:
-                error_screen = ScreenFactory::Screen<screen_watchdog_data_t>;
-                break;
-#endif
-            }
-        }
-        dump_in_xflash_set_displayed();
-    }
-
-    screen_node screen_initializer { error_screen };
+    screen_node screen_initializer { get_error_screen() };
     Screens::Init(screen_initializer);
+
+    // Mark everything as displayed
+    crash_dump::dump_err_in_xflash_set_displayed();
+    crash_dump::dump_in_xflash_set_displayed();
 
 #if HAS_LEDS
     // Turn on LCD backlight
@@ -443,14 +522,30 @@ void gui_run(void) {
 #if ENABLED(RESOURCES())
     finish_update();
 #endif
+
     manufacture_report();
-    provide_dependecy(ComponentDependencies::USBSERIAL_READY); // postpone starting Marlin after USBSerial handling in manufacture_report()
+
+    // Postpone starting Marlin after USBSerial handling in manufacture_report()
+    TaskDeps::provide(TaskDeps::Dependency::usbserial_ready);
+
+#if BOARD_VER_EQUAL_TO(0, 5, 0)
+    // This is temporary, remove once everyone has compatible hardware.
+    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+
+    #if HAS_EMBEDDED_ESP32()
+    finish_update_ESP32();
+    #endif
+#endif
+
+#if ENABLED(HAS_PUPPIES())
+    finish_update_puppies();
+#endif
 
     marlin_client_init();
     GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
 
     DialogHandler::Access(); // to create class NOW, not at first call of one of callback
-    marlin_client_set_fsm_cb(DialogHandler::Command);
+    marlin_client_set_fsm_cb(DialogHandler::command_c_compatible);
     marlin_client_set_message_cb(MsgCircleBuffer_cb);
     marlin_client_set_warning_cb(Warning_cb);
     marlin_client_set_startup_cb(Startup_cb);
@@ -475,129 +570,32 @@ void gui_run(void) {
     leds::side_strip_control.ActivityPing();
 #endif
 
-    redraw_cmd_t redraw;
-
     // TODO make some kind of registration
     while (1) {
         gui::StartLoop();
 
-#if HAS_LEDS
-        PrinterStateAnimation::Update();
-        Animator_LCD_leds().Step();
-        leds::TickLoop();
-#endif
+        led_animation_step();
 
-        if (screen_home_data_t::EverBeenOpened()
-#if HAS_SELFTEST
-    #if PRINTER_TYPE == PRINTER_PRUSA_XL
-            && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
-            && !Screens::Access()->IsScreenOnStack<ScreenMenuSelftestSnake>()
-    #else
-            && (ScreenSelftest::GetInstance() == nullptr)
-    #endif
-#endif
-        ) {
-            gui::fsensor::validate_for_cyclical_calls();
-        }
+        filament_sensor_validation();
 
-        const uint32_t min_check_period_ms = 2048;                           // both touch and display
-        static uint32_t last_touch_check_ms = gui::GetTick_IgnoreTickLoop(); // sync with loop time would be unwanted
-
-        uint32_t now = gui::GetTick_IgnoreTickLoop();
-        if ((now - last_touch_check_ms) >= min_check_period_ms) {
-            last_touch_check_ms = now;
-
-#if HAS_LEDS
-            leds::ForceRefresh(4);
-#endif
-
-            display::ReadMADCTL(data_buff);
-
-            if ((data_buff[1] != 0xE0 && data_buff[1] != 0xF0 && data_buff[1] != 0xF8)) {
-                reinit_lcd_and_redraw();
-            }
-
-#if (!(defined(_DEBUG) && (BOARD_IS_XLBUDDY)))
-            const uint32_t touch_err_cnt_to_be_invalid = 4;              // how many times must touch read fail to be considered an error
-            const uint32_t disable_touch_after_n_resets_in_sequence = 4; // if 4 resets did not help, just disable it, home screen will show msgbox
-            static uint32_t touch_read_err = 0;                          // errors in row
-
-            if (HAS_TOUCH && touch::is_enabled() && screen_home_data_t::EverBeenOpened() && (!touch::does_read_work())) {
-                ++touch_read_err;
-            } else {
-                touch_read_err = 0;
-            }
-
-            bool reset_touch = false;
-
-            if (touch_read_err > (disable_touch_after_n_resets_in_sequence * touch_err_cnt_to_be_invalid)) {
-                // reached touch disable limit
-                touch::disable();
-                log_error(GUI, "Cannot communicate with touch driver");
-                touch_read_err = 0;
-                screen_home_data_t::SetTouchBrokenDuringRun();
-            } else if (touch_read_err && ((touch_read_err % touch_err_cnt_to_be_invalid) == 0)) {
-                // try to reset the touch
-                reset_touch = true;
-            }
-
-            if (reset_touch) {
-                reinit_lcd_and_redraw();
-            }
-#endif
-        }
+        lcd::communication_check();
 
         // I must do it before screen and dialog loops
         // do not use marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state, it can make gui freeze in case main thread is unresponsive
-        volatile bool print_processor_waiting = marlin_vars()->print_state == mpsWaitGui;
+        volatile bool print_processor_waiting = marlin_vars()->print_state == marlin_server::mpsWaitGui;
 
-        redraw = DialogHandler::Access().Loop();
-
-        if (redraw == redraw_cmd_t::redraw)
-            // all messages received, redraw changes immediately
-            gui_redraw();
+        DialogHandler::Access().Loop();
 
         // this code handles start of print
         // it must be in main gui loop just before screen handler to ensure no FSM is opened
         // !DialogHandler::Access().IsAnyOpen() - wait until all FSMs are closed (including one click print)
         // one click print is closed automatically from main thread, because it is opened for wrong gcode
         if (print_processor_waiting) {
-
-            // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
-            bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && (Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>() || Screens::Access()->IsScreenOpened<screen_printing_data_t>()));
-
-            bool in_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
-
-            if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
-                bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
-                Screens::Access()->CloseAll(); // set flag to close all screens
-                if (have_file_browser)
-                    Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
-                Screens::Access()->Loop(); // close those screens before marlin_gui_ready_to_print
-
-                // notify server, that GUI is ready to print
-                marlin_gui_ready_to_print();
-
-                // wait for start of the print - to prevent any unwanted gui action
-                while (
-                    (marlin_vars()->print_state != mpsIdle)   // main thread is processing a print
-                    && (!DialogHandler::Access().IsAnyOpen()) // wait for print screen to open, any fsm can break waiting (not only open of print screen)
-                ) {
-                    gui_timers_cycle();   // refresh GUI time
-                    marlin_client_loop(); // refresh fsm - required for dialog handler
-                    DialogHandler::Access().Loop();
-                }
-            } else if (!in_preview) {
-                marlin_gui_cant_print();
-            } // else -> we are in the preview screen. It closes itself from another thread, so we just wait for it to happen.
+            make_gui_ready_to_print();
         }
 
         Screens::Access()->Loop();
-        // Do not redraw if there's an unread FSM message.
-        // New screen can be created already but FSM message can change it
-        // so it's too soon to draw it.
-        if (redraw != redraw_cmd_t::skip)
-            gui_loop();
+        gui_loop();
         gui::EndLoop();
     }
 }

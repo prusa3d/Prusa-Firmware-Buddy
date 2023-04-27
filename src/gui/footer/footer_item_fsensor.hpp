@@ -12,7 +12,6 @@ class FooterItemFSensor : public AddSuperWindow<FooterIconText_IntVal> {
 
 public:
     static string_view_utf8 static_makeView(int value);
-    static string_view_utf8 GetName();
     FooterItemFSensor(window_t *parent);
 };
 
@@ -36,12 +35,6 @@ class FooterItemFSensorSide : public AddSuperWindow<FooterIconText_IntVal> {
     static int static_readValue();
 
 public:
-    /**
-     * @brief Get menu name of FooterItemFSensorSide.
-     * @return static string with name
-     */
-    static string_view_utf8 GetName();
-
     /**
      * @brief Construct side filament sensor footer.
      * @param parent uncommented GUI stuff

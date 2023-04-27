@@ -102,12 +102,14 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
   #define Y2_disable NOOP
 #endif
 
+#if DISABLED(XY_LINKED_ENABLE)
 #define  enable_Y() do{ Y_enable; Y2_enable; }while(0)
 #define disable_Y() do{ Y_disable; Y2_disable; CBI(axis_known_position, Y_AXIS); }while(0)
+#endif
 
 #if ENABLED(XY_LINKED_ENABLE)
   #define  enable_XY() enable_X()
-  #define disable_XY() disable_X()
+  #define disable_XY() []{ disable_X(); CBI(axis_known_position, Y_AXIS); }()
 #else
   #define  enable_XY() do{enable_X(); enable_Y(); }while(0)
   #define disable_XY() do{disable_X(); disable_Y(); }while(0)

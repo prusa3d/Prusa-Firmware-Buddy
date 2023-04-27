@@ -7,11 +7,11 @@ FilamentState WhereIsFilament() {
     return FSensors_instance().WhereIsFilament();
 }
 
-BlockRunoutRAII::BlockRunoutRAII() {
+FSensorBlockRunout::FSensorBlockRunout() {
     FSensors_instance().IncEvLock();
 }
 
-BlockRunoutRAII::~BlockRunoutRAII() {
+FSensorBlockRunout::~FSensorBlockRunout() {
     FSensors_instance().DecEvLock();
 }
 

@@ -120,7 +120,7 @@ set(PRINTER_VERSION "1") # default version
 # The PRINTER_TYPE is (besides being used in the code) being stored in the .bbf and checked by the
 # bootloader (which contains the same "enum" as below). Preferably do not use it on an interface
 # though, there should be a better number to use there, e.g. the PRINTER_CODE (USB PID)
-if(PRINTER STREQUAL "MK404")
+if(PRINTER STREQUAL "MK4")
   set(PRINTER_TYPE "1")
   set(PRINTER_VERSION "4")
   set(PRINTER_CODE "13")
@@ -290,7 +290,7 @@ add_compile_options(-g)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(MCU MATCHES "STM32F40"
      OR MCU MATCHES "STM32G0"
-     OR PRINTER STREQUAL "MK404"
+     OR PRINTER STREQUAL "MK4"
      OR PRINTER STREQUAL "XL"
      OR PRINTER STREQUAL "IXL"
      )
@@ -438,7 +438,17 @@ endif()
 add_executable(firmware)
 add_subdirectory(src)
 
-target_compile_options(firmware PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wimplicit-fallthrough>)
+target_compile_options(
+  firmware
+  PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wno-expansion-to-defined>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wnon-virtual-dtor>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wduplicated-cond>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wlogical-op>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wnull-dereference>
+          $<$<COMPILE_LANGUAGE:CXX>:-Wshadow=compatible-local>
+          -Wdouble-promotion
+  )
 
 if(WUI)
   target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
@@ -576,12 +586,7 @@ endif()
 
 target_include_directories(
   firmware
-  PRIVATE src/gui
-          src/gui/dialogs
-          src/gui/footer
-          src/gui/wizard
-          src/guiconfig
-          src/lang
+  PRIVATE src/lang
           src/hw
           src/segger
           src/logging
@@ -589,8 +594,6 @@ target_include_directories(
           src/mmu2
           include/mbedtls
   )
-
-target_compile_options(firmware PRIVATE -Wdouble-promotion)
 
 target_link_libraries(firmware PRIVATE BuddyHeaders Segger printf::printf)
 
@@ -621,6 +624,8 @@ if(BOARD MATCHES "BUDDY")
             mbedTLS
             $<$<STREQUAL:${PRINTER},XL>:lightmodbus>
             error_codes
+            error_codes_mmu # TODO once MMU is not necessary for the build, replace with:
+                            # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
     )
 elseif(BOARD STREQUAL "DWARF")
   target_link_libraries(
@@ -631,7 +636,7 @@ elseif(BOARD STREQUAL "MODULARBED")
 endif()
 
 set_property(
-  SOURCE src/common/version.c
+  SOURCE src/common/version.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            FW_BUILD_NUMBER=${BUILD_NUMBER}
@@ -674,8 +679,10 @@ set_property(
 
 set_property(
   SOURCE src/buddy/main.cpp
-         src/mmu2/mmu2_serial.cpp
+         src/mmu2_mmu2_log.cpp
          src/mmu2_mmu2_power.cpp
+         src/mmu2_mmu2_progress_converter.cpp
+         src/mmu2/mmu2_serial.cpp
          src/gui/screen_menu_settings.cpp
          src/gui/screen_menu_footer_settings.cpp
          src/gui/footer/footer_line.cpp
@@ -698,6 +705,7 @@ set_property(
          src/gui/MItem_menus.cpp
          src/gui/screen_menu_user_interface.cpp
          src/gui/screen_qr_error.cpp
+         src/gui/display_hw_checks_xlcd.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_LEDS=$<BOOL:${HAS_LEDS}>
   )
@@ -712,12 +720,6 @@ set_property(
   SOURCE src/gui/dialogs/DialogHandler.cpp
   APPEND
   PROPERTY COMPILE_DEFINITIONS HAS_SERIAL_PRINT=$<BOOL:${HAS_SERIAL_PRINT}>
-  )
-
-set_property(
-  SOURCE src/guiapi/src/gui.cpp src/gui/guimain.cpp src/gui/screen_splash.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_TOUCH=$<BOOL:${HAS_XLCD_TOUCH_DRIVER}>
   )
 
 if(HAS_ADVANCED_POWER)

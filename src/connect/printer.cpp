@@ -107,11 +107,13 @@ uint32_t Printer::info_fingerprint() const {
     update_net(Iface::Wifi);
 
     const auto creds = net_creds();
+    const auto &parameters = params();
 
     return crc
         .add_str(creds.ssid)
         .add_str(creds.pl_password)
-        .add(params().has_usb)
+        .add(parameters.has_usb)
+        .add(parameters.nozzle_diameter)
         .done();
 }
 

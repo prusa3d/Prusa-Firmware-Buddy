@@ -18,14 +18,14 @@ SelftestFrameFirstLayerQuestions::SelftestFrameFirstLayerQuestions(window_t *par
     , footer(this
 #if defined(FOOTER_HAS_LIVE_Z)
           ,
-          footer::items::ItemLiveZ
+          footer::Item::LiveZ
 #endif
 #if defined(FOOTER_HAS_SHEETS)
           ,
-          footer::items::ItemSheets
+          footer::Item::Sheets
 #endif
           ,
-          footer::items::ItemFilament)
+          footer::Item::Filament)
     , text(this, ChangeableRect, is_multiline::yes) {
 
     change();

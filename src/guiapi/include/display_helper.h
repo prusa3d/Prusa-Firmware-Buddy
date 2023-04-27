@@ -10,6 +10,7 @@
 #include "font_flags.hpp"
 #include "raster_opfn.hpp"
 #include "../../lang/string_view_utf8.hpp"
+#include "fonts.hpp"
 
 void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint8_t *charY);
 size_ui16_t render_text_singleline(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);

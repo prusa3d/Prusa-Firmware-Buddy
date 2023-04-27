@@ -12,6 +12,11 @@
 #include "i18n.h"
 #include <limits>
 
+constexpr static const char load_preheat[] = N_("Preheating for load");
+constexpr static const char unload_preheat[] = N_("Preheating for unload");
+constexpr static const char purge_preheat[] = N_("Preheating for purge");
+constexpr static const char index_error[] = "Index error"; // intentionally not to be translated
+
 /*****************************************************************************/
 //NsPreheat::I_MI_Filament
 NsPreheat::I_MI_Filament::I_MI_Filament(string_view_utf8 name, unsigned t_noz, unsigned t_bed)
@@ -43,18 +48,19 @@ NsPreheat::MI_COOLDOWN::MI_COOLDOWN()
     : WI_LABEL_t(_(BtnResponse::GetText(Response::Cooldown)), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void NsPreheat::MI_COOLDOWN::click(IWindowMenu &window_menu) {
+void NsPreheat::MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
     const Response response = filament::get_description(filament::Type::NONE).response;
     marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 
 /*****************************************************************************/
 //DialogMenuPreheat
-DialogMenuPreheat::DialogMenuPreheat(string_view_utf8 name, PreheatData type)
-    : AddSuperWindow<IDialogMarlin>(name.isNULLSTR() ? GuiDefaults::RectScreenNoHeader : GuiDefaults::RectScreen)
-    , menu(this, GuiDefaults::RectScreenNoHeader, newContainer(type))
-    , header(this) {                                         // header registration should fail in case name.isNULLSTR(), it is OK
-    name.isNULLSTR() ? header.Hide() : header.SetText(name); // hide it anyway, to be safe
+DialogMenuPreheat::DialogMenuPreheat(fsm::BaseData data)
+    : AddSuperWindow<IDialogMarlin>(get_title(data).isNULLSTR() ? GuiDefaults::RectScreenNoHeader : GuiDefaults::RectScreen)
+    , menu(this, GuiDefaults::RectScreenNoHeader, newContainer(get_type(data)))
+    , header(this) { // header registration should fail in case name.isNULLSTR(), it is OK
+    string_view_utf8 title = get_title(data);
+    title.isNULLSTR() ? header.Hide() : header.SetText(title); // hide it anyway, to be safe
 
     CaptureNormalWindow(menu);
 }
@@ -74,6 +80,31 @@ IWinMenuContainer *DialogMenuPreheat::newContainer(PreheatData type) {
     return new (&container_mem_space) NsPreheat::MenuContainer;
 }
 
-bool DialogMenuPreheat::change(uint8_t phs, fsm::PhaseData data) {
+bool DialogMenuPreheat::change([[maybe_unused]] uint8_t phs, [[maybe_unused]] fsm::PhaseData data) {
     return true;
+}
+
+PreheatData DialogMenuPreheat::get_type(fsm::BaseData data) {
+    return PreheatData(data.GetData());
+}
+
+string_view_utf8 DialogMenuPreheat::get_title(fsm::BaseData data) {
+    switch (get_type(data).Mode()) {
+    case PreheatMode::None:
+        return string_view_utf8::MakeNULLSTR();
+    case PreheatMode::Load:
+    case PreheatMode::Autoload:
+        return _(load_preheat);
+    case PreheatMode::Unload:
+        return _(unload_preheat);
+    case PreheatMode::Purge:
+        return _(purge_preheat);
+    case PreheatMode::Change_phase1:
+        return _(unload_preheat); //use unload caption, not a bug
+    case PreheatMode::Change_phase2:
+        return _(load_preheat); //use load caption, not a bug
+    default:
+        break;
+    }
+    return string_view_utf8::MakeCPUFLASH((const uint8_t *)index_error);
 }

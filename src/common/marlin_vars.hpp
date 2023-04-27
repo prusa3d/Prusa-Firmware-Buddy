@@ -35,7 +35,7 @@ public:
      * @brief Assignemnt operator, only default task is allowed to write this variable.
      */
     T operator=(const T &other) {
-        if (osThreadGetId() != marlin_server_task) {
+        if (osThreadGetId() != marlin_server::server_task) {
             bsod("Write to marlin variable from non marlin thread");
         }
         value.store(other);
@@ -158,7 +158,7 @@ public:
      */
     const char *get_ptr() const {
         // marlin thread can access pointer for read-only purposes without lock
-        if (osThreadGetId() != marlin_server_task) {
+        if (osThreadGetId() != marlin_server::server_task) {
             bsod("get_ptr");
         }
         return &value[0];
@@ -173,7 +173,7 @@ public:
         (void)guard; // Lock argument is here just to make sure lock is acquired.
 
         // marlin server thread can get non-const pointer, but it has to hold mutex during writing, so only provide it when LockGuard is acquired
-        if (osThreadGetId() != marlin_server_task) {
+        if (osThreadGetId() != marlin_server::server_task) {
             bsod("get_ptr");
         }
         return &value[0];
@@ -211,7 +211,7 @@ public:
 
     MarlinVariableString<FILE_PATH_BUFFER_LEN> media_SFN_path;
     MarlinVariableString<FILE_NAME_BUFFER_LEN> media_LFN;
-    MarlinVariable<marlin_print_state_t> print_state; // marlin_server.print_state
+    MarlinVariable<marlin_server::marlin_print_state_t> print_state; // marlin_server.print_state
 
     // 2B base types
     MarlinVariable<uint16_t> print_speed;         // printing speed factor [%]
@@ -274,7 +274,7 @@ public:
      * @return Extruder&
      */
     Hotend &hotend(uint8_t hotend) {
-        if (hotend == MARLIN_SERVER_CURRENT_TOOL) {
+        if (hotend == marlin_server::CURRENT_TOOL) {
             return active_hotend();
         } else {
             assert(hotend < hotends.max_size());
@@ -299,7 +299,7 @@ private:
 extern marlin_vars_t marlin_vars_instance;
 
 inline constexpr marlin_vars_t *marlin_vars() {
-    return (marlin_vars_t *const) & marlin_vars_instance;
+    return (marlin_vars_t *)&marlin_vars_instance;
 }
 
 template <typename T>

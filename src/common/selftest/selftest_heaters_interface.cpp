@@ -34,7 +34,7 @@ static void HeatbreakCorrelation(CSelftestPart_Heater &h) {
     }
 }
 #else
-static void HeatbreakCorrelation(CSelftestPart_Heater &h) {}
+static void HeatbreakCorrelation([[maybe_unused]] CSelftestPart_Heater &h) {}
 #endif // HAS_TEMP_HEATBREAK_CONTROL
 
 #ifndef HAS_ADVANCED_POWER
@@ -46,8 +46,8 @@ class PowerCheckBoth {
 public:
     void Callback() {}
 
-    constexpr void BindNozzle(CSelftestPart_Heater &f) {}
-    constexpr void BindBed(CSelftestPart_Heater &f) {}
+    constexpr void BindNozzle([[maybe_unused]] CSelftestPart_Heater &f) {}
+    constexpr void BindBed([[maybe_unused]] CSelftestPart_Heater &f) {}
     constexpr void UnBindNozzle() {}
     constexpr void UnBindBed() {}
 
@@ -59,6 +59,7 @@ public:
 #endif
 
 void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const std::span<const HeaterConfig_t> config_nozzle) {
+    resultHeaters.tested_parts |= to_one_hot(SelftestHeaters_t::TestedParts::noz);
 
     for (size_t i = 0; i < config_nozzle.size(); i++) {
         // reset result
@@ -95,6 +96,7 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
 void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed) {
     // reset result
     resultHeaters.bed = SelftestHeater_t(0, SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
+    resultHeaters.tested_parts |= to_one_hot(SelftestHeaters_t::TestedParts::bed);
 
     if (pBed == nullptr) {
         // brr unnecessary dynamic allocation .. not my code, I just moved it .. TODO rewrite
@@ -109,10 +111,10 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
 
         pBed = pBed_;
         //add same hooks for both "states changes" and "does not change"
-        pBed_->SetStateChangedHook([](CSelftestPart_Heater &h) {
+        pBed_->SetStateChangedHook([]([[maybe_unused]] CSelftestPart_Heater &h) {
             PowerCheckBoth::Instance().Callback();
         });
-        pBed_->SetStateRemainedHook([](CSelftestPart_Heater &h) {
+        pBed_->SetStateRemainedHook([]([[maybe_unused]] CSelftestPart_Heater &h) {
             PowerCheckBoth::Instance().Callback();
         });
         PowerCheckBoth::Instance().BindBed(pBed_->GetInstance());
@@ -123,7 +125,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
 // we could loose some events, so we must be sending entire state of both parts
 bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&pBed) {
     // true when nozzle just finished test
-    bool just_finished_noz[HOTENDS] = { false };
+    bool just_finished_noz[HOTENDS] {};
     for (size_t i = 0; i < HOTENDS; i++) {
         if (pNozzles[i]) {
             just_finished_noz[i] = !pNozzles[i]->Loop();
@@ -173,6 +175,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&
         return true;
     }
 
-    return false; // finished
+    resultHeaters.tested_parts = 0; // reset tested parts so they can be set next time again
+    return false;                   // finished
 }
 } // namespace selftest

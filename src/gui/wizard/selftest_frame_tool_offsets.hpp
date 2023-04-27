@@ -10,6 +10,7 @@ class SelftestFrameToolOffsets : public AddSuperWindow<SelftestFrameNamedWithRad
     FooterLine footer;
     window_wizard_progress_t progress;
     window_text_t text_phase;
+    window_text_t text_estimate; ///< Estimate how long it will take
 
 protected:
     virtual void change() override;

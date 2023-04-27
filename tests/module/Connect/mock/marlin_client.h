@@ -25,6 +25,7 @@ typedef enum {
     mpsCrashRecovery_Lifting,
     mpsCrashRecovery_XY_Measure,
     mpsCrashRecovery_XY_HOME,
+    mpsCrashRecovery_HOMEFAIL,
     mpsCrashRecovery_Axis_NOK,
     mpsCrashRecovery_Repeated_Crash,
     mpsPowerPanic_acFault,

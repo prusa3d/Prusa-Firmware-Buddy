@@ -88,7 +88,7 @@ Errors:
   approved: true
 - code: "12305"
   title: "HOMING ERROR Y"
-  text: "Failed to home the extruder in Y-axis, make sure there is no obstacle on Y-axis."
+  text: "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
   id: "HOMING_ERROR_Y"
   approved: true
 - code: "12306"
@@ -142,7 +142,7 @@ Errors:
   id: "I2C_RX_ERROR"
   approved: true
 - code: "12316"
-  title: "EEPROM I2C RECEIVE BUSY"
+  title: "I2C RECEIVE BUSY"
   text: "HAL detected an I2C busy when receiving data via I2C."
   id: "I2C_RX_BUSY"
   approved: true
@@ -204,6 +204,11 @@ Errors:
   text: "BBF initialization failed, repeat the action or try another USB drive."
   id: "BBF_INIT_FAILED"
   approved: true
+- code: "12533"
+  title: "ESP NOT CONNECTED"
+  text: "ESP doesn't seem to be connected."
+  id: "ESP_NOT_CONNECTED"
+  approved: false
 - code: "12602"
   title: ""
   text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."

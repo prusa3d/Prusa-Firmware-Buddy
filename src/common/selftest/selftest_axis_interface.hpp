@@ -13,7 +13,7 @@
 class IPartHandler;
 
 namespace selftest {
-static constexpr size_t axis_count = 3;
+inline constexpr size_t axis_count = 3;
 
 /**
  * @param separate set true to show progress for each axis separately, gives config_axis.axis to GUI

@@ -38,7 +38,7 @@ FileCommand::FileCommand(const char *fname, size_t content_length, bool can_keep
 
 handler::StatusPage FileCommand::process() {
     Command command = Command::Unknown;
-    const auto parse_result = parse_command(reinterpret_cast<const char *>(buffer.data()), buffer_used, [&](const Event &event) {
+    const auto parse_result = parse_command(reinterpret_cast<char *>(buffer.data()), buffer_used, [&](const Event &event) {
         if (event.depth != 1 || event.type != Type::String) {
             return;
         }

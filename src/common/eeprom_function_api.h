@@ -34,6 +34,7 @@ bool has_inverted_x();
 bool has_inverted_y();
 bool has_inverted_z();
 bool has_inverted_e();
+bool has_inverted_axis(const uint8_t axis);
 //wrong motor direction != Prusa default
 bool has_wrong_x();
 bool has_wrong_y();

@@ -12,16 +12,16 @@
 #include "power_panic.hpp"
 #if DISABLED(POWER_PANIC)
 namespace power_panic {
-std::atomic_bool ac_power_fault = false;
+std::atomic_bool ac_power_fault_is_checked = false;
 
-bool is_panic_signal() {
+bool is_ac_fault_signal() {
     return false;
 }
 
 // stub definition due to usage in the board pin macro table
 void ac_fault_isr() {
     // disable EEPROM writes
-    ac_power_fault = true;
+    ac_power_fault_is_checked = true;
 }
 }
 #endif
@@ -79,7 +79,7 @@ static constexpr bool isEXTI9_5Pin(buddy::hw::IoPort, buddy::hw::IoPin ioPin) {
     }
 }
 
-static constexpr bool isEXTI15_10Pin(buddy::hw::IoPort ioPort, buddy::hw::IoPin ioPin) {
+static constexpr bool isEXTI15_10Pin([[maybe_unused]] buddy::hw::IoPort ioPort, buddy::hw::IoPin ioPin) {
     switch (ioPin) {
     case buddy::hw::IoPin::p10:
     case buddy::hw::IoPin::p11:

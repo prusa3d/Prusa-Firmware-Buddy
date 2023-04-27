@@ -7,18 +7,18 @@
 #include "time_tools.hpp"
 #include "eeprom.h"
 
-PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, window_text_t *out_print_dur) {
+PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[maybe_unused]] window_text_t *out_print_dur) {
     // TODO: for MINI - Add time_dur condition
     // TODO: Non-context time <-> context time
     const uint32_t time_to_end = marlin_vars()->time_to_end;
 
-    if (screen_format != PT_t::init && time_to_end != TIME_TO_END_INVALID && time_to_end == last_time_to_end) {
+    if (screen_format != PT_t::init && time_to_end != marlin_server::TIME_TO_END_INVALID && time_to_end == last_time_to_end) {
         return time_end_format;
     }
 
     const color_t print_end_text_color = [&] {
         // Invalid
-        if (time_to_end == TIME_TO_END_INVALID || time_to_end > 60 * 60 * 24 * 365) {
+        if (time_to_end == marlin_server::TIME_TO_END_INVALID || time_to_end > 60 * 60 * 24 * 365) {
             strlcpy(text_time_end.data(), "N/A", MAX_END_TIMESTAMP_SIZE);
             return GuiDefaults::COLOR_VALUE_INVALID;
         }
@@ -51,7 +51,7 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, wi
 
 #if defined(USE_ST7789)
     if (out_print_dur) {
-        const time_t rawtime = (const time_t)marlin_vars()->print_duration;
+        const time_t rawtime = (time_t)marlin_vars()->print_duration;
         if (rawtime != last_print_duration) {
             out_print_dur->SetTextColor(generate_duration(rawtime));
             out_print_dur->SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));

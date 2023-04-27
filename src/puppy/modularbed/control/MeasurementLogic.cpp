@@ -193,18 +193,12 @@ float CalculateMeasuredValue(ADCChannel channel, uint16_t adcValue) {
         return CalcThermistorTemperature(fValue);
     case ADCChannel::Current_A:
         intValue = adcValue - s_CurrentADCZero_A;
-        if (intValue < 0) {
-            intValue = 0;
-        }
-        fValue = CalcElectricCurrent((uint16_t)intValue);
+        fValue = CalcElectricCurrent(intValue);
         return fValue;
 
     case ADCChannel::Current_B:
         intValue = adcValue - s_CurrentADCZero_B;
-        if (intValue < 0) {
-            intValue = 0;
-        }
-        fValue = CalcElectricCurrent((uint16_t)intValue);
+        fValue = CalcElectricCurrent(intValue);
         return fValue;
 
     case ADCChannel::VREF:

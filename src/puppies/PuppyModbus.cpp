@@ -18,7 +18,7 @@ std::array<uint8_t, PuppyModbus::MODBUS_RECEIVE_BUFFER_SIZE> modbus_buffer;
 
 static metric_t modbus_reqfail = METRIC("modbus_reqfail", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
 
-LIGHTMODBUS_WARN_UNUSED ModbusError modbusStaticAllocator(ModbusBuffer *buffer, uint16_t size, void *context) {
+LIGHTMODBUS_WARN_UNUSED ModbusError modbusStaticAllocator([[maybe_unused]] ModbusBuffer *buffer, uint16_t size, [[maybe_unused]] void *context) {
     if (size > modbus_buffer.size()) {
         log_error(Modbus, "Allocation too big: %d > %d", size, modbus_buffer.size());
         return MODBUS_ERROR_ALLOC;
@@ -95,7 +95,7 @@ ModbusError PuppyModbus::data_callback(const ModbusDataCallbackArgs *args) {
     return MODBUS_OK;
 }
 
-ModbusError PuppyModbus::static_exception_callback(const ModbusMaster *master, uint8_t address, uint8_t function, ModbusExceptionCode code) {
+ModbusError PuppyModbus::static_exception_callback([[maybe_unused]] const ModbusMaster *master, uint8_t address, uint8_t function, ModbusExceptionCode code) {
 #ifdef LIGHTMODBUS_DEBUG
     log_error(
         Modbus,

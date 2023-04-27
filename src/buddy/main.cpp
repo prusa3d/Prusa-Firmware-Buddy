@@ -15,7 +15,7 @@
 #include "sys.h"
 #include "app.h"
 #include "wdt.h"
-#include <crash_dump/dump.h>
+#include <crash_dump/dump.hpp>
 #include "timer_defaults.h"
 #include "tick_timer_api.h"
 #include "thread_measurement.h"
@@ -36,7 +36,7 @@
 #include <option/has_gui.h>
 #include <option/has_side_leds.h>
 #include <option/has_embedded_esp32.h>
-#include "tasks.h"
+#include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
 #include <espif.h>
@@ -57,6 +57,8 @@
 #ifdef BUDDY_ENABLE_WUI
     #include "wui.h"
 #endif
+
+using namespace crash_dump;
 
 LOG_COMPONENT_REF(Buddy);
 
@@ -102,7 +104,7 @@ extern "C" void main_cpp(void) {
         bsod("failed to initialize ext flash");
 
     /*
-     * If we have BSOD or red screen we want to have as small boot proces as we can.
+     * If we have BSOD or red screen we want to have as small boot process as we can.
      * We want to init just xflash, display and start gui task to display the bsod or redscreen
      */
     if ((dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) || (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed())) {
@@ -112,7 +114,7 @@ extern "C" void main_cpp(void) {
     }
 
     logging_init();
-    components_init();
+    TaskDeps::components_init();
     hw_adc1_init();
 
 #if (BOARD_IS_BUDDY)
@@ -243,7 +245,7 @@ extern "C" void main_cpp(void) {
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 
-    wait_for_dependecies(ESP_FLASHED);
+    TaskDeps::wait(TaskDeps::Tasks::network);
         #endif
     #endif
     start_network_task();
@@ -251,7 +253,7 @@ extern "C" void main_cpp(void) {
 
 #ifdef BUDDY_ENABLE_CONNECT
     /* definition and creation of connectTask */
-    osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2176);
+    osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2304);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
@@ -377,7 +379,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 #endif
 }
 
-void StartDefaultTask(void const *argument) {
+void StartDefaultTask([[maybe_unused]] void const *argument) {
     app_startup();
 
     app_run();
@@ -386,14 +388,14 @@ void StartDefaultTask(void const *argument) {
     }
 }
 
-void StartDisplayTask(void const *argument) {
+void StartDisplayTask([[maybe_unused]] void const *argument) {
     gui_run();
     for (;;) {
         osDelay(1);
     }
 }
 
-void StartErrorDisplayTask(void const *argument) {
+void StartErrorDisplayTask([[maybe_unused]] void const *argument) {
     gui_error_run();
     for (;;) {
         osDelay(1);
@@ -401,7 +403,7 @@ void StartErrorDisplayTask(void const *argument) {
 }
 
 #ifdef BUDDY_ENABLE_CONNECT
-void StartConnectTask(void const *argument) {
+void StartConnectTask([[maybe_unused]] void const *argument) {
     connect_client::run();
 }
 #endif
@@ -448,9 +450,12 @@ void iwdg_warning_cb(void) {
     DUMP_IWDGW_TO_CCRAM(0x10);
     wdt_iwdg_refresh();
     dump_to_xflash();
-    while (1)
+#ifndef _DEBUG
+    while (true)
         ;
-    //  sys_reset();
+#else
+    sys_reset();
+#endif
 }
 
 static uint32_t _spi_prescaler(int prescaler_num) {

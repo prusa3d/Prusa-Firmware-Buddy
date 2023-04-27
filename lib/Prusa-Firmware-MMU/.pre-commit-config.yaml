@@ -1,0 +1,32 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+- repo: https://github.com/cheshirekow/cmake-format-precommit
+  rev: v0.6.13
+  hooks:
+    - id: cmake-format
+- repo: https://github.com/pre-commit/mirrors-yapf
+  rev: 'v0.27.0'
+  hooks:
+    - id: yapf  # python formatter
+- repo: local
+  hooks:
+    - id: clang-format
+      name: clang-format
+      description: This hook automatically checks and reformats changed files using clang-format formatter.
+      entry: './.dependencies/clang-format-9.0.0-noext/clang-format'
+      language: script
+      files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
+      args: ['-i', '-style=file']
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: 'v2.4.0'
+  hooks:
+    - id: trailing-whitespace
+      args: [--markdown-linebreak-ext=md]
+    - id: end-of-file-fixer
+    - id: mixed-line-ending
+exclude: |
+  (?x)(
+    ^lib/lufa/|
+    ^lib/Catch2/
+  )

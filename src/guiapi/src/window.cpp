@@ -70,13 +70,13 @@ void window_t::Invalidate(Rect16 invalidation_rect) {
 }
 
 //frame will invalidate children
-void window_t::invalidate(Rect16 validation_rect) {
+void window_t::invalidate([[maybe_unused]] Rect16 validation_rect) {
     flags.invalid = true;
     flags.invalid_background = true;
 }
 
 //frame will validate children
-void window_t::validate(Rect16 validation_rect) {
+void window_t::validate([[maybe_unused]] Rect16 validation_rect) {
 }
 
 void window_t::ValidateBackground() {
@@ -153,7 +153,7 @@ void window_t::notifyVisibilityChange() {
 }
 
 //do nothing screen/frame will do something ...
-void window_t::ChildVisibilityChanged(window_t &child) {
+void window_t::ChildVisibilityChanged([[maybe_unused]] window_t &child) {
 }
 
 void window_t::ShowAfterDialog() {
@@ -387,15 +387,15 @@ void window_t::UnregisterSubWin(window_t &win) {
     Screens::Access()->ResetTimeout();
 }
 
-bool window_t::registerSubWin(window_t &win) {
+bool window_t::registerSubWin([[maybe_unused]] window_t &win) {
     return false;
 }
 
-void window_t::unregisterSubWin(window_t &win) {
+void window_t::unregisterSubWin([[maybe_unused]] window_t &win) {
 }
 
 //cannot add rect, it is stored in frame, so must incalidate entire window
-void window_t::addInvalidationRect(Rect16 rc) {
+void window_t::addInvalidationRect([[maybe_unused]] Rect16 rc) {
     if (!rect.IsEmpty()) {
         Invalidate();
     }
@@ -434,7 +434,7 @@ void window_t::screenEvent(window_t *sender, GUI_event_t event, void *const para
 
 // MUST BE PRIVATE
 // call nonvirtual WindowEvent instead (contains debug output)
-void window_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *const param) {
+void window_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *const param) {
     if (event == GUI_event_t::CLICK && parent) {
         if (flags.close_on_click == is_closed_on_click_t::yes) {
             Screens::Access()->Close();

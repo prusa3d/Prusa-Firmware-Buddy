@@ -9,81 +9,37 @@
 #include "footer_eeprom.hpp"
 #include "DialogMoveZ.hpp"
 #include "footer_def.hpp"
+#include "utility_extensions.hpp"
 #include <option/has_side_fsensor.h>
 
-static constexpr std::array<const char *, FOOTER_ITEMS_PER_LINE__> labels = { { N_("Item 1")
-#if FOOTER_ITEMS_PER_LINE__ > 1
-                                                                                    ,
-    N_("Item 2")
-#endif
-#if FOOTER_ITEMS_PER_LINE__ > 2
-        ,
-    N_("Item 3")
-#endif
-#if FOOTER_ITEMS_PER_LINE__ > 3
-        ,
-    N_("Item 4")
-#endif
-#if FOOTER_ITEMS_PER_LINE__ > 4
-        ,
-    N_("Item 5")
-#endif
-#if FOOTER_ITEMS_PER_LINE__ > 5
-        ,
-    N_("Item 6")
-#endif
-#if FOOTER_ITEMS_PER_LINE__ > 6
-        ,
-    N_("Item 7")
-#endif
-#if FOOTER_ITEMS_PER_LINE__ > 7
-        ,
-    N_("Item 8")
-#endif
-#if FOOTER_ITEMS_PER_LINE__ > 8
-        ,
-    N_("Item 9")
-#endif
-#if FOOTER_ITEMS_PER_LINE__ > 9
-        ,
-    N_("Item 10")
-#endif
-} };
+footer::Item I_MI_FOOTER::to_footer_item(size_t index) {
+    if (index == 0 || index >= ftrstd::to_underlying(footer::Item::_count)) {
+        return footer::Item::None; // "None" item uses index 0
+    } else {
+        return static_cast<footer::Item>(index - 1); // Other footer items are shifted by 1
+    }
+}
 
-IMiFooter::IMiFooter(size_t index_)
-    : WI_SWITCH_t(size_t(StatusFooter::GetSlotInit(index_)),
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)labels[index_]),
+size_t I_MI_FOOTER::to_index(footer::Item item) {
+    if (item == footer::Item::None) {
+        return 0; // "None" item uses index 0
+    } else {
+        return ftrstd::to_underlying(item) + 1; // Other footer items are shifted by 1
+    }
+}
+
+I_MI_FOOTER::I_MI_FOOTER(const char *const label, int item_n)
+    : WI_LAMBDA_SPIN(_(label),
+        ftrstd::to_underlying(footer::Item::_count), // Count of available footers, "None" included
         nullptr, is_enabled_t::yes, is_hidden_t::no,
-        // TODO modify ctor to accept an array
-        FooterItemNozzle::GetName(),
-        FooterItemBed::GetName(),
-        FooterItemFilament::GetName(),
-        FooterItemFSensor::GetName(),
-        FooterItemSpeed::GetName(),
-        FooterItemAxisX::GetName(),
-        FooterItemAxisY::GetName(),
-        FooterItemAxisZ::GetName(),
-        FooterItemZHeight::GetName(),
-        FooterItemPrintFan::GetName(),
-        FooterItemHeatBreakFan::GetName(),
-#if defined(FOOTER_HAS_LIVE_Z)
-        FooterItemLiveZ::GetName(),
-#endif // FOOTER_HAS_LIVE_Z
-        FooterItemHeatBreak::GetName(),
-#if defined(FOOTER_HAS_SHEETS)
-        FooterItemSheets::GetName(),
-#endif // FOOTER_HAS_SHEETS
-#if HAS_MMU2
-        FooterItemFinda::GetName(),
-#endif
-#if defined(FOOTER_HAS_TOOL_NR)
-        FooterItemCurrentTool::GetName(),
-        FooterItemAllNozzles::GetName(),
-#endif
-#if HAS_SIDE_FSENSOR()
-        FooterItemFSensorSide::GetName(),
-#endif /*HAS_SIDE_FSENSOR()*/
-        _("none")) {
+        to_index(StatusFooter::GetSlotInit(item_n)), // Currently selected item
+        [&](char *buffer) {
+            strncpy(buffer, footer::to_string(to_footer_item(GetIndex())), GuiDefaults::infoDefaultLen);
+        }) {
+}
+
+void I_MI_FOOTER::store_footer_index(size_t item_n) {
+    StatusFooter::SetSlotInit(item_n, to_footer_item(GetIndex())); // Store footer
 }
 
 MI_LEFT_ALIGN_TEMP::MI_LEFT_ALIGN_TEMP()

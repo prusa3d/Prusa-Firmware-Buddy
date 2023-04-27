@@ -1,12 +1,8 @@
 #include "marlin_vars.hpp"
 
-marlin_vars_t marlin_vars_instance;
+#include <cassert>
 
-void marlin_msg_to_str(const marlin_msg_t id, char *str) {
-    str[0] = '!';
-    str[1] = (char)id;
-    str[2] = 0;
-}
+marlin_vars_t marlin_vars_instance;
 
 void marlin_vars_t::lock() {
 

@@ -79,7 +79,7 @@ protected:
     Rect16 getRightBracketRect(Rect16 extension_rect) const;
 
     virtual invalidate_t change(int dif) override;
-    virtual void OnChange(size_t old_index) {};
+    virtual void OnChange([[maybe_unused]] size_t old_index) {};
     virtual void click(IWindowMenu &window_menu) final;
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;

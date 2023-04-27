@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:prusa3d/Prusa-Firmware-MMU-Private.git
+	branch = main
+	commit = 9b43b619392ccc2fd8af64b3da878c674cb9c9a4
+	parent = 23c66fdf5ea599ef880c986d0d962efe194d5b94
+	method = merge
+	cmdver = 0.4.5

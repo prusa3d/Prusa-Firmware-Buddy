@@ -125,7 +125,7 @@ struct ProfileRecord : public IProfileRecord {
     };
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override {
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {
         click_index(Index::value);
     }
 };

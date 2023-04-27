@@ -9,14 +9,14 @@
 
 using namespace buddy::hw;
 
-HardwareSerial::HardwareSerial(void *peripheral) {
+HardwareSerial::HardwareSerial([[maybe_unused]] void *peripheral) {
 }
 
-void HardwareSerial::begin(unsigned long baud) {
+void HardwareSerial::begin([[maybe_unused]] unsigned long baud) {
     BufferedSerial::uart2.Open();
 }
 
-void HardwareSerial::begin(unsigned long baud, byte config) {
+void HardwareSerial::begin([[maybe_unused]] unsigned long baud, [[maybe_unused]] byte config) {
 }
 
 void HardwareSerial::close() {

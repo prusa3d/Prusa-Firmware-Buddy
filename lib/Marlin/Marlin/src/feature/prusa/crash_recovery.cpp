@@ -157,23 +157,37 @@ void Crash_s::restore_state() {
 }
 
 void Crash_s::set_state(state_t new_state) {
+    auto isr_bsod = [](const char *msg) {
+        /// @todo bsod cannot be used from ISR with priority above RTOS.
+        ///   Use fatal_error instead as it goes through sys_reset().
+        ///   When bsod does the same, this could be replaced by just bsod(msg);.
+        fatal_error(msg, "Crash_s red BSOD");
+    };
+
+    // Prevent race condition here
+    static std::atomic_flag reentrant_flag;
+    if (reentrant_flag.test_and_set()) {
+        isr_bsod("reentrant Crash_s::set_state()");
+    }
+
     if (state == new_state) {
         switch (state) {
         case IDLE:
-            bsod("crash idle");
+            isr_bsod("crash idle");
         case RECOVERY:
-            bsod("crash recovery");
+            isr_bsod("crash recovery");
         case REPLAY:
-            bsod("crash replay");
+            isr_bsod("crash replay");
         case TRIGGERED_ISR:
         case TRIGGERED_AC_FAULT:
         case TRIGGERED_TOOLFALL:
         case TRIGGERED_TOOLCRASH:
-            bsod("crash double trigger");
-        case TOOLCRASH:
-            bsod("toolcrash repeat");
+        case TRIGGERED_HOMEFAIL:
+            isr_bsod("crash double trigger");
+        case REPEAT_WAIT:
+            isr_bsod("toolcrash or homing fail repeat");
         case PRINTING:
-            bsod("crash printing");
+            isr_bsod("crash printing");
         }
     }
 
@@ -183,8 +197,9 @@ void Crash_s::set_state(state_t new_state) {
         break;
 
     case TRIGGERED_ISR:
-        if (state != PRINTING || !is_active() || !is_enabled())
-            bsod("crash not active");
+        if (state != PRINTING || !is_active() || !is_enabled()) {
+            isr_bsod("isr, not active");
+        }
         // FALLTHRU
     case TRIGGERED_AC_FAULT:
         // transition to AC_FAULT is _always_ possible from any state
@@ -193,42 +208,57 @@ void Crash_s::set_state(state_t new_state) {
         break;
 
     case TRIGGERED_TOOLFALL:
-        if (state != PRINTING || !is_active()) // Allow toolfall recovery even if user disables crash recovery
-            bsod("crash not active");
+        if (state != PRINTING || !is_active()) { // Allow toolfall recovery even if user disables crash recovery
+            isr_bsod("toolfall, not active");
+        }
 
         toolchange_event = true;
         stop_and_save();
         break;
 
     case TRIGGERED_TOOLCRASH:
-        if (state != PRINTING || !is_active())
-            bsod("crash not active");
+        if (state != PRINTING || !is_active()) {
+            isr_bsod("toolcrash, not active");
+        }
 
         toolchange_event = true;
         sdpos = queue.get_current_sdpos();
         break;
 
-    case TOOLCRASH:
-        // Just wait for user to pick up tools
+    case TRIGGERED_HOMEFAIL:
+        if (state != PRINTING || !is_active()) {
+            isr_bsod("home, not active");
+        }
+
+        toolchange_event = false;
+        sdpos = queue.get_current_sdpos();
+        break;
+
+    case REPEAT_WAIT:
+        if (state != PRINTING && state != TRIGGERED_TOOLCRASH && state != TRIGGERED_HOMEFAIL) {
+            isr_bsod("invalid wait transition");
+        }
+
+        // Just wait for user to pick up tools or to rehome
         break;
 
     case RECOVERY:
         // TODO: the following checks are too broad (should check for existing state)
         if (state != PRINTING && state != TRIGGERED_ISR && state != TRIGGERED_TOOLFALL && state != TRIGGERED_AC_FAULT)
-            bsod("invalid recovery transition");
+            isr_bsod("invalid recovery transition");
         resume_movement();
         break;
 
     case REPLAY:
         if (state != RECOVERY)
-            bsod("invalid replay transition");
+            isr_bsod("invalid replay transition");
         activate();
         restore_state();
         break;
 
     case PRINTING:
-        if (state != RECOVERY && state != TOOLCRASH && state != IDLE && state != REPLAY)
-            bsod("invalid printing transition");
+        if (state != RECOVERY && state != REPEAT_WAIT && state != IDLE && state != REPLAY)
+            isr_bsod("invalid printing transition");
         reset_repeated_crash();
         if (state != REPLAY)
             activate();
@@ -236,6 +266,7 @@ void Crash_s::set_state(state_t new_state) {
     }
 
     state = new_state;
+    reentrant_flag.clear();
 }
 /**
  * @brief Update sensitivity and threshold to drivers

@@ -9,19 +9,19 @@
 #include "catch2/catch.hpp"
 
 #include "fsm_types.hpp"
-#include "fsm_progress_type.hpp"
+#include "fsm_loadunload_type.hpp"
 #include "selftest_axis_type.hpp"
 #include "selftest_fans_type.hpp"
 #include "selftest_heaters_type.hpp"
 
 using namespace fsm;
 
-template <class OBJ>
-void serialize_deserialize(OBJ cl) {
+template <class OBJ, class... Types>
+void serialize_deserialize(OBJ cl, Types... types) {
     auto serialized = cl.Serialize();
 
     OBJ ctor_tst(serialized);
-    OBJ deserialize_tst;
+    OBJ deserialize_tst(types...);
     deserialize_tst.Deserialize(serialized);
 
     REQUIRE(ctor_tst == cl);
@@ -34,20 +34,21 @@ using Array = std::array<T, repeat_count>;
 
 /*****************************************************************************/
 //tests
-TEST_CASE("ProgressSerializer", "[fsm]") {
+TEST_CASE("ProgressSerializerLoadUnload", "[fsm]") {
     uint8_t progress = GENERATE(0, 1, 5, 0xFF);
 
-    ProgressSerializer cl(progress);
+    ProgressSerializerLoadUnload cl(LoadUnloadMode::Load, progress);
     REQUIRE(cl.progress == progress);
 
-    serialize_deserialize(cl);
+    serialize_deserialize(cl, LoadUnloadMode::Load);
 
     SECTION("equality") {
         uint8_t progress2 = GENERATE(0, 1, 55, 0xFF);
-        ProgressSerializer cl2(progress2);
+        LoadUnloadMode mode = GENERATE(LoadUnloadMode::Load, LoadUnloadMode::Purge);
+        ProgressSerializerLoadUnload cl2(mode, progress2);
 
-        //progeses with equal data are equal
-        REQUIRE((cl == cl2) == (progress == progress2));
+        //progresses with equal data are equal
+        REQUIRE((cl == cl2) == ((progress == progress2) && (mode == LoadUnloadMode::Load)));
     }
 }
 

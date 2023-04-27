@@ -34,5 +34,3 @@ string_view_utf8 FooterItemLiveZ::static_makeView(int value) {
 
     return string_view_utf8::MakeRAM((const uint8_t *)buff.data());
 }
-
-string_view_utf8 FooterItemLiveZ::GetName() { return _("Live Z"); }

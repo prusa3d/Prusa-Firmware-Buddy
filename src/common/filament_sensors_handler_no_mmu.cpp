@@ -51,7 +51,7 @@ IFSensor *GetExtruderFSensor(uint8_t index) {
 }
 
 // function returning abstract sensor - used in higher level api
-IFSensor *GetSideFSensor(uint8_t index) {
+IFSensor *GetSideFSensor([[maybe_unused]] uint8_t index) {
     return nullptr;
 }
 
@@ -68,22 +68,22 @@ void FilamentSensors::configure_sensors() {
     logical_sensors.secondary_runout = nullptr;
     logical_sensors.autoload = GetExtruderFSensor(tool_index);
 }
-void FilamentSensors::AdcSide_FilteredIRQ(int32_t val, uint8_t tool_index) {
+void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
     // might want to log error .. no adc sensor
 }
 
-void side_fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
+void side_fs_process_sample([[maybe_unused]] int32_t fs_raw_value, [[maybe_unused]] uint8_t tool_index) {
     // might want to log error .. no adc sensor
 }
 
 #if PRINTER_TYPE == PRINTER_PRUSA_MINI
 
-void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {
+void FilamentSensors::AdcExtruder_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
     // might want to log error .. no adc sensor
 }
 
 // IRQ - called from interruption
-void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
+void fs_process_sample([[maybe_unused]] int32_t fs_raw_value, [[maybe_unused]] uint8_t tool_index) {
     // might want to log error .. no adc sensor
 }
 

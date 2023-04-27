@@ -13,11 +13,11 @@ IFooter::IFooter(window_t *parent)
     Disable();
 }
 
-bool IFooter::SetSlot(FooterLine &line, size_t slot_id, footer::items item) {
+bool IFooter::SetSlot(FooterLine &line, size_t slot_id, footer::Item item) {
     return SetSlotInit(slot_id, item) && line.Create(item, slot_id);
 }
 
-bool IFooter::SetSlotInit(size_t slot_id, footer::items item) {
+bool IFooter::SetSlotInit(size_t slot_id, footer::Item item) {
     if (slot_id >= footer::eeprom::Load().size())
         return false;
     if (footer::eeprom::Load()[slot_id] != item) {
@@ -28,8 +28,8 @@ bool IFooter::SetSlotInit(size_t slot_id, footer::items item) {
     return true;
 }
 
-footer::items IFooter::GetSlotInit(size_t slot_id) {
+footer::Item IFooter::GetSlotInit(size_t slot_id) {
     if (slot_id >= footer::eeprom::Load().size())
-        return footer::items::count_;
+        return footer::Item::None;
     return footer::eeprom::Load()[slot_id];
 }

@@ -41,11 +41,12 @@
 #include <device/board.h>
 #include "FreeRTOS.h"
 #include "MarlinPin.hpp"
+#include "config_buddy_2209_02.h"
 #include "loadcell.h"
 #include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include <type_traits>
 
-#if (!defined(PRINTER_PRUSA_MINI) || !defined(PRINTER_PRUSA_MK404) \
+#if (!defined(PRINTER_PRUSA_MINI) || !defined(PRINTER_PRUSA_MK4) \
     || !defined(PRINTER_PRUSA_XL) || !defined(PRINTER_PRUSA_IXL))
     #error "Some printer type not defined."
 #endif
@@ -136,18 +137,14 @@
         #define MARLIN_PIN_NR_X_ENA         MARLIN_PIN_NR_9 // XY enable
         #define MARLIN_PORT_Y_ENA           MARLIN_PORT_B   // XY enable
         #define MARLIN_PIN_NR_Y_ENA         MARLIN_PIN_NR_9 // XY enable
-        #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
-            #define MARLIN_PORT_FILAMENT_SENSOR   MARLIN_PORT_C
-            #define MARLIN_PIN_NR_FILAMENT_SENSOR MARLIN_PIN_NR_0
-        #endif
-        #define MARLIN_PORT_CS_X   MARLIN_PORT_G
-        #define MARLIN_PIN_NR_CS_X MARLIN_PIN_NR_15
-        #define MARLIN_PORT_CS_Y   MARLIN_PORT_B
-        #define MARLIN_PIN_NR_CS_Y MARLIN_PIN_NR_5
-        #define MARLIN_PORT_CS_Z   MARLIN_PORT_F
-        #define MARLIN_PIN_NR_CS_Z MARLIN_PIN_NR_15
-        #define MARLIN_PORT_CS_E   MARLIN_PORT_F
-        #define MARLIN_PIN_NR_CS_E MARLIN_PIN_NR_12
+        #define MARLIN_PORT_CS_X            MARLIN_PORT_G
+        #define MARLIN_PIN_NR_CS_X          MARLIN_PIN_NR_15
+        #define MARLIN_PORT_CS_Y            MARLIN_PORT_B
+        #define MARLIN_PIN_NR_CS_Y          MARLIN_PIN_NR_5
+        #define MARLIN_PORT_CS_Z            MARLIN_PORT_F
+        #define MARLIN_PIN_NR_CS_Z          MARLIN_PIN_NR_15
+        #define MARLIN_PORT_CS_E            MARLIN_PORT_F
+        #define MARLIN_PIN_NR_CS_E          MARLIN_PIN_NR_12
     #elif BOARD_IS_BUDDY
         #define MARLIN_PORT_TEMP_BOARD   MARLIN_PORT_V
         #define MARLIN_PIN_NR_TEMP_BOARD MARLIN_PIN_NR_0
@@ -227,13 +224,8 @@
     #define MARLIN_PORT_TEMP_HEATBREAK   MARLIN_PORT_A
     #define MARLIN_PIN_NR_TEMP_HEATBREAK MARLIN_PIN_NR_6 //ADC
 
-    #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
-        #define MARLIN_PORT_TEMP_0   MARLIN_PORT_V
-        #define MARLIN_PIN_NR_TEMP_0 MARLIN_PIN_NR_3
-    #else
-        #define MARLIN_PORT_TEMP_0   MARLIN_PORT_C
-        #define MARLIN_PIN_NR_TEMP_0 MARLIN_PIN_NR_0
-    #endif
+    #define MARLIN_PORT_TEMP_0   MARLIN_PORT_C
+    #define MARLIN_PIN_NR_TEMP_0 MARLIN_PIN_NR_0
 
 /** @}*/
 
@@ -414,8 +406,8 @@ inline Pin::State zMinReadFn();
  */
     #define PIN_TABLE(MACRO_FUNCTION)                                                                                                                                                             \
         PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)                                                                                                                                                  \
-        MACRO_FUNCTION(buddy::hw::InterruptPin, xDiag, BUDDY_PIN(X_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1) COMMA 0, endstop_ISR) \
-        MACRO_FUNCTION(buddy::hw::InterruptPin, yDiag, BUDDY_PIN(Y_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1) COMMA 0, endstop_ISR) \
+        MACRO_FUNCTION(buddy::hw::InterruptPin, xDiag, BUDDY_PIN(X_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA STEP_TIMER_IRQ_PRIO COMMA 0, endstop_ISR)                               \
+        MACRO_FUNCTION(buddy::hw::InterruptPin, yDiag, BUDDY_PIN(Y_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA STEP_TIMER_IRQ_PRIO COMMA 0, endstop_ISR)                               \
         MACRO_FUNCTION(buddy::hw::InterruptPin, zDiag, BUDDY_PIN(Z_DIAG), IMode::IT_rising_falling COMMA Pull::none COMMA(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY + 1) COMMA 0, endstop_ISR) \
         MACRO_FUNCTION(buddy::hw::InputPin, e0Diag, BUDDY_PIN(E0_DIAG), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                      \
         MACRO_FUNCTION(buddy::hw::OutputPin, xEnable, BUDDY_PIN(X_ENA), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                           \

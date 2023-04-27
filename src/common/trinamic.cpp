@@ -104,8 +104,6 @@ void tmc_set_sg_mask(uint8_t mask) { tmc_sg_mask = mask; }
 void tmc_set_sg_axis(uint8_t axis) { tmc_sg_axis = axis; }
 void tmc_set_sg_sample_cb(tmc_sg_sample_cb_t *cb) { tmc_sg_sample_cb = cb; }
 
-void tmc_enable_wavetable(bool enabled);
-
 void tmc_delay(uint16_t time) // delay for switching tmc step pin level
 {
     volatile uint16_t tmc_delay;
@@ -113,8 +111,15 @@ void tmc_delay(uint16_t time) // delay for switching tmc step pin level
     }
 }
 
-void tmc_enable_wavetable(bool enabled) {
+void tmc_enable_wavetable(bool enabled, bool X, bool Y, bool Z) {
+#ifdef HAS_TMC_WAVETABLE
     if (enabled) {
+        (void)0;
+    #ifndef HAS_LDO_400_STEP
+        #error "wavetable not defined for this motor type"
+    #endif
+    }
+    if (enabled && Y) {
         pStep[Y_AXIS]->write(0x69, 0x00f80000);
         pStep[Y_AXIS]->write(0x60, 0x56ad6b6a);
         pStep[Y_AXIS]->write(0x61, 0x54aaaaab);
@@ -125,7 +130,8 @@ void tmc_enable_wavetable(bool enabled) {
         pStep[Y_AXIS]->write(0x66, 0x252aaab5);
         pStep[Y_AXIS]->write(0x67, 0x00810889);
         pStep[Y_AXIS]->write(0x68, 0xff940159);
-
+    }
+    if (enabled && X) {
         pStep[X_AXIS]->write(0x69, 0x00f80000);
         pStep[X_AXIS]->write(0x60, 0x5ad6dada);
         pStep[X_AXIS]->write(0x61, 0x4a9556ab);
@@ -136,7 +142,8 @@ void tmc_enable_wavetable(bool enabled) {
         pStep[X_AXIS]->write(0x66, 0x4a55556b);
         pStep[X_AXIS]->write(0x67, 0x00810892);
         pStep[X_AXIS]->write(0x68, 0xff900159);
-
+    }
+    if (enabled && Z) {
         pStep[Z_AXIS]->write(0x69, 0x00f80000);
         pStep[Z_AXIS]->write(0x60, 0xb77bbdf6);
         pStep[Z_AXIS]->write(0x61, 0xa5556b6d);
@@ -147,7 +154,8 @@ void tmc_enable_wavetable(bool enabled) {
         pStep[Z_AXIS]->write(0x66, 0x55555ada);
         pStep[Z_AXIS]->write(0x67, 0x0102224a);
         pStep[Z_AXIS]->write(0x68, 0xff760159);
-    } else {
+    }
+    if (!enabled && Y) {
         pStep[Y_AXIS]->write(0x69, 0x00F70000);
         pStep[Y_AXIS]->write(0x60, 0xAAAAB554);
         pStep[Y_AXIS]->write(0x61, 0x4A9554AA);
@@ -158,7 +166,8 @@ void tmc_enable_wavetable(bool enabled) {
         pStep[Y_AXIS]->write(0x66, 0x49295556);
         pStep[Y_AXIS]->write(0x67, 0x00404222);
         pStep[Y_AXIS]->write(0x68, 0xFFFF8056);
-
+    }
+    if (!enabled && X) {
         pStep[X_AXIS]->write(0x69, 0x00F70000);
         pStep[X_AXIS]->write(0x60, 0xAAAAB554);
         pStep[X_AXIS]->write(0x61, 0x4A9554AA);
@@ -169,7 +178,8 @@ void tmc_enable_wavetable(bool enabled) {
         pStep[X_AXIS]->write(0x66, 0x49295556);
         pStep[X_AXIS]->write(0x67, 0x00404222);
         pStep[X_AXIS]->write(0x68, 0xFFFF8056);
-
+    }
+    if (!enabled && Z) {
         pStep[Z_AXIS]->write(0x69, 0x00F70000);
         pStep[Z_AXIS]->write(0x60, 0xAAAAB554);
         pStep[Z_AXIS]->write(0x61, 0x4A9554AA);
@@ -181,7 +191,11 @@ void tmc_enable_wavetable(bool enabled) {
         pStep[Z_AXIS]->write(0x67, 0x00404222);
         pStep[Z_AXIS]->write(0x68, 0xFFFF8056);
     }
+#else
+    (void)(enabled && X && Y && Z);
+#endif //HAS_TMC_WAVETABLE
 }
+
 void init_tmc(void) {
     init_tmc_bare_minimum();
     //pointers to TMCStepper instances
@@ -217,8 +231,8 @@ void init_tmc_bare_minimum(void) {
     pStep[E_AXIS]->SLAVECONF(0x300);
 #endif
 
-#if HAS_DRIVER(TMC2130)
-    tmc_enable_wavetable(eeprom_get_bool(EEVAR_TMC_WAVETABLE_ENABLED));
+#ifdef HAS_TMC_WAVETABLE
+    tmc_enable_wavetable(eeprom_get_bool(EEVAR_TMC_WAVETABLE_ENABLED), true, true, true);
 #endif
 }
 
@@ -243,7 +257,7 @@ void tmc_communication_error(void) {
     bsod("trinamic communication error");
 }
 
-static char tmc_slave_addr_to_axis_character(uint8_t slave_addr) {
+static char tmc_slave_addr_to_axis_character([[maybe_unused]] uint8_t slave_addr) {
     return '?';
 }
 

@@ -44,7 +44,7 @@ void run_once_after_boot() {
     #if BOOTLOADER()
         if (version_less_than(&boot_version, 1, 2, 3)) {
             // bootloader<1.2.3 clears the RCC_CSR register, so ignore reset flags completely.
-            // TODO: remove this compatibility hack for the final MK404 release
+            // TODO: remove this compatibility hack for the final MK4 release
             reset_pp = false;
         }
     #endif
@@ -62,7 +62,7 @@ void run_once_after_boot() {
             }
             if (resume) {
                 // resume and bypass g-code autostart
-                power_panic::resume_print(!auto_recover);
+                power_panic::resume_print(auto_recover);
                 return;
             }
         }
@@ -74,7 +74,7 @@ void run_once_after_boot() {
     // g-code autostart
     if (access(autostart_filename, F_OK) == 0) {
         //call directly marlin server start print. This function is not safe
-        marlin_server_print_start(autostart_filename, true);
+        marlin_server::print_start(autostart_filename, true);
         oProgressData.mInit();
     }
 }
@@ -85,7 +85,7 @@ void print_utils_loop() {
         if (media_get_state() == media_state_INSERTED && thermalManager.temperatures_ready()) {
             run_once_done = true;
             run_once_after_boot();
-        } else if (current_time > max_rescan_time || !marlin_server_printer_idle()) {
+        } else if (current_time > max_rescan_time || !marlin_server::printer_idle()) {
             // no longer attempt to run the autostart sequence
             run_once_done = true;
         }

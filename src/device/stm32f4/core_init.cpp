@@ -52,7 +52,7 @@ void system_core_init(void) {
     // TODO: shouldn't we call SystemCoreClockUpdate instead?
     SystemCoreClock = SYSTEM_CORE_CLOCK;
 
-    RCC_PeriphCLKInitTypeDef periph_clk_init = { 0 };
+    RCC_PeriphCLKInitTypeDef periph_clk_init {};
     periph_clk_init.PeriphClockSelection = RCC_PERIPHCLK_RTC;
     periph_clk_init.RTCClockSelection =
 #if (BOARD_IS_BUDDY)

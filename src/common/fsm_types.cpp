@@ -6,310 +6,340 @@
 
 #include "fsm_types.hpp"
 #include "log.h"
+#include "bsod.h"
 
 using namespace fsm;
 
 LOG_COMPONENT_DEF(FSM, LOG_SEVERITY_INFO);
+
+std::pair<uint32_t, uint16_t> Change::serialize() const {
+    uint16_t u16_lo = 0;
+    uint16_t u16_hi = 0;
+    uint32_t u32 = 0;
+    uint8_t type_and_queue = static_cast<uint8_t>(type);
+    type_and_queue |= uint8_t(queue_index) << 7;
+    u16_hi = type_and_queue;
+    u16_hi = u16_hi << 8;
+    memcpy(&u32, &data, sizeof(u32));
+    memcpy(&u16_lo, ((uint8_t *)(&data)) + sizeof(u32), 1);
+    return { u32, u16_hi | u16_lo };
+}
+
+// deserialize ctor
+Change::Change(std::pair<uint32_t, uint16_t> serialized)
+    : type(static_cast<ClientFSM>((serialized.second >> 8) & 0x7F))
+    , queue_index(static_cast<QueueIndex>((serialized.second >> 15) & 0x01)) {
+    fsm::PhaseData phase_data;
+    memcpy(&phase_data, &serialized.first, sizeof(serialized.first));
+    data = { uint8_t(serialized.second), phase_data };
+}
+
+namespace {
+const char *to_string(ClientFSM type) {
+    switch (type) {
+    case ClientFSM::Serial_printing:
+        return "Serial_printing";
+    case ClientFSM::Load_unload:
+        return "Load_unload";
+    case ClientFSM::Preheat:
+        return "Preheat";
+    case ClientFSM::Selftest:
+        return "Selftest";
+    case ClientFSM::Printing:
+        return "Printing";
+    case ClientFSM::CrashRecovery:
+        return "CrashRecovery";
+    case ClientFSM::PrintPreview:
+        return "PrintPreview";
+    case ClientFSM::_none:
+        return "none";
+    }
+    return "ERROR MEMORY CORRUPTED"; // cannot normally happen
+}
+}
+
+/*****************************************************************************/
+// Queue
+
+/**
+ * @brief Removes and returns the object at the beginning of the Queue
+ *
+ * @return std::optional<Change>
+ */
+std::optional<DequeStates> Queue::dequeue() {
+    if (!data_to_send) {
+        return std::nullopt;
+    }
+
+    // no need to send anything
+    if (last_sent_data == *data_to_send) {
+        data_to_send = std::nullopt;
+        return std::nullopt;
+    }
+
+    DequeStates ret(*data_to_send, last_sent_data);
+
+    last_sent_data = *data_to_send;
+    data_to_send = std::nullopt;
+    return ret;
+}
 
 /**
  * @brief push create command into queue if able
  *
  * @param type fsm to be created
  * @param data fsm data
- * @return Queue::ret_val possible values
- *       - Queue::ret_val::ok
- *       - Queue::ret_val::er_already_created
- *       - Queue::ret_val::er_type_none
- *       - Queue::ret_val::er_opened_fsm_inconsistent
+ * @return QueueRetVal possible values
+ *       - QueueRetVal::ok
+ *       - QueueRetVal::er_already_created
+ *       - QueueRetVal::er_type_none
  */
-Queue::ret_val Queue::PushCreate(ClientFSM type, uint8_t data) {
-    if (type == ClientFSM::_none)
-        return ret_val::er_type_none;
-    return pushCreate(create_t(type, data));
+QueueRetVal Queue::push_create(ClientFSM type, BaseData data) {
+    if (type == ClientFSM::_none) {
+        return QueueRetVal::er_type_none;
+    }
+
+    // fsm already created
+    if (has_opened_fsm()) {
+        return QueueRetVal::er_already_created;
+    }
+
+    Change change = Change(index, type, data);
+
+    // in the case there was the same FSM with the same data
+    // and it was destroyed, but destroy was not send
+    // just erase that destroy
+    if (last_sent_data == change) {
+        data_to_send = std::nullopt;
+        return QueueRetVal::ok;
+    }
+
+    // last_sent_data does not change now, it changes after command send
+    data_to_send = change;
+    return QueueRetVal::ok;
 }
 
 /**
- * @brief push create command into queue if able, private version, does not check er_type_none
- * queue must be empty or last command must be destroy
- * no need to check size queue behavior does not allow push more than 3 items
- * @param create
- * @return Queue::ret_val possible values
- *       - Queue::ret_val::ok
- *       - Queue::ret_val::er_already_created
- *       - Queue::ret_val::er_opened_fsm_inconsistent
- */
-Queue::ret_val Queue::pushCreate(create_t create) {
-    if ((count == 0) || (Back().GetCommand() == ClientFSM_Command::destroy)) {
-        if (opened_fsm != ClientFSM::_none) {
-            return ret_val::er_opened_fsm_inconsistent;
-        }
-        push(variant_t(create)); // should always succeed
-        opened_fsm = create.type.GetType();
-        return ret_val::ok;
-    }
-    if (opened_fsm == ClientFSM::_none) {
-        return ret_val::er_opened_fsm_inconsistent;
-    }
-    return ret_val::er_already_created;
-}
-
-/**
- * @brief push create destroy into queue if able
+ * @brief push destroy command into queue if able
  *
  * @param type fsm to be destroyed
- * @return Queue::ret_val
- *       - Queue::ret_val::ok
- *       - Queue::ret_val::er_already_destroyed
- *       - Queue::ret_val::er_opened_fsm_inconsistent
- *       - Queue::ret_val::er_type_none
+ * @return QueueRetVal
+ *       - QueueRetVal::ok
+ *       - QueueRetVal::er_opened_fsm_inconsistent
+ *       - QueueRetVal::er_type_none
  */
-Queue::ret_val Queue::PushDestroy(ClientFSM type) {
-    if (type == ClientFSM::_none)
-        return ret_val::er_type_none;
-    if (type != opened_fsm) {
-        return ret_val::er_opened_fsm_inconsistent;
+QueueRetVal Queue::push_destroy(ClientFSM type) {
+    if (type == ClientFSM::_none) {
+        return QueueRetVal::er_type_none;
     }
-    return pushDestroy(destroy_t(type));
+
+    // wrong type
+    if (get_opened_fsm() != type) {
+        return QueueRetVal::er_opened_fsm_inconsistent;
+    }
+
+    if (last_sent_data.get_fsm_type() == ClientFSM::_none) {
+        // create was not send yet
+        // just clear the queue
+        data_to_send = std::nullopt;
+    } else {
+        // some create was already send, store destroy into queue
+        // ClientFSM does not matter, previous FSM would have been destroyed to be in new one
+        // in that case new destroy would erase new FSM and leave old destroy
+        // so we just store destroy in both cases (last_sent_data.get_fsm_type() != type OR last_sent_data.get_fsm_type() == type)
+
+        // last_sent_data does not change now, it changes after command send
+        data_to_send = Change(index); // ClientFSM::_none
+    }
+
+    return QueueRetVal::ok;
 }
 
 /**
- * @brief clear all commands and push destroy, does not check param validity
- * except when queue contains create - erase create instead clearing
- * @param destroy
- * @return Queue::ret_val possible values
- *       - Queue::ret_val::ok
- *       - Queue::ret_val::er_already_destroyed
+ * @brief push change command into queue if able
+ *
+ * @param type fsm to be changed
+ * @return QueueRetVal
+ *       - QueueRetVal::ok
+ *       - QueueRetVal::er_opened_fsm_inconsistent
+ *       - QueueRetVal::er_type_none
  */
-Queue::ret_val Queue::pushDestroy(destroy_t destroy) {
-    if ((count == 1) && (queue[0].GetCommand() == ClientFSM_Command::destroy)) {
-        return ret_val::er_already_destroyed; //do not modify stored destroy
+QueueRetVal Queue::push_change(ClientFSM type, BaseData data) {
+    if (type == ClientFSM::_none) {
+        return QueueRetVal::er_type_none;
     }
 
-    if ((count > 0) && (queue[0].GetCommand() == ClientFSM_Command::create)) {
-        Clear();
-        opened_fsm = ClientFSM::_none;
-        return ret_val::ok;
+    // wrong type
+    if (get_opened_fsm() != type) {
+        return QueueRetVal::er_opened_fsm_inconsistent;
     }
 
-    if ((count > 1) && (queue[1].GetCommand() == ClientFSM_Command::create)) {
-        count = 1; // there is old destroy command in queue, leave it
-        opened_fsm = ClientFSM::_none;
-        return ret_val::ok;
-    }
-
-    Clear();
-    push(variant_t(destroy)); // should always succeed, especially after Clear
-    opened_fsm = ClientFSM::_none;
-    return ret_val::ok;
+    // last_sent_data does not change now, it changes after command send
+    data_to_send = Change(index, type, data);
+    return QueueRetVal::ok;
 }
 
-Queue::ret_val Queue::PushChange(ClientFSM type, BaseData data) {
-    if (type == ClientFSM::_none)
-        return ret_val::er_type_none;
-    if (type != opened_fsm) {
-        return ret_val::er_opened_fsm_inconsistent;
+/**
+ * @brief atomic operation to change 1 fsm to another (avoids flickering)
+ *
+ * @param old_type fsm to be destroyed
+ * @param new_type fsm to be created
+ * @param data     new fsm data
+ * @return QueueRetVal, any return value from push_crete and push_destroy
+ */
+QueueRetVal Queue::push_destroy_and_create(ClientFSM old_type, ClientFSM new_type, BaseData data) {
+    QueueRetVal ret = push_destroy(old_type);
+    if (ret != QueueRetVal::ok) {
+        return ret;
     }
-    return pushChange(change_t(type, data));
+    return push_create(new_type, data);
 }
 
-// must be empty or last command must create or change
-// if opened ClientFSM must match
-// no need to check size queue behavior does not allow push more than 3 items
-Queue::ret_val Queue::pushChange(change_t change) {
-    if (count == 0) {
-        push(variant_t(change));
-        return ret_val::ok;
+/**
+ * @brief push data into queue
+ * ignore any checks except index
+ * @param change data to push
+ */
+void Queue::force_push(Change change) {
+    if (change.get_queue_index() != index) {
+        return;
     }
 
-    if (Back().GetType() == change.type.GetType()) {
-        if (Back().GetCommand() == ClientFSM_Command::create) {
-            push(variant_t(change));
-            return ret_val::ok;
-        }
-
-        if (Back().GetCommand() == ClientFSM_Command::change) {
-            --count; // last is change of same type, must rewrite it
-            push(variant_t(change));
-            return ret_val::ok;
-        }
-    }
-    return ret_val::er_opened_fsm_inconsistent;
+    data_to_send = change;
 }
 
-void Queue::push(variant_t v) {
-    if (count < queue.size()) {
-        queue[count] = v;
-        ++count;
-    }
-}
-
-variant_t Queue::Front() const {
-    if (count == 0)
-        return variant_t();
-    return queue[0];
-}
-
-variant_t Queue::Back() const {
-    if (count == 0)
-        return variant_t();
-    return queue[count - 1];
-}
-
-bool Queue::Pop() {
-    if (count == 0)
-        return false;
-
-    count -= 1;
-    for (size_t i = 1; i <= count; ++i) {
-        queue[i - 1] = queue[i];
-    }
-    return true;
-}
-
-variant_t SmartQueue::Front() const {
-    if (prior_commands_in_queue0) {
-        return queue0.Front();
-    }
-    variant_t ret = queue1.Front();
-    if (ret.GetCommand() == ClientFSM_Command::none) {
-        ret = queue0.Front();
-    }
-    return ret;
-}
-
-variant_t SmartQueue::Back() const {
-    variant_t ret = queue0.Back();
-    // prior_commands_in_queue0 has lower prior in this method
-    // opposite functionality to front
-    if ((queue0.GetCount() <= prior_commands_in_queue0) || (ret.GetCommand() == ClientFSM_Command::none)) {
-        ret = queue1.Back();
-    }
-    return ret;
-}
-
-SmartQueue::Selector SmartQueue::Push(variant_t v) {
-    switch (v.GetCommand()) {
-    case ClientFSM_Command::create:
-        return PushCreate(v.GetType(), v.create.data);
-    case ClientFSM_Command::destroy:
-        return PushDestroy(v.GetType());
-    case ClientFSM_Command::change:
-        return PushChange(v.GetType(), v.change.data);
-    default:
-        break;
-    }
-    return Selector::error;
-}
-
-bool SmartQueue::TryPush(variant_t v) {
-    switch (v.GetCommand()) {
-    case ClientFSM_Command::create:
-        return TryPushCreate(v.GetType(), v.create.data);
-    case ClientFSM_Command::destroy:
-        return TryPushDestroy(v.GetType());
-    case ClientFSM_Command::change:
-        return TryPushChange(v.GetType(), v.change.data);
-    default:
-        break;
-    }
-    return false;
-}
-
-SmartQueue::Selector SmartQueue::Pop() {
-    if (prior_commands_in_queue0) {
-        --prior_commands_in_queue0;
-        return queue0.Pop() ? Selector::q0 : Selector::error;
-    }
-    if (queue1.Pop())
-        return Selector::q1;
-
-    return queue0.Pop() ? Selector::q0 : Selector::error;
-}
-
-SmartQueue::Selector SmartQueue::PushCreate(ClientFSM type, uint8_t data) {
-    //error upper queue contains opened dialog
-    if (queue1.GetOpenFsm() != ClientFSM::_none) {
-        log_error(FSM, "Attempt to create 3rd level");
-        return Selector::error;
+ClientFSM Queue::get_opened_fsm() const {
+    if (data_to_send) {
+        // data_to_send -> fsm stored in last_sent_data might not be valid
+        return data_to_send->get_fsm_type();
     }
 
-    // first try to push into bottom queue
-    if (queue0.PushCreate(type, data) == Queue::ret_val::ok)
+    // no data_to_send -> fsm stored in last_sent_data is valid
+    return last_sent_data.get_fsm_type();
+}
+
+bool Queue::has_opened_fsm() const {
+    return get_opened_fsm() != ClientFSM::_none;
+}
+
+bool Queue::has_pending_create_command() const {
+    return data_to_send                                                     // we have data to send
+        && (data_to_send->get_fsm_type() != ClientFSM::_none)               // ClientFSM::_none would be destroy command
+        && (data_to_send->get_fsm_type() != last_sent_data.get_fsm_type()); // the same fsm type would be change command
+}
+
+size_t Queue::count() const {
+    return data_to_send ? 1 : 0;
+}
+
+/*****************************************************************************/
+// SmartQueue
+
+/**
+ * @brief deques one command
+ * Q1 has higher priority
+ * with only one exception - when Q0 has pending create
+ *                         - create command insertion logic prevents Q1 inserting create to Q0 while Q1 has open FSM
+ *
+ * @return std::optional<DequeStates> command to be send to another thread
+ */
+std::optional<DequeStates> SmartQueue::dequeue() {
+    // create from Q0 is prioritized
+    if (queue0.has_pending_create_command()) {
+        return queue0.dequeue();
+    }
+
+    // can have data but no open fsm (contains destroy command)
+    if (queue1.count() || queue1.has_opened_fsm()) {
+        return queue1.dequeue();
+    }
+    return queue0.dequeue();
+}
+
+SmartQueue::Selector SmartQueue::PushCreate(ClientFSM type, BaseData data) {
+    // error upper queue contains opened dialog
+    if (queue1.has_opened_fsm()) {
+        bsod("FSM: Attempt to create 3rd level");
+    }
+
+    // error create cannot have type none
+    if (type == ClientFSM::_none) {
+        bsod("FSM: Cannot create ClientFSM::_none");
+    }
+
+    // try to push into bottom queue before top one
+    if (queue0.push_create(type, data) == QueueRetVal::ok) {
         return Selector::q0;
+    }
 
-    prior_commands_in_queue0 = size_t(queue0.GetCreateIndex() + 1);
-    return queue1.PushCreate(type, data) == Queue::ret_val::ok ? Selector::q1 : Selector::error;
+    if (queue1.push_create(type, data) == QueueRetVal::ok) {
+        return Selector::q1;
+    }
+
+    bsod("FSM Cannot push create of %s to Q1", to_string(type));
 }
 
 SmartQueue::Selector SmartQueue::PushDestroy(ClientFSM type) {
-    if (queue1.PushDestroy(type) == Queue::ret_val::ok) {
-        //destroy can clear queue1, so prior_commands_in_queue0 must be cleared too
-        if (queue1.GetCount() == 0) {
-            prior_commands_in_queue0 = 0;
+    if (queue1.has_opened_fsm()) {
+        if (queue1.push_destroy(type) == QueueRetVal::ok) {
+            return Selector::q1;
+        } else {
+            bsod("FSM Cannot push destroy of %s to Q1", to_string(type));
         }
-        return Selector::q1;
     }
-    return queue0.PushDestroy(type) == Queue::ret_val::ok ? Selector::q0 : Selector::error;
+    if (queue0.push_destroy(type) == QueueRetVal::ok) {
+        return Selector::q0;
+    }
+
+    bsod("FSM Cannot push destroy of %s to Q0", to_string(type));
 }
 
 SmartQueue::Selector SmartQueue::PushChange(ClientFSM type, BaseData data) {
-    if (queue1.PushChange(type, data) == Queue::ret_val::ok)
+    if (queue1.push_change(type, data) == QueueRetVal::ok) {
         return Selector::q1;
-
-    return queue0.PushChange(type, data) == Queue::ret_val::ok ? Selector::q0 : Selector::error;
-}
-
-bool SmartQueue::TryPushCreate(ClientFSM type, uint8_t data) {
-    if (queue1.GetOpenFsm() == type || queue0.GetOpenFsm() == type) {
-        return false;
     }
 
-    Selector ret = PushCreate(type, data);
-
-    return ret == Selector::q0 || ret == Selector::q1;
-}
-
-bool SmartQueue::TryPushDestroy(ClientFSM type) {
-    if (queue1.GetOpenFsm() != type && queue0.GetOpenFsm() != type) {
-        return false;
+    if (queue0.push_change(type, data) != QueueRetVal::ok) {
+        bsod("FSM CHANGE: cannot push %s", to_string(type));
     }
 
-    Selector ret = PushDestroy(type);
-
-    return ret == Selector::q0 || ret == Selector::q1;
+    return Selector::q0;
 }
 
-bool SmartQueue::TryPushChange(ClientFSM type, BaseData data) {
-    Selector ret = PushChange(type, data);
-
-    return ret == Selector::q0 || ret == Selector::q1;
+/**
+ * @brief push into queue by index
+ * ignore any checks
+ * @param change data to push
+ */
+void SmartQueue::force_push(Change change) {
+    switch (change.get_queue_index()) {
+    case QueueIndex::q0:
+        queue0.force_push(change);
+        return;
+    case QueueIndex::q1:
+        queue1.force_push(change);
+        return;
+    }
 }
 
-bool IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, uint8_t data, const char *fnc, const char *file, int line) {
-    if (!pQueues || sz == 0)
-        return false;
+void IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, BaseData data, const char *fnc, const char *file, int line) {
+    if (!pQueues || sz == 0) {
+        bsod(""); // should never happen, no text to save CPU flash
+    }
 
     if (fsm0 == type) {
-        log_error(FSM, "CREATE: %s, %s, ln %i, already opened at level 0", fnc, file, line);
-        return false;
+        bsod("FSM CREATE: %s already opened at level 0. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
     if (fsm1 == type) {
-        log_error(FSM, "CREATE: %s, %s, ln %i, already opened at level 1", fnc, file, line);
-        return false;
+        bsod("FSM CREATE: %s already opened at level 1. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
-    bool ret = true;
-
-    log_info(FSM, "CREATE [%d]: %s, %s, ln %i", int(type), fnc, file, line);
+    log_info(FSM, "CREATE [%s]: %s, %s, ln %i", to_string(type), fnc, file, line);
     fsm_last_phase[static_cast<int>(type)] = -1;
 
     for (size_t i = 0; i < sz; ++i) {
         switch (pQueues[i].PushCreate(type, data)) {
-        case SmartQueue::Selector::error:
-            ret = false;
-            log_error(FSM, "CREATE - failed on queue [%i]: %s, %s, ln %i", i, fnc, file, line);
-            break;
         case SmartQueue::Selector::q0:
             fsm0 = type;
             break;
@@ -318,33 +348,25 @@ bool IQueueWrapper::pushCreate(SmartQueue *pQueues, size_t sz, ClientFSM type, u
             break;
         }
     }
-    return ret;
 }
 
-bool IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type, const char *fnc, const char *file, int line) {
-    if (!pQueues || sz == 0)
-        return false;
+void IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type, const char *fnc, const char *file, int line) {
+    if (!pQueues || sz == 0) {
+        bsod(""); // should never happen, no text to save CPU flash
+    }
 
     if (fsm0 != type && fsm1 != type) {
-        log_error(FSM, "DESTROY - does not exist: %s, %s, ln %i", fnc, file, line);
-        return false;
+        bsod("FSM DESTROY: %s does not exist. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
     if (fsm1 != type && fsm1 != ClientFSM::_none) {
-        log_error(FSM, "DESTROY - blocked by higher level FSM: %s, %s, ln %i", fnc, file, line);
-        return false;
+        bsod("FSM DESTROY: %s blocked by higher level. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
-    bool ret = true;
-
-    log_info(FSM, "DESTROY [%d]: %s, %s, ln %i", int(type), fnc, file, line);
+    log_info(FSM, "DESTROY [%s]: %s, %s, ln %i", to_string(type), fnc, file, line);
 
     for (size_t i = 0; i < sz; ++i) {
         switch (pQueues[i].PushDestroy(type)) {
-        case SmartQueue::Selector::error:
-            ret = false;
-            log_error(FSM, "DESTROY - failed on queue [%i]: %s, %s, ln %i", i, fnc, file, line);
-            break;
         case SmartQueue::Selector::q0:
             fsm0 = ClientFSM::_none;
             break;
@@ -353,30 +375,26 @@ bool IQueueWrapper::pushDestroy(SmartQueue *pQueues, size_t sz, ClientFSM type, 
             break;
         }
     }
-    return ret;
 }
 
-bool IQueueWrapper::pushChange(SmartQueue *pQueues, size_t sz, ClientFSM type, BaseData data, const char *fnc, const char *file, int line) {
-    if (!pQueues || sz == 0)
-        return false;
-    bool ret = true;
+void IQueueWrapper::pushChange(SmartQueue *pQueues, size_t sz, ClientFSM type, BaseData data, const char *fnc, const char *file, int line) {
+    if (!pQueues || sz == 0) {
+        bsod(""); // should never happen, no text to save CPU flash
+    }
 
-    // top level type is wrong (none is ok) or required type is in neither queue
-    if ((fsm1 != type && fsm1 != ClientFSM::_none) || (fsm0 != type && fsm1 != type)) {
-        log_error(FSM, "CHANGE type mismatch: %s, %s, ln %i", fnc, file, line);
-        return false;
+    // check if given FSM type is stored in any queue
+    if (fsm0 != type && fsm1 != type) {
+        bsod("FSM CHANGE %s mismatch. Called from %s, %s, ln %i", to_string(type), fnc, file, line);
     }
 
     if (fsm_last_phase[static_cast<int>(type)] != static_cast<int>(data.GetPhase())) {
-        log_info(FSM, "CHANGE of [%i] to %" PRIu8 " %s, %s, ln %i", static_cast<int>(type), data.GetPhase(), fnc, file, line);
+        log_info(FSM, "CHANGE [%s] to %" PRIu8 " %s, %s, ln %i", to_string(type), data.GetPhase(), fnc, file, line);
         fsm_last_phase[static_cast<int>(type)] = static_cast<int>(data.GetPhase());
     }
 
+    // store data into corresponding queue
+    // only highest level queue is being sent
     for (size_t i = 0; i < sz; ++i) {
-        if (pQueues[i].PushChange(type, data) == SmartQueue::Selector::error) {
-            ret = false;
-            log_error(FSM, "CHANGE failed on queue [%i]: %s, %s, ln %i", i, fnc, file, line);
-        }
+        pQueues[i].PushChange(type, data);
     }
-    return ret;
 }

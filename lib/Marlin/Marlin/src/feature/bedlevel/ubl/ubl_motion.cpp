@@ -20,6 +20,7 @@
  *
  */
 #include "../../../inc/MarlinConfig.h"
+#include <cassert>
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
 
@@ -402,12 +403,18 @@
       // in top of loop and again re-find same adjacent cell and use it, just less efficient
       // for mesh inset area.
 
-      xy_int8_t icell = {
-        int8_t((raw.x - (MESH_MIN_X)) * RECIPROCAL(MESH_X_DIST)),
-        int8_t((raw.y - (MESH_MIN_Y)) * RECIPROCAL(MESH_Y_DIST))
-      };
-      LIMIT(icell.x, 0, (GRID_MAX_POINTS_X) - 1);
-      LIMIT(icell.y, 0, (GRID_MAX_POINTS_Y) - 1);
+      // Avoid working with off-mesh points, clamp to mesh area - consider non-meshed area is flat
+      xy_pos_t in_mesh = raw;
+      LIMIT(in_mesh.x, MESH_MIN_X, MESH_MAX_X);
+      LIMIT(in_mesh.y, MESH_MIN_Y, MESH_MAX_Y);
+
+      // Compute cell index
+      // Restrict index to point within the z_values array. The index points to lower left corner,
+      // also the upper right corner needs to fit within the array, thus the -2.
+      const xy_uint8_t icell = {{{
+        std::min(static_cast<uint8_t>((in_mesh.x - (MESH_MIN_X)) * RECIPROCAL(MESH_X_DIST)), uint8_t(GRID_MAX_POINTS_X - 2)),
+        std::min(static_cast<uint8_t>((in_mesh.y - (MESH_MIN_Y)) * RECIPROCAL(MESH_Y_DIST)), uint8_t(GRID_MAX_POINTS_Y - 2))
+      }}};
 
       float z_x0y0 = z_values[icell.x  ][icell.y  ],  // z at lower left corner
             z_x1y0 = z_values[icell.x+1][icell.y  ],  // z at upper left corner
@@ -420,7 +427,11 @@
       if (isnan(z_x1y1)) z_x1y1 = 0;              //   thus guessing zero for undefined points
 
       const xy_pos_t pos = { mesh_index_to_xpos(icell.x), mesh_index_to_ypos(icell.y) };
-      xy_pos_t cell = raw - pos;
+      xy_pos_t cell = in_mesh - pos;
+
+      // Check if the position is really within the cell
+      assert(cell.x <= MESH_X_DIST);
+      assert(cell.y <= MESH_Y_DIST);
 
       const float z_xmy0 = (z_x1y0 - z_x0y0) * RECIPROCAL(MESH_X_DIST),   // z slope per x along y0 (lower left to lower right)
                   z_xmy1 = (z_x1y1 - z_x0y1) * RECIPROCAL(MESH_X_DIST);   // z slope per x along y1 (upper left to upper right)

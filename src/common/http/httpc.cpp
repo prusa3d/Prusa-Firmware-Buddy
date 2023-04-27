@@ -181,6 +181,25 @@ variant<size_t, Error> Response::read_body(uint8_t *buffer, size_t size) {
     return pos;
 }
 
+variant<size_t, Error> Response::read_all(uint8_t *buffer, size_t size) {
+    if (content_length() > size) {
+        return Error::ResponseTooLong;
+    }
+
+    size_t pos = 0;
+
+    while (content_length() > 0) {
+        const auto result = read_body(buffer + pos, content_length());
+        if (holds_alternative<size_t>(result)) {
+            pos += get<size_t>(result);
+        } else {
+            return get<Error>(result);
+        }
+    }
+
+    return pos;
+}
+
 tuple<uint8_t *, size_t, ResponseBody> Response::into_body() {
     ResponseBody body;
     body.conn = conn;
@@ -283,8 +302,8 @@ optional<Error> HttpClient::send_request(const char *host, Connection *conn, Req
     return err_out;
 }
 
-variant<Response, Error> HttpClient::parse_response(Connection *conn) {
-    ResponseParser parser;
+variant<Response, Error> HttpClient::parse_response(Connection *conn, ExtraHeader *extra_resp_hdr) {
+    ResponseParser parser(extra_resp_hdr);
 
     uint8_t buffer[Response::MAX_LEFTOVER];
 
@@ -314,18 +333,17 @@ variant<Response, Error> HttpClient::parse_response(Connection *conn) {
             response.content_length_rest = parser.content_length.value_or(0);
             response.leftover_size = rest;
             response.content_type = parser.content_type;
-            response.command_id = parser.command_id;
             if (parser.keep_alive.has_value()) {
                 response.can_keep_alive = *parser.keep_alive;
             } else {
                 response.can_keep_alive = (parser.version_major == 1) && (parser.version_minor >= 1);
             }
-            return std::move(response);
+            return response;
         }
     }
 }
 
-variant<Response, Error> HttpClient::send(Request &request) {
+variant<Response, Error> HttpClient::send(Request &request, ExtraHeader *extra_resp_hdr) {
     auto conn_raw = factory.connection();
     if (holds_alternative<Error>(conn_raw)) {
         return get<Error>(conn_raw);
@@ -344,7 +362,7 @@ variant<Response, Error> HttpClient::send(Request &request) {
         return *error;
     }
 
-    return HttpClient::parse_response(conn);
+    return HttpClient::parse_response(conn, extra_resp_hdr);
 }
 
 }

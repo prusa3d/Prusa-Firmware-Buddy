@@ -11,14 +11,14 @@ SelftestFrameFirstLayer::SelftestFrameFirstLayer(window_t *parent, PhasesSelftes
     , footer(this
 #if defined(FOOTER_HAS_LIVE_Z)
           ,
-          footer::items::ItemLiveZ
+          footer::Item::LiveZ
 #endif
 #if defined(FOOTER_HAS_SHEETS)
           ,
-          footer::items::ItemSheets
+          footer::Item::Sheets
 #endif
           ,
-          footer::items::ItemFilament)
+          footer::Item::Filament)
     , text(this, Rect16(WizardDefaults::MarginLeft, 40, GuiDefaults::RectScreen.Width() - WizardDefaults::MarginLeft * 2, 150), is_multiline::yes, is_closed_on_click_t::no, _(text_str))
     , progress(this, Rect16(WizardDefaults::MarginLeft, 190 + 30, GuiDefaults::RectScreen.Width() - 2 * WizardDefaults::MarginLeft, 8))
     , live_z(this, { int16_t(WizardDefaults::MarginLeft), 190 }, Width() - WizardDefaults::MarginLeft * 2) {

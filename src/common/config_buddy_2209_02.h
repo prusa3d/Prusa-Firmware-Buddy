@@ -36,11 +36,11 @@
 
 //--------------------------------------
 //Loadcell HX717 configuration
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
 
     #define LOADCELL_HX717
 
-#endif //((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
+#endif //((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
 #if (PRINTER_TYPE == PRINTER_PRUSA_XL)
     #if BOARD_IS_DWARF
         #define LOADCELL_HX717
@@ -53,9 +53,6 @@
 #if (BOARD_IS_XLBUDDY)
     #define ADC_EXT_MUX
 #endif //(BOARD_TYPE == XBUDDY_BOARD)
-
-//FANCTL - new software pwm fan control with rpm measurement and closed loop
-#define NEW_FANCTL
 
 //new pause settings
 static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s inside paused state

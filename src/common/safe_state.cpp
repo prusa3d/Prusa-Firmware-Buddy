@@ -8,10 +8,7 @@
 #include "appmain.hpp"
 #include <device/board.h>
 #include "printers.h"
-
-#ifdef NEW_FANCTL
-    #include "fanctl.hpp"
-#endif
+#include "fanctl.hpp"
 
 using namespace buddy::hw;
 
@@ -21,15 +18,9 @@ using namespace buddy::hw;
 //! Set fans to maximum, heaters to minimum and disable motors.
 void hwio_safe_state(void) {
     // enable fans
-    #ifdef NEW_FANCTL
     fanCtlPrint[0].safeState();
     fanCtlHeatBreak[0].safeState();
-    #else
-    gpio_init(MARLIN_PIN(FAN), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
-    gpio_init(MARLIN_PIN(FAN1), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
-    gpio_set(MARLIN_PIN(FAN), 1);
-    gpio_set(MARLIN_PIN(FAN1), 1);
-    #endif
+
     // disable heaters
     gpio_init(MARLIN_PIN(HEAT0), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
     gpio_init(MARLIN_PIN(BED_HEAT), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
@@ -86,12 +77,7 @@ void hwio_safe_state(void) {
     // motor off
     e0Enable.write(Pin::State::high);
 
-    #ifdef NEW_FANCTL
     fanCtlPrint[0].safeState();
     fanCtlHeatBreak[0].safeState();
-    #else
-    // HEATBREAK fan ON
-    fanHeatBreakPwm.write(Pin::State::high);
-    #endif
 }
 #endif

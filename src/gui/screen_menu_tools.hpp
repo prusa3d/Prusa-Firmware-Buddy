@@ -1,6 +1,6 @@
 /**
  * @file screen_menu_tools.hpp
- * @brief This is temporary menu enabling kennel position and tool offset view and edit. Simple manual calibration of the kennel position is included.
+ * @brief This is temporary menu enabling dock position and tool offset view and edit. Simple manual calibration of the dock position is included.
  */
 
 #pragma once
@@ -25,22 +25,22 @@ protected:
     virtual void OnClick() override;
 };
 
-class MI_KENNEL_POSITION_X : public MI_POSITION {
-    static constexpr const char *label = N_("Kennel X");
+class MI_DOCK_POSITION_X : public MI_POSITION {
+    static constexpr const char *label = N_("Dock X");
     static constexpr const char *axis_name = "X";
 
 public:
-    MI_KENNEL_POSITION_X();
+    MI_DOCK_POSITION_X();
 
     virtual void set_pos(const float pos) override;
 };
 
-class MI_KENNEL_POSITION_Y : public MI_POSITION {
-    static constexpr const char *label = N_("Kennel Y");
+class MI_DOCK_POSITION_Y : public MI_POSITION {
+    static constexpr const char *label = N_("Dock Y");
     static constexpr const char *axis_name = "Y";
 
 public:
-    MI_KENNEL_POSITION_Y();
+    MI_DOCK_POSITION_Y();
 
     virtual void set_pos(const float pos) override;
 };
@@ -86,11 +86,11 @@ public:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_KENNEL_CALIBRATE : public WI_LABEL_t {
-    static constexpr const char *label = N_("Calibrate Kennel Position");
+class MI_DOCK_CALIBRATE : public WI_LABEL_t {
+    static constexpr const char *label = N_("Calibrate Dock Position");
 
 public:
-    MI_KENNEL_CALIBRATE();
+    MI_DOCK_CALIBRATE();
 
     virtual void click(IWindowMenu &window_menu) override;
 };
@@ -105,7 +105,7 @@ public:
 };
 
 namespace detail {
-using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TOOL_NOZZLE_DIAMETER, MI_KENNEL_POSITION_X, MI_KENNEL_POSITION_Y, MI_KENNEL_CALIBRATE, MI_FSENSORS_CALIBRATE, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
+using ScreenMenuToolSetup = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TOOL_NOZZLE_DIAMETER, MI_DOCK_POSITION_X, MI_DOCK_POSITION_Y, MI_DOCK_CALIBRATE, MI_FSENSORS_CALIBRATE, MI_OFFSET_X, MI_OFFSET_Y, MI_OFFSET_Z, MI_PICKUP_TOOL>;
 }
 
 class ScreenMenuToolSetup : public detail::ScreenMenuToolSetup {
@@ -126,7 +126,7 @@ protected:
 
 template <int N>
 class MI_TOOL : public I_MI_TOOL {
-    static constexpr const char *const get_name() {
+    static consteval const char *get_name() {
         switch (N) {
         case 0:
             return N_("Tool 1");
@@ -139,6 +139,8 @@ class MI_TOOL : public I_MI_TOOL {
         case 4:
             return N_("Tool 5");
         }
+        consteval_assert_false();
+        return "";
     }
 
     static constexpr const char *const label = get_name();
@@ -149,7 +151,7 @@ public:
     }
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override {
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {
         do_click(N);
     }
 };

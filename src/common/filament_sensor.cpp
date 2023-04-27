@@ -15,10 +15,12 @@ std::optional<IFSensor::event> IFSensor::Cycle() {
 
     //sensor is disabled (only init can enable it)
     if (last_state_before_cycle == fsensor_t::Disabled) {
+        record_state();
         return std::nullopt;
     }
 
     cycle();
+
     record_state();
 
     return generateEvent(last_state_before_cycle);

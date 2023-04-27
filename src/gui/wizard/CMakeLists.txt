@@ -26,6 +26,7 @@ target_sources(
           selftest_view_item_separator.cpp
           selftest_view_item_text.cpp
           test_of_selftest_result.cpp
+          window_wizard_icon.cpp
   )
 if(NOT (${PRINTER} STREQUAL "MINI"))
   target_sources(
@@ -35,5 +36,5 @@ if(NOT (${PRINTER} STREQUAL "MINI"))
 endif()
 
 if(${PRINTER} STREQUAL "XL")
-  target_sources(firmware PRIVATE selftest_frame_kennel.cpp selftest_frame_tool_offsets.cpp)
+  target_sources(firmware PRIVATE selftest_frame_dock.cpp selftest_frame_tool_offsets.cpp)
 endif()

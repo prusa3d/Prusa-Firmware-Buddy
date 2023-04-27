@@ -85,7 +85,7 @@ void GcodeSuite::M104() {
   }
 
   #if ENABLED(PRUSA_MARLIN_API)
-    marlin_server_set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
+    marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
   #endif
 
   #if ENABLED(AUTOTEMP)
@@ -150,7 +150,7 @@ void GcodeSuite::M109() {
 
   if (set_temp) {
     #if ENABLED(PRUSA_MARLIN_API)
-      marlin_server_set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
+      marlin_server::set_temp_to_display(parser.seenval('D') ? parser.value_celsius() : thermalManager.degTargetHotend(target_extruder), target_extruder);
     #endif
     (void)thermalManager.wait_for_hotend(target_extruder, no_wait_for_cooling, parser.seen('F'));
   }

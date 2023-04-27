@@ -63,7 +63,7 @@ bool download_dump_into_file(std::span<uint8_t> buffer,
 }
 
 bool is_a_dump_in_filesystem() {
-    for (const auto &info : buddy::puppies::kennel_info) {
+    for (const auto &info : buddy::puppies::dock_info) {
         if (file_exists(info.crash_dump_path)) {
             return true;
         }
@@ -73,7 +73,7 @@ bool is_a_dump_in_filesystem() {
 
 bool save_dumps_to_usb() {
     bool rc { false };
-    for (const auto &info : buddy::puppies::kennel_info) {
+    for (const auto &info : buddy::puppies::dock_info) {
         if (!file_exists(info.crash_dump_path)) {
             continue;
         }
@@ -86,7 +86,7 @@ bool save_dumps_to_usb() {
 
         static constexpr size_t max_dump_path_length { []() {
             size_t max_size { 0 };
-            for (const auto &info : kennel_info) {
+            for (const auto &info : dock_info) {
                 max_size = std::max(max_size, std::char_traits<char>::length(info.crash_dump_path));
             }
             return max_size;
@@ -125,9 +125,9 @@ bool save_dumps_to_usb() {
 
 bool upload_dumps_to_server() {
     bool rc { false };
-    for (Kennel kennel = Kennel::FIRST; kennel <= Kennel::LAST; kennel = kennel + 1) {
-        // for (const auto &info : buddy::puppies::kennel_info) {
-        const auto &info = kennel_info[to_info_idx(kennel)];
+    for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
+        // for (const auto &info : buddy::puppies::dock_info) {
+        const auto &info = dock_info[to_info_idx(dock)];
 
         struct stat fs;
         if (stat(info.crash_dump_path, &fs) != 0) {
@@ -137,7 +137,7 @@ bool upload_dumps_to_server() {
         std::array<char, ::crash_dump::url_buff_size> url_buff;
         std::array<char, ::crash_dump::url_buff_size> escaped_url_string;
 
-        ::crash_dump::create_url_string(url_buff, escaped_url_string, puppy_info[to_puppy_type(kennel)].name);
+        ::crash_dump::create_url_string(url_buff, escaped_url_string, puppy_info[to_puppy_type(dock)].name);
         http::PostFile req(info.crash_dump_path, escaped_url_string.data(), fs.st_size);
         if (!::crash_dump::upload_dump_to_server(req)) {
             continue;
@@ -150,7 +150,7 @@ bool upload_dumps_to_server() {
 
 bool remove_dumps_from_filesystem() {
     bool rc { false };
-    for (const auto &info : buddy::puppies::kennel_info) {
+    for (const auto &info : buddy::puppies::dock_info) {
         if (remove(info.crash_dump_path) == 0) {
             rc = true;
         }

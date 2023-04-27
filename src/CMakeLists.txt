@@ -5,6 +5,7 @@ add_subdirectory(segger)
 add_subdirectory(hw)
 add_subdirectory(logging)
 add_subdirectory(common)
+add_subdirectory(guiconfig)
 
 if(BOARD MATCHES "BUDDY")
   if(CONNECT OR WUI)

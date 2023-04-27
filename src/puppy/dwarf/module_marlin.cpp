@@ -3,6 +3,7 @@
 #include <device/peripherals.h>
 #include <device/hal.h>
 #include "Marlin.h"
+#include "marlin_server.hpp"
 #include "modbus/ModbusTask.hpp"
 #include "wiring_analog.h"
 #include "wiring_digital.h"
@@ -53,6 +54,8 @@ void dwarf::modules::marlin::start() {
     while (!marlin_kill) {
         if (dwarf::ModbusControl::isDwarfSelected()) {
             led::blinking(0x0f, 0x0f, 0x0f, 500, 500);
+        } else if (!Cheese::is_parked()) {
+            led::blinking(0x0f, 0x0c, 0, 200, 50);
         } else {
             led::blinking(0, 0x0f, 0, 1000, 75);
         }
@@ -140,7 +143,7 @@ uint32_t analogRead(uint32_t marlin_pin) {
     }
 }
 
-void pinMode(uint32_t marlin_pin, uint32_t value) {
+void pinMode([[maybe_unused]] uint32_t marlin_pin, [[maybe_unused]] uint32_t value) {
     // not used
 }
 
@@ -156,7 +159,7 @@ int digitalRead(uint32_t marlinPin) {
     #error Dwarf needs OVERRIDE_KILL_METHOD kill method enabled
 #endif
 
-void kill(PGM_P const lcd_error /*=nullptr*/, PGM_P const lcd_component /*=nullptr*/, const bool steppers_off /*=false*/) {
+void kill(PGM_P const lcd_error /*=nullptr*/, PGM_P const lcd_component /*=nullptr*/, [[maybe_unused]] const bool steppers_off /*=false*/) {
     log_error(Marlin, "Printer killed: %s: %s", lcd_component, lcd_error);
     dwarf::ModbusControl::TriggerMarlinKillFault(dwarf_shared::errors::FaultStatusMask::MARLIN_KILLED, lcd_component, lcd_error);
     stop_marlin();
@@ -173,13 +176,13 @@ void kill(PGM_P const lcd_error /*=nullptr*/, PGM_P const lcd_component /*=nullp
 #define readMISO    HAL_GPIO_ReadPin(STEPPER_MISO_GPIO_Port, STEPPER_MISO_Pin)
 
 SPISettings::SPISettings() {}
-SPISettings::SPISettings(uint32_t clock, BitOrder bitOrder, uint8_t dataMode) {}
+SPISettings::SPISettings([[maybe_unused]] uint32_t clock, [[maybe_unused]] BitOrder bitOrder, [[maybe_unused]] uint8_t dataMode) {}
 SPIClass::SPIClass() {
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
     // MISO
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = STEPPER_MISO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -199,12 +202,12 @@ SPIClass::SPIClass() {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
-void SPIClass::begin(uint8_t _pin) {}
+void SPIClass::begin([[maybe_unused]] uint8_t _pin) {}
 void SPIClass::end(void) {}
-void SPIClass::beginTransaction(SPISettings settings) {}
+void SPIClass::beginTransaction([[maybe_unused]] SPISettings settings) {}
 void SPIClass::endTransaction(void) {}
 
-byte SPIClass::transfer(uint8_t _data, SPITransferMode _mode) {
+byte SPIClass::transfer(uint8_t _data, [[maybe_unused]] SPITransferMode _mode) {
     uint8_t value = 0;
     writeSCK_L;
 
@@ -226,7 +229,7 @@ byte SPIClass::transfer(uint8_t _data, SPITransferMode _mode) {
     return value;
 }
 
-uint16_t SPIClass::transfer16(uint16_t _data, SPITransferMode _mode) {
+uint16_t SPIClass::transfer16(uint16_t _data, [[maybe_unused]] SPITransferMode _mode) {
     uint16_t returnVal = 0x0000;
     returnVal |= transfer((_data >> 8) & 0xFF) << 8;
     returnVal |= transfer(_data & 0xFF) & 0xFF;
@@ -263,7 +266,7 @@ size_t HardwareSerial::write(unsigned char const *buffer, unsigned int length) {
     return length;
 }
 
-void HardwareSerial::begin(unsigned long baud) {
+void HardwareSerial::begin([[maybe_unused]] unsigned long baud) {
 }
 
 int HardwareSerial::read() {
@@ -293,7 +296,7 @@ HardwareSerial Serial3(nullptr);
 
 #include "Marlin/src/feature/safety_timer.h"
 
-void safety_timer_set_interval(millis_t ms) {
+void safety_timer_set_interval([[maybe_unused]] millis_t ms) {
 }
 
 bool safety_timer_is_expired() {
@@ -320,12 +323,14 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     return SafetyTimer::expired_t::no;
 }
 
+void marlin_server::set_warning([[maybe_unused]] WarningType type) {}
+
 #include "metric.h"
 
-void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+void metric_record_custom_at_time([[maybe_unused]] metric_t *metric, [[maybe_unused]] uint32_t timestamp, [[maybe_unused]] const char *fmt, ...) {
 }
 
-void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int) {
+void metric_record_integer_at_time([[maybe_unused]] metric_t *metric, [[maybe_unused]] uint32_t timestamp, int) {
 }
 
 // Marlin's HAL
@@ -347,23 +352,8 @@ uint8_t GCodeQueue::length = 0;
 
 void ExtUI::onStartup() {}
 void ExtUI::onIdle() {}
-void ExtUI::onMediaInserted() {}
-void ExtUI::onMediaError() {}
-void ExtUI::onMediaRemoved() {}
-void ExtUI::onPlayTone(const uint16_t frequency, const uint16_t duration) {}
-void ExtUI::onPrinterKilled(PGM_P const error, PGM_P const component) {}
-void ExtUI::onPrintTimerStarted() {}
-void ExtUI::onPrintTimerPaused() {}
-void ExtUI::onPrintTimerStopped() {}
-void ExtUI::onFilamentRunout(const extruder_t extruder) {}
-void ExtUI::onUserConfirmRequired(const char *const msg) {}
-void ExtUI::onStatusChanged(const char *const msg) {}
+void ExtUI::onStatusChanged([[maybe_unused]] const char *const msg) {}
 void ExtUI::onFactoryReset() {}
-void ExtUI::onStoreSettings(char *) {}
-void ExtUI::onLoadSettings(const char *) {}
-void ExtUI::onConfigurationStoreWritten(bool success) {}
-void ExtUI::onConfigurationStoreRead(bool success) {}
-void ExtUI::onMeshUpdate(unsigned char, unsigned char, float) {}
 
 #include "Marlin/src/feature/pause.h"
 

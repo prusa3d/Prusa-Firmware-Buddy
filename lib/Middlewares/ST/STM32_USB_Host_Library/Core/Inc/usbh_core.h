@@ -36,8 +36,8 @@ extern "C" {
   */
 
 /** @addtogroup USBH_LIB_CORE
-* @{
-*/
+  * @{
+  */
 
 /** @defgroup USBH_CORE
   * @brief This file is the Header file for usbh_core.c
@@ -183,7 +183,7 @@ void USBH_Delay(uint32_t Delay);
   */
 
 /**
-* @}
-*/
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

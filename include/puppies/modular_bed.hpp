@@ -108,7 +108,7 @@ public:
     ModbusInputRegisterBlock<BEDLET_INPUT_REGISTERS_ADDR, BedletData> bedlet_data;
     ModbusHoldingRegisterBlock<BEDLET_TARGET_TEMP_ADDR, uint16_t[BEDLET_COUNT]> bedlet_target_temp;
     ModbusHoldingRegisterBlock<BEDLET_MEASURED_MAX_CURRENT_ADDR, uint16_t[BEDLET_COUNT]> bedlet_measured_max_current;
-    ModbusInputRegisterBlock<CURRENTS_ADDR, uint16_t[2]> currents;
+    ModbusInputRegisterBlock<CURRENTS_ADDR, int16_t[2]> currents;
     ModbusDiscreteInputBlock<BEDLET_DISCRETE_INPUTS_ADDR, bool> general_ready;
     ModbusInputRegisterBlock<FAULT_STATUS_ADDR, SystemError> general_fault;
     ModbusInputRegisterBlock<MCU_TEMPERATURE_ADDR, uint16_t> mcu_temperature;

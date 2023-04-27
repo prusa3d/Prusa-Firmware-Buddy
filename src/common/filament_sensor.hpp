@@ -29,6 +29,7 @@ public:
         EdgeFilamentInserted,
         EdgeFilamentRemoved
     };
+    virtual ~IFSensor() = default;
 
     std::optional<event> Cycle();
 
@@ -48,12 +49,21 @@ public:
 
     //interface methods for sensors with calibration
     //meant to use just flags to be thread safe
-    virtual void SetCalibrateFlag() {}
+    enum class CalibrateRequest {
+        CalibrateHasFilament,
+        CalibrateNoFilament,
+        NoCalibration,
+    };
+    virtual void SetCalibrateRequest(CalibrateRequest) {}
+    virtual bool IsCalibrationFinished() const { return true; }
     virtual void SetLoadSettingsFlag() {}
     virtual void SetInvalidateCalibrationFlag() {}
 
     virtual eevar_id get_eeprom_span_id() const { return eevar_id::EEVAR_CRC32; } // return crc as error
     virtual eevar_id get_eeprom_ref_id() const { return eevar_id::EEVAR_CRC32; }  // return crc as error
+
+    virtual void MetricsSetEnabled(bool) {} // Enable/disable metrics for this filament sensor
+
 protected:
     std::atomic<fsensor_t> state = fsensor_t::NotInitialized;
     event generateEvent(fsensor_t last_state_before_cycle) const;

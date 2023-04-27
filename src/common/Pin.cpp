@@ -12,7 +12,7 @@
 namespace buddy::hw {
 
 void InputPin::configure(Pull pull) const {
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
     GPIO_InitStruct.Pull = static_cast<uint32_t>(pull);
@@ -21,7 +21,7 @@ void InputPin::configure(Pull pull) const {
 
 void OutputPin::configure() const {
     HAL_GPIO_WritePin(getHalPort(), m_halPin, static_cast<GPIO_PinState>(m_initState));
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
     GPIO_InitStruct.Speed = static_cast<uint32_t>(m_speed);
@@ -29,7 +29,7 @@ void OutputPin::configure() const {
 }
 
 void OutputInputPin::enableInput(Pull pull) const {
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = static_cast<uint32_t>(pull);
@@ -111,7 +111,7 @@ IRQn_Type InterruptPin::getIRQn() const {
 
 void InputOutputPin::enableOutput(State pinState, OMode mode, OSpeed speed) const {
     HAL_GPIO_WritePin(getHalPort(), m_halPin, static_cast<GPIO_PinState>(pinState));
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = m_halPin;
     GPIO_InitStruct.Mode = static_cast<uint32_t>(mode);
     GPIO_InitStruct.Speed = static_cast<uint32_t>(speed);

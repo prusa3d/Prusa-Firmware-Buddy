@@ -13,7 +13,8 @@
 #include <mutex>
 #include <log.h>
 #include "fsensor_eeprom.hpp"
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
+#include <option/has_selftest_snake.h>
+#if HAS_SELFTEST_SNAKE()
     #include <ScreenHandler.hpp>
     #include "screen_menu_selftest_snake.hpp"
 #endif
@@ -31,7 +32,7 @@ FilamentSensors::FilamentSensors() {
     }
 
     // Set logical sensors
-    // MK404 can be reconfigured (connecting MMU)
+    // MK4 can be reconfigured (connecting MMU)
     // MINI can not
     // XL reconfigures on tool change
     configure_sensors();
@@ -224,6 +225,8 @@ void FilamentSensors::Cycle() {
     if (PrintProcessor::IsPrinting()) {
         if (events.primary_runout)
             opt_event_m600 = evaluateM600(*events.primary_runout);
+        if (!opt_event_m600 && events.secondary_runout)
+            opt_event_m600 = evaluateM600(*events.secondary_runout);
     } else {
         if (events.autoload)
             opt_event_autoload = evaluateAutoload(*events.autoload);
@@ -241,9 +244,9 @@ void FilamentSensors::Cycle() {
         PrintProcessor::InjectGcode("M600"); // change filament
         log_info(FSensor, "Injected runout");
     } else if (opt_event_autoload && !has_mmu && !isAutoloadLocked()
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
+#if HAS_SELFTEST_SNAKE()
         && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
-        && !Screens::Access()->IsScreenOnStack<ScreenMenuSelftestSnake>()
+        && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
 #endif /*PRINTER_PRUSA_XL*/
     ) {
         autoload_sent = true;
@@ -280,7 +283,7 @@ void FilamentSensors::set_corresponding_variables() {
         // if we don't have sensor it is automatically ok, "having sensor" is set by (re)configure_sensors
         const bool side_sensor_ok =
 #if HAS_MMU2
-            !has_mmu || // this might be unnecessary TODO try MK404 with MMU without it
+            !has_mmu || // this might be unnecessary TODO try MK4 with MMU without it
 #endif
             !physical_sensors.current_side || FilamentSensors::IsWorking(physical_sensors.current_side->Get());
         const bool extruder_sensor_ok = !physical_sensors.current_extruder || FilamentSensors::IsWorking(physical_sensors.current_extruder->Get()) || physical_sensors.current_extruder->Get() == fsensor_t::Disabled;

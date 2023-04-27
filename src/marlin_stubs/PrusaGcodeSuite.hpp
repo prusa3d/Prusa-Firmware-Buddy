@@ -15,7 +15,6 @@ void M50(); /// selftest
 
 void M300(); /// beep
 void M505(); /// set eeprom variable
-void M650();
 
 // MMU G-CODES
 void M704(); /// Load filament to MMU

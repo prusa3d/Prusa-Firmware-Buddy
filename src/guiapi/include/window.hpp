@@ -169,7 +169,7 @@ protected:
 //uses window_t flags to store alignment (saves RAM)
 struct window_aligned_t : public AddSuperWindow<window_t> {
     window_aligned_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
-    /// alignment constants are in guitypes.h
+    /// alignment constants are in guitypes.hpp
     Align_t GetAlignment() const;
     void SetAlignment(Align_t alignment);
 };

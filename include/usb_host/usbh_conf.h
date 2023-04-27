@@ -30,8 +30,6 @@ extern "C" {
 
 #define USBH_USE_OS 1
 
-#define USE_HAL_HCD_REGISTER_CALLBACKS 1U
-
 /****************************************/
 /* #define for FS and HS identification */
 #define HOST_HS 0

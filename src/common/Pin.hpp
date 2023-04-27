@@ -356,7 +356,7 @@ private:
 
 class DummyOutputPin : protected Pin {
 public:
-    constexpr DummyOutputPin(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
+    constexpr DummyOutputPin(IoPort ioPort, IoPin ioPin, State initState, [[maybe_unused]] OMode oMode, [[maybe_unused]] OSpeed oSpeed)
         : Pin(ioPort, ioPin)
         , m_state(initState) {}
     /**

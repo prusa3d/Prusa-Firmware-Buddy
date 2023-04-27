@@ -13,7 +13,7 @@ class FooterDoubleLine : public AddSuperWindow<IFooter> {
     FooterLine line_1;
 
     //line0 cannot be changed, it shows temperatures only
-    static constexpr FooterLine::IdArray line1_defaults = { { footer::items::ItemNozzle, footer::items::ItemBed, footer::items::count_ } };
+    static constexpr FooterLine::IdArray line1_defaults = { { footer::Item::Nozzle, footer::Item::Bed, footer::Item::None } };
 
 public:
     FooterDoubleLine(window_t *parent);
@@ -26,7 +26,7 @@ public:
         line_0.Create({ { args... } }, sizeof...(T)); // footer line takes array of footer::items
     }
 
-    bool SetSlot(size_t slot_id, footer::items item);
+    bool SetSlot(size_t slot_id, footer::Item item);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

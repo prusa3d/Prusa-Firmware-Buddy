@@ -1,6 +1,5 @@
 /**
  * @file radio_button_fsm.hpp
- * @brief
  */
 
 #pragma once
@@ -15,7 +14,6 @@
  */
 template <class FSM_PHASE>
 class RadioButtonFsm : public AddSuperWindow<IRadioButton> {
-    FSM_PHASE phase;
 
     size_t cnt_buttons(FSM_PHASE phs) const {
         const PhaseResponses &resp = ClientResponses::GetResponses(phs);      // ClientResponses::GetResponses returns array of 16 responses
@@ -35,8 +33,7 @@ public:
         : AddSuperWindow<IRadioButton>(parent, rect, cnt_buttons(phs))
         , phase(phs) {}
 
-    template <class FSM_Phase>
-    void Change(FSM_Phase phs) {
+    void Change(FSM_PHASE phs) {
         if (phase == phs)
             return;
         phase = phs;
@@ -61,6 +58,8 @@ public:
     }
 
 protected:
+    FSM_PHASE phase;
+
     virtual Response responseFromIndex(size_t index) const override {
         return ClientResponses::GetResponse(phase, index);
     }

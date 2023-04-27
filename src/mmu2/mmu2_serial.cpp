@@ -19,7 +19,7 @@ namespace MMU2 {
 //    return BufferedSerial::uartNr.Available();
 //}
 
-void MMU2Serial::begin(uint32_t baud) {
+void MMU2Serial::begin([[maybe_unused]] uint32_t baud) {
     BufferedSerial::uartNr.Open();
     // zero the default read timeout to make BufferedSerial::Read() non-blocking
     BufferedSerial::uartNr.SetReadTimeoutMs(0);
@@ -59,8 +59,8 @@ MMU2Serial mmu2Serial;
 
 #else // HAS_MMU2
 
-    // a crude workaround to link FW for older incarnations of MK404's xBUDDY
-    // Empty implementation for the MMU2Serial. Hopefully, with the release of MK404 this can be removed completely...
+    // a crude workaround to link FW for older incarnations of MK4's xBUDDY
+    // Empty implementation for the MMU2Serial. Hopefully, with the release of MK4 this can be removed completely...
     #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_serial.h"
 namespace MMU2 {
 void MMU2Serial::begin(uint32_t /*baud*/) {}

@@ -28,7 +28,11 @@ static constexpr size_t top_of_changeable_area = WizardDefaults::row_1 + WizardD
 static constexpr size_t height_of_changeable_area = WizardDefaults::RectRadioButton(1).Top() - top_of_changeable_area;
 static constexpr Rect16 ChangeableRect = { col_0, top_of_changeable_area, WizardDefaults::X_space, height_of_changeable_area };
 
-static constexpr const char *en_text_test_name = N_("Filament sensor test");
+#if HAS_SIDE_FSENSOR()
+static constexpr const char *en_text_test_name = N_("Filament sensors calibration");
+#else
+static constexpr const char *en_text_test_name = N_("Filament sensor calibration");
+#endif
 
 static constexpr const char *en_text_have_filament = N_("Filament is required for the test, if you don't have it, press Abort. If filament is loaded in extruder press unload. If you have filament and filament is not loaded in extruder press next.");
 SelftestFrameFSensor::SelftestFrameFSensor(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
@@ -36,9 +40,9 @@ SelftestFrameFSensor::SelftestFrameFSensor(window_t *parent, PhasesSelftest ph, 
 
     , footer(this, 0,
 #if HAS_SIDE_FSENSOR()
-          footer::items::ItemFSensorSide,
+          footer::Item::FSensorSide,
 #endif /*HAS_SIDE_FSENSOR()*/
-          footer::items::ItemFSensor)
+          footer::Item::FSensor)
     , progress(this, WizardDefaults::row_1)
     , text_left(this, Rect16(col_0, top_of_changeable_area, text_left_width, height_of_changeable_area), is_multiline::yes)
     , text_right(this, Rect16(col_0 + icon_left_width + text_icon_space, top_of_changeable_area, text_right_width, height_of_changeable_area), is_multiline::yes)
@@ -71,56 +75,61 @@ void SelftestFrameFSensor::change() {
 
     //texts
     switch (phase_current) {
-    case PhasesSelftest::FSensor_ask_have_filament:
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
-        txt_right = N_("You need at least 130 cm of filament to calibrate the Filament sensor. Do you have filament?");
-#else
-        txt_right = N_("You need at least 5 cm of filament to calibrate the Filament sensor. Do you have filament?");
-#endif
-        show_left_icon = true;
-        break;
     case PhasesSelftest::FSensor_wait_tool_pick:
-        txt_right = N_("Please wait until tool is picked");
+        txt_right = N_("Please wait until a tool is picked");
         show_left_icon = true;
         break;
     case PhasesSelftest::FSensor_ask_unload:
 #if (PRINTER_TYPE == PRINTER_PRUSA_XL)
-        txt_right = N_("Great! We need to start without the filament. Please make sure there is no filament in the tool and side filament sensors.");
+        txt_right = N_("Please make sure there is no filament in the tool and side filament sensors.\n\nYou will need filament to finish this test later.");
 #else
-        txt_right = N_("Great! We need to start without the filament in the extruder. Please make sure there is no filament in the filament sensor.");
+        txt_right = N_("We need to start without the filament in the extruder. Please make sure there is no filament in the filament sensor.");
 #endif
         show_left_icon = true;
         break;
-    case PhasesSelftest::FSensor_unload:
+    case PhasesSelftest::FSensor_unload_confirm:
 #if (PRINTER_TYPE == PRINTER_PRUSA_XL)
-        txt_right = N_("Please make sure there is no filament in the tool and side filament sensors.");
+        txt_right = N_("Is there any filament in the tool or side filament sensors?");
 #else
-        txt_right = N_("Please make sure there is no filament in the filament sensor.");
+        txt_right = N_("Is filament in the filament sensor?");
 #endif
         show_left_icon = true;
         break;
     case PhasesSelftest::FSensor_calibrate:
         show_hourglass = true;
         break;
-    case PhasesSelftest::FSensor_insertion_check:
+    case PhasesSelftest::FSensor_insertion_wait:
 #if (PRINTER_TYPE == PRINTER_PRUSA_XL)
-        txt_left = N_("Insert the filament through the side filament sensor into the extruder until the sensor detects the filament.");
+        txt_left = N_("Insert the filament through the side filament sensor into the extruder until the tool filament sensor detects the filament.");
 #else
         txt_left = N_("Insert the filament into the extruder until the sensor detects the filament.");
 #endif
         right_icon_id = &png::hand_with_filament_150x130;
         break;
     case PhasesSelftest::FSensor_insertion_ok:
-        txt_left = N_("The filament sensor is successfully calibrated.");
+        txt_left = N_("Filament inserted, press continue.");
+
         right_icon_id = &png::hand_with_filament_ok_150x130;
+        break;
+    case PhasesSelftest::FSensor_insertion_calibrate:
+        txt_result = N_("Calibrating, do not remove filament.");
         break;
     case PhasesSelftest::Fsensor_enforce_remove:
         txt_left = N_("Remove filament to finish.");
-        right_icon_id = &png::hand_with_filament_ok_150x130;
+        right_icon_id = &png::hand_with_filament_150x130;
+        break;
+    case PhasesSelftest::FSensor_done:
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+        txt_right = N_("Filament sensors calibrated.");
+#else
+        txt_right = N_("Filament sensor calibrated.");
+#endif
+        show_left_icon = true;
         break;
     case PhasesSelftest::FSensor_fail:
         txt_result = N_("Test FAILED!");
         break;
+
     default:
         break;
     }

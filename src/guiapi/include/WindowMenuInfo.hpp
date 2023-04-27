@@ -33,7 +33,7 @@ public:
     IWiInfo(string_view_utf8 label, const png::Resource *id_icon, size_t info_len, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no);
     IWiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const png::Resource *id_icon = nullptr);
 
-    virtual void click(IWindowMenu &window_menu) {}
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 };
 
 template <size_t INFO_LEN>
@@ -62,7 +62,7 @@ public:
         ChangeInformation(buffer);
     }
 
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override {
+    virtual void printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const override {
         printInfo(extension_rect, color_back, _(information));
     }
     static constexpr size_t GetInfoLen() { return INFO_LEN; }

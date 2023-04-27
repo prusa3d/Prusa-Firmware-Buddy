@@ -10,7 +10,7 @@ ScreenTouchError::ScreenTouchError()
     : AddSuperWindow<screen_t>()
     , header(this, _("TOUCHSCREEN ERROR")) {}
 
-void ScreenTouchError::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenTouchError::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, [[maybe_unused]] GUI_event_t event, [[maybe_unused]] void *param) {
     if (event_in_progress)
         return;
 

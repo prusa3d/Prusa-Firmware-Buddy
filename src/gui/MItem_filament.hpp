@@ -38,6 +38,16 @@ public:
     void UpdateEnableState();
 };
 
+class MI_CHANGEALL : public WI_LABEL_t {
+    constexpr static const char *const label = N_("Change Filament in All Tools");
+
+public:
+    MI_CHANGEALL();
+
+protected:
+    virtual void click(IWindowMenu & /*window_menu*/) override;
+};
+
 class MI_PURGE : public MI_event_dispatcher {
     constexpr static const char *const label = N_("Purge Filament");
     constexpr static const char *const header_label = N_("PURGE FILAMENT");

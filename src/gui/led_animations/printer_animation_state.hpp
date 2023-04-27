@@ -10,7 +10,7 @@
 #include "freertos_mutex.hpp"
 
 namespace leds {
-PrinterState mpsToAnimationState(marlin_print_state_t state);
+PrinterState mpsToAnimationState(marlin_server::marlin_print_state_t state);
 
 AnimatorLCD::AnimationGuard start_animation(Animations animation, int priority);
 AnimatorLCD::AnimationGuard start_animation(PrinterState state, int priority);

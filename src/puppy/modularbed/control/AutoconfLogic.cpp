@@ -49,8 +49,8 @@ void MeasureAndCheckSingleHBCurrent(uint32_t hbIndex) {
     ControlLogic::DisableControllers();
 
     //turn off PWM for all heatbedlets
-    for (int hbIndex = 0; hbIndex < HEATBEDLET_COUNT; hbIndex++) {
-        HeatbedletInfo::Get(hbIndex)->m_PWMValue = 0;
+    for (int i = 0; i < HEATBEDLET_COUNT; i++) {
+        HeatbedletInfo::Get(i)->m_PWMValue = 0;
     }
 
     MeasureAndCheckHBResistance_Impl(hbIndex);

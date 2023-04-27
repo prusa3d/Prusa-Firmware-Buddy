@@ -58,6 +58,3 @@ string_view_utf8 FooterItemFSensor::static_makeView(int value) {
 
     return string_view_utf8(_(txt));
 }
-
-string_view_utf8 FooterItemFSensor::GetName() { return _("F. Sensor"); }
-string_view_utf8 FooterItemFSensorSide::GetName() { return _("Side F. Sensor"); }

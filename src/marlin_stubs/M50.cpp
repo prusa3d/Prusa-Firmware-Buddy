@@ -32,12 +32,12 @@ void PrusaGcodeSuite::M50() {
     }
 
     {
-        FSM_HOLDER__LOGGING(SelftestAxis, 0);
+        FSM_HOLDER__LOGGING(SelftestAxis);
         const float target_Z = 20;
         Z_Calib_FSM N(ClientFSM::SelftestAxis, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z, 0, 100); //bind to variable and automatically notify progress
         do_blocking_move_to_z(20, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
-    /*    FSM_HOLDER__LOGGING(G162, 0);
+    /*    FSM_HOLDER__LOGGING(G162);
 
     // Z axis lift
     if (parser.seen('Z')) {

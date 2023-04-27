@@ -11,12 +11,6 @@ inline constexpr uint16_t MARLIN_CFLG_PROCESS = 0x02; // loop processing in main
 inline constexpr uint16_t MARLIN_CFLG_LOWHIGH = 0x08; // receiving low/high part of client message
 
 //-----------------------------------------------------------------------------
-//externs from marlin server todo fixme use variables
-int marlin_all_axes_homed();
-
-int marlin_all_axes_known();
-
-//-----------------------------------------------------------------------------
 // client side functions (can be called from client thread only)
 
 // initialize client side, returns pointer to client structure
@@ -48,9 +42,6 @@ void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)());
 
 // returns currently running command or MARLIN_CMD_NONE
 uint32_t marlin_command();
-
-// enable/disable exclusive mode (used for selftest)
-void marlin_set_exclusive_mode(int exclusive_mode);
 
 // enqueue gcode - thread-safe version  (request '!g xxx')
 void marlin_gcode(const char *gcode);
@@ -89,12 +80,12 @@ uint8_t marlin_get_gqueue();
 uint8_t marlin_get_pqueue();
 
 // variable setters
-void marlin_set_target_nozzle(float val, uint8_t hotend = MARLIN_SERVER_CURRENT_TOOL);
-void marlin_set_display_nozzle(float val, uint8_t hotend = MARLIN_SERVER_CURRENT_TOOL);
+void marlin_set_target_nozzle(float val, uint8_t hotend = marlin_server::CURRENT_TOOL);
+void marlin_set_display_nozzle(float val, uint8_t hotend = marlin_server::CURRENT_TOOL);
 void marlin_set_target_bed(float val);
 void marlin_set_fan_speed(uint8_t val);
 void marlin_set_print_speed(uint16_t val);
-void marlin_set_flow_factor(uint16_t val, uint8_t hotend = MARLIN_SERVER_CURRENT_TOOL);
+void marlin_set_flow_factor(uint16_t val, uint8_t hotend = marlin_server::CURRENT_TOOL);
 void marlin_set_z_offset(float val);
 void marlin_set_fan_check(bool val);
 void marlin_set_fs_autoload(bool val);

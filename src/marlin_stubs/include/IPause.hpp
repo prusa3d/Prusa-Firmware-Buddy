@@ -9,6 +9,7 @@
 
 class IPause {
 public:
+    virtual ~IPause() = default;
     virtual void RestoreTemp() = 0;
     virtual bool CanSafetyTimerExpire() const = 0;
     virtual void NotifyExpiredFromSafetyTimer() = 0;

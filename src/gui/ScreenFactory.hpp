@@ -33,7 +33,6 @@
 #include "screen_menu_system.hpp"
 #include "screen_menu_statistics.hpp"
 #include "screen_menu_cancel_object.hpp"
-#include "screen_menu_control.hpp"
 #include "screen_touch_error.hpp"
 
 #include "gui/test/screen_menu_test.hpp"
@@ -91,8 +90,7 @@ class ScreenFactory {
         ScreenMenuTest,
         ScreenTouchError,
         ScreenMenuTune,
-        ScreenMenuUserInterfaceInSettings,
-        ScreenMenuUserInterfaceInTune,
+        ScreenMenuUserInterface,
         ScreenMenuVersionInfo,
         ScreenMenuWifiSettings,
         ScreenMenuPrusaLink,

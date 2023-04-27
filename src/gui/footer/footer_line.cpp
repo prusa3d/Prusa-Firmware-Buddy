@@ -12,7 +12,7 @@
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)
     : AddSuperWindow<window_frame_t>(parent, footer::LineRect(line_no), positioning::relative) {
-    item_ids.fill(footer::items::count_);
+    item_ids.fill(footer::Item::None);
 }
 
 void FooterLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -22,7 +22,7 @@ void FooterLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
         break;
     case GUI_event_t::REINIT_FOOTER:
         // count means all items changed, could be caused by change of centering option
-        if (footer::DecodeItemFromEvent(param) == footer::items::count_) {
+        if (footer::DecodeItemFromEvent(param) == footer::Item::None) {
             positionWindows();
         }
         break;
@@ -34,7 +34,7 @@ void FooterLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 }
 
 // does not call destructor, just rewrites
-bool FooterLine::Create(footer::items item_id, size_t index) {
+bool FooterLine::Create(footer::Item item_id, size_t index) {
     if (index >= max_items)
         return false;
     if (item_ids[index] == item_id)
@@ -45,71 +45,76 @@ bool FooterLine::Create(footer::items item_id, size_t index) {
 
     // create new item
     switch (item_id) {
-    case footer::items::ItemNozzle:
+    case footer::Item::Nozzle:
         new (&items[index]) FooterItemNozzle(this);
         break;
-    case footer::items::ItemBed:
+    case footer::Item::Bed:
         new (&items[index]) FooterItemBed(this);
         break;
-    case footer::items::ItemFilament:
+    case footer::Item::Filament:
         new (&items[index]) FooterItemFilament(this);
         break;
-    case footer::items::ItemFSensor:
+    case footer::Item::FSensor:
         new (&items[index]) FooterItemFSensor(this);
         break;
-    case footer::items::ItemSpeed:
+    case footer::Item::FSValue:
+        new (&items[index]) FooterItemFSValue(this);
+        break;
+    case footer::Item::Speed:
         new (&items[index]) FooterItemSpeed(this);
         break;
-    case footer::items::ItemAxisX:
+    case footer::Item::AxisX:
         new (&items[index]) FooterItemAxisX(this);
         break;
-    case footer::items::ItemAxisY:
+    case footer::Item::AxisY:
         new (&items[index]) FooterItemAxisY(this);
         break;
-    case footer::items::ItemAxisZ:
+    case footer::Item::AxisZ:
         new (&items[index]) FooterItemAxisZ(this);
         break;
-    case footer::items::ItemZHeight:
+    case footer::Item::ZHeight:
         new (&items[index]) FooterItemZHeight(this);
         break;
-    case footer::items::ItemPrintFan:
+    case footer::Item::PrintFan:
         new (&items[index]) FooterItemPrintFan(this);
         break;
-    case footer::items::ItemHeatbreakFan:
+    case footer::Item::HeatbreakFan:
         new (&items[index]) FooterItemHeatBreakFan(this);
         break;
 #if defined(FOOTER_HAS_LIVE_Z)
-    case footer::items::ItemLiveZ:
+    case footer::Item::LiveZ:
         new (&items[index]) FooterItemLiveZ(this);
         break;
 #endif
 #if defined(FOOTER_HAS_SHEETS)
-    case footer::items::ItemSheets:
+    case footer::Item::Sheets:
         new (&items[index]) FooterItemSheets(this);
         break;
 #endif
-    case footer::items::ItemHeatbreak:
+    case footer::Item::Heatbreak:
         new (&items[index]) FooterItemHeatBreak(this);
         break;
 #if HAS_MMU2
-    case footer::items::ItemFinda:
+    case footer::Item::Finda:
         new (&items[index]) FooterItemFinda(this);
         break;
 #endif
 #if defined(FOOTER_HAS_TOOL_NR)
-    case footer::items::ItemCurrentTool:
+    case footer::Item::CurrentTool:
         new (&items[index]) FooterItemCurrentTool(this);
         break;
-    case footer::items::ItemAllNozzles:
+    case footer::Item::AllNozzles:
         new (&items[index]) FooterItemAllNozzles(this);
         break;
 #endif
 #if HAS_SIDE_FSENSOR()
-    case footer::items::ItemFSensorSide:
+    case footer::Item::FSensorSide:
         new (&items[index]) FooterItemFSensorSide(this);
         break;
 #endif /*HAS_SIDE_FSENSOR()*/
-    case footer::items::count_:
+
+    case footer::Item::None:
+    case footer::Item::_count:
         break;
     }
     item_ids[index] = item_id;
@@ -235,7 +240,7 @@ std::array<Rect16::Width_t, FooterLine::array_sz> FooterLine::addBorderZeroWidth
 }
 
 bool FooterLine::slotUsed(size_t index) const {
-    return item_ids[index] != footer::items::count_;
+    return item_ids[index] != footer::Item::None;
 }
 
 window_t *FooterLine::SlotAccess(size_t index) const {
@@ -246,7 +251,7 @@ window_t *FooterLine::SlotAccess(size_t index) const {
     return (window_t *)(&(items[index]));
 }
 
-footer::items FooterLine::SlotUsedBy(size_t index) {
+footer::Item FooterLine::SlotUsedBy(size_t index) {
     return item_ids[index];
 }
 
@@ -254,13 +259,13 @@ void FooterLine::unregister(size_t index) {
     window_t *pWin = SlotAccess(index);
     if (pWin) {
         unregisterAnySubWin(*pWin, first_normal, last_normal);
-        item_ids[index] = footer::items::count_;
+        item_ids[index] = footer::Item::None;
     }
 }
 
 void FooterLine::SetCenterN(size_t n_and_fewer) {
     if (footer::eeprom::SetCenterNAndFewer(n_and_fewer) == changed_t::yes) {
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::Item::None));
     }
 }
 

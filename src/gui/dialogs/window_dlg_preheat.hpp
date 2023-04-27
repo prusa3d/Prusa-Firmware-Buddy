@@ -11,6 +11,7 @@
 #include "../../lang/string_view_utf8.hpp"
 #include "screen_menu.hpp"
 #include "DialogStateful.hpp"
+#include "fsm_preheat_type.hpp"
 #include "MItem_tools.hpp"
 
 namespace NsPreheat {
@@ -64,6 +65,7 @@ protected:
                           MI_Filament<filament::Type::ABS>,     \
                           MI_Filament<filament::Type::HIPS>,    \
                           MI_Filament<filament::Type::PP>,      \
+                          MI_Filament<filament::Type::PA>,      \
                           MI_Filament<filament::Type::FLEX>
 #else
     #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,  \
@@ -74,6 +76,7 @@ protected:
                           MI_Filament<filament::Type::ABS>,  \
                           MI_Filament<filament::Type::HIPS>, \
                           MI_Filament<filament::Type::PP>,   \
+                          MI_Filament<filament::Type::PA>,   \
                           MI_Filament<filament::Type::FLEX>
 #endif
 
@@ -104,8 +107,11 @@ class DialogMenuPreheat : public AddSuperWindow<IDialogMarlin> {
     window_header_t header;
 
 public:
-    DialogMenuPreheat(string_view_utf8 name, PreheatData type);
+    DialogMenuPreheat(fsm::BaseData data);
 
 protected:
     virtual bool change(uint8_t phase, fsm::PhaseData data) override;
+
+    static PreheatData get_type(fsm::BaseData data);
+    static string_view_utf8 get_title(fsm::BaseData data);
 };

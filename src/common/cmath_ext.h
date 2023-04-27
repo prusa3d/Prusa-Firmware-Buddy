@@ -6,6 +6,10 @@
 
 #include <stdlib.h>
 
+// Undefine type-unsafe C definitions (if any)
+#undef MAX
+#undef MIN
+
 /// \returns maximum of the two
 #define MAX(a, b) \
     ({ __typeof__ (a) _a = (a); \

@@ -19,12 +19,12 @@ class DialogFactory {
     }
 
 public:
-    typedef static_unique_ptr<IDialogMarlin> (*fnc)(uint8_t data); //function pointer definition
+    typedef static_unique_ptr<IDialogMarlin> (*fnc)(fsm::BaseData data); //function pointer definition
     using Ctors = std::array<fnc, size_t(ClientFSM::_count)>;
     //define factory methods for all dialogs here
-    static static_unique_ptr<IDialogMarlin> load_unload(uint8_t data);
-    static static_unique_ptr<IDialogMarlin> Preheat(uint8_t data);
-    static static_unique_ptr<IDialogMarlin> screen_not_dialog(uint8_t data);
+    static static_unique_ptr<IDialogMarlin> load_unload(fsm::BaseData data);
+    static static_unique_ptr<IDialogMarlin> Preheat(fsm::BaseData data);
+    static static_unique_ptr<IDialogMarlin> screen_not_dialog(fsm::BaseData data);
 
     static Ctors GetAll(); //returns all factory methods in an array
 };

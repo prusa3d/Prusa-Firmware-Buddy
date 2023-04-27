@@ -24,7 +24,7 @@ void ScreenMenuFilamentMMU::deactivate_item() {
     current_filament == filament::Type::NONE ? DisableItem<MI_PURGE>() : EnableItem<MI_PURGE>();
 }
 
-void ScreenMenuFilamentMMU::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuFilamentMMU::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     deactivate_item();
     if (event == GUI_event_t::CLICK) {
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);

@@ -8,6 +8,7 @@ extern "C" {
 #include <stdint.h>
 
 #define WITH_RTOS            1
+#define MEM_LIBC_MALLOC      1
 #define CHECKSUM_BY_HARDWARE 0
 #define LWIP_DHCP            1
 #define MEM_ALIGNMENT        4
@@ -16,8 +17,13 @@ extern "C" {
 #define LWIP_DNS_SECURE      7
 #define DNS_MAX_NAME_LENGTH  128
 
-#define TCP_MSS                536
-#define TCP_WND                (2 * TCP_MSS)
+#define TCP_MSS                1024
+#define TCP_WND                (4 * TCP_MSS)
+#define TCP_SND_BUF            (2 * TCP_MSS)
+#define LWIP_WND_SCALE         0
+#define TCP_RCV_SCALE          0
+#define PBUF_POOL_SIZE         16
+#define IP_REASS_MAX_PBUFS     15
 #define TCPIP_THREAD_STACKSIZE 1088
 
 #define TCPIP_MBOX_SIZE 6
@@ -38,6 +44,7 @@ extern "C" {
 #define CHECKSUM_CHECK_TCP        1
 #define CHECKSUM_CHECK_ICMP       1
 #define CHECKSUM_CHECK_ICMP6      1
+#define LWIP_CHECKSUM_ON_COPY     1
 #define HTTPD_USE_CUSTOM_FSDATA   0
 
 /*
@@ -67,7 +74,7 @@ extern "C" {
 #define LWIP_SINGLE_NETIF            0
 #define LWIP_NETIF_HOSTNAME          1
 #define LWIP_HTTPD_SUPPORT_POST      0
-#define LWIP_COMPAT_SOCKETS          2
+#define LWIP_COMPAT_SOCKETS          0
 #define LWIP_ALTCP                   0
 #define LWIP_HTTPD_DYNAMIC_FILE_READ 0
 #define LWIP_TIMERS                  1

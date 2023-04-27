@@ -3,8 +3,10 @@
 #include "GuiDefaults.hpp"
 #include "gcode_thumb_decoder.h"
 #include "str_utils.hpp"
+#include <cstring>
 #include <option/developer_mode.h>
 #include <Marlin/src/module/motion.h>
+#include <version.h>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -29,7 +31,7 @@ const char *GCodeInfo::GetGcodeFilepath() {
 }
 
 bool GCodeInfo::hasThumbnail(FILE *file, size_ui16_t size) {
-    FILE f = { 0 };
+    FILE f {};
     bool thumbnail_valid = false;
     GCodeThumbDecoder gd(file, size.w, size.h, true);
     if (f_gcode_thumb_open(&gd, &f) == 0) {
@@ -104,7 +106,7 @@ bool GCodeInfo::ValidPrinterSettings::nozzle_diameters_valid() const {
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_valid() const {
-    return nozzle_diameters_valid() && wrong_printer_model.is_valid() && wrong_firmware_version.is_valid() && wrong_gcode_level.is_valid();
+    return nozzle_diameters_valid() && wrong_printer_model.is_valid() && wrong_gcode_level.is_valid() && wrong_firmware.is_valid() && mk3_compatibility_mode.is_valid();
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_fatal() const {
@@ -118,7 +120,7 @@ bool GCodeInfo::ValidPrinterSettings::is_fatal() const {
             return true;
         }
     }
-    return wrong_printer_model.is_fatal() || wrong_firmware_version.is_fatal() || wrong_gcode_level.is_fatal();
+    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || mk3_compatibility_mode.is_fatal();
 }
 
 GCodeInfo::Buffer::Buffer(FILE &file)
@@ -168,6 +170,7 @@ void GCodeInfo::Buffer::String::trim() {
 }
 
 GCodeInfo::Buffer::String GCodeInfo::Buffer::String::get_string() {
+    skip_ws();
     if (begin != end && *begin == '"') {
         auto quote = std::find(begin + 1, end, '"');
         if (quote != end) {
@@ -187,6 +190,35 @@ bool GCodeInfo::Buffer::String::if_heading_skip(const char *str) {
             return false;
         }
     }
+}
+
+void GCodeInfo::parse_version(GCodeInfo::ValidPrinterSettings &valid_printer_settings, const char *version) {
+    // Parse version from G-code and from this firmware
+    // Parse and store version from G-code to be displayed later
+    ValidPrinterSettings::GcodeFwVersion &g_fw = valid_printer_settings.gcode_fw_version;
+    if (sscanf(version, "%d.%d.%d", &g_fw.major, &g_fw.minor, &g_fw.patch) != 3) {
+        return;
+    }
+
+    // Parse version of this firmware
+    ValidPrinterSettings::GcodeFwVersion v_fw;
+    if (sscanf(project_version, "%d.%d.%d", &v_fw.major, &v_fw.minor, &v_fw.patch) != 3) {
+        bsod("Internal project_version cannot be parsed with \"%d.%d.%d\"");
+    }
+
+    if (g_fw.major > v_fw.major) { // Major is higher
+        valid_printer_settings.wrong_firmware.fail();
+    }
+
+    if (g_fw.major == v_fw.major && g_fw.minor > v_fw.minor) { // Minor is higher
+        valid_printer_settings.wrong_firmware.fail();
+    }
+
+    if (g_fw.major == v_fw.major && g_fw.minor == v_fw.minor && g_fw.patch > v_fw.patch) { // Patch is higher
+        valid_printer_settings.wrong_firmware.fail();
+    }
+
+    // Ignore everything behind patch number
 }
 
 void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_counter, GCodeInfo::ValidPrinterSettings &valid_printer_settings) {
@@ -224,17 +256,29 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
                 case '1':
                     p_diameter = cmd.get_float(); // Only store value in case Tx comes later
                     break;
-                case '3':
-                    valid_printer_settings.wrong_printer_model.set(cmd.get_string() != printer_model);
+                case '3': {
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+                    if (strncmp(cmd.get_string().c_str(), "MK3", 3) == 0) {
+                        valid_printer_settings.mk3_compatibility_mode.fail();
+                    }
+#endif
+                    if (cmd.get_string() != printer_model) {
+                        valid_printer_settings.wrong_printer_model.fail();
+                    }
+                    break;
+                }
+                case '4':
+                    parse_version(valid_printer_settings, cmd.c_str());
                     break;
                 case '2':
-                    valid_printer_settings.wrong_printer_model.set(cmd.get_uint() != printer_model_code);
-                    break;
-                case '4':
-                    valid_printer_settings.wrong_firmware_version.set(cmd.get_uint() != eeprom_get_ui16(EEVAR_FW_VERSION));
+                    if (cmd.get_uint() != printer_model_code) {
+                        valid_printer_settings.wrong_printer_model.fail();
+                    }
                     break;
                 case '5':
-                    valid_printer_settings.wrong_gcode_level.set(cmd.get_uint() != gcode_level);
+                    if (cmd.get_uint() != gcode_level) {
+                        valid_printer_settings.wrong_gcode_level.fail();
+                    }
                     break;
                 }
             }
@@ -245,7 +289,19 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
         // Check nozzle diameter
         if (!isnan(p_diameter) && tool < HOTENDS) {
             static_assert(EEPROM_MAX_TOOL_COUNT >= HOTENDS, "Not enough nozzles stored in EEPROM");
-            valid_printer_settings.wrong_nozzle_diameters[tool].set(p_diameter != eeprom_get_nozzle_dia(tool));
+            if (p_diameter != eeprom_get_nozzle_dia(tool)) {
+                valid_printer_settings.wrong_nozzle_diameters[tool].fail();
+            }
+        }
+    }
+
+    // Parse M115 Ux.yy.z for newer firmware
+    if (cmd.if_heading_skip(gcode_info::m115)) {
+        cmd.skip_ws();
+        if (cmd.pop_front() == 'U') {
+            *(cmd.end - 1) = '\0'; // Terminate string if not already
+
+            parse_version(valid_printer_settings, cmd.c_str());
         }
     }
 }
@@ -299,7 +355,9 @@ void GCodeInfo::parse_comment(GCodeInfo::Buffer::String comment, time_buff &prin
                 extruder++;
             }
         } else if (name == gcode_info::printer) {
-            valid_printer_settings.wrong_printer_model.set(val != printer_model);
+            if (val != printer_model) {
+                valid_printer_settings.wrong_printer_model.fail();
+            }
         }
     }
 }
@@ -308,8 +366,8 @@ void GCodeInfo::PreviewInit(FILE &file, time_buff &printing_time, GCodePerExtrud
     valid_printer_settings = ValidPrinterSettings(); // reset to valid state
     per_extruder_info = {};                          // Reset extruder info
 
+    fseek(&file, 0, SEEK_SET);
     Buffer buffer(file);
-    uint32_t gcode_counter = 0;
 
     // parse first 'f_gcode_search_first_x_gcodes' g-codes from the beginning of the file
     for (uint32_t gcode_counter = 0; gcode_counter < search_first_x_gcodes && buffer.read_line();) {
@@ -321,6 +379,7 @@ void GCodeInfo::PreviewInit(FILE &file, time_buff &printing_time, GCodePerExtrud
     if (fseek(&file, -search_last_x_bytes, SEEK_END) != 0) {
         fseek(&file, 0, SEEK_SET);
     }
+    [[maybe_unused]] uint32_t gcode_counter = 0;
     while (buffer.read_line()) {
         parse_comment(buffer.line, printing_time, per_extruder_info, filament_described, valid_printer_settings);
         parse_gcode(buffer.line, gcode_counter, valid_printer_settings);

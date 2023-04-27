@@ -29,12 +29,16 @@
 #include "i2c.h"
 #include "netdev.h"
 
+#include <option/has_control_menu.h>
 #include <option/has_loadcell.h>
 #include <option/developer_mode.h>
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_calibration.hpp"
 #include "screen_menu_filament.hpp"
+#if HAS_CONTROL_MENU()
+    #include "screen_menu_control.hpp"
+#endif
 
 #if HAS_MMU2
     #include "screen_menu_filament_mmu.hpp"
@@ -42,16 +46,24 @@
 
 #include <crash_dump/crash_dump_handlers.hpp>
 #include "box_unfinished_selftest.hpp"
+#include <option/has_control_menu.h>
 
 // TODO remove netdev_is_enabled after it is defined
-bool __attribute__((weak)) netdev_is_enabled(const uint32_t netdev_id) { return true; }
+bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) { return true; }
 
 bool screen_home_data_t::ever_been_opened = false;
 bool screen_home_data_t::try_esp_flash = true;
 bool screen_home_data_t::touch_broken_during_run = false;
 
-#define GEN_ICON_NAMES(ICON) \
-    { png::ICON##_64x64, png::ICON##_64x64_focused, png::ICON##_64x64_disabled }
+#ifdef USE_ST7789
+    #define GEN_ICON_NAMES(ICON) \
+        { png::ICON##_64x64, png::ICON##_64x64_focused, png::ICON##_64x64_disabled }
+#endif // USE_ST7789
+#ifdef USE_ILI9488
+    #define GEN_ICON_NAMES(ICON) \
+        { png::ICON##_80x80, png::ICON##_80x80_focused, png::ICON##_80x80_disabled }
+#endif // USE_ILI9488
+
 static constexpr const WindowMultiIconButton::Pngs icons[] = {
     GEN_ICON_NAMES(print),
     GEN_ICON_NAMES(preheat),
@@ -70,48 +82,40 @@ constexpr size_t buttonFilamentIndex = 2;
 
 #ifdef USE_ST7789
 constexpr size_t buttonsXSpacing = 15;
-constexpr size_t buttonsXIconSize = 64;
-constexpr size_t buttonsYSpacing = 14;
-constexpr size_t buttonsYIconSize = 64;
 constexpr size_t buttonTextWidth = 80;
-constexpr size_t buttonTextHeight = 14;
+constexpr size_t buttonTextHeight = 13; // font_7x13
 
 constexpr size_t buttonTopOffset = 88;
-constexpr size_t buttonTextTopOffset = 154;
+constexpr size_t buttonTextTopOffset = 155;
 
 constexpr Rect16 logoRect = Rect16(41, 31, 158, 40);
 #endif // USE_ST7789
 
 #ifdef USE_ILI9488
-constexpr size_t buttonsXSpacing = 31;
-constexpr size_t buttonsXIconSize = 64;
-constexpr size_t buttonsYSpacing = 31;
-constexpr size_t buttonsYIconSize = 64;
+constexpr size_t buttonsXSpacing = 40;
 constexpr size_t buttonTextWidth = 94;
-constexpr size_t buttonTextHeight = 17;
+constexpr size_t buttonTextHeight = 23;
 
-constexpr size_t buttonTopOffset = 90;
-constexpr size_t buttonTextTopOffset = 159;
-
-constexpr Rect16 logoRect = Rect16(113, 32, 182, 40);
+constexpr size_t buttonTopOffset = 53;
+constexpr size_t buttonTextTopOffset = buttonTopOffset + GuiDefaults::ButtonIconSize + 5;
 #endif // USE_ILI9488
 
-constexpr size_t buttonTextSpacing = buttonsXIconSize + buttonsXSpacing - buttonTextWidth;
-constexpr size_t buttonsLeftOffset = (GuiDefaults::ScreenWidth - 3 * buttonsXIconSize - 2 * buttonsXSpacing) / 2;
+constexpr size_t buttonTextSpacing = GuiDefaults::ButtonIconSize + buttonsXSpacing - buttonTextWidth;
+constexpr size_t buttonsLeftOffset = (GuiDefaults::ScreenWidth - 3 * GuiDefaults::ButtonIconSize - 2 * buttonsXSpacing) / 2;
 constexpr size_t buttonsTextsLeftOffset = (GuiDefaults::ScreenWidth - 3 * buttonTextWidth - 2 * buttonTextSpacing) / 2;
 
 static constexpr Rect16 buttonRect(size_t col, size_t row) {
     return Rect16(
-        buttonsLeftOffset + (buttonsXSpacing + buttonsXIconSize) * col,
-        buttonTopOffset + (buttonsYSpacing + buttonsYIconSize) * row,
-        buttonsXIconSize,
-        buttonsYIconSize);
+        buttonsLeftOffset + (buttonsXSpacing + GuiDefaults::ButtonIconSize) * col,
+        buttonTopOffset + (GuiDefaults::ButtonIconVerticalSpacing + GuiDefaults::ButtonIconSize) * row,
+        GuiDefaults::ButtonIconSize,
+        GuiDefaults::ButtonIconSize);
 }
 
 static constexpr Rect16 buttonTextRect(size_t col, size_t row) {
     return Rect16(
-        buttonsTextsLeftOffset + (buttonsYSpacing + buttonsXIconSize) * col,
-        buttonTextTopOffset + (buttonsYSpacing + buttonsYIconSize) * row,
+        buttonsTextsLeftOffset + (buttonsXSpacing + GuiDefaults::ButtonIconSize) * col,
+        buttonTextTopOffset + (GuiDefaults::ButtonIconVerticalSpacing + GuiDefaults::ButtonIconSize) * row,
         buttonTextWidth,
         buttonTextHeight);
 }
@@ -120,7 +124,7 @@ const char *labels[] = {
     N_("Print"),
     N_("Preheat"),
     N_("Filament"),
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if HAS_CONTROL_MENU()
     N_("Control"),
 #else
     N_("Calibrate"),
@@ -131,7 +135,6 @@ const char *labels[] = {
 };
 
 bool screen_home_data_t::usbWasAlreadyInserted = false;
-uint32_t screen_home_data_t::lastUploadCount = 0;
 
 static void FilamentBtn_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
@@ -145,29 +148,40 @@ static void FilamentBtnMMU_cb() {
 #endif
 }
 
+// clang-format off
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
     , usbInserted(marlin_vars()->media_inserted)
-    , mmu_state(MMU2::State_t::Stopped)
+    , mmu_state(MMU2::xState::Stopped)
     , event_in_progress(false)
     , header(this)
     , footer(this)
+#ifdef USE_ST7789
     , logo(this, logoRect, &png::printer_logo)
+#endif // USE_ST7789
     , w_buttons {
-    { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), nullptr, []() { marlin_gcode_printf("M1700"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if HAS_CONTROL_MENU()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
 #else
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCalibration>); } },
 #endif
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },
-    {
-        this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>); }
-    }
-}
-, w_labels { { this, Rect16(), is_multiline::no }, { this, Rect16(), is_multiline::no }, { this, Rect16(), is_multiline::no }, { this, Rect16(), is_multiline::no }, { this, Rect16(), is_multiline::no }, { this, Rect16(), is_multiline::no } }, gcode(GCodeInfo::getInstance()), please_wait_msg(GuiDefaults::DialogFrameRect, _("Loading the last file on the USB")) {
+        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>); }}
+    },
+    w_labels {
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no },
+        { this, Rect16(), is_multiline::no }
+    },
+    gcode(GCodeInfo::getInstance()),
+    please_wait_msg(GuiDefaults::DialogFrameRect, _("Loading the last file on the USB")) {
+    // clang-format on
 
     EnableLongHoldScreenAction();
     window_frame_t::ClrMenuTimeoutClose();
@@ -195,7 +209,6 @@ screen_home_data_t::screen_home_data_t()
             const size_t i = row * 3 + col;
             w_buttons[i].SetRect(buttonRect(col, row));
             w_buttons[i].SetRes(&icons[i]);
-
             w_labels[i].SetRect(buttonTextRect(col, row));
             w_labels[i].font = resource_font(IDR_FNT_SMALL);
             w_labels[i].SetAlignment(Align_t::Center());
@@ -204,7 +217,7 @@ screen_home_data_t::screen_home_data_t()
         }
     }
 
-    filamentBtnSetState(MMU2::State_t(marlin_vars()->mmu2_state.get()));
+    filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
 
     if (!usbInserted) {
         printBtnDis();
@@ -218,80 +231,7 @@ screen_home_data_t::~screen_home_data_t() {
     GuiMediaEventsHandler::ConsumeOneClickPrinting();
 }
 
-void screen_home_data_t::draw() {
-    super::draw();
-#ifdef _DEBUG
-    static const char dbg[] = "DEBUG";
-    display::DrawText(Rect16(210, 31, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_RED);
-#endif //_DEBUG
-}
-
-void screen_home_data_t::unconditionalDraw() {
-    super::unconditionalDraw();
-
-    // would not fit on small display
-    if constexpr (GuiDefaults::ShowDevelopmentTools && GuiDefaults::ScreenWidth >= 480) {
-        using Arr = std::array<char, 11>;
-
-        bool show = I2C_TRANSMIT_RESULTS_HAL_ERROR || I2C_TRANSMIT_RESULTS_HAL_BUSY || I2C_TRANSMIT_RESULTS_HAL_TIMEOUT || I2C_TRANSMIT_RESULTS_UNDEF || I2C_RECEIVE_RESULTS_HAL_ERROR || I2C_RECEIVE_RESULTS_HAL_BUSY || I2C_RECEIVE_RESULTS_HAL_TIMEOUT || I2C_RECEIVE_RESULTS_UNDEF;
-
-        if (show) {
-
-            Rect16 rc = buttonTextRect(2, 0);
-            const Rect16::Height_t h = 13;
-            rc = GuiDefaults::RectScreenNoHeader.Top();                     // Top just under header
-            rc += Rect16::Left_t(buttonTextWidth);                          // Left next to last button text
-            rc = h;                                                         // Height
-            const Rect16::Width_t w = GuiDefaults::ScreenWidth - rc.Left(); // Width to end of screen
-            rc = w;
-
-            Arr txt = { "EEPROM ERR" };                                                                                                                 // can be use for MakeRAM, it is drawn just once - here
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), COLOR_ORANGE, GetBackColor()); //inv colors
-
-            rc += Rect16::Top_t(h + 3);
-
-            strncpy(txt.begin(), "TRANSMIT", txt.size());
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "OK    %u", unsigned(I2C_TRANSMIT_RESULTS_HAL_OK));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "ERR   %u", unsigned(I2C_TRANSMIT_RESULTS_HAL_ERROR));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "BUSY  %u", unsigned(I2C_TRANSMIT_RESULTS_HAL_BUSY));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "TMOUT %u", unsigned(I2C_TRANSMIT_RESULTS_HAL_TIMEOUT));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "UNDEF %u", unsigned(I2C_TRANSMIT_RESULTS_UNDEF));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-
-            rc += Rect16::Top_t(h + 10);
-
-            strncpy(txt.begin(), "RECEIVE", txt.size());
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "OK    %u", unsigned(I2C_RECEIVE_RESULTS_HAL_OK));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "ERR   %u", unsigned(I2C_RECEIVE_RESULTS_HAL_ERROR));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "BUSY  %u", unsigned(I2C_RECEIVE_RESULTS_HAL_BUSY));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "TMOUT %u", unsigned(I2C_RECEIVE_RESULTS_HAL_TIMEOUT));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-            rc += Rect16::Top_t(h + 1);
-            snprintf(txt.begin(), txt.size(), "UNDEF %u", unsigned(I2C_RECEIVE_RESULTS_UNDEF));
-            display::DrawText(rc, string_view_utf8::MakeRAM((const uint8_t *)txt.begin()), resource_font(IDR_FNT_SMALL), GetBackColor(), COLOR_ORANGE);
-        }
-    }
-}
-
-void screen_home_data_t::filamentBtnSetState(MMU2::State_t mmu) {
+void screen_home_data_t::filamentBtnSetState(MMU2::xState mmu) {
     if (mmu != mmu_state) {
         mmu_state = mmu;
 
@@ -299,13 +239,13 @@ void screen_home_data_t::filamentBtnSetState(MMU2::State_t mmu) {
         // it might be good idea to move mmu enum to extra header
         // TODO move this code
         switch (mmu_state) {
-        case MMU2::State_t::Active:
+        case MMU2::xState::Active:
             w_buttons[buttonFilamentIndex].SetRes(&icons[iconMMUId]);
             w_buttons[buttonFilamentIndex].SetAction(FilamentBtnMMU_cb);
             w_buttons[buttonFilamentIndex].Unshadow();
             w_buttons[buttonFilamentIndex].Enable();
             break;
-        case MMU2::State_t::Connecting:
+        case MMU2::xState::Connecting:
             w_buttons[buttonFilamentIndex].SetRes(&icons[iconMMUId]);
             if (w_buttons[buttonFilamentIndex].IsFocused()) {
                 w_buttons[buttonFilamentIndex - 1].SetFocus();
@@ -313,7 +253,7 @@ void screen_home_data_t::filamentBtnSetState(MMU2::State_t mmu) {
             w_buttons[buttonFilamentIndex].Shadow();
             w_buttons[buttonFilamentIndex].Disable();
             break;
-        case MMU2::State_t::Stopped:
+        case MMU2::xState::Stopped:
             w_buttons[buttonFilamentIndex].SetRes(&icons[iconNonMMUId]);
             w_buttons[buttonFilamentIndex].SetAction(FilamentBtn_cb);
             w_buttons[buttonFilamentIndex].Unshadow();
@@ -355,15 +295,17 @@ void screen_home_data_t::on_enter() {
     }
     first_event = false;
 
-#if (!DEVELOPER_MODE() && PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if !DEVELOPER_MODE()
+    #if PRINTER_TYPE == PRINTER_PRUSA_XL
     static bool first_time_check_st { true };
     if (first_time_check_st) {
         first_time_check_st = false;
         warn_unfinished_selftest_msgbox();
     }
-#endif
+    #endif
 
     handle_crash_dump();
+#endif
 
     if (touch_broken_during_run) {
         static bool already_shown = false;
@@ -410,7 +352,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     }
 
     if (event == GUI_event_t::LOOP) {
-        filamentBtnSetState(MMU2::State_t(marlin_vars()->mmu2_state.get()));
+        filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
 
 #if HAS_SELFTEST
         if (!DialogHandler::Access().IsOpen()) {
@@ -423,7 +365,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 return;
             } else {
                 // on esp update, can use one click print
-                if (GuiMediaEventsHandler::ConsumeOneClickPrinting() || moreGcodesUploaded()) {
+                if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
                     // TODO this should be done in main thread before MARLIN_EVT_MediaInserted is generated
                     // if it is not the latest gcode might not be selected
                     if (find_latest_gcode(
@@ -500,13 +442,6 @@ void screen_home_data_t::printBtnDis() {
     w_buttons[0].Disable(); // cant't be focused
     w_buttons[0].Invalidate();
     w_labels[0].SetText(_(labels[labelNoUSBId]));
-}
-
-bool screen_home_data_t::moreGcodesUploaded() {
-    const uint32_t total = wui_gcodes_uploaded();
-    const bool result = total != lastUploadCount;
-    lastUploadCount = total;
-    return result;
 }
 
 void screen_home_data_t::InitState(screen_init_variant var) {

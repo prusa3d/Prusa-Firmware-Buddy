@@ -28,7 +28,7 @@ static_assert(!has_duplicates(pinsToCheck), "Some physical pin defined under two
 
 #include <device/hal.h>
 
-static constexpr bool is_valid_port(buddy::hw::IoPort ioPort, buddy::hw::IoPin ioPin) {
+static constexpr bool is_valid_port(buddy::hw::IoPort ioPort, [[maybe_unused]] buddy::hw::IoPin ioPin) {
     switch (ioPort) {
     case buddy::hw::IoPort::A:
     case buddy::hw::IoPort::B:
@@ -45,7 +45,7 @@ static constexpr bool is_valid_port(buddy::hw::IoPort ioPort, buddy::hw::IoPin i
     }
 }
 
-static constexpr bool is_valid_pin(buddy::hw::IoPort ioPort, buddy::hw::IoPin ioPin) {
+static constexpr bool is_valid_pin([[maybe_unused]] buddy::hw::IoPort ioPort, buddy::hw::IoPin ioPin) {
     switch (ioPin) {
     case buddy::hw::IoPin::p0:
     case buddy::hw::IoPin::p1:

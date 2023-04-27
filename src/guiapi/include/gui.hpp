@@ -48,8 +48,8 @@ extern void gui_bare_loop(void);
 extern void gui_reset_menu_timer();
 
 //meant to be use as MsgCircleBuffer().push_back(txt);
-static constexpr size_t MSG_STACK_SIZE = 8 + 1; //status message stack size
-static constexpr size_t MSG_MAX_LENGTH = 63;    //status message max length
+inline constexpr size_t MSG_STACK_SIZE = 8 + 1; //status message stack size
+inline constexpr size_t MSG_MAX_LENGTH = 63;    //status message max length
 using MsgBuff_t = CircleStringBuffer<MSG_STACK_SIZE, MSG_MAX_LENGTH>;
 
 MsgBuff_t &MsgCircleBuffer();

@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "dump.h"
+#include "dump.hpp"
 #include <span>
 #include <http/httpc.hpp>
 

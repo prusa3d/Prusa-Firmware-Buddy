@@ -3,6 +3,7 @@
 
 #include <planner.hpp>
 #include <transfers/monitor.hpp>
+#include <transfers/changed_path.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -11,10 +12,12 @@ using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::move;
+using transfers::ChangedPath;
 using transfers::Monitor;
 
 namespace {
 
+SharedBuffer buffer;
 struct Test {
     Printer::Params params;
     MockPrinter printer;
@@ -30,7 +33,7 @@ struct Test {
     }
 
     void event_type(EventType event_type) {
-        const auto action = planner.next_action();
+        const auto action = planner.next_action(buffer);
         const auto *event = get_if<Event>(&action);
         REQUIRE(event != nullptr);
         REQUIRE(event->type == event_type);
@@ -42,7 +45,7 @@ struct Test {
 
     Duration consume_sleep() {
         printer.config();
-        auto sleep = planner.next_action();
+        auto sleep = planner.next_action(buffer);
         auto sleep_typed = get_if<Sleep>(&sleep);
         REQUIRE(sleep_typed != nullptr);
         Duration orig_sleep = sleep_typed->milliseconds;
@@ -55,7 +58,7 @@ struct Test {
     }
 
     void consume_telemetry() {
-        Action action = planner.next_action();
+        Action action = planner.next_action(buffer);
         REQUIRE(holds_alternative<SendTelemetry>(action));
         planner.action_done(ActionResult::Ok);
     }
@@ -102,7 +105,7 @@ TEST_CASE("Reinit after several failures") {
     // Eventually, it stops trying to send the telemetry and goes back to trying to send Info
     Action action;
     do {
-        action = test.planner.next_action();
+        action = test.planner.next_action(buffer);
         test.planner.action_done(ActionResult::Failed);
         test.consume_sleep();
     } while (holds_alternative<SendTelemetry>(action));
@@ -164,7 +167,6 @@ TEST_CASE("Submit gcode") {
     // Commands come as replies to telemetries
     test.consume_telemetry();
 
-    SharedBuffer buffer;
     auto borrow = buffer.borrow().value();
     auto command = Command::gcode_command(1, "M100\n  M200 X10 Y20 \r\n\r\n \nM300", move(borrow));
 
@@ -201,7 +203,6 @@ TEST_CASE("Background command resubmit") {
 
     test.consume_telemetry();
 
-    SharedBuffer buffer;
     auto borrow = buffer.borrow().value();
     auto command = Command::gcode_command(1, "M100\n  M200 X10 Y20 \r\n\r\n \nM300", move(borrow));
 
@@ -255,7 +256,7 @@ TEST_CASE("Transport ended") {
     test.consume_telemetry();
 
     // As long as the transfer is running, nothing much happens
-    auto action1 = test.planner.next_action();
+    auto action1 = test.planner.next_action(buffer);
     REQUIRE(holds_alternative<Sleep>(action1));
 
     // Finish the transfer
@@ -263,7 +264,7 @@ TEST_CASE("Transport ended") {
     slot.reset();
 
     // Now that the transfer is done, we get an event about it.
-    auto action2 = test.planner.next_action();
+    auto action2 = test.planner.next_action(buffer);
     auto event = get_if<Event>(&action2);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::TransferFinished);
@@ -281,7 +282,7 @@ TEST_CASE("Transport ended and started") {
     test.consume_telemetry();
 
     // As long as the transfer is running, nothing much happens
-    auto action1 = test.planner.next_action();
+    auto action1 = test.planner.next_action(buffer);
     REQUIRE(holds_alternative<Sleep>(action1));
 
     // Finish the transfer
@@ -292,7 +293,7 @@ TEST_CASE("Transport ended and started") {
     slot = Monitor::instance.allocate(Monitor::Type::Link, "/usb/stuff.gcode", 1024);
 
     // The info/notification that the previous one ended is still available.
-    auto action2 = test.planner.next_action();
+    auto action2 = test.planner.next_action(buffer);
     auto event = get_if<Event>(&action2);
     REQUIRE(event != nullptr);
     REQUIRE(event->type == EventType::TransferFinished);
@@ -309,7 +310,7 @@ TEST_CASE("Transport ended, lost in history") {
     test.consume_telemetry();
 
     // As long as the transfer is running, nothing much happens
-    auto action1 = test.planner.next_action();
+    auto action1 = test.planner.next_action(buffer);
     REQUIRE(holds_alternative<Sleep>(action1));
 
     // Finish the transfer
@@ -323,8 +324,91 @@ TEST_CASE("Transport ended, lost in history") {
     }
 
     // The info/notification that the previous one ended is still available.
-    auto action2 = test.planner.next_action();
+    auto action2 = test.planner.next_action(buffer);
     REQUIRE(holds_alternative<Sleep>(action2));
 }
 
+TEST_CASE("FileInfo after created file") {
+    Test test;
+    test.consume_telemetry();
+
+    ChangedPath::instance.changed_path("/usb/some/file.gcode", ChangedPath::Type::File, ChangedPath::Incident::Created);
+
+    auto action = test.planner.next_action(buffer);
+    auto event = get_if<Event>(&action);
+    REQUIRE(event != nullptr);
+    REQUIRE(event->type == EventType::FileInfo);
+    REQUIRE(event->is_file);
+    INFO(event->path->path());
+    REQUIRE(strcmp(event->path->path(), "/usb/some/file.gcode") == 0);
+    REQUIRE(event->incident == ChangedPath::Incident::Created);
+}
+
+TEST_CASE("FileChanged after deleted file") {
+    Test test;
+    test.consume_telemetry();
+
+    ChangedPath::instance.changed_path("/usb/some/file.gcode", ChangedPath::Type::File, ChangedPath::Incident::Deleted);
+
+    auto action = test.planner.next_action(buffer);
+    auto event = get_if<Event>(&action);
+    REQUIRE(event != nullptr);
+    REQUIRE(event->type == EventType::FileChanged);
+    REQUIRE(event->is_file);
+    INFO(event->path->path());
+    REQUIRE(strcmp(event->path->path(), "/usb/some/file.gcode") == 0);
+    REQUIRE(event->incident == ChangedPath::Incident::Deleted);
+}
+
+TEST_CASE("FileChanged after created folder") {
+    Test test;
+    test.consume_telemetry();
+
+    ChangedPath::instance.changed_path("/usb/some/folder/", ChangedPath::Type::Folder, ChangedPath::Incident::Created);
+
+    auto action = test.planner.next_action(buffer);
+    auto event = get_if<Event>(&action);
+    REQUIRE(event != nullptr);
+    REQUIRE(event->type == EventType::FileChanged);
+    REQUIRE_FALSE(event->is_file);
+    INFO(event->path->path());
+    REQUIRE(strcmp(event->path->path(), "/usb/some/folder/") == 0);
+    REQUIRE(event->incident == ChangedPath::Incident::Created);
+}
+
+TEST_CASE("FileChanged after deleted folder") {
+    Test test;
+    test.consume_telemetry();
+
+    ChangedPath::instance.changed_path("/usb/some/folder/", ChangedPath::Type::Folder, ChangedPath::Incident::Deleted);
+
+    auto action = test.planner.next_action(buffer);
+    auto event = get_if<Event>(&action);
+    REQUIRE(event != nullptr);
+    REQUIRE(event->type == EventType::FileChanged);
+    INFO(event->path->path());
+    REQUIRE(strcmp(event->path->path(), "/usb/some/folder/") == 0);
+    REQUIRE_FALSE(event->is_file);
+    REQUIRE(event->incident == ChangedPath::Incident::Deleted);
+}
+
+TEST_CASE("FileChanged after multiple fs changes") {
+    Test test;
+    test.consume_telemetry();
+
+    ChangedPath::instance.changed_path("/usb/some/folder/", ChangedPath::Type::Folder, ChangedPath::Incident::Deleted);
+    ChangedPath::instance.changed_path("/usb/some/file.gcode", ChangedPath::Type::File, ChangedPath::Incident::Created);
+    ChangedPath::instance.changed_path("/usb/some/name/another_file,gcode", ChangedPath::Type::File, ChangedPath::Incident::Deleted);
+    ChangedPath::instance.changed_path("/usb/some/yet_another_file.gcode", ChangedPath::Type::File, ChangedPath::Incident::Deleted);
+    ChangedPath::instance.changed_path("/usb/some/other_folder/", ChangedPath::Type::Folder, ChangedPath::Incident::Created);
+
+    auto action = test.planner.next_action(buffer);
+    auto event = get_if<Event>(&action);
+    REQUIRE(event != nullptr);
+    REQUIRE(event->type == EventType::FileChanged);
+    INFO(event->path->path());
+    REQUIRE(strcmp(event->path->path(), "/usb/some/") == 0);
+    REQUIRE_FALSE(event->is_file);
+    REQUIRE(event->incident == ChangedPath::Incident::Combined);
+}
 // TODO: Tests for unknown commands and such

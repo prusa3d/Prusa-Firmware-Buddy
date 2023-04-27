@@ -59,9 +59,9 @@ void MI_RESET_TOUCH::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 //MI_DISP_RST
 MI_DISP_RST::MI_DISP_RST()
-    : WI_LABEL_t(_(label), &png::arrow_down_orange_12x12, is_enabled_t::yes, is_hidden_t::dev) {}
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
-void MI_DISP_RST::click(IWindowMenu &window_menu) {
+void MI_DISP_RST::click([[maybe_unused]] IWindowMenu &window_menu) {
     display::Init();
     Screens::Access()->SetDisplayReinitialized();
 }
@@ -71,6 +71,56 @@ void MI_DISP_RST::click(IWindowMenu &window_menu) {
 MI_ENABLE_TOUCH::MI_ENABLE_TOUCH()
     : WI_ICON_SWITCH_OFF_ON_t(touch::is_enabled(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
-void MI_ENABLE_TOUCH::OnChange(size_t old_index) {
-    index != 0 ? touch::enable() : touch::disable();
+void MI_ENABLE_TOUCH::OnChange([[maybe_unused]] size_t old_index) {
+    if (index != 0) {
+        // if I call following code at this moment it brakes
+        // touch::touch_workaround(); // I2C filters of touch are glitchy, reset them
+        touch::enable();
+    } else {
+        touch::disable();
+    }
+}
+
+static const SpinConfigInt touch_err_cnf = SpinConfigInt({ { 0, INT_MAX, 1 } }, "", spin_off_opt_t::no);
+
+/*****************************************************************************/
+//MI_TOUCH_ERR_COUNT
+MI_TOUCH_ERR_COUNT::MI_TOUCH_ERR_COUNT()
+    : WiSpinInt(0, touch_err_cnf, string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::no, is_hidden_t::dev) {
+}
+
+/*****************************************************************************/
+//MI_I2C_WORKAROUND
+MI_I2C_WORKAROUND::MI_I2C_WORKAROUND()
+    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+
+void MI_I2C_WORKAROUND::click([[maybe_unused]] IWindowMenu &window_menu) {
+    __HAL_RCC_I2C3_RELEASE_RESET();
+}
+
+/*****************************************************************************/
+//MI_I2C_FORCE_RESET
+MI_I2C_FORCE_RESET::MI_I2C_FORCE_RESET()
+    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+
+void MI_I2C_FORCE_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
+    __HAL_RCC_I2C3_FORCE_RESET();
+}
+
+/*****************************************************************************/
+//MI_I2C_RELEASE_FORCE_RESET
+MI_I2C_RELEASE_FORCE_RESET::MI_I2C_RELEASE_FORCE_RESET()
+    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+
+void MI_I2C_RELEASE_FORCE_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
+    __HAL_RCC_I2C3_RELEASE_RESET();
+}
+
+/*****************************************************************************/
+//MI_DISPI2C_RST
+MI_DISPI2C_RST::MI_DISPI2C_RST()
+    : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+
+void MI_DISPI2C_RST::click([[maybe_unused]] IWindowMenu &window_menu) {
+    I2C_INIT(touch);
 }

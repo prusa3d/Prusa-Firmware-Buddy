@@ -9,11 +9,10 @@
 #include "guiconfig.h"
 #include "guitypes.hpp"
 #include "printers.h"
-#include "guiconfig.h"
 #include "display_helper.h"
 #include "Rect16.h"
 #include "display_ex.hpp"
-#include "resource.h"
+#include "fonts.hpp"
 
 typedef uint16_t(display_size_t)(void);
 typedef void(display_init_t)(void);

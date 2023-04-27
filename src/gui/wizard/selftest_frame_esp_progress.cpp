@@ -63,7 +63,7 @@ void SelftestFrameESP_progress::change() {
         break;
     case PhasesSelftest::ESP_progress_passed:
         txt_top = N_("Updating Wi-Fi...");
-        txt_bot = GuiDefaults::ScreenWidth > 240 ? N_("Firmware flashing\nsuccessful!") : N_("Firmware flashing\nsuccessful!");
+        txt_bot = GuiDefaults::ScreenWidth > 240 ? N_("Firmware flashing successful!") : N_("Firmware flashing\nsuccessful!");
         show_progress = true;
         break;
     case PhasesSelftest::ESP_progress_failed:

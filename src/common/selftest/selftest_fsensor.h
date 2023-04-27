@@ -27,22 +27,32 @@ class CSelftestPart_FSensor {
     LogTimer log;
     LogTimer log_fast;
     bool show_remove;
+    float extruder_moved_amount = 0;
+
+    bool AbortAndInvalidateIfAbortPressed();
+
+    void MetricsSetEnabled(bool);
 
 public:
     CSelftestPart_FSensor(IPartHandler &state_machine, const FSensorConfig_t &config,
         SelftestFSensor_t &result);
+    ~CSelftestPart_FSensor();
 
-    LoopResult stateAskHaveFilamentInit();
+    LoopResult stateInit();
     LoopResult stateWaitToolPick();
-    LoopResult stateAskHaveFilament();
-    LoopResult stateAskUnloadInit();
-    LoopResult stateAskUnload();
+    LoopResult stateAskUnloadConfirmInit();
+    LoopResult stateAskUnloadConfirmWait();
     LoopResult stateFilamentUnloadEnqueueGcode();
     LoopResult stateFilamentUnloadWaitFinished();
     LoopResult stateFilamentUnloadWaitUser();
+    LoopResult stateAskUnloadInit();
+    LoopResult stateAskUnloadWait();
     LoopResult stateCalibrate();
     LoopResult stateCalibrateWaitFinished();
-    LoopResult stateInsertionCheck();
+    LoopResult stateInsertionWaitInit();
+    LoopResult stateInsertionWait();
+    LoopResult stateInsertionCalibrateStart();
+    LoopResult stateInsertionCalibrateWait();
     LoopResult stateInsertionOkInit();
     LoopResult stateInsertionOk();
     LoopResult stateEnforceRemoveInit();

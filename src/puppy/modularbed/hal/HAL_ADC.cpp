@@ -36,7 +36,7 @@ static void WaitForBit(volatile uint32_t *pRegister, uint32_t bitMask, bool expe
 
 bool Init() {
     // Initializes the peripherals clocks
-    RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
+    RCC_PeriphCLKInitTypeDef PeriphClkInit {};
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
     PeriphClkInit.AdcClockSelection = RCC_ADCCLKSOURCE_PLLADC;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
@@ -50,7 +50,7 @@ bool Init() {
     __HAL_RCC_GPIOC_CLK_ENABLE();
 
     //init analog input pins
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;

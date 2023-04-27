@@ -95,6 +95,9 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis);
 
 extern feedRate_t feedrate_mm_s;
 
+extern float homing_bump_divisor[];
+#define HOMING_BUMP_DIVISOR_STEP (1.03f)
+
 /**
  * Feedrate scaling is applied to all G0/G1, G2/G3, and G5 moves
  */
@@ -133,9 +136,9 @@ XYZ_DEFS(signed char, home_dir, HOME_DIR);
   extern xyz_pos_t hotend_currently_applied_offset; // Difference to position without hotend offset. Used for tool park/pickup
   void reset_hotend_offsets();
 #elif HOTENDS
-  constexpr xyz_pos_t hotend_offset[HOTENDS] = { { 0 } };
+  constexpr xyz_pos_t hotend_offset[HOTENDS] { };
 #else
-  constexpr xyz_pos_t hotend_offset[1] = { { 0 } };
+  constexpr xyz_pos_t hotend_offset[1]  {  };
 #endif
 
 typedef struct { xyz_pos_t min, max; } axis_limits_t;
@@ -271,23 +274,19 @@ static inline bool homing_needed_error(uint8_t axis_bits=0x07) { return axis_unh
   #define MOTION_CONDITIONS IsRunning()
 #endif
 
-void set_axis_is_at_home(const AxisEnum axis);
+void set_axis_is_at_home(const AxisEnum axis, bool homing_z_with_probe = true);
 
 void set_axis_is_not_at_home(const AxisEnum axis);
 
-void homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false OPTARG(PRECISE_HOMING, bool can_calibrate = true));
+void homing_failed(std::function<void()> fallback_error, bool crash_was_active = false);
 
-void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0
-  #if ENABLED(MOVE_BACK_BEFORE_HOMING)
-    , bool can_move_back_before_homing = false
-  #endif
-  #if HOMING_Z_WITH_PROBE
-    , bool homing_z_with_probe = HOMING_Z_WITH_PROBE
-  #endif /*HOMING_Z_WITH_PROBE*/
-);
+[[nodiscard]] bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false, void (*enable_wavetable)(AxisEnum) = NULL, bool can_calibrate = true, bool homing_z_with_probe = true);
+
+void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, bool can_move_back_before_homing = false, bool homing_z_with_probe = true);
 
 #if ENABLED(PRECISE_HOMING_COREXY)
-  void refine_corexy_origin();
+  void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm);
+  bool refine_corexy_origin();
 #endif
 
 /**

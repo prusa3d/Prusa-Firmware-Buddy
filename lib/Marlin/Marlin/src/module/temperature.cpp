@@ -870,8 +870,14 @@ void Temperature::max_temp_error(const heater_ind_t heater) {
   #endif
   #if HAS_HEATED_CHAMBER
     if (H_CHAMBER == heater) {
-      _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP_BED));
+      _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP_CHAMBER));
       return;
+    }
+  #endif
+  #if HAS_TEMP_HEATBREAK
+    //we have multiple heartbreak thermistors and they have always the highest ID
+    if(heater >= H_HEATBREAK_E0){
+        _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MAXTEMP_HEATBREAK));
     }
   #endif
   _temp_error(heater, PSTR(MSG_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP));
@@ -886,8 +892,14 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
   #endif
   #if HAS_HEATED_CHAMBER
     if (H_CHAMBER == heater) {
-      _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_BED));
+      _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_CHAMBER));
       return;
+    }
+  #endif
+  #if HAS_TEMP_HEATBREAK
+    //we have multiple heartbreak thermistors and they have always the highest ID
+    if(heater >= H_HEATBREAK_E0){
+        _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP_HEATBREAK));
     }
   #endif
   _temp_error(heater, PSTR(MSG_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP));
@@ -1945,23 +1957,6 @@ void Temperature::suspend_heatbreak_fan(millis_t ms) {
           return TEMP_AD595(raw);
         #elif ENABLED(HEATER_0_USES_AD8495)
           return TEMP_AD8495(raw);
-        #elif (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM && defined LOVEBOARD_HAS_PT100)
-          {                 //Calculate PT100 temperature from resistance
-          double R = hwio_get_hotend_resistance();
-          if(R > PT100_MAX_R){  //Upper limit of PT100 thermistors. Protection from broken wire. Also protects from trying to calculate negative square root.
-            if(temp_hotend[0].target != 0){   //Allow runing with hotend PT100 disconnected if heater is off.
-              max_temp_error(H_E0);
-            }else{
-              R = PT100_MAX_R;
-            }
-          }
-          if(R < PT100_MIN_R){   //Lover limit of PT100 termistors. Protection from shorted thermistor.
-            min_temp_error(H_E0);
-          }
-            float discriminant = 0.15274+2.308e-4*(100-R);
-            float temp = (-0.39083+sqrtf(discriminant))*-8658.0086;
-          return temp;
-          }
         #elif ENABLED(PRUSA_TOOLCHANGER)
           return prusa_toolchanger.getTool(0).get_hotend_temp();
         #else
@@ -2041,7 +2036,9 @@ void Temperature::suspend_heatbreak_fan(millis_t ms) {
     return 0;
   }
 #endif // HOTENDS
-
+float scan_thermistor_table_bed(const int raw){
+    SCAN_THERMISTOR_TABLE(BED_TEMPTABLE,BED_TEMPTABLE_LEN);
+}
 #if HAS_HEATED_BED
   // Derived from RepRap FiveD extruder::getTemperature()
   // For bed temperature measurement.
@@ -2049,7 +2046,28 @@ void Temperature::suspend_heatbreak_fan(millis_t ms) {
     #if ENABLED(HEATER_BED_USER_THERMISTOR)
       return user_thermistor_to_deg_c(CTI_BED, raw);
     #elif ENABLED(HEATER_BED_USES_THERMISTOR)
-      SCAN_THERMISTOR_TABLE(BED_TEMPTABLE, BED_TEMPTABLE_LEN);
+      float celsius = scan_thermistor_table_bed(raw);
+      #ifdef BED_OFFSET
+        float _offset = BED_OFFSET;
+        float _offset_center = BED_OFFSET_CENTER;
+        float _offset_start = BED_OFFSET_START;
+        float _first_koef = (_offset / 2) / (_offset_center - _offset_start);
+        float _second_koef = (_offset / 2) / (100 - _offset_center);
+
+        if (celsius >= _offset_start && celsius <= _offset_center)
+        {
+            celsius = celsius + (_first_koef * (celsius - _offset_start));
+        }
+        else if (celsius > _offset_center && celsius <= 100)
+        {
+            celsius = celsius + (_first_koef * (_offset_center - _offset_start)) + ( _second_koef * ( celsius - ( 100 - _offset_center ) )) ;
+        }
+        else if (celsius > 100)
+        {
+            celsius = celsius + _offset;
+        }
+      #endif
+      return celsius;
     #elif ENABLED(HEATER_BED_USES_AD595)
       return TEMP_AD595(raw);
     #elif ENABLED(HEATER_BED_USES_AD8495)
@@ -2087,7 +2105,7 @@ void Temperature::suspend_heatbreak_fan(millis_t ms) {
     #if ENABLED(HEATBREAK_USER_THERMISTOR)
       return user_thermistor_to_deg_c(CTI_HEATBREAK, raw);
     #elif ENABLED(HEATBREAK_USES_THERMISTOR)
-      #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM && !defined LOVEBOARD_HAS_PT100)
+      #if (BOARD_IS_XBUDDY)
           uint8_t loveboard_bom = hwio_get_loveboard_bomid();
           if (loveboard_bom < 33 && loveboard_bom != 0 /* error -> expect more common variant */) {
               SCAN_THERMISTOR_TABLE((TT_NAME(5)), (COUNT(TT_NAME(5))));
@@ -2389,16 +2407,13 @@ void Temperature::init() {
         temp_range[NR].raw_max -= TEMPDIR(NR) * (OVERSAMPLENR); \
     }while(0)
 
-  #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM && defined LOVEBOARD_HAS_PT100) //Raw data check makes no sense with PT100
-
-  #else
     #ifdef HEATER_0_MINTEMP
       _TEMP_MIN_E(0);
     #endif
     #ifdef HEATER_0_MAXTEMP
       _TEMP_MAX_E(0);
     #endif
-  #endif //(BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM && defined LOVEBOARD_HAS_PT100)
+
     #if HOTENDS > 1
       #ifdef HEATER_1_MINTEMP
         _TEMP_MIN_E(1);
@@ -3090,8 +3105,13 @@ void Temperature::readings_ready() {
       #endif
       #if !ENABLED(PRUSA_TOOLCHANGER)
         //const bool chamber_on = (temp_chamber.target > 0);
+        const bool heater_on = (temp_hotend[e].target > 0
+                                #if ENABLED(PIDTEMP)
+                                || temp_hotend[e].soft_pwm_amount > 0
+#endif
+        );
         if (HEATBREAKCMP(temp_heatbreak[e].raw, maxtemp_raw_HEATBREAK)) max_temp_error(static_cast<heater_ind_t>(H_HEATBREAK_E0 + e));
-        //if (HEATBREAKCMP(mintemp_raw_HEATBREAK, temp_heatbreak.raw)) min_temp_error(H_HEATBREAK);
+        if (heater_on && HEATBREAKCMP(mintemp_raw_HEATBREAK, temp_heatbreak[e].raw)) min_temp_error(static_cast<heater_ind_t>(H_HEATBREAK_E0 + e));
       #endif
     }
   #endif

@@ -254,7 +254,7 @@ LoopResult CSelftestPart_FirstLayer::stateShowStartPrint() {
 
 LoopResult CSelftestPart_FirstLayer::statePrintInit() {
     // reset progress
-    set_var_sd_percent_done(0);
+    marlin_server::set_var_sd_percent_done(0);
 
     IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_mbl);
     auto filament = filament::get_type_in_extruder(active_extruder);
@@ -265,7 +265,7 @@ LoopResult CSelftestPart_FirstLayer::statePrintInit() {
 
     // nozzle temperature preheat
     thermalManager.setTargetHotend(temp_nozzle_preheat, 0);
-    marlin_server_set_temp_to_display(temp_nozzle, 0);
+    marlin_server::set_temp_to_display(temp_nozzle, 0);
 
     // bed temperature
     thermalManager.setTargetBed(temp_bed);

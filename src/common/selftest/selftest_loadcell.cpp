@@ -86,11 +86,11 @@ LoopResult CSelftestPart_Loadcell::stateToolSelectInit() {
     if (active_extruder != rConfig.tool_nr) {
         IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_tool_select);
 
-        marlin_server_enqueue_gcode_printf("T%d S1", rConfig.tool_nr);
+        marlin_server::enqueue_gcode_printf("T%d S1", rConfig.tool_nr);
 
         // go to some reasonable position
         // Use reasonable feedrate as it was likely set by previous Z move
-        marlin_server_enqueue_gcode_printf("G0 X50 Y50 F%d", XY_PROBE_SPEED_INITIAL);
+        marlin_server::enqueue_gcode_printf("G0 X50 Y50 F%d", XY_PROBE_SPEED_INITIAL);
     }
     return LoopResult::RunNext;
 }
@@ -138,7 +138,7 @@ LoopResult CSelftestPart_Loadcell::stateConnectionCheck() {
 LoopResult CSelftestPart_Loadcell::stateCooldownInit() {
     IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_cooldown);
     thermalManager.setTargetHotend(0, rConfig.tool_nr); // Disable heating for tested hotend
-    marlin_server_set_temp_to_display(0, rConfig.tool_nr);
+    marlin_server::set_temp_to_display(0, rConfig.tool_nr);
     const float temp = thermalManager.degHotend(rConfig.tool_nr);
     need_cooling = temp > rConfig.cool_temp; // Check if temperature is safe
     if (need_cooling) {

@@ -33,7 +33,7 @@ Monitor::Slot::~Slot() {
         Lock lock(owner.main_mutex);
         bool destruction_handled;
         {
-            Lock lock(owner.history_mutex);
+            Lock lock2(owner.history_mutex);
             destruction_handled = (owner.current_id == owner.history_latest);
         }
 
@@ -45,7 +45,7 @@ Monitor::Slot::~Slot() {
     }
 }
 
-Monitor::Slot &Monitor::Slot::operator=(Slot &&other) {
+Monitor::Slot &Monitor::Slot::operator=([[maybe_unused]] Slot &&other) {
     // This is just to satisfy optional<Slot>::operator=, but doesn't do anything really.
     //
     // It's not needed in reality, as we aren't supposed to have two slots at
@@ -60,6 +60,11 @@ void Monitor::Slot::progress(size_t additional_bytes) {
     Lock lock(owner.main_mutex);
 
     owner.transferred += additional_bytes;
+}
+
+void Monitor::Slot::reset_progress() {
+    Lock lock(owner.main_mutex);
+    owner.transferred = 0;
 }
 
 void Monitor::Slot::done(Outcome outcome) {

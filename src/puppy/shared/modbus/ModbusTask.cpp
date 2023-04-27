@@ -67,7 +67,7 @@ void DisableModbus() {
     s_ModbusEnabled = false;
 }
 
-void ModbusTaskFunction(const void *argument) {
+void ModbusTaskFunction([[maybe_unused]] const void *argument) {
     hal::MultiWatchdog wdg; //Add one instance of watchdog
     hal::RS485Driver::SetOnReceiveCallback(OnReceive);
     hal::RS485Driver::StartReceiving();

@@ -1,6 +1,6 @@
 
 #include "config_features.h"
-#include "../../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2mk404.h"
+#include "../../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #include "M70X.hpp"
 
 /**

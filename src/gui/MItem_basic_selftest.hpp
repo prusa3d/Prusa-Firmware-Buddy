@@ -144,6 +144,18 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+    #if HAS_MMU2
+class MI_CALIB_FSENSOR_MMU : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Filament Sensor Calibration MMU");
+
+public:
+    MI_CALIB_FSENSOR_MMU();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+    #endif
 #endif
 
 class MI_ADVANCED_FAN_TEST : public WI_LABEL_t {

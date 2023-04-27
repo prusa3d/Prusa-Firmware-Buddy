@@ -1,6 +1,7 @@
 // marlin_client.cpp
 
 #include "marlin_client.hpp"
+#include "marlin_server.hpp"
 #include <stdio.h>
 #include <string.h>
 #include "config.h"
@@ -14,6 +15,8 @@
 #if HAS_SELFTEST
     #include <selftest_types.hpp>
 #endif
+
+using namespace marlin_server;
 
 LOG_COMPONENT_DEF(MarlinClient, LOG_SEVERITY_INFO);
 
@@ -52,12 +55,6 @@ marlin_client_t marlin_client[MARLIN_MAX_CLIENTS]; // client structure
 uint8_t marlin_clients = 0;                        // number of connected clients
 
 //-----------------------------------------------------------------------------
-// external variables from marlin_server
-
-extern osMessageQId marlin_server_queue; // input queue (uint8_t)
-extern osSemaphoreId marlin_server_sema; // semaphore handle
-
-//-----------------------------------------------------------------------------
 // forward declarations of private functions
 
 static void _wait_server_started();
@@ -73,7 +70,7 @@ void marlin_client_init() {
     int client_id;
     marlin_client_t *client = 0;
     _wait_server_started();
-    osSemaphoreWait(marlin_server_sema, osWaitForever);
+    osSemaphoreWait(server_semaphore, osWaitForever);
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (marlin_client_task[client_id] == 0)
             break;
@@ -96,7 +93,7 @@ void marlin_client_init() {
         client->startup_cb = NULL;
         marlin_client_task[client_id] = osThreadGetId();
     }
-    osSemaphoreRelease(marlin_server_sema);
+    osSemaphoreRelease(server_semaphore);
 }
 
 void marlin_client_loop() {
@@ -499,7 +496,7 @@ bool marlin_remote_print_ready(bool preview_only) {
 
 // wait while server not started (called from client thread in marlin_client_init)
 static void _wait_server_started() {
-    while (marlin_server_task == 0)
+    while (server_task == 0)
         osDelay(1);
 }
 
@@ -509,8 +506,8 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
     int len = strlen(request);
     osMessageQId queue = 0;
     int i;
-    osSemaphoreWait(marlin_server_sema, osWaitForever); // lock
-    if ((queue = marlin_server_queue) != 0)             // queue valid
+    osSemaphoreWait(server_semaphore, osWaitForever); // lock
+    if ((queue = server_queue) != 0)                  // queue valid
     {
         marlin_client[client_id].events &= ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
         while (ret == 0) {
@@ -523,13 +520,13 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
                     osMessagePut(queue, '\n', osWaitForever);
                 ret = 1;
             } else {
-                osSemaphoreRelease(marlin_server_sema); // unlock
+                osSemaphoreRelease(server_semaphore); // unlock
                 osDelay(10);
-                osSemaphoreWait(marlin_server_sema, osWaitForever); // lock
+                osSemaphoreWait(server_semaphore, osWaitForever); // lock
             }
         }
     }
-    osSemaphoreRelease(marlin_server_sema); // unlock
+    osSemaphoreRelease(server_semaphore); // unlock
 
     log_info(MarlinClient, "Request (client %u): %s", client_id, request);
 }

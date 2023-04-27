@@ -53,3 +53,47 @@ public:
 
     virtual void OnChange(size_t old_index) override;
 };
+
+class MI_TOUCH_ERR_COUNT : public WiSpinInt {
+    constexpr static const char *const label = "Touch error count"; // Intentionally not translated
+
+public:
+    MI_TOUCH_ERR_COUNT();
+};
+
+class MI_I2C_WORKAROUND : public WI_LABEL_t {
+    constexpr static const char *const label = "I2C workaround"; // Intentionally not translated
+
+public:
+    MI_I2C_WORKAROUND();
+
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_I2C_FORCE_RESET : public WI_LABEL_t {
+    constexpr static const char *label = "I2C force reset"; // Intentionally not translated
+
+public:
+    MI_I2C_FORCE_RESET();
+
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_I2C_RELEASE_FORCE_RESET : public WI_LABEL_t {
+    constexpr static const char *label = "I2C release force reset"; // Intentionally not translated
+
+public:
+    MI_I2C_RELEASE_FORCE_RESET();
+
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_DISPI2C_RST : public WI_LABEL_t {
+    static constexpr const char *const label = "Reset I2C"; // Intentionally not translated
+
+public:
+    MI_DISPI2C_RST();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};

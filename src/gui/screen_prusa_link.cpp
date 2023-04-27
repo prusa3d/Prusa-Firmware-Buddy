@@ -27,14 +27,14 @@ MI_PL_ENABLED::MI_PL_ENABLED()
     : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_ui8(EEVAR_PL_RUN),
         string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
-void MI_PL_ENABLED::OnChange(size_t old_index) {
+void MI_PL_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)(EventMask::value | this->index));
 }
 
 MI_PL_PASSWORD_LABEL::MI_PL_PASSWORD_LABEL()
     : WI_LABEL_t(_(label), 0) {}
 
-void MI_PL_PASSWORD_VALUE::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
+void MI_PL_PASSWORD_VALUE::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(passwd_buffer)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
 }
 
@@ -46,7 +46,7 @@ void MI_PL_PASSWORD_VALUE::print_password(const char *passwd) {
 MI_PL_PASSWORD_VALUE::MI_PL_PASSWORD_VALUE()
     : WI_LABEL_t(_(label), PASSWD_STR_LENGTH * GuiDefaults::FontMenuSpecial->w) {}
 
-void MI_PL_USER::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
+void MI_PL_USER::printExtension(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     render_text_align(extension_rect, string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(PRUSA_LINK_USERNAME)), GuiDefaults::FontMenuSpecial, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingItems, Align_t::RightCenter());
 }
 

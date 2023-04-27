@@ -25,7 +25,7 @@ struct HeaterConfig_t {
     using temp_setter = void (*)(int);
     const char *partname;
     heater_type_t type;
-    uint8_t tool_nr; // when type=Nozzle, this will contain related nozzle number
+    uint8_t tool_nr { 0 }; // when type=Nozzle, this will contain related nozzle number
     temp_getter getTemp;
     temp_setter setTargetTemp;
     float &refKp;
@@ -39,14 +39,14 @@ struct HeaterConfig_t {
     int32_t target_temp;
     int32_t heat_min_temp;
     int32_t heat_max_temp;
-    int32_t heatbreak_min_temp;
-    int32_t heatbreak_max_temp;
+    int32_t heatbreak_min_temp { 0 };
+    int32_t heatbreak_max_temp { 0 };
 
-    uint32_t heater_load_stable_ms;
-    float heater_full_load_min_W;
-    float heater_full_load_max_W;
-    uint32_t pwm_100percent_equivalent_value;
-    uint32_t min_pwm_to_measure;
+    uint32_t heater_load_stable_ms { 0 };
+    float heater_full_load_min_W { 0 };
+    float heater_full_load_max_W { 0 };
+    uint32_t pwm_100percent_equivalent_value { 0 };
+    uint32_t min_pwm_to_measure { 0 };
 };
 
 };

@@ -346,13 +346,7 @@
  *
  * :{ '0': "Not used", '1':"100k / 4.7k - EPCOS", '2':"200k / 4.7k - ATC Semitec 204GT-2", '3':"Mendel-parts / 4.7k", '4':"10k !! do not use for a hotend. Bad resolution at high temp. !!", '5':"100K / 4.7k - ATC Semitec 104GT-2 (Used in ParCan & J-Head)", '501':"100K Zonestar (Tronxy X3A)", '6':"100k / 4.7k EPCOS - Not as accurate as Table 1", '7':"100k / 4.7k Honeywell 135-104LAG-J01", '8':"100k / 4.7k 0603 SMD Vishay NTCS0603E3104FXT", '9':"100k / 4.7k GE Sensing AL03006-58.2K-97-G1", '10':"100k / 4.7k RS 198-961", '11':"100k / 4.7k beta 3950 1%", '12':"100k / 4.7k 0603 SMD Vishay NTCS0603E3104FXT (calibrated for Makibox hot bed)", '13':"100k Hisens 3950  1% up to 300°C for hotend 'Simple ONE ' & hotend 'All In ONE'", '20':"PT100 (Ultimainboard V2.x)", '51':"100k / 1k - EPCOS", '52':"200k / 1k - ATC Semitec 204GT-2", '55':"100k / 1k - ATC Semitec 104GT-2 (Used in ParCan & J-Head)", '60':"100k Maker's Tool Works Kapton Bed Thermistor beta=3950", '61':"100k Formbot / Vivedino 3950 350C thermistor 4.7k pullup", '66':"Dyze Design 4.7M High Temperature thermistor", '67':"Slice Engineering 450C High Temperature thermistor", '70':"the 100K thermistor found in the bq Hephestos 2", '71':"100k / 4.7k Honeywell 135-104LAF-J01", '147':"Pt100 / 4.7k", '1047':"Pt1000 / 4.7k", '110':"Pt100 / 1k (non-standard)", '1010':"Pt1000 / 1k (non standard)", '-4':"Thermocouple + AD8495", '-3':"Thermocouple + MAX31855 (only for sensor 0)", '-2':"Thermocouple + MAX6675 (only for sensor 0)", '-1':"Thermocouple + AD595",'998':"Dummy 1", '999':"Dummy 2", '2000':"100k / 4k7" }
  */
-#if BOARD_IS_XBUDDY && LOVEBOARD_HAS_PT100
-    #define TEMP_SENSOR_0 21
-#elif (BOARD_IS_XBUDDY && BOARD_VER_HIGHER_OR_EQUAL_TO(0, 2, 2) && defined LOVEBOARD_HAS_NTC)
-    #define TEMP_SENSOR_0 2005
-#else
-    #define TEMP_SENSOR_0 5
-#endif
+#define TEMP_SENSOR_0 2005
 #define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_3 0
@@ -415,11 +409,6 @@
 #define HEATBREAK_MAXTEMP 100
 #define CHAMBER_MAXTEMP 100
 #define BOARD_MAXTEMP 120
-
-#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM && defined LOVEBOARD_HAS_PT100)
-    #define PT100_MAX_R 400
-    #define PT100_MIN_R 50
-#endif
 
 //===========================================================================
 //============================= PID Settings ================================
@@ -574,7 +563,7 @@
 
 #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
 #define THERMAL_PROTECTION_BED // Enable thermal protection for the heated bed
-#define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
+//#define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
 
 //===========================================================================
 //============================= Mechanical Settings =========================
@@ -634,7 +623,6 @@
 #endif
 
 // Mechanical endstop with COM to ground and NC to Signal uses "false" here (most common setup).
-#if (BOARD_IS_XBUDDY && BOARD_VER_HIGHER_OR_EQUAL_TO(0,2,0))
     #define X_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Y_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Z_MIN_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
@@ -642,15 +630,6 @@
     #define Y_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Z_MAX_ENDSTOP_INVERTING true // set to true to invert the logic of the endstop.
     #define Z_MIN_PROBE_ENDSTOP_INVERTING true // set to true to invert the logic of the probe.
-#else
-    #define X_MIN_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
-    #define Y_MIN_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
-    #define Z_MIN_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
-    #define X_MAX_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
-    #define Y_MAX_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
-    #define Z_MAX_ENDSTOP_INVERTING false // set to true to invert the logic of the endstop.
-    #define Z_MIN_PROBE_ENDSTOP_INVERTING false // set to true to invert the logic of the probe.
-#endif
 
 /**
  * Stepper Drivers
@@ -667,17 +646,10 @@
  *          TMC5160, TMC5160_STANDALONE
  * :['A4988', 'A5984', 'DRV8825', 'LV8729', 'L6470', 'TB6560', 'TB6600', 'TMC2100', 'TMC2130', 'TMC2130_STANDALONE', 'TMC2160', 'TMC2160_STANDALONE', 'TMC2208', 'TMC2208_STANDALONE', 'TMC26X', 'TMC26X_STANDALONE', 'TMC2660', 'TMC2660_STANDALONE', 'TMC5130', 'TMC5130_STANDALONE', 'TMC5160', 'TMC5160_STANDALONE']
  */
-#if(BOARD_IS_XBUDDY && BOARD_VER_HIGHER_OR_EQUAL_TO(0,2,0))
     #define X_DRIVER_TYPE TMC2130
     #define Y_DRIVER_TYPE TMC2130
     #define Z_DRIVER_TYPE TMC2130
     #define E0_DRIVER_TYPE TMC2130
-#else
-    #define X_DRIVER_TYPE TMC2209
-    #define Y_DRIVER_TYPE TMC2209
-    #define Z_DRIVER_TYPE TMC2209
-    #define E0_DRIVER_TYPE TMC2209
-#endif
 
 //#define X_DRIVER_TYPE  A4988
 //#define Y_DRIVER_TYPE  A4988

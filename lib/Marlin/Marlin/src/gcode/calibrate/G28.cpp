@@ -34,6 +34,8 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 #include "../gcode.h"
 
+#include "bsod_gui.hpp"
+
 #include "../../module/endstops.h"
 #include "../../module/planner.h"
 #include "../../module/stepper.h" // for various
@@ -80,11 +82,13 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #endif
 
 #if ENABLED(PRUSA_TOOLCHANGER)
-  #include "../../module/prusa/toolchanger.h"
+  #include <module/prusa/toolchanger.h>
 #endif
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../../core/debug_out.h"
+
+#include "../../../../../../src/common/trinamic.h" // for disabling Wave Table during homing
 
 #if ENABLED(QUICK_HOME)
 
@@ -151,11 +155,11 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 #if ENABLED(Z_SAFE_HOMING)
 
-  inline void home_z_safely() {
+  inline bool home_z_safely() {
     DEBUG_SECTION(log_G28, "home_z_safely", DEBUGGING(LEVELING));
 
     // Disallow Z homing if X or Y homing is needed
-    if (homing_needed_error(_BV(X_AXIS) | _BV(Y_AXIS))) return;
+    if (homing_needed_error(_BV(X_AXIS) | _BV(Y_AXIS))) return false;
 
     sync_plan_position();
 
@@ -185,13 +189,16 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       TERN_(SENSORLESS_HOMING, safe_delay(500)); // Short delay needed to settle
 
       do_blocking_move_to_xy(destination);
-      homeaxis(Z_AXIS);
+      if (!homeaxis(Z_AXIS)) {
+        return false;
+      }
     }
     else {
       LCD_MESSAGE(MSG_ZPROBE_OUT);
       SERIAL_ECHO_MSG(STR_ZPROBE_OUT_SER);
     }
-
+    
+    return true;
   }
 
 #endif // Z_SAFE_HOMING
@@ -218,6 +225,11 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
   }
 
 #endif // IMPROVE_HOMING_RELIABILITY
+
+static void reenable_wavetable(AxisEnum axis)
+{
+    tmc_enable_wavetable(true, axis == X_AXIS, axis == Y_AXIS, false);
+}
 
 /**
  * G28: Home all axes according to settings
@@ -265,7 +277,7 @@ void GcodeSuite::G28(const bool always_home_all) {
   G28_no_parser(always_home_all, O, R, S, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise));
 }
 
-void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y, bool Z
+bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y, bool Z
   , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise)) {
 
   MINDA_BROKEN_CABLE_DETECTION__BEGIN();
@@ -310,7 +322,7 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   }
   if (!axes_should_home(required_axis_bits) && O) {
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> homing not needed, skip");
-    return;
+    return true;
   }
 
   #if ENABLED(FULL_REPORT_TO_HOST_FEATURE)
@@ -322,6 +334,13 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   //TERN_(EXTENSIBLE_UI, ExtUI::onHomingStart());
 
   planner.synchronize();          // Wait for planner moves to finish!
+
+  /**
+   * @brief Set to true when homing fails.
+   * It is used to skip all motion until stepper currents
+   * and variables are reverted to non-homing state.
+   */
+  bool failed = false;
 
   SET_SOFT_ENDSTOP_LOOSE(false);  // Reset a leftover 'loose' motion state
 
@@ -511,12 +530,12 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
       constexpr bool doZ = false;
     #endif
 
-    TERN_(HOME_Z_FIRST, if (doZ) homeaxis(Z_AXIS));
+    TERN_(HOME_Z_FIRST, if (!failed && doZ) failed = !homeaxis(Z_AXIS));
 
     const bool seenR = !isnan(R);
     const float z_homing_height = seenR ? R : Z_HOMING_HEIGHT;
 
-    if (z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
+    if (!failed && z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
       if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Raise Z (before homing) by ", z_homing_height);
       do_z_clearance(z_homing_height);
@@ -526,66 +545,103 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     MINDA_BROKEN_CABLE_DETECTION__PRE_XYHOME();
 
     // Diagonal move first if both are homing
-    TERN_(QUICK_HOME, if (doX && doY) quick_home_xy());
+    TERN_(QUICK_HOME, if (!failed && doX && doY) quick_home_xy());
+
+    // Only allow wavetable change if homing performs a backoff. This backoff is made in the way that it ends on stepper zero-position, so that re-enabling wavetable is safe.
+    bool wavetable_off_X = false, wavetable_off_Y = false;
+    #if defined(HOMING_BACKOFF_POST_MM) && defined(HAS_TMC_WAVETABLE)
+      constexpr xyz_float_t homing_backoff = HOMING_BACKOFF_POST_MM;
+      wavetable_off_X = (homing_backoff[X] > 0.0f) && doX;
+      wavetable_off_Y = (homing_backoff[Y] > 0.0f) && doY;
+    #endif
+    void (*reenable_wt_X)(AxisEnum) = wavetable_off_X ? reenable_wavetable : NULL;
+    void (*reenable_wt_Y)(AxisEnum) = wavetable_off_Y ? reenable_wavetable : NULL;
+    // function pointers are useful because homing code doesn't need access to trinamic headres in order to re-enable wavetable during homing procedures
+
+    // Turn off Wave Table for X and Y, which should improve homing
+    // NOTE: change of Wave Table shall normally be done only when motors are guaranteed at zero-step. Here we are far enough from the print, so if the motors do something "wild" they should make no harm.
+    // re-enabling wavetable back will take place during homing, when we are guaranteed at stepper zero
+    if (!failed) {
+      tmc_enable_wavetable(false, wavetable_off_X, wavetable_off_Y, false);
+    }
+
+    #if ENABLED(PRUSA_TOOLCHANGER)
+    if (!failed && doX && doY) {
+      // Bump right edge to align toolchanger locking plates
+      if (!prusa_toolchanger.align_locks()) {
+        ui.status_printf_P(0, "Toolchanger lock alignment failed");
+        homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X); }); // The alignment happens in X axis
+        failed = true;
+      }
+    }
+    #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
 
     // Home Y (before X)
-    if (ENABLED(HOME_Y_BEFORE_X) && (doY || TERN0(CODEPENDENT_XY_HOMING, doX)))
-      homeaxis(Y_AXIS, fr_mm_s, false OPTARG(PRECISE_HOMING, !parser.seen('D')));
+    if (ENABLED(HOME_Y_BEFORE_X) && !failed && (doY || TERN0(CODEPENDENT_XY_HOMING, doX))) {
+      failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y OPTARG(PRECISE_HOMING, !parser.seen('D')));
+    }
 
     // Home X
-    if (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X))) {
+    if (!failed && (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X)))) {
 
       #if ENABLED(DUAL_X_CARRIAGE)
 
         // Always home the 2nd (right) extruder first
         active_extruder = 1;
-        homeaxis(X_AXIS);
+        failed = !homeaxis(X_AXIS);
 
-        // Remember this extruder's position for later tool change
-        inactive_extruder_x = current_position.x;
+        if (!failed) {
+          // Remember this extruder's position for later tool change
+          inactive_extruder_x = current_position.x;
 
-        // Home the 1st (left) extruder
-        active_extruder = 0;
-        homeaxis(X_AXIS);
+          // Home the 1st (left) extruder
+          active_extruder = 0;
+          failed = !homeaxis(X_AXIS);
+        }
 
-        // Consider the active extruder to be in its "parked" position
-        idex_set_parked();
+        if (!failed) {
+          // Consider the active extruder to be in its "parked" position
+          idex_set_parked();
+        }
 
       #else
 
-        homeaxis(X_AXIS, fr_mm_s, false OPTARG(PRECISE_HOMING, !parser.seen('D')));
+        failed = !homeaxis(X_AXIS, fr_mm_s, false, reenable_wt_X OPTARG(PRECISE_HOMING, !parser.seen('D')));
 
       #endif
     }
 
     #if BOTH(FOAMCUTTER_XYUV, HAS_I_AXIS)
       // Home I (after X)
-      if (doI) homeaxis(I_AXIS);
+      if (!failed && doI) failed = !homeaxis(I_AXIS);
     #endif
 
     // Home Y (after X)
-    if (DISABLED(HOME_Y_BEFORE_X) && doY)
-      homeaxis(Y_AXIS, fr_mm_s, false OPTARG(PRECISE_HOMING, !parser.seen('D')));
+    if (DISABLED(HOME_Y_BEFORE_X) && !failed && doY) {
+      failed = !homeaxis(Y_AXIS, fr_mm_s, false, reenable_wt_Y  OPTARG(PRECISE_HOMING, !parser.seen('D')));
+    }
 
     #if BOTH(FOAMCUTTER_XYUV, HAS_J_AXIS)
       // Home J (after Y)
-      if (doJ) homeaxis(J_AXIS);
+      if (!failed && doJ) failed = !homeaxis(J_AXIS);
     #endif
 
     #if ENABLED(PRECISE_HOMING_COREXY)
       // absolute refinement requires both axes to be already probed
-      if (doX && doY && precise) refine_corexy_origin();
+      if (!failed && doX && doY && precise) {
+        failed = !refine_corexy_origin();
+      }
     #endif
 
     TERN_(IMPROVE_HOMING_RELIABILITY, if(!no_change) end_slow_homing(saved_motion_state));
 
     #if ENABLED(FOAMCUTTER_XYUV)
       // skip homing of unused Z axis for foamcutters
-      if (doZ) set_axis_is_at_home(Z_AXIS);
+      if (!failed && doZ) set_axis_is_at_home(Z_AXIS);
     #else
       // Home Z last if homing towards the bed
       #if HAS_Z_AXIS && DISABLED(HOME_Z_FIRST)
-        if (doZ) {
+        if (!failed && doZ) {
           MINDA_BROKEN_CABLE_DETECTION__POST_XYHOME();
           #if EITHER(Z_MULTI_ENDSTOPS, Z_STEPPER_AUTO_ALIGN)
             stepper.set_all_z_lock(false);
@@ -594,31 +650,40 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
           #if ENABLED(PRUSA_TOOLCHANGER)
             // when toolchanger is enabled, pick Tool 0 before homing
-            tool_change(0, tool_return_t::no_move);
+            failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_move);
           #endif
 
+          if (!failed) {
           #if ENABLED(Z_SAFE_HOMING)
-            if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) home_z_safely(); else homeaxis(Z_AXIS);
+            if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) {
+              failed = !home_z_safely();
+            } else {
+              failed = !homeaxis(Z_AXIS);
+            }
           #else
-            homeaxis(Z_AXIS);
+            failed = !homeaxis(Z_AXIS);
           #endif
-          move_z_after_probing();
-          MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1();
+          }
+
+          if (!failed) {
+            move_z_after_probing();
+            MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_1();
+          }
         }
       #endif
 
       SECONDARY_AXIS_CODE(
-        if (doI) homeaxis(I_AXIS),
-        if (doJ) homeaxis(J_AXIS),
-        if (doK) homeaxis(K_AXIS),
-        if (doU) homeaxis(U_AXIS),
-        if (doV) homeaxis(V_AXIS),
-        if (doW) homeaxis(W_AXIS)
+        if (!failed && doI) failed = !homeaxis(I_AXIS),
+        if (!failed && doJ) failed = !homeaxis(J_AXIS),
+        if (!failed && doK) failed = !homeaxis(K_AXIS),
+        if (!failed && doU) failed = !homeaxis(U_AXIS),
+        if (!failed && doV) failed = !homeaxis(V_AXIS),
+        if (!failed && doW) failed = !homeaxis(W_AXIS)
       );
     #endif
 
     #if HAS_HOTEND_OFFSET
-      if(doZ) {
+      if(!failed && doZ) {
         // After establishing the zero position for _this_ tool, apply the current Z offset so that
         // the machine Z position is always relative to reference (tool zero).
         current_position.z += hotend_currently_applied_offset.z;
@@ -639,37 +704,43 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
 
     if (idex_is_duplicating()) {
 
-      TERN_(IMPROVE_HOMING_RELIABILITY, saved_motion_state = begin_slow_homing());
+      if (!failed) {
+        TERN_(IMPROVE_HOMING_RELIABILITY, saved_motion_state = begin_slow_homing());
 
-      // Always home the 2nd (right) extruder first
-      active_extruder = 1;
-      homeaxis(X_AXIS);
+        // Always home the 2nd (right) extruder first
+        active_extruder = 1;
+        failed = !homeaxis(X_AXIS);
+      }
 
-      // Remember this extruder's position for later tool change
-      inactive_extruder_x = current_position.x;
+      if (!failed) {
+        // Remember this extruder's position for later tool change
+        inactive_extruder_x = current_position.x;
 
-      // Home the 1st (left) extruder
-      active_extruder = 0;
-      homeaxis(X_AXIS);
+        // Home the 1st (left) extruder
+        active_extruder = 0;
+        failed = !homeaxis(X_AXIS);
 
-      // Consider the active extruder to be parked
-      idex_set_parked();
+        // Consider the active extruder to be parked
+        idex_set_parked();
 
-      dual_x_carriage_mode = IDEX_saved_mode;
-      set_duplication_enabled(IDEX_saved_duplication_state);
+        dual_x_carriage_mode = IDEX_saved_mode;
+        set_duplication_enabled(IDEX_saved_duplication_state);
 
-      TERN_(IMPROVE_HOMING_RELIABILITY, end_slow_homing(saved_motion_state));
+        TERN_(IMPROVE_HOMING_RELIABILITY, end_slow_homing(saved_motion_state));
+      }
     }
 
   #endif // DUAL_X_CARRIAGE
 
   endstops.not_homing();
 
-  // Clear endstop state for polled stallGuard endstops
-  TERN_(SPI_ENDSTOPS, endstops.clear_endstop_state());
+  if (!failed) {
+    // Clear endstop state for polled stallGuard endstops
+    TERN_(SPI_ENDSTOPS, endstops.clear_endstop_state());
 
-  // Move to a height where we can use the full xy-area
-  TERN_(DELTA_HOME_TO_SAFE_ZONE, do_blocking_move_to_z(delta_clip_start_height));
+    // Move to a height where we can use the full xy-area
+    TERN_(DELTA_HOME_TO_SAFE_ZONE, do_blocking_move_to_z(delta_clip_start_height));
+  }
 
   TERN_(CAN_SET_LEVELING_AFTER_G28, if (leveling_restore_state) set_bed_leveling_enabled());
 
@@ -681,8 +752,8 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   #endif
   #if ENABLED(PRUSA_TOOLCHANGER)
     // Restore tool (if one was picked)
-    if(old_tool_index != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
-      tool_change(old_tool_index, tool_return_t::no_move);
+    if(!failed && old_tool_index != PrusaToolChanger::MARLIN_NO_TOOL_PICKED && old_tool_index != active_extruder) {
+      failed = !prusa_toolchanger.tool_change(old_tool_index, tool_return_t::no_move);
     }
   #endif
 
@@ -739,4 +810,6 @@ void GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(old_grblstate));
 
   MINDA_BROKEN_CABLE_DETECTION__END();
+
+  return !failed;
 }

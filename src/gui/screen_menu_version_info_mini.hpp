@@ -6,7 +6,7 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
-#include "resource.h"
+#include "fonts.hpp"
 
 using MenuInfoContainer = WinMenuContainer<MI_RETURN>;
 

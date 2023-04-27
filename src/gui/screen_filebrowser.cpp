@@ -33,7 +33,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     CaptureNormalWindow(file_browser);
 }
 
-void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::MEDIA) {
         MediaState_t media_state = MediaState_t(int(param));
         if (media_state == MediaState_t::removed || media_state == MediaState_t::error) {

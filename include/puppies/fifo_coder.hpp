@@ -23,7 +23,7 @@ namespace common::puppies::fifo {
  * - Message type 0 means no message - padding. This allows to pad data with 0 if necessary.
  */
 
-static constexpr auto MODBUS_FIFO_LEN = 31;
+inline constexpr auto MODBUS_FIFO_LEN = 31;
 
 enum class MessageType : uint8_t {
     no_data = 0, // Padding

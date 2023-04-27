@@ -219,7 +219,7 @@ void FirstLayer::inc_progress() {
     const uint8_t progress = std::min(uint8_t(100), uint8_t(100.f * current_line / (float)total_lines));
     if (last_progress != progress) {
         last_progress = progress;
-        set_var_sd_percent_done(progress);
+        marlin_server::set_var_sd_percent_done(progress);
     }
 
     // const variant8_t var = variant8_i8(100 * current_line / (float)total_lines);
@@ -353,14 +353,14 @@ void PrusaGcodeSuite::G26() {
 
     // nozzle temperature print
     thermalManager.setTargetHotend(temp_nozzle, 0);
-    marlin_server_set_temp_to_display(temp_nozzle, 0);
+    marlin_server::set_temp_to_display(temp_nozzle, 0);
     thermalManager.wait_for_hotend(0, false);
 
     //fl.print_shape_1();
     fl.print_shape_2();
 
     thermalManager.setTargetHotend(0, 0);
-    marlin_server_set_temp_to_display(0, 0);
+    marlin_server::set_temp_to_display(0, 0);
 
     thermalManager.setTargetBed(0);
 }

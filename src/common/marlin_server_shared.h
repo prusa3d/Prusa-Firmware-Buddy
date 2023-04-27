@@ -3,12 +3,14 @@
 #include "cmsis_os.h" // for osThreadId
 #include <limits>
 
+namespace marlin_server {
+
 // usr8 in variant8_t message contains id (bit0..6) and event flag (bit7)
 inline constexpr uint8_t MARLIN_USR8_MSK_ID = 0x7f; // usr8 - event id mask
 
 inline constexpr uint32_t TIME_TO_END_INVALID = std::numeric_limits<uint32_t>::max();
 
-inline constexpr uint8_t MARLIN_SERVER_CURRENT_TOOL = std::numeric_limits<uint8_t>::max();
+inline constexpr uint8_t CURRENT_TOOL = std::numeric_limits<uint8_t>::max();
 
 typedef enum {
     mpsIdle = 0,
@@ -41,6 +43,7 @@ typedef enum {
     mpsCrashRecovery_XY_Measure,
     mpsCrashRecovery_Tool_Pickup,
     mpsCrashRecovery_XY_HOME,
+    mpsCrashRecovery_HOMEFAIL, // Shows retry button after homing fails
     mpsCrashRecovery_Axis_NOK,
     mpsCrashRecovery_Repeated_Crash,
     mpsPowerPanic_acFault,
@@ -85,16 +88,10 @@ inline int is_abort_state(marlin_print_state_t st) {
     return ((int)st) >= ((int)mpsAborting_Begin) && ((int)st) <= ((int)mpsAborted);
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif //__cplusplus
-
 // converts message's ID to string
 // string must have 3 bytes at least
 extern void marlin_msg_to_str(const marlin_msg_t id, char *str);
 
-extern osThreadId marlin_server_task; // task of marlin server
+extern osThreadId server_task; // task of marlin server
 
-#ifdef __cplusplus
-}
-#endif //__cplusplus
+} // marlin_server namespace

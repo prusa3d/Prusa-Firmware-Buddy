@@ -14,10 +14,10 @@ typedef struct {
     uint16_t product_id;
     uint8_t revision;
     uint32_t supplier_id;
-    uint16_t prodution_year;
+    uint16_t production_year;
     uint8_t production_month;
     uint8_t production_day;
-    uint16_t daily_serial_number;
+    uint32_t date_serial_number;
 } datamatrix_t;
 
 typedef struct {

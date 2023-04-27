@@ -233,3 +233,5 @@ void reset_trinamic_drivers();
 
 // Return the stepper instance of an axis
 TMCStepper &stepper_axis(const AxisEnum axis);
+uint16_t stepper_microsteps(const AxisEnum axis, uint16_t new_microsteps = 0);
+uint16_t stepper_mscnt(const AxisEnum axis);

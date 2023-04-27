@@ -26,7 +26,7 @@ void MI_Z_AXIS_LEN::Store() {
 MI_RESET_Z_AXIS_LEN::MI_RESET_Z_AXIS_LEN()
     : WI_LABEL_t(NOTRAN(label)) {}
 
-void MI_RESET_Z_AXIS_LEN::click(IWindowMenu &window_menu) {
+void MI_RESET_Z_AXIS_LEN::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_Z);
 }
 
@@ -71,7 +71,7 @@ void MI_STEPS_PER_UNIT_E::Store() {
 MI_RESET_STEPS_PER_UNIT::MI_RESET_STEPS_PER_UNIT()
     : WI_LABEL_t(NOTRAN(label)) {}
 
-void MI_RESET_STEPS_PER_UNIT::click(IWindowMenu &window_menu) {
+void MI_RESET_STEPS_PER_UNIT::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_steps);
 }
 
@@ -123,7 +123,7 @@ void MI_DIRECTION_E::Store() {
 MI_RESET_DIRECTION::MI_RESET_DIRECTION()
     : WI_LABEL_t(NOTRAN(label)) {}
 
-void MI_RESET_DIRECTION::click(IWindowMenu &window_menu) {
+void MI_RESET_DIRECTION::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_directions);
 }
 
@@ -168,7 +168,7 @@ void MI_MICROSTEPS_E::Store() {
 MI_RESET_MICROSTEPS::MI_RESET_MICROSTEPS()
     : WI_LABEL_t(NOTRAN(label)) {}
 
-void MI_RESET_MICROSTEPS::click(IWindowMenu &window_menu) {
+void MI_RESET_MICROSTEPS::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_microsteps);
 }
 
@@ -213,7 +213,7 @@ void MI_CURRENT_E::Store() {
 MI_RESET_CURRENTS::MI_RESET_CURRENTS()
     : WI_LABEL_t(NOTRAN(label)) {}
 
-void MI_RESET_CURRENTS::click(IWindowMenu &window_menu) {
+void MI_RESET_CURRENTS::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Reset_currents);
 }
 
@@ -222,6 +222,6 @@ void MI_RESET_CURRENTS::click(IWindowMenu &window_menu) {
 MI_SAVE_AND_RETURN::MI_SAVE_AND_RETURN()
     : WI_LABEL_t(NOTRAN(label), &png::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {}
 
-void MI_SAVE_AND_RETURN::click(IWindowMenu &window_menu) {
+void MI_SAVE_AND_RETURN::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Return);
 }

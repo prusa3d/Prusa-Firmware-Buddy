@@ -10,7 +10,7 @@
 MI_STORE_EEPROM_TEST::MI_STORE_EEPROM_TEST()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
-void MI_STORE_EEPROM_TEST::click(IWindowMenu &window_menu) {
+void MI_STORE_EEPROM_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommandTest::Store);
 }
 

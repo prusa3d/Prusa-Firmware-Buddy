@@ -3,7 +3,9 @@
 
 LOG_COMPONENT_DEF(Led, LOG_SEVERITY_INFO);
 
-PrinterState leds::mpsToAnimationState(marlin_print_state_t state) {
+using namespace marlin_server;
+
+PrinterState leds::mpsToAnimationState(marlin_server::marlin_print_state_t state) {
     switch (state) {
     case mpsIdle:
     case mpsPrintPreviewInit:
@@ -41,6 +43,7 @@ PrinterState leds::mpsToAnimationState(marlin_print_state_t state) {
     case mpsCrashRecovery_XY_Measure:
     case mpsCrashRecovery_Tool_Pickup:
     case mpsCrashRecovery_XY_HOME:
+    case mpsCrashRecovery_HOMEFAIL:
     case mpsCrashRecovery_Axis_NOK:
     case mpsCrashRecovery_Repeated_Crash:
         return PrinterState::Warning;

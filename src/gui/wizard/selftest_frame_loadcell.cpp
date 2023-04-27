@@ -47,7 +47,7 @@ static constexpr point_i16_t hand_pos = {
 
 SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_loadcell_test), 1)
-    , footer(this, 0, footer::items::ItemNozzle, footer::items::ItemBed, footer::items::ItemAxisZ) // ItemAxisZ to show Z coord while moving up
+    , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::AxisZ) // ItemAxisZ to show Z coord while moving up
     , progress(this, WizardDefaults::row_1)
     , icon_hand(this, &png::hand_with_nozzle1_154x100, hand_pos)
     , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 2), is_multiline::yes)

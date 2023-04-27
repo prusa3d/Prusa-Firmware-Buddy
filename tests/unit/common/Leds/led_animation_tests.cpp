@@ -312,18 +312,18 @@ TEST_CASE("Running the animation normally", "[Animations,Fading]") {
     timer::time = 0;
     Fading fading(color, period);
 
-    CHECK_THAT(GetLeds(), MK404LedsMatcher());
+    CHECK_THAT(GetLeds(), MK4LedsMatcher());
     fading.Step(leds);
-    CHECK_THAT(GetLeds(), MK404LedsMatcher());
+    CHECK_THAT(GetLeds(), MK4LedsMatcher());
 
     SECTION("Running the animation") {
         timer::time = period;
         fading.Step(leds);
-        CHECK_THAT(GetLeds(), MK404LedsMatcher(color));
+        CHECK_THAT(GetLeds(), MK4LedsMatcher(color));
 
         timer::time = 2 * period;
         fading.Step(leds);
-        CHECK_THAT(GetLeds(), MK404LedsMatcher());
+        CHECK_THAT(GetLeds(), MK4LedsMatcher());
     }
 }
 TEST_CASE("Stopping the animation", "[Animations,Fading]") {
@@ -333,9 +333,9 @@ TEST_CASE("Stopping the animation", "[Animations,Fading]") {
     leds::Color color = leds::Color(0, 0, 0);
     timer::time = 0;
     Fading fading(color, period);
-    CHECK_THAT(GetLeds(), MK404LedsMatcher());
+    CHECK_THAT(GetLeds(), MK4LedsMatcher());
     fading.Step(leds);
-    CHECK_THAT(GetLeds(), MK404LedsMatcher());
+    CHECK_THAT(GetLeds(), MK4LedsMatcher());
 
     timer::time = period / 2;
     fading.EndAnimation();
@@ -345,33 +345,33 @@ TEST_CASE("Stopping the animation", "[Animations,Fading]") {
     fading.Step(leds);
     REQUIRE(fading.GetState() == AnimationStateExternal::InProgress);
     leds::Color halfIntensity = color * 0.5;
-    CHECK_THAT(GetLeds(), MK404LedsMatcher(halfIntensity));
+    CHECK_THAT(GetLeds(), MK4LedsMatcher(halfIntensity));
 
     timer::time += period;
     fading.Step(leds);
-    CHECK_THAT(GetLeds(), MK404LedsMatcher(halfIntensity));
+    CHECK_THAT(GetLeds(), MK4LedsMatcher(halfIntensity));
     REQUIRE(fading.GetState() == AnimationStateExternal::InProgress);
 
     SECTION("Stopping the animation") {
         // leds should be turned off
         timer::time += period / 2;
         fading.Step(leds);
-        CHECK_THAT(GetLeds(), MK404LedsMatcher());
+        CHECK_THAT(GetLeds(), MK4LedsMatcher());
         REQUIRE(fading.GetState() == AnimationStateExternal::Ended);
 
         timer::time += period;
-        CHECK_THAT(GetLeds(), MK404LedsMatcher());
+        CHECK_THAT(GetLeds(), MK4LedsMatcher());
         REQUIRE(fading.GetState() == AnimationStateExternal::Ended);
     }
 
     SECTION("Calling step when the animation should be ended") {
         timer::time += 2 * period;
         fading.Step(leds);
-        CHECK_THAT(GetLeds(), MK404LedsMatcher());
+        CHECK_THAT(GetLeds(), MK4LedsMatcher());
         REQUIRE(fading.GetState() == AnimationStateExternal::Ended);
 
         timer::time += period;
-        CHECK_THAT(GetLeds(), MK404LedsMatcher());
+        CHECK_THAT(GetLeds(), MK4LedsMatcher());
         REQUIRE(fading.GetState() == AnimationStateExternal::Ended);
     }
 }
@@ -382,16 +382,16 @@ TEST_CASE("Solid color", "[Animation, Solid]") {
     SolidColor animation(color);
     std::pair<uint16_t, uint16_t> leds = { 0, 2 };
     animation.Step(leds);
-    CHECK_THAT(GetLeds(), MK404LedsMatcher(color));
+    CHECK_THAT(GetLeds(), MK4LedsMatcher(color));
     timer::time += 100;
     animation.EndAnimation();
-    CHECK_THAT(GetLeds(), MK404LedsMatcher(color));
+    CHECK_THAT(GetLeds(), MK4LedsMatcher(color));
     timer::time += 250;
     animation.Step(leds);
-    CHECK_THAT(GetLeds(), MK404LedsMatcher(color * 0.5));
+    CHECK_THAT(GetLeds(), MK4LedsMatcher(color * 0.5));
     timer::time += 250;
     animation.Step(leds);
-    CHECK_THAT(GetLeds(), MK404LedsMatcher());
+    CHECK_THAT(GetLeds(), MK4LedsMatcher());
 }
 
 TEST_CASE("HSV to RGB ") {

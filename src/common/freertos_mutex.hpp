@@ -17,11 +17,13 @@
  * mutex is neither copyable nor movable.
  */
 #pragma once
+
 #include <mutex>
+#include <FreeRTOS.h>
+#include "semphr.h"
 
 class FreeRTOS_Mutex {
 public:
-    static constexpr int buffer_size = 80;
     void unlock();
     bool try_lock();
     void lock();
@@ -30,8 +32,8 @@ public:
     ~FreeRTOS_Mutex();
 
 private:
-    void *xSemaphore = nullptr;     // SemaphoreHandle_t
-    char xMutexBuffer[buffer_size]; // this size is checked in cpp file
+    SemaphoreHandle_t xSemaphore = nullptr;
+    StaticSemaphore_t xSemaphoreData;
 };
 
 // we need our own lock, because GCC uses try and back off which internally uses try_lock and because FreeRTOS does not use priority inheritance when trying to lock mutex without blocking
@@ -40,4 +42,5 @@ namespace buddy {
 
 // not template, because someone could try to lock mutex once in wrapper and once not in wrapper => order could be inconsistent
 void lock(std::unique_lock<FreeRTOS_Mutex> &l1, std::unique_lock<FreeRTOS_Mutex> &l2);
+
 }

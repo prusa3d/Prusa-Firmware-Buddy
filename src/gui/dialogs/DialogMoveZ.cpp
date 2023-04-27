@@ -65,7 +65,7 @@ DialogMoveZ::DialogMoveZ()
     arrows.SetState(WindowArrows::State_t::undef);
 };
 
-void DialogMoveZ::windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) {
+void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
 #if PRINTER_TYPE == PRINTER_PRUSA_MINI
     constexpr static uint8_t len = 4;
 #else

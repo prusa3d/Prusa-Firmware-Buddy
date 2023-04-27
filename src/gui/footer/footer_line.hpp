@@ -37,11 +37,11 @@ public:
         Create({ { args... } }, sizeof...(T));
     }
 
-    bool Create(footer::items item, size_t index);
+    bool Create(footer::Item item, size_t index);
     void Create(const IdArray &ids, size_t count = FOOTER_ITEMS_PER_LINE__);
     void Erase(size_t index);                 // index >= max_items erases all
     window_t *SlotAccess(size_t index) const; // footer event might need to access this method, so it must be public
-    footer::items SlotUsedBy(size_t index);   //meant to be compared with footer::DecodeItemFromEvent in events
+    footer::Item SlotUsedBy(size_t index);    //meant to be compared with footer::DecodeItemFromEvent in events
     static constexpr size_t Size() { return max_items; }
     static void SetCenterN(size_t n_and_fewer);
     static size_t GetCenterN();

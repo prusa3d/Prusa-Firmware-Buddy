@@ -8,6 +8,7 @@
 #include "config_features.h"
 #include "window_icon.hpp"
 #include "screen_menu_tune.hpp"
+#include "png_resources.hpp"
 
 #if ENABLED(CRASH_RECOVERY)
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
@@ -24,16 +25,7 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
     octo_icon.Disable();
     octo_icon.Unshadow();
 
-    initAndSetIconAndLabel(btn_tune, res_tune);
-    initAndSetIconAndLabel(btn_pause, res_pause);
-    initAndSetIconAndLabel(btn_stop, res_disconnect);
-}
-
-void screen_printing_serial_data_t::DisableButton(btn &b) {
-    if (!b.ico.IsShadowed()) {
-        b.ico.Shadow();
-        b.ico.Invalidate();
-    }
+    SetButtonIconAndLabel(BtnSocket::Right, BtnRes::Disconnect, LabelRes::Disconnect);
 }
 
 void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -43,9 +35,9 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
         connection = connection_state_t::disconnect_ask;
         if (MsgBoxWarning(_("Really Disconnect?"), Responses_YesNo, 1) == Response::Yes) {
 
-            DisableButton(btn_tune);
-            DisableButton(btn_pause);
-            DisableButton(btn_stop);
+            DisableButton(BtnSocket::Left);
+            DisableButton(BtnSocket::Middle);
+            DisableButton(BtnSocket::Right);
 
             marlin_gcode("M118 A1 action:disconnect");
 

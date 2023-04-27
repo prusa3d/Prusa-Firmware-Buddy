@@ -209,7 +209,7 @@ void window_frame_t::draw() {
     invalid_area = Rect16(); // clear invalid_area
 }
 
-void window_frame_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void window_frame_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     intptr_t dif = (intptr_t)param;
     window_t *pWin = GetFocusedWindow();
     if (!pWin || !pWin->IsChildOf(this))

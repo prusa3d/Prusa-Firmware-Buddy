@@ -3,7 +3,6 @@
 #include "config.h"
 #include "ScreenHandler.hpp"
 #include "display.h"
-#include "errors.h"
 #include "sound.hpp"
 #include "sys.h"
 #include "eeprom.h"
@@ -11,7 +10,10 @@
 #include "version.h"
 
 #include <stdlib.h>
-#include <crash_dump/dump.h>
+#include <crash_dump/dump.hpp>
+#include <error_codes.hpp>
+
+using namespace crash_dump;
 
 static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, 200, 20) : Rect16(13, 12, display::GetW() - 26, 20);
 static const constexpr Rect16 hand_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(250, 105, 65, 82) : Rect16(20, 165, 64, 82);

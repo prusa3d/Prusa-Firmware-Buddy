@@ -8,6 +8,7 @@
 #include "WindowItemFanLabel.hpp"
 #include "WindowItemTempLabel.hpp"
 #include "config.h"
+#include "eeprom.h"
 #include <utility_extensions.hpp>
 
 #define MI_ADDR_LEN 18
@@ -75,11 +76,21 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_FACTORY_DEFAULTS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Factory Reset");
+class MI_FACTORY_SOFT_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Reset Setttings & Calibrations");
 
 public:
-    MI_FACTORY_DEFAULTS();
+    MI_FACTORY_SOFT_RESET();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_FACTORY_HARD_RESET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Hard reset (USB with FW needed)");
+
+public:
+    MI_FACTORY_HARD_RESET();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -102,16 +113,6 @@ class MI_SAVE_DUMP : public WI_LABEL_t {
 
 public:
     MI_SAVE_DUMP();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_XFLASH_DELETE : public WI_LABEL_t {
-    static constexpr const char *const label = "Clear External Flash"; // intentionally not translated, only for debugging
-
-public:
-    MI_XFLASH_DELETE();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -256,9 +257,9 @@ public:
 };
 
 #ifdef _DEBUG
-static constexpr size_t MI_SOUND_MODE_COUNT = 5;
+inline constexpr size_t MI_SOUND_MODE_COUNT = 5;
 #else
-static constexpr size_t MI_SOUND_MODE_COUNT = 4;
+inline constexpr size_t MI_SOUND_MODE_COUNT = 4;
 #endif
 class MI_SOUND_MODE : public WI_SWITCH_t<MI_SOUND_MODE_COUNT> {
     constexpr static const char *const label = N_("Sound Mode");
@@ -405,7 +406,7 @@ class MI_FILAMENT_SENSOR_STATE : public WI_SWITCH_0_1_NA_t {
 public:
     MI_FILAMENT_SENSOR_STATE();
     virtual void Loop() override;
-    virtual void OnChange(size_t old_index) override {}
+    virtual void OnChange([[maybe_unused]] size_t old_index) override {}
 };
 
 class MI_MINDA : public WI_SWITCH_0_1_NA_t {
@@ -415,7 +416,7 @@ class MI_MINDA : public WI_SWITCH_0_1_NA_t {
 public:
     MI_MINDA();
     virtual void Loop() override;
-    virtual void OnChange(size_t old_index) override {}
+    virtual void OnChange([[maybe_unused]] size_t old_index) override {}
 };
 #endif
 
@@ -488,7 +489,7 @@ public:
 template <int N>
 class MI_INFO_HEATBREAK_N_TEMP : public I_MI_INFO_HEATBREAK_N_TEMP {
     static_assert(N >= 0 && N <= 4, "bad input");
-    static constexpr const char *const get_name() {
+    static consteval const char *get_name() {
         switch (N) {
         case 0:
             return N_("Heatbreak 1 temp");
@@ -501,6 +502,8 @@ class MI_INFO_HEATBREAK_N_TEMP : public I_MI_INFO_HEATBREAK_N_TEMP {
         case 4:
             return N_("Heatbreak 5 temp");
         }
+        consteval_assert_false();
+        return "";
     }
 
     static constexpr const char *const specific_label = get_name();
@@ -530,7 +533,7 @@ public:
 template <int N>
 class MI_INFO_NOZZLE_N_TEMP : public I_MI_INFO_NOZZLE_N_TEMP {
     static_assert(N >= 0 && N <= 4, "bad input");
-    static constexpr const char *const get_name() {
+    static consteval const char *get_name() {
         switch (N) {
         case 0:
             return N_("Nozzle 1 Temperature");
@@ -543,6 +546,8 @@ class MI_INFO_NOZZLE_N_TEMP : public I_MI_INFO_NOZZLE_N_TEMP {
         case 4:
             return N_("Nozzle 5 Temperature");
         }
+        consteval_assert_false();
+        return "";
     }
 
     static constexpr const char *const specific_label = get_name();
@@ -630,12 +635,65 @@ class MI_ODOMETER_DIST_Z : public MI_ODOMETER_DIST {
 public:
     MI_ODOMETER_DIST_Z();
 };
+
+/// Extruded filament
 class MI_ODOMETER_DIST_E : public MI_ODOMETER_DIST {
-    constexpr static const char *const label = N_("Filament");
+    constexpr static const char *const generic_label = N_("Filament");
 
 public:
+    MI_ODOMETER_DIST_E(const char *const label, int index);
     MI_ODOMETER_DIST_E();
 };
+
+/// Tool picked
+class MI_ODOMETER_TOOL : public WI_FORMATABLE_LABEL_t<uint32_t> {
+    constexpr static const char *const generic_label = N_("Tools Changed");
+    constexpr static const char *const times_label = N_("times"); // Tools Changed      123 times
+
+public:
+    MI_ODOMETER_TOOL(const char *const label, int index);
+    MI_ODOMETER_TOOL();
+};
+
+/**
+ * @brief Tool-specific odometer item.
+ * @param OdometerT class with constructor that takes N and label.
+ * @param N which extruder [indexed from 0]
+ */
+template <class OdometerT, int N>
+class MI_ODOMETER_N : public OdometerT {
+    static_assert(N >= 0 && N <= 4, "bad input");
+    static consteval const char *get_name() {
+        switch (N) {
+        case 0:
+            return N_("  Tool 1"); // Keep space in front for menu alignment
+        case 1:
+            return N_("  Tool 2");
+        case 2:
+            return N_("  Tool 3");
+        case 3:
+            return N_("  Tool 4");
+        case 4:
+            return N_("  Tool 5");
+        }
+        consteval_assert_false();
+        return "";
+    }
+
+    static constexpr const char *const specific_label = get_name();
+
+public:
+    MI_ODOMETER_N()
+        : OdometerT(specific_label, N) {
+    }
+};
+
+// Specializations of odometer display for particular tool
+template <int N>
+using MI_ODOMETER_DIST_E_N = MI_ODOMETER_N<MI_ODOMETER_DIST_E, N>;
+template <int N>
+using MI_ODOMETER_TOOL_N = MI_ODOMETER_N<MI_ODOMETER_TOOL, N>;
+
 class MI_ODOMETER_TIME : public WI_FORMATABLE_LABEL_t<uint32_t> {
     constexpr static const char *const label = N_("Print Time");
 
@@ -762,8 +820,10 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_HEATUP_BED : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Heatup Bed During Filament Operations");
+class MI_HEATUP_BED : public WI_SWITCH_t<2> {
+    static constexpr const char *const label = N_("For filament change, preheat");
+    static constexpr const char *const nozzle = N_("Nozzle");
+    static constexpr const char *const nozzle_bed = N_("Noz&Bed");
 
 public:
     MI_HEATUP_BED();

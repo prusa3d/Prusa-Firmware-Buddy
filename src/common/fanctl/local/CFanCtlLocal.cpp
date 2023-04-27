@@ -1,14 +1,12 @@
 // fanctl.cpp
 
 #include "config_buddy_2209_02.h"
-#ifdef NEW_FANCTL
-
-    #include "fanctl.hpp"
-    #include <device/hal.h>
-    #include "cmsis_os.h"
-    #include "gpio.h"
-    #include <stdlib.h>
-    #include <device/board.h>
+#include "fanctl.hpp"
+#include <device/hal.h>
+#include "cmsis_os.h"
+#include "gpio.h"
+#include <stdlib.h>
+#include <device/board.h>
 
 using namespace buddy::hw;
 
@@ -48,7 +46,7 @@ int8_t CFanCtlPWM::tick() {
             } else
                 pha_stp = 0; // set step to zero - disable phase shifting
         }
-    #if 1
+#if 1
         else if (pha_stp) // pha_stp != 0 means phase shifting enabled
             switch (pha_mode) {
             case none:
@@ -68,17 +66,17 @@ int8_t CFanCtlPWM::tick() {
                 pha = pha_max * ((float)rand() / RAND_MAX);
                 break;
             }
-    #endif
+#endif
     }
-    #if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY)
     m_pin.write(static_cast<Pin::State>(!o)); // set output pin. xBuddy 0.2.0 have invert fan logic
-    #elif (BOARD_IS_BUDDY || BOARD_IS_DWARF)
+#elif (BOARD_IS_BUDDY || BOARD_IS_DWARF)
     m_pin.write(static_cast<Pin::State>(o)); // set output pin
-    #elif BOARD_IS_XLBUDDY
-        #error XLBUDDY controls FANs via DWARF, this shoudnt be compiled at all
-    #else
-        #error "Unknown board."
-    #endif
+#elif BOARD_IS_XLBUDDY
+    #error XLBUDDY controls FANs via DWARF, this shoudnt be compiled at all
+#else
+    #error "Unknown board."
+#endif
     return pwm_on;
 }
 
@@ -92,13 +90,13 @@ void CFanCtlPWM::set_PWM(uint8_t new_pwm) {
 
 void CFanCtlPWM::safeState() {
     set_PWM(max_value);
-    #if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY)
     m_pin.write(Pin::State::low);
-    #elif (BOARD_IS_BUDDY || BOARD_IS_DWARF)
+#elif (BOARD_IS_BUDDY || BOARD_IS_DWARF)
     m_pin.write(Pin::State::high);
-    #else
-        #error "Unknown board."
-    #endif
+#else
+    #error "Unknown board."
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -275,5 +273,3 @@ void CFanCtlLocal::ExitSelftestMode() {
 
     setPWM(pwm_to_restore);
 }
-
-#endif //NEW_FANCTL

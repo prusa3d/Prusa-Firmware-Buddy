@@ -41,7 +41,7 @@ changed_t footer::eeprom::Store(record rec) {
     return changed_t::yes;
 }
 
-bool footer::eeprom::Set(items item, size_t index) {
+bool footer::eeprom::Set(Item item, size_t index) {
     if (index >= count)
         return false;
     record rec = get_ref();
@@ -118,9 +118,9 @@ record footer::eeprom::DecodeWithSize(uint32_t encoded, size_t min_bit_size) {
 
     for (size_t i = 0; i < count; ++i) {
         uint32_t decoded = encoded & mask;
-        if (decoded > size_t(items::count_))
+        if (decoded >= size_t(Item::_count))
             return footer::DefaultItems; // data corrupted, return default setting
-        ret[i] = items(decoded);
+        ret[i] = Item(decoded);
         encoded >>= min_bit_size;
     }
     return ret;

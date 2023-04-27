@@ -9,18 +9,19 @@
 
 #include "filament_sensor_adc.hpp"
 #include "filament_sensors_handler.hpp"
+#include "log.h"
 #include "metric.h"
 #include "eeprom.h"
 #include "config_buddy_2209_02.h"
 #include "algorithm_range.hpp"
 #include "rtos_api.hpp"
 
+LOG_COMPONENT_REF(FSensor);
+
 namespace {
 
 constexpr int32_t fs_disconnect_threshold = //value for detecting disconnected sensor
-#if (BOARD_IS_XBUDDY && LOVEBOARD_HAS_PT100)
-    10;
-#elif (BOARD_IS_XLBUDDY)
+#if (BOARD_IS_XLBUDDY)
     20;
 #else
     2000;
@@ -47,10 +48,15 @@ void FSensorADC::cycle() {
         invalidate_calibration();
         Disable();
     }
-    if (flg_calibrate) {
+    if (req_calibrate == CalibrateRequest::CalibrateNoFilament) {
         save_calibration(filtered_value);
         Enable();
     }
+
+    if (req_calibrate == CalibrateRequest::CalibrateHasFilament) {
+        EnsureHasFilamentValue(filtered_value);
+    }
+
     // disabled FS will not enter cycle, but load_settings can disable it too
     // so better not try to change state when sensor is disabled
     if (state != fsensor_t::Disabled) {
@@ -60,9 +66,6 @@ void FSensorADC::cycle() {
 
 void FSensorADC::set_filtered_value_from_IRQ(int32_t filtered_value) {
     fs_filtered_value.store(filtered_value);
-    if (filtered_value != fs_filtered_value_not_ready) {
-        record_filtered();
-    }
 }
 
 void FSensorADC::set_state(fsensor_t st) {
@@ -85,8 +88,12 @@ FSensorADC::FSensorADC(eevar_id span_id, eevar_id ref_id, uint8_t tool_index)
     init();
 }
 
-void FSensorADC::SetCalibrateFlag() {
-    flg_calibrate = true;
+void FSensorADC::SetCalibrateRequest(CalibrateRequest req) {
+    req_calibrate = req;
+}
+
+bool FSensorADC::IsCalibrationFinished() const {
+    return req_calibrate == CalibrateRequest::NoCalibration;
 }
 
 void FSensorADC::SetLoadSettingsFlag() {
@@ -95,6 +102,24 @@ void FSensorADC::SetLoadSettingsFlag() {
 
 void FSensorADC::SetInvalidateCalibrationFlag() {
     flg_invalid_calib = true;
+}
+
+void FSensorADC::EnsureHasFilamentValue(int32_t filtered_value) {
+    if (filtered_value == fs_filtered_value_not_ready) {
+        return;
+    }
+
+    // value should be outside of extended span, because if its close to span that is used to evaluate filament sensor, it will not be reliable and trigger randomly
+    int32_t extended_span = fs_value_span * fs_selftest_span_multipler;
+    if (IsInClosedRange(filtered_value, fs_ref_value - extended_span, fs_ref_value + extended_span)) {
+        log_info(FSensor, "Calibrating HasFilament: FAIL value: %d", filtered_value);
+        invalidate_calibration();
+    } else {
+        log_info(FSensor, "Calibrating HasFilament: PASS value: %d", filtered_value);
+    }
+
+    // mark calibration as done
+    req_calibrate = CalibrateRequest::NoCalibration;
 }
 
 int32_t FSensorADC::load_settings() {
@@ -125,8 +150,10 @@ void FSensorADC::save_calibration(int32_t value) {
         return;
     }
     eeprom_set_var(get_eeprom_ref_id(), variant8_i32(value));
-    flg_calibrate = false;
+    req_calibrate = CalibrateRequest::NoCalibration;
     load_settings();
+
+    log_info(FSensor, "Calibrating NoFilament value: %d", value);
 }
 
 void FSensorADC::invalidate_calibration() {
@@ -136,63 +163,68 @@ void FSensorADC::invalidate_calibration() {
 }
 
 void FSensorAdcExtruder::record_state() {
-    metric_record_custom(&get_metric_state__static(), ",n=%d v=%di", tool_index, static_cast<int>(Get()));
+    if (limit_record()) {
+        metric_record_custom(&get_metric__static(), ",n=%u st=%di,f=%di,r=%di,sp=%di", tool_index, static_cast<int>(Get()), fs_filtered_value.load(), fs_ref_value, fs_value_span);
+    }
 }
 
 void FSensorAdcSide::record_state() {
-    metric_record_custom(&get_metric_state__static(), ",n=%d v=%di", tool_index, static_cast<int>(Get()));
+    if (limit_record()) {
+        metric_record_custom(&get_metric__static(), ",n=%u st=%di,f=%di,r=%di,sp=%di", tool_index, static_cast<int>(Get()), fs_filtered_value.load(), fs_ref_value, fs_value_span);
+    }
+}
+
+void FSensorAdcExtruder::MetricsSetEnabled(bool enable) {
+    uint32_t new_state = enable ? METRIC_HANDLER_ENABLE_ALL : METRIC_HANDLER_DISABLE_ALL;
+    get_metric_raw__static().enabled_handlers = new_state;
+    get_metric__static().enabled_handlers = new_state;
+}
+void FSensorAdcSide::MetricsSetEnabled(bool enable) {
+    uint32_t new_state = enable ? METRIC_HANDLER_ENABLE_ALL : METRIC_HANDLER_DISABLE_ALL;
+    get_metric_raw__static().enabled_handlers = new_state;
+    get_metric__static().enabled_handlers = new_state;
 }
 
 void FSensorAdcExtruder::record_raw(int32_t val) {
-    metric_record_custom(&get_metric_raw__static(), ",n=%d v=%di", tool_index, val);
+    if (limit_record_raw()) {
+        metric_record_custom(&get_metric_raw__static(), ",n=%u v=%di", tool_index, val);
+    }
 }
 
 void FSensorAdcSide::record_raw(int32_t val) {
-    metric_record_custom(&get_metric_raw__static(), ",n=%d v=%di", tool_index, val);
-}
-
-void FSensorAdcExtruder::record_filtered() {
-    metric_record_custom(&get_metric_filtered__static(), ",n=%d v=%di", tool_index, fs_filtered_value.load());
-}
-
-void FSensorAdcSide::record_filtered() {
-    metric_record_custom(&get_metric_filtered__static(), ",n=%d v=%di", tool_index, fs_filtered_value.load());
+    if (limit_record_raw()) {
+        metric_record_custom(&get_metric_raw__static(), ",n=%u v=%di", tool_index, val);
+    }
 }
 
 #define METRIC_HANDLER METRIC_HANDLER_DISABLE_ALL
 
 metric_s &FSensorAdcExtruder::get_metric_raw__static() {
-    static metric_t ret = METRIC("fsensor_raw", METRIC_VALUE_CUSTOM, 60, METRIC_HANDLER);
+    static metric_t ret = METRIC("fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
     return ret;
 }
 
-metric_s &FSensorAdcExtruder::get_metric_state__static() {
-    static metric_t ret = METRIC("fsensor", METRIC_VALUE_CUSTOM, 49, METRIC_HANDLER);
-    return ret;
-}
-
-metric_s &FSensorAdcExtruder::get_metric_filtered__static() {
-    static metric_t ret = METRIC("fsensor_filtered", METRIC_VALUE_CUSTOM, 60, METRIC_HANDLER);
+metric_s &FSensorAdcExtruder::get_metric__static() {
+    static metric_t ret = METRIC("fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
     return ret;
 }
 
 metric_s &FSensorAdcSide::get_metric_raw__static() {
-    static metric_t ret = METRIC("side_fsensor_raw", METRIC_VALUE_CUSTOM, 60, METRIC_HANDLER);
+    static metric_t ret = METRIC("side_fsensor_raw", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_raw
     return ret;
 }
 
-metric_s &FSensorAdcSide::get_metric_state__static() {
-    static metric_t ret = METRIC("side_fsensor", METRIC_VALUE_CUSTOM, 49, METRIC_HANDLER);
-    return ret;
-}
-
-metric_s &FSensorAdcSide::get_metric_filtered__static() {
-    static metric_t ret = METRIC("side_fsensor_filtered", METRIC_VALUE_CUSTOM, 60, METRIC_HANDLER);
+metric_s &FSensorAdcSide::get_metric__static() {
+    static metric_t ret = METRIC("side_fsensor", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER); // No min interval, is handled by limit_record_state
     return ret;
 }
 
 FSensorAdcExtruder::FSensorAdcExtruder(eevar_id span_value, eevar_id ref_value, uint8_t tool_index)
-    : FSensorADC(span_value, ref_value, tool_index) {}
+    : FSensorADC(span_value, ref_value, tool_index)
+    , limit_record(49)
+    , limit_record_raw(60) {}
 
 FSensorAdcSide::FSensorAdcSide(eevar_id span_value, eevar_id ref_value, uint8_t tool_index)
-    : FSensorADC(span_value, ref_value, tool_index) {}
+    : FSensorADC(span_value, ref_value, tool_index)
+    , limit_record(49)
+    , limit_record_raw(60) {}

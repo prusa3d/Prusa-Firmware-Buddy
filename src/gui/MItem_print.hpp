@@ -19,7 +19,7 @@ public:
 template <uint8_t N>
 class MI_NOZZLE : public MI_NOZZLE_ABSTRACT {
 public:
-    static constexpr const char *const get_label() {
+    static constexpr const char *get_label() {
 #if HAS_TOOLCHANGER()
         static_assert(N >= 0 && N <= 4, "bad input");
         switch (N) {
@@ -54,7 +54,7 @@ public:
 
 class MI_PRINTFAN : public WiSpinInt {
     constexpr static const char *label = N_("Print Fan Speed");
-    uint8_t val_mapping(bool rounding_floor, uint8_t val, const uint8_t max_val, const uint8_t new_max_val);
+    uint8_t val_mapping(const bool rounding_floor, const uint8_t val, const uint8_t max_val, const uint8_t new_max_val);
 
 public:
     MI_PRINTFAN();

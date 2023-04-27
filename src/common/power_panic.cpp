@@ -31,6 +31,7 @@
 #include "w25x.h"
 #include "sound.hpp"
 #include "bsod.h"
+#include "bsod_gui.hpp"
 #include "sys.h"
 #include "timing.h"
 #include "odometer.hpp"
@@ -49,21 +50,17 @@
 extern osThreadId defaultTaskHandle;
 extern osThreadId displayTaskHandle;
 
-// External support functions in marlin_server
-void marlin_server_powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool start_paused);
-void marlin_server_powerpanic_finish(bool paused);
-
 namespace power_panic {
 
 LOG_COMPONENT_DEF(PowerPanic, LOG_SEVERITY_INFO);
 
 osThreadId ac_fault_task;
 
-void ac_fault_main(void const *argument) {
-    // XL is not able to boot with power panic active (puppies are waiting in bootloader).
-    if constexpr (PRINTER_TYPE == PRINTER_PRUSA_XL) {
-        if (is_panic_signal()) {
-            fatal_error("Power panic is active.", "Power panic");
+void ac_fault_main([[maybe_unused]] void const *argument) {
+    //AC-fault during initialization //TODO: IXL Remove if after PP is ready
+    if constexpr (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4) {
+        if (is_ac_fault_signal()) {
+            fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
         }
     }
 
@@ -116,10 +113,13 @@ struct flash_planner_t {
     uint8_t was_paused;
     uint8_t was_crashed;
     uint8_t fan_speed;
+    uint8_t print_speed;
     uint8_t axis_relative;
     uint8_t allow_cold_extrude;
 
-    uint8_t _padding[ENABLED(MODULAR_HEATBED) ? 1 : 3];
+#if DISABLED(MODULAR_HEATBED)
+    uint8_t _padding[2];
+#endif
 };
 
 // fully independent state that persist across panics until the end of the print
@@ -192,7 +192,7 @@ static_assert(sizeof(flash_data) <= FLASH_SIZE, "powerpanic data exceeds reserve
 // Temporary buffer for state filled at the time of the acFault trigger
 static struct {
     bool nested_fault;
-    AcFaultState orig_state;
+    PPState orig_state;
     char media_SFN_path[FILE_PATH_MAX_LEN]; // temporary buffer
     uint8_t orig_axis_known_position;
     uint32_t fault_stamp; // time since acFault trigger
@@ -312,7 +312,7 @@ bool state_stored() {
 
 // decide whether to current print can auto-recover
 static bool auto_recover_check() {
-    if (state_buf.print.odometer_e_start >= Odometer_s::instance().get(Odometer_s::axis_t::E)) {
+    if (state_buf.print.odometer_e_start >= Odometer_s::instance().get_extruded_all()) {
         // nothing has been extruded on the bed so far, it's safe to auto-resume irregardless of temp
         return true;
     }
@@ -379,7 +379,7 @@ void prepare() {
     }
 
     log_info(PowerPanic, "powerpanic prepared");
-    ac_fault_state = AcFaultState::Prepared;
+    power_panic_state = PPState::Prepared;
 }
 
 enum class ResumeState : uint8_t {
@@ -405,7 +405,7 @@ static void atomic_reset() {
     }
 
     // internal state
-    ac_fault_state = AcFaultState::Inactive;
+    power_panic_state = PPState::Inactive;
     resume_state = ResumeState::Setup;
     state_buf.nested_fault = false;
 }
@@ -414,22 +414,22 @@ static void atomic_reset() {
 static void atomic_finish() {
     HAL_NVIC_DisableIRQ(buddy::hw::acFault.getIRQn());
 
-    marlin_server_powerpanic_finish(state_buf.planner.was_paused);
+    marlin_server::powerpanic_finish(state_buf.planner.was_paused);
     atomic_reset();
 
     HAL_NVIC_EnableIRQ(buddy::hw::acFault.getIRQn());
 }
 
-void resume_print(bool start_paused) {
-    assert(state_stored());               // caller is responsible for checking
-    assert(marlin_server_printer_idle()); // caller is responsible for checking
+void resume_print(bool auto_recover) {
+    assert(state_stored());                // caller is responsible for checking
+    assert(marlin_server::printer_idle()); // caller is responsible for checking
 
     log_info(PowerPanic, "resuming print");
     state_buf.nested_fault = true;
-    if (resume_state == ResumeState::Setup && !start_paused) {
+    if (resume_state == ResumeState::Setup && auto_recover) {
         resume_state = ResumeState::Resume;
     }
-    marlin_server_powerpanic_resume_loop(state_buf.media_SFN_path, state_buf.crash.sdpos, start_paused);
+    marlin_server::powerpanic_resume_loop(state_buf.media_SFN_path, state_buf.crash.sdpos, auto_recover);
 }
 
 void resume_continue() {
@@ -445,26 +445,20 @@ void resume_loop() {
         thermalManager.setTargetBed(state_buf.planner.target_bed);
         break;
     case ResumeState::Resume:
-        if (state_buf.planner.was_paused) {
-            // setup the paused state
-            resume_state_t resume;
-            resume.pos = state_buf.crash.crash_current_position;
-            resume.fan_speed = state_buf.planner.fan_speed;
-            HOTEND_LOOP() {
-                resume.nozzle_temp[e] = state_buf.planner.target_nozzle[e];
-            }
-            marlin_server_set_resume_data(&resume);
-        } else {
-#if FAN_COUNT > 0
-            thermalManager.set_fan_speed(0, state_buf.planner.fan_speed);
-#endif
-            HOTEND_LOOP() {
-                // setup nozzle temperature
-                thermalManager.setTargetHotend(state_buf.planner.target_nozzle[e], e);
-
-                marlin_server_set_temp_to_display(state_buf.planner.target_nozzle[e], e);
+        // setup the paused state
+        // This applies for PowerPanic from paused AND from printing too
+        // because printing after power up starts from pause
+        marlin_server::resume_state_t resume;
+        resume.pos = state_buf.crash.crash_current_position;
+        resume.fan_speed = state_buf.planner.fan_speed;
+        resume.print_speed = state_buf.planner.print_speed;
+        HOTEND_LOOP() {
+            resume.nozzle_temp[e] = state_buf.planner.target_nozzle[e];
+            if (state_buf.planner.was_paused) {
+                marlin_server::set_temp_to_display(state_buf.planner.target_nozzle[e], e);
             }
         }
+        marlin_server::set_resume_data(&resume);
 
         // set bed temperatures
         thermalManager.setTargetBed(state_buf.planner.target_bed);
@@ -497,7 +491,7 @@ void resume_loop() {
             float z_lift = z_dist < Z_HOMING_HEIGHT ? Z_HOMING_HEIGHT - z_dist : 0;
             char cmd_buf[24];
             snprintf(cmd_buf, sizeof(cmd_buf), "G28 X Y D R%f", (double)z_lift);
-            marlin_server_enqueue_gcode(cmd_buf);
+            marlin_server::enqueue_gcode(cmd_buf);
         }
 
         // canceled objects
@@ -514,12 +508,12 @@ void resume_loop() {
         HOTEND_LOOP() {
             if (state_buf.planner.target_nozzle[e]) {
                 snprintf(cmd_buf, sizeof(cmd_buf), "M109 S%d T%d", state_buf.planner.target_nozzle[e], e);
-                marlin_server_enqueue_gcode(cmd_buf);
+                marlin_server::enqueue_gcode(cmd_buf);
             }
         }
         if (state_buf.planner.target_bed) {
             snprintf(cmd_buf, sizeof(cmd_buf), "M190 S%d", state_buf.planner.target_bed);
-            marlin_server_enqueue_gcode(cmd_buf);
+            marlin_server::enqueue_gcode(cmd_buf);
         }
 
         resume_state = ResumeState::Unpark;
@@ -589,7 +583,7 @@ void resume_loop() {
         break;
 
     case ResumeState::Error:
-        // fail if marlin_server_powerpanic_finish didn't reset the server loop state
+        // fail if marlin_server::powerpanic_finish didn't reset the server loop state
         bsod("resume loop not reset");
     }
 }
@@ -600,46 +594,13 @@ void reset() {
     atomic_reset();
 
     // also reset print state
-    state_buf.print.odometer_e_start = Odometer_s::instance().get(Odometer_s::axis_t::E);
+    state_buf.print.odometer_e_start = Odometer_s::instance().get_extruded_all();
 
     log_info(PowerPanic, "powerpanic reset");
 }
 
-// TODO: move this away
-bool has_inverted_axis(const AxisEnum axis) {
-    switch (axis) {
-    case X_AXIS:
-        return has_inverted_x();
-    case Y_AXIS:
-        return has_inverted_y();
-    case Z_AXIS:
-        return has_inverted_z();
-    case E_AXIS:
-        return has_inverted_e();
-    default:
-        bsod("invalid axis");
-    }
-}
-
-// Return the physical distance of the requested number of cycles
-float distance_per_cycle(const AxisEnum axis, uint8_t cycles) {
-    uint32_t res = stepper_axis(axis).microsteps();
-    uint32_t steps = (4 * res) * cycles;
-    return (float)steps * planner.mm_per_step[axis];
-}
-
-// Return the shift required to reach the closest position where MSCNT is zero, moving forward.
-float distance_to_reset_point(const AxisEnum axis, uint8_t cycles) {
-    // NOTE: we need to ensure to schedule more than "dropsegments" steps in order to move, but this
-    // is easily always the case with any non-zero microstepping value and multiples of 4 full steps.
-    TMCStepper &stepper = stepper_axis(axis);
-    uint32_t res = stepper.microsteps();
-    uint32_t steps = (4 * res) * cycles;
-    uint32_t mscnt = stepper.MSCNT();
-    if (has_inverted_axis(axis))
-        mscnt = 1024 - mscnt;
-    return (float)mscnt / ((float)res * planner.settings.axis_steps_per_mm[axis])
-        + ((float)steps * planner.mm_per_step[axis]);
+float distance_to_reset_point(const AxisEnum axis, uint8_t min_cycles) {
+    return planner.mm_per_qsteps(axis, min_cycles) + planner.distance_to_stepper_zero(axis, has_inverted_axis(axis));
 }
 
 uint8_t shutdown_state = 0;
@@ -712,17 +673,17 @@ bool shutdown_loop_checked() {
     // move above is not sufficient)
     moves = planner.movesplanned();
     if (!moves)
-        log_warning(PowerPanic, "shutdown state %u/%u took too long", ac_fault_state, shutdown_state - 1);
+        log_warning(PowerPanic, "shutdown state %u/%u took too long", power_panic_state, shutdown_state - 1);
 
     return moves;
 }
 
-std::atomic_bool ac_power_fault = false;
-AcFaultState ac_fault_state = AcFaultState::Inactive;
+std::atomic_bool ac_power_fault_is_checked = false;
+PPState power_panic_state = PPState::Inactive;
 
 void ac_fault_loop() {
-    switch (ac_fault_state) {
-    case AcFaultState::Triggered:
+    switch (power_panic_state) {
+    case PPState::Triggered:
         // suspend the helper task
         vTaskSuspend(ac_fault_task);
         log_debug(PowerPanic, "powerpanic loop start");
@@ -754,10 +715,10 @@ void ac_fault_loop() {
         }
 
         log_info(PowerPanic, "powerpanic triggered");
-        ac_fault_state = AcFaultState::Retracting;
+        power_panic_state = PPState::Retracting;
         break;
 
-    case AcFaultState::Retracting:
+    case PPState::Retracting:
         if (shutdown_loop_checked())
             break;
 
@@ -770,7 +731,7 @@ void ac_fault_loop() {
 
                 // lift just 1 cycle if already far enough from the print
                 float z_dist = current_position[Z_AXIS] - state_buf.crash.crash_current_position[Z_AXIS];
-                bool already_lifted = z_dist >= distance_per_cycle(Z_AXIS, POWER_PANIC_Z_LIFT_CYCLES);
+                bool already_lifted = z_dist >= planner.mm_per_qsteps(Z_AXIS, POWER_PANIC_Z_LIFT_CYCLES);
                 uint8_t cycles = (already_lifted ? 1 : POWER_PANIC_Z_LIFT_CYCLES);
                 float z_shift = distance_to_reset_point(Z_AXIS, cycles);
                 plan_move_by(POWER_PANIC_Z_FEEDRATE, 0, 0, z_shift);
@@ -781,10 +742,10 @@ void ac_fault_loop() {
             }
         }
 
-        ac_fault_state = AcFaultState::SaveState;
+        power_panic_state = PPState::SaveState;
         break;
 
-    case AcFaultState::SaveState:
+    case PPState::SaveState:
         if (shutdown_loop_checked())
             break;
 
@@ -804,7 +765,7 @@ void ac_fault_loop() {
 #endif
 
         log_info(PowerPanic, "powerpanic saving");
-        if (state_buf.orig_state != AcFaultState::Prepared) {
+        if (state_buf.orig_state != PPState::Prepared) {
             // no prepare was performed for this print yet, prepare the flash now
             flash_data::erase();
             flash_data::fixed_t::save();
@@ -840,22 +801,22 @@ void ac_fault_loop() {
 
         log_info(PowerPanic, "powerpanic complete");
         Sound_Play(eSOUND_TYPE::CriticalAlert);
-        ac_fault_state = AcFaultState::WaitingToDie;
+        power_panic_state = PPState::WaitingToDie;
         break;
 
-    case AcFaultState::WaitingToDie:
+    case PPState::WaitingToDie:
         shutdown_loop();
 
         // hold the system for a while to avoid restarting for a short bursts
-        if (!is_panic_signal() && (ticks_ms() - state_buf.fault_stamp) >= POWER_PANIC_HOLD_RST_MS) {
+        if ((ticks_ms() - state_buf.fault_stamp) >= POWER_PANIC_HOLD_RST_MS) {
             // time's up: attempt to self-resume by resetting
             sys_reset();
             while (1)
                 ;
         }
 
-    case AcFaultState::Inactive:
-    case AcFaultState::Prepared:
+    case PPState::Inactive:
+    case PPState::Prepared:
         // state not reached in this context
         break;
     }
@@ -863,21 +824,30 @@ void ac_fault_loop() {
 
 void ac_fault_isr() {
     // disable EEPROM writes
-    ac_power_fault = true;
+    ac_power_fault_is_checked = true;
+
     // check if handling the fault is worth it (printer is active or can be resumed)
     if (!state_buf.nested_fault) {
-        if (marlin_server_printer_idle() && !marlin_server_printer_paused())
+        if ((marlin_server::printer_idle() && !marlin_server::printer_paused()) || marlin_server::aborting_or_aborted()) {
+            DISABLE_ISRS();
+            state_buf.fault_stamp = ticks_ms();
+            power_panic_state = PPState::WaitingToDie;
             return;
+        }
     }
 
     // TODO: can be avoided if running at the same priority as STEP_TIMER_PRIO
     CRITICAL_SECTION_START;
 
+    // ensure the crash handler can't be re-triggered
+    HAL_NVIC_DisableIRQ(buddy::hw::xDiag.getIRQn());
+    HAL_NVIC_DisableIRQ(buddy::hw::yDiag.getIRQn());
+
     // prevent re-entry
     HAL_NVIC_DisableIRQ(buddy::hw::acFault.getIRQn());
-    state_buf.orig_state = ac_fault_state;
+    state_buf.orig_state = power_panic_state;
     state_buf.fault_stamp = ticks_ms();
-    ac_fault_state = AcFaultState::Triggered;
+    power_panic_state = PPState::Triggered;
 
     // power off devices in order of power draw
     state_buf.orig_axis_known_position = axis_known_position;
@@ -890,7 +860,7 @@ void ac_fault_isr() {
     // stop motion
     if (!state_buf.nested_fault) {
         marlin_vars()->media_SFN_path.copy_to(state_buf.media_SFN_path, sizeof(state_buf.media_SFN_path));
-        state_buf.planner.was_paused = marlin_server_printer_paused();
+        state_buf.planner.was_paused = marlin_server::printer_paused();
         state_buf.planner.was_crashed = crash_s.did_trigger();
     }
     if (!state_buf.planner.was_crashed) {
@@ -900,7 +870,7 @@ void ac_fault_isr() {
     }
 
     if (!state_buf.nested_fault) {
-        const resume_state_t &resume = *marlin_server_get_resume_data();
+        const marlin_server::resume_state_t &resume = *marlin_server::get_resume_data();
 
         if (state_buf.planner.was_paused) {
             // crash_current_position *is* current_position while the print is paused,
@@ -929,11 +899,13 @@ void ac_fault_isr() {
                 state_buf.planner.target_nozzle[e] = resume.nozzle_temp[e];
             }
             state_buf.planner.fan_speed = resume.fan_speed;
+            state_buf.planner.print_speed = resume.print_speed;
         } else {
             HOTEND_LOOP() {
                 state_buf.planner.target_nozzle[e] = thermalManager.degTargetHotend(e);
             }
             state_buf.planner.fan_speed = thermalManager.fan_speed[0];
+            state_buf.planner.print_speed = marlin_vars()->print_speed;
         }
         state_buf.planner.target_bed = thermalManager.degTargetBed();
 #if ENABLED(MODULAR_HEATBED)
@@ -983,7 +955,7 @@ void ac_fault_isr() {
     CRITICAL_SECTION_END;
 }
 
-bool is_panic_signal() {
+bool is_ac_fault_signal() {
     return buddy::hw::acFault.read() == buddy::hw::Pin::State::low;
 }
 

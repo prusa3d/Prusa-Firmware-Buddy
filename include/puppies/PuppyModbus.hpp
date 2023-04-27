@@ -65,7 +65,7 @@ struct ModbusValueReference {
     uint8_t unit;
     uint16_t address;
     uint16_t data_count;
-    uint16_t data_processed;
+    uint16_t data_processed { 0 };
 };
 
 struct RequestTiming {

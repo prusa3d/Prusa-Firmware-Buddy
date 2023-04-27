@@ -1,8 +1,7 @@
 #include "DialogStateful.hpp"
 #include "guitypes.hpp"
 #include "i18n.h"
-#include "resource.h" //IDR_FNT_BIG
-#include "fsm_progress_type.hpp"
+#include "fonts.hpp" //IDR_FNT_BIG
 
 //suppress warning, gcc bug 80635
 #pragma GCC diagnostic push
@@ -24,7 +23,7 @@ static const constexpr int LABEL_TOP = GuiDefaults::EnableDialogBigLayout ? 180 
 static const constexpr int PROGRESS_BAR_X_PAD = GuiDefaults::EnableDialogBigLayout ? 24 : 10;
 
 Rect16 IDialogStateful::get_title_rect(Rect16 rect) {
-    return Rect16(rect.Left(), GuiDefaults::EnableDialogBigLayout ? TITLE_TOP : (const int)rect.Top(), rect.Width(), TITLE_HEIGHT);
+    return Rect16(rect.Left(), GuiDefaults::EnableDialogBigLayout ? TITLE_TOP : (int)rect.Top(), rect.Width(), TITLE_HEIGHT);
 }
 
 Rect16 IDialogStateful::get_progress_rect(Rect16 rect) {
@@ -43,8 +42,7 @@ IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer
     : IDialogMarlin(GuiDefaults::GetDialogRect(child_has_footer))
     , title(this, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
     , progress(this, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, GuiDefaults::EnableDialogBigLayout ? COLOR_DARK_GRAY : COLOR_GRAY, PROGRESS_BAR_CORNER_RADIUS)
-    , label(this, get_label_rect(GetRect(), child_has_footer), is_multiline::yes)
-    , phase(0) {
+    , label(this, get_label_rect(GetRect(), child_has_footer), is_multiline::yes) {
     title.font = GuiDefaults::FontBig;
     title.SetAlignment(Align_t::Center());
     progress.SetFont(resource_font(IDR_FNT_BIG));
@@ -56,14 +54,12 @@ IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer
 bool IDialogStateful::change(uint8_t phs, fsm::PhaseData data) {
     if (!can_change(phs))
         return false;
-    if (phase != phs) {
+    if ((!phase) || (phase != phs)) {
         phaseExit();
         phase = phs;
         phaseEnter();
     }
 
-    ProgressSerializer serializer(data);
-    progress.SetValue(serializer.progress);
-    //Invalidate();
+    progress.SetValue(deserialize_progress(data));
     return true;
 }

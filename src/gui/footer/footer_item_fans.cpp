@@ -31,8 +31,6 @@ int FooterItemPrintFan::static_readValue() {
     return marlin_vars()->active_hotend().print_fan_rpm;
 }
 
-string_view_utf8 FooterItemPrintFan::GetName() { return _("Print Fan"); }
-
 FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
     : AddSuperWindow<IFooterItemFan>(parent, &png::fan_16x16, static_makeView, static_readValue) {
 }
@@ -40,5 +38,3 @@ FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
 int FooterItemHeatBreakFan::static_readValue() {
     return marlin_vars()->active_hotend().heatbreak_fan_rpm;
 }
-
-string_view_utf8 FooterItemHeatBreakFan::GetName() { return _("Hotend Fan"); }

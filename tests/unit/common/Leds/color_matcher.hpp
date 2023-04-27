@@ -80,4 +80,4 @@ private:
     leds::Color m_target;
 };
 
-using MK404LedsMatcher = LedsMatcher<3>;
+using MK4LedsMatcher = LedsMatcher<3>;

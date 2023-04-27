@@ -7,14 +7,6 @@
 #include "eeprom_function_api.h"
 #include <stddef.h>
 
-// to avoid collision with public version
-#define PRIVATE__EEPROM_OFFSET (1 << 15)
-
-enum {
-    EEPROM_ADDRESS = 0x0500,                      // uint16_t
-    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 19, // uint16_t
-};
-
 #define EEPROM_LAST_VERSION_WITH_OLD_CRC 10
 
 #define EEPROM_FEATURE_PID_NOZ  0x0001
@@ -31,6 +23,7 @@ enum {
 #define EEPROM_MAX_TOOL_COUNT 6
 
 enum {
+    EEPROM_ADDRESS = 0x0500, // uint16_t
     MAX_SHEET_NAME_LENGTH = 8,
 };
 
@@ -67,7 +60,7 @@ typedef struct {
 typedef struct {
     float x;
     float y;
-} KennelPosition;
+} DockPosition;
 
 typedef struct {
     float x;
@@ -106,7 +99,7 @@ typedef struct {
     TestResult fsensor : 2;
     TestResult loadcell : 2;
     TestResult sideFsensor : 2;
-    TestResult kenneloffset : 2;
+    TestResult dockoffset : 2;
     TestResult tooloffset : 2;
 } SelftestTool;
 
@@ -193,7 +186,7 @@ enum eevar_id {
     EEVAR_ODOMETER_X = 0x2e,          // float
     EEVAR_ODOMETER_Y = 0x2f,          // float
     EEVAR_ODOMETER_Z = 0x30,          // float
-    EEVAR_ODOMETER_E0 = 0x31,         // float
+    EEVAR_ODOMETER_E0 = 0x31,         // float, filament passed through extruder 0
     AXIS_STEPS_PER_UNIT_X = 0x32,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
     AXIS_STEPS_PER_UNIT_Y = 0x33,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
     AXIS_STEPS_PER_UNIT_Z = 0x34,     // float, used instead marlin macro DEFAULT_AXIS_STEPS_PER_UNIT
@@ -255,17 +248,17 @@ enum eevar_id {
     EEVAR_LOADCELL_HYST = 0x5f,
     EEVAR_LOADCELL_THRS_CONTINOUS = 0x60,
 #endif
-    EEVAR_FS_REF_VALUE_0 = 0x61,  // int32_t value of filament sensor in moment of calibration, it can be either with or w/o filament present
+    EEVAR_FS_REF_VALUE_0 = 0x61,  // int32_t value of filament sensor in moment of calibration (w/o filament present)
     EEVAR_FS_VALUE_SPAN_0 = 0x62, // uint32_t minimal difference of raw values between the two states of the filament sensor
-    EEVAR_FS_REF_VALUE_1 = 0x63,  // int32_t value of filament sensor in moment of calibration, it can be either with or w/o filament present
+    EEVAR_FS_REF_VALUE_1 = 0x63,  // int32_t value of filament sensor in moment of calibration (w/o filament present)
     EEVAR_FS_VALUE_SPAN_1 = 0x64, // uint32_t minimal difference of raw values between the two states of the filament sensor
-    EEVAR_FS_REF_VALUE_2 = 0x65,  // int32_t value of filament sensor in moment of calibration, it can be either with or w/o filament present
+    EEVAR_FS_REF_VALUE_2 = 0x65,  // int32_t value of filament sensor in moment of calibration (w/o filament present)
     EEVAR_FS_VALUE_SPAN_2 = 0x66, // uint32_t minimal difference of raw values between the two states of the filament sensor
-    EEVAR_FS_REF_VALUE_3 = 0x67,  // int32_t value of filament sensor in moment of calibration, it can be either with or w/o filament present
+    EEVAR_FS_REF_VALUE_3 = 0x67,  // int32_t value of filament sensor in moment of calibration (w/o filament present)
     EEVAR_FS_VALUE_SPAN_3 = 0x68, // uint32_t minimal difference of raw values between the two states of the filament sensor
-    EEVAR_FS_REF_VALUE_4 = 0x69,  // int32_t value of filament sensor in moment of calibration, it can be either with or w/o filament present
+    EEVAR_FS_REF_VALUE_4 = 0x69,  // int32_t value of filament sensor in moment of calibration (w/o filament present)
     EEVAR_FS_VALUE_SPAN_4 = 0x6A, // uint32_t minimal difference of raw values between the two states of the filament sensor
-    EEVAR_FS_REF_VALUE_5 = 0x6B,  // int32_t value of filament sensor in moment of calibration, it can be either with or w/o filament present
+    EEVAR_FS_REF_VALUE_5 = 0x6B,  // int32_t value of filament sensor in moment of calibration (w/o filament present)
     EEVAR_FS_VALUE_SPAN_5 = 0x6C, // uint32_t minimal difference of raw values between the two states of the filament sensor
     EEVAR_SIDE_FS_REF_VALUE_0 = 0x6D,
     EEVAR_SIDE_FS_VALUE_SPAN_0 = 0x6E,
@@ -312,12 +305,12 @@ enum eevar_id {
     EEVAR_ANIMATION_COLOR_LAST = 0x97, //< All colors must be allocated consecutively
     EEVAR_HEAT_ENTIRE_BED = 0x98,
     EEVAR_TOUCH_ENABLED = 0x99,
-    EEVAR_KENNEL_POSITION_0 = 0x9A,
-    EEVAR_KENNEL_POSITION_1 = 0x9B,
-    EEVAR_KENNEL_POSITION_2 = 0x9C,
-    EEVAR_KENNEL_POSITION_3 = 0x9D,
-    EEVAR_KENNEL_POSITION_4 = 0x9E,
-    EEVAR_KENNEL_POSITION_5 = 0x9F,
+    EEVAR_DOCK_POSITION_0 = 0x9A,
+    EEVAR_DOCK_POSITION_1 = 0x9B,
+    EEVAR_DOCK_POSITION_2 = 0x9C,
+    EEVAR_DOCK_POSITION_3 = 0x9D,
+    EEVAR_DOCK_POSITION_4 = 0x9E,
+    EEVAR_DOCK_POSITION_5 = 0x9F,
     EEVAR_TOOL_OFFSET_0 = 0xA0,
     EEVAR_TOOL_OFFSET_1 = 0xA1,
     EEVAR_TOOL_OFFSET_2 = 0xA2,
@@ -341,6 +334,21 @@ enum eevar_id {
     EEVAR_HWCHECK_FIRMW = 0xB4,
     EEVAR_HWCHECK_GCODE = 0xB5,
     EEVAR_SELFTEST_RESULT_V2 = 0xB6, // Wider selftest results made for XL
+    EEVAR_HOMING_BDIVISOR_X = 0xB7,
+    EEVAR_HOMING_BDIVISOR_Y = 0xB8,
+    EEVAR_ENABLE_SIDE_LEDS = 0xB9,      // bool side led on/off
+    EEVAR_ODOMETER_E1 = 0xBA,           // float, filament passed through extruder 1
+    EEVAR_ODOMETER_E2 = 0xBB,           // float, filament passed through extruder 2
+    EEVAR_ODOMETER_E3 = 0xBC,           // float, filament passed through extruder 3
+    EEVAR_ODOMETER_E4 = 0xBD,           // float, filament passed through extruder 4
+    EEVAR_ODOMETER_E5 = 0xBE,           // float, filament passed through extruder 5
+    EEVAR_ODOMETER_T0 = 0xBF,           // uint32_t, tool 0 pick counter
+    EEVAR_ODOMETER_T1 = 0xC0,           // uint32_t, tool 1 pick counter
+    EEVAR_ODOMETER_T2 = 0xC1,           // uint32_t, tool 2 pick counter
+    EEVAR_ODOMETER_T3 = 0xC2,           // uint32_t, tool 3 pick counter
+    EEVAR_ODOMETER_T4 = 0xC3,           // uint32_t, tool 4 pick counter
+    EEVAR_ODOMETER_T5 = 0xC4,           // uint32_t, tool 5 pick counter
+    EEVAR_HWCHECK_COMPATIBILITY = 0xC5, // uint8_t
 
     EEVAR_CRC32 // uint32_t crc32 for
 };
@@ -418,8 +426,8 @@ extern void eeprom_set_ui32(enum eevar_id id, uint32_t ui32);
 extern void eeprom_set_flt(enum eevar_id id, float flt);
 extern void eeprom_set_pchar(enum eevar_id id, char *pch, uint16_t count, int init);
 extern bool eeprom_set_sheet(uint32_t index, Sheet sheet);
-extern KennelPosition eeprom_get_kennel_position(int kennel_idx);
-extern void eeprom_set_kennel_position(int kennel_idx, KennelPosition position);
+extern DockPosition eeprom_get_dock_position(int dock_idx);
+extern void eeprom_set_dock_position(int dock_idx, DockPosition position);
 extern ToolOffset eeprom_get_tool_offset(int tool_idx);
 extern void eeprom_set_tool_offset(int tool_idx, ToolOffset offset);
 

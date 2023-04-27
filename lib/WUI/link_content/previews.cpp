@@ -1,6 +1,6 @@
 #include "previews.h"
 #include "../nhttp/gcode_preview.h"
-#include "../../../src/guiapi/include/GuiDefaults.hpp"
+#include "../../../src/guiconfig/GuiDefaults.hpp"
 
 #include <cstdio>
 
@@ -27,7 +27,7 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
 
     // Content of the USB drive is only for authenticated, don't ever try anything without it.
     if (auto unauthorized_status = parser.authenticated_status(); unauthorized_status.has_value()) {
-        return std::visit([](auto unauth_status) -> ConnectionState { return std::move(unauth_status); }, *unauthorized_status);
+        return std::visit([](auto unauth_status) -> ConnectionState { return unauth_status; }, *unauthorized_status);
     }
 
     uint16_t width;

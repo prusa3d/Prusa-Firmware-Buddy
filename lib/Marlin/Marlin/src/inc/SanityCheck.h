@@ -2558,3 +2558,7 @@ static_assert(   _ARR_TEST(3,0) && _ARR_TEST(3,1) && _ARR_TEST(3,2)
     #error "SHOW_REMAINING_TIME currently requires a Graphical LCD."
   #endif
 #endif
+
+#if ENABLED(GCODE_COMPATIBILITY_MK3) && ENABLED(GCODE_MOTION_MODES)
+    #error "GCODE_COMPATIBILITY_MK3 and GCODE_MOTION_MODES can't be enabled at the same time"
+#endif

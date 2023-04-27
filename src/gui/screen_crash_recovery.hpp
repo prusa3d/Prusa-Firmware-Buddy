@@ -4,7 +4,7 @@
 #include "window_header.hpp"
 #include "status_footer.hpp"
 #include "fsm_base_types.hpp"
-#include "window_icon.hpp"
+#include "window_wizard_icon.hpp"
 #include "window_wizard_progress.hpp"
 #include "radio_button.hpp"
 
@@ -59,6 +59,16 @@ struct WinsRepeatedCrash {
     WinsRepeatedCrash(ScreenCrashRecovery &screen);
 };
 
+struct WinsHomeFail {
+    window_text_t text_long;
+    window_icon_t icon_nozzle_crash;
+    window_icon_t icon_nozzle;
+    window_text_t text_info;
+    RadioButton radio;
+    static constexpr PhaseTexts texts = { { "Retry" } };
+    WinsHomeFail(ScreenCrashRecovery &screen);
+};
+
 struct WinsToolRecovery {
     window_text_t text_long;
     window_text_t text_careful;
@@ -75,6 +85,7 @@ struct WinUnion {
         WinsHome *home;
         WinsAxisNok *axisNok;
         WinsRepeatedCrash *repeatedCrash;
+        WinsHomeFail *homeFail;
         WinsToolRecovery *toolRecovery;
     };
 
@@ -83,10 +94,11 @@ struct WinUnion {
         Home,
         AxisNok,
         RepeatedCrash,
+        HomeFail,
         ToolRecovery,
     };
 
-    using MemSpace = std::aligned_union<0, WinsCheckAxis, WinsHome, WinsAxisNok, WinsRepeatedCrash, WinsToolRecovery>::type;
+    using MemSpace = std::aligned_union<0, WinsCheckAxis, WinsHome, WinsAxisNok, WinsRepeatedCrash, WinsHomeFail, WinsToolRecovery>::type;
 
     PhasesCrashRecovery phase;
 

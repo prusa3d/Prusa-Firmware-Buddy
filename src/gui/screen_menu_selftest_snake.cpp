@@ -1,4 +1,5 @@
 #include "screen_menu_selftest_snake.hpp"
+#include <selftest_snake_submenus.hpp>
 #include <png_resources.hpp>
 #include <marlin_client.hpp>
 #include <ScreenHandler.hpp>
@@ -6,6 +7,10 @@
 #include <DialogHandler.hpp>
 #include <selftest_types.hpp>
 #include <RAII.hpp>
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <module/prusa/toolchanger.h>
+#endif
 
 using namespace SelftestSnake;
 
@@ -20,146 +25,46 @@ constexpr Tool operator+(Tool tool, int i) {
     return static_cast<Tool>(ftrstd::to_underlying(tool) + i);
 }
 
-// helper rename for clarity
 inline bool is_multitool() {
+#if HAS_TOOLCHANGER()
     return prusa_toolchanger.is_toolchanger_enabled();
+#else
+    return false;
+#endif
+}
+
+Action _get_valid_action(Action start_action, int step) {
+    assert(step == 1 || step == -1); // other values would cause weird behaviour (endless loop / go beyond array)
+    if (is_multitool()) {
+        while (is_singletool_only_action(start_action)) {
+            start_action = static_cast<Action>(ftrstd::to_underlying(start_action) + step);
+        }
+    } else { // singletool
+        while (is_multitool_only_action(start_action)) {
+            start_action = static_cast<Action>(ftrstd::to_underlying(start_action) + step);
+        }
+    }
+    return start_action;
 }
 
 Action get_first_action() {
-    if (is_multitool()) {
-        return Action::_first;
-    }
-    Action checked_action { Action::_first };
-    while (is_multitool_only_action(checked_action)) {
-        checked_action = static_cast<Action>(ftrstd::to_underlying(checked_action) + 1);
-    }
-    return checked_action;
+    return _get_valid_action(Action::_first, 1);
 }
 
 Action get_last_action() {
-    if (is_multitool()) {
-        return Action::_last;
-    }
-    Action checked_action { Action::_last };
-    while (is_multitool_only_action(checked_action)) {
-        checked_action = static_cast<Action>(ftrstd::to_underlying(checked_action) - 1);
-    }
-    return checked_action;
+    return _get_valid_action(Action::_last, -1);
 }
 
 // Can't (shouldn't) be called with last action
 Action get_next_action(Action action) {
     assert(get_last_action() != action && "Unhandled edge case");
-
-    action = static_cast<Action>(ftrstd::to_underlying(action) + 1);
-    if (is_multitool()) {
-        return action;
-    }
-
-    while (is_multitool_only_action(action)) {
-        action = static_cast<Action>(ftrstd::to_underlying(action) + 1);
-    }
-
-    return action;
+    return _get_valid_action(static_cast<Action>(ftrstd::to_underlying(action) + 1), 1);
 }
 
 // Can't (shouldn't) be called with first action
 Action get_previous_action(Action action) {
     assert(get_first_action() != action && "Unhandled edge case");
-
-    action = static_cast<Action>(ftrstd::to_underlying(action) - 1);
-    if (is_multitool()) {
-        return action;
-    }
-
-    while (is_multitool_only_action(action)) {
-        action = static_cast<Action>(ftrstd::to_underlying(action) - 1);
-    }
-
-    return action;
-}
-
-TestResult get_test_result(Action action, Tool tool) {
-    auto evaluate_results = [](std::same_as<TestResult> auto... results) constexpr->TestResult {
-        static_assert(sizeof...(results) > 0, "Pass at least one result");
-
-        if (((results == TestResult_Passed) && ... && true)) { // all passed
-            return TestResult_Passed;
-        } else if (((results == TestResult_Failed) || ... || false)) { // any failed
-            return TestResult_Failed;
-        } else if (((results == TestResult_Skipped) || ... || false)) { // any skipped
-            return TestResult_Skipped;
-        } else { // only unknowns and passed (max n-1) are left
-            return TestResult_Unknown;
-        }
-    };
-
-    auto merge_hotends_evaluations = [&](std::invocable<int8_t> auto evaluate_one) {
-        TestResult res { TestResult_Passed };
-        for (int8_t e = 0; e < HOTENDS; e++) {
-            if (!prusa_toolchanger.is_tool_enabled(e)) {
-                continue;
-            }
-            res = evaluate_results(res, evaluate_one(e));
-        }
-        return res;
-    };
-
-    SelftestResult sr;
-    eeprom_get_selftest_results(&sr);
-
-    switch (action) {
-    case Action::Fans:
-        return merge_hotends_evaluations(
-            [&](int8_t e) {
-                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan);
-            });
-    case Action::ZAlign:
-        return evaluate_results(sr.zalign);
-    case Action::XYCheck:
-        return evaluate_results(sr.xaxis, sr.yaxis);
-    case Action::KennelCalibration:
-        if (tool == Tool::_all_tools) {
-            return merge_hotends_evaluations(
-                [&](int8_t e) {
-                    return evaluate_results(sr.tools[e].kenneloffset);
-                });
-        } else {
-            return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].kenneloffset);
-        }
-    case Action::Loadcell:
-        if (tool == Tool::_all_tools) {
-            return merge_hotends_evaluations(
-                [&](int8_t e) {
-                    return evaluate_results(sr.tools[e].loadcell);
-                });
-        } else {
-            return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].loadcell);
-        }
-    case Action::ToolOffsetsCalibration:
-        return merge_hotends_evaluations(
-            [&](int8_t e) {
-                return evaluate_results(sr.tools[e].tooloffset);
-            });
-    case Action::ZCheck:
-        return evaluate_results(sr.zaxis);
-    case Action::Heaters:
-        return evaluate_results(sr.bed, merge_hotends_evaluations([&](int8_t e) {
-            return evaluate_results(sr.tools[e].nozzle);
-        }));
-    case Action::FilamentSensorCalibration:
-        if (tool == Tool::_all_tools) {
-            return merge_hotends_evaluations(
-                [&](int8_t e) {
-                    return evaluate_results(sr.tools[e].fsensor);
-                });
-        } else {
-            return evaluate_results(sr.tools[ftrstd::to_underlying(tool)].fsensor);
-        }
-    case Action::_count:
-        break;
-    }
-    return TestResult_Unknown;
+    return _get_valid_action(static_cast<Action>(ftrstd::to_underlying(action) - 1), -1);
 }
 
 bool are_previous_completed(Action action) {
@@ -189,67 +94,6 @@ const png::Resource *get_icon(Action action, Tool tool) {
 
     assert(false);
     return &png::error_16x16;
-}
-
-uint8_t get_tool_mask(Tool tool) {
-    switch (tool) {
-    case Tool::Tool1:
-        return ToolMask::ToolO;
-    case Tool::Tool2:
-        return ToolMask::Tool1;
-    case Tool::Tool3:
-        return ToolMask::Tool2;
-    case Tool::Tool4:
-        return ToolMask::Tool3;
-    case Tool::Tool5:
-        return ToolMask::Tool4;
-        break;
-    default:
-        assert(false);
-        break;
-    }
-    return ToolMask::AllTools;
-}
-
-uint64_t get_test_mask(Action action) {
-    switch (action) {
-    case Action::Fans:
-        return stmFans;
-    case Action::ZAlign:
-        return stmZcalib;
-    case Action::XYCheck:
-        return stmXYAxis;
-    case Action::KennelCalibration:
-        return stmKennels;
-    case Action::Loadcell:
-        return stmLoadcell;
-    case Action::ToolOffsetsCalibration:
-        return stmToolOffsets;
-    case Action::ZCheck:
-        return stmZAxis;
-    case Action::Heaters:
-        return stmHeaters;
-    case Action::FilamentSensorCalibration:
-        return stmFSensor;
-    default:
-        assert(false);
-        return stmNone;
-    }
-}
-
-Tool get_last_enabled_tool() {
-    return static_cast<Tool>(prusa_toolchanger.get_num_enabled_tools() - 1);
-}
-
-constexpr bool has_submenu(Action action) {
-    switch (action) {
-    case Action::KennelCalibration:
-    case Action::Loadcell:
-    case Action::FilamentSensorCalibration:
-        return true;
-    default:
-        return false;
-    }
 }
 
 struct SnakeConfig {
@@ -338,12 +182,27 @@ void continue_snake() {
 }
 
 is_hidden_t get_subitem_hidden_state(Tool tool) {
+#if HAS_TOOLCHANGER()
     const auto idx { ftrstd::to_underlying(tool) };
     return prusa_toolchanger.is_tool_enabled(idx) ? is_hidden_t::no : is_hidden_t::yes;
+#else
+    return tool == Tool::Tool1 ? is_hidden_t::no : is_hidden_t::yes;
+#endif
 }
 
 is_hidden_t get_mainitem_hidden_state(Action action) {
-    return !is_multitool() && is_multitool_only_action(action) ? is_hidden_t::yes : is_hidden_t::no;
+    if constexpr (!option::has_toolchanger) {
+        if (requires_toolchanger(action)) {
+            return is_hidden_t::yes;
+        }
+    }
+
+    if ((is_multitool() && is_singletool_only_action(action))
+        || (!is_multitool() && is_multitool_only_action(action))) {
+        return is_hidden_t::yes;
+    } else {
+        return is_hidden_t::no;
+    }
 }
 
 expands_t get_expands(Action action) {
@@ -381,29 +240,10 @@ char *I_MI_STS::get_filled_menu_item_label(Action action) {
         }()
     };
 
-    struct ToolText {
-        Action action;
-        const char *label;
-    };
-
-    static constexpr ToolText blank_texts[] {
-        { Action::Fans, N_("%d Fan Test") },
-        { Action::ZAlign, N_("%d Z Alignment Calibration") },
-        { Action::XYCheck, N_("%d XY Axis Test") },
-        { Action::KennelCalibration, N_("%d Kennel Position Calibration") },
-        { Action::Loadcell, N_("%d Loadcell Test") },
-        { Action::ToolOffsetsCalibration, N_("%d Tool Offset Calibration") },
-        { Action::ZCheck, N_("%d Z Axis Test") },
-        { Action::Heaters, N_("%d Heater Test") },
-        { Action::FilamentSensorCalibration, N_("%d Filament Sensor Calibration") },
-    }; // could have been done with an array of texts directly, but there would be an order dependancy
-
-    // std::array of labels indexed by action
-
-    if (auto it = std::ranges::find_if(blank_texts, [&](const auto &elem) {
+    if (auto it = std::ranges::find_if(blank_item_texts, [&](const auto &elem) {
             return elem.action == action;
         });
-        it != std::end(blank_texts)) {
+        it != std::end(blank_item_texts)) {
 
         char buffer[max_label_len];
         _(it->label).copyToRAM(buffer, max_label_len);
@@ -428,17 +268,11 @@ I_MI_STS::I_MI_STS(Action action)
     }
 }
 
-void I_MI_STS::do_click(IWindowMenu &window_menu, Action action) {
+void I_MI_STS::do_click([[maybe_unused]] IWindowMenu &window_menu, Action action) {
     if (!has_submenu(action) || !is_multitool()) {
         do_snake(action);
-    } else if (action == Action::KennelCalibration) {
-        Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuKennelCalibration>);
-    } else if (action == Action::Loadcell) {
-        Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuLoadcellTest>);
-    } else if (action == Action::FilamentSensorCalibration) {
-        Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilamentSensorsCalibration>);
     } else {
-        assert(false);
+        open_submenu(action);
     }
 }
 
@@ -447,12 +281,12 @@ I_MI_STS_SUBMENU::I_MI_STS_SUBMENU(const char *label, Action action, Tool tool)
     set_icon_position(IconPosition::right);
 }
 
-void I_MI_STS_SUBMENU::do_click(IWindowMenu &window_menu, Tool tool, Action action) {
+void I_MI_STS_SUBMENU::do_click([[maybe_unused]] IWindowMenu &window_menu, Tool tool, Action action) {
     do_snake(action, tool);
 }
 
-namespace {
-void do_menu_event(window_t *sender, GUI_event_t event, void *param, Action action, bool is_submenu) {
+namespace SelftestSnake {
+void do_menu_event([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param, Action action, bool is_submenu) {
     if (querying_user || event != GUI_event_t::LOOP || !snake_config.in_progress || SelftestInstance().IsInProgress()) {
         return;
     }
@@ -472,63 +306,24 @@ void do_menu_event(window_t *sender, GUI_event_t event, void *param, Action acti
     }
 }
 
-inline bool is_menu_draw_enabled() {
+bool is_menu_draw_enabled() {
     return !snake_config.in_progress // don't draw if snake is ongoing
         || querying_user;            // always draw if msgbox is being shown
 }
-} // unnamed namespace
+} // namespace SelftestSnake
 
-ScreenMenuKennelCalibration::ScreenMenuKennelCalibration()
-    : detail::ScreenMenuKennelCalibration(_(label)) {}
-
-void ScreenMenuKennelCalibration::draw() {
-    if (is_menu_draw_enabled()) {
-        window_frame_t::draw();
-    }
-}
-
-void ScreenMenuKennelCalibration::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    do_menu_event(sender, event, param, action, true);
-}
-
-ScreenMenuLoadcellTest::ScreenMenuLoadcellTest()
-    : detail::ScreenMenuLoadcellTest(_(label)) {}
-
-void ScreenMenuLoadcellTest::draw() {
-    if (is_menu_draw_enabled()) {
-        window_frame_t::draw();
-    }
-}
-
-void ScreenMenuLoadcellTest::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    do_menu_event(sender, event, param, action, true);
-}
-
-ScreenMenuFilamentSensorsCalibration::ScreenMenuFilamentSensorsCalibration()
-    : detail::ScreenMenuFilamentSensorsCalibration(_(label)) {}
-
-void ScreenMenuFilamentSensorsCalibration::draw() {
-    if (is_menu_draw_enabled()) {
-        window_frame_t::draw();
-    }
-}
-
-void ScreenMenuFilamentSensorsCalibration::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    do_menu_event(sender, event, param, action, true);
-}
-
-ScreenMenuSelftestSnake::ScreenMenuSelftestSnake()
-    : SelftestSnake::detail::ScreenMenuSelftestSnake(_(label)) {
+ScreenMenuSTSCalibrations::ScreenMenuSTSCalibrations()
+    : SelftestSnake::detail::ScreenMenuSTSCalibrations(_(label)) {
     ClrMenuTimeoutClose(); // No timeout for snake
 }
 
-void ScreenMenuSelftestSnake::draw() {
-    if (is_menu_draw_enabled()) {
+void ScreenMenuSTSCalibrations::draw() {
+    if (SelftestSnake::is_menu_draw_enabled()) {
         window_frame_t::draw();
     }
 }
 
-void ScreenMenuSelftestSnake::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void ScreenMenuSTSCalibrations::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     do_menu_event(sender, event, param, get_first_action(), false);
 }
 

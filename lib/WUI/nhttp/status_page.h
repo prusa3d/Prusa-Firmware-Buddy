@@ -41,6 +41,7 @@ protected:
 public:
     StatusPage(http::Status status, const RequestParser &parser, const char *extra_content = "");
     StatusPage(http::Status status, CloseHandling close_handling, bool json_content, const char *extra_content = "");
+    virtual ~StatusPage() = default;
 
     bool want_read() const { return false; }
     bool want_write() const { return true; }

@@ -26,7 +26,7 @@ SemVer = namedtuple('SemVer',
 
 
 class PrinterType(Enum):
-    MK404 = 1
+    MK4 = 1
     MINI = 2
     XL = 3
     IXL = 4

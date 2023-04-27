@@ -851,5 +851,19 @@ TMCStepper &stepper_axis(const AxisEnum axis)
   }
 }
 
+uint16_t stepper_microsteps(const AxisEnum axis, uint16_t new_microsteps)
+{
+    uint16_t cur_microsteps = stepper_axis(axis).microsteps();
+    if (new_microsteps) {
+        stepper_axis(axis).microsteps(new_microsteps);
+    }
+    return cur_microsteps;
+}
+
+uint16_t stepper_mscnt(const AxisEnum axis)
+{
+    return stepper_axis(axis).MSCNT();
+}
+
 
 #endif // HAS_TRINAMIC

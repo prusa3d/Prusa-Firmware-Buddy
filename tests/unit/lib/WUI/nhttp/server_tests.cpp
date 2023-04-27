@@ -344,7 +344,7 @@ void check_unauth_digest(const string &response, const string &nonce, const stri
     REQUIRE(response.find("HTTP/1.1 401 Unauthorized\r\n") == 0);
     REQUIRE(response.find("Content-Type: text/plain") != string::npos);
     REQUIRE(response.find("Connection: " + connection_handling) != string::npos);
-    REQUIRE(response.find("WWW-Authenticate: Digest realm=\"Printer API\", nonce=\"" + nonce + "\", stale=\"" + stale + "\"") != string::npos);
+    REQUIRE(response.find("WWW-Authenticate: Digest realm=\"Printer API\", nonce=\"" + nonce + "\", stale=" + stale) != string::npos);
     REQUIRE(response.find("\r\n\r\n401: Unauthorized") != string::npos);
 }
 

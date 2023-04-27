@@ -6,6 +6,7 @@
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
 #include "../common/eeprom.h"
 #include "../common/variant8.h"
+#include <bsod_gui.hpp>
 
 #ifdef Z_AXIS_CALIBRATION
 void PrusaGcodeSuite::G64() {
@@ -18,7 +19,9 @@ void PrusaGcodeSuite::G64() {
 
     planner.synchronize();
     int initial_steps = stepper.position_from_startup(Z_AXIS);
-    homeaxis(Z_AXIS);
+    if (!homeaxis(Z_AXIS)) {
+        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
+    }
     int final_steps = stepper.position_from_startup(Z_AXIS);
 
     const int step_difference = std::abs(final_steps - initial_steps);

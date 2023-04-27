@@ -137,7 +137,7 @@ bool WindowMenu::playEncoderSound(bool changed) {
     return false;
 }
 
-void WindowMenu::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
     IWindowMenuItem *item = GetActiveItem();
     if (!item)
         return;

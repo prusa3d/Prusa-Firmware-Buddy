@@ -183,7 +183,7 @@ void Sound::play(eSOUND_TYPE eSoundType) {
 }
 
 /// Generic [_sound] method with setting values and repeating logic
-void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f) {
+void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, [[maybe_unused]] float vol, [[maybe_unused]] bool f) {
     /// forced non-repeat sounds - can be played when another
     /// repeating sound is playing
     float tmpVol;

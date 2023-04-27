@@ -143,7 +143,7 @@ int hwio_dac_get_cnt(void) //number of analog outputs
 int hwio_dac_get_max(int i_dac) //analog output maximum value
 { return _dac_max[i_dac]; }
 
-void hwio_dac_set_val(int i_dac, int val) //write analog output
+void hwio_dac_set_val([[maybe_unused]] int i_dac, [[maybe_unused]] int val) //write analog output
 {
 }
 
@@ -602,6 +602,6 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     }
 }
 
-void pinMode(uint32_t ulPin, uint32_t ulMode) {
+void pinMode([[maybe_unused]] uint32_t ulPin, [[maybe_unused]] uint32_t ulMode) {
     // not supported, all pins are configured with Cube
 }

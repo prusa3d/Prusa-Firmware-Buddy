@@ -115,6 +115,15 @@ void GcodeSuite::M900() {
 
     if (parser.seenval('K')) {
       const float newK = parser.value_float();
+
+      #if ENABLED(GCODE_COMPATIBILITY_MK3)
+        if (gcode.compatibility_mode == GcodeSuite::CompatibilityMode::MK3 && newK >= 3) {
+          // Higher K values on MK3 mean LA version 1.0 => we don't support those
+          // Lower values on MK3 are very similar to MK4's, so we can use them and expect OK results.
+          return;
+        }
+      #endif
+
       if (WITHIN(newK, 0, 10)) {
         planner.synchronize();
         planner.extruder_advance_K[tool_index] = newK;

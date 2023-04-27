@@ -3,7 +3,7 @@
 static SemaphoreHandle_t mutex = nullptr;
 static SensorData::SensorDataBuffer *buffer = nullptr;
 
-extern "C" void info_screen_handler(metric_point_t *point) {
+void info_screen_handler(metric_point_t *point) {
     SensorData::HandleNewData(point);
 }
 
@@ -32,7 +32,7 @@ metric_handler_t *SensorDataBuffer::getHandler() {
 }
 
 #if BOARD_IS_XLBUDDY
-static constexpr Sensor first_sensor_to_log = Sensor::splitter5VCurrent;
+static constexpr Sensor first_sensor_to_log = Sensor::bedTemp;
 #else
 static constexpr Sensor first_sensor_to_log = Sensor::printFan;
 #endif

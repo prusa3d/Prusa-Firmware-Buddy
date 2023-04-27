@@ -16,27 +16,27 @@ public:
 extern void record_fanctl_metrics();
 
 //FANCTLPRINT - printing fan
-static const uint8_t FANCTLPRINT_PWM_MIN = 10;
-static const uint8_t FANCTLPRINT_PWM_MAX = 50;
-static const uint16_t FANCTLPRINT_RPM_MIN = 150;
-static const uint16_t FANCTLPRINT_RPM_MAX =
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_IXL) || (PRINTER_TYPE == PRINTER_PRUSA_XL))
+inline constexpr uint8_t FANCTLPRINT_PWM_MIN = 10;
+inline constexpr uint8_t FANCTLPRINT_PWM_MAX = 50;
+inline constexpr uint16_t FANCTLPRINT_RPM_MIN = 150;
+inline constexpr uint16_t FANCTLPRINT_RPM_MAX =
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL) || (PRINTER_TYPE == PRINTER_PRUSA_XL))
     6850
 #else
     5000
 #endif
     ;
-static const uint8_t FANCTLPRINT_PWM_THR = 20;
+inline constexpr uint8_t FANCTLPRINT_PWM_THR = 20;
 
 //FANCTLHEATBREAK - heatbreak fan
-static const uint8_t FANCTLHEATBREAK_PWM_MIN = 0;
-static const uint8_t FANCTLHEATBREAK_PWM_MAX = 50;
-static const uint16_t FANCTLHEATBREAK_RPM_MIN = 1000;
-static const uint16_t FANCTLHEATBREAK_RPM_MAX =
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_IXL) || (PRINTER_TYPE == PRINTER_PRUSA_XL))
+inline constexpr uint8_t FANCTLHEATBREAK_PWM_MIN = 0;
+inline constexpr uint8_t FANCTLHEATBREAK_PWM_MAX = 50;
+inline constexpr uint16_t FANCTLHEATBREAK_RPM_MIN = 1000;
+inline constexpr uint16_t FANCTLHEATBREAK_RPM_MAX =
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL) || (PRINTER_TYPE == PRINTER_PRUSA_XL))
     15180
 #else
     8000
 #endif
     ;
-static const uint8_t FANCTLHEATBREAK_PWM_THR = 20;
+inline constexpr uint8_t FANCTLHEATBREAK_PWM_THR = 20;

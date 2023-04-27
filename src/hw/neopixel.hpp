@@ -80,32 +80,32 @@
 */
 
 namespace neopixel {
-static constexpr uint32_t T1H_21MHz = 14;
-static constexpr uint32_t T1L_21MHz = 11;
-static constexpr uint32_t T0H_21MHz = 6;
-static constexpr uint32_t T0L_21MHz = 18;
-static constexpr uint32_t RESET_21MHz = 51 * 21;
+inline constexpr uint32_t T1H_21MHz = 14;
+inline constexpr uint32_t T1L_21MHz = 11;
+inline constexpr uint32_t T0H_21MHz = 6;
+inline constexpr uint32_t T0L_21MHz = 18;
+inline constexpr uint32_t RESET_21MHz = 51 * 21;
 
-static constexpr uint32_t T1H_10M5Hz = 7;
-static constexpr uint32_t T1L_10M5Hz = 6;
-static constexpr uint32_t T0H_10M5Hz = 3;
-static constexpr uint32_t T0L_10M5Hz = 9;
-static constexpr uint32_t RESET_10M5Hz = uint32_t(51.f * 10.5f);
+inline constexpr uint32_t T1H_10M5Hz = 7;
+inline constexpr uint32_t T1L_10M5Hz = 6;
+inline constexpr uint32_t T0H_10M5Hz = 3;
+inline constexpr uint32_t T0L_10M5Hz = 9;
+inline constexpr uint32_t RESET_10M5Hz = uint32_t(51.f * 10.5f);
 
 //cannot set prescaller to 7 MHz
 //and clock source is fixed
-static constexpr uint32_t T1H_7MHz = 5;
-static constexpr uint32_t T1L_7MHz = 4;
-static constexpr uint32_t T0H_7MHz = 2;
-static constexpr uint32_t T0L_7MHz = 6;
-static constexpr uint32_t RESET_7MHz = 51 * 7;
+inline constexpr uint32_t T1H_7MHz = 5;
+inline constexpr uint32_t T1L_7MHz = 4;
+inline constexpr uint32_t T0H_7MHz = 2;
+inline constexpr uint32_t T0L_7MHz = 6;
+inline constexpr uint32_t RESET_7MHz = 51 * 7;
 
 //2.5MHz 2812 only
-static constexpr uint32_t T1H_2M5Hz = 2; //800ns
-static constexpr uint32_t T1L_2M5Hz = 1; //400ns
-static constexpr uint32_t T0H_2M5Hz = 1; //400ns
-static constexpr uint32_t T0L_2M5Hz = 2; //800ns
-static constexpr uint32_t RESET_2M5Hz = uint32_t(51.f * 2.5f);
+inline constexpr uint32_t T1H_2M5Hz = 2; //800ns
+inline constexpr uint32_t T1L_2M5Hz = 1; //400ns
+inline constexpr uint32_t T0H_2M5Hz = 1; //400ns
+inline constexpr uint32_t T0L_2M5Hz = 2; //800ns
+inline constexpr uint32_t RESET_2M5Hz = uint32_t(51.f * 2.5f);
 
 /**
  * @brief base class for LEDs defining color array for given count

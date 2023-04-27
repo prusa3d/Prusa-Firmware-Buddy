@@ -4,10 +4,29 @@
 #include "i18n.h"
 #include "client_response_texts.hpp"
 #include "ScreenHandler.hpp"
-#include "resource.h"
+#include "fonts.hpp"
 #include "mmu2_error_converter.h"
 #include "filament_sensors_handler.hpp"
 #include "png_resources.hpp"
+#include "fsm_loadunload_type.hpp"
+#include <option/has_side_fsensor.h>
+
+RadioButtonMmuErr::RadioButtonMmuErr(window_t *parent, Rect16 rect)
+    : AddSuperWindow<RadioButton>(parent, rect) {}
+
+void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+    switch (event) {
+#if HAS_MMU2
+    case GUI_event_t::CLICK: {
+        Response response = Click();
+        marlin_FSM_response(PhasesLoadUnload::MMU_ERRWaitingForUser, response);
+        break;
+    }
+#endif
+    default:
+        SuperWindowEvent(sender, event, param);
+    }
+}
 
 /*****************************************************************************/
 // clang-format off
@@ -17,6 +36,7 @@ static const PhaseTexts ph_txt_iscolor       = { BtnResponse::GetText(Response::
 static const PhaseTexts ph_txt_iscolor_purge = { BtnResponse::GetText(Response::Yes),              BtnResponse::GetText(Response::No),    BtnResponse::GetText(Response::_none), BtnResponse::GetText(Response::_none) };
 
 static const char *txt_first              = N_("Finishing buffered gcodes.");
+static const char *txt_tool               = N_("Changing tool");
 static const char *txt_parking            = N_("Parking");
 static const char *txt_unparking          = N_("Unparking");
 static const char *txt_wait_temp          = N_("Waiting for temperature");
@@ -59,18 +79,26 @@ static const char *txt_mmu_return_selector= N_("Returning selector");
 static const char *txt_mmu_park_selector  = N_("Parking selector");
 static const char *txt_mmu_eject_filament = N_("Ejecting filament");
 static const char *txt_mmu_retract_finda  = N_("Retracting from FINDA");
+static const char *txt_mmu_homing         = N_("Homing");
+static const char *txt_mmu_moving_selector= N_("Moving selector");
+static const char *txt_mmu_feeding_fsensor= N_("Feeding to fsensor");
+static const char *txt_mmu_hw_test_begin  = N_("HW test begin");
+static const char *txt_mmu_hw_test_idler  = N_("HW test idler");
+static const char *txt_mmu_hw_test_sel    = N_("HW test selector");
+static const char *txt_mmu_hw_test_pulley = N_("HW test pulley");
+static const char *txt_mmu_hw_test_cleanup= N_("HW test cleanup");
+static const char *txt_mmu_hw_test_exec   = N_("HW test exec");
+static const char *txt_mmu_hw_test_display= N_("HW test display");
+static const char *txt_mmu_errhw_test_fail= N_("ERR HW test failed");
 
 //MMU_ErrWaitForUser, // need to distinguish error states based on prusa-error-codes @@TODO
 static const char *txt_mmu_err_wait_user  = N_("Waiting for user input");
 #endif
 
-/// indicator for M600 or filament runout phases
-/// because this sound should be beeping only for those parts (M600 & runout)
-bool DialogLoadUnload::is_M600_phase = false;
-
 static DialogLoadUnload::States LoadUnloadFactory() {
     DialogLoadUnload::States ret = {
         DialogLoadUnload::State { txt_first,                ClientResponses::GetResponses(PhasesLoadUnload::_first),                        ph_txt_none },
+        DialogLoadUnload::State { txt_tool,                 ClientResponses::GetResponses(PhasesLoadUnload::ChangingTool),                  ph_txt_none },
         DialogLoadUnload::State { txt_parking,              ClientResponses::GetResponses(PhasesLoadUnload::Parking_stoppable),             ph_txt_stop },
         DialogLoadUnload::State { txt_parking,              ClientResponses::GetResponses(PhasesLoadUnload::Parking_unstoppable),           ph_txt_none },
         DialogLoadUnload::State { txt_wait_temp,            ClientResponses::GetResponses(PhasesLoadUnload::WaitingTemp_stoppable),         ph_txt_stop },
@@ -130,6 +158,17 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_mmu_park_selector,    ClientResponses::GetResponses(PhasesLoadUnload::MMU_ParkingSelector),   ph_txt_none },
         DialogLoadUnload::State { txt_mmu_eject_filament,   ClientResponses::GetResponses(PhasesLoadUnload::MMU_EjectingFilament),  ph_txt_none },
         DialogLoadUnload::State { txt_mmu_retract_finda,    ClientResponses::GetResponses(PhasesLoadUnload::MMU_RetractingFromFinda),ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_homing,           ClientResponses::GetResponses(PhasesLoadUnload::MMU_Homing),            ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_moving_selector,  ClientResponses::GetResponses(PhasesLoadUnload::MMU_MovingSelector),    ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_feeding_fsensor,  ClientResponses::GetResponses(PhasesLoadUnload::MMU_FeedingToFSensor),  ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_hw_test_begin,    ClientResponses::GetResponses(PhasesLoadUnload::MMU_HWTestBegin),       ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_hw_test_idler,    ClientResponses::GetResponses(PhasesLoadUnload::MMU_HWTestIdler),       ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_hw_test_sel,      ClientResponses::GetResponses(PhasesLoadUnload::MMU_HWTestSelector),    ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_hw_test_pulley,   ClientResponses::GetResponses(PhasesLoadUnload::MMU_HWTestPulley),      ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_hw_test_cleanup,  ClientResponses::GetResponses(PhasesLoadUnload::MMU_HWTestCleanup),     ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_hw_test_exec,     ClientResponses::GetResponses(PhasesLoadUnload::MMU_HWTestExec),        ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_hw_test_display,  ClientResponses::GetResponses(PhasesLoadUnload::MMU_HWTestDisplay),     ph_txt_none },
+        DialogLoadUnload::State { txt_mmu_errhw_test_fail,  ClientResponses::GetResponses(PhasesLoadUnload::MMU_ErrHwTestFailed),   ph_txt_none },
 #endif
     };
 
@@ -145,23 +184,32 @@ static constexpr Rect16 mmu_link_rect = { 14, 165, 317, 48 };
 static constexpr Rect16 mmu_qr_rect = { 341, 44, 125, 125 };
 static constexpr char error_code_link_format[] = N_("More detail at\nhelp.prusa3d.com/%u");
 
-DialogLoadUnload::DialogLoadUnload(string_view_utf8 name)
-    : AddSuperWindow<DialogStateful<PhasesLoadUnload>>(name, LoadUnloadFactory(), has_footer::yes)
-#if FOOTER_ITEMS_PER_LINE__ >= 5
-    , footer(this, footer::items::ItemNozzle, footer::items::ItemBed, footer::items::ItemFSensor,
-    #if HAS_MMU2
-          FSensors_instance().HasMMU() ? footer::items::ItemFinda : footer::items::count_ // finda in MMU mode, nothing othervise
-    #else
-          footer::items::count_
-    #endif
-#else
+DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
+    : AddSuperWindow<DialogStateful<PhasesLoadUnload>>(get_name(ProgressSerializerLoadUnload(data.GetData()).mode), LoadUnloadFactory(), has_footer::yes)
     , footer(this
+#if FOOTER_ITEMS_PER_LINE__ >= 5
+          ,
+          footer::Item::Nozzle, footer::Item::Bed, footer::Item::FSensor
+    #if HAS_MMU2
+          ,
+          FSensors_instance().HasMMU() ? footer::Item::Finda : footer::Item::None,
+          FSensors_instance().HasMMU() ? footer::Item::FSValue : footer::Item::None
+    #elif HAS_SIDE_FSENSOR()
+          ,
+          footer::Item::FSensorSide
+    #else
+          ,
+          footer::Item::None
+    #endif
 #endif
           )
     , radio_for_red_screen(this, GuiDefaults::GetIconnedButtonRect(GetRect()))
     , text_link(this, mmu_link_rect, is_multiline::yes, is_closed_on_click_t::no)
     , icon_hand(this, mmu_icon_rect, &png::hand_qr_59x72)
-    , qr(this, mmu_qr_rect) {
+    , qr(this, mmu_qr_rect)
+    , mode(ProgressSerializerLoadUnload(data.GetData()).mode) {
+
+    instance = this;
 
     text_link.font = resource_font(IDR_FNT_SMALL);
 
@@ -170,6 +218,8 @@ DialogLoadUnload::DialogLoadUnload(string_view_utf8 name)
     text_link.Hide();
     icon_hand.Hide();
     qr.Hide();
+
+    Change(data);
 }
 
 DialogLoadUnload::~DialogLoadUnload() {
@@ -182,7 +232,10 @@ DialogLoadUnload::~DialogLoadUnload() {
     event_conversion_union uni;
     uni.header.layout = layout_color::black;
     Screens::Access()->ScreenEvent(this, GUI_event_t::HEADER_COMMAND, uni.pvoid);
+    instance = nullptr;
 }
+
+DialogLoadUnload *DialogLoadUnload::instance = nullptr;
 
 // Phase callbacks to play a sound in specific moment at the start/end of
 // specified phase
@@ -191,7 +244,7 @@ void DialogLoadUnload::phaseAlertSound() {
     Sound_Play(eSOUND_TYPE::SingleBeep);
 }
 void DialogLoadUnload::phaseWaitSound() {
-    if (DialogLoadUnload::is_M600_phase) { /// this sound should be beeping only for M600 || runout
+    if (instance && (instance->get_mode() == LoadUnloadMode::Change)) { /// this sound should be beeping only for M600 || runout
         Sound_Play(eSOUND_TYPE::WaitingBeep);
     }
 }
@@ -205,9 +258,15 @@ static constexpr bool isRed(uint8_t phs) {
 #endif
 
 bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
+    LoadUnloadMode new_mode = ProgressSerializerLoadUnload(data).mode;
+    if (new_mode != mode) {
+        mode = new_mode;
+        title.SetText(get_name(mode));
+    }
+
 #if HAS_MMU2
-    //was black, is red
-    if (!isRed(phase) && isRed(phs)) {
+    //was black (or uninitialized), is red
+    if ((!phase || !isRed(*phase)) && isRed(phs)) {
         SetRedLayout();
         //this dialog does not contain header, so it broadcasts event to all windows
         event_conversion_union uni;
@@ -235,7 +294,7 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         if (!can_change(phs))
             return false;
 
-        const MMU2::MMUErrorDesc *ptr_desc = fsm::PointerSerializer<MMU2::MMUErrorDesc>(data).Get();
+        const MMU2::MMUErrDesc *ptr_desc = fsm::PointerSerializer<MMU2::MMUErrDesc>(data).Get();
 
         red_screen_update(*ptr_desc);
 
@@ -244,8 +303,8 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         return true;
     }
 
-    //was red, is black
-    if (isRed(phase) && !isRed(phs)) {
+    //was red (or uninitialized), is black
+    if ((!phase || isRed(*phase)) && !isRed(phs)) {
         title.SetRect(get_title_rect(GetRect()));
         SetBlackLayout();
         //this dialog does not contain header, so it broadcasts event to all windows
@@ -272,7 +331,7 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
     return super::change(phs, data);
 }
 
-void DialogLoadUnload::red_screen_update(const MMU2::MMUErrorDesc &err) {
+void DialogLoadUnload::red_screen_update(const MMU2::MMUErrDesc &err) {
     responses[0] = ConvertMMUButtonOperation(err.buttons[0]);
     responses[1] = ConvertMMUButtonOperation(err.buttons[1]);
     responses[2] = ConvertMMUButtonOperation(err.buttons[2]);
@@ -283,8 +342,34 @@ void DialogLoadUnload::red_screen_update(const MMU2::MMUErrorDesc &err) {
     label.SetText(string_view_utf8::MakeRAM((const uint8_t *)err.err_text));
 
     // 32 is the length of the string without link number at the end
-    snprintf(error_code_str, 32 + MaxErrorCodeDigits + 1, error_code_link_format, (uint16_t)err.err_num);
+    snprintf(error_code_str, 32 + MaxErrorCodeDigits + 1, error_code_link_format, static_cast<std::underlying_type_t<MMU2::ErrCode>>(err.err_code));
     text_link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
 
-    qr.SetQRHeader(err.err_num);
+    qr.SetQRHeader(static_cast<std::underlying_type_t<MMU2::ErrCode>>(err.err_code));
+}
+
+constexpr static const char title_change[] = N_("Changing filament");
+constexpr static const char title_load[] = N_("Loading filament");
+constexpr static const char title_unload[] = N_("Unloading filament");
+constexpr static const char title_purge[] = N_("Purging filament");
+constexpr static const char title_index_error[] = "Index error"; // intentionally not to be translated
+
+string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
+    switch (mode) {
+    case LoadUnloadMode::Change:
+        return _(title_change);
+    case LoadUnloadMode::Load:
+        return _(title_load);
+    case LoadUnloadMode::Unload:
+        return _(title_unload);
+    case LoadUnloadMode::Purge:
+        return _(title_purge);
+    default:
+        break;
+    }
+    return string_view_utf8::MakeCPUFLASH((const uint8_t *)title_index_error);
+}
+
+float DialogLoadUnload::deserialize_progress(fsm::PhaseData data) const {
+    return ProgressSerializerLoadUnload(data).progress;
 }

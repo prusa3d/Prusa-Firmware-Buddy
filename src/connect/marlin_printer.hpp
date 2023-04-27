@@ -36,9 +36,7 @@ public:
     virtual void submit_gcode(const char *code) override;
     virtual bool set_ready(bool ready) override;
     virtual bool is_printing() const override;
-    virtual uint32_t files_hash() const override;
-
-    virtual void notify_filechange(const char *filename) override;
+    virtual void init_connect(char *token) override;
 
     static bool load_cfg_from_ini();
 };

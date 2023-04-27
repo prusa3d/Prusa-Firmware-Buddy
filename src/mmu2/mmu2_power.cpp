@@ -15,9 +15,13 @@ namespace MMU2 {
 
 using namespace buddy::hw;
 
+// The code below pulse-charges the MMU capacitors, as the current inrush
+// would due to an inferior HW design cause overcurrent on the xBuddy board.
+// In case overcurrent would still be triggered, increase the us_total
+// value to pre-charge longer.
 static constexpr uint32_t us_high = 5;
 static constexpr uint32_t us_low = 70;
-static constexpr uint32_t us_total = 9000;
+static constexpr uint32_t us_total = 15000;
 
 inline static void activate_reset() {
     #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))

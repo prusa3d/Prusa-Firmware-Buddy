@@ -1,17 +1,47 @@
 #pragma once
 #include <stdint.h>
-#include <array>
-#include "../../inc/MarlinConfig.h"
+#include <avr/pgmspace.h>
 
-#if HAS_MMU2
+#ifdef __AVR__
+    #include "mmu2/error_codes.h"
+    #include "mmu2/progress_codes.h"
+    #include "mmu2/buttons.h"
+    #include "mmu2_protocol.h"
+
+// #include <array> std array is not available on AVR ... we need to "fake" it
+namespace std {
+template <typename T, uint8_t N>
+class array {
+    T data[N];
+
+public:
+    array() = default;
+    inline constexpr T *begin() const { return data; }
+    inline constexpr T *end() const { return data + N; }
+    static constexpr uint8_t size() { return N; }
+    inline T &operator[](uint8_t i) {
+        return data[i];
+    }
+};
+}
+#else
+
+    #include <array>
     #include "../../../../../../Prusa-Firmware-MMU/src/logic/error_codes.h"
     #include "../../../../../../Prusa-Firmware-MMU/src/logic/progress_codes.h"
-    #include "../../../../../../Prusa-Firmware-MMU/src/modules/protocol.h"
 
-    #include "mmu2_serial.h"
+    // prevent ARM HAL macros from breaking our code
+    #undef CRC
+    #include "../../../../../../Prusa-Firmware-MMU/src/modules/protocol.h"
+    #include "buttons.h"
+#endif
+
+#include "mmu2_serial.h"
 
 /// New MMU2 protocol logic
 namespace MMU2 {
+
+static constexpr uint8_t MAX_RETRIES = 3U;
 
 using namespace modules::protocol;
 
@@ -20,146 +50,24 @@ class ProtocolLogic;
 /// ProtocolLogic stepping statuses
 enum StepStatus : uint_fast8_t {
     Processing = 0,
-    MessageReady, ///< a message has been successfully decoded from the received bytes
-    Finished,
+    MessageReady,         ///< a message has been successfully decoded from the received bytes
+    Finished,             ///< Scope finished successfully
+    Interrupted,          ///< received "Finished" message related to a different command than originally issued (most likely the MMU restarted while doing something)
     CommunicationTimeout, ///< the MMU failed to respond to a request within a specified time frame
     ProtocolError,        ///< bytes read from the MMU didn't form a valid response
     CommandRejected,      ///< the MMU rejected the command due to some other command in progress, may be the user is operating the MMU locally (button commands)
     CommandError,         ///< the command in progress stopped due to unrecoverable error, user interaction required
     VersionMismatch,      ///< the MMU reports its firmware version incompatible with our implementation
+    PrinterError,         ///< printer's explicit error - MMU is fine, but the printer was unable to complete the requested operation
     CommunicationRecovered,
+    ButtonPushed, ///< The MMU reported the user pushed one of its three buttons.
 };
 
-static constexpr uint32_t linkLayerTimeout = 2000;                 ///< default link layer communication timeout
-static constexpr uint32_t dataLayerTimeout = linkLayerTimeout * 3; ///< data layer communication timeout
-static constexpr uint32_t heartBeatPeriod = linkLayerTimeout / 2;  ///< period of heart beat messages (Q0)
+inline constexpr uint32_t linkLayerTimeout = 2000;                 ///< default link layer communication timeout
+inline constexpr uint32_t dataLayerTimeout = linkLayerTimeout * 3; ///< data layer communication timeout
+inline constexpr uint32_t heartBeatPeriod = linkLayerTimeout / 2;  ///< period of heart beat messages (Q0)
 
 static_assert(heartBeatPeriod < linkLayerTimeout && linkLayerTimeout < dataLayerTimeout, "Incorrect ordering of timeouts");
-
-/// Base class for sub-automata of the ProtocolLogic class.
-/// Their operation should never block (wait inside).
-class ProtocolLogicPartBase {
-public:
-    inline ProtocolLogicPartBase(ProtocolLogic *logic)
-        : logic(logic)
-        , state(State::Ready) {}
-
-    /// Restarts the sub-automaton
-    virtual void Restart() = 0;
-
-    /// Makes one step in the sub-automaton
-    /// @returns StepStatus
-    virtual StepStatus Step() = 0;
-
-    /// @returns true if the state machine is waiting for a response from the MMU
-    bool ExpectsResponse() const { return state != State::Ready && state != State::Wait; }
-
-protected:
-    ProtocolLogic *logic; ///< pointer to parent ProtocolLogic layer
-    friend class ProtocolLogic;
-
-    /// Common internal states of the derived sub-automata
-    /// General rule of thumb: *Sent states are waiting for a response from the MMU
-    enum class State : uint_fast8_t {
-        Ready,
-        Wait,
-
-        S0Sent,
-        S1Sent,
-        S2Sent,
-        QuerySent,
-        CommandSent,
-        FilamentSensorStateSent,
-        FINDAReqSent,
-        ButtonSent,
-
-        ContinueFromIdle
-    };
-
-    State state; ///< internal state of the sub-automaton
-
-    /// @returns the status of processing of the FINDA query response
-    /// @param finishedRV returned value in case the message was successfully received and processed
-    /// @param nextState is a state where the state machine should transfer to after the message was successfully received and processed
-    StepStatus ProcessFINDAReqSent(StepStatus finishedRV, State nextState);
-
-    /// Called repeatedly while waiting for a query (Q0) period.
-    /// All event checks to report immediately from the printer to the MMU shall be done in this method.
-    /// So far, the only such a case is the filament sensor, but there can be more like this in the future.
-    void CheckAndReportAsyncEvents();
-
-    void SendQuery();
-
-    void SendFINDAQuery();
-
-    void SendAndUpdateFilamentSensor();
-
-    void SendButton(uint8_t btn);
-};
-
-/// Starting sequence of the communication with the MMU.
-/// The printer shall ask for MMU's version numbers.
-/// If everything goes well and the MMU's version is good enough,
-/// the ProtocolLogic layer may continue talking to the MMU
-class StartSeq : public ProtocolLogicPartBase {
-public:
-    inline StartSeq(ProtocolLogic *logic)
-        : ProtocolLogicPartBase(logic) {}
-    void Restart() override;
-    StepStatus Step() override;
-};
-
-/// A command and its lifecycle.
-/// CommandSent:
-/// - the command was placed into the UART TX buffer, awaiting response from the MMU
-/// - if the MMU confirms the command, we'll wait for it to finish
-/// - if the MMU refuses the command, we report an error (should normally not happen unless someone is hacking the communication without waiting for the previous command to finish)
-/// Wait:
-/// - waiting for the MMU to process the command - may take several seconds, for example Tool change operation
-/// - meawhile, every 300ms we send a Q0 query to obtain the current state of the command being processed
-/// - as soon as we receive a response to Q0 from the MMU, we process it in the next state
-/// QuerySent - check the reply from the MMU - can be any of the following:
-/// - Processing: the MMU is still working
-/// - Error: the command failed on the MMU, we'll have the exact error report in the response message
-/// - Finished: the MMU finished the command successfully, another command may be issued now
-class Command : public ProtocolLogicPartBase {
-public:
-    inline Command(ProtocolLogic *logic)
-        : ProtocolLogicPartBase(logic)
-        , rq(RequestMsgCodes::unknown, 0) {}
-    void Restart() override;
-    StepStatus Step() override;
-    inline void SetRequestMsg(RequestMsg msg) {
-        rq = msg;
-    }
-    void ContinueFromIdle() {
-        state = State::ContinueFromIdle;
-    }
-    inline const RequestMsg &ReqMsg() const { return rq; }
-
-private:
-    RequestMsg rq;
-};
-
-/// Idle state - we have no command for the MMU, so we are only regularly querying its state with Q0 messages.
-/// The idle state can be interrupted any time to issue a command into the MMU
-class Idle : public ProtocolLogicPartBase {
-public:
-    inline Idle(ProtocolLogic *logic)
-        : ProtocolLogicPartBase(logic) {}
-    void Restart() override;
-    StepStatus Step() override;
-};
-
-/// The communication with the MMU is stopped/disabled (for whatever reason).
-/// Nothing is being put onto the UART.
-class Stopped : public ProtocolLogicPartBase {
-public:
-    inline Stopped(ProtocolLogic *logic)
-        : ProtocolLogicPartBase(logic) {}
-    void Restart() override {}
-    StepStatus Step() override { return Processing; }
-};
 
 ///< Filter of short consecutive drop outs which are recovered instantly
 class DropOutFilter {
@@ -167,7 +75,7 @@ class DropOutFilter {
     uint8_t occurrences;
 
 public:
-    static constexpr uint8_t maxOccurrences = 3;
+    static constexpr uint8_t maxOccurrences = 10; // ideally set this to >8 seconds -> 12x heartBeatPeriod
     static_assert(maxOccurrences > 1, "we should really silently ignore at least 1 comm drop out if recovered immediately afterwards");
     DropOutFilter() = default;
 
@@ -184,7 +92,7 @@ public:
 /// Logic layer of the MMU vs. printer communication protocol
 class ProtocolLogic {
 public:
-    ProtocolLogic(MMU2Serial *uart);
+    ProtocolLogic(MMU2Serial *uart, uint8_t extraLoadDistance, uint8_t pulleySlowFeedrate);
 
     /// Start/Enable communication with the MMU
     void Start();
@@ -194,6 +102,7 @@ public:
 
     // Issue commands to the MMU
     void ToolChange(uint8_t slot);
+    void Statistics();
     void UnloadFilament();
     void LoadFilament(uint8_t slot);
     void EjectFilament(uint8_t slot);
@@ -201,6 +110,19 @@ public:
     void ResetMMU();
     void Button(uint8_t index);
     void Home(uint8_t mode);
+    void ReadRegister(uint8_t address);
+    void WriteRegister(uint8_t address, uint16_t data);
+
+    /// Sets the extra load distance to be reported to the MMU.
+    /// Beware - this call doesn't send anything to the MMU.
+    /// The MMU gets the newly set value either by a communication restart or via an explicit WriteRegister call
+    inline void PlanExtraLoadDistance(uint8_t eld_mm) {
+        initRegs8[0] = eld_mm;
+    }
+    /// @returns the currently preset extra load distance
+    inline uint8_t ExtraLoadDistance() const {
+        return initRegs8[0];
+    }
 
     /// Step the state machine
     StepStatus Step();
@@ -211,6 +133,9 @@ public:
     /// @returns the current/latest process code as reported by the MMU
     ProgressCode Progress() const { return progressCode; }
 
+    /// @returns the current/latest button code as reported by the MMU
+    Buttons Button() const { return buttonCode; }
+
     uint8_t CommandInProgress() const;
 
     inline bool Running() const {
@@ -218,28 +143,74 @@ public:
     }
 
     inline bool FindaPressed() const {
-        return findaPressed;
+        return regs8[0];
     }
 
-    #ifndef UNITTEST
-private:
-    #endif
+    inline uint16_t FailStatistics() const {
+        return regs16[0];
+    }
 
-    StepStatus ProcessUARTByte(uint8_t c);
-    StepStatus ExpectingMessage(uint32_t timeout);
+    inline uint8_t MmuFwVersionMajor() const {
+        return mmuFwVersion[0];
+    }
+
+    inline uint8_t MmuFwVersionMinor() const {
+        return mmuFwVersion[1];
+    }
+
+    inline uint8_t MmuFwVersionRevision() const {
+        return mmuFwVersion[2];
+    }
+
+    /// Current number of retry attempts left
+    constexpr uint8_t RetryAttempts() const { return retryAttempts; }
+
+    /// Decrement the retry attempts, if in a retry.
+    /// Called by the MMU protocol when a sent button is acknowledged.
+    void DecrementRetryAttempts();
+
+    /// Reset the retryAttempts back to the default value
+    void ResetRetryAttempts();
+
+    constexpr bool InAutoRetry() const { return inAutoRetry; }
+    void SetInAutoRetry(bool iar) {
+        inAutoRetry = iar;
+    }
+
+    inline void SetPrinterError(ErrorCode ec) {
+        explicitPrinterError = ec;
+    }
+    inline void ClearPrinterError() {
+        explicitPrinterError = ErrorCode::OK;
+    }
+    inline bool IsPrinterError() const {
+        return explicitPrinterError != ErrorCode::OK;
+    }
+    inline ErrorCode PrinterError() const {
+        return explicitPrinterError;
+    }
+#ifndef UNITTEST
+private:
+#endif
+    StepStatus ExpectingMessage();
     void SendMsg(RequestMsg rq);
+    void SendWriteMsg(RequestMsg rq);
     void SwitchToIdle();
-    void HandleCommunicationTimeout();
-    StepStatus HandleCommError(const char *msg, StepStatus ss);
+    StepStatus SuppressShortDropOuts(const char *msg_P, StepStatus ss);
+    StepStatus HandleCommunicationTimeout();
+    StepStatus HandleProtocolError();
     bool Elapsed(uint32_t timeout) const;
     void RecordUARTActivity();
     void RecordReceivedByte(uint8_t c);
     void FormatLastReceivedBytes(char *dst);
     void FormatLastResponseMsgAndClearLRB(char *dst);
     void LogRequestMsg(const uint8_t *txbuff, uint8_t size);
-    void LogError(const char *reason);
+    void LogError(const char *reason_P);
     void LogResponse();
-    void SwitchFromIdleToCommand();
+    StepStatus SwitchFromIdleToCommand();
+    void SwitchFromStartToIdle();
+
+    ErrorCode explicitPrinterError;
 
     enum class State : uint_fast8_t {
         Stopped,      ///< stopped for whatever reason
@@ -248,11 +219,109 @@ private:
     };
 
     // individual sub-state machines - may be they can be combined into a union since only one is active at once
-    Stopped stopped;
-    StartSeq startSeq;
-    Idle idle;
-    Command command;
-    ProtocolLogicPartBase *currentState; ///< command currently being processed
+    // or we can blend them into ProtocolLogic at the cost of a less nice code (but hopefully shorter)
+    //    Stopped stopped;
+    //    StartSeq startSeq;
+    //    DelayedRestart delayedRestart;
+    //    Idle idle;
+    //    Command command;
+    //    ProtocolLogicPartBase *currentState; ///< command currently being processed
+
+    enum class Scope : uint_fast8_t {
+        Stopped,
+        StartSeq,
+        DelayedRestart,
+        Idle,
+        Command
+    };
+    Scope currentScope;
+
+    // basic scope members
+    /// @returns true if the state machine is waiting for a response from the MMU
+    bool ExpectsResponse() const { return ((uint8_t)scopeState & (uint8_t)ScopeState::NotExpectsResponse) == 0; }
+
+    /// Common internal states of the derived sub-automata
+    /// General rule of thumb: *Sent states are waiting for a response from the MMU
+    enum class ScopeState : uint_fast8_t {
+        S0Sent, // beware - due to optimization reasons these SxSent must be kept one after another
+        S1Sent,
+        S2Sent,
+        S3Sent,
+        QuerySent,
+        CommandSent,
+        FilamentSensorStateSent,
+        Reading8bitRegisters,
+        Reading16bitRegisters,
+        WritingInitRegisters,
+        ButtonSent,
+        ReadRegisterSent, // standalone requests for reading registers - from higher layers
+        WriteRegisterSent,
+
+        // States which do not expect a message - MSb set
+        NotExpectsResponse = 0x80,
+        Wait = NotExpectsResponse + 1,
+        Ready = NotExpectsResponse + 2,
+        RecoveringProtocolError = NotExpectsResponse + 3,
+    };
+
+    ScopeState scopeState; ///< internal state of the sub-automaton
+
+    /// @returns the status of processing of the FINDA query response
+    /// @param finishedRV returned value in case the message was successfully received and processed
+    /// @param nextState is a state where the state machine should transfer to after the message was successfully received and processed
+    // StepStatus ProcessFINDAReqSent(StepStatus finishedRV, State nextState);
+
+    /// @returns the status of processing of the statistics query response
+    /// @param finishedRV returned value in case the message was successfully received and processed
+    /// @param nextState is a state where the state machine should transfer to after the message was successfully received and processed
+    // StepStatus ProcessStatisticsReqSent(StepStatus finishedRV, State nextState);
+
+    /// Called repeatedly while waiting for a query (Q0) period.
+    /// All event checks to report immediately from the printer to the MMU shall be done in this method.
+    /// So far, the only such a case is the filament sensor, but there can be more like this in the future.
+    void CheckAndReportAsyncEvents();
+    void SendQuery();
+    void StartReading8bitRegisters();
+    void ProcessRead8bitRegister();
+    void StartReading16bitRegisters();
+    ScopeState ProcessRead16bitRegister(ProtocolLogic::ScopeState stateAtEnd);
+    void StartWritingInitRegisters();
+    /// @returns true when all registers have been written into the MMU
+    bool ProcessWritingInitRegister();
+    void SendAndUpdateFilamentSensor();
+    void SendButton(uint8_t btn);
+    void SendVersion(uint8_t stage);
+    void SendReadRegister(uint8_t index, ScopeState nextState);
+    void SendWriteRegister(uint8_t index, uint16_t value, ScopeState nextState);
+
+    StepStatus ProcessVersionResponse(uint8_t stage);
+
+    /// Top level split - calls the appropriate step based on current scope
+    StepStatus ScopeStep();
+
+    static constexpr uint8_t maxRetries = 6;
+    uint8_t retries;
+
+    void StartSeqRestart();
+    void DelayedRestartRestart();
+    void IdleRestart();
+    void CommandRestart();
+
+    StepStatus StartSeqStep();
+    StepStatus DelayedRestartWait();
+    StepStatus IdleStep();
+    StepStatus IdleWait();
+    StepStatus CommandStep();
+    StepStatus CommandWait();
+    StepStatus StoppedStep() { return Processing; }
+
+    StepStatus ProcessCommandQueryResponse();
+
+    inline void SetRequestMsg(RequestMsg msg) {
+        rq = msg;
+    }
+    inline const RequestMsg &ReqMsg() const { return rq; }
+    RequestMsg rq = RequestMsg(RequestMsgCodes::unknown, 0);
 
     /// Records the next planned state, "unknown" msg code if no command is planned.
     /// This is not intended to be a queue of commands to process, protocol_logic must not queue commands.
@@ -287,20 +356,37 @@ private:
 
     ErrorCode errorCode;       ///< last received error code from the MMU
     ProgressCode progressCode; ///< last received progress code from the MMU
+    Buttons buttonCode;        ///< Last received button from the MMU.
 
     uint8_t lastFSensor; ///< last state of filament sensor
 
-    bool findaPressed;
+    // 8bit registers
+    static constexpr uint8_t regs8Count = 3;
+    static_assert(regs8Count > 0); // code is not ready for empty lists of registers
+    static const uint8_t regs8Addrs[regs8Count] PROGMEM;
+    uint8_t regs8[regs8Count] = { 0, 0, 0 };
 
-    friend class ProtocolLogicPartBase;
-    friend class Stopped;
-    friend class Command;
-    friend class Idle;
-    friend class StartSeq;
+    // 16bit registers
+    static constexpr uint8_t regs16Count = 2;
+    static_assert(regs16Count > 0); // code is not ready for empty lists of registers
+    static const uint8_t regs16Addrs[regs16Count] PROGMEM;
+    uint16_t regs16[regs16Count] = { 0, 0 };
+
+    // 8bit init values to be sent to the MMU after line up
+    static constexpr uint8_t initRegs8Count = 2;
+    static_assert(initRegs8Count > 0); // code is not ready for empty lists of registers
+    static const uint8_t initRegs8Addrs[initRegs8Count] PROGMEM;
+    uint8_t initRegs8[initRegs8Count];
+
+    uint8_t regIndex;
+
+    uint8_t mmuFwVersion[3] = { 0, 0, 0 };
+    uint16_t mmuFwVersionBuild;
+
+    uint8_t retryAttempts;
+    bool inAutoRetry;
 
     friend class MMU2;
 };
 
 } // namespace MMU2
-
-#endif

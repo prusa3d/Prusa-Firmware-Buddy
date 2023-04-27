@@ -8,6 +8,7 @@
 #include "qrcodegen.h"
 #include "scratch_buffer.hpp"
 #include "support_utils.h"
+#include "eeprom.h"
 
 /// QR Window
 window_qr_t::window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num, Align_t align)
@@ -36,6 +37,11 @@ void window_qr_t::SetQRHeader(uint16_t err_num) {
     } else {
         error_url_short(text, sizeof(text), err_num);
     }
+    Invalidate();
+}
+
+void window_qr_t::SetText(const char *txt) {
+    strlcpy(text, txt, sizeof(text));
     Invalidate();
 }
 

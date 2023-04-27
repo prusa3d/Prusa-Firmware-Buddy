@@ -14,7 +14,7 @@ FooterSingleline::FooterSingleline(window_t *parent)
     line_0.Create(footer::eeprom::Load());
 }
 
-bool FooterSingleline::SetSlot(size_t slot_id, footer::items item) {
+bool FooterSingleline::SetSlot(size_t slot_id, footer::Item item) {
     return IFooter::SetSlot(line_0, slot_id, item);
 }
 

@@ -6,7 +6,6 @@
 #include "radio_button_fsm.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
-#include "../../lang/i18n.h"
 #include "client_response.hpp"
 
 /*****************************************************************************/

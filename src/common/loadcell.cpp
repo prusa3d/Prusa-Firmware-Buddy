@@ -1,4 +1,6 @@
 #include "loadcell.h"
+#include "bsod_gui.hpp"
+#include "error_codes.hpp"
 #include "gpio.h"
 #include "metric.h"
 #include "bsod.h"
@@ -10,8 +12,12 @@
 #include "log.h"
 #include "probe_position_lookback.hpp"
 #include "bsod_gui.hpp"
-
+#include "config_features.h"
+#if ENABLED(POWER_PANIC)
+    #include "power_panic.hpp"
+#endif // POWER_PANIC
 #include "../Marlin/src/module/planner.h"
+#include "../Marlin/src/module/endstops.h"
 
 LOG_COMPONENT_DEF(Loadcell, LOG_SEVERITY_INFO);
 
@@ -67,6 +73,16 @@ void Loadcell::Tare(TareMode mode) {
     while (tareCount != 0) {
         osEvent evt = osSignalWait(signal, 500);
         if (evt.status != osEventSignal) {
+            // Power panic during MBL causes returning osErrorValue or osEventTimeout
+            // Raising redscreen during AC power fault breaks the power panic resume cycle after restart
+            // Loadcell values are irelevant here, because MBL will be restarted after power up
+#if ENABLED(POWER_PANIC)
+            if (power_panic::ac_power_fault_is_checked && power_panic::is_ac_fault_signal()) {
+                log_info(Loadcell, "PowerPanic triggered during loadcell tare operation - tare cycle was broken");
+                tareCount = 0;
+                break;
+            }
+#endif // POWER_PANIC
             fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TARE_FAILED);
         }
     }
@@ -77,8 +93,17 @@ void Loadcell::Tare(TareMode mode) {
     xy_endstop = false;
 }
 
+void Loadcell::Clear() {
+    tareCount = 0;
+    loadcellRaw = 0;
+    offset = 0;
+    highPassFilter.Reset();
+    endstop = false;
+    xy_endstop = false;
+}
+
 bool Loadcell::GetMinZEndstop() const {
-    return endstop;
+    return endstop && endstops.is_z_probe_enabled();
 }
 
 bool Loadcell::GetXYEndstop() const {
@@ -130,6 +155,8 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     int32_t ticks_us_from_now = ticks_diff(time_us, ticks_us());
     int32_t ticks_ms_from_now = ticks_us_from_now / 1000;
     uint32_t timestamp_ms = ticks_ms() + ticks_ms_from_now;
+
+    last_sample_time = timestamp_ms;
 
     metric_record_custom_at_time(&metric_loadcell, timestamp_ms, " r=%ii,o=%ii,s=%0.4f", loadcellRaw, offset, (double)scale);
     metric_record_float(&metric_loadcell_value, load);
@@ -201,6 +228,13 @@ int32_t Loadcell::WaitForNextSample() {
         fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
     }
     return loadcellRaw;
+}
+
+void Loadcell::HomingSafetyCheck() const {
+    static constexpr uint32_t MAX_LOADCELL_DATA_AGE_WHEN_HOMING = 100;
+    if (ticks_ms() - last_sample_time > MAX_LOADCELL_DATA_AGE_WHEN_HOMING) {
+        fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
+    }
 }
 
 /**

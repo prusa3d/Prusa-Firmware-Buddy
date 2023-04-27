@@ -32,7 +32,7 @@ endif()
 
 if(HAS_PUPPIES)
   target_sources(
-    firmware PRIVATE selftest_kennel.cpp selftest_kennel_interface.cpp selftest_tool_offsets.cpp
+    firmware PRIVATE selftest_dock.cpp selftest_dock_interface.cpp selftest_tool_offsets.cpp
                      selftest_tool_offsets_interface.cpp
     )
 endif()

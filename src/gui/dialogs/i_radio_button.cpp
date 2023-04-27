@@ -1,14 +1,13 @@
 #include "radio_button.hpp"
 #include "ScreenHandler.hpp"
 #include "sound.hpp"
-#include "../../lang/i18n.h"
-#include "resource.h" //IDR_FNT_BIG
+#include "fonts.hpp" //IDR_FNT_BIG
 #include "gui.hpp"
 
 #include <algorithm> //find
 
 static constexpr uint8_t button_delim_size = 31;
-static constexpr uint8_t button_base_size = GuiDefaults::IconButtonSize;
+static constexpr uint8_t button_base_size = GuiDefaults::ButtonIconSize;
 static constexpr uint8_t label_delim_size = 11;
 static constexpr uint8_t label_base_size = button_base_size + 20;
 static constexpr uint8_t icon_button_font_height = 16;
@@ -160,20 +159,20 @@ void IRadioButton::unconditionalDraw() {
             draw_0_btn();
             ValidateBackground();
         }
+
+        const color_t background_color = GetParent() ? GetParent()->GetBackColor() : GetBackColor(); // color behind rounded corners
         //draw foreground
         for (size_t i = 0; i < std::min<size_t>(max_icons, GetBtnCount()); ++i) {
-            // Iconed buttons support horizontal and vertical alignment
-            // If passed rectangle has bigger width than height -> horizontal alignment is used
-            // If passed rectangle has bigger height than width -> vertical alignment is used
+            // Iconed buttons support horizontal alignment
 
-            Rect16 rcIcon = getIconRect(i);
+            const Rect16 rcIcon = getIconRect(i);
             if (isIndexValid(i)) {
                 window_frame_t base(nullptr, rcIcon); // window_icon_button_t needs parent to draw properly (corners)
-                base.SetBackColor(GetBackColor());
+                base.SetBackColor(background_color);
                 window_icon_button_t icon(&base, rcIcon, BtnResponse::GetIconId(responseFromIndex(i)), []() {});
                 window_text_t label(nullptr, getLabelRect(i), is_multiline::no, is_closed_on_click_t::no, _(BtnResponse::GetText(responseFromIndex(i))));
 
-                label.SetBackColor(GetBackColor());
+                label.SetBackColor(background_color);
                 label.SetAlignment(Align_t::Center());
                 label.SetFont(resource_font(IDR_FNT_SMALL));
 
@@ -186,7 +185,7 @@ void IRadioButton::unconditionalDraw() {
                     focused_ptr = nullptr;
                 }
             } else {
-                display::DrawRoundedRect(rcIcon, GetBackColor(), COLOR_ORANGE, GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
+                display::DrawRoundedRect(rcIcon, background_color, COLOR_ORANGE, GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
             }
         }
         focused_ptr = prev_focus; //return focus
@@ -336,16 +335,7 @@ void IRadioButton::SetBtn(Response btn) {
         SetBtnIndex(*index);
 }
 
-//TODO just use some kind of layouts
 Rect16 IRadioButton::getIconRect(uint8_t idx) const {
-    if (GetRect().Width() >= GetRect().Height()) {
-        return getHorizontalIconRect(idx); // 3 buttons 0 - 2, button 1 is in middle
-    } else {
-        return getVerticalIconRect(idx); // 3 buttons 0 - 2, button 1 is in middle
-    }
-}
-
-Rect16 IRadioButton::getHorizontalIconRect(uint8_t idx) const {
     const int padding = 10;
     Rect16 rect = GetRect();
     rect = Rect16::Width_t(button_base_size);  // button width
@@ -371,53 +361,7 @@ Rect16 IRadioButton::getHorizontalIconRect(uint8_t idx) const {
     return rect;
 }
 
-Rect16 IRadioButton::getVerticalIconRect(uint8_t idx) const {
-    // Vertical alignment of 3 items: first item on the top edge - second item on centered (with text) - third item's label text on the bottom edge
-    // Vertical alignment of 2 items: first item on the top edge - second item's label on the bottom edge
-    // Vertical alignment of 1 item: centered with label
-    // All centered (x-axis-wise)
-
-    Rect16 rect = GetRect();
-    rect += Rect16::Left_t((rect.Width() - button_base_size) / 2);
-    rect = Rect16::Width_t(button_base_size);  // button width
-    rect = Rect16::Height_t(button_base_size); // button height
-    switch (std::min<size_t>(max_icons, GetBtnCount())) {
-    case 1:
-        rect += Rect16::Top_t(GetRect().Height() / 2);                                              // middle of rect
-        rect -= Rect16::Top_t((button_base_size + icon_label_delim + icon_button_font_height) / 2); // button 1 pos
-        break;
-    case 2:
-        if (idx != 0) {
-            rect = Rect16::Top_t(GetRect().Top() + GetRect().Height() - button_base_size - icon_label_delim - icon_button_font_height);
-        }
-        break;
-    case 3:
-        if (idx == 1) {
-            rect += Rect16::Top_t(GetRect().Height() / 2);
-            rect -= Rect16::Top_t((button_base_size + icon_label_delim + icon_button_font_height) / 2);
-        } else if (idx == 2) {
-            rect += Rect16::Top_t(GetRect().Height());
-            rect -= Rect16::Top_t(button_base_size + icon_label_delim + icon_button_font_height);
-        }
-        // else: no change
-        break;
-    default:
-        rect = Rect16();
-        break;
-    }
-    return rect;
-}
-
-//TODO just use some kind of layouts
 Rect16 IRadioButton::getLabelRect(uint8_t idx) const {
-    if (GetRect().Width() >= GetRect().Height()) {
-        return getHorizontalLabelRect(idx); // 3 buttons 0 - 2, button 1 is in middle
-    } else {
-        return getVerticalLabelRect(idx); // 3 buttons 0 - 2, button 1 is in middle
-    }
-}
-
-Rect16 IRadioButton::getHorizontalLabelRect(uint8_t idx) const {
     Rect16 rect = GetRect();
     rect += Rect16::Top_t(button_base_size);    // label is under button
     rect = Rect16::Width_t(label_base_size);    // labels width
@@ -435,45 +379,6 @@ Rect16 IRadioButton::getHorizontalLabelRect(uint8_t idx) const {
         rect += Rect16::Left_t(GetRect().Width() / 2);                      // middle of rect
         rect -= Rect16::Left_t(label_base_size / 2);                        // labels 1 pos
         rect += Rect16::Left_t(idx * (label_base_size + label_delim_size)); // current labels pos
-        break;
-    default:
-        rect = Rect16();
-        break;
-    }
-    return rect;
-}
-
-Rect16 IRadioButton::getVerticalLabelRect(uint8_t idx) const {
-    // Vertical alignment of 3 items: first item on the top edge - second item on centered (with text) - third item's label text on the bottom edge
-    // Vertical alignment of 2 items: first item on the top edge - second item's label on the bottom edge
-    // Vertical alignment of 1 item: centered with label
-    // All centered (x-axis-wise)
-
-    Rect16 rect = GetRect();
-    // text is centered so width stays
-    rect = Rect16::Height_t(icon_button_font_height); // labels height
-
-    switch (std::min<size_t>(max_icons, GetBtnCount())) {
-    case 1:
-        rect += Rect16::Top_t(button_base_size + icon_label_delim);
-        break;
-    case 2:
-        if (idx == 0) {
-            rect += Rect16::Top_t(button_base_size + icon_label_delim);
-        } else {
-            rect += Rect16::Top_t(GetRect().Height() - icon_button_font_height);
-        }
-        break;
-    case 3:
-        if (idx == 0) {
-            rect += Rect16::Top_t(button_base_size + icon_label_delim);
-        } else if (idx == 1) {
-            rect += Rect16::Top_t(GetRect().Height() / 2);
-            rect -= Rect16::Top_t((button_base_size + icon_button_font_height + icon_label_delim) / 2);
-            rect += Rect16::Top_t(button_base_size + icon_label_delim);
-        } else {
-            rect += Rect16::Top_t(GetRect().Height() - icon_button_font_height);
-        }
         break;
     default:
         rect = Rect16();

@@ -2024,8 +2024,12 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
     }
     if (block->steps.x) enable_X();
   #else
-    if (block->steps.x) enable_X();
-    if (block->steps.y) enable_Y();
+    #if ENABLED(XY_LINKED_ENABLE)
+      if (block->steps.x || block->steps.y) enable_XY();
+    #else
+      if (block->steps.x) enable_X();
+      if (block->steps.y) enable_Y();
+    #endif
     #if DISABLED(Z_LATE_ENABLE)
       if (block->steps.z) enable_Z();
     #endif

@@ -278,18 +278,26 @@ Errors:
   id: "MMU_IDLER_SELFTEST_FAILED"
   approved: false
 
+- code: "04306"
+  title: "MMU MCU UNDERPOWER"
+  text: "MMU MCU detected a 5V undervoltage. There might be an issue with the electronics. Check the wiring and connectors"
+  text_short: "More details online."
+  action: [ResetMMU]
+  id: "ERR_ELECTRICAL_MCU_UNDERVOLTAGE_VCC"
+  approved: true
+
 # CONNECTIVITY
 - code: "04401"
   title: "MMU NOT RESPONDING"
-  text: "MMU unit not responding. Check the wiring and connectors. If the issue persists, contact support."
-  action: [ResetMMU]
+  text: "MMU not responding. Check the wiring and connectors."
+  action: [ResetMMU,DisableMMU]
   id: "MMU_NOT_RESPONDING"
   approved: true
 
 - code: "04402"
   title: "COMMUNICATION ERROR"
-  text: "MMU unit not responding correctly. Check the wiring and connectors. If the issue persists, contact support."
-  action: [ResetMMU]
+  text: "MMU not responding correctly. Check the wiring and connectors."
+  action: [ResetMMU,DisableMMU]
   id: "COMMUNICATION_ERROR"
   approved: true
 
@@ -317,14 +325,14 @@ Errors:
 
 - code: "04504"
   title: "FW UPDATE NEEDED"
-  text: "The MMU unit reports its FW version incompatible with the printer's firmware. Make sure the MMU firmware is up to date."
-  action: [DisableMMU]
+  text: "The MMU reports its FW version incompatible with the printer's firmware. Make sure the MMU firmware is up to date."
+  action: [ResetMMU,DisableMMU]
   id: "FW_UPDATE_NEEDED"
   approved: true
 
 - code: "04505"
   title: "FW RUNTIME ERROR"
-  text: "Internal runtime error. Try resetting the MMU unit or updating the firmware. If the issue persists, contact support."
+  text: "Internal runtime error. Try resetting the MMU or updating the firmware."
   action: [ResetMMU]
   id: "FW_RUNTIME_ERROR"
   approved: true
@@ -338,7 +346,7 @@ Errors:
 
 - code: "04507"
   title: "FILAMENT EJECTED"
-  text: "Remove the ejected filament from the front of the MMU unit."
+  text: "Remove the ejected filament from the front of the MMU."
   action: [Continue]
   id: "FILAMENT_EJECTED"
   approved: true

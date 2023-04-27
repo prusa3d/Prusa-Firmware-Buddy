@@ -1,25 +1,5 @@
 #include "i_window_menu_container.hpp"
 
-IWinMenuContainer::Node IWinMenuContainer::findRaw(uint8_t raw_index) const {
-    if (GetRawCount() <= raw_index) {
-        return Node::Empty();
-    }
-
-    uint8_t raw = 0;
-    uint8_t visible = 0;
-    IWindowMenuItem *item = nullptr;
-    for (uint8_t raw = 0; raw <= raw_index; ++raw) {
-        item = GetItemByRawIndex(raw);
-        if (!item) // ERROR
-            return Node::Empty();
-        if (!item->IsHidden())
-            ++visible;
-    }
-
-    Node ret = { item, raw, visible };
-    return ret;
-}
-
 IWinMenuContainer::Node IWinMenuContainer::FindFirstVisible() const {
     for (size_t i = 0; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);

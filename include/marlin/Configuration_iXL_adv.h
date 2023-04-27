@@ -476,6 +476,8 @@
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
     { 1, 1, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+#define HOMING_BUMP_DIVISOR_MAX HOMING_BUMP_DIVISOR
+#define HOMING_BUMP_DIVISOR_MIN HOMING_BUMP_DIVISOR
 //#define QUICK_HOME                     // If homing includes X and Y, do a diagonal move initially
 
 // When G28 is called, this option will make Y home before X
@@ -1513,6 +1515,10 @@
 
     constexpr float HOLD_MULTIPLIER[4] = {1, 1, 1, 1};  // Scales down the holding current from run current
     #define INTERPOLATE true // Interpolate X/Y/Z_MICROSTEPS to 256
+
+    #if defined(HAS_LDO_400_STEP) && (X_DRIVER_TYPE == TMC2130 && Y_DRIVER_TYPE == X_DRIVER_TYPE)
+        #define HAS_TMC_WAVETABLE // enable wavetable correction for this driver/motor type
+    #endif
 
     #if AXIS_IS_TMC(X)
         #if !defined HAS_LDO_400_STEP

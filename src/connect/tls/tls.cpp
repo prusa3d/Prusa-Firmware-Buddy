@@ -8,9 +8,9 @@ using http::Error;
 namespace connect_client {
 
 tls::tls(uint8_t timeout_s)
-    : http::Connection(timeout_s) {
+    : http::Connection(timeout_s)
+    , net_context(timeout_s) {
     mbedtls_net_init(&net_context);
-    net_context.timeout_s = timeout_s;
     mbedtls_ssl_init(&ssl_context);
     mbedtls_ssl_config_init(&ssl_config);
 }
@@ -129,7 +129,7 @@ std::variant<size_t, Error> tls::tx(const uint8_t *send_buffer, size_t data_len)
     return bytes_sent;
 }
 
-std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len, bool nonblock) {
+std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len, [[maybe_unused]] bool nonblock) {
     // Non-blocking reading is not supported on TLS sockets right now
     // (it probably _can_ be done, we just didn't need it).
     assert(!nonblock);

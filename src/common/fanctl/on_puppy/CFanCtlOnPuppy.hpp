@@ -6,7 +6,7 @@
 
 class CFanCtlOnPuppy : public CfanCtlCommon {
 public:
-    constexpr CFanCtlOnPuppy(uint8_t dwarf_nr, uint8_t fan_nr, bool is_autofan, uint16_t max_rpm)
+    CFanCtlOnPuppy(uint8_t dwarf_nr, uint8_t fan_nr, bool is_autofan, uint16_t max_rpm)
         : dwarf_nr(dwarf_nr)
         , fan_nr(fan_nr)
         , is_autofan(is_autofan)

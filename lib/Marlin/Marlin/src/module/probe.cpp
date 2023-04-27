@@ -438,7 +438,10 @@ bool set_probe_deployed(const bool deploy) {
   #endif
 
   do_blocking_move_to(old_xy);
-  endstops.enable_z_probe(deploy);
+  #if DISABLED(NOZZLE_LOAD_CELL)
+    endstops.enable_z_probe(deploy);
+  #endif
+
   return false;
 }
 
@@ -496,8 +499,16 @@ static bool do_probe_move(const float z, const feedRate_t fr_mm_s) {
     probing_pause(true);
   #endif
 
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    endstops.enable_z_probe(true);
+  #endif
+
   // Move down until the probe is triggered
   do_blocking_move_to_z(z, fr_mm_s);
+
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    endstops.enable_z_probe(false);
+  #endif
 
   // Check to see if the probe was triggered
   const bool probe_triggered =
@@ -655,6 +666,7 @@ float run_z_probe(float expected_trigger_z, bool single_only = false) {
     )
   #endif
     {
+      idle(false); // Avoid watchdog reset in case of no move while probing
       #if ENABLED(NOZZLE_LOAD_CELL)
         auto center_offset = offset_for_probe_try(probe_idx++);
         do_blocking_move_to_xy(center_pos + center_offset, MMM_TO_MMS(Z_PROBE_SPEED_FAST));

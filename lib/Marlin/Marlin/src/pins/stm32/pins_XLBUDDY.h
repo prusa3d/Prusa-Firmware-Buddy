@@ -62,7 +62,6 @@
 
 #define Y_STEP_PIN             MARLIN_PIN(Y_STEP)
 #define Y_DIR_PIN              MARLIN_PIN(Y_DIR)
-#define Y_ENABLE_PIN           MARLIN_PIN(Y_ENA)
 
 #define Z_STEP_PIN             MARLIN_PIN(Z_STEP)
 #define Z_DIR_PIN              MARLIN_PIN(Z_DIR)

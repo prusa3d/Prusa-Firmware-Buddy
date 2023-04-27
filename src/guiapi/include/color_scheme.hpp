@@ -5,7 +5,7 @@
  * @date 2021-10-06
  */
 #pragma once
-#include "guitypes.h"
+#include "guitypes.hpp"
 
 struct color_scheme {
     color_t normal; //not focused and not shadowed

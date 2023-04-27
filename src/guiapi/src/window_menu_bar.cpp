@@ -40,7 +40,7 @@ void MenuScrollbar::unconditionalDraw() {
     }
 }
 
-void MenuScrollbar::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void MenuScrollbar::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) {
     switch (event) {
     case GUI_event_t::LOOP:
         if (max_items_on_screen != menu.GetMaxItemsOnScreen()) {

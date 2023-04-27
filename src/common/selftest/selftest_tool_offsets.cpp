@@ -16,7 +16,7 @@ static void set_nozzle_temps(int16_t temp) {
     for (uint8_t tool_nr = 0; tool_nr < HOTENDS; tool_nr++) {
         if (is_tool_selftest_enabled(tool_nr, 0xFF)) { // set temperature on all tools, its not possible to calibrate just one tool
             thermalManager.setTargetHotend(temp, tool_nr);
-            marlin_server_set_temp_to_display(temp, tool_nr);
+            marlin_server::set_temp_to_display(temp, tool_nr);
         }
     }
 }
@@ -143,19 +143,19 @@ LoopResult CSelftestPart_ToolOffsets::state_home_park() {
     IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_pin_install_prepare);
 
     // Ensure tool will not hit calibration pin once installed
-    marlin_server_enqueue_gcode("G1 G91");
-    marlin_server_enqueue_gcode("G1 Z30");
-    marlin_server_enqueue_gcode("G1 G90");
+    marlin_server::enqueue_gcode("G1 G91");
+    marlin_server::enqueue_gcode("G1 Z30");
+    marlin_server::enqueue_gcode("G1 G90");
 
     // Ensure steppers keep enabled after homing, avoid re-home after sheet removal.
-    marlin_server_enqueue_gcode("M18 S0");
+    marlin_server::enqueue_gcode("M18 S0");
 
     // Ensure tool 0 is picked (no risky toolchange is needed with calibration pin installed)
-    marlin_server_enqueue_gcode("T0 S1");
-    marlin_server_enqueue_gcode("G28 O");
+    marlin_server::enqueue_gcode("T0 S1");
+    marlin_server::enqueue_gcode("G28 O");
 
     // Park the nozzle for easier sheet removal
-    marlin_server_enqueue_gcode("G27");
+    marlin_server::enqueue_gcode_printf("T%d", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
     return LoopResult::RunNext;
 }
 
@@ -173,17 +173,17 @@ LoopResult CSelftestPart_ToolOffsets::state_ask_user_install_pin() {
 
 LoopResult CSelftestPart_ToolOffsets::state_calibrate() {
     IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_calibrate);
-    marlin_server_enqueue_gcode("G425");
-    marlin_server_enqueue_gcode_printf("M18 S%d", DEFAULT_STEPPER_DEACTIVE_TIME);
+    marlin_server::enqueue_gcode("G425");
+    marlin_server::enqueue_gcode_printf("M18 S%d", DEFAULT_STEPPER_DEACTIVE_TIME);
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_ToolOffsets::state_final_park() {
     IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_final_park);
     // Let user uninstall the pin
-    marlin_server_enqueue_gcode("P0 S1"); // Park tool
-    marlin_server_enqueue_gcode("G27");   // Park head
-    marlin_server_enqueue_gcode("M18");   // Disable steppers
+    marlin_server::enqueue_gcode("P0 S1"); // Park tool
+    marlin_server::enqueue_gcode("G27");   // Park head
+    marlin_server::enqueue_gcode("M18");   // Disable steppers
     return LoopResult::RunNext;
 }
 

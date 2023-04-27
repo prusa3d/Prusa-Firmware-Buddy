@@ -20,7 +20,7 @@ public:
         line_0.Create({ { args... } }, sizeof...(T)); // footer line takes array of footer::items
     }
 
-    bool SetSlot(size_t slot_id, footer::items item);
+    bool SetSlot(size_t slot_id, footer::Item item);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

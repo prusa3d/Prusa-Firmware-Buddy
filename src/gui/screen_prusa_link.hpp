@@ -44,7 +44,7 @@ public:
     MI_PL_PASSWORD_LABEL();
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override {}
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {}
 };
 
 class MI_PL_PASSWORD_VALUE : public WI_LABEL_t {
@@ -59,7 +59,7 @@ class MI_PL_PASSWORD_VALUE : public WI_LABEL_t {
 
 protected:
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
-    virtual void click(IWindowMenu &window_menu) override {
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {
     }
 
 public:
@@ -72,7 +72,7 @@ class MI_PL_USER : public WI_LABEL_t {
 
 protected:
     virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
-    virtual void click(IWindowMenu &window_menu) override {
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {
     }
 
 public:

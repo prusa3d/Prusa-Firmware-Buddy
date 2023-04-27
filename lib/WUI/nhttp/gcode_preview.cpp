@@ -52,8 +52,8 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
         if (got > 0) {
             const size_t reserve = http::MIN_CHUNK_SIZE + got;
             size_t written = write_headers(buffer, buffer_size - reserve, Status::Ok, ContentType::ImagePng, handling, std::nullopt, etag);
-            written += http::render_chunk(handling, buffer + written, buffer_size - written, [&](uint8_t *buffer, size_t buffer_size) {
-                memcpy(buffer, pre_read, got);
+            written += http::render_chunk(handling, buffer + written, buffer_size - written, [&](uint8_t *buffer_, [[maybe_unused]] size_t buffer_size_) {
+                memcpy(buffer_, pre_read, got);
                 return got;
             });
             headers_sent = true;
@@ -67,8 +67,8 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
         }
     } else {
         NextInstruction instruction = Continue();
-        size_t written = http::render_chunk(handling, buffer, buffer_size, [&](uint8_t *buffer, size_t buffer_size) {
-            int got = decoder.Read(reinterpret_cast<char *>(buffer), buffer_size);
+        size_t written = http::render_chunk(handling, buffer, buffer_size, [&](uint8_t *buffer_, size_t buffer_size_) {
+            int got = decoder.Read(reinterpret_cast<char *>(buffer_), buffer_size_);
             if (got > 0) {
                 return got;
             } else {

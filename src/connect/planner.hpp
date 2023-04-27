@@ -7,6 +7,7 @@
 #include <common/shared_buffer.hpp>
 #include <transfers/monitor.hpp>
 #include <transfers/download.hpp>
+#include <transfers/changed_path.hpp>
 
 #include <cstdint>
 #include <optional>
@@ -24,6 +25,7 @@ enum class EventType {
     Info,
     JobInfo,
     FileInfo,
+    FileChanged,
     TransferInfo,
     Rejected,
     Accepted,
@@ -38,17 +40,18 @@ const char *to_str(EventType event);
 
 struct Event {
     EventType type;
-    std::optional<CommandId> command_id;
-    std::optional<uint16_t> job_id;
-    std::optional<SharedPath> path;
-    std::optional<transfers::TransferId> transfer_id;
+    std::optional<CommandId> command_id { std::nullopt };
+    std::optional<uint16_t> job_id { std::nullopt };
+    std::optional<SharedPath> path { std::nullopt };
+    std::optional<transfers::TransferId> transfer_id { std::nullopt };
     /// Reason for the event. May be null.
     ///
     /// Reasons are constant strings, therefore the non-owned const char * ‒
     /// they are not supposed to get "constructed" or interpolated.
     const char *reason = nullptr;
-    bool info_rescan_files = false;
-    std::optional<CommandId> start_cmd_id;
+    bool is_file = false;
+    transfers::ChangedPath::Incident incident {};
+    std::optional<CommandId> start_cmd_id { std::nullopt };
 };
 
 using Action = std::variant<
@@ -133,15 +136,32 @@ private:
 
     // Tracking if we should resend the INFO message due to some changes.
     Tracked info_changes;
-    // Tracking if we should ask for rescan of our files.
-    Tracked file_changes;
     // Tracking of ongoing transfers.
     std::optional<transfers::TransferId> observed_transfer;
+
+    // We are able to resume _encrypted_ downloads.
+    //
+    // In theory, we could also try to recover plain-text ones. But they need a
+    // lot more info for that to work, and we won't be using them in practice
+    // (likely someone may be using them on a private copy of Connect, but that
+    // will likely happen on a local network that should be reliable, not on
+    // the wide broken internet).
+    //
+    // In case of a plain-text download, we simply set the number of allowed
+    // retries to 0 to "disable" them.
+    struct ResumableDownload {
+        transfers::Download download;
+        uint32_t orig_size = 0;
+        std::optional<uint16_t> port { std::nullopt };
+        transfers::Decryptor::Block orig_iv {};
+        bool need_retry = false;
+        uint8_t allowed_retries = 0;
+    };
     // A download running in background.
     //
     // As we may have a background _task_ and a download at the same time, we
     // need to have variables for both.
-    std::optional<transfers::Download> download;
+    std::optional<ResumableDownload> download;
 
     std::optional<CommandId> transfer_start_cmd = std::nullopt;
     std::optional<CommandId> print_start_cmd = std::nullopt;
@@ -172,13 +192,14 @@ public:
     /// arrives, it might interact sooner).
     ///
     /// All actions except sleeps expect a follow-up call to action_done.
-    Action next_action();
+    Action next_action(SharedBuffer &buffer);
     // Note: *Not* for Sleep. Only for stuff that sends.
     void action_done(ActionResult action);
 
     // Only for Success/Failure.
     void background_done(BackgroundResult result);
-    void download_done();
+    void download_done(transfers::DownloadStep result);
+    void recover_download();
 
     // ID of a command being executed in the background, if any.
     std::optional<CommandId> background_command_id() const;

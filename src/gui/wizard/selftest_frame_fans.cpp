@@ -51,7 +51,7 @@ SelftestFrameFans::fan_state_t SelftestFrameFans::make_fan_row(size_t index) {
 }
 
 template <size_t... Is>
-std::array<SelftestFrameFans::fan_state_t, sizeof...(Is)> SelftestFrameFans::make_fan_row_array(std::index_sequence<Is...> index_sequence) {
+std::array<SelftestFrameFans::fan_state_t, sizeof...(Is)> SelftestFrameFans::make_fan_row_array(std::index_sequence<Is...>) {
     //  this is just fancy template way to init array in constructor initializer_list
     return { (make_fan_row(Is))... };
 }
@@ -62,7 +62,7 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
     // when toolchanger is enabled, do not show footer with fan RPM, because its likely that no tool will be picked and it would just show zero RPM
     , footer(this, 0)
 #else
-    , footer(this, 0, footer::items::ItemPrintFan, footer::items::ItemHeatbreakFan)
+    , footer(this, 0, footer::Item::PrintFan, footer::Item::HeatbreakFan)
 
 #endif
     , progress(this, WizardDefaults::row_1)

@@ -22,5 +22,3 @@ string_view_utf8 FooterItemSpeed::static_makeView(int value) {
     snprintf(buff, sizeof(buff), "%d%%", value_to_print);
     return string_view_utf8::MakeRAM((const uint8_t *)buff);
 }
-
-string_view_utf8 FooterItemSpeed::GetName() { return _("Speed"); }

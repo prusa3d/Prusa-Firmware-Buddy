@@ -17,13 +17,15 @@
 
 #include <option/bootloader.h>
 #include <option/developer_mode.h>
+#include <option/has_translations.h>
 
 #if HAS_SELFTEST
     #include "printer_selftest.hpp"
     #include "ScreenSelftest.hpp"
 #endif // HAS_SELFTEST
 
-#if HAS_TOUCH
+#include <option/has_touch.h>
+#if HAS_TOUCH()
     #include "touch_get.hpp"
 #endif // HAS_TOUCH
 
@@ -31,8 +33,14 @@
     #include "power_panic.hpp"
 #endif
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#include <option/has_selftest_snake.h>
+#if HAS_SELFTEST_SNAKE()
     #include "screen_menu_selftest_snake.hpp"
+#endif
+
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <module/prusa/toolchanger.h>
 #endif
 
 screen_splash_data_t::screen_splash_data_t()
@@ -98,7 +106,7 @@ screen_splash_data_t::screen_splash_data_t()
                 if (!prusa_toolchanger.is_tool_enabled(e)) {
                     continue;
                 }
-                if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].kenneloffset, sr.tools[e].tooloffset)) {
+                if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
                     return false;
                 }
             }
@@ -109,19 +117,19 @@ screen_splash_data_t::screen_splash_data_t()
     #endif
 #endif
 
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
-    LangEEPROM::getInstance().setLanguage(Translations::MakeLangCode("en"));
-#endif
+#if HAS_TRANSLATIONS()
     const bool run_lang = !LangEEPROM::getInstance().IsValid();
-
+#endif
     const screen_node screens[] {
+#if HAS_TRANSLATIONS()
         { run_lang ? ScreenFactory::Screen<ScreenMenuLanguagesNoRet> : nullptr }, // lang
-#if HAS_TOUCH
+#endif
+#if HAS_TOUCH()
             { touch::is_hw_broken() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
 #endif                                                                                     // HAS_TOUCH
 
 #if HAS_SELFTEST
-    #if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+    #if HAS_SELFTEST_SNAKE()
         {
             run_wizard ? screen_node(ScreenFactory::Screen<ScreenMenuSTSWizard>) : screen_node()
         } // xl wizard
@@ -130,6 +138,10 @@ screen_splash_data_t::screen_splash_data_t()
             run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node()
         } // wizard
     #endif
+#else
+        {
+            screen_node()
+        }
 #endif
     };
 
@@ -181,7 +193,7 @@ void screen_splash_data_t::bootstrap_cb(unsigned percent, std::optional<const ch
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 }
 
-void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
 #ifdef _EXTUI
     if (event == GUI_event_t::GUI_STARTUP) { //without clear it could run multiple times before screen is closed
         if (!param)

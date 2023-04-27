@@ -1,6 +1,7 @@
 #include "selftest_part.hpp"
 #include "selftest_tool_offsets.hpp"
 #include "eeprom.h"
+#include <module/prusa/toolchanger.h>
 
 namespace selftest {
 
@@ -8,7 +9,7 @@ namespace {
     SelftestToolOffsets_t staticResultToolOffsets;
 }
 
-bool phaseToolOffsets(const uint8_t tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config) {
+bool phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config) {
     if (!pToolOffsets) {
         pToolOffsets = selftest::Factory::CreateDynamical<CSelftestPart_ToolOffsets>(
             config,
@@ -40,23 +41,18 @@ bool phaseToolOffsets(const uint8_t tool_mask, IPartHandler *&pToolOffsets, cons
 
     SelftestResult eeres;
     eeprom_get_selftest_results(&eeres);
-    /* TODO:
-    for (uint i = 0; i < pToolOffsets.size(); ++i) {
-        if (!is_tool_selftest_enabled(i, tool_mask)) {
-            continue;
+    for (int i = 0; i < EEPROM_MAX_TOOL_COUNT; ++i) {
+        if (!prusa_toolchanger.is_tool_enabled(i)) {
+            continue; // Tool is not enabled
         }
-    */
-    for (int i = 0; i < EEPROM_MAX_TOOL_COUNT; i++) {
+
+        if (eeres.tools[i].tooloffset == TestResult_Passed
+            && pToolOffsets->GetResult() == TestResult_Skipped) {
+            continue; // Test was successful and now aborted, do not regress
+        }
 
         // Store tool calibration state
-        if (i < EEPROM_MAX_TOOL_COUNT) {
-            eeres.tools[i].tooloffset = pToolOffsets->GetResult();
-        }
-
-        /* TODO:
-        delete pToolOffsets[i];
-        pToolOffsets[i] = nullptr;
-        */
+        eeres.tools[i].tooloffset = pToolOffsets->GetResult();
     }
     eeprom_set_selftest_results(&eeres);
 

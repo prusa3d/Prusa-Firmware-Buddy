@@ -11,6 +11,9 @@ void get_LFN(char *lfn, size_t lfn_size, char *path) {
     strlcpy(lfn, basename(path), lfn_size);
 }
 
+void get_SFN_path(char *path) {
+}
+
 void mbedtls_platform_zeroize(void *b, size_t size) {
     memset(b, 0, size);
 }

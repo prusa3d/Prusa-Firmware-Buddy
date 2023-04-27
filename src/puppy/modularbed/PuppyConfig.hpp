@@ -34,7 +34,7 @@
 #define MODBUS_WATCHDOG_TIMEOUT            30000
 #define MODBUS_OTP_FILE_NUMBER             1
 #define MODBUS_TEMPERATURE_REGISTERS_SCALE 10
-#define MODBUS_CURRENT_REGISTERS_SCALE     100
+#define MODBUS_CURRENT_REGISTERS_SCALE     1000
 #define MODBUS_PWM_STATE_SCALE             1000
 #define MODBUS_PID_SCALE                   10000
 #define MODBUS_FIFO_MAX_COUNT              31 //Same value as MODBUS_FIFO_LEN defined in fifo_coder.hpp, maximal value allowed by Modbus specification is 31

@@ -52,7 +52,7 @@ struct MenuVars {
     constexpr static std::array<int, RANGE_SZ> printfan_range = { 0, 255, 1 };
     constexpr static std::array<int, RANGE_SZ> percent_range = { 0, 100, 1 };
     constexpr static std::array<int, RANGE_SZ> flowfact_range = { 50, 150, 1 };
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK404) || (PRINTER_TYPE == PRINTER_PRUSA_XL) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_XL) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
     constexpr static std::array<int, RANGE_SZ> feedrate_range = { 50, 1000, 1 };
 #else
     constexpr static std::array<int, RANGE_SZ> feedrate_range = { 10, 255, 1 };

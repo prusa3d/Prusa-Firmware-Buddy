@@ -1,3 +1,1 @@
-target_sources(
-  firmware PRIVATE decrypt.cpp download.cpp files.cpp monitor.cpp notify_filechange.cpp
-  )
+target_sources(firmware PRIVATE changed_path.cpp decrypt.cpp download.cpp files.cpp monitor.cpp)

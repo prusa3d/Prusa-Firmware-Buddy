@@ -54,7 +54,9 @@ enum class Response : uint8_t {
     Unload,
     Yes,
     Heatup,
-    _last = Heatup,
+    PA,
+    PRINT,
+    _last = PRINT,
 };
 
 constexpr const Response ResponseNone = Response::_none;

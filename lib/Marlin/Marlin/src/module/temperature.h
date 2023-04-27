@@ -565,7 +565,7 @@ class Temperature {
         static uint8_t fan_speed_scaler[FAN_COUNT];
       #endif
 
-      static inline uint8_t scaledFanSpeed(const uint8_t target, const uint8_t fs) {
+      static inline uint8_t scaledFanSpeed([[maybe_unused]] const uint8_t target, const uint8_t fs) {
         return (fs * uint16_t(
           #if ENABLED(ADAPTIVE_FAN_SLOWING)
             fan_speed_scaler[target]

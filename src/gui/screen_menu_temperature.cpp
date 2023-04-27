@@ -20,8 +20,10 @@ ScreenMenuTemperature::ScreenMenuTemperature()
 
 void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
-        marlin_set_target_nozzle(0);
-        marlin_set_display_nozzle(0);
+        HOTEND_LOOP() {
+            marlin_set_target_nozzle(0, e);
+            marlin_set_display_nozzle(0, e);
+        }
         marlin_set_target_bed(0);
         marlin_set_fan_speed(0);
         Item<MI_NOZZLE<0>>().SetVal(0);

@@ -16,7 +16,9 @@
     #define MENU_HAS_SCROLLBAR false
     #define MENU_HAS_BUTTONS   false
 #else
-    #error "macro BOARD_TYPE is not defined"
+    #define USE_MOCK_DISPLAY
+    #define MENU_HAS_SCROLLBAR false
+    #define MENU_HAS_BUTTONS   false
 #endif
 
 //--------------------------------------

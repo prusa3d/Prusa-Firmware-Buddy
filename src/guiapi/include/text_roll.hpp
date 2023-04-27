@@ -38,7 +38,7 @@ class txtroll_t {
     void renderTextAlign(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr_back, color_t clr_text, padding_ui8_t padding, Align_t alignment, bool fill_rect) const;
 
 public:
-    constexpr txtroll_t()
+    txtroll_t()
         //rect has default ctor
         : phase_progress(0)
         , draw_progress(0)

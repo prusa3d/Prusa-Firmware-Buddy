@@ -55,6 +55,10 @@
   #include "../feature/spindle_laser.h"
 #endif
 
+// from stepper/trinamic.h , avoiding include loop
+extern uint16_t stepper_microsteps(const AxisEnum axis, uint16_t new_microsteps);
+extern uint16_t stepper_mscnt(const AxisEnum axis);
+
 // Feedrate for manual moves
 #ifdef MANUAL_FEEDRATE
   constexpr xyze_feedrate_t manual_feedrate_mm_m = MANUAL_FEEDRATE;
@@ -333,14 +337,13 @@ class Planner {
       static bool abort_on_endstop_hit;
     #endif
 
-  private:
-
     /**
      * The current position of the tool in absolute steps
      * Recalculated if any axis_steps_per_mm are changed by gcode
      */
     static xyze_long_t position;
 
+  private:
     /**
      * Speed of previous path line segment
      */
@@ -406,6 +409,17 @@ class Planner {
     static void set_max_feedrate(const uint8_t axis, float targetValue);
     static void set_max_jerk(const AxisEnum axis, float targetValue);
 
+    // TERMINOLOGY (derived from TMC2130):
+    // nstep ... minimal configurable microstep, always = 1/256 full step
+    // ustep ... currently configured microstep, e.g. 1/8 full step when stepper_microsteps() = 8
+    // qstep ... 4 full steps, i.e. = 1024 nstep
+    // note: stepper_mscnt() returns nstep position inside current qstep (0..1023)
+    FORCE_INLINE static uint32_t nsteps_per_qstep(const AxisEnum axis) { (void)axis; return 1024; }
+    FORCE_INLINE static uint32_t nsteps_per_ustep(const AxisEnum axis) { return (nsteps_per_qstep(axis) / (uint32_t)(stepper_microsteps(axis, 0) * 4)); }
+    FORCE_INLINE static uint32_t usteps_per_qstep(const AxisEnum axis) { return (nsteps_per_qstep(axis) / nsteps_per_ustep(axis)); }
+    FORCE_INLINE static float mm_per_qsteps(const AxisEnum axis, uint32_t qsteps) { return ((float)(usteps_per_qstep(axis) * qsteps)) * mm_per_step[axis]; }
+    FORCE_INLINE static float qsteps_per_mm(const AxisEnum axis) { return (settings.axis_steps_per_mm[axis] / (float)usteps_per_qstep(axis)); }
+    FORCE_INLINE static float distance_to_stepper_zero(const AxisEnum axis, bool inverted_dir) { return mm_per_qsteps(axis, inverted_dir ? nsteps_per_qstep(axis) - stepper_mscnt(axis) : stepper_mscnt(axis)) / (float)nsteps_per_qstep(axis); }
 
     #if EXTRUDERS
       FORCE_INLINE static void refresh_e_factor(const uint8_t e) {

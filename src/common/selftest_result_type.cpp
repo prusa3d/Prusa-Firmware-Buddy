@@ -11,7 +11,7 @@ LOG_COMPONENT_REF(Selftest);
 bool SelftestResult_Passed(const SelftestResult &results) {
     for (int e = 0; e < HOTENDS; e++) {
 #if HAS_TOOLCHANGER()
-        if (dwarfs[e].is_enabled() == false) {
+        if (buddy::puppies::dwarfs[e].is_enabled() == false) {
             continue;
         }
 #endif /*HAS_TOOLCHANGER()*/
@@ -46,7 +46,7 @@ bool SelftestResult_Passed(const SelftestResult &results) {
 bool SelftestResult_Failed(const SelftestResult &results) {
     for (int e = 0; e < HOTENDS; e++) {
 #if HAS_TOOLCHANGER()
-        if (dwarfs[e].is_enabled() == false) {
+        if (buddy::puppies::dwarfs[e].is_enabled() == false) {
             continue;
         }
 #endif /*HAS_TOOLCHANGER()*/
@@ -80,7 +80,7 @@ bool SelftestResult_Failed(const SelftestResult &results) {
 void SelftestResult_Log(const SelftestResult &results) {
     for (int e = 0; e < HOTENDS; e++) {
 #if HAS_TOOLCHANGER()
-        if (dwarfs[e].is_enabled() == false) {
+        if (buddy::puppies::dwarfs[e].is_enabled() == false) {
             continue;
         }
 #endif /*HAS_TOOLCHANGER()*/

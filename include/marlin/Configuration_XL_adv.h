@@ -500,9 +500,6 @@
     constexpr float axis_home_max_diff[] = { 0.2,  0.2,  0.5};
     constexpr float axis_home_invert_min_diff[] = {-1, -1, -1};
     constexpr float axis_home_invert_max_diff[] = { 1,  1,  1};
-
-    // HOMING_MAX_ATTEMPTS will kill after failing unless the following is defined
-    //#define NO_HALT_ON_HOMING_ERROR
 #endif// HOMING_MAX_ATTEMPTS
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
@@ -511,6 +508,8 @@
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
     { 1, 1, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+#define HOMING_BUMP_DIVISOR_MAX HOMING_BUMP_DIVISOR
+#define HOMING_BUMP_DIVISOR_MIN HOMING_BUMP_DIVISOR
 
 // If homing includes X and Y, do a diagonal move initially
 //#define QUICK_HOME

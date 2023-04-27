@@ -6,7 +6,6 @@
 #include "window_numb.hpp"
 #include "window_icon.hpp"
 #include "window_arrows.hpp"
-#include "../../lang/i18n.h"
 
 class WindowScale : public AddSuperWindow<window_frame_t> {
     window_numb_t scaleNum0;

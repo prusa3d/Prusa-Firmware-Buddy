@@ -1,14 +1,24 @@
-target_include_directories(firmware PRIVATE include_${PRINTER})
+target_include_directories(firmware PRIVATE .)
+add_subdirectory(include_${PRINTER})
+
+if(BOARD STREQUAL "BUDDY")
+  add_subdirectory(resolution_240x320)
+endif()
+
+if(BOARD STREQUAL "XBUDDY" OR BOARD STREQUAL "XLBUDDY")
+  add_subdirectory(resolution_480x320)
+endif()
 
 target_sources(
   firmware
   PRIVATE box_unfinished_selftest.cpp
+          fonts.cpp
           gcode_description.cpp
           gui_media_events.cpp
           gui_time.cpp
           guimain.cpp
           IScreenPrinting.cpp
-          logger.c
+          logger.cpp
           menu_vars.cpp
           MItem_crash.cpp
           MItem_eeprom.cpp
@@ -22,7 +32,6 @@ target_sources(
           network_gui_tools.cpp
           png_resources.cpp
           print_time_module.cpp
-          resource.c
           screen_crash_recovery.cpp
           screen_dialog_does_not_exist.cpp
           screen_filebrowser.cpp
@@ -32,9 +41,9 @@ target_sources(
           screen_menu_calibration.cpp
           screen_menu_cancel_object.cpp
           screen_menu_connect.cpp
-          screen_menu_control.cpp
           screen_menu_eeprom.cpp
           screen_menu_eeprom_diagnostics.cpp
+          screen_menu_factory_reset.cpp
           screen_menu_fail_stat.cpp
           screen_menu_filament.cpp
           screen_menu_footer_settings.cpp
@@ -45,7 +54,6 @@ target_sources(
           screen_menu_info.cpp
           screen_menu_lan_settings.cpp
           screen_menu_lang_and_time.cpp
-          screen_menu_languages.cpp
           screen_menu_move.cpp
           screen_menu_network.cpp
           screen_menu_odometer.cpp
@@ -66,6 +74,7 @@ target_sources(
           screen_sheet_rename.cpp
           screen_splash.cpp
           screen_sysinf.cpp
+          screen_unknown.cpp
           screen_watchdog.cpp
           ScreenFactory.cpp
           ScreenHandler.cpp
@@ -80,16 +89,28 @@ target_sources(
           window_thumbnail.cpp
   )
 
+if(HAS_CONTROL_MENU)
+  target_sources(firmware PRIVATE screen_menu_control.cpp)
+endif()
+
 if(HAS_SERIAL_PRINT)
   target_sources(firmware PRIVATE screen_printing_serial.cpp)
 endif()
 
+if(TRANSLATIONS_ENABLED)
+  target_sources(firmware PRIVATE menu_items_languages.cpp screen_menu_languages.cpp)
+else()
+  target_sources(firmware PRIVATE menu_items_no_languages.cpp)
+endif()
+
 if(HAS_XLCD_TOUCH_DRIVER)
   target_sources(firmware PRIVATE MItem_touch.cpp screen_touch_error.cpp)
+else()
+  target_sources(firmware PRIVATE no_touch.cpp)
 endif()
 
 if(HAS_TOOLCHANGER)
-  target_sources(firmware PRIVATE screen_menu_tools.cpp)
+  target_sources(firmware PRIVATE screen_menu_filament_changeall.cpp screen_menu_tools.cpp)
 endif()
 
 if(DEBUG)
@@ -112,7 +133,7 @@ if(HAS_SELFTEST)
             # selftest TODO add HAS_STEEL_SHEETS property
     )
 
-  if(HAS_TOOLCHANGER)
+  if(HAS_SELFTEST_SNAKE)
     target_sources(firmware PRIVATE screen_menu_selftest_snake.cpp)
   endif()
 
@@ -137,9 +158,9 @@ if(HAS_MMU2)
 endif()
 
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
-  target_sources(firmware PRIVATE version_info_ST7789V.cpp)
+  target_sources(firmware PRIVATE display_hw_checks_MINI.cpp version_info_ST7789V.cpp)
 elseif(BOARD IN_LIST BOARDS_WITH_ILI9488)
-  target_sources(firmware PRIVATE version_info_ILI9488.cpp)
+  target_sources(firmware PRIVATE display_hw_checks_xlcd.cpp version_info_ILI9488.cpp)
 endif()
 
 add_subdirectory(dialogs)

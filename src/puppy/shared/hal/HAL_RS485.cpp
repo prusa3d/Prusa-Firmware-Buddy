@@ -38,7 +38,7 @@ bool Init(uint8_t modbusAddress) {
     s_modbusAddress = modbusAddress;
 
     //GPIO pins config
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
@@ -59,7 +59,7 @@ bool Init(uint8_t modbusAddress) {
     //Peripheral clock enable
     __HAL_RCC_USART1_CLK_ENABLE();
     __HAL_RCC_DMA1_CLK_ENABLE();
-    RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
+    RCC_PeriphCLKInitTypeDef PeriphClkInit {};
 
     //Initializes the peripherals clocks
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;

@@ -6,7 +6,7 @@
 
 namespace modularbed {
 
-float CalcThermistorResistance(hal::ADCDriver::ADCChannel channel, uint16_t adcValue) {
+float CalcThermistorResistance([[maybe_unused]] hal::ADCDriver::ADCChannel channel, uint16_t adcValue) {
     float voltage = ((float)adcValue) / 0x10000;
     float tmp = voltage / (1 - voltage);
     float resistance = tmp * ((float)HEATBEDLET_THERMISTOR_VOLTAGE_DIVIDER_RESISTANCE);
@@ -25,13 +25,10 @@ float CalcThermistorTemperature(float resistance) {
     return tmp;
 }
 
-float CalcElectricCurrent(uint16_t adcValue) {
+float CalcElectricCurrent(int adcValue) {
     //This calculation takes an average of 39 microseconds on STM32G0 @56MHz
 
     float voltage = ((float)adcValue) * ADC_REFERENCE_VOLTAGE / ((float)0x10000);
-    if (voltage < 0) {
-        voltage = 0;
-    }
 
     float current = voltage * ADC_REFERENCE_VOLTAGE / CURRENT_SENSOR_REFERENCE_VOLTAGE / ((float)CURRENT_SENSOR_SENSITIVITY_MILLIVOLTS_PER_AMPERE) * 1000;
 

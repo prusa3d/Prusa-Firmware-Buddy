@@ -82,7 +82,7 @@ void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_
     }
 }
 
-void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
+void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
     //draw switch
     render_text_align(getSwitchRect(extension_rect), items.texts[index], GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
@@ -101,7 +101,7 @@ void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, c
     }
 }
 
-void IWiSwitch::printExtension_icon(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const {
+void IWiSwitch::printExtension_icon(Rect16 extension_rect, [[maybe_unused]] color_t color_text, color_t color_back, ropfn raster_op) const {
     render_icon_align(extension_rect, items.icon_resources[index], color_back, { Align_t::Center(), raster_op });
 }
 

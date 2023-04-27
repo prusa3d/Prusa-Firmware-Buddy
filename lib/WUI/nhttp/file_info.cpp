@@ -285,8 +285,8 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
     rend = rend ?: get_if<FileRenderer>(&renderer);
     if (rend != nullptr) {
         JsonResult render_result;
-        written += render_chunk(handling, output + written, output_size - written, [&](uint8_t *output, size_t output_size) {
-            const auto [result, written_json] = rend->render(output, output_size);
+        written += render_chunk(handling, output + written, output_size - written, [&](uint8_t *output_, size_t output_size_) {
+            const auto [result, written_json] = rend->render(output_, output_size_);
             render_result = result;
             return written_json;
         });

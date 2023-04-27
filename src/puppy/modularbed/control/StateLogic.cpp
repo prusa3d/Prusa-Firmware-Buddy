@@ -1,7 +1,10 @@
 #include "StateLogic.hpp"
 #include "PWMLogic.hpp"
 #include "cmsis_os.h"
+#include <algorithm>
 #include <cmath>
+#include <limits>
+#include <cstdint>
 
 using namespace modularbed::ModbusRegisters;
 using namespace hal::ADCDriver;
@@ -94,12 +97,11 @@ void ProcessMCUTemperature(float temperature) {
 }
 
 void ProcessMeasuredElectricCurrent(ADCChannel channel, float current) {
-    float modbusCurrent = current * MODBUS_CURRENT_REGISTERS_SCALE + 0.5f;
-    if (modbusCurrent < 0) {
-        modbusCurrent = 0;
-    } else if (modbusCurrent > 0xFFFF) {
-        modbusCurrent = 0xFFFF;
-    }
+    float modbusCurrent = current * MODBUS_CURRENT_REGISTERS_SCALE;
+    int16_t regValue = std::clamp(
+        std::lround(modbusCurrent),
+        static_cast<long>(std::numeric_limits<int16_t>::min()),
+        static_cast<long>(std::numeric_limits<int16_t>::max()));
 
     uint16_t regAddress;
     if (channel == ADCChannel::Current_A) {
@@ -108,7 +110,7 @@ void ProcessMeasuredElectricCurrent(ADCChannel channel, float current) {
         regAddress = ((uint16_t)SystemInputRegister::adc_current_2);
     }
 
-    SetInputRegisterValue(regAddress, (uint16_t)modbusCurrent);
+    SetInputRegisterValue(regAddress, static_cast<uint16_t>(regValue));
 
     if (channel == ADCChannel::Current_A) {
         if (current > ((float)OVERCURRENT_THRESHOLD_AMPS_A)) {

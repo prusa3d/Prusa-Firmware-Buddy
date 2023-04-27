@@ -8,6 +8,7 @@
 #pragma once
 
 #include "filament_sensor.hpp"
+#include <app_metrics.h>
 
 struct metric_s;
 
@@ -15,6 +16,7 @@ class FSensorADC : public FSensor {
 public:
     static constexpr int32_t fs_filtered_value_not_ready { INT32_MIN }; // invalid value of fs_filtered_value
     static constexpr int32_t fs_ref_value_not_calibrated { INT32_MIN }; // invalid value of fs_filtered_value
+    static constexpr float fs_selftest_span_multipler { 1.2 };          // when doing selftest, fs with filament and without has to be different by this value times configured span to pass selftest
 
 protected:
     int32_t fs_value_span { 0 }; // minimal difference of raw values between the two states of the filament sensor
@@ -34,7 +36,7 @@ protected:
     uint8_t tool_index;
 
     bool flg_load_settings { true };
-    bool flg_calibrate { false };
+    CalibrateRequest req_calibrate { CalibrateRequest::NoCalibration };
     bool flg_invalid_calib { false };
 
     virtual void set_state(fsensor_t st) override;
@@ -43,7 +45,7 @@ protected:
     virtual void disable() override;
     virtual void cycle() override;
 
-    virtual void record_filtered() = 0;
+    void EnsureHasFilamentValue(int32_t filtered_value);
 
 public:
     fsensor_t WaitInitialized();
@@ -58,7 +60,8 @@ public:
     * thread safe, only sets flag --> !!! is not done instantly !!!
     * use FSensor::WaitInitialized if valid state is needed
     */
-    virtual void SetCalibrateFlag() override;
+    virtual void SetCalibrateRequest(CalibrateRequest) override;
+    virtual bool IsCalibrationFinished() const override;
     virtual void SetLoadSettingsFlag() override;
     virtual void SetInvalidateCalibrationFlag() override;
 
@@ -77,13 +80,16 @@ public:
 
 class FSensorAdcExtruder : public FSensorADC {
 protected:
+    // Limit metrics recording for each tool
+    Buddy::Metrics::RunApproxEvery limit_record;
+    Buddy::Metrics::RunApproxEvery limit_record_raw;
+
     virtual void record_state() override; // record metrics
-    virtual void record_filtered() override;
+    void MetricsSetEnabled(bool) override;
 
 public:
     static metric_s &get_metric_raw__static();
-    static metric_s &get_metric_state__static();
-    static metric_s &get_metric_filtered__static();
+    static metric_s &get_metric__static();
 
     FSensorAdcExtruder(eevar_id span_value, eevar_id ref_value, uint8_t tool_index);
 
@@ -92,13 +98,16 @@ public:
 
 class FSensorAdcSide : public FSensorADC {
 protected:
+    // Limit metrics recording for each tool
+    Buddy::Metrics::RunApproxEvery limit_record;
+    Buddy::Metrics::RunApproxEvery limit_record_raw;
+
     virtual void record_state() override; // record metrics
-    virtual void record_filtered() override;
+    void MetricsSetEnabled(bool) override;
 
 public:
     static metric_s &get_metric_raw__static();
-    static metric_s &get_metric_state__static();
-    static metric_s &get_metric_filtered__static();
+    static metric_s &get_metric__static();
 
     FSensorAdcSide(eevar_id span_value, eevar_id ref_value, uint8_t tool_index);
 

@@ -37,7 +37,7 @@ TIM_HandleTypeDef htim1;
   * @param  TickPriority: Tick interrupt priority.
   * @retval HAL status
   */
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+HAL_StatusTypeDef HAL_InitTick([[maybe_unused]] uint32_t TickPriority) {
     RCC_ClkInitTypeDef clkconfig;
     uint32_t uwTimclock = 0;
     uint32_t uwPrescalerValue = 0;

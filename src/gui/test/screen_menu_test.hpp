@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "WindowMenuLabel.hpp"
+#include "i_window_menu.hpp"
+#include "i_window_menu_item.hpp"
 #include "screen_test_gui.hpp"
 #include "screen_test_term.hpp"
 #include "screen_test_msgbox.hpp"
@@ -33,6 +36,22 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
+class MI_WATCHDOG : public WI_LABEL_t {
+public:
+    MI_WATCHDOG();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_PREHEAT_ERROR : public WI_LABEL_t {
+public:
+    MI_PREHEAT_ERROR();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 class MI_RESULT_TEST : public WI_LABEL_t {
 public:
     MI_RESULT_TEST();
@@ -49,8 +68,16 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuTest__ = ScreenMenu<EFooter::Off, MI_RETURN,
+class MI_LOAD_UNLOAD_TEST : public WI_LABEL_t {
+public:
+    MI_LOAD_UNLOAD_TEST();
 
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+using ScreenMenuTest__ = ScreenMenu<EFooter::Off, MI_RETURN,
+    MI_LOAD_UNLOAD_TEST,
     // GENERATE_SCREEN_FN_ITEM_DEV(GetScreenMenuEepromTest, "test EEPROM"),
     /* TODO make it work
     GENERATE_SCREEN_ITEM_DEV(screen_test_gui_data_t, "test GUI"),
@@ -60,7 +87,7 @@ using ScreenMenuTest__ = ScreenMenu<EFooter::Off, MI_RETURN,
     GENERATE_SCREEN_ITEM_DEV(screen_test_wizard_icons, "test Wizard icons"),
     GENERATE_SCREEN_ITEM_DEV(screen_test_dlg_data_t, "test dialog"),
     GENERATE_SCREEN_ITEM_DEV(ScreenErrorQR, "test QR error"),*/
-    MI_RESULT_TEST, MI_SELFTEST_TEST, MI_STACK_OVERFLOW, MI_DIV0>;
+    MI_RESULT_TEST, MI_SELFTEST_TEST, MI_STACK_OVERFLOW, MI_DIV0, MI_WATCHDOG, MI_PREHEAT_ERROR>;
 
 class ScreenMenuTest : public ScreenMenuTest__ {
 public:

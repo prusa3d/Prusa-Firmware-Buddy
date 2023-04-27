@@ -9,13 +9,15 @@
 #include "footer_def.hpp"
 #include <cmath>
 #include "changed.hpp"
+#include "utility_extensions.hpp"
 
 namespace footer::eeprom {
 
-static constexpr size_t count = FOOTER_ITEMS_PER_LINE__;
-static constexpr size_t count_of_trailing_ones = 3;
-static const size_t value_bit_size = 5; // 32 different items should be enough
+inline constexpr size_t count = FOOTER_ITEMS_PER_LINE__;
+inline constexpr size_t count_of_trailing_ones = 3;
+inline constexpr size_t value_bit_size = 5; // 32 different items should be enough
 static_assert(count * value_bit_size <= 32, "Encoded eeprom record is too big");
+static_assert(ftrstd::to_underlying(Item::_count) <= std::pow(2, value_bit_size), "Too many items to encode");
 
 /**
  * @brief On first call load footer settings from eeprom and store it than return stored value
@@ -41,7 +43,7 @@ changed_t Store(record rec);
  * @return true success, value changed
  * @return false failed (index >= count) or value already stored in eeprom
  */
-bool Set(items item, size_t index);
+bool Set(Item item, size_t index);
 
 /**
  * @brief On first call load draw config from eeprom and store it than return stored value

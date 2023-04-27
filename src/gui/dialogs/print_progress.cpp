@@ -8,7 +8,7 @@
 #include "GuiDefaults.hpp"
 #include "eeprom.h"
 #include "menu_spin_config.hpp"
-#include "resource.h"
+#include "fonts.hpp"
 #include "gcode_file.h"
 #include "gcode_thumb_decoder.h"
 

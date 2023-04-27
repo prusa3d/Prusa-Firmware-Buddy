@@ -8,9 +8,10 @@
 #include "png_resources.hpp"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.h"
-#if LOVEBOARD_HAS_EEPROM
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
     #include "calibrated_loveboard.hpp"
 #endif
+
 static constexpr size_t SN_STR_SIZE = 25;
 
 void ScreenMenuVersionInfo::set_serial_number(WiInfo<28> &item, const char *sn, uint8_t bom_id) {
@@ -49,7 +50,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     ;
     Item<MI_INFO_BOARD>().ChangeInformation(help_str);
 
-#if PRINTER_TYPE == PRINTER_PRUSA_MK404 && LOVEBOARD_HAS_EEPROM
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
     if (LoveBoard->dataValid()) {
         memcpy(help_str, LoveBoard->calib_data.datamatrix_id, sizeof(LoveBoard->calib_data.datamatrix_id));
         help_str[24] = 0;
@@ -57,7 +58,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     } else {
         set_serial_number(Item<MI_INFO_SERIAL_NUM_LOVEBOARD>(), "0", 0);
     }
-#elif PRINTER_TYPE == PRINTER_PRUSA_MK404
+#elif PRINTER_TYPE == PRINTER_PRUSA_MK4
     set_serial_number(Item<MI_INFO_SERIAL_NUM_LOVEBOARD>(), "0", 0);
 #endif
 

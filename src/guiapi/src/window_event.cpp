@@ -6,7 +6,7 @@
 
 LOG_COMPONENT_REF(GUI);
 
-EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {
+EventLock::EventLock([[maybe_unused]] const char *event_method_name, [[maybe_unused]] window_t *sender, GUI_event_t event) {
     //
     // Log Events
     //

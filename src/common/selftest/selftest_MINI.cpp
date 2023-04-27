@@ -96,7 +96,9 @@ const AxisConfig_t selftest::Config_YAxis = { .partname = "Y-Axis", .length = 18
 static const AxisConfig_t Config_ZAxis = { .partname = "Z-Axis", .length = get_z_max_pos_mm(), .fr_table_fw = Zfr_table_fw, .fr_table_bw = Zfr_table_bw, .length_min = get_z_max_pos_mm() - 4, .length_max = get_z_max_pos_mm() + 6, .axis = Z_AXIS, .steps = z_fr_tables_size, .movement_dir = 1 };
 
 static const HeaterConfig_t Config_HeaterNozzle[] = {
-    { .partname = "Nozzle",
+    {
+        .partname = "Nozzle",
+        .type = heater_type_t::Nozzle,
         .getTemp = []() { return thermalManager.temp_hotend[0].celsius; },
         .setTargetTemp = [](int target_temp) { thermalManager.setTargetHotend(target_temp, 0); },
         .refKp = Temperature::temp_hotend[0].pid.Kp,
@@ -109,10 +111,27 @@ static const HeaterConfig_t Config_HeaterNozzle[] = {
         .undercool_temp = 37,
         .target_temp = 290,
         .heat_min_temp = 130,
-        .heat_max_temp = 190 }
+        .heat_max_temp = 190,
+    }
 };
 
-static const HeaterConfig_t Config_HeaterBed = { .partname = "Bed", .getTemp = []() { return thermalManager.temp_bed.celsius; }, .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); }, .refKp = Temperature::temp_bed.pid.Kp, .refKi = Temperature::temp_bed.pid.Ki, .refKd = Temperature::temp_bed.pid.Kd, .heatbreak_fan = fanCtlHeatBreak[0], .print_fan = fanCtlPrint[0], .heat_time_ms = 60000, .start_temp = 40, .undercool_temp = 39, .target_temp = 110, .heat_min_temp = 50, .heat_max_temp = 65 };
+static const HeaterConfig_t Config_HeaterBed = {
+    .partname = "Bed",
+    .type = heater_type_t::Bed,
+    .getTemp = []() { return thermalManager.temp_bed.celsius; },
+    .setTargetTemp = [](int target_temp) { thermalManager.setTargetBed(target_temp); },
+    .refKp = Temperature::temp_bed.pid.Kp,
+    .refKi = Temperature::temp_bed.pid.Ki,
+    .refKd = Temperature::temp_bed.pid.Kd,
+    .heatbreak_fan = fanCtlHeatBreak[0],
+    .print_fan = fanCtlPrint[0],
+    .heat_time_ms = 60000,
+    .start_temp = 40,
+    .undercool_temp = 39,
+    .target_temp = 110,
+    .heat_min_temp = 50,
+    .heat_max_temp = 65,
+};
 
 static const FanConfig_t Config_fans_fine[2] = {
     { .type = fan_type_t::Print,
@@ -149,7 +168,7 @@ bool CSelftest::IsInProgress() const {
     return ((m_State != stsIdle) && (m_State != stsFinished) && (m_State != stsAborted));
 }
 
-bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
+bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_fans));
@@ -328,7 +347,7 @@ void CSelftest::phaseDidSelftestPass() {
 }
 
 bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
-    const Response response = ClientResponseHandler::GetResponseFromPhase(phase);
+    const Response response = marlin_server::ClientResponseHandler::GetResponseFromPhase(phase);
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
@@ -367,7 +386,7 @@ void CSelftest::phaseSelftestStart() {
         thermalManager.setTargetBed(35);
         // no need to preheat nozzle, it heats up much faster than bed
         thermalManager.setTargetHotend(0, 0);
-        marlin_server_set_temp_to_display(0, 0);
+        marlin_server::set_temp_to_display(0, 0);
     }
 
     eeprom_get_selftest_results(&m_result); // read previous result
@@ -392,7 +411,7 @@ void CSelftest::restoreAfterSelftest() {
     // disable heater target values - thermalManager.disable_all_heaters does not do that
     thermalManager.setTargetBed(0);
     thermalManager.setTargetHotend(0, 0);
-    marlin_server_set_temp_to_display(0, 0);
+    marlin_server::set_temp_to_display(0, 0);
 
     //restore fan behavior
     fanCtlPrint[0].ExitSelftestMode();

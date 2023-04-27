@@ -17,8 +17,13 @@ Errors:
 - code: "17101"
   title: "TOOLCHANGER ERROR"
   text: "Check all tools if they are properly parked or picked."
-  id: "ERR_TOOLCHANGER"
+  id: "TOOLCHANGER"
   approved: true
+- code: "17102"
+  title: "PRECISE REFINEMENT FAILED"
+  text: "Consider adjusting belt tension."
+  id: "PRECISE_REFINEMENT_FAILED"
+  approved: false
 - code: "17202"
   title: "EXTRUDER PREHEAT ERROR"
   text: "Check the heater and thermistor wiring for potential damage."
@@ -160,7 +165,7 @@ Errors:
   id: "I2C_RX_ERROR"
   approved: true
 - code: "17316"
-  title: "EEPROM I2C RECEIVE BUSY"
+  title: "I2C RECEIVE BUSY"
   text: "HAL detected an I2C busy state when receiving data via I2C."
   id: "I2C_RX_BUSY"
   approved: true
@@ -184,6 +189,11 @@ Errors:
   text: "Power panic"
   id: "MB_PANIC"
   approved: true
+- code: "17321"
+  title: "POWER PANIC"
+  text: "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
+  id: "ACF_AT_INIT"
+  approved: false
 - code: "17501"
   title: "MODULAR BED ERROR"
   text: "Heatbed tile no. %d:\nUnknown error: %d"
@@ -339,6 +349,11 @@ Errors:
   text: "BBF initialization failed, repeat the action or try another USB drive."
   id: "BBF_INIT_FAILED"
   approved: true
+- code: "17533"
+  title: "ESP NOT CONNECTED"
+  text: "ESP doesn't seem to be connected."
+  id: "ESP_NOT_CONNECTED"
+  approved: false
 - code: "17602"
   title: "USB FLASH DRIVE NOT CONNECTED"
   text: "USB drive not connected! \nPlease insert a USB drive with a valid firmware file."

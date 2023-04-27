@@ -70,7 +70,7 @@ void PrusaGcodeSuite::G163() {
     if (do_y)
         SERIAL_ECHOLNPAIR("Y length: ", ma.length().y);
 
-    set_axes_length(ma.length());
+    marlin_server::set_axes_length(ma.length());
     cr_fsm.set(axis_length_ok_fsm(X_AXIS, ma.length().x), axis_length_ok_fsm(Y_AXIS, ma.length().y));
     FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_Y, cr_fsm.Serialize());
 #endif

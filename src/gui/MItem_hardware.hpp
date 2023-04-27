@@ -1,6 +1,7 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
+#include "eeprom.h"
 
 template <size_t SZ>
 class MI_SWITCH_NOZZLE_DIAMETER_t : public WI_SWITCH_t<SZ> {
@@ -43,7 +44,7 @@ public:
             string_view_utf8::MakeCPUFLASH((const uint8_t *)str_strict)) {}
 
 protected:
-    void OnChange(size_t old_index) override {
+    void OnChange([[maybe_unused]] size_t old_index) override {
         eeprom_set_ui8(EEVAR_ID, index);
     }
 };
@@ -74,11 +75,11 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_HARDWARE_CHECKS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Check");
+class MI_HARDWARE_G_CODE_CHECKS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("G-code Checks");
 
 public:
-    MI_HARDWARE_CHECKS();
+    MI_HARDWARE_G_CODE_CHECKS();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;
@@ -113,5 +114,13 @@ class MI_GCODE_LEVEL_CHECK : public MI_HARDWARE_CHECK_t<EEVAR_HWCHECK_GCODE> {
 
 public:
     MI_GCODE_LEVEL_CHECK()
+        : MI_HARDWARE_CHECK_t(_(label)) {}
+};
+
+class MI_MK3_COMPATIBILITY_CHECK : public MI_HARDWARE_CHECK_t<EEVAR_HWCHECK_COMPATIBILITY> {
+    static constexpr const char *const label = N_("MK3 Compatibility");
+
+public:
+    MI_MK3_COMPATIBILITY_CHECK()
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };

@@ -1,7 +1,7 @@
 #include "gcode_file.h"
 #include "log.h"
 
-static int read(struct _reent *_r, void *pv, char *pc, int n) {
+static int read([[maybe_unused]] struct _reent *_r, [[maybe_unused]] void *pv, [[maybe_unused]] char *pc, [[maybe_unused]] int n) {
     GCodeThumbDecoder *gd = reinterpret_cast<GCodeThumbDecoder *>(pv);
     int count = gd->Read(pc, n);
     if (count < 0) {
@@ -10,15 +10,15 @@ static int read(struct _reent *_r, void *pv, char *pc, int n) {
     return count;
 }
 
-static int write(struct _reent *_r, void *pv, const char *pc, int n) {
+static int write([[maybe_unused]] struct _reent *_r, [[maybe_unused]] void *pv, [[maybe_unused]] const char *pc, [[maybe_unused]] int n) {
     return 0;
 }
 
-static int close(struct _reent *_r, void *pv) {
+static int close([[maybe_unused]] struct _reent *_r, [[maybe_unused]] void *pv) {
     return 0;
 }
 
-static _fpos_t seek(struct _reent *_r, void *pv, _fpos_t fpos, int ipos) {
+static _fpos_t seek([[maybe_unused]] struct _reent *_r, [[maybe_unused]] void *pv, [[maybe_unused]] _fpos_t fpos, [[maybe_unused]] int ipos) {
     return 0;
 }
 

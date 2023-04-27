@@ -11,9 +11,12 @@ public:
         Connected,
         Flashing,
         Checking,
-        EspError,
+        FlashError,
+        NotConnected,
+        WriteError,
         ReadError,
         WriteData,
+        DataWritten,
     };
 
     struct Progress {

@@ -102,8 +102,10 @@ static constexpr const char *en_text_long_short = N_("Length of an axis is too s
 static constexpr const char *en_text_long_long = N_("Length of an axis is too long.\nMotor current is too low, probably.\nRetry check, pause or resume the print?");
 static constexpr const char *en_text_long_repeat = N_("Repeated collision has been detected.\nDo you want to resume or pause the print?");
 static constexpr const char *en_text_repeat_info = N_("Try checking belt tension or decreasing\nsensitivity in the tune menu.");
-static constexpr const char *en_text_repeat_info_tool = N_("Try checking belt tension, decreasing sensitivity\nin the tune menu or recalibrating kennel position.");
-static constexpr const char *en_text_long_tool = N_("Toolchanger problem has been detected.\nPark all tools to kennels\nand leave the carriage free\nwith metal clamps pushed fully left.");
+static constexpr const char *en_text_repeat_info_tool = N_("Try checking belt tension, decreasing sensitivity\nin the tune menu or recalibrating dock position.");
+static constexpr const char *en_text_long_tool = N_("Toolchanger problem has been detected.\nPark all tools to docks\nand leave the carriage free.");
+static constexpr const char *en_text_long_homefail = N_("Unable to home the printer.\nDo you want to try again?");
+static constexpr const char *en_text_homefail_info = N_("Try checking belt tension\nor debris on the axes.");
 static constexpr const char *en_text_tool_careful = N_("!! Careful, tools are hot !!");
 
 WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
@@ -179,6 +181,22 @@ WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
     #endif
 }
 
+WinsHomeFail::WinsHomeFail(ScreenCrashRecovery &screen)
+    : text_long(&screen, text_long_repeat_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_homefail))
+    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &png::nozzle_crash_101x64)
+    , icon_nozzle(&screen, icon_nozzle_rc, &png::nozzle_shape_48x48)
+    , text_info(&screen, text_repeat_info_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_homefail_info))
+    , radio(&screen, GuiDefaults::GetButtonRect_AvoidFooter(screen.GetRect()), ClientResponses::GetResponses(PhasesCrashRecovery::home_fail), &texts) {
+
+    text_long.SetAlignment(Align_t::Center());
+    text_info.SetAlignment(Align_t::Center());
+    text_info.SetFont(resource_font(IDR_FNT_SMALL));
+    Sound_Play(eSOUND_TYPE::WaitingBeep);
+    #if HAS_SIDE_LEDS()
+    leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
+    #endif
+}
+
     #if HAS_TOOLCHANGER()
 WinsToolRecovery::WinsToolRecovery(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_tool))
@@ -236,6 +254,8 @@ WinUnion::screen_type WinUnion::ScreenType(PhasesCrashRecovery ph) {
         return WinUnion::AxisNok;
     case PhasesCrashRecovery::repeated_crash:
         return WinUnion::RepeatedCrash;
+    case PhasesCrashRecovery::home_fail:
+        return WinUnion::HomeFail;
     case PhasesCrashRecovery::check_X:
     case PhasesCrashRecovery::check_Y:
         return WinUnion::CheckAxis;
@@ -280,6 +300,9 @@ void WinUnion::Destroy() {
     case PhasesCrashRecovery::repeated_crash:
         repeatedCrash->~WinsRepeatedCrash();
         return;
+    case PhasesCrashRecovery::home_fail:
+        homeFail->~WinsHomeFail();
+        return;
     case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
         toolRecovery->~WinsToolRecovery();
@@ -312,6 +335,9 @@ void WinUnion::New(PhasesCrashRecovery ph) {
         return;
     case PhasesCrashRecovery::repeated_crash:
         repeatedCrash = new (&mem_space) WinsRepeatedCrash(parent_screen);
+        return;
+    case PhasesCrashRecovery::home_fail:
+        homeFail = new (&mem_space) WinsHomeFail(parent_screen);
         return;
     case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()
@@ -366,6 +392,8 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
     }
     case PhasesCrashRecovery::repeated_crash:
         break;
+    case PhasesCrashRecovery::home_fail:
+        break;
     case PhasesCrashRecovery::tool_recovery: {
     #if HAS_TOOLCHANGER()
         Crash_recovery_tool_fsm state(data.GetData());
@@ -396,7 +424,7 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
     return true;
 }
 
-void ScreenCrashRecovery::windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, void *param) {
+void ScreenCrashRecovery::windowEvent(EventLock /*has private ctor*/, window_t * /*sender*/, GUI_event_t event, [[maybe_unused]] void *param) {
     win_union.ButtonEvent(event);
 }
 
@@ -419,6 +447,9 @@ void WinUnion::ButtonEvent(GUI_event_t event) {
     case PhasesCrashRecovery::axis_short:
     case PhasesCrashRecovery::axis_long:
         radio = &axisNok->radio;
+        break;
+    case PhasesCrashRecovery::home_fail:
+        radio = &homeFail->radio;
         break;
     case PhasesCrashRecovery::tool_recovery:
     #if HAS_TOOLCHANGER()

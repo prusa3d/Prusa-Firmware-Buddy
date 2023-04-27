@@ -33,11 +33,32 @@ static const devoptab_t devoptab_semihosting = {
     .structSize = sizeof(FIL_EX),
     .open_r = open_r,
     .close_r = close_r,
+    .write_r = nullptr,
     .read_r = read_r,
     .seek_r = seek_r,
+    .fstat_r = nullptr,
+    .stat_r = nullptr,
+    .link_r = nullptr,
+    .unlink_r = nullptr,
+    .chdir_r = nullptr,
+    .rename_r = nullptr,
+    .mkdir_r = nullptr,
+    .dirStateSize = 0,
+    .diropen_r = nullptr,
+    .dirreset_r = nullptr,
+    .dirnext_r = nullptr,
+    .dirclose_r = nullptr,
+    .statvfs_r = nullptr,
+    .ftruncate_r = nullptr,
+    .fsync_r = nullptr,
+    .chmod_r = nullptr,
+    .fchmod_r = nullptr,
+    .rmdir_r = nullptr,
+    .lstat_r = nullptr,
+    .utimes_r = nullptr,
 };
 
-static int open_r(struct _reent *r, void *fileStruct, const char *path, int flags, __attribute__((unused)) int mode) {
+static int open_r(struct _reent *r, void *fileStruct, const char *path, [[maybe_unused]] int flags, __attribute__((unused)) int mode) {
     PREPARE_FIL_EX(f, fileStruct);
 
     if (IS_EMPTY(path)) {
@@ -86,11 +107,8 @@ static ssize_t read_r(struct _reent *r, void *fileStruct, char *ptr, size_t len)
         // partial success
         f->pos += read_bytes;
         return read_bytes;
-    } else if (result == static_cast<int32_t>(len)) {
-        // eof, error
-        r->_errno = semihosting::sys_errno();
-        return -1;
     } else {
+        // eof, error
         r->_errno = semihosting::sys_errno();
         return -1;
     }

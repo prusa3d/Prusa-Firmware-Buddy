@@ -1,7 +1,6 @@
 #pragma once
 
 #include <otp.h>
-#include <transfers/notify_filechange.hpp>
 
 #include <cstdint>
 #include <cstddef>
@@ -10,7 +9,7 @@
 
 namespace connect_client {
 
-class Printer : public transfers::NotifyFilechange {
+class Printer {
 public:
     struct PrinterInfo {
         static constexpr size_t SER_NUM_STR_LEN = 19;
@@ -32,6 +31,7 @@ public:
         Printing,
         Paused,
         Finished,
+        Stopped,
         Ready,
         Busy,
         Attention,
@@ -49,6 +49,9 @@ public:
         float target_bed;
         float pos[4];
         float filament_used;
+        // FIXME: We should handle XL with up to 5 nozzles, but the network protocol
+        // does not support it as of now, so for the time being we just send the first one.
+        float nozzle_diameter;
         // Note: These strings live in a shared buffer in the real implementation. As a result:
         // * These may be set to NULL in case the buffer is in use by someone else.
         // * They get invalidated by someone else acquiring the buffer; that
@@ -140,7 +143,14 @@ public:
     virtual void submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
     virtual bool is_printing() const = 0;
-    virtual uint32_t files_hash() const = 0;
+    // Turn connect on and set the token.
+    //
+    // Part of registration.
+    //
+    // (The other config ‒ hostname, port, … ‒ are left unchanged).
+    //
+    // (Not const char * for technical reasons).
+    virtual void init_connect(char *token) = 0;
 
     // Returns a newly reloaded config and a flag if it changed since last load
     // (unless the reset_fingerprint is set to false, in which case the flag is

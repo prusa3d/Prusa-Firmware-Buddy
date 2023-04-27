@@ -90,9 +90,9 @@
 
 #define IS_CONSTEXPR(...) __builtin_constant_p(__VA_ARGS__) // Only valid solution with C++14. Should use std::is_constant_evaluated() in C++20 instead
 
-#ifndef UNUSED
-  #define UNUSED(x) ((void)(x))
-#endif
+//#ifndef UNUSED
+//  #define UNUSED(x) ((void)(x))
+//#endif
 
 // Clock speed factors
 #if !defined(CYCLES_PER_MICROSECOND) && !defined(__STM32F1__)

@@ -3,6 +3,7 @@
 #include "marlin_client.hpp"
 #include "lwip/init.h"
 #include "netdev.h"
+#include <eeprom.h>
 
 #include <segmented_json_macros.h>
 
@@ -12,6 +13,7 @@
 #include "printers.h"
 
 using namespace json;
+using namespace marlin_server;
 namespace nhttp::link_content {
 
 JsonResult get_printer(size_t resume_point, JsonOutput &output) {
@@ -40,6 +42,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case mpsCrashRecovery_XY_Measure:
     case mpsCrashRecovery_Tool_Pickup:
     case mpsCrashRecovery_XY_HOME:
+    case mpsCrashRecovery_HOMEFAIL:
     case mpsCrashRecovery_Axis_NOK:
     case mpsCrashRecovery_Repeated_Crash:
     case mpsPowerPanic_acFault:
@@ -158,6 +161,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
 JsonResult get_version(size_t resume_point, JsonOutput &output) {
     char hostname[ETH_HOSTNAME_LEN + 1];
     netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
+    auto nozzle_diameter = eeprom_get_nozzle_dia(0);
 
     // Keep the indentation of the JSON in here!
     // clang-format off
@@ -168,6 +172,7 @@ JsonResult get_version(size_t resume_point, JsonOutput &output) {
         // the version is supposed to mean anyway. Waiting for the new
         // PrusaLink API to replace this?
         JSON_FIELD_STR("server", LWIP_VERSION_STRING) JSON_COMMA;
+        JSON_FIELD_FFIXED("nozzle_diameter", nozzle_diameter, 2) JSON_COMMA;
         JSON_FIELD_STR("text", "PrusaLink") JSON_COMMA;
         JSON_FIELD_STR("hostname", hostname) JSON_COMMA;
         JSON_FIELD_OBJ("capabilities");
@@ -202,6 +207,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     case mpsCrashRecovery_XY_Measure:
     case mpsCrashRecovery_Tool_Pickup:
     case mpsCrashRecovery_XY_HOME:
+    case mpsCrashRecovery_HOMEFAIL:
     case mpsCrashRecovery_Axis_NOK:
     case mpsCrashRecovery_Repeated_Crash:
         has_job = true;
@@ -273,7 +279,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
             JSON_OBJ_END JSON_COMMA;
             JSON_FIELD_OBJ("progress");
                 //Send only valid time_to_end value
-                if(vars->time_to_end != (uint32_t)-1) {
+                if (vars->time_to_end != TIME_TO_END_INVALID) {
                     JSON_FIELD_INT("printTimeLeft", vars->time_to_end) JSON_COMMA;
                 }
                 JSON_FIELD_FFIXED("completion", ((float)vars->sd_percent_done / 100.0f), 2) JSON_COMMA;

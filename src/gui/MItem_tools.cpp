@@ -3,6 +3,7 @@
 #include "eeprom.h"
 #include "eeprom_loadsave.h"
 #include "marlin_client.hpp"
+#include "marlin_server.hpp"
 #include "gui.hpp"
 #include "sys.h"
 #include "window_dlg_wait.hpp"
@@ -31,7 +32,7 @@
 #include "sys.h"
 #include "w25x.h"
 #include <option/filament_sensor.h>
-#include <crash_dump/dump.h>
+#include <crash_dump/dump.hpp>
 #include <time.h>
 #include "config_features.h"
 #include <option/has_side_fsensor.h>
@@ -142,7 +143,7 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
     Response response = Response::No;
     do {
         //home if we repeat MBL, nozzle may be in different position than expected
-        if (!marlin_all_axes_homed() || response == Response::Yes) {
+        if (!marlin_server::all_axes_homed() || response == Response::Yes) {
             marlin_event_clr(MARLIN_EVT_CommandBegin);
             marlin_gcode("G28");
             while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
@@ -181,7 +182,7 @@ MI_DISABLE_STEP::MI_DISABLE_STEP()
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK404 || PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_XL)
     marlin_gcode("M18 X Y E");
 #else
     marlin_gcode("M18");
@@ -189,17 +190,48 @@ void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_FACTORY_DEFAULTS
-MI_FACTORY_DEFAULTS::MI_FACTORY_DEFAULTS()
+
+namespace {
+void do_factory_reset(bool wipe_fw) {
+    auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, wipe_fw ? _("Erasing everything,\nit will take some time...") : _("Erasing configuration,\nit will take some time..."));
+    msg.Draw(); // Non-blocking info
+    PersistentStorage::erase();
+    eeprom_defaults();
+    if (wipe_fw) {
+        w25x_chip_erase();
+    }
+    MsgBoxInfo(_("Reset complete. The system will now restart."), Responses_Ok);
+    sys_reset();
+}
+} // anonymous namespace
+
+MI_FACTORY_SOFT_RESET::MI_FACTORY_SOFT_RESET()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_FACTORY_DEFAULTS::click(IWindowMenu & /*window_menu*/) {
-    if (MsgBoxWarning(_("This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
-        PersistentStorage::erase();
-        eeprom_defaults();
-        MsgBoxInfo(_("Factory defaults loaded. The system will now restart."), Responses_Ok);
-        sys_reset();
+void MI_FACTORY_SOFT_RESET::click(IWindowMenu & /*window_menu*/) {
+    if (MsgBoxWarning(_("This operation cannot be undone. Current user configuration and passwords will be lost!\nDo you want to reset the printer to factory defaults?"), Responses_YesNo, 1) == Response::Yes) {
+        do_factory_reset(false);
+    }
+}
+
+MI_FACTORY_HARD_RESET::MI_FACTORY_HARD_RESET()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
+    if (MsgBoxWarning(_("This operation cannot be undone. Current configuration will be lost!\nYou will need a USB drive with this firmware ("
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+                        "MK4"
+#elif PRINTER_TYPE == PRINTER_PRUSA_XL
+                        "XL"
+#else
+                        "PRINTER"
+#endif
+                        "_firmware_4.6.0.bbf file) to start the printer again.\nDo you really want to continue?"),
+            Responses_YesNo, 1)
+        == Response::Yes) {
+        do_factory_reset(true);
     }
 }
 
@@ -223,34 +255,20 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
     MsgBoxNonBlockInfo(_("A crash dump is being saved."));
-    if (dump_save_to_usb("/usb/dump.bin"))
+    if (crash_dump::dump_save_to_usb("/usb/dump.bin"))
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
 }
 
 /*****************************************************************************/
-//MI_XFLASH_DELETE
-MI_XFLASH_DELETE::MI_XFLASH_DELETE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_XFLASH_DELETE::click(IWindowMenu & /*window_menu*/) {
-    auto res = MsgBoxWarning(_("Do you want to erase the external flash? The system will restart when complete."), Responses_YesNo);
-    if (res == Response::Yes) {
-        w25x_chip_erase();
-        sys_reset();
-    }
-}
-
-/*****************************************************************************/
 //MI_XFLASH_RESET
 MI_XFLASH_RESET::MI_XFLASH_RESET()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
-    dump_in_xflash_reset();
+    crash_dump::dump_in_xflash_reset();
 }
 
 /*****************************************************************************/
@@ -260,7 +278,7 @@ MI_HF_TEST_0::MI_HF_TEST_0()
 }
 
 void MI_HF_TEST_0::click(IWindowMenu & /*window_menu*/) {
-    dump_hardfault_test_0();
+    crash_dump::dump_hardfault_test_0();
 }
 
 /*****************************************************************************/
@@ -270,7 +288,7 @@ MI_HF_TEST_1::MI_HF_TEST_1()
 }
 
 void MI_HF_TEST_1::click(IWindowMenu & /*window_menu*/) {
-    dump_hardfault_test_1();
+    crash_dump::dump_hardfault_test_1();
 }
 
 /*****************************************************************************/
@@ -544,7 +562,7 @@ MI_INFO_FW::MI_INFO_FW()
     : WI_INFO_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_INFO_FW::click(IWindowMenu &window_menu) {
+void MI_INFO_FW::click([[maybe_unused]] IWindowMenu &window_menu) {
     // If we have development tools shown, click will print whole fw version string in info messagebox
     if constexpr (GuiDefaults::ShowDevelopmentTools) {
         MsgBoxInfo(string_view_utf8::MakeRAM((const uint8_t *)project_version_full), Responses_Ok);
@@ -582,10 +600,10 @@ void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
 I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP(const char *const specific_label, int index)
     : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label), //< Toolchanger has specific labels
         nullptr, is_enabled_t::yes,
-        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
+        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
 }
 #else  /*ENABLED(PRUSA_TOOLCHANGER)*/
-I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP(const char *const specific_label, int index)
+I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP([[maybe_unused]] const char *const specific_label, [[maybe_unused]] int index)
     : WI_TEMP_LABEL_t(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
@@ -611,10 +629,10 @@ MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
 I_MI_INFO_NOZZLE_N_TEMP::I_MI_INFO_NOZZLE_N_TEMP(const char *const specific_label, int index)
     : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label), //< Toolchanger has specific labels
         nullptr, is_enabled_t::yes,
-        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
+        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
 }
 #else  /*ENABLED(PRUSA_TOOLCHANGER)*/
-I_MI_INFO_NOZZLE_N_TEMP::I_MI_INFO_NOZZLE_N_TEMP(const char *const specific_label, int index)
+I_MI_INFO_NOZZLE_N_TEMP::I_MI_INFO_NOZZLE_N_TEMP([[maybe_unused]] const char *const specific_label, [[maybe_unused]] int index)
     : WI_TEMP_LABEL_t(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
@@ -722,9 +740,30 @@ MI_ODOMETER_DIST_Y::MI_ODOMETER_DIST_Y()
 MI_ODOMETER_DIST_Z::MI_ODOMETER_DIST_Z()
     : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
+
 MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
-    : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
+    : MI_ODOMETER_DIST(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
+
+#if HAS_TOOLCHANGER()
+MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E(const char *const label, int index)
+    : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes,
+        prusa_toolchanger.is_toolchanger_enabled() && prusa_toolchanger.is_tool_enabled(index) ? is_hidden_t::no : is_hidden_t::yes, -1) {
+}
+
+MI_ODOMETER_TOOL::MI_ODOMETER_TOOL(const char *const label, int index)
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes,
+        prusa_toolchanger.is_toolchanger_enabled() && prusa_toolchanger.is_tool_enabled(index) ? is_hidden_t::no : is_hidden_t::yes, 0,
+        [&](char *buffer) {
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu %s", value, times_label);
+        }) {
+}
+
+MI_ODOMETER_TOOL::MI_ODOMETER_TOOL()
+    : MI_ODOMETER_TOOL(generic_label, 0) {
+}
+#endif /*HAS_TOOLCHANGER()*/
+
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
         time_t time = (time_t)value;
@@ -834,7 +873,7 @@ MI_FOOTER_RESET::MI_FOOTER_RESET()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_FOOTER_RESET::click(IWindowMenu &window_menu) {
+void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     // simple reset of footer eeprom would be better
     // but footer does not have reload method
     FooterItemHeater::ResetDrawMode();
@@ -842,7 +881,10 @@ void MI_FOOTER_RESET::click(IWindowMenu &window_menu) {
 
     footer::eeprom::Store(footer::DefaultItems);
     //send event for all footers
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::items::count_));
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::Item::None));
+
+    // close this menu, because it is no longer valid and needs to be redrawn
+    Screens::Access()->Close();
 }
 
 /*****************************************************************************/
@@ -874,7 +916,7 @@ MI_INFO_MODULAR_BED_BOARD_TEMPERATURE::MI_INFO_MODULAR_BED_BOARD_TEMPERATURE()
 }
 #endif
 MI_HEATUP_BED::MI_HEATUP_BED()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_HEATUP_BED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_SWITCH_t<2>(eeprom_get_bool(EEVAR_HEATUP_BED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(nozzle), _(nozzle_bed)) {
 }
 void MI_HEATUP_BED::OnChange(size_t old_index) {
     eeprom_set_bool(EEVAR_HEATUP_BED, !old_index);

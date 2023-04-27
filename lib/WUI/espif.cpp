@@ -15,7 +15,7 @@
 #include "main.h"
 #include "../metric.h"
 #include "wui.h"
-#include <tasks.h>
+#include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
 
 #include "stm32f4xx_hal_rng.h"
@@ -497,7 +497,7 @@ static void generate_intron() {
  * @param netif Output NETIF handle
  * @param p buffer (chain) to send
  */
-static err_t low_level_output(struct netif *netif, struct pbuf *p) {
+static err_t low_level_output([[maybe_unused]] struct netif *netif, struct pbuf *p) {
     if (!is_running(esp_operating_mode)) {
         log_error(ESPIF, "Cannot send packet, not in running mode.");
         return ERR_IF;
@@ -588,7 +588,7 @@ err_t espif_init(struct netif *netif) {
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 
     #if HAS_EMBEDDED_ESP32()
-    wait_for_dependecies(ESP_FLASHED);
+    TaskDeps::wait(TaskDeps::Tasks::espif);
     #endif
 #endif
 

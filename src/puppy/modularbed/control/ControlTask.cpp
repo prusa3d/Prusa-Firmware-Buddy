@@ -95,13 +95,13 @@ bool OnReadFileRecord(uint16_t fileNumber, uint16_t recordNumber, uint16_t recor
     return true;
 }
 
-bool OnWriteFileRecord(uint16_t fileNumber, uint16_t recordNumber, uint16_t recordLength, modbus::ModbusBuffer *pBuffer) {
+bool OnWriteFileRecord([[maybe_unused]] uint16_t fileNumber, [[maybe_unused]] uint16_t recordNumber, [[maybe_unused]] uint16_t recordLength, [[maybe_unused]] modbus::ModbusBuffer *pBuffer) {
     //WARNING: this method is called from different thread
 
     return false;
 }
 
-void ControlTaskFunction(const void *argument) {
+void ControlTaskFunction([[maybe_unused]] const void *argument) {
     ProcessSignals();
     MeasurementLogic::CalibrateCurrentChannels();
     AutoconfLogic::CheckHeatbedlets();

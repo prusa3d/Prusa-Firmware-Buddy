@@ -29,6 +29,7 @@ FooterItemBed::FooterItemBed(window_t *parent)
 #if ENABLED(MODULAR_HEATBED)
     icon.Hide();
 #endif
+    updateValue();
 }
 
 FooterItemAllNozzles::FooterItemAllNozzles(window_t *parent)
@@ -245,9 +246,3 @@ string_view_utf8 FooterItemAllNozzles::static_makeView(int value) {
     }
     return string_view_utf8::MakeRAM((const uint8_t *)buff.data());
 }
-
-string_view_utf8 FooterItemNozzle::GetName() { return _("Nozzle"); }
-
-string_view_utf8 FooterItemBed::GetName() { return _("Bed"); }
-
-string_view_utf8 FooterItemAllNozzles::GetName() { return _("All Nozzles"); }

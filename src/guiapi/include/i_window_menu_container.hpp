@@ -27,8 +27,6 @@ public:
 private:
     IWindowMenuItem *currently_focused = nullptr; // pointer to item makes shorter code than index
 
-    Node findRaw(uint8_t raw_index) const;
-
 public:
     virtual size_t GetRawCount() const = 0;
     virtual IWindowMenuItem *GetItemByRawIndex(size_t pos) const = 0;

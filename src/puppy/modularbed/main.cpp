@@ -29,11 +29,11 @@ void fatal_error(const char *error, const char *module);
 void __libc_init_array(void);
 }
 
-void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
+void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, [[maybe_unused]] signed char *pcTaskName) {
     bsod("vApplicationStackOverflowHook");
 }
 
-void fatal_error(const char *error, const char *module) {
+void fatal_error(const char *error, [[maybe_unused]] const char *module) {
     bsod(error);
 }
 
@@ -41,7 +41,7 @@ void Error_Handler(void) {
     bsod("Error_Handler");
 }
 
-void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
+void _bsod([[maybe_unused]] const char *fmt, [[maybe_unused]] const char *file_name, [[maybe_unused]] int line_number, ...) {
     hal::PWMDriver::TurnOffAll();
 
     //log_critical(Marlin, "BSOD");

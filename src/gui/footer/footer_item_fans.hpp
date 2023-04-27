@@ -29,7 +29,6 @@ class FooterItemPrintFan : public AddSuperWindow<IFooterItemFan> {
     }
 
 public:
-    static string_view_utf8 GetName();
     FooterItemPrintFan(window_t *parent);
 };
 
@@ -44,6 +43,5 @@ class FooterItemHeatBreakFan : public AddSuperWindow<IFooterItemFan> {
     }
 
 public:
-    static string_view_utf8 GetName();
     FooterItemHeatBreakFan(window_t *parent);
 };

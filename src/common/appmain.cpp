@@ -28,7 +28,7 @@
 #include "safe_state.h"
 #include "crc32.h"
 #include "fusb303.hpp"
-#include <crash_dump/dump.h>
+#include <crash_dump/dump.hpp>
 #include "hwio_pindef.h"
 #include <Arduino.h>
 #include "trinamic.h"
@@ -37,7 +37,7 @@
 #include "config_buddy_2209_02.h"
 #include "timing.h"
 #include "tusb.h"
-#include "tasks.h"
+#include "tasks.hpp"
 #include "Marlin/src/module/planner.h"
 #include <option/filament_sensor.h>
 
@@ -66,7 +66,7 @@ LOG_COMPONENT_REF(Marlin);
     #include "FUSB302B.hpp"
 #endif
 
-#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM)
+#if (BOARD_IS_XBUDDY)
     #include "calibrated_loveboard.hpp"
 #endif
 
@@ -80,9 +80,9 @@ LOG_COMPONENT_REF(Marlin);
 
 #include "probe_position_lookback.hpp"
 
-#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM)
+#if BOARD_IS_XBUDDY
 CalibratedLoveboard *LoveBoard;
-#endif //(BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM)
+#endif
 
 LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
@@ -129,7 +129,7 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
         severity = LOG_SEVERITY_ERROR;
     }
     if (MMU) {
-        log_event(severity, MMU2, "%.*s", size, buffer);
+        //log_event(severity, MMU2, "%.*s", size, buffer);
     } else {
         log_event(severity, Marlin, "%.*s", size, buffer);
     }
@@ -141,8 +141,8 @@ void app_setup_marlin_logging() {
 
 void app_startup() {
     app_setup_marlin_logging();
-    log_info(Buddy, "marlin task waiting for dependecies");
-    wait_for_dependecies(DEFAULT_TASK_DEPS);
+    log_info(Buddy, "marlin task waiting for dependencies");
+    TaskDeps::wait(TaskDeps::Tasks::default_start);
     log_info(Buddy, "marlin task is starting");
 }
 
@@ -163,16 +163,12 @@ void app_setup(void) {
     loadcell.ConfigureSignalEvent(osThreadGetId(), 0x0A);
 #endif
 
-#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_EEPROM)
-    #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 1, 8))
-    LoveBoard = new CalibratedLoveboard(GPIOE, LL_GPIO_PIN_6);
-    #elif (BOARD_IS_XBUDDY && (BOARD_VER_HIGHER_OR_EQUAL_TO(0, 2, 0)))
+#if BOARD_IS_XBUDDY
     LoveBoard = new CalibratedLoveboard(GPIOF, LL_GPIO_PIN_13);
-    #endif
 #endif
     setup();
 
-    marlin_server_settings_load(); // load marlin variables from eeprom
+    marlin_server::settings_load(); // load marlin variables from eeprom
 
 #ifdef HAS_ACCELEROMETR
     accelerometer.begin();
@@ -242,14 +238,14 @@ void app_idle(void) {
 void app_run(void) {
     LangEEPROM::getInstance();
 
-    marlin_server_init();
-    marlin_server_idle_cb = app_idle;
+    marlin_server::init();
+    marlin_server::idle_cb = app_idle;
 
     log_info(Marlin, "Starting setup");
 
     app_setup();
 
-    marlin_server_start_processing();
+    marlin_server::start_processing();
 
 #if defined(HAS_ADVANCED_POWER)
     advancedpower.ResetOvercurrentFault();
@@ -257,22 +253,22 @@ void app_run(void) {
 
     log_info(Marlin, "Setup complete");
 
-    if (eeprom_init() == EEPROM_INIT_Defaults && marlin_server_processing()) {
+    if (eeprom_init() == EEPROM_INIT_Defaults && marlin_server::processing()) {
         settings.reset();
 #if ENABLED(POWER_PANIC)
         power_panic::reset();
 #endif
     }
 
-    provide_dependecy(ComponentDependencies::DEFAULT_TASK_READY_IDX);
+    TaskDeps::provide(TaskDeps::Dependency::default_task_ready);
 
     while (1) {
         metric_record_event(&metric_maintask_event);
         metric_record_integer(&metric_cpu_usage, osGetCPUUsage());
-        if (marlin_server_processing()) {
+        if (marlin_server::processing()) {
             loop();
         }
-        marlin_server_loop();
+        marlin_server::loop();
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
         check_usbc_connection();
 #endif
@@ -283,7 +279,7 @@ void app_error(void) {
     bsod("app_error");
 }
 
-void app_assert(uint8_t *file, uint32_t line) {
+void app_assert([[maybe_unused]] uint8_t *file, [[maybe_unused]] uint32_t line) {
     bsod("app_assert");
 }
 
@@ -316,13 +312,7 @@ static void hx717_irq() {
         if (!std::isnan(sampleRate))
             loadcell.analysis.SetSamplingIntervalMs(sampleRate);
     } else {
-    #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
-        static metric_t hx717_ch_b = METRIC("ad_hx717_ch_b", METRIC_VALUE_FLOAT, 500, METRIC_HANDLER_ENABLE_ALL);
-        metric_record_float(&hx717_ch_b, (float)raw_value);
-        hwio_set_hotend_temp_raw(raw_value);
-    #else
         fs_process_sample(raw_value, 0);
-    #endif
     }
     current_channel = next_channel;
 }
@@ -343,16 +333,13 @@ void advanced_power_irq() {
 }
 #endif //#ifdef HAS_ADVANCED_POWER
 
-#if ((BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100) || (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC()))
+#if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
 // update filament sensor irq = 76Hz
 static void filament_sensor_irq() {
 
     static uint8_t cnt_filament_sensor_update = 0;
 
     if (++cnt_filament_sensor_update >= 13) {
-    #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
-        fs_process_sample(AdcGet::filamentSensor(), 0);
-    #elif BOARD_IS_XLBUDDY
         for (buddy::puppies::Dwarf &dwarf : buddy::puppies::dwarfs) {
             if (!dwarf.is_enabled()) {
                 continue;
@@ -385,7 +372,6 @@ static void filament_sensor_irq() {
             }
             side_fs_process_sample(AdcGet::side_filament_sensor(side_sensor_chanel), dwarf.get_dwarf_nr() - 1);
         }
-    #endif
         cnt_filament_sensor_update = 0;
     }
 }
@@ -433,7 +419,7 @@ void app_tim14_tick(void) {
     //hwio_update_1ms();
     adc_tick_1ms();
 
-#if ((BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100) || (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC()))
+#if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
     filament_sensor_irq();
 #endif
 }

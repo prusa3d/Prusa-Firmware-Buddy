@@ -41,12 +41,12 @@ void GcodeSuite::M23() {
 
 // M24 - Start/resume SD print
 void GcodeSuite::M24() {
-    marlin_server_print_resume();
+    marlin_server::print_resume();
 }
 
 // M25 - Pause SD print
 void GcodeSuite::M25() {
-    marlin_server_print_pause();
+    marlin_server::print_pause();
 }
 
 // M26 - Set SD position

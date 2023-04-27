@@ -18,8 +18,83 @@ err_class_mapping = {
     9: "ERR_OTHER"
 }
 
+mmu_template = \
+"""#pragma once
+#include "inttypes.h"
+#include "button_operations.h"
 
-def generate_header_file(yaml_file_name, header_file_name, mmu):
+#include <array>
+
+{include_items}
+
+namespace MMU2 {{
+
+inline constexpr uint8_t ERR_MMU_CODE = {printer_code};
+
+enum class ErrCode : uint16_t {{
+    ERR_UNDEF = 0,
+    {enum_items}
+}};
+
+struct MMUErrDesc {{
+    // 32 bit
+    const char *err_title;
+    const char *err_text;
+    // 16 bit
+    ErrCode err_code;
+    std::array<ButtonOperations, 3> buttons;
+}};
+
+}}  // namespace MMU2
+"""
+
+mmu_list_template = \
+"""#pragma once
+#include "i18n.h"
+
+{include_items}
+
+namespace MMU2 {{
+
+inline constexpr MMUErrDesc error_list[] = {{{list_items}
+}};
+
+}}  // namespace MMU2
+"""
+
+buddy_template = \
+"""#pragma once
+#include "inttypes.h"
+
+{include_items}
+
+inline constexpr uint8_t ERR_PRINTER_CODE = {printer_code};
+
+enum class ErrCode : uint16_t {{
+    ERR_UNDEF = 0,
+    {enum_items}
+}};
+
+struct ErrDesc {{
+    // 32 bit
+    const char *err_title;
+    const char *err_text;
+    // 16 bit
+    ErrCode err_code;
+}};
+"""
+
+buddy_list_template = \
+"""#pragma once
+#include "i18n.h"
+
+{include_items}
+
+inline constexpr ErrDesc error_list[] = {{{list_items}
+}};
+"""
+
+def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
     with open(yaml_file_name, "r") as yaml_file:
         parsed_file = yaml.safe_load(yaml_file)
 
@@ -76,87 +151,46 @@ def generate_header_file(yaml_file_name, header_file_name, mmu):
 
     os.makedirs(header_file_name.parent, exist_ok=True)
 
-    enum_items = ",\n                ".join(f"{err['id']} = {err['code']}"
-                                        for err in err_dict.values())
+    enum_items = ",\n    ".join(f"{err['id']} = {err['code']}" for err in err_dict.values())
 
-    list_items = ",".join(f"""\n                {{
-                    N_("{err['title']}"),
-                    N_("{err['text']}"),
-                    ErrCode::{err['id']}{err['btns']}
-                }}""" for err in err_dict.values())
+    list_items = ",".join(f"""
+    {{
+        N_("{err['title']}"),
+        N_("{err['text']}"),
+        ErrCode::{err['id']}{err['btns']}
+    }}""" for err in err_dict.values())
+
+    include_items = "\n".join([f"#include <{item}>" for item in includes])
 
     if mmu:
-        content = f"""
-            #pragma once
-            #include "inttypes.h"
-            #include "i18n.h"
-            #include "button_operations.h"
-
-
-            namespace MMU2 {{
-
-            inline constexpr uint8_t ERR_MMU_CODE = {printer_code};
-
-            enum class ErrCode : uint16_t {{
-                ERR_UNDEF = 0,
-                {enum_items}
-            }};
-
-            struct MMUErrDesc {{
-                // 32 bit
-                const char *err_title;
-                const char *err_text;
-                // 16 bit
-                ErrCode err_code;
-                std::array<ButtonOperations, 3> buttons;
-            }};
-
-            inline constexpr MMUErrDesc error_list[] = {{{list_items}
-            }};
-
-            }}  // namespace MMU2
-            """
+        if list:
+            template = mmu_list_template
+        else:
+            template = mmu_template
     else:
-        content = f"""
-            #pragma once
-            #include "inttypes.h"
-            #include "i18n.h"
+        if list:
+            template = buddy_list_template
+        else:
+            template = buddy_template
 
-
-            inline constexpr uint8_t ERR_PRINTER_CODE = {printer_code};
-
-            enum class ErrCode : uint16_t {{
-                ERR_UNDEF = 0,
-                {enum_items}
-            }};
-
-            struct ErrDesc {{
-                // 32 bit
-                const char *err_title;
-                const char *err_text;
-                // 16 bit
-                ErrCode err_code;
-            }};
-
-            inline constexpr ErrDesc error_list[] = {{{list_items}
-            }};
-            """
+    content = template.format(printer_code=printer_code, enum_items=enum_items, list_items=list_items, include_items=include_items)
 
     with open(header_file_name, 'w') as f:
-        # inspect.cleandoc() removes the leading indent of the block of text
-        f.write(inspect.cleandoc(content))
+        f.write(content)
 
 
 def main(args):
     generate_header_file(getattr(args, "yaml-file"),
                          getattr(args, "output-file"),
-                         args.mmu)
+                         args.mmu, args.list, args.include)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('yaml-file', type=Path)
     parser.add_argument('output-file', type=Path)
-    parser.add_argument('--mmu', default=False, action='store_true')
+    parser.add_argument('--mmu', default=False, action='store_true', help='Generate mmu error codes')
+    parser.add_argument('--list', default=False, action='store_true', help='Generate error list, requires translations')
+    parser.add_argument('--include', default=[], action='append', help='List of files to include')
     args = parser.parse_args(sys.argv[1:])
     main(args)

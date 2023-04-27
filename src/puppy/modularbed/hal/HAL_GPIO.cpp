@@ -9,7 +9,7 @@ bool Init() {
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
 
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct {};
 
     //Reset-OvercurrentFault
     GPIO_InitStruct.Pin = GPIO_PIN_8;

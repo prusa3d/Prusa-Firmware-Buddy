@@ -1,4 +1,5 @@
 #include <sys/stat.h>
+#include "error_codes.hpp"
 #include "mbedtls/md5.h"
 #include "bsod_gui.hpp"
 
@@ -39,14 +40,14 @@ ESPFlash::State ESPFlash::flash() {
         state = State::Connected;
     } else {
         log_debug(EspFlash, "ESP boot failed");
-        state = State::EspError;
+        state = State::NotConnected;
         goto end;
     }
 
     // Flash all files
     for (esp_fw_entry &fwpart : firmware_set) {
         state = flash_part(fwpart);
-        if (state == State::EspError || state == State::ReadError) { // TODO: Better error detection
+        if (state != State::DataWritten) {
             goto end;
         }
     }
@@ -111,6 +112,7 @@ ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
 
     // Skip flashing if checksum matches
     if (!memcmp(source_checksum, checksum, sizeof(checksum))) {
+        state = State::DataWritten;
         return state;
     }
 
@@ -119,7 +121,7 @@ ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
     log_info(EspFlash, "ESP Start flash %s", fwpart.filename);
     if (esp_loader_flash_start(fwpart.address, fwpart.size, buffer_length) != ESP_LOADER_SUCCESS) {
         log_error(EspFlash, "ESP flash: Unable to start flash on address %0xld", fwpart.address);
-        return State::EspError;
+        return State::FlashError;
     }
 
     state = State::WriteData;
@@ -138,9 +140,11 @@ ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
 
         if (esp_loader_flash_write(buffer, read_bytes) != ESP_LOADER_SUCCESS) {
             log_error(EspFlash, "ESP flash write FAIL");
-            return State::EspError;
+            return State::WriteError;
         }
     }
+
+    state = State::DataWritten;
 
     return state;
 }
@@ -158,8 +162,13 @@ void ESPFlash::fatal_err(const State state) {
     case State::ReadError:
         fatal_error(ErrCode::ERR_SYSTEM_ESP_FW_READ);
         break;
-    case State::EspError:
+    case State::NotConnected:
+        fatal_error(ErrCode::ERR_SYSTEM_ESP_NOT_CONNECTED);
+        break;
+    case State::WriteError:
+    case State::FlashError:
         fatal_error(ErrCode::ERR_SYSTEM_ESP_COMMAND_ERR);
+        break;
     default:
         fatal_error(ErrCode::ERR_SYSTEM_ESP_UNKNOWN_ERR);
     }

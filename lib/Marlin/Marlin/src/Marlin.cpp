@@ -57,6 +57,8 @@
 #include "gcode/parser.h"
 #include "gcode/queue.h"
 
+#include <option/development_items.h>
+
 #if ENABLED(TOUCH_BUTTONS)
   #include "feature/touch/xpt2046.h"
 #endif
@@ -174,7 +176,7 @@
 #endif
 
 #if ENABLED(PRUSA_MMU2)
-  #include "feature/prusa/MMU2/mmu2mk404.h"
+  #include "feature/prusa/MMU2/mmu2_mk4.h"
 #endif
 
 #if HAS_DRIVER(L6470)
@@ -427,6 +429,15 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && ELAPSED(ms, gcode.previous_move_ms + stepper_inactive_time)) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true;  // L6470 SPI will consume 99% of free time without this
+
+        #if DEVELOPMENT_ITEMS() && PRINTER_TYPE == PRINTER_PRUSA_XL
+        // Report steppers being disabled to the user
+        // Skip if position not trusted to avoid warnings when position is not important
+        if(axis_known_position) {
+          marlin_server::set_warning(WarningType::SteppersTimeout);
+        }
+        #endif
+
         #if (ENABLED(XY_LINKED_ENABLE) && (ENABLED(DISABLE_INACTIVE_X) || ENABLED(DISABLE_INACTIVE_Y)))
           disable_XY();
         #else

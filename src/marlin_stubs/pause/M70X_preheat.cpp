@@ -27,8 +27,8 @@ static Response preheatTempKnown(uint8_t target_extruder) {
 
 static Response preheatTempUnKnown(PreheatData preheat_data, bool break_on_autoload = false) {
     Response ret;
-    FSM_HOLDER__LOGGING(Preheat, preheat_data.Data());
-    while ((ret = ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
+    FSM_HOLDER_WITH_DATA__LOGGING(Preheat, PhasesPreheat::UserTempSelection, preheat_data.serialize());
+    while ((ret = marlin_server::ClientResponseHandler::GetResponseFromPhase(PhasesPreheat::UserTempSelection)) == Response::_none) {
         if (preheat_data.Mode() == PreheatMode::Autoload && FSensors_instance().GetAutoload() == fsensor_t::NoFilament) {
             return Response::Abort;
         }
@@ -84,7 +84,7 @@ void filament_gcodes::preheat_to(filament::Type filament, uint8_t target_extrude
     // change temp only if it is lower than currently loaded filament
     if (thermalManager.degTargetHotend(target_extruder) < fil_cnf.nozzle) {
         thermalManager.setTargetHotend(fil_cnf.nozzle, target_extruder);
-        marlin_server_set_temp_to_display(fil_cnf.nozzle, target_extruder);
+        marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
         if (eeprom_get_bool(EEVAR_HEATUP_BED)) {
             thermalManager.setTargetBed(fil_cnf.heatbed);
         }
@@ -113,7 +113,7 @@ std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes:
 
     // change temp every time (unlike normal preheat)
     thermalManager.setTargetHotend(fil_cnf.nozzle, target_extruder);
-    marlin_server_set_temp_to_display(fil_cnf.nozzle, target_extruder);
+    marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
     if (eeprom_get_bool(EEVAR_HEATUP_BED)) {
         thermalManager.setTargetBed(fil_cnf.heatbed);
     }
@@ -148,7 +148,7 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
                 continue;
 #endif
             thermalManager.setTargetHotend(enforce_target_temp ? fil_cnf.nozzle : fil_cnf.nozzle_preheat, e);
-            marlin_server_set_temp_to_display(fil_cnf.nozzle, e);
+            marlin_server::set_temp_to_display(fil_cnf.nozzle, e);
         }
 
         if (preheat_bed) {

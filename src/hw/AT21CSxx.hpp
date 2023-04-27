@@ -1,24 +1,12 @@
 /*
- * AT21CSxx.h
+ * AT21CSxx.hpp
  *
  *  Created on: Mar 31, 2021
  *      Author: tadeas
  */
+#pragma once
 
-#include "printers.h"
-#include <device/board.h>
-
-#ifndef INC_AT21CSXX_H_
-    #define INC_AT21CSXX_H_
-
-    #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 1, 8))
-        #include "stm32f407xx.h"
-    #elif (BOARD_IS_XBUDDY && BOARD_VER_HIGHER_OR_EQUAL_TO(0, 2, 0))
-        #include "stm32f427xx.h"
-    #else
-        #error PT100 not supported on Buddy board
-    #endif
-    #include "stm32f4xx_hal.h"
+#include "hwio_pindef.h" // GPIO_TypeDef
 
 class AT21CSxx {
 
@@ -76,47 +64,46 @@ private:
     int hs_mode(int addr);
     int load_address(uint8_t data_addr);
 
-    #define CODE_EEPROM_ACCESS            0b10100000
-    #define CODE_SECURITY_REGISTER_ACCESS 0b10110000
-    #define CODE_LOCK_SECURITY_REGISTER   0b00100000
-    #define CODE_ZONE_REGISTER_ACCESS     0b01110000
-    #define CODE_FREEZE_ROM_ZONE_REGISTER 0b00010000
-    #define CODE_READ_ID                  0b11000000
-    #define CODE_HIGH_SPEED               0b11100000
+#define CODE_EEPROM_ACCESS            0b10100000
+#define CODE_SECURITY_REGISTER_ACCESS 0b10110000
+#define CODE_LOCK_SECURITY_REGISTER   0b00100000
+#define CODE_ZONE_REGISTER_ACCESS     0b01110000
+#define CODE_FREEZE_ROM_ZONE_REGISTER 0b00010000
+#define CODE_READ_ID                  0b11000000
+#define CODE_HIGH_SPEED               0b11100000
 
-    /** @defgroup GPIO_LL_EC_PIN PIN
+/** @defgroup GPIO_LL_EC_PIN PIN
   * @{
   */
-    #define LL_GPIO_PIN_0   GPIO_BSRR_BS_0                                                                                                                                                                                                                                                                        /*!< Select pin 0 */
-    #define LL_GPIO_PIN_1   GPIO_BSRR_BS_1                                                                                                                                                                                                                                                                        /*!< Select pin 1 */
-    #define LL_GPIO_PIN_2   GPIO_BSRR_BS_2                                                                                                                                                                                                                                                                        /*!< Select pin 2 */
-    #define LL_GPIO_PIN_3   GPIO_BSRR_BS_3                                                                                                                                                                                                                                                                        /*!< Select pin 3 */
-    #define LL_GPIO_PIN_4   GPIO_BSRR_BS_4                                                                                                                                                                                                                                                                        /*!< Select pin 4 */
-    #define LL_GPIO_PIN_5   GPIO_BSRR_BS_5                                                                                                                                                                                                                                                                        /*!< Select pin 5 */
-    #define LL_GPIO_PIN_6   GPIO_BSRR_BS_6                                                                                                                                                                                                                                                                        /*!< Select pin 6 */
-    #define LL_GPIO_PIN_7   GPIO_BSRR_BS_7                                                                                                                                                                                                                                                                        /*!< Select pin 7 */
-    #define LL_GPIO_PIN_8   GPIO_BSRR_BS_8                                                                                                                                                                                                                                                                        /*!< Select pin 8 */
-    #define LL_GPIO_PIN_9   GPIO_BSRR_BS_9                                                                                                                                                                                                                                                                        /*!< Select pin 9 */
-    #define LL_GPIO_PIN_10  GPIO_BSRR_BS_10                                                                                                                                                                                                                                                                       /*!< Select pin 10 */
-    #define LL_GPIO_PIN_11  GPIO_BSRR_BS_11                                                                                                                                                                                                                                                                       /*!< Select pin 11 */
-    #define LL_GPIO_PIN_12  GPIO_BSRR_BS_12                                                                                                                                                                                                                                                                       /*!< Select pin 12 */
-    #define LL_GPIO_PIN_13  GPIO_BSRR_BS_13                                                                                                                                                                                                                                                                       /*!< Select pin 13 */
-    #define LL_GPIO_PIN_14  GPIO_BSRR_BS_14                                                                                                                                                                                                                                                                       /*!< Select pin 14 */
-    #define LL_GPIO_PIN_15  GPIO_BSRR_BS_15                                                                                                                                                                                                                                                                       /*!< Select pin 15 */
-    #define LL_GPIO_PIN_ALL (GPIO_BSRR_BS_0 | GPIO_BSRR_BS_1 | GPIO_BSRR_BS_2 | GPIO_BSRR_BS_3 | GPIO_BSRR_BS_4 | GPIO_BSRR_BS_5 | GPIO_BSRR_BS_6 | GPIO_BSRR_BS_7 | GPIO_BSRR_BS_8 | GPIO_BSRR_BS_9 | GPIO_BSRR_BS_10 | GPIO_BSRR_BS_11 | GPIO_BSRR_BS_12 | GPIO_BSRR_BS_13 | GPIO_BSRR_BS_14 | GPIO_BSRR_BS_15) /*!< Select all pins */
-    /**
+#define LL_GPIO_PIN_0   GPIO_BSRR_BS_0                                                                                                                                                                                                                                                                        /*!< Select pin 0 */
+#define LL_GPIO_PIN_1   GPIO_BSRR_BS_1                                                                                                                                                                                                                                                                        /*!< Select pin 1 */
+#define LL_GPIO_PIN_2   GPIO_BSRR_BS_2                                                                                                                                                                                                                                                                        /*!< Select pin 2 */
+#define LL_GPIO_PIN_3   GPIO_BSRR_BS_3                                                                                                                                                                                                                                                                        /*!< Select pin 3 */
+#define LL_GPIO_PIN_4   GPIO_BSRR_BS_4                                                                                                                                                                                                                                                                        /*!< Select pin 4 */
+#define LL_GPIO_PIN_5   GPIO_BSRR_BS_5                                                                                                                                                                                                                                                                        /*!< Select pin 5 */
+#define LL_GPIO_PIN_6   GPIO_BSRR_BS_6                                                                                                                                                                                                                                                                        /*!< Select pin 6 */
+#define LL_GPIO_PIN_7   GPIO_BSRR_BS_7                                                                                                                                                                                                                                                                        /*!< Select pin 7 */
+#define LL_GPIO_PIN_8   GPIO_BSRR_BS_8                                                                                                                                                                                                                                                                        /*!< Select pin 8 */
+#define LL_GPIO_PIN_9   GPIO_BSRR_BS_9                                                                                                                                                                                                                                                                        /*!< Select pin 9 */
+#define LL_GPIO_PIN_10  GPIO_BSRR_BS_10                                                                                                                                                                                                                                                                       /*!< Select pin 10 */
+#define LL_GPIO_PIN_11  GPIO_BSRR_BS_11                                                                                                                                                                                                                                                                       /*!< Select pin 11 */
+#define LL_GPIO_PIN_12  GPIO_BSRR_BS_12                                                                                                                                                                                                                                                                       /*!< Select pin 12 */
+#define LL_GPIO_PIN_13  GPIO_BSRR_BS_13                                                                                                                                                                                                                                                                       /*!< Select pin 13 */
+#define LL_GPIO_PIN_14  GPIO_BSRR_BS_14                                                                                                                                                                                                                                                                       /*!< Select pin 14 */
+#define LL_GPIO_PIN_15  GPIO_BSRR_BS_15                                                                                                                                                                                                                                                                       /*!< Select pin 15 */
+#define LL_GPIO_PIN_ALL (GPIO_BSRR_BS_0 | GPIO_BSRR_BS_1 | GPIO_BSRR_BS_2 | GPIO_BSRR_BS_3 | GPIO_BSRR_BS_4 | GPIO_BSRR_BS_5 | GPIO_BSRR_BS_6 | GPIO_BSRR_BS_7 | GPIO_BSRR_BS_8 | GPIO_BSRR_BS_9 | GPIO_BSRR_BS_10 | GPIO_BSRR_BS_11 | GPIO_BSRR_BS_12 | GPIO_BSRR_BS_13 | GPIO_BSRR_BS_14 | GPIO_BSRR_BS_15) /*!< Select all pins */
+/**
   * @}
   */
 
-    /** @defgroup GPIO_LL_EC_MODE Mode
+/** @defgroup GPIO_LL_EC_MODE Mode
   * @{
   */
-    #define LL_GPIO_MODE_INPUT     (0x00000000U)       /*!< Select input mode */
-    #define LL_GPIO_MODE_OUTPUT    GPIO_MODER_MODER0_0 /*!< Select output mode */
-    #define LL_GPIO_MODE_ALTERNATE GPIO_MODER_MODER0_1 /*!< Select alternate function mode */
-    #define LL_GPIO_MODE_ANALOG    GPIO_MODER_MODER0   /*!< Select analog mode */
+#define LL_GPIO_MODE_INPUT     (0x00000000U)       /*!< Select input mode */
+#define LL_GPIO_MODE_OUTPUT    GPIO_MODER_MODER0_0 /*!< Select output mode */
+#define LL_GPIO_MODE_ALTERNATE GPIO_MODER_MODER0_1 /*!< Select alternate function mode */
+#define LL_GPIO_MODE_ANALOG    GPIO_MODER_MODER0   /*!< Select analog mode */
 };
-#endif /* INC_AT21CSXX_H_ */
 
 /** @defgroup GPIO_LL_EC_PULL Pull Up Pull Down
   * @{

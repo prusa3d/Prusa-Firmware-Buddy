@@ -143,33 +143,33 @@ void mbl_error(uint16_t moves, uint16_t points) {
 
     //points
     for (size_t i = 0; i < POINT_CNT; ++i) {
-        Rect16 rect = rct_points[i];
-        rect += Rect16::Left_t(POINT_BASE_X_OFFSET);
-        rect += Rect16::Top_t(POINT_BASE_Y_OFFSET);
+        Rect16 rct = rct_points[i];
+        rct += Rect16::Left_t(POINT_BASE_X_OFFSET);
+        rct += Rect16::Top_t(POINT_BASE_Y_OFFSET);
         if (points & (1 << i)) {
             //err
-            display::FillRect(rect, COLOR_RED);
+            display::FillRect(rct, COLOR_RED);
 
         } else {
             //no err
-            display::FillRect(rect, COLOR_GREEN);
+            display::FillRect(rct, COLOR_GREEN);
         }
-        display::DrawRect(rect, COLOR_BLACK);
+        display::DrawRect(rct, COLOR_BLACK);
     }
     //moves
     for (size_t i = 0; i < MOVE_CNT; ++i) {
-        Rect16 rect = rct_moves[i];
-        rect += Rect16::Left_t(POINT_BASE_X_OFFSET);
-        rect += Rect16::Top_t(POINT_BASE_Y_OFFSET);
+        Rect16 rct = rct_moves[i];
+        rct += Rect16::Left_t(POINT_BASE_X_OFFSET);
+        rct += Rect16::Top_t(POINT_BASE_Y_OFFSET);
         if (moves & (1 << i)) {
             //err
-            display::FillRect(rect, COLOR_RED);
+            display::FillRect(rct, COLOR_RED);
 
         } else {
             //no err
-            display::FillRect(rect, COLOR_GREEN);
+            display::FillRect(rct, COLOR_GREEN);
         }
-        display::DrawRect(rect, COLOR_BLACK);
+        display::DrawRect(rct, COLOR_BLACK);
     }
 
     render_text_align(Rect16(PADDING, 260, X_MAX, 30), _("RESET PRINTER"), GuiDefaults::Font,

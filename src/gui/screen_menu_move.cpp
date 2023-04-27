@@ -53,7 +53,7 @@ void MI_AXIS_E::OnClick() {
     lastQueuedPos = 0;      // zero it out so we wont go back when we exit the spinner
 }
 
-void DUMMY_AXIS_E::click(IWindowMenu &window_menu) {
+void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
     marlin_gcode_printf("M1700 S E W2"); // set filament, preheat to target, return option
 }
 

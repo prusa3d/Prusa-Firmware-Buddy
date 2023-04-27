@@ -494,6 +494,8 @@
 #define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR \
     { 1, 1, 4 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
+#define HOMING_BUMP_DIVISOR_MAX HOMING_BUMP_DIVISOR
+#define HOMING_BUMP_DIVISOR_MIN HOMING_BUMP_DIVISOR
 //#define QUICK_HOME                     // If homing includes X and Y, do a diagonal move initially
 
 // When G28 is called, this option will make Y home before X
@@ -1357,6 +1359,14 @@
             { -2, 2200 }, \
             { -20, 3000 }, \
             { -30, 4000 }, \
+        }
+    // TODO remove after mmu is not mandatory for the build
+    #define FILAMENT_MMU2_RAMMING_SEQUENCE \
+       { \
+            { 7, 1500 / 60.F}, \
+            { -50, 2700 / 60.F}, \
+            { -5, 50 / 60.F}, \
+            { -50, 1500 / 60.F}, \
         }
     #define PAUSE_PARK_RETRACT_FEEDRATE 66 // (mm/s) Initial retract feedrate.
     #define PAUSE_PARK_RETRACT_LENGTH 5 // (mm) Initial retract.

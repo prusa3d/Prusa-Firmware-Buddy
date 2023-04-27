@@ -13,7 +13,6 @@ class FooterItemNozzle : public AddSuperWindow<FooterItemHeater> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName();
     FooterItemNozzle(window_t *parent);
 };
 
@@ -22,13 +21,12 @@ class FooterItemBed : public AddSuperWindow<FooterItemHeater> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName();
     FooterItemBed(window_t *parent);
 
 protected:
 #if ENABLED(MODULAR_HEATBED)
-    uint16_t last_enabled_bedlet_mask;
-    uint16_t last_warm_bedlet_mask;
+    uint16_t last_enabled_bedlet_mask { 0 };
+    uint16_t last_warm_bedlet_mask { 0 };
 #endif
     void unconditionalDraw() override;
     changed_t updateValue() override;
@@ -57,6 +55,5 @@ class FooterItemAllNozzles : public AddSuperWindow<FooterIconText_IntVal> {
 #endif /*HAS_TOOLCHANGER()*/
 
 public:
-    static string_view_utf8 GetName();
     FooterItemAllNozzles(window_t *parent);
 };

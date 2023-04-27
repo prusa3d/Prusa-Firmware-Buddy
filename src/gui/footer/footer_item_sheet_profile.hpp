@@ -11,6 +11,5 @@ class FooterItemSheets : public AddSuperWindow<FooterIconText_IntVal> {
     static int static_readValue();
 
 public:
-    static string_view_utf8 GetName();
     FooterItemSheets(window_t *parent);
 };

@@ -421,17 +421,17 @@ private:
                 // It's OK if the ESP is turned off on purpose or if it's up and running.
                 const bool esp_ok = (iface_mode(ifaces[NETDEV_ESP_ID]) == Mode::Off || ap.ssid[0] == '\0' || (espif_link() && was_alive));
 
-                const uint32_t now = sys_now();
+                const uint32_t n = sys_now();
                 if (esp_ok) {
-                    last_esp_ok = now;
+                    last_esp_ok = n;
                 }
 
-                const uint32_t faulty_for = now - last_esp_ok;
+                const uint32_t faulty_for = n - last_esp_ok;
 
                 if (faulty_for >= RESET_FAULTY_AFTER) {
                     // It's not OK for a long time. Try resetting it if that helps.
                     espif_reset();
-                    last_esp_ok = now;
+                    last_esp_ok = n;
                 }
             }
 
@@ -656,7 +656,7 @@ void netdev_set_enabled(const uint32_t netdev_id, const bool enabled) {
     });
 }
 
-bool netdev_is_enabled(const uint32_t netdev_id) {
+bool netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) {
     const uint8_t flag = eeprom_get_ui8(EEVAR_WIFI_FLAG);
     return IS_LAN_ON(flag);
 }

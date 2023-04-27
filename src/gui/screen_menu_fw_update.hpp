@@ -40,7 +40,7 @@ public:
     MI_UPDATE_LABEL();
 
 protected:
-    virtual void click(IWindowMenu &window_menu) override {};
+    virtual void click([[maybe_unused]] IWindowMenu &window_menu) override {};
 };
 
 class MI_UPDATE : public WI_SWITCH_t<3> {

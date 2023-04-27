@@ -8,6 +8,7 @@
 #include "guitypes.hpp"
 #include "Rect16.h"
 #include "raster_opfn.hpp"
+#include "fonts.hpp"
 
 void display_ex_clear(const color_t clr);
 

@@ -1,8 +1,11 @@
 #include "connect.hpp"
 #include <http/httpc.hpp>
 #include "tls/tls.hpp"
+#include "command_id.hpp"
+#include "segmented_json.h"
 #include "render.hpp"
-#include <http/socket.hpp>
+#include "json_out.hpp"
+#include "connection_cache.hpp"
 
 #include <log.h>
 
@@ -15,6 +18,7 @@
 #include <variant>
 
 using namespace http;
+using json::ChunkRenderer;
 using json::JsonRenderer;
 using json::JsonResult;
 using std::decay_t;
@@ -34,11 +38,11 @@ LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
 
 namespace connect_client {
 
-inline constexpr uint8_t SOCKET_TIMEOUT_SEC = 3;
-
 namespace {
 
     std::atomic<OnlineStatus> last_known_status = OnlineStatus::Unknown;
+    std::atomic<bool> registration = false;
+    std::atomic<const char *> registration_code_ptr = nullptr;
 
     OnlineStatus err_to_status(const Error error) {
         switch (error) {
@@ -62,17 +66,10 @@ namespace {
         }
     }
 
-    enum class Progress {
-        Rendering,
-        Done,
-    };
-
-    class BasicRequest final : public Request {
+    class BasicRequest final : public JsonPostRequest {
     private:
         HeaderOut hdrs[3];
-        Progress progress = Progress::Rendering;
-        Renderer renderer;
-        using RenderResult = variant<size_t, Error>;
+        Renderer renderer_impl;
         const char *target_url;
         static const char *url(const Sleep &) {
             // Sleep already handled at upper level.
@@ -86,6 +83,11 @@ namespace {
             return "/p/events";
         }
 
+    protected:
+        virtual ChunkRenderer &renderer() override {
+            return renderer_impl;
+        }
+
     public:
         BasicRequest(Printer &printer, const Printer::Config &config, const Action &action, Tracked &telemetry_changes, optional<CommandId> background_command_id)
             : hdrs {
@@ -95,48 +97,13 @@ namespace {
                 { "Token", config.token, nullopt },
                 { nullptr, nullptr, nullopt }
             }
-            , renderer(RenderState(printer, action, telemetry_changes, background_command_id))
+            , renderer_impl(RenderState(printer, action, telemetry_changes, background_command_id))
             , target_url(visit([](const auto &action) { return url(action); }, action)) {}
         virtual const char *url() const override {
             return target_url;
         }
-        virtual ContentType content_type() const override {
-            return ContentType::ApplicationJson;
-        }
-        virtual Method method() const override {
-            return Method::Post;
-        }
         virtual const HeaderOut *extra_headers() const override {
             return hdrs;
-        }
-        virtual RenderResult write_body_chunk(char *data, size_t size) override {
-            switch (progress) {
-            case Progress::Done:
-                return 0U;
-            case Progress::Rendering: {
-                const auto [result, written_json] = renderer.render(reinterpret_cast<uint8_t *>(data), size);
-                switch (result) {
-                case JsonResult::Abort:
-                    assert(0);
-                    progress = Progress::Done;
-                    return Error::InternalError;
-                case JsonResult::BufferTooSmall:
-                    // Can't fit even our largest buffer :-(.
-                    //
-                    // (the http client flushes the headers before trying to
-                    // render the body, so we have a full buffer each time).
-                    progress = Progress::Done;
-                    return Error::InternalError;
-                case JsonResult::Incomplete:
-                    return written_json;
-                case JsonResult::Complete:
-                    progress = Progress::Done;
-                    return written_json;
-                }
-            }
-            }
-            assert(0);
-            return Error::InternalError;
         }
     };
 
@@ -147,50 +114,9 @@ namespace {
 
     // Send a full telemetry every 5 minutes.
     const constexpr uint32_t FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
-
-    using Cache = variant<monostate, tls, socket_con, Error>;
 }
 
-class Connect::CachedFactory final : public ConnectionFactory {
-private:
-    const char *hostname = nullptr;
-    Cache cache;
-
-public:
-    virtual variant<Connection *, Error> connection() override {
-        // Note: The monostate state should not be here at this moment, it's only after invalidate and similar.
-        if (Connection *c = get_if<tls>(&cache); c != nullptr) {
-            return c;
-        } else if (Connection *c = get_if<socket_con>(&cache); c != nullptr) {
-            return c;
-        } else {
-            Error error = get<Error>(cache);
-            // Error is just one-off. Next time we'll try connecting again.
-            cache = monostate();
-            return error;
-        }
-    }
-    virtual const char *host() override {
-        return hostname;
-    }
-    virtual void invalidate() override {
-        cache = monostate();
-    }
-    template <class C>
-    void refresh(const char *hostname, C &&callback) {
-        this->hostname = hostname;
-        if (holds_alternative<monostate>(cache)) {
-            callback(cache);
-        }
-        assert(!holds_alternative<monostate>(cache));
-    }
-};
-
-Connect::ServerResp Connect::handle_server_resp(Response resp) {
-    if (resp.content_length() > MAX_RESP_SIZE) {
-        return Error::ResponseTooLong;
-    }
-
+Connect::ServerResp Connect::handle_server_resp(Response resp, CommandId command_id) {
     // TODO We want to make this buffer smaller, eventually. In case of custom
     // gcode, we can load directly into the shared buffer. In case of JSON, we
     // want to implement stream/iterative parsing.
@@ -200,21 +126,14 @@ Connect::ServerResp Connect::handle_server_resp(Response resp) {
     // the http connection and the next response would get confused by
     // leftovers.
     uint8_t recv_buffer[MAX_RESP_SIZE];
-    size_t pos = 0;
+    const auto result = resp.read_all(recv_buffer, sizeof recv_buffer);
 
-    while (resp.content_length() > 0) {
-        const auto result = resp.read_body(recv_buffer + pos, resp.content_length());
-        if (holds_alternative<size_t>(result)) {
-            pos += get<size_t>(result);
-        } else {
-            return get<Error>(result);
-        }
+    if (auto *err = get_if<Error>(&result); err != nullptr) {
+        return *err;
     }
+    size_t size = get<size_t>(result);
 
-    // Note: missing command ID is already checked at upper level.
-    CommandId command_id = resp.command_id.value();
-
-    if (command_id == planner.background_command_id()) {
+    if (command_id == planner().background_command_id()) {
         return Command {
             command_id,
             ProcessingThisCommand {},
@@ -232,18 +151,18 @@ Connect::ServerResp Connect::handle_server_resp(Response resp) {
         };
     }
 
-    const string_view body(reinterpret_cast<const char *>(recv_buffer), pos);
-
     // Note: Anything of these can result in an "Error"-style command (Unknown,
     // Broken...). Nevertheless, we return a Command, which'll consider the
     // whole request-response pair a successful one. That's OK, because on the
     // lower-level it is - we consumed all the data and are allowed to reuse
     // the connection and all that.
     switch (resp.content_type) {
-    case ContentType::TextGcode:
+    case ContentType::TextGcode: {
+        const string_view body(reinterpret_cast<const char *>(recv_buffer), size);
         return Command::gcode_command(command_id, body, move(*buff));
+    }
     case ContentType::ApplicationJson:
-        return Command::parse_json_command(command_id, body, move(*buff));
+        return Command::parse_json_command(command_id, reinterpret_cast<char *>(recv_buffer), size, move(*buff));
     default:;
         // If it's unknown content type, then it's unknown command because we
         // have no idea what to do about it / how to even parse it.
@@ -265,24 +184,24 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     }
 
     if (!config.enabled) {
-        planner.reset();
-        Sleep::idle().perform(printer, planner);
+        planner().reset();
+        Sleep::idle().perform(printer, planner());
         return OnlineStatus::Off;
     } else if (config.host[0] == '\0' || config.token[0] == '\0') {
-        planner.reset();
-        Sleep::idle().perform(printer, planner);
+        planner().reset();
+        Sleep::idle().perform(printer, planner());
         return OnlineStatus::NoConfig;
-    } else if ((last_known_status == OnlineStatus::Off) || (last_known_status == OnlineStatus::NoConfig)) {
+    } else if (status_replace_early(last_known_status)) {
         last_known_status = OnlineStatus::Connecting;
     }
 
     printer.renew();
 
-    auto action = planner.next_action();
+    auto action = planner().next_action(buffer);
 
     // Handle sleeping first. That one doesn't need the connection.
     if (auto *s = get_if<Sleep>(&action)) {
-        s->perform(printer, planner);
+        s->perform(printer, planner());
         return nullopt;
     } else if (auto *e = get_if<Event>(&action); e && e->type == EventType::Info) {
         // The server may delete its latest copy of telemetry in various case, in particular:
@@ -296,20 +215,7 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     }
 
     // Let it reconnect if it needs it.
-    conn_factory.refresh(config.host, [&](Cache &cache) {
-        Connection *connection;
-        if (config.tls) {
-            cache.emplace<tls>(SOCKET_TIMEOUT_SEC);
-            connection = &std::get<tls>(cache);
-        } else {
-            cache.emplace<socket_con>(SOCKET_TIMEOUT_SEC);
-            connection = &std::get<socket_con>(cache);
-        }
-
-        if (const auto result = connection->connection(config.host, config.port); result.has_value()) {
-            cache = *result;
-        }
-    });
+    conn_factory.refresh(config);
 
     HttpClient http(conn_factory);
 
@@ -324,13 +230,14 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
         telemetry_changes.mark_dirty();
     }
 
-    const auto background_command_id = planner.background_command_id();
+    const auto background_command_id = planner().background_command_id();
 
     BasicRequest request(printer, config, action, telemetry_changes, background_command_id);
-    const auto result = http.send(request);
+    ExtractCommanId cmd_id;
+    const auto result = http.send(request, &cmd_id);
 
     if (holds_alternative<Error>(result)) {
-        planner.action_done(ActionResult::Failed);
+        planner().action_done(ActionResult::Failed);
         conn_factory.invalidate();
         return err_to_status(get<Error>(result));
     }
@@ -343,7 +250,7 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     switch (resp.status) {
     // The server has nothing to tell us
     case Status::NoContent:
-        planner.action_done(ActionResult::Ok);
+        planner().action_done(ActionResult::Ok);
         if (is_full_telemetry && telemetry_changes.is_dirty()) {
             // We check the is_dirty too, because if it was _not_ dirty, we
             // sent only partial telemetry and don't want to reset the
@@ -359,23 +266,23 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
             telemetry_changes.mark_clean();
             last_full_telemetry = start;
         }
-        if (resp.command_id.has_value()) {
-            const auto sub_resp = handle_server_resp(resp);
+        if (cmd_id.command_id.has_value()) {
+            const auto sub_resp = handle_server_resp(resp, *cmd_id.command_id);
             return visit([&](auto &&arg) -> optional<OnlineStatus> {
                 // Trick out of std::visit documentation. Switch by the type of arg.
                 using T = decay_t<decltype(arg)>;
 
                 if constexpr (is_same_v<T, monostate>) {
-                    planner.action_done(ActionResult::Ok);
+                    planner().action_done(ActionResult::Ok);
                     return OnlineStatus::Ok;
                 } else if constexpr (is_same_v<T, Command>) {
-                    planner.action_done(ActionResult::Ok);
-                    planner.command(arg);
+                    planner().action_done(ActionResult::Ok);
+                    planner().command(arg);
                     return OnlineStatus::Ok;
                 } else if constexpr (is_same_v<T, Error>) {
-                    planner.action_done(ActionResult::Failed);
-                    planner.command(Command {
-                        resp.command_id.value(),
+                    planner().action_done(ActionResult::Failed);
+                    planner().command(Command {
+                        cmd_id.command_id.value(),
                         BrokenCommand {},
                     });
                     conn_factory.invalidate();
@@ -386,7 +293,7 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
         } else {
             // We have received a command without command ID
             // There's no better action for us than just throw it away.
-            planner.action_done(ActionResult::Refused);
+            planner().action_done(ActionResult::Refused);
             conn_factory.invalidate();
             return OnlineStatus::Confused;
         }
@@ -397,14 +304,14 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     case Status::GatewayTimeout:
         conn_factory.invalidate();
         // These errors are likely temporary and will go away eventually.
-        planner.action_done(ActionResult::Failed);
+        planner().action_done(ActionResult::Failed);
         return OnlineStatus::ServerError;
     default:
         conn_factory.invalidate();
         // We don't know that exactly the server answer means, but we guess
         // that it will persist, so we consider it refused and throw the
         // request away.
-        planner.action_done(ActionResult::Refused);
+        planner().action_done(ActionResult::Refused);
         // Switch just to provide proper error message
         switch (resp.status) {
         case Status::BadRequest:
@@ -424,20 +331,69 @@ void Connect::run() {
     CachedFactory conn_factory;
 
     while (true) {
-        const auto new_status = communicate(conn_factory);
-        if (new_status.has_value()) {
-            last_known_status = *new_status;
+        auto reg_wanted = registration.load();
+        auto reg_running = holds_alternative<Registrator>(guts);
+        if (reg_wanted && reg_running) {
+            const auto new_status = get<Registrator>(guts).communicate(conn_factory);
+            if (new_status.has_value()) {
+                last_known_status = *new_status;
+            }
+        } else if (reg_wanted && !reg_running) {
+            guts.emplace<Registrator>(printer);
+            last_known_status = OnlineStatus::Unknown;
+            conn_factory.invalidate();
+            registration_code_ptr = get<Registrator>(guts).get_code();
+        } else if (!reg_wanted && reg_running) {
+            last_known_status = OnlineStatus::Unknown;
+            registration_code_ptr = nullptr;
+            guts.emplace<Planner>(printer);
+            conn_factory.invalidate();
+        } else {
+            const auto new_status = communicate(conn_factory);
+            if (new_status.has_value()) {
+                last_known_status = *new_status;
+            }
         }
     }
 }
 
+Planner &Connect::planner() {
+    assert(holds_alternative<Planner>(guts));
+    return get<Planner>(guts);
+}
+
 Connect::Connect(Printer &printer, SharedBuffer &buffer)
-    : planner(printer)
+    : guts(Planner(printer))
     , printer(printer)
     , buffer(buffer) {}
 
 OnlineStatus last_status() {
     return last_known_status;
+}
+
+void request_registration() {
+    bool old = registration.exchange(true);
+    // Avoid warnings
+    (void)old;
+    assert(!old);
+}
+
+void leave_registration() {
+    bool old = registration.exchange(false);
+    // Avoid warnings
+    (void)old;
+    assert(old);
+}
+
+const char *registration_code() {
+    // Note: This is just a safety, the caller shall not call us in case this
+    // is not the case.
+    const auto status = last_known_status.load();
+    if (status == OnlineStatus::RegistrationCode || status == OnlineStatus::RegistrationDone) {
+        return registration_code_ptr;
+    } else {
+        return nullptr;
+    }
 }
 
 }

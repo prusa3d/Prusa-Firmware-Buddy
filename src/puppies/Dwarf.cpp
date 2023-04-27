@@ -226,7 +226,7 @@ CommunicationStatus Dwarf::fast_refresh() {
     }
 }
 
-void Dwarf::handle_log_fragment(TimeStamp_us_t timestamp_us, LogData_t data) {
+void Dwarf::handle_log_fragment([[maybe_unused]] TimeStamp_us_t timestamp_us, LogData_t data) {
     // If buffer cannot handle next read, clean it
     if (log_line_pos + data.size() > log_line_buffer.size()) {
         DWARF_LOG(LOG_SEVERITY_WARNING, "Out of log buffer, logging incomplete data");
@@ -446,11 +446,11 @@ uint16_t Dwarf::get_heatbreak_fan_pwr() {
 }
 
 std::array<Dwarf, DWARF_MAX_COUNT> dwarfs { {
-    { puppyModbus, 1, PuppyBootstrap::get_modbus_address_for_kennel(Kennel::DWARF_1) },
-    { puppyModbus, 2, PuppyBootstrap::get_modbus_address_for_kennel(Kennel::DWARF_2) },
-    { puppyModbus, 3, PuppyBootstrap::get_modbus_address_for_kennel(Kennel::DWARF_3) },
-    { puppyModbus, 4, PuppyBootstrap::get_modbus_address_for_kennel(Kennel::DWARF_4) },
-    { puppyModbus, 5, PuppyBootstrap::get_modbus_address_for_kennel(Kennel::DWARF_5) },
-    { puppyModbus, 6, PuppyBootstrap::get_modbus_address_for_kennel(Kennel::DWARF_6) },
+    { puppyModbus, 1, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_1) },
+    { puppyModbus, 2, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_2) },
+    { puppyModbus, 3, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_3) },
+    { puppyModbus, 4, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_4) },
+    { puppyModbus, 5, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_5) },
+    { puppyModbus, 6, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_6) },
 } };
 }

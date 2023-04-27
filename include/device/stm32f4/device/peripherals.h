@@ -185,6 +185,13 @@ extern TIM_HandleTypeDef htim14;
 #define WP1_Pin                     GPIO_PIN_0
 #define WP1_GPIO_Port               GPIOE
 
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
+    #define TOUCH_SDA_PORT GPIOC
+    #define TOUCH_SDA_PIN  GPIO_PIN_9
+    #define TOUCH_SCL_PORT GPIOA
+    #define TOUCH_SCL_PIN  GPIO_PIN_8
+#endif
+
 // Make our life a bit easier and don't distinguish between UART and USART
 #define UART1 USART1
 #define UART2 USART2
@@ -244,7 +251,7 @@ void hw_tim14_init();
     #define uart_esp     6
     #define uart_extconn 1
     #define spi_extconn  1
-#elif BOARD_IS_XBUDDY && BOARD_VER_HIGHER_OR_EQUAL_TO(0, 2, 1)
+#elif BOARD_IS_XBUDDY
     #define i2c_eeprom        2
     #define spi_flash         5
     #define spi_lcd           6

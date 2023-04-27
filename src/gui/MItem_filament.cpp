@@ -12,6 +12,7 @@
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
     #include "window_tool_action_box.hpp"
+    #include "screen_menu_filament_changeall.hpp"
 #endif
 
 #if HAS_TOOLCHANGER()
@@ -101,6 +102,17 @@ void MI_CHANGE::Do() {
     Sound_Stop();            // TODO what is Sound_Stop(); doing here?
 }
 
+#if HAS_TOOLCHANGER()
+/*****************************************************************************/
+//MI_CHANGEALL
+MI_CHANGEALL::MI_CHANGEALL()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
+
+void MI_CHANGEALL::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenChangeAllFilaments>);
+}
+#endif /*HAS_TOOLCHANGER()*/
+
 /*****************************************************************************/
 //MI_PURGE
 MI_PURGE::MI_PURGE()
@@ -121,7 +133,11 @@ bool MI_PURGE::AvailableForTool(uint8_t tool) {
     if (tool == marlin_vars()->active_extruder) {
         //todo: Do this also for inactive extruders, when filament sensors are ready to supply info for non-picked tools
         FilamentSensors::BothSensors sensors = FSensors_instance().GetBothSensors();
+#if PRINTER_TYPE == PRINTER_PRUSA_XL
         has_filament_fs = (sensors.extruder == fsensor_t::HasFilament && sensors.side == fsensor_t::HasFilament);
+#else
+        has_filament_fs = sensors.extruder == fsensor_t::HasFilament;
+#endif
     }
     return has_filament_eeprom && has_filament_fs;
 }

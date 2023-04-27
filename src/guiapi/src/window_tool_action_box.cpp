@@ -35,7 +35,7 @@ is_hidden_t get_hidden_state(Tool tool, Action action, bool hidden_if_inactive) 
         } else {
             return prusa_toolchanger.is_tool_active(idx) ? is_hidden_t::no : is_hidden_t::yes;
         }
-    case Action::CalibrateKennel:
+    case Action::CalibrateDock:
         return prusa_toolchanger.is_tool_enabled(idx) ? is_hidden_t::no : is_hidden_t::yes;
     case Action::PickInactive:
         if (!prusa_toolchanger.is_tool_enabled(idx)) {
@@ -80,9 +80,9 @@ void ToolBox::I_MI_TOOL::do_click(IWindowMenu &window_menu, Tool tool, Action ac
         marlin_gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
         wait_until_done();
         break;
-    case Action::CalibrateKennel:
+    case Action::CalibrateDock:
 #if HAS_SELFTEST
-        marlin_test_start_for_tools(stmKennels, 1 << ftrstd::to_underlying(tool));
+        marlin_test_start_for_tools(stmDocks, 1 << ftrstd::to_underlying(tool));
 #endif
         break;
     case Action::PickCurrent: //do nothing (Pick what is already picked)

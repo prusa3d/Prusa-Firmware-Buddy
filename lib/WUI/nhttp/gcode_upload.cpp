@@ -6,6 +6,7 @@
 #include "../wui_api.h"
 
 #include <transfers/files.hpp>
+#include <transfers/changed_path.hpp>
 
 #include <sys/stat.h>
 #include <cassert>
@@ -33,6 +34,7 @@ using std::holds_alternative;
 using std::make_tuple;
 using std::move;
 using std::string_view;
+using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
 using transfers::file_preallocate;
 using transfers::Monitor;
@@ -40,6 +42,9 @@ using transfers::next_transfer_idx;
 using transfers::transfer_name;
 using transfers::USB_MOUNT_POINT;
 using transfers::USB_MOUNT_POINT_LENGTH;
+
+using Type = ChangedPath::Type;
+using Incident = ChangedPath::Incident;
 
 GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
     : upload(move(uploader))
@@ -391,6 +396,7 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     bool overwrite = putParams != nullptr && putParams->overwrite;
     return try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
         monitor_slot.done(Monitor::Outcome::Finished);
+        ChangedPath::instance.changed_path(filename, Type::File, Incident::Created);
         if (uploaded_notify != nullptr) {
             if (uploaded_notify(filename, start_print)) {
                 return make_tuple(Status::Ok, nullptr);

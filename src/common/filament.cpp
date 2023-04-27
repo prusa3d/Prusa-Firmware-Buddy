@@ -26,6 +26,7 @@ const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
     { BtnResponse::GetText(Response::ABS), 255, 170, 100, Response::ABS },
     { BtnResponse::GetText(Response::HIPS), 220, 170, 100, Response::HIPS },
     { BtnResponse::GetText(Response::PP), 240, 170, 100, Response::PP },
+    { BtnResponse::GetText(Response::PA), 285, 170, 100, Response::PA },
 #if HAS_LOADCELL()
     { BtnResponse::GetText(Response::FLEX), 240, 170, 50, Response::FLEX },
 #else
@@ -43,7 +44,7 @@ static eevar_id get_eevar_id_for_extruder(uint8_t extruder) {
     }
 }
 
-const filament::Type filament::get_type_in_extruder(uint8_t extruder) {
+filament::Type filament::get_type_in_extruder(uint8_t extruder) {
     auto type = static_cast<filament::Type>(eeprom_get_ui8(get_eevar_id_for_extruder(extruder)));
     if (type > filament::Type::_last) {
         type = filament::Type::NONE;

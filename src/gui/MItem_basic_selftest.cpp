@@ -164,6 +164,20 @@ void MI_CALIB_FSENSOR::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_test_start(stmFSensor);
 }
+
+    #if HAS_MMU2
+/*****************************************************************************/
+// MI_CALIB_FSENSOR_MMU
+MI_CALIB_FSENSOR_MMU::MI_CALIB_FSENSOR_MMU()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+}
+
+void MI_CALIB_FSENSOR_MMU::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
+    marlin_test_start(stmFSensorMMU);
+}
+    #endif
+
 #endif
 /*****************************************************************************/
 // MI_TEST_FANS_fine
@@ -195,23 +209,23 @@ MI_RESTORE_CALIBRATION_FROM_USB::MI_RESTORE_CALIBRATION_FROM_USB()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::dev : is_hidden_t::yes) {
 }
 
-void MI_RESTORE_CALIBRATION_FROM_USB::click(IWindowMenu &window_menu) {
+void MI_RESTORE_CALIBRATION_FROM_USB::click([[maybe_unused]] IWindowMenu &window_menu) {
     bool success = true;
 
     SelftestResult res;
     eeprom_get_selftest_results(&res);
 
-    // load kennel positions
+    // load dock positions
     success &= prusa_toolchanger.load_tool_info_from_usb();
     prusa_toolchanger.save_tool_info();
-    for (int i = 0; i < std::min(EEPROM_MAX_TOOL_COUNT, DWARF_MAX_COUNT); i++) {
-        res.tools[i].kenneloffset = prusa_toolchanger.is_tool_info_valid(dwarfs[i]) ? TestResult_Passed : TestResult_Failed;
+    for (int i = 0; i < std::min(EEPROM_MAX_TOOL_COUNT, buddy::puppies::DWARF_MAX_COUNT); i++) {
+        res.tools[i].dockoffset = prusa_toolchanger.is_tool_info_valid(buddy::puppies::dwarfs[i]) ? TestResult_Passed : TestResult_Failed;
     }
 
     // load tool offsets
     success &= prusa_toolchanger.load_tool_offsets_from_usb();
     prusa_toolchanger.save_tool_offsets();
-    for (int i = 0; i < std::min(EEPROM_MAX_TOOL_COUNT, DWARF_MAX_COUNT); i++) {
+    for (int i = 0; i < std::min(EEPROM_MAX_TOOL_COUNT, buddy::puppies::DWARF_MAX_COUNT); i++) {
         auto tool_offset = eeprom_get_tool_offset(i);
         bool looks_fine = tool_offset.x != 0 && tool_offset.y != 0 && tool_offset.z != 0;
         res.tools[i].tooloffset = looks_fine ? TestResult_Passed : TestResult_Failed;
@@ -276,10 +290,10 @@ MI_BACKUP_CALIBRATION_TO_USB::MI_BACKUP_CALIBRATION_TO_USB()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::dev : is_hidden_t::yes) {
 }
 
-void MI_BACKUP_CALIBRATION_TO_USB::click(IWindowMenu &window_menu) {
+void MI_BACKUP_CALIBRATION_TO_USB::click([[maybe_unused]] IWindowMenu &window_menu) {
     bool success = true;
     success &= prusa_toolchanger.save_tool_info_to_usb();
-    success &= prusa_toolchanger.save_tool_offsets_to_usb();
+    success &= prusa_toolchanger.save_tool_offsets_to_file();
     success &= backup_fs_calibration();
     if (success) {
         MsgBoxInfo(_("Calibration data saved successfully"), Responses_Ok);

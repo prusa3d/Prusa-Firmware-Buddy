@@ -30,8 +30,6 @@ string_view_utf8 FooterItemFinda::static_makeView(int value) {
     return string_view_utf8::MakeCPUFLASH((const uint8_t *)(value ? on : off));
 }
 
-string_view_utf8 FooterItemFinda::GetName() { return _("FINDA"); }
-
 FooterItemCurrentTool::FooterItemCurrentTool(window_t *parent)
     : AddSuperWindow<FooterIconText_IntVal>(parent, &png::spool_16x16, static_makeView, static_readValue) {
 }
@@ -55,5 +53,3 @@ string_view_utf8 FooterItemCurrentTool::static_makeView(int value) {
 
     return string_view_utf8::MakeRAM((const uint8_t *)buff);
 }
-
-string_view_utf8 FooterItemCurrentTool::GetName() { return _("CurrTool"); }

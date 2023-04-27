@@ -1,6 +1,7 @@
 #include "../common/sound.hpp"
 #include "PrusaGcodeSuite.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
+#include "../../gcode/gcode.h"
 
 #ifdef PRINT_CHECKING_Q_CMDS
 /**
@@ -14,5 +15,18 @@ void PrusaGcodeSuite::M862_3() {
         SERIAL_ECHO("  M862.3 P \"" PRINTER_MODEL "\"");
         SERIAL_EOL();
     }
+
+    #if ENABLED(GCODE_COMPATIBILITY_MK3)
+    if (parser.boolval('P')) {
+        // detect MK3<anything>
+        char *arg = parser.string_arg;
+        while (*arg == ' ' || *arg == '\"') {
+            arg++;
+        }
+        if (strncmp(arg, "MK3", 3) == 0) {
+            gcode.compatibility_mode = GcodeSuite::CompatibilityMode::MK3;
+        }
+    }
+    #endif
 }
 #endif

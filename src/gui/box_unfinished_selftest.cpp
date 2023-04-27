@@ -32,7 +32,7 @@ bool all_selftests_passed() {
             return false;
         }
         if (prusa_toolchanger.is_toolchanger_enabled()) {
-            if (!all_passed(sr.tools[e].kenneloffset, sr.tools[e].tooloffset)) {
+            if (!all_passed(sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
                 return false;
             }
         }

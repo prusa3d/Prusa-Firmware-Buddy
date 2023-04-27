@@ -3,6 +3,7 @@
  */
 
 #include "screen_menu_connect.hpp"
+#include "dialogs/DialogConnectReg.hpp"
 #include "printers.h"
 #include <window_msgbox.hpp>
 #include <connect/connect.hpp>
@@ -13,7 +14,7 @@ using connect_client::OnlineStatus;
 MI_CONNECT_ENABLED::MI_CONNECT_ENABLED()
     : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_CONNECT_ENABLED), string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
-void MI_CONNECT_ENABLED::OnChange(size_t old_index) {
+void MI_CONNECT_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
     eeprom_set_var(EEVAR_CONNECT_ENABLED, variant8_bool(index));
     // Connect will catch up with new config in its next iteration
 }
@@ -25,7 +26,7 @@ MI_CONNECT_STATUS::MI_CONNECT_STATUS()
 MI_CONNECT_LOAD_SETTINGS::MI_CONNECT_LOAD_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {}
 
-void MI_CONNECT_LOAD_SETTINGS::click(IWindowMenu &window_menu) {
+void MI_CONNECT_LOAD_SETTINGS::click([[maybe_unused]] IWindowMenu &window_menu) {
     if (connect_client::MarlinPrinter::load_cfg_from_ini()) {
         if (eeprom_get_bool(EEVAR_CONNECT_ENABLED)) {
             MsgBoxInfo(_("Loaded successfully. Connect will activate shortly."), Responses_Ok);
@@ -35,6 +36,14 @@ void MI_CONNECT_LOAD_SETTINGS::click(IWindowMenu &window_menu) {
     } else {
         MsgBoxError(_("Failed to load config. Make sure the ini file downloaded from Connect is on the USB drive and try again."), Responses_Ok);
     }
+}
+
+MI_CONNECT_REGISTER::MI_CONNECT_REGISTER()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::no) {
+}
+
+void MI_CONNECT_REGISTER::click([[maybe_unused]] IWindowMenu &window_menu) {
+    DialogConnectRegister::Show();
 }
 
 #define S(STATUS, TEXT)                                    \
@@ -56,14 +65,31 @@ void ScreenMenuConnect::updateStatus() {
         S(Confused, _("Protocol err"));
         S(Ok, _("Online"));
         S(Connecting, _("Connecting"));
+        // These are unlikely to be shown, we have another screen when
+        // registering. But we shall cover the complete set anyway.
+        S(RegistrationRequesting, _("Registering"));
+        S(RegistrationCode, _("Reg. code"));
+        S(RegistrationDone, _("Reg. done"));
+        S(RegistrationError, _("Reg. error"));
     default:
         S(Unknown, _("Unknown"));
     }
+    // Make sure that if the connect is enabled as part of the wizard, this
+    // gets reflected on the toggle.
+    //
+    // It's kind of stupid to do this repeatedly even though this changes only
+    // as a result of the MI_CONNECT_REGISTER::click. But that one doesn't have
+    // access to our items (AFAIK).
+    //
+    // It should be cheap anyway - both the eeprom access is cached in RAM and
+    // the SetIndex checks it is different before doing anything.
+    Item<MI_CONNECT_ENABLED>().SetIndex(eeprom_get_bool(EEVAR_CONNECT_ENABLED));
 }
 
 ScreenMenuConnect::ScreenMenuConnect()
     : ScreenMenuConnect__(_(label)) {
 }
+
 void ScreenMenuConnect::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK || event == GUI_event_t::LOOP) {
         updateStatus();

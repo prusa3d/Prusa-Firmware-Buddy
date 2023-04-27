@@ -39,7 +39,7 @@ void hw_dma_init(void) {
 
 void hw_adc1_init(void) {
 
-    ADC_ChannelConfTypeDef sConfig = { 0 };
+    ADC_ChannelConfTypeDef sConfig {};
 
     // Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
     hadc1.Instance = ADC1;

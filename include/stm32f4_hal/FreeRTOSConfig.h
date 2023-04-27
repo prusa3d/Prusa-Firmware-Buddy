@@ -72,6 +72,7 @@
 
 #include <device/mcu.h>
 #include "../include/device/board.h"
+#include <option/developer_mode.h>
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -126,6 +127,10 @@ extern uint32_t SystemCoreClock;
 #define configMINIMAL_STACK_SIZE         ((uint16_t)128)
 #define configTOTAL_HEAP_SIZE            ((size_t)40960)
 #define configUSE_MALLOC_FAILED_HOOK     1
+
+#if defined(_DEBUG) && !DEVELOPER_MODE()
+    #define configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES 1
+#endif
 
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 2
 #define THREAD_LOCAL_STORAGE_SYSLOG_IDX         1
@@ -197,11 +202,10 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
-#define configASSERT(x)           \
-    if ((x) == 0) {               \
-        taskDISABLE_INTERRUPTS(); \
-        for (;;)                  \
-            ;                     \
+__attribute__((noreturn)) void fatal_error(const char *error, const char *module);
+#define configASSERT(x)                          \
+    if ((x) == 0) {                              \
+        fatal_error("configASSERT", "freertos"); \
     }
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS

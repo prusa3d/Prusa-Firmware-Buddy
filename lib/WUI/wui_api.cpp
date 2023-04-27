@@ -25,6 +25,7 @@
 #include <ScreenHandler.hpp>
 #include <screen_home.hpp>
 #include <screen_print_preview.hpp>
+#include <transfers/changed_path.hpp>
 
 #include <cassert>
 #include <ctime>
@@ -40,8 +41,6 @@
 extern RTC_HandleTypeDef hrtc;
 
 static bool sntp_time_init = false;
-static std::atomic<uint32_t> uploaded_gcodes;
-static std::atomic<uint32_t> modified_gcodes;
 
 // example of simple callback automatically sending print response (click on print button) in preview fsm
 // it would be better to use queue to fet rid of no longer current commands
@@ -69,7 +68,7 @@ static void fsm_cb(uint32_t u32, uint16_t u16) {
 
 #else // !0
 
-static void fsm_cb(uint32_t u32, uint16_t u16) {
+static void fsm_cb([[maybe_unused]] uint32_t u32, [[maybe_unused]] uint16_t u16) {
 }
 
 #endif //0
@@ -286,8 +285,8 @@ void get_MAC_address(mac_address_t *dest, uint32_t netdev_id) {
 void sntp_set_system_time(uint32_t sec) {
 
     // RTC_TimeTypeDef has attributes like TimeFormat (AM/PM) and DayLightSaving, which we don't use
-    RTC_TimeTypeDef currTime = { 0 };
-    RTC_DateTypeDef currDate = { 0 };
+    RTC_TimeTypeDef currTime {};
+    RTC_DateTypeDef currDate {};
 
     struct tm current_time_val;
     time_t current_time = (time_t)sec;
@@ -316,14 +315,6 @@ void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp) {
     time_t secs_from_epoch_start = mktime(timestamp);
     time_t current_time = secs_from_epoch_start + secs_to_add;
     localtime_r(&current_time, timestamp);
-}
-
-uint32_t wui_gcodes_uploaded() {
-    return uploaded_gcodes;
-}
-
-uint32_t wui_gcodes_mods() {
-    return modified_gcodes;
 }
 
 StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
@@ -356,15 +347,8 @@ StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
 
 bool wui_uploaded_gcode(char *filename, bool start_print) {
     StartPrintResult res = wui_start_print(filename, start_print);
-    wui_gcode_modified();
-    if (res == StartPrintResult::Uploaded) {
-        uploaded_gcodes++;
-    }
-    return (res != StartPrintResult::Failed);
-}
 
-void wui_gcode_modified() {
-    modified_gcodes++;
+    return (res != StartPrintResult::Failed);
 }
 
 bool wui_is_file_being_printed(const char *filename) {

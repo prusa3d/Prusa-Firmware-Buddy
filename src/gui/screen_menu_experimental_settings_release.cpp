@@ -50,15 +50,15 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         break;
     case ClickCommand::Reset_Z:
         Item<MI_Z_AXIS_LEN>().SetVal(default_Z_max_pos);
-        menu.Invalidate(); // its broken, does not work
+        Invalidate();
         break;
     case ClickCommand::Reset_steps:
         Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::GetDefaultStepsPerUnit()[3]);
-        menu.Invalidate(); // its broken, does not work
+        Invalidate();
         break;
     case ClickCommand::Reset_directions:
         Item<MI_DIRECTION_E>().SetIndex(0);
-        menu.Invalidate(); // its broken, does not work
+        Invalidate();
         break;
     default:
         break;

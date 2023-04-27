@@ -1,39 +1,22 @@
 // screen_print_preview.hpp
 #pragma once
-#include "gui.hpp"
-#include "window_header.hpp"
-#include "window_roll_text.hpp"
+#include "screen_print_preview_base.hpp"
 #include "window_thumbnail.hpp"
-#include "screen.hpp"
-#include "display.h"
-#include "printers.h"
 #include "gcode_info.hpp"
 #include "gcode_description.hpp"
 #include "fs_event_autolock.hpp"
 #include "static_alocation_ptr.hpp"
 #include "fsm_base_types.hpp"
-#include "radio_button_fsm.hpp"
 
-class ScreenPrintPreview : public AddSuperWindow<screen_t> {
+// inherited from ScreenPrintPreviewBase just to handel different display sizes
+// do not use AddSuperWindow<ScreenPrintPreviewBase>
+class ScreenPrintPreview : public ScreenPrintPreviewBase {
     constexpr static const char *labelWarning = N_("Warning");
 
     static constexpr const char *txt_fil_not_detected = N_("Filament not detected. Load filament now?\nSelect NO to cancel the print.\nSelect DISABLE FS to disable the filament sensor and continue print.");
     static constexpr const char *txt_fil_detected_mmu = N_("Filament detected. Unload filament now? Select NO to cancel.");
-    static constexpr const char *txt_wrong_fil_type =
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
-        N_("A filament specified in the G-code is either not loaded or wrong type.");
-#else
-        N_("This G-code was set up for another filament type.");
-#endif
 
     static ScreenPrintPreview *ths; // to be accessible in dialog handler
-
-#ifdef USE_ILI9488
-    window_header_t header;
-#endif // USE_ILI9488
-
-    window_roll_text_t title_text;
-    RadioButtonFsm<PhasesPrintPreview> radio; // shows 2 mutually exclusive buttons Print and Back
 
     GCodeInfo &gcode;
     GCodeInfoWithDescription gcode_description; // cannot be first
