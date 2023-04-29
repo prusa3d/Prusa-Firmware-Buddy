@@ -46,7 +46,6 @@ const SpinConfigInt SpinCnf::crash_sensitivity = SpinConfigInt({ -64, 63, 1 }, N
 #endif
 const SpinConfigInt SpinCnf::crash_max_period = SpinConfigInt({ 0, 0xFFFFF, 1 }, None, spin_off_opt_t::no);
 
-//private repo
 #ifdef LOVEBOARD_HAS_PT100
 const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50, 300, 10 }, None);
 #elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
