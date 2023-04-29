@@ -32,8 +32,6 @@ const SpinConfigInt SpinCnf::crash_sensitivity = SpinConfigInt({ -64, 63, 1 }, s
     #error "Unknown driver type."
 #endif
 const SpinConfigInt SpinCnf::crash_max_period = SpinConfigInt({ 0, 0xFFFFF, 1 }, spin_off_opt_t::no);
-
-//private repo
 const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50000, 2500000, 1000 });
 const SpinConfigInt SpinCnf::loadcell_range = SpinConfigInt({ 5, 30, 1 });
 const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 30, 200, 1 });
