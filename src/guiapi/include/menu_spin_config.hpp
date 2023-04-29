@@ -27,8 +27,6 @@ struct SpinCnf {
     static const SpinConfigInt two_digits_uint;
     static const SpinConfigInt crash_sensitivity;
     static const SpinConfigInt crash_max_period;
-
-    //private repo
     static const SpinConfigInt fs_range;
     static const SpinConfigInt loadcell_range;
     static const SpinConfigInt print_progress;
