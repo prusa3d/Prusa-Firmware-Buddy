@@ -2513,6 +2513,7 @@ static void _server_update_vars() {
         marlin_vars()->native_curr_pos[i] = curr_pos_mm[i];
     }
     // Convert to logical position
+    planner.unapply_leveling(pos_mm);
     toLogical(pos_mm);
     toLogical(curr_pos_mm);
     LOOP_XYZE(i) {

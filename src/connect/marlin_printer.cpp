@@ -218,9 +218,9 @@ Printer::Params MarlinPrinter::params() const {
     params.temp_bed = marlin_vars()->temp_bed;
     params.target_bed = marlin_vars()->target_bed;
     params.target_nozzle = marlin_vars()->active_hotend().target_nozzle;
-    params.pos[X_AXIS_POS] = marlin_vars()->logical_curr_pos[X_AXIS_POS];
-    params.pos[Y_AXIS_POS] = marlin_vars()->logical_curr_pos[Y_AXIS_POS];
-    params.pos[Z_AXIS_POS] = marlin_vars()->logical_curr_pos[Z_AXIS_POS];
+    params.pos[X_AXIS_POS] = marlin_vars()->logical_pos[X_AXIS_POS];
+    params.pos[Y_AXIS_POS] = marlin_vars()->logical_pos[Y_AXIS_POS];
+    params.pos[Z_AXIS_POS] = marlin_vars()->logical_pos[Z_AXIS_POS];
     params.print_speed = marlin_vars()->print_speed;
     params.flow_factor = marlin_vars()->active_hotend().flow_factor;
     params.job_id = marlin_vars()->job_id;
