@@ -1437,9 +1437,9 @@
 
 // Homing speeds (mm/m)
 #ifdef HAS_LDO_400_STEP
-    #define HOMING_FEEDRATE_XY (70 * 60)
+    #define HOMING_FEEDRATE_XY (62 * 60)
 #else
-    #define HOMING_FEEDRATE_XY (70 * 60)//(150 * 60)
+    #define HOMING_FEEDRATE_XY (62 * 60)//(150 * 60)
 #endif
 
 #define HOMING_FEEDRATE_Z (8 * 60)
