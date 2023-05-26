@@ -54,6 +54,9 @@ void ac_fault_loop();
 // AC fault ISR handler
 void ac_fault_isr();
 
+// Raise error if ac fault is present on startup, enable interrupt
+void check_ac_fault_at_startup();
+
 // AC fault Task handler
 extern osThreadId ac_fault_task;
 

@@ -859,7 +859,7 @@ namespace ExtUI {
     queue.inject_P(gcode);
   }
 
-  bool commandsInQueue() { return (planner.movesplanned() || queue.has_commands_queued()); }
+  bool commandsInQueue() { return (queue.has_commands_queued() || planner.processing()); }
 
   bool isAxisPositionKnown(const axis_t axis) {
     return TEST(axis_known_position, axis);

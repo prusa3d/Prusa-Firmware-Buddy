@@ -7,6 +7,7 @@ add_library(
   Marlin
   Marlin/Marlin/src/core/serial.cpp
   Marlin/Marlin/src/core/utility.cpp
+  Marlin/Marlin/src/feature/precise_stepping/precise_stepping.cpp
   Marlin/Marlin/src/feature/tmc_util.cpp
   Marlin/Marlin/src/gcode/config/M92.cpp
   Marlin/Marlin/src/gcode/parser.cpp
@@ -42,6 +43,10 @@ if(BOARD MATCHES ".*BUDDY")
   target_sources(
     Marlin
     PRIVATE $<$<NOT:$<STREQUAL:${PRINTER},XL>>:Marlin/Marlin/src/module/tool_change.cpp>
+            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp>
+            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp>
+            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
+            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
@@ -61,8 +66,10 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/feature/binary_protocol.cpp
             Marlin/Marlin/src/feature/cancel_object.cpp
             Marlin/Marlin/src/feature/host_actions.cpp
+            Marlin/Marlin/src/feature/input_shaper/input_shaper.cpp
             Marlin/Marlin/src/feature/joystick.cpp
             Marlin/Marlin/src/feature/power.cpp
+            Marlin/Marlin/src/feature/pressure_advance/pressure_advance.cpp
             Marlin/Marlin/src/feature/print_area.cpp
             Marlin/Marlin/src/feature/prusa/homing.cpp
             Marlin/Marlin/src/feature/prusa/measure_axis.cpp
@@ -81,6 +88,7 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/calibrate/G65.cpp
             Marlin/Marlin/src/gcode/calibrate/G80.cpp
             Marlin/Marlin/src/gcode/calibrate/M666.cpp
+            Marlin/Marlin/src/gcode/calibrate/M958.cpp
             Marlin/Marlin/src/gcode/config/M200-M205.cpp
             Marlin/Marlin/src/gcode/config/M217.cpp
             Marlin/Marlin/src/gcode/config/M218.cpp
@@ -110,8 +118,10 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/eeprom/M500-M504.cpp
             Marlin/Marlin/src/gcode/feature/advance/M900.cpp
             Marlin/Marlin/src/gcode/feature/cancel/M486.cpp
+            Marlin/Marlin/src/gcode/feature/input_shaper/M593.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M556.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M557.cpp
+            Marlin/Marlin/src/gcode/feature/pressure_advance/M572.cpp
             Marlin/Marlin/src/gcode/feature/print_area/M555.cpp
             Marlin/Marlin/src/gcode/feature/runout/M412.cpp
             Marlin/Marlin/src/gcode/feature/trinamic/M122.cpp
@@ -137,7 +147,6 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/motion/G2_G3.cpp
             Marlin/Marlin/src/gcode/motion/G4.cpp
             Marlin/Marlin/src/gcode/motion/G5.cpp
-            Marlin/Marlin/src/gcode/motion/M170_M171.cpp
             Marlin/Marlin/src/gcode/motion/M290.cpp
             Marlin/Marlin/src/gcode/probe/G30.cpp
             Marlin/Marlin/src/gcode/probe/M401_M402.cpp
@@ -193,6 +202,9 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/module/precise_homing.cpp
             Marlin/Marlin/src/module/printcounter.cpp
             Marlin/Marlin/src/module/probe.cpp
+            Marlin/Marlin/src/module/prusa/accelerometer_local.cpp
+            Marlin/Marlin/src/module/prusa/accelerometer_remote.cpp
+            Marlin/Marlin/src/module/prusa/accelerometer_utils.cpp
             Marlin/Marlin/src/module/scara.cpp
             Marlin/Marlin/src/module/servo.cpp
             Marlin/Marlin/src/module/stepper/L6470.cpp

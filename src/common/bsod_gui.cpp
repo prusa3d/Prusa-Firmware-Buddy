@@ -24,6 +24,7 @@
 #include "error_codes.hpp"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "scratch_buffer.hpp"
+#include "power_panic.hpp"
 
 //this is private struct definition from FreeRTOS
 /*
@@ -174,6 +175,12 @@ void raise_redscreen(ErrCode error_code, const char *error, const char *module) 
         __BKPT(0);
     }
 #endif /*_DEBUG*/
+
+    // don't trigger redscreen during a power outage
+    if (power_panic::is_ac_fault_signal()) {
+        delay_ms(2000);
+        bsod("%s: %s", module, error);
+    }
 
     crash_dump::dump_err_to_xflash(static_cast<std::underlying_type_t<ErrCode>>(error_code), error, module);
     sys_reset();

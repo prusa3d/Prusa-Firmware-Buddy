@@ -105,8 +105,22 @@ bool GCodeInfo::ValidPrinterSettings::nozzle_diameters_valid() const {
     return true;
 }
 
+void GCodeInfo::ValidPrinterSettings::add_unsupported_feature(const char *feature, size_t length) {
+    unsupported_features = true;
+    size_t occupied = strlen(unsupported_features_text);
+    size_t free = sizeof(unsupported_features_text) - occupied;
+    if (occupied == 0) {
+        strncpy(unsupported_features_text, feature, min(length, free));
+    } else if (free > length + 2) {
+        strcat(unsupported_features_text, ", ");
+        strncat(unsupported_features_text, feature, length);
+    } else {
+        strcpy(unsupported_features_text + sizeof(unsupported_features_text) - 4, "...");
+    }
+}
+
 bool GCodeInfo::ValidPrinterSettings::is_valid() const {
-    return nozzle_diameters_valid() && wrong_printer_model.is_valid() && wrong_gcode_level.is_valid() && wrong_firmware.is_valid() && mk3_compatibility_mode.is_valid();
+    return nozzle_diameters_valid() && wrong_printer_model.is_valid() && wrong_gcode_level.is_valid() && wrong_firmware.is_valid() && mk3_compatibility_mode.is_valid() && !unsupported_features;
 }
 
 bool GCodeInfo::ValidPrinterSettings::is_fatal() const {
@@ -120,7 +134,7 @@ bool GCodeInfo::ValidPrinterSettings::is_fatal() const {
             return true;
         }
     }
-    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || mk3_compatibility_mode.is_fatal();
+    return wrong_printer_model.is_fatal() || wrong_gcode_level.is_fatal() || wrong_firmware.is_fatal() || mk3_compatibility_mode.is_fatal() || unsupported_features;
 }
 
 GCodeInfo::Buffer::Buffer(FILE &file)
@@ -192,12 +206,10 @@ bool GCodeInfo::Buffer::String::if_heading_skip(const char *str) {
     }
 }
 
-void GCodeInfo::parse_version(GCodeInfo::ValidPrinterSettings &valid_printer_settings, const char *version) {
-    // Parse version from G-code and from this firmware
-    // Parse and store version from G-code to be displayed later
-    ValidPrinterSettings::GcodeFwVersion &g_fw = valid_printer_settings.gcode_fw_version;
-    if (sscanf(version, "%d.%d.%d", &g_fw.major, &g_fw.minor, &g_fw.patch) != 3) {
-        return;
+bool GCodeInfo::is_up_to_date(GCodeInfo::ValidPrinterSettings::GcodeFwVersion &parsed, const char *new_version_string) {
+    // Parse and store version from G-code
+    if (sscanf(new_version_string, "%d.%d.%d", &parsed.major, &parsed.minor, &parsed.patch) != 3) {
+        return true;
     }
 
     // Parse version of this firmware
@@ -206,19 +218,26 @@ void GCodeInfo::parse_version(GCodeInfo::ValidPrinterSettings &valid_printer_set
         bsod("Internal project_version cannot be parsed with \"%d.%d.%d\"");
     }
 
-    if (g_fw.major > v_fw.major) { // Major is higher
-        valid_printer_settings.wrong_firmware.fail();
+    if (parsed.major > v_fw.major) { // Major is higher
+        return false;
     }
 
-    if (g_fw.major == v_fw.major && g_fw.minor > v_fw.minor) { // Minor is higher
-        valid_printer_settings.wrong_firmware.fail();
+    if (parsed.major == v_fw.major && parsed.minor > v_fw.minor) { // Minor is higher
+        return false;
     }
 
-    if (g_fw.major == v_fw.major && g_fw.minor == v_fw.minor && g_fw.patch > v_fw.patch) { // Patch is higher
-        valid_printer_settings.wrong_firmware.fail();
+    if (parsed.major == v_fw.major && parsed.minor == v_fw.minor && parsed.patch > v_fw.patch) { // Patch is higher
+        return false;
     }
 
     // Ignore everything behind patch number
+    return true;
+}
+
+bool GCodeInfo::is_printer_compatible(const Buffer::String &printer) {
+    return std::any_of(begin(printer_compatibility_list),
+        end(printer_compatibility_list),
+        [&](const auto &v) { return printer == v; });
 }
 
 void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_counter, GCodeInfo::ValidPrinterSettings &valid_printer_settings) {
@@ -262,13 +281,16 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
                         valid_printer_settings.mk3_compatibility_mode.fail();
                     }
 #endif
-                    if (cmd.get_string() != printer_model) {
+                    if (!is_printer_compatible(cmd.get_string())) {
                         valid_printer_settings.wrong_printer_model.fail();
                     }
                     break;
                 }
                 case '4':
-                    parse_version(valid_printer_settings, cmd.c_str());
+                    // Parse M862.4 for minimal required firmware version
+                    if (!is_up_to_date(valid_printer_settings.gcode_fw_version, cmd.c_str())) {
+                        valid_printer_settings.wrong_firmware.fail();
+                    }
                     break;
                 case '2':
                     if (cmd.get_uint() != printer_model_code) {
@@ -276,9 +298,30 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
                     }
                     break;
                 case '5':
-                    if (cmd.get_uint() != gcode_level) {
+                    if (cmd.get_uint() > gcode_level) {
                         valid_printer_settings.wrong_gcode_level.fail();
                     }
+                    break;
+                case '6':
+                    auto compare = [](GCodeInfo::Buffer::String &a, const char *b) {
+                        for (char *c = a.begin;; ++c, ++b) {
+                            if (c == a.end || *b == '\0')
+                                return c == a.end && *b == '\0';
+                            if (toupper(*c) != toupper(*b))
+                                return false;
+                        }
+                        return *b == '\0';
+                    };
+                    auto find = [&](GCodeInfo::Buffer::String feature) {
+                        for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures)
+                            if (compare(feature, f))
+                                return true;
+                        return false;
+                    };
+                    auto feature = cmd.get_string();
+                    feature.trim();
+                    if (!find(feature))
+                        valid_printer_settings.add_unsupported_feature(feature.begin, feature.end - feature.begin);
                     break;
                 }
             }
@@ -295,13 +338,15 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
         }
     }
 
-    // Parse M115 Ux.yy.z for newer firmware
+    // Parse M115 Ux.yy.z for newer firmware info
     if (cmd.if_heading_skip(gcode_info::m115)) {
         cmd.skip_ws();
         if (cmd.pop_front() == 'U') {
             *(cmd.end - 1) = '\0'; // Terminate string if not already
 
-            parse_version(valid_printer_settings, cmd.c_str());
+            if (!is_up_to_date(valid_printer_settings.latest_fw_version, cmd.c_str())) {
+                valid_printer_settings.outdated_firmware.fail();
+            }
         }
     }
 }
@@ -355,7 +400,7 @@ void GCodeInfo::parse_comment(GCodeInfo::Buffer::String comment, time_buff &prin
                 extruder++;
             }
         } else if (name == gcode_info::printer) {
-            if (val != printer_model) {
+            if (!is_printer_compatible(val)) {
                 valid_printer_settings.wrong_printer_model.fail();
             }
         }

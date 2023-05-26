@@ -33,7 +33,7 @@ class SelftestFrameDock : public AddSuperWindow<SelftestFrameNamedWithRadio> {
     static constexpr const char *PARK2 = N_("2. Now move the head to the right, the tool will be locked in the dock");
     static constexpr const char *PARK3 = N_("3. The head can now move freely.\nMove it a little bit to the front.");
     static constexpr const char *REMOVE_DOCK_PINS = N_("Loosen and remove the dock pins");
-    static constexpr const char *LOOSEN_DOCK_SCREW = N_("Loosen screws on left side of the dock pillar");
+    static constexpr const char *LOOSEN_DOCK_SCREW = N_("Loosen screws on right side of the dock pillar");
     static constexpr const char *LOCK_TOOL = N_("Lock the head to the tool");
     static constexpr const char *TIGHTEN_TOP = N_("Tighten the top dock screw at the left side of the pillar\n\nBe careful in next step the printer will be moving");
     static constexpr const char *MEASURING = N_("Be careful\nThe printer is moving while measuring dock position.");

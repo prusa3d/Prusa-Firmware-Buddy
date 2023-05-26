@@ -35,20 +35,6 @@
 //#define SWAP_LCD_TMC_SPI
 
 //--------------------------------------
-//Loadcell HX717 configuration
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
-
-    #define LOADCELL_HX717
-
-#endif //((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
-    #if BOARD_IS_DWARF
-        #define LOADCELL_HX717
-    #endif
-
-#endif
-
-//--------------------------------------
 //ADC Mux configuration
 #if (BOARD_IS_XLBUDDY)
     #define ADC_EXT_MUX
@@ -60,11 +46,18 @@ static const uint8_t PAUSE_NOZZLE_TIMEOUT = 45; // nozzle "sleep" after 45s insi
 #if BOARD_IS_DWARF
     // Marlin Interrupt priorities
     #define STEP_TIMER_IRQ_PRIO 2
+    #define MOVE_TIMER_IRQ_PRIO 2
     #define TEMP_TIMER_IRQ_PRIO 2
 #else
     // Marlin Interrupt priorities
+    #define XY_DIAG_IRQ_PRIO    0
     #define STEP_TIMER_IRQ_PRIO 1
+    #define MOVE_TIMER_IRQ_PRIO 2
     #define TEMP_TIMER_IRQ_PRIO 2
+
+    #if XY_DIAG_IRQ_PRIO >= STEP_TIMER_IRQ_PRIO
+        #error "XY_DIAG_IRQ_PRIO requires higher priority than STEP_TIMER_IRQ_PRIO"
+    #endif
 #endif
 
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY

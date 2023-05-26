@@ -16,7 +16,7 @@ const uint32_t MIN_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteIn
 const uint32_t MAX_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::is_parked));
 
 const uint32_t MIN_SystemCoil = (ftrstd::to_underlying(SystemCoil::tmc_enable));
-const uint32_t MAX_SystemCoil = (ftrstd::to_underlying(SystemCoil::is_selected));
+const uint32_t MAX_SystemCoil = (ftrstd::to_underlying(SystemCoil::accelerometer_high));
 
 const uint32_t MIN_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::hw_bom_id));
 const uint32_t MAX_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::marlin_error_message_end));

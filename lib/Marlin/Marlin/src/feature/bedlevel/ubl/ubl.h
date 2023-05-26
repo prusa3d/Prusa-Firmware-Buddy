@@ -114,8 +114,6 @@ class unified_bed_leveling {
     static int8_t storage_slot;
 
     static bed_mesh_t z_values;
-    static const float _mesh_index_to_xpos[GRID_MAX_POINTS_X],
-                       _mesh_index_to_ypos[GRID_MAX_POINTS_Y];
 
     #if HAS_LCD_MENU
       static bool lcd_map_control;
@@ -293,10 +291,10 @@ class unified_bed_leveling {
     static inline float get_z_correction(const xy_pos_t &pos) { return get_z_correction(pos.x, pos.y); }
 
     static inline float mesh_index_to_xpos(const uint8_t i) {
-      return i < GRID_MAX_POINTS_X ? pgm_read_float(&_mesh_index_to_xpos[i]) : MESH_MIN_X + i * (MESH_X_DIST);
+      return MESH_MIN_X + i * (MESH_X_DIST);
     }
     static inline float mesh_index_to_ypos(const uint8_t i) {
-      return i < GRID_MAX_POINTS_Y ? pgm_read_float(&_mesh_index_to_ypos[i]) : MESH_MIN_Y + i * (MESH_Y_DIST);
+      return MESH_MIN_Y + i * (MESH_Y_DIST);
     }
 
     #if UBL_SEGMENTED

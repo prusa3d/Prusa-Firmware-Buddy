@@ -1,4 +1,5 @@
 #include "main.h"
+#include "main.hpp"
 #include "platform.h"
 #include <device/board.h>
 #include "config_features.h"
@@ -8,6 +9,7 @@
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"
+#include "configuration_store.hpp"
 #ifdef BUDDY_ENABLE_CONNECT
     #include "connect/run.hpp"
 #endif
@@ -31,6 +33,7 @@
 #include "adc.hpp"
 #include "logging.h"
 #include "common/disable_interrupts.h"
+#include <option/has_accelerometer.h>
 #include <option/has_puppies_bootloader.h>
 #include <option/filament_sensor.h>
 #include <option/has_gui.h>
@@ -40,6 +43,7 @@
 #include <appmain.hpp>
 #include "safe_state.h"
 #include <espif.h>
+#include "sound.hpp"
 
 #if BOARD_IS_XLBUDDY
     #include "puppies/PuppyBus.hpp"
@@ -58,6 +62,10 @@
     #include "wui.h"
 #endif
 
+#if (BOARD_IS_XBUDDY)
+    #include "hw_configuration.hpp"
+#endif
+
 using namespace crash_dump;
 
 LOG_COMPONENT_REF(Buddy);
@@ -65,6 +73,10 @@ LOG_COMPONENT_REF(Buddy);
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
+
+#if HAS_ACCELEROMETER()
+LIS2DH accelerometer(10);
+#endif
 
 unsigned HAL_RCC_CSR = 0;
 int HAL_GPIO_Initialized = 0;
@@ -89,8 +101,18 @@ extern "C" void main_cpp(void) {
     HAL_RCC_CSR = RCC->CSR;
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
+    // Initialize sound instance now with its default settings
+    // to be able to service sound related calls from interrupts.
+    Sound::getInstance();
+
     hw_gpio_init();
     hw_dma_init();
+
+// must do this before timer 1
+// timer 1 interrupt calls Configuration
+#if BOARD_IS_XBUDDY
+    buddy::hw::Configuration::Instance();
+#endif
 
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim1_init();
@@ -192,6 +214,9 @@ extern "C" void main_cpp(void) {
         dump_in_xflash_reset();
     }
 
+    // Restore sound settings from eeprom
+    Sound::getInstance().restore_from_eeprom();
+
     wdt_iwdg_warning_cb = iwdg_warning_cb;
 
 #if (BOARD_IS_BUDDY)
@@ -235,6 +260,13 @@ extern "C" void main_cpp(void) {
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 
+#if ENABLED(POWER_PANIC)
+    power_panic::check_ac_fault_at_startup();
+    /* definition and creation of acFaultTask */
+    osThreadDef(acFaultTask, power_panic::ac_fault_main, osPriorityRealtime, 0, 80);
+    power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
+#endif
+
 #if BOARD_IS_XLBUDDY
     buddy::puppies::start_puppy_task();
 #endif
@@ -255,12 +287,6 @@ extern "C" void main_cpp(void) {
     /* definition and creation of connectTask */
     osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2304);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
-#endif
-
-#if ENABLED(POWER_PANIC)
-    /* definition and creation of acFaultTask */
-    osThreadDef(acFaultTask, power_panic::ac_fault_main, osPriorityRealtime, 0, 80);
-    power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -309,6 +335,12 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
     if (hspi == &SPI_HANDLE_FOR(flash)) {
         w25x_spi_receive_complete_callback();
     }
+
+#if HAS_ACCELEROMETER()
+    if (hspi == &SPI_HANDLE_FOR(accelerometer)) {
+        accelerometer.spiReceiveCompleteCallback();
+    }
+#endif
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
@@ -500,6 +532,104 @@ void init_error_screen() {
         osThreadDef(displayTask, StartErrorDisplayTask, osPriorityNormal, 0, 1024 + 256);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
+}
+
+static void enable_trap_on_division_by_zero() {
+    SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+}
+
+static void enable_backup_domain() {
+    // this allows us to use the RTC->BKPXX registers
+    __HAL_RCC_PWR_CLK_ENABLE();
+    HAL_PWR_EnableBkUpAccess();
+}
+
+static void enable_segger_sysview() {
+    // enable the cycle counter for correct time reporting
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
+    SEGGER_SYSVIEW_Conf();
+}
+
+static void enable_dfu_entry() {
+#ifdef BUDDY_ENABLE_DFU_ENTRY
+    // check whether user requested to enter the DFU mode
+    // this has to be checked after having
+    //  1) initialized access to the backup domain
+    //  2) having initialized related clocks (SystemClock_Config)
+    if (sys_dfu_requested())
+        sys_dfu_boot_enter();
+#endif
+}
+
+static void eeprom_init_i2c() {
+    I2C_INIT(eeprom);
+}
+
+namespace {
+/// The entrypoint of the startup task
+///
+/// WARNING
+/// The C++ runtime isn't initialized at the beginning of this function
+/// and initializing it is the main priority here.
+/// So first, we have to get the EEPROM ready, then we call libc_init_array
+/// and that is the time everything is ready for us to switch to C++ context.
+extern "C" void startup_task(void const *) {
+    // init crc32 module. We need crc in eeprom_init
+    crc32_init();
+
+    // init communication with eeprom
+    eeprom_init_i2c();
+
+    // init eeprom module itself
+    taskENTER_CRITICAL();
+    init_stores();
+    taskEXIT_CRITICAL();
+
+    // init global variables and call constructors
+    extern void __libc_init_array(void);
+    __libc_init_array();
+
+    // call the main main() function
+    main_cpp();
+
+    // terminate this thread (release its resources), we are done
+    osThreadTerminate(osThreadGetId());
+}
+}
+
+/// The entrypoint of our firmware
+///
+/// Do not do anything here that isn't essential to starting the RTOS
+/// That is our one and only priority.
+///
+/// WARNING
+/// The C++ runtime hasn't been initialized yet (together with C's constructors).
+/// So make sure you don't do anything that is dependent on it.
+int main() {
+    // initialize FPU, vector table & external memory
+    SystemInit();
+
+    // initialize HAL
+    HAL_Init();
+
+    // configure system clock and timing
+    system_core_init();
+    tick_timer_init();
+
+    // other MCU setup
+    enable_trap_on_division_by_zero();
+    enable_backup_domain();
+    enable_segger_sysview();
+    enable_dfu_entry();
+
+    // define the startup task
+    osThreadDef(startup, startup_task, osPriorityHigh, 0, 1024);
+    osThreadCreate(osThread(startup), NULL);
+
+    // start the RTOS with the single startup task
+    osKernelStart();
 }
 
 #ifdef USE_FULL_ASSERT

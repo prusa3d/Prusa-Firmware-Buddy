@@ -10,11 +10,11 @@
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
     : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes,
-    #if ((PRINTER_TYPE == PRINTER_PRUSA_MK4))
+    #if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
         is_hidden_t::dev
     #else
         is_hidden_t::no
-    #endif // ((PRINTER_TYPE == PRINTER_PRUSA_MK4))
+    #endif // ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
     ) {
     index = crash_s.is_enabled();
 }

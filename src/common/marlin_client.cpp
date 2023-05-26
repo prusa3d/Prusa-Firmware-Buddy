@@ -4,15 +4,16 @@
 #include "marlin_server.hpp"
 #include <stdio.h>
 #include <string.h>
+#include <cstdint>
 #include "config.h"
 #include "bsod.h"
 #include "ffconf.h"
-#include "timing.h"
 #include "log.h"
 #include "../lib/Marlin/Marlin/src/core/macros.h"
 #include "bsod_gui.hpp"
+#include "utility_extensions.hpp"
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include <selftest_types.hpp>
 #endif
 
@@ -219,7 +220,13 @@ void _send_request_to_server_and_wait_with_callback(const char *request, void (*
 
 void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)()) {
     char request[MARLIN_MAX_REQUEST];
-    snprintf(request, MARLIN_MAX_REQUEST, "!%c%08lx %08lx", MARLIN_MSG_EVENT_MASK, (uint32_t)(notify_events & 0xffffffff), (uint32_t)(notify_events >> 32));
+    snprintf(
+        request,
+        MARLIN_MAX_REQUEST,
+        "!%c%08lx %08lx",
+        ftrstd::to_underlying(Msg::EventMask),
+        static_cast<uint32_t>(notify_events & 0xffffffff),
+        static_cast<uint32_t>(notify_events >> 32));
     _send_request_to_server_and_wait_with_callback(request, cb);
 }
 
@@ -234,7 +241,7 @@ void _send_request_to_server_and_wait(const char *request) {
     _send_request_to_server_and_wait_with_callback(request, NULL);
 }
 
-void _send_request_id_to_server_and_wait(const marlin_msg_t id) {
+void _send_request_id_to_server_and_wait(const Msg id) {
     char request[3];
     marlin_msg_to_str(id, request);
     _send_request_to_server_and_wait(request);
@@ -242,13 +249,13 @@ void _send_request_id_to_server_and_wait(const marlin_msg_t id) {
 
 void marlin_gcode(const char *gcode) {
     char request[MARLIN_MAX_REQUEST];
-    snprintf(request, MARLIN_MAX_REQUEST, "!%c%s", MARLIN_MSG_GCODE, gcode);
+    snprintf(request, MARLIN_MAX_REQUEST, "!%c%s", ftrstd::to_underlying(Msg::Gcode), gcode);
     _send_request_to_server_and_wait(request);
 }
 
 int marlin_gcode_printf(const char *format, ...) {
     char request[MARLIN_MAX_REQUEST];
-    snprintf(request, MARLIN_MAX_REQUEST, "!%c", MARLIN_MSG_GCODE);
+    snprintf(request, MARLIN_MAX_REQUEST, "!%c", ftrstd::to_underlying(Msg::Gcode));
     va_list ap;
     va_start(ap, format);
     const int ret = vsnprintf(request + 2, MARLIN_MAX_REQUEST - 3, format, ap);
@@ -259,7 +266,7 @@ int marlin_gcode_printf(const char *format, ...) {
 
 void marlin_gcode_push_front(const char *gcode) {
     char request[MARLIN_MAX_REQUEST];
-    snprintf(request, MARLIN_MAX_REQUEST, "!%c0x%p", MARLIN_MSG_INJECT_GCODE, gcode);
+    snprintf(request, MARLIN_MAX_REQUEST, "!%c0x%p", ftrstd::to_underlying(Msg::InjectGcode), gcode);
     _send_request_to_server_and_wait(request);
 }
 
@@ -326,7 +333,12 @@ uint64_t marlin_errors() {
 
 void marlin_do_babysteps_Z(float offs) {
     char request[MARLIN_MAX_REQUEST];
-    snprintf(request, MARLIN_MAX_REQUEST, "!%c%.4f", MARLIN_MSG_BABYSTEP, (double)offs);
+    snprintf(
+        request,
+        MARLIN_MAX_REQUEST,
+        "!%c%.4f",
+        ftrstd::to_underlying(Msg::Babystep),
+        static_cast<double>(offs));
     _send_request_to_server_and_wait(request);
 }
 
@@ -334,27 +346,41 @@ void marlin_move_axis(float pos, float feedrate, uint8_t axis) {
     char request[MARLIN_MAX_REQUEST];
     // check axis
     if (axis < 4) {
-        snprintf(request, MARLIN_MAX_REQUEST, "!%c%.4f %.4f %u", MARLIN_MSG_MOVE, (double)pos, (double)feedrate, axis);
+        snprintf(
+            request,
+            MARLIN_MAX_REQUEST,
+            "!%c%.4f %.4f %u",
+            ftrstd::to_underlying(Msg::Move),
+            static_cast<double>(pos),
+            static_cast<double>(feedrate),
+            axis);
         _send_request_to_server_and_wait(request);
     }
 }
 
 void marlin_settings_save() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_CONFIG_SAVE);
+    _send_request_id_to_server_and_wait(Msg::ConfigSave);
 }
 
 void marlin_settings_load() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_CONFIG_LOAD);
+    _send_request_id_to_server_and_wait(Msg::ConfigLoad);
 }
 
 void marlin_settings_reset() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_CONFIG_RESET);
+    _send_request_id_to_server_and_wait(Msg::ConfigReset);
 }
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
 void marlin_test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask) {
     char request[MARLIN_MAX_REQUEST];
-    snprintf(request, MARLIN_MAX_REQUEST, "!%c%08lx %08lx %08lx", MARLIN_MSG_TEST_START, (uint32_t)test_mask, (uint32_t)(test_mask >> 32), (uint32_t)tool_mask);
+    snprintf(
+        request,
+        MARLIN_MAX_REQUEST,
+        "!%c%08lx %08lx %08lx",
+        ftrstd::to_underlying(Msg::TestStart),
+        static_cast<uint32_t>(test_mask),
+        static_cast<uint32_t>(test_mask >> 32),
+        static_cast<uint32_t>(tool_mask));
     _send_request_to_server_and_wait(request);
 }
 
@@ -363,13 +389,13 @@ void marlin_test_start(const uint64_t test_mask) {
 }
 
 void marlin_test_abort() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_TEST_ABORT);
+    _send_request_id_to_server_and_wait(Msg::TestAbort);
 }
 #endif
 
 void marlin_print_start(const char *filename, bool skip_preview) {
     char request[MARLIN_MAX_REQUEST];
-    const int len = snprintf(request, sizeof(request), "!%c%c%s", MARLIN_MSG_PRINT_START, skip_preview ? '1' : '0', filename);
+    const int len = snprintf(request, sizeof(request), "!%c%c%s", ftrstd::to_underlying(Msg::PrintStart), skip_preview ? '1' : '0', filename);
     if (len < 0)
         bsod("Error formatting request.");
     if ((size_t)len >= sizeof(request))
@@ -397,13 +423,13 @@ bool marlin_print_started() {
 
     while (true) {
         switch (marlin_vars()->print_state) {
-        case mpsWaitGui:
+        case State::WaitGui:
             // We are still waiting for GUI to make up its mind. Do another round.
             osDelay(10);
             break;
-        case mpsIdle:
-        case mpsAborted:
-        case mpsFinished:
+        case State::Idle:
+        case State::Aborted:
+        case State::Finished:
             // Went to idle - refused by GUI
             return false;
         default:
@@ -414,39 +440,39 @@ bool marlin_print_started() {
 }
 
 void marlin_gui_ready_to_print() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_GUI_PRINT_READY);
+    _send_request_id_to_server_and_wait(Msg::PrintReady);
 }
 
 void marlin_gui_cant_print() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_GUI_CANT_PRINT);
+    _send_request_id_to_server_and_wait(Msg::GuiCantPrint);
 }
 
 void marlin_print_abort() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_ABORT);
+    _send_request_id_to_server_and_wait(Msg::PrintAbort);
 }
 
 void marlin_print_exit() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_EXIT);
+    _send_request_id_to_server_and_wait(Msg::PrintExit);
 }
 
 void marlin_print_pause() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_PAUSE);
+    _send_request_id_to_server_and_wait(Msg::PrintPause);
 }
 
 void marlin_print_resume() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_PRINT_RESUME);
+    _send_request_id_to_server_and_wait(Msg::PrintResume);
 }
 
 void marlin_park_head() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_PARK);
+    _send_request_id_to_server_and_wait(Msg::Park);
 }
 
 void marlin_notify_server_about_encoder_move() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_KNOB_MOVE);
+    _send_request_id_to_server_and_wait(Msg::KnobMove);
 }
 
 void marlin_notify_server_about_knob_click() {
-    _send_request_id_to_server_and_wait(MARLIN_MSG_KNOB_CLICK);
+    _send_request_id_to_server_and_wait(Msg::KnobClick);
 }
 
 // returns 1 if reheating is in progress, otherwise 0
@@ -461,16 +487,16 @@ int marlin_reheating() {
 // responses from client finite state machine (like button click)
 void marlin_encoded_response(uint32_t enc_phase_and_response) {
     char request[MARLIN_MAX_REQUEST];
-    snprintf(request, MARLIN_MAX_REQUEST, "!%c%d", MARLIN_MSG_FSM, (int)enc_phase_and_response);
+    snprintf(request, MARLIN_MAX_REQUEST, "!%c%d", ftrstd::to_underlying(Msg::FSM), (int)enc_phase_and_response);
     _send_request_to_server_and_wait(request);
 }
 bool marlin_is_printing() {
     switch (marlin_vars()->print_state) {
-    case mpsAborted:
-    case mpsIdle:
-    case mpsFinished:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewImage:
+    case State::Aborted:
+    case State::Idle:
+    case State::Finished:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
         return false;
     default:
         return true;
@@ -478,10 +504,10 @@ bool marlin_is_printing() {
 }
 bool marlin_remote_print_ready(bool preview_only) {
     switch (marlin_vars()->print_state) {
-    case mpsIdle:
+    case State::Idle:
         return true;
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewImage:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
         // We want to replace the one-click print / preview when we want to
         // start printing. But we don't want to change one print preview to
         // another just by uploading stuff.
@@ -511,7 +537,7 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
     {
         marlin_client[client_id].events &= ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
         while (ret == 0) {
-            if (osMessageAvailableSpace(queue) >= (uint32_t)(len + 1)) // check available space
+            if (osMessageAvailableSpace(queue) >= static_cast<uint32_t>(len + 1)) // check available space
             {
                 osMessagePut(queue, '0' + client_id, osWaitForever); // one character client id
                 for (i = 0; i < len; i++)                            // loop over every characters
@@ -630,7 +656,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
                 uint8_t y = msg.usr16 >> 8;
                 float z = msg.flt;
                 DBG_EVT("CL%c: EVT %s %d %d %.3f", '0' + client->id, marlin_events_get_name(id),
-                    x, y, (double)z);
+                    x, y, static_cast<double>(z));
                 x = x;
                 y = y;
                 z = z; //prevent warning
@@ -669,13 +695,13 @@ template <typename T>
 void marlin_set_variable(MarlinVariable<T> &variable, T value) {
     char request[MARLIN_MAX_REQUEST];
 
-    const int n = snprintf(request, MARLIN_MAX_REQUEST, "!%c%d ", MARLIN_MSG_SET_VARIABLE, variable.get_identifier());
+    const int n = snprintf(request, MARLIN_MAX_REQUEST, "!%c%d ", ftrstd::to_underlying(Msg::SetVariable), variable.get_identifier());
     if (n < 0)
         bsod("Error formatting var name.");
 
     int v;
     if constexpr (std::is_floating_point<T>::value) {
-        v = snprintf(request + n, sizeof(request) - n, "%f", (double)value);
+        v = snprintf(request + n, sizeof(request) - n, "%f", static_cast<double>(value));
     } else if constexpr (std::is_integral<T>::value) {
         v = snprintf(request + n, sizeof(request) - n, "%d", value);
     } else {

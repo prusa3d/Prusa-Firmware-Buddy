@@ -30,11 +30,11 @@ CSelftestPart_Fan::CSelftestPart_Fan(IPartHandler &state_machine, const FanConfi
     , m_SampleSum(0)
     , m_SampleCount(0)
     , m_Step(0) {
-    m_config.fanctl.EnterSelftestMode();
+    m_config.fanctl_fnc(m_config.tool_nr).EnterSelftestMode();
 }
 
 CSelftestPart_Fan::~CSelftestPart_Fan() {
-    m_config.fanctl.ExitSelftestMode();
+    m_config.fanctl_fnc(m_config.tool_nr).ExitSelftestMode();
 }
 
 uint32_t CSelftestPart_Fan::estimate(const FanConfig_t &config) {
@@ -56,10 +56,10 @@ LoopResult CSelftestPart_Fan::stateStart() {
     SelftestInstance().log_printf("%s %d Started\n", get_partname(), m_config.tool_nr);
     m_StartTime = SelftestInstance().GetTime();
     m_EndTime = m_StartTime + estimate(m_config);
-    if ((m_config.fanctl.getPWM() == 0) && (m_config.fanctl.getActualRPM() == 0)) {
+    if ((m_config.fanctl_fnc(m_config.tool_nr).getPWM() == 0) && (m_config.fanctl_fnc(m_config.tool_nr).getActualRPM() == 0)) {
         m_EndTime -= FANTEST_STOP_DELAY; // no need to wait until stop, already stopped
     }
-    m_config.fanctl.SelftestSetPWM(0);
+    m_config.fanctl_fnc(m_config.tool_nr).SelftestSetPWM(0);
     return LoopResult::RunNext;
 }
 
@@ -68,9 +68,9 @@ LoopResult CSelftestPart_Fan::stateWaitStopped() {
         actualizeProgress();
         return LoopResult::RunCurrent;
     }
-    m_config.fanctl.SelftestSetPWM(m_config.pwm_start);
+    m_config.fanctl_fnc(m_config.tool_nr).SelftestSetPWM(m_config.pwm_start);
     m_Step = 0;
-    log_info(Selftest, "%s %d wait stopped, rpm: %d pwm: %d", get_partname(), m_config.tool_nr, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
+    log_info(Selftest, "%s %d wait stopped, rpm: %d pwm: %d", get_partname(), m_config.tool_nr, m_config.fanctl_fnc(m_config.tool_nr).getActualRPM(), m_config.fanctl_fnc(m_config.tool_nr).getPWM());
     return LoopResult::RunNext;
 }
 
@@ -81,27 +81,27 @@ LoopResult CSelftestPart_Fan::stateWaitRpm() {
     }
     m_SampleCount = 0;
     m_SampleSum = 0;
-    log_info(Selftest, "%s %d rpm: %d pwm: %d", get_partname(), m_config.tool_nr, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
+    log_info(Selftest, "%s %d rpm: %d pwm: %d", get_partname(), m_config.tool_nr, m_config.fanctl_fnc(m_config.tool_nr).getActualRPM(), m_config.fanctl_fnc(m_config.tool_nr).getPWM());
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_Fan::stateMeasureRpm() {
     if (state_machine.IsInState_ms() <= FANTEST_MEASURE_DELAY) {
         m_SampleCount++;
-        m_SampleSum += m_config.fanctl.getActualRPM();
+        m_SampleSum += m_config.fanctl_fnc(m_config.tool_nr).getActualRPM();
         actualizeProgress();
         return LoopResult::RunCurrent;
     }
     uint16_t rpm = m_SampleSum / m_SampleCount;
-    SelftestInstance().log_printf("%s %d at %u%% PWM = %u RPM\n", get_partname(), m_config.tool_nr, 2 * (m_config.fanctl.getPWM()), rpm);
+    SelftestInstance().log_printf("%s %d at %u%% PWM = %u RPM\n", get_partname(), m_config.tool_nr, 2 * (m_config.fanctl_fnc(m_config.tool_nr).getPWM()), rpm);
     if ((m_config.rpm_min_table != nullptr) && (m_config.rpm_max_table != nullptr))
         if ((rpm < m_config.rpm_min_table[m_Step]) || (rpm > m_config.rpm_max_table[m_Step])) {
             SelftestInstance().log_printf("%s %d %u RPM out of range (%u - %u)\n", get_partname(), m_config.tool_nr, rpm, m_config.rpm_min_table[m_Step], m_config.rpm_max_table[m_Step]);
-            log_error(Selftest, "%s %d measure rpm, rpm: %d pwm: %d", get_partname(), m_config.tool_nr, m_config.fanctl.getActualRPM(), m_config.fanctl.getPWM());
+            log_error(Selftest, "%s %d measure rpm, rpm: %d pwm: %d", get_partname(), m_config.tool_nr, m_config.fanctl_fnc(m_config.tool_nr).getActualRPM(), m_config.fanctl_fnc(m_config.tool_nr).getPWM());
             return LoopResult::Fail;
         }
     if (++m_Step < m_config.steps) {
-        m_config.fanctl.SelftestSetPWM(m_config.fanctl.getPWM() + m_config.pwm_step);
+        m_config.fanctl_fnc(m_config.tool_nr).SelftestSetPWM(m_config.fanctl_fnc(m_config.tool_nr).getPWM() + m_config.pwm_step);
         return LoopResult::GoToMark;
     }
     //finish

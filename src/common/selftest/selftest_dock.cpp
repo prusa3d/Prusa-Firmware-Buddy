@@ -85,7 +85,7 @@ LoopResult CSelftestPart_Dock::state_wait_moves_done() {
         return LoopResult::Abort;
     }
 
-    if (planner.movesplanned() || queue.has_commands_queued()) {
+    if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
     }
     return LoopResult::RunNext;

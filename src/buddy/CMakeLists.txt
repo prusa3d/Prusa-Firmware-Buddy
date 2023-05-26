@@ -1,27 +1,26 @@
 target_sources(
   firmware
-  PRIVATE fatfs.c
-          filesystem.c
-          filesystem_fatfs.c
-          filesystem_littlefs.c
+  PRIVATE fatfs.cpp
+          filesystem.cpp
+          filesystem_fatfs.cpp
+          filesystem_littlefs.cpp
           filesystem_littlefs_bbf.cpp
-          filesystem_littlefs_internal.c
-          filesystem_root.c
+          filesystem_littlefs_internal.cpp
+          filesystem_root.cpp
           filesystem_semihosting.cpp
-          libsysbase_syscalls.c
+          libsysbase_syscalls.cpp
           littlefs_bbf.cpp
-          littlefs_internal.c
-          logging.c
-          lwip.c
-          main.c
+          littlefs_internal.cpp
+          logging.cpp
+          lwip.cpp
           main.cpp
-          timing_sys.c
-          usb_device.c
+          timing_sys.cpp
+          usb_device.cpp
           usb_device_cdc.cpp
-          usb_device_msc.c
-          usb_host.c
-          usbh_conf.c
-          usbh_diskio.c
+          usb_device_msc.cpp
+          usb_host.cpp
+          usbh_conf.cpp
+          usbh_diskio.cpp
   )
 
 set_property(

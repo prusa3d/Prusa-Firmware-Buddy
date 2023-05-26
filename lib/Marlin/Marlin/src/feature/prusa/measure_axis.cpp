@@ -161,7 +161,8 @@ void Measure_axis::home_back(AxisEnum axis) {
         #endif
                        invert_dir[axis] ? (-home_dir(axis)) : home_dir(axis));
 
-    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    abce_pos_t target;
+    planner.get_axis_position_mm(target);
     target[axis] = 0;
     planner.set_machine_position_mm(target);
     float dist = (axis_home_dir > 0) ? -MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE;

@@ -74,7 +74,7 @@ LoopResult CSelftestPart_Loadcell::stateMoveUp() {
 }
 
 LoopResult CSelftestPart_Loadcell::stateMoveUpWaitFinish() {
-    if (planner.movesplanned()) {
+    if (planner.processing()) {
         currentZ = current_position.z;
         return LoopResult::RunCurrent;
     }
@@ -96,7 +96,7 @@ LoopResult CSelftestPart_Loadcell::stateToolSelectInit() {
 }
 
 LoopResult CSelftestPart_Loadcell::stateToolSelectWaitFinish() {
-    if (planner.movesplanned()) {
+    if (planner.processing()) {
         return LoopResult::RunCurrent;
     }
     return LoopResult::RunNext;
@@ -143,10 +143,10 @@ LoopResult CSelftestPart_Loadcell::stateCooldownInit() {
     need_cooling = temp > rConfig.cool_temp; // Check if temperature is safe
     if (need_cooling) {
         log_info(Selftest, "%s cooling needed, target: %d current: %f", rConfig.partname, rConfig.cool_temp, (double)temp);
-        rConfig.print_fan.EnterSelftestMode();
-        rConfig.heatbreak_fan.EnterSelftestMode();
-        rConfig.print_fan.SelftestSetPWM(255);     // it will be restored by ExitSelftestMode
-        rConfig.heatbreak_fan.SelftestSetPWM(255); // it will be restored by ExitSelftestMode
+        rConfig.print_fan_fnc(rConfig.tool_nr).EnterSelftestMode();
+        rConfig.heatbreak_fan_fnc(rConfig.tool_nr).EnterSelftestMode();
+        rConfig.print_fan_fnc(rConfig.tool_nr).SelftestSetPWM(255);     // it will be restored by ExitSelftestMode
+        rConfig.heatbreak_fan_fnc(rConfig.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
         log_info(Selftest, "%s fans set to maximum", rConfig.partname);
     }
     return LoopResult::RunNext;
@@ -167,8 +167,8 @@ LoopResult CSelftestPart_Loadcell::stateCooldown() {
 
 LoopResult CSelftestPart_Loadcell::stateCooldownDeinit() {
     if (need_cooling) { // if cooling was needed, return control of fans
-        rConfig.print_fan.ExitSelftestMode();
-        rConfig.heatbreak_fan.ExitSelftestMode();
+        rConfig.print_fan_fnc(rConfig.tool_nr).ExitSelftestMode();
+        rConfig.heatbreak_fan_fnc(rConfig.tool_nr).ExitSelftestMode();
         log_info(Selftest, "%s fans disabled", rConfig.partname);
     }
     return LoopResult::RunNext;

@@ -56,7 +56,7 @@ private:
 #if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
     static auto constexpr QR_ADDR = "prusa.io/wifiminiqr";
     static auto constexpr ADDR_IN_TEXT = "prusa.io/wifimini";
-#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4)
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5) || (PRINTER_TYPE == PRINTER_PRUSA_iX)
     static auto constexpr QR_ADDR = "prusa.io/wifimk4qr";
     static auto constexpr ADDR_IN_TEXT = "prusa.io/wifimk4";
 #elif (PRINTER_TYPE == PRINTER_PRUSA_XL)

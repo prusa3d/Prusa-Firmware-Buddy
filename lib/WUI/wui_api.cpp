@@ -353,7 +353,7 @@ bool wui_uploaded_gcode(char *filename, bool start_print) {
 
 bool wui_is_file_being_printed(const char *filename) {
 
-    if (!marlin_is_printing()) {
+    if (!wui_is_printing()) {
         return false;
     }
 
@@ -361,4 +361,8 @@ bool wui_is_file_being_printed(const char *filename) {
     strlcpy(sfn, filename, sizeof(sfn));
     get_SFN_path(sfn);
     return marlin_vars()->media_SFN_path.equals(sfn);
+}
+
+bool wui_is_printing() {
+    return marlin_is_printing();
 }

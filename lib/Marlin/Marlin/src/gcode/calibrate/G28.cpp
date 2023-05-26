@@ -201,6 +201,62 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
     return true;
   }
 
+  #if ENABLED(DETECT_PRINT_SHEET)
+    /**
+     * @brief Detect print sheet
+     *
+     * @param z_homing_height z clearance before moving to detect print sheet point
+     * @retval true print sheet detected
+     * @retval false print sheet not detected or move was interrupted
+     */
+    static bool detect_print_sheet(const_float_t z_homing_height) {
+      DEBUG_SECTION(log_G28, "detect_print_sheet", DEBUGGING(LEVELING));
+
+      // Disallow detection if if X or Y or Z homing is needed
+      if (homing_needed_error(_BV(X_AXIS) | _BV(Y_AXIS) | _BV(Z_AXIS))) return false;
+
+      /**
+       * Move the Z probe (or just the nozzle) to the sheet
+       * detect point
+       */
+      do_z_clearance(z_homing_height);
+      constexpr xy_float_t sheet_detect_xy = { DETECT_PRINT_SHEET_X_POINT, DETECT_PRINT_SHEET_Y_POINT };
+      #if HAS_HOME_OFFSET
+        xy_float_t okay_homing_xy = sheet_detect_xy;
+        okay_homing_xy -= home_offset;
+      #else
+        constexpr xy_float_t okay_homing_xy = safe_homing_xy;
+      #endif
+
+      destination.set(okay_homing_xy, current_position.z);
+
+      TERN_(HOMING_Z_WITH_PROBE, destination -= probe_offset);
+
+      if (position_is_reachable(destination)) {
+
+        if (DEBUGGING(LEVELING)) DEBUG_POS("detect_print_sheet", destination);
+
+        // Free the active extruder for movement
+        TERN_(DUAL_X_CARRIAGE, idex_set_parked(false));
+
+        TERN_(SENSORLESS_HOMING, safe_delay(500)); // Short delay needed to settle
+
+        do_blocking_move_to(destination);
+        bool endstop_triggered;
+        run_z_probe(0 - (Z_PROBE_LOW_POINT) + DETECT_PRINT_SHEET_Z_POINT, true, &endstop_triggered);
+        if(!endstop_triggered) {
+          return false;
+        }
+      }
+      else {
+        LCD_MESSAGE(MSG_ZPROBE_OUT);
+        SERIAL_ECHO_MSG(STR_ZPROBE_OUT_SER);
+      }
+
+      return true;
+    }
+  #endif // DETECT_PRINT_SHEET
+
 #endif // Z_SAFE_HOMING
 
 #if ENABLED(IMPROVE_HOMING_RELIABILITY)
@@ -657,6 +713,15 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
           #if ENABLED(Z_SAFE_HOMING)
             if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) {
               failed = !home_z_safely();
+              #if ENABLED(DETECT_PRINT_SHEET)
+              if (!failed) {
+                failed = !detect_print_sheet(z_homing_height);
+                if (failed) {
+                  do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
+                  kill(GET_TEXT(MSG_LCD_MISSING_SHEET));
+                }
+              }
+              #endif
             } else {
               failed = !homeaxis(Z_AXIS);
             }

@@ -19,7 +19,7 @@ void IWiInfo::printInfo(Rect16 extension_rect, color_t color_back, string_view_u
         render_text_align(extension_rect, info_str, getLabelFont(), color_back, GetTextColor(),
             { (uint8_t)0U, (uint8_t)0U, (uint8_t)0U, (uint8_t)0U }, Align_t::RightCenter());
     } else {
-        render_text_align(extension_rect, info_str, InfoFont, color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER,
+        render_text_align(extension_rect, info_str, InfoFont, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER,
             GuiDefaults::MenuPaddingSpecial, Align_t::RightCenter());
     }
 }

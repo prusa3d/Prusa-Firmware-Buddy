@@ -465,7 +465,7 @@ int do_endstop_move(AxisEnum axis, int min_endstop, int max_endstop, int target_
             PRINT_INFO("Stop homing on min endstop\n");
             break;
           }
-          if(planner.movesplanned() == 0){
+          if(!planner.processing()){
             distanced_reach_count++;
 
             if(distanced_reach_count>1){

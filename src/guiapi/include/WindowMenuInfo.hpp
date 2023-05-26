@@ -25,7 +25,7 @@ class IWiInfo : public AddSuper<WI_LABEL_t> {
 
 protected:
     void printInfo(Rect16 extension_rect, color_t color_back, string_view_utf8 info_str) const;
-    static constexpr uint16_t calculate_extension_width(ExtensionLikeLabel extension_like_label, size_t max_characters) {
+    static uint16_t calculate_extension_width(ExtensionLikeLabel extension_like_label, size_t max_characters) {
         return max_characters * (extension_like_label == ExtensionLikeLabel::yes ? GuiDefaults::FontMenuItems->w : InfoFont->w);
     }
 

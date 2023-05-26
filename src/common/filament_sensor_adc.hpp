@@ -16,7 +16,7 @@ class FSensorADC : public FSensor {
 public:
     static constexpr int32_t fs_filtered_value_not_ready { INT32_MIN }; // invalid value of fs_filtered_value
     static constexpr int32_t fs_ref_value_not_calibrated { INT32_MIN }; // invalid value of fs_filtered_value
-    static constexpr float fs_selftest_span_multipler { 1.2 };          // when doing selftest, fs with filament and without has to be different by this value times configured span to pass selftest
+    static constexpr float fs_selftest_span_multipler { 1.7 };          // when doing selftest, fs with filament and without has to be different by this value times configured span to pass selftest
 
 protected:
     int32_t fs_value_span { 0 }; // minimal difference of raw values between the two states of the filament sensor

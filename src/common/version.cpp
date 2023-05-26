@@ -24,9 +24,9 @@ const char project_firmware_name[] = "ModularBed";
     #else
 const char project_firmware_name[] = "Buddy_XL";
     #endif
-#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4)
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5)
 const char project_firmware_name[] = "Buddy_MK4";
-#elif (PRINTER_TYPE == PRINTER_PRUSA_IXL)
+#elif (PRINTER_TYPE == PRINTER_PRUSA_iX)
 const char project_firmware_name[] = "Buddy_iX";
 #else
     #error "Unknown PRINTER_TYPE."

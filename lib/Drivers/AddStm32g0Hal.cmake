@@ -16,7 +16,8 @@ add_library(
   stm32g0xx_hal_driver/Src/stm32g0xx_hal_dma.c
   stm32g0xx_hal_driver/Src/stm32g0xx_hal_flash.c
   stm32g0xx_hal_driver/Src/stm32g0xx_hal_flash_ex.c
-  stm32g0xx_hal_driver/Src/stm32g0xx_hal_iwdg.c  
+  stm32g0xx_hal_driver/Src/stm32g0xx_hal_iwdg.c
+  stm32g0xx_hal_driver/Src/stm32g0xx_hal_spi.c
   )
 
 target_include_directories(STM32G0_HAL PUBLIC stm32g0xx_hal_driver/Inc)

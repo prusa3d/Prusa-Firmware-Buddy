@@ -28,6 +28,9 @@ public:
 
     static constexpr uint16_t TMC_ENABLE_ADDR { ftrstd::to_underlying(SystemCoil::tmc_enable) };
     static constexpr uint16_t IS_SELECTED { ftrstd::to_underlying(SystemCoil::is_selected) };
+    static constexpr uint16_t LOADCELL_ENABLE { ftrstd::to_underlying(SystemCoil::loadcell_enable) };
+    static constexpr uint16_t ACCELEROMETER_ENABLE { ftrstd::to_underlying(SystemCoil::accelerometer_enable) };
+    static constexpr uint16_t ACCELEROMETER_HIGH { ftrstd::to_underlying(SystemCoil::accelerometer_high) };
 
     static constexpr uint16_t HW_BOM_ID_ADDR { ftrstd::to_underlying(SystemInputRegister::hw_bom_id) };
     static constexpr uint16_t TMC_READ_RESPONSE_ADDRESS { ftrstd::to_underlying(SystemInputRegister::tmc_read_response_1) };
@@ -62,6 +65,7 @@ public:
 
     [[nodiscard]] bool is_selected() const;
     CommunicationStatus set_selected(bool selected);
+    bool set_accelerometer(bool active);
 
     uint32_t tmc_read(uint8_t addressByte);
     void tmc_write(uint8_t addressByte, uint32_t config);
@@ -154,6 +158,9 @@ public:
 
     ModbusCoil<TMC_ENABLE_ADDR> TmcEnable;
     ModbusCoil<IS_SELECTED> IsSelectedCoil;
+    ModbusCoil<LOADCELL_ENABLE> LoadcellEnableCoil;
+    ModbusCoil<ACCELEROMETER_ENABLE> AccelerometerEnableCoil;
+    ModbusCoil<ACCELEROMETER_HIGH> AccelerometerHighCoil;
 
     MODBUS_REGISTER MarlinErrorString_t {
         uint16_t title[10];   // 20 chars, title of error
@@ -186,11 +193,12 @@ private:
     CommunicationStatus pull_log_fifo();
     CommunicationStatus pull_loadcell_fifo();
     bool dispatch_log_event();
-    void handle_log_fragment(TimeStamp_us_t timestamp_us, LogData_t data);
+    void handle_log_fragment(LogData data);
     CommunicationStatus run_time_sync();
     constexpr log_component_t &get_log_component(uint8_t dwarf_nr);
     CommunicationStatus read_discrete_general_status();
     void handle_dwarf_fault();
+    void report_accelerometer(int samples_received);
 
     // Register refresh control
     uint32_t last_update_ms = 0;

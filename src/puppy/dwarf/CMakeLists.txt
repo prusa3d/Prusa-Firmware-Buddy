@@ -2,6 +2,9 @@ target_sources(
   firmware
   PRIVATE ../../../lib/CrashCatcher/Core/src/CrashCatcher.c
           ../../../lib/CrashCatcher/Core/src/CrashCatcher_armv6m.S
+          # these two CrashCatcher files need to be here otherwise HardFault_Handler will be handled
+          # by Default_Handler (no compiler error)
+          accelerometer.cpp
           Cheese.cpp
           crash_catcher_integration.cpp
           fifo_encoder.cpp
@@ -9,14 +12,12 @@ target_sources(
           led.cpp
           loadcell.cpp
           logging.cpp
-          main.c
+          main.cpp
           module_marlin.cpp
           task_startup.cpp
           timing_sys.cpp
           tool_filament_sensor.cpp
-          trigger_crash_dump.c
-          # these two CrashCatcher files need to be here otherwise HardFault_Handler will be handled
-          # by Default_Handler (no compiler error)
+          trigger_crash_dump.cpp
   )
 
 target_include_directories(firmware PUBLIC .)

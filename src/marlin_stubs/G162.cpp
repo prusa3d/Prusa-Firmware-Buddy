@@ -93,7 +93,7 @@ void selftest::calib_Z(bool move_down_after) {
 
     // Z axis lift
     FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::CalibZ);
-        #if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_IXL)
+        #if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5 || PRINTER_TYPE == PRINTER_PRUSA_iX)
     endstops.enable(true); // Stall endstops need to be enabled manually as in G28
     if (!homeaxis(Z_AXIS, HOMING_FEEDRATE_INVERTED_Z, true)) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
@@ -103,7 +103,7 @@ void selftest::calib_Z(bool move_down_after) {
     current_position.z = Z_MAX_POS;
     sync_plan_position();
     do_blocking_move_to_z(target_Z, Z_CALIB_ALIGN_AXIS_FEEDRATE); // push both Z axis few mm over HW limit to align motors
-        #endif // (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_IXL)
+        #endif // (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5 || PRINTER_TYPE == PRINTER_PRUSA_iX)
     if (move_down_after) {
         safe_move_down();
     } else {

@@ -34,6 +34,8 @@ void GuiMediaEventsHandler::tick() {
             marlin_event_clr(MARLIN_EVT_MediaError);
             is_starting = false;
             media_state = marlin_vars()->media_inserted ? MediaState_t::inserted : MediaState_t::removed;
+            if (media_state == MediaState_t::inserted)
+                one_click_printing = true;
             state_sent = false;
         }
         return;

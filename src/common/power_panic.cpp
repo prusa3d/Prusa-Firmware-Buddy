@@ -57,12 +57,6 @@ LOG_COMPONENT_DEF(PowerPanic, LOG_SEVERITY_INFO);
 osThreadId ac_fault_task;
 
 void ac_fault_main([[maybe_unused]] void const *argument) {
-    //AC-fault during initialization //TODO: IXL Remove if after PP is ready
-    if constexpr (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4) {
-        if (is_ac_fault_signal()) {
-            fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
-        }
-    }
 
     // suspend until resumed by the fault isr
     vTaskSuspend(NULL);
@@ -521,7 +515,7 @@ void resume_loop() {
     }
 
     case ResumeState::Unpark:
-        if (planner.movesplanned() || queue.length != 0)
+        if (queue.has_commands_queued() || planner.processing())
             break;
 
         // forget the XYZ resume position if requested
@@ -543,7 +537,7 @@ void resume_loop() {
         break;
 
     case ResumeState::ParkForPause:
-        if (planner.movesplanned() || queue.length != 0)
+        if (queue.has_commands_queued() || planner.processing())
             break;
 
         // return to the parking position
@@ -553,7 +547,7 @@ void resume_loop() {
         break;
 
     case ResumeState::Finish:
-        if (planner.movesplanned() || queue.length != 0)
+        if (queue.has_commands_queued() || planner.processing())
             break;
 
         // original planner state
@@ -658,24 +652,24 @@ void shutdown_loop() {
 }
 
 bool shutdown_loop_checked() {
-    uint8_t moves = planner.movesplanned();
-    if (!moves) {
+    bool processing = planner.processing();
+    if (!processing) {
         // no time to perform any shutdown
         return false;
     }
 
     // try to run one iteration of the shutdown sequence
-    if (moves > 1 || stepper.segment_progress() < 0.5f)
+    if (planner.has_unprocessed_blocks_queued() || stepper.segment_progress() < 0.5f)
         shutdown_loop();
 
     // check that no single step takes too long, emit a warning so that we can notice and re-arrange
     // the sequence to avoid stalling (@wavexx consider the move time above if just looking at the
     // move above is not sufficient)
-    moves = planner.movesplanned();
-    if (!moves)
+    processing = planner.processing();
+    if (!processing)
         log_warning(PowerPanic, "shutdown state %u/%u took too long", power_panic_state, shutdown_state - 1);
 
-    return moves;
+    return processing;
 }
 
 std::atomic_bool ac_power_fault_is_checked = false;
@@ -822,7 +816,26 @@ void ac_fault_loop() {
     }
 }
 
+std::atomic<bool> ac_fault_enabled = false;
+
+void check_ac_fault_at_startup() {
+    //AC-fault during initialization //TODO: IXL Remove if after PP is ready
+    if constexpr (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5) {
+        if (power_panic::is_ac_fault_signal()) {
+#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
+            fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
+#endif
+        }
+    }
+
+    ac_fault_enabled = true;
+}
+
 void ac_fault_isr() {
+    if (!ac_fault_enabled) {
+        return;
+    }
+
     // disable EEPROM writes
     ac_power_fault_is_checked = true;
 

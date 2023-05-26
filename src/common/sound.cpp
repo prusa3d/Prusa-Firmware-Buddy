@@ -2,65 +2,6 @@
 #include "hwio.h"
 #include "eeprom.h"
 
-static bool SOUND_INIT = false;
-
-/// main constant of main volume which is maximal volume that we allow
-const float Sound::volumeInit = 0.35F;
-
-/// durations of signals in ms
-// const int16_t Sound::durations[eSOUND_TYPE::count] = { 100, 500, 200, 500,
-// 10, 50, 100, 800, 100 };
-/// frequency of signals in ms
-const float Sound::frequencies[eSOUND_TYPE::count] = { 900.F, 600.F, 950.F,
-    999.F, 800.F, 500.F, 999.F, 950.F, 800.F };
-/// volumes of signals in ms
-const float Sound::volumes[eSOUND_TYPE::count] = {
-    Sound::volumeInit, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit,
-    0.175F, 0.175F, Sound::volumeInit, Sound::volumeInit, Sound::volumeInit
-};
-/// forced types of sounds - mainly for ERROR sounds. Ignores volume settings.
-const bool Sound::forced[eSOUND_TYPE::count] = { false, false, false, true, false, false, false, false, false };
-
-/// array of usable types (eSOUND_TYPE) of every sound modes (eSOUND_MODE)
-const eSOUND_TYPE Sound::onceTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
-    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep,
-    eSOUND_TYPE::WaitingBeep };
-const eSOUND_TYPE Sound::loudTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
-    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::CriticalAlert,
-    eSOUND_TYPE::SingleBeep, eSOUND_TYPE::WaitingBeep };
-const eSOUND_TYPE Sound::silentTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::StandardAlert,
-    eSOUND_TYPE::CriticalAlert };
-const eSOUND_TYPE Sound::assistTypes[] = { eSOUND_TYPE::Start, eSOUND_TYPE::ButtonEcho,
-    eSOUND_TYPE::StandardPrompt, eSOUND_TYPE::StandardAlert, eSOUND_TYPE::EncoderMove,
-    eSOUND_TYPE::BlindAlert, eSOUND_TYPE::CriticalAlert, eSOUND_TYPE::SingleBeep,
-    eSOUND_TYPE::WaitingBeep };
-
-/// signals repeats - how many times will sound signals repeat (-1 is infinite)
-const int8_t Sound::onceRepeats[] = { 1, 1, 1, -1, 1, 1 };
-const int8_t Sound::loudRepeats[] = { 1, 1, -1, 3, -1, 1, -1 };
-const int8_t Sound::silentRepeats[] = { 1, 1, -1 };
-const int8_t Sound::assistRepeats[] = { 1, 1, -1, 3, 1, 1, -1, 1, -1 };
-
-/// delays for repeat sounds (ms)
-const int16_t Sound::onceDelays[] = { 1, 1, 1, 250, 1 };
-const int16_t Sound::loudDelays[] = { 1, 1, 1, 1, 250, 1, 2000 };
-const int16_t Sound::silentDelays[] = { 1, 1, 250 };
-const int16_t Sound::assistDelays[] = { 1, 1, 1, 1, 1, 1, 250, 1, 2000 };
-
-/// durations for sound modes
-const int16_t Sound::onceDurations[] = {
-    100, 100, 500, 500, 800, 800
-};
-const int16_t Sound::loudDurations[] = {
-    100, 100, 500, 200, 500, 800, 100
-};
-const int16_t Sound::silentDurations[] = {
-    100, 200, 500
-};
-const int16_t Sound::assistDurations[] = {
-    100, 100, 500, 200, 10, 50, 500, 800, 100
-};
-
 eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
 int Sound_GetVolume() { return Sound::getInstance().getVolume(); }
 void Sound_SetMode(eSOUND_MODE eSMode) { Sound::getInstance().setMode(eSMode); }
@@ -68,9 +9,7 @@ void Sound_SetVolume(int volume) { Sound::getInstance().setVolume(volume); }
 void Sound_Play(eSOUND_TYPE eSoundType) { Sound::getInstance().play(eSoundType); }
 void Sound_Stop() { Sound::getInstance().stop(); }
 void Sound_Update1ms() {
-    if (SOUND_INIT) {
-        Sound::getInstance().update1ms();
-    }
+    Sound::getInstance().update1ms();
 }
 
 /*!
@@ -79,30 +18,15 @@ void Sound_Update1ms() {
  * [Sound] is updated every 1ms with tim14 tick from [appmain.cpp] for measured durations of sound signals for non-blocking GUI.
  * Beeper is controlled over [hwio_buddy_2209_02.c] functions for beeper.
  */
-Sound::Sound()
-    : duration_active(0)
-    , duration_set(0)
-    , repeat(0)
-    , frequency(100.F)
-    , volume(volumeInit)
-    , delay_active(0)
-    , delay_set(100) {
-    init();
-}
 
-/*!
- * Initialization of Singleton Class needs to be AFTER eeprom initialization.
- * [soundInit] is getting stored EEPROM value of his sound mode.
- * [soundInit] sets global variable [SOUND_INIT] for safe update method([soundUpdate1ms]) because tim14 tick update method is called before [eeprom.c] is initialized.
- */
-void Sound::init() {
-    eSoundMode = static_cast<eSOUND_MODE>(eeprom_get_ui8(EEVAR_SOUND_MODE));
-    if (eSoundMode == eSOUND_MODE::UNDEF) {
-        setMode(eSOUND_MODE::DEFAULT_SOUND);
+void Sound::restore_from_eeprom() {
+    // Restore mode
+    eSOUND_MODE eeprom_mode = static_cast<eSOUND_MODE>(eeprom_get_ui8(EEVAR_SOUND_MODE));
+    if (eeprom_mode != eSOUND_MODE::UNDEF) {
+        setMode(eeprom_mode);
     }
+    // Restore volume
     varVolume = real_volume(eeprom_get_ui8(EEVAR_SOUND_VOLUME));
-    /// GLOBAL FLAG set on demand when first sound method is called
-    SOUND_INIT = true;
 }
 
 eSOUND_MODE Sound::getMode() const {

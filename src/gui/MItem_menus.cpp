@@ -50,10 +50,11 @@
 #include "screen_menu_system.hpp"
 #include "screen_menu_statistics.hpp"
 #include "screen_menu_factory_reset.hpp"
+#include "screen_menu_input_shaper.hpp"
 
 #include <printers.h>
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "screen_menu_diagnostics.hpp"
     #include <option/has_selftest_snake.h>
     #if HAS_SELFTEST_SNAKE()
@@ -274,7 +275,7 @@ void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
 /*****************************************************************************/
 // MI_FOOTER_SETTINGS
 MI_FOOTER_SETTINGS::MI_FOOTER_SETTINGS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
@@ -302,15 +303,6 @@ void MI_FOOTER_SETTINGS_ADV::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-// MI_INDEPT_STEP
-MI_INDEPT_STEP::MI_INDEPT_STEP()
-    : WI_ICON_SWITCH_OFF_ON_t(Stepper::independent_XY_stepping_enabled, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {};
-
-void MI_INDEPT_STEP::OnChange([[maybe_unused]] size_t old_index) {
-    Stepper::independent_XY_stepping_enabled = !Stepper::independent_XY_stepping_enabled;
-}
-
-/*****************************************************************************/
 // MI_PRUSALINK
 MI_PRUSALINK::MI_PRUSALINK()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
@@ -325,7 +317,7 @@ void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
 
 MI_DIAGNOSTICS::MI_DIAGNOSTICS()
     : WI_LABEL_t(_(label), nullptr,
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         is_enabled_t::yes
 #else
         is_enabled_t::no
@@ -335,7 +327,7 @@ MI_DIAGNOSTICS::MI_DIAGNOSTICS()
 }
 
 void MI_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuDiagnostics>);
 #endif
 }
@@ -573,7 +565,7 @@ void MI_CALIBRATE_DOCK::click(IWindowMenu & /*window_menu*/) {
 
 MI_SELFTEST_SNAKE::MI_SELFTEST_SNAKE()
     : WI_LABEL_t(_(label), &png::calibrate_white_16x16,
-    #if HAS_SELFTEST
+    #if HAS_SELFTEST()
         is_enabled_t::yes
     #else
         is_enabled_t::no
@@ -583,7 +575,7 @@ MI_SELFTEST_SNAKE::MI_SELFTEST_SNAKE()
 }
 
 void MI_SELFTEST_SNAKE::click(IWindowMenu & /*window_menu*/) {
-    #if HAS_SELFTEST
+    #if HAS_SELFTEST()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSTSCalibrations>);
     #endif
 }
@@ -596,4 +588,12 @@ MI_OPEN_FACTORY_RESET::MI_OPEN_FACTORY_RESET()
 
 void MI_OPEN_FACTORY_RESET::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFactoryReset>);
+}
+
+MI_INPUT_SHAPER::MI_INPUT_SHAPER()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_INPUT_SHAPER::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInputShaper>);
 }

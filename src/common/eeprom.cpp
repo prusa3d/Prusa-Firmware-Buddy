@@ -398,7 +398,6 @@ eeprom_init_status_t eeprom_init(void) {
     status = EEPROM_INIT_Normal;
     osSemaphoreDef(eepromSema);
     eeprom_sema = osSemaphoreCreate(osSemaphore(eepromSema), 1);
-    st25dv64k_init();
 
     /* Try to read inital data from eeprom multiple times.
      * This is blind fix for random eeprom resets. We know incorrect data can
@@ -430,12 +429,17 @@ eeprom_init_status_t eeprom_init(void) {
 
     switch (status) {
     case EEPROM_INIT_Defaults:
-        eeprom_defaults();
+        eeprom_defaults(); //TODO(ConfigStore) : Remove this line when enabling configuration store
         break;
     case EEPROM_INIT_Upgraded:
         eeprom_write_vars();
         break;
     default:
+        // hack to set Y motor current for input shaper alpha version
+        if (auto &vars = eeprom_startup_vars(); vars.body.AXIS_RMS_CURRENT_MA_Y == 600) {
+            vars.body.AXIS_RMS_CURRENT_MA_Y = 700;
+            eeprom_write_vars();
+        }
         break;
     }
 
@@ -964,7 +968,7 @@ static bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
 static bool eeprom_check_crc32() {
     if (eeprom_ram_mirror.vars.head.DATASIZE > EEPROM_MAX_DATASIZE)
         return false;
-    if (eeprom_ram_mirror.vars.head.DATASIZE == 0)
+    if (eeprom_ram_mirror.vars.head.DATASIZE < sizeof(eeprom_ram_mirror.vars.head) + sizeof(eeprom_ram_mirror.vars.CRC32))
         return false;
 
     uint32_t crc;

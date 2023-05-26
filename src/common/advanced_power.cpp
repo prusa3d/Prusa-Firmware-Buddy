@@ -4,6 +4,10 @@
 #include "bsod.h"
 #include "hwio_pindef.h"
 
+#if BOARD_IS_XBUDDY
+    #include "hw_configuration.hpp"
+#endif
+
 #if !(BOARD_IS_DWARF)
     #include "bsod_gui.hpp"
 #endif
@@ -46,6 +50,9 @@ bool AdvancedPower::OvercurrentFaultDetected() const {
     return (inputCurrentFault.read() == Pin::State::high);
 }
 
+float AdvancedPower::GetInputCurrent() const {
+    return buddy::hw::Configuration::Instance().curr_measurement_voltage_to_current(RawValueToVoltage(GetInputCurrentRaw()));
+}
 #endif
 
 #if !(BOARD_IS_DWARF)

@@ -25,6 +25,7 @@
 #include <option/has_puppies.h>
 #include <option/has_loadcell.h>
 #include <option/has_gui.h>
+#include <option/debug_with_beeps.h>
 #include "device/board.h"
 #include "Marlin/src/module/motion.h" // for active_extruder
 #include "puppies/modular_bed.hpp"
@@ -385,7 +386,7 @@ void hwio_beeper_notone(void) {
 }
 
 void hwio_update_1ms(void) {
-#if HAS_GUI() && !(_DEBUG)
+#if HAS_GUI() && (DEBUG_WITH_BEEPS() || !_DEBUG)
     static uint32_t skips = 0;
     if (skips < hwio_beeper_period - 1) {
         skips++;
@@ -588,7 +589,7 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
         case MARLIN_PIN(FAN): // print fan
-            fanCtlPrint[active_extruder].setPWM(ulValue);
+            Fans::print(active_extruder).setPWM(ulValue);
             buddy::puppies::modular_bed.set_print_fan_active(ulValue > 0);
             return;
         case MARLIN_PIN(FAN1):

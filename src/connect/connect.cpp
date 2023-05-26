@@ -195,7 +195,14 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
         last_known_status = OnlineStatus::Connecting;
     }
 
-    printer.renew();
+    printer.drop_paths(); // In case they were left in there in some early-return case.
+    auto borrow = buffer.borrow();
+    if (planner().wants_job_paths()) {
+        assert(borrow.has_value());
+    } else {
+        borrow.reset();
+    }
+    printer.renew(move(borrow));
 
     auto action = planner().next_action(buffer);
 
@@ -235,6 +242,12 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     BasicRequest request(printer, config, action, telemetry_changes, background_command_id);
     ExtractCommanId cmd_id;
     const auto result = http.send(request, &cmd_id);
+    // Drop current job paths (if any) to make space for potentially parsing a command from the server.
+    // In case we failed to send the JOB_INFO event that uses the paths, we
+    // will acquire it and fill it in the next iteration anyway.
+    //
+    // Note that this invalidates the paths inside params in the current printer snapshot.
+    printer.drop_paths();
 
     if (holds_alternative<Error>(result)) {
         planner().action_done(ActionResult::Failed);

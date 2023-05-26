@@ -137,13 +137,10 @@ Stepper stepper; // Singleton
 
 // private:
 
-block_t* Stepper::current_block; // (= nullptr) A pointer to the block currently being traced
-
 uint8_t Stepper::last_direction_bits, // = 0
         Stepper::axis_did_move; // = 0
 
-bool Stepper::abort_current_block;
-
+#if 0
 #if DISABLED(MIXING_EXTRUDER) && EXTRUDERS > 1
   uint8_t Stepper::last_moved_extruder = 0xFF;
 #endif
@@ -226,9 +223,12 @@ int32_t Stepper::ticks_nominal = -1;
   uint32_t Stepper::acc_step_rate; // needed for deceleration start point
 #endif
 
+#endif
+
 xyz_long_t Stepper::endstops_trigsteps;
 xyze_long_t Stepper::count_position{0};
 xyze_long_t Stepper::count_position_from_startup{0};
+xyze_long_t Stepper::count_position_last_block{0};
 xyze_int8_t Stepper::count_direction{0};
 
 #define DUAL_ENDSTOP_APPLY_STEP(A,V)                                                                                        \
@@ -441,11 +441,28 @@ void Stepper::set_directions() {
 
 // Return ratio of completed steps of current block (call within ISR context)
 float Stepper::segment_progress() {
-  if (!step_event_count) return 0.f;
-  float count = step_event_count;
-  float done = step_events_completed;
-  return done / count;
+  const block_t *current_block = planner.get_current_processed_block();
+  if (!current_block || !current_block->step_event_count) return NAN;
+
+  abce_ulong_t planned_steps = current_block->steps;
+  xyze_long_t done_steps = count_position - count_position_last_block;
+
+  float planned;
+  float done;
+
+  if (planned_steps.a || planned_steps.b || planned_steps.c) {
+    // explicitly ignore extruder
+    planned = (float)(planned_steps.a + planned_steps.b + planned_steps.c);
+    done = (float)(abs(done_steps.a) + abs(done_steps.b) + abs(done_steps.c));
+  } else {
+    planned = (float)(current_block->step_event_count);
+    done = (float)(abs(done_steps.a) + abs(done_steps.b) + abs(done_steps.c) + abs(done_steps.e));
+  }
+
+  return done / planned;
 }
+
+#if 0
 
 #if ENABLED(S_CURVE_ACCELERATION)
   /**
@@ -1265,6 +1282,7 @@ HAL_STEP_TIMER_ISR() {
 
   HAL_timer_isr_epilogue(STEP_TIMER_NUM);
 }
+#endif
 
 #ifdef CPU_32_BIT
   #define STEP_MULTIPLY(A,B) MultiU32X24toH32(A, B)
@@ -1272,6 +1290,7 @@ HAL_STEP_TIMER_ISR() {
   #define STEP_MULTIPLY(A,B) MultiU24X32toH16(A, B)
 #endif
 
+#if 0
 void Stepper::isr() {
   #ifndef __AVR__
     // Disable interrupts, to avoid ISR preemption while we reprogram the period
@@ -1413,8 +1432,12 @@ void Stepper::isr() {
   ENABLE_ISRS();
 }
 
+#endif
+
 #define _APPLY_STEP(AXIS) AXIS ##_APPLY_STEP
 #define _INVERT_STEP_PIN(AXIS) INVERT_## AXIS ##_STEP_PIN
+
+#if 0
 
 void Stepper::slow_axis_pulse_phase_isr() {
 
@@ -2108,6 +2131,8 @@ bool Stepper::is_block_busy(const block_t* const block) {
   return block == vnew;
 }
 
+#endif
+
 void Stepper::init() {
 
   #if MB(ALLIGATOR)
@@ -2381,7 +2406,7 @@ void Stepper::endstop_triggered(const AxisEnum axis) {
   );
 
   // Discard the rest of the move if there is a current block
-  quick_stop();
+  PreciseStepping::quick_stop();
 
   if (was_enabled) wake_up();
 }
@@ -3095,7 +3120,7 @@ void Stepper::report_positions() {
   }
 
 #endif // HAS_MICROSTEPS
-#if HAS_DRIVER(TMC2130)
+#if HAS_DRIVER(TMC2130) || HAS_DRIVER(TMC2209)
 #include "eeprom_function_api.h"
 void Stepper::microstep_mode(const uint8_t driver, const uint8_t stepping){
     switch(driver){
@@ -3222,4 +3247,4 @@ SERIAL_ECHOPGM(msg);
 SERIAL_ECHOPGM(msg);
 #endif
 }
-#endif //HAS_DRIVER(TMC2130)
+#endif // HAS_DRIVER(TMC2130) || HAS_DRIVER(TMC2209)

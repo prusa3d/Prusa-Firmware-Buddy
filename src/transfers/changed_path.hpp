@@ -50,16 +50,20 @@ public:
     private:
         friend class ChangedPath;
         Lock lock;
-        Status(Lock &&lock)
-            : lock(std::move(lock)) {}
+        Status(Lock &&lock, ChangedPath &owner)
+            : lock(std::move(lock))
+            , owner(owner) {}
 
-        char *path { nullptr };
+        ChangedPath &owner;
         Type type {};
         Incident incident {};
+        // Keep a copy outside of the owner. This one is *not* reset by
+        // consume.
+        std::optional<uint32_t> command_id;
 
     public:
         Status(Status &&other) = default;
-        Status &operator=(Status &&other) = default;
+        Status &operator=(Status &&other) = delete;
         Status(const Status &other) = delete;
         Status &operator=(const Status &other) = delete;
 
@@ -72,18 +76,28 @@ public:
         /// it to the server, you would need to add a new
         /// viewer function, that do not do the reset.
         ///
+        /// Also resests the command_id bundled with the path.
+        ///
         /// return false if the provided buffer is not big enough.
-        bool consume_path(char *out, size_t size) const;
+        bool consume(char *out, size_t size) const;
 
 #ifdef UNITTESTS
         const char *get_path() const;
 #endif
         bool is_file() const;
         Incident what_happend() const;
+        std::optional<uint32_t> triggered_command_id() const;
     };
 
 public:
-    void changed_path(const char *filepath, Type type, Incident incident);
+    /// Something on this path changed.
+    ///
+    /// The command_id is for tracking commands that caused this on the Connect
+    /// side. Note that we assume we can't get two consequetive Connect
+    /// commands without reporting it there first (we can in theory combine
+    /// with a Link-sourced or local-sourced event and we could have (not have
+    /// right now) a command that causes multiple changes).
+    void changed_path(const char *filepath, Type type, Incident incident, std::optional<uint32_t> command_id = std::nullopt);
 
     /// Request the changes to fs since last report
     ///
@@ -99,6 +113,7 @@ private:
     std::array<char, FILE_PATH_BUFFER_LEN> path {};
     Type type {};
     Incident incident {};
+    std::optional<uint32_t> command_id;
 };
 
 }

@@ -27,6 +27,7 @@ public:
 
     static constexpr size_t files_to_upload = 3;
     static constexpr size_t buffer_length = 512;
+    static constexpr auto retries = 3;
 
     struct esp_fw_entry {
         uintptr_t address;

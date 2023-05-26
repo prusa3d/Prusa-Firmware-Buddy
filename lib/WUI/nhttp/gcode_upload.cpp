@@ -122,6 +122,10 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
         return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, json_errors);
     }
 
+    if (wui_is_printing()) {
+        return StatusPage(Status::Conflict, parser, "Transfers temporarily disallowed while printing");
+    }
+
     const char *path = holds_alternative<PutParams>(uploadParams) ? get<PutParams>(uploadParams).filepath.data() : nullptr;
     auto slot = Monitor::instance.allocate(Monitor::Type::Link, path, *parser.content_length, parser.print_after_upload);
     if (!slot.has_value()) {

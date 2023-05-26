@@ -57,6 +57,8 @@
 #include "gcode/parser.h"
 #include "gcode/queue.h"
 
+#include "feature/precise_stepping/common.h"
+
 #include <option/development_items.h>
 
 #if ENABLED(TOUCH_BUTTONS)
@@ -424,7 +426,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
 
   if (stepper_inactive_time) {
     static bool already_shutdown_steppers; // = false
-    if (planner.has_blocks_queued())
+    if (planner.busy())
       gcode.reset_stepper_timeout();
     else if (MOVE_AWAY_TEST && !ignore_stepper_queue && ELAPSED(ms, gcode.previous_move_ms + stepper_inactive_time)) {
       if (!already_shutdown_steppers) {
@@ -519,7 +521,7 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(EXTRUDER_RUNOUT_PREVENT)
     if (thermalManager.degHotend(active_extruder) > EXTRUDER_RUNOUT_MINTEMP
       && ELAPSED(ms, gcode.previous_move_ms + (EXTRUDER_RUNOUT_SECONDS) * 1000UL)
-      && !planner.has_blocks_queued()
+      && !planner.busy()
     ) {
       #if ENABLED(SWITCHING_EXTRUDER)
         bool oldstatus;
@@ -699,7 +701,7 @@ void idle(
 
   #if ENABLED(I2C_POSITION_ENCODERS)
     static millis_t i2cpem_next_update_ms;
-    if (planner.has_blocks_queued()) {
+    if (planner.busy()) {
       const millis_t ms = millis();
       if (ELAPSED(ms, i2cpem_next_update_ms)) {
         I2CPEM.update();
@@ -734,6 +736,9 @@ void idle(
   #if ENABLED(POLL_JOG)
     joystick.inject_jog_moves();
   #endif
+
+  PreciseStepping::process_queue_of_blocks();
+
   if (waiting) delay(1);
 }
 

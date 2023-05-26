@@ -3,15 +3,22 @@
 
 #include <option/has_toolchanger.h>
 // the version of the g-code that the printer supports
-#define GCODE_LEVEL 1
+#define GCODE_LEVEL 2
 
 namespace PrusaGcodeSuite {
+using M862_6SupportedFeatures = std::array<const char *, 1>;
+extern M862_6SupportedFeatures m862_6SupportedFeatures;
+
 void G26();  /// first layer calibration
 void G64();  /// Measure Z_AXIS height
 void G162(); /// handler-specific configuration
 void G163(); /// measure length of axis
 
 void M50(); /// selftest
+
+void M74();  /// weight of the model
+
+void M74();  /// weight of the model
 
 void M300(); /// beep
 void M505(); /// set eeprom variable
@@ -30,6 +37,7 @@ void M862_2(); // Check model code
 void M862_3(); // Check model name
 void M862_4(); // Check firmware version
 void M862_5(); // Check gcode level
+void M862_6(); // Check gcode level
 #endif
 
 void M930();

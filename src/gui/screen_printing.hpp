@@ -32,7 +32,7 @@ enum class printing_state_t : uint8_t {
 constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
-    static constexpr const char *caption = N_("PRINTING ...");
+    static constexpr const char *caption = N_("INPUT SHAPER (ALPHA)");
 
 #if defined(USE_ILI9488)
     PrintProgress print_progress;

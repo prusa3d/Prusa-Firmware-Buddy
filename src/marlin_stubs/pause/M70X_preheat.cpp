@@ -127,9 +127,9 @@ std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes:
  * @param preheat_tp preheat options
  * @param target_extruder
  */
-void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
+void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, uint8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
     InProgress progress;
-    PreheatData data(PreheatMode::None, preheat_tp);
+    PreheatData data(mode, preheat_tp);
     Response response = preheatTempUnKnown(data, true);
 
     // autoload ocurred

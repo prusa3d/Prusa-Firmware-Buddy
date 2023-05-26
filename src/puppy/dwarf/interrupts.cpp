@@ -8,6 +8,7 @@
 #include "tool_filament_sensor.hpp"
 #include "fanctl.hpp"
 #include "task_startup.h"
+#include "accelerometer.hpp"
 
 extern "C" {
 
@@ -21,9 +22,9 @@ void DMA1_Channel1_IRQHandler() {
     HAL_DMA_IRQHandler(&hdma_adc1);
 }
 
-// TIM6_IRQHandler is implemented by Marlin
+// TIM1_CC_IRQHandler is implemented by Marlin
 //
-// void TIM6_IRQHandler() {
+// void TIM1_CC_IRQHandler() {
 // }
 
 // TIM7_IRQHandler is implemented by Marlin
@@ -53,7 +54,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         if (dwarf_init_done) {
             dwarf::loadcell::loadcell_irq();
             dwarf::tool_filament_sensor::tool_filament_sensor_irq();
-            fanctl_tick();
+            dwarf::accelerometer::accelerometer_irq();
+            Fans::tick();
         }
     }
 }

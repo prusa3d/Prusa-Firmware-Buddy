@@ -315,7 +315,7 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
     // Disable print fan on old dwarf, enable on new dwarf
     // todo: remove this when multiple fans are implemented properly
     if (old_dwarf != nullptr) {
-        fanCtlPrint[old_dwarf->get_dwarf_nr() - 1].setPWM(0);
+        Fans::print(old_dwarf->get_dwarf_nr() - 1).setPWM(0);
     }
 
     if (new_dwarf != old_dwarf) {
@@ -446,10 +446,10 @@ void PrusaToolChanger::loop(bool printing) {
         picked_update = false;
 
         // Automatically change tool
-        if (force_toolchange_gcode.load()                                                          // Force toolchange after reset to force all marlin tool variables
-            || ((picked != active)                                                                 // When user parked or picked manually
-                && (printing == false)                                                             // Only if not printing
-                && (planner.movesplanned() == false) && (queue.has_commands_queued() == false))) { // And nothing is in queue
+        if (force_toolchange_gcode.load()                                                        // Force toolchange after reset to force all marlin tool variables
+            || ((picked != active)                                                               // When user parked or picked manually
+                && (printing == false)                                                           // Only if not printing
+                && (queue.has_commands_queued() == false) && (planner.processing() == false))) { // And nothing is in queue
             force_toolchange_gcode = false;
 
             // Update tool through marlin

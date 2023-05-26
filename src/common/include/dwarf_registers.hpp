@@ -15,6 +15,9 @@ enum class SystemDiscreteInput : uint16_t {
 enum class SystemCoil : uint16_t {
     tmc_enable = 0x4000,
     is_selected = 0x4001,
+    loadcell_enable = 0x4002,
+    accelerometer_enable = 0x4003,
+    accelerometer_high = 0x4004,
 };
 
 enum class SystemInputRegister : uint16_t {

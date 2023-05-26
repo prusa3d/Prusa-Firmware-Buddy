@@ -155,12 +155,14 @@ void Buddy::Metrics::RecordMarlinVariables() {
     static metric_t ipos_z = METRIC("ipos_z", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
     metric_record_integer(&ipos_z, stepper.position_from_startup(AxisEnum::Z_AXIS));
 
+    xyz_pos_t pos;
+    planner.get_axis_position_mm(pos);
     static metric_t pos_x = METRIC("pos_x", METRIC_VALUE_FLOAT, 11, METRIC_HANDLER_DISABLE_ALL);
-    metric_record_float(&pos_x, planner.get_axis_position_mm(AxisEnum::X_AXIS));
+    metric_record_float(&pos_x, pos[X_AXIS]);
     static metric_t pos_y = METRIC("pos_y", METRIC_VALUE_FLOAT, 11, METRIC_HANDLER_DISABLE_ALL);
-    metric_record_float(&pos_y, planner.get_axis_position_mm(AxisEnum::Y_AXIS));
+    metric_record_float(&pos_y, pos[Y_AXIS]);
     static metric_t pos_z = METRIC("pos_z", METRIC_VALUE_FLOAT, 11, METRIC_HANDLER_DISABLE_ALL);
-    metric_record_float(&pos_z, planner.get_axis_position_mm(AxisEnum::Z_AXIS));
+    metric_record_float(&pos_z, pos[Z_AXIS]);
 
 #if HAS_BED_PROBE
     static metric_t adj_z = METRIC("adj_z", METRIC_VALUE_FLOAT, 1500, METRIC_HANDLER_ENABLE_ALL);

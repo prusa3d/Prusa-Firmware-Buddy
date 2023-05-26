@@ -14,14 +14,16 @@
 
 constexpr static const char *finish_print_text = N_("Print finished");
 constexpr static const char *stop_print_text = N_("Print stopped");
+constexpr static const char *input_shaper_alpha_text = N_("Input Shaper (Alpha)");
 
 PrintProgress::PrintProgress(window_t *parent)
     : AddSuperWindow<DialogTimed>(getTime() > SpinCnf::print_progress.Min() ? parent : nullptr, GuiDefaults::RectScreen, 1000 * getTime())
     , estime_label(this, Rect16(22, 260, 140, 16), is_multiline::no)
     , estime_value(this, Rect16(22, 280, 200, 22), is_multiline::no)
     , info_text(this, Rect16(22, 265, 300, 30), is_multiline::no)
+    , input_shaper_text(this, Rect16(Width() - 200, Height() - 20, 195, 16), is_multiline::no)
     , progress_bar(this, Rect16(Width() - (Width() - GuiDefaults::ProgressThumbnailRect.Width()), 0, Width() - GuiDefaults::ProgressThumbnailRect.Width(), GuiDefaults::ProgressThumbnailRect.Height()))
-    , progress_num(this, Rect16(348, GuiDefaults::ProgressThumbnailRect.Height(), 132, Height() - GuiDefaults::ProgressThumbnailRect.Height()))
+    , progress_num(this, Rect16(Width() - 145, GuiDefaults::ProgressThumbnailRect.Height() + 5, 130, Height() - GuiDefaults::ProgressThumbnailRect.Height() - 25))
     , thumbnail(this, GuiDefaults::ProgressThumbnailRect)
     , gcode_info(GCodeInfo::getInstance())
     , time_end_format(PT_t::init)
@@ -33,7 +35,11 @@ PrintProgress::PrintProgress(window_t *parent)
     info_text.SetText(_(finish_print_text));
     info_text.Hide();
 
-    estime_label.font = resource_font(IDR_FNT_SMALL);
+    input_shaper_text.SetFont(resource_font(IDR_FNT_SMALL));
+    input_shaper_text.SetAlignment(Align_t::RightTop());
+    input_shaper_text.SetText(_(input_shaper_alpha_text));
+
+    estime_label.SetFont(resource_font(IDR_FNT_SMALL));
     estime_label.SetPadding({ 0, 0, 0, 0 });
     estime_label.SetAlignment(Align_t::LeftTop());
     estime_label.SetTextColor(COLOR_SILVER);
@@ -43,7 +49,7 @@ PrintProgress::PrintProgress(window_t *parent)
     estime_value.SetPadding({ 0, 0, 0, 0 });
     estime_value.SetAlignment(Align_t::LeftTop());
 
-    progress_num.SetAlignment(Align_t::Center());
+    progress_num.SetAlignment(Align_t::RightTop());
 #ifdef USE_ILI9488
     progress_num.SetFont(resource_font(IDR_FNT_LARGE));
 #elif defined(USE_ST7789)
@@ -98,16 +104,17 @@ void PrintProgress::UpdateTexts() {
 
 void PrintProgress::updateLoop(visibility_changed_t visibility_changed) {
 
-    UpdateTexts();
-
     if (thumbnail.updatePercentage(progress_num.getPercentage())) {
         thumbnail.Invalidate();
     }
 
-    if (visibility_changed == visibility_changed_t::yes) {
+    // ProgressMode_t::STOPPED_INIT invokes redrawWhole(), due to black screen bug during Stopping from plink/Connect
+    if (visibility_changed == visibility_changed_t::yes || mode == ProgressMode_t::STOPPED_INIT) {
         thumbnail.redrawWhole();
         thumbnail.Invalidate();
     }
+
+    UpdateTexts();
 }
 
 void PrintProgress::updateEsTime() {

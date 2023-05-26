@@ -73,7 +73,7 @@ static const uint16_t Fan1max_rpm_table[] = { 3750, 5850, 7050, 8050, 8950 };
 static const FanConfig_t Config_Fans[2] = {
     { .type = fan_type_t::Print,
         .tool_nr = 0,
-        .fanctl = fanCtlPrint[0],
+        .fanctl_fnc = Fans::print,
         .pwm_start = 51,
         .pwm_step = 51,
         .rpm_min_table = printFanMin_rpm_table,
@@ -81,7 +81,7 @@ static const FanConfig_t Config_Fans[2] = {
         .steps = 5 },
     { .type = fan_type_t::Heatbreak,
         .tool_nr = 0,
-        .fanctl = fanCtlHeatBreak[0],
+        .fanctl_fnc = Fans::heat_break,
         .pwm_start = 51,
         .pwm_step = 51,
         .rpm_min_table = heatBreakFanMin_rpm_table,
@@ -104,8 +104,8 @@ static const HeaterConfig_t Config_HeaterNozzle[] = {
         .refKp = Temperature::temp_hotend[0].pid.Kp,
         .refKi = Temperature::temp_hotend[0].pid.Ki,
         .refKd = Temperature::temp_hotend[0].pid.Kd,
-        .heatbreak_fan = fanCtlHeatBreak[0],
-        .print_fan = fanCtlPrint[0],
+        .heatbreak_fan_fnc = Fans::heat_break,
+        .print_fan_fnc = Fans::print,
         .heat_time_ms = 42000,
         .start_temp = 40,
         .undercool_temp = 37,
@@ -123,8 +123,8 @@ static const HeaterConfig_t Config_HeaterBed = {
     .refKp = Temperature::temp_bed.pid.Kp,
     .refKi = Temperature::temp_bed.pid.Ki,
     .refKd = Temperature::temp_bed.pid.Kd,
-    .heatbreak_fan = fanCtlHeatBreak[0],
-    .print_fan = fanCtlPrint[0],
+    .heatbreak_fan_fnc = Fans::heat_break,
+    .print_fan_fnc = Fans::print,
     .heat_time_ms = 60000,
     .start_temp = 40,
     .undercool_temp = 39,
@@ -136,7 +136,7 @@ static const HeaterConfig_t Config_HeaterBed = {
 static const FanConfig_t Config_fans_fine[2] = {
     { .type = fan_type_t::Print,
         .tool_nr = 0,
-        .fanctl = fanCtlPrint[0],
+        .fanctl_fnc = Fans::print,
         .pwm_start = 20,
         .pwm_step = 10,
         .rpm_min_table = nullptr,
@@ -144,7 +144,7 @@ static const FanConfig_t Config_fans_fine[2] = {
         .steps = 24 },
     { .type = fan_type_t::Heatbreak,
         .tool_nr = 0,
-        .fanctl = fanCtlHeatBreak[0],
+        .fanctl_fnc = Fans::heat_break,
         .pwm_start = 20,
         .pwm_step = 10,
         .rpm_min_table = nullptr,
@@ -414,8 +414,8 @@ void CSelftest::restoreAfterSelftest() {
     marlin_server::set_temp_to_display(0, 0);
 
     //restore fan behavior
-    fanCtlPrint[0].ExitSelftestMode();
-    fanCtlHeatBreak[0].ExitSelftestMode();
+    Fans::print(0).ExitSelftestMode();
+    Fans::heat_break(0).ExitSelftestMode();
 
     thermalManager.disable_all_heaters();
     disable_all_steppers();

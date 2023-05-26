@@ -94,7 +94,7 @@ const std::array<char, MenuVars::AXIS_CNT> MenuVars::GetAxisLetters() { return {
 const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetNozzleRange() { return { 0, (HEATER_0_MAXTEMP - 15), 1 }; };
 const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetBedRange() { return { 0, (BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN), 1 }; };
 
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL) || PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5) || (PRINTER_TYPE == PRINTER_PRUSA_iX) || PRINTER_TYPE == PRINTER_PRUSA_XL)
 constexpr const int filament_change_slow_load_length = 45;
 constexpr const int filament_change_fast_load_length = 40;
 constexpr const int filament_change_slow_purge_length = 30;

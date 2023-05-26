@@ -55,7 +55,7 @@ protected:
     virtual void click(IWindowMenu &window_menu);
 };
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_IXL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_iX)
     #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,     \
                           MI_Filament<filament::Type::PETG>,    \
                           MI_Filament<filament::Type::PETG_NH>, \

@@ -2,15 +2,13 @@
 
 #include "config.h"
 #if 0
-    #ifdef LOADCELL_HX717
-
-        #include <stdio.h>
-        #include <stdlib.h>
-        #include "gui.hpp"
-        #include "loadcell.h"
-        #include "gpio.h"
-        #include "eeprom.h"
-        #include "screens.h"
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include "gui.hpp"
+    #include "loadcell.h"
+    #include "gpio.h"
+    #include "eeprom.h"
+    #include "screens.h"
 
 typedef struct
 {
@@ -29,10 +27,10 @@ typedef struct
     window_text_t button_return;
     char str_out[32];
     char str_term[32];
-        #ifdef FILAMENT_SENSOR_ADC
+    #ifdef FILAMENT_SENSOR_ADC
     window_text_t text_terminal2;
     char str_term2[32];
-        #endif
+    #endif
 } screen_test_hx711_data_t;
 
 enum class Action : int {
@@ -45,7 +43,7 @@ enum class Action : int {
     UpdateHysteresis,
 };
 
-        #define pd ((screen_test_hx711_data_t *)screen->pdata)
+    #define pd ((screen_test_hx711_data_t *)screen->pdata)
 
 void screen_test_hx711_init(screen_t *screen) {
     uint16_t y;
@@ -67,10 +65,10 @@ void screen_test_hx711_init(screen_t *screen) {
     pd->text_terminal.font = _font_term;
 
     y += 22;
-        #ifdef FILAMENT_SENSOR_ADC
+    #ifdef FILAMENT_SENSOR_ADC
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(x, y, w, h), &(pd->text_terminal2));
     pd->text_terminal2.font = _font_term;
-        #endif
+    #endif
     y += 22;
 
     w = 140;
@@ -198,10 +196,10 @@ int screen_test_hx711_event(screen_t *screen, window_t *window, uint8_t event, v
         pd->text_out.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pd->str_out));
         sprintf(pd->str_term, "LC: %d, RAW: %.1f", loadcell.GetMinZEndstop(), (double)loadcell.GetLoad());
         pd->text_terminal.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pd->str_term));
-        #ifdef FILAMENT_SENSOR_ADC
+    #ifdef FILAMENT_SENSOR_ADC
         //sprintf(pd->str_term2, "FS: %d, RAW: %ld", fsensor_probe, fsensor_value);
         pd->text_terminal2.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pd->str_term2));
-        #endif
+    #endif
     }
     return 0;
 }
@@ -218,7 +216,4 @@ screen_t screen_test_hx711 = {
 };
 
 screen_t *const get_scr_test_hx711() { return &screen_test_hx711; }
-
-    #endif //LOADCELL_HX717
-
 #endif // 0

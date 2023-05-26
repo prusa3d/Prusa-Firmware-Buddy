@@ -12,7 +12,7 @@ void ScreenMenuUserInterface::windowEvent(EventLock /*has private ctor*/, window
         DialogMoveZ::Show();
         return;
     }
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL) || (PRINTER_TYPE == PRINTER_PRUSA_MK4)
+#if (PRINTER_TYPE == PRINTER_PRUSA_XL) || (PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5)
     if (last_touch_error_count != touch::get_touch_read_err_total()) {
         last_touch_error_count = touch::get_touch_read_err_total();
         Item<MI_TOUCH_ERR_COUNT>().SetVal(touch::get_touch_read_err_total());

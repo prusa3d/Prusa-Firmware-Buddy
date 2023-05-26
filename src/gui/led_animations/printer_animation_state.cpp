@@ -5,51 +5,51 @@ LOG_COMPONENT_DEF(Led, LOG_SEVERITY_INFO);
 
 using namespace marlin_server;
 
-PrinterState leds::mpsToAnimationState(marlin_server::marlin_print_state_t state) {
+PrinterState leds::mpsToAnimationState(marlin_server::State state) {
     switch (state) {
-    case mpsIdle:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewImage:
-    case mpsPrintPreviewQuestions:
-    case mpsExit:
+    case State::Idle:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
+    case State::PrintPreviewQuestions:
+    case State::Exit:
         return PrinterState::Idle;
-    case mpsWaitGui:
-    case mpsPrinting:
-    case mpsPrintInit:
+    case State::WaitGui:
+    case State::Printing:
+    case State::PrintInit:
         return PrinterState::Printing;
-    case mpsPausing_Begin:
-    case mpsPausing_Failed_Code:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
-    case mpsPaused:
+    case State::Pausing_Begin:
+    case State::Pausing_Failed_Code:
+    case State::Pausing_WaitIdle:
+    case State::Pausing_ParkHead:
+    case State::Paused:
         return PrinterState::Pausing;
-    case mpsResuming_Begin:
-    case mpsResuming_Reheating:
-    case mpsResuming_UnparkHead_XY:
-    case mpsResuming_UnparkHead_ZE:
+    case State::Resuming_Begin:
+    case State::Resuming_Reheating:
+    case State::Resuming_UnparkHead_XY:
+    case State::Resuming_UnparkHead_ZE:
         return PrinterState::Resuming;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
-    case mpsAborted:
+    case State::Aborting_Begin:
+    case State::Aborting_WaitIdle:
+    case State::Aborting_ParkHead:
+    case State::Aborted:
         return PrinterState::Aborting;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
-    case mpsFinished:
+    case State::Finishing_WaitIdle:
+    case State::Finishing_ParkHead:
+    case State::Finished:
         return PrinterState::Finishing;
-    case mpsCrashRecovery_Begin:
-    case mpsCrashRecovery_Retracting:
-    case mpsCrashRecovery_Lifting:
-    case mpsCrashRecovery_XY_Measure:
-    case mpsCrashRecovery_Tool_Pickup:
-    case mpsCrashRecovery_XY_HOME:
-    case mpsCrashRecovery_HOMEFAIL:
-    case mpsCrashRecovery_Axis_NOK:
-    case mpsCrashRecovery_Repeated_Crash:
+    case State::CrashRecovery_Begin:
+    case State::CrashRecovery_Retracting:
+    case State::CrashRecovery_Lifting:
+    case State::CrashRecovery_XY_Measure:
+    case State::CrashRecovery_Tool_Pickup:
+    case State::CrashRecovery_XY_HOME:
+    case State::CrashRecovery_HOMEFAIL:
+    case State::CrashRecovery_Axis_NOK:
+    case State::CrashRecovery_Repeated_Crash:
         return PrinterState::Warning;
-    case mpsPowerPanic_acFault:
-    case mpsPowerPanic_Resume:
-    case mpsPowerPanic_AwaitingResume:
+    case State::PowerPanic_acFault:
+    case State::PowerPanic_Resume:
+    case State::PowerPanic_AwaitingResume:
         return PrinterState::PowerPanic;
     default:
         log_error(Led, "Invalid marlin print state");

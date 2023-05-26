@@ -10,7 +10,7 @@
 #include "log.h"
 LOG_COMPONENT_REF(GUI);
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
 #endif
 
@@ -77,7 +77,7 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
         }
         break;
     case ClientFSM::Selftest:
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         if (!ScreenSelftest::GetInstance()) {
             //data contain screen caption type
             //ScreenSelftest::SetHeaderMode(...);
@@ -131,7 +131,7 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
         }
         break;
     case ClientFSM::Selftest:
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         if (ScreenSelftest::GetInstance()) {
             ScreenSelftest::GetInstance()->Change(data);
         }

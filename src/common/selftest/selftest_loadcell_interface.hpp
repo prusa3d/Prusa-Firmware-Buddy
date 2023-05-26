@@ -9,6 +9,7 @@
 #pragma once
 #include "selftest_loadcell_config.hpp"
 #include "selftest_loadcell_type.hpp"
+#include "Marlin/src/inc/MarlinConfig.h" // HOTENDS
 #include <span>
 
 class IPartHandler;

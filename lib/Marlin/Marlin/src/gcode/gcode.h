@@ -222,6 +222,8 @@
  * M524 - Abort the current SD print job started with M24. (Requires SDSUPPORT)
  * M540 - Enable/disable SD card abort on endstop hit: "M540 S<state>". (Requires SD_ABORT_ON_ENDSTOP_HIT)
  * M569 - Enable stealthChop on an axis. (Requires at least one _DRIVER_TYPE to be TMC2130/2160/2208/2209/5130/5160)
+ * M572 - Set parameters for pressure advance.
+ * M593 - Set parameters for input shapers.
  * M600 - Pause for filament change: "M600 X<pos> Y<pos> Z<raise> E<first_retract> L<later_retract>". (Requires ADVANCED_PAUSE_FEATURE)
  * M601 - Pause and park print-head in marlin's defined position. (Requires ADVANCED_PAUSE_FEATURE)
  * M602 - Unpark print-head parked with M601 called before and unpause print process. (Requires ADVANCED_PAUSE_FEATURE)
@@ -270,6 +272,8 @@
  * ************ Custom codes - This can change to suit future G-code regulations
  * G425 - Calibrate using a conductive object. (Requires CALIBRATION_GCODE)
  * M928 - Start SD logging: "M928 filename.gco". Stop with M29. (Requires SDSUPPORT)
+ * M958 - Excite harmonic vibration and measure amplitude
+ * M959 - Tune input shaper
  * M997 - Perform in-application firmware update
  * M999 - Restart after being stopped by error
  *
@@ -692,9 +696,6 @@ private:
     #endif
   #endif
 
-  static void M170();
-  static void M171();
-
   static void M200();
   static void M201();
 
@@ -872,9 +873,14 @@ private:
     static void M557();
   #endif
 
+  static void M572();
+  static void M572_internal(float pressure_advance, float smooth_time);
+
   #if ENABLED(BAUD_RATE_GCODE)
     static void M575();
   #endif
+
+  static void M593();
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
     static void M600();
@@ -925,9 +931,9 @@ private:
     FORCE_INLINE static void M869() { I2CPEM.M869(); }
   #endif
 
-  #if ENABLED(LIN_ADVANCE)
+//  #if ENABLED(LIN_ADVANCE)
     static void M900();
-  #endif
+//  #endif
 
   #if HAS_TRINAMIC
     static void M122();
@@ -973,6 +979,11 @@ private:
   #if ENABLED(MAGNETIC_PARKING_EXTRUDER)
     static void M951();
   #endif
+
+  static void M958();
+#if ENABLED(ACCELEROMETER)
+  static void M959();
+#endif
 
   #if ENABLED(PLATFORM_M997_SUPPORT)
     static void M997();

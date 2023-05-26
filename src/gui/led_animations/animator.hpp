@@ -9,6 +9,7 @@
 #include "bsod.h"
 #include <mutex>
 #include "bsod_gui.hpp"
+#include "config.h"
 
 // allocates and deallocates memory space (one size) on statically allocated memory
 template <class Space, size_t SIZE>
@@ -27,7 +28,9 @@ public:
                 return &storage[i];
             }
         }
+#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
         fatal_error(ErrCode::ERR_SYSTEM_LED_ANIMATION_BAD_SPACE_MANAGEMENT);
+#endif
         return nullptr;
     }
     void free_space(Space *space) {

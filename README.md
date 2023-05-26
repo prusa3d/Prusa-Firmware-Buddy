@@ -132,6 +132,11 @@ To install custom firmware, you have to break the appendix on the board. Learn h
 
 - [Feature Requests from Community](https://github.com/prusa3d/Prusa-Firmware-Buddy/labels/feature%20request)
 
+## Credits
+
+- [Marlin](https://marlinfw.org/) - 3D printing core driver
+- [Klipper](https://www.klipper3d.org/) - input shaper code based on Klipper
+
 ## License
 
 The firmware source code is licensed under the GNU General Public License v3.0 and the graphics and design are licensed under Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). Fonts are licensed under different license (see [LICENSE](LICENSE.md)).

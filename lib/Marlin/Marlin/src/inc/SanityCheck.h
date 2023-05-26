@@ -972,6 +972,10 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #endif
 
+#if ENABLED(REMOTE_ACCELEROMETER) && DISABLED(PRUSA_TOOLCHANGER)
+  #error "REMOTE_ACCELEROMETER requires PRUSA_TOOLCHANGER"
+#endif
+
 /**
  * Part-Cooling Fan Multiplexer requirements
  */

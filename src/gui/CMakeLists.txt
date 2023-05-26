@@ -14,6 +14,7 @@ target_sources(
   PRIVATE box_unfinished_selftest.cpp
           fonts.cpp
           gcode_description.cpp
+          gui_fsensor_api.cpp
           gui_media_events.cpp
           gui_time.cpp
           guimain.cpp
@@ -32,7 +33,6 @@ target_sources(
           network_gui_tools.cpp
           png_resources.cpp
           print_time_module.cpp
-          screen_crash_recovery.cpp
           screen_dialog_does_not_exist.cpp
           screen_filebrowser.cpp
           screen_hardfault.cpp
@@ -52,6 +52,7 @@ target_sources(
           screen_menu_hardware_tune.cpp
           screen_menu_hw_setup.cpp
           screen_menu_info.cpp
+          screen_menu_input_shaper.cpp
           screen_menu_lan_settings.cpp
           screen_menu_lang_and_time.cpp
           screen_menu_move.cpp
@@ -88,6 +89,9 @@ target_sources(
           window_temp_graph.cpp
           window_thumbnail.cpp
   )
+if(PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
+  target_sources(firmware PRIVATE screen_crash_recovery.cpp)
+endif()
 
 if(HAS_CONTROL_MENU)
   target_sources(firmware PRIVATE screen_menu_control.cpp)

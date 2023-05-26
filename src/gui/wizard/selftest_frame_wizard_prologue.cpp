@@ -12,7 +12,7 @@
 static constexpr size_t margin_texts = 0;
 static constexpr Align_t align_text_icon = Align_t::LeftTop();
 static const char *txt_prologue = N_("Welcome to the Original Prusa MINI setup wizard. Would you like to continue?");
-#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4)
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5) || (PRINTER_TYPE == PRINTER_PRUSA_iX)
 static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
 static const char *txt_prologue = N_("Hi, this is your\nOriginal Prusa MK4 printer.\n"

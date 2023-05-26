@@ -281,6 +281,8 @@ typedef struct XYval<float>        xy_float_t;
 typedef struct XYZval<float>      xyz_float_t;
 typedef struct XYZEval<float>    xyze_float_t;
 
+typedef struct XYZEval<double>    xyze_double_t;
+
 typedef struct XYval<feedRate_t>     xy_feedrate_t;
 typedef struct XYZval<feedRate_t>   xyz_feedrate_t;
 typedef struct XYZEval<feedRate_t> xyze_feedrate_t;

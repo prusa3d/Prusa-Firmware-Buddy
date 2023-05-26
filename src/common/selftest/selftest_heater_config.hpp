@@ -20,6 +20,7 @@ enum class heater_type_t {
 //using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
 struct HeaterConfig_t {
     using type_evaluation = SelftestHeater_t;
+    using FanCtlFnc = CFanCtl &(*)(size_t);
     static constexpr SelftestParts part_type = SelftestParts::Heaters;
     using temp_getter = float (*)();
     using temp_setter = void (*)(int);
@@ -31,8 +32,8 @@ struct HeaterConfig_t {
     float &refKp;
     float &refKi;
     float &refKd;
-    CFanCtl &heatbreak_fan;
-    CFanCtl &print_fan;
+    FanCtlFnc heatbreak_fan_fnc;
+    FanCtlFnc print_fan_fnc;
     uint32_t heat_time_ms;
     int32_t start_temp;
     int32_t undercool_temp;

@@ -4,7 +4,7 @@ target_sources(
   firmware
   PUBLIC Dwarf.cpp
          fifo_decoder.cpp
-         modbus.c
+         modbus.cpp
          modular_bed.cpp
          puppy_crash_dump.cpp
          puppy_task.cpp

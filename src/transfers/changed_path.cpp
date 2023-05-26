@@ -1,5 +1,6 @@
 #include "changed_path.hpp"
 
+#include <cassert>
 #include <cstring>
 #include <string_view>
 
@@ -14,8 +15,13 @@ using std::optional;
 
 namespace transfers {
 
-void ChangedPath::changed_path(const char *filepath, Type changed_type, Incident action) {
+void ChangedPath::changed_path(const char *filepath, Type changed_type, Incident action, optional<uint32_t> command_id) {
     Lock lock(mutex);
+
+    if (command_id.has_value()) {
+        assert(!this->command_id.has_value());
+        this->command_id = command_id;
+    }
 
     size_t size = std::min(strlen(filepath), strlen(path.data()));
     if (strcmp(filepath, path.data()) == 0 && changed_type == Type::Folder) {
@@ -56,27 +62,28 @@ optional<ChangedPath::Status> ChangedPath::status() {
         return nullopt;
     }
 
-    Status result { std::move(lock) };
-    result.path = path.data();
+    Status result(std::move(lock), *this);
     result.type = type;
     result.incident = incident;
+    result.command_id = command_id;
 
     return result;
 }
 
-bool ChangedPath::Status::consume_path(char *out, size_t size) const {
-    if (size <= strlen(path)) {
+bool ChangedPath::Status::consume(char *out, size_t size) const {
+    if (size <= strlen(owner.path.data())) {
         return false;
     }
 
-    strlcpy(out, path, size);
-    path[0] = '\0';
+    strlcpy(out, owner.path.data(), size);
+    owner.path[0] = '\0';
+    owner.command_id.reset();
     return true;
 }
 
 #ifdef UNITTESTS
 const char *ChangedPath::Status::get_path() const {
-    return path;
+    return owner.path.data();
 }
 #endif
 
@@ -86,6 +93,10 @@ bool ChangedPath::Status::is_file() const {
 
 ChangedPath::Incident ChangedPath::Status::what_happend() const {
     return incident;
+}
+
+optional<uint32_t> ChangedPath::Status::triggered_command_id() const {
+    return command_id;
 }
 
 ChangedPath ChangedPath::instance;

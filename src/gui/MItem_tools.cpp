@@ -36,6 +36,8 @@
 #include <time.h>
 #include "config_features.h"
 #include <option/has_side_fsensor.h>
+#include "configuration_store.hpp"
+#include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper.h"
 
 #if HAS_TOOLCHANGER()
     #include <puppies/Dwarf.hpp>
@@ -182,7 +184,7 @@ MI_DISABLE_STEP::MI_DISABLE_STEP()
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_XL || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
     marlin_gcode("M18 X Y E");
 #else
     marlin_gcode("M18");
@@ -220,17 +222,15 @@ MI_FACTORY_HARD_RESET::MI_FACTORY_HARD_RESET()
 }
 
 void MI_FACTORY_HARD_RESET::click(IWindowMenu & /*window_menu*/) {
-    if (MsgBoxWarning(_("This operation cannot be undone. Current configuration will be lost!\nYou will need a USB drive with this firmware ("
-#if PRINTER_TYPE == PRINTER_PRUSA_MK4
-                        "MK4"
-#elif PRINTER_TYPE == PRINTER_PRUSA_XL
-                        "XL"
-#else
-                        "PRINTER"
-#endif
-                        "_firmware_4.6.0.bbf file) to start the printer again.\nDo you really want to continue?"),
-            Responses_YesNo, 1)
-        == Response::Yes) {
+    static constexpr char fmt2Translate[] = N_("This operation cannot be undone. Current configuration will be lost!\nYou will need a USB drive with this firmware (%s_firmware_%s.bbf file) to start the printer again.\nDo you really want to continue?");
+    char buff[sizeof(fmt2Translate) + 20]; // expecting xx.xx.xx for version (8) + max 5 for for PRINTER_MODEL + some reserve
+    {
+        char translated_fmt[sizeof(buff)];
+        _(fmt2Translate).copyToRAM(translated_fmt, sizeof(translated_fmt));
+        snprintf(buff, sizeof(buff), translated_fmt, PRINTER_MODEL, project_version);
+    }
+
+    if (MsgBoxWarning(_(buff), Responses_YesNo, 1) == Response::Yes) {
         do_factory_reset(true);
     }
 }
@@ -926,3 +926,70 @@ MI_INFO_SERIAL_NUM_LOVEBOARD::MI_INFO_SERIAL_NUM_LOVEBOARD()
 }
 MI_INFO_SERIAL_NUM_XLCD::MI_INFO_SERIAL_NUM_XLCD()
     : WiInfo<28>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+/*****************************************************************************/
+// INPUT SHAPER
+
+bool input_shaper_x_enabled() {
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    return PreciseStepping::step_generator_types & INPUT_SHAPER_STEP_GENERATOR_X;
+#else
+    return false; // TODO(InputShaperBeta)
+#endif
+}
+
+bool input_shaper_y_enabled() {
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    return PreciseStepping::step_generator_types & INPUT_SHAPER_STEP_GENERATOR_Y;
+#else
+    return false; // TODO(InputShaperBeta)
+#endif
+}
+
+bool input_shaper_enabled() {
+    return input_shaper_x_enabled() || input_shaper_y_enabled();
+}
+
+MI_IS_ONOFF::MI_IS_ONOFF()
+    : WI_INFO_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    ChangeInformation(input_shaper_enabled() ? _(str_active) : _(str_idle));
+}
+
+MI_IS_TYPE::MI_IS_TYPE(int32_t val, string_view_utf8 label_src, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    : WI_SWITCH_t<6>(val, label_src, id_icon, enabled, hidden, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_ZV), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_ZVD), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_MZV), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_EI), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_2HUMP_EI), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_3HUMP_EI)) {
+}
+
+MI_IS_TYPE::~MI_IS_TYPE() {
+}
+
+MI_IS_X_TYPE::MI_IS_X_TYPE()
+    : MI_IS_TYPE(static_cast<int32_t>(InputShaper::x_type), _(label), nullptr, is_enabled_t::no, input_shaper_x_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+}
+
+void MI_IS_X_TYPE::OnChange([[maybe_unused]] size_t old_index) {
+    // TODO(InputShaperBeta)
+}
+
+MI_IS_Y_TYPE::MI_IS_Y_TYPE()
+    : MI_IS_TYPE(static_cast<int32_t>(InputShaper::y_type), _(label), nullptr, is_enabled_t::no, input_shaper_y_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+}
+
+void MI_IS_Y_TYPE::OnChange([[maybe_unused]] size_t old_index) {
+    // TODO(InputShaperBeta)
+}
+
+MI_IS_X_FREQUENCY::MI_IS_X_FREQUENCY()
+    : WiSpinInt(static_cast<uint32_t>(InputShaper::x_frequency), SpinCnf::input_shaper_freq, _(label), nullptr, is_enabled_t::no, input_shaper_x_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+}
+
+void MI_IS_X_FREQUENCY::OnClick() {
+    // TODO(InputShaperBeta)
+}
+
+MI_IS_Y_FREQUENCY::MI_IS_Y_FREQUENCY()
+    : WiSpinInt(static_cast<uint32_t>(InputShaper::y_frequency), SpinCnf::input_shaper_freq, _(label), nullptr, is_enabled_t::no, input_shaper_y_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+}
+
+void MI_IS_Y_FREQUENCY::OnClick() {
+    // TODO(InputShaperBeta)
+}

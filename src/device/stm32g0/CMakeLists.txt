@@ -1,7 +1,7 @@
 add_subdirectory(startup)
 
 if(BOARD MATCHES "MODULARBED")
-  target_sources(firmware PRIVATE cmsis.c sysview.c)
+  target_sources(firmware PRIVATE cmsis.cpp sysview.cpp)
 else()
-  target_sources(firmware PRIVATE cmsis.c core_init.cpp hal_msp.c peripherals.cpp sysview.c)
+  target_sources(firmware PRIVATE cmsis.cpp core_init.cpp hal_msp.cpp peripherals.cpp sysview.cpp)
 endif()

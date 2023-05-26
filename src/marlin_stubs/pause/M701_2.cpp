@@ -87,7 +87,7 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
     }
 
     // Load
-    if (load_unload(LoadUnloadMode::Load, PRINTER_TYPE == PRINTER_PRUSA_IXL ? &Pause::FilamentLoadNotBlocking : &Pause::FilamentLoad, settings)) {
+    if (load_unload(LoadUnloadMode::Load, PRINTER_TYPE == PRINTER_PRUSA_iX ? &Pause::FilamentLoadNotBlocking : &Pause::FilamentLoad, settings)) {
         M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
@@ -237,7 +237,8 @@ void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint
     }
 
     if (ask_filament == AskFilament_t::Always || (filament == filament::Type::NONE && ask_filament == AskFilament_t::IfUnknown)) {
-        M1700_no_parser(preheat, target_extruder, true, true, eeprom_get_bool(EEVAR_HEATUP_BED)); // need to save filament to check if operation went well
+        // need to save filament to check if operation went well, PreheatMode::Unload for user info in header
+        M1700_no_parser(preheat, PreheatMode::Unload, target_extruder, true, true, eeprom_get_bool(EEVAR_HEATUP_BED));
         filament = filament::get_type_in_extruder(target_extruder);
         if (filament == filament::Type::NONE)
             return; // no need to set PreheatStatus::Result::DoneNoFilament, M1700 did that
@@ -260,7 +261,7 @@ void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint
     }
 
     // Unload
-    if (load_unload(LoadUnloadMode::Unload, PRINTER_TYPE == PRINTER_PRUSA_IXL ? &Pause::FilamentUnload : &Pause::FilamentUnload_AskUnloaded, settings)) {
+    if (load_unload(LoadUnloadMode::Unload, PRINTER_TYPE == PRINTER_PRUSA_iX ? &Pause::FilamentUnload : &Pause::FilamentUnload_AskUnloaded, settings)) {
         M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
@@ -288,7 +289,7 @@ void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint
     settings.SetResumePoint(current_position_tmp);
 #endif
 
-    if (load_unload(LoadUnloadMode::Load, PRINTER_TYPE == PRINTER_PRUSA_IXL ? &Pause::FilamentLoadNotBlocking : &Pause::FilamentLoad, settings)) {
+    if (load_unload(LoadUnloadMode::Load, PRINTER_TYPE == PRINTER_PRUSA_iX ? &Pause::FilamentLoadNotBlocking : &Pause::FilamentLoad, settings)) {
         M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);

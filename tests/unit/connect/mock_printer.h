@@ -9,11 +9,11 @@
 
 namespace connect_client {
 
-constexpr Printer::Params params_idle() {
-    Printer::Params params {};
+inline Printer::Params params_idle() {
+    Printer::Params params(std::nullopt);
 
     params.job_id = 13;
-    params.state = Printer::DeviceState::Idle;
+    params.state = printer_state::DeviceState::Idle;
     params.nozzle_diameter = 0.4;
 
     return params;
@@ -34,7 +34,8 @@ public:
 
     std::vector<std::string> submitted_gcodes;
 
-    virtual void renew() override {}
+    virtual void renew(std::optional<SharedBuffer::Borrow> borrow) override {}
+    virtual void drop_paths() override {}
     virtual Config load_config() override {
         return Config();
     }

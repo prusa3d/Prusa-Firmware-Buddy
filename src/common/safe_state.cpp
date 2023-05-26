@@ -18,8 +18,8 @@ using namespace buddy::hw;
 //! Set fans to maximum, heaters to minimum and disable motors.
 void hwio_safe_state(void) {
     // enable fans
-    fanCtlPrint[0].safeState();
-    fanCtlHeatBreak[0].safeState();
+    Fans::print(0).safeState();
+    Fans::heat_break(0).safeState();
 
     // disable heaters
     gpio_init(MARLIN_PIN(HEAT0), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
@@ -77,7 +77,7 @@ void hwio_safe_state(void) {
     // motor off
     e0Enable.write(Pin::State::high);
 
-    fanCtlPrint[0].safeState();
-    fanCtlHeatBreak[0].safeState();
+    Fans::print(0).safeState();
+    Fans::heat_break(0).safeState();
 }
 #endif

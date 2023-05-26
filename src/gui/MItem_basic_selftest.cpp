@@ -13,6 +13,7 @@
 #include "ScreenSelftest.hpp"
 #include <option/has_toolchanger.h>
 #include "filament_sensors_handler.hpp"
+#include "printers.h"
 #include <inttypes.h>
 
 #if HAS_TOOLCHANGER()
@@ -111,6 +112,7 @@ void MI_TEST_Y::click(IWindowMenu & /*window_menu*/) {
 
 /*****************************************************************************/
 // MI_TEST_Z
+#if (PRINTER_TYPE != PRINTER_PRUSA_iX)
 MI_TEST_Z::MI_TEST_Z()
     : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
@@ -119,6 +121,7 @@ void MI_TEST_Z::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_test_start(stmZAxis);
 }
+#endif
 
 /*****************************************************************************/
 // MI_TEST_HEAT
@@ -143,6 +146,7 @@ void MI_TEST_HOTEND::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
+#if (PRINTER_TYPE != PRINTER_PRUSA_iX)
 // MI_TEST_BED
 MI_TEST_BED::MI_TEST_BED()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
@@ -152,7 +156,7 @@ void MI_TEST_BED::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_test_start(stmHeaters_bed);
 }
-
+#endif
 /*****************************************************************************/
 // MI_CALIB_FSENSOR
 #if FILAMENT_SENSOR_IS_ADC()
@@ -273,7 +277,7 @@ bool MI_RESTORE_CALIBRATION_FROM_USB::restore_fs_calibration() {
 
         IFSensor *sensor = side ? GetSideFSensor(e) : GetExtruderFSensor(e);
 
-        if (sensor) {
+        if (sensor && span_value != 0) {
             eeprom_set_i32(sensor->get_eeprom_ref_id(), ref_value);
 
             eeprom_set_ui32(sensor->get_eeprom_span_id(), span_value);
@@ -318,14 +322,15 @@ bool MI_BACKUP_CALIBRATION_TO_USB::backup_fs_calibration() {
 
         IFSensor *sensor = side ? GetSideFSensor(e) : GetExtruderFSensor(e);
 
+        int32_t ref_value = 0;
+        uint32_t span_value = 0;
         if (sensor) {
-            int32_t ref_value = eeprom_get_i32(sensor->get_eeprom_ref_id());
-
-            uint32_t span_value = eeprom_get_ui32(sensor->get_eeprom_span_id());
-
-            int n = snprintf(buffer.data(), buffer.size(), "%" PRIi32 " %" PRIu32 "\n", ref_value, span_value);
-            fwrite(buffer.data(), sizeof(char), n, file);
+            ref_value = eeprom_get_i32(sensor->get_eeprom_ref_id());
+            span_value = eeprom_get_ui32(sensor->get_eeprom_span_id());
         }
+
+        int n = snprintf(buffer.data(), buffer.size(), "%" PRIi32 " %" PRIu32 "\n", ref_value, span_value);
+        fwrite(buffer.data(), sizeof(char), n, file);
     }
 
     return fclose(file) == 0;

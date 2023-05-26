@@ -132,6 +132,7 @@ enum class PhasesPreheat : uint16_t {
 enum class PhasesPrintPreview : uint16_t {
     _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
     main_dialog = _first,
+    new_firmware_available,
     wrong_printer,
     wrong_printer_abort,
     filament_not_inserted,
@@ -375,7 +376,7 @@ class ClientResponses {
     static constexpr PhaseResponses PreheatResponses[] = {
         {}, //_first
         { Response::Abort, Response::Cooldown, Response::PLA, Response::PETG,
-#if (PRINTER_TYPE == PRINTER_PRUSA_IXL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_iX)
             Response::PETG_NH,
 #endif
             Response::ASA, Response::ABS, Response::PC, Response::FLEX, Response::HIPS, Response::PP, Response::PVB, Response::PA }, // UserTempSelection
@@ -384,6 +385,7 @@ class ClientResponses {
 
     static constexpr PhaseResponses PrintPreviewResponses[] = {
         { Response::Print, Response::Back },                   // main_dialog,
+        { Response::Continue },                                // new_firmware_available
         { Response::Abort, Response::PRINT },                  // wrong_printer
         { Response::Abort },                                   // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted

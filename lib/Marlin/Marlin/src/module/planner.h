@@ -34,25 +34,10 @@
 
 #include "motion.h"
 #include "../gcode/queue.h"
-
-#if ENABLED(DELTA)
-  #include "delta.h"
-#endif
-
-#if ABL_PLANAR
-  #include "../libs/vector_3.h" // for matrix_3x3
-#endif
+#include "../feature/precise_stepping/precise_stepping.h"
 
 #if ENABLED(FWRETRACT)
   #include "../feature/fwretract.h"
-#endif
-
-#if ENABLED(MIXING_EXTRUDER)
-  #include "../feature/mixing.h"
-#endif
-
-#if HAS_CUTTER
-  #include "../feature/spindle_laser.h"
 #endif
 
 // from stepper/trinamic.h , avoiding include loop
@@ -77,14 +62,20 @@ enum BlockFlagBit : char {
   BLOCK_BIT_CONTINUED,
 
   // Sync the stepper counts from the block
-  BLOCK_BIT_SYNC_POSITION
+  BLOCK_BIT_SYNC_POSITION,
+
+  // Indicate that PreciseStepping already processed the block, but it still has to be inside
+  // the block queue until the last step event from this block will be processed in
+  // PreciseStepping::process_one_step_event_from_queue().
+  BLOCK_BIT_PROCESSED
 };
 
 enum BlockFlag : char {
   BLOCK_FLAG_RECALCULATE          = _BV(BLOCK_BIT_RECALCULATE),
   BLOCK_FLAG_NOMINAL_LENGTH       = _BV(BLOCK_BIT_NOMINAL_LENGTH),
   BLOCK_FLAG_CONTINUED            = _BV(BLOCK_BIT_CONTINUED),
-  BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION)
+  BLOCK_FLAG_SYNC_POSITION        = _BV(BLOCK_BIT_SYNC_POSITION),
+  BLOCK_FLAG_PROCESSED            = _BV(BLOCK_BIT_PROCESSED)
 };
 
 /**
@@ -100,6 +91,18 @@ typedef struct block_t {
 
   volatile uint8_t flag;                    // Block flags (See BlockFlag enum above) - Modified by ISR and main thread!
 
+  #if EXTRUDERS > 1
+    uint8_t extruder;                       // The extruder to move (if E move)
+  #else
+    static constexpr uint8_t extruder = 0;
+  #endif
+
+  uint8_t direction_bits;                   // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
+
+  #if FAN_COUNT > 0
+    uint8_t fan_speed[FAN_COUNT];
+  #endif
+
   // Fields used by the motion planner to manage acceleration
   float nominal_speed_sqr,                  // The nominal speed for this block in (mm/sec)^2
         entry_speed_sqr,                    // Entry speed at previous-current junction in (mm/sec)^2
@@ -112,16 +115,6 @@ typedef struct block_t {
     abce_long_t position;                   // New position to force when this sync block is executed
   };
   uint32_t step_event_count;                // The number of step events required to complete this block
-
-  #if EXTRUDERS > 1
-    uint8_t extruder;                       // The extruder to move (if E move)
-  #else
-    static constexpr uint8_t extruder = 0;
-  #endif
-
-  #if ENABLED(MIXING_EXTRUDER)
-    MIXER_BLOCK_FIELD;                      // Normalized color for the mixing steppers
-  #endif
 
   // Settings for the trapezoid generator
   uint32_t accelerate_until,                // The index of the step event on which to stop acceleration
@@ -137,45 +130,12 @@ typedef struct block_t {
     uint32_t acceleration_rate;             // The acceleration rate used for acceleration calculation
   #endif
 
-  uint8_t direction_bits;                   // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
-
-  // Advance extrusion
-  #if ENABLED(LIN_ADVANCE)
-    bool use_advance_lead;
-    uint16_t advance_speed,                 // STEP timer value for extruder speed offset ISR
-             max_adv_steps,                 // max. advance steps to get cruising speed pressure (not always nominal_speed!)
-             final_adv_steps;               // advance steps due to exit speed
-    float e_D_ratio;
-  #endif
-
   uint32_t nominal_rate,                    // The nominal step rate for this block in step_events/sec
            initial_rate,                    // The jerk-adjusted step rate at start of block
            final_rate,                      // The minimal rate at exit
            acceleration_steps_per_s2;       // acceleration steps/sec^2
 
-  #if HAS_CUTTER
-    cutter_power_t cutter_power;            // Power level for Spindle, Laser, etc.
-  #endif
-
-  #if FAN_COUNT > 0
-    uint8_t fan_speed[FAN_COUNT];
-  #endif
-
-  #if ENABLED(BARICUDA)
-    uint8_t valve_pressure, e_to_p_pressure;
-  #endif
-
-  #if HAS_SPI_LCD
-    uint32_t segment_time_us;
-  #endif
-
-  #if ENABLED(POWER_LOSS_RECOVERY)
-    uint32_t sdpos;
-  #endif
-
 } block_t;
-
-#define HAS_POSITION_FLOAT ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, CRASH_RECOVERY)
 
 #define BLOCK_MOD(n) ((n)&(BLOCK_BUFFER_SIZE-1))
 
@@ -204,13 +164,6 @@ typedef struct {
 
   #if DISABLED(CLASSIC_JERK)
     float junction_deviation_mm;                // (mm) M205 J
-    #if ENABLED(LIN_ADVANCE)
-      #if ENABLED(DISTINCT_E_FACTORS)
-        float max_e_jerk[EXTRUDERS];            // Calculated from junction_deviation_mm
-      #else
-        float max_e_jerk;
-      #endif
-    #endif
   #endif
   #if HAS_CLASSIC_JERK
     #if HAS_LINEAR_E_JERK
@@ -258,11 +211,11 @@ class Planner {
      *  Reader of tail is Stepper::isr(). Always consider tail busy / read-only
      */
     static block_t block_buffer[BLOCK_BUFFER_SIZE];
-    static volatile uint8_t block_buffer_head,      // Index of the next block to be pushed
-                            block_buffer_nonbusy,   // Index of the first non busy block
-                            block_buffer_planned,   // Index of the optimally planned block
-                            block_buffer_tail;      // Index of the busy block, if any
-    static uint8_t delay_before_delivering;         // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
+    static volatile uint8_t block_buffer_head,        // Index of the next block to be pushed
+                            block_buffer_nonbusy,     // Index of the first non busy block
+                            block_buffer_planned,     // Index of the optimally planned block
+                            block_buffer_tail;        // Index of the busy block, if any
+    static uint8_t delay_before_delivering;           // This counter delays delivery of blocks when queue becomes empty to allow the opportunity of merging blocks
 
 
     #if ENABLED(DISTINCT_E_FACTORS)
@@ -288,13 +241,6 @@ class Planner {
 
     #if DISABLED(CLASSIC_JERK)
       static float junction_deviation_mm;       // (mm) M205 J
-      #if ENABLED(LIN_ADVANCE)
-        static float max_e_jerk                 // Calculated from junction_deviation_mm
-          #if ENABLED(DISTINCT_E_FACTORS)
-            [EXTRUDERS]
-          #endif
-        ;
-      #endif
     #endif
 
     #if HAS_CLASSIC_JERK
@@ -307,9 +253,6 @@ class Planner {
 
     #if HAS_LEVELING
       static bool leveling_active;          // Flag that bed leveling is enabled
-      #if ABL_PLANAR
-        static matrix_3x3 bed_level_matrix; // Transform to compensate for bed level
-      #endif
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
         static float z_fade_height, inverse_z_fade_height;
       #endif
@@ -317,17 +260,7 @@ class Planner {
       static constexpr bool leveling_active = false;
     #endif
 
-    #if ENABLED(LIN_ADVANCE)
-      static float extruder_advance_K[EXTRUDERS];
-    #endif
-
-    #if HAS_POSITION_FLOAT
-      static xyze_pos_t position_float;
-    #endif
-
-    #if IS_KINEMATIC
-      static xyze_pos_t position_cart;
-    #endif
+    static xyze_pos_t position_float;
 
     xyze_long_t get_position() const { return position; };
 
@@ -377,10 +310,6 @@ class Planner {
       static unsigned char old_direction_bits;
       // Segment times (in µs). Used for speed calculations
       static xy_ulong_t axis_segment_time_us[3];
-    #endif
-
-    #if HAS_SPI_LCD
-      volatile static uint32_t block_buffer_runtime_us; //Theoretical block buffer runtime in µs
     #endif
 
     // A flag to drop queuing of blocks and abort any pending move
@@ -593,6 +522,9 @@ class Planner {
     // Number of moves currently in the planner including the busy block, if any
     FORCE_INLINE static uint8_t movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_tail); }
 
+    // Number of blocks already processed by PreciseStepping and now there are just waiting to be discarded.
+    FORCE_INLINE static uint8_t movesplanned_processed() { return movesplanned() - nonbusy_movesplanned(); }
+
     // Number of nonbusy moves currently in the planner
     FORCE_INLINE static uint8_t nonbusy_movesplanned() { return BLOCK_MOD(block_buffer_head - block_buffer_nonbusy); }
 
@@ -616,7 +548,7 @@ class Planner {
 
       // Wait until there are enough slots free or if aborting
       while (moves_free() < count && !draining_buffer) { idle(true); }
-      if (draining_buffer)
+      if (draining_buffer || PreciseStepping::stopping())
         return nullptr;
 
       // Return the first available block
@@ -638,13 +570,7 @@ class Planner {
      *
      * Returns true if movement was buffered, false otherwise
      */
-    static bool _buffer_steps_raw(const xyze_long_t &target
-      #if HAS_POSITION_FLOAT
-        , const xyze_pos_t &target_float
-      #endif
-      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
-        , const xyze_float_t &delta_mm_cart
-      #endif
+    static bool _buffer_steps_raw(const xyze_long_t &target, const xyze_pos_t &target_float
       #if IS_CORE
         , const xyze_long_t &delta_abce
       #endif
@@ -663,13 +589,7 @@ class Planner {
      *
      * Returns true if movement was buffered, false otherwise
      */
-    static bool _buffer_steps(const xyze_long_t &target
-      #if HAS_POSITION_FLOAT
-        , const xyze_pos_t &target_float
-      #endif
-      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
-        , const xyze_float_t &delta_mm_cart
-      #endif
+    static bool _buffer_steps(const xyze_long_t &target, const xyze_pos_t &target_float
       , feedRate_t fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     );
 
@@ -688,13 +608,7 @@ class Planner {
      * Returns true is movement is acceptable, false otherwise
      */
     static bool _populate_block(block_t * const block, bool split_move,
-        const xyze_long_t &target
-      #if HAS_POSITION_FLOAT
-        , const xyze_pos_t &target_float
-      #endif
-      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
-        , const xyze_float_t &delta_mm_cart
-      #endif
+        const xyze_long_t &target, const xyze_pos_t &target_float
       #if IS_CORE
         , const xyze_long_t &delta_abce
       #endif
@@ -707,13 +621,6 @@ class Planner {
      * Add a block to the buffer that just updates the position
      */
     static void buffer_sync_block();
-
-  #if IS_KINEMATIC
-    private:
-
-      // Allow do_homing_move to access internal functions, such as buffer_segment.
-      friend void do_homing_move(const AxisEnum, const float, const feedRate_t);
-  #endif
 
     /**
      * Planner::buffer_segment
@@ -728,31 +635,20 @@ class Planner {
      *  millimeters - the length of the movement, if known
      */
     static bool buffer_segment(const float &a, const float &b, const float &c, const float &e
-      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
-        , const xyze_float_t &delta_mm_cart
-      #endif
       , const feedRate_t &fr_mm_s, const uint8_t extruder, float millimeters=0.0
     );
 
     FORCE_INLINE static bool buffer_segment(abce_pos_t &abce
-      #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
-        , const xyze_float_t &delta_mm_cart
-      #endif
       , const feedRate_t &fr_mm_s, const uint8_t extruder, const float &millimeters=0.0
     ) {
-      return buffer_segment(abce.a, abce.b, abce.c, abce.e
-        #if IS_KINEMATIC && DISABLED(CLASSIC_JERK)
-          , delta_mm_cart
-        #endif
-        , fr_mm_s, extruder, millimeters);
+      return buffer_segment(abce.a, abce.b, abce.c, abce.e, fr_mm_s, extruder, millimeters);
     }
 
   public:
 
     /**
      * Add a new linear movement to the buffer.
-     * The target is cartesian. It's translated to
-     * delta/scara if needed.
+     * The target is cartesian.
      *
      *  rx,ry,rz,e   - target position in mm or degrees
      *  fr_mm_s      - (target) speed of the move (mm/s)
@@ -760,22 +656,10 @@ class Planner {
      *  millimeters  - the length of the movement, if known
      *  inv_duration - the reciprocal if the duration of the movement, if known (kinematic only if feedrate scaling is enabled)
      */
-    static bool buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const feedRate_t &fr_mm_s, const uint8_t extruder, const float millimeters=0.0
-      #if ENABLED(SCARA_FEEDRATE_SCALING)
-        , const float &inv_duration=0.0
-      #endif
-    );
+    static bool buffer_line(const float &rx, const float &ry, const float &rz, const float &e, const feedRate_t &fr_mm_s, const uint8_t extruder, const float millimeters=0.0);
 
-    FORCE_INLINE static bool buffer_line(const xyze_pos_t &cart, const feedRate_t &fr_mm_s, const uint8_t extruder, const float millimeters=0.0
-      #if ENABLED(SCARA_FEEDRATE_SCALING)
-        , const float &inv_duration=0.0
-      #endif
-    ) {
-      return buffer_line(cart.x, cart.y, cart.z, cart.e, fr_mm_s, extruder, millimeters
-        #if ENABLED(SCARA_FEEDRATE_SCALING)
-          , inv_duration
-        #endif
-      );
+    FORCE_INLINE static bool buffer_line(const xyze_pos_t &cart, const feedRate_t &fr_mm_s, const uint8_t extruder, const float millimeters=0.0) {
+      return buffer_line(cart.x, cart.y, cart.z, cart.e, fr_mm_s, extruder, millimeters);
     }
 
     /**
@@ -809,21 +693,22 @@ class Planner {
 
     /**
      * Get an axis position according to stepper position(s)
-     * For CORE machines apply translation from ABC to XYZ.
+     * For CORE machines:
+     *   - apply translation from AB to XY
+     *   - when querying for more axes, use the appropriate overload for less overhead!
+     * WARNING:
+     *   - it's an expensive function to call
+     *   - can return incoherent values when axes are moving
      */
     static float get_axis_position_mm(const AxisEnum axis);
+    static void get_axis_position_mm(ab_pos_t& pos);
+    static void get_axis_position_mm(abc_pos_t& pos);
+    static void get_axis_position_mm(abce_pos_t& pos);
 
-    #if HAS_POSITION_FLOAT
     /**
      * Get planner's axis position in mm
      */
     static abce_pos_t get_machine_position_mm() { return position_float; }
-    #endif
-
-    // SCARA AB axes are in degrees, not mm
-    #if IS_SCARA
-      FORCE_INLINE static float get_axis_position_degrees(const AxisEnum axis) { return get_axis_position_mm(axis); }
-    #endif
 
     // Called to force a quick stop of the machine (for example, when
     // a Full Shutdown is required, or when endstops are hit).
@@ -845,13 +730,62 @@ class Planner {
     // Triggered position of an axis in mm (not core-savvy)
     static float triggered_position_mm(const AxisEnum axis);
 
-    // Some buffered steps to be executed / cleaned
+    /**
+     * Notes on synchronization primitives and behavior during cancellation
+     *
+     * When motion is stopped the two lower-level functions draining() and
+     * processing() can be checked to determine motion the state. idle() needs
+     * to be called until one or both return false to ensure that motion can be
+     * scheduled again, depending on context.
+     *
+     * When canceling a move the backend is stopped first until all internal
+     * queues are flushed. In this stage no stepping can take place until
+     * processing() returns false in the Marlin thread. To advance the
+     * cancellation state idle() needs to be called. position/current_position
+     * is undetermined and will usually be at the location expected by the
+     * nearest synchronize() call.
+     *
+     * Once movement can resume draining() will keep returning true until the
+     * entire g-code instruction has finished processing. This requires an
+     * entire Marlin loop() iteration to complete and any scheduled motion in
+     * this stage is just silently accepted and discarded. idle() is not
+     * forbidden but will not advance from this state, which is only cleared by
+     * the server implementation. Errors should never be reported and/or kill
+     * the print when draining() since the move can be re-scheduled.
+     *
+     * synchronize(): use within the implementation of a compound g-code
+     *   sequence in Marlin itself. It waits for motion to complete and ensures
+     *   that position/current_position is synchronized with the head movement
+     *   when it finally returns. When a g-code sequence has been canceled,
+     *   draining() is true and synchronized() returns early so that the command
+     *   can continue passively without stopping or special handling.
+     *   synchronize() also works as a cancellation barrier: when motion is
+     *   interrupted, all queued commands up to the next synchronize() call can
+     *   be discarded, but no further.
+     *
+     * busy(): is the underlying primitive behind synchronize() and will return
+     *   true as long as pending motion hasn't completed or canceled. When a
+     *   command has been canceled busy() is never true so that the command can
+     *   continue passively without special handling (as the case for most
+     *   g-code instructions). When checking for the planner position or state,
+     *   draining() should be checked to determine if the command has been
+     *   explicitly canceled.
+     *
+     * processing(): returns true if the backend is still processing the queues,
+     *   including during cancellation. If a move has been canceled, all planner
+     *   state should be assumed to be undetermined/unknown until processing()
+     *   return false. During this state no motion can take place or be
+     *   scheduled. The cancellation state is advanced by calling idle() from
+     *   the main Marlin thread.
+     */
+
+    // Planner is busy processing moves. Not true when being drained!
     static bool busy();
 
-    // Block until all buffered steps are executed / cleaned
+    // Wait for busy(). Does not wait when draining!
     static void synchronize();
 
-    // Wait for moves to finish and disable all steppers
+    // Wait for busy(), then disable all steppers
     static void finish_and_disable();
 
     // Periodic tick to handle cleaning timeouts
@@ -864,52 +798,59 @@ class Planner {
     FORCE_INLINE static bool has_blocks_queued() { return (block_buffer_head != block_buffer_tail); }
 
     /**
-     * The current block. nullptr if the buffer is empty.
-     * This also marks the block as busy.
-     * WARNING: Called from Stepper ISR context!
+     * Does the buffer have any unprocessed blocks queued?
      */
-    static block_t* get_current_block() {
+    FORCE_INLINE static bool has_unprocessed_blocks_queued() { return (block_buffer_head != block_buffer_nonbusy); }
 
-      // Get the number of moves in the planner queue so far
-      const uint8_t nr_moves = movesplanned();
+    /**
+     * Return if some processing is still pending before all queues are flushed
+     */
+    FORCE_INLINE static bool processing() { return has_blocks_queued() || PreciseStepping::processing(); }
 
+    /**
+     * Returns the current block that PreciseStepping already processed and that is waiting for discarding,
+     * nullptr if the queue is empty or none of blocks haven't already been processed.
+     */
+    static block_t *get_current_processed_block() {
+      if (has_blocks_queued()) {
+        if (block_t *const block = &block_buffer[block_buffer_tail]; TEST(block->flag, BLOCK_BIT_PROCESSED))
+          return block;
+      }
+      return nullptr;
+    }
+
+    /**
+     * Returns the current block that PreciseStepping didn't process, nullptr if the queue is empty or all
+     * blocks have already been processed.
+     * This also marks the block as busy.
+     */
+    static block_t* get_current_unprocessed_block() {
       // If there are any moves queued ...
-      if (nr_moves) {
+      if (has_unprocessed_blocks_queued()) {
+        block_t *const block = &block_buffer[block_buffer_nonbusy];
+        assert(!TEST(block->flag, BLOCK_BIT_PROCESSED));
 
-        // If there is still delay of delivery of blocks running, decrement it
-        if (delay_before_delivering) {
-          --delay_before_delivering;
-          // If the number of movements queued is less than 3, and there is still time
-          //  to wait, do not deliver anything
-          if (nr_moves < 3 && delay_before_delivering) return nullptr;
-          delay_before_delivering = 0;
-        }
-
-        // If we are here, there is no excuse to deliver the block
-        block_t * const block = &block_buffer[block_buffer_tail];
-
-        // No trapezoid calculated? Don't execute yet.
-        if (TEST(block->flag, BLOCK_BIT_RECALCULATE)) return nullptr;
-
-        #if HAS_SPI_LCD
-          block_buffer_runtime_us -= block->segment_time_us; // We can't be sure how long an active block will take, so don't count it.
-        #endif
-
-        // As this block is busy, advance the nonbusy block pointer
-        block_buffer_nonbusy = next_block_index(block_buffer_tail);
-
-        // Push block_buffer_planned pointer, if encountered.
-        if (block_buffer_tail == block_buffer_planned)
-          block_buffer_planned = block_buffer_nonbusy;
+        // Recalculation pending? Don't execute yet.
+        if (TEST(block->flag, BLOCK_BIT_RECALCULATE))
+          return nullptr;
 
         // Return the block
         return block;
       }
 
-      // The queue became empty
-      #if HAS_SPI_LCD
-        clear_block_buffer_runtime(); // paranoia. Buffer is empty now - so reset accumulated time to zero.
-      #endif
+      return nullptr;
+    }
+
+    /**
+     * Returns the first block that isn't flagged as SYNC_POSITION block, nullptr if the queue is empty, or if all
+     * blocks in the queue are flagged as SYNC_POSITION blocks.
+     * The returned block could be either unprocessed or processed (just waiting for discarding) by PreciseStepping.
+     */
+    static block_t *get_first_non_sync_position_block() {
+      for (uint8_t current_block_idx = block_buffer_tail; current_block_idx != block_buffer_head; ++current_block_idx) {
+        if (block_t *const current_block = &block_buffer[current_block_idx]; !TEST(current_block->flag, BLOCK_BIT_SYNC_POSITION))
+          return current_block;
+      }
 
       return nullptr;
     }
@@ -917,53 +858,19 @@ class Planner {
     /**
      * "Release" the current block so its slot can be reused.
      * Called when the current block is no longer needed.
+     * Caller must ensure that there is something to discard.
      */
     FORCE_INLINE static void discard_current_block() {
-      if (has_blocks_queued())
-        block_buffer_tail = next_block_index(block_buffer_tail);
+      assert(has_blocks_queued());
+      assert(TEST(block_buffer[block_buffer_tail].flag, BLOCK_BIT_PROCESSED));
+      block_buffer_tail = next_block_index(block_buffer_tail);
     }
 
-    #if HAS_SPI_LCD
-
-      static uint16_t block_buffer_runtime() {
-        #ifdef __AVR__
-          // Protect the access to the variable. Only required for AVR, as
-          //  any 32bit CPU offers atomic access to 32bit variables
-          bool was_enabled = stepper.suspend();
-        #endif
-
-        millis_t bbru = block_buffer_runtime_us;
-
-        #ifdef __AVR__
-          // Reenable Stepper ISR
-          if (was_enabled) stepper.wake_up();
-        #endif
-
-        // To translate µs to ms a division by 1000 would be required.
-        // We introduce 2.4% error here by dividing by 1024.
-        // Doesn't matter because block_buffer_runtime_us is already too small an estimation.
-        bbru >>= 10;
-        // limit to about a minute.
-        NOMORE(bbru, 0xFFFFul);
-        return bbru;
-      }
-
-      static void clear_block_buffer_runtime() {
-        #ifdef __AVR__
-          // Protect the access to the variable. Only required for AVR, as
-          //  any 32bit CPU offers atomic access to 32bit variables
-          bool was_enabled = stepper.suspend();
-        #endif
-
-        block_buffer_runtime_us = 0;
-
-        #ifdef __AVR__
-          // Reenable Stepper ISR
-          if (was_enabled) stepper.wake_up();
-        #endif
-      }
-
-    #endif
+    /**
+     * Discard the current unprocessed block.
+     * Caller must ensure that there is something to discard.
+     */
+    static void discard_current_unprocessed_block();
 
     #if ENABLED(AUTOTEMP)
       static float autotemp_min, autotemp_max, autotemp_factor;
@@ -1037,8 +944,8 @@ class Planner {
 
     static void calculate_trapezoid_for_block(block_t* const block, const float &entry_factor, const float &exit_factor);
 
-    static void reverse_pass_kernel(block_t* const current, const block_t * const next);
-    static void forward_pass_kernel(const block_t * const previous, block_t* const current, uint8_t block_index);
+    static void reverse_pass_kernel(block_t * const previous, block_t* const current, const block_t * const next);
+    static void forward_pass_kernel(block_t * const previous, block_t* const current, uint8_t prev_index);
 
     static void reverse_pass();
     static void forward_pass();

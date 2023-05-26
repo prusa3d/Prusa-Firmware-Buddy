@@ -45,9 +45,11 @@ constexpr uint32_t printer_model2code(const char *model) {
         { "MK3S", 302 },
         { "MK3SMMU2S", 20302 },
         { "MINI", 120 },
+        { "MK3.5", 130 },
+        { "MK3.5MMU3", 30130 },
         { "MK4", 130 },
         { "MK4MMU3", 30130 },
-        { "IXL", 160 },
+        { "iX", 160 },
         { "XL", 170 },
     };
 
@@ -64,7 +66,11 @@ private:
 public:
     static constexpr const uint32_t printer_model_code = printer_model2code(PRINTER_MODEL);
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
-    static constexpr const char *printer_model = PRINTER_MODEL;
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    static constexpr std::array<const char *, 2> printer_compatibility_list = { PRINTER_MODEL, "MK4IS" };
+#else
+    static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL };
+#endif
 
     using time_buff = std::array<char, 16>;
     using filament_buff = std::array<char, 8>;
@@ -115,8 +121,12 @@ public:
         std::vector<Feature> wrong_nozzle_diameters { HOTENDS, eevar_id::EEVAR_HWCHECK_NOZZLE }; // M862.1 disagree (or M862.10 - M862.15 for multihotend gcode)
         Feature wrong_printer_model { eevar_id::EEVAR_HWCHECK_MODEL };                           // M862.2 or M862.3 or printer_model (from comments) disagree
         Feature wrong_gcode_level { eevar_id::EEVAR_HWCHECK_GCODE };                             // M862.5 disagree
-        Feature wrong_firmware { eevar_id::EEVAR_HWCHECK_FIRMW };                                // M115 Ux.yy.z disagrees
+        Feature wrong_firmware { eevar_id::EEVAR_HWCHECK_FIRMW };                                // M862.4 Px.yy.z disagrees
         Feature mk3_compatibility_mode { eevar_id::EEVAR_HWCHECK_COMPATIBILITY };
+        Feature outdated_firmware { eevar_id::EEVAR_HWCHECK_FIRMW };                             // M115 Ux.yy.z disagrees (TODO: Separate EEVAR?)
+        bool unsupported_features { false };
+        char unsupported_features_text[37] { "" };
+        void add_unsupported_feature(const char *feature, size_t length);
 
         /**
          * @brief Version read from G-code M115 Ux.yy.z.
@@ -126,7 +136,10 @@ public:
             int major = 0;
             int minor = 0;
             int patch = 0;
-        } gcode_fw_version;
+        };
+
+        GcodeFwVersion gcode_fw_version;
+        GcodeFwVersion latest_fw_version;
 
         /**
          * @brief Are all nozzle diameters valid?
@@ -232,7 +245,7 @@ private:
             float get_float() { return atof(&*begin); };
             String get_string();
 
-            bool operator==(const char *str) { return std::equal(begin, end, str); }
+            bool operator==(const char *str) const { return std::equal(begin, end, str); }
             bool if_heading_skip(const char *str);
 
             char *c_str() { return &*begin; }
@@ -259,7 +272,8 @@ private:
 
     static void parse_gcode(Buffer::String cmd, uint32_t &gcode_counter, GCodeInfo::ValidPrinterSettings &valid_printer_settings);
     static void parse_comment(Buffer::String cmd, time_buff &printing_time, GCodePerExtruderInfo &per_extruder_info, bool &filament_described, GCodeInfo::ValidPrinterSettings &valid_printer_settings);
-    static void parse_version(GCodeInfo::ValidPrinterSettings &valid_printer_settings, const char *version);
+    static bool is_up_to_date(GCodeInfo::ValidPrinterSettings::GcodeFwVersion &parsed, const char *new_version);
+    static bool is_printer_compatible(const Buffer::String &);
 
     // Search this many last bytes for "metadata" comments.
     // With increasing size of the comment section, this will have to be increased either

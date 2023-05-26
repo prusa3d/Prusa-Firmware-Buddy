@@ -123,7 +123,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
 
 // data for both subtests must be sent together
 // we could loose some events, so we must be sending entire state of both parts
-bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&pBed) {
+bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *pBed) {
     // true when nozzle just finished test
     bool just_finished_noz[HOTENDS] {};
     for (size_t i = 0; i < HOTENDS; i++) {

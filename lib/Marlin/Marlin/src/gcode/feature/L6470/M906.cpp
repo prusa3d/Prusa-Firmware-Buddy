@@ -171,7 +171,7 @@ void GcodeSuite::M906() {
 
     report_current = false;
 
-    if (planner.has_blocks_queued() || planner.draining_buffer) {
+    if (planner.busy() || planner.draining()) {
       SERIAL_ECHOLNPGM("!Can't set KVAL_HOLD with steppers moving");
       return;
     }

@@ -42,6 +42,7 @@ target_include_directories(
   connect_tests
   PRIVATE .
           ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_BINARY_DIR}/include
           ${CMAKE_SOURCE_DIR}/include
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/src/connect
@@ -76,7 +77,9 @@ add_executable(
   ${CMAKE_CURRENT_BINARY_DIR}/http_resp_automaton.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
   ${CMAKE_SOURCE_DIR}/src/common/crc32.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/basename.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
@@ -105,8 +108,10 @@ target_include_directories(
   connect_planner_tests
   PRIVATE .
           ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_BINARY_DIR}/include
           ${CMAKE_SOURCE_DIR}/src/connect
           ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/lib/jsmn
           ${CMAKE_SOURCE_DIR}/tests/stubs
@@ -121,6 +126,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aes.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aesni.c
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/basename.cpp
   ${CMAKE_SOURCE_DIR}/src/common/crc32.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/httpc.cpp
@@ -128,6 +134,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/json_out.cpp
@@ -148,7 +155,12 @@ add_executable(
   )
 target_include_directories(
   connect_registration_tests
-  PRIVATE . ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/common
+  PRIVATE .
+          ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_BINARY_DIR}/include
+          ${CMAKE_SOURCE_DIR}/src
+          ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/tests/stubs
   )

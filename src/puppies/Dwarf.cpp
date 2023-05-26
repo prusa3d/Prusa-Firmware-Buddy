@@ -2,6 +2,7 @@
 #include <limits>
 
 #include "puppies/Dwarf.hpp"
+#include "puppies/fifo_coder.hpp"
 #include "puppies/fifo_decoder.hpp"
 
 #include "bsod_gui.hpp"
@@ -18,6 +19,7 @@
 #include "utility_extensions.hpp"
 #include "dwarf_errors.hpp"
 #include "otp.h"
+#include "Marlin/src/module/prusa/accelerometer.h"
 
 using namespace common::puppies::fifo;
 
@@ -48,14 +50,27 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
     , selected(false)
     , time_sync(this->dwarf_nr)
     , callbacks(Decoder::Callbacks_t {
-          .log_handler = std::bind(&Dwarf::handle_log_fragment, this, std::placeholders::_1, std::placeholders::_2),
-          .loadcell_handler = [this](TimeStamp_us_t timestamp_us, LoadCellData_t data) {
+          .log_handler = std::bind(&Dwarf::handle_log_fragment, this, std::placeholders::_1),
+          .loadcell_handler = [this](LoadcellRecord data) {
               // throw away samples if time is not synced
               if (!this->time_sync.is_time_sync_valid() || !this->selected)
                   return;
 
-              loadcell.ProcessSample(data, this->time_sync.buddy_time_us(timestamp_us));
-          } }) {
+              loadcell.ProcessSample(data.loadcell_raw_value, this->time_sync.buddy_time_us(data.timestamp)); },
+          .accelerometer_handler = [this](AccelerometerData data) {
+              // throw away samples if time is not synced
+              if (!this->time_sync.is_time_sync_valid() || !this->selected)
+                  return;
+              PrusaAccelerometer::put_sample(data.sample);
+              report_accelerometer(1); },
+          .accelerometer_fast_handler = [this](AccelerometerFastData data) {
+              // throw away samples if not selected
+              if (!this->is_selected())
+                  return;
+              for (AccelerometerXyzSample sample : data) {
+                  PrusaAccelerometer::put_sample(sample);
+              }
+              report_accelerometer(data.size()); } }) {
 
     RegisterGeneralStatus.value.FaultStatus = dwarf_shared::errors::FaultStatusMask::NO_FAULT;
     RegisterGeneralStatus.value.HotendMeasuredTemperature = 6;
@@ -226,7 +241,7 @@ CommunicationStatus Dwarf::fast_refresh() {
     }
 }
 
-void Dwarf::handle_log_fragment([[maybe_unused]] TimeStamp_us_t timestamp_us, LogData_t data) {
+void Dwarf::handle_log_fragment(LogData data) {
     // If buffer cannot handle next read, clean it
     if (log_line_pos + data.size() > log_line_buffer.size()) {
         DWARF_LOG(LOG_SEVERITY_WARNING, "Out of log buffer, logging incomplete data");
@@ -352,16 +367,82 @@ CommunicationStatus Dwarf::run_time_sync() {
 }
 
 CommunicationStatus Dwarf::set_selected(bool selected) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     IsSelectedCoil.pending = true;
     IsSelectedCoil.value = selected;
-    if (modbusIsOk(bus.write(unit, IsSelectedCoil))) {
-        this->selected = selected;
-        return CommunicationStatus::OK;
-    } else {
+    if (!modbusIsOk(bus.write(unit, IsSelectedCoil))) {
         return CommunicationStatus::ERROR;
     }
+    LoadcellEnableCoil.pending = true;
+    LoadcellEnableCoil.value = selected;
+    if (!modbusIsOk(bus.write(unit, LoadcellEnableCoil))) {
+        return CommunicationStatus::ERROR;
+    }
+    AccelerometerEnableCoil.pending = true;
+    AccelerometerEnableCoil.value = false;
+    if (!modbusIsOk(bus.write(unit, AccelerometerEnableCoil))) {
+        return CommunicationStatus::ERROR;
+    }
+    AccelerometerHighCoil.pending = true;
+    AccelerometerHighCoil.value = false;
+    if (!modbusIsOk(bus.write(unit, AccelerometerHighCoil))) {
+        return CommunicationStatus::ERROR;
+    }
+    this->selected = selected;
+    return CommunicationStatus::OK;
+}
+
+/**
+ * @brief Set accelerometer
+ *
+ * @param active
+ *  - true Activate accelerometer in high sample rate and deactivate load cell
+ *  - false Deactivate accelerometer in high sample rate and activate load cell
+ * @retval true success
+ * @retval false failed - either communication error or Dwarf not selected
+ */
+bool Dwarf::set_accelerometer(bool active) {
+    // WARNING: this method is called from different thread
+
+    if (!this->selected) {
+        return false;
+    }
+
+    if (active) {
+        LoadcellEnableCoil.pending = true;
+        LoadcellEnableCoil.value = false;
+        if (!modbusIsOk(bus.write(unit, LoadcellEnableCoil))) {
+            return false;
+        }
+        AccelerometerEnableCoil.pending = true;
+        AccelerometerEnableCoil.value = true;
+        if (!modbusIsOk(bus.write(unit, AccelerometerEnableCoil))) {
+            return false;
+        }
+        AccelerometerHighCoil.pending = true;
+        AccelerometerHighCoil.value = true;
+        if (!modbusIsOk(bus.write(unit, AccelerometerHighCoil))) {
+            return false;
+        }
+    } else {
+        LoadcellEnableCoil.pending = true;
+        LoadcellEnableCoil.value = true;
+        if (!modbusIsOk(bus.write(unit, LoadcellEnableCoil))) {
+            return false;
+        }
+        AccelerometerEnableCoil.pending = true;
+        AccelerometerEnableCoil.value = false;
+        if (!modbusIsOk(bus.write(unit, AccelerometerEnableCoil))) {
+            return false;
+        }
+        AccelerometerHighCoil.pending = true;
+        AccelerometerHighCoil.value = false;
+        if (!modbusIsOk(bus.write(unit, AccelerometerHighCoil))) {
+            return false;
+        }
+    }
+    return true;
 }
 
 constexpr log_component_t &Dwarf::get_log_component(uint8_t dwarf_nr) {
@@ -443,6 +524,17 @@ float Dwarf::get_heatbreak_temp() {
 
 uint16_t Dwarf::get_heatbreak_fan_pwr() {
     return RegisterGeneralStatus.value.fan[1].pwm;
+}
+
+void Dwarf::report_accelerometer(int samples_received) {
+    static uint32_t last_report = 0;
+    static uint32_t sample_count = 0;
+    sample_count += samples_received;
+    if (ticks_ms() - last_report > 1000) {
+        DWARF_LOG(LOG_SEVERITY_INFO, "acc sample rate: %u", sample_count);
+        sample_count = 0;
+        last_report = ticks_ms();
+    }
 }
 
 std::array<Dwarf, DWARF_MAX_COUNT> dwarfs { {

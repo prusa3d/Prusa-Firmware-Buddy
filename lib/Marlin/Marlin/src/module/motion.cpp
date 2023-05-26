@@ -282,10 +282,10 @@ void get_cartesian_from_steppers() {
         planner.get_axis_position_degrees(A_AXIS),
         planner.get_axis_position_degrees(B_AXIS)
       );
+      cartes.z = planner.get_axis_position_mm(Z_AXIS);
     #else
-      cartes.set(planner.get_axis_position_mm(X_AXIS), planner.get_axis_position_mm(Y_AXIS));
+      planner.get_axis_position_mm(static_cast<xyz_pos_t&>(cartes));
     #endif
-    cartes.z = planner.get_axis_position_mm(Z_AXIS);
   #endif
 }
 
@@ -1437,7 +1437,8 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
 
   #if ENABLED(MOVE_BACK_BEFORE_HOMING)
     if (can_move_back_before_homing && ((axis == X_AXIS) || (axis == Y_AXIS))) {
-      abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+      abce_pos_t target;
+      planner.get_axis_position_mm(target);
       target[axis] = 0;
       planner.set_machine_position_mm(target);
       float dist = (distance > 0) ? -MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE;
@@ -1460,13 +1461,13 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   #endif
 
   #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
-    if (homing_z_with_probe) {
-      endstops.enable_z_probe(moving_probe_toward_bed);
+    // This guards cannot be hidden behind if (homing_z_with_probe) {
+    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, moving_probe_toward_bed);
+    auto H = loadcell.CreateLoadAboveErrEnforcer(moving_probe_toward_bed);
+    if (moving_probe_toward_bed) {
+      loadcell.Tare(Loadcell::TareMode::Continuous);
+      endstops.enable_z_probe();
     }
-
-    // These guards cannot be hidden behind if (homing_z_with_probe) {
-    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, moving_probe_toward_bed && homing_z_with_probe);
-    auto H = loadcell.CreateLoadAboveErrEnforcer(3000, moving_probe_toward_bed && homing_z_with_probe);
   #endif
 
   #if IS_SCARA
@@ -1476,7 +1477,8 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
     current_position[axis] = distance;
     line_to_current_position(real_fr_mm_s);
   #else
-    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    abce_pos_t target;
+    planner.get_axis_position_mm(target);
     target[axis] = 0;
     planner.set_machine_position_mm(target);
     target[axis] = distance;
@@ -1498,7 +1500,7 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   planner.synchronize();
 
   #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
-    if (homing_z_with_probe) {
+    if (moving_probe_toward_bed) {
       endstops.enable_z_probe(false);
     }
   #endif
@@ -1543,7 +1545,8 @@ static void do_blocking_move_axis(const AxisEnum axis, const float distance, con
     current_position[axis] = distance;
     line_to_current_position(real_fr_mm_s);
   #else
-    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    abce_pos_t target;
+    planner.get_axis_position_mm(target);
     target[axis] = 0;
     planner.set_machine_position_mm(target);
     target[axis] = distance;

@@ -236,16 +236,6 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_INDEPT_STEP : public WI_ICON_SWITCH_OFF_ON_t {
-    static constexpr const char *const label = N_("Independent Stepping");
-
-public:
-    MI_INDEPT_STEP();
-
-protected:
-    virtual void OnChange(size_t old_index) override;
-};
-
 class MI_FOOTER_SETTINGS_ADV : public WI_LABEL_t {
     static constexpr const char *const label = N_("Advanced");
 
@@ -477,6 +467,16 @@ class MI_OPEN_FACTORY_RESET : public WI_LABEL_t {
 
 public:
     MI_OPEN_FACTORY_RESET();
+
+protected:
+    virtual void click(IWindowMenu &windowMenu) override;
+};
+
+class MI_INPUT_SHAPER : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Input Shaper (Alpha)");
+
+public:
+    MI_INPUT_SHAPER();
 
 protected:
     virtual void click(IWindowMenu &windowMenu) override;

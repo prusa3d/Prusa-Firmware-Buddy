@@ -51,16 +51,23 @@ void Loadcell::ConfigureSignalEvent(osThreadId threadId, int32_t signal) {
     isSignalEventConfigured = 1;
 }
 
-void Loadcell::Tare(TareMode mode) {
-    if (!isSignalEventConfigured) {
-        fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_INCOMPLETE_CONFIGURATION_ERROR);
-        return;
-    }
+void Loadcell::Tare(TareMode mode, bool wait) {
+    if (!isSignalEventConfigured)
+        bsod("loadcell signal not configured");
 
-    if (tareCount != 0) {
-        fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TARE_ALREADY_REQUESTED);
-        return;
-    }
+    // ensure high-precision mode is enabled when taring
+    if (!highPrecision)
+        bsod("high precision not enabled during tare");
+
+    if (tareCount != 0)
+        bsod("loadcell tare already requested");
+
+    // discard the current sample: it could have been started long ago
+    if (wait)
+        WaitForNextSample();
+
+    if (endstops.is_z_probe_enabled() && (endstop || xy_endstop))
+        fatal_error("LOADCELL", "Tare under load");
 
     tareMode = mode;
 
@@ -82,8 +89,10 @@ void Loadcell::Tare(TareMode mode) {
                 tareCount = 0;
                 break;
             }
-#endif // POWER_PANIC
+#endif                                  // POWER_PANIC
+#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
             fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TARE_FAILED);
+#endif
         }
     }
 
@@ -173,17 +182,31 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
         log_warning(Loadcell, "Got NaN z-coordinate; skipping (age=%dus)", ticks_us_from_now);
     }
 
-    if (!std::isfinite(load))
+    if (!std::isfinite(load)) {
+#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
         fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_INFINITE_LOAD);
+#endif
+    }
 
     // Trigger Z endstop/probe
     float loadForEndstops = tareMode == TareMode::Static ? load : loadHighPass;
     float threshold = GetThreshold(tareMode);
+
+    if (Endstops::is_z_probe_enabled()) {
+#if 0
+      // TODO: temporarily disabled for release until true overloads are resolved
+      // load is negative, so flip the signs accordingly just below
+        if ((isfinite(failsOnLoadAbove) && loadForEndstops < -failsOnLoadAbove)
+            || (isfinite(failsOnLoadBelow) && loadForEndstops > -failsOnLoadBelow))
+            fatal_error("LOADCELL", "Loadcell overload");
+#endif
+    }
+
     if (endstop) {
         if (loadForEndstops >= (threshold + hysteresis)) {
             endstop = false;
-            buddy::hw::zMin.isr();
         }
+        buddy::hw::zMin.isr();
     } else {
         if (loadForEndstops <= threshold) {
             endstop = true;
@@ -216,16 +239,16 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
 }
 
 int32_t Loadcell::WaitForNextSample() {
-    if (!isSignalEventConfigured) {
-        fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_BAD_CONFIGURATION);
-        return 0;
-    }
+    if (!isSignalEventConfigured)
+        bsod("loadcell signal not configured");
 
     // hx717: output settling time is 400 ms (for reset, channel change, gain change)
     // therefore 600 ms should be safe and if it takes longer, it is most likely an error
     auto result = osSignalWait(signal, 600);
     if (result.status != osEventSignal && !planner.draining()) {
+#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
         fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
+#endif
     }
     return loadcellRaw;
 }
@@ -249,8 +272,8 @@ void Loadcell::HomingSafetyCheck() const {
  *   @arg @c false Do not set grams threshold when created. (Doesn't affect destruction.)
  */
 
-Loadcell::FailureOnLoadAboveEnforcer Loadcell::CreateLoadAboveErrEnforcer(float grams, bool enable) {
-    return Loadcell::FailureOnLoadAboveEnforcer(*this, grams, enable);
+Loadcell::FailureOnLoadAboveEnforcer Loadcell::CreateLoadAboveErrEnforcer(bool enable, float grams) {
+    return Loadcell::FailureOnLoadAboveEnforcer(*this, enable, grams);
 }
 
 /*****************************************************************************/
@@ -266,7 +289,7 @@ Loadcell::IFailureEnforcer::IFailureEnforcer(Loadcell &lcell, float oldErrThresh
  * @param grams
  * @param enable
  */
-Loadcell::FailureOnLoadAboveEnforcer::FailureOnLoadAboveEnforcer(Loadcell &lcell, float grams, bool enable)
+Loadcell::FailureOnLoadAboveEnforcer::FailureOnLoadAboveEnforcer(Loadcell &lcell, bool enable, float grams)
     : IFailureEnforcer(lcell, lcell.GetFailsOnLoadAbove()) {
     if (enable) {
         lcell.SetFailsOnLoadAbove(grams);
@@ -292,7 +315,6 @@ Loadcell::HighPrecisionEnabler::HighPrecisionEnabler(Loadcell &lcell,
     : m_lcell(lcell) {
     if (enable) {
         m_lcell.EnableHighPrecision();
-        m_lcell.Tare(Loadcell::TareMode::Continuous);
     }
 }
 

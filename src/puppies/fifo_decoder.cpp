@@ -1,4 +1,5 @@
 #include "puppies/fifo_decoder.hpp"
+#include "puppies/fifo_coder.hpp"
 
 #include <cassert>
 
@@ -17,16 +18,22 @@ void Decoder::decode(const Callbacks_t callbacks) {
     // As FIFO data come in 2 byte "register" chunks the last byte may be padding.
     // To avoid interpretting padding and random subsequant bytes as messages this
     // skips deocding when there is not enough data to read header.
-    while (sizeof(Header_t) <= available_bytes()) {
-        Header_t header = get<Header_t>();
+    while (sizeof(Header) <= available_bytes()) {
+        Header header = get<Header>();
         switch (header.type) {
         case MessageType::no_data:
             break;
         case MessageType::log:
-            make_call(header.timestamp_us, callbacks.log_handler);
+            make_call(callbacks.log_handler);
             break;
         case MessageType::loadcell:
-            make_call(header.timestamp_us, callbacks.loadcell_handler);
+            make_call(callbacks.loadcell_handler);
+            break;
+        case MessageType::accelerometer:
+            make_call(callbacks.accelerometer_handler);
+            break;
+        case MessageType::accelerometer_fast:
+            make_call(callbacks.accelerometer_fast_handler);
             break;
         default:
             log_warning(ModbusFIFODecoder, "Unknown message type: %d", header.type);

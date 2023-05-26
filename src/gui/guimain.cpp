@@ -51,7 +51,7 @@
 #include <option/has_side_leds.h>
 #include <option/has_embedded_esp32.h>
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
 #endif
 
@@ -234,7 +234,7 @@ void led_animation_step() {
 
 void filament_sensor_validation() {
     if (screen_home_data_t::EverBeenOpened()
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #if HAS_SELFTEST_SNAKE()
         && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSWizard>()
         && !Screens::Access()->IsScreenOnStack<ScreenMenuSTSCalibrations>()
@@ -243,7 +243,7 @@ void filament_sensor_validation() {
     #endif
 #endif
     ) {
-        gui::fsensor::validate_for_cyclical_calls();
+        GuiFSensor::validate_for_cyclical_calls();
     }
 }
 
@@ -265,8 +265,8 @@ void make_gui_ready_to_print() {
 
         // wait for start of the print - to prevent any unwanted gui action
         while (
-            (marlin_vars()->print_state != marlin_server::mpsIdle) // main thread is processing a print
-            && (!DialogHandler::Access().IsAnyOpen())              // wait for print screen to open, any fsm can break waiting (not only open of print screen)
+            (marlin_vars()->print_state != marlin_server::State::Idle) // main thread is processing a print
+            && (!DialogHandler::Access().IsAnyOpen())                  // wait for print screen to open, any fsm can break waiting (not only open of print screen)
         ) {
             gui_timers_cycle();   // refresh GUI time
             marlin_client_loop(); // refresh fsm - required for dialog handler
@@ -582,7 +582,7 @@ void gui_run(void) {
 
         // I must do it before screen and dialog loops
         // do not use marlin_update_vars(MARLIN_VAR_MSK(MARLIN_VAR_PRNSTATE))->print_state, it can make gui freeze in case main thread is unresponsive
-        volatile bool print_processor_waiting = marlin_vars()->print_state == marlin_server::mpsWaitGui;
+        volatile bool print_processor_waiting = marlin_vars()->print_state == marlin_server::State::WaitGui;
 
         DialogHandler::Access().Loop();
 

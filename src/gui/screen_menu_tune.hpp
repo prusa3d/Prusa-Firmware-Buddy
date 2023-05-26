@@ -36,6 +36,9 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #if PRINTER_TYPE == PRINTER_PRUSA_MINI
     MI_SOUND_VOLUME,
 #endif
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    MI_INPUT_SHAPER,
+#endif
     MI_FAN_CHECK
 #if ENABLED(CRASH_RECOVERY)
     ,

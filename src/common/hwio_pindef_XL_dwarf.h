@@ -106,6 +106,9 @@
 #define MARLIN_PORT_LED   MARLIN_PORT_C
 #define MARLIN_PIN_NR_LED MARLIN_PIN_NR_11
 
+#define MARLIN_PORT_ACC_CS   MARLIN_PORT_B
+#define MARLIN_PIN_NR_ACC_CS MARLIN_PIN_NR_11
+
 namespace buddy::hw {
 Pin::State zMinReadFn();
 
@@ -135,7 +138,8 @@ inline Pin::State zMinReadFn() {
     MACRO_FUNCTION(buddy::hw::InputPin, hwid3, BUDDY_PIN(HWID3), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                       \
     MACRO_FUNCTION(buddy::hw::OutputPin, ledPWM, BUDDY_PIN(LED), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                             \
     MACRO_FUNCTION(buddy::hw::InputPin, fanPrintTach, BUDDY_PIN(FAN_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                            \
-    MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, BUDDY_PIN(FAN1_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler)
+    MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, BUDDY_PIN(FAN1_TACH0), IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                       \
+    MACRO_FUNCTION(buddy::hw::OutputPin, acellCs, BUDDY_PIN(ACC_CS), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)
 
 #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
     MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling)

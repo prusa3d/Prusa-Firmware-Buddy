@@ -1,6 +1,7 @@
 #include "espif.h"
 
 #include <algorithm>
+#include <bit>
 #include <cstring>
 #include <cstdint>
 #include <atomic>
@@ -36,10 +37,7 @@ extern "C" {
 
 LOG_COMPONENT_DEF(ESPIF, LOG_SEVERITY_INFO);
 
-// TODO: C++20:
-// #include <bit>
-// static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
-static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "STM<->ESP protocol assumes all involved CPUs are little endian.");
+static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
 static_assert(ETHARP_HWADDR_LEN == 6);
 
 /*

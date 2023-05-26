@@ -7,6 +7,7 @@
 #include "window_text.hpp"
 #include "window_icon.hpp"
 #include "client_response.hpp"
+#include "window_qr.hpp"
 
 /*****************************************************************************/
 // clang-format off
@@ -109,7 +110,7 @@ protected:
     Rect16 getTitleRect(); // icon must be initialized
     font_t *getTitleFont();
     padding_ui8_t getTitlePadding();
-
+    static constexpr uint8_t IconTitleDelimeter = 5;
     static constexpr padding_ui8_t TextPadding =
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
         { 0, 0, 0, 0 };
@@ -150,6 +151,28 @@ public:
         string_view_utf8 txt, is_multiline multiline, const png::Resource *icon);
 };
 
+/*****************************************************************************/
+// MsgBoxIS
+class MsgBoxIS : public AddSuperWindow<MsgBoxBase> {
+
+public:
+    MsgBoxIS(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+        string_view_utf8 txt, is_multiline multiline, const png::Resource *icon_res,
+        is_closed_on_click_t close = is_closed_on_click_t::yes);
+
+protected:
+    window_icon_t icon;
+    window_qr_t qr;
+
+    // some methods to help with construction, so they can't be virtual
+    // some derived classes use them too, don't change visibility
+    Rect16 getIconRect();
+    Rect16 getTextRect();
+
+private:
+    static auto constexpr QR_ADDR = "https://prusa.io/input-shaper";
+};
+
 // todo enum default button
 // todo enum for size?
 Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
@@ -161,3 +184,4 @@ Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseRe
 Response MsgBoxIcon(string_view_utf8 txt, const png::Resource *icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
 Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
+Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);

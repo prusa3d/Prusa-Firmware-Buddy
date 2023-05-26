@@ -63,16 +63,16 @@ private:
 
     static void start_cooling(uint8_t tool_nr) {
         tool_cooling_down[tool_nr] = true;
-        fanCtlPrint[tool_nr].EnterSelftestMode();
-        fanCtlHeatBreak[tool_nr].EnterSelftestMode();
-        fanCtlPrint[tool_nr].SelftestSetPWM(255);
-        fanCtlHeatBreak[tool_nr].SelftestSetPWM(255);
+        Fans::print(tool_nr).EnterSelftestMode();
+        Fans::heat_break(tool_nr).EnterSelftestMode();
+        Fans::print(tool_nr).SelftestSetPWM(255);
+        Fans::heat_break(tool_nr).SelftestSetPWM(255);
     }
 
     static void stop_cooling(uint8_t tool_nr) {
         tool_cooling_down[tool_nr] = false;
-        fanCtlPrint[tool_nr].ExitSelftestMode();
-        fanCtlHeatBreak[tool_nr].ExitSelftestMode();
+        Fans::print(tool_nr).ExitSelftestMode();
+        Fans::heat_break(tool_nr).ExitSelftestMode();
     }
 };
 
@@ -160,7 +160,7 @@ LoopResult CSelftestPart_ToolOffsets::state_home_park() {
 }
 
 LoopResult CSelftestPart_ToolOffsets::state_wait_moves_done() {
-    if (planner.movesplanned() || queue.has_commands_queued()) {
+    if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
     }
     return LoopResult::RunNext;

@@ -8,7 +8,7 @@
 #include "MItem_menus.hpp"
 #include "MItem_crash.hpp"
 
-using ScreenMenuHardwareTune__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_INDEPT_STEP
+using ScreenMenuHardwareTune__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 #if ENABLED(CRASH_RECOVERY)
     ,
     MI_CRASH_SENSITIVITY_X, MI_CRASH_MAX_PERIOD_X, MI_CRASH_SENSITIVITY_Y, MI_CRASH_MAX_PERIOD_Y

@@ -4,6 +4,7 @@
 #include <device/hal.h>
 #include "Marlin.h"
 #include "marlin_server.hpp"
+#include "accelerometer.hpp"
 #include "modbus/ModbusTask.hpp"
 #include "wiring_analog.h"
 #include "wiring_digital.h"
@@ -64,6 +65,8 @@ void dwarf::modules::marlin::start() {
 
         dwarf::loadcell::loadcell_loop();
 
+        dwarf::accelerometer::accelerometer_loop();
+
         Cheese::update();
 
         if (!dwarf::ModbusControl::isDwarfSelected()) {
@@ -117,10 +120,10 @@ void stop_marlin() {
 void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     switch (ulPin) {
     case MARLIN_PIN(FAN): // print fan
-        fanCtlPrint[0].setPWM(ulValue);
+        Fans::print(0).setPWM(ulValue);
         return;
     case MARLIN_PIN(FAN1): // heatbreak
-        fanCtlHeatBreak[0].setPWM(ulValue);
+        Fans::heat_break(0).setPWM(ulValue);
         return;
     default:
         bsod("Write undefined pin");

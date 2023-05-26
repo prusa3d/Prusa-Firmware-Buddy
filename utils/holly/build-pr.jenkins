@@ -43,10 +43,9 @@ pipeline {
                 script {
                     // required configurations
                     def configurations = [
-                        //[preset: "mini", build_type: "release", bootloader: "yes"],
-                        [preset: "mk4-xBuddy027c-400step-planetary", build_type: "release", bootloader: "yes"],
+                        [preset: "mini", build_type: "release", bootloader: "no"],
+                        [preset: "mk4", build_type: "release", bootloader: "yes"],
                         [preset: "xl", build_type: "release", bootloader: "yes"],
-                        [preset: "xl-xbuddy04", build_type: "release", bootloader: "yes"],
                         [preset: "ix-xBuddy027c-200step", build_type: "release", bootloader: "empty"],
                     ]
 

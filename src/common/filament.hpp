@@ -17,7 +17,7 @@ enum class Type {
     NONE = 0,
     PLA,
     PETG,
-#if (PRINTER_TYPE == PRINTER_PRUSA_IXL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_iX)
     PETG_NH,
 #endif
     ASA,

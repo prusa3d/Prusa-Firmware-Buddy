@@ -145,6 +145,9 @@ public:
     /// Time interval in seconds specifying the subset of samples after haltEnd that should be used for the analysis.
     static constexpr float analysisLookahead = 0.300;
 
+    /// Delay in seconds between z axis coordinates and load samples.
+    static constexpr float loadDelay = static_cast<float>(LoadDelay) / 1000.0f;
+
 private:
     /// Entry of the moving window used for analysis.
     struct Record {
@@ -154,9 +157,6 @@ private:
         /// Load measured [grams]
         float load;
     };
-
-    /// Delay in seconds between z axis coordinates and load samples.
-    static constexpr float loadDelay = static_cast<float>(LoadDelay) / 1000.0f;
 
     /// Time interval in seconds between consecutive samples.
     float samplingInterval;
@@ -425,7 +425,8 @@ private:
 
         for (auto split = samples.first + 1; split < samples.last; ++split) {
             auto result = CalculateErrorWhenLoadRepresentedAsLines(samples, split);
-            if (std::get<0>(result) < bestError) {
+            float error = std::get<0>(result);
+            if (!std::isnan(error) && error < bestError) {
                 bestSplit = split;
                 std::tie(bestError, leftLine, rightLine) = result;
             }

@@ -1,7 +1,8 @@
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../lib/Marlin/Marlin/src/gcode/queue.h"
 #include "PrusaGcodeSuite.hpp"
-#if HAS_SELFTEST
+#include <option/has_selftest.h>
+#if HAS_SELFTEST()
     #include "selftest_esp.hpp"
 #endif // HAS_SELFTEST
 #include "../common/sys.h"
@@ -23,7 +24,7 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
     case 0:
         update_main_board(force_update_older);
         break;
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     case 1:
         update_esp(force_update_older);
         break;

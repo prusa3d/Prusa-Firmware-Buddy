@@ -86,7 +86,7 @@ LoopResult CSelftestPart_FSensor::stateInit() {
 
 LoopResult CSelftestPart_FSensor::stateWaitToolPick() {
 #if HAS_TOOLCHANGER()
-    if (planner.movesplanned() || queue.has_commands_queued()) {
+    if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
     }
 #endif

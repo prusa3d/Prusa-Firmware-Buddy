@@ -17,6 +17,8 @@ public:
 
         preview_wait_user,
 
+        new_firmware_available_wait_user,
+
         wrong_printer_wait_user,
         wrong_printer_wait_user_abort,
 
@@ -88,6 +90,7 @@ private:
     State stateFromFilamentPresence() const;
     State stateFromFilamentType() const;
 
-    State evaluateStateOnPrintClick();
+    State stateFromUpdateCheck();
+    State stateFromPrinterCheck();
     Result stateToResult() const;
 };

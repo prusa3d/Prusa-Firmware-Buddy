@@ -31,6 +31,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 50:
             PrusaGcodeSuite::M50(); // selftest
             break;
+        case 74:
+            PrusaGcodeSuite::M74();
+            break;
 #if HAS_LEDS
         case 150:
             PrusaGcodeSuite::M150();
@@ -94,6 +97,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
                 break;
             case 5:
                 PrusaGcodeSuite::M862_5();
+                break;
+            case 6:
+                PrusaGcodeSuite::M862_6();
                 break;
             default:
                 processed = false;

@@ -49,15 +49,16 @@
 #endif
 
 #include <option/has_loadcell.h>
+#include <option/has_loadcell_hx717.h>
 #include <option/has_gui.h>
 
 #if HAS_LOADCELL()
     #include "loadcell.h"
 #endif
 
-#ifdef LOADCELL_HX717
+#if HAS_LOADCELL_HX717()
     #include "hx717.h"
-#endif //LOADCELL_HX717
+#endif
 
 LOG_COMPONENT_REF(MMU2);
 LOG_COMPONENT_REF(Marlin);
@@ -66,23 +67,11 @@ LOG_COMPONENT_REF(Marlin);
     #include "FUSB302B.hpp"
 #endif
 
-#if (BOARD_IS_XBUDDY)
-    #include "calibrated_loveboard.hpp"
-#endif
-
-#ifdef HAS_ACCELEROMETR
-    #include "SparkFunLIS3DH.h"
-#endif
-
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
 #endif
 
 #include "probe_position_lookback.hpp"
-
-#if BOARD_IS_XBUDDY
-CalibratedLoveboard *LoveBoard;
-#endif
 
 LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
@@ -98,10 +87,6 @@ metric_t metric_cpu_usage = METRIC("cpu_usage", METRIC_VALUE_INTEGER, 1000, METR
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
 #endif                                 //BUDDY_ENABLE_ETHERNET
-
-#ifdef HAS_ACCELEROMETR
-LIS3DH accelerometer(SPI_MODE, 10);
-#endif
 
 void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
@@ -163,16 +148,9 @@ void app_setup(void) {
     loadcell.ConfigureSignalEvent(osThreadGetId(), 0x0A);
 #endif
 
-#if BOARD_IS_XBUDDY
-    LoveBoard = new CalibratedLoveboard(GPIOF, LL_GPIO_PIN_13);
-#endif
     setup();
 
     marlin_server::settings_load(); // load marlin variables from eeprom
-
-#ifdef HAS_ACCELEROMETR
-    accelerometer.begin();
-#endif
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     buddy::hw::FUSB302B::ResetChip();
@@ -232,7 +210,6 @@ void app_idle(void) {
     Buddy::Metrics::record_dwarf_mcu_temperature();
 #endif
     print_utils_loop();
-    osDelay(0); // switch to other threads - without this is UI slow during printing
 }
 
 void app_run(void) {
@@ -283,7 +260,7 @@ void app_assert([[maybe_unused]] uint8_t *file, [[maybe_unused]] uint32_t line) 
     bsod("app_assert");
 }
 
-#ifdef LOADCELL_HX717
+#if HAS_LOADCELL_HX717()
 
 // HX717 sample function. Sample both HX channels
 static void hx717_irq() {
@@ -307,16 +284,17 @@ static void hx717_irq() {
     raw_value = hx717.ReadValue(next_channel);
 
     if (current_channel == hx717.CHANNEL_A_GAIN_128) {
-        loadcell.ProcessSample(raw_value, ticks_us());
         auto sampleRate = hx717.GetSampleRate();
         if (!std::isnan(sampleRate))
             loadcell.analysis.SetSamplingIntervalMs(sampleRate);
+        uint32_t ts_ms = hx717.GetSampleTimestamp();
+        loadcell.ProcessSample(raw_value, ts_ms * 1000);
     } else {
         fs_process_sample(raw_value, 0);
     }
     current_channel = next_channel;
 }
-#endif //LOADCELL_HX717
+#endif // HAS_LOADCELL_HX717()
 
 #ifdef HAS_ADVANCED_POWER
 static uint8_t cnt_advanced_power_update = 0;
@@ -377,29 +355,13 @@ static void filament_sensor_irq() {
 }
 #endif
 
-#ifdef HAS_ACCELEROMETR
-static metric_t accel = METRIC("tk_accel", METRIC_VALUE_CUSTOM, 10, METRIC_HANDLER_ENABLE_ALL);
-
-void accelerometer_irq() {
-    if (accelerometer.isSetupDone() == true) {
-        //_dbg("acell x = %1.4d, y = %1.4d, z = %1.4d", (double)SensorOne.readFloatAccelX(), (double)SensorOne.readFloatAccelY(), (double)SensorOne.readFloatAccelZ());
-        metric_record_custom(&accel, " x=%.4f,y=%.4f,z=%.4f", (double)accelerometer.readFloatAccelX(), (double)accelerometer.readFloatAccelY(), (double)accelerometer.readFloatAccelZ());
-    }
-}
-
-#endif
-
 void adc_tick_1ms(void) {
-#ifdef LOADCELL_HX717
+#if HAS_LOADCELL_HX717()
     hx717_irq();
-#endif //LOADCELL_HX717
+#endif // HAS_LOADCELL_HX717()
 
 #ifdef HAS_ADVANCED_POWER
     advanced_power_irq();
-#endif
-
-#ifdef HAS_ACCELEROMETR
-    accelerometer_irq();
 #endif
 
 #ifdef ADC_MULTIPLEXER
@@ -410,7 +372,7 @@ void adc_tick_1ms(void) {
 }
 
 void app_tim14_tick(void) {
-    fanctl_tick();
+    Fans::tick();
 
 #if HAS_GUI()
     jogwheel.Update1msFromISR();

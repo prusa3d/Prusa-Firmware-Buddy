@@ -57,7 +57,7 @@ ScreenMenuPrusaLink::ScreenMenuPrusaLink()
     : AddSuperWindow<screen_t>(nullptr, win_type_t::normal, is_closed_on_timeout_t::no)
     , menu(this, GuiDefaults::RectScreenBody - Rect16::Height_t(canvas_font_height()), &container)
     , header(this) {
-    header.SetText(_(label));
+    header.SetText(_("PRUSALINK"));
     CaptureNormalWindow(menu); // set capture to list
     display_passwd(wui_get_password());
     // The user might want to read the password from here, don't time it out on them.

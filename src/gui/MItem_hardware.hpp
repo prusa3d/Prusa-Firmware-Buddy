@@ -76,7 +76,7 @@ protected:
 };
 
 class MI_HARDWARE_G_CODE_CHECKS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("G-code Checks");
+    static constexpr const char *const label = N_("G-Code Checks");
 
 public:
     MI_HARDWARE_G_CODE_CHECKS();
@@ -110,7 +110,7 @@ public:
 };
 
 class MI_GCODE_LEVEL_CHECK : public MI_HARDWARE_CHECK_t<EEVAR_HWCHECK_GCODE> {
-    static constexpr const char *const label = N_("G-code Level");
+    static constexpr const char *const label = N_("G-Code Level");
 
 public:
     MI_GCODE_LEVEL_CHECK()

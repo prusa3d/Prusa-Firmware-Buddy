@@ -3,6 +3,7 @@
 #include "log.h"
 #include "cmsis_os.h"
 #include "bsod_gui.hpp"
+#include "inc/MarlinConfig.h"
 
 #define EEPROM_MAX_RETRIES 20
 
@@ -34,7 +35,15 @@ extern "C" void I2C_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8
     HAL_StatusTypeDef result = HAL_ERROR;
     while (--retries) {
         I2C_lock();
+        // Disable the move interrupt to ensure that I2C transmit will not be interrupted by the move interrupt that can take a couple of milliseconds.
+        const bool enabled_move_isr = MOVE_ISR_ENABLED();
+        if (enabled_move_isr)
+            DISABLE_MOVE_INTERRUPT();
+
         result = HAL_I2C_Master_Transmit(hi2c, DevAddress, pData, Size, Timeout);
+        if (enabled_move_isr)
+            ENABLE_MOVE_INTERRUPT();
+
         I2C_unlock();
         if (result != HAL_BUSY)
             break;
@@ -91,7 +100,15 @@ extern "C" void I2C_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_
     HAL_StatusTypeDef result = HAL_ERROR;
     while (--retries) {
         I2C_lock();
+        // Disable the move interrupt to ensure that I2C receive will not be interrupted by the move interrupt that can take a couple of milliseconds.
+        const bool enabled_move_isr = MOVE_ISR_ENABLED();
+        if (enabled_move_isr)
+            DISABLE_MOVE_INTERRUPT();
+
         result = HAL_I2C_Master_Receive(hi2c, DevAddress, pData, Size, Timeout);
+        if (enabled_move_isr)
+            ENABLE_MOVE_INTERRUPT();
+
         I2C_unlock();
         if (result != HAL_BUSY)
             break;

@@ -17,8 +17,7 @@
 using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_RETURN,
     MI_NOZZLE_DIAMETER,
-    MI_HARDWARE_G_CODE_CHECKS,
-    MI_INDEPT_STEP
+    MI_HARDWARE_G_CODE_CHECKS
 #if ENABLED(MODULAR_HEATBED)
     ,
     MI_HEAT_ENTIRE_BED

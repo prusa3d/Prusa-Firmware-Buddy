@@ -28,27 +28,26 @@ public:
      */
     template <typename T>
     bool can_encode() {
-        return sizeof(Header_t) + sizeof(T) <= available_bytes();
+        return sizeof(Header) + sizeof(T) <= available_bytes();
     }
 
     /**
      * Actually encode message in the stream
      */
     template <typename T>
-    bool encode(const TimeStamp_us_t timestamp_us, const T data) {
+    bool encode(const T data) {
         log_debug(
             ModbusFIFOEncoder,
             "Encoding message type: %d, size: %d+%d at byte offset: %d",
             message_type<T>(),
-            sizeof(Header_t),
+            sizeof(Header),
             sizeof(T),
             fifo_bytes_pos);
         if (!can_encode<T>()) {
             return false;
         }
 
-        Header_t header = {
-            .timestamp_us = timestamp_us,
+        Header header = {
             .type = message_type<T>(),
         };
 

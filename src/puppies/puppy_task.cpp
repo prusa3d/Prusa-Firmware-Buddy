@@ -180,7 +180,7 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
             dwarfs[i].set_enabled(bootstrap_result.is_dock_occupied(Dock::DWARF_1 + i));
         }
 
-        // wait for puppies to boot up, ensure they are runining
+        // wait for puppies to boot up, ensure they are running
         verify_puppies_running();
 
         do {

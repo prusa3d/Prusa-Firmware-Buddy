@@ -179,6 +179,9 @@ time_t sntp_get_system_time(void);
 
 bool wui_is_file_being_printed(const char *filename);
 
+// Wrapper around marlin_is_printing, to disengage for tests
+bool wui_is_printing();
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

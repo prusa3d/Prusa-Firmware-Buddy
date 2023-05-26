@@ -51,8 +51,10 @@ exclude: |
     ^lib/printf|
     ^lib/inih/|
     ^lib/Marlin/(?!
-        Marlin/src/feature/prusa/|
-        Marlin/src/gcode/feature/prusa/|
+        Marlin/src(/gcode)?/feature/prusa/|
+        Marlin/src(/gcode)?/feature/input_shaper/|
+        Marlin/src(/gcode)?/feature/pressure_advance/|
+        Marlin/src(/gcode)?/feature/precise_stepping/|
         Marlin/src/module/prusa/
       )|
     ^lib/Prusa-Error-Codes/|

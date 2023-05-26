@@ -6,11 +6,13 @@ target_sources(
           M300.cpp
           M330.cpp
           M505.cpp
+          M74.cpp
           M862_1.cpp
           M862_2.cpp
           M862_3.cpp
           M862_4.cpp
           M862_5.cpp
+          M862_6.cpp
           M876.cpp
           M919-M920.cpp
           M93X.cpp

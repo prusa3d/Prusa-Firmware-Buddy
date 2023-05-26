@@ -4,8 +4,6 @@
 #include <limits>
 #include <algorithm>
 
-#ifdef LOADCELL_HX717
-
 HX717 hx717;
 
 HX717::HX717()
@@ -76,21 +74,22 @@ int32_t HX717::ReadValue(Channel nextChannel) {
         timing_delay_cycles(std::max(zero, minDelayCycles - pinWriteCycles - loopCycles - disableEnableIrqCycles));
     }
 
+    sampleTimestamp = nextSampleTimestamp;
+    nextSampleTimestamp = HAL_GetTick();
+
     if (currentChannel == nextChannel) {
         consecutiveSamplesCount++;
         if (consecutiveSamplesCount == 1) {
-            channelSwitchTimestamp = HAL_GetTick();
+            channelSwitchTimestamp = nextSampleTimestamp;
         } else if (consecutiveSamplesCount > 20 && consecutiveSamplesCount < 300) {
-            uint32_t durationMs = HAL_GetTick() - channelSwitchTimestamp;
+            uint32_t durationMs = nextSampleTimestamp - channelSwitchTimestamp;
             sampleRate = static_cast<float>(durationMs) / static_cast<float>(consecutiveSamplesCount - 1);
         }
-
     } else {
         consecutiveSamplesCount = 0;
     }
     currentChannel = nextChannel;
+
     //convert 24 bit signed to 32 bit signed
     return (result >= 0x800000) ? (result | 0xFF000000) : result;
 }
-
-#endif //LOADCELL_HX717

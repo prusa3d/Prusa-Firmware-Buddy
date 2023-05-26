@@ -288,6 +288,10 @@ public:
         }
     }
 
+    __attribute__((always_inline)) inline void toggle() const {
+        getHalPort()->ODR ^= m_halPin;
+    }
+
     __attribute__((always_inline)) inline void set() const {
         getHalPort()->BSRR = m_halPin;
     }

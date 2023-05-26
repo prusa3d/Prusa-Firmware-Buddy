@@ -8,6 +8,7 @@
 #include <gcode_file.h>
 #include <basename.h>
 #include <timing.h>
+#include <state/printer_state.hpp>
 
 #include <cassert>
 #include <cstring>
@@ -16,6 +17,7 @@
 
 using json::JsonOutput;
 using json::JsonResult;
+using printer_state::DeviceState;
 using std::get_if;
 using std::make_tuple;
 using std::min;
@@ -33,37 +35,37 @@ namespace connect_client {
 
 namespace {
 
-    const char *to_str(Printer::DeviceState state) {
+    const char *to_str(DeviceState state) {
         switch (state) {
-        case Printer::DeviceState::Idle:
+        case DeviceState::Idle:
             return "IDLE";
-        case Printer::DeviceState::Printing:
+        case DeviceState::Printing:
             return "PRINTING";
-        case Printer::DeviceState::Paused:
+        case DeviceState::Paused:
             return "PAUSED";
-        case Printer::DeviceState::Finished:
+        case DeviceState::Finished:
             return "FINISHED";
-        case Printer::DeviceState::Stopped:
+        case DeviceState::Stopped:
             return "STOPPED";
-        case Printer::DeviceState::Ready:
+        case DeviceState::Ready:
             return "READY";
-        case Printer::DeviceState::Error:
+        case DeviceState::Error:
             return "ERROR";
-        case Printer::DeviceState::Busy:
+        case DeviceState::Busy:
             return "BUSY";
-        case Printer::DeviceState::Attention:
+        case DeviceState::Attention:
             return "ATTENTION";
-        case Printer::DeviceState::Unknown:
+        case DeviceState::Unknown:
         default:
             return "UNKNOWN";
         }
     }
 
-    bool is_printing(Printer::DeviceState state) {
+    bool is_printing(DeviceState state) {
         switch (state) {
-        case Printer::DeviceState::Printing:
-        case Printer::DeviceState::Paused:
-        case Printer::DeviceState::Attention:
+        case DeviceState::Printing:
+        case DeviceState::Paused:
+        case DeviceState::Attention:
             return true;
         default:
             return false;
@@ -196,7 +198,7 @@ namespace {
             creds = state.printer.net_creds();
         }
 
-        if (event.type == EventType::JobInfo && (!printing || event.job_id != params.job_id)) {
+        if (event.type == EventType::JobInfo && (!printing || event.job_id.value_or(params.job_id) != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
             //
             // Can't provide historic/future jobs.
@@ -285,16 +287,16 @@ namespace {
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
                     // The JobInfo doesn't claim the buffer, so we get it to store the path.
-                    assert(params.job_path != nullptr);
+                    assert(params.job_path() != nullptr);
                     if (state.has_stat) {
                         JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("display_name", params.job_lfn != nullptr ? params.job_lfn : basename_b(params.job_path)) JSON_COMMA;
+                    JSON_FIELD_STR("display_name", params.job_lfn() != nullptr ? params.job_lfn() : basename_b(params.job_path())) JSON_COMMA;
                     if (event.start_cmd_id.has_value()) {
                         JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("path", params.job_path);
+                    JSON_FIELD_STR("path", params.job_path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");
@@ -722,7 +724,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
         switch (event->type) {
         case EventType::JobInfo:
             if (is_printing(params.state)) {
-                path = params.job_path;
+                path = params.job_path();
             }
             break;
         case EventType::FileInfo: {

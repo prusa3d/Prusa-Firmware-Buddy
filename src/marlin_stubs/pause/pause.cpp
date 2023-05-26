@@ -1016,7 +1016,7 @@ bool Pause::parkMoveXGreaterThanY(const xyz_pos_t &pos0, const xyz_pos_t &pos1) 
 }
 
 bool Pause::wait_or_stop() {
-    while (planner.busy()) {
+    while (planner.processing()) {
         if (check_user_stop())
             return true;
         idle(true, true);
@@ -1263,16 +1263,14 @@ bool Pause::check_user_stop() {
 
     settings.do_stop = true;
     planner.quick_stop();
-    while (planner.has_blocks_queued())
+    while (planner.processing())
         loop();
     planner.resume_queuing();
     set_all_unhomed();
     set_all_unknown();
     xyze_pos_t real_current_position;
+    planner.get_axis_position_mm(static_cast<xyz_pos_t &>(real_current_position));
     real_current_position[E_AXIS] = 0;
-    LOOP_XYZ(i) {
-        real_current_position[i] = planner.get_axis_position_mm((AxisEnum)i);
-    }
 #if HAS_POSITION_MODIFIERS
     planner.unapply_modifiers(real_current_position
     #if HAS_LEVELING

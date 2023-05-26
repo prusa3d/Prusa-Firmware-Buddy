@@ -124,13 +124,17 @@ if(PRINTER STREQUAL "MK4")
   set(PRINTER_TYPE "1")
   set(PRINTER_VERSION "4")
   set(PRINTER_CODE "13")
+elseif(PRINTER STREQUAL "MK3.5")
+  set(PRINTER_TYPE "5")
+  set(PRINTER_VERSION "4")
+  set(PRINTER_CODE "13")
 elseif(PRINTER STREQUAL "MINI")
   set(PRINTER_TYPE "2")
   set(PRINTER_CODE "12")
 elseif(PRINTER STREQUAL "XL")
   set(PRINTER_TYPE "3")
   set(PRINTER_CODE "17")
-elseif(PRINTER STREQUAL "IXL")
+elseif(PRINTER STREQUAL "iX")
   set(PRINTER_TYPE "4")
   set(PRINTER_CODE "16")
 else()
@@ -291,8 +295,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(MCU MATCHES "STM32F40"
      OR MCU MATCHES "STM32G0"
      OR PRINTER STREQUAL "MK4"
+     OR PRINTER STREQUAL "MK3.5"
      OR PRINTER STREQUAL "XL"
-     OR PRINTER STREQUAL "IXL"
+     OR PRINTER STREQUAL "iX"
      )
     add_compile_options(-Og)
   else()
@@ -519,7 +524,7 @@ if(GENERATE_BBF)
   pack_firmware(
     firmware
     FW_VERSION
-    "${PROJECT_VERSION_FULL}"
+    "${PROJECT_VERSION}${PROJECT_VERSION_SUFFIX_SHORT}"
     BUILD_NUMBER
     "${BUILD_NUMBER}"
     PRINTER_TYPE
@@ -614,6 +619,7 @@ if(BOARD MATCHES "BUDDY")
             inih::inih
             $<$<BOOL:${WUI}>:WUI>
             jsmn::jsmn
+            cthash::cthash
             QR
             Buddy::Lang
             printf::printf
@@ -652,29 +658,6 @@ set_property(
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
-  )
-
-set_property(
-  SOURCE src/common/marlin_server.cpp
-         src/gui/guimain.cpp
-         src/gui/MItem_menus.cpp
-         src/gui/screen_splash.cpp
-         src/gui/screen_home.cpp
-         src/gui/screen_menu_settings.cpp
-         src/gui/screen_menu_hw_setup.cpp
-         src/gui/test/screen_menu_test.cpp
-         src/gui/dialogs/DialogHandler.cpp
-         src/marlin_stubs/G163.cpp
-         src/marlin_stubs/M997.cpp
-         src/gui/MItem_basic_selftest.cpp
-         src/gui/ScreenSelftest.cpp
-         src/gui/MItem_loadcell.cpp
-         src/common/marlin_client.cpp
-         src/gui/screen_menu_tools.cpp
-         src/guiapi/src/window_tool_action_box.cpp
-         src/gui/screen_menu_selftest_snake.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_SELFTEST=$<BOOL:${HAS_SELFTEST}>
   )
 
 set_property(

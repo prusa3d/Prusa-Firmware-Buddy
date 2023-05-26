@@ -8,7 +8,7 @@
 #include "sys.h"
 #include "window_types.hpp"
 #include <cstddef>
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "test_of_selftest_result.hpp"
     #include "screen_test_selftest.hpp"
 #endif
@@ -64,7 +64,7 @@ MI_RESULT_TEST::MI_RESULT_TEST()
 }
 
 void MI_RESULT_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     Screens::Access()->Open(ScreenFactory::Screen<TestResultScreen>);
 #endif // HAS_SELFTEST
 }
@@ -74,7 +74,7 @@ MI_SELFTEST_TEST::MI_SELFTEST_TEST()
 }
 
 void MI_SELFTEST_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenTestSelftest>);
 #endif // HAS_SELFTEST
 }

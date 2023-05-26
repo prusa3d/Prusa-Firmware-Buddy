@@ -6,14 +6,16 @@
 
 using namespace common::puppies::fifo;
 
-static constexpr LogData_t log_fragment = { 'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o' };
-static constexpr LoadCellData_t loadcell_fragment = 0x12345678;
+static constexpr LogData log_fragment = { 'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o' };
+static constexpr LoadcellRecord loadcell_fragment = { 0, 0x12345678 };
+static constexpr AccelerometerData accelerometer_fragment = { 1, 0x12345678 };
+static constexpr AccelerometerFastData accelerometer_fast_fragment = { 0x87654321, 0x12354678 };
 
 TEST_CASE("Encoder allignment") {
     std::array<uint16_t, MODBUS_FIFO_LEN> fifo;
     Encoder encoder(fifo);
     fifo.fill(0xaaaa);
-    REQUIRE(encoder.encode(0, loadcell_fragment));
+    REQUIRE(encoder.encode(loadcell_fragment));
     encoder.padd();
 
     REQUIRE(fifo[encoder.position() - 1] == 0x0012);
@@ -24,63 +26,59 @@ TEST_CASE("Encode log") {
 
     Encoder encoder(fifo);
 
-    REQUIRE(encoder.can_encode<LogData_t>());
-    REQUIRE(encoder.encode(1, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
 
-    REQUIRE(encoder.can_encode<LogData_t>());
-    REQUIRE(encoder.encode(2, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
 
-    REQUIRE(encoder.can_encode<LogData_t>());
-    REQUIRE(encoder.encode(3, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
 
-    REQUIRE(encoder.can_encode<LogData_t>());
-    REQUIRE(encoder.encode(4, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
 
     encoder.padd();
 
     struct __attribute__((packed)) CompleteLogRecord {
-        Header_t header;
-        LogData_t data;
+        Header header;
+        LogData data;
     };
 
     struct CompleteFifo {
         CompleteLogRecord records[4];
-        uint8_t zero_padd[10];
+        uint8_t zero_padd[26];
     } const complete_fifo = {
         .records = {
             {
                 .header = {
-                    .timestamp_us = 1,
                     .type = MessageType::log,
                 },
                 .data = log_fragment,
             },
             {
                 .header = {
-                    .timestamp_us = 2,
                     .type = MessageType::log,
                 },
                 .data = log_fragment,
             },
             {
                 .header = {
-                    .timestamp_us = 3,
                     .type = MessageType::log,
                 },
                 .data = log_fragment,
             },
             {
                 .header = {
-                    .timestamp_us = 4,
                     .type = MessageType::log,
                 },
                 .data = log_fragment,
             },
         },
-        .zero_padd = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+        .zero_padd = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
     };
 
-    static_assert(sizeof(struct CompleteLogRecord) == 13);
+    static_assert(sizeof(struct CompleteLogRecord) == 9);
     static_assert(sizeof(struct CompleteFifo) == 62);
 
     REQUIRE(fifo == *reinterpret_cast<const std::array<uint16_t, MODBUS_FIFO_LEN> *>(&complete_fifo));
@@ -91,34 +89,37 @@ TEST_CASE("Encode combination") {
 
     Encoder encoder(fifo);
 
-    REQUIRE(encoder.can_encode<LogData_t>());
-    REQUIRE(encoder.encode(1, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
 
-    REQUIRE(encoder.can_encode<LoadCellData_t>());
-    REQUIRE(encoder.encode(2, loadcell_fragment));
+    REQUIRE(encoder.can_encode<LoadcellRecord>());
+    REQUIRE(encoder.encode(loadcell_fragment));
 
-    REQUIRE(encoder.can_encode<LogData_t>());
-    REQUIRE(encoder.encode(3, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
 
-    REQUIRE(encoder.can_encode<LoadCellData_t>());
-    REQUIRE(encoder.encode(4, loadcell_fragment));
+    REQUIRE(encoder.can_encode<LoadcellRecord>());
+    REQUIRE(encoder.encode(loadcell_fragment));
 
-    REQUIRE(encoder.can_encode<LogData_t>());
-    REQUIRE(encoder.encode(5, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
 
-    REQUIRE(!encoder.can_encode<LogData_t>());
-    REQUIRE(!encoder.encode(6, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
+
+    REQUIRE(!encoder.can_encode<LogData>());
+    REQUIRE(!encoder.encode(log_fragment));
 
     encoder.padd();
 
     struct __attribute__((packed)) CompleteLogRecord {
-        Header_t header;
-        LogData_t data;
+        Header header;
+        LogData data;
     };
 
     struct __attribute__((packed)) CompleteLoadcellRecord {
-        Header_t header;
-        LoadCellData_t data;
+        Header header;
+        LoadcellRecord data;
     };
 
     struct CompleteFifo {
@@ -127,47 +128,49 @@ TEST_CASE("Encode combination") {
         CompleteLogRecord rec3;
         CompleteLoadcellRecord rec4;
         CompleteLogRecord rec5;
-        uint8_t zero_padd[5];
+        CompleteLogRecord rec6;
+        uint8_t zero_padd[8];
     } const complete_fifo = {
         .rec1 = {
             .header = {
-                .timestamp_us = 1,
                 .type = MessageType::log,
             },
             .data = log_fragment,
         },
         .rec2 = {
             .header = {
-                .timestamp_us = 2,
                 .type = MessageType::loadcell,
             },
             .data = loadcell_fragment,
         },
         .rec3 = {
             .header = {
-                .timestamp_us = 3,
                 .type = MessageType::log,
             },
             .data = log_fragment,
         },
         .rec4 = {
             .header = {
-                .timestamp_us = 4,
                 .type = MessageType::loadcell,
             },
             .data = loadcell_fragment,
         },
         .rec5 = {
             .header = {
-                .timestamp_us = 5,
                 .type = MessageType::log,
             },
             .data = log_fragment,
         },
-        .zero_padd = { 0, 0, 0, 0, 0 },
+        .rec6 = {
+            .header = {
+                .type = MessageType::log,
+            },
+            .data = log_fragment,
+        },
+        .zero_padd = { 0, 0, 0, 0, 0, 0, 0, 0 },
     };
 
-    static_assert(sizeof(struct CompleteLogRecord) == 13);
+    static_assert(sizeof(struct CompleteLogRecord) == 9);
     static_assert(sizeof(struct CompleteLoadcellRecord) == 9);
     static_assert(sizeof(struct CompleteFifo) == 62);
 
@@ -179,8 +182,8 @@ TEST_CASE("Encode - null decode") {
 
     Encoder encoder(fifo);
 
-    REQUIRE(encoder.can_encode<LogData_t>());
-    REQUIRE(encoder.encode(1, log_fragment));
+    REQUIRE(encoder.can_encode<LogData>());
+    REQUIRE(encoder.encode(log_fragment));
     encoder.padd();
 
     Decoder decoder(fifo, encoder.position());
@@ -198,30 +201,45 @@ TEST_CASE("Encode - decode") {
 
     Encoder encoder(fifo);
 
-    REQUIRE(encoder.encode(1, log_fragment));
-    REQUIRE(encoder.encode(2, loadcell_fragment));
+    REQUIRE(encoder.encode(log_fragment));
+    REQUIRE(encoder.encode(loadcell_fragment));
+    REQUIRE(encoder.encode(accelerometer_fragment));
+    REQUIRE(encoder.encode(accelerometer_fast_fragment));
     encoder.padd();
 
     Decoder decoder(fifo, encoder.position());
 
     int num_log = 0;
     int num_loadcell = 0;
+    int num_accelerometer = 0;
+    int num_accelerometer_fast = 0;
 
     decoder.decode({
-        [&num_log](TimeStamp_us_t time_us, LogData_t data) {
-            REQUIRE(time_us == 1);
+        [&num_log](LogData data) {
             REQUIRE(data == log_fragment);
             num_log++;
         },
-        [&num_loadcell](TimeStamp_us_t time_us, LoadCellData_t data) {
-            REQUIRE(time_us == 2);
-            REQUIRE(data == loadcell_fragment);
+        [&num_loadcell](LoadcellRecord data) {
+            REQUIRE(data.timestamp == loadcell_fragment.timestamp);
+            REQUIRE(data.loadcell_raw_value == loadcell_fragment.loadcell_raw_value);
             num_loadcell++;
+        },
+        [&num_accelerometer](AccelerometerData data) {
+            REQUIRE(data.timestamp_us == accelerometer_fragment.timestamp_us);
+            REQUIRE(data.sample == accelerometer_fragment.sample);
+            num_accelerometer++;
+        },
+        [&num_accelerometer_fast](AccelerometerFastData data) {
+            REQUIRE(data[0] == accelerometer_fast_fragment[0]);
+            REQUIRE(data[1] == accelerometer_fast_fragment[1]);
+            num_accelerometer_fast++;
         },
     });
 
     CHECK(num_log == 1);
     CHECK(num_loadcell == 1);
+    CHECK(num_accelerometer == 1);
+    CHECK(num_accelerometer_fast == 1);
 }
 
 TEST_CASE("Encode - partial decode") {
@@ -229,8 +247,8 @@ TEST_CASE("Encode - partial decode") {
 
     Encoder encoder(fifo);
 
-    REQUIRE(encoder.encode(1, log_fragment));
-    REQUIRE(encoder.encode(2, loadcell_fragment));
+    REQUIRE(encoder.encode(log_fragment));
+    REQUIRE(encoder.encode(loadcell_fragment));
     encoder.padd();
 
     Decoder decoder(fifo, encoder.position());
@@ -238,11 +256,12 @@ TEST_CASE("Encode - partial decode") {
     int num_log = 0;
 
     decoder.decode({
-        [&num_log](TimeStamp_us_t time_us, LogData_t data) {
-            REQUIRE(time_us == 1);
+        [&num_log](LogData data) {
             REQUIRE(data == log_fragment);
             num_log++;
         },
+        NULL,
+        NULL,
         NULL,
     });
 

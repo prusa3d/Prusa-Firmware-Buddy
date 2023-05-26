@@ -18,10 +18,11 @@ enum class fan_type_t {
 //using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
 struct FanConfig_t {
     using type_evaluation = SelftestFan_t;
+    using FanCtlFnc = CFanCtl &(*)(size_t);
     static constexpr SelftestParts part_type = SelftestParts::Fans;
     fan_type_t type;
     uint8_t tool_nr;
-    CFanCtl &fanctl;
+    FanCtlFnc fanctl_fnc;
     int pwm_start;
     int pwm_step;
     const uint16_t *rpm_min_table;

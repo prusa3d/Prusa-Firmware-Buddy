@@ -67,6 +67,8 @@ void FilamentSensors::configure_sensors() {
     logical_sensors.primary_runout = GetExtruderFSensor(tool_index);
     logical_sensors.secondary_runout = nullptr;
     logical_sensors.autoload = GetExtruderFSensor(tool_index);
+
+    physical_sensors.current_extruder = GetExtruderFSensor(tool_index);
 }
 void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
     // might want to log error .. no adc sensor
@@ -87,7 +89,7 @@ void fs_process_sample([[maybe_unused]] int32_t fs_raw_value, [[maybe_unused]] u
     // might want to log error .. no adc sensor
 }
 
-#else // IXL on some other printer with ADC sensor, but without MMU
+#else // iX on some other printer with ADC sensor, but without MMU
 
 void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {
     FSensorADC *sensor = getExtruderFSensor(tool_index);

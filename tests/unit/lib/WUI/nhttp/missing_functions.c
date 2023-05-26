@@ -75,6 +75,10 @@ bool wui_is_file_being_printed(const char *filename) {
     return false;
 }
 
+bool wui_is_printing() {
+    return false;
+}
+
 int mkdir(const char *path, mode_t mode) {
     return 0;
 }

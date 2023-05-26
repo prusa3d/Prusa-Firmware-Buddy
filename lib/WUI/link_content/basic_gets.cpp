@@ -6,6 +6,7 @@
 #include <eeprom.h>
 
 #include <segmented_json_macros.h>
+#include <state/printer_state.hpp>
 
 #include <dirent.h>
 #include <cstring>
@@ -14,6 +15,9 @@
 
 using namespace json;
 using namespace marlin_server;
+
+using printer_state::DeviceState;
+
 namespace nhttp::link_content {
 
 JsonResult get_printer(size_t resume_point, JsonOutput &output) {
@@ -33,77 +37,86 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     bool ready = true;
     bool busy = false;
     bool error = false;
-    const char *link_state = nullptr;
+    const char *link_state_str = nullptr;
 
     switch (vars->print_state) {
-    case mpsCrashRecovery_Begin:
-    case mpsCrashRecovery_Lifting:
-    case mpsCrashRecovery_Retracting:
-    case mpsCrashRecovery_XY_Measure:
-    case mpsCrashRecovery_Tool_Pickup:
-    case mpsCrashRecovery_XY_HOME:
-    case mpsCrashRecovery_HOMEFAIL:
-    case mpsCrashRecovery_Axis_NOK:
-    case mpsCrashRecovery_Repeated_Crash:
-    case mpsPowerPanic_acFault:
-        link_state = "BUSY";
+    case State::CrashRecovery_Begin:
+    case State::CrashRecovery_Lifting:
+    case State::CrashRecovery_Retracting:
+    case State::CrashRecovery_XY_Measure:
+    case State::CrashRecovery_Tool_Pickup:
+    case State::CrashRecovery_XY_HOME:
+    case State::CrashRecovery_HOMEFAIL:
+    case State::CrashRecovery_Axis_NOK:
+    case State::CrashRecovery_Repeated_Crash:
+    case State::PowerPanic_acFault:
+        link_state_str = "BUSY";
         busy = true;
         // Fall through
-    case mpsPrinting:
+    case State::Printing:
         printing = true;
         ready = operational = false;
-        link_state = "PRINTING";
+        link_state_str = "PRINTING";
         break;
-    case mpsPowerPanic_AwaitingResume:
-    case mpsPausing_Begin:
-    case mpsPausing_Failed_Code:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
+    case State::PowerPanic_AwaitingResume:
+    case State::Pausing_Begin:
+    case State::Pausing_Failed_Code:
+    case State::Pausing_WaitIdle:
+    case State::Pausing_ParkHead:
         printing = pausing = paused = busy = true;
         ready = operational = false;
-        link_state = "PAUSED";
+        link_state_str = "PAUSED";
         break;
-    case mpsPaused:
+    case State::Paused:
         printing = paused = true;
         ready = operational = false;
-        link_state = "PAUSED";
+        link_state_str = "PAUSED";
         break;
-    case mpsResuming_Begin:
-    case mpsResuming_Reheating:
-    case mpsResuming_UnparkHead_XY:
-    case mpsResuming_UnparkHead_ZE:
-    case mpsPowerPanic_Resume:
+    case State::Resuming_Begin:
+    case State::Resuming_Reheating:
+    case State::Resuming_UnparkHead_XY:
+    case State::Resuming_UnparkHead_ZE:
+    case State::PowerPanic_Resume:
         ready = operational = false;
         busy = printing = true;
-        link_state = "PRINTING";
+        link_state_str = "PRINTING";
         break;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
+    case State::Aborting_Begin:
+    case State::Aborting_WaitIdle:
+    case State::Aborting_ParkHead:
         cancelling = busy = true;
         ready = operational = false;
-        link_state = "BUSY";
+        link_state_str = "BUSY";
         break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
+    case State::Finishing_WaitIdle:
+    case State::Finishing_ParkHead:
         busy = true;
         ready = operational = false;
-        link_state = "BUSY";
+        link_state_str = "BUSY";
         break;
-    case mpsAborted:
-    case mpsFinished:
-    case mpsExit:
-    case mpsIdle:
-    case mpsWaitGui:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewImage:
-    case mpsPrintInit:
+    case State::Aborted:
+    case State::Finished:
+    case State::Exit:
+    case State::Idle:
+    case State::WaitGui:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
+    case State::PrintInit:
         break;
-    case mpsPrintPreviewQuestions:
+    case State::PrintPreviewQuestions:
         // The "preview" is abused to ask questions about the filament and such.
         busy = printing = error = true;
-        link_state = "ATTENTION";
+        link_state_str = "ATTENTION";
         break;
+    }
+
+    // This is a bit of a hacky solution, but using the get_state and still getting all the bools correct and not
+    // accidentally messing something up seems too much work given we want to hopefully soon enough implement the new v1 api
+    // and stop using this. This way we get only the new attention states without any risky changes.
+    auto link_state = printer_state::get_state(marlin_vars()->print_state, marlin_vars()->get_last_fsm_change(), false);
+    if (link_state == DeviceState::Attention) {
+        link_state_str = "ATTENTION";
+        busy = printing = error = true;
     }
 
     // Keep the indentation of the JSON in here!
@@ -138,8 +151,8 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
         JSON_FIELD_OBJ("state")
             JSON_FIELD_STR("text", printing ? "Printing" : "Operational") JSON_COMMA;
             JSON_FIELD_OBJ("flags");
-                if (link_state != nullptr) {
-                    JSON_FIELD_STR("link_state", link_state) JSON_COMMA;
+                if (link_state_str != nullptr) {
+                    JSON_FIELD_STR("link_state", link_state_str) JSON_COMMA;
                 }
                 JSON_FIELD_BOOL("operational", operational) JSON_COMMA;
                 JSON_FIELD_BOOL("paused", paused) JSON_COMMA;
@@ -194,65 +207,73 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
     const char *state = "Unknown";
 
     switch (vars->print_state) {
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
-    case mpsPrinting:
-    case mpsPowerPanic_acFault:
+    case State::Finishing_WaitIdle:
+    case State::Finishing_ParkHead:
+    case State::Printing:
+    case State::PowerPanic_acFault:
         has_job = true;
         state = "Printing";
         break;
-    case mpsCrashRecovery_Begin:
-    case mpsCrashRecovery_Lifting:
-    case mpsCrashRecovery_Retracting:
-    case mpsCrashRecovery_XY_Measure:
-    case mpsCrashRecovery_Tool_Pickup:
-    case mpsCrashRecovery_XY_HOME:
-    case mpsCrashRecovery_HOMEFAIL:
-    case mpsCrashRecovery_Axis_NOK:
-    case mpsCrashRecovery_Repeated_Crash:
+    case State::CrashRecovery_Begin:
+    case State::CrashRecovery_Lifting:
+    case State::CrashRecovery_Retracting:
+    case State::CrashRecovery_XY_Measure:
+    case State::CrashRecovery_Tool_Pickup:
+    case State::CrashRecovery_XY_HOME:
+    case State::CrashRecovery_HOMEFAIL:
+    case State::CrashRecovery_Axis_NOK:
+    case State::CrashRecovery_Repeated_Crash:
         has_job = true;
         state = "CrashRecovery";
         break;
-    case mpsPausing_Begin:
-    case mpsPausing_Failed_Code:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
+    case State::Pausing_Begin:
+    case State::Pausing_Failed_Code:
+    case State::Pausing_WaitIdle:
+    case State::Pausing_ParkHead:
         has_job = true;
         state = "Pausing";
         break;
-    case mpsPowerPanic_AwaitingResume:
-    case mpsPaused:
+    case State::PowerPanic_AwaitingResume:
+    case State::Paused:
         has_job = true;
         state = "Paused";
         break;
-    case mpsResuming_Begin:
-    case mpsResuming_Reheating:
-    case mpsResuming_UnparkHead_XY:
-    case mpsResuming_UnparkHead_ZE:
-    case mpsPowerPanic_Resume:
+    case State::Resuming_Begin:
+    case State::Resuming_Reheating:
+    case State::Resuming_UnparkHead_XY:
+    case State::Resuming_UnparkHead_ZE:
+    case State::PowerPanic_Resume:
         has_job = true;
         state = "Resuming";
         break;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
+    case State::Aborting_Begin:
+    case State::Aborting_WaitIdle:
+    case State::Aborting_ParkHead:
         has_job = true;
         state = "Cancelling";
         break;
-    case mpsAborted:
-    case mpsFinished:
-    case mpsExit:
-    case mpsIdle:
-    case mpsWaitGui:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewImage:
-    case mpsPrintInit:
+    case State::Aborted:
+    case State::Finished:
+    case State::Exit:
+    case State::Idle:
+    case State::WaitGui:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
+    case State::PrintInit:
         state = "Operational";
         break;
-    case mpsPrintPreviewQuestions:
+    case State::PrintPreviewQuestions:
         has_job = true;
         state = "Error";
         break;
+    }
+
+    // The states here are different (and kinda weird, but changing it is not worth it, given we want to implement
+    // the new v1 api anyway), but we probably still want the new attention states?.
+    auto link_state = printer_state::get_state(marlin_vars()->print_state, marlin_vars()->get_last_fsm_change(), false);
+    if (link_state == DeviceState::Attention) {
+        state = "Error";
+        has_job = true;
     }
 
     char lfn_buffer[FILE_NAME_MAX_LEN];

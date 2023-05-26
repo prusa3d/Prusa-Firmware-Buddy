@@ -302,6 +302,12 @@
 //#define HOTEND_OFFSET_Y {0.0, 5.00}  // (mm) relative Y-offset for each nozzle
 //#define HOTEND_OFFSET_Z {0.0, 0.00}  // (mm) relative Z-offset for each nozzle
 
+#define ACCELEROMETER
+#if ENABLED(ACCELEROMETER)
+    #define LOCAL_ACCELEROMETER
+    //#define REMOTE_ACCELEROMETER
+#endif
+
 // @section temperature
 
 //===========================================================================
@@ -867,9 +873,6 @@
  */
 #define FIX_MOUNTED_PROBE
 #define NOZZLE_LOAD_CELL
-// When we don't have PT100 on the loveboard, the loadcell doesn't share HX717 with the PT100
-// and we can keep loadcell's high-precision mode enabled for a longer time
-#define NOZZLE_LOAD_CELL_ALLOWS_LONG_HIGH_PRECISION
 
 // Display heatbreak temperature as FILAMENT on LCD status screen footer
 #define LCD_HEATBREAK_TO_FILAMENT
@@ -955,6 +958,9 @@
 
 // Feedrate (mm/m) for the "accurate" probe of each point
 #define Z_PROBE_SPEED_SLOW 70
+
+// [ms] delay before first Z probe for taring
+#define Z_FIRST_PROBE_DELAY 250
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   // Enable G29 P9 for nozzle cleanup

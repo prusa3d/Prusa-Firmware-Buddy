@@ -87,7 +87,7 @@ protected:
 };
 
 class MI_FACTORY_HARD_RESET : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Hard reset (USB with FW needed)");
+    static constexpr const char *const label = N_("Hard Reset (USB with FW needed)");
 
 public:
     MI_FACTORY_HARD_RESET();
@@ -830,6 +830,64 @@ public:
 
 protected:
     void OnChange(size_t old_index) override;
+};
+
+class MI_IS_ONOFF : public WI_INFO_t {
+    static constexpr const char *const label = N_("Input Shaper");
+    static constexpr const char *const str_idle = N_("Idle");
+    static constexpr const char *const str_active = N_("Active");
+
+public:
+    MI_IS_ONOFF();
+};
+
+class MI_IS_TYPE : public WI_SWITCH_t<6> {
+    // Do not translate
+    static constexpr const char *const str_ZV = "ZV";
+    static constexpr const char *const str_ZVD = "ZVD";
+    static constexpr const char *const str_MZV = "MZV";
+    static constexpr const char *const str_EI = "EI";
+    static constexpr const char *const str_2HUMP_EI = "2HUMP_EI";
+    static constexpr const char *const str_3HUMP_EI = "3HUMP_EI";
+
+public:
+    MI_IS_TYPE(int32_t index, string_view_utf8 label_src, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
+    virtual ~MI_IS_TYPE();
+};
+
+class MI_IS_X_TYPE : public MI_IS_TYPE {
+    static constexpr const char *const label = N_("X-axis filter");
+
+public:
+    MI_IS_X_TYPE();
 
 protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_Y_TYPE : public MI_IS_TYPE {
+    static constexpr const char *const label = N_("Y-axis filter");
+
+public:
+    MI_IS_Y_TYPE();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_X_FREQUENCY : public WiSpinInt {
+    static constexpr const char *const label = N_("X-axis freq.");
+
+public:
+    MI_IS_X_FREQUENCY();
+
+    virtual void OnClick() override;
+};
+
+class MI_IS_Y_FREQUENCY : public WiSpinInt {
+    static constexpr const char *const label = N_("Y-axis freq.");
+
+public:
+    MI_IS_Y_FREQUENCY();
+    virtual void OnClick() override;
 };

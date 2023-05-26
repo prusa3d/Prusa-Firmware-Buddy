@@ -581,8 +581,6 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         #endif
       #endif
 
-      case 170: M170(); break;
-      case 171: M171(); break;
       #if DISABLED(NO_VOLUMETRICS)
         case 200: M200(); break;                                  // M200: Set filament diameter, E to cubic units
       #endif
@@ -763,9 +761,13 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 557: M557(); break;                                  // M557: Set modular bed gradient parameters
       #endif
 
+      case 572: M572(); break;                                    // M572: Set parameters for pressure advance.
+
       #if ENABLED(BAUD_RATE_GCODE)
         case 575: M575(); break;                                  // M575: Set serial baudrate
       #endif
+
+      case 593: M593(); break;                                    // M593: Set parameters for input shapers.
 
       #if HAS_BED_PROBE
         case 851: M851(); break;                                  // M851: Set Z Probe Z Offset
@@ -801,9 +803,9 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         M810_819(); break;                                        // M810-M819: Define/execute G-code macro
       #endif
 
-      #if ENABLED(LIN_ADVANCE)
+//      #if ENABLED(LIN_ADVANCE)
         case 900: M900(); break;                                  // M900: Set advance K factor.
-      #endif
+//      #endif
 
       #if HAS_DIGIPOTSS || HAS_MOTOR_CURRENT_PWM || EITHER(DIGIPOT_I2C, DAC_STEPPER_CURRENT)
         case 907: M907(); break;                                  // M907: Set digital trimpot motor current using axis codes.
@@ -875,6 +877,12 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       #if ENABLED(MAGNETIC_PARKING_EXTRUDER)
         case 951: M951(); break;                                  // M951: Set Magnetic Parking Extruder parameters
+      #endif
+
+      case 958: M958(); break;
+
+      #if ENABLED(ACCELEROMETER)
+        case 959: M959(); break;
       #endif
 
       #if ENABLED(Z_STEPPER_AUTO_ALIGN)

@@ -43,6 +43,7 @@
     PROBE_PT_RAISE, // Raise to "between" clearance after run_z_probe
     PROBE_PT_BIG_RAISE  // Raise to big clearance after run_z_probe
   };
+  float run_z_probe(float expected_trigger_z, bool single_only = false, bool *endstop_triggered = nullptr);
   float probe_here(float z_down_limit);
   float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true);
   inline float probe_at_point(const xy_pos_t &pos, const ProbePtRaise raise_after=PROBE_PT_NONE, const uint8_t verbose_level=0, const bool probe_relative=true) {

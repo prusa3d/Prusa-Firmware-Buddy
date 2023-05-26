@@ -8,8 +8,8 @@
 #include "png_resources.hpp"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.h"
-#if PRINTER_TYPE == PRINTER_PRUSA_MK4
-    #include "calibrated_loveboard.hpp"
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5
+    #include "hw_configuration.hpp"
 #endif
 
 static constexpr size_t SN_STR_SIZE = 25;
@@ -51,15 +51,10 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     Item<MI_INFO_BOARD>().ChangeInformation(help_str);
 
 #if PRINTER_TYPE == PRINTER_PRUSA_MK4
-    if (LoveBoard->dataValid()) {
-        memcpy(help_str, LoveBoard->calib_data.datamatrix_id, sizeof(LoveBoard->calib_data.datamatrix_id));
-        help_str[24] = 0;
-        set_serial_number(Item<MI_INFO_SERIAL_NUM_LOVEBOARD>(), help_str, LoveBoard->calib_data.bom_id);
-    } else {
-        set_serial_number(Item<MI_INFO_SERIAL_NUM_LOVEBOARD>(), "0", 0);
-    }
-#elif PRINTER_TYPE == PRINTER_PRUSA_MK4
-    set_serial_number(Item<MI_INFO_SERIAL_NUM_LOVEBOARD>(), "0", 0);
+    buddy::hw::Configuration &cnf = buddy::hw::Configuration::Instance();
+    memcpy(help_str, cnf.get_love_board().datamatrix_id, sizeof(LoveBoardEeprom::datamatrix_id));
+    help_str[sizeof(LoveBoardEeprom::datamatrix_id)] = 0;
+    set_serial_number(Item<MI_INFO_SERIAL_NUM_LOVEBOARD>(), help_str, cnf.get_love_board().bom_id);
 #endif
 
     set_serial_number(Item<MI_INFO_SERIAL_NUM_XLCD>(), "0", 0); // TODO add readout of xLCD eeprom when we get xLCD with eeprom

@@ -191,7 +191,7 @@ screen_home_data_t::screen_home_data_t()
     header.SetIcon(&png::home_shape_16x16);
 #if !defined(_DEBUG) && !DEVELOPER_MODE()
     // regular home screen
-    header.SetText(_("HOME"));
+    header.SetText(_("INPUT SHAPER (ALPHA)"));
 #else
     // show the appropriate build header
     #if DEVELOPER_MODE() && defined(_DEBUG)
@@ -314,12 +314,25 @@ void screen_home_data_t::on_enter() {
             MsgBoxWarning(_("Touch disabled. This feature is work-in-progress and is going to be fully available in a future update."), Responses_Ok);
         }
     }
+
+    static bool input_shaper_warning_shown = false;
+    if (!input_shaper_warning_shown) {
+        input_shaper_warning_shown = true;
+        MsgBoxISWarning(_(
+                            "This firmware is still in development and is for testing purposes only.\n\n"
+                            "Input Shaper enabled. Do not leave the printer unattended.\n\n"
+                            "More info at prusa.io/input-shaper"),
+            Responses_Ok);
+    }
 }
 
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // TODO: This easily freezes home screen when flash action fails to start.
     // There are several places in the code where executing a flash gcode can
     // result in no-op and home screen stays active with events disabled.
+    if (event == GUI_event_t::MEDIA) // Also stores during windowEvent recursion
+        media_event = MediaState_t(int(param));
+
     if (event_in_progress)
         return;
 
@@ -327,8 +340,9 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
 
     on_enter();
 
-    if (event == GUI_event_t::MEDIA) {
-        switch (MediaState_t(int(param))) {
+    // This can be called during handling of different event (if it was stored during recursion call of windowEvent)
+    if (media_event != MediaState_t::unknown) {
+        switch (MediaState_t(media_event)) {
         case MediaState_t::inserted:
             if (!usbInserted) {
                 usbInserted = true;
@@ -349,14 +363,15 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         default:
             break;
         }
+        media_event = MediaState_t::unknown;
     }
 
     if (event == GUI_event_t::LOOP) {
         filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
 
-#if HAS_SELFTEST
-        if (!DialogHandler::Access().IsOpen()) {
-            //esp update has bigger priority tha one click print
+#if HAS_SELFTEST()
+        if (!DialogHandler::Access().IsOpen() && !GuiFSensor::is_calib_dialog_open()) {
+            // esp update has bigger priority tha one click print
             const auto fw_state = esp_fw_state();
             const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
             if (try_esp_flash && esp_need_flash && netdev_is_enabled(NETDEV_ESP_ID)) {

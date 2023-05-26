@@ -39,7 +39,7 @@ void Crash_s::stop_and_save() {
     loop = true;
 
     // get the current live block
-    const block_t *current_block = stepper.block();
+    const block_t *current_block = planner.get_current_processed_block();
     float e_position;
 
     if (!current_block && planner.movesplanned()) {
@@ -63,6 +63,7 @@ void Crash_s::stop_and_save() {
         start_current_position = crash_block.start_current_position;
 
         // recover delta E position
+        // TODO: this is approximate when LA/PA is enabled
         float d_e_steps = crash_block.e_steps * stepper.segment_progress();
         e_position = crash_block.e_position + d_e_steps * planner.mm_per_step[E_AXIS_N(active_extruder)];
     } else {
@@ -97,9 +98,7 @@ void Crash_s::stop_and_save() {
 
     // update crash_current_position. WARNING: this is NOT intended to be fully reversible (doing so
     // would require keeping more state), it's only usable to abort or return to the same position.
-    LOOP_XYZE(i) {
-        crash_current_position[i] = planner.get_axis_position_mm((AxisEnum)i);
-    }
+    planner.get_axis_position_mm(crash_current_position);
 
     #if HAS_POSITION_MODIFIERS
     planner.unapply_modifiers(crash_current_position

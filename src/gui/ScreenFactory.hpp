@@ -34,6 +34,7 @@
 #include "screen_menu_statistics.hpp"
 #include "screen_menu_cancel_object.hpp"
 #include "screen_touch_error.hpp"
+#include "screen_menu_input_shaper.hpp"
 
 #include "gui/test/screen_menu_test.hpp"
 
@@ -94,6 +95,7 @@ class ScreenFactory {
         ScreenMenuVersionInfo,
         ScreenMenuWifiSettings,
         ScreenMenuPrusaLink,
+        ScreenMenuInputShaper,
 #if HAS_MMU2
         ScreenMenuFilamentMMU,
         ScreenMenuMMUCutFilament,

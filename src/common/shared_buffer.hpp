@@ -38,6 +38,7 @@ public:
             }
             buff = other.buff;
             other.buff = nullptr;
+            return *this;
         }
         ~Borrow() {
             if (buff != nullptr) {
@@ -95,6 +96,44 @@ public:
     }
     char *path() {
         return reinterpret_cast<char *>(borrow->data());
+    }
+
+    // Stored just behind the path (maybe!)
+    char *name() {
+        char *path = this->path();
+        size_t plen = strlen(path);
+        // Enough space for the name too.
+        assert(plen < FILE_PATH_BUFFER_LEN);
+        return path + plen + 1;
+    }
+    const char *name() const {
+        const char *path = this->path();
+        size_t plen = strlen(path);
+        // Enough space for the name too.
+        assert(plen < FILE_PATH_BUFFER_LEN);
+        return path + plen + 1;
+    }
+};
+
+// Kind of similar to SharedPath, except it uses the borrow directly, not a
+// shared pointer to one.
+//
+// Not easy to template this difference out, due to accessing the data through
+// either `->` or `.` :-(. (I won't claim there's no way to do it in C++, but a
+// small copy-paste is probably better than arcane dark arts).
+class BorrowPaths {
+private:
+    SharedBuffer::Borrow borrow;
+
+public:
+    BorrowPaths(SharedBuffer::Borrow borrow)
+        : borrow(std::move(borrow)) {}
+    // Pointing into that borrow.
+    const char *path() const {
+        return reinterpret_cast<const char *>(borrow.data());
+    }
+    char *path() {
+        return reinterpret_cast<char *>(borrow.data());
     }
 
     // Stored just behind the path (maybe!)

@@ -576,7 +576,7 @@ void hw_spi6_init() {
     hspi6.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi6.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi6.Init.NSS = SPI_NSS_SOFT;
-    #if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4)
+    #if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5)
     hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
     #else
     hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
@@ -685,7 +685,7 @@ void hw_tim3_init() {
     TIM_OC_InitTypeDef sConfigOC {};
 
     htim3.Instance = TIM3;
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5) || (PRINTER_TYPE == PRINTER_PRUSA_iX))
     htim3.Init.Prescaler = 11; // 36us, 33.0kHz
 #else
     htim3.Init.Prescaler = TIM3_default_Prescaler; // 49ms, 20.3Hz

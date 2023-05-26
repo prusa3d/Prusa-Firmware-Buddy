@@ -1,6 +1,8 @@
 #include "planner.hpp"
 #include "printer.hpp"
 
+#include <filename_type.hpp>
+
 #include <alloca.h>
 #include <algorithm>
 #include <cassert>
@@ -25,6 +27,7 @@ using transfers::Decryptor;
 using transfers::Download;
 using transfers::DownloadStep;
 using transfers::Monitor;
+using transfers::Storage;
 
 using Type = ChangedPath::Type;
 using Incident = ChangedPath::Incident;
@@ -171,6 +174,15 @@ namespace {
     }
 
     Download::DownloadResult init_download(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
+        const char *dpath = download.path.path();
+        if (!path_allowed(dpath)) {
+            return Storage { "Not allowed outside /usb" };
+        }
+
+        if (!filename_is_firmware(dpath) && !filename_is_gcode(dpath)) {
+            return Storage { "Unsupported file type" };
+        }
+
         const auto [host, port] = host_and_port(config, download.port);
 
         char *path = nullptr;
@@ -207,7 +219,7 @@ namespace {
             assert(0);
         }
 
-        return Download::start_connect_download(host, port, path, download.path.path(), extra_hdrs, move(decryptor));
+        return Download::start_connect_download(host, port, path, dpath, extra_hdrs, move(decryptor));
     }
 }
 
@@ -361,12 +373,12 @@ Action Planner::next_action(SharedBuffer &buffer) {
         auto &changed_path = *changed_path_status;
         auto buff(buffer.borrow());
         if (buff.has_value()) {
-            changed_path.consume_path(reinterpret_cast<char *>(buff->data()), buff->size());
+            changed_path.consume(reinterpret_cast<char *>(buff->data()), buff->size());
 
             EventType type = (changed_path.is_file() && changed_path.what_happend() == Incident::Created) ? EventType::FileInfo : EventType::FileChanged;
             planned_event = Event {
                 type,
-                nullopt,
+                changed_path.triggered_command_id(),
                 nullopt,
                 SharedPath(std::move(*buff)),
             };
@@ -388,6 +400,10 @@ Action Planner::next_action(SharedBuffer &buffer) {
         // TODO: Optimization: When can we send just empty telemetry instead of full one?
         return SendTelemetry { false };
     }
+}
+
+bool Planner::wants_job_paths() const {
+    return planned_event.has_value() && planned_event->type == EventType::JobInfo;
 }
 
 void Planner::action_done(ActionResult result) {
@@ -499,7 +515,10 @@ void Planner::command(const Command &command, const StartPrint &params) {
 
     if (reason == nullptr) {
         print_start_cmd = command.id;
-        planned_event = Event { EventType::Finished, command.id };
+        planned_event = Event { EventType::JobInfo, command.id };
+        // Note: We let job_id be empty here and that disables the "check" for
+        // the same job.
+        planned_event->start_cmd_id = command.id;
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
     }
@@ -534,7 +553,7 @@ void Planner::command(const Command &command, const SendFileInfo &params) {
     }
 }
 
-void Planner::command(const Command &command, [[maybe_unused]] const SendTransferInfo &params) {
+void Planner::command(const Command &command, const SendTransferInfo &) {
     planned_event = Event {
         EventType::TransferInfo,
         command.id,
@@ -556,7 +575,7 @@ void Planner::command(const Command &command, const CancelPrinterReady &) {
     planned_event = Event { EventType::Finished, command.id };
 }
 
-void Planner::command([[maybe_unused]] const Command &command, const ProcessingThisCommand &) {
+void Planner::command(const Command &, const ProcessingThisCommand &) {
     // Unreachable:
     // * In case we are processing this command, this is handled one level up
     //   (because we don't want to hit the safety checks there).
@@ -599,7 +618,8 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
                 // TODO: Alternatively, do we want to allow more retries on larger files? Something like 3 + size / 1MB?
                 this->download->allowed_retries = MAX_DOWNLOAD_RETRIES;
             }
-            planned_event = Event { EventType::Finished, command.id };
+            planned_event = Event { EventType::TransferInfo, command.id };
+            planned_event->start_cmd_id = command.id;
             transfer_start_cmd = command.id;
         } else if constexpr (is_same_v<T, transfers::NoTransferSlot>) {
             planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Another transfer in progress" };
@@ -629,8 +649,9 @@ void Planner::command(const Command &command, const DeleteFile &params) {
     }
 
     if (reason == nullptr) {
-        ChangedPath::instance.changed_path(path, Type::File, Incident::Deleted);
-        planned_event = Event { EventType::Finished, command.id };
+        ChangedPath::instance.changed_path(path, Type::File, Incident::Deleted, command.id);
+        // The "result" is generated through the FILE_CHANGED event indirectly,
+        // so not setting it here.
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
     }
@@ -649,8 +670,9 @@ void Planner::command(const Command &command, const DeleteFolder &params) {
     }
 
     if (reason == nullptr) {
-        ChangedPath::instance.changed_path(path, Type::Folder, Incident::Deleted);
-        planned_event = Event { EventType::Finished, command.id };
+        ChangedPath::instance.changed_path(path, Type::Folder, Incident::Deleted, command.id);
+        // The "result" is generated through the FILE_CHANGED event indirectly,
+        // so not setting it here.
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
     }
@@ -667,8 +689,9 @@ void Planner::command(const Command &command, const CreateFolder &params) {
     }
 
     if (reason == nullptr) {
-        ChangedPath::instance.changed_path(path, Type::Folder, Incident::Created);
-        planned_event = Event { EventType::Finished, command.id };
+        ChangedPath::instance.changed_path(path, Type::Folder, Incident::Created, command.id);
+        // The "result" is generated through the FILE_CHANGED event indirectly,
+        // so not setting it here.
     } else {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, reason };
     }

@@ -22,7 +22,7 @@ public:
     buddy::ProbeAnalysis<300> analysis;
     std::atomic<bool> xy_endstop_enabled { false };
 
-    void Tare(TareMode mode = TareMode::Static);
+    void Tare(TareMode mode = TareMode::Static, bool wait = true);
 
     /**
      * @brief Clear state when no tool is picked.
@@ -58,6 +58,7 @@ public:
     float GetHysteresis() const;
 
     void ProcessSample(int32_t loadcellRaw, uint32_t time_us);
+    inline uint32_t GetLastSampleTime() const { return last_sample_time; }
 
     bool GetMinZEndstop() const;
     bool GetXYEndstop() const;
@@ -101,7 +102,7 @@ public:
 
     class FailureOnLoadAboveEnforcer : public IFailureEnforcer {
     public:
-        FailureOnLoadAboveEnforcer(Loadcell &lcell, float grams, bool enable);
+        FailureOnLoadAboveEnforcer(Loadcell &lcell, bool enable, float grams);
         FailureOnLoadAboveEnforcer(FailureOnLoadAboveEnforcer &&) = default;
         ~FailureOnLoadAboveEnforcer();
     };
@@ -123,7 +124,7 @@ public:
         Loadcell &m_lcell;
     };
 
-    FailureOnLoadAboveEnforcer CreateLoadAboveErrEnforcer(float grams = 3000, bool enable = true);
+    FailureOnLoadAboveEnforcer CreateLoadAboveErrEnforcer(bool enable = true, float grams = 3000);
 
 private:
     /// Implements Butterworth filter of 1st order for sample rate 76 Hz and corner freq. at 5 Hz

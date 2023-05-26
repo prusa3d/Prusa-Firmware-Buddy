@@ -72,11 +72,11 @@ constexpr vars_body_t body_defaults = {
     true,                // CONNECT_TLS
     false,               // CONNECT_ENABLED
     0,                   // EEVAR_JOB_ID
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4))
+#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
     false,               // EEVAR_CRASH_ENABLED
 #else
     true,                // EEVAR_CRASH_ENABLED
-#endif // ((PRINTER_TYPE == PRINTER_PRUSA_MK4))
+#endif // ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
     crash_sens[0],       // EEVAR_CRASH_SENS_X,
     crash_sens[1],       // EEVAR_CRASH_SENS_Y,
     crash_max_period[0], // EEVAR_CRASH_MAX_PERIOD_X,

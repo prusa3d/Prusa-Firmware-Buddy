@@ -590,20 +590,28 @@ static xy_pos_t offset_for_probe_try(int try_idx) {
  * @details Used by probe_at_point to get the bed Z height at the current XY.
  *          Leaves current_position.z at the height where the probe triggered.
  *
+ * @param expected_trigger_z do not probe lower than expected_trigger_z + Z_PROBE_LOW_POINT [mm]
+ * @param single_only
+ * @param[out] endstop_triggered
+ *  - true endstop was triggered earlier than expected_trigger_z was reached
+ *  - false endstop was not reached
+ *
  * @return The Z position of the bed at the current XY or NAN on error.
  */
-float run_z_probe(float expected_trigger_z, bool single_only = false) {
+float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_triggered) {
   if (DEBUGGING(LEVELING)) DEBUG_POS(">>> run_z_probe", current_position);
 
   // Stop the probe before it goes too low to prevent damage.
   // If Z isn't known then probe to -10mm.
   float z_probe_low_point = expected_trigger_z + Z_PROBE_LOW_POINT;
-
+  if (endstop_triggered)
+    *endstop_triggered = true;
 
   #if ENABLED(NOZZLE_LOAD_CELL)
-    loadcell.analysis.Reset();
-    loadcell.Tare();
+    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
     auto H = loadcell.CreateLoadAboveErrEnforcer();
+    loadcell.Tare();
+    loadcell.analysis.Reset();
   #endif
 
   // Double-probing does a fast probe followed by a slow probe
@@ -611,6 +619,8 @@ float run_z_probe(float expected_trigger_z, bool single_only = false) {
 
     // Do a first probe at the fast speed
     if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
+      if(endstop_triggered)
+        *endstop_triggered = false;
       if (planner.draining())
         return NAN;
 
@@ -637,9 +647,17 @@ float run_z_probe(float expected_trigger_z, bool single_only = false) {
     // move down quickly before doing the slow probe
     const float z = expected_trigger_z + Z_CLEARANCE_DEPLOY_PROBE + 5.0 + (probe_offset.z < 0 ? -probe_offset.z : 0);
     if (current_position.z > z) {
-      // Probe down fast. If the probe never triggered, raise for probe clearance
-      if (!do_probe_move(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST)))
+      // Probe down fast. If the probe doesn't fail raise for probe clearance
+      if (!do_probe_move(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
         do_blocking_move_to_z(current_position.z + Z_CLEARANCE_BETWEEN_PROBES, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+      } else {
+        if(endstop_triggered)
+          *endstop_triggered = false;
+        #if ENABLED(HALT_ON_PROBING_ERROR)
+          kill("PROBING ERROR", "Could not reach the bed, FAST Probe fail!");
+        #endif
+        return NAN;
+      }
     }
   #endif
 
@@ -671,13 +689,6 @@ float run_z_probe(float expected_trigger_z, bool single_only = false) {
         auto center_offset = offset_for_probe_try(probe_idx++);
         do_blocking_move_to_xy(center_pos + center_offset, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
 
-        #if ENABLED(NOZZLE_LOAD_CELL) & ENABLED(NOZZLE_LOAD_CELL_ALLOWS_LONG_HIGH_PRECISION)
-          assert(loadcell.IsHighPrecisionEnabled());
-        #elif ENABLED(NOZZLE_LOAD_CELL) & DISABLED(NOZZLE_LOAD_CELL_ALLOWS_LONG_HIGH_PRECISION)
-          auto enabler = Loadcell::HighPrecisionEnabler(loadcell);
-        #endif
-
-
         if (p != TOTAL_PROBING) {
           loadcell.Tare();
           loadcell.analysis.Reset();
@@ -688,12 +699,12 @@ float run_z_probe(float expected_trigger_z, bool single_only = false) {
 
         static metric_t probe_start = METRIC("probe_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
         metric_record_event(&probe_start);
-
-        auto H = loadcell.CreateLoadAboveErrEnforcer();
       #endif
 
       // Probe downward slowly to find the bed
       if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) {
+        if(endstop_triggered)
+          *endstop_triggered = false;
         if (planner.draining())
           return NAN;
 
@@ -709,9 +720,9 @@ float run_z_probe(float expected_trigger_z, bool single_only = false) {
 
       #if ENABLED(NOZZLE_LOAD_CELL)
         // Return slowly back
-        uint32_t move_back_start = millis();
         float move_back = 0.09f;
         do_blocking_move_to_z(current_position.z + move_back, MMM_TO_MMS(Z_PROBE_SPEED_BACK_MOVE));
+        uint32_t move_back_end = millis();
       #endif
 
       #if ENABLED(MEASURE_BACKLASH_WHEN_PROBING)
@@ -733,14 +744,9 @@ float run_z_probe(float expected_trigger_z, bool single_only = false) {
           }
         }
       #elif ENABLED(NOZZLE_LOAD_CELL)
-        // wait until the analysis' window is full of samples
-        constexpr uint32_t movement_delay_ms = 140
-          #if ENABLED(PRUSA_TOOLCHANGER)
-            + 20 // add a bit more of a delay to receive the samples from Dwarf
-          #endif
-            ;
-        uint32_t window_end = move_back_start + static_cast<uint32_t>(loadcell.analysis.analysisLookahead * 1000.f) + movement_delay_ms;
-        while (window_end > millis()) idle(true);
+        // wait until the analysis' window fully includes the move-back period
+        uint32_t window_end = move_back_end + static_cast<uint32_t>((loadcell.analysis.analysisLookahead + loadcell.analysis.loadDelay) * 1000.f);
+        while (loadcell.GetLastSampleTime() < window_end) idle(true, true);
 
         static metric_t analysis_result = METRIC("probe_analysis", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
         auto result = loadcell.analysis.Analyse();
@@ -835,10 +841,6 @@ void cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
   const int required_clean_cnt = 3;
   int consecutive_clean_cnt = 0;
 
-  #if ENABLED(NOZZLE_LOAD_CELL) & ENABLED(NOZZLE_LOAD_CELL_ALLOWS_LONG_HIGH_PRECISION)
-    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
-  #endif
-
   // set acceleration to known value
   auto saved_acceleration = planner.settings.travel_acceleration;
   planner.settings.travel_acceleration = PROBE_CLEANUP_TRAVEL_ACCELERATION;
@@ -850,11 +852,17 @@ void cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
       xyz_pos_t pos = { x, y, PROBE_CLEANUP_CLEARANCE };
       do_blocking_move_to(pos);
         LCD_MESSAGEPGM_P("Nozzle cleaning");
-      // deploy probe
-      if(probe_deployed == false && DEPLOY_PROBE()) {
-        SERIAL_ECHOLNPGM("failed to deploy probe");
-        should_continue = false;
-        break;
+
+      if(probe_deployed == false) {
+        // first attempt: deploy probe
+        if (DEPLOY_PROBE()) {
+          SERIAL_ECHOLNPGM("failed to deploy probe");
+          should_continue = false;
+          break;
+        }
+
+        // dampen the system after the move
+        safe_delay(Z_FIRST_PROBE_DELAY);
       }
       probe_deployed = true;
 

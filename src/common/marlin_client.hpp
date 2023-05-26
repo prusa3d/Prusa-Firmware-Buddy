@@ -4,6 +4,7 @@
 #include "client_fsm_types.h"
 #include "marlin_vars.hpp"
 #include "client_response.hpp"
+#include <option/has_selftest.h>
 
 // client flags
 inline constexpr uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
@@ -100,7 +101,7 @@ void marlin_settings_load();
 
 void marlin_settings_reset();
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
 void marlin_test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask);
 void marlin_test_start(const uint64_t test_mask);
 void marlin_test_abort();

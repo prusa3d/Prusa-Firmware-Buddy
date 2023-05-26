@@ -34,7 +34,7 @@
 #endif
 
 #if (BOARD_IS_XBUDDY)
-    #include "calibrated_loveboard.hpp"
+    #include "hw_configuration.hpp"
 #endif
 
 #if HAS_PUPPIES()
@@ -482,13 +482,9 @@ void hwio_update_1ms(void) {
 #endif
 }
 
-#if (BOARD_IS_XBUDDY)
-uint8_t hwio_get_loveboard_bomid() {
-    if (LoveBoard->dataValid()) {
-        return LoveBoard->calib_data.bom_id;
-    } else {
-        return 0;
-    }
+#if (BOARD_IS_XBUDDY && HAS_TEMP_HEATBREAK)
+extern "C" uint8_t hwio_get_loveboard_bomid() {
+    return buddy::hw::Configuration::Instance().get_love_board().bom_id;
 }
 #endif
 
@@ -611,16 +607,16 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max : 0);
         return;
     case MARLIN_PIN(FAN1):
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_IXL)
+#if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5 || PRINTER_TYPE == PRINTER_PRUSA_iX)
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? 80 : 0);
 #elif (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-        fanCtlHeatBreak[0].setPWM(ulVal);
+        Fans::heat_break(0).setPWM(ulVal);
 #else
-        fanCtlHeatBreak[0].setPWM(ulVal ? 255 : 0);
+        Fans::heat_break(0).setPWM(ulVal ? 255 : 0);
 #endif
         return;
     case MARLIN_PIN(FAN):
-        fanCtlPrint[0].setPWM(ulVal ? 255 : 0);
+        Fans::print(0).setPWM(ulVal ? 255 : 0);
         return;
 
     default:
@@ -645,12 +641,15 @@ uint32_t analogRead(uint32_t ulPin) {
 #if (BOARD_IS_BUDDY || BOARD_IS_XBUDDY)
             return AdcGet::nozzle();
 #endif
+
+#if (HAS_TEMP_HEATBREAK)
         case MARLIN_PIN(TEMP_HEATBREAK):
-#if (BOARD_IS_BUDDY)
+    #if (BOARD_IS_BUDDY)
             return AdcGet::pinda();
-#elif (BOARD_IS_XBUDDY)
+    #elif (BOARD_IS_XBUDDY)
             return AdcGet::heatbreakTemp();
-#endif
+    #endif
+#endif // HAS_TEMP_HEATBREAK
 
         case MARLIN_PIN(THERM2):
             return AdcGet::boardTemp();
@@ -667,10 +666,10 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (HAL_PWM_Initialized) {
         switch (ulPin) {
         case MARLIN_PIN(FAN1):
-            fanCtlHeatBreak[0].setPWM(ulValue);
+            Fans::heat_break(0).setPWM(ulValue);
             return;
         case MARLIN_PIN(FAN):
-            fanCtlPrint[0].setPWM(ulValue);
+            Fans::print(0).setPWM(ulValue);
             return;
         case MARLIN_PIN(BED_HEAT):
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulValue);

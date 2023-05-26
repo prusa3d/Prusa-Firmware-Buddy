@@ -7,21 +7,24 @@
 #include <string_view>
 
 using namespace transfers;
+using std::nullopt;
+using std::optional;
 using std::string_view;
 using Type = ChangedPath::Type;
 using Incident = ChangedPath::Incident;
 
-void check_path_consume(ChangedPath &changed_path, string_view exp_path, Type exp_type, Incident exp_incident) {
+void check_path_consume(ChangedPath &changed_path, string_view exp_path, Type exp_type, Incident exp_incident, optional<uint32_t> command_id = nullopt) {
     // scope to limit the status life
     {
         auto status { changed_path.status() };
         REQUIRE(status.has_value());
         char path[FILE_PATH_BUFFER_LEN];
-        status->consume_path(path, sizeof(path));
+        status->consume(path, sizeof(path));
         REQUIRE(exp_path == path);
         bool exp_is_file = exp_type == Type::File;
         REQUIRE(status->is_file() == exp_is_file);
         REQUIRE(status->what_happend() == exp_incident);
+        REQUIRE(status->triggered_command_id() == command_id);
     }
     REQUIRE(changed_path.status() == std::nullopt);
 }
@@ -108,13 +111,20 @@ TEST_CASE("ChangedPath test") {
 
     SECTION("folder created and deleted with slash at the end") {
         changed_path.changed_path("/usb/some/path/", Type::Folder, Incident::Created);
-        changed_path.changed_path("/usb/some/path/", Type::Folder, Incident::Deleted);
-        check_path_consume(changed_path, "/usb/some/", Type::Folder, Incident::Combined);
+        changed_path.changed_path("/usb/some/path/", Type::Folder, Incident::Deleted, 42);
+        check_path_consume(changed_path, "/usb/some/", Type::Folder, Incident::Combined, 42);
     }
 
     SECTION("folder created and deleted no slash at the end") {
-        changed_path.changed_path("/usb/some/path", Type::Folder, Incident::Created);
+        changed_path.changed_path("/usb/some/path", Type::Folder, Incident::Created, 42);
         changed_path.changed_path("/usb/some/path", Type::Folder, Incident::Deleted);
-        check_path_consume(changed_path, "/usb/some/", Type::Folder, Incident::Combined);
+        check_path_consume(changed_path, "/usb/some/", Type::Folder, Incident::Combined, 42);
+    }
+
+    SECTION("Reset command_id on consume") {
+        changed_path.changed_path("/usb/some/path", Type::Folder, Incident::Created, 42);
+        check_path_consume(changed_path, "/usb/some/path", Type::Folder, Incident::Created, 42);
+        changed_path.changed_path("/usb/some/path", Type::Folder, Incident::Deleted);
+        check_path_consume(changed_path, "/usb/some/path", Type::Folder, Incident::Deleted);
     }
 }

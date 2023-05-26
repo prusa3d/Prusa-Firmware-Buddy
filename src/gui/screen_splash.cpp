@@ -19,7 +19,7 @@
 #include <option/developer_mode.h>
 #include <option/has_translations.h>
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "printer_selftest.hpp"
     #include "ScreenSelftest.hpp"
 #endif // HAS_SELFTEST
@@ -79,7 +79,7 @@ screen_splash_data_t::screen_splash_data_t()
 
     text_version.SetText(string_view_utf8::MakeRAM((const uint8_t *)project_version_full));
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #if DEVELOPER_MODE()
     const bool run_wizard = false;
     #elif PRINTER_TYPE != PRINTER_PRUSA_XL
@@ -128,7 +128,7 @@ screen_splash_data_t::screen_splash_data_t()
             { touch::is_hw_broken() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
 #endif                                                                                     // HAS_TOUCH
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #if HAS_SELFTEST_SNAKE()
         {
             run_wizard ? screen_node(ScreenFactory::Screen<ScreenMenuSTSWizard>) : screen_node()

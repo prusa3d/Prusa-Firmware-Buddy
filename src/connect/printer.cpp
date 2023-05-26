@@ -5,6 +5,7 @@
 #include <cstring>
 
 using std::make_tuple;
+using std::optional;
 using std::tuple;
 
 namespace {
@@ -115,6 +116,25 @@ uint32_t Printer::info_fingerprint() const {
         .add(parameters.has_usb)
         .add(parameters.nozzle_diameter)
         .done();
+}
+
+Printer::Params::Params(const optional<BorrowPaths> &paths)
+    : paths(paths) {}
+
+const char *Printer::Params::job_path() const {
+    if (paths.has_value()) {
+        return paths->path();
+    } else {
+        return nullptr;
+    }
+}
+
+const char *Printer::Params::job_lfn() const {
+    if (paths.has_value()) {
+        return paths->name();
+    } else {
+        return nullptr;
+    }
 }
 
 }

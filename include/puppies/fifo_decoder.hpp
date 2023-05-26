@@ -21,8 +21,10 @@ LOG_COMPONENT_REF(ModbusFIFODecoder);
 class Decoder {
 public:
     typedef struct {
-        std::function<void(TimeStamp_us_t, LogData_t)> log_handler;
-        std::function<void(TimeStamp_us_t, LoadCellData_t)> loadcell_handler;
+        std::function<void(LogData)> log_handler;
+        std::function<void(LoadcellRecord)> loadcell_handler;
+        std::function<void(AccelerometerData)> accelerometer_handler;
+        std::function<void(AccelerometerFastData)> accelerometer_fast_handler;
     } Callbacks_t;
 
     Decoder(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t len);
@@ -47,10 +49,10 @@ private:
         return ret;
     }
 
-    template <typename R, typename TIME_T, typename PAYLOAD_T>
-    void make_call(TimeStamp_us_t const &timestamp_us, std::function<R(TIME_T, PAYLOAD_T)> const &function) {
+    template <typename R, typename PAYLOAD_T>
+    void make_call(std::function<R(PAYLOAD_T)> const &function) {
         if (function && can_get<PAYLOAD_T>()) {
-            function(timestamp_us, get<PAYLOAD_T>());
+            function(get<PAYLOAD_T>());
         }
     }
 

@@ -6,6 +6,7 @@
 #include "module_marlin.hpp"
 #include <device/peripherals.h>
 #include "loadcell.hpp"
+#include "accelerometer.hpp"
 #include "adc.hpp"
 #include "Cheese.hpp"
 #include <hal/HAL_MultiWatchdog.hpp>
@@ -25,6 +26,7 @@ void startup_task_run() {
     hw_dma_init();
     hw_adc1_init();
     adcDma1.init();
+    SPI_INIT(accelerometer);
 
     hal::MultiWatchdog::init();                         // Configure hardware watchdog
     osSetIdleTaskWatchdog(idle_task_watchdog_callback); // Add watchdog to idle task

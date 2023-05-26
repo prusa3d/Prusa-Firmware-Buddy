@@ -38,7 +38,7 @@ class PrintArea {
       constexpr rect_t(xy_pos_t a, xy_pos_t b) : a(a), b(b) {}
 
       constexpr static rect_t max() {
-        return rect_t(std::numeric_limits<float>::min(), std::numeric_limits<float>::min(),
+        return rect_t(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(),
                       std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
       }
 

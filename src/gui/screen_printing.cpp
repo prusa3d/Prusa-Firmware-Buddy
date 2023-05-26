@@ -243,9 +243,9 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
         marlin_print_abort();
-        while (marlin_vars()->print_state == mpsAborting_Begin
-            || marlin_vars()->print_state == mpsAborting_WaitIdle
-            || marlin_vars()->print_state == mpsAborting_ParkHead) {
+        while (marlin_vars()->print_state == State::Aborting_Begin
+            || marlin_vars()->print_state == State::Aborting_WaitIdle
+            || marlin_vars()->print_state == State::Aborting_ParkHead) {
             gui_loop(); // Wait while aborting
         }
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
@@ -364,7 +364,7 @@ void screen_printing_data_t::screen_printing_reprint() {
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
-    header.SetText(_("PRINTING"));
+    header.SetText(_("INPUT SHAPER (ALPHA)"));
 #endif
 }
 
@@ -480,30 +480,30 @@ void screen_printing_data_t::change_print_state() {
     printing_state_t st = printing_state_t::COUNT;
 
     switch (marlin_vars()->print_state) {
-    case mpsIdle:
-    case mpsWaitGui:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewImage:
-    case mpsPrintPreviewQuestions:
-    case mpsPrintInit:
+    case State::Idle:
+    case State::WaitGui:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
+    case State::PrintPreviewQuestions:
+    case State::PrintInit:
         st = printing_state_t::INITIAL;
         break;
-    case mpsPrinting:
+    case State::Printing:
         if (bed_preheat.is_waiting()) {
             st = printing_state_t::ABSORBING_HEAT;
         } else {
             st = printing_state_t::PRINTING;
         }
         break;
-    case mpsPowerPanic_AwaitingResume:
-    case mpsPaused:
+    case State::PowerPanic_AwaitingResume:
+    case State::Paused:
         // stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
-    case mpsPausing_Begin:
-    case mpsPausing_Failed_Code:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
+    case State::Pausing_Begin:
+    case State::Pausing_Failed_Code:
+    case State::Pausing_WaitIdle:
+    case State::Pausing_ParkHead:
         st = printing_state_t::PAUSING;
 // When print is paused, progress screen needs to reinit it's thumbnail file handler
 // because USB removal error crashes file handler access. Progress screen should not be enabled during pause -> reinit on EVERY pause
@@ -511,48 +511,48 @@ void screen_printing_data_t::change_print_state() {
         print_progress.Pause();
 #endif
         break;
-    case mpsResuming_Reheating:
+    case State::Resuming_Reheating:
         stop_pressed = false;
         st = printing_state_t::REHEATING;
         break;
-    case mpsResuming_Begin:
-    case mpsResuming_UnparkHead_XY:
-    case mpsResuming_UnparkHead_ZE:
-    case mpsCrashRecovery_Begin:
-    case mpsCrashRecovery_Retracting:
-    case mpsCrashRecovery_Lifting:
-    case mpsCrashRecovery_XY_Measure:
-    case mpsCrashRecovery_Tool_Pickup:
-    case mpsCrashRecovery_XY_HOME:
-    case mpsCrashRecovery_HOMEFAIL:
-    case mpsCrashRecovery_Axis_NOK:
-    case mpsCrashRecovery_Repeated_Crash:
-    case mpsPowerPanic_Resume:
+    case State::Resuming_Begin:
+    case State::Resuming_UnparkHead_XY:
+    case State::Resuming_UnparkHead_ZE:
+    case State::CrashRecovery_Begin:
+    case State::CrashRecovery_Retracting:
+    case State::CrashRecovery_Lifting:
+    case State::CrashRecovery_XY_Measure:
+    case State::CrashRecovery_Tool_Pickup:
+    case State::CrashRecovery_XY_HOME:
+    case State::CrashRecovery_HOMEFAIL:
+    case State::CrashRecovery_Axis_NOK:
+    case State::CrashRecovery_Repeated_Crash:
+    case State::PowerPanic_Resume:
         stop_pressed = false;
         st = printing_state_t::RESUMING;
-#if (PRINTER_TYPE != PRINTER_PRUSA_IXL && defined(USE_ILI9488))
+#if (PRINTER_TYPE != PRINTER_PRUSA_iX && defined(USE_ILI9488))
         print_progress.Resume();
 #endif
         break;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
+    case State::Aborting_Begin:
+    case State::Aborting_WaitIdle:
+    case State::Aborting_ParkHead:
         stop_pressed = false;
         st = printing_state_t::ABORTING;
         break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
+    case State::Finishing_WaitIdle:
+    case State::Finishing_ParkHead:
         st = printing_state_t::PRINTING;
         break;
-    case mpsAborted:
+    case State::Aborted:
         stop_pressed = false;
         st = printing_state_t::STOPPED;
         break;
-    case mpsFinished:
-    case mpsExit:
+    case State::Finished:
+    case State::Exit:
         st = printing_state_t::PRINTED;
         break;
-    case mpsPowerPanic_acFault:
+    case State::PowerPanic_acFault:
         // this state is never reached
         __builtin_unreachable();
         return;

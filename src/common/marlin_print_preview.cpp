@@ -3,6 +3,9 @@
  */
 
 #include "marlin_print_preview.hpp"
+#include "client_fsm_types.h"
+#include "client_response.hpp"
+#include "general_response.hpp"
 #include "marlin_server.hpp"
 #include "timing.h"
 #include "filament_sensors_handler.hpp"
@@ -28,6 +31,9 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
 
     case State::preview_wait_user:
         return PhasesPrintPreview::main_dialog;
+
+    case State::new_firmware_available_wait_user:
+        return PhasesPrintPreview::new_firmware_available;
 
     case State::wrong_printer_wait_user:
         return PhasesPrintPreview::wrong_printer;
@@ -165,7 +171,7 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::preview_wait_user:
         switch (response) {
         case Response::Print:
-            ChangeState(evaluateStateOnPrintClick());
+            ChangeState(stateFromUpdateCheck());
             break;
         case Response::Back:
             ChangeState(State::inactive);
@@ -174,7 +180,15 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         }
         break;
-
+    case State::new_firmware_available_wait_user:
+        switch (response) {
+        case Response::Continue:
+            ChangeState(stateFromPrinterCheck());
+            break;
+        default:
+            break;
+        }
+        break;
     case State::wrong_printer_wait_user:
     case State::wrong_printer_wait_user_abort:
         switch (response) {
@@ -237,7 +251,8 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
         case Response::Change:
             ChangeState(State::wrong_filament_change);
-            marlin_server::enqueue_gcode("M1600 R"); // change, return option
+            marlin_server::enqueue_gcode("M1600 R U1");
+            // M1600 - change, R - add return option, U1 - Ask filament type if unknown
             break;
         case Response::Ok:
             ChangeState(State::done);
@@ -252,7 +267,12 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::wrong_filament_change:
         if (!filament_gcodes::InProgress::Active()) {
-            ChangeState(State::done);
+            PreheatStatus::Result res = PreheatStatus::ConsumeResult();
+            if (res == PreheatStatus::Result::Aborted || res == PreheatStatus::Result::DidNotFinish) {
+                ChangeState(State::wrong_filament_wait_user); // Return back to wrong filament type dialog
+            } else {
+                ChangeState(State::done);
+            }
         }
         // DialogBlockingChangeLoad is handling return .. might want to do it too
         break;
@@ -268,6 +288,7 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     switch (GetState()) {
     case State::preview_wait_user:
         return Result::Image;
+    case State::new_firmware_available_wait_user:
     case State::wrong_printer_wait_user:
     case State::wrong_printer_wait_user_abort:
     case State::wrong_filament_change:
@@ -294,10 +315,18 @@ void PrintPreview::Init(const char *path) {
     GCodeInfo::PreviewInit(*f, printing_time, gcode_per_extruder_info, filament_described, valid_printer_settings);
 
     fclose(f);
-    ChangeState(skip_if_able ? evaluateStateOnPrintClick() : State::preview_wait_user);
+    ChangeState(skip_if_able ? stateFromUpdateCheck() : State::preview_wait_user);
 }
 
-IPrintPreview::State PrintPreview::evaluateStateOnPrintClick() {
+IPrintPreview::State PrintPreview::stateFromUpdateCheck() {
+    if (valid_printer_settings.outdated_firmware.is_valid()) {
+        return stateFromPrinterCheck();
+    } else {
+        return State::new_firmware_available_wait_user;
+    }
+}
+
+IPrintPreview::State PrintPreview::stateFromPrinterCheck() {
     if (valid_printer_settings.is_valid()) {
         return stateFromFilamentPresence();
     } else {

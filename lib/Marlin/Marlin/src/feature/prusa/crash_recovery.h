@@ -240,16 +240,14 @@ public:
     [[nodiscard]] Crash_Temporary_Deactivate() {
         orig_state = crash_s.is_active();
         if (orig_state) {
-            // Crash state shouldn't be changed within an active block. This check is not perfect nor
-            // exhaustive, but it should catch most incorrect usages.
-            assert(!planner.get_current_block());
-
+            // Crash state shouldn't be changed while moving.
+            assert(!planner.processing());
             crash_s.deactivate();
         }
     }
     ~Crash_Temporary_Deactivate() {
         if (orig_state) {
-            assert(!planner.get_current_block());
+            assert(!planner.processing());
             crash_s.activate();
         }
     }

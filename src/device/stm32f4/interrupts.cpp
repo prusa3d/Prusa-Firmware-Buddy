@@ -231,10 +231,6 @@ void DMA1_Stream1_IRQHandler(void) {
     HAL_DMA_IRQHandler(&hdma_usart3_rx);
 }
 
-void DMA1_Stream3_IRQHandler(void) {
-    HAL_DMA_IRQHandler(&hdma_usart3_tx);
-}
-
 void DMA2_Stream1_IRQHandler(void) {
     HAL_DMA_IRQHandler(&hdma_spi4_tx);
 }
@@ -282,6 +278,17 @@ void DMA2_Stream1_IRQHandler(void) {
 #endif
 
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+
+void DMA1_Stream3_IRQHandler(void) {
+    #if BOARD_IS_XLBUDDY
+    HAL_DMA_IRQHandler(&hdma_usart3_tx);
+    #else
+    traceISR_ENTER();
+    HAL_DMA_IRQHandler(&hdma_spi2_rx);
+    traceISR_EXIT();
+    #endif
+}
+
 /**
  * @brief This function handles DMA2 stream2 global interrupt.
  */

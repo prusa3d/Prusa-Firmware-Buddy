@@ -25,7 +25,7 @@ void ScreenMenuSensorInfo::windowEvent(EventLock /*has private ctor*/, window_t 
         Item<MI_INFO_BOARD_TEMP>().UpdateValue(boardRes);
 #endif
 
-#if PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_IXL
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5 || PRINTER_TYPE == PRINTER_PRUSA_iX
     #if (TEMP_SENSOR_HEATBREAK > 0)
         Item<MI_INFO_HEATBREAK_N_TEMP<0>>().UpdateValue(marlin_vars()->hotend(0).temp_heatbreak.get());
     #endif

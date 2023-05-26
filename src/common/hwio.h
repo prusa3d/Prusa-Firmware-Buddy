@@ -77,7 +77,7 @@ extern void hwio_beeper_notone(void);
 extern void hwio_update_1ms(void);
 
 //data from loveboard eeprom
-#if BOARD_IS_XBUDDY
+#if (BOARD_IS_XBUDDY && HAS_TEMP_HEATBREAK)
 extern uint8_t hwio_get_loveboard_bomid();
 #endif
 

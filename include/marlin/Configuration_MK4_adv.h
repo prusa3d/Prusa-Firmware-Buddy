@@ -482,7 +482,7 @@
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 10
 #define Y_HOME_BUMP_MM 10
-#define Z_HOME_BUMP_MM 2
+#define Z_HOME_BUMP_MM 3
 #define HOMING_BUMP_DIVISOR \
     { 1, 1, 1 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
 #define HOMING_BUMP_DIVISOR_MAX \
@@ -1080,7 +1080,7 @@
  * See http://marlinfw.org/docs/features/lin_advance.html for full instructions.
  * Mention @Sebastianv650 on GitHub to alert the author of any issues.
  */
-#define LIN_ADVANCE
+//#define LIN_ADVANCE
 #if ENABLED(LIN_ADVANCE)
     #define LIN_ADVANCE_K 0 // Unit: mm compression per 1mm/s extruder speed
 //#define LA_DEBUG          // If enabled, this will generate debug information output over USB.
@@ -1200,11 +1200,11 @@
 
 // The number of linear motions that can be in the plan at any give time.
 // THE BLOCK_BUFFER_SIZE NEEDS TO BE A POWER OF 2 (e.g. 8, 16, 32) because shifts and ors are used to do the ring-buffering.
-#if ENABLED(SDSUPPORT)
-    #define BLOCK_BUFFER_SIZE 16 // SD,LCD,Buttons take more memory, block buffer needs to be smaller
-#else
-    #define BLOCK_BUFFER_SIZE 16 // maximize block buffer
-#endif
+#define BLOCK_BUFFER_SIZE 32
+
+#define MOVE_SEGMENT_QUEUE_SIZE (2 * BLOCK_BUFFER_SIZE)
+#define STEP_EVENT_QUEUE_SIZE   1024
+#define ADVANCED_STEP_GENERATORS 1
 
 // @section serial
 
@@ -1560,7 +1560,7 @@
             #define Y_CURRENT 370 // (mA) RMS current.  MK3 motors
             #define Y_MICROSTEPS 16
         #else
-            #define Y_CURRENT 600
+            #define Y_CURRENT 700
             #define Y_MICROSTEPS 8 // 0..256
         #endif
         #define Y_RSENSE 0.22
@@ -1826,7 +1826,7 @@
         #endif
 
         #if Z_DRIVER_TYPE == TMC2130
-            #define Z_STALL_SENSITIVITY 4
+            #define Z_STALL_SENSITIVITY 3
         #elif Z_DRIVER_TYPE == TMC2209
             #define Z_STALL_SENSITIVITY 100
         #endif

@@ -11,8 +11,10 @@
     #include "Configuration_XL_Dwarf.h"
 #elif (PRINTER_TYPE == PRINTER_PRUSA_MK4)
     #include "Configuration_MK4.h"
-#elif (PRINTER_TYPE == PRINTER_PRUSA_IXL)
-    #include "Configuration_iXL.h"
+#elif (PRINTER_TYPE == PRINTER_PRUSA_MK3_5)
+    #include "Configuration_MK3.5.h"
+#elif (PRINTER_TYPE == PRINTER_PRUSA_iX)
+    #include "Configuration_iX.h"
 #else
     #error "Unknown PRINTER_TYPE!"
 #endif

@@ -29,7 +29,8 @@ class PrinterType(Enum):
     MK4 = 1
     MINI = 2
     XL = 3
-    IXL = 4
+    iX = 4
+    MK3point5 = 5
 
 
 class TLVType(Enum):

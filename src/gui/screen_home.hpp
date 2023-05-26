@@ -22,6 +22,7 @@ private:
     MMU2::xState mmu_state;
     bool event_in_progress;
     bool first_event { true };
+    MediaState_t media_event { MediaState_t::unknown };
 
     window_header_t header;
     StatusFooter footer;

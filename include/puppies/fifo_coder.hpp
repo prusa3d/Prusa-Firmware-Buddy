@@ -13,7 +13,6 @@ namespace common::puppies::fifo {
  * on top of FIFO stream data.
  *
  * A message looks like as follows:
- * - 2 bytes timestamp (TimeStamp_us_t)
  * - 1 byte message type (MessageType)
  * - static (per message type) payload
  *
@@ -29,19 +28,31 @@ enum class MessageType : uint8_t {
     no_data = 0, // Padding
     log = 1,
     loadcell = 2,
+    accelerometer = 3,      ///< Single sample with timestamp
+    accelerometer_fast = 4, ///< Multiple samples without timestamp
     // ...
 };
 
-typedef uint32_t TimeStamp_us_t;
+typedef uint32_t TimeStamp_us;
 
 typedef struct __attribute__((packed)) {
-    TimeStamp_us_t timestamp_us;
     MessageType type;
-} Header_t;
+} Header;
 
 // Payload types
-typedef int32_t LoadCellData_t;
-typedef std::array<char, 8> LogData_t;
+typedef uint32_t AccelerometerXyzSample;
+
+typedef struct __attribute__((packed)) {
+    TimeStamp_us timestamp;
+    int32_t loadcell_raw_value;
+} LoadcellRecord;
+
+typedef std::array<char, 8> LogData;
+typedef struct __attribute__((packed)) {
+    TimeStamp_us timestamp_us;
+    AccelerometerXyzSample sample;
+} AccelerometerData;
+typedef std::array<AccelerometerXyzSample, 2> AccelerometerFastData;
 
 // Payload to message type mapping using template specialization
 template <typename T>
@@ -50,13 +61,31 @@ inline constexpr MessageType message_type() {
 }
 
 template <>
-inline constexpr MessageType message_type<LogData_t>() {
+inline constexpr MessageType message_type<LogData>() {
     return MessageType::log;
 }
 
 template <>
-inline constexpr MessageType message_type<LoadCellData_t>() {
+inline constexpr MessageType message_type<LoadcellRecord>() {
     return MessageType::loadcell;
 }
 
+template <>
+inline constexpr MessageType message_type<AccelerometerData>() {
+    return MessageType::accelerometer;
+}
+
+template <>
+inline constexpr MessageType message_type<AccelerometerFastData>() {
+    return MessageType::accelerometer_fast;
+}
+}
+
+namespace dwarf::accelerometer {
+struct AccelerometerRecord {
+    common::puppies::fifo::TimeStamp_us timestamp;
+    uint16_t x;
+    uint16_t y;
+    uint16_t z;
+};
 }

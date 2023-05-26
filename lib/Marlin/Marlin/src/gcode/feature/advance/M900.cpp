@@ -22,7 +22,7 @@
 
 #include "../../../inc/MarlinConfig.h"
 
-#if ENABLED(LIN_ADVANCE)
+//#if ENABLED(LIN_ADVANCE)
 
 #include "../../gcode.h"
 #include "../../../module/planner.h"
@@ -52,6 +52,7 @@ void GcodeSuite::M900() {
       return;
     }
   #endif
+  static_cast<void>(tool_index); // TODO support multiple extruders
 
   #if ENABLED(EXTRA_LIN_ADVANCE_K)
 
@@ -125,8 +126,7 @@ void GcodeSuite::M900() {
       #endif
 
       if (WITHIN(newK, 0, 10)) {
-        planner.synchronize();
-        planner.extruder_advance_K[tool_index] = newK;
+        M572_internal(newK, 0.04);
       }
       else
         SERIAL_ECHOLNPGM("?K value out of range (0-10).");
@@ -134,12 +134,12 @@ void GcodeSuite::M900() {
     else {
       SERIAL_ECHO_START();
       #if EXTRUDERS < 2
-        SERIAL_ECHOLNPAIR("Advance K=", planner.extruder_advance_K[0]);
+        SERIAL_ECHOLNPAIR("Advance K=", PressureAdvance::pressure_advance_params.pressure_advance_value);
       #else
         SERIAL_ECHOPGM("Advance K");
         LOOP_L_N(i, EXTRUDERS) {
           SERIAL_CHAR(' '); SERIAL_ECHO(int(i));
-          SERIAL_CHAR('='); SERIAL_ECHO(planner.extruder_advance_K[i]);
+          SERIAL_CHAR('='); SERIAL_ECHO(PressureAdvance::pressure_advance_params.pressure_advance_value);
         }
         SERIAL_EOL();
       #endif
@@ -148,4 +148,4 @@ void GcodeSuite::M900() {
   #endif
 }
 
-#endif // LIN_ADVANCE
+//#endif // LIN_ADVANCE

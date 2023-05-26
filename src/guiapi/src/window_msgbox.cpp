@@ -73,34 +73,23 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const png::Resource *title_icon, is_closed_on_click_t close)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
-    , title(this, Rect16(), is_multiline::no, is_closed_on_click_t::no, tit) {
-    // set title params for height extraction
-    title.font = getTitleFont();
-    title.SetPadding(GuiDefaults::Padding);
-    // align icon to the left
-    icon.SetRect(getIconRect());
-    // set positions of the rest
+    , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
+    title.SetFont(getTitleFont());
     title.SetRect(getTitleRect());
-    text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
+    icon.SetRect(getIconRect());
+    text.SetRect(getTextRect());
 }
 
 Rect16 MsgBoxTitled::getTitleRect() {
-    Rect16 title_rect;
-    if (!icon.GetRect().IsEmpty()) {
-        title_rect = icon.GetRect();                // Y, H is valid
-        title_rect += Rect16::Left_t(icon.Width()); // fix X
-    } else {
-        title_rect = GetRect();                           // X, Y is valid
-        title_rect = Rect16::Height_t(getTitleFont()->h); // fix H
-    }
-    //now just need to calculate W
-    title_rect = Rect16::Width_t(Left() + Width() - title_rect.Left());
-    return title_rect;
+    return Rect16(
+        icon.IsIconValid() ? Rect16::Left_t(MsgBoxTitled::TextPadding.left + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter) : Rect16::Left_t(MsgBoxTitled::TextPadding.left),
+        GetRect().Top() + 1 /* Visual delimeter */,
+        Rect16::Width_t(Width() - (MsgBoxTitled::TextPadding.left + MsgBoxTitled::TextPadding.right + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter)),
+        Rect16::Height_t(getTitleFont()->h));
 }
 
 Rect16 MsgBoxTitled::getLineRect() {
-    return Rect16(GetRect().Left() + title.padding.left, GetRect().Top() + getTitleRect().Height(),
-        GetRect().Width() - (title.padding.left + title.padding.right), 1);
+    return Rect16(GetRect().Left(), getTitleRect().Top() + getTitleRect().Height() + 2 /* Visual delimeter */, GetRect().Width(), 1);
 }
 
 Rect16 MsgBoxTitled::getTextRect() {
@@ -118,7 +107,7 @@ Rect16 MsgBoxTitled::getTextRect() {
 }
 
 Rect16 MsgBoxTitled::getIconRect() {
-    return Rect16(GetRect().Left() + MsgBoxTitled::TextPadding.left, GetRect().Top(), GuiDefaults::FooterIconSize.w, std::max((int)GuiDefaults::FooterIconSize.h, title.font->h + title.padding.top + title.padding.bottom));
+    return Rect16(GetRect().Left() + MsgBoxTitled::TextPadding.left, GetRect().Top() + 3 /* Visual delimeter */, GuiDefaults::FooterIconSize.w, GuiDefaults::FooterIconSize.h);
 }
 
 font_t *MsgBoxTitled::getTitleFont() {
@@ -229,8 +218,48 @@ MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, 
 }
 
 /*****************************************************************************/
-//MsgBoxBase variadic template methods
-//to be used as blocking functions
+// MsgBoxIS
+MsgBoxIS::MsgBoxIS(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    string_view_utf8 txt, is_multiline multiline, const png::Resource *icon_res, is_closed_on_click_t close)
+    : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline, close)
+    , icon(this, icon_res, {}, GuiDefaults::Padding)
+    , qr(this, {}, QR_ADDR) {
+    if (GuiDefaults::EnableDialogBigLayout) {
+        uint16_t w = rect.Width();
+        uint16_t h = rect.Height();
+
+        uint16_t icon_w = w / 10 * 2;
+        uint16_t text_w = w / 10 * 5;
+        uint16_t qr_w = w / 10 * 3 - 8;
+
+        icon.SetRect({ 3, 30, icon_w, icon_w });
+        text.SetRect({ int16_t(icon_w + 3), 0, text_w, h });
+        qr.SetRect({ int16_t(icon_w + text_w + 3), 50, qr_w, qr_w });
+
+        text.SetAlignment(Align_t::LeftCenter());
+    } else {
+        text.SetRect(getTextRect());
+        icon -= Rect16::Width_t(GuiDefaults::Padding.left + GuiDefaults::Padding.right);
+        icon += Rect16::Left_t((Width() / 2) - (icon.Width() / 2)); // center icon
+    }
+}
+
+Rect16 MsgBoxIS::getTextRect() {
+    if (GuiDefaults::EnableDialogBigLayout) {
+        return GuiDefaults::MessageTextRect;
+    } else {
+        Rect16 text_rect = GetRect();
+        text_rect -= icon.Height();
+        text_rect -= GuiDefaults::GetButtonRect(GetRect()).Height();
+
+        text_rect += Rect16::Top_t(icon.Height());
+        return text_rect;
+    }
+}
+
+/*****************************************************************************/
+// MsgBoxBase variadic template methods
+// to be used as blocking functions
 template <class T, typename... Args>
 Response MsgBox_Custom(Rect16 rect, const PhaseResponses &resp, size_t def_btn, string_view_utf8 txt, is_multiline multiline, Args... args) {
     const PhaseTexts labels = { BtnResponse::GetText(resp[0]), BtnResponse::GetText(resp[1]), BtnResponse::GetText(resp[2]), BtnResponse::GetText(resp[3]) };
@@ -297,5 +326,14 @@ Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp, si
         return MsgBox_Custom<MsgBoxIconPepaCentered>(rect, resp, def_btn, txt, multiline, &png::pepa_92x140);
     } else {
         return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &png::pepa_42x64);
+    }
+}
+
+Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
+    if (GuiDefaults::EnableDialogBigLayout) {
+        return MsgBox_Custom<MsgBoxIS>(rect, resp, def_btn, txt, multiline, &png::error_white_48x48);
+    } else {
+        constexpr static const char *label = N_("Warning");
+        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &png::warning_16x16);
     }
 }
