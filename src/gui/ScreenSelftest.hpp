@@ -16,9 +16,11 @@
 #include "selftest_frame_axis.hpp"
 #include "selftest_frame_fans.hpp"
 #include "selftest_frame_fsensor.hpp"
+#include "selftest_frame_gears_calib.hpp"
 #include "selftest_frame_loadcell.hpp"
 #include "selftest_frame_calib_z.hpp"
 #include "selftest_frame_temp.hpp"
+#include "selftest_frame_hot_end_sock.hpp"
 #include "selftest_frame_firstlayer.hpp"
 #include "selftest_frame_firstlayer_questions.hpp"
 #include "selftest_frame_result.hpp"
@@ -31,7 +33,7 @@
 #include "printer_selftest.hpp" // SelftestMask_t
 
 class ScreenSelftest : public AddSuperWindow<screen_t> {
-    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions
+    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameGearsCalib, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions
 #if BOARD_IS_BUDDY
         ,
         SelftestFrameFirstLayer
@@ -54,8 +56,10 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static static_unique_ptr<SelftestFrame> creator_axis(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_fans(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_fsensor(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_gears_calib(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_loadcell(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_specify_hot_end(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_firstlayer(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_firstlayer_questions(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
@@ -78,6 +82,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
 private:
     static constexpr const char *en_wizard = N_("WIZARD");
     static constexpr const char *en_wizard_ok = N_("WIZARD - OK");
+    static constexpr const char *en_wizard_nok = N_("WIZARD FAILED");
     static constexpr const char *en_selftest = N_("SELFTEST");
     static constexpr const char *en_firstlay = N_("FIRST LAYER CALIBRATION");
     static constexpr const char *en_esp = N_("WI-FI MODULE");

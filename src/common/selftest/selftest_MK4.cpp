@@ -29,6 +29,8 @@
 #include "selftest_heater_config.hpp"
 #include "selftest_loadcell_config.hpp"
 #include "selftest_fsensor_config.hpp"
+#include "selftest_gears_config.hpp"
+#include "selftest_gears.hpp"
 #include "calibration_z.hpp"
 #include "fanctl.hpp"
 #include "timing.h"
@@ -55,32 +57,28 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-static constexpr uint16_t Fan0min_rpm_table[] = { 10, 10, 10, 10, 10 };
-
-static constexpr uint16_t Fan0max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
-
-static constexpr uint16_t Fan1min_rpm_table[] = { 10, 10, 10, 10, 10 };
-
-static constexpr uint16_t Fan1max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
-
-static constexpr FanConfig_t Config_Fans[2] = {
-    { .type = fan_type_t::Print,
-        .tool_nr = 0,
-        .fanctl = fanCtlPrint[0],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan0min_rpm_table,
-        .rpm_max_table = Fan0max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 0,
-        .fanctl = fanCtlHeatBreak[0],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan1min_rpm_table,
-        .rpm_max_table = Fan1max_rpm_table,
-        .steps = 5 },
+// clang-format off
+// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
+// 100%, where we also check the rpm range
+static constexpr SelftestFansConfig fans_configs[] = {
+    {
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 5300 },
+            .rpm_max_table = { 10000, 6500 },
+            .fanctl = fanCtlPrint[0]
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 6800 },
+            .rpm_max_table = { 10000, 8700 },
+            .fanctl = fanCtlHeatBreak[0]
+        }
+    }
 };
+// clang-format on
 
 //reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = { .partname = "X-Axis", .length = X_MAX_POS, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = X_MAX_POS, .length_max = X_MAX_POS + X_END_GAP, .axis = X_AXIS, .steps = xy_fr_table_size, .movement_dir = 1 }; // MINI has movement_dir -1
@@ -101,8 +99,8 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .heatbreak_fan = fanCtlHeatBreak[0],
         .print_fan = fanCtlPrint[0],
         .heat_time_ms = 42000,
-        .start_temp = 40,
-        .undercool_temp = 37,
+        .start_temp = 80,
+        .undercool_temp = 75,
         .target_temp = 290,
         .heat_min_temp = 180,
         .heat_max_temp = 230,
@@ -113,6 +111,8 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .heater_full_load_max_W = 50,
         .pwm_100percent_equivalent_value = 127,
         .min_pwm_to_measure = 26,
+        .nozzle_sock_temp_offset = -20,
+        .high_flow_nozzle_temp_offset = -5,
     }
 };
 
@@ -142,25 +142,6 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .min_pwm_to_measure = 26,
 };
 
-static constexpr FanConfig_t Config_Fan_fine[] = {
-    { .type = fan_type_t::Print,
-        .tool_nr = 0,
-        .fanctl = fanCtlPrint[0],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 0,
-        .fanctl = fanCtlHeatBreak[0],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-};
-
 static constexpr LoadcellConfig_t Config_Loadcell[] = { {
     .partname = "Loadcell",
     .tool_nr = 0,
@@ -185,13 +166,18 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensorMMU = 
     { .extruder_id = 0, .mmu_mode = true },
 } };
 
+static constexpr SelftestGearsConfig gears_config = { .feedrate = 8 };
+
+static constexpr HotEndSockConfig sock_config = { .partname = "Sock" };
+
 CSelftest::CSelftest()
     : m_State(stsIdle)
     , m_Mask(stmNone)
     , pXAxis(nullptr)
     , pYAxis(nullptr)
     , pZAxis(nullptr)
-    , pBed(nullptr) {
+    , pBed(nullptr)
+    , pSock(nullptr) {
 }
 
 bool CSelftest::IsInProgress() const {
@@ -259,7 +245,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsFans:
-        if (selftest::phaseFans(pFans, Config_Fans))
+        if (selftest::phaseFans(pFans, fans_configs))
             return;
         break;
     case stsWait_fans:
@@ -326,6 +312,17 @@ void CSelftest::Loop() {
         if (phaseWait())
             return;
         break;
+    case stsHotEndSock:
+        if (m_result.tools[0].nozzle != TestResult_Passed) {
+            if (phase_hot_end_sock(pSock, sock_config)) {
+                return;
+            }
+            if (get_retry_heater()) {
+                m_State = stsHeaters_noz_ena;
+                return;
+            }
+        }
+        break;
     case stsFSensor_calibration:
         if (selftest::phaseFSensor(1, pFSensor, Config_FSensor))
             return;
@@ -334,8 +331,8 @@ void CSelftest::Loop() {
         if (selftest::phaseFSensor(1, pFSensor, Config_FSensorMMU))
             return;
         break;
-    case stsFans_fine:
-        if (selftest::phaseFans(pFans, Config_Fan_fine))
+    case stsGears:
+        if (selftest::phase_gears(pGearsCalib, gears_config))
             return;
         break;
     case stsSelftestStop:

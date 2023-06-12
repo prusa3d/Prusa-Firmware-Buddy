@@ -33,7 +33,6 @@ typedef enum {
     stsHeaters,
     stsWait_heaters,
     stsNet_status,
-    stsFans_fine,
     stsSelftestStop,
     stsDidSelftestPass,
     stsEpilogue_nok,
@@ -76,7 +75,6 @@ enum SelftestMask_t : uint64_t {
     stmEpilogue = to_one_hot(stsEpilogue_nok) | to_one_hot(stsEpilogue_nok_wait_user) | to_one_hot(stsEpilogue_ok) | to_one_hot(stsEpilogue_ok_wait_user),
     stmFirstLayer = to_one_hot(stsFirstLayer),
     stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue | stmFirstLayer,
-    stmFans_fine = to_one_hot(stsFans_fine),
 };
 
 // class representing whole self-test
@@ -102,7 +100,7 @@ protected:
 protected:
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
-    std::array<selftest::IPartHandler *, HOTENDS * 2> pFans;
+    std::array<selftest::IPartHandler *, HOTENDS> pFans;
     selftest::IPartHandler *pXAxis;
     selftest::IPartHandler *pYAxis;
     selftest::IPartHandler *pZAxis;

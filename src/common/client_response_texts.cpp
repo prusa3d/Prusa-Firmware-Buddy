@@ -16,6 +16,8 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( N_("ABORT"),            &png::disconnect_48x48 ),   // Abort
     std::make_pair( N_("ABORT"),            &png::disconnect_48x48 ),   // Abort_invalidate_test
     std::make_pair( "ABS",                  &png::spool_58x58 ),        // ABS filament, do not translate
+    std::make_pair( N_("Adjust"),           &png::settings_58x58 ),     // Adjust
+    std::make_pair( N_("ALL"),              nullptr ),                  // All
     std::make_pair( "ASA",                  &png::spool_58x58 ),        // ASA filament, do not translate
     std::make_pair( N_("BACK"),             &png::back_32x32 ),         // Back
     std::make_pair( N_("CANCEL"),           &png::disconnect_48x48 ),   // Cancel
@@ -26,6 +28,7 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( N_("DISABLE SENSOR"),   nullptr ),                  // Filament_removed
     std::make_pair( "FLEX",                 &png::spool_58x58 ),        // FLEX filament, do not translate
     std::make_pair( N_("DISABLE FS"),       nullptr ),                  // FS_disable
+    std::make_pair( N_("HIGH-FLOW"),        nullptr ),                  // HighFlow
     std::make_pair( "HIPS",                 &png::spool_58x58 ),        // HIPS filament, do not translate
     std::make_pair( N_("IGNORE"),           nullptr ),                  // Ignore
     std::make_pair( N_("LOAD"),             &png::spool_58x58 ),        // Load
@@ -42,6 +45,7 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( "PLA",                  &png::spool_58x58 ),        // PLA filament, do not translate
     std::make_pair( "PP",                   &png::spool_58x58 ),        // PP filament, do not translate
     std::make_pair( "Print",                &png::print_58x58 ),        // Print
+    std::make_pair( N_("PRUSA STOCK"),      nullptr ),                  // PrusaStock
     std::make_pair( N_("PURGE MORE"),       &png::spool_58x58 ),        // Purge_more
     std::make_pair( "PVB",                  &png::spool_58x58 ),        // PVB filament, do not translate
     std::make_pair( N_("REHEAT"),           &png::preheat_58x58 ),      // Reheat

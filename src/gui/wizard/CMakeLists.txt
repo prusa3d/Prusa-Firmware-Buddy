@@ -10,6 +10,7 @@ target_sources(
           selftest_frame_fans.cpp
           selftest_frame_firstlayer.cpp
           selftest_frame_firstlayer_questions.cpp
+          selftest_frame_hot_end_sock.cpp
           selftest_frame_result.cpp
           selftest_frame_temp.cpp
           selftest_frame_wizard_epilogue.cpp
@@ -33,6 +34,10 @@ if(NOT (${PRINTER} STREQUAL "MINI"))
     firmware PRIVATE selftest_frame_fsensor.cpp selftest_frame_loadcell.cpp
                      selftest_result_fsensor.cpp selftest_result_loadcell.cpp
     )
+endif()
+
+if(PRINTER STREQUAL "MK4")
+  target_sources(firmware PRIVATE selftest_frame_gears_calib.cpp)
 endif()
 
 if(${PRINTER} STREQUAL "XL")

@@ -51,14 +51,6 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-static const uint16_t printFanMin_rpm_table[] = { 10, 10, 10, 10, 10 };
-
-static const uint16_t printFanMax_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
-
-static const uint16_t heatBreakFanMin_rpm_table[] = { 10, 10, 10, 10, 10 };
-
-static const uint16_t heatBreakFanMax_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
-
 // use this?
 /*
 static const uint16_t Fan0min_rpm_table[] = { 150, 1250, 3250, 3250, 3850 };
@@ -70,24 +62,28 @@ static const uint16_t Fan1min_rpm_table[] = { 2350, 4750, 5950, 6850, 7650 };
 static const uint16_t Fan1max_rpm_table[] = { 3750, 5850, 7050, 8050, 8950 };
 */
 
-static const FanConfig_t Config_Fans[2] = {
-    { .type = fan_type_t::Print,
-        .tool_nr = 0,
-        .fanctl = fanCtlPrint[0],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = printFanMin_rpm_table,
-        .rpm_max_table = printFanMax_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 0,
-        .fanctl = fanCtlHeatBreak[0],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = heatBreakFanMin_rpm_table,
-        .rpm_max_table = heatBreakFanMax_rpm_table,
-        .steps = 5 }
+// clang-format off
+// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
+// 100%, where on MK4/XL we also check the rpm range. No data for MINI yet.
+static constexpr SelftestFansConfig fans_configs[] = {
+    {
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 10 },
+            .rpm_max_table = { 10000, 10000 },
+            .fanctl = fanCtlPrint[0]
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 10 },
+            .rpm_max_table = { 10000, 10000 },
+            .fanctl = fanCtlHeatBreak[0]
+        }
+    }
 };
+// clang-format on
 
 const AxisConfig_t selftest::Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = -1 };
 
@@ -131,25 +127,6 @@ static const HeaterConfig_t Config_HeaterBed = {
     .target_temp = 110,
     .heat_min_temp = 50,
     .heat_max_temp = 65,
-};
-
-static const FanConfig_t Config_fans_fine[2] = {
-    { .type = fan_type_t::Print,
-        .tool_nr = 0,
-        .fanctl = fanCtlPrint[0],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 0,
-        .fanctl = fanCtlHeatBreak[0],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 }
 };
 
 static const FirstLayerConfig_t Config_FirstLayer = { .partname = "First Layer" };
@@ -227,7 +204,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsFans:
-        if (selftest::phaseFans(pFans, Config_Fans))
+        if (selftest::phaseFans(pFans, fans_configs))
             return;
         break;
     case stsWait_fans:
@@ -271,10 +248,6 @@ void CSelftest::Loop() {
         break;
     case stsWait_heaters:
         if (phaseWait())
-            return;
-        break;
-    case stsFans_fine:
-        if (selftest::phaseFans(pFans, Config_fans_fine))
             return;
         break;
     case stsSelftestStop:

@@ -35,16 +35,16 @@
 #endif
 
 enum {
-    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 22, // uint16_t
+    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 23, // uint16_t
 };
 
 using namespace eeprom::current;
 
 LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);
 
-static const constexpr uint8_t EEPROM_MAX_NAME = 16;       // maximum name length (with '\0')
-static const constexpr uint16_t EEPROM_MAX_DATASIZE = 972; // maximum datasize
-static const constexpr auto EEPROM_DATA_INIT_TRIES = 3;    // maximum tries to read crc32 ok data on init
+static const constexpr uint8_t EEPROM_MAX_NAME = 16;        // maximum name length (with '\0')
+static const constexpr uint16_t EEPROM_MAX_DATASIZE = 1024; // maximum datasize
+static const constexpr auto EEPROM_DATA_INIT_TRIES = 3;     // maximum tries to read crc32 ok data on init
 
 // flags will be used also for selective variable reset default values in some cases (shipping etc.))
 static const constexpr uint16_t EEVAR_FLG_READONLY = 0x0001; // variable is read only
@@ -96,6 +96,7 @@ union eeprom_data {
             eeprom::v12::vars_body_t v12;
             eeprom::v32787::vars_body_t v32787;
             eeprom::v32789::vars_body_t v32789;
+            eeprom::v22::vars_body_t v22;
             eeprom::current::vars_body_t current;
         };
     };
@@ -152,7 +153,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "SHEET_PROFILE5",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE6",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
     { "SHEET_PROFILE7",  VARIANT8_PUI8,  sizeof(Sheet), 0 },
-    { "SELFTEST_RES_V1", VARIANT8_UI32,  1, 0 }, // Not used, was EEVAR_SELFTEST_RESULT, replaced by EEVAR_SELFTEST_RESULT_V2
+    { "SELFTEST_RES_V1", VARIANT8_UI32,  1, 0 }, // Not used, was EEVAR_SELFTEST_RESULT, replaced by EEVAR_SELFTEST_RESULT_PRE_23
     { "DEVHASH_IN_QR",   VARIANT8_BOOL,  1, 0 }, // EEVAR_DEVHASH_IN_QR
     { "FOOTER_SETTING",  VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_SETTING
     { "FOOTER_DRAW_TP"  ,VARIANT8_UI32,  1, 0 }, // EEVAR_FOOTER_DRAW_TYPE
@@ -296,7 +297,7 @@ static const eeprom_entry_t eeprom_map[] = {
     { "HWCHECK_MODEL",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_MODEL
     { "HWCHECK_FIRMW",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_FIRMW
     { "HWCHECK_GCODE",   VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_GCODE
-    { "SELFTEST_RES_V2", VARIANT8_PUI8,  sizeof(SelftestResult), 0 }, // EEVAR_SELFTEST_RESULT_V2
+    { "SELFTEST_RES_V2", VARIANT8_PUI8,  sizeof(SelftestResult_pre_23), 0 }, // EEVAR_SELFTEST_RESULT_PRE_23
     { "HOMING_DIVISORX", VARIANT8_FLT,   1, 0 }, // homing bump divisor
     { "HOMING_DIVISORY", VARIANT8_FLT,   1, 0 }, // homing bump divisor
     { "SIDE_LEDS_ENA"  , VARIANT8_BOOL,  1, 0 }, // EEVAR_ENABLE_SIDE_LEDS
@@ -312,6 +313,9 @@ static const eeprom_entry_t eeprom_map[] = {
     { "ODOMETER_T4"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T4, uint32_t, tool 4 pick counter
     { "ODOMETER_T5"    , VARIANT8_UI32,  1, 0 }, // EEVAR_ODOMETER_T5, uint32_t, tool 5 pick counter
     { "HWCHECK_COMPAT" , VARIANT8_UI8,   1, 0 }, // EEVAR_HWCHECK_COMPATIBILITY
+    { "SELFTEST_VER_23", VARIANT8_PUI8,  sizeof(SelftestResult), 0 }, // EEVAR_SELFTEST_RESULT
+    { "NOZZLE_SOCK"    , VARIANT8_BOOL,  1, 0 }, // EEVAR_NOZZLE_SOCK
+    { "NOZZLE_TYPE"    , VARIANT8_UI8,   1, 0 }, // EEVAR_NOZZLE_TYPE
 // crc
     { "CRC32",           VARIANT8_UI32,  1, 0 }, // EEVAR_CRC32
 };
@@ -713,26 +717,26 @@ void eeprom_set_nozzle_dia(int tool_idx, float diameter) {
 }
 
 void eeprom_get_selftest_results(SelftestResult *results) {
-    eeprom_get_var(EEVAR_SELFTEST_RESULT_V2, results, sizeof(SelftestResult));
+    eeprom_get_var(EEVAR_SELFTEST_RESULT_V_23, results, sizeof(SelftestResult));
 }
 
 void eeprom_set_selftest_results(const SelftestResult *results) {
-    eeprom_set_var(EEVAR_SELFTEST_RESULT_V2, results, sizeof(SelftestResult));
+    eeprom_set_var(EEVAR_SELFTEST_RESULT_V_23, results, sizeof(SelftestResult));
 }
 
 void eeprom_get_selftest_results_tool(int tool_idx, SelftestTool *tool) {
     assert(tool_idx >= 0 && tool_idx < EEPROM_MAX_TOOL_COUNT);
     SelftestResult results;
-    eeprom_get_var(EEVAR_SELFTEST_RESULT_V2, &results, sizeof(SelftestResult));
+    eeprom_get_var(EEVAR_SELFTEST_RESULT_V_23, &results, sizeof(SelftestResult));
     *tool = results.tools[tool_idx];
 }
 
 void eeprom_set_selftest_results_tool(int tool_idx, const SelftestTool *tool) {
     assert(tool_idx >= 0 && tool_idx < EEPROM_MAX_TOOL_COUNT);
     SelftestResult results;
-    eeprom_get_var(EEVAR_SELFTEST_RESULT_V2, &results, sizeof(SelftestResult));
+    eeprom_get_var(EEVAR_SELFTEST_RESULT_V_23, &results, sizeof(SelftestResult));
     results.tools[tool_idx] = *tool;
-    eeprom_set_var(EEVAR_SELFTEST_RESULT_V2, &results, sizeof(SelftestResult));
+    eeprom_set_var(EEVAR_SELFTEST_RESULT_V_23, &results, sizeof(SelftestResult));
 }
 
 /// stores animation and colors to eeprom
@@ -943,8 +947,13 @@ static bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
     }
 
     if (version == 32789) {
-        data.current = eeprom::current::convert(data.v32789);
+        data.v22 = eeprom::v22::convert(data.v32789);
         version = 22;
+    }
+
+    if (version == 22) {
+        data.current = eeprom::current::convert(data.v22);
+        version = 23;
     }
 
     // after body was updated we can update head
@@ -962,19 +971,22 @@ static bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
 
 // version independent crc32 check
 static bool eeprom_check_crc32() {
-    if (eeprom_ram_mirror.vars.head.DATASIZE > EEPROM_MAX_DATASIZE)
+    size_t crc_offset = eeprom_ram_mirror.vars.head.DATASIZE - 4;
+
+    // The crc_offset may overflow, as eeprom_ram_mirror.vars.head.DATASIZE is
+    // read from the EEPROM and may be < 4 if there are random data
+    if (crc_offset > EEPROM_MAX_DATASIZE - 4) {
         return false;
-    if (eeprom_ram_mirror.vars.head.DATASIZE == 0)
-        return false;
+    }
 
     uint32_t crc;
     if (eeprom_ram_mirror.vars.head.VERSION <= EEPROM_LAST_VERSION_WITH_OLD_CRC) {
-        crc = crc32_eeprom((uint32_t *)(&eeprom_ram_mirror), (eeprom_ram_mirror.vars.head.DATASIZE - 4) / 4);
+        crc = crc32_eeprom((uint32_t *)(&eeprom_ram_mirror), crc_offset / 4);
     } else {
-        crc = crc32_calc((uint8_t *)(&eeprom_ram_mirror), eeprom_ram_mirror.vars.head.DATASIZE - 4);
+        crc = crc32_calc((uint8_t *)(&eeprom_ram_mirror), crc_offset);
     }
     uint32_t crc_from_eeprom;
-    memcpy(&crc_from_eeprom, eeprom_ram_mirror.data + eeprom_ram_mirror.vars.head.DATASIZE - 4, sizeof(crc_from_eeprom));
+    memcpy(&crc_from_eeprom, eeprom_ram_mirror.data + crc_offset, sizeof(crc_from_eeprom));
     return crc_from_eeprom == crc;
 }
 

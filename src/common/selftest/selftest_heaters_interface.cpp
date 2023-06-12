@@ -5,6 +5,7 @@
  */
 #include "selftest_heaters_interface.hpp"
 #include "selftest_heater.h"
+#include "selftest_hot_end_sock.hpp"
 #include "../../Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
@@ -178,4 +179,37 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&
     resultHeaters.tested_parts = 0; // reset tested parts so they can be set next time again
     return false;                   // finished
 }
+
+SelftestHotEndSockType sock_result;
+bool retry_heater = false;
+bool get_retry_heater() { return retry_heater; }
+
+bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) {
+
+    machine = machine ? machine : Factory::CreateDynamical<selftest::CSelftestPart_HotEndSock>(
+                  // clang-format off
+    config, sock_result,
+    &CSelftestPart_HotEndSock::stateStart, &CSelftestPart_HotEndSock::stateAskAdjust,
+    &CSelftestPart_HotEndSock::stateAskSockInit, &CSelftestPart_HotEndSock::stateAskSock,
+    // Disable asking questions about nozzle
+   // &CSelftestPart_HotEndSock::stateAskNozzleInit, &CSelftestPart_HotEndSock::stateAskNozzle,
+    &CSelftestPart_HotEndSock::stateAskRetryInit, &CSelftestPart_HotEndSock::stateAskRetry);
+    // clang-format on
+    bool in_progress = machine->Loop();
+    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), sock_result.Serialize());
+
+    if (in_progress) {
+        return true;
+    }
+
+    retry_heater = machine->GetResult() != TestResult_Skipped;
+
+    eeprom_set_bool(EEVAR_NOZZLE_SOCK, sock_result.has_sock);
+    eeprom_set_ui8(EEVAR_NOZZLE_TYPE, sock_result.prusa_stock_nozzle ? 0 : 1);
+
+    delete machine;
+    machine = nullptr;
+    return false;
+}
+
 } // namespace selftest

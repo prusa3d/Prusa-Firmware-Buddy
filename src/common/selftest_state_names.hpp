@@ -94,12 +94,28 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "FSensor_fail";
     case PhasesSelftest::FSensor_done:
         return "FSensor_done";
+    case PhasesSelftest::GearsCalib_filament_check:
+        return "GearsCalib_filament_check";
+    case PhasesSelftest::GearsCalib_filament_loaded_ask_unload:
+        return "GearsCalib_filament_loaded_ask_unload";
+    case PhasesSelftest::GearsCalib_filament_unknown_ask_unload:
+        return "GearsCalib_filament_loaded_ask_unload";
+    case PhasesSelftest::GearsCalib_release_screws:
+        return "GearsCalib_release_screws";
+    case PhasesSelftest::GearsCalib_alignment:
+        return "GearsCalib_alignment";
+    case PhasesSelftest::GearsCalib_tighten:
+        return "GearsCalib_tighten";
+    case PhasesSelftest::GearsCalib_done:
+        return "GearsCalib_done";
     case PhasesSelftest::CalibZ:
         return "CalibZ";
     case PhasesSelftest::Axis:
         return "Axis";
     case PhasesSelftest::Heaters:
         return "Heaters";
+    case PhasesSelftest::SpecifyHotEnd:
+        return "SpecifyHotEnd";
     case PhasesSelftest::FirstLayer_mbl:
         return "FirstLayer_mbl";
     case PhasesSelftest::FirstLayer_print:

@@ -107,12 +107,3 @@ MI_TEST_BED::MI_TEST_BED()
 
 void MI_TEST_BED::click(IWindowMenu & /*window_menu*/) {
 }
-
-/*****************************************************************************/
-//MI_TEST_FANS_fine
-MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-}
-
-void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
-}

@@ -11,22 +11,29 @@
 
 namespace selftest {
 
-enum class fan_type_t {
-    Print,
-    Heatbreak,
-};
-//using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
-struct FanConfig_t {
-    using type_evaluation = SelftestFan_t;
-    static constexpr SelftestParts part_type = SelftestParts::Fans;
-    fan_type_t type;
-    uint8_t tool_nr;
+template <size_t STEPS>
+struct FanConfig {
+    using FanCtlFnc = CFanCtl &(*)(size_t);
+
+    uint8_t pwm_start { 0 };
+    uint8_t pwm_step { 0 };
+    std::array<uint16_t, STEPS> rpm_min_table;
+    std::array<uint16_t, STEPS> rpm_max_table;
+
     CFanCtl &fanctl;
-    int pwm_start;
-    int pwm_step;
-    const uint16_t *rpm_min_table;
-    const uint16_t *rpm_max_table;
-    size_t steps;
 };
 
+struct SelftestFansConfig {
+    using type_evaluation = SelftestFanHotendResult;
+
+    static constexpr SelftestParts part_type = SelftestParts::Fans;
+
+    static constexpr size_t steps { 2 };
+
+    uint8_t tool_nr { 0 };
+
+    FanConfig<steps> print_fan;
+    FanConfig<steps> heatbreak_fan;
 };
+
+} // namespace selftest

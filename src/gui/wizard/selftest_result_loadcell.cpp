@@ -10,7 +10,7 @@
 
 ResultLoadcell::ResultLoadcell()
     : SelfTestGroup(_("Loadcell check"))
-    , loadcell(_("Loadcell"), png::nozzle_16x16, TestResult_Unknown) {
+    , loadcell(_("Loadcell"), &png::nozzle_16x16, TestResult_Unknown) {
     Add(loadcell);
 }
 

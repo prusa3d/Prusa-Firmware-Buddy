@@ -124,3 +124,26 @@ public:
     MI_MK3_COMPATIBILITY_CHECK()
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
+
+class MI_NOZZLE_TYPE : public WI_SWITCH_t<2> {
+    static constexpr const char *const label = N_("Nozzle Type");
+
+    constexpr static const char *str_normal = N_("Normal");
+    constexpr static const char *str_high_flow = N_("High Flow");
+
+public:
+    MI_NOZZLE_TYPE();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};
+
+class MI_NOZZLE_SOCK : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Silicon Nozzle Sock");
+
+public:
+    MI_NOZZLE_SOCK();
+
+protected:
+    virtual void OnChange(size_t old_index) override;
+};

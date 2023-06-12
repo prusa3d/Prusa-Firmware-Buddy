@@ -89,43 +89,6 @@ TEST_CASE("SelftestAxis_t", "[fsm]") {
     }
 }
 
-TEST_CASE("SelftestFans_t", "[fsm]") {
-
-    int cycle = GENERATE(range(0, repeat_count - 1));
-
-    Array<uint8_t> print_fan_progress = { { 0, 100, 22, 25 } };
-    Array<uint8_t> heatbreak_fan_progress = { { 0, 100, 33, 35 } };
-    Array<uint8_t> tot_progress = { { 0, 100, 22, 25 } };
-    Array<SelftestSubtestState_t> print_fan_state = { { SelftestSubtestState_t::undef, SelftestSubtestState_t::ok, SelftestSubtestState_t::not_good, SelftestSubtestState_t::running } };
-    Array<SelftestSubtestState_t> heatbreak_fan_state = { { SelftestSubtestState_t::undef, SelftestSubtestState_t::not_good, SelftestSubtestState_t::ok, SelftestSubtestState_t::running } };
-
-    SelftestFan_t cl_print[] = { SelftestFan_t(print_fan_progress[cycle], print_fan_state[cycle]) };
-    SelftestFan_t cl_heatbreak[] = { SelftestFan_t(heatbreak_fan_progress[cycle], heatbreak_fan_state[cycle]) };
-
-    SelftestFans_t cl(
-        cl_print,
-        cl_heatbreak);
-
-    REQUIRE(cl.tot_progress == tot_progress[cycle]);
-    REQUIRE(cl.print_fan_state[0] == print_fan_state[cycle]);
-    REQUIRE(cl.heatbreak_fan_state[0] == heatbreak_fan_state[cycle]);
-
-    serialize_deserialize(cl);
-
-    SECTION("equality") {
-        int cycle2 = GENERATE(range(0, repeat_count - 1));
-        SelftestFan_t cl2_print[] = { SelftestFan_t(print_fan_progress[cycle2], print_fan_state[cycle2]) };
-        SelftestFan_t cl2_heatbreak[] = { SelftestFan_t(heatbreak_fan_progress[cycle2], heatbreak_fan_state[cycle2]) };
-
-        SelftestFans_t cl2(
-            cl2_print,
-            cl2_heatbreak);
-
-        //progeses with equal data are equal
-        REQUIRE((cl == cl2) == (cycle == cycle2));
-    }
-}
-
 TEST_CASE("SelftestHeaters_t", "[fsm]") {
 
     int cycle = GENERATE(range(0, repeat_count - 1));

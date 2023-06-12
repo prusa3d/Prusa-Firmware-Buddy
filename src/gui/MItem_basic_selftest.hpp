@@ -158,15 +158,17 @@ protected:
     #endif
 #endif
 
-class MI_ADVANCED_FAN_TEST : public WI_LABEL_t {
-    static constexpr const char *const label = "Advanced Fan Test"; // debug only - not translated
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+class MI_CALIB_GEARS : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Gears Calibration");
 
 public:
-    MI_ADVANCED_FAN_TEST();
+    MI_CALIB_GEARS();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+#endif
 
 #if HAS_TOOLCHANGER()
 class MI_CALIBRATE_TOOL_OFFSETS : public WI_LABEL_t {

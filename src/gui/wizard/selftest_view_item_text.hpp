@@ -27,10 +27,10 @@ public:
 
 class SelfTestViewTextWithIcon : public SelfTestViewText {
 protected:
-    const png::Resource &icon;
+    const png::Resource *icon;
 
 public:
-    SelfTestViewTextWithIcon(string_view_utf8 txt, const png::Resource &icon, is_multiline multiln = is_multiline::no, Rect16::Width_t width = 0);
+    SelfTestViewTextWithIcon(string_view_utf8 txt, const png::Resource *icon, is_multiline multiln = is_multiline::no, Rect16::Width_t width = 0);
     virtual void Draw(Rect16::Top_t top) const override;
 };
 
@@ -38,7 +38,7 @@ class SelfTestViewTextWithIconAndResult : public SelfTestViewTextWithIcon {
     const png::Resource *icon_result;
 
 public:
-    SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource &icon, TestResult result, is_multiline multiln = is_multiline::no, Rect16::Width_t width = 0);
+    SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource *icon, TestResult result, is_multiline multiln = is_multiline::no, Rect16::Width_t width = 0);
     virtual void Draw(Rect16::Top_t top) const override;
     static const png::Resource *ResultToIconId(TestResult res);
     void SetState(TestResult res);

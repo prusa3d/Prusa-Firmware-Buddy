@@ -276,13 +276,11 @@ void fsm_change(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, c
 
 template <class T, FSMExtendedDataSubclass DATA_TYPE>
 void fsm_change_extended(ClientFSM type, T phase, DATA_TYPE data, const char *fnc, const char *file, int line) {
-    bool changed = FSMExtendedDataManager::store(data);
-    if (changed) {
-        // Only send FSM change if data actually changed, We also use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
-        static std::array<uint8_t, 4> fsm_change_data = { 0 };
-        fsm_change_data[0]++;
-        _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
-    }
+    FSMExtendedDataManager::store(data);
+    //  We use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
+    static std::array<uint8_t, 4> fsm_change_data = { 0 };
+    fsm_change_data[0]++;
+    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
 }
 
 template <class T>

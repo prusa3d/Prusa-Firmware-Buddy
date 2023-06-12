@@ -207,6 +207,16 @@ enum class PhasesSelftest : uint16_t {
     FSensor_fail,
     _last_FSensor = FSensor_fail,
 
+    _first_GearsCalib,
+    GearsCalib_filament_check = _first_GearsCalib,
+    GearsCalib_filament_loaded_ask_unload,
+    GearsCalib_filament_unknown_ask_unload,
+    GearsCalib_release_screws,
+    GearsCalib_alignment,
+    GearsCalib_tighten,
+    GearsCalib_done,
+    _last_GearsCalib = GearsCalib_done,
+
     _first_CalibZ,
     CalibZ = _first_CalibZ,
     _last_CalibZ = CalibZ,
@@ -218,6 +228,13 @@ enum class PhasesSelftest : uint16_t {
     _first_Heaters,
     Heaters = _first_Heaters,
     _last_Heaters = Heaters,
+
+    _first_SpecifyHotEnd,
+    SpecifyHotEnd = _first_SpecifyHotEnd,
+    SpecifyHotEnd_sock,
+    SpecifyHotEnd_nozzle_type,
+    SpecifyHotEnd_retry,
+    _last_SpecifyHotEnd = SpecifyHotEnd_retry,
 
     _first_FirstLayer,
     FirstLayer_mbl = _first_FirstLayer,
@@ -267,12 +284,15 @@ enum class PhasesSelftest : uint16_t {
     Result = _first_Result,
     _last_Result = Result,
 
-    _first_WizardEpilogue,
-    WizardEpilogue_ok = _first_WizardEpilogue, // ok is after result
-    WizardEpilogue_nok,                        // nok is before result
-    _last_WizardEpilogue = WizardEpilogue_nok,
+    _first_WizardEpilogue_ok,
+    WizardEpilogue_ok = _first_WizardEpilogue_ok, // ok is after result
+    _last_WizardEpilogue_ok = WizardEpilogue_ok,
 
-    _last = _last_WizardEpilogue
+    _first_WizardEpilogue_nok,
+    WizardEpilogue_nok = _first_WizardEpilogue_nok, // nok is before result
+    _last_WizardEpilogue_nok = WizardEpilogue_nok,
+
+    _last = _last_WizardEpilogue_nok
 };
 
 enum class PhasesCrashRecovery : uint16_t {
@@ -448,11 +468,24 @@ class ClientResponses {
         {},                                                        // FSensor_done
         {},                                                        // FSensor_fail
 
+        { Response::Continue, Response::Skip },                    // GearsCalib_filament_check
+        { Response::Unload, Response::Abort },                     // GearsCalib_filament_loaded_ask_unload
+        { Response::Continue, Response::Unload, Response::Abort }, // GearsCalib_filament_unknown_ask_unload
+        { Response::Continue, Response::Skip },                    // GearsCalib_release_screws
+        {},                                                        // GearsCalib_alignment
+        { Response::Continue },                                    // GearsCalib_tighten
+        { Response::Continue },                                    // GearsCalib_done
+
         {}, // CalibZ
 
         {}, // Axis
 
         {}, // Heaters
+
+        { Response::Adjust, Response::Skip },         // SpecifyHotEnd
+        { Response::Yes, Response::No },              // SpecifyHotEnd_sock
+        { Response::PrusaStock, Response::HighFlow }, // SpecifyHotEnd_nozzle_type
+        { Response::Yes, Response::No },              // SpecifyHotEnd_retry
 
         {}, // FirstLayer_mbl
         {}, // FirstLayer_print
@@ -573,13 +606,18 @@ enum class SelftestParts {
 #endif
     CalibZ,
     Heaters,
+    SpecifyHotEnd,
 #if FILAMENT_SENSOR_IS_ADC()
     FSensor,
+#endif
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    GearsCalib,
 #endif
     FirstLayer,
     FirstLayerQuestions,
     Result,
-    WizardEpilogue,
+    WizardEpilogue_ok,
+    WizardEpilogue_nok,
 #if BOARD_IS_XLBUDDY
     Dock,
     ToolOffsets,
@@ -610,10 +648,16 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     case SelftestParts::FSensor:
         return PhasesSelftest::_first_FSensor;
 #endif
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    case SelftestParts::GearsCalib:
+        return PhasesSelftest::_first_GearsCalib;
+#endif
     case SelftestParts::CalibZ:
         return PhasesSelftest::_first_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_first_Heaters;
+    case SelftestParts::SpecifyHotEnd:
+        return PhasesSelftest::_first_SpecifyHotEnd;
     case SelftestParts::FirstLayer:
         return PhasesSelftest::_first_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
@@ -626,8 +670,10 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_first_Result;
-    case SelftestParts::WizardEpilogue:
-        return PhasesSelftest::_first_WizardEpilogue;
+    case SelftestParts::WizardEpilogue_ok:
+        return PhasesSelftest::_first_WizardEpilogue_ok;
+    case SelftestParts::WizardEpilogue_nok:
+        return PhasesSelftest::_first_WizardEpilogue_nok;
     case SelftestParts::_none:
         break;
     }
@@ -656,10 +702,16 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     case SelftestParts::FSensor:
         return PhasesSelftest::_last_FSensor;
 #endif
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    case SelftestParts::GearsCalib:
+        return PhasesSelftest::_last_GearsCalib;
+#endif
     case SelftestParts::CalibZ:
         return PhasesSelftest::_last_CalibZ;
     case SelftestParts::Heaters:
         return PhasesSelftest::_last_Heaters;
+    case SelftestParts::SpecifyHotEnd:
+        return PhasesSelftest::_last_SpecifyHotEnd;
     case SelftestParts::FirstLayer:
         return PhasesSelftest::_last_FirstLayer;
     case SelftestParts::FirstLayerQuestions:
@@ -672,8 +724,10 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_last_Result;
-    case SelftestParts::WizardEpilogue:
-        return PhasesSelftest::_last_WizardEpilogue;
+    case SelftestParts::WizardEpilogue_ok:
+        return PhasesSelftest::_last_WizardEpilogue_ok;
+    case SelftestParts::WizardEpilogue_nok:
+        return PhasesSelftest::_last_WizardEpilogue_nok;
     case SelftestParts::_none:
         break;
     }
@@ -713,17 +767,27 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
     if (SelftestPartContainsPhase(SelftestParts::FSensor, ph))
         return SelftestParts::FSensor;
 #endif
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    if (SelftestPartContainsPhase(SelftestParts::GearsCalib, ph))
+        return SelftestParts::GearsCalib;
+#endif
     if (SelftestPartContainsPhase(SelftestParts::Axis, ph))
         return SelftestParts::Axis;
 
     if (SelftestPartContainsPhase(SelftestParts::Heaters, ph))
         return SelftestParts::Heaters;
 
+    if (SelftestPartContainsPhase(SelftestParts::SpecifyHotEnd, ph))
+        return SelftestParts::SpecifyHotEnd;
+
     if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph))
         return SelftestParts::CalibZ;
 
-    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue, ph))
-        return SelftestParts::WizardEpilogue;
+    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_ok, ph))
+        return SelftestParts::WizardEpilogue_ok;
+
+    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_nok, ph))
+        return SelftestParts::WizardEpilogue_nok;
 
     if (SelftestPartContainsPhase(SelftestParts::Result, ph))
         return SelftestParts::Result;

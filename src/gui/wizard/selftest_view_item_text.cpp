@@ -64,13 +64,15 @@ void SelfTestViewText::render(Rect16 rc) const {
  * @param multiln   multiline flag
  * @param width     width to be able to measure height (number of lines) needed for multiline text
  */
-SelfTestViewTextWithIcon::SelfTestViewTextWithIcon(string_view_utf8 txt, const png::Resource &icon, is_multiline multiln, Rect16::Width_t width)
+SelfTestViewTextWithIcon::SelfTestViewTextWithIcon(string_view_utf8 txt, const png::Resource *icon, is_multiline multiln, Rect16::Width_t width)
     : SelfTestViewText(txt, multiln, width == 0 ? Rect16::Width_t(GuiDefaults::ScreenWidth) : Rect16::Width_t(width - text_pos_after_icon))
     , icon(icon) {}
 
 void SelfTestViewTextWithIcon::Draw(Rect16::Top_t top) const {
     Rect16 rc = Rect(top);
-    render_icon_align(Rect16(rc.TopLeft(), size_ui16_t({ icon.w, icon.h })), &icon, GuiDefaults::ColorBack, Align_t::LeftTop());
+    if (icon) {
+        render_icon_align(Rect16(rc.TopLeft(), size_ui16_t({ icon->w, icon->h })), icon, GuiDefaults::ColorBack, Align_t::LeftTop());
+    }
     rc += Rect16::Left_t(text_pos_after_icon);
     rc -= Rect16::Width_t(text_pos_after_icon);
     render(rc);
@@ -90,7 +92,7 @@ static constexpr size_t status_icon_width = WizardDefaults::status_icon_w;
  * @param multiln   multiline flag
  * @param width     width to be able to measure height (number of lines) needed for multiline text
  */
-SelfTestViewTextWithIconAndResult::SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource &icon, TestResult result, is_multiline multiln, Rect16::Width_t width)
+SelfTestViewTextWithIconAndResult::SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource *icon, TestResult result, is_multiline multiln, Rect16::Width_t width)
     : SelfTestViewTextWithIcon(txt, icon, multiln, width == 0 ? Rect16::Width_t(GuiDefaults::ScreenWidth) : Rect16::Width_t(width - status_icon_width))
     , icon_result(ResultToIconId(result)) {}
 
@@ -100,11 +102,13 @@ void SelfTestViewTextWithIconAndResult::SetState(TestResult res) {
 
 void SelfTestViewTextWithIconAndResult::Draw(Rect16::Top_t top) const {
     Rect16 rc = Rect(top);
-    render_icon_align(Rect16(rc.TopLeft(), size_ui16_t({ icon.w, icon.h })), &icon, GuiDefaults::ColorBack, Align_t::LeftTop());
+    if (icon) {
+        render_icon_align(Rect16(rc.TopLeft(), size_ui16_t({ icon->w, icon->h })), icon, GuiDefaults::ColorBack, Align_t::LeftTop());
+    }
     rc += Rect16::Left_t(text_pos_after_icon);
     rc -= Rect16::Width_t(text_pos_after_icon + status_icon_width);
     render(rc);
-    render_icon_align(Rect16(WizardDefaults::status_icon_X_pos, rc.Top(), icon.w, icon.h), icon_result, GuiDefaults::ColorBack, Align_t::LeftTop());
+    render_icon_align(Rect16(WizardDefaults::status_icon_X_pos, rc.Top(), icon_result->w, icon_result->h), icon_result, GuiDefaults::ColorBack, Align_t::LeftTop());
 }
 
 const png::Resource *SelfTestViewTextWithIconAndResult::ResultToIconId(TestResult res) {

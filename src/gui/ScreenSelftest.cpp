@@ -26,6 +26,13 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_fsensor(ScreenSelftest 
     return rThs.makePtr<SelftestFrameFSensor>(&rThs, phase, data);
 }
 #endif
+
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_gears_calib(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameGearsCalib>(&rThs, phase, data);
+}
+#endif
+
 #if FILAMENT_SENSOR_IS_ADC()
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_loadcell(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameLoadcell>(&rThs, phase, data);
@@ -33,6 +40,10 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_loadcell(ScreenSelftest
 #endif
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<ScreenSelftestTemp>(&rThs, phase, data);
+}
+
+static_unique_ptr<SelftestFrame> ScreenSelftest::creator_specify_hot_end(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
+    return rThs.makePtr<SelftestFrameHotEndSock>(&rThs, phase, data);
 }
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
@@ -102,6 +113,10 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     case SelftestParts::FSensor:
         return creator_fsensor;
 #endif
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    case SelftestParts::GearsCalib:
+        return creator_gears_calib;
+#endif
 #if BOARD_IS_XLBUDDY
     case SelftestParts::Dock:
         return creator_dock;
@@ -110,6 +125,8 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
 #endif
     case SelftestParts::Heaters:
         return creator_temp;
+    case SelftestParts::SpecifyHotEnd:
+        return creator_specify_hot_end;
     case SelftestParts::CalibZ:
         return creator_calib_z;
     case SelftestParts::FirstLayer:
@@ -118,7 +135,8 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator_firstlayer_questions;
     case SelftestParts::Result:
         return creator_result;
-    case SelftestParts::WizardEpilogue:
+    case SelftestParts::WizardEpilogue_ok:
+    case SelftestParts::WizardEpilogue_nok:
         return creator_epilogue;
     case SelftestParts::_none:
         break;
@@ -192,7 +210,11 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
 #if FILAMENT_SENSOR_IS_ADC()
     case SelftestParts::FSensor:
 #endif
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    case SelftestParts::GearsCalib:
+#endif
     case SelftestParts::Heaters:
+    case SelftestParts::SpecifyHotEnd:
     case SelftestParts::CalibZ:
     case SelftestParts::Result:
 #if BOARD_IS_XLBUDDY
@@ -203,8 +225,10 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
         return _(en_firstlay);
-    case SelftestParts::WizardEpilogue:
+    case SelftestParts::WizardEpilogue_ok:
         return _(en_wizard_ok);
+    case SelftestParts::WizardEpilogue_nok:
+        return _(en_wizard_nok);
     case SelftestParts::_none:
         break;
     }
@@ -227,7 +251,11 @@ const png::Resource *ScreenSelftest::getIconId(SelftestParts part) {
 #if FILAMENT_SENSOR_IS_ADC()
     case SelftestParts::FSensor:
 #endif
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    case SelftestParts::GearsCalib:
+#endif
     case SelftestParts::Heaters:
+    case SelftestParts::SpecifyHotEnd:
     case SelftestParts::CalibZ:
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
@@ -237,7 +265,8 @@ const png::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::ToolOffsets:
 #endif
         return &png::selftest_16x16;
-    case SelftestParts::WizardEpilogue:
+    case SelftestParts::WizardEpilogue_ok:
+    case SelftestParts::WizardEpilogue_nok:
         return &png::wizard_16x16;
     case SelftestParts::_none:
         break;

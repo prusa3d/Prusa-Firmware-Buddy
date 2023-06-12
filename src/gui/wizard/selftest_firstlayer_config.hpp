@@ -1,6 +1,5 @@
 /**
  * @file selftest_firstlayer_config.hpp
- * @brief config esp selftest part
  */
 
 #pragma once

@@ -57,112 +57,119 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-static constexpr uint16_t Fan_print_min_rpm_table[] = { 10, 10, 10, 10, 10 };
+static constexpr std::array<uint16_t, 5> print_fan_min_rpm_table = { 10, 10, 10, 10, 10 };
+static constexpr std::array<uint16_t, 5> print_fan_max_rpm_table = { 10000, 10000, 10000, 10000, 10000 };
+static constexpr std::array<uint16_t, 5> heatbreak_fan_min_rpm_table = { 10, 10, 10, 10, 10 };
+static constexpr std::array<uint16_t, 5> heatbreak_fan_max_rpm_table = { 10000, 10000, 10000, 10000, 10000 };
 
-static constexpr uint16_t Fan_print_max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
-
-static constexpr uint16_t Fan_heatbreak_min_rpm_table[] = { 10, 10, 10, 10, 10 };
-
-static constexpr uint16_t Fan_heatbreak_max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
-
-static constexpr FanConfig_t Config_Fans[] = {
-    { .type = fan_type_t::Print,
+// clang-format off
+// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
+// 100%, where we also check the rpm range
+static constexpr SelftestFansConfig fans_configs[] = {
+    {
         .tool_nr = 0,
-        .fanctl = fanCtlPrint[0],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_print_min_rpm_table,
-        .rpm_max_table = Fan_print_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 0,
-        .fanctl = fanCtlHeatBreak[0],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_heatbreak_min_rpm_table,
-        .rpm_max_table = Fan_heatbreak_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Print,
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 5300 },
+            .rpm_max_table = { 10000, 6500 },
+            .fanctl = fanCtlPrint[0]
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 6800 },
+            .rpm_max_table = { 10000, 8700 },
+            .fanctl = fanCtlHeatBreak[0]
+        }
+    },
+    {
         .tool_nr = 1,
-        .fanctl = fanCtlPrint[1],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_print_min_rpm_table,
-        .rpm_max_table = Fan_print_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 1,
-        .fanctl = fanCtlHeatBreak[1],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_heatbreak_min_rpm_table,
-        .rpm_max_table = Fan_heatbreak_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Print,
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 5300 },
+            .rpm_max_table = { 10000, 6500 },
+            .fanctl = fanCtlPrint[1]
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 6800 },
+            .rpm_max_table = { 10000, 8700 },
+            .fanctl = fanCtlHeatBreak[1]
+        }
+    },
+    {
         .tool_nr = 2,
-        .fanctl = fanCtlPrint[2],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_print_min_rpm_table,
-        .rpm_max_table = Fan_print_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 2,
-        .fanctl = fanCtlHeatBreak[2],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_heatbreak_min_rpm_table,
-        .rpm_max_table = Fan_heatbreak_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Print,
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 5300 },
+            .rpm_max_table = { 10000, 6500 },
+            .fanctl = fanCtlPrint[2]
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 6800 },
+            .rpm_max_table = { 10000, 8700 },
+            .fanctl = fanCtlHeatBreak[2]
+        }
+    },
+    {
         .tool_nr = 3,
-        .fanctl = fanCtlPrint[3],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_print_min_rpm_table,
-        .rpm_max_table = Fan_print_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 3,
-        .fanctl = fanCtlHeatBreak[3],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_heatbreak_min_rpm_table,
-        .rpm_max_table = Fan_heatbreak_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Print,
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 5300 },
+            .rpm_max_table = { 10000, 6500 },
+            .fanctl = fanCtlPrint[3]
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 6800 },
+            .rpm_max_table = { 10000, 8700 },
+            .fanctl = fanCtlHeatBreak[3]
+        }
+    },
+    {
         .tool_nr = 4,
-        .fanctl = fanCtlPrint[4],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_print_min_rpm_table,
-        .rpm_max_table = Fan_print_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 4,
-        .fanctl = fanCtlHeatBreak[4],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_heatbreak_min_rpm_table,
-        .rpm_max_table = Fan_heatbreak_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Print,
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 5300 },
+            .rpm_max_table = { 10000, 6500 },
+            .fanctl = fanCtlPrint[4]
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 6800 },
+            .rpm_max_table = { 10000, 8700 },
+            .fanctl = fanCtlHeatBreak[4]
+        }
+    },
+    {
         .tool_nr = 5,
-        .fanctl = fanCtlPrint[5],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_print_min_rpm_table,
-        .rpm_max_table = Fan_print_max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 5,
-        .fanctl = fanCtlHeatBreak[5],
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan_heatbreak_min_rpm_table,
-        .rpm_max_table = Fan_heatbreak_max_rpm_table,
-        .steps = 5 },
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 5300 },
+            .rpm_max_table = { 10000, 6500 },
+            .fanctl = fanCtlPrint[5]
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 6800 },
+            .rpm_max_table = { 10000, 8700 },
+            .fanctl = fanCtlHeatBreak[5]
+        }
+    },
 };
+// clang-format on
 
 // reads data from eeprom, cannot be constexpr
 //  FIXME: remove fixed lengths once the printer specs are finalized
@@ -349,105 +356,6 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .min_pwm_to_measure = 26
 };
 
-static constexpr FanConfig_t Config_fans_fine[] = {
-    { .type = fan_type_t::Print,
-        .tool_nr = 0,
-        .fanctl = fanCtlPrint[0],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 0,
-        .fanctl = fanCtlHeatBreak[0],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Print,
-        .tool_nr = 1,
-        .fanctl = fanCtlPrint[1],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 1,
-        .fanctl = fanCtlHeatBreak[1],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Print,
-        .tool_nr = 2,
-        .fanctl = fanCtlPrint[2],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 2,
-        .fanctl = fanCtlHeatBreak[2],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Print,
-        .tool_nr = 3,
-        .fanctl = fanCtlPrint[3],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 3,
-        .fanctl = fanCtlHeatBreak[3],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Print,
-        .tool_nr = 4,
-        .fanctl = fanCtlPrint[4],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 4,
-        .fanctl = fanCtlHeatBreak[4],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Print,
-        .tool_nr = 5,
-        .fanctl = fanCtlPrint[5],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 5,
-        .fanctl = fanCtlHeatBreak[5],
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-};
-
 static constexpr LoadcellConfig_t Config_Loadcell[] = {
     { .partname = "Loadcell 1",
         .tool_nr = 0,
@@ -625,7 +533,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsFans:
-        if (selftest::phaseFans(pFans, Config_Fans))
+        if (selftest::phaseFans(pFans, fans_configs))
             return;
         break;
     case stsWait_fans:
@@ -697,12 +605,6 @@ void CSelftest::Loop() {
         if (selftest::phaseFSensor(tool_mask, pFSensor, Config_FSensor))
             return;
         break;
-
-    case stsFans_fine:
-        if (selftest::phaseFans(pFans, Config_fans_fine))
-            return;
-        break;
-
     case stsSelftestStop:
         restoreAfterSelftest();
         break;

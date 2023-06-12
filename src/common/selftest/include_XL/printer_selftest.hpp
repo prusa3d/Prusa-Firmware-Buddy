@@ -34,7 +34,6 @@ typedef enum {
     stsHeaters_bed_ena,
     stsHeaters,
     stsWait_heaters,
-    stsFans_fine,
     stsFSensor_calibration,
     stsNet_status,
     stsSelftestStop,
@@ -84,7 +83,6 @@ enum SelftestMask_t : uint64_t {
     stmWizardPrologue = to_one_hot(stsPrologueAskRun) | to_one_hot(stsPrologueAskRun_wait_user) | to_one_hot(stsPrologueInfo) | to_one_hot(stsPrologueInfo_wait_user) | to_one_hot(stsPrologueInfoDetailed) | to_one_hot(stsPrologueInfoDetailed_wait_user),
     stmEpilogue = to_one_hot(stsEpilogue_nok) | to_one_hot(stsEpilogue_nok_wait_user) | to_one_hot(stsEpilogue_ok) | to_one_hot(stsEpilogue_ok_wait_user),
     stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue,
-    stmFans_fine = to_one_hot(stsFans_fine),
 };
 
 // class representing whole self-test
@@ -111,7 +109,7 @@ protected:
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
     ToolMask tool_mask = ToolMask::AllTools;
-    std::array<selftest::IPartHandler *, HOTENDS * 2> pFans;
+    std::array<selftest::IPartHandler *, HOTENDS> pFans;
     selftest::IPartHandler *pXAxis;
     selftest::IPartHandler *pYAxis;
     selftest::IPartHandler *pZAxis;

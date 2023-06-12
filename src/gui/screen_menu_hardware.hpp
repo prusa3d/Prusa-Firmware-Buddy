@@ -13,11 +13,16 @@
 #include "printers.h"
 #include <option/has_loadcell.h>
 #include "MItem_basic_selftest.hpp"
+#include "printers.h"
 
 using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_RETURN,
     MI_NOZZLE_DIAMETER,
     MI_HARDWARE_G_CODE_CHECKS,
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+    MI_NOZZLE_SOCK,
+    MI_NOZZLE_TYPE,
+#endif
     MI_INDEPT_STEP
 #if ENABLED(MODULAR_HEATBED)
     ,

@@ -2,6 +2,7 @@
 // Screen openning menu items
 #pragma once
 #include "WindowMenuItems.hpp"
+#include "WindowMenuSwitch.hpp"
 #include "i18n.h"
 #include "eeprom.h"
 #include <option/has_toolchanger.h>

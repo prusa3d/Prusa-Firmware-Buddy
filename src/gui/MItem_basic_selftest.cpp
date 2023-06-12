@@ -179,16 +179,17 @@ void MI_CALIB_FSENSOR_MMU::click(IWindowMenu & /*window_menu*/) {
     #endif
 
 #endif
-/*****************************************************************************/
-// MI_TEST_FANS_fine
-MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+
+#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+MI_CALIB_GEARS::MI_CALIB_GEARS()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
+void MI_CALIB_GEARS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmFans_fine);
+    marlin_test_start(stmGears);
 }
+#endif
 
 #if HAS_TOOLCHANGER()
 /*****************************************************************************/

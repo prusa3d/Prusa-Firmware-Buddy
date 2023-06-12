@@ -36,3 +36,19 @@ MI_HARDWARE_G_CODE_CHECKS::MI_HARDWARE_G_CODE_CHECKS()
 void MI_HARDWARE_G_CODE_CHECKS::click(IWindowMenu &) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuHardwareChecks>);
 }
+
+// MI_NOZZLE_TYPE
+MI_NOZZLE_TYPE::MI_NOZZLE_TYPE()
+    : WI_SWITCH_t<2>(eeprom_get_ui8(EEVAR_NOZZLE_TYPE), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, _(str_normal), _(str_high_flow)) {};
+
+void MI_NOZZLE_TYPE::OnChange([[maybe_unused]] size_t old_index) {
+    eeprom_set_ui8(EEVAR_NOZZLE_TYPE, index);
+}
+
+// MI_NOZZLE_SOCK
+MI_NOZZLE_SOCK::MI_NOZZLE_SOCK()
+    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_NOZZLE_SOCK), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
+
+void MI_NOZZLE_SOCK::OnChange([[maybe_unused]] size_t old_index) {
+    eeprom_set_bool(EEVAR_NOZZLE_SOCK, !old_index);
+}

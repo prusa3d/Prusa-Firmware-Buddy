@@ -14,6 +14,6 @@ class IPartHandler;
 
 namespace selftest {
 
-inline constexpr auto NUM_SELFTEST_FANS = HOTENDS * 2;
-bool phaseFans(std::array<IPartHandler *, NUM_SELFTEST_FANS> &fans_parts, const std::span<const FanConfig_t> config_fans);
-};
+bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<const SelftestFansConfig> fans_configs);
+
+} // namespace selftest

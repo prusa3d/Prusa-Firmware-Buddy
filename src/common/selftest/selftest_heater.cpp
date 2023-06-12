@@ -204,8 +204,21 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     }
 #endif // 0
 
-    if ((m_config.getTemp() < m_config.heat_min_temp) || (m_config.getTemp() > m_config.heat_max_temp)) {
-        log_error(Selftest, "%s %i out of range (%i - %i)\n", m_config.partname, (int)m_config.getTemp(), m_config.heat_min_temp, m_config.heat_max_temp);
+    // Adapt test to HW differences
+    int8_t hw_diff = 0;
+    if (m_config.type == heater_type_t::Nozzle) {
+        hw_diff += eeprom_get_bool(EEVAR_NOZZLE_SOCK) ? m_config.nozzle_sock_temp_offset : 0;
+        uint8_t nozzle_type = eeprom_get_ui8(EEVAR_NOZZLE_TYPE); // There will be more nozzle types in the future
+        if (nozzle_type == NozzleType::HighFlow) {
+            hw_diff += m_config.high_flow_nozzle_temp_offset;
+        }
+
+        if (hw_diff)
+            log_info(Selftest, "%s heat range offseted by %d degrees Celsius due to HW differences", m_config.partname, hw_diff);
+    }
+
+    if ((m_config.getTemp() < m_config.heat_min_temp + hw_diff) || (m_config.getTemp() > m_config.heat_max_temp + hw_diff)) {
+        log_error(Selftest, "%s %i out of range (%i - %i)\n", m_config.partname, (int)m_config.getTemp(), m_config.heat_min_temp + hw_diff, m_config.heat_max_temp + hw_diff);
         return LoopResult::Fail;
     }
     log_info(Selftest, "%s measure, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
