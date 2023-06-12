@@ -7,9 +7,6 @@
 #include "guitypes.hpp"
 #include <optional>
 
-void touch::touch_workaround() {
-}
-
 std::optional<point_ui16_t> touch::Get() {
     return std::nullopt;
 }
