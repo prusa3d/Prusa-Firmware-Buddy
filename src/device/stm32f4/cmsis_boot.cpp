@@ -1,65 +1,65 @@
 /**
-  ******************************************************************************
-  * @file    system_stm32f4xx.c
-  * @author  MCD Application Team
-  * @brief   CMSIS Cortex-M4 Device Peripheral Access Layer System Source File.
-  *
-  *   This file provides two functions and one global variable to be called from
-  *   user application:
-  *      - SystemInit(): This function is called at startup just after reset and
-  *                      before branch to main program. This call is made inside
-  *                      the "startup_stm32f4xx.s" file.
-  *
-  *      - SystemCoreClock variable: Contains the core clock (HCLK), it can be used
-  *                                  by the user application to setup the SysTick
-  *                                  timer or configure other parameters.
-  *
-  *      - SystemCoreClockUpdate(): Updates the variable SystemCoreClock and must
-  *                                 be called whenever the core clock is changed
-  *                                 during program execution.
-  *
-  *
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT 2017 STMicroelectronics</center></h2>
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    system_stm32f4xx.c
+ * @author  MCD Application Team
+ * @brief   CMSIS Cortex-M4 Device Peripheral Access Layer System Source File.
+ *
+ *   This file provides two functions and one global variable to be called from
+ *   user application:
+ *      - SystemInit(): This function is called at startup just after reset and
+ *                      before branch to main program. This call is made inside
+ *                      the "startup_stm32f4xx.s" file.
+ *
+ *      - SystemCoreClock variable: Contains the core clock (HCLK), it can be used
+ *                                  by the user application to setup the SysTick
+ *                                  timer or configure other parameters.
+ *
+ *      - SystemCoreClockUpdate(): Updates the variable SystemCoreClock and must
+ *                                 be called whenever the core clock is changed
+ *                                 during program execution.
+ *
+ *
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; COPYRIGHT 2017 STMicroelectronics</center></h2>
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *   1. Redistributions of source code must retain the above copyright notice,
+ *      this list of conditions and the following disclaimer.
+ *   2. Redistributions in binary form must reproduce the above copyright notice,
+ *      this list of conditions and the following disclaimer in the documentation
+ *      and/or other materials provided with the distribution.
+ *   3. Neither the name of STMicroelectronics nor the names of its contributors
+ *      may be used to endorse or promote products derived from this software
+ *      without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************
+ */
 
 /** @addtogroup CMSIS
-  * @{
-  */
+ * @{
+ */
 
 /** @addtogroup stm32f4xx_system
-  * @{
-  */
+ * @{
+ */
 
 /** @addtogroup STM32F4xx_System_Private_Includes
-  * @{
-  */
+ * @{
+ */
 
 #include "stm32f4xx.h"
 
@@ -72,20 +72,20 @@
 #endif                                     /* HSI_VALUE */
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 /** @addtogroup STM32F4xx_System_Private_TypesDefinitions
-  * @{
-  */
+ * @{
+ */
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 /** @addtogroup STM32F4xx_System_Private_Defines
-  * @{
-  */
+ * @{
+ */
 
 /************************* Miscellaneous Configuration ************************/
 /*!< Uncomment the following line if you need to use external SRAM or SDRAM as data memory  */
@@ -110,20 +110,20 @@
 /******************************************************************************/
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 /** @addtogroup STM32F4xx_System_Private_Macros
-  * @{
-  */
+ * @{
+ */
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 /** @addtogroup STM32F4xx_System_Private_Variables
-  * @{
-  */
+ * @{
+ */
 /* This variable is updated in three ways:
       1) by calling CMSIS function SystemCoreClockUpdate()
       2) by calling HAL API function HAL_RCC_GetHCLKFreq()
@@ -136,32 +136,32 @@ uint32_t SystemCoreClock = 16000000;
 const uint8_t AHBPrescTable[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9 };
 const uint8_t APBPrescTable[8] = { 0, 0, 0, 0, 1, 2, 3, 4 };
 /**
-  * @}
-  */
+ * @}
+ */
 
 /** @addtogroup STM32F4xx_System_Private_FunctionPrototypes
-  * @{
-  */
+ * @{
+ */
 
 #if defined(DATA_IN_ExtSRAM) || defined(DATA_IN_ExtSDRAM)
 static void SystemInit_ExtMemCtl(void);
 #endif /* DATA_IN_ExtSRAM || DATA_IN_ExtSDRAM */
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 /** @addtogroup STM32F4xx_System_Private_Functions
-  * @{
-  */
+ * @{
+ */
 
 /**
-  * @brief  Setup the microcontroller system
-  *         Initialize the FPU setting, vector table location and External memory
-  *         configuration.
-  * @param  None
-  * @retval None
-  */
+ * @brief  Setup the microcontroller system
+ *         Initialize the FPU setting, vector table location and External memory
+ *         configuration.
+ * @param  None
+ * @retval None
+ */
 void SystemInit(void) {
 /* FPU settings ------------------------------------------------------------*/
 #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
@@ -197,41 +197,41 @@ void SystemInit(void) {
 }
 
 /**
-   * @brief  Update SystemCoreClock variable according to Clock Register Values.
-  *         The SystemCoreClock variable contains the core clock (HCLK), it can
-  *         be used by the user application to setup the SysTick timer or configure
-  *         other parameters.
-  *
-  * @note   Each time the core clock (HCLK) changes, this function must be called
-  *         to update SystemCoreClock variable value. Otherwise, any configuration
-  *         based on this variable will be incorrect.
-  *
-  * @note   - The system frequency computed by this function is not the real
-  *           frequency in the chip. It is calculated based on the predefined
-  *           constant and the selected clock source:
-  *
-  *           - If SYSCLK source is HSI, SystemCoreClock will contain the HSI_VALUE(*)
-  *
-  *           - If SYSCLK source is HSE, SystemCoreClock will contain the HSE_VALUE(**)
-  *
-  *           - If SYSCLK source is PLL, SystemCoreClock will contain the HSE_VALUE(**)
-  *             or HSI_VALUE(*) multiplied/divided by the PLL factors.
-  *
-  *         (*) HSI_VALUE is a constant defined in stm32f4xx_hal_conf.h file (default value
-  *             16 MHz) but the real value may vary depending on the variations
-  *             in voltage and temperature.
-  *
-  *         (**) HSE_VALUE is a constant defined in stm32f4xx_hal_conf.h file (its value
-  *              depends on the application requirements), user has to ensure that HSE_VALUE
-  *              is same as the real frequency of the crystal used. Otherwise, this function
-  *              may have wrong result.
-  *
-  *         - The result of this function could be not correct when using fractional
-  *           value for HSE crystal.
-  *
-  * @param  None
-  * @retval None
-  */
+ * @brief  Update SystemCoreClock variable according to Clock Register Values.
+ *         The SystemCoreClock variable contains the core clock (HCLK), it can
+ *         be used by the user application to setup the SysTick timer or configure
+ *         other parameters.
+ *
+ * @note   Each time the core clock (HCLK) changes, this function must be called
+ *         to update SystemCoreClock variable value. Otherwise, any configuration
+ *         based on this variable will be incorrect.
+ *
+ * @note   - The system frequency computed by this function is not the real
+ *           frequency in the chip. It is calculated based on the predefined
+ *           constant and the selected clock source:
+ *
+ *           - If SYSCLK source is HSI, SystemCoreClock will contain the HSI_VALUE(*)
+ *
+ *           - If SYSCLK source is HSE, SystemCoreClock will contain the HSE_VALUE(**)
+ *
+ *           - If SYSCLK source is PLL, SystemCoreClock will contain the HSE_VALUE(**)
+ *             or HSI_VALUE(*) multiplied/divided by the PLL factors.
+ *
+ *         (*) HSI_VALUE is a constant defined in stm32f4xx_hal_conf.h file (default value
+ *             16 MHz) but the real value may vary depending on the variations
+ *             in voltage and temperature.
+ *
+ *         (**) HSE_VALUE is a constant defined in stm32f4xx_hal_conf.h file (its value
+ *              depends on the application requirements), user has to ensure that HSE_VALUE
+ *              is same as the real frequency of the crystal used. Otherwise, this function
+ *              may have wrong result.
+ *
+ *         - The result of this function could be not correct when using fractional
+ *           value for HSE crystal.
+ *
+ * @param  None
+ * @retval None
+ */
 void SystemCoreClockUpdate(void) {
     uint32_t tmp = 0, pllvco = 0, pllp = 2, pllsource = 0, pllm = 2;
 
@@ -279,13 +279,13 @@ void SystemCoreClockUpdate(void) {
     #if defined(STM32F427xx) || defined(STM32F437xx) || defined(STM32F429xx) || defined(STM32F439xx) \
         || defined(STM32F469xx) || defined(STM32F479xx)
 /**
-  * @brief  Setup the external memory controller.
-  *         Called in startup_stm32f4xx.s before jump to main.
-  *         This function configures the external memories (SRAM/SDRAM)
-  *         This SRAM/SDRAM will be used as program data memory (including heap and stack).
-  * @param  None
-  * @retval None
-  */
+ * @brief  Setup the external memory controller.
+ *         Called in startup_stm32f4xx.s before jump to main.
+ *         This function configures the external memories (SRAM/SDRAM)
+ *         This SRAM/SDRAM will be used as program data memory (including heap and stack).
+ * @param  None
+ * @retval None
+ */
 void SystemInit_ExtMemCtl(void) {
     __IO uint32_t tmp = 0x00;
 
@@ -438,13 +438,13 @@ void SystemInit_ExtMemCtl(void) {
     #endif /* STM32F427xx || STM32F437xx || STM32F429xx || STM32F439xx || STM32F469xx || STM32F479xx */
 #elif defined(DATA_IN_ExtSRAM) || defined(DATA_IN_ExtSDRAM)
 /**
-  * @brief  Setup the external memory controller.
-  *         Called in startup_stm32f4xx.s before jump to main.
-  *         This function configures the external memories (SRAM/SDRAM)
-  *         This SRAM/SDRAM will be used as program data memory (including heap and stack).
-  * @param  None
-  * @retval None
-  */
+ * @brief  Setup the external memory controller.
+ *         Called in startup_stm32f4xx.s before jump to main.
+ *         This function configures the external memories (SRAM/SDRAM)
+ *         This SRAM/SDRAM will be used as program data memory (including heap and stack).
+ * @param  None
+ * @retval None
+ */
 void SystemInit_ExtMemCtl(void) {
     __IO uint32_t tmp = 0x00;
     #if defined(STM32F427xx) || defined(STM32F437xx) || defined(STM32F429xx) || defined(STM32F439xx) \
@@ -724,21 +724,21 @@ void SystemInit_ExtMemCtl(void) {
     FSMC_Bank1E->BWTR[2] = 0x0FFFFFFF;
             #endif /* STM32F405xx || STM32F415xx || STM32F407xx || STM32F417xx || STM32F412Zx || STM32F412Vx */
 
-        #endif /* DATA_IN_ExtSRAM */
-    #endif     /* STM32F405xx || STM32F415xx || STM32F407xx || STM32F417xx || STM32F427xx || STM32F437xx || \
-                  STM32F429xx || STM32F439xx || STM32F469xx || STM32F479xx || STM32F412Zx || STM32F412Vx  */
+        #endif     /* DATA_IN_ExtSRAM */
+    #endif         /* STM32F405xx || STM32F415xx || STM32F407xx || STM32F417xx || STM32F427xx || STM32F437xx || \
+                      STM32F429xx || STM32F439xx || STM32F469xx || STM32F479xx || STM32F412Zx || STM32F412Vx  */
     (void)(tmp);
 }
-#endif         /* DATA_IN_ExtSRAM && DATA_IN_ExtSDRAM */
+#endif             /* DATA_IN_ExtSRAM && DATA_IN_ExtSDRAM */
 /**
-  * @}
-  */
+ * @}
+ */
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 /**
-  * @}
-  */
+ * @}
+ */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

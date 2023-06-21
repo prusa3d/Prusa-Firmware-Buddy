@@ -57,10 +57,10 @@ WindowMenuAdv::WindowMenuAdv(window_t *parent, Rect16 rect, IWinMenuContainer *p
     : AddSuperWindow<window_frame_t>(parent, rect)
     , menu(parent, rc_menu(rect), pContainer, index)
 #if (MENU_HAS_BUTTONS)
-    , up(this, rc_arrow_up(rect), arrow_up(), []() {})       //parent will handle click, do nothing
-    , down(this, rc_arrow_down(rect), arrow_down(), []() {}) //parent will handle click, do nothing
+    , up(this, rc_arrow_up(rect), arrow_up(), []() {})       // parent will handle click, do nothing
+    , down(this, rc_arrow_down(rect), arrow_down(), []() {}) // parent will handle click, do nothing
 #endif
-    , bar(this, rc_bar(rect), menu) // event loop will handle everything
+    , bar(this, rc_bar(rect), menu)                          // event loop will handle everything
 {
 }
 
@@ -77,13 +77,13 @@ void WindowMenuAdv::windowEvent(EventLock /*has private ctor*/, window_t *sender
     case GUI_event_t::TOUCH: {
         event_conversion_union un;
         un.pvoid = param;
-        //menu gets touch event
+        // menu gets touch event
         if (menu.GetRect().Contain(un.point)) {
             menu.WindowEvent(sender, GUI_event_t::TOUCH, un.pvoid);
             break;
         }
 #if (MENU_HAS_BUTTONS)
-        //icon gets click
+        // icon gets click
         if (up.GetRect().Contain(un.point)) {
             menu.RollUp();
             // we clicked on one of menus move buttons
@@ -110,8 +110,8 @@ WindowFileBrowserAdv::WindowFileBrowserAdv(window_t *parent, Rect16 rect, const 
     : AddSuperWindow<window_frame_t>(parent, rect, win_type_t::normal)
     , file_browser(parent, rc_menu(rect), media_SFN_path)
 #if (MENU_HAS_BUTTONS)
-    , up(this, rc_arrow_up(rect), arrow_up(), []() {})       //parent will handle click, do nothing
-    , down(this, rc_arrow_down(rect), arrow_down(), []() {}) //parent will handle click, do nothing
+    , up(this, rc_arrow_up(rect), arrow_up(), []() {})       // parent will handle click, do nothing
+    , down(this, rc_arrow_down(rect), arrow_down(), []() {}) // parent will handle click, do nothing
 #endif
 //, bar(this, rc_bar(rect), menu) // event loop will handle everything
 {
@@ -132,13 +132,13 @@ void WindowFileBrowserAdv::windowEvent(EventLock /*has private ctor*/, window_t 
     case GUI_event_t::TOUCH: {
         event_conversion_union un;
         un.pvoid = param;
-        //file_browser gets touch event
+        // file_browser gets touch event
         if (file_browser.GetRect().Contain(un.point)) {
             file_browser.WindowEvent(sender, GUI_event_t::TOUCH, un.pvoid);
             break;
         }
 #if (MENU_HAS_BUTTONS)
-        //icon gets click
+        // icon gets click
         if (up.GetRect().Contain(un.point)) {
             file_browser.RollUp();
             // we clicked on one of file_browsers move buttons

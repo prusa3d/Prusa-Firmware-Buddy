@@ -6,26 +6,26 @@
 
 #include "printers.h"
 
-//conditional parent alias include
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+// conditional parent alias include
+#if PRINTER_IS_PRUSA_MINI
     #include "screen_menu_diagnostics_mini.hpp"
-#endif //PRINTER_PRUSA_MINI
+#endif // PRINTER_IS_PRUSA_MINI
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK4)
+#if PRINTER_IS_PRUSA_MK4
     #include "screen_menu_diagnostics_mk4.hpp"
-#endif //PRINTER_PRUSA_MK4
+#endif // PRINTER_IS_PRUSA_MK4
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK3_5)
+#if PRINTER_IS_PRUSA_MK3_5
     #include "screen_menu_diagnostics_mk3.5.hpp"
-#endif //PRINTER_PRUSA_MK3_5
+#endif // PRINTER_IS_PRUSA_MK3_5
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_iX)
+#if PRINTER_IS_PRUSA_iX
     #include "screen_menu_diagnostics_ix.hpp"
-#endif //PRINTER_PRUSA_iX
+#endif // PRINTER_IS_PRUSA_iX
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
     #include "screen_menu_diagnostics_xl.hpp"
-#endif //PRINTER_PRUSA_XL
+#endif // PRINTER_IS_PRUSA_XL
 
 class ScreenMenuDiagnostics : public ScreenMenuDiagnostics__ {
 public:

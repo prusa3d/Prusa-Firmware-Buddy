@@ -31,9 +31,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 50:
             PrusaGcodeSuite::M50(); // selftest
             break;
-        case 74:
-            PrusaGcodeSuite::M74();
-            break;
 #if HAS_LEDS
         case 150:
             PrusaGcodeSuite::M150();
@@ -104,6 +101,17 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             default:
                 processed = false;
             }
+            break;
+#endif
+
+#if ENABLED(PRUSA_TOOL_MAPPING)
+        case 863:
+            PrusaGcodeSuite::M863();
+            break;
+#endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+        case 864:
+            PrusaGcodeSuite::M864();
             break;
 #endif
         case 919:
@@ -203,10 +211,10 @@ void __attribute__((weak)) PrusaGcodeSuite::M930() { log_error(PRUSA_GCODE, "M93
 void __attribute__((weak)) PrusaGcodeSuite::M931() { log_error(PRUSA_GCODE, "M931 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M932() { log_error(PRUSA_GCODE, "M932 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M999() { log_error(PRUSA_GCODE, "M999 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1587() { log_error(PRUSA_GCODE, "M158 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1600() { log_error(PRUSA_GCODE, "M160 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1700() { log_error(PRUSA_GCODE, "M170 unsupported"); }
-void __attribute__((weak)) PrusaGcodeSuite::M1701() { log_error(PRUSA_GCODE, "M170 unsupported"); }
+void __attribute__((weak)) PrusaGcodeSuite::M1587() { log_error(PRUSA_GCODE, "M1587 unsupported"); }
+void __attribute__((weak)) PrusaGcodeSuite::M1600() { log_error(PRUSA_GCODE, "M1600 unsupported"); }
+void __attribute__((weak)) PrusaGcodeSuite::M1700() { log_error(PRUSA_GCODE, "M1700 unsupported"); }
+void __attribute__((weak)) PrusaGcodeSuite::M1701() { log_error(PRUSA_GCODE, "M1701 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::G64() { log_error(PRUSA_GCODE, "G64 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::G162() { log_error(PRUSA_GCODE, "G162 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::G163() { log_error(PRUSA_GCODE, "G163 unsupported"); }

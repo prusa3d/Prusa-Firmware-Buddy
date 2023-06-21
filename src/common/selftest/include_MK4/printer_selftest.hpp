@@ -36,10 +36,11 @@ typedef enum {
     stsHeaters_bed_ena,
     stsHeaters,
     stsWait_heaters,
+    stsHotEndSock,
     stsFSensor_calibration,
     stsFSensorMMU_calibration,
+    stsGears,
     stsNet_status,
-    stsFans_fine,
     stsSelftestStop,
     stsDidSelftestPass,
     stsEpilogue_nok,
@@ -71,12 +72,13 @@ enum SelftestMask_t : uint64_t {
     stmXYAxis = stmXAxis | stmYAxis,
     stmXYZAxis = stmXAxis | stmYAxis | stmZAxis,
     stmWait_axes = to_one_hot(stsWait_axes),
-    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena),
+    stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsHotEndSock),
     stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena),
     stmHeaters = stmHeaters_bed | stmHeaters_noz,
     stmWait_heaters = to_one_hot(stsWait_heaters),
     stmFSensor = to_one_hot(stsFSensor_calibration),
     stmFSensorMMU = to_one_hot(stsFSensorMMU_calibration),
+    stmGears = to_one_hot(stsGears),
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
     stmNet_status = to_one_hot(stsNet_status),
@@ -85,7 +87,6 @@ enum SelftestMask_t : uint64_t {
     stmWizardPrologue = to_one_hot(stsPrologueAskRun) | to_one_hot(stsPrologueAskRun_wait_user) | to_one_hot(stsPrologueInfo) | to_one_hot(stsPrologueInfo_wait_user) | to_one_hot(stsPrologueInfoDetailed) | to_one_hot(stsPrologueInfoDetailed_wait_user),
     stmEpilogue = to_one_hot(stsEpilogue_nok) | to_one_hot(stsEpilogue_nok_wait_user) | to_one_hot(stsEpilogue_ok) | to_one_hot(stsEpilogue_ok_wait_user),
     stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue,
-    stmFans_fine = to_one_hot(stsFans_fine),
 };
 
 // class representing whole self-test
@@ -95,6 +96,7 @@ public:
 
 public:
     virtual bool IsInProgress() const override;
+    virtual bool IsAborted() const override;
     virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) override; // parent has no clue about SelftestMask_t
     virtual void Loop() override;
     virtual bool Abort() override;
@@ -111,14 +113,16 @@ protected:
 protected:
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
-    std::array<selftest::IPartHandler *, HOTENDS * 2> pFans;
+    std::array<selftest::IPartHandler *, HOTENDS> pFans;
     selftest::IPartHandler *pXAxis;
     selftest::IPartHandler *pYAxis;
     selftest::IPartHandler *pZAxis;
     std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
     selftest::IPartHandler *pBed;
+    selftest::IPartHandler *pSock;
     std::array<selftest::IPartHandler *, HOTENDS> m_pLoadcell;
     std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
+    selftest::IPartHandler *pGearsCalib;
 
     SelftestResult m_result;
 };

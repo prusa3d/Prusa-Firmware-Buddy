@@ -1,4 +1,4 @@
-//IDialog.hpp
+// IDialog.hpp
 #pragma once
 
 #include <stdint.h>
@@ -7,10 +7,10 @@
 #include "GuiDefaults.hpp"
 #include <functional>
 
-//todo remove this after jogwheel refactoring
+// todo remove this after jogwheel refactoring
 extern void gui_loop(void);
 
-//interface for dialog
+// interface for dialog
 class IDialog : public AddSuperWindow<window_frame_t> {
 public:
     enum class IsStrong : bool { no,
@@ -20,7 +20,7 @@ public:
 
     template <class... Args>
     void MakeBlocking(
-        std::function<void(Args...)> action = [](Args...) {}, Args... args) const { //could be static, but I want it to be usable only from dialog
+        std::function<void(Args...)> action = [](Args...) {}, Args... args) const { // could be static, but I want it to be usable only from dialog
         while (!consumeCloseFlag()) {
             guiLoop();
             action(args...);
@@ -28,8 +28,8 @@ public:
     }
 
 protected:
-    //used in MakeBlocking
-    //needs included files which cannot be included in header
+    // used in MakeBlocking
+    // needs included files which cannot be included in header
     bool consumeCloseFlag() const;
     void guiLoop() const;
 };

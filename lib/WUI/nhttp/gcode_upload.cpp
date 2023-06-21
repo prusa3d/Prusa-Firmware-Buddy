@@ -33,6 +33,7 @@ using std::get_if;
 using std::holds_alternative;
 using std::make_tuple;
 using std::move;
+using std::nullopt;
 using std::string_view;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
@@ -122,15 +123,11 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
         return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, json_errors);
     }
 
-    if (wui_is_printing()) {
-        return StatusPage(Status::Conflict, parser, "Transfers temporarily disallowed while printing");
-    }
-
     const char *path = holds_alternative<PutParams>(uploadParams) ? get<PutParams>(uploadParams).filepath.data() : nullptr;
     auto slot = Monitor::instance.allocate(Monitor::Type::Link, path, *parser.content_length, parser.print_after_upload);
     if (!slot.has_value()) {
-        //FIXME: Is this the right status to return? Change would need to be
-        // defined in the API spec first.
+        // FIXME: Is this the right status to return? Change would need to be
+        //  defined in the API spec first.
         return StatusPage(Status::Conflict, parser, "Another transfer in progress");
     }
 
@@ -139,7 +136,7 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
 
     auto preallocated = file_preallocate(fname.begin(), *parser.content_length);
     if (const char **err = get_if<const char *>(&preallocated); err != nullptr) {
-        return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, *err);
+        return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, *err);
     } else {
         return GcodeUpload(move(uploadParams), move(*slot), json_errors, *parser.content_length, file_idx, move(get<unique_file_ptr>(preallocated)), uploaded);
     }
@@ -147,13 +144,13 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
 
 Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, size_t) {
     if (terminated_by_client && size_rest > 0) {
-        return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated body") };
+        return { 0, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated body") };
     }
 
     const size_t read = std::min(input.size(), size_rest);
     if (monitor_slot.is_stopped()) {
         monitor_slot.done(Monitor::Outcome::Stopped);
-        return { 0, 0, StatusPage(Status::ServiceTemporarilyUnavailable, StatusPage::CloseHandling::ErrorClose, json_errors, "Upload stopped from connect") };
+        return { 0, 0, StatusPage(Status::ServiceTemporarilyUnavailable, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Upload stopped from connect") };
     }
     monitor_slot.progress(read);
     return std::visit([input, read, this](auto &uploadParams) -> Step { return step(input, read, uploadParams); }, upload);
@@ -166,7 +163,7 @@ Step GcodeUpload::step(string_view input, const size_t read, UploadState &upload
     size_rest -= read;
 
     if (const auto err = uploader.get_error(); get<0>(err) != Status::Ok) {
-        return { read, 0, StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, get<1>(err)) };
+        return { read, 0, StatusPage(get<0>(err), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, get<1>(err)) };
     }
 
     if (size_rest == 0) {
@@ -178,9 +175,9 @@ Step GcodeUpload::step(string_view input, const size_t read, UploadState &upload
             strcpy(filename, USB_MOUNT_POINT);
             const char *orig_filename = uploader.get_filename();
             strlcpy(filename + USB_MOUNT_POINT_LENGTH, orig_filename, sizeof(filename) - USB_MOUNT_POINT_LENGTH);
-            return { read, 0, FileInfo(filename, false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint) };
+            return { read, 0, FileInfo(filename, false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint, std::nullopt) };
         } else {
-            return { read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Missing file") };
+            return { read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Missing file") };
         }
     } else {
         return { read, 0, Continue() };
@@ -197,22 +194,22 @@ Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParam
     if (!filename_checked) {
         auto filename_error = check_filename(filename);
         if (std::get<0>(filename_error) != Status::Ok)
-            return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(filename_error)) };
+            return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
         filename_checked = true;
     }
 
     auto error = data(input.substr(0, read));
     if (std::get<0>(error) != Status::Ok) {
-        return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(error)) };
+        return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(error)) };
     }
 
     size_rest -= read;
     if (size_rest == 0) {
         auto finish_error = finish(filename, putParams.print_after_upload);
         if (std::get<0>(finish_error) != Status::Ok)
-            return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, std::get<1>(finish_error)) };
+            return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(finish_error)) };
 
-        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1) };
+        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1, std::nullopt) };
     }
 
     return { read, 0, Continue() };

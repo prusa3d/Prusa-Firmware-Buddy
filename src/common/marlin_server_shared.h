@@ -41,6 +41,7 @@ enum class State {
     CrashRecovery_Begin,
     CrashRecovery_Retracting,
     CrashRecovery_Lifting,
+    CrashRecovery_ToolchangePowerPanic, // Prepare for toolchange after power panic
     CrashRecovery_XY_Measure,
     CrashRecovery_Tool_Pickup,
     CrashRecovery_XY_HOME,

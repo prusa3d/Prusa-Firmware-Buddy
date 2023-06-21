@@ -21,7 +21,7 @@ WindowMenu::WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContai
     updateTopIndex_IsRedrawNeeded(); // could use updateTopIndex() to invalidate affected items, but at this point everything is already invalid, so no need to do that
 }
 
-//private, for ctor (cannot fail)
+// private, for ctor (cannot fail)
 void WindowMenu::setIndex(uint8_t new_index) {
     if (!pContainer)
         return;
@@ -30,7 +30,7 @@ void WindowMenu::setIndex(uint8_t new_index) {
                                  // but if it happens, container will have focused nullptr, which is valid
 }
 
-//public version of setIndex
+// public version of setIndex
 bool WindowMenu::SetIndex(uint8_t index) {
     return pContainer && pContainer->SetIndex(index);
 }
@@ -161,7 +161,7 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
         }
         break;
     case GUI_event_t::CAPT_1:
-        //TODO: change flag to checked
+        // TODO: change flag to checked
         break;
     case GUI_event_t::TOUCH: {
         if (!pContainer->GetFocusedIndex())
@@ -289,8 +289,8 @@ std::optional<Rect16> WindowMenu::getItemRC(size_t position_on_screen) const {
 }
 
 void WindowMenu::printItem(IWindowMenuItem &item, Rect16 rc) {
-    //only place I know rectangle to be able to reinit roll, ugly to do it in print
-    //TODO make some kind of roll event for menu items
+    // only place I know rectangle to be able to reinit roll, ugly to do it in print
+    // TODO make some kind of roll event for menu items
     item.InitRollIfNeeded(rc);
 
     item.Print(rc);
@@ -330,7 +330,7 @@ void WindowMenu::draw() {
         if (setChildrenInvalid) {
             node.item->Invalidate();
         }
-        //this can draw just a part or entire item
+        // this can draw just a part or entire item
         if (node.item->IsInvalid()) {
             std::optional<Rect16> rc = getItemRC(node.current_slot);
             if (rc) {

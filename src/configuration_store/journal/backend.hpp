@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 #include <stdint.h>
 #include "crc32.h"
 #include <stdlib.h>
@@ -14,7 +13,6 @@
 #include "store_item.hpp"
 #include <span>
 #include <memory>
-#include "indices.hpp"
 #include "storage.hpp"
 namespace Journal {
 
@@ -81,7 +79,7 @@ public:
     static_assert(sizeof(BankHeader) == 6);
 
     enum class BankState {
-        Valid, // found ending item or at least one item
+        Valid,     // found ending item or at least one item
         MissingEndItem,
         Corrupted, // no valid transaction present
     };
@@ -162,8 +160,9 @@ public:
     uint32_t current_bank_id = 0;
 
     JournalState journal_state = JournalState::ValidStart;
+
     std::function<void(void)> dump_callback;
-    Storage &storage;
+    configuration_store::Storage &storage;
 
     FreeRTOS_Mutex mutex;
 
@@ -210,6 +209,7 @@ public:
 
     void save(uint16_t id, std::span<uint8_t> data);
     std::unique_lock<FreeRTOS_Mutex> lock();
+    JournalState get_journal_state() const;
 
     /**
      * @brief Invalidates the values stored in eeprom in both banks
@@ -219,12 +219,16 @@ public:
      */
     void reset();
 
-    Backend(uint16_t offset, uint16_t size, Storage &storage);
+    Backend(uint16_t offset, uint16_t size, configuration_store::Storage &storage);
+    Backend(const Backend &other) = delete;
+    Backend(Backend &&other) = delete;
+    Backend &operator=(const Backend &other) = delete;
+    Backend &operator=(Backend &&other) = delete;
 };
 
-template <uint16_t ADDRESS, uint16_t SIZE, Storage &(storage)()>
+template <uint16_t ADDRESS, uint16_t SIZE, configuration_store::Storage &(storage)()>
 inline Backend &backend_instance() {
-    static Backend eepromJournal(ADDRESS, SIZE, storage());
+    static Backend eepromJournal { ADDRESS, SIZE, storage() };
     return eepromJournal;
 }
 }

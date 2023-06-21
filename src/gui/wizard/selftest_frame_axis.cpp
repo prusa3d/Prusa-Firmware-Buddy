@@ -13,7 +13,7 @@
 static constexpr size_t X_AXIS_PERCENT = 33;
 static constexpr size_t Y_AXIS_PERCENT = 33;
 static constexpr size_t Z_AXIS_PERCENT = 34;
-//would be cleaner to calculate total progress in main thread, but cannot pass so much data
+// would be cleaner to calculate total progress in main thread, but cannot pass so much data
 
 static constexpr size_t col_texts = WizardDefaults::col_after_icon;
 static constexpr size_t col_results = WizardDefaults::status_icon_X_pos;

@@ -67,7 +67,9 @@ else()
 endif()
 
 if(PUPPY_FLASH_FW)
-  add_resource("${DWARF_BINARY_PATH}" "/puppies/fw-dwarf.bin")
+  if(HAS_DWARF)
+    add_resource("${DWARF_BINARY_PATH}" "/puppies/fw-dwarf.bin")
+  endif()
   add_resource("${MODULARBED_BINARY_PATH}" "/puppies/fw-modularbed.bin")
 endif()
 

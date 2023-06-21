@@ -24,7 +24,7 @@ LOG_COMPONENT_REF(MarlinServer);
 
 #ifdef REENUMERATE_USB
 
-extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
+extern USBH_HandleTypeDef hUsbHostHS;                         // UsbHost handle
 
 static const constexpr uint8_t USBHOST_REENUM_DELAY = 100;    // pool delay [ms]
 static const constexpr uint16_t USBHOST_REENUM_TIMEOUT = 500; // state-hang timeout [ms]
@@ -45,7 +45,7 @@ static void _usbhost_reenum(void) {
                 log_info(USBHost, "USB host reenumerating"); // trace
                 USBH_ReEnumerate(&hUsbHostHS);               // re-enumerate UsbHost
             }
-        } else // otherwise update timer
+        } else                                               // otherwise update timer
             timer = tick;
     }
 }
@@ -66,7 +66,7 @@ static uint32_t media_gcode_position = 0;   // Beginning of the current G-Code
 static uint32_t media_queue_position[BUFSIZE];
 
 // Position where to start after pause / quick stop
-static uint32_t media_reset_position = MEDIA_PRINT_UNDEF_POSITION;
+static uint32_t media_reset_position = GCodeQueue::SDPOS_INVALID;
 
 char getByte(GCodeFilter::State *state);
 static char gcode_buffer[MAX_CMD_SIZE + 1]; // + 1 for NULL char
@@ -118,7 +118,7 @@ static void media_prefetch(const void *) {
         if ((event.value.signals & PREFETCH_SIGNAL_START) == 0) {
             continue;
         }
-        log_info(MarlinServer, "Media prefetch started");
+        log_info(MarlinServer, "Media prefetch: started");
 
         file_buff = prefetch_buff[1];
         prefetch_state = GCodeFilter::State::Ok;
@@ -132,48 +132,32 @@ static void media_prefetch(const void *) {
         } else {
             read_len = FILE_BUFF_SIZE;
         }
-        log_info(MarlinServer, "Prefetching first %u bytes at offset %u", read_len, pos);
-        back_buff_level = fread(back_buff, 1, read_len, media_print_file);
 
-        if (back_buff_level > 0) {
+        do {
+            log_info(MarlinServer, "Media prefetch: Prefetching first %u bytes at offset %u", read_len, pos);
+            errno = 0; // reset errno, to avoid potential infinite loop, in case fread doesn't reset it (but it does so its just safeguard)
+            back_buff_level = fread(back_buff, 1, read_len, media_print_file);
+
+            // repeat read attempts untill success or until any other error then EAGAIN happened
+        } while (back_buff_level == 0 && errno == EAGAIN);
+
+        if (back_buff_level > 0) { // read anything, or EOF happened
             bb_state = GCodeFilter::State::Ok;
-        } else if (feof(media_print_file)) {
-            prefetch_state = GCodeFilter::State::Eof;
-            log_info(MarlinServer, "Media prefetch stopped by EOF");
-            osSignalWait(PREFETCH_SIGNAL_STOP, osWaitForever);
-            log_info(MarlinServer, "Media prefetch got STOP signal");
-            continue;
-        } else if (errno == EAGAIN) {
-            bb_state = GCodeFilter::State::Timeout;
         } else {
             prefetch_state = GCodeFilter::State::Error;
-            log_info(MarlinServer, "Media prefetch stopped by error");
+            log_info(MarlinServer, "Media prefetch: stopped by error");
             osSignalWait(PREFETCH_SIGNAL_STOP, osWaitForever);
-            log_info(MarlinServer, "Media prefetch got STOP signal");
             continue;
         }
 
         for (;;) {
-            if (file_buff_pos == file_buff_level && back_buff_level == 0) {
-                log_warning(MarlinServer, "Media prefetch buffers depleted");
-                if (prefetch_state == GCodeFilter::State::Eof || prefetch_state == GCodeFilter::State::Error) {
-                    log_info(MarlinServer, "Media prefetch stopped by EOF/error");
-                    osSignalWait(PREFETCH_SIGNAL_STOP, osWaitForever);
-                    log_info(MarlinServer, "Media prefetch got STOP signal");
-                    break;
-                }
-            }
-            if (file_buff_pos < file_buff_level && back_buff_level > 0) {
-                event = osSignalWait(PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_STOP, osWaitForever);
-                if (event.value.signals & PREFETCH_SIGNAL_STOP) {
-                    log_info(MarlinServer, "Media prefetch got STOP signal");
-                    break;
-                }
-            }
+            bool rerun_loop = false; // by default, loop will run once and wait for signal
+
+            // swap back and front buffer, if its possible
             osMutexWait(prefetch_mutex_id, osWaitForever);
-            if (file_buff_pos == file_buff_level) {
+            if (file_buff_pos == file_buff_level) { // file buffer depleted
                 prefetch_state = bb_state;
-                if (back_buff_level > 0) {
+                if (back_buff_level > 0) {          // swap to back buffer
                     if (file_buff == prefetch_buff[0]) {
                         file_buff = prefetch_buff[1];
                         back_buff = prefetch_buff[0];
@@ -187,23 +171,34 @@ static void media_prefetch(const void *) {
                 }
             }
             osMutexRelease(prefetch_mutex_id);
-            if (back_buff_level == 0 && bb_state != GCodeFilter::State::Error && bb_state != GCodeFilter::State::Eof) {
+
+            const bool need_fetch = back_buff_level == 0 && (bb_state != GCodeFilter::State::Eof && bb_state != GCodeFilter::State::Error);
+            if (need_fetch) {
                 // We don't want other threads holding FS/media locks to inherit high priority
                 osThreadSetPriority(osThreadGetId(), osPriorityNormal);
                 back_buff_level = fread(back_buff, 1, FILE_BUFF_SIZE, media_print_file);
                 osThreadSetPriority(osThreadGetId(), osPriorityHigh);
 
-                if (back_buff_level > 0) {
+                if (back_buff_level == FILE_BUFF_SIZE) { // if it returned anything other then requested number of bytes, EOF or error happened
                     bb_state = GCodeFilter::State::Ok;
                 } else if (feof(media_print_file)) {
                     bb_state = GCodeFilter::State::Eof;
-                    log_info(MarlinServer, "Media prefetch EOF");
+                    log_warning(MarlinServer, "Media prefetch: EOF");
                 } else if (errno == EAGAIN) {
                     bb_state = GCodeFilter::State::Timeout;
-                    log_warning(MarlinServer, "Media prefetch timeout");
+                    rerun_loop = true;
+                    log_warning(MarlinServer, "Media prefetch: timeout");
                 } else {
                     bb_state = GCodeFilter::State::Error;
-                    log_error(MarlinServer, "Media prefetch error");
+                    log_error(MarlinServer, "Media prefetch: error");
+                }
+            }
+
+            if (!rerun_loop) {
+                event = osSignalWait(PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_STOP, osWaitForever);
+                if (event.value.signals & PREFETCH_SIGNAL_STOP) {
+                    log_info(MarlinServer, "Media prefetch got STOP signal");
+                    break;
                 }
             }
         }
@@ -265,7 +260,7 @@ void media_print_stop(void) {
     if ((media_print_state == media_print_state_PRINTING) || (media_print_state == media_print_state_PAUSED)) {
         close_file();
         media_print_state = media_print_state_NONE;
-        queue.sdpos = MEDIA_PRINT_UNDEF_POSITION;
+        queue.sdpos = GCodeQueue::SDPOS_INVALID;
     }
 }
 
@@ -291,9 +286,9 @@ void media_print_resume(void) {
     if ((media_print_state != media_print_state_PAUSED) && (media_print_state != media_print_state_DRAINING))
         return;
 
-    if (media_reset_position != MEDIA_PRINT_UNDEF_POSITION) {
+    if (media_reset_position != GCodeQueue::SDPOS_INVALID) {
         media_print_set_position(media_reset_position);
-        media_reset_position = MEDIA_PRINT_UNDEF_POSITION;
+        media_reset_position = GCodeQueue::SDPOS_INVALID;
     }
 
     if (media_print_state == media_print_state_PAUSED || media_print_state == media_print_state_DRAINING) {
@@ -480,4 +475,4 @@ void media_reset_usbh_error() {
     usbh_error_count = 0;
 }
 
-} //extern "C"
+} // extern "C"

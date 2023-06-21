@@ -29,7 +29,7 @@
 #include "../../../module/modular_heatbed.h"
 
 /**
- * M557: Set modular bed gradient parameters
+ * M557: Set modular bed parameters
  */
 void GcodeSuite::M557() {
 
@@ -43,6 +43,12 @@ void GcodeSuite::M557() {
     if (parser.seen('E')) {
         float exponent = parser.floatval('E');
         advanced_modular_bed->set_gradient_exponent(exponent);
+    }
+
+    // set expand to sides
+    if (parser.seen('S')) {
+        const bool expand_to_sides = parser.boolval('S');
+        advanced_modular_bed->set_expand_to_sides(expand_to_sides);
     }
 
     // recalculate gradients

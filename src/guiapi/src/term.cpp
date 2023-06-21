@@ -142,10 +142,10 @@ void term_write_control_char(term_t *pt, uint8_t ch) {
     switch (ch) {
     case '\n':
         term_write_LF(pt);
-        break; //0x0a 10
+        break; // 0x0a 10
     case '\r':
         term_write_CR(pt);
-        break; //0x0d 13
+        break; // 0x0d 13
     }
 }
 
@@ -178,8 +178,8 @@ void term_write_char(term_t *pt, uint8_t ch) {
         ++(pt->col);
     }
 }
-//duplicit function, todo erase
-//to be replaced by window_term_t::Printf, but it does not work in bsod
+// duplicit function, todo erase
+// to be replaced by window_term_t::Printf, but it does not work in bsod
 int term_printf(term_t *pt, const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);

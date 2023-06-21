@@ -5,13 +5,14 @@
  */
 #include "selftest_heaters_interface.hpp"
 #include "selftest_heater.h"
+#include "selftest_hot_end_sock.hpp"
 #include "../../Marlin/src/module/temperature.h"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_log.hpp"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
-//disable power check, since measurement does not work
+// disable power check, since measurement does not work
 #ifdef HAS_ADVANCED_POWER
     #undef HAS_ADVANCED_POWER
 #endif
@@ -78,7 +79,7 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
             // clang-format on
 
             pNozzles[i] = pNoz;
-            //add same hooks for both "states changes" and "does not change"
+            // add same hooks for both "states changes" and "does not change"
             pNoz->SetStateChangedHook([](CSelftestPart_Heater &h) {
                 HeatbreakCorrelation(h);
                 PowerCheckBoth::Instance().Callback();
@@ -87,7 +88,7 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
                 HeatbreakCorrelation(h);
                 PowerCheckBoth::Instance().Callback();
             });
-            //todo: not working properly for multiple nozzles
+            // todo: not working properly for multiple nozzles
             PowerCheckBoth::Instance().BindNozzle(pNoz->GetInstance());
         }
     }
@@ -110,7 +111,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
         // clang-format on
 
         pBed = pBed_;
-        //add same hooks for both "states changes" and "does not change"
+        // add same hooks for both "states changes" and "does not change"
         pBed_->SetStateChangedHook([]([[maybe_unused]] CSelftestPart_Heater &h) {
             PowerCheckBoth::Instance().Callback();
         });
@@ -123,7 +124,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
 
 // data for both subtests must be sent together
 // we could loose some events, so we must be sending entire state of both parts
-bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *pBed) {
+bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **pBed) {
     // true when nozzle just finished test
     bool just_finished_noz[HOTENDS] {};
     for (size_t i = 0; i < HOTENDS; i++) {
@@ -133,7 +134,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *p
     }
 
     // true when just finished nozzle test
-    bool just_finished_bed = pBed && !pBed->Loop();
+    const bool just_finished_bed = pBed && *pBed && !(*pBed)->Loop();
 
     // change dialog state
     FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), resultHeaters);
@@ -144,17 +145,17 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *p
     }
 
     // just finished noz or bed, it is extremely unlikely they would finish both at same time
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
+    SelftestResult eeres = config_store().selftest_result.get();
     HOTEND_LOOP() {
         if (just_finished_noz[e]) {
             eeres.tools[e].nozzle = pNozzles[e]->GetResult();
         }
     }
     if (just_finished_bed) {
-        eeres.bed = pBed->GetResult();
+        assert(pBed && *pBed);
+        eeres.bed = (*pBed)->GetResult();
     }
-    eeprom_set_selftest_results(&eeres);
+    config_store().selftest_result.set(eeres);
 
     for (size_t i = 0; i < HOTENDS; i++) {
         if (just_finished_noz[i]) {
@@ -165,17 +166,50 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *p
     }
 
     if (just_finished_bed) {
+        assert(pBed && *pBed);
         PowerCheckBoth::Instance().UnBindBed();
-        delete pBed;
-        pBed = nullptr;
+        delete *pBed;
+        *pBed = nullptr;
     }
 
     // if any is still in progress, return true to run this again, otherwise end test
-    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || pBed != nullptr) {
+    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || *pBed != nullptr) {
         return true;
     }
 
     resultHeaters.tested_parts = 0; // reset tested parts so they can be set next time again
     return false;                   // finished
 }
+
+SelftestHotEndSockType sock_result;
+bool retry_heater = false;
+bool get_retry_heater() { return retry_heater; }
+
+bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) {
+
+    machine = machine ? machine : Factory::CreateDynamical<selftest::CSelftestPart_HotEndSock>(
+                  // clang-format off
+    config, sock_result,
+    &CSelftestPart_HotEndSock::stateStart, &CSelftestPart_HotEndSock::stateAskAdjust,
+    &CSelftestPart_HotEndSock::stateAskSockInit, &CSelftestPart_HotEndSock::stateAskSock,
+    &CSelftestPart_HotEndSock::stateAskNozzleInit, &CSelftestPart_HotEndSock::stateAskNozzle,
+    &CSelftestPart_HotEndSock::stateAskRetryInit, &CSelftestPart_HotEndSock::stateAskRetry);
+    // clang-format on
+    bool in_progress = machine->Loop();
+    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), sock_result.Serialize());
+
+    if (in_progress) {
+        return true;
+    }
+
+    retry_heater = machine->GetResult() != TestResult_Skipped;
+
+    config_store().nozzle_sock.set(sock_result.has_sock);
+    config_store().nozzle_type.set(sock_result.prusa_stock_nozzle ? 0 : 1);
+
+    delete machine;
+    machine = nullptr;
+    return false;
+}
+
 } // namespace selftest

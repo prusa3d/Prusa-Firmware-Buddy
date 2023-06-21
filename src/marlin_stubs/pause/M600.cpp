@@ -21,6 +21,8 @@
  */
 
 #include "config_features.h"
+#include "module/motion.h"
+#include "module/tool_change.h"
 
 // clang-format off
 #if (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
@@ -44,6 +46,13 @@
 #if HAS_LEDS
     #include "led_animations/printer_animation_state.hpp"
 #endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+    #include "module/prusa/spool_join.hpp"
+#endif
+
+static void M600_manual();
+
+#include <configuration_store.hpp>
 
 /**
  * M600: Pause for filament change
@@ -56,12 +65,31 @@
  *  L[distance] - Extrude distance for insertion (manual reload)
  *  B[count]    - Number of times to beep, -1 for indefinite (if equipped with a buzzer)
  *  T[toolhead] - Select extruder for filament change
+ *  A           - If automatic spool join is configured for this tool, do that instead, if not, do manual filament change
  *
  *  Default values are used for omitted arguments.
  */
 
 void GcodeSuite::M600() {
-    const int8_t target_extruder = get_target_extruder_from_command();
+    bool do_manual_m600 = true;
+
+    if (parser.seen('A')) {
+#if ENABLED(PRUSA_SPOOL_JOIN)
+        if (spool_join.do_join(active_extruder)) {
+            // if automatic M600 succeeded, don't do manual M600, if not, do manual M600
+            do_manual_m600 = false;
+        }
+#endif
+        FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
+    }
+
+    if (do_manual_m600) {
+        M600_manual();
+    }
+}
+
+void M600_manual() {
+    const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
 #if HAS_LEDS
@@ -116,9 +144,8 @@ void GcodeSuite::M600() {
         thermalManager.setTargetHotend(disp_temp, target_extruder);
     }
 
-    filament::set_type_to_load(filament::get_type_in_extruder(target_extruder));
+    filament::set_type_to_load(config_store().get_filament_type(target_extruder));
     Pause::Instance().FilamentChange(settings);
-    FSensors_instance().ClrM600Sent(); //reset filament sensor M600 sent flag
 
     marlin_server::nozzle_timeout_on();
     if (disp_temp > targ_temp) {

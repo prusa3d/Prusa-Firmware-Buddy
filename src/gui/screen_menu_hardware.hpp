@@ -13,11 +13,27 @@
 #include "printers.h"
 #include <option/has_loadcell.h>
 #include "MItem_basic_selftest.hpp"
+#include "printers.h"
+#if HAS_LOADCELL()
+    #include "MItem_loadcell.hpp"
+#endif
+#if (HAS_TOOLCHANGER())
+    #include "screen_menu_tools.hpp"
+#endif
+#include <option/has_modularbed.h>
+#if HAS_MODULARBED()
+    #include "screen_menu_modularbed.hpp"
+#endif
 
 using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_RETURN,
     MI_NOZZLE_DIAMETER,
     MI_HARDWARE_G_CODE_CHECKS
+#if PRINTER_IS_PRUSA_MK4
+    ,
+    MI_NOZZLE_SOCK,
+    MI_NOZZLE_TYPE
+#endif
 #if ENABLED(MODULAR_HEATBED)
     ,
     MI_HEAT_ENTIRE_BED
@@ -43,12 +59,18 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #if (BOARD_IS_XLBUDDY)
     ,
     MI_RESTORE_CALIBRATION_FROM_USB, MI_BACKUP_CALIBRATION_TO_USB,
-    MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_0>, MI_FS_SPAN<EEVAR_SIDE_FS_VALUE_SPAN_0>,
-    MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_1>, MI_FS_SPAN<EEVAR_SIDE_FS_VALUE_SPAN_1>,
-    MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_2>, MI_FS_SPAN<EEVAR_SIDE_FS_VALUE_SPAN_2>,
-    MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_3>, MI_FS_SPAN<EEVAR_SIDE_FS_VALUE_SPAN_3>,
-    MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_4>, MI_FS_SPAN<EEVAR_SIDE_FS_VALUE_SPAN_4>,
-    MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_5>, MI_FS_SPAN<EEVAR_SIDE_FS_VALUE_SPAN_5>
+    MI_FS_SPAN<0, false>, MI_FS_SPAN<0, true>,
+    MI_FS_SPAN<1, false>, MI_FS_SPAN<1, true>,
+    MI_FS_SPAN<2, false>, MI_FS_SPAN<2, true>,
+    MI_FS_SPAN<3, false>, MI_FS_SPAN<3, true>,
+    MI_FS_SPAN<4, false>, MI_FS_SPAN<4, true>,
+    MI_FS_SPAN<5, false>, MI_FS_SPAN<5, true>,
+    MI_FS_REF<0, false>, MI_FS_REF<0, true>,
+    MI_FS_REF<1, false>, MI_FS_REF<1, true>,
+    MI_FS_REF<2, false>, MI_FS_REF<2, true>,
+    MI_FS_REF<3, false>, MI_FS_REF<3, true>,
+    MI_FS_REF<4, false>, MI_FS_REF<4, true>,
+    MI_FS_REF<5, false>, MI_FS_REF<5, true>
 #endif
     >;
 

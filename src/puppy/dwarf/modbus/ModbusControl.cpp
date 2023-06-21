@@ -23,6 +23,22 @@ struct ModbusMessage {
     uint32_t m_Value;
 };
 
+/// Struct used to decompose the 16 bit holding register into 2 8-bit values
+union __attribute__((packed)) LedPwm {
+    uint16_t reg_value;       ///< 16 bit register value
+    struct {
+        uint8_t not_selected; ///< 8 LSb PWM when not selected [0 - 0xff]
+        uint8_t selected;     ///< 8 MSb PWM when selected [0 - 0xff]
+    };
+
+    LedPwm(uint8_t selected_, uint8_t not_selected_)
+        : not_selected(not_selected_)
+        , selected(selected_) {}
+    LedPwm(uint16_t reg_value_)
+        : reg_value(reg_value_) {}
+    operator uint16_t() const { return reg_value; }
+};
+
 static constexpr unsigned int MODBUS_QUEUE_MESSAGE_COUNT = 40;
 
 osMailQDef(m_ModbusQueue, MODBUS_QUEUE_MESSAGE_COUNT, ModbusMessage);
@@ -45,6 +61,8 @@ bool Init() {
     modbus::ModbusProtocol::SetOnWriteRegisterCallback(OnWriteRegister);
     modbus::ModbusProtocol::SetOnReadFIFOCallback(OnReadFIFO);
 
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemHoldingRegister::led_pwm, LedPwm(0, 0)); // LED off
+
     m_ModbusQueueHandle = osMailCreate(osMailQ(m_ModbusQueue), NULL);
     if (m_ModbusQueueHandle == nullptr) {
         return false;
@@ -59,7 +77,7 @@ bool isDwarfSelected() {
 }
 
 void OnReadInputRegister(uint16_t address) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     if (address == static_cast<uint16_t>(ModbusRegisters::SystemInputRegister::time_sync_lo)) {
         // Update cached register value when first part of timer is read
@@ -70,7 +88,7 @@ void OnReadInputRegister(uint16_t address) {
 }
 
 void OnWriteCoil(uint16_t address, bool value) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     ModbusMessage *msg = (ModbusMessage *)osMailAlloc(m_ModbusQueueHandle, osWaitForever);
     msg->m_Address = address;
@@ -79,7 +97,7 @@ void OnWriteCoil(uint16_t address, bool value) {
 }
 
 void OnWriteRegister(uint16_t address, uint16_t value) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     if (address == (uint16_t)ModbusRegisters::SystemHoldingRegister::tmc_read_request) {
         OnTmcReadRequest(value);
@@ -106,7 +124,7 @@ bool OnReadFIFO(uint16_t address, uint32_t *pValueCount, std::array<uint16_t, MO
 }
 
 void OnTmcReadRequest(uint16_t value) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     uint32_t res = stepperE0.read(value);
 
@@ -117,7 +135,7 @@ void OnTmcReadRequest(uint16_t value) {
 }
 
 void OnTmcWriteRequest() {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     uint32_t value = ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::tmc_write_request_value_1) | (ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::tmc_write_request_value_2) << 16);
     uint8_t address = ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::tmc_write_request_address);
@@ -197,6 +215,15 @@ void ProcessModbusMessages() {
 
             break;
         }
+        case ((uint16_t)ModbusRegisters::SystemHoldingRegister::led_pwm): {
+            LedPwm led_pwm = ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::led_pwm);
+            if (isDwarfSelected()) {
+                Cheese::set_led(led_pwm.selected);
+            } else {
+                Cheese::set_led(led_pwm.not_selected);
+            }
+            break;
+        }
         }
 
         osMailFree(m_ModbusQueueHandle, msg);
@@ -205,12 +232,14 @@ void ProcessModbusMessages() {
 
 void SetDwarfSelected(bool selected) {
     s_isDwarfSelected = selected;
+    LedPwm led_pwm = ModbusRegisters::GetRegValue(ModbusRegisters::SystemHoldingRegister::led_pwm);
     if (selected) {
+        Cheese::set_led(led_pwm.selected);
         buddy::hw::localRemote.reset();
     } else {
         buddy::hw::localRemote.set();
+        Cheese::set_led(led_pwm.not_selected);
     }
-    Cheese::set_led(selected);
     log_info(ModbusControl, "Dwarf select state: %s", selected ? "YES" : "NO");
 }
 
@@ -252,4 +281,4 @@ void TriggerMarlinKillFault(dwarf_shared::errors::FaultStatusMask fault, const c
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::fault_status, static_cast<uint16_t>(fault));
 }
 
-} //namespace
+} // namespace

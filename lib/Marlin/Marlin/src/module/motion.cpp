@@ -35,7 +35,6 @@
 
 #include "../inc/MarlinConfig.h"
 #include "../Marlin.h"
-#include "../../../../../src/common/eeprom.h"
 
 #include "metric.h"
 #include "PersistentStorage.h"
@@ -93,6 +92,8 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0(){}
 #if ENABLED(PRECISE_HOMING)
   #include "precise_homing.h"
 #endif
+
+#include <configuration_store.hpp>
 
 #define XYZ_CONSTS(T, NAME, OPT) const PROGMEM XYZval<T> NAME##_P = { X_##OPT, Y_##OPT, Z_##OPT }
 
@@ -767,19 +768,19 @@ void restore_feedrate_and_scaling() {
     NOLESS(segments, 1U);
 
     // The approximate length of each segment
-    const float inv_segments = 1.0f / float(segments),
-                cartesian_segment_mm = cartesian_mm * inv_segments;
+    const float inv_segments = 1.0f / float(segments);
     const xyze_float_t segment_distance = diff * inv_segments;
 
-    #if ENABLED(SCARA_FEEDRATE_SCALING)
-      const float inv_duration = scaled_fr_mm_s / cartesian_segment_mm;
-    #endif
+    // Add hints to help optimize the move
+    PlannerHints hints(cartesian_mm * inv_segments);
+    TERN_(HAS_ROTATIONAL_AXES, hints.cartesian_move = cartes_move);
+    TERN_(FEEDRATE_SCALING, hints.inv_duration = scaled_fr_mm_s / hints.millimeters);
 
     /*
     SERIAL_ECHOPAIR("mm=", cartesian_mm);
     SERIAL_ECHOPAIR(" seconds=", seconds);
     SERIAL_ECHOPAIR(" segments=", segments);
-    SERIAL_ECHOPAIR(" segment_mm=", cartesian_segment_mm);
+    SERIAL_ECHOPAIR(" segment_mm=", hints.millimeters);
     SERIAL_EOL();
     //*/
 
@@ -797,21 +798,12 @@ void restore_feedrate_and_scaling() {
       }
 
       raw += segment_distance;
-
-      if (!planner.buffer_line(raw, scaled_fr_mm_s, active_extruder, cartesian_segment_mm
-        #if ENABLED(SCARA_FEEDRATE_SCALING)
-          , inv_duration
-        #endif
-      ))
+      if (!planner.buffer_line(raw, scaled_fr_mm_s, active_extruder, hints))
         break;
     }
 
     // Ensure last segment arrives at target location.
-    planner.buffer_line(destination, scaled_fr_mm_s, active_extruder, cartesian_segment_mm
-      #if ENABLED(SCARA_FEEDRATE_SCALING)
-        , inv_duration
-      #endif
-    );
+    planner.buffer_line(destination, scaled_fr_mm_s, active_extruder, hints);
 
     return false; // caller will update current_position
   }
@@ -850,17 +842,17 @@ void restore_feedrate_and_scaling() {
       NOLESS(segments, 1U);
 
       // The approximate length of each segment
-      const float inv_segments = 1.0f / float(segments),
-                  cartesian_segment_mm = cartesian_mm * inv_segments;
+      const float inv_segments = 1.0f / float(segments);
       const xyze_float_t segment_distance = diff * inv_segments;
 
-      #if ENABLED(SCARA_FEEDRATE_SCALING)
-        const float inv_duration = scaled_fr_mm_s / cartesian_segment_mm;
-      #endif
+      // Add hints to help optimize the move
+      PlannerHints hints(cartesian_mm * inv_segments);
+      TERN_(HAS_ROTATIONAL_AXES, hints.cartesian_move = cartes_move);
+      TERN_(FEEDRATE_SCALING, hints.inv_duration = scaled_fr_mm_s / hints.millimeters);
 
       // SERIAL_ECHOPAIR("mm=", cartesian_mm);
       // SERIAL_ECHOLNPAIR(" segments=", segments);
-      // SERIAL_ECHOLNPAIR(" segment_mm=", cartesian_segment_mm);
+      // SERIAL_ECHOLNPAIR(" segment_mm=", hints.millimeters);
 
       // Get the raw current position as starting point
       xyze_pos_t raw = current_position;
@@ -874,21 +866,13 @@ void restore_feedrate_and_scaling() {
           idle(false);
         }
         raw += segment_distance;
-        if (!planner.buffer_line(raw, fr_mm_s, active_extruder, cartesian_segment_mm
-          #if ENABLED(SCARA_FEEDRATE_SCALING)
-            , inv_duration
-          #endif
-        ))
+        if (!planner.buffer_line(raw, fr_mm_s, active_extruder, hints))
           break;
       }
 
       // Since segment_distance is only approximate,
       // the final move must be to the exact destination.
-      planner.buffer_line(destination, fr_mm_s, active_extruder, cartesian_segment_mm
-        #if ENABLED(SCARA_FEEDRATE_SCALING)
-          , inv_duration
-        #endif
-      );
+      planner.buffer_line(destination, fr_mm_s, active_extruder, hints);
     }
 
   #endif // SEGMENT_LEVELED_MOVES
@@ -1673,6 +1657,9 @@ void set_axis_is_at_home(const AxisEnum axis, [[maybe_unused]] bool homing_z_wit
       #if HOMING_Z_WITH_PROBE
         if (homing_z_with_probe) {
           current_position.z -= probe_offset.z;
+          #if HAS_HOTEND_OFFSET
+           current_position.z -= hotend_currently_applied_offset.z;
+          #endif
 
           if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("*** Z HOMED WITH PROBE (Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN) ***\n> probe_offset.z = ", probe_offset.z);
         } else
@@ -2059,10 +2046,8 @@ void do_blocking_move_enable_wavetable(const AxisEnum axis, void (*enable_waveta
 
     // reeconfigure stepper to stepping by single-usteps, i.e. tmp_microsteps
     float bck_steps_per_mm = planner.settings.axis_steps_per_mm[axis];
-    float bck_mm_per_step = planner.mm_per_step[axis];
     planner.settings.axis_steps_per_mm[axis] *= ustep_ratio;
-    planner.mm_per_step[axis] /= ustep_ratio;
-    planner.position[axis] *= ustep_ratio;
+    planner.refresh_positioning();
 
     // calculate distance so that we end at stepper zero, going by at least min_mm/2
     float amount_mm = planner.mm_per_qsteps(axis, (uint32_t)(min_mm1 * planner.qsteps_per_mm(axis)) + 1);
@@ -2089,8 +2074,7 @@ void do_blocking_move_enable_wavetable(const AxisEnum axis, void (*enable_waveta
     // configure back steps to original state
     (void)stepper_microsteps(axis, orig_microsteps);
     planner.settings.axis_steps_per_mm[axis] = bck_steps_per_mm;
-    planner.mm_per_step[axis] = bck_mm_per_step;
-    planner.position[axis] /= ustep_ratio;
+    planner.refresh_positioning();
 }
 
 /**
@@ -2116,6 +2100,7 @@ void homing_failed(std::function<void()> fallback_error, [[maybe_unused]] bool c
     }
 
     if ((crash_s.get_state() == Crash_s::TRIGGERED_ISR)       // ISR crash happened, it will replay homing
+      || (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) // Power panic, end quickly and don't do anything
       || (crash_s.get_state() == Crash_s::TRIGGERED_HOMEFAIL) // Rehoming is already in progress
       || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
       || (crash_s.get_state() == Crash_s::RECOVERY) // Recovery in progress, it will know that homing didn't succeed from return
@@ -2700,7 +2685,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
               continue;
           }
 
-          const float loaded = eeprom_get_flt(axis ? EEVAR_HOMING_BDIVISOR_Y : EEVAR_HOMING_BDIVISOR_X);
+          const float loaded = axis ? config_store().homing_bump_divisor_y.get() : config_store().homing_bump_divisor_x.get();
           if (loaded >= min && loaded <= max) {
               homing_bump_divisor[axis] = loaded;
           } else {
@@ -2722,7 +2707,11 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
 
   static void save_divisor_to_eeprom(int try_nr, AxisEnum axis) {
       if (try_nr > 0 && axis < XY) {
-          eeprom_set_flt(axis ? EEVAR_HOMING_BDIVISOR_Y : EEVAR_HOMING_BDIVISOR_X, homing_bump_divisor[axis]);
+          if (axis){
+            config_store().homing_bump_divisor_y.set(homing_bump_divisor[axis]);
+          } else {
+            config_store().homing_bump_divisor_x.set(homing_bump_divisor[axis]);
+          }
       }
   }
 

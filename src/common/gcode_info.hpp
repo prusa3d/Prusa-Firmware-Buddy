@@ -9,9 +9,9 @@
 #include "config_features.h"
 #include "guitypes.hpp"
 #include "i18n.h"
-#include "eeprom.h"
 #include "marlin_stubs/PrusaGcodeSuite.hpp"
 #include <option/has_toolchanger.h>
+#include <configuration_store.hpp>
 
 #include <array>
 
@@ -44,9 +44,9 @@ constexpr uint32_t printer_model2code(const char *model) {
         { "MK3MMU2", 20300 },
         { "MK3S", 302 },
         { "MK3SMMU2S", 20302 },
-        { "MINI", 120 },
         { "MK3.5", 130 },
         { "MK3.5MMU3", 30130 },
+        { "MINI", 120 },
         { "MK4", 130 },
         { "MK4MMU3", 30130 },
         { "iX", 160 },
@@ -62,11 +62,10 @@ constexpr uint32_t printer_model2code(const char *model) {
 }
 
 class GCodeInfo {
-private:
 public:
     static constexpr const uint32_t printer_model_code = printer_model2code(PRINTER_MODEL);
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
-#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4
     static constexpr std::array<const char *, 2> printer_compatibility_list = { PRINTER_MODEL, "MK4IS" };
 #else
     static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL };
@@ -76,14 +75,15 @@ public:
     using filament_buff = std::array<char, 8>;
 
     enum class GI_INIT_t {
-        PREVIEW,
-        PRINT,
+        THUMBNAIL, ///< Init only thumbnail
+        FULL,      ///< Scan file for info G-code and comments (takes a long time)
     };
 
     struct ExtruderInfo {
         std::optional<filament_buff> filament_name; /**< stores string representation of filament type */
         std::optional<float> filament_used_g;       /**< stores how much filament will be used for this print (weight) */
         std::optional<float> filament_used_mm;      /**< stores how much filament will be used for this print (distance) */
+        std::optional<float> nozzle_diameter;       /**< stores diameter of nozzle*/
 
         inline bool used() const {
             /// At least this much filament [g] to be considered used (just purge is about 0.06 g on both XL and MK3)
@@ -98,39 +98,33 @@ public:
     };
 
     struct ValidPrinterSettings {
-        enum class Severity : uint8_t {
-            Ignore = 0,
-            Warning = 1,
-            Abort = 2
-        };
-
         class Feature {
             bool wrong { false };
-            Severity severity;
+            HWCheckSeverity severity;
 
         public:
-            Feature(eevar_id id)
-                : severity(static_cast<Severity>(eeprom_get_ui8(id))) {}
+            Feature(HWCheckSeverity severity_)
+                : severity(severity_) {}
 
-            Severity get_severity() const { return severity; }
-            bool is_valid() const { return !wrong || severity == Severity::Ignore; }
-            bool is_fatal() const { return wrong && severity == Severity::Abort; }
+            HWCheckSeverity get_severity() const { return severity; }
+            bool is_valid() const { return !wrong || severity == HWCheckSeverity::Ignore; }
+            bool is_fatal() const { return wrong && severity == HWCheckSeverity::Abort; }
             void fail() { wrong = true; }
         };
 
-        std::vector<Feature> wrong_nozzle_diameters { HOTENDS, eevar_id::EEVAR_HWCHECK_NOZZLE }; // M862.1 disagree (or M862.10 - M862.15 for multihotend gcode)
-        Feature wrong_printer_model { eevar_id::EEVAR_HWCHECK_MODEL };                           // M862.2 or M862.3 or printer_model (from comments) disagree
-        Feature wrong_gcode_level { eevar_id::EEVAR_HWCHECK_GCODE };                             // M862.5 disagree
-        Feature wrong_firmware { eevar_id::EEVAR_HWCHECK_FIRMW };                                // M862.4 Px.yy.z disagrees
-        Feature mk3_compatibility_mode { eevar_id::EEVAR_HWCHECK_COMPATIBILITY };
-        Feature outdated_firmware { eevar_id::EEVAR_HWCHECK_FIRMW };                             // M115 Ux.yy.z disagrees (TODO: Separate EEVAR?)
+        Feature wrong_tools { HWCheckSeverity::Abort };                         // Tools that are used, are not connected (toolchanger only)
+        Feature wrong_nozzle_diameter { config_store().hw_check_nozzle.get() }; // M862.1 disagree (or M862.10 - M862.15 for multihotend gcode)
+        Feature wrong_printer_model { config_store().hw_check_model.get() };    // M862.2 or M862.3 or printer_model (from comments) disagree
+        Feature wrong_gcode_level { config_store().hw_check_gcode.get() };      // M862.5 disagree
+        Feature wrong_firmware { config_store().hw_check_firmware.get() };      // M862.4 Px.yy.z disagrees
+        Feature mk3_compatibility_mode { config_store().hw_check_compatibility.get() };
+        Feature outdated_firmware { config_store().hw_check_firmware.get() };   // M115 Ux.yy.z disagrees (TODO: Separate EEVAR?)
         bool unsupported_features { false };
         char unsupported_features_text[37] { "" };
         void add_unsupported_feature(const char *feature, size_t length);
 
         /**
-         * @brief Version read from G-code M115 Ux.yy.z.
-         * Valid only if wrong_firmware is not valid.
+         * @brief Firmware version read from G-code M115 Ux.yy.z.
          */
         struct GcodeFwVersion {
             int major = 0;
@@ -140,12 +134,6 @@ public:
 
         GcodeFwVersion gcode_fw_version;
         GcodeFwVersion latest_fw_version;
-
-        /**
-         * @brief Are all nozzle diameters valid?
-         * @return true if all wrong_nozzle_diameters[e].is_valid()
-         */
-        bool nozzle_diameters_valid() const;
 
         /**
          * @brief Are all printer setting valid?
@@ -162,15 +150,61 @@ public:
 
     using GCodePerExtruderInfo = std::array<ExtruderInfo, EXTRUDERS>;
 
-    // TODO private
-    FILE *file;                  /**< gcode file, nullptr == not opened */
-    time_buff printing_time;     /**< stores string representation of printing time left */
-    bool has_preview_thumbnail;  /**< true if gcode has preview thumbnail */
-    bool has_progress_thumbnail; /**< true if gcode has progress thumbnail */
-    bool filament_described;     /**< filament info was found in gcode's comments */
-    ValidPrinterSettings valid_printer_settings;
+private:
+    osMutexDef(file_mutex);
+    osMutexId file_mutex_id;                     ///< Mutex to protect file access
+    FILE *file;                                  ///< G-code file, nullptr == not opened
 
-    GCodePerExtruderInfo per_extruder_info;
+    time_buff printing_time;                     ///< Stores string representation of printing time left
+    bool preview_thumbnail;                      ///< True if gcode has preview thumbnail
+    bool progress_thumbnail;                     ///< True if gcode has progress thumbnail
+    bool filament_described;                     ///< Filament info was found in gcode's comments
+    ValidPrinterSettings valid_printer_settings; ///< Info about matching hardware
+    GCodePerExtruderInfo per_extruder_info;      ///< Info about G-code for each extruder
+
+public:
+    /**
+     * @brief Get file that locks itself.
+     */
+    class FileLender {
+        osMutexId &file_mutex_id; ///< Mutex to protect file access
+
+    public:
+        FILE *&file; ///< gcode file, nullptr == not opened
+
+        FileLender(FILE *&file_, osMutexId &file_mutex_id_)
+            : file_mutex_id(file_mutex_id_)
+            , file(file_) {
+            [[maybe_unused]] auto res = osMutexWait(file_mutex_id, osWaitForever);
+            assert(res == osOK);
+        }
+
+        ~FileLender() {
+            [[maybe_unused]] auto res = osMutexRelease(file_mutex_id);
+            assert(res == osOK);
+        }
+
+        operator FILE *() const { return file; }
+    };
+
+    [[nodiscard]] FileLender get_file() { return FileLender(file, file_mutex_id); }                   ///< Get file that locks itself
+    bool is_file_open() const { return file != nullptr; }                                             ///< Check if file is open
+    const time_buff &get_printing_time() const { return printing_time; }                              ///< Get string representation of printing time left
+    bool has_preview_thumbnail() const { return preview_thumbnail; }                                  ///< Check if file has preview thumbnail
+    bool has_progress_thumbnail() const { return progress_thumbnail; }                                ///< Check if file has progress thumbnail
+    bool has_filament_described() const { return filament_described; }                                ///< Check if file has filament described
+    const ValidPrinterSettings &get_valid_printer_settings() const { return valid_printer_settings; } ///< Get info about matching hardware
+    const GCodePerExtruderInfo &get_per_extruder_info() const { return per_extruder_info; }           ///< Get info about G-code for each extruder
+
+    /**
+     * @brief Get info about G-code for given extruder
+     * @param[in] extruder - extruder number [indexed from 0]
+     * @return ExtruderInfo for given extruder
+     */
+    const ExtruderInfo &get_extruder_info(uint8_t extruder) const {
+        assert(extruder < std::size(per_extruder_info));
+        return per_extruder_info[extruder];
+    }
 
     /** Get static instance of the singleton
      */
@@ -178,7 +212,13 @@ public:
 
     /** Get number of used extruders
      */
-    int UsedExtrudersCount();
+    int UsedExtrudersCount() const;
+
+    /**
+     * @brief Get number of extruders given in G-code.
+     * @return how many extruders are written in G-code
+     */
+    int GivenExtrudersCount() const;
 
     /** Set variables for gcode filename and filepath
      *  @param[in] fname - aquired filename
@@ -204,10 +244,16 @@ public:
      */
     void deinitFile();
 
-    static void PreviewInit(FILE &file, time_buff &printing_time, GCodePerExtruderInfo &per_extruder_info,
-        bool &filament_described, ValidPrinterSettings &valid_printer_settings);
-
 private:
+    /**
+     * @brief Parse G-code file for comments and info codes.
+     * This cannot be run from Marlin thread, because it takes too long for watchdog.
+     */
+    void PreviewInit();
+
+    /** Evaluates tool compatibility*/
+    void EvaluateToolsValid();
+
     class Buffer {
     public:
         // first 80 characters of line is sufficient for all GCodeInfo purposes
@@ -270,10 +316,10 @@ private:
     GCodeInfo();
     GCodeInfo(const GCodeInfo &) = delete;
 
-    static void parse_gcode(Buffer::String cmd, uint32_t &gcode_counter, GCodeInfo::ValidPrinterSettings &valid_printer_settings);
-    static void parse_comment(Buffer::String cmd, time_buff &printing_time, GCodePerExtruderInfo &per_extruder_info, bool &filament_described, GCodeInfo::ValidPrinterSettings &valid_printer_settings);
-    static bool is_up_to_date(GCodeInfo::ValidPrinterSettings::GcodeFwVersion &parsed, const char *new_version);
-    static bool is_printer_compatible(const Buffer::String &);
+    void parse_gcode(Buffer::String cmd, uint32_t &gcode_counter);
+    void parse_comment(Buffer::String cmd);
+    bool is_up_to_date(GCodeInfo::ValidPrinterSettings::GcodeFwVersion &parsed, const char *new_version);
+    bool is_printer_compatible(const Buffer::String &);
 
     // Search this many last bytes for "metadata" comments.
     // With increasing size of the comment section, this will have to be increased either

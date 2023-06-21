@@ -139,7 +139,7 @@ size_ui16_t render_text_singleline(Rect16 rc, string_view_utf8 str, const font_t
     return render_line(text_plain, rc, str, pf, clr_bg, clr_fg);
 }
 
-//count characters in lines
+// count characters in lines
 static RectTextLayout multiline_loop(uint8_t MaxColsInRect, [[maybe_unused]] uint8_t MaxRowsInRect, string_view_utf8 str) {
     RectTextLayout layout;
 
@@ -171,8 +171,8 @@ static RectTextLayout multiline_loop(uint8_t MaxColsInRect, [[maybe_unused]] uin
             break;
 
         default:
-            //there are no texts longer than line, checked by content
-            layout.IncrementNumOfCharsUpTo(MaxColsInRect); //text_wrapper should not let this fail
+            // there are no texts longer than line, checked by content
+            layout.IncrementNumOfCharsUpTo(MaxColsInRect); // text_wrapper should not let this fail
         }
     }
 
@@ -200,9 +200,9 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
         || (txt_size.h == font->h && txt_size.w <= rc_pad.Width()) /// text fits into a single line completely
         || !flags.IsMultiline()) {                                 /// wrapping turned off
 
-        Rect16 rc_txt = Rect16(0, 0, txt_size.w, txt_size.h); /// set size
-        rc_txt.Align(rc_pad, flags.align);                    /// position the rectangle
-        rc_pad = rc_txt.Intersection(rc_pad);                 ///  set padding rect to new value, crop the rectangle if the text is too long
+        Rect16 rc_txt = Rect16(0, 0, txt_size.w, txt_size.h);      /// set size
+        rc_txt.Align(rc_pad, flags.align);                         /// position the rectangle
+        rc_pad = rc_txt.Intersection(rc_pad);                      ///  set padding rect to new value, crop the rectangle if the text is too long
 
         /// 2nd pass reading the string_view_utf8 - draw the text
         /// surrounding of rc_pad will be printed with back color
@@ -220,7 +220,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
         rc_pad = rc_txt.Intersection(rc_pad);                                          ///  set padding rect to new value, crop the rectangle if the text is too long
 
         Rect16 line_to_align = rc_pad;
-        line_to_align = Rect16::Height_t(font->h); //helps with calculations
+        line_to_align = Rect16::Height_t(font->h); // helps with calculations
 
         /// 3rd pass reading the string_view_utf8 - draw the text
         text.rewind();
@@ -230,12 +230,12 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
             Rect16 line_rect(0, 0, font->w * line_char_cnt, font->h);
             line_rect.Align(line_to_align, flags.align);
 
-            //in front of line
+            // in front of line
             Rect16 front = line_to_align.LeftSubrect(line_rect);
             if (front.Width()) {
                 display::FillRect(front, clr_bg);
             }
-            //behind line
+            // behind line
             Rect16 behind = line_to_align.RightSubrect(line_rect);
             if (behind.Width()) {
                 display::FillRect(behind, clr_bg);

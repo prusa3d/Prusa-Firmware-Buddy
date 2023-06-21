@@ -3,9 +3,6 @@
 
 #include "printf.h"
 
-#define MILLION (1000 * 1000)
-#define BILLION (MILLION * 1000)
-
 static const char *log_severity_to_str(log_severity_t severity) {
     switch (severity) {
     case LOG_SEVERITY_DEBUG:
@@ -27,8 +24,8 @@ void log_format_simple(log_event_t *event, void (*out_fn)(char character, void *
     // Format:
     // 3.32s [INFO - GUI:4] log message
     fctprintf(out_fn, arg, "%u.%03us [%s - %s:%i] ",
-        (unsigned)(event->timestamp / BILLION),
-        (unsigned)((event->timestamp % BILLION) / MILLION),
+        event->timestamp.sec,
+        event->timestamp.us / 1000,
         log_severity_to_str(event->severity),
         event->component->name,
         event->task_id);

@@ -12,13 +12,18 @@ add_executable(
 target_compile_definitions(eeprom_unit_tests PUBLIC EEPROM_UNITTEST)
 target_include_directories(
   eeprom_unit_tests
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/configuration_store
-  PUBLIC ${CMAKE_SOURCE_DIR}/src
-  PUBLIC ${CMAKE_SOURCE_DIR}/include
-  PUBLIC ${CMAKE_SOURCE_DIR}/tests/stubs
-  PUBLIC . ${CMAKE_SOURCE_DIR}/src/logging
-  PUBLIC ${CMAKE_SOURCE_DIR}/src/common
-  PUBLIC ${CMAKE_SOURCE_DIR}/lib/cthash/include
+  PUBLIC .
+         ${CMAKE_SOURCE_DIR}/src/configuration_store
+         ${CMAKE_SOURCE_DIR}/src
+         ${CMAKE_SOURCE_DIR}/src/lang
+         ${CMAKE_SOURCE_DIR}/src/guiconfig
+         ${CMAKE_SOURCE_DIR}/include
+         ${CMAKE_BINARY_DIR}/include
+         ${CMAKE_SOURCE_DIR}/tests/stubs
+         ${CMAKE_SOURCE_DIR}/src/logging
+         ${CMAKE_SOURCE_DIR}/src/common
+         ${CMAKE_SOURCE_DIR}/src/common/utils
+         ${CMAKE_SOURCE_DIR}/lib/cthash/include
   )
 
 add_catch_test(eeprom_unit_tests)

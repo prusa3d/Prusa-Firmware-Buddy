@@ -307,6 +307,7 @@
     // BEDLET_TEMP = NEAREST_ACTIVE_BEDLET_TEMPERATURE - NEAREST_ACTIVE_BEDLET_TEMPERATURE * ( 1 / HBL_GRADIENT_CUTOFF * ACTIVE_BEDLET_DISTANCE)^HBL_GRADIENT_EXPONENT;
     #define HBL_GRADIENT_EXPONENT 2.0f // Exponent used in equation to calculate heatbedlets temperature gradient
     #define HBL_GRADIENT_CUTOFF 2.0f // Bedlet this far apart from active bedlet will have zero target temperature
+    #define HBL_EXPAND_TO_SIDES true // Enable expansion of heated area to sides in order to prevent warping from bed material thermal expansion
 
 #endif //MODULAR_HEATBED
 
@@ -321,7 +322,9 @@
  */
 
 #if HAS_TOOLCHANGER()
-    #define PRUSA_TOOLCHANGER
+#define PRUSA_TOOLCHANGER
+#define PRUSA_TOOL_MAPPING
+#define PRUSA_SPOOL_JOIN
 #endif
 
 
@@ -419,8 +422,8 @@
 //#define TEMP_SENSOR_1_AS_REDUNDANT
 #define MAX_REDUNDANT_TEMP_SENSOR_DIFF 10
 
-#define TEMP_RESIDENCY_TIME 1 // (seconds) Time to wait for hotend to "settle" in M109
-#define TEMP_WINDOW 3 // (°C) Temperature proximity for the "temperature reached" timer
+#define TEMP_RESIDENCY_TIME 5 // (seconds) Time to wait for hotend to "settle" in M109
+#define TEMP_WINDOW 1 // (°C) Temperature proximity for the "temperature reached" timer
 #define TEMP_HYSTERESIS 3 // (°C) Temperature proximity considered "close enough" to the target
 
 #define TEMP_BED_RESIDENCY_TIME 5 // (seconds) Time to wait for bed to "settle" in M190
@@ -445,15 +448,16 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_XL_HOTEND_MAXTEMP (290 + 15)
+#define HEATER_XL_HOTEND_MAXTEMP 305
 #define HEATER_0_MAXTEMP HEATER_XL_HOTEND_MAXTEMP
 #define HEATER_1_MAXTEMP HEATER_XL_HOTEND_MAXTEMP
 #define HEATER_2_MAXTEMP HEATER_XL_HOTEND_MAXTEMP
 #define HEATER_3_MAXTEMP HEATER_XL_HOTEND_MAXTEMP
 #define HEATER_4_MAXTEMP HEATER_XL_HOTEND_MAXTEMP
 #define HEATER_5_MAXTEMP HEATER_XL_HOTEND_MAXTEMP
-#define BED_MAXTEMP 115
-#define BED_MAXTEMP_SAFETY_MARGIN 10
+#define HEATER_MAXTEMP_SAFETY_MARGIN 15
+#define BED_MAXTEMP 120
+#define BED_MAXTEMP_SAFETY_MARGIN 5
 #define HEATBREAK_MAXTEMP 100
 #define CHAMBER_MAXTEMP 100
 #define BOARD_MAXTEMP 120
@@ -1122,17 +1126,27 @@
 
 // @section machine
 
+// Nozzle offset limits
+#define X_MIN_OFFSET -1
+#define X_MAX_OFFSET 1
+#define Y_MIN_OFFSET -1
+#define Y_MAX_OFFSET 1
+#define Z_MIN_OFFSET -2
+#define Z_MAX_OFFSET 1.45f
+
 // The size of the print bed
 #define X_BED_SIZE 360
 #define Y_BED_SIZE 360
-#define Z_SIZE 370.660f
+#define Z_SIZE (368.660f - Z_MIN_OFFSET)
 
 // Travel limits (mm) after homing, corresponding to endstop positions. default x -2.5 y -7.3
-#define X_MIN_POS -8
-#define Y_MIN_POS -9
-#define Z_MIN_POS 0
-#define X_MAX_POS X_BED_SIZE
-#define Y_MAX_POS (Y_BED_SIZE + 100) // extra distance in Y to reach toolchanger
+#define X_MIN_POS (-7 - X_MAX_OFFSET)
+#define Y_MIN_POS (-8 - Y_MAX_OFFSET)
+#define Z_MIN_POS (0 - Z_MAX_OFFSET)
+#define X_MAX_POS (X_BED_SIZE - X_MIN_OFFSET)
+#define Y_MAX_PRINT_POS (Y_BED_SIZE - Y_MIN_OFFSET) // maximal print area Y position (excluding toolchanger area)
+#define Y_MAX_POS (Y_MAX_PRINT_POS + 100) // extra distance in Y to reach toolchanger
+#define PROBE_MAX_Y Y_BED_SIZE // limit maximal Y probe position (so that tool doesn't hit toolchanger with high tool offsets)
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
     #define DEFAULT_Z_MAX_POS Z_SIZE
     #define Z_MIN_LEN_LIMIT 1
@@ -1424,7 +1438,7 @@
 // For DELTA this is the top-center of the Cartesian print volume.
 //#define MANUAL_X_HOME_POS 0
 //#define MANUAL_Y_HOME_POS 0
-//#define MANUAL_Z_HOME_POS 0
+#define MANUAL_Z_HOME_POS 0 // Home at 0, minimal Z position is negative due to possible tool offset
 
 // Use "Z Safe Homing" to avoid homing with a Z probe outside the bed area.
 //

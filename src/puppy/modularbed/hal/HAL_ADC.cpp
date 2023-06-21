@@ -8,7 +8,7 @@
 
 #define ADC_INSTANCE            ADC1
 #define ADC_COMMON_INSTANCE     ADC1_COMMON
-#define ADC_BIT_WAITING_TIMEOUT 500 //measured maximum value on STM32G0@56Mhz is 111
+#define ADC_BIT_WAITING_TIMEOUT 500 // measured maximum value on STM32G0@56Mhz is 111
 namespace {
 constexpr float ADC_CALIBRATION_VOLTAGE = 3.0f;
 }
@@ -49,7 +49,7 @@ bool Init() {
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
 
-    //init analog input pins
+    // init analog input pins
     GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
@@ -67,43 +67,43 @@ bool Init() {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    //init MUX switching pins
+    // init MUX switching pins
     GPIO_InitStruct.Pin = GPIO_PIN_6;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    //Disable all interrupts
+    // Disable all interrupts
     CLEAR_BIT(ADC_INSTANCE->IER, ADC_IER_ADRDYIE | ADC_IER_EOSMPIE | ADC_IER_EOCIE | ADC_IER_EOSIE | ADC_IER_OVRIE | ADC_IER_AWD1IE | ADC_IER_AWD2IE | ADC_IER_AWD3IE | ADC_IER_EOCALIE | ADC_IER_CCRDYIE);
 
-    //Enable internal ADC voltage regulator
+    // Enable internal ADC voltage regulator
     LL_ADC_EnableInternalRegulator(ADC_INSTANCE);
 
-    //Cofigure oversampling ratio: 64 measurements
+    // Cofigure oversampling ratio: 64 measurements
     SET_BIT(ADC_INSTANCE->CFGR2, ADC_CFGR2_OVSE | ADC_CFGR2_OVSR_0 | ADC_CFGR2_OVSR_2);
 
-    //Cofigure oversampling shift: 2 bits
+    // Cofigure oversampling shift: 2 bits
     SET_BIT(ADC_INSTANCE->CFGR2, ADC_CFGR2_OVSS_1);
 
-    //Configure sampling time: 160.5 clock cycles
+    // Configure sampling time: 160.5 clock cycles
     SET_BIT(ADC_INSTANCE->SMPR, ADC_SMPR_SMP1_0 | ADC_SMPR_SMP1_1 | ADC_SMPR_SMP1_2 | ADC_SMPR_SMP2_0 | ADC_SMPR_SMP2_1 | ADC_SMPR_SMP2_2);
 
-    //Configure ADC clock prescaler to 2
+    // Configure ADC clock prescaler to 2
     SET_BIT(ADC_COMMON_INSTANCE->CCR, ADC_CCR_PRESC_0);
 
-    //Run automatic self-calibration
+    // Run automatic self-calibration
     WaitForBit(&ADC_INSTANCE->ISR, ADC_ISR_CCRDY, true);
     SET_BIT(ADC_INSTANCE->CR, ADC_CR_ADCAL);
     WaitForBit(&ADC_INSTANCE->CR, ADC_CR_ADCAL, false);
 
-    //Enable temperature sensor
+    // Enable temperature sensor
     SET_BIT(ADC_COMMON_INSTANCE->CCR, ADC_CCR_TSEN);
 
-    //Enable reference voltage channel
+    // Enable reference voltage channel
     SET_BIT(ADC_COMMON_INSTANCE->CCR, ADC_CCR_VREFEN);
 
-    //Enable ADC device
+    // Enable ADC device
     SET_BIT(ADC_INSTANCE->CR, ADC_CR_ADEN);
 
     SetMux(ADCChannel::Heatbedlet_6);
@@ -115,18 +115,18 @@ void PrepareConversion(ADCChannel channel) {
     SetMux(channel);
     uint32_t adcChannel = TranslateADCChannel(channel);
 
-    //Select ADC channel
+    // Select ADC channel
     ADC_INSTANCE->CHSELR = 1 << adcChannel;
 
     WaitForBit(&ADC_INSTANCE->ISR, ADC_ISR_CCRDY, true);
 }
 
 void StartConversion(ADCChannel channel) {
-    //ADC conversion takes 2220 microseconds on STM32G0 @56MHz with current ADC configuration
+    // ADC conversion takes 2220 microseconds on STM32G0 @56MHz with current ADC configuration
 
     PrepareConversion(channel);
 
-    //Start ADC conversion
+    // Start ADC conversion
     SET_BIT(ADC_INSTANCE->CR, ADC_CR_ADSTART);
 
     m_ActualChannel = channel;
@@ -169,9 +169,9 @@ float CalculateVREF(uint32_t VREF_ADCValue) {
 
 uint32_t TranslateADCChannel(ADCChannel channel) {
     switch (channel) {
-    case ADCChannel::Heatbedlet_8: // 0
+    case ADCChannel::Heatbedlet_8:  // 0
         return 16;
-    case ADCChannel::Heatbedlet_9: // 1
+    case ADCChannel::Heatbedlet_9:  // 1
         return 15;
     case ADCChannel::Heatbedlet_10: // 2
         return 4;
@@ -185,21 +185,21 @@ uint32_t TranslateADCChannel(ADCChannel channel) {
         return 1;
     case ADCChannel::Heatbedlet_15: // 7
         return 5;
-    case ADCChannel::Heatbedlet_0: // 8
+    case ADCChannel::Heatbedlet_0:  // 8
         return 7;
-    case ADCChannel::Heatbedlet_1: // 9
+    case ADCChannel::Heatbedlet_1:  // 9
         return 17;
-    case ADCChannel::Heatbedlet_2: // 10
+    case ADCChannel::Heatbedlet_2:  // 10
         return 18;
-    case ADCChannel::Heatbedlet_3: // 11
+    case ADCChannel::Heatbedlet_3:  // 11
         return 8;
-    case ADCChannel::Heatbedlet_4: // 12
+    case ADCChannel::Heatbedlet_4:  // 12
         return 9;
-    case ADCChannel::Heatbedlet_5: // 13
+    case ADCChannel::Heatbedlet_5:  // 13
         return 9;
-    case ADCChannel::Heatbedlet_6: // 14
+    case ADCChannel::Heatbedlet_6:  // 14
         return 11;
-    case ADCChannel::Heatbedlet_7: // 15
+    case ADCChannel::Heatbedlet_7:  // 15
         return 11;
     case ADCChannel::Current_A:
         return 6;
@@ -217,12 +217,12 @@ uint32_t TranslateADCChannel(ADCChannel channel) {
 
 void SetMux(ADCChannel channel) {
     switch (channel) {
-    case ADCChannel::Heatbedlet_14: //set MUX earlier, so current will be stablized
+    case ADCChannel::Heatbedlet_14: // set MUX earlier, so current will be stablized
     case ADCChannel::Heatbedlet_5:
     case ADCChannel::Heatbedlet_7:
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
         break;
-    case ADCChannel::Heatbedlet_8: //set MUX earlier, so current will be stablized
+    case ADCChannel::Heatbedlet_8: // set MUX earlier, so current will be stablized
     case ADCChannel::Heatbedlet_4:
     case ADCChannel::Heatbedlet_6:
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
@@ -240,4 +240,4 @@ void WaitForBit(volatile uint32_t *pRegister, uint32_t bitMask, bool expectedVal
     }
 }
 
-} //namespace
+} // namespace

@@ -28,7 +28,7 @@ public:
 private:
     static constexpr size_t MAX_END_TIMESTAMP_SIZE = 14 + 12 + 5; // "dd.mm.yyyy at hh:mm:ss" + safety measures for 3 digit where 2 digits should be
     static constexpr size_t MAX_TIMEDUR_STR_SIZE = 9;
-    static constexpr uint32_t COUNTDOWN_TIME_S = 3 * 3600; // A time that is worth displaying countdown instead of a timestamp
+    static constexpr uint32_t COUNTDOWN_TIME_S = 3 * 3600;        // A time that is worth displaying countdown instead of a timestamp
 
     /**
      *  Print timestamp
@@ -65,7 +65,7 @@ private:
     inline static std::array<char, MAX_END_TIMESTAMP_SIZE> text_time_end; /**< Buffer for time to end (max 31 chars) */
     inline static std::array<char, MAX_TIMEDUR_STR_SIZE> text_time_dur;   /**< Buffer for time duration (max 9 chars) */
 
-    PT_t time_end_format = PT_t::init;                                 /**< Currently used time end format */
-    uint32_t last_print_duration = marlin_server::TIME_TO_END_INVALID; /**< last recorded print_duration */
-    uint32_t last_time_to_end = marlin_server::TIME_TO_END_INVALID;    /**< last end time used for GUI update */
+    PT_t time_end_format = PT_t::init;                                    /**< Currently used time end format */
+    uint32_t last_print_duration = marlin_server::TIME_TO_END_INVALID;    /**< last recorded print_duration */
+    uint32_t last_time_to_end = marlin_server::TIME_TO_END_INVALID;       /**< last end time used for GUI update */
 };

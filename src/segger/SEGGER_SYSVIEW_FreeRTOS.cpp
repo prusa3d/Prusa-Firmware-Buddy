@@ -71,14 +71,14 @@ static SYSVIEW_FREERTOS_TASK_STATUS _aTasks[SYSVIEW_FREERTOS_MAX_NOF_TASKS];
 static unsigned _NumTasks;
 
 /*********************************************************************
-*
-*       _cbSendTaskList()
-*
-*  Function description
-*    This function is part of the link between FreeRTOS and SYSVIEW.
-*    Called from SystemView when asked by the host, it uses SYSVIEW
-*    functions to send the entire task list to the host.
-*/
+ *
+ *       _cbSendTaskList()
+ *
+ *  Function description
+ *    This function is part of the link between FreeRTOS and SYSVIEW.
+ *    Called from SystemView when asked by the host, it uses SYSVIEW
+ *    functions to send the entire task list to the host.
+ */
 static void _cbSendTaskList(void) {
     unsigned n;
 
@@ -91,14 +91,14 @@ static void _cbSendTaskList(void) {
 }
 
 /*********************************************************************
-*
-*       _cbGetTime()
-*
-*  Function description
-*    This function is part of the link between FreeRTOS and SYSVIEW.
-*    Called from SystemView when asked by the host, returns the
-*    current system time in micro seconds.
-*/
+ *
+ *       _cbGetTime()
+ *
+ *  Function description
+ *    This function is part of the link between FreeRTOS and SYSVIEW.
+ *    Called from SystemView when asked by the host, returns the
+ *    current system time in micro seconds.
+ */
 static U64 _cbGetTime(void) {
     U64 Time;
 
@@ -109,18 +109,18 @@ static U64 _cbGetTime(void) {
 }
 
 /*********************************************************************
-*
-*       Global functions
-*
-**********************************************************************
-*/
+ *
+ *       Global functions
+ *
+ **********************************************************************
+ */
 /*********************************************************************
-*
-*       SYSVIEW_AddTask()
-*
-*  Function description
-*    Add a task to the internal list and record its information.
-*/
+ *
+ *       SYSVIEW_AddTask()
+ *
+ *  Function description
+ *    Add a task to the internal list and record its information.
+ */
 void SYSVIEW_AddTask(U32 xHandle, const char *pcTaskName, unsigned uxCurrentPriority, U32 pxStack, unsigned uStackHighWaterMark) {
 
     if (memcmp(pcTaskName, "IDLE", 5) == 0) {
@@ -144,12 +144,12 @@ void SYSVIEW_AddTask(U32 xHandle, const char *pcTaskName, unsigned uxCurrentPrio
 }
 
 /*********************************************************************
-*
-*       SYSVIEW_UpdateTask()
-*
-*  Function description
-*    Update a task in the internal list and record its information.
-*/
+ *
+ *       SYSVIEW_UpdateTask()
+ *
+ *  Function description
+ *    Update a task in the internal list and record its information.
+ */
 void SYSVIEW_UpdateTask(U32 xHandle, const char *pcTaskName, unsigned uxCurrentPriority, U32 pxStack, unsigned uStackHighWaterMark) {
     unsigned n;
 
@@ -175,12 +175,12 @@ void SYSVIEW_UpdateTask(U32 xHandle, const char *pcTaskName, unsigned uxCurrentP
 }
 
 /*********************************************************************
-*
-*       SYSVIEW_DeleteTask()
-*
-*  Function description
-*    Delete a task from the internal list.
-*/
+ *
+ *       SYSVIEW_DeleteTask()
+ *
+ *  Function description
+ *    Delete a task from the internal list.
+ */
 void SYSVIEW_DeleteTask(U32 xHandle) {
     unsigned n;
 
@@ -216,12 +216,12 @@ void SYSVIEW_DeleteTask(U32 xHandle) {
 }
 
 /*********************************************************************
-*
-*       SYSVIEW_SendTaskInfo()
-*
-*  Function description
-*    Record task information.
-*/
+ *
+ *       SYSVIEW_SendTaskInfo()
+ *
+ *  Function description
+ *    Record task information.
+ */
 void SYSVIEW_SendTaskInfo(U32 TaskID, const char *sName, unsigned Prio, U32 StackBase, unsigned StackSize) {
     SEGGER_SYSVIEW_TASKINFO TaskInfo;
 
@@ -235,12 +235,12 @@ void SYSVIEW_SendTaskInfo(U32 TaskID, const char *sName, unsigned Prio, U32 Stac
 }
 
 /*********************************************************************
-*
-*       SYSVIEW_RecordU32x4()
-*
-*  Function description
-*    Record an event with 4 parameters
-*/
+ *
+ *       SYSVIEW_RecordU32x4()
+ *
+ *  Function description
+ *    Record an event with 4 parameters
+ */
 void SYSVIEW_RecordU32x4(unsigned Id, U32 Para0, U32 Para1, U32 Para2, U32 Para3) {
     U8 aPacket[SEGGER_SYSVIEW_INFO_SIZE + 4 * SEGGER_SYSVIEW_QUANTA_U32];
     U8 *pPayload;
@@ -255,12 +255,12 @@ void SYSVIEW_RecordU32x4(unsigned Id, U32 Para0, U32 Para1, U32 Para2, U32 Para3
 }
 
 /*********************************************************************
-*
-*       SYSVIEW_RecordU32x5()
-*
-*  Function description
-*    Record an event with 5 parameters
-*/
+ *
+ *       SYSVIEW_RecordU32x5()
+ *
+ *  Function description
+ *    Record an event with 5 parameters
+ */
 void SYSVIEW_RecordU32x5(unsigned Id, U32 Para0, U32 Para1, U32 Para2, U32 Para3, U32 Para4) {
     U8 aPacket[SEGGER_SYSVIEW_INFO_SIZE + 5 * SEGGER_SYSVIEW_QUANTA_U32];
     U8 *pPayload;
@@ -276,11 +276,11 @@ void SYSVIEW_RecordU32x5(unsigned Id, U32 Para0, U32 Para1, U32 Para2, U32 Para3
 }
 
 /*********************************************************************
-*
-*       Public API structures
-*
-**********************************************************************
-*/
+ *
+ *       Public API structures
+ *
+ **********************************************************************
+ */
 // Callbacks provided to SYSTEMVIEW by FreeRTOS
 extern "C" const SEGGER_SYSVIEW_OS_API SYSVIEW_X_OS_TraceAPI = {
     _cbGetTime,

@@ -118,4 +118,4 @@ void InputOutputPin::enableOutput(State pinState, OMode mode, OSpeed speed) cons
     HAL_GPIO_Init(getHalPort(), &GPIO_InitStruct);
 }
 
-} //namespace buddy::hw
+} // namespace buddy::hw

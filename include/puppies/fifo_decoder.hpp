@@ -30,6 +30,12 @@ public:
     Decoder(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t len);
     void decode(const Callbacks_t callbacks);
 
+    /**
+     * @brief Guess if there is more data in FIFO.
+     * @return true if there is
+     */
+    bool more() const;
+
 private:
     std::array<uint16_t, MODBUS_FIFO_LEN> &fifo;
     uint8_t *data;

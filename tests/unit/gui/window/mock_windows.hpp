@@ -99,7 +99,7 @@ struct MockScreen : public AddSuperWindow<screen_t> {
     void BasicCheck(size_t popup_cnt = 0, size_t dialog_cnt = 0, size_t strong_dialog_cnt = 0) const;
 
     template <class... E>
-    void CheckOrderAndVisibility(E *... e);
+    void CheckOrderAndVisibility(E *...e);
 
     Rect16 GetInvalidationRect() const;
     Rect16 GetInvRect() const { return getInvalidationRect(); }
@@ -120,12 +120,12 @@ void MockScreen::checkHidden(const T &extra_windows, window_t &win) {
             hidden = true;
     }
 
-    //check IsHiddenBehindDialog()
+    // check IsHiddenBehindDialog()
     REQUIRE(win.IsHiddenBehindDialog() == hidden);
 }
 
 template <class... E>
-void MockScreen::CheckOrderAndVisibility(E *... e) {
+void MockScreen::CheckOrderAndVisibility(E *...e) {
     constexpr size_t sz = sizeof...(e);
     std::array<window_t *, sz> extra_windows = { e... };
 
@@ -149,13 +149,13 @@ void MockScreen::CheckOrderAndVisibility(E *... e) {
         }
     }
 
-    //check parrent
+    // check parrent
     ParrentCheck();
 
-    //check linked list
+    // check linked list
     LinkedListCheck(popup_cnt, dialog_cnt, strong_dialog_cnt);
 
-    //hidden check of normal windows
+    // hidden check of normal windows
     REQUIRE_FALSE(getFirstNormal() == nullptr);
     REQUIRE_FALSE(getLastNormal() == nullptr);
     for (window_t *pWin = getFirstNormal(); pWin != getLastNormal()->GetNext(); pWin = pWin->GetNext()) {
@@ -163,7 +163,7 @@ void MockScreen::CheckOrderAndVisibility(E *... e) {
         checkHidden(extra_windows, *pWin);
     }
 
-    //check hidden of extra_windows
+    // check hidden of extra_windows
     std::array<bool, sz> hiddens;
     hiddens.fill(false);
     for (int top_win_index = sz - 1; top_win_index >= 0; --top_win_index) {
@@ -171,14 +171,14 @@ void MockScreen::CheckOrderAndVisibility(E *... e) {
             if (extra_windows[top_win_index]->GetRect().HasIntersection(extra_windows[bot_win_index]->GetRect()))
                 hiddens[bot_win_index] = true;
         }
-        //outer loop can also check result of current window
+        // outer loop can also check result of current window
         REQUIRE(extra_windows[top_win_index]->IsHiddenBehindDialog() == hiddens[top_win_index]);
     }
 
     window_t *pWin = &w_last;
-    REQUIRE_FALSE(pWin == nullptr); //should never fail
+    REQUIRE_FALSE(pWin == nullptr); // should never fail
 
-    //check order of all extra windows
+    // check order of all extra windows
     for (size_t i = 0; i < sz; ++i) {
         pWin = pWin->GetNext();
         REQUIRE_FALSE(pWin == nullptr);

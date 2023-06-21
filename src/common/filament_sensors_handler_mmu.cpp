@@ -8,17 +8,17 @@
 #include "filament_sensor_mmu.hpp"
 #include "filament_sensor_adc.hpp"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
-#include "eeprom.h"
 #include "marlin_client.hpp"
 #include "metric.h"
 #include "freertos_mutex.hpp"
 #include "filters/median_filter.hpp"
 #include <mutex>
+#include <configuration_store.hpp>
 
 using namespace MMU2;
 
-bool FilamentSensors::has_mmu2_enabled() {
-    return eeprom_get_bool(EEVAR_MMU2_ENABLED);
+bool FilamentSensors::has_mmu2_enabled() const {
+    return config_store().mmu2_enabled.get();
 }
 
 // Store request_side off
@@ -35,7 +35,7 @@ void FilamentSensors::DisableSideSensor() {
  * @return filament_sensor::mmu_enable_result_t
  */
 filament_sensor::mmu_enable_result_t FilamentSensors::EnableSide() {
-    if ((!physical_sensors.current_extruder) || (!IsWorking(physical_sensors.current_extruder->Get()))) { // physical_sensors.current_extruder is not synchronized, but in this case it it OK
+    if ((!logical_sensors.current_extruder) || (!IsWorking(logical_sensors.current_extruder->Get()))) { // logical_sensors.current_extruder is not synchronized, but in this case it it OK
         return filament_sensor::mmu_enable_result_t::error_filament_sensor_disabled;
     }
     const std::lock_guard lock(GetSideMutex());
@@ -45,13 +45,13 @@ filament_sensor::mmu_enable_result_t FilamentSensors::EnableSide() {
 
 static void mmu_disable() {
     marlin_gcode("M709 S0");
-    eeprom_set_bool(EEVAR_MMU2_ENABLED, false);
+    config_store().mmu2_enabled.set(false);
 }
 
 // cannot wait until it is enabled, it takes like 10 seconds !!!
 static void mmu_enable() {
     marlin_gcode("M709 S1");
-    eeprom_set_bool(EEVAR_MMU2_ENABLED, true);
+    config_store().mmu2_enabled.set(true);
 }
 
 // process side request stored by EnableMMU/DisableSideSensor
@@ -74,21 +74,9 @@ void FilamentSensors::process_side_request() {
 }
 
 // Meyer's singleton
-static FSensorAdcExtruder *getExtruderFSensor(uint8_t index) {
-    static FSensorAdcExtruder printer_sensor = FSensorAdcExtruder(EEVAR_FS_VALUE_SPAN_0, EEVAR_FS_REF_VALUE_0, 0);
-
-    return index == 0 ? &printer_sensor : nullptr;
-}
-
-// Meyer's singleton
 static FSensorMMU *getSideFSensor(uint8_t index) {
     static FSensorMMU side_sensor;
-    return index == 0 && eeprom_get_bool(EEVAR_MMU2_ENABLED) ? &side_sensor : nullptr;
-}
-
-// function returning abstract sensor - used in higher level api
-IFSensor *GetExtruderFSensor(uint8_t index) {
-    return getExtruderFSensor(index);
+    return index == 0 && config_store().mmu2_enabled.get() ? &side_sensor : nullptr;
 }
 
 // function returning abstract sensor - used in higher level api
@@ -104,50 +92,25 @@ void FilamentSensors::configure_sensors() {
     auto side_sensor_state = mmu2.State();
     has_mmu = !(side_sensor_state == xState::Stopped);
 
-    physical_sensors.current_extruder = GetExtruderFSensor(tool_index);
-    physical_sensors.current_side = GetSideFSensor(tool_index);
+    logical_sensors.current_extruder = GetExtruderFSensor(tool_index);
+    logical_sensors.current_side = GetSideFSensor(tool_index);
 
-    logical_sensors.primary_runout = has_mmu ? GetSideFSensor(tool_index) : GetExtruderFSensor(tool_index);
-    logical_sensors.secondary_runout = has_mmu ? GetExtruderFSensor(tool_index) : nullptr;
-    logical_sensors.autoload = has_mmu ? nullptr : GetExtruderFSensor(tool_index);
+    logical_sensors.primary_runout = has_mmu ? logical_sensors.current_side : logical_sensors.current_extruder;
+    logical_sensors.secondary_runout = has_mmu ? logical_sensors.current_extruder : nullptr;
+    logical_sensors.autoload = has_mmu ? nullptr : logical_sensors.current_extruder;
 }
 
 void FilamentSensors::reconfigure_sensors_if_needed() {
-    //auto static old_mmu_state = mmu2.State();
-    //auto mmu_state = mmu2.State();
-    //if (mmu_state != old_mmu_state) {
+    // auto static old_mmu_state = mmu2.State();
+    // auto mmu_state = mmu2.State();
+    // if (mmu_state != old_mmu_state) {
     configure_sensors();
     //    old_mmu_state = mmu_state;
     //}
 }
 
-void FilamentSensors::AdcExtruder_FilteredIRQ(int32_t val, uint8_t tool_index) {
-    FSensorADC *sensor = getExtruderFSensor(tool_index);
-    if (sensor) {
-        sensor->set_filtered_value_from_IRQ(val);
-    } else {
-        assert("wrong extruder index");
-    }
-}
-
 void FilamentSensors::AdcSide_FilteredIRQ([[maybe_unused]] int32_t val, [[maybe_unused]] uint8_t tool_index) {
     assert("no adc sensor");
-}
-
-// IRQ - called from interruption
-void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
-    static MedianFilter filter;
-
-    FSensorADC *sensor = getExtruderFSensor(tool_index);
-    if (sensor) {
-        sensor->record_raw(fs_raw_value);
-    }
-
-    if (filter.filter(fs_raw_value)) { //fs_raw_value is rewritten - passed by reference
-        FSensors_instance().AdcExtruder_FilteredIRQ(fs_raw_value, tool_index);
-    } else {
-        FSensors_instance().AdcExtruder_FilteredIRQ(FSensorADC::fs_filtered_value_not_ready, tool_index);
-    }
 }
 
 void side_fs_process_sample([[maybe_unused]] int32_t fs_raw_value, [[maybe_unused]] uint8_t tool_index) {

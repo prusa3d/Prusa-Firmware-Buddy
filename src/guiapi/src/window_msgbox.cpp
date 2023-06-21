@@ -14,7 +14,7 @@ void AdjustLayout(window_text_t &text, window_icon_t &icon) {
     icon.SetAlignment(Align_t::LeftTop());
     Rect16 new_rect = text.GetRect();
 
-    uint16_t chars_in_row = text.GetRect().Width() / text.font->w;
+    uint16_t chars_in_row = text.GetRect().Width() / text.get_font()->w;
     // if there are more than 3 rows, icon should be aligned with top of the text (not center)
     if (text.text.computeNumUtf8CharsAndRewind() / (chars_in_row - 8) > 3) { // - 8 for simulating spaces on the end of each row                            // If there are more than 3 rows, icon will align to the top
         new_rect -= Rect16::Top_t(3);                                        // Add Text's padding
@@ -27,12 +27,12 @@ void AdjustLayout(window_text_t &text, window_icon_t &icon) {
 }
 
 /*****************************************************************************/
-//MsgBoxBase
+// MsgBoxBase
 MsgBoxBase::MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt,
     is_multiline multiline, is_closed_on_click_t close)
     : AddSuperWindow<IDialog>(rect)
     , text(this, getTextRect(), multiline, is_closed_on_click_t::no, txt)
-    , pButtons(new (&radio_mem_space) RadioButton(this, GuiDefaults::GetButtonRect(rect), resp, labels))
+    , pButtons(new(&radio_mem_space) RadioButton(this, GuiDefaults::GetButtonRect(rect), resp, labels))
     , result(Response::_none) {
     flags.close_on_click = close;
     pButtons->SetBtnIndex(def_btn);
@@ -69,12 +69,12 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 }
 
 /*****************************************************************************/
-//MsgBoxTitled
+// MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const png::Resource *title_icon, is_closed_on_click_t close)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
-    title.SetFont(getTitleFont());
+    title.set_font(getTitleFont());
     title.SetRect(getTitleRect());
     icon.SetRect(getIconRect());
     text.SetRect(getTextRect());
@@ -121,7 +121,7 @@ void MsgBoxTitled::unconditionalDraw() {
 }
 
 /*****************************************************************************/
-//MsgBoxIconned
+// MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, const png::Resource *icon_res, is_closed_on_click_t close)
     : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline, close)
@@ -157,7 +157,7 @@ Rect16 MsgBoxIconned::getTextRect() {
 }
 
 /*****************************************************************************/
-//MsgBoxIconPepa
+// MsgBoxIconPepa
 MsgBoxIconPepa::MsgBoxIconPepa(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, const png::Resource *ic)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, ic) {
@@ -177,7 +177,7 @@ Rect16 MsgBoxIconPepa::getIconRect() {
 }
 
 /*****************************************************************************/
-//MsgBoxIconPepaCentered
+// MsgBoxIconPepaCentered
 MsgBoxIconPepaCentered::MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
     string_view_utf8 txt, is_multiline multiline, const png::Resource *ic)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, ic) {
@@ -197,7 +197,7 @@ Rect16 MsgBoxIconPepaCentered::getIconRect() {
 }
 
 /*****************************************************************************/
-//MsgBoxIconnedError
+// MsgBoxIconnedError
 MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline, const png::Resource *icon_res)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, icon_res) {
     SetRoundCorners();
@@ -263,7 +263,7 @@ Rect16 MsgBoxIS::getTextRect() {
 template <class T, typename... Args>
 Response MsgBox_Custom(Rect16 rect, const PhaseResponses &resp, size_t def_btn, string_view_utf8 txt, is_multiline multiline, Args... args) {
     const PhaseTexts labels = { BtnResponse::GetText(resp[0]), BtnResponse::GetText(resp[1]), BtnResponse::GetText(resp[2]), BtnResponse::GetText(resp[3]) };
-    //static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
+    // static_assert(labels.size() == 4, "Incorrect array size, modify number of elements");
     T msgbox(rect, resp, def_btn, &labels, txt, multiline, args...);
     msgbox.MakeBlocking();
     return msgbox.GetResult();

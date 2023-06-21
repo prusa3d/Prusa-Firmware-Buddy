@@ -15,7 +15,7 @@ struct aggregate_arity : index_sequence {};
     #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 
-//returns the number of members in struct
+// returns the number of members in struct
 template <typename aggregate, std::size_t... indices>
 struct aggregate_arity<
     aggregate, std::index_sequence<indices...>,

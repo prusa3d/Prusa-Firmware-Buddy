@@ -18,7 +18,7 @@
 
 #include "common/RAII.hpp"
 
-#include "marlin_move.hpp"
+#include "mapi/motion.hpp"
 #include "Marlin/src/module/temperature.h"
 
 #if HAS_TOOLCHANGER()
@@ -74,7 +74,7 @@ void CSelftestPart_FSensor::MetricsSetEnabled(bool enable) {
         sensor->MetricsSetEnabled(enable);
 }
 
-LoopResult CSelftestPart_FSensor::stateInit() {
+LoopResult CSelftestPart_FSensor::state_init() {
 #if HAS_TOOLCHANGER()
     if (prusa_toolchanger.is_toolchanger_enabled()) {
         marlin_server::enqueue_gcode_printf("T%d S1", rConfig.extruder_id);
@@ -84,7 +84,7 @@ LoopResult CSelftestPart_FSensor::stateInit() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateWaitToolPick() {
+LoopResult CSelftestPart_FSensor::state_wait_tool_pick() {
 #if HAS_TOOLCHANGER()
     if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
@@ -93,12 +93,12 @@ LoopResult CSelftestPart_FSensor::stateWaitToolPick() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateAskUnloadInit() {
+LoopResult CSelftestPart_FSensor::state_ask_unload_init() {
     IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_ask_unload);
     return LoopResult::MarkLoop;
 }
 
-LoopResult CSelftestPart_FSensor::stateAskUnloadWait() {
+LoopResult CSelftestPart_FSensor::state_ask_unload_wait() {
     const Response response = rStateMachine.GetButtonPressed();
     switch (response) {
     case Response::Abort:
@@ -118,28 +118,28 @@ LoopResult CSelftestPart_FSensor::stateAskUnloadWait() {
     return LoopResult::RunCurrent;
 }
 
-LoopResult CSelftestPart_FSensor::stateFilamentUnloadEnqueueGcode() {
+LoopResult CSelftestPart_FSensor::state_filament_unload_enqueue_gcode() {
     if (need_unload) {
         queue.enqueue_one_now("M702 W2"); // unload with return option
         log_info(Selftest, "%s unload enqueued", rConfig.partname);
     } else {
-        //must change state here to avoid flickering
+        // must change state here to avoid flickering
         IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_unload_confirm);
     }
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateFilamentUnloadWaitFinished() {
-    //we didn't wanted to unload, so we are not waiting for anything
+LoopResult CSelftestPart_FSensor::state_filament_unload_wait_finished() {
+    // we didn't wanted to unload, so we are not waiting for anything
     if (!need_unload) {
         return LoopResult::RunNext;
     }
-    //wait for operation to finish
+    // wait for operation to finish
     if (filament_gcodes::InProgress::Active()) {
         LogInfoTimed(log, "%s waiting for unload to finish", rConfig.partname);
         return LoopResult::RunCurrent;
     }
-    //check if we returned from preheat or finished the unload
+    // check if we returned from preheat or finished the unload
     PreheatStatus::Result res = PreheatStatus::ConsumeResult();
     if (res == PreheatStatus::Result::DoneNoFilament) {
         IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_unload_confirm);
@@ -147,12 +147,12 @@ LoopResult CSelftestPart_FSensor::stateFilamentUnloadWaitFinished() {
     return LoopResult::GoToMark;
 }
 
-LoopResult CSelftestPart_FSensor::stateAskUnloadConfirmInit() {
+LoopResult CSelftestPart_FSensor::state_ask_unload_confirm_init() {
     IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_unload_confirm);
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateAskUnloadConfirmWait() {
+LoopResult CSelftestPart_FSensor::state_ask_unload_confirm_wait() {
     const Response response = rStateMachine.GetButtonPressed();
     switch (response) {
     case Response::Yes:
@@ -167,22 +167,22 @@ LoopResult CSelftestPart_FSensor::stateAskUnloadConfirmWait() {
     return LoopResult::RunCurrent;
 }
 
-LoopResult CSelftestPart_FSensor::stateCalibrate() {
+LoopResult CSelftestPart_FSensor::state_calibrate() {
     IFSensor *extruder = GetExtruderFSensor(rConfig.extruder_id);
     if (extruder) {
         extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
-        extruder->Enable(); //must be here for synchronization
+        extruder->Enable(); // must be here for synchronization
     }
     IFSensor *side = GetSideFSensor(rConfig.extruder_id);
     if (side) {
         side->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
-        side->Enable(); //must be here for synchronization
+        side->Enable(); // must be here for synchronization
     }
     log_info(Selftest, "%s calibrating", rConfig.partname);
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateCalibrateWaitFinished() {
+LoopResult CSelftestPart_FSensor::state_calibrate_wait_finished() {
     // this state can take long
     // also I do not know what state open after unload
     // so i will make this state soho for a while to avoid flickering
@@ -241,12 +241,12 @@ LoopResult CSelftestPart_FSensor::stateCalibrateWaitFinished() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateInsertionWaitInit() {
+LoopResult CSelftestPart_FSensor::state_insertion_wait_init() {
     IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_insertion_wait);
     return LoopResult::MarkLoop;
 }
 
-LoopResult CSelftestPart_FSensor::stateInsertionWait() {
+LoopResult CSelftestPart_FSensor::state_insertion_wait() {
     if (AbortAndInvalidateIfAbortPressed())
         return LoopResult::Fail;
 
@@ -288,7 +288,7 @@ LoopResult CSelftestPart_FSensor::stateInsertionWait() {
                 }
                 AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
                 thermalManager.allow_cold_extrude = true;
-                extruder_moved_amount += marlin::extruder_schedule_turning(extruder_fr); // make extruder turn at 4mm/s
+                extruder_moved_amount += mapi::extruder_schedule_turning(extruder_fr); // make extruder turn at 4mm/s
             }
             return LoopResult::RunCurrent;
         default:
@@ -302,12 +302,12 @@ LoopResult CSelftestPart_FSensor::stateInsertionWait() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateInsertionOkInit() {
+LoopResult CSelftestPart_FSensor::state_insertion_ok_init() {
     IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_insertion_ok);
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateInsertionOk() {
+LoopResult CSelftestPart_FSensor::state_insertion_ok() {
     if (AbortAndInvalidateIfAbortPressed())
         return LoopResult::Fail;
     if (rStateMachine.GetButtonPressed() == Response::Continue) {
@@ -333,7 +333,7 @@ LoopResult CSelftestPart_FSensor::stateInsertionOk() {
     return LoopResult::RunCurrent;
 }
 
-LoopResult CSelftestPart_FSensor::stateInsertionCalibrateStart() {
+LoopResult CSelftestPart_FSensor::state_insertion_calibrate_start() {
     IFSensor *extruder = GetExtruderFSensor(rConfig.extruder_id);
     if (extruder) {
         extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateHasFilament);
@@ -349,7 +349,7 @@ LoopResult CSelftestPart_FSensor::stateInsertionCalibrateStart() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateInsertionCalibrateWait() {
+LoopResult CSelftestPart_FSensor::state_insertion_calibrate_wait() {
     if (AbortAndInvalidateIfAbortPressed())
         return LoopResult::Fail;
 
@@ -383,7 +383,7 @@ LoopResult CSelftestPart_FSensor::stateInsertionCalibrateWait() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateEnforceRemoveInit() {
+LoopResult CSelftestPart_FSensor::state_enforce_remove_init() {
     IFSensor *sensor = GetExtruderFSensor(rConfig.extruder_id);
     if (!sensor)
         return LoopResult::Fail;
@@ -409,13 +409,13 @@ LoopResult CSelftestPart_FSensor::stateEnforceRemoveInit() {
         if (rConfig.mmu_mode) {
             AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
             thermalManager.allow_cold_extrude = true;
-            marlin::extruder_move(-extruder_moved_amount, extruder_fr);
+            mapi::extruder_move(-extruder_moved_amount, extruder_fr);
         }
     }
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_FSensor::stateEnforceRemove() {
+LoopResult CSelftestPart_FSensor::state_enforce_remove() {
     if (!show_remove) {
         return LoopResult::RunNext; // OK - there is no filament in fsensor
     }
@@ -442,7 +442,7 @@ LoopResult CSelftestPart_FSensor::stateEnforceRemove() {
     default:
         break;
     }
-    //should never happen
+    // should never happen
     log_error(Selftest, "%s wrong value after ok", rConfig.partname);
     IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
     return LoopResult::Fail;

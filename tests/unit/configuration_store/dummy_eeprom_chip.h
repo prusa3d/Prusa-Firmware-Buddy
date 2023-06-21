@@ -3,9 +3,9 @@
 #include <vector>
 #include <stdint.h>
 #include <span>
-#include "common/storage.hpp"
+#include "storage.hpp"
 
-class DummyEepromChip : public Storage {
+class DummyEepromChip : public configuration_store::Storage {
     std::array<uint8_t, 8096> data;
 
 public:

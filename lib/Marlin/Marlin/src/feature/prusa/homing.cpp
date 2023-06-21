@@ -90,7 +90,7 @@ Motion_Parameters reset_acceleration_if(bool condition) {
     planner.max_jerk.set(XY_HOMING_JERK, XY_HOMING_JERK);
     #endif
 #endif
-    planner.reset_acceleration_rates();
+    planner.refresh_acceleration_rates();
     remember_feedrate_scaling_off();
     return mp;
 }
@@ -101,7 +101,7 @@ void restore_acceleration_if(bool condition, Motion_Parameters &mp) {
 
     restore_feedrate_and_scaling();
     mp.load();
-    planner.reset_acceleration_rates();
+    planner.refresh_acceleration_rates();
 }
 
 el_current_xyz_t reset_current_if(bool condition) {

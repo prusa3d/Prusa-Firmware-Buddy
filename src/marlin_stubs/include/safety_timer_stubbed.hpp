@@ -27,7 +27,7 @@ public:
     expired_t Loop();               // Conditional reset of the internal counter of the safety timer
     void SetInterval(millis_t ms);  // Set expire interval and reset the timer, 0 == disabled.
 
-    void ReInit(); //set default values
+    void ReInit();                  // set default values
 
     void BindPause(IPause &pause);
     void UnbindPause(IPause &pause);

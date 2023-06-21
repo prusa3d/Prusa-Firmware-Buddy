@@ -62,7 +62,7 @@ static void *variant8_malloc(uint16_t size);
 // variant8 free function
 static void variant8_free(void *ptr);
 
-//macros for variant8 structure constants
+// macros for variant8 structure constants
 variant8_t variant8_init(uint8_t type, uint16_t count, void const *pdata) {
     _variant8_t var8;
     uint16_t size;
@@ -589,13 +589,13 @@ variant8_t variant8_from_str(uint8_t type, char *str) {
 
 #ifdef VARIANT8_DBG_MALLOC
 uint32_t variant8_total_malloc_size = 0;
-#endif //VARIANT8_DBG_MALLOC
+#endif // VARIANT8_DBG_MALLOC
 
 static void *variant8_malloc(uint16_t size) {
     void *ptr = malloc(size);
 #ifdef VARIANT8_DBG_MALLOC
     variant8_total_malloc_size += malloc_usable_size(ptr);
-#endif //VARIANT8_DBG_MALLOC
+#endif // VARIANT8_DBG_MALLOC
     return ptr;
 }
 
@@ -603,7 +603,7 @@ static void variant8_free(void *ptr) {
     if (ptr) {
 #ifdef VARIANT8_DBG_MALLOC
         variant8_total_malloc_size -= malloc_usable_size(ptr);
-#endif //VARIANT8_DBG_MALLOC
+#endif // VARIANT8_DBG_MALLOC
         free(ptr);
     }
 }
@@ -615,17 +615,17 @@ void *variant8_realloc(void *ptr, uint16_t size) {
     uint32_t new_size = 0;
     if (ptr)
         old_size = malloc_usable_size(ptr);
-    #endif //VARIANT8_DBG_MALLOC
+    #endif // VARIANT8_DBG_MALLOC
     ptr = realloc(ptr, size);
     #ifdef VARIANT8_DBG_MALLOC
     if (ptr)
         new_size = malloc_usable_size(ptr);
     variant8_total_malloc_size += (new_size - old_size);
-    #endif //VARIANT8_DBG_MALLOC
+    #endif // VARIANT8_DBG_MALLOC
     return ptr;
 }
 #endif
-} //extern "C"
+} // extern "C"
 
 // supported conversions for variant8_change_type
 // from              to               param     description
@@ -705,7 +705,7 @@ public: // assignment operators
     cvariant8 &operator=(const char *val);
 
 private:
-    int32_t get_valid_int() const; //helper for extractors, works ony on integer values
+    int32_t get_valid_int() const; // helper for extractors, works ony on integer values
 public:                            // extractors
     // clang-format off
     operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?   int8_t(data_.flt)           : 0); }
@@ -721,8 +721,8 @@ private:
     enum class operator_x { plus,
         minus,
         multiplies,
-        divides }; //float has no modulus
-    //T should be int types or float - better pass by value
+        divides }; // float has no modulus
+    // T should be int types or float - better pass by value
     template <class T>
     T calc(T lhs, T rhs, operator_x op) {
         switch (op) {
@@ -733,14 +733,14 @@ private:
         case operator_x::divides:
             return lhs / rhs;
         case operator_x::plus:
-        default: //avoid warning
+        default: // avoid warning
             return lhs + rhs;
         }
     }
-    //used by assignment operators like +=
+    // used by assignment operators like +=
     cvariant8 &assignment_operator_x(const cvariant8 &rhs, operator_x op);
 
-public: //arithmetic operators
+public: // arithmetic operators
     cvariant8 &operator+=(const cvariant8 &rhs) {
         return assignment_operator_x(rhs, operator_x::plus);
     }
@@ -829,7 +829,7 @@ public: // assignment operators
     cvariant8 &operator=(const char *val);
 
 private:
-    int32_t get_valid_int() const; //helper for extractors, works ony on integer values
+    int32_t get_valid_int() const; // helper for extractors, works ony on integer values
 public:                            // extractors
     // clang-format off
     operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?   int8_t(flt)           : 0); }
@@ -845,8 +845,8 @@ private:
     enum class operator_x { plus,
         minus,
         multiplies,
-        divides }; //float has no modulus
-    //T should be int types or float - better pass by value
+        divides }; // float has no modulus
+    // T should be int types or float - better pass by value
     template <class T>
     T calc(T lhs, T rhs, operator_x op) {
         switch (op) {
@@ -857,14 +857,14 @@ private:
         case operator_x::divides:
             return lhs / rhs;
         case operator_x::plus:
-        default: //avoid warning
+        default: // avoid warning
             return lhs + rhs;
         }
     }
-    //used by assignment operators like +=
+    // used by assignment operators like +=
     cvariant8 &assignment_operator_x(const cvariant8 &rhs, operator_x op);
 
-public: //arithmetic operators
+public: // arithmetic operators
     cvariant8 &operator+=(const cvariant8 &rhs) {
         return assignment_operator_x(rhs, operator_x::plus);
     }
@@ -1056,8 +1056,8 @@ cvariant8 &cvariant8::operator=(const char *val) {
     return *this;
 }
 
-//helper for extractors
-//works ony on integer values
+// helper for extractors
+// works ony on integer values
 int32_t cvariant8::get_valid_int() const {
     switch (data_.type) {
     case VARIANT8_I8:
@@ -1072,12 +1072,12 @@ int32_t cvariant8::get_valid_int() const {
         return data_.i32;
     case VARIANT8_UI32:
         return data_.ui32;
-    default: //wrong type
+    default: // wrong type
         return 0;
     }
 }
 
-//used by assignment operators like +=
+// used by assignment operators like +=
 cvariant8 &cvariant8::assignment_operator_x(const cvariant8 &rhs, cvariant8::operator_x op) {
     if (data_.type == rhs.data_.type) {
         switch (data_.type) {
@@ -1102,10 +1102,10 @@ cvariant8 &cvariant8::assignment_operator_x(const cvariant8 &rhs, cvariant8::ope
         case VARIANT8_FLT:
             data_.flt = calc(data_.flt, rhs.data_.flt, op);
             break;
-        case VARIANT8_EMPTY: //empty is fine
+        case VARIANT8_EMPTY: // empty is fine
             break;
         default:
-            //unsupported types set error
+            // unsupported types set error
             data_.type = VARIANT8_ERROR;
             break;
         }

@@ -189,7 +189,7 @@ public:
     bool IsHwBroken() { return hw_not_operational; }
 
 private:
-    uint8_t points[max_contacts * sizeof(GTPoint)]; //points buffer
+    uint8_t points[max_contacts * sizeof(GTPoint)]; // points buffer
 
     uint8_t devAddress = 0x5D;
     bool hw_not_operational = false;
@@ -200,5 +200,5 @@ private:
     // cannot use std::atomic<std::optional<GT911::GTPoint>> .. error: static assertion failed: std::atomic requires a trivially copyable type
     // cannot use std::atomic<GT911::GTPoint> either .. undefined reference to `__atomic_store_8'
     // cannot use std::atomic<GT911::point> either .. undefined reference to `__atomic_store'
-    std::atomic<uint32_t> encoded_point = UINT32_MAX; //set all bits to 1, to set bool read, don't care about rest
+    std::atomic<uint32_t> encoded_point = std::numeric_limits<uint32_t>::max(); // set all bits to 1, to set bool read, don't care about rest
 };

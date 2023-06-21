@@ -4,7 +4,9 @@
 
 #include <connect/connect.hpp>
 
+using connect_client::ConnectionStatus;
 using connect_client::OnlineStatus;
+using std::get;
 
 namespace {
 
@@ -58,9 +60,9 @@ void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t
         break;
     case GUI_event_t::LOOP: {
         const OnlineStatus status = connect_client::last_status();
-        if (status != last_seen_status) {
-            switch (status) {
-            case OnlineStatus::RegistrationCode: {
+        if (get<0>(status) != get<0>(last_seen_status)) {
+            switch (get<0>(status)) {
+            case ConnectionStatus::RegistrationCode: {
                 const char *code = connect_client::registration_code();
                 char url_buffer[max_url_len + 1];
                 // Note: the URL hardcoded for production instance. This is
@@ -85,14 +87,14 @@ void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t
                 text.SetText(_("1. Scan the QR code or visit prusa.io/add.\n2. Log in.\n3. Add printer with code:"));
                 break;
             }
-            case OnlineStatus::RegistrationDone: {
+            case ConnectionStatus::RegistrationDone: {
                 hideDetails();
                 text.SetText(_("Done!"));
                 connect_client::leave_registration();
                 left_registration = true;
                 break;
             }
-            case OnlineStatus::RegistrationError: {
+            case ConnectionStatus::RegistrationError: {
                 hideDetails();
                 text.SetText(_("Registration failed. Likely a network error. Try again later."));
                 break;
@@ -106,8 +108,8 @@ void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t
                 // For these, we just keep the default.
                 break;
             }
-            last_seen_status = status;
         }
+        last_seen_status = status;
         break;
     }
     default:

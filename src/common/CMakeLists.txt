@@ -13,6 +13,7 @@ if(BOARD MATCHES ".*BUDDY")
             crc32.cpp
             crc32_zlib.cpp
             eeprom.cpp
+            eeprom_function_api.cpp
             eeprom_loadsave.cpp
             ExtInterruptHandler.cpp
             filename_type.cpp
@@ -37,7 +38,6 @@ if(BOARD MATCHES ".*BUDDY")
             marlin_errors.cpp
             marlin_events.cpp
             marlin_log_component.cpp
-            marlin_move.cpp
             marlin_print_preview.cpp
             marlin_server.cpp
             marlin_vars.cpp
@@ -134,18 +134,16 @@ if(HAS_LOADCELL)
   target_sources(firmware PRIVATE loadcell.cpp)
 endif()
 
-if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
-  if(BOARD MATCHES "XLBUDDY")
-    target_sources(firmware PRIVATE filament_sensors_handler_toolchanger.cpp)
-  elseif(HAS_MMU2)
-    if(PRINTER STREQUAL "MK3.5")
-      target_sources(firmware PRIVATE filament_sensors_handler_mk3.5.cpp)
-    else()
-      target_sources(firmware PRIVATE filament_sensors_handler_mmu.cpp)
-    endif()
+if((BOARD STREQUAL "XBUDDY") OR (BOARD STREQUAL "BUDDY"))
+  if(HAS_MMU2)
+    target_sources(firmware PRIVATE filament_sensors_handler_mmu.cpp)
   else()
-    target_sources(firmware PRIVATE filament_sensors_handler_no_mmu.cpp)
+    target_sources(firmware PRIVATE filament_sensors_handler_no_side_sensor.cpp)
   endif()
+endif()
+
+if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
+  target_sources(firmware PRIVATE filament_sensors_handler_${PRINTER}.cpp)
 endif()
 
 if(GUI)
@@ -165,6 +163,7 @@ endif()
 
 add_subdirectory(filters)
 add_subdirectory(fanctl)
+add_subdirectory(mapi)
 
 if(BOARD MATCHES "BUDDY")
   add_subdirectory(crash_dump)

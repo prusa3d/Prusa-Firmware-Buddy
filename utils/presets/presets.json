@@ -42,8 +42,7 @@
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MK3.5",
                 "BOARD": "<default>",
-                "BOARD_VERSION": "0.2.7",
-                "PRESET_COMPILE_OPTIONS": "-DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX"
+                "BOARD_VERSION": "0.2.7"
             }
         },
         {

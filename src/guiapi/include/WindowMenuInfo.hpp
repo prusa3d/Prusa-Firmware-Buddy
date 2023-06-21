@@ -11,13 +11,13 @@
 #include "GuiDefaults.hpp"
 
 /*****************************************************************************/
-//WI_INFO_t
+// WI_INFO_t
 
 /* MI_INFO_MAX_LEN
-*  Bigger value will chop off some text of MI's label in version screen.
-*  It could be increased, but runtime calculation of extention width is not supported (very complicated).
-*  For now, if string is longer than ..MAX_LEN, it will print only ..MAX_LEN - 1 (null-terminated) chars.
-*/
+ *  Bigger value will chop off some text of MI's label in version screen.
+ *  It could be increased, but runtime calculation of extention width is not supported (very complicated).
+ *  For now, if string is longer than ..MAX_LEN, it will print only ..MAX_LEN - 1 (null-terminated) chars.
+ */
 
 class IWiInfo : public AddSuper<WI_LABEL_t> {
     static constexpr font_t *&InfoFont = GuiDefaults::FontMenuSpecial;
@@ -68,7 +68,7 @@ public:
     static constexpr size_t GetInfoLen() { return INFO_LEN; }
 };
 
-//Dev version of info
+// Dev version of info
 template <size_t INFO_LEN>
 class WiInfoDev : public AddSuper<WiInfo<INFO_LEN>> {
 public:

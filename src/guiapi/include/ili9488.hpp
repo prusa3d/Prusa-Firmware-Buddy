@@ -1,4 +1,4 @@
-//ili9488.hpp
+// ili9488.hpp
 #pragma once
 
 #include "stm32f4xx_hal.h"
@@ -10,16 +10,16 @@
 #include "guiconfig.h"
 #include "display_math_helper.h"
 
-//public flags (config)
-#define ILI9488_FLG_DMA  0x08 // DMA enabled
-#define ILI9488_FLG_MISO 0x10 // MISO enabled
-#define ILI9488_FLG_SAFE 0x20 // SAFE mode (no DMA and safe delay)
+// public flags (config)
+#define ILI9488_FLG_DMA  0x08   // DMA enabled
+#define ILI9488_FLG_MISO 0x10   // MISO enabled
+#define ILI9488_FLG_SAFE 0x20   // SAFE mode (no DMA and safe delay)
 
 #define ILI9488_DEF_COLMOD 0x66 // interface pixel format (6-6-6, hi-color)
 #define ILI9488_DEF_MADCTL 0xE0 // memory data access control (mirror XY)
 
-#define ILI9488_COLS      480 //
-#define ILI9488_ROWS      320 //
+#define ILI9488_COLS      480   //
+#define ILI9488_ROWS      320   //
 #define ILI9488_BUFF_ROWS 8
 
 inline constexpr uint8_t ILI9488_MAX_COMMAND_READ_LENGHT = 4;

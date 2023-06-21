@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 class FSensorEEPROM {
 public:
-    inline static void Set() { eeprom_set_bool(EEVAR_FSENSOR_ENABLED, true); }
-    inline static void Clr() { eeprom_set_bool(EEVAR_FSENSOR_ENABLED, false); }
-    inline static bool Get() { return eeprom_get_bool(EEVAR_FSENSOR_ENABLED); }
+    inline static void Set() { config_store().fsensor_enabled.set(true); }
+    inline static void Clr() { config_store().fsensor_enabled.set(false); }
+    inline static bool Get() { return config_store().fsensor_enabled.get(); }
 };

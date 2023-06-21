@@ -1,24 +1,22 @@
 #include <device/hal.h>
+#include <utility>
 #include "timing.h"
-#include "timing_private.h"
 #include "timer_defaults.h"
 #include "FreeRTOS.h"
 #include "tick_timer_api.h"
 #include "wdt.h"
 #define TICK_TIMER_CNT (h_tick_tim.Instance->CNT)
 
-// cannot use digit separator 1'000'000'000 .. stupid C
-// so i used enum to not make mistake in zeroes count
-enum {
-    thousand = 1000,
-    million = thousand * thousand,
-    billion = million * thousand
-};
+// Large numbers to avoid number of 0s errors
+constexpr const uint32_t thousand = 1000UL;
+constexpr const uint32_t million = thousand * thousand;
+constexpr const uint32_t billion = thousand * thousand * thousand;
+
 static volatile uint32_t tick_cnt_s;
 static TIM_HandleTypeDef h_tick_tim {};
 
-//rewrite weak function
-//no need to call HAL_IncTick(), binded variable is unused
+// rewrite weak function
+// no need to call HAL_IncTick(), binded variable is unused
 extern "C" uint32_t HAL_GetTick(void) {
     return ticks_ms();
 }
@@ -26,29 +24,48 @@ extern "C" uint32_t HAL_GetTick(void) {
 // macro xPortSysTickHandler in FreeRTOSConfig.h must be commented
 extern "C" void xPortSysTickHandler(void);
 
-//interrupt from ARM-CORE timer
+// interrupt from ARM-CORE timer
 extern "C" void SysTick_Handler(void) {
     wdt_tick_1ms();
     xPortSysTickHandler();
 }
 
-extern "C" uint64_t timestamp_ns() {
-    while (1) {
-        // could use 64 bit variable for seconds, but it would increase chance of overflow
-        volatile uint32_t sec_1st_read = tick_cnt_s;
-        volatile uint32_t lower_cnt = TICK_TIMER_CNT;
-        volatile uint32_t sec_2nd_read = tick_cnt_s;
+#pragma GCC push_options
+#pragma GCC optimize("Ofast")
 
-        if (sec_1st_read != sec_2nd_read)
-            // an overflow of the timer has happened, lets try again
-            continue;
+/**
+ * @brief Safely sample tick timer without the risk of race.
+ * @param[out] sec seconds since boot
+ * @param[out] subsec subseconds in TIM_BASE_CLK_MHZ, overflows every 1 second
+ * @note Both subsec and sec need to be consistent, subsec will overlflow to 0 at the same time as sec increments.
+ */
+static void sample_timer(uint32_t &sec, uint32_t &subsec) {
+    volatile uint32_t sec_1st_read;
+    volatile uint32_t lower_cnt;
+    volatile uint32_t sec_2nd_read;
 
-        uint64_t ret = clock_to_ns(lower_cnt);
-        ret %= billion;                                    //remove seconds from nanosecond variable
-        ret += (uint64_t)billion * (uint64_t)sec_1st_read; //convert seconds to nano seconds
+    do {
+        sec_1st_read = tick_cnt_s;
+        lower_cnt = TICK_TIMER_CNT;         // Will be in range 0 .. TIM_BASE_CLK_MHZ * million - 1
+        sec_2nd_read = tick_cnt_s;
+    } while (sec_1st_read != sec_2nd_read); // Repeat if overflow of the timer has happened
 
-        return ret;
-    }
+    sec = sec_1st_read;
+    subsec = lower_cnt;
+}
+
+extern "C" int64_t get_timestamp_us() {
+    uint32_t sec, subsec;
+    sample_timer(sec, subsec);
+
+    return static_cast<int64_t>(sec) * static_cast<int64_t>(billion) + (subsec / TIM_BASE_CLK_MHZ);
+}
+
+extern "C" timestamp_t get_timestamp() {
+    uint32_t sec, subsec;
+    sample_timer(sec, subsec);
+
+    return { sec, (subsec / TIM_BASE_CLK_MHZ) };
 }
 
 extern "C" uint32_t ticks_s() {
@@ -56,19 +73,17 @@ extern "C" uint32_t ticks_s() {
 }
 
 extern "C" uint32_t ticks_ms() {
-    uint64_t val = timestamp_ns();
-    val /= (uint64_t)million;
-    return (uint32_t)val;
+    uint32_t sec, subsec;
+    sample_timer(sec, subsec);
+
+    return sec * thousand + subsec / (TIM_BASE_CLK_MHZ * thousand);
 }
 
 extern "C" uint32_t ticks_us() {
-    uint64_t ret = timestamp_ns();
-    ret /= (uint64_t)thousand;
-    return (uint32_t)ret;
-}
+    uint32_t sec, subsec;
+    sample_timer(sec, subsec);
 
-extern "C" uint32_t ticks_ns() {
-    return clock_to_ns(TICK_TIMER_CNT);
+    return sec * million + subsec / TIM_BASE_CLK_MHZ;
 }
 
 extern "C" void TICK_TIMER_IRQHandler() {
@@ -78,6 +93,8 @@ extern "C" void TICK_TIMER_IRQHandler() {
 extern "C" void app_tick_timer_overflow() {
     ++tick_cnt_s;
 }
+
+#pragma GCC pop_options
 
 extern "C" void HAL_SuspendTick() {
     __HAL_TIM_DISABLE_IT(&h_tick_tim, TIM_IT_UPDATE);
@@ -117,7 +134,7 @@ extern "C" HAL_StatusTypeDef tick_timer_init() {
     TICK_TIMER_CLK_ENABLE();
 
     h_tick_tim.Instance = TICK_TIMER;
-    h_tick_tim.Init.Prescaler = 0; // no prescaler = we get full 84Mhz
+    h_tick_tim.Init.Prescaler = 0;                             // no prescaler = we get full 84Mhz
     h_tick_tim.Init.CounterMode = TIM_COUNTERMODE_UP;
     h_tick_tim.Init.Period = (TIM_BASE_CLK_MHZ * million) - 1; // set period to 1s
     h_tick_tim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

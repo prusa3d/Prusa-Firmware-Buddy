@@ -34,7 +34,7 @@ void PrintProcessor::fsm_cb(uint32_t u32, uint16_t u16) {
         } else if (change.get_fsm_type() == ClientFSM::Load_unload) {
             FSensors_instance().IncEvLock(); // ClientFSM::Load_unload create
         }
-        *fsm_type = change.get_fsm_type(); // store new FSM type
+        *fsm_type = change.get_fsm_type();   // store new FSM type
     }
 }
 

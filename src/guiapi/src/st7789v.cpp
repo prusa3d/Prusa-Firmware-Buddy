@@ -78,12 +78,12 @@ enum {
     CLR565_BLUE = 0x001f,
 };
 
-uint8_t st7789v_flg = 0; // flags
+uint8_t st7789v_flg = 0;                                    // flags
 
-uint16_t st7789v_x = 0;  // current x coordinate (CASET)
-uint16_t st7789v_y = 0;  // current y coordinate (RASET)
-uint16_t st7789v_cx = 0; //
-uint16_t st7789v_cy = 0; //
+uint16_t st7789v_x = 0;                                     // current x coordinate (CASET)
+uint16_t st7789v_y = 0;                                     // current y coordinate (RASET)
+uint16_t st7789v_cx = 0;                                    //
+uint16_t st7789v_cy = 0;                                    //
 
 uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; // 16 lines buffer
 
@@ -216,12 +216,12 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
 }
 
 void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
-    uint16_t tmp_flg = st7789v_flg; // save flags
+    uint16_t tmp_flg = st7789v_flg;        // save flags
     if (st7789v_flg & FLG_CS)
-        st7789v_clr_cs(); // CS = L
+        st7789v_clr_cs();                  // CS = L
     if (st7789v_flg & FLG_RS)
-        st7789v_clr_rs();     // RS = L
-    st7789v_spi_wr_byte(cmd); // write command byte
+        st7789v_clr_rs();                  // RS = L
+    st7789v_spi_wr_byte(cmd);              // write command byte
     if (pdata && size) {
         st7789v_set_rs();                  // RS = H
         st7789v_spi_wr_bytes(pdata, size); // write data bytes
@@ -235,9 +235,9 @@ void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
 void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS)
-        st7789v_clr_cs(); // CS = L
+        st7789v_clr_cs();           // CS = L
     if (st7789v_flg & FLG_RS)
-        st7789v_clr_rs(); // RS = L
+        st7789v_clr_rs();           // RS = L
     uint8_t data_to_write[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     data_to_write[0] = cmd;
     data_to_write[1] = 0x00;
@@ -249,28 +249,28 @@ void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
 
 void st7789v_wr(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
-        return;                     // null or empty data - return
-    uint16_t tmp_flg = st7789v_flg; // save flags
+        return;                        // null or empty data - return
+    uint16_t tmp_flg = st7789v_flg;    // save flags
     if (st7789v_flg & FLG_CS)
-        st7789v_clr_cs(); // CS = L
+        st7789v_clr_cs();              // CS = L
     if (!(st7789v_flg & FLG_RS))
         st7789v_set_rs();              // RS = H
     st7789v_spi_wr_bytes(pdata, size); // write data bytes
     if (tmp_flg & FLG_CS)
-        st7789v_set_cs(); // CS = H
+        st7789v_set_cs();              // CS = H
 }
 
 void st7789v_rd(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
-        return;                     // null or empty data - return
-    uint16_t tmp_flg = st7789v_flg; // save flags
+        return;                        // null or empty data - return
+    uint16_t tmp_flg = st7789v_flg;    // save flags
     if (st7789v_flg & FLG_CS)
-        st7789v_clr_cs(); // CS = L
+        st7789v_clr_cs();              // CS = L
     if (!(st7789v_flg & FLG_RS))
         st7789v_set_rs();              // RS = H
     st7789v_spi_rd_bytes(pdata, size); // read data bytes
     if (tmp_flg & FLG_CS)
-        st7789v_set_cs(); // CS = H
+        st7789v_set_cs();              // CS = H
 }
 
 void st7789v_cmd_slpout(void) {
@@ -620,7 +620,7 @@ void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
             if (rowsize > ST7789V_COLS * 4)
                 goto _e_1;
 
-            //target coordinates have to be substracted form display sizes to be able to fit it on the screen
+            // target coordinates have to be substracted form display sizes to be able to fit it on the screen
             const Rect16 MaxSubrect(0, 0, MIN(w, ST7789V_COLS - point_x), MIN(h, ST7789V_ROWS - point_y));
 
             // recalculate subrect
@@ -803,7 +803,7 @@ void st7789v_ctrl_set(uint8_t ctrl) {
     st7789v_cmd(CMD_WRCTRLD, &st7789v_config.control, sizeof(st7789v_config.control));
 }
 
-#else // ST7789V_PNG_SUPPORT
+#else  // ST7789V_PNG_SUPPORT
 
 void st7789v_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect) {}
 

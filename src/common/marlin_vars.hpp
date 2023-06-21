@@ -12,6 +12,10 @@
 #include "inc/MarlinConfig.h"
 #include <assert.h>
 
+#if BOARD_IS_DWARF
+    #error "You're trying to add marlin_vars to Dwarf. Don't!"
+#endif /*BOARD_IS_DWARF*/
+
 class MarlinVarsLockGuard {
 public:
     [[nodiscard]] MarlinVarsLockGuard();
@@ -80,6 +84,7 @@ public:
 private:
     /// @brief  Underlying atomic variable
     std::atomic<T> value;
+    static_assert(std::atomic<T>::is_always_lock_free, "MarlinVariable needs to be lock free, no structures allowed!");
 
     // disable copy operators
     MarlinVariable &operator=(const MarlinVariable &) = delete;
@@ -200,8 +205,19 @@ public:
     marlin_vars_t() {}
     void init();
 
-    MarlinVariable<float> pos[4];      // position XYZE [mm]
-    MarlinVariable<float> curr_pos[4]; // current position XYZE according to G-code [mm]
+    /**
+     * @brief Printer position.
+     * @note Not using structures to not lock Marlin too often.
+     * Native coordinates are position of steppers or machine coordinates. Obtained from logical coordinates after applying tool and workspace offsets.
+     * Logical coordinates are G-code coordinates compensating for workspace and tool offsets.
+     * @todo When we have strong types for coordinates, we could give only native and user would convert coordinate systems on his own.
+     * pos is taken from immediate stepper position.
+     * curr_pos is taken from Marlin's current_position variable which is the target of current move before MBL is compensated.
+     */
+    MarlinVariable<float> native_pos[4];       ///< immediate position XYZE (native coordinates) [mm]
+    MarlinVariable<float> logical_pos[4];      ///< immediate position XYZE (logical coordinates) [mm]
+    MarlinVariable<float> native_curr_pos[4];  ///< current position XYZE (native coordinates) [mm]
+    MarlinVariable<float> logical_curr_pos[4]; ///< current position XYZE (logical coordinates) [mm]
 
     MarlinVariable<float> temp_bed;            // bed temperature [C]
     MarlinVariable<float> target_bed;          // bed target temperature [C]

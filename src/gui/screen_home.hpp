@@ -1,4 +1,4 @@
-//screen_home.hpp
+// screen_home.hpp
 #pragma once
 #include "window_header.hpp"
 #include "status_footer.hpp"
@@ -14,7 +14,7 @@ public:
 
 private:
     static bool usbWasAlreadyInserted; // usb inserted at least once
-    static bool ever_been_opened;      //set by ctor
+    static bool ever_been_opened;      // set by ctor
     static bool try_esp_flash;         // we try this maximum once
     static bool touch_broken_during_run;
 
@@ -34,8 +34,6 @@ private:
     window_text_t w_labels[button_count];
 
     GCodeInfo &gcode;
-
-    window_dlg_wait_t please_wait_msg; ///< Message shown while a file is being parsed
 
 public:
     static void SetTouchBrokenDuringRun() { touch_broken_during_run = true; }

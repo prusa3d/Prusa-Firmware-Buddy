@@ -22,7 +22,6 @@ using http::HeaderOut;
 using http::HttpClient;
 using http::Method;
 using http::Request;
-using http::Response;
 using json::ChunkRenderer;
 using json::JsonOutput;
 using json::JsonRenderer;
@@ -31,6 +30,7 @@ using std::array;
 using std::get;
 using std::holds_alternative;
 using std::min;
+using std::monostate;
 using std::nullopt;
 using std::optional;
 
@@ -44,11 +44,6 @@ namespace {
     constexpr Duration SLEEP_MAX_MS = 125;
     // Ask the server this often.
     constexpr Duration POLL_INTERVAL_MS = 5 * 1000;
-    // We are a bit lazy around the initial getting of the code. But we don't
-    // want to report failure if something temporary happens during the polling
-    // if user has already used the code, so we give it few tries before giving
-    // up.
-    constexpr size_t MAX_POLL_RETRIES = 3;
 
     struct ReqData {
         Printer::PrinterInfo printer_info;
@@ -138,12 +133,12 @@ namespace {
     };
 }
 
-optional<OnlineStatus> Registrator::communicate(RefreshableFactory &conn_factory) {
+CommResult Registrator::communicate(RefreshableFactory &conn_factory) {
     const auto [config, cfg_changed] = printer.config();
 
     if (cfg_changed) {
         conn_factory.invalidate();
-        return nullopt;
+        return monostate {};
     }
 
     conn_factory.refresh(config);
@@ -154,90 +149,90 @@ optional<OnlineStatus> Registrator::communicate(RefreshableFactory &conn_factory
     if (since_last <= POLL_INTERVAL_MS) {
         Duration sleep_for = min(POLL_INTERVAL_MS - since_last, SLEEP_MAX_MS);
         sleep_raw(sleep_for);
-        return nullopt;
+        return monostate {};
     }
 
-    auto exchange = [&](auto req, auto extract, auto callback) -> optional<OnlineStatus> {
+    auto exchange = [&](auto req, auto extract, auto retries_callback, auto callback) -> CommResult {
         HttpClient http(conn_factory);
         auto result = http.send(req, extract);
         last_comm = now();
         if (holds_alternative<Error>(result)) {
-            return bail();
+            return bail(conn_factory, err_to_status(get<Error>(result)), retries_callback());
         }
 
-        Response resp = get<Response>(result);
+        http::Response resp = get<http::Response>(result);
         // Unfortunately, Connect sends us bodies that we don't read (because
         // they are useless), which would poison the next iteration. Throw the
         // connection out. Such a waste :-(.
         conn_factory.invalidate();
 
-        return callback(resp);
+        auto processed = callback(resp);
+        if (holds_alternative<OnlineError>(processed)) {
+            return bail(conn_factory, get<OnlineError>(processed), retries_callback());
+        } else {
+            return processed;
+        }
     };
 
     switch (status) {
     case Status::Init: {
         ExtractCode code;
         PostRequest req(printer.printer_info());
-        return exchange(req, &code, [&](Response &resp) -> optional<OnlineStatus> {
+        return exchange(
+            req, &code, [&]() -> optional<uint8_t> { return --retries_left; }, [&](http::Response &resp) -> CommResult {
             switch (resp.status) {
             case http::Status::Ok: {
                 if (code.code_len == 0) {
                     // Didn't get the code.
-                    bail();
+                    return OnlineError::Server;
                 }
 
                 // Already contains the \0
                 this->code = code.code;
 
                 status = Status::GotCode;
-                retries_left = MAX_POLL_RETRIES;
-                return OnlineStatus::RegistrationCode;
+                return ConnectionStatus::RegistrationCode;
             }
             default:
-                return bail();
-            }
-        });
+                return OnlineError::Server;
+            } });
     }
     case Status::GotCode: {
         ExtractToken token;
         PollRequest req(code.begin());
-        return exchange(req, &token, [&](Response &resp) -> optional<OnlineStatus> {
+        return exchange(
+            req, &token, []() -> optional<uint8_t> { return nullopt; }, [&](http::Response &resp) -> CommResult {
             switch (resp.status) {
             case http::Status::Accepted:
             case http::Status::NoContent:
-                retries_left = MAX_POLL_RETRIES;
                 // Not yet...
                 // Accepted is what the docs say, but NoContent is what would actually make sense O:-) ... so having both.
-                return nullopt;
+                return monostate {};
             case http::Status::Ok: {
                 if (token.token_len == 0) {
-                    bail();
+                    return OnlineError::Server;
                 }
                 printer.init_connect(token.token.begin());
                 status = Status::Done;
-                return OnlineStatus::RegistrationDone;
+                return ConnectionStatus::RegistrationDone;
             }
             default:
-                if (retries_left <= 1) {
-                    return bail();
-                } else {
-                    // Not fatal problem, retry later.
-                    retries_left--;
-                    return nullopt;
-                }
-            }
-        });
+                return OnlineError::Server;
+            } });
     }
     case Status::Done:
     case Status::Error:
     default:
-        return nullopt;
+        return monostate {};
     }
 }
 
-OnlineStatus Registrator::bail() {
-    status = Status::Error;
-    return OnlineStatus::RegistrationError;
+CommResult Registrator::bail(RefreshableFactory &conn_factory, OnlineError error, optional<uint8_t> retries) {
+    if (retries == 0) {
+        conn_factory.invalidate();
+        status = Status::Error;
+    }
+    return ErrWithRetry { error, retries };
 }
 
 const char *Registrator::get_code() const {

@@ -14,7 +14,7 @@ repos:
     - id: clang-format
       name: clang-format
       description: This hook automatically checks and reformats changed files using clang-format formatter.
-      entry: './.dependencies/clang-format-9.0.0-noext/clang-format'
+      entry: './.dependencies/clang-format-16-83817c2f/clang-format'
       language: script
       files: \.(h\+\+|h|hh|hxx|hpp|cuh|c|cc|cpp|cu|c\+\+|cxx|tpp|txx)$
       args: ['-i', '-style=file']
@@ -55,7 +55,8 @@ exclude: |
         Marlin/src(/gcode)?/feature/input_shaper/|
         Marlin/src(/gcode)?/feature/pressure_advance/|
         Marlin/src(/gcode)?/feature/precise_stepping/|
-        Marlin/src/module/prusa/
+        Marlin/src/module/prusa/|
+        Marlin/src/gcode/calibrate/M958.cpp
       )|
     ^lib/Prusa-Error-Codes/|
     ^lib/TMCStepper/|
@@ -79,5 +80,8 @@ exclude: |
     ^lib/Middlewares/Third_Party/CycloneTCP/|
     ^lib/Middlewares/Third_Party/mbedtls/|
     ^lib/liblightmodbus/|
+    ^lib/QR/|
+    ^lib/cthash/|
+    ^lib/LiquidCrystal_I2C/|
     ^lib/CrashCatcher/
   )

@@ -55,7 +55,7 @@
 #define MARLIN_PIN_NR_E0_DIR  MARLIN_PIN_NR_0
 
 // virtual pins, that are redirected to dwarf/modualr bed
-#define MARLIN_PORT_Z_MIN   MARLIN_PORT_V //Virtual pin
+#define MARLIN_PORT_Z_MIN   MARLIN_PORT_V // Virtual pin
 #define MARLIN_PIN_NR_Z_MIN MARLIN_PIN_NR_1
 
 #define MARLIN_PORT_XY_PROBE   MARLIN_PORT_V

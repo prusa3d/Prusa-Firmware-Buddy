@@ -1,0 +1,20 @@
+FROM ubuntu:22.04
+RUN apt-get clean && \
+    apt-get update -qq -y
+RUN apt-get install -y curl python3 python3-pip libncurses5 g++-multilib
+RUN apt-get install -y git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev ninja-build
+RUN apt-get install -y libaio-dev libbluetooth-dev libcapstone-dev libbrlapi-dev libbz2-dev
+RUN apt-get install -y libcap-ng-dev libcurl4-gnutls-dev libgtk-3-dev
+RUN apt-get install -y libibverbs-dev libncurses5-dev libnuma-dev
+RUN apt-get install -y librbd-dev librdmacm-dev
+RUN apt-get install -y libsasl2-dev libsdl2-dev libseccomp-dev libsnappy-dev libssh-dev
+RUN apt-get install -y libvde-dev libvdeplug-dev libvte-2.91-dev libxen-dev liblzo2-dev
+RUN apt-get install -y valgrind xfslibs-dev
+RUN apt-get install -y libgl1 libglu1 freeglut3 libglew2.2 libepoxy-dev libusb-1.0-0-dev
+
+RUN pip3 install pip==22
+RUN pip3 install pytest pytest-asyncio easyocr aiohttp
+WORKDIR /work
+ADD utils/bootstrap.py utils/bootstrap.py
+ADD utils/debug utils/debug
+RUN python3 utils/bootstrap.py && rm -rf utils

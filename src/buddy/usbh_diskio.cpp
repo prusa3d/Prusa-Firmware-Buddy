@@ -1,6 +1,5 @@
 #include "ff_gen_drv.h"
 #include "usbh_diskio.h"
-#include "wdt.h"
 
 LOG_COMPONENT_REF(USBHost);
 
@@ -94,10 +93,6 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
             break;
         }
     }
-
-    // During seek of a very large file, watchdog triggered
-    // This is first place directly in buddy repository
-    wdt_iwdg_refresh();
 
     return res;
 }

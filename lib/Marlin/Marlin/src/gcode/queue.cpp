@@ -69,7 +69,7 @@ uint8_t GCodeQueue::length = 0,  // Count of commands in the queue
 
 char GCodeQueue::command_buffer[BUFSIZE][MAX_CMD_SIZE];
 
-uint32_t GCodeQueue::sdpos = -1;
+uint32_t GCodeQueue::sdpos = GCodeQueue::SDPOS_INVALID;
 uint32_t GCodeQueue::sdpos_buffer[BUFSIZE];
 
 /*

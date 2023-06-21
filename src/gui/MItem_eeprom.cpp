@@ -5,7 +5,6 @@
  */
 #include "MItem_eeprom.hpp"
 #include "i2c.h"
-#include "eeprom.h"
 #include "eeprom_loadsave.h"
 #include "GuiDefaults.hpp"
 #include "i18n.h"
@@ -31,53 +30,29 @@ constexpr static const char *label_RECEIVE_UNDEF = (use_long_text) ? "RECEIVE_UN
 // meant to be used in dev mode
 
 MI_EEPROM_INIT_CRC_ERROR::MI_EEPROM_INIT_CRC_ERROR()
-    : WI_INFO_DEV_t(eeprom_init_crc_error(), string_view_utf8::MakeCPUFLASH((const uint8_t *)label_CRC_ERR)) {
+    : WI_INFO_DEV_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_CRC_ERR)) { // TODO(ConfigStore) : Not migrated
 }
 
 MI_EEPROM_INIT_UPGRADED::MI_EEPROM_INIT_UPGRADED()
-    : WI_INFO_DEV_t(eeprom_init_upgraded(), string_view_utf8::MakeCPUFLASH((const uint8_t *)label_UPGRADED)) {
+    : WI_INFO_DEV_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_UPGRADED)) { // TODO(ConfigStore) : Not migrated
 }
 
 MI_EEPROM_INIT_UPGRADE_FAILED::MI_EEPROM_INIT_UPGRADE_FAILED()
-    : WI_INFO_DEV_t(eeprom_init_upgrade_failed(), string_view_utf8::MakeCPUFLASH((const uint8_t *)label_UPGRADE_FAILED)) {
+    : WI_INFO_DEV_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_UPGRADE_FAILED)) { // TODO(ConfigStore) : Not migrated
 }
 
 MI_I2C_TRANSMIT_RESULTS_HAL_OK::MI_I2C_TRANSMIT_RESULTS_HAL_OK()
     : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_OK, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_OK)) {
 }
 
-MI_I2C_TRANSMIT_RESULTS_HAL_ERROR::MI_I2C_TRANSMIT_RESULTS_HAL_ERROR()
-    : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_ERROR, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_ERROR)) {
-}
-
 MI_I2C_TRANSMIT_RESULTS_HAL_BUSY::MI_I2C_TRANSMIT_RESULTS_HAL_BUSY()
     : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_BUSY, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_BUSY)) {
-}
-
-MI_I2C_TRANSMIT_RESULTS_HAL_TIMEOUT::MI_I2C_TRANSMIT_RESULTS_HAL_TIMEOUT()
-    : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_HAL_TIMEOUT, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_TIMEOUT)) {
-}
-
-MI_I2C_TRANSMIT_RESULTS_UNDEF::MI_I2C_TRANSMIT_RESULTS_UNDEF()
-    : WI_INFO_DEV_t(I2C_TRANSMIT_RESULTS_UNDEF, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_TRANSMIT_UNDEF)) {
 }
 
 MI_I2C_RECEIVE_RESULTS_HAL_OK::MI_I2C_RECEIVE_RESULTS_HAL_OK()
     : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_HAL_OK, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_OK)) {
 }
 
-MI_I2C_RECEIVE_RESULTS_HAL_ERROR::MI_I2C_RECEIVE_RESULTS_HAL_ERROR()
-    : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_HAL_ERROR, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_ERROR)) {
-}
-
 MI_I2C_RECEIVE_RESULTS_HAL_BUSY::MI_I2C_RECEIVE_RESULTS_HAL_BUSY()
     : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_HAL_BUSY, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_BUSY)) {
-}
-
-MI_I2C_RECEIVE_RESULTS_HAL_TIMEOUT::MI_I2C_RECEIVE_RESULTS_HAL_TIMEOUT()
-    : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_HAL_TIMEOUT, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_TIMEOUT)) {
-}
-
-MI_I2C_RECEIVE_RESULTS_UNDEF::MI_I2C_RECEIVE_RESULTS_UNDEF()
-    : WI_INFO_DEV_t(I2C_RECEIVE_RESULTS_UNDEF, string_view_utf8::MakeCPUFLASH((const uint8_t *)label_RECEIVE_UNDEF)) {
 }

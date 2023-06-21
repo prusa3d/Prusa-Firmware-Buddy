@@ -49,7 +49,7 @@ private:
         static constexpr Rect16 codeRect();
     };
 
-    connect_client::OnlineStatus last_seen_status = connect_client::OnlineStatus::Unknown;
+    connect_client::OnlineStatus last_seen_status = std::make_tuple(connect_client::ConnectionStatus::Unknown, connect_client::OnlineError::NoError, std::nullopt);
     bool left_registration = false;
 
     window_header_t header;
@@ -68,5 +68,5 @@ protected:
 
 public:
     static void Show();
-    ~DialogConnectRegister();
+    virtual ~DialogConnectRegister();
 };

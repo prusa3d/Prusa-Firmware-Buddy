@@ -25,7 +25,7 @@ class SelftestFrameFSensor : public AddSuperWindow<SelftestFrameNamedWithRadio> 
     window_icon_hourglass_t animation;
     window_text_t text_animation; // animation test
 
-    window_text_t text_result; // in middle of screen
+    window_text_t text_result;    // in middle of screen
 
 protected:
     virtual void change() override;

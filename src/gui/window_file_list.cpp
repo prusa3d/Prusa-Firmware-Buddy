@@ -15,12 +15,13 @@
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
 #include "png_resources.hpp"
+#include <configuration_store.hpp>
 #if _DEBUG
     #include "bsod.h"
 #endif
 
 GuiFileSort::GuiFileSort() {
-    sort = WF_Sort_t(eeprom_get_ui8(EEVAR_FILE_SORT));
+    sort = static_cast<WF_Sort_t>(config_store().file_sort.get());
 }
 
 GuiFileSort &GuiFileSort::instance() {
@@ -36,7 +37,7 @@ void GuiFileSort::Set(WF_Sort_t val) {
     if (instance().sort == val)
         return;
 
-    eeprom_set_ui8(EEVAR_FILE_SORT, (uint8_t)val);
+    config_store().file_sort.set(static_cast<uint8_t>(val));
     instance().sort = val;
 }
 
@@ -155,8 +156,8 @@ void window_file_list_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unu
     case GUI_event_t::ENC_UP:
         inc((int)param);
         break;
-    case GUI_event_t::FOCUS1: //focus set
-    case GUI_event_t::CAPT_1: //capture set
+    case GUI_event_t::FOCUS1: // focus set
+    case GUI_event_t::CAPT_1: // capture set
         selectNewItem();
         break;
     case GUI_event_t::TEXT_ROLL:
@@ -216,7 +217,7 @@ void window_file_list_t::inc(int dif) {
         return;
     }
 
-    //can not use Invalidate, it would cause redraw of background
+    // can not use Invalidate, it would cause redraw of background
     valid_items.fill(false);
     activeItem.clrFocus();
     selectNewItem();
@@ -263,7 +264,7 @@ void window_file_list_t::roll_screen(int dif) {
         return;
     }
 
-    //can not use Invalidate, it would cause redraw of background
+    // can not use Invalidate, it would cause redraw of background
     valid_items.fill(false);
     activeItem.clrFocus();
     selectNewItem();
@@ -297,7 +298,7 @@ void window_file_list_t::SetRoot(char *rootPath) {
 }
 
 void window_file_list_t::invalidate(Rect16 validation_rect) {
-    valid_items.fill(false); //TODO respect validation_rect
+    valid_items.fill(false); // TODO respect validation_rect
     entire_window_invalid = true;
     activeItem.clrFocus();
     selectNewItem();
@@ -312,7 +313,7 @@ void window_file_list_t::invalidateItem(int index) {
 }
 
 void window_file_list_t::validate(Rect16 validation_rect) {
-    valid_items.fill(true); //TODO respect validation_rect
+    valid_items.fill(true); // TODO respect validation_rect
     super::validate(validation_rect);
     entire_window_invalid = false;
 }

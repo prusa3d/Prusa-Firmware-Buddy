@@ -51,7 +51,7 @@ public:
     IRadioButton &operator++(); // Prefix increment operator no overflow
     IRadioButton &operator--(); // Prefix decrement operator no underflow
 
-    Response Click() const; //click returns response to be send, 0 buttons will return Response::_none
+    Response Click() const;     // click returns response to be send, 0 buttons will return Response::_none
     bool IsEnabled() const;
 
     void SetBtnIndex(uint8_t index);
@@ -69,17 +69,17 @@ protected:
     virtual const PhaseTexts *getAlternativeTexts() const { return nullptr; }
 
     void invalidateWhatIsNeeded();
-    void validateBtnIndex(); //needed for iconned layout
+    void validateBtnIndex(); // needed for iconned layout
     bool isIndexValid(size_t index);
-    size_t maxSize() const; //depends id it is iconned
+    size_t maxSize() const;  // depends id it is iconned
     Responses_t generateResponses(const PhaseResponses &resp) const;
 
     static size_t cnt_labels(const PhaseTexts *labels);
     static size_t cnt_responses(Responses_t resp);
     static size_t cnt_buttons(const PhaseTexts *labels, Responses_t resp);
 
-    //radio buttons currently do not support layout change
-    //it is done by having multiple radio buttons and show/hide them
+    // radio buttons currently do not support layout change
+    // it is done by having multiple radio buttons and show/hide them
     virtual void setRedLayout() override {}
     virtual void setBlackLayout() override {}
 };

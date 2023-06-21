@@ -12,15 +12,15 @@
 #include "png_resources.hpp"
 #include <option/has_side_fsensor.h>
 
-//hourglass wuth text
+// hourglass wuth text
 static constexpr size_t row_2 = 140;
 static constexpr size_t row_3 = 200;
 
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 
 static constexpr size_t text_icon_space = 24;
-static constexpr size_t icon_left_width = 100;  //150x130
-static constexpr size_t icon_right_width = 150; //100x100
+static constexpr size_t icon_left_width = 100;  // 150x130
+static constexpr size_t icon_right_width = 150; // 100x100
 static constexpr size_t text_left_width = WizardDefaults::X_space - icon_right_width - text_icon_space;
 static constexpr size_t text_right_width = WizardDefaults::X_space - icon_left_width - text_icon_space;
 
@@ -73,14 +73,14 @@ void SelftestFrameFSensor::change() {
     bool show_left_icon = false;                  // spool
     bool show_hourglass = false;
 
-    //texts
+    // texts
     switch (phase_current) {
     case PhasesSelftest::FSensor_wait_tool_pick:
         txt_right = N_("Please wait until a tool is picked");
         show_left_icon = true;
         break;
     case PhasesSelftest::FSensor_ask_unload:
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
         txt_right = N_("Please make sure there is no filament in the tool and side filament sensors.\n\nYou will need filament to finish this test later.");
 #else
         txt_right = N_("We need to start without the filament in the extruder. Please make sure there is no filament in the filament sensor.");
@@ -88,7 +88,7 @@ void SelftestFrameFSensor::change() {
         show_left_icon = true;
         break;
     case PhasesSelftest::FSensor_unload_confirm:
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
         txt_right = N_("Is there any filament in the tool or side filament sensors?");
 #else
         txt_right = N_("Is filament in the filament sensor?");
@@ -99,7 +99,7 @@ void SelftestFrameFSensor::change() {
         show_hourglass = true;
         break;
     case PhasesSelftest::FSensor_insertion_wait:
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
         txt_left = N_("Insert the filament through the side filament sensor into the extruder until the tool filament sensor detects the filament.");
 #else
         txt_left = N_("Insert the filament into the extruder until the sensor detects the filament.");
@@ -119,7 +119,7 @@ void SelftestFrameFSensor::change() {
         right_icon_id = &png::hand_with_filament_150x130;
         break;
     case PhasesSelftest::FSensor_done:
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
         txt_right = N_("Filament sensors calibrated.");
 #else
         txt_right = N_("Filament sensor calibrated.");

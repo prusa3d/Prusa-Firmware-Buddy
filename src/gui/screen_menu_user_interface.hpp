@@ -11,10 +11,11 @@
 #include "MItem_menus.hpp"
 #include "printers.h"
 #include <option/has_side_leds.h>
+#include <option/has_toolchanger.h>
 
 using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_FOOTER_SETTINGS, MI_SORT_FILES, MI_PRINT_PROGRESS_TIME, MI_TIMEOUT, MI_SOUND_MODE, MI_HEATUP_BED
-#if (PRINTER_TYPE != PRINTER_PRUSA_XL && PRINTER_TYPE != PRINTER_PRUSA_MK4 && PRINTER_TYPE != PRINTER_PRUSA_MK3_5)
+#if (!PRINTER_IS_PRUSA_XL && !PRINTER_IS_PRUSA_MK4 && !PRINTER_IS_PRUSA_MK3_5)
     ,
     MI_SOUND_VOLUME
 #endif
@@ -26,7 +27,11 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     ,
     MI_SIDE_LEDS_ENABLE
 #endif
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL) || (PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5)
+#if HAS_TOOLCHANGER()
+    ,
+    MI_TOOL_LEDS_ENABLE
+#endif /*HAS_TOOLCHANGER()*/
+#if PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
     ,
     MI_ENABLE_TOUCH, MI_TOUCH_ERR_COUNT, MI_I2C_WORKAROUND, MI_I2C_FORCE_RESET, MI_I2C_RELEASE_FORCE_RESET, MI_DISPI2C_RST
 #endif

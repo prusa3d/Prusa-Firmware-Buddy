@@ -18,8 +18,8 @@ constexpr bool IsInLeftOpenRange(const T &value, const T &left, const T &right);
 template <typename T>
 constexpr bool IsInRightOpenRange(const T &value, const T &left, const T &right);
 
-//only operator < used .. fewer dependencies
-//everithing is private, only friend functions can use it
+// only operator < used .. fewer dependencies
+// everithing is private, only friend functions can use it
 template <class T>
 class range__ {
     static constexpr bool open_interval(const T &value, const T &low, const T &high) {

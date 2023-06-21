@@ -11,11 +11,11 @@
 #include <inttypes.h>
 #include "window_types.hpp" // BtnState_t
 
-//old encoder (with new encoder 2 steps per 1 count) - Type2
-//new encoder (1 steps per 1 count) - Type1
+// old encoder (with new encoder 2 steps per 1 count) - Type2
+// new encoder (1 steps per 1 count) - Type1
 
 class Jogwheel {
-    using QueueHandle_t = void *; //do not want to include rtos files in this header
+    using QueueHandle_t = void *; // do not want to include rtos files in this header
 public:
     /**
      * Constructor
@@ -32,8 +32,8 @@ public:
     /** Returns button input state, this function is for BSOD and situations where interupts are disabled. */
     static int GetJogwheelButtonPinState();
 
-    //structure to be read in rtos thread (outside interrupt)
-    //size must be 32 bit to be atomic
+    // structure to be read in rtos thread (outside interrupt)
+    // size must be 32 bit to be atomic
     struct encoder_t {
         union {
             struct {

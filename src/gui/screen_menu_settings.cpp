@@ -18,9 +18,9 @@ ScreenMenuSettings::ScreenMenuSettings()
 
     EnableLongHoldScreenAction();
 
-#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+#if (!PRINTER_IS_PRUSA_MINI)
     header.SetIcon(&png::settings_16x16);
-#endif //PRINTER_PRUSA_MINI
+#endif                                                                                                                                  // PRINTER_IS_PRUSA_MINI
 
     gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuExperimentalSettings>); }); // new hold action
     EnableLongHoldScreenAction();

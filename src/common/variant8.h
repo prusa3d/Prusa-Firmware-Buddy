@@ -19,8 +19,8 @@ enum {
     VARIANT8_USER = 0x09,        // user - up to 7 bytes
     VARIANT8_PTR = 0x80,         // pointer - 4 bytes,
     VARIANT8_ERROR = 0x3f,       // error
-    VARIANT8_PTR_OWNER = 0x40,   //pointer ownership
-                                 //pointer types
+    VARIANT8_PTR_OWNER = 0x40,   // pointer ownership
+                                 // pointer types
     VARIANT8_PI8 = (VARIANT8_I8 | VARIANT8_PTR),
     VARIANT8_PUI8 = (VARIANT8_UI8 | VARIANT8_PTR),
     VARIANT8_PI16 = (VARIANT8_I16 | VARIANT8_PTR),
@@ -31,7 +31,7 @@ enum {
     VARIANT8_PCHAR = (VARIANT8_CHAR | VARIANT8_PTR),
 };
 
-//variant errors
+// variant errors
 enum {
     VARIANT8_ERR_MALLOC = 1, // memory allocation error (during conversion to strings and allocating pointer types)
     VARIANT8_ERR_UNSTYP,     // unsupported conversion (during conversion)
@@ -40,7 +40,7 @@ enum {
     VARIANT8_ERR_OOFRNG,     // out of range (during conversion from bigger to lower range number)
 };
 
-#if INTPTR_MAX == INT32_MAX // 32 bit system
+#if INTPTR_MAX == INT32_MAX   // 32 bit system
 typedef uint64_t variant8_t;
 #elif INTPTR_MAX == INT64_MAX // 64 bit system
 typedef unsigned __int128 variant8_t;

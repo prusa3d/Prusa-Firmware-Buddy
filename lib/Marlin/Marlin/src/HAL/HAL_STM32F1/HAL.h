@@ -199,7 +199,7 @@ extern "C" {
 }
 */
 
-extern "C" char* _sbrk(int incr);
+extern "C" void* _sbrk(int incr);
 
 /*
 static int freeMemory() {

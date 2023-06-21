@@ -15,13 +15,13 @@
 #include <bsod.h>
 
 // sadly this must be macros, it is used in preprocessor
-#if (defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
+#if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_MINI) || defined(USE_MOCK_DISPLAY)
     #define FOOTER_HAS_LIVE_Z
     #define FOOTER_HAS_SHEETS
     #define FOOTER_LINES__          2
     #define FOOTER_ITEMS_PER_LINE__ 3
 #else // if defined(USE_ILI9488)
-    #if (defined(PRINTER_TYPE) && PRINTER_TYPE == PRINTER_PRUSA_XL)
+    #if (defined(PRINTER_TYPE) && PRINTER_IS_PRUSA_XL)
         #define FOOTER_HAS_TOOL_NR
     #endif
     #define FOOTER_LINES__          1

@@ -24,6 +24,16 @@ Errors:
   text: "Consider adjusting belt tension."
   id: "PRECISE_REFINEMENT_FAILED"
   approved: false
+- code: "17103"
+  title: "DOCK POSITION OUT OF BOUNDS"
+  text: "Dock %d position differs too much from expected values."
+  id: "DOCK_POSITION_OUT_OF_BOUNDS"
+  approved: false
+- code: "17104"
+  title: "TOOL OFFSET OUT OF BOUNDS"
+  text: "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
+  id: "TOOL_OFFSET_OUT_OF_BOUNDS"
+  approved: false
 - code: "17202"
   title: "EXTRUDER PREHEAT ERROR"
   text: "Check the heater and thermistor wiring for potential damage."

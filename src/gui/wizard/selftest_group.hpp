@@ -15,7 +15,7 @@ class SelfTestGroup {
     SelfTestGroup *next;
     SelfTestViewItem *first;
 
-    //every test has name folowed by separator
+    // every test has name folowed by separator
     SelfTestViewText name;
     SelfTestViewSeparator separator;
 

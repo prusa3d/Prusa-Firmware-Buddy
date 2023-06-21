@@ -1,4 +1,4 @@
-//screen_messages.hpp
+// screen_messages.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_header.hpp"

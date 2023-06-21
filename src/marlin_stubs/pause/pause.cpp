@@ -39,15 +39,16 @@
 #include "fsm_loadunload_type.hpp"
 #include "RAII.hpp"
 #include <cmath>
+#include <configuration_store.hpp>
 
 #ifndef NOZZLE_UNPARK_XY_FEEDRATE
     #define NOZZLE_UNPARK_XY_FEEDRATE NOZZLE_PARK_XY_FEEDRATE
 #endif
 
 // private:
-//check unsupported features
-//filament sensor is no longer part of marlin thus it must be disabled
-//HAS_BUZZER must be disabled, because we handle it differently than marlin
+// check unsupported features
+// filament sensor is no longer part of marlin thus it must be disabled
+// HAS_BUZZER must be disabled, because we handle it differently than marlin
 // clang-format off
 #if (!ENABLED(EXTENSIBLE_UI)) || \
     (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
@@ -85,10 +86,10 @@ public:
 
 PauseMenuResponse pause_menu_response;
 
-//cannot be class member (externed in marlin)
+// cannot be class member (externed in marlin)
 uint8_t did_pause_print = 0;
 
-//cannot be class member (externed in marlin and used by M240 and tool_change)
+// cannot be class member (externed in marlin and used by M240 and tool_change)
 void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
     current_position.e += length / planner.e_factor[active_extruder];
     line_to_current_position(fr_mm_s);
@@ -136,7 +137,7 @@ private:
         while (i < elements && ramSeq[i].e > 0) {
             i++;
         }
-        //calculate ram movement len
+        // calculate ram movement len
         for (; i < elements; i++) {
             ramLen += ramSeq[i].e;
         }
@@ -155,7 +156,7 @@ constexpr RammingSequence::Item ramUnloadSeqItems[] = FILAMENT_UNLOAD_RAMMING_SE
 constexpr RammingSequence unloadRammingSequence = RammingSequence(ramUnloadSeqItems);
 
 /*****************************************************************************/
-//PausePrivatePhase
+// PausePrivatePhase
 
 PausePrivatePhase::PausePrivatePhase()
     : phase(PhasesLoadUnload::_first)
@@ -178,7 +179,7 @@ PhasesLoadUnload PausePrivatePhase::getPhase() const { return phase; }
 
 Response PausePrivatePhase::getResponse() {
     const Response ret = marlin_server::ClientResponseHandler::GetResponseFromPhase(phase);
-    //user just clicked
+    // user just clicked
     if (ret != Response::_none) {
         RestoreTemp();
     }
@@ -232,7 +233,7 @@ bool PausePrivatePhase::HasTempToRestore() const {
 }
 
 /*****************************************************************************/
-//Pause
+// Pause
 Pause &Pause::Instance() {
     static Pause s;
     return s;
@@ -252,7 +253,7 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
         return false;
     }
 
-    if (Temperature::degHotend(active_extruder) + heating_phase_min_hotend_diff > Temperature::degTargetHotend(active_extruder)) { //do not disturb user with heating dialog
+    if (Temperature::degHotend(active_extruder) + heating_phase_min_hotend_diff > Temperature::degTargetHotend(active_extruder)) { // do not disturb user with heating dialog
         return true;
     }
 
@@ -273,12 +274,12 @@ bool Pause::ensureSafeTemperatureNotifyProgress(uint8_t progress_min, uint8_t pr
 }
 
 void Pause::do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
-    //Not sure if following code would not be better
-    //const float actual_e = planner.get_axis_position_mm(E_AXIS);
-    //Notifier_POS_E N(ClientFSM::Load_unload, getPhaseIndex(), actual_e, actual_e + length, progress_min,progress_max);
+    // Not sure if following code would not be better
+    // const float actual_e = planner.get_axis_position_mm(E_AXIS);
+    // Notifier_POS_E N(ClientFSM::Load_unload, getPhaseIndex(), actual_e, actual_e + length, progress_min,progress_max);
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
-    PauseFsmNotifier N(*this, actual_e, current_position.e, progress_min, progress_max, marlin_vars()->pos[MARLIN_VAR_INDEX_E]);
+    PauseFsmNotifier N(*this, actual_e, current_position.e, progress_min, progress_max, marlin_vars()->native_pos[MARLIN_VAR_INDEX_E]);
     line_to_current_position(fr_mm_s);
     wait_or_stop();
 }
@@ -309,7 +310,7 @@ void Pause::plan_e_move(const float &length, const feedRate_t &fr_mm_s) {
 void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max) {
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
-    PauseFsmNotifier N(*this, actual_e, current_position.e, progress_min, progress_max, marlin_vars()->pos[MARLIN_VAR_INDEX_E]);
+    PauseFsmNotifier N(*this, actual_e, current_position.e, progress_min, progress_max, marlin_vars()->native_pos[MARLIN_VAR_INDEX_E]);
     while (!settings.do_stop && !planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
         check_user_stop();
         delay(50);
@@ -344,11 +345,11 @@ void Pause::loop_load(Response response) {
         if (response == Response::Stop)
             settings.do_stop = true;
         break;
-    case LoadPhases_t::load_in_gear: // slow load
+    case LoadPhases_t::load_in_gear:                                                                                  // slow load
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         // if filament is not present we want to break and not set loaded filament
-        filament::set_type_in_extruder(filament::get_type_to_load(), settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         set(LoadPhases_t::wait_temp);
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
@@ -449,10 +450,10 @@ void Pause::loop_load_not_blocking([[maybe_unused]] Response response) {
     case LoadPhases_t::_init:
         set(LoadPhases_t::load_in_gear);
         break;
-    case LoadPhases_t::load_in_gear: //slow load
+    case LoadPhases_t::load_in_gear:                                                                                  // slow load
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
-        filament::set_type_in_extruder(filament::get_type_to_load(), settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         set(LoadPhases_t::wait_temp);
         break;
     case LoadPhases_t::wait_temp:
@@ -489,15 +490,15 @@ void Pause::loop_load_mmu([[maybe_unused]] Response response) {
         auto nextPhase = LoadPhases_t::_finish;
         if constexpr (HAS_MMU2) {
             if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
-                //TODO tell user that he has already loaded filament if he really wants to continue
-                //TODO check fsensor .. how should I behave if filament is not detected ???
-                // nextPhase = LoadPhases_t::_finish; // some error?
+                // TODO tell user that he has already loaded filament if he really wants to continue
+                // TODO check fsensor .. how should I behave if filament is not detected ???
+                //  nextPhase = LoadPhases_t::_finish; // some error?
             } else {
                 // loaded correctly, skip the crap around the standard pause impl.
                 nextPhase = LoadPhases_t::_finish;
             }
         }
-        filament::set_type_in_extruder(filament::get_type_to_load(), settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         set(nextPhase);
         break;
     }
@@ -518,7 +519,7 @@ void Pause::loop_autoload(Response response) {
     case LoadPhases_t::_init:
         // if filament is not present we want to break and not set loaded filament
         // we have already loaded the filament in gear, now just wait for temperature to rise
-        filament::set_type_in_extruder(filament::get_type_to_load(), settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         set(LoadPhases_t::wait_temp);
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
@@ -534,11 +535,11 @@ void Pause::loop_autoload(Response response) {
         if (response == Response::Stop)
             settings.do_stop = true;
         break;
-    case LoadPhases_t::load_in_gear: //slow load
+    case LoadPhases_t::load_in_gear:                                                                                  // slow load
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         // if filament is not present we want to break and not set loaded filament
-        filament::set_type_in_extruder(filament::get_type_to_load(), settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         set(LoadPhases_t::wait_temp);
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
@@ -630,11 +631,11 @@ void Pause::loop_load_change(Response response) {
         if (response == Response::Stop)
             settings.do_stop = true;
         break;
-    case LoadPhases_t::load_in_gear: //slow load
+    case LoadPhases_t::load_in_gear:                                                                                  // slow load
         setPhase(PhasesLoadUnload::Inserting_unstoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         // if filament is not present we want to break and not set loaded filament
-        filament::set_type_in_extruder(filament::get_type_to_load(), settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         set(LoadPhases_t::wait_temp);
         handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
@@ -696,7 +697,7 @@ bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]
     settings = settings_;
     FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, mode);
     setPhase(PhasesLoadUnload::ChangingTool);
-    return prusa_toolchanger.tool_change(target_extruder, tool_return_t::no_move);
+    return prusa_toolchanger.tool_change(target_extruder, tool_return_t::no_move, current_position);
 #else  /*HAS_TOOLCHANGER()*/
     return true;
 #endif /*HAS_TOOLCHANGER()*/
@@ -794,7 +795,7 @@ bool Pause::invoke_loop(loop_fn fn) {
 #if ENABLED(PID_EXTRUSION_SCALING)
     bool extrusionScalingEnabled = thermalManager.getExtrusionScalingEnabled();
     thermalManager.setExtrusionScalingEnabled(false);
-#endif //ENABLED(PID_EXTRUSION_SCALING)
+#endif // ENABLED(PID_EXTRUSION_SCALING)
 
     bool ret = true;
     while (!finished()) {
@@ -806,9 +807,9 @@ bool Pause::invoke_loop(loop_fn fn) {
             set(intFinishVal);
             continue;
         }
-        ret = !process_stop(); //why is this 2nd call here ???, some workaround ???
+        ret = !process_stop(); // why is this 2nd call here ???, some workaround ???
         if (ret) {
-            idle(true, true); // idle loop to prevent wdt and manage heaters etc, true == do not shutdown steppers
+            idle(true, true);  // idle loop to prevent wdt and manage heaters etc, true == do not shutdown steppers
         } else {
             set(intFinishVal);
             continue;
@@ -817,7 +818,7 @@ bool Pause::invoke_loop(loop_fn fn) {
 
 #if ENABLED(PID_EXTRUSION_SCALING)
     thermalManager.setExtrusionScalingEnabled(extrusionScalingEnabled);
-#endif //ENABLED(PID_EXTRUSION_SCALING)
+#endif // ENABLED(PID_EXTRUSION_SCALING)
 
     return ret;
 }
@@ -839,7 +840,7 @@ void Pause::loop_unload([[maybe_unused]] Response response) {
         if (settings.do_stop)
             break;
 
-        filament::set_type_in_extruder(filament::Type::NONE, settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::Type::NONE);
         set(UnloadPhases_t::_finish);
         break;
     default:
@@ -864,7 +865,7 @@ void Pause::loop_unload_AskUnloaded(Response response) {
         if (settings.do_stop)
             break;
 
-        filament::set_type_in_extruder(filament::Type::NONE, settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::Type::NONE);
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
         set(UnloadPhases_t::unloaded__ask);
         break;
@@ -948,7 +949,7 @@ void Pause::loop_unload_change(Response response) {
         if (settings.do_stop)
             break;
 
-        filament::set_type_in_extruder(filament::Type::NONE, settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::Type::NONE);
 
         setPhase(PhasesLoadUnload::IsFilamentUnloaded, 100);
         set(UnloadPhases_t::unloaded__ask);
@@ -982,7 +983,7 @@ void Pause::loop_unload_change(Response response) {
 }
 
 /*****************************************************************************/
-//park moves
+// park moves
 uint32_t Pause::parkMoveZPercent(float z_move_len, float xy_move_len) const {
     const float Z_time_ratio = std::abs(z_move_len / float(NOZZLE_PARK_Z_FEEDRATE));
     const float XY_time_ratio = std::abs(xy_move_len / float(NOZZLE_PARK_XY_FEEDRATE));
@@ -1057,7 +1058,7 @@ void Pause::park_nozzle_and_notify() {
         if (axes_need_homing(_BV(Z_AXIS))) {
             unhomed_z_lift(target_Z);
         } else {
-            PauseFsmNotifier N(*this, current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len), marlin_vars()->pos[MARLIN_VAR_INDEX_Z]);
+            PauseFsmNotifier N(*this, current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len), marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]);
             plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_or_stop())
                 return;
@@ -1066,9 +1067,9 @@ void Pause::park_nozzle_and_notify() {
 
     // move to (x_pos, y_pos)
     if (XY_len != 0) {
-        //home the X or Y axis if it is not homed and we want to move it
-        //homing is after Z move to be clear of all obstacles
-        //Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
+        // home the X or Y axis if it is not homed and we want to move it
+        // homing is after Z move to be clear of all obstacles
+        // Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
         LOOP_XY(axis) {
             // TODO: make homeaxis non-blocking to allow quick_stop
             if (!isnan(settings.park_pos.pos[axis]) && axes_need_homing(_BV(axis)))
@@ -1080,12 +1081,12 @@ void Pause::park_nozzle_and_notify() {
         }
 
         if (x_greater_than_y) {
-            PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars()->pos[MARLIN_VAR_INDEX_X]); //from Z% to 100%
+            PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_X]); // from Z% to 100%
             plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_or_stop())
                 return;
         } else {
-            PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars()->pos[MARLIN_VAR_INDEX_Y]); //from Z% to 100%
+            PauseFsmNotifier N(*this, begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Y]); // from Z% to 100%
             plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_or_stop())
                 return;
@@ -1116,16 +1117,16 @@ void Pause::unpark_nozzle_and_notify() {
     }
 
     if (x_greater_than_y) {
-        PauseFsmNotifier N(*this, begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len), marlin_vars()->pos[MARLIN_VAR_INDEX_X]);
+        PauseFsmNotifier N(*this, begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len), marlin_vars()->native_pos[MARLIN_VAR_INDEX_X]);
         do_blocking_move_to_xy(settings.resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);
     } else {
-        PauseFsmNotifier N(*this, begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len), marlin_vars()->pos[MARLIN_VAR_INDEX_Y]);
+        PauseFsmNotifier N(*this, begin_pos, end_pos, 0, parkMoveXYPercent(Z_len, XY_len), marlin_vars()->native_pos[MARLIN_VAR_INDEX_Y]);
         do_blocking_move_to_xy(settings.resume_pos, NOZZLE_UNPARK_XY_FEEDRATE);
     }
 
     // Move Z_AXIS to saved position, scope for PauseFsmNotifier
     {
-        PauseFsmNotifier N(*this, current_position.z, settings.resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars()->pos[MARLIN_VAR_INDEX_Z]); //from XY% to 100%
+        PauseFsmNotifier N(*this, current_position.z, settings.resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
         do_blocking_move_to_z(settings.resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
 }
@@ -1169,7 +1170,7 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
 
     // Wait for buffered blocks to complete
     planner.synchronize();
-    //Lock filament sensor, so it does not enqueue new M600, beacuse of filament run out
+    // Lock filament sensor, so it does not enqueue new M600, beacuse of filament run out
     FS_EventAutolock runout_disable;
 
 #if ENABLED(ADVANCED_PAUSE_FANS_PAUSE) && FAN_COUNT > 0
@@ -1263,8 +1264,25 @@ bool Pause::check_user_stop() {
 
     settings.do_stop = true;
     planner.quick_stop();
-    while (planner.processing())
-        loop();
+
+    // unwind to main marlin loop and let it call finalize_user_stop()
+    user_stop_pending = true;
+    return true;
+}
+
+void Pause::finalize_user_stop() {
+    if (!user_stop_pending) {
+        // nothing to do (at all)
+        return;
+    }
+
+    if (planner.processing()) {
+        // nothing to do (yet)
+        return;
+    }
+
+    user_stop_pending = false;
+
     planner.resume_queuing();
     set_all_unhomed();
     set_all_unknown();
@@ -1281,19 +1299,18 @@ bool Pause::check_user_stop() {
 #endif
     current_position = real_current_position;
     planner.set_position_mm(current_position);
-    return true;
 }
 void Pause::handle_filament_removal(LoadPhases_t phase_to_set) {
     if (FSensors_instance().GetCurrentExtruder() == fsensor_t::NoFilament) {
         set(phase_to_set);
-        filament::set_type_in_extruder(filament::Type::NONE, settings.GetExtruder());
+        config_store().set_filament_type(settings.GetExtruder(), filament::Type::NONE);
         return;
     }
     return;
 }
 
 /*****************************************************************************/
-//Pause::FSM_HolderLoadUnload
+// Pause::FSM_HolderLoadUnload
 
 void Pause::FSM_HolderLoadUnload::bindToSafetyTimer() {
     SafetyTimer::Instance().BindPause(pause);
@@ -1318,14 +1335,14 @@ Pause::FSM_HolderLoadUnload::~FSM_HolderLoadUnload() {
     pause.RestoreTemp();
 
     const float min_layer_h = 0.05f;
-    //do not unpark and wait for temp if not homed or z park len is 0
+    // do not unpark and wait for temp if not homed or z park len is 0
     if (!axes_need_homing() && pause.settings.resume_pos.z != NAN && std::abs(current_position.z - pause.settings.resume_pos.z) >= min_layer_h) {
         if (!pause.ensureSafeTemperatureNotifyProgress(0, 100))
             return;
         pause.unpark_nozzle_and_notify();
     }
     pause.clr_mode();
-    unbindFromSafetyTimer(); //unbind must be last action, without it Pause cannot block safety timer
+    unbindFromSafetyTimer(); // unbind must be last action, without it Pause cannot block safety timer
 }
 
 bool Pause::FSM_HolderLoadUnload::active = false;

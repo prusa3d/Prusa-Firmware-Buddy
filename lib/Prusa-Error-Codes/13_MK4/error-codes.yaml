@@ -13,6 +13,7 @@
 # WARNINGS       xx7xx   # Category-less warnings
 
 Errors:
+# XX103 reserved
 - code: "13201"
   title: "PREHEAT ERROR"
   text: "Check the heatbed heater & thermistor wiring for possible damage."

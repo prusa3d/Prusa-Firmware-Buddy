@@ -16,7 +16,7 @@ static uint32_t POST_XYHOME = 0;
 
 typedef struct endstop_struct_t {
     union {
-        uint8_t i; //to access all at once
+        uint8_t i; // to access all at once
         struct {
             uint8_t PRE_XYHOME : 1;
             uint8_t POST_XYHOME : 1;
@@ -51,7 +51,7 @@ void MINDA_BROKEN_CABLE_DETECTION__END() {
 
     if (PRE_XYHOME != POST_XYHOME || endstop_status.i) {
 
-        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+        taskENTER_CRITICAL(); // never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
         wdt_iwdg_refresh();
         fatal_error("HOMING ERROR", "Please check minda\ncable");
     }
@@ -94,13 +94,13 @@ void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {
             points |= 1 << actual_point;
     }
 
-    //last point was not set actual_point contains valid value
+    // last point was not set actual_point contains valid value
     if (mbl_preposts[actual_point].pre_lvl || mbl_preposts[actual_point].post_lvl)
         points |= 1 << actual_point;
 
     if (moves || points) {
-        //error moves are not zero
-        taskENTER_CRITICAL(); //never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
+        // error moves are not zero
+        taskENTER_CRITICAL(); // never exit CRITICAL, wanted to use __disable_irq, but it does not work. i do not know why
         wdt_iwdg_refresh();
         mbl_error(moves, points);
     }

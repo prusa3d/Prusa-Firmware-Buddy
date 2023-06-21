@@ -30,7 +30,6 @@
 #include "DialogMoveZ.hpp"
 #include "ScreenShot.hpp"
 #include "i18n.h"
-#include "eeprom.h"
 #include "w25x.h"
 #include "../mmu2/mmu2_error_converter.h"
 #include "../../Marlin/src/feature/prusa/MMU2/mmu2_progress_converter.h"
@@ -99,6 +98,8 @@ int guimain_spi_test = 0;
 #if HAS_SELFTEST_SNAKE()
     #include "screen_menu_selftest_snake.hpp"
 #endif
+
+#include <configuration_store.hpp>
 
 using namespace buddy::hw;
 
@@ -205,7 +206,7 @@ void client_gui_refresh() {
         unsigned percent = (tick - start) / (1000 / 100); // 1000ms / 100%
         percent = ((percent < 99) ? percent : 99);
 
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL
         // XL has a puppy bootstrap which ends the progress bar at buddy::puppies::max_bootstrap_perc
         percent = buddy::puppies::max_bootstrap_perc + percent * buddy::puppies::max_bootstrap_perc / 100;
 #elif BOOTLOADER()
@@ -247,34 +248,73 @@ void filament_sensor_validation() {
     }
 }
 
+// Callback for wait dialog - initialize the new g-code
+void gcode_file_init() {
+
+    GCodeInfo::getInstance().initFile(GCodeInfo::GI_INIT_t::FULL); // Parse (this takes a while)
+    // Close it after initFile is completed, so that it runs only once
+    Screens::Access()->Close(); // close-flag this dialog
+}
+
 void make_gui_ready_to_print() {
-    // Screens::Access()->Count() == 0      - there are no closed screens under current one == only home screen is opened
-    bool can_start_print_at_current_screen = Screens::Access()->Count() == 0 || (Screens::Access()->Count() == 1 && (Screens::Access()->IsScreenOpened<screen_filebrowser_data_t>() || Screens::Access()->IsScreenOpened<screen_printing_data_t>()));
+    /**
+     * This function is triggered because of marlin_server::State::WaitGui and it is checking if GUI thread is safe to start printing.
+     * State::WaitGui is set, when print_begin() is passed to marlin_server from any of marlin_clients (from GUI / Connect / pLink etc...)
+     *
+     * Here, we're checking from GUI thread, if print can be started in current GUI state,
+     * it is not allowed when some FSM is opened, the FSMs that can be printed from are:
+     *   Printing screen (reprint)
+     *   Both Print previews (from filebrowser and from one-click) - calling print from internet, while PrintPreview in GUI is opened
+     */
 
-    bool in_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
+    // We don't want any FSM opened - for example LoadUnload could invade this logic
+    bool can_print_on_current_screen = !DialogHandler::Access().IsAnyOpen();
 
-    if ((!DialogHandler::Access().IsAnyOpen()) && can_start_print_at_current_screen) {
-        bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
-        Screens::Access()->CloseAll(); // set flag to close all screens
-        if (have_file_browser)
-            Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
-        Screens::Access()->Loop(); // close those screens before marlin_gui_ready_to_print
+    // Handle unusual usecase when print preview is already open, but print is called from Connect / pLink
+    bool one_click_preview = Screens::Access()->Count() == 1 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>();
+    bool filebrowser_preview = Screens::Access()->Count() == 2 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>() && Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
 
-        // notify server, that GUI is ready to print
-        marlin_gui_ready_to_print();
+    if (can_print_on_current_screen || one_click_preview || filebrowser_preview) {
+        // Parse the printed file for preview info
+        {
+            // Update printed filename from marlin_server, sample LFN+SFN atomically
+            auto lock = MarlinVarsLockGuard();
+            marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN), lock);
+            marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path), lock);
+        }
+        gui_dlg_wait(gcode_file_init); // This will initialize new g-code file
 
-        // wait for start of the print - to prevent any unwanted gui action
-        while (
-            (marlin_vars()->print_state != marlin_server::State::Idle) // main thread is processing a print
-            && (!DialogHandler::Access().IsAnyOpen())                  // wait for print screen to open, any fsm can break waiting (not only open of print screen)
-        ) {
+        // Handle different states of GUI before print begins
+        if (can_print_on_current_screen) {
+            bool have_file_browser = Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
+            Screens::Access()->ClosePrinting(); // set flag to close all appropriate screens
+            if (have_file_browser) {
+                Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
+                Screens::Access()->Get()->Validate(); // Do not draw filebrowser now
+            }
+            Screens::Access()->Loop();                // close those screens before marlin_gui_ready_to_print
+            marlin_gui_ready_to_print();              // notify server, that GUI is ready to print
+        } else if (one_click_preview || filebrowser_preview) {
+            // Print is called from Connect/pLink, while print preview is already open in GUI
+            // notify server, that GUI is ready to print
+            marlin_gui_ready_to_print();
+        }
+        // else not reachable
+
+        Screens::Access()->Get()->Validate(); // Do not redraw after CloseAll (keep wait dialog displayed)
+        // wait for start of the print - to prevent any unwanted GUI action
+        while (!DialogHandler::Access().IsAnyOpen()) {
+            // main thread is processing a print
+            // wait for print screen to open, any fsm can break waiting (f.e.: Print Preview)
             gui_timers_cycle();   // refresh GUI time
             marlin_client_loop(); // refresh fsm - required for dialog handler
             DialogHandler::Access().Loop();
         }
-    } else if (!in_preview) {
+
+    } else {
+        // Do not print on current screen -> main thread will set printer_state to Idle
         marlin_gui_cant_print();
-    } // else -> we are in the preview screen. It closes itself from another thread, so we just wait for it to happen.
+    }
 }
 } // anonymous namespace
 
@@ -504,7 +544,7 @@ void gui_run(void) {
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
     // TIMEOUT variable getting value from EEPROM when EEPROM interface is initialized
-    if (eeprom_get_bool(EEVAR_MENU_TIMEOUT)) {
+    if (config_store().menu_timeout.get()) {
         Screens::Access()->EnableMenuTimeout();
     } else {
         Screens::Access()->DisableMenuTimeout();
@@ -552,7 +592,7 @@ void gui_run(void) {
 
     Sound_Play(eSOUND_TYPE::Start);
 
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_DEF, client_gui_refresh);
+    marlin_client_set_event_notify(marlin_server::EVENT_MSK_DEF, client_gui_refresh);
 
     GUIStartupProgress progr = { 100, std::nullopt };
     event_conversion_union un;
@@ -589,7 +629,6 @@ void gui_run(void) {
         // this code handles start of print
         // it must be in main gui loop just before screen handler to ensure no FSM is opened
         // !DialogHandler::Access().IsAnyOpen() - wait until all FSMs are closed (including one click print)
-        // one click print is closed automatically from main thread, because it is opened for wrong gcode
         if (print_processor_waiting) {
             make_gui_ready_to_print();
         }

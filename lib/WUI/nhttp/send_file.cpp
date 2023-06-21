@@ -43,7 +43,7 @@ void SendFile::disable_caching() {
 Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size) {
     if (etag_matches) {
         // Note: json_errors are not enabled, because NotModified has no content anyway.
-        return Step { 0, 0, StatusPage(Status::NotModified, (connection_handling != ConnectionHandling::Close) ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false) };
+        return Step { 0, 0, StatusPage(Status::NotModified, (connection_handling != ConnectionHandling::Close) ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false, etag) };
     }
 
     if (!buffer) {

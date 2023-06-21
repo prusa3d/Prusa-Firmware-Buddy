@@ -1807,7 +1807,7 @@
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
         #if X_DRIVER_TYPE == TMC2130
             #if defined(HAS_LDO_400_STEP)
-                #define X_STALL_SENSITIVITY -3
+                #define X_STALL_SENSITIVITY -2
             #else
                 #define X_STALL_SENSITIVITY 3
             #endif
@@ -1817,7 +1817,7 @@
 
         #if Y_DRIVER_TYPE == TMC2130
             #if defined(HAS_LDO_400_STEP)
-                #define Y_STALL_SENSITIVITY -3
+                #define Y_STALL_SENSITIVITY -2
             #else
                 #define Y_STALL_SENSITIVITY 3
             #endif

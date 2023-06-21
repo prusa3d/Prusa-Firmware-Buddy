@@ -48,18 +48,18 @@
 
 #include <option/has_loadcell.h>
 
-#if (!defined(PRINTER_PRUSA_MINI) || !defined(PRINTER_PRUSA_MK4) || !defined(PRINTER_PRUSA_MK3_5) \
-    || !defined(PRINTER_PRUSA_XL) || !defined(PRINTER_PRUSA_iX))
+#if (!defined(PRINTER_IS_PRUSA_MINI) || !defined(PRINTER_IS_PRUSA_MK4) || !defined(PRINTER_IS_PRUSA_MK3_5) \
+    || !defined(PRINTER_IS_PRUSA_XL) || !defined(PRINTER_IS_PRUSA_iX))
     #error "Some printer type not defined."
 #endif
 
 #if HAS_ADVANCED_POWER
-//#include "advanced_power.hpp"
+// #include "advanced_power.hpp"
 #endif // HAS_ADVANCED_POWER
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL && BOARD_IS_DWARF)
+#if (PRINTER_IS_PRUSA_XL && BOARD_IS_DWARF)
     #include "hwio_pindef_XL_dwarf.h"
-#elif (PRINTER_TYPE == PRINTER_PRUSA_XL) && !BOARD_IS_DWARF
+#elif PRINTER_IS_PRUSA_XL && !BOARD_IS_DWARF
     #include "hwio_pindef_XL.h"
 #else // Not special board with separate pin definition file.
 
@@ -113,9 +113,9 @@
         #define MARLIN_PORT_Y_DIR   MARLIN_PORT_D
         #define MARLIN_PIN_NR_Y_DIR MARLIN_PIN_NR_4
 
-        #if PRINTER_TYPE == PRINTER_PRUSA_MK3_5
-            #define MARLIN_PORT_Z_MIN   MARLIN_PORT_F
-            #define MARLIN_PIN_NR_Z_MIN MARLIN_PIN_NR_13
+        #if PRINTER_IS_PRUSA_MK3_5
+            #define MARLIN_PORT_Z_MIN   MARLIN_PORT_A
+            #define MARLIN_PIN_NR_Z_MIN MARLIN_PIN_NR_6
         #else
             #define MARLIN_PORT_Z_MIN   MARLIN_PORT_V
             #define MARLIN_PIN_NR_Z_MIN MARLIN_PIN_NR_1
@@ -140,7 +140,7 @@
         #define MARLIN_PORT_HEATER_ENABLE   MARLIN_PORT_G
         #define MARLIN_PIN_NR_HEATER_ENABLE MARLIN_PIN_NR_10
         #define MARLIN_PORT_THERM2          MARLIN_PORT_V
-        #define MARLIN_PIN_NR_THERM2        MARLIN_PIN_NR_2 //ADC
+        #define MARLIN_PIN_NR_THERM2        MARLIN_PIN_NR_2 // ADC
         #define MARLIN_PORT_X_ENA           MARLIN_PORT_B   // XY enable
         #define MARLIN_PIN_NR_X_ENA         MARLIN_PIN_NR_9 // XY enable
         #define MARLIN_PORT_Y_ENA           MARLIN_PORT_B   // XY enable
@@ -194,7 +194,7 @@
         #define MARLIN_PORT_E0_DIAG   MARLIN_PORT_A
         #define MARLIN_PIN_NR_E0_DIAG MARLIN_PIN_NR_15
         #define MARLIN_PORT_THERM2    MARLIN_PORT_A
-        #define MARLIN_PIN_NR_THERM2  MARLIN_PIN_NR_5 //ADC
+        #define MARLIN_PIN_NR_THERM2  MARLIN_PIN_NR_5 // ADC
         #define MARLIN_PORT_Y_ENA     MARLIN_PORT_D
         #define MARLIN_PIN_NR_Y_ENA   MARLIN_PIN_NR_14
         #define MARLIN_PORT_X_ENA     MARLIN_PORT_D
@@ -217,22 +217,22 @@
 
     #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
         #define MARLIN_PORT_HW_IDENTIFY   MARLIN_PORT_A   // heater voltage, why is this called HW_IDENTIFY???
-        #define MARLIN_PIN_NR_HW_IDENTIFY MARLIN_PIN_NR_5 //ADC, unused
+        #define MARLIN_PIN_NR_HW_IDENTIFY MARLIN_PIN_NR_5 // ADC, unused
 
         #define MARLIN_PORT_TEMP_BED   MARLIN_PORT_D
-        #define MARLIN_PIN_NR_TEMP_BED MARLIN_PIN_NR_7 //ADC
+        #define MARLIN_PIN_NR_TEMP_BED MARLIN_PIN_NR_7 // ADC
     #else
         #define MARLIN_PORT_HW_IDENTIFY   MARLIN_PORT_A
-        #define MARLIN_PIN_NR_HW_IDENTIFY MARLIN_PIN_NR_3 //ADC, unused
+        #define MARLIN_PIN_NR_HW_IDENTIFY MARLIN_PIN_NR_3 // ADC, unused
 
         #define MARLIN_PORT_TEMP_BED   MARLIN_PORT_A
-        #define MARLIN_PIN_NR_TEMP_BED MARLIN_PIN_NR_4 //ADC
+        #define MARLIN_PIN_NR_TEMP_BED MARLIN_PIN_NR_4 // ADC
     #endif
 
-    #if (PRINTER_TYPE != PRINTER_PRUSA_MK3_5)
+    #if (!PRINTER_IS_PRUSA_MK3_5)
         #define MARLIN_PORT_TEMP_HEATBREAK   MARLIN_PORT_A
-        #define MARLIN_PIN_NR_TEMP_HEATBREAK MARLIN_PIN_NR_6 //ADC
-    #endif                                                   // PRINTER_TYPE != PRINTER_PRUSA_MK3_5
+        #define MARLIN_PIN_NR_TEMP_HEATBREAK MARLIN_PIN_NR_6 // ADC
+    #endif                                                   // !PRINTER_IS_PRUSA_MK3_5
 
     #define MARLIN_PORT_TEMP_0   MARLIN_PORT_C
     #define MARLIN_PIN_NR_TEMP_0 MARLIN_PIN_NR_0
@@ -241,14 +241,14 @@
 
 namespace buddy::hw {
 inline Pin::State zMinReadFn();
-} //namespace buddy::hw
+} // namespace buddy::hw
 
-/**
- * @name Define all GPIO pins used in firmware
- *
- * @see PIN_TABLE
- * @{
- */
+  /**
+   * @name Define all GPIO pins used in firmware
+   *
+   * @see PIN_TABLE
+   * @{
+   */
 
     #if (BOARD_IS_BUDDY)
         #define PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)                                                                                                                                           \
@@ -298,7 +298,7 @@ inline Pin::State zMinReadFn();
             MACRO_FUNCTION(buddy::hw::OutputPin, tachoSelectPrintFan, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p13, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                 \
             MACRO_FUNCTION(buddy::hw::InputPin, loadcellDout, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                                       \
             MACRO_FUNCTION(buddy::hw::OutputPin, loadcellSck, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p1, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler)
-    #elif ((BOARD_IS_XBUDDY) && (PRINTER_TYPE == PRINTER_PRUSA_iX)) //TODO: iX currently doesn't support power panic. This is the easiest way to create xBuddy 0.2.7 build without power panic. Fix later. Once power panic works on iX, this can be deleted.
+    #elif ((BOARD_IS_XBUDDY) && PRINTER_IS_PRUSA_iX) // TODO: iX currently doesn't support power panic. This is the easiest way to create xBuddy 0.2.7 build without power panic. Fix later. Once power panic works on iX, this can be deleted.
         #define PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)                                                                                                                                                \
             MACRO_FUNCTION(buddy::hw::OutputPin, heaterEnable, BUDDY_PIN(HEATER_ENABLE), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                 \
             MACRO_FUNCTION(buddy::hw::OutputPin, displayCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)          \
@@ -330,12 +330,13 @@ inline Pin::State zMinReadFn();
             MACRO_FUNCTION(buddy::hw::OutputPin, tachoSelectPrintFan, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p13, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::InputPin, loadcellDout, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p7, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                       \
             MACRO_FUNCTION(buddy::hw::OutputPin, loadcellSck, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p1, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler)
-    #elif (BOARD_IS_XBUDDY && (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
+    #elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
         #define PIN_TABLE_BOARD_SPECIFIC(MACRO_FUNCTION)                                                                                                                                                                                \
-            MACRO_FUNCTION(buddy::hw::InputPin, fSensor, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p6, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                                            \
-            MACRO_FUNCTION(buddy::hw::InputPin, fanPrintTach, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p10, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                                      \
-            MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p10, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                                  \
-            MACRO_FUNCTION(buddy::hw::InterruptPin, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling COMMA Pull::up COMMA STEP_TIMER_IRQ_PRIO COMMA 0, endstop_ISR)                                                                     \
+            MACRO_FUNCTION(buddy::hw::InputPin, fSensor, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p13, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                                           \
+            MACRO_FUNCTION(buddy::hw::OutputPin, extruderSwitch, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p14, Pin::State::low COMMA OMode::pushPull COMMA OSpeed::very_high, buddy::hw::noHandler)                                 \
+            MACRO_FUNCTION(buddy::hw::InputPin, fanPrintTach, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p10, IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                    \
+            MACRO_FUNCTION(buddy::hw::InputPin, fanHeatBreakTach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p10, IMode::input COMMA Pull::none, buddy::hw::noHandler)                                                                \
+            MACRO_FUNCTION(buddy::hw::InterruptPin_Inverted, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling COMMA Pull::none COMMA STEP_TIMER_IRQ_PRIO COMMA 0, endstop_ISR)                                                          \
             MACRO_FUNCTION(buddy::hw::OutputPin, heaterEnable, BUDDY_PIN(HEATER_ENABLE), Pin::State::low COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                                                 \
             MACRO_FUNCTION(buddy::hw::OutputPin, displayCs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                          \
             MACRO_FUNCTION(buddy::hw::OutputPin, displayRs, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p15, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                          \
@@ -469,36 +470,36 @@ inline Pin::State zMinReadFn();
     #if HAS_LOADCELL()
 
     /**
- * @brief Define @p VIRTUAL_PIN_TABLE macro containing all virtual pins
- *
- * When defining @p VIRTUAL_PIN_TABLE use COMMA macro to separate parameters inside sections PORTPIN and PARAMETERS,
- * use ordinary comma (,) to separate sections (TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS).
- *
- * Virtual pins (MARLIN_PORT_V) accessed by Marlin needs to be repeated here, use BUDDY_PIN() macro to convert Marlin pin into Buddy Pin.
- *
- * @par Sections:
- * @n @p TYPE pin type. At this moment only VirtualInterruptPin is possible option.
- *       @note If implementing new type of the pin, make sure isVirtualInterruptPin() and getInterruptHandler() is adjusted accordingly.
- * @n @p READ_FN Supplied function to read the virtual pin
- * @n @p ISR_FN Supplied function to emulate interrupt routine service call.
- * @n @p NAME Name used to access pin. E.g. zMin, later accessed as e.g. zMin.read()
- * @n @p PORTPIN Virtual location of pin. E.g. BUDDY_PIN(Z_MIN) for virtual pin defined for Marlin earlier.
- * @n @p PARAMETERS Parameters passed to pin constructor.
- *
- * @par Example usage:
- * @code
- * #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
- *          MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling)
- *
- * namespace buddy::hw {
- * DECLARE_VIRTUAL_PINS(VIRTUAL_PIN_TABLE)
- * }
- *
- * };
- *
- * @endcode
- *
- */
+     * @brief Define @p VIRTUAL_PIN_TABLE macro containing all virtual pins
+     *
+     * When defining @p VIRTUAL_PIN_TABLE use COMMA macro to separate parameters inside sections PORTPIN and PARAMETERS,
+     * use ordinary comma (,) to separate sections (TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS).
+     *
+     * Virtual pins (MARLIN_PORT_V) accessed by Marlin needs to be repeated here, use BUDDY_PIN() macro to convert Marlin pin into Buddy Pin.
+     *
+     * @par Sections:
+     * @n @p TYPE pin type. At this moment only VirtualInterruptPin is possible option.
+     *       @note If implementing new type of the pin, make sure isVirtualInterruptPin() and getInterruptHandler() is adjusted accordingly.
+     * @n @p READ_FN Supplied function to read the virtual pin
+     * @n @p ISR_FN Supplied function to emulate interrupt routine service call.
+     * @n @p NAME Name used to access pin. E.g. zMin, later accessed as e.g. zMin.read()
+     * @n @p PORTPIN Virtual location of pin. E.g. BUDDY_PIN(Z_MIN) for virtual pin defined for Marlin earlier.
+     * @n @p PARAMETERS Parameters passed to pin constructor.
+     *
+     * @par Example usage:
+     * @code
+     * #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
+     *          MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling)
+     *
+     * namespace buddy::hw {
+     * DECLARE_VIRTUAL_PINS(VIRTUAL_PIN_TABLE)
+     * }
+     *
+     * };
+     *
+     * @endcode
+     *
+     */
         #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION) \
             MACRO_FUNCTION(buddy::hw::VirtualInterruptPin, buddy::hw::zMinReadFn, endstop_ISR, zMin, BUDDY_PIN(Z_MIN), IMode::IT_rising_falling)
 
@@ -507,7 +508,7 @@ inline Pin::State zMinReadFn();
         #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION)
     #endif // HAS_LOADCELL()
 
-#endif //Not special board with separate pin definition file.
+#endif     // Not special board with separate pin definition file.
 
 /** @}*/
 namespace buddy::hw {
@@ -588,7 +589,7 @@ constexpr bool virtualPinExist(uint32_t marlinPin) {
 constexpr bool isInterruptPin(uint32_t marlinPin) {
 #define ALL_INTERRUPT_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) \
     case toMarlinPin(PORTPIN):                                                 \
-        return (std::is_same_v<TYPE, InterruptPin>);
+        return (std::is_same_v<TYPE, InterruptPin> || std::is_base_of_v<InterruptPin, TYPE>);
 
     switch (marlinPin) {
         PIN_TABLE(ALL_INTERRUPT_PINS)

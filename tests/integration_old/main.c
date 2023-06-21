@@ -40,13 +40,13 @@ int main(int argc, char **argv) {
     tcpip_init(tap_netif_init, &init_sem);
 
     /* we have to wait for initialization to finish before
-	* calling update_adapter()! */
+     * calling update_adapter()! */
     sys_sem_wait(&init_sem);
     sys_sem_free(&init_sem);
 
     while (1) {
         /* poll the driver, get any outstanding frames, alloc memory for them, and
-		call netif->input, which is actually ip_input() */
+                call netif->input, which is actually ip_input() */
         sys_msleep(1);
         tapif_poll(&netif);
     }

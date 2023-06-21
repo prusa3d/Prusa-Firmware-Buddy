@@ -3,9 +3,8 @@
 #include <screen_menu_selftest_snake_result_parsing.hpp>
 
 namespace SelftestSnake {
-TestResult get_test_result(Action action, Tool tool) {
-    SelftestResult sr;
-    eeprom_get_selftest_results(&sr);
+TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
+    SelftestResult sr = config_store().selftest_result.get();
 
     switch (action) {
     case Action::Fans:
@@ -27,7 +26,7 @@ TestResult get_test_result(Action action, Tool tool) {
     return TestResult_Unknown;
 }
 
-uint8_t get_tool_mask(Tool tool) {
+uint8_t get_tool_mask([[maybe_unused]] Tool tool) {
     return ToolMask::AllTools;
 }
 

@@ -1,4 +1,4 @@
-//window_types.hpp
+// window_types.hpp
 #pragma once
 
 #include <inttypes.h>
@@ -10,7 +10,7 @@ struct window_list_t;
 typedef void(window_list_item_t)(window_list_t *pwindow_list,
     uint16_t index, const char **pptext, uint16_t *pid_icon);
 
-//to be safe, ctor has this 2 bool parameters, can't switch them
+// to be safe, ctor has this 2 bool parameters, can't switch them
 enum class is_hidden_t : uint8_t { no,
     yes,
     dev };
@@ -26,15 +26,15 @@ enum class is_closed_on_click_t : bool { no,
     yes };
 enum class is_closed_on_timeout_t : bool { no,
     yes };
-enum class is_closed_on_serial_t : bool { no,
+enum class is_closed_on_printing_t : bool { no,
     yes };
 enum class has_footer : bool { no,
     yes };
 enum class positioning : bool { absolute,
     relative };
 
-//type of window
-//carefull if any states are added - flags and getter must be modified
+// type of window
+// carefull if any states are added - flags and getter must be modified
 enum class win_type_t : uint8_t {
     normal,       // single normal window in screen can have capture, registered in ctor, registration must succedd
     dialog,       // can have capture, child of IDialog - modal window - multiple supported
@@ -46,7 +46,7 @@ enum class win_type_t : uint8_t {
                   // last open strong dialog is on top
 };
 
-//todo add can capture flag (needed in frame event and SetCapture)
+// todo add can capture flag (needed in frame event and SetCapture)
 union WindowFlags {
     uint32_t data;
     struct {
@@ -61,7 +61,7 @@ union WindowFlags {
         is_closed_on_click_t close_on_click : 1;   // 09 - window id dialog
         bool hidden_behind_dialog : 1;             // 0A - there is an dialog over this window
         is_closed_on_timeout_t timeout_close : 1;  // 0B - menu timeout flag - it's meant to be used in window_frame_t
-        is_closed_on_serial_t serial_close : 1;    // 0C - serial printing screen open close
+        is_closed_on_printing_t print_close : 1;   // 0C - should be closed, if print is started
         bool shadow : 1;                           // 0D - executable (causes darker colors)
         bool enforce_capture_when_not_visible : 1; // 0E - normally invisible / hidden_behind_dialog windows does not get capture
         bool has_relative_subwins : 1;             // 0F - X Y coords of all children are relative to this, screen cannot have this flag because 1st level windows can be dialogs and they must not have relative coords
@@ -76,8 +76,8 @@ union WindowFlags {
         union {                                    // 18 .. 1F - 8bit variable used in child classes
             uint8_t align_data;                    // used in window_aligned_t
             struct {
-                uint8_t button_count : 4; // used in RadioButton
-                uint8_t button_index : 4; // used in RadioButton
+                uint8_t button_count : 4;          // used in RadioButton
+                uint8_t button_index : 4;          // used in RadioButton
             };
         };
     };

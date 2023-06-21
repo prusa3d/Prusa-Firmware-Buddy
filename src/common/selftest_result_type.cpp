@@ -1,5 +1,4 @@
 #include "selftest_result_type.hpp"
-#include "eeprom.h"
 
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()

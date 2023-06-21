@@ -25,6 +25,13 @@ public:
     MI_CONNECT_STATUS();
 };
 
+class MI_CONNECT_ERROR : public WI_INFO_t {
+    constexpr static const char *const label = N_("Error");
+
+public:
+    MI_CONNECT_ERROR();
+};
+
 class MI_CONNECT_LOAD_SETTINGS : public WI_LABEL_t {
     static constexpr const char *const label = N_("Load Settings");
 
@@ -45,7 +52,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_REGISTER, MI_CONNECT_LOAD_SETTINGS>;
+using ScreenMenuConnect__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_CONNECT_ENABLED, MI_CONNECT_STATUS, MI_CONNECT_ERROR, MI_CONNECT_REGISTER, MI_CONNECT_LOAD_SETTINGS>;
 
 class ScreenMenuConnect : public ScreenMenuConnect__ {
 private:

@@ -24,8 +24,6 @@ typedef enum {
     stsPrologueInfoDetailed_wait_user,
     stsFans,
     stsWait_fans,
-    stsLoadcell,
-    stsWait_loadcell,
     stsZcalib,
     stsXAxis,
     stsYAxis,
@@ -36,14 +34,13 @@ typedef enum {
     stsHeaters_bed_ena,
     stsHeaters,
     stsWait_heaters,
-    stsFSensor_calibration,
-    stsFSensorMMU_calibration,
     stsNet_status,
     stsFans_fine,
     stsSelftestStop,
     stsDidSelftestPass,
     stsEpilogue_nok,
     stsEpilogue_nok_wait_user,
+    stsFirstLayer,
     stsShow_result,
     stsResult_wait_user,
     stsEpilogue_ok,
@@ -61,8 +58,6 @@ enum SelftestMask_t : uint64_t {
     stmNone = 0,
     stmFans = to_one_hot(stsFans),
     stmWait_fans = to_one_hot(stsWait_fans),
-    stmLoadcell = to_one_hot(stsLoadcell),
-    stmWait_loadcell = to_one_hot(stsWait_loadcell),
     stmZcalib = to_one_hot(stsZcalib),
     stmXAxis = to_one_hot(stsXAxis),
     stmYAxis = to_one_hot(stsYAxis),
@@ -75,16 +70,15 @@ enum SelftestMask_t : uint64_t {
     stmHeaters_bed = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_bed_ena),
     stmHeaters = stmHeaters_bed | stmHeaters_noz,
     stmWait_heaters = to_one_hot(stsWait_heaters),
-    stmFSensor = to_one_hot(stsFSensor_calibration),
-    stmFSensorMMU = to_one_hot(stsFSensorMMU_calibration),
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
     stmNet_status = to_one_hot(stsNet_status),
     stmShow_result = to_one_hot(stsShow_result) | to_one_hot(stsResult_wait_user),
-    stmFullSelftest = stmFans | stmLoadcell | stmXYZAxis | stmHeaters | stmFSensor | stmNet_status | stmShow_result | to_one_hot(stsDidSelftestPass),
+    stmFullSelftest = stmFans | stmXYZAxis | stmHeaters | stmNet_status | stmShow_result | to_one_hot(stsDidSelftestPass),
     stmWizardPrologue = to_one_hot(stsPrologueAskRun) | to_one_hot(stsPrologueAskRun_wait_user) | to_one_hot(stsPrologueInfo) | to_one_hot(stsPrologueInfo_wait_user) | to_one_hot(stsPrologueInfoDetailed) | to_one_hot(stsPrologueInfoDetailed_wait_user),
     stmEpilogue = to_one_hot(stsEpilogue_nok) | to_one_hot(stsEpilogue_nok_wait_user) | to_one_hot(stsEpilogue_ok) | to_one_hot(stsEpilogue_ok_wait_user),
-    stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue,
+    stmFirstLayer = to_one_hot(stsFirstLayer),
+    stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue | stmFirstLayer,
     stmFans_fine = to_one_hot(stsFans_fine),
 };
 
@@ -95,6 +89,7 @@ public:
 
 public:
     virtual bool IsInProgress() const override;
+    virtual bool IsAborted() const override;
     virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) override; // parent has no clue about SelftestMask_t
     virtual void Loop() override;
     virtual bool Abort() override;
@@ -117,8 +112,7 @@ protected:
     selftest::IPartHandler *pZAxis;
     std::array<selftest::IPartHandler *, HOTENDS> pNozzles;
     selftest::IPartHandler *pBed;
-    std::array<selftest::IPartHandler *, HOTENDS> m_pLoadcell;
-    std::array<selftest::IPartHandler *, HOTENDS> pFSensor;
+    selftest::IPartHandler *pFirstLayer;
 
     SelftestResult m_result;
 };

@@ -3,7 +3,6 @@
 #include <device/peripherals.h>
 #include <device/hal.h>
 #include "Marlin.h"
-#include "marlin_server.hpp"
 #include "accelerometer.hpp"
 #include "modbus/ModbusTask.hpp"
 #include "wiring_analog.h"
@@ -47,7 +46,7 @@ void HAL_watchdog_refresh() {
 }
 
 void dwarf::modules::marlin::start() {
-    hal::MultiWatchdog wdg; //Add one instance of watchdog
+    hal::MultiWatchdog wdg; // Add one instance of watchdog
     setup();
 
     modbus::ModbusTask::EnableModbus();
@@ -112,6 +111,7 @@ void stop_marlin() {
     marlin_kill = true;
 
     DISABLE_STEPPER_DRIVER_INTERRUPT();
+    DISABLE_MOVE_INTERRUPT();
     DISABLE_TEMPERATURE_INTERRUPT();
     dwarf_init_done = false;
     hwio_safe_state();
@@ -198,7 +198,7 @@ SPIClass::SPIClass() {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(STEPPER_MOSI_GPIO_Port, &GPIO_InitStruct);
 
-    //SCK CSN
+    // SCK CSN
     GPIO_InitStruct.Pin = STEPPER_SCK_Pin | STEPPER_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -325,8 +325,6 @@ SafetyTimer::SafetyTimer()
 SafetyTimer::expired_t SafetyTimer::Loop() {
     return SafetyTimer::expired_t::no;
 }
-
-void marlin_server::set_warning([[maybe_unused]] WarningType type) {}
 
 #include "metric.h"
 

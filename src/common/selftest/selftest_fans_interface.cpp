@@ -8,26 +8,23 @@
 #include "selftest_fans_type.hpp"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 namespace selftest {
 
-static std::array<SelftestFan_t, HOTENDS> staticResultsPrint;
-static std::array<SelftestFan_t, HOTENDS> staticResultsHeatbreak;
+static std::array<SelftestFanHotendResult, HOTENDS> static_hotend_results;
 
 // data for both subtests must be sent together
 // we could loose some events, so we must be sending entire state of both parts
-bool phaseFans(std::array<IPartHandler *, NUM_SELFTEST_FANS> &fans_parts, const std::span<const FanConfig_t> config_fans) {
+bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<const SelftestFansConfig> fans_configs) {
     if (fans_parts[0] == nullptr) // check only first fan, if null allocate all
     {
-        for (size_t i = 0; i < config_fans.size(); i++) {
-            auto &result = (config_fans[i].type == fan_type_t::Print) ? staticResultsPrint : staticResultsHeatbreak;
-
-            fans_parts[i] = selftest::Factory::CreateDynamical<CSelftestPart_Fan>(config_fans[i],
-                result[config_fans[i].tool_nr],
-                &CSelftestPart_Fan::stateStart, &CSelftestPart_Fan::stateWaitStopped,
-                &CSelftestPart_Fan::stateCycleMark, &CSelftestPart_Fan::stateWaitRpm,
-                &CSelftestPart_Fan::stateMeasureRpm);
+        for (size_t i = 0; i < fans_parts.size(); i++) {
+            fans_parts[i] = selftest::Factory::CreateDynamical<CSelftestPart_Fan>(fans_configs[i],
+                static_hotend_results[i],
+                &CSelftestPart_Fan::state_start, &CSelftestPart_Fan::state_wait_spindown,
+                &CSelftestPart_Fan::state_cycle_mark, &CSelftestPart_Fan::state_wait_rpm,
+                &CSelftestPart_Fan::state_measure_rpm);
         }
     }
 
@@ -40,14 +37,14 @@ bool phaseFans(std::array<IPartHandler *, NUM_SELFTEST_FANS> &fans_parts, const 
         any_in_progress = any_in_progress || res;
     }
 
-    SelftestFans_t result(staticResultsPrint.begin(), staticResultsHeatbreak.begin());
-    FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
+    SelftestFansResult result(static_hotend_results);
+    FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result);
     if (any_in_progress) {
         return true;
     }
 
-    auto to_TestResult = [](SelftestSubtestState_t subtest) {
-        switch (subtest) {
+    auto to_test_result = [](SelftestSubtestState_t state) {
+        switch (state) {
         case SelftestSubtestState_t::not_good:
             return TestResult_Failed;
         case SelftestSubtestState_t::ok:
@@ -57,18 +54,24 @@ bool phaseFans(std::array<IPartHandler *, NUM_SELFTEST_FANS> &fans_parts, const 
         }
     };
 
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
-    HOTEND_LOOP() {
-        eeres.tools[e].printFan = to_TestResult(staticResultsPrint[e].state);
-        eeres.tools[e].heatBreakFan = to_TestResult(staticResultsHeatbreak[e].state);
-    }
-    eeprom_set_selftest_results(&eeres);
+    SelftestResult eeres = config_store().selftest_result.get();
+    for (size_t i = 0; i < static_hotend_results.size(); ++i) {
+        const auto &hr = static_hotend_results[i];
 
-    for (size_t i = 0; i < config_fans.size(); i++) {
+        eeres.tools[i].printFan = to_test_result(hr.print_fan_state);
+        eeres.tools[i].heatBreakFan = to_test_result(hr.heatbreak_fan_state);
+        // TODO add storing to EEPROM
+        // eeres.tools[i].fansSwitched = to_test_result(hr.fans_switched_state);
+    }
+
+    config_store().selftest_result.set(eeres);
+
+    for (size_t i = 0; i < fans_parts.size(); i++) {
         delete fans_parts[i];
     }
     std::ranges::fill(fans_parts, nullptr);
+
     return false;
 }
+
 } // namespace selftest

@@ -82,11 +82,14 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
          */
 
 #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
-        analog_gpio_init(GPIOA, THERM_1_Pin | THERM_PINDA_Pin | HEATER_VOLTAGE_Pin); /*Initialize GPIOA pins as analog input*/
-        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);                            /*Initialize GPIOC pins as analog input*/
+        analog_gpio_init(GPIOA, THERM_1_Pin | THERM_HEATBREAK_Pin | HEATER_VOLTAGE_Pin); /*Initialize GPIOA pins as analog input*/
+        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);                                /*Initialize GPIOC pins as analog input*/
+#elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
+        analog_gpio_init(GPIOA, THERM_1_Pin | HEATER_VOLTAGE_Pin | BED_VOLTAGE_Pin); /*Initialize GPIOA pins as analog input*/
+        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);
 #elif BOARD_IS_XBUDDY
-        analog_gpio_init(GPIOA, THERM_1_Pin | THERM_PINDA_Pin | HEATER_VOLTAGE_Pin | BED_VOLTAGE_Pin); /*Initialize GPIOA pins as analog input*/
-        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);                                              /*Initialize GPIOC pins as analog input*/
+        analog_gpio_init(GPIOA, THERM_1_Pin | THERM_HEATBREAK_Pin | HEATER_VOLTAGE_Pin | BED_VOLTAGE_Pin); /*Initialize GPIOA pins as analog input*/
+        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);                                                  /*Initialize GPIOC pins as analog input*/
 #elif BOARD_IS_BUDDY
         analog_gpio_init(GPIOA, BED_MON_Pin | THERM_1_Pin | THERM_2_Pin | THERM_PINDA_Pin); /*Initialize GPIOA pins as analog input*/
         analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);                                   /*Initialize GPIOC pins as analog input*/
@@ -156,7 +159,14 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc) {
          */
         HAL_GPIO_DeInit(THERM_0_GPIO_Port, THERM_0_Pin);
 
-        HAL_GPIO_DeInit(GPIOA, BED_MON_Pin | THERM_1_Pin | THERM_2_Pin | THERM_PINDA_Pin);
+        HAL_GPIO_DeInit(GPIOA, BED_MON_Pin | THERM_1_Pin | THERM_2_Pin
+#if (BOARD_IS_BUDDY)
+                | THERM_PINDA_Pin
+#endif
+#if (BOARD_IS_XBUDDY && (!PRINTER_IS_PRUSA_MK3_5))
+                | THERM_HEATBREAK_Pin
+#endif
+        );
 
         HAL_DMA_DeInit(hadc->DMA_Handle);
     }
@@ -193,44 +203,38 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     if (hi2c->Instance == I2C2) {
+        static_assert(i2c2_SDA_PORT_BASE == GPIOF_BASE, "fix i2c2 sda port");
+        static_assert(i2c2_SCL_PORT_BASE == GPIOF_BASE, "fix i2c2 scl port");
         __HAL_RCC_GPIOF_CLK_ENABLE();
 
-        /**
-         * I2C2 GPIO Configuration
-         * PF0     ------> I2C2_SDA
-         * PF1     ------> I2C2_SCL
-         * */
-        GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+        GPIO_InitStruct.Pin = i2c2_SDA_PIN | i2c2_SCL_PIN;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
         GPIO_InitStruct.Pull = GPIO_PULLUP;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
-        HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+        HAL_GPIO_Init(i2c2_SDA_PORT, &GPIO_InitStruct);
 
         /* Peripheral clock enable */
         __HAL_RCC_I2C2_CLK_ENABLE();
     } else if (hi2c->Instance == I2C3) {
+        static_assert(i2c3_SDA_PORT_BASE == GPIOC_BASE, "fix i2c3 sda port");
+        static_assert(i2c3_SCL_PORT_BASE == GPIOA_BASE, "fix i2c3 scl port");
         __HAL_RCC_GPIOC_CLK_ENABLE();
         __HAL_RCC_GPIOA_CLK_ENABLE();
 
-        /**
-         * I2C3 GPIO Configuration
-         * PC9     ------> I2C3_SDA
-         * PA8     ------> I2C3_SCL
-         */
-        GPIO_InitStruct.Pin = GPIO_PIN_9;
+        GPIO_InitStruct.Pin = i2c3_SDA_PIN;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
         GPIO_InitStruct.Pull = GPIO_PULLUP;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
-        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+        HAL_GPIO_Init(i2c3_SDA_PORT, &GPIO_InitStruct);
 
-        GPIO_InitStruct.Pin = GPIO_PIN_8;
+        GPIO_InitStruct.Pin = i2c3_SCL_PIN;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
         GPIO_InitStruct.Pull = GPIO_PULLUP;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
-        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        HAL_GPIO_Init(i2c3_SCL_PORT, &GPIO_InitStruct);
 
         /* Peripheral clock enable */
         __HAL_RCC_I2C3_CLK_ENABLE();
@@ -239,22 +243,16 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
 
 #if (BOARD_IS_BUDDY || BOARD_IS_XLBUDDY)
     if (hi2c->Instance == I2C1) {
+        static_assert(i2c1_SDA_PORT_BASE == GPIOB_BASE, "fix i2c3 sda port");
+        static_assert(i2c1_SCL_PORT_BASE == GPIOB_BASE, "fix i2c3 scl port");
         __HAL_RCC_GPIOB_CLK_ENABLE();
-        /**
-         * I2C1 GPIO Configuration
-         * PB8     ------> I2C1_SCL
-         * PB9     ------> I2C1_SDA
-         */
-    #if BOARD_IS_XLBUDDY
-        GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
-    #else
-        GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9;
-    #endif
+
+        GPIO_InitStruct.Pin = i2c1_SDA_PIN | i2c1_SCL_PIN;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
         GPIO_InitStruct.Pull = GPIO_PULLUP;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        HAL_GPIO_Init(i2c1_SDA_PORT, &GPIO_InitStruct);
 
         /* Peripheral clock enable */
         __HAL_RCC_I2C1_CLK_ENABLE();

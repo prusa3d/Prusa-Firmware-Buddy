@@ -4,7 +4,8 @@
 #include "timing.h"
 
 log_timestamp_t log_platform_timestamp_get() {
-    return timestamp_ns();
+    auto timestamp = get_timestamp();
+    return { timestamp.sec, timestamp.us };
 }
 
 log_task_id_t log_platform_task_id_get() {

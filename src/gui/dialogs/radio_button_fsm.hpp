@@ -39,7 +39,7 @@ public:
         phase = phs;
         SetBtnCount(HasIcon() ? max_icons : cnt_buttons(phs));
 
-        //in iconned layout index will stay
+        // in iconned layout index will stay
         if (!HasIcon()) {
             SetBtnIndex(0);
         }

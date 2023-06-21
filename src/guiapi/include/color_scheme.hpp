@@ -8,7 +8,7 @@
 #include "guitypes.hpp"
 
 struct color_scheme {
-    color_t normal; //not focused and not shadowed
+    color_t normal; // not focused and not shadowed
     color_t focused;
     color_t shadowed;
     color_t focused_and_shadowed;
@@ -29,7 +29,7 @@ struct color_scheme {
             return focused;
         if ((!is_focused) && (is_shadowed))
             return shadowed;
-        //if ((!is_focused) && (!is_shadowed))
+        // if ((!is_focused) && (!is_shadowed))
         return normal;
     }
 

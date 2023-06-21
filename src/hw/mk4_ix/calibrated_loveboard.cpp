@@ -1,6 +1,6 @@
 /**
  * @file
-*/
+ */
 #include "config_buddy_2209_02.h"
 #include "wdt.h"
 #include "calibrated_loveboard.hpp"
@@ -18,7 +18,7 @@ CalibratedLoveboard::CalibratedLoveboard(GPIO_TypeDef *port, uint32_t pin)
 }
 
 bool CalibratedLoveboard::loadData() {
-    //Read data from EEPROM
+    // Read data from EEPROM
     wdt_iwdg_refresh();
     data_valid = false;
     memset(&calib_data, 0, sizeof(calib_data));

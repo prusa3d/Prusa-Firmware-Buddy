@@ -17,7 +17,7 @@ static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
 }
 
 /*****************************************************************************/
-//MI_SAVE_TOUCH
+// MI_SAVE_TOUCH
 MI_SAVE_TOUCH::MI_SAVE_TOUCH()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
@@ -31,7 +31,7 @@ void MI_SAVE_TOUCH::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_LOAD_TOUCH
+// MI_LOAD_TOUCH
 MI_LOAD_TOUCH::MI_LOAD_TOUCH()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
@@ -45,7 +45,7 @@ void MI_LOAD_TOUCH::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_RESET_TOUCH
+// MI_RESET_TOUCH
 MI_RESET_TOUCH::MI_RESET_TOUCH()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
@@ -57,7 +57,7 @@ void MI_RESET_TOUCH::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_DISP_RST
+// MI_DISP_RST
 MI_DISP_RST::MI_DISP_RST()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
@@ -67,14 +67,13 @@ void MI_DISP_RST::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 /*****************************************************************************/
-//MI_ENABLE_TOUCH
+// MI_ENABLE_TOUCH
 MI_ENABLE_TOUCH::MI_ENABLE_TOUCH()
     : WI_ICON_SWITCH_OFF_ON_t(touch::is_enabled(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_ENABLE_TOUCH::OnChange([[maybe_unused]] size_t old_index) {
     if (index != 0) {
-        // if I call following code at this moment it brakes
-        // touch::touch_workaround(); // I2C filters of touch are glitchy, reset them
+        // if I call busy flag clear workaround at this moment it brakes
         touch::enable();
     } else {
         touch::disable();
@@ -84,13 +83,13 @@ void MI_ENABLE_TOUCH::OnChange([[maybe_unused]] size_t old_index) {
 static const SpinConfigInt touch_err_cnf = SpinConfigInt({ { 0, INT_MAX, 1 } }, "", spin_off_opt_t::no);
 
 /*****************************************************************************/
-//MI_TOUCH_ERR_COUNT
+// MI_TOUCH_ERR_COUNT
 MI_TOUCH_ERR_COUNT::MI_TOUCH_ERR_COUNT()
     : WiSpinInt(0, touch_err_cnf, string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::no, is_hidden_t::dev) {
 }
 
 /*****************************************************************************/
-//MI_I2C_WORKAROUND
+// MI_I2C_WORKAROUND
 MI_I2C_WORKAROUND::MI_I2C_WORKAROUND()
     : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
@@ -99,7 +98,7 @@ void MI_I2C_WORKAROUND::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 /*****************************************************************************/
-//MI_I2C_FORCE_RESET
+// MI_I2C_FORCE_RESET
 MI_I2C_FORCE_RESET::MI_I2C_FORCE_RESET()
     : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
@@ -108,7 +107,7 @@ void MI_I2C_FORCE_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 /*****************************************************************************/
-//MI_I2C_RELEASE_FORCE_RESET
+// MI_I2C_RELEASE_FORCE_RESET
 MI_I2C_RELEASE_FORCE_RESET::MI_I2C_RELEASE_FORCE_RESET()
     : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
@@ -117,7 +116,7 @@ void MI_I2C_RELEASE_FORCE_RESET::click([[maybe_unused]] IWindowMenu &window_menu
 }
 
 /*****************************************************************************/
-//MI_DISPI2C_RST
+// MI_DISPI2C_RST
 MI_DISPI2C_RST::MI_DISPI2C_RST()
     : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 

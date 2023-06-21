@@ -65,16 +65,11 @@ public:
     bool IsExtruderProcessingRequest() { return request_printer != filament_sensor::cmd_t::null; }
     filament_sensor::init_status_t get_active_init_status() const;
 
-    //called from different thread
+    // called from different thread
     void Cycle();
 
-    bool CanStartPrint(); //has_filament != mmu_active
-
-    void M600_on_edge() { send_event_on = filament_sensor::inject_t::on_edge; }
-
-    void M600_on_level() { send_event_on = filament_sensor::inject_t::on_level; }
-
-    void M600_never() { send_event_on = filament_sensor::inject_t::never; }
+    bool MMUReadyToPrint();
+    bool ToolHasFilament(uint8_t tool_nr);
 
     bool WasM600_send() const { return m600_sent; }
 
@@ -104,27 +99,23 @@ private:
     void reconfigure_sensors_if_needed(); // for some printers might do something else than configure_sensors
     void set_corresponding_variables();
 
-    filament_sensor::Events run_physical_sensors_cycle();
+    filament_sensor::Events evaluate_logical_sensors_events();
 
     bool evaluateM600(FSensor::event ev) const;     // must remain const - is called out of critical section
     bool evaluateAutoload(FSensor::event ev) const; // must remain const - is called out of critical section
     inline bool isEvLocked() { return event_lock > 0; }
     inline bool isAutoloadLocked() { return autoload_lock > 0; }
 
-    void restore_send_M600_on(filament_sensor::inject_t send_event_on);
-    filament_sensor::inject_t getM600_send_on_and_disable();
-
-    bool has_mmu2_enabled(); // turn MMU2 on during init
+    bool has_mmu2_enabled() const; // turn MMU2 on during init
 
     void process_printer_request();
+    void all_sensors_initialized();
     void process_side_request();
+    bool run_sensors_cycle(); //< returns true,
 
     // logical sensors
     // 1 physical sensor can be linked to multiple logical sensors
     filament_sensor::LogicalSensors logical_sensors;
-
-    // array to do sensor cycle, but dont call cycle of shared sensor twice
-    filament_sensor::PhysicalSensors physical_sensors;
 
     // all those variables can be accessed from multiple threads
     // all of them are set during critical section, so values are guaranteed to be corresponding
@@ -147,8 +138,6 @@ private:
     std::atomic<bool> m600_sent = false;
     std::atomic<bool> autoload_sent = false;
     std::atomic<bool> has_mmu = false; // affect only MMU, named correctly .. it is not "has_side_sensor"
-
-    std::atomic<filament_sensor::inject_t> send_event_on = filament_sensor::inject_t::on_edge;
 
     // I have used reference to forward declared class, so I do not need to include freertos in header
     FreeRTOS_Mutex &GetSideMutex();

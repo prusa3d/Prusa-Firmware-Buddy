@@ -18,14 +18,16 @@ class IWindowText : public AddSuperWindow<window_aligned_t> {
         const color_scheme *pTextColorScheme;
     };
 
+    font_t *font;
+
 public:
-    font_t *font;          // TODO private
     padding_ui8_t padding; // TODO private
 
     void SetTextColor(color_t clr);
     void SetTextColor(const color_scheme &clr);
     color_t GetTextColor() const;
-    void SetFont(font_t *val);
+    void set_font(font_t *val);
+    const font_t *get_font() const;
     void SetPadding(padding_ui8_t padd);
 
     IWindowText(window_t *parent, Rect16 rect, is_closed_on_click_t close = is_closed_on_click_t::no);

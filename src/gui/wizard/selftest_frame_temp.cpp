@@ -18,14 +18,14 @@ constexpr size_t col_1 = WizardDefaults::status_icon_X_pos;
 constexpr size_t txt_h = WizardDefaults::txt_h;
 constexpr size_t row_h = WizardDefaults::row_h;
 
-//noz
+// noz
 constexpr size_t row_noz_0 = WizardDefaults::row_0;
 constexpr size_t row_noz_1 = row_noz_0 + row_h;
 constexpr size_t row_noz_2 = row_noz_1 + WizardDefaults::progress_row_h;
 constexpr size_t row_noz_3 = row_noz_2 + row_h;
-//heatbreak
+// heatbreak
 constexpr size_t row_heatbreak = row_noz_3 + row_h;
-//bed
+// bed
 constexpr size_t row_bed_0 = row_heatbreak + row_h + 16;
 constexpr size_t row_bed_1 = row_bed_0 + row_h;
 constexpr size_t row_bed_2 = row_bed_1 + WizardDefaults::progress_row_h;
@@ -74,7 +74,9 @@ ScreenSelftestTemp::hotend_result_t ScreenSelftestTemp::make_hotend_result_row(s
     return {
         .icon_noz_prep = WindowIcon_OkNg(this, { y, row_noz_2 }),
         .icon_noz_heat = WindowIcon_OkNg(this, { y, row_noz_3 }),
+#if HAS_HEATBREAK_TEMP()
         .icon_heatbreak = WindowIcon_OkNg(this, { y, row_heatbreak }),
+#endif
     };
 }
 
@@ -91,22 +93,23 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
 #else
     , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::Heatbreak)
 #endif
-    //noz
+    // noz
     , text_noz(this, top_label_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_noz))
     , progress_noz(this, top_progress_rect.Top())
     , text_noz_prep(this, top_row_0_text_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_prep))
     , text_noz_heat(this, top_row_1_text_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_heat))
 
-    //bed
+    // bed
     , text_bed(this, bottom_label_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_bed))
     , progress_bed(this, bottom_progress_rect.Top())
     , text_bed_prep(this, bottom_row_0_text_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_prep))
     , icon_bed_prep(this, bottom_row_0_icon_rect.TopLeft())
     , text_bed_heat(this, bottom_row_1_text_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_heat))
     , icon_bed_heat(this, bottom_row_0_icon_rect.TopLeft())
-    //heatbreak
+#if HAS_HEATBREAK_TEMP()
+    // heatbreak
     , text_heatbreak(this, heatbreak_text_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_heatbreak))
-
+#endif
     // results
     , hotend_results(make_hotend_result_array(std::make_index_sequence<HOTENDS>())) {
 
@@ -161,7 +164,9 @@ void ScreenSelftestTemp::change() {
             progress_noz.Show();
             text_noz_prep.Show();
             text_noz_heat.Show();
+#if HAS_HEATBREAK_TEMP()
             text_heatbreak.Show();
+#endif
             for (size_t i = 0; i < HOTENDS; i++) {
 #if HAS_TOOLCHANGER()
                 if (prusa_toolchanger.is_tool_enabled(i))
@@ -169,7 +174,9 @@ void ScreenSelftestTemp::change() {
                 {
                     hotend_results[i].icon_noz_prep.Show();
                     hotend_results[i].icon_noz_heat.Show();
+#if HAS_HEATBREAK_TEMP()
                     hotend_results[i].icon_heatbreak.Show();
+#endif
                 }
             }
 
@@ -182,7 +189,9 @@ void ScreenSelftestTemp::change() {
                 {
                     hotend_results[i].icon_noz_prep.SetState(dt.noz[i].prep_state);
                     hotend_results[i].icon_noz_heat.SetState(dt.noz[i].heat_state);
+#if HAS_HEATBREAK_TEMP()
                     hotend_results[i].icon_heatbreak.SetState(dt.noz[i].heatbreak_error ? SelftestSubtestState_t::not_good : SelftestSubtestState_t::ok);
+#endif
                     progress = std::min(progress, dt.noz[i].progress);
                 }
             }
@@ -192,7 +201,9 @@ void ScreenSelftestTemp::change() {
             progress_noz.Hide();
             text_noz_prep.Hide();
             text_noz_heat.Hide();
+#if HAS_HEATBREAK_TEMP()
             text_heatbreak.Hide();
+#endif
             for (size_t i = 0; i < HOTENDS; i++) {
 #if HAS_TOOLCHANGER()
                 if (prusa_toolchanger.is_tool_enabled(i))
@@ -200,7 +211,9 @@ void ScreenSelftestTemp::change() {
                 {
                     hotend_results[i].icon_noz_prep.Hide();
                     hotend_results[i].icon_noz_heat.Hide();
+#if HAS_HEATBREAK_TEMP()
                     hotend_results[i].icon_heatbreak.Hide();
+#endif
                 }
             }
         }

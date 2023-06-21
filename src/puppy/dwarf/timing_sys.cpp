@@ -128,6 +128,7 @@ uint32_t ticks_us() {
     return us_timer_base_before + us_timer;
 }
 
-uint64_t timestamp_ns() {
-    return (uint64_t)ticks_us() * 1000;
+timestamp_t get_timestamp() {
+    uint32_t ms_copy = ticks_ms();
+    return { ms_copy / 1000, (ms_copy % 1000) * 1000 }; // Will overflow in 49 days with ticks_ms()
 }

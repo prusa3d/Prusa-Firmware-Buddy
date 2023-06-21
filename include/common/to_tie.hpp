@@ -1,7 +1,6 @@
 
 #pragma once
 #include "aggregate_arity.hpp"
-namespace detail {
 template <typename T, std::size_t arity = aggregate_arity<std::remove_cv_t<T>>::size() - 1>
 constexpr auto to_tie(T &t) {
     if constexpr (arity == 0) {
@@ -1010,4 +1009,3 @@ constexpr auto to_tie(T &t) {
         static_assert("Generate new to_tie function, the script is located in utils/configuration_store");
     }
 };
-}

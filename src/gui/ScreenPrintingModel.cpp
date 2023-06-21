@@ -45,7 +45,7 @@ ScreenPrintingModel::ScreenPrintingModel(string_view_utf8 caption)
     } // clang-format on
 {
     for (uint8_t i = 0; i < socket_count; i++) {
-        labels[i].font = resource_font(IDR_FNT_SMALL);
+        labels[i].set_font(resource_font(IDR_FNT_SMALL));
         labels[i].SetPadding({ 0, 0, 0, 0 });
         labels[i].SetAlignment(Align_t::Center());
     }

@@ -22,6 +22,11 @@ extern const int project_build_number;
 /// Firmware name
 extern const char project_firmware_name[];
 
+/**
+ * @brief Prints project_version into buffer without dots (4.0.2 -> 402)
+ */
+void fill_project_version_no_dots(char *buffer, size_t buffer_size);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

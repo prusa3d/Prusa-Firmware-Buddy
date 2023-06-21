@@ -21,7 +21,7 @@ IScreenPrinting::~IScreenPrinting() {
 IScreenPrinting *IScreenPrinting::ths = nullptr;
 
 /******************************************************************************/
-//static methods to be pointed by fnc pointers
+// static methods to be pointed by fnc pointers
 void IScreenPrinting::StopAction() {
     if (IScreenPrinting::ths)
         IScreenPrinting::ths->stopAction();

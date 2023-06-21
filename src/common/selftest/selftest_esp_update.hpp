@@ -33,7 +33,7 @@ enum class esp_upload_action {
     WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
     Finish,
     Finish_wait_user,
-    Aborted, //currently abort does not wait for user
+    Aborted, // currently abort does not wait for user
     // Aborted_wait_user,
     Done
 };
@@ -119,7 +119,7 @@ public:
 };
 
 enum class esp_credential_action {
-    //ini creation
+    // ini creation
     AskMakeFile,
     CheckUSB_inserted,
     USB_not_inserted,
@@ -129,7 +129,7 @@ enum class esp_credential_action {
     MakeFile_failed_wait_user,
     EjectUSB,
     WaitUSB_ejected,
-    //credentials upload
+    // credentials upload
     ShowInstructions_qr,
     ShowInstructions_qr_wait_user,
     ShowInstructions,
@@ -147,7 +147,7 @@ enum class esp_credential_action {
     ShowEnableWIFI,
     EnableWIFI,
     WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
-    Aborted,          //currently abort does not wait for user
+    Aborted,          // currently abort does not wait for user
     // Aborted_wait_user,
     Done
 };
@@ -174,9 +174,9 @@ private:
     marlin_server::FSM_Holder &rfsm;
     uint32_t time_stamp;
     type_t type;
-    const uint8_t initial_netdev_id; // it is not enum because of stupid C api
+    const uint8_t initial_netdev_id;  // it is not enum because of stupid C api
     esp_credential_action progress_state;
-    esp_credential_action last_state; //needed to invalidate time stamp at change of state
+    esp_credential_action last_state; // needed to invalidate time stamp at change of state
     std::optional<PhasesSelftest> phase;
     bool usb_inserted;
     bool wifi_enabled;

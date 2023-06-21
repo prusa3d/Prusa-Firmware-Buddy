@@ -1,38 +1,29 @@
 #include "status.hpp"
 
-#include <cassert>
+using http::Error;
 
 namespace connect_client {
 
-bool status_replace_early(OnlineStatus status) {
-    switch (status) {
-    // Off states
-    case OnlineStatus::Unknown:
-    case OnlineStatus::Off:
-    case OnlineStatus::NoConfig:
-    case OnlineStatus::RegistrationRequesting:
-    case OnlineStatus::RegistrationCode:
-    case OnlineStatus::RegistrationDone:
-    case OnlineStatus::RegistrationError:
-    // Network-level/transient errors
-    case OnlineStatus::NoDNS:
-    case OnlineStatus::NoConnection:
-    case OnlineStatus::Tls:
-    case OnlineStatus::NetworkError:
-        return true;
-    // User errors
-    case OnlineStatus::Auth:
-    // "Bug"-level errors
-    case OnlineStatus::ServerError:
-    case OnlineStatus::InternalError:
-    case OnlineStatus::Confused:
-        // Common "happy" states.
-    case OnlineStatus::Ok:
-    case OnlineStatus::Connecting:
-        return false;
+OnlineError err_to_status(Error error) {
+    switch (error) {
+    case Error::Connect:
+        return OnlineError::Connection;
+    case Error::Dns:
+        return OnlineError::Dns;
+    case Error::InternalError:
+    case Error::ResponseTooLong:
+    case Error::SetSockOpt:
+        return OnlineError::Internal;
+    case Error::Network:
+    case Error::Timeout:
+        return OnlineError::Network;
+    case Error::Parse:
+        return OnlineError::Confused;
+    case Error::Tls:
+        return OnlineError::Tls;
+    default:
+        return OnlineError::NoError;
     }
-    assert(0); // Unreachable
-    return false;
 }
 
 }

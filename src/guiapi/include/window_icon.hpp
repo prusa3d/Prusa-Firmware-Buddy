@@ -97,7 +97,7 @@ protected:
 class window_icon_hourglass_t : public AddSuperWindow<window_icon_t> {
     enum { ANIMATION_STEPS = 5,
         ANIMATION_STEP_MS = 500 };
-    uint32_t start_time; //todo use window timer
+    uint32_t start_time; // todo use window timer
     color_t animation_color;
     uint8_t phase;
 

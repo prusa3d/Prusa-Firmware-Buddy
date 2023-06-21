@@ -1,4 +1,4 @@
-//HardwareSerial.cpp - Buddy/STM32
+// HardwareSerial.cpp - Buddy/STM32
 #include <device/board.h>
 
 #if (BOARD_IS_BUDDY)

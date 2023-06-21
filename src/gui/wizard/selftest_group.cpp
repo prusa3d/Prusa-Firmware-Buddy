@@ -21,10 +21,10 @@ void SelfTestGroup::Draw(Rect16 rc, int dontdraw_first_n_px) const {
         if (dontdraw_first_n_px > 0) {
             dontdraw_first_n_px -= item->GetHeight();
         } else {
-            //apply offset to rect
+            // apply offset to rect
             dontdraw_first_n_px = -dontdraw_first_n_px;
             if (dontdraw_first_n_px > rc.Height()) {
-                return; //cannot apply offset to rect
+                return; // cannot apply offset to rect
             }
             rc += Rect16::Top_t(dontdraw_first_n_px);
             rc -= Rect16::Height_t(dontdraw_first_n_px);

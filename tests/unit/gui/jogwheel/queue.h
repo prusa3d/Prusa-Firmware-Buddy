@@ -1,5 +1,5 @@
 #pragma once
-//fake rtos queue for tests
+// fake rtos queue for tests
 #include <stdint.h>
 #include <queue>
 
@@ -11,7 +11,7 @@ enum { pdFALSE = 0,
 
     pdPASS = pdTRUE };
 
-//not general version, queue with 4B items only
+// not general version, queue with 4B items only
 inline QueueHandle_t xQueueCreate(uint32_t uxQueueLength, uint32_t uxItemSize) {
     static std::queue<uint32_t> q32;
     std::queue<uint32_t> empty;

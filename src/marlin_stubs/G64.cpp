@@ -4,9 +4,9 @@
 #include "../common/sys.h"
 #include "../../lib/Marlin/Marlin/src/module/planner.h"
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
-#include "../common/eeprom.h"
 #include "../common/variant8.h"
 #include <bsod_gui.hpp>
+#include <configuration_store.hpp>
 
 #ifdef Z_AXIS_CALIBRATION
 void PrusaGcodeSuite::G64() {
@@ -28,17 +28,16 @@ void PrusaGcodeSuite::G64() {
 
     float z_size = step_difference * planner.mm_per_step[Z_AXIS] + additional_offset;
 
-    float old_z_size = variant8_get_flt(eeprom_get_var(AXIS_Z_MAX_POS_MM));
+    float old_z_size = config_store().axis_z_max_pos_mm.get();
 
     const float diff = std::abs(z_size - old_z_size);
 
     SERIAL_ECHOLNPAIR("Measured Z size ", z_size);
     SERIAL_ECHOLNPAIR("Z size in eeprom ", old_z_size);
     if (diff > (float)MIN_SAVE_DIFFERENCE) {
-        eeprom_set_var(AXIS_Z_MAX_POS_MM, variant8_flt(z_size));
+        config_store().axis_z_max_pos_mm.set(z_size);
     }
-    SERIAL_ECHOLNPAIR("Saved Z size ",
-        variant8_get_flt(eeprom_get_var(AXIS_Z_MAX_POS_MM)));
+    SERIAL_ECHOLNPAIR("Saved Z size ", config_store().axis_z_max_pos_mm.get());
 }
 
 #endif // Z_AXIS_CALIBRATION

@@ -91,9 +91,12 @@ changed_t FooterItemBed::updateValue() {
     }
 
     uint16_t warm_bedlet_mask = 0;
-    for (int idx = 0; idx < X_HBL_COUNT * Y_HBL_COUNT; idx++) {
-        if (buddy::puppies::modular_bed.get_temp(idx) > COLD)
-            warm_bedlet_mask |= 1 << idx;
+    for (int y = 0; y < Y_HBL_COUNT; ++y) {
+        for (int x = 0; x < X_HBL_COUNT; ++x) {
+            if (buddy::puppies::modular_bed.get_temp(x, y) > COLD) {
+                warm_bedlet_mask |= 1 << buddy::puppies::modular_bed.idx(x, y);
+            }
+        }
     }
 
     if (last_warm_bedlet_mask != warm_bedlet_mask) {
@@ -163,13 +166,13 @@ int FooterItemNozzle::static_readValue() {
     const uint target = marlin_vars()->active_hotend().target_nozzle;
     const uint display = marlin_vars()->active_hotend().display_nozzle;
 #if HAS_TOOLCHANGER()
-    const bool disabled = marlin_vars()->active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED;
+    const bool no_tool = marlin_vars()->active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED;
 #else
-    constexpr bool disabled = false;
+    constexpr bool no_tool = false;
 #endif
 
     HeatState state = getState(current, target, display, cold);
-    StateAndTemps temps(state, current, display, disabled);
+    StateAndTemps temps(state, current, display, no_tool);
     return temps.ToInt();
 }
 
@@ -238,7 +241,7 @@ string_view_utf8 FooterItemAllNozzles::static_makeView(int value) {
     if (printed_chars <= 0) {
         buff[0] = '\0';
     } else { // Dynamic is not allowed as it changes each second
-        //left_aligned print need to end with spaces ensure fixed size
+        // left_aligned print need to end with spaces ensure fixed size
         *(buff.end() - 1) = '\0';
         for (; size_t(printed_chars) < buff.size() - 1; ++printed_chars) {
             buff[printed_chars] = ' ';

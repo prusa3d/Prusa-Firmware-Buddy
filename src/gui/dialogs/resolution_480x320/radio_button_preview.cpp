@@ -52,7 +52,7 @@ void RadioButtonPreview::unconditionalDraw() {
         window_icon_t icon(nullptr, getVerticalIconRect(i), icons[res_offset + i]);
         window_text_t label(nullptr, getVerticalLabelRect(i), is_multiline::no, is_closed_on_click_t::no, _(label_texts[i]));
 
-        label.font = resource_font(IDR_FNT_SMALL);
+        label.set_font(resource_font(IDR_FNT_SMALL));
         label.SetAlignment(Align_t::Center());
 
         icon.Draw();

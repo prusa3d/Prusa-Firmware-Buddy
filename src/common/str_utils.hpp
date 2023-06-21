@@ -135,7 +135,7 @@ private:
 class RectTextLayout {
 public:
     static constexpr size_t MaxLines = 31;
-    static constexpr uint8_t MaxCharInLine = 255;     //uint8_t
+    static constexpr uint8_t MaxCharInLine = 255;     // uint8_t
     using Data_t = std::array<uint8_t, MaxLines + 1>; // last elem stores current line
 private:
     Data_t data;
@@ -158,7 +158,7 @@ public:
         return CurrentLineCharacters() == 0 ? currentLine() : currentLine() + 1;
     }
 
-    //increment number of lines
+    // increment number of lines
     bool NewLine() {
         if (currentLine() >= MaxLines)
             return false;
@@ -269,8 +269,8 @@ private:
         uint32_t word_width = 0;
         value_type c = 0;
 
-        //read max size() characters continuosly
-        //in our case word_buffer = std::array<uint32_t, 32>;
+        // read max size() characters continuosly
+        // in our case word_buffer = std::array<uint32_t, 32>;
         while (i < buffer_.size()) {
             c = s.getUtf8Char();
             buffer_[i] = c;

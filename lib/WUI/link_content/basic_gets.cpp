@@ -3,7 +3,7 @@
 #include "marlin_client.hpp"
 #include "lwip/init.h"
 #include "netdev.h"
-#include <eeprom.h>
+#include <configuration_store.hpp>
 
 #include <segmented_json_macros.h>
 #include <state/printer_state.hpp>
@@ -26,7 +26,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // finish a print and base what we include on previous version, we may
     // outdated values, but they are still there.
     marlin_vars_t *vars = marlin_vars();
-    auto filament = filament::get_type_in_extruder(vars->active_extruder);
+    auto filament = config_store().get_filament_type(vars->active_extruder);
     const char *filament_material = filament::get_description(filament).name;
 
     bool operational = true;
@@ -42,6 +42,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     switch (vars->print_state) {
     case State::CrashRecovery_Begin:
     case State::CrashRecovery_Lifting:
+    case State::CrashRecovery_ToolchangePowerPanic:
     case State::CrashRecovery_Retracting:
     case State::CrashRecovery_XY_Measure:
     case State::CrashRecovery_Tool_Pickup:
@@ -128,7 +129,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
             JSON_FIELD_FFIXED("temp-nozzle", vars->active_hotend().temp_nozzle, 1) JSON_COMMA;
             JSON_FIELD_INT("print-speed", vars->print_speed) JSON_COMMA;
             // XYZE, mm
-            JSON_FIELD_FFIXED("z-height", vars->curr_pos[2], 1) JSON_COMMA;
+            JSON_FIELD_FFIXED("z-height", vars->logical_curr_pos[2], 1) JSON_COMMA;
             JSON_FIELD_STR("material", filament_material);
         JSON_OBJ_END JSON_COMMA;
 
@@ -174,7 +175,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
 JsonResult get_version(size_t resume_point, JsonOutput &output) {
     char hostname[ETH_HOSTNAME_LEN + 1];
     netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
-    auto nozzle_diameter = eeprom_get_nozzle_dia(0);
+    auto nozzle_diameter = config_store().get_nozzle_diameter(0);
 
     // Keep the indentation of the JSON in here!
     // clang-format off
@@ -216,6 +217,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
         break;
     case State::CrashRecovery_Begin:
     case State::CrashRecovery_Lifting:
+    case State::CrashRecovery_ToolchangePowerPanic:
     case State::CrashRecovery_Retracting:
     case State::CrashRecovery_XY_Measure:
     case State::CrashRecovery_Tool_Pickup:

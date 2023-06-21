@@ -33,7 +33,7 @@ static void SelftestTest() {
     mkdir("/usb/selftest", 777);
     fsm::Change change(fsm::QueueIndex::q0);
     fsm::BaseData data;
-    //push create
+    // push create
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
     DialogHandler::Command(change.serialize());
 
@@ -43,47 +43,47 @@ static void SelftestTest() {
     for (PhasesSelftest i = PhasesSelftest::_first; int(i) <= int(PhasesSelftest::_last); i = PhasesSelftest(int(i) + 1)) {
         data.SetPhase(int(i) - int(PhasesSelftest::_first));
 
-        //push change
+        // push change
         change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
         DialogHandler::Command(change.serialize());
 
         WaitAndShot(get_selftest_state_name(i));
     }
 
-    //alternative state for Loadcell_user_tap_ask_abort
+    // alternative state for Loadcell_user_tap_ask_abort
     SelftestLoadcell_t loadcell_data;
     loadcell_data.pressed_too_soon = true;
     data.SetData(loadcell_data.Serialize());
     data.SetPhase(int(PhasesSelftest::Loadcell_user_tap_ask_abort) - int(PhasesSelftest::_first));
-    //push change
+    // push change
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
     DialogHandler::Command(change.serialize());
     WaitAndShot("Loadcell_user_tap_ask_abort__soon");
 
-    //alternative stated for Result (default state is unknown == some tests did not pass)
+    // alternative stated for Result (default state is unknown == some tests did not pass)
     data.SetPhase(int(PhasesSelftest::Result) - int(PhasesSelftest::_first));
     data.SetData(FsmSelftestResult(0xaa).Serialize()); // 0xaa is 4 times Passed state
-    //push change
+    // push change
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
     DialogHandler::Command(change.serialize());
     WaitAndShot("Result_passed");
 
-    //result does not have change method
-    //we need to change state first
+    // result does not have change method
+    // we need to change state first
     data.SetPhase(0);
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
     DialogHandler::Command(change.serialize());
     WaitLoop();
 
-    //1x failed
+    // 1x failed
     data.SetPhase(int(PhasesSelftest::Result) - int(PhasesSelftest::_first));
-    data.SetData(FsmSelftestResult(0xa8).Serialize()); //3 passed, one failed
-    //push change
+    data.SetData(FsmSelftestResult(0xa8).Serialize()); // 3 passed, one failed
+    // push change
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
     DialogHandler::Command(change.serialize());
     WaitAndShot("Result_failed");
 
-    //push destroy
+    // push destroy
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::_none, data);
     DialogHandler::Command(change.serialize());
 

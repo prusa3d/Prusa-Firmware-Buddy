@@ -50,9 +50,9 @@ void leds::SetNth(Color clr, leds::index n) {
     }
 }
 
-//backlight is on WS2811 (RGB)
-//but color structure is meant for WS2812 (GRB)
-//so to set RED channel on WS2811 have to set GREEN
+// backlight is on WS2811 (RGB)
+// but color structure is meant for WS2812 (GRB)
+// so to set RED channel on WS2811 have to set GREEN
 void leds::SetBrightness(unsigned percent) {
     percent = std::min(100u, percent);
     percent *= 255;

@@ -16,9 +16,11 @@
 #include "selftest_frame_axis.hpp"
 #include "selftest_frame_fans.hpp"
 #include "selftest_frame_fsensor.hpp"
+#include "selftest_frame_gears_calib.hpp"
 #include "selftest_frame_loadcell.hpp"
 #include "selftest_frame_calib_z.hpp"
 #include "selftest_frame_temp.hpp"
+#include "selftest_frame_hot_end_sock.hpp"
 #include "selftest_frame_firstlayer.hpp"
 #include "selftest_frame_firstlayer_questions.hpp"
 #include "selftest_frame_result.hpp"
@@ -31,7 +33,7 @@
 #include "printer_selftest.hpp" // SelftestMask_t
 
 class ScreenSelftest : public AddSuperWindow<screen_t> {
-    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions
+    using mem_space = std::aligned_union<0, SelftestFrameESP, SelftestFrameESP_progress, SelftestFrameESP_qr, ScreenSelftestInvalidState, SelftestFrametAxis, SelftestFrameFans, SelftestFrameFSensor, SelftestFrameGearsCalib, SelftestFrameLoadcell, ScreenSelftestTemp, SelftestFrameCalibZ, SelftestFrameFirstLayerQuestions
 #if BOARD_IS_BUDDY
         ,
         SelftestFrameFirstLayer
@@ -40,22 +42,24 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
 
     mem_space all_tests;
 
-    //safer than make_static_unique_ptr, checks storage size
+    // safer than make_static_unique_ptr, checks storage size
     template <class T, class... Args>
-    static_unique_ptr<SelftestFrame> makePtr(Args &&... args) {
+    static_unique_ptr<SelftestFrame> makePtr(Args &&...args) {
         static_assert(sizeof(T) <= sizeof(all_tests), "Error selftest part does not fit");
         return make_static_unique_ptr<T>(&all_tests, std::forward<Args>(args)...);
     }
 
-    using fnc = static_unique_ptr<SelftestFrame> (*)(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data); //function pointer definition
+    using fnc = static_unique_ptr<SelftestFrame> (*)(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data); // function pointer definition
 
-    //define factory methods for all dialogs here
+    // define factory methods for all dialogs here
     static static_unique_ptr<SelftestFrame> creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_axis(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_fans(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_fsensor(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_gears_calib(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_loadcell(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_temp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
+    static static_unique_ptr<SelftestFrame> creator_specify_hot_end(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_calib_z(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_firstlayer(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_firstlayer_questions(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
@@ -68,7 +72,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
     static static_unique_ptr<SelftestFrame> creator_tool_offsets(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
     static static_unique_ptr<SelftestFrame> creator_invalid(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data);
 
-    fnc Get(SelftestParts part); //returns factory method
+    fnc Get(SelftestParts part); // returns factory method
 
     static_unique_ptr<SelftestFrame> ptr;
 

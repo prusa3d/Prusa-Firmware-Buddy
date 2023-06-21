@@ -55,7 +55,7 @@ protected:
     virtual void click(IWindowMenu &window_menu);
 };
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_iX)
+#if PRINTER_IS_PRUSA_iX
     #define ALL_FILAMENTS MI_Filament<filament::Type::PLA>,     \
                           MI_Filament<filament::Type::PETG>,    \
                           MI_Filament<filament::Type::PETG_NH>, \
@@ -80,14 +80,14 @@ protected:
                           MI_Filament<filament::Type::FLEX>
 #endif
 
-//TODO try to use HIDDEN on return and filament_t::NONE
-//has both return and cooldown
+// TODO try to use HIDDEN on return and filament_t::NONE
+// has both return and cooldown
 using MenuContainerHasRetCool = WinMenuContainer<MI_RETURN, ALL_FILAMENTS, MI_COOLDOWN>;
 
-//has return
+// has return
 using MenuContainerHasRet = WinMenuContainer<MI_RETURN, ALL_FILAMENTS>;
 
-//has cooldown
+// has cooldown
 using MenuContainerHasCool = WinMenuContainer<ALL_FILAMENTS, MI_COOLDOWN>;
 
 // no extra fields

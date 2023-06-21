@@ -9,13 +9,29 @@
     // irrelevant on Buddy FW, just keep "_millis" as "millis"
     #include <wiring_time.h>
     #define _millis millis
+    #ifdef UNITTEST
+        #define strncmp_P strncmp
+    #else
+        #include <Marlin/src/core/serial.h>
+    #endif
 #endif
 
 #include <string.h>
+#include "mmu2_supported_version.h"
 
 namespace MMU2 {
 
-static const uint8_t supportedMmuFWVersion[3] PROGMEM = { 2, 1, 9 };
+/// Beware - on AVR/MK3S:
+/// Changing the supportedMmuVersion numbers requires patching MSG_DESC_FW_UPDATE_NEEDED and all its related translations by hand.
+///
+/// The message reads:
+///   "The MMU firmware version incompatible with the printer's FW. Update to version 2.1.6."
+///
+/// Currently, this is not possible to perform automatically at compile time with the existing languages/translations infrastructure.
+/// To save space a "dumb" solution was chosen + a few static_assert checks in errors_list.h preventing the code from compiling when the string doesn't match.
+/// -----
+/// On Buddy FW we should improve the error screen to be able to print formatted strings
+static constexpr uint8_t supportedMmuFWVersion[3] PROGMEM = { mmuVersionMajor, mmuVersionMinor, mmuVersionPatch };
 
 const uint8_t ProtocolLogic::regs8Addrs[ProtocolLogic::regs8Count] PROGMEM = {
     8,    // FINDA state
@@ -172,7 +188,7 @@ StepStatus ProtocolLogic::ExpectingMessage() {
                 break;
             }
         }
-            [[fallthrough]]; // otherwise
+            [[fallthrough]];      // otherwise
         default:
             RecordUARTActivity(); // something has happened on the UART, update the timeout record
             return ProtocolError;
@@ -266,9 +282,9 @@ StepStatus ProtocolLogic::ScopeStep() {
         case Scope::StartSeq:
             return StartSeqStep(); // ~270B
         case Scope::Idle:
-            return IdleStep(); // ~300B
+            return IdleStep();     // ~300B
         case Scope::Command:
-            return CommandStep(); // ~430B
+            return CommandStep();  // ~430B
         case Scope::Stopped:
             return StoppedStep();
         default:
@@ -313,7 +329,7 @@ StepStatus ProtocolLogic::StartSeqStep() {
 StepStatus ProtocolLogic::DelayedRestartWait() {
     if (Elapsed(heartBeatPeriod)) { // this basically means, that we are waiting until there is some traffic on
         while (uart->read() != -1)
-            ; // clear the input buffer
+            ;                       // clear the input buffer
         // switch to StartSeq
         Start();
     }
@@ -340,6 +356,7 @@ StepStatus ProtocolLogic::ProcessCommandQueryResponse() {
         return Processing;
     case ResponseMsgParamCodes::Error:
         // in case of an error the progress code remains as it has been before
+        progressCode = ProgressCode::ERRWaitingForUser;
         errorCode = static_cast<ErrorCode>(rsp.paramValue);
         // keep on reporting the state of fsensor regularly even in command error state
         // - the MMU checks FINDA and fsensor even while recovering from errors
@@ -459,9 +476,11 @@ StepStatus ProtocolLogic::IdleStep() {
             case ResponseMsgParamCodes::Processing:
                 // @@TODO we may actually use this branch to report progress of manual operation on the MMU
                 // The MMU sends e.g. X0 P27 after its restart when the user presses an MMU button to move the Selector
+                progressCode = static_cast<ProgressCode>(rsp.paramValue);
                 errorCode = ErrorCode::OK;
                 break;
             default:
+                progressCode = ProgressCode::ERRWaitingForUser;
                 errorCode = static_cast<ErrorCode>(rsp.paramValue);
                 StartReading8bitRegisters(); // continue Idle state without restarting the communication
                 return CommandError;
@@ -488,6 +507,8 @@ StepStatus ProtocolLogic::IdleStep() {
     case ScopeState::ReadRegisterSent:
         if (rsp.paramCode == ResponseMsgParamCodes::Accepted) {
             // @@TODO just dump the value onto the serial
+            SERIAL_ECHOPGM("MMU Register value: ");
+            SERIAL_ECHOLN(rsp.paramValue);
         }
         return Finished;
     case ScopeState::WriteRegisterSent:
@@ -522,7 +543,7 @@ ProtocolLogic::ProtocolLogic(MMU2Serial *uart, uint8_t extraLoadDistance, uint8_
     , uart(uart)
     , errorCode(ErrorCode::OK)
     , progressCode(ProgressCode::OK)
-    , buttonCode(NoButton)
+    , buttonCode(Buttons::NoButton)
     , lastFSensor((uint8_t)WhereIsFilament())
     , regIndex(0)
     , retryAttempts(MAX_RETRIES)
@@ -570,8 +591,8 @@ void ProtocolLogic::CutFilament(uint8_t slot) {
     PlanGenericRequest(RequestMsg(RequestMsgCodes::Cut, slot));
 }
 
-void ProtocolLogic::ResetMMU() {
-    PlanGenericRequest(RequestMsg(RequestMsgCodes::Reset, 0));
+void ProtocolLogic::ResetMMU(uint8_t mode /* = 0 */) {
+    PlanGenericRequest(RequestMsg(RequestMsgCodes::Reset, mode));
 }
 
 void ProtocolLogic::Button(uint8_t index) {
@@ -719,7 +740,7 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
         tmp[i + 1] = b;
     }
     tmp[size + 1] = 0;
-    if (!strncmp(tmp, PSTR(">S0*c6."), rqs) && !strncmp(lastMsg, tmp, rqs)) {
+    if (!strncmp_P(tmp, PSTR(">S0*c6."), rqs) && !strncmp(lastMsg, tmp, rqs)) {
         // @@TODO we skip the repeated request msgs for now
         // to avoid spoiling the whole log just with ">S0" messages
         // especially when the MMU is not connected.

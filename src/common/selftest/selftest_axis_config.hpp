@@ -11,7 +11,7 @@
 #include "selftest_axis_type.hpp"
 
 namespace selftest {
-//using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
+// using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
 struct AxisConfig_t {
     using type_evaluation = SelftestSingleAxis_t;
     static constexpr SelftestParts part_type = SelftestParts::Axis;
@@ -21,7 +21,7 @@ struct AxisConfig_t {
     const float *fr_table_bw; // backward
     float length_min;
     float length_max;
-    uint32_t axis; // AxisEnum
+    uint32_t axis;        // AxisEnum
     uint32_t steps;
     int32_t movement_dir; // not motor dir, has values 1/-1. TODO FIXME -1 does not work
 };

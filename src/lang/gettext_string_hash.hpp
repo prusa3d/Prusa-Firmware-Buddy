@@ -33,9 +33,9 @@ private:
     /// [see Aho/Sethi/Ullman, COMPILERS: Principles, Techniques and Tools, 1986, 1987 Bell Telephone Laboratories, Inc.]
     static uint32_t hash_string(const char *key);
 
-    ///returns index from pos in hashtable
-    /// \param pos where to look for index
-    /// \return positive number or zero on success, -1 if file error occurred
+    /// returns index from pos in hashtable
+    ///  \param pos where to look for index
+    ///  \return positive number or zero on success, -1 if file error occurred
     int32_t getIndexOnPos(uint32_t pos) const;
 
     /// checks whether the string on index is the same as key

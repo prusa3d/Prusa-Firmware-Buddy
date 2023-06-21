@@ -25,7 +25,6 @@
 #include "hwio_pindef.h"
 #include "gui.hpp"
 #include "config_buddy_2209_02.h"
-#include "eeprom.h"
 #include "crc32.h"
 #include "w25x.h"
 #include "timing.h"
@@ -208,8 +207,8 @@ extern "C" void main_cpp(void) {
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
 
-    eeprom_init_status_t status = eeprom_init();
-    if (status == EEPROM_INIT_Defaults || status == EEPROM_INIT_Upgraded) {
+    eeprom_journal::InitResult status = config_store_init_result();
+    if (status == eeprom_journal::InitResult::cold_start || status == eeprom_journal::InitResult::migrated_from_old) {
         // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
         dump_in_xflash_reset();
     }
@@ -493,17 +492,17 @@ void iwdg_warning_cb(void) {
 static uint32_t _spi_prescaler(int prescaler_num) {
     switch (prescaler_num) {
     case 0:
-        return SPI_BAUDRATEPRESCALER_2; // 0x00000000U
+        return SPI_BAUDRATEPRESCALER_2;   // 0x00000000U
     case 1:
-        return SPI_BAUDRATEPRESCALER_4; // 0x00000008U
+        return SPI_BAUDRATEPRESCALER_4;   // 0x00000008U
     case 2:
-        return SPI_BAUDRATEPRESCALER_8; // 0x00000010U
+        return SPI_BAUDRATEPRESCALER_8;   // 0x00000010U
     case 3:
-        return SPI_BAUDRATEPRESCALER_16; // 0x00000018U
+        return SPI_BAUDRATEPRESCALER_16;  // 0x00000018U
     case 4:
-        return SPI_BAUDRATEPRESCALER_32; // 0x00000020U
+        return SPI_BAUDRATEPRESCALER_32;  // 0x00000020U
     case 5:
-        return SPI_BAUDRATEPRESCALER_64; // 0x00000028U
+        return SPI_BAUDRATEPRESCALER_64;  // 0x00000028U
     case 6:
         return SPI_BAUDRATEPRESCALER_128; // 0x00000030U
     case 7:
@@ -625,7 +624,7 @@ int main() {
     enable_dfu_entry();
 
     // define the startup task
-    osThreadDef(startup, startup_task, osPriorityHigh, 0, 1024);
+    osThreadDef(startup, startup_task, osPriorityHigh, 0, 1024 + 512 + 256);
     osThreadCreate(osThread(startup), NULL);
 
     // start the RTOS with the single startup task

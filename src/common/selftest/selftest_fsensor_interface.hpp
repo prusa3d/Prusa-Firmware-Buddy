@@ -13,6 +13,7 @@
 #include "config_features.h"
 
 class IPartHandler;
+class TestReturn;
 
 namespace selftest {
 
@@ -24,5 +25,5 @@ namespace selftest {
  * @return true stay in current selftest state
  * @return false continue to next selftest state
  */
-bool phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs);
+TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs);
 };

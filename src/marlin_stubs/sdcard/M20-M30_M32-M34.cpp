@@ -22,12 +22,12 @@ void GcodeSuite::M20() {
 
 // M21 - Initialize SD card
 void GcodeSuite::M21() {
-    //not necessary - empty implementation
+    // not necessary - empty implementation
 }
 
 // M22 - Release SD card
 void GcodeSuite::M22() {
-    //not necessary - empty implementation
+    // not necessary - empty implementation
 }
 
 // M23 - Select SD file
@@ -73,22 +73,22 @@ void GcodeSuite::M27() {
 
 // M28 - Begin write to SD card
 void GcodeSuite::M28() {
-    //TODO
+    // TODO
 }
 
 // M29 - Stop writing to SD card
 void GcodeSuite::M29() {
-    //TODO
+    // TODO
 }
 
 // M30 - Delete a file on the SD card
 void GcodeSuite::M30() {
-    //TODO
+    // TODO
 }
 
 // M32 - Select file and start SD print
 void GcodeSuite::M32() {
-    //TODO
+    // TODO
 }
 
 //

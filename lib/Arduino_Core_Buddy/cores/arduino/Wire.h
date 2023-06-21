@@ -1,4 +1,4 @@
-//Wire.h - Buddy/STM32
+// Wire.h - Buddy/STM32
 #ifndef _WIRE_H
 #define _WIRE_H
 

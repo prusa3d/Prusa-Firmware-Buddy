@@ -3,7 +3,6 @@
  */
 
 #include "screen_menu_experimental_settings.hpp"
-#include "eeprom.h"
 #include "menu_spin_config.hpp"
 #include "ScreenHandler.hpp"
 #include "window_msgbox.hpp"
@@ -12,8 +11,8 @@
 #include "MItem_experimental_tools.hpp"
 
 void ScreenMenuExperimentalSettings::clicked_return() {
-    ExperimentalSettingsValues current(*this); //ctor will handle load of values
-    //unchanged
+    ExperimentalSettingsValues current(*this); // ctor will handle load of values
+    // unchanged
     if (current == initial) {
         Screens::Access()->Close();
         return;
@@ -48,7 +47,7 @@ void ScreenMenuExperimentalSettings::clicked_return() {
         Screens::Access()->Close();
         return;
     default:
-        return; //do nothing
+        return; // do nothing
     }
 }
 
@@ -78,7 +77,7 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         Invalidate();
         break;
     case ClickCommand::Reset_directions:
-        //set index to Prusa
+        // set index to Prusa
         Item<MI_DIRECTION_X>().SetIndex(0);
         Item<MI_DIRECTION_Y>().SetIndex(0);
         Item<MI_DIRECTION_Z>().SetIndex(0);

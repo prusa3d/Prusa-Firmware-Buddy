@@ -1,4 +1,4 @@
-//text_roll.hpp
+// text_roll.hpp
 #pragma once
 
 #include "display_helper.h"
@@ -39,7 +39,7 @@ class txtroll_t {
 
 public:
     txtroll_t()
-        //rect has default ctor
+        // rect has default ctor
         : phase_progress(0)
         , draw_progress(0)
         , count_from_init(0)

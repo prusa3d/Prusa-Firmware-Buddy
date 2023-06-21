@@ -6,8 +6,8 @@
 #include "cpu_utils.hpp"
 #include "png_resources.hpp"
 #include "netdev.h"
-#include "eeprom.h"
 #include "transfers/monitor.hpp"
+#include <configuration_store.hpp>
 
 static const uint16_t span = 4;
 static const uint8_t x_offset = 14;
@@ -157,7 +157,7 @@ uint16_t window_header_t::calculate_transfer_icon_x() {
 
 void window_header_t::updateTime() {
     time_t t = time(nullptr);
-    if (t != (time_t)-1 && time_on) { // Time is initialized in RTC (from sNTP)
+    if (t != (time_t)-1 && time_on) {                             // Time is initialized in RTC (from sNTP)
         if (!time_val.IsVisible()) {
             redraw_usb = redraw_network = redraw_transfer = true; // Icons on the left of time_val have to be redrawn
             Rect16::Width_t time_w = time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w;
@@ -166,7 +166,7 @@ void window_header_t::updateTime() {
             Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
         }
         struct tm now;
-        int8_t timezone_diff = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
+        int8_t timezone_diff = config_store().timezone.get();
         t += timezone_diff * 3600;
         localtime_r(&t, &now);
 
@@ -246,7 +246,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , redraw_network(true)
     , redraw_transfer(true)
     , force_network(true)
-#if PRINTER_TYPE == PRINTER_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI
     , transfer_val_on(false)
     , time_on(false)
 #else
@@ -261,7 +261,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     icon_base.SetAlignment(Align_t::CenterBottom());
     icon_transfer.SetAlignment(Align_t::LeftTop());
 #elif defined(USE_ILI9488)
-    label.font = resource_font(IDR_FNT_SPECIAL);
+    label.set_font(resource_font(IDR_FNT_SPECIAL));
     label.SetAlignment(Align_t::LeftTop());
     transfer_val.SetAlignment(Align_t::RightTop());
     icon_base.SetAlignment(Align_t::LeftTop());
@@ -270,7 +270,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     icon_transfer.SetAlignment(Align_t::LeftTop());
 #endif // USE_<display>
 
-    time_val.font = resource_font(IDR_FNT_SPECIAL);
+    time_val.set_font(resource_font(IDR_FNT_SPECIAL));
     time_val.SetAlignment(Align_t::RightTop());
 
     time_val.Hide();
@@ -279,7 +279,7 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     icon_transfer.Hide();
     time_t t = time(nullptr);
     if (t != (time_t)-1) {
-        int8_t timezone_diff = variant8_get_i8(eeprom_get_var(EEVAR_TIMEZONE));
+        int8_t timezone_diff = config_store().timezone.get();
         t += timezone_diff * 3600; // Add timezone difference in seconds
         struct tm now;
         localtime_r(&t, &now);

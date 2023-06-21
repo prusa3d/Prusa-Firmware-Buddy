@@ -101,7 +101,7 @@ public:
 private:
     bool isInitialized;
     float CurrentSenseGain = 50.00f;
-    float RSense = 0.022f; //22mohm
+    float RSense = 0.022f; // 22mohm
 
     inline float RawValueToVoltage(int rawValue) const {
         return (rawValue * 3.35f) / 1023.00f;

@@ -48,12 +48,13 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/connect
           ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/src/common/http
+          ${CMAKE_SOURCE_DIR}/src/configuration_store
           ${CMAKE_SOURCE_DIR}/lib/jsmn
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
   )
-add_definitions(-DUNITTESTS -DPRINTER_VERSION=3)
+add_definitions(-DUNITTESTS -DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0)
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
@@ -142,6 +143,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/connect/printer.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/registrator.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/sleep.cpp
+  ${CMAKE_SOURCE_DIR}/src/connect/status.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/download.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp

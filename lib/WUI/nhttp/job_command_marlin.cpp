@@ -45,6 +45,7 @@ namespace {
         case State::CrashRecovery_Axis_NOK:
         case State::CrashRecovery_Retracting:
         case State::CrashRecovery_Lifting:
+        case State::CrashRecovery_ToolchangePowerPanic:
         case State::CrashRecovery_XY_Measure:
         case State::CrashRecovery_XY_HOME:
         case State::CrashRecovery_HOMEFAIL:

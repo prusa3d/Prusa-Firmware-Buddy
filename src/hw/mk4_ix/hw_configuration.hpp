@@ -78,6 +78,12 @@ public:
      * @return float current [mA]
      */
     float curr_measurement_voltage_to_current(float voltage) const;
+
+    bool has_inverted_mmu_reset() const;
+
+    bool can_power_up_mmu_without_pulses() const;
+
+    uint8_t get_board_version() const;
 };
 
 }

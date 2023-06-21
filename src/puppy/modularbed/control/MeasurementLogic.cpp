@@ -11,17 +11,17 @@
 using namespace hal::ADCDriver;
 
 #define CHANNEL_PREPARE_DELAY_MICROSECONDS       500
-#define CHANNEL_MEASUREMENT_TIMEOUT_MICROSECONDS 5000  //actual measurement time is 2220 microseconds
-#define CURRENT_STABILIZATION_TIME_MICROSECONDS  80000 //theoretical time constant of used analog RC filter is 10000 microseconds
-uint16_t constexpr DEFAULT_MEASURED_VREF = 24150;      //measured on real ModularBed board
+#define CHANNEL_MEASUREMENT_TIMEOUT_MICROSECONDS 5000  // actual measurement time is 2220 microseconds
+#define CURRENT_STABILIZATION_TIME_MICROSECONDS  80000 // theoretical time constant of used analog RC filter is 10000 microseconds
+uint16_t constexpr DEFAULT_MEASURED_VREF = 24150;      // measured on real ModularBed board
 
 #define PRECISE_MEASUREMENT_COUNT 10
 #define DEFAULT_CURRENT_ADC_ZERO  32900
 
 namespace modularbed::MeasurementLogic {
 
-//Sequence of ADC channels is optimized, so MUX for heatbedlets 12,13,14 and 15 is switched
-//just twice per measurement period and there is half-period delay between MUX switch and actual measurement, see HAL_ADC.cpp.
+// Sequence of ADC channels is optimized, so MUX for heatbedlets 12,13,14 and 15 is switched
+// just twice per measurement period and there is half-period delay between MUX switch and actual measurement, see HAL_ADC.cpp.
 ADCChannel s_ADCSequence[] = {
     ADCChannel::Current_A,
     ADCChannel::Heatbedlet_14,
@@ -77,7 +77,7 @@ uint32_t s_ADCConversionStartTime = 0;
 static uint32_t s_LastADCValues[static_cast<uint32_t>(ADCChannel::CHANNEL_COUNT)];
 static float s_LastCalculatedValues[static_cast<uint32_t>(ADCChannel::CHANNEL_COUNT)];
 
-static int32_t s_currentADCValues[PRECISE_MEASUREMENT_COUNT]; //batch of measured values for precise value filter
+static int32_t s_currentADCValues[PRECISE_MEASUREMENT_COUNT]; // batch of measured values for precise value filter
 
 void Init() {
     memset(s_LastADCValues, 0, sizeof(s_LastADCValues));
@@ -87,7 +87,7 @@ void Init() {
 }
 
 void CalibrateCurrentChannels() {
-    //method takes approximately 128 milliseconds on STM32G0@56MHz
+    // method takes approximately 128 milliseconds on STM32G0@56MHz
 
     PWMLogic::DisablePWM();
 
@@ -110,7 +110,7 @@ bool IterateADCMeasurements(ADCChannel *pChannel, float *value) {
     bool result = false;
     uint32_t now = osKernelSysTick();
 
-    //process finished conversion
+    // process finished conversion
     if (s_IsADCConversionRunning && IsConversionFinished() == true) {
         s_IsADCConversionRunning = false;
 
@@ -133,7 +133,7 @@ bool IterateADCMeasurements(ADCChannel *pChannel, float *value) {
         PrepareConversion(s_ADCSequence[s_ADCIndex]);
     }
 
-    //start new conversion
+    // start new conversion
     if (((int32_t)(now - s_ADCConversionStartTime)) >= ADC_CONVERSION_PERIOD) {
         if (s_IsADCConversionRunning) {
             CancelConversion();
@@ -239,11 +239,11 @@ float PreciselyMeasureChannel(ADCChannel channel) {
 }
 
 uint16_t PreciselyMeasureChannelRaw(ADCChannel channel) {
-    //prepare conversion
+    // prepare conversion
     PrepareConversion(channel);
     hal::System::WaitMicroseconds(CHANNEL_PREPARE_DELAY_MICROSECONDS);
 
-    //measure values
+    // measure values
     for (int i = 0; i < PRECISE_MEASUREMENT_COUNT; i++) {
         StartConversion(channel);
         uint32_t start = hal::System::GetMicroeconds();
@@ -252,7 +252,7 @@ uint16_t PreciselyMeasureChannelRaw(ADCChannel channel) {
         s_currentADCValues[i] = GetConversionResult();
     }
 
-    //calculate average value
+    // calculate average value
     uint32_t sum = 0;
     uint32_t count = 0;
     for (int i = 0; i < PRECISE_MEASUREMENT_COUNT; i++) {
@@ -262,14 +262,14 @@ uint16_t PreciselyMeasureChannelRaw(ADCChannel channel) {
         }
     }
 
-    //drop values which are too different
+    // drop values which are too different
     uint32_t average = 0;
     int dropCount = count / 2;
     for (int dropI = 0; dropI < dropCount; dropI++) {
         average = (sum + (count / 2)) / count;
         uint32_t worstDiff = 0;
         uint32_t worstIndex = 0;
-        //find the most different value...
+        // find the most different value...
         for (int i = 0; i < PRECISE_MEASUREMENT_COUNT; i++) {
             if (s_currentADCValues[i] != -1) {
                 uint32_t diff = abs((int)(average - s_currentADCValues[i]));
@@ -299,4 +299,4 @@ float GetLastMeasuredAndCalculatedValue(ADCChannel channel) {
     }
 }
 
-} //namespace
+} // namespace

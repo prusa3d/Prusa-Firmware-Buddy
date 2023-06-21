@@ -40,7 +40,8 @@ public:
 };
 
 template <Tool tool, Action action>
-requires SubmenuActionC<action> class MI_STS_SUBMENU : public I_MI_STS_SUBMENU {
+    requires SubmenuActionC<action>
+class MI_STS_SUBMENU : public I_MI_STS_SUBMENU {
 public:
     MI_STS_SUBMENU()
         : I_MI_STS_SUBMENU(get_submenu_label(tool, action), action, tool) {}

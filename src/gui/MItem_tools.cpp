@@ -1,6 +1,5 @@
 #include "MItem_tools.hpp"
 #include "png_resources.hpp"
-#include "eeprom.h"
 #include "eeprom_loadsave.h"
 #include "marlin_client.hpp"
 #include "marlin_server.hpp"
@@ -16,7 +15,6 @@
 #include "ScreenHandler.hpp"
 #include "bsod.h"
 #include "filament_sensors_handler.hpp"
-#include "loadcell.h"
 #include "liveadjust_z.hpp"
 #include "DialogHandler.hpp"
 #include "filament_sensor.hpp"
@@ -36,13 +34,8 @@
 #include <time.h>
 #include "config_features.h"
 #include <option/has_side_fsensor.h>
-#include "configuration_store.hpp"
-#include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper.h"
-
-#if HAS_TOOLCHANGER()
-    #include <puppies/Dwarf.hpp>
-    #include "src/module/prusa/toolchanger.h"
-#endif
+#include <configuration_store.hpp>
+#include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
 
 static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");
@@ -52,7 +45,7 @@ static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
 }
 
 /**********************************************************************************************/
-//MI_FILAMENT_SENSOR
+// MI_FILAMENT_SENSOR
 bool MI_FILAMENT_SENSOR::init_index() const {
     return FSensors_instance().is_enabled();
 }
@@ -109,7 +102,7 @@ void MI_FILAMENT_SENSOR::OnChange(size_t old_index) {
 // MI_LIVE_ADJUST_Z
 MI_LIVE_ADJUST_Z::MI_LIVE_ADJUST_Z()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes,
-#if PRINTER_TYPE == PRINTER_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI
         is_hidden_t::no
 #else
         is_hidden_t::dev
@@ -122,21 +115,21 @@ void MI_LIVE_ADJUST_Z::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_AUTO_HOME
+// MI_AUTO_HOME
 MI_AUTO_HOME::MI_AUTO_HOME()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(MARLIN_EVT_CommandBegin);
+    marlin_event_clr(marlin_server::Event::CommandBegin);
     marlin_gcode("G28");
-    while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+    while (!marlin_event_clr(marlin_server::Event::CommandBegin))
         marlin_client_loop();
     gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
 /*****************************************************************************/
-//MI_MESH_BED
+// MI_MESH_BED
 MI_MESH_BED::MI_MESH_BED()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -144,18 +137,18 @@ MI_MESH_BED::MI_MESH_BED()
 void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
     Response response = Response::No;
     do {
-        //home if we repeat MBL, nozzle may be in different position than expected
+        // home if we repeat MBL, nozzle may be in different position than expected
         if (!marlin_server::all_axes_homed() || response == Response::Yes) {
-            marlin_event_clr(MARLIN_EVT_CommandBegin);
+            marlin_event_clr(marlin_server::Event::CommandBegin);
             marlin_gcode("G28");
-            while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+            while (!marlin_event_clr(marlin_server::Event::CommandBegin))
                 marlin_client_loop();
             gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
         }
         response = Response::No;
-        marlin_event_clr(MARLIN_EVT_CommandBegin);
+        marlin_event_clr(marlin_server::Event::CommandBegin);
         marlin_gcode("G29");
-        while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+        while (!marlin_event_clr(marlin_server::Event::CommandBegin))
             marlin_client_loop();
         gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 
@@ -167,7 +160,7 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_CALIB_Z
+// MI_CALIB_Z
 
 MI_CALIB_Z::MI_CALIB_Z()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
@@ -178,13 +171,13 @@ void MI_CALIB_Z::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_DISABLE_STEP
+// MI_DISABLE_STEP
 MI_DISABLE_STEP::MI_DISABLE_STEP()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_XL || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
+#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK3_5)
     marlin_gcode("M18 X Y E");
 #else
     marlin_gcode("M18");
@@ -197,8 +190,10 @@ namespace {
 void do_factory_reset(bool wipe_fw) {
     auto msg = MsgBoxBase(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, wipe_fw ? _("Erasing everything,\nit will take some time...") : _("Erasing configuration,\nit will take some time..."));
     msg.Draw(); // Non-blocking info
-    PersistentStorage::erase();
-    eeprom_defaults();
+    static constexpr uint32_t empty = 0xffffffff;
+    for (uint16_t address = 0; address <= (8096 - 4); address += 4) {
+        st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
+    }
     if (wipe_fw) {
         w25x_chip_erase();
     }
@@ -248,7 +243,7 @@ void MI_ENTER_DFU::click(IWindowMenu &) {
 #endif
 
 /*****************************************************************************/
-//MI_SAVE_DUMP
+// MI_SAVE_DUMP
 MI_SAVE_DUMP::MI_SAVE_DUMP()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -262,7 +257,7 @@ void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_XFLASH_RESET
+// MI_XFLASH_RESET
 MI_XFLASH_RESET::MI_XFLASH_RESET()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
@@ -272,7 +267,7 @@ void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_HF_TEST_0
+// MI_HF_TEST_0
 MI_HF_TEST_0::MI_HF_TEST_0()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
@@ -282,7 +277,7 @@ void MI_HF_TEST_0::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_HF_TEST_1
+// MI_HF_TEST_1
 MI_HF_TEST_1::MI_HF_TEST_1()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
@@ -292,7 +287,7 @@ void MI_HF_TEST_1::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_EE_LOAD_400
+// MI_EE_LOAD_400
 MI_EE_LOAD_400::MI_EE_LOAD_400()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -303,7 +298,7 @@ void MI_EE_LOAD_400::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_EE_LOAD_401
+// MI_EE_LOAD_401
 MI_EE_LOAD_401::MI_EE_LOAD_401()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -314,7 +309,7 @@ void MI_EE_LOAD_401::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_EE_LOAD_402
+// MI_EE_LOAD_402
 MI_EE_LOAD_402::MI_EE_LOAD_402()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -325,7 +320,7 @@ void MI_EE_LOAD_402::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_EE_LOAD_403RC1
+// MI_EE_LOAD_403RC1
 MI_EE_LOAD_403RC1::MI_EE_LOAD_403RC1()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -336,7 +331,7 @@ void MI_EE_LOAD_403RC1::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_EE_LOAD_403
+// MI_EE_LOAD_403
 MI_EE_LOAD_403::MI_EE_LOAD_403()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -347,7 +342,7 @@ void MI_EE_LOAD_403::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_EE_LOAD
+// MI_EE_LOAD
 MI_EE_LOAD::MI_EE_LOAD()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -358,7 +353,7 @@ void MI_EE_LOAD::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_EE_SAVE
+// MI_EE_SAVE
 MI_EE_SAVE::MI_EE_SAVE()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -368,27 +363,30 @@ void MI_EE_SAVE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_EE_SAVEXML
+// MI_EE_SAVEXML
 MI_EE_SAVEXML::MI_EE_SAVEXML()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void MI_EE_SAVEXML::click(IWindowMenu & /*window_menu*/) {
-    eeprom_save_xml_to_usb("/usb/eeprom.xml");
+    // eeprom_save_xml_to_usb("/usb/eeprom.xml"); // TODO(ConfigStore): Not yet migrated
 }
 
 /*****************************************************************************/
-//MI_EE_CLEAR
+// MI_EE_CLEAR
 MI_EE_CLEAR::MI_EE_CLEAR()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
 
 void MI_EE_CLEAR::click(IWindowMenu & /*window_menu*/) {
-    eeprom_clear();
+    static constexpr uint32_t empty = 0xffffffff;
+    for (uint16_t address = 0; address <= (8096 - 4); address += 4) {
+        st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
+    }
 }
 
 /*****************************************************************************/
-//MI_M600
+// MI_M600
 MI_M600::MI_M600()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -397,7 +395,7 @@ void MI_M600::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-//MI_TIMEOUT
+// MI_TIMEOUT
 MI_TIMEOUT::MI_TIMEOUT()
     : WI_ICON_SWITCH_OFF_ON_t(Screens::Access()->GetMenuTimeout() ? 1 : 0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEOUT::OnChange(size_t old_index) {
@@ -406,11 +404,11 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
     } else {
         Screens::Access()->DisableMenuTimeout();
     }
-    eeprom_set_bool(EEVAR_MENU_TIMEOUT, uint8_t(Screens::Access()->GetMenuTimeout()));
+    config_store().menu_timeout.set(static_cast<uint8_t>(Screens::Access()->GetMenuTimeout()));
 }
 
 /*****************************************************************************/
-//MI_SOUND_MODE
+// MI_SOUND_MODE
 size_t MI_SOUND_MODE::init_index() const {
     eSOUND_MODE sound_mode = Sound_GetMode();
     return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT_SOUND : sound_mode);
@@ -430,7 +428,7 @@ void MI_SOUND_MODE::OnChange(size_t /*old_index*/) {
 }
 
 /*****************************************************************************/
-//MI_SOUND_TYPE
+// MI_SOUND_TYPE
 MI_SOUND_TYPE::MI_SOUND_TYPE()
     : WI_SWITCH_t<8>(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
         _(str_ButtonEcho), _(str_StandardPrompt), _(str_StandardAlert), _(str_CriticalAlert),
@@ -449,7 +447,7 @@ void MI_SOUND_TYPE::OnChange(size_t old_index) {
 }
 
 /*****************************************************************************/
-//MI_SOUND_VOLUME
+// MI_SOUND_VOLUME
 MI_SOUND_VOLUME::MI_SOUND_VOLUME()
     : WiSpinInt(static_cast<uint8_t>(Sound_GetVolume()), SpinCnf::volume_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_SOUND_VOLUME::OnClick() {
@@ -457,11 +455,11 @@ void MI_SOUND_VOLUME::OnClick() {
 }
 
 /*****************************************************************************/
-//MI_SORT_FILES
+// MI_SORT_FILES
 MI_SORT_FILES::MI_SORT_FILES()
-    : WI_SWITCH_t<2>(eeprom_get_ui8(EEVAR_FILE_SORT), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
+    : WI_SWITCH_t<2>(config_store().file_sort.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
-    if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
+    if (old_index == WF_SORT_BY_TIME) {        // default option - was sorted by time of change, set by name
         GuiFileSort::Set(WF_SORT_BY_NAME);
     } else if (old_index == WF_SORT_BY_NAME) { // was sorted by name, set by time
         GuiFileSort::Set(WF_SORT_BY_TIME);
@@ -469,21 +467,21 @@ void MI_SORT_FILES::OnChange(size_t old_index) {
 }
 
 /*****************************************************************************/
-//MI_TIMEZONE
+// MI_TIMEZONE
 MI_TIMEZONE::MI_TIMEZONE()
-    : WiSpinInt(eeprom_get_i8(EEVAR_TIMEZONE), SpinCnf::timezone_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WiSpinInt(config_store().timezone.get(), SpinCnf::timezone_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_TIMEZONE::OnClick() {
     int8_t timezone = GetVal();
-    eeprom_set_i8(EEVAR_TIMEZONE, timezone);
+    config_store().timezone.set(timezone);
 }
 
 /*****************************************************************************/
-//MI_TIME_FORMAT
+// MI_TIME_FORMAT
 MI_TIME_FORMAT::MI_TIME_FORMAT()
-    : WI_SWITCH_t<2>(eeprom_get_ui8(EEVAR_TIME_FORMAT), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
+    : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
 
 void MI_TIME_FORMAT::OnChange(size_t old_index) {
-    if (old_index == (size_t)time_format::TF_t::TF_12H) { // default option - 12h time format
+    if (old_index == (size_t)time_format::TF_t::TF_12H) {        // default option - 12h time format
         time_format::Change(time_format::TF_t::TF_24H);
     } else if (old_index == (size_t)time_format::TF_t::TF_24H) { // 24h time format
         time_format::Change(time_format::TF_t::TF_12H);
@@ -491,71 +489,44 @@ void MI_TIME_FORMAT::OnChange(size_t old_index) {
 }
 
 /*****************************************************************************/
-//MI_LOADCELL_SCALE
-MI_LOADCELL_SCALE::MI_LOADCELL_SCALE()
-    : WiSpinInt((int)(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_SCALE)) * 1000), SpinCnf::loadcell_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
-void MI_LOADCELL_SCALE::OnClick() {
-    float scale = (float)GetVal() / 1000;
-    loadcell.SetScale(scale);
-    eeprom_set_var(EEVAR_LOADCELL_SCALE, variant8_flt(scale));
-}
-
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
-MI_FILAMENT_SENSOR_STATE::MI_FILAMENT_SENSOR_STATE()
-    : WI_SWITCH_0_1_NA_t(get_state(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-}
-
-MI_FILAMENT_SENSOR_STATE::state_t MI_FILAMENT_SENSOR_STATE::get_state() {
-    fsensor_t fs = FSensors_instance().GetPrimaryRunout();
-    switch (fs) {
-    case fsensor_t::HasFilament:
-        return state_t::high;
-    case fsensor_t::NoFilament:
-        return state_t::low;
-    default:;
-    }
-    return state_t::unknown;
-}
-
-void MI_FILAMENT_SENSOR_STATE::Loop() {
-    SetIndex((size_t)get_state());
-}
-
-MI_MINDA::MI_MINDA()
-    : WI_SWITCH_0_1_NA_t(get_state(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-}
-
-MI_MINDA::state_t MI_MINDA::get_state() {
-    return (buddy::hw::zMin.read() == buddy::hw::Pin::State::low) ? state_t::low : state_t::high;
-}
-
-void MI_MINDA::Loop() {
-    SetIndex((size_t)get_state());
-}
-#endif
-
-#include "filament_sensors_handler.hpp"
-
-/*****************************************************************************/
-//IMI_FS_SPAN
-IMI_FS_SPAN::IMI_FS_SPAN(eevar_id eevar, size_t index, const char *label)
-    : WiSpinInt((int)(eeprom_get_var(eevar)), SpinCnf::fs_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
-    , eevar(eevar)
-    , index(index) {}
+// IMI_FS_SPAN
+IMI_FS_SPAN::IMI_FS_SPAN(bool is_side_, size_t index_, const char *label)
+    : WiSpinInt(is_side_ ? config_store().get_side_fs_value_span(index_) : config_store().get_extruder_fs_value_span(index_), SpinCnf::fs_range, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
+    , is_side(is_side_)
+    , index(index_) {}
 
 void IMI_FS_SPAN::OnClick() {
-    eeprom_set_var(eevar, variant8_ui32(GetVal()));
-    GetExtruderFSensor(index);
+    if (is_side) {
+        config_store().set_side_fs_value_span(index, GetVal());
+    } else {
+        config_store().set_extruder_fs_value_span(index, GetVal());
+    }
 }
 
 /*****************************************************************************/
-//MI_FAN_CHECK
+// IMI_FS_REF
+// in case we don't want to allow modification just change is_enabled_t to yes
+IMI_FS_REF::IMI_FS_REF(bool is_side_, size_t index_, const char *label)
+    : WiSpinInt(is_side_ ? config_store().get_side_fs_ref_value(index_) : config_store().get_extruder_fs_ref_value(index_), SpinCnf::int_num, _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev)
+    , is_side(is_side_)
+    , index(index_) {}
+
+void IMI_FS_REF::OnClick() {
+    if (is_side) {
+        config_store().set_side_fs_ref_value(index, GetVal());
+    } else {
+        config_store().set_extruder_fs_ref_value(index, GetVal());
+    }
+}
+
+/*****************************************************************************/
+// MI_FAN_CHECK
 MI_FAN_CHECK::MI_FAN_CHECK()
     : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fan_check_enabled), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_FAN_CHECK::OnChange(size_t old_index) {
     marlin_set_fan_check(!old_index);
-    eeprom_set_bool(EEVAR_FAN_CHECK_ENABLED, bool(marlin_vars()->fan_check_enabled));
+    config_store().fan_check_enabled.set(static_cast<bool>(marlin_vars()->fan_check_enabled));
 }
 
 MI_INFO_FW::MI_INFO_FW()
@@ -582,7 +553,7 @@ MI_INFO_SERIAL_NUM::MI_INFO_SERIAL_NUM()
 }
 
 /*****************************************************************************/
-//MI_FS_AUTOLOAD
+// MI_FS_AUTOLOAD
 is_hidden_t hide_autoload_item() {
     return FSensors_instance().GetAutoload() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
 }
@@ -591,67 +562,23 @@ MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
     : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, hide_autoload_item()) {}
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
     marlin_set_fs_autoload(!old_index);
-    eeprom_set_bool(EEVAR_FS_AUTOLOAD_ENABLED, bool(marlin_vars()->fs_autoload_enabled));
+    config_store().fs_autoload_enabled.set(static_cast<bool>(marlin_vars()->fs_autoload_enabled));
 }
 
 /*****************************************************************************/
-// MI_INFO_HEATBREAK_N_TEMP
-#if ENABLED(PRUSA_TOOLCHANGER)
-I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP(const char *const specific_label, int index)
-    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label), //< Toolchanger has specific labels
-        nullptr, is_enabled_t::yes,
-        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
-}
-#else  /*ENABLED(PRUSA_TOOLCHANGER)*/
-I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP([[maybe_unused]] const char *const specific_label, [[maybe_unused]] int index)
-    : WI_TEMP_LABEL_t(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-#endif /*ENABLED(PRUSA_TOOLCHANGER)*/
-/*****************************************************************************/
-//MI_PRINT_PROGRESS_TIME
+// MI_PRINT_PROGRESS_TIME
 MI_PRINT_PROGRESS_TIME::MI_PRINT_PROGRESS_TIME()
-    : WiSpinInt(variant8_get_ui16(eeprom_get_var(EEVAR_PRINT_PROGRESS_TIME)),
+    : WiSpinInt(config_store().print_progress_time.get(),
         SpinCnf::print_progress, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_PRINT_PROGRESS_TIME::OnClick() {
-    eeprom_set_var(EEVAR_PRINT_PROGRESS_TIME, variant8_ui16(GetVal()));
+    config_store().print_progress_time.set(GetVal());
 }
 
 /*****************************************************************************/
 // MI_INFO_BED_TEMP
 MI_INFO_BED_TEMP::MI_INFO_BED_TEMP()
     : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-/*****************************************************************************/
-// MI_INFO_NOZZLE_N_TEMP
-#if ENABLED(PRUSA_TOOLCHANGER)
-I_MI_INFO_NOZZLE_N_TEMP::I_MI_INFO_NOZZLE_N_TEMP(const char *const specific_label, int index)
-    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label), //< Toolchanger has specific labels
-        nullptr, is_enabled_t::yes,
-        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
-}
-#else  /*ENABLED(PRUSA_TOOLCHANGER)*/
-I_MI_INFO_NOZZLE_N_TEMP::I_MI_INFO_NOZZLE_N_TEMP([[maybe_unused]] const char *const specific_label, [[maybe_unused]] int index)
-    : WI_TEMP_LABEL_t(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-#endif /*ENABLED(PRUSA_TOOLCHANGER)*/
-
-/*****************************************************************************/
-// MI_INFO_LOADCELL
-MI_INFO_LOADCELL::MI_INFO_LOADCELL()
-    : WI_FORMATABLE_LABEL_t<SensorData::Value>(
-        _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, {}, [&](char *buffer) {
-            if (value.attribute.valid) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, "%.1f", (double)value.float_val);
-            } else {
-                if (value.attribute.enabled) {
-                    strlcpy(buffer, NA, GuiDefaults::infoDefaultLen);
-                } else {
-                    strlcpy(buffer, NI, GuiDefaults::infoDefaultLen);
-                }
-            }
-        }) {
 }
 
 /*****************************************************************************/
@@ -745,32 +672,13 @@ MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E()
     : MI_ODOMETER_DIST(_(generic_label), nullptr, is_enabled_t::yes, is_hidden_t::no, -1) {
 }
 
-#if HAS_TOOLCHANGER()
-MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E(const char *const label, int index)
-    : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes,
-        prusa_toolchanger.is_toolchanger_enabled() && prusa_toolchanger.is_tool_enabled(index) ? is_hidden_t::no : is_hidden_t::yes, -1) {
-}
-
-MI_ODOMETER_TOOL::MI_ODOMETER_TOOL(const char *const label, int index)
-    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes,
-        prusa_toolchanger.is_toolchanger_enabled() && prusa_toolchanger.is_tool_enabled(index) ? is_hidden_t::no : is_hidden_t::yes, 0,
-        [&](char *buffer) {
-            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu %s", value, times_label);
-        }) {
-}
-
-MI_ODOMETER_TOOL::MI_ODOMETER_TOOL()
-    : MI_ODOMETER_TOOL(generic_label, 0) {
-}
-#endif /*HAS_TOOLCHANGER()*/
-
 MI_ODOMETER_TIME::MI_ODOMETER_TIME()
     : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, 0, [&](char *buffer) {
         time_t time = (time_t)value;
         constexpr static uint32_t secPerDay = 24 * 60 * 60;
         const struct tm *timeinfo = localtime(&time);
         if (timeinfo->tm_yday) {
-            //days are recalculated, because timeinfo shows number of days in year and we want more days than 365
+            // days are recalculated, because timeinfo shows number of days in year and we want more days than 365
             uint16_t days = value / secPerDay;
             snprintf(buffer, GuiDefaults::infoDefaultLen, "%ud %uh", days, timeinfo->tm_hour);
         } else if (timeinfo->tm_hour) {
@@ -863,8 +771,6 @@ MI_INFO_BUDDY_5V_CURRENT::MI_INFO_BUDDY_5V_CURRENT()
         }) {
 }
 
-/*****************************************************************************/
-// MI_INFO_NOZZLE_TEMP
 MI_INFO_BOARD_TEMP::MI_INFO_BOARD_TEMP()
     : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -880,70 +786,68 @@ void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     FooterLine::SetCenterN(footer::DefaultCenterNAndFewer);
 
     footer::eeprom::Store(footer::DefaultItems);
-    //send event for all footers
+    // send event for all footers
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::Item::None));
 
     // close this menu, because it is no longer valid and needs to be redrawn
     Screens::Access()->Close();
 }
 
-/*****************************************************************************/
-// MI_INFO_DWARF_MCU_TEMPERATURE
-/*****************************************************************************/
-#if BOARD_IS_XLBUDDY
-MI_INFO_DWARF_BOARD_TEMPERATURE::MI_INFO_DWARF_BOARD_TEMPERATURE()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-#endif
-
-#if ENABLED(MODULAR_HEATBED)
-/**********************************************************************************************/
-//MI_HEAT_ENTIRE_BED
-bool MI_HEAT_ENTIRE_BED::init_index() const {
-    return eeprom_get_bool(EEVAR_HEAT_ENTIRE_BED);
-}
-
-void MI_HEAT_ENTIRE_BED::OnChange(size_t old_index) {
-    eeprom_set_bool(EEVAR_HEAT_ENTIRE_BED, !old_index);
-    index = !old_index;
-    if (index == 1) {
-        marlin_gcode("M556 A"); // enable all bedlets now
-    }
-}
-
-MI_INFO_MODULAR_BED_BOARD_TEMPERATURE::MI_INFO_MODULAR_BED_BOARD_TEMPERATURE()
-    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-#endif
 MI_HEATUP_BED::MI_HEATUP_BED()
-    : WI_SWITCH_t<2>(eeprom_get_bool(EEVAR_HEATUP_BED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(nozzle), _(nozzle_bed)) {
+    : WI_SWITCH_t<2>(config_store().heatup_bed.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(nozzle), _(nozzle_bed)) {
 }
 void MI_HEATUP_BED::OnChange(size_t old_index) {
-    eeprom_set_bool(EEVAR_HEATUP_BED, !old_index);
+    config_store().heatup_bed.set(!old_index);
 }
-MI_INFO_SERIAL_NUM_LOVEBOARD::MI_INFO_SERIAL_NUM_LOVEBOARD()
-    : WiInfo<28>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
+
 MI_INFO_SERIAL_NUM_XLCD::MI_INFO_SERIAL_NUM_XLCD()
     : WiInfo<28>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 /*****************************************************************************/
 // INPUT SHAPER
 
-bool input_shaper_x_enabled() {
-#if PRINTER_TYPE == PRINTER_PRUSA_MK4
-    return PreciseStepping::step_generator_types & INPUT_SHAPER_STEP_GENERATOR_X;
+static bool input_shaper_x_enabled() {
+#if PRINTER_IS_PRUSA_MK4
+    return input_shaper::current_config().axis_x.has_value();
 #else
     return false; // TODO(InputShaperBeta)
 #endif
 }
 
-bool input_shaper_y_enabled() {
-#if PRINTER_TYPE == PRINTER_PRUSA_MK4
-    return PreciseStepping::step_generator_types & INPUT_SHAPER_STEP_GENERATOR_Y;
+static bool input_shaper_y_enabled() {
+#if PRINTER_IS_PRUSA_MK4
+    return input_shaper::current_config().axis_y.has_value();
 #else
     return false; // TODO(InputShaperBeta)
 #endif
+}
+
+static int32_t input_shaper_x_type() {
+    if (const auto &axis_x = input_shaper::current_config().axis_x) {
+        return static_cast<int32_t>(axis_x->type);
+    }
+    return 0;
+}
+
+static int32_t input_shaper_y_type() {
+    if (const auto &axis_y = input_shaper::current_config().axis_y) {
+        return static_cast<int32_t>(axis_y->type);
+    }
+    return 0;
+}
+
+static uint32_t input_shaper_x_frequency() {
+    if (const auto &axis_x = input_shaper::current_config().axis_x) {
+        return static_cast<uint32_t>(axis_x->frequency);
+    }
+    return 0;
+}
+
+static uint32_t input_shaper_y_frequency() {
+    if (const auto &axis_y = input_shaper::current_config().axis_y) {
+        return static_cast<uint32_t>(axis_y->frequency);
+    }
+    return 0;
 }
 
 bool input_shaper_enabled() {
@@ -963,7 +867,7 @@ MI_IS_TYPE::~MI_IS_TYPE() {
 }
 
 MI_IS_X_TYPE::MI_IS_X_TYPE()
-    : MI_IS_TYPE(static_cast<int32_t>(InputShaper::x_type), _(label), nullptr, is_enabled_t::no, input_shaper_x_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : MI_IS_TYPE(input_shaper_x_type(), _(label), nullptr, is_enabled_t::no, input_shaper_x_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
 void MI_IS_X_TYPE::OnChange([[maybe_unused]] size_t old_index) {
@@ -971,7 +875,7 @@ void MI_IS_X_TYPE::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_IS_Y_TYPE::MI_IS_Y_TYPE()
-    : MI_IS_TYPE(static_cast<int32_t>(InputShaper::y_type), _(label), nullptr, is_enabled_t::no, input_shaper_y_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : MI_IS_TYPE(input_shaper_y_type(), _(label), nullptr, is_enabled_t::no, input_shaper_y_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
 void MI_IS_Y_TYPE::OnChange([[maybe_unused]] size_t old_index) {
@@ -979,7 +883,7 @@ void MI_IS_Y_TYPE::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_IS_X_FREQUENCY::MI_IS_X_FREQUENCY()
-    : WiSpinInt(static_cast<uint32_t>(InputShaper::x_frequency), SpinCnf::input_shaper_freq, _(label), nullptr, is_enabled_t::no, input_shaper_x_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : WiSpinInt(input_shaper_x_frequency(), SpinCnf::input_shaper_freq, _(label), nullptr, is_enabled_t::no, input_shaper_x_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
 void MI_IS_X_FREQUENCY::OnClick() {
@@ -987,7 +891,7 @@ void MI_IS_X_FREQUENCY::OnClick() {
 }
 
 MI_IS_Y_FREQUENCY::MI_IS_Y_FREQUENCY()
-    : WiSpinInt(static_cast<uint32_t>(InputShaper::y_frequency), SpinCnf::input_shaper_freq, _(label), nullptr, is_enabled_t::no, input_shaper_y_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : WiSpinInt(input_shaper_y_frequency(), SpinCnf::input_shaper_freq, _(label), nullptr, is_enabled_t::no, input_shaper_y_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
 }
 
 void MI_IS_Y_FREQUENCY::OnClick() {

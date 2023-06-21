@@ -15,7 +15,7 @@ typedef enum {
     SPI_NOT_INITIALIZED = 3,
 } spi_status_e;
 
-//transmit function
+// transmit function
 spi_status_e _spi_transfer(uint8_t *tx_buffer, uint8_t *rx_buffer, uint16_t len, uint32_t Timeout) {
     if (HAL_SPI_Initialized) {
         HAL_StatusTypeDef ret = HAL_SPI_TransmitReceive(&SPI_HANDLE_FOR(tmc), tx_buffer, rx_buffer, len, Timeout);
@@ -46,7 +46,7 @@ void SPIClass::end(void) {}
 void SPIClass::beginTransaction(SPISettings settings) {}
 void SPIClass::endTransaction(void) {}
 
-//8bit transfer
+// 8bit transfer
 byte SPIClass::transfer(uint8_t _data, SPITransferMode _mode) {
     uint8_t read;
     dmaTransfer(&_data, &read, sizeof(_data));

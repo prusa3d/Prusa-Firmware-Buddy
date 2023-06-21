@@ -16,10 +16,10 @@
 using ScreenMenuFilamentMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_MMU_LOAD_FILAMENT,
     MI_MMU_LOAD_TO_NOZZLE,
-    MI_MMU_UNLOAD_FILAMENT, // @@TODO debug
-    /*TODO MI_CHANGE,*/ MI_PURGE,
+    MI_MMU_UNLOAD_FILAMENT,
     MI_MMU_EJECT_FILAMENT,
     MI_MMU_CUT_FILAMENT,
+    // MI_PURGE, doing purges in MMU mode is not only unsupported but dangerous and doesn't play well with the preferred workflow of the MMU-enabled machine
     MI_MMU_SPOOLJOIN,
     MI_MMU_CUTTER,
     MI_MMU_FAIL_STATS,
@@ -36,7 +36,4 @@ public:
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
-
-private:
-    void deactivate_item();
 };

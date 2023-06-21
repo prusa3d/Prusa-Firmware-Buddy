@@ -15,14 +15,6 @@
             }
         },
         {
-            "label": "Prepare Simulator State Directory",
-            "type": "shell",
-            "command": "python3 ${workspaceFolder}/.vscode/prepare_simulator_dir.py ${workspaceFolder}/build-vscode-buddy ${workspaceFolder}/build-vscode-buddy/simulator",
-            "windows": {
-                "command": "python ${workspaceFolder}\\.vscode\\prepare_simulator_dir.py ${workspaceFolder}\\build-vscode-buddy ${workspaceFolder}\\build-vscode-buddy\\simulator"
-            }
-        },
-        {
             "label": "Wait 1",
             "type": "shell",
             "command": "sleep 1",

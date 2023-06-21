@@ -416,14 +416,15 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_0_MAXTEMP 290 + 15
+#define HEATER_0_MAXTEMP 305
 #define HEATER_1_MAXTEMP 275
 #define HEATER_2_MAXTEMP 275
 #define HEATER_3_MAXTEMP 275
 #define HEATER_4_MAXTEMP 275
 #define HEATER_5_MAXTEMP 275
-#define BED_MAXTEMP 150
-#define BED_MAXTEMP_SAFETY_MARGIN 10
+#define HEATER_MAXTEMP_SAFETY_MARGIN 15
+#define BED_MAXTEMP 125
+#define BED_MAXTEMP_SAFETY_MARGIN 5
 #define HEATBREAK_MAXTEMP 100
 #define CHAMBER_MAXTEMP 100
 #define BOARD_MAXTEMP 120
@@ -1437,15 +1438,15 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-    #define Z_SAFE_HOMING_X_POINT (36.5) // X point for Z homing when homing all axes (G28).
-    #define Z_SAFE_HOMING_Y_POINT (14) // Y point for Z homing when homing all axes (G28).
+    #define Z_SAFE_HOMING_X_POINT (14) // X point for Z homing when homing all axes (G28).
+    #define Z_SAFE_HOMING_Y_POINT (-4) // Y point for Z homing when homing all axes (G28).
 #endif
 
 // Homing speeds (mm/m)
 #ifdef HAS_LDO_400_STEP
-    #define HOMING_FEEDRATE_XY (70 * 60)
+    #define HOMING_FEEDRATE_XY (62 * 60)
 #else
-    #define HOMING_FEEDRATE_XY (70 * 60)//(150 * 60)
+    #define HOMING_FEEDRATE_XY (62 * 60)//(150 * 60)
 #endif
 
 #define HOMING_FEEDRATE_Z (8 * 60)

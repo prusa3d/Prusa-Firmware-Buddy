@@ -26,7 +26,7 @@
 
 #include "../../gcode.h"
 #include "../../../module/planner.h"
-#include "../../../module/stepper.h"
+#include "../../../feature/pressure_advance/pressure_advance_config.hpp"
 
 #if ENABLED(EXTRA_LIN_ADVANCE_K)
   float saved_extruder_advance_K[EXTRUDERS];
@@ -134,12 +134,12 @@ void GcodeSuite::M900() {
     else {
       SERIAL_ECHO_START();
       #if EXTRUDERS < 2
-        SERIAL_ECHOLNPAIR("Advance K=", PressureAdvance::pressure_advance_params.pressure_advance_value);
+        SERIAL_ECHOLNPAIR("Advance K=", pressure_advance::get_axis_e_config().pressure_advance);
       #else
         SERIAL_ECHOPGM("Advance K");
         LOOP_L_N(i, EXTRUDERS) {
           SERIAL_CHAR(' '); SERIAL_ECHO(int(i));
-          SERIAL_CHAR('='); SERIAL_ECHO(PressureAdvance::pressure_advance_params.pressure_advance_value);
+          SERIAL_CHAR('='); SERIAL_ECHO(pressure_advance::get_axis_e_config().pressure_advance);
         }
         SERIAL_EOL();
       #endif

@@ -3,7 +3,7 @@
 
 #include <device/hal.h>
 
-//port of pin8
+// port of pin8
 static inline GPIO_TypeDef *gpio_port(uint8_t pin8) {
     return (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * (pin8 >> 4));
 }

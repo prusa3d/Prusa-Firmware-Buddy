@@ -47,11 +47,11 @@ static_assert(dump_handlers_have_valid_pointers, "dump handlers must have valid 
 using BufferT = std::array<const DumpHandler *, dump_handlers.size()>;
 
 /**
-     * @brief Gets the _present_dumps.
-     *
-     * @param buffer Buffer that will be used to store present dumps
-     * @return Span into the buffer with present dumps
-     */
+ * @brief Gets the _present_dumps.
+ *
+ * @param buffer Buffer that will be used to store present dumps
+ * @return Span into the buffer with present dumps
+ */
 std::span<const DumpHandler *> get_present_dumps(BufferT &buffer);
 
 }

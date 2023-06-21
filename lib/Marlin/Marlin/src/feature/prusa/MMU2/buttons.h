@@ -8,7 +8,7 @@
 namespace MMU2 {
 
 /// Button codes + extended actions performed on the printer's side
-enum Buttons : uint8_t {
+enum class Buttons : uint_least8_t {
     Right = 0,
     Middle,
     Left,
@@ -20,5 +20,9 @@ enum Buttons : uint8_t {
 
     NoButton = 0xff // shall be kept last
 };
+
+constexpr uint_least8_t buttons_to_uint8t(Buttons b) {
+    return static_cast<uint8_t>(b);
+}
 
 } // namespace MMU2

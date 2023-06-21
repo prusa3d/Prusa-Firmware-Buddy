@@ -16,6 +16,8 @@
 #include "otp.h"
 #include <option/has_puppies_bootloader.h>
 #include <option/puppy_flash_fw.h>
+#include <option/has_dwarf.h>
+#include <option/has_modularbed.h>
 #include <puppies/puppy_crash_dump.hpp>
 #include <cstring>
 #include "bsod_gui.hpp"
@@ -33,12 +35,16 @@ const char *PuppyBootstrap::Progress::description() {
         return "Looking for puppies";
     else if (stage == PuppyBootstrap::FlashingStage::CALCULATE_FINGERPRINT)
         return "Verifying puppies";
+#if HAS_DWARF()
     else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::DWARF)
         return "Verifying dwarf";
+#endif
     else if (stage == PuppyBootstrap::FlashingStage::CHECK_FINGERPRINT && puppy_type == PuppyType::MODULARBED)
         return "Verifying modularbed";
+#if HAS_DWARF()
     else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::DWARF)
         return "Flashing dwarf";
+#endif
     else if (stage == PuppyBootstrap::FlashingStage::FLASHING && puppy_type == PuppyType::MODULARBED)
         return "Flashing modularbed";
     else if (stage == PuppyBootstrap::FlashingStage::DONE)
@@ -62,8 +68,11 @@ bool PuppyBootstrap::attempt_crash_dump_download(Dock dock, BootloaderProtocol::
 
 PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapResult minimal_config, unsigned int max_attempts) {
     PuppyBootstrap::BootstrapResult result;
-
+#if HAS_DWARF()
     progressHook({ 0, FlashingStage::START, PuppyType::DWARF });
+#elif HAS_MODULARBED()
+    progressHook({ 0, FlashingStage::START, PuppyType::MODULARBED });
+#endif
     auto guard = buddy::puppies::PuppyBus::LockGuard();
 
 #if HAS_PUPPIES_BOOTLOADER()
@@ -96,18 +105,23 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
             }
         }
     }
-
+    #if HAS_DWARF()
     progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PuppyType::DWARF });
+    #elif HAS_MODULARBED()
+    progressHook({ 10, FlashingStage::CALCULATE_FINGERPRINT, PuppyType::MODULARBED });
+    #endif
     int percent_per_puppy = 80 / result.discovered_num();
     int percent_base = 20;
 
-    //Select random salt for modular bed and for dwarf
+    // Select random salt for modular bed and for dwarf
     fingerprints_t fingerprints;
     HAL_RNG_GenerateRandomNumber(&hrng, &(fingerprints.get_salt(Dock::MODULAR_BED)));
+    #if HAS_DWARF()
     HAL_RNG_GenerateRandomNumber(&hrng, &(fingerprints.get_salt(Dock::DWARF_1)));
     for (Dock dock = Dock::DWARF_1; dock <= Dock::LAST; dock = dock + 1) {
         fingerprints.get_salt(dock) = fingerprints.get_salt(Dock::DWARF_1); // Copy salt to all dwarfs
     }
+    #endif
 
     // Ask puppies to compute fw fingerprint
     for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
@@ -128,12 +142,14 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
         calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::MODULAR_BED), fingerprints.get_salt(Dock::MODULAR_BED));
     }
     { // Dwarf
+    #if HAS_DWARF()
         unique_file_ptr fw_file = get_firmware(DWARF);
         off_t fw_size = get_firmware_size(DWARF);
         calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::DWARF_1), fingerprints.get_salt(Dock::DWARF_1));
         for (Dock dock = Dock::DWARF_1; dock <= Dock::LAST; dock = dock + 1) {
             fingerprints.get_fingerprint(dock) = fingerprints.get_fingerprint(Dock::DWARF_1); // Copy fingerprint to all dwarfs
         }
+    #endif
     }
 
     // Check puppies if they finished fingerprint calculations
@@ -165,17 +181,22 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
     #if PUPPY_FLASH_FW()
         uint8_t offset = 0;
         uint8_t size = sizeof(fingerprint_t);
+        #if HAS_DWARF()
         if (to_puppy_type(dock) == DWARF) {
             // Check this chunk from one puppy, -1 fo modular bed which has different fingerprint
             size = sizeof(fingerprint_t) / (result.discovered_num() - 1);
             offset = size * (static_cast<uint8_t>(dock) - 1);
         }
+        #endif
         flash_firmware(dock, fingerprints, offset, size, percent_base, percent_per_puppy);
     #endif
         percent_base += percent_per_puppy;
     }
-
+    #if HAS_DWARF()
     progressHook({ 100, FlashingStage::DONE, PuppyType::DWARF });
+    #elif HAS_MODULARBED()
+    progressHook({ 100, FlashingStage::DONE, PuppyType::MODULARBED });
+    #endif
 
     // Start application
     for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
@@ -186,13 +207,13 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
 
         auto address = get_boot_address_for_dock(dock);
         auto puppy_type = to_puppy_type(dock);
-        start_app(puppy_type, address, fingerprints.get_salt(dock), fingerprints.get_fingerprint(dock)); //Use last known salt that may already be calculated in puppy
+        start_app(puppy_type, address, fingerprints.get_salt(dock), fingerprints.get_fingerprint(dock)); // Use last known salt that may already be calculated in puppy
     }
 
 #else
     reset_all_puppies();
     result = MINIMAL_PUPPY_CONFIG;
-#endif
+#endif // HAS_PUPPIES_BOOTLOADER()
 
     return result;
 }
@@ -273,14 +294,16 @@ void PuppyBootstrap::reset_all_puppies() {
 
 void PuppyBootstrap::reset_puppies_range(Dock from, Dock to) {
     const auto write_puppies_reset_pin = [](Dock dockFrom, Dock dockTo, Pin::State state) {
-        static const buddy::hw::PCA9557OutputPin *const reset_pins[] = {
+        static const decltype(buddy::hw::modularBedReset) *const reset_pins[] = {
             &buddy::hw::modularBedReset,
+#if HAS_DWARF()
             &buddy::hw::dwarf1Reset,
             &buddy::hw::dwarf2Reset,
             &buddy::hw::dwarf3Reset,
             &buddy::hw::dwarf4Reset,
             &buddy::hw::dwarf5Reset,
             &buddy::hw::dwarf6Reset,
+#endif
         };
         for (Dock k = dockFrom; k <= dockTo; k = k + 1U) {
             reset_pins[static_cast<uint8_t>(k)]->write(state);
@@ -325,7 +348,7 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
     datamatrix_t puppy_datamatrix {};
     if (protocol_version >= 0x0302) { // OTP read was added in protocol 0x0302
 
-        uint8_t otp[32]; // OTP v5 will fit to 32 Bytes
+        uint8_t otp[32];              // OTP v5 will fit to 32 Bytes
         if (check_status(flasher.read_otp_cmd(0, otp, 32)) == false) {
             return false;
         }
@@ -443,9 +466,9 @@ void PuppyBootstrap::wait_for_fingerprint(uint32_t calculation_start) {
     while (1) {
         BootloaderProtocol::status_t status = flasher.get_protocolversion(protocol_version); // Test if puppy is communicating
 
-        if (status == BootloaderProtocol::status_t::COMMAND_OK) // Any response from puppy means it is ready
+        if (status == BootloaderProtocol::status_t::COMMAND_OK)                              // Any response from puppy means it is ready
         {
-            return; // Done
+            return;                                                                          // Done
         }
 
         if (ticks_diff(calculation_start + WAIT_TIME, ticks_ms()) < 0) {
@@ -496,7 +519,7 @@ bool PuppyBootstrap::fingerprint_match(const fingerprint_t &fingerprint, uint8_t
         fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FINGERPRINT_MISMATCH);
     }
 
-    return (std::memcmp(&read_fingerprint.data()[offset], &fingerprint.data()[offset], size) == 0); //Compare requested chunk
+    return (std::memcmp(&read_fingerprint.data()[offset], &fingerprint.data()[offset], size) == 0); // Compare requested chunk
 }
 
 void PuppyBootstrap::start_fingerprint_computation(BootloaderProtocol::Address address, uint32_t salt) {

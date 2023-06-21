@@ -18,7 +18,7 @@
 #include <bitset>
 #include <option/development_items.h>
 
-//Singleton dialog for messages
+// Singleton dialog for messages
 class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
 protected: // inherited by unit tests, must be protected
     static constexpr const char *Title = N_("INFO");
@@ -68,7 +68,7 @@ protected: // inherited by unit tests, must be protected
         { &png::exposure_times_48x48, Title, SteppersTimeoutMsg },
 #endif
         { &png::usb_error_48x48, Title, USBFlashDiskError },
-        { nullptr, Title, HeatBreakThermistorFail } //TODO need icon for heatbreak thermistor disconect
+        { nullptr, Title, HeatBreakThermistorFail } // TODO need icon for heatbreak thermistor disconect
 #if ENABLED(POWER_PANIC)
         ,
         { nullptr, Title, HeatbedColdAfterPPMsg }

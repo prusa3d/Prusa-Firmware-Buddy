@@ -66,17 +66,17 @@ static constexpr bool crash_filter =
 constexpr vars_body_t body_defaults = {
     eeprom::v11::body_defaults,
     // "Compressed" - this means buddy-a.connect.prusa3d.com.
-    "buddy-a.\x01\x01",  // CONNECT_HOST
-    "",                  // CONNECT_TOKEN
-    443,                 // CONNECT_PORT
-    true,                // CONNECT_TLS
-    false,               // CONNECT_ENABLED
+    "buddy-a.\x01\x01",  // EEVAR_CONNECT_HOST
+    "",                  // EEVAR_CONNECT_TOKEN
+    443,                 // EEVAR_CONNECT_PORT
+    true,                // EEVAR_CONNECT_TLS
+    false,               // EEVAR_CONNECT_ENABLED
     0,                   // EEVAR_JOB_ID
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
+#if (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
     false,               // EEVAR_CRASH_ENABLED
 #else
     true,                // EEVAR_CRASH_ENABLED
-#endif // ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5))
+#endif // (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
     crash_sens[0],       // EEVAR_CRASH_SENS_X,
     crash_sens[1],       // EEVAR_CRASH_SENS_Y,
     crash_max_period[0], // EEVAR_CRASH_MAX_PERIOD_X,

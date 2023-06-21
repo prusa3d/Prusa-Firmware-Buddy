@@ -1,4 +1,4 @@
-//dbg.h
+// dbg.h
 #pragma once
 
 #define _dbg(...)

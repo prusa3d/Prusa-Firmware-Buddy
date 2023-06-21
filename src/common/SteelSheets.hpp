@@ -1,6 +1,5 @@
 #pragma once
 #include "marlin_client.hpp"
-#include "eeprom.h"
 #include <optional>
 
 #include "gui_config_printer.hpp"
@@ -78,8 +77,7 @@ public:
     ///
     /// Z offset is clamped between zOffsetMin and zOffsetMax and the unit is mm
     /// @param[in] offset  of the sheet
-    /// @return True when Z offset is set, False otherwise.
-    static bool SetZOffset(float offset);
+    static void SetZOffset(float offset);
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Gets offset of currently selected sheet.
     ///
@@ -100,8 +98,7 @@ private:
     /// Z offset is clamped between zOffsetMin and zOffsetMax
     /// @param[in] index Index of the sheet profile
     /// @param[in]  offset of the sheet
-    /// @return True when successful, false if not
-    static bool setSheetOffset(uint32_t index, float offset);
+    static void setSheetOffset(uint32_t index, float offset);
 
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Determine the index of active sheet
@@ -110,7 +107,7 @@ private:
     static uint32_t activeSheetIndex();
 
     static Sheet getSheet(uint32_t index);
-    static bool setSheet(uint32_t index, Sheet sheet);
+    static void setSheet(uint32_t index, Sheet sheet);
 
     ///////////////////////////////////////////////////////////////////////////////
     /// @brief Updates probe Z offset variable in marlin

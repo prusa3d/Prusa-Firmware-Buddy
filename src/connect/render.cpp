@@ -2,7 +2,6 @@
 #include "printer_type.hpp"
 
 #include <segmented_json_macros.h>
-#include <eeprom.h>
 #include <lfn.h>
 #include <filename_type.hpp>
 #include <gcode_file.h>

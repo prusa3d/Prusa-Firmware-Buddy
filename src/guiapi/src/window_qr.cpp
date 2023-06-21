@@ -2,13 +2,13 @@
 #include <algorithm>
 #include <math.h>
 
+#include <configuration_store.hpp>
 #include "window_qr.hpp"
 #include "gui.hpp"
 #include "display.h"
 #include "qrcodegen.h"
 #include "scratch_buffer.hpp"
 #include "support_utils.h"
-#include "eeprom.h"
 
 /// QR Window
 window_qr_t::window_qr_t(window_t *parent, Rect16 rect, uint16_t err_num, Align_t align)
@@ -31,7 +31,7 @@ window_qr_t::window_qr_t(window_t *parent, Rect16 rect, const char *txt)
 
 void window_qr_t::SetQRHeader(uint16_t err_num) {
     error_num = err_num;
-    bool devhash_in_qr = eeprom_get_bool(EEVAR_DEVHASH_IN_QR);
+    bool devhash_in_qr = config_store().devhash_in_qr.get();
     if (devhash_in_qr) {
         error_url_long(text, sizeof(text), err_num);
     } else {

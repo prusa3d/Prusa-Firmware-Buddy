@@ -10,7 +10,9 @@
 #include "module/prusa/toolchanger.h"
 #include "marlin_client.hpp"
 
+#include <puppies/Dwarf.hpp>
 #include <limits>
+#include <configuration_store.hpp>
 
 static int displayed_tool = 0;
 
@@ -48,13 +50,15 @@ void MI_DOCK_POSITION_Y::set_pos(const float pos) {
     prusa_toolchanger.set_tool_info(dwarf, info);
 }
 
-static constexpr SpinConfig_t<float> OFFSET_CONFIG({ -10, 10, 0.01 }, "mm");
+static constexpr SpinConfig_t<float> OFFSET_CONFIG_X({ X_MIN_OFFSET, X_MAX_OFFSET, 0.01 }, "mm");
+static constexpr SpinConfig_t<float> OFFSET_CONFIG_Y({ Y_MIN_OFFSET, Y_MAX_OFFSET, 0.01 }, "mm");
+static constexpr SpinConfig_t<float> OFFSET_CONFIG_Z({ Z_MIN_OFFSET, Z_MAX_OFFSET, 0.01 }, "mm");
 
-MI_OFFSET::MI_OFFSET(string_view_utf8 label, [[maybe_unused]] const png::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
-    : WiSpinFlt(initVal, OFFSET_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+MI_OFFSET::MI_OFFSET(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig_t<float> &config)
+    : WiSpinFlt(initVal, config, label, id_icon, enabled, hidden) {}
 
 MI_OFFSET_X::MI_OFFSET_X()
-    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, hotend_offset[displayed_tool].x) {}
+    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, displayed_tool ? is_hidden_t::no : is_hidden_t::yes, hotend_offset[displayed_tool].x, OFFSET_CONFIG_X) {}
 
 void MI_OFFSET_X::OnClick() {
     hotend_offset[displayed_tool].x = GetVal();
@@ -62,7 +66,7 @@ void MI_OFFSET_X::OnClick() {
 }
 
 MI_OFFSET_Y::MI_OFFSET_Y()
-    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, hotend_offset[displayed_tool].y) {}
+    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, displayed_tool ? is_hidden_t::no : is_hidden_t::yes, hotend_offset[displayed_tool].y, OFFSET_CONFIG_Y) {}
 
 void MI_OFFSET_Y::OnClick() {
     hotend_offset[displayed_tool].y = GetVal();
@@ -70,7 +74,7 @@ void MI_OFFSET_Y::OnClick() {
 }
 
 MI_OFFSET_Z::MI_OFFSET_Z()
-    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, hotend_offset[displayed_tool].z) {}
+    : MI_OFFSET(_(label), nullptr, is_enabled_t::yes, displayed_tool ? is_hidden_t::no : is_hidden_t::yes, hotend_offset[displayed_tool].z, OFFSET_CONFIG_Z) {}
 
 void MI_OFFSET_Z::OnClick() {
     hotend_offset[displayed_tool].z = GetVal();
@@ -128,4 +132,44 @@ void MI_PARK_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
 
 ScreenMenuTools::ScreenMenuTools()
     : detail::ScreenMenuTools(_(label)) {
+}
+
+/*****************************************************************************/
+// MI_INFO_DWARF_MCU_TEMPERATURE
+/*****************************************************************************/
+MI_INFO_DWARF_BOARD_TEMPERATURE::MI_INFO_DWARF_BOARD_TEMPERATURE()
+    : WI_TEMP_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+}
+
+/*****************************************************************************/
+// MI_INFO_HEATBREAK_N_TEMP
+I_MI_INFO_HEATBREAK_N_TEMP::I_MI_INFO_HEATBREAK_N_TEMP(const char *const specific_label, int index)
+    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label),                                                     //< Toolchanger has specific labels
+        nullptr, is_enabled_t::yes,
+        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
+}
+
+/*****************************************************************************/
+// MI_INFO_NOZZLE_N_TEMP
+I_MI_INFO_NOZZLE_N_TEMP::I_MI_INFO_NOZZLE_N_TEMP(const char *const specific_label, int index)
+    : WI_TEMP_LABEL_t(prusa_toolchanger.is_toolchanger_enabled() ? _(specific_label) : _(generic_label),                                                     //< Toolchanger has specific labels
+        nullptr, is_enabled_t::yes,
+        ((index == 0) || (prusa_toolchanger.is_toolchanger_enabled() && buddy::puppies::dwarfs[index].is_enabled())) ? is_hidden_t::no : is_hidden_t::yes) { //< Index 0 is never hidden
+}
+
+MI_ODOMETER_DIST_E::MI_ODOMETER_DIST_E(const char *const label, int index)
+    : MI_ODOMETER_DIST(_(label), nullptr, is_enabled_t::yes,
+        prusa_toolchanger.is_toolchanger_enabled() && prusa_toolchanger.is_tool_enabled(index) ? is_hidden_t::no : is_hidden_t::yes, -1) {
+}
+
+MI_ODOMETER_TOOL::MI_ODOMETER_TOOL(const char *const label, int index)
+    : WI_FORMATABLE_LABEL_t<uint32_t>(_(label), nullptr, is_enabled_t::yes,
+        prusa_toolchanger.is_toolchanger_enabled() && prusa_toolchanger.is_tool_enabled(index) ? is_hidden_t::no : is_hidden_t::yes, 0,
+        [&](char *buffer) {
+            snprintf(buffer, GuiDefaults::infoDefaultLen, "%lu %s", value, times_label);
+        }) {
+}
+
+MI_ODOMETER_TOOL::MI_ODOMETER_TOOL()
+    : MI_ODOMETER_TOOL(generic_label, 0) {
 }

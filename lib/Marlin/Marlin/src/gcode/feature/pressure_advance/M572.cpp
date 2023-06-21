@@ -5,15 +5,15 @@
 
 #include "../../gcode.h"
 #include "../../../module/stepper.h"
-#include "../../../feature/pressure_advance/pressure_advance.h"
+#include "../../../feature/pressure_advance/pressure_advance_config.hpp"
 
 /**
-* @brief Set parameters for pressure advance.
-*
-* - D<value>     Set the extruder number.
-* - S<value>     Set the pressure advance value. If zero the pressure advance is disabled.
-* - W<time>      Set a time range in seconds used for calculating the average extruder velocity for pressure advance. Default value is 0.04.
-*/
+ * @brief Set parameters for pressure advance.
+ *
+ * - D<value>     Set the extruder number.
+ * - S<value>     Set the pressure advance value. If zero the pressure advance is disabled.
+ * - W<time>      Set a time range in seconds used for calculating the average extruder velocity for pressure advance. Default value is 0.04.
+ */
 void GcodeSuite::M572() {
     float pressure_advance = 0.;
     float smooth_time = 0.04;
@@ -46,9 +46,8 @@ void GcodeSuite::M572_internal(float pressure_advance, float smooth_time) {
     // But later, it could be possible to wait just for block and move quests.
     planner.synchronize();
 
-    PressureAdvance::pressure_advance_params = create_pressure_advance_params(pressure_advance, smooth_time, 0.001, 41);
-    if (pressure_advance > 0.)
-        PreciseStepping::step_generator_types |= PRESSURE_ADVANCE_STEP_GENERATOR_E;
-    else
-        PreciseStepping::step_generator_types &= ~PRESSURE_ADVANCE_STEP_GENERATOR_E;
+    pressure_advance::set_axis_e_config({
+        .pressure_advance = pressure_advance,
+        .smooth_time = smooth_time,
+    });
 }

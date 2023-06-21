@@ -79,12 +79,12 @@ bool HeatbedletInfo::IsHeaterOK() {
 void HeatbedletInfo::AddMeasuredTemperature(float temperature) {
     m_MeasuredTemperature = temperature;
 
-    //calculate moving average of temperature differential
+    // calculate moving average of temperature differential
     float diff = temperature - m_MeasuredTemperatureHistory[m_MeasuredTemperatureHistoryIndex];
     float coef = ((float)CONTROLLER_TEMP_DIFF_FILTER_LENGTH) / (1000.0f / ADC_CONVERSION_PERIOD / ADC_BATCH_SIZE);
     m_FilteredMeasuredTemperatureDiff = diff / coef;
 
-    //calculate moving average of temperature
+    // calculate moving average of temperature
     m_MeasuredTemperatureHistory[m_MeasuredTemperatureHistoryIndex] = temperature;
     float sum = 0;
     for (int i = 0; i < CONTROLLER_TEMP_FILTER_LENGTH; i++) {
@@ -95,10 +95,10 @@ void HeatbedletInfo::AddMeasuredTemperature(float temperature) {
     }
     m_FilteredMeasuredTemperature = sum / CONTROLLER_TEMP_FILTER_LENGTH;
 
-    //shift index of the circular buffer
+    // shift index of the circular buffer
     m_MeasuredTemperatureHistoryIndex++;
     if (m_MeasuredTemperatureHistoryIndex == TEMP_HISTORY_SIZE)
         m_MeasuredTemperatureHistoryIndex = 0;
 }
 
-} //namespace
+} // namespace

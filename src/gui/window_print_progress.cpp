@@ -4,7 +4,7 @@
 #include <algorithm>
 
 /*****************************************************************************/
-//WindowPrintProgress
+// WindowPrintProgress
 #include "marlin_client.hpp"
 WindowPrintProgress::WindowPrintProgress(window_t *parent, Rect16 rect)
     : AddSuperWindow<window_numberless_progress_t>(parent, rect)
@@ -25,7 +25,7 @@ void WindowPrintProgress::windowEvent(EventLock /*has private ctor*/, window_t *
 WindowNumbPrintProgress::WindowNumbPrintProgress(window_t *parent, Rect16 rect)
     : AddSuperWindow<window_numb_t>(parent, rect)
     , last_sd_percent_done(-1) {
-    font = resource_font(IDR_FNT_BIG);
+    set_font(resource_font(IDR_FNT_BIG));
     SetAlignment(Align_t::Center());
     PrintAsInt32();
     SetFormat("%d%%");

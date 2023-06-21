@@ -9,7 +9,7 @@
 
 ScreenMenuCalibration::ScreenMenuCalibration()
     : ScreenMenuCalibration__(_(label)) {
-#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+#if (!PRINTER_IS_PRUSA_MINI)
     header.SetIcon(&png::calibrate_white_16x16);
 #endif
 }

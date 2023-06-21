@@ -11,7 +11,7 @@
 #include "menu_spin_config_type.hpp" //SpinConfig_t
 
 /*****************************************************************************/
-//IWiSpin
+// IWiSpin
 class IWiSpin : public AddSuper<WI_LABEL_t> {
 protected:
     static constexpr font_t *&Font = GuiDefaults::MenuSpinHasUnits ? GuiDefaults::FontMenuSpecial : GuiDefaults::FontMenuItems;
@@ -20,7 +20,7 @@ protected:
     static constexpr bool has_unit = GuiDefaults::MenuSpinHasUnits;
 
     using SpinTextArray = std::array<char, 10>;
-    SpinTextArray spin_text_buff; //temporary buffer to print value for text measurements
+    SpinTextArray spin_text_buff; // temporary buffer to print value for text measurements
 
     string_view_utf8 units;
     SpinType value;
@@ -47,11 +47,11 @@ public:
 };
 
 /*****************************************************************************/
-//WI_SPIN_t
+// WI_SPIN_t
 template <class T>
 class WI_SPIN_t : public AddSuper<IWiSpin> {
 
-public: //todo private
+public: // todo private
     using Config = SpinConfig_t<T>;
     const Config &config;
 
@@ -67,8 +67,8 @@ public:
 };
 
 /*****************************************************************************/
-//template definitions
-//WI_SPIN_t
+// template definitions
+// WI_SPIN_t
 template <class T>
 WI_SPIN_t<T>::WI_SPIN_t(T val, const Config &cnf, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
     : AddSuper<IWiSpin>(std::clamp(T(val), cnf.Min(), cnf.Max()), label, id_icon, enabled, hidden,
@@ -93,10 +93,10 @@ invalidate_t WI_SPIN_t<T>::change(int dif) {
     T val = (T)value;
     T old = val;
     val += (T)dif * config.Step();
-    val = dif >= 0 ? std::max(val, old) : std::min(val, old); //check overflow/underflow
+    val = dif >= 0 ? std::max(val, old) : std::min(val, old); // check overflow/underflow
     val = std::clamp(val, config.Min(), config.Max());
     value = val;
-    invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; //0 dif forces redraw
+    invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; // 0 dif forces redraw
     if (invalid == invalidate_t::yes) {
         if (!has_unit || config.Unit() == nullptr) {
             changeExtentionWidth(0, 0, config.txtMeas(value));
@@ -133,7 +133,7 @@ using WiSpinFlt = WI_SPIN_t<float>;
 
 class WI_SPIN_CRASH_PERIOD_t : public AddSuper<IWiSpin> {
 
-public: //todo private
+public: // todo private
     using Config = SpinConfig_t<int>;
     const Config &config;
 

@@ -7,7 +7,7 @@
 static constexpr const char *InternalFlash = "/internal/res/pngs";
 bool png::Resource::enabled = false;
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+#if PRINTER_IS_PRUSA_MINI
 static constexpr size_t SZ = 128; // png draw is about 5% slower compared to 512. Need to save RAM, good enough for MINI.
 #else
 static constexpr size_t SZ = 512; // optimal value, double speed compared to 0
@@ -41,13 +41,13 @@ png::ResourceSingleFile::ResourceSingleFile(const char *name)
 
         size_t bytes_read = fread(&data[0], 1, 32, file);
         if (bytes_read == 32) {
-            //OK
+            // OK
             fseek(file, 0, SEEK_SET); // return to begin
             size_ui16_t sz = icon_size(ptr);
             w = sz.w;
             h = sz.h;
         } else {
-            //NOK
+            // NOK
             fclose(file);
             file = nullptr; // without this dtor would try to close it again
         }

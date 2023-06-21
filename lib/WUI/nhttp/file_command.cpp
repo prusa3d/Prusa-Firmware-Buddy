@@ -17,6 +17,7 @@ using namespace handler;
 using http::Status;
 using json::Event;
 using json::Type;
+using std::nullopt;
 using std::string_view;
 
 namespace {
@@ -51,9 +52,9 @@ handler::StatusPage FileCommand::process() {
 
     switch (parse_result) {
     case JsonParseResult::ErrMem:
-        return StatusPage(Status::PayloadTooLarge, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Too many JSON tokens");
+        return StatusPage(Status::PayloadTooLarge, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Too many JSON tokens");
     case JsonParseResult::ErrReq:
-        return StatusPage(Status::BadRequest, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Couldn't parse JSON");
+        return StatusPage(Status::BadRequest, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Couldn't parse JSON");
     case JsonParseResult::Ok:
         break;
     }
@@ -61,20 +62,20 @@ handler::StatusPage FileCommand::process() {
     switch (command) {
     case Command::Unknown:
         // Any idea for better status than the very generic 400? 404?
-        return StatusPage(Status::BadRequest, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, "Unknown file command");
+        return StatusPage(Status::BadRequest, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Unknown file command");
     case Command::Start:
         switch (start()) {
         case StartResult::NotReady:
-            return StatusPage(Status::Conflict, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Can't start print now");
+            return StatusPage(Status::Conflict, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Can't start print now");
         case StartResult::NotFound:
-            return StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Gcode doesn't exist");
+            return StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Gcode doesn't exist");
         case StartResult::Started:
             return StatusPage(Status::NoContent, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors);
         }
         [[fallthrough]];
     default:
         assert(0);
-        return StatusPage(Status::InternalServerError, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "Invalid command");
+        return StatusPage(Status::InternalServerError, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "Invalid command");
     }
 }
 
@@ -96,7 +97,7 @@ handler::Step FileCommand::step(string_view input, bool terminated_by_client, ui
     if (content_length > buffer_used) {
         // Still waiting for more data.
         if (terminated_by_client) {
-            return Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, "Truncated request") };
+            return Step { to_read, 0, StatusPage(Status::BadRequest, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Truncated request") };
         } else {
             return Step { to_read, 0, Continue() };
         }

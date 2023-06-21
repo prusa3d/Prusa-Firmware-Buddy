@@ -56,8 +56,8 @@ LoopResult CSelftestPart_Heater::stateStart() {
     }
 #endif
 
-    //looked into marlin and it seems all PID values are used as numerator
-    //switch regulator into on/off mode
+    // looked into marlin and it seems all PID values are used as numerator
+    // switch regulator into on/off mode
     m_config.refKp = 1000000;
     m_config.refKi = 0;
     m_config.refKd = 0;
@@ -68,9 +68,9 @@ LoopResult CSelftestPart_Heater::stateStart() {
 
     m_StartTime = SelftestInstance().GetTime();
     m_EndTime = m_StartTime + estimate(m_config);
-    //m_TempDiffSum = 0;
-    //m_TempDiffSum = 0;
-    //m_TempCount = 0;
+    // m_TempDiffSum = 0;
+    // m_TempDiffSum = 0;
+    // m_TempCount = 0;
     begin_temp = m_config.getTemp();
     enable_cooldown = m_config.getTemp() >= m_config.start_temp;
     m_config.setTargetTemp(0);
@@ -87,8 +87,8 @@ LoopResult CSelftestPart_Heater::stateTakeControlOverFans() {
 LoopResult CSelftestPart_Heater::stateFansActivate() {
     if (enable_cooldown) {
         log_info(Selftest, "%s set fans to maximum", m_config.partname);
-        m_config.print_fan_fnc(m_config.tool_nr).SelftestSetPWM(255);     //it will be restored by ExitSelftestMode
-        m_config.heatbreak_fan_fnc(m_config.tool_nr).SelftestSetPWM(255); //it will be restored by ExitSelftestMode
+        m_config.print_fan_fnc(m_config.tool_nr).SelftestSetPWM(255);     // it will be restored by ExitSelftestMode
+        m_config.heatbreak_fan_fnc(m_config.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
     }
     return LoopResult::RunNext;
 }
@@ -109,8 +109,8 @@ LoopResult CSelftestPart_Heater::stateCooldown() {
     LogInfoTimed(log, "%s cooling down, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
 
     if (m_config.getTemp() > m_config.undercool_temp) {
-        //m_config.undercool_temp .. 100%
-        //begin_temp              ..   0%
+        // m_config.undercool_temp .. 100%
+        // begin_temp              ..   0%
         actualizeProgress(m_config.getTemp(), begin_temp, m_config.undercool_temp);
         return LoopResult::RunCurrent;
     }
@@ -145,13 +145,13 @@ LoopResult CSelftestPart_Heater::stateWait() {
     }
     LogInfoTimed(log, "%s wait, run: target: %d current: %f", m_config.partname, m_config.target_temp, (double)current_temp);
 
-    //m_config.start_temp     .. 100%
-    //m_config.undercool_temp ..   0%
+    // m_config.start_temp     .. 100%
+    // m_config.undercool_temp ..   0%
     actualizeProgress(current_temp, m_config.undercool_temp, m_config.start_temp);
     return LoopResult::RunCurrent;
 
 #if (0)
-    //used to be commented code I just moved it and wrapped in #if (0) instead
+    // used to be commented code I just moved it and wrapped in #if (0) instead
     if ((Selftest.m_Time - m_Time) < TEMP_WAIT_CYCLE_DELAY) {
         float temp = m_config.getTemp();
         float temp_diff = (temp - m_config.start_temp);
@@ -182,12 +182,12 @@ LoopResult CSelftestPart_Heater::stateWait() {
 
 LoopResult CSelftestPart_Heater::stateMeasure() {
     if (int(m_EndTime - SelftestInstance().GetTime()) > 0) {
-        //time based progress
+        // time based progress
         actualizeProgress(SelftestInstance().GetTime(), m_StartTime, m_EndTime);
         return LoopResult::RunCurrent;
     }
 #if (0)
-    //used to be commented code I just moved it and wrapped in #if (0) instead
+    // used to be commented code I just moved it and wrapped in #if (0) instead
     if ((Selftest.m_Time - m_Time) < TEMP_MEASURE_CYCLE_DELAY) {
         float temp = m_config.getTemp();
         m_Temp += temp;
@@ -204,8 +204,21 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     }
 #endif // 0
 
-    if ((m_config.getTemp() < m_config.heat_min_temp) || (m_config.getTemp() > m_config.heat_max_temp)) {
-        log_error(Selftest, "%s %i out of range (%i - %i)\n", m_config.partname, (int)m_config.getTemp(), m_config.heat_min_temp, m_config.heat_max_temp);
+    // Adapt test to HW differences
+    int8_t hw_diff = 0;
+    if (m_config.type == heater_type_t::Nozzle) {
+        hw_diff += config_store().nozzle_sock.get() ? m_config.nozzle_sock_temp_offset : 0;
+        uint8_t nozzle_type = config_store().nozzle_type.get(); // There will be more nozzle types in the future
+        if (nozzle_type == NozzleType::HighFlow) {
+            hw_diff += m_config.high_flow_nozzle_temp_offset;
+        }
+
+        if (hw_diff)
+            log_info(Selftest, "%s heat range offseted by %d degrees Celsius due to HW differences", m_config.partname, hw_diff);
+    }
+
+    if ((m_config.getTemp() < m_config.heat_min_temp + hw_diff) || (m_config.getTemp() > m_config.heat_max_temp + hw_diff)) {
+        log_error(Selftest, "%s %i out of range (%i - %i)\n", m_config.partname, (int)m_config.getTemp(), m_config.heat_min_temp + hw_diff, m_config.heat_max_temp + hw_diff);
         return LoopResult::Fail;
     }
     log_info(Selftest, "%s measure, target: %d current: %f", m_config.partname, m_config.target_temp, (double)m_config.getTemp());
@@ -214,7 +227,7 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
 
 void CSelftestPart_Heater::actualizeProgress(float current, float progres_start, float progres_end) const {
     if (progres_start >= progres_end)
-        return; // don't have estimated end set correctly
+        return;                                                      // don't have estimated end set correctly
     uint8_t current_progress = scale_percent_avoid_overflow(current, progres_start, progres_end);
     rResult.progress = std::max(rResult.progress, current_progress); // heater progress can only rise
 }

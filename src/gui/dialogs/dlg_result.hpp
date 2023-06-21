@@ -5,5 +5,5 @@
 enum class dlg_result_t : uint8_t {
     ok,
     aborted,
-    //error,
+    // error,
 };

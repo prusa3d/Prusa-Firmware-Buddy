@@ -48,9 +48,10 @@ public:
 
     /// Different levels of resetting the MMU
     enum ResetForm : uint8_t {
-        Software = 0,   ///< sends a X0 command into the MMU, the MMU will watchdog-reset itself
-        ResetPin = 1,   ///< trigger the reset pin of the MMU
-        CutThePower = 2 ///< power off and power on (that includes +5V and +24V power lines)
+        Software = 0,     ///< sends a X0 command into the MMU, the MMU will watchdog-reset itself
+        ResetPin = 1,     ///< trigger the reset pin of the MMU
+        CutThePower = 2,  ///< power off and power on (that includes +5V and +24V power lines)
+        EraseEEPROM = 42, ///< erase MMU EEPROM and then perform a software reset
     };
 
     /// Saved print state on error.
@@ -180,7 +181,7 @@ public:
     /// Automagically "press" a Retry button if we have any retry attempts left
     /// @param ec ErrorCode enum value
     /// @returns true if auto-retry is ongoing, false when retry is unavailable or retry attempts are all used up
-    bool RetryIfPossible(uint16_t ec);
+    bool RetryIfPossible(ErrorCode ec);
 
     /// @return count for toolchange in current print
     inline uint16_t ToolChangeCounter() const { return toolchange_counter; };
@@ -195,6 +196,9 @@ public:
 private:
     /// Perform software self-reset of the MMU (sends an X0 command)
     void ResetX0();
+
+    /// Perform software self-reset of the MMU + erase its EEPROM (sends X2a command)
+    void ResetX42();
 
     /// Trigger reset pin of the MMU
     void TriggerResetPin();
@@ -237,6 +241,11 @@ private:
 
     /// Responds to a change of MMU's progress
     /// - plans additional steps, e.g. starts the E-motor after fsensor trigger
+    /// The function is quite complex, because it needs to handle asynchronnous
+    /// progress and error reports coming from the MMU without an explicit command
+    /// - typically after MMU's start or after some HW issue on the MMU.
+    /// It must ensure, that calls to @ref ReportProgress and/or @ref ReportError are
+    /// only executed after @ref BeginReport has been called first.
     void OnMMUProgressMsg(ProgressCode pc);
     /// Progress code changed - act accordingly
     void OnMMUProgressMsgChanged(ProgressCode pc);
@@ -282,6 +291,8 @@ private:
     bool ToolChangeCommonOnce(uint8_t slot);
 
     void HelpUnloadToFinda();
+    void UnloadInner();
+    void CutFilamentInner(uint8_t slot);
 
     ProtocolLogic logic;          ///< implementation of the protocol logic layer
     uint8_t extruder;             ///< currently active slot in the MMU ... somewhat... not sure where to get it from yet
@@ -294,6 +305,7 @@ private:
     ErrorCode lastErrorCode = ErrorCode::MMU_NOT_RESPONDING;
     ErrorSource lastErrorSource = ErrorSource::ErrorSourceNone;
     Buttons lastButton = Buttons::NoButton;
+    uint8_t reportingStartedCnt;
 
     StepStatus logicStepLastStatus;
 
@@ -303,10 +315,6 @@ private:
     bool loadFilamentStarted;
     bool unloadFilamentStarted;
 
-    friend struct LoadingToNozzleRAII;
-    /// true in case we are doing the LoadToNozzle operation - that means the filament shall be loaded all the way down to the nozzle
-    /// unlike the mid-print ToolChange commands, which only load the first ~30mm and then the G-code takes over.
-    bool loadingToNozzle;
     uint16_t toolchange_counter;
     uint16_t tmcFailures;
 };

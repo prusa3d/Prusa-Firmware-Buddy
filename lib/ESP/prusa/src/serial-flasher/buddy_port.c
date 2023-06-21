@@ -26,7 +26,7 @@
     #include "dbg.h"
 #else
     #define _dbg(...)
-#endif //0
+#endif // 0
 
 static UART_HandleTypeDef *uart;
 static GPIO_TypeDef *gpio_port_io0, *gpio_port_rst;

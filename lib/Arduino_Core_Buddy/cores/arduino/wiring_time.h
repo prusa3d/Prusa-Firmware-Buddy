@@ -1,4 +1,4 @@
-//wiring_time.h - Buddy/STM32
+// wiring_time.h - Buddy/STM32
 #ifndef _WIRING_TIME_H
 #define _WIRING_TIME_H
 

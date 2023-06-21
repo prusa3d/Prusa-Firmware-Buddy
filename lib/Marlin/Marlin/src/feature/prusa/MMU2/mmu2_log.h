@@ -49,14 +49,14 @@ void LogEchoEvent_P(const char *msg_P);
         } while (0)
     #define MMU2_ERROR_MSG(S) MMU2_ECHO_MSG(S) //!@todo Decide MMU2 errors  on serial line
 
-#else // #ifndef UNITTEST
+#else                                          // #ifndef UNITTEST
 
-    #define MMU2_ECHO_MSGLN(S)    /* */
-    #define MMU2_ERROR_MSGLN(S)   /* */
-    #define MMU2_ECHO_MSGRPGM(S)  /* */
-    #define MMU2_ERROR_MSGRPGM(S) /* */
-    #define SERIAL_ECHOLNPGM(S)   /* */
-    #define SERIAL_ECHOPGM(S)     /* */
-    #define SERIAL_ECHOLN(S)      /* */
+    #define MMU2_ECHO_MSGLN(S)                 /* */
+    #define MMU2_ERROR_MSGLN(S)                /* */
+    #define MMU2_ECHO_MSGRPGM(S)               /* */
+    #define MMU2_ERROR_MSGRPGM(S)              /* */
+    #define SERIAL_ECHOLNPGM(S)                /* */
+    #define SERIAL_ECHOPGM(S)                  /* */
+    #define SERIAL_ECHOLN(S)                   /* */
 
-#endif // #ifndef UNITTEST
+#endif                                         // #ifndef UNITTEST

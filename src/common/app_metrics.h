@@ -1,8 +1,8 @@
 #pragma once
 #include <timing.h>
 
-namespace Buddy {
-namespace Metrics {
+namespace buddy {
+namespace metrics {
     void RecordMarlinVariables();
     void RecordRuntimeStats();
     void RecordPowerStats();

@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <optional>
 
-//TODO do not use selftest mask here, we need special enum for GUI
+// TODO do not use selftest mask here, we need special enum for GUI
 #if __has_include("printer_selftest.hpp")
     #include "printer_selftest.hpp" // SelftestMask_t
 #endif

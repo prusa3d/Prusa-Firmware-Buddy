@@ -69,7 +69,7 @@
     /* Handle support for more than one server via SNTP_MAX_SERVERS */
     #if SNTP_MAX_SERVERS > 1
         #define SNTP_SUPPORT_MULTIPLE_SERVERS 1
-    #else /* NTP_MAX_SERVERS > 1 */
+    #else  /* NTP_MAX_SERVERS > 1 */
         #define SNTP_SUPPORT_MULTIPLE_SERVERS 0
     #endif /* NTP_MAX_SERVERS > 1 */
 
@@ -117,7 +117,7 @@
     #define DIFF_SEC_1970_2036 ((u32_t)2085978496L)
 
     /** Convert NTP timestamp fraction to microseconds.
- */
+     */
     #ifndef SNTP_FRAC_TO_US
         #if LWIP_HAVE_INT64
             #define SNTP_FRAC_TO_US(f) ((u32_t)(((u64_t)(f)*1000000UL) >> 32))
@@ -127,11 +127,11 @@
     #endif /* !SNTP_FRAC_TO_US */
 
     /* Configure behaviour depending on native, microsecond or second precision.
- * Treat NTP timestamps as signed two's-complement integers. This way,
- * timestamps that have the MSB set simply become negative offsets from
- * the epoch (Feb 7, 2036 06:28:16 UTC). Representable dates range from
- * 1968 to 2104.
- */
+     * Treat NTP timestamps as signed two's-complement integers. This way,
+     * timestamps that have the MSB set simply become negative offsets from
+     * the epoch (Feb 7, 2036 06:28:16 UTC). Representable dates range from
+     * 1968 to 2104.
+     */
     #ifndef SNTP_SET_SYSTEM_TIME_NTP
         #ifdef SNTP_SET_SYSTEM_TIME_US
             #define SNTP_SET_SYSTEM_TIME_NTP(s, f) \
@@ -143,11 +143,11 @@
     #endif /* !SNTP_SET_SYSTEM_TIME_NTP */
 
     /* Get the system time either natively as NTP timestamp or convert from
- * Unix time in seconds and microseconds. Take care to avoid overflow if the
- * microsecond value is at the maximum of 999999. Also add 0.5 us fudge to
- * avoid special values like 0, and to mask round-off errors that would
- * otherwise break round-trip conversion identity.
- */
+     * Unix time in seconds and microseconds. Take care to avoid overflow if the
+     * microsecond value is at the maximum of 999999. Also add 0.5 us fudge to
+     * avoid special values like 0, and to mask round-off errors that would
+     * otherwise break round-trip conversion identity.
+     */
     #ifndef SNTP_GET_SYSTEM_TIME_NTP
         #define SNTP_GET_SYSTEM_TIME_NTP(s, f)                      \
             do {                                                    \
@@ -193,11 +193,11 @@ struct sntp_timestamps {
 };
 
     /**
- * SNTP packet format (without optional fields)
- * Timestamps are coded as 64 bits:
- * - signed 32 bits seconds since Feb 07, 2036, 06:28:16 UTC (epoch 1)
- * - unsigned 32 bits seconds fraction (2^32 = 1 second)
- */
+     * SNTP packet format (without optional fields)
+     * Timestamps are coded as 64 bits:
+     * - signed 32 bits seconds since Feb 07, 2036, 06:28:16 UTC (epoch 1)
+     * - unsigned 32 bits seconds fraction (2^32 = 1 second)
+     */
     #ifdef PACK_STRUCT_USE_INCLUDES
         #include "arch/bpstruct.h"
     #endif
@@ -250,7 +250,7 @@ static u8_t sntp_set_servers_from_dhcp;
     #if SNTP_SUPPORT_MULTIPLE_SERVERS
 /** The currently used server (initialized to 0) */
 static u8_t sntp_current_server;
-    #else /* SNTP_SUPPORT_MULTIPLE_SERVERS */
+    #else  /* SNTP_SUPPORT_MULTIPLE_SERVERS */
         #define sntp_current_server 0
     #endif /* SNTP_SUPPORT_MULTIPLE_SERVERS */
 
@@ -310,7 +310,7 @@ sntp_process(const struct sntp_timestamps *timestamps) {
         step_sec = (dest_sec < sec) ? ((u32_t)sec - (u32_t)dest_sec)
                                     : ((u32_t)dest_sec - (u32_t)sec);
         /* In order to avoid overflows, skip the compensation if the clock step
-     * is larger than about 34 years. */
+         * is larger than about 34 years. */
         if ((step_sec >> 30) == 0) {
             s64_t t1, t2, t3, t4;
 
@@ -896,4 +896,4 @@ sntp_getservername(u8_t idx) {
 }
     #endif /* SNTP_SERVER_DNS */
 
-#endif /* LWIP_UDP */
+#endif     /* LWIP_UDP */

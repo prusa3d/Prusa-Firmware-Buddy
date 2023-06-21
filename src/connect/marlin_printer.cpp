@@ -1,7 +1,6 @@
 #include "marlin_printer.hpp"
 #include "hostname.hpp"
 
-#include <eeprom.h>
 #include <ini.h>
 #include <version.h>
 #include <support_utils.h>
@@ -19,6 +18,8 @@
 #include <cctype>
 #include <mbedtls/sha256.h>
 #include <sys/statvfs.h>
+
+#include <configuration_store.hpp>
 
 using printer_state::DeviceState;
 using printer_state::get_state;
@@ -125,18 +126,6 @@ namespace {
         }
         return 20;
     }
-
-    // Extract a fixed-sized string from EEPROM to provided buffer.
-    //
-    // maxlen is the length of the buffer, including the byte for \0.
-    //
-    // FIXME: Unify with the one in wui_api.c
-    void strextract(char *into, size_t maxlen, enum eevar_id var) {
-        variant8_t tmp = eeprom_get_var(var);
-        strlcpy(into, variant8_get_pch(tmp), maxlen);
-        variant8_t *ptmp = &tmp;
-        variant8_done(&ptmp);
-    }
 }
 
 MarlinPrinter::MarlinPrinter() {
@@ -183,7 +172,7 @@ void MarlinPrinter::drop_paths() {
 }
 
 Printer::Params MarlinPrinter::params() const {
-    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
 
     Params params(borrow);
     params.material = filament::get_description(current_filament).name;
@@ -192,9 +181,9 @@ Printer::Params MarlinPrinter::params() const {
     params.target_bed = marlin_vars()->target_bed;
     params.temp_nozzle = marlin_vars()->active_hotend().temp_nozzle;
     params.target_nozzle = marlin_vars()->active_hotend().target_nozzle;
-    params.pos[X_AXIS_POS] = marlin_vars()->curr_pos[X_AXIS_POS];
-    params.pos[Y_AXIS_POS] = marlin_vars()->curr_pos[Y_AXIS_POS];
-    params.pos[Z_AXIS_POS] = marlin_vars()->curr_pos[Z_AXIS_POS];
+    params.pos[X_AXIS_POS] = marlin_vars()->logical_curr_pos[X_AXIS_POS];
+    params.pos[Y_AXIS_POS] = marlin_vars()->logical_curr_pos[Y_AXIS_POS];
+    params.pos[Z_AXIS_POS] = marlin_vars()->logical_curr_pos[Z_AXIS_POS];
     params.print_speed = marlin_vars()->print_speed;
     params.flow_factor = marlin_vars()->active_hotend().flow_factor;
     params.job_id = marlin_vars()->job_id;
@@ -205,7 +194,7 @@ Printer::Params MarlinPrinter::params() const {
     params.time_to_end = marlin_vars()->time_to_end;
     params.progress_percent = marlin_vars()->sd_percent_done;
     params.filament_used = Odometer_s::instance().get_extruded_all();
-    params.nozzle_diameter = eeprom_get_nozzle_dia(0);
+    params.nozzle_diameter = config_store().get_nozzle_diameter(0);
     params.has_usb = marlin_vars()->media_inserted;
 
     struct statvfs fsbuf = {};
@@ -228,20 +217,20 @@ Printer::Params MarlinPrinter::params() const {
 
 Printer::Config MarlinPrinter::load_config() {
     Config configuration = {};
-    configuration.enabled = eeprom_get_bool(EEVAR_CONNECT_ENABLED);
+    configuration.enabled = config_store().connect_enabled.get();
     // (We need it even if disabled for registration phase)
-    strextract(configuration.host, sizeof configuration.host, EEVAR_CONNECT_HOST);
-    decompress_host(configuration.host, sizeof configuration.host);
-    strextract(configuration.token, sizeof configuration.token, EEVAR_CONNECT_TOKEN);
-    configuration.tls = eeprom_get_bool(EEVAR_CONNECT_TLS);
-    configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
+    strlcpy(configuration.host, config_store().connect_host.get().data(), sizeof(configuration.host));
+    decompress_host(configuration.host, sizeof(configuration.host));
+    strlcpy(configuration.token, config_store().connect_token.get().data(), sizeof(configuration.token));
+    configuration.tls = config_store().connect_tls.get();
+    configuration.port = config_store().connect_port.get();
 
     return configuration;
 }
 
 void MarlinPrinter::init_connect(char *token) {
-    eeprom_set_pchar(EEVAR_CONNECT_TOKEN, token, 0, 1);
-    eeprom_set_bool(EEVAR_CONNECT_ENABLED, true);
+    config_store().connect_token.set(token);
+    config_store().connect_enabled.set(true);
 }
 
 bool MarlinPrinter::load_cfg_from_ini() {
@@ -253,10 +242,10 @@ bool MarlinPrinter::load_cfg_from_ini() {
             config.port = config.tls ? 443 : 80;
         }
 
-        eeprom_set_pchar(EEVAR_CONNECT_HOST, config.host, 0, 1);
-        eeprom_set_pchar(EEVAR_CONNECT_TOKEN, config.token, 0, 1);
-        eeprom_set_ui16(EEVAR_CONNECT_PORT, config.port);
-        eeprom_set_bool(EEVAR_CONNECT_TLS, config.tls);
+        config_store().connect_host.set(config.host);
+        config_store().connect_token.set(config.token);
+        config_store().connect_port.set(config.port);
+        config_store().connect_tls.set(config.tls);
         // Note: enabled is controlled in the GUI
     }
     return ok;
@@ -291,8 +280,8 @@ std::optional<Printer::NetInfo> MarlinPrinter::net_info(Printer::Iface iface) co
 
 Printer::NetCreds MarlinPrinter::net_creds() const {
     NetCreds result = {};
-    strextract(result.pl_password, sizeof result.pl_password, EEVAR_PL_PASSWORD);
-    strextract(result.ssid, sizeof result.ssid, EEVAR_WIFI_AP_SSID);
+    strlcpy(result.pl_password, config_store().prusalink_password.get_c_str(), sizeof(result.pl_password));
+    strlcpy(result.ssid, config_store().wifi_ap_ssid.get_c_str(), sizeof(result.ssid));
     return result;
 }
 
@@ -328,7 +317,7 @@ bool MarlinPrinter::job_control(JobControl control) {
 }
 
 bool MarlinPrinter::start_print(const char *path) {
-    if (!marlin_remote_print_ready(false)) {
+    if (!printer_state::remote_print_ready(false)) {
         return false;
     }
 
@@ -341,7 +330,7 @@ void MarlinPrinter::submit_gcode(const char *code) {
 }
 
 bool MarlinPrinter::set_ready(bool ready) {
-    if (ready && !marlin_remote_print_ready(false)) {
+    if (ready && !printer_state::remote_print_ready(false)) {
         return false;
     }
 

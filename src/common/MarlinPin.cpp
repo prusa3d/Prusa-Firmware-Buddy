@@ -30,4 +30,4 @@ bool isOutputPin(uint32_t marlinPin) {
 #undef ALL_OUTPUT_PINS
 }
 
-} //namespace buddy::hw
+} // namespace buddy::hw

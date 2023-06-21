@@ -1,4 +1,4 @@
-//test_display.c - display performance testing functions
+// test_display.c - display performance testing functions
 
 #include <inttypes.h>
 #include <stdlib.h>
@@ -212,7 +212,7 @@ void test_display_rgbcolors(uint16_t cnt) {
         for (int i = 0; i < count; i++) {
             Rect16 rc_item = Rect16(0, item_height * i, 240, item_height);
             Rect16 rc_text = Rect16(10, item_height * i + 1, strlen(names[i]) * font->w, font->h);
-            //display::FillRect(rc_item, colors[i]);
+            // display::FillRect(rc_item, colors[i]);
             fill_between_rectangles(&rc_item, &rc_text, colors[i]);
             display::DrawText(rc_text, string_view_utf8::MakeCPUFLASH((const uint8_t *)names[i]), font, colors[i], (i == 0) ? COLOR_WHITE : COLOR_BLACK);
         }
@@ -263,23 +263,23 @@ void test_display2(void) {
     //	int c = fread(buf, 1, 6, pf);
 
     /*	FILE f;
-		memset(&f, 0, sizeof(f));
-		f._read = __read;
-	//	f._write = __write;
-		f._file = -1;
-		f._flags = __SRD | __SNBF;
-		f._blksize = 0;
-		f._lbfsize = 0;
-	//	f.
-		uint8_t buf[10];
-		int c = fread(buf, 1, 1, &f);
-	*/
+                memset(&f, 0, sizeof(f));
+                f._read = __read;
+        //	f._write = __write;
+                f._file = -1;
+                f._flags = __SRD | __SNBF;
+                f._blksize = 0;
+                f._lbfsize = 0;
+        //	f.
+                uint8_t buf[10];
+                int c = fread(buf, 1, 1, &f);
+        */
     //	printf("test\n");
     while (1) {
 //		osDelay((c>0)?c:0);
 //		if (pf)
 //	  pf = fopen("test.x", "rb");
-//fdev_setup_stream()
+// fdev_setup_stream()
 //	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 1)
 #if 0
 		uint32_t tim;
@@ -304,10 +304,10 @@ void test_display2(void) {
 #endif
 
         /*		tim = _microseconds();
-		display::FillRect(64, 64, 128, 128, CLR565_BLUE);
-		tim = _microseconds() - tim;
-		_log_info(Buddy, "fill_rect %u", tim);
-		osDelay(1000);*/
+                display::FillRect(64, 64, 128, 128, CLR565_BLUE);
+                tim = _microseconds() - tim;
+                _log_info(Buddy, "fill_rect %u", tim);
+                osDelay(1000);*/
 
         //	  	st7789v_draw_pict(10, 10, 83, 63, (uint16_t*)png_buddy_logo);
         //	  	display_ex_draw_png(10, 10, pf);
@@ -323,26 +323,26 @@ void test_display2(void) {
         //	  	display_ex_draw_png(0, 0, pf2);
         //	  	osDelay(2000);
         /*
-		osDelay(1000);*/
+                osDelay(1000);*/
         /*	  	st7789v_display_clear(CLR565_GREEN);
-	  //	display_ex_draw_line(0, 0, 239, 0, CLR565_BLUE);
-		st7789v_display_clear(CLR565_RED);
-		display_ex_fill_rect(20, 20, 64, 64, CLR565_YELLOW);
-		osDelay(1000);
-	  //	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 0);
-		st7789v_display_clear(CLR565_GREEN);
-		osDelay(1000);
-		st7789v_display_clear(CLR565_BLUE);
-		--display_ex_draw_text was replaced--(10, 10, 0, 0, "Testik", &font_12x12, CLR565_YELLOW);
-		osDelay(1000);
-		//osDelay(1000);
-		st7789v_spectrum();
-		osDelay(1000);
-		//osDelay(1000);
-		for (i = 0; i < 200; i++)
-		{
-			disp_set_pixel(i, i, CLR565_RED);
-		}
-		osDelay(1000);*/
+          //	display_ex_draw_line(0, 0, 239, 0, CLR565_BLUE);
+                st7789v_display_clear(CLR565_RED);
+                display_ex_fill_rect(20, 20, 64, 64, CLR565_YELLOW);
+                osDelay(1000);
+          //	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, 0);
+                st7789v_display_clear(CLR565_GREEN);
+                osDelay(1000);
+                st7789v_display_clear(CLR565_BLUE);
+                --display_ex_draw_text was replaced--(10, 10, 0, 0, "Testik", &font_12x12, CLR565_YELLOW);
+                osDelay(1000);
+                //osDelay(1000);
+                st7789v_spectrum();
+                osDelay(1000);
+                //osDelay(1000);
+                for (i = 0; i < 200; i++)
+                {
+                        disp_set_pixel(i, i, CLR565_RED);
+                }
+                osDelay(1000);*/
     }
 }

@@ -1,4 +1,6 @@
 #include "toolchanger.h"
+#include "module/planner.h"
+#include "module/tool_change.h"
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "Marlin/src/module/stepper.h"
@@ -8,11 +10,11 @@
     #include "log.h"
     #include "timing.h"
     #include "fanctl.hpp"
-    #include "eeprom.h"
     #include <option/is_knoblet.h>
     #include <marlin_server.hpp>
     #include <cmath_ext.h>
     #include <odometer.hpp>
+    #include "module/temperature.h" // for fan control
 
     #if ENABLED(CRASH_RECOVERY)
         #include "../../feature/prusa/crash_recovery.h"
@@ -34,10 +36,10 @@ using namespace buddy::puppies;
 namespace arc_move {
 
 // generated arc parameters
-constexpr float arc_seg_len = 1.f;     // mm
-constexpr float arc_max_radius = 75.f; // mm
-constexpr float arc_min_radius = 2.f;  // mm
-constexpr float arc_tg_jerk = 20.f;    // mm/s
+constexpr float arc_seg_len = 1.f;         // mm
+constexpr float arc_max_radius = 75.f;     // mm
+constexpr float arc_min_radius = 2.f;      // mm
+constexpr float arc_tg_jerk = 20.f;        // mm/s
 constexpr bool arc_backtravel_allow = true;
 constexpr float arc_backtravel_max = 1.5f; // 1/ratio
 
@@ -187,14 +189,36 @@ bool PrusaToolChanger::ensure_safe_move() {
     return true;
 }
 
+bool PrusaToolChanger::check_powerpanic() {
+    #if ENABLED(CRASH_RECOVERY)
+    if (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) {
+        return true; // Powerpanic happened, do not move and quit as soon as possible
+    }
+    #endif           /*ENABLED(CRASH_RECOVERY)*/
+    return false;
+}
+
 /**
  * Link from Marlin tool_change() to prusa_toolchanger.tool_change()
  */
 void tool_change(const uint8_t new_tool, tool_return_t return_type) {
-    prusa_toolchanger.tool_change(new_tool, return_type);
+    // Check where we should return to
+    xyz_pos_t return_position = destination;
+    if (return_type == tool_return_t::to_current) {
+        if (all_axes_known()) {
+            return_position = current_position;
+        } else {
+            return_type = tool_return_t::no_return;
+        }
+    } else if (return_type <= tool_return_t::no_return) {
+        return_position = current_position; // If XY return is not requested, use current_position for return of Z
+    }
+
+    // Change tool, ignore return as Marlin doesn't care
+    bool ret [[maybe_unused]] = prusa_toolchanger.tool_change(new_tool, return_type, return_position);
 }
 
-bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_type) {
+bool PrusaToolChanger::tool_change(const uint8_t new_tool, const tool_return_t return_type, xyz_pos_t return_position, bool suppress_z_lift) {
     // WARNING: called from default(marlin) task
 
     // Prevent recursion
@@ -216,21 +240,23 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
     if (new_dwarf && !new_dwarf->is_enabled()) {
         toolchanger_error("Toolchange to tool that is not enabled");
     }
-    precrash_tool_nr = new_tool; // Store new_tool for tool recovery
+
+    // Store input parameters to repeat toolchange if needed (position cleared)
+    xyz_pos_t store_return_position = return_position;
+    toLogical(store_return_position); // Position is stored without tool offset, needs to be converted in place
+    precrash_data = { new_tool, return_type, store_return_position };
 
     Dwarf *old_dwarf = picked_dwarf.load(); ///< Change from physically picked dwarf
     float z_raise = 0;                      ///< Raise Z before toolchange by this amount
 
+    if (check_powerpanic()) {
+        return false; // Need to quit as soon as possible
+    }
+
     planner.synchronize();
 
-    // calculate where we should return to
-    auto return_position = destination;
-    if (return_type == tool_return_t::to_current) {
-        if (all_axes_known()) {
-            return_position = current_position;
-        } else {
-            return_type = tool_return_t::no_return;
-        }
+    if (check_powerpanic()) {
+        return false; // Need to quit as soon as possible
     }
 
     // Set block_tool_check, toolchange_in_progress and remember feedrates
@@ -239,14 +265,16 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
     ResetOnReturn resetter([&](bool state) {
         block_tool_check = state;
     #if ENABLED(CRASH_RECOVERY)
-        crash_s.set_toolchange_in_progress(state);
+        // Mark toolchange in progress first, to be consistent if ISR comes
+        crash_s.set_toolchange_in_progress(state, levelling_active);
     #endif /*ENABLED(CRASH_RECOVERY)*/
         if (state) {
-            remember_feedrate_and_scaling();
+            conf_restorer.sample();
             set_bed_leveling_enabled(false);
         } else {
-            restore_feedrate_and_scaling();
+            conf_restorer.restore_clear();
             set_bed_leveling_enabled(levelling_active);
+            picked_update = false; // Wait for update before checking toolfall
         }
     });
 
@@ -269,16 +297,18 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
         }
 
         // Raise Z before move
-        if (return_type > tool_return_t::no_move) {
-            // Do a small lift to avoid the workpiece for parking
-            z_raise = toolchange_settings.z_raise;
-            if (return_type > tool_return_t::no_return && (return_position.z - current_position.z) > 0) {
-                // also immediately account for clearance in the return move
-                z_raise += (return_position.z - current_position.z);
+        if (!suppress_z_lift) {
+            if (return_type > tool_return_t::no_move) {
+                // Do a small lift to avoid the workpiece for parking
+                z_raise = toolchange_settings.z_raise;
+                if (return_type > tool_return_t::no_return && (return_position.z - current_position.z) > 0) {
+                    // also immediately account for clearance in the return move
+                    z_raise += (return_position.z - current_position.z);
+                }
+                z_shift(z_raise + mbl_z_height);
+            } else {
+                z_shift(mbl_z_height); // Even though no_move, raise to get above MBL
             }
-            z_shift(z_raise + mbl_z_height);
-        } else {
-            z_shift(mbl_z_height); // Even though no_move, raise to get above MBL
         }
 
         // Home X and Y if needed
@@ -312,7 +342,7 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
     const xyz_pos_t tool_offset_diff = hotend_currently_applied_offset - new_hotend_offset; ///< Difference between offset of new and old tools
     hotend_currently_applied_offset = new_hotend_offset;
 
-    // Disable print fan on old dwarf, enable on new dwarf
+    // Disable print fan on old dwarf, fan on new dwarf will be enabled by marlin
     // todo: remove this when multiple fans are implemented properly
     if (old_dwarf != nullptr) {
         Fans::print(old_dwarf->get_dwarf_nr() - 1).setPWM(0);
@@ -327,18 +357,23 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
                 return false;
             }
 
-            // Drop Z during pickup
-            float diff_z = tool_offset_diff.z;
-            if (return_type == tool_return_t::no_move) {
-                diff_z -= mbl_z_height; // Revert MBL Z offset together with tool Z offset
-            } else if (return_type == tool_return_t::no_return) {
-                diff_z -= (z_raise + mbl_z_height); // Revert MBL Z offset and Z-hop together with tool Z offset
-            }
-
             // Pick new tool
-            if (!pickup(*new_dwarf, diff_z) || !check_skipped_step()) {
+            float z_diff = 0;
+            if (return_type > tool_return_t::no_return) {
+                z_diff = tool_offset_diff.z; // If there is a move after toolchange, compensate tool Z now
+            }                                // else: compensate tool offset at the end, together with MBL and Z hop
+            if (!pickup(*new_dwarf, z_diff) || !check_skipped_step()) {
                 return false;
             }
+
+            if (return_type == tool_return_t::purge_and_to_destination) {
+                if (!purge_tool(*new_dwarf))
+                    return false;
+            }
+        }
+
+        if (check_powerpanic()) {
+            return false; // Need to quit as soon as possible
         }
 
         // Move back
@@ -358,10 +393,26 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_
                 destination = return_position;
                 prepare_move_to_destination();
             }
+        } else {
+            // No XY move, but return Z to original position
+            set_bed_leveling_enabled(levelling_active); // Reenable MBL for this move
+            if (current_position.z != return_position.z + tool_offset_diff.z) {
+                destination = current_position;
+                destination.z = return_position.z + tool_offset_diff.z;
+                prepare_move_to_destination();
+            }
         }
+
+        if (check_powerpanic()) {
+            return false; // Need to quit as soon as possible
+        }
+
+        // Wait for moves to finish
+        /// @note This synchronization makes it a bit slower, but prevents errors of powerpanic and crash
+        ///   happening after this but during last moves of toochange.
+        planner.synchronize();
     }
 
-    picked_update = false; // Wait for update before checking toolfall
     return true;
 }
 
@@ -385,7 +436,7 @@ bool PrusaToolChanger::check_skipped_step() {
 
 void PrusaToolChanger::crash_deselect_dwarf() {
     if (active_extruder != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
-        prusa_toolchanger.request_active_switch(nullptr); // Deselect dwarf
+        prusa_toolchanger.request_active_switch(nullptr);          // Deselect dwarf
         const uint8_t old_tool_index = active_extruder;
         active_extruder = PrusaToolChanger::MARLIN_NO_TOOL_PICKED; // Mark no tool for Marlin
         update_software_endstops(X_AXIS, old_tool_index, PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
@@ -402,13 +453,14 @@ void PrusaToolChanger::toolcrash() {
     }
 
     if (((crash_s.get_state() == Crash_s::RECOVERY) && crash_s.is_toolchange_event()) // Already recovering, cannot disrupt crash_s, it will replay Tx gcode
+        || (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT)                       // Power panic, end quickly and don't do anything
         || (crash_s.get_state() == Crash_s::TRIGGERED_ISR)                            // ISR crash happened, it will replay Tx gcode
         || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL)                       // Toolcrash is already in progress
         || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
         || (crash_s.get_state() == Crash_s::REPEAT_WAIT)) {
         return; // Ignore
     }
-    #endif /*ENABLED(CRASH_RECOVERY)*/
+    #endif      /*ENABLED(CRASH_RECOVERY)*/
 
     // Can happen if toolchange is a part of replay, would need a bigger change in crash_recovery.cpp
     toolchanger_error("Tool crashed");
@@ -421,7 +473,8 @@ void PrusaToolChanger::toolfall() {
         return;
     }
 
-    if (crash_s.get_state() == Crash_s::IDLE) { // Print ended
+    if ((crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) // Power panic, end quickly and don't do anything
+        || (crash_s.get_state() == Crash_s::IDLE)) {         // Print ended
         return;
     }
     #endif /*ENABLED(CRASH_RECOVERY)*/
@@ -431,10 +484,60 @@ void PrusaToolChanger::toolfall() {
     toolchanger_error("Tool fell off");
 }
 
+bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
+    const size_t tool_nr = dwarf.get_dwarf_nr() - 1;
+
+    if (thermalManager.degHotend(tool_nr) < Temperature::extrude_min_temp) {
+        // hotend is cold, skip purge because it can't do anything
+        return true;
+    }
+
+    // fan to 100% for better sopel
+    // use fanctl interface directly, without modifing marlin's value. This will prevent restoring wrong fan value on power panic or failed toolchange.
+    Fans::print(tool_nr).setPWM(255);
+
+    // go to purge location
+    const PrusaToolInfo &info = get_tool_info(dwarf, /*check_calibrated=*/true);
+    move(info.dock_x - 9.9, PURGE_Y_POSITION, feedrate_mm_s);
+
+    planner.synchronize();
+
+    // wait a while for fan to spool up
+    (void)wait([]() { return false; }, 2000);
+
+    // extrude some filament, park&pick it again, to wipe it
+    auto orig_e_pos = current_position.e;
+    // extrude
+    current_position.e += ADVANCED_PAUSE_PURGE_LENGTH / planner.e_factor[active_extruder];
+    line_to_current_position(ADVANCED_PAUSE_PURGE_FEEDRATE);
+    // retract
+    current_position.e -= PAUSE_PARK_RETRACT_LENGTH;
+    line_to_current_position(PAUSE_PARK_RETRACT_FEEDRATE);
+
+    planner.synchronize();
+
+    // reset position back, like purge never happened
+    current_position.e = orig_e_pos;
+    sync_plan_position_e();
+
+    // wait a while to let the sopel cool down
+    (void)wait([]() { return false; }, 5000);
+
+    // restore fan speed
+    Fans::print(tool_nr).setPWM(thermalManager.fan_speed[tool_nr]);
+
+    if (!park(dwarf))
+        return false;
+    if (!pickup(dwarf, 0))
+        return false;
+
+    return true;
+}
+
 void PrusaToolChanger::loop(bool printing) {
     // WARNING: called from default(marlin) task
 
-    if (block_tool_check.load()         // Can be blocked if changing tools
+    if (block_tool_check.load()         // This function can be blocked
         || !is_toolchanger_enabled()) { // Ignore on singletool
         return;
     }
@@ -453,13 +556,13 @@ void PrusaToolChanger::loop(bool printing) {
             force_toolchange_gcode = false;
 
             // Update tool through marlin
-            marlin_server::enqueue_gcode_printf("T%d S1", detect_tool_nr());
+            marlin_server::enqueue_gcode_printf("T%d S1 M0", detect_tool_nr());
         }
 
         // Check that all tools are where they should be
         if (printing // Only while printing
     #if ENABLED(CRASH_RECOVERY)
-            // Do not check during crash recovery
+                     // Do not check during crash recovery
             && (crash_s.get_state() == Crash_s::PRINTING)
     #endif /*ENABLED(CRASH_RECOVERY)*/
         ) {
@@ -499,19 +602,23 @@ void PrusaToolChanger::move(const float x, const float y, const feedRate_t feedr
 
 bool PrusaToolChanger::park(Dwarf &dwarf) {
     auto dwarf_parked = [&dwarf]() {
-        dwarf.refresh_park_pick_status();
+        if (!dwarf.refresh_park_pick_status()) {
+            return false;
+        }
         return dwarf.is_parked();
     };
 
     auto dwarf_not_picked = [&dwarf]() {
-        dwarf.refresh_park_pick_status();
+        if (!dwarf.refresh_park_pick_status()) {
+            return false;
+        }
         return !dwarf.is_picked();
     };
 
     const PrusaToolInfo &info = get_tool_info(dwarf, /*check_calibrated=*/true);
 
     // safe target dock position
-    const xy_pos_t target_pos = { info.dock_x - 10.0f, SAFE_Y_WITH_TOOL };
+    const xy_pos_t target_pos = { info.dock_x + PARK_X_OFFSET_1, SAFE_Y_WITH_TOOL };
 
     // reduce maximum parking speed to improve reliability during constant toolchanging
     float target_fr = fminf(PARKING_FINAL_MAX_SPEED, feedrate_mm_s);
@@ -539,12 +646,11 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     stepperY.rms_current(PARKING_CURRENT_MA);
     stepperY.stall_sensitivity(PARKING_STALL_SENSITIVITY);
 
-    move(info.dock_x - 9.0, info.dock_y, SLOW_MOVE_MM_S);
-    auto saved_acceleration = planner.settings.travel_acceleration;
+    move(info.dock_x + PARK_X_OFFSET_2, info.dock_y, SLOW_MOVE_MM_S);
     planner.settings.travel_acceleration = SLOW_ACCELERATION_MM_S2; // low acceleration
-    move(info.dock_x + 0.5, info.dock_y, SLOW_MOVE_MM_S);
+    move(info.dock_x + PARK_X_OFFSET_3, info.dock_y, SLOW_MOVE_MM_S);
     planner.synchronize();
-    planner.settings.travel_acceleration = saved_acceleration; // back to high acceleration
+    conf_restorer.restore_acceleration(); // back to high acceleration
 
     // set motor current and stall sensitivity to old value
     stepperX.rms_current(x_current_ma);
@@ -559,8 +665,8 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     if (!wait(dwarf_parked, WAIT_TIME_TOOL_PARKED_PICKED)) {
         log_warning(PrusaToolChanger, "Dwarf %u not parked, trying to wiggle it in", dwarf.get_dwarf_nr());
 
-        move(info.dock_x - 0.5, info.dock_y, SLOW_MOVE_MM_S); // wiggle left
-        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);       // wiggle back
+        move(info.dock_x - DOCK_WIGGLE_OFFSET, info.dock_y, SLOW_MOVE_MM_S); // wiggle left
+        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                      // wiggle back
         planner.synchronize();
 
         if (!wait(dwarf_parked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -574,9 +680,16 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
 
     // Wait until dwarf is registering as not picked
     if (!wait(dwarf_not_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
-        log_error(PrusaToolChanger, "Dwarf %u still picked after parking, triggering toolchanger recovery", dwarf.get_dwarf_nr());
-        toolcrash();
-        return false;
+        log_warning(PrusaToolChanger, "Dwarf %u still picked after parking, waiting for pull to finish", dwarf.get_dwarf_nr());
+
+        // Can happen if parking in really low speed and acceleration
+        planner.synchronize(); // Just wait for the pull move to finish and check again
+
+        if (!wait(dwarf_not_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
+            log_error(PrusaToolChanger, "Dwarf %u still picked after parking, triggering toolchanger recovery", dwarf.get_dwarf_nr());
+            toolcrash();
+            return false;
+        }
     }
     log_info(PrusaToolChanger, "Dwarf %u parked successfully", dwarf.get_dwarf_nr());
     return true;
@@ -619,7 +732,7 @@ bool PrusaToolChanger::align_locks() {
         CBI(axis_known_position, X_AXIS); // Needs homing
         return false;                     // Failed to bump right edge
     }
-    CBI(axis_known_position, X_AXIS); // Needs homing after
+    CBI(axis_known_position, X_AXIS);     // Needs homing after
     current_position.x = X_MAX_POS;
     sync_plan_position();
 
@@ -632,27 +745,23 @@ bool PrusaToolChanger::align_locks() {
 
 bool PrusaToolChanger::pickup(Dwarf &dwarf, const float diff_z) {
     auto dwarf_picked = [&dwarf]() {
-        dwarf.refresh_park_pick_status();
+        if (!dwarf.refresh_park_pick_status()) {
+            return false;
+        }
         return dwarf.is_picked();
     };
 
     auto dwarf_not_parked = [&dwarf]() {
-        dwarf.refresh_park_pick_status();
+        if (!dwarf.refresh_park_pick_status()) {
+            return false;
+        }
         return !dwarf.is_parked();
     };
 
     const PrusaToolInfo &info = get_tool_info(dwarf, /*check_calibrated=*/true);
 
-    // Save previous acceleration and reset on return
-    auto saved_acceleration = planner.settings.travel_acceleration;
-    ResetOnReturn acceleration_resetter([&](bool state) {
-        if (state == false) {
-            planner.settings.travel_acceleration = saved_acceleration;
-        }
-    });
-
     move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s);          // go in front of the tool
-    move(info.dock_x, info.dock_y - 5.0, feedrate_mm_s);            // pre-insert fast the tool
+    move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s);  // pre-insert fast the tool
     planner.settings.travel_acceleration = SLOW_ACCELERATION_MM_S2; // low acceleration
     move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                 // insert slowly the last mm to allow part fitting + soft touch between TCM and tool thanks to the gentle deceleration
     planner.synchronize();
@@ -661,8 +770,8 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf, const float diff_z) {
     if (!wait(dwarf_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
         log_warning(PrusaToolChanger, "Dwarf %u not picked, trying to wiggle it in", dwarf.get_dwarf_nr());
 
-        move(info.dock_x, info.dock_y + 0.5, SLOW_MOVE_MM_S); // wiggle pull
-        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);       // wiggle back
+        move(info.dock_x, info.dock_y + DOCK_WIGGLE_OFFSET, SLOW_MOVE_MM_S); // wiggle pull
+        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                      // wiggle back
         planner.synchronize();
 
         if (!wait(dwarf_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -682,10 +791,10 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf, const float diff_z) {
     stepperY.rms_current(PARKING_CURRENT_MA);
     stepperY.stall_sensitivity(PARKING_STALL_SENSITIVITY);
 
-    move(info.dock_x - 11.8, info.dock_y, SLOW_MOVE_MM_S);     // accelerate gently to low speed to gently place the tool against the TCM
-    planner.settings.travel_acceleration = saved_acceleration; // back to high acceleration
-    move(info.dock_x - 12.8, info.dock_y, SLOW_MOVE_MM_S);     // this line is just to allow a gentle acceleration and a quick deceleration
-    move(info.dock_x - 9.9, info.dock_y, SLOW_MOVE_MM_S);
+    move(info.dock_x + PICK_X_OFFSET_1, info.dock_y, SLOW_MOVE_MM_S); // accelerate gently to low speed to gently place the tool against the TCM
+    conf_restorer.restore_acceleration();                             // back to high acceleration
+    move(info.dock_x + PICK_X_OFFSET_2, info.dock_y, SLOW_MOVE_MM_S); // this line is just to allow a gentle acceleration and a quick deceleration
+    move(info.dock_x + PICK_X_OFFSET_3, info.dock_y, SLOW_MOVE_MM_S);
     planner.synchronize();
 
     // set motor current and stall sensitivity to old value
@@ -704,7 +813,7 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf, const float diff_z) {
     // compensate for the Z difference before unparking
     z_shift(diff_z);
 
-    move(info.dock_x - 9.9, SAFE_Y_WITH_TOOL, feedrate_mm_s); // tool extracted
+    move(info.dock_x + PICK_X_OFFSET_3, SAFE_Y_WITH_TOOL, feedrate_mm_s); // tool extracted
 
     log_info(PrusaToolChanger, "Dwarf %u picked successfully", dwarf.get_dwarf_nr());
     Odometer_s::instance().add_toolpick(dwarf.get_dwarf_nr() - 1); // Count picks

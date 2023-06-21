@@ -23,7 +23,7 @@ void tmc_read_reg(TMC &st, uint8_t reg) {
     SERIAL_ECHO(buff);
 }
 
-///command, write acesse, read acesse
+/// command, write acesse, read acesse
 tmc_reg_t *text_cmd_to_register(const char *cmd_in, bool write, bool read) {
     tmc_reg_t *tmc_reg = tmc_reg_map;
     while (tmc_reg->cmd_name != NULL) {

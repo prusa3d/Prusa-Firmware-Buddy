@@ -2,17 +2,14 @@
 #include "TMC_MACROS.h"
 #include "SPI.h"
 #include "log.h"
-#include <option/has_puppies.h>
-
-#if HAS_PUPPIES()
 #include "module/prusa/toolchanger.h"
-#endif
+
 
 int8_t TMC2130Stepper::chain_length = 0;
 uint32_t TMC2130Stepper::spi_speed = 16000000/8;
 
 
-#if HAS_PUPPIES()
+#if ENABLED(PRUSA_TOOLCHANGER)
 TMC2130Stepper::TMC2130Stepper(bool remote, float RS) :
   TMCStepper(RS),
   _pinCS(0),
@@ -129,7 +126,7 @@ uint32_t TMC2130Stepper::read(uint8_t addressByte) {
 
     switchCSpin(HIGH);
   }
-  #if HAS_PUPPIES()
+  #if ENABLED(PRUSA_TOOLCHANGER)
   else if (remote) {
      out = prusa_toolchanger.getActiveToolOrFirst().tmc_read(addressByte);
   }
@@ -202,7 +199,7 @@ void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {
     }
     switchCSpin(HIGH);
   }
-  #if HAS_PUPPIES()
+  #if ENABLED(PRUSA_TOOLCHANGER)
   else if (remote) {
     prusa_toolchanger.getActiveToolOrFirst().tmc_write(addressByte, config);
   }
@@ -231,7 +228,7 @@ void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {
 
 void TMC2130Stepper::begin() {
   //set pins
-  #if HAS_PUPPIES()
+  #if ENABLED(PRUSA_TOOLCHANGER)
   if (!remote)
   #endif
   {

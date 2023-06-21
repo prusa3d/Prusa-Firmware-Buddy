@@ -8,9 +8,9 @@
  * We implement the pressure advance using FIR filter that is less computationally demanding
  * and can be fully run on a single 32-bit MCU with nearly identical results as the implementation in Klipper.
  */
-#include "pressure_advance.h"
+#include "pressure_advance.hpp"
 #include <cmath>
-#include "../precise_stepping/precise_stepping.h"
+#include "../precise_stepping/precise_stepping.hpp"
 #include "bsod.h"
 #include "core/macros.h"
 #include "module/planner.h"
@@ -92,25 +92,36 @@ pressure_advance_window_filter_t create_simple_window_filter(const uint16_t filt
     return filter;
 }
 
-pressure_advance_params_t create_pressure_advance_params(const double pressure_advance_value, const double pressure_advance_smooth_time,
-    const double sampling_rate, const uint16_t filter_length) {
+pressure_advance_params_t create_pressure_advance_params(const pressure_advance::Config &config) {
     pressure_advance_params_t params;
-    params.pressure_advance_value = pressure_advance_value;
-    params.half_smooth_time = pressure_advance_smooth_time / 2.;
+    params.pressure_advance_value = config.pressure_advance;
+    params.half_smooth_time = config.smooth_time / 2.;
+
+    // TODO: window type/parameters are currently hardcoded
+    constexpr double sampling_rate = 0.001;
+    constexpr double filter_length = 41;
+
     params.sampling_rate = sampling_rate;
     params.filter = create_normalized_bartlett_window_filter(filter_length);
-    //    params.filter = create_simple_window_filter(filter_length);
+    // params.filter = create_simple_window_filter(filter_length);
 
     return params;
 }
 
-// 1 - For positive direction
-// 0 - For negative direction
-static int get_step_direction(move_t &move) {
-    return move.start_v * move.axes_r.x >= 0.;
+void pressure_advance_step_generator_init(const move_t &move, pressure_advance_step_generator_t &step_generator, step_generator_state_t &step_generator_state) {
+    const uint8_t axis = step_generator.axis;
+    pressure_advance_state_t *const pa_state = step_generator.pa_state;
+    step_generator_state.step_generator[axis] = &step_generator;
+    step_generator_state.next_step_func[axis] = (generator_next_step_f)pressure_advance_step_generator_next_step_event;
+
+    pressure_advance_state_init(*pa_state, PressureAdvance::pressure_advance_params, move);
+
+    step_generator_state.flags |= (!pa_state->step_dir) * STEP_EVENT_FLAG_E_DIR;
+    step_generator_state.flags |= ((pa_state->current_interpolated_position != pa_state->previous_interpolated_position) * MOVE_FLAG_E_ACTIVE);
+    move.reference_cnt += 1;
 }
 
-void pressure_advance_state_init(pressure_advance_state_t &state, const pressure_advance_params_t &params, move_t &move) {
+void pressure_advance_state_init(pressure_advance_state_t &state, const pressure_advance_params_t &params, const move_t &move) {
     state.buffer_length = params.filter.length;
     state.buffer.start_idx = 0;
     state.buffer.same_samples_cnt = 0;
@@ -120,7 +131,7 @@ void pressure_advance_state_init(pressure_advance_state_t &state, const pressure
     state.current_start_position = 0.;
     state.previous_interpolated_position = 0.;
     state.current_interpolated_position = 0.;
-    state.step_dir = get_step_direction(move);
+    state.step_dir = get_move_step_dir(move, E_AXIS);
     state.offset = (double)((int)((state.buffer_length + 1) / 2)) * params.sampling_rate;
     state.start_print_time = move.print_time;
     state.current_pa_position = 0.;
@@ -257,20 +268,21 @@ double calc_time_for_distance_pressure_advance(pressure_advance_state_t &state, 
     return INFINITY;
 }
 
-step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advance_step_generator_t *step_generator, step_generator_state_t &step_generator_state, const double flush_time) {
+step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advance_step_generator_t &step_generator, step_generator_state_t &step_generator_state, const double flush_time) {
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0 };
-    move_t *next_move = nullptr;
+    const move_t *next_move = nullptr;
     do {
-        const int orig_step_dir = step_generator->pa_state->step_dir;
-        const float half_step_dist = Planner::mm_per_step[step_generator->axis] / 2.f;
-        const double next_distance = step_generator_state.current_distance[step_generator->axis] + (step_generator->pa_state->step_dir ? half_step_dist : -half_step_dist);
-        const double step_time = calc_time_for_distance_pressure_advance(*step_generator->pa_state, PressureAdvance::pressure_advance_params, next_distance, step_generator_state);
+        const int orig_step_dir = step_generator.pa_state->step_dir;
+        const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
+        const float current_distance = float(step_generator_state.current_distance_e);
+        const float next_distance = current_distance + (orig_step_dir ? half_step_dist : -half_step_dist);
+        const double step_time = calc_time_for_distance_pressure_advance(*step_generator.pa_state, PressureAdvance::pressure_advance_params, next_distance, step_generator_state);
 
-        if (orig_step_dir != step_generator->pa_state->step_dir) {
+        if (orig_step_dir != step_generator.pa_state->step_dir) {
             // Update step direction flag, which is cached until this move segment is processed.
-            const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator->axis);
+            const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
             step_generator_state.flags &= ~current_axis_dir_flag;
-            step_generator_state.flags |= (!step_generator->pa_state->step_dir) * current_axis_dir_flag;
+            step_generator_state.flags |= (!step_generator.pa_state->step_dir) * current_axis_dir_flag;
         }
 
         // When step_time is NaN, it means that next_distance will never be reached.
@@ -279,29 +291,29 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
         // Be aware that testing, if flush_time was exceeded, has to be after testing for the possibility of updating the pressure advance state.
         const double elapsed_time = step_time;
         if (isnan(step_time) || step_time >= MAX_PRINT_TIME) {
-            if (next_move = PreciseStepping::move_segment_queue_next_move(*step_generator->pa_state->current_move); next_move != nullptr) {
+            if (next_move = PreciseStepping::move_segment_queue_next_move(*step_generator.pa_state->current_move); next_move != nullptr) {
                 // Fixme Lukas.H: There is the issue, that end empty move segment could be inserted between two non-empty move segments.
                 //                In this case we skip updating current_move_time and current_start_position, because it cause undefined state.
-                if (!is_ending_empty_move(*step_generator->pa_state->current_move)) {
-                    step_generator->pa_state->current_move_time -= step_generator->pa_state->current_move->move_t;
+                if (!is_ending_empty_move(*step_generator.pa_state->current_move)) {
+                    step_generator.pa_state->current_move_time -= step_generator.pa_state->current_move->move_t;
 
-                    if (is_pressure_advance_active(*step_generator->pa_state))
-                        step_generator->pa_state->current_start_position = next_move->start_pos.e + (next_move->start_v * next_move->axes_r.e * PressureAdvance::pressure_advance_params.pressure_advance_value);
+                    if (is_pressure_advance_active(*step_generator.pa_state))
+                        step_generator.pa_state->current_start_position = next_move->start_pos.e + (next_move->start_v * next_move->axes_r.e * PressureAdvance::pressure_advance_params.pressure_advance_value);
                     else
-                        step_generator->pa_state->current_start_position = next_move->start_pos.e;
+                        step_generator.pa_state->current_start_position = next_move->start_pos.e;
                 }
 
-                --step_generator->pa_state->current_move->reference_cnt;
-                step_generator->pa_state->current_move = next_move;
-                ++step_generator->pa_state->current_move->reference_cnt;
+                --step_generator.pa_state->current_move->reference_cnt;
+                step_generator.pa_state->current_move = next_move;
+                ++step_generator.pa_state->current_move->reference_cnt;
 
                 pressure_advance_precalculate_parameters(PressureAdvance::pressure_advance_state, PressureAdvance::pressure_advance_params);
 
                 PreciseStepping::move_segment_processed_handler();
             } else
-                step_generator->reached_end_of_move_queue = true;
+                step_generator.reached_end_of_move_queue = true;
         } else if (elapsed_time > flush_time) {
-            step_generator->reached_end_of_move_queue = true;
+            step_generator.reached_end_of_move_queue = true;
             break;
         } else {
             // If the condition above is met, then definitely this axis is active.
@@ -309,9 +321,9 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
             step_generator_state.flags |= STEP_EVENT_FLAG_E_ACTIVE;
 
             next_step_event.time = elapsed_time;
-            next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator->axis;
+            next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
             next_step_event.flags |= step_generator_state.flags;
-            step_generator_state.current_distance[step_generator->axis] = PressureAdvance::pressure_advance_state.current_pa_position + (step_generator->pa_state->step_dir ? half_step_dist : -half_step_dist);
+            step_generator_state.current_distance_e = PressureAdvance::pressure_advance_state.current_pa_position + (step_generator.pa_state->step_dir ? half_step_dist : -half_step_dist);
             break;
         }
     } while (next_move != nullptr);

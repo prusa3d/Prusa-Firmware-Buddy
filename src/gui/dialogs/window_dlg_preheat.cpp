@@ -18,7 +18,7 @@ constexpr static const char purge_preheat[] = N_("Preheating for purge");
 constexpr static const char index_error[] = "Index error"; // intentionally not to be translated
 
 /*****************************************************************************/
-//NsPreheat::I_MI_Filament
+// NsPreheat::I_MI_Filament
 NsPreheat::I_MI_Filament::I_MI_Filament(string_view_utf8 name, unsigned t_noz, unsigned t_bed)
     : WiInfo<info_len>(name, nullptr, is_enabled_t::yes, is_hidden_t::no, ExtensionLikeLabel::yes) {
     char buff[info_len];
@@ -32,7 +32,7 @@ void NsPreheat::I_MI_Filament::click_at(filament::Type filament) {
 }
 
 /*****************************************************************************/
-//NsPreheat::MI_RETURN
+// NsPreheat::MI_RETURN
 NsPreheat::MI_RETURN::MI_RETURN()
     : WI_LABEL_t(_(label), &png::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -43,7 +43,7 @@ void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
 }
 
 /*****************************************************************************/
-//NsPreheat::MI_COOLDOWN
+// NsPreheat::MI_COOLDOWN
 NsPreheat::MI_COOLDOWN::MI_COOLDOWN()
     : WI_LABEL_t(_(BtnResponse::GetText(Response::Cooldown)), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
@@ -54,11 +54,11 @@ void NsPreheat::MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
 }
 
 /*****************************************************************************/
-//DialogMenuPreheat
+// DialogMenuPreheat
 DialogMenuPreheat::DialogMenuPreheat(fsm::BaseData data)
     : AddSuperWindow<IDialogMarlin>(get_title(data).isNULLSTR() ? GuiDefaults::RectScreenNoHeader : GuiDefaults::RectScreen)
     , menu(this, GuiDefaults::RectScreenNoHeader, newContainer(get_type(data)))
-    , header(this) { // header registration should fail in case name.isNULLSTR(), it is OK
+    , header(this) {                                           // header registration should fail in case name.isNULLSTR(), it is OK
     string_view_utf8 title = get_title(data);
     title.isNULLSTR() ? header.Hide() : header.SetText(title); // hide it anyway, to be safe
 
@@ -100,9 +100,9 @@ string_view_utf8 DialogMenuPreheat::get_title(fsm::BaseData data) {
     case PreheatMode::Purge:
         return _(purge_preheat);
     case PreheatMode::Change_phase1:
-        return _(unload_preheat); //use unload caption, not a bug
+        return _(unload_preheat); // use unload caption, not a bug
     case PreheatMode::Change_phase2:
-        return _(load_preheat); //use load caption, not a bug
+        return _(load_preheat);   // use load caption, not a bug
     default:
         break;
     }

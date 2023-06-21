@@ -1,7 +1,9 @@
 // marlin_client.cpp
 
 #include "marlin_client.hpp"
+#include "marlin_events.h"
 #include "marlin_server.hpp"
+#include <cassert>
 #include <stdio.h>
 #include <string.h>
 #include <cstdint>
@@ -10,8 +12,10 @@
 #include "ffconf.h"
 #include "log.h"
 #include "../lib/Marlin/Marlin/src/core/macros.h"
+#include <module/motion.h>
 #include "bsod_gui.hpp"
 #include "utility_extensions.hpp"
+#include "variant8.h"
 
 #if HAS_SELFTEST()
     #include <selftest_types.hpp>
@@ -21,7 +25,7 @@ using namespace marlin_server;
 
 LOG_COMPONENT_DEF(MarlinClient, LOG_SEVERITY_INFO);
 
-//maximum string length for DBG_VAR
+// maximum string length for DBG_VAR
 enum {
     DBG_VAR_STR_MAX_LEN = 128
 };
@@ -29,7 +33,7 @@ static constexpr uint8_t max_retries = 5;
 
 // client
 typedef struct _marlin_client_t {
-    uint64_t events; // event mask
+    EventMask events; // event mask
     uint64_t errors;
 
     uint32_t ack;            // cached ack value from last Acknowledge event
@@ -39,11 +43,11 @@ typedef struct _marlin_client_t {
     warning_cb_t warning_cb; // to register callback for important message
     startup_cb_t startup_cb; // to register callback after marlin complete initialization
 
-    uint16_t flags;      // client flags (MARLIN_CFLG_xxx)
-    uint16_t last_count; // number of messages received in last client loop
+    uint16_t flags;          // client flags (MARLIN_CFLG_xxx)
+    uint16_t last_count;     // number of messages received in last client loop
 
-    uint8_t id;        // client id (0..MARLIN_MAX_CLIENTS-1)
-    uint8_t reheating; // reheating in progress
+    uint8_t id;              // client id (0..MARLIN_MAX_CLIENTS-1)
+    uint8_t reheating;       // reheating in progress
 } marlin_client_t;
 
 //-----------------------------------------------------------------------------
@@ -52,8 +56,8 @@ typedef struct _marlin_client_t {
 osThreadId marlin_client_task[MARLIN_MAX_CLIENTS];    // task handles
 osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
 
-marlin_client_t marlin_client[MARLIN_MAX_CLIENTS]; // client structure
-uint8_t marlin_clients = 0;                        // number of connected clients
+marlin_client_t marlin_client[MARLIN_MAX_CLIENTS];    // client structure
+uint8_t marlin_clients = 0;                           // number of connected clients
 
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
@@ -86,7 +90,7 @@ void marlin_client_init() {
         marlin_clients++;
         client->flags |= (MARLIN_CFLG_STARTED | MARLIN_CFLG_PROCESS);
         client->errors = 0;
-        client->command = MARLIN_CMD_NONE;
+        client->command = ftrstd::to_underlying(Cmd::NONE);
         client->reheating = 0;
         client->fsm_cb = NULL;
         client->message_cb = NULL;
@@ -115,13 +119,13 @@ void marlin_client_loop() {
     if ((queue = marlin_client_queue[client_id]) != 0)
         while ((ose = osMessageGet(queue, 0)).status == osEventMessage) {
             if (client->flags & MARLIN_CFLG_LOWHIGH) {
-                msg |= ((variant8_t)ose.value.v << 32); //store high dword
-                _process_client_message(client, msg);   //call handler
+                msg |= ((variant8_t)ose.value.v << 32); // store high dword
+                _process_client_message(client, msg);   // call handler
                 variant8_done(&pmsg);
                 count++;
             } else
-                msg = ose.value.v;                //store low dword
-            client->flags ^= MARLIN_CFLG_LOWHIGH; //flip flag
+                msg = ose.value.v;                // store low dword
+            client->flags ^= MARLIN_CFLG_LOWHIGH; // flip flag
         }
     client->last_count = count;
 }
@@ -135,14 +139,14 @@ int marlin_client_id() {
 
 void marlin_client_wait_for_start_processing() {
     // wait for startup
-    while (!marlin_event_clr(MARLIN_EVT_StartProcessing)) {
+    while (!marlin_event_clr(Event::StartProcessing)) {
         marlin_client_loop();
         osDelay(100);
     }
 }
 
-//register callback to fsm creation
-//return success
+// register callback to fsm creation
+// return success
 int marlin_client_set_fsm_cb(fsm_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -152,8 +156,8 @@ int marlin_client_set_fsm_cb(fsm_cb_t cb) {
     return 0;
 }
 
-//register callback to message
-//return success
+// register callback to message
+// return success
 int marlin_client_set_message_cb(message_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -163,8 +167,8 @@ int marlin_client_set_message_cb(message_cb_t cb) {
     return 0;
 }
 
-//register callback to warning_cb_t (fan failure, heater timeout ...)
-//return success
+// register callback to warning_cb_t (fan failure, heater timeout ...)
+// return success
 int marlin_client_set_warning_cb(warning_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -174,8 +178,8 @@ int marlin_client_set_warning_cb(warning_cb_t cb) {
     return 0;
 }
 
-//register callback to startup_cb_t (complete initialization)
-//return success
+// register callback to startup_cb_t (complete initialization)
+// return success
 int marlin_client_set_startup_cb(startup_cb_t cb) {
     marlin_client_t *client = _client_ptr();
     if (client && cb) {
@@ -201,21 +205,21 @@ void _send_request_to_server_and_wait_with_callback(const char *request, void (*
     do {
         _send_request_to_server(client->id, request);
         _wait_ack_from_server_with_callback(client->id, cb);
-        if ((client->events & MARLIN_EVT_MSK(MARLIN_EVT_NotAcknowledge)) != 0) {
+        if ((client->events & make_mask(Event::NotAcknowledge)) != 0) {
             // clear nack flag
-            client->events &= ~MARLIN_EVT_MSK(MARLIN_EVT_NotAcknowledge);
+            client->events &= ~make_mask(Event::NotAcknowledge);
             log_warning(MarlinClient, "Request %s to marlin server not acknowledged, retries left %u ", request, retries_left);
             // give marlin server time to process other requests
             osDelay(10);
         }
         retries_left--;
-    } while ((client->events & MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge)) == 0 && retries_left > 0);
+    } while ((client->events & make_mask(Event::Acknowledge)) == 0 && retries_left > 0);
 
     if (retries_left <= 0) {
         fatal_error(ErrCode::ERR_SYSTEM_MARLIN_CLIENT_SERVER_REQUEST_TIMEOUT);
     }
     // clear the flag of ack events
-    client->events &= ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
+    client->events &= ~make_mask(Event::Acknowledge);
 }
 
 void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)()) {
@@ -234,7 +238,7 @@ uint32_t marlin_command() {
     marlin_client_t *client = _client_ptr();
     if (client)
         return client->command;
-    return MARLIN_CMD_NONE;
+    return ftrstd::to_underlying(Cmd::NONE);
 }
 
 void _send_request_to_server_and_wait(const char *request) {
@@ -270,19 +274,19 @@ void marlin_gcode_push_front(const char *gcode) {
     _send_request_to_server_and_wait(request);
 }
 
-int marlin_event(MARLIN_EVT_t evt_id) {
+int marlin_event(Event evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
-    uint64_t msk = (uint64_t)1 << evt_id;
+    uint64_t msk = (uint64_t)1 << ftrstd::to_underlying(evt_id);
     if (client)
         ret = (client->events & msk) ? 1 : 0;
     return ret;
 }
 
-int marlin_event_clr(MARLIN_EVT_t evt_id) {
+int marlin_event_clr(Event evt_id) {
     int ret = 0;
     marlin_client_t *client = _client_ptr();
-    uint64_t msk = (uint64_t)1 << evt_id;
+    uint64_t msk = (uint64_t)1 << ftrstd::to_underlying(evt_id);
     if (client) {
         ret = (client->events & msk) ? 1 : 0;
         client->events &= ~msk;
@@ -342,16 +346,16 @@ void marlin_do_babysteps_Z(float offs) {
     _send_request_to_server_and_wait(request);
 }
 
-void marlin_move_axis(float pos, float feedrate, uint8_t axis) {
+void marlin_move_axis(float logical_pos, float feedrate, uint8_t axis) {
     char request[MARLIN_MAX_REQUEST];
     // check axis
-    if (axis < 4) {
+    if (axis < E_AXIS) {
         snprintf(
             request,
             MARLIN_MAX_REQUEST,
             "!%c%.4f %.4f %u",
             ftrstd::to_underlying(Msg::Move),
-            static_cast<double>(pos),
+            static_cast<double>(LOGICAL_TO_NATIVE(logical_pos, axis)),
             static_cast<double>(feedrate),
             axis);
         _send_request_to_server_and_wait(request);
@@ -424,6 +428,13 @@ bool marlin_print_started() {
     while (true) {
         switch (marlin_vars()->print_state) {
         case State::WaitGui:
+        // We also need to wait these two out, because they are not considered printing
+        // and if connect want to send JOB_INFO before marlin_server goes through them
+        // it falsely rejects the print. There should be no chance to get an infinit loop
+        // because we only call this function right after calling print_start with skip
+        // preview enabled, so it either starts printing or goes into PrintPreviewQuestions.
+        case State::PrintPreviewInit:
+        case State::PrintPreviewImage:
             // We are still waiting for GUI to make up its mind. Do another round.
             osDelay(10);
             break;
@@ -502,20 +513,6 @@ bool marlin_is_printing() {
         return true;
     }
 }
-bool marlin_remote_print_ready(bool preview_only) {
-    switch (marlin_vars()->print_state) {
-    case State::Idle:
-        return true;
-    case State::PrintPreviewInit:
-    case State::PrintPreviewImage:
-        // We want to replace the one-click print / preview when we want to
-        // start printing. But we don't want to change one print preview to
-        // another just by uploading stuff.
-        return !preview_only;
-    default:
-        return false;
-    }
-}
 
 //-----------------------------------------------------------------------------
 // private functions
@@ -535,18 +532,18 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
     osSemaphoreWait(server_semaphore, osWaitForever); // lock
     if ((queue = server_queue) != 0)                  // queue valid
     {
-        marlin_client[client_id].events &= ~MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge);
+        marlin_client[client_id].events &= ~make_mask(Event::Acknowledge);
         while (ret == 0) {
             if (osMessageAvailableSpace(queue) >= static_cast<uint32_t>(len + 1)) // check available space
             {
-                osMessagePut(queue, '0' + client_id, osWaitForever); // one character client id
-                for (i = 0; i < len; i++)                            // loop over every characters
-                    osMessagePut(queue, request[i], osWaitForever);  //
-                if ((i > 0) && (request[i - 1] != '\n'))             // automatically terminate with '\n'
+                osMessagePut(queue, '0' + client_id, osWaitForever);              // one character client id
+                for (i = 0; i < len; i++)                                         // loop over every characters
+                    osMessagePut(queue, request[i], osWaitForever);               //
+                if ((i > 0) && (request[i - 1] != '\n'))                          // automatically terminate with '\n'
                     osMessagePut(queue, '\n', osWaitForever);
                 ret = 1;
             } else {
-                osSemaphoreRelease(server_semaphore); // unlock
+                osSemaphoreRelease(server_semaphore);             // unlock
                 osDelay(10);
                 osSemaphoreWait(server_semaphore, osWaitForever); // lock
             }
@@ -559,7 +556,7 @@ static void _send_request_to_server(uint8_t client_id, const char *request) {
 
 // wait for ack event, blocking - used for synchronization, called typically at end of client request functions
 static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)()) {
-    while ((marlin_client[client_id].events & MARLIN_EVT_MSK(MARLIN_EVT_Acknowledge)) == 0 && (marlin_client[client_id].events & MARLIN_EVT_MSK(MARLIN_EVT_NotAcknowledge)) == 0) {
+    while ((marlin_client[client_id].events & make_mask(Event::Acknowledge)) == 0 && (marlin_client[client_id].events & make_mask(Event::NotAcknowledge)) == 0) {
         marlin_client_loop();
         if (marlin_client[client_id].last_count == 0) {
             if (cb)
@@ -576,40 +573,40 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
     if (variant8_get_type(msg) == VARIANT8_USER) // event received
     {
         client->events |= ((uint64_t)1 << id);
-        switch ((MARLIN_EVT_t)id) {
-        case MARLIN_EVT_MeshUpdate: {
+        switch ((Event)id) {
+        case Event::MeshUpdate: {
             uint8_t _UNUSED x = variant8_get_usr16(msg) & 0xff;
             uint8_t _UNUSED y = variant8_get_usr16(msg) >> 8;
             float _UNUSED z = variant8_get_flt(msg);
             break;
         }
-        case MARLIN_EVT_StartProcessing:
+        case Event::StartProcessing:
             client->flags |= MARLIN_CFLG_PROCESS;
             break;
-        case MARLIN_EVT_StopProcessing:
+        case Event::StopProcessing:
             client->flags &= ~MARLIN_CFLG_PROCESS;
             break;
-        case MARLIN_EVT_Error:
+        case Event::Error:
             client->errors |= MARLIN_ERR_MSK(variant8_get_ui32(msg));
             break;
-        case MARLIN_EVT_CommandBegin:
+        case Event::CommandBegin:
             client->command = variant8_get_ui32(msg);
             break;
-        case MARLIN_EVT_CommandEnd:
-            client->command = MARLIN_CMD_NONE;
+        case Event::CommandEnd:
+            client->command = ftrstd::to_underlying(Cmd::NONE);
             break;
-        case MARLIN_EVT_Reheat:
+        case Event::Reheat:
             client->reheating = (uint8_t)variant8_get_ui32(msg);
             break;
-        case MARLIN_EVT_NotAcknowledge:
-        case MARLIN_EVT_Acknowledge:
+        case Event::NotAcknowledge:
+        case Event::Acknowledge:
             client->ack = variant8_get_ui32(msg);
             break;
-        case MARLIN_EVT_FSM:
+        case Event::FSM:
             if (client->fsm_cb)
                 client->fsm_cb(variant8_get_ui32(msg), variant8_get_usr16(msg));
             break;
-        case MARLIN_EVT_Message: {
+        case Event::Message: {
             variant8_t *pvar = &msg;
             variant8_set_type(pvar, VARIANT8_PCHAR);
             const char *str = variant8_get_pch(msg);
@@ -619,39 +616,41 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
             variant8_done(&pvar);
             break;
         }
-        case MARLIN_EVT_Warning:
+        case Event::Warning:
             if (client->warning_cb)
                 client->warning_cb(static_cast<WarningType>(variant8_get_i32(msg)));
             break;
-        case MARLIN_EVT_Startup:
+        case Event::Startup:
             if (client->startup_cb) {
                 client->startup_cb();
             }
             break;
-            //not handled events
-            //do not use default, i want all events listed here, so new event will generate warning, when not added
-        case MARLIN_EVT_PrinterKilled:
-        case MARLIN_EVT_MediaInserted:
-        case MARLIN_EVT_MediaError:
-        case MARLIN_EVT_MediaRemoved:
-        case MARLIN_EVT_PlayTone:
-        case MARLIN_EVT_PrintTimerStarted:
-        case MARLIN_EVT_PrintTimerPaused:
-        case MARLIN_EVT_PrintTimerStopped:
-        case MARLIN_EVT_FilamentRunout:
-        case MARLIN_EVT_UserConfirmRequired:
-        case MARLIN_EVT_StatusChanged:
-        case MARLIN_EVT_FactoryReset:
-        case MARLIN_EVT_LoadSettings:
-        case MARLIN_EVT_StoreSettings:
-        case MARLIN_EVT_SafetyTimerExpired:
+            // not handled events
+            // do not use default, i want all events listed here, so new event will generate warning, when not added
+        case Event::PrinterKilled:
+        case Event::MediaInserted:
+        case Event::MediaError:
+        case Event::MediaRemoved:
+        case Event::PlayTone:
+        case Event::PrintTimerStarted:
+        case Event::PrintTimerPaused:
+        case Event::PrintTimerStopped:
+        case Event::FilamentRunout:
+        case Event::UserConfirmRequired:
+        case Event::StatusChanged:
+        case Event::FactoryReset:
+        case Event::LoadSettings:
+        case Event::StoreSettings:
+        case Event::SafetyTimerExpired:
             break;
+        case Event::_count:
+            assert(false);
         }
 #ifdef DBG_EVT_MSK
         if (DBG_EVT_MSK & ((uint64_t)1 << id))
             switch (id) {
-            // Event MARLIN_EVT_MeshUpdate - ui32 is float z, ui16 low byte is x index, high byte y index
-            case MARLIN_EVT_MeshUpdate: {
+            // Event Event::MeshUpdate - ui32 is float z, ui16 low byte is x index, high byte y index
+            case Event::MeshUpdate: {
                 uint8_t x = msg.usr16 & 0xff;
                 uint8_t y = msg.usr16 >> 8;
                 float z = msg.flt;
@@ -659,17 +658,17 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
                     x, y, static_cast<double>(z));
                 x = x;
                 y = y;
-                z = z; //prevent warning
+                z = z; // prevent warning
             } break;
-            // Event MARLIN_EVT_CommandBegin/End - ui32 is encoded command
-            case MARLIN_EVT_CommandBegin:
-            case MARLIN_EVT_CommandEnd:
+            // Event Event::CommandBegin/End - ui32 is encoded command
+            case Event::CommandBegin:
+            case Event::CommandEnd:
                 DBG_EVT("CL%c: EVT %s %c%u", '0' + client->id, marlin_events_get_name(id),
                     (msg.ui32 >> 16) & 0xff, msg.ui32 & 0xffff);
                 break;
-            // Event MARLIN_EVT_Acknowledge - ui32 is result (not used in this time)
-            case MARLIN_EVT_Reheat:
-            case MARLIN_EVT_Acknowledge:
+            // Event Event::Acknowledge - ui32 is result (not used in this time)
+            case Event::Reheat:
+            case Event::Acknowledge:
                 DBG_EVT("CL%c: EVT %s %lu", '0' + client->id, marlin_events_get_name(id), msg.ui32);
                 break;
             // Other events and events without arguments
@@ -677,7 +676,7 @@ static void _process_client_message(marlin_client_t *client, variant8_t msg) {
                 DBG_EVT("CL%c: EVT %s", '0' + client->id, marlin_events_get_name(id));
                 break;
             }
-#endif //DBG_EVT_MSK
+#endif // DBG_EVT_MSK
     }
 }
 

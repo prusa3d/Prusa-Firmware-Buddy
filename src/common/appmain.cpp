@@ -1,4 +1,4 @@
-//appmain.cpp - arduino-like app start
+// appmain.cpp - arduino-like app start
 
 #include "appmain.hpp"
 #include "app.h"
@@ -24,7 +24,6 @@
 
 #include "marlin_server.hpp"
 #include "bsod.h"
-#include "eeprom.h"
 #include "safe_state.h"
 #include "crc32.h"
 #include "fusb303.hpp"
@@ -72,6 +71,7 @@ LOG_COMPONENT_REF(Marlin);
 #endif
 
 #include "probe_position_lookback.hpp"
+#include <configuration_store.hpp>
 
 LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
@@ -86,7 +86,7 @@ metric_t metric_cpu_usage = METRIC("cpu_usage", METRIC_VALUE_INTEGER, 1000, METR
 
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
-#endif                                 //BUDDY_ENABLE_ETHERNET
+#endif                                 // BUDDY_ENABLE_ETHERNET
 
 void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
@@ -114,7 +114,7 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
         severity = LOG_SEVERITY_ERROR;
     }
     if (MMU) {
-        //log_event(severity, MMU2, "%.*s", size, buffer);
+        log_event(severity, MMU2, "%.*s", size, buffer);
     } else {
         log_event(severity, Marlin, "%.*s", size, buffer);
     }
@@ -141,10 +141,10 @@ void app_setup(void) {
     }
 
 #if HAS_LOADCELL()
-    loadcell.SetScale(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_SCALE)));
-    loadcell.SetThreshold(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_THRS_STATIC)), Loadcell::TareMode::Static);
-    loadcell.SetThreshold(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_THRS_CONTINOUS)), Loadcell::TareMode::Continuous);
-    loadcell.SetHysteresis(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_HYST)));
+    loadcell.SetScale(config_store().loadcell_scale.get());
+    loadcell.SetThreshold(config_store().loadcell_threshold_static.get(), Loadcell::TareMode::Static);
+    loadcell.SetThreshold(config_store().loadcell_threshold_continuous.get(), Loadcell::TareMode::Continuous);
+    loadcell.SetHysteresis(config_store().loadcell_hysteresis.get());
     loadcell.ConfigureSignalEvent(osThreadGetId(), 0x0A);
 #endif
 
@@ -203,11 +203,11 @@ void check_usbc_connection() {
 }
 #endif
 void app_idle(void) {
-    Buddy::Metrics::RecordMarlinVariables();
-    Buddy::Metrics::RecordRuntimeStats();
-    Buddy::Metrics::RecordPrintFilename();
+    buddy::metrics::RecordMarlinVariables();
+    buddy::metrics::RecordRuntimeStats();
+    buddy::metrics::RecordPrintFilename();
 #if (BOARD_IS_XLBUDDY)
-    Buddy::Metrics::record_dwarf_mcu_temperature();
+    buddy::metrics::record_dwarf_mcu_temperature();
 #endif
     print_utils_loop();
 }
@@ -230,7 +230,7 @@ void app_run(void) {
 
     log_info(Marlin, "Setup complete");
 
-    if (eeprom_init() == EEPROM_INIT_Defaults && marlin_server::processing()) {
+    if (config_store_init_result() == eeprom_journal::InitResult::cold_start && marlin_server::processing()) {
         settings.reset();
 #if ENABLED(POWER_PANIC)
         power_panic::reset();
@@ -302,14 +302,14 @@ static uint8_t cnt_advanced_power_update = 0;
 void advanced_power_irq() {
     if (++cnt_advanced_power_update >= 40) { // update Advanced power variables = 25Hz
         advancedpower.Update();
-        Buddy::Metrics::RecordPowerStats();
+        buddy::metrics::RecordPowerStats();
     #ifdef ADC_MULTIPLEXER
         PowerHWIDAndTempMux.switch_channel();
     #endif
         cnt_advanced_power_update = 0;
     }
 }
-#endif //#ifdef HAS_ADVANCED_POWER
+#endif // #ifdef HAS_ADVANCED_POWER
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
 // update filament sensor irq = 76Hz
@@ -378,7 +378,7 @@ void app_tim14_tick(void) {
     jogwheel.Update1msFromISR();
 #endif
     Sound_Update1ms();
-    //hwio_update_1ms();
+    // hwio_update_1ms();
     adc_tick_1ms();
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
@@ -388,4 +388,4 @@ void app_tim14_tick(void) {
 
 } // extern "C"
 
-//cpp code
+// cpp code

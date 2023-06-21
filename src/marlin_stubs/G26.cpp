@@ -8,6 +8,7 @@
 #include "filament.hpp"
 #include "G26.hpp"
 #include "cmath_ext.h"
+#include <configuration_store.hpp>
 
 static const constexpr float filamentD = 1.75f;
 static const constexpr float layerHeight = 0.2f;
@@ -296,7 +297,7 @@ void FirstLayer::print_shape_1() {
 
 void FirstLayer::print_shape_2() {
     enable_all_steppers();
-    //M221 S100 ; reset flow
+    // M221 S100 ; reset flow
     planner.flow_percentage[0] = 100;
     planner.refresh_e_factor(0);
     /// fixed lines - constant to show 100% at the end + calibration pattern
@@ -315,22 +316,22 @@ void FirstLayer::print_shape_2() {
     print_snake(snake2, ARRAY_SIZE(snake2), 1000.f);
 
     /// finish printing
-    //go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
-    //go_to_destination(178.f, 180.f, 10.f, NAN, 3000.f);
+    // go_to_destination(NAN, NAN, 2.f, -6.f, 2100.f);
+    // go_to_destination(178.f, 180.f, 10.f, NAN, 3000.f);
 
-    //TYPE:Custom
-    // Filament-specific end gcode
-    //TODO setprecent? ////M73 P94 R0
+    // TYPE:Custom
+    //  Filament-specific end gcode
+    // TODO setprecent? ////M73 P94 R0
     go_to_destination(NAN, NAN, NAN, -1.f, 2100.f);    // G1 E-1 F2100 ; retract
     go_to_destination(NAN, NAN, 2.2f, NAN, 720.f);     // G1 Z2.2 F720 ; Move print head up
     go_to_destination(178.f, 178.f, NAN, NAN, 4200.f); // G1 X178 Y178 F4200 ; park print head
-    //TODO setprecent? ////M73 P96 R0
+    // TODO setprecent? ////M73 P96 R0
     go_to_destination(NAN, NAN, 30.2f, NAN, 720.f); // G1 Z30.2 F720 ; Move print head further up
     planner.synchronize();                          // G4 ; wait .. finish moves == M400
 
-    //no need lro reset linear advance, was not set // M900 K0 ; reset LA
+    // no need lro reset linear advance, was not set // M900 K0 ; reset LA
     planner.finish_and_disable(); // M84 ; disable motors
-    //TODO setprecent? // M73 P100 R0
+    // TODO setprecent? // M73 P100 R0
     finish_printing();
 }
 
@@ -341,7 +342,7 @@ void FirstLayer::print_shape_2() {
  */
 void PrusaGcodeSuite::G26() {
     // is filament selected
-    auto filament = filament::get_type_in_extruder(active_extruder);
+    auto filament = config_store().get_filament_type(active_extruder);
     if (filament == filament::Type::NONE) {
         return;
     }
@@ -356,7 +357,7 @@ void PrusaGcodeSuite::G26() {
     marlin_server::set_temp_to_display(temp_nozzle, 0);
     thermalManager.wait_for_hotend(0, false);
 
-    //fl.print_shape_1();
+    // fl.print_shape_1();
     fl.print_shape_2();
 
     thermalManager.setTargetHotend(0, 0);

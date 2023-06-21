@@ -154,7 +154,7 @@ BootloaderProtocol::status_t BootloaderProtocol::get_protocolversion(uint16_t &v
     if (status == status_t::COMMAND_OK && read_len != sizeof(version_reversed)) {
         status = status_t::BAD_RESPONSE;
     }
-    version = version_reversed[0] << 8 | version_reversed[1]; //Reverse byte order
+    version = version_reversed[0] << 8 | version_reversed[1]; // Reverse byte order
     return status;
 }
 
@@ -167,10 +167,10 @@ BootloaderProtocol::status_t BootloaderProtocol::get_hwinfo(HwInfo &hw_info) con
         status = status_t::BAD_RESPONSE;
     }
     hw_info.hw_type = hw_info_reversed[0];
-    hw_info.hw_revision = hw_info_reversed[1] << 8 | hw_info_reversed[2]; //Reverese byte order
+    hw_info.hw_revision = hw_info_reversed[1] << 8 | hw_info_reversed[2];                                                               // Reverese byte order
 
-    hw_info.bl_version = hw_info_reversed[3] << 24 | hw_info_reversed[4] << 16 | hw_info_reversed[5] << 8 | hw_info_reversed[6];        //Reverse byte order
-    hw_info.application_size = hw_info_reversed[7] << 24 | hw_info_reversed[8] << 16 | hw_info_reversed[9] << 8 | hw_info_reversed[10]; //Reverse byte order
+    hw_info.bl_version = hw_info_reversed[3] << 24 | hw_info_reversed[4] << 16 | hw_info_reversed[5] << 8 | hw_info_reversed[6];        // Reverse byte order
+    hw_info.application_size = hw_info_reversed[7] << 24 | hw_info_reversed[8] << 16 | hw_info_reversed[9] << 8 | hw_info_reversed[10]; // Reverse byte order
     return status;
 }
 

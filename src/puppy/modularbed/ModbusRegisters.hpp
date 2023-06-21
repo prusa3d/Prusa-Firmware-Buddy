@@ -24,4 +24,4 @@ uint16_t GetRegValue(SystemHoldingRegister reg);
 uint16_t GetRegValue(HBHoldingRegister reg, uint16_t heatbedletIndex);
 bool GetBitValue(SystemCoil reg);
 
-} //namespace
+} // namespace

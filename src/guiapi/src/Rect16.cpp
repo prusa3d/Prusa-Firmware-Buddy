@@ -272,7 +272,7 @@ size_t Rect16::HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) 
     Width_t width_sum = Width_t(0);
     const Width_t width_max = Width();
 
-    //calculate used width and used used_count of rectangles
+    // calculate used width and used used_count of rectangles
     for (; used_count < count; ++used_count) {
         if (width_sum + widths[used_count] <= width_max) {
             // next rect fits
@@ -288,7 +288,7 @@ size_t Rect16::HorizontalSplit(Rect16 splits[], Width_t widths[], size_t count) 
 }
 
 void Rect16::horizontalSplit(Rect16 *splits, Width_t *widths, size_t count, Width_t width_sum, Rect16 rect) {
-    //no checks, checks are in HorizontalSplit
+    // no checks, checks are in HorizontalSplit
 
     Rect16 first = rect;
     first = widths[0]; // width of first rect
@@ -299,15 +299,15 @@ void Rect16::horizontalSplit(Rect16 *splits, Width_t *widths, size_t count, Widt
         Width_t width_space = width_sum_spaces / (count - 1);
         Width_t width_diff = width_space + widths[0]; // new rec will be this smaller
 
-        //recalculate for recursive call
-        rect -= width_diff;         //rect is smaller
-        rect += Left_t(width_diff); //and cut from left side
+        // recalculate for recursive call
+        rect -= width_diff;         // rect is smaller
+        rect += Left_t(width_diff); // and cut from left side
         width_sum = width_sum - widths[0];
         --count;
-        widths++; //skip first
-        splits++; //skip first
+        widths++; // skip first
+        splits++; // skip first
 
-        //recursive call
+        // recursive call
         horizontalSplit(splits, widths, count, width_sum, rect);
         return;
     }

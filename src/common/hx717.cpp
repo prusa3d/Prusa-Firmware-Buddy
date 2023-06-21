@@ -38,7 +38,7 @@ HX717::HX717()
 int32_t HX717::ReadValue(Channel nextChannel) {
     using namespace buddy::hw;
     int32_t result = 0;
-    buddy::DisableInterrupts interrupts(false);
+    buddy::DisableInterrupts disable_interrupts(false);
     static constexpr int32_t zero = 0;
 
     // Minimum time for both low and high SCK
@@ -50,11 +50,11 @@ int32_t HX717::ReadValue(Channel nextChannel) {
     static constexpr int32_t disableEnableIrqCycles = 2;
 
     for (int index = 0; index < 24; index++) {
-        interrupts.disable();
+        disable_interrupts.disable();
         loadcellSck.write(Pin::State::high); //! Data are clocked out by rising edge of SCK
         timing_delay_cycles(std::max(zero, minDelayCycles - pinWriteCycles));
         loadcellSck.write(Pin::State::low);
-        interrupts.resume();
+        disable_interrupts.resume();
 
         timing_delay_cycles(std::max(zero, minDelayCycles - pinWriteCycles - pinReadCycles - loopCycles - disableEnableIrqCycles));
         //! Sample data in the last moment before next clock rising edge
@@ -65,11 +65,11 @@ int32_t HX717::ReadValue(Channel nextChannel) {
     }
 
     for (int index = 0; index < nextChannel; index++) {
-        interrupts.disable();
+        disable_interrupts.disable();
         loadcellSck.write(Pin::State::high);
         timing_delay_cycles(std::max(zero, minDelayCycles - pinWriteCycles));
         loadcellSck.write(Pin::State::low);
-        interrupts.resume();
+        disable_interrupts.resume();
 
         timing_delay_cycles(std::max(zero, minDelayCycles - pinWriteCycles - loopCycles - disableEnableIrqCycles));
     }
@@ -90,6 +90,6 @@ int32_t HX717::ReadValue(Channel nextChannel) {
     }
     currentChannel = nextChannel;
 
-    //convert 24 bit signed to 32 bit signed
+    // convert 24 bit signed to 32 bit signed
     return (result >= 0x800000) ? (result | 0xFF000000) : result;
 }

@@ -1,4 +1,4 @@
-//screen_test_graph.hpp
+// screen_test_graph.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"

@@ -119,7 +119,7 @@ public:
                         }
                     }
                 }
-            } // if i == files.end() -> file entry would have been inserted after the end of the window - ignore
+            }             // if i == files.end() -> file entry would have been inserted after the end of the window - ignore
 
             ++totalFiles; // increment total discovered file entries count
         }

@@ -3,7 +3,6 @@
 
 #include <inttypes.h>
 
-static const uint32_t MEDIA_PRINT_UNDEF_POSITION = UINT32_MAX;
 typedef enum {
     media_state_REMOVED = 0,  // media is inserted
     media_state_INSERTED = 1, // media is removed

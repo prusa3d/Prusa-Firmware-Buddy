@@ -16,12 +16,11 @@ static constexpr size_t col_texts = WizardDefaults::MarginLeft;
 
 static constexpr size_t txt_h = WizardDefaults::txt_h;
 static constexpr size_t row_h = WizardDefaults::row_h;
-static constexpr size_t txt_big_h = 53;
-static constexpr int16_t big_text_x_pos = col_texts + 158;
+static const size_t txt_big_h = resource_font(IDR_FNT_LARGE)->h;
 
 static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::progress_row_h;
-static constexpr size_t row_3 = row_2 + row_h + txt_h + row_h;                // double line text: row_h + txt_h, extra space row_3
-static constexpr size_t row_countdown_txt4 = row_3 + (txt_big_h - txt_h) / 2; // offset to middle of big font
+static constexpr size_t row_3 = row_2 + row_h + txt_h + row_h;             // double line text: row_h + txt_h, extra space row_3
+static const size_t row_prebig_txt4 = row_3 + (txt_big_h - 2 * txt_h) / 2; // Center first 2 lines to middle of big font
 
 static constexpr size_t top_of_changeable_area = WizardDefaults::row_1 + WizardDefaults::progress_h;
 static constexpr size_t height_of_changeable_area = WizardDefaults::RectRadioButton(1).Top() - top_of_changeable_area;
@@ -29,34 +28,34 @@ static constexpr Rect16 ChangeableRect = { col_texts, top_of_changeable_area, Wi
 
 static constexpr const char *en_text_loadcell_test = N_("Loadcell Test");
 
-static constexpr const char *en_text_phase_ok = N_("Test OK");
-static constexpr const char *en_text_failed = N_("Test FAILED!");
-
-static std::array<char, 3> txt_cntdown = { "0s" };
-static const string_view_utf8 txt_cntdown_view = string_view_utf8::MakeRAM((const uint8_t *)txt_cntdown.begin());
+static char txt_big_buffer[8] = {};
 
 // hand icon is 154x100
 static constexpr int16_t hand_w = 154;
 static constexpr int16_t hand_h = 100;
-static constexpr int16_t hand_x_offset = -8;
+static constexpr int16_t hand_x_offset = -4;
 static constexpr int16_t hand_y_offset = -8;
 static constexpr point_i16_t hand_pos = {
     WizardDefaults::RectRadioButton(1).Left() + WizardDefaults::RectRadioButton(1).Width() - hand_w + hand_x_offset,
     WizardDefaults::RectRadioButton(1).Top() - hand_h + hand_y_offset
 };
 
+static const int16_t big_text_x_pos = hand_pos.x - 5 * resource_font(IDR_FNT_LARGE)->w - 4;
+
 SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_loadcell_test), 1)
     , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::AxisZ) // ItemAxisZ to show Z coord while moving up
     , progress(this, WizardDefaults::row_1)
     , icon_hand(this, &png::hand_with_nozzle1_154x100, hand_pos)
-    , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 2), is_multiline::yes)
+    , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 3), is_multiline::yes)
     , text_phase_additional(this, Rect16(col_texts, row_3, hand_pos.x - col_texts, hand_pos.y + hand_h - row_3), is_multiline::yes)
-    , text_tap(this, Rect16(col_texts, row_countdown_txt4, big_text_x_pos - col_texts, txt_h), is_multiline::no)
-    , text_tap_countdown(this, Rect16(big_text_x_pos, row_3, hand_pos.x - big_text_x_pos, txt_big_h), is_multiline::no)
+    , text_prebig(this, Rect16(col_texts, row_prebig_txt4, big_text_x_pos - col_texts, txt_h * 2), is_multiline::yes)
+    , text_big(this, Rect16(big_text_x_pos, row_3, hand_pos.x - big_text_x_pos, txt_big_h))
     , text_result(this, ChangeableRect, is_multiline::no) {
     text_result.SetAlignment(Align_t::Center());
-    text_tap_countdown.SetFont(resource_font(IDR_FNT_LARGE));
+    text_big.set_font(resource_font(IDR_FNT_LARGE));
+    text_big.SetBlinkColor(COLOR_ORANGE); // Blink orange if temperature is to high
+    text_big.SetAlignment(Align_t::Center());
 
     change();
 }
@@ -66,15 +65,16 @@ void SelftestFrameLoadcell::change() {
 
     const char *txt_phase = nullptr;        // text_phase
     const char *txt_result = nullptr;       // text_result
-    const char *txt_tap = nullptr;          // text_tap
+    const char *txt_prebig = nullptr;       // text_prebig
+    string_view_utf8 txt_big;               // text_big
+    bool txt_big_blink = false;             // text_big
     const png::Resource *icon_id = nullptr; // icon_hand
-    bool show_countdown = false;            // text_tap_countdown
     switch (phase_current) {
     case PhasesSelftest::Loadcell_prepare:
         txt_phase = N_("Validity check");
         break;
     case PhasesSelftest::Loadcell_move_away:
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_iX)
+#if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX)
         txt_phase = N_("Moving down");
 #else
         txt_phase = N_("Moving up");
@@ -83,10 +83,22 @@ void SelftestFrameLoadcell::change() {
     case PhasesSelftest::Loadcell_tool_select:
         txt_phase = N_("Selecting tool");
         break;
-    case PhasesSelftest::Loadcell_cooldown:
+    case PhasesSelftest::Loadcell_cooldown: {
         txt_phase = N_("Cooling down.\n\nDo not touch the nozzle!");
         icon_id = &png::hand_with_nozzle0_154x100;
+
+        int16_t temperature = dt.temperature; // Make a local copy
+        if ((temperature < 0) || (temperature > 999)) {
+            snprintf(txt_big_buffer, std::size(txt_big_buffer), "-\177C");
+        } else {
+            snprintf(txt_big_buffer, std::size(txt_big_buffer), "%u\177C", static_cast<unsigned int>(temperature));
+        }
+        txt_big = string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(txt_big_buffer));
+        txt_big_blink = true;
+        txt_prebig = N_("Nozzle\ntemperature");
+
         break;
+    }
     case PhasesSelftest::Loadcell_user_tap_ask_abort:
         txt_phase = dt.pressed_too_soon ? N_("You did not tap the nozzle or you tapped it too soon. Retry?\n\n ") : N_("We will need your help with this test. You will be asked to tap the nozzle. Don't worry; it is going to be cold.\n ");
         icon_id = dt.pressed_too_soon ? &png::hand_with_nozzle2_154x100 : &png::hand_with_nozzle3_154x100;
@@ -94,19 +106,16 @@ void SelftestFrameLoadcell::change() {
     case PhasesSelftest::Loadcell_user_tap_countdown:
         icon_id = &png::hand_with_nozzle1_154x100;
 
-        show_countdown = true;
-        txt_cntdown[0] = '0' + dt.countdown;
-        text_tap_countdown.SetText(txt_cntdown_view);
-        text_tap_countdown.Invalidate();
-        txt_tap = N_("Tap nozzle in");
+        snprintf(txt_big_buffer, std::size(txt_big_buffer), "%us", static_cast<unsigned int>(std::clamp<uint8_t>(dt.countdown, 0, 5)));
+        txt_big = string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(txt_big_buffer));
+        txt_prebig = N_("Tap nozzle\non beep");
 
         break;
     case PhasesSelftest::Loadcell_user_tap_check:
         icon_id = &png::hand_with_nozzle4_154x100;
 
-        show_countdown = true;
-        text_tap_countdown.SetText(_("NOW"));
-        txt_tap = N_("Tap nozzle");
+        txt_big = _("NOW");
+        txt_prebig = N_("Tap nozzle");
 
         break;
     case PhasesSelftest::Loadcell_user_tap_ok:
@@ -133,17 +142,24 @@ void SelftestFrameLoadcell::change() {
         icon_hand.Hide();
     }
 
-    if (txt_tap) {
-        text_tap.Show();
-        text_tap.SetText(_(txt_tap));
+    if (txt_prebig) {
+        text_prebig.Show();
+        text_prebig.SetText(_(txt_prebig));
     } else {
-        text_tap.Hide();
+        text_prebig.Hide();
     }
 
-    if (show_countdown) {
-        text_tap_countdown.Show();
+    if (!txt_big.isNULLSTR()) {
+        text_big.Show();
+        if (txt_big_blink) {
+            text_big.EnableBlink();
+        } else {
+            text_big.DisableBlink();
+        }
+        text_big.SetText(txt_big);
+        text_big.Invalidate();
     } else {
-        text_tap_countdown.Hide();
+        text_big.Hide();
     }
 
     if (txt_result) {
@@ -153,7 +169,7 @@ void SelftestFrameLoadcell::change() {
         text_result.Hide();
     }
 
-    //TODO move to main thread???
+    // TODO move to main thread???
     switch (phase_current) {
     case PhasesSelftest::Loadcell_user_tap_countdown:
     case PhasesSelftest::Loadcell_user_tap_check:

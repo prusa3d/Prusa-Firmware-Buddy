@@ -45,7 +45,7 @@ private:
     }
 
     virtual LoopResult invokeCurrentState() override {
-        //index was tested by parent
+        // index was tested by parent
         auto fn = arr[this->currentState()];
         return std::invoke(fn, instance);
     }
@@ -62,7 +62,7 @@ public:
     // ctor needs to pass reference to result and last result
     // because i need to actualize result in place, where only non template IPartHandler is known
     template <class... E>
-    PartHandler(const CNF &cnf, EvaluationType &refResult_, E &&... e)
+    PartHandler(const CNF &cnf, EvaluationType &refResult_, E &&...e)
         : IPartHandler(SZ, CNF::part_type)
         , instance(*this, cnf, refResult_)
         , arr { std::forward<E>(e)... }
@@ -86,13 +86,13 @@ struct Factory {
     template <class T, class CNF, class... E>
     static auto Create(const CNF &cnf,
         typename CNF::type_evaluation &refResult,
-        E &&... e) {
+        E &&...e) {
         return PartHandler<T, CNF, sizeof...(E)>(cnf, refResult, std::forward<E>(e)...);
     }
     template <class T, class CNF, class... E>
     static constexpr auto *CreateDynamical(const CNF &cnf,
         typename CNF::type_evaluation &refResult,
-        E &&... e) {
+        E &&...e) {
         return new PartHandler<T, CNF, sizeof...(E)>(cnf, refResult, std::forward<E>(e)...);
     }
 };

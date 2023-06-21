@@ -21,6 +21,7 @@
  */
 
 #include "../../inc/MarlinConfig.h"
+#include "module/motion.h"
 
 #ifdef MINDA_BROKEN_CABLE_DETECTION
     #include "minda_broken_cable_detection.h"
@@ -178,6 +179,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
     destination.set(okay_homing_xy, current_position.z);
 
     TERN_(HOMING_Z_WITH_PROBE, destination -= probe_offset);
+    TERN_(HAS_HOTEND_OFFSET, destination -= hotend_currently_applied_offset);
 
     if (position_is_reachable(destination)) {
 
@@ -197,7 +199,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       LCD_MESSAGE(MSG_ZPROBE_OUT);
       SERIAL_ECHO_MSG(STR_ZPROBE_OUT_SER);
     }
-    
+
     return true;
   }
 
@@ -313,6 +315,9 @@ static void reenable_wavetable(AxisEnum axis)
  *
  *  D   Avoid home calibration
  *
+ * DETECT_PRINT_SHEET only:
+ *
+ *  P   Do not check print sheet presence
  */
 void GcodeSuite::G28(const bool always_home_all) {
   bool S = false;
@@ -321,6 +326,9 @@ void GcodeSuite::G28(const bool always_home_all) {
   #endif
 
   bool O = parser.boolval('O');
+  #if ENABLED(DETECT_PRINT_SHEET)
+    bool check_sheet = !parser.boolval('P');
+  #endif
   bool X = parser.seen('X');
   bool Y = parser.seen('Y');
   bool Z = parser.seen('Z');
@@ -330,11 +338,11 @@ void GcodeSuite::G28(const bool always_home_all) {
   #endif
   float R = parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT;
 
-  G28_no_parser(always_home_all, O, R, S, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise));
+  G28_no_parser(always_home_all, O, R, S, X, Y, Z, no_change OPTARG(PRECISE_HOMING_COREXY, precise) OPTARG(DETECT_PRINT_SHEET, check_sheet));
 }
 
 bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y, bool Z
-  , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise)) {
+  , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {
 
   MINDA_BROKEN_CABLE_DETECTION__BEGIN();
 
@@ -515,19 +523,18 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     }
   #endif
 
-  // Always home with tool 0 active
-  #if HAS_MULTI_HOTEND
+  // Always home with tool 0 active (but not with PRUSA_TOOLCHANGER)
+  #if HAS_MULTI_HOTEND && DISABLED(PRUSA_TOOLCHANGER)
     #if DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE)
       const uint8_t old_tool_index = active_extruder;
     #endif
-    #if DISABLED(PRUSA_TOOLCHANGER)
-      // PARKING_EXTRUDER homing requires different handling of movement / solenoid activation, depending on the side of homing
-      #if ENABLED(PARKING_EXTRUDER)
-        const bool pe_final_change_must_unpark = parking_extruder_unpark_after_homing(old_tool_index, X_HOME_DIR + 1 == old_tool_index * 2);
-      #endif
-      tool_change(0, true);
+    // PARKING_EXTRUDER homing requires different handling of movement / solenoid activation, depending on the side of homing
+    #if ENABLED(PARKING_EXTRUDER)
+      const bool pe_final_change_must_unpark = parking_extruder_unpark_after_homing(old_tool_index, X_HOME_DIR + 1 == old_tool_index * 2);
     #endif
+    tool_change(0, tool_return_t::no_move);
   #endif
+
 
   TERN_(HAS_DUPLICATION_MODE, set_duplication_enabled(false));
 
@@ -705,8 +712,10 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
           #endif
 
           #if ENABLED(PRUSA_TOOLCHANGER)
-            // when toolchanger is enabled, pick Tool 0 before homing
-            failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_move);
+          if (active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+            // When no tool is picked, make sure to pick one
+            failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_move, current_position);
+          }
           #endif
 
           if (!failed) {
@@ -714,7 +723,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
             if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) {
               failed = !home_z_safely();
               #if ENABLED(DETECT_PRINT_SHEET)
-              if (!failed) {
+              if (!failed && check_sheet) {
                 failed = !detect_print_sheet(z_homing_height);
                 if (failed) {
                   do_blocking_move_to_z(DETECT_PRINT_SHEET_Z_AFTER_FAILURE, homing_feedrate(Z_AXIS));
@@ -745,14 +754,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
         if (!failed && doV) failed = !homeaxis(V_AXIS),
         if (!failed && doW) failed = !homeaxis(W_AXIS)
       );
-    #endif
-
-    #if HAS_HOTEND_OFFSET
-      if(!failed && doZ) {
-        // After establishing the zero position for _this_ tool, apply the current Z offset so that
-        // the machine Z position is always relative to reference (tool zero).
-        current_position.z += hotend_currently_applied_offset.z;
-      }
     #endif
 
     sync_plan_position();
@@ -814,12 +815,6 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
   // Restore the active tool after homing
   #if HAS_MULTI_HOTEND && (DISABLED(DELTA) || ENABLED(DELTA_HOME_TO_SAFE_ZONE)) && DISABLED(PRUSA_TOOLCHANGER)
     tool_change(old_tool_index, TERN(PARKING_EXTRUDER, !pe_final_change_must_unpark, DISABLED(DUAL_X_CARRIAGE)));   // Do move if one of these
-  #endif
-  #if ENABLED(PRUSA_TOOLCHANGER)
-    // Restore tool (if one was picked)
-    if(!failed && old_tool_index != PrusaToolChanger::MARLIN_NO_TOOL_PICKED && old_tool_index != active_extruder) {
-      failed = !prusa_toolchanger.tool_change(old_tool_index, tool_return_t::no_move);
-    }
   #endif
 
   #if HAS_HOMING_CURRENT

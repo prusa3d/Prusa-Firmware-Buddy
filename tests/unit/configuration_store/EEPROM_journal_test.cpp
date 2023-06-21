@@ -3,12 +3,13 @@
 #include "crc32.h"
 #include "dummy_eeprom_chip.h"
 #include "configuration_store.hpp"
-#include "common/eeprom_storage.hpp"
+#include "eeprom_storage.hpp"
 static constexpr const char *key = "data";
 static constexpr size_t header_size = 6;
 
+inline constexpr int32_t default_int32_t { 0 };
+
 using namespace Journal;
-using namespace journal_config_store;
 inline Journal::Backend &Test_EEPROM_journal() {
     return Journal::backend_instance<100, 8096 - 100, EEPROMInstance>();
 }
@@ -324,10 +325,13 @@ TEST_CASE("Test transaction creation") {
     }
 }
 
+inline constexpr TestStruct default_test_struct {};
+inline constexpr NestedStruct default_nested_struct {};
+
 struct TestEEPROMJournalConfigV0 : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
-    StoreItem<int32_t, 0, 1> int_item;
-    StoreItem<TestStruct, TestStruct {}, hash("Struct item")> struct_item;
-    StoreItem<NestedStruct, NestedStruct {}, hash("Nested Struct")> nested_struct_item;
+    StoreItem<int32_t, default_int32_t, 1> int_item;
+    StoreItem<TestStruct, default_test_struct, hash("Struct item")> struct_item;
+    StoreItem<NestedStruct, default_nested_struct, hash("Nested Struct")> nested_struct_item;
 };
 struct TestDeprecatedEEPROMJournalItemsV0 : public DeprecatedStoreConfig<Backend> {
 };
@@ -592,35 +596,35 @@ TEST_CASE("Bank migration during transaction") {
 }
 
 struct TestEEPROMJournalConfigV3 : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
-    StoreItem<int32_t, 0, 4> int_item;
-    StoreItem<TestStruct, TestStruct {}, hash("Struct item")> struct_item;
-    StoreItem<NestedStruct, NestedStruct {}, hash("Nested Struct")> nested_struct_item;
+    StoreItem<int32_t, default_int32_t, 4> int_item;
+    StoreItem<TestStruct, default_test_struct, hash("Struct item")> struct_item;
+    StoreItem<NestedStruct, default_nested_struct, hash("Nested Struct")> nested_struct_item;
 };
 
 struct TestEEPROMJournalConfigV2 : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
-    StoreItem<int32_t, 0, 3> int_item;
-    StoreItem<TestStruct, TestStruct {}, hash("Struct item")> struct_item;
-    StoreItem<NestedStruct, NestedStruct {}, hash("Nested Struct")> nested_struct_item;
+    StoreItem<int32_t, default_int32_t, 3> int_item;
+    StoreItem<TestStruct, default_test_struct, hash("Struct item")> struct_item;
+    StoreItem<NestedStruct, default_nested_struct, hash("Nested Struct")> nested_struct_item;
 };
 
 struct TestEEPROMJournalConfigV1 : public CurrentStoreConfig<Backend, Test_EEPROM_journal> {
-    StoreItem<int32_t, 0, 2> int_item;
-    StoreItem<TestStruct, TestStruct {}, hash("Struct item")> struct_item;
-    StoreItem<NestedStruct, NestedStruct {}, hash("Nested Struct")> nested_struct_item;
+    StoreItem<int32_t, default_int32_t, 2> int_item;
+    StoreItem<TestStruct, default_test_struct, hash("Struct item")> struct_item;
+    StoreItem<NestedStruct, default_nested_struct, hash("Nested Struct")> nested_struct_item;
 };
 
 struct TestDeprecatedEEPROMJournalItemsV1 : public DeprecatedStoreConfig<Backend> {
-    DeprecatedStoreItem<int32_t, 0, 1, &TestEEPROMJournalConfigV1::int_item> int_item_v1;
+    DeprecatedStoreItem<int32_t, 1, &TestEEPROMJournalConfigV1::int_item> int_item_v1;
 };
 struct TestDeprecatedEEPROMJournalItemsV2 : public DeprecatedStoreConfig<Backend> {
-    DeprecatedStoreItem<int32_t, 0, 2, &TestEEPROMJournalConfigV2::int_item> int_item_v2;
-    DeprecatedStoreItem<int32_t, 0, 1, &TestDeprecatedEEPROMJournalItemsV2::int_item_v2> int_item_v1;
+    DeprecatedStoreItem<int32_t, 2, &TestEEPROMJournalConfigV2::int_item> int_item_v2;
+    DeprecatedStoreItem<int32_t, 1, &TestDeprecatedEEPROMJournalItemsV2::int_item_v2> int_item_v1;
 };
 
 struct TestDeprecatedEEPROMJournalItemsV3 : public DeprecatedStoreConfig<Backend> {
-    DeprecatedStoreItem<int32_t, 0, 3, &TestEEPROMJournalConfigV3::int_item> int_item_v3;
-    DeprecatedStoreItem<int32_t, 0, 2, &TestDeprecatedEEPROMJournalItemsV3::int_item_v3> int_item_v2;
-    DeprecatedStoreItem<int32_t, 0, 1, &TestDeprecatedEEPROMJournalItemsV3::int_item_v2> int_item_v1;
+    DeprecatedStoreItem<int32_t, 3, &TestEEPROMJournalConfigV3::int_item> int_item_v3;
+    DeprecatedStoreItem<int32_t, 2, &TestDeprecatedEEPROMJournalItemsV3::int_item_v3> int_item_v2;
+    DeprecatedStoreItem<int32_t, 1, &TestDeprecatedEEPROMJournalItemsV3::int_item_v2> int_item_v1;
 };
 
 TEST_CASE("Item migration") {

@@ -44,7 +44,7 @@ void Error_Handler(void) {
 void _bsod([[maybe_unused]] const char *fmt, [[maybe_unused]] const char *file_name, [[maybe_unused]] int line_number, ...) {
     hal::PWMDriver::TurnOffAll();
 
-    //log_critical(Marlin, "BSOD");
+    // log_critical(Marlin, "BSOD");
     while (1) {
         trigger_crash_dump();
     }
@@ -52,7 +52,7 @@ void _bsod([[maybe_unused]] const char *fmt, [[maybe_unused]] const char *file_n
 
 static hal::MultiWatchdog idle_task_watchdog; // Add one instance of watchdog
 static void idle_task_watchdog_callback() {
-    idle_task_watchdog.kick(false); // Mark this watchdog instance, do not reload hardware from this instance
+    idle_task_watchdog.kick(false);           // Mark this watchdog instance, do not reload hardware from this instance
 }
 
 /// The entrypoint of our firmware
@@ -112,5 +112,5 @@ int main(void) {
         Error_Handler();
     }
 
-    osKernelStart(); //function never returns
+    osKernelStart(); // function never returns
 }

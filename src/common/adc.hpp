@@ -100,6 +100,24 @@ enum AD3 { // ADC3 channels
     ADC3_CH_CNT
 };
 
+#elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
+enum AD1 { // ADC1 channels
+    hotend_T,
+    heatbed_T,
+    heatbed_U,
+    hotend_U,
+    ADC1_CH_CNT
+};
+
+enum AD3 { // ADC3 channels
+    MMU_I,
+    board_T,
+    hotend_I,
+    board_I,
+    case_T,
+    ADC3_CH_CNT
+};
+
 #elif (BOARD_IS_XBUDDY)
 enum AD1 { // ADC1 channels
     hotend_T,
@@ -215,7 +233,7 @@ public:
         return m_data[index];
     }
 
-    [[nodiscard]] uint16_t get_and_shift_channel(uint8_t index) const { //This function is need for convert 12bit to 10bit
+    [[nodiscard]] uint16_t get_and_shift_channel(uint8_t index) const { // This function is need for convert 12bit to 10bit
         return m_data[index] >> 2;
     }
 
@@ -273,7 +291,7 @@ public:
         return m_data[index];
     }
 
-    [[nodiscard]] uint16_t get_and_shift_channel(uint8_t index) const { //This function is need for convert 12bit to 10bit because Marlin needs 10bit value
+    [[nodiscard]] uint16_t get_and_shift_channel(uint8_t index) const { // This function is need for convert 12bit to 10bit because Marlin needs 10bit value
 
         return m_data[index] >> 2;
     }
@@ -305,7 +323,7 @@ inline uint16_t bedMon() { return adcDma1.get_and_shift_channel(AdcChannel::heat
 
 #if (BOARD_IS_XBUDDY)
 inline uint16_t nozzle() {
-    if (adcDma1.get_and_shift_channel(AdcChannel::hotend_T) > raw_adc_value_at_50_degreas_celsius) { //mean 50 degrees Celsius
+    if (adcDma1.get_and_shift_channel(AdcChannel::hotend_T) > raw_adc_value_at_50_degreas_celsius) { // mean 50 degrees Celsius
         return (adcDma1.get_sum_from_nozzle_buffer() / adcDma1.get_size_from_nozzle_buffer());
     }
     return adcDma1.get_and_shift_channel(AdcChannel::hotend_T);
@@ -316,7 +334,9 @@ inline void sampleNozzle() {
 }
 
 inline uint16_t bed() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_T); }
+    #if (!PRINTER_IS_PRUSA_MK3_5)
 inline uint16_t heatbreakTemp() { return adcDma1.get_and_shift_channel(AdcChannel::heatbreak_T); }
+    #endif
 inline uint16_t boardTemp() { return adcDma3.get_and_shift_channel(AdcChannel::board_T); }
 inline uint16_t heaterVoltage() { return adcDma1.get_and_shift_channel(AdcChannel::hotend_U); }
 

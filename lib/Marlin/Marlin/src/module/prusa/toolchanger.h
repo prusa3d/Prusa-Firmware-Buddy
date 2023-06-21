@@ -4,6 +4,8 @@
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "toolchanger_utils.h"
 
+    #include <module/motion.h>
+
 class PrusaToolChanger : public PrusaToolChangerUtils {
 public:
     PrusaToolChanger()
@@ -16,17 +18,41 @@ public:
      * @warning Only run this from Marlin thread.
      * @param new_tool marlin id of new tool [indexed from 0]
      * @param return_type whether to return to previous position
+     * @param return_pos where to return to, needed for Z return even if no_move or no_return
+     * @param suppress_z_lift if true, don't lift Z before toolchange, useful for toolcrash recovery
+     * @return true if toolchange was successful
      */
-    bool tool_change(const uint8_t new_tool, tool_return_t return_type = tool_return_t::to_current);
+    [[nodiscard]] bool tool_change(const uint8_t new_tool, const tool_return_t return_type, xyz_pos_t return_position, bool suppress_z_lift = false);
+
+    /// Structure to remember wanted toolchange result in case of a crash
+    struct PrecrashData {
+        uint8_t tool_nr;           ///< Marlin id of last requested tool [indexed from 0] (last requested, not the tool physically picked)
+        tool_return_t return_type; ///< Last wanted return position
+
+        /**
+         * @brief Destination to return to.
+         * Linked to return_type.
+         * @warning This is logical position! Use return_pos = toLogical(current_position).
+         */
+        xyz_pos_t return_pos;
+    };
 
     /**
-     * @brief Get last wanted tool.
-     * This is tool last requested, not the tool physically picked.
+     * @brief Get last wanted state.
      * To be used in tool_change() in tool failure recovery.
-     * @return marlin id of last requested tool [indexed from 0]
+     * @return last requested result of a toolchange
      */
-    uint8_t get_precrash_tool_nr() const {
-        return precrash_tool_nr;
+    const PrecrashData &get_precrash() const {
+        return precrash_data;
+    }
+
+    /**
+     * @brief Force precrash state.
+     * This is to be used when recovering from powerpanic through toolcrash.
+     * @param data wanted result of a toolchange
+     */
+    void set_precrash_state(const PrecrashData &data) {
+        precrash_data = data;
     }
 
     /**
@@ -59,18 +85,46 @@ public:
      */
     void crash_deselect_dwarf();
 
+    /**
+     * @brief Disable loop() with automatic toolchange and toolfall detection.
+     */
+    void toolcheck_disable() {
+        if (block_tool_check.exchange(true)) { // Test if already blocked
+            bsod("Toolchange loop() already blocked");
+        }
+    }
+
+    /**
+     * @brief Reenable loop() with automatic toolchange and toolfall detection.
+     */
+    void toolcheck_enable() {
+        // Revert selected to active tool
+        for (uint8_t i = 0; i < HOTENDS; ++i) {
+            getTool(i).set_selected(is_tool_enabled(i) && i == get_active_tool_nr());
+        }
+
+        if (!block_tool_check.exchange(false)) { // Test if was blocked
+            bsod("Toolchange loop() enabled but not blocked");
+        }
+    }
+
 private:
-    std::atomic<bool> block_tool_check = false;          ///< When true, block autodetect_active_tool() and set picked_dwarf as nullptr
+    PrecrashData precrash_data = {};                     ///< Remember wanted toolchange result in case of a crash
+    std::atomic<bool> block_tool_check = false;          ///< When true, block loop() with automatic toolchange and toolfall detection
     uint8_t tool_check_fails = 0;                        ///< Count before toolfall
     static constexpr uint8_t TOOL_CHECK_FAILS_LIMIT = 3; ///< Limit of tool_check_fails before toolfall
-
-    uint8_t precrash_tool_nr = MARLIN_NO_TOOL_PICKED; ///< Marlin id of last requested tool [indexed from 0]
 
     /**
      * @brief Ensure that X and Y are homed to be able to pick/park.
      * @return true on success, false if move is not safe after an attempt to home
      */
     [[nodiscard]] bool ensure_safe_move();
+
+    /**
+     * @brief Check if powerpanic happened.
+     * @return true if powerpanic happened and toolchange has to quit immediately
+     */
+    [[nodiscard]] bool check_powerpanic();
 
     /**
      * @brief Know if it is safe to move in X and Y.
@@ -125,6 +179,8 @@ private:
      * Called from marlin server loop() task.
      */
     void toolfall();
+
+    bool purge_tool(buddy::puppies::Dwarf &dwarf);
 };
 
 extern PrusaToolChanger prusa_toolchanger;

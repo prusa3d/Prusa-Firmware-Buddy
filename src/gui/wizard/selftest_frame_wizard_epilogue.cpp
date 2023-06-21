@@ -7,7 +7,7 @@
 #include "wizard_config.hpp"
 #include "png_resources.hpp"
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+#if PRINTER_IS_PRUSA_MINI
 static constexpr size_t margin_texts = 0;
 static constexpr Align_t align_text_icon = Align_t::LeftTop();
 #else
@@ -54,7 +54,7 @@ SelftestFrameWizardEpilogue::SelftestFrameWizardEpilogue(window_t *parent, Phase
 void SelftestFrameWizardEpilogue::change() {
     const char *txt_icon = nullptr;
 
-    //texts
+    // texts
     switch (phase_current) {
     case PhasesSelftest::WizardEpilogue_ok:
         txt_icon = N_("Happy printing!");

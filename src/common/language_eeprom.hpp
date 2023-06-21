@@ -1,6 +1,6 @@
+#pragma once
 #include <stdint.h>
 #include <array>
-#include "eeprom.h"
 
 /* class Lang {
 private:

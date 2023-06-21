@@ -15,7 +15,7 @@
 #include "error_codes.hpp"
 #include "bsod_gui.hpp"
 
-//generate stack overflow
+// generate stack overflow
 static volatile int _recursive = 1;
 static void recursive(uint64_t i) {
     uint64_t x = i + (uint64_t)_recursive;
@@ -87,7 +87,7 @@ void MI_LOAD_UNLOAD_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenTestMMU>);
 }
 
-//TODO rewrite this tests
+// TODO rewrite this tests
 #if 0
     , tst_graph(this, this->GenerateRect(ShiftDir_t::Bottom), []() { /*screen_open(get_scr_test_graph()->id);*/ }, string_view_utf8::MakeCPUFLASH((const uint8_t *)"temp graph"))
     , tst_temperature(this, this->GenerateRect(ShiftDir_t::Bottom), []() { /*screen_open(get_scr_test_temperature()->id);*/ }, string_view_utf8::MakeCPUFLASH((const uint8_t *)"temp - pwm"))

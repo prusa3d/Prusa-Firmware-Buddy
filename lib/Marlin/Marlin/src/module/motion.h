@@ -317,14 +317,14 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
     FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS; }
     FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS; }
   #else
-    #define NATIVE_TO_LOGICAL(POS, AXIS) ((POS) + _WS[AXIS] + hotend_currently_applied_offset[AXIS])
-    #define LOGICAL_TO_NATIVE(POS, AXIS) ((POS) - _WS[AXIS] - hotend_currently_applied_offset[AXIS])
+    #define NATIVE_TO_LOGICAL(POS, AXIS) ((AXIS <= Z_AXIS) ? ((POS) + _WS[AXIS] + hotend_currently_applied_offset[AXIS]) : (POS))
+    #define LOGICAL_TO_NATIVE(POS, AXIS) ((AXIS <= Z_AXIS) ? ((POS) - _WS[AXIS] - hotend_currently_applied_offset[AXIS]) : (POS))
     FORCE_INLINE void toLogical(xy_pos_t &raw)   { raw += _WS + hotend_currently_applied_offset; }
     FORCE_INLINE void toLogical(xyz_pos_t &raw)  { raw += _WS + hotend_currently_applied_offset; }
     FORCE_INLINE void toLogical(xyze_pos_t &raw) { raw += _WS + hotend_currently_applied_offset; }
-    FORCE_INLINE void toNative(xy_pos_t &raw)    { raw -= _WS - hotend_currently_applied_offset; }
-    FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS - hotend_currently_applied_offset; }
-    FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS - hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xy_pos_t &raw)    { raw -= _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xyz_pos_t &raw)   { raw -= _WS + hotend_currently_applied_offset; }
+    FORCE_INLINE void toNative(xyze_pos_t &raw)  { raw -= _WS + hotend_currently_applied_offset; }
   #endif
 #else
   #define NATIVE_TO_LOGICAL(POS, AXIS) (POS)
@@ -405,7 +405,7 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
      *          nozzle must be be able to reach +10,-10.
      */
     inline bool position_is_reachable_by_probe(const float &rx, const float &ry) {
-      return position_is_reachable(rx - probe_offset.x, ry - probe_offset.y)
+      return position_is_reachable(rx - probe_offset.x - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.x), ry - probe_offset.y - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y))
           && WITHIN(rx, probe_min_x() - slop, probe_max_x() + slop)
           && WITHIN(ry, probe_min_y() - slop, probe_max_y() + slop);
     }

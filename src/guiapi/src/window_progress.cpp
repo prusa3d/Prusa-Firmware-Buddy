@@ -6,7 +6,7 @@
 static const constexpr uint8_t WINDOW_PROGRESS_MAX_TEXT = 16;
 
 /*****************************************************************************/
-//window_numberless_progress_t
+// window_numberless_progress_t
 window_numberless_progress_t::window_numberless_progress_t(window_t *parent, Rect16 rect, color_t cl_progress, color_t cl_back, int corner_radius)
     : AddSuperWindow<window_t>(parent, rect)
     , color_progress(cl_progress)
@@ -70,7 +70,7 @@ void window_numberless_progress_t::unconditionalDraw() {
 }
 
 /*****************************************************************************/
-//window_progress_t
+// window_progress_t
 
 static constexpr int PROGRESS_NUM_Y_OFFSET = 10;
 
@@ -91,8 +91,8 @@ window_progress_t::window_progress_t(window_t *parent, Rect16 rect, uint16_t h_p
     numb.SetAlignment(Align_t::Center());
 }
 
-void window_progress_t::SetFont(font_t *val) {
-    numb.SetFont(val);
+void window_progress_t::set_font(font_t *val) {
+    numb.set_font(val);
 }
 
 void window_progress_t::SetProgressColor(color_t clr) {

@@ -300,6 +300,10 @@ void Backend::init_bank(const Backend::BankSelector selector, Backend::BankSeque
     current_bank_id = header.sequence_id;
 }
 
+auto Backend::get_journal_state() const -> JournalState {
+    return journal_state;
+}
+
 void Backend::init(const DumpCallback &callback) {
     auto res = choose_bank();
     if (!res.has_value()) {
@@ -307,7 +311,7 @@ void Backend::init(const DumpCallback &callback) {
         journal_state = JournalState::ColdStart;
     }
 
-    dump_callback = std::move(callback);
+    dump_callback = callback;
 }
 bool Backend::load_items(uint16_t address, uint16_t len_of_transactions, const UpdateFunction &update_function) {
     bool last_item = false;
@@ -437,7 +441,7 @@ void Backend::save(uint16_t id, std::span<uint8_t> data) {
         store_single_item(id, data);
     }
 }
-Backend::Backend(uint16_t offset, uint16_t size, Storage &storage)
+Backend::Backend(uint16_t offset, uint16_t size, configuration_store::Storage &storage)
     : start_address(offset)
     , bank_size(size / 2)
     , storage(storage) {

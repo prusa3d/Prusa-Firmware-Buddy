@@ -1,4 +1,4 @@
-//screen_test_wizard_icons.hpp
+// screen_test_wizard_icons.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"

@@ -108,12 +108,43 @@ private:
         }
     };
 
+    // Inactivity tracking.
+    //
+    // We need to close inactive connections. Unfortunately, the LwIP API is
+    // not particularly friendly to us to do so reliably. We want to make sure
+    // we don't close the connection too soon, we want to err on the side of
+    // allowing it to live longer.
+    //
+    // LwIP has the poll callback. It is called "from time to time", in
+    // approximately POLL_TIME intervals (which is in half-second units).
+    // Despite what the documentation says, it isn't delivered when the
+    // connection is idle, it simply "ticks", with unspecified starting point
+    // of the first interval.
+    //
+    // Furthermore, our event loop sometimes gets held up for longer time
+    // (either because one of our callbacks is stuck in IO for extended period
+    // of time, or because we are running in lowest-priority task and something
+    // else is hogging the CPU). In that case it is possible the first callback
+    // to be called for a connection is the poll callback despite the
+    // connection having data available. In such case we don't want to deem the
+    // connection inactive even though our last recorded "activity" was long
+    // time ago.
+    //
+    // For this reason, we split the inactivity time into "quants". If our last
+    // activity or last poll is further in the past than one quant, we decrease
+    // a counter. Only once we reach 0, we consider the connection as inactive.
+    // This way we extend the timeout a bit, but make sure a single delayed
+    // poll which is the first one to get processed doesn't outright kill the
+    // connection ‒ it'll only eat one quant and if there are queued data,
+    // it'll reset it again.
     class InactivityTimeout {
     private:
-        uint32_t scheduled = 0;
+        uint32_t last_activity = 0;
+        uint32_t quants_left = 0;
 
     public:
         void schedule(uint32_t after);
+        void poll_inactivity();
         bool past() const;
     };
 
@@ -124,12 +155,13 @@ private:
     // half-seconds... weird units of LwIP
     static const uint8_t POLL_TIME = 1;
     // Idle connections time out after 10 seconds.
-    static const uint32_t IDLE_TIMEOUT = 10 * 1000;
+    static const uint32_t IDLE_TIMEOUT = 60 * 1000;
     /*
      * Active connections are more expensive to keep around and they are
      * expected to be active, so time them out sooner.
      */
-    static const uint32_t ACTIVE_TIMEOUT = 4 * 1000;
+    static const uint32_t ACTIVE_TIMEOUT = 10 * 1000;
+    static const uint32_t INACTIVITY_TIME_QUANT = 400;
     /*
      * Priorities of active vs idle connections. Decides which connections are
      * killed if there's too many of them.
@@ -154,8 +186,7 @@ private:
      *
      * This poses a little difficulty with timeouts on them. The altcp_poll
      * doesn't seem to work reliably (it does not set the timeout to that time,
-     * it sets the interval but it can trigger early; the ESP variant doesn't
-     * set the time value at all).
+     * it sets the interval but it can trigger early)
      *
      * So we have three slots and alternatingly (based on time) put the
      * connection in either one. That is, one is gathering connections while

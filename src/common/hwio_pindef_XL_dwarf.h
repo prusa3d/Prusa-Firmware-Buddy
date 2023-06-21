@@ -115,7 +115,7 @@ Pin::State zMinReadFn();
 inline Pin::State zMinReadFn() {
     return Pin::State::high;
 }
-} //namespace buddy::hw
+} // namespace buddy::hw
 
 #define PIN_TABLE(MACRO_FUNCTION)                                                                                                                                                           \
     MACRO_FUNCTION(buddy::hw::OutputPin, dummy, BUDDY_PIN(DUMMY), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                                           \

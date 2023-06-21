@@ -11,6 +11,7 @@
 #include <array>
 
 #include "wui_api.h"
+#include <configuration_store.hpp>
 
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
@@ -24,7 +25,7 @@ void MI_PL_REGENERATE_PASSWORD::click(IWindowMenu &) {
 // ----------------------------------------------------------------
 // GUI Prusa Link start after printer startup
 MI_PL_ENABLED::MI_PL_ENABLED()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_ui8(EEVAR_PL_RUN),
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().prusalink_enabled.get(),
         string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_PL_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
@@ -78,7 +79,7 @@ void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *
             break;
         }
         case MI_PL_ENABLED::EventMask::value:
-            eeprom_set_ui8(EEVAR_PL_RUN, action);
+            config_store().prusalink_enabled.set(static_cast<uint8_t>(action));
             notify_reconfigure();
             break;
         default:

@@ -48,7 +48,7 @@ int32_t gettext_hash_table::getIndexOfKey(const char *key) const {
     uint32_t incr = 1 + (hashVal % (hashTable.m_HashSize - 2));
     uint32_t index = 0;
 
-    //get index from hash table
+    // get index from hash table
     for (index = getIndexOnPos(posInHash); index > 0; index = getIndexOnPos(posInHash)) {
 
         index--;
@@ -57,19 +57,19 @@ int32_t gettext_hash_table::getIndexOfKey(const char *key) const {
             index -= hashTable.m_NumOfString;
         }
 
-        //check string if it matches or error with file occurred return comparison result
+        // check string if it matches or error with file occurred return comparison result
         if (checkString(index, key) != 0) {
             return index;
         }
 
-        //if not rehash the string and check it again
+        // if not rehash the string and check it again
         if (posInHash >= hashTable.m_HashSize - incr) {
             posInHash -= hashTable.m_HashSize - incr;
         } else {
             posInHash += incr;
         }
     }
-    //return 0, only if no matching string is found
+    // return 0, only if no matching string is found
     return index;
 }
 
@@ -78,12 +78,12 @@ int32_t gettext_hash_table::getIndexOnPos(uint32_t pos) const {
     if (pos > hashTable.m_HashSize) {
         return 0;
     }
-    //move to position in hash table
+    // move to position in hash table
     if (fseek(m_File, hashTable.m_HashOffset + 4 * pos, SEEK_SET) != 0) {
         return -1;
     }
 
-    //read index in position
+    // read index in position
     uint32_t indexOfString = 0;
     if (fread(&indexOfString, 4, 1, m_File) != 1) {
         return -1;
@@ -95,29 +95,29 @@ int8_t gettext_hash_table::checkString(uint32_t index, const char *key) const {
 
     uint32_t strLen = 0;
     int32_t pos = 0;
-    //move to position of length a nd offset of the string to check
+    // move to position of length a nd offset of the string to check
     if (fseek(m_File, hashTable.m_OrigOffset + (index * 8), SEEK_SET) != 0) {
         return -1;
     }
-    //compute len of key
+    // compute len of key
     uint32_t keyLen = strlen(key);
 
-    //read len and pos of next string
+    // read len and pos of next string
     if (fread(&strLen, 4, 1, m_File) != 1 || fread(&pos, 4, 1, m_File) != 1) {
         return -1;
     }
 
-    //check if the lengths are equal
+    // check if the lengths are equal
     if (strLen == 0 || strLen < keyLen) {
         return 0;
     }
 
-    //move to position of string to check
+    // move to position of string to check
     if (fseek(m_File, pos, SEEK_SET) != 0) {
         return -1;
     }
 
-    //check if the string matches
+    // check if the string matches
     //@@TODO: add build procedure to check minimal number of chars to check if the strings are the same
     for (uint32_t i = 0; i < strLen; ++i) {
         char c;
@@ -143,19 +143,19 @@ bool gettext_hash_table::Init(FILE *file) {
     Header header;
     m_File = file;
 
-    //check validity of MO file
+    // check validity of MO file
 
     // read the header
     if (fread(&header, sizeof(header), 1, m_File) != 1) {
         return false;
     }
 
-    //check magick number
+    // check magick number
     if (header.magicNumber != magicHeader) {
         return false;
     }
 
-    //check revision
+    // check revision
     if (header.revision != 0) {
         return false;
     }

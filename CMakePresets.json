@@ -803,10 +803,6 @@
                     "type": "STRING",
                     "value": "0.2.7"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": "-DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX"
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -865,10 +861,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.2.7"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": "-DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -929,10 +921,6 @@
                     "type": "STRING",
                     "value": "0.2.7"
                 },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": "-DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX"
-                },
                 "BOOTLOADER": {
                     "type": "STRING",
                     "value": "YES"
@@ -991,10 +979,6 @@
                 "BOARD_VERSION": {
                     "type": "STRING",
                     "value": "0.2.7"
-                },
-                "PRESET_COMPILE_OPTIONS": {
-                    "type": "STRING",
-                    "value": "-DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",

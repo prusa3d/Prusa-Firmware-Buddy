@@ -52,7 +52,7 @@ class FooterItemAllNozzles : public AddSuperWindow<FooterIconText_IntVal> {
 #if HAS_TOOLCHANGER()
     static constexpr uint NOZZLES_COUNT = 5; ///< This icon only works for 5 nozzles
     static_assert(NOZZLES_COUNT <= EXTRUDERS);
-#endif /*HAS_TOOLCHANGER()*/
+#endif                                       /*HAS_TOOLCHANGER()*/
 
 public:
     FooterItemAllNozzles(window_t *parent);

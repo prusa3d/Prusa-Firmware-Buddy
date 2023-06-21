@@ -46,7 +46,7 @@ void Fading::Step(const std::pair<uint16_t, uint16_t> &leds_to_run) {
     case AnimationStateInternal::Ending: {
 
         uint32_t periodCount = (ticks - startTime) / (2 * period);
-        //if we are still in last breathe we want to calculate the color
+        // if we are still in last breathe we want to calculate the color
         leds::Color toSet = periodCount < 1 ? calculateColor(ticks) : leds::Color { 0 };
 
         if (periodCount >= 1) {

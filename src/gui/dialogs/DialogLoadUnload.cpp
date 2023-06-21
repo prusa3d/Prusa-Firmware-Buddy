@@ -180,9 +180,9 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 static constexpr Rect16 mmu_title_rect = { 14, 44, 317, 22 };
 static constexpr Rect16 mmu_desc_rect = { 14, 66, 224, 105 };
 static constexpr Rect16 mmu_icon_rect = { 263, 73, 59, 72 };
-static constexpr Rect16 mmu_link_rect = { 14, 165, 317, 48 };
+static constexpr Rect16 mmu_link_rect = { 14, 165, 317, 32 }; // 2x font size + a bit of margin
 static constexpr Rect16 mmu_qr_rect = { 341, 44, 125, 125 };
-static constexpr char error_code_link_format[] = N_("More detail at\nhelp.prusa3d.com/%u");
+static constexpr char error_code_link_format[] = N_("More detail at\nprusa.io/%05u");
 
 DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     : AddSuperWindow<DialogStateful<PhasesLoadUnload>>(get_name(ProgressSerializerLoadUnload(data.GetData()).mode), LoadUnloadFactory(), has_footer::yes)
@@ -203,7 +203,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     #endif
 #endif
           )
-    , radio_for_red_screen(this, GuiDefaults::GetIconnedButtonRect(GetRect()))
+    , radio_for_red_screen(this, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
     , text_link(this, mmu_link_rect, is_multiline::yes, is_closed_on_click_t::no)
     , icon_hand(this, mmu_icon_rect, &png::hand_qr_59x72)
     , qr(this, mmu_qr_rect)
@@ -211,7 +211,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
 
     instance = this;
 
-    text_link.font = resource_font(IDR_FNT_SMALL);
+    text_link.set_font(resource_font(IDR_FNT_SMALL));
 
     radio_for_red_screen.SetHasIcon();
     radio_for_red_screen.Hide();
@@ -265,10 +265,10 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
     }
 
 #if HAS_MMU2
-    //was black (or uninitialized), is red
+    // was black (or uninitialized), is red
     if ((!phase || !isRed(*phase)) && isRed(phs)) {
         SetRedLayout();
-        //this dialog does not contain header, so it broadcasts event to all windows
+        // this dialog does not contain header, so it broadcasts event to all windows
         event_conversion_union uni;
         uni.header.layout = layout_color::red;
         Screens::Access()->ScreenEvent(this, GUI_event_t::HEADER_COMMAND, uni.pvoid);
@@ -278,7 +278,6 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         progress.Hide();
 
         label.SetRect(mmu_desc_rect);
-        label.SetFont(resource_font(IDR_FNT_SMALL));
 
         radio_for_red_screen.Show();               // show red screen radio button
         CaptureNormalWindow(radio_for_red_screen); // capture red screen radio button
@@ -289,7 +288,7 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         qr.Show();
     }
 
-    //is red
+    // is red
     if (isRed(phs)) {
         if (!can_change(phs))
             return false;
@@ -303,11 +302,11 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         return true;
     }
 
-    //was red (or uninitialized), is black
+    // was red (or uninitialized), is black
     if ((!phase || isRed(*phase)) && !isRed(phs)) {
         title.SetRect(get_title_rect(GetRect()));
         SetBlackLayout();
-        //this dialog does not contain header, so it broadcasts event to all windows
+        // this dialog does not contain header, so it broadcasts event to all windows
         event_conversion_union uni;
         uni.header.layout = layout_color::black;
         Screens::Access()->ScreenEvent(this, GUI_event_t::HEADER_COMMAND, uni.pvoid);
@@ -315,7 +314,6 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         progress.Show();
 
         label.SetRect(get_label_rect(GetRect(), has_footer::yes));
-        label.SetFont(GuiDefaults::Font);
 
         radio.Show();                // show normal radio button
         CaptureNormalWindow(radio);  // capture normal radio button
@@ -327,14 +325,14 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
     }
 #endif
 
-    //is black
+    // is black
     return super::change(phs, data);
 }
 
 void DialogLoadUnload::red_screen_update(const MMU2::MMUErrDesc &err) {
-    responses[0] = ConvertMMUButtonOperation(err.buttons[0]);
-    responses[1] = ConvertMMUButtonOperation(err.buttons[1]);
-    responses[2] = ConvertMMUButtonOperation(err.buttons[2]);
+    responses[0] = ButtonOperationToResponse(err.buttons[0]);
+    responses[1] = ButtonOperationToResponse(err.buttons[1]);
+    responses[2] = ButtonOperationToResponse(err.buttons[2]);
 
     radio_for_red_screen.Change(responses);
 

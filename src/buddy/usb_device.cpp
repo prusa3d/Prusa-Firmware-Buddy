@@ -14,13 +14,13 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 #define USBD_VID 0x2C99 /// Prusa Research Vendor ID
 
 /// Product ID
-#if (PRINTER_TYPE == PRINTER_PRUSA_MINI)
+#if PRINTER_IS_PRUSA_MINI
     #define USBD_PID 0x000C
-#elif (PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_MK3_5)
+#elif PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
     #define USBD_PID 0x000D
-#elif (PRINTER_TYPE == PRINTER_PRUSA_iX)
+#elif PRINTER_IS_PRUSA_iX
     #define USBD_PID 0x0010
-#elif (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#elif PRINTER_IS_PRUSA_XL
     #define USBD_PID 0x0011
 #else
     #error "Unknown PRINTER_TYPE!"
@@ -76,7 +76,7 @@ static void usb_device_task_run(const void *) {
     USB_OTG_FS->GCCFG &= ~USB_OTG_GCCFG_VBUSBSEN;
 
     // init serial number
-    //this function correctly initializes the data and null terminates them
+    // this function correctly initializes the data and null terminates them
     otp_get_serial_nr(&serial_nr);
 
     // initialize tinyusb stack

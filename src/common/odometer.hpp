@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <atomic>
 #include <utils/utility_extensions.hpp>
-#include <eeprom.h>
 #include <inc/MarlinConfig.h>
 
 /// Singleton class that measures

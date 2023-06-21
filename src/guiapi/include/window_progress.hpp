@@ -32,7 +32,7 @@ class window_progress_t : public AddSuperWindow<window_frame_t> {
 public:
     window_progress_t(window_t *parent, Rect16 rect, uint16_t h_progr = 8, color_t cl_progress = COLOR_LIME, color_t cl_back = COLOR_GRAY, int corner_radius = 0);
     void SetValue(float val);
-    void SetFont(font_t *val);
+    void set_font(font_t *val);
     void SetProgressColor(color_t clr);
     void SetNumbColor(color_t clr);
     void SetProgressHeight(Rect16::Height_t height);

@@ -1,4 +1,4 @@
-//wiring_analog.h - Buddy/STM32
+// wiring_analog.h - Buddy/STM32
 #ifndef _WIRING_ANALOG_H
 #define _WIRING_ANALOG_H
 
@@ -10,7 +10,7 @@ extern "C" {
 
 /*typedef enum _eAnalogReference
 {
-	AR_DEFAULT,
+        AR_DEFAULT,
 } eAnalogReference ;*/
 
 extern void analogWrite(uint32_t ulPin, uint32_t ulValue);

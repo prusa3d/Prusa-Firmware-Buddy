@@ -12,7 +12,7 @@
 #include "selftest_loadcell_type.hpp"
 
 namespace selftest {
-//using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
+// using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
 struct LoadcellConfig_t {
     using type_evaluation = SelftestLoadcell_t;
     using FanCtlFnc = CFanCtl &(*)(size_t);

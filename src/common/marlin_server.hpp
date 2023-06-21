@@ -16,6 +16,10 @@
 
 #include <stddef.h>
 
+#if BOARD_IS_DWARF
+    #error "You're trying to add marlin_server to Dwarf. Don't!"
+#endif /*BOARD_IS_DWARF*/
+
 namespace marlin_server {
 
 // server flags
@@ -115,6 +119,7 @@ typedef struct
 {
     xyze_pos_t pos;               // resume position for unpark_head
     float nozzle_temp[EXTRUDERS]; // resume nozzle temperature
+    bool nozzle_temp_paused;      // True if nozzle_temp is valid and hotend cools down
     uint8_t fan_speed;            // resume fan speed
     uint8_t print_speed;          // resume printing speed
 } resume_state_t;
@@ -182,14 +187,14 @@ void nozzle_timeout_off();
 bool can_stop_wait_for_heatup();
 void can_stop_wait_for_heatup(bool val);
 
-//inherited class for server side to be able to work with server_side_encoded_response
+// inherited class for server side to be able to work with server_side_encoded_response
 class ClientResponseHandler : public ClientResponses {
     ClientResponseHandler() = delete;
     ClientResponseHandler(ClientResponseHandler &) = delete;
     static std::atomic<uint32_t> server_side_encoded_response;
 
 public:
-    //call inside marlin server on received response from client
+    // call inside marlin server on received response from client
     static void SetResponse(uint32_t encoded_bt) {
         server_side_encoded_response = encoded_bt;
     }
@@ -200,23 +205,23 @@ public:
     /// dialogs/threads/places just for checking if there has been some input renders the whole printer unresponsive in all of the dialogs.
     template <class T>
     static Response GetResponseFromPhase(T phase) {
-        const uint32_t value = server_side_encoded_response.exchange(UINT32_MAX); //read and erase response
+        const uint32_t value = server_side_encoded_response.exchange(UINT32_MAX); // read and erase response
 
         uint32_t _phase = value >> RESPONSE_BITS;
         if ((static_cast<uint32_t>(phase)) != _phase)
             return Response::_none;
-        uint32_t index = value & uint32_t(MAX_RESPONSES - 1); //get response index
+        uint32_t index = value & uint32_t(MAX_RESPONSES - 1); // get response index
         return GetResponse(phase, index);
     }
 };
 
-//FSM_notifier
+// FSM_notifier
 class FSM_notifier {
-    struct data { //used floats - no need to retype
+    struct data { // used floats - no need to retype
         ClientFSM type;
         uint8_t phase;
-        float scale = 1;  //scale from value to progress
-        float offset = 0; //offset from lowest value
+        float scale = 1;  // scale from value to progress
+        float offset = 0; // offset from lowest value
         uint8_t progress_min = 0;
         uint8_t progress_max = 100;
         const MarlinVariable<float> *var_id;
@@ -226,13 +231,13 @@ class FSM_notifier {
             , phase(0)
             , var_id(nullptr) {}
     };
-    //static members
-    //there can be only one active instance of FSM_notifier, which use this data
+    // static members
+    // there can be only one active instance of FSM_notifier, which use this data
     static data s_data;
     static FSM_notifier *activeInstance;
 
-    //temporary members
-    //constructor stores previous state of FSM_notifier (its static data), destructor restores it
+    // temporary members
+    // constructor stores previous state of FSM_notifier (its static data), destructor restores it
     data temp_data;
 
 protected:
@@ -254,14 +259,14 @@ public:
 #define FSM_CHANGE_WITH_DATA__LOGGING(fsm_type, phase, data)          marlin_server::fsm_change(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 #define FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(fsm_type, phase, data) marlin_server::fsm_change_extended(ClientFSM::fsm_type, phase, data, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 #define FSM_CHANGE__LOGGING(fsm_type, phase)                          marlin_server::fsm_change(ClientFSM::fsm_type, phase, fsm::PhaseData({ 0, 0, 0, 0 }), __PRETTY_FUNCTION__, __FILE__, __LINE__)
-//notify all clients to create finite statemachine
+// notify all clients to create finite statemachine
 void _fsm_create(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line);
-//notify all clients to destroy finite statemachine, must match fsm_destroy_t signature
+// notify all clients to destroy finite statemachine, must match fsm_destroy_t signature
 void fsm_destroy(ClientFSM type, const char *fnc, const char *file, int line);
-//notify all clients to change state of finite statemachine, must match fsm_change_t signature
-//can be called inside while, notification is send only when is different from previous one
+// notify all clients to change state of finite statemachine, must match fsm_change_t signature
+// can be called inside while, notification is send only when is different from previous one
 void _fsm_change(ClientFSM type, fsm::BaseData data, const char *fnc, const char *file, int line);
-//notify all clients to atomically destroy and create finite statemachine
+// notify all clients to atomically destroy and create finite statemachine
 void _fsm_destroy_and_create(ClientFSM old_type, ClientFSM new_type, fsm::BaseData data, const char *fnc, const char *file, int line);
 
 template <class T>
@@ -276,13 +281,11 @@ void fsm_change(ClientFSM type, T phase, fsm::PhaseData data, const char *fnc, c
 
 template <class T, FSMExtendedDataSubclass DATA_TYPE>
 void fsm_change_extended(ClientFSM type, T phase, DATA_TYPE data, const char *fnc, const char *file, int line) {
-    bool changed = FSMExtendedDataManager::store(data);
-    if (changed) {
-        // Only send FSM change if data actually changed, We also use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
-        static std::array<uint8_t, 4> fsm_change_data = { 0 };
-        fsm_change_data[0]++;
-        _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
-    }
+    FSMExtendedDataManager::store(data);
+    //  We use this ugly hack that we increment fsm_change_data[0] every time data changed, to force redraw of GUI
+    static std::array<uint8_t, 4> fsm_change_data = { 0 };
+    fsm_change_data[0]++;
+    _fsm_change(type, fsm::BaseData(GetPhaseIndex(phase), fsm_change_data), fnc, file, line);
 }
 
 template <class T>
@@ -355,6 +358,8 @@ void set_axes_length(xy_float_t xy);
 #endif
 
 void powerpanic_resume_loop(const char *media_SFN_path, uint32_t pos, bool auto_recover);
-void powerpanic_finish(bool paused);
+void powerpanic_finish_recovery();
+void powerpanic_finish_pause();
+void powerpanic_finish_toolcrash();
 
 } // marlin_server namespace

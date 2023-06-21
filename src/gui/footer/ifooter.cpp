@@ -22,7 +22,7 @@ bool IFooter::SetSlotInit(size_t slot_id, footer::Item item) {
         return false;
     if (footer::eeprom::Load()[slot_id] != item) {
         footer::eeprom::Set(item, slot_id);
-        //send event to all windows - there can be multiple footers, ScreenEvent is the best way
+        // send event to all windows - there can be multiple footers, ScreenEvent is the best way
         Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(item));
     }
     return true;

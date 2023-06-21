@@ -22,7 +22,7 @@ void SelftestFrameESP::change() {
 
     const char *txt = "MISSING";
 
-    //texts
+    // texts
     switch (phase_current) {
     case PhasesSelftest::ESP_instructions:
         txt = N_("Make sure USB drive with config file is connected.\n\nContinue to upload settings to the printer.");

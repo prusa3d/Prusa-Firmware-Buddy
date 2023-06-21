@@ -68,7 +68,7 @@ public:
         return !(*this == other);
     }
 
-    //TODO make getter return values optional ?
+    // TODO make getter return values optional ?
     CommandInProgress GetCommand() const;
     MMU2::ErrorSource GetErrorSource() const;
     ErrorCode GetErrorCode() const;

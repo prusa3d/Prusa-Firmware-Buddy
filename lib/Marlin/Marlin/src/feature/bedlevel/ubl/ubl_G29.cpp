@@ -918,7 +918,13 @@
 
           // make initial move manually (has a different speed)
           if (is_initial_probe) {
-            do_blocking_move_to(pos.x, pos.y, Z_CLEARANCE_BEFORE_PROBING);
+            xyz_pos_t start_pos = pos;
+            start_pos -= probe_offset;
+            start_pos.z = Z_CLEARANCE_BEFORE_PROBING;
+            #if HAS_HOTEND_OFFSET
+            start_pos -= hotend_currently_applied_offset;
+            #endif
+            do_blocking_move_to(start_pos.x, start_pos.y, start_pos.z);
             is_initial_probe = false;
             safe_delay(Z_FIRST_PROBE_DELAY); // dampen the system
           }

@@ -5,11 +5,11 @@
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
+#include <configuration_store.hpp>
 
 namespace SelftestSnake {
 TestResult get_test_result(Action action, Tool tool) {
-    SelftestResult sr;
-    eeprom_get_selftest_results(&sr);
+    SelftestResult sr = config_store().selftest_result.get();
 
     switch (action) {
     case Action::Fans:

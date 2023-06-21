@@ -73,14 +73,28 @@ public:
         InhibitFlags inhibit_flags; /// Inhibit instruction replay flags
     } gcode_state;
 
-    uint32_t sdpos;                    /// sdpos of the gcode instruction being aborted
+    uint32_t sdpos = GCodeQueue::SDPOS_INVALID; ///< sdpos of the gcode instruction being aborted
+
+    /**
+     * @brief Check if the new sdpos is valid and set it.
+     * @param new_sdpos sdpos to be set
+     * @return true if the new sdpos is valid and was set
+     */
+    bool check_and_set_sdpos(uint32_t new_sdpos) {
+        if (new_sdpos != GCodeQueue::SDPOS_INVALID) {
+            sdpos = new_sdpos;
+            return true;
+        }
+        return false;
+    }
+
     xyze_pos_t start_current_position; /// absolute logical starting XYZE position of the gcode instruction
     xyze_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
     abce_pos_t crash_position;         /// absolute physical ABCE position of the crash location
     #if ENABLED(LIN_ADVANCE)
-    float advance_mm = 0; /// accumulated linear advance mm
+    float advance_mm = 0;              /// accumulated linear advance mm
     #endif
-    xy_uint_t counter_crash; /// 2x uint16_t
+    xy_uint_t counter_crash;           /// 2x uint16_t
     uint16_t counter_power_panic;
     uint16_t segments_finished;
     uint8_t crash_axis_known_position; /// axis state before crashing
@@ -114,15 +128,16 @@ private:
     state_t state;
     uint8_t crash_timestamps_idx; ///< index for round buffer
     bool repeated_crash;
-    bool enabled;             ///< has to cache EEPROM to avoid IRQ deadlock
-    bool m_axis_is_homing[2]; ///< Axis is sensorlessly homing now
-    bool m_enable_stealth[2]; ///< Stealth mode should be enabled if crash detection is disabled
+    bool enabled;                 ///< has to cache EEPROM to avoid IRQ deadlock
+    bool m_axis_is_homing[2];     ///< Axis is sensorlessly homing now
+    bool m_enable_stealth[2];     ///< Stealth mode should be enabled if crash detection is disabled
     #if HAS_DRIVER(TMC2130)
-    bool filter; /// use TMC filtering
+    bool filter;                  /// use TMC filtering
     #endif
     AxisEnum axis_hit;
     bool toolchange_event;       ///< True if the event was triggered by TRIGGERED_TOOLCRASH or TRIGGERED_TOOLFALL
     bool toolchange_in_progress; ///< True while changing tools, set externally by the prusa_toolchanger
+    bool pretoolchange_leveling; ///< True if leveling was active before toolchange, set externally by the prusa_toolchanger
 
     /// methods
 public:
@@ -200,15 +215,22 @@ public:
 
     /**
      * @brief Set when changing tools, when regular crash recovery would be dangerous.
-     * @param toolchange_in_progress true when changing tools
+     * @param toolchange_in_progress_ true when changing tools
+     * @param pretoolchange_leveling_ true if leveling was active before toolchange
      */
-    void set_toolchange_in_progress(bool toolchange_in_progress) { this->toolchange_in_progress = toolchange_in_progress; }
+    void set_toolchange_in_progress(bool toolchange_in_progress_, bool pretoolchange_leveling_ = false) {
+        if (toolchange_in_progress_) {
+            // Set levelling first to be valid all time when toolchange_in_progress == true
+            pretoolchange_leveling = pretoolchange_leveling_;
+        }
+        toolchange_in_progress = toolchange_in_progress_;
+    }
 
 private:
     void update_machine();
-    void stop_and_save();   ///< Stop the planner and update the crash state
-    void restore_state();   ///< Restore planner state for a saved crash. *Must* be called one server loop later!
-    void resume_movement(); ///< Release the planner from a stop. *Must* be called one server loop later!
+    void stop_and_save();     ///< Stop the planner and update the crash state
+    void restore_state();     ///< Restore planner state for a saved crash. *Must* be called one server loop later!
+    void resume_movement();   ///< Release the planner from a stop. *Must* be called one server loop later!
 
     uint32_t clean_history(); /// remove old timestamps, returns number of valid timestamps
     void reset_history();     /// remove all timestamps

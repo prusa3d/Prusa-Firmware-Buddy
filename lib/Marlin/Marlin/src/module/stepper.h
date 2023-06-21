@@ -45,9 +45,6 @@
 
 #include "planner.h"
 #include "stepper/indirection.h"
-#include "../feature/input_shaper/input_shaper.h"
-#include "../feature/precise_stepping/precise_stepping.h"
-#include "../feature/pressure_advance/pressure_advance.h"
 #ifdef __AVR__
   #include "speed_lookuptable.h"
 #endif
@@ -408,9 +405,6 @@ class Stepper {
       static uint32_t advance_isr();
     #endif
 #endif
-
-    // Check if the given block is busy or not
-    static bool is_block_busy(const block_t* const block) { return TEST(block->flag, BLOCK_BIT_PROCESSED); }
 
     // Get the position of a stepper, in steps
     static int32_t position(const AxisEnum axis);

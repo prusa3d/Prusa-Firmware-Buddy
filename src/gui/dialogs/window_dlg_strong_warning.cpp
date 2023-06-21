@@ -1,4 +1,4 @@
-//window_dlg_strong_warning.cpp
+// window_dlg_strong_warning.cpp
 
 #include "window_dlg_strong_warning.hpp"
 #include "display_helper.h"
@@ -47,7 +47,7 @@ void window_dlg_strong_warning_t::setWarningText(types type) {
         text.SetRect(textRectIcon);
     }
     text.SetText(_(icon_title_text[type].text));
-    adjustLayout(); //this could cause invalidation issue
+    adjustLayout(); // this could cause invalidation issue
 }
 
 void window_dlg_strong_warning_t::show(types type) {
@@ -67,7 +67,7 @@ void window_dlg_strong_warning_t::show(types type) {
     }
 }
 
-//Relaunch correct window
+// Relaunch correct window
 void window_dlg_strong_warning_t::screenJump() {
     for (types t = types(0); t < types::count_; t = types(t + 1)) {
 
@@ -82,9 +82,9 @@ void window_dlg_strong_warning_t::screenJump() {
 void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (!GetParent())
         return;
-    if (event == GUI_event_t::CLICK) { //todo use timer
+    if (event == GUI_event_t::CLICK) { // todo use timer
         shown[on_top] = false;         // remove from mask
-        on_top = types::count_;        //erase on_top
+        on_top = types::count_;        // erase on_top
 
         if (shown.any()) {
             for (types t = types(0); t < types::count_; t = types(t + 1)) {
@@ -103,7 +103,7 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
 }
 
 void window_dlg_strong_warning_t::ScreenJumpCheck() {
-    //Check warning flag and if current screen has no warning window, create one
+    // Check warning flag and if current screen has no warning window, create one
     if (shown.any() && !Screens::Access()->Get()->GetFirstStrongDialog()) { //&& !Instance().IsVisible()){
         Instance().screenJump();
     }

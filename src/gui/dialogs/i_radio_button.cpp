@@ -14,8 +14,8 @@ static constexpr uint8_t icon_button_font_height = 16;
 static constexpr uint8_t icon_label_delim = 5;
 
 /*****************************************************************************/
-//static variables and methods
-static const IRadioButton::Responses_t no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; //used in constructor
+// static variables and methods
+static const IRadioButton::Responses_t no_responses = { Response::_none, Response::_none, Response::_none, Response::_none }; // used in constructor
 
 size_t IRadioButton::cnt_labels(const PhaseTexts *labels) {
     if (!labels)
@@ -34,7 +34,7 @@ size_t IRadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
 }
 
 /*****************************************************************************/
-//nonstatic variables and methods
+// nonstatic variables and methods
 
 IRadioButton::IRadioButton(window_t *parent, Rect16 rect, size_t count)
     : AddSuperWindow<window_t>(parent, rect)
@@ -45,7 +45,7 @@ IRadioButton::IRadioButton(window_t *parent, Rect16 rect, size_t count)
     Enable();
 }
 
-//no overflow
+// no overflow
 IRadioButton &IRadioButton::operator++() {
     int8_t index = GetBtnIndex();
     if (isIndexValid(index + 1)) {
@@ -57,7 +57,7 @@ IRadioButton &IRadioButton::operator++() {
     return *this;
 }
 
-//no underflow
+// no underflow
 IRadioButton &IRadioButton::operator--() {
     uint8_t index = GetBtnIndex();
     if (index > 0 && (isIndexValid(index - 1))) {
@@ -143,10 +143,10 @@ void IRadioButton::unconditionalDraw() {
         const size_t cnt = GetBtnCount();
         switch (cnt) {
         case 0:
-            draw_0_btn(); //cannot use draw_n_btns, would div by 0
+            draw_0_btn(); // cannot use draw_n_btns, would div by 0
             break;
         case 1:
-            draw_1_btn(); //could use draw_n_btns, but this is much faster
+            draw_1_btn(); // could use draw_n_btns, but this is much faster
             break;
         default:
             draw_n_btns(cnt);
@@ -154,14 +154,14 @@ void IRadioButton::unconditionalDraw() {
         }
     } else {
         window_t *const prev_focus = focused_ptr; // store focus
-        //draw background
+        // draw background
         if (!HasValidBackground()) {
             draw_0_btn();
             ValidateBackground();
         }
 
         const color_t background_color = GetParent() ? GetParent()->GetBackColor() : GetBackColor(); // color behind rounded corners
-        //draw foreground
+        // draw foreground
         for (size_t i = 0; i < std::min<size_t>(max_icons, GetBtnCount()); ++i) {
             // Iconed buttons support horizontal alignment
 
@@ -174,7 +174,7 @@ void IRadioButton::unconditionalDraw() {
 
                 label.SetBackColor(background_color);
                 label.SetAlignment(Align_t::Center());
-                label.SetFont(resource_font(IDR_FNT_SMALL));
+                label.set_font(resource_font(IDR_FNT_SMALL));
 
                 if (i == GetBtnIndex()) {
                     focused_ptr = &icon;
@@ -188,7 +188,7 @@ void IRadioButton::unconditionalDraw() {
                 display::DrawRoundedRect(rcIcon, background_color, COLOR_ORANGE, GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
             }
         }
-        focused_ptr = prev_focus; //return focus
+        focused_ptr = prev_focus; // return focus
     }
 }
 
@@ -264,7 +264,7 @@ void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent
 }
 
 bool IRadioButton::IsEnabled() const {
-    return responseFromIndex(0) != Response::_none; //faster than cnt_responses(responses)!=0
+    return responseFromIndex(0) != Response::_none; // faster than cnt_responses(responses)!=0
 }
 
 /**
@@ -275,9 +275,9 @@ bool IRadioButton::IsEnabled() const {
  */
 void IRadioButton::validateBtnIndex() {
     if (isIndexValid(GetBtnIndex()))
-        return; //index valid
+        return; // index valid
 
-    //default index for not iconned is 0
+    // default index for not iconned is 0
     if (!HasIcon()) {
         SetBtnIndex(0);
         return;
@@ -286,7 +286,7 @@ void IRadioButton::validateBtnIndex() {
     if (HasIcon()) {
         SetBtnIndex(1); // default index for iconned is 1
         if (isIndexValid(GetBtnIndex()))
-            return; //index 1 is valid
+            return;     // index 1 is valid
 
         for (size_t i = 0; i < max_icons; ++i) {
             if (responseFromIndex(i) != Response::_none) {
@@ -336,23 +336,24 @@ void IRadioButton::SetBtn(Response btn) {
 }
 
 Rect16 IRadioButton::getIconRect(uint8_t idx) const {
-    const int padding = 10;
     Rect16 rect = GetRect();
     rect = Rect16::Width_t(button_base_size);  // button width
     rect = Rect16::Height_t(button_base_size); // button height
 
+    // FIXED CENTER ALIGNMENT
     switch (std::min<size_t>(max_icons, GetBtnCount())) {
     case 1:
         rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
         rect -= Rect16::Left_t(button_base_size / 2);  // button 1 pos
         break;
     case 2:
-        rect = Rect16::Left_t(idx == 0 ? padding : (GetRect().Width() - button_base_size - padding));
+        rect += Rect16::Left_t(GetRect().Width() - (button_delim_size / 2 + button_base_size)); // first button pos
+        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size));                   // current button pos
         break;
     case 3:
-        rect += Rect16::Left_t(GetRect().Width() / 2);                        // middle of rect
-        rect -= Rect16::Left_t(button_base_size / 2);                         // button 1 pos
-        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size)); // current button pos
+        rect += Rect16::Left_t(GetRect().Width() / 2);                                       // middle of rect
+        rect -= Rect16::Left_t(button_base_size / 2 + button_base_size + button_delim_size); // first button pos
+        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size));                // current button pos
         break;
     default:
         rect = Rect16();

@@ -10,7 +10,7 @@ IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, const png::Resource *id_i
     : AddSuper<WI_LABEL_t>(label, extension_width_, id_icon, enabled, hidden)
     , units(units_)
     , value(val) {
-    //printSpinToBuffer(); initialized by parrent so it does not have to be virtual
+    // printSpinToBuffer(); initialized by parrent so it does not have to be virtual
 }
 
 void IWiSpin::click(IWindowMenu & /*window_menu*/) {
@@ -39,7 +39,7 @@ Rect16 IWiSpin::getSpinRect(Rect16 extension_rect) const {
 Rect16 IWiSpin::getUnitRect(Rect16 extension_rect) const {
     Rect16 ret = extension_rect;
     if (has_unit && !units.isNULLSTR()) {
-        string_view_utf8 un = units; //local var because of const
+        string_view_utf8 un = units; // local var because of const
         char uchar = un.getUtf8Char();
         size_t half_space_padding = (uchar == 0 || uchar == '\177') ? 0 : unit__half_space_padding;
         un.rewind();
@@ -80,22 +80,22 @@ void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t 
             extension_rect -= Rect16::Left_t(off_opt_width - curr_width);
             extension_rect = Rect16::Width_t(off_opt_width);
         }
-        render_text_align(extension_rect, spin_txt, Font, color_back, cl_txt, extension_padding, align); //render spin number
+        render_text_align(extension_rect, spin_txt, Font, color_back, cl_txt, extension_padding, align); // render spin number
         return;
     }
 
     spin_txt.rewind();
     const Rect16 spin_rc = getSpinRect(extension_rect);
     const Rect16 unit_rc = getUnitRect(extension_rect);
-    render_text_align(spin_rc, spin_txt, Font, color_back, cl_txt, extension_padding, align); //render spin number
+    render_text_align(spin_rc, spin_txt, Font, color_back, cl_txt, extension_padding, align); // render spin number
 
     if (has_unit) {
-        string_view_utf8 un = units; //local var because of const
+        string_view_utf8 un = units; // local var because of const
         un.rewind();
         uint32_t Utf8Char = un.getUtf8Char();
         padding_ui8_t unit_padding = extension_padding;
-        unit_padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                                                  //177oct (127dec) todo check
-        render_text_align(unit_rc, units, Font, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER, unit_padding, align); //render unit
+        unit_padding.left = Utf8Char == '\177' ? 0 : unit__half_space_padding;                                                  // 177oct (127dec) todo check
+        render_text_align(unit_rc, units, Font, color_back, IsFocused() ? COLOR_DARK_GRAY : COLOR_SILVER, unit_padding, align); // render unit
     }
 }
 
@@ -135,10 +135,10 @@ invalidate_t WI_SPIN_CRASH_PERIOD_t::change(int dif) {
     int val = (int)value;
     int old = val;
     val += (int)dif * config.Step();
-    val = dif >= 0 ? std::max(val, old) : std::min(val, old); //check overflow/underflow
+    val = dif >= 0 ? std::max(val, old) : std::min(val, old); // check overflow/underflow
     val = std::clamp(val, config.Min(), config.Max());
     value = val;
-    invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; //0 dif forces redraw
+    invalidate_t invalid = (!dif || old != val) ? invalidate_t::yes : invalidate_t::no; // 0 dif forces redraw
     if (invalid == invalidate_t::yes) {
         if (!has_unit || config.Unit() == nullptr) {
             changeExtentionWidth(0, 0, config.txtMeas(value));

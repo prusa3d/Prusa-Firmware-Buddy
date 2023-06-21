@@ -22,7 +22,7 @@ void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
     button_queue_handle = xQueueCreateStatic(length, item_sz, storage_area, &queue);
 }
 
-#else // (configSUPPORT_STATIC_ALLOCATION == 1 )
+#else  // (configSUPPORT_STATIC_ALLOCATION == 1 )
 
 void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
     button_queue_handle = xQueueCreate(ButtonMessageQueueLength, sizeof(BtnState_t));
@@ -76,15 +76,15 @@ int Jogwheel::GetJogwheelButtonPinState() {
 uint8_t Jogwheel::ReadHwInputsFromISR() {
     uint8_t signals = 0;
     if (jogWheelENC.read() == Pin::State::high) {
-        signals |= JG_BUTTON_PRESSED; //bit 2 - button press
+        signals |= JG_BUTTON_PRESSED; // bit 2 - button press
     }
-    signals ^= JG_BUTTON_PRESSED; // we are using inverted button pin
+    signals ^= JG_BUTTON_PRESSED;     // we are using inverted button pin
 
     if (jogWheelEN1.read() == Pin::State::high) {
-        signals |= JG_PHASE_0; //bit 0 - phase0
+        signals |= JG_PHASE_0; // bit 0 - phase0
     }
     if (jogWheelEN2.read() == Pin::State::high) {
-        signals |= JG_PHASE_1; //bit 1 - phase1
+        signals |= JG_PHASE_1; // bit 1 - phase1
     }
     return signals;
 }
@@ -119,14 +119,14 @@ int32_t Jogwheel::CalculateEncoderDiff(Jogwheel::encoder_t current_enc) {
     static encoder_t last_enc = { 0, 1, 0 };
 
     if (last_enc.tick == current_enc.tick)
-        return 0; //this data were already used
+        return 0; // this data were already used
 
     int32_t diff = current_enc.value - last_enc.value;
     diff *= current_enc.gear;
 
     last_enc.data = current_enc.data;
 
-    return diff; //could overflow to 0 .. does not matter
+    return diff; // could overflow to 0 .. does not matter
 }
 
 void Jogwheel::SetJogwheelType(uint16_t delay) {
@@ -186,12 +186,12 @@ void Jogwheel::ChangeStateFromISR(BtnState_t new_state) {
     if (button_queue_handle == nullptr)
         return;
     btn_state = new_state;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE; //xQueueSendFromISR require address of this
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE; // xQueueSendFromISR require address of this
     xQueueSendFromISR(button_queue_handle, &btn_state, &xHigherPriorityTaskWoken);
 }
 
 void Jogwheel::Update1msFromISR() {
-    //do nothing while queues are not initialized
+    // do nothing while queues are not initialized
     if (button_queue_handle == nullptr)
         return;
 
@@ -233,7 +233,7 @@ int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const {
 void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
     uint8_t change = signals ^ jogwheel_signals;
 
-    if (change & JG_PHASES_CHANGED) //encoder phase signals changed
+    if (change & JG_PHASES_CHANGED)                                   // encoder phase signals changed
     {
         int32_t new_encoder = JogwheelTypeBehaviour(change, signals); // derived function - different types of jogwheel
 
@@ -243,7 +243,7 @@ void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
             encoder = JG_ENCODER_MAX;
         if (encoder != new_encoder) {
             encoder = new_encoder;
-            change |= JG_ENCODER_CHANGED; //bit3 means encoder changed
+            change |= JG_ENCODER_CHANGED; // bit3 means encoder changed
             speed_traps[3] = speed_traps[2];
             speed_traps[2] = speed_traps[1];
             speed_traps[1] = speed_traps[0];
@@ -252,10 +252,10 @@ void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
         }
     }
 
-    if (change & (JG_PHASES_OR_BUTTON_CHANGED | JG_ENCODER_CHANGED)) //encoder phase signals, encoder or button changed
+    if (change & (JG_PHASES_OR_BUTTON_CHANGED | JG_ENCODER_CHANGED)) // encoder phase signals, encoder or button changed
     {
-        jogwheel_signals_old = jogwheel_signals; //save old signal state
-        jogwheel_signals = signals;              //update signal state
+        jogwheel_signals_old = jogwheel_signals;                     // save old signal state
+        jogwheel_signals = signals;                                  // update signal state
     }
 
     threadsafe_enc.value = int16_t(encoder);
@@ -263,7 +263,7 @@ void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
     threadsafe_enc.tick = uint8_t(tick_counter);
 }
 
-//if encoder is not moved 49 days, this will fail
+// if encoder is not moved 49 days, this will fail
 void Jogwheel::Transmission() {
     uint32_t time_diff = speed_traps[0] - speed_traps[1];
     time_diff = time_diff > speed_traps[1] - speed_traps[2] ? time_diff : speed_traps[1] - speed_traps[2];

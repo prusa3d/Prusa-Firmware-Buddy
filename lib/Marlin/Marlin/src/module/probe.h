@@ -68,42 +68,10 @@
 #endif
 
 #if HAS_LEVELING && (HAS_BED_PROBE || ENABLED(PROBE_MANUALLY))
-  inline float probe_min_x() {
-    return _MAX(
-      #if IS_KINEMATIC
-        PROBE_X_MIN, MESH_MIN_X
-      #else
-        (X_MIN_BED) + (MIN_PROBE_EDGE_LEFT), (X_MIN_POS) + probe_offset.x
-      #endif
-    );
-  }
-  inline float probe_max_x() {
-    return _MIN(
-      #if IS_KINEMATIC
-        PROBE_X_MAX, MESH_MAX_X
-      #else
-        (X_MAX_BED) - (MIN_PROBE_EDGE_RIGHT), (X_MAX_POS) + probe_offset.x
-      #endif
-    );
-  }
-  inline float probe_min_y() {
-    return _MAX(
-      #if IS_KINEMATIC
-        PROBE_Y_MIN, MESH_MIN_Y
-      #else
-        (Y_MIN_BED) + (MIN_PROBE_EDGE_FRONT), (Y_MIN_POS) + probe_offset.y
-      #endif
-    );
-  }
-  inline float probe_max_y() {
-    return _MIN(
-      #if IS_KINEMATIC
-        PROBE_Y_MAX, MESH_MAX_Y
-      #else
-        (Y_MAX_BED) - (MIN_PROBE_EDGE_BACK), (Y_MAX_POS) + probe_offset.y
-      #endif
-    );
-  }
+  float probe_min_x();
+  float probe_max_x();
+  float probe_min_y();
+  float probe_max_y();
 #else
   inline float probe_min_x() { return 0; };
   inline float probe_max_x() { return 0; };

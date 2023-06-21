@@ -6,8 +6,18 @@ add_executable(
 
 # define required search paths
 target_include_directories(
-  language_eeprom_tests PUBLIC . ${CMAKE_SOURCE_DIR}/src/lang ${CMAKE_SOURCE_DIR}/src/common
-                               ${CMAKE_SOURCE_DIR}/src/gui ${CMAKE_SOURCE_DIR}/include
+  language_eeprom_tests
+  PUBLIC .
+         ${CMAKE_SOURCE_DIR}/src/lang
+         ${CMAKE_SOURCE_DIR}/src/common
+         ${CMAKE_SOURCE_DIR}/src/common/utils
+         ${CMAKE_SOURCE_DIR}/src/gui
+         ${CMAKE_SOURCE_DIR}/src/guiconfig
+         ${CMAKE_SOURCE_DIR}/include
+         ${CMAKE_BINARY_DIR}/include
+         ${CMAKE_SOURCE_DIR}/src/configuration_store
+         ${CMAKE_SOURCE_DIR}/tests/stubs
+         ${CMAKE_SOURCE_DIR}/lib/cthash/include
   )
 
 # define custom macros

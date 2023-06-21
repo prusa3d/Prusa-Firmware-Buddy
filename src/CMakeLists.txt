@@ -8,6 +8,8 @@ add_subdirectory(common)
 add_subdirectory(guiconfig)
 
 if(BOARD MATCHES "BUDDY")
+  add_subdirectory(configuration_store) # Contains a file with long compile time, keep it near top
+
   if(CONNECT OR WUI)
     add_subdirectory(transfers)
     add_subdirectory(state)
@@ -49,7 +51,6 @@ if(BOARD MATCHES "BUDDY")
     add_subdirectory(mmu2)
   endif()
 
-  add_subdirectory(configuration_store)
   add_subdirectory(semihosting)
 elseif(BOARD STREQUAL "DWARF")
   add_subdirectory(puppy/dwarf)

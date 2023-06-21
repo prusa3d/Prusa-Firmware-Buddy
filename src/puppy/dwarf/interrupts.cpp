@@ -33,9 +33,9 @@ void DMA1_Channel1_IRQHandler() {
 // }
 
 void TIM14_IRQHandler() {
-    //traceISR_ENTER();
+    // traceISR_ENTER();
     HAL_TIM_IRQHandler(&TimerSysHandle);
-    //traceISR_EXIT();
+    // traceISR_EXIT();
 }
 
 void DMA1_Channel2_3_IRQHandler() {

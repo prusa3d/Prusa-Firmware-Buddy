@@ -43,7 +43,7 @@ void GcodeSuite::M145() {
     int v;
     if (parser.seenval('H')) {
       v = parser.value_int();
-      ui.preheat_hotend_temp[material] = constrain(v, EXTRUDE_MINTEMP, HEATER_0_MAXTEMP - 15);
+      ui.preheat_hotend_temp[material] = constrain(v, EXTRUDE_MINTEMP, HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN);
     }
     if (parser.seenval('F')) {
       v = parser.value_int();

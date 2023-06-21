@@ -12,17 +12,17 @@
 
 namespace dwarf::ModbusRegisters {
 
-const uint32_t MIN_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::is_picked));
-const uint32_t MAX_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::is_parked));
+constexpr uint32_t MIN_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::_first));
+constexpr uint32_t MAX_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::_last));
 
-const uint32_t MIN_SystemCoil = (ftrstd::to_underlying(SystemCoil::tmc_enable));
-const uint32_t MAX_SystemCoil = (ftrstd::to_underlying(SystemCoil::accelerometer_high));
+constexpr uint32_t MIN_SystemCoil = (ftrstd::to_underlying(SystemCoil::_first));
+constexpr uint32_t MAX_SystemCoil = (ftrstd::to_underlying(SystemCoil::_last));
 
-const uint32_t MIN_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::hw_bom_id));
-const uint32_t MAX_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::marlin_error_message_end));
+constexpr uint32_t MIN_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::_first));
+constexpr uint32_t MAX_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::_last));
 
-const uint32_t MIN_SystemHoldingRegister = (ftrstd::to_underlying(SystemHoldingRegister::nozzle_target_temperature));
-const uint32_t MAX_SystemHoldingRegister = (ftrstd::to_underlying(SystemHoldingRegister::tmc_write_request_value_2));
+constexpr uint32_t MIN_SystemHoldingRegister = (ftrstd::to_underlying(SystemHoldingRegister::_first));
+constexpr uint32_t MAX_SystemHoldingRegister = (ftrstd::to_underlying(SystemHoldingRegister::_last));
 
 static uint16_t s_SystemDiscreteInputs[MAX_SystemDiscreteInput - MIN_SystemDiscreteInput + 1];
 static uint16_t s_SystemCoils[MAX_SystemCoil - MIN_SystemCoil + 1];
@@ -30,19 +30,19 @@ static uint16_t s_SystemInputRegisters[MAX_SystemInputRegister - MIN_SystemInput
 static uint16_t s_SystemHoldingRegisters[MAX_SystemHoldingRegister - MIN_SystemHoldingRegister + 1];
 
 void Init() {
-    //clear registers
+    // clear registers
     memset(s_SystemDiscreteInputs, 0, sizeof(s_SystemDiscreteInputs));
     memset(s_SystemCoils, 0, sizeof(s_SystemCoils));
     memset(s_SystemInputRegisters, 0, sizeof(s_SystemInputRegisters));
     memset(s_SystemHoldingRegisters, 0, sizeof(s_SystemHoldingRegisters));
 
-    //add register blocks
+    // add register blocks
     AddBlock(BlockType::DiscreteInput, s_SystemDiscreteInputs, MIN_SystemDiscreteInput, MAX_SystemDiscreteInput - MIN_SystemDiscreteInput + 1);
     AddBlock(BlockType::Coil, s_SystemCoils, MIN_SystemCoil, MAX_SystemCoil - MIN_SystemCoil + 1);
     AddBlock(BlockType::InputRegister, s_SystemInputRegisters, MIN_SystemInputRegister, MAX_SystemInputRegister - MIN_SystemInputRegister + 1);
     AddBlock(BlockType::HoldingRegister, s_SystemHoldingRegisters, MIN_SystemHoldingRegister, MAX_SystemHoldingRegister - MIN_SystemHoldingRegister + 1);
 
-    //init registers from OTP
+    // init registers from OTP
     serial_nr_t sn;     // Serial number = raw datamatrix
     uint32_t timestamp; // Unix timestamp, seconds since 1970
     uint8_t bom_id;
@@ -104,4 +104,4 @@ uint16_t GetRegValue(SystemHoldingRegister reg) {
     return value;
 }
 
-} //namespace
+} // namespace

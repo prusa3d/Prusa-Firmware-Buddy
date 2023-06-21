@@ -1,7 +1,7 @@
 #ifndef _PINNAMES_H
 #define _PINNAMES_H
 
-//#include "PinNamesTypes.h"
+// #include "PinNamesTypes.h"
 #include "PortNames.h"
 
 #ifdef __cplusplus

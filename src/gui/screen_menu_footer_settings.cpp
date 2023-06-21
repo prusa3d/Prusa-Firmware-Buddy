@@ -14,7 +14,7 @@
 
 footer::Item I_MI_FOOTER::to_footer_item(size_t index) {
     if (index == 0 || index >= ftrstd::to_underlying(footer::Item::_count)) {
-        return footer::Item::None; // "None" item uses index 0
+        return footer::Item::None;                   // "None" item uses index 0
     } else {
         return static_cast<footer::Item>(index - 1); // Other footer items are shifted by 1
     }
@@ -22,7 +22,7 @@ footer::Item I_MI_FOOTER::to_footer_item(size_t index) {
 
 size_t I_MI_FOOTER::to_index(footer::Item item) {
     if (item == footer::Item::None) {
-        return 0; // "None" item uses index 0
+        return 0;                               // "None" item uses index 0
     } else {
         return ftrstd::to_underlying(item) + 1; // Other footer items are shifted by 1
     }

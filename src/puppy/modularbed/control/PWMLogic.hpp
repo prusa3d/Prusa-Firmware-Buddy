@@ -5,6 +5,7 @@
 #include "HeatbedletInfo.hpp"
 #include "PuppyConfig.hpp"
 #include <cstdint>
+#include "utility_extensions.hpp"
 
 namespace modularbed::PWMLogic {
 
@@ -13,12 +14,11 @@ void Init();
 void EnablePWM();
 void DisablePWM();
 
-float GetExpectedCurrent_A();
-float GetExpectedCurrent_B();
+float GetExpectedCurrent(const uint8_t idx);
 
 void ApplyPWMValues();
 void ApplyPWMValuesWithoutLimiters();
 
 hal::ADCDriver::ADCChannel GetHBCurrentMeasurementChannel(uint32_t heatbedletIndex);
 
-} //namespace
+} // namespace

@@ -48,7 +48,7 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
         eeres.eth = static_cast<TestResultNet>(get_state(4));
         eeres.wifi = static_cast<TestResultNet>(get_state(5));
     } else {
-        eeprom_get_selftest_results(&eeres); // Read test result directly from EEPROM
+        eeres = config_store().selftest_result.get(); // Read test result directly from EEPROM
     }
 
 #if HAS_TOOLCHANGER()

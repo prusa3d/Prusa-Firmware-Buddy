@@ -1,7 +1,6 @@
 #include "MItem_print.hpp"
 #include "marlin_client.hpp"
 #include "menu_vars.h"
-#include "eeprom.h"
 #include "menu_spin_config.hpp"
 #include "png_resources.hpp"
 #if ENABLED(PRUSA_TOOLCHANGER)
@@ -9,7 +8,7 @@
 #endif
 
 /*****************************************************************************/
-//MI_NOZZLE_ABSTRACT
+// MI_NOZZLE_ABSTRACT
 is_hidden_t MI_NOZZLE_ABSTRACT::is_hidden([[maybe_unused]] uint8_t tool_nr) {
 #if ENABLED(PRUSA_TOOLCHANGER)
     return prusa_toolchanger.is_tool_enabled(tool_nr) ? is_hidden_t::no : is_hidden_t::yes;
@@ -35,7 +34,7 @@ void MI_NOZZLE_ABSTRACT::OnClick() {
 }
 
 /*****************************************************************************/
-//MI_HEATBED
+// MI_HEATBED
 MI_HEATBED::MI_HEATBED()
     : WiSpinInt(uint8_t(marlin_vars()->target_bed),
         SpinCnf::bed, _(label), &png::heatbed_16x16, is_enabled_t::yes, is_hidden_t::no) {
@@ -45,7 +44,7 @@ void MI_HEATBED::OnClick() {
 }
 
 /*****************************************************************************/
-//MI_PRINTFAN
+// MI_PRINTFAN
 MI_PRINTFAN::MI_PRINTFAN()
     : WiSpinInt(val_mapping(false, marlin_vars()->print_fan_speed, 255, 100),
         SpinCnf::printfan, _(label), &png::fan_16x16, is_enabled_t::yes, is_hidden_t::no) {
@@ -63,7 +62,7 @@ uint8_t MI_PRINTFAN::val_mapping(const bool rounding_floor, const uint8_t val, c
 }
 
 /*****************************************************************************/
-//MI_SPEED
+// MI_SPEED
 MI_SPEED::MI_SPEED()
     : WiSpinInt(uint16_t(marlin_vars()->print_speed),
         SpinCnf::feedrate, _(label), &png::speed_16x16, is_enabled_t::yes, is_hidden_t::no) {}
@@ -72,7 +71,7 @@ void MI_SPEED::OnClick() {
 }
 
 /*****************************************************************************/
-//MI_FLOWFACT
+// MI_FLOWFACT
 MI_FLOWFACT::MI_FLOWFACT()
     : WiSpinInt(uint16_t(marlin_vars()->active_hotend().flow_factor),
         SpinCnf::flowfact, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}

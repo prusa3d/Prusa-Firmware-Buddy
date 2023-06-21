@@ -6,12 +6,13 @@
 #include <png_resources.hpp>
 #include <marlin_client.hpp>
 #include "DialogHandler.hpp"
+#include <configuration_store.hpp>
 
 I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
     : WI_LAMBDA_SPIN(_(label),
-        (ftrstd::to_underlying(filament::Type::_last) + (filament::get_type_in_extruder(tool_n) != filament::Type::NONE ? 2 : 1)), // Allow unload only if something is loaded now
+        (ftrstd::to_underlying(filament::Type::_last) + (config_store().get_filament_type(tool_n) != filament::Type::NONE ? 2 : 1)), // Allow unload only if something is loaded now
         nullptr, is_enabled_t::yes, prusa_toolchanger.is_tool_enabled(tool_n) ? is_hidden_t::no : is_hidden_t::yes,
-        0, // Default "Don't change"
+        0,                                                                                                                           // Default "Don't change"
         [&](char *buffer) {
             const size_t index = GetIndex();
             if (index == nochange_index) {
@@ -25,7 +26,7 @@ I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
                 snprintf(buffer, GuiDefaults::infoDefaultLen, "%s %s", loaded ? label_change_fil : label_load_fil, filament::get_description(filament::Type(index)).name);
             }
         })
-    , loaded(filament::get_type_in_extruder(tool_n) != filament::Type::NONE) {
+    , loaded(config_store().get_filament_type(tool_n) != filament::Type::NONE) {
 }
 
 MI_FilamentApplyChanges::MI_FilamentApplyChanges()
@@ -55,7 +56,7 @@ void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
 
         filament::Type new_filament[tool_count] = {}; // Filled with NONE
         filament::Type old_filament[tool_count] = {};
-        bool valid[tool_count] = {}; // Nothing valid
+        bool valid[tool_count] = {};                  // Nothing valid
         for (size_t tool = 0; tool < tool_count; tool++) {
             if (!prusa_toolchanger.is_tool_enabled(tool)) {
                 continue; // Tool not enabled
@@ -66,7 +67,7 @@ void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
             }
 
             if (selection[tool] == I_MI_FilamentSelect::unload_index
-                && filament::get_type_in_extruder(tool) == filament::Type::NONE) {
+                && config_store().get_filament_type(tool) == filament::Type::NONE) {
                 continue; // Ignore unload when no filament is inserted
             }
 
@@ -75,7 +76,7 @@ void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
             } else {
                 new_filament[tool] = static_cast<filament::Type>(selection[tool]);
             }
-            old_filament[tool] = filament::get_type_in_extruder(tool);
+            old_filament[tool] = config_store().get_filament_type(tool);
             valid[tool] = true;
         }
 
@@ -97,7 +98,7 @@ void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
             }
 
             if (new_filament[tool] == filament::Type::NONE) {
-                marlin_gcode_printf("M702 T%d W2", tool); // Unload
+                marlin_gcode_printf("M702 T%d W2", tool);                                                             // Unload
             } else if (old_filament[tool] == filament::Type::NONE) {
                 marlin_gcode_printf("M701 S\"%s\" T%d W2", filament::get_description(new_filament[tool]).name, tool); // Load
             } else {
@@ -105,7 +106,7 @@ void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
             }
 
             // Wait for one change to complete and show dialogs
-            while (planner.movesplanned() || queue.has_commands_queued()) {
+            while (queue.has_commands_queued() || planner.processing()) {
                 gui::TickLoop();
                 DialogHandler::Access().Loop();
                 gui_loop();

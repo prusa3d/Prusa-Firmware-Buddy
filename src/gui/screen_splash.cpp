@@ -4,9 +4,9 @@
 #include "config.h"
 #include "config_features.h"
 #include "version.h"
-#include "eeprom.h"
 #include "png_resources.hpp"
 #include "marlin_client.hpp"
+#include <configuration_store.hpp>
 
 #include "i18n.h"
 #include "../lang/translator.hpp"
@@ -63,17 +63,17 @@ screen_splash_data_t::screen_splash_data_t()
     super::ClrMenuTimeoutClose();
 
 #if defined(USE_ST7789)
-    text_progress.font = resource_font(IDR_FNT_NORMAL);
+    text_progress.set_font(resource_font(IDR_FNT_NORMAL));
     text_progress.SetAlignment(Align_t::Center());
 
-    progress.SetFont(resource_font(IDR_FNT_BIG));
+    progress.set_font(resource_font(IDR_FNT_BIG));
     text_version.SetAlignment(Align_t::Center());
 #endif // USE_ST7789
 #if defined(USE_ILI9488)
-    text_progress.font = resource_font(IDR_FNT_SMALL);
+    text_progress.set_font(resource_font(IDR_FNT_SMALL));
     text_progress.SetAlignment(Align_t::Center());
     text_version.SetAlignment(Align_t::Left());
-    text_version.SetFont(resource_font(IDR_FNT_SMALL));
+    text_version.set_font(resource_font(IDR_FNT_SMALL));
     text_version.SetTextColor(COLOR_GRAY);
 #endif // USE_ILI9488
 
@@ -82,16 +82,15 @@ screen_splash_data_t::screen_splash_data_t()
 #if HAS_SELFTEST()
     #if DEVELOPER_MODE()
     const bool run_wizard = false;
-    #elif PRINTER_TYPE != PRINTER_PRUSA_XL
-    const bool run_selftest = eeprom_get_bool(EEVAR_RUN_SELFTEST);
-    const bool run_xyzcalib = eeprom_get_bool(EEVAR_RUN_XYZCALIB);
-    const bool run_firstlay = eeprom_get_bool(EEVAR_RUN_FIRSTLAY);
+    #elif !PRINTER_IS_PRUSA_XL
+    const bool run_selftest = config_store().run_selftest.get();
+    const bool run_xyzcalib = config_store().run_xyz_calib.get();
+    const bool run_firstlay = config_store().run_first_layer.get();
     const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
     #else
     const bool run_wizard {
         []() {
-            SelftestResult sr;
-            eeprom_get_selftest_results(&sr);
+            SelftestResult sr = config_store().selftest_result.get();
 
             auto any_passed = [](std::same_as<TestResult> auto... results) -> bool {
                 static_assert(sizeof...(results) > 0, "Pass at least one result");
@@ -130,13 +129,13 @@ screen_splash_data_t::screen_splash_data_t()
 
 #if HAS_SELFTEST()
     #if HAS_SELFTEST_SNAKE()
-        {
-            run_wizard ? screen_node(ScreenFactory::Screen<ScreenMenuSTSWizard>) : screen_node()
-        } // xl wizard
+            {
+                run_wizard ? screen_node(ScreenFactory::Screen<ScreenMenuSTSWizard>) : screen_node()
+            } // xl wizard
     #else
-        {
-            run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node()
-        } // wizard
+            {
+                run_wizard ? screen_node(ScreenFactory::Screen<ScreenSelftest>, stmWizard) : screen_node()
+            } // wizard
     #endif
 #else
         {
@@ -195,7 +194,7 @@ void screen_splash_data_t::bootstrap_cb(unsigned percent, std::optional<const ch
 
 void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
 #ifdef _EXTUI
-    if (event == GUI_event_t::GUI_STARTUP) { //without clear it could run multiple times before screen is closed
+    if (event == GUI_event_t::GUI_STARTUP) { // without clear it could run multiple times before screen is closed
         if (!param)
             return;
 

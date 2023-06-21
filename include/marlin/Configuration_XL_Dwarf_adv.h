@@ -1197,7 +1197,7 @@
 
 // The number of linear motions that can be in the plan at any give time.
 // THE BLOCK_BUFFER_SIZE NEEDS TO BE A POWER OF 2 (e.g. 8, 16, 32) because shifts and ors are used to do the ring-buffering.
-#define BLOCK_BUFFER_SIZE 32
+#define BLOCK_BUFFER_SIZE 16
 
 #define MOVE_SEGMENT_QUEUE_SIZE (2 * BLOCK_BUFFER_SIZE)
 #define STEP_EVENT_QUEUE_SIZE   1024

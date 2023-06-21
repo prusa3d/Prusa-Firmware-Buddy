@@ -36,7 +36,7 @@ static inline bool checkTimestampsAscendingOrder(uint32_t a, uint32_t b) {
 void StartMeasurementTask([[maybe_unused]] void const *argument) {
     marlin_client_init();
     marlin_client_wait_for_start_processing();
-    marlin_client_set_event_notify(MARLIN_EVT_MSK_FSM, nullptr);
+    marlin_client_set_event_notify(marlin_server::EVENT_MSK_FSM, nullptr);
     register_trinamic_metrics();
     PrintProcessor::Init(); // this cannot be inside filament sensor ctor, because it can be created in any thread (outside them)
 

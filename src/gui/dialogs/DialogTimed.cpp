@@ -11,7 +11,7 @@ DialogTimed::DialogTimed(window_t *parent, Rect16 rect, uint32_t open_period)
     , open_period(open_period)
     , time_of_last_action(gui::GetTick())
     , state(DialogState::running) {
-    Hide(); //default behavior of this dialog is hidden
+    Hide(); // default behavior of this dialog is hidden
 }
 
 void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -48,7 +48,7 @@ void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
             updateLoop(visibility_changed_t::no); // virtual update loop for derived classes
     } else {                                      // not visible
 
-        //Reset timeout
+        // Reset timeout
         if (GUI_event_IsKnob(event) // knob events sent to all windows
             || isShowBlocked()) {
             time_of_last_action = now;
@@ -62,7 +62,7 @@ void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         }
     }
 
-    //resend capture events
+    // resend capture events
     if (GUI_event_IsCaptureEv(event)) {
         DoNotEnforceCapture_ScopeLock Lock(*this); // avoid resend event to itself
         window_t *captured = GetParent()->GetCapturedWindow();

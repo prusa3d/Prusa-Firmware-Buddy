@@ -25,7 +25,7 @@ public:
     IDialogMarlin(std::optional<Rect16> rc = std::nullopt);
 };
 
-//abstract parent containing general code for any number of phases
+// abstract parent containing general code for any number of phases
 class IDialogStateful : public IDialogMarlin {
 public:
     struct State {
@@ -66,8 +66,8 @@ public:
 };
 
 /*****************************************************************************/
-//parent for stateful dialogs dialog
-//use one of enum class from "client_response.hpp" as T
+// parent for stateful dialogs dialog
+// use one of enum class from "client_response.hpp" as T
 template <class T>
 class DialogStateful : public IDialogStateful {
 public:
@@ -75,7 +75,7 @@ public:
     using States = std::array<State, SZ>;
 
 protected:
-    States states; //phase text and radio button + onEnter & onExit cb
+    States states; // phase text and radio button + onEnter & onExit cb
     RadioButtonFsm<T> radio;
 
 public:

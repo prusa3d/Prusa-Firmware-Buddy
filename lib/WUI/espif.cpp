@@ -94,7 +94,7 @@ enum MessageType {
     MSG_INTRON = 5,
 };
 
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL
 // ESP32 FW version
 static const uint32_t SUPPORTED_FW_VERSION = 8;
 #else
@@ -309,8 +309,8 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     static uint mac_read = 0; // Amount of MAC bytes already read
     static uint8_t mac_data[ETHARP_HWADDR_LEN];
 
-    static uint32_t rx_len = 0;  // Length of RX packet
-    static uint rx_len_read = 0; // Amount of rx_len bytes already read
+    static uint32_t rx_len = 0;             // Length of RX packet
+    static uint rx_len_read = 0;            // Amount of rx_len bytes already read
 
     static struct pbuf *rx_buff = NULL;     // First RX pbuf for current packet (chain head)
     static struct pbuf *rx_buff_cur = NULL; // Current pbuf for data receive (part of rx_buff chain)

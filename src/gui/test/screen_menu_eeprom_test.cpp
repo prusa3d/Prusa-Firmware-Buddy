@@ -3,7 +3,6 @@
  */
 
 #include "screen_menu_eeprom_test.hpp"
-#include "eeprom.h"
 #include "menu_spin_config.hpp"
 #include "ScreenHandler.hpp"
 
@@ -40,15 +39,15 @@ SpinIntPart0::SpinIntPart0()
 
 EepromItems::EepromItems()
     : IWiSwitch(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)"RECORD"), nullptr, is_enabled_t::yes, is_hidden_t::no, GenerateItems())
-    , var(eeprom_get_var(eevar_id(index))) // first records is int, no need to test it
+    , var(0) // first records is int, no need to test it // TODO(ConfigStore): Not Migrated
 {
 }
 
 IWiSwitch::Items_t EepromItems::GenerateItems() {
-    const size_t SZ = EEVAR_CRC32;
+    const size_t SZ = EEVAR_CRC32; // TODO(ConfigStore): Not Migrated
     string_view_utf8 *pArr = (string_view_utf8 *)&ArrayMemSpace;
     for (size_t i = 0; i < SZ; ++i) {
-        pArr[i] = string_view_utf8::MakeCPUFLASH((const uint8_t *)eeprom_get_var_name(eevar_id(i)));
+        // pArr[i] = string_view_utf8::MakeCPUFLASH((const uint8_t *)eeprom_get_var_name(eevar_id(i))); // TODO(ConfigStore): Not Migrated
     }
     Items_t ret = Items_t(pArr, SZ);
     return ret;
@@ -56,10 +55,10 @@ IWiSwitch::Items_t EepromItems::GenerateItems() {
 
 invalidate_t EepromItems::change(int /*dif*/) {
     ++index;
-    index %= EEVAR_CRC32;
+    // index %= EEVAR_CRC32; // TODO(ConfigStore): Not Migrated
     bool can_show = false;
     while (!can_show) {
-        var = eeprom_get_var(eevar_id(index));
+        var = 0; // TODO(ConfigStore): Not Migrated
         uint8_t type = variant8_get_type(var);
         switch (type) {
         case VARIANT8_I8:
@@ -72,7 +71,7 @@ invalidate_t EepromItems::change(int /*dif*/) {
             break;
         default:
             ++index;
-            index %= EEVAR_CRC32;
+            // index %= EEVAR_CRC32; // TODO(ConfigStore): Not Migrated
         }
     }
 
@@ -100,7 +99,7 @@ void ScreenMenuEepromTest::storeValue() {
 
     variant8_t var = variant8_ui32(value);                               // create variant as uint32_t
     variant8_set_type(&var, variant8_get_type(Item<EepromItems>().var)); // change variant type to correct one
-    eeprom_set_var(eevar_id(Item<EepromItems>().GetIndex()), var);       // store to eeprom
+    // eeprom_set_var(eevar_id(Item<EepromItems>().GetIndex()), var);       // store to eeprom // TODO: Make work in config store
 }
 
 void ScreenMenuEepromTest::updateValue() {

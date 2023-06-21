@@ -17,7 +17,9 @@ WindowThumbnail::WindowThumbnail(window_t *parent, Rect16 rect)
 
 WindowPreviewThumbnail::WindowPreviewThumbnail(window_t *parent, Rect16 rect)
     : AddSuperWindow<WindowThumbnail>(parent, rect) {
-    gcode_info.initFile(GCodeInfo::GI_INIT_t::PREVIEW);
+    if (!gcode_info.is_file_open()) { // Ignore initFile if it is already inited
+        gcode_info.initFile(GCodeInfo::GI_INIT_t::THUMBNAIL);
+    }
 }
 
 WindowPreviewThumbnail::~WindowPreviewThumbnail() {
@@ -25,15 +27,18 @@ WindowPreviewThumbnail::~WindowPreviewThumbnail() {
 }
 
 void WindowPreviewThumbnail::unconditionalDraw() {
-    if (!gcode_info.file)
+    auto file = gcode_info.get_file();
+    if (file == nullptr) { // not opened
         return;
+    }
+
     FILE f {};
 
     png::Resource res("", 0, 0, 0, 0);
     res.file = &f;
 
-    fseek(gcode_info.file, 0, SEEK_SET);
-    GCodeThumbDecoder gd(gcode_info.file, Width(), Height(), true);
+    fseek(file, 0, SEEK_SET);
+    GCodeThumbDecoder gd(file, Width(), Height(), true);
     if (f_gcode_thumb_open(&gd, &f) == 0) {
         display::DrawPng(point_ui16(Left(), Top()), res);
         f_gcode_thumb_close(&f);
@@ -47,7 +52,9 @@ WindowProgressThumbnail::WindowProgressThumbnail(window_t *parent, Rect16 rect)
     , progress_percentage(-1)
     , last_percentage_drawn(-1)
     , redraw_whole(true) {
-    gcode_info.initFile(GCodeInfo::GI_INIT_t::PRINT);
+    if (!gcode_info.is_file_open()) { // Ignore initFile if it is already inited
+        gcode_info.initFile(GCodeInfo::GI_INIT_t::THUMBNAIL);
+    }
 }
 
 WindowProgressThumbnail::~WindowProgressThumbnail() {
@@ -55,8 +62,8 @@ WindowProgressThumbnail::~WindowProgressThumbnail() {
 }
 
 void WindowProgressThumbnail::unconditionalDraw() {
-
-    if (!gcode_info.file) { //not opened
+    auto file = gcode_info.get_file();
+    if (file == nullptr) { // not opened
         return;
     }
 
@@ -70,8 +77,8 @@ void WindowProgressThumbnail::unconditionalDraw() {
     png::Resource res("", 0, 0, 0, 0);
     res.file = &f;
 
-    fseek(gcode_info.file, 0, SEEK_SET);
-    GCodeThumbDecoder gd(gcode_info.file, Width(), Height(), true);
+    fseek(file, 0, SEEK_SET);
+    GCodeThumbDecoder gd(file, Width(), Height(), true);
     if (f_gcode_thumb_open(&gd, &f) == 0) {
 
         ropfn raster_op;
@@ -87,7 +94,7 @@ void WindowProgressThumbnail::unconditionalDraw() {
             }
 
             // file has to be reset to be able to read PNG again
-            fseek(gcode_info.file, 0, SEEK_SET);
+            fseek(file, 0, SEEK_SET);
             gd.Reset();
 
             uint16_t saturated_height = Height() - progress_local_y;
@@ -114,7 +121,7 @@ void WindowProgressThumbnail::pauseDeinit() {
 }
 
 void WindowProgressThumbnail::pauseReinit() {
-    gcode_info.initFile(GCodeInfo::GI_INIT_t::PRINT);
+    gcode_info.initFile(GCodeInfo::GI_INIT_t::THUMBNAIL);
 }
 
 bool WindowProgressThumbnail::updatePercentage(int8_t cmp) {

@@ -7,8 +7,11 @@
 extern "C" {
 #endif //__cplusplus
 
-/// Timestamp in nanoseconds from the startup
-typedef uint64_t log_timestamp_t;
+/// Timestamp from the startup
+typedef struct {
+    uint32_t sec; ///< Seconds since the start of the system
+    uint32_t us;  ///< Microseconds consistent with sec
+} log_timestamp_t;
 
 /// Task identifier (-1 if unknown)
 typedef int log_task_id_t;

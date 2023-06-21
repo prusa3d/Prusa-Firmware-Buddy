@@ -12,7 +12,7 @@
 #include "lwip/opt.h"
 #include "lwip/def.h"
 
-//#define DEBUG_MULTIPART 1
+// #define DEBUG_MULTIPART 1
 
 static void multipart_log(const char *format, ...) {
 #ifdef DEBUG_MULTIPART
@@ -87,8 +87,8 @@ multipart_parser *multipart_parser_init(const char *boundary, const multipart_pa
     int32_t boundary_length = LWIP_MIN(endstring_length, (uint32_t)(endline_begin - boundary));
     multipart_parser *p = malloc(sizeof(multipart_parser) + boundary_length + boundary_length + 9 + 2); // Add 2 because the boundary is missing 2 --
 
-    strcpy(p->multipart_boundary, "--");     // Boundary seems to be missing the first 2 --, so add them here (Tested on Chrome and Firefox)
-    strcat(p->multipart_boundary, boundary); // Copy the boundary to parser
+    strcpy(p->multipart_boundary, "--");                                                                // Boundary seems to be missing the first 2 --, so add them here (Tested on Chrome and Firefox)
+    strcat(p->multipart_boundary, boundary);                                                            // Copy the boundary to parser
     p->boundary_length = boundary_length + 2;
 
     p->lookbehind = (p->multipart_boundary + p->boundary_length + 1);

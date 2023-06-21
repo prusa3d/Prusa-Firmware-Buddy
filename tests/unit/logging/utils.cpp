@@ -32,7 +32,7 @@ log_timestamp_t log_platform_timestamp_get() {
     if (_log_platform_timestamp_get.has_value()) {
         return _log_platform_timestamp_get.value()();
     } else {
-        return 0;
+        return { 0, 0 };
     }
 }
 

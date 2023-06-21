@@ -148,6 +148,12 @@ namespace {
 }
 
 optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) const {
+    // This is a little bit of a hack (similar one is in Connect). We want to
+    // watch as often as possible if the USB is plugged in or not, to
+    // invalidate dir listing caches in the browser. As we don't really have a
+    // better place, we place it here.
+    ChangedPath::instance.media_inserted(wui_media_inserted());
+
     const string_view uri = parser.uri();
 
     // Claim the whole /api prefix.
@@ -186,6 +192,10 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
             if (error.has_value()) {
                 return error;
             }
+            uint32_t etag = ChangedPath::instance.change_chain_hash(filename);
+            if (etag == parser.if_none_match && etag != 0 /* 0 is special */ && (parser.method == Method::Get || parser.method == Method::Head)) {
+                return StatusPage(Status::NotModified, parser.status_page_handling(), parser.accepts_json, etag);
+            }
             switch (parser.method) {
             case Method::Put: {
                 GcodeUpload::PutParams putParams;
@@ -196,10 +206,10 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
                 return std::visit([](auto upload) -> ConnectionState { return upload; }, std::move(upload));
             }
             case Method::Get: {
-                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1);
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1, etag);
             }
             case Method::Head: {
-                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head, FileInfo::APIVersion::v1);
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Head, FileInfo::APIVersion::v1, etag);
             }
             case Method::Delete: {
                 return delete_file(filename, parser);
@@ -249,7 +259,8 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
 
             switch (parser.method) {
             case Method::Get: {
-                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint);
+                uint32_t etag = ChangedPath::instance.change_chain_hash(filename);
+                return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::Octoprint, etag);
             }
             case Method::Delete: {
                 return delete_file(filename, parser);

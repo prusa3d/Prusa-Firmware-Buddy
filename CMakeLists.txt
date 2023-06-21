@@ -87,6 +87,10 @@ target_include_directories(
             include/freertos
             src/hw
             src/common
+            src/configuration_store
+            src/guiconfig
+            src/lang
+            src/common/utils
             ${OPTIONS_INCLUDE_DIR}
   )
 
@@ -116,6 +120,7 @@ target_link_libraries(BuddyHeaders INTERFACE FreeRTOS::FreeRTOS)
 
 # Define printer type and version
 set(PRINTER_VERSION "1") # default version
+set(PRINTER_SUBVERSION "0") # default subversion
 
 # The PRINTER_TYPE is (besides being used in the code) being stored in the .bbf and checked by the
 # bootloader (which contains the same "enum" as below). Preferably do not use it on an interface
@@ -125,8 +130,9 @@ if(PRINTER STREQUAL "MK4")
   set(PRINTER_VERSION "4")
   set(PRINTER_CODE "13")
 elseif(PRINTER STREQUAL "MK3.5")
-  set(PRINTER_TYPE "5")
-  set(PRINTER_VERSION "4")
+  set(PRINTER_TYPE "1")
+  set(PRINTER_VERSION "3")
+  set(PRINTER_SUBVERSION "5")
   set(PRINTER_CODE "13")
 elseif(PRINTER STREQUAL "MINI")
   set(PRINTER_TYPE "2")
@@ -165,6 +171,7 @@ target_compile_definitions(
             PRINTER_MODEL="${PRINTER}"
             PRINTER_TYPE=${PRINTER_TYPE}
             PRINTER_VERSION=${PRINTER_VERSION}
+            PRINTER_SUBVERSION=${PRINTER_SUBVERSION}
             PRINTER_CODE=${PRINTER_CODE}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
@@ -385,7 +392,7 @@ add_subdirectory(lib)
 # Build Puppy Firmwares
 #
 
-if(BOARD STREQUAL "XLBUDDY" AND HAS_PUPPIES_BOOTLOADER)
+if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
   string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower)
 
   if(PRINTER STREQUAL "XL" AND BOARD_VERSION VERSION_EQUAL "0.4.0")
@@ -393,7 +400,7 @@ if(BOARD STREQUAL "XLBUDDY" AND HAS_PUPPIES_BOOTLOADER)
     set(modular_bed_version_suffix "-06")
   endif()
 
-  if(NOT DWARF_BINARY_PATH)
+  if(NOT DWARF_BINARY_PATH AND HAS_DWARF)
     get_filename_component(
       DWARF_BINARY_DIR "${DWARF_BINARY_DIR}" REALPATH BASE_DIR "${CMAKE_SOURCE_DIR}"
       )
@@ -628,7 +635,7 @@ if(BOARD MATCHES "BUDDY")
             tinyusb::tinyusb
             $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
             mbedTLS
-            $<$<STREQUAL:${PRINTER},XL>:lightmodbus>
+            $<$<BOOL:${HAS_PUPPIES}>:lightmodbus>
             error_codes
             error_codes_mmu # TODO once MMU is not necessary for the build, replace with:
                             # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>

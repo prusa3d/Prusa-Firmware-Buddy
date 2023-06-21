@@ -6,7 +6,7 @@
  */
 #pragma once
 
-//alignment constants
+// alignment constants
 enum {
     ALIGN_LEFT = 0x00,
     ALIGN_HCENTER = 0x01,

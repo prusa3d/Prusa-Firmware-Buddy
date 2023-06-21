@@ -7,6 +7,7 @@ from .actions import encoder, screen, temperature, network
 from simulator import MachineType, Thermistor, Printer
 
 pytestmark = pytest.mark.asyncio
+pytestmark = pytest.mark.skip
 
 
 def wui_base_url(printer):

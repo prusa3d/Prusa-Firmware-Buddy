@@ -54,9 +54,9 @@ void render_term(term_t *pterm, size_t x, size_t y, const font_t *font, color_t 
         for (uint8_t r = 0; r < pterm->rows; ++r)
             for (c = 0; c < pterm->cols; ++c) {
                 if ((*pm) & msk) {
-                    //character is followed by attribute
+                    // character is followed by attribute
                     uint8_t ch = *(pb++);
-                    pb++; //uint8_t attr = *(pb++);
+                    pb++; // uint8_t attr = *(pb++);
                     display::DrawChar(point_ui16(x + c * char_w, y + r * char_h), ch, font, color_back, color_text);
                 } else
                     pb += 2;

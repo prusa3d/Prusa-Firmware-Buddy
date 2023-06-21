@@ -15,6 +15,7 @@
 #include "filament_sensors_handler.hpp"
 #include "printers.h"
 #include <inttypes.h>
+#include <configuration_store.hpp>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -56,11 +57,11 @@ void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_CALIB_FIRST
 MI_CALIB_FIRST::MI_CALIB_FIRST()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, PRINTER_TYPE == PRINTER_PRUSA_MINI ? is_hidden_t::no : is_hidden_t::dev) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, (PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5) ? is_hidden_t::no : is_hidden_t::dev) {
 }
 
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
-#if PRINTER_TYPE == PRINTER_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_test_start(stmFirstLayer);
 #endif
@@ -112,7 +113,7 @@ void MI_TEST_Y::click(IWindowMenu & /*window_menu*/) {
 
 /*****************************************************************************/
 // MI_TEST_Z
-#if (PRINTER_TYPE != PRINTER_PRUSA_iX)
+#if (!PRINTER_IS_PRUSA_iX)
 MI_TEST_Z::MI_TEST_Z()
     : WI_LABEL_t(string_view_utf8::MakeCPUFLASH((uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
 }
@@ -146,7 +147,7 @@ void MI_TEST_HOTEND::click(IWindowMenu & /*window_menu*/) {
 }
 
 /*****************************************************************************/
-#if (PRINTER_TYPE != PRINTER_PRUSA_iX)
+#if (!PRINTER_IS_PRUSA_iX)
 // MI_TEST_BED
 MI_TEST_BED::MI_TEST_BED()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
@@ -183,16 +184,17 @@ void MI_CALIB_FSENSOR_MMU::click(IWindowMenu & /*window_menu*/) {
     #endif
 
 #endif
-/*****************************************************************************/
-// MI_TEST_FANS_fine
-MI_ADVANCED_FAN_TEST::MI_ADVANCED_FAN_TEST()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+
+#if PRINTER_IS_PRUSA_MK4
+MI_CALIB_GEARS::MI_CALIB_GEARS()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_ADVANCED_FAN_TEST::click(IWindowMenu & /*window_menu*/) {
+void MI_CALIB_GEARS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmFans_fine);
+    marlin_test_start(stmGears);
 }
+#endif
 
 #if HAS_TOOLCHANGER()
 /*****************************************************************************/
@@ -216,8 +218,7 @@ MI_RESTORE_CALIBRATION_FROM_USB::MI_RESTORE_CALIBRATION_FROM_USB()
 void MI_RESTORE_CALIBRATION_FROM_USB::click([[maybe_unused]] IWindowMenu &window_menu) {
     bool success = true;
 
-    SelftestResult res;
-    eeprom_get_selftest_results(&res);
+    SelftestResult res = config_store().selftest_result.get();
 
     // load dock positions
     success &= prusa_toolchanger.load_tool_info_from_usb();
@@ -230,12 +231,12 @@ void MI_RESTORE_CALIBRATION_FROM_USB::click([[maybe_unused]] IWindowMenu &window
     success &= prusa_toolchanger.load_tool_offsets_from_usb();
     prusa_toolchanger.save_tool_offsets();
     for (int i = 0; i < std::min(EEPROM_MAX_TOOL_COUNT, buddy::puppies::DWARF_MAX_COUNT); i++) {
-        auto tool_offset = eeprom_get_tool_offset(i);
+        auto tool_offset = config_store().get_tool_offset(i);
         bool looks_fine = tool_offset.x != 0 && tool_offset.y != 0 && tool_offset.z != 0;
         res.tools[i].tooloffset = looks_fine ? TestResult_Passed : TestResult_Failed;
     }
 
-    eeprom_get_selftest_results(&res);
+    res = config_store().selftest_result.get();
 
     // load filament sensor calibrations
     success &= restore_fs_calibration();
@@ -275,12 +276,12 @@ bool MI_RESTORE_CALIBRATION_FROM_USB::restore_fs_calibration() {
         char *second = strnstr(buffer.data(), " ", pos) + 1;
         uint32_t span_value = atoll(second);
 
-        IFSensor *sensor = side ? GetSideFSensor(e) : GetExtruderFSensor(e);
-
-        if (sensor && span_value != 0) {
-            eeprom_set_i32(sensor->get_eeprom_ref_id(), ref_value);
-
-            eeprom_set_ui32(sensor->get_eeprom_span_id(), span_value);
+        if (side) {
+            config_store().set_side_fs_ref_value(e, ref_value);
+            config_store().set_side_fs_value_span(e, span_value);
+        } else {
+            config_store().set_extruder_fs_ref_value(e, ref_value);
+            config_store().set_extruder_fs_value_span(e, span_value);
         }
     }
 
@@ -320,14 +321,8 @@ bool MI_BACKUP_CALIBRATION_TO_USB::backup_fs_calibration() {
         int e = i % EXTRUDERS;
         bool side = i >= EXTRUDERS;
 
-        IFSensor *sensor = side ? GetSideFSensor(e) : GetExtruderFSensor(e);
-
-        int32_t ref_value = 0;
-        uint32_t span_value = 0;
-        if (sensor) {
-            ref_value = eeprom_get_i32(sensor->get_eeprom_ref_id());
-            span_value = eeprom_get_ui32(sensor->get_eeprom_span_id());
-        }
+        int32_t ref_value = side ? config_store().get_side_fs_ref_value(e) : config_store().get_extruder_fs_ref_value(e);
+        uint32_t span_value = side ? config_store().get_side_fs_value_span(e) : config_store().get_extruder_fs_value_span(e);
 
         int n = snprintf(buffer.data(), buffer.size(), "%" PRIi32 " %" PRIu32 "\n", ref_value, span_value);
         fwrite(buffer.data(), sizeof(char), n, file);

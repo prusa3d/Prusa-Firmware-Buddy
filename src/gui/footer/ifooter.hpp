@@ -14,7 +14,7 @@ class IFooter : public AddSuperWindow<window_frame_t> {
 public:
     IFooter(window_t *parent);
 
-    //sets line 1, line 0 is const
+    // sets line 1, line 0 is const
     static bool SetSlot(FooterLine &line, size_t slot_id, footer::Item item);
     static bool SetSlotInit(size_t slot_id, footer::Item item);
     static footer::Item GetSlotInit(size_t slot_id);

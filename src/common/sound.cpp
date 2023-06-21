@@ -1,6 +1,6 @@
 #include "sound.hpp"
 #include "hwio.h"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 eSOUND_MODE Sound_GetMode() { return Sound::getInstance().getMode(); }
 int Sound_GetVolume() { return Sound::getInstance().getVolume(); }
@@ -21,12 +21,12 @@ void Sound_Update1ms() {
 
 void Sound::restore_from_eeprom() {
     // Restore mode
-    eSOUND_MODE eeprom_mode = static_cast<eSOUND_MODE>(eeprom_get_ui8(EEVAR_SOUND_MODE));
+    eSOUND_MODE eeprom_mode = config_store().sound_mode.get();
     if (eeprom_mode != eSOUND_MODE::UNDEF) {
         setMode(eeprom_mode);
     }
     // Restore volume
-    varVolume = real_volume(eeprom_get_ui8(EEVAR_SOUND_VOLUME));
+    varVolume = real_volume(config_store().sound_volume.get());
 }
 
 eSOUND_MODE Sound::getMode() const {
@@ -45,12 +45,12 @@ void Sound::setVolume(int vol) {
 
 /// Store new Sound mode value into a EEPROM. Stored value size is 1byte
 void Sound::saveMode() {
-    eeprom_set_ui8(EEVAR_SOUND_MODE, (uint8_t)eSoundMode);
+    config_store().sound_mode.set(eSoundMode);
 }
 
 /// Store new Sound VOLUME value into a EEPROM.
 void Sound::saveVolume() {
-    eeprom_set_ui8(EEVAR_SOUND_VOLUME, displayed_volume(varVolume));
+    config_store().sound_volume.set(displayed_volume(varVolume));
 }
 
 /// [stopSound] is in this moment just for stopping infinitely repeating sound signal in LOUD & ASSIST mode

@@ -12,7 +12,7 @@ constexpr size_t bedlet_idx_to_board_number(size_t idx) {
     return idx + 1;
 }
 
-class ModularBed : public ModbusDevice, public SimpleModularHeatbed, public AdvancedModularBed {
+class ModularBed : public ModbusDevice, public AdvancedModularBed {
 public:
     static constexpr auto BEDLET_PERIOD_MS = 300;
     static constexpr auto BEDLET_MAX_X = 4;
@@ -55,28 +55,27 @@ public:
 
     CommunicationStatus ping();
     CommunicationStatus initial_scan();
-    CommunicationStatus refresh();
+
+    /**
+     * @brief Refresh bed state.
+     * @param cycle_ticks_ms ticks_ms() valid through current poll cycle [ms]
+     * @param[out] worked true if bed state was refreshed, false if not yet
+     * @return CommunicationStatus::OK on success
+     */
+    CommunicationStatus refresh(uint32_t cycle_ticks_ms, bool &worked);
 
     void clear_fault();
 
-    // Simple not bedlet aware API
-    void set_target(float target_temp) override;
-    float get_temp() override;
-
     // Smart bed API (allows separate control of bedlets)
     void set_target(const uint8_t column, const uint8_t row, float target_temp) override;
-    void set_target(const uint8_t idx, float target_temp);
-    float get_temp(const uint16_t idx);
+    float get_target(const uint8_t column, const uint8_t row) override;
     float get_temp(const uint8_t column, const uint8_t row) override;
 
     // Convert x,y to index
     uint16_t idx(const uint8_t column, const uint8_t row);
 
-    // Obsolete, marlin does not need to know internal bedlet PWMs
-    int get_pwm() override; // TODO: Remove
-
     // Set non-enabled bedlet temperatures so warping of the bed is avoided
-    void update_bedlet_temps(uint16_t enabled_mask, float target_temp);
+    void update_bedlet_temps(uint16_t enabled_mask, float target_temp) override;
 
     // notify modular bed about activity of print fan (to relax temperature checks)
     void set_print_fan_active(bool active);
@@ -103,12 +102,19 @@ public:
         uint16_t tc_value[BEDLET_COUNT];
     };
 
+    MODBUS_REGISTER CurrentsData {
+        uint16_t A_measured;
+        uint16_t B_measured;
+        uint16_t A_expected;
+        uint16_t B_expected;
+    };
+
     ModbusDiscreteInputBlock<GENERAL_DISCRETE_INPUTS_ADDR, GeneralStatus> general_status;
     ModbusInputRegisterBlock<STATIC_INPUT_REGISTERS_ADDR, GeneralStatic> general_static;
     ModbusInputRegisterBlock<BEDLET_INPUT_REGISTERS_ADDR, BedletData> bedlet_data;
     ModbusHoldingRegisterBlock<BEDLET_TARGET_TEMP_ADDR, uint16_t[BEDLET_COUNT]> bedlet_target_temp;
     ModbusHoldingRegisterBlock<BEDLET_MEASURED_MAX_CURRENT_ADDR, uint16_t[BEDLET_COUNT]> bedlet_measured_max_current;
-    ModbusInputRegisterBlock<CURRENTS_ADDR, int16_t[2]> currents;
+    ModbusInputRegisterBlock<CURRENTS_ADDR, CurrentsData> currents;
     ModbusDiscreteInputBlock<BEDLET_DISCRETE_INPUTS_ADDR, bool> general_ready;
     ModbusInputRegisterBlock<FAULT_STATUS_ADDR, SystemError> general_fault;
     ModbusInputRegisterBlock<MCU_TEMPERATURE_ADDR, uint16_t> mcu_temperature;
@@ -135,6 +141,11 @@ protected:
 
     // calculate what betlets to enable so that betlets towards two sides are heated
     uint16_t expand_to_sides(uint16_t enabled_mask, float target_temp);
+
+private:
+    void set_target(const uint8_t idx, float target_temp);
+    float get_temp(const uint16_t idx);
+    float get_target(const uint8_t idx);
 };
 
 extern ModularBed modular_bed;

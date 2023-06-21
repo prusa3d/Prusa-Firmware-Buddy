@@ -17,7 +17,7 @@ FooterLine::FooterLine(window_t *parent, size_t line_no)
 
 void FooterLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-    case GUI_event_t::CHILD_CHANGED: //event from child
+    case GUI_event_t::CHILD_CHANGED: // event from child
         positionWindows();
         break;
     case GUI_event_t::REINIT_FOOTER:
@@ -133,12 +133,12 @@ void FooterLine::Create(const IdArray &ids, size_t count) {
 // does not call destructor, just rewrites
 void FooterLine::Erase(size_t index) {
     if (index >= max_items) {
-        //erase all
+        // erase all
         for (index = 0; index < max_items; ++index) {
             unregister(index);
         }
     } else {
-        //erase just one
+        // erase just one
         unregister(index);
     }
     positionWindows();
@@ -189,12 +189,12 @@ size_t FooterLine::split(Rectangles &returned_rects, const std::array<Rect16::Wi
 
 bool FooterLine::try_split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const {
     bool center = GetCenterN() >= count;
-    std::array<Rect16, array_sz> temp_rects;           //can have 2 extra empty rectangles
-    std::array<Rect16::Width_t, array_sz> temp_widths; //can have 2 extra 0 valuses
+    std::array<Rect16, array_sz> temp_rects;           // can have 2 extra empty rectangles
+    std::array<Rect16::Width_t, array_sz> temp_widths; // can have 2 extra 0 valuses
     size_t count_with_borders = 0;
 
     if (center) {
-        //add zero widths on sides
+        // add zero widths on sides
         temp_widths = addBorderZeroWidths(widths, count);
         count_with_borders = count + 2;
     } else {
@@ -204,7 +204,7 @@ bool FooterLine::try_split(Rectangles &returned_rects, const std::array<Rect16::
     size_t count_after_split = calculateItemRects(temp_rects.data(), temp_widths.data(), count_with_borders);
 
     if (count_with_borders != count_after_split)
-        return false; //did not fit
+        return false; // did not fit
 
     auto src_begin = center ? temp_rects.begin() + 1 : temp_rects.begin();
     auto src_end = src_begin + count;

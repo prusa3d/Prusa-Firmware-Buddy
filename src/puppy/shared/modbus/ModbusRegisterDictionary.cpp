@@ -28,7 +28,7 @@ BlockInfo **GetBlockInfoPtr(BlockType type) {
     case BlockType::HoldingRegister:
         return &s_pFirstHoldingRegisterBlock;
     default:
-        return nullptr; //unknown block type
+        return nullptr; // unknown block type
     }
 }
 
@@ -174,4 +174,4 @@ bool PutStringIntoInputRegisters(uint16_t from_address, uint16_t to_address, con
     }
 }
 
-} //namespace
+} // namespace

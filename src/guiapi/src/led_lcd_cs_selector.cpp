@@ -11,8 +11,8 @@
 
 using namespace buddy::hw;
 
-//this function is not in header, i prefer one extern over adding it to
-//ili9488.hpp and including it
+// this function is not in header, i prefer one extern over adding it to
+// ili9488.hpp and including it
 extern void ili9488_spi_wr_bytes(uint8_t *pb, uint16_t size);
 extern void ili9488_cmd_nop(void);
 

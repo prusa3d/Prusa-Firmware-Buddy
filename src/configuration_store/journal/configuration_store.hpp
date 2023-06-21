@@ -9,45 +9,49 @@
 #include <ranges>
 #include "indices.hpp"
 #include "utils/utility_extensions.hpp"
+
 namespace Journal {
 
-constexpr uint16_t hash(std::span<const char> name) {
+consteval uint16_t hash(std::string_view name) {
     auto hash = cthash::simple<cthash::sha256>(name);
-    auto slice = static_cast<uint16_t>((hash[0] << 8) | hash[1]);
-    return slice & 0x3FF;
+    auto slice = (static_cast<uint16_t>(hash[0]) << 8) | static_cast<uint16_t>(hash[1]);
+    return slice & 0x3FFF;
 }
 
 template <BackendC BackendT, BackendT &(*backend)()>
 struct CurrentStoreConfig {
     static BackendT &get_backend() { return backend(); };
     using Backend = BackendT;
-    template <std::default_initializable DataT, DataT default_val, uint16_t id>
+    template <std::default_initializable DataT, const DataT &default_val, uint16_t id>
     using StoreItem = JournalItem<DataT, default_val, BackendT, backend, id>;
 };
 
 template <BackendC BackendT>
 struct DeprecatedStoreConfig {
-    template <typename DataT, DataT default_val, uint32_t HashedID, auto ptr>
+    template <typename DataT, uint32_t HashedID, auto ptr>
     using DeprecatedStoreItem
         = DeprecatedJournalStoreItemImpl<DataT, HashedID, BackendT,
             remove_member_pointer_t<decltype(ptr)>, extract_class_type_t<decltype(ptr)>, ptr>;
+
+    template <typename DataT, uint32_t HashedID>
+    using DeletedStoreItem = DeletedStoreItemImpl<DataT, HashedID, BackendT>;
 };
 
 template <class T, class U>
 static auto consteval has_unique_items() {
-    using TupleT = std::invoke_result<decltype(detail::to_tie<T>), T &>::type;
-    using TupleU = std::invoke_result<decltype(detail::to_tie<U>), U &>::type;
+    using TupleT = typename std::invoke_result<decltype(to_tie<T>), T &>::type;
+    using TupleU = typename std::invoke_result<decltype(to_tie<U>), U &>::type;
 
     using Tuple = decltype(std::tuple_cat(std::declval<TupleT>(), std::declval<TupleU>()));
-    constexpr auto index = detail::get_current_indices<Tuple>(std::make_index_sequence<std::tuple_size_v<Tuple>> {});
+    constexpr auto index = to_id_array<Tuple>();
     for (size_t i = 0; i < index.size(); i++) {
         for (size_t j = i + 1; j < index.size(); j++) {
-            if (index[i].id == index[j].id) {
+            if (index[i] == index[j]) {
                 consteval_assert_false("Some newly added Ids cause collision");
             }
         }
         for (auto reserved : T::Backend::RESERVED_IDS) {
-            if (index[i].id == reserved) {
+            if (index[i] == reserved) {
                 consteval_assert_false("Some newly added Ids cause collision with reserved Ids");
             }
         }
@@ -60,20 +64,27 @@ static auto consteval has_unique_items() {
  */
 template <class Config, class DeprecatedItems>
 class ConfigStore : public Config {
-    static_assert(has_unique_items<Config, DeprecatedItems>(), "Just added items are causing collisions");
     static constexpr bool HAS_DEPRECATED = aggregate_arity<DeprecatedItems>::size() > 1;
 
     void dump_items() {
 
-        std::apply([](auto &&... args) {
+        std::apply([](auto &&...args) {
             (args.ram_dump(), ...);
         },
-            detail::to_tie(*static_cast<Config *>(this)));
+            to_tie(*static_cast<Config *>(this)));
     }
-    friend void migrate();
 
+public:
+    /**
+     * @brief Loads data from a byte array to a hash - handles migrations if the hash was deprecated already.
+     * It's meant to be called only by migrating functions.
+     *
+     * @param id Hashed id of target store item
+     * @param buffer Holds incoming data, can be invalidated by the functions
+     * @param used_bytes Number of bytes wanted bytes in the buffer
+     */
     bool load_item(uint16_t id, std::array<uint8_t, 512> &buffer, uint16_t used_bytes) {
-        using TupleT = std::invoke_result<decltype(detail::to_tie<Config>), Config &>::type;
+        using TupleT = typename std::invoke_result<decltype(to_tie<Config>), Config &>::type;
         auto constexpr indices = get_current_indices<Config>();
         std::span<uint8_t> span(buffer.data(), used_bytes);
         bool migrated = false;
@@ -99,13 +110,12 @@ class ConfigStore : public Config {
                 }
             }
             // load data to the item itself
-            auto tuple = detail::to_tie(*static_cast<Config *>(this));
+            auto tuple = to_tie(*static_cast<Config *>(this));
             res->fnc(span, tuple);
             return migrated;
         }
     }
 
-public:
     void save_all() {
         dump_items();
     };
@@ -118,11 +128,17 @@ public:
             dump_items();
         });
     }
+
+    ConfigStore() = default;
+    ConfigStore(const ConfigStore &other) = delete;
+    ConfigStore(ConfigStore &&other) = delete;
+    ConfigStore &operator=(const ConfigStore &other) = delete;
+    ConfigStore &operator=(ConfigStore &&other) = delete;
 };
 
 template <class Config, class DeprecatedItems>
 inline ConfigStore<Config, DeprecatedItems> &journal() {
-    static ConfigStore<Config, DeprecatedItems> store;
+    static ConfigStore<Config, DeprecatedItems> store {};
     return store;
 }
 }

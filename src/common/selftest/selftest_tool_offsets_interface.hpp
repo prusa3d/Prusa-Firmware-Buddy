@@ -7,6 +7,6 @@
 
 namespace selftest {
 
-bool phaseToolOffsets(const uint8_t tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config);
+TestReturn phaseToolOffsets(const uint8_t tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config);
 
 };

@@ -95,7 +95,7 @@ static uint32_t s_EdgeMaskList_B[PWM_PERIOD_LENGTH];
 static uint32_t *s_pActualEdgeMaskList = s_EdgeMaskList_A;
 
 static uint16_t s_PulseMaskList[PWM_PERIOD_LENGTH];
-//uint32_t s_PulseCounts[PWM_PERIOD_LENGTH];
+// uint32_t s_PulseCounts[PWM_PERIOD_LENGTH];
 
 extern "C" {
 void TIM3_IRQHandler(void);
@@ -107,7 +107,7 @@ static void InitGPIOPin(GPIO_TypeDef *GPIOx, uint32_t pin, GPIO_InitTypeDef *GPI
 }
 
 bool Init() {
-    //init data structures
+    // init data structures
     memset(s_EdgeMaskList_A, 0, sizeof(s_EdgeMaskList_A));
     memset(s_EdgeMaskList_B, 0, sizeof(s_EdgeMaskList_B));
     memset(s_PulseMaskList, 0, sizeof(s_PulseMaskList));
@@ -119,7 +119,7 @@ bool Init() {
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
-    //init GPIO output pins
+    // init GPIO output pins
     GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -142,13 +142,13 @@ bool Init() {
     InitGPIOPin(GPIO_HB_14, PIN_HB_14, &GPIO_InitStruct);
     InitGPIOPin(GPIO_HB_15, PIN_HB_15, &GPIO_InitStruct);
 
-    //TIM3 timer
+    // TIM3 timer
     HAL_NVIC_SetPriority(TIM3_IRQn, PWM_TIMER_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(TIM3_IRQn);
     __HAL_RCC_TIM3_CLK_ENABLE();
 
     uint32_t uwTimclock = HAL_RCC_GetPCLK1Freq();
-    uint32_t uwPrescalerValue = (uint32_t)((uwTimclock / 1000000U) - 1U); //TIM3 counter clock equal to 1MHz
+    uint32_t uwPrescalerValue = (uint32_t)((uwTimclock / 1000000U) - 1U); // TIM3 counter clock equal to 1MHz
 
     s_htim.Instance = TIM3;
     s_htim.Init.Period = (1000000U / PWM_TIMER_FREQUENCY) - 1U;
@@ -195,8 +195,8 @@ void AddPWMPulse(uint32_t heatbedletIndex, uint32_t pulseStartEdge, uint32_t pul
 }
 
 void ApplyPWMPattern() {
-    //switch edge lists
-    //transition should be as smooth as possible
+    // switch edge lists
+    // transition should be as smooth as possible
     uint32_t *pEdgeMaskList = (s_pActualEdgeMaskList == s_EdgeMaskList_A) ? s_EdgeMaskList_B : s_EdgeMaskList_A;
 
     CRITICAL_SECTION_START;
@@ -212,7 +212,7 @@ void ApplyPWMPattern() {
 
     CRITICAL_SECTION_END;
 
-    //clear buffers an prepare them for next pwm pattern
+    // clear buffers an prepare them for next pwm pattern
     pEdgeMaskList = (s_pActualEdgeMaskList == s_EdgeMaskList_A) ? s_EdgeMaskList_B : s_EdgeMaskList_A;
     memset(pEdgeMaskList, 0, sizeof(s_EdgeMaskList_A));
     memset(s_PulseMaskList, 0, sizeof(s_PulseMaskList));
@@ -242,12 +242,12 @@ void TurnOffAll() {
     GPIO_HB_15->BRR = PIN_HB_15;
 }
 
-static hal::MultiWatchdog pwm_wdg; //Add one instance of watchdog
+static hal::MultiWatchdog pwm_wdg; // Add one instance of watchdog
 
 void TIM3_IRQHandler() {
-    //this routine shall be as fast as possible, because it is called very often
-    //see configuration constant PWM_TIMER_FREQUENCY
-    //measured average duration on STM32G0@56MHz is 1.62 microseconds in debug configuration
+    // this routine shall be as fast as possible, because it is called very often
+    // see configuration constant PWM_TIMER_FREQUENCY
+    // measured average duration on STM32G0@56MHz is 1.62 microseconds in debug configuration
 
     CLEAR_BIT(s_htim.Instance->SR, TIM_SR_UIF);
 
@@ -378,4 +378,4 @@ void TIM3_IRQHandler() {
     pwm_wdg.kick(false);
 }
 
-} //namespace
+} // namespace

@@ -23,11 +23,11 @@
 
 #ifndef F_CPU
     #define F_CPU SYSTEM_CORE_CLOCK
-#endif //F_CPU
+#endif // F_CPU
 
 #ifndef USE_HAL_DRIVER
     #define USE_HAL_DRIVER
-#endif //USE_HAL_DRIVER
+#endif // USE_HAL_DRIVER
 
 #ifdef STM32F0xx
     #include "stm32f0xx.h"
@@ -78,9 +78,9 @@ extern "C" {
 // weaked functions declaration
 void SystemClock_Config(void);
 
-//void _Error_Handler(const char *, int);
+// void _Error_Handler(const char *, int);
 
-//#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+// #define Error_Handler() _Error_Handler(__FILE__, __LINE__)
 
 #ifdef __cplusplus
 } // extern "C"

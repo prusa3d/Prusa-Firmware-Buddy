@@ -1,4 +1,4 @@
-//screen_hardfault.hpp
+// screen_hardfault.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"

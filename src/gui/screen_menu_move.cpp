@@ -7,11 +7,12 @@
 #include "menu_spin_config.hpp"
 
 #include "png_resources.hpp"
+#include <configuration_store.hpp>
 
 I_MI_AXIS::I_MI_AXIS(size_t index)
-    : WiSpinInt(int32_t(marlin_vars()->pos[index]),
+    : WiSpinInt(round(marlin_vars()->logical_pos[index]),
         SpinCnf::axis_ranges[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
-    , lastQueuedPos(int32_t(marlin_vars()->pos[index])) {}
+    , lastQueuedPos(value.i) {}
 
 invalidate_t I_MI_AXIS::change(int diff) {
     auto res = WiSpinInt::change(diff);
@@ -69,7 +70,7 @@ void DUMMY_AXIS_E::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_p
 }
 
 bool DUMMY_AXIS_E::IsTargetTempOk() {
-    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
     auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle;
     return (current_filament != filament::Type::NONE)                                                    // filament is selected
         && (int(marlin_vars()->active_hotend().target_nozzle + 0.9F) >= current_filament_nozzle_target); // target temperature is high enough - +0.9 to avoid float round error
@@ -155,7 +156,7 @@ void ScreenMenuMove::checkNozzleTemp() {
 #endif // 0 .. make unit test
 
 bool ScreenMenuMove::IsTempOk() {
-    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
     auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle;
     return DUMMY_AXIS_E::IsTargetTempOk()                                                                   // target correctly set
         && (marlin_vars()->active_hotend().temp_nozzle > (current_filament_nozzle_target - temp_ok_range)); // temperature nearly reached
@@ -163,12 +164,12 @@ bool ScreenMenuMove::IsTempOk() {
 
 ScreenMenuMove::ScreenMenuMove()
     : ScreenMenuMove__(_(label)) {
-#if PRINTER_TYPE != PRINTER_PRUSA_MINI
+#if !PRINTER_IS_PRUSA_MINI
     header.SetIcon(&png::move_16x16);
 #endif
     prev_accel = marlin_vars()->travel_acceleration;
     marlin_gcode("M204 T200");
-    Hide<MI_AXIS_E>(); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
+    Hide<MI_AXIS_E>();     // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
     checkNozzleTemp();
     ClrMenuTimeoutClose(); // No timeout for move screen
 }

@@ -40,17 +40,17 @@ int8_t CFanCtlPWM::tick() {
     bool o = (cnt >= pha) && (cnt < (pha + val));
     if (++cnt >= max_value) {
         cnt = 0;
-        if (val != pwm) {              // pwm changed
-            val = pwm;                 // update cached value
-            pha = 0;                   // reset phase
-            pha_max = max_value - val; // calculate maximum phase
+        if (val != pwm) {                        // pwm changed
+            val = pwm;                           // update cached value
+            pha = 0;                             // reset phase
+            pha_max = max_value - val;           // calculate maximum phase
             if ((val > 1) && (val <= pha_thr)) {
                 uint8_t steps = max_value / val; // calculate number of steps
                 if (steps < 3)
-                    steps = 3;             // limit steps >= 3
-                pha_stp = pha_max / steps; // calculate step - enable phase shifting
+                    steps = 3;                   // limit steps >= 3
+                pha_stp = pha_max / steps;       // calculate step - enable phase shifting
             } else
-                pha_stp = 0; // set step to zero - disable phase shifting
+                pha_stp = 0;                     // set step to zero - disable phase shifting
         }
 #if 1
         else if (pha_stp) // pha_stp != 0 means phase shifting enabled
@@ -132,15 +132,15 @@ bool CFanCtlTach::tick(int8_t pwm_on) {
         if (pwm_sum)
             edges = (edges * ticks_per_second) / pwm_sum; // add lost edges
         rpm = (rpm + (45 * edges)) >> 2;                  // calculate and filter rpm original formula
-                                                          //rpm = (rpm + 3 * ((60 * edges) >> 2)) >> 2;
+                                                          // rpm = (rpm + 3 * ((60 * edges) >> 2)) >> 2;
                                                           // take original rpm add 3 times new rpm - new rpm= 60*freq;
-                                                          //freq=edges/2/2; edges= revolutions per second *2 *2 (2 poles motor and two edges per revolution)
+                                                          // freq=edges/2/2; edges= revolutions per second *2 *2 (2 poles motor and two edges per revolution)
         edges = 0;                                        // reset edge counter
         tick_count = 0;                                   // reset tick counter
         pwm_sum = 0;                                      // reset pwm_sum
         m_value_ready = true;                             // set value ready = measure done
     } else if (pwm_on >= 0)
-        pwm_sum++; // inc pwm sum if pwm enabled
+        pwm_sum++;                                        // inc pwm sum if pwm enabled
     return edge;
 }
 
@@ -192,20 +192,29 @@ void CFanCtl::tick() {
                 if (edge)
                     m_Edges++;
                 if (m_Edges >= FANCTL_START_EDGES) {
-                    m_State = running;
+                    m_State = rpm_stabilization;
                     m_Ticks = 0;
                 }
             }
         }
         break;
-    case running:
-        if (m_PWMValue == 0)
+    case rpm_stabilization:
+        if (m_PWMValue == 0) {
             m_State = idle;
-        else {
+        } else {
             m_pwm.set_PWM(m_PWMValue);
             if (m_Ticks < FANCTL_RPM_DELAY)
                 m_Ticks++;
-            else if (!getRPMIsOk() && m_skip_tacho != skip_tacho_t::yes)
+            else
+                m_State = running;
+        }
+        break;
+    case running:
+        if (m_PWMValue == 0) {
+            m_State = idle;
+        } else {
+            m_pwm.set_PWM(m_PWMValue);
+            if (!getRPMIsOk() && m_skip_tacho != skip_tacho_t::yes)
                 m_State = error_running;
         }
         break;

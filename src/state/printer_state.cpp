@@ -10,6 +10,11 @@ namespace {
     DeviceState get_print_state(State state, bool ready) {
         switch (state) {
         case State::PrintPreviewQuestions:
+        case State::PowerPanic_AwaitingResume:
+        case State::CrashRecovery_Axis_NOK:
+        case State::CrashRecovery_Repeated_Crash:
+        case State::CrashRecovery_HOMEFAIL:
+        case State::CrashRecovery_Tool_Pickup:
             return DeviceState::Attention;
         case State::Idle:
         case State::WaitGui:
@@ -32,16 +37,12 @@ namespace {
 
         case State::PowerPanic_acFault:
         case State::PowerPanic_Resume:
-        case State::PowerPanic_AwaitingResume:
         case State::CrashRecovery_Begin:
-        case State::CrashRecovery_Axis_NOK:
         case State::CrashRecovery_Retracting:
         case State::CrashRecovery_Lifting:
+        case State::CrashRecovery_ToolchangePowerPanic:
         case State::CrashRecovery_XY_Measure:
-        case State::CrashRecovery_Tool_Pickup:
         case State::CrashRecovery_XY_HOME:
-        case State::CrashRecovery_HOMEFAIL:
-        case State::CrashRecovery_Repeated_Crash:
             return DeviceState::Busy;
 
         case State::Pausing_Begin:
@@ -62,16 +63,78 @@ namespace {
         }
         return DeviceState::Unknown;
     }
+
+    // FIXME: these are also caught by the switch statement above, is there any
+    // harm in having it in both places? Maybe couple more bytes of flash will
+    // be used, so should we just remove it and let the get_print_state handle
+    // this one, or is this better, because it's more robust?
+    bool is_crash_recovery_attention(const PhasesCrashRecovery &phase) {
+        switch (phase) {
+        case PhasesCrashRecovery::axis_NOK:
+        case PhasesCrashRecovery::repeated_crash:
+        case PhasesCrashRecovery::home_fail:
+        case PhasesCrashRecovery::tool_recovery:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    bool is_attention_while_printing(const fsm::Change &q1_change) {
+        assert(q1_change.get_queue_index() == fsm::QueueIndex::q1);
+
+        switch (q1_change.get_fsm_type()) {
+        case ClientFSM::Load_unload:
+            return true;
+        case ClientFSM::CrashRecovery:
+            return is_crash_recovery_attention(GetEnumFromPhaseIndex<PhasesCrashRecovery>(q1_change.get_data().GetPhase()));
+        default:
+            return false;
+        }
+    }
 }
 
 DeviceState get_state(State state, const marlin_vars_t::FSMChange &fsm_change, bool ready) {
-    auto print_state = get_print_state(state, ready);
 
-    if (print_state == DeviceState::Printing && fsm_change.q1_change.get_fsm_type() == ClientFSM::Load_unload) {
-        return DeviceState::Attention;
+    switch (fsm_change.q0_change.get_fsm_type()) {
+    case ClientFSM::Printing:
+        if (is_attention_while_printing(fsm_change.q1_change)) {
+            return DeviceState::Attention;
+        }
+        break;
+    case ClientFSM::Load_unload:
+    case ClientFSM::Selftest:
+    case ClientFSM::Serial_printing:
+    // FIXME: BFW-3893 Sadly there is no way (without saving state in this function)
+    //  to distinguish between preheat from main screen,
+    // which would be Idle, and preheat in the middle of filament load/unload,
+    // so it is probably better to take it as busy, given we want to decide
+    // to allow or not allow remote printing based on this, but this will cause
+    // preheat menu to be the only menu screen to not be Idle... :-(
+    case ClientFSM::Preheat:
+        return DeviceState::Busy;
+    default:
+        break;
     }
 
-    return print_state;
+    return get_print_state(state, ready);
+}
+
+bool remote_print_ready(bool preview_only) {
+    auto &print_state = marlin_vars()->print_state;
+    if (print_state == State::PrintPreviewInit || print_state == State::PrintPreviewImage) {
+        return !preview_only;
+    }
+
+    switch (get_state(print_state, marlin_vars()->get_last_fsm_change(), false)) {
+    case DeviceState::Idle:
+    case DeviceState::Ready:
+    case DeviceState::Stopped:
+    case DeviceState::Finished:
+        return true;
+    default:
+        return false;
+    }
 }
 
 }

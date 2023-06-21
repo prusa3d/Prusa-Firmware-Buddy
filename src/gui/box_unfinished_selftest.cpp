@@ -1,19 +1,18 @@
 #include "box_unfinished_selftest.hpp"
 #include <selftest_result_type.hpp>
 #include "printers.h"
+#include <configuration_store.hpp>
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
     #include <module/prusa/toolchanger.h>
 #endif
 
-namespace {
-bool all_selftests_passed() {
-#if (PRINTER_TYPE != PRINTER_PRUSA_XL)
+bool selftest_warning_selftest_finished() {
+#if (!PRINTER_IS_PRUSA_XL)
     assert(false && "Not yet implemented");
     return false;
 #else
-    SelftestResult sr;
-    eeprom_get_selftest_results(&sr);
+    SelftestResult sr = config_store().selftest_result.get();
 
     auto all_passed = [](std::same_as<TestResult> auto... results) -> bool {
         static_assert(sizeof...(results) > 0, "Pass at least one result");
@@ -41,10 +40,9 @@ bool all_selftests_passed() {
     return true;
 #endif
 }
-}
 
 void warn_unfinished_selftest_msgbox() {
-    if (!all_selftests_passed()) {
+    if (!selftest_warning_selftest_finished()) {
         MsgBoxWarning(_("Please complete Calibrations & Tests before using the printer."), Responses_Ok);
     }
 }

@@ -107,6 +107,26 @@ public:
     /// The global instance.
     static ChangedPath instance;
 
+    /// For generating an etag for file lists.
+    ///
+    /// * Chaining changes through a hash (crc32 should do just fine for these purposes).
+    /// * Hashing the dirpath too, to make sure different paths/urls have
+    ///   different etag. It's _probably_ not needed, but who knows how weird
+    ///   browsers could act and if they could conflate different paths with same
+    ///   etags.
+    /// * The "base" of the chain is randomly initiated at boot (or, lazily
+    ///   done so, to make sure the RNG is initialized at that point).
+    uint32_t change_chain_hash(const char *dirpath);
+
+    /// Track the state of a media being inserted.
+    ///
+    /// Shall be called often enough by someone, based on the info in marlin
+    /// vars. The caller doesn't have to keep track if the value changed since
+    /// last time, this is done here internally.
+    ///
+    /// This modifies the chain hash on change.
+    void media_inserted(bool inserted);
+
 private:
     mutable Mutex mutex;
 
@@ -114,6 +134,10 @@ private:
     Type type {};
     Incident incident {};
     std::optional<uint32_t> command_id;
+    std::atomic<uint32_t> changed_chain_hash_base = 0;
+    std::atomic<bool> last_media_inserted = false;
+
+    void ensure_chain_init();
 };
 
 }

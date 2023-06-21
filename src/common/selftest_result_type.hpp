@@ -5,7 +5,6 @@
 #include "option/filament_sensor.h"
 #include "inc/MarlinConfig.h"
 #include "config_features.h"
-#include "eeprom.h"
 
 constexpr const char *ToString(TestResult res) {
     switch (res) {

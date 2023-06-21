@@ -56,6 +56,8 @@
     #include "src/feature/prusa/crash_recovery.h"
 #endif
 
+#include <bsod_gui.hpp>
+
 /**
  * G425 backs away from the calibration object by various distances
  * depending on the confidence level:
@@ -216,6 +218,7 @@ void go_to_initial(const xyz_pos_t center, const float angle, const float radius
     const xy_pos_t current = current_position;
 
     if (current != initial) {
+        feedrate_mm_s = INTERPROBE_FEEDRATE_MMS;
         plan_arc(initial, { { { .x = center.x - current.x, .y = center.y - current.y } } }, false);
     }
     planner.synchronize();
@@ -603,6 +606,26 @@ inline void calibrate_all_simple() {
         hotend_offset[e] = -centers[e];
     }
     normalize_hotend_offsets();
+
+    // Check offsets
+    HOTEND_LOOP() {
+#if ENABLED(PRUSA_TOOLCHANGER)
+        if (!prusa_toolchanger.getTool(e).is_enabled()) {
+            hotend_offset[e].reset();
+            continue;
+        }
+#endif
+
+        if (hotend_offset[e].x < X_MIN_OFFSET || hotend_offset[e].x > X_MAX_OFFSET) {
+            fatal_error(ErrCode::ERR_MECHANICAL_TOOL_OFFSET_OUT_OF_BOUNDS, e + 1, 'X', static_cast<double>(hotend_offset[e].x), static_cast<double>(X_MIN_OFFSET), static_cast<double>(X_MAX_OFFSET));
+        }
+        if (hotend_offset[e].y < Y_MIN_OFFSET || hotend_offset[e].y > Y_MAX_OFFSET) {
+            fatal_error(ErrCode::ERR_MECHANICAL_TOOL_OFFSET_OUT_OF_BOUNDS, e + 1, 'Y', static_cast<double>(hotend_offset[e].y), static_cast<double>(Y_MIN_OFFSET), static_cast<double>(Y_MAX_OFFSET));
+        }
+        if (hotend_offset[e].z < Z_MIN_OFFSET || hotend_offset[e].z > Z_MAX_OFFSET) {
+            fatal_error(ErrCode::ERR_MECHANICAL_TOOL_OFFSET_OUT_OF_BOUNDS, e + 1, 'Z', static_cast<double>(hotend_offset[e].z), static_cast<double>(Z_MIN_OFFSET), static_cast<double>(Z_MAX_OFFSET));
+        }
+    }
     prusa_toolchanger.save_tool_offsets();
 
     HOTEND_LOOP() {

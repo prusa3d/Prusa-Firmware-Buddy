@@ -67,20 +67,29 @@ namespace puppies {
 
     void PuppyBus::EnsurePause() {
         while (ticks_us() - PuppyBus::last_operation_time_us < PuppyBus::MINIMAL_PAUSE_BETWEEN_REQUESTS_US) {
-            osThreadYield();
+            osDelay(1);
         }
     }
 
     PuppyBus::LockGuard::LockGuard() {
         osStatus res = osMutexWait(puppyMutexId, osWaitForever);
         assert(res == osOK);
+        locked = true;
         UNUSED(res);
     }
 
+    PuppyBus::LockGuard::LockGuard(bool &is_locked) {
+        osStatus res = osMutexWait(puppyMutexId, osWaitForever);
+        locked = (res == osOK);
+        is_locked = locked;
+    }
+
     PuppyBus::LockGuard::~LockGuard() {
-        osStatus res = osMutexRelease(puppyMutexId);
-        assert(res == osOK);
-        UNUSED(res);
+        if (locked) {
+            osStatus res = osMutexRelease(puppyMutexId);
+            assert(res == osOK);
+            UNUSED(res);
+        }
     }
 }
 }

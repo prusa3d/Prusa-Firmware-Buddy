@@ -46,6 +46,8 @@ public:
     static Configuration &Instance();
 
     static constexpr bool has_inverted_fans() { return false; }
+    static constexpr bool has_inverted_mmu_reset() { return true; }
+    static constexpr bool can_power_up_mmu_without_pulses() { return true; }
 
     /**
      * @brief voltage reference of current measurement

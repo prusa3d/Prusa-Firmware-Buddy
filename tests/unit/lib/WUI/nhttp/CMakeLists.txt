@@ -29,6 +29,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_json.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/req_parser.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/handler.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/crc32.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
@@ -83,12 +84,15 @@ target_include_directories(
   nhttp_tests
   PRIVATE .
           ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_SOURCE_DIR}/include
+          ${CMAKE_BINARY_DIR}/include
           ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/WUI
           ${CMAKE_SOURCE_DIR}/lib/WUI/http
           ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src/common
+          ${CMAKE_SOURCE_DIR}/src/configuration_store
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include

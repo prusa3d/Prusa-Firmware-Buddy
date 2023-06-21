@@ -102,41 +102,46 @@ extern TIM_HandleTypeDef htim14;
 #define THERM_1_GPIO_Port     GPIOA
 
 #if (BOARD_IS_BUDDY)
-    #define ESP_TX_Pin        GPIO_PIN_6
-    #define ESP_TX_GPIO_Port  GPIOC
-    #define ESP_RX_Pin        GPIO_PIN_7
-    #define ESP_RX_GPIO_Port  GPIOC
-    #define THERM_2_Pin       GPIO_PIN_5
-    #define THERM_2_GPIO_Port GPIOA
+    #define ESP_TX_Pin            GPIO_PIN_6
+    #define ESP_TX_GPIO_Port      GPIOC
+    #define ESP_RX_Pin            GPIO_PIN_7
+    #define ESP_RX_GPIO_Port      GPIOC
+    #define THERM_2_Pin           GPIO_PIN_5
+    #define THERM_2_GPIO_Port     GPIOA
+    #define THERM_PINDA_Pin       GPIO_PIN_6
+    #define THERM_PINDA_GPIO_Port GPIOA
 #else
     #define THERM_2_Pin       GPIO_PIN_10
     #define THERM_2_GPIO_Port GPIOF
 #endif
 
-#define THERM_PINDA_Pin       GPIO_PIN_6
-#define THERM_PINDA_GPIO_Port GPIOA
-#define BED_HEAT_Pin          GPIO_PIN_0
-#define BED_HEAT_GPIO_Port    GPIOB
-#define HEAT0_Pin             GPIO_PIN_1
-#define HEAT0_GPIO_Port       GPIOB
-#define USB_FS_N_Pin          GPIO_PIN_11
-#define USB_FS_N_GPIO_Port    GPIOA
-#define USB_FS_P_Pin          GPIO_PIN_12
-#define USB_FS_P_GPIO_Port    GPIOA
-#define FLASH_SCK_Pin         GPIO_PIN_10
-#define FLASH_SCK_GPIO_Port   GPIOC
-#define FLASH_MISO_Pin        GPIO_PIN_11
-#define FLASH_MISO_GPIO_Port  GPIOC
-#define FLASH_MOSI_Pin        GPIO_PIN_12
-#define FLASH_MOSI_GPIO_Port  GPIOC
-#define TX1_Pin               GPIO_PIN_6
-#define TX1_GPIO_Port         GPIOB
-#define RX1_Pin               GPIO_PIN_7
-#define RX1_GPIO_Port         GPIOB
-#define MMU_TX_Pin            GPIO_PIN_6
-#define MMU_TX_GPIO_Port      GPIOC
-#define MMU_RX_Pin            GPIO_PIN_7
-#define MMU_RX_GPIO_Port      GPIOC
+#if (BOARD_IS_XBUDDY && !PRINTER_IS_PRUSA_MK3_5)
+    #define THERM_HEATBREAK_Pin       GPIO_PIN_6
+    #define THERM_HEATBREAK_GPIO_Port GPIOA
+#endif
+
+#define BED_HEAT_Pin         GPIO_PIN_0
+#define BED_HEAT_GPIO_Port   GPIOB
+#define HEAT0_Pin            GPIO_PIN_1
+#define HEAT0_GPIO_Port      GPIOB
+#define USB_FS_N_Pin         GPIO_PIN_11
+#define USB_FS_N_GPIO_Port   GPIOA
+#define USB_FS_P_Pin         GPIO_PIN_12
+#define USB_FS_P_GPIO_Port   GPIOA
+#define FLASH_SCK_Pin        GPIO_PIN_10
+#define FLASH_SCK_GPIO_Port  GPIOC
+#define FLASH_MISO_Pin       GPIO_PIN_11
+#define FLASH_MISO_GPIO_Port GPIOC
+#define FLASH_MOSI_Pin       GPIO_PIN_12
+#define FLASH_MOSI_GPIO_Port GPIOC
+#define TX1_Pin              GPIO_PIN_6
+#define TX1_GPIO_Port        GPIOB
+#define RX1_Pin              GPIO_PIN_7
+#define RX1_GPIO_Port        GPIOB
+#define MMU_TX_Pin           GPIO_PIN_6
+#define MMU_TX_GPIO_Port     GPIOC
+#define MMU_RX_Pin           GPIO_PIN_7
+#define MMU_RX_GPIO_Port     GPIOC
 
 #define BED_MON_Pin       GPIO_PIN_3
 #define BED_MON_GPIO_Port GPIOA
@@ -172,10 +177,8 @@ extern TIM_HandleTypeDef htim14;
 #define BED_MON_GPIO_Port           GPIOA
 #define FANPRINT_TACH_Pin           GPIO_PIN_10
 #define FANPRINT_TACH_GPIO_Port     GPIOE
-#define FANPRINT_TACH_EXTI_IRQn     EXTI15_10_IRQn
 #define FANHEATBREAK_TACH_Pin       GPIO_PIN_14
 #define FANHEATBREAK_TACH_GPIO_Port GPIOE
-#define FANHEATBREAK_TACH_EXTI_IRQn EXTI15_10_IRQn
 #define SWDIO_Pin                   GPIO_PIN_13
 #define SWDIO_GPIO_Port             GPIOA
 #define SWCLK_Pin                   GPIO_PIN_14
@@ -186,10 +189,37 @@ extern TIM_HandleTypeDef htim14;
 #define WP1_GPIO_Port               GPIOE
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    #define TOUCH_SDA_PORT GPIOC
-    #define TOUCH_SDA_PIN  GPIO_PIN_9
-    #define TOUCH_SCL_PORT GPIOA
-    #define TOUCH_SCL_PIN  GPIO_PIN_8
+    #define i2c2_SDA_PORT_BASE GPIOF_BASE
+    #define i2c2_SCL_PORT_BASE GPIOF_BASE
+    #define i2c2_SDA_PORT      ((GPIO_TypeDef *)i2c2_SDA_PORT_BASE)
+    #define i2c2_SCL_PORT      ((GPIO_TypeDef *)i2c2_SCL_PORT_BASE)
+    #define i2c2_SDA_PIN       GPIO_PIN_0
+    #define i2c2_SCL_PIN       GPIO_PIN_1
+
+    #define i2c3_SDA_PORT_BASE GPIOC_BASE
+    #define i2c3_SCL_PORT_BASE GPIOA_BASE
+    #define i2c3_SDA_PORT      ((GPIO_TypeDef *)i2c3_SDA_PORT_BASE)
+    #define i2c3_SCL_PORT      ((GPIO_TypeDef *)i2c3_SCL_PORT_BASE)
+    #define i2c3_SDA_PIN       GPIO_PIN_9
+    #define i2c3_SCL_PIN       GPIO_PIN_8
+#endif
+
+#if (BOARD_IS_XLBUDDY)
+    #define i2c1_SDA_PORT_BASE GPIOB_BASE
+    #define i2c1_SCL_PORT_BASE GPIOB_BASE
+    #define i2c1_SDA_PORT      ((GPIO_TypeDef *)i2c1_SDA_PORT_BASE)
+    #define i2c1_SCL_PORT      ((GPIO_TypeDef *)i2c1_SCL_PORT_BASE)
+    #define i2c1_SDA_PIN       GPIO_PIN_7
+    #define i2c1_SCL_PIN       GPIO_PIN_6
+#endif
+
+#if (BOARD_IS_BUDDY)
+    #define i2c1_SDA_PORT_BASE GPIOB_BASE
+    #define i2c1_SCL_PORT_BASE GPIOB_BASE
+    #define i2c1_SDA_PORT      ((GPIO_TypeDef *)i2c1_SDA_PORT_BASE)
+    #define i2c1_SCL_PORT      ((GPIO_TypeDef *)i2c1_SCL_PORT_BASE)
+    #define i2c1_SDA_PIN       GPIO_PIN_9
+    #define i2c1_SCL_PIN       GPIO_PIN_8
 #endif
 
 // Make our life a bit easier and don't distinguish between UART and USART
@@ -197,6 +227,53 @@ extern TIM_HandleTypeDef htim14;
 #define UART2 USART2
 #define UART3 USART3
 #define UART6 USART6
+
+//
+// External Peripherals Assignment
+// -1 == don't have, currently i2c only
+//
+
+#if BOARD_IS_BUDDY
+    #define i2c_eeprom      1
+    #define i2c_usbc        -1
+    #define i2c_touch       -1
+    #define i2c_io_extender -1
+    #define spi_flash       3
+    #define spi_lcd         2
+    #define uart_tmc        2
+    #define uart_esp        6
+    #define uart_extconn    1
+    #define spi_extconn     1
+#elif BOARD_IS_XBUDDY
+    #define i2c_eeprom        2
+    #define i2c_usbc          2
+    #define i2c_touch         3
+    #define i2c_io_extender   -1
+    #define spi_flash         5
+    #define spi_lcd           6
+    #define spi_tmc           3
+    #define uart_esp          8
+    #define spi_accelerometer 2
+    #define spi_extconn       4
+    #define uart_mmu          6
+#elif BOARD_IS_XLBUDDY
+    #define i2c_eeprom        2
+    #define i2c_usbc          1
+    #define i2c_touch         3
+    #define i2c_io_extender   2
+    #define spi_flash         5
+    #define spi_lcd           6
+    #define spi_tmc           3
+    #define uart_esp          8
+    #define spi_accelerometer 2
+    #define spi_led           4
+    #define uart_puppies      3
+    #define uart_reserved     6
+#else
+    #error Unknown board
+#endif
+
+#define HAS_I2CN(n) ((n == i2c_eeprom) || (n == i2c_touch) || (n == i2c_usbc) || (n == i2c_io_extender))
 
 //
 // Other
@@ -224,9 +301,25 @@ void hw_uart3_init();
 void hw_uart6_init();
 void hw_uart8_init();
 
+//
+// i2c init may not exist without External Peripherals Assignment
+// it contains busy flag clear function, and it requires pyhsical pins to compile
+// i2c init is also used to clear BUSY flag
+//
+
+#if HAS_I2CN(1)
 void hw_i2c1_init();
+#endif
+#if HAS_I2CN(2)
 void hw_i2c2_init();
+#endif
+#if HAS_I2CN(3)
 void hw_i2c3_init();
+#endif
+
+size_t hw_i2c1_get_busy_clear_count();
+size_t hw_i2c2_get_busy_clear_count();
+size_t hw_i2c3_get_busy_clear_count();
 
 void hw_spi2_init();
 void hw_spi3_init();
@@ -238,46 +331,6 @@ void hw_tim1_init();
 void hw_tim2_init();
 void hw_tim3_init();
 void hw_tim14_init();
-
-//
-// External Peripherals Assignment
-//
-
-#if BOARD_IS_BUDDY
-    #define i2c_eeprom   1
-    #define spi_flash    3
-    #define spi_lcd      2
-    #define uart_tmc     2
-    #define uart_esp     6
-    #define uart_extconn 1
-    #define spi_extconn  1
-#elif BOARD_IS_XBUDDY
-    #define i2c_eeprom        2
-    #define spi_flash         5
-    #define spi_lcd           6
-    #define spi_tmc           3
-    #define uart_esp          8
-    #define spi_accelerometer 2
-    #define i2c_touch         3
-    #define spi_extconn       4
-    #define i2c_usbc          2
-    #define uart_mmu          6
-#elif BOARD_IS_XLBUDDY
-    #define i2c_eeprom        2
-    #define i2c_io_extender   2
-    #define spi_flash         5
-    #define spi_lcd           6
-    #define spi_tmc           3
-    #define uart_esp          8
-    #define spi_accelerometer 2
-    #define i2c_touch         3
-    #define spi_led           4
-    #define i2c_usbc          1
-    #define uart_puppies      3
-    #define uart_reserved     6
-#else
-    #error Unknown board
-#endif
 
 //
 // Getters

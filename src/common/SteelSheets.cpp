@@ -5,6 +5,7 @@
 #include <cmath>
 #include <algorithm>
 #include <optional>
+#include <configuration_store.hpp>
 
 uint32_t SteelSheets::NextSheet() {
     uint8_t index = activeSheetIndex();
@@ -28,7 +29,7 @@ bool SteelSheets::SelectSheet(uint32_t index) {
         return false;
 
     uint8_t index_ui8 = index;
-    eeprom_set_ui8(EEVAR_ACTIVE_SHEET, index_ui8);
+    config_store().active_sheet.set(index_ui8);
 
     // update marlin vars
     auto sheet = getSheet(index);
@@ -47,7 +48,7 @@ bool SteelSheets::ResetSheet(uint32_t index) {
     return true;
 }
 uint32_t SteelSheets::activeSheetIndex() {
-    return eeprom_get_ui8(EEVAR_ACTIVE_SHEET);
+    return config_store().active_sheet.get();
 }
 uint32_t SteelSheets::NumOfCalibrated() {
     uint32_t count = 1;
@@ -86,23 +87,23 @@ uint32_t SteelSheets::RenameSheet(uint32_t index, const char *buffer, uint32_t l
     return l;
 }
 Sheet SteelSheets::getSheet(uint32_t index) {
-    return eeprom_get_sheet(index);
+    return config_store().get_sheet(index);
 }
-bool SteelSheets::setSheet(uint32_t index, Sheet sheet) {
-    return eeprom_set_sheet(index, sheet);
+void SteelSheets::setSheet(uint32_t index, Sheet sheet) {
+    return config_store().set_sheet(index, sheet);
 }
 void SteelSheets::updateMarlin(float offset) {
     offset = std::clamp(offset, zOffsetMin, zOffsetMax);
     marlin_set_z_offset(offset);
 }
-bool SteelSheets::SetZOffset(float offset) {
+void SteelSheets::SetZOffset(float offset) {
     if (!std::isfinite(offset))
         offset = 0.F;
     offset = std::clamp(offset, zOffsetMin, zOffsetMax);
 
     uint8_t index = activeSheetIndex();
     updateMarlin(offset);
-    return setSheetOffset(index, offset);
+    setSheetOffset(index, offset);
 }
 float SteelSheets::GetZOffset() {
     uint8_t index = activeSheetIndex();
@@ -114,8 +115,8 @@ float SteelSheets::GetSheetOffset(uint32_t index) {
     auto sheet = getSheet(index);
     return std::clamp(sheet.z_offset, zOffsetMin, zOffsetMax);
 }
-bool SteelSheets::setSheetOffset(uint32_t index, float offset) {
+void SteelSheets::setSheetOffset(uint32_t index, float offset) {
     auto sheet = getSheet(index);
     sheet.z_offset = offset;
-    return setSheet(index, sheet);
+    setSheet(index, sheet);
 }

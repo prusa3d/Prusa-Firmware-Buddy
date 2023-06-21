@@ -49,7 +49,7 @@ uint8_t MarlinUI::preheat_fan_speed[2];
 
 void _lcd_preheat(const int16_t endnum, const int16_t temph, const int16_t tempb, const uint8_t fan) {
   #if HOTENDS
-    if (temph > 0) thermalManager.setTargetHotend(_MIN(heater_maxtemp[endnum] - 15, temph), endnum);
+    if (temph > 0) thermalManager.setTargetHotend(_MIN(heater_maxtemp[endnum] - HEATER_MAXTEMP_SAFETY_MARGIN, temph), endnum);
   #endif
   #if HAS_HEATED_BED
     if (tempb >= 0) thermalManager.setTargetBed(tempb);
@@ -194,9 +194,9 @@ void menu_temperature() {
   // Nozzle [1-5]:
   //
   #if HOTENDS == 1
-    EDIT_ITEM_FAST(int3, MSG_NOZZLE, &thermalManager.temp_hotend[0].target, 0, HEATER_0_MAXTEMP - 15, [](){ thermalManager.start_watching_hotend(0); });
+    EDIT_ITEM_FAST(int3, MSG_NOZZLE, &thermalManager.temp_hotend[0].target, 0, HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN, [](){ thermalManager.start_watching_hotend(0); });
   #elif HOTENDS > 1
-    #define EDIT_TARGET(N) EDIT_ITEM_FAST(int3, MSG_NOZZLE_##N, &thermalManager.temp_hotend[N].target, 0, HEATER_##N##_MAXTEMP - 15, [](){ thermalManager.start_watching_hotend(N); })
+    #define EDIT_TARGET(N) EDIT_ITEM_FAST(int3, MSG_NOZZLE_##N, &thermalManager.temp_hotend[N].target, 0, HEATER_##N##_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN, [](){ thermalManager.start_watching_hotend(N); })
     EDIT_TARGET(0);
     EDIT_TARGET(1);
     #if HOTENDS > 2
@@ -214,7 +214,7 @@ void menu_temperature() {
   #endif // HOTENDS > 1
 
   #if ENABLED(SINGLENOZZLE)
-    EDIT_ITEM_FAST(uint16_3, MSG_NOZZLE_STANDBY, &singlenozzle_temp[active_extruder ? 0 : 1], 0, HEATER_0_MAXTEMP - 15);
+    EDIT_ITEM_FAST(uint16_3, MSG_NOZZLE_STANDBY, &singlenozzle_temp[active_extruder ? 0 : 1], 0, HEATER_0_MAXTEMP - HEATER_MAXTEMP_SAFETY_MARGIN);
   #endif
 
   //

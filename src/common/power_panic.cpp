@@ -5,6 +5,11 @@
 
 #include <option/has_puppies.h>
 #include <option/has_embedded_esp32.h>
+#include <option/has_toolchanger.h>
+
+#if HAS_TOOLCHANGER()
+    #include <module/prusa/toolchanger.h>
+#endif /*HAS_TOOLCHANGER()*/
 
 #include "marlin_server.hpp"
 #include "media.h"
@@ -26,6 +31,9 @@
 #if ENABLED(CANCEL_OBJECTS)
     #include "../Marlin/src/feature/cancel_object.h"
 #endif
+
+#include "../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
+#include "../lib/Marlin/Marlin/src/feature/pressure_advance/pressure_advance_config.hpp"
 
 #include "log.h"
 #include "w25x.h"
@@ -91,7 +99,6 @@ struct flash_planner_t {
     xyze_pos_t max_jerk;
 
     float z_position;
-    float extruder_advance_K[HOTENDS];
 #if DISABLED(CLASSIC_JERK)
     float junction_deviation_mm;
 #endif
@@ -114,6 +121,13 @@ struct flash_planner_t {
 #if DISABLED(MODULAR_HEATBED)
     uint8_t _padding[2];
 #endif
+
+    // IS/PA
+    input_shaper::AxisConfig axis_x_config;
+    input_shaper::AxisConfig axis_y_config;
+    input_shaper::WeightAdjustConfig axis_y_weight_adjust;
+    input_shaper::AxisConfig axis_z_config;
+    pressure_advance::Config axis_e_config;
 };
 
 // fully independent state that persist across panics until the end of the print
@@ -123,10 +137,10 @@ struct flash_print_t {
 
 // crash recovery data
 struct flash_crash_t {
-    uint32_t sdpos;                    /// sdpos of the gcode instruction being aborted
-    xyze_pos_t start_current_position; /// absolute logical starting XYZE position of the gcode instruction
-    xyze_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
-    abce_pos_t crash_position;         /// absolute physical ABCE position of the crash location
+    uint32_t sdpos;                      /// sdpos of the gcode instruction being aborted
+    xyze_pos_t start_current_position;   /// absolute logical starting XYZE position of the gcode instruction
+    xyze_pos_t crash_current_position;   /// absolute logical XYZE position of the crash location
+    abce_pos_t crash_position;           /// absolute physical ABCE position of the crash location
     uint16_t segments_finished = 0;
     uint8_t axis_known_position;         /// axis state before crashing
     uint8_t leveling_active;             /// state of MBL before crashing
@@ -135,7 +149,7 @@ struct flash_crash_t {
     uint16_t counter_power_panic = 0;    /// number of power panics
     Crash_s::InhibitFlags inhibit_flags; /// inhibit instruction replay flags
 
-    uint8_t _padding[1]; // silence warning
+    uint8_t _padding[1];                 // silence warning
 };
 
 // print progress data
@@ -145,6 +159,18 @@ struct flash_progress_t {
     uint32_t time_to_end;
     uint32_t time_to_pause;
 };
+
+// toolchanger recovery info
+//   can't use PrusaToolChanger::PrecrashData as it doesn't have to be packed
+struct flash_toolchanger_t {
+#if HAS_TOOLCHANGER()
+    xyz_pos_t return_pos;          ///< Position wanted after toolchange
+    uint8_t precrash_tool;         ///< Tool wanted to be picked before panic
+    tool_return_t return_type : 8; ///< Where to return after recovery
+    uint32_t : 16;                 ///< Padding to keep the structure size aligned to 32 bit
+#endif                             /*HAS_TOOLCHANGER()*/
+};
+
 #pragma GCC diagnostic pop
 
 // Data storage layout
@@ -166,11 +192,11 @@ struct __attribute__((packed)) flash_data {
         flash_planner_t planner;
         flash_progress_t progress;
         flash_print_t print;
+        flash_toolchanger_t toolchanger;
 
 #if ENABLED(CANCEL_OBJECTS)
         uint32_t canceled_objects;
 #endif
-
         uint8_t invalid; // set to zero before writing, cleared on erase
 
         static void load();
@@ -189,13 +215,14 @@ static struct {
     PPState orig_state;
     char media_SFN_path[FILE_PATH_MAX_LEN]; // temporary buffer
     uint8_t orig_axis_known_position;
-    uint32_t fault_stamp; // time since acFault trigger
+    uint32_t fault_stamp;                   // time since acFault trigger
 
     // Temporary copy to handle nested fault handling
     flash_crash_t crash;
     flash_planner_t planner;
     flash_progress_t progress;
     flash_print_t print;
+    flash_toolchanger_t toolchanger;
 
 #if ENABLED(CANCEL_OBJECTS)
     uint32_t canceled_objects;
@@ -265,6 +292,7 @@ void flash_data::state_t::save() {
     FLASH_SAVE(state.planner, state_buf.planner);
     FLASH_SAVE(state.progress, state_buf.progress);
     FLASH_SAVE(state.print, state_buf.print);
+    FLASH_SAVE(state.toolchanger, state_buf.toolchanger);
 #if ENABLED(CANCEL_OBJECTS)
     FLASH_SAVE(state.canceled_objects, state_buf.canceled_objects);
 #endif
@@ -280,6 +308,7 @@ void flash_data::state_t::load() {
     FLASH_LOAD(state.planner, state_buf.planner);
     FLASH_LOAD(state.progress, state_buf.progress);
     FLASH_LOAD(state.print, state_buf.print);
+    FLASH_LOAD(state.toolchanger, state_buf.toolchanger);
 #if ENABLED(CANCEL_OBJECTS)
     FLASH_LOAD(state.canceled_objects, state_buf.canceled_objects);
 #endif
@@ -408,7 +437,21 @@ static void atomic_reset() {
 static void atomic_finish() {
     HAL_NVIC_DisableIRQ(buddy::hw::acFault.getIRQn());
 
-    marlin_server::powerpanic_finish(state_buf.planner.was_paused);
+#if HAS_TOOLCHANGER()
+    if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL // Was in toolchange area
+        && prusa_toolchanger.is_toolchanger_enabled()) {                      // Toolchanger is installed
+
+        // Continue with toolcrash recovery
+        marlin_server::powerpanic_finish_toolcrash();
+    } else
+#endif /* HAS_TOOLCHANGER() */
+    {
+        if (state_buf.planner.was_paused) {
+            marlin_server::powerpanic_finish_pause();
+        } else {
+            marlin_server::powerpanic_finish_recovery();
+        }
+    }
     atomic_reset();
 
     HAL_NVIC_EnableIRQ(buddy::hw::acFault.getIRQn());
@@ -452,7 +495,14 @@ void resume_loop() {
                 marlin_server::set_temp_to_display(state_buf.planner.target_nozzle[e], e);
             }
         }
+        if (state_buf.planner.was_paused) {
+            resume.nozzle_temp_paused = true; // Nozzle temperatures are stored in resume
+        }
         marlin_server::set_resume_data(&resume);
+
+        // Set sdpos
+        //  in case powerpanic happens before sdpos propagates from resume data to media where crash_s would get it
+        crash_s.sdpos = state_buf.crash.sdpos;
 
         // set bed temperatures
         thermalManager.setTargetBed(state_buf.planner.target_bed);
@@ -462,7 +512,7 @@ void resume_loop() {
 #endif
         // planner settings
         planner.settings = state_buf.planner.settings;
-        planner.reset_acceleration_rates();
+        planner.refresh_acceleration_rates();
 #if HAS_CLASSIC_JERK
         planner.max_jerk = state_buf.planner.max_jerk;
 #else
@@ -479,6 +529,22 @@ void resume_loop() {
             SBI(axis_homed, Z_AXIS);
         }
 
+        // canceled objects
+#if ENABLED(CANCEL_OBJECTS)
+        cancelable.canceled = state_buf.canceled_objects;
+#endif
+
+#if HAS_TOOLCHANGER()
+        if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Was in toolchange area
+            prusa_toolchanger.set_precrash_state({ state_buf.toolchanger.precrash_tool,
+                state_buf.toolchanger.return_type,
+                state_buf.toolchanger.return_pos }); // Set result for tool recovery
+            resume_state = ResumeState::Finish;      // Do not reheat, do not unpark
+            break;                                   // Skip lift and rehome
+            // Will continue with toolcrash recovery
+        }
+#endif /*HAS_TOOLCHANGER()*/
+
         // lift and rehome
         if (TEST(state_buf.crash.axis_known_position, X_AXIS) || TEST(state_buf.crash.axis_known_position, Y_AXIS)) {
             float z_dist = current_position[Z_AXIS] - state_buf.crash.crash_current_position[Z_AXIS];
@@ -488,12 +554,16 @@ void resume_loop() {
             marlin_server::enqueue_gcode(cmd_buf);
         }
 
-        // canceled objects
-#if ENABLED(CANCEL_OBJECTS)
-        cancelable.canceled = state_buf.canceled_objects;
-#endif
+        if (state_buf.planner.was_paused) {
+            resume_state = ResumeState::ParkForPause;
+        } else {
+            // Set temperature for all nozzles at once
+            HOTEND_LOOP() {
+                thermalManager.setTargetHotend(state_buf.planner.target_nozzle[e], e);
+            }
 
-        resume_state = (state_buf.planner.was_paused ? ResumeState::ParkForPause : ResumeState::WaitForHeaters);
+            resume_state = ResumeState::WaitForHeaters;
+        }
         break;
 
     case ResumeState::WaitForHeaters: {
@@ -553,11 +623,27 @@ void resume_loop() {
         // original planner state
         HOTEND_LOOP() {
             planner.flow_percentage[e] = state_buf.planner.flow_percentage[e];
-#if ENABLED(LIN_ADVANCE)
-            planner.extruder_advance_K[e] = state_buf.planner.extruder_advance_K[e];
-#endif
         }
         gcode.axis_relative = state_buf.planner.axis_relative;
+
+        // IS/PA
+        if (state_buf.planner.axis_x_config.frequency == 0.f)
+            input_shaper::set_axis_x_config(std::nullopt);
+        else
+            input_shaper::set_axis_x_config(state_buf.planner.axis_x_config);
+        if (state_buf.planner.axis_y_weight_adjust.frequency_delta != 0.f)
+            input_shaper::set_axis_y_weight_adjust(std::nullopt);
+        else
+            input_shaper::set_axis_y_weight_adjust(state_buf.planner.axis_y_weight_adjust);
+        if (state_buf.planner.axis_y_config.frequency == 0.f)
+            input_shaper::set_axis_y_config(std::nullopt);
+        else
+            input_shaper::set_axis_y_config(state_buf.planner.axis_y_config);
+        if (state_buf.planner.axis_z_config.frequency == 0.f)
+            input_shaper::set_axis_z_config(std::nullopt);
+        else
+            input_shaper::set_axis_z_config(state_buf.planner.axis_z_config);
+        pressure_advance::set_axis_e_config(state_buf.planner.axis_e_config);
 
         // restore crash state
         crash_s.start_current_position = state_buf.crash.start_current_position;
@@ -577,7 +663,7 @@ void resume_loop() {
         break;
 
     case ResumeState::Error:
-        // fail if marlin_server::powerpanic_finish didn't reset the server loop state
+        // fail if marlin_server::powerpanic_finish_xxx didn't reset the server loop state
         bsod("resume loop not reset");
     }
 }
@@ -683,11 +769,9 @@ void ac_fault_loop() {
         log_debug(PowerPanic, "powerpanic loop start");
         // reduce power of motors
         stepperX.rms_current(POWER_PANIC_X_CURRENT, 1);
-#if !HAS_PUPPIES()
+#if !HAS_PUPPIES() // Extruders are on puppy boards and dwarf MCUs are reset in powerpanic
         stepperE0.rms_current(POWER_PANIC_E_CURRENT, 1);
-#else
-        // Extruders are on puppy boards that cannot be reached from ISR. These reset on power panic anyway.
-#endif
+#endif             /*HAS_PUPPIES()*/
 
         // extend XY endstops so that we can still retract/park within an interrupted homing move
         soft_endstop.min.x = X_MIN_POS - (X_MAX_POS - X_MIN_POS);
@@ -697,12 +781,14 @@ void ac_fault_loop() {
 
         // resume motion and keep consistent speeds/rates
         crash_s.set_state(Crash_s::RECOVERY);
-        planner.reset_acceleration_rates();
+        planner.refresh_acceleration_rates();
 
         if (!state_buf.nested_fault && !state_buf.planner.was_paused && !state_buf.planner.was_crashed && all_axes_homed()) {
+#if !HAS_PUPPIES()
             // retract if we were printing
             plan_move_by(PAUSE_PARK_RETRACT_FEEDRATE, 0, 0, 0, -PAUSE_PARK_RETRACT_LENGTH / planner.e_factor[active_extruder]);
             stepper.start_moving();
+#endif /*HAS_PUPPIES()*/
 
             // start powering off complex devices
             shutdown_loop_checked();
@@ -716,7 +802,9 @@ void ac_fault_loop() {
         if (shutdown_loop_checked())
             break;
 
+#if !HAS_PUPPIES()
         disable_e_steppers();
+#endif /*HAS_PUPPIES()*/
 
         // align the Z axis by lifting as little as sensibly possible
         if (TEST(state_buf.orig_axis_known_position, Z_AXIS) && TEST(state_buf.crash.axis_known_position, Z_AXIS)) {
@@ -757,6 +845,12 @@ void ac_fault_loop() {
 #if ENABLED(CANCEL_OBJECTS)
         state_buf.canceled_objects = cancelable.canceled;
 #endif
+#if HAS_TOOLCHANGER()
+        // Store tool that was last requested and where to return in case toolchange is ongoing
+        state_buf.toolchanger.precrash_tool = prusa_toolchanger.get_precrash().tool_nr;
+        state_buf.toolchanger.return_type = prusa_toolchanger.get_precrash().return_type;
+        state_buf.toolchanger.return_pos = prusa_toolchanger.get_precrash().return_pos;
+#endif /*HAS_TOOLCHANGER()*/
 
         log_info(PowerPanic, "powerpanic saving");
         if (state_buf.orig_state != PPState::Prepared) {
@@ -782,15 +876,22 @@ void ac_fault_loop() {
             feedrate_mm_s = POWER_PANIC_X_FEEDRATE;
             destination = current_position;
 
-            if (TEST(state_buf.orig_axis_known_position, X_AXIS)) {
-                // axis position is currently known, move to the closest endpoint
-                destination.x = (current_position.x < X_BED_SIZE / 2 ? X_MIN_POS : X_MAX_POS);
-            } else {
-                // we might be anywhere, plan some move towards the endstop
-                destination.x = current_position.x - (X_MAX_POS - X_MIN_POS);
+#if HAS_TOOLCHANGER()
+            if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Is in the toolchange area
+                // Do not move X or Y
+            } else
+#endif /*HAS_TOOLCHANGER()*/
+            {
+                if (TEST(state_buf.orig_axis_known_position, X_AXIS)) {
+                    // axis position is currently known, move to the closest endpoint
+                    destination.x = (current_position.x < X_BED_SIZE / 2 ? X_MIN_POS : X_MAX_POS);
+                } else {
+                    // we might be anywhere, plan some move towards the endstop
+                    destination.x = current_position.x - (X_MAX_POS - X_MIN_POS);
+                }
+                prepare_move_to_destination();
+                stepper.start_moving();
             }
-            prepare_move_to_destination();
-            stepper.start_moving();
         }
 
         log_info(PowerPanic, "powerpanic complete");
@@ -819,10 +920,10 @@ void ac_fault_loop() {
 std::atomic<bool> ac_fault_enabled = false;
 
 void check_ac_fault_at_startup() {
-    //AC-fault during initialization //TODO: IXL Remove if after PP is ready
-    if constexpr (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5) {
+    // AC-fault during initialization //TODO: IXL Remove if after PP is ready
+    if constexpr (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5) {
         if (power_panic::is_ac_fault_signal()) {
-#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
+#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
             fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
 #endif
         }
@@ -876,6 +977,7 @@ void ac_fault_isr() {
         state_buf.planner.was_paused = marlin_server::printer_paused();
         state_buf.planner.was_crashed = crash_s.did_trigger();
     }
+
     if (!state_buf.planner.was_crashed) {
         // fault occurred outside of a crash: trigger one now to update the crash position
         crash_s.set_state(Crash_s::TRIGGERED_AC_FAULT);
@@ -896,7 +998,16 @@ void ac_fault_isr() {
         }
 
         // save crash parameters
-        state_buf.crash.start_current_position = crash_s.start_current_position;
+#if HAS_TOOLCHANGER()
+        if (crash_s.is_toolchange_event()) {
+            // Panic during toolchange, use the intended destination for replay
+            state_buf.crash.start_current_position = prusa_toolchanger.get_precrash().return_pos;
+            toNative(state_buf.crash.start_current_position); // return_pos is in logical coordinates, needs to be modified in place
+        } else
+#endif                                                        /*HAS_TOOLCHANGER()*/
+        {
+            state_buf.crash.start_current_position = crash_s.start_current_position;
+        }
         state_buf.crash.crash_position = crash_s.crash_position;
         state_buf.crash.segments_finished = crash_s.segments_finished;
         state_buf.crash.axis_known_position = crash_s.crash_axis_known_position;
@@ -907,16 +1018,19 @@ void ac_fault_isr() {
         state_buf.crash.counter_power_panic = crash_s.counter_power_panic + 1;
 
         // save print temperatures
-        if (state_buf.planner.was_paused) {
+        if (state_buf.planner.was_paused || resume.nozzle_temp_paused) { // Paused print or whenever nozzle is cooled down
             HOTEND_LOOP() {
                 state_buf.planner.target_nozzle[e] = resume.nozzle_temp[e];
             }
-            state_buf.planner.fan_speed = resume.fan_speed;
-            state_buf.planner.print_speed = resume.print_speed;
         } else {
             HOTEND_LOOP() {
                 state_buf.planner.target_nozzle[e] = thermalManager.degTargetHotend(e);
             }
+        }
+        if (state_buf.planner.was_paused) {
+            state_buf.planner.fan_speed = resume.fan_speed;
+            state_buf.planner.print_speed = resume.print_speed;
+        } else {
             state_buf.planner.fan_speed = thermalManager.fan_speed[0];
             state_buf.planner.print_speed = marlin_vars()->print_speed;
         }
@@ -932,11 +1046,33 @@ void ac_fault_isr() {
         // remaining planner parameters
         HOTEND_LOOP() {
             state_buf.planner.flow_percentage[e] = planner.flow_percentage[e];
-#if ENABLED(LIN_ADVANCE)
-            state_buf.planner.extruder_advance_K[e] = planner.extruder_advance_K[e];
-#endif
         }
         state_buf.planner.axis_relative = gcode.axis_relative;
+
+        // IS/PA
+        if (!input_shaper::current_config().axis_x)
+            state_buf.planner.axis_x_config.frequency = 0.f;
+        else
+            state_buf.planner.axis_x_config = *input_shaper::current_config().axis_x;
+        if (!input_shaper::current_config().weight_adjust_y)
+            state_buf.planner.axis_y_weight_adjust.frequency_delta = 0.f;
+        else
+            state_buf.planner.axis_y_weight_adjust = *input_shaper::current_config().weight_adjust_y;
+        if (!input_shaper::current_config().axis_y)
+            state_buf.planner.axis_y_config.frequency = 0.f;
+        else
+            state_buf.planner.axis_y_config = *input_shaper::current_config().axis_y;
+        if (!input_shaper::current_config().axis_z)
+            state_buf.planner.axis_z_config.frequency = 0.f;
+        else
+            state_buf.planner.axis_z_config = *input_shaper::current_config().axis_z;
+        state_buf.planner.axis_e_config = pressure_advance::get_axis_e_config();
+
+#if HAS_TOOLCHANGER()
+        // Restore planner config if it was changed by toolchange
+        prusa_toolchanger.try_restore();
+#endif /*HAS_TOOLCHANGER()*/
+
         state_buf.planner.settings = planner.settings;
 #if HAS_CLASSIC_JERK
         state_buf.planner.max_jerk = planner.max_jerk;
@@ -960,7 +1096,7 @@ void ac_fault_isr() {
 #endif
 
     // stop & disable endstops
-    media_print_quick_stop(MEDIA_PRINT_UNDEF_POSITION);
+    media_print_quick_stop(GCodeQueue::SDPOS_INVALID);
     endstops.enable_globally(false);
 
     // will continue in the main loop

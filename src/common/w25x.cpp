@@ -195,12 +195,12 @@ constexpr uint32_t max_wait_loops() {
 void w25x_select() {
     buddy::hw::extFlashCs.write(buddy::hw::Pin::State::low);
     // Currently less than 1 CPU cycle, so no delay is done
-    DELAY_NS_PRECISE(cs_active_setup_time_relative_to_clk_ns);
+    delay_ns_precise<cs_active_setup_time_relative_to_clk_ns>();
 }
 
 void w25x_deselect() {
     buddy::hw::extFlashCs.write(buddy::hw::Pin::State::high);
-    DELAY_NS_PRECISE(cs_deselect_time_ns);
+    delay_ns_precise<cs_deselect_time_ns>();
 }
 
 void write_enable(void) {
@@ -322,7 +322,7 @@ void suspend_erase() {
     w25x_deselect();
     // W25Q guarantees to be available in tSUS
     // alternatively busy status can be polled
-    DELAY_NS_PRECISE(tSUS_ns);
+    delay_ns_precise<tSUS_ns>();
 }
 
 void resume_erase() {
@@ -331,7 +331,7 @@ void resume_erase() {
     w25x_deselect();
     // Assure that suspend is not called earlier than in tSUS
     // after resume
-    DELAY_NS_PRECISE(tSUS_ns);
+    delay_ns_precise<tSUS_ns>();
 }
 
 void w25x_erase(uint8_t cmd, uint32_t addr) {
@@ -361,7 +361,7 @@ int mfrid_devid(uint8_t *devid) {
     return ((w25x_mfrid == MFRID) && ((w25x_devid == DEVID) || (w25x_devid == DEVID_NEW)));
 }
 
-} //end anonymous namespace
+} // end anonymous namespace
 
 bool w25x_init() {
     const bool os_running = xTaskGetSchedulerState() == taskSCHEDULER_RUNNING;
@@ -469,7 +469,7 @@ void w25x_chip_erase(void) {
         w25x_set_error(HAL_TIMEOUT);
 }
 
-#if 0 //unused
+#if 0 // unused
 void w25x_rd_uid(uint8_t *uid) {
     OptionalMutex eraseMutex(erase_mutex);
     {

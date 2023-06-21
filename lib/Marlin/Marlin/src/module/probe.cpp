@@ -278,6 +278,9 @@ inline void do_probe_raise(const float z_raise) {
 
   float z_dest = z_raise;
   if (probe_offset.z < 0) z_dest -= probe_offset.z;
+  #if HAS_HOTEND_OFFSET
+  z_dest -= hotend_currently_applied_offset.z;
+  #endif
 
   NOMORE(z_dest, Z_MAX_POS);
 
@@ -321,6 +324,13 @@ FORCE_INLINE void probe_specific_action(const bool deploy) {
     );
 
   #endif // PAUSE_BEFORE_DEPLOY_STOW
+
+  #if ENABLED(NOZZLE_LOAD_CELL)
+    if (deploy) {
+      // Disable E axis for probing to reduce noise on sensor
+      disable_e_steppers();
+    }
+  #endif /*ENABLED(NOZZLE_LOAD_CELL)*/
 
   #if ENABLED(SOLENOID_PROBE)
 
@@ -448,9 +458,13 @@ bool set_probe_deployed(const bool deploy) {
 #ifdef Z_AFTER_PROBING
   // After probing move to a preferred Z position
   void move_z_after_probing() {
-    if (current_position.z != Z_AFTER_PROBING) {
-      do_blocking_move_to_z(Z_AFTER_PROBING);
-      current_position.z = Z_AFTER_PROBING;
+    float pos = Z_AFTER_PROBING;
+    #if HAS_HOTEND_OFFSET
+      pos -= hotend_currently_applied_offset.z;
+    #endif
+    if (current_position.z != pos) {
+      do_blocking_move_to_z(pos);
+      current_position.z = pos;
     }
   }
 #endif
@@ -645,7 +659,7 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
 
     // If the nozzle is well over the travel height then
     // move down quickly before doing the slow probe
-    const float z = expected_trigger_z + Z_CLEARANCE_DEPLOY_PROBE + 5.0 + (probe_offset.z < 0 ? -probe_offset.z : 0);
+    const float z = expected_trigger_z + Z_CLEARANCE_DEPLOY_PROBE + 5.0 + (probe_offset.z < 0 ? -probe_offset.z : 0) - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
     if (current_position.z > z) {
       // Probe down fast. If the probe doesn't fail raise for probe clearance
       if (!do_probe_move(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
@@ -778,7 +792,7 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
           #if EXTRA_PROBING
             < TOTAL_PROBING - 1
           #endif
-        ) do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
+        ) do_blocking_move_to_z(current_position.z + Z_CLEARANCE_MULTI_PROBE - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z), MMM_TO_MMS(Z_PROBE_SPEED_FAST));
       #endif
     }
 
@@ -849,7 +863,7 @@ void cleanup_probe(const xy_pos_t &rect_min, const xy_pos_t &rect_max) {
   for (float y = rect_min.y + radius; (y + radius) <= rect_max.y && should_continue; y += 2 * radius) {
     for (float x = rect_max.x - radius; (x - radius) >= rect_min.x && should_continue; x -= 2 * radius) {
       // move above the probe point
-      xyz_pos_t pos = { x, y, PROBE_CLEANUP_CLEARANCE };
+      xyz_pos_t pos = { x, y, static_cast<float>(PROBE_CLEANUP_CLEARANCE - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z))};
       do_blocking_move_to(pos);
         LCD_MESSAGEPGM_P("Nozzle cleaning");
 
@@ -909,7 +923,7 @@ float probe_here(float expected_trigger_z)
   float res = NAN;
   DEPLOY_PROBE();
   for(int i=0; i <= TOTAL_PROBING; i++){
-    res = run_z_probe(expected_trigger_z, true) + probe_offset.z;
+    res = run_z_probe(expected_trigger_z, true) + probe_offset.z + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
     if (!std::isnan(res))
       break;
   }
@@ -955,6 +969,10 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
     #endif
     return NAN; // The given position is in terms of the nozzle
   }
+  #if HAS_HOTEND_OFFSET
+  // now offset the probing possition by nozzle offset, to probe where nozzle actually is in desired position
+  npos -= hotend_currently_applied_offset;
+  #endif
 
   npos.z =
     #if ENABLED(DELTA)
@@ -975,9 +993,18 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
 
   float measured_z = NAN;
   if (!DEPLOY_PROBE()) {
-    measured_z = run_z_probe(0) + probe_offset.z;
+    measured_z = run_z_probe(0);
+    const float move_away_from = std::isnan(measured_z) ? current_position.z : measured_z;
 
-    const float move_away_from = std::isnan(measured_z) ? current_position.z : (measured_z - probe_offset.z);
+    measured_z += probe_offset.z;
+
+    #if HAS_HOTEND_OFFSET
+    #if DISABLED(PRUSA_TOOLCHANGER)
+      #error not implemented
+    #endif
+    // measured Z is in probe's logical coordinate space, shift it to printers native coordinate space
+    measured_z += hotend_currently_applied_offset.z;
+    #endif
 
     const bool big_raise = raise_after == PROBE_PT_BIG_RAISE;
     if (big_raise || raise_after == PROBE_PT_RAISE) {
@@ -1030,3 +1057,22 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
 #endif // HAS_Z_SERVO_PROBE
 
 #endif // HAS_BED_PROBE
+
+#if HAS_LEVELING && (HAS_BED_PROBE || ENABLED(PROBE_MANUALLY))
+ float probe_min_x() {
+    return (X_MIN_POS) + probe_offset.x + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.x);
+  }
+  float probe_max_x() {
+    return (X_MAX_POS) + probe_offset.x + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.x);
+  }
+  float probe_min_y() {
+    return (Y_MIN_POS) + probe_offset.y + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y);
+  }
+  float probe_max_y() {
+    #ifdef PROBE_MAX_Y
+      return (PROBE_MAX_Y) + probe_offset.y + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y);
+    #else
+      return (Y_MAX_POS) + probe_offset.y + TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.y);
+    #endif
+  }
+#endif

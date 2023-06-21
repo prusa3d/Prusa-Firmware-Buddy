@@ -397,12 +397,13 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_0_MAXTEMP 290 + 15
+#define HEATER_0_MAXTEMP 290
 #define HEATER_1_MAXTEMP 275
 #define HEATER_2_MAXTEMP 275
 #define HEATER_3_MAXTEMP 275
 #define HEATER_4_MAXTEMP 275
 #define HEATER_5_MAXTEMP 275
+#define HEATER_MAXTEMP_SAFETY_MARGIN 15
 // Beware: this is the absolute temperature limit.
 // The MINI cannot normally reach 110C.
 // Thus all usage in the UI must be lowered by 10C to offer a valid temperature limit.

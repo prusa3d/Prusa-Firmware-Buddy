@@ -25,17 +25,25 @@ private:
     };
     Status status = Status::Init;
     Printer &printer;
-    // Handle error state
-    // (returns OnlineStatus::Error for convenience).
-    OnlineStatus bail();
+    // Handle error states
+    //
+    // Passes the error through for convenience.
+    //
+    // retries:
+    // 0: run out of retries, really error out.
+    // nullopt: infinity
+    CommResult bail(RefreshableFactory &conn_factory, OnlineError error, std::optional<uint8_t> retries);
 
     uint32_t last_comm = 0;
-    size_t retries_left = 0;
+    // Max number of times we try to get the initial code.
+    //
+    // (When we have it, we keep trying forever).
+    uint8_t retries_left = 3;
 
 public:
     Registrator(Printer &printer)
         : printer(printer) {}
-    std::optional<OnlineStatus> communicate(RefreshableFactory &conn_factory);
+    CommResult communicate(RefreshableFactory &conn_factory);
     const char *get_code() const;
 };
 

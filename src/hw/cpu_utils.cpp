@@ -70,7 +70,7 @@ void osSetIdleTaskWatchdog(void (*function)()) {
 }
 
 extern "C" void vApplicationIdleHook() {
-    DELAY_US_PRECISE(probe_workunit_us);
+    delay_us_precise<probe_workunit_us>();
     cpu_idle_time_us_divided += probe_workunit_us_divided;
 
     if (watchdog_function != nullptr) {

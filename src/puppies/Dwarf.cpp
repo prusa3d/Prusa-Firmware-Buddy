@@ -19,6 +19,7 @@
 #include "utility_extensions.hpp"
 #include "dwarf_errors.hpp"
 #include "otp.h"
+#include <configuration_store.hpp>
 #include "Marlin/src/module/prusa/accelerometer.h"
 
 using namespace common::puppies::fifo;
@@ -83,15 +84,20 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
 
     GeneralWrite.value.HotendRequestedTemperature = 0;
     GeneralWrite.value.HeatbreakRequestedTemperature = DEFAULT_HEATBREAK_TEMPERATURE;
+
+    set_led(); // Set LED by eeprom config
 }
 
-CommunicationStatus Dwarf::refresh() {
+CommunicationStatus Dwarf::refresh(uint32_t cycle_ticks_ms, bool &worked) {
     CommunicationStatus status = CommunicationStatus::OK;
 
     // read something every 200 ms
-    if (last_update_ms + DWARF_READ_PERIOD > ticks_ms())
+    if (last_update_ms + DWARF_READ_PERIOD > cycle_ticks_ms) {
+        worked = false;
         return CommunicationStatus::OK;
-    last_update_ms = ticks_ms();
+    }
+    last_update_ms = cycle_ticks_ms;
+    worked = true;
 
     switch (refresh_nr) {
     case 0: {
@@ -216,17 +222,35 @@ bool Dwarf::dispatch_log_event() {
     return true;
 }
 
-CommunicationStatus Dwarf::fast_refresh() {
+CommunicationStatus Dwarf::fifo_refresh(uint32_t cycle_ticks_ms, bool &worked) {
+    // pull fifo every 200 ms
+    if (last_pull_ms + DWARF_FIFO_PULL_PERIOD > cycle_ticks_ms) {
+        worked = false;
+        return CommunicationStatus::OK;
+    }
+    worked = true;
+
+    bool more;
+    auto ret = pull_fifo(more);
+    if (!more && ret == CommunicationStatus::OK) {
+        last_pull_ms = cycle_ticks_ms; // Wait before next pull only if all is read
+    }
+    return ret;
+}
+
+CommunicationStatus Dwarf::pull_fifo(bool &more) {
     // Read coded FIFO
     std::array<uint16_t, MODBUS_FIFO_LEN> fifo;
     size_t read = 0;
     if (modbusIsOk(bus.ReadFIFO(unit, ENCODED_FIFO_ADDRESS, fifo, read))) {
         // calculate metric of read latency
         static uint32_t time_last_read = 0;
-        metric_record_integer(&metric_fast_refresh_delay, ticks_ms() - time_last_read);
-        time_last_read = ticks_ms();
+        auto now = ticks_ms();
+        metric_record_integer(&metric_fast_refresh_delay, now - time_last_read);
+        time_last_read = now;
 
         if (!read) {
+            more = false;
             return CommunicationStatus::OK;
         }
 
@@ -234,6 +258,7 @@ CommunicationStatus Dwarf::fast_refresh() {
 
         decoder.decode(callbacks);
 
+        more = decoder.more();
         return CommunicationStatus::OK;
     } else {
         DWARF_LOG(LOG_SEVERITY_ERROR, "Failed to read coded FIFO");
@@ -342,11 +367,11 @@ int Dwarf::get_heater_pwm() {
     return (float)RegisterGeneralStatus.value.HotendPWMState;
 }
 
-bool Dwarf::is_picked() {
+bool Dwarf::is_picked() const {
     return DiscreteGeneralStatus.value.is_picked;
 }
 
-bool Dwarf::is_parked() {
+bool Dwarf::is_parked() const {
     return DiscreteGeneralStatus.value.is_parked;
 }
 
@@ -482,6 +507,16 @@ void Dwarf::set_fan(uint8_t fan, uint16_t target) {
         GeneralWrite.value.fan_pwm[fan] = target;
         GeneralWriteNeedWrite = true;
     }
+}
+
+void Dwarf::set_led(uint8_t pwr_selected, uint8_t pwr_not_selected) {
+    GeneralWrite.value.led_pwm.selected = pwr_selected;
+    GeneralWrite.value.led_pwm.not_selected = pwr_not_selected;
+    GeneralWriteNeedWrite = true;
+}
+
+void Dwarf::set_led() {
+    set_led(config_store().tool_leds_enabled.get() ? 0xff : 0x00, 0x00);
 }
 
 void Dwarf::handle_dwarf_fault() {

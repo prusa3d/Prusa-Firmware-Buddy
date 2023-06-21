@@ -33,7 +33,7 @@
 #include "../stepper.h"
 
 #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
-    #include "eeprom.h"
+    #include <configuration_store.hpp>
 #endif
 
 #include <HardwareSerial.h>
@@ -43,7 +43,7 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
 #if DISABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
 #define _TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, ST##_CURRENT, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX])
 #else
-#define _TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, eeprom_get_ui16(AXIS_RMS_CURRENT_MA_##ST), eeprom_get_ui16(AXIS_MICROSTEPS_##ST), ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX])
+#define _TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, config_store().axis_rms_current_ma_##ST##_.get(), config_store().axis_microsteps_##ST##_.get(), ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX])
 #endif
 
 //   IC = TMC model number

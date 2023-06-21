@@ -12,8 +12,8 @@ using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
 using PhaseIcons = std::array<const png::Resource *, MAX_RESPONSES>;
 using BtnResource = std::pair<const char *, const png::Resource *>;
 
-//todo make some automatic checks names vs enum
-//list of all button types
+// todo make some automatic checks names vs enum
+// list of all button types
 class BtnResponse {
     static const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> texts_and_icons;
 

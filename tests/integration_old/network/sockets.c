@@ -11,7 +11,7 @@
     #include "dbg.h"
 #else
     #define _dbg(...)
-#endif //0
+#endif // 0
 
 void socket_listen_test_lwip() {
     _dbg("LWIP TCP HELLO SERVER TEST\n");
@@ -216,7 +216,7 @@ void netconn_listen_test() {
             static const char request_header[] = "@@@SERVER RESPONSE DATA###";
             res = esp_netconn_write(client, request_header, sizeof(request_header) - 1); /* Send data to client */
             if (res == espOK) {
-                res = esp_netconn_flush(client); /* Flush data to output */
+                res = esp_netconn_flush(client);                                         /* Flush data to output */
             }
         }
         /* Delete client */
@@ -271,13 +271,13 @@ void netconn_client_test() {
          * Function will block thread until we are successfully connected (or not) to server
          */
         res = esp_netconn_connect(client, NETCONN_HOST, NETCONN_PORT);
-        if (res == espOK) { /* Are we successfully connected? */
+        if (res == espOK) {                                                              /* Are we successfully connected? */
             _dbg("Connected to " NETCONN_HOST "\r\n");
             res = esp_netconn_write(client, request_header, sizeof(request_header) - 1); /* Send data to server */
             if (res == espOK) {
-                res = esp_netconn_flush(client); /* Flush data to output */
+                res = esp_netconn_flush(client);                                         /* Flush data to output */
             }
-            if (res == espOK) { /* Were data sent? */
+            if (res == espOK) {                                                          /* Were data sent? */
                 _dbg("Data were successfully sent to server\r\n");
 
                 /*
@@ -413,7 +413,7 @@ void socket_udp_server_test_lwesp() {
         char buff[20];
 
         socklen_t len = 0;
-        //int recvd = lwesp_recvfrom(sockfd, buff, BUF_SIZE, 0, (struct sockaddr *)&otheraddr, &len);
+        // int recvd = lwesp_recvfrom(sockfd, buff, BUF_SIZE, 0, (struct sockaddr *)&otheraddr, &len);
         int recvd = lwesp_recv(sockfd, buff, BUF_SIZE, 0);
         if (recvd < 0) {
             _dbg("RECVFROM FAILED\n");

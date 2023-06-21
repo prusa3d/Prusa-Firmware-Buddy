@@ -7,11 +7,21 @@
 #include "i18n.h"
 #include <algorithm>
 
-//static variables
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include <module/prusa/toolchanger.h>
+#endif /*HAS_TOOLCHANGER()*/
+
+// static variables
 IFooterItemFan::buffer_t FooterItemPrintFan::buffer;
 IFooterItemFan::buffer_t FooterItemHeatBreakFan::buffer;
 
 string_view_utf8 IFooterItemFan::static_makeViewIntoBuff(int value, buffer_t &buff) {
+    // Show --- if no tool is picked
+    if (value == no_tool_value) {
+        return string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(no_tool_str));
+    }
+
     buff.fill('\0');
     uint value_clamped = std::clamp(value, 0, max_rpm);
     snprintf(buff.data(), buff.size(), "%urpm", value_clamped);
@@ -28,6 +38,12 @@ FooterItemPrintFan::FooterItemPrintFan(window_t *parent)
 }
 
 int FooterItemPrintFan::static_readValue() {
+#if HAS_TOOLCHANGER()
+    if (marlin_vars()->active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+        return no_tool_value;
+    }
+#endif /*HAS_TOOLCHANGER()*/
+
     return marlin_vars()->active_hotend().print_fan_rpm;
 }
 
@@ -36,5 +52,11 @@ FooterItemHeatBreakFan::FooterItemHeatBreakFan(window_t *parent)
 }
 
 int FooterItemHeatBreakFan::static_readValue() {
+#if HAS_TOOLCHANGER()
+    if (marlin_vars()->active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+        return no_tool_value;
+    }
+#endif /*HAS_TOOLCHANGER()*/
+
     return marlin_vars()->active_hotend().heatbreak_fan_rpm;
 }

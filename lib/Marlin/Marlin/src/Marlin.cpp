@@ -30,6 +30,9 @@
 
 #include "Marlin.h"
 
+#include "feature/input_shaper/input_shaper_config.hpp"
+#include "feature/pressure_advance/pressure_advance_config.hpp"
+
 #include "core/utility.h"
 #include "lcd/ultralcd.h"
 #include "module/motion.h"
@@ -44,7 +47,9 @@
 #include "feature/closedloop.h"
 #include "feature/safety_timer.h"
 #include "feature/bed_preheat.hpp"
-#include "marlin_server.hpp"
+#if !BOARD_IS_DWARF
+#include "pause_stubbed.hpp"
+#endif
 
 #include "HAL/shared/Delay.h"
 
@@ -56,8 +61,6 @@
 #include "gcode/gcode.h"
 #include "gcode/parser.h"
 #include "gcode/queue.h"
-
-#include "feature/precise_stepping/common.h"
 
 #include <option/development_items.h>
 
@@ -432,11 +435,14 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true;  // L6470 SPI will consume 99% of free time without this
 
-        #if DEVELOPMENT_ITEMS() && PRINTER_TYPE == PRINTER_PRUSA_XL
+        #if DEVELOPMENT_ITEMS() && PRINTER_IS_PRUSA_XL && !BOARD_IS_DWARF
         // Report steppers being disabled to the user
         // Skip if position not trusted to avoid warnings when position is not important
         if(axis_known_position) {
-          marlin_server::set_warning(WarningType::SteppersTimeout);
+          /// @note Hacky link from marlin_server which cannot be included here.
+          /// @todo Remove when stepper timeout screen is solved properly.
+          extern void marlin_server_steppers_timeout_warning();
+          marlin_server_steppers_timeout_warning();
         }
         #endif
 
@@ -998,7 +1004,15 @@ void setup() {
 
   endstops.init();          // Init endstops and pullups
 
-  stepper.init();           // Init stepper. This enables interrupts!
+  // Init the motion system (order is relevant!)
+  // NOTE: this enables (timer) interrupts!
+  planner.init();
+  stepper.init();
+  PreciseStepping::init();
+#ifdef ADVANCED_STEP_GENERATORS
+  input_shaper::init();
+  pressure_advance::init();
+#endif
 
   #if HAS_SERVOS
     servo_init();
@@ -1174,6 +1188,9 @@ void loop() {
 
   #if !ENABLED(MARLIN_DISABLE_INFINITE_LOOP)
   for (;;) {
+  #endif
+  #if !BOARD_IS_DWARF
+    Pause::Instance().finalize_user_stop();
   #endif
 
     idle(false); // Do an idle first so boot is slightly faster

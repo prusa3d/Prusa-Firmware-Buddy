@@ -16,6 +16,8 @@ enum class Response : uint8_t {
     Abort,                 // when used in selftest, handled automatically in PartHandler
     Abort_invalidate_test, // when used in selftest, ignored by PartHandler, must be handled in test. This behavior allows to run additional code before abort
     ABS,
+    Adjust,
+    All,
     ASA,
     Back,
     Cancel,
@@ -26,9 +28,11 @@ enum class Response : uint8_t {
     Filament_removed,
     FLEX,
     FS_disable,
+    HighFlow,
     HIPS,
     Ignore,
     Load,
+    Menu,
     MMU_disable,
     Never,
     Next,
@@ -42,6 +46,7 @@ enum class Response : uint8_t {
     PLA,
     PP,
     Print,
+    PrusaStock,
     Purge_more,
     PVB,
     Reheat,

@@ -100,7 +100,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 }
 
 void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
-    GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+    GPIO_InitTypeDef GPIO_InitStruct = {};
     if (hspi->Instance == SPI2) {
         /* USER CODE BEGIN SPI2_MspInit 0 */
 

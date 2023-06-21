@@ -9,7 +9,7 @@
 #include "align.hpp"
 #include <stdint.h>
 
-//hidden include of C header
+// hidden include of C header
 namespace {
 #include "font_flags_c.h"
 };
@@ -28,7 +28,7 @@ struct font_flags {
     is_swap swap : 1;
     fnt_lsb lsb : 1;
 
-    //used to create from font
+    // used to create from font
     font_flags(uint8_t font_flg = 0, is_multiline multiline = is_multiline::no)
         : font_flags(multiline, is_swap(font_flg & FONT_FLG_SWAP), fnt_lsb(font_flg & FONT_FLG_LSBF)) {}
 

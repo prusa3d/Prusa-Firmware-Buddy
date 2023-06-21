@@ -9,6 +9,10 @@
 SelftestFrameFirstLayer::SelftestFrameFirstLayer(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrame>(parent, ph, data)
     , footer(this
+#if FOOTER_LINES__ == 1
+          ,
+          footer::Item::Nozzle, footer::Item::Bed
+#endif
 #if defined(FOOTER_HAS_LIVE_Z)
           ,
           footer::Item::LiveZ

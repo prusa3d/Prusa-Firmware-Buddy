@@ -36,7 +36,7 @@ bool CancelConversion();
 bool IsConversionFinished();
 ADCChannel GetConvertedChannel();
 uint16_t GetConversionResult();
-float CalculateMCUTemperature(float TEMP_ADCValue, uint32_t VREF_ADCValue); //calculation is hardware dependent
-float CalculateVREF(uint32_t VREF_ADCValue);                                //calculation is hardware dependent
+float CalculateMCUTemperature(float TEMP_ADCValue, uint32_t VREF_ADCValue); // calculation is hardware dependent
+float CalculateVREF(uint32_t VREF_ADCValue);                                // calculation is hardware dependent
 
-} //namespace
+} // namespace

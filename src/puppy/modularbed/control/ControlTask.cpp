@@ -61,7 +61,7 @@ bool Init() {
 }
 
 void OnWriteCoil(uint16_t address, bool value) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     ModbusMessage *pMsg = (ModbusMessage *)osMailAlloc(s_ModbusQueueHandle, osWaitForever);
     pMsg->m_Address = address;
@@ -70,7 +70,7 @@ void OnWriteCoil(uint16_t address, bool value) {
 }
 
 void OnWriteRegister(uint16_t address, uint16_t value) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
     ModbusMessage *pMsg = (ModbusMessage *)osMailAlloc(s_ModbusQueueHandle, osWaitForever);
     pMsg->m_Address = address;
     pMsg->m_Value = value;
@@ -78,7 +78,7 @@ void OnWriteRegister(uint16_t address, uint16_t value) {
 }
 
 bool OnReadFileRecord(uint16_t fileNumber, uint16_t recordNumber, uint16_t recordLength, modbus::ModbusBuffer *pBuffer) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     if (fileNumber != MODBUS_OTP_FILE_NUMBER) {
         return false;
@@ -96,7 +96,7 @@ bool OnReadFileRecord(uint16_t fileNumber, uint16_t recordNumber, uint16_t recor
 }
 
 bool OnWriteFileRecord([[maybe_unused]] uint16_t fileNumber, [[maybe_unused]] uint16_t recordNumber, [[maybe_unused]] uint16_t recordLength, [[maybe_unused]] modbus::ModbusBuffer *pBuffer) {
-    //WARNING: this method is called from different thread
+    // WARNING: this method is called from different thread
 
     return false;
 }
@@ -108,7 +108,7 @@ void ControlTaskFunction([[maybe_unused]] const void *argument) {
     AutoconfLogic::MeasureAndCheckAllHBCurrents();
     MeasurementLogic::StartADCMeasurements();
     modbus::ModbusTask::EnableModbus();
-    hal::MultiWatchdog wdg; //Add one instance of watchdog
+    hal::MultiWatchdog wdg; // Add one instance of watchdog
 
     while (s_ExitThread == false) {
         ProcessADCMeasurements();
@@ -117,7 +117,7 @@ void ControlTaskFunction([[maybe_unused]] const void *argument) {
         AutoconfLogic::IterateTesting();
         ControlLogic::IterateContollers();
 
-        wdg.kick(); //Reload this instance of watchdog
+        wdg.kick(); // Reload this instance of watchdog
         osDelay(1);
     }
 }
@@ -224,4 +224,4 @@ void ProcessModbusMessages() {
     }
 }
 
-} //namespace
+} // namespace

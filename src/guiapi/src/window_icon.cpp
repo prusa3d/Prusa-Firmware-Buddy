@@ -21,7 +21,7 @@ window_icon_t::window_icon_t(window_t *parent, Rect16 rect, const png::Resource 
     SetAlignment(Align_t::Center());
 }
 
-//Icon rect is increased by padding, icon is centered inside it
+// Icon rect is increased by padding, icon is centered inside it
 window_icon_t::window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : window_icon_t(
         parent,
@@ -110,7 +110,7 @@ void window_icon_t::setBlackLayout() {
 }
 
 /*****************************************************************************/
-//window_icon_button_t
+// window_icon_button_t
 window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const png::Resource *res, ButtonCallback cb)
     : AddSuperWindow<window_icon_t>(parent, rect, res)
     , callback(cb) {
@@ -128,7 +128,7 @@ void window_icon_button_t::windowEvent(EventLock /*has private ctor*/, window_t 
 }
 
 /*****************************************************************************/
-//WindowMultiIconButton
+// WindowMultiIconButton
 WindowMultiIconButton::WindowMultiIconButton(window_t *parent, point_i16_t pt, const Pngs *res, ButtonCallback cb)
     : WindowMultiIconButton(
         parent,
@@ -175,7 +175,7 @@ void WindowMultiIconButton::windowEvent(EventLock /*has private ctor*/, window_t
 }
 
 /*****************************************************************************/
-//window_icon_hourglass_t
+// window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : AddSuperWindow<window_icon_t>(parent, &png::hourglass_26x39, pt, padding, close)
     , start_time(gui::GetTick())
@@ -266,7 +266,7 @@ void window_icon_hourglass_t::windowEvent(EventLock /*has private ctor*/, [[mayb
     phs %= ANIMATION_STEPS;
     if (phase != phs) {
         phase = phs;
-        //do not want to call invalidate or Invalidate, it would reset phase to 0
+        // do not want to call invalidate or Invalidate, it would reset phase to 0
         flags.invalid = true;
         gui_invalidate();
     }

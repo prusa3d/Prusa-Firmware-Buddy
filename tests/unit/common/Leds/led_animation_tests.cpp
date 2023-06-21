@@ -101,7 +101,7 @@ TEST_CASE("Animator different priority", "[Animator]") {
     REQUIRE(animator.get_current() != animator.get_next());
     REQUIRE(animator.get_current() == nextAnimation);
     REQUIRE(dynamic_cast<DummyAnimation *>(animator.get_current())->stepCounter == 1);
-    std::swap(nextAnimation, currAnimation); //animation positions has changed
+    std::swap(nextAnimation, currAnimation); // animation positions has changed
 
     SECTION("stop in order") {
 

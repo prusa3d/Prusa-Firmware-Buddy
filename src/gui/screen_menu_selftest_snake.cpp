@@ -104,6 +104,7 @@ struct SnakeConfig {
     };
 
     void reset() {
+        break_after_submenu = false;
         in_progress = false;
         last_action = get_last_action();
         last_tool = Tool::_first;
@@ -121,6 +122,7 @@ struct SnakeConfig {
         }
     }
 
+    bool break_after_submenu { false }; ///< User selected to do one submenu and then stop
     bool in_progress { false };
     Action last_action { Action::_last };
     Tool last_tool { Tool::_first };
@@ -150,7 +152,8 @@ void do_snake(Action action, Tool tool = Tool::_first) {
 };
 
 void continue_snake() {
-    if (get_test_result(snake_config.last_action, snake_config.last_tool) != TestResult_Passed) { // last selftest didn't pass
+    if (get_test_result(snake_config.last_action, snake_config.last_tool) != TestResult_Passed
+        || SelftestInstance().IsAborted()) { // last selftest didn't pass
         snake_config.reset();
         return;
     }
@@ -162,11 +165,23 @@ void continue_snake() {
         return;
     }
 
+    if (snake_config.break_after_submenu && has_submenu(snake_config.last_action) && snake_config.last_tool == get_last_enabled_tool()) {
+        snake_config.reset();
+        return; // Stop when submenu is finished
+    }
+
     if (snake_config.state == SnakeConfig::State::first // ran only one action so far
         && (snake_config.last_action != get_first_action() || get_test_result(get_next_action(get_first_action()), Tool::_all_tools) == TestResult_Passed)) {
 
         AutoRestore ar(querying_user, true);
-        if (MsgBoxQuestion(_("Continue running Calibrations & Tests?"), Responses_YesNo, 1) == Response::No) {
+        Response resp = Response::Stop;
+        if (is_multitool() && has_submenu(snake_config.last_action) && snake_config.last_tool != get_last_enabled_tool()) {
+            resp = MsgBoxQuestion(_("Continue running this MENU for the following tools or continue running ALL Calibrations & Tests?"), { Response::Menu, Response::All, Response::Abort }, 2);
+            snake_config.break_after_submenu = (resp == Response::Menu); // Continue running tests but stop at the end of submenu
+        } else {
+            resp = MsgBoxQuestion(_("Continue running Calibrations & Tests?"), { Response::Continue, Response::Abort }, 1);
+        }
+        if (resp == Response::Abort) {
             snake_config.reset();
             return; // stop after running the first one
         }
@@ -176,7 +191,7 @@ void continue_snake() {
         || !has_submenu(snake_config.last_action)
         || snake_config.last_tool == get_last_enabled_tool()) { // singletool or wasn't submenu or was last in a submenu
         do_snake(get_next_action(snake_config.last_action));
-    } else { // current submenu not yet finished
+    } else {                                                    // current submenu not yet finished
         do_snake(snake_config.last_action, snake_config.last_tool + 1);
     }
 }

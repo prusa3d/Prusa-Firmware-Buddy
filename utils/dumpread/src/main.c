@@ -1,4 +1,4 @@
-//dumpread - main.c
+// dumpread - main.c
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     int argn = 0;
     char *arg = 0;
 
-    //parse args
+    // parse args
     while (++argn < argc) {
         arg = argv[argn];
         if (sscanf(arg, "-dump=%s", dump_fn) == 1)

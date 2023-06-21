@@ -4,10 +4,10 @@ void system_core_init() {
     RCC_OscInitTypeDef RCC_OscInitStruct {};
     RCC_ClkInitTypeDef RCC_ClkInitStruct {};
 
-    //Configure the main internal regulator output voltage
+    // Configure the main internal regulator output voltage
     HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-    //Initializes the RCC Oscillators according to the specified parameters in the RCC_OscInitTypeDef structure.
+    // Initializes the RCC Oscillators according to the specified parameters in the RCC_OscInitTypeDef structure.
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     RCC_OscInitStruct.HSEState = RCC_HSE_ON;
     RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -20,7 +20,7 @@ void system_core_init() {
         system_core_error_handler();
     }
 
-    //Initializes the CPU, AHB and APB buses clocks
+    // Initializes the CPU, AHB and APB buses clocks
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
         | RCC_CLOCKTYPE_PCLK1;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;

@@ -1,4 +1,3 @@
-#include "eeprom.h"
 #include "assert.h"
 #include "filament.hpp"
 #include "i18n.h"
@@ -13,9 +12,9 @@ const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
     { "---", 0, 0, 0, Response::Cooldown },
     { BtnResponse::GetText(Response::PLA), 215, 170, 60, Response::PLA },
     { BtnResponse::GetText(Response::PETG), 230, 170, 85, Response::PETG },
-#if (PRINTER_TYPE == PRINTER_PRUSA_iX)
+#if PRINTER_IS_PRUSA_iX
     { BtnResponse::GetText(Response::PETG_NH), 230, 170, 0, Response::PETG_NH },
-#endif // PRINTER_PRUSA_iX
+#endif // PRINTER_IS_PRUSA_iX
     { BtnResponse::GetText(Response::ASA), 260, 170, 100, Response::ASA },
 #if HAS_LOADCELL()
     { BtnResponse::GetText(Response::PC), 275, 170, 100, Response::PC },
@@ -35,27 +34,6 @@ const filament::Description filaments[size_t(filament::Type::_last) + 1] = {
 };
 
 static_assert(sizeof(filaments) / sizeof(filaments[0]) == size_t(filament::Type::_last) + 1, "Filament count error.");
-
-static eevar_id get_eevar_id_for_extruder(uint8_t extruder) {
-    if (extruder == 0) {
-        return EEVAR_FILAMENT_TYPE;
-    } else {
-        return static_cast<eevar_id>(static_cast<int>(EEVAR_FILAMENT_TYPE_1) + extruder - 1);
-    }
-}
-
-filament::Type filament::get_type_in_extruder(uint8_t extruder) {
-    auto type = static_cast<filament::Type>(eeprom_get_ui8(get_eevar_id_for_extruder(extruder)));
-    if (type > filament::Type::_last) {
-        type = filament::Type::NONE;
-    }
-    return type;
-}
-
-void filament::set_type_in_extruder(filament::Type type, uint8_t extruder) {
-    assert(extruder <= 5); // we do support the 6th extruder here, but don't want to really use it for now
-    eeprom_set_ui8(get_eevar_id_for_extruder(extruder), static_cast<uint8_t>(type));
-}
 
 filament::Type filament::get_type(const char *name, size_t name_len) {
     // first name is not valid ("---")
@@ -81,7 +59,6 @@ const filament::Description &filament::get_description(filament::Type filament) 
 }
 
 static filament::Type filament_to_load = filament::Type::NONE;
-static filament::Type filament_last_preheat = filament::default_type;
 
 filament::Type filament::get_type_to_load() {
     return filament_to_load;
@@ -89,12 +66,4 @@ filament::Type filament::get_type_to_load() {
 
 void filament::set_type_to_load(filament::Type filament) {
     filament_to_load = filament;
-}
-
-filament::Type filament::get_type_last_preheated() {
-    return filament_last_preheat;
-}
-
-void filament::set_type_last_preheated(filament::Type filament) {
-    filament_last_preheat = filament;
 }

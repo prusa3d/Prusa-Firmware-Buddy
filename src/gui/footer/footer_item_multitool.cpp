@@ -43,13 +43,13 @@ string_view_utf8 FooterItemCurrentTool::static_makeView(int value) {
 
 #if HAS_TOOLCHANGER()
     if (value == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
-        buff[0] = '-'; // Parked tool
+        buff[0] = '-';                      // Parked tool
     } else {
         buff[0] = ((value + 1) % 10) + '0'; // Indexing from tool 1
     }
-#else  /*HAS_TOOLCHANGER()*/
+#else                                       /*HAS_TOOLCHANGER()*/
     buff[0] = (value % 10) + '0'; // avoid rendering >1 characters
-#endif /*HAS_TOOLCHANGER()*/
+#endif                                      /*HAS_TOOLCHANGER()*/
 
     return string_view_utf8::MakeRAM((const uint8_t *)buff);
 }

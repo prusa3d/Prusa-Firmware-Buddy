@@ -89,8 +89,8 @@ void Loadcell::Tare(TareMode mode, bool wait) {
                 tareCount = 0;
                 break;
             }
-#endif                                  // POWER_PANIC
-#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
+#endif                      // POWER_PANIC
+#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
             fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TARE_FAILED);
 #endif
         }
@@ -183,7 +183,7 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     }
 
     if (!std::isfinite(load)) {
-#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
+#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
         fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_INFINITE_LOAD);
 #endif
     }
@@ -246,7 +246,7 @@ int32_t Loadcell::WaitForNextSample() {
     // therefore 600 ms should be safe and if it takes longer, it is most likely an error
     auto result = osSignalWait(signal, 600);
     if (result.status != osEventSignal && !planner.draining()) {
-#if PRINTER_TYPE != PRINTER_PRUSA_MK3_5 // TODO fix error codes
+#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
         fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
 #endif
     }
@@ -277,7 +277,7 @@ Loadcell::FailureOnLoadAboveEnforcer Loadcell::CreateLoadAboveErrEnforcer(bool e
 }
 
 /*****************************************************************************/
-//IFailureEnforcer
+// IFailureEnforcer
 Loadcell::IFailureEnforcer::IFailureEnforcer(Loadcell &lcell, float oldErrThreshold)
     : lcell(lcell)
     , oldErrThreshold(oldErrThreshold) {

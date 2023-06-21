@@ -57,7 +57,7 @@ class WindowFileBrowserAdv : public AddSuperWindow<window_frame_t> {
     window_icon_button_t up;
     window_icon_button_t down;
 #endif
-    //MenuScrollbar bar; TODO
+    // MenuScrollbar bar; TODO
 public:
     WindowFileBrowserAdv(window_t *parent, Rect16 rect, const char *media_SFN_path);
 

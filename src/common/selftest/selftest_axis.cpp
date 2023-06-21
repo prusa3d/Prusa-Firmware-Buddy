@@ -38,7 +38,7 @@ CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisCo
     log_info(Selftest, "%s Started", config.partname);
     homing_reset();
 
-#if PRINTER_TYPE == PRINTER_PRUSA_iX
+#if PRINTER_IS_PRUSA_iX
     char gcode[7];
     // Avoid tool cleaner, TODO move this logic into G28
     if (AxisLetter[config.axis] == 'Y') {
@@ -223,12 +223,12 @@ LoopResult CSelftestPart_Axis::stateMoveWaitFinish() {
 // MK4 heatbed stays in the front after Y axis selftest, blocking display view
 // Move heatbed back after selftest is completed
 LoopResult CSelftestPart_Axis::stateParkAxis() {
-#if (PRINTER_TYPE != PRINTER_PRUSA_MK4) && (PRINTER_TYPE != PRINTER_PRUSA_MK3_5)
+#if (!PRINTER_IS_PRUSA_MK4) && (!PRINTER_IS_PRUSA_MK3_5)
     return LoopResult::RunNext;
-#endif // (PRINTER_TYPE != PRINTER_PRUSA_MK4) && (PRINTER_TYPE != PRINTER_PRUSA_MK3_5)
+#endif // (!PRINTER_IS_PRUSA_MK4) && (!PRINTER_IS_PRUSA_MK3_5)
 
     static bool parking_initiated = false;
-    if (planner.movesplanned() || queue.length) {
+    if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
     }
     if (parking_initiated) {
@@ -237,7 +237,7 @@ LoopResult CSelftestPart_Axis::stateParkAxis() {
     }
 
     if (static_cast<AxisEnum>(config.axis) == AxisEnum::Y_AXIS) {
-        queue.enqueue_one_now("G0 Y50"); // Move bed back
+        queue.enqueue_one_now("G1 Y150 F4200"); // Move bed back
         parking_initiated = true;
         return LoopResult::RunCurrent;
     } else {

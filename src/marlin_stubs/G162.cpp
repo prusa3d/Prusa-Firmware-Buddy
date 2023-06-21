@@ -14,7 +14,7 @@
 static constexpr feedRate_t Z_CALIB_ALIGN_AXIS_FEEDRATE = 15.f; // mm/s
 static constexpr float Z_CALIB_EXTRA_HIGHT = 5.f;               // mm
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
 
     #include <module/prusa/toolchanger.h>
 
@@ -25,7 +25,11 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     Temporary_Reset_Motion_Parameters mp;
 
     // Home XY first
-    GcodeSuite::G28_no_parser(false, false, 0, false, true, true, false);
+    if (axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS))) {
+        if (!GcodeSuite::G28_no_parser(false, false, 0, false, true, true, false)) {
+            return; // This can happen only during print, homing recovery should follow
+        }
+    }
 
     // Move the nozzle up and away from the bed
     do_homing_move(Z_AXIS, Z_CALIB_EXTRA_HIGHT, HOMING_FEEDRATE_INVERTED_Z, false, false);
@@ -79,7 +83,7 @@ static void safe_move_down() {
     STOW_PROBE();
     move_z_after_probing();
 }
-    #endif //HAS_BED_PROBE
+    #endif // HAS_BED_PROBE
 
 void selftest::calib_Z(bool move_down_after) {
     #if HAS_BED_PROBE
@@ -93,7 +97,7 @@ void selftest::calib_Z(bool move_down_after) {
 
     // Z axis lift
     FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::CalibZ);
-        #if (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5 || PRINTER_TYPE == PRINTER_PRUSA_iX)
+        #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX)
     endstops.enable(true); // Stall endstops need to be enabled manually as in G28
     if (!homeaxis(Z_AXIS, HOMING_FEEDRATE_INVERTED_Z, true)) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
@@ -103,7 +107,7 @@ void selftest::calib_Z(bool move_down_after) {
     current_position.z = Z_MAX_POS;
     sync_plan_position();
     do_blocking_move_to_z(target_Z, Z_CALIB_ALIGN_AXIS_FEEDRATE); // push both Z axis few mm over HW limit to align motors
-        #endif // (PRINTER_TYPE == PRINTER_PRUSA_MK4 || PRINTER_TYPE == PRINTER_PRUSA_MK3_5 || PRINTER_TYPE == PRINTER_PRUSA_iX)
+        #endif // ( PRINTER_IS_PRUSA_MK4 ||  PRINTER_IS_PRUSA_MK3_5 ||  PRINTER_IS_PRUSA_iX)
     if (move_down_after) {
         safe_move_down();
     } else {
@@ -113,7 +117,7 @@ void selftest::calib_Z(bool move_down_after) {
     // restore original values
     planner.set_max_feedrate(Z_AXIS, orig_max_feedrate);
     planner.set_max_acceleration(Z_AXIS, orig_max_accel);
-    #endif     //HAS_BED_PROBE
+    #endif     // HAS_BED_PROBE
 }
 #endif
 

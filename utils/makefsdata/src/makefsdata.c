@@ -56,9 +56,9 @@ tinfl_decompressor g_inflator;
 
 int deflate_level = 10; /* default compression level, can be changed via command line */
     #define USAGE_ARG_DEFLATE " [-defl<:compr_level>]"
-#else /* MAKEFS_SUPPORT_DEFLATE */
+#else                   /* MAKEFS_SUPPORT_DEFLATE */
     #define USAGE_ARG_DEFLATE ""
-#endif /* MAKEFS_SUPPORT_DEFLATE */
+#endif                  /* MAKEFS_SUPPORT_DEFLATE */
 
 #ifdef WIN32
 
@@ -330,7 +330,7 @@ int main(int argc, char *argv[]) {
     filesProcessed = process_sub(data_file, struct_file);
 
     /* data_file now contains all of the raw data.. now append linked list of
-   * file header structs to allow embedded app to search for a file name */
+     * file header structs to allow embedded app to search for a file name */
     fprintf(data_file, NEWLINE NEWLINE);
     fprintf(struct_file, "#define FS_ROOT file_%s" NEWLINE, lastFileVar);
     fprintf(struct_file, "#define FS_NUMFILES %d" NEWLINE NEWLINE, filesProcessed);

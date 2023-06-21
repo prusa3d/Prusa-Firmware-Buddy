@@ -1,11 +1,11 @@
-//window_event.hpp
+// window_event.hpp
 #pragma once
 
 #include <inttypes.h>
 
 #undef CHANGE /// collision with Arduino macro
 
-//window events
+// window events
 enum class GUI_event_t {
     LOOP = 1,      // gui loop (every 50ms)
     BTN_DN,        // button down                ... all windows - not only captured
@@ -136,7 +136,7 @@ constexpr const char *GUI_event_prt(GUI_event_t event) {
     return "error bad index";
 }
 
-//forward declarations
+// forward declarations
 class window_t;
 template <class Base>
 struct AddSuperWindow;
@@ -145,7 +145,7 @@ struct AddSuperWindow;
 // hasprivate ctor - only friend (AddSuperWindow or base window_t) can create lock and call locked methods
 // also provides trace
 class EventLock {
-    EventLock(const char *event_method_name, window_t *sender, GUI_event_t event); //ctor must be private
+    EventLock(const char *event_method_name, window_t *sender, GUI_event_t event); // ctor must be private
     template <class T>
     friend class AddSuperWindow;
     friend class window_t;

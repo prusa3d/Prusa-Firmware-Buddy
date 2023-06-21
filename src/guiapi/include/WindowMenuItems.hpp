@@ -13,7 +13,7 @@
 #include "WindowMenuSwitch.hpp"
 #include "WindowMenuInfo.hpp"
 
-//not translated
+// not translated
 class WI_SWITCH_0_1_NA_t : public WI_SWITCH_t<3> {
     constexpr static const char *str_0 = "0";
     constexpr static const char *str_1 = "1";

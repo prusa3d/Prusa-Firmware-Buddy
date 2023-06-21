@@ -10,7 +10,7 @@ CFanCtl &Fans::print(size_t index) {
         FANCTLPRINT_RPM_MIN, FANCTLPRINT_RPM_MAX,
         FANCTLPRINT_PWM_THR,
         is_autofan_t::no,
-        skip_tacho_t::yes);
+        skip_tacho_t::no);
 
     if (index) {
         bsod("Print fan %u does not exist", index);

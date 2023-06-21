@@ -144,7 +144,7 @@ int str2multilineT(T *str, size_t max_size, size_t line_width, const T *nl) {
         case (T)CHAR_NBSP:
             str[i] = ' ';
             last_NBSP = i;
-            //last_delimiter = i;
+            // last_delimiter = i;
             ++current_length;
             break;
         case (T)CHAR_NL:

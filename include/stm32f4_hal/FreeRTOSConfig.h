@@ -128,9 +128,17 @@ extern uint32_t SystemCoreClock;
 #define configTOTAL_HEAP_SIZE            ((size_t)40960)
 #define configUSE_MALLOC_FAILED_HOOK     1
 
-#if defined(_DEBUG) && !DEVELOPER_MODE()
-    #define configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES 1
+// Thread usage stats
+#define configGENERATE_RUN_TIME_STATS 1
+#if defined(configGENERATE_RUN_TIME_STATS) && configGENERATE_RUN_TIME_STATS
+    #include "stm32f4xx_hal.h"
+    #include "timer_defaults.h"
+    // TICK_TIMER runs at SystemCoreClock and overflows once a second
+    #define portGET_RUN_TIME_COUNTER_VALUE() (TICK_TIMER->CNT)
+    #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()
 #endif
+
+// #define configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES 1
 
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS 2
 #define THREAD_LOCAL_STORAGE_SYSLOG_IDX         1
@@ -215,7 +223,7 @@ standard names. */
 
 /* IMPORTANT: This define is commented when used with STM32Cube firmware, when timebase is systick,
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
-//#define xPortSysTickHandler SysTick_Handler
+// #define xPortSysTickHandler SysTick_Handler
 
 #include "SEGGER_SYSVIEW_FreeRTOS.h"
 

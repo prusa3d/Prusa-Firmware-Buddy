@@ -81,18 +81,18 @@ protected:
         return !m_ongoing_DMA_rx;
     };
 
-    //readRegister reads one 8-bit register
+    // readRegister reads one 8-bit register
     status_t readRegister(uint8_t *, uint8_t);
 
-    //Reads two 8-bit regs, LSByte then MSByte order, and concatenates them.
-    //  Acts as a 16-bit read operation
+    // Reads two 8-bit regs, LSByte then MSByte order, and concatenates them.
+    //   Acts as a 16-bit read operation
     status_t readRegisterInt16(int16_t *, uint8_t offset);
 
-    //Writes an 8-bit byte;
+    // Writes an 8-bit byte;
     status_t writeRegister(uint8_t, uint8_t);
 
 private:
-    //Communication stuff
+    // Communication stuff
     static constexpr CommInterface m_commInterface = CommInterface::SPI_mode;
     volatile int m_ongoing_DMA_rx;
     union {
@@ -102,24 +102,24 @@ private:
     friend class Fifo;
 };
 
-//This struct holds the settings the driver uses to do calculations
+// This struct holds the settings the driver uses to do calculations
 struct SensorSettings {
 public:
-    //ADC and Temperature settings
+    // ADC and Temperature settings
     uint8_t adcEnabled;
     uint8_t tempEnabled;
 
-    //Accelerometer settings
-    uint16_t accelSampleRate; //Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
-    uint8_t accelRange;       //Max G force readable.  Can be: 2, 4, 8, 16
+    // Accelerometer settings
+    uint16_t accelSampleRate; // Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
+    uint8_t accelRange;       // Max G force readable.  Can be: 2, 4, 8, 16
 
     uint8_t xAccelEnabled;
     uint8_t yAccelEnabled;
     uint8_t zAccelEnabled;
 
-    //Fifo settings
+    // Fifo settings
     uint8_t fifoEnabled;
-    uint8_t fifoMode; //can be 0x0,0x1,0x2,0x3
+    uint8_t fifoMode; // can be 0x0,0x1,0x2,0x3
     uint8_t fifoThreshold;
 };
 
@@ -132,34 +132,34 @@ public:
  */
 class LIS2DH : public LIS2DHCore {
 public:
-    //IMU settings
+    // IMU settings
     SensorSettings m_settings;
 
-    //Error checking
+    // Error checking
     uint16_t m_allOnesCounter;
     uint16_t m_nonSuccessCounter;
 
-    //Constructor generates default SensorSettings.
+    // Constructor generates default SensorSettings.
     //(over-ride after construction if desired)
     LIS2DH(uint8_t inputArg = 0x19);
     //~LIS3DH() = default;
 
-    //Call to apply SensorSettings
+    // Call to apply SensorSettings
     status_t begin(void);
     void end(void);
     void applySettings(void);
 
-    //Returns the raw bits from the sensor cast as 16-bit signed integers
+    // Returns the raw bits from the sensor cast as 16-bit signed integers
     int16_t readRawAccelX(void);
     int16_t readRawAccelY(void);
     int16_t readRawAccelZ(void);
 
-    //Returns the values as floats.  Inside, this calls readRaw___();
+    // Returns the values as floats.  Inside, this calls readRaw___();
     float readFloatAccelX(void);
     float readFloatAccelY(void);
     float readFloatAccelZ(void);
 
-    //FIFO stuff
+    // FIFO stuff
     void fifoBegin(void);
     void fifoClear(void);
     uint8_t fifoGetStatus(void);

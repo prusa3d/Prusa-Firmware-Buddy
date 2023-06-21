@@ -7,8 +7,12 @@
 #include "screen_menu.hpp"
 #include "MItem_tools.hpp"
 #include "Configuration_adv.h"
+#include "MItem_love_board.hpp"
+#include "MItem_loadcell.hpp"
+#include "screen_menu_no_tools.hpp"
 
-using ScreenMenuSensorInfo__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
+namespace detail {
+using ScreenMenuSensorInfo = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
 #if (TEMP_SENSOR_HEATBREAK > 0)
     ,
     MI_INFO_HEATBREAK_TEMP
@@ -24,6 +28,7 @@ using ScreenMenuSensorInfo__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
     MI_INFO_NOZZLE_TEMP,
     MI_INFO_LOADCELL,
     MI_INFO_PRINTER_FILL_SENSOR,
+    MI_FS_REF<0, false>,
     MI_INFO_PRINT_FAN,
     MI_INFO_HBR_FAN,
     MI_INFO_HEATER_VOLTAGE,
@@ -31,3 +36,4 @@ using ScreenMenuSensorInfo__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN
     MI_INFO_HEATER_CURRENT,
     MI_INFO_INPUT_CURRENT,
     MI_INFO_MMU_CURRENT>;
+} // namespace detail

@@ -14,6 +14,7 @@
 #include "../../Marlin/src/module/temperature.h"
 #include "../../marlin_stubs/G26.hpp"
 #include "M70X.hpp"
+#include <configuration_store.hpp>
 
 #include <array>
 
@@ -45,7 +46,8 @@ enum class filament_status {
 };
 
 static filament_status get_filament_status() {
-    auto filament = filament::get_type_in_extruder(0);                                                                                                              // first layer calib is on single tool printers only, so should be fine
+    auto filament = config_store().get_filament_type(0);                                                                                                            // first layer calib is on single tool printers only, so should be fine
+
     uint8_t eeprom = filament != filament::Type::NONE ? static_cast<uint8_t>(filament_status::TypeKnown_SensorNoFilament) : uint8_t(0);                             // set eeprom flag
     uint8_t sensor = FSensors_instance().GetPrimaryRunout() != fsensor_t::NoFilament ? static_cast<uint8_t>(filament_status::TypeUnknown_SensorValid) : uint8_t(0); // set sensor flag
     return static_cast<filament_status>(eeprom | sensor);                                                                                                           // combine flags
@@ -119,11 +121,11 @@ LoopResult CSelftestPart_FirstLayer::statePreheatEnqueueGcode() {
 }
 
 LoopResult CSelftestPart_FirstLayer::statePreheatWaitFinished() {
-    //we didn't wanted to preheat, so we are not waiting for anything
+    // we didn't wanted to preheat, so we are not waiting for anything
     if (state_selected_by_user != StateSelectedByUser::Preheat) {
         return LoopResult::RunNext;
     }
-    //wait for operation to finish
+    // wait for operation to finish
     if (filament_gcodes::InProgress::Active()) {
         LogInfoTimed(log, "%s waiting for preheat to finish", rConfig.partname);
         return LoopResult::RunCurrent;
@@ -146,16 +148,16 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentLoadEnqueueGcode() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateFilamentLoadWaitFinished() {
-    //we didn't wanted to load, so we are not waiting for anything
+    // we didn't wanted to load, so we are not waiting for anything
     if (state_selected_by_user != StateSelectedByUser::Load) {
         return LoopResult::RunNext;
     }
-    //wait for operation to finish
+    // wait for operation to finish
     if (filament_gcodes::InProgress::Active()) {
         LogInfoTimed(log, "%s waiting for load to finish", rConfig.partname);
         return LoopResult::RunCurrent;
     }
-    //check if we returned from preheat or finished the load
+    // check if we returned from preheat or finished the load
     switch (PreheatStatus::ConsumeResult()) {
     case PreheatStatus::Result::DoneNoFilament:
         // in case it flickers, we might need to add change of state
@@ -184,11 +186,11 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentUnloadEnqueueGcode() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateFilamentUnloadWaitFinished() {
-    //we didn't wanted to unload, so we are not waiting for anything
+    // we didn't wanted to unload, so we are not waiting for anything
     if (state_selected_by_user != StateSelectedByUser::Unload) {
         return LoopResult::RunNext;
     }
-    //wait for operation to finish
+    // wait for operation to finish
     if (filament_gcodes::InProgress::Active()) {
         LogInfoTimed(log, "%s waiting for unload to finish", rConfig.partname);
         return LoopResult::RunCurrent;
@@ -257,7 +259,7 @@ LoopResult CSelftestPart_FirstLayer::statePrintInit() {
     marlin_server::set_var_sd_percent_done(0);
 
     IPartHandler::SetFsmPhase(PhasesSelftest::FirstLayer_mbl);
-    auto filament = filament::get_type_in_extruder(active_extruder);
+    auto filament = config_store().get_filament_type(active_extruder);
     auto filament_desc = filament::get_description(filament);
     const int temp_nozzle = filament_desc.nozzle;
     temp_nozzle_preheat = filament_desc.nozzle_preheat;
@@ -273,13 +275,13 @@ LoopResult CSelftestPart_FirstLayer::statePrintInit() {
 }
 
 LoopResult CSelftestPart_FirstLayer::stateWaitNozzle() {
-    std::array<char, sizeof("M109 R170")> gcode_buff; //safe to be local variable, it will copied
+    std::array<char, sizeof("M109 R170")> gcode_buff; // safe to be local variable, it will copied
     snprintf(gcode_buff.begin(), gcode_buff.size(), "M109 R%d", temp_nozzle_preheat);
     return enqueueGcode(gcode_buff.begin()) ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_FirstLayer::stateWaitBed() {
-    std::array<char, sizeof("M190 S100")> gcode_buff; //safe to be local variable, it will be copied
+    std::array<char, sizeof("M190 S100")> gcode_buff; // safe to be local variable, it will be copied
     snprintf(gcode_buff.begin(), gcode_buff.size(), "M190 S%d", temp_bed);
     return enqueueGcode(gcode_buff.begin()) ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
@@ -351,7 +353,7 @@ LoopResult CSelftestPart_FirstLayer::stateCleanSheet() {
 
 LoopResult CSelftestPart_FirstLayer::stateFinish() {
 
-    //finish
+    // finish
     log_info(Selftest, "%s Finished\n", rConfig.partname);
     return LoopResult::RunNext;
 }

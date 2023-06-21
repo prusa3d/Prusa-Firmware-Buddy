@@ -10,6 +10,7 @@
     #include "timing_precise.hpp"
     #include "disable_interrupts.h"
     #include "rtos_api.hpp"
+    #include "hw_configuration.hpp"
 
 namespace MMU2 {
 
@@ -24,36 +25,27 @@ static constexpr uint32_t us_low = 70;
 static constexpr uint32_t us_total = 15000;
 
 inline static void activate_reset() {
-    #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
-    // version == 0.34 (push-pull + mosfet)
-    MMUReset.write(Pin::State::low);
-    #else
-    // version < 0.34 (open drain)
-    MMUReset.write(Pin::State::high);
-    #endif
+    MMUReset.write(Configuration::Instance().has_inverted_mmu_reset() ? Pin::State::low : Pin::State::high);
 }
 
 inline static void deactivate_reset() {
-    #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
-    // version == 0.34 (push-pull + mosfet)
-    MMUReset.write(Pin::State::high);
-    #else
-    // version < 0.34 (open drain)
-    MMUReset.write(Pin::State::low);
-    #endif
+    MMUReset.write(Configuration::Instance().has_inverted_mmu_reset() ? Pin::State::high : Pin::State::low);
 }
 
 void power_on() {
-    CriticalSection critical_section;
     activate_reset(); // Hold MMU procesor in reset state. Save power consume.
-    for (uint32_t i = 0; i < us_total; i += (us_high + us_low)) {
-        {
-            buddy::DisableInterrupts disable_interrupts;
-            MMUEnable.write(Pin::State::high);
-            DELAY_US_PRECISE(us_high);
-            MMUEnable.write(Pin::State::low);
+    if (!Configuration::Instance().can_power_up_mmu_without_pulses()) {
+        CriticalSection critical_section;
+
+        for (uint32_t i = 0; i < us_total; i += (us_high + us_low)) {
+            {
+                buddy::DisableInterrupts disable_interrupts;
+                MMUEnable.write(Pin::State::high);
+                delay_us_precise<us_high>();
+                MMUEnable.write(Pin::State::low);
+            }
+            delay_us(us_low);
         }
-        delay_ns(us_low * 1000);
     }
 
     MMUEnable.write(Pin::State::high);

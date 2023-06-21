@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        dockerfile {
-            label 'docker'
-            filename 'utils/holly/Dockerfile'
-            additionalBuildArgs '-t prusa-firmware-buddy'
-        }
-    }
+    agent none
 
     parameters {
         string(name: 'VERSION_SUFFIX', defaultValue: '<default>', description: 'Specify custom version suffix for the build (e.g. "-RC1+1010"). Set to "<default>" to use the default one. Leave empty to make a final-version build without any suffix.')
@@ -18,6 +12,13 @@ pipeline {
 
     stages {
         stage('Check Formatting') {
+            agent {
+                dockerfile {
+                    label 'docker'
+                    filename 'utils/holly/Dockerfile'
+                    additionalBuildArgs '-t prusa-firmware-buddy'
+                }
+            }
             when {
                 expression { env.CHANGE_TARGET }
             }
@@ -39,12 +40,20 @@ pipeline {
         }
 
         stage('Prepare Build Stages') {
+            agent {
+                dockerfile {
+                    label 'docker'
+                    filename 'utils/holly/Dockerfile'
+                    additionalBuildArgs '-t prusa-firmware-buddy'
+                }
+            }
             steps {
                 script {
                     // required configurations
                     def configurations = [
                         [preset: "mini", build_type: "release", bootloader: "no"],
                         [preset: "mk4", build_type: "release", bootloader: "yes"],
+                        [preset: "mk4", build_type: "release", bootloader: "no"],
                         [preset: "xl", build_type: "release", bootloader: "yes"],
                         [preset: "ix-xBuddy027c-200step", build_type: "release", bootloader: "empty"],
                     ]
@@ -114,11 +123,20 @@ pipeline {
                             }
                         }
                     }
+
+                    stash name: "artifacts", includes: "build/*/firmware.bin"
                 }
             }
         }
 
-        stage('Test') {
+        stage('Unit Tests') {
+            agent {
+                dockerfile {
+                    label 'docker'
+                    filename 'utils/holly/Dockerfile'
+                    additionalBuildArgs '-t prusa-firmware-buddy'
+                }
+            }
             steps {
                 sh """
                 export PATH=/work/.dependencies/cmake-3.22.5/bin:/work/.dependencies/ninja-1.10.2:\$PATH
@@ -131,17 +149,47 @@ pipeline {
                 """
             }
         }
+
+        stage('Integration Tests') {
+            agent {
+                dockerfile {
+                    label 'integrationtests'
+                    filename 'utils/holly/IntegrationTestsDockerfile'
+                    additionalBuildArgs '-t it-prusa-firmware-buddy'
+                }
+            }
+            steps {
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    unstash "artifacts"
+                    sh """
+                    ln -fs /work/.dependencies
+                    export EASYOCR_MODULE_PATH=./easyocr
+                    python3 -m pip install -r tests/integration/requirements.txt
+                    python3 -m pytest tests/integration --firmware build/mk4_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S"
+                    """
+                }
+            }
+            post {
+                failure {
+                    archiveArtifacts artifacts: '/tmp/pytest-of-root'
+                }
+            }
+        }
     }
 
     post {
         always {
-            // archive build products
-            archiveArtifacts artifacts: 'build/products/*', fingerprint: true
-            // archive test products
-            archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
+            node('master') {
+                // archive build products
+                archiveArtifacts artifacts: 'build/products/*', fingerprint: true
+                // archive test products
+                archiveArtifacts artifacts: 'build-test/Testing/Temporary/LastTest.log'
+            }
         }
         cleanup {
-            deleteDir()
+            node('master') {
+                deleteDir()
+            }
         }
     }
 }

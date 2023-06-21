@@ -10,8 +10,8 @@
 #include <stdint.h>
 
 class PrintProcessor {
-    //called when Serial print screen is opened
-    //printer is not in sd printing mode, so filament sensor does not trigger M600
+    // called when Serial print screen is opened
+    // printer is not in sd printing mode, so filament sensor does not trigger M600
     static void fsm_cb(uint32_t u32, uint16_t u16);
 
 public:

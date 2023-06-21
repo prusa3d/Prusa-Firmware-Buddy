@@ -18,15 +18,26 @@ FooterItemFSensorSide::FooterItemFSensorSide(window_t *parent)
 }
 
 int FooterItemFSensor::static_readValue() {
-    return int(FSensors_instance().GetCurrentExtruder());
+    if (IFSensor *sensor = get_active_printer_sensor(); sensor) {
+        return static_cast<int>(sensor->Get());
+    }
+    return no_tool_value;
 }
 
 int FooterItemFSensorSide::static_readValue() {
-    return int(FSensors_instance().GetCurrentSide());
+    if (IFSensor *sensor = get_active_side_sensor(); sensor) {
+        return static_cast<int>(sensor->Get());
+    }
+    return no_tool_value;
 }
 
-//TODO FIXME last character is not shown, I do not know why, added space as workaround
+// TODO FIXME last character is not shown, I do not know why, added space as workaround
 string_view_utf8 FooterItemFSensor::static_makeView(int value) {
+    // Show --- if no tool is picked
+    if (value == no_tool_value) {
+        return string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(no_tool_str));
+    }
+
     fsensor_t state = fsensor_t(value);
     const char *txt = N_("N/A ");
 
@@ -50,7 +61,7 @@ string_view_utf8 FooterItemFSensor::static_makeView(int value) {
     case fsensor_t::NotConnected:
         txt = N_("NC ");
         break;
-#else  //!DEBUG
+#else  //! DEBUG
     default:
         break;
 #endif //_DEBUG

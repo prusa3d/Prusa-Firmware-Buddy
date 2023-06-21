@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-//needed to not include dirent from system libraries
-//if there is problem with multiple definitions, check dirent.h for its define
+// needed to not include dirent from system libraries
+// if there is problem with multiple definitions, check dirent.h for its define
 #ifndef _dirent_h_
     #ifndef _DIRENT_H
         #define _DIRENT_H 1

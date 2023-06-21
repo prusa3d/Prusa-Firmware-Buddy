@@ -3,7 +3,7 @@
 #include "usbh_msc.h"
 #include "log.h"
 #include "littlefs_internal.h"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 LOG_COMPONENT_DEF(USBMSC, LOG_SEVERITY_DEBUG);
 
@@ -80,7 +80,7 @@ void tud_msc_inquiry_cb([[maybe_unused]] uint8_t lun, uint8_t vendor_id[8], uint
 
 /// Check whether the user has enabled the USB MSC feature
 static bool usb_msc_enabled() {
-    return eeprom_get_bool(EEVAR_USB_MSC_ENABLED);
+    return config_store().usb_msc_enabled.get();
 }
 
 // Invoked when received Test Unit Ready command.

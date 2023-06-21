@@ -35,7 +35,7 @@ public:
     static void Tick();
     static bool ConsumeOneClickPrinting();
     static bool IsStarting();
-    static void ClrMediaError();                //clear - update - clear again
-    static bool ConsumeSent(MediaState_t &ret); //update - remember - set sent - return
+    static void ClrMediaError();                // clear - update - clear again
+    static bool ConsumeSent(MediaState_t &ret); // update - remember - set sent - return
     static MediaState_t Get();
 };

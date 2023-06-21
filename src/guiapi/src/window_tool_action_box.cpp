@@ -85,8 +85,8 @@ void ToolBox::I_MI_TOOL::do_click(IWindowMenu &window_menu, Tool tool, Action ac
         marlin_test_start_for_tools(stmDocks, 1 << ftrstd::to_underlying(tool));
 #endif
         break;
-    case Action::PickCurrent: //do nothing (Pick what is already picked)
-    case Action::Return:      //do nothing (Just close)
+    case Action::PickCurrent: // do nothing (Pick what is already picked)
+    case Action::Return:      // do nothing (Just close)
         break;
     }
 

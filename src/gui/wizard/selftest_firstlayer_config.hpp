@@ -1,6 +1,5 @@
 /**
  * @file selftest_firstlayer_config.hpp
- * @brief config esp selftest part
  */
 
 #pragma once
@@ -9,7 +8,7 @@
 #include "client_response.hpp"
 
 namespace selftest {
-//using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
+// using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
 struct FirstLayerConfig_t {
     using type_evaluation = SelftestFirstLayer_t;
     static constexpr SelftestParts part_type = SelftestParts::FirstLayerQuestions;

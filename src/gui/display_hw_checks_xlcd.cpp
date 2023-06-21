@@ -8,6 +8,7 @@
 #include "screen_home.hpp"
 #include "ScreenHandler.hpp"
 #include <option/has_touch.h>
+#include <device/peripherals.h>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -57,7 +58,7 @@ void check_lcd() {
         } else {
             // we did have a touch error, let us try to reconfigure I2C
             log_warning(GUI, "Applying workaround to fix I2C of touch");
-            touch::touch_workaround();
+            I2C_INIT(touch);
         }
     }
 

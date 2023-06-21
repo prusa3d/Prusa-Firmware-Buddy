@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <lwip/tcpip.h>
+#include <cmsis_os.h>
 
 #include "../../../src/common/basename.h"
 
@@ -75,13 +76,13 @@ bool wui_is_file_being_printed(const char *filename) {
     return false;
 }
 
-bool wui_is_printing() {
-    return false;
-}
-
 int mkdir(const char *path, mode_t mode) {
     return 0;
 }
 
 void get_SFN_path(char *path) {
+}
+
+uint32_t osDelay(uint32_t time) {
+    return 0;
 }

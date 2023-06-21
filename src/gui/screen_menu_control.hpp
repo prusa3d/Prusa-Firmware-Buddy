@@ -21,13 +21,14 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_AUTO_HOME,
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
     MI_SELFTEST_SNAKE
 #else
     MI_CALIB_FIRST
     #if HAS_SELFTEST()
     ,
-    MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_0>,
+    MI_FS_SPAN<0, false>,
+    MI_FS_REF<0, false>,
     MI_CALIB_Z
         #if FILAMENT_SENSOR_IS_ADC()
     ,
@@ -41,6 +42,10 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_SELFTEST,
     MI_DIAGNOSTICS
     #endif
+#endif
+#if PRINTER_IS_PRUSA_MK4
+    ,
+    MI_CALIB_GEARS
 #endif
     >;
 

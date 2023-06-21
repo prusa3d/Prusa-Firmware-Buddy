@@ -12,7 +12,7 @@
     #include "st7789v.hpp"
     #include "st7789v_impl.hpp"
 /*****************************************************************************/
-//st7789v specific variables objects and function aliases
+// st7789v specific variables objects and function aliases
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ST7789V_COLS, ST7789V_ROWS); }
 
 inline uint16_t color_to_native(uint32_t clr) {
@@ -23,7 +23,7 @@ inline uint32_t color_from_native(uint16_t clr) {
     return color_from_565(clr);
 }
 
-//TDispBuffer configuration
+// TDispBuffer configuration
 static constexpr size_t FontMaxBitLen = 4;         // used in mask and buffer size
 using BuffDATA_TYPE = uint16_t;                    // type of buffer internally used in TDispBuffer
 using BuffPTR_TYPE = uint16_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
@@ -65,15 +65,15 @@ static inline void set_pixel_colorFormatNative(uint16_t point_x, uint16_t point_
 static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t nativeclr) {
     st7789v_fill_rect_colorFormat565(rect_x, rect_y, rect_w, rect_h, nativeclr);
 }
-//end st7789v specific variables objects and function aliases
+// end st7789v specific variables objects and function aliases
 /*****************************************************************************/
-#endif //USE_ST7789
+#endif // USE_ST7789
 
 #ifdef USE_ILI9488
     #include "ili9488.hpp"
     #include "ili9488_impl.hpp"
 /*****************************************************************************/
-//ili9488 specific variables objects and function aliases
+// ili9488 specific variables objects and function aliases
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS); }
 
 inline uint32_t color_to_native(uint32_t clr) {
@@ -84,7 +84,7 @@ inline uint32_t color_from_native(uint32_t clr) {
     return color_from_666(clr);
 }
 
-//TDispBuffer configuration
+// TDispBuffer configuration
 static constexpr size_t FontMaxBitLen = 4;         // used in mask and buffer size
 using BuffDATA_TYPE = uint32_t;                    // type of buffer internally used in TDispBuffer
 using BuffPTR_TYPE = uint8_t;                      // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
@@ -126,14 +126,14 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
     ili9488_fill_rect_colorFormat666(rect_x, rect_y, rect_w, rect_h, nativeclr);
 }
 
-//end ili9488 specific variables objects and function aliases
+// end ili9488 specific variables objects and function aliases
 /*****************************************************************************/
-#endif //USE_ILI9488
+#endif // USE_ILI9488
 
 #ifdef USE_MOCK_DISPLAY
     #include "mock_display.hpp"
 /*****************************************************************************/
-//mock_display specific variables objects and function aliases
+// mock_display specific variables objects and function aliases
 static Rect16 DisplayClip() { return Rect16(0, 0, MockDisplay::Cols(), MockDisplay::Rows()); }
 
 inline uint32_t color_to_native(uint32_t clr) {
@@ -144,7 +144,7 @@ inline uint32_t color_from_native(uint32_t clr) {
     return clr;
 }
 
-//TDispBuffer configuration
+// TDispBuffer configuration
 static constexpr size_t FontMaxBitLen = 8;         // used in mask and buffer size
 using BuffDATA_TYPE = uint32_t;                    // type of buffer internally used in TDispBuffer
 using BuffPTR_TYPE = uint32_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
@@ -167,7 +167,7 @@ void display_ex_clear(const color_t clr) {
 }
 
 static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
-    //todo
+    // todo
 }
 
 static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
@@ -186,13 +186,13 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
     MockDisplay::Instance().FillRectNativeColor(rect_x, rect_y, rect_w, rect_h, nativeclr);
 }
 
-//end mock_display specific variables objects and function aliases
+// end mock_display specific variables objects and function aliases
 /*****************************************************************************/
-#endif //USE_MOCK_DISPLAY
+#endif                                                       // USE_MOCK_DISPLAY
 
 static constexpr size_t BuffAlphaLen = (1 << FontMaxBitLen); // size of buffer for alpha channel 4bit font need 2^4 == 16 etc
 
-//do not use directly, use DispBuffer instead
+// do not use directly, use DispBuffer instead
 template <size_t LEN, class DATA_TYPE, class PTR_TYPE, uint32_t NATIVE_PIXEL_SIZE>
 class TDispBuffer {
     PTR_TYPE *p;
@@ -201,7 +201,7 @@ class TDispBuffer {
     const color_t clr_fg;
 
 public:
-    //pms (pixel mask) == number of combinations of font bits
+    // pms (pixel mask) == number of combinations of font bits
     TDispBuffer(uint8_t pms, color_t clr_bg, color_t clr_fg)
         : p((PTR_TYPE *)getBuff())
         , clr_bg(clr_bg)
@@ -264,18 +264,18 @@ bool display_ex_draw_char(point_ui16_t pt, uint8_t charX, uint8_t charY, const f
 }
 
 void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    const uint16_t char_w = pf->w;                                          //char width
-    const uint16_t char_h = pf->h;                                          //char height
-    const uint8_t bpr = pf->bpr;                                            //bytes per row
-    const uint16_t bpc = bpr * char_h;                                      //bytes per char
-    const uint8_t bpp = 8 * bpr / char_w;                                   //bits per pixel
-    const uint8_t ppb = 8 / bpp;                                            //pixels per byte
-    const uint8_t pms = std::min(size_t((1 << bpp) - 1), BuffAlphaLen - 1); //pixel mask, cannot be bigger than array to store alpha channel combinations
+    const uint16_t char_w = pf->w;                                          // char width
+    const uint16_t char_h = pf->h;                                          // char height
+    const uint8_t bpr = pf->bpr;                                            // bytes per row
+    const uint16_t bpc = bpr * char_h;                                      // bytes per char
+    const uint8_t bpp = 8 * bpr / char_w;                                   // bits per pixel
+    const uint8_t ppb = 8 / bpp;                                            // pixels per byte
+    const uint8_t pms = std::min(size_t((1 << bpp) - 1), BuffAlphaLen - 1); // pixel mask, cannot be bigger than array to store alpha channel combinations
 
-    uint8_t *pch;    // character data pointer
-    uint8_t crd = 0; // current row byte data
-    uint8_t rb;      // row byte
-    uint8_t *pc;     // character data row pointer
+    uint8_t *pch;                                                           // character data pointer
+    uint8_t crd = 0;                                                        // current row byte data
+    uint8_t rb;                                                             // row byte
+    uint8_t *pc;                                                            // character data row pointer
 
     const font_flags flags(pf->flg);
 
@@ -337,14 +337,14 @@ void display_ex_fill_rect(Rect16 rc, color_t clr) {
 /// Both end points are drawn
 void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     const uint32_t native_color = color_to_native(clr);
-    //todo check rectangle
+    // todo check rectangle
     int n;
     const int dx = pt1.x - pt0.x; // X-axis dimension
     const int dy = pt1.y - pt0.y; // Y-axis dimension
     int cx = std::abs(dx);
     int cy = std::abs(dy);
-    const int adx = cx; // absolute difference in x ( = width - 1)
-    const int ady = cy; // absolute difference in y ( = height - 1)
+    const int adx = cx;             // absolute difference in x ( = width - 1)
+    const int ady = cy;             // absolute difference in y ( = height - 1)
 
     if ((adx == 0) || (ady == 0)) { // orthogonal line
         fill_rect_colorFormatNative(std::min(pt0.x, pt1.x), std::min(pt0.y, pt1.y), adx + 1, ady + 1, native_color);
@@ -354,7 +354,7 @@ void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     const int sx = std::signbit(dx) ? -1 : 1; // X-axis direction, positive when left-to-right
     const int sy = std::signbit(dy) ? -1 : 1; // Y-axis direction, positive when bottom-to-top
 
-    if (adx > ady) { // likely vertical line
+    if (adx > ady) {                          // likely vertical line
         for (n = adx; n > 0; --n) {
             set_pixel_colorFormatNative(pt0.x, pt0.y, native_color);
             if ((cx -= cy) <= 0) {
@@ -378,7 +378,7 @@ void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
         return;
     }
 
-    //adx == ady => diagonal line
+    // adx == ady => diagonal line
     for (n = adx; n > 0; --n) {
         set_pixel_colorFormatNative(pt0.x, pt0.y, native_color);
         pt0.x += sx;

@@ -33,10 +33,10 @@ public:
     void setVolume(int vol);
 
     /**
-    * Restore sound settings configuration from eeprom
-    *
-    * Until this is called the sound uses default settings. Needs eeprom to load the configuration.
-    */
+     * Restore sound settings configuration from eeprom
+     *
+     * Until this is called the sound uses default settings. Needs eeprom to load the configuration.
+     */
     void restore_from_eeprom();
 
     void play(eSOUND_TYPE eSoundType);
@@ -54,8 +54,8 @@ private:
     void _sound(int rep, float frq, int16_t dur, int16_t del, float vol, bool f);
     void _playSound(eSOUND_TYPE sound, const eSOUND_TYPE types[], const int8_t repeats[], const int16_t durations[], const int16_t delays[], unsigned size);
     void nextRepeat();
-    float real_volume(int displayed_volume);     ///< converts displayed / saved volume to volume used by beeper
-    uint8_t displayed_volume(float real_volume); ///< converts beeper volume to displayed / saved one
+    float real_volume(int displayed_volume);             ///< converts displayed / saved volume to volume used by beeper
+    uint8_t displayed_volume(float real_volume);         ///< converts beeper volume to displayed / saved one
 
     int16_t duration_active = 0;                         ///< live variable used for measure
     int16_t duration_set = 0;                            ///< added variable to set duration_ for repeating

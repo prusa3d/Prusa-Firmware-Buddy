@@ -22,6 +22,10 @@
 
 #include "../gcode.h"
 #include "../../module/tool_change.h"
+#include "bsod_gui.hpp"
+#if ENABLED(PRUSA_TOOL_MAPPING)
+  #include "module/prusa/tool_mapper.hpp"
+#endif
 
 #if ENABLED(DEBUG_LEVELING_FEATURE) || EXTRUDERS > 1
   #include "../../module/motion.h"
@@ -43,6 +47,7 @@
  *
  *   F[units/min] Set the movement feedrate
  *   S1           Don't move the tool in XY after change
+ *   M0/1         Use tool mapping or not (default is yes)
  *
  * For PRUSA_MMU2:
  *   T[n] Gcode to extrude at least 38.10 mm at feedrate 19.02 mm/s must follow immediately to load to extruder wheels.
@@ -50,7 +55,17 @@
  *   Tx   Same as T?, but nozzle doesn't have to be preheated. Tc requires a preheated nozzle to finish filament load.
  *   Tc   Load to nozzle after filament was prepared by Tc and nozzle is already heated.
  */
-void GcodeSuite::T(const uint8_t tool_index) {
+void GcodeSuite::T(uint8_t tool_index) {
+
+#if ENABLED(PRUSA_TOOL_MAPPING)
+  const bool map = !parser.seen('M') || parser.boolval('M', true);
+  if (map) {
+    tool_index = tool_mapper.to_physical(tool_index);
+    if (tool_index == tool_mapper.NO_TOOL_MAPPED) {
+        fatal_error("Toolchange to tool that is disabled by tool mapping", "PrusaToolChanger");
+    }
+  }
+#endif
 
   if (DEBUGGING(LEVELING)) {
     DEBUG_ECHOLNPAIR(">>> T(", tool_index, ")");

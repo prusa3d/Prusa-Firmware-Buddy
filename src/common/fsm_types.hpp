@@ -55,7 +55,7 @@ public:
 
 enum class QueueRetVal {
     ok,
-    //errors
+    // errors
     er_type_none,
     er_already_created,
     er_already_destroyed,
@@ -168,4 +168,4 @@ public:
     std::optional<DequeStates> dequeue(size_t queue) { return queues[queue].dequeue(); };
 };
 
-}; //namespace fsm
+}; // namespace fsm

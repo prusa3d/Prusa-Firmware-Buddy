@@ -13,8 +13,8 @@ invalidate_t WiSpinExp::change(int dif) {
     if (dif != 0) {
         int val = GetVal();
 
-        //I don't want to use pow(), because it works with floats
-        //step will be in 99% 0, 1 or -1 .. so it is fine
+        // I don't want to use pow(), because it works with floats
+        // step will be in 99% 0, 1 or -1 .. so it is fine
 
         if (dif > 0) {
             while ((--dif) >= 0) {

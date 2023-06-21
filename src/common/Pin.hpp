@@ -222,12 +222,26 @@ public:
     void configure() const;
     IRQn_Type getIRQn() const;
 
-private:
+protected:
     struct Priority {
         uint8_t preemptPriority : 4;
         uint8_t subPriority : 4;
     };
     Priority m_priority;
+};
+
+class InterruptPin_Inverted : public InterruptPin {
+public:
+    constexpr InterruptPin_Inverted(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority)
+        : InterruptPin(ioPort, ioPin, iMode, pull, preemptPriority, subPriority) {}
+
+    State read() const {
+        if ((getHalPort()->IDR & m_halPin) != (uint32_t)GPIO_PIN_RESET) {
+            return State::low;
+        } else {
+            return State::high;
+        }
+    }
 };
 
 typedef Pin::State (*ReadFunction)();

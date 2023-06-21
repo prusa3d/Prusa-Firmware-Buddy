@@ -53,7 +53,7 @@ void blinking(uint8_t red, uint8_t green, uint8_t blue, uint32_t on_duration_ms,
     static bool direction_on { false };
     static uint32_t loop_tick_start_ms { 0 };
 
-    if (auto ticks_now_ms = ticks_ms(); ticks_now_ms < loop_tick_start_ms) { // ticker overflow
+    if (auto ticks_now_ms = ticks_ms(); ticks_now_ms < loop_tick_start_ms) {                           // ticker overflow
         loop_tick_start_ms = ticks_now_ms;
     } else if (auto diff = ticks_now_ms - loop_tick_start_ms; direction_on && diff > on_duration_ms) { // go to off
         set_rgb(0, 0, 0);

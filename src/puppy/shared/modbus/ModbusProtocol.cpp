@@ -6,17 +6,17 @@
 #define CRC_FIELD_SIZE      2
 #define ERROR_CODE_FLAG     0x80
 
-#define MAX_BIT_VALUES_QUANTITY  2000 //limited by Modbus specification
-#define MAX_WORD_VALUES_QUANTITY 125  //limited by Modbus specification
-#define MAX_REG_VALUES_QUANTITY  123  //limited by Modbus specification
+#define MAX_BIT_VALUES_QUANTITY  2000 // limited by Modbus specification
+#define MAX_WORD_VALUES_QUANTITY 125  // limited by Modbus specification
+#define MAX_REG_VALUES_QUANTITY  123  // limited by Modbus specification
 #define WRITE_VALUE_ON           0xFF00
 #define WRITE_VALUE_OFF          0x0000
 
-#define MAX_READ_FILE_QUANTITY    35 //limited by Modbus specification
-#define MAX_WRITE_FILE_QUANTITY   27 //limited by Modbus specification
+#define MAX_READ_FILE_QUANTITY    35 // limited by Modbus specification
+#define MAX_WRITE_FILE_QUANTITY   27 // limited by Modbus specification
 #define READ_FILE_REQUEST_SIZE    7
 #define READ_FILE_REFERENCE_TYPE  6
-#define MAX_FILE_FRAME_BYTE_COUNT 245 //limited by Modbus specification
+#define MAX_FILE_FRAME_BYTE_COUNT 245 // limited by Modbus specification
 #define MIN_WRITE_FILE_BYTE_COUNT 9
 #define MAX_WRITE_FILE_BYTE_COUNT 251
 #define WRITE_FILE_HEADER_SIZE    7
@@ -86,21 +86,21 @@ void SetOnReadFIFOCallback(OnReadFIFOCallback pCallback) {
 
 bool ProcessFrame(ModbusBuffer *pRX_Buffer, ModbusBuffer *pTX_Buffer) {
     if (pRX_Buffer->GetUnprocessedSize() < MIN_MESSAGE_SIZE) {
-        return false; //frame is too short
+        return false; // frame is too short
     }
 
     uint8_t modbusAddress = pRX_Buffer->ReadByte();
     Function function = (Function)pRX_Buffer->ReadByte();
 
     if (modbusAddress != m_ModbusAddress) {
-        return false; //not our message
+        return false; // not our message
     }
 
     if (ValidateChecksum(pRX_Buffer) == false) {
-        return false; //CRC error - no response
+        return false; // CRC error - no response
     }
 
-    //prepare response header
+    // prepare response header
     pTX_Buffer->Reset();
     pTX_Buffer->AddByte(m_ModbusAddress);
     pTX_Buffer->AddByte((uint8_t)function);
@@ -463,7 +463,7 @@ ExceptionCode ProcessFunction_ReadFileRecord(ModbusBuffer *pRX_Buffer, ModbusBuf
     }
 
     int byteCountIndex = pTX_Buffer->GetActualSize();
-    pTX_Buffer->AddByte(0); //byte count
+    pTX_Buffer->AddByte(0); // byte count
 
     for (uint32_t i = 0; i < quantity; i++) {
         uint8_t referenceType = pRX_Buffer->ReadByte();
@@ -584,7 +584,7 @@ void AddChecksum(ModbusBuffer *pBuffer) {
     pBuffer->AddByte(crc >> 8 & 0xFF);
 }
 
-//http://www.modbustools.com/modbus_crc16.htm
+// http://www.modbustools.com/modbus_crc16.htm
 static const uint16_t s_CRCTable[] = {
     0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
     0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
@@ -631,4 +631,4 @@ uint16_t CalculateChecksum(ModbusBuffer *pBuffer, uint32_t dataSize) {
     return crc;
 }
 
-} //namespace
+} // namespace

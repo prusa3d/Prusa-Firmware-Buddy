@@ -75,8 +75,8 @@ bool IWinMenuContainer::SetIndex(uint8_t visible_index) {
         return true;
 
     if (currently_focused)
-        currently_focused->clrFocus(); //remove focus from old item
-    to_be_focused->setFocus();         //set focus on new item
+        currently_focused->clrFocus(); // remove focus from old item
+    to_be_focused->setFocus();         // set focus on new item
 
     // store currently focused index
     currently_focused = to_be_focused;

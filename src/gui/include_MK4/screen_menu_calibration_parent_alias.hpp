@@ -14,4 +14,4 @@
 #include <option/has_toolchanger.h>
 
 using ScreenMenuCalibration__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_SELFTEST, MI_AUTO_HOME,
-    MI_CALIB_Z, MI_DIAGNOSTICS, MI_CALIB_FIRST, MI_LIVE_ADJUST_Z, MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_0>, MI_CALIB_FSENSOR>;
+    MI_CALIB_Z, MI_DIAGNOSTICS, MI_CALIB_FIRST, MI_LIVE_ADJUST_Z, MI_FS_SPAN<0, false>, MI_FS_REF<0, false>, MI_CALIB_FSENSOR>;

@@ -12,9 +12,9 @@ void RegisterHeldRightAction(action_cb cb);              // action performed by 
 void RegisterHeldLeftAction(action_cb cb);               // action performed by captured window
 void RegisterLongPressScreenAction(screen_action_cb cb); // action performed by current screen
 
-action_cb GetHeldRightAction();              // action performed by captured window
-action_cb GetHeldLeftAction();               // action performed by captured window
-screen_action_cb GetLongPressScreenAction(); // action performed by current screen
+action_cb GetHeldRightAction();                          // action performed by captured window
+action_cb GetHeldLeftAction();                           // action performed by captured window
+screen_action_cb GetLongPressScreenAction();             // action performed by current screen
 
 bool HeldRightAction();
 bool HeldLeftAction();

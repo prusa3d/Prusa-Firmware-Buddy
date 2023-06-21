@@ -10,7 +10,7 @@
 
 LOG_COMPONENT_REF(Selftest);
 using namespace selftest;
-//PWM must be stable for n cycles
+// PWM must be stable for n cycles
 PowerCheck::status_t PowerCheck::EvaluateHeaterStatus(uint32_t current_pwm) {
     if (current_pwm < htr->m_config.min_pwm_to_measure) {
         LogDebugTimed(log_status, "%s pwm too small to measure load", htr->m_config.partname);

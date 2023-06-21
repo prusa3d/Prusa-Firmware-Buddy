@@ -9,7 +9,7 @@
 #include "MItem_filament.hpp"
 
 /*****************************************************************************/
-//parent alias
+// parent alias
 using ScreenMenuTemperature__ = ScreenMenu<
     EFooter::On, MI_RETURN, MI_HEATBED,
     MI_NOZZLE<0>,

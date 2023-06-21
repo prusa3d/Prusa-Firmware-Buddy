@@ -53,11 +53,11 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     }
 
     if (!ELAPSED(now, last_reset + interval)) {
-        //timer is counting, but did not reach last_reset yet
+        // timer is counting, but did not reach last_reset yet
         return expired_t::no;
     }
 
-    //timer is expired
+    // timer is expired
     if (pBoundPause) {
         pBoundPause->NotifyExpiredFromSafetyTimer();
         if (printingIsPaused()) {
@@ -92,7 +92,7 @@ SafetyTimer::expired_t SafetyTimer::Loop() {
     return expired_t::yes;
 }
 
-//marlin compatibility function
+// marlin compatibility function
 void safety_timer_set_interval(millis_t ms) {
     SafetyTimer::Instance().SetInterval(ms);
 }

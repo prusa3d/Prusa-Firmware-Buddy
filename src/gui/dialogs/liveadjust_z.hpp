@@ -36,7 +36,7 @@ private:
     }
 };
 
-//regular window bound to Z calib
+// regular window bound to Z calib
 class WindowLiveAdjustZ : public AddSuperWindow<window_frame_t> {
 protected:
     window_numb_t number;

@@ -26,6 +26,7 @@ using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::is_same_v;
+using std::make_tuple;
 using std::monostate;
 using std::move;
 using std::nullopt;
@@ -40,30 +41,52 @@ namespace connect_client {
 
 namespace {
 
-    std::atomic<OnlineStatus> last_known_status = OnlineStatus::Unknown;
+    // These two should actually be a atomic<tuple<.., ..>>. This won't compile on our platform.
+    // But, considering the error is informative only and we set these only in
+    // this thread, any temporary inconsistency in them is of no concern
+    // anyway, so they can be two separate atomics without any adverse effects.
+    std::atomic<ConnectionStatus> last_known_status = ConnectionStatus::Unknown;
+    std::atomic<OnlineError> last_connection_error = OnlineError::NoError;
+    std::atomic<optional<uint8_t>> retries_left;
+
     std::atomic<bool> registration = false;
     std::atomic<const char *> registration_code_ptr = nullptr;
 
-    OnlineStatus err_to_status(const Error error) {
-        switch (error) {
-        case Error::Connect:
-            return OnlineStatus::NoConnection;
-        case Error::Dns:
-            return OnlineStatus::NoDNS;
-        case Error::InternalError:
-        case Error::ResponseTooLong:
-        case Error::SetSockOpt:
-            return OnlineStatus::InternalError;
-        case Error::Network:
-        case Error::Timeout:
-            return OnlineStatus::NetworkError;
-        case Error::Parse:
-            return OnlineStatus::Confused;
-        case Error::Tls:
-            return OnlineStatus::Tls;
+    void process_status(monostate, ConnectionStatus) {}
+
+    void process_status(OnlineError error, ConnectionStatus err_status) {
+        last_known_status = err_status;
+        last_connection_error = error;
+    }
+
+    void process_status(ConnectionStatus status, ConnectionStatus /* err_status unused */) {
+        last_known_status = status;
+        switch (status) {
+        case ConnectionStatus::Ok:
+        case ConnectionStatus::NoConfig:
+        case ConnectionStatus::Off:
+        case ConnectionStatus::RegistrationCode:
+        case ConnectionStatus::RegistrationDone:
+            // These are the states we want to stay in, if we are in one,
+            // any past errors make no sense, we are happy.
+            last_connection_error = OnlineError::NoError;
+            retries_left = nullopt;
+            break;
         default:
-            return OnlineStatus::Unknown;
+            break;
         }
+    }
+
+    void process_status(ErrWithRetry err, ConnectionStatus err_status) {
+        last_connection_error = err.err;
+        retries_left = err.retry;
+        if (err.retry == 0) {
+            last_known_status = err_status;
+        }
+    }
+
+    void process_status(CommResult status, ConnectionStatus err_status) {
+        visit([&](auto s) { process_status(s, err_status); }, status);
     }
 
     class BasicRequest final : public JsonPostRequest {
@@ -116,7 +139,7 @@ namespace {
     const constexpr uint32_t FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
 }
 
-Connect::ServerResp Connect::handle_server_resp(Response resp, CommandId command_id) {
+Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId command_id) {
     // TODO We want to make this buffer smaller, eventually. In case of custom
     // gcode, we can load directly into the shared buffer. In case of JSON, we
     // want to implement stream/iterative parsing.
@@ -173,7 +196,7 @@ Connect::ServerResp Connect::handle_server_resp(Response resp, CommandId command
     }
 }
 
-optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
+CommResult Connect::communicate(CachedFactory &conn_factory) {
     const auto [config, cfg_changed] = printer.config();
 
     // Make sure to reconnect if the configuration changes .
@@ -186,13 +209,11 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     if (!config.enabled) {
         planner().reset();
         Sleep::idle().perform(printer, planner());
-        return OnlineStatus::Off;
+        return ConnectionStatus::Off;
     } else if (config.host[0] == '\0' || config.token[0] == '\0') {
         planner().reset();
         Sleep::idle().perform(printer, planner());
-        return OnlineStatus::NoConfig;
-    } else if (status_replace_early(last_known_status)) {
-        last_known_status = OnlineStatus::Connecting;
+        return ConnectionStatus::NoConfig;
     }
 
     printer.drop_paths(); // In case they were left in there in some early-return case.
@@ -204,12 +225,16 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
     }
     printer.renew(move(borrow));
 
+    // This is a bit of a hack, we want to keep watching for USB being inserted
+    // or not. We don't have a good place, so we stuck it here.
+    transfers::ChangedPath::instance.media_inserted(printer.params().has_usb);
+
     auto action = planner().next_action(buffer);
 
     // Handle sleeping first. That one doesn't need the connection.
     if (auto *s = get_if<Sleep>(&action)) {
         s->perform(printer, planner());
-        return nullopt;
+        return monostate {};
     } else if (auto *e = get_if<Event>(&action); e && e->type == EventType::Info) {
         // The server may delete its latest copy of telemetry in various case, in particular:
         // * When it thinks we were offline for a while.
@@ -221,6 +246,9 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
         telemetry_changes.mark_dirty();
     }
 
+    if (!conn_factory.is_valid()) {
+        last_known_status = ConnectionStatus::Connecting;
+    }
     // Let it reconnect if it needs it.
     conn_factory.refresh(config);
 
@@ -255,7 +283,7 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
         return err_to_status(get<Error>(result));
     }
 
-    Response resp = get<Response>(result);
+    http::Response resp = get<http::Response>(result);
     if (!resp.can_keep_alive) {
         conn_factory.invalidate();
     }
@@ -271,7 +299,7 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
             telemetry_changes.mark_clean();
             last_full_telemetry = start;
         }
-        return OnlineStatus::Ok;
+        return ConnectionStatus::Ok;
     case Status::Ok: {
         if (is_full_telemetry && telemetry_changes.is_dirty()) {
             // Yes, even before checking the command we got is OK. We did send
@@ -281,17 +309,17 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
         }
         if (cmd_id.command_id.has_value()) {
             const auto sub_resp = handle_server_resp(resp, *cmd_id.command_id);
-            return visit([&](auto &&arg) -> optional<OnlineStatus> {
+            return visit([&](auto &&arg) -> CommResult {
                 // Trick out of std::visit documentation. Switch by the type of arg.
                 using T = decay_t<decltype(arg)>;
 
                 if constexpr (is_same_v<T, monostate>) {
                     planner().action_done(ActionResult::Ok);
-                    return OnlineStatus::Ok;
+                    return ConnectionStatus::Ok;
                 } else if constexpr (is_same_v<T, Command>) {
                     planner().action_done(ActionResult::Ok);
                     planner().command(arg);
-                    return OnlineStatus::Ok;
+                    return ConnectionStatus::Ok;
                 } else if constexpr (is_same_v<T, Error>) {
                     planner().action_done(ActionResult::Failed);
                     planner().command(Command {
@@ -308,7 +336,7 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
             // There's no better action for us than just throw it away.
             planner().action_done(ActionResult::Refused);
             conn_factory.invalidate();
-            return OnlineStatus::Confused;
+            return OnlineError::Confused;
         }
     }
     case Status::RequestTimeout:
@@ -318,7 +346,7 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
         conn_factory.invalidate();
         // These errors are likely temporary and will go away eventually.
         planner().action_done(ActionResult::Failed);
-        return OnlineStatus::ServerError;
+        return OnlineError::Server;
     default:
         conn_factory.invalidate();
         // We don't know that exactly the server answer means, but we guess
@@ -328,12 +356,12 @@ optional<OnlineStatus> Connect::communicate(CachedFactory &conn_factory) {
         // Switch just to provide proper error message
         switch (resp.status) {
         case Status::BadRequest:
-            return OnlineStatus::InternalError;
+            return OnlineError::Internal;
         case Status::Forbidden:
         case Status::Unauthorized:
-            return OnlineStatus::Auth;
+            return OnlineError::Auth;
         default:
-            return OnlineStatus::ServerError;
+            return OnlineError::Server;
         }
     }
 }
@@ -348,24 +376,24 @@ void Connect::run() {
         auto reg_running = holds_alternative<Registrator>(guts);
         if (reg_wanted && reg_running) {
             const auto new_status = get<Registrator>(guts).communicate(conn_factory);
-            if (new_status.has_value()) {
-                last_known_status = *new_status;
-            }
+            process_status(new_status, ConnectionStatus::RegistrationError);
         } else if (reg_wanted && !reg_running) {
             guts.emplace<Registrator>(printer);
-            last_known_status = OnlineStatus::Unknown;
+            last_known_status = ConnectionStatus::Unknown;
+            last_connection_error = OnlineError::NoError;
+            retries_left = nullopt;
             conn_factory.invalidate();
             registration_code_ptr = get<Registrator>(guts).get_code();
         } else if (!reg_wanted && reg_running) {
-            last_known_status = OnlineStatus::Unknown;
+            last_known_status = ConnectionStatus::Unknown;
+            last_connection_error = OnlineError::NoError;
+            retries_left = nullopt;
             registration_code_ptr = nullptr;
             guts.emplace<Planner>(printer);
             conn_factory.invalidate();
         } else {
             const auto new_status = communicate(conn_factory);
-            if (new_status.has_value()) {
-                last_known_status = *new_status;
-            }
+            process_status(new_status, ConnectionStatus::Error);
         }
     }
 }
@@ -381,7 +409,7 @@ Connect::Connect(Printer &printer, SharedBuffer &buffer)
     , buffer(buffer) {}
 
 OnlineStatus last_status() {
-    return last_known_status;
+    return make_tuple(last_known_status.load(), last_connection_error.load(), retries_left.load());
 }
 
 void request_registration() {
@@ -402,7 +430,7 @@ const char *registration_code() {
     // Note: This is just a safety, the caller shall not call us in case this
     // is not the case.
     const auto status = last_known_status.load();
-    if (status == OnlineStatus::RegistrationCode || status == OnlineStatus::RegistrationDone) {
+    if (status == ConnectionStatus::RegistrationCode || status == ConnectionStatus::RegistrationDone) {
         return registration_code_ptr;
     } else {
         return nullptr;

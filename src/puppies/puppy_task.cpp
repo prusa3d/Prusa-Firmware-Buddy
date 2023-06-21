@@ -15,6 +15,7 @@
 #include <esp_flash.hpp>
 #include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
+#include <option/has_dwarf.h>
 #include "bsod_gui.hpp"
 
 LOG_COMPONENT_DEF(Puppies, LOG_SEVERITY_DEBUG);
@@ -86,44 +87,77 @@ std::optional<PuppyBootstrap::Progress> get_bootstrap_progress() {
 }
 
 static void puppy_task_loop() {
+#if ENABLED(PRUSA_TOOLCHANGER)
+    size_t slow_stage = 0; ///< Switch slow action
+#endif
+
     // periodically update puppies until there is a failure
     while (true) {
-        if (!prusa_toolchanger.update())
+        uint32_t cycle_ticks = ticks_ms(); ///< Only one tick read per cycle
+        // One slow action
+        bool worked = false;
+#if ENABLED(PRUSA_TOOLCHANGER)
+        if (!prusa_toolchanger.update()) {
             return;
-
-        Dwarf &selected = prusa_toolchanger.getActiveToolOrFirst();
-
-        for (Dwarf &dwarf : dwarfs) {
-            if (!dwarf.is_enabled())
-                continue; // skip if this dwarf is not enabled
-
-            // do fast refresh of selected dwarf
-            if (selected.fast_refresh() != Dwarf::CommunicationStatus::OK)
-                return;
-
-            // if we are servicing other then selected
-            if (&selected != &dwarf) {
-                // fast refresh of non-selected dwarf
-                if (dwarf.fast_refresh() != Dwarf::CommunicationStatus::OK)
-                    return;
-
-                // do fast refresh of selected dwarf
-                if (selected.fast_refresh() != Dwarf::CommunicationStatus::OK)
-                    return;
-            }
-
-            // then do slow refresh of one dwarf
-            if (dwarf.refresh() != Dwarf::CommunicationStatus::OK)
-                return;
         }
 
-        if (selected.fast_refresh() != Dwarf::CommunicationStatus::OK)
-            return;
+        // Get dwarf that is selected
+        // The source variable is set in this thread in prusa_toolchanger.update() called above, so no race
+        Dwarf &active = prusa_toolchanger.getActiveToolOrFirst(); ///< Currently selected dwarf
 
-        if (modular_bed.refresh() != ModularBed::CommunicationStatus::OK)
-            return;
+        // Fast fifo pull from selected dwarf
+        if (active.is_selected()) {
+            bool more = true; ///< Pull while there is something in fifo
+            // Pull fifo only this many times
+            for (int active_fifo_attempts = 5; more && active_fifo_attempts > 0; active_fifo_attempts--) {
+                if (active.pull_fifo(more) != Dwarf::CommunicationStatus::OK) {
+                    return;
+                }
+            }
+        } else {
+            osDelay(1); // No dwarf is selected, wait a bit
+        }
 
-        osDelay(1);
+        size_t orig_stage = slow_stage;
+        do {
+            // Increment stage, there are 2 actions per dwarf and one modular bed
+            if (++slow_stage >= (2 * std::size(dwarfs) + 1)) {
+                slow_stage = 0;
+            }
+
+            if (slow_stage / 2 < std::size(dwarfs)) { // Two actions per dwarf
+                Dwarf &dwarf = dwarfs[slow_stage / 2];
+                if (!dwarf.is_enabled()) {
+                    continue; // skip if this dwarf is not enabled
+                }
+
+                if (slow_stage % 2) {
+                    if (&active == &dwarf) {
+                        continue; // Skip selected dwarf
+                    }
+
+                    // Fast refresh of non-selected dwarf
+                    if (dwarf.fifo_refresh(cycle_ticks, worked) != Dwarf::CommunicationStatus::OK) {
+                        return;
+                    }
+                } else {
+                    // Slow refresh of non-selected dwarf
+                    if (dwarf.refresh(cycle_ticks, worked) != Dwarf::CommunicationStatus::OK) {
+                        return;
+                    }
+                }
+            } else
+#endif
+            {
+                // Try slow refresh of modular bed
+                if (modular_bed.refresh(cycle_ticks, worked) != ModularBed::CommunicationStatus::OK) {
+                    return;
+                }
+            }
+#if ENABLED(PRUSA_TOOLCHANGER)
+        } while (!worked && slow_stage != orig_stage); // End if we did some work or if no stage has anything to do
+#endif
+        osDelay(worked ? 1 : 2);                       // Longer delay if we did no work
     }
 }
 
@@ -163,7 +197,9 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
     #endif
 #endif
 
+#if ENABLED(PRUSA_TOOLCHANGER)
     bool toolchanger_first_run = true;
+#endif
 
     // by default, we want one modular bed and one dwarf
     PuppyBootstrap::BootstrapResult minimal_puppy_config = PuppyBootstrap::MINIMAL_PUPPY_CONFIG;
@@ -176,9 +212,11 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 
         // set what puppies are connected
         modular_bed.set_enabled(bootstrap_result.is_dock_occupied(Dock::MODULAR_BED));
+#if HAS_DWARF()
         for (int i = 0; i < DWARF_MAX_COUNT; i++) {
             dwarfs[i].set_enabled(bootstrap_result.is_dock_occupied(Dock::DWARF_1 + i));
         }
+#endif
 
         // wait for puppies to boot up, ensure they are running
         verify_puppies_running();
@@ -189,12 +227,14 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
                 break;
             }
 
+#if ENABLED(PRUSA_TOOLCHANGER)
             // select active tool (previously active tool, or first one when starting)
             if (!prusa_toolchanger.init(toolchanger_first_run)) {
                 log_error(Puppies, "Unable to select tool, retring");
                 break;
             }
             toolchanger_first_run = false;
+#endif
 
             TaskDeps::provide(TaskDeps::Dependency::puppies_ready);
             log_info(Puppies, "Puppies are ready");

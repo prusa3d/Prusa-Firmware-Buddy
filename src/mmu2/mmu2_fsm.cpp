@@ -1,6 +1,7 @@
 #include "mmu2_fsm.hpp"
 #include "pause_stubbed.hpp"
 #include "mmu2_error_converter.h"
+#include "fsm_loadunload_type.hpp"
 
 LOG_COMPONENT_REF(MMU2);
 
@@ -10,215 +11,224 @@ static constexpr uint8_t StepOf(uint32_t step, uint32_t total) {
     return (step * 100U / total);
 }
 
-// this requires knowledge of the state machines inside of the MMU and the consequence of steps they run through
-static fsm::PhaseData ProgressCodeToPercentage(CommandInProgress cip, uint16_t ec) {
-    uint8_t p = 0;
-
-    // error states will report 50% progress as we don't know what will come up next
+static bool is_error_code(ProgressCode ec) {
     switch (ec) {
-    case (uint16_t)ProgressCode::ERRDisengagingIdler:
-    case (uint16_t)ProgressCode::ERRWaitingForUser:
-    case (uint16_t)ProgressCode::ERREngagingIdler:
-    case (uint16_t)ProgressCode::ERRHelpingFilament:
-        p = 50;
-        break;
+    case ProgressCode::ERRDisengagingIdler:
+    case ProgressCode::ERRWaitingForUser:
+    case ProgressCode::ERREngagingIdler:
+    case ProgressCode::ERRHelpingFilament:
+        return true;
+    default:
+        return false;
     }
-
-    if (p == 0) { // no error caught yet
-        switch (cip) {
-        case CutFilament:
-            switch (ec) {
-            case (uint16_t)ProgressCode::UnloadingToFinda:
-                p = StepOf(1, 11);
-                break;
-            case (uint16_t)ProgressCode::RetractingFromFinda:
-                p = StepOf(2, 11);
-                break;
-            case (uint16_t)ProgressCode::DisengagingIdler:
-                p = StepOf(3, 11);
-                break;
-            case (uint16_t)ProgressCode::SelectingFilamentSlot:
-                p = StepOf(4, 11);
-                break;
-            case (uint16_t)ProgressCode::FeedingToFinda:
-                p = StepOf(5, 11);
-                break;
-            case (uint16_t)ProgressCode::UnloadingToPulley:
-                p = StepOf(6, 11);
-                break;
-            case (uint16_t)ProgressCode::PreparingBlade:
-                p = StepOf(7, 11);
-                break;
-            case (uint16_t)ProgressCode::PushingFilament:
-                p = StepOf(8, 11);
-                break;
-            case (uint16_t)ProgressCode::PerformingCut:
-                p = StepOf(9, 11);
-                break;
-            case (uint16_t)ProgressCode::ReturningSelector:
-                p = StepOf(10, 11);
-                break;
-            }
-            break;
-        case EjectFilament:
-            switch (ec) {
-            case (uint16_t)ProgressCode::UnloadingToFinda:
-                p = StepOf(1, 7);
-                break;
-            case (uint16_t)ProgressCode::RetractingFromFinda:
-                p = StepOf(2, 7);
-                break;
-            case (uint16_t)ProgressCode::DisengagingIdler:
-                p = StepOf(3, 7);
-                break; // this depends on the sequences - disengaging happens twice
-            case (uint16_t)ProgressCode::ParkingSelector:
-                p = StepOf(4, 7);
-                break;
-            case (uint16_t)ProgressCode::EjectingFilament:
-                p = StepOf(5, 7);
-                break;
-            }
-            break;
-        case Homing:
-            p = 50;
-            break;
-        case LoadFilament:
-            switch (ec) {
-            case (uint16_t)ProgressCode::FeedingToFinda:
-                p = StepOf(1, 4);
-                break;
-            case (uint16_t)ProgressCode::RetractingFromFinda:
-                p = StepOf(2, 4);
-                break;
-            case (uint16_t)ProgressCode::DisengagingIdler:
-                p = StepOf(3, 4);
-                break;
-            }
-            break;
-        case Reset:
-            p = 50;
-            break;
-        case ToolChange:
-            // current sequence reported from the MMU:
-            //T1 A*27
-            //T1 P3*d1
-            //T1 P2*c4
-            //T1 P5*af
-            //T1 P6*90
-            //T1 P1c*45
-            //T1 P2*c4
-            //T1 F0*31
-            switch (ec) {
-            case (uint16_t)ProgressCode::UnloadingToFinda:
-                p = StepOf(1, 5);
-                break;
-            case (uint16_t)ProgressCode::FeedingToFinda:
-                p = StepOf(2, 5);
-                break;
-            case (uint16_t)ProgressCode::FeedingToBondtech:
-                p = StepOf(3, 5);
-                break;
-            case (uint16_t)ProgressCode::FeedingToFSensor:
-                p = StepOf(4, 5);
-                break;
-                //            case (uint16_t)ProgressCode::DisengagingIdler: // disengaging idler comes 2x at different spots, not necessary for visualization of progress
-            }
-            break;
-        case UnloadFilament:
-            switch (ec) {
-            case (uint16_t)ProgressCode::UnloadingToFinda:
-                p = StepOf(1, 4);
-                break;
-            case (uint16_t)ProgressCode::RetractingFromFinda:
-                p = StepOf(2, 4);
-                break;
-            case (uint16_t)ProgressCode::DisengagingIdler:
-                p = StepOf(3, 4);
-                break;
-            }
-            break;
-        default:
-            break;
-        }
-    }
-
-    fsm::PhaseData ret = { { p } };
-    return ret;
 }
 
-static constexpr PhasesLoadUnload ProgressCodeToPhasesLoadUnload(uint16_t pc) {
+// this requires knowledge of the state machines inside of the MMU and the consequence of steps they run through
+static uint8_t progress_code_to_percentage(CommandInProgress cip, ProgressCode ec) {
+    // error states will report 50% progress as we don't know what will come up next
+    if (is_error_code(ec)) {
+        return 50;
+    }
+
+    switch (cip) {
+    case CutFilament:
+        switch (ec) {
+        case ProgressCode::UnloadingToFinda:
+            return StepOf(1, 11);
+        case ProgressCode::RetractingFromFinda:
+            return StepOf(2, 11);
+        case ProgressCode::DisengagingIdler:
+            return StepOf(3, 11);
+        case ProgressCode::SelectingFilamentSlot:
+            return StepOf(4, 11);
+        case ProgressCode::FeedingToFinda:
+            return StepOf(5, 11);
+        case ProgressCode::UnloadingToPulley:
+            return StepOf(6, 11);
+        case ProgressCode::PreparingBlade:
+            return StepOf(7, 11);
+        case ProgressCode::PushingFilament:
+            return StepOf(8, 11);
+        case ProgressCode::PerformingCut:
+            return StepOf(9, 11);
+        case ProgressCode::ReturningSelector:
+            return StepOf(10, 11);
+        default:
+            return 0;
+        }
+        return 0;
+    case EjectFilament:
+        switch (ec) {
+        case ProgressCode::UnloadingToFinda:
+            return StepOf(1, 7);
+        case ProgressCode::RetractingFromFinda:
+            return StepOf(2, 7);
+        case ProgressCode::DisengagingIdler:
+            // this depends on the sequences - disengaging happens twice
+            return StepOf(3, 7);
+        case ProgressCode::ParkingSelector:
+            return StepOf(4, 7);
+        case ProgressCode::EjectingFilament:
+            return StepOf(5, 7);
+        default:
+            return 0;
+        }
+        return 0;
+    case Homing:
+        return 50;
+    case LoadFilament:
+        switch (ec) {
+        case ProgressCode::FeedingToFinda:
+            return StepOf(1, 4);
+        case ProgressCode::RetractingFromFinda:
+            return StepOf(2, 4);
+        case ProgressCode::DisengagingIdler:
+            return StepOf(3, 4);
+        default:
+            return 0;
+        }
+        return 0;
+    case Reset:
+        return 50;
+    case ToolChange:
+        // current sequence reported from the MMU:
+        // T1 A*27
+        // T1 P3*d1
+        // T1 P2*c4
+        // T1 P5*af
+        // T1 P6*90
+        // T1 P1c*45
+        // T1 P2*c4
+        // T1 F0*31
+        switch (ec) {
+        case ProgressCode::UnloadingToFinda:
+            return StepOf(1, 5);
+        case ProgressCode::FeedingToFinda:
+            return StepOf(2, 5);
+        case ProgressCode::FeedingToBondtech:
+            return StepOf(3, 5);
+        case ProgressCode::FeedingToFSensor:
+            return StepOf(4, 5);
+        case ProgressCode::DisengagingIdler:
+            // disengaging idler comes 2x at different spots, not necessary for visualization of progress
+            return 0;
+        default:
+            return 0;
+        }
+        return 0;
+    case UnloadFilament:
+        switch (ec) {
+        case ProgressCode::UnloadingToFinda:
+            return StepOf(1, 4);
+        case ProgressCode::RetractingFromFinda:
+            return StepOf(2, 4);
+        case ProgressCode::DisengagingIdler:
+            return StepOf(3, 4);
+        default:
+            return 0;
+        }
+        return 0;
+    default:
+        return 0;
+    }
+    return 0;
+}
+
+static LoadUnloadMode progress_code_to_mode(CommandInProgress cip, ProgressCode ec) {
+    if (is_error_code(ec)) {
+        return LoadUnloadMode::Load;
+    }
+
+    switch (cip) {
+    case ToolChange:
+        return LoadUnloadMode::Change;
+    case UnloadFilament:
+        return LoadUnloadMode::Unload;
+    default:
+        return LoadUnloadMode::Load;
+    }
+    return LoadUnloadMode::Load;
+}
+
+static fsm::PhaseData progress_code_to_phase_data(CommandInProgress cip, ProgressCode ec) {
+    LoadUnloadMode mode = progress_code_to_mode(cip, ec);
+    uint8_t percentage = progress_code_to_percentage(cip, ec);
+    return ProgressSerializerLoadUnload(mode, percentage).Serialize();
+}
+
+static constexpr PhasesLoadUnload ProgressCodeToPhasesLoadUnload(ProgressCode pc) {
     switch (pc) {
-    case (uint16_t)ProgressCode::EngagingIdler:
+    case ProgressCode::EngagingIdler:
         return PhasesLoadUnload::MMU_EngagingIdler;
-    case (uint16_t)ProgressCode::DisengagingIdler:
+    case ProgressCode::DisengagingIdler:
         return PhasesLoadUnload::MMU_DisengagingIdler;
-    case (uint16_t)ProgressCode::UnloadingToFinda:
+    case ProgressCode::UnloadingToFinda:
         return PhasesLoadUnload::MMU_UnloadingToFinda;
-    case (uint16_t)ProgressCode::UnloadingToPulley:
+    case ProgressCode::UnloadingToPulley:
         return PhasesLoadUnload::MMU_UnloadingToPulley;
-    case (uint16_t)ProgressCode::FeedingToFinda:
+    case ProgressCode::FeedingToFinda:
         return PhasesLoadUnload::MMU_FeedingToFinda;
-    case (uint16_t)ProgressCode::FeedingToBondtech:
+    case ProgressCode::FeedingToBondtech:
         return PhasesLoadUnload::MMU_FeedingToBondtech;
-    case (uint16_t)ProgressCode::FeedingToNozzle:
+    case ProgressCode::FeedingToNozzle:
         return PhasesLoadUnload::MMU_FeedingToNozzle;
-    case (uint16_t)ProgressCode::AvoidingGrind:
+    case ProgressCode::AvoidingGrind:
         return PhasesLoadUnload::MMU_AvoidingGrind;
 
-    case (uint16_t)ProgressCode::OK:
-    case (uint16_t)ProgressCode::FinishingMoves:
+    case ProgressCode::OK:
+    case ProgressCode::FinishingMoves:
         return PhasesLoadUnload::MMU_FinishingMoves;
 
-    case (uint16_t)ProgressCode::ERRDisengagingIdler:
+    case ProgressCode::ERRDisengagingIdler:
         return PhasesLoadUnload::MMU_ERRDisengagingIdler;
-    case (uint16_t)ProgressCode::ERREngagingIdler:
+    case ProgressCode::ERREngagingIdler:
         return PhasesLoadUnload::MMU_ERREngagingIdler;
-        //    case (uint16_t)ProgressCode::ERRWaitingForUser: return PhasesLoadUnload::MMU_ErrWaitForUser; // this never happens, instead the MMU reports the error
-        //    case (uint16_t)ProgressCode::ERRInternal:
-    case (uint16_t)ProgressCode::ERRHelpingFilament:
+        //    case ProgressCode::ERRWaitingForUser: return PhasesLoadUnload::MMU_ErrWaitForUser; // this never happens, instead the MMU reports the error
+        //    case ProgressCode::ERRInternal:
+    case ProgressCode::ERRHelpingFilament:
         return PhasesLoadUnload::MMU_ERRHelpingFilament;
-        //    case (uint16_t)ProgressCode::ERRTMCFailed:
-    case (uint16_t)ProgressCode::UnloadingFilament:
+        //    case ProgressCode::ERRTMCFailed:
+    case ProgressCode::UnloadingFilament:
         return PhasesLoadUnload::MMU_UnloadingFilament;
-    case (uint16_t)ProgressCode::LoadingFilament:
+    case ProgressCode::LoadingFilament:
         return PhasesLoadUnload::MMU_LoadingFilament;
-    case (uint16_t)ProgressCode::SelectingFilamentSlot:
+    case ProgressCode::SelectingFilamentSlot:
         return PhasesLoadUnload::MMU_SelectingFilamentSlot;
-    case (uint16_t)ProgressCode::PreparingBlade:
+    case ProgressCode::PreparingBlade:
         return PhasesLoadUnload::MMU_PreparingBlade;
-    case (uint16_t)ProgressCode::PushingFilament:
+    case ProgressCode::PushingFilament:
         return PhasesLoadUnload::MMU_PushingFilament;
-    case (uint16_t)ProgressCode::PerformingCut:
+    case ProgressCode::PerformingCut:
         return PhasesLoadUnload::MMU_PerformingCut;
-    case (uint16_t)ProgressCode::ReturningSelector:
+    case ProgressCode::ReturningSelector:
         return PhasesLoadUnload::MMU_ReturningSelector;
-    case (uint16_t)ProgressCode::ParkingSelector:
+    case ProgressCode::ParkingSelector:
         return PhasesLoadUnload::MMU_ParkingSelector;
-    case (uint16_t)ProgressCode::EjectingFilament:
+    case ProgressCode::EjectingFilament:
         return PhasesLoadUnload::MMU_EjectingFilament;
-    case (uint16_t)ProgressCode::RetractingFromFinda:
+    case ProgressCode::RetractingFromFinda:
         return PhasesLoadUnload::MMU_RetractingFromFinda;
-    case (uint16_t)ProgressCode::Homing:
+    case ProgressCode::Homing:
         return PhasesLoadUnload::MMU_Homing;
-    case (uint16_t)ProgressCode::MovingSelector:
+    case ProgressCode::MovingSelector:
         return PhasesLoadUnload::MMU_MovingSelector;
-    case (uint16_t)ProgressCode::FeedingToFSensor:
+    case ProgressCode::FeedingToFSensor:
         return PhasesLoadUnload::MMU_FeedingToFSensor;
-    case (uint16_t)ProgressCode::HWTestBegin:
+    case ProgressCode::HWTestBegin:
         return PhasesLoadUnload::MMU_HWTestBegin;
-    case (uint16_t)ProgressCode::HWTestIdler:
+    case ProgressCode::HWTestIdler:
         return PhasesLoadUnload::MMU_HWTestIdler;
-    case (uint16_t)ProgressCode::HWTestSelector:
+    case ProgressCode::HWTestSelector:
         return PhasesLoadUnload::MMU_HWTestSelector;
-    case (uint16_t)ProgressCode::HWTestPulley:
+    case ProgressCode::HWTestPulley:
         return PhasesLoadUnload::MMU_HWTestPulley;
-    case (uint16_t)ProgressCode::HWTestCleanup:
+    case ProgressCode::HWTestCleanup:
         return PhasesLoadUnload::MMU_HWTestCleanup;
-    case (uint16_t)ProgressCode::HWTestExec:
+    case ProgressCode::HWTestExec:
         return PhasesLoadUnload::MMU_HWTestExec;
-    case (uint16_t)ProgressCode::HWTestDisplay:
+    case ProgressCode::HWTestDisplay:
         return PhasesLoadUnload::MMU_HWTestDisplay;
-    case (uint16_t)ProgressCode::ErrHwTestFailed:
+    case ProgressCode::ErrHwTestFailed:
         return PhasesLoadUnload::MMU_ErrHwTestFailed;
     default:
         return PhasesLoadUnload::MMU_ERRWaitingForUser; // How to report unknown progress? Should not really happen, but who knows?
@@ -261,12 +271,15 @@ void Fsm::Loop() {
             log_info(MMU2, "Report error =% " PRIu16, report->error.errorCode);
             FSM_CHANGE_WITH_DATA__LOGGING(Load_unload,
                 PhasesLoadUnload::MMU_ERRWaitingForUser,
-                fsm::PointerSerializer<MMUErrDesc>(ConvertMMUErrorCode(uint16_t(report->error.errorCode))).Serialize());
+                fsm::PointerSerializer<MMUErrDesc>(ConvertMMUErrorCode(report->error.errorCode)).Serialize());
         }
         break;
     case Reporter::Type::progress:
         log_info(MMU2, "Report progress =% " PRIu16, report->progress.progressCode);
-        FSM_CHANGE_WITH_DATA__LOGGING(Load_unload, ProgressCodeToPhasesLoadUnload(uint16_t(report->progress.progressCode)), ProgressCodeToPercentage(report->commandInProgress, uint16_t(report->progress.progressCode)));
+        FSM_CHANGE_WITH_DATA__LOGGING(
+            Load_unload,
+            ProgressCodeToPhasesLoadUnload(report->progress.progressCode),
+            progress_code_to_phase_data(report->commandInProgress, report->progress.progressCode));
         break;
     }
 }

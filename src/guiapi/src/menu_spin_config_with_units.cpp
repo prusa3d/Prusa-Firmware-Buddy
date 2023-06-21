@@ -14,7 +14,7 @@ static constexpr const char *None = "";
 static constexpr const char *Hour = "h";
 static constexpr const char *mm = "mm";
 static constexpr const char *mA = "mA";
-static constexpr const char *rpm = "rpm"; //todo should I translate it?
+static constexpr const char *rpm = "rpm"; // todo should I translate it?
 static constexpr const char *Second = "s";
 static constexpr const char *Hz = "Hz";
 
@@ -26,7 +26,7 @@ const SpinConfigInt SpinCnf::feedrate = SpinConfigInt(MenuVars::feedrate_range, 
 const SpinConfigInt SpinCnf::flowfact = SpinConfigInt(MenuVars::flowfact_range, Percent);
 const SpinConfigInt SpinCnf::timezone_range = { { -12, 12, 1 }, Hour };
 #if BOARD_IS_BUDDY
-const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 }, None, spin_off_opt_t::yes }; //crank it up to 11
+const SpinConfigInt SpinCnf::volume_range = { { 0, 11, 1 }, None, spin_off_opt_t::yes }; // crank it up to 11
 #else
 const SpinConfigInt SpinCnf::volume_range = { { 0, 3, 1 }, None, spin_off_opt_t::yes };
 #endif
@@ -47,13 +47,13 @@ const SpinConfigInt SpinCnf::crash_sensitivity = SpinConfigInt({ -64, 63, 1 }, N
 #endif
 const SpinConfigInt SpinCnf::crash_max_period = SpinConfigInt({ 0, 0xFFFFF, 1 }, None, spin_off_opt_t::no);
 
-//private repo
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+// private repo
+#if PRINTER_IS_PRUSA_XL
 const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50, 1500, 10 }, None);
 #else
 const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50000, 2500000, 1000 }, None);
 #endif
 const SpinConfigInt SpinCnf::loadcell_range = { { 5, 30, 1 }, None };
 const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 29, 200, 1 }, Second, spin_off_opt_t::yes); // lowest value is off
-const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, int(0xEFFF'FFFF), 1 }, None, spin_off_opt_t::no);
+const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, std::numeric_limits<int32_t>::max(), 1 }, None, spin_off_opt_t::no);
 const SpinConfigInt SpinCnf::input_shaper_freq = SpinConfigInt({ 10, 100, 50 }, Hz, spin_off_opt_t::no);

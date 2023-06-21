@@ -22,7 +22,7 @@ using namespace selftest;
  * Both PWM must be stable for n cycles to measure bed power
  */
 void PowerCheckBoth::Callback() {
-#if (PRINTER_TYPE != PRINTER_PRUSA_XL)
+#if (!PRINTER_IS_PRUSA_XL)
     const float total_current_A = advancedpower.GetInputCurrent();
     const float nozzle_current_A = advancedpower.GetHeaterCurrent();
     const float nozzle_voltage_V = advancedpower.GetHeaterVoltage();
@@ -52,7 +52,7 @@ void PowerCheckBoth::Callback() {
         if (result != PowerCheck::load_t::in_range) {
             noz.Fail();
             log_error(Selftest, "Nozzle %s.", PowerCheck::LoadTexts(result));
-            //cannot calculate bed, Fail it too
+            // cannot calculate bed, Fail it too
             if (bed.IsActive()) {
                 bed.Fail();
             }

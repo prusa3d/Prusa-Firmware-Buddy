@@ -12,7 +12,7 @@
 
 #if defined(__cplusplus)
 extern "C" {
-#endif //defined(__cplusplus)
+#endif // defined(__cplusplus)
 
 void filesystem_init();
 void init_only_littlefs();
@@ -33,5 +33,5 @@ static inline const char *process_path(const char *path, const char *dev_name) {
 }
 
 #if defined(__cplusplus)
-} //extern "C"
-#endif //defined(__cplusplus)
+} // extern "C"
+#endif // defined(__cplusplus)

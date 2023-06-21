@@ -94,12 +94,28 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "FSensor_fail";
     case PhasesSelftest::FSensor_done:
         return "FSensor_done";
+    case PhasesSelftest::GearsCalib_filament_check:
+        return "GearsCalib_filament_check";
+    case PhasesSelftest::GearsCalib_filament_loaded_ask_unload:
+        return "GearsCalib_filament_loaded_ask_unload";
+    case PhasesSelftest::GearsCalib_filament_unknown_ask_unload:
+        return "GearsCalib_filament_loaded_ask_unload";
+    case PhasesSelftest::GearsCalib_release_screws:
+        return "GearsCalib_release_screws";
+    case PhasesSelftest::GearsCalib_alignment:
+        return "GearsCalib_alignment";
+    case PhasesSelftest::GearsCalib_tighten:
+        return "GearsCalib_tighten";
+    case PhasesSelftest::GearsCalib_done:
+        return "GearsCalib_done";
     case PhasesSelftest::CalibZ:
         return "CalibZ";
     case PhasesSelftest::Axis:
         return "Axis";
     case PhasesSelftest::Heaters:
         return "Heaters";
+    case PhasesSelftest::SpecifyHotEnd:
+        return "SpecifyHotEnd";
     case PhasesSelftest::FirstLayer_mbl:
         return "FirstLayer_mbl";
     case PhasesSelftest::FirstLayer_print:
@@ -126,6 +142,8 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "WizardEpilogue_ok";
     case PhasesSelftest::WizardEpilogue_nok:
         return "WizardEpilogue_nok";
+    case PhasesSelftest::Dock_move_away:
+        return "Dock_move_away";
     case PhasesSelftest::Dock_wait_user_park1:
         return "DockCalibration_wait_park1";
     case PhasesSelftest::Dock_wait_user_park2:
@@ -148,10 +166,14 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "DockCalibration_wait_user_tighten_bottom_screw";
     case PhasesSelftest::Dock_selftest_park_test:
         return "DockCalibration_selftest_park_test";
+    case PhasesSelftest::Dock_selftest_failed:
+        return "Dock_selftest_failed";
     case PhasesSelftest::Dock_calibration_success:
         return "Dock_calibration_success";
     case PhasesSelftest::Dock_wait_user_tighten_top_screw:
         return "DockCalibration_wait_user_tighten_pilar";
+    case PhasesSelftest::ToolOffsets_wait_stable_temp:
+        return "ToolOffsets_wait_stable_temp";
     case PhasesSelftest::ToolOffsets_wait_calibrate:
         return "ToolOffsets_wait_calibrate";
     case PhasesSelftest::ToolOffsets_pin_install_prepare:

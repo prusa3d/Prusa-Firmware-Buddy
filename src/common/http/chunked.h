@@ -17,14 +17,14 @@ template <typename Renderer>
 size_t render_chunk(ConnectionHandling handling, uint8_t *buffer, size_t buffer_len, Renderer &&renderer) {
     if (handling == ConnectionHandling::ChunkedKeep) {
         /*
-             * We cheat a bit here. We leave a space for the size. We assume the buffer
-             * is not longer than 2^16 (if it is, we truncate it). Therefore, we can be
-             * sure the size won't have more than 5 hex digits. We pad it with zeroes
-             * (which should be OK) to have the same size.
-             *
-             * Therefore we can just put the big chunk at exact place and not move it
-             * later on.
-             */
+         * We cheat a bit here. We leave a space for the size. We assume the buffer
+         * is not longer than 2^16 (if it is, we truncate it). Therefore, we can be
+         * sure the size won't have more than 5 hex digits. We pad it with zeroes
+         * (which should be OK) to have the same size.
+         *
+         * Therefore we can just put the big chunk at exact place and not move it
+         * later on.
+         */
         const size_t skip = 6; // 4 digits + \r\n
         const size_t tail = 2; // \r\n at the end
         assert(buffer_len > skip + tail);

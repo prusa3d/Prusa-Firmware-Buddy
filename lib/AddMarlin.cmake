@@ -51,6 +51,8 @@ if(BOARD MATCHES ".*BUDDY")
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp>
+            $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/spool_join.cpp>
+            $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/tool_mapper.cpp>
             $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/toolchanger.cpp>
             $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp>
             Marlin/Marlin/src/core/multi_language.cpp
@@ -67,9 +69,11 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/feature/cancel_object.cpp
             Marlin/Marlin/src/feature/host_actions.cpp
             Marlin/Marlin/src/feature/input_shaper/input_shaper.cpp
+            Marlin/Marlin/src/feature/input_shaper/input_shaper_config.cpp
             Marlin/Marlin/src/feature/joystick.cpp
             Marlin/Marlin/src/feature/power.cpp
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance.cpp
+            Marlin/Marlin/src/feature/pressure_advance/pressure_advance_config.cpp
             Marlin/Marlin/src/feature/print_area.cpp
             Marlin/Marlin/src/feature/prusa/homing.cpp
             Marlin/Marlin/src/feature/prusa/measure_axis.cpp
@@ -119,6 +123,7 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/feature/advance/M900.cpp
             Marlin/Marlin/src/gcode/feature/cancel/M486.cpp
             Marlin/Marlin/src/gcode/feature/input_shaper/M593.cpp
+            Marlin/Marlin/src/gcode/feature/input_shaper/M74.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M556.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M557.cpp
             Marlin/Marlin/src/gcode/feature/pressure_advance/M572.cpp
@@ -222,4 +227,6 @@ target_include_directories(
   Marlin PUBLIC Marlin/Marlin/src Marlin/Marlin/src/gcode/lcd Marlin/Marlin Marlin
   )
 
-target_link_libraries(Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes)
+target_link_libraries(
+  Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes cthash
+  )

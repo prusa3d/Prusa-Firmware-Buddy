@@ -62,7 +62,7 @@ bool GCodeThumbDecoder::AppendBase64Chars(
             case -1:
                 return false; // chyba v dekodovani
             default:
-                break; // zadny bajt na vystup
+                break;        // zadny bajt na vystup
             }
         }
     } else {

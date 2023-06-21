@@ -59,22 +59,22 @@ public:
 
 private:
     const buddy::hw::OutputPin &m_pin;
-    const uint8_t min_value; // minimum pwm value
-    const uint8_t max_value; // maximum pwm value
+    const uint8_t min_value;  // minimum pwm value
+    const uint8_t max_value;  // maximum pwm value
     union {
         struct {              // flags:
             bool pha_ena : 1; //  phase shift enabled
         };
-        uint8_t flags; // flags as uint8
+        uint8_t flags;        // flags as uint8
     };
-    uint8_t pwm;      // requested pwm value
-    uint8_t cnt;      // pwm counter (value 0..max-1)
-    uint8_t val;      // pwm value (cached during pwm cycle)
-    int8_t pha;       // pwm phase shift
-    uint8_t pha_mode; // pwm phase shift mode
-    uint8_t pha_thr;  // pwm phase shift threshold (shifting will be enabled for pwm <= pha_thr)
-    int8_t pha_max;   // pwm phase shift maximum (calculated when pwm changed)
-    int8_t pha_stp;   // pwm phase shift step (calculated when pwm changed)
+    uint8_t pwm;              // requested pwm value
+    uint8_t cnt;              // pwm counter (value 0..max-1)
+    uint8_t val;              // pwm value (cached during pwm cycle)
+    int8_t pha;               // pwm phase shift
+    uint8_t pha_mode;         // pwm phase shift mode
+    uint8_t pha_thr;          // pwm phase shift threshold (shifting will be enabled for pwm <= pha_thr)
+    int8_t pha_max;           // pwm phase shift maximum (calculated when pwm changed)
+    int8_t pha_stp;           // pwm phase shift step (calculated when pwm changed)
 };
 
 // class for rpm measurement
@@ -128,15 +128,15 @@ public:
         // internally its different number, but every public function takes 255 as max RPM
         return 255;
     }
-    inline uint16_t getMinRPM() const // get minimum RPM [n/min], this is lowest RPM that can be reached with reliable response
+    inline uint16_t getMinRPM() const        // get minimum RPM [n/min], this is lowest RPM that can be reached with reliable response
     { return m_MinRPM; }
-    inline uint16_t getMaxRPM() const // get maximup RPM [n/min], this is highest RPM at 100% power
+    inline uint16_t getMaxRPM() const        // get maximup RPM [n/min], this is highest RPM at 100% power
     { return m_MaxRPM; }
-    inline FanState getState() const // get fan control state
+    inline FanState getState() const         // get fan control state
     { return m_State; }
-    inline uint8_t getPWM() const // get PWM value
+    inline uint8_t getPWM() const            // get PWM value
     { return unscalePWM(m_PWMValue); }
-    inline uint16_t getActualRPM() const // get actual (measured) RPM
+    inline uint16_t getActualRPM() const     // get actual (measured) RPM
     { return m_tach.getRPM(); }
     inline uint8_t getPhaseShiftMode() const // get PhaseShiftMode
     { return m_pwm.get_PhaseShiftMode(); }
@@ -165,18 +165,18 @@ public:
     void ExitSelftestMode();
     bool SelftestSetPWM(uint8_t pwm); // sets pwm in selftest, doesn't work outside selftest
 private:
-    const uint16_t m_MinRPM; // minimum rpm value (set in constructor)
-    const uint16_t m_MaxRPM; // maximum rpm value (set in constructor)
-    uint16_t m_Ticks;        // tick counter - used for starting and measurement
+    const uint16_t m_MinRPM;          // minimum rpm value (set in constructor)
+    const uint16_t m_MaxRPM;          // maximum rpm value (set in constructor)
+    uint16_t m_Ticks;                 // tick counter - used for starting and measurement
     uint16_t m_Result;
-    FanState m_State;        // fan control state
-    uint8_t m_PWMValue;      // current pwm value
-    uint8_t m_Edges;         // edge counter - used for starting and measurement
-    is_autofan_t is_autofan; // autofan restores temp differently (used in selftest)
+    FanState m_State;                 // fan control state
+    uint8_t m_PWMValue;               // current pwm value
+    uint8_t m_Edges;                  // edge counter - used for starting and measurement
+    is_autofan_t is_autofan;          // autofan restores temp differently (used in selftest)
     CFanCtlPWM m_pwm;
     CFanCtlTach m_tach;
 
     bool selftest_mode;
     uint8_t selftest_initial_pwm;
-    skip_tacho_t m_skip_tacho; //skip tacho measure
+    skip_tacho_t m_skip_tacho; // skip tacho measure
 };

@@ -54,23 +54,22 @@ FooterItemHeater::FooterItemHeater(window_t *parent, const png::Resource *icon, 
     : AddSuperWindow<FooterIconText_IntVal>(parent, icon, view_maker, value_reader) {
 }
 
-//Must not contain buffer!!! every child must provide own buffer
+// Must not contain buffer!!! every child must provide own buffer
 string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array<char, 10> &buff) {
     static constexpr const char *left_aligned_str = "%u/%u\177C";
     static constexpr const char *const_size_str = "%3u/%3u\177C";
     static constexpr const char *left_aligned_str_no_0 = "%u\177C";
     static constexpr const char *const_size_str_no_0 = "%3u\177C";
-    static constexpr const char *disabled_str = "---";
 
     const StateAndTemps temps(value);
     const uint current = std::clamp(int(temps.current), 0, 999);
     const uint target_or_display = std::clamp(int(temps.target_or_display), 0, 999);
-    const bool disabled = temps.disabled;
+    const bool no_tool = temps.no_tool;
 
     int printed_chars;
 
-    if (disabled) {
-        printed_chars = snprintf(buff.data(), buff.size(), disabled_str);
+    if (no_tool) {
+        printed_chars = snprintf(buff.data(), buff.size(), no_tool_str);
     } else if ((target_or_display == 0) && (!IsZeroTargetDrawn())) {
         const char *const str = (GetDrawType() == footer::ItemDrawType::Static) ? const_size_str_no_0 : left_aligned_str_no_0;
         printed_chars = snprintf(buff.data(), buff.size(), str, current);
@@ -82,7 +81,7 @@ string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array
     if (printed_chars <= 0) {
         buff[0] = '\0';
     } else if (GetDrawType() == footer::ItemDrawType::StaticLeftAligned) {
-        //left_aligned print need to end with spaces ensure fixed size
+        // left_aligned print need to end with spaces ensure fixed size
         *(buff.end() - 1) = '\0';
         for (; size_t(printed_chars) < buff.size() - 1; ++printed_chars) {
             buff[printed_chars] = ' ';

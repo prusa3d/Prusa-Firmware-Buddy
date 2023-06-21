@@ -15,7 +15,7 @@ extern "C" {
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
 extern UART_HandleTypeDef huart2;
 extern DMA_HandleTypeDef hdma_usart2_rx;
-#endif //buddy or xbuddy
+#endif // buddy or xbuddy
 extern UART_HandleTypeDef huart6;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 }
@@ -25,11 +25,11 @@ LOG_COMPONENT_DEF(BufferedSerial, LOG_SEVERITY_DEBUG);
 #if BOARD_IS_BUDDY
 static uint8_t uart2rx_data[32];
 BufferedSerial BufferedSerial::uart2(&huart2, &hdma_usart2_rx, nullptr, uart2rx_data, sizeof(uart2rx_data), BufferedSerial::CommunicationMode::IT);
-#endif //buddy or xbuddy
+#endif // buddy or xbuddy
 #if BOARD_IS_XBUDDY
 static uint8_t uart6rx_data[32];
 BufferedSerial BufferedSerial::uart6(&huart6, &hdma_usart6_rx, nullptr, uart6rx_data, sizeof(uart6rx_data), BufferedSerial::CommunicationMode::DMA);
-#endif //xbuddy
+#endif // xbuddy
 
 BufferedSerial::BufferedSerial(
     UART_HandleTypeDef *uart, DMA_HandleTypeDef *rxDma, BufferedSerial::HalfDuplexSwitchCallback_t halfDuplexSwitchCallback,
@@ -216,7 +216,7 @@ void BufferedSerial::StartReceiving() {
 extern "C" void uart2_idle_cb() {
     buddy::hw::BufferedSerial::uart2.IdleISR();
 }
-#endif //boddy or xbuddy
+#endif // boddy or xbuddy
 #if BOARD_IS_XBUDDY
 extern "C" void uart6_idle_cb() {
     buddy::hw::BufferedSerial::uart6.IdleISR();
