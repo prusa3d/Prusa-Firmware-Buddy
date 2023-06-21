@@ -47,9 +47,9 @@ constexpr IMode getInterruptMode(...) {
 }
 
 constexpr IMode getInterruptMode(uint32_t marlinPin) {
-#define ALL_INTERRUPT_HANDLERS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER) \
-    case toMarlinPin(PORTPIN):                                                     \
-        if (std::is_same_v<TYPE, InterruptPin>)                                    \
+#define ALL_INTERRUPT_HANDLERS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER)       \
+    case toMarlinPin(PORTPIN):                                                           \
+        if (std::is_same_v<TYPE, InterruptPin> || std::is_base_of_v<InterruptPin, TYPE>) \
             return getInterruptMode(PARAMETERS);
 #define ALL_VIRTUAL_INTERRUPT_HANDLERS(TYPE, READ_FN, ISR_FN, NAME, PORTPIN, PARAMETERS) \
     case toMarlinPin(PORTPIN):                                                           \

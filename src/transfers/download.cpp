@@ -12,7 +12,6 @@ using http::Error;
 using http::GetRequest;
 using http::HeaderOut;
 using http::HttpClient;
-using http::Response;
 using http::ResponseBody;
 using http::SocketConnectionFactory;
 using http::Status;
@@ -54,7 +53,7 @@ bool write_chunk(const uint8_t *data, size_t size, FILE *f) {
     return written == 1;
 }
 
-optional<tuple<unique_ptr<SocketConnectionFactory>, Response>> send_request(const char *host, uint16_t port, const char *url_path, const HeaderOut *extra_hdrs) {
+optional<tuple<unique_ptr<SocketConnectionFactory>, http::Response>> send_request(const char *host, uint16_t port, const char *url_path, const HeaderOut *extra_hdrs) {
     // 3 seconds timeout.
     //
     // Will be used only for the blocking operations, timeouts on the body are
@@ -66,7 +65,7 @@ optional<tuple<unique_ptr<SocketConnectionFactory>, Response>> send_request(cons
 
     auto resp_any = client.send(request);
 
-    if (auto *resp = get_if<Response>(&resp_any); resp != nullptr) {
+    if (auto *resp = get_if<http::Response>(&resp_any); resp != nullptr) {
         return make_tuple(move(factory), move(*resp));
     } else {
         return nullopt;

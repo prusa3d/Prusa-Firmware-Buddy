@@ -21,7 +21,6 @@ target_sources(
           selftest_result_eth.cpp
           selftest_result_fans.cpp
           selftest_result_heaters.cpp
-          selftest_result_loadcell.cpp
           selftest_view.cpp
           selftest_view_item.cpp
           selftest_view_item_separator.cpp

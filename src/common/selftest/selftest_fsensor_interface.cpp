@@ -8,16 +8,16 @@
 #include "selftest_sub_state.hpp"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
-#include "eeprom.h"
 #include "selftest_tool_helper.hpp"
 #if BOARD_IS_XLBUDDY
     #include "src/module/prusa/toolchanger.h"
 #endif
+#include <configuration_store.hpp>
 
 namespace selftest {
 static SelftestFSensor_t staticResult; // automatically initialized by PartHandler
 
-bool phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs) {
+TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs) {
     for (uint i = 0; i < HOTENDS; ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
             continue;
@@ -28,24 +28,24 @@ bool phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &
             m_pFSensor[i] = selftest::Factory::CreateDynamical<CSelftestPart_FSensor>(
                 configs[i],
                 staticResult,
-                &CSelftestPart_FSensor::stateInit,
-                &CSelftestPart_FSensor::stateWaitToolPick,
-                &CSelftestPart_FSensor::stateAskUnloadInit,
-                &CSelftestPart_FSensor::stateAskUnloadWait,
-                &CSelftestPart_FSensor::stateFilamentUnloadEnqueueGcode,
-                &CSelftestPart_FSensor::stateFilamentUnloadWaitFinished,
-                &CSelftestPart_FSensor::stateAskUnloadConfirmInit,
-                &CSelftestPart_FSensor::stateAskUnloadConfirmWait,
-                &CSelftestPart_FSensor::stateCalibrate,
-                &CSelftestPart_FSensor::stateCalibrateWaitFinished,
-                &CSelftestPart_FSensor::stateInsertionWaitInit,
-                &CSelftestPart_FSensor::stateInsertionWait,
-                &CSelftestPart_FSensor::stateInsertionOkInit,
-                &CSelftestPart_FSensor::stateInsertionOk,
-                &CSelftestPart_FSensor::stateInsertionCalibrateStart,
-                &CSelftestPart_FSensor::stateInsertionCalibrateWait,
-                &CSelftestPart_FSensor::stateEnforceRemoveInit,
-                &CSelftestPart_FSensor::stateEnforceRemove
+                &CSelftestPart_FSensor::state_init,
+                &CSelftestPart_FSensor::state_wait_tool_pick,
+                &CSelftestPart_FSensor::state_ask_unload_init,
+                &CSelftestPart_FSensor::state_ask_unload_wait,
+                &CSelftestPart_FSensor::state_filament_unload_enqueue_gcode,
+                &CSelftestPart_FSensor::state_filament_unload_wait_finished,
+                &CSelftestPart_FSensor::state_ask_unload_confirm_init,
+                &CSelftestPart_FSensor::state_ask_unload_confirm_wait,
+                &CSelftestPart_FSensor::state_calibrate,
+                &CSelftestPart_FSensor::state_calibrate_wait_finished,
+                &CSelftestPart_FSensor::state_insertion_wait_init,
+                &CSelftestPart_FSensor::state_insertion_wait,
+                &CSelftestPart_FSensor::state_insertion_ok_init,
+                &CSelftestPart_FSensor::state_insertion_ok,
+                &CSelftestPart_FSensor::state_insertion_calibrate_start,
+                &CSelftestPart_FSensor::state_insertion_calibrate_wait,
+                &CSelftestPart_FSensor::state_enforce_remove_init,
+                &CSelftestPart_FSensor::state_enforce_remove
             );
             // clang-format on
         }
@@ -65,8 +65,8 @@ bool phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &
         return true;
     }
 
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
+    bool skipped = false; ///< Return value whether to run next test
+    SelftestResult eeres = config_store().selftest_result.get();
     for (uint i = 0; i < HOTENDS; ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
             continue;
@@ -79,11 +79,16 @@ bool phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &
             eeres.tools[i].fsensor = m_pFSensor[i]->GetResult();
         }
 
+        // If any test failed, do not run next test
+        if (m_pFSensor[i]->GetResult() != TestResult_Passed) {
+            skipped = true;
+        }
+
         delete m_pFSensor[i];
         m_pFSensor[i] = nullptr;
     }
-    eeprom_set_selftest_results(&eeres);
+    config_store().selftest_result.set(eeres);
 
-    return false;
+    return TestReturn(false, skipped);
 }
 } // namespace selftest

@@ -12,7 +12,7 @@
     #include <stm32g0xx.h>
 #elif defined(UNITTEST)
 
-#else /*MCU*/
+#else  /*MCU*/
     #error "Unknown MCU"
 #endif /*MCU*/
 
@@ -196,8 +196,8 @@ bool decode_datamatrix(const uint8_t *src, size_t size, datamatrix_t *dm) {
     dm->production_year = (*src - '0') + 2020;
     ++src;
 
-    //If product ID is 4 digit, or smaller than 10381 read date in format YMMDD
-    //else use format YCW (calendar week)
+    // If product ID is 4 digit, or smaller than 10381 read date in format YMMDD
+    // else use format YCW (calendar week)
     if (dm->product_id < 10381) {
         // month
         dm->production_month = scan_digit_group(src, 2);
@@ -211,18 +211,18 @@ bool decode_datamatrix(const uint8_t *src, size_t size, datamatrix_t *dm) {
         dm->date_serial_number = scan_digit_group(src, 4);
         src += 4;
     } else {
-        //Conversion from the ISO calendar week to approximate production day and month i.e. thursday of given week
+        // Conversion from the ISO calendar week to approximate production day and month i.e. thursday of given week
         uint16_t production_week = (uint16_t)scan_digit_group(src, 2);
         src += 2;
 
-        //Year offset - number of days gained from/lost to the last calendar week of the last year
-        //Formula = weekday of 4th January - 3
+        // Year offset - number of days gained from/lost to the last calendar week of the last year
+        // Formula = weekday of 4th January - 3
         //(monday == 0, ... , sunday == 6)
         uint16_t year_offset = -3;
-        if (dm->production_year == 2020) { //special case for 2020
+        if (dm->production_year == 2020) { // special case for 2020
             year_offset += 5;
         } else {
-            //Gauss algorithm simplified for 2021-2030
+            // Gauss algorithm simplified for 2021-2030
             year_offset += (((5 * ((dm->production_year - 1) % 10))) / 4) % 7;
         }
 
@@ -241,7 +241,7 @@ bool decode_datamatrix(const uint8_t *src, size_t size, datamatrix_t *dm) {
         mktime(&date);
 
         // month
-        dm->production_month = (uint8_t)(date.tm_mon) + 1; //tm_mon [0,11]
+        dm->production_month = (uint8_t)(date.tm_mon) + 1; // tm_mon [0,11]
 
         // day
         dm->production_day = (uint8_t)(date.tm_mday);
@@ -277,7 +277,7 @@ const MAC_addr *otp_get_mac_address() {
 const MAC_addr *otp_parse_mac_address(const uint8_t *memory, size_t len) {
     assert(memory != NULL); // Trying to parse OTP from NULL
     switch (otp_get_structure_version(memory)) {
-    case 0: { // old boards
+    case 0: {               // old boards
         if (len < sizeof(OTP_v0)) {
             return NULL;
         }
@@ -347,7 +347,7 @@ uint8_t otp_get_serial_nr(serial_nr_t *sn) {
 uint8_t otp_parse_serial_nr(serial_nr_t *sn, const uint8_t *memory, size_t len) {
     assert(memory != NULL); // Trying to parse OTP from NULL
     switch (otp_get_structure_version(memory)) {
-    case 0: { // old boards
+    case 0: {               // old boards
         if (len < sizeof(OTP_v0)) {
             return 0;
         }
@@ -417,7 +417,7 @@ bool otp_get_bom_id(uint8_t *bom_id) {
 bool otp_parse_bom_id(uint8_t *bom_id, const uint8_t *memory, size_t len) {
     assert(memory != NULL); // Trying to parse OTP from NULL
     switch (otp_get_structure_version(memory)) {
-    case 3: { // OTP v3
+    case 3: {               // OTP v3
         if (len < sizeof(OTP_v3)) {
             break;
         }

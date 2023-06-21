@@ -1,9 +1,9 @@
 /*  window_roll_text.c
-*   \brief used in texts that are too long for standart display width
-*
-*  Created on: May 6, 2020
-*      Author: Migi - michal.rudolf<at>prusa3d.cz
-*/
+ *   \brief used in texts that are too long for standart display width
+ *
+ *  Created on: May 6, 2020
+ *      Author: Migi - michal.rudolf<at>prusa3d.cz
+ */
 
 #include "window_roll_text.hpp"
 #include "gui_timer.h"
@@ -12,12 +12,12 @@
 
 void window_roll_text_t::unconditionalDraw() {
     if (flags.color_scheme_background || flags.color_scheme_foreground) {
-        //TODO keep only following 3 lines in function body, remove rest
+        // TODO keep only following 3 lines in function body, remove rest
         super::unconditionalDraw();
-        roll.RenderTextAlign(GetRect(), text, font,
+        roll.RenderTextAlign(GetRect(), text, get_font(),
             GetBackColor(), GetTextColor(), padding, GetAlignment());
     } else {
-        roll.RenderTextAlign(GetRect(), text, font,
+        roll.RenderTextAlign(GetRect(), text, get_font(),
             (IsFocused()) ? GetTextColor() : GetBackColor(),
             (IsFocused()) ? GetBackColor() : GetTextColor(),
             padding, GetAlignment());

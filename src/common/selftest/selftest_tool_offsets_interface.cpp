@@ -1,7 +1,7 @@
 #include "selftest_part.hpp"
 #include "selftest_tool_offsets.hpp"
-#include "eeprom.h"
 #include <module/prusa/toolchanger.h>
+#include <configuration_store.hpp>
 
 namespace selftest {
 
@@ -9,7 +9,7 @@ namespace {
     SelftestToolOffsets_t staticResultToolOffsets;
 }
 
-bool phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config) {
+TestReturn phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandler *&pToolOffsets, const ToolOffsetsConfig_t &config) {
     if (!pToolOffsets) {
         pToolOffsets = selftest::Factory::CreateDynamical<CSelftestPart_ToolOffsets>(
             config,
@@ -24,6 +24,7 @@ bool phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandler *&p
             &CSelftestPart_ToolOffsets::state_wait_moves_done,
             &CSelftestPart_ToolOffsets::state_ask_user_install_pin,
             &CSelftestPart_ToolOffsets::state_wait_user,
+            &CSelftestPart_ToolOffsets::state_wait_stable_temp,
             &CSelftestPart_ToolOffsets::state_calibrate,
             &CSelftestPart_ToolOffsets::state_wait_moves_done,
             &CSelftestPart_ToolOffsets::state_final_park,
@@ -39,8 +40,7 @@ bool phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandler *&p
         return true;
     }
 
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
+    SelftestResult eeres = config_store().selftest_result.get();
     for (int i = 0; i < EEPROM_MAX_TOOL_COUNT; ++i) {
         if (!prusa_toolchanger.is_tool_enabled(i)) {
             continue; // Tool is not enabled
@@ -54,11 +54,13 @@ bool phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandler *&p
         // Store tool calibration state
         eeres.tools[i].tooloffset = pToolOffsets->GetResult();
     }
-    eeprom_set_selftest_results(&eeres);
+    config_store().selftest_result.set(eeres);
+
+    const bool skipped = pToolOffsets->GetResult() != TestResult_Passed; ///< Return value whether to run next test
 
     delete pToolOffsets;
     pToolOffsets = nullptr;
-    return false;
+    return TestReturn(false, skipped);
 }
 
 } // namespace selftest

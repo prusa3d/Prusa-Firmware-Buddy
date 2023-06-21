@@ -16,15 +16,15 @@
 #include <ctime>
 
 /******************************************************************************************************/
-//variables
+// variables
 
 static int last_CPU_load = -1;
 
 /******************************************************************************************************/
-//methods
+// methods
 
 /******************************************************************************************************/
-//column specifications
+// column specifications
 enum { col_0 = 2,
     col_1 = 96 };
 enum { col_0_w = col_1 - col_0,
@@ -45,12 +45,12 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     , textHeatBreakFan_RPM_val(this, Rect16(col_1, 100, col_1_w, row_h))
     , textExit(this, Rect16(col_0, 290, 60, 22), is_multiline::no, is_closed_on_click_t::yes) {
 
-    textMenuName.font = resource_font(IDR_FNT_BIG);
+    textMenuName.set_font(resource_font(IDR_FNT_BIG));
     static const char dt[] = "System info";
     textMenuName.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)dt));
 
-    //write pattern
-    textCPU_load.font = resource_font(IDR_FNT_NORMAL);
+    // write pattern
+    textCPU_load.set_font(resource_font(IDR_FNT_NORMAL));
     static const char cl[] = N_("CPU load");
     textCPU_load.SetText(_(cl));
 
@@ -66,15 +66,15 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     localtime_r(&sec, &now);
     static char buff[40];
     FormatMsgPrintWillEnd::Date(buff, 40, &now, true, FormatMsgPrintWillEnd::ISO);
-    textDateTime.font = resource_font(IDR_FNT_NORMAL);
+    textDateTime.set_font(resource_font(IDR_FNT_NORMAL));
     textDateTime.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)buff));
 #endif
 
-    textPrintFan_RPM.font = resource_font(IDR_FNT_NORMAL);
+    textPrintFan_RPM.set_font(resource_font(IDR_FNT_NORMAL));
     static const char cl0[] = N_("PrintFan RPM");
     textPrintFan_RPM.SetText(_(cl0));
 
-    textHeatBreakFan_RPM.font = resource_font(IDR_FNT_NORMAL);
+    textHeatBreakFan_RPM.set_font(resource_font(IDR_FNT_NORMAL));
     static const char cl1[] = N_("HB Fan RPM");
     textHeatBreakFan_RPM.SetText(_(cl1));
 
@@ -84,7 +84,7 @@ screen_sysinfo_data_t::screen_sysinfo_data_t()
     textHeatBreakFan_RPM_val.SetFormat((const char *)"%0.0f");
     textHeatBreakFan_RPM_val.SetValue(marlin_vars()->active_hotend().heatbreak_fan_rpm);
 
-    textExit.font = resource_font(IDR_FNT_BIG);
+    textExit.set_font(resource_font(IDR_FNT_BIG));
 
     static const char ex[] = N_("EXIT");
     textExit.SetText(_(ex));

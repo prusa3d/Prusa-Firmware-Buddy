@@ -137,7 +137,7 @@ ScreenMenuEthernetSettings::ScreenMenuEthernetSettings()
 ScreenMenuWifiSettings::ScreenMenuWifiSettings()
     : ScreenMenuConnectionBase(NETDEV_ESP_ID, wifi_label) {
 
-#if BOARD_VER_EQUAL_TO(0, 5, 0)
+#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 

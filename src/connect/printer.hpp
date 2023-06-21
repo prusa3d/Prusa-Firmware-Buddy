@@ -1,11 +1,14 @@
 #pragma once
 
 #include <otp.h>
+#include <common/shared_buffer.hpp>
 
 #include <cstdint>
 #include <cstddef>
 #include <tuple>
 #include <optional>
+
+#include <state/printer_state.hpp>
 
 namespace connect_client {
 
@@ -25,53 +28,44 @@ public:
         char fingerprint[FINGERPRINT_BUFF_LEN];
     };
 
-    enum class DeviceState {
-        Unknown,
-        Idle,
-        Printing,
-        Paused,
-        Finished,
-        Stopped,
-        Ready,
-        Busy,
-        Attention,
-        Error,
-    };
-
     static constexpr size_t X_AXIS_POS = 0;
     static constexpr size_t Y_AXIS_POS = 1;
     static constexpr size_t Z_AXIS_POS = 2;
 
-    struct Params {
-        float temp_nozzle;
-        float temp_bed;
-        float target_nozzle;
-        float target_bed;
-        float pos[4];
-        float filament_used;
+    class Params {
+    private:
+        // Living in the Printer we come from
+        const std::optional<BorrowPaths> &paths;
+
+    public:
+        Params(const std::optional<BorrowPaths> &paths);
+        float temp_nozzle = 0;
+        float temp_bed = 0;
+        float target_nozzle = 0;
+        float target_bed = 0;
+        float pos[4] = {};
+        float filament_used = 0;
         // FIXME: We should handle XL with up to 5 nozzles, but the network protocol
         // does not support it as of now, so for the time being we just send the first one.
-        float nozzle_diameter;
+        float nozzle_diameter = 0;
         // Note: These strings live in a shared buffer in the real implementation. As a result:
-        // * These may be set to NULL in case the buffer is in use by someone else.
-        // * They get invalidated by someone else acquiring the buffer; that
-        //   may happen in parsing a command, for example. If unsure, call
-        //   renew() - that would set it to NULL in such case.
-        const char *job_path;
-        const char *job_lfn;
+        // * These are NULL unless paths was passed to the constructor.
+        // * They get invalidated by calling drop_paths or new renew() on the printer.
+        const char *job_path() const;
+        const char *job_lfn() const;
         // Type of filament loaded. Constant (in-code) strings.
-        const char *material;
-        uint16_t flow_factor;
-        uint16_t job_id;
-        uint16_t print_fan_rpm;
-        uint16_t heatbreak_fan_rpm;
-        uint16_t print_speed;
-        uint32_t print_duration;
-        uint32_t time_to_end;
-        uint8_t progress_percent;
-        bool has_usb;
-        uint64_t usb_space_free;
-        DeviceState state;
+        const char *material = nullptr;
+        uint16_t flow_factor = 0;
+        uint16_t job_id = 0;
+        uint16_t print_fan_rpm = 0;
+        uint16_t heatbreak_fan_rpm = 0;
+        uint16_t print_speed = 0;
+        uint32_t print_duration = 0;
+        uint32_t time_to_end = 0;
+        uint8_t progress_percent = 0;
+        bool has_usb = false;
+        uint64_t usb_space_free = 0;
+        printer_state::DeviceState state = printer_state::DeviceState::Unknown;
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;
     };
@@ -125,7 +119,8 @@ private:
     uint32_t cfg_fingerprint = 0;
 
 public:
-    virtual void renew(/* TODO: Flags? */) = 0;
+    virtual void renew(std::optional<SharedBuffer::Borrow> paths) = 0;
+    virtual void drop_paths() = 0;
     const PrinterInfo &printer_info() const {
         return info;
     }

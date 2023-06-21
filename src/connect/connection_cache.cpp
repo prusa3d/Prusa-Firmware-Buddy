@@ -4,6 +4,7 @@ using http::Connection;
 using http::Error;
 using http::socket_con;
 using std::get;
+using std::holds_alternative;
 using std::monostate;
 using std::optional;
 
@@ -53,6 +54,10 @@ void CachedFactory::refresh(const Printer::Config &config) {
             cache = *result;
         }
     }
+}
+
+bool CachedFactory::is_valid() const {
+    return holds_alternative<tls>(cache) || holds_alternative<socket_con>(cache);
 }
 
 }

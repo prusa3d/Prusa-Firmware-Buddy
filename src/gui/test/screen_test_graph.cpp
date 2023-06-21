@@ -27,7 +27,7 @@ void screen_test_graph_t::windowEvent(EventLock /*has private ctor*/, [[maybe_un
     if (event == GUI_event_t::LOOP) {
         if (loop_index == 5) {
             graph.graph_invalid = true;
-            //osSignalSet(displayTaskHandle, SIG_DISP_REDRAW);
+            // osSignalSet(displayTaskHandle, SIG_DISP_REDRAW);
             Invalidate();
             loop_index = 0;
         }

@@ -76,7 +76,9 @@ Errors:
 - code: "04108"
   title: "LOAD TO EXTR. FAILED"
   text: "Loading to extruder failed. Inspect the filament tip shape. Refine the sensor calibration, if needed."
-  action: [Retry]
+  # Please note this is not an MMU error and therefore it behaves a bit differently.
+  # It must NOT contain a Retry button, otherwise unlimited retries will be executed.
+  action: [Continue]
   id: "LOAD_TO_EXTRUDER_FAILED"
   approved: false
 

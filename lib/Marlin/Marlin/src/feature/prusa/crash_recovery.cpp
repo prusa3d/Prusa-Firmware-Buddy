@@ -5,9 +5,9 @@
     #include "../../module/stepper.h"
     #include "crash_recovery.h"
     #include "bsod.h"
-    #include "eeprom.h"
     #include "../../module/printcounter.h"
     #include "metric.h"
+    #include <configuration_store.hpp>
 
 Crash_s &crash_s = Crash_s::instance();
 
@@ -22,13 +22,13 @@ Crash_s::Crash_s()
     , m_enable_stealth { false, false }
     , toolchange_in_progress(false) {
     reset();
-    enabled = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_ENABLED));
-    max_period.x = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_MAX_PERIOD_X));
-    max_period.y = variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_MAX_PERIOD_Y));
-    sensitivity.x = variant8_get_i16(eeprom_get_var(EEVAR_CRASH_SENS_X));
-    sensitivity.y = variant8_get_i16(eeprom_get_var(EEVAR_CRASH_SENS_Y));
+    enabled = config_store().crash_enabled.get();
+    max_period.x = config_store().crash_max_period_x.get();
+    max_period.y = config_store().crash_max_period_y.get();
+    sensitivity.x = config_store().crash_sens_x.get();
+    sensitivity.y = config_store().crash_sens_y.get();
     #if HAS_DRIVER(TMC2130)
-    filter = variant8_get_bool(eeprom_get_var(EEVAR_CRASH_FILTER));
+    filter = config_store().crash_filter.get();
     #endif
 }
 
@@ -53,7 +53,7 @@ void Crash_s::stop_and_save() {
         const Crash_s::crash_block_t &crash_block = crash_s.crash_block[crash_index];
 
         // save current_block state
-        sdpos = crash_block.sdpos;
+        check_and_set_sdpos(crash_block.sdpos);
         segments_finished = crash_block.segment_idx;
         inhibit_flags = crash_block.inhibit_flags;
         fr_mm_s = crash_block.fr_mm_s;
@@ -67,7 +67,7 @@ void Crash_s::stop_and_save() {
         e_position = crash_block.e_position + d_e_steps * planner.mm_per_step[E_AXIS_N(active_extruder)];
     } else {
         // no block, get state from the queue & planner
-        sdpos = queue.get_current_sdpos();
+        check_and_set_sdpos(queue.get_current_sdpos());
         segments_finished = 0;
         inhibit_flags = gcode_state.inhibit_flags;
         fr_mm_s = feedrate_mm_s;
@@ -79,11 +79,15 @@ void Crash_s::stop_and_save() {
     }
 
     // save planner state
-    leveling_active = planner.leveling_active;
+    if (toolchange_in_progress) {
+        leveling_active = pretoolchange_leveling; // Leveling was active before toolchange
+    } else {
+        leveling_active = planner.leveling_active;
+    }
     crash_axis_known_position = axis_known_position;
     // TODO: this is incomplete, as some of the planner state is ahead of the stepper state
     //       marlin state is also not saved, notably: absolute/relative axis state
-    //marlin_server.motion_param.save();
+    // marlin_server.motion_param.save();
 
     // stop any movement: this will discard any planner state!
     planner.quick_stop();
@@ -97,9 +101,7 @@ void Crash_s::stop_and_save() {
 
     // update crash_current_position. WARNING: this is NOT intended to be fully reversible (doing so
     // would require keeping more state), it's only usable to abort or return to the same position.
-    LOOP_XYZE(i) {
-        crash_current_position[i] = planner.get_axis_position_mm((AxisEnum)i);
-    }
+    planner.get_axis_position_mm(crash_current_position);
 
     #if HAS_POSITION_MODIFIERS
     planner.unapply_modifiers(crash_current_position
@@ -203,7 +205,7 @@ void Crash_s::set_state(state_t new_state) {
         // FALLTHRU
     case TRIGGERED_AC_FAULT:
         // transition to AC_FAULT is _always_ possible from any state
-        toolchange_event = false;
+        toolchange_event = toolchange_in_progress;
         stop_and_save();
         break;
 
@@ -222,7 +224,8 @@ void Crash_s::set_state(state_t new_state) {
         }
 
         toolchange_event = true;
-        sdpos = queue.get_current_sdpos();
+        crash_axis_known_position = axis_known_position; // Needed for powerpanic
+        check_and_set_sdpos(queue.get_current_sdpos());
         break;
 
     case TRIGGERED_HOMEFAIL:
@@ -231,7 +234,8 @@ void Crash_s::set_state(state_t new_state) {
         }
 
         toolchange_event = false;
-        sdpos = queue.get_current_sdpos();
+        crash_axis_known_position = axis_known_position; // Needed for powerpanic
+        check_and_set_sdpos(queue.get_current_sdpos());
         break;
 
     case REPEAT_WAIT:
@@ -304,15 +308,15 @@ void Crash_s::enable(bool state) {
     if (state == enabled)
         return;
     enabled = state;
-    eeprom_set_var(EEVAR_CRASH_ENABLED, variant8_bool(state));
+    config_store().crash_enabled.set(state);
     update_machine();
 }
 
 void Crash_s::set_sensitivity(xy_long_t sens) {
     if (sensitivity != sens) {
         sensitivity = sens;
-        eeprom_set_var(EEVAR_CRASH_SENS_X, variant8_i16(sensitivity.x));
-        eeprom_set_var(EEVAR_CRASH_SENS_Y, variant8_i16(sensitivity.y));
+        config_store().crash_sens_x.set(sensitivity.x);
+        config_store().crash_sens_y.set(sensitivity.y);
         update_machine();
     }
 }
@@ -341,27 +345,30 @@ void Crash_s::send_reports() {
 void Crash_s::set_max_period(xy_long_t mp) {
     if (max_period != mp) {
         max_period = mp;
-        eeprom_set_var(EEVAR_CRASH_MAX_PERIOD_X, variant8_ui16(max_period.x));
-        eeprom_set_var(EEVAR_CRASH_MAX_PERIOD_Y, variant8_ui16(max_period.y));
+        config_store().crash_max_period_x.set(max_period.x);
+        config_store().crash_max_period_y.set(max_period.y);
         update_machine();
     }
 }
 
 void Crash_s::write_stat_to_eeprom() {
-    xy_uint_t total({ variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_X_TOT)), variant8_get_ui16(eeprom_get_var(EEVAR_CRASH_COUNT_Y_TOT)) });
-    uint16_t power_panics = variant8_get_ui16(eeprom_get_var(EEVAR_POWER_COUNT_TOT));
+    xy_uint_t total({ config_store().crash_count_x.get(), config_store().crash_count_y.get() });
+    uint16_t power_panics = config_store().power_panics_count.get();
 
-    xy_long_t eevar = { EEVAR_CRASH_COUNT_X_TOT, EEVAR_CRASH_COUNT_Y_TOT };
     LOOP_XY(axis) {
         if (counter_crash.pos[axis] > 0) {
             total.pos[axis] += counter_crash.pos[axis];
-            eeprom_set_var((enum eevar_id)eevar.pos[axis], variant8_ui16(total.pos[axis]));
+            if (axis == 0) {
+                config_store().crash_count_x.set(total.pos[axis]);
+            } else if (axis == 1) {
+                config_store().crash_count_y.set(total.pos[axis]);
+            }
             static metric_t crash_stat = METRIC("crash_stat", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
             metric_record_custom(&crash_stat, ",axis=%c last=%ui,total=%ui", axis_codes[axis], counter_crash.pos[axis], total.pos[axis]);
         }
     }
     power_panics += counter_power_panic;
-    eeprom_set_var(EEVAR_POWER_COUNT_TOT, variant8_ui16(power_panics));
+    config_store().power_panics_count.set(power_panics);
 
     reset_crash_counter();
 }
@@ -442,7 +449,7 @@ void Crash_s::set_filter(bool on) {
     if (filter == on)
         return;
     filter = on;
-    eeprom_set_var(EEVAR_CRASH_FILTER, variant8_bool(on));
+    config_store().crash_filter.set(on);
     update_machine();
 }
     #endif

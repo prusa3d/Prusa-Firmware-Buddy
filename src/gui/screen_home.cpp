@@ -15,7 +15,6 @@
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
 #include "gui_media_events.hpp"
-#include "window_dlg_load_unload.hpp"
 #include "DialogMoveZ.hpp"
 #include "DialogHandler.hpp"
 #include "png_resources.hpp"
@@ -32,6 +31,8 @@
 #include <option/has_control_menu.h>
 #include <option/has_loadcell.h>
 #include <option/developer_mode.h>
+#include <option/development_items.h>
+#include <device/peripherals.h>
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_calibration.hpp"
@@ -179,8 +180,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no }
     },
-    gcode(GCodeInfo::getInstance()),
-    please_wait_msg(GuiDefaults::DialogFrameRect, _("Loading the last file on the USB")) {
+    gcode(GCodeInfo::getInstance()) {
     // clang-format on
 
     EnableLongHoldScreenAction();
@@ -210,7 +210,7 @@ screen_home_data_t::screen_home_data_t()
             w_buttons[i].SetRect(buttonRect(col, row));
             w_buttons[i].SetRes(&icons[i]);
             w_labels[i].SetRect(buttonTextRect(col, row));
-            w_labels[i].font = resource_font(IDR_FNT_SMALL);
+            w_labels[i].set_font(resource_font(IDR_FNT_SMALL));
             w_labels[i].SetAlignment(Align_t::Center());
             w_labels[i].SetPadding({ 0, 0, 0, 0 });
             w_labels[i].SetText(_(labels[i]));
@@ -295,8 +295,23 @@ void screen_home_data_t::on_enter() {
     }
     first_event = false;
 
+#if DEVELOPMENT_ITEMS()
+    static size_t last_busy_reset_count = 0;
+    size_t busy_reset_count1 = hw_i2c1_get_busy_clear_count();
+    size_t busy_reset_count2 = hw_i2c2_get_busy_clear_count();
+    size_t busy_reset_count3 = hw_i2c3_get_busy_clear_count();
+
+    if (last_busy_reset_count != busy_reset_count1 + busy_reset_count2 + busy_reset_count3) {
+        last_busy_reset_count = busy_reset_count1 + busy_reset_count2 + busy_reset_count3;
+        const char txt[] = "I2C workaround applied\nI2C1: %d\nI2C2: %d\nI2C3: %d";
+        std::array<char, sizeof(txt) + 19> buff; // leaves 2+6 digits per error .. max 99 999 999 error .. no way it would be so many
+        snprintf(buff.begin(), buff.size(), txt, busy_reset_count1, busy_reset_count2, busy_reset_count3);
+        MsgBoxWarning(string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(buff.begin())), Responses_Ok);
+    }
+#endif
+
 #if !DEVELOPER_MODE()
-    #if PRINTER_TYPE == PRINTER_PRUSA_XL
+    #if PRINTER_IS_PRUSA_XL
     static bool first_time_check_st { true };
     if (first_time_check_st) {
         first_time_check_st = false;
@@ -305,7 +320,6 @@ void screen_home_data_t::on_enter() {
     #endif
 
     handle_crash_dump();
-#endif
 
     if (touch_broken_during_run) {
         static bool already_shown = false;
@@ -314,6 +328,7 @@ void screen_home_data_t::on_enter() {
             MsgBoxWarning(_("Touch disabled. This feature is work-in-progress and is going to be fully available in a future update."), Responses_Ok);
         }
     }
+#endif
 }
 
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -354,9 +369,9 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::LOOP) {
         filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         if (!DialogHandler::Access().IsOpen()) {
-            //esp update has bigger priority tha one click print
+            // esp update has bigger priority tha one click print
             const auto fw_state = esp_fw_state();
             const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
             if (try_esp_flash && esp_need_flash && netdev_is_enabled(NETDEV_ESP_ID)) {
@@ -366,14 +381,13 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
             } else {
                 // on esp update, can use one click print
                 if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
-                    // TODO this should be done in main thread before MARLIN_EVT_MediaInserted is generated
+                    // TODO this should be done in main thread before Event::MediaInserted is generated
                     // if it is not the latest gcode might not be selected
                     if (find_latest_gcode(
                             gui_media_SFN_path,
                             FILE_PATH_BUFFER_LEN,
                             gui_media_LFN,
                             FILE_NAME_BUFFER_LEN)) {
-                        please_wait_msg.Draw(); // Non-blocking please wait screen
                         print_begin(gui_media_SFN_path, false);
                     }
                 }

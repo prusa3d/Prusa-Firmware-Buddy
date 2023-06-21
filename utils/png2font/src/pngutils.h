@@ -1,4 +1,4 @@
-//pngutils.h
+// pngutils.h
 #pragma once
 
 extern png_structp _png_open_read(FILE *fp, png_infop *pppi);

@@ -9,26 +9,22 @@
 #include "rtos_api.hpp"
 #include "metric.h"
 
-//delay between calls must be 1us or longer
-std::optional<IFSensor::event> IFSensor::Cycle() {
-    volatile const fsensor_t last_state_before_cycle = state;
-
-    //sensor is disabled (only init can enable it)
-    if (last_state_before_cycle == fsensor_t::Disabled) {
+// delay between calls must be 1us or longer
+void IFSensor::Cycle() {
+    // sensor is disabled (only init can enable it)
+    if (state == fsensor_t::Disabled) {
         record_state();
-        return std::nullopt;
+        return;
     }
 
     cycle();
 
     record_state();
-
-    return generateEvent(last_state_before_cycle);
 }
 
 /*---------------------------------------------------------------------------*/
-//global thread safe functions
-//but cannot be called from interrupt
+// global thread safe functions
+// but cannot be called from interrupt
 void IFSensor::Enable() {
     CriticalSection C;
     enable();
@@ -51,7 +47,7 @@ fsensor_t FSensor::WaitInitialized() {
 }
 
 /*---------------------------------------------------------------------------*/
-//global not thread safe functions
+// global not thread safe functions
 void FSensor::init() {
     bool enabled = FSensorEEPROM::Get(); // can globally disable all sensors, but some sensors might need another enable
 
@@ -62,8 +58,10 @@ void FSensor::init() {
 }
 
 /*---------------------------------------------------------------------------*/
-//methods called only in fs_cycle
-IFSensor::event IFSensor::generateEvent(fsensor_t previous_state) const {
+IFSensor::event IFSensor::GenerateEvent() {
+    const auto previous_state = last_evaluated_state;
+    last_evaluated_state = state;
+
     const bool has_filament = fsensor_t::HasFilament == state;
 
     // don't generate edges from not working states
@@ -76,6 +74,6 @@ IFSensor::event IFSensor::generateEvent(fsensor_t previous_state) const {
         return has_filament ? event::HasFilament : event::NoFilament;
     /// state has changed
     if (has_filament)
-        return event::EdgeFilamentInserted; //has && !had
-    return event::EdgeFilamentRemoved;      //!has && had
+        return event::EdgeFilamentInserted; // has && !had
+    return event::EdgeFilamentRemoved;      //! has && had
 }

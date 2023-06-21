@@ -20,22 +20,22 @@ screen_test_gui_data_t::screen_test_gui_data_t()
     , progress(this, Rect16(0, 200, 240, 30))
     , text_terminal(this, Rect16(0, 298, 240, 22), is_multiline::no) {
 
-    text0.font = resource_font(IDR_FNT_BIG);
+    text0.set_font(resource_font(IDR_FNT_BIG));
     static const char big[] = "Big";
     text0.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)big));
 
-    text1.font = resource_font(IDR_FNT_NORMAL); // ignore GUI_DEF_FONT
+    text1.set_font(resource_font(IDR_FNT_NORMAL)); // ignore GUI_DEF_FONT
     static const char nrm[] = "Normal";
     text1.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)nrm));
 
-    text2.font = resource_font(IDR_FNT_SMALL);
+    text2.set_font(resource_font(IDR_FNT_SMALL));
     static const char sml[] = "Small";
     text2.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)sml));
 
     numb0.SetFormat((const char *)"%.0f");
     numb0.SetValue(100.0F);
 
-    text_terminal.font = resource_font(IDR_FNT_SPECIAL);
+    text_terminal.set_font(resource_font(IDR_FNT_SPECIAL));
     static const char tf[] = "Terminal Font IBM ISO9";
     text_terminal.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)tf));
 }

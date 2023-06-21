@@ -45,8 +45,8 @@ public:
 
 private:
     I2C_HandleTypeDef &i2c;
-    const uint8_t read_address;  //< I2C address for reading registers
-    const uint8_t write_address; //< I2C address for writing registers
+    const uint8_t read_address;         //< I2C address for reading registers
+    const uint8_t write_address;        //< I2C address for writing registers
 
     uint8_t config_register_val = 0xFF; //< local snapshot of configuration register
     uint8_t output_register_val = 0x00; //< local snapshot of output register

@@ -23,7 +23,7 @@ class screen_t : public AddSuperWindow<window_frame_t> {
     window_t *last_popup;
 
 public:
-    screen_t(window_t *parent = nullptr, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_serial_t serial = is_closed_on_serial_t::yes);
+    screen_t(window_t *parent = nullptr, win_type_t type = win_type_t::normal, is_closed_on_timeout_t timeout = is_closed_on_timeout_t::yes, is_closed_on_printing_t close_on_print = is_closed_on_printing_t::yes);
 
     virtual window_t *GetCapturedWindow() override;
     virtual void ChildVisibilityChanged(window_t &child) override;
@@ -47,5 +47,5 @@ protected:
     void unregisterConflictingPopUps(Rect16 rect, window_t *end);
     bool canRegisterPopup(window_t &win);
     void hideSubwinsBehindDialogs();
-    window_t *findCaptured_first_last(window_t *first, window_t *last) const; //does not use begin - end like normal find
+    window_t *findCaptured_first_last(window_t *first, window_t *last) const; // does not use begin - end like normal find
 };

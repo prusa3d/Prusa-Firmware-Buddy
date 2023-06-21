@@ -25,7 +25,7 @@ class SelftestFrameResult : public AddSuperWindow<SelftestFrame> {
     SelfTestView view;
     ScrollBar bar; // TODO it does not show, partially unimplemented???
 
-    //used int to be able to do std::min/max
+    // used int to be able to do std::min/max
     Rect16::Height_t height_draw_offset;
     Rect16::Height_t virtual_view_height;
 

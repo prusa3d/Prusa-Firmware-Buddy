@@ -1550,35 +1550,109 @@ void Planner::finish_and_disable() {
   if (!draining_buffer) disable_all_steppers();
 }
 
+
 /**
- * Get an axis position according to stepper position(s)
- * For CORE machines apply translation from ABC to XYZ.
+ * Attempt to get a coherent snapshot of stepper positions across axes
+ * NOTE: suspending _just_ the stepper ISR can result in priority inversion.
+ *   Instead of disabling all interrupts (and still risk missing a deadline)
+ *   just _try_ to get coherent values when the ISR is running!
+ *
+ * @param pos output axis positions (steps)
+ * @param cnt number of axes to sample (2 <= cnt <= LOGICAL_AXES)
+ */
+static void sample_stepper_positions(int32_t* pos, const uint8_t cnt) {
+  constexpr uint8_t max_retry = 3;
+  int32_t buf[LOGICAL_AXES];
+
+  // initial sample
+  for (uint8_t i = 0; i != cnt; ++i)
+    pos[i] = stepper.position((AxisEnum)i);
+
+  if (!STEPPER_ISR_ENABLED())
+    return;
+
+  // check for coherency
+  for (uint8_t retry = 0; retry != max_retry; ++retry) {
+    // refresh buffer
+    for (uint8_t i = 0; i != cnt; ++i)
+      buf[i] = stepper.position((AxisEnum)i);
+
+    // check and update the initial sample
+    bool unchanged = true;
+    for (uint8_t i = 0; i != cnt; ++i) {
+      if (pos[i] != buf[i]) {
+        pos[i] = buf[i];
+        unchanged = false;
+      }
+    }
+    if (unchanged)
+      break;
+  }
+}
+
+/**
+ * Get axis position according to stepper position(s)
+ * For CORE machines apply translation from AB to XY.
+ *
+ * @param pos output axis positions (mm)
+ * @param cnt number of axes to sample (2 <= cnt <= LOGICAL_AXES)
+ */
+static void get_multi_axis_position_mm(float* pos, const uint8_t cnt) {
+  int32_t axis_steps[LOGICAL_AXES];
+  sample_stepper_positions(axis_steps, cnt);
+
+  #if IS_CORE
+    #if CORE_IS_XY
+      int32_t a = axis_steps[A_AXIS];
+      int32_t b = axis_steps[B_AXIS];
+      axis_steps[X_AXIS] = (a + b) * 0.5f;
+      axis_steps[Y_AXIS] = CORESIGN(a - b) * 0.5f;
+    #else
+      #error "unsupported core type"
+    #endif
+  #endif
+
+  for(uint8_t i = 0; i != cnt; ++i)
+    pos[i] = axis_steps[i] * Planner::mm_per_step[i];
+}
+
+void Planner::get_axis_position_mm(ab_pos_t& pos) {
+  get_multi_axis_position_mm(pos, 2);
+}
+
+void Planner::get_axis_position_mm(abc_pos_t& pos) {
+  get_multi_axis_position_mm(pos, NUM_AXES);
+}
+
+void Planner::get_axis_position_mm(abce_pos_t& pos) {
+  get_multi_axis_position_mm(pos, LOGICAL_AXES);
+}
+
+/**
+ * Get XY axis position according to stepper position(s)
+ * For CORE machines apply translation from AB to XY.
  */
 float Planner::get_axis_position_mm(const AxisEnum axis) {
   float axis_steps;
   #if IS_CORE
-    // Requesting one of the "core" axes?
-    if (axis == CORE_AXIS_1 || axis == CORE_AXIS_2) {
-
-      // Protect the access to the position.
-      const bool was_enabled = stepper.suspend();
-
-      const int32_t p1 = stepper.position(CORE_AXIS_1),
-                    p2 = stepper.position(CORE_AXIS_2);
-
-      if (was_enabled) stepper.wake_up();
-
-      // ((a1+a2)+(a1-a2))/2 -> (a1+a2+a1-a2)/2 -> (a1+a1)/2 -> a1
-      // ((a1+a2)-(a1-a2))/2 -> (a1+a2-a1+a2)/2 -> (a2+a2)/2 -> a2
-      axis_steps = (axis == CORE_AXIS_2 ? CORESIGN(p1 - p2) : p1 + p2) * 0.5f;
-    }
-    else
-      axis_steps = stepper.position(axis);
+    #if CORE_IS_XY
+      // Requesting one of the "core" axes?
+      if (axis == A_AXIS || axis == B_AXIS) {
+        ab_pos_t pos;
+        get_axis_position_mm(pos);
+        return pos[axis];
+      }
+      else
+        axis_steps = stepper.position(axis);
+    #else
+      #error "unsupported core type"
+    #endif
   #else
     axis_steps = stepper.position(axis);
   #endif
   return axis_steps * mm_per_step[axis];
 }
+
 
 bool Planner::busy() {
   return !draining_buffer && (
@@ -2913,17 +2987,17 @@ bool Planner::buffer_line(const float &rx, const float &ry, const float &rz, con
  * The provided ABC position is in machine units.
  */
 
-void Planner::set_machine_position_mm(const float &a, const float &b, const float &c, const float &e) {
+void Planner::set_machine_position_mm(const abce_pos_t &abce) {
   #if ENABLED(DISTINCT_E_FACTORS)
     last_extruder = active_extruder;
   #endif
   #if HAS_POSITION_FLOAT
-    position_float.set(a, b, c, e);
+    position_float = abce;
   #endif
-  position.set(LROUND(a * settings.axis_steps_per_mm[A_AXIS]),
-               LROUND(b * settings.axis_steps_per_mm[B_AXIS]),
-               LROUND(c * settings.axis_steps_per_mm[C_AXIS]),
-               LROUND(e * settings.axis_steps_per_mm[E_AXIS_N(active_extruder)]));
+  position.set(LROUND(abce.a * settings.axis_steps_per_mm[A_AXIS]),
+               LROUND(abce.b * settings.axis_steps_per_mm[B_AXIS]),
+               LROUND(abce.c * settings.axis_steps_per_mm[C_AXIS]),
+               LROUND(abce.e * settings.axis_steps_per_mm[E_AXIS_N(active_extruder)]));
   if (has_blocks_queued()) {
     //previous_nominal_speed_sqr = 0.0; // Reset planner junction speeds. Assume start from rest.
     //previous_speed.reset();
@@ -2933,19 +3007,11 @@ void Planner::set_machine_position_mm(const float &a, const float &b, const floa
     stepper.set_position(position);
 }
 
-void Planner::set_position_mm(const float &rx, const float &ry, const float &rz, const float &e) {
-  xyze_pos_t machine = { rx, ry, rz, e };
-  #if HAS_POSITION_MODIFIERS
-  {
-    apply_modifiers(machine
-      #if HAS_LEVELING
-        , true
-      #endif
-    );
-  }
-  #endif
+void Planner::set_position_mm(const xyze_pos_t &xyze) {
+  xyze_pos_t machine = xyze;
+  TERN_(HAS_POSITION_MODIFIERS, apply_modifiers(machine, true));
   #if IS_KINEMATIC
-    position_cart.set(rx, ry, rz, e);
+    position_cart = xyze;
     inverse_kinematics(machine);
     set_machine_position_mm(delta.a, delta.b, delta.c, machine.e);
   #else
@@ -2956,7 +3022,7 @@ void Planner::set_position_mm(const float &rx, const float &ry, const float &rz,
 /**
  * Setters for planner position (also setting stepper position).
  */
-void Planner::set_e_position_mm(const float &e) {
+void Planner::set_e_position_mm(const_float_t e) {
   const uint8_t axis_index = E_AXIS_N(active_extruder);
   #if ENABLED(DISTINCT_E_FACTORS)
     last_extruder = active_extruder;
@@ -3018,7 +3084,7 @@ void Planner::reset_position() {
 }
 
 // Recalculate the steps/s^2 acceleration rates, based on the mm/s^2
-void Planner::reset_acceleration_rates() {
+void Planner::refresh_acceleration_rates() {
   #if ENABLED(DISTINCT_E_FACTORS)
     #define AXIS_CONDITION (i < E_AXIS || i == E_AXIS_N(active_extruder))
   #else
@@ -3039,8 +3105,18 @@ void Planner::reset_acceleration_rates() {
 void Planner::refresh_positioning() {
   LOOP_XYZE_N(i) mm_per_step[i] = 1.0f / settings.axis_steps_per_mm[i];
   set_position_mm(current_position);
-  reset_acceleration_rates();
+  refresh_acceleration_rates();
 }
+
+#if ENABLED(DISTINCT_E_FACTORS)
+  void Planner::refresh_e_positioning(const uint8_t extruder) {
+    mm_per_step[E_AXIS_N(extruder)] = 1.f / settings.axis_steps_per_mm[E_AXIS_N(extruder)];
+    if (extruder == active_extruder) {
+      set_e_position_mm(current_position[E_AXIS]);
+      refresh_acceleration_rates();
+    }
+  }
+#endif
 
 inline void limit_and_warn(float &val, const uint8_t axis, PGM_P const setting_name, const xyze_float_t &max_limit) {
   const uint8_t lim_axis = axis > E_AXIS ? E_AXIS : axis;
@@ -3068,7 +3144,7 @@ void Planner::set_max_acceleration(const uint8_t axis, float targetValue) {
   settings.max_acceleration_mm_per_s2[axis] = targetValue;
 
   // Update steps per s2 to agree with the units per s2 (since they are used in the planner)
-  reset_acceleration_rates();
+  refresh_acceleration_rates();
 }
 
 void Planner::set_max_feedrate(const uint8_t axis, float targetValue) {
@@ -3178,11 +3254,11 @@ void Motion_Parameters::load() const {
     planner.max_jerk = mp.max_jerk;
   #endif
 
-  planner.reset_acceleration_rates();
+  planner.refresh_acceleration_rates();
 }
 
 void Motion_Parameters::reset() {
   MarlinSettings::reset_motion();
-  planner.reset_acceleration_rates();
+  planner.refresh_acceleration_rates();
 }
 

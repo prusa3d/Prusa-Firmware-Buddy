@@ -25,6 +25,8 @@ public:
         }
     }
 
+    bool IsIconValid() { return pRes ? true : false; }
+
     window_icon_t(window_t *parent, Rect16 rect, const png::Resource *res, is_closed_on_click_t close = is_closed_on_click_t::no);
 
     window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
@@ -95,7 +97,7 @@ protected:
 class window_icon_hourglass_t : public AddSuperWindow<window_icon_t> {
     enum { ANIMATION_STEPS = 5,
         ANIMATION_STEP_MS = 500 };
-    uint32_t start_time; //todo use window timer
+    uint32_t start_time; // todo use window timer
     color_t animation_color;
     uint8_t phase;
 

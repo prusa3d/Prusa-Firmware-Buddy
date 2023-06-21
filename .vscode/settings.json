@@ -9,6 +9,7 @@
     },
     "task.allowAutomaticTasks": "on",
     "clangd.arguments": [
-        "--query-driver=**/.dependencies/gcc-arm-none-eabi-*/*/arm-none-eabi-g*"
+        "--query-driver=**/.dependencies/gcc-arm-none-eabi-*/*/arm-none-eabi-g*",
+        "--header-insertion=never"
     ]
 }

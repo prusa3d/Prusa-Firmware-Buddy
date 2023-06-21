@@ -6,10 +6,15 @@
 #include "bsod.h"
 #include <atomic>
 #include "file_list_defs.h"
+#include "fsm_types.hpp"
 #include <cstring>
 #include <charconv>
 #include "inc/MarlinConfig.h"
 #include <assert.h>
+
+#if BOARD_IS_DWARF
+    #error "You're trying to add marlin_vars to Dwarf. Don't!"
+#endif /*BOARD_IS_DWARF*/
 
 class MarlinVarsLockGuard {
 public:
@@ -79,6 +84,7 @@ public:
 private:
     /// @brief  Underlying atomic variable
     std::atomic<T> value;
+    static_assert(std::atomic<T>::is_always_lock_free, "MarlinVariable needs to be lock free, no structures allowed!");
 
     // disable copy operators
     MarlinVariable &operator=(const MarlinVariable &) = delete;
@@ -199,8 +205,19 @@ public:
     marlin_vars_t() {}
     void init();
 
-    MarlinVariable<float> pos[4];      // position XYZE [mm]
-    MarlinVariable<float> curr_pos[4]; // current position XYZE according to G-code [mm]
+    /**
+     * @brief Printer position.
+     * @note Not using structures to not lock Marlin too often.
+     * Native coordinates are position of steppers or machine coordinates. Obtained from logical coordinates after applying tool and workspace offsets.
+     * Logical coordinates are G-code coordinates compensating for workspace and tool offsets.
+     * @todo When we have strong types for coordinates, we could give only native and user would convert coordinate systems on his own.
+     * pos is taken from immediate stepper position.
+     * curr_pos is taken from Marlin's current_position variable which is the target of current move before MBL is compensated.
+     */
+    MarlinVariable<float> native_pos[4];       ///< immediate position XYZE (native coordinates) [mm]
+    MarlinVariable<float> logical_pos[4];      ///< immediate position XYZE (logical coordinates) [mm]
+    MarlinVariable<float> native_curr_pos[4];  ///< current position XYZE (native coordinates) [mm]
+    MarlinVariable<float> logical_curr_pos[4]; ///< current position XYZE (logical coordinates) [mm]
 
     MarlinVariable<float> temp_bed;            // bed temperature [C]
     MarlinVariable<float> target_bed;          // bed target temperature [C]
@@ -211,7 +228,7 @@ public:
 
     MarlinVariableString<FILE_PATH_BUFFER_LEN> media_SFN_path;
     MarlinVariableString<FILE_NAME_BUFFER_LEN> media_LFN;
-    MarlinVariable<marlin_server::marlin_print_state_t> print_state; // marlin_server.print_state
+    MarlinVariable<marlin_server::State> print_state; // marlin_server.print_state
 
     // 2B base types
     MarlinVariable<uint16_t> print_speed;         // printing speed factor [%]
@@ -242,11 +259,11 @@ public:
         // heatbreak
         MarlinVariable<float> temp_heatbreak;       // heatbreak temperature [C]
         MarlinVariable<float> target_heatbreak;     // heatbreak target temperature [C]
-        MarlinVariable<uint16_t> heatbreak_fan_rpm; // fanCtlHeatBreak[active_extruder].getActualRPM() [1/min]
+        MarlinVariable<uint16_t> heatbreak_fan_rpm; // Fans::heat_break(active_extruder).getActualRPM() [1/min]
 
         // others
         MarlinVariable<uint16_t> flow_factor;   // flow factor [%]
-        MarlinVariable<uint16_t> print_fan_rpm; // fanCtlPrint[active_extruder].getActualRPM() [1/min]
+        MarlinVariable<uint16_t> print_fan_rpm; // Fans::print(active_extruder).getActualRPM() [1/min]
 
         Hotend() {}
         // disable copy constructor
@@ -282,6 +299,45 @@ public:
         }
     }
 
+    struct FSMChange {
+        fsm::Change q0_change;
+        fsm::Change q1_change;
+
+        FSMChange()
+            : q0_change(fsm::QueueIndex::q0)
+            , q1_change(fsm::QueueIndex::q1) {}
+    };
+    /**
+     * @brief Get the last fsm state
+     *
+     * This is needed, because in Prusa link there is no way to use the callbacks as there is no place to call
+     * marlin_client_loop periodically. Also for this to be stored in an atomic, we would need to make
+     * atomic<uint64_t> work, which I was not able to do, if anyone knows how to, let me know.
+     *
+     * @return last change for both FSM queues
+     */
+    FSMChange get_last_fsm_change() {
+        auto guard = MarlinVarsLockGuard();
+        return last_fsm_state;
+    }
+
+    /**
+     * @brief Set the last fsm state
+     *
+     * Can be called only from main task
+     */
+    void set_last_fsm_state(const fsm::Change &change) {
+        if (osThreadGetId() != marlin_server::server_task) {
+            bsod("set_last_fsm_state");
+        }
+        auto guard = MarlinVarsLockGuard();
+        if (change.get_queue_index() == fsm::QueueIndex::q0) {
+            last_fsm_state.q0_change = change;
+        } else { /*(change.get_queue_index() == fsm::QueueIndex::q1)*/
+            last_fsm_state.q1_change = change;
+        }
+    }
+
     void lock();
     void unlock();
 
@@ -290,6 +346,7 @@ private:
     osMutexId mutex_id;                          // Mutex ID
     std::atomic<osThreadId> current_mutex_owner; // current mutex owner -> to check for recursive locking
     std::array<Hotend, HOTENDS> hotends;         // array of hotends (use hotend()/active_hotend() getter)
+    FSMChange last_fsm_state;                    // last fsm state, used in connect and link
 
     // disable copy constructor
     marlin_vars_t(const marlin_vars_t &) = delete;

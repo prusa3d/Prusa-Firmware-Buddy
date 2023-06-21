@@ -1,6 +1,6 @@
 #include "config_features.h"
 #include "filament_sensors_handler.hpp"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 // clang-format off
 #if (!ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)) || \
@@ -20,7 +20,7 @@
 #include "M70X.hpp"
 
 static Response preheatTempKnown(uint8_t target_extruder) {
-    auto filament_type = filament::get_type_in_extruder(target_extruder);
+    auto filament_type = config_store().get_filament_type(target_extruder);
     assert(filament_type != filament::Type::NONE);
     return filament::get_description(filament_type).response;
 }
@@ -44,7 +44,7 @@ static Response evaluate_preheat_conditions(PreheatData preheat_data, uint8_t ta
     bool canKnowTemp = preheat_data.Mode() == PreheatMode::Unload || preheat_data.Mode() == PreheatMode::Change_phase1 || preheat_data.Mode() == PreheatMode::Purge || preheat_data.Mode() == PreheatMode::Unload_askUnloaded;
 
     // Check if we are using operation which can get temp from printer and check if it can get the temp from available info (inserted filament or set temperature in temperature menu and no filament inserted)
-    if (canKnowTemp && ((filament::get_type_in_extruder(target_extruder) != filament::Type::NONE))) {
+    if (canKnowTemp && ((config_store().get_filament_type(target_extruder) != filament::Type::NONE))) {
         // We can get temperature without user telling us
         response = preheatTempKnown(target_extruder);
     } else {
@@ -85,7 +85,7 @@ void filament_gcodes::preheat_to(filament::Type filament, uint8_t target_extrude
     if (thermalManager.degTargetHotend(target_extruder) < fil_cnf.nozzle) {
         thermalManager.setTargetHotend(fil_cnf.nozzle, target_extruder);
         marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
-        if (eeprom_get_bool(EEVAR_HEATUP_BED)) {
+        if (config_store().heatup_bed.get()) {
             thermalManager.setTargetBed(fil_cnf.heatbed);
         }
     }
@@ -114,7 +114,7 @@ std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes:
     // change temp every time (unlike normal preheat)
     thermalManager.setTargetHotend(fil_cnf.nozzle, target_extruder);
     marlin_server::set_temp_to_display(fil_cnf.nozzle, target_extruder);
-    if (eeprom_get_bool(EEVAR_HEATUP_BED)) {
+    if (config_store().heatup_bed.get()) {
         thermalManager.setTargetBed(fil_cnf.heatbed);
     }
 
@@ -127,9 +127,9 @@ std::pair<std::optional<PreheatStatus::Result>, filament::Type> filament_gcodes:
  * @param preheat_tp preheat options
  * @param target_extruder
  */
-void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
+void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, PreheatMode mode, uint8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed) {
     InProgress progress;
-    PreheatData data(PreheatMode::None, preheat_tp);
+    PreheatData data(mode, preheat_tp);
     Response response = preheatTempUnKnown(data, true);
 
     // autoload ocurred
@@ -163,7 +163,7 @@ void filament_gcodes::M1700_no_parser(RetAndCool_t preheat_tp, uint8_t target_ex
         }
 
         if (save)
-            filament::set_type_in_extruder(filament, target_extruder);
+            config_store().set_filament_type(target_extruder, filament);
     }
 
     // store result, so other threads can see it

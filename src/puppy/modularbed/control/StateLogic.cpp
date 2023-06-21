@@ -18,8 +18,10 @@ uint16_t s_SystemErrorFlags = 0;
 bool s_IsPowerPanicActive = false;
 bool s_IsCurrentFaultActive = false;
 
-MovingAverageFilter s_ExpectedCurrentFilter_A(CURRENT_FILTER_DATA_POINT_COUNT);
-MovingAverageFilter s_ExpectedCurrentFilter_B(CURRENT_FILTER_DATA_POINT_COUNT);
+std::array<MovingAverageFilter, 2> s_ExpectedCurrentFilter({
+    CURRENT_FILTER_DATA_POINT_COUNT,
+    CURRENT_FILTER_DATA_POINT_COUNT,
+});
 
 void SetState(uint32_t heatbedletIndex, HeatbedletState state);
 void SetSystemError(SystemError error);
@@ -64,7 +66,7 @@ void ProcessMeasuredValue(ADCChannel channel, float value) {
         ProcessMCUTemperature(value);
         break;
     case ADCChannel::CHANNEL_COUNT:
-        //do nothing
+        // do nothing
         break;
     }
 }
@@ -98,40 +100,25 @@ void ProcessMCUTemperature(float temperature) {
 
 void ProcessMeasuredElectricCurrent(ADCChannel channel, float current) {
     float modbusCurrent = current * MODBUS_CURRENT_REGISTERS_SCALE;
-    int16_t regValue = std::clamp(
+    int16_t adcCurrentRegValue = std::clamp(
         std::lround(modbusCurrent),
         static_cast<long>(std::numeric_limits<int16_t>::min()),
         static_cast<long>(std::numeric_limits<int16_t>::max()));
 
-    uint16_t regAddress;
-    if (channel == ADCChannel::Current_A) {
-        regAddress = ((uint16_t)SystemInputRegister::adc_current_1);
-    } else {
-        regAddress = ((uint16_t)SystemInputRegister::adc_current_2);
+    const uint8_t idx = channel == ADCChannel::Current_A ? Branch::A : Branch::B;
+    const uint32_t intExpectedCurrent = s_ExpectedCurrentFilter[idx].AddValue(static_cast<uint32_t>(PWMLogic::GetExpectedCurrent(idx) * EXPECTED_CURRENT_FILTER_MULTIPLIER));
+    const uint16_t expectedCurrentRegValue = MODBUS_CURRENT_REGISTERS_SCALE * intExpectedCurrent / EXPECTED_CURRENT_FILTER_MULTIPLIER;
+
+    SetInputRegisterValue(ftrstd::to_underlying(SystemInputRegister::adc_current_1) + idx, static_cast<uint16_t>(adcCurrentRegValue));
+    SetInputRegisterValue(ftrstd::to_underlying(SystemInputRegister::expected_current_1) + idx, static_cast<uint16_t>(expectedCurrentRegValue));
+
+    if (current > OVERCURRENT_THRESHOLD_AMPS[idx]) {
+        SetSystemError(SystemError::OverCurrent);
     }
 
-    SetInputRegisterValue(regAddress, static_cast<uint16_t>(regValue));
-
-    if (channel == ADCChannel::Current_A) {
-        if (current > ((float)OVERCURRENT_THRESHOLD_AMPS_A)) {
-            SetSystemError(SystemError::OverCurrent);
-        }
-
-        uint32_t intExpectedCurrentA = s_ExpectedCurrentFilter_A.AddValue((uint32_t)(PWMLogic::GetExpectedCurrent_A() * EXPECTED_CURRENT_FILTER_MULTIPLIER));
-        float expectedCurrentA = ((float)intExpectedCurrentA) / EXPECTED_CURRENT_FILTER_MULTIPLIER;
-        if (current > (expectedCurrentA + UNEXPECTED_CURRENT_TOLERANCE_A)) {
-            SetSystemError(SystemError::UnexpectedCurrent);
-        }
-    } else {
-        if (current > ((float)OVERCURRENT_THRESHOLD_AMPS_B)) {
-            SetSystemError(SystemError::OverCurrent);
-        }
-
-        uint32_t intExpectedCurrentB = s_ExpectedCurrentFilter_B.AddValue((uint32_t)(PWMLogic::GetExpectedCurrent_B() * EXPECTED_CURRENT_FILTER_MULTIPLIER));
-        float expectedCurrentB = ((float)intExpectedCurrentB) / EXPECTED_CURRENT_FILTER_MULTIPLIER;
-        if (current > (expectedCurrentB + UNEXPECTED_CURRENT_TOLERANCE_B)) {
-            SetSystemError(SystemError::UnexpectedCurrent);
-        }
+    const float expectedCurrent = static_cast<float>(intExpectedCurrent) / EXPECTED_CURRENT_FILTER_MULTIPLIER;
+    if (current > (expectedCurrent + UNEXPECTED_CURRENT_TOLERANCE[idx])) {
+        SetSystemError(SystemError::UnexpectedCurrent);
     }
 }
 
@@ -385,4 +372,4 @@ void CheckPreheatError(uint32_t heatbedletIndex) {
     }
 }
 
-} //namespace
+} // namespace

@@ -18,7 +18,7 @@ struct ExperimentalSettingsValues {
     ExperimentalSettingsValues(ScreenMenuExperimentalSettings__ &parent);
 
     int32_t z_len;
-    int32_t steps_per_unit_e; //has stored both index and polarity
+    int32_t steps_per_unit_e; // has stored both index and polarity
     size_t touch_ena;
 
     // this is only safe as long as there are no gaps between variables

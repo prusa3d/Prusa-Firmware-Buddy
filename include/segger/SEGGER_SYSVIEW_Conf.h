@@ -68,16 +68,19 @@ Additional information:
     #define SEGGER_SYSVIEW_CONF_H
 
 /*********************************************************************
-*
-*       Defines, configurable
-*
-**********************************************************************
-*/
+ *
+ *       Defines, configurable
+ *
+ **********************************************************************
+ */
 
-/*********************************************************************
-* TODO: Add your defines here.                                       *
-**********************************************************************
-*/
+    #include <device/board.h>
+
+    #if (BOARD == BOARD_XBUDDY || BOARD == BOARD_XLBUDDY)
+        #define SEGGER_SYSVIEW_RTT_BUFFER_SIZE 1536 // Default 1024
+    #else
+        #define SEGGER_SYSVIEW_RTT_BUFFER_SIZE 1024 // Conserve memory on the MINI/DWARF
+    #endif
 
 #endif // SEGGER_SYSVIEW_CONF_H
 

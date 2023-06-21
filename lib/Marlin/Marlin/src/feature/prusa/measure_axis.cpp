@@ -66,7 +66,8 @@ void Measure_axis::quick_home_start() {
         #if ENABLED(DUAL_X_CARRIAGE)
         axis == X_AXIS ? x_home_dir(active_extruder) :
         #endif
-                       invert_dir.x ? (-home_dir(X_AXIS)) : home_dir(X_AXIS));
+            invert_dir.x ? (-home_dir(X_AXIS))
+                         : home_dir(X_AXIS));
 
     axis_home_dir[Y_AXIS] = invert_dir.y ? (-home_dir(X_AXIS)) : home_dir(X_AXIS);
 
@@ -159,9 +160,11 @@ void Measure_axis::home_back(AxisEnum axis) {
         #if ENABLED(DUAL_X_CARRIAGE)
         axis == X_AXIS ? x_home_dir(active_extruder) :
         #endif
-                       invert_dir[axis] ? (-home_dir(axis)) : home_dir(axis));
+            invert_dir[axis] ? (-home_dir(axis))
+                             : home_dir(axis));
 
-    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    abce_pos_t target;
+    planner.get_axis_position_mm(target);
     target[axis] = 0;
     planner.set_machine_position_mm(target);
     float dist = (axis_home_dir > 0) ? -MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE;
@@ -188,7 +191,8 @@ void Measure_axis::home_start(AxisEnum axis, bool invert) {
     #if ENABLED(DUAL_X_CARRIAGE)
         axis == X_AXIS ? x_home_dir(active_extruder) :
     #endif
-                       invert_dir[axis] ^ invert ? (-home_dir(axis)) : home_dir(axis));
+            invert_dir[axis] ^ invert ? (-home_dir(axis))
+                                      : home_dir(axis));
     float distance = 1.5f * max_length(axis) * axis_home_dir;
 
     #if IS_SCARA
@@ -246,7 +250,7 @@ void Measure_axis::state_start() {
         if (TEST(axis_homed, Z_AXIS)) {
             destination.z = std::max(raise_z, destination.z); //< lift at least to raise_z
         } else {
-            destination.z += raise_z; //< lift by raise_z because we don't know where the Z is
+            destination.z += raise_z;                         //< lift by raise_z because we don't know where the Z is
         }
         const feedRate_t fr_z = homing_feedrate(Z_AXIS);
         plan_park_move_to_xyz(destination, fr_z, fr_z);

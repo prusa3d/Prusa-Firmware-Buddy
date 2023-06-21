@@ -53,7 +53,7 @@ void GcodeSuite::M701() {
     if (target_extruder < 0)
         return;
 
-    //TODO colision with "PLA" string
+    // TODO colision with "PLA" string
     const float mmu_slot = parser.intval('P', -1);
 
     std::optional<RetAndCool_t> op_preheat = std::nullopt;

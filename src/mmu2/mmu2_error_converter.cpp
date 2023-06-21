@@ -3,35 +3,27 @@
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/buttons.h"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_error_converter.h"
 #include "../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
+#include "utility_extensions.hpp"
+
+#include <algorithm>
 
 namespace MMU2 {
 
 static ButtonOperations buttonSelectedOperation = ButtonOperations::NoOperation;
 
-// we don't have a constexpr find_if in C++17/STL yet
-template <class InputIt, class UnaryPredicate>
-constexpr InputIt find_if_cx(InputIt first, InputIt last, UnaryPredicate p) {
-    for (; first != last; ++first) {
-        if (p(*first)) {
-            return first;
-        }
-    }
-    return last;
-}
-
 // Making a constexpr FindError should instruct the compiler to optimize the PrusaErrorCodeIndex
 // in such a way that no searching will ever be done at runtime.
 // A call to FindError then compiles to a single instruction even on the AVR.
-static constexpr uint8_t FindErrorIndex(ErrCode error_code) {
-    constexpr uint32_t error_list_size = sizeof(error_list) / sizeof(error_list[0]);
-    constexpr auto error_list_end = error_list + error_list_size;
-    auto i = find_if_cx(error_list, error_list_end, [error_code](const MMUErrDesc &med) -> bool {
-        return med.err_code == error_code;
-    });
-    return i != error_list_end ? (i - error_list) : (error_list_size - 1);
+static consteval uint8_t FindErrorIndex(const ErrCode error_code) {
+    const auto i = std::ranges::find_if(error_list, [error_code](const auto &med) { return med.err_code == error_code; });
+    if (i != std::end(error_list)) {
+        return i - error_list;
+    }
+
+    consteval_assert_false("Error not found");
 }
 
-// check that the searching algoritm works
+// check that the searching algorithm works
 static_assert(FindErrorIndex(ErrCode::ERR_MECHANICAL_FINDA_DIDNT_TRIGGER) == 0);
 static_assert(FindErrorIndex(ErrCode::ERR_MECHANICAL_FINDA_FILAMENT_STUCK) == 1);
 static_assert(FindErrorIndex(ErrCode::ERR_MECHANICAL_FSENSOR_DIDNT_TRIGGER) == 2);
@@ -175,26 +167,60 @@ const char *PrusaErrorButtonMore() {
     return "More"; // @@TODO MK4
 }
 
-const MMUErrDesc &ConvertMMUErrorCode(uint16_t ec) {
-    return error_list[PrusaErrorCodeIndex(ec)];
+const MMUErrDesc &ConvertMMUErrorCode(ErrorCode ec) {
+    return error_list[PrusaErrorCodeIndex((uint16_t)ec)];
 }
 
-Response ConvertMMUButtonOperation(ButtonOperations bo) {
-    constexpr uint_fast8_t convItems = 7; // @@TODO probably link with MMU2::ButtonOperations directly
-    constexpr std::pair<MMU2::ButtonOperations, Response> conv[convItems] = {
-        { MMU2::ButtonOperations::NoOperation, Response::_none },
-        { MMU2::ButtonOperations::Retry, Response::Retry },
-        { MMU2::ButtonOperations::Continue, Response::Continue },
-        { MMU2::ButtonOperations::ResetMMU, Response::Restart },
-        { MMU2::ButtonOperations::Unload, Response::Unload },
-        { MMU2::ButtonOperations::StopPrint, Response::Stop },
-        { MMU2::ButtonOperations::DisableMMU, Response::MMU_disable },
-    };
-    // @@TODO may be if we force the ButtonOperations to be ordered and directly consecutive, we can do direct indexing
-    // But since this function is called 3x to display an MMU Error Screen (i.e. nowhere near a time-critical part)
-    // even a sequential search is a viable option here
-    auto i = find_if_cx(conv, conv + convItems, [bo](const auto i) { return bo == i.first; });
-    return i == conv + convItems ? Response::_none : i->second;
+static constexpr uint_fast8_t convItems = 7; // @@TODO probably link with MMU2::ButtonOperations directly
+static constexpr std::pair<MMU2::ButtonOperations, Response> conv[convItems] = {
+    { MMU2::ButtonOperations::NoOperation, Response::_none },
+    { MMU2::ButtonOperations::Retry, Response::Retry },
+    { MMU2::ButtonOperations::Continue, Response::Continue },
+    { MMU2::ButtonOperations::ResetMMU, Response::Restart },
+    { MMU2::ButtonOperations::Unload, Response::Unload },
+    { MMU2::ButtonOperations::StopPrint, Response::Stop },
+    { MMU2::ButtonOperations::DisableMMU, Response::MMU_disable },
+};
+
+template <typename RV, typename IN, typename CMP, typename RVEXTRACT>
+constexpr RV ResponseConvert(IN /*in*/, RV none, CMP cmp, RVEXTRACT rvextract) {
+    const auto i = std::ranges::find_if(conv, cmp);
+    return i == (conv + convItems) ? none : rvextract(i);
+}
+
+constexpr Response ButtonOperationToResponseCX(ButtonOperations bo) {
+    return ResponseConvert(
+        bo, Response::_none, [bo](const auto i) { return bo == i.first; }, [](const auto i) { return i->second; });
+}
+
+constexpr ButtonOperations ResponseToButtonOperationsCX(Response rsp) {
+    return ResponseConvert(
+        rsp, ButtonOperations::NoOperation, [rsp](const auto i) { return rsp == i.second; }, [](const auto i) { return i->first; });
+}
+
+// make sure the bidirectional translation works to full extent
+static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::NoOperation) == Response::_none);
+static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::Retry) == Response::Retry);
+static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::Continue) == Response::Continue);
+static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::ResetMMU) == Response::Restart);
+static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::Unload) == Response::Unload);
+static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::StopPrint) == Response::Stop);
+static_assert(ButtonOperationToResponseCX(MMU2::ButtonOperations::DisableMMU) == Response::MMU_disable);
+
+static_assert(ResponseToButtonOperationsCX(Response::_none) == MMU2::ButtonOperations::NoOperation);
+static_assert(ResponseToButtonOperationsCX(Response::Retry) == MMU2::ButtonOperations::Retry);
+static_assert(ResponseToButtonOperationsCX(Response::Continue) == MMU2::ButtonOperations::Continue);
+static_assert(ResponseToButtonOperationsCX(Response::Restart) == MMU2::ButtonOperations::ResetMMU);
+static_assert(ResponseToButtonOperationsCX(Response::Unload) == MMU2::ButtonOperations::Unload);
+static_assert(ResponseToButtonOperationsCX(Response::Stop) == MMU2::ButtonOperations::StopPrint);
+static_assert(ResponseToButtonOperationsCX(Response::MMU_disable) == MMU2::ButtonOperations::DisableMMU);
+
+Response ButtonOperationToResponse(ButtonOperations bo) {
+    return ButtonOperationToResponseCX(bo);
+}
+
+ButtonOperations ResponseToButtonOperations(Response rsp) {
+    return ResponseToButtonOperationsCX(rsp);
 }
 
 struct ResetOnExit {
@@ -204,152 +230,36 @@ struct ResetOnExit {
     }
 };
 
-Buttons ButtonPressed(uint16_t ec) {
+Buttons ButtonPressed(ErrorCode ec) {
     if (buttonSelectedOperation == ButtonOperations::NoOperation) {
-        return NoButton; // no button
+        return Buttons::NoButton; // no button
     }
 
     ResetOnExit ros; // clear buttonSelectedOperation on exit from this call
     return ButtonAvailable(ec);
 }
 
-Buttons ButtonAvailable(uint16_t ec) {
-    uint8_t ei = PrusaErrorCodeIndex(ec);
-
-    // The list of responses which occur in mmu error dialogs
-    // Return button index or perform some action on the MK3 by itself (like restart MMU)
-    // Based on Prusa-Error-Codes errors_list.h
-    // So far hardcoded, but shall be generated in the future
-    switch ((ErrCode)PrusaErrorCode(ei)) {
-    case ErrCode::ERR_MECHANICAL_FINDA_DIDNT_TRIGGER:
-    case ErrCode::ERR_MECHANICAL_FINDA_FILAMENT_STUCK:
-        switch (buttonSelectedOperation) {
-        case ButtonOperations::Retry: // "Repeat action"
-            return Middle;
-        case ButtonOperations::Continue: // "Continue"
-            return Right;
-        default:
-            break;
-        }
-        break;
-    case ErrCode::ERR_MECHANICAL_FSENSOR_DIDNT_TRIGGER:
-    case ErrCode::ERR_MECHANICAL_FSENSOR_FILAMENT_STUCK:
-    case ErrCode::ERR_MECHANICAL_FSENSOR_TOO_EARLY:
-    case ErrCode::ERR_MECHANICAL_INSPECT_FINDA:
-    case ErrCode::ERR_MECHANICAL_SELECTOR_CANNOT_HOME:
-    case ErrCode::ERR_MECHANICAL_SELECTOR_CANNOT_MOVE:
-    case ErrCode::ERR_MECHANICAL_IDLER_CANNOT_HOME:
-    case ErrCode::ERR_MECHANICAL_IDLER_CANNOT_MOVE:
-    case ErrCode::ERR_MECHANICAL_PULLEY_CANNOT_MOVE:
-    case ErrCode::ERR_SYSTEM_UNLOAD_MANUALLY:
-        switch (buttonSelectedOperation) {
-        // may be allow move selector right and left in the future
-        case ButtonOperations::Retry: // "Repeat action"
-            return Middle;
-        default:
-            break;
-        }
-        break;
-    case ErrCode::ERR_MECHANICAL_LOAD_TO_EXTRUDER_FAILED:
-        switch (buttonSelectedOperation) {
-        case ButtonOperations::Continue: // User solved the serious mechanical problem by hand - there is no other way around
-            return Middle;
-        default:
-            break;
-        }
-        break;
-    case ErrCode::ERR_TEMPERATURE_WARNING_TMC_PULLEY_TOO_HOT:
-    case ErrCode::ERR_TEMPERATURE_WARNING_TMC_SELECTOR_TOO_HOT:
-    case ErrCode::ERR_TEMPERATURE_WARNING_TMC_IDLER_TOO_HOT:
-        switch (buttonSelectedOperation) {
-        case ButtonOperations::Continue: // "Continue"
-            return Left;
-        case ButtonOperations::ResetMMU: // "Restart MMU"
-            return RestartMMU;
-        default:
-            break;
-        }
-        break;
-
-    case ErrCode::ERR_TEMPERATURE_TMC_PULLEY_OVERHEAT_ERROR:
-    case ErrCode::ERR_TEMPERATURE_TMC_SELECTOR_OVERHEAT_ERROR:
-    case ErrCode::ERR_TEMPERATURE_TMC_IDLER_OVERHEAT_ERROR:
-
-    case ErrCode::ERR_ELECTRO_TMC_PULLEY_DRIVER_ERROR:
-    case ErrCode::ERR_ELECTRO_TMC_SELECTOR_DRIVER_ERROR:
-    case ErrCode::ERR_ELECTRO_TMC_IDLER_DRIVER_ERROR:
-
-    case ErrCode::ERR_ELECTRO_TMC_PULLEY_DRIVER_RESET:
-    case ErrCode::ERR_ELECTRO_TMC_SELECTOR_DRIVER_RESET:
-    case ErrCode::ERR_ELECTRO_TMC_IDLER_DRIVER_RESET:
-
-    case ErrCode::ERR_ELECTRO_TMC_PULLEY_UNDERVOLTAGE_ERROR:
-    case ErrCode::ERR_ELECTRO_TMC_SELECTOR_UNDERVOLTAGE_ERROR:
-    case ErrCode::ERR_ELECTRO_TMC_IDLER_UNDERVOLTAGE_ERROR:
-
-    case ErrCode::ERR_ELECTRO_TMC_PULLEY_DRIVER_SHORTED:
-    case ErrCode::ERR_ELECTRO_TMC_SELECTOR_DRIVER_SHORTED:
-    case ErrCode::ERR_ELECTRO_TMC_IDLER_DRIVER_SHORTED:
-
-    case ErrCode::ERR_ELECTRO_MMU_PULLEY_SELFTEST_FAILED:
-    case ErrCode::ERR_ELECTRO_MMU_SELECTOR_SELFTEST_FAILED:
-    case ErrCode::ERR_ELECTRO_MMU_IDLER_SELFTEST_FAILED:
-
-    case ErrCode::ERR_CONNECT_MMU_NOT_RESPONDING:
-    case ErrCode::ERR_CONNECT_COMMUNICATION_ERROR:
-
-    case ErrCode::ERR_SYSTEM_QUEUE_FULL:
-    case ErrCode::ERR_SYSTEM_FW_RUNTIME_ERROR:
-        switch (buttonSelectedOperation) {
-        case ButtonOperations::ResetMMU: // "Restart MMU"
-            return RestartMMU;
-        default:
-            break;
-        }
-        break;
-    case ErrCode::ERR_SYSTEM_FW_UPDATE_NEEDED:
-        switch (buttonSelectedOperation) {
-        case ButtonOperations::DisableMMU: // "Disable"
-            return DisableMMU;
-        default:
-            break;
-        }
-        break;
-    case ErrCode::ERR_SYSTEM_FILAMENT_ALREADY_LOADED:
-        switch (buttonSelectedOperation) {
-        case ButtonOperations::Unload: // "Unload"
-            return Left;
-        case ButtonOperations::Continue: // "Proceed/Continue"
-            return Right;
-        default:
-            break;
-        }
-        break;
-
-    case ErrCode::ERR_SYSTEM_INVALID_TOOL:
-        switch (buttonSelectedOperation) {
-        case ButtonOperations::StopPrint: // "Stop print"
-            return StopPrint;
-        case ButtonOperations::ResetMMU: // "Restart MMU"
-            return RestartMMU;
-        default:
-            break;
-        }
-        break;
-    case ErrCode::ERR_SYSTEM_FILAMENT_EJECTED:
-        switch (buttonSelectedOperation) {
-        case ButtonOperations::Continue: // "Continue" - eject filament completed
-            return Middle;
-        default:
-            break;
-        }
-        break;
-
-    default:
-        break;
+Buttons ButtonAvailable(ErrorCode ec) {
+    const MMUErrDesc &d = ConvertMMUErrorCode(ec);
+    auto bi = std::find_if(d.buttons.begin(), d.buttons.end(), [&](ButtonOperations b) { return b == buttonSelectedOperation; });
+    if (bi == d.buttons.end()) {
+        return Buttons::NoButton;
     }
-
-    return NoButton;
+    // there is some button - it is either a Left/Middle/Right (consumed by the MMU) or a special one (consumed by the printer)
+    // so some hand tweaking is necessary
+    switch (*bi) {
+    case ButtonOperations::ResetMMU:
+        return Buttons::RestartMMU;
+    case ButtonOperations::StopPrint:
+        return Buttons::StopPrint;
+    case ButtonOperations::DisableMMU:
+        return Buttons::DisableMMU;
+    default: // by default return the index of the button - which corresponds to Left/Middle/Right
+        static_assert((uint8_t)Buttons::Right == 0);
+        static_assert((uint8_t)Buttons::Middle == 1);
+        static_assert((uint8_t)Buttons::Left == 2);
+        return (Buttons)std::distance(d.buttons.begin(), bi);
+    }
 }
 
 void SetButtonResponse(ButtonOperations rsp) {

@@ -2,9 +2,8 @@
 
 target_sources(
   firmware
-  PUBLIC Dwarf.cpp
-         fifo_decoder.cpp
-         modbus.c
+  PUBLIC fifo_decoder.cpp
+         modbus.cpp
          modular_bed.cpp
          puppy_crash_dump.cpp
          puppy_task.cpp
@@ -15,6 +14,10 @@ target_sources(
   )
 
 target_link_libraries(BuddyHeaders INTERFACE lightmodbus)
+
+if(HAS_DWARF)
+  target_sources(firmware PUBLIC Dwarf.cpp)
+endif()
 
 if(HAS_PUPPIES_BOOTLOADER)
   target_sources(firmware PUBLIC BootloaderProtocol.cpp)

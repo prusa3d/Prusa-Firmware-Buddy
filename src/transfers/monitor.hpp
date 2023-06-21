@@ -159,6 +159,7 @@ public:
 
         double progress_estimate() const;
         uint32_t time_remaining_estimate() const;
+        uint32_t time_transferring() const;
     };
 
     /// An allocated transfer slot.

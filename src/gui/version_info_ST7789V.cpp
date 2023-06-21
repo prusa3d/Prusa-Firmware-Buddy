@@ -20,7 +20,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     , help(this, Rect16(GuiDefaults::RectScreen.Left(), uint16_t(GuiDefaults::RectFooter.Top()) - get_help_h() - blank_space_h, GuiDefaults::RectScreen.Width(), get_help_h()), is_multiline::yes)
     , footer(this) {
     header.SetText(_(label));
-    help.font = resource_font(helper_font);
+    help.set_font(resource_font(helper_font));
     CaptureNormalWindow(menu); // set capture to list
 
     //=============SCREEN INIT===============

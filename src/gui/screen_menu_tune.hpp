@@ -14,10 +14,10 @@
 #include <option/has_toolchanger.h>
 
 /*****************************************************************************/
-//parent alias
+// parent alias
 using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #if !HAS_LOADCELL()
-    MI_LIVE_ADJUST_Z, //position without loadcell
+    MI_LIVE_ADJUST_Z, // position without loadcell
 #endif
     MI_M600,
 #if ENABLED(CANCEL_OBJECTS)
@@ -30,10 +30,10 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif
     MI_HEATBED, MI_PRINTFAN,
 #if HAS_LOADCELL()
-    MI_LIVE_ADJUST_Z, //position with loadcell
+    MI_LIVE_ADJUST_Z, // position with loadcell
 #endif
     MI_FLOWFACT, MI_FILAMENT_SENSOR, MI_SOUND_MODE,
-#if PRINTER_TYPE == PRINTER_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI
     MI_SOUND_VOLUME,
 #endif
     MI_FAN_CHECK
@@ -44,15 +44,15 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #endif // ENABLED(CRASH_RECOVERY)
     ,
     MI_USER_INTERFACE, MI_NETWORK,
-#if (PRINTER_TYPE != PRINTER_PRUSA_MINI) || defined(_DEBUG) // Save space in MINI release
+#if (!PRINTER_IS_PRUSA_MINI) || defined(_DEBUG) // Save space in MINI release
     MI_HARDWARE_TUNE,
-#endif /*(PRINTER_TYPE != PRINTER_PRUSA_MINI) || defined(_DEBUG)*/
+#endif                                          /*(!PRINTER_IS_PRUSA_MINI) || defined(_DEBUG)*/
     MI_TIMEZONE, MI_INFO, MI_TRIGGER_POWER_PANIC,
 
 #ifdef _DEBUG
     MI_TEST,
 #endif                       //_DEBUG
-    /* MI_FOOTER_SETTINGS,*/ //currently experimental, but we want it in future
+    /* MI_FOOTER_SETTINGS,*/ // currently experimental, but we want it in future
     MI_MESSAGES>;
 
 class ScreenMenuTune : public ScreenMenuTune__ {

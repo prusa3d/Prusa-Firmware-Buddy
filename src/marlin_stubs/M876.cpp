@@ -36,7 +36,7 @@
  * E value must be smaller than WarningType::_count
  */
 void GcodeSuite::M876() {
-    //mainly for debug
+    // mainly for debug
 
     if (parser.seenval('E')) {
         uint32_t val = parser.value_int();

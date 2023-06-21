@@ -9,19 +9,19 @@ FooterItemFSValue::FooterItemFSValue(window_t *parent)
 }
 
 int FooterItemFSValue::static_readValue() {
-    IFSensor *sensor = get_active_printer_sensor();
-    if (sensor) {
+    if (IFSensor *sensor = get_active_printer_sensor(); sensor) {
         return sensor->GetFilteredValue();
     }
-    return std::numeric_limits<int>::min();
+    return no_tool_value;
 }
 
 string_view_utf8 FooterItemFSValue::static_makeView(int value) {
-    static char buff[16];
-    if (value == std::numeric_limits<int>::min()) {
-        strncpy(buff, "---", sizeof(buff));
-    } else {
-        snprintf(buff, sizeof(buff), "%d", value);
+    // Show --- if no tool is picked
+    if (value == no_tool_value) {
+        return string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(no_tool_str));
     }
+
+    static char buff[16];
+    snprintf(buff, sizeof(buff), "%d", value);
     return string_view_utf8::MakeRAM((const uint8_t *)buff);
 }

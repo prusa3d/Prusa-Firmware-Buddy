@@ -7,7 +7,7 @@
 #include "WindowMenuSwitch.hpp"
 
 /*****************************************************************************/
-//IWiSwitch
+// IWiSwitch
 IWiSwitch::IWiSwitch(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_)
     : AddSuper<WI_LABEL_t>(label, calculateExtensionWidth(items_, index), id_icon, enabled, hidden)
     , index(index)
@@ -83,19 +83,19 @@ void IWiSwitch::printExtension(Rect16 extension_rect, color_t color_text, color_
 }
 
 void IWiSwitch::printExtension_text(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
-    //draw switch
+    // draw switch
     render_text_align(getSwitchRect(extension_rect), items.texts[index], GuiDefaults::FontMenuItems, color_back,
         (IsFocused() && IsEnabled()) ? GuiDefaults::ColorSelected : color_text,
         padding_ui8(0, 4, 0, 0), Align_t::Center(), false);
 
-    //draw brackets
+    // draw brackets
     if (has_brackets) {
         static const uint8_t bf[] = "[";
         static const uint8_t be[] = "]";
         render_text_align(getLeftBracketRect(extension_rect), string_view_utf8::MakeCPUFLASH(bf), BracketFont,
             color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingSpecial, Align_t::Center(), false);
 
-        //draw bracket end  TODO: Change font
+        // draw bracket end  TODO: Change font
         render_text_align(getRightBracketRect(extension_rect), string_view_utf8::MakeCPUFLASH(be), BracketFont,
             color_back, (IsFocused() && IsEnabled()) ? COLOR_DARK_GRAY : COLOR_SILVER, GuiDefaults::MenuPaddingSpecial, Align_t::Center(), false);
     }

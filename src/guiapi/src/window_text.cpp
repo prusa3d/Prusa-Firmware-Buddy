@@ -18,12 +18,12 @@ window_text_t::window_text_t(window_t *parent, Rect16 rect, is_multiline multili
 
 void window_text_t::unconditionalDraw() {
     if (flags.color_scheme_background || flags.color_scheme_foreground) {
-        //TODO keep only following 3 lines in function body, remove rest
+        // TODO keep only following 3 lines in function body, remove rest
         super::unconditionalDraw();
-        render_text_align(GetRect(), text, font, GetBackColor(), GetTextColor(),
+        render_text_align(GetRect(), text, get_font(), GetBackColor(), GetTextColor(),
             padding, { GetAlignment(), is_multiline(flags.multiline) });
     } else {
-        render_text_align(GetRect(), text, font,
+        render_text_align(GetRect(), text, get_font(),
             (IsFocused()) ? GetTextColor() : GetBackColor(),
             (IsFocused()) ? GetBackColor() : GetTextColor(),
             padding, { GetAlignment(), is_multiline(flags.multiline) });
@@ -31,7 +31,7 @@ void window_text_t::unconditionalDraw() {
 }
 
 /*****************************************************************************/
-//window_text_button_t
+// window_text_button_t
 window_text_button_t::window_text_button_t(window_t *parent, Rect16 rect, ButtonCallback cb, string_view_utf8 txt)
     : AddSuperWindow<window_text_t>(parent, rect, is_multiline::no, is_closed_on_click_t::no, txt)
     , callback(cb) {

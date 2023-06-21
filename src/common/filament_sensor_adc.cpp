@@ -11,16 +11,16 @@
 #include "filament_sensors_handler.hpp"
 #include "log.h"
 #include "metric.h"
-#include "eeprom.h"
 #include "config_buddy_2209_02.h"
 #include "algorithm_range.hpp"
 #include "rtos_api.hpp"
+#include <configuration_store.hpp>
 
 LOG_COMPONENT_REF(FSensor);
 
 namespace {
 
-constexpr int32_t fs_disconnect_threshold = //value for detecting disconnected sensor
+constexpr int32_t fs_disconnect_threshold = // value for detecting disconnected sensor
 #if (BOARD_IS_XLBUDDY)
     20;
 #else
@@ -38,7 +38,7 @@ void FSensorADC::disable() {
 }
 
 void FSensorADC::cycle() {
-    const auto filtered_value { fs_filtered_value.load() }; //store value - so interrupt cannot change it during evaluation
+    const auto filtered_value { fs_filtered_value.load() }; // store value - so interrupt cannot change it during evaluation
 
     if (flg_load_settings) {
         load_settings();
@@ -73,17 +73,9 @@ void FSensorADC::set_state(fsensor_t st) {
     state = st;
 }
 
-eevar_id FSensorADC::get_eeprom_span_id() const {
-    return eeprom_span_id;
-}
-eevar_id FSensorADC::get_eeprom_ref_id() const {
-    return eeprom_ref_id;
-}
-
-FSensorADC::FSensorADC(eevar_id span_id, eevar_id ref_id, uint8_t tool_index)
-    : eeprom_span_id(span_id)
-    , eeprom_ref_id(ref_id)
-    , tool_index(tool_index) {
+FSensorADC::FSensorADC(uint8_t tool_index, bool is_side_sensor)
+    : tool_index(tool_index)
+    , is_side(is_side_sensor) {
     load_settings();
     init();
 }
@@ -123,8 +115,8 @@ void FSensorADC::EnsureHasFilamentValue(int32_t filtered_value) {
 }
 
 int32_t FSensorADC::load_settings() {
-    fs_value_span = variant8_get_ui32(eeprom_get_var(eeprom_span_id));
-    fs_ref_value = variant8_get_i32(eeprom_get_var(eeprom_ref_id));
+    fs_value_span = is_side ? config_store().get_side_fs_value_span(tool_index) : config_store().get_extruder_fs_value_span(tool_index);
+    fs_ref_value = is_side ? config_store().get_side_fs_ref_value(tool_index) : config_store().get_extruder_fs_ref_value(tool_index);
     flg_load_settings = false;
     return fs_ref_value;
 }
@@ -149,7 +141,12 @@ void FSensorADC::save_calibration(int32_t value) {
     if (value == fs_filtered_value_not_ready) {
         return;
     }
-    eeprom_set_var(get_eeprom_ref_id(), variant8_i32(value));
+
+    if (is_side) {
+        config_store().set_side_fs_ref_value(tool_index, value);
+    } else {
+        config_store().set_extruder_fs_ref_value(tool_index, value);
+    }
     req_calibrate = CalibrateRequest::NoCalibration;
     load_settings();
 
@@ -157,7 +154,11 @@ void FSensorADC::save_calibration(int32_t value) {
 }
 
 void FSensorADC::invalidate_calibration() {
-    eeprom_set_var(get_eeprom_ref_id(), variant8_i32(fs_ref_value_not_calibrated));
+    if (is_side) {
+        config_store().set_side_fs_ref_value(tool_index, fs_ref_value_not_calibrated);
+    } else {
+        config_store().set_extruder_fs_ref_value(tool_index, fs_ref_value_not_calibrated);
+    }
     flg_invalid_calib = false;
     load_settings();
 }
@@ -219,12 +220,12 @@ metric_s &FSensorAdcSide::get_metric__static() {
     return ret;
 }
 
-FSensorAdcExtruder::FSensorAdcExtruder(eevar_id span_value, eevar_id ref_value, uint8_t tool_index)
-    : FSensorADC(span_value, ref_value, tool_index)
+FSensorAdcExtruder::FSensorAdcExtruder(uint8_t tool_index, bool is_side_sensor)
+    : FSensorADC(tool_index, is_side_sensor)
     , limit_record(49)
     , limit_record_raw(60) {}
 
-FSensorAdcSide::FSensorAdcSide(eevar_id span_value, eevar_id ref_value, uint8_t tool_index)
-    : FSensorADC(span_value, ref_value, tool_index)
+FSensorAdcSide::FSensorAdcSide(uint8_t tool_index, bool is_side_sensor)
+    : FSensorADC(tool_index, is_side_sensor)
     , limit_record(49)
     , limit_record_raw(60) {}

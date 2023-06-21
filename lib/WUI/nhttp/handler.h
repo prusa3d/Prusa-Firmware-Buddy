@@ -38,6 +38,8 @@
 #include "send_json.h"
 #include "static_mem.h"
 #include "status_page.h"
+#include "status_renderer.h"
+#include "transfer_renderer.h"
 
 #include <http/types.h>
 
@@ -135,6 +137,7 @@ using ConnectionState = std::variant<
     SendFile,
     SendJson<EmptyRenderer>,
     SendJson<TransferRenderer>,
+    SendJson<StatusRenderer>,
     printer::GcodeUpload,
     printer::GCodePreview,
     printer::JobCommand,

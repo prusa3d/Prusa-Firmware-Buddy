@@ -42,19 +42,19 @@ static_assert(sizeof(vars_body_t) == sizeof(eeprom::v7::vars_body_t) + sizeof(va
 
 constexpr vars_body_t body_defaults = {
     eeprom::v7::body_defaults,
-    0,    // EEVAR_FILE_SORT
-    true, // EEVAR_MENU_TIMEOUT
-    0,    // EEVAR_ACTIVE_SHEET
-    { "Smooth1", 0.0f },
-    { "Smooth2", eeprom_z_offset_uncalibrated },
-    { "Textur1", eeprom_z_offset_uncalibrated },
-    { "Textur2", eeprom_z_offset_uncalibrated },
-    { "Custom1", eeprom_z_offset_uncalibrated },
-    { "Custom2", eeprom_z_offset_uncalibrated },
-    { "Custom3", eeprom_z_offset_uncalibrated },
-    { "Custom4", eeprom_z_offset_uncalibrated },
-    0,    // EEVAR_SELFTEST_RESULT
-    true, // EEVAR_DEVHASH_IN_QR
+    0,                                           // EEVAR_FILE_SORT
+    true,                                        // EEVAR_MENU_TIMEOUT
+    0,                                           // EEVAR_ACTIVE_SHEET
+    { "Smooth1", 0.0f },                         // EEVAR_SHEET_PROFILE0
+    { "Smooth2", eeprom_z_offset_uncalibrated }, // EEVAR_SHEET_PROFILE1
+    { "Textur1", eeprom_z_offset_uncalibrated }, // EEVAR_SHEET_PROFILE2
+    { "Textur2", eeprom_z_offset_uncalibrated }, // EEVAR_SHEET_PROFILE3
+    { "Custom1", eeprom_z_offset_uncalibrated }, // EEVAR_SHEET_PROFILE4
+    { "Custom2", eeprom_z_offset_uncalibrated }, // EEVAR_SHEET_PROFILE5
+    { "Custom3", eeprom_z_offset_uncalibrated }, // EEVAR_SHEET_PROFILE6
+    { "Custom4", eeprom_z_offset_uncalibrated }, // EEVAR_SHEET_PROFILE_LAST
+    0,                                           // EEVAR_SELFTEST_RESULT
+    true,                                        // EEVAR_DEVHASH_IN_QR
 };
 
 inline vars_body_t convert(const eeprom::v7::vars_body_t &src) {

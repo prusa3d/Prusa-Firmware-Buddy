@@ -73,7 +73,7 @@ struct GuiDefaults {
     static constexpr padding_ui8_t Padding = { 2, 2, 2, 2 };
 #else
     static constexpr padding_ui8_t Padding = { 0, 0, 0, 0 };
-#endif // USE_<display>
+#endif                      // USE_<display>
     static constexpr Align_t Align() { return Align_t::LeftTop(); }
     static font_t *Font;    // todo constexpr
     static font_t *FontBig; // todo constexpr
@@ -107,8 +107,8 @@ struct GuiDefaults {
     static constexpr Rect16::Width_t FrameWidth = ScreenWidth - 2 * FramePadding; // default frame padding
 #elif defined(USE_ILI9488)
     static constexpr uint8_t FramePadding = 6;          // default frame padding
-#endif                                                 // USE_<display>
-    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4; // maximum number of radio buttons
+#endif                                                                            // USE_<display>
+    static const uint32_t MAX_DIALOG_BUTTON_COUNT = 4;                            // maximum number of radio buttons
 
     // Menu settings
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
@@ -126,8 +126,8 @@ struct GuiDefaults {
     // Enable new menu features
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     static constexpr bool MenuLinesBetweenItems = false;
-    static constexpr bool MenuSwitchHasBrackets = false; // draw brackets around switch values in menus
-    static constexpr bool MenuSpinHasUnits = false;      // draw units behind spin
+    static constexpr bool MenuSwitchHasBrackets = false;                                       // draw brackets around switch values in menus
+    static constexpr bool MenuSpinHasUnits = false;                                            // draw units behind spin
 #elif defined(USE_ILI9488)
     static constexpr bool MenuLinesBetweenItems = true;
     static constexpr bool MenuSwitchHasBrackets = true; // draw brackets around switch values in menus
@@ -146,7 +146,7 @@ struct GuiDefaults {
 #elif defined(USE_ILI9488)
     static constexpr size_t MenuUseFixedUnitWidth = 0;  // 0 == calculate in runtime
     static constexpr Rect16::Width_t MenuScrollbarWidth = MENU_HAS_SCROLLBAR ? 2 : 0;
-    static constexpr uint8_t MenuItemCornerRadius = 5; //
+    static constexpr uint8_t MenuItemCornerRadius = 5;  //
     static constexpr padding_ui8_t MenuItemDelimiterPadding = padding_ui8_t({ 41, 0, 37, 0 });
     static constexpr padding_ui8_t MenuPaddingItems = padding_ui8_t({ 6, 10, 6, 10 });
     static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });

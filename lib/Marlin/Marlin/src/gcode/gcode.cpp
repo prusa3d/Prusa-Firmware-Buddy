@@ -62,6 +62,10 @@ GcodeSuite gcode;
 
 #include "odometer.hpp"
 
+#if ENABLED(PRUSA_TOOL_MAPPING)
+  #include "module/prusa/tool_mapper.hpp"
+#endif
+
 millis_t GcodeSuite::previous_move_ms;
 
 // Relative motion mode for each logical axis
@@ -97,7 +101,13 @@ uint8_t GcodeSuite::axis_relative = (
  */
 int8_t GcodeSuite::get_target_extruder_from_command() {
   if (parser.seenval('T')) {
-    const uint8_t e = parser.value_byte();
+    uint8_t e = parser.value_byte();
+
+    #if ENABLED(PRUSA_TOOL_MAPPING)
+      // map logical tool to physical tool if mapping is enabled
+      const uint8_t mapped = tool_mapper.to_physical(e);
+      e = mapped == ToolMapper::NO_TOOL_MAPPED ? -1 : mapped;
+    #endif
 
     static_assert(EXTRUDERS <= INT8_MAX, "We need to return int8_t");
     bool valid_extruder = (e < EXTRUDERS);
@@ -119,7 +129,13 @@ int8_t GcodeSuite::get_target_extruder_from_command() {
  * Return -1 if the T parameter is out of range or unspecified
  */
 int8_t GcodeSuite::get_target_e_stepper_from_command() {
-  const int8_t e = parser.intval('T', -1);
+  int8_t e = parser.intval('T', -1);
+  #if ENABLED(PRUSA_TOOL_MAPPING)
+    // map logical tool to physical tool if mapping is enabled
+    const uint8_t mapped = tool_mapper.to_physical(e);
+    e = mapped == ToolMapper::NO_TOOL_MAPPED ? -1 : mapped;
+  #endif
+
   if (WITHIN(e, 0, E_STEPPERS - 1)) return e;
 
   SERIAL_ECHO_START();

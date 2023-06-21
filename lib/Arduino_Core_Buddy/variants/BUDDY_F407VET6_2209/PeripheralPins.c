@@ -29,7 +29,7 @@
  * Automatically generated from STM32F407V(E-G)Tx.xml
  */
 #include "Arduino.h"
-//#include "PeripheralPins.h"
+// #include "PeripheralPins.h"
 
 /* =====
  * Note: Commented lines are alternative possibilities which are not used per default.
@@ -388,7 +388,7 @@ const PinMap PinMap_USB_OTG_HS[] = {
     { PC_0, USB_OTG_HS, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF10_OTG_HS) },  // USB_OTG_HS_ULPI_STP
     { PC_2, USB_OTG_HS, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF10_OTG_HS) },  // USB_OTG_HS_ULPI_DIR
     { PC_3, USB_OTG_HS, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF10_OTG_HS) },  // USB_OTG_HS_ULPI_NXT
-    #endif /* USE_USB_HS_IN_FS */
+    #endif                                                                                 /* USE_USB_HS_IN_FS */
     { NC, NP, 0 }
 };
 #endif

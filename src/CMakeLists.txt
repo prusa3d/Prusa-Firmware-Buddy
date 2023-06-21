@@ -8,8 +8,11 @@ add_subdirectory(common)
 add_subdirectory(guiconfig)
 
 if(BOARD MATCHES "BUDDY")
+  add_subdirectory(configuration_store) # Contains a file with long compile time, keep it near top
+
   if(CONNECT OR WUI)
     add_subdirectory(transfers)
+    add_subdirectory(state)
   endif()
 
   if(CONNECT)
@@ -57,4 +60,4 @@ elseif(BOARD STREQUAL "MODULARBED")
   add_subdirectory(puppy/shared)
 endif()
 
-target_sources(firmware PRIVATE freertos.c freertos_openocd.c)
+target_sources(firmware PRIVATE freertos.cpp freertos_openocd.cpp)

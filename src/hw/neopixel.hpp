@@ -77,7 +77,7 @@
  * | sum log 1 [tick] | 27                       | 9                  |
  * | sum log 0 [tick] | 24                       | 8                  |
  *
-*/
+ */
 
 namespace neopixel {
 inline constexpr uint32_t T1H_21MHz = 14;
@@ -92,19 +92,19 @@ inline constexpr uint32_t T0H_10M5Hz = 3;
 inline constexpr uint32_t T0L_10M5Hz = 9;
 inline constexpr uint32_t RESET_10M5Hz = uint32_t(51.f * 10.5f);
 
-//cannot set prescaller to 7 MHz
-//and clock source is fixed
+// cannot set prescaller to 7 MHz
+// and clock source is fixed
 inline constexpr uint32_t T1H_7MHz = 5;
 inline constexpr uint32_t T1L_7MHz = 4;
 inline constexpr uint32_t T0H_7MHz = 2;
 inline constexpr uint32_t T0L_7MHz = 6;
 inline constexpr uint32_t RESET_7MHz = 51 * 7;
 
-//2.5MHz 2812 only
-inline constexpr uint32_t T1H_2M5Hz = 2; //800ns
-inline constexpr uint32_t T1L_2M5Hz = 1; //400ns
-inline constexpr uint32_t T0H_2M5Hz = 1; //400ns
-inline constexpr uint32_t T0L_2M5Hz = 2; //800ns
+// 2.5MHz 2812 only
+inline constexpr uint32_t T1H_2M5Hz = 2; // 800ns
+inline constexpr uint32_t T1L_2M5Hz = 1; // 400ns
+inline constexpr uint32_t T0H_2M5Hz = 1; // 400ns
+inline constexpr uint32_t T0L_2M5Hz = 2; // 800ns
 inline constexpr uint32_t RESET_2M5Hz = uint32_t(51.f * 2.5f);
 
 /**
@@ -186,7 +186,7 @@ protected:
     std::bitset<bitfield_size> led_bitset;
 
     void setHi(size_t &rBitfieldPos) {
-        rBitfieldPos += T1L; //no need to set false
+        rBitfieldPos += T1L; // no need to set false
 
         for (size_t i = 0; i < T1H; ++i) {
             led_bitset[rBitfieldPos++] = true;
@@ -194,7 +194,7 @@ protected:
     }
 
     void setLo(size_t &rBitfieldPos) {
-        rBitfieldPos += T0L; //no need to set false
+        rBitfieldPos += T0L; // no need to set false
 
         for (size_t i = 0; i < T0H; ++i) {
             led_bitset[rBitfieldPos++] = true;
@@ -213,16 +213,16 @@ protected:
 template <size_t COUNT, size_t T1H, size_t T1L, size_t T0H, size_t T0L>
 size_t LedsSPI_base<COUNT, T1H, T1L, T0H, T0L>::setBitset() {
     if (this->leds_to_rewrite == 0 && !this->force_refresh)
-        return 0; //nothing to set
+        return 0;       // nothing to set
 
-    led_bitset.reset(); //clear bit array
+    led_bitset.reset(); // clear bit array
 
     size_t bitfield_position = 0;
 
     for (size_t i = 0; i < this->leds_to_rewrite; ++i) {
         std::bitset<24> bits_of_color = this->leds[i];
         for (size_t bit = 0; bit < 24; ++bit) {
-            bits_of_color[bit] ? setHi(bitfield_position) : setLo(bitfield_position); //bitfield_position passed by reference
+            bits_of_color[bit] ? setHi(bitfield_position) : setLo(bitfield_position); // bitfield_position passed by reference
         }
     }
 
@@ -256,12 +256,12 @@ protected:
         size_t bit_count = this->setBitset();
         size_t bit_read_index = 0; // from bitset
 
-        //write reset pulse
+        // write reset pulse
         for (size_t i = 0; i < (RESET_PULSE + 7) / 8; ++i) {
             send_buff[i] = 0;
         }
 
-        //clear last byte
+        // clear last byte
         send_buff[((bit_count + RESET_PULSE + 7) / 8) - 1] = 0;
 
         for (; bit_read_index < bit_count; ++bit_read_index) {
@@ -299,7 +299,7 @@ protected:
     size_t bitfieldToSendBuff() {
         size_t bit_count = this->setBitset();
 
-        //write reset pulse (clear each byt it overlaps)
+        // write reset pulse (clear each byt it overlaps)
         for (size_t i = bit_count / 8; i < ((bit_count + RESET_PULSE + 7) / 8); ++i) {
             send_buff[i] = 0;
         }

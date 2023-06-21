@@ -9,12 +9,14 @@
 #pragma once
 #include "selftest_loadcell_config.hpp"
 #include "selftest_loadcell_type.hpp"
+#include "Marlin/src/inc/MarlinConfig.h" // HOTENDS
 #include <span>
 
 class IPartHandler;
+class TestReturn;
 
 namespace selftest {
 
-bool phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pLoadcell, const std::span<const LoadcellConfig_t> config);
+TestReturn phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pLoadcell, const std::span<const LoadcellConfig_t> config);
 
 };

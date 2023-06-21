@@ -882,9 +882,6 @@
 
       PrintArea::rect_t probe_area(area_a, area_b);
 
-      #if ENABLED(NOZZLE_LOAD_CELL) & ENABLED(NOZZLE_LOAD_CELL_ALLOWS_LONG_HIGH_PRECISION)
-        auto enabler = Loadcell::HighPrecisionEnabler(loadcell);
-      #endif
       bool is_initial_probe = true;
       #if DISABLED(UBL_DONT_REPORT_POINT_COUNT)
       const int  num_of_points_to_probe = count_points_to_probe();
@@ -920,9 +917,18 @@
             display_map(g29_map_type);
 
           // make initial move manually (has a different speed)
-          if (is_initial_probe)
-            do_blocking_move_to(pos.x, pos.y, Z_CLEARANCE_BEFORE_PROBING);
-          is_initial_probe = false;
+          if (is_initial_probe) {
+            xyz_pos_t start_pos = pos;
+            start_pos -= probe_offset;
+            start_pos.z = Z_CLEARANCE_BEFORE_PROBING;
+            #if HAS_HOTEND_OFFSET
+            start_pos -= hotend_currently_applied_offset;
+            #endif
+            do_blocking_move_to(start_pos.x, start_pos.y, start_pos.z);
+            is_initial_probe = false;
+            safe_delay(Z_FIRST_PROBE_DELAY); // dampen the system
+          }
+
           num_of_probed_points ++;
           // and finally, probe
           #if ENABLED(UBL_DONT_REPORT_POINT_COUNT)

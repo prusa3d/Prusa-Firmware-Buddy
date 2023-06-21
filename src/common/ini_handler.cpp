@@ -4,12 +4,11 @@
 #include "wui_api.h"
 #include <string.h>
 #include "ff.h"
-#include "eeprom.h"
 #include "string.h"
 
 #define MAX_UINT16 65535
 
-static const char ini_file_name[] = "/usb/prusa_printer_settings.ini"; //change -> change msgboxes in screen_lan_settings
+static const char ini_file_name[] = "/usb/prusa_printer_settings.ini"; // change -> change msgboxes in screen_lan_settings
 
 uint8_t ini_save_file(const char *ini_save_str) {
     uint8_t ret_val = 1; // returns 1 on success

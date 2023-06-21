@@ -1,4 +1,4 @@
-//ScreenHandler.hpp
+// ScreenHandler.hpp
 #include "screen.hpp"
 #pragma once
 

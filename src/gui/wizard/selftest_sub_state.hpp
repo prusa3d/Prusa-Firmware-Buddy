@@ -6,7 +6,7 @@
 
 #pragma once
 
-enum class SelftestSubtestState_t : uint8_t { //it is passed as uint8_t between threads
+enum class SelftestSubtestState_t : uint8_t { // it is passed as uint8_t between threads
     undef,
     ok,
     not_good,

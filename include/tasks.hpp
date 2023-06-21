@@ -43,7 +43,7 @@ constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
 /// Definitions of dependencies for different tasks/components
 namespace Tasks {
     inline constexpr dependency_t default_start = make(
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL
         Dependency::puppies_ready,
 #endif
         Dependency::usbserial_ready);

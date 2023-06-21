@@ -14,6 +14,7 @@
 
 
 Errors:
+# XX103 reserved
 - code: "12201"
   title: "PREHEAT ERROR"
   text: "Check the heatbed heater & thermistor wiring for possible damage."

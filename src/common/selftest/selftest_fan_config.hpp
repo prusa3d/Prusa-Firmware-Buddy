@@ -20,7 +20,7 @@ struct FanConfig {
     std::array<uint16_t, STEPS> rpm_min_table;
     std::array<uint16_t, STEPS> rpm_max_table;
 
-    CFanCtl &fanctl;
+    FanCtlFnc fanctl_fnc;
 };
 
 struct SelftestFansConfig {

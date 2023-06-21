@@ -30,7 +30,7 @@ font_t *IWindowMenuItem::getLabelFont() const {
 }
 
 /*****************************************************************************/
-//rectangles
+// rectangles
 
 Rect16 IWindowMenuItem::getIconRect(Rect16 rect) const {
     if (icon_position == IconPosition::right) {
@@ -86,7 +86,7 @@ void IWindowMenuItem::Print(Rect16 rect) {
 
     if (IsIconInvalid()) {
         // Unnecessary invalidation of bg - use commented code if reprinting causes drawing artefacts
-        //render_rounded_rect(getIconRect(rect), GuiDefaults::MenuColorBack, mi_color_back, GuiDefaults::MenuItemCornerRadius, MIC_TOP_LEFT | MIC_BOT_LEFT);
+        // render_rounded_rect(getIconRect(rect), GuiDefaults::MenuColorBack, mi_color_back, GuiDefaults::MenuItemCornerRadius, MIC_TOP_LEFT | MIC_BOT_LEFT);
         printIcon(getIconRect(rect), raster_op, mi_color_back);
     }
 
@@ -103,12 +103,12 @@ void IWindowMenuItem::Print(Rect16 rect) {
 }
 
 /*  color               options: |enabled|focused|dev_only|
-*   MenuColorDevelopment         | 101 or 111
-*   MenuColorDevelopmentDisabled | 001 or 011
-*   MenuColorBack                | 110 or 010
-*   MenuColorText                | 100
-*   MenuColorDisabled            | 000
-*/
+ *   MenuColorDevelopment         | 101 or 111
+ *   MenuColorDevelopmentDisabled | 001 or 011
+ *   MenuColorBack                | 110 or 010
+ *   MenuColorText                | 100
+ *   MenuColorDisabled            | 000
+ */
 color_t IWindowMenuItem::GetTextColor() const {
     if (clr_scheme) {
         return IsFocused() ? clr_scheme->text.focused : clr_scheme->text.unfocused;
@@ -130,10 +130,10 @@ color_t IWindowMenuItem::GetTextColor() const {
 }
 
 /*  color               options: |enabled|focused|
-*   MenuColorBack                | 10 or 00
-*   MenuColorFocusedBack         | 11
-*   MenuColorDisabled            | 01
-*/
+ *   MenuColorBack                | 10 or 00
+ *   MenuColorFocusedBack         | 11
+ *   MenuColorDisabled            | 01
+ */
 color_t IWindowMenuItem::GetBackColor() const {
     if (clr_scheme) {
         return IsFocused() ? clr_scheme->back.focused : clr_scheme->back.unfocused;

@@ -18,18 +18,22 @@ using std::holds_alternative;
 using std::string_view;
 
 void Server::InactivityTimeout::schedule(uint32_t after) {
-    scheduled = sys_now() + after;
+    last_activity = sys_now();
+    // Number of quants in after rounded up.
+    quants_left = (after + INACTIVITY_TIME_QUANT - 1) / INACTIVITY_TIME_QUANT;
+    assert(!past());
+}
+
+void Server::InactivityTimeout::poll_inactivity() {
+    uint32_t now = sys_now();
+    uint32_t since_activity = now - last_activity;
+    if (quants_left > 0 && since_activity >= INACTIVITY_TIME_QUANT) {
+        quants_left--;
+    }
 }
 
 bool Server::InactivityTimeout::past() const {
-    uint32_t diff = sys_now() - scheduled;
-    /*
-     * Wrap-around comparing - if sys_now is smaller, then it underflows.
-     *
-     * If sys_now already overflown and scheduled didn't (it's very large), the
-     * diff is something small because it almost underflows.
-     */
-    return diff < UINT32_MAX / 2;
+    return quants_left == 0;
 }
 
 void Server::Slot::release_buffer() {
@@ -168,20 +172,6 @@ bool Server::Slot::step() {
          */
         assert(buffer->write_pos <= buffer->write_len);
         const auto to_send = std::min(static_cast<uint16_t>(buffer->write_len - buffer->write_pos), send_space());
-        // FIXME:
-        // The TCP_WRITE_FLAG_COPY is a workaround for BFW-2664.
-        //
-        // For some yet undiscovered reason, if it is not used, the data that
-        // eventually gets transmitted over the wire is mangled (middle may be
-        // "cut out") if the packet is small-ish. The data in our buffer are
-        // correct for the whole time, even when the buffer gets ACKed and
-        // released. Nevertheless, the TCP packet contains something else than
-        // the buffer and its checksum is broken, so the recepient doesn't want
-        // it (and it repeats with all the retransmits). This happens only when
-        // ESP is connected & running, but happens on ethernet too...
-        //
-        // Anyway, using this hack as an intermittent mitigation while the
-        // invastigation continues.
         if (to_send > 0 && altcp_write(conn, buffer->data.begin() + buffer->write_pos, to_send, 0) == ERR_OK) {
             buffer->write_pos += to_send;
             altcp_output(conn);
@@ -380,6 +370,7 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
      * inactive as documented. So track if we are or are not active on our side.
      */
     BaseSlot *s = static_cast<BaseSlot *>(slot);
+    s->timeout.poll_inactivity();
     if (!s->timeout.past()) {
         return ERR_OK;
     }

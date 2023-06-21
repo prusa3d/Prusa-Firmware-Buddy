@@ -40,7 +40,7 @@ using std::min;
         #define max(a, b) ((a) > (b) ? (a) : (b))
     #endif // max
 
-#endif // __cplusplus
+#endif     // __cplusplus
 
 /* Official Arduino */
 #define INPUT        0x0
@@ -91,7 +91,7 @@ enum BitOrder {
 #define bitWrite(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
 
 #define bit(b) (1UL << (b))
-//macro added for compatibility
+// macro added for compatibility
 #ifndef _BV
     #define _BV(bit) (1 << (bit))
 #endif

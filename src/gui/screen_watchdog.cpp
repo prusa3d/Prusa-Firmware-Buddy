@@ -19,20 +19,20 @@ screen_watchdog_data_t::screen_watchdog_data_t()
     Sound_Stop();
     Sound_Play(eSOUND_TYPE::CriticalAlert);
 
-    text.font = resource_font(IDR_FNT_BIG);
+    text.set_font(resource_font(IDR_FNT_BIG));
     static const char wdgr[] = "WATCHDOG RESET";
     text.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)wdgr));
     text.SetAlignment(Align_t::Center());
     /*
-    exit.font = resource_font(IDR_FNT_NORMAL);
+    exit.set_font(resource_font(IDR_FNT_NORMAL));
     static const char ptc[] = "press to continue...";
     exit.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)ptc));
     exit.SetAlignment(Align_t::Center());
     */
 }
 
-//TODO uncomment to enable start after click
-//void screen_watchdog_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+// TODO uncomment to enable start after click
+// void screen_watchdog_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 /*    switch (event) {
     case GUI_event_t::CLICK:
     case GUI_event_t::HOLD:

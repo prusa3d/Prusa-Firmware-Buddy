@@ -40,7 +40,7 @@ class Rect16 {
     static Rect16 merge(const Rect16 *rectangles, size_t count);
 
 public:
-    //some structs to work with operators
+    // some structs to work with operators
     struct X_t {
         constexpr X_t(int16_t x = 0)
             : x(x) {}
@@ -435,9 +435,9 @@ public:
     /// @return Return true if the rectangle is empty
     constexpr bool IsEmpty() const { return !(width_ && height_); }
 
-    //experimental features, not tested
-    //TODO define meaningfull operations like X_t-X_t = W_t, X_t+W_t = X_t, X_t-W_t = X_t ...
-    //TODO should not W_t be signed?
+    // experimental features, not tested
+    // TODO define meaningfull operations like X_t-X_t = W_t, X_t+W_t = X_t, X_t-W_t = X_t ...
+    // TODO should not W_t be signed?
     constexpr Rect16 &operator+=(X_t val) {
         top_left_.x += val.x;
         return *this;
@@ -601,7 +601,7 @@ public:
     /// @param[in] rectangles passed by parameter pack
     /// @return Return a rectangle that represents the union of all rectangles
     template <class... E>
-    static Rect16 Merge_ParamPack(E &&... e) {
+    static Rect16 Merge_ParamPack(E &&...e) {
         const size_t SZ = sizeof...(E);
         std::array<Rect16, SZ> arr = { { std::forward<E>(e)... } };
         return Merge(arr);
@@ -732,7 +732,7 @@ private:
 /// @param[in] rhs Rectangle to compare
 /// @return Return true when the rectangle perfectly match, false otherwise
 constexpr bool operator==(Rect16 const &lhs, Rect16 const &rhs) {
-    if (lhs.IsEmpty() && rhs.IsEmpty()) //empty rects are equal
+    if (lhs.IsEmpty() && rhs.IsEmpty()) // empty rects are equal
         return true;
     return lhs.TopLeft() == rhs.TopLeft()
         && lhs.Width() == rhs.Width()

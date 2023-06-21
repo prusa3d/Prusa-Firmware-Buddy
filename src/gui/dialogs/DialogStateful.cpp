@@ -3,7 +3,7 @@
 #include "i18n.h"
 #include "fonts.hpp" //IDR_FNT_BIG
 
-//suppress warning, gcc bug 80635
+// suppress warning, gcc bug 80635
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 IDialogMarlin::IDialogMarlin(std::optional<Rect16> rc)
@@ -43,11 +43,11 @@ IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer
     , title(this, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
     , progress(this, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, GuiDefaults::EnableDialogBigLayout ? COLOR_DARK_GRAY : COLOR_GRAY, PROGRESS_BAR_CORNER_RADIUS)
     , label(this, get_label_rect(GetRect(), child_has_footer), is_multiline::yes) {
-    title.font = GuiDefaults::FontBig;
+    title.set_font(GuiDefaults::FontBig);
     title.SetAlignment(Align_t::Center());
-    progress.SetFont(resource_font(IDR_FNT_BIG));
+    progress.set_font(resource_font(IDR_FNT_BIG));
 
-    label.font = GuiDefaults::EnableDialogBigLayout ? resource_font(IDR_FNT_SPECIAL) : GuiDefaults::FontBig;
+    label.set_font(GuiDefaults::EnableDialogBigLayout ? resource_font(IDR_FNT_SPECIAL) : GuiDefaults::FontBig);
     label.SetAlignment(Align_t::CenterTop());
 }
 

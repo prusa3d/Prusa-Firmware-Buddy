@@ -1,4 +1,4 @@
-//HardwareSerial.h - Buddy/STM32
+// HardwareSerial.h - Buddy/STM32
 #ifndef _HARDWARESERIAL_H
 #define _HARDWARESERIAL_H
 

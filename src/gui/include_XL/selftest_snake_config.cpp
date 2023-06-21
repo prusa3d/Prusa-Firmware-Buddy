@@ -5,17 +5,17 @@
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif
+#include <configuration_store.hpp>
 
 namespace SelftestSnake {
 TestResult get_test_result(Action action, Tool tool) {
-    SelftestResult sr;
-    eeprom_get_selftest_results(&sr);
+    SelftestResult sr = config_store().selftest_result.get();
 
     switch (action) {
     case Action::Fans:
         return merge_hotends_evaluations(
             [&](int8_t e) {
-                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan);
+                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].fansSwitched);
             });
     case Action::ZAlign:
         return evaluate_results(sr.zalign);
@@ -126,10 +126,23 @@ uint64_t get_test_mask(Action action) {
 
 Tool get_last_enabled_tool() {
 #if HAS_TOOLCHANGER()
-    return static_cast<Tool>(prusa_toolchanger.get_num_enabled_tools() - 1);
-#else
+    for (int i = EXTRUDERS - 1; i >= 0; --i) {
+        if (prusa_toolchanger.is_tool_enabled(i)) {
+            return static_cast<Tool>(i);
+        }
+    }
+#endif /*HAS_TOOLCHANGER()*/
     return Tool::Tool1;
-#endif
+}
+
+Tool get_next_tool(Tool tool) {
+#if HAS_TOOLCHANGER()
+    assert(tool != get_last_enabled_tool() && "Unhandled edge case");
+    do {
+        tool = tool + 1;
+    } while (!prusa_toolchanger.is_tool_enabled(ftrstd::to_underlying(tool)));
+#endif /*HAS_TOOLCHANGER()*/
+    return tool;
 }
 
 }

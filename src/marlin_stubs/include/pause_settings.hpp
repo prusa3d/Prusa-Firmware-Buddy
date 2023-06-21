@@ -8,14 +8,14 @@
 #include "../../../lib/Marlin/Marlin/src/core/macros.h"
 #include "../../../lib/Marlin/Marlin/src/core/types.h"
 
-class Pause; //forward declaration, so Settings does not think Pause is member of pause namespace
+class Pause; // forward declaration, so Settings does not think Pause is member of pause namespace
 
 namespace pause {
 
 class Settings {
     friend class ::Pause; // forward declaration of Pause is not enough, have to add scope resolution operator too
 
-    //this values must be set before every load/unload
+    // this values must be set before every load/unload
     float unload_length;
     float slow_load_length;
     float fast_load_length;
@@ -35,7 +35,7 @@ public:
     Settings();
     static constexpr const float minimal_purge = 1;
 
-    //defaults
+    // defaults
     static float GetDefaultFastLoadLength();
     static float GetDefaultSlowLoadLength();
     static float GetDefaultUnloadLength();

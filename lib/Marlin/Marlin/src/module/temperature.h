@@ -323,6 +323,13 @@ class Temperature {
         #define HOTEND_TEMPS HOTENDS
       #endif
       static hotend_info_t temp_hotend[HOTEND_TEMPS];
+
+      #if TEMP_RESIDENCY_TIME > 0
+        // timestamp when temeperature reached target +-TEMP_WINDOW, 0 when outside this window
+        // note: 0 is valid timestamp, but if temperature reaches window at time 0, it will just be evaluated again little later, so it doesn't cause any bug
+        static uint32_t temp_hotend_residency_start_ms[HOTEND_TEMPS];
+      #endif
+      
     #endif
 
     #if HAS_HEATED_BED
@@ -667,6 +674,8 @@ class Temperature {
 
       static void setTargetHotend(const int16_t celsius, const uint8_t E_NAME) {
         const uint8_t ee = HOTEND_INDEX;
+        const int16_t new_temp = _MIN(celsius, temp_range[ee].maxtemp - HEATER_MAXTEMP_SAFETY_MARGIN);
+
         #ifdef MILLISECONDS_PREHEAT_TIME
           if (celsius == 0)
             reset_preheat_time(ee);
@@ -674,9 +683,20 @@ class Temperature {
             start_preheat_time(ee);
         #endif
         #if ENABLED(AUTO_POWER_CONTROL)
-          powerManager.power_on();
+          if (celsius) {
+            powerManager.power_on();
+          }
         #endif
-        temp_hotend[ee].target = _MIN(celsius, temp_range[ee].maxtemp - 15);
+        
+        #if TEMP_RESIDENCY_TIME > 0
+          // target changed, reset time when it reached target
+          if (temp_hotend[ee].target != new_temp){
+            temp_hotend_residency_start_ms[ee] = 0;
+          }
+        #endif
+
+        temp_hotend[ee].target = new_temp;
+        
         start_watching_hotend(ee);
         #if ENABLED(PRUSA_TOOLCHANGER)
           prusa_toolchanger.getTool(ee).set_hotend_target_temp(temp_hotend[ee].target);
@@ -752,7 +772,9 @@ class Temperature {
 
       static void setTargetBed(const int16_t celsius) {
         #if ENABLED(AUTO_POWER_CONTROL)
-          powerManager.power_on();
+          if (celsius) {
+            powerManager.power_on();
+          }
         #endif
         temp_bed.target =
           #ifdef BED_MAXTEMP
@@ -874,6 +896,10 @@ private:
      * used by disable_all_heaters and disable_hotend
      */
     static void disable_heaters(disable_bed_t disable_bed);
+  
+    #if TEMP_RESIDENCY_TIME > 0
+      static void update_temp_residency_hotend(uint8_t hotend);
+    #endif
 public:
     /**
      * Switch off all heaters, set all target temperatures to 0

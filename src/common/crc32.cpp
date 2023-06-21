@@ -10,14 +10,14 @@
 #ifdef CRC32_USE_HW
 osMutexDef(crc32_hw_mutex);
 osMutexId crc32_hw_mutex_id;
-#endif //CRC32_USE_HW
+#endif // CRC32_USE_HW
 
 void crc32_init(void) {
 #ifdef CRC32_USE_HW
     crc32_hw_mutex_id = osMutexCreate(osMutex(crc32_hw_mutex));
     // Enable the peripheral's clock
     __HAL_RCC_CRC_CLK_ENABLE();
-#endif //CRC32_USE_HW
+#endif // CRC32_USE_HW
 }
 
 #ifdef CRC32_USE_HW
@@ -37,13 +37,11 @@ static uint32_t reverse_crc32(uint32_t current_crc, uint32_t desired_crc) {
     return desired_crc ^ current_crc;
 }
 
+    #ifdef CRC32_USE_HW
 static uint32_t crc32_hw(const uint8_t *buffer, uint32_t length, uint32_t crc) {
-    // We may get called on too short buffer to have any work for the HW. In
-    // such case, avoid all the expensive mutex stuff.
     if (length == 0) {
         return crc;
     }
-
     // ensure nobody else uses the peripheral
     osMutexWait(crc32_hw_mutex_id, osWaitForever);
 
@@ -98,9 +96,15 @@ uint32_t crc32_eeprom(const uint32_t *buffer, uint32_t length) {
     osMutexRelease(crc32_hw_mutex_id);
     return result;
 }
+    #endif
+
+#else
+uint32_t crc32_eeprom(const uint32_t *buffer, uint32_t length) {
+    return crc32_calc((uint8_t *)buffer, length * 4);
+}
 #endif
 
-static uint32_t crc32_sw(const uint8_t *buffer, uint32_t length, uint32_t crc) {
+extern uint32_t crc32_sw(const uint8_t *buffer, uint32_t length, uint32_t crc) {
     uint32_t value = crc ^ 0xFFFFFFFF;
     while (length--) {
         value ^= (uint32_t)*buffer++;
@@ -123,7 +127,7 @@ extern uint32_t crc32_calc_ex(uint32_t crc, const uint8_t *data, uint32_t count)
     crc = crc32_hw(data, word_count, crc);
     count -= word_count * 4;
     data += (word_count * 4);
-#endif //CRC32_USE_HW
+#endif // CRC32_USE_HW
 
     // use the software implementation to calculate the rest
     crc = crc32_sw(data, count, crc);

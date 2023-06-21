@@ -1,25 +1,22 @@
 target_include_directories(firmware PRIVATE . include)
 
 if(BOARD MATCHES ".*BUDDY")
-  target_sources(firmware PRIVATE calibrated_loveboard.cpp)
-endif()
-
-if(BOARD MATCHES ".*BUDDY")
   target_sources(
     firmware
     PRIVATE adc.cpp
             app_metrics.cpp
             appmain.cpp
             base64_stream_decoder.cpp
-            basename.cpp
             bbf.cpp
             client_response_texts.cpp
             crc32.cpp
             crc32_zlib.cpp
             eeprom.cpp
+            eeprom_function_api.cpp
             eeprom_loadsave.cpp
             ExtInterruptHandler.cpp
             filename_type.cpp
+            filepath_operation.cpp
             footer_eeprom.cpp
             freertos_mutex.cpp
             fsm_types.cpp
@@ -30,7 +27,6 @@ if(BOARD MATCHES ".*BUDDY")
             hardware_serial.cpp
             heap.cpp
             hwio_pindef_check.cpp
-            hx717.cpp
             i2c.cpp
             ini_handler.cpp
             jsmn.cpp
@@ -42,7 +38,6 @@ if(BOARD MATCHES ".*BUDDY")
             marlin_errors.cpp
             marlin_events.cpp
             marlin_log_component.cpp
-            marlin_move.cpp
             marlin_print_preview.cpp
             marlin_server.cpp
             marlin_vars.cpp
@@ -63,6 +58,7 @@ if(BOARD MATCHES ".*BUDDY")
             safe_state.cpp
             scratch_buffer.cpp
             segmented_json.cpp
+            selftest_result.cpp
             selftest_result_type.cpp
             sensor_data_buffer.cpp
             sound.cpp
@@ -97,7 +93,6 @@ elseif(BOARD MATCHES "DWARF")
     firmware
     PRIVATE adc.cpp
             heap.cpp
-            hx717.cpp
             marlin_log_component.cpp
             otp.cpp
             Pin.cpp
@@ -106,6 +101,10 @@ elseif(BOARD MATCHES "DWARF")
     )
 elseif(BOARD MATCHES "MODULARBED")
   target_sources(firmware PRIVATE heap.cpp otp.cpp)
+endif()
+
+if(HAS_LOADCELL_HX717)
+  target_sources(firmware PRIVATE hx717.cpp)
 endif()
 
 if(PRINTER STREQUAL "MINI")
@@ -136,14 +135,16 @@ if(HAS_LOADCELL)
   target_sources(firmware PRIVATE loadcell.cpp)
 endif()
 
-if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
-  if(BOARD MATCHES "XLBUDDY")
-    target_sources(firmware PRIVATE filament_sensors_handler_toolchanger.cpp)
-  elseif(HAS_MMU2)
+if((BOARD STREQUAL "XBUDDY") OR (BOARD STREQUAL "BUDDY"))
+  if(HAS_MMU2)
     target_sources(firmware PRIVATE filament_sensors_handler_mmu.cpp)
   else()
-    target_sources(firmware PRIVATE filament_sensors_handler_no_mmu.cpp)
+    target_sources(firmware PRIVATE filament_sensors_handler_no_side_sensor.cpp)
   endif()
+endif()
+
+if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
+  target_sources(firmware PRIVATE filament_sensors_handler_${PRINTER}.cpp)
 endif()
 
 if(GUI)
@@ -163,6 +164,7 @@ endif()
 
 add_subdirectory(filters)
 add_subdirectory(fanctl)
+add_subdirectory(mapi)
 
 if(BOARD MATCHES "BUDDY")
   add_subdirectory(crash_dump)

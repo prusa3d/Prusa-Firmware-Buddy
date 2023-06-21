@@ -23,7 +23,7 @@ WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *
     : AddSuperWindow<window_file_list_t>(parent, rect)
     , gcode_info(GCodeInfo::getInstance()) {
 
-    //set root of the file list
+    // set root of the file list
     window_file_list_t::SetRoot(root);
     // initialize the directory
     // here the strncpy is meant to be - need the rest of the buffer zeroed
@@ -33,7 +33,7 @@ WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *
     // cut by the filename to retain only the directory path
     char *c = strrchr(sfn_path, '/');
     *c = 0; // even if we didn't find the '/', c will point to valid memory
-    //check if we are at least in the root directory, if not move to root directory
+    // check if we are at least in the root directory, if not move to root directory
     if (strstr(sfn_path, root) != sfn_path) {
         strlcpy(sfn_path, root, FILE_PATH_BUFFER_LEN);
     }

@@ -2,12 +2,12 @@
 #include "printer_type.hpp"
 
 #include <segmented_json_macros.h>
-#include <eeprom.h>
 #include <lfn.h>
 #include <filename_type.hpp>
 #include <gcode_file.h>
-#include <basename.h>
+#include <filepath_operation.h>
 #include <timing.h>
+#include <state/printer_state.hpp>
 
 #include <cassert>
 #include <cstring>
@@ -16,6 +16,7 @@
 
 using json::JsonOutput;
 using json::JsonResult;
+using printer_state::DeviceState;
 using std::get_if;
 using std::make_tuple;
 using std::min;
@@ -33,37 +34,11 @@ namespace connect_client {
 
 namespace {
 
-    const char *to_str(Printer::DeviceState state) {
+    bool is_printing(DeviceState state) {
         switch (state) {
-        case Printer::DeviceState::Idle:
-            return "IDLE";
-        case Printer::DeviceState::Printing:
-            return "PRINTING";
-        case Printer::DeviceState::Paused:
-            return "PAUSED";
-        case Printer::DeviceState::Finished:
-            return "FINISHED";
-        case Printer::DeviceState::Stopped:
-            return "STOPPED";
-        case Printer::DeviceState::Ready:
-            return "READY";
-        case Printer::DeviceState::Error:
-            return "ERROR";
-        case Printer::DeviceState::Busy:
-            return "BUSY";
-        case Printer::DeviceState::Attention:
-            return "ATTENTION";
-        case Printer::DeviceState::Unknown:
-        default:
-            return "UNKNOWN";
-        }
-    }
-
-    bool is_printing(Printer::DeviceState state) {
-        switch (state) {
-        case Printer::DeviceState::Printing:
-        case Printer::DeviceState::Paused:
-        case Printer::DeviceState::Attention:
+        case DeviceState::Printing:
+        case DeviceState::Paused:
+        case DeviceState::Attention:
             return true;
         default:
             return false;
@@ -196,7 +171,7 @@ namespace {
             creds = state.printer.net_creds();
         }
 
-        if (event.type == EventType::JobInfo && (!printing || event.job_id != params.job_id)) {
+        if (event.type == EventType::JobInfo && (!printing || event.job_id.value_or(params.job_id) != params.job_id)) {
             // Can't send a job info when not printing, refuse instead.
             //
             // Can't provide historic/future jobs.
@@ -285,16 +260,16 @@ namespace {
             } else if (event.type == EventType::JobInfo) {
                 JSON_FIELD_OBJ("data");
                     // The JobInfo doesn't claim the buffer, so we get it to store the path.
-                    assert(params.job_path != nullptr);
+                    assert(params.job_path() != nullptr);
                     if (state.has_stat) {
                         JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("display_name", params.job_lfn != nullptr ? params.job_lfn : basename_b(params.job_path)) JSON_COMMA;
+                    JSON_FIELD_STR("display_name", params.job_lfn() != nullptr ? params.job_lfn() : basename_b(params.job_path())) JSON_COMMA;
                     if (event.start_cmd_id.has_value()) {
                         JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("path", params.job_path);
+                    JSON_FIELD_STR("path", params.job_path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");
@@ -344,7 +319,7 @@ namespace {
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred) JSON_COMMA;
                     JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", ticks_s() - transfer_status->start) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", transfer_status->time_transferring()) JSON_COMMA;
                     // Note: This works, because destination cannot go from non null to null
                     // (if one transfer ends and another starts mid report, we bail out)
                     if (transfer_status->destination) {
@@ -722,7 +697,7 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
         switch (event->type) {
         case EventType::JobInfo:
             if (is_printing(params.state)) {
-                path = params.job_path;
+                path = params.job_path();
             }
             break;
         case EventType::FileInfo: {

@@ -5,10 +5,10 @@ char *GCodeFilter::nextGcode(State *state) {
         const char nextByte = getByte(state);
         if (*state == Eof) {
             if (offset != 0 && !wait_new_line) {
-                //process the read data
+                // process the read data
                 return prepareGcode();
             }
-            //no bytes read return NULL
+            // no bytes read return NULL
             return NULL;
         }
         if (*state != Ok) {

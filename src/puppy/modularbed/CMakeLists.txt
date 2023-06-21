@@ -7,8 +7,8 @@ target_sources(
           main.cpp
           ModbusRegisters.cpp
           stm32g0xx_hal_timebase_tim.cpp
-          syscalls.c
-          trigger_crash_dump.c
+          syscalls.cpp
+          trigger_crash_dump.cpp
   )
 
 target_include_directories(firmware PUBLIC .)

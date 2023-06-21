@@ -8,7 +8,7 @@
 #include "selftest_fans_type.hpp"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 namespace selftest {
 
@@ -54,8 +54,7 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
         }
     };
 
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
+    SelftestResult eeres = config_store().selftest_result.get();
     for (size_t i = 0; i < static_hotend_results.size(); ++i) {
         const auto &hr = static_hotend_results[i];
 
@@ -64,7 +63,7 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
         eeres.tools[i].fansSwitched = to_test_result(hr.fans_switched_state);
     }
 
-    eeprom_set_selftest_results(&eeres);
+    config_store().selftest_result.set(eeres);
 
     for (size_t i = 0; i < fans_parts.size(); i++) {
         delete fans_parts[i];

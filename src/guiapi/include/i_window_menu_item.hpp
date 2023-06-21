@@ -14,9 +14,9 @@
 #include "text_roll.hpp"
 #include <utility_extensions.hpp>
 
-//IWindowMenuItem
-//todo make version with constant label
-//layouts
+// IWindowMenuItem
+// todo make version with constant label
+// layouts
 //+-------+-----------------------------+
 //| icon  | text                        | label
 //+-------+--------------+--------------+
@@ -32,7 +32,7 @@
 //+-------+--------------+--------------+
 
 /*****************************************************************************/
-//IWindowMenuItem
+// IWindowMenuItem
 class IWindowMenuItem {
 public:
     struct ColorScheme {
@@ -67,7 +67,7 @@ public:
     };
 
 protected:
-    //could me moved to gui defaults
+    // could me moved to gui defaults
     static constexpr Rect16::Width_t expand_icon_width = 16;
     static constexpr Rect16::Width_t icon_width = 16;
 
@@ -95,8 +95,8 @@ protected:
     Rect16 getLabelRect(Rect16 rect) const;
     Rect16 getExtensionRect(Rect16 rect) const;
 
-    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const;                               //must be virtual, because pictures of flags are drawn differently
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; //things behind rect
+    virtual void printIcon(Rect16 icon_rect, ropfn raster_op, color_t color_back) const;                               // must be virtual, because pictures of flags are drawn differently
+    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const; // things behind rect
     virtual void click(IWindowMenu &window_menu) = 0;
     virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point);
     virtual invalidate_t change(int /*dif*/) { return invalidate_t::no; }
@@ -140,7 +140,7 @@ public:
         }
     }
     void Disable() {
-        //cannot disable focused item
+        // cannot disable focused item
         if (focused != is_focused_t::yes && enabled != is_enabled_t::no) {
             enabled = is_enabled_t::no;
             Invalidate();
@@ -193,7 +193,7 @@ public:
     void set_icon_position(const IconPosition position);
     IconPosition get_icon_position() const;
 
-    virtual void Loop() {}; //automatically called by menu
+    virtual void Loop() {}; // automatically called by menu
 
     // some friend classes to be able to access / private hide/show methods
     // those methods must not be public, because their usage will break menu!!!

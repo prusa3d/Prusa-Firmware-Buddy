@@ -1,4 +1,4 @@
-//config.h - main configuration file
+// config.h - main configuration file
 #pragma once
 
 #include "stdint.h"

@@ -1,8 +1,6 @@
 /**
- * @file WindowMenuSensor.hpp
- * @author Vitezslav Machacek
+ * @file WindowItemFormatableLabel.hpp
  * @brief Derived from WI_LABEL/IWindowMenuItem
- * @date 2021-6-9
  */
 
 #pragma once

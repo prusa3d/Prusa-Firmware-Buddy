@@ -49,4 +49,4 @@ uint32_t MovingAverageFilter::GetValue() {
     return m_DataMovingAverage;
 }
 
-} //namespace
+} // namespace

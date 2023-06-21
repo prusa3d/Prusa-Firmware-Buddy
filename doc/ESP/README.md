@@ -35,9 +35,9 @@ psk= enter here the valid password
 
 
 
-## Connect printer to PRUSA LINK ##
+## Connect printer to PrusaLink ##
 - Make sure your printer is connected to the network
 - Open an internet browser and copy the IP address from **Setting->Lan settings->WiFI**
-- PrusaLink page should open and request you to enter a username and a password.You will find it in **Settings->PRUSA LINK**.
+- PrusaLink page should open and request you to enter a username and a password. You will find it in **Settings->Network->PrusaLink**.
 - Enter the credentials
 - Telemetric and graphical information regarding the printer status should be displayed

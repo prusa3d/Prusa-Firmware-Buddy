@@ -21,9 +21,9 @@
             #define ENABLE_TRANSLATION_FR
             #define ENABLE_TRANSLATION_IT
             #define ENABLE_TRANSLATION_PL
-        #endif //HAS_TRANSLATIONS()
+        #endif // HAS_TRANSLATIONS()
     #endif     //!_DEBUG
-#endif         //TRANSLATIONS_UNITTEST
+#endif         // TRANSLATIONS_UNITTEST
 
 using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
 #ifndef TRANSLATIONS_UNITTEST

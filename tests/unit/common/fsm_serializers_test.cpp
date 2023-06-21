@@ -5,7 +5,7 @@
  * @date 2021-02-22
  */
 
-//#define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
+// #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch2/catch.hpp"
 
 #include "fsm_types.hpp"
@@ -33,7 +33,7 @@ template <class T>
 using Array = std::array<T, repeat_count>;
 
 /*****************************************************************************/
-//tests
+// tests
 TEST_CASE("ProgressSerializerLoadUnload", "[fsm]") {
     uint8_t progress = GENERATE(0, 1, 5, 0xFF);
 
@@ -47,7 +47,7 @@ TEST_CASE("ProgressSerializerLoadUnload", "[fsm]") {
         LoadUnloadMode mode = GENERATE(LoadUnloadMode::Load, LoadUnloadMode::Purge);
         ProgressSerializerLoadUnload cl2(mode, progress2);
 
-        //progresses with equal data are equal
+        // progresses with equal data are equal
         REQUIRE((cl == cl2) == ((progress == progress2) && (mode == LoadUnloadMode::Load)));
     }
 }
@@ -84,7 +84,7 @@ TEST_CASE("SelftestAxis_t", "[fsm]") {
             SelftestSingleAxis_t(y_progress[cycle2], y_state[cycle2]),
             SelftestSingleAxis_t(z_progress[cycle2], z_state[cycle2]));
 
-        //progeses with equal data are equal
+        // progeses with equal data are equal
         REQUIRE((cl == cl2) == (cycle == cycle2));
     }
 }
@@ -130,7 +130,7 @@ TEST_CASE("SelftestHeaters_t", "[fsm]") {
         cl2.bed.prep_state = bed_prep_state[cycle2];
         cl2.bed.heat_state = bed_heat_state[cycle2];
 
-        //progeses with equal data are equal
+        // progeses with equal data are equal
         REQUIRE((cl == cl2) == (cycle == cycle2));
     }
 }

@@ -10,7 +10,7 @@
 #include "screen.hpp"
 #include <new>
 
-//parent to not repeat code in templates
+// parent to not repeat code in templates
 class IScreenMenu : public AddSuperWindow<screen_t> {
 protected:
     constexpr static const char *no_labelS = "MISSING";
@@ -29,18 +29,18 @@ public:
 template <EFooter FOOTER, class... T>
 class ScreenMenu : public AddSuperWindow<IScreenMenu> {
 protected:
-    //std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
+    // std::array<window_t*,sizeof...(T)> pElements;//todo menu item is not a window
     WinMenuContainer<T...> container;
 
 public:
     ScreenMenu(string_view_utf8 label, window_t *parent = nullptr);
 
-    //compile time access by index
+    // compile time access by index
     template <std::size_t I>
     decltype(auto) Item() {
         return std::get<I>(container.menu_items);
     }
-    //compile time access by type
+    // compile time access by type
     template <class TYPE>
     decltype(auto) Item() {
         return std::get<TYPE>(container.menu_items);
@@ -59,7 +59,7 @@ public:
         }
     }
 
-    //cannot hide focused item
+    // cannot hide focused item
     template <class ITEM>
     bool Hide() {
         return menu.Hide(Item<ITEM>());
@@ -69,7 +69,7 @@ public:
     void Show() {
         menu.Show(Item<ITEM>());
     }
-    //ShowDevOnly intentionally not supported, can be set only in ctor
+    // ShowDevOnly intentionally not supported, can be set only in ctor
 };
 
 template <EFooter FOOTER, class... T>

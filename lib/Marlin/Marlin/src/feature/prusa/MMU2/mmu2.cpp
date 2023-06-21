@@ -458,7 +458,7 @@ void MMU2::tool_change(uint8_t index) {
         manage_response(true, true);
 
         command(MMU_CMD_C0);
-        extruder = index; //filament change is finished
+        extruder = index; // filament change is finished
         active_extruder = 0;
 
         enable_E0();
@@ -568,7 +568,7 @@ void MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
 
     while (!response) {
 
-        response = get_response(); // wait for "ok" from mmu
+        response = get_response();  // wait for "ok" from mmu
 
         if (!response) {            // No "ok" was received in reserved time frame, user will fix the issue on mmu unit
             if (!mmu_print_saved) { // First occurrence. Save current position, park print head, disable nozzle heater.
@@ -653,10 +653,10 @@ void MMU2::load_filament(uint8_t index) {
 }
 
 /**
-   *
-   * Switch material and load to nozzle
-   *
-   */
+ *
+ * Switch material and load to nozzle
+ *
+ */
 bool MMU2::load_filament_to_nozzle(uint8_t index) {
 
     if (!enabled)
@@ -683,13 +683,13 @@ bool MMU2::load_filament_to_nozzle(uint8_t index) {
 }
 
 /**
-   *
-   * Load filament to nozzle of multimaterial printer
-   *
-   * This function is used only only after T? (user select filament) and M600 (change filament).
-   * It is not used after T0 .. T4 command (select filament), in such case, gcode is responsible for loading
-   * filament to nozzle.
-   */
+ *
+ * Load filament to nozzle of multimaterial printer
+ *
+ * This function is used only only after T? (user select filament) and M600 (change filament).
+ * It is not used after T0 .. T4 command (select filament), in such case, gcode is responsible for loading
+ * filament to nozzle.
+ */
 void MMU2::load_to_nozzle() {
     if (!enabled)
         return;
@@ -750,10 +750,10 @@ bool MMU2::eject_filament(uint8_t index, bool recover) {
 }
 
 /**
-   *
-   * unload from hotend and retract to MMU
-   *
-   */
+ *
+ * unload from hotend and retract to MMU
+ *
+ */
 bool MMU2::unload() {
 
     if (!enabled)
@@ -781,8 +781,8 @@ bool MMU2::unload() {
 }
 
 /**
-   * Unload sequence to optimize shape of the tip of the unloaded filament
-   */
+ * Unload sequence to optimize shape of the tip of the unloaded filament
+ */
 void MMU2::filament_ramming() {
     execute_extruder_sequence((const E_Step *)ramming_sequence, sizeof(ramming_sequence) / sizeof(E_Step));
 }
@@ -813,4 +813,4 @@ void MMU2::execute_extruder_sequence(const E_Step *sequence, int steps) {
 
     #endif // HAS_LCD_MENU && MMU2_MENUS
 
-#endif // PRUSA_MMU2
+#endif     // PRUSA_MMU2

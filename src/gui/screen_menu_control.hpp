@@ -6,7 +6,9 @@
 #include "screen_menu.hpp"
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
+#include <option/filament_sensor.h>
 #include <option/has_toolchanger.h>
+#include <option/has_selftest.h>
 #include <printers.h>
 #include "MItem_basic_selftest.hpp"
 
@@ -19,18 +21,29 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_AUTO_HOME,
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
     MI_SELFTEST_SNAKE
 #else
-    MI_CALIB_FIRST,
-    MI_FS_SPAN<EEVAR_FS_VALUE_SPAN_0>,
-    MI_CALIB_Z,
-    MI_CALIB_FSENSOR,
-    MI_CALIB_FSENSOR_MMU,
+    MI_CALIB_FIRST
+    #if HAS_SELFTEST()
+    ,
+    MI_FS_SPAN<0, false>,
+    MI_FS_REF<0, false>,
+    MI_CALIB_Z
+        #if FILAMENT_SENSOR_IS_ADC()
+    ,
+    MI_CALIB_FSENSOR
+            #if HAS_MMU2
+    ,
+    MI_CALIB_FSENSOR_MMU
+            #endif // HAS_MMU2
+        #endif     // FILAMENT_SENSOR_IS_ADC()
+    ,
     MI_SELFTEST,
     MI_DIAGNOSTICS
+    #endif
 #endif
-#if (PRINTER_TYPE == PRINTER_PRUSA_MK4)
+#if PRINTER_IS_PRUSA_MK4
     ,
     MI_CALIB_GEARS
 #endif

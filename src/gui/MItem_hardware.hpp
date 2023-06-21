@@ -1,7 +1,7 @@
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 template <size_t SZ>
 class MI_SWITCH_NOZZLE_DIAMETER_t : public WI_SWITCH_t<SZ> {
@@ -25,15 +25,36 @@ public:
         : MI_SWITCH_NOZZLE_DIAMETER_t<SZ>(index, label, id_icon, enabled, hidden, diameters, I {}) {}
 };
 
-template <eevar_id EEVAR_ID>
+enum class HWCheckType {
+    nozzle,
+    model,
+    firmware,
+    gcode,
+    compatibility
+};
+
+template <HWCheckType HWCheck>
 class MI_HARDWARE_CHECK_t : public WI_SWITCH_t<3> {
     constexpr static const char *str_none = N_("None");
     constexpr static const char *str_warn = N_("Warn");
     constexpr static const char *str_strict = N_("Strict");
 
     size_t get_eeprom() {
-        auto i = eeprom_get_ui8(EEVAR_ID);
-        return i > 2 ? 1 : i; // invalid eeprom value => default
+        switch (HWCheck) {
+        case HWCheckType::nozzle:
+            return static_cast<size_t>(config_store().hw_check_nozzle.get());
+        case HWCheckType::model:
+            return static_cast<size_t>(config_store().hw_check_model.get());
+        case HWCheckType::firmware:
+            return static_cast<size_t>(config_store().hw_check_firmware.get());
+        case HWCheckType::gcode:
+            return static_cast<size_t>(config_store().hw_check_gcode.get());
+        case HWCheckType::compatibility:
+            return static_cast<size_t>(config_store().hw_check_compatibility.get());
+        default:
+            assert(false);
+            return 1;
+        }
     }
 
 public:
@@ -45,7 +66,26 @@ public:
 
 protected:
     void OnChange([[maybe_unused]] size_t old_index) override {
-        eeprom_set_ui8(EEVAR_ID, index);
+        switch (HWCheck) {
+        case HWCheckType::nozzle:
+            config_store().hw_check_nozzle.set(static_cast<HWCheckSeverity>(index));
+            break;
+        case HWCheckType::model:
+            config_store().hw_check_model.set(static_cast<HWCheckSeverity>(index));
+            break;
+        case HWCheckType::firmware:
+            config_store().hw_check_firmware.set(static_cast<HWCheckSeverity>(index));
+            break;
+        case HWCheckType::gcode:
+            config_store().hw_check_gcode.set(static_cast<HWCheckSeverity>(index));
+            break;
+        case HWCheckType::compatibility:
+            config_store().hw_check_compatibility.set(static_cast<HWCheckSeverity>(index));
+            break;
+        default:
+            assert(false);
+            break;
+        }
     }
 };
 
@@ -76,7 +116,7 @@ protected:
 };
 
 class MI_HARDWARE_G_CODE_CHECKS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("G-code Checks");
+    static constexpr const char *const label = N_("G-Code Checks");
 
 public:
     MI_HARDWARE_G_CODE_CHECKS();
@@ -85,7 +125,7 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_NOZZLE_DIAMETER_CHECK : public MI_HARDWARE_CHECK_t<EEVAR_HWCHECK_NOZZLE> {
+class MI_NOZZLE_DIAMETER_CHECK : public MI_HARDWARE_CHECK_t<HWCheckType::nozzle> {
     static constexpr const char *const label = N_("Nozzle Diameter");
 
 public:
@@ -93,7 +133,7 @@ public:
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 
-class MI_PRINTER_MODEL_CHECK : public MI_HARDWARE_CHECK_t<EEVAR_HWCHECK_MODEL> {
+class MI_PRINTER_MODEL_CHECK : public MI_HARDWARE_CHECK_t<HWCheckType::model> {
     static constexpr const char *const label = N_("Printer Model");
 
 public:
@@ -101,7 +141,7 @@ public:
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 
-class MI_FIRMWARE_CHECK : public MI_HARDWARE_CHECK_t<EEVAR_HWCHECK_FIRMW> {
+class MI_FIRMWARE_CHECK : public MI_HARDWARE_CHECK_t<HWCheckType::firmware> {
     static constexpr const char *const label = N_("Firmware Version");
 
 public:
@@ -109,15 +149,15 @@ public:
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 
-class MI_GCODE_LEVEL_CHECK : public MI_HARDWARE_CHECK_t<EEVAR_HWCHECK_GCODE> {
-    static constexpr const char *const label = N_("G-code Level");
+class MI_GCODE_LEVEL_CHECK : public MI_HARDWARE_CHECK_t<HWCheckType::gcode> {
+    static constexpr const char *const label = N_("G-Code Level");
 
 public:
     MI_GCODE_LEVEL_CHECK()
         : MI_HARDWARE_CHECK_t(_(label)) {}
 };
 
-class MI_MK3_COMPATIBILITY_CHECK : public MI_HARDWARE_CHECK_t<EEVAR_HWCHECK_COMPATIBILITY> {
+class MI_MK3_COMPATIBILITY_CHECK : public MI_HARDWARE_CHECK_t<HWCheckType::compatibility> {
     static constexpr const char *const label = N_("MK3 Compatibility");
 
 public:

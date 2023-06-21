@@ -29,12 +29,12 @@
         STRING_TO_LETTERS_4(str, i + 8), \
         STRING_TO_LETTERS_4(str, i + 12)
 
-#define STRING_TO_LETTERS_STR(str) STRING_TO_LETTERS_16(str, 0), 0 //guard for longer strings
+#define STRING_TO_LETTERS_STR(str) STRING_TO_LETTERS_16(str, 0), 0 // guard for longer strings
 
 // cannot use ScreenFactory::Screen because of cyclical dependency
 // here is workaround
 using ScreenUniquePtr = static_unique_ptr<screen_t>;
-using ScreenCreator = static_unique_ptr<screen_t> (*)(); //function pointer definition
+using ScreenCreator = static_unique_ptr<screen_t> (*)(); // function pointer definition
 void open_screen(const ScreenCreator open_fn);
 
 /**
@@ -79,6 +79,6 @@ class MI_SCREEN : public MI_SCREEN_FN<HIDDEN, ScreenFactory::Screen<SCREEN>, LET
 #define GENERATE_SCREEN_ITEM(SCREEN, NAME) MI_SCREEN<is_hidden_t::no, SCREEN, STRING_TO_LETTERS_STR(NAME)>
 #define GENERATE_SCREEN_FN_ITEM(FN, NAME)  MI_SCREEN_FN<is_hidden_t::no, FN, STRING_TO_LETTERS_STR(NAME)>
 
-//dev version is green and does not translate texts
+// dev version is green and does not translate texts
 #define GENERATE_SCREEN_ITEM_DEV(SCREEN, NAME) MI_SCREEN<is_hidden_t::dev, SCREEN, STRING_TO_LETTERS_STR(NAME)>
 #define GENERATE_SCREEN_FN_ITEM_DEV(FN, NAME)  MI_SCREEN_FN<is_hidden_t::dev, FN, STRING_TO_LETTERS_STR(NAME)>

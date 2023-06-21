@@ -20,7 +20,7 @@ IWDG_HandleTypeDef MultiWatchdog::hiwdg = {
  * @brief Create an instance of a watchdog and add it to the global list.
  */
 MultiWatchdog::MultiWatchdog() {
-    //Add itself on top of list
+    // Add itself on top of list
     __disable_irq();
     next = list;
     list = this;
@@ -55,7 +55,7 @@ void MultiWatchdog::init() {
  * @param hardware true to reset hardware, false to only mark (another instance must reset the hardware)
  */
 void MultiWatchdog::kick(bool hardware) {
-    mark = 0xff; // Mark itself
+    mark = 0xff;     // Mark itself
     if (hardware) {
         check_all(); // Check others
     }

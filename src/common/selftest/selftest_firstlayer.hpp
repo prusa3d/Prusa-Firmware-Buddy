@@ -65,7 +65,7 @@ public:
     LoopResult stateInitialDistance();
     LoopResult stateShowStartPrint(); // this states require stateHandleNext
 
-    LoopResult statePrintInit(); // this states require mark loop inserted before, to have functional reprint
+    LoopResult statePrintInit();      // this states require mark loop inserted before, to have functional reprint
     LoopResult stateWaitNozzle();
     LoopResult stateWaitBed();
     LoopResult stateHome();

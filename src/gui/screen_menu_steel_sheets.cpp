@@ -4,7 +4,6 @@
 
 #include "screen_menu_steel_sheets.hpp"
 #include <type_traits>
-#include "eeprom.h"
 #include "log.h"
 #include "GuiDefaults.hpp"
 #include "ScreenHandler.hpp"

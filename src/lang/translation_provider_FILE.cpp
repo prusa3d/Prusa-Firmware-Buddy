@@ -2,7 +2,7 @@
 
 extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
 
-//path cannot be longer than 16 characters
+// path cannot be longer than 16 characters
 FILETranslationProvider fileProviderInternal("/internal/ts.mo");
 FILETranslationProvider fileProviderUSB("/usb/lang/ts.mo");
 
@@ -11,12 +11,12 @@ FILETranslationProvider::FILETranslationProvider(const char *path) {
 }
 
 string_view_utf8 FILETranslationProvider::GetText(const char *key) const {
-    //check if file is valid, if not try to open it again
+    // check if file is valid, if not try to open it again
     if (!EnsureFile()) {
         return string_view_utf8::MakeCPUFLASH((const uint8_t *)key);
     }
 
-    //find translation for key, if not found return the original string
+    // find translation for key, if not found return the original string
     int32_t offset = 0;
     switch (offset = m_HashTable.GetOffset(key)) {
     case gettext_hash_table::FileErrorOccurred:
@@ -32,11 +32,11 @@ string_view_utf8 FILETranslationProvider::GetText(const char *key) const {
 
 bool FILETranslationProvider::EnsureFile() const {
 
-    //check if there is open file, if yes it must have been open with this function and is valid
+    // check if there is open file, if yes it must have been open with this function and is valid
     if (m_File != nullptr) {
         return true;
     }
-    FileRAII file(m_File = fopen(m_Path, "rb")); //now we know that the FILE* is valid
+    FileRAII file(m_File = fopen(m_Path, "rb")); // now we know that the FILE* is valid
     if (m_File == nullptr)
         return false;
 

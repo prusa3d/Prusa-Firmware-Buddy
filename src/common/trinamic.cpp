@@ -9,7 +9,7 @@
 #include "bsod.h"
 #include "metric.h"
 #include <device/board.h>
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 using namespace buddy::hw;
 #if HAS_DRIVER(TMC2130)
@@ -18,9 +18,9 @@ static TMC2130Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 static TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 #endif
 
-static uint16_t tmc_sg[4];      // stallguard result for each axis
-static uint8_t tmc_sg_mask = 7; // stallguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
-static uint8_t tmc_sg_axis = 0; // current axis for stallguard result sampling (0-x, 1-y, ...)
+static uint16_t tmc_sg[4];                          // stallguard result for each axis
+static uint8_t tmc_sg_mask = 7;                     // stallguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
+static uint8_t tmc_sg_axis = 0;                     // current axis for stallguard result sampling (0-x, 1-y, ...)
 
 static tmc_sg_sample_cb_t *tmc_sg_sample_cb = NULL; // sg sample callback
 
@@ -193,17 +193,17 @@ void tmc_enable_wavetable(bool enabled, bool X, bool Y, bool Z) {
     }
 #else
     (void)(enabled && X && Y && Z);
-#endif //HAS_TMC_WAVETABLE
+#endif // HAS_TMC_WAVETABLE
 }
 
 void init_tmc(void) {
     init_tmc_bare_minimum();
-    //pointers to TMCStepper instances
+    // pointers to TMCStepper instances
     pStep[X_AXIS] = &stepperX;
     pStep[Y_AXIS] = &stepperY;
     pStep[Z_AXIS] = &stepperZ;
     pStep[E_AXIS] = &stepperE0;
-    //set TCOOLTHRS
+    // set TCOOLTHRS
     pStep[X_AXIS]->TCOOLTHRS(400);
     pStep[Y_AXIS]->TCOOLTHRS(400);
     pStep[Z_AXIS]->TCOOLTHRS(400);
@@ -219,7 +219,7 @@ void init_tmc(void) {
 void init_tmc_bare_minimum(void) {
     tmc_mutex_id = osMutexCreate(osMutex(tmc_mutex));
 
-    //pointers to TMCStepper instances
+    // pointers to TMCStepper instances
     pStep[X_AXIS] = &stepperX;
     pStep[Y_AXIS] = &stepperY;
     pStep[Z_AXIS] = &stepperZ;
@@ -232,7 +232,7 @@ void init_tmc_bare_minimum(void) {
 #endif
 
 #ifdef HAS_TMC_WAVETABLE
-    tmc_enable_wavetable(eeprom_get_bool(EEVAR_TMC_WAVETABLE_ENABLED), true, true, true);
+    tmc_enable_wavetable(config_store().tmc_wavetable_enabled.get(), true, true, true);
 #endif
 }
 
@@ -326,4 +326,4 @@ extern uint16_t tmc_get_last_sg_sample(uint8_t axis) {
     return tmc_sg[axis];
 }
 
-} //extern "C"
+} // extern "C"

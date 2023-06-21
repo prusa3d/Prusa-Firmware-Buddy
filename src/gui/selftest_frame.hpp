@@ -25,7 +25,7 @@ protected:
     fsm::PhaseData data_previous;
 
     virtual void change() {};
-    virtual void pre_change() {}; //something to do before change
+    virtual void pre_change() {}; // something to do before change
 
 public:
     SelftestFrame(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);
@@ -38,7 +38,7 @@ public:
 class SelftestFrameWithRadio : public AddSuperWindow<SelftestFrame> {
 protected:
     RadioButtonFsm<PhasesSelftest> radio;
-    virtual void pre_change() override; //update radio button
+    virtual void pre_change() override; // update radio button
 public:
     SelftestFrameWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, size_t lines_of_footer = 0);
 };
@@ -60,7 +60,7 @@ public:
 class SelftestFrameNamedWithRadio : public AddSuperWindow<SelftestFrameNamed> {
 protected:
     RadioButtonFsm<PhasesSelftest> radio;
-    virtual void pre_change() override; //update radio button
+    virtual void pre_change() override; // update radio button
 public:
     SelftestFrameNamedWithRadio(window_t *parent, PhasesSelftest ph, fsm::PhaseData data, string_view_utf8 name, size_t lines_of_footer = 0);
 };

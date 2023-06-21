@@ -12,10 +12,10 @@ namespace modularbed {
 #define THERMISTOR_INITIAL_RESISTANCE 100000.0f
 
 enum class HeatbedletState {
-    Inactive, //target temp. = 0
-    Heating,  //target temp. > 0; measured temp. < target temp.; temperature not stabilized
-    Cooling,  //target temp. > 0; measured temp. > target temp.; temperature not stabilized
-    Stable,   //target temp. > 0, temperature stabilized
+    Inactive, // target temp. = 0
+    Heating,  // target temp. > 0; measured temp. < target temp.; temperature not stabilized
+    Cooling,  // target temp. > 0; measured temp. > target temp.; temperature not stabilized
+    Stable,   // target temp. > 0, temperature stabilized
     Error,
 };
 
@@ -92,4 +92,4 @@ private:
     static HeatbedletInfo s_HBInfoArray[HEATBEDLET_COUNT];
 };
 
-} //namespace
+} // namespace

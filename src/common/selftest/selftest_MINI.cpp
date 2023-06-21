@@ -15,7 +15,6 @@
 #include "wizard_config.hpp"
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
-#include "eeprom.h"
 #include "selftest_fans_type.hpp"
 #include "selftest_axis_type.hpp"
 #include "selftest_heaters_type.hpp"
@@ -29,6 +28,7 @@
 #include "fanctl.hpp"
 #include "timing.h"
 #include "selftest_result_type.hpp"
+#include <configuration_store.hpp>
 
 using namespace selftest;
 
@@ -72,14 +72,14 @@ static constexpr SelftestFansConfig fans_configs[] = {
             .pwm_step = 204,
             .rpm_min_table = { 10, 10 },
             .rpm_max_table = { 10000, 10000 },
-            .fanctl = fanCtlPrint[0]
+            .fanctl_fnc = Fans::print
         },
         .heatbreak_fan = {
             .pwm_start = 51,
             .pwm_step = 204,
             .rpm_min_table = { 10, 10 },
             .rpm_max_table = { 10000, 10000 },
-            .fanctl = fanCtlHeatBreak[0]
+            .fanctl_fnc = Fans::heat_break
         }
     }
 };
@@ -100,8 +100,8 @@ static const HeaterConfig_t Config_HeaterNozzle[] = {
         .refKp = Temperature::temp_hotend[0].pid.Kp,
         .refKi = Temperature::temp_hotend[0].pid.Ki,
         .refKd = Temperature::temp_hotend[0].pid.Kd,
-        .heatbreak_fan = fanCtlHeatBreak[0],
-        .print_fan = fanCtlPrint[0],
+        .heatbreak_fan_fnc = Fans::heat_break,
+        .print_fan_fnc = Fans::print,
         .heat_time_ms = 42000,
         .start_temp = 40,
         .undercool_temp = 37,
@@ -119,8 +119,8 @@ static const HeaterConfig_t Config_HeaterBed = {
     .refKp = Temperature::temp_bed.pid.Kp,
     .refKi = Temperature::temp_bed.pid.Ki,
     .refKd = Temperature::temp_bed.pid.Kd,
-    .heatbreak_fan = fanCtlHeatBreak[0],
-    .print_fan = fanCtlPrint[0],
+    .heatbreak_fan_fnc = Fans::heat_break,
+    .print_fan_fnc = Fans::print,
     .heat_time_ms = 60000,
     .start_temp = 40,
     .undercool_temp = 39,
@@ -145,6 +145,10 @@ bool CSelftest::IsInProgress() const {
     return ((m_State != stsIdle) && (m_State != stsFinished) && (m_State != stsAborted));
 }
 
+bool CSelftest::IsAborted() const {
+    return (m_State == stsAborted);
+}
+
 bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans)
@@ -154,13 +158,13 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stmHeaters)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_heaters));
     if (m_Mask & stmZAxis)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup));       // if Z is calibrated, move it up
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); //any selftest state will trigger selftest additional init
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); //any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
 
-    //dont show message about footer and do not wait response
+    // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
 
@@ -243,7 +247,7 @@ void CSelftest::Loop() {
         selftest::phaseHeaters_bed_ena(pBed, Config_HeaterBed);
         break;
     case stsHeaters:
-        if (selftest::phaseHeaters(pNozzles, pBed))
+        if (selftest::phaseHeaters(pNozzles, &pBed))
             return;
         break;
     case stsWait_heaters:
@@ -303,19 +307,19 @@ void CSelftest::Loop() {
 }
 
 void CSelftest::phaseShowResult() {
-    eeprom_get_selftest_results(&m_result);
+    m_result = config_store().selftest_result.get();
     FSM_CHANGE_WITH_DATA__LOGGING(Selftest, PhasesSelftest::Result, FsmSelftestResult().Serialize());
 }
 
 void CSelftest::phaseDidSelftestPass() {
-    eeprom_get_selftest_results(&m_result);
+    m_result = config_store().selftest_result.get();
     SelftestResult_Log(m_result);
 
-    //dont run wizard again
+    // dont run wizard again
     if (SelftestResult_Passed(m_result)) {
-        eeprom_set_bool(EEVAR_RUN_SELFTEST, false); // clear selftest flag
-        eeprom_set_bool(EEVAR_RUN_XYZCALIB, false); // clear XYZ calib flag
-        eeprom_set_bool(EEVAR_RUN_FIRSTLAY, false); // clear first layer flag
+        config_store().run_selftest.set(false);    // clear selftest flag
+        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_first_layer.set(false); // clear first layer flag
     }
 }
 
@@ -324,9 +328,9 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        eeprom_set_bool(EEVAR_RUN_SELFTEST, false); // clear selftest flag
-        eeprom_set_bool(EEVAR_RUN_XYZCALIB, false); // clear XYZ calib flag
-        eeprom_set_bool(EEVAR_RUN_FIRSTLAY, false); // clear first layer flag
+        config_store().run_selftest.set(false);    // clear selftest flag
+        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_first_layer.set(false); // clear first layer flag
         Abort();
     }
     return response == Response::_none;
@@ -362,10 +366,11 @@ void CSelftest::phaseSelftestStart() {
         marlin_server::set_temp_to_display(0, 0);
     }
 
-    eeprom_get_selftest_results(&m_result); // read previous result
+    m_result = config_store().selftest_result.get(); // read previous result
     if (m_Mask & stmFans) {
         m_result.tools[0].printFan = TestResult_Unknown;
         m_result.tools[0].heatBreakFan = TestResult_Unknown;
+        m_result.tools[0].fansSwitched = TestResult_Unknown;
     }
     if (m_Mask & stmXAxis)
         m_result.xaxis = TestResult_Unknown;
@@ -377,7 +382,7 @@ void CSelftest::phaseSelftestStart() {
         m_result.tools[0].nozzle = TestResult_Unknown;
         m_result.bed = TestResult_Unknown;
     }
-    eeprom_set_selftest_results(&m_result); // reset status for all selftest parts in eeprom
+    config_store().selftest_result.set(m_result); // reset status for all selftest parts in eeprom
 }
 
 void CSelftest::restoreAfterSelftest() {
@@ -386,9 +391,9 @@ void CSelftest::restoreAfterSelftest() {
     thermalManager.setTargetHotend(0, 0);
     marlin_server::set_temp_to_display(0, 0);
 
-    //restore fan behavior
-    fanCtlPrint[0].ExitSelftestMode();
-    fanCtlHeatBreak[0].ExitSelftestMode();
+    // restore fan behavior
+    Fans::print(0).ExitSelftestMode();
+    Fans::heat_break(0).ExitSelftestMode();
 
     thermalManager.disable_all_heaters();
     disable_all_steppers();
@@ -404,18 +409,18 @@ void CSelftest::next() {
 
     // check, if state can run
     // this must be done after mask check
-    eeprom_get_selftest_results(&m_result);
+    m_result = config_store().selftest_result.get();
     switch (m_State) {
-    case stsZAxis: // both X and Y must be OK to test Z
+    case stsZAxis:   // both X and Y must be OK to test Z
         if (m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed)
             return;  // current state can be run
         break;       // current state cannot be run
     case stsMoveZup: // Z must be OK, if axis are not homed, it could be stacked at the top and generate noise, but the way states are generated from mask should prevent it
         if (m_result.zaxis == TestResult_Passed)
-            return; // current state can be run
-        break;      // current state cannot be run
+            return;  // current state can be run
+        break;       // current state cannot be run
     default:
-        return; // current state can be run
+        return;      // current state can be run
     }
 
     // current state cannot be run
@@ -436,7 +441,7 @@ const char *CSelftest::get_log_suffix() {
     return suffix;
 }
 
-//declared in parent source file
+// declared in parent source file
 ISelftest &SelftestInstance() {
     static CSelftest ret = CSelftest();
     return ret;

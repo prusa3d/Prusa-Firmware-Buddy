@@ -21,8 +21,6 @@ ESPFlash::ESPFlash()
 }
 
 ESPFlash::State ESPFlash::flash() {
-    espif_flash_initialize(false);
-
     // Get file sizes
     for (esp_fw_entry &fwpart : firmware_set) {
         struct stat fs;
@@ -34,14 +32,22 @@ ESPFlash::State ESPFlash::flash() {
     update_progress();
 
     // Connect ESP
-    esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
-    if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
-        log_info(EspFlash, "ESP boot connect OK");
-        state = State::Connected;
-    } else {
-        log_debug(EspFlash, "ESP boot failed");
-        state = State::NotConnected;
-        goto end;
+    for (int tries = retries;; tries--) {
+        espif_flash_initialize(false);
+        esp_loader_connect_args_t config = ESP_LOADER_CONNECT_DEFAULT();
+        if (ESP_LOADER_SUCCESS == esp_loader_connect(&config)) {
+            log_info(EspFlash, "ESP boot connect OK");
+            state = State::Connected;
+            break;
+        }
+
+        if (!tries) {
+            log_debug(EspFlash, "ESP boot failed");
+            state = State::NotConnected;
+            goto end;
+        }
+
+        espif_flash_deinitialize();
     }
 
     // Flash all files

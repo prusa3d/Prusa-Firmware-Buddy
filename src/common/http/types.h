@@ -129,6 +129,11 @@ enum Status {
     InsufficientStorage = 507,
 };
 
+enum class APIVersion {
+    Octoprint,
+    v1
+};
+
 // TODO: Replace stringy URLs with tokens/enums.
 // Note: The same buffer is also reused for the boundary. We can do that because:
 // * We need the boundary only for short URLs.

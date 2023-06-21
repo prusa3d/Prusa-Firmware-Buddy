@@ -120,20 +120,20 @@ std::string AppendCRC(const std::string_view src) {
     return AppendCRC(src, crc);
 }
 
-//std::string AppendCRCWrite(const std::string_view src) {
-//    // this code basically needs parsing of the input text and compute the CRC from the parsed data
-//    REQUIRE(src.size() > 3);
-//    // code
-//    uint8_t crc = modules::crc::CRC8::CCITT_updateCX(0, src[0]);
-//    // scan hex value
-//    uint8_t rqValue = std::stoul(src.data() + 1, nullptr, 16);
-//    crc = modules::crc::CRC8::CCITT_updateCX(crc, rqValue);
-//    // [2] is a space
-//    // value follows immediately
-//    uint16_t paramValue = std::stoul(src.data() + 3, nullptr, 16);
-//    crc = modules::crc::CRC8::CCITT_updateW(crc, paramValue);
-//    return AppendCRC(src, crc);
-//}
+// std::string AppendCRCWrite(const std::string_view src) {
+//     // this code basically needs parsing of the input text and compute the CRC from the parsed data
+//     REQUIRE(src.size() > 3);
+//     // code
+//     uint8_t crc = modules::crc::CRC8::CCITT_updateCX(0, src[0]);
+//     // scan hex value
+//     uint8_t rqValue = std::stoul(src.data() + 1, nullptr, 16);
+//     crc = modules::crc::CRC8::CCITT_updateCX(crc, rqValue);
+//     // [2] is a space
+//     // value follows immediately
+//     uint16_t paramValue = std::stoul(src.data() + 3, nullptr, 16);
+//     crc = modules::crc::CRC8::CCITT_updateW(crc, paramValue);
+//     return AppendCRC(src, crc);
+// }
 
 bool StepAndCheckState(MMU2::ProtocolLogic &pl, const std::string_view rxContent, PST plState, PSC plScope, MMU2::StepStatus stepStatus, const std::string_view txContent) {
     rxbuff = rxContent.empty() ? rxContent : AppendCRC(rxContent);
@@ -666,13 +666,13 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic VersionMismatch2", "[Marlin][MMU2]") {
     SimVersionMismatch(pl, 2);
 }
 
-//void SendReceiveCheck(MMU2::ProtocolLogic &pl, std::string_view rx, std::string_view expectedTX,
-//    MMU2::PST expectedPLS, MMU2::StepStatus expectedSR)
+// void SendReceiveCheck(MMU2::ProtocolLogic &pl, std::string_view rx, std::string_view expectedTX,
+//     MMU2::PST expectedPLS, MMU2::StepStatus expectedSR)
 //{
-//    txbuffQ.clear(); // pretend we sent the data
-//    rxbuff = rx;
-//    auto sr = pl.Step();
-//    ++ms;
+//     txbuffQ.clear(); // pretend we sent the data
+//     rxbuff = rx;
+//     auto sr = pl.Step();
+//     ++ms;
 
 //    // the automaton must retry sending S0
 //    REQUIRE(pl.state == expectedPLS);
@@ -765,7 +765,7 @@ void InitSeqPatchStrings(std::string &rx, std::string &tx, uint8_t stage) {
     rx = std::regex_replace(rx, std::regex("v"), (stage < 3 ? std::to_string(stageVersionNrs[stage]) : "0"));
     rx = std::regex_replace(rx, std::regex("S4.*"), "Wb A");
 
-    std::replace(tx.begin(), tx.end(), 'x', stageChar); // replace all 'x' with the current stage number
+    std::replace(tx.begin(), tx.end(), 'x', stageChar);     // replace all 'x' with the current stage number
     std::replace(tx.begin(), tx.end(), 'y', stage_1Char);
     tx = std::regex_replace(tx, std::regex("S4"), "Wb 1e"); // there is no stage3 but a 'Wb 1e' follows
 }
@@ -822,7 +822,7 @@ void CheckInitSeqStage(MMU2::ProtocolLogic &pl) {
 
             // handle delayed restart
             ms += heartBeatPeriod;
-            pl.Step(); // should move to S0
+            pl.Step();                       // should move to S0
             break;
         case InitStageNext::RepeatSameQuery: // repeat the same query - pick next stage record
             NextStage(i);

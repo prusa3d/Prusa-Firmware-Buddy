@@ -7,7 +7,7 @@
     #define MAXPATHNAMELENGTH (1 + (MAXDIRNAMELENGTH + 1) * (MAX_DIR_DEPTH) + 1 + FILENAME_LENGTH) // "/" + N * ("ADIRNAME/") + "filename.ext"
 #endif
 
-//FIXME why was there same macros as in file_list_defs.h but with different values?
+// FIXME why was there same macros as in file_list_defs.h but with different values?
 #if (0)
 /*
  * Using limits from marlin:

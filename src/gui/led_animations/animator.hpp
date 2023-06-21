@@ -9,6 +9,7 @@
 #include "bsod.h"
 #include <mutex>
 #include "bsod_gui.hpp"
+#include "config.h"
 
 // allocates and deallocates memory space (one size) on statically allocated memory
 template <class Space, size_t SIZE>
@@ -27,7 +28,9 @@ public:
                 return &storage[i];
             }
         }
+#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
         fatal_error(ErrCode::ERR_SYSTEM_LED_ANIMATION_BAD_SPACE_MANAGEMENT);
+#endif
         return nullptr;
     }
     void free_space(Space *space) {
@@ -68,7 +71,7 @@ protected:
     void start_animation(Animation *animation);
 
     template <class T, class... Args>
-    Animation *create_animation(MemSpace *space, Args &&... args); //< Creates animation
+    Animation *create_animation(MemSpace *space, Args &&...args); //< Creates animation
 
     bool load_run_state();
     void save_run_state(bool state);
@@ -81,7 +84,7 @@ protected:
 };
 
 template <class T, class... Args>
-Animation *AnimatorBase::create_animation(MemSpace *space, Args &&... args) {
+Animation *AnimatorBase::create_animation(MemSpace *space, Args &&...args) {
     static_assert(sizeof(T) <= sizeof(MemSpace), "Error animation does not fit");
     return ::new (space) T(std::forward<Args>(args)...); //::new - global new (no other new defined elsewhere)
 }

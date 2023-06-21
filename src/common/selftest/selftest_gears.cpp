@@ -5,7 +5,7 @@
 #include "common/RAII.hpp"
 #include "M70X.hpp"
 
-#include "marlin_move.hpp"
+#include "mapi/motion.hpp"
 #include "Marlin/src/module/temperature.h"
 #include "../../Marlin/src/module/stepper.h"
 
@@ -236,7 +236,7 @@ LoopResult SelftestGears::state_done() {
 void SelftestGears::move_gear() {
     AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
     thermalManager.allow_cold_extrude = true;
-    marlin::extruder_schedule_turning(config.feedrate, -0.6);
+    mapi::extruder_schedule_turning(config.feedrate, -0.6);
 }
 
 } // namespace selftest

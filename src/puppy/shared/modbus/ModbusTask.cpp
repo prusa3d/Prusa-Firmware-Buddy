@@ -47,7 +47,7 @@ bool Init() {
 }
 
 void OnReceive(uint8_t *pData, uint32_t dataSize) {
-    //WARNING: this method is called form USART IRQ handler
+    // WARNING: this method is called form USART IRQ handler
 
     if (dataSize > RS485_BUFFER_SIZE) {
         dataSize = RS485_BUFFER_SIZE;
@@ -68,7 +68,7 @@ void DisableModbus() {
 }
 
 void ModbusTaskFunction([[maybe_unused]] const void *argument) {
-    hal::MultiWatchdog wdg; //Add one instance of watchdog
+    hal::MultiWatchdog wdg; // Add one instance of watchdog
     hal::RS485Driver::SetOnReceiveCallback(OnReceive);
     hal::RS485Driver::StartReceiving();
 
@@ -86,7 +86,7 @@ void ModbusTaskFunction([[maybe_unused]] const void *argument) {
             s_RX_Buffer.Reset();
         }
 
-        wdg.kick(); //Reload this instance of watchdog
+        wdg.kick(); // Reload this instance of watchdog
         CheckModbusWatchdog();
     }
 }
@@ -106,4 +106,4 @@ void CheckModbusWatchdog() {
     }
 }
 
-} //namespace
+} // namespace

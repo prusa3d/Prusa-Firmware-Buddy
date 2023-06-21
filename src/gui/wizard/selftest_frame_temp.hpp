@@ -4,30 +4,34 @@
 #include "window_icon.hpp"
 #include "window_wizard_progress.hpp"
 #include "status_footer.hpp"
+#include <option/has_heatbreak_temp.h>
 
 class ScreenSelftestTemp : public AddSuperWindow<SelftestFrame> {
     FooterLine footer;
-    //noz
+    // noz
     window_text_t text_noz;
     window_wizard_progress_t progress_noz;
     window_text_t text_noz_prep;
     window_text_t text_noz_heat;
 
-    //bed
+    // bed
     window_text_t text_bed;
     window_wizard_progress_t progress_bed;
     window_text_t text_bed_prep;
     WindowIcon_OkNg icon_bed_prep;
     window_text_t text_bed_heat;
     WindowIcon_OkNg icon_bed_heat;
-    //heatbreak
+#if HAS_HEATBREAK_TEMP()
+    // heatbreak
     window_text_t text_heatbreak;
-
+#endif
     // result per each HOTEND
     struct hotend_result_t {
         WindowIcon_OkNg icon_noz_prep;
         WindowIcon_OkNg icon_noz_heat;
+#if HAS_HEATBREAK_TEMP()
         WindowIcon_OkNg icon_heatbreak;
+#endif
     };
 
     std::array<hotend_result_t, HOTENDS> hotend_results;

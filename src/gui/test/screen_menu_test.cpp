@@ -8,14 +8,14 @@
 #include "sys.h"
 #include "window_types.hpp"
 #include <cstddef>
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "test_of_selftest_result.hpp"
     #include "screen_test_selftest.hpp"
 #endif
 #include "error_codes.hpp"
 #include "bsod_gui.hpp"
 
-//generate stack overflow
+// generate stack overflow
 static volatile int _recursive = 1;
 static void recursive(uint64_t i) {
     uint64_t x = i + (uint64_t)_recursive;
@@ -64,7 +64,7 @@ MI_RESULT_TEST::MI_RESULT_TEST()
 }
 
 void MI_RESULT_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     Screens::Access()->Open(ScreenFactory::Screen<TestResultScreen>);
 #endif // HAS_SELFTEST
 }
@@ -74,7 +74,7 @@ MI_SELFTEST_TEST::MI_SELFTEST_TEST()
 }
 
 void MI_SELFTEST_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenTestSelftest>);
 #endif // HAS_SELFTEST
 }
@@ -87,7 +87,7 @@ void MI_LOAD_UNLOAD_TEST::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenTestMMU>);
 }
 
-//TODO rewrite this tests
+// TODO rewrite this tests
 #if 0
     , tst_graph(this, this->GenerateRect(ShiftDir_t::Bottom), []() { /*screen_open(get_scr_test_graph()->id);*/ }, string_view_utf8::MakeCPUFLASH((const uint8_t *)"temp graph"))
     , tst_temperature(this, this->GenerateRect(ShiftDir_t::Bottom), []() { /*screen_open(get_scr_test_temperature()->id);*/ }, string_view_utf8::MakeCPUFLASH((const uint8_t *)"temp - pwm"))

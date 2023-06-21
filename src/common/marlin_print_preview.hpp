@@ -17,6 +17,10 @@ public:
 
         preview_wait_user,
 
+        unfinished_selftest_wait_user,
+
+        new_firmware_available_wait_user,
+
         wrong_printer_wait_user,
         wrong_printer_wait_user_abort,
 
@@ -70,16 +74,13 @@ public:
 
     Result Loop();
 
-    void Init(const char *path);
+    void Init();
     void SkipIfAble() { skip_if_able = true; }
     void DontSkip() { skip_if_able = false; }
 
 private:
     uint32_t last_run = 0;
 
-    GCodeInfo::GCodePerExtruderInfo gcode_per_extruder_info;
-    bool filament_described = false;
-    GCodeInfo::ValidPrinterSettings valid_printer_settings;
     bool skip_if_able = false;
 
     PrintPreview() = default;
@@ -88,6 +89,8 @@ private:
     State stateFromFilamentPresence() const;
     State stateFromFilamentType() const;
 
-    State evaluateStateOnPrintClick();
+    State stateFromSelftestCheck();
+    State stateFromUpdateCheck();
+    State stateFromPrinterCheck();
     Result stateToResult() const;
 };

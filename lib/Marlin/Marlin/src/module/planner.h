@@ -401,10 +401,18 @@ class Planner {
      */
 
     // Recalculate steps/s^2 accelerations based on mm/s^2 settings
-    static void reset_acceleration_rates();
-    static inline void refresh_acceleration_rates() { reset_acceleration_rates(); }
+    static void refresh_acceleration_rates();
 
+    /**
+     * Recalculate 'position' and 'mm_per_step'.
+     * Must be called whenever settings.axis_steps_per_mm changes!
+     */
     static void refresh_positioning();
+
+    #if ENABLED(DISTINCT_E_FACTORS)
+      static void refresh_e_positioning(const uint8_t extruder=active_extruder);
+    #endif
+
     static void set_max_acceleration(const uint8_t axis, float targetValue);
     static void set_max_feedrate(const uint8_t axis, float targetValue);
     static void set_max_jerk(const AxisEnum axis, float targetValue);
@@ -791,9 +799,9 @@ class Planner {
      *
      * Clears previous speed values.
      */
-    static void set_position_mm(const float &rx, const float &ry, const float &rz, const float &e);
-    FORCE_INLINE static void set_position_mm(const xyze_pos_t &cart) { set_position_mm(cart.x, cart.y, cart.z, cart.e); }
-    static void set_e_position_mm(const float &e);
+    static void set_position_mm(const xyze_pos_t &xyze);
+
+    static void set_e_position_mm(const_float_t e);
 
     /// Resets machine position to values from stepper
     static void reset_position();
@@ -804,14 +812,21 @@ class Planner {
      * The supplied position is in machine space, and no additional
      * conversions are applied.
      */
-    static void set_machine_position_mm(const float &a, const float &b, const float &c, const float &e);
-    FORCE_INLINE static void set_machine_position_mm(const abce_pos_t &abce) { set_machine_position_mm(abce.a, abce.b, abce.c, abce.e); }
+    static void set_machine_position_mm(const abce_pos_t &abce);
 
     /**
      * Get an axis position according to stepper position(s)
-     * For CORE machines apply translation from ABC to XYZ.
+     * For CORE machines:
+     *   - apply translation from AB to XY
+     *   - when querying for more axes, use the appropriate overload for less overhead!
+     * WARNING:
+     *   - it's an expensive function to call
+     *   - can return incoherent values when axes are moving
      */
     static float get_axis_position_mm(const AxisEnum axis);
+    static void get_axis_position_mm(ab_pos_t& pos);
+    static void get_axis_position_mm(abc_pos_t& pos);
+    static void get_axis_position_mm(abce_pos_t& pos);
 
     #if HAS_POSITION_FLOAT
     /**

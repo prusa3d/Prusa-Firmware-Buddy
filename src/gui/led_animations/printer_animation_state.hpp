@@ -5,12 +5,11 @@
 #include <type_traits>
 #include <variant>
 #include "led_types.h"
-#include "eeprom.h"
 #include <mutex>
 #include "freertos_mutex.hpp"
 
 namespace leds {
-PrinterState mpsToAnimationState(marlin_server::marlin_print_state_t state);
+PrinterState mpsToAnimationState(marlin_server::State state);
 
 AnimatorLCD::AnimationGuard start_animation(Animations animation, int priority);
 AnimatorLCD::AnimationGuard start_animation(PrinterState state, int priority);
@@ -34,8 +33,7 @@ public:
         Access().change_animation_on = end_when;
         Access().changeAnimation(state);
     }
-    static void set_animation(PrinterState state, Animation_model animation) {
-        eeprom_set_animation(static_cast<uint32_t>(state), animation, {});
+    static void set_animation([[maybe_unused]] PrinterState state, [[maybe_unused]] Animation_model animation) {
         Access().reload();
     }
 

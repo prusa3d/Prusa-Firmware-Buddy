@@ -184,7 +184,7 @@ template <typename ActionMenuT>
 concept ActionMenuC = is_any_of<ActionMenuT, MenuPickPark, MenuPickAndGo, MenuCalibrateDock>;
 
 template <typename ActionMenuT>
-concept ActionMenuHasFooterC = ActionMenuC<ActionMenuT> &&is_any_of<ActionMenuT, MenuPickPark>;
+concept ActionMenuHasFooterC = ActionMenuC<ActionMenuT> && is_any_of<ActionMenuT, MenuPickPark>;
 
 template <ActionMenuC ActionMenuT>
 consteval Rect16 get_rect_screen_body() {
@@ -216,7 +216,7 @@ public:
         CaptureNormalWindow(menu);
 
         // assign this to all menu items  as a parent, so that we can be notified about results
-        std::apply([&](auto &... menu_items) {
+        std::apply([&](auto &...menu_items) {
             (..., [&](auto &menu_item) {
                 // this just loops over all menu items, passing each item to this function
                 static_assert(
@@ -236,7 +236,7 @@ public:
             return;
         }
 
-        std::apply([is_tool_enabled](auto &... menu_items) {
+        std::apply([is_tool_enabled](auto &...menu_items) {
             (..., [is_tool_enabled](auto &menu_item) {
                 // this just loops over all menu items, passing each item to this function
 

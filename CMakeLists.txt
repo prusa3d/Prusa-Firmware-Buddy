@@ -87,6 +87,10 @@ target_include_directories(
             include/freertos
             src/hw
             src/common
+            src/configuration_store
+            src/guiconfig
+            src/lang
+            src/common/utils
             ${OPTIONS_INCLUDE_DIR}
   )
 
@@ -116,6 +120,7 @@ target_link_libraries(BuddyHeaders INTERFACE FreeRTOS::FreeRTOS)
 
 # Define printer type and version
 set(PRINTER_VERSION "1") # default version
+set(PRINTER_SUBVERSION "0") # default subversion
 
 # The PRINTER_TYPE is (besides being used in the code) being stored in the .bbf and checked by the
 # bootloader (which contains the same "enum" as below). Preferably do not use it on an interface
@@ -124,13 +129,18 @@ if(PRINTER STREQUAL "MK4")
   set(PRINTER_TYPE "1")
   set(PRINTER_VERSION "4")
   set(PRINTER_CODE "13")
+elseif(PRINTER STREQUAL "MK3.5")
+  set(PRINTER_TYPE "1")
+  set(PRINTER_VERSION "3")
+  set(PRINTER_SUBVERSION "5")
+  set(PRINTER_CODE "13")
 elseif(PRINTER STREQUAL "MINI")
   set(PRINTER_TYPE "2")
   set(PRINTER_CODE "12")
 elseif(PRINTER STREQUAL "XL")
   set(PRINTER_TYPE "3")
   set(PRINTER_CODE "17")
-elseif(PRINTER STREQUAL "IXL")
+elseif(PRINTER STREQUAL "iX")
   set(PRINTER_TYPE "4")
   set(PRINTER_CODE "16")
 else()
@@ -161,6 +171,7 @@ target_compile_definitions(
             PRINTER_MODEL="${PRINTER}"
             PRINTER_TYPE=${PRINTER_TYPE}
             PRINTER_VERSION=${PRINTER_VERSION}
+            PRINTER_SUBVERSION=${PRINTER_SUBVERSION}
             PRINTER_CODE=${PRINTER_CODE}
             BOARD=BOARD_${BOARD}
             BOARD_VERSION_MAJOR=${BOARD_VERSION_MAJOR}
@@ -291,8 +302,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(MCU MATCHES "STM32F40"
      OR MCU MATCHES "STM32G0"
      OR PRINTER STREQUAL "MK4"
+     OR PRINTER STREQUAL "MK3.5"
      OR PRINTER STREQUAL "XL"
-     OR PRINTER STREQUAL "IXL"
+     OR PRINTER STREQUAL "iX"
      )
     add_compile_options(-Og)
   else()
@@ -380,7 +392,7 @@ add_subdirectory(lib)
 # Build Puppy Firmwares
 #
 
-if(BOARD STREQUAL "XLBUDDY" AND HAS_PUPPIES_BOOTLOADER)
+if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
   string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower)
 
   if(PRINTER STREQUAL "XL" AND BOARD_VERSION VERSION_EQUAL "0.4.0")
@@ -388,7 +400,7 @@ if(BOARD STREQUAL "XLBUDDY" AND HAS_PUPPIES_BOOTLOADER)
     set(modular_bed_version_suffix "-06")
   endif()
 
-  if(NOT DWARF_BINARY_PATH)
+  if(NOT DWARF_BINARY_PATH AND HAS_DWARF)
     get_filename_component(
       DWARF_BINARY_DIR "${DWARF_BINARY_DIR}" REALPATH BASE_DIR "${CMAKE_SOURCE_DIR}"
       )
@@ -614,6 +626,7 @@ if(BOARD MATCHES "BUDDY")
             inih::inih
             $<$<BOOL:${WUI}>:WUI>
             jsmn::jsmn
+            cthash::cthash
             QR
             Buddy::Lang
             printf::printf
@@ -622,7 +635,7 @@ if(BOARD MATCHES "BUDDY")
             tinyusb::tinyusb
             $<$<BOOL:${HAS_MMU2}>:MMU2::MMU2>
             mbedTLS
-            $<$<STREQUAL:${PRINTER},XL>:lightmodbus>
+            $<$<BOOL:${HAS_PUPPIES}>:lightmodbus>
             error_codes
             error_codes_mmu # TODO once MMU is not necessary for the build, replace with:
                             # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
@@ -652,29 +665,6 @@ set_property(
   APPEND
   PROPERTY COMPILE_DEFINITIONS
            INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
-  )
-
-set_property(
-  SOURCE src/common/marlin_server.cpp
-         src/gui/guimain.cpp
-         src/gui/MItem_menus.cpp
-         src/gui/screen_splash.cpp
-         src/gui/screen_home.cpp
-         src/gui/screen_menu_settings.cpp
-         src/gui/screen_menu_hw_setup.cpp
-         src/gui/test/screen_menu_test.cpp
-         src/gui/dialogs/DialogHandler.cpp
-         src/marlin_stubs/G163.cpp
-         src/marlin_stubs/M997.cpp
-         src/gui/MItem_basic_selftest.cpp
-         src/gui/ScreenSelftest.cpp
-         src/gui/MItem_loadcell.cpp
-         src/common/marlin_client.cpp
-         src/gui/screen_menu_tools.cpp
-         src/guiapi/src/window_tool_action_box.cpp
-         src/gui/screen_menu_selftest_snake.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_SELFTEST=$<BOOL:${HAS_SELFTEST}>
   )
 
 set_property(

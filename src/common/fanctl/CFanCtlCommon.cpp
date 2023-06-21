@@ -22,10 +22,10 @@ void record_fanctl_metrics() {
     };
 
     if (HAL_GetTick() - last_update > UPDATE_PERIOD) {
-        record(fanCtlPrint[active_extruder], "print");
-        metric_record_integer(&fan_print, fanCtlPrint[active_extruder].getActualRPM());
-        record(fanCtlHeatBreak[active_extruder], "heatbreak");
-        metric_record_integer(&fan_hbr, fanCtlHeatBreak[active_extruder].getActualRPM());
+        record(Fans::print(active_extruder), "print");
+        metric_record_integer(&fan_print, Fans::print(active_extruder).getActualRPM());
+        record(Fans::heat_break(active_extruder), "heatbreak");
+        metric_record_integer(&fan_hbr, Fans::heat_break(active_extruder).getActualRPM());
         last_update = HAL_GetTick();
     }
 }

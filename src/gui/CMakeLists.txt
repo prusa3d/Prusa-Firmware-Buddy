@@ -32,7 +32,6 @@ target_sources(
           network_gui_tools.cpp
           png_resources.cpp
           print_time_module.cpp
-          screen_crash_recovery.cpp
           screen_dialog_does_not_exist.cpp
           screen_filebrowser.cpp
           screen_hardfault.cpp
@@ -57,7 +56,7 @@ target_sources(
           screen_menu_move.cpp
           screen_menu_network.cpp
           screen_menu_odometer.cpp
-          screen_menu_sensor_info.cpp
+          screen_menu_sensor_info_${PRINTER}.cpp
           screen_menu_settings.cpp
           screen_menu_statistics.cpp
           screen_menu_steel_sheets.cpp
@@ -88,6 +87,9 @@ target_sources(
           window_temp_graph.cpp
           window_thumbnail.cpp
   )
+if(PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
+  target_sources(firmware PRIVATE screen_crash_recovery.cpp)
+endif()
 
 if(HAS_CONTROL_MENU)
   target_sources(firmware PRIVATE screen_menu_control.cpp)
@@ -111,6 +113,12 @@ endif()
 
 if(HAS_TOOLCHANGER)
   target_sources(firmware PRIVATE screen_menu_filament_changeall.cpp screen_menu_tools.cpp)
+else()
+  target_sources(firmware PRIVATE screen_menu_no_tools.cpp)
+endif()
+
+if(HAS_MODULARBED)
+  target_sources(firmware PRIVATE screen_menu_modularbed.cpp)
 endif()
 
 if(DEBUG)
@@ -126,7 +134,6 @@ if(HAS_SELFTEST)
     firmware
     PRIVATE MItem_basic_selftest.cpp
             screen_menu_diagnostics.cpp
-            screen_menu_steel_sheets.cpp
             ScreenSelftest.cpp
             selftest_frame.cpp
             # steel sheets requiere first layer calibration, which require wizard, which require
@@ -157,10 +164,18 @@ if(HAS_MMU2)
     )
 endif()
 
+if(PRINTER STREQUAL "MINI" OR PRINTER STREQUAL "MK3.5")
+  target_sources(firmware PRIVATE MItem_MINI_MK3.5.cpp)
+endif()
+
 if(BOARD IN_LIST BOARDS_WITH_ST7789V)
   target_sources(firmware PRIVATE display_hw_checks_MINI.cpp version_info_ST7789V.cpp)
 elseif(BOARD IN_LIST BOARDS_WITH_ILI9488)
   target_sources(firmware PRIVATE display_hw_checks_xlcd.cpp version_info_ILI9488.cpp)
+endif()
+
+if(PRINTER IN_LIST PRINTERS_WITH_LOVE_BOARD)
+  target_sources(firmware PRIVATE MItem_love_board.cpp)
 endif()
 
 add_subdirectory(dialogs)

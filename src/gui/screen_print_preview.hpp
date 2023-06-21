@@ -13,6 +13,7 @@
 class ScreenPrintPreview : public ScreenPrintPreviewBase {
     constexpr static const char *labelWarning = N_("Warning");
 
+    static constexpr const char *txt_unfinished_selftest = N_("Please complete Calibrations & Tests before using the printer.");
     static constexpr const char *txt_fil_not_detected = N_("Filament not detected. Load filament now?\nSelect NO to cancel the print.\nSelect DISABLE FS to disable the filament sensor and continue print.");
     static constexpr const char *txt_fil_detected_mmu = N_("Filament detected. Unload filament now? Select NO to cancel.");
 
@@ -42,8 +43,5 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 private:
-    void on_enter();
-
     bool event_in_progress { false };
-    bool first_event { true };
 };

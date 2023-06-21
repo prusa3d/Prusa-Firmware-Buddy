@@ -3,7 +3,6 @@
  */
 
 #include "PersistentStorage.h"
-#include "eeprom.h"
 #include "crc32.h"
 #include "st25dv64k.h"
 #include <stdint.h>
@@ -36,7 +35,7 @@ struct IndexRun {
     bool error;
 };
 
-} //end anonymous namespace
+} // end anonymous namespace
 
 static decltype(HomeSample::crc8) calcCrc(HomeSample homeSample) {
     return crc32_calc(reinterpret_cast<uint8_t *>(&homeSample), (sizeof(homeSample) - sizeof(homeSample.crc8)));
@@ -71,14 +70,14 @@ static IndexRun getNextHomeSampleIndexRun(uint_fast8_t axis) {
     if (0 == homeSamplesRead[0].run) { // run 0. already started
         for (uint_fast8_t i = 1; i < PersistentStorage::homeSamplesCount; ++i) {
             if (1 == homeSamplesRead[i].run)
-                return { i, 0, false }; //return position of first sample from previous run
+                return { i, 0, false }; // return position of first sample from previous run
         }
         // run 0. finished, start 1. run
         return { 0, 1, false };
     } else { // run 1. already started
         for (uint_fast8_t i = 1; i < PersistentStorage::homeSamplesCount; ++i) {
             if (0 == homeSamplesRead[i].run)
-                return { i, 1, false }; //return position of first sample from previous run
+                return { i, 1, false }; // return position of first sample from previous run
         }
         // run 1. finished, start 0. run
         return { 0, 0, false };

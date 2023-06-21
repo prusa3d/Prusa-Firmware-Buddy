@@ -3,7 +3,6 @@
 #include <device/peripherals.h>
 #include <device/hal.h>
 #include "Marlin.h"
-#include "marlin_server.hpp"
 #include "modbus/ModbusTask.hpp"
 #include "wiring_analog.h"
 #include "wiring_digital.h"
@@ -46,7 +45,7 @@ void HAL_watchdog_refresh() {
 }
 
 void dwarf::modules::marlin::start() {
-    hal::MultiWatchdog wdg; //Add one instance of watchdog
+    hal::MultiWatchdog wdg; // Add one instance of watchdog
     setup();
 
     modbus::ModbusTask::EnableModbus();
@@ -117,10 +116,10 @@ void stop_marlin() {
 void analogWrite(uint32_t ulPin, uint32_t ulValue) {
     switch (ulPin) {
     case MARLIN_PIN(FAN): // print fan
-        fanCtlPrint[0].setPWM(ulValue);
+        Fans::print(0).setPWM(ulValue);
         return;
     case MARLIN_PIN(FAN1): // heatbreak
-        fanCtlHeatBreak[0].setPWM(ulValue);
+        Fans::heat_break(0).setPWM(ulValue);
         return;
     default:
         bsod("Write undefined pin");
@@ -195,7 +194,7 @@ SPIClass::SPIClass() {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(STEPPER_MOSI_GPIO_Port, &GPIO_InitStruct);
 
-    //SCK CSN
+    // SCK CSN
     GPIO_InitStruct.Pin = STEPPER_SCK_Pin | STEPPER_CSN_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -322,8 +321,6 @@ SafetyTimer::SafetyTimer()
 SafetyTimer::expired_t SafetyTimer::Loop() {
     return SafetyTimer::expired_t::no;
 }
-
-void marlin_server::set_warning([[maybe_unused]] WarningType type) {}
 
 #include "metric.h"
 

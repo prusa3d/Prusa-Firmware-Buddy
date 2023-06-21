@@ -193,7 +193,7 @@ standard names. */
 
 /* IMPORTANT: This define is commented when used with STM32Cube firmware, when timebase is systick,
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
-//#define xPortSysTickHandler SysTick_Handler
+// #define xPortSysTickHandler SysTick_Handler
 
 #include "SEGGER_SYSVIEW_FreeRTOS.h"
 

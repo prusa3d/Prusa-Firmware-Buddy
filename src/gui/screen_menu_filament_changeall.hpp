@@ -15,7 +15,7 @@ class I_MI_FilamentSelect : public WI_LAMBDA_SPIN {
     static constexpr const char *const label_change_fil = N_("Change to"); // Concatenated with filament name, "Change to" + " " + "PLA"
     static constexpr const char *const label_load_fil = N_("Load");        // Concatenated with filament name, "Load" + " " + "PLA"
 
-    const bool loaded; ///< True if filament is loaded in this tool, difference between "Change to" and "Load"
+    const bool loaded;                                                     ///< True if filament is loaded in this tool, difference between "Change to" and "Load"
 
 public:
     static constexpr const size_t unload_index = ftrstd::to_underlying(filament::Type::_last) + 1; ///< Index of "Unload" item

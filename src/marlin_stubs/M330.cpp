@@ -4,10 +4,28 @@
 #include "metric.h"
 #include "metric_handlers.h"
 #include <stdint.h>
+#include <configuration_store.hpp>
 
 static metric_handler_t *selected_handler = NULL;
 
+/**
+ * @brief Check that metrics were enabled by user.
+ * This is to disable all metrics by switch in settings.
+ */
+static bool check_metrics_enabled() {
+    if (config_store().metrics_allow.get() == MetricsAllow::All) {
+        return true;
+    }
+
+    SERIAL_ERROR_MSG("Metrics are disabled!");
+    return false;
+}
+
 void PrusaGcodeSuite::M330() {
+    if (!check_metrics_enabled()) {
+        return;
+    }
+
     bool handler_found = false;
     for (metric_handler_t **handlers = metric_get_handlers(); *handlers != NULL; handlers++) {
         metric_handler_t *handler = *handlers;
@@ -25,6 +43,10 @@ void PrusaGcodeSuite::M330() {
 }
 
 void PrusaGcodeSuite::M331() {
+    if (!check_metrics_enabled()) {
+        return;
+    }
+
     if (selected_handler == NULL) {
         SERIAL_ECHO_MSG("handler not set");
         return;
@@ -82,6 +104,10 @@ void PrusaGcodeSuite::M333() {
 }
 
 void PrusaGcodeSuite::M334() {
+    if (!check_metrics_enabled()) {
+        return;
+    }
+
     if (selected_handler == NULL) {
         SERIAL_ERROR_MSG("Handler not set");
         return;

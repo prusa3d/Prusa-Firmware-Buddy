@@ -5,7 +5,6 @@
 #include "MItem_filament.hpp"
 #include "sound.hpp"
 #include "DialogHandler.hpp"
-#include "window_dlg_load_unload.hpp"
 #include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
 #include <option/has_toolchanger.h>
@@ -14,6 +13,7 @@
     #include "window_tool_action_box.hpp"
     #include "screen_menu_filament_changeall.hpp"
 #endif
+#include <configuration_store.hpp>
 
 #if HAS_TOOLCHANGER()
 /// @brief  will show dialog where user can pick tool
@@ -35,7 +35,7 @@
 #endif
 
 /*****************************************************************************/
-//MI_LOAD
+// MI_LOAD
 MI_LOAD::MI_LOAD()
     : MI_event_dispatcher(_(label)) {}
 
@@ -45,14 +45,14 @@ void MI_LOAD::Do() {
         return;
     }
 #endif
-    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
     if ((current_filament == filament::Type::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
         marlin_gcode("M701 W2"); // load with return option
     }
 }
 
 /*****************************************************************************/
-//MI_UNLOAD
+// MI_UNLOAD
 MI_UNLOAD::MI_UNLOAD()
     : MI_event_dispatcher(_(label)) {}
 
@@ -67,13 +67,13 @@ void MI_UNLOAD::Do() {
 }
 
 /*****************************************************************************/
-//MI_CHANGE
+// MI_CHANGE
 MI_CHANGE::MI_CHANGE()
     : MI_event_dispatcher(_(label)) {}
 
 bool MI_CHANGE::AvailableForTool(uint8_t tool) {
-    bool has_filament_eeprom = filament::get_type_in_extruder(tool) != filament::Type::NONE;
-    //todo: this should also take into account if filament is really in filament sensor
+    bool has_filament_eeprom = config_store().get_filament_type(tool) != filament::Type::NONE;
+    // todo: this should also take into account if filament is really in filament sensor
     return has_filament_eeprom;
 }
 
@@ -104,7 +104,7 @@ void MI_CHANGE::Do() {
 
 #if HAS_TOOLCHANGER()
 /*****************************************************************************/
-//MI_CHANGEALL
+// MI_CHANGEALL
 MI_CHANGEALL::MI_CHANGEALL()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {}
 
@@ -114,7 +114,7 @@ void MI_CHANGEALL::click(IWindowMenu & /*window_menu*/) {
 #endif /*HAS_TOOLCHANGER()*/
 
 /*****************************************************************************/
-//MI_PURGE
+// MI_PURGE
 MI_PURGE::MI_PURGE()
     : MI_event_dispatcher(_(label)) {}
 
@@ -128,12 +128,12 @@ void MI_PURGE::Do() {
 }
 
 bool MI_PURGE::AvailableForTool(uint8_t tool) {
-    bool has_filament_eeprom = filament::get_type_in_extruder(tool) != filament::Type::NONE;
+    bool has_filament_eeprom = config_store().get_filament_type(tool) != filament::Type::NONE;
     bool has_filament_fs = true;
     if (tool == marlin_vars()->active_extruder) {
-        //todo: Do this also for inactive extruders, when filament sensors are ready to supply info for non-picked tools
+        // todo: Do this also for inactive extruders, when filament sensors are ready to supply info for non-picked tools
         FilamentSensors::BothSensors sensors = FSensors_instance().GetBothSensors();
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL
         has_filament_fs = (sensors.extruder == fsensor_t::HasFilament && sensors.side == fsensor_t::HasFilament);
 #else
         has_filament_fs = sensors.extruder == fsensor_t::HasFilament;
@@ -158,7 +158,7 @@ void MI_PURGE::UpdateEnableState() {
 }
 
 /*****************************************************************************/
-//MI_COOLDOWN
+// MI_COOLDOWN
 MI_COOLDOWN::MI_COOLDOWN()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 

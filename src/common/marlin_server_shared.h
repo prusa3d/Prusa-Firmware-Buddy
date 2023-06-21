@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cmsis_os.h" // for osThreadId
+#include "utils/utility_extensions.hpp"
 #include <limits>
 
 namespace marlin_server {
@@ -12,85 +13,86 @@ inline constexpr uint32_t TIME_TO_END_INVALID = std::numeric_limits<uint32_t>::m
 
 inline constexpr uint8_t CURRENT_TOOL = std::numeric_limits<uint8_t>::max();
 
-typedef enum {
-    mpsIdle = 0,
-    mpsWaitGui,
-    mpsPrintPreviewInit,
-    mpsPrintPreviewImage,
-    mpsPrintPreviewQuestions,
-    mpsPrintInit,
-    mpsPrinting,
-    mpsPausing_Begin,
-    mpsPausing_Failed_Code,
-    mpsPausing_WaitIdle,
-    mpsPausing_ParkHead,
-    mpsPaused,
-    mpsResuming_Begin,
-    mpsResuming_Reheating,
-    mpsResuming_UnparkHead_XY,
-    mpsResuming_UnparkHead_ZE,
-    mpsAborting_Begin,
-    mpsAborting_WaitIdle,
-    mpsAborting_ParkHead,
-    mpsAborted,
-    mpsFinishing_WaitIdle,
-    mpsFinishing_ParkHead,
-    mpsFinished,
-    mpsExit, // sets idle, notifies clients to close fsm
-    mpsCrashRecovery_Begin,
-    mpsCrashRecovery_Retracting,
-    mpsCrashRecovery_Lifting,
-    mpsCrashRecovery_XY_Measure,
-    mpsCrashRecovery_Tool_Pickup,
-    mpsCrashRecovery_XY_HOME,
-    mpsCrashRecovery_HOMEFAIL, // Shows retry button after homing fails
-    mpsCrashRecovery_Axis_NOK,
-    mpsCrashRecovery_Repeated_Crash,
-    mpsPowerPanic_acFault,
-    mpsPowerPanic_Resume,
-    mpsPowerPanic_AwaitingResume,
-} marlin_print_state_t;
+enum class State {
+    Idle,
+    WaitGui,
+    PrintPreviewInit,
+    PrintPreviewImage,
+    PrintPreviewQuestions,
+    PrintInit,
+    Printing,
+    Pausing_Begin,
+    Pausing_Failed_Code,
+    Pausing_WaitIdle,
+    Pausing_ParkHead,
+    Paused,
+    Resuming_Begin,
+    Resuming_Reheating,
+    Resuming_UnparkHead_XY,
+    Resuming_UnparkHead_ZE,
+    Aborting_Begin,
+    Aborting_WaitIdle,
+    Aborting_ParkHead,
+    Aborted,
+    Finishing_WaitIdle,
+    Finishing_ParkHead,
+    Finished,
+    Exit, // sets idle, notifies clients to close fsm
+    CrashRecovery_Begin,
+    CrashRecovery_Retracting,
+    CrashRecovery_Lifting,
+    CrashRecovery_ToolchangePowerPanic, // Prepare for toolchange after power panic
+    CrashRecovery_XY_Measure,
+    CrashRecovery_Tool_Pickup,
+    CrashRecovery_XY_HOME,
+    CrashRecovery_HOMEFAIL, // Shows retry button after homing fails
+    CrashRecovery_Axis_NOK,
+    CrashRecovery_Repeated_Crash,
+    PowerPanic_acFault,
+    PowerPanic_Resume,
+    PowerPanic_AwaitingResume,
+};
 
 /// Marlin client -> server messages
-typedef enum {
-    MARLIN_MSG_EVENT_MASK = 'A',
+enum class Msg : char {
+    EventMask = 'A',
     _RESERVED_0 = 'B',
-    MARLIN_MSG_STOP = 'C',
+    Stop = 'C',
     _RESERVED_3 = 'D',
-    MARLIN_MSG_START = 'E',
-    MARLIN_MSG_GCODE = 'F',
-    MARLIN_MSG_INJECT_GCODE = 'G',
-    MARLIN_MSG_SET_VARIABLE = 'H',
+    Start = 'E',
+    Gcode = 'F',
+    InjectGcode = 'G',
+    SetVariable = 'H',
     _RESERVED_1 = 'I',
-    MARLIN_MSG_BABYSTEP = 'J',
-    MARLIN_MSG_CONFIG_SAVE = 'K',
-    MARLIN_MSG_CONFIG_LOAD = 'L',
-    MARLIN_MSG_CONFIG_RESET = 'M',
+    Babystep = 'J',
+    ConfigSave = 'K',
+    ConfigLoad = 'L',
+    ConfigReset = 'M',
     _RESERVED_2 = 'N',
     _RESERVED_4 = 'O',
-    MARLIN_MSG_TEST_START = 'P',
-    MARLIN_MSG_TEST_ABORT = 'Q',
-    MARLIN_MSG_PRINT_START = 'R',
-    MARLIN_MSG_PRINT_ABORT = 'S',
-    MARLIN_MSG_PRINT_PAUSE = 'T',
-    MARLIN_MSG_PRINT_RESUME = 'U',
-    MARLIN_MSG_PRINT_EXIT = 'V',
-    MARLIN_MSG_PARK = 'W',
-    MARLIN_MSG_KNOB_MOVE = 'X',
-    MARLIN_MSG_KNOB_CLICK = 'Y',
-    MARLIN_MSG_FSM = 'Z',
-    MARLIN_MSG_MOVE = 'a',
-    MARLIN_MSG_GUI_PRINT_READY = 'b',
-    MARLIN_MSG_GUI_CANT_PRINT = 'c',
-} marlin_msg_t;
+    TestStart = 'P',
+    TestAbort = 'Q',
+    PrintStart = 'R',
+    PrintAbort = 'S',
+    PrintPause = 'T',
+    PrintResume = 'U',
+    PrintExit = 'V',
+    Park = 'W',
+    KnobMove = 'X',
+    KnobClick = 'Y',
+    FSM = 'Z',
+    Move = 'a',
+    PrintReady = 'b',
+    GuiCantPrint = 'c',
+};
 
-inline int is_abort_state(marlin_print_state_t st) {
-    return ((int)st) >= ((int)mpsAborting_Begin) && ((int)st) <= ((int)mpsAborted);
+inline bool is_abort_state(State st) {
+    return ftrstd::to_underlying(st) >= ftrstd::to_underlying(State::Aborting_Begin) && ftrstd::to_underlying(st) <= ftrstd::to_underlying(State::Aborted);
 }
 
 // converts message's ID to string
 // string must have 3 bytes at least
-extern void marlin_msg_to_str(const marlin_msg_t id, char *str);
+void marlin_msg_to_str(const Msg id, char *str);
 
 extern osThreadId server_task; // task of marlin server
 

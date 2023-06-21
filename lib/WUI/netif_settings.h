@@ -2,21 +2,21 @@
 
 #include "lwip/ip_addr.h"
 
-#define LAN_FLAG_ONOFF_POS (1 << 0) // position of ONOFF switch in lan.flag
-#define LAN_FLAG_TYPE_POS  (1 << 1) // position of DHCP/STATIC switch in lan.flag
+#define LAN_FLAG_ONOFF_POS (1 << 0)                             // position of ONOFF switch in lan.flag
+#define LAN_FLAG_TYPE_POS  (1 << 1)                             // position of DHCP/STATIC switch in lan.flag
 
-#define IS_LAN_OFF(flg)    (flg & LAN_FLAG_ONOFF_POS)        // returns true if flag is set to OFF
-#define IS_LAN_ON(flg)     ((flg & LAN_FLAG_ONOFF_POS) == 0) // returns true if flag is set to ON
-#define IS_LAN_STATIC(flg) (flg & LAN_FLAG_TYPE_POS)         // returns true if flag is set to STATIC
-#define IS_LAN_DHCP(flg)   ((flg & LAN_FLAG_TYPE_POS) == 0)  // returns true if flag is set to DHCP
+#define IS_LAN_OFF(flg)    (flg & LAN_FLAG_ONOFF_POS)           // returns true if flag is set to OFF
+#define IS_LAN_ON(flg)     ((flg & LAN_FLAG_ONOFF_POS) == 0)    // returns true if flag is set to ON
+#define IS_LAN_STATIC(flg) (flg & LAN_FLAG_TYPE_POS)            // returns true if flag is set to STATIC
+#define IS_LAN_DHCP(flg)   ((flg & LAN_FLAG_TYPE_POS) == 0)     // returns true if flag is set to DHCP
 
 #define CHANGE_FLAG_TO_STATIC(flg) (flg |= LAN_FLAG_TYPE_POS)   // flip lan type flg to STATIC
 #define CHANGE_FLAG_TO_DHCP(flg)   (flg &= ~LAN_FLAG_TYPE_POS)  // flip lan type flg to DHCP
 #define TURN_FLAG_ON(flg)          (flg &= ~LAN_FLAG_ONOFF_POS) // flip lan switch flg to ON
 #define TURN_FLAG_OFF(flg)         (flg |= LAN_FLAG_ONOFF_POS)  // flip lan switch flg to OFF
 
-#define ETH_HOSTNAME_LEN 20 // ethernet hostname MAX length
-#define SSID_MAX_LEN     32 // https://en.wikipedia.org/wiki/Service_set_(802.11_network)#SSID
+#define ETH_HOSTNAME_LEN 20                                     // ethernet hostname MAX length
+#define SSID_MAX_LEN     32                                     // https://en.wikipedia.org/wiki/Service_set_(802.11_network)#SSID
 #define WIFI_PSK_MAX     64
 
 typedef struct {

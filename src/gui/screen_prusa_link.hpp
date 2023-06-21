@@ -86,7 +86,6 @@ using PLMenuContainer = WinMenuContainer<MI_RETURN, MI_PL_ENABLED, MI_PL_REGENER
     MI_PL_PASSWORD_VALUE>;
 
 class ScreenMenuPrusaLink : public AddSuperWindow<screen_t> {
-    constexpr static const char *const label = N_("PRUSA LINK");
     static constexpr ResourceId canvas_font = IDR_FNT_SPECIAL;
 
     PLMenuContainer container;

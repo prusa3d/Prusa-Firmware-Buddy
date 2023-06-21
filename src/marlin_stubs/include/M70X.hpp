@@ -40,7 +40,7 @@ void M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::op
 void M70X_process_user_response(PreheatStatus::Result res, uint8_t target_extruder);
 
 void M1600_no_parser(filament::Type filament_to_be_loaded, uint8_t target_extruder, RetAndCool_t preheat, AskFilament_t ask_filament);
-void M1700_no_parser(RetAndCool_t preheat, uint8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed);
+void M1700_no_parser(RetAndCool_t preheat, PreheatMode mode, uint8_t target_extruder, bool save, bool enforce_target_temp, bool preheat_bed);
 void M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder);
 
 void mmu_load(uint8_t data);

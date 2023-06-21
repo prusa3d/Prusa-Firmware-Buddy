@@ -157,7 +157,7 @@ uint8_t HAL_get_reset_source();
 
 void _delay_ms(const int delay);
 
-extern "C" char* _sbrk(int incr);
+extern "C" void* _sbrk(int incr);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"

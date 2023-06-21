@@ -67,15 +67,17 @@ else()
 endif()
 
 if(PUPPY_FLASH_FW)
-  add_resource("${DWARF_BINARY_PATH}" "/puppies/fw-dwarf.bin")
+  if(HAS_DWARF)
+    add_resource("${DWARF_BINARY_PATH}" "/puppies/fw-dwarf.bin")
+  endif()
   add_resource("${MODULARBED_BINARY_PATH}" "/puppies/fw-modularbed.bin")
 endif()
 
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.442947730c033f8e2dbd.js" "/web/main.442947730c033f8e2dbd.js")
-add_gzip_resource("web/main.4f2649b873ffe3770e59.css" "/web/main.4f2649b873ffe3770e59.css")
+add_gzip_resource("web/main.37c1d01586cbb68defdc.js" "/web/main.37c1d01586cbb68defdc.js")
+add_gzip_resource("web/main.0e80fa67b50cd33931d4.css" "/web/main.0e80fa67b50cd33931d4.css")
 
 # /png directory
 add_resource("${png_data_file}" "pngs")

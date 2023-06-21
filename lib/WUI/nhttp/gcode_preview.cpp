@@ -17,6 +17,7 @@ using handler::Step;
 using handler::Terminating;
 using http::ContentType;
 using http::Status;
+using std::nullopt;
 using std::string_view;
 
 GCodePreview::GCodePreview(FILE *f, const char *path, bool can_keep_alive, bool json_errors, uint16_t width, uint16_t height, bool allow_larger, uint32_t if_none_match)
@@ -36,7 +37,7 @@ GCodePreview::GCodePreview(FILE *f, const char *path, bool can_keep_alive, bool 
 Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) {
     if (etag_matches) {
         // No need to pass the json_errors, NotModified has no content anyway.
-        return { 0, 0, StatusPage(Status::NotModified, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false) };
+        return { 0, 0, StatusPage(Status::NotModified, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, false, etag) };
     }
     ConnectionHandling handling = can_keep_alive ? ConnectionHandling::ChunkedKeep : ConnectionHandling::Close;
 
@@ -63,7 +64,7 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
              * Something is wrong. We don't care about exactly what, we simply
              * don't have the preview -> 404.
              */
-            return { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, "File doesn't contain preview") };
+            return { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors, nullopt, "File doesn't contain preview") };
         }
     } else {
         NextInstruction instruction = Continue();

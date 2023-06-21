@@ -10,14 +10,14 @@
 #include "marlin_server.hpp"
 #include "../../Marlin/src/module/stepper.h"
 #include "selftest_part.hpp"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 namespace selftest {
 
 bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool separate) {
     static SelftestSingleAxis_t staticResults[axis_count];
 
-    //validity check
+    // validity check
     if (config_axis.axis >= axis_count)
         return false;
 
@@ -35,8 +35,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool sep
         };
 
         // Init staticResults with current state from EEPROM
-        SelftestResult eeres;
-        eeprom_get_selftest_results(&eeres);
+        SelftestResult eeres = config_store().selftest_result.get();
         staticResults[0].state = to_SubtestState(eeres.xaxis);
         staticResults[1].state = to_SubtestState(eeres.yaxis);
         staticResults[2].state = to_SubtestState(eeres.zaxis);
@@ -46,7 +45,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool sep
         m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis,
             staticResults[config_axis.axis],
             &CSelftestPart_Axis::stateWaitHome, &CSelftestPart_Axis::stateInitProgressTimeCalculation, &CSelftestPart_Axis::stateCycleMark,
-            &CSelftestPart_Axis::stateMove, &CSelftestPart_Axis::stateMoveWaitFinish);
+            &CSelftestPart_Axis::stateMove, &CSelftestPart_Axis::stateMoveWaitFinish, &CSelftestPart_Axis::stateParkAxis);
         // clang-format on
     }
 
@@ -58,8 +57,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool sep
         return true;
     }
 
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
+    SelftestResult eeres = config_store().selftest_result.get();
     switch (config_axis.axis) {
     case X_AXIS:
         eeres.xaxis = m_pAxis->GetResult();
@@ -71,7 +69,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool sep
         eeres.zaxis = m_pAxis->GetResult();
         break;
     }
-    eeprom_set_selftest_results(&eeres);
+    config_store().selftest_result.set(eeres);
 
     delete m_pAxis;
     m_pAxis = nullptr;

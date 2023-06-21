@@ -53,7 +53,7 @@
 
 #include <printers.h>
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "screen_menu_diagnostics.hpp"
     #include <option/has_selftest_snake.h>
     #if HAS_SELFTEST_SNAKE()
@@ -67,6 +67,8 @@
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
 #endif
+
+#include <configuration_store.hpp>
 
 /*****************************************************************************/
 // MI_VERSION_INFO
@@ -266,15 +268,15 @@ void MI_EEPROM::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_DEVHASH_IN_QR
 MI_DEVHASH_IN_QR::MI_DEVHASH_IN_QR()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_DEVHASH_IN_QR), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().devhash_in_qr.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_DEVHASH_IN_QR::OnChange(size_t old_index) {
-    eeprom_set_bool(EEVAR_DEVHASH_IN_QR, !old_index);
+    config_store().devhash_in_qr.set(!old_index);
 }
 
 /*****************************************************************************/
 // MI_FOOTER_SETTINGS
 MI_FOOTER_SETTINGS::MI_FOOTER_SETTINGS()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
@@ -283,11 +285,11 @@ void MI_FOOTER_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 
 #ifdef HAS_TMC_WAVETABLE
 MI_WAVETABLE_XYZ::MI_WAVETABLE_XYZ()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_TMC_WAVETABLE_ENABLED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().tmc_wavetable_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 void MI_WAVETABLE_XYZ::OnChange(size_t old_index) {
     /// enable
     tmc_enable_wavetable(!old_index, true, true, true);
-    eeprom_set_bool(EEVAR_TMC_WAVETABLE_ENABLED, !old_index);
+    config_store().tmc_wavetable_enabled.set(!old_index);
 }
 #endif
 
@@ -325,7 +327,7 @@ void MI_PRUSALINK::click(IWindowMenu & /*window_menu*/) {
 
 MI_DIAGNOSTICS::MI_DIAGNOSTICS()
     : WI_LABEL_t(_(label), nullptr,
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         is_enabled_t::yes
 #else
         is_enabled_t::no
@@ -335,7 +337,7 @@ MI_DIAGNOSTICS::MI_DIAGNOSTICS()
 }
 
 void MI_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuDiagnostics>);
 #endif
 }
@@ -483,10 +485,10 @@ void MI_EEPROM_DIAGNOSTICS::click(IWindowMenu & /*window_menu*/) {
 /**********************************************************************************************/
 // MI_USB_MSC_ENABLE
 MI_USB_MSC_ENABLE::MI_USB_MSC_ENABLE()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_USB_MSC_ENABLED), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().usb_msc_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 
 void MI_USB_MSC_ENABLE::OnChange(size_t old_index) {
-    eeprom_set_bool(EEVAR_USB_MSC_ENABLED, !old_index);
+    config_store().usb_msc_enabled.set(!old_index);
 }
 #if HAS_LEDS
 /**********************************************************************************************/
@@ -507,15 +509,27 @@ void MI_LEDS_ENABLE::OnChange(size_t old_index) {
 /**********************************************************************************************/
 // MI_SIDE_LEDS_ENABLE
 MI_SIDE_LEDS_ENABLE::MI_SIDE_LEDS_ENABLE()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_ENABLE_SIDE_LEDS), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().side_leds_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_SIDE_LEDS_ENABLE::OnChange(size_t old_index) {
     leds::side_strip_control.SetEnable(!old_index);
-    eeprom_set_bool(EEVAR_ENABLE_SIDE_LEDS, !old_index);
+    config_store().side_leds_enabled.set(!old_index);
 }
 #endif
 
 #if ENABLED(PRUSA_TOOLCHANGER)
+/**********************************************************************************************/
+// MI_TOOL_LEDS_ENABLE
+MI_TOOL_LEDS_ENABLE::MI_TOOL_LEDS_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().tool_leds_enabled.get(), _(label), nullptr, is_enabled_t::yes, prusa_toolchanger.is_toolchanger_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+}
+void MI_TOOL_LEDS_ENABLE::OnChange(size_t old_index) {
+    HOTEND_LOOP() {
+        prusa_toolchanger.getTool(e).set_led(!old_index ? 0xff : 0x00, 0x00);
+    }
+    config_store().tool_leds_enabled.set(!old_index);
+}
+
 /*****************************************************************************/
 // MI_TOOLS_SETUP
 MI_TOOLS_SETUP::MI_TOOLS_SETUP()
@@ -567,13 +581,13 @@ void MI_CALIBRATE_DOCK::click(IWindowMenu & /*window_menu*/) {
 }
 #endif
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
 /**********************************************************************************************/
 // MI_SELFTEST_SNAKE
 
 MI_SELFTEST_SNAKE::MI_SELFTEST_SNAKE()
     : WI_LABEL_t(_(label), &png::calibrate_white_16x16,
-    #if HAS_SELFTEST
+    #if HAS_SELFTEST()
         is_enabled_t::yes
     #else
         is_enabled_t::no
@@ -583,7 +597,7 @@ MI_SELFTEST_SNAKE::MI_SELFTEST_SNAKE()
 }
 
 void MI_SELFTEST_SNAKE::click(IWindowMenu & /*window_menu*/) {
-    #if HAS_SELFTEST
+    #if HAS_SELFTEST()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSTSCalibrations>);
     #endif
 }

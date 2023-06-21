@@ -14,7 +14,7 @@
 #include <type_traits>     //aligned_storage
 
 /*****************************************************************************/
-//IWiSwitch
+// IWiSwitch
 class IWiSwitch : public AddSuper<WI_LABEL_t> {
 public:
     static constexpr font_t *&BracketFont = GuiDefaults::FontMenuSpecial;
@@ -33,13 +33,13 @@ public:
         uint16_t size;
         type_t type;
 
-        //text ctor
+        // text ctor
         Items_t(string_view_utf8 array[], size_t SZ)
             : texts(array)
             , size(SZ)
             , type(type_t::text) {}
 
-        //icon ctor
+        // icon ctor
         Items_t(const png::Resource *array[], size_t SZ)
             : icon_resources(array)
             , size(SZ)
@@ -51,7 +51,7 @@ protected:
     using IconMemSpace_t = std::aligned_storage<sizeof(const png::Resource *), alignof(const png::Resource *)>;
 
     template <class T, class... E>
-    Items_t FillArray(void *ArrayMem, E &&... e) {
+    Items_t FillArray(void *ArrayMem, E &&...e) {
         const size_t SZ = sizeof...(E);
         T *pArr = new (ArrayMem) T[SZ] { std::forward<E>(e)... };
         Items_t ret = Items_t(pArr, SZ);
@@ -97,7 +97,7 @@ class WI_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
-    WI_SWITCH_t(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&... e)
+    WI_SWITCH_t(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
         : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<string_view_utf8>(&ArrayMemSpace, std::forward<E>(e)...)) {}
 };
 
@@ -108,6 +108,6 @@ class WI_ICON_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
-    WI_ICON_SWITCH_t(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&... e)
+    WI_ICON_SWITCH_t(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
         : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<const png::Resource *>(&ArrayMemSpace, std::forward<E>(e)...)) {}
 };

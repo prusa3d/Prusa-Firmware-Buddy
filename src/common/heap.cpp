@@ -46,7 +46,7 @@ void vPortInitialiseBlocks(void) PRIVILEGED_FUNCTION {};
 #define ENTER_CRITICAL_SECTION(_usis) \
     { _usis = taskENTER_CRITICAL_FROM_ISR(); } // Disables interrupts (after saving prior state)
 #define EXIT_CRITICAL_SECTION(_usis) \
-    { taskEXIT_CRITICAL_FROM_ISR(_usis); } // Re-enables interrupts (unless already disabled prior taskENTER_CRITICAL)
+    { taskEXIT_CRITICAL_FROM_ISR(_usis); }     // Re-enables interrupts (unless already disabled prior taskENTER_CRITICAL)
 
 //
 // _sbrk implementation

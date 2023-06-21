@@ -1,4 +1,4 @@
-//selftest
+// selftest
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
@@ -24,7 +24,7 @@ void PrusaGcodeSuite::M50() {
     bool axis_test = X_test || Y_test || Z_test;
     bool fan_axis_test = axis_test || fan_test;
 
-    //no parameter? set all tests
+    // no parameter? set all tests
     if (!fan_axis_test && heater_test) {
         X_test = Y_test = Z_test = fan_test = heater_test = true;
 
@@ -34,7 +34,7 @@ void PrusaGcodeSuite::M50() {
     {
         FSM_HOLDER__LOGGING(SelftestAxis);
         const float target_Z = 20;
-        Z_Calib_FSM N(ClientFSM::SelftestAxis, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z, 0, 100); //bind to variable and automatically notify progress
+        Z_Calib_FSM N(ClientFSM::SelftestAxis, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z, 0, 100); // bind to variable and automatically notify progress
         do_blocking_move_to_z(20, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
     /*    FSM_HOLDER__LOGGING(G162);

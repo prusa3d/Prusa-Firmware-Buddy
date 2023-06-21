@@ -948,7 +948,7 @@ msgid "PROJECTS"
 msgstr "PROJECTOS"
 
 #: src/gui/screen_prusa_link.cpp:58
-msgid "PRUSA LINK"
+msgid "PRUSALINK"
 msgstr "PRUSALINK"
 
 #: src/gui/MItem_filament.hpp:38 src/gui/dialogs/DialogFactory.cpp:11

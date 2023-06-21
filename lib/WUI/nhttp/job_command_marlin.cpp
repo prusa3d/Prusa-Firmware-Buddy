@@ -2,6 +2,8 @@
 
 #include "../../../src/common/marlin_client.hpp"
 
+#include <state/printer_state.hpp>
+
 #include <cassert>
 
 using namespace marlin_server;
@@ -26,47 +28,64 @@ namespace {
     SimplePrintState get_state() {
         marlin_vars_t *vars = marlin_vars();
 
+        SimplePrintState simple_state {};
+
         switch (vars->print_state) {
-        case mpsPrinting:
-            return SimplePrintState::Printing;
-        case mpsPowerPanic_acFault:
-        case mpsPowerPanic_Resume:
-        case mpsPowerPanic_AwaitingResume:
-        case mpsPausing_Begin:
-        case mpsPausing_WaitIdle:
-        case mpsPausing_ParkHead:
-        case mpsPausing_Failed_Code:
-        case mpsCrashRecovery_Begin:
-        case mpsCrashRecovery_Axis_NOK:
-        case mpsCrashRecovery_Retracting:
-        case mpsCrashRecovery_Lifting:
-        case mpsCrashRecovery_XY_Measure:
-        case mpsCrashRecovery_XY_HOME:
-        case mpsCrashRecovery_HOMEFAIL:
-        case mpsCrashRecovery_Repeated_Crash:
-        case mpsResuming_Begin:
-        case mpsResuming_Reheating:
-        case mpsResuming_UnparkHead_XY:
-        case mpsResuming_UnparkHead_ZE:
-        case mpsAborting_Begin:
-        case mpsAborting_WaitIdle:
-        case mpsAborting_ParkHead:
-        case mpsFinishing_WaitIdle:
-        case mpsFinishing_ParkHead:
-            return SimplePrintState::Busy;
-        case mpsPaused:
-            return SimplePrintState::Paused;
-        case mpsAborted:
-        case mpsFinished:
-        case mpsIdle:
-        case mpsExit:
-            return SimplePrintState::Idle;
-        case mpsPrintPreviewQuestions:
-            return SimplePrintState::Attention;
+        case State::Printing:
+            simple_state = SimplePrintState::Printing;
+            break;
+        case State::PowerPanic_acFault:
+        case State::PowerPanic_Resume:
+        case State::PowerPanic_AwaitingResume:
+        case State::Pausing_Begin:
+        case State::Pausing_WaitIdle:
+        case State::Pausing_ParkHead:
+        case State::Pausing_Failed_Code:
+        case State::CrashRecovery_Begin:
+        case State::CrashRecovery_Axis_NOK:
+        case State::CrashRecovery_Retracting:
+        case State::CrashRecovery_Lifting:
+        case State::CrashRecovery_ToolchangePowerPanic:
+        case State::CrashRecovery_XY_Measure:
+        case State::CrashRecovery_XY_HOME:
+        case State::CrashRecovery_HOMEFAIL:
+        case State::CrashRecovery_Repeated_Crash:
+        case State::Resuming_Begin:
+        case State::Resuming_Reheating:
+        case State::Resuming_UnparkHead_XY:
+        case State::Resuming_UnparkHead_ZE:
+        case State::Aborting_Begin:
+        case State::Aborting_WaitIdle:
+        case State::Aborting_ParkHead:
+        case State::Finishing_WaitIdle:
+        case State::Finishing_ParkHead:
+            simple_state = SimplePrintState::Busy;
+            break;
+        case State::Paused:
+            simple_state = SimplePrintState::Paused;
+            break;
+        case State::Aborted:
+        case State::Finished:
+        case State::Idle:
+        case State::Exit:
+            simple_state = SimplePrintState::Idle;
+            break;
+        case State::PrintPreviewQuestions:
+            simple_state = SimplePrintState::Attention;
+            break;
         default:
             assert(0);
-            return SimplePrintState::Idle;
+            simple_state = SimplePrintState::Idle;
+            break;
         }
+
+        // The states here are different, but we probably still want the new attention states, so we are consistent.
+        auto link_state = printer_state::get_state(false);
+        if (link_state == printer_state::DeviceState::Attention) {
+            simple_state = SimplePrintState::Attention;
+        }
+
+        return simple_state;
     }
 
 }

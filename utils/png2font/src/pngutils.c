@@ -1,4 +1,4 @@
-//pngutils.c
+// pngutils.c
 
 #include <png.h>
 
@@ -12,7 +12,7 @@ png_structp _png_open_read(FILE *fp, png_infop *pppi) {
     *pppi = png_create_info_struct(pp);
     if (*pppi == NULL)
         goto _e_1;
-    //if (setjmp (png_jmpbuf (pp))) goto _e_1;
+    // if (setjmp (png_jmpbuf (pp))) goto _e_1;
     png_init_io(pp, fp);
     png_read_info(pp, *pppi);
     return pp;
@@ -32,7 +32,7 @@ png_structp _png_open_write(FILE *fp, png_infop *pppi, int w, int h, int colorty
     *pppi = png_create_info_struct(pp);
     if (*pppi == NULL)
         goto _e_1;
-    //if (setjmp (png_jmpbuf (pp))) goto _e_1;
+    // if (setjmp (png_jmpbuf (pp))) goto _e_1;
     png_set_IHDR(pp, *pppi, w, h, 8,
         colortype,
         PNG_INTERLACE_NONE,

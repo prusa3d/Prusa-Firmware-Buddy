@@ -193,6 +193,8 @@ public:
     ///
     /// All actions except sleeps expect a follow-up call to action_done.
     Action next_action(SharedBuffer &buffer);
+    /// Will we need the paths extracted from the current job?
+    bool wants_job_paths() const;
     // Note: *Not* for Sleep. Only for stuff that sends.
     void action_done(ActionResult action);
 

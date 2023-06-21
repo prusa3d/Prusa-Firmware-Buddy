@@ -396,7 +396,7 @@ namespace ExtUI {
   void setActiveTool(const extruder_t extruder) {
     #if EXTRUDERS > 1
       const uint8_t e = extruder - E0;
-      if (e != active_extruder) tool_change(e, tool_return_t::no_move);
+      if (e != active_extruder) tool_change(e, tool_return_t::no_return);
       active_extruder = e;
     #else
       UNUSED(extruder);
@@ -888,7 +888,7 @@ namespace ExtUI {
         #if HOTENDS
           static constexpr int16_t heater_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP, HEATER_4_MAXTEMP, HEATER_5_MAXTEMP);
           const int16_t e = heater - H0;
-          thermalManager.setTargetHotend(constrain(value, 0, heater_maxtemp[e] - 15), e);
+          thermalManager.setTargetHotend(constrain(value, 0, heater_maxtemp[e] - HEATER_MAXTEMP_SAFETY_MARGIN), e);
         #endif
       }
   }
@@ -898,7 +898,7 @@ namespace ExtUI {
       constexpr int16_t heater_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP, HEATER_4_MAXTEMP, HEATER_5_MAXTEMP);
       const int16_t e = extruder - E0;
       enableHeater(extruder);
-      thermalManager.setTargetHotend(constrain(value, 0, heater_maxtemp[e] - 15), e);
+      thermalManager.setTargetHotend(constrain(value, 0, heater_maxtemp[e] - HEATER_MAXTEMP_SAFETY_MARGIN), e);
     #endif
   }
 

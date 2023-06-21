@@ -17,7 +17,7 @@ volatile bool dwarf_init_done = false;
 
 static hal::MultiWatchdog idle_task_watchdog; // Add one instance of watchdog
 static void idle_task_watchdog_callback() {
-    idle_task_watchdog.kick(false); // Mark this watchdog instance, do not reload hardware from this instance
+    idle_task_watchdog.kick(false);           // Mark this watchdog instance, do not reload hardware from this instance
 }
 
 void startup_task_run() {

@@ -1,31 +1,38 @@
-#include "../PrusaGcodeSuite.hpp"
-#include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
+#include "marlin_stubs/PrusaGcodeSuite.hpp"
+#include "Marlin/src/gcode/gcode.h"
+#include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 #include "M70X.hpp"
 
 /**
- * M707: Read variable from MMU
+ * M707: Read variable from MMU and print on the serial line.
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  A<address>  - address of variable
- *  C<size>     - size in bytes
- *
- *  Default values are used for omitted arguments.
+ *  A<address> - Address of register to read from in hexadecimal.
  */
 void PrusaGcodeSuite::M707() {
+    if (!parser.seen('A')) {
+        parser.unknown_command_error();
+        return;
+    }
+
+    const uint32_t address = parser.ulongval_hex('A');
+    MMU2::mmu2.ReadRegister(address);
 }
 
 /**
  * M708: Write variable to MMU
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  A<address>  - address of variable
- *  C<size>     - size in bytes
- *
- *  Default values are used for omitted arguments.
+ *  A<address> - Address of register to write to in hexadecimal.
+ *  X<value>   - The value to write (in decimal).
  */
 void PrusaGcodeSuite::M708() {
+    if (!parser.seen('A') || !parser.seen('X')) {
+        parser.unknown_command_error();
+        return;
+    }
+
+    const uint32_t address = parser.ulongval_hex('A');
+    const uint16_t value = parser.intval('X');
+    MMU2::mmu2.WriteRegister(address, value);
 }
 
 /**
@@ -48,7 +55,7 @@ void PrusaGcodeSuite::M709() {
 
     switch (power_val) {
     case -1:
-        //TODO return if is on
+        // TODO return if is on
         return;
     case 0:
         filament_gcodes::mmu_off();

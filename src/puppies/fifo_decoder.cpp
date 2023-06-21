@@ -34,6 +34,13 @@ void Decoder::decode(const Callbacks_t callbacks) {
     }
 }
 
+bool Decoder::more() const {
+    // TODO: FIFO needs info about how many bytes are in it and clear it by another channel.
+    // Until fixed: If another item wouldn't fit the message, we assume there is more in FIFO.
+    return (sizeof(std::array<uint16_t, MODBUS_FIFO_LEN>) - len)                  // Remainder of the packet
+        < sizeof(Header_t) + std::max(sizeof(LogData_t), sizeof(LoadCellData_t)); // Size of the biggest item
+}
+
 uint8_t Decoder::available_bytes() const {
     return (reinterpret_cast<uint8_t *>(fifo.data()) + len) - data;
 }

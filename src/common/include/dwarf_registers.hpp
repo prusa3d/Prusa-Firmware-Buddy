@@ -9,18 +9,26 @@ namespace dwarf_shared::registers {
 
 enum class SystemDiscreteInput : uint16_t {
     is_picked = 0x0000,
-    is_parked = 0x0001
+    is_parked = 0x0001,
+
+    _post_last,
+    _last = _post_last - 1,
+    _first = is_picked,
 };
 
 enum class SystemCoil : uint16_t {
     tmc_enable = 0x4000,
     is_selected = 0x4001,
+
+    _post_last,
+    _last = _post_last - 1,
+    _first = tmc_enable,
 };
 
 enum class SystemInputRegister : uint16_t {
 
     hw_bom_id = 0x8001,
-    hw_otp_timestamp_0 = 0x8002, // 4 B UNIX timestamp, seconds since 1970
+    hw_otp_timestamp_0 = 0x8002,      // 4 B UNIX timestamp, seconds since 1970
     hw_otp_timestamp_1 = 0x8003,
     hw_raw_datamatrix_first = 0x8004, // 24 B raw datamatrix string
     hw_raw_datamatrix_last = 0x800f,
@@ -53,6 +61,9 @@ enum class SystemInputRegister : uint16_t {
     marlin_error_message_start = 0x807C, // 64 characters, 32 registers
     marlin_error_message_end = 0x809B,
 
+    _post_last,
+    _last = _post_last - 1,
+    _first = hw_bom_id,
 };
 
 enum class SystemHoldingRegister : uint16_t {
@@ -60,15 +71,24 @@ enum class SystemHoldingRegister : uint16_t {
     heatbreak_requested_temperature = 0xE001,
     fan0_pwm = 0xE002,
     fan1_pwm = 0xE003,
+    led_pwm = 0xE004, // 8 MSb PWM when selected, 8 LSb PWM when not selected [0 - 0xff]
 
     tmc_read_request = 0xE020,
     tmc_write_request_address = 0xE021,
     tmc_write_request_value_1 = 0xE022,
     tmc_write_request_value_2 = 0xE023,
+
+    _post_last,
+    _last = _post_last - 1,
+    _first = nozzle_target_temperature,
 };
 
 enum class SystemFIFO : uint16_t {
     encoded_stream = 0x0000,
+
+    _post_last,
+    _last = _post_last - 1,
+    _first = encoded_stream,
 };
 
 } // namespace dwarf_shared::registers

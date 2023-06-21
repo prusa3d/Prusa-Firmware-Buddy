@@ -142,6 +142,8 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "WizardEpilogue_ok";
     case PhasesSelftest::WizardEpilogue_nok:
         return "WizardEpilogue_nok";
+    case PhasesSelftest::Dock_move_away:
+        return "Dock_move_away";
     case PhasesSelftest::Dock_wait_user_park1:
         return "DockCalibration_wait_park1";
     case PhasesSelftest::Dock_wait_user_park2:
@@ -164,10 +166,14 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "DockCalibration_wait_user_tighten_bottom_screw";
     case PhasesSelftest::Dock_selftest_park_test:
         return "DockCalibration_selftest_park_test";
+    case PhasesSelftest::Dock_selftest_failed:
+        return "Dock_selftest_failed";
     case PhasesSelftest::Dock_calibration_success:
         return "Dock_calibration_success";
     case PhasesSelftest::Dock_wait_user_tighten_top_screw:
         return "DockCalibration_wait_user_tighten_pilar";
+    case PhasesSelftest::ToolOffsets_wait_stable_temp:
+        return "ToolOffsets_wait_stable_temp";
     case PhasesSelftest::ToolOffsets_wait_calibrate:
         return "ToolOffsets_wait_calibrate";
     case PhasesSelftest::ToolOffsets_pin_install_prepare:
@@ -184,6 +190,12 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "ToolOffsets_wait_user_install_sheet";
     case PhasesSelftest::ToolOffsets_wait_final_park:
         return "ToolOffsets_wait_final_park";
+    case PhasesSelftest::SpecifyHotEnd_sock:
+        return "SpecifyHotEnd_sock";
+    case PhasesSelftest::SpecifyHotEnd_nozzle_type:
+        return "SpecifyHotEnd_nozzle_type";
+    case PhasesSelftest::SpecifyHotEnd_retry:
+        return "SpecifyHotEnd_retry";
     case PhasesSelftest::ToolOffsets_wait_user_remove_pin:
         return "ToolOffsets_wait_user_remove_pin";
     }

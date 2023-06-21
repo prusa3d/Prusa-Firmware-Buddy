@@ -4,7 +4,6 @@
 #include "WindowMenuItems.hpp"
 #include "WindowMenuSwitch.hpp"
 #include "i18n.h"
-#include "eeprom.h"
 #include <option/has_toolchanger.h>
 #include <option/has_side_leds.h>
 
@@ -412,6 +411,16 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 #endif
+
+#if HAS_TOOLCHANGER()
+class MI_TOOL_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Tool Light");
+
+public:
+    MI_TOOL_LEDS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+#endif /*HAS_TOOLCHANGER()*/
 
 class MI_TOOLS_SETUP : public WI_LABEL_t {
     static constexpr const char *const label = N_("Tools");

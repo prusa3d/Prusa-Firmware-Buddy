@@ -744,6 +744,7 @@ def main():
             version_suffix=args.version_suffix,
             version_suffix_short=args.version_suffix_short,
             generator=args.generator,
+            toolchain=args.toolchain,
             custom_entries=args.cmake_def) for preset in selected_presets
         for build_type in args.build_type for bootloader in args.bootloader
     ]

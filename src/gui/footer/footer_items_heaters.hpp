@@ -29,21 +29,21 @@ public:
         _last = preheat
     };
 
-    //to be able to work with int
+    // to be able to work with int
     struct StateAndTemps {
-        bool disabled;
+        bool no_tool; ///< True if no tool is picked
         HeatState state;
         uint16_t current : 12;
         uint16_t target_or_display : 12;
 
         constexpr StateAndTemps(int data = 0)
-            : disabled(data & 0b1)
+            : no_tool(data & 0b1)
             , state(HeatState((uint(data) >> 1) & 0b01111111))
             , current((uint(data) >> 8) & 0x0fff)
             , target_or_display((uint(data) >> 20) & 0x0fff) {}
 
-        constexpr StateAndTemps(HeatState state, uint16_t current, uint16_t target_or_display, bool disabled)
-            : disabled(disabled)
+        constexpr StateAndTemps(HeatState state, uint16_t current, uint16_t target_or_display, bool no_tool_)
+            : no_tool(no_tool_)
             , state(state)
             , current(current)
             , target_or_display(target_or_display) {}
@@ -55,7 +55,7 @@ public:
             ret = ret << 7;
             ret |= (uint8_t(state) & 0b01111111);
             ret = ret << 1;
-            ret |= disabled ? 1 : 0;
+            ret |= no_tool ? 1 : 0;
             return ret;
         }
     };
@@ -78,7 +78,7 @@ protected:
      *          - cooling - blue flickering
      *          - preheat - green flickering
      */
-    static HeatState getState(int current, int target, int display, int cold); //need signed values for comparison
+    static HeatState getState(int current, int target, int display, int cold); // need signed values for comparison
     static string_view_utf8 static_makeViewIntoBuff(int value, std::array<char, 10> &buff);
 
 public:

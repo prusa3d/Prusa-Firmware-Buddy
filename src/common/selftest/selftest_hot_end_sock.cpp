@@ -4,7 +4,7 @@
 
 #include "selftest_hot_end_sock.hpp"
 #include "wizard_config.hpp"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 #include <array>
 
@@ -19,8 +19,8 @@ CSelftestPart_HotEndSock::CSelftestPart_HotEndSock(IPartHandler &state_machine, 
 }
 
 LoopResult CSelftestPart_HotEndSock::stateStart() {
-    rResult.has_sock = eeprom_get_bool(EEVAR_NOZZLE_SOCK);
-    rResult.prusa_stock_nozzle = eeprom_get_ui8(EEVAR_NOZZLE_TYPE) == 0;
+    rResult.has_sock = config_store().nozzle_sock.get();
+    rResult.prusa_stock_nozzle = config_store().nozzle_type.get() == 0;
     return LoopResult::RunNext;
 }
 

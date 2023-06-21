@@ -32,6 +32,25 @@ void ReportErrorHook(CommandInProgress cip, uint16_t ec, uint8_t es);
 /// Called when the MMU sends operation progress update
 void ReportProgressHook(CommandInProgress cip, uint16_t ec);
 
+struct TryLoadUnloadReporter {
+    TryLoadUnloadReporter(float delta_mm);
+    void Progress(bool sensorState);
+
+private:
+    /// @brief Add one block to the progress bar
+    /// @param col pixel position on the LCD status line, should range from 0 to (LCD_WIDTH - 1)
+    /// @param sensorState if true, filament is not present, else filament is present. This controls which character to render
+    void Render(uint8_t col, bool sensorState);
+
+    uint8_t dpixel1;
+    uint8_t dpixel0;
+    // The total length is twice delta_mm. Divide that length by number of pixels
+    // available to get length per pixel.
+    // Note: Below is the reciprocal of (2 * delta_mm) / LCD_WIDTH [mm/pixel]
+    float pixel_per_mm;
+    uint8_t lcd_cursor_col;
+};
+
 /// Remders the sensor status line. Also used by the "resume temperature" screen.
 void ReportErrorHookDynamicRender();
 
@@ -51,6 +70,9 @@ void IncrementLoadFails();
 
 /// Increments EEPROM cell - number of MMU errors
 void IncrementMMUFails();
+
+/// @returns true when Cutter is enabled in the menus
+bool cutter_enabled();
 
 // Beware: enum values intentionally chosen to match the 8bit FW to save code size
 enum SoundType {

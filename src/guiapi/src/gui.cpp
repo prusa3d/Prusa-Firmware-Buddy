@@ -19,6 +19,7 @@
 #include "log.h"
 
 #include <option/has_touch.h>
+#include <configuration_store.hpp>
 
 LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Touch);
@@ -29,16 +30,16 @@ static bool gui_invalid = false;
 
 // shadow touch weak functions, so touch driver is not dependent on eeprom
 bool touch::is_enabled() {
-    return eeprom_get_bool(EEVAR_TOUCH_ENABLED);
+    return config_store().touch_enabled.get();
 }
 
 void touch::enable() {
-    eeprom_set_bool(EEVAR_TOUCH_ENABLED, true);
+    config_store().touch_enabled.set(true);
     log_info(Touch, "enabled");
 }
 
 void touch::disable() {
-    eeprom_set_bool(EEVAR_TOUCH_ENABLED, false);
+    config_store().touch_enabled.set(false);
     log_info(Touch, "disabled");
 }
 

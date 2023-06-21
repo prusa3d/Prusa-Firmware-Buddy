@@ -5,13 +5,14 @@
 #include "menu_spin_config.hpp"
 #include "gui_fsensor_api.hpp"
 #include "window_msgbox.hpp"
-#include "eeprom.h"
 
 #include "screen_menu_mmu_load_filament.hpp"
 #include "screen_menu_mmu_eject_filament.hpp"
 #include "screen_menu_mmu_cut_filament.hpp"
 #include "screen_menu_mmu_load_to_nozzle.hpp"
 #include "screen_menu_mmu_fail_stats.hpp"
+
+#include <configuration_store.hpp>
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT
@@ -57,9 +58,9 @@ MI_MMU_ISSUE_GCODE::MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode)
 }
 
 void MI_MMU_ISSUE_GCODE::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(MARLIN_EVT_CommandBegin);
+    marlin_event_clr(marlin_server::Event::CommandBegin);
     marlin_gcode(gcode);
-    //    while (!marlin_event_clr(MARLIN_EVT_CommandBegin))
+    //    while (!marlin_event_clr(Event::CommandBegin))
     //        marlin_client_loop();
     // gui_dlg_wait(gui_marlin_G28_or_G29_in_progress); // @@TODO perform some blocking wait on the LCD until the MMU finishes its job
     // Meanwhile an MMU error screen may occur!
@@ -72,7 +73,7 @@ MI_MMU_LOAD_ALL::MI_MMU_LOAD_ALL()
 }
 
 void MI_MMU_LOAD_ALL::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(MARLIN_EVT_CommandBegin);
+    marlin_event_clr(marlin_server::Event::CommandBegin);
     for (uint8_t i = 0; i < 5; ++i) {
         char gcode[] = "M704 Px";
         gcode[sizeof(gcode) - 2] = i + '0';
@@ -111,9 +112,9 @@ MI_MMU_SPOOLJOIN::MI_MMU_SPOOLJOIN()
     : WI_ICON_SWITCH_OFF_ON_t(/*Screens::Access()->GetSpoolJoin() ? 1 : 0*/ 1, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_MMU_SPOOLJOIN::OnChange(size_t old_index) {
     if (!old_index) {
-        //Screens::Access()->EnableSpoolJoin();
+        // Screens::Access()->EnableSpoolJoin();
     } else {
-        //Screens::Access()->DisableSpoolJoin();
+        // Screens::Access()->DisableSpoolJoin();
     }
     // eeprom_set_bool(EEVAR_MENU_SPOOLJOIN, Screens::Access()->GetSpoolJoin());
 }
@@ -121,21 +122,21 @@ void MI_MMU_SPOOLJOIN::OnChange(size_t old_index) {
 /**********************************************************************************************/
 // MI_MMU_CUTTER
 MI_MMU_CUTTER::MI_MMU_CUTTER()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_MMU2_CUTTER), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().mmu2_cutter.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_MMU_CUTTER::OnChange([[maybe_unused]] size_t old_index) {
-    bool newState = !eeprom_get_bool(EEVAR_MMU2_CUTTER);
+    bool newState = !config_store().mmu2_cutter.get();
     // @@TODO some notification to the MMU2's engine?
-    eeprom_set_bool(EEVAR_MMU2_CUTTER, newState);
+    config_store().mmu2_cutter.set(newState);
 }
 
 /**********************************************************************************************/
 // MI_MMU_STEALTH_MODE
 MI_MMU_STEALTH_MODE::MI_MMU_STEALTH_MODE()
-    : WI_ICON_SWITCH_OFF_ON_t(eeprom_get_bool(EEVAR_MMU2_STEALTH_MODE), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().mmu2_stealth_mode.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 void MI_MMU_STEALTH_MODE::OnChange([[maybe_unused]] size_t old_index) {
-    bool newState = !eeprom_get_bool(EEVAR_MMU2_STEALTH_MODE);
+    bool newState = !config_store().mmu2_stealth_mode.get();
     // @@TODO some notification to the MMU2's engine?
-    eeprom_set_bool(EEVAR_MMU2_STEALTH_MODE, newState);
+    config_store().mmu2_stealth_mode.set(newState);
 }
 
 /**********************************************************************************************/

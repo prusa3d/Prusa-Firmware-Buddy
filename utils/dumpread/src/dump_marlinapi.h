@@ -4,7 +4,7 @@
 
 #include <crash_dump/dump.h>
 
-//marlin api config
+// marlin api config
 #define MARLIN_MAX_CLIENTS  3   // maximum number of clients registered in same time
 #define MARLIN_MAX_REQUEST  100 // maximum request length in chars
 #define MARLIN_SERVER_QUEUE 128 // size of marlin server input character queue (number of characters)
@@ -108,10 +108,10 @@ typedef struct _marlin_client_t {
     uint32_t ack;        // cached ack value from last Acknowledge event
     uint16_t last_count; // number of messages received in last client loop
     uint64_t errors;
-    marlin_mesh_t mesh; // meshbed leveling
-    uint32_t command;   // processed command (G28,G29,M701,M702,M600)
-    uint8_t reheating;  // reheating in progress
-    uint32_t fsm_cb;    // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
+    marlin_mesh_t mesh;  // meshbed leveling
+    uint32_t command;    // processed command (G28,G29,M701,M702,M600)
+    uint8_t reheating;   // reheating in progress
+    uint32_t fsm_cb;     // to register callback for screen creation (M876), callback ensures M876 is processed asap, so there is no need for queue
 } marlin_client_t;
 
 #pragma pack(pop)

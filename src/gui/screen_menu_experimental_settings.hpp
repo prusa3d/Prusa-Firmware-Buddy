@@ -7,7 +7,7 @@
 
 #ifndef _DEBUG
     #include "screen_menu_experimental_settings_release.hpp"
-#else // _DEBUG
+#else  // _DEBUG
     #include "screen_menu_experimental_settings_debug.hpp"
 #endif // _DEBUG
 

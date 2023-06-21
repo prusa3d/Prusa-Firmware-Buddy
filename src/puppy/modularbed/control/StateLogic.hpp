@@ -26,4 +26,4 @@ bool IsPowerPanicActive();
 bool IsCurrentFaultActive();
 bool IsAnyFaultActive();
 
-} //namespace
+} // namespace

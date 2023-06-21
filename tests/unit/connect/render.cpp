@@ -26,18 +26,20 @@ constexpr const char *rejected_event_printing = R"({"reason":"Job ID doesn't mat
 constexpr const char *rejected_event_idle = R"({"state":"IDLE","command_id":11,"event":"REJECTED"})";
 constexpr const char *rejected_event_idle_no_job = R"({"reason":"No job in progress","state":"IDLE","command_id":11,"event":"REJECTED"})";
 
-constexpr Printer::Params params_printing() {
-    Printer::Params params {};
+Printer::Params params_printing() {
+    static SharedBuffer buffer;
+    static optional<BorrowPaths> paths(*buffer.borrow());
+    strcpy(paths->path(), print_file);
+    strcpy(paths->name(), "box.gcode");
+    Printer::Params params(paths);
 
     params.job_id = 42;
     params.progress_percent = 12;
-    params.job_path = print_file;
-    params.job_lfn = "box.gcode";
     params.temp_bed = 65;
     params.temp_nozzle = 200;
     params.target_bed = 70;
     params.target_nozzle = 195;
-    params.state = Printer::DeviceState::Printing;
+    params.state = printer_state::DeviceState::Printing;
 
     return params;
 };
@@ -46,19 +48,19 @@ constexpr Printer::Params params_printing() {
 
 TEST_CASE("Render") {
     string expected;
-    Printer::Params params {};
+    optional<Printer::Params> params;
     Action action;
     optional<Monitor::Slot> transfer_slot = nullopt;
     optional<CommandId> background_command_id = nullopt;
 
     SECTION("Telemetry - empty") {
-        params = params_printing();
+        params.emplace(params_printing());
         action = SendTelemetry { true };
         expected = "{}";
     }
 
     SECTION("Telemetry - printing") {
-        params = params_printing();
+        params.emplace(params_printing());
         action = SendTelemetry { false };
         // clang-format off
         expected = "{"
@@ -82,7 +84,7 @@ TEST_CASE("Render") {
     }
 
     SECTION("Telemetry - idle") {
-        params = params_idle();
+        params.emplace(params_idle());
         action = SendTelemetry { false };
         // clang-format off
         expected = "{"
@@ -101,7 +103,7 @@ TEST_CASE("Render") {
     }
 
     SECTION("Telemetry - transferring") {
-        params = params_idle();
+        params.emplace(params_idle());
         action = SendTelemetry { false };
         transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/whatever.gcode", 1024);
         REQUIRE(transfer_slot.has_value());
@@ -130,7 +132,7 @@ TEST_CASE("Render") {
     }
 
     SECTION("Telemetry with background command") {
-        params = params_idle();
+        params.emplace(params_idle());
         action = SendTelemetry { false };
         background_command_id = 13;
         // clang-format off
@@ -155,7 +157,7 @@ TEST_CASE("Render") {
             EventType::Rejected,
             11,
         };
-        params = params_idle();
+        params.emplace(params_idle());
         expected = rejected_event_idle;
     }
 
@@ -165,7 +167,7 @@ TEST_CASE("Render") {
             11,
             42,
         };
-        params = params_printing();
+        params.emplace(params_printing());
         // clang-format off
         expected = "{"
             "\"job_id\":42,"
@@ -183,7 +185,7 @@ TEST_CASE("Render") {
             11,
             42,
         };
-        params = params_idle();
+        params.emplace(params_idle());
         expected = rejected_event_idle_no_job;
     }
 
@@ -193,7 +195,7 @@ TEST_CASE("Render") {
             11,
             13,
         };
-        params = params_printing();
+        params.emplace(params_printing());
         expected = rejected_event_printing;
     }
 
@@ -202,7 +204,7 @@ TEST_CASE("Render") {
             EventType::Info,
             11,
         };
-        params = params_idle();
+        params.emplace(params_idle());
 
         // clang-format off
         expected = "{"
@@ -228,7 +230,7 @@ TEST_CASE("Render") {
             EventType::TransferInfo,
             11,
         };
-        params = params_idle();
+        params.emplace(params_idle());
         // clang-format off
         expected = "{"
             "\"data\":{"
@@ -246,7 +248,7 @@ TEST_CASE("Render") {
             EventType::TransferInfo,
             11,
         };
-        params = params_idle();
+        params.emplace(params_idle());
         transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/whatever.gcode", 1024);
         REQUIRE(transfer_slot.has_value());
         auto id = Monitor::instance.id();
@@ -277,7 +279,7 @@ TEST_CASE("Render") {
             EventType::Rejected,
             11,
         };
-        params = params_idle();
+        params.emplace(params_idle());
         transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, "/usb/whatever.gcode", 1024);
         auto id = Monitor::instance.id();
         REQUIRE(id.has_value());
@@ -299,7 +301,7 @@ TEST_CASE("Render") {
             EventType::TransferInfo,
             11,
         };
-        params = params_idle();
+        params.emplace(params_idle());
         transfer_slot = Monitor::instance.allocate(Monitor::Type::Connect, nullptr, 1024);
         REQUIRE(transfer_slot.has_value());
         auto id = Monitor::instance.id();
@@ -324,7 +326,7 @@ TEST_CASE("Render") {
         expected = e.str();
     }
 
-    MockPrinter printer(params);
+    MockPrinter printer(params.value());
     Tracked telemetry_changes;
     RenderState state(printer, action, telemetry_changes, background_command_id);
     Renderer renderer(std::move(state));

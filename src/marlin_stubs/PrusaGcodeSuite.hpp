@@ -3,15 +3,18 @@
 
 #include <option/has_toolchanger.h>
 // the version of the g-code that the printer supports
-#define GCODE_LEVEL 1
+#define GCODE_LEVEL 2
 
 namespace PrusaGcodeSuite {
+using M862_6SupportedFeatures = std::array<const char *, 0>;
+extern M862_6SupportedFeatures m862_6SupportedFeatures;
+
 void G26();  /// first layer calibration
 void G64();  /// Measure Z_AXIS height
 void G162(); /// handler-specific configuration
 void G163(); /// measure length of axis
 
-void M50(); /// selftest
+void M50();  /// selftest
 
 void M300(); /// beep
 void M505(); /// set eeprom variable
@@ -30,13 +33,22 @@ void M862_2(); // Check model code
 void M862_3(); // Check model name
 void M862_4(); // Check firmware version
 void M862_5(); // Check gcode level
+void M862_6(); // Check gcode level
+#endif
+
+#if ENABLED(PRUSA_TOOL_MAPPING)
+void M863(); // tool mapping control
+#endif
+
+#if ENABLED(PRUSA_SPOOL_JOIN)
+void M864(); // spool join control
 #endif
 
 void M930();
 void M931();
 void M932();
-void M997(); /// M997 Update firmware. Prusa STM32 platform specific
-void M999(); /// M999 reset MCU. Prusa STM32 platform specific
+void M997();  /// M997 Update firmware. Prusa STM32 platform specific
+void M999();  /// M999 reset MCU. Prusa STM32 platform specific
 
 void M1587(); /// Wi-Fi credentials
 void M1600(); /// Menu change filament. Prusa STM32 platform specific

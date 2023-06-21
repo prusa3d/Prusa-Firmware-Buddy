@@ -1,5 +1,5 @@
 /*****************************************************************************/
-//print related menu items
+// print related menu items
 #pragma once
 #include "WindowMenuItems.hpp"
 #include "i18n.h"

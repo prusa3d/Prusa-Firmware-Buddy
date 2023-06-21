@@ -53,7 +53,8 @@ int convert_result(variant<size_t, Error> result, int timeout_error) {
 }
 
 mbedtls_net_context::mbedtls_net_context(uint8_t timeout_s)
-    : plain_conn(timeout_s) {}
+    : plain_conn(timeout_s)
+    , timeout_happened(false) {}
 
 void mbedtls_net_init(mbedtls_net_context *) {
     // We have a real constructor there, but we still shall have this function.
@@ -88,8 +89,14 @@ int mbedtls_net_recv(void *ctx, unsigned char *buf, size_t len) {
     mbedtls_net_context *context = reinterpret_cast<mbedtls_net_context *>(ctx);
     // Note: We don't support/use nonblock mode on TLS sockets, which makes this code a bit easier.
     auto result = context->plain_conn.rx(buf, len, false);
+    auto converted = convert_result(result, MBEDTLS_ERR_SSL_WANT_READ);
 
-    return convert_result(result, MBEDTLS_ERR_SSL_WANT_READ);
+    if (converted == MBEDTLS_ERR_SSL_WANT_READ) {
+        // Note: read in the connection factory (tls.cpp), we use this to smuggle the info through several layers up.
+        context->timeout_happened = true;
+    }
+
+    return converted;
 }
 
 /*
@@ -98,7 +105,14 @@ int mbedtls_net_recv(void *ctx, unsigned char *buf, size_t len) {
 int mbedtls_net_send(void *ctx, const unsigned char *buf, size_t len) {
     mbedtls_net_context *context = reinterpret_cast<mbedtls_net_context *>(ctx);
     auto result = context->plain_conn.tx(buf, len);
-    return convert_result(result, MBEDTLS_ERR_SSL_WANT_WRITE);
+    auto converted = convert_result(result, MBEDTLS_ERR_SSL_WANT_WRITE);
+
+    if (converted == MBEDTLS_ERR_SSL_WANT_WRITE) {
+        // Note: read in the connection factory (tls.cpp), we use this to smuggle the info through several layers up.
+        context->timeout_happened = true;
+    }
+
+    return converted;
 }
 
 void mbedtls_net_free(mbedtls_net_context *) {

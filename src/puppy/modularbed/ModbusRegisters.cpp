@@ -9,29 +9,29 @@
 
 namespace modularbed::ModbusRegisters {
 
-const uint32_t MIN_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::power_painc_status));
-const uint32_t MAX_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::current_fault_status));
+constexpr uint32_t MIN_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::_first));
+constexpr uint32_t MAX_SystemDiscreteInput = (ftrstd::to_underlying(SystemDiscreteInput::_last));
 
-const uint32_t MIN_HBDiscreteInput = (ftrstd::to_underlying(HBDiscreteInput::is_ready));
-const uint32_t MAX_HBDiscreteInput = ((ftrstd::to_underlying(HBDiscreteInput::is_ready)) + HEATBEDLET_COUNT - 1);
+constexpr uint32_t MIN_HBDiscreteInput = (ftrstd::to_underlying(HBDiscreteInput::_first));
+constexpr uint32_t MAX_HBDiscreteInput = ((ftrstd::to_underlying(HBDiscreteInput::_last)) + HEATBEDLET_COUNT - 1);
 
-const uint32_t MIN_SystemCoil = (ftrstd::to_underlying(SystemCoil::clear_fault_status));
-const uint32_t MAX_SystemCoil = (ftrstd::to_underlying(SystemCoil::print_fan_active));
+constexpr uint32_t MIN_SystemCoil = (ftrstd::to_underlying(SystemCoil::_first));
+constexpr uint32_t MAX_SystemCoil = (ftrstd::to_underlying(SystemCoil::_last));
 
-const uint32_t MIN_HBCoil = (ftrstd::to_underlying(HBCoil::clear_fault_status));
-const uint32_t MAX_HBCoil = ((ftrstd::to_underlying(HBCoil::clear_fault_status)) + HEATBEDLET_COUNT - 1);
+constexpr uint32_t MIN_HBCoil = (ftrstd::to_underlying(HBCoil::_first));
+constexpr uint32_t MAX_HBCoil = ((ftrstd::to_underlying(HBCoil::_last)) + HEATBEDLET_COUNT - 1);
 
-const uint32_t MIN_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::fault_status));
-const uint32_t MAX_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::mcu_temperature));
+constexpr uint32_t MIN_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::_first));
+constexpr uint32_t MAX_SystemInputRegister = (ftrstd::to_underlying(SystemInputRegister::_last));
 
-const uint32_t MIN_HBInputRegister = (ftrstd::to_underlying(HBInputRegister::fault_status));
-const uint32_t MAX_HBInputRegister = ((ftrstd::to_underlying(HBInputRegister::pid_tc_control_action)) + HEATBEDLET_COUNT - 1);
+constexpr uint32_t MIN_HBInputRegister = (ftrstd::to_underlying(HBInputRegister::_first));
+constexpr uint32_t MAX_HBInputRegister = ((ftrstd::to_underlying(HBInputRegister::_last)) + HEATBEDLET_COUNT - 1);
 
-const uint32_t MIN_SystemHoldingRegister = (ftrstd::to_underlying(SystemHoldingRegister::chamber_temperature));
-const uint32_t MAX_SystemHoldingRegister = (ftrstd::to_underlying(SystemHoldingRegister::clear_system_fault_bits));
+constexpr uint32_t MIN_SystemHoldingRegister = (ftrstd::to_underlying(SystemHoldingRegister::_first));
+constexpr uint32_t MAX_SystemHoldingRegister = (ftrstd::to_underlying(SystemHoldingRegister::_last));
 
-const uint32_t MIN_HBHoldingRegister = (ftrstd::to_underlying(HBHoldingRegister::max_allowed_current));
-const uint32_t MAX_HBHoldingRegister = ((ftrstd::to_underlying(HBHoldingRegister::clear_hb_fault_bits)) + HEATBEDLET_COUNT - 1);
+constexpr uint32_t MIN_HBHoldingRegister = (ftrstd::to_underlying(HBHoldingRegister::_first));
+constexpr uint32_t MAX_HBHoldingRegister = ((ftrstd::to_underlying(HBHoldingRegister::_last)) + HEATBEDLET_COUNT - 1);
 
 static uint16_t s_SystemDiscreteInputs[MAX_SystemDiscreteInput - MIN_SystemDiscreteInput + 1];
 static uint16_t s_HBDiscreteInputs[MAX_HBDiscreteInput - MIN_HBDiscreteInput + 1];
@@ -43,7 +43,7 @@ static uint16_t s_SystemHoldingRegisters[MAX_SystemHoldingRegister - MIN_SystemH
 static uint16_t s_HBHoldingRegisters[MAX_HBHoldingRegister - MIN_HBHoldingRegister + 1];
 
 void Init() {
-    //clear registers
+    // clear registers
     memset(s_SystemDiscreteInputs, 0, sizeof(s_SystemDiscreteInputs));
     memset(s_HBDiscreteInputs, 0, sizeof(s_HBDiscreteInputs));
     memset(s_SystemCoils, 0, sizeof(s_SystemCoils));
@@ -53,7 +53,7 @@ void Init() {
     memset(s_SystemHoldingRegisters, 0, sizeof(s_SystemHoldingRegisters));
     memset(s_HBHoldingRegisters, 0, sizeof(s_HBHoldingRegisters));
 
-    //add register blocks
+    // add register blocks
     AddBlock(BlockType::DiscreteInput, s_SystemDiscreteInputs, MIN_SystemDiscreteInput, MAX_SystemDiscreteInput - MIN_SystemDiscreteInput + 1);
     AddBlock(BlockType::DiscreteInput, s_HBDiscreteInputs, MIN_HBDiscreteInput, MAX_HBDiscreteInput - MIN_HBDiscreteInput + 1);
 
@@ -66,19 +66,19 @@ void Init() {
     AddBlock(BlockType::HoldingRegister, s_SystemHoldingRegisters, MIN_SystemHoldingRegister, MAX_SystemHoldingRegister - MIN_SystemHoldingRegister + 1);
     AddBlock(BlockType::HoldingRegister, s_HBHoldingRegisters, MIN_HBHoldingRegister, MAX_HBHoldingRegister - MIN_HBHoldingRegister + 1);
 
-    //init default register values
+    // init default register values
 
-    //basic HW info
+    // basic HW info
     SetInputRegisterValue(ftrstd::to_underlying(SystemInputRegister::heatbedlet_count), HEATBEDLET_COUNT);
 
     for (uint16_t i = 0; i < HEATBEDLET_COUNT; i++) {
         SetRegValue(HBHoldingRegister::max_allowed_current, i, static_cast<uint16_t>(HEATBEDLET_DEFAULT_MAX_ALLOWED_CURRENT * MODBUS_CURRENT_REGISTERS_SCALE));
     }
 
-    //system registers
+    // system registers
     SetRegValue(SystemHoldingRegister::chamber_temperature, ((float)DEFAULT_CHAMBER_TEMP) * MODBUS_TEMPERATURE_REGISTERS_SCALE);
 
-    //init registers from OTP
+    // init registers from OTP
     serial_nr_t sn;     // Serial number = raw datamatrix
     uint32_t timestamp; // Unix timestamp, seconds since 1970
     uint8_t bom_id;
@@ -176,4 +176,4 @@ uint16_t GetRegValue(HBHoldingRegister reg, uint16_t heatbedletIndex) {
     return value;
 }
 
-} //namespace
+} // namespace

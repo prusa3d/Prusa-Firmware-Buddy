@@ -8,36 +8,39 @@
 #include "led_lcd_cs_selector.hpp"
 #include <algorithm>
 #include "neopixel.hpp"
+#include "leds/side_strip_control.hpp"
+#include <option/has_side_leds.h>
 
 using namespace leds;
 
-static size_t loop_index = 0;
-static size_t write_count = 0;
-
-using Neopixels = neopixel::SPI_10M5Hz<4, LED_LCD_CS_selector::WrBytes>;
+using Neopixels = neopixel::SPI_10M5Hz<4, GuiLedsWriter::write>;
 
 Neopixels &getNeopixels() {
     static Neopixels ret;
     return ret;
 }
 
-class Writer : public LED_LCD_CS_selector {
-
-public:
-    Writer()
-        : LED_LCD_CS_selector(speed::MHz10_5) {}
-};
-
+void leds::Init() {
+    // Turn on LCD backlight
+    // TODO move SetBrightness to display
+    leds::SetBrightness(100);
+    leds::TickLoop();
+#if HAS_SIDE_LEDS()
+    bool ena = config_store().side_leds_enabled.get();
+    leds::side_strip_control.SetEnable(ena);
+#endif
+}
 void leds::ForceRefresh(size_t cnt) {
     getNeopixels().ForceRefresh(cnt);
 }
+
 void leds::TickLoop() {
     if (getNeopixels().LedsToRewrite() > 0 || getNeopixels().GetForceRefresh()) {
-        Writer wr;
         getNeopixels().Send();
-        ++write_count;
     }
-    ++loop_index;
+#if HAS_SIDE_LEDS()
+    leds::side_strip_control.Tick();
+#endif
 }
 
 void leds::SetNth(Color clr, leds::index n) {
@@ -50,9 +53,9 @@ void leds::SetNth(Color clr, leds::index n) {
     }
 }
 
-//backlight is on WS2811 (RGB)
-//but color structure is meant for WS2812 (GRB)
-//so to set RED channel on WS2811 have to set GREEN
+// backlight is on WS2811 (RGB)
+// but color structure is meant for WS2812 (GRB)
+// so to set RED channel on WS2811 have to set GREEN
 void leds::SetBrightness(unsigned percent) {
     percent = std::min(100u, percent);
     percent *= 255;

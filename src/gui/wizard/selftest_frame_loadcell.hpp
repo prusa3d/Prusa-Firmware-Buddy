@@ -27,10 +27,10 @@ class SelftestFrameLoadcell : public AddSuperWindow<SelftestFrameNamedWithRadio>
     window_text_t text_phase;
     window_text_t text_phase_additional; // text next to icon
 
-    window_text_t text_tap;
-    window_text_t text_tap_countdown; // BIG font
+    window_text_t text_prebig;
+    WindowBlinkingText text_big; // BIG, possibly blinking number
 
-    window_text_t text_result; // in middle of screen
+    window_text_t text_result;   // in middle of screen
 
 protected:
     virtual void change() override;

@@ -389,7 +389,7 @@ public:
    * @return true on success
    */
   static bool G28_no_parser(bool always_home_all = true, bool O = false, float R = false, bool S = false, bool X = false, bool Y = false, bool Z = false
-    , bool no_change = false OPTARG(PRECISE_HOMING_COREXY, bool precise = true));
+    , bool no_change = false OPTARG(PRECISE_HOMING_COREXY, bool precise = true) OPTARG(DETECT_PRINT_SHEET, bool check_sheet = false));
   
   static void T(const uint8_t tool_index);
 

@@ -23,10 +23,10 @@ private:
     uint32_t m_EndTime;
     uint32_t m_MeasureStartTime;
     float begin_temp;
-    float last_progress; //cannot go backwards
-    //float m_TempDiffSum;
-    //float m_TempDeltaSum;
-    //uint16_t m_TempCount;
+    float last_progress; // cannot go backwards
+    // float m_TempDiffSum;
+    // float m_TempDeltaSum;
+    // uint16_t m_TempCount;
     bool enable_cooldown;
     LogTimer log;
 
@@ -39,11 +39,11 @@ public:
     ~CSelftestPart_Heater();
 
     LoopResult stateStart();
-    LoopResult stateTakeControlOverFans(); //also enters fan selftest mode
+    LoopResult stateTakeControlOverFans(); // also enters fan selftest mode
     LoopResult stateFansActivate();
     LoopResult stateCooldownInit();
     LoopResult stateCooldown();
-    LoopResult stateFansDeactivate(); //also exits fan selftest mode
+    LoopResult stateFansDeactivate(); // also exits fan selftest mode
     LoopResult stateTargetTemp();
     LoopResult stateWait();
     LoopResult stateMeasure();

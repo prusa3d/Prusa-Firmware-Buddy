@@ -4,6 +4,7 @@
 #include "client_fsm_types.h"
 #include "marlin_vars.hpp"
 #include "client_response.hpp"
+#include <option/has_selftest.h>
 
 // client flags
 inline constexpr uint16_t MARLIN_CFLG_STARTED = 0x01; // client started (set in marlin_client_init)
@@ -25,19 +26,19 @@ int marlin_client_id();
 // infinite loop while server not ready
 void marlin_client_wait_for_start_processing();
 
-//sets dialog callback, returns 1 on success
+// sets dialog callback, returns 1 on success
 int marlin_client_set_fsm_cb(fsm_cb_t cb);
-//sets dialog message, returns 1 on success
+// sets dialog message, returns 1 on success
 int marlin_client_set_message_cb(message_cb_t cb);
 
-//sets dialog message, returns 1 on success
+// sets dialog message, returns 1 on success
 int marlin_client_set_warning_cb(warning_cb_t cb);
-//sets startup callback, returns 1 on success
+// sets startup callback, returns 1 on success
 int marlin_client_set_startup_cb(startup_cb_t cb);
 // returns enabled status of loop processing
 int marlin_processing();
 
-//sets event notification mask
+// sets event notification mask
 void marlin_client_set_event_notify(uint64_t notify_events, void (*cb)());
 
 // returns currently running command or MARLIN_CMD_NONE
@@ -53,10 +54,10 @@ int marlin_gcode_printf(const char *format, ...);
 void marlin_gcode_push_front(const char *gcode);
 
 // returns current event status for evt_id
-int marlin_event(MARLIN_EVT_t evt_id);
+int marlin_event(marlin_server::Event evt_id);
 
 // returns current event status for evt_id and clear event
-int marlin_event_clr(MARLIN_EVT_t evt_id);
+int marlin_event_clr(marlin_server::Event evt_id);
 
 // returns current event status for all events as 64bit mask
 uint64_t marlin_events();
@@ -92,7 +93,13 @@ void marlin_set_fs_autoload(bool val);
 
 void marlin_do_babysteps_Z(float offs);
 
-void marlin_move_axis(float pos, float feedrate, uint8_t axis);
+/**
+ * @brief Move axis to a logical position.
+ * @param logical_pos requested axis position in [mm] (logical coordinates)
+ * @param feedrate requested feedrate in [mm/min]
+ * @param axis axis number (0=X, 1=Y, 2=Z, 3=E)
+ */
+void marlin_move_axis(float logical_pos, float feedrate, uint8_t axis);
 
 void marlin_settings_save();
 
@@ -100,13 +107,17 @@ void marlin_settings_load();
 
 void marlin_settings_reset();
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
 void marlin_test_start_for_tools(const uint64_t test_mask, const uint8_t tool_mask);
 void marlin_test_start(const uint64_t test_mask);
 void marlin_test_abort();
 #endif
 
 void marlin_print_start(const char *filename, bool skip_preview);
+
+// Should only be called after calling marlin_print_start with skip_preview = true
+// to see if it really started. Calling it after a call to marlin_print_start with
+// skip_preview = false will cause an infinit loop!
 bool marlin_print_started();
 
 void marlin_gui_ready_to_print();
@@ -126,9 +137,8 @@ void marlin_notify_server_about_encoder_move();
 
 void marlin_notify_server_about_knob_click();
 
-//returns true if printer is printing, else false;
+// returns true if printer is printing, else false;
 bool marlin_is_printing();
-bool marlin_remote_print_ready(bool preview_only);
 
 // returns 1 if reheating is in progress, otherwise 0
 int marlin_reheating();

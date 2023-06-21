@@ -11,4 +11,4 @@ bool Init();
 void EnableModbus();
 void DisableModbus();
 
-} //namespace
+} // namespace

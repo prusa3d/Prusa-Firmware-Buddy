@@ -15,7 +15,7 @@ namespace MMU2 {
     #define uartNr uart6
 
 // @@TODO not available in BufferedSerial
-//bool MMU2Serial::available()const {
+// bool MMU2Serial::available()const {
 //    return BufferedSerial::uartNr.Available();
 //}
 
@@ -49,7 +49,7 @@ size_t MMU2Serial::write(const uint8_t *buffer, size_t size) {
     // set RS485 transmit direction - from xBuddy into the MMU
     //    RS485FlowControl.write(Pin::State::low); // beware of setting this to high when using normal RS-232! It will stop working arbitrarily
     // set to high in hwio_pindef.h
-    //RS485FlowControl.write(Pin::State::high); // @@TODO for RS-232
+    // RS485FlowControl.write(Pin::State::high); // @@TODO for RS-232
     return BufferedSerial::uartNr.Write((const char *)buffer, size);
 }
 

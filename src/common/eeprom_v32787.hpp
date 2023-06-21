@@ -8,6 +8,7 @@
 #include "footer_eeprom.hpp"
 #include "led_animations/led_types.h"
 #include <option/development_items.h>
+#include "selftest_result.hpp"
 
 namespace eeprom::v32787 {
 
@@ -118,47 +119,47 @@ struct vars_body_t : public eeprom::v12::vars_body_t {
 
 constexpr vars_body_t body_defaults = {
     eeprom::v12::body_defaults,
-    1,         // EEVAR_TIME_FORMAT
-    0.0192,    // EEVAR_LOADCELL_SCALE
-    -125,      // EEVAR_LOADCELL_THRS_STATIC
-    80,        // EEVAR_LOADCELL_HYST
-    -40,       // EEVAR_LOADCELL_THRS_CONTINOUS
-    INT32_MIN, // EEVAR_FS_REF_VALUE_0, INT32_MIN == will require calibration
+    1,                                   // EEVAR_TIME_FORMAT
+    0.0192,                              // EEVAR_LOADCELL_SCALE
+    -125,                                // EEVAR_LOADCELL_THRS_STATIC
+    80,                                  // EEVAR_LOADCELL_HYST
+    -40,                                 // EEVAR_LOADCELL_THRS_CONTINOUS
+    std::numeric_limits<int32_t>::min(), // EEVAR_FS_REF_VALUE_0, std::numeric_limits<int32_t>::min() == will require calibration
 #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
-    100, // EEVAR_FS_VALUE_SPAN_0
+    100,                                 // EEVAR_FS_VALUE_SPAN_0
 #elif (BOARD_IS_XLBUDDY)
     1000,
 #else
     350000, // EEVAR_FS_VALUE_SPAN_0
 #endif
-    INT32_MIN, // EEVAR_FS_REF_VALUE_1, INT32_MIN == will require calibration
-    1000,      // FS_VALUE_SPAN_1
-    INT32_MIN, // EEVAR_FS_REF_VALUE_2, INT32_MIN == will require calibration
-    1000,      // FS_VALUE_SPAN_2
-    INT32_MIN, // EEVAR_FS_REF_VALUE_3, INT32_MIN == will require calibration
-    1000,      // FS_VALUE_SPAN_3
-    INT32_MIN, // EEVAR_FS_REF_VALUE_4, INT32_MIN == will require calibration
-    1000,      // FS_VALUE_SPAN_4
-    INT32_MIN, // EEVAR_FS_REF_VALUE_5, INT32_MIN == will require calibration
-    1000,      // FS_VALUE_SPAN_5
-    INT32_MIN, // EEVAR_SIDE_FS_REF_VALUE_0, INT32_MIN == will require calibration
-    310,       // EEVAR_SIDE_FS_VALUE_SPAN_0
-    INT32_MIN, // EEVAR_SIDE_FS_REF_VALUE_1, INT32_MIN == will require calibration
-    310,       // EEVAR_SIDE_FS_VALUE_SPAN_1
-    INT32_MIN, // EEVAR_SIDE_FS_REF_VALUE_2, INT32_MIN == will require calibration
-    310,       // EEVAR_SIDE_FS_VALUE_SPAN_2
-    INT32_MIN, // EEVAR_SIDE_FS_REF_VALUE_3, INT32_MIN == will require calibration
-    310,       // EEVAR_SIDE_FS_VALUE_SPAN_3
-    INT32_MIN, // EEVAR_SIDE_FS_REF_VALUE_4, INT32_MIN == will require calibration
-    310,       // EEVAR_SIDE_FS_VALUE_SPAN_4
-    INT32_MIN, // EEVAR_SIDE_FS_REF_VALUE_5, INT32_MIN == will require calibration
-    310,       // EEVAR_SIDE_FS_VALUE_SPAN_5
-    30,        // EEVAR_PRINT_PROGRESS_TIME
-    true,      // EEVAR_TMC_WAVETABLE_ENABLED
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_1, std::numeric_limits<int32_t>::min() == will require calibration
+    1000,                                                                       // FS_VALUE_SPAN_1
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_2, std::numeric_limits<int32_t>::min() == will require calibration
+    1000,                                                                       // FS_VALUE_SPAN_2
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_3, std::numeric_limits<int32_t>::min() == will require calibration
+    1000,                                                                       // FS_VALUE_SPAN_3
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_4, std::numeric_limits<int32_t>::min() == will require calibration
+    1000,                                                                       // FS_VALUE_SPAN_4
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_FS_REF_VALUE_5, std::numeric_limits<int32_t>::min() == will require calibration
+    1000,                                                                       // FS_VALUE_SPAN_5
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_0, std::numeric_limits<int32_t>::min() == will require calibration
+    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_0
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_1, std::numeric_limits<int32_t>::min() == will require calibration
+    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_1
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_2, std::numeric_limits<int32_t>::min() == will require calibration
+    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_2
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_3, std::numeric_limits<int32_t>::min() == will require calibration
+    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_3
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_4, std::numeric_limits<int32_t>::min() == will require calibration
+    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_4
+    std::numeric_limits<int32_t>::min(),                                        // EEVAR_SIDE_FS_REF_VALUE_5, std::numeric_limits<int32_t>::min() == will require calibration
+    310,                                                                        // EEVAR_SIDE_FS_VALUE_SPAN_5
+    30,                                                                         // EEVAR_PRINT_PROGRESS_TIME
+    true,                                                                       // EEVAR_TMC_WAVETABLE_ENABLED
 #if (EEPROM_FEATURES & EEPROM_FEATURE_MMU2)
-    false, // EEVAR_MMU2_ENABLED
-    false, // EEVAR_MMU2_CUTTER
-    false, // EEVAR_MMU2_STEALTH_MODE
+    false,                                                                      // EEVAR_MMU2_ENABLED
+    false,                                                                      // EEVAR_MMU2_CUTTER
+    false,                                                                      // EEVAR_MMU2_STEALTH_MODE
 #endif
     true,                                                                       // EEVAR_RUN_LEDS
     { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_IDLE
@@ -206,13 +207,13 @@ constexpr vars_body_t body_defaults = {
     0,                                                                          // EEVAR_FILAMENT_TYPE_4
     0,                                                                          // EEVAR_FILAMENT_TYPE_5
     false,                                                                      // EEVAR_HEATUP_BED
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
-    0.60f, // EEVAR_NOZZLE_DIA_0
-    0.60f, // EEVAR_NOZZLE_DIA_1
-    0.60f, // EEVAR_NOZZLE_DIA_2
-    0.60f, // EEVAR_NOZZLE_DIA_3
-    0.60f, // EEVAR_NOZZLE_DIA_4
-    0.60f, // EEVAR_NOZZLE_DIA_5
+#if PRINTER_IS_PRUSA_XL
+    0.60f,                                                                      // EEVAR_NOZZLE_DIA_0
+    0.60f,                                                                      // EEVAR_NOZZLE_DIA_1
+    0.60f,                                                                      // EEVAR_NOZZLE_DIA_2
+    0.60f,                                                                      // EEVAR_NOZZLE_DIA_3
+    0.60f,                                                                      // EEVAR_NOZZLE_DIA_4
+    0.60f,                                                                      // EEVAR_NOZZLE_DIA_5
 #else
     0.40f, // EEVAR_NOZZLE_DIA_0
     0.40f, // EEVAR_NOZZLE_DIA_1

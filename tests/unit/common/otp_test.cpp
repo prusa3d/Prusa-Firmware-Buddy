@@ -1,4 +1,4 @@
-//#define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
+// #define CATCH_CONFIG_MAIN // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch2/catch.hpp"
 
 using Catch::Matchers::Equals;
@@ -37,7 +37,7 @@ TEST_CASE("OTP test v4, DataMatrixID v5, date with offset", "[otp_v4]") {
     REQUIRE(datamatrix.revision == 2);
     REQUIRE(datamatrix.supplier_id == 19);
     REQUIRE(datamatrix.production_year == 2025);
-    REQUIRE(datamatrix.production_month == 5); //Thursday in 22th week of 2025
+    REQUIRE(datamatrix.production_month == 5); // Thursday in 22th week of 2025
     REQUIRE(datamatrix.production_day == 29);
     REQUIRE(datamatrix.date_serial_number == 99999);
 
@@ -91,7 +91,7 @@ TEST_CASE("OTP test v4, DataMatrixID v5", "[otp_v4]") {
     REQUIRE(datamatrix.revision == 2);
     REQUIRE(datamatrix.supplier_id == 19);
     REQUIRE(datamatrix.production_year == 2020);
-    REQUIRE(datamatrix.production_month == 5); //Thursday in 22th week of 2020
+    REQUIRE(datamatrix.production_month == 5); // Thursday in 22th week of 2020
     REQUIRE(datamatrix.production_day == 28);
     REQUIRE(datamatrix.date_serial_number == 99999);
 

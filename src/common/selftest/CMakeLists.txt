@@ -13,7 +13,6 @@ target_sources(
           selftest_firstlayer_interface.cpp
           selftest_heater.cpp
           selftest_heaters_interface.cpp
-          selftest_hot_end_sock.cpp
           selftest_netstatus_interface.cpp
           selftest_part.cpp
           selftest_tool_helper.cpp
@@ -24,7 +23,7 @@ if(HAS_LOADCELL)
 endif()
 
 if(PRINTER STREQUAL "MK4")
-  target_sources(firmware PRIVATE selftest_gears.cpp)
+  target_sources(firmware PRIVATE selftest_gears.cpp selftest_hot_end_sock.cpp)
 endif()
 
 if(HAS_ADVANCED_POWER)
@@ -35,7 +34,7 @@ if(FILAMENT_SENSOR STREQUAL ADC)
   target_sources(firmware PRIVATE selftest_fsensor.cpp selftest_fsensor_interface.cpp)
 endif()
 
-if(HAS_PUPPIES)
+if(HAS_DWARF)
   target_sources(
     firmware PRIVATE selftest_dock.cpp selftest_dock_interface.cpp selftest_tool_offsets.cpp
                      selftest_tool_offsets_interface.cpp

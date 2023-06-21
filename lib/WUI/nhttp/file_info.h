@@ -25,10 +25,7 @@ public:
         Head
     };
 
-    enum class APIVersion {
-        Octoprint,
-        v1
-    };
+    using APIVersion = http::APIVersion;
 
 private:
     char filepath[FILE_PATH_BUFFER_LEN];
@@ -114,9 +111,10 @@ private:
     friend class FileRenderer;
 
     std::variant<Uninitialized, FileRenderer, DirRenderer, LastChunk> renderer;
+    std::optional<uint32_t> etag;
 
 public:
-    FileInfo(const char *filename, bool can_keep_alive, bool json_error, bool after_upload, ReqMethod method, APIVersion api);
+    FileInfo(const char *filename, bool can_keep_alive, bool json_error, bool after_upload, ReqMethod method, APIVersion api, std::optional<uint32_t> etag);
     bool want_read() const { return false; }
     bool want_write() const { return true; }
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);

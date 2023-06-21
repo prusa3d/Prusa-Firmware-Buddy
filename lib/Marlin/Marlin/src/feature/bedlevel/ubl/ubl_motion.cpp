@@ -404,22 +404,20 @@
       // for mesh inset area.
 
       // Avoid working with off-mesh points, clamp to mesh area - consider non-meshed area is flat
-      xy_pos_t in_mesh = raw;
-      LIMIT(in_mesh.x, MESH_MIN_X, MESH_MAX_X);
-      LIMIT(in_mesh.y, MESH_MIN_Y, MESH_MAX_Y);
+      xy_pos_t in_mesh = {{{
+        constrain(raw.x, MESH_MIN_X, MESH_MAX_X),
+        constrain(raw.y, MESH_MIN_Y, MESH_MAX_Y),
+      }}};
 
       // Compute cell index
       // Restrict index to point within the z_values array. The index points to lower left corner,
       // also the upper right corner needs to fit within the array, thus the -2.
-      const xy_uint8_t icell = {{{
-        std::min(static_cast<uint8_t>((in_mesh.x - (MESH_MIN_X)) * RECIPROCAL(MESH_X_DIST)), uint8_t(GRID_MAX_POINTS_X - 2)),
-        std::min(static_cast<uint8_t>((in_mesh.y - (MESH_MIN_Y)) * RECIPROCAL(MESH_Y_DIST)), uint8_t(GRID_MAX_POINTS_Y - 2))
-      }}};
+      const xy_int8_t icell = cell_indexes(in_mesh);
 
-      float z_x0y0 = z_values[icell.x  ][icell.y  ],  // z at lower left corner
-            z_x1y0 = z_values[icell.x+1][icell.y  ],  // z at upper left corner
-            z_x0y1 = z_values[icell.x  ][icell.y+1],  // z at lower right corner
-            z_x1y1 = z_values[icell.x+1][icell.y+1];  // z at upper right corner
+      float z_x0y0 = z_values[icell.x  ][icell.y  ],                                          // z at lower left corner
+            z_x1y0 = z_values[cap_cell_index_x(icell.x + 1)][icell.y  ],                      // z at upper left corner
+            z_x0y1 = z_values[icell.x  ][cap_cell_index_y(icell.y + 1)],                      // z at lower right corner
+            z_x1y1 = z_values[cap_cell_index_x(icell.x + 1)][cap_cell_index_y(icell.y + 1)];  // z at upper right corner
 
       if (isnan(z_x0y0)) z_x0y0 = 0;              // ideally activating planner.leveling_active (G29 A)
       if (isnan(z_x1y0)) z_x1y0 = 0;              //   should refuse if any invalid mesh points

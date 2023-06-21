@@ -4,15 +4,15 @@
  * @date 2021-02-12
  */
 
-//there is 10kOhm PU to 5V in filament sensor
-//MCU PU/PD is in range 30 - 50 kOhm
+// there is 10kOhm PU to 5V in filament sensor
+// MCU PU/PD is in range 30 - 50 kOhm
 
-//when PD is selected and sensor is connected Vmcu = min 3.75V .. (5V * 30kOhm) / (30 + 10 kOhm)
-//pin is 5V tolerant
+// when PD is selected and sensor is connected Vmcu = min 3.75V .. (5V * 30kOhm) / (30 + 10 kOhm)
+// pin is 5V tolerant
 
-//MCU has 5pF, transistor D-S max 15pF
-//max R is 50kOhm
-//Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
+// MCU has 5pF, transistor D-S max 15pF
+// max R is 50kOhm
+// Max Tau ~= 20*10^-12 * 50*10^3 = 1*10^-6 s ... about 1us
 
 #include "filament_sensor_photoelectric.hpp"
 #include "fsensor_pins.hpp"
@@ -21,18 +21,18 @@
 void FSensorPhotoElectric::cycle0() {
     if (FSensorPins::Get()) {
         FSensorPins::pullDown();
-        measure_cycle = Cycle::no1; //next cycle shall be 1
+        measure_cycle = Cycle::no1;       // next cycle shall be 1
     } else {
-        set_state(fsensor_t::NoFilament); //it is filtered, 2 requests are needed to change state
-        measure_cycle = Cycle::no0;       //remain in cycle 0
+        set_state(fsensor_t::NoFilament); // it is filtered, 2 requests are needed to change state
+        measure_cycle = Cycle::no0;       // remain in cycle 0
     }
 }
 
 void FSensorPhotoElectric::cycle1() {
-    //pulldown was set in cycle 0
+    // pulldown was set in cycle 0
     set_state(FSensorPins::Get() ? fsensor_t::HasFilament : fsensor_t::NotConnected);
     FSensorPins::pullUp();
-    measure_cycle = Cycle::no0; //next cycle shall be 0
+    measure_cycle = Cycle::no0; // next cycle shall be 0
 }
 
 void FSensorPhotoElectric::cycle() {
@@ -59,12 +59,12 @@ void FSensorPhotoElectric::disable() {
     measure_cycle = Cycle::no0;
 }
 
-//not recorded
+// not recorded
 void FSensorPhotoElectric::record_state() {
 }
 
-//simple filter
-//without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
+// simple filter
+// without filter fs_meas_cycle1 could set FS_NO_SENSOR (in case filament just runout)
 void FSensorPhotoElectric::set_state(fsensor_t st) {
     CriticalSection C;
     if (last_state == st)

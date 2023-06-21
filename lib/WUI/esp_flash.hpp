@@ -27,6 +27,7 @@ public:
 
     static constexpr size_t files_to_upload = 3;
     static constexpr size_t buffer_length = 512;
+    static constexpr auto retries = 3;
 
     struct esp_fw_entry {
         uintptr_t address;
@@ -36,7 +37,7 @@ public:
 
     using firmware_set_t = std::array<esp_fw_entry, files_to_upload>;
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
     static constexpr firmware_set_t FIRMWARE_SET { { { .address = 0x08000, .filename = "/internal/res/esp32/partition-table.bin", .size = 0 },
         { .address = 0x01000ul, .filename = "/internal/res/esp32/bootloader.bin", .size = 0 },
         { .address = 0x10000ul, .filename = "/internal/res/esp32/uart_wifi.bin", .size = 0 } } };

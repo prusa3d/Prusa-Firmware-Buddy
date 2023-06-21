@@ -6,13 +6,13 @@
 #include "window_wizard_icon.hpp"
 #include "png_resources.hpp"
 
-//dash ok and nok must be same size
+// dash ok and nok must be same size
 constexpr const png::Resource &id_res_na = png::dash_18x18;
 constexpr const png::Resource &id_res_ok = png::ok_color_18x18;
 constexpr const png::Resource &id_res_ng = png::nok_color_18x18;
 constexpr const std::array<const png::Resource *, 4> id_res_ip = { { &png::spinner0_16x16, &png::spinner1_16x16, &png::spinner2_16x16, &png::spinner3_16x16 } };
 
-//Icon rect is increased by padding, icon is centered inside it
+// Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
     : AddSuperWindow<window_aligned_t>(
         parent,
@@ -49,7 +49,7 @@ void WindowIcon_OkNg::unconditionalDraw() {
         id_res = &id_res_na;
         break;
     case SelftestSubtestState_t::running: {
-        const size_t blink_state = (flags.blink1 << 1) | flags.blink0; //sets 2 lowest bits guaranted to be 0 .. 3
+        const size_t blink_state = (flags.blink1 << 1) | flags.blink0; // sets 2 lowest bits guaranted to be 0 .. 3
         id_res = id_res_ip[blink_state];                               // no need to check index out of array range
     } break;
     }

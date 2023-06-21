@@ -73,8 +73,8 @@ private:
 #define CODE_HIGH_SPEED               0b11100000
 
 /** @defgroup GPIO_LL_EC_PIN PIN
-  * @{
-  */
+ * @{
+ */
 #define LL_GPIO_PIN_0   GPIO_BSRR_BS_0                                                                                                                                                                                                                                                                        /*!< Select pin 0 */
 #define LL_GPIO_PIN_1   GPIO_BSRR_BS_1                                                                                                                                                                                                                                                                        /*!< Select pin 1 */
 #define LL_GPIO_PIN_2   GPIO_BSRR_BS_2                                                                                                                                                                                                                                                                        /*!< Select pin 2 */
@@ -93,12 +93,12 @@ private:
 #define LL_GPIO_PIN_15  GPIO_BSRR_BS_15                                                                                                                                                                                                                                                                       /*!< Select pin 15 */
 #define LL_GPIO_PIN_ALL (GPIO_BSRR_BS_0 | GPIO_BSRR_BS_1 | GPIO_BSRR_BS_2 | GPIO_BSRR_BS_3 | GPIO_BSRR_BS_4 | GPIO_BSRR_BS_5 | GPIO_BSRR_BS_6 | GPIO_BSRR_BS_7 | GPIO_BSRR_BS_8 | GPIO_BSRR_BS_9 | GPIO_BSRR_BS_10 | GPIO_BSRR_BS_11 | GPIO_BSRR_BS_12 | GPIO_BSRR_BS_13 | GPIO_BSRR_BS_14 | GPIO_BSRR_BS_15) /*!< Select all pins */
 /**
-  * @}
-  */
+ * @}
+ */
 
 /** @defgroup GPIO_LL_EC_MODE Mode
-  * @{
-  */
+ * @{
+ */
 #define LL_GPIO_MODE_INPUT     (0x00000000U)       /*!< Select input mode */
 #define LL_GPIO_MODE_OUTPUT    GPIO_MODER_MODER0_0 /*!< Select output mode */
 #define LL_GPIO_MODE_ALTERNATE GPIO_MODER_MODER0_1 /*!< Select alternate function mode */
@@ -106,8 +106,8 @@ private:
 };
 
 /** @defgroup GPIO_LL_EC_PULL Pull Up Pull Down
-  * @{
-  */
+ * @{
+ */
 #define LL_GPIO_PULL_NO   (0x00000000U)       /*!< Select I/O no pull */
 #define LL_GPIO_PULL_UP   GPIO_PUPDR_PUPDR0_0 /*!< Select I/O pull up */
 #define LL_GPIO_PULL_DOWN GPIO_PUPDR_PUPDR0_1 /*!< Select I/O pull down */

@@ -16,7 +16,7 @@
 
 #include <array>
 #include <algorithm>
-#include <basename.h>
+#include <filepath_operation.h>
 #include <dirent.h>
 #include <stdlib.h>
 
@@ -33,7 +33,7 @@ extern "C" {
 
 LOG_COMPONENT_REF(Network);
 
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL)
+#if PRINTER_IS_PRUSA_XL
 static constexpr ESPUpdate::firmware_set_t FIRMWARE_SET({ { { .address = 0x08000, .filename = "/internal/res/esp32/partition-table.bin", .size = 0 },
     { .address = 0x01000ul, .filename = "/internal/res/esp32/bootloader.bin", .size = 0 },
     { .address = 0x10000ul, .filename = "/internal/res/esp32/uart_wifi.bin", .size = 0 } } });
@@ -49,7 +49,7 @@ std::atomic<uint32_t> ESPUpdate::status = 0;
  *
  * TODO: BIG FAT WARNING: This needs to be merged with ESPFlash to avoid code/functionality duplication
  *
-*/
+ */
 ESPUpdate::ESPUpdate(uintptr_t mask)
     : firmware_set(FIRMWARE_SET)
     , progress_state(esp_upload_action::Initial)
@@ -77,8 +77,8 @@ void ESPUpdate::Loop() {
         bool continue_pressed = false;
         bool wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
 
-        //we use only 2 responses here
-        //it is safe to use it from different thread as long as no other thread reads it
+        // we use only 2 responses here
+        // it is safe to use it from different thread as long as no other thread reads it
         switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(phase)) {
         case Response::Continue:
             continue_pressed = true;
@@ -219,7 +219,7 @@ void ESPUpdate::Loop() {
                 progress_state = esp_upload_action::WaitWIFI_enabled;
                 phase = PhasesSelftest::ESP_enabling_WIFI;
             } else {
-                //leave wifi disabled, so credentials don't have to disable it again
+                // leave wifi disabled, so credentials don't have to disable it again
                 progress_state = esp_upload_action::Finish;
             }
             current_file = firmware_set.begin();
@@ -350,8 +350,8 @@ void EspCredentials::Loop() {
         wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
         continue_pressed = false;
 
-        //we use only 3 responses here
-        //it is safe to use it from different thread as long as no other thread reads it
+        // we use only 3 responses here
+        // it is safe to use it from different thread as long as no other thread reads it
         if (phase) {
             switch (marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase)) {
             case Response::Continue:
@@ -368,7 +368,7 @@ void EspCredentials::Loop() {
             }
         }
 
-        //handle abort and done outside specific loops
+        // handle abort and done outside specific loops
         switch (progress_state) {
         case esp_credential_action::Aborted:
             progress_state = esp_credential_action::Done;
@@ -381,7 +381,7 @@ void EspCredentials::Loop() {
             break;
         case esp_credential_action::Done:
             break;
-        default: //specific loop
+        default: // specific loop
             switch (type) {
             case type_t::credentials_standalone:
             case type_t::credentials_sequence:
@@ -395,9 +395,9 @@ void EspCredentials::Loop() {
 
         // update
         if (phase)
-            FSM_HOLDER_CHANGE_METHOD__LOGGING(rfsm, *phase, fsm::PhaseData()); //we dont need data, only phase
+            FSM_HOLDER_CHANGE_METHOD__LOGGING(rfsm, *phase, fsm::PhaseData()); // we dont need data, only phase
 
-        //call idle loop to prevent watchdog
+        // call idle loop to prevent watchdog
         idle(true, true);
     }
 }
@@ -438,7 +438,7 @@ void EspCredentials::loopCreateINI() {
             progress_state = esp_credential_action::WaitUSB_ejected;
             phase = PhasesSelftest::ESP_eject_USB;
         } else {
-            //this should not happen
+            // this should not happen
             progress_state = esp_credential_action::Done;
         }
         break;
@@ -476,7 +476,7 @@ void EspCredentials::loop() {
             progress_state = esp_credential_action::WaitUSB_inserted;
             phase = PhasesSelftest::ESP_insert_USB;
         } else {
-            //this should not happen
+            // this should not happen
             progress_state = esp_credential_action::VerifyConfig_init;
         }
         break;
@@ -573,7 +573,7 @@ void EspCredentials::capture_timestamp() {
 static std::atomic<ESPUpdate::state> task_state = ESPUpdate::state::did_not_finished;
 
 /*****************************************************************************/
-//public functions
+// public functions
 static void EspTask(void *pvParameters) {
     ESPUpdate update((uintptr_t)pvParameters);
 

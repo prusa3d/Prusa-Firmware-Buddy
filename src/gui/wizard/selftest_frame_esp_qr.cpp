@@ -26,7 +26,7 @@ void SelftestFrameESP_qr::change() {
 
     const char *txt = "MISSING";
 
-    //texts
+    // texts
     switch (phase_current) {
     case PhasesSelftest::ESP_qr_instructions_flash:
         txt = N_("Use the online guide\nto setup your Wi-Fi");

@@ -25,6 +25,7 @@
 #include <span>
 #include <stdint.h>
 #include <sys/types.h>
+#include <limits>
 
 #include "core/types.h"
 #include "metric.h"
@@ -55,6 +56,8 @@
 #if ENABLED(CRASH_RECOVERY)
     #include "src/feature/prusa/crash_recovery.h"
 #endif
+
+#include <bsod_gui.hpp>
 
 /**
  * G425 backs away from the calibration object by various distances
@@ -114,12 +117,14 @@ constexpr float PROBE_XY_TIGHT_DIST_MM { PIN_DIAMETER_MM / 2 + 3 };
 constexpr float PROBE_XY_CERTAIN_DIST_MM { PROBE_XY_TIGHT_DIST_MM + 1 };
 constexpr float PROBE_XY_UNCERTAIN_DIST_MM { PROBE_XY_CERTAIN_DIST_MM + 1 };
 constexpr auto PROBE_FEEDRATE_MMS { 3 };
-constexpr auto INTERPROBE_FEEDRATE_MMS { 50 };
-constexpr float RETREAT_MM { 1 };
-constexpr auto NUM_PROBE_TRIES { 20 };
-constexpr auto PROBE_ALLOWED_ERROR { 0.02f };
+constexpr auto INTERPROBE_FEEDRATE_MMS { 25 };
+constexpr auto NUM_PROBE_TRIES { 5 }; // Keep low, the noise is not random, but rather the measurement jumps a few values
+constexpr auto PROBE_ALLOWED_ERROR { 0.03f };
 constexpr auto NUM_PROBE_SAMPLES { 2 };
 constexpr auto PROBE_FAIL_THRESHOLD_MM { 5 };
+constexpr auto XY_ACCELERATION_MMSS { 500 };
+constexpr auto RESONANCE_DAMPER_WAIT_MS { 500 };
+constexpr auto MIN_TRAVELED_DISTANCE_MM { 0.1f };
 
 struct measurements_t {
     xyz_pos_t obj_center = true_top_center; // Non-static must be assigned from xyz_pos_t
@@ -140,6 +145,23 @@ struct measurements_t {
 #else
     #define TEMPORARY_BACKLASH_SMOOTHING(value)
 #endif
+
+/// Limit max acceleration to a value, restore old value when destroyed
+class AccelerationLimiter {
+public:
+    AccelerationLimiter(const float max_acceleration_mmss)
+        : previous_x(planner.settings.max_acceleration_mm_per_s2[X_AXIS])
+        , previous_y(planner.settings.max_acceleration_mm_per_s2[Y_AXIS]) {
+        planner.set_max_acceleration(X_AXIS | Y_AXIS, max_acceleration_mmss);
+    }
+    ~AccelerationLimiter() {
+        planner.set_max_acceleration(X_AXIS, previous_x);
+        planner.set_max_acceleration(Y_AXIS, previous_y);
+    }
+
+private:
+    const float previous_x, previous_y;
+};
 
 inline void calibration_move() {
     do_blocking_move_to(current_position, MMM_TO_MMS(CALIBRATION_FEEDRATE_TRAVEL));
@@ -216,6 +238,7 @@ void go_to_initial(const xyz_pos_t center, const float angle, const float radius
     const xy_pos_t current = current_position;
 
     if (current != initial) {
+        feedrate_mm_s = INTERPROBE_FEEDRATE_MMS;
         plan_arc(initial, { { { .x = center.x - current.x, .y = center.y - current.y } } }, false);
     }
     planner.synchronize();
@@ -233,20 +256,27 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
     // Wait for movements to finish
     planner.synchronize();
 
-    // Wait for resonance to damper and setup probe
-    auto enabler = Loadcell::HighPrecisionEnabler(loadcell);
-    wait_ms(250);
-    loadcell.analysis.Reset();
-    loadcell.Tare();
-
     // Mark initial position
     xyze_long_t initial_pos = planner.get_position();
     xyze_long_t initial_steps = { { { stepper.position(A_AXIS), stepper.position(B_AXIS),
         stepper.position(C_AXIS), stepper.position(E_AXIS) } } };
     xyze_pos_t initial_mm = current_position;
 
-    // Expect pin hit
+    // Setup probe
+    auto enabler = Loadcell::HighPrecisionEnabler(loadcell);
     loadcell.set_xy_endstop(true);
+
+    // Wait for resonance to damper and tare
+    wait_ms(RESONANCE_DAMPER_WAIT_MS);
+    loadcell.Tare(Loadcell::TareMode::Continuous, true);
+
+    if (loadcell.GetXYEndstop()) {
+        // This is hopefully rare situation when the loadcell data are totally wrong. If we know this happens
+        // and why it happens we should add a red screen with appropriate text.
+        bsod("XY probe triggered");
+    }
+
+    // Expect pin hit
     endstops.enable_xy_probe(true);
 #if ENABLED(CRASH_RECOVERY)
     crash_s.deactivate();
@@ -276,6 +306,11 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
     xyze_pos_t hit_mm;
     corexy_ab_to_xyze(hit_steps, hit_mm);
 
+    // Discard result if not moved enough to reach the pin (probe triggered too early?)
+    if (point_distance(hit_mm, initial_mm) < MIN_TRAVELED_DISTANCE_MM) {
+        hit_mm.reset();
+    }
+
     // Return to initial
     planner._buffer_steps_raw(initial_pos, initial_mm, initial_steps - hit_steps, INTERPROBE_FEEDRATE_MMS, active_extruder);
     planner.synchronize();
@@ -302,32 +337,54 @@ xy_pos_t probe_xy_verify(const xyz_pos_t center, const float angle, const float 
     go_to_safety_circle(center, probe_distance);
     go_to_initial(center, angle, probe_distance);
 
-    std::array<xy_pos_t, NUM_PROBE_SAMPLES> hits = {
-        probe_xy(center, angle, tool, phase),
-        probe_xy(center, angle, tool, phase)
-    };
+    // Take all samples
+    std::array<xy_pos_t, NUM_PROBE_SAMPLES> hits;
+    for (auto &hit : hits) {
+        hit = probe_xy(center, angle, tool, phase);
+    }
 
     for (uint i = 0; i < NUM_PROBE_TRIES; ++i) {
-        const float distance = point_distance(hits[0], hits[1]);
-        if (distance < PROBE_ALLOWED_ERROR) {
-            const xy_pos_t pos = (hits[0] + hits[1]) / 2;
-
-            metric_record_custom(
-                &metric_xy_hit,
-                ",t=%u,p=%u,a=%.3f x=%.3f,y=%.3f",
-                tool,
-                phase,
-                static_cast<double>(angle),
-                static_cast<double>(pos.x),
-                static_cast<double>(pos.y));
-
-            if (point_distance(pos, synthetic_probe(center, angle)) > PROBE_FAIL_THRESHOLD_MM) {
-                kill("XY probe failed: invalid position");
-            }
-
-            return pos;
+        // Compute position from hits
+        xy_pos_t pos {};
+        for (auto &hit : hits) {
+            pos += hit;
         }
-        hits[i % hits.size()] = probe_xy(center, angle, tool, phase);
+        pos = pos / static_cast<int>(hits.size());
+
+        // Compute sum of hit distances from position
+        float distance = 0;
+        for (auto &hit : hits) {
+            auto dist = point_distance(pos, hit);
+            if (dist > distance) {
+                distance = dist;
+            }
+            if (!hit.magnitude()) {
+                distance = std::numeric_limits<float>::infinity();
+            }
+        }
+
+        // Check samples consistency
+        if (distance > PROBE_ALLOWED_ERROR) {
+            // Redo one of the samples and try again
+            hits[i % hits.size()] = probe_xy(center, angle, tool, phase);
+            continue;
+        }
+
+        // Samples are consistent
+        metric_record_custom(
+            &metric_xy_hit,
+            ",t=%u,p=%u,a=%.3f x=%.3f,y=%.3f",
+            tool,
+            phase,
+            static_cast<double>(angle),
+            static_cast<double>(pos.x),
+            static_cast<double>(pos.y));
+
+        if (point_distance(pos, synthetic_probe(center, angle)) > PROBE_FAIL_THRESHOLD_MM) {
+            kill("XY probe failed: invalid position");
+        }
+
+        return pos;
     }
 
     kill("XY probe failed: unstable");
@@ -421,6 +478,7 @@ const xyz_pos_t get_single_xyz_center(const xyz_pos_t initial, const uint8_t too
     }
 
     // Get XY
+    AccelerationLimiter al(XY_ACCELERATION_MMSS);
     static constexpr uint8_t MAX_HITS = *std::max_element(std::begin(PHASE_XY_HITS), std::end(PHASE_XY_HITS));
     std::array<xy_pos_t, MAX_HITS> max_hits;
     std::span<xy_pos_t> hits(max_hits.begin(), PHASE_XY_HITS[phase]);
@@ -551,7 +609,7 @@ inline void calibrate_all() {
     calibrate_backlash(m);
 #endif
 
-    tool_change(prusa_toolchanger.MARLIN_NO_TOOL_PICKED, tool_return_t::no_move);
+    tool_change(prusa_toolchanger.MARLIN_NO_TOOL_PICKED, tool_return_t::no_return);
 }
 
 /**
@@ -563,6 +621,12 @@ inline void calibrate_all() {
  * - computes new offsets
  */
 inline void calibrate_all_simple() {
+    // Disable E steppers to reduce noise on loadcell
+    disable_e_steppers();
+
+    // Disable crash recovery. It would recover, but the measurement will be inaccurate anyway.
+    Crash_Temporary_Deactivate ctd;
+
     // Reset planner state
     planner.synchronize();
     planner.reset_position();
@@ -579,7 +643,7 @@ inline void calibrate_all_simple() {
             continue;
         }
 #endif
-        tool_change(e, tool_return_t::no_move);
+        tool_change(e, tool_return_t::no_return);
         centers[e] = get_xyz_center(e);
         metric_record_custom(
             &metric_center,
@@ -591,7 +655,7 @@ inline void calibrate_all_simple() {
     }
 
     // Pick zero offset tool to be sure no offset is applied on toolchange
-    tool_change(prusa_toolchanger.MARLIN_NO_TOOL_PICKED, tool_return_t::no_move);
+    tool_change(prusa_toolchanger.MARLIN_NO_TOOL_PICKED, tool_return_t::no_return);
 
     // Apply the offset
     HOTEND_LOOP() {
@@ -603,6 +667,26 @@ inline void calibrate_all_simple() {
         hotend_offset[e] = -centers[e];
     }
     normalize_hotend_offsets();
+
+    // Check offsets
+    HOTEND_LOOP() {
+#if ENABLED(PRUSA_TOOLCHANGER)
+        if (!prusa_toolchanger.getTool(e).is_enabled()) {
+            hotend_offset[e].reset();
+            continue;
+        }
+#endif
+
+        if (hotend_offset[e].x < X_MIN_OFFSET || hotend_offset[e].x > X_MAX_OFFSET) {
+            fatal_error(ErrCode::ERR_MECHANICAL_TOOL_OFFSET_OUT_OF_BOUNDS, e + 1, 'X', static_cast<double>(hotend_offset[e].x), static_cast<double>(X_MIN_OFFSET), static_cast<double>(X_MAX_OFFSET));
+        }
+        if (hotend_offset[e].y < Y_MIN_OFFSET || hotend_offset[e].y > Y_MAX_OFFSET) {
+            fatal_error(ErrCode::ERR_MECHANICAL_TOOL_OFFSET_OUT_OF_BOUNDS, e + 1, 'Y', static_cast<double>(hotend_offset[e].y), static_cast<double>(Y_MIN_OFFSET), static_cast<double>(Y_MAX_OFFSET));
+        }
+        if (hotend_offset[e].z < Z_MIN_OFFSET || hotend_offset[e].z > Z_MAX_OFFSET) {
+            fatal_error(ErrCode::ERR_MECHANICAL_TOOL_OFFSET_OUT_OF_BOUNDS, e + 1, 'Z', static_cast<double>(hotend_offset[e].z), static_cast<double>(Z_MIN_OFFSET), static_cast<double>(Z_MAX_OFFSET));
+        }
+    }
     prusa_toolchanger.save_tool_offsets();
 
     HOTEND_LOOP() {

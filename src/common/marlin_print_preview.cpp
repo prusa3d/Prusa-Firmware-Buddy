@@ -3,20 +3,26 @@
  */
 
 #include "marlin_print_preview.hpp"
+#include "client_fsm_types.h"
+#include "client_response.hpp"
+#include "general_response.hpp"
 #include "marlin_server.hpp"
 #include "timing.h"
 #include "filament_sensors_handler.hpp"
 #include "filament.hpp"
 #include "M70X.hpp"
-#include "eeprom.h"
 #include <option/developer_mode.h>
 #include "printers.h"
 #include <Marlin/src/module/motion.h>
+#include "screen_menu_filament_changeall.hpp"
+#include "box_unfinished_selftest.hpp"
 
 #include <option/has_toolchanger.h>
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include <module/prusa/toolchanger.h>
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
+
+#include <configuration_store.hpp>
 
 // would be nice to have option leave phase as it was
 // something like std::pair<enum {delete, leave, has_value },PhasesPrintPreview>
@@ -28,6 +34,12 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
 
     case State::preview_wait_user:
         return PhasesPrintPreview::main_dialog;
+
+    case State::unfinished_selftest_wait_user:
+        return PhasesPrintPreview::unfinished_selftest;
+
+    case State::new_firmware_available_wait_user:
+        return PhasesPrintPreview::new_firmware_available;
 
     case State::wrong_printer_wait_user:
         return PhasesPrintPreview::wrong_printer;
@@ -71,8 +83,8 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
         }
         break;
     case FSM_action::destroy:
-        //do not call FSM_DESTROY__LOGGING(PrintPreview);
-        //we need to call it manually later to be atomic
+        // do not call FSM_DESTROY__LOGGING(PrintPreview);
+        // we need to call it manually later to be atomic
         break;
     case FSM_action::change:
         FSM_CHANGE__LOGGING(PrintPreview, *wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
@@ -85,33 +97,6 @@ Response IPrintPreview::GetResponse() {
     return phase ? marlin_server::ClientResponseHandler::GetResponseFromPhase(*phase) : Response::_none;
 }
 
-IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
-    // on XL, ignore filament presence for now
-    // we check the proper filaments are present in stateFromFilamentType
-    return stateFromFilamentType();
-#else
-    if (FSensors_instance().HasMMU()) {
-        if (FSensors_instance().CanStartPrint()) {
-            return State::done;
-        } else {
-            return State::mmu_filament_inserted_wait_user;
-        }
-    } else if (FSensors_instance().CanStartPrint()) {
-        return stateFromFilamentType();
-    } else {
-        eevar_id var = EEVAR_FSENSOR_ENABLED;
-        bool isSensorEnabled = eeprom_get_bool(var);
-
-        if (!isSensorEnabled) {
-            return State::done;
-        }
-
-        return State::filament_not_inserted_wait_user;
-    }
-#endif
-}
-
 static bool is_same(const char *curr_filament, const GCodeInfo::filament_buff &filament_type) {
     return strncmp(curr_filament, filament_type.begin(), filament_type.size()) == 0;
 }
@@ -119,34 +104,101 @@ static bool filament_known(const char *curr_filament) {
     return strncmp(curr_filament, "---", 3) != 0;
 }
 
-IPrintPreview::State PrintPreview::stateFromFilamentType() const {
-    // Get how many extruders are written in the G-code
-    const int given_extruders = std::count_if(gcode_per_extruder_info.begin(), gcode_per_extruder_info.end(), [](auto &info) { return info.given(); });
+static bool check_tool_need_filament_load(uint8_t tool) {
+    // unused tool doesn't need filament load
+    if (!GCodeInfo::getInstance().get_extruder_info(tool).used())
+        return false;
 
-    // Check match of loaded and G-code types
-    bool filaments_do_match = true;
-    for (int e = 0; e < EXTRUDERS; e++) {
-        const auto &extruder_info = gcode_per_extruder_info[e];
-        if (extruder_info.used() && extruder_info.filament_name.has_value()) {
-            int check_e = e;
-            if (given_extruders == 1) {
-                // Single extruder G-code, check type against currently active extruder
-#if HAS_TOOLCHANGER()
-                check_e = (active_extruder != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) ? active_extruder : 0;
-#else  /*HAS_TOOLCHANGER()*/
-                check_e = active_extruder;
-#endif /*HAS_TOOLCHANGER()*/
-            }
-            const auto loaded_filament_type = filament::get_type_in_extruder(check_e);
-            const auto loaded_filament_desc = filament::get_description(loaded_filament_type);
-            if (filament_known(extruder_info.filament_name.value().data()) && !is_same(loaded_filament_desc.name, extruder_info.filament_name.value())) {
-                filaments_do_match = false;
-                break;
-            }
-        }
+    // when tool doesn't have filament, it needs load
+    return !FSensors_instance().ToolHasFilament(tool);
+}
+
+static bool check_correct_filament_type(uint8_t tool) {
+    const auto &extruder_info = GCodeInfo::getInstance().get_extruder_info(tool);
+    if (!extruder_info.used())
+        return true; // when tool not used in print, return OK filament type
+
+    if (!extruder_info.filament_name.has_value())
+        return true; // filament type unspecified, return tool OK
+
+    const auto loaded_filament_type = config_store().get_filament_type(tool);
+    const auto loaded_filament_desc = filament::get_description(loaded_filament_type);
+    // when loaded filament type not known, return that filament type is OK
+    return !filament_known(extruder_info.filament_name.value().data()) || is_same(loaded_filament_desc.name, extruder_info.filament_name.value());
+}
+
+IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
+    bool isSensorEnabled = config_store().fsensor_enabled.get();
+    if (!isSensorEnabled) {
+        return State::done;
     }
 
-    return filaments_do_match ? State::done : State::wrong_filament_wait_user;
+    if (FSensors_instance().HasMMU()) {
+        // with MMU, its only possible to check that filament is properly unloaded, no check of filaments presence in each "tool"
+        if (FSensors_instance().MMUReadyToPrint()) {
+            return State::done;
+        } else {
+            return State::mmu_filament_inserted_wait_user;
+        }
+    } else {
+        // no MMU, do regular check of filament presence in each tool
+        HOTEND_LOOP() {
+            if (check_tool_need_filament_load(e)) {
+                return State::filament_not_inserted_wait_user;
+            }
+        }
+        return stateFromFilamentType();
+    }
+}
+
+static void queue_filament_load_gcodes() {
+    // Queue load filament gcode for every tool that doesn't have filament loaded
+    HOTEND_LOOP() {
+        // skip for tools that already have filament
+        if (!check_tool_need_filament_load(e))
+            continue;
+
+        // pass filament type from gcode, so that user doesn't have to select filament type
+        const char *filament_name = GCodeInfo::getInstance().get_extruder_info(e).filament_name.has_value() ? &GCodeInfo::getInstance().get_extruder_info(e).filament_name.value()[0] : "";
+#if HOTENDS > 1
+        // if printer has multiple hotends (eg: XL), preheat all that will be loaded to save time for user
+        auto target_temp = filament::get_description(filament::get_type(filament_name, strlen(filament_name))).nozzle;
+        thermalManager.setTargetHotend(target_temp, e);
+        marlin_server::set_temp_to_display(target_temp, e);
+#endif
+        marlin_server::enqueue_gcode_printf("M701 S\"%s\" T%d W2", filament_name, e);
+    }
+}
+
+static void queue_filament_change_gcodes() {
+    // Queue change filament gcode for every tool with mismatched filament type
+    HOTEND_LOOP() {
+        if (!check_correct_filament_type(e)) {
+            // pass filament type from gcode, so that user doesn't have to select filament type
+            const char *filament_name = GCodeInfo::getInstance().get_extruder_info(e).filament_name.has_value() ? &GCodeInfo::getInstance().get_extruder_info(e).filament_name.value()[0] : "";
+
+#if HOTENDS > 1
+            // if printer has multiple hotends (eg: XL), preheat all that will be loaded to save time for user
+            auto temp_old = filament::get_description(config_store().get_filament_type(e)).nozzle;
+
+            thermalManager.setTargetHotend(temp_old, e);
+            marlin_server::set_temp_to_display(temp_old, e);
+#endif
+
+            // M1600 - change, R - add return option, U1 - Ask filament type if unknown, T - tool, Sxxx - preselect filament type
+            marlin_server::enqueue_gcode_printf("M1600 S\"%s\" T%d R U1", filament_name, e);
+        }
+    }
+}
+
+IPrintPreview::State PrintPreview::stateFromFilamentType() const {
+    // Check match of loaded and G-code types
+    HOTEND_LOOP() {
+        if (!check_correct_filament_type(e)) {
+            return State::wrong_filament_wait_user;
+        }
+    }
+    return State::done;
 }
 
 PrintPreview::Result PrintPreview::Loop() {
@@ -165,7 +217,7 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::preview_wait_user:
         switch (response) {
         case Response::Print:
-            ChangeState(evaluateStateOnPrintClick());
+            ChangeState(stateFromSelftestCheck());
             break;
         case Response::Back:
             ChangeState(State::inactive);
@@ -174,7 +226,27 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         }
         break;
-
+    case State::unfinished_selftest_wait_user:
+        switch (response) {
+        case Response::Continue:
+            ChangeState(stateFromUpdateCheck());
+            break;
+        case Response::Abort:
+            ChangeState(State::inactive);
+            return Result::Abort;
+        default:
+            break;
+        }
+        break;
+    case State::new_firmware_available_wait_user:
+        switch (response) {
+        case Response::Continue:
+            ChangeState(stateFromPrinterCheck());
+            break;
+        default:
+            break;
+        }
+        break;
     case State::wrong_printer_wait_user:
     case State::wrong_printer_wait_user_abort:
         switch (response) {
@@ -200,7 +272,7 @@ PrintPreview::Result PrintPreview::Loop() {
             return Result::Abort;
         case Response::Yes:
             ChangeState(State::filament_not_inserted_load);
-            marlin_server::enqueue_gcode("M701 W2"); // load, return option
+            queue_filament_load_gcodes();
             break;
         default:
             break;
@@ -209,7 +281,7 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::filament_not_inserted_load:
         if (!filament_gcodes::InProgress::Active()) {
-            ChangeState(State::done);
+            ChangeState(stateFromFilamentType());
         }
         break;
 
@@ -237,7 +309,7 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
         case Response::Change:
             ChangeState(State::wrong_filament_change);
-            marlin_server::enqueue_gcode("M1600 R"); // change, return option
+            queue_filament_change_gcodes();
             break;
         case Response::Ok:
             ChangeState(State::done);
@@ -252,9 +324,13 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::wrong_filament_change:
         if (!filament_gcodes::InProgress::Active()) {
-            ChangeState(State::done);
+            PreheatStatus::Result res = PreheatStatus::ConsumeResult();
+            if (res == PreheatStatus::Result::Aborted || res == PreheatStatus::Result::DidNotFinish) {
+                ChangeState(State::wrong_filament_wait_user); // Return back to wrong filament type dialog
+            } else {
+                ChangeState(State::done);
+            }
         }
-        // DialogBlockingChangeLoad is handling return .. might want to do it too
         break;
 
     case State::done:
@@ -268,6 +344,8 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     switch (GetState()) {
     case State::preview_wait_user:
         return Result::Image;
+    case State::unfinished_selftest_wait_user:
+    case State::new_firmware_available_wait_user:
     case State::wrong_printer_wait_user:
     case State::wrong_printer_wait_user_abort:
     case State::wrong_filament_change:
@@ -284,23 +362,35 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     return Result::Inactive;
 }
 
-void PrintPreview::Init(const char *path) {
-    auto f = fopen(path, "rb");
-    if (!f)
-        return;
-    // I don't need this information
-    GCodeInfo::time_buff printing_time;
-
-    GCodeInfo::PreviewInit(*f, printing_time, gcode_per_extruder_info, filament_described, valid_printer_settings);
-
-    fclose(f);
-    ChangeState(skip_if_able ? evaluateStateOnPrintClick() : State::preview_wait_user);
+void PrintPreview::Init() {
+    ChangeState(skip_if_able ? stateFromSelftestCheck() : State::preview_wait_user);
 }
 
-IPrintPreview::State PrintPreview::evaluateStateOnPrintClick() {
-    if (valid_printer_settings.is_valid()) {
+IPrintPreview::State PrintPreview::stateFromSelftestCheck() {
+#if (!DEVELOPER_MODE() && PRINTER_IS_PRUSA_XL)
+    const bool show_warning = !selftest_warning_selftest_finished();
+#else
+    const bool show_warning = false;
+#endif
+    if (show_warning) {
+        return State::unfinished_selftest_wait_user;
+    } else {
+        return stateFromUpdateCheck();
+    }
+}
+
+IPrintPreview::State PrintPreview::stateFromUpdateCheck() {
+    if (GCodeInfo::getInstance().get_valid_printer_settings().outdated_firmware.is_valid()) {
+        return stateFromPrinterCheck();
+    } else {
+        return State::new_firmware_available_wait_user;
+    }
+}
+
+IPrintPreview::State PrintPreview::stateFromPrinterCheck() {
+    if (GCodeInfo::getInstance().get_valid_printer_settings().is_valid()) {
         return stateFromFilamentPresence();
     } else {
-        return valid_printer_settings.is_fatal() ? State::wrong_printer_wait_user_abort : State::wrong_printer_wait_user;
+        return GCodeInfo::getInstance().get_valid_printer_settings().is_fatal() ? State::wrong_printer_wait_user_abort : State::wrong_printer_wait_user;
     }
 }

@@ -27,6 +27,11 @@ enum class index { backlight,
 inline constexpr size_t Count = size_t(index::count_);
 
 /**
+ * @brief Initializes leds
+ */
+void Init();
+
+/**
  * @brief call periodically, writes LED values
  */
 void TickLoop();

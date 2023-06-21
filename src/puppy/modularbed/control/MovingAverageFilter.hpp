@@ -21,4 +21,4 @@ private:
     uint32_t m_DataMovingAverage;
 };
 
-} //namespace
+} // namespace

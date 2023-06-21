@@ -44,7 +44,6 @@
 #include "feature/closedloop.h"
 #include "feature/safety_timer.h"
 #include "feature/bed_preheat.hpp"
-#include "marlin_server.hpp"
 
 #include "HAL/shared/Delay.h"
 
@@ -430,11 +429,14 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
       if (!already_shutdown_steppers) {
         already_shutdown_steppers = true;  // L6470 SPI will consume 99% of free time without this
 
-        #if DEVELOPMENT_ITEMS() && PRINTER_TYPE == PRINTER_PRUSA_XL
+        #if DEVELOPMENT_ITEMS() && PRINTER_IS_PRUSA_XL && !BOARD_IS_DWARF
         // Report steppers being disabled to the user
         // Skip if position not trusted to avoid warnings when position is not important
         if(axis_known_position) {
-          marlin_server::set_warning(WarningType::SteppersTimeout);
+          /// @note Hacky link from marlin_server which cannot be included here.
+          /// @todo Remove when stepper timeout screen is solved properly.
+          extern void marlin_server_steppers_timeout_warning();
+          marlin_server_steppers_timeout_warning();
         }
         #endif
 

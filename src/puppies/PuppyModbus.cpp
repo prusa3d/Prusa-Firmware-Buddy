@@ -200,7 +200,11 @@ ModbusDevice::ModbusDevice(PuppyModbus &bus, uint8_t unit)
     , unit(unit) {}
 
 ModbusErrorInfo PuppyModbus::read_input(uint8_t unit, bool *data, uint16_t count, uint16_t address) {
-    auto lock = PuppyBus::LockGuard();
+    bool locked = false;
+    auto lock = PuppyBus::LockGuard(locked);
+    if (!locked) {
+        return MODBUS_GENERAL_ERROR(OTHER); // Allow failure instead of bsod for toolchange and powerpanic cooperation
+    }
 
     log_debug(Modbus, "Communicate discrete input register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
 

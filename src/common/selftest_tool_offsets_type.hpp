@@ -12,6 +12,9 @@ struct SelftestToolOffsets_t {
     uint8_t progress;
     SelftestSubtestState_t state;
 
+    static constexpr int16_t TOOL_OFFSET_CLEANING_TEMPERATURE = 200; //< Temperature to heat up towards for cleaning tools
+    static constexpr int16_t TOOL_CALIBRATION_TEMPERATURE = 70;      //< Temperature to maintain during calibration
+
     constexpr SelftestToolOffsets_t(uint8_t prog = 0, SelftestSubtestState_t st = SelftestSubtestState_t::undef)
         : progress(prog)
         , state(st) {}

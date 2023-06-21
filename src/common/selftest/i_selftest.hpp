@@ -5,7 +5,6 @@
 #pragma once
 
 #include <inttypes.h>
-#include "eeprom.h"
 #include <stdio.h>
 #include "selftest_part.hpp"
 
@@ -20,6 +19,7 @@ public:
     virtual ~ISelftest() = default;
 
     virtual bool IsInProgress() const = 0;
+    virtual bool IsAborted() const = 0;
     virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) = 0;
     virtual void Loop() = 0;
     virtual bool Abort() = 0;
@@ -41,5 +41,5 @@ protected:
     FILE *m_USBLog_fp;
 };
 
-//defined in child source file
+// defined in child source file
 ISelftest &SelftestInstance();

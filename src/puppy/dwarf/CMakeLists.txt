@@ -9,12 +9,12 @@ target_sources(
           led.cpp
           loadcell.cpp
           logging.cpp
-          main.c
+          main.cpp
           module_marlin.cpp
           task_startup.cpp
           timing_sys.cpp
           tool_filament_sensor.cpp
-          trigger_crash_dump.c
+          trigger_crash_dump.cpp
           # these two CrashCatcher files need to be here otherwise HardFault_Handler will be handled
           # by Default_Handler (no compiler error)
   )

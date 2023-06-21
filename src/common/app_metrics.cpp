@@ -24,6 +24,8 @@
 #include "../Marlin/src/module/stepper.h"
 #include "../Marlin/src/feature/power.h"
 
+#include <configuration_store.hpp>
+
 #if BOARD_IS_XLBUDDY
     #include <puppies/Dwarf.hpp>
     #include <Marlin/src/module/prusa/toolchanger.h>
@@ -46,7 +48,7 @@ extern metric_t metric_probe_z_diff;
 extern metric_t metric_home_diff;
 #endif
 
-void Buddy::Metrics::RecordRuntimeStats() {
+void buddy::metrics::RecordRuntimeStats() {
     static metric_t fw_version = METRIC("fw_version", METRIC_VALUE_STRING, 10 * 1000, METRIC_HANDLER_ENABLE_ALL);
     metric_record_string(&fw_version, "%s", project_version_full);
 
@@ -58,27 +60,65 @@ void Buddy::Metrics::RecordRuntimeStats() {
     metric_record_string(&buddy_revision, "%u.%u", board_revision.bytes[0], board_revision.bytes[1]);
 
     static metric_t current_filamnet = METRIC("filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
-    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
     metric_record_string(&current_filamnet, "%s", filament::get_description(current_filament).name);
 
-    static metric_t stack = METRIC("stack", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-    static auto should_record_stack = RunApproxEvery(3000);
-    if (should_record_stack()) {
-        static TaskStatus_t task_statuses[15];
-        int count = uxTaskGetSystemState(task_statuses, sizeof(task_statuses) / sizeof(task_statuses[1]), NULL);
+    static metric_t stack = METRIC("stack", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);     // Thread stack usage
+    static metric_t runtime = METRIC("runtime", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL); // Thread runtime usage
+    constexpr const uint32_t STACK_RUNTIME_RECORD_INTERVAL_MS = 3000;                               // Sample stack and runtime this often
+    static auto should_record_stack_runtime = RunApproxEvery(STACK_RUNTIME_RECORD_INTERVAL_MS);
+    if (should_record_stack_runtime()) {
+        static TaskStatus_t task_statuses[15] = {};
+
+#if configGENERATE_RUN_TIME_STATS
+        // Runtime since last record
+        static uint32_t last_totaltime = 0;
+        uint32_t totaltime = ticks_ms();
+        uint32_t delta_totaltime = totaltime - last_totaltime;
+        last_totaltime = totaltime;
+        // t / 100 for percentage calculations
+        // Compensate t * 1000 * TIM_BASE_CLK_MHZ to get from ms to portGET_RUN_TIME_COUNTER_VALUE() that uses TICK_TIMER
+        delta_totaltime = 10UL * TIM_BASE_CLK_MHZ * delta_totaltime;
+
+        // Last runtime of all threads to get delta later
+        uint32_t last_runtime[17] = {};
+        for (size_t idx = 0; idx < std::size(task_statuses); idx++) {
+            if ((task_statuses[idx].xTaskNumber > 0) && (task_statuses[idx].xTaskNumber <= std::size(last_runtime))) {
+                last_runtime[task_statuses[idx].xTaskNumber - 1] = task_statuses[idx].ulRunTimeCounter;
+            }
+        }
+#endif /*configGENERATE_RUN_TIME_STATS*/
+
+        // Get stack and runtime stats
+        int count = uxTaskGetSystemState(task_statuses, std::size(task_statuses), NULL);
         if (count == 0) {
-            log_error(Metrics, "Failed to record stack metrics. The task_statuses array might be too small.");
+            log_error(Metrics, "Failed to record stack & runtime metrics. The task_statuses array might be too small.");
         } else {
             for (int idx = 0; idx < count; idx++) {
+                // Sanitize task name
+                const char *task_name = task_statuses[idx].pcTaskName;
+                if (strcmp(task_name, "Tmr Svc") == 0) {
+                    task_name = "TmrSvc";
+                }
+
+                // Report stack usage
                 const char *stack_base = (char *)task_statuses[idx].pxStackBase;
                 size_t s = 0;
                 /* We can only report free stack space for heap-allocated stack frames. */
-                if (mem_is_heap_allocated(stack_base))
+                if (mem_is_heap_allocated(stack_base)) {
                     s = malloc_usable_size((void *)stack_base);
-                const char *task_name = task_statuses[idx].pcTaskName;
-                if (strcmp(task_name, "Tmr Svc") == 0)
-                    task_name = "TmrSvc";
+                }
                 metric_record_custom(&stack, ",n=%.7s t=%i,m=%hu", task_name, s, task_statuses[idx].usStackHighWaterMark);
+
+#if configGENERATE_RUN_TIME_STATS
+                // Report runtime usage, runtime can overflow and the difference still be valid
+                if (task_statuses[idx].xTaskNumber <= std::size(last_runtime)) {
+                    const uint32_t runtime_percent = (task_statuses[idx].ulRunTimeCounter - last_runtime[task_statuses[idx].xTaskNumber - 1]) / delta_totaltime;
+                    metric_record_custom(&runtime, ",n=%.7s u=%u", task_name, runtime_percent);
+                } else {
+                    log_error(Metrics, "Failed to record runtime metric. The last_runtime array might be too small.");
+                }
+#endif /*configGENERATE_RUN_TIME_STATS*/
             }
         }
     }
@@ -87,7 +127,7 @@ void Buddy::Metrics::RecordRuntimeStats() {
     metric_record_custom(&heap, " free=%ii,total=%ii", xPortGetFreeHeapSize(), heap_total_size);
 }
 
-void Buddy::Metrics::RecordMarlinVariables() {
+void buddy::metrics::RecordMarlinVariables() {
 #if HAS_BED_PROBE
     metric_register(&metric_probe_z);
     metric_register(&metric_probe_z_diff);
@@ -155,12 +195,14 @@ void Buddy::Metrics::RecordMarlinVariables() {
     static metric_t ipos_z = METRIC("ipos_z", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL);
     metric_record_integer(&ipos_z, stepper.position_from_startup(AxisEnum::Z_AXIS));
 
+    xyz_pos_t pos;
+    planner.get_axis_position_mm(pos);
     static metric_t pos_x = METRIC("pos_x", METRIC_VALUE_FLOAT, 11, METRIC_HANDLER_DISABLE_ALL);
-    metric_record_float(&pos_x, planner.get_axis_position_mm(AxisEnum::X_AXIS));
+    metric_record_float(&pos_x, pos[X_AXIS]);
     static metric_t pos_y = METRIC("pos_y", METRIC_VALUE_FLOAT, 11, METRIC_HANDLER_DISABLE_ALL);
-    metric_record_float(&pos_y, planner.get_axis_position_mm(AxisEnum::Y_AXIS));
+    metric_record_float(&pos_y, pos[Y_AXIS]);
     static metric_t pos_z = METRIC("pos_z", METRIC_VALUE_FLOAT, 11, METRIC_HANDLER_DISABLE_ALL);
-    metric_record_float(&pos_z, planner.get_axis_position_mm(AxisEnum::Z_AXIS));
+    metric_record_float(&pos_z, pos[Z_AXIS]);
 
 #if HAS_BED_PROBE
     static metric_t adj_z = METRIC("adj_z", METRIC_VALUE_FLOAT, 1500, METRIC_HANDLER_ENABLE_ALL);
@@ -175,7 +217,7 @@ void Buddy::Metrics::RecordMarlinVariables() {
 
 #ifdef HAS_ADVANCED_POWER
     #if BOARD_IS_XBUDDY
-void Buddy::Metrics::RecordPowerStats() {
+void buddy::metrics::RecordPowerStats() {
     static metric_t metric_bed_v_raw = METRIC("volt_bed_raw", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
     metric_record_integer(&metric_bed_v_raw, advancedpower.GetBedVoltageRaw());
     static metric_t metric_bed_v = METRIC("volt_bed", METRIC_VALUE_FLOAT, 1001, METRIC_HANDLER_ENABLE_ALL);
@@ -202,7 +244,7 @@ void Buddy::Metrics::RecordPowerStats() {
     metric_record_integer(&metric_oc_input_fault, advancedpower.OvercurrentFaultDetected());
 }
     #elif BOARD_IS_XLBUDDY
-void Buddy::Metrics::RecordPowerStats() {
+void buddy::metrics::RecordPowerStats() {
     static metric_t metric_splitter_5V_current = METRIC("splitter_5V_current", METRIC_VALUE_FLOAT, 1000, METRIC_HANDLER_ENABLE_ALL);
     metric_record_float(&metric_splitter_5V_current, advancedpower.GetDwarfSplitter5VCurrent());
 
@@ -224,7 +266,7 @@ void Buddy::Metrics::RecordPowerStats() {
 
 #endif // HAS_ADVANCED_POWER
 
-void Buddy::Metrics::RecordPrintFilename() {
+void buddy::metrics::RecordPrintFilename() {
     static metric_t file_name = METRIC("print_filename", METRIC_VALUE_STRING, 5000, METRIC_HANDLER_ENABLE_ALL);
     if (media_print_get_state() != media_print_state_t::media_print_state_NONE) {
         // The docstring for media_print_filename() advises against using this function; however, there is currently no replacement for it.
@@ -235,7 +277,7 @@ void Buddy::Metrics::RecordPrintFilename() {
 }
 
 #if BOARD_IS_XLBUDDY
-void Buddy::Metrics::record_dwarf_mcu_temperature() {
+void buddy::metrics::record_dwarf_mcu_temperature() {
     buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getActiveToolOrFirst();
     static metric_t metric_dwarfMCUTemperature = METRIC("dwarf_mcu_temp", METRIC_VALUE_FLOAT, 1001, METRIC_HANDLER_ENABLE_ALL);
     metric_record_float(&metric_dwarfMCUTemperature, dwarf.get_mcu_temperature());

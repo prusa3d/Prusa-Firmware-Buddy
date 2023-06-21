@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-//#include "unicode.h"
+// #include "unicode.h"
 #include <string.h>
 #include <stdio.h>
 #include "assert.h"
@@ -37,7 +37,7 @@ class string_view_utf8 {
         struct FromFile {
             ::FILE *f;           ///< shared FILE pointer with other instances accessing the same file
             uint16_t startOfs;   ///< start offset in input file
-            uint16_t currentOfs; ///<position of next byt to read
+            uint16_t currentOfs; ///< position of next byt to read
         } file;
     };
     Attrs attrs;
@@ -75,7 +75,7 @@ class string_view_utf8 {
 
     static uint8_t FILE_getbyte(Attrs &attrs) {
         uint8_t c;
-        //sync among multiple reads from the sameMO file
+        // sync among multiple reads from the sameMO file
         if (ftell(attrs.file.f) != attrs.file.currentOfs)
             fseek(attrs.file.f, attrs.file.currentOfs, SEEK_SET);
         attrs.file.currentOfs++;
@@ -230,7 +230,7 @@ public:
             return (attrs.file.f == other.attrs.file.f) && (attrs.file.startOfs == other.attrs.file.startOfs);
         case EType::SPIFLASH:
         case EType::USBFLASH:
-            assert(false); // ends program in debug
+            assert(false);   // ends program in debug
             return false;
         case EType::NULLSTR: // all null strings are equal
             return true;

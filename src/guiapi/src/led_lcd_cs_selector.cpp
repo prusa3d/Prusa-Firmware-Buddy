@@ -8,58 +8,100 @@
 #include "main.h"
 #include "hwio_pindef.h"
 #include "gui_time.hpp" //gui::GetTick()
+#include "option/has_side_leds.h"
 
 using namespace buddy::hw;
 
-//this function is not in header, i prefer one extern over adding it to
-//ili9488.hpp and including it
+// this function is not in header, i prefer one extern over adding it to
+// ili9488.hpp and including it
 extern void ili9488_spi_wr_bytes(uint8_t *pb, uint16_t size);
 extern void ili9488_cmd_nop(void);
 
-uint32_t LED_LCD_CS_selector::last_tick = 0;
+void LED_LCD_SPI_switcher::SelectLeds() {
+    saved_prescaler = spi->Init.BaudRatePrescaler;
+    // LEDs use MHz10_5, reconfigure prescaler accordingly
+    const auto new_prescaler = SPI_BAUDRATEPRESCALER_8;
 
-LED_LCD_CS_selector::LED_LCD_CS_selector(speed spd)
-    : saved_prescaler(SPI_HANDLE_FOR(lcd).Init.BaudRatePrescaler) {
-    if (HAL_SPI_DeInit(&SPI_HANDLE_FOR(lcd)) != HAL_OK) {
-        Error_Handler();
-    }
-    uint32_t baudprescaler = 0;
-    switch (spd) {
-    case speed::MHz10_5:
-        baudprescaler = SPI_BAUDRATEPRESCALER_8;
-        break;
-    case speed::MHz21:
-        baudprescaler = SPI_BAUDRATEPRESCALER_4;
-        break;
-    case speed::MHz42:
-        baudprescaler = SPI_BAUDRATEPRESCALER_2;
-        break;
-    }
-    SPI_HANDLE_FOR(lcd).Init.BaudRatePrescaler = baudprescaler;
-    if (HAL_SPI_Init(&SPI_HANDLE_FOR(lcd)) != HAL_OK) {
+    // prescaler is already OK, do not do anyhting
+    if (saved_prescaler == new_prescaler)
+        return;
+
+    if (HAL_SPI_DeInit(spi) != HAL_OK) {
         Error_Handler();
     }
 
+    spi->Init.BaudRatePrescaler = new_prescaler;
+    if (HAL_SPI_Init(spi) != HAL_OK) {
+        Error_Handler();
+    }
+}
+
+void LED_LCD_SPI_switcher::Restore() {
+    // prescaler is already OK, do not do anyhting
+    if (spi->Init.BaudRatePrescaler == saved_prescaler)
+        return;
+
+    if (HAL_SPI_DeInit(spi) != HAL_OK) {
+        Error_Handler();
+    }
+    spi->Init.BaudRatePrescaler = saved_prescaler;
+    if (HAL_SPI_Init(spi) != HAL_OK) {
+        Error_Handler();
+    }
+}
+
+void LED_LCD_SPI_switcher::WrBytes(uint8_t *pb, uint16_t size) {
+    if (spi == &SPI_HANDLE_FOR(lcd)) {
+        ili9488_spi_wr_bytes(pb, size);
+    } else {
+        HAL_SPI_Abort(spi);
+        HAL_SPI_Transmit_DMA(spi, pb, size);
+        // wait for transmission complete
+        while (HAL_SPI_GetState(spi) == HAL_SPI_STATE_BUSY_TX) {
+            osDelay(1);
+        }
+    }
+}
+
+void GuiLedsWriter::write(uint8_t *pb, uint16_t size) {
+    LED_LCD_SPI_switcher writer(&SPI_HANDLE_FOR(lcd));
+
+    writer.SelectLeds();
     ili9488_cmd_nop();
-    displayCs.write(Pin::State::high);
-    if (last_tick == gui::GetTick())
-        osDelay(1); // not ready to send yet
+
+    // switch multiplex to send data to side led strip
+    displayCs.set();
+
+    writer.WrBytes(pb, size);
+    writer.Restore();
+
+    // switch multiplex back
+    displayCs.reset();
 }
 
-LED_LCD_CS_selector::~LED_LCD_CS_selector() {
-    displayCs.write(Pin::State::low);
+#if HAS_SIDE_LEDS()
+void SideStripWriter::write(uint8_t *pb, uint16_t size) {
+    LED_LCD_SPI_switcher writer(hw_get_spi_side_strip());
 
-    if (HAL_SPI_DeInit(&SPI_HANDLE_FOR(lcd)) != HAL_OK) {
-        Error_Handler();
+    /// true when SPI to control LEDs is shared with LCD
+    const bool spi_shared_with_lcd = (writer.spi == &SPI_HANDLE_FOR(lcd));
+
+    writer.SelectLeds();
+    ili9488_cmd_nop();
+
+    // switch multiplex to send data to side led strip
+    if (spi_shared_with_lcd) {
+        displayCs.reset();
+        SideLed_LcdSelector->set();
     }
-    SPI_HANDLE_FOR(lcd).Init.BaudRatePrescaler = saved_prescaler;
-    if (HAL_SPI_Init(&SPI_HANDLE_FOR(lcd)) != HAL_OK) {
-        Error_Handler();
+
+    writer.WrBytes(pb, size);
+    writer.Restore();
+
+    // switch multiplex back
+    if (spi_shared_with_lcd) {
+        displayCs.reset();
+        SideLed_LcdSelector->reset();
     }
-
-    last_tick = gui::GetTick();
 }
-
-void LED_LCD_CS_selector::WrBytes(uint8_t *pb, uint16_t size) {
-    ili9488_spi_wr_bytes(pb, size);
-}
+#endif

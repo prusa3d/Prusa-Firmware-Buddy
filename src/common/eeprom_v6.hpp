@@ -47,13 +47,13 @@ struct vars_body_t {
 #pragma pack(pop)
 
 constexpr vars_body_t body_defaults = {
-    0,    // EEVAR_FILAMENT_TYPE
-    0,    // EEVAR_FILAMENT_COLOR
-    true, // EEVAR_RUN_SELFTEST
-    true, // EEVAR_RUN_XYZCALIB
-    true, // EEVAR_RUN_FIRSTLAY
-    true, // EEVAR_FSENSOR_ENABLED
-    0,    // EEVAR_ZOFFSET
+    0,          // EEVAR_FILAMENT_TYPE
+    0,          // EEVAR_FILAMENT_COLOR
+    true,       // EEVAR_RUN_SELFTEST
+    true,       // EEVAR_RUN_XYZCALIB
+    true,       // EEVAR_RUN_FIRSTLAY
+    true,       // EEVAR_FSENSOR_ENABLED
+    0,          // EEVAR_ZOFFSET
 #ifdef DEFAULT_Kp
     DEFAULT_Kp, // EEVAR_PID_NOZ_P
 #else

@@ -1,4 +1,4 @@
-//IScreenPrinting.hpp
+// IScreenPrinting.hpp
 #pragma once
 #include "gui.hpp"
 #include "screen.hpp"

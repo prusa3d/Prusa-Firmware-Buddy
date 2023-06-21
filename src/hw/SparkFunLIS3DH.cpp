@@ -23,12 +23,12 @@ or concerns with licensing, please contact techsupport@sparkfun.com.
 
 Distributed as-is; no warranty is given.
 ******************************************************************************/
-//Use VERBOSE_SERIAL to add debug serial to an existing Serial object.
-//Note:  Use of VERBOSE_SERIAL adds delays surround RW ops, and should not be used
-//for functional testing.
-//#define VERBOSE_SERIAL
+// Use VERBOSE_SERIAL to add debug serial to an existing Serial object.
+// Note:  Use of VERBOSE_SERIAL adds delays surround RW ops, and should not be used
+// for functional testing.
+// #define VERBOSE_SERIAL
 
-//See SparkFunLIS3DH.h for additional topology notes.
+// See SparkFunLIS3DH.h for additional topology notes.
 #include "config_buddy_2209_02.h"
 #ifdef HAS_ACCELEROMETR
     #include "SparkFunLIS3DH.h"
@@ -109,19 +109,19 @@ status_t LIS3DHCore::beginCore(void) {
     #else
             // probably __AVR__
             // initalize the chip select pins:
-            //pinMode(chipSelectPin, OUTPUT);
-            //digitalWrite(chipSelectPin, HIGH);
+            // pinMode(chipSelectPin, OUTPUT);
+            // digitalWrite(chipSelectPin, HIGH);
             // start the SPI library:
-            //SPI.begin();
+            // SPI.begin();
             // Maximum SPI frequency is 10MHz, could divide by 2 here:
-            //SPI.setClockDivider(SPI_CLOCK_DIV4);
+            // SPI.setClockDivider(SPI_CLOCK_DIV4);
             // Data is read and written MSb first.
-            //SPI.setBitOrder(MSBFIRST);
+            // SPI.setBitOrder(MSBFIRST);
             // Data is captured on rising edge of clock (CPHA = 0)
             // Base value of the clock is HIGH (CPOL = 1)
 
             // MODE3 for 328p operation
-            //SPI.setDataMode(SPI_MODE3);
+            // SPI.setDataMode(SPI_MODE3);
 
     #endif
         break;
@@ -129,13 +129,13 @@ status_t LIS3DHCore::beginCore(void) {
         break;
     }
 
-    //Spin for a few ms
+    // Spin for a few ms
     volatile uint8_t temp = 0;
     for (uint16_t i = 0; i < 10000; i++) {
         temp++;
     }
 
-    //Check the ID register to determine if the operation was a success.
+    // Check the ID register to determine if the operation was a success.
     uint8_t readCheck;
     readRegister(&readCheck, LIS3DH_WHO_AM_I);
     if (readCheck != 0x33) {
@@ -163,7 +163,7 @@ status_t LIS3DHCore::beginCore(void) {
 status_t LIS3DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, uint8_t length) {
     status_t returnError = IMU_SUCCESS;
 
-    //define pointer that will point to the external space
+    // define pointer that will point to the external space
     uint8_t i = 0;
     uint8_t c = 0;
     uint8_t tempFFCounter = 0;
@@ -172,17 +172,17 @@ status_t LIS3DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
 
     case I2C_MODE:
         Wire.beginTransmission(I2CAddress);
-        offset |= 0x80; //turn auto-increment bit on, bit 7 for I2C
+        offset |= 0x80; // turn auto-increment bit on, bit 7 for I2C
         Wire.write(offset);
         if (Wire.endTransmission() != 0) {
             returnError = IMU_HW_ERROR;
-        } else //OK, all worked, keep going
+        } else // OK, all worked, keep going
         {
             // request 6 bytes from slave device
             Wire.requestFrom(I2CAddress, length);
             while ((Wire.available()) && (i < length)) // slave may send less than requested
             {
-                c = Wire.read(); // receive a byte as character
+                c = Wire.read();                       // receive a byte as character
                 *outputPointer = c;
                 outputPointer++;
                 i++;
@@ -192,18 +192,18 @@ status_t LIS3DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
 
     case SPI_MODE:
         // take the chip select low to select the device:
-        //digitalWrite(chipSelectPin, LOW);
+        // digitalWrite(chipSelectPin, LOW);
         acellCs.write(Pin::State::low);
         // send the device the register you want to read:
-        //SPI.transfer(offset | 0x80 | 0x40);  //Ored with "read request" bit and "auto increment" bit
+        // SPI.transfer(offset | 0x80 | 0x40);  //Ored with "read request" bit and "auto increment" bit
         offset = offset | 0x80 | 0x40;
         HAL_SPI_Transmit(&hspi2, &offset, 1, HAL_MAX_DELAY);
         while (i < length) // slave may send less than requested
         {
-            //c = SPI.transfer(0x00); // receive a byte as character
+            // c = SPI.transfer(0x00); // receive a byte as character
             HAL_SPI_Receive(&hspi2, &c, 1, HAL_MAX_DELAY);
             if (c == 0xFF) {
-                //May have problem
+                // May have problem
                 tempFFCounter++;
             }
             *outputPointer = c;
@@ -211,11 +211,11 @@ status_t LIS3DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
             i++;
         }
         if (tempFFCounter == i) {
-            //Ok, we've recieved all ones, report
+            // Ok, we've recieved all ones, report
             returnError = IMU_ALL_ONES_WARNING;
         }
         // take the chip select high to de-select:
-        //digitalWrite(chipSelectPin, HIGH);
+        // digitalWrite(chipSelectPin, HIGH);
         acellCs.write(Pin::State::high);
         break;
 
@@ -236,7 +236,7 @@ status_t LIS3DHCore::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
 //
 //****************************************************************************//
 status_t LIS3DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
-    //Return value
+    // Return value
     uint8_t result;
     uint8_t numBytes = 1;
     status_t returnError = IMU_SUCCESS;
@@ -250,7 +250,7 @@ status_t LIS3DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
             returnError = IMU_HW_ERROR;
         }
         Wire.requestFrom(I2CAddress, numBytes);
-        while (Wire.available()) // slave may send less than requested
+        while (Wire.available())  // slave may send less than requested
         {
             result = Wire.read(); // receive a byte as a proper uint8_t
         }
@@ -258,21 +258,21 @@ status_t LIS3DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
 
     case SPI_MODE:
         // take the chip select low to select the device:
-        //digitalWrite(chipSelectPin, LOW);
+        // digitalWrite(chipSelectPin, LOW);
         acellCs.write(Pin::State::low);
         // send the device the register you want to read:
-        //SPI.transfer(offset | 0x80);  //Ored with "read request" bit
+        // SPI.transfer(offset | 0x80);  //Ored with "read request" bit
         offset = offset | 0x80;
         HAL_SPI_Transmit(&hspi2, &offset, 1, HAL_MAX_DELAY);
         // send a value of 0 to read the first byte returned:
-        //result = SPI.transfer(0x00);
+        // result = SPI.transfer(0x00);
         HAL_SPI_Receive(&hspi2, &result, 1, HAL_MAX_DELAY);
         // take the chip select high to de-select:
-        //digitalWrite(chipSelectPin, HIGH);
+        // digitalWrite(chipSelectPin, HIGH);
         acellCs.write(Pin::State::high);
 
         if (result == 0xFF) {
-            //we've recieved all ones, report
+            // we've recieved all ones, report
             returnError = IMU_ALL_ONES_WARNING;
         }
         break;
@@ -296,9 +296,9 @@ status_t LIS3DHCore::readRegister(uint8_t *outputPointer, uint8_t offset) {
 //****************************************************************************//
 status_t LIS3DHCore::readRegisterInt16(int16_t *outputPointer, uint8_t offset) {
     {
-        //offset |= 0x80; //turn auto-increment bit on
+        // offset |= 0x80; //turn auto-increment bit on
         uint8_t myBuffer[2];
-        status_t returnError = readRegisterRegion(myBuffer, offset, 2); //Does memory transfer
+        status_t returnError = readRegisterRegion(myBuffer, offset, 2); // Does memory transfer
         int16_t output = (int16_t)myBuffer[0] | int16_t(myBuffer[1] << 8);
         *outputPointer = output;
         return returnError;
@@ -318,7 +318,7 @@ status_t LIS3DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
     status_t returnError = IMU_SUCCESS;
     switch (commInterface) {
     case I2C_MODE:
-        //Write the byte
+        // Write the byte
         Wire.beginTransmission(I2CAddress);
         Wire.write(offset);
         Wire.write(dataToWrite);
@@ -329,21 +329,21 @@ status_t LIS3DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
 
     case SPI_MODE:
         // take the chip select low to select the device:
-        //digitalWrite(chipSelectPin, LOW);
+        // digitalWrite(chipSelectPin, LOW);
         acellCs.write(Pin::State::low);
         // send the device the register you want to read:
-        //PI.transfer(offset);
+        // PI.transfer(offset);
         HAL_SPI_Transmit(&hspi2, &offset, 1, HAL_MAX_DELAY);
         // send a value of 0 to read the first byte returned:
-        //SPI.transfer(dataToWrite);
+        // SPI.transfer(dataToWrite);
         HAL_SPI_Transmit(&hspi2, &dataToWrite, 1, HAL_MAX_DELAY);
         // decrement the number of bytes left to read:
         // take the chip select high to de-select:
-        //digitalWrite(chipSelectPin, HIGH);
+        // digitalWrite(chipSelectPin, HIGH);
         acellCs.write(Pin::State::high);
         break;
 
-        //No way to check error on this write (Except to read back but that's not reliable)
+        // No way to check error on this write (Except to read back but that's not reliable)
 
     default:
         break;
@@ -361,25 +361,25 @@ status_t LIS3DHCore::writeRegister(uint8_t offset, uint8_t dataToWrite) {
 //****************************************************************************//
 LIS3DH::LIS3DH(uint8_t busType, uint8_t inputArg)
     : LIS3DHCore(busType, inputArg) {
-    //Construct with these default settings
-    //ADC stuff
+    // Construct with these default settings
+    // ADC stuff
     settings.adcEnabled = 1;
 
-    //Temperature settings
+    // Temperature settings
     settings.tempEnabled = 1;
 
-    //Accelerometer settings
-    settings.accelSampleRate = 1600; //Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
-    settings.accelRange = 2;         //Max G force readable.  Can be: 2, 4, 8, 16
+    // Accelerometer settings
+    settings.accelSampleRate = 1600; // Hz.  Can be: 0,1,10,25,50,100,200,400,1600,5000 Hz
+    settings.accelRange = 2;         // Max G force readable.  Can be: 2, 4, 8, 16
 
     settings.xAccelEnabled = 1;
     settings.yAccelEnabled = 1;
     settings.zAccelEnabled = 1;
 
-    //FIFO control settings
+    // FIFO control settings
     settings.fifoEnabled = 0;
-    settings.fifoThreshold = 20; //Can be 0 to 32
-    settings.fifoMode = 0;       //FIFO mode.
+    settings.fifoThreshold = 20; // Can be 0 to 32
+    settings.fifoMode = 0;       // FIFO mode.
 
     allOnesCounter = 0;
     nonSuccessCounter = 0;
@@ -394,7 +394,7 @@ LIS3DH::LIS3DH(uint8_t busType, uint8_t inputArg)
 //
 //****************************************************************************//
 status_t LIS3DH::begin(void) {
-    //Begin the inherited core.  This gets the physical wires connected
+    // Begin the inherited core.  This gets the physical wires connected
     status_t returnError = beginCore();
 
     applySettings();
@@ -412,20 +412,20 @@ status_t LIS3DH::begin(void) {
 //
 //****************************************************************************//
 void LIS3DH::applySettings(void) {
-    uint8_t dataToWrite = 0; //Temporary variable
+    uint8_t dataToWrite = 0; // Temporary variable
 
-    //Build TEMP_CFG_REG
-    dataToWrite = 0; //Start Fresh!
+    // Build TEMP_CFG_REG
+    dataToWrite = 0; // Start Fresh!
     dataToWrite = ((settings.tempEnabled & 0x01) << 6) | ((settings.adcEnabled & 0x01) << 7);
-    //Now, write the patched together data
+    // Now, write the patched together data
     #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_TEMP_CFG_REG: 0x");
     Serial.println(dataToWrite, HEX);
     #endif
     writeRegister(LIS3DH_TEMP_CFG_REG, dataToWrite);
 
-    //Build CTRL_REG1
-    dataToWrite = 0; //Start Fresh!
+    // Build CTRL_REG1
+    dataToWrite = 0; // Start Fresh!
     //  Convert ODR
     switch (settings.accelSampleRate) {
     case 1:
@@ -461,15 +461,15 @@ void LIS3DH::applySettings(void) {
     dataToWrite |= (settings.zAccelEnabled & 0x01) << 2;
     dataToWrite |= (settings.yAccelEnabled & 0x01) << 1;
     dataToWrite |= (settings.xAccelEnabled & 0x01);
-    //Now, write the patched together data
+    // Now, write the patched together data
     #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_CTRL_REG1: 0x");
     Serial.println(dataToWrite, HEX);
     #endif
     writeRegister(LIS3DH_CTRL_REG1, dataToWrite);
 
-    //Build CTRL_REG4
-    dataToWrite = 0; //Start Fresh!
+    // Build CTRL_REG4
+    dataToWrite = 0; // Start Fresh!
     //  Convert scaling
     switch (settings.accelRange) {
     case 2:
@@ -486,13 +486,13 @@ void LIS3DH::applySettings(void) {
         dataToWrite |= (0x03 << 4);
         break;
     }
-    dataToWrite |= 0x80; //set block update
-    dataToWrite |= 0x08; //set high resolution
+    dataToWrite |= 0x80; // set block update
+    dataToWrite |= 0x08; // set high resolution
     #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_CTRL_REG4: 0x");
     Serial.println(dataToWrite, HEX);
     #endif
-    //Now, write the patched together data
+    // Now, write the patched together data
     writeRegister(LIS3DH_CTRL_REG4, dataToWrite);
 }
 //****************************************************************************//
@@ -613,25 +613,25 @@ uint16_t LIS3DH::read10bitADC3(void) {
 //
 //****************************************************************************//
 void LIS3DH::fifoBegin(void) {
-    uint8_t dataToWrite = 0; //Temporary variable
+    uint8_t dataToWrite = 0; // Temporary variable
 
-    //Build LIS3DH_FIFO_CTRL_REG
-    readRegister(&dataToWrite, LIS3DH_FIFO_CTRL_REG); //Start with existing data
-    dataToWrite &= 0x20;                              //clear all but bit 5
-    dataToWrite |= (settings.fifoMode & 0x03) << 6;   //apply mode
-    dataToWrite |= (settings.fifoThreshold & 0x1F);   //apply threshold
-                                                      //Now, write the patched together data
+    // Build LIS3DH_FIFO_CTRL_REG
+    readRegister(&dataToWrite, LIS3DH_FIFO_CTRL_REG); // Start with existing data
+    dataToWrite &= 0x20;                              // clear all but bit 5
+    dataToWrite |= (settings.fifoMode & 0x03) << 6;   // apply mode
+    dataToWrite |= (settings.fifoThreshold & 0x1F);   // apply threshold
+                                                      // Now, write the patched together data
     #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
     Serial.println(dataToWrite, HEX);
     #endif
     writeRegister(LIS3DH_FIFO_CTRL_REG, dataToWrite);
 
-    //Build CTRL_REG5
-    readRegister(&dataToWrite, LIS3DH_CTRL_REG5); //Start with existing data
-    dataToWrite &= 0xBF;                          //clear bit 6
+    // Build CTRL_REG5
+    readRegister(&dataToWrite, LIS3DH_CTRL_REG5); // Start with existing data
+    dataToWrite &= 0xBF;                          // clear bit 6
     dataToWrite |= (settings.fifoEnabled & 0x01) << 6;
-    //Now, write the patched together data
+    // Now, write the patched together data
     #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_CTRL_REG5: 0x");
     Serial.println(dataToWrite, HEX);
@@ -640,7 +640,7 @@ void LIS3DH::fifoBegin(void) {
 }
 
 void LIS3DH::fifoClear(void) {
-    //Drain the fifo data and dump it
+    // Drain the fifo data and dump it
     while ((fifoGetStatus() & 0x20) == 0) {
         readRawAccelX();
         readRawAccelY();
@@ -649,21 +649,21 @@ void LIS3DH::fifoClear(void) {
 }
 
 void LIS3DH::fifoStartRec(void) {
-    uint8_t dataToWrite = 0; //Temporary variable
+    uint8_t dataToWrite = 0; // Temporary variable
 
-    //Turn off...
-    readRegister(&dataToWrite, LIS3DH_FIFO_CTRL_REG); //Start with existing data
-    dataToWrite &= 0x3F;                              //clear mode
+    // Turn off...
+    readRegister(&dataToWrite, LIS3DH_FIFO_CTRL_REG); // Start with existing data
+    dataToWrite &= 0x3F;                              // clear mode
     #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
     Serial.println(dataToWrite, HEX);
     #endif
     writeRegister(LIS3DH_FIFO_CTRL_REG, dataToWrite);
     //  ... then back on again
-    readRegister(&dataToWrite, LIS3DH_FIFO_CTRL_REG); //Start with existing data
-    dataToWrite &= 0x3F;                              //clear mode
-    dataToWrite |= (settings.fifoMode & 0x03) << 6;   //apply mode
-                                                      //Now, write the patched together data
+    readRegister(&dataToWrite, LIS3DH_FIFO_CTRL_REG); // Start with existing data
+    dataToWrite &= 0x3F;                              // clear mode
+    dataToWrite |= (settings.fifoMode & 0x03) << 6;   // apply mode
+                                                      // Now, write the patched together data
     #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
     Serial.println(dataToWrite, HEX);
@@ -672,7 +672,7 @@ void LIS3DH::fifoStartRec(void) {
 }
 
 uint8_t LIS3DH::fifoGetStatus(void) {
-    //Return some data on the state of the fifo
+    // Return some data on the state of the fifo
     uint8_t tempReadByte = 0;
     readRegister(&tempReadByte, LIS3DH_FIFO_SRC_REG);
     #ifdef VERBOSE_SERIAL
@@ -683,11 +683,11 @@ uint8_t LIS3DH::fifoGetStatus(void) {
 }
 
 void LIS3DH::fifoEnd(void) {
-    uint8_t dataToWrite = 0; //Temporary variable
+    uint8_t dataToWrite = 0; // Temporary variable
 
-    //Turn off...
-    readRegister(&dataToWrite, LIS3DH_FIFO_CTRL_REG); //Start with existing data
-    dataToWrite &= 0x3F;                              //clear mode
+    // Turn off...
+    readRegister(&dataToWrite, LIS3DH_FIFO_CTRL_REG); // Start with existing data
+    dataToWrite &= 0x3F;                              // clear mode
     #ifdef VERBOSE_SERIAL
     Serial.print("LIS3DH_FIFO_CTRL_REG: 0x");
     Serial.println(dataToWrite, HEX);

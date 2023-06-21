@@ -13,7 +13,7 @@ ScreenDoesNotExist::ScreenDoesNotExist()
     ClrMenuTimeoutClose(); // don't close on menu timeout
     SetRedLayout();
     txt.SetTextColor(COLOR_WHITE);
-    txt.SetFont(GuiDefaults::FontBig);
+    txt.set_font(GuiDefaults::FontBig);
 }
 
 ScreenDialogDoesNotExist::ScreenDialogDoesNotExist() {
@@ -25,7 +25,7 @@ ScreenDialogDoesNotExist::~ScreenDialogDoesNotExist() {
     ths = nullptr;
 }
 
-//static variables and member functions
+// static variables and member functions
 ScreenDialogDoesNotExist *ScreenDialogDoesNotExist::ths = nullptr;
 
 ScreenDialogDoesNotExist *ScreenDialogDoesNotExist::GetInstance() { return ths; }

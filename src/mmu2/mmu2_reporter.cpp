@@ -27,7 +27,7 @@ bool Reporter::Report::operator==(const Report &other) const {
     if (type == Type::progress)
         return progress.progressCode == other.progress.progressCode;
 
-    //now we know type is error
+    // now we know type is error
     if (error.errorCode != other.error.errorCode)
         return false;
 

@@ -2,14 +2,14 @@
 #include "selftest_dock.h"
 #include "selftest_dock_type.hpp"
 #include "src/module/prusa/toolchanger.h"
-#include "eeprom.h"
 #include "selftest_tool_helper.hpp"
+#include <configuration_store.hpp>
 
 namespace selftest {
 
 std::array<SelftestDock_t, HOTENDS> staticResultDocks;
 
-bool phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &pDocks, const std::array<const DockConfig_t, HOTENDS> &configs) {
+TestReturn phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &pDocks, const std::array<const DockConfig_t, HOTENDS> &configs) {
     for (uint i = 0; i < pDocks.size(); ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
             continue;
@@ -22,6 +22,9 @@ bool phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &pD
                 // Initial skip
                 &CSelftestPart_Dock::state_ask_user_needs_calibration,
                 &CSelftestPart_Dock::state_wait_user,
+                // Enough space in Z
+                &CSelftestPart_Dock::stateMoveAwayInit,
+                &CSelftestPart_Dock::stateMoveAwayWait,
                 // Manual park picked tool
                 &CSelftestPart_Dock::state_initiate_manual_park,
                 &CSelftestPart_Dock::state_wait_user_manual_park1,
@@ -38,25 +41,31 @@ bool phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &pD
                 &CSelftestPart_Dock::state_hold_position,
                 &CSelftestPart_Dock::state_ask_user_tighten_pillar,
                 &CSelftestPart_Dock::state_wait_user,
-                // Masure dock position
+                // Measure dock position
                 &CSelftestPart_Dock::state_measure,
                 &CSelftestPart_Dock::state_wait_moves_done,
                 &CSelftestPart_Dock::state_compute_position,
                 // Tighten rest, install pins
-                &CSelftestPart_Dock::state_ask_user_install_pins,
-                &CSelftestPart_Dock::state_wait_user,
                 &CSelftestPart_Dock::state_ask_user_tighten_screw,
                 &CSelftestPart_Dock::state_wait_user,
+                &CSelftestPart_Dock::state_ask_user_install_pins,
+                &CSelftestPart_Dock::state_wait_user,
+                // Slower check of the first park move
+                &CSelftestPart_Dock::state_selftest_check_todock,
+                &CSelftestPart_Dock::state_wait_moves_done,
+                &CSelftestPart_Dock::state_selftest_check_unlock,
+                &CSelftestPart_Dock::state_wait_moves_done,
+                &CSelftestPart_Dock::state_selftest_check_state,
+                &CSelftestPart_Dock::state_selftest_check_away,
+                &CSelftestPart_Dock::state_wait_moves_done,
+                &CSelftestPart_Dock::state_selftest_check_state,
                 // Park/unpark loop
                 &CSelftestPart_Dock::state_selftest_entry,
-                &CSelftestPart_Dock::state_selftest_park,
-                &CSelftestPart_Dock::state_wait_moves_done,
                 &CSelftestPart_Dock::state_selftest_pick,
                 &CSelftestPart_Dock::state_wait_moves_done,
-                &CSelftestPart_Dock::state_selftest_leave,
-                // Final park
                 &CSelftestPart_Dock::state_selftest_park,
                 &CSelftestPart_Dock::state_wait_moves_done,
+                &CSelftestPart_Dock::state_selftest_leave,
                 // Final save calibration
                 &CSelftestPart_Dock::state_selftest_move_away,
                 &CSelftestPart_Dock::state_selftest_congratulate,
@@ -81,8 +90,8 @@ bool phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &pD
         return true;
     }
 
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
+    bool skipped = false; ///< Return value whether to run next test
+    SelftestResult eeres = config_store().selftest_result.get();
     for (uint i = 0; i < pDocks.size(); ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
             continue;
@@ -95,11 +104,16 @@ bool phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &pD
             eeres.tools[i].dockoffset = pDocks[i]->GetResult();
         }
 
+        // If any test failed, do not run next test
+        if (pDocks[i]->GetResult() != TestResult_Passed) {
+            skipped = true;
+        }
+
         delete pDocks[i];
         pDocks[i] = nullptr;
     }
-    eeprom_set_selftest_results(&eeres);
+    config_store().selftest_result.set(eeres);
 
-    return false;
+    return TestReturn(false, skipped);
 }
 } // namespace selftest

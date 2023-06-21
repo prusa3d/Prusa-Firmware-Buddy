@@ -11,14 +11,14 @@ bool Init() {
 
     GPIO_InitTypeDef GPIO_InitStruct {};
 
-    //Reset-OvercurrentFault
+    // Reset-OvercurrentFault
     GPIO_InitStruct.Pin = GPIO_PIN_8;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    //PANIC + FAULT signals
+    // PANIC + FAULT signals
     GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -40,7 +40,7 @@ bool ReadFAULTSignal() {
 }
 
 void ResetOverCurrentFault() {
-//ACS711 datasheet requires that Vcc shall be < 200mV for at least 100 microseconds
+// ACS711 datasheet requires that Vcc shall be < 200mV for at least 100 microseconds
 #if (BOARD_VER_EQUAL_TO(0, 6, 0))
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
     hal::System::WaitMicroseconds(500);
@@ -52,4 +52,4 @@ void ResetOverCurrentFault() {
 #endif
 }
 
-} //namespace
+} // namespace

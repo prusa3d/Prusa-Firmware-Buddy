@@ -61,23 +61,23 @@ Notes:
     #include "SEGGER_SYSVIEW.h"
 
     /*********************************************************************
-*
-*       Defines, configurable
-*
-**********************************************************************
-*/
+     *
+     *       Defines, configurable
+     *
+     **********************************************************************
+     */
     #ifndef portSTACK_GROWTH
         #define portSTACK_GROWTH (-1)
     #endif
 
-    #define SYSVIEW_FREERTOS_MAX_NOF_TASKS 8
+    #define SYSVIEW_FREERTOS_MAX_NOF_TASKS 13
 
     /*********************************************************************
-*
-*       Defines, fixed
-*
-**********************************************************************
-*/
+     *
+     *       Defines, fixed
+     *
+     **********************************************************************
+     */
     #define apiID_OFFSET (32u)
 
     #define apiID_VTASKALLOCATEMPUREGIONS            (1u)
@@ -296,11 +296,11 @@ Notes:
     #define traceISR_ENTER()             SEGGER_SYSVIEW_RecordEnterISR()
 
     /*********************************************************************
-*
-*       API functions
-*
-**********************************************************************
-*/
+     *
+     *       API functions
+     *
+     **********************************************************************
+     */
     #ifdef __cplusplus
 extern "C" {
     #endif

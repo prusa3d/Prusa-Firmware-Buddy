@@ -5,17 +5,17 @@
 #include "display.h"
 #include "sound.hpp"
 #include "sys.h"
-#include "eeprom.h"
 #include "support_utils.h"
 #include "version.h"
 
 #include <stdlib.h>
 #include <crash_dump/dump.hpp>
 #include <error_codes.hpp>
+#include <configuration_store.hpp>
 
 using namespace crash_dump;
 
-static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, 200, 20) : Rect16(13, 12, display::GetW() - 26, 20);
+static const constexpr Rect16 title_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 44, display::GetW() - 60, 20) : Rect16(13, 12, display::GetW() - 26, 20);
 static const constexpr Rect16 hand_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(250, 105, 65, 82) : Rect16(20, 165, 64, 82);
 static const constexpr Rect16 descr_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(30, 85, 215, 100) : Rect16(10, 42, display::GetW() - 20, 220);
 static const constexpr Rect16 QR_rect = GuiDefaults::EnableDialogBigLayout ? Rect16(320, 85, 130, 130) : Rect16(90, 130, 130, 130);
@@ -53,11 +53,11 @@ ScreenErrorQR::ScreenErrorQR()
     png::Resource::EnableDefaultFile();
     SetRedLayout();
     title_line.SetBackColor(COLOR_WHITE);
-    help_link.font = resource_font(IDR_FNT_SMALL);
-    qr_code_txt.font = resource_font(IDR_FNT_SMALL);
-    fw_version_txt.font = resource_font(IDR_FNT_SMALL);
-    signature_txt.font = resource_font(IDR_FNT_SMALL);
-    appendix_txt.font = resource_font(IDR_FNT_SMALL);
+    help_link.set_font(resource_font(IDR_FNT_SMALL));
+    qr_code_txt.set_font(resource_font(IDR_FNT_SMALL));
+    fw_version_txt.set_font(resource_font(IDR_FNT_SMALL));
+    signature_txt.set_font(resource_font(IDR_FNT_SMALL));
+    appendix_txt.set_font(resource_font(IDR_FNT_SMALL));
 
     err_description.SetAlignment(Align_t::LeftTop());
     hand_icon.SetAlignment(Align_t::Center());
@@ -83,7 +83,7 @@ ScreenErrorQR::ScreenErrorQR()
             help_txt.Hide();
         help_link.SetText(_(qr_text));
 
-        if (eeprom_get_bool(EEVAR_DEVHASH_IN_QR)) {
+        if (config_store().devhash_in_qr.get()) {
             static char p_code[PRINTER_CODE_SIZE + 1];
             printerCode(p_code);
             qr_code_txt.SetText(string_view_utf8::MakeRAM((const uint8_t *)p_code));

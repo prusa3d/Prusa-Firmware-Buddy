@@ -7,10 +7,11 @@
 #include "marlin_server.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 #include "selftest_axis.h"
+#include <option/has_selftest.h>
 
 #if ENABLED(AXIS_MEASURE)
-static bool axis_length_ok(AxisEnum axis, float length) {
-    #if HAS_SELFTEST
+static bool axis_length_ok([[maybe_unused]] AxisEnum axis, [[maybe_unused]] float length) {
+    #if HAS_SELFTEST()
     switch (axis) {
     case X_AXIS:
         return ((length <= selftest::Config_XAxis.length_max) && (length >= selftest::Config_XAxis.length_min));

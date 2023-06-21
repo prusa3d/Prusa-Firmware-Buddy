@@ -6,12 +6,15 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
+    #include "MItem_love_board.hpp"
+#endif
 #include "MItem_tools.hpp"
 #include "GuiDefaults.hpp"
 #include "printers.h"
 
 using ScreenMenuVersionInfo__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_INFO_FW, MI_INFO_BOOTLOADER, MI_INFO_BOARD, MI_INFO_SERIAL_NUM,
-#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
     MI_INFO_SERIAL_NUM_LOVEBOARD,
 #endif
     MI_INFO_SERIAL_NUM_XLCD>;

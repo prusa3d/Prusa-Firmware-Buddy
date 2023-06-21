@@ -2,7 +2,7 @@
 #include "PrusaGcodeSuite.hpp"
 #include <Marlin/src/gcode/parser.h>
 #include <Marlin/src/module/motion.h>
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 #ifdef PRINT_CHECKING_Q_CMDS
 /**
@@ -30,7 +30,7 @@ void PrusaGcodeSuite::M862_1() {
     if (tool < EEPROM_MAX_TOOL_COUNT) {
         SERIAL_ECHO_START();
         char temp_buf[sizeof("  M862.1 T0 P0.00")];
-        snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.1 T%u P%.2f"), tool, static_cast<double>(eeprom_get_nozzle_dia(tool)));
+        snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.1 T%u P%.2f"), tool, static_cast<double>(config_store().get_nozzle_diameter(tool)));
         SERIAL_ECHO(temp_buf);
         SERIAL_EOL();
     }

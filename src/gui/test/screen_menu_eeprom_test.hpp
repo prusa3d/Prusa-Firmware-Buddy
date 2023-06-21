@@ -26,7 +26,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-//TODO make macro to generate this, use same principe as in menu_opener.hpp
+// TODO make macro to generate this, use same principe as in menu_opener.hpp
 class SpinIntPart7 : public WiSpinInt {
     constexpr static const char *const label = "0xXX-- ---- ---- ----";
 
@@ -84,7 +84,7 @@ public:
 };
 
 class EepromItems : public IWiSwitch {
-    typename TextMemSpace_t::type ArrayMemSpace[EEVAR_CRC32]; //EEVAR_CRC32 == count
+    typename TextMemSpace_t::type ArrayMemSpace[EEVAR_CRC32]; // EEVAR_CRC32 == count
 public:
     variant8_t var;
 
@@ -93,12 +93,12 @@ public:
     IWiSwitch::Items_t GenerateItems();
 
 protected:
-    //show only integers .. TODO float, string
+    // show only integers .. TODO float, string
     virtual invalidate_t change(int /*dif*/) override;
 };
 
 /*****************************************************************************/
-//ScreenMenuEepromTest parent alias
+// ScreenMenuEepromTest parent alias
 using ScreenMenuEepromTest__ = ScreenMenu<EFooter::Off, MI_RETURN, EepromItems, MI_STORE_EEPROM_TEST, SpinIntPart7, SpinIntPart6, SpinIntPart5, SpinIntPart4, SpinIntPart3, SpinIntPart2, SpinIntPart1, SpinIntPart0>;
 
 class ScreenMenuEepromTest : public ScreenMenuEepromTest__ {

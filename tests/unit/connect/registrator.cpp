@@ -8,7 +8,9 @@
 using namespace connect_client;
 using http::Connection;
 using http::Error;
+using std::holds_alternative;
 using std::min;
+using std::monostate;
 using std::nullopt;
 using std::optional;
 using std::string;
@@ -51,6 +53,9 @@ public:
     virtual variant<Connection *, Error> connection() override {
         return &conn;
     }
+    virtual bool is_valid() const override {
+        return true;
+    }
 };
 
 class InitPrinter final : public MockPrinter {
@@ -80,7 +85,9 @@ TEST_CASE("Registrator") {
 
     factory.conn.recv_data = "HTTP/1.1 200 OK\r\nCode: abcd\r\n\r\n";
     auto resp = registrator.communicate(factory);
-    REQUIRE(resp == OnlineStatus::RegistrationCode);
+    // Any idea why simple resp == ConnectionStatus::... doesn't work in this case?
+    // Also, catch's REQUIRE needs that double (( )) for whatever reasons :-O
+    REQUIRE((holds_alternative<ConnectionStatus>(resp) && (get<ConnectionStatus>(resp) == ConnectionStatus::RegistrationCode)));
     // Note:
     // These tests (looking for a substring) are a bit fragile, because they
     // assume none of these fields is split across the chunk boundary. We are
@@ -96,7 +103,7 @@ TEST_CASE("Registrator") {
 
     resp = registrator.communicate(factory);
     // No activity yet, still "cooldown time".
-    REQUIRE_FALSE(resp.has_value());
+    REQUIRE(holds_alternative<monostate>(resp));
     REQUIRE(factory.conn.recv_data != "");
     REQUIRE(factory.conn.send_data == "");
 
@@ -104,7 +111,7 @@ TEST_CASE("Registrator") {
     // But now it does another round of communication.
     // We tell it we don't have it registered yet.
     resp = registrator.communicate(factory);
-    REQUIRE_FALSE(resp.has_value());
+    REQUIRE(holds_alternative<monostate>(resp));
     REQUIRE(factory.conn.recv_data == "");
     INFO("Sent to connect: " << factory.conn.send_data);
     REQUIRE(factory.conn.send_data != "");
@@ -115,6 +122,6 @@ TEST_CASE("Registrator") {
     factory.conn.recv_data = "HTTP/1.1 200 OK\r\nToken: toktok\r\n\r\n";
     advance_time_s(10);
     resp = registrator.communicate(factory);
-    REQUIRE(resp == OnlineStatus::RegistrationDone);
+    REQUIRE((holds_alternative<ConnectionStatus>(resp) && (get<ConnectionStatus>(resp) == ConnectionStatus::RegistrationDone)));
     REQUIRE(printer.token == "toktok");
 }

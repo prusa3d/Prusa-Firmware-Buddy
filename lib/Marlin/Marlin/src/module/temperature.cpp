@@ -132,6 +132,10 @@ Temperature thermalManager;
 
 #if HOTENDS
   hotend_info_t Temperature::temp_hotend[HOTEND_TEMPS]; // = { 0 }
+
+   #if TEMP_RESIDENCY_TIME > 0
+      uint32_t Temperature::temp_hotend_residency_start_ms[HOTEND_TEMPS];
+    #endif
 #endif
 
 #if ENABLED(AUTO_POWER_E_FANS)
@@ -436,7 +440,7 @@ volatile bool Temperature::temp_meas_ready = false;
       next_auto_fan_check_ms = next_temp_ms + 2500UL;
     #endif
 
-    if (target > GHV(BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN, temp_range[heater].maxtemp - 15)) {
+    if (target > GHV(BED_MAXTEMP - BED_MAXTEMP_SAFETY_MARGIN, temp_range[heater].maxtemp - HEATER_MAXTEMP_SAFETY_MARGIN)) {
       SERIAL_ECHOLNPGM(MSG_PID_TEMP_TOO_HIGH);
       return;
     }
@@ -670,7 +674,7 @@ int16_t Temperature::getHeaterPower(const heater_ind_t heater_id) {
   #if HAS_HEATED_BED
     if (heater_id == H_BED) {
       #if ENABLED(MODULAR_HEATBED)
-        return (int16_t)simple_modular_bed->get_pwm();
+        return 0;
       #else
         return temp_bed.soft_pwm_amount;
       #endif
@@ -1450,6 +1454,20 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
 
 #endif // PIDTEMPBED
 
+#if TEMP_RESIDENCY_TIME > 0
+  void Temperature::update_temp_residency_hotend(uint8_t hotend) {
+    const float temp_diff = ABS(temp_hotend[hotend].target - temp_hotend[hotend].celsius);
+
+    if (!temp_hotend_residency_start_ms[hotend] && temp_diff < TEMP_WINDOW) {
+      // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
+      temp_hotend_residency_start_ms[hotend] = millis();
+    } else if (temp_diff > TEMP_HYSTERESIS) {
+      // Restart the timer whenever the temperature falls outside the hysteresis.
+      temp_hotend_residency_start_ms[hotend] = 0;
+    }
+  }
+#endif
+
 /**
  * Manage heating activities for extruder hot-ends and a heated bed
  *  - Acquire updated temperature readings
@@ -1500,6 +1518,10 @@ void Temperature::manage_heater() {
 
       #if HEATER_IDLE_HANDLER
         hotend_idle[e].update(ms);
+      #endif
+      
+      #if TEMP_RESIDENCY_TIME > 0
+        update_temp_residency_hotend(e);
       #endif
 
       #if ENABLED(THERMAL_PROTECTION_HOTENDS)
@@ -2182,14 +2204,14 @@ void Temperature::updateTemperaturesFromRawValues() {
     temp_board.celsius = analog_to_celsius_board(temp_board.raw);
   #endif
 
+  // Reset the watchdog on good temperature measurement
+  watchdog_refresh();
+
   #if ENABLED(PRUSA_TOOLCHANGER)
   if(temp_bed.celsius == 0) {
     return; // Avoid marking reading as good when the bed temperature was not read
   }
   #endif
-
-  // Reset the watchdog on good temperature measurement
-  watchdog_refresh();
 
   temperatures_ready_state = true;
   temp_meas_ready = false;
@@ -3781,6 +3803,23 @@ void Temperature::isr() {
         SERIAL_ECHO(getHeaterPower((heater_ind_t)e));
       }
     #endif
+
+    // Detailed modular bed report
+    #if ENABLED(MODULAR_HEATBED)
+      for(int y = 0; y < Y_HBL_COUNT; ++y) {
+        for(int x = 0; x < X_HBL_COUNT; ++x) {
+          SERIAL_ECHO(" B_");
+          SERIAL_ECHO(x);
+          SERIAL_CHAR('_');
+          SERIAL_ECHO(y);
+          SERIAL_CHAR(':');
+          SERIAL_ECHO(advanced_modular_bed->get_temp(x, y));
+          SERIAL_CHAR('/');
+          SERIAL_ECHO(advanced_modular_bed->get_target(x, y));
+          SERIAL_FLUSH();
+        }
+      }
+    #endif
   }
 
   #if ENABLED(AUTO_REPORT_TEMPERATURES)
@@ -3828,9 +3867,8 @@ void Temperature::isr() {
       #endif
     ) {
       #if TEMP_RESIDENCY_TIME > 0
-        millis_t residency_start_ms = 0;
         // Loop until the temperature has stabilized
-        #define TEMP_CONDITIONS (!residency_start_ms || PENDING(now, residency_start_ms + (TEMP_RESIDENCY_TIME) * 1000UL))
+        #define TEMP_CONDITIONS (!temp_hotend_residency_start_ms[target_extruder] || PENDING(now, temp_hotend_residency_start_ms[target_extruder] + (TEMP_RESIDENCY_TIME) * 1000UL))
       #else
         // Loop until the temperature is very close target
         #define TEMP_CONDITIONS (wants_to_cool ? isCoolingHotend(target_extruder) : isHeatingHotend(target_extruder))
@@ -3846,7 +3884,7 @@ void Temperature::isr() {
       #endif
 
       float target_temp = -1.0, old_temp = 9999.0;
-      bool wants_to_cool = false, first_loop = true;
+      bool wants_to_cool = false;
       wait_for_heatup = true;
       millis_t now, next_temp_ms = 0, next_cool_check_ms = 0;
       uint8_t fan_speed_at_start = fan_speed[target_extruder];
@@ -3878,9 +3916,13 @@ void Temperature::isr() {
           print_heater_states(target_extruder);
           #if TEMP_RESIDENCY_TIME > 0
             SERIAL_ECHOPGM(" W:");
-            if (residency_start_ms)
-              SERIAL_ECHO(long((((TEMP_RESIDENCY_TIME) * 1000UL) - (now - residency_start_ms)) / 1000UL));
-            else
+            if (temp_hotend_residency_start_ms[target_extruder]) {
+                if (TEMP_CONDITIONS){
+                  SERIAL_ECHO(long((((TEMP_RESIDENCY_TIME) * 1000UL) - (now - temp_hotend_residency_start_ms[target_extruder])) / 1000UL));
+                } else {
+                  SERIAL_CHAR('0');
+                }
+            } else
               SERIAL_CHAR('?');
           #endif
           SERIAL_EOL();
@@ -3894,26 +3936,6 @@ void Temperature::isr() {
         #if ENABLED(PRINTER_EVENT_LEDS)
           // Gradually change LED strip from violet to red as nozzle heats up
           if (!wants_to_cool) printerEventLEDs.onHotendHeating(start_temp, temp, target_temp);
-        #endif
-
-        #if TEMP_RESIDENCY_TIME > 0
-
-          const float temp_diff = ABS(target_temp - temp);
-
-          if (!residency_start_ms) {
-            // Start the TEMP_RESIDENCY_TIME timer when we reach target temp for the first time.
-            if (temp_diff < TEMP_WINDOW) {
-              residency_start_ms = now;
-              if (first_loop) residency_start_ms -= (TEMP_RESIDENCY_TIME) * 1000UL;
-            }
-          }
-          else if (temp_diff > TEMP_HYSTERESIS) {
-            // Restart the timer whenever the temperature falls outside the hysteresis.
-            residency_start_ms = now;
-          }
-
-        #else
-          UNUSED(first_loop);
         #endif
 
         // Prevent a wait-forever situation if R is misused i.e. M109 R0
@@ -3933,8 +3955,6 @@ void Temperature::isr() {
             ui.quick_feedback();
           }
         #endif
-
-        first_loop = false;
 
       } while (wait_for_heatup && TEMP_CONDITIONS);
 

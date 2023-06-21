@@ -20,7 +20,7 @@ ScopeGuard with_log_platform_timestamp_get(std::optional<std::function<log_times
     });
 }
 
-extern "C" int log_platform_task_id_get() {
+int log_platform_task_id_get() {
     if (_log_platform_task_id_get.has_value()) {
         return _log_platform_task_id_get.value()();
     } else {
@@ -28,11 +28,11 @@ extern "C" int log_platform_task_id_get() {
     }
 }
 
-extern "C" log_timestamp_t log_platform_timestamp_get() {
+log_timestamp_t log_platform_timestamp_get() {
     if (_log_platform_timestamp_get.has_value()) {
         return _log_platform_timestamp_get.value()();
     } else {
-        return 0;
+        return { 0, 0 };
     }
 }
 

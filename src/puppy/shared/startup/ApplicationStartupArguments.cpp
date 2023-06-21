@@ -15,7 +15,7 @@ uint8_t get_assigned_modbus_address() {
 
 #if BOOTLOADER()
     if ((application_startup_arguments.modbus_address < 0x0A) || (application_startup_arguments.modbus_address >= 0x1A)) {
-        return 0x00; //Not a valid bootloader address
+        return 0x00; // Not a valid bootloader address
     }
     // Bootloader gets addresses 0x0A+, modbus uses addresses 0x1A+, add 0x10 to convert from boot address to modbus address
     return (application_startup_arguments.modbus_address + 0x10);

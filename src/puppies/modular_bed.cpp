@@ -47,7 +47,7 @@ CommunicationStatus ModularBed::initial_scan() {
         log_info(ModularBed, "HwBomId: %d", general_static.value.hw_bom_id);
         log_info(ModularBed, "HwOtpTimestsamp: %d", general_static.value.hw_otp_timestamp);
 
-        serial_nr_t sn = {}; //Last byte has to be '\0'
+        serial_nr_t sn = {}; // Last byte has to be '\0'
         static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
             - ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_first) + 1;
         // Check size of text -1 as the terminating \0 is not sent
@@ -68,14 +68,17 @@ CommunicationStatus ModularBed::initial_scan() {
     }
 }
 
-CommunicationStatus ModularBed::refresh() {
+CommunicationStatus ModularBed::refresh(uint32_t cycle_ticks_ms, bool &worked) {
     static uint32_t refresh_nr = 0;
 
     // read something every 200 ms
     static uint32_t last_update = 0;
-    if (last_update + BEDLET_PERIOD_MS > ticks_ms())
+    if (last_update + BEDLET_PERIOD_MS > cycle_ticks_ms) {
+        worked = false;
         return CommunicationStatus::OK;
-    last_update = ticks_ms();
+    }
+    last_update = cycle_ticks_ms;
+    worked = true;
 
     bool communication_error = false;
     switch (refresh_nr) {
@@ -138,8 +141,16 @@ CommunicationStatus ModularBed::refresh() {
     }
     case 6: {
         if (modbusIsOk(bus.read(unit, currents))) {
-            metric_record_custom(&metric_currents, ",n=0 v=%.3f", static_cast<double>(currents.value[0]) / MODBUS_CURRENT_REGISTERS_SCALE);
-            metric_record_custom(&metric_currents, ",n=1 v=%.3f", static_cast<double>(currents.value[1]) / MODBUS_CURRENT_REGISTERS_SCALE);
+            metric_record_custom(
+                &metric_currents,
+                ",n=0 v=%.3f,e=%.3f",
+                static_cast<double>(currents.value.A_measured) / MODBUS_CURRENT_REGISTERS_SCALE,
+                static_cast<double>(currents.value.A_expected) / MODBUS_CURRENT_REGISTERS_SCALE);
+            metric_record_custom(
+                &metric_currents,
+                ",n=1 v=%.3f,e=%.3f",
+                static_cast<double>(currents.value.B_measured) / MODBUS_CURRENT_REGISTERS_SCALE,
+                static_cast<double>(currents.value.B_expected) / MODBUS_CURRENT_REGISTERS_SCALE);
         } else {
             log_error(ModularBed, "Failed to read current registers");
             communication_error = true;
@@ -293,16 +304,6 @@ float ModularBed::get_temp(const uint8_t column, const uint8_t row) {
     return get_temp(idx(column, row));
 }
 
-float ModularBed::get_temp() {
-    uint16_t sum = std::accumulate(
-        bedlet_data.value.measured_temperature,
-        bedlet_data.value.measured_temperature + BEDLET_COUNT,
-        0);
-    float ret = (static_cast<float>(sum) / BEDLET_COUNT) / MODBUS_TEMPERATURE_REGISTERS_SCALE;
-    log_debug(ModularBed, "Simple temp: %f", static_cast<double>(ret));
-    return ret;
-}
-
 void ModularBed::set_target(const uint8_t column, const uint8_t row, const float temp) {
     set_target(idx(column, row), temp);
 }
@@ -311,21 +312,12 @@ void ModularBed::set_target(const uint8_t idx, const float temp) {
     bedlet_target_temp.value[idx] = temp * MODBUS_TEMPERATURE_REGISTERS_SCALE;
 }
 
-void ModularBed::set_target(const float temp) {
-    std::fill(
-        bedlet_target_temp.value,
-        bedlet_target_temp.value + BEDLET_COUNT,
-        static_cast<uint16_t>(temp * MODBUS_TEMPERATURE_REGISTERS_SCALE));
+float ModularBed::get_target(const uint8_t idx) {
+    return static_cast<float>(bedlet_target_temp.value[idx]) / MODBUS_TEMPERATURE_REGISTERS_SCALE;
 }
 
-int ModularBed::get_pwm() {
-    uint16_t sum = std::accumulate(
-        bedlet_data.value.pwm_state,
-        bedlet_data.value.pwm_state + BEDLET_COUNT,
-        0);
-    int ret = 256 * sum / BEDLET_COUNT / 100;
-    log_debug(ModularBed, "Simple PWM: %d", ret);
-    return ret;
+float ModularBed::get_target(const uint8_t column, const uint8_t row) {
+    return get_target(idx(column, row));
 }
 
 uint16_t ModularBed::idx(const uint8_t column, const uint8_t row) {
@@ -381,7 +373,9 @@ ModularBed::cost_and_enable_mask_t ModularBed::touch_side(uint16_t enabled_mask,
 void ModularBed::update_bedlet_temps(uint16_t enabled_mask, float target_temp) {
     // first calculate what bedlets to enable so that we heat towards two sides
     // this avoid bed warping, because when heated towards two sides, it can expand without making mountain in the middle
-    enabled_mask = expand_to_sides(enabled_mask, target_temp);
+    if (expand_to_sides_enabled) {
+        enabled_mask = expand_to_sides(enabled_mask, target_temp);
+    }
 
     // now update gradient so that temperature is decreased gradually, and neighbouring bedlets help with heatup
     update_gradients(enabled_mask);
@@ -435,7 +429,7 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
 
                     const float dist = std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2)); // distance between bedlets
                     if (dist > bedlet_gradient_cutoff)
-                        continue; // if bedlet distance is over BEDLET_GRADIENT_CUTOFF, don't do anything, temperature is already zero
+                        continue;                                                              // if bedlet distance is over BEDLET_GRADIENT_CUTOFF, don't do anything, temperature is already zero
 
                     const int16_t temp2 = temp1 - temp1 * pow(1 / bedlet_gradient_cutoff * dist, bedlet_gradient_exponent);
                     bedlet_target_temp.value[idx2] = std::max(temp2, (int16_t)bedlet_target_temp.value[idx2]);
@@ -448,5 +442,4 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
 ModularBed modular_bed(puppyModbus, PuppyBootstrap::get_modbus_address_for_dock(Dock::MODULAR_BED));
 }
 
-SimpleModularHeatbed *const simple_modular_bed = &buddy::puppies::modular_bed;
 AdvancedModularBed *const advanced_modular_bed = &buddy::puppies::modular_bed;

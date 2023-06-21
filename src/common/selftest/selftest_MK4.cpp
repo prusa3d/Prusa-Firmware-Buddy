@@ -15,7 +15,6 @@
 #include "wizard_config.hpp"
 #include "../../Marlin/src/module/stepper.h"
 #include "../../Marlin/src/module/temperature.h"
-#include "eeprom.h"
 #include "selftest_fans_type.hpp"
 #include "selftest_axis_type.hpp"
 #include "selftest_heaters_type.hpp"
@@ -36,6 +35,7 @@
 #include "timing.h"
 #include "selftest_result_type.hpp"
 #include "selftest_types.hpp"
+#include <configuration_store.hpp>
 
 using namespace selftest;
 
@@ -49,7 +49,7 @@ static constexpr const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 
 static constexpr float XYfr_table[] = { HOMING_FEEDRATE_XY / 60 };
 static constexpr size_t xy_fr_table_size = sizeof(XYfr_table) / sizeof(XYfr_table[0]);
-static constexpr float Zfr_table_fw[] = { maxFeedrates[Z_AXIS] }; //up
+static constexpr float Zfr_table_fw[] = { maxFeedrates[Z_AXIS] }; // up
 static constexpr float Zfr_table_bw[] = { HOMING_FEEDRATE_Z / 60 };
 #ifdef Z_AXIS_DO_NOT_TEST_MOVE_DOWN
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]);
@@ -67,20 +67,20 @@ static constexpr SelftestFansConfig fans_configs[] = {
             .pwm_step = 204,
             .rpm_min_table = { 10, 5300 },
             .rpm_max_table = { 10000, 6500 },
-            .fanctl = fanCtlPrint[0]
+            .fanctl_fnc = Fans::print
         },
         .heatbreak_fan = {
             .pwm_start = 51,
             .pwm_step = 204,
             .rpm_min_table = { 10, 6800 },
             .rpm_max_table = { 10000, 8700 },
-            .fanctl = fanCtlHeatBreak[0]
+            .fanctl_fnc = Fans::heat_break
         }
     }
 };
 // clang-format on
 
-//reads data from eeprom, cannot be constexpr
+// reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = { .partname = "X-Axis", .length = X_MAX_POS, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = X_MAX_POS, .length_max = X_MAX_POS + X_END_GAP, .axis = X_AXIS, .steps = xy_fr_table_size, .movement_dir = 1 }; // MINI has movement_dir -1
 
 const AxisConfig_t selftest::Config_YAxis = { .partname = "Y-Axis", .length = Y_MAX_POS, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = Y_MAX_POS, .length_max = Y_MAX_POS + Y_END_GAP, .axis = Y_AXIS, .steps = xy_fr_table_size, .movement_dir = 1 };
@@ -96,8 +96,8 @@ static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
         .refKp = Temperature::temp_hotend[0].pid.Kp,
         .refKi = Temperature::temp_hotend[0].pid.Ki,
         .refKd = Temperature::temp_hotend[0].pid.Kd,
-        .heatbreak_fan = fanCtlHeatBreak[0],
-        .print_fan = fanCtlPrint[0],
+        .heatbreak_fan_fnc = Fans::heat_break,
+        .print_fan_fnc = Fans::print,
         .heat_time_ms = 42000,
         .start_temp = 80,
         .undercool_temp = 75,
@@ -124,8 +124,8 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .refKp = Temperature::temp_bed.pid.Kp,
     .refKi = Temperature::temp_bed.pid.Ki,
     .refKd = Temperature::temp_bed.pid.Kd,
-    .heatbreak_fan = fanCtlHeatBreak[0],
-    .print_fan = fanCtlPrint[0],
+    .heatbreak_fan_fnc = Fans::heat_break,
+    .print_fan_fnc = Fans::print,
     .heat_time_ms = 60000,
     .start_temp = 40,
     .undercool_temp = 39,
@@ -135,8 +135,8 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .heatbreak_min_temp = -1,
     .heatbreak_max_temp = -1,
     .heater_load_stable_ms = 200,
-    //TODO RESTORE current measurement does not work
-    .heater_full_load_min_W = 100, //150,
+    // TODO RESTORE current measurement does not work
+    .heater_full_load_min_W = 100, // 150,
     .heater_full_load_max_W = 220,
     .pwm_100percent_equivalent_value = 127,
     .min_pwm_to_measure = 26,
@@ -145,13 +145,13 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
 static constexpr LoadcellConfig_t Config_Loadcell[] = { {
     .partname = "Loadcell",
     .tool_nr = 0,
-    .heatbreak_fan = fanCtlHeatBreak[0],
-    .print_fan = fanCtlPrint[0],
+    .heatbreak_fan_fnc = Fans::heat_break,
+    .print_fan_fnc = Fans::print,
     .cool_temp = 50,
     .countdown_sec = 5,
-    .countdown_load_error_value = 40,
-    .tap_min_load_ok = 80,
-    .tap_max_load_ok = 500,
+    .countdown_load_error_value = 250,
+    .tap_min_load_ok = 500,
+    .tap_max_load_ok = 2000,
     .tap_timeout_ms = 2000,
     .z_extra_pos = 100,
     .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
@@ -184,6 +184,10 @@ bool CSelftest::IsInProgress() const {
     return ((m_State != stsIdle) && (m_State != stsFinished) && (m_State != stsAborted));
 }
 
+bool CSelftest::IsAborted() const {
+    return (m_State == stsAborted);
+}
+
 bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t tool_mask) {
     m_Mask = SelftestMask_t(test_mask);
     if (m_Mask & stmFans)
@@ -195,13 +199,13 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stmLoadcell)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_loadcell));
     if (m_Mask & stmZAxis)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup));       // if Z is calibrated, move it up
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); //any selftest state will trigger selftest additional init
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); //any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
 
-    //dont show message about footer and do not wait response
+    // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
 
@@ -268,9 +272,9 @@ void CSelftest::Loop() {
         calib_Z(true);
 
         // Store Z aligned
-        eeprom_get_selftest_results(&m_result);
+        m_result = config_store().selftest_result.get();
         m_result.zalign = TestResult_Passed;
-        eeprom_set_selftest_results(&m_result);
+        config_store().selftest_result.set(m_result);
         break;
     }
     case stsXAxis: {
@@ -305,7 +309,7 @@ void CSelftest::Loop() {
         selftest::phaseHeaters_bed_ena(pBed, Config_HeaterBed);
         break;
     case stsHeaters:
-        if (selftest::phaseHeaters(pNozzles, pBed))
+        if (selftest::phaseHeaters(pNozzles, &pBed))
             return;
         break;
     case stsWait_heaters:
@@ -384,19 +388,19 @@ void CSelftest::Loop() {
 }
 
 void CSelftest::phaseShowResult() {
-    eeprom_get_selftest_results(&m_result);
+    m_result = config_store().selftest_result.get();
     FSM_CHANGE_WITH_DATA__LOGGING(Selftest, PhasesSelftest::Result, FsmSelftestResult().Serialize());
 }
 
 void CSelftest::phaseDidSelftestPass() {
-    eeprom_get_selftest_results(&m_result);
+    m_result = config_store().selftest_result.get();
     SelftestResult_Log(m_result);
 
-    //dont run wizard again
+    // dont run wizard again
     if (SelftestResult_Passed(m_result)) {
-        eeprom_set_bool(EEVAR_RUN_SELFTEST, false); // clear selftest flag
-        eeprom_set_bool(EEVAR_RUN_XYZCALIB, false); // clear XYZ calib flag
-        eeprom_set_bool(EEVAR_RUN_FIRSTLAY, false); // clear first layer flag
+        config_store().run_selftest.set(false);    // clear selftest flag
+        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_first_layer.set(false); // clear first layer flag
     }
 }
 
@@ -405,9 +409,9 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        eeprom_set_bool(EEVAR_RUN_SELFTEST, false); // clear selftest flag
-        eeprom_set_bool(EEVAR_RUN_XYZCALIB, false); // clear XYZ calib flag
-        eeprom_set_bool(EEVAR_RUN_FIRSTLAY, false); // clear first layer flag
+        config_store().run_selftest.set(false);    // clear selftest flag
+        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_first_layer.set(false); // clear first layer flag
         Abort();
     }
     return response == Response::_none;
@@ -443,10 +447,11 @@ void CSelftest::phaseSelftestStart() {
         marlin_server::set_temp_to_display(0, 0);
     }
 
-    eeprom_get_selftest_results(&m_result); // read previous result
+    m_result = config_store().selftest_result.get(); // read previous result
     if (m_Mask & stmFans) {
         m_result.tools[0].printFan = TestResult_Unknown;
         m_result.tools[0].heatBreakFan = TestResult_Unknown;
+        m_result.tools[0].fansSwitched = TestResult_Unknown;
     }
     if (m_Mask & stmXAxis)
         m_result.xaxis = TestResult_Unknown;
@@ -460,7 +465,7 @@ void CSelftest::phaseSelftestStart() {
         m_result.tools[0].nozzle = TestResult_Unknown;
         m_result.bed = TestResult_Unknown;
     }
-    eeprom_set_selftest_results(&m_result); // reset status for all selftest parts in eeprom
+    config_store().selftest_result.set(m_result); // reset status for all selftest parts in eeprom
 }
 
 void CSelftest::restoreAfterSelftest() {
@@ -469,9 +474,9 @@ void CSelftest::restoreAfterSelftest() {
     thermalManager.setTargetHotend(0, 0);
     marlin_server::set_temp_to_display(0, 0);
 
-    //restore fan behavior
-    fanCtlPrint[0].ExitSelftestMode();
-    fanCtlHeatBreak[0].ExitSelftestMode();
+    // restore fan behavior
+    Fans::print(0).ExitSelftestMode();
+    Fans::heat_break(0).ExitSelftestMode();
 
     thermalManager.disable_all_heaters();
     disable_all_steppers();
@@ -487,7 +492,7 @@ void CSelftest::next() {
 
     // check, if state can run
     // this must be done after mask check
-    eeprom_get_selftest_results(&m_result);
+    m_result = config_store().selftest_result.get();
     switch (m_State) {
 // don't skip Z calibration and X and Y axis tests when loadcell fails
 // currently only disabled we might want it back
@@ -499,16 +504,16 @@ void CSelftest::next() {
             return; // current state can be run
         break;      // current state cannot be run
 #endif
-    case stsZAxis: // loadcell and both X and Y must be OK to test Z
+    case stsZAxis:   // loadcell and both X and Y must be OK to test Z
         if (m_result.tools[0].loadcell == TestResult_Passed && m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed)
             return;  // current state can be run
         break;       // current state cannot be run
     case stsMoveZup: // Z must be OK, if axis are not homed, it could be stacked at the top and generate noise, but the way states are generated from mask should prevent it
         if (m_result.zaxis == TestResult_Passed)
-            return; // current state can be run
-        break;      // current state cannot be run
+            return;  // current state can be run
+        break;       // current state cannot be run
     default:
-        return; // current state can be run
+        return;      // current state can be run
     }
 
     // current state cannot be run
@@ -529,7 +534,7 @@ const char *CSelftest::get_log_suffix() {
     return suffix;
 }
 
-//declared in parent source file
+// declared in parent source file
 ISelftest &SelftestInstance() {
     static CSelftest ret = CSelftest();
     return ret;

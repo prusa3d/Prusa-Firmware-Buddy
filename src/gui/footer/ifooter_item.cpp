@@ -40,9 +40,9 @@ void IFooterItem::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         }
     } break;
     case GUI_event_t::REINIT_FOOTER:
-        //print format could change - updateState will recreate stringview
-        //do not update value (it is not its time)
-        //just update state and notify parent if size changed
+        // print format could change - updateState will recreate stringview
+        // do not update value (it is not its time)
+        // just update state and notify parent if size changed
         if (updateState() == resized_t::yes) {
             if (GetParent())
                 GetParent()->WindowEvent(this, GUI_event_t::CHILD_CHANGED, nullptr);

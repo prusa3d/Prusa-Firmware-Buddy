@@ -49,6 +49,7 @@ public:
     LoopResult stateCycleMark() { return LoopResult::MarkLoop; }
     LoopResult stateMove();
     LoopResult stateMoveWaitFinish();
+    LoopResult stateParkAxis();
 };
 
 extern const AxisConfig_t Config_XAxis;

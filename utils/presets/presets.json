@@ -14,8 +14,8 @@
             }
         },
         {
-            "name": "mk4-xBuddy027c-400step-planetary",
-            "description": "Original Prusa MK4 with xBuddy 0.2.7c, 400-step motors and planetary gearbox",
+            "name": "mk4",
+            "description": "Original Prusa MK4 with xBuddy 0.2.7c or newer fw compatible, 400-step motors and planetary gearbox",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MK4",
@@ -25,14 +25,24 @@
             }
         },
         {
-            "name": "mk3.9-xBuddy027c-200step-planetary",
-            "description": "Original Prusa MK4 with xBuddy 0.2.7c, 200-step motors and planetary gearbox",
+            "name": "mk3.9",
+            "description": "Original Prusa MK4 with xBuddy 0.2.7c or newer fw compatible, 200-step motors and planetary gearbox",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "MK4",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.2.7",
                 "PRESET_COMPILE_OPTIONS": "-DHAS_PLANETARY_GEARBOX"
+            }
+        },
+        {
+            "name": "mk3.5",
+            "description": "Original Prusa MK3.5 with xBuddy 0.3.7c or newer fw compatible, 200-step motors and MK3 extruder",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "MK3.5",
+                "BOARD": "<default>",
+                "BOARD_VERSION": "0.2.7"
             }
         },
         {
@@ -51,7 +61,7 @@
             "description": "Original Prusa iX with xBuddy 0.2.7c and 200-step motors",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "IXL",
+                "PRINTER": "iX",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.2.7"
             }
@@ -63,7 +73,7 @@
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL",
                 "BOARD": "<default>",
-                "BOARD_VERSION": "0.5.0",
+                "BOARD_VERSION": "0.9.0",
                 "DWARF_BINARY_DIR": {
                     "type": "FILEPATH",
                     "value": "build-vscode-dwarf"

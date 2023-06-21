@@ -482,7 +482,7 @@
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 10
 #define Y_HOME_BUMP_MM 10
-#define Z_HOME_BUMP_MM 2
+#define Z_HOME_BUMP_MM 3
 #define HOMING_BUMP_DIVISOR \
     { 1, 1, 1 } // Re-Bump Speed Divisor (Divides the Homing Feedrate)
 #define HOMING_BUMP_DIVISOR_MAX \
@@ -1826,7 +1826,7 @@
         #endif
 
         #if Z_DRIVER_TYPE == TMC2130
-            #define Z_STALL_SENSITIVITY 4
+            #define Z_STALL_SENSITIVITY 3
         #elif Z_DRIVER_TYPE == TMC2209
             #define Z_STALL_SENSITIVITY 100
         #endif

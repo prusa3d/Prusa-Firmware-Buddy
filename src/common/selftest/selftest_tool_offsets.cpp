@@ -9,10 +9,9 @@
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);
 
-inline constexpr int16_t TOOL_OFFSET_CLEANING_TEMPERATURE = 200; //< Temperature to heat up towards
-inline constexpr int16_t TOOL_COLD_TEMPERATURE = 40;             //< Temperature when tool is considered cold (for cooldown purposes)
-
-static void set_nozzle_temps(int16_t temp) {
+namespace {
+/// @brief Set temperature to all enabled tools
+void set_nozzle_temps(int16_t temp) {
     for (uint8_t tool_nr = 0; tool_nr < HOTENDS; tool_nr++) {
         if (is_tool_selftest_enabled(tool_nr, 0xFF)) { // set temperature on all tools, its not possible to calibrate just one tool
             thermalManager.setTargetHotend(temp, tool_nr);
@@ -21,14 +20,27 @@ static void set_nozzle_temps(int16_t temp) {
     }
 }
 
-/// @brief Helper class that turns fans to 100% on when cooldown is needed, and alows to reset fans back to normal control
+/// @brief Check temperature of all enabled tools is at target
+bool all_nozzles_at_target() {
+    for (uint8_t tool_nr = 0; tool_nr < HOTENDS; tool_nr++) {
+        if (is_tool_selftest_enabled(tool_nr, 0xFF)) { // check temperature on all tools, its not possible to calibrate just one tool
+            if (thermalManager.still_heating(tool_nr)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+};
+
+/// @brief Helper class that turns fans to 100% on when cooldown is needed, and allows to reset fans back to normal control
 class FanCoolingManager {
 public:
     /// Request cooldown on all tools
     static void cooldown() {
         for (uint8_t tool_nr = 0; tool_nr < HOTENDS; tool_nr++) {
-            if (is_tool_selftest_enabled(tool_nr, 0xFF) && thermalManager.degHotend(tool_nr) > TOOL_COLD_TEMPERATURE && // tool is hot
-                !tool_cooling_down[tool_nr]) {                                                                          // cooling is not already turned on
+            if (is_tool_selftest_enabled(tool_nr, 0xFF) && thermalManager.degHotend(tool_nr) > SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE && // tool is hot
+                !tool_cooling_down[tool_nr]) {                                                                                                        // cooling is not already turned on
 
                 start_cooling(tool_nr);
             }
@@ -41,7 +53,7 @@ public:
         // periodically check if tool is cooled down, stop fans
         for (uint8_t tool_nr = 0; tool_nr < HOTENDS; tool_nr++) {
             if (is_tool_selftest_enabled(tool_nr, 0xFF) && // manage temperature on all tools, its not possible to calibrate just one tool
-                thermalManager.degHotend(tool_nr) <= TOOL_COLD_TEMPERATURE && tool_cooling_down[tool_nr]) {
+                thermalManager.degHotend(tool_nr) <= SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE && tool_cooling_down[tool_nr]) {
                 stop_cooling(tool_nr);
             }
         }
@@ -63,16 +75,16 @@ private:
 
     static void start_cooling(uint8_t tool_nr) {
         tool_cooling_down[tool_nr] = true;
-        fanCtlPrint[tool_nr].EnterSelftestMode();
-        fanCtlHeatBreak[tool_nr].EnterSelftestMode();
-        fanCtlPrint[tool_nr].SelftestSetPWM(255);
-        fanCtlHeatBreak[tool_nr].SelftestSetPWM(255);
+        Fans::print(tool_nr).EnterSelftestMode();
+        Fans::heat_break(tool_nr).EnterSelftestMode();
+        Fans::print(tool_nr).SelftestSetPWM(255);
+        Fans::heat_break(tool_nr).SelftestSetPWM(255);
     }
 
     static void stop_cooling(uint8_t tool_nr) {
         tool_cooling_down[tool_nr] = false;
-        fanCtlPrint[tool_nr].ExitSelftestMode();
-        fanCtlHeatBreak[tool_nr].ExitSelftestMode();
+        Fans::print(tool_nr).ExitSelftestMode();
+        Fans::heat_break(tool_nr).ExitSelftestMode();
     }
 };
 
@@ -95,6 +107,7 @@ LoopResult CSelftestPart_ToolOffsets::state_ask_user_confirm_start() {
 LoopResult CSelftestPart_ToolOffsets::state_clean_nozzle_start() {
     IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold);
     set_nozzle_temps(0);
+    disable_all_steppers(); // Let the user operate tools, pull out the filament if required
     return LoopResult::RunNext;
 }
 
@@ -102,7 +115,8 @@ LoopResult CSelftestPart_ToolOffsets::state_clean_nozzle() {
     const auto button_pressed = state_machine.GetButtonPressed();
 
     if (button_pressed == Response::Continue) {
-        FanCoolingManager::reset();
+        set_nozzle_temps(SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE);
+        FanCoolingManager::cooldown();
         return LoopResult::RunNext;
     }
 
@@ -110,14 +124,14 @@ LoopResult CSelftestPart_ToolOffsets::state_clean_nozzle() {
         // nozzle is hot or heating up
         if (button_pressed == Response::Cooldown) {
             IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold);
-            set_nozzle_temps(0);
+            set_nozzle_temps(SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE);
             FanCoolingManager::cooldown();
         }
     } else if (IPartHandler::GetFsmPhase() == PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold) {
         // nozzle is cold or cooling down
         if (button_pressed == Response::Heatup) {
             IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_hot);
-            set_nozzle_temps(TOOL_OFFSET_CLEANING_TEMPERATURE);
+            set_nozzle_temps(SelftestToolOffsets_t::TOOL_OFFSET_CLEANING_TEMPERATURE);
             FanCoolingManager::reset();
         }
     }
@@ -169,6 +183,16 @@ LoopResult CSelftestPart_ToolOffsets::state_wait_moves_done() {
 LoopResult CSelftestPart_ToolOffsets::state_ask_user_install_pin() {
     IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_user_install_pin);
     return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_ToolOffsets::state_wait_stable_temp() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_stable_temp);
+    if (all_nozzles_at_target()) {
+        FanCoolingManager::reset();
+        return LoopResult::RunNext;
+    }
+    FanCoolingManager::manage();
+    return LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_ToolOffsets::state_calibrate() {

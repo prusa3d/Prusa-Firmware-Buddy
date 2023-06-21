@@ -26,6 +26,7 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( N_("COOLDOWN"),         nullptr ),                  // Cooldown
     std::make_pair( N_("DISABLE"),          nullptr ),                  // Disable
     std::make_pair( N_("DISABLE SENSOR"),   nullptr ),                  // Filament_removed
+    std::make_pair( N_("FINISH"),           nullptr ),                  // Finish
     std::make_pair( "FLEX",                 &png::spool_58x58 ),        // FLEX filament, do not translate
     std::make_pair( N_("DISABLE FS"),       nullptr ),                  // FS_disable
     std::make_pair( N_("HIGH-FLOW"),        nullptr ),                  // HighFlow
@@ -48,6 +49,7 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( N_("PRUSA STOCK"),      nullptr ),                  // PrusaStock
     std::make_pair( N_("PURGE MORE"),       &png::spool_58x58 ),        // Purge_more
     std::make_pair( "PVB",                  &png::spool_58x58 ),        // PVB filament, do not translate
+    std::make_pair( N_("QUIT"),             nullptr ),                  // QUIT
     std::make_pair( N_("REHEAT"),           &png::preheat_58x58 ),      // Reheat
     std::make_pair( N_("RESTART"),          &png::restart_58x58 ),      // Restart
     std::make_pair( N_("RESUME"),           &png::resume_48x48 ),       // Resume

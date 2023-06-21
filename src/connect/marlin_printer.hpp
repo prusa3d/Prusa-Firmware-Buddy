@@ -9,7 +9,7 @@ namespace connect_client {
 
 class MarlinPrinter final : public Printer {
 private:
-    SharedBuffer &buffer;
+    std::optional<BorrowPaths> borrow;
     // The SET_PRINTER_READY & friends support. Eventually, this shall sync
     // with GUI and other places somehow. For now, only Connect-internal flag.
     bool ready = false;
@@ -17,17 +17,15 @@ private:
 protected:
     virtual Config load_config() override;
 
-    char *job_path_ptr;
-    char *job_lfn_ptr;
-
 public:
-    MarlinPrinter(SharedBuffer &buffer);
+    MarlinPrinter();
     MarlinPrinter(const MarlinPrinter &other) = delete;
     MarlinPrinter(MarlinPrinter &&other) = delete;
     MarlinPrinter &operator=(const MarlinPrinter &other) = delete;
     MarlinPrinter &operator=(MarlinPrinter &&other) = delete;
 
-    virtual void renew() override;
+    virtual void renew(std::optional<SharedBuffer::Borrow> paths) override;
+    virtual void drop_paths() override;
     virtual Params params() const override;
     virtual std::optional<NetInfo> net_info(Iface iface) const override;
     virtual NetCreds net_creds() const override;

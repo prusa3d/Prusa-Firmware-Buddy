@@ -20,4 +20,4 @@ void SetRegValue(SystemHoldingRegister reg, uint16_t value);
 uint16_t GetRegValue(SystemInputRegister reg);
 uint16_t GetRegValue(SystemHoldingRegister reg);
 
-} //namespace
+} // namespace

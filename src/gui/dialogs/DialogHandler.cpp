@@ -10,7 +10,7 @@
 #include "log.h"
 LOG_COMPONENT_REF(GUI);
 
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
 #endif
 
@@ -33,7 +33,7 @@ using SerialPrint = ScreenDialogDoesNotExist;
 static void OpenPrintScreen(ClientFSM dialog) {
     switch (dialog) {
     case ClientFSM::Serial_printing:
-        Screens::Access()->CloseSerial();
+        Screens::Access()->ClosePrinting();
         Screens::Access()->Open(ScreenFactory::Screen<SerialPrint>);
         return;
     case ClientFSM::Printing:
@@ -46,23 +46,23 @@ static void OpenPrintScreen(ClientFSM dialog) {
 }
 
 //*****************************************************************************
-//method definitions
+// method definitions
 void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
     ++opened_times[size_t(fsm_type)]; // preopen can mess this up
     log_info(GUI, "Dialog opened_times[%u] = %u", size_t(fsm_type), opened_times[size_t(fsm_type)]);
 
     if (ptr)
-        return; //the dialog is already opened, not an error, we can preopen dialogs or even screens (wizard)
+        return; // the dialog is already opened, not an error, we can preopen dialogs or even screens (wizard)
 
-    //todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
-    // only ptr = dialog_creators[dialog](data); should remain
+    // todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
+    //  only ptr = dialog_creators[dialog](data); should remain
     switch (fsm_type) {
     case ClientFSM::Serial_printing:
     case ClientFSM::Printing:
         if (IScreenPrinting::GetInstance() == nullptr) {
             OpenPrintScreen(fsm_type);
         } else {
-            //opened, notify it
+            // opened, notify it
             IScreenPrinting::NotifyMarlinStart();
         }
         break;
@@ -77,10 +77,10 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
         }
         break;
     case ClientFSM::Selftest:
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         if (!ScreenSelftest::GetInstance()) {
-            //data contain screen caption type
-            //ScreenSelftest::SetHeaderMode(...);
+            // data contain screen caption type
+            // ScreenSelftest::SetHeaderMode(...);
             Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
         }
 #endif // HAS_SELFTEST
@@ -98,7 +98,7 @@ void DialogHandler::close(ClientFSM fsm_type) {
         waiting_closed = ClientFSM::_none;
     } else {
 
-        //following are screens (not dialogs)
+        // following are screens (not dialogs)
         switch (fsm_type) {
         case ClientFSM::Serial_printing:
         case ClientFSM::Printing:
@@ -114,7 +114,7 @@ void DialogHandler::close(ClientFSM fsm_type) {
         }
     }
 
-    ptr = nullptr; //destroy current dialog
+    ptr = nullptr; // destroy current dialog
 }
 
 void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
@@ -131,7 +131,7 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
         }
         break;
     case ClientFSM::Selftest:
-#if HAS_SELFTEST
+#if HAS_SELFTEST()
         if (ScreenSelftest::GetInstance()) {
             ScreenSelftest::GetInstance()->Change(data);
         }
@@ -148,7 +148,7 @@ bool DialogHandler::IsOpen() const {
 }
 
 //*****************************************************************************
-//Meyers singleton
+// Meyers singleton
 DialogHandler &DialogHandler::Access() {
     static DialogHandler ret(DialogFactory::GetAll());
     return ret;

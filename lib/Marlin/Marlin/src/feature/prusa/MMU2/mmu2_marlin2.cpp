@@ -2,7 +2,7 @@
 /// Marlin2 interface implementation for the MMU2
 #include "mmu2_marlin.h"
 
-#include "marlin_move.hpp"
+#include "mapi/motion.hpp"
 
 #include "../../inc/MarlinConfig.h"
 #include "../../gcode/gcode.h"
@@ -12,21 +12,30 @@
 #include "../../module/planner.h"
 #include "../../module/stepper/indirection.h"
 #include "../../Marlin.h"
+#include "marlin_server.hpp"
 
 namespace MMU2 {
 
 void extruder_move(float distance, float feed_rate) {
-    marlin::extruder_move(distance, feed_rate);
+    mapi::extruder_move(distance, feed_rate);
 }
 
 void extruder_schedule_turning(float feed_rate) {
-    marlin::extruder_schedule_turning(feed_rate);
+    mapi::extruder_schedule_turning(feed_rate);
 }
 
 float raise_z(float delta) {
     // @@TODO
     return 0.0F;
 }
+
+// void planner_abort_queued_moves() {
+//  Impossible to do easily... needs refactoring on a higher level
+//  Currently, in Marlin2, draining the stepper queues requires calling
+//  the Marlin idle loop and waiting for it.
+//  The MMU state machine would have to undergo significant changes and that's not worth it at the moment.
+//     planner.quick_stop();
+// }
 
 void planner_synchronize() {
     planner.synchronize();
@@ -65,8 +74,8 @@ void marlin_manage_inactivity(bool b) {
     manage_inactivity(b);
 }
 
-void marlin_idle(bool b) {
-    idle(b);
+void marlin_idle() {
+    idle(true);
 }
 
 int16_t thermal_degTargetHotend() {
@@ -87,6 +96,8 @@ void thermal_setTargetHotend(int16_t t) {
 
 void safe_delay_keep_alive(uint16_t t) {
     safe_delay(t);
+    manage_inactivity(true);
+    ui.update();
 }
 
 void gcode_reset_stepper_timeout() {
@@ -102,12 +113,7 @@ void Disable_E0() {
 }
 
 bool all_axes_homed() {
-    return false; // @@TODO
-}
-
-bool cutter_enabled() {
-    // read eeprom - cutter enabled
-    return false; //@@TODO
+    return marlin_server::all_axes_homed();
 }
 
 void FullScreenMsg(const char *pgmS, uint8_t slot) {

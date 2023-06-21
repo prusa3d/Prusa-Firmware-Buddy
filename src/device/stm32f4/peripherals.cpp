@@ -1,12 +1,14 @@
 #include <device/board.h>
 #include <device/peripherals.h>
 #include <device/mcu.h>
+#include <atomic>
 #include "Pin.hpp"
 #include "hwio_pindef.h"
 #include "main.h"
 #include "adc.hpp"
 #include "timer_defaults.h"
 #include "PCA9557.hpp"
+#include "log.h"
 
 //
 // I2C
@@ -176,6 +178,8 @@ void hw_gpio_init() {
 #if defined(EXTENDER_PIN_TABLE)
     EXTENDER_PIN_TABLE(CONFIGURE_PINS);
 #endif
+
+    buddy::hw::hwio_configure_board_revision_changed_pins();
 }
 
 void hw_dma_init() {
@@ -183,7 +187,7 @@ void hw_dma_init() {
     __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_DMA2_CLK_ENABLE();
 
-#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+#if (!PRINTER_IS_PRUSA_MINI)
     // DMA1_Stream3_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
@@ -291,7 +295,12 @@ void hw_adc1_init() {
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::heatbreak_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::hotend_U);
-#elif (BOARD_IS_XBUDDY && BOARD_VER_LOWER_THAN(0, 3, 4))
+#elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
+    config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
+    config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
+    config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
+    config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::hotend_U);
+#elif (BOARD_IS_XBUDDY)
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
@@ -329,7 +338,7 @@ void hw_adc3_init() {
         #error Unknown board
     #endif
 
-    HAL_NVIC_DisableIRQ(DMA2_Stream1_IRQn); // Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
+    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn); // Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
 }
 #endif
 
@@ -405,7 +414,153 @@ void hw_uart8_init() {
 }
 #endif
 
-void hw_i2c1_init() {
+LOG_COMPONENT_DEF(I2C, LOG_SEVERITY_INFO);
+
+static void wait_for_pin(int &workaround_step, GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState pin_state, uint32_t max_wait_us = 128) {
+    volatile uint32_t start_us = ticks_us();
+    while (HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) != pin_state) {
+        volatile uint32_t now = ticks_us();
+        if (((now - start_us) > max_wait_us) && HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) != pin_state) {
+            log_error(I2C, "not operational, busy reset step %d", workaround_step++);
+            return;
+        }
+    }
+}
+#if HAS_I2CN(1)
+static void hw_i2c1_base_init();
+#endif
+#if HAS_I2CN(2)
+static void hw_i2c2_base_init();
+#endif
+#if HAS_I2CN(3)
+static void hw_i2c3_base_init();
+#endif
+
+/**
+ * @brief I2C is busy and does not communicate
+ * I have found similar issue in STM32F1 error datasheet (but not in STM32F4)
+ * Description
+ * The I2C analog filters embedded in the I2C I/Os may be tied to low level, whereas SCL and SDA lines are kept at
+ * high level. This can occur after an MCU power-on reset, or during ESD stress. Consequently, the I2C BUSY flag
+ * is set, and the I2C cannot enter master mode (START condition cannot be sent). The I2C BUSY flag cannot be
+ * cleared by the SWRST control bit, nor by a peripheral or a system reset. BUSY bit is cleared under reset, but it
+ * is set high again as soon as the reset is released, because the analog filter output is still at low level. This issue
+ * occurs randomly.
+ *
+ * Note: Under the same conditions, the I2C analog filters may also provide a high level, whereas SCL and SDA lines are
+ * kept to low level. This should not create issues as the filters output is correct after next SCL and SDA transition.
+ *
+ *
+ * Workaround
+ * The SCL and SDA analog filter output is updated after a transition occurs on the SCL and SDA line respectively.
+ * The SCL and SDA transition can be forced by software configuring the I2C I/Os in output mode. Then, once the
+ * analog filters are unlocked and output the SCL and SDA lines level, the BUSY flag can be reset with a software
+ * reset, and the I2C can enter master mode. Therefore, the following sequence must be applied:
+ */
+static void i2c_busy_flag_error_workaround(I2C_HandleTypeDef *hi2c, GPIO_TypeDef *SDA_PORT, uint32_t SDA_PIN, GPIO_TypeDef *SCL_PORT, uint32_t SCL_PIN, void (*init_fn)()) {
+    int workaround_step = 0;
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    // 1. Disable the I2C peripheral by clearing the PE bit in I2Cx_CR1 register.
+    __HAL_I2C_DISABLE(hi2c);
+
+    // 2. Configure the SCL and SDA I/Os as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
+    GPIO_InitStruct.Pin = SDA_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
+    HAL_GPIO_Init(SDA_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = SCL_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
+    HAL_GPIO_Init(SCL_PORT, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(SDA_PORT, SDA_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(SCL_PORT, SCL_PIN, GPIO_PIN_SET);
+
+    // 3. Check SCL and SDA High level in GPIOx_IDR.
+    wait_for_pin(workaround_step, SDA_PORT, SDA_PIN, GPIO_PIN_SET);
+    wait_for_pin(workaround_step, SCL_PORT, SCL_PIN, GPIO_PIN_SET);
+
+    // 4. Configure the SDA I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
+    GPIO_InitStruct.Pin = SDA_PIN;
+    HAL_GPIO_Init(SDA_PORT, &GPIO_InitStruct);
+
+    HAL_GPIO_TogglePin(SDA_PORT, SDA_PIN);
+
+    // 5. Check SDA Low level in GPIOx_IDR.
+    wait_for_pin(workaround_step, SDA_PORT, SDA_PIN, GPIO_PIN_RESET);
+
+    // 6. Configure the SCL I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
+    GPIO_InitStruct.Pin = SCL_PIN;
+    HAL_GPIO_Init(SCL_PORT, &GPIO_InitStruct);
+
+    HAL_GPIO_TogglePin(SCL_PORT, SCL_PIN);
+
+    // 7. Check SCL Low level in GPIOx_IDR.
+    wait_for_pin(workaround_step, SCL_PORT, SCL_PIN, GPIO_PIN_RESET);
+
+    // 8. Configure the SCL I/O as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
+    GPIO_InitStruct.Pin = SDA_PIN;
+    HAL_GPIO_Init(SDA_PORT, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(SDA_PORT, SDA_PIN, GPIO_PIN_SET);
+
+    // 9. Check SCL High level in GPIOx_IDR.
+    wait_for_pin(workaround_step, SDA_PORT, SDA_PIN, GPIO_PIN_SET);
+
+    // 10. Configure the SDA I/O as General Purpose Output Open-Drain , High level (Write 1 to GPIOx_ODR).
+    GPIO_InitStruct.Pin = SCL_PIN;
+    HAL_GPIO_Init(SCL_PORT, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(SCL_PORT, SCL_PIN, GPIO_PIN_SET);
+
+    // 11. Check SDA High level in GPIOx_IDR.
+    wait_for_pin(workaround_step, SCL_PORT, SCL_PIN, GPIO_PIN_SET);
+
+    // 12. Configure the SCL and SDA I/Os as Alternate function Open-Drain.
+    GPIO_InitStruct.Pin = SDA_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Alternate = 0x04; // 4 == I2C
+    HAL_GPIO_Init(SDA_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = SCL_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Alternate = 0x04; // 4 == I2C
+    HAL_GPIO_Init(SCL_PORT, &GPIO_InitStruct);
+
+    // 13. Set SWRST bit in I2Cx_CR1 register.
+    hi2c->Instance->CR1 |= I2C_CR1_SWRST;
+
+    // 14. Clear SWRST bit in I2Cx_CR1 register.
+    hi2c->Instance->CR1 ^= I2C_CR1_SWRST;
+
+    // need extra step - call init fnc
+    init_fn();
+
+    // 15. Enable the I2C peripheral by setting the PE bit in I2Cx_CR1 register.
+    // this step is done during I2C init function
+    __HAL_I2C_ENABLE(hi2c);
+}
+
+/// call busy flag reset function
+#define I2C_BUSY_FLAG_ERROR_WORKAROUND(i2c_num) i2c_busy_flag_error_workaround(&hi2c##i2c_num, \
+    i2c##i2c_num##_SDA_PORT, i2c##i2c_num##_SDA_PIN,                                           \
+    i2c##i2c_num##_SCL_PORT, i2c##i2c_num##_SCL_PIN, hw_i2c##i2c_num##_base_init)
+
+static std::atomic<size_t> i2c1_busy_clear_count = 0;
+static std::atomic<size_t> i2c2_busy_clear_count = 0;
+static std::atomic<size_t> i2c3_busy_clear_count = 0;
+
+size_t hw_i2c1_get_busy_clear_count() { return i2c1_busy_clear_count.load(); }
+size_t hw_i2c2_get_busy_clear_count() { return i2c2_busy_clear_count.load(); }
+size_t hw_i2c3_get_busy_clear_count() { return i2c3_busy_clear_count.load(); }
+
+#if HAS_I2CN(1)
+void hw_i2c1_base_init() {
     hi2c1.Instance = I2C1;
     hi2c1.Init.ClockSpeed = 400000;
 
@@ -420,7 +575,7 @@ void hw_i2c1_init() {
         Error_Handler();
     }
 
-#if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
+    #if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
     // Configure Analog filter
     if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
         Error_Handler();
@@ -429,10 +584,21 @@ void hw_i2c1_init() {
     if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK) {
         Error_Handler();
     }
-#endif
+    #endif
 }
 
-void hw_i2c2_init() {
+void hw_i2c1_init() {
+    hw_i2c1_base_init();
+
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) == SET) {
+        I2C_BUSY_FLAG_ERROR_WORKAROUND(1);
+        ++i2c1_busy_clear_count;
+    }
+}
+#endif // HAS_I2CN(1)
+
+#if HAS_I2CN(2)
+static void hw_i2c2_base_init() {
     hi2c2.Instance = I2C2;
     hi2c2.Init.ClockSpeed = 100000;
 
@@ -447,7 +613,7 @@ void hw_i2c2_init() {
         Error_Handler();
     }
 
-#if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
+    #if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
     // Configure Analog filter
     if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
         Error_Handler();
@@ -456,10 +622,21 @@ void hw_i2c2_init() {
     if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK) {
         Error_Handler();
     }
-#endif
+    #endif
 }
 
-void hw_i2c3_init() {
+void hw_i2c2_init() {
+    hw_i2c2_base_init();
+
+    if (__HAL_I2C_GET_FLAG(&hi2c2, I2C_FLAG_BUSY) == SET) {
+        I2C_BUSY_FLAG_ERROR_WORKAROUND(2);
+        ++i2c2_busy_clear_count;
+    }
+}
+#endif // HAS_I2CN(2)
+
+#if HAS_I2CN(3)
+static void hw_i2c3_base_init() {
     hi2c3.Instance = I2C3;
     hi2c3.Init.ClockSpeed = 100000;
     hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
@@ -473,7 +650,7 @@ void hw_i2c3_init() {
         Error_Handler();
     }
 
-#if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
+    #if defined(I2C_FLTR_ANOFF) && defined(I2C_FLTR_DNF)
     // Configure Analogue filter
     if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
         Error_Handler();
@@ -482,8 +659,18 @@ void hw_i2c3_init() {
     if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK) {
         Error_Handler();
     }
-#endif
+    #endif
 }
+
+void hw_i2c3_init() {
+    hw_i2c3_base_init();
+
+    if (__HAL_I2C_GET_FLAG(&hi2c3, I2C_FLAG_BUSY) == SET) {
+        I2C_BUSY_FLAG_ERROR_WORKAROUND(3);
+        ++i2c3_busy_clear_count;
+    }
+}
+#endif // HAS_I2CN(3)
 
 void hw_spi2_init() {
     hspi2.Instance = SPI2;
@@ -533,6 +720,7 @@ void hw_spi3_init() {
 
 #if MCU_IS_STM32F42X()
 void hw_spi4_init() {
+    // SPI 4 is used for side leds, but only on specific HW revisions
     hspi4.Instance = SPI4;
     hspi4.Init.Mode = SPI_MODE_MASTER;
     hspi4.Init.Direction = SPI_DIRECTION_2LINES;
@@ -576,7 +764,7 @@ void hw_spi6_init() {
     hspi6.Init.CLKPolarity = SPI_POLARITY_LOW;
     hspi6.Init.CLKPhase = SPI_PHASE_1EDGE;
     hspi6.Init.NSS = SPI_NSS_SOFT;
-    #if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_MK4)
+    #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
     hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
     #else
     hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
@@ -600,7 +788,7 @@ void hw_tim1_init() {
     htim1.Instance = TIM1;
     htim1.Init.Prescaler = TIM1_default_Prescaler; // 0x3fff was 100;
     htim1.Init.CounterMode = TIM_COUNTERMODE_DOWN;
-    htim1.Init.Period = TIM1_default_Period; // 0xff was 42000;
+    htim1.Init.Period = TIM1_default_Period;       // 0xff was 42000;
     htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim1.Init.RepetitionCounter = 0;
     if (HAL_TIM_Base_Init(&htim1) != HAL_OK) {
@@ -685,7 +873,7 @@ void hw_tim3_init() {
     TIM_OC_InitTypeDef sConfigOC {};
 
     htim3.Instance = TIM3;
-#if ((PRINTER_TYPE == PRINTER_PRUSA_MK4) || (PRINTER_TYPE == PRINTER_PRUSA_IXL))
+#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX)
     htim3.Init.Prescaler = 11; // 36us, 33.0kHz
 #else
     htim3.Init.Prescaler = TIM3_default_Prescaler; // 49ms, 20.3Hz

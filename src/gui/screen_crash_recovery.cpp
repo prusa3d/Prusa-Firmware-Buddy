@@ -174,7 +174,7 @@ WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
 
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
-    text_info.SetFont(resource_font(IDR_FNT_SMALL));
+    text_info.set_font(resource_font(IDR_FNT_SMALL));
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
@@ -190,7 +190,7 @@ WinsHomeFail::WinsHomeFail(ScreenCrashRecovery &screen)
 
     text_long.SetAlignment(Align_t::Center());
     text_info.SetAlignment(Align_t::Center());
-    text_info.SetFont(resource_font(IDR_FNT_SMALL));
+    text_info.set_font(resource_font(IDR_FNT_SMALL));
     Sound_Play(eSOUND_TYPE::WaitingBeep);
     #if HAS_SIDE_LEDS()
     leds::side_strip_control.PresentColor(leds::Color(255, 0, 0), 400, 100);
@@ -278,9 +278,9 @@ void WinUnion::ChangePhase(PhasesCrashRecovery ph) {
     New(ph);
 }
 
-//The C++ language does allow a program to call a destructor directly, and, since it is not possible to destroy
-//the object using a delete expression, that is how one destroys an object that was constructed via a pointer
-//placement new expression
+// The C++ language does allow a program to call a destructor directly, and, since it is not possible to destroy
+// the object using a delete expression, that is how one destroys an object that was constructed via a pointer
+// placement new expression
 void WinUnion::Destroy() {
     Sound_Stop();
     switch (phase) {
@@ -398,13 +398,13 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
     #if HAS_TOOLCHANGER()
         Crash_recovery_tool_fsm state(data.GetData());
         for (int i = 0; i < buddy::puppies::DWARF_MAX_COUNT; i++) {
-            if (state.enabled & (0x01 << i)) { // This tool exists
+            if (state.enabled & (0x01 << i)) {                                                      // This tool exists
                 if (state.parked & (0x01 << i)) {
-                    win_union.toolRecovery->icon_tool[i].SetState(SelftestSubtestState_t::ok); // Parked
+                    win_union.toolRecovery->icon_tool[i].SetState(SelftestSubtestState_t::ok);      // Parked
                 } else {
                     win_union.toolRecovery->icon_tool[i].SetState(SelftestSubtestState_t::running); // Waiting to be parked
                 }
-            } else { // Hide disabled tools
+            } else {                                                                                // Hide disabled tools
                 win_union.toolRecovery->text_tool[i].Hide();
                 win_union.toolRecovery->icon_tool[i].Hide();
             }
@@ -414,9 +414,9 @@ bool ScreenCrashRecovery::Change(fsm::BaseData data) {
         } else {
             win_union.toolRecovery->radio.Hide(); // Disable button until all are parked
         }
-    #else  /*HAS_TOOLCHANGER()*/
+    #else                                         /*HAS_TOOLCHANGER()*/
         bsod("Tool recovery window without toolchanger");
-    #endif /*HAS_TOOLCHANGER()*/
+    #endif                                        /*HAS_TOOLCHANGER()*/
         break;
     }
     }
@@ -428,7 +428,7 @@ void ScreenCrashRecovery::windowEvent(EventLock /*has private ctor*/, window_t *
     win_union.ButtonEvent(event);
 }
 
-//static variables and member functions
+// static variables and member functions
 ScreenCrashRecovery *ScreenCrashRecovery::ths = nullptr;
 
 ScreenCrashRecovery *ScreenCrashRecovery::GetInstance() { return ths; }
@@ -460,7 +460,7 @@ void WinUnion::ButtonEvent(GUI_event_t event) {
         break;
     }
 
-    //has radio button
+    // has radio button
     if (radio) {
         switch (event) {
         case GUI_event_t::CLICK: {

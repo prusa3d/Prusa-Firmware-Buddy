@@ -36,7 +36,7 @@ void SelftestFrameFirstLayerQuestions::change() {
 
     const char *txt = nullptr;
 
-    //texts
+    // texts
     switch (phase_current) {
     case PhasesSelftest::FirstLayer_filament_known_and_not_unsensed:
         txt = N_("To calibrate with currently loaded filament, press NEXT. To change filament, press UNLOAD.");

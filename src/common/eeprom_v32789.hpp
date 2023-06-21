@@ -23,8 +23,8 @@ struct vars_body_t : public eeprom::v32787::vars_body_t {
 
 constexpr vars_body_t body_defaults = {
     eeprom::v32787::body_defaults,
-    0.0f, // homing bump divisor
-    0.0f, // homing bump divisor
+    0.0f, // EEVAR_HOMING_BDIVISOR_X, homing bump divisor
+    0.0f, // EEVAR_HOMING_BDIVISOR_Y, homing bump divisor
     true, // EEVAR_ENABLE_SIDE_LEDS
 };
 

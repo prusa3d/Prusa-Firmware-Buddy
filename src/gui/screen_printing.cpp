@@ -6,12 +6,14 @@
 #include "ScreenHandler.hpp"
 #include <ctime>
 #include "../lang/format_print_will_end.hpp"
+#include "utility_extensions.hpp"
 #include "window_dlg_popup.hpp"
 #include "odometer.hpp"
 #include "liveadjust_z.hpp"
 #include "DialogMoveZ.hpp"
 #include "metric.h"
 #include "screen_menu_tune.hpp"
+#include <option/has_human_interactions.h>
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensors_handler.hpp"
@@ -147,15 +149,15 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_value.SetAlignment(Align_t::RightBottom());
 
     ResourceId etime_val_font = IDR_FNT_SMALL;
-    w_progress_txt.SetFont(resource_font(IDR_FNT_NORMAL));
+    w_progress_txt.set_font(resource_font(IDR_FNT_NORMAL));
 
     // ST7789 specific variable and it's label
-    w_time_label.font = resource_font(IDR_FNT_SMALL);
+    w_time_label.set_font(resource_font(IDR_FNT_SMALL));
     w_time_label.SetAlignment(align);
     w_time_label.SetPadding({ 0, 2, 0, 2 });
     w_time_label.SetText(_("Printing time"));
 
-    w_time_value.font = resource_font(IDR_FNT_SMALL);
+    w_time_value.set_font(resource_font(IDR_FNT_SMALL));
     w_time_value.SetAlignment(align);
     w_time_value.SetPadding({ 0, 2, 0, 2 });
 #elif defined(USE_ILI9488)
@@ -167,27 +169,27 @@ screen_printing_data_t::screen_printing_data_t()
 
     w_etime_label.SetTextColor(COLOR_SILVER);
     ResourceId etime_val_font = IDR_FNT_NORMAL;
-    w_progress_txt.SetFont(resource_font(IDR_FNT_LARGE));
+    w_progress_txt.set_font(resource_font(IDR_FNT_LARGE));
 #endif // USE_<display>
 
-    w_filename.font = resource_font(IDR_FNT_BIG);
+    w_filename.set_font(resource_font(IDR_FNT_BIG));
     w_filename.SetPadding({ 0, 0, 0, 0 });
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
     marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN));
     marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path));
     w_filename.SetText(string_view_utf8::MakeRAM((const uint8_t *)gui_media_LFN));
 
-    w_etime_label.font = resource_font(IDR_FNT_SMALL);
+    w_etime_label.set_font(resource_font(IDR_FNT_SMALL));
 
     // Execute first print time update loop
     updateTimes();
 
-    w_etime_value.font = resource_font(etime_val_font);
+    w_etime_value.set_font(resource_font(etime_val_font));
     w_etime_value.SetPadding({ 0, 2, 0, 2 });
 
 #if defined(USE_ILI9488)
     print_progress.Pause();
-    last_e_axis_position = marlin_vars()->curr_pos[MARLIN_VAR_INDEX_E];
+    last_e_axis_position = marlin_vars()->logical_curr_pos[MARLIN_VAR_INDEX_E];
 #endif
 }
 
@@ -196,7 +198,7 @@ extern int _is_in_M600_flg;
 extern uint32_t *pCommand;
 #endif
 
-#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE()
+#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE() && HAS_HUMAN_INTERACTIONS()
 static metric_t print_successful = METRIC("Print_successful", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_ENABLE_ALL);
 #endif
 
@@ -206,14 +208,14 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (gui::GetTick() - _last > 300) {
         _last = gui::GetTick();
 
-        static char buff[] = "Sx Mx x xxxx";                         //"x"s are replaced
-        buff[1] = FSensors_instance().Get() + '0';                   // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
-        buff[4] = FSensors_instance().GetM600_send_on();             // Me edge, Ml level, Mn never, Mx undefined
-        buff[6] = FSensors_instance().WasM600_send() ? 's' : 'n';    // s == send, n== not send
-        buff[8] = _is_in_M600_flg ? 'M' : '0';                       // M == marlin is doing M600
-        buff[9] = marlin_event(MARLIN_EVT_CommandBegin) ? 'B' : '0'; // B == Event begin
-        buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0';  // C == Command M600
-        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0';         // s == server - Command M600
+        static char buff[] = "Sx Mx x xxxx";                        //"x"s are replaced
+        buff[1] = FSensors_instance().Get() + '0';                  // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
+        buff[4] = FSensors_instance().GetM600_send_on();            // Me edge, Ml level, Mn never, Mx undefined
+        buff[6] = FSensors_instance().WasM600_send() ? 's' : 'n';   // s == send, n== not send
+        buff[8] = _is_in_M600_flg ? 'M' : '0';                      // M == marlin is doing M600
+        buff[9] = marlin_event(Event::CommandBegin) ? 'B' : '0';    // B == Event begin
+        buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0'; // C == Command M600
+        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0';        // s == server - Command M600
         header.SetText(buff);
     }
 
@@ -221,7 +223,11 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     /// check stop clicked when MBL is running
     printing_state_t p_state = GetState();
-    if (stop_pressed && waiting_for_abort && marlin_command() != MARLIN_CMD_G29 && (p_state == printing_state_t::ABORTING || p_state == printing_state_t::PAUSED)) {
+    if (
+        stop_pressed
+        && waiting_for_abort
+        && marlin_command() != ftrstd::to_underlying(Cmd::G29)
+        && (p_state == printing_state_t::ABORTING || p_state == printing_state_t::PAUSED)) {
         marlin_print_abort();
         waiting_for_abort = false;
         return;
@@ -243,9 +249,9 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
         marlin_error_clr(MARLIN_ERR_ProbingFailed);
         marlin_print_abort();
-        while (marlin_vars()->print_state == mpsAborting_Begin
-            || marlin_vars()->print_state == mpsAborting_WaitIdle
-            || marlin_vars()->print_state == mpsAborting_ParkHead) {
+        while (marlin_vars()->print_state == State::Aborting_Begin
+            || marlin_vars()->print_state == State::Aborting_WaitIdle
+            || marlin_vars()->print_state == State::Aborting_ParkHead) {
             gui_loop(); // Wait while aborting
         }
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
@@ -258,7 +264,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     change_print_state();
 
-#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE()
+#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE() && HAS_HUMAN_INTERACTIONS()
     if (p_state == printing_state_t::PRINTING)
         print_feedback_pending = true;
 
@@ -294,7 +300,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         set_pause_icon_and_label();
     }
     if (event == GUI_event_t::HELD_RELEASED) {
-        if (marlin_vars()->curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
+        if (marlin_vars()->logical_curr_pos[2 /* Z Axis */] <= 1.0f && p_state == printing_state_t::PRINTING) {
             LiveAdjustZ::Show();
         } else if (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED) {
             DialogMoveZ::Show();
@@ -304,12 +310,12 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 #if defined(USE_ILI9488)
     if (event == GUI_event_t::LOOP && p_state == printing_state_t::PRINTING) {
         auto vars = marlin_vars();
-        const bool midprint = vars->curr_pos[MARLIN_VAR_INDEX_Z] >= 0.0f;
-        const bool extruder_moved = (vars->curr_pos[MARLIN_VAR_INDEX_E] - last_e_axis_position) > 0;
+        const bool midprint = vars->logical_curr_pos[MARLIN_VAR_INDEX_Z] >= 0.0f;
+        const bool extruder_moved = (vars->logical_curr_pos[MARLIN_VAR_INDEX_E] - last_e_axis_position) > 0;
         if (print_progress.isPaused() && midprint && extruder_moved) {
             print_progress.Resume();
         } else if (print_progress.isPaused()) {
-            last_e_axis_position = vars->curr_pos[MARLIN_VAR_INDEX_E];
+            last_e_axis_position = vars->logical_curr_pos[MARLIN_VAR_INDEX_E];
         }
     }
 #endif
@@ -480,30 +486,30 @@ void screen_printing_data_t::change_print_state() {
     printing_state_t st = printing_state_t::COUNT;
 
     switch (marlin_vars()->print_state) {
-    case mpsIdle:
-    case mpsWaitGui:
-    case mpsPrintPreviewInit:
-    case mpsPrintPreviewImage:
-    case mpsPrintPreviewQuestions:
-    case mpsPrintInit:
+    case State::Idle:
+    case State::WaitGui:
+    case State::PrintPreviewInit:
+    case State::PrintPreviewImage:
+    case State::PrintPreviewQuestions:
+    case State::PrintInit:
         st = printing_state_t::INITIAL;
         break;
-    case mpsPrinting:
+    case State::Printing:
         if (bed_preheat.is_waiting()) {
             st = printing_state_t::ABSORBING_HEAT;
         } else {
             st = printing_state_t::PRINTING;
         }
         break;
-    case mpsPowerPanic_AwaitingResume:
-    case mpsPaused:
+    case State::PowerPanic_AwaitingResume:
+    case State::Paused:
         // stop_pressed = false;
         st = printing_state_t::PAUSED;
         break;
-    case mpsPausing_Begin:
-    case mpsPausing_Failed_Code:
-    case mpsPausing_WaitIdle:
-    case mpsPausing_ParkHead:
+    case State::Pausing_Begin:
+    case State::Pausing_Failed_Code:
+    case State::Pausing_WaitIdle:
+    case State::Pausing_ParkHead:
         st = printing_state_t::PAUSING;
 // When print is paused, progress screen needs to reinit it's thumbnail file handler
 // because USB removal error crashes file handler access. Progress screen should not be enabled during pause -> reinit on EVERY pause
@@ -511,48 +517,49 @@ void screen_printing_data_t::change_print_state() {
         print_progress.Pause();
 #endif
         break;
-    case mpsResuming_Reheating:
+    case State::Resuming_Reheating:
         stop_pressed = false;
         st = printing_state_t::REHEATING;
         break;
-    case mpsResuming_Begin:
-    case mpsResuming_UnparkHead_XY:
-    case mpsResuming_UnparkHead_ZE:
-    case mpsCrashRecovery_Begin:
-    case mpsCrashRecovery_Retracting:
-    case mpsCrashRecovery_Lifting:
-    case mpsCrashRecovery_XY_Measure:
-    case mpsCrashRecovery_Tool_Pickup:
-    case mpsCrashRecovery_XY_HOME:
-    case mpsCrashRecovery_HOMEFAIL:
-    case mpsCrashRecovery_Axis_NOK:
-    case mpsCrashRecovery_Repeated_Crash:
-    case mpsPowerPanic_Resume:
+    case State::Resuming_Begin:
+    case State::Resuming_UnparkHead_XY:
+    case State::Resuming_UnparkHead_ZE:
+    case State::CrashRecovery_Begin:
+    case State::CrashRecovery_Retracting:
+    case State::CrashRecovery_Lifting:
+    case State::CrashRecovery_ToolchangePowerPanic:
+    case State::CrashRecovery_XY_Measure:
+    case State::CrashRecovery_Tool_Pickup:
+    case State::CrashRecovery_XY_HOME:
+    case State::CrashRecovery_HOMEFAIL:
+    case State::CrashRecovery_Axis_NOK:
+    case State::CrashRecovery_Repeated_Crash:
+    case State::PowerPanic_Resume:
         stop_pressed = false;
         st = printing_state_t::RESUMING;
-#if (PRINTER_TYPE != PRINTER_PRUSA_IXL && defined(USE_ILI9488))
+#ifdef USE_ILI9488
         print_progress.Resume();
 #endif
         break;
-    case mpsAborting_Begin:
-    case mpsAborting_WaitIdle:
-    case mpsAborting_ParkHead:
+    case State::Aborting_Begin:
+    case State::Aborting_WaitIdle:
+    case State::Aborting_ParkHead:
         stop_pressed = false;
         st = printing_state_t::ABORTING;
         break;
-    case mpsFinishing_WaitIdle:
-    case mpsFinishing_ParkHead:
+    case State::Finishing_WaitIdle:
+    case State::Finishing_ParkHead:
         st = printing_state_t::PRINTING;
         break;
-    case mpsAborted:
+    case State::Aborted:
         stop_pressed = false;
         st = printing_state_t::STOPPED;
         break;
-    case mpsFinished:
-    case mpsExit:
+    case State::Finished:
+    case State::Exit:
         st = printing_state_t::PRINTED;
         break;
-    case mpsPowerPanic_acFault:
+    case State::PowerPanic_acFault:
         // this state is never reached
         __builtin_unreachable();
         return;

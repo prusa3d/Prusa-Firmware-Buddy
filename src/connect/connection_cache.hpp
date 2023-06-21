@@ -16,6 +16,7 @@ using Cache = std::variant<std::monostate, tls, http::socket_con, http::Error>;
 class RefreshableFactory : public http::ConnectionFactory {
 public:
     virtual void refresh(const Printer::Config &config) = 0;
+    virtual bool is_valid() const = 0;
 };
 
 class CachedFactory final : public RefreshableFactory {
@@ -28,6 +29,7 @@ public:
     virtual const char *host() override;
     virtual void invalidate() override;
     virtual void refresh(const Printer::Config &config) override;
+    virtual bool is_valid() const override;
 };
 
 }

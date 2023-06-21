@@ -18,8 +18,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <lwip/tcpip.h>
+#include <cmsis_os.h>
 
-#include "../../../src/common/basename.h"
+#include "../../../src/common/filepath_operation.h"
 
 size_t strlcpy(char *, const char *, size_t);
 
@@ -80,4 +81,8 @@ int mkdir(const char *path, mode_t mode) {
 }
 
 void get_SFN_path(char *path) {
+}
+
+uint32_t osDelay(uint32_t time) {
+    return 0;
 }

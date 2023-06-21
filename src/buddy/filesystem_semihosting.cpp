@@ -8,11 +8,15 @@
 #include "filesystem.h"
 #include <semihosting/semihosting.hpp>
 
+namespace fssemihosting {
 typedef struct {
     int32_t handle;
     int32_t length;
     int32_t pos;
 } FIL_EX;
+}
+
+using fssemihosting::FIL_EX;
 
 #define PREPARE_FIL_EX(f, fs)              \
     FIL_EX *f = static_cast<FIL_EX *>(fs); \

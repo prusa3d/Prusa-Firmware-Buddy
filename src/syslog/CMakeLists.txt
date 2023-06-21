@@ -1,1 +1,1 @@
-target_sources(firmware PRIVATE syslog.c)
+target_sources(firmware PRIVATE syslog.cpp)

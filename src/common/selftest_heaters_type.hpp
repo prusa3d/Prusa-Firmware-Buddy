@@ -66,7 +66,7 @@ public:
     constexpr SelftestHeaters_t() {}
 
     bool operator==(SelftestHeaters_t const &other) const {
-        return noz == other.noz && bed == other.bed;
+        return noz == other.noz && bed == other.bed && tested_parts == other.tested_parts;
     }
 };
 

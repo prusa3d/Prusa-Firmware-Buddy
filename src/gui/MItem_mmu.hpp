@@ -260,25 +260,25 @@ class MI_MMU_HOME0 : public MI_MMU_ISSUE_GCODE {
 
 public:
     MI_MMU_HOME0()
-        : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H0") {} //TODO G28
+        : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H0") {} // TODO G28
 };
 
 // The following homing modes are not yet supported in the MMU FW
-//class MI_MMU_HOME1 : public MI_MMU_ISSUE_GCODE {
+// class MI_MMU_HOME1 : public MI_MMU_ISSUE_GCODE {
 //    static constexpr const char *const label = N_("Force home Idler");
 
-//public:
-//    MI_MMU_HOME1()
-//        : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H1") {}
-//};
+// public:
+//     MI_MMU_HOME1()
+//         : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H1") {}
+// };
 
-//class MI_MMU_HOME2 : public MI_MMU_ISSUE_GCODE {
-//    static constexpr const char *const label = N_("Force home Selector");
+// class MI_MMU_HOME2 : public MI_MMU_ISSUE_GCODE {
+//     static constexpr const char *const label = N_("Force home Selector");
 
-//public:
-//    MI_MMU_HOME2()
-//        : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H2") {}
-//};
+// public:
+//     MI_MMU_HOME2()
+//         : MI_MMU_ISSUE_GCODE(label, "M1400 S10 H2") {}
+// };
 
 class MI_MMU_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("MMU Enable");

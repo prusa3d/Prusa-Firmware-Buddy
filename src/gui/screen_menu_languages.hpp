@@ -105,7 +105,7 @@ protected:
 };
 
 /*****************************************************************************/
-//parent alias
+// parent alias
 #ifdef _DEBUG
 using ScreenMenuLanguages__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH, MI_TEST_LANG>;
 #else
@@ -119,7 +119,7 @@ public:
 };
 
 /*****************************************************************************/
-//parent alias
+// parent alias
 using ScreenMenuLanguagesNoReturn__ = ScreenMenu<EFooter::Off, MI_ENGLISH, MI_CZECH, MI_GERMAN, MI_SPANISH, MI_FRENCH, MI_ITALIAN, MI_POLISH>;
 
 class ScreenMenuLanguagesNoRet : public ScreenMenuLanguagesNoReturn__ {

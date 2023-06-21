@@ -1,4 +1,4 @@
-//png2font - main.c
+// png2font - main.c
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -12,9 +12,9 @@
 int png2font(char *src_filename, char *dst_filename, char *out_filename, int char_w, int char_h, int char_bpp, int charset_cols, int charset_rows);
 void font_preview(png_structp dst_png, png_infop dst_ppi, uint8_t *dst_data, uint8_t *charset_data, int char_w, int char_h, int char_bpp, int charset_cols, int charset_rows);
 
-//int png2font_old(char* src_filename, char* dst_filename, int char_w, int char_h, int cols, int rows);
+// int png2font_old(char* src_filename, char* dst_filename, int char_w, int char_h, int cols, int rows);
 
-//#define _DEBUG_ARGS
+// #define _DEBUG_ARGS
 #ifdef _DEBUG_ARGS
 //-src=d:\test.png -dst=d:\test-preview.png -out=d:\test.bin -bpp=2 -w=16 -h=20 -c=16 -r=6
 char *args[] = {
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     int char_bpp = 0;
     int charset_cols = 0;
     int charset_rows = 0;
-    //parse args
+    // parse args
     while (++argn < argc) {
         arg = argv[argn];
         if (sscanf(arg, "-src=%s", src_filename) == 1)
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
         if (sscanf(arg, "-r=%d", &charset_rows) == 1)
             continue;
     }
-    //check args
+    // check args
     if ((ret == 0) && (strlen(src_filename) == 0)) {
         fputs("SRC_FILENAME not defined!\n", stderr);
         ret = 1;
@@ -118,12 +118,12 @@ int main(int argc, char **argv) {
     return ret;
 }
 
-//png2font return values
+// png2font return values
 #define PNG2FONT_OK          0
 #define PNG2FONT_ERROR_IO    -1
 #define PNG2FONT_ERROR_INVAL -2
 
-//first bit set
+// first bit set
 int fbs(unsigned int val) {
     if (val == 0)
         return -1;
@@ -136,7 +136,7 @@ int fbs(unsigned int val) {
 }
 
 int png2font(char *src_filename, char *dst_filename, char *out_filename, int char_w, int char_h, int char_bpp, int charset_cols, int charset_rows) {
-    //source png variables
+    // source png variables
     FILE *src = 0;
     png_structp src_png = 0;
     png_infop src_ppi = 0;
@@ -149,7 +149,7 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
     uint8_t *src_pp = 0;
     uint8_t **src_rows = 0;
 
-    //destination png variables
+    // destination png variables
     FILE *dst = 0;
     png_structp dst_png = 0;
     png_infop dst_ppi = 0;
@@ -162,18 +162,18 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
     uint8_t *dst_pp = 0;
     uint8_t **dst_rows = 0;
 
-    //output charset variables
+    // output charset variables
     FILE *out = 0;
-    int char_ppb = 8 / char_bpp;                        //pixels per byte (bpp= 1:8, 2:4, 4:2, 8:1)
-    int char_pms = ((1 << char_bpp) - 1);               //pixel mask (bpp= 1:1, 2:3, 4:15, 8:255)
-    int char_psr = (3 - fbs(char_bpp));                 //pixel shift right (bpp =1:3, 2:2, 4:1, 8:0)
-    int char_bpr = (char_w + char_ppb - 1) >> char_psr; //bytes per row
-    int char_size = char_h * char_bpr;                  //character size in bytes
-    int char_count = charset_cols * charset_rows;       //character count
-    int charset_size = char_size * char_count;          //charset size in bytes
+    int char_ppb = 8 / char_bpp;                        // pixels per byte (bpp= 1:8, 2:4, 4:2, 8:1)
+    int char_pms = ((1 << char_bpp) - 1);               // pixel mask (bpp= 1:1, 2:3, 4:15, 8:255)
+    int char_psr = (3 - fbs(char_bpp));                 // pixel shift right (bpp =1:3, 2:2, 4:1, 8:0)
+    int char_bpr = (char_w + char_ppb - 1) >> char_psr; // bytes per row
+    int char_size = char_h * char_bpr;                  // character size in bytes
+    int char_count = charset_cols * charset_rows;       // character count
+    int charset_size = char_size * char_count;          // charset size in bytes
     uint8_t *charset_data = 0;
 
-    //image process variables
+    // image process variables
     int i;
     int x;
     int y;
@@ -191,17 +191,17 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
     int char_pix_offs;
     int offs;
 
-    //return value
+    // return value
     int ret = PNG2FONT_ERROR_IO;
 
-    //open files
+    // open files
     src = fopen(src_filename, "rb");
     dst = fopen(dst_filename, "wb+");
     out = fopen(out_filename, "wb+");
     if ((!src) || (!dst) || (!out))
         goto _e_0;
 
-    //open source png, allocate memory for image data
+    // open source png, allocate memory for image data
     src_png = _png_open_read(src, &src_ppi);
     if (!src_png)
         goto _e_1;
@@ -220,7 +220,7 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
     for (i = 0; i < src_h; i++)
         src_rows[i] = src_data + i * src_row_size;
 
-    //open destination png, allocate memory for image data
+    // open destination png, allocate memory for image data
     dst_png = _png_open_write(dst, &dst_ppi, src_w, src_h, PNG_COLOR_TYPE_RGB);
     if (!dst_png)
         goto _e_2;
@@ -239,44 +239,44 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
     for (i = 0; i < dst_h; i++)
         dst_rows[i] = dst_data + i * dst_row_size;
 
-    //allocate memory for charset data
+    // allocate memory for charset data
     charset_data = (uint8_t *)malloc(charset_size);
     if (!charset_data)
         goto _e_3;
-    memset(charset_data, 0, charset_size); //set character data to zero
+    memset(charset_data, 0, charset_size); // set character data to zero
 
-    //read source png data into memory
+    // read source png data into memory
     png_read_image(src_png, src_rows);
 
-    //process png data
+    // process png data
     for (y = 0; y < src_h; y++)
         for (x = 0; x < src_w; x++) {
-            //source and destination pixel pointers
+            // source and destination pixel pointers
             src_pp = src_data + src_pix_size * x + src_row_size * y;
             dst_pp = dst_data + dst_pix_size * x + dst_row_size * y;
-            //RGB values from src pixel
+            // RGB values from src pixel
             r = src_pp[0];
             g = src_pp[1];
             b = src_pp[2];
-            lum = (r + g + b) / 3; //luminance
-            opa = 255 - lum;       //opacity from luminance
-            //TODO: opacity from alpha
+            lum = (r + g + b) / 3; // luminance
+            opa = 255 - lum;       // opacity from luminance
+            // TODO: opacity from alpha
 
-            opa = opa >> (8 - char_bpp); //round opacity to bpp
-            opa8 = 255 * opa / char_pms; //recalc to 8bit (0..255) for preview
+            opa = opa >> (8 - char_bpp);                            // round opacity to bpp
+            opa8 = 255 * opa / char_pms;                            // recalc to 8bit (0..255) for preview
 
-            char_code = (x / char_w) + charset_cols * (y / char_h); //character code
-            char_offs = char_code * char_size;                      //character offset in charset [bytes]
-            char_x = (x % char_w);                                  //character pixel x-coord (0..char_w-1)
-            char_y = (y % char_h);                                  //character pixel y-coord (0..char_h-1)
-            char_row_offs = char_y * char_bpr;                      //character row offset [bytes]
-            char_pix_offs = char_x >> char_psr;                     //character pixel offset [bytes]
-            offs = char_offs + char_row_offs + char_pix_offs;       //total offset in charset [bytes]
+            char_code = (x / char_w) + charset_cols * (y / char_h); // character code
+            char_offs = char_code * char_size;                      // character offset in charset [bytes]
+            char_x = (x % char_w);                                  // character pixel x-coord (0..char_w-1)
+            char_y = (y % char_h);                                  // character pixel y-coord (0..char_h-1)
+            char_row_offs = char_y * char_bpr;                      // character row offset [bytes]
+            char_pix_offs = char_x >> char_psr;                     // character pixel offset [bytes]
+            offs = char_offs + char_row_offs + char_pix_offs;       // total offset in charset [bytes]
             i = (char_x % char_ppb);
             i = (8 - char_bpp) - (i * char_bpp);
-            //i = (8 - char_bpp) - char_bpp * (char_x % (1 << char_bpp)); //shift in current byte
-            //opa &= ((1 << char_bpp) - 1); //mask by bpp
-            charset_data[offs] |= opa << i; //update character pixel data
+            // i = (8 - char_bpp) - char_bpp * (char_x % (1 << char_bpp)); //shift in current byte
+            // opa &= ((1 << char_bpp) - 1); //mask by bpp
+            charset_data[offs] |= opa << i; // update character pixel data
 
 #if 0
 			//preview data in grayscale (r=g=b=opa8)
@@ -289,20 +289,20 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
     //	font_preview2(charset_data, dst_data, char_w, char_h, char_bpp, charset_cols, charset_rows);
     font_preview(dst_png, dst_ppi, dst_data, charset_data, char_w, char_h, char_bpp, charset_cols, charset_rows);
 
-    //write destination png data from memory to file
+    // write destination png data from memory to file
     png_write_image(dst_png, dst_rows);
 
-    //write charset data from memory to file
+    // write charset data from memory to file
     fwrite(charset_data, charset_size, 1, out);
 
     ret = PNG2FONT_OK;
 
 _e_3:
-    //free charset memory
+    // free charset memory
     if (charset_data)
         free(charset_data);
 _e_2:
-    //free destination png resources and memory
+    // free destination png resources and memory
     if (dst_png)
         png_destroy_write_struct(&dst_png, &dst_ppi);
     if (dst_rows)
@@ -310,7 +310,7 @@ _e_2:
     if (dst_data)
         free(dst_data);
 _e_1:
-    //free source png resources and memory
+    // free source png resources and memory
     if (src_png)
         png_destroy_read_struct(&src_png, &src_ppi, 0);
     if (src_rows)
@@ -318,7 +318,7 @@ _e_1:
     if (src_data)
         free(src_data);
 _e_0:
-    //close files
+    // close files
     if (out)
         fclose(out);
     if (dst)
@@ -338,13 +338,13 @@ void print_char_to_png(png_structp dst_png, png_infop dst_ppi, uint8_t *dst_data
     int dst_pix_size = dst_row_size / dst_w;
     int dst_size = dst_row_size * dst_h;
     uint8_t *dst_pp = 0;
-    int char_ppb = 8 / char_bpp;                        //pixels per byte (bpp= 1:8, 2:4, 4:2, 8:1)
-    int char_pms = ((1 << char_bpp) - 1);               //pixel mask (bpp= 1:1, 2:3, 4:15, 8:255)
-    int char_psr = (3 - fbs(char_bpp));                 //pixel shift right (bpp =1:3, 2:2, 4:1, 8:0)
-    int char_bpr = (char_w + char_ppb - 1) >> char_psr; //bytes per row
-    int char_size = char_h * char_bpr;                  //character size in bytes
-    int char_count = charset_cols * charset_rows;       //character count
-    int charset_size = char_size * char_count;          //charset size in bytes
+    int char_ppb = 8 / char_bpp;                        // pixels per byte (bpp= 1:8, 2:4, 4:2, 8:1)
+    int char_pms = ((1 << char_bpp) - 1);               // pixel mask (bpp= 1:1, 2:3, 4:15, 8:255)
+    int char_psr = (3 - fbs(char_bpp));                 // pixel shift right (bpp =1:3, 2:2, 4:1, 8:0)
+    int char_bpr = (char_w + char_ppb - 1) >> char_psr; // bytes per row
+    int char_size = char_h * char_bpr;                  // character size in bytes
+    int char_count = charset_cols * charset_rows;       // character count
+    int charset_size = char_size * char_count;          // charset size in bytes
     int opa;
     int opa8;
     uint8_t char_data = 0;
@@ -357,8 +357,8 @@ void print_char_to_png(png_structp dst_png, png_infop dst_ppi, uint8_t *dst_data
                 char_data = *(char_pp++);
             opa = (char_data >> (8 - char_bpp)) & char_pms;
             char_data <<= char_bpp;
-            opa8 = 255 * opa / char_pms; //recalc to 8bit (0..255) for preview
-            //preview data in grayscale (r=g=b=opa8)
+            opa8 = 255 * opa / char_pms; // recalc to 8bit (0..255) for preview
+            // preview data in grayscale (r=g=b=opa8)
             dst_pp[0] = opa8;
             dst_pp[1] = opa8;
             dst_pp[2] = opa8;

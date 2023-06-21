@@ -2,7 +2,7 @@
 
 namespace {
 
-//in milliseconds
+// in milliseconds
 uint32_t mock_time = 0;
 
 }

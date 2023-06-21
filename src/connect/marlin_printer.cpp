@@ -1,7 +1,6 @@
 #include "marlin_printer.hpp"
 #include "hostname.hpp"
 
-#include <eeprom.h>
 #include <ini.h>
 #include <version.h>
 #include <support_utils.h>
@@ -11,6 +10,7 @@
 #include <print_utils.hpp>
 #include <wui_api.h>
 #include <filament.hpp>
+#include <state/printer_state.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -19,6 +19,11 @@
 #include <mbedtls/sha256.h>
 #include <sys/statvfs.h>
 
+#include <configuration_store.hpp>
+
+using printer_state::DeviceState;
+using printer_state::get_state;
+using std::move;
 using std::nullopt;
 using namespace marlin_server;
 
@@ -121,78 +126,9 @@ namespace {
         }
         return 20;
     }
-
-    Printer::DeviceState to_device_state(marlin_print_state_t state, bool ready) {
-        switch (state) {
-        case mpsPrintPreviewQuestions:
-            return Printer::DeviceState::Attention;
-        case mpsIdle:
-        case mpsWaitGui:
-        case mpsPrintPreviewInit:
-        case mpsPrintPreviewImage:
-        case mpsPrintInit:
-        case mpsExit:
-            if (ready) {
-                return Printer::DeviceState::Ready;
-            } else {
-                return Printer::DeviceState::Idle;
-            }
-        case mpsPrinting:
-        case mpsAborting_Begin:
-        case mpsAborting_WaitIdle:
-        case mpsAborting_ParkHead:
-        case mpsFinishing_WaitIdle:
-        case mpsFinishing_ParkHead:
-            return Printer::DeviceState::Printing;
-
-        case mpsPowerPanic_acFault:
-        case mpsPowerPanic_Resume:
-        case mpsPowerPanic_AwaitingResume:
-        case mpsCrashRecovery_Begin:
-        case mpsCrashRecovery_Axis_NOK:
-        case mpsCrashRecovery_Retracting:
-        case mpsCrashRecovery_Lifting:
-        case mpsCrashRecovery_XY_Measure:
-        case mpsCrashRecovery_Tool_Pickup:
-        case mpsCrashRecovery_XY_HOME:
-        case mpsCrashRecovery_HOMEFAIL:
-        case mpsCrashRecovery_Repeated_Crash:
-            return Printer::DeviceState::Busy;
-
-        case mpsPausing_Begin:
-        case mpsPausing_WaitIdle:
-        case mpsPausing_ParkHead:
-        case mpsPaused:
-
-        case mpsResuming_Begin:
-        case mpsResuming_Reheating:
-        case mpsPausing_Failed_Code:
-        case mpsResuming_UnparkHead_XY:
-        case mpsResuming_UnparkHead_ZE:
-            return Printer::DeviceState::Paused;
-        case mpsFinished:
-            return Printer::DeviceState::Finished;
-        case mpsAborted:
-            return Printer::DeviceState::Stopped;
-        }
-        return Printer::DeviceState::Unknown;
-    }
-
-    // Extract a fixed-sized string from EEPROM to provided buffer.
-    //
-    // maxlen is the length of the buffer, including the byte for \0.
-    //
-    // FIXME: Unify with the one in wui_api.c
-    void strextract(char *into, size_t maxlen, enum eevar_id var) {
-        variant8_t tmp = eeprom_get_var(var);
-        strlcpy(into, variant8_get_pch(tmp), maxlen);
-        variant8_t *ptmp = &tmp;
-        variant8_done(&ptmp);
-    }
 }
 
-MarlinPrinter::MarlinPrinter(SharedBuffer &buffer)
-    : buffer(buffer) {
+MarlinPrinter::MarlinPrinter() {
     marlin_client_init();
 
     info.firmware_version = project_version_full;
@@ -210,59 +146,47 @@ MarlinPrinter::MarlinPrinter(SharedBuffer &buffer)
     info.appendix = appendix_exist();
 }
 
-void MarlinPrinter::renew() {
-    if (auto b = buffer.borrow(); b.has_value()) {
-
-        // TODO: FIXME: BFW-3334
-        // this stores filenames into shared buffer, but then immediately releases borrow of that buffer.
-        // But somehow we assume that buffer will not be written to in the mean time, and data will be still valid.
-
-        job_lfn_ptr = reinterpret_cast<char *>(b->data());
-        job_path_ptr = reinterpret_cast<char *>(b->data() + FILE_NAME_BUFFER_LEN);
-
+void MarlinPrinter::renew(std::optional<SharedBuffer::Borrow> new_borrow) {
+    if (new_borrow.has_value()) {
         static_assert(SharedBuffer::SIZE >= FILE_NAME_BUFFER_LEN + FILE_PATH_BUFFER_LEN);
-        {
-            // update variables from marlin server, sample LFN+SFN atomically
-            auto lock = MarlinVarsLockGuard();
-            marlin_vars()->media_LFN.copy_to(job_lfn_ptr, FILE_NAME_BUFFER_LEN, lock);
-            marlin_vars()->media_SFN_path.copy_to(job_path_ptr, FILE_PATH_BUFFER_LEN, lock);
-        }
-
+        borrow = BorrowPaths(move(*new_borrow));
+        // update variables from marlin server, sample LFN+SFN atomically
+        auto lock = MarlinVarsLockGuard();
+        marlin_vars()->media_SFN_path.copy_to(borrow->path(), FILE_PATH_BUFFER_LEN, lock);
+        marlin_vars()->media_LFN.copy_to(borrow->name(), FILE_NAME_BUFFER_LEN, lock);
     } else {
-        job_path_ptr = nullptr;
-        job_lfn_ptr = nullptr;
+        borrow.reset();
     }
 
     // Any suspicious state, like Busy or Printing will cancel the printer-ready state.
     //
     // (We kind of assume there's no chance of renew not being called between a
     // print starts and ends and that we'll see it.).
-    if (to_device_state(marlin_vars()->print_state, ready) != DeviceState::Ready) {
+    if (get_state(ready) != DeviceState::Ready) {
         ready = false;
     }
 }
 
-Printer::Params MarlinPrinter::params() const {
-    auto current_filament = filament::get_type_in_extruder(marlin_vars()->active_extruder);
+void MarlinPrinter::drop_paths() {
+    borrow.reset();
+}
 
-    Params params = {};
+Printer::Params MarlinPrinter::params() const {
+    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
+
+    Params params(borrow);
     params.material = filament::get_description(current_filament).name;
-    params.state = to_device_state(marlin_vars()->print_state, ready);
+    params.state = get_state(ready);
     params.temp_bed = marlin_vars()->temp_bed;
     params.target_bed = marlin_vars()->target_bed;
     params.temp_nozzle = marlin_vars()->active_hotend().temp_nozzle;
     params.target_nozzle = marlin_vars()->active_hotend().target_nozzle;
-    params.pos[X_AXIS_POS] = marlin_vars()->curr_pos[X_AXIS_POS];
-    params.pos[Y_AXIS_POS] = marlin_vars()->curr_pos[Y_AXIS_POS];
-    params.pos[Z_AXIS_POS] = marlin_vars()->curr_pos[Z_AXIS_POS];
+    params.pos[X_AXIS_POS] = marlin_vars()->logical_curr_pos[X_AXIS_POS];
+    params.pos[Y_AXIS_POS] = marlin_vars()->logical_curr_pos[Y_AXIS_POS];
+    params.pos[Z_AXIS_POS] = marlin_vars()->logical_curr_pos[Z_AXIS_POS];
     params.print_speed = marlin_vars()->print_speed;
     params.flow_factor = marlin_vars()->active_hotend().flow_factor;
     params.job_id = marlin_vars()->job_id;
-
-    // TODO: FIXME: BFW-3334
-    // this accesses filenames from shared buffer, but doesn't check borrow at all. Its possible that buffer is no longer valid here.
-    params.job_path = job_path_ptr;
-    params.job_lfn = job_lfn_ptr;
 
     params.print_fan_rpm = marlin_vars()->active_hotend().print_fan_rpm;
     params.heatbreak_fan_rpm = marlin_vars()->active_hotend().heatbreak_fan_rpm;
@@ -270,7 +194,7 @@ Printer::Params MarlinPrinter::params() const {
     params.time_to_end = marlin_vars()->time_to_end;
     params.progress_percent = marlin_vars()->sd_percent_done;
     params.filament_used = Odometer_s::instance().get_extruded_all();
-    params.nozzle_diameter = eeprom_get_nozzle_dia(0);
+    params.nozzle_diameter = config_store().get_nozzle_diameter(0);
     params.has_usb = marlin_vars()->media_inserted;
 
     struct statvfs fsbuf = {};
@@ -293,20 +217,20 @@ Printer::Params MarlinPrinter::params() const {
 
 Printer::Config MarlinPrinter::load_config() {
     Config configuration = {};
-    configuration.enabled = eeprom_get_bool(EEVAR_CONNECT_ENABLED);
+    configuration.enabled = config_store().connect_enabled.get();
     // (We need it even if disabled for registration phase)
-    strextract(configuration.host, sizeof configuration.host, EEVAR_CONNECT_HOST);
-    decompress_host(configuration.host, sizeof configuration.host);
-    strextract(configuration.token, sizeof configuration.token, EEVAR_CONNECT_TOKEN);
-    configuration.tls = eeprom_get_bool(EEVAR_CONNECT_TLS);
-    configuration.port = eeprom_get_ui16(EEVAR_CONNECT_PORT);
+    strlcpy(configuration.host, config_store().connect_host.get().data(), sizeof(configuration.host));
+    decompress_host(configuration.host, sizeof(configuration.host));
+    strlcpy(configuration.token, config_store().connect_token.get().data(), sizeof(configuration.token));
+    configuration.tls = config_store().connect_tls.get();
+    configuration.port = config_store().connect_port.get();
 
     return configuration;
 }
 
 void MarlinPrinter::init_connect(char *token) {
-    eeprom_set_pchar(EEVAR_CONNECT_TOKEN, token, 0, 1);
-    eeprom_set_bool(EEVAR_CONNECT_ENABLED, true);
+    config_store().connect_token.set(token);
+    config_store().connect_enabled.set(true);
 }
 
 bool MarlinPrinter::load_cfg_from_ini() {
@@ -318,10 +242,10 @@ bool MarlinPrinter::load_cfg_from_ini() {
             config.port = config.tls ? 443 : 80;
         }
 
-        eeprom_set_pchar(EEVAR_CONNECT_HOST, config.host, 0, 1);
-        eeprom_set_pchar(EEVAR_CONNECT_TOKEN, config.token, 0, 1);
-        eeprom_set_ui16(EEVAR_CONNECT_PORT, config.port);
-        eeprom_set_bool(EEVAR_CONNECT_TLS, config.tls);
+        config_store().connect_host.set(config.host);
+        config_store().connect_token.set(config.token);
+        config_store().connect_port.set(config.port);
+        config_store().connect_tls.set(config.tls);
         // Note: enabled is controlled in the GUI
     }
     return ok;
@@ -356,14 +280,14 @@ std::optional<Printer::NetInfo> MarlinPrinter::net_info(Printer::Iface iface) co
 
 Printer::NetCreds MarlinPrinter::net_creds() const {
     NetCreds result = {};
-    strextract(result.pl_password, sizeof result.pl_password, EEVAR_PL_PASSWORD);
-    strextract(result.ssid, sizeof result.ssid, EEVAR_WIFI_AP_SSID);
+    strlcpy(result.pl_password, config_store().prusalink_password.get_c_str(), sizeof(result.pl_password));
+    strlcpy(result.ssid, config_store().wifi_ap_ssid.get_c_str(), sizeof(result.ssid));
     return result;
 }
 
 bool MarlinPrinter::job_control(JobControl control) {
     // Renew was presumably called before short.
-    DeviceState state = to_device_state(marlin_vars()->print_state, false);
+    DeviceState state = get_state(false);
 
     switch (control) {
     case JobControl::Pause:
@@ -393,7 +317,7 @@ bool MarlinPrinter::job_control(JobControl control) {
 }
 
 bool MarlinPrinter::start_print(const char *path) {
-    if (!marlin_remote_print_ready(false)) {
+    if (!printer_state::remote_print_ready(false)) {
         return false;
     }
 
@@ -406,7 +330,7 @@ void MarlinPrinter::submit_gcode(const char *code) {
 }
 
 bool MarlinPrinter::set_ready(bool ready) {
-    if (ready && !marlin_remote_print_ready(false)) {
+    if (ready && !printer_state::remote_print_ready(false)) {
         return false;
     }
 

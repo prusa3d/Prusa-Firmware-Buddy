@@ -10,7 +10,8 @@ class SelftestFrameToolOffsets : public AddSuperWindow<SelftestFrameNamedWithRad
     FooterLine footer;
     window_wizard_progress_t progress;
     window_text_t text_phase;
-    window_text_t text_estimate; ///< Estimate how long it will take
+    window_text_t text_detail; ///< Estimate (how long it will take) | calibration target temperature
+    char target_temp_text[10];
 
 protected:
     virtual void change() override;

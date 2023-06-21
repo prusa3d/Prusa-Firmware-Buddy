@@ -40,7 +40,8 @@ public:
     static constexpr uint16_t TMC_WRITE_REQUEST_ADDRESS { ftrstd::to_underlying(SystemHoldingRegister::tmc_write_request_address) };
     static constexpr uint16_t ENCODED_FIFO_ADDRESS { ftrstd::to_underlying(SystemFIFO::encoded_stream) };
 
-    static constexpr uint32_t DWARF_READ_PERIOD = 200;
+    static constexpr uint32_t DWARF_READ_PERIOD = 200;      ///< Read registers this often [ms]
+    static constexpr uint32_t DWARF_FIFO_PULL_PERIOD = 200; ///< Pull fifo of unselected dwarf this often [ms]
     static constexpr uint_fast8_t NUM_FANS = 2;
 
     /// when this is set as PWM, fan is switched to automatic mode
@@ -57,8 +58,30 @@ public:
 
     CommunicationStatus ping();
     CommunicationStatus initial_scan();
-    CommunicationStatus refresh();
-    CommunicationStatus fast_refresh();
+
+    /**
+     * @brief Refreshes all registers from dwarf.
+     * @param cycle_ticks_ms ticks_ms() valid through current poll cycle [ms]
+     * @param[out] worked true if bed state was refreshed, false if not yet
+     * @return CommunicationStatus::OK on success
+     */
+    CommunicationStatus refresh(uint32_t cycle_ticks_ms, bool &worked);
+
+    /**
+     * @brief Pulls data from dwarf fifo, but is timed for non-selected dwarf.
+     * @param cycle_ticks_ms ticks_ms() valid through current poll cycle [ms]
+     * @param[out] worked true if fifo was pulled, false if not yet
+     * @return CommunicationStatus::OK on success
+     */
+    CommunicationStatus fifo_refresh(uint32_t cycle_ticks_ms, bool &worked);
+
+    /**
+     * @brief Pulls data from dwarf fifo.
+     * Originally fast_refresh().
+     * @param[out] more true if there is more data to pull, false if fifo is empty
+     * @return CommunicationStatus::OK on success
+     */
+    CommunicationStatus pull_fifo(bool &more);
 
     [[nodiscard]] bool is_selected() const;
     CommunicationStatus set_selected(bool selected);
@@ -73,11 +96,11 @@ public:
     float get_hotend_temp();
     int get_heater_pwm();
 
-    bool is_picked();
-    bool is_parked();
+    bool is_picked() const;
+    bool is_parked() const;
 
-    inline void refresh_park_pick_status() {
-        (void)read_discrete_general_status();
+    [[nodiscard]] inline bool refresh_park_pick_status() {
+        return (read_discrete_general_status() == CommunicationStatus::OK);
     }
 
     int32_t get_tool_filament_sensor();
@@ -85,6 +108,19 @@ public:
 
     void set_heatbreak_target_temp(int16_t target);
     void set_fan(uint8_t fan, uint16_t target);
+
+    /**
+     * @brief Set cheese LED.
+     * @param pwr_selected PWM when selected [0 - 255]
+     * @param pwr_not_selected PWM when not selected [0 - 255]
+     */
+    void set_led(uint8_t pwr_selected, uint8_t pwr_not_selected);
+
+    /**
+     * @brief Set cheese LED by eeprom config.
+     */
+    void set_led();
+
     float get_heatbreak_temp();
     uint16_t get_heatbreak_fan_pwr();
 
@@ -132,6 +168,11 @@ public:
 
         static constexpr uint16_t FAN_AUTO_PWM = std::numeric_limits<uint16_t>::max();
         uint16_t fan_pwm[NUM_FANS]; // target PWM or when value is FAN_AUTO_RPM, use automatic control
+
+        struct __attribute__((packed)) {
+            uint8_t not_selected; // 8 LSb PWM when not selected [0 - 0xff]
+            uint8_t selected;     // 8 MSb PWM when selected [0 - 0xff]
+        } led_pwm;
     };
     ModbusHoldingRegisterBlock<GENERAL_WRITE_REQUEST, GeneralWrite_t> GeneralWrite;
     bool GeneralWriteNeedWrite = true; // set this to true, when GeneralWrite is requested to be written
@@ -180,6 +221,13 @@ private:
     size_t log_line_pos = 0;
     buddy::puppies::TimeSync time_sync;
 
+    struct LoadcellSamplerate {
+        static constexpr float expected = 1000.f / 320.f; ///< Expected sampling interval [ms]
+        uint32_t count;                                   ///< Number of samples processed in one fifo pull
+        uint32_t last_timestamp;                          ///< Timestamp of last sample
+        uint32_t last_processed_timestamp;                ///< Timestamp of last update of sampling rate
+    } loadcell_samplerate;
+
     const Decoder::Callbacks_t callbacks;
     CommunicationStatus write_general();
     CommunicationStatus write_tmc_enable();
@@ -193,8 +241,9 @@ private:
     void handle_dwarf_fault();
 
     // Register refresh control
-    uint32_t last_update_ms = 0;
-    uint32_t refresh_nr = 0;
+    uint32_t last_update_ms = 0; ///< Last time we updated registers
+    uint32_t refresh_nr = 0;     ///< Switch of different refresh cases
+    uint32_t last_pull_ms = 0;   ///< Last time we pulled data from fifo
 };
 
 extern std::array<Dwarf, DWARF_MAX_COUNT> dwarfs;

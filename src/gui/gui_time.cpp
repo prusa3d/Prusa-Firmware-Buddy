@@ -16,7 +16,7 @@ static Sw_Timer report_timer(REPORT_DELAY);
 
 void gui::TickLoop() {
     uint32_t now = ticks_ms();
-    if (current_tick > now) { //overflow
+    if (current_tick > now) { // overflow
         ++current_tick_overflows;
     }
     current_tick = now;

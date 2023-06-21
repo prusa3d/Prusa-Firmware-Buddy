@@ -9,7 +9,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     deque<string> stringKeys;
     CHECK(LoadTranslatedStringsFile("MO/keys.txt", &stringKeys));
 
-    //initialize translation providers
+    // initialize translation providers
     FILETranslationProvider providerCS("MO/cs.mo");
     FILETranslationProvider providerDE("MO/de.mo");
     FILETranslationProvider providerES("MO/es.mo");
@@ -17,7 +17,7 @@ TEST_CASE("providerFILE::Translations test", "[translator]") {
     FILETranslationProvider providerIT("MO/it.mo");
     FILETranslationProvider providerPL("MO/pl.mo");
 
-    //load transtaled strings
+    // load transtaled strings
     deque<string> csStrings, deStrings, esStrings, frStrings, itStrings, plStrings;
     REQUIRE(LoadTranslatedStringsFile("MO/cs.txt", &csStrings));
     REQUIRE(LoadTranslatedStringsFile("MO/de.txt", &deStrings));
@@ -74,6 +74,6 @@ TEST_CASE("providerFILE::bad files test", "[translator]") {
     REQUIRE(!bigEnd.EnsureFile());
     static const char *key = "Language";
     set<unichar> chars;
-    //the file is short and should return key string
+    // the file is short and should return key string
     REQUIRE(CompareStringViews(shortFile.GetText(key), string_view_utf8::MakeRAM((uint8_t *)key), chars, "ts"));
 }

@@ -1,11 +1,11 @@
-//ScreenHandler.hpp
+// ScreenHandler.hpp
 
 #pragma once
 #include "screen.hpp"
 #include "ScreenFactory.hpp"
 #include <array>
 
-//stack with screen creator methods
+// stack with screen creator methods
 inline constexpr size_t MAX_SCREENS = 32;
 struct screen_node {
     ScreenFactory::Creator creator;
@@ -27,12 +27,12 @@ class Screens {
     ScreenArray stack;
     ScreenArray::iterator stack_iterator; // points at creator of currently opened screen, init data not valid, because they are set when closed
 
-    ScreenFactory::UniquePtr current; // pointer obtained by screen creation
-    screen_node creator_node;         // set by Open
+    ScreenFactory::UniquePtr current;     // pointer obtained by screen creation
+    screen_node creator_node;             // set by Open
 
     bool close;
     bool close_all;
-    bool close_serial;
+    bool close_printing;
     bool display_reinitialized;
 
     uint32_t timeout_tick;
@@ -42,10 +42,10 @@ class Screens {
     static Screens *instance;
 
 public:
-    void Loop(); //call inside guiloop
+    void Loop();                                            // call inside guiloop
 
-    void Open(const ScreenFactory::Creator screen_creator); //remember creator and create later with default initialization parameter (like selected item in menu)
-    void Open(screen_node screen_creator);                  //remember creator and create later with stored initialization parameter
+    void Open(const ScreenFactory::Creator screen_creator); // remember creator and create later with default initialization parameter (like selected item in menu)
+    void Open(screen_node screen_creator);                  // remember creator and create later with stored initialization parameter
     bool IsOpenPending() const { return creator_node.creator != nullptr; }
 
     void PushBeforeCurrent(const ScreenFactory::Creator screen_creator);
@@ -57,9 +57,9 @@ public:
 
     void CloseAll();
 
-    void CloseSerial();
+    void ClosePrinting();
 
-    bool ConsumeClose(); //dialog can erase close signal and close itself
+    bool ConsumeClose();                                      // dialog can erase close signal and close itself
 
     size_t Count() { return stack_iterator - stack.begin(); } // count of closed screens under current one
 
@@ -129,11 +129,11 @@ public:
     }
 
 private:
-    void InnerLoop(); //call inside Loop of this class
+    void InnerLoop(); // call inside Loop of this class
 
     bool menu_timeout_enabled = true;
     using r_iter = std::reverse_iterator<const screen_node *>;
     static r_iter rfind_enabled_node(r_iter begin, r_iter end); // reverse find method
     using iter = const screen_node *;
-    static iter find_enabled_node(iter begin, iter end); // normal find method
+    static iter find_enabled_node(iter begin, iter end);        // normal find method
 };

@@ -2,15 +2,13 @@
 
 #include "config.h"
 #if 0
-    #ifdef LOADCELL_HX717
-
-        #include <stdio.h>
-        #include <stdlib.h>
-        #include "gui.hpp"
-        #include "loadcell.h"
-        #include "gpio.h"
-        #include "eeprom.h"
-        #include "screens.h"
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include "gui.hpp"
+    #include "loadcell.h"
+    #include "gpio.h"
+    #include "screens.h"
+    #include <configuration_store.hpp>
 
 typedef struct
 {
@@ -29,10 +27,10 @@ typedef struct
     window_text_t button_return;
     char str_out[32];
     char str_term[32];
-        #ifdef FILAMENT_SENSOR_ADC
+    #ifdef FILAMENT_SENSOR_ADC
     window_text_t text_terminal2;
     char str_term2[32];
-        #endif
+    #endif
 } screen_test_hx711_data_t;
 
 enum class Action : int {
@@ -45,7 +43,7 @@ enum class Action : int {
     UpdateHysteresis,
 };
 
-        #define pd ((screen_test_hx711_data_t *)screen->pdata)
+    #define pd ((screen_test_hx711_data_t *)screen->pdata)
 
 void screen_test_hx711_init(screen_t *screen) {
     uint16_t y;
@@ -64,19 +62,19 @@ void screen_test_hx711_init(screen_t *screen) {
     h = 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(x, y, w, h), &(pd->text_terminal));
-    pd->text_terminal.font = _font_term;
+    pd->text_terminal.set_font(_font_term);
 
     y += 22;
-        #ifdef FILAMENT_SENSOR_ADC
+    #ifdef FILAMENT_SENSOR_ADC
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(x, y, w, h), &(pd->text_terminal2));
-    pd->text_terminal2.font = _font_term;
-        #endif
+    pd->text_terminal2.set_font(_font_term);
+    #endif
     y += 22;
 
     w = 140;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(x, y, w, h), &(pd->text_scale));
-    pd->text_scale.font = _font_term;
+    pd->text_scale.set_font(_font_term);
     static const char t_scale[] = "scale []";
     pd->text_scale.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)t_scale));
 
@@ -91,7 +89,7 @@ void screen_test_hx711_init(screen_t *screen) {
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(x, y, w, h), &(pd->text_thrs_static));
-    pd->text_thrs_static.font = _font_term;
+    pd->text_thrs_static.set_font(_font_term);
     static const char t_thrs[] = "threshold (MBL) [g]";
     pd->text_thrs_static.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)t_thrs));
 
@@ -106,7 +104,7 @@ void screen_test_hx711_init(screen_t *screen) {
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(x, y, w, h), &(pd->text_thrs_continuous));
-    pd->text_thrs_continuous.font = _font_term;
+    pd->text_thrs_continuous.set_font(_font_term);
     static const char t_thrs_continuous[] = "threshold (home) [g]";
     pd->text_thrs_continuous.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)t_thrs_continuous));
 
@@ -120,7 +118,7 @@ void screen_test_hx711_init(screen_t *screen) {
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(x, y, w, h), &(pd->text_hyst));
-    pd->text_hyst.font = _font_term;
+    pd->text_hyst.set_font(_font_term);
     static const char t_hyst[] = "hysteresis [g]";
     pd->text_hyst.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)t_hyst));
 
@@ -135,7 +133,7 @@ void screen_test_hx711_init(screen_t *screen) {
     y += 22;
 
     window_create_ptr(WINDOW_CLS_TEXT, id0, rect_ui16(x, y, w, h), &(pd->text_out));
-    pd->text_out.font = _font_term;
+    pd->text_out.set_font(_font_term);
 
     y += 22;
 
@@ -165,10 +163,10 @@ int screen_test_hx711_event(screen_t *screen, window_t *window, uint8_t event, v
     if (event == WINDOW_EVENT_CLICK) {
         switch (Action((int)param)) {
         case Action::Save: // save
-            eeprom_set_var(EEVAR_LOADCELL_SCALE, variant8_flt(loadcell.GetScale()));
-            eeprom_set_var(EEVAR_LOADCELL_THRS_STATIC, variant8_flt(loadcell.GetThreshold(Loadcell::TareMode::Static)));
-            eeprom_set_var(EEVAR_LOADCELL_THRS_CONTINOUS, variant8_flt(loadcell.GetThreshold(Loadcell::TareMode::Continuous)));
-            eeprom_set_var(EEVAR_LOADCELL_HYST, variant8_flt(loadcell.GetHysteresis()));
+            config_store().loadcell_scale.set(loadcell.GetScale());
+            config_store().loadcell_threshold_static.set(loadcell.GetThreshold(Loadcell::TareMode::Static));
+            config_store().loadcell_threshold_continuous.set(loadcell.GetThreshold(Loadcell::TareMode::Continuous));
+            config_store().loadcell_hysteresis.set(loadcell.GetHysteresis());
             break;
         case Action::Close: // return
             screen_close();
@@ -198,10 +196,10 @@ int screen_test_hx711_event(screen_t *screen, window_t *window, uint8_t event, v
         pd->text_out.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pd->str_out));
         sprintf(pd->str_term, "LC: %d, RAW: %.1f", loadcell.GetMinZEndstop(), (double)loadcell.GetLoad());
         pd->text_terminal.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pd->str_term));
-        #ifdef FILAMENT_SENSOR_ADC
+    #ifdef FILAMENT_SENSOR_ADC
         //sprintf(pd->str_term2, "FS: %d, RAW: %ld", fsensor_probe, fsensor_value);
         pd->text_terminal2.SetText(string_view_utf8::MakeCPUFLASH((const uint8_t *)pd->str_term2));
-        #endif
+    #endif
     }
     return 0;
 }
@@ -218,7 +216,4 @@ screen_t screen_test_hx711 = {
 };
 
 screen_t *const get_scr_test_hx711() { return &screen_test_hx711; }
-
-    #endif //LOADCELL_HX717
-
 #endif // 0

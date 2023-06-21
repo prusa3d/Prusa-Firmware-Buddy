@@ -1,7 +1,7 @@
 #include "../common/sound.hpp"
 #include "PrusaGcodeSuite.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
-#include "eeprom.h"
+#include <version.h>
 
 #ifdef PRINT_CHECKING_Q_CMDS
 /**
@@ -13,7 +13,9 @@ void PrusaGcodeSuite::M862_4() {
     if (parser.boolval('Q')) {
         SERIAL_ECHO_START();
         char temp_buf[sizeof("  M862.4 P0123456789")];
-        snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.4 P%u"), eeprom_get_ui16(EEVAR_FW_VERSION));
+        char version_buffer[8] {};
+        fill_project_version_no_dots(version_buffer, sizeof(version_buffer));
+        snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.4 P%s"), version_buffer);
         SERIAL_ECHO(temp_buf);
         SERIAL_EOL();
     }

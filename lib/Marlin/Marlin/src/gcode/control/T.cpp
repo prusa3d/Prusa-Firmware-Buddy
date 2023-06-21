@@ -22,6 +22,10 @@
 
 #include "../gcode.h"
 #include "../../module/tool_change.h"
+#include "bsod_gui.hpp"
+#if ENABLED(PRUSA_TOOL_MAPPING)
+  #include "module/prusa/tool_mapper.hpp"
+#endif
 
 #if ENABLED(DEBUG_LEVELING_FEATURE) || EXTRUDERS > 1
   #include "../../module/motion.h"
@@ -43,6 +47,10 @@
  *
  *   F[units/min] Set the movement feedrate
  *   S1           Don't move the tool in XY after change
+ *   M0/1         Use tool mapping or not (default is yes)
+ *   Lx           Z Lift settings
+ *                 0 =- no lift, 1 = lift by max MBL diff, 2 = full lift(default)
+ *   Dx           0 = do not return in Z after lift, 1 = normal return
  *
  * For PRUSA_MMU2:
  *   T[n] Gcode to extrude at least 38.10 mm at feedrate 19.02 mm/s must follow immediately to load to extruder wheels.
@@ -50,7 +58,17 @@
  *   Tx   Same as T?, but nozzle doesn't have to be preheated. Tc requires a preheated nozzle to finish filament load.
  *   Tc   Load to nozzle after filament was prepared by Tc and nozzle is already heated.
  */
-void GcodeSuite::T(const uint8_t tool_index) {
+void GcodeSuite::T(uint8_t tool_index) {
+
+#if ENABLED(PRUSA_TOOL_MAPPING)
+  const bool map = !parser.seen('M') || parser.boolval('M', true);
+  if (map) {
+    tool_index = tool_mapper.to_physical(tool_index);
+    if (tool_index == tool_mapper.NO_TOOL_MAPPED) {
+        fatal_error("Toolchange to tool that is disabled by tool mapping", "PrusaToolChanger");
+    }
+  }
+#endif
 
   if (DEBUGGING(LEVELING)) {
     DEBUG_ECHOLNPAIR(">>> T(", tool_index, ")");
@@ -70,23 +88,26 @@ void GcodeSuite::T(const uint8_t tool_index) {
 
   #else
 
-    int move_type = !parser.seen('S') ? 0 : parser.intval('S', 1);
-    #if DISABLED(PRUSA_TOOLCHANGER)
-      constexpr bool no_tool = false;
-    #else
-      bool no_tool = (tool_index == PrusaToolChanger::MARLIN_NO_TOOL_PICKED
-        || active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
-    #endif
-    tool_return_t return_type =
-      ( (tool_index == active_extruder) || (move_type == 1) ?
-          tool_return_t::no_move // same tool or no move requested: don't move
-        : no_tool || (move_type == 2) || (!all_axes_known()) ?
-          tool_return_t::no_return // no tool, unknown position or no return requested: just lift/retract
-        : tool_return_t::to_destination
-      );
+    get_destination_from_command(); // sets destination = current position or user request
 
-    get_destination_from_command();
-    tool_change(tool_index, return_type);
+    // by default, Tx goes to specified destination or current position, unless following:
+    tool_return_t return_type = tool_return_t::to_destination;
+
+    // S1 was provided => do not return
+    int move_type = !parser.seen('S') ? 0 : parser.intval('S', 1);
+    if (move_type >= 1) return_type = tool_return_t::no_return;
+    #if ENABLED(PRUSA_TOOLCHANGER)
+    // toolchange to or from no tool is no_return, but if user provided X, Y or Z, return to that position
+    if (((tool_index == PrusaToolChanger::MARLIN_NO_TOOL_PICKED || active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED)) && destination == current_position) {
+    return_type = tool_return_t::no_return;
+    }
+    #endif
+
+    auto z_lift = static_cast<tool_change_lift_t>(parser.byteval('L', static_cast<uint8_t>(tool_change_lift_t::full_lift)));
+    if (z_lift > tool_change_lift_t::_last_item) z_lift = tool_change_lift_t::full_lift; // invalid input, use full_lift
+    bool z_down = parser.byteval('D', 1);
+
+    tool_change(tool_index, return_type, z_lift, z_down);
 
   #endif
 

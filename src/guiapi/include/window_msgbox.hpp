@@ -109,7 +109,7 @@ protected:
     Rect16 getTitleRect(); // icon must be initialized
     font_t *getTitleFont();
     padding_ui8_t getTitlePadding();
-
+    static constexpr uint8_t IconTitleDelimeter = 5;
     static constexpr padding_ui8_t TextPadding =
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
         { 0, 0, 0, 0 };

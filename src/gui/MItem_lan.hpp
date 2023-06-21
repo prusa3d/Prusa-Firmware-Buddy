@@ -49,8 +49,8 @@ protected:
 class MI_NET_INTERFACE_t : public WI_SWITCH_t<2> {
     constexpr static const char *const label = N_("Default");
 
-    constexpr static const char *str_eth = "Eth";    //do not translate
-    constexpr static const char *str_wifi = "Wi-Fi"; //do not translate
+    constexpr static const char *str_eth = "Eth";    // do not translate
+    constexpr static const char *str_wifi = "Wi-Fi"; // do not translate
 
 public:
     enum EventMask { value = 1 << 16 };
@@ -61,10 +61,10 @@ public:
 };
 
 class MI_NET_IP_t : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "LAN"; //do not translate
+    constexpr static const char *const label = "LAN";   // do not translate
 
-    constexpr static const char *str_static = "static"; //do not translate
-    constexpr static const char *str_DHCP = "DHCP";     //do not translate
+    constexpr static const char *str_static = "static"; // do not translate
+    constexpr static const char *str_DHCP = "DHCP";     // do not translate
 
 public:
     enum EventMask { value = 1 << 17 };
@@ -77,12 +77,12 @@ public:
 class MI_NET_IP_VER_t : public WI_SWITCH_t<2> {
     constexpr static const char *const label = N_("Protocol");
 
-    constexpr static const char *str_v4 = "IPv4"; //do not translate
-    constexpr static const char *str_v6 = "IPv6"; //do not translate
+    constexpr static const char *str_v4 = "IPv4"; // do not translate
+    constexpr static const char *str_v6 = "IPv6"; // do not translate
 
 public:
     MI_NET_IP_VER_t();
-    //virtual void OnChange(size_t old_index) override; //TODO
+    // virtual void OnChange(size_t old_index) override; //TODO
 };
 
 #define UNKNOWN_ADDR "N/A"

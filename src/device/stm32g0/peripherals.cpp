@@ -12,7 +12,7 @@ DMA_HandleTypeDef hdma_adc1;
 //
 // Timers
 //
-//TIM_HandleTypeDef htim14; used as time source by HAL
+// TIM_HandleTypeDef htim14; used as time source by HAL
 
 static void Error_Handler() {
     bsod("peripherals");

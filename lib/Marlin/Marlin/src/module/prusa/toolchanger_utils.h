@@ -20,6 +20,7 @@ public:
     static constexpr auto SLOW_ACCELERATION_MM_S2 = 400;          ///< Acceleration for parking and picking
     static constexpr auto FORCE_MOVE_MM_S = 30;                   ///< Not used here, feedrate for locking and unlocking the toolchange clamps
     static constexpr auto SLOW_MOVE_MM_S = 60;                    ///< Feedrate for tool picking and parking
+    static constexpr auto Z_HOP_FEEDRATE_MM_S = 10.0f;            ///< Feedrate for z hop
     static constexpr auto TRAVEL_MOVE_MM_S = 400;                 ///< Feedrate for moves around dock
     static constexpr uint32_t WAIT_TIME_TOOL_SELECT = 3000;       ///< Max wait for puppytask tool switch [ms], needs a lot of time if there is a hiccup in puppy communication
     static constexpr uint32_t WAIT_TIME_TOOL_PARKED_PICKED = 200; ///< Max wait for cheese to detect magnet [ms]
@@ -29,6 +30,15 @@ public:
     static constexpr auto DOCK_DEFAULT_FIRST_X_MM = 25.0f;
     static constexpr auto DOCK_DEFAULT_Y_MM = 455.0f;
     static constexpr auto DOCK_INVALID_OFFSET_MM = 6; // TODO: Tighten this once 5mm smaller XLs are phased out
+    static constexpr auto PURGE_Y_POSITION = 380.0f;
+    static constexpr auto DOCK_WIGGLE_OFFSET = 0.5f;  ///< Relative offset from intended position when wiggling the tool to detect magnet [mm]
+    static constexpr auto PARK_X_OFFSET_1 = -10.0f;   ///< Offset from dock_x when tool can be moved into the dock [mm]
+    static constexpr auto PARK_X_OFFSET_2 = -9.0f;    ///< Offset from dock_x when tool is being unlocked [mm]
+    static constexpr auto PARK_X_OFFSET_3 = +0.5f;    ///< Offset from dock_x when tool is fully unlocked [mm]
+    static constexpr auto PICK_Y_OFFSET = -5.0f;      ///< Offset from dock_y before head touches the parked dwarf [mm]
+    static constexpr auto PICK_X_OFFSET_1 = -11.8f;   ///< Offset from dock_x when tool is being locked [mm]
+    static constexpr auto PICK_X_OFFSET_2 = -12.8f;   ///< Offset from dock_x when tool is fully locked [mm]
+    static constexpr auto PICK_X_OFFSET_3 = -9.9f;    ///< Offset from dock_x when tool can be pulled from the dock area [mm]
 
     PrusaToolChangerUtils();
 
@@ -53,11 +63,6 @@ public:
      * @return true on success, false on communication error
      */
     bool update();
-
-    /**
-     * @brief Performs tool detect, auto detect active tool
-     */
-    void tool_detect();
 
     /**
      * @brief Ger marlin tool index of a physically picked tool.
@@ -176,6 +181,75 @@ protected:
      * @param dwarf force active_tool to be this dwarf, or nullptr for no tool
      */
     void force_marlin_picked_tool(buddy::puppies::Dwarf *dwarf);
+
+    /**
+     * @brief Get maximum difference of MBL height
+     * @return float
+     */
+    float get_mbl_z_lift_height() const;
+
+    /**
+     * @brief Structure to sample and restore planner feedrate and acceleration.
+     * This is important for powerpanic which stores the original values and not temporary values used while changing tools.
+     */
+    class ConfRestorer {
+        float sampled_travel_acceleration;   ///< Copy of planner.settings.travel_acceleration
+        feedRate_t sampled_feedrate_mm_s;    ///< Copy of feedrate_mm_s
+        int16_t sampled_feedrate_percentage; ///< Copy of feedrate_percentage
+        std::atomic<bool> sampled;           ///< True if configuration is stored
+
+    public:
+        ConfRestorer()
+            : sampled(false) {}
+
+        /**
+         * @brief Sample planner feedrate and acceleration.
+         */
+        void sample();
+
+        /**
+         * @brief Restore planner feedrate and acceleration.
+         */
+        void restore() {
+            restore_acceleration();
+            restore_feedrate();
+        }
+
+        /**
+         * @brief Try to restore planner feedrate and acceleration.
+         * @return true if feedrate and acceleration were restored
+         */
+        bool try_restore() {
+            if (sampled.load()) {
+                restore();
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * @brief Restore and clear planner feedrate and acceleration.
+         */
+        void restore_clear();
+
+        /**
+         * @brief Restore planner acceleration.
+         */
+        void restore_acceleration();
+
+        /**
+         * @brief Restore planner feedrate.
+         */
+        void restore_feedrate();
+    } conf_restorer;
+
+public:
+    /**
+     * @brief Restore planner feedrate and acceleration.
+     * This is for powerpanic to restore original planner config if panic happens during toolchange.
+     * @return true if feedrate and acceleration were restored
+     */
+    bool try_restore() { return conf_restorer.try_restore(); }
 };
 
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/

@@ -10,7 +10,7 @@
 
 typedef uint32_t color_t;
 
-//color constants
+// color constants
 static const color_t COLOR_BLACK = 0x00000000L;
 static const color_t COLOR_WHITE = 0x00ffffffL;
 static const color_t COLOR_RED = 0x000000ffL;
@@ -174,11 +174,11 @@ using padding_ui8_t = padding_t<uint8_t>;
 using padding_ui16_t = padding_t<uint16_t>;
 
 struct bitmap_t {
-    uint16_t w;  //bitmap width [pixels]
-    uint16_t h;  //bitmap height [pixels]
-    uint8_t bpp; //bits per pixel
-    uint8_t bpr; //bytes per row
-    void *ppx;   //pixel data pointer
+    uint16_t w;  // bitmap width [pixels]
+    uint16_t h;  // bitmap height [pixels]
+    uint8_t bpp; // bits per pixel
+    uint8_t bpr; // bytes per row
+    void *ppx;   // pixel data pointer
 };
 
 inline point_i16_t point_i16(int16_t x, int16_t y) {

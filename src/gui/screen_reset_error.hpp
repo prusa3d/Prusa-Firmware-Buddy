@@ -1,4 +1,4 @@
-//screen_reset_perror.hpp
+// screen_reset_perror.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"

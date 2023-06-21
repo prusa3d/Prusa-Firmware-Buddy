@@ -4,6 +4,7 @@
  */
 
 #include "eeprom_v22.hpp"
+#include "selftest_result.hpp"
 namespace eeprom::current {
 
 #pragma pack(push)
@@ -14,7 +15,7 @@ namespace eeprom::current {
  * without head and crc
  */
 struct vars_body_t : public eeprom::v22::vars_body_t {
-    SelftestResult SELFTEST_RESULT;
+    SelftestResultV23 SELFTEST_RESULT;
     bool NOZZLE_SOCK;
     uint8_t NOZZLE_TYPE;
 };

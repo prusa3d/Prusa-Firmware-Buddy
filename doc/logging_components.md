@@ -19,8 +19,9 @@ This file is generated automatically so don't edit it directly
 - EspFlash: LOG_SEVERITY_DEBUG, lib/WUI/esp_flash.cpp
 - FSM: LOG_SEVERITY_INFO, src/common/fsm_types.cpp
 - FSensor: LOG_SEVERITY_INFO, src/common/filament_sensors_handler.cpp
-- FileSystem: LOG_SEVERITY_INFO, src/buddy/filesystem.c
+- FileSystem: LOG_SEVERITY_INFO, src/buddy/filesystem.cpp
 - GUI: LOG_SEVERITY_DEBUG, src/gui/logger.cpp
+- I2C: LOG_SEVERITY_INFO, src/device/stm32f4/peripherals.cpp
 - Led: LOG_SEVERITY_INFO, src/gui/led_animations/printer_animation_state.cpp
 - Loadcell: LOG_SEVERITY_INFO, src/common/loadcell.cpp
 - MMU2: LOG_SEVERITY_INFO, src/common/appmain.cpp
@@ -41,11 +42,11 @@ This file is generated automatically so don't edit it directly
 - Puppies: LOG_SEVERITY_DEBUG, src/puppies/puppy_task.cpp
 - Resources: LOG_SEVERITY_DEBUG, src/resources/bootstrap.cpp
 - Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/i_selftest.cpp
-- Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.c
+- Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.cpp
 - Touch: LOG_SEVERITY_INFO, src/hw/GT911.cpp
-- USBDevice: LOG_SEVERITY_INFO, src/buddy/usb_device.c
-- USBHost: LOG_SEVERITY_INFO, src/buddy/usbh_conf.c
-- USBMSC: LOG_SEVERITY_DEBUG, src/buddy/usb_device_msc.c
+- USBDevice: LOG_SEVERITY_INFO, src/buddy/usb_device.cpp
+- USBHost: LOG_SEVERITY_INFO, src/buddy/usbh_conf.cpp
+- USBMSC: LOG_SEVERITY_DEBUG, src/buddy/usb_device_msc.cpp
 - W25X: LOG_SEVERITY_DEBUG, src/common/w25x.cpp
 - WUI: LOG_SEVERITY_DEBUG, lib/WUI/wui.cpp
 - connect: LOG_SEVERITY_DEBUG, src/connect/connect.cpp

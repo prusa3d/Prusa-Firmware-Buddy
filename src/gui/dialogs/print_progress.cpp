@@ -6,11 +6,11 @@
 
 #include "print_progress.hpp"
 #include "GuiDefaults.hpp"
-#include "eeprom.h"
 #include "menu_spin_config.hpp"
 #include "fonts.hpp"
 #include "gcode_file.h"
 #include "gcode_thumb_decoder.h"
+#include <configuration_store.hpp>
 
 constexpr static const char *finish_print_text = N_("Print finished");
 constexpr static const char *stop_print_text = N_("Print stopped");
@@ -27,31 +27,31 @@ PrintProgress::PrintProgress(window_t *parent)
     , time_end_format(PT_t::init)
     , mode(ProgressMode_t::PRINTING_INIT) {
 
-    info_text.font = resource_font(IDR_FNT_BIG);
+    info_text.set_font(resource_font(IDR_FNT_BIG));
     info_text.SetPadding({ 0, 0, 0, 0 });
     info_text.SetAlignment(Align_t::LeftCenter());
     info_text.SetText(_(finish_print_text));
     info_text.Hide();
 
-    estime_label.font = resource_font(IDR_FNT_SMALL);
+    estime_label.set_font(resource_font(IDR_FNT_SMALL));
     estime_label.SetPadding({ 0, 0, 0, 0 });
     estime_label.SetAlignment(Align_t::LeftTop());
     estime_label.SetTextColor(COLOR_SILVER);
     updateEsTime();
 
-    estime_value.font = resource_font(IDR_FNT_BIG);
+    estime_value.set_font(resource_font(IDR_FNT_BIG));
     estime_value.SetPadding({ 0, 0, 0, 0 });
     estime_value.SetAlignment(Align_t::LeftTop());
 
     progress_num.SetAlignment(Align_t::Center());
 #ifdef USE_ILI9488
-    progress_num.SetFont(resource_font(IDR_FNT_LARGE));
+    progress_num.set_font(resource_font(IDR_FNT_LARGE));
 #elif defined(USE_ST7789)
-    progress_num.SetFont(resource_font(IDR_FNT_BIG));
+    progress_num.set_font(resource_font(IDR_FNT_BIG));
 #endif
-    gcode_info.initFile(GCodeInfo::GI_INIT_t::PRINT); // initialize has_..._thumbnail values
+    gcode_info.initFile(GCodeInfo::GI_INIT_t::THUMBNAIL); // initialize has_..._thumbnail values
 
-    if (!gcode_info.has_progress_thumbnail) {
+    if (!gcode_info.has_progress_thumbnail()) {
         // Permanently disable progress as it makes no sense to look
         // for thumbnail later - there is none.
         disableDialog();
@@ -59,7 +59,7 @@ PrintProgress::PrintProgress(window_t *parent)
 }
 
 uint16_t PrintProgress::getTime() {
-    int val = variant8_get_ui16(eeprom_get_var(EEVAR_PRINT_PROGRESS_TIME));
+    int val = config_store().print_progress_time.get();
     val = std::clamp(val, SpinCnf::print_progress.Min(), SpinCnf::print_progress.Max());
     return val;
 }
@@ -98,16 +98,17 @@ void PrintProgress::UpdateTexts() {
 
 void PrintProgress::updateLoop(visibility_changed_t visibility_changed) {
 
-    UpdateTexts();
-
     if (thumbnail.updatePercentage(progress_num.getPercentage())) {
         thumbnail.Invalidate();
     }
 
-    if (visibility_changed == visibility_changed_t::yes) {
+    // ProgressMode_t::STOPPED_INIT invokes redrawWhole(), due to black screen bug during Stopping from plink/Connect
+    if (visibility_changed == visibility_changed_t::yes || mode == ProgressMode_t::STOPPED_INIT) {
         thumbnail.redrawWhole();
         thumbnail.Invalidate();
     }
+
+    UpdateTexts();
 }
 
 void PrintProgress::updateEsTime() {
@@ -136,7 +137,7 @@ void PrintProgress::Pause() {
 
 void PrintProgress::Resume() {
     thumbnail.pauseReinit();
-    if (gcode_info.has_progress_thumbnail) {
+    if (gcode_info.has_progress_thumbnail()) {
         resumeDialog();
     }
 }

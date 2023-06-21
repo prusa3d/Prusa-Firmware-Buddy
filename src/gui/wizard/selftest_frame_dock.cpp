@@ -9,17 +9,23 @@ static constexpr size_t txt_h = WizardDefaults::txt_h;
 static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::progress_row_h;
 static constexpr size_t row_3 = row_2 + txt_h;
 static constexpr size_t row_4 = row_3 + txt_h;
+static constexpr size_t row_5 = row_4 + txt_h;
+static constexpr size_t row_6 = row_5 + txt_h;
+static constexpr size_t row_7 = row_6 + txt_h;
+static constexpr size_t row_8 = row_7 + txt_h;
+static constexpr size_t row_9 = row_8 + txt_h;
 
 SelftestFrameDock::SelftestFrameDock(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _("Dock Calibration"), 1)
     , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::AxisZ) // ItemAxisZ to show Z coord while moving up
     , progress(this, WizardDefaults::row_1)
     , text_info(this, get_info_text_rect(), is_multiline::yes)
+    , text_estimate(this, get_estimate_text_rect(), is_multiline::no)
     , icon_warning(this, &png::printer_is_moving, point_i16(col_texts, row_4))
     , text_warning(this, Rect16(col_texts + png::warning_48x48.w + 20, row_4, WizardDefaults::X_space - png::warning_48x48.w - 20, 3 * txt_h), is_multiline::yes)
     , icon_info(this, &png::parking1, text_info.GetRect().TopRight())
     , qr(this, get_info_icon_rect() + Rect16::Left_t(25), LINK)
-    , text_link(this, Rect16(0, row_2 + txt_h * 7, GuiDefaults::ScreenWidth - WizardDefaults::MarginRight, txt_h), is_multiline::no) {
+    , text_link(this, get_link_text_rect(), is_multiline::no) {
     qr.Hide();
     text_link.Hide();
     icon_warning.Hide();
@@ -31,10 +37,16 @@ SelftestFrameDock::SelftestFrameDock(window_t *parent, PhasesSelftest ph, fsm::P
 void SelftestFrameDock::change() {
     const SelftestDocks_t dock_data(data_current);
     set_name(dock_data);
+    set_remaining();
+    invalidate();
 
     switch (phase_current) {
     case PhasesSelftest::Dock_needs_calibration:
         set_prologue();
+        break;
+
+    case PhasesSelftest::Dock_move_away:
+        set_warning_layout(_(MOVE_AWAY));
         break;
 
     case PhasesSelftest::Dock_wait_user_park1:
@@ -69,16 +81,20 @@ void SelftestFrameDock::change() {
         set_warning_layout(_(MEASURING));
         break;
 
-    case PhasesSelftest::Dock_wait_user_install_pins:
-        set_info_layout(_(INSTALL_DOCK_PINS), &png::tighten_screw3);
-        break;
-
     case PhasesSelftest::Dock_wait_user_tighten_bottom_screw:
         set_info_layout(_(TIGHTEN_BOT), &png::tighten_screw2);
         break;
 
+    case PhasesSelftest::Dock_wait_user_install_pins:
+        set_info_layout(_(INSTALL_DOCK_PINS), &png::tighten_screw3);
+        break;
+
     case PhasesSelftest::Dock_selftest_park_test:
         set_warning_layout(_(PARKING_TEST));
+        break;
+
+    case PhasesSelftest::Dock_selftest_failed:
+        set_info_layout(_(TEST_FAILED), &png::error_white_48x48);
         break;
 
     case PhasesSelftest::Dock_calibration_success:
@@ -94,6 +110,7 @@ void SelftestFrameDock::change() {
         break;
     }
 }
+
 void SelftestFrameDock::set_name(SelftestDocks_t data) {
     static const char fmt2Translate[] = N_("Dock %d calibration");
     size_t buff_pos = 0;
@@ -111,13 +128,28 @@ void SelftestFrameDock::set_name(SelftestDocks_t data) {
 
     SetName(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(name_buff.data())));
 }
+
+void SelftestFrameDock::set_remaining() {
+    // Get translated message into a standard char array as the string_view_utf8 dows not allow direct access to underlying memory.
+    char temp_remaining_buff[50];
+    _(REMAINING).copyToRAM(temp_remaining_buff, std::size(temp_remaining_buff));
+
+    // Format the resulting string, build a string view on top of the static memory, and set the text of the gui element
+    snprintf(remaining_buff.data(), std::size(remaining_buff), temp_remaining_buff, get_phase_remaining_minutes());
+    text_estimate.SetText(string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(remaining_buff.data())));
+}
+
 void SelftestFrameDock::set_warning_layout(string_view_utf8 txt) {
+    qr.Hide();
+    text_link.Hide();
     text_info.Hide();
     icon_info.Hide();
+    text_estimate.Hide();
     icon_warning.Show();
     text_warning.SetText(txt);
     text_warning.Show();
 }
+
 void SelftestFrameDock::set_info_layout(string_view_utf8 txt, const png::Resource *res) {
     qr.Hide();
     text_link.Hide();
@@ -130,7 +162,9 @@ void SelftestFrameDock::set_info_layout(string_view_utf8 txt, const png::Resourc
     icon_info.SetAlignment(Align_t::LeftTop());
     icon_info.SetRes(res);
     icon_info.Show();
+    text_estimate.Show();
 }
+
 void SelftestFrameDock::set_prologue() {
     text_info.SetRect(Rect16(col_texts, row_2, WizardDefaults::X_space * 1 / 2, txt_h * 6));
     text_info.SetText(_(PROLOGUE));
@@ -141,10 +175,15 @@ void SelftestFrameDock::set_prologue() {
     text_link.SetText(_(LINK));
     text_link.SetAlignment(Align_t::Right());
     text_link.Show();
+    text_estimate.Show();
 }
+
 const char *SelftestFrameDock::get_phase_name() {
     switch (phase_current) {
     case PhasesSelftest::Dock_needs_calibration:
+        return nullptr;
+
+    case PhasesSelftest::Dock_move_away:
         return nullptr;
 
     case PhasesSelftest::Dock_wait_user_park1:
@@ -157,7 +196,7 @@ const char *SelftestFrameDock::get_phase_name() {
     case PhasesSelftest::Dock_wait_user_remove_pins:
         return N_("Loosen pins");
     case PhasesSelftest::Dock_wait_user_lock_tool:
-        return N_("Lock tool");
+        return N_("Lock the tool");
 
     case PhasesSelftest::Dock_wait_user_tighten_bottom_screw:
     case PhasesSelftest::Dock_wait_user_tighten_top_screw:
@@ -170,6 +209,7 @@ const char *SelftestFrameDock::get_phase_name() {
         return N_("Install pins");
 
     case PhasesSelftest::Dock_selftest_park_test:
+    case PhasesSelftest::Dock_selftest_failed:
         return N_("Parking test");
 
     case PhasesSelftest::Dock_calibration_success:
@@ -179,9 +219,44 @@ const char *SelftestFrameDock::get_phase_name() {
         return nullptr;
     }
 }
+
+int SelftestFrameDock::get_phase_remaining_minutes() {
+    switch (phase_current) {
+    case PhasesSelftest::Dock_needs_calibration:
+    case PhasesSelftest::Dock_move_away:
+    case PhasesSelftest::Dock_wait_user_park1:
+    case PhasesSelftest::Dock_wait_user_park2:
+    case PhasesSelftest::Dock_wait_user_park3:
+        return 3;
+    case PhasesSelftest::Dock_wait_user_remove_pins:
+    case PhasesSelftest::Dock_wait_user_loosen_pillar:
+    case PhasesSelftest::Dock_wait_user_lock_tool:
+    case PhasesSelftest::Dock_wait_user_tighten_top_screw:
+        return 2;
+    case PhasesSelftest::Dock_measure:
+    case PhasesSelftest::Dock_wait_user_tighten_bottom_screw:
+    case PhasesSelftest::Dock_wait_user_install_pins:
+        return 1;
+    case PhasesSelftest::Dock_selftest_park_test:
+    case PhasesSelftest::Dock_selftest_failed:
+    case PhasesSelftest::Dock_calibration_success:
+    default:
+        return 0;
+    }
+}
+
 constexpr Rect16 SelftestFrameDock::get_info_icon_rect() {
     return Rect16(col_texts + WizardDefaults::X_space * 2 / 3 - 30, row_2, WizardDefaults::X_space * 1 / 3, txt_h * 8);
 };
+
 constexpr Rect16 SelftestFrameDock::get_info_text_rect() {
-    return Rect16(col_texts, row_2, WizardDefaults::X_space * 2 / 3 - 30, txt_h * 8);
+    return Rect16(col_texts, row_2, WizardDefaults::X_space * 2 / 3 - 30, txt_h * 7);
+}
+
+constexpr Rect16 SelftestFrameDock::get_estimate_text_rect() {
+    return Rect16(col_texts, row_9, 7 * WizardDefaults::X_space / 16, txt_h);
+}
+
+constexpr Rect16 SelftestFrameDock::get_link_text_rect() {
+    return Rect16(get_estimate_text_rect().Right(), row_2 + txt_h * 7, GuiDefaults::ScreenWidth - WizardDefaults::MarginRight, txt_h);
 }

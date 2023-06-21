@@ -24,7 +24,7 @@ static const dumpmessage_t *dumpmessage_flash = reinterpret_cast<dumpmessage_t *
 #define __STR(arg) _STR(arg)
 
 static inline void dump_regs_SCB(void) {
-    //copy entire SCB to CCRAM
+    // copy entire SCB to CCRAM
     memcpy((uint8_t *)DUMP_REGS_SCB_ADDR, SCB, DUMP_REGS_SCB_SIZE);
 }
 
@@ -151,7 +151,7 @@ int dump_save_to_usb(const char *fn) {
     uint32_t bw_total = 0;
     fd = fopen(fn, "w");
     if (fd != NULL) {
-        //save dumped RAM and CCRAM from xflash
+        // save dumped RAM and CCRAM from xflash
         for (addr = 0; addr < dump_xflash_size; addr += dump_buff_size) {
             memset(buff, 0, dump_buff_size);
             w25x_rd_data(addr, buff, dump_buff_size);
@@ -164,7 +164,7 @@ int dump_save_to_usb(const char *fn) {
             }
             bw_total += bw;
         }
-        //save OTP
+        // save OTP
         for (addr = 0; addr < DUMP_OTP_SIZE; addr += dump_buff_size) {
             bw = fwrite((void *)(DUMP_OTP_ADDR + addr), 1, dump_buff_size, fd);
             if (bw <= 0) {
@@ -172,7 +172,7 @@ int dump_save_to_usb(const char *fn) {
             }
             bw_total += bw;
         }
-        //save FLASH
+        // save FLASH
         for (addr = 0; addr < DUMP_FLASH_SIZE; addr += dump_buff_size) {
             bw = fwrite((void *)(DUMP_FLASH_ADDR + addr), 1, dump_buff_size, fd);
             if (bw <= 0) {
@@ -196,7 +196,7 @@ void dump_hardfault_test_0(void) {
     test_0_var = 0;
 }
 
-//integer div by zero test
+// integer div by zero test
 int dump_hardfault_test_1(void) {
     volatile int b = 0;
     volatile int c = 1 / b;

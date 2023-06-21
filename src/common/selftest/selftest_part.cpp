@@ -22,7 +22,7 @@ IPartHandler::IPartHandler(size_t sz, SelftestParts part)
 }
 
 bool IPartHandler::Loop() {
-    //exit idle state
+    // exit idle state
     if (current_state == -1)
         current_state = 0; // TODO i might want to use Start() somewhere in code instead
 
@@ -65,7 +65,7 @@ bool IPartHandler::Loop() {
         return true;
     }
 
-    //we should never get here
+    // we should never get here
     return false;
 }
 
@@ -87,7 +87,7 @@ bool IPartHandler::isInProgress() const {
 }
 
 TestResult IPartHandler::GetResult() const {
-    //cannot use switch, cases would be evaluated at runtime
+    // cannot use switch, cases would be evaluated at runtime
     if (current_state == IndexAborted())
         return TestResult_Skipped;
     if (current_state == IndexFinished())

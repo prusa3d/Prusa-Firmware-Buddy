@@ -10,6 +10,7 @@
 # pylint: disable=line-too-long
 import json
 import os
+import pip
 import platform
 import shutil
 import stat
@@ -23,6 +24,11 @@ from urllib.request import urlretrieve
 
 project_root_dir = Path(__file__).resolve().parent.parent
 dependencies_dir = project_root_dir / '.dependencies'
+
+if int(pip.__version__.split('.')[0]) >= 23:
+    print(
+        'pip version must be < 23.0 to successfully install littlefs-python=0.4.0, sorry; try running `pip install pip==22`',
+        file=sys.stderr)
 
 # All dependencies of this project.
 #
@@ -53,31 +59,35 @@ dependencies = {
         }
     },
     'clang-format': {
-        'version': '9.0.0-noext',
+        'version': '16-83817c2f',
         'url': {
-            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-linux.zip',
-            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-noext-win.zip',
-            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-9.0.0-darwin.zip',
+            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-linux.zip',
+            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-windows.zip',
+            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/clang-format-16-83817c2f-macosx.zip',
         }
     },
     'bootloader-mini': {
-        'version': '2.0.2',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-v2.0.2-FF7C65BF-1853-43B3-869C-C846FA39AB75.zip',
+        'version': '2.0.8',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.0.8-3B8FF97C-B4C2-415C-87F6-3F177FD80F4A.zip',
     },
     'bootloader-mk4': {
-        'version': '2.0.7',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.0.7-ECA15BB2-B24D-4F55-B83C-A362BA4998EE.zip',
+        'version': '2.0.8',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.0.8-D9CA7958-9971-45A6-B8FF-64CC14DF3E27.zip',
     },
     'bootloader-xl': {
-        'version': '2.0.7',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.0.7-2BB59278-CED8-4CA6-AE95-4692646671D5.zip',
+        'version': '2.0.8',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.0.8-C266D037-5B76-4277-A92D-FC44B8C64D41.zip',
     },
-    'mini403': {
-        'version': '0.5.4',
+    'bootloader-ix': {
+        'version': '2.0.8',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.0.8-3195E1CC-B211-4C95-BC3B-E7779D52E82B.zip',
+    },
+    'mini404': {
+        'version': '0.9.9',
         'url': {
-            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini403-85e8920-v0.5.4-linux.tar.bz2',
-            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini403-85e8920-v0.5.4-w64.zip',
-            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini403-85e8920-v0.5.4-macos.tar.bz2',
+            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-v0.9.9-linux.tar.bz2',
+            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-v0.9.9-w64.zip',
+            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-v0.9.9-macos.tar.bz2',
         }
     },
     'cmsis-svd': {
@@ -85,7 +95,7 @@ dependencies = {
         'url': 'https://github.com/posborne/cmsis-svd/archive/45a1e90afe488f01df94b3e0eb89a67c1a900a9a.zip',
     },
 }
-pip_dependencies = ['ecdsa', 'polib', 'pyyaml', 'littlefs-python',"Pillow"]
+pip_dependencies = ['ecdsa', 'polib', 'pyyaml', 'littlefs-python<0.5.0', 'Pillow', 'click']
 # yapf: enable
 
 

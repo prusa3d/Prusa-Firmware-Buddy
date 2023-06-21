@@ -14,4 +14,4 @@ uint8_t ini_load_file(ini_handler handler, void *user_struct);
 #ifdef __cplusplus
 } // extern "C"
 #endif //__cplusplus
-#endif //INI_HANDLER_H
+#endif // INI_HANDLER_H

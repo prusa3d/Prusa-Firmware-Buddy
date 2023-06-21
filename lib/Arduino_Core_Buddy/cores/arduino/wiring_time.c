@@ -1,4 +1,4 @@
-//wiring_time.c
+// wiring_time.c
 
 #include "Arduino.h"
 #include "cmsis_os.h"

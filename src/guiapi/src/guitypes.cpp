@@ -1,4 +1,4 @@
-//guitypes.cpp
+// guitypes.cpp
 
 #include "guitypes.hpp"
 #include <algorithm>

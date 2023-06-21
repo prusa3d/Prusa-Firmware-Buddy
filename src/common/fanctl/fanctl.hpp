@@ -1,19 +1,12 @@
-#include <device/board.h>
-#include "Marlin/src/inc/MarlinConfig.h"
-#include <array>
+#pragma once
+#include "c_fan_ctl.hpp"
 
-#if BOARD_IS_XLBUDDY
-    #include "on_puppy/CFanCtlOnPuppy.hpp"
+class Fans {
+    Fans() = default;
+    Fans(const Fans &) = default;
 
-typedef CFanCtlOnPuppy CFanCtl;
-
-#else
-    #include "local/CFanCtlLocal.hpp"
-
-typedef CFanCtlLocal CFanCtl;
-#endif
-
-extern std::array<CFanCtl, HOTENDS> fanCtlPrint;
-extern std::array<CFanCtl, HOTENDS> fanCtlHeatBreak;
-
-void fanctl_tick();
+public:
+    static CFanCtl &print(size_t index);
+    static CFanCtl &heat_break(size_t index);
+    static void tick();
+};

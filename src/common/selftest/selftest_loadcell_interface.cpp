@@ -8,18 +8,18 @@
 #include "selftest_loadcell_type.hpp"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
-#include "eeprom.h"
 #include "selftest_tool_helper.hpp"
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
 #endif
+#include <configuration_store.hpp>
 
 namespace selftest {
 
 static std::array<SelftestLoadcell_t, HOTENDS> staticLoadCellResult;
 
-bool phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pLoadcell, const std::span<const LoadcellConfig_t> config) {
+TestReturn phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pLoadcell, const std::span<const LoadcellConfig_t> config) {
 
     for (uint i = 0; i < config.size(); ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
@@ -30,9 +30,9 @@ bool phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> 
             m_pLoadcell[i] = selftest::Factory::CreateDynamical<CSelftestPart_Loadcell>(config[i],
                 staticLoadCellResult[i],
                 &CSelftestPart_Loadcell::stateMoveUp, &CSelftestPart_Loadcell::stateMoveUpInit, &CSelftestPart_Loadcell::stateMoveUpWaitFinish,
+                &CSelftestPart_Loadcell::stateCooldownInit, &CSelftestPart_Loadcell::stateCooldown, &CSelftestPart_Loadcell::stateCooldownDeinit,
                 &CSelftestPart_Loadcell::stateToolSelectInit, &CSelftestPart_Loadcell::stateToolSelectWaitFinish,
                 &CSelftestPart_Loadcell::stateConnectionCheck,
-                &CSelftestPart_Loadcell::stateCooldownInit, &CSelftestPart_Loadcell::stateCooldown, &CSelftestPart_Loadcell::stateCooldownDeinit,
                 &CSelftestPart_Loadcell::stateCycleMark,
                 &CSelftestPart_Loadcell::stateAskAbortInit, &CSelftestPart_Loadcell::stateAskAbort,
                 &CSelftestPart_Loadcell::stateTapCheckCountDownInit, &CSelftestPart_Loadcell::stateTapCheckCountDown,
@@ -60,8 +60,8 @@ bool phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> 
         return true;
     }
 
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
+    bool skipped = false; ///< Return value whether to run next test
+    SelftestResult eeres = config_store().selftest_result.get();
     for (uint i = 0; i < m_pLoadcell.size(); ++i) {
         if (!is_tool_selftest_enabled(i, tool_mask)) {
             continue;
@@ -74,10 +74,16 @@ bool phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> 
             eeres.tools[i].loadcell = m_pLoadcell[i]->GetResult();
         }
 
+        // If any test failed, do not run next test
+        if (m_pLoadcell[i]->GetResult() != TestResult_Passed) {
+            skipped = true;
+        }
+
         delete m_pLoadcell[i];
         m_pLoadcell[i] = nullptr;
     }
-    eeprom_set_selftest_results(&eeres);
-    return false;
+    config_store().selftest_result.set(eeres);
+
+    return TestReturn(false, skipped);
 }
 } // namespace selftest

@@ -8,7 +8,9 @@ target_sources(
             http_lifetime.cpp
             link_content/basic_gets.cpp
             link_content/previews.cpp
-            link_content/prusa_link_api.cpp
+            link_content/prusa_api_helpers.cpp
+            link_content/prusa_link_api_octo.cpp
+            link_content/prusa_link_api_v1.cpp
             link_content/static_file.cpp
             link_content/usb_files.cpp
             netdev.c
@@ -29,6 +31,8 @@ target_sources(
             nhttp/server.cpp
             nhttp/static_mem.cpp
             nhttp/status_page.cpp
+            nhttp/status_renderer.cpp
+            nhttp/transfer_renderer.cpp
             nhttp/upload_state.cpp
             random.cpp
             sntp/sntp.c

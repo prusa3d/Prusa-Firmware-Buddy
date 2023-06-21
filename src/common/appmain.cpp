@@ -1,4 +1,4 @@
-//appmain.cpp - arduino-like app start
+// appmain.cpp - arduino-like app start
 
 #include "appmain.hpp"
 #include "app.h"
@@ -24,7 +24,6 @@
 
 #include "marlin_server.hpp"
 #include "bsod.h"
-#include "eeprom.h"
 #include "safe_state.h"
 #include "crc32.h"
 #include "fusb303.hpp"
@@ -49,25 +48,22 @@
 #endif
 
 #include <option/has_loadcell.h>
+#include <option/has_loadcell_hx717.h>
 #include <option/has_gui.h>
 
 #if HAS_LOADCELL()
     #include "loadcell.h"
 #endif
 
-#ifdef LOADCELL_HX717
+#if HAS_LOADCELL_HX717()
     #include "hx717.h"
-#endif //LOADCELL_HX717
+#endif
 
 LOG_COMPONENT_REF(MMU2);
 LOG_COMPONENT_REF(Marlin);
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     #include "FUSB302B.hpp"
-#endif
-
-#if (BOARD_IS_XBUDDY)
-    #include "calibrated_loveboard.hpp"
 #endif
 
 #ifdef HAS_ACCELEROMETR
@@ -79,10 +75,7 @@ LOG_COMPONENT_REF(Marlin);
 #endif
 
 #include "probe_position_lookback.hpp"
-
-#if BOARD_IS_XBUDDY
-CalibratedLoveboard *LoveBoard;
-#endif
+#include <configuration_store.hpp>
 
 LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
@@ -97,7 +90,7 @@ metric_t metric_cpu_usage = METRIC("cpu_usage", METRIC_VALUE_INTEGER, 1000, METR
 
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
-#endif                                 //BUDDY_ENABLE_ETHERNET
+#endif                                 // BUDDY_ENABLE_ETHERNET
 
 #ifdef HAS_ACCELEROMETR
 LIS3DH accelerometer(SPI_MODE, 10);
@@ -129,7 +122,7 @@ void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
         severity = LOG_SEVERITY_ERROR;
     }
     if (MMU) {
-        //log_event(severity, MMU2, "%.*s", size, buffer);
+        log_event(severity, MMU2, "%.*s", size, buffer);
     } else {
         log_event(severity, Marlin, "%.*s", size, buffer);
     }
@@ -156,16 +149,13 @@ void app_setup(void) {
     }
 
 #if HAS_LOADCELL()
-    loadcell.SetScale(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_SCALE)));
-    loadcell.SetThreshold(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_THRS_STATIC)), Loadcell::TareMode::Static);
-    loadcell.SetThreshold(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_THRS_CONTINOUS)), Loadcell::TareMode::Continuous);
-    loadcell.SetHysteresis(variant8_get_flt(eeprom_get_var(EEVAR_LOADCELL_HYST)));
+    loadcell.SetScale(config_store().loadcell_scale.get());
+    loadcell.SetThreshold(config_store().loadcell_threshold_static.get(), Loadcell::TareMode::Static);
+    loadcell.SetThreshold(config_store().loadcell_threshold_continuous.get(), Loadcell::TareMode::Continuous);
+    loadcell.SetHysteresis(config_store().loadcell_hysteresis.get());
     loadcell.ConfigureSignalEvent(osThreadGetId(), 0x0A);
 #endif
 
-#if BOARD_IS_XBUDDY
-    LoveBoard = new CalibratedLoveboard(GPIOF, LL_GPIO_PIN_13);
-#endif
     setup();
 
     marlin_server::settings_load(); // load marlin variables from eeprom
@@ -175,7 +165,6 @@ void app_setup(void) {
 #endif
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    buddy::hw::FUSB302B::ResetChip();
     buddy::hw::FUSB302B::InitChip();
 #endif
 }
@@ -189,21 +178,16 @@ enum class reset_usb_fs_t {
     END
 };
 
-enum class VBUS_state {
-    not_detected = 0x00,
-    detected = 0x80
-};
-
 reset_usb_fs_t reset_usb_fs = reset_usb_fs_t::IDLE;
 
 void check_usbc_connection() {
     static uint32_t last_USBC_update = 0;
     if (ticks_s() - last_USBC_update > 1) {
-        switch ((VBUS_state)buddy::hw::FUSB302B::ReadSTATUS0Reg()) {
-        case VBUS_state::not_detected: // VBUS not detected
+        switch (buddy::hw::FUSB302B::ReadSTATUS0Reg()) {
+        case buddy::hw::FUSB302B::VBUS_state::not_detected: // VBUS not detected
             reset_usb_fs = reset_usb_fs_t::START;
             break;
-        case VBUS_state::detected: // VBUS detected
+        case buddy::hw::FUSB302B::VBUS_state::detected: // VBUS detected
             break;
         }
 
@@ -225,11 +209,11 @@ void check_usbc_connection() {
 }
 #endif
 void app_idle(void) {
-    Buddy::Metrics::RecordMarlinVariables();
-    Buddy::Metrics::RecordRuntimeStats();
-    Buddy::Metrics::RecordPrintFilename();
+    buddy::metrics::RecordMarlinVariables();
+    buddy::metrics::RecordRuntimeStats();
+    buddy::metrics::RecordPrintFilename();
 #if (BOARD_IS_XLBUDDY)
-    Buddy::Metrics::record_dwarf_mcu_temperature();
+    buddy::metrics::record_dwarf_mcu_temperature();
 #endif
     print_utils_loop();
     osDelay(0); // switch to other threads - without this is UI slow during printing
@@ -253,7 +237,7 @@ void app_run(void) {
 
     log_info(Marlin, "Setup complete");
 
-    if (eeprom_init() == EEPROM_INIT_Defaults && marlin_server::processing()) {
+    if (config_store_init_result() == eeprom_journal::InitResult::cold_start && marlin_server::processing()) {
         settings.reset();
 #if ENABLED(POWER_PANIC)
         power_panic::reset();
@@ -283,7 +267,7 @@ void app_assert([[maybe_unused]] uint8_t *file, [[maybe_unused]] uint32_t line) 
     bsod("app_assert");
 }
 
-#ifdef LOADCELL_HX717
+#if HAS_LOADCELL_HX717()
 
 // HX717 sample function. Sample both HX channels
 static void hx717_irq() {
@@ -307,16 +291,17 @@ static void hx717_irq() {
     raw_value = hx717.ReadValue(next_channel);
 
     if (current_channel == hx717.CHANNEL_A_GAIN_128) {
-        loadcell.ProcessSample(raw_value, ticks_us());
         auto sampleRate = hx717.GetSampleRate();
         if (!std::isnan(sampleRate))
             loadcell.analysis.SetSamplingIntervalMs(sampleRate);
+        uint32_t ts_ms = hx717.GetSampleTimestamp();
+        loadcell.ProcessSample(raw_value, ts_ms * 1000);
     } else {
         fs_process_sample(raw_value, 0);
     }
     current_channel = next_channel;
 }
-#endif //LOADCELL_HX717
+#endif // HAS_LOADCELL_HX717()
 
 #ifdef HAS_ADVANCED_POWER
 static uint8_t cnt_advanced_power_update = 0;
@@ -324,14 +309,14 @@ static uint8_t cnt_advanced_power_update = 0;
 void advanced_power_irq() {
     if (++cnt_advanced_power_update >= 40) { // update Advanced power variables = 25Hz
         advancedpower.Update();
-        Buddy::Metrics::RecordPowerStats();
+        buddy::metrics::RecordPowerStats();
     #ifdef ADC_MULTIPLEXER
         PowerHWIDAndTempMux.switch_channel();
     #endif
         cnt_advanced_power_update = 0;
     }
 }
-#endif //#ifdef HAS_ADVANCED_POWER
+#endif // #ifdef HAS_ADVANCED_POWER
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
 // update filament sensor irq = 76Hz
@@ -390,9 +375,9 @@ void accelerometer_irq() {
 #endif
 
 void adc_tick_1ms(void) {
-#ifdef LOADCELL_HX717
+#if HAS_LOADCELL_HX717()
     hx717_irq();
-#endif //LOADCELL_HX717
+#endif // HAS_LOADCELL_HX717()
 
 #ifdef HAS_ADVANCED_POWER
     advanced_power_irq();
@@ -410,13 +395,13 @@ void adc_tick_1ms(void) {
 }
 
 void app_tim14_tick(void) {
-    fanctl_tick();
+    Fans::tick();
 
 #if HAS_GUI()
     jogwheel.Update1msFromISR();
 #endif
     Sound_Update1ms();
-    //hwio_update_1ms();
+    // hwio_update_1ms();
     adc_tick_1ms();
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
@@ -426,4 +411,4 @@ void app_tim14_tick(void) {
 
 } // extern "C"
 
-//cpp code
+// cpp code

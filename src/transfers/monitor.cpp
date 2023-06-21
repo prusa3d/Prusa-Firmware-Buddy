@@ -228,4 +228,8 @@ uint32_t Monitor::Status::time_remaining_estimate() const {
     }
 }
 
+uint32_t Monitor::Status::time_transferring() const {
+    return ticks_s() - start;
+}
+
 }

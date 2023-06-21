@@ -37,22 +37,22 @@ int8_t gui_timer_new(window_t *pWin, uint8_t timer, uint32_t ms) {
     int8_t id = -1;
     if (gui_timer_count < GUI_MAX_TIMERS) {
         id = 0;
-        if (gui_timer_count == -1) //not initialized
+        if (gui_timer_count == -1) // not initialized
         {
             gui_timer_count = 0;
             memset(gui_timers, 0, GUI_MAX_TIMERS * sizeof(gui_timer_t));
-        } else //find free id
+        } else // find free id
             while ((id < GUI_MAX_TIMERS) && (gui_timers[id].f_timer != GUI_TIMER_NONE))
                 id++;
-        if (id < GUI_MAX_TIMERS) //id is valid
+        if (id < GUI_MAX_TIMERS) // id is valid
         {
             gui_timers[id].start = tick;
             gui_timers[id].delay = ms;
             gui_timers[id].f_timer = timer;
             gui_timers[id].pWin = pWin;
-            gui_timer_count++; //increment count
+            gui_timer_count++;         // increment count
             if ((window = Screens::Access()->Get()) != 0)
-                window->SetHasTimer(); //set timer flag
+                window->SetHasTimer(); // set timer flag
         } else
             id = -1;
     }
@@ -73,7 +73,7 @@ void gui_timer_delete(int8_t id) {
         gui_timers[id].delay = 0;
         gui_timers[id].f_timer = GUI_TIMER_NONE;
         gui_timers[id].pWin = nullptr;
-        gui_timer_count--; //decrement count
+        gui_timer_count--; // decrement count
     }
 }
 

@@ -10,8 +10,20 @@ namespace puppies {
     class PuppyBus {
     public:
         /// Bus access mutex
-        struct LockGuard {
+        class LockGuard {
+            bool locked = false; ///< Set if the lock was acquired
+
+        public:
+            /// Acquire lock, bsod if it fails.
             [[nodiscard]] LockGuard();
+
+            /**
+             * @brief Try to acquire lock, don't bsod but return status.
+             * @param is_locked set to true if the lock was acquired
+             * Variable is_locked needs to be checked after this call.
+             */
+            [[nodiscard]] LockGuard(bool &is_locked);
+
             ~LockGuard();
         };
 

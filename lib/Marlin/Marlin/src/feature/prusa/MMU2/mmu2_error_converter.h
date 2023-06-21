@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include "buttons.h"
 #include "../../../../../../Prusa-Error-Codes/04_MMU/button_operations.h"
+#include "../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
 
 namespace MMU2 {
 
@@ -39,11 +40,11 @@ void SetButtonResponse(ButtonOperations rsp);
 
 /// @returns button index/code based on currently processed error/screen
 /// Clears the "pressed" button upon exit
-Buttons ButtonPressed(uint16_t ec);
+Buttons ButtonPressed(ErrorCode ec);
 
 /// @returns button index/code based on currently processed error/screen
 /// Used as a subfunction of ButtonPressed.
 /// Does not clear the "pressed" button upon exit
-Buttons ButtonAvailable(uint16_t ec);
+Buttons ButtonAvailable(ErrorCode ec);
 
 } // namespace MMU2

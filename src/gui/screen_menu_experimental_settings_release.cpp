@@ -3,7 +3,6 @@
  */
 
 #include "screen_menu_experimental_settings.hpp"
-#include "eeprom.h"
 #include "menu_spin_config.hpp"
 #include "ScreenHandler.hpp"
 #include "window_msgbox.hpp"
@@ -12,8 +11,8 @@
 #include "MItem_experimental_tools.hpp"
 
 void ScreenMenuExperimentalSettings::clicked_return() {
-    ExperimentalSettingsValues current(*this); //ctor will handle load of values
-    //unchanged
+    ExperimentalSettingsValues current(*this); // ctor will handle load of values
+    // unchanged
     if (current == initial) {
         Screens::Access()->Close();
         return;
@@ -30,7 +29,7 @@ void ScreenMenuExperimentalSettings::clicked_return() {
         Screens::Access()->Close();
         return;
     default:
-        return; //do nothing
+        return; // do nothing
     }
 }
 

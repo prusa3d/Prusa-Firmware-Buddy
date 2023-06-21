@@ -10,9 +10,9 @@
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_log.hpp"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
-//disable power check, since measurement does not work
+// disable power check, since measurement does not work
 #ifdef HAS_ADVANCED_POWER
     #undef HAS_ADVANCED_POWER
 #endif
@@ -79,7 +79,7 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
             // clang-format on
 
             pNozzles[i] = pNoz;
-            //add same hooks for both "states changes" and "does not change"
+            // add same hooks for both "states changes" and "does not change"
             pNoz->SetStateChangedHook([](CSelftestPart_Heater &h) {
                 HeatbreakCorrelation(h);
                 PowerCheckBoth::Instance().Callback();
@@ -88,7 +88,7 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
                 HeatbreakCorrelation(h);
                 PowerCheckBoth::Instance().Callback();
             });
-            //todo: not working properly for multiple nozzles
+            // todo: not working properly for multiple nozzles
             PowerCheckBoth::Instance().BindNozzle(pNoz->GetInstance());
         }
     }
@@ -111,7 +111,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
         // clang-format on
 
         pBed = pBed_;
-        //add same hooks for both "states changes" and "does not change"
+        // add same hooks for both "states changes" and "does not change"
         pBed_->SetStateChangedHook([]([[maybe_unused]] CSelftestPart_Heater &h) {
             PowerCheckBoth::Instance().Callback();
         });
@@ -124,7 +124,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
 
 // data for both subtests must be sent together
 // we could loose some events, so we must be sending entire state of both parts
-bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&pBed) {
+bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **pBed) {
     // true when nozzle just finished test
     bool just_finished_noz[HOTENDS] {};
     for (size_t i = 0; i < HOTENDS; i++) {
@@ -134,7 +134,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&
     }
 
     // true when just finished nozzle test
-    bool just_finished_bed = pBed && !pBed->Loop();
+    const bool just_finished_bed = pBed && *pBed && !(*pBed)->Loop();
 
     // change dialog state
     FSM_CHANGE_WITH_EXTENDED_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), resultHeaters);
@@ -145,17 +145,17 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&
     }
 
     // just finished noz or bed, it is extremely unlikely they would finish both at same time
-    SelftestResult eeres;
-    eeprom_get_selftest_results(&eeres);
+    SelftestResult eeres = config_store().selftest_result.get();
     HOTEND_LOOP() {
         if (just_finished_noz[e]) {
             eeres.tools[e].nozzle = pNozzles[e]->GetResult();
         }
     }
     if (just_finished_bed) {
-        eeres.bed = pBed->GetResult();
+        assert(pBed && *pBed);
+        eeres.bed = (*pBed)->GetResult();
     }
-    eeprom_set_selftest_results(&eeres);
+    config_store().selftest_result.set(eeres);
 
     for (size_t i = 0; i < HOTENDS; i++) {
         if (just_finished_noz[i]) {
@@ -166,13 +166,14 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler *&
     }
 
     if (just_finished_bed) {
+        assert(pBed && *pBed);
         PowerCheckBoth::Instance().UnBindBed();
-        delete pBed;
-        pBed = nullptr;
+        delete *pBed;
+        *pBed = nullptr;
     }
 
     // if any is still in progress, return true to run this again, otherwise end test
-    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || pBed != nullptr) {
+    if (std::ranges::any_of(pNozzles, [](IPartHandler *val) { return val != nullptr; }) || *pBed != nullptr) {
         return true;
     }
 
@@ -204,8 +205,8 @@ bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) 
 
     retry_heater = machine->GetResult() != TestResult_Skipped;
 
-    eeprom_set_bool(EEVAR_NOZZLE_SOCK, sock_result.has_sock);
-    eeprom_set_ui8(EEVAR_NOZZLE_TYPE, sock_result.prusa_stock_nozzle ? 0 : 1);
+    config_store().nozzle_sock.set(sock_result.has_sock);
+    config_store().nozzle_type.set(sock_result.prusa_stock_nozzle ? 0 : 1);
 
     delete machine;
     machine = nullptr;

@@ -8,11 +8,6 @@ using namespace leds;
 
 SideStrip leds::side_strip;
 
-void SideStrip::SendLedData(uint8_t *pb, uint16_t size) {
-    HAL_SPI_Abort(&SPI_HANDLE_FOR(led));
-    HAL_SPI_Transmit_DMA(&SPI_HANDLE_FOR(led), pb, size);
-}
-
 void SideStrip::Update() {
     if (!needs_update)
         return;

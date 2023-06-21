@@ -15,3 +15,11 @@ endif()
 if(HAS_XLCD_TOUCH_DRIVER)
   target_sources(firmware PRIVATE GT911.cpp)
 endif()
+
+if((PRINTER STREQUAL "MK4") OR (PRINTER STREQUAL "iX"))
+  add_subdirectory(mk4_ix)
+endif()
+
+if(PRINTER STREQUAL "MK3.5")
+  add_subdirectory(mk3.5)
+endif()

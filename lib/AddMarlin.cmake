@@ -42,10 +42,16 @@ if(BOARD MATCHES ".*BUDDY")
   target_sources(
     Marlin
     PRIVATE $<$<NOT:$<STREQUAL:${PRINTER},XL>>:Marlin/Marlin/src/module/tool_change.cpp>
+            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp>
+            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp>
+            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
+            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
             $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp>
+            $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/spool_join.cpp>
+            $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/tool_mapper.cpp>
             $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/toolchanger.cpp>
             $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/toolchanger_utils.cpp>
             Marlin/Marlin/src/core/multi_language.cpp
@@ -210,4 +216,6 @@ target_include_directories(
   Marlin PUBLIC Marlin/Marlin/src Marlin/Marlin/src/gcode/lcd Marlin/Marlin Marlin
   )
 
-target_link_libraries(Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes)
+target_link_libraries(
+  Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes cthash
+  )

@@ -1,6 +1,7 @@
 #include "espif.h"
 
 #include <algorithm>
+#include <bit>
 #include <cstring>
 #include <cstdint>
 #include <atomic>
@@ -36,10 +37,7 @@ extern "C" {
 
 LOG_COMPONENT_DEF(ESPIF, LOG_SEVERITY_INFO);
 
-// TODO: C++20:
-// #include <bit>
-// static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
-static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "STM<->ESP protocol assumes all involved CPUs are little endian.");
+static_assert(std::endian::native == std::endian::little, "STM<->ESP protocol assumes all involved CPUs are little endian.");
 static_assert(ETHARP_HWADDR_LEN == 6);
 
 /*
@@ -96,7 +94,7 @@ enum MessageType {
     MSG_INTRON = 5,
 };
 
-#if PRINTER_TYPE == PRINTER_PRUSA_XL
+#if PRINTER_IS_PRUSA_XL
 // ESP32 FW version
 static const uint32_t SUPPORTED_FW_VERSION = 8;
 #else
@@ -311,8 +309,8 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
     static uint mac_read = 0; // Amount of MAC bytes already read
     static uint8_t mac_data[ETHARP_HWADDR_LEN];
 
-    static uint32_t rx_len = 0;  // Length of RX packet
-    static uint rx_len_read = 0; // Amount of rx_len bytes already read
+    static uint32_t rx_len = 0;             // Length of RX packet
+    static uint rx_len_read = 0;            // Amount of rx_len bytes already read
 
     static struct pbuf *rx_buff = NULL;     // First RX pbuf for current packet (chain head)
     static struct pbuf *rx_buff_cur = NULL; // Current pbuf for data receive (part of rx_buff chain)
@@ -583,7 +581,7 @@ err_t espif_init_hw() {
 err_t espif_init(struct netif *netif) {
     log_info(ESPIF, "LwIP init");
 
-#if BOARD_VER_EQUAL_TO(0, 5, 0)
+#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 

@@ -4,25 +4,10 @@
 
 #include <segmented_json.h>
 #include <http/types.h>
-#include <transfers/monitor.hpp>
 
 #include <string_view>
 
 namespace nhttp::handler {
-
-class TransferState {
-public:
-    transfers::TransferId transfer_id;
-    TransferState(transfers::TransferId id)
-        : transfer_id(id) {}
-};
-
-class TransferRenderer final : public json::JsonRenderer<TransferState> {
-public:
-    TransferRenderer(transfers::TransferId id)
-        : JsonRenderer(TransferState(id)) {}
-    virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, TransferState &state) const override;
-};
 
 class Empty {};
 

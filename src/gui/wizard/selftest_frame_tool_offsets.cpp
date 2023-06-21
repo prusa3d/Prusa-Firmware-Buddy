@@ -16,7 +16,7 @@ SelftestFrameToolOffsets::SelftestFrameToolOffsets(window_t *parent, PhasesSelft
     , footer(this, 0, footer::Item::AllNozzles, footer::Item::Bed)
     , progress(this, WizardDefaults::row_1)
     , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 5), is_multiline::yes)
-    , text_estimate(this, Rect16(col_texts, row_2 + 5 * txt_h, WizardDefaults::X_space, txt_h * 2), is_multiline::yes) {
+    , text_detail(this, Rect16(col_texts, row_2 + 5 * txt_h, WizardDefaults::X_space, txt_h * 2), is_multiline::yes) {
     change();
 }
 
@@ -32,51 +32,58 @@ void SelftestFrameToolOffsets::change() {
         // For 2 tool printer - at least 6 minutes
         // For 5 tool printer - at least 12:45
         if (prusa_toolchanger.get_num_enabled_tools() <= 2) {
-            text_estimate.SetText(_("The calibration should take a little over 7 minutes."));
+            text_detail.SetText(_("The calibration should take a little over 7 minutes."));
         } else {
-            text_estimate.SetText(_("The calibration should take a little over 14 minutes."));
+            text_detail.SetText(_("The calibration should take a little over 14 minutes."));
         }
-        text_estimate.Show();
+        text_detail.Show();
         break;
 
     case PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold:
     case PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_hot:
         text_phase.SetText(_("Nozzle have to be perfectly clean for good calibration results.\n- Clean all nozzles\n- Clean parking plate\n- Press continue when done"));
-        text_estimate.Hide();
+        text_detail.Hide();
         break;
 
     case PhasesSelftest::ToolOffsets_wait_user_install_sheet:
         text_phase.SetText(_("Install sheet on heatbed."));
-        text_estimate.Hide();
+        text_detail.Hide();
         break;
 
     case PhasesSelftest::ToolOffsets_pin_install_prepare:
         text_phase.SetText(_("Preparing for calibration pin installation."));
-        text_estimate.Hide();
+        text_detail.Hide();
         break;
 
     case PhasesSelftest::ToolOffsets_wait_user_install_pin:
-        text_phase.SetText(_("Remove heatbed sheet, install calibration pin."));
-        text_estimate.Hide();
+        text_phase.SetText(_("- Remove heatbed sheet.\n- Install calibration pin."));
+        text_detail.Hide();
+        break;
+
+    case PhasesSelftest::ToolOffsets_wait_stable_temp:
+        text_phase.SetText(_("Waiting for hotends to stabilize at calibration temperature:"));
+        snprintf(target_temp_text, std::size(target_temp_text), "%d\177C", SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE);
+        text_detail.SetText(string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(target_temp_text)));
+        text_detail.Show();
         break;
 
     case PhasesSelftest::ToolOffsets_wait_calibrate:
         text_phase.SetText(_("Calibrating tool offsets."));
-        text_estimate.Hide();
+        text_detail.Hide();
         break;
 
     case PhasesSelftest::ToolOffsets_wait_final_park:
         text_phase.SetText(_("Moving away."));
-        text_estimate.Hide();
+        text_detail.Hide();
         break;
 
     case PhasesSelftest::ToolOffsets_wait_user_remove_pin:
-        text_phase.SetText(_("Remove calibration pin, install sheet on heatbed."));
-        text_estimate.Hide();
+        text_phase.SetText(_("- Remove calibration pin.\n- Install sheet on heatbed."));
+        text_detail.Hide();
         break;
 
     default:
         text_phase.Hide();
-        text_estimate.Hide();
+        text_detail.Hide();
     }
 };

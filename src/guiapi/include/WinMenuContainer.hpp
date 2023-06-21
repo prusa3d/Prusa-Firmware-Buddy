@@ -4,8 +4,8 @@
 #include "i_window_menu_container.hpp"
 #include <tuple>
 
-//helper functions to get Nth element at runtime
-//todo make it member
+// helper functions to get Nth element at runtime
+// todo make it member
 template <std::size_t I = 0, typename... Tp>
 inline typename std::enable_if<I == sizeof...(Tp), IWindowMenuItem *>::type
 get_ptr_for_index(int, std::tuple<Tp...> &) { return nullptr; }
@@ -27,12 +27,12 @@ public:
         menu_items = std::tuple<T...>(args...);
     }
 
-    //compiletime access by index
+    // compiletime access by index
     template <std::size_t I>
     decltype(auto) Item() {
         return std::get<I>(menu_items);
     }
-    //compiletime access by type
+    // compiletime access by type
     template <class TYPE>
     decltype(auto) Item() {
         return std::get<TYPE>(menu_items);

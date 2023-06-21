@@ -768,7 +768,10 @@ inline void fast_line_to_current(const AxisEnum fr_axis) { _line_to_current(fr_a
  * Perform a tool-change, which may result in moving the
  * previous tool out of the way and the new tool into place.
  */
-void tool_change(const uint8_t new_tool, tool_return_t return_type/*=tool_change_return_t::to_current*/) {
+void tool_change(const uint8_t new_tool,
+                 tool_return_t return_type /*= tool_return_t::to_current*/,
+                 tool_change_lift_t z_lift /*= tool_change_lift_t::full_lift*/,
+                 bool z_return /*= true*/){
 
   #if ENABLED(MAGNETIC_SWITCHING_TOOLHEAD)
     if (new_tool == active_extruder) return;
@@ -816,8 +819,8 @@ void tool_change(const uint8_t new_tool, tool_return_t return_type/*=tool_change
     if (new_tool >= EXTRUDERS)
       return invalid_extruder_error(new_tool);
 
-    if ((return_type > tool_return_t::no_move) && !all_axes_homed()) {
-      return_type = tool_return_t::no_move;
+    if ((return_type > tool_return_t::no_return) && !all_axes_homed()) {
+      return_type = tool_return_t::no_return;
       if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("No move (not homed)");
     }
 

@@ -35,7 +35,6 @@
 
 #include "../inc/MarlinConfig.h"
 #include "../Marlin.h"
-#include "../../../../../src/common/eeprom.h"
 
 #include "metric.h"
 #include "PersistentStorage.h"
@@ -93,6 +92,8 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0(){}
 #if ENABLED(PRECISE_HOMING)
   #include "precise_homing.h"
 #endif
+
+#include <configuration_store.hpp>
 
 #define XYZ_CONSTS(T, NAME, OPT) const PROGMEM XYZval<T> NAME##_P = { X_##OPT, Y_##OPT, Z_##OPT }
 
@@ -282,10 +283,10 @@ void get_cartesian_from_steppers() {
         planner.get_axis_position_degrees(A_AXIS),
         planner.get_axis_position_degrees(B_AXIS)
       );
+      cartes.z = planner.get_axis_position_mm(Z_AXIS);
     #else
-      cartes.set(planner.get_axis_position_mm(X_AXIS), planner.get_axis_position_mm(Y_AXIS));
+      planner.get_axis_position_mm(static_cast<xyz_pos_t&>(cartes));
     #endif
-    cartes.z = planner.get_axis_position_mm(Z_AXIS);
   #endif
 }
 
@@ -1437,7 +1438,8 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
 
   #if ENABLED(MOVE_BACK_BEFORE_HOMING)
     if (can_move_back_before_homing && ((axis == X_AXIS) || (axis == Y_AXIS))) {
-      abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+      abce_pos_t target;
+      planner.get_axis_position_mm(target);
       target[axis] = 0;
       planner.set_machine_position_mm(target);
       float dist = (distance > 0) ? -MOVE_BACK_BEFORE_HOMING_DISTANCE : MOVE_BACK_BEFORE_HOMING_DISTANCE;
@@ -1460,13 +1462,13 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   #endif
 
   #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
-    if (homing_z_with_probe) {
-      endstops.enable_z_probe(moving_probe_toward_bed);
+    // This guards cannot be hidden behind if (homing_z_with_probe) {
+    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, moving_probe_toward_bed);
+    auto H = loadcell.CreateLoadAboveErrEnforcer(moving_probe_toward_bed);
+    if (moving_probe_toward_bed) {
+      loadcell.Tare(Loadcell::TareMode::Continuous);
+      endstops.enable_z_probe();
     }
-
-    // These guards cannot be hidden behind if (homing_z_with_probe) {
-    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, moving_probe_toward_bed && homing_z_with_probe);
-    auto H = loadcell.CreateLoadAboveErrEnforcer(3000, moving_probe_toward_bed && homing_z_with_probe);
   #endif
 
   #if IS_SCARA
@@ -1476,7 +1478,8 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
     current_position[axis] = distance;
     line_to_current_position(real_fr_mm_s);
   #else
-    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    abce_pos_t target;
+    planner.get_axis_position_mm(target);
     target[axis] = 0;
     planner.set_machine_position_mm(target);
     target[axis] = distance;
@@ -1498,7 +1501,7 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   planner.synchronize();
 
   #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
-    if (homing_z_with_probe) {
+    if (moving_probe_toward_bed) {
       endstops.enable_z_probe(false);
     }
   #endif
@@ -1543,7 +1546,8 @@ static void do_blocking_move_axis(const AxisEnum axis, const float distance, con
     current_position[axis] = distance;
     line_to_current_position(real_fr_mm_s);
   #else
-    abce_pos_t target = { planner.get_axis_position_mm(A_AXIS), planner.get_axis_position_mm(B_AXIS), planner.get_axis_position_mm(C_AXIS), planner.get_axis_position_mm(E_AXIS) };
+    abce_pos_t target;
+    planner.get_axis_position_mm(target);
     target[axis] = 0;
     planner.set_machine_position_mm(target);
     target[axis] = distance;
@@ -1670,6 +1674,9 @@ void set_axis_is_at_home(const AxisEnum axis, [[maybe_unused]] bool homing_z_wit
       #if HOMING_Z_WITH_PROBE
         if (homing_z_with_probe) {
           current_position.z -= probe_offset.z;
+          #if HAS_HOTEND_OFFSET
+           current_position.z -= hotend_currently_applied_offset.z;
+          #endif
 
           if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("*** Z HOMED WITH PROBE (Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN) ***\n> probe_offset.z = ", probe_offset.z);
         } else
@@ -2056,10 +2063,8 @@ void do_blocking_move_enable_wavetable(const AxisEnum axis, void (*enable_waveta
 
     // reeconfigure stepper to stepping by single-usteps, i.e. tmp_microsteps
     float bck_steps_per_mm = planner.settings.axis_steps_per_mm[axis];
-    float bck_mm_per_step = planner.mm_per_step[axis];
     planner.settings.axis_steps_per_mm[axis] *= ustep_ratio;
-    planner.mm_per_step[axis] /= ustep_ratio;
-    planner.position[axis] *= ustep_ratio;
+    planner.refresh_positioning();
 
     // calculate distance so that we end at stepper zero, going by at least min_mm/2
     float amount_mm = planner.mm_per_qsteps(axis, (uint32_t)(min_mm1 * planner.qsteps_per_mm(axis)) + 1);
@@ -2086,8 +2091,7 @@ void do_blocking_move_enable_wavetable(const AxisEnum axis, void (*enable_waveta
     // configure back steps to original state
     (void)stepper_microsteps(axis, orig_microsteps);
     planner.settings.axis_steps_per_mm[axis] = bck_steps_per_mm;
-    planner.mm_per_step[axis] = bck_mm_per_step;
-    planner.position[axis] /= ustep_ratio;
+    planner.refresh_positioning();
 }
 
 /**
@@ -2113,6 +2117,7 @@ void homing_failed(std::function<void()> fallback_error, [[maybe_unused]] bool c
     }
 
     if ((crash_s.get_state() == Crash_s::TRIGGERED_ISR)       // ISR crash happened, it will replay homing
+      || (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) // Power panic, end quickly and don't do anything
       || (crash_s.get_state() == Crash_s::TRIGGERED_HOMEFAIL) // Rehoming is already in progress
       || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
       || (crash_s.get_state() == Crash_s::RECOVERY) // Recovery in progress, it will know that homing didn't succeed from return
@@ -2697,7 +2702,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
               continue;
           }
 
-          const float loaded = eeprom_get_flt(axis ? EEVAR_HOMING_BDIVISOR_Y : EEVAR_HOMING_BDIVISOR_X);
+          const float loaded = axis ? config_store().homing_bump_divisor_y.get() : config_store().homing_bump_divisor_x.get();
           if (loaded >= min && loaded <= max) {
               homing_bump_divisor[axis] = loaded;
           } else {
@@ -2719,7 +2724,11 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
 
   static void save_divisor_to_eeprom(int try_nr, AxisEnum axis) {
       if (try_nr > 0 && axis < XY) {
-          eeprom_set_flt(axis ? EEVAR_HOMING_BDIVISOR_Y : EEVAR_HOMING_BDIVISOR_X, homing_bump_divisor[axis]);
+          if (axis){
+            config_store().homing_bump_divisor_y.set(homing_bump_divisor[axis]);
+          } else {
+            config_store().homing_bump_divisor_x.set(homing_bump_divisor[axis]);
+          }
       }
   }
 

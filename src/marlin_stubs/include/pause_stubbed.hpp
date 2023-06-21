@@ -20,8 +20,8 @@
 void unhomed_z_lift(float amount_mm);
 
 class PausePrivatePhase : public IPause {
-    PhasesLoadUnload phase;       //needed for CanSafetyTimerExpire
-    int load_unload_shared_phase; //shared variable for UnloadPhases_t and LoadPhases_t
+    PhasesLoadUnload phase;       // needed for CanSafetyTimerExpire
+    int load_unload_shared_phase; // shared variable for UnloadPhases_t and LoadPhases_t
     std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
 
     float nozzle_restore_temp[HOTENDS];
@@ -48,7 +48,7 @@ protected:
     enum class LoadPhases_t {
         _finish = intFinishVal,
         _init = int(UnloadPhases_t::_last) + 1,
-        check_filament_sensor_and_user_push__ask, //must be one phase because of button click
+        check_filament_sensor_and_user_push__ask, // must be one phase because of button click
         load_in_gear,
         wait_temp,
         error_temp,
@@ -68,7 +68,7 @@ protected:
     // cannot guarante that SafetyTimer will happen first, so have to do it on both places
     Response getResponse();
 
-    //use UnloadPhases_t or LoadPhases_t
+    // use UnloadPhases_t or LoadPhases_t
     template <class ENUM>
     ENUM get() {
         if (load_unload_shared_phase < int(ENUM::_init))
@@ -101,7 +101,7 @@ public:
     }
 
     virtual void RestoreTemp() override;
-    virtual bool CanSafetyTimerExpire() const override; //evaluate if client can click == safety timer can expire
+    virtual bool CanSafetyTimerExpire() const override; // evaluate if client can click == safety timer can expire
     virtual void NotifyExpiredFromSafetyTimer() override;
     virtual bool HasTempToRestore() const override;
 
@@ -112,11 +112,11 @@ public:
 
 class RammingSequence;
 
-//used by load / unlaod /change filament
+// used by load / unlaod /change filament
 class Pause : public PausePrivatePhase {
     pause::Settings settings;
 
-    //singleton
+    // singleton
     Pause() = default;
     Pause(const Pause &) = delete;
     Pause &operator=(const Pause &) = delete;
@@ -166,21 +166,21 @@ private:
     void loop_unload(Response response);
     void loop_unload_AskUnloaded(Response response);
     void loop_unload_mmu(Response response);
-    void loop_unloadFromGear(Response response); //autoload abort
+    void loop_unloadFromGear(Response response); // autoload abort
     void loop_unload_change(Response response);
-    //TODO loop_unload_change_mmu
+    // TODO loop_unload_change_mmu
 
     void loop_load(Response response);
     void loop_load_purge(Response response);
     void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
     void loop_load_mmu(Response response);
-    void loop_autoload(Response response); //todo force remove filament in retry
+    void loop_autoload(Response response);          // todo force remove filament in retry
     void loop_loadToGear(Response response);
     void loop_load_change(Response response);
-    //TODO loop_load_change_mmu
+    // TODO loop_load_change_mmu
 
     // does not create FSM_HolderLoadUnload
-    bool invoke_loop(loop_fn fn); //shared load/unload code
+    bool invoke_loop(loop_fn fn); // shared load/unload code
     bool filamentUnload(loop_fn fn);
     bool filamentLoad(loop_fn fn);
 
@@ -198,8 +198,8 @@ private:
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
-    bool check_user_stop(); //< stops motion and fsm and returns true it user triggered stop
-    bool wait_or_stop();    //< waits until motion is finished; if stop is triggered then returns true
+    bool check_user_stop();                                  //< stops motion and fsm and returns true it user triggered stop
+    bool wait_or_stop();                                     //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
     void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
 
@@ -212,8 +212,8 @@ private:
     void unload_filament(const RammingType sequence);
     const RammingSequence &get_ramming_sequence(const RammingType type) const;
 
-    //create finite state machine and automatically destroy it at the end of scope
-    //parks in ctor and unparks in dtor
+    // create finite state machine and automatically destroy it at the end of scope
+    // parks in ctor and unparks in dtor
     class FSM_HolderLoadUnload : public marlin_server::FSM_Holder {
         Pause &pause;
 

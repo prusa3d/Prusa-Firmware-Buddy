@@ -9,6 +9,7 @@
 #include "syslog.h"
 #include "otp.h"
 #include "sensor_data_buffer.h"
+#include <option/development_items.h>
 
 #define TEXTPROTOCOL_POINT_MAXLEN 63
 #define BUFFER_OLD_MS             1000 // after how many ms we flush the buffer
@@ -100,9 +101,8 @@ metric_handler_t metric_handler_uart = {
 //
 // SysLog Handler
 //
-
 static char syslog_server_ipaddr[16] = "";
-static int syslog_server_port = 8500;
+static int syslog_server_port = 8514;
 static syslog_transport_t syslog_transport;
 
 static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp) {

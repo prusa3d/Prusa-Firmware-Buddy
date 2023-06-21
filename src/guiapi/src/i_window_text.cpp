@@ -29,9 +29,15 @@ void IWindowText::SetTextColor(const color_scheme &clr) {
     pTextColorScheme = &clr; // rewrite even when value is same, because address might be different
 }
 
-void IWindowText::SetFont(font_t *val) {
-    font = val;
-    Invalidate();
+void IWindowText::set_font(font_t *val) {
+    if (font != val) {
+        font = val;
+        Invalidate();
+    }
+}
+
+const font_t *IWindowText::get_font() const {
+    return font;
 }
 
 void IWindowText::SetPadding(padding_ui8_t padd) {

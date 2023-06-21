@@ -32,9 +32,9 @@ void DMA1_Channel1_IRQHandler() {
 // }
 
 void TIM14_IRQHandler() {
-    //traceISR_ENTER();
+    // traceISR_ENTER();
     HAL_TIM_IRQHandler(&TimerSysHandle);
-    //traceISR_EXIT();
+    // traceISR_EXIT();
 }
 
 void DMA1_Channel2_3_IRQHandler() {
@@ -53,7 +53,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         if (dwarf_init_done) {
             dwarf::loadcell::loadcell_irq();
             dwarf::tool_filament_sensor::tool_filament_sensor_irq();
-            fanctl_tick();
+            Fans::tick();
         }
     }
 }

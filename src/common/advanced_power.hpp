@@ -36,25 +36,11 @@ public:
         return AdcGet::inputCurrent();
     }
 
-    #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
-    static constexpr float allegro_zero_curr_voltage = 3.35F / 2.F; // 3V3 ref
-    #else
-    static constexpr float allegro_zero_curr_voltage = 5.F / 2.F; // 5V ref
-    #endif // BOARD
-
-    static constexpr float allegro_curr_from_voltage = 1 / 0.09F;
     /**
      * @brief Get the Input Current
-     * Allegro ACS711KEXLT-15AB
-     * +-15 A, 90mV/A, 0A -> output == Vcc/2
-     *
-     * XBuddy 0.3.4 3V3 reference
-     * XBuddy < 0.3.4 5V reference
      * @return float current [mA]
      */
-    inline float GetInputCurrent() const {
-        return (RawValueToVoltage(GetInputCurrentRaw()) - allegro_zero_curr_voltage) * allegro_curr_from_voltage;
-    }
+    float GetInputCurrent() const;
 
     bool HeaterOvercurentFaultDetected() const;
 
@@ -115,7 +101,7 @@ public:
 private:
     bool isInitialized;
     float CurrentSenseGain = 50.00f;
-    float RSense = 0.022f; //22mohm
+    float RSense = 0.022f; // 22mohm
 
     inline float RawValueToVoltage(int rawValue) const {
         return (rawValue * 3.35f) / 1023.00f;

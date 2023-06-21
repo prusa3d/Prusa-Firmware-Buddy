@@ -28,27 +28,27 @@ FanHandler::FanHandler(const char *name, const FanConfig<2> &config, uint8_t too
     , tool_nr(tool_nr) {}
 
 void FanHandler::enter_selftest() {
-    config.fanctl.EnterSelftestMode();
+    config.fanctl_fnc(tool_nr).EnterSelftestMode();
 }
 
 void FanHandler::exit_selftest() {
-    config.fanctl.ExitSelftestMode();
+    config.fanctl_fnc(tool_nr).ExitSelftestMode();
 }
 
 void FanHandler::set_pwm(uint8_t pwm) {
-    config.fanctl.SelftestSetPWM(pwm);
+    config.fanctl_fnc(tool_nr).SelftestSetPWM(pwm);
 }
 
 uint8_t FanHandler::get_pwm() {
-    return config.fanctl.getPWM();
+    return config.fanctl_fnc(tool_nr).getPWM();
 }
 
 uint8_t FanHandler::get_pwm_percent() {
-    return scale_percent(config.fanctl.getPWM(), uint8_t(0), config.fanctl.getMaxPWM());
+    return scale_percent(config.fanctl_fnc(tool_nr).getPWM(), uint8_t(0), config.fanctl_fnc(tool_nr).getMaxPWM());
 }
 
 uint16_t FanHandler::get_actual_rpm() {
-    return config.fanctl.getActualRPM();
+    return config.fanctl_fnc(tool_nr).getActualRPM();
 }
 
 void FanHandler::record_sample() {

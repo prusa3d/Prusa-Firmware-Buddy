@@ -9,12 +9,12 @@ bool DialogMoveZ::DialogShown = false;
 
 DialogMoveZ::DialogMoveZ()
     : AddSuperWindow<IDialog>(GuiDefaults::EnableDialogBigLayout ? GuiDefaults::RectScreen : GuiDefaults::RectScreenNoFoot)
-    , value(marlin_vars()->pos[2])
-    , lastQueuedPos(marlin_vars()->pos[2])
+    , value(round(marlin_vars()->logical_pos[2]))
+    , lastQueuedPos(value)
     , axisText(this, text_rc, is_multiline::no, is_closed_on_click_t::no, _(axisLabel))
     , infoText(this, infoText_rc, is_multiline::yes, is_closed_on_click_t::no, _(infoTextContent))
     , closeText(this, closeText_rc, is_multiline::no, is_closed_on_click_t::no, _(closeTextContent))
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL) // XL moves bed down while Z goes up
+#if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
     , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
 #else  /*PRINTER_TYPE*/
@@ -22,7 +22,7 @@ DialogMoveZ::DialogMoveZ()
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
 #endif /*PRINTER_TYPE*/
     , arrows(this, text_rc.TopRight(), { 0, 6, 0, 6 })
-    , numb(this, numb_rc, marlin_vars()->pos[2], "%d mm", GuiDefaults::FontBig)
+    , numb(this, numb_rc, value, "%d mm", GuiDefaults::FontBig)
     , header(this, _(headerLabel))
     , icon(this, icon_rc, &png::turn_knob_81x55) {
     DialogShown = true;
@@ -37,22 +37,22 @@ DialogMoveZ::DialogMoveZ()
 
     //  info text
     infoText.SetPadding(padding);
-    infoText.font = GuiDefaults::FontMenuSpecial;
+    infoText.set_font(GuiDefaults::FontMenuSpecial);
     infoText.SetAlignment(Align_t::Center());
 
     //  close text
     closeText.SetPadding(padding);
-    closeText.font = GuiDefaults::FontMenuSpecial;
+    closeText.set_font(GuiDefaults::FontMenuSpecial);
     closeText.SetAlignment(Align_t::Center());
 
     //  UP DOWN texts
-    rightText.font = GuiDefaults::FontBig;
+    rightText.set_font(GuiDefaults::FontBig);
     rightText.SetAlignment(Align_t::Left());
-    leftText.font = GuiDefaults::FontBig;
+    leftText.set_font(GuiDefaults::FontBig);
     leftText.SetAlignment(Align_t::Right());
 
     // axis text
-    axisText.font = GuiDefaults::FontBig;
+    axisText.set_font(GuiDefaults::FontBig);
     axisText.SetPadding({ 6, 0, 15, 0 });
     axisText.SetAlignment(Align_t::RightCenter());
 
@@ -66,7 +66,7 @@ DialogMoveZ::DialogMoveZ()
 };
 
 void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-#if PRINTER_TYPE == PRINTER_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI
     constexpr static uint8_t len = 4;
 #else
     constexpr static uint8_t len = 12;
@@ -87,22 +87,22 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         const int enc_change = int(param);
         change(-enc_change);
         numb.SetValue(value);
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL) // XL moves bed down while Z goes up
+#if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
         arrows.SetState(WindowArrows::State_t::up);
-#else  /*PRINTER_TYPE*/
+#else                                            /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::down);
-#endif /*PRINTER_TYPE*/
+#endif                                           /*PRINTER_TYPE*/
         return;
     }
     case GUI_event_t::ENC_UP: {
         const int enc_change = int(param);
         change(enc_change);
         numb.SetValue(value);
-#if (PRINTER_TYPE == PRINTER_PRUSA_XL || PRINTER_TYPE == PRINTER_PRUSA_IXL) // XL moves bed down while Z goes up
+#if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
         arrows.SetState(WindowArrows::State_t::down);
-#else  /*PRINTER_TYPE*/
+#else                                            /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::up);
-#endif /*PRINTER_TYPE*/
+#endif                                           /*PRINTER_TYPE*/
         return;
     }
     case GUI_event_t::LOOP: {

@@ -24,8 +24,9 @@
 #include "error_codes.hpp"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "scratch_buffer.hpp"
+#include "power_panic.hpp"
 
-//this is private struct definition from FreeRTOS
+// this is private struct definition from FreeRTOS
 /*
  * Task control block.  A task control block (TCB) is allocated for each task,
  * and stores task state information, including a pointer to the task's context
@@ -77,12 +78,12 @@ typedef struct tskTaskControlBlock {
 
 #if (configUSE_NEWLIB_REENTRANT == 1)
     /* Allocate a Newlib reent structure that is specific to this task.
-		Note Newlib support has been included by popular demand, but is not
-		used by the FreeRTOS maintainers themselves.  FreeRTOS is not
-		responsible for resulting newlib operation.  User must be familiar with
-		newlib and must provide system-wide implementations of the necessary
-		stubs. Be warned that (at the time of writing) the current newlib design
-		implements a system-wide malloc() that must be provided with locks. */
+                Note Newlib support has been included by popular demand, but is not
+                used by the FreeRTOS maintainers themselves.  FreeRTOS is not
+                responsible for resulting newlib operation.  User must be familiar with
+                newlib and must provide system-wide implementations of the necessary
+                stubs. Be warned that (at the time of writing) the current newlib design
+                implements a system-wide malloc() that must be provided with locks. */
     struct _reent xNewLib_reent;
 #endif
 
@@ -92,7 +93,7 @@ typedef struct tskTaskControlBlock {
 #endif
 
 /* See the comments above the definition of
-	tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE. */
+        tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE. */
 #if (tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0)
     uint8_t ucStaticallyAllocated; /*< Set to pdTRUE if the task is a statically allocated to ensure no attempt is made to free the memory. */
 #endif
@@ -107,7 +108,7 @@ typedef struct tskTaskControlBlock {
 below to enable the use of older kernel aware debuggers. */
 typedef tskTCB TCB_t;
 
-//current thread from FreeRTOS
+// current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
 constexpr uint8_t PADDING = 10;
@@ -175,6 +176,12 @@ void raise_redscreen(ErrCode error_code, const char *error, const char *module) 
     }
 #endif /*_DEBUG*/
 
+    // don't trigger redscreen during a power outage
+    if (power_panic::is_ac_fault_signal()) {
+        delay_ms(2000);
+        bsod("%s: %s", module, error);
+    }
+
     crash_dump::dump_err_to_xflash(static_cast<std::underlying_type_t<ErrCode>>(error_code), error, module);
     sys_reset();
 }
@@ -198,7 +205,7 @@ void fatal_error(const char *error, const char *module) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HOTEND_MAXTEMP_ERROR);
     } else if (strcmp(MSG_ERR_MINTEMP, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HOTEND_MINTEMP_ERROR);
-#if PRINTER_TYPE != PRINTER_PRUSA_XL
+#if !PRINTER_IS_PRUSA_XL
     } else if (strcmp(MSG_HEATING_FAILED_LCD_BED, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_BED_PREHEAT_ERROR);
     } else if (strcmp(MSG_THERMAL_RUNAWAY_BED, error) == 0) {
@@ -207,14 +214,14 @@ void fatal_error(const char *error, const char *module) {
         fatal_error(ErrCode::ERR_TEMPERATURE_BED_MAXTEMP_ERROR);
     } else if (strcmp(MSG_ERR_MINTEMP_BED, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_BED_MINTEMP_ERROR);
-#endif // PRINTER_TYPE != PRINTER_PRUSA_XL
+#endif // !PRINTER_IS_PRUSA_XL
     } else if (strcmp(MSG_ERR_MINTEMP_HEATBREAK, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MINTEMP_ERR);
     } else if (strcmp(MSG_ERR_MAXTEMP_HEATBREAK, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MAXTEMP_ERR);
     }
 
-    //error code is not defined, raise redscreen with custom error message and error title
+    // error code is not defined, raise redscreen with custom error message and error title
     raise_redscreen(error_code, error, module);
 }
 
@@ -228,7 +235,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     va_list args;
     va_start(args, line_number);
-    __disable_irq(); //disable irq
+    __disable_irq(); // disable irq
 
     char tskName[configMAX_TASK_NAME_LEN];
     strlcpy(tskName, pxCurrentTCB->pcTaskName, sizeof(tskName));
@@ -239,9 +246,9 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
 #ifdef PSOD_BSOD
 
-    display::Clear(COLOR_BLACK); //clear with black color
+    display::Clear(COLOR_BLACK); // clear with black color
     // DrawIcon requires ResourceId, but pepa png has new destination - DrawIcon will have to require window_icon_t::DataResourceId
-    //display::DrawIcon(point_ui16(75, 40), &png::pepa_92x140, COLOR_BLACK, 0);
+    // display::DrawIcon(point_ui16(75, 40), &png::pepa_92x140, COLOR_BLACK, 0);
     display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
 
 #else
@@ -256,7 +263,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     buffer_pos += vsnprintf(&buffer[buffer_pos], std::max(0, buffer_size - buffer_pos), fmt, args);
     addText(buffer, buffer_size, buffer_pos, "\n");
     if (file_name != nullptr) {
-        //remove text before "/" and "\", to get filename without path
+        // remove text before "/" and "\", to get filename without path
         const char *pc;
         pc = strrchr(file_name, '/');
         if (pc != 0)
@@ -296,11 +303,11 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
 #endif
 
-    while (1) //endless loop
+    while (1) // endless loop
     {
         wdt_iwdg_refresh();
 
-        //TODO: safe delay with sleep
+        // TODO: safe delay with sleep
     }
 
     va_end(args);
@@ -320,10 +327,10 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *p
         _bsod("STACK OVERFLOW\nHANDLE %p\nTaskname ERROR", 0, 0, xTask);
 }
 
-#endif //configCHECK_FOR_STACK_OVERFLOW
+#endif // configCHECK_FOR_STACK_OVERFLOW
 
 #ifndef PSOD_BSOD
-//https://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
+// https://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
 
 /*
 +--------------------------------------------------------+-------------+-----------------+-------------+
@@ -397,7 +404,7 @@ void ScreenHardFault(void) {
     static const constexpr char *NOCPC_Txt = "Attempt to access a non-existing coprocessor";
     static const constexpr char *UNALIGNED_Txt = "Illegal unaligned load or store";
     static const constexpr char *DIVBYZERO_Txt = "Divide By 0";
-    //static const constexpr uint8_t STKOF = 1U << 0;
+    // static const constexpr uint8_t STKOF = 1U << 0;
 
     static const constexpr uint8_t ROWS = 21;
     static const constexpr uint8_t COLS = 32;
@@ -414,7 +421,7 @@ void ScreenHardFault(void) {
     StackType_t *pTopOfStack = (StackType_t *)CurrentTCB.pxTopOfStack;
     StackType_t *pBotOfStack = CurrentTCB.pxStack;
 
-    display::Clear(COLOR_NAVY); //clear with dark blue color
+    display::Clear(COLOR_NAVY);        // clear with dark blue color
 
     int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
     /// Buffer for text. PNG RAM cannot be used (font drawing).
@@ -508,7 +515,7 @@ void ScreenHardFault(void) {
     uint32_t __ADR = __SCB[0x4c >> 2];
     uint32_t __CPACR = __SCB[0x88 >> 2];
 
-    //32 characters per line
+    // 32 characters per line
     addFormatNum(buffer, buffer_size, buffer_pos, "CPUID:%08x  ", __CPUID);
     if (__ICSR)
         addFormatNum(buffer, buffer_size, buffer_pos, "ICSR :%08x  ", __ICSR);
@@ -529,7 +536,7 @@ void ScreenHardFault(void) {
     if ((__CFSR)&MMARVALID_Msk)
         addFormatNum(buffer, buffer_size, buffer_pos, "MMFAR:%08x  ", __MMFAR); ///< print this only if value is valid
     if ((__CFSR)&BFARVALID_Msk)
-        addFormatNum(buffer, buffer_size, buffer_pos, "BFAR :%08x  ", __BFAR); ///< print this only if value is valid
+        addFormatNum(buffer, buffer_size, buffer_pos, "BFAR :%08x  ", __BFAR);  ///< print this only if value is valid
     if (__AFSR)
         addFormatNum(buffer, buffer_size, buffer_pos, "AFSR :%08x  ", __AFSR);
     if (__DFR)
@@ -549,14 +556,14 @@ void ScreenHardFault(void) {
     term_printf(&term, "pc :%08x", pc);
     term_printf(&term, "psr:%08x", psr);*/
 
-    //const int addr_string_len = 10;//"0x12345678"
+    // const int addr_string_len = 10;//"0x12345678"
     const int strings_per_row = 3;
 
     const int lines = str2multiline(buffer, buffer_size, COLS);
     const int available_rows = lines < 0 ? 0 : ROWS - lines - 1;
-    //int available_chars = available_rows * COLS;
+    // int available_chars = available_rows * COLS;
     const int stack_sz = pTopOfStack - pBotOfStack;
-    //int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
+    // int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
     const int requested_rows = stack_sz / 3; ///< 3 addresses per line
 
     StackType_t *lastAddr;
@@ -565,7 +572,7 @@ void ScreenHardFault(void) {
     else
         lastAddr = pTopOfStack - available_rows * strings_per_row;
 
-    int space_counter = 0; //3rd string does not have a space behind it
+    int space_counter = 0; // 3rd string does not have a space behind it
     for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
         space_counter++;
         uint32_t sp = 0;
@@ -577,4 +584,4 @@ void ScreenHardFault(void) {
     display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 }
 
-#endif //PSOD_BSOD
+#endif // PSOD_BSOD

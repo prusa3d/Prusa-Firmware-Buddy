@@ -158,7 +158,7 @@ protected:
     #endif
 #endif
 
-#if PRINTER_TYPE == PRINTER_PRUSA_MK4
+#if PRINTER_IS_PRUSA_MK4
 class MI_CALIB_GEARS : public WI_LABEL_t {
     static constexpr const char *const label = N_("Gears Calibration");
 

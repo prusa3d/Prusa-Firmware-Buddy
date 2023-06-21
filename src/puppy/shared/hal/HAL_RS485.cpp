@@ -37,7 +37,7 @@ static uint8_t s_TX_buffer[RS485_BUFFER_SIZE];
 bool Init(uint8_t modbusAddress) {
     s_modbusAddress = modbusAddress;
 
-    //GPIO pins config
+    // GPIO pins config
     GPIO_InitTypeDef GPIO_InitStruct {};
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
@@ -56,19 +56,19 @@ bool Init(uint8_t modbusAddress) {
     GPIO_InitStruct.Alternate = 0;
     HAL_GPIO_Init(RS485_DE_SIGNAL_GPIO_PORT, &GPIO_InitStruct);
 
-    //Peripheral clock enable
+    // Peripheral clock enable
     __HAL_RCC_USART1_CLK_ENABLE();
     __HAL_RCC_DMA1_CLK_ENABLE();
     RCC_PeriphCLKInitTypeDef PeriphClkInit {};
 
-    //Initializes the peripherals clocks
+    // Initializes the peripherals clocks
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
     PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
         Error_Handler();
     }
 
-    //initialize USART
+    // initialize USART
     memset(&s_huart, 0, sizeof(s_huart));
     s_huart.Instance = USART1;
     s_huart.Init.BaudRate = RS485_BAUDRATE;
@@ -89,39 +89,39 @@ bool Init(uint8_t modbusAddress) {
         return false;
     }
 
-    //DMA RX init
+    // DMA RX init
 
-    //Disable DMA
+    // Disable DMA
     DMA_RX->CCR &= ~DMA_CCR_EN;
-    //clear DMA flags
-    DMAMUX_CHANNEL_STATUS_RX->CFR = DMAMUX_CHANNEL_STATUS_MASK_RX; //clear DMAMUX sync IRQ flag
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU);   //clear all DMA IRQ flags
-    //Set the DMA Channel configuration
+    // clear DMA flags
+    DMAMUX_CHANNEL_STATUS_RX->CFR = DMAMUX_CHANNEL_STATUS_MASK_RX; // clear DMAMUX sync IRQ flag
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU);   // clear all DMA IRQ flags
+    // Set the DMA Channel configuration
     DMA_RX->CCR = DMA_PRIORITY_HIGH | DMA_MDATAALIGN_BYTE | DMA_PDATAALIGN_BYTE | DMA_MINC_ENABLE | DMA_PINC_DISABLE | DMA_NORMAL | DMA_PERIPH_TO_MEMORY;
-    //Set peripheral request to DMAMUX channel
+    // Set peripheral request to DMAMUX channel
     DMAMUX_CHANNEL_RX->CCR = (DMA_REQUEST_USART1_RX & DMAMUX_CxCR_DMAREQ_ID);
-    //Clear the DMAMUX synchro overrun flag
+    // Clear the DMAMUX synchro overrun flag
     DMAMUX_CHANNEL_STATUS_RX->CFR = DMAMUX_CHANNEL_STATUS_MASK_RX;
 
-    //DMA TX init
+    // DMA TX init
 
-    //Disable DMA
+    // Disable DMA
     DMA_TX->CCR &= ~DMA_CCR_EN;
-    //clear DMA flags
-    DMAMUX_CHANNEL_STATUS_TX->CFR = DMAMUX_CHANNEL_STATUS_MASK_TX; //clear DMAMUX sync IRQ flag
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU);   //clear all DMA IRQ flags
-    //Set the DMA Channel configuration
+    // clear DMA flags
+    DMAMUX_CHANNEL_STATUS_TX->CFR = DMAMUX_CHANNEL_STATUS_MASK_TX; // clear DMAMUX sync IRQ flag
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU);   // clear all DMA IRQ flags
+    // Set the DMA Channel configuration
     DMA_TX->CCR = DMA_PRIORITY_LOW | DMA_MDATAALIGN_BYTE | DMA_PDATAALIGN_BYTE | DMA_MINC_ENABLE | DMA_PINC_DISABLE | DMA_NORMAL | DMA_MEMORY_TO_PERIPH;
-    //Set peripheral request to DMAMUX channel
+    // Set peripheral request to DMAMUX channel
     DMAMUX_CHANNEL_TX->CCR = (DMA_REQUEST_USART1_TX & DMAMUX_CxCR_DMAREQ_ID);
-    //Clear the DMAMUX synchro overrun flag
+    // Clear the DMAMUX synchro overrun flag
     DMAMUX_CHANNEL_STATUS_TX->CFR = DMAMUX_CHANNEL_STATUS_MASK_TX;
 
-    //DMA interrupt init
+    // DMA interrupt init
     HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
-    //USART1 interrupt init
+    // USART1 interrupt init
     HAL_NVIC_SetPriority(USART1_IRQn, RS485_IRQ_PRIORITY, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
 
@@ -138,42 +138,42 @@ void StartReceiving() {
 
     //*** Configure DMA
 
-    //Disable DMA
+    // Disable DMA
     DMA_RX->CCR &= ~DMA_CCR_EN;
 
-    //clear DMA flags
-    DMAMUX_CHANNEL_STATUS_RX->CFR = DMAMUX_CHANNEL_STATUS_MASK_RX; //clear DMAMUX sync IRQ flag
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU);   //clear all DMA IRQ flags
+    // clear DMA flags
+    DMAMUX_CHANNEL_STATUS_RX->CFR = DMAMUX_CHANNEL_STATUS_MASK_RX; // clear DMAMUX sync IRQ flag
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU);   // clear all DMA IRQ flags
 
-    //Configure the source, destination address and the data length
+    // Configure the source, destination address and the data length
     DMA_RX->CPAR = (uint32_t)(&USART->RDR);
     DMA_RX->CMAR = (uint32_t)s_RX_buffer_1;
     DMA_RX->CNDTR = RS485_BUFFER_SIZE;
 
-    //Enable DMA interrupts
-    DMA_RX->CCR &= ~DMA_IT_HT;              //disable half-transfer
-    DMA_RX->CCR |= (DMA_IT_TC | DMA_IT_TE); //enable transfer-complete and transfer-error
+    // Enable DMA interrupts
+    DMA_RX->CCR &= ~DMA_IT_HT;              // disable half-transfer
+    DMA_RX->CCR |= (DMA_IT_TC | DMA_IT_TE); // enable transfer-complete and transfer-error
 
-    //Enable DMA
+    // Enable DMA
     DMA_RX->CCR |= DMA_CCR_EN;
 
     //*** Configure USART
 
-    //Disable Transmitter and Receiver
+    // Disable Transmitter and Receiver
     CLEAR_BIT(USART->CR1, USART_CR1_TE | USART_CR1_RE);
 
-    //switch RS485 transceiver to RX mode
+    // switch RS485 transceiver to RX mode
     HAL_GPIO_WritePin(RS485_DE_SIGNAL_GPIO_PORT, RS485_DE_SIGNAL_GPIO_PIN, GPIO_PIN_RESET);
 
-    //Enable Receiver Timeout feature
+    // Enable Receiver Timeout feature
     MODIFY_REG(USART->RTOR, USART_RTOR_RTO, RS485_RX_TIMEOUT_BITS);
     SET_BIT(USART->CR2, USART_CR2_RTOEN);
     SET_BIT(USART->CR1, USART_CR1_RTOIE);
 
-    //Enable DMA transfer
+    // Enable DMA transfer
     SET_BIT(USART->CR3, USART_CR3_DMAR);
 
-    //Enable Receiver
+    // Enable Receiver
     SET_BIT(USART->CR1, USART_CR1_RE);
 
     HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
@@ -181,48 +181,48 @@ void StartReceiving() {
 }
 
 bool Transmit(uint8_t *pData, uint32_t dataSize) {
-    //check arguments
+    // check arguments
     if (pData == nullptr || dataSize == 0 || dataSize > RS485_BUFFER_SIZE) {
         return false;
     }
 
-    //prepare TX buffer
+    // prepare TX buffer
     memcpy(s_TX_buffer, pData, dataSize);
 
     HAL_NVIC_DisableIRQ(DMA1_Channel2_3_IRQn);
     HAL_NVIC_DisableIRQ(USART1_IRQn);
 
-    //Disable Receiving
+    // Disable Receiving
     CLEAR_BIT(USART->CR3, USART_CR3_DMAR);
     CLEAR_BIT(USART->CR1, USART_CR1_RE);
     CLEAR_BIT(DMA_RX->CCR, DMA_CCR_EN);
 
-    //switch RS485 transceiver to TX mode
+    // switch RS485 transceiver to TX mode
     HAL_GPIO_WritePin(RS485_DE_SIGNAL_GPIO_PORT, RS485_DE_SIGNAL_GPIO_PIN, GPIO_PIN_SET);
 
-    //Disable DMA
+    // Disable DMA
     DMA_TX->CCR &= ~DMA_CCR_EN;
 
-    //clear DMA flags
-    DMAMUX_CHANNEL_STATUS_TX->CFR = DMAMUX_CHANNEL_STATUS_MASK_TX; //clear DMAMUX sync IRQ flag
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU);   //clear all DMA IRQ flags
+    // clear DMA flags
+    DMAMUX_CHANNEL_STATUS_TX->CFR = DMAMUX_CHANNEL_STATUS_MASK_TX; // clear DMAMUX sync IRQ flag
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU);   // clear all DMA IRQ flags
 
-    //Configure the source, destination address and the data length
+    // Configure the source, destination address and the data length
     DMA_TX->CPAR = (uint32_t)(&USART->TDR);
     DMA_TX->CMAR = (uint32_t)s_TX_buffer;
     DMA_TX->CNDTR = dataSize;
 
-    //Enable DMA interrupts
-    DMA_TX->CCR &= ~(DMA_IT_HT | DMA_IT_TC); //disable half-transfer and transfer-complete
-    DMA_TX->CCR |= (DMA_IT_TE);              //enable transfer-error
+    // Enable DMA interrupts
+    DMA_TX->CCR &= ~(DMA_IT_HT | DMA_IT_TC); // disable half-transfer and transfer-complete
+    DMA_TX->CCR |= (DMA_IT_TE);              // enable transfer-error
 
-    //Enable DMA
+    // Enable DMA
     DMA_TX->CCR |= DMA_CCR_EN;
 
-    //Enable the UART Transmit Complete Interrupt
+    // Enable the UART Transmit Complete Interrupt
     SET_BIT(USART->CR1, USART_CR1_TCIE);
 
-    //Enable Transmitter
+    // Enable Transmitter
     SET_BIT(USART->CR1, USART_CR1_TE);
     SET_BIT(USART->CR3, USART_CR3_DMAT);
 
@@ -232,22 +232,22 @@ bool Transmit(uint8_t *pData, uint32_t dataSize) {
     return true;
 }
 
-//private
+// private
 void FinishTransmit() {
-    //Disable Transmitter
+    // Disable Transmitter
     CLEAR_BIT(USART->CR3, USART_CR3_DMAT);
     CLEAR_BIT(USART->CR1, USART_CR1_TE);
     CLEAR_BIT(DMA_TX->CCR, DMA_CCR_EN);
-    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU); //clear all TX DMA IRQ flags
+    DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_TX & 0x1CU); // clear all TX DMA IRQ flags
 
-    //Disable the UART Transmit Complete Interrupt
+    // Disable the UART Transmit Complete Interrupt
     SET_BIT(USART->ICR, USART_ICR_TCCF);
     CLEAR_BIT(USART->CR1, USART_CR1_TCIE);
 
-    //switch RS485 transceiver to RX mode
+    // switch RS485 transceiver to RX mode
     HAL_GPIO_WritePin(RS485_DE_SIGNAL_GPIO_PORT, RS485_DE_SIGNAL_GPIO_PIN, GPIO_PIN_RESET);
 
-    //Enable Receiver
+    // Enable Receiver
     SET_BIT(USART->CR1, USART_CR1_RE);
 
     DMA_RX->CNDTR = RS485_BUFFER_SIZE;
@@ -261,21 +261,21 @@ void DMA_IRQHandler() {
 
     //*** DMA Channel 2 - RX IRQ
 
-    //transfer-error or transfer-complete events
-    //transfer-complete event means error, because message is longer than expected
+    // transfer-error or transfer-complete events
+    // transfer-complete event means error, because message is longer than expected
     if ((flag_it & (DMA_FLAG_TE1 << (DMA_CHANNEL_INDEX_RX & 0x1CU))) != 0U
         || (flag_it & (DMA_FLAG_TC1 << (DMA_CHANNEL_INDEX_RX & 0x1CU))) != 0U) {
 
-        //disable receiving
+        // disable receiving
         CLEAR_BIT(USART->CR3, USART_CR3_DMAR);
         CLEAR_BIT(USART->CR1, USART_CR1_RE);
         CLEAR_BIT(DMA_RX->CCR, DMA_CCR_EN);
 
-        //clear flags
+        // clear flags
         DMAMUX_CHANNEL_STATUS_RX->CFR = DMAMUX_CHANNEL_STATUS_MASK_RX;
         DMA->IFCR |= DMA_FLAG_GI1 << (DMA_CHANNEL_INDEX_RX & 0x1CU);
 
-        //enable receiving
+        // enable receiving
         DMA_RX->CNDTR = RS485_BUFFER_SIZE;
         SET_BIT(DMA_RX->CCR, DMA_CCR_EN);
         SET_BIT(USART->CR1, USART_CR1_RE);
@@ -284,7 +284,7 @@ void DMA_IRQHandler() {
 
     //*** DMA Channel 3 - TX IRQ
 
-    //TX DMA transfer error
+    // TX DMA transfer error
     uint32_t expectedFlags = (DMA_FLAG_TE1 << (DMA_CHANNEL_INDEX_TX & 0x1CU));
     if ((flag_it & expectedFlags) != 0U) {
         FinishTransmit();
@@ -294,25 +294,25 @@ void DMA_IRQHandler() {
 void USART_IRQHandler() {
     uint32_t isrflags = READ_REG(USART->ISR);
 
-    //RX frame end detected
+    // RX frame end detected
     if ((isrflags & USART_ISR_RTOF) != 0U) {
         __HAL_UART_CLEAR_FLAG(&s_huart, UART_CLEAR_RTOF);
 
-        //disable DMA
+        // disable DMA
         CLEAR_BIT(USART->CR3, USART_CR3_DMAR);
         CLEAR_BIT(DMA_RX->CCR, DMA_CCR_EN);
 
-        //set new DMA buffer
+        // set new DMA buffer
         uint8_t *buffer = (uint8_t *)DMA_RX->CMAR;
         uint32_t dataSize = RS485_BUFFER_SIZE - DMA_RX->CNDTR;
         DMA_RX->CMAR = (uint32_t)((buffer == s_RX_buffer_1) ? s_RX_buffer_2 : s_RX_buffer_1);
         DMA_RX->CNDTR = RS485_BUFFER_SIZE;
 
-        //enable new DMA transfer
+        // enable new DMA transfer
         SET_BIT(DMA_RX->CCR, DMA_CCR_EN);
         SET_BIT(USART->CR3, USART_CR3_DMAR);
 
-        //process received data
+        // process received data
         if (buffer[0] == s_modbusAddress && dataSize > 0 && s_pOnReceive != nullptr) {
             s_pOnReceive(buffer, dataSize);
         }
@@ -320,34 +320,34 @@ void USART_IRQHandler() {
 
     uint32_t cr1its = READ_REG(USART->CR1);
 
-    //TX transmission complete
+    // TX transmission complete
     if (((isrflags & USART_ISR_TC) != 0U) && ((cr1its & USART_CR1_TCIE) != 0U)) {
         FinishTransmit();
     }
 
-    //process errors
+    // process errors
     uint32_t errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE));
     if (errorflags != 0U) {
-        //parity error
+        // parity error
         if ((isrflags & USART_ISR_PE) != 0U) {
             __HAL_UART_CLEAR_FLAG(&s_huart, UART_CLEAR_PEF);
         }
 
-        //framing error
+        // framing error
         if ((isrflags & USART_ISR_FE) != 0U) {
             __HAL_UART_CLEAR_FLAG(&s_huart, UART_CLEAR_FEF);
         }
 
-        //noise error
+        // noise error
         if ((isrflags & USART_ISR_NE) != 0U) {
             __HAL_UART_CLEAR_FLAG(&s_huart, UART_CLEAR_NEF);
         }
 
-        //overrun
+        // overrun
         if ((isrflags & USART_ISR_ORE) != 0U) {
             __HAL_UART_CLEAR_FLAG(&s_huart, UART_CLEAR_OREF);
         }
     }
 }
 
-} //namespace
+} // namespace

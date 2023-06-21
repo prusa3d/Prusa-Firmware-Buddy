@@ -27,20 +27,20 @@ color_t display_ex_get_pixel(point_ui16_t pt);
 uint8_t *display_ex_get_block(point_ui16_t start, point_ui16_t end);
 
 /*!*************************************************************************************************
-* \brief Draws rounded frames with parametric value of corner radius and corner flag (what corners it prints on).
-*       It draws into display buffer and uses SPI to send buffer to display only if buffer is full or drawing is done, which minimizes SPI overhead.
-*       ! This will fail if something else changes display buffer in the meantime !
-*
-* \param [in] rect - rounded rect coordinates (in pixels)
-*
-* \param [in] back - background color
-*
-* \param [in] front - foreground color
-*
-* \param [in] cor_rad - chosen corner radius
-*
-* \param [in] cor_flag - what corners we print (MIC_TOP_RIGHT, MIC_TOP_LEFT, MIC_BOT_RIGHT, MIC_BOT_LEFT, MIC_ALL_CORNERS)
-***************************************************************************************************/
+ * \brief Draws rounded frames with parametric value of corner radius and corner flag (what corners it prints on).
+ *       It draws into display buffer and uses SPI to send buffer to display only if buffer is full or drawing is done, which minimizes SPI overhead.
+ *       ! This will fail if something else changes display buffer in the meantime !
+ *
+ * \param [in] rect - rounded rect coordinates (in pixels)
+ *
+ * \param [in] back - background color
+ *
+ * \param [in] front - foreground color
+ *
+ * \param [in] cor_rad - chosen corner radius
+ *
+ * \param [in] cor_flag - what corners we print (MIC_TOP_RIGHT, MIC_TOP_LEFT, MIC_BOT_RIGHT, MIC_BOT_LEFT, MIC_ALL_CORNERS)
+ ***************************************************************************************************/
 void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint8_t cor_rad, uint8_t cor_flag, color_t secondary_col);
 
 uint32_t display_ex_buffer_pixel_size();

@@ -76,7 +76,7 @@ static void mirror_buffer(Pixel *buffer) {
             std::swap(buffer[i1], buffer[i2]);
 #elif defined USE_ILI9488
             Pixel swapper = buffer[i1];
-            buffer[i1] = buffer[i2]; // move 6 bit input to 8 bit scale
+            buffer[i1] = buffer[i2];     // move 6 bit input to 8 bit scale
             buffer[i2] = swapper;
             buffer[i1].ShiftColorsUp(2); // move 6 bit input to 8 bit scale
             buffer[i2].ShiftColorsUp(2);

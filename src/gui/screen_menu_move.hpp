@@ -5,7 +5,6 @@
 
 #include "screen_menu.hpp"
 #include "WindowItemFormatableLabel.hpp"
-#include "window_dlg_load_unload.hpp"
 #include "MItem_filament.hpp"
 
 class I_MI_AXIS : public WiSpinInt {
@@ -55,7 +54,7 @@ public:
 
 using MI_AXIS_X = MI_AXIS<0, 5, 8>;
 using MI_AXIS_Y = MI_AXIS<1, 5, 8>;
-#if PRINTER_TYPE == PRINTER_PRUSA_MINI
+#if PRINTER_IS_PRUSA_MINI
 using MI_AXIS_Z = MI_AXIS<2, 1, 4>;
 #else
 using MI_AXIS_Z = MI_AXIS<2, 1, 12>;

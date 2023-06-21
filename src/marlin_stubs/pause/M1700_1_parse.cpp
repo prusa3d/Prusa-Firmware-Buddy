@@ -31,7 +31,7 @@ void PrusaGcodeSuite::M1700() {
     if (target_extruder < 0)
         return;
 
-    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), target_extruder, parser.boolval('S'), parser.boolval('E'), true); //always preheat bed
+    filament_gcodes::M1700_no_parser(RetAndCool_t(preheat), PreheatMode::None, target_extruder, parser.boolval('S'), parser.boolval('E'), true); // always preheat bed
 }
 
 /**

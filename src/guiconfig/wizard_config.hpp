@@ -12,7 +12,7 @@ inline constexpr size_t row_1 = row_0 + row_h;
 inline constexpr size_t MarginLeft = GuiDefaults::ScreenWidth <= 240 ? 6 : 24;
 inline constexpr size_t MarginRight = MarginLeft;
 inline constexpr size_t col_0 = MarginLeft;
-inline constexpr size_t col_after_icon = col_0 + 16 + 4; //icon has 16px
+inline constexpr size_t col_after_icon = col_0 + 16 + 4; // icon has 16px
 inline constexpr size_t X_space = GuiDefaults::ScreenWidth - (MarginLeft + MarginRight);
 inline constexpr size_t Y_space = GuiDefaults::ScreenHeight - row_0;
 inline constexpr size_t status_icon_w = 20;

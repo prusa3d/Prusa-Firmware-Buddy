@@ -15,6 +15,16 @@ enum class Tool {
     _first = Tool1,
 };
 
+constexpr Tool operator-(Tool tool, int i) {
+    assert(ftrstd::to_underlying(tool) - i >= ftrstd::to_underlying(Tool::_first));
+    return static_cast<Tool>(ftrstd::to_underlying(tool) - i);
+}
+
+constexpr Tool operator+(Tool tool, int i) {
+    assert(ftrstd::to_underlying(tool) + i <= ftrstd::to_underlying(Tool::_last));
+    return static_cast<Tool>(ftrstd::to_underlying(tool) + i);
+}
+
 // Order matters, snake and will be run in the same order, as well as menu items (with indices) will be
 enum class Action {
     Fans,
@@ -119,4 +129,10 @@ uint8_t get_tool_mask(Tool tool);
 uint64_t get_test_mask(Action action);
 Tool get_last_enabled_tool();
 
+/**
+ * @brief Get the next enabled tool.
+ * @param tool current tool
+ * @return next enabled tool
+ */
+Tool get_next_tool(Tool tool);
 }

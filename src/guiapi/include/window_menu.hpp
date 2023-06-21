@@ -14,17 +14,17 @@
 #include <cstdint>
 #include <optional>
 
-//todo
-//use template instead IWinMenuContainer *pContainer;
-//I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
+// todo
+// use template instead IWinMenuContainer *pContainer;
+// I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class WindowMenu : public AddSuperWindow<IWindowMenu> {
-    uint8_t index_of_first; /// container index of first item on screen
+    uint8_t index_of_first;             /// container index of first item on screen
     uint8_t max_items_on_screen;
     uint8_t visible_count_at_last_draw; // to redraw last item, if it was hidden, has no effect in case entire window is invalid
     IWinMenuContainer *pContainer;
 
     std::optional<Rect16> getItemRC(size_t position_on_screen) const;
-    void setIndex(uint8_t index); //for ctor (cannot fail)
+    void setIndex(uint8_t index); // for ctor (cannot fail)
     /// Prints single item in the menu
     void printItem(IWindowMenuItem &item, Rect16 rc);
     /// Searches for next visible item
@@ -69,7 +69,7 @@ public:
     WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);
     void BindContainer(IWinMenuContainer &cont, uint8_t index = 0);
 
-    bool SetIndex(uint8_t index); //must check container
+    bool SetIndex(uint8_t index); // must check container
     void Increment(int dif);
     void Decrement(int dif) { Increment(-dif); }
     std::optional<size_t> GetIndex() const;

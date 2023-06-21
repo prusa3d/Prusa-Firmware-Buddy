@@ -13,7 +13,7 @@
 #include "filament_sensor.hpp"
 
 namespace selftest {
-//using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
+// using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
 struct FSensorConfig_t {
     using type_evaluation = SelftestFSensor_t;
     static constexpr SelftestParts part_type = SelftestParts::FSensor;

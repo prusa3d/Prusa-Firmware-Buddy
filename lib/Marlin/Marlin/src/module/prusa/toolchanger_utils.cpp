@@ -2,16 +2,18 @@
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "Marlin/src/module/stepper.h"
+    #include "Marlin/src/feature/bedlevel/bedlevel.h"
     #include "Marlin.h"
     #include "log.h"
     #include "timing.h"
-    #include "eeprom.h"
     #include <option/is_knoblet.h>
     #include <puppies/Dwarf.hpp>
 
     #if ENABLED(CRASH_RECOVERY)
         #include "../../feature/prusa/crash_recovery.h"
     #endif /*ENABLED(CRASH_RECOVERY)*/
+
+    #include <configuration_store.hpp>
 
 LOG_COMPONENT_DEF(PrusaToolChanger, LOG_SEVERITY_DEBUG);
 
@@ -114,6 +116,11 @@ void PrusaToolChangerUtils::request_active_switch(Dwarf *new_dwarf) {
     request_toolchange_dwarf = new_dwarf;
     request_toolchange = true;
     if (wait([this]() { return !this->request_toolchange.load(); }, WAIT_TIME_TOOL_SELECT) == false) {
+    #if ENABLED(CRASH_RECOVERY)
+        if (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) {
+            return; // Fail silently, so powerpanic can work
+        }
+    #endif          /*ENABLED(CRASH_RECOVERY)*/
         toolchanger_error("Tool switch failed");
     }
 }
@@ -189,8 +196,19 @@ void PrusaToolChangerUtils::force_marlin_picked_tool(Dwarf *dwarf) {
     }
 }
 
-void PrusaToolChangerUtils::tool_detect() {
-    active_extruder = detect_tool_nr();
+float PrusaToolChangerUtils::get_mbl_z_lift_height() const {
+    // Get maximal Z of MBL
+    float mbl_max_z_height = std::numeric_limits<float>::lowest();
+    float mbl_min_z_height = std::numeric_limits<float>::max();
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
+        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
+            if (const float z = Z_VALUES(x, y); !isnan(z)) {
+                mbl_min_z_height = std::min(mbl_min_z_height, z);
+                mbl_max_z_height = std::max(mbl_max_z_height, z);
+            }
+        }
+    }
+    return mbl_max_z_height - mbl_min_z_height;
 }
 
 uint8_t PrusaToolChangerUtils::detect_tool_nr() {
@@ -200,14 +218,6 @@ uint8_t PrusaToolChangerUtils::detect_tool_nr() {
     } else {
         return MARLIN_NO_TOOL_PICKED;
     }
-}
-
-bool PrusaToolChangerUtils::wait(std::function<bool()> function, uint32_t timeout_ms) {
-    uint32_t start_time = ticks_ms();
-    while (!function() && !planner.draining() && (ticks_ms() - start_time) < timeout_ms) {
-        idle(true, true);
-    }
-    return function();
 }
 
 uint8_t PrusaToolChangerUtils::get_enabled_mask() {
@@ -249,7 +259,7 @@ buddy::puppies::Dwarf &PrusaToolChangerUtils::getTool(uint8_t tool_index) {
 void PrusaToolChangerUtils::load_tool_info() {
     for (unsigned int i = 0; i < tool_info.size(); ++i) {
         if (i < EEPROM_MAX_TOOL_COUNT) {
-            DockPosition position = eeprom_get_dock_position(i);
+            DockPosition position = config_store().get_dock_position(i);
             tool_info[i].dock_x = position.x;
             tool_info[i].dock_y = position.y;
         } else {
@@ -261,20 +271,20 @@ void PrusaToolChangerUtils::load_tool_info() {
 
 void PrusaToolChangerUtils::save_tool_info() {
     for (size_t i = 0; i < std::min<size_t>(tool_info.size(), EEPROM_MAX_TOOL_COUNT); ++i) {
-        eeprom_set_dock_position(i, { .x = tool_info[i].dock_x, .y = tool_info[i].dock_y });
+        config_store().set_dock_position(i, { .x = tool_info[i].dock_x, .y = tool_info[i].dock_y });
     }
 }
 
 void PrusaToolChangerUtils::save_tool_offsets() {
     for (int8_t e = 0; e < std::min(HOTENDS, EEPROM_MAX_TOOL_COUNT); e++) {
-        eeprom_set_tool_offset(e, { .x = hotend_offset[e].x, .y = hotend_offset[e].y, .z = hotend_offset[e].z });
+        config_store().set_tool_offset(e, { .x = hotend_offset[e].x, .y = hotend_offset[e].y, .z = hotend_offset[e].z });
     }
 }
 
 void PrusaToolChangerUtils::load_tool_offsets() {
     HOTEND_LOOP() {
         if (e < EEPROM_MAX_TOOL_COUNT) {
-            ToolOffset offset = eeprom_get_tool_offset(e);
+            ToolOffset offset = config_store().get_tool_offset(e);
             hotend_offset[e].x = offset.x;
             hotend_offset[e].y = offset.y;
             hotend_offset[e].z = offset.z;
@@ -443,6 +453,48 @@ void PrusaToolChangerUtils::expand_first_dock_position() {
 PrusaToolInfo PrusaToolChangerUtils::compute_synthetic_tool_info(const Dwarf &dwarf) const {
     return PrusaToolInfo({ .dock_x = DOCK_DEFAULT_FIRST_X_MM + DOCK_OFFSET_X_MM * (dwarf.get_dwarf_nr() - 1),
         .dock_y = DOCK_DEFAULT_Y_MM });
+}
+
+void PrusaToolChangerUtils::ConfRestorer::sample() {
+    if (sampled) {
+        bsod("Double sampled planner configuration");
+    }
+    sampled_travel_acceleration = planner.settings.travel_acceleration;
+    sampled_feedrate_mm_s = feedrate_mm_s;
+    sampled_feedrate_percentage = feedrate_percentage;
+    sampled = true;
+}
+
+void PrusaToolChangerUtils::ConfRestorer::restore_clear() {
+    restore();
+    sampled = false;
+}
+
+void PrusaToolChangerUtils::ConfRestorer::restore_acceleration() {
+    if (!sampled.load()) {
+        bsod("Restoring not sampled acceleration");
+    }
+    planner.settings.travel_acceleration = sampled_travel_acceleration;
+}
+
+void PrusaToolChangerUtils::ConfRestorer::restore_feedrate() {
+    if (!sampled.load()) {
+        bsod("Restoring not sampled feedrate");
+    }
+    feedrate_mm_s = sampled_feedrate_mm_s;
+    feedrate_percentage = sampled_feedrate_percentage;
+}
+
+// This function confuses the indexer, so it is last in the file
+bool PrusaToolChangerUtils::wait(std::function<bool()> function, uint32_t timeout_ms) {
+    uint32_t start_time = ticks_ms();
+    bool result = false;
+    while (!(result = function())                    // Wait for this and remember its state for return
+        && !planner.draining()                       // This triggers on powerpanic and quickstop
+        && (ticks_ms() - start_time) < timeout_ms) { // Timeout
+        idle(true, true);
+    }
+    return result;
 }
 
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/

@@ -57,7 +57,7 @@ namespace puppies {
             DEFAULT_ADDRESS = 0x00, //< address that puppies will have after boot to bootloader
             FIRST_ASSIGNED = 0x0A,  //< First assigned address in bootloader
 
-            MODBUS_OFFSET = 0x1A, //< Address offset in modbus, this is the first assigned address after jump to app
+            MODBUS_OFFSET = 0x1A,   //< Address offset in modbus, this is the first assigned address after jump to app
         };
 
         /// Hardware info, used in response to GET_HARDWARE_INFO
@@ -230,7 +230,7 @@ namespace puppies {
         static constexpr uint16_t MAX_RESPONSE_DATA_LEN = MAX_PACKET_LENGTH - 5;
         static constexpr uint16_t MAX_FLASH_BLOCK_LENGTH = MAX_REQUEST_DATA_LEN - 4; // 4B for offset
 
-        //Protocol major version must match with the same number in bootloader
+        // Protocol major version must match with the same number in bootloader
         static constexpr uint16_t BOOTLOADER_PROTOCOL_VERSION = 0x0302;
 
     private:

@@ -5,7 +5,7 @@
 #include "marlin_client.hpp"
 #include "print_time_module.hpp"
 #include "time_tools.hpp"
-#include "eeprom.h"
+#include <configuration_store.hpp>
 
 PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[maybe_unused]] window_text_t *out_print_dur) {
     // TODO: for MINI - Add time_dur condition
@@ -32,7 +32,7 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
         }
 
         // Timestamp
-        const int8_t timezone_diff = eeprom_get_i8(EEVAR_TIMEZONE);
+        const int8_t timezone_diff = config_store().timezone.get();
         const time_t local_cur_sec = curr_sec + timezone_diff * 3600;
         time_end_format = PT_t::timestamp;
         generate_timestamp_string(local_cur_sec, time_to_end);
@@ -64,8 +64,8 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
 void PrintTime::generate_countdown_string(const uint32_t time_to_end) {
     time_t rawtime = time_t(time_to_end);
     const struct tm *timeinfo = localtime(&rawtime);
-    //standard would be:
-    //strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
+    // standard would be:
+    // strftime(array.data(), array.size(), "%jd %Hh", timeinfo);
     if (timeinfo->tm_yday) {
         snprintf(text_time_end.data(), MAX_END_TIMESTAMP_SIZE, "%id %2ih", timeinfo->tm_yday, timeinfo->tm_hour);
     } else if (timeinfo->tm_hour) {

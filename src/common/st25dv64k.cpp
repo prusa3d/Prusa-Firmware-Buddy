@@ -6,15 +6,16 @@
 #include "cmsis_os.h"
 #include "main.h"
 #include "metric.h"
+#include "SEGGER_SYSVIEW.h"
 
 #define ST25DV64K_RTOS
 
-//system config address registr
-// static const uint16_t REG_GPO = 0x0000;
-// static const uint16_t REG_IT_TIME = 0x0001;
-// static const uint16_t REG_EH_MODE = 0x0002;
-// static const uint16_t REG_RF_MNGT = 0x0003;
-// static const uint16_t REG_RFA1SS = 0x0004;
+// system config address registr
+//  static const uint16_t REG_GPO = 0x0000;
+//  static const uint16_t REG_IT_TIME = 0x0001;
+//  static const uint16_t REG_EH_MODE = 0x0002;
+//  static const uint16_t REG_RF_MNGT = 0x0003;
+//  static const uint16_t REG_RFA1SS = 0x0004;
 static const uint16_t REG_ENDA1 = 0x0005;
 // static const uint16_t REG_RFA2SS = 0x0006;
 static const uint16_t REG_ENDA2 = 0x0007;
@@ -69,7 +70,7 @@ static inline void st25dv64k_unlock(void) {
 
     #define st25dv64k_delay HAL_Delay
 
-#endif //ST25DV64K_RTOS
+#endif // ST25DV64K_RTOS
 
 void st25dv64k_init(void) {
     uint8_t pwd[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
@@ -80,7 +81,7 @@ void st25dv64k_init(void) {
             st25dv64k_present_pwd(0);
             st25dv64k_wr_cfg(REG_ENDA3, 0xFF);
             st25dv64k_wr_cfg(REG_ENDA2, 0xFF);
-            st25dv64k_wr_cfg(REG_ENDA1, 0x7F);
+            st25dv64k_wr_cfg(REG_ENDA1, 0xFF);
             st25dv64k_present_pwd(pwd);
 
             st25dv64k_rd_cfg(REG_ENDA1);
@@ -120,6 +121,9 @@ void st25dv64k_user_write(uint16_t address, uint8_t data) {
 }
 
 void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size) {
+    if (size == 0) {
+        return;
+    }
     uint8_t _out[2] = { static_cast<uint8_t>(address >> 8), static_cast<uint8_t>(address & 0xff) };
     st25dv64k_lock();
     I2C_Transmit(&I2C_HANDLE_FOR(eeprom), ADDR_WRITE, _out, 2, HAL_MAX_DELAY);
@@ -155,6 +159,9 @@ static inline uint16_t min(const uint16_t a, const uint16_t b) {
 }
 
 void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint16_t size) {
+    if (size == 0) {
+        return;
+    }
     for (uint8_t i = 0; i < WRITE_RETRIES; ++i) {
         st25dv64k_user_write_bytes_unchecked(address, pdata, size);
 

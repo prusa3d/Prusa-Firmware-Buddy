@@ -7,6 +7,7 @@
 #include "stdint.h"
 #include "filament_sensor.hpp"
 #include <optional>
+#include <array>
 
 namespace filament_sensor {
 
@@ -14,20 +15,12 @@ struct LogicalSensors {
     IFSensor *primary_runout = nullptr;   // XL side sensor; printer with MMU : MMU; printer without MMU extruder sensor
     IFSensor *secondary_runout = nullptr; // XL, printer with MMU, extruder sensor; other don't have
     IFSensor *autoload = nullptr;         // printer with MMU dont have, XL side
-    // combination XL + MMU currently unsupported
-
-    auto get_array() {
-        return std::to_array<IFSensor *>({ primary_runout, secondary_runout, autoload });
-    }
-};
-
-struct PhysicalSensors {
     IFSensor *current_extruder = nullptr; // sensor on extruder, on XL it is bound to current extruder
     IFSensor *current_side = nullptr;     // on MK4 this is MMU sensor, on XL it is currently selected side sensors, MINI does not have one
     // combination XL + MMU currently unsupported
 
     auto get_array() {
-        return std::to_array<IFSensor *>({ current_extruder, current_side });
+        return std::to_array<IFSensor *>({ primary_runout, secondary_runout, autoload, current_extruder, current_side });
     }
 };
 
@@ -35,6 +28,8 @@ struct Events {
     std::optional<IFSensor::event> primary_runout = std::nullopt;
     std::optional<IFSensor::event> secondary_runout = std::nullopt;
     std::optional<IFSensor::event> autoload = std::nullopt;
+    std::optional<IFSensor::event> current_extruder = std::nullopt;
+    std::optional<IFSensor::event> current_side = std::nullopt;
 
     std::optional<IFSensor::event> &get(size_t idx) {
         switch (idx) {
@@ -44,6 +39,10 @@ struct Events {
             return secondary_runout;
         case 2:
             return autoload;
+        case 3:
+            return current_extruder;
+        case 4:
+            return current_side;
         default: {
             static std::optional<IFSensor::event> empty = std::nullopt;
             return empty;

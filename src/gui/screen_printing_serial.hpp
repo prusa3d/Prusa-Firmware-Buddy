@@ -1,4 +1,4 @@
-//screen_printing_serial.hpp
+// screen_printing_serial.hpp
 #pragma once
 #include "ScreenPrintingModel.hpp"
 #include "gui.hpp"

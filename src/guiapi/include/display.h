@@ -41,12 +41,12 @@ typedef void(display_complete_lcd_reinit_t)();
 template <
 #ifndef USE_MOCK_DISPLAY // mock display has dynamical size
     uint16_t W, uint16_t H
-#else  // USE_MOCK_DISPLAY
+#else                    // USE_MOCK_DISPLAY
     display_size_t *COLS, display_size_t *ROWS
-#endif // USE_MOCK_DISPLAY
+#endif                   // USE_MOCK_DISPLAY
     ,
     display_init_t *INIT, display_done_t *DONE, display_clear_t *CLEAR, display_set_pixel_t *SET_PIXEL, display_get_block_t *GET_BLOCK,
-    display_draw_rounded_rect_t *DRAW_ROUNDED_RECT, //private only
+    display_draw_rounded_rect_t *DRAW_ROUNDED_RECT, // private only
     display_draw_line_t *DRAW_LINE, display_draw_rect_t *DRAW_RECT, display_fill_rect_t *FIL_RECT, display_draw_char_t *DRAW_CHAR,
     display_draw_text_t *DRAW_TEXT, display_buffer_pixel_size_t *BUFFER_PIXEL_SIZE, display_store_char_in_buffer_t *STORE_CHAR_IN_BUFFER,
     display_draw_from_buffer_t *DRAW_FROM_BUFFER, display_draw_png_t *DRAW_PNG, display_backlight_t *BACKLIGHT,

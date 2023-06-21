@@ -22,7 +22,7 @@ uint32_t buffer_overflown = 0;
 static bool loadcell_is_enabled = false;
 
 void loadcell_init() {
-    //read one value to unstuck the loadcell converter
+    // read one value to unstuck the loadcell converter
     hx717.ReadValue(hx717.CHANNEL_A_GAIN_128);
 }
 

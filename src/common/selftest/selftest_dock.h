@@ -13,6 +13,8 @@ public:
     ~CSelftestPart_Dock();
 
     LoopResult state_ask_user_needs_calibration();
+    LoopResult stateMoveAwayInit();
+    LoopResult stateMoveAwayWait();
     LoopResult state_initiate_manual_park();
     LoopResult state_wait_user_manual_park1();
     LoopResult state_wait_user_manual_park2();
@@ -27,11 +29,15 @@ public:
     LoopResult state_ask_user_tighten_pillar();
     LoopResult state_measure();
     LoopResult state_compute_position();
-    LoopResult state_ask_user_install_pins();
     LoopResult state_ask_user_tighten_screw();
+    LoopResult state_ask_user_install_pins();
+    LoopResult state_selftest_check_todock();
+    LoopResult state_selftest_check_unlock();
+    LoopResult state_selftest_check_away();
+    LoopResult state_selftest_check_state();
     LoopResult state_selftest_entry();
-    LoopResult state_selftest_park();
     LoopResult state_selftest_pick();
+    LoopResult state_selftest_park();
     LoopResult state_selftest_leave();
     LoopResult state_selftest_move_away();
     LoopResult state_selftest_congratulate();
@@ -49,6 +55,30 @@ private:
     xy_long_t position_before_measure;
     PrusaToolInfo old_tool_calibration;
     uint8_t remaining_park_unpark_cycles = NUM_PARK_PICK_CYCLES;
+    buddy::puppies::Dwarf &dwarf;        ///< Reference to the dwarf whose dock is to be calibrated
+
+    bool toolcheck_was_disabled = false; ///< Remember if toolcheck was disabled to not reenable
+    /// Safely reenable automatic toolchange
+    void toolcheck_reenable() {
+        if (toolcheck_was_disabled) {
+            prusa_toolchanger.toolcheck_enable();
+            toolcheck_was_disabled = false;
+        }
+    }
+
+    struct MoveRequired {
+        bool picked;            ///< Dwarf should have this picked state
+        bool parked;            ///< Dwarf should have this parked state
+        uint32_t timeout_start; ///< Dwarf should be in the above state a short moment after this time [ms]
+        bool timeout_valid;     ///< If true, variable timeout_start is valid
+    } move_required;            ///< Requirements for the current move to be successful
+
+    /**
+     * @brief Enable endstops to make a homing move.
+     * To do a move that is interrupted as soon as an endstop is hit.
+     */
+    void prepare_homing();
+
     void revert_tool_info();
 };
 

@@ -12,16 +12,16 @@ FooterIcon::FooterIcon(window_t *parent, const png::Resource *icon)
         parent,
         [parent, icon] {
             if (!parent || !icon)
-                return Rect16(); //does not have parrent, cannot calculate X and Y pos
+                return Rect16(); // does not have parrent, cannot calculate X and Y pos
 
             point_i16_t pt = { 0, 0 };
             size_ui16_t sz = { icon->w, icon->h };
             size_ui16_t parent_sz = parent->GetRect().Size();
 
-            //limit width
+            // limit width
             sz.w = std::min(sz.w, parent_sz.w);
 
-            //limit height and calculate virtual padding
+            // limit height and calculate virtual padding
             if (sz.h && sz.h < parent_sz.h) {
                 // do not use padding to draw faster
                 pt.y += (parent_sz.h - sz.h) / 2;

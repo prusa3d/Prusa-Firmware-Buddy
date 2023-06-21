@@ -17,7 +17,7 @@
 #include "screen_menu_eeprom_test.hpp"
 #include "screen_test_load.hpp"
 
-//#include "menu_opener.hpp" TODO make it work
+// #include "menu_opener.hpp" TODO make it work
 #include "screen_menu.hpp"
 
 class MI_STACK_OVERFLOW : public WI_LABEL_t {

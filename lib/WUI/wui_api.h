@@ -54,78 +54,78 @@ typedef enum {
     ETHVAR_DNS2_IP4,     // ip_addr_t, dns2_ip4
     ETHVAR_MAC_ADDRESS,  // is not included in ethconfig (used in stringifying for screen)
 
-    APVAR_SSID, // char[32 + 1], ap_entry_t::ssid
-    APVAR_PASS, // char[64 + 1], ap_entry_t::pass
+    APVAR_SSID,          // char[32 + 1], ap_entry_t::ssid
+    APVAR_PASS,          // char[64 + 1], ap_entry_t::pass
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];
 typedef char ini_file_str_t[MAX_INI_SIZE];
 
 /*!*************************************************************************************************
-* \brief saves the network parameters to non-volatile memory
-*
-* \param [in] ethconfig storage for parameters to set from static ethconfig to non-volatile memory
-* \param [in] ap_config storage for AP parameters. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
-* \param [in] netdev_id which slots to use in the eeprom. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
-***************************************************************************************************/
+ * \brief saves the network parameters to non-volatile memory
+ *
+ * \param [in] ethconfig storage for parameters to set from static ethconfig to non-volatile memory
+ * \param [in] ap_config storage for AP parameters. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
+ * \param [in] netdev_id which slots to use in the eeprom. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
+ ***************************************************************************************************/
 void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
 
 /*!**********************************************************************************************
-* \brief loads the network parameters from non-volatile memory
-*
-* \param [out] ethconfig storage for parameters to get from memory to static ethconfig structure
-* \param [out] ap_config storage for parameters about connecting to a WIFI AP. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
-* \param [in] netdev_id which slots in the eeprom to use. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
-************************************************************************************************/
+ * \brief loads the network parameters from non-volatile memory
+ *
+ * \param [out] ethconfig storage for parameters to get from memory to static ethconfig structure
+ * \param [out] ap_config storage for parameters about connecting to a WIFI AP. May be NULL. Non-null is valid only with NETDEV_ESP_ID.
+ * \param [in] netdev_id which slots in the eeprom to use. Either NETDEV_ETH_ID or NETDEV_ESP_ID.
+ ************************************************************************************************/
 void load_net_params(ETH_config_t *ethconfig, ap_entry_t *ap_config, uint32_t netdev_id);
 
 /*!****************************************************************************
-* \brief load from ini file Ethernet specific parameters
-*
-* \param    [out] config - storage for loaded ethernet configurations
-*
-* \return   uint32_t    error value
-*
-* \retval   1 if successful
-*****************************************************************************/
+ * \brief load from ini file Ethernet specific parameters
+ *
+ * \param    [out] config - storage for loaded ethernet configurations
+ *
+ * \return   uint32_t    error value
+ *
+ * \retval   1 if successful
+ *****************************************************************************/
 uint32_t load_ini_file_eth(ETH_config_t *config);
 
 /*!****************************************************************************
-* \brief load from ini file Wifi specific parameters
-*
-* \param    [out] config - storage for loaded ethernet configurations
-* \param    [out] ap - storage for loaded accesspoint parameters
-*
-* \return   uint32_t    error value
-*
-* \retval   1 if successful
-*****************************************************************************/
+ * \brief load from ini file Wifi specific parameters
+ *
+ * \param    [out] config - storage for loaded ethernet configurations
+ * \param    [out] ap - storage for loaded accesspoint parameters
+ *
+ * \return   uint32_t    error value
+ *
+ * \retval   1 if successful
+ *****************************************************************************/
 uint32_t load_ini_file_wifi(ETH_config_t *config, ap_entry_t *ap);
 
 /*!****************************************************************************
-* \brief Retrieves the MAC address of the requested device.
-*
-* \param [out] dest - static MAC address null-terminated string. May be an
-*   empty string when the requested device is NETDEV_NODEV_ID or when ESP is not
-*   available and its MAC is requested.
-* \param [in] netdev_id - which device's address to get.
-******************************************************************************/
+ * \brief Retrieves the MAC address of the requested device.
+ *
+ * \param [out] dest - static MAC address null-terminated string. May be an
+ *   empty string when the requested device is NETDEV_NODEV_ID or when ESP is not
+ *   available and its MAC is requested.
+ * \param [in] netdev_id - which device's address to get.
+ ******************************************************************************/
 void get_MAC_address(mac_address_t *dest, uint32_t netdev_id);
 
 /*!**********************************************************************************************************
-* \brief Sets time and date in device's RTC on some other time storage
-*
-* \param [in] sec - number of seconds from 1.1.1900
-************************************************************************************************************/
+ * \brief Sets time and date in device's RTC on some other time storage
+ *
+ * \param [in] sec - number of seconds from 1.1.1900
+ ************************************************************************************************************/
 void sntp_set_system_time(uint32_t sec);
 
 /*!********************************************************************************
-* \brief Adds time in seconds to given timestamp
-*
-* \param [in] secs_to_add - seconds that have to be added to given timestamp (+ or -)
-*
-* \param [in,out] timestamp - system time aquired from device's time storage/clock
-**********************************************************************************/
+ * \brief Adds time in seconds to given timestamp
+ *
+ * \param [in] secs_to_add - seconds that have to be added to given timestamp (+ or -)
+ *
+ * \param [in,out] timestamp - system time aquired from device's time storage/clock
+ **********************************************************************************/
 void add_time_to_timestamp(int32_t secs_to_add, struct tm *timestamp);
 
 ////////////////////////////////////////////////////////////////////////////
@@ -178,6 +178,8 @@ void wui_marlin_client_init(void);
 time_t sntp_get_system_time(void);
 
 bool wui_is_file_being_printed(const char *filename);
+
+bool wui_media_inserted();
 
 #ifdef __cplusplus
 }

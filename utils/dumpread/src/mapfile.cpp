@@ -135,7 +135,7 @@ bool cmapfile::load(const char *fn) {
                 if ((s = sscanf(line, " COMMON         %x%x%[^\n]", &addr, &size, name)) == 3) {
                     if (common_size)
                         set_last_mem_entry_size(common_size);
-                    //add_mem_entry(mem_type_common, addr, size, name);
+                    // add_mem_entry(mem_type_common, addr, size, name);
                     common_addr = addr;
                     common_size = size;
                 } else if ((s = sscanf(line, "                %x                %[^\n]", &addr, name)) == 2) {

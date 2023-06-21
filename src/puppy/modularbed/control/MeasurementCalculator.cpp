@@ -26,7 +26,7 @@ float CalcThermistorTemperature(float resistance) {
 }
 
 float CalcElectricCurrent(int adcValue) {
-    //This calculation takes an average of 39 microseconds on STM32G0 @56MHz
+    // This calculation takes an average of 39 microseconds on STM32G0 @56MHz
 
     float voltage = ((float)adcValue) * ADC_REFERENCE_VOLTAGE / ((float)0x10000);
 
@@ -46,4 +46,4 @@ float CalcHBResistanceAtTemperature(float referenceResistance, float temperature
     return resistance;
 }
 
-} //namespace
+} // namespace

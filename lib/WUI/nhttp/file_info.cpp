@@ -9,8 +9,9 @@
 #include <http/chunked.h>
 #include <json_encode.h>
 #include <segmented_json_macros.h>
-#include <basename.h>
+#include <filepath_operation.h>
 
+#include <cmsis_os.h>
 #include <cstring>
 #include <sys/stat.h>
 
@@ -27,6 +28,20 @@ extern "C" {
 
 // Inject for tests, which are compiled on systems without it in the header.
 size_t strlcpy(char *, const char *, size_t);
+}
+
+namespace {
+
+int stat_retry(const char *path, struct stat *st) {
+    for (;;) {
+        errno = 0;
+        int result = stat(path, st);
+        if (result == 0 || (errno != EAGAIN && errno != EINTR && errno != EBUSY)) {
+            return result;
+        }
+    }
+}
+
 }
 
 namespace nhttp::printer {
@@ -53,7 +68,7 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
         JSON_FIELD_BOOL("ro", false) JSON_COMMA;
         // Note: we can only get a timestamp for folders that are not
         // /usb/ because that is the root of FATFS and stat() don't work on it
-        if (stat(state.filepath, &st) == 0) {
+        if (stat_retry(state.filepath, &st) == 0) {
             // Note: We need the timestamp to be persistent betweeen resumes,
             // so we save it to state.
             state.base_folder_timestamp = st.st_mtime;
@@ -216,12 +231,13 @@ JsonResult FileInfo::FileRenderer::renderStateOctoprint(size_t resume_point, Jso
     // clang-format on
 }
 
-FileInfo::FileInfo(const char *filepath, bool can_keep_alive, bool json_errors, bool after_upload, ReqMethod method, APIVersion api)
+FileInfo::FileInfo(const char *filepath, bool can_keep_alive, bool json_errors, bool after_upload, ReqMethod method, APIVersion api, std::optional<uint32_t> etag)
     : can_keep_alive(can_keep_alive)
     , after_upload(after_upload)
     , json_errors(json_errors)
     , method(method)
-    , api(api) {
+    , api(api)
+    , etag(etag) {
     strlcpy(this->filepath, filepath, sizeof this->filepath);
     /*
      * Eat the last slash on directories.
@@ -253,8 +269,10 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
 
         if (DIR *dir_attempt = opendir(filepath); dir_attempt) {
             renderer = DirRenderer(this, dir_attempt, api);
-        } else if (stat(filepath, &finfo) == 0) {
+        } else if (stat_retry(filepath, &finfo) == 0) {
             renderer = FileRenderer(this, finfo.st_size, finfo.st_mtime, api);
+            // The passed etags are for directories only for now
+            etag.reset();
         } else if (strcmp(filepath, "/usb") == 0) {
             // We are trying to list files in the root and it's not there -> USB is missing.
             // Special case it, we return empty list of files.
@@ -268,7 +286,7 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
             wui_is_file_being_printed(filepath) ? "Currently-Printing: true\r\n" : "Currently-Printing: false\r\n",
             nullptr
         };
-        written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling, std::nullopt, std::nullopt, extra_hdrs);
+        written = write_headers(output, output_size, after_upload ? Status::Created : Status::Ok, ContentType::ApplicationJson, handling, std::nullopt, etag, extra_hdrs);
 
         if (method == ReqMethod::Head) {
             return Step { 0, written, Terminating::for_handling(handling) };

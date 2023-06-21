@@ -5,7 +5,7 @@
 #include "window_dlg_preheat.hpp"
 DialogFactory::mem_space DialogFactory::all_dialogs;
 
-//screens .. not used, return nullptr (to pass check in GetAll)
+// screens .. not used, return nullptr (to pass check in GetAll)
 static_unique_ptr<IDialogMarlin> DialogFactory::screen_not_dialog(fsm::BaseData /*data*/) {
     return nullptr;
 }
@@ -19,7 +19,7 @@ static_unique_ptr<IDialogMarlin> DialogFactory::Preheat(fsm::BaseData data) {
 }
 
 DialogFactory::Ctors DialogFactory::GetAll() {
-    //todo check if all fields are set
+    // todo check if all fields are set
     std::array<fnc, size_t(ClientFSM::_count)> ret = { nullptr };
     ret[size_t(ClientFSM::Serial_printing)] = screen_not_dialog;
     ret[size_t(ClientFSM::Printing)] = screen_not_dialog;

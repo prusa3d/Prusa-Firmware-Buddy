@@ -1,4 +1,4 @@
-//screen_qr_error.hpp
+// screen_qr_error.hpp
 #pragma once
 #include "gui.hpp"
 #include "window_text.hpp"

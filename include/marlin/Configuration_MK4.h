@@ -410,14 +410,15 @@
 // Above this temperature the heater will be switched off.
 // This can protect components from overheating, but NOT from shorts and failures.
 // (Use MINTEMP for thermistor short/failure protection.)
-#define HEATER_0_MAXTEMP 290 + 15
+#define HEATER_0_MAXTEMP 305
 #define HEATER_1_MAXTEMP 275
 #define HEATER_2_MAXTEMP 275
 #define HEATER_3_MAXTEMP 275
 #define HEATER_4_MAXTEMP 275
 #define HEATER_5_MAXTEMP 275
-#define BED_MAXTEMP 150
-#define BED_MAXTEMP_SAFETY_MARGIN 10
+#define HEATER_MAXTEMP_SAFETY_MARGIN 15
+#define BED_MAXTEMP 125
+#define BED_MAXTEMP_SAFETY_MARGIN 5
 #define HEATBREAK_MAXTEMP 100
 #define CHAMBER_MAXTEMP 100
 #define BOARD_MAXTEMP 120
@@ -867,9 +868,6 @@
  */
 #define FIX_MOUNTED_PROBE
 #define NOZZLE_LOAD_CELL
-// When we don't have PT100 on the loveboard, the loadcell doesn't share HX717 with the PT100
-// and we can keep loadcell's high-precision mode enabled for a longer time
-#define NOZZLE_LOAD_CELL_ALLOWS_LONG_HIGH_PRECISION
 
 // Display heatbreak temperature as FILAMENT on LCD status screen footer
 #define LCD_HEATBREAK_TO_FILAMENT
@@ -955,6 +953,9 @@
 
 // Feedrate (mm/m) for the "accurate" probe of each point
 #define Z_PROBE_SPEED_SLOW 70
+
+// [ms] delay before first Z probe for taring
+#define Z_FIRST_PROBE_DELAY 250
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   // Enable G29 P9 for nozzle cleanup

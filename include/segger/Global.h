@@ -108,6 +108,6 @@ Revision: $Rev: 12501 $
         #endif
     #endif // Supports long type.
 
-#endif // Avoid multiple inclusion
+#endif     // Avoid multiple inclusion
 
 /*************************** End of file ****************************/

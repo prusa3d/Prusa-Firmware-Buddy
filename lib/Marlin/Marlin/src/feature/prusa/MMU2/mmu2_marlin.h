@@ -27,6 +27,7 @@ void extruder_schedule_turning(float feed_rate);
 
 float raise_z(float delta);
 
+// void planner_abort_queued_moves();
 void planner_synchronize();
 bool planner_any_moves();
 pos3d planner_current_position();
@@ -39,7 +40,7 @@ void nozzle_park();
 bool marlin_printingIsActive();
 void marlin_manage_heater();
 void marlin_manage_inactivity(bool b);
-void marlin_idle(bool b);
+void marlin_idle();
 
 int16_t thermal_degTargetHotend();
 int16_t thermal_degHotend();
@@ -54,7 +55,5 @@ void Disable_E0();
 bool all_axes_homed();
 
 void gcode_reset_stepper_timeout();
-
-bool cutter_enabled();
 
 } // namespace MMU2

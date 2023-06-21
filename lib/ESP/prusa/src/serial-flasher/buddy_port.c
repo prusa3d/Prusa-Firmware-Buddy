@@ -26,7 +26,7 @@
     #include "dbg.h"
 #else
     #define _dbg(...)
-#endif //0
+#endif // 0
 
 static UART_HandleTypeDef *uart;
 static GPIO_TypeDef *gpio_port_io0, *gpio_port_rst;
@@ -154,14 +154,4 @@ uint32_t loader_port_remaining_time(void) {
 
 void loader_port_debug_print(const char *str) {
     _dbg("DEBUG: %s", str);
-}
-
-esp_loader_error_t loader_port_change_baudrate(uint32_t baudrate) {
-    uart->Init.BaudRate = baudrate;
-
-    if (HAL_UART_Init(uart) != HAL_OK) {
-        return ESP_LOADER_ERROR_FAIL;
-    }
-
-    return ESP_LOADER_SUCCESS;
 }

@@ -7,10 +7,10 @@ uint32_t ticks_ms(void) {
 
     struct timeval tv;
 
-    //Get current time
+    // Get current time
     gettimeofday(&tv, NULL);
 
-    //Convert resulting value to milliseconds
+    // Convert resulting value to milliseconds
     return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
 

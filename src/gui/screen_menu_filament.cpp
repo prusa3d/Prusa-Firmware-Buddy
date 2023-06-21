@@ -21,9 +21,9 @@ enum {
 
 ScreenMenuFilament::ScreenMenuFilament()
     : ScreenMenuFilament__(_(label)) {
-#if (PRINTER_TYPE != PRINTER_PRUSA_MINI)
+#if (!PRINTER_IS_PRUSA_MINI)
     header.SetIcon(&png::spool_white_16x16);
-#endif //PRINTER_PRUSA_MINI
+#endif // PRINTER_IS_PRUSA_MINI
     deactivate_item();
 }
 
@@ -37,8 +37,8 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
 
-            item->Do();               //do action (load filament ...)
-            header.SetText(_(label)); //restore label
+            item->Do();               // do action (load filament ...)
+            header.SetText(_(label)); // restore label
         }
         return;
     }
@@ -47,7 +47,7 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
 }
 
 /*****************************************************************************/
-//non-static method definition
+// non-static method definition
 
 /*
  * +---------+--------++------------+--------+--------+-------+--------------------------------------------------------+

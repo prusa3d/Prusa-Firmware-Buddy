@@ -13,6 +13,7 @@
     #define PROBE_ANALYSIS_WITH_METRICS
     #include "metric.h"
 #endif
+#include <circle_buffer.hpp>
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846f
@@ -31,7 +32,6 @@ public:
     ProbeAnalysis()
         : samplingInterval(1.0f / 320.0f)
         , window()
-        , samplesCount(0)
         , analysisInProgress(false) {
     }
 
@@ -39,9 +39,7 @@ public:
     void StoreSample(float currentZ, float currentLoad) {
         if (analysisInProgress)
             return;
-        std::rotate(window.begin(), window.begin() + 1, window.end());
-        window.back() = { currentZ, currentLoad };
-        samplesCount = std::min(samplesCount + 1, window.size());
+        window.push_back({ currentZ, currentLoad });
     }
 
     /// Shall be called before Analyse() with the real measured sampling interval
@@ -136,7 +134,7 @@ public:
 
     /// Clear the analysis window
     void Reset() {
-        samplesCount = 0;
+        window.clear();
     }
 
     /// Time interval in seconds specifying the subset of samples before haltStart that should be used for the analysis.
@@ -144,6 +142,9 @@ public:
 
     /// Time interval in seconds specifying the subset of samples after haltEnd that should be used for the analysis.
     static constexpr float analysisLookahead = 0.300;
+
+    /// Delay in seconds between z axis coordinates and load samples.
+    static constexpr float loadDelay = static_cast<float>(LoadDelay) / 1000.0f;
 
 private:
     /// Entry of the moving window used for analysis.
@@ -155,17 +156,11 @@ private:
         float load;
     };
 
-    /// Delay in seconds between z axis coordinates and load samples.
-    static constexpr float loadDelay = static_cast<float>(LoadDelay) / 1000.0f;
-
     /// Time interval in seconds between consecutive samples.
     float samplingInterval;
 
     /// Currently recorded samples (moving window).
-    std::array<Record, W> window;
-
-    /// Number of valid samples in `window`.
-    std::size_t samplesCount;
+    CircleBuffer<Record, W + 1> window;
 
     /// True if Analyse() is being process (and no samples should be processed)
     std::atomic<bool> analysisInProgress;
@@ -300,12 +295,7 @@ private:
             std::abort();
         }
         Sample sample = window.begin() + index;
-        return std::max(std::min(sample, window.end() - 1), ValidSamplesBegin());
-    }
-
-    /// First valid sample in the window
-    Sample ValidSamplesBegin() {
-        return window.end() - samplesCount - 1;
+        return std::max(std::min(sample, window.end() - 1), window.begin());
     }
 
     struct SegmentedR2s {
@@ -425,7 +415,8 @@ private:
 
         for (auto split = samples.first + 1; split < samples.last; ++split) {
             auto result = CalculateErrorWhenLoadRepresentedAsLines(samples, split);
-            if (std::get<0>(result) < bestError) {
+            float error = std::get<0>(result);
+            if (!std::isnan(error) && error < bestError) {
                 bestSplit = split;
                 std::tie(bestError, leftLine, rightLine) = result;
             }
@@ -457,7 +448,7 @@ private:
         bool extendingHalt = true;
 
         // iterate backwards and find range of the first global minimum
-        for (auto it = window.rbegin(); it < window.rbegin() + samplesCount; ++it) {
+        for (auto it = window.rbegin(); it < window.rbegin() + window.Count(); ++it) {
             if (it->z < fallEnd->z) {
                 fallEnd = riseStart = make_forward(it);
                 extendingHalt = true;
@@ -482,9 +473,9 @@ private:
         Sample analysisStart = features.fallEnd - lookbackSamples;
         Sample analysisEnd = features.riseStart + lookaheadSamples;
 
-        if (analysisStart < ValidSamplesBegin() || analysisStart >= window.end())
+        if (analysisStart < window.begin() || analysisStart >= window.end())
             return false;
-        if (analysisEnd < ValidSamplesBegin() || analysisEnd >= window.end())
+        if (analysisEnd < window.begin() || analysisEnd >= window.end())
             return false;
 
         features.analysisStart = analysisStart;
@@ -654,7 +645,7 @@ private:
                     } else {      /* if features.riseLine.GetY(features.decompressionEndTime) > -0.18971788883209229f */
                         return 0; // bad
                     }
-                } else { /* if features.r2_30ms.compressionEnd > 0.005205066641792655f */
+                } else {          /* if features.r2_30ms.compressionEnd > 0.005205066641792655f */
                     if (features.compressionLine.GetY(features.compressionStartTime) <= -51.45247840881348f) {
                         return 0; // bad
                     } else {      /* if features.compressionLine.GetY(features.compressionStartTime) > -51.45247840881348f */
@@ -668,7 +659,7 @@ private:
                     } else {      /* if features.loadMeanBeforeCompression > -23.7804012298584f */
                         return 1; // good
                     }
-                } else { /* if features.loadAngleCompressionEnd > 51.137014389038086f */
+                } else {          /* if features.loadAngleCompressionEnd > 51.137014389038086f */
                     if (features.loadAngleDecompressionStart <= 135.77788543701172f) {
                         return 1; // good
                     } else {      /* if features.loadAngleDecompressionStart > 135.77788543701172f */
@@ -684,7 +675,7 @@ private:
                     } else {      /* if features.r2_60ms.decompressionEnd > -321.4128608703613f */
                         return 0; // bad
                     }
-                } else { /* if features.r2_50ms.compressionStart > 0.6476757228374481f */
+                } else {          /* if features.r2_50ms.compressionStart > 0.6476757228374481f */
                     if (features.riseLine.GetY(features.decompressionEndTime) <= 0.07457397505640984f) {
                         return 1; // good
                     } else {      /* if features.riseLine.GetY(features.decompressionEndTime) > 0.07457397505640984f */
@@ -698,7 +689,7 @@ private:
                     } else {      /* if features.loadMeanBeforeCompression > -36.56223678588867f */
                         return 1; // good
                     }
-                } else { /* if features.loadAngleDecompressionStart > 152.87728118896484f */
+                } else {          /* if features.loadAngleDecompressionStart > 152.87728118896484f */
                     if (features.loadAngleDecompressionStart <= 161.35951232910156f) {
                         return 0; // bad
                     } else {      /* if features.loadAngleDecompressionStart > 161.35951232910156f */

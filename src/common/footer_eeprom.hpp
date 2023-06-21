@@ -17,7 +17,7 @@ inline constexpr size_t count = FOOTER_ITEMS_PER_LINE__;
 inline constexpr size_t count_of_trailing_ones = 3;
 inline constexpr size_t value_bit_size = 5; // 32 different items should be enough
 static_assert(count * value_bit_size <= 32, "Encoded eeprom record is too big");
-static_assert(ftrstd::to_underlying(Item::_count) <= std::pow(2, value_bit_size), "Too many items to encode");
+static_assert(ftrstd::to_underlying(Item::_count) <= (1 << value_bit_size), "Too many items to encode");
 
 /**
  * @brief On first call load footer settings from eeprom and store it than return stored value
@@ -112,8 +112,8 @@ constexpr uint32_t Encode(record rec) {
     for (size_t i = 1; i < count; ++i) {
         ret |= uint32_t(rec[i]) << ((value_bit_size * i) + count_of_trailing_ones);
     }
-    //adding trailing ones to force default footer settings in FW version < 4.4.0 and using fixed size of footer item
-    uint32_t trailing_ones = pow(2, count_of_trailing_ones) - 1;
+    // adding trailing ones to force default footer settings in FW version < 4.4.0 and using fixed size of footer item
+    uint32_t trailing_ones = (1 << count_of_trailing_ones) - 1;
     ret |= trailing_ones;
     return ret;
 }

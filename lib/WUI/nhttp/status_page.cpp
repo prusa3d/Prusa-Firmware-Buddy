@@ -20,6 +20,7 @@ size_t strlcpy(char *, const char *, size_t);
 using http::ConnectionHandling;
 using http::ContentType;
 using http::Status;
+using std::optional;
 
 namespace nhttp::handler {
 
@@ -30,11 +31,14 @@ StatusPage::StatusPage(http::Status status, const RequestParser &parser, const c
     auto default_close_handling = parser.can_keep_alive() ? CloseHandling::KeepAlive : CloseHandling::Close;
     close_handling = has_body(parser.method) and status >= 300 ? CloseHandling::ErrorClose : default_close_handling;
 }
-StatusPage::StatusPage(http::Status status, CloseHandling close_handling, bool json_content, const char *extra_content)
+
+StatusPage::StatusPage(http::Status status, CloseHandling close_handling, bool json_content, optional<uint32_t> etag, const char *extra_content)
     : extra_content(extra_content)
     , status(status)
     , close_handling(close_handling)
-    , json_content(json_content) {}
+    , json_content(json_content)
+    , etag(etag) {}
+
 Step StatusPage::step_impl(std::string_view, bool, uint8_t *output, size_t output_size, const char *const *extra_hdrs) {
     /*
      * Note: we assume the buffers has reasonable size and our payload fits. We
@@ -70,7 +74,7 @@ Step StatusPage::step_impl(std::string_view, bool, uint8_t *output, size_t outpu
      *
      * https://dev.prusa3d.com/browse/BFW-2451
      */
-    size_t used_up = write_headers(output, output_size, status, ct, handling, strlen(content_buffer), std::nullopt, extra_hdrs);
+    size_t used_up = write_headers(output, output_size, status, ct, handling, strlen(content_buffer), etag, extra_hdrs);
     size_t rest = output_size - used_up;
     size_t write = std::min(strlen(content_buffer), rest);
     // Copy without the \0, we don't need it.

@@ -12,11 +12,11 @@
 #include "guiconfig.h"
 #include "display_math_helper.h"
 
-//public flags (config)
+// public flags (config)
 enum {
-    ST7789V_FLG_DMA = 0x08,  // DMA enabled
-    ST7789V_FLG_MISO = 0x10, // MISO enabled
-    ST7789V_FLG_SAFE = 0x20, // SAFE mode (no DMA and safe delay)
+    ST7789V_FLG_DMA = 0x08,    // DMA enabled
+    ST7789V_FLG_MISO = 0x10,   // MISO enabled
+    ST7789V_FLG_SAFE = 0x20,   // SAFE mode (no DMA and safe delay)
 
     ST7789V_DEF_COLMOD = 0x05, // interface pixel format (5-6-5, hi-color)
     ST7789V_DEF_MADCTL = 0xC0, // memory data access control (mirror XY)
@@ -45,7 +45,7 @@ inline uint16_t color_to_565(uint32_t clr) {
 }
 
 inline uint32_t color_from_565([[maybe_unused]] uint16_t clr565) {
-    //TODO
+    // TODO
     return 0;
 }
 

@@ -20,10 +20,10 @@ window_dlg_wait_t::window_dlg_wait_t(Rect16 rect, string_view_utf8 second_text_s
     , text(this, { rect.Left(), int16_t(rect.Top() + text_y_offset), rect.Width(), uint16_t(30) }, is_multiline::no, is_closed_on_click_t::no, _("Please wait"))
     , second_text(this, { rect.Left(), int16_t(rect.Top() + second_text_y_offset), rect.Width(), uint16_t(30) }, is_multiline::no, is_closed_on_click_t::no, second_text_string)
     , animation(this, { int16_t(rect.Left() + animation_x), int16_t(rect.Top() + animation_y) }) {
-    text.font = GuiDefaults::FontBig;
+    text.set_font(GuiDefaults::FontBig);
     text.SetAlignment(Align_t::Center());
 
-    second_text.font = GuiDefaults::FooterFont;
+    second_text.set_font(GuiDefaults::FooterFont);
     second_text.SetAlignment(Align_t::Center());
 }
 

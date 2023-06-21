@@ -8,4 +8,4 @@ using StatusFooter = FooterDoubleLine;
 #else
     #include "footer_singleline.hpp"
 using StatusFooter = FooterSingleline;
-#endif //USE_ST7789
+#endif // USE_ST7789

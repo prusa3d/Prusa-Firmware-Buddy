@@ -73,7 +73,7 @@ constexpr vars_body_t body_defaults = {
     Z_CURRENT,                                                                  // AXIS_RMS_CURRENT_MA_Z
     E0_CURRENT,                                                                 // AXIS_RMS_CURRENT_MA_E0
 #ifdef DEFAULT_Z_MAX_POS
-    DEFAULT_Z_MAX_POS, // AXIS_Z_MAX_POS_MM
+    DEFAULT_Z_MAX_POS,                                                          // AXIS_Z_MAX_POS_MM
 #else
     0,
 #endif

@@ -9,42 +9,18 @@
 #include <device/board.h>
 #include "printers.h"
 #include "fanctl.hpp"
+#include <option/has_puppies.h>
+#include <option/has_dwarf.h>
 
 using namespace buddy::hw;
 
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
 //! @brief Put hardware into safe state
 //!
 //! Set fans to maximum, heaters to minimum and disable motors.
 void hwio_safe_state(void) {
-    // enable fans
-    fanCtlPrint[0].safeState();
-    fanCtlHeatBreak[0].safeState();
-
-    // disable heaters
-    gpio_init(MARLIN_PIN(HEAT0), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
-    gpio_init(MARLIN_PIN(BED_HEAT), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
-    gpio_set(MARLIN_PIN(HEAT0), 0);
-    gpio_set(MARLIN_PIN(BED_HEAT), 0);
-    // disable motors
-
-    xEnable.write(Pin::State::high);
-    #if BOARD_IS_BUDDY
-    yEnable.write(Pin::State::high);
-    #endif
-    zEnable.write(Pin::State::high);
-    e0Enable.write(Pin::State::high);
-}
-
-#elif BOARD_IS_XLBUDDY
-void hwio_safe_state(void) {
-    // Disable axes
-    xyEnable.write(Pin::State::high);
-    zEnable.write(Pin::State::high);
-
-    // Set power panic for modular bed
-    modularBedReset.set();
-
+#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
+    // enable fans, disable hotends
+    #if HAS_DWARF()
     // Reset all dwarfs to enable fans
     // Keep splitter powered to keep fans on.
     // Avoid power panic to keep fans on.
@@ -61,23 +37,52 @@ void hwio_safe_state(void) {
     dwarf4Reset.reset();
     dwarf5Reset.reset();
     dwarf6Reset.reset();
+    #else
+    Fans::print(0).safeState();
+    Fans::heat_break(0).safeState();
 
+    // disable hotend
+    gpio_init(MARLIN_PIN(HEAT0), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
+    gpio_set(MARLIN_PIN(HEAT0), 0);
+    #endif
+    // Disable heated bed
+    #if HAS_PUPPIES()
+    // Set power panic for modular bed
+    modularBedReset.set();
+    #else
+    // disable heatbed
+    gpio_init(MARLIN_PIN(BED_HEAT), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
+    gpio_set(MARLIN_PIN(BED_HEAT), 0);
+    #endif
+
+    // disable motors
+    #if BOARD_IS_XLBUDDY
+    xyEnable.write(Pin::State::high);
+    #else
+    xEnable.write(Pin::State::high);
+        #if BOARD_IS_BUDDY
+    yEnable.write(Pin::State::high);
+        #endif
+    e0Enable.write(Pin::State::high);
+    #endif
+    zEnable.write(Pin::State::high);
+
+    #if BOARD_IS_XLBUDDY
     // Disable ESP
     espPower.reset();
 
     // Disable USBs
     fsUSBPwrEnable.set();
     hsUSBEnable.set();
-}
+    #endif
 #elif BOARD_IS_DWARF
-void hwio_safe_state(void) {
     // heater OFF
     heat0.write(Pin::State::low);
 
     // motor off
     e0Enable.write(Pin::State::high);
 
-    fanCtlPrint[0].safeState();
-    fanCtlHeatBreak[0].safeState();
-}
+    Fans::print(0).safeState();
+    Fans::heat_break(0).safeState();
 #endif
+}

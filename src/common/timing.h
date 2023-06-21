@@ -21,10 +21,7 @@ uint32_t ticks_ms();
 /// Overflows every 71 minutes
 uint32_t ticks_us();
 
-/// Ticks with nanosecond precision
-///
-/// Overflows every 4.29 seconds
-uint32_t ticks_ns();
+/// @note Ticks with nanosecond precision ticks_ns() was deprecated, it was not used
 
 /// Return difference ticks_b - ticks_a while handling overflows
 ///
@@ -43,10 +40,21 @@ uint32_t ticks_ns();
 ///
 int32_t ticks_diff(uint32_t ticks_a, uint32_t ticks_b);
 
-/// Time since the start of the system in nanoseconds
+/// Time since the start of the system in microseconds
 ///
-/// Given the datatype, overflows every ~584 years
-uint64_t timestamp_ns();
+/// This datatype won't overflow.
+/// If implementation uses uint32_t for seconds, it should last ~136 years.
+int64_t get_timestamp_us();
+
+typedef struct {
+    uint32_t sec; ///< Seconds since the start of the system overflows every ~136 years
+    uint32_t us;  ///< Microseconds consistent with sec
+} timestamp_t;
+
+/// Time since the start of the system in seconds and microseconds
+///
+/// Overflows every ~136 years.
+timestamp_t get_timestamp();
 
 /// Sys timer's overflow interrupt callback
 ///
@@ -61,21 +69,7 @@ inline void delay__(time_fn_t time_fn, uint32_t delay) {
         ;
 }
 
-/// @brief Delay nanoseconds
-///
-/// Relies on timing system has been already initialized by tick_timer_init().
-/// It is not guaranteed to return otherwise.
-///
-/// See DELAY_NS_PRECISE if you need guaranteed return in uninitialized
-/// state or you need more precise timing and can afford disabling
-/// interrupts or you are already in disabled interrupts context.
-///
-/// @param ns time in nanoseconds
-/// This function is not guaranteed to return if ns is close
-/// to uint32_t MAX
-inline void delay_ns(uint32_t ns) {
-    delay__(ticks_ns, ns);
-}
+/// @note Delay nanoseconds delay_ns(uint32_t ns) was deprecated, it was not used and had errors
 
 /// @brief Delay microseconds
 ///
