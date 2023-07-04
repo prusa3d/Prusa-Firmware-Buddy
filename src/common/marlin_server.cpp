@@ -1152,6 +1152,24 @@ static void _server_print_loop(void) {
         case PrintPreview::Result::Inactive:
             did_not_start_print = false;
             new_state = State::PrintInit;
+
+#if HAS_TOOLCHANGER() && ENABLED(PRUSA_TOOL_MAPPING)
+            ///@todo Remove this when toolmapping screen is done.
+            /// If the G-code is sliced for singletool, allow printing with currently selected tool.
+            if (prusa_toolchanger.is_toolchanger_enabled()                                             // Toolchanger available
+                && GCodeInfo::getInstance().get_extruder_info(0).used()                                // Tool 0 is given in comments and used
+                && !GCodeInfo::getInstance().get_extruder_info(1).given()                              // Other tools are not given in comments at all
+                && !GCodeInfo::getInstance().get_extruder_info(2).given()                              // Sliced for multitool:  ; filament used [g] = 0.34, 0.00, 0.00, 0.00, 0.00
+                && !GCodeInfo::getInstance().get_extruder_info(3).given()                              // Sliced for singletool: ; filament used [g] = 0.34
+                && !GCodeInfo::getInstance().get_extruder_info(4).given()
+                && active_extruder > 0 && active_extruder < PrusaToolChanger::MARLIN_NO_TOOL_PICKED) { // User has picked tool 2, 3, 4 or 5
+
+                // Map tool 0 to picked tool
+                tool_mapper.reset();
+                tool_mapper.set_mapping(0, active_extruder);
+                tool_mapper.set_enable(true);
+            }
+#endif /*HAS_TOOLCHANGER() && ENABLED(PRUSA_TOOL_MAPPING)*/
             break;
         }
 

@@ -29,7 +29,7 @@ TEST_CASE("OTP test v4, DataMatrixID v5, date with offset", "[otp_v4]") {
 
     board_revision_t br;
     REQUIRE(otp_parse_board_revision(&br, otp, OTP_SIZE));
-    REQUIRE(br.br == 2);
+    REQUIRE(br == 2);
 
     datamatrix_t datamatrix;
     REQUIRE(otp_parse_datamatrix(&datamatrix, otp, OTP_SIZE));
@@ -83,7 +83,7 @@ TEST_CASE("OTP test v4, DataMatrixID v5", "[otp_v4]") {
 
     board_revision_t br;
     REQUIRE(otp_parse_board_revision(&br, otp, OTP_SIZE));
-    REQUIRE(br.br == 2);
+    REQUIRE(br == 2);
 
     datamatrix_t datamatrix;
     REQUIRE(otp_parse_datamatrix(&datamatrix, otp, OTP_SIZE));
@@ -137,7 +137,7 @@ TEST_CASE("OTP test v4", "[otp_v4]") {
 
     board_revision_t br;
     REQUIRE(otp_parse_board_revision(&br, otp, OTP_SIZE));
-    REQUIRE(br.br == 2);
+    REQUIRE(br == 2);
 
     datamatrix_t datamatrix;
     REQUIRE(otp_parse_datamatrix(&datamatrix, otp, OTP_SIZE));
@@ -193,7 +193,7 @@ TEST_CASE("OTP test v3", "[otp_v3]") {
 
     board_revision_t br;
     REQUIRE(otp_parse_board_revision(&br, otp, OTP_SIZE));
-    REQUIRE(br.br == 27);
+    REQUIRE(br == 27);
 
     datamatrix_t datamatrix;
     REQUIRE(otp_parse_datamatrix(&datamatrix, otp, OTP_SIZE));

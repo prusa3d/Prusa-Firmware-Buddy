@@ -1,13 +1,13 @@
 # Buddy
-[![GitHub release](https://img.shields.io/github/release/prusa3d/Prusa-Firmware-Buddy.svg)](https://github.com/prusa3d/Prusa-Firmware-Buddy/releases)
-[![Build Status](https://holly.prusa3d.com/buildStatus/icon?job=Prusa-Firmware-Buddy%2FMultibranch%2Fmaster)](https://holly.prusa3d.com/job/Prusa-Firmware-Buddy/job/Multibranch/job/master/)
+[![Build Status](<https://holly.prusa3d.com/buildStatus/icon?job=Prusa-Firmware-Buddy-Private%2FMultibranch%2Fprivate&subject=private>)](https://holly.prusa3d.com/job/Prusa-Firmware-Buddy-Private/job/Multibranch/job/private/)
+[![Build Status](<https://holly.prusa3d.com/buildStatus/icon?job=Prusa-Firmware-Buddy-Private%2FMultibranch%2Fmaster&subject=master>)](https://holly.prusa3d.com/job/Prusa-Firmware-Buddy-Private/job/Multibranch/job/master/)
+[![Build Status](<https://holly.prusa3d.com/buildStatus/icon?job=Prusa-Firmware-Buddy-Private%2FAuto-Pull-Master&subject=auto-update-master>)](https://holly.prusa3d.com/job/Prusa-Firmware-Buddy-Private/job/Auto-Pull-Master/)
+[![Build Status](<https://holly.prusa3d.com/buildStatus/icon?job=Prusa-Firmware-Buddy-Private%2FMerge-Master-To-Private&subject=merge-master-to-private-daily>)](https://holly.prusa3d.com/job/Prusa-Firmware-Buddy-Private/job/Merge-Master-To-Private/)
 
 This repository includes source code and firmware releases for the Original Prusa 3D printers based on the 32-bit ARM microcontrollers.
 
 The currently supported models are:
 - Original Prusa MINI
-- Original Prusa MK4
-- Original Prusa XL
 
 ## Getting Started
 

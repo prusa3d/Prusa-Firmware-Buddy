@@ -1438,13 +1438,14 @@
 
 // Homing speeds (mm/m)
 #ifdef HAS_LDO_400_STEP
-    #define HOMING_FEEDRATE_XY (62 * 60)
+    #include "hw_configuration.hpp"
+    #define HOMING_FEEDRATE_XY buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (80 * 60) : (62 * 60)
 #else
-    #define HOMING_FEEDRATE_XY (62 * 60)//(150 * 60)
+    #define HOMING_FEEDRATE_XY (80 * 60)//(150 * 60)
 #endif
 
 #define HOMING_FEEDRATE_Z (8 * 60)
-#define HOMING_FEEDRATE_INVERTED_Z (30 * 60)
+#define HOMING_FEEDRATE_INVERTED_Z buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (60 * 60) : (30 * 60)
 
 // Validate that endstops are triggered on homing moves
 //#define VALIDATE_HOMING_ENDSTOPS

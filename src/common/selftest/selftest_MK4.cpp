@@ -47,7 +47,7 @@ static constexpr const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 /// These speeds create major chord
 /// https://en.wikipedia.org/wiki/Just_intonation
 
-static constexpr float XYfr_table[] = { HOMING_FEEDRATE_XY / 60 };
+static const float XYfr_table[] = { HOMING_FEEDRATE_XY / 60 };
 static constexpr size_t xy_fr_table_size = sizeof(XYfr_table) / sizeof(XYfr_table[0]);
 static constexpr float Zfr_table_fw[] = { maxFeedrates[Z_AXIS] }; // up
 static constexpr float Zfr_table_bw[] = { HOMING_FEEDRATE_Z / 60 };

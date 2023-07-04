@@ -1807,7 +1807,8 @@
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
         #if X_DRIVER_TYPE == TMC2130
             #if defined(HAS_LDO_400_STEP)
-                #define X_STALL_SENSITIVITY -2
+                #include "hw_configuration.hpp"
+                #define X_STALL_SENSITIVITY buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (int16_t) -4 : (int16_t) -2
             #else
                 #define X_STALL_SENSITIVITY 3
             #endif
@@ -1817,7 +1818,8 @@
 
         #if Y_DRIVER_TYPE == TMC2130
             #if defined(HAS_LDO_400_STEP)
-                #define Y_STALL_SENSITIVITY -2
+                #include "hw_configuration.hpp"
+                #define Y_STALL_SENSITIVITY buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (int16_t) -4 : (int16_t) -2
             #else
                 #define Y_STALL_SENSITIVITY 3
             #endif
@@ -1826,7 +1828,8 @@
         #endif
 
         #if Z_DRIVER_TYPE == TMC2130
-            #define Z_STALL_SENSITIVITY 3
+            #include "hw_configuration.hpp"
+            #define Z_STALL_SENSITIVITY buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (int16_t) 1 : (int16_t) 3
         #elif Z_DRIVER_TYPE == TMC2209
             #define Z_STALL_SENSITIVITY 100
         #endif

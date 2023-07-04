@@ -134,7 +134,7 @@ bool otp_parse_board_revision(board_revision_t *revision, const uint8_t *memory,
         if (!otp_parse_datamatrix(&datamatrix, memory, len))
             return false;
 
-        revision->br = datamatrix.revision;
+        *revision = datamatrix.revision;
         return true;
     } else if (structure_version <= 2) {
         if (len < 2) {
@@ -143,10 +143,9 @@ bool otp_parse_board_revision(board_revision_t *revision, const uint8_t *memory,
         // older OTP layout
         const uint8_t *board_revision = memory;
         if (board_revision[0] == 0xFF || board_revision[0] == 1) {
-            return false; // TODO: really? (I don't think so)
+            return false;                                                                     // TODO: really? (I don't think so)
         } else {
-            revision->bytes[0] = board_revision[1];
-            revision->bytes[1] = board_revision[2];
+            *revision = board_revision[0] * 100 + board_revision[1] * 10 + board_revision[2]; // TODO test MINI
             return true;
         }
     } else {

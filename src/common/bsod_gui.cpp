@@ -176,11 +176,13 @@ void raise_redscreen(ErrCode error_code, const char *error, const char *module) 
     }
 #endif /*_DEBUG*/
 
+#if (!PRINTER_IS_PRUSA_MINI)
     // don't trigger redscreen during a power outage
-    if (power_panic::is_ac_fault_signal()) {
+    if (error_code != ErrCode::ERR_ELECTRO_ACF_AT_INIT && power_panic::is_ac_fault_signal()) {
         delay_ms(2000);
         bsod("%s: %s", module, error);
     }
+#endif
 
     crash_dump::dump_err_to_xflash(static_cast<std::underlying_type_t<ErrCode>>(error_code), error, module);
     sys_reset();

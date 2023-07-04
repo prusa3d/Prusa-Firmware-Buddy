@@ -51,7 +51,7 @@ class Configuration {
 
     LoveBoardEeprom loveboard_eeprom;
 
-    bool inverted_fans;
+    uint8_t bom_id { 0 };
 
 public:
     /**
@@ -66,7 +66,15 @@ public:
 
     const LoveBoardEeprom &get_love_board() const { return loveboard_eeprom; }
 
-    bool has_inverted_fans() const { return inverted_fans; }
+    uint8_t get_board_bom_id() const { return bom_id; }
+
+    bool has_inverted_fans() const { return bom_id < 37; }
+
+    bool has_inverted_mmu_reset() const { return bom_id >= 37; }
+
+    bool can_power_up_mmu_without_pulses() const { return bom_id >= 37; }
+
+    bool has_trinamic_oscillators() const { return bom_id >= 37; }
 
     /**
      * @brief voltage reference of current measurement
@@ -78,12 +86,6 @@ public:
      * @return float current [mA]
      */
     float curr_measurement_voltage_to_current(float voltage) const;
-
-    bool has_inverted_mmu_reset() const;
-
-    bool can_power_up_mmu_without_pulses() const;
-
-    uint8_t get_board_version() const;
 };
 
 }

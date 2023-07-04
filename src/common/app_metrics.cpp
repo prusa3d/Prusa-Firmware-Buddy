@@ -54,10 +54,19 @@ void buddy::metrics::RecordRuntimeStats() {
 
     board_revision_t board_revision;
     if (otp_get_board_revision(&board_revision) == false) {
-        board_revision.br = 0;
+        board_revision = 0;
     }
-    static metric_t buddy_revision = METRIC("buddy_revision", METRIC_VALUE_STRING, 10 * 1002, METRIC_HANDLER_ENABLE_ALL);
-    metric_record_string(&buddy_revision, "%u.%u", board_revision.bytes[0], board_revision.bytes[1]);
+
+    static metric_t buddy_revision = METRIC("buddy_revision", METRIC_VALUE_STRING, 10 * 10002, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_string(&buddy_revision, "%u", board_revision);
+
+    uint8_t bom;
+    if (otp_get_bom_id(&bom) == false) {
+        bom = 0;
+    }
+
+    static metric_t buddy_bom = METRIC("buddy_bom", METRIC_VALUE_STRING, 10 * 10003, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_string(&buddy_bom, "%u", bom);
 
     static metric_t current_filamnet = METRIC("filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
     auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
