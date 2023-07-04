@@ -1,9 +1,17 @@
+/**
+ * @file
+ */
 #include "../common/sound.hpp"
 #include "PrusaGcodeSuite.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 
 /**
- * M300: Play beep sound S<frequency Hz> P<duration ms> V<volume>
+ * Play beep sound
+ *
+ * ## Parameters
+ *  - `S` - frequency Hz
+ *  - `P` - duration ms
+ *  - `V` - volume
  */
 void PrusaGcodeSuite::M300() {
     uint16_t const frequency = parser.ushortval('S', 100);

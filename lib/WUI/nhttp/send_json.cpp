@@ -1,13 +1,14 @@
 #include "send_json.h"
 #include "handler.h"
 #include "headers.h"
+#include "transfer_renderer.h"
 
 #include <timing.h>
+#include <lfn.h>
 #include <segmented_json_macros.h>
+#include <filepath_operation.h>
 #include <http/chunked.h>
-#include <transfers/monitor.hpp>
 
-using transfers::Monitor;
 using namespace json;
 using namespace http;
 
@@ -15,39 +16,6 @@ namespace nhttp::handler {
 
 json::JsonResult EmptyRenderer::renderState(size_t resume_point, json::JsonOutput &output, [[maybe_unused]] Empty &state) const {
     return generator(resume_point, output);
-}
-
-JsonResult TransferRenderer::renderState(size_t resume_point, json::JsonOutput &output, TransferState &state) const {
-    // Note: We allow stale, because we already checked there was a trasnfer running
-    // in prusa_link_api, so even if it ended, we want to report it.
-    auto transfer_status = Monitor::instance.status(true);
-    if (transfer_status.has_value() && transfer_status->id != state.transfer_id) {
-        // if transfer changes mid report, bail out
-        transfer_status.reset();
-    }
-
-    // Keep the indentation of the JSON in here!
-    // clang-format off
-    JSON_START;
-        JSON_OBJ_START
-            JSON_FIELD_STR("target", "usb") JSON_COMMA;
-            JSON_FIELD_STR_FORMAT_G(transfer_status.has_value(), "type", "%s", to_str(transfer_status->type)) JSON_COMMA;
-            JSON_FIELD_STR_FORMAT_G(transfer_status.has_value(), "size", "%d", transfer_status->expected) JSON_COMMA;
-            //FIXME: Right now should be seconds from epoch start, would be much nicer
-            // for us to make it seconds from print start and make the client compute the rest,
-            // also it would solve some potential problems with NTP and time zones etc.
-            JSON_FIELD_STR_FORMAT_G(transfer_status.has_value(), "start_time", "%d", time(nullptr) - (ticks_s() - transfer_status->start)) JSON_COMMA;
-            JSON_FIELD_BOOL_G(transfer_status.has_value(), "to_print", transfer_status->print_after_upload) JSON_COMMA;
-            // Note: This works, because destination cannot go from non null to null
-            // (if one transfer ends and another starts mid report, we bail out)
-            if (transfer_status->destination) {
-                JSON_FIELD_STR_G(transfer_status.has_value(), "destination", transfer_status->destination) JSON_COMMA;
-            }
-            JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate(), 2) JSON_COMMA;
-            JSON_FIELD_INT_G(transfer_status.has_value(), "remaining_time", transfer_status->time_remaining_estimate());
-        JSON_OBJ_END
-    JSON_END;
-    // clang-format on
 }
 
 template <class Renderer>
@@ -120,5 +88,6 @@ Step SendJson<Renderer>::step(std::string_view, bool, uint8_t *buffer, size_t bu
 
 template class SendJson<EmptyRenderer>;
 template class SendJson<TransferRenderer>;
+template class SendJson<StatusRenderer>;
 
 }

@@ -2,11 +2,23 @@
 #include "led_strip.hpp"
 #include <assert.h>
 #include <hw/neopixel.hpp>
+#include "led_lcd_cs_selector.hpp"
+#include "printers.h"
 
 namespace leds {
 
 class SideStrip : public LedStrip {
 public:
+    static constexpr bool HasWhiteLed() {
+#if PRINTER_IS_PRUSA_XL
+        return true;
+#elif PRINTER_IS_PRUSA_iX
+        return false;
+#else
+    #error "Not defined for this printer."
+#endif
+    }
+
     SideStrip()
         : current_color()
         , needs_update(true)
@@ -38,16 +50,15 @@ private:
     Color current_color;
     bool needs_update = false;
 
-    static void SendLedData(uint8_t *pb, uint16_t size);
+#if PRINTER_IS_PRUSA_XL
+    static constexpr size_t led_drivers_count = 2;
+#elif PRINTER_IS_PRUSA_iX
+    static constexpr size_t led_drivers_count = 9;
+#else
+    #error "Not defined for this printer."
+#endif
 
-    static constexpr uint32_t T1H_10M5Hz = 7;   // 95.24 * 7 = 666.68 ns
-    static constexpr uint32_t T1L_10M5Hz = 3;   // 95.24 * 3 = 285.72 ns
-    static constexpr uint32_t T0H_10M5Hz = 3;   // 95.24 * 3 = 285.72 ns
-    static constexpr uint32_t T0L_10M5Hz = 7;   // 95.24 * 7 = 666.68 ns
-    static constexpr uint32_t RESET_10M5Hz = 5; // 95.24 * 5 = 476.2 ns
-                                                //
-    using Leds = neopixel::LedsSPI<2, SideStrip::SendLedData, T1H_10M5Hz, T1L_10M5Hz, T0H_10M5Hz, T0L_10M5Hz, RESET_10M5Hz>;
-
+    using Leds = neopixel::SPI_10M5Hz<led_drivers_count, SideStripWriter::write>;
     Leds leds;
 };
 

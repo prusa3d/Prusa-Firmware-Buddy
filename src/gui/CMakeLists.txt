@@ -30,6 +30,7 @@ target_sources(
           MItem_lan.cpp
           MItem_menus.cpp
           MItem_print.cpp
+          MItem_redscreen.cpp
           MItem_tools.cpp
           network_gui_tools.cpp
           png_resources.cpp

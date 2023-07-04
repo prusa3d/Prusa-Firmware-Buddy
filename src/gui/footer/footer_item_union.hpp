@@ -19,6 +19,7 @@
 #include "footer_item_fans.hpp"
 #include "footer_item_multitool.hpp"
 #include "footer_item_fsvalue.hpp"
+#include "footer_item_input_shaper.hpp"
 
 namespace footer {
 using ItemUnion = std::aligned_union<
@@ -34,7 +35,9 @@ using ItemUnion = std::aligned_union<
     FooterItemAxisZ,
     FooterItemZHeight,
     FooterItemPrintFan,
-    FooterItemHeatBreakFan
+    FooterItemHeatBreakFan,
+    FooterItemInputShaperX,
+    FooterItemInputShaperY
 #if defined(FOOTER_HAS_LIVE_Z)
     ,
     FooterItemLiveZ

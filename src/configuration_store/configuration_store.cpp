@@ -27,8 +27,10 @@ struct eeprom_vars_t {
 };
 
 constexpr uint32_t EEPROM_DATASIZE = sizeof(eeprom_vars_t);
-constexpr uint16_t EEPROM_MAX_DATASIZE = 972; // maximum datasize
-constexpr size_t EEPROM_DATA_INIT_TRIES = 3;  // maximum tries to read crc32 ok data on init
+constexpr uint16_t EEPROM_MAX_DATASIZE = 1024; // maximum datasize
+constexpr size_t EEPROM_DATA_INIT_TRIES = 3;   // maximum tries to read crc32 ok data on init
+
+static_assert(EEPROM_DATASIZE <= EEPROM_MAX_DATASIZE, "EEPROM_MAX_DATASIZE might be outdated and not needed anymore, but EEPROM_DATASIZE shouldn't have increased anyway");
 
 #if DEVELOPMENT_ITEMS()
     #define PRIVATE__EEPROM_OFFSET (1 << 15) // to avoid collision with public version
@@ -38,7 +40,7 @@ constexpr size_t EEPROM_DATA_INIT_TRIES = 3;  // maximum tries to read crc32 ok 
 #endif
 
 enum {
-    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 22, // uint16_t
+    EEPROM_VERSION = PRIVATE__EEPROM_OFFSET + 23, // uint16_t
 };
 
 /**
@@ -62,6 +64,7 @@ union eeprom_data {
             eeprom::v12::vars_body_t v12;
             eeprom::v32787::vars_body_t v32787;
             eeprom::v32789::vars_body_t v32789;
+            eeprom::v22::vars_body_t v22;
             eeprom::current::vars_body_t current;
         };
     };
@@ -89,14 +92,6 @@ bool eeprom_check_crc32(eeprom_data &eeprom_ram_mirror) {
     uint32_t crc_from_eeprom;
     memcpy(&crc_from_eeprom, eeprom_ram_mirror.data + eeprom_ram_mirror.vars.head.DATASIZE - 4, sizeof(crc_from_eeprom));
     return crc_from_eeprom == crc;
-}
-
-void eeprom_erase_head() {
-    uint32_t data = 0xffffffff;
-    for (uint16_t offset = 0; offset < sizeof(eeprom_head_t); offset += 2) {
-        CriticalSection critical_section;
-        st25dv64k_user_write_bytes(EEPROM_ADDRESS + offset, &data, 2);
-    }
 }
 
 /**
@@ -151,8 +146,13 @@ static bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
     }
 
     if (version == 32789) {
-        data.current = eeprom::current::convert(data.v32789);
+        data.v22 = eeprom::v22::convert(data.v32789);
         version = 22;
+    }
+
+    if (version == 22) {
+        data.current = eeprom::current::convert(data.v22);
+        version = 23;
     }
 
     // after body was updated we can update head
@@ -179,16 +179,19 @@ static bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
  * !!DO NOT CHANGE ANYTHING IN THIS FUNCTION UNLESS ABSOLUTELY NECESSARY!! - It should be created once, verified that it properly transfers data from old eeprom and never touched since.
  */
 void migrate(::eeprom::current::vars_body_t &body) {
+    // puts all of the old data into backend as one transaction
+
+    auto guard = config_store().get_backend().transaction_guard();
     std::array<uint8_t, Journal::Backend::MAX_ITEM_SIZE> buffer {};
 
     auto migrate_one = [&]<typename T>(uint16_t id, const T &old_data) {
         memcpy(buffer.data(), &old_data, sizeof(T));
-        config_store().load_item(id, buffer, sizeof(T));
+        config_store().get_backend().save(id, { buffer.data(), sizeof(T) });
     };
 
     auto migrate_str = [&]<typename T>(uint16_t id, const T &old_data, size_t length) {
         memcpy(buffer.data(), &old_data, length);
-        config_store().load_item(id, buffer, length);
+        config_store().get_backend().save(id, { buffer.data(), length });
     };
 
     migrate_one(Journal::hash("Run Selftest"), body.RUN_SELFTEST);
@@ -360,7 +363,7 @@ void migrate(::eeprom::current::vars_body_t &body) {
     migrate_one(Journal::hash("HW Check G-code"), body.EEVAR_HWCHECK_GCODE);
     migrate_one(Journal::hash("HW Check Compatibility"), body.HWCHECK_COMPATIBILITY);
 
-    migrate_one(Journal::hash("Selftest Result"), body.SELFTEST_RESULT);
+    migrate_one(Journal::hash("Selftest Result V23"), body.SELFTEST_RESULT);
 
     migrate_one(Journal::hash("Active Sheet"), body.ACTIVE_SHEET);
 
@@ -382,15 +385,20 @@ void migrate(::eeprom::current::vars_body_t &body) {
     migrate_one(Journal::hash("Axis Microsteps Z"), body.AXIS_MICROSTEPS_Z);
     migrate_one(Journal::hash("Axis Microsteps E0"), body.AXIS_MICROSTEPS_E0);
     migrate_one(Journal::hash("Axis RMS Current MA X"), body.AXIS_RMS_CURRENT_MA_X);
-    migrate_one(Journal::hash("Axis RMS Current MA Z"), body.AXIS_RMS_CURRENT_MA_Z);
-    migrate_one(Journal::hash("Axis RMS Current MA E0"), body.AXIS_RMS_CURRENT_MA_E0);
-    migrate_one(Journal::hash("Axis Z Max Pos MM"), body.AXIS_Z_MAX_POS_MM);
 
 #if PRINTER_IS_PRUSA_MK4
+    // Upgrade MK4 Y current for IS only when unchanged
     migrate_one(Journal::hash("Axis RMS Current MA Y"), body.AXIS_RMS_CURRENT_MA_Y == 600 ? static_cast<uint16_t>(700) : body.AXIS_RMS_CURRENT_MA_Y);
 #else
     migrate_one(Journal::hash("Axis RMS Current MA Y"), body.AXIS_RMS_CURRENT_MA_Y);
 #endif
+
+    migrate_one(Journal::hash("Axis RMS Current MA Z"), body.AXIS_RMS_CURRENT_MA_Z);
+    migrate_one(Journal::hash("Axis RMS Current MA E0"), body.AXIS_RMS_CURRENT_MA_E0);
+    migrate_one(Journal::hash("Axis Z Max Pos MM"), body.AXIS_Z_MAX_POS_MM);
+
+    migrate_one(Journal::hash("Nozzle Sock"), body.NOZZLE_SOCK);
+    migrate_one(Journal::hash("Nozzle Type"), body.NOZZLE_TYPE);
 }
 }
 
@@ -421,13 +429,17 @@ void init_config_store() {
         }
     } else {
         // old eeprom versions migration
-        if ((eeprom_ram_mirror.vars.head.VERSION != old_eeprom::EEPROM_VERSION) || (eeprom_ram_mirror.vars.head.FEATURES != EEPROM_FEATURES)) {
+        if (
+            (eeprom_ram_mirror.vars.head.VERSION != old_eeprom::EEPROM_VERSION
+                && eeprom_ram_mirror.vars.head.VERSION != (old_eeprom::EEPROM_VERSION ^ PRIVATE__EEPROM_OFFSET) // also accept versions with/without PRIVATE__EEPROM_OFFSET
+                )
+            || (eeprom_ram_mirror.vars.head.FEATURES != EEPROM_FEATURES)) {
             if (!old_eeprom::eeprom_convert_from(eeprom_ram_mirror)) {
                 // nothing was converted and version doesn't match, crc was ok
                 // -> weird state
                 // -> load defaults (ie start config_store from zero)
                 crc_ok = false;
-                old_eeprom::eeprom_erase_head(); // erase head of current eeprom so that next crc check fails
+                config_store().get_backend().erase_storage_area(); // guarantee load from nothing
                 config_store().init();
                 config_store_init_result() = eeprom_journal::InitResult::cold_start;
                 return;
@@ -436,11 +448,13 @@ void init_config_store() {
 
         // we have valid old eeprom data
         config_store_init_result() = eeprom_journal::InitResult::migrated_from_old;
-        config_store();                                   // called to call the constructor of configuration store
-        old_eeprom::migrate(eeprom_ram_mirror.vars.body); // puts old data into new RAM mirror
-        old_eeprom::eeprom_erase_head();                  // erase head of current eeprom so that next crc check fails
-        config_store().init();                            // initializes the store's backend
-        config_store().save_all();                        // saves current RAM mirror into EEPROM
+        config_store().get_backend().erase_storage_area();        // guarantee load from nothing
+        config_store().init();                                    // initializes the store's backend, will be a cold start
+        config_store().get_backend().override_cold_start_state(); // we don't want the start to be marked as cold to load from our old eeprom transaction from migration
+        old_eeprom::migrate(eeprom_ram_mirror.vars.body);         // puts all old values as one transaction into the backend
+        config_store().load_all();                                // loads the config_store from the one transaction (can trigger further config_store migrations)
+
+        // Since we have at least one migration, bank flip is guaranteed now, which will remove default value journal entries from the old eeprom migration transaction.
     }
 }
 

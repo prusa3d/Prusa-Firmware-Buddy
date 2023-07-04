@@ -25,10 +25,7 @@ public:
         Head
     };
 
-    enum class APIVersion {
-        Octoprint,
-        v1
-    };
+    using APIVersion = http::APIVersion;
 
 private:
     char filepath[FILE_PATH_BUFFER_LEN];

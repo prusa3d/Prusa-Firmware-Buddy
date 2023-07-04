@@ -10,7 +10,7 @@ TestResult get_test_result(Action action, [[maybe_unused]] Tool tool) {
     case Action::Fans:
         return merge_hotends_evaluations(
             [&](int8_t e) {
-                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan);
+                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].fansSwitched);
             });
     case Action::XYCheck:
         return evaluate_results(sr.xaxis, sr.yaxis);
@@ -47,7 +47,4 @@ uint64_t get_test_mask(Action action) {
     return stmNone;
 }
 
-Tool get_last_enabled_tool() {
-    return Tool::Tool1;
-}
 }

@@ -125,7 +125,7 @@ extern "C" HAL_StatusTypeDef tick_timer_init() {
     HAL_StatusTypeDef status;
 
     /*Configure the IRQ priority */
-    HAL_NVIC_SetPriority(TICK_TIMER_IRQ, TICK_TIMER_Prior, 0);
+    HAL_NVIC_SetPriority(TICK_TIMER_IRQ, ISR_PRIORITY_TICK_TIMER, 0);
 
     /* Enable the global Interrupt */
     HAL_NVIC_EnableIRQ(TICK_TIMER_IRQ);

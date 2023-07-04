@@ -103,10 +103,10 @@ public:
     };
 
     MODBUS_REGISTER CurrentsData {
-        uint16_t A_measured;
-        uint16_t B_measured;
-        uint16_t A_expected;
-        uint16_t B_expected;
+        int16_t A_measured;
+        int16_t B_measured;
+        int16_t A_expected;
+        int16_t B_expected;
     };
 
     ModbusDiscreteInputBlock<GENERAL_DISCRETE_INPUTS_ADDR, GeneralStatus> general_status;

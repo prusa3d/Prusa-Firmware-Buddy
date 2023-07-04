@@ -14,7 +14,6 @@
 struct ScreenErrorQR : public AddSuperWindow<screen_reset_error_data_t> {
 
     window_header_t header;
-    StatusFooter footer;
     window_text_t err_title;
     window_text_t err_description;
     window_icon_t hand_icon;

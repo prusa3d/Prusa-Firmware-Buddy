@@ -60,8 +60,7 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
 
         eeres.tools[i].printFan = to_test_result(hr.print_fan_state);
         eeres.tools[i].heatBreakFan = to_test_result(hr.heatbreak_fan_state);
-        // TODO add storing to EEPROM
-        // eeres.tools[i].fansSwitched = to_test_result(hr.fans_switched_state);
+        eeres.tools[i].fansSwitched = to_test_result(hr.fans_switched_state);
     }
 
     config_store().selftest_result.set(eeres);

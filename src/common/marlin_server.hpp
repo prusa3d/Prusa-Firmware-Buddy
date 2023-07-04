@@ -29,6 +29,7 @@ constexpr uint16_t MARLIN_SFLG_PROCESS = 0x0002; // loop processing in main thre
 constexpr uint16_t MARLIN_SFLG_BUSY = 0x0004;    // loop is busy
 constexpr uint16_t MARLIN_SFLG_PENDREQ = 0x0008; // pending request
 constexpr uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (currently used for selftest/wizard)
+constexpr uint16_t MARLIN_SFLG_STOPPED = 0x0020; // moves stopped until command drain
 
 // server variable update interval [ms]
 constexpr uint8_t MARLIN_UPDATE_PERIOD = 100;
@@ -111,6 +112,12 @@ void print_resume();
 
 //
 bool print_reheat_ready();
+
+// Quick stop to avoid harm to the user
+void quick_stop();
+
+// Resume operation after quick_stop
+void quick_resume();
 
 // return true if the printer is not moving (idle, paused, aborted or finished)
 bool printer_idle();

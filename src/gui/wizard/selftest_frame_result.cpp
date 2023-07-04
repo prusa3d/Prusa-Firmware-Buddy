@@ -36,10 +36,11 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
         HOTEND_LOOP() {
             eeres.tools[e].printFan = get_state(e);
             eeres.tools[e].heatBreakFan = get_state(e + 1);
-            eeres.tools[e].nozzle = get_state(e + 2);
-            eeres.tools[e].fsensor = get_state(e + 3);
-            eeres.tools[e].loadcell = get_state(e + 4);
-            eeres.tools[e].sideFsensor = get_state(e + 5);
+            eeres.tools[e].fansSwitched = get_state(e + 2);
+            eeres.tools[e].nozzle = get_state(e + 3);
+            eeres.tools[e].fsensor = get_state(e + 4);
+            eeres.tools[e].loadcell = get_state(e + 5);
+            eeres.tools[e].sideFsensor = get_state(e + 6);
         }
         eeres.xaxis = get_state(0);
         eeres.yaxis = get_state(1);
@@ -65,7 +66,7 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
 #endif /*HAS_TOOLCHANGER()*/
 
     // Set results
-    fans.SetState(eeres.tools[0].heatBreakFan, eeres.tools[0].printFan);
+    fans.SetState(eeres.tools[0].heatBreakFan, eeres.tools[0].printFan, eeres.tools[0].fansSwitched);
 #if HAS_LOADCELL()
     loadcell.SetState(eeres.tools[0].loadcell);
 #endif /*HAS_LOADCELL()*/

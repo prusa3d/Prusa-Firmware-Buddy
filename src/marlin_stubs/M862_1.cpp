@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #include "../common/sound.hpp"
 #include "PrusaGcodeSuite.hpp"
 #include <Marlin/src/gcode/parser.h>
@@ -8,8 +11,8 @@
 /**
  * M862.1: Check nozzle diameter
  *
- *  Q          - get machine value
- *  T<number>  - specific tool, default to currently active nozzle
+ * ## Parameters
+ * - `T` - <number> - specific tool, default to currently active nozzle
  */
 void PrusaGcodeSuite::M862_1() {
     // Handle only Q

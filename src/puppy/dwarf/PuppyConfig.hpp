@@ -6,7 +6,7 @@
 //***********************
 //*** RS485 configuration
 // TODO: Implement DMA reading and decrease this priority. Currently it has to be high so that
-inline constexpr uint32_t RS485_IRQ_PRIORITY = 0;
+
 inline constexpr size_t RS485_BUFFER_SIZE = 256; // Modbus specification needs 256 Bytes
 
 inline constexpr uint32_t RS485_BAUDRATE = 230400;

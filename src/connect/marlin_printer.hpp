@@ -31,6 +31,10 @@ public:
     virtual NetCreds net_creds() const override;
     virtual bool job_control(JobControl) override;
     virtual bool start_print(const char *path) override;
+    // If the state of the printer is "Finished" and we are
+    // trying to delete the file, that just got printed,
+    // this first exits the print and then deletes the file.
+    virtual const char *delete_file(const char *path) override;
     virtual void submit_gcode(const char *code) override;
     virtual bool set_ready(bool ready) override;
     virtual bool is_printing() const override;

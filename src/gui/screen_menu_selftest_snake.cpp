@@ -15,15 +15,6 @@
 using namespace SelftestSnake;
 
 namespace {
-constexpr Tool operator-(Tool tool, int i) {
-    assert(ftrstd::to_underlying(tool) - i >= ftrstd::to_underlying(Tool::_first));
-    return static_cast<Tool>(ftrstd::to_underlying(tool) - i);
-}
-
-constexpr Tool operator+(Tool tool, int i) {
-    assert(ftrstd::to_underlying(tool) + i <= ftrstd::to_underlying(Tool::_last));
-    return static_cast<Tool>(ftrstd::to_underlying(tool) + i);
-}
 
 inline bool is_multitool() {
 #if HAS_TOOLCHANGER()
@@ -176,12 +167,12 @@ void continue_snake() {
         AutoRestore ar(querying_user, true);
         Response resp = Response::Stop;
         if (is_multitool() && has_submenu(snake_config.last_action) && snake_config.last_tool != get_last_enabled_tool()) {
-            resp = MsgBoxQuestion(_("Continue running this MENU for the following tools or continue running ALL Calibrations & Tests?"), { Response::Menu, Response::All, Response::Abort }, 2);
-            snake_config.break_after_submenu = (resp == Response::Menu); // Continue running tests but stop at the end of submenu
+            resp = MsgBoxQuestion(_("FINISH remaining calibrations without proceeding to other tests, or perform ALL Calibrations and Tests?\n\nIf you QUIT, all data up to this point is saved."), { Response::Finish, Response::All, Response::Quit }, 2);
+            snake_config.break_after_submenu = (resp == Response::Finish); // Continue running tests but stop at the end of submenu
         } else {
-            resp = MsgBoxQuestion(_("Continue running Calibrations & Tests?"), { Response::Continue, Response::Abort }, 1);
+            resp = MsgBoxQuestion(_("Continue running Calibrations & Tests?"), { Response::Continue, Response::Quit }, 1);
         }
-        if (resp == Response::Abort) {
+        if (resp == Response::Quit) {
             snake_config.reset();
             return; // stop after running the first one
         }
@@ -192,7 +183,7 @@ void continue_snake() {
         || snake_config.last_tool == get_last_enabled_tool()) { // singletool or wasn't submenu or was last in a submenu
         do_snake(get_next_action(snake_config.last_action));
     } else {                                                    // current submenu not yet finished
-        do_snake(snake_config.last_action, snake_config.last_tool + 1);
+        do_snake(snake_config.last_action, get_next_tool(snake_config.last_tool));
     }
 }
 

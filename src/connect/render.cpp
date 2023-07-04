@@ -5,7 +5,7 @@
 #include <lfn.h>
 #include <filename_type.hpp>
 #include <gcode_file.h>
-#include <basename.h>
+#include <filepath_operation.h>
 #include <timing.h>
 #include <state/printer_state.hpp>
 
@@ -33,32 +33,6 @@ using transfers::Monitor;
 namespace connect_client {
 
 namespace {
-
-    const char *to_str(DeviceState state) {
-        switch (state) {
-        case DeviceState::Idle:
-            return "IDLE";
-        case DeviceState::Printing:
-            return "PRINTING";
-        case DeviceState::Paused:
-            return "PAUSED";
-        case DeviceState::Finished:
-            return "FINISHED";
-        case DeviceState::Stopped:
-            return "STOPPED";
-        case DeviceState::Ready:
-            return "READY";
-        case DeviceState::Error:
-            return "ERROR";
-        case DeviceState::Busy:
-            return "BUSY";
-        case DeviceState::Attention:
-            return "ATTENTION";
-        case DeviceState::Unknown:
-        default:
-            return "UNKNOWN";
-        }
-    }
 
     bool is_printing(DeviceState state) {
         switch (state) {
@@ -345,7 +319,7 @@ namespace {
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred) JSON_COMMA;
                     JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", ticks_s() - transfer_status->start) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", transfer_status->time_transferring()) JSON_COMMA;
                     // Note: This works, because destination cannot go from non null to null
                     // (if one transfer ends and another starts mid report, we bail out)
                     if (transfer_status->destination) {

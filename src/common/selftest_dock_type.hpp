@@ -43,7 +43,7 @@ struct SelftestDock_t {
 };
 
 class SelftestDocks_t {
-    // TODO: This does not handle per dock progress as it would not fit info FSM data :-(
+    // TODO: This does not handle per dock progress as it would not fit into FSM data :-(
 
     struct __attribute__((packed)) SerializedData {
         uint8_t current_dock;

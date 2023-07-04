@@ -287,7 +287,7 @@ public:
      * @retval State::high
      * @retval State::low
      */
-    State read() {
+    State read() const {
         if ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
             return State::high;
         } else {

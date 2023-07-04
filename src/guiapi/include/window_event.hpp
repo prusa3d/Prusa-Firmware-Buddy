@@ -147,6 +147,6 @@ struct AddSuperWindow;
 class EventLock {
     EventLock(const char *event_method_name, window_t *sender, GUI_event_t event); // ctor must be private
     template <class T>
-    friend class AddSuperWindow;
+    friend struct AddSuperWindow;
     friend class window_t;
 };

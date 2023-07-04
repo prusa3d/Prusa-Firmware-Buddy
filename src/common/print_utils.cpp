@@ -8,6 +8,7 @@
 #include "config.h"    // GUI_WINDOW_SUPPORT
 #include "guiconfig.h" // GUI_WINDOW_SUPPORT
 #include "unistd.h"
+#include <state/printer_state.hpp>
 
 #include <option/bootloader.h>
 
@@ -97,4 +98,33 @@ void print_begin(const char *filename, bool skip_preview) {
     // FIXME: This should not be here and it should be handled
     // in Marlin. Needs refactoring!
     oProgressData.mInit();
+}
+
+DeleteResult remove_file(const char *path) {
+    switch (printer_state::get_state()) {
+    case printer_state::DeviceState::Finished:
+    case printer_state::DeviceState::Stopped:
+        // If the state is Finished or Stopped, this can't fail, the only reason of
+        // failure would be a change in the state between the check above
+        // and this call.
+        marlin_print_exit();
+        if (!marlin_print_exited()) {
+            return DeleteResult::Busy;
+        }
+        break;
+    case printer_state::DeviceState::Paused:
+    case printer_state::DeviceState::Printing:
+        return DeleteResult::Busy;
+    default:
+        break;
+    }
+    int result = remove(path);
+    if (result == -1) {
+        if (errno == EBUSY) {
+            return DeleteResult::Busy;
+        } else {
+            return DeleteResult::GeneralError;
+        }
+    }
+    return DeleteResult::Success;
 }

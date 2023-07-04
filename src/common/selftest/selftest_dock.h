@@ -58,8 +58,17 @@ private:
     buddy::puppies::Dwarf &dwarf;        ///< Reference to the dwarf whose dock is to be calibrated
 
     bool toolcheck_was_disabled = false; ///< Remember if toolcheck was disabled to not reenable
+
+    /// Disable toolcheck and remember it was disabled
+    inline void toolcheck_disable() {
+        if (!toolcheck_was_disabled) {
+            toolcheck_was_disabled = true;
+            prusa_toolchanger.toolcheck_disable();
+        }
+    }
+
     /// Safely reenable automatic toolchange
-    void toolcheck_reenable() {
+    inline void toolcheck_reenable() {
         if (toolcheck_was_disabled) {
             prusa_toolchanger.toolcheck_enable();
             toolcheck_was_disabled = false;

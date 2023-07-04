@@ -75,7 +75,7 @@ protected:
 };
 
 class MI_FACTORY_SOFT_RESET : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Reset Setttings & Calibrations");
+    static constexpr const char *const label = N_("Reset Settings & Calibrations");
 
 public:
     MI_FACTORY_SOFT_RESET();
@@ -504,6 +504,15 @@ public:
     MI_INFO_SERIAL_NUM_XLCD();
 };
 
+class MI_METRICS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Allow Metrics");
+    static constexpr const char *const txt_confirm = N_("This will allow metrics to be enabled by G-code. It can send unencrypted diagnostics data to the internet. Do you really want to allow metrics?");
+
+public:
+    MI_METRICS_ENABLE();
+    virtual void OnChange(size_t old_index) override;
+};
+
 class MI_FS_AUTOLOAD : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Filament Autoloading");
 
@@ -716,30 +725,37 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_IS_ONOFF : public WI_INFO_t {
-    static constexpr const char *const label = N_("Input Shaper");
-    static constexpr const char *const str_idle = N_("Idle");
-    static constexpr const char *const str_active = N_("Active");
+/******************************************************************/
 
-public:
-    MI_IS_ONOFF();
+enum class input_shaper_param {
+    set_values,
+    change_x,
+    change_y
 };
 
-class MI_IS_TYPE : public WI_SWITCH_t<6> {
-    // Do not translate
-    static constexpr const char *const str_ZV = "ZV";
-    static constexpr const char *const str_ZVD = "ZVD";
-    static constexpr const char *const str_MZV = "MZV";
-    static constexpr const char *const str_EI = "EI";
-    static constexpr const char *const str_2HUMP_EI = "2HUMP_EI";
-    static constexpr const char *const str_3HUMP_EI = "3HUMP_EI";
+class MI_IS_X_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("X-axis");
+    input_shaper_param param = input_shaper_param::change_x;
 
 public:
-    MI_IS_TYPE(int32_t index, string_view_utf8 label_src, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
-    virtual ~MI_IS_TYPE();
+    MI_IS_X_ONOFF();
+
+protected:
+    void OnChange(size_t old_index) override;
 };
 
-class MI_IS_X_TYPE : public MI_IS_TYPE {
+class MI_IS_Y_ONOFF : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Y-axis");
+    input_shaper_param param = input_shaper_param::change_y;
+
+public:
+    MI_IS_Y_ONOFF();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_X_TYPE : public WI_SWITCH_t<6> {
     static constexpr const char *const label = N_("X-axis filter");
 
 public:
@@ -749,7 +765,7 @@ protected:
     void OnChange(size_t old_index) override;
 };
 
-class MI_IS_Y_TYPE : public MI_IS_TYPE {
+class MI_IS_Y_TYPE : public WI_SWITCH_t<6> {
     static constexpr const char *const label = N_("Y-axis filter");
 
 public:
@@ -774,4 +790,35 @@ class MI_IS_Y_FREQUENCY : public WiSpinInt {
 public:
     MI_IS_Y_FREQUENCY();
     virtual void OnClick() override;
+};
+
+class MI_IS_Y_COMPENSATION : public WI_ICON_SWITCH_OFF_ON_t {
+    static constexpr const char *const label = N_("Y weight compensation");
+
+public:
+    MI_IS_Y_COMPENSATION();
+
+protected:
+    void OnChange(size_t old_index) override;
+};
+
+class MI_IS_SET : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Set up values");
+    input_shaper_param param = input_shaper_param::set_values;
+
+public:
+    MI_IS_SET();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_IS_CALIB : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Calibration");
+
+public:
+    MI_IS_CALIB();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
 };

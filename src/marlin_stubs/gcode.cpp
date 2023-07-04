@@ -10,6 +10,7 @@
 #include "metric.h"
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
+#include <option/has_side_leds.h>
 
 #if HAS_LOADCELL()
     #include "loadcell.h"
@@ -28,6 +29,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
     switch (parser.command_letter) {
     case 'M':
         switch (parser.codenum) {
+        case 0:
+            PrusaGcodeSuite::M0();
+            break;
         case 50:
             PrusaGcodeSuite::M50(); // selftest
             break;
@@ -36,10 +40,14 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
             PrusaGcodeSuite::M150();
             break;
 #endif
+#if HAS_SIDE_LEDS()
+        case 151:
+            PrusaGcodeSuite::M151();
+            break;
+#endif
         case 300:
             PrusaGcodeSuite::M300();
             break;
-#if defined(_DEBUG)
         case 330:
             PrusaGcodeSuite::M330();
             break;
@@ -55,7 +63,6 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 334:
             PrusaGcodeSuite::M334();
             break;
-#endif // _DEBUG
         case 505:
             PrusaGcodeSuite::M505();
             break;
@@ -200,6 +207,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
 }
 
 // weak g-codes to prevent ugly preprocessor
+void __attribute__((weak)) PrusaGcodeSuite::M0() { log_error(PRUSA_GCODE, "M0 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M50() { log_error(PRUSA_GCODE, "M50 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M704() { log_error(PRUSA_GCODE, "M704 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M705() { log_error(PRUSA_GCODE, "M705 unsupported"); }

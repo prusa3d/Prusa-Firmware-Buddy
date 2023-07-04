@@ -260,10 +260,14 @@ bool IsAnyFaultActive() {
 
 void CheckMinMaxTemperature(uint32_t heatbedletIndex) {
     HeatbedletInfo *pHBInfo = HeatbedletInfo::Get(heatbedletIndex);
-
     bool disconnectedError = false;
-    if (pHBInfo->m_MeasuredTemperature < TEMPERATURE_MIN) {
+
+    if (is_used_bedlet(heatbedletIndex) && (pHBInfo->m_MeasuredTemperature < TEMPERATURE_MIN)) {
         SetHBErrorFlag(heatbedletIndex, HeatbedletError::TemperatureBelowMinimum);
+        disconnectedError = true;
+    }
+    if (!is_used_bedlet(heatbedletIndex) && (pHBInfo->m_MeasuredTemperature >= TEMPERATURE_MIN)) {
+        SetHBErrorFlag(heatbedletIndex, HeatbedletError::HeaterConnected);
         disconnectedError = true;
     }
 

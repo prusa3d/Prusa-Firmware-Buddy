@@ -4,11 +4,11 @@
 
 namespace nhttp::link_content {
 
-class PrusaLinkApi final : public handler::Selector {
+class PrusaLinkApiV1 final : public handler::Selector {
 public:
     virtual std::optional<handler::ConnectionState> accept(const handler::RequestParser &parser) const override;
 };
 
-extern const PrusaLinkApi prusa_link_api;
+extern const PrusaLinkApiV1 prusa_link_api_v1;
 
 }

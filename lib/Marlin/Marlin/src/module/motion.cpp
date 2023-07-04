@@ -2082,8 +2082,9 @@ void do_blocking_move_enable_wavetable(const AxisEnum axis, void (*enable_waveta
  * After calling this, homing needs to end right away with fail return.
  * @param fallback_error called when homing cannot be recovered
  * @param crash_was_active true if crash recovery was active, this is used if crash_recovery was temporarily disabled
+ * @param recover_z true if failed during Z homing and should rehome Z
  */
-void homing_failed(std::function<void()> fallback_error, [[maybe_unused]] bool crash_was_active) {
+void homing_failed(std::function<void()> fallback_error, [[maybe_unused]] bool crash_was_active, bool recover_z) {
   #if ENABLED(CRASH_RECOVERY)
     const bool is_active = crash_s.is_active();
     if ((is_active || crash_was_active) // Allow if crash recovery was temporarily disabled
@@ -2095,6 +2096,9 @@ void homing_failed(std::function<void()> fallback_error, [[maybe_unused]] bool c
         crash_s.set_state(Crash_s::TRIGGERED_TOOLCRASH);
       } else {
         crash_s.set_state(Crash_s::TRIGGERED_HOMEFAIL);
+        if (recover_z) {
+          crash_s.set_homefail_z();
+        }
       }
       return;
     }
@@ -2143,7 +2147,7 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
     Crash_Temporary_Deactivate ctd;
     const bool orig_crash = ctd.get_orig_state();
   #else /*ENABLED(CRASH_RECOVERY)*/
-    constexpr bool orig_crash = false;
+    constexpr bool orig_crash [[maybe_unused]] = false;
   #endif /*ENABLED(CRASH_RECOVERY)*/
 
   #if IS_SCARA
@@ -2231,7 +2235,7 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
           homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Y); }, orig_crash);
           return false;
         default:
-          homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z); }, orig_crash);
+          homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z); }, orig_crash, true);
           return false;
         }
       }
@@ -2374,7 +2378,7 @@ static float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, c
         do_homing_move(axis, 2 * bump, fr_mm_s, false, homing_z_with_probe);
       } else {
         // moving away from the bed
-        do_homing_move(axis, 2 * bump, HOMING_FEEDRATE_INVERTED_Z, false, homing_z_with_probe);
+        do_homing_move(axis, 2 * bump, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), false, homing_z_with_probe);
       }
     } else
     #endif //HOMING_Z_WITH_PROBE

@@ -457,7 +457,7 @@ static void check_crash() {
 
     #if ENABLED(POWER_PANIC)
     // handle server state-change overrides happening in the ISRs here (and nowhere else)
-    if (power_panic::power_panic_state == power_panic::PPState::Triggered) {
+    if (power_panic::panic_triggered()) {
         server.print_state = State::PowerPanic_acFault;
         return;
     }
@@ -479,7 +479,7 @@ int loop(void) {
 #if ANY(CRASH_RECOVERY, POWER_PANIC)
     check_crash();
 #endif
-    if (server.idle_cnt >= MARLIN_IDLE_CNT_BUSY)
+    if (server.idle_cnt >= MARLIN_IDLE_CNT_BUSY) {
         if (server.flags & MARLIN_SFLG_BUSY) {
             log_debug(MarlinServer, "State: Ready");
             server.flags &= ~MARLIN_SFLG_BUSY;
@@ -488,6 +488,14 @@ int loop(void) {
                 server.command = ftrstd::to_underlying(Cmd::NONE);
             }
         }
+    }
+
+    // Revert quick_stop when commands already drained
+    if (server.flags & MARLIN_SFLG_STOPPED && !planner.has_blocks_queued() && queue.length == 0 && planner.movesplanned() == 0) {
+        planner.resume_queuing();
+        server.flags &= ~MARLIN_SFLG_STOPPED;
+    }
+
     server.idle_cnt = 0;
     media_loop();
     return cycle();
@@ -649,6 +657,17 @@ void test_abort(void) {
         SelftestInstance().Abort();
     }
 #endif
+}
+
+void quick_stop() {
+#if HAS_TOOLCHANGER()
+    prusa_toolchanger.quick_stop();
+#endif
+    planner.quick_stop();
+    disable_all_steppers();
+    set_all_unhomed();
+    set_all_unknown();
+    server.flags |= MARLIN_SFLG_STOPPED;
 }
 
 bool printer_idle() {
@@ -1340,13 +1359,7 @@ static void _server_print_loop(void) {
 
         media_print_stop();
         queue.clear();
-        thermalManager.disable_all_heaters();
-#if FAN_COUNT > 0
-        thermalManager.set_fan_speed(0, 0);
-#endif
-        HOTEND_LOOP() {
-            set_temp_to_display(0, e);
-        }
+
         print_job_timer.stop();
         planner.quick_stop();
         wait_for_heatup = false; // This is necessary because M109/wait_for_hotend can be in progress, we need to abort it
@@ -1380,6 +1393,18 @@ static void _server_print_loop(void) {
             lift_head(); // It would be dangerous to move XY
         else {
             park_head();
+        }
+
+#if ENABLED(PRUSA_MMU2)
+        MMU2::mmu2.unload();
+#endif
+
+        thermalManager.disable_all_heaters();
+#if FAN_COUNT > 0
+        thermalManager.set_fan_speed(0, 0);
+#endif
+        HOTEND_LOOP() {
+            set_temp_to_display(0, e);
         }
 
         server.print_state = State::Aborting_ParkHead;
@@ -1556,15 +1581,19 @@ static void _server_print_loop(void) {
             FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home, cr_fsm.Serialize());
 
             // Pickup lost tool
-            tool_return_t return_type = tool_return_t::no_move; // If it continues with replay, no need to return
-            xyz_pos_t return_pos = current_position;            //                              return Z to current Z
+            tool_return_t return_type = tool_return_t::no_return; // If it continues with replay, no need to return
+            xyz_pos_t return_pos = current_position;              //                              return Z to current Z
             if (crash_s.get_state() == Crash_s::REPEAT_WAIT) {
                 // After toolcrash, return to what was requested before the crash
                 return_pos = prusa_toolchanger.get_precrash().return_pos;
                 toNative(return_pos); // Needs to be modified in place, stored in logical coordinates
                 return_type = prusa_toolchanger.get_precrash().return_type;
             }
-            if (prusa_toolchanger.tool_change(prusa_toolchanger.get_precrash().tool_nr, return_type, return_pos, true) == false) {
+            if (!prusa_toolchanger.tool_change(prusa_toolchanger.get_precrash().tool_nr,
+                    return_type,
+                    return_pos,
+                    tool_change_lift_t::no_lift,
+                    /*z_return =*/true)) {
                 if (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) {
                     break; // Powerpanic, do not retry just end
                 }
@@ -1591,9 +1620,10 @@ static void _server_print_loop(void) {
         if (queue.has_commands_queued() || planner.processing())
             break;
 
-        if (axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS))) { // Needs homing
-            TemporaryBedLevelingState tbs(false);            // Disable for the additional homing, keep previous state after homing
-            if (!GcodeSuite::G28_no_parser(false, false, 0, false, true, true, false)) {
+        if (axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS)
+                | (crash_s.is_homefail_z() ? _BV(Z_AXIS) : 0))) { // Needs homing
+            TemporaryBedLevelingState tbs(false);                 // Disable for the additional homing, keep previous state after homing
+            if (!GcodeSuite::G28_no_parser(false, false, 0, false, true, true, crash_s.is_homefail_z())) {
                 // Unsuccesfull rehome
                 set_axis_is_not_at_home(X_AXIS);
                 set_axis_is_not_at_home(Y_AXIS);
@@ -1686,7 +1716,7 @@ static void _server_print_loop(void) {
 #endif // ENABLED(CRASH_RECOVERY)
 #if ENABLED(POWER_PANIC)
     case State::PowerPanic_acFault:
-        power_panic::ac_fault_loop();
+        power_panic::panic_loop();
         break;
     case State::PowerPanic_AwaitingResume:
     case State::PowerPanic_Resume:
@@ -1699,9 +1729,11 @@ static void _server_print_loop(void) {
 
     if (marlin_vars()->fan_check_enabled) {
         HOTEND_LOOP() {
-            hotendFanErrorChecker[e].checkTrue(Fans::heat_break(e).getState() != CFanCtl::error_running);
+            const auto fan_state = Fans::heat_break(e).getState();
+            hotendFanErrorChecker[e].checkTrue(fan_state != CFanCtl::error_running && fan_state != CFanCtl::error_starting);
         }
-        printFanErrorChecker.checkTrue(Fans::print(active_extruder).getState() != CFanCtl::error_running);
+        const auto fan_state = Fans::print(active_extruder).getState();
+        printFanErrorChecker.checkTrue(fan_state != CFanCtl::error_running && fan_state != CFanCtl::error_starting);
     }
 
     HOTEND_LOOP() {
@@ -1731,6 +1763,12 @@ static void _server_print_loop(void) {
 }
 
 void resuming_begin(void) {
+    // Reset fan errors, so it can be triggered immediately again
+    HOTEND_LOOP() {
+        hotendFanErrorChecker[e].reset();
+    }
+    printFanErrorChecker.reset();
+
     nozzle_timeout_on(); // could be turned off after pause by changing temperature.
     if (print_reheat_ready()) {
 #if ENABLED(CRASH_RECOVERY)
@@ -2323,45 +2361,43 @@ static void _server_set_var(const char *const request) {
     request_value += 1;
 
     // Set normal (non-extruder) variables
-    switch (variable_identifier) {
-    case marlin_vars()->target_bed.get_identifier(): {
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->target_bed)) {
         marlin_vars()->target_bed.from_string(request_value, request_end);
         thermalManager.setTargetBed(marlin_vars()->target_bed);
         return;
     }
-    case marlin_vars()->z_offset.get_identifier(): {
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->z_offset)) {
         marlin_vars()->z_offset.from_string(request_value, request_end);
 #if HAS_BED_PROBE
         probe_offset.z = marlin_vars()->z_offset;
 #endif // HAS_BED_PROBE
         return;
     }
-    case marlin_vars()->print_fan_speed.get_identifier(): {
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->print_fan_speed)) {
         marlin_vars()->print_fan_speed.from_string(request_value, request_end);
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, marlin_vars()->print_fan_speed);
 #endif
         return;
     }
-    case marlin_vars()->print_speed.get_identifier(): {
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->print_speed)) {
         marlin_vars()->print_speed.from_string(request_value, request_end);
         feedrate_percentage = (int16_t)marlin_vars()->print_speed;
         return;
     }
-    case marlin_vars()->fan_check_enabled.get_identifier(): {
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->fan_check_enabled)) {
         marlin_vars()->fan_check_enabled.from_string(request_value, request_end);
         return;
     }
-    case marlin_vars()->fs_autoload_enabled.get_identifier(): {
+    if (variable_identifier == reinterpret_cast<uintptr_t>(&marlin_vars()->fs_autoload_enabled)) {
         marlin_vars()->fs_autoload_enabled.from_string(request_value, request_end);
         return;
-    }
     }
 
     // Now see if extruder variable is set
     HOTEND_LOOP() {
         auto &extruder = marlin_vars()->hotend(e);
-        if (extruder.target_nozzle.get_identifier() == variable_identifier) {
+        if (reinterpret_cast<uintptr_t>(&extruder.target_nozzle) == variable_identifier) {
             extruder.target_nozzle.from_string(request_value, request_end);
 
             // if print is paused we want to change the resume temp and turn off timeout
@@ -2372,12 +2408,12 @@ static void _server_set_var(const char *const request) {
             }
             thermalManager.setTargetHotend(extruder.target_nozzle, e);
             return;
-        } else if (extruder.flow_factor.get_identifier() == variable_identifier) {
+        } else if (reinterpret_cast<uintptr_t>(&extruder.flow_factor) == variable_identifier) {
             extruder.flow_factor.from_string(request_value, request_end);
             planner.flow_percentage[e] = (int16_t)extruder.flow_factor;
             planner.refresh_e_factor(e);
             return;
-        } else if (extruder.display_nozzle.get_identifier() == variable_identifier) {
+        } else if (reinterpret_cast<uintptr_t>(&extruder.display_nozzle) == variable_identifier) {
             extruder.display_nozzle.from_string(request_value, request_end);
             return;
         }

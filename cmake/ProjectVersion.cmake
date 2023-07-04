@@ -20,6 +20,9 @@ if(NOT result)
   message(FATAL_ERROR "Failed to read version info from ${version_file}")
 endif()
 set(PROJECT_VERSION ${CMAKE_MATCH_0})
+set(PROJECT_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(PROJECT_VERSION_MINOR ${CMAKE_MATCH_2})
+set(PROJECT_VERSION_PATCH ${CMAKE_MATCH_3})
 
 function(resolve_version_variables)
   # BUILD_NUMBER

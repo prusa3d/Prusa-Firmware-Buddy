@@ -206,6 +206,10 @@ void metric_enable_for_handler(metric_t *metric, metric_handler_t *handler);
 /// Disable metric for given handler
 void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler);
 
+/// returns true, when metric min_interval_ms already passed and new record can be created
+/// note: useful if obtaining record value takes significant time
+bool metric_record_is_due(metric_t *metric);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

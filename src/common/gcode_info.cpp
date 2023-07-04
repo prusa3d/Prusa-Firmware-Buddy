@@ -216,38 +216,36 @@ bool GCodeInfo::Buffer::String::if_heading_skip(const char *str) {
     }
 }
 
-bool GCodeInfo::is_up_to_date(GCodeInfo::ValidPrinterSettings::GcodeFwVersion &parsed, const char *new_version_string) {
-    // Parse and store version from G-code
-    if (sscanf(new_version_string, "%d.%d.%d", &parsed.major, &parsed.minor, &parsed.patch) != 3) {
+bool GCodeInfo::is_up_to_date(const char *new_version_string) {
+    // Parse version from G-code
+    // supported formats: MAJOR.MINOR.PATCH, MAJOR.MINOR.PATCH+BUILD_NUMBER, MAJOR.MINOR.PATCH-PRERELEASE+BUILD_NUMBER
+    // only MAJOR, MINOR, PATH, BUILD_NUMBER are used for version comparison,
+    ValidPrinterSettings::GcodeFwVersion parsed;
+    if (sscanf(new_version_string, "%u.%u.%u", &parsed.major, &parsed.minor, &parsed.patch) != 3) {
         return true;
     }
-
-    // Parse version of this firmware
-    ValidPrinterSettings::GcodeFwVersion v_fw;
-    if (sscanf(project_version, "%d.%d.%d", &v_fw.major, &v_fw.minor, &v_fw.patch) != 3) {
-        bsod("Internal project_version cannot be parsed with \"%d.%d.%d\"");
+    if (auto *plus = strchr(new_version_string, '+'); !plus || sscanf(plus, "%u", &parsed.build_number) != 1) {
+        parsed.build_number = 0;
     }
 
-    if (parsed.major > v_fw.major) { // Major is higher
+    if (parsed.major > project_version_major) { // Major is higher
         return false;
     }
 
-    if (parsed.major == v_fw.major && parsed.minor > v_fw.minor) { // Minor is higher
+    if (parsed.major == project_version_major && parsed.minor > project_version_minor) { // Minor is higher
         return false;
     }
 
-    if (parsed.major == v_fw.major && parsed.minor == v_fw.minor && parsed.patch > v_fw.patch) { // Patch is higher
+    if (parsed.major == project_version_major && parsed.minor == project_version_minor && parsed.patch > project_version_patch) { // Patch is higher
         return false;
     }
 
-    // Ignore everything behind patch number
+    if (parsed.major == project_version_major && parsed.minor == project_version_minor && parsed.patch == project_version_patch && parsed.build_number && parsed.build_number > unsigned(project_build_number)) { // Suffix is higher
+        return false;
+    }
+
+    // Ignore everything behind suffix number
     return true;
-}
-
-bool GCodeInfo::is_printer_compatible(const Buffer::String &printer) {
-    return std::any_of(begin(printer_compatibility_list),
-        end(printer_compatibility_list),
-        [&](const auto &v) { return printer == v; });
 }
 
 void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_counter) {
@@ -291,14 +289,16 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
                         valid_printer_settings.mk3_compatibility_mode.fail();
                     }
 #endif
-                    if (!is_printer_compatible(cmd.get_string())) {
+
+                    // Check basic printer model as MK4 or XL
+                    if (!is_printer_compatible(cmd.get_string(), printer_compatibility_list)) {
                         valid_printer_settings.wrong_printer_model.fail();
                     }
                     break;
                 }
                 case '4':
                     // Parse M862.4 for minimal required firmware version
-                    if (!is_up_to_date(valid_printer_settings.gcode_fw_version, cmd.c_str())) {
+                    if (!is_up_to_date(cmd.c_str())) {
                         valid_printer_settings.wrong_firmware.fail();
                     }
                     break;
@@ -349,10 +349,15 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
     if (cmd.if_heading_skip(gcode_info::m115)) {
         cmd.skip_ws();
         if (cmd.pop_front() == 'U') {
-            *(cmd.end - 1) = '\0'; // Terminate string if not already
+            // Terminate string if not already
+            // cmd.end is a pointer to 1 character past the end of the string in the zero-terminated pre-allocated buffer, so this is safe
+            if (!*cmd.end) {
+                *cmd.end = '\0';
+            }
 
-            if (!is_up_to_date(valid_printer_settings.latest_fw_version, cmd.c_str())) {
+            if (!is_up_to_date(cmd.c_str())) {
                 valid_printer_settings.outdated_firmware.fail();
+                strncpy(valid_printer_settings.latest_fw_version, cmd.c_str(), min(sizeof(valid_printer_settings.latest_fw_version), cmd.len()));
             }
         }
     }
@@ -407,7 +412,8 @@ void GCodeInfo::parse_comment(GCodeInfo::Buffer::String comment) {
                 extruder++;
             }
         } else if (name == gcode_info::printer) {
-            if (!is_printer_compatible(val)) {
+            // Check model with possible extensions as MK4, MK4IS, XL or XL5
+            if (!is_printer_compatible(val, printer_extended_compatibility_list)) {
                 valid_printer_settings.wrong_printer_model.fail();
             }
         }

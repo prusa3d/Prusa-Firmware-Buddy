@@ -57,12 +57,23 @@ public:
     // Reset the motion/stepper generator state from halt
     static void reset_from_halt();
 
-    // The ISR scheduler
-    static void isr();
+    // The step ISR scheduler
+    static void step_isr();
 
+    // The move ISR scheduler
+    static void move_isr();
+
+    // Main thread loop handler
+    static void loop();
+
+    // Process one planner block into move segments
     static void process_queue_of_blocks();
 
+    // Process the move segment queue
     static void process_queue_of_move_segments();
+
+    // Generate step events from the move queue
+    static StepGeneratorStatus process_one_move_segment_from_queue();
 
     // Generate step pulses for the stepper motors.
     // Returns time to the next step event or ISR call.
@@ -197,7 +208,6 @@ public:
         step_generator_state.nearest_step_event_idx = 0;
         step_generator_state.previous_step_time = 0.;
         step_generator_state.current_distance = { 0, 0, 0, 0 };
-        step_generator_state.current_distance_e = 0.;
     }
 
     FORCE_INLINE static move_t *move_segment_queue_next_move(const move_t &move) {

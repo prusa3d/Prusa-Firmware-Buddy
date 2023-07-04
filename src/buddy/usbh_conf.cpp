@@ -54,7 +54,7 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef *hcdHandle) {
         __HAL_RCC_USB_OTG_HS_CLK_ENABLE();
 
         /* Peripheral interrupt init */
-        HAL_NVIC_SetPriority(OTG_HS_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+        HAL_NVIC_SetPriority(OTG_HS_IRQn, ISR_PRIORITY_DEFAULT, 0);
         HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
     }
 }

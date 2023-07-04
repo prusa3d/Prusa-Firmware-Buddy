@@ -77,15 +77,18 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
     settings.SetRetractLength(0.f);
     settings.SetMmuFilamentToLoad(mmu_slot);
     xyz_pos_t park_position = { X_AXIS_LOAD_POS, NAN, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
-#ifndef DO_NOT_RESTORE_Z_AXIS
-    settings.SetResumePoint(current_position);
-#endif
     settings.SetParkPoint(park_position);
+    xyze_pos_t current_position_tmp = current_position;
 
     // Pick the right tool
     if (!Pause::Instance().ToolChange(target_extruder, LoadUnloadMode::Load, settings)) {
         return;
     }
+
+#ifndef DO_NOT_RESTORE_Z_AXIS
+    // Has to be set before last Pause operation, otherwise it unparks and parks again inbetween operations
+    settings.SetResumePoint(current_position_tmp);
+#endif
 
     // Load
     if (load_unload(LoadUnloadMode::Load, PRINTER_IS_PRUSA_iX ? &Pause::FilamentLoadNotBlocking : &Pause::FilamentLoad, settings)) {
@@ -112,15 +115,18 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     settings.SetExtruder(target_extruder);
     settings.SetUnloadLength(unload_length);
     xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, NAN, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
-#ifndef DO_NOT_RESTORE_Z_AXIS
-    settings.SetResumePoint(current_position);
-#endif
     settings.SetParkPoint(park_position);
+    xyze_pos_t current_position_tmp = current_position;
 
     // Pick the right tool
     if (!Pause::Instance().ToolChange(target_extruder, LoadUnloadMode::Unload, settings)) {
         return;
     }
+
+#ifndef DO_NOT_RESTORE_Z_AXIS
+    // Has to be set before last Pause operation, otherwise it unparks and parks again inbetween operations
+    settings.SetResumePoint(current_position_tmp);
+#endif
 
     // Unload
     if (load_unload(LoadUnloadMode::Unload, ask_unloaded ? &Pause::FilamentUnload_AskUnloaded : &Pause::FilamentUnload, settings)) {
@@ -287,6 +293,7 @@ void filament_gcodes::M1600_no_parser(filament::Type filament_to_be_loaded, uint
     filament::set_type_to_load(filament_to_be_loaded);
 
 #ifndef DO_NOT_RESTORE_Z_AXIS
+    // Has to be set before last Pause operation, otherwise it unparks and parks again inbetween operations
     settings.SetResumePoint(current_position_tmp);
 #endif
 

@@ -4,9 +4,11 @@
 #include "M70X.hpp"
 
 /**
- * M707: Read variable from MMU and print on the serial line.
+ * Read variable from MMU and print on the serial line.
  *
- *  A<address> - Address of register to read from in hexadecimal.
+ * ## Parameters
+ *
+ * - `A` - Address of register to read from in hexadecimal.
  */
 void PrusaGcodeSuite::M707() {
     if (!parser.seen('A')) {
@@ -19,10 +21,12 @@ void PrusaGcodeSuite::M707() {
 }
 
 /**
- * M708: Write variable to MMU
+ * @brief Write variable to MMU
  *
- *  A<address> - Address of register to write to in hexadecimal.
- *  X<value>   - The value to write (in decimal).
+ * ## Parameters
+ *
+ * - `A` - Address of register to write to in hexadecimal.
+ * - `X` - The value to write (in decimal).
  */
 void PrusaGcodeSuite::M708() {
     if (!parser.seen('A') || !parser.seen('X')) {
@@ -36,18 +40,23 @@ void PrusaGcodeSuite::M708() {
 }
 
 /**
- * M709: MMU turn on/off/reset
+ * @brief MMU turn on/off/reset
  *
- *  T<extruder>   - Extruder number. Required for mixing extruder.
- *                  For non-mixing, current extruder if omitted.
- *  X<reset type> - 0 command via communication into the MMU (soft reset)
- *                - 1 hard reset via MMU's reset pin
- *                - 2 power cycle reset
- *  Sn<power>     - 0 turn off MMU's power supply
- *                - 1 power up the MMU after being turned off
- *                - without any parameter returns 0 or 1 for current state
+ * ## Parameters
  *
- *  Default values are used for omitted arguments.
+ * -`T` - Extruder number. Required for mixing extruder.
+ *        For non-mixing, current extruder if omitted.
+ * -`X` - reset type
+ *      - 0 command via communication into the MMU (soft reset)
+ *      - 1 hard reset via MMU's reset pin
+ *      - 2 power cycle reset
+ * -`S` - power off/on
+ *      - 0 turn off MMU's power supply
+ *      - 1 power up the MMU after being turned off
+ *
+ *  without any parameter returns 0 or 1 for current state
+ *
+ * Default values are used for omitted arguments.
  */
 void PrusaGcodeSuite::M709() {
     const int16_t reset_val = parser.byteval('X', -1);

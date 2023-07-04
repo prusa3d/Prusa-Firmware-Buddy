@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #include <algorithm>
 
 #include "../../lib/Marlin/Marlin/src/module/temperature.h"
@@ -337,6 +340,7 @@ void FirstLayer::print_shape_2() {
 
 /**
  * @brief gcode to draw a first layer on bed
+ *
  * does not take any parameters
  * meant to be called from selftest
  */

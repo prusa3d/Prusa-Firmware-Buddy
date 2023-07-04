@@ -5,6 +5,7 @@
 #include "cmsis_os.h"
 #include "HAL_Common.hpp"
 #include <cstring>
+#include "buddy/priorities_config.h"
 
 #define USART  USART1
 #define DMA    DMA1
@@ -118,11 +119,11 @@ bool Init(uint8_t modbusAddress) {
     DMAMUX_CHANNEL_STATUS_TX->CFR = DMAMUX_CHANNEL_STATUS_MASK_TX;
 
     // DMA interrupt init
-    HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, IRQ_PRIORITY_DMA1_CHANNEL2_3, 0);
     HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
     // USART1 interrupt init
-    HAL_NVIC_SetPriority(USART1_IRQn, RS485_IRQ_PRIORITY, 0);
+    HAL_NVIC_SetPriority(USART1_IRQn, ISR_PRIORITY_RS485, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
 
     return true;

@@ -63,9 +63,6 @@ typedef uint16_t hal_timer_t;
   #define SERVO0_TIMER_NUM 1  // SERVO0 or BLTOUCH
 #endif
 
-#define STEP_TIMER_IRQ_PRIO 1
-#define TEMP_TIMER_IRQ_PRIO 2
-
 #define TEMP_TIMER_PRESCALE     1000 // prescaler for setting Temp timer, 72Khz
 #define TEMP_TIMER_FREQUENCY    1000 // temperature interrupt frequency
 

@@ -26,6 +26,8 @@ enum class HeatbedletError : uint16_t {
     TemperaturePeakDetected = 0x0020,
     PreheatError = 0x0040,
     TestHeatingError = 0x0080,
+    /// Heater or thermistor is connected to connector which should be unused
+    HeaterConnected = 0x0100,
 };
 
 } // namespace modular_bed_shared::errors

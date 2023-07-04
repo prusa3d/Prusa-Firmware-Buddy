@@ -13,7 +13,7 @@ The currently supported models are:
 
 ### Requirements
 
-- Python 3.6 or newer (with pip)
+- Python 3.6 or newer
 
 ### Cloning this repository
 
@@ -49,15 +49,6 @@ python utils/build.py --preset mini --toolchain cmake/AnyGccArmNoneEabi.cmake --
 
 If you have python installed and in your PATH but still getting cmake error `Python3 not found.` Try running python and python3 from cmd. If one of it opens Microsoft Store instead of either opening python interpreter or complaining `'python3' is not recognized as an internal or external command,
 operable program or batch file.` Open `manage app execution aliases` and disable `App Installer` association with `python.exe` and `python3.exe`.
-
-#### Python environment
-
-The `build.py` script will install some Python packages. If you prefer not to have your system modified, we recommend to use `virtualenv` or a similar tool.
-
-```bash
-virtualenv venv
-. venv/bin/activate
-```
 
 ### Development
 
@@ -123,6 +114,8 @@ cmake ..
 make tests
 ctest .
 ```
+
+The simplest way to to debug (step through) a test is to specify CMAKE_BUILD_TYPE when configuring `cmake -DCMAKE_BUILD_TYPE=Debug ..` , build it with `make tests` as previously stated and then run the test with `gdb <path to test binary>` e.g. `gdb tests/unit/configuration_store/eeprom_unit_tests`.
 
 ## Flashing Custom Firmware
 

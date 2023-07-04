@@ -65,11 +65,17 @@ class GCodeInfo {
 public:
     static constexpr const uint32_t printer_model_code = printer_model2code(PRINTER_MODEL);
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
-#if PRINTER_IS_PRUSA_MK4
-    static constexpr std::array<const char *, 2> printer_compatibility_list = { PRINTER_MODEL, "MK4IS" };
-#else
-    static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL };
-#endif
+    static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL }; ///< Basic compatibility for M862.3 G-code
+
+    /// Extended compatibility list for "; printer_model = ???" G-code comment
+#if PRINTER_IS_PRUSA_XL
+    // XL is compatible with multitool models XL2 .. XL5
+    static constexpr std::array<const char *, 5> printer_extended_compatibility_list = { PRINTER_MODEL, PRINTER_MODEL "2", PRINTER_MODEL "3", PRINTER_MODEL "4", PRINTER_MODEL "5" };
+#elif PRINTER_IS_PRUSA_MK4
+    static constexpr std::array<const char *, 2> printer_extended_compatibility_list = { PRINTER_MODEL, PRINTER_MODEL "IS" };
+#else  /*PRINTER_IS*/
+    static constexpr auto printer_extended_compatibility_list = printer_compatibility_list;
+#endif /*PRINTER_IS*/
 
     using time_buff = std::array<char, 16>;
     using filament_buff = std::array<char, 8>;
@@ -127,13 +133,14 @@ public:
          * @brief Firmware version read from G-code M115 Ux.yy.z.
          */
         struct GcodeFwVersion {
-            int major = 0;
-            int minor = 0;
-            int patch = 0;
+            unsigned major = 0;
+            unsigned minor = 0;
+            unsigned patch = 0;
+            unsigned build_number = 0;
         };
 
         GcodeFwVersion gcode_fw_version;
-        GcodeFwVersion latest_fw_version;
+        char latest_fw_version[sizeof("99.99.99-alpha99+999999")];
 
         /**
          * @brief Are all printer setting valid?
@@ -318,8 +325,21 @@ private:
 
     void parse_gcode(Buffer::String cmd, uint32_t &gcode_counter);
     void parse_comment(Buffer::String cmd);
-    bool is_up_to_date(GCodeInfo::ValidPrinterSettings::GcodeFwVersion &parsed, const char *new_version);
-    bool is_printer_compatible(const Buffer::String &);
+    bool is_up_to_date(const char *new_version);
+
+    /**
+     * @brief Test printer model with a list of compatible models.
+     * @tparam SIZE size of the compatibility_list
+     * @param printer printer model to test
+     * @param compatibility_list list of compatible models
+     * @return true if printer is compatible with any of the models in compatibility_list
+     */
+    template <std::size_t SIZE>
+    bool is_printer_compatible(const Buffer::String &printer, const std::array<const char *, SIZE> &compatibility_list) {
+        return std::any_of(begin(compatibility_list),
+            end(compatibility_list),
+            [&](const auto &v) { return printer == v; });
+    }
 
     // Search this many last bytes for "metadata" comments.
     // With increasing size of the comment section, this will have to be increased either

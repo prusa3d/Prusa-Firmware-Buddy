@@ -81,6 +81,8 @@ void FanHandler::evaluate(uint8_t step) {
     SelftestInstance().log_printf("%s %u at %u%% PWM = %u RPM\n", name, tool_nr, get_pwm_percent(), avg_rpm);
     log_info(Selftest, "%s %u pwm: %u rpm: %u", name, tool_nr, get_pwm(), avg_rpm);
 
+    // N.B. Law of trichotomy ensures the check is skipped if we set min == max
+    //      This is used in MK3.5 "fine fan test".
     if ((avg_rpm < config.rpm_min_table[step]) || (avg_rpm > config.rpm_max_table[step])) {
         SelftestInstance().log_printf("%s %u %u RPM out of range (%u - %u)\n",
             name,

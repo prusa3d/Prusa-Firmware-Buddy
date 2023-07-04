@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <device/board.h>
+#include "buddy/priorities_config.h"
 
 #define DISABLE_HB_0  0x00000001
 #define DISABLE_HB_1  0x00000002
@@ -143,7 +144,7 @@ bool Init() {
     InitGPIOPin(GPIO_HB_15, PIN_HB_15, &GPIO_InitStruct);
 
     // TIM3 timer
-    HAL_NVIC_SetPriority(TIM3_IRQn, PWM_TIMER_IRQ_PRIORITY, 0);
+    HAL_NVIC_SetPriority(TIM3_IRQn, ISR_PRIORITY_PWM_TIMER, 0);
     HAL_NVIC_EnableIRQ(TIM3_IRQn);
     __HAL_RCC_TIM3_CLK_ENABLE();
 

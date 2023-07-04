@@ -182,7 +182,9 @@ const AxisConfig_t selftest::Config_XAxis = {
     .length_max = X_BED_SIZE + X_END_GAP + 10,
     .axis = X_AXIS,
     .steps = xy_fr_table_size * 2,
-    .movement_dir = 1
+    .movement_dir = 1,
+    .park = true,
+    .park_pos = 10,
 };
 
 const AxisConfig_t selftest::Config_YAxis = {
@@ -194,7 +196,9 @@ const AxisConfig_t selftest::Config_YAxis = {
     .length_max = Y_BED_SIZE + Y_END_GAP + 10,
     .axis = Y_AXIS,
     .steps = xy_fr_table_size * 2,
-    .movement_dir = 1
+    .movement_dir = 1,
+    .park = true,
+    .park_pos = 10,
 };
 
 static const AxisConfig_t Config_ZAxis = {
@@ -206,7 +210,9 @@ static const AxisConfig_t Config_ZAxis = {
     .length_max = get_z_max_pos_mm() + 3,
     .axis = Z_AXIS,
     .steps = z_fr_tables_size,
-    .movement_dir = 1
+    .movement_dir = 1,
+    .park = false,
+    .park_pos = 0,
 };
 
 static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
@@ -363,9 +369,9 @@ static constexpr LoadcellConfig_t Config_Loadcell[] = {
         .print_fan_fnc = Fans::print,
         .cool_temp = 50,
         .countdown_sec = 5,
-        .countdown_load_error_value = 40,
-        .tap_min_load_ok = 80,
-        .tap_max_load_ok = 500,
+        .countdown_load_error_value = 250,
+        .tap_min_load_ok = 500,
+        .tap_max_load_ok = 2000,
         .tap_timeout_ms = 2000,
         .z_extra_pos = 100,
         .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
@@ -376,9 +382,9 @@ static constexpr LoadcellConfig_t Config_Loadcell[] = {
         .print_fan_fnc = Fans::print,
         .cool_temp = 50,
         .countdown_sec = 5,
-        .countdown_load_error_value = 40,
-        .tap_min_load_ok = 80,
-        .tap_max_load_ok = 500,
+        .countdown_load_error_value = 250,
+        .tap_min_load_ok = 500,
+        .tap_max_load_ok = 2000,
         .tap_timeout_ms = 2000,
         .z_extra_pos = 100,
         .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
@@ -389,9 +395,9 @@ static constexpr LoadcellConfig_t Config_Loadcell[] = {
         .print_fan_fnc = Fans::print,
         .cool_temp = 50,
         .countdown_sec = 5,
-        .countdown_load_error_value = 40,
-        .tap_min_load_ok = 80,
-        .tap_max_load_ok = 500,
+        .countdown_load_error_value = 250,
+        .tap_min_load_ok = 500,
+        .tap_max_load_ok = 2000,
         .tap_timeout_ms = 2000,
         .z_extra_pos = 100,
         .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
@@ -402,9 +408,9 @@ static constexpr LoadcellConfig_t Config_Loadcell[] = {
         .print_fan_fnc = Fans::print,
         .cool_temp = 50,
         .countdown_sec = 5,
-        .countdown_load_error_value = 40,
-        .tap_min_load_ok = 80,
-        .tap_max_load_ok = 500,
+        .countdown_load_error_value = 250,
+        .tap_min_load_ok = 500,
+        .tap_max_load_ok = 2000,
         .tap_timeout_ms = 2000,
         .z_extra_pos = 100,
         .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
@@ -415,9 +421,9 @@ static constexpr LoadcellConfig_t Config_Loadcell[] = {
         .print_fan_fnc = Fans::print,
         .cool_temp = 50,
         .countdown_sec = 5,
-        .countdown_load_error_value = 40,
-        .tap_min_load_ok = 80,
-        .tap_max_load_ok = 500,
+        .countdown_load_error_value = 250,
+        .tap_min_load_ok = 500,
+        .tap_max_load_ok = 2000,
         .tap_timeout_ms = 2000,
         .z_extra_pos = 100,
         .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
@@ -589,13 +595,12 @@ void CSelftest::Loop() {
         break;
     }
     case stsEnsureZAway: {
-        ensure_Z_away();
+        do_z_clearance(10);
         break;
     }
     case stsXAxis: {
         if (selftest::phaseAxis(pXAxis, Config_XAxis, true))
             return;
-        // Y is not skipped even if X fails
         break;
     }
     case stsYAxis: {
@@ -731,6 +736,9 @@ bool CSelftest::Abort() {
     for (auto &loadcell : m_pLoadcell)
         abort_part(&loadcell);
     abort_part((selftest::IPartHandler **)&pFSensor);
+    for (auto &dock : pDocks) {
+        abort_part(&dock);
+    }
     m_State = stsAborted;
 
     phaseFinish();
@@ -758,6 +766,7 @@ void CSelftest::phaseSelftestStart() {
         HOTEND_LOOP() {
             m_result.tools[e].printFan = TestResult_Unknown;
             m_result.tools[e].heatBreakFan = TestResult_Unknown;
+            m_result.tools[e].fansSwitched = TestResult_Unknown;
         }
     }
     if (m_Mask & stmXAxis)

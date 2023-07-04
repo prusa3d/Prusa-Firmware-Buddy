@@ -156,11 +156,14 @@ typename Animator<COUNT>::AnimationGuard Animator<COUNT>::start_animations(const
     clear_space();
 
     auto *space = space_allocator.get_space();
-    int nexPos = get_next_pos(priority);
-    Animation *savedAnimation = create_animation<T>(space, animation);
-    insert_animation(std::pair { std::pair { priority, nexPos }, savedAnimation });
-    update_next_animation();
-    return { savedAnimation, this };
+    if (space) {
+        int nexPos = get_next_pos(priority);
+        Animation *savedAnimation = create_animation<T>(space, animation);
+        insert_animation(std::pair { std::pair { priority, nexPos }, savedAnimation });
+        update_next_animation();
+        return { savedAnimation, this };
+    }
+    return { nullptr, this };
 }
 
 template <size_t COUNT>

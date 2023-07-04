@@ -19,6 +19,8 @@ bool SelftestResult_Passed(const SelftestResult &results) {
             return false;
         if (results.tools[e].heatBreakFan != TestResult_Passed)
             return false;
+        if (results.tools[e].fansSwitched != TestResult_Passed)
+            return false;
         if (results.tools[e].nozzle != TestResult_Passed)
             return false;
 #if FILAMENT_SENSOR_IS_ADC()
@@ -54,6 +56,8 @@ bool SelftestResult_Failed(const SelftestResult &results) {
             return true;
         if (results.tools[e].heatBreakFan == TestResult_Failed)
             return true;
+        if (results.tools[e].fansSwitched == TestResult_Failed)
+            return true;
         if (results.tools[e].nozzle == TestResult_Failed)
             return true;
 #if FILAMENT_SENSOR_IS_ADC()
@@ -86,6 +90,7 @@ void SelftestResult_Log(const SelftestResult &results) {
 
         log_info(Selftest, "Print fan %u result is %s", e, ToString(results.tools[e].printFan));
         log_info(Selftest, "Heatbreak fan %u result is %s", e, ToString(results.tools[e].heatBreakFan));
+        log_info(Selftest, "Fans switched %u result is %s", e, ToString(results.tools[e].fansSwitched));
         log_info(Selftest, "Nozzle heater %u result is %s", e, ToString(results.tools[e].nozzle));
 #if FILAMENT_SENSOR_IS_ADC()
         log_info(Selftest, "Filament sensor %u result is %s", e, ToString(results.tools[e].fsensor));

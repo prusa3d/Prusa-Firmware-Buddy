@@ -37,6 +37,7 @@ public:
         REPEAT_WAIT,         /// waiting for user to repark dwarves or to rehome, skips parking and replay
         RECOVERY,            /// crash was detected and recovery is being done
         REPLAY,              /// printer was re-homed and the last G code is being replayed
+        SELFTEST,            /// Selftest is running, do not interfere
     } state_t;
 
     /// Recovery inhibition types
@@ -138,6 +139,7 @@ private:
     bool toolchange_event;       ///< True if the event was triggered by TRIGGERED_TOOLCRASH or TRIGGERED_TOOLFALL
     bool toolchange_in_progress; ///< True while changing tools, set externally by the prusa_toolchanger
     bool pretoolchange_leveling; ///< True if leveling was active before toolchange, set externally by the prusa_toolchanger
+    bool homefail_z;             ///< True if Z axis was homing before homing fail, set externally by homing_failed()
 
     /// methods
 public:
@@ -225,6 +227,19 @@ public:
         }
         toolchange_in_progress = toolchange_in_progress_;
     }
+
+    /**
+     * @brief Set that homing failed during Z.
+     * This marks that recovery should also home Z axis.
+     */
+    void set_homefail_z() { homefail_z = true; }
+
+    /**
+     * @brief Know if homing failed during Z.
+     * And recovery should also home Z axis.
+     * @return true if homing failed during Z
+     */
+    bool is_homefail_z() const { return homefail_z; }
 
 private:
     void update_machine();

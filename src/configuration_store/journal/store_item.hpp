@@ -8,17 +8,20 @@
 #include <common/array_extensions.hpp>
 
 namespace Journal {
-template <class DataT, const DataT &default_val, Journal::BackendC BackendT, BackendT &(*backend)(), uint16_t HashedID>
-    requires std::equality_comparable<DataT> && std::default_initializable<DataT>
+template <typename DataT>
+concept StoreItemDataC = std::equality_comparable<DataT> && std::default_initializable<DataT> && std::is_trivially_copyable_v<DataT>;
+
+template <StoreItemDataC DataT, const DataT &DefaultVal, Journal::BackendC BackendT, BackendT &(*backend)(), uint16_t HashedID>
 struct JournalItem {
 private:
-    DataT data { default_val };
+    DataT data { DefaultVal };
 
 public:
+    static constexpr DataT default_val { DefaultVal };
     static constexpr uint16_t hashed_id { HashedID };
     static constexpr size_t data_size { sizeof(DataT) };
     static_assert(data_size < BackendT::MAX_ITEM_SIZE, "Item is too large");
-    using type = DataT;
+    using value_type = DataT;
 
     DataT get() {
         if (xPortIsInsideInterrupt()) {
@@ -83,31 +86,15 @@ private:
     }
 };
 
-template <class DataT, uint16_t HashedID, Journal::BackendC BackendT, typename T, typename CT, T CT::*ptr>
-    requires std::constructible_from<typename T::type, DataT>
-struct DeprecatedJournalStoreItemImpl {
-    static constexpr uint16_t hashed_id { HashedID };
-    static constexpr size_t data_size { sizeof(DataT) };
-
-    static_assert(data_size < BackendT::MAX_ITEM_SIZE, "Item is too large");
-    using type = DataT;
-    using next_type = T;
-    void init(DataT in) {
-        data = std::move(in);
-    }
-
-private:
-    DataT data;
-};
-
-template <class DataT, uint16_t HashedID, Journal::BackendC BackendT>
-struct DeletedStoreItemImpl {
+template <StoreItemDataC DataT, const DataT &DefaultVal, Journal::BackendC BackendT, uint16_t HashedID>
+struct DeprecatedStoreItemImpl {
     static constexpr uint16_t hashed_id { HashedID };
     static constexpr size_t data_size { sizeof(DataT) };
     static constexpr bool is_deleted { true };
+    static constexpr DataT default_val { DefaultVal };
 
     static_assert(data_size < BackendT::MAX_ITEM_SIZE, "Item is too large");
-    using type = DataT;
+    using value_type = DataT;
 };
 
-}
+} // namespace Journal

@@ -167,7 +167,10 @@
             "name": "Launch Simulator",
             "type": "cortex-debug",
             "servertype": "qemu",
-            "serverpath": "${workspaceRoot}/.vscode/simulator_as_qemu.py",
+            "serverpath": "${workspaceRoot}/.venv/bin/simulator_as_qemu",
+            "windows": {
+                "serverpath": "${workspaceRoot}/.venv/Scripts/simulator_as_qemu"
+            },
             "armToolchainPath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-10.3.1/bin",
             "cwd": "${workspaceFolder}",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",

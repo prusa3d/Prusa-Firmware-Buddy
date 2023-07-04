@@ -7,7 +7,6 @@ if(BOARD MATCHES ".*BUDDY")
             app_metrics.cpp
             appmain.cpp
             base64_stream_decoder.cpp
-            basename.cpp
             bbf.cpp
             client_response_texts.cpp
             crc32.cpp
@@ -17,6 +16,7 @@ if(BOARD MATCHES ".*BUDDY")
             eeprom_loadsave.cpp
             ExtInterruptHandler.cpp
             filename_type.cpp
+            filepath_operation.cpp
             footer_eeprom.cpp
             freertos_mutex.cpp
             fsm_types.cpp
@@ -58,6 +58,7 @@ if(BOARD MATCHES ".*BUDDY")
             safe_state.cpp
             scratch_buffer.cpp
             segmented_json.cpp
+            selftest_result.cpp
             selftest_result_type.cpp
             sensor_data_buffer.cpp
             sound.cpp

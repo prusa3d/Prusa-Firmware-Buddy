@@ -177,7 +177,7 @@ void raise_redscreen(ErrCode error_code, const char *error, const char *module) 
 #endif /*_DEBUG*/
 
     // don't trigger redscreen during a power outage
-    if (power_panic::is_ac_fault_signal()) {
+    if (power_panic::is_ac_fault_active()) {
         delay_ms(2000);
         bsod("%s: %s", module, error);
     }

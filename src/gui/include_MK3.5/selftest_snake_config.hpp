@@ -100,5 +100,6 @@ inline constexpr MenuItemText blank_item_texts[] {
 TestResult get_test_result(Action action, Tool tool);
 uint8_t get_tool_mask(Tool tool);
 uint64_t get_test_mask(Action action);
-Tool get_last_enabled_tool();
+Tool get_last_enabled_tool() { return Tool::Tool1; }
+Tool get_next_tool(Tool tool) { return tool; }
 }

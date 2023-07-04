@@ -10,25 +10,26 @@
 # pylint: disable=line-too-long
 import json
 import os
-import pip
 import platform
 import shutil
 import stat
 import subprocess
 import sys
 import tarfile
+import venv
 import zipfile
+import stat
+import platform
 from argparse import ArgumentParser
 from pathlib import Path
 from urllib.request import urlretrieve
 
+is_windows = platform.system() == 'Windows'
 project_root_dir = Path(__file__).resolve().parent.parent
 dependencies_dir = project_root_dir / '.dependencies'
-
-if int(pip.__version__.split('.')[0]) >= 23:
-    print(
-        'pip version must be < 23.0 to successfully install littlefs-python=0.4.0, sorry; try running `pip install pip==22`',
-        file=sys.stderr)
+venv_dir = project_root_dir / '.venv'
+venv_bin_dir = venv_dir / 'bin' if not is_windows else venv_dir / 'Scripts'
+running_in_venv = Path(sys.prefix).resolve() == venv_dir.resolve()
 
 # All dependencies of this project.
 #
@@ -95,7 +96,6 @@ dependencies = {
         'url': 'https://github.com/posborne/cmsis-svd/archive/45a1e90afe488f01df94b3e0eb89a67c1a900a9a.zip',
     },
 }
-pip_dependencies = ['ecdsa', 'polib', 'pyyaml', 'littlefs-python<0.5.0', 'Pillow', 'click']
 # yapf: enable
 
 
@@ -193,6 +193,70 @@ def get_dependency_directory(dependency) -> Path:
     return Path(directory_for_dependency(dependency, version))
 
 
+def switch_to_venv_if_nedded():
+    if not running_in_venv and os.environ.get('BUDDY_NO_VIRTUALENV') is None:
+        print('Switching to Buddy\'s virtual environment.', file=sys.stderr)
+        print(
+            'You can disable this by defining BUDDY_NO_VIRTUALENV env. variable.',
+            file=sys.stderr)
+        os.execv(str(venv_bin_dir / 'python'),
+                 [str(venv_bin_dir / 'python')] + sys.argv)
+
+
+def prepare_venv_if_needed():
+    if venv_dir.exists():
+        return
+    venv.create(venv_dir, with_pip=True, prompt='buddy')
+
+
+def pip_install(*args):
+    command = [
+        str(venv_bin_dir / 'python'), '-m', 'pip', 'install',
+        '--disable-pip-version-check', '--no-input', *args
+    ]
+    process = subprocess.Popen(command,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT,
+                               encoding='utf-8')
+    assert process.stdout is not None
+    for line in iter(process.stdout.readline, ''):
+        if line.lower().startswith('requirement already satisfied:'):
+            continue
+        if line.lower().startswith('looking in indexes'):
+            continue
+        print(line.rstrip(), file=sys.stderr)
+    process.communicate()
+    if process.returncode != 0:
+        sys.exit(process.returncode)
+
+
+def install_pip_packages():
+    requirements_path = project_root_dir / 'requirements.txt'
+    # find required pip and install it first
+    with open(requirements_path, 'r') as f:
+        for line in f:
+            if line.startswith('pip'):
+                pip_install(line.strip())
+                break
+        else:
+            raise RuntimeError('pip not found in requirements.txt')
+    # install everything else from requirements.txt
+    pip_install('-r', str(requirements_path))
+
+
+def bootstrap():
+    for dependency in dependencies:
+        if recommended_version_is_available(dependency):
+            continue
+        install_dependency(dependency)
+
+    prepare_venv_if_needed()
+    install_pip_packages()
+
+    # also, install openocd config meant for customization
+    install_openocd_config_template()
+
+
 def main() -> int:
     parser = ArgumentParser()
     # yapf: disable
@@ -222,24 +286,7 @@ def main() -> int:
             return 1
 
     # if no argument present, check and install dependencies
-    for dependency in dependencies:
-        if recommended_version_is_available(dependency):
-            continue
-        install_dependency(dependency)
-
-    # also, install pip packages
-    installed_pip_packages = get_installed_pip_packages()
-    for package in pip_dependencies:
-        is_installed = any(installed[0] == package
-                           for installed in installed_pip_packages)
-        if is_installed:
-            continue
-        print('Installing Python package %s' % package)
-        run(sys.executable, '-m', 'pip', 'install', package,
-            '--disable-pip-version-check')
-
-    # also, install openocd config meant for customization
-    install_openocd_config_template()
+    bootstrap()
 
     return 0
 

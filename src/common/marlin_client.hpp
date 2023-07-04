@@ -119,6 +119,9 @@ void marlin_print_start(const char *filename, bool skip_preview);
 // to see if it really started. Calling it after a call to marlin_print_start with
 // skip_preview = false will cause an infinit loop!
 bool marlin_print_started();
+// Should only be called after a call to marlin_print_exit to wait for it to take
+// effect and check for success.
+bool marlin_print_exited();
 
 void marlin_gui_ready_to_print();
 void marlin_gui_cant_print();

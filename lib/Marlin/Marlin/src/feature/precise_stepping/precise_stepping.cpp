@@ -8,6 +8,7 @@
 #include "precise_stepping.hpp"
 #include "../input_shaper/input_shaper.hpp"
 #include "../pressure_advance/pressure_advance.hpp"
+#include "internal.hpp"
 
 #include "../../module/planner.h"
 #include "../../module/stepper.h"
@@ -32,8 +33,14 @@
 #endif
 
 #ifdef SQUARE_WAVE_STEPPING
-    #define X_STEP_SET() buddy::hw::xStep.toggle();
-    #define Y_STEP_SET() buddy::hw::yStep.toggle();
+    #if PRINTER_IS_PRUSA_XL && !BOARD_IS_DWARF
+        // on XLBuddy the XY pin assignment is dynamic depending on board revision
+        #define X_STEP_SET() buddy::hw::XStep->toggle();
+        #define Y_STEP_SET() buddy::hw::YStep->toggle();
+    #else
+        #define X_STEP_SET() buddy::hw::xStep.toggle();
+        #define Y_STEP_SET() buddy::hw::yStep.toggle();
+    #endif
     #define Z_STEP_SET() buddy::hw::zStep.toggle();
     #define E_STEP_SET() buddy::hw::e0Step.toggle();
 
@@ -234,6 +241,7 @@ FORCE_INLINE void classic_step_generator_update(classic_step_generator_t &step_g
 }
 
 step_event_info_t classic_step_generator_next_step_event(classic_step_generator_t &step_generator, step_generator_state_t &step_generator_state, const double flush_time) {
+    assert(step_generator.current_move != nullptr);
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0 };
     const move_t *next_move = nullptr;
     do {
@@ -364,14 +372,14 @@ StepGeneratorStatus generate_next_step_event(step_generator_state_t &step_state,
 
 HAL_MOVE_TIMER_ISR() {
     HAL_timer_isr_prologue(MOVE_TIMER_NUM);
-    PreciseStepping::process_queue_of_move_segments();
+    PreciseStepping::move_isr();
     HAL_timer_isr_epilogue(MOVE_TIMER_NUM);
 }
 
 HAL_STEP_TIMER_ISR() {
     if (__HAL_TIM_GET_FLAG(&TimerHandle[STEP_TIMER_NUM].handle, TIM_FLAG_CC1) != RESET) {
         __HAL_TIM_CLEAR_IT(&TimerHandle[STEP_TIMER_NUM].handle, TIM_IT_CC1);
-        PreciseStepping::isr();
+        PreciseStepping::step_isr();
 
 #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
         // ensure FPU wasn't accidentally used in this ISR for performance reasons
@@ -401,16 +409,11 @@ void PreciseStepping::init() {
     Stepper::count_direction.e = (Stepper::last_direction_bits & STEP_EVENT_FLAG_E_DIR) ? -1 : 1;
 
 #ifdef ADVANCED_STEP_GENERATORS
+    LOOP_XYZ(i) {
+        PreciseStepping::step_generators_pool.input_shaper_step_generator[i].is_state = &InputShaper::is_state[i];
+        PreciseStepping::step_generators_pool.input_shaper_step_generator[i].is_pulses = &InputShaper::is_pulses[i];
+    }
     PreciseStepping::step_generators_pool.pressure_advance_step_generator_e.pa_state = &PressureAdvance::pressure_advance_state;
-
-    PreciseStepping::step_generators_pool.input_shaper_step_generator_x.is_state = &InputShaper::is_state_x;
-    PreciseStepping::step_generators_pool.input_shaper_step_generator_x.is_pulses = &InputShaper::is_pulses_x;
-
-    PreciseStepping::step_generators_pool.input_shaper_step_generator_y.is_state = &InputShaper::is_state_y;
-    PreciseStepping::step_generators_pool.input_shaper_step_generator_y.is_pulses = &InputShaper::is_pulses_y;
-
-    PreciseStepping::step_generators_pool.input_shaper_step_generator_z.is_state = &InputShaper::is_state_z;
-    PreciseStepping::step_generators_pool.input_shaper_step_generator_z.is_pulses = &InputShaper::is_pulses_z;
 #endif
 
     PreciseStepping::move_segment_queue_clear();
@@ -519,7 +522,7 @@ uint32_t PreciseStepping::process_one_step_event_from_queue() {
     return ticks_to_next_isr;
 }
 
-void PreciseStepping::isr() {
+void PreciseStepping::step_isr() {
 #ifndef ISR_DEADLINE_TRACKING
     constexpr uint32_t min_delay = 6; // fuse isr for steps below this threshold (us)
 #else
@@ -689,28 +692,6 @@ bool PreciseStepping::is_waiting_before_delivering() {
 }
 
 void PreciseStepping::process_queue_of_blocks() {
-    if (stop_pending) {
-        reset_queues();
-        return;
-    }
-
-#ifdef ISR_DEADLINE_DEBUGGING
-    uint8_t step_dl_miss_buf = step_dl_miss;
-    if (step_dl_miss_buf) {
-        step_dl_miss_buf = __atomic_exchange_n(&step_dl_miss, 0, __ATOMIC_RELAXED);
-        SERIAL_ECHOLNPAIR("STEP DEADLINES MISSED: ", step_dl_miss_buf);
-        Sound_Play(eSOUND_TYPE::SingleBeep);
-    }
-#endif
-#ifdef ISR_EVENT_DEBUGGING
-    uint8_t step_ev_miss_buf = step_ev_miss;
-    if (step_ev_miss_buf) {
-        step_ev_miss_buf = __atomic_exchange_n(&step_ev_miss, 0, __ATOMIC_RELAXED);
-        SERIAL_ECHOLNPAIR("STEP EVENTS MISSED: ", step_ev_miss_buf);
-        Sound_Play(eSOUND_TYPE::SingleBeep);
-    }
-#endif
-
     if (is_waiting_before_delivering())
         return;
 
@@ -765,9 +746,49 @@ void PreciseStepping::process_queue_of_blocks() {
         Planner::discard_current_unprocessed_block();
 }
 
-void PreciseStepping::process_queue_of_move_segments() {
+void PreciseStepping::loop() {
+    if (stop_pending) {
+        reset_queues();
+        return;
+    }
+
+#ifdef ISR_DEADLINE_DEBUGGING
+    uint8_t step_dl_miss_buf = step_dl_miss;
+    if (step_dl_miss_buf) {
+        step_dl_miss_buf = __atomic_exchange_n(&step_dl_miss, 0, __ATOMIC_RELAXED);
+        SERIAL_ECHOLNPAIR("STEP DEADLINES MISSED: ", step_dl_miss_buf);
+        Sound_Play(eSOUND_TYPE::SingleBeep);
+    }
+#endif
+#ifdef ISR_EVENT_DEBUGGING
+    uint8_t step_ev_miss_buf = step_ev_miss;
+    if (step_ev_miss_buf) {
+        step_ev_miss_buf = __atomic_exchange_n(&step_ev_miss, 0, __ATOMIC_RELAXED);
+        SERIAL_ECHOLNPAIR("STEP EVENTS MISSED: ", step_ev_miss_buf);
+        Sound_Play(eSOUND_TYPE::SingleBeep);
+    }
+#endif
+}
+
+void PreciseStepping::move_isr() {
     if (stop_pending)
         return;
+
+    if (!has_unprocessed_move_segments_queued()) {
+        // the move queue is dry: summon the next block
+        process_queue_of_blocks();
+    }
+
+    StepGeneratorStatus status = process_one_move_segment_from_queue();
+    if (status == STEP_GENERATOR_STATUS_FULL_STEP_EVENT_QUEUE || status == STEP_GENERATOR_STATUS_NO_STEP_EVENT_PRODUCED) {
+        // we either produced enough steps in this iteration (leaving enough time for processing)
+        // and/or we reached the end of the move queue (requiring the next block to be processed)
+        process_queue_of_blocks();
+    }
+}
+
+StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
+    StepGeneratorStatus status = STEP_GENERATOR_STATUS_NO_STEP_EVENT_PRODUCED;
 
     uint16_t produced_step_events_cnt = 0;
     if (const move_t *move = get_current_unprocessed_move_segment(); move != nullptr && step_event_queue_free_slots() > MIN_STEP_EVENT_FREE_SLOT) {
@@ -784,7 +805,6 @@ void PreciseStepping::process_queue_of_move_segments() {
         // Next move segment could have different active axes than the previous move segment, so we need to update the index of the axis of the nearest step event.
         step_generator_state_update_nearest_idx(step_generator_state, std::numeric_limits<double>::max());
 
-        StepGeneratorStatus status;
         while ((status = generate_next_step_event(step_generator_state, flush_time)) == STEP_GENERATOR_STATUS_OK && produced_step_events_cnt < MAX_STEP_EVENTS_PRODUCED_PER_ONE_CALL)
             ++produced_step_events_cnt;
 
@@ -810,21 +830,18 @@ void PreciseStepping::process_queue_of_move_segments() {
             }
         }
     }
+
+    return status;
 }
 
 static double calc_maximum_lookback_time() {
     double max_lookback_time = 0.;
 
 #ifdef ADVANCED_STEP_GENERATORS
-    if (PreciseStepping::step_generator_types & INPUT_SHAPER_STEP_GENERATOR_X)
-        max_lookback_time = std::max(max_lookback_time, -InputShaper::is_pulses_x.pulses[0].t);
-
-    if (PreciseStepping::step_generator_types & INPUT_SHAPER_STEP_GENERATOR_Y)
-        max_lookback_time = std::max(max_lookback_time, -InputShaper::is_pulses_y.pulses[0].t);
-
-    if (PreciseStepping::step_generator_types & INPUT_SHAPER_STEP_GENERATOR_Z)
-        max_lookback_time = std::max(max_lookback_time, -InputShaper::is_pulses_z.pulses[0].t);
-
+    LOOP_XYZ(i) {
+        if (PreciseStepping::step_generator_types & (INPUT_SHAPER_STEP_GENERATOR_X << i))
+            max_lookback_time = std::max(max_lookback_time, -InputShaper::is_pulses[i].pulses[0].t);
+    }
     if (PreciseStepping::step_generator_types & PRESSURE_ADVANCE_STEP_GENERATOR_E) {
         const pressure_advance_params_t &pa_params = PressureAdvance::pressure_advance_params;
         max_lookback_time = std::max(max_lookback_time, pa_params.sampling_rate * (double)((pa_params.filter.length + 1) / 2));
@@ -852,48 +869,27 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
         step_generator->reached_end_of_move_queue = false;
     }
 
-    // X-axis
+    LOOP_XYZ(i) {
 #ifdef ADVANCED_STEP_GENERATORS
-    if (step_generator_types & INPUT_SHAPER_STEP_GENERATOR_X) {
-        input_shaper_step_generator_init(move, step_generators_pool.input_shaper_step_generator_x, step_generator_state);
-    } else {
-        classic_step_generator_init(move, step_generators_pool.classic_step_generator_x, step_generator_state);
-    }
+        if (step_generator_types & (INPUT_SHAPER_STEP_GENERATOR_X << i)) {
+            input_shaper_step_generator_init(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
+        } else {
+            classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
+        }
 #else
-    classic_step_generator_init(move, step_generators_pool.classic_step_generator_x, step_generator_state);
+        classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
 #endif
-
-    // Y-axis
-#ifdef ADVANCED_STEP_GENERATORS
-    if (step_generator_types & INPUT_SHAPER_STEP_GENERATOR_Y) {
-        input_shaper_step_generator_init(move, step_generators_pool.input_shaper_step_generator_y, step_generator_state);
-    } else {
-        classic_step_generator_init(move, step_generators_pool.classic_step_generator_y, step_generator_state);
     }
-#else
-    classic_step_generator_init(move, step_generators_pool.classic_step_generator_y, step_generator_state);
-#endif
-
-    // Z-axis
-#ifdef ADVANCED_STEP_GENERATORS
-    if (step_generator_types & INPUT_SHAPER_STEP_GENERATOR_Z) {
-        input_shaper_step_generator_init(move, step_generators_pool.input_shaper_step_generator_z, step_generator_state);
-    } else {
-        classic_step_generator_init(move, step_generators_pool.classic_step_generator_z, step_generator_state);
-    }
-#else
-    classic_step_generator_init(move, step_generators_pool.classic_step_generator_z, step_generator_state);
-#endif
 
     // E-axis
 #ifdef ADVANCED_STEP_GENERATORS
     if (step_generator_types & PRESSURE_ADVANCE_STEP_GENERATOR_E) {
         pressure_advance_step_generator_init(move, step_generators_pool.pressure_advance_step_generator_e, step_generator_state);
     } else {
-        classic_step_generator_init(move, step_generators_pool.classic_step_generator_e, step_generator_state);
+        classic_step_generator_init(move, step_generators_pool.classic_step_generator[E_AXIS], step_generator_state);
     }
 #else
-    classic_step_generator_init(move, step_generators_pool.classic_step_generator_e, step_generator_state);
+    classic_step_generator_init(move, step_generators_pool.classic_step_generator[E_AXIS], step_generator_state);
 #endif
 
     step_generator_state.initialized = true;

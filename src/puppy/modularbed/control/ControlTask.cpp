@@ -9,6 +9,7 @@
 #include "HeatbedletInfo.hpp"
 #include <cstring>
 #include "hal/HAL_MultiWatchdog.hpp"
+#include "buddy/priorities_config.h"
 
 #define MODBUS_QUEUE_MESSAGE_COUNT 40
 #define ALL_ERROR_BITS             0xFFFFFFFF
@@ -25,7 +26,7 @@ void ControlTaskFunction(const void *argument);
 }
 
 static osThreadId s_OSThredHandle = nullptr;
-osThreadDef(ControlTask, ControlTaskFunction, osPriorityNormal, 1, (256 * 4));
+osThreadDef(ControlTask, ControlTaskFunction, TASK_PRIORITY_CONTROL, 1, (256 * 4));
 static bool s_ExitThread = false;
 
 static osMailQId s_ModbusQueueHandle = nullptr;

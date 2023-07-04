@@ -21,6 +21,9 @@
  */
 #pragma once
 
+#include <option/has_toolchanger.h>
+#include <option/has_modularbed.h>
+
 // clang-format off
 
 /**
@@ -278,6 +281,43 @@
     #if ENABLED(GRADIENT_MIX)
     //#define GRADIENT_VTOOL       // Add M166 T to use a V-tool index as a Gradient alias
     #endif
+#endif
+
+/**
+ * Modular heatbed(MHB)
+ *
+ *  Heatbed composed of multiple smaller heatbedlets.
+ *  Allows separate temperature controll of individual heatbedlets(HBL).
+ */
+#if HAS_MODULARBED()
+    #define MODULAR_HEATBED
+#endif
+#if ENABLED(MODULAR_HEATBED)
+    #define X_HBL_COUNT 3   // Number of heatbedlets in X direction
+    #define Y_HBL_COUNT 3   // Number of heatbedlets in Y direction
+    #define X_HBL_SIZE  90  // Size of single heatbedlet in X direction including gap between heatbedlets(mm)
+    #define Y_HBL_SIZE  90  // Size of single heatbedlet in Y direction including gap between heatbedlets(mm)
+    #define PRINT_AREA_BASED_HEATING_ENABLED get_print_area_based_heating_enabled()
+
+
+    // Bedlet temperature gradient calculation, uses this equation:
+    // BEDLET_TEMP = NEAREST_ACTIVE_BEDLET_TEMPERATURE - NEAREST_ACTIVE_BEDLET_TEMPERATURE * ( 1 / HBL_GRADIENT_CUTOFF * ACTIVE_BEDLET_DISTANCE)^HBL_GRADIENT_EXPONENT;
+    #define HBL_GRADIENT_EXPONENT 2.0f // Exponent used in equation to calculate heatbedlets temperature gradient
+    #define HBL_GRADIENT_CUTOFF 2.0f // Bedlet this far apart from active bedlet will have zero target temperature
+    #define HBL_EXPAND_TO_SIDES true // Enable expansion of heated area to sides in order to prevent warping from bed material thermal expansion
+
+#endif //MODULAR_HEATBED
+
+/**
+ * Prusa Toolchanger
+ *
+ *  Multiple semi-independent extruders.
+ *  Connected by shared bus and shared step/dir.
+ *  Stepping done by marlin.
+ *  PID and fan controll done by extruder.
+ */
+#if HAS_TOOLCHANGER()
+    #define PRUSA_TOOLCHANGER
 #endif
 
 // Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
@@ -569,7 +609,7 @@
  */
 
 #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
-#define THERMAL_PROTECTION_BED // Enable thermal protection for the heated bed
+//#define THERMAL_PROTECTION_BED // Enable thermal protection for the heated bed
 //#define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
 
 //===========================================================================

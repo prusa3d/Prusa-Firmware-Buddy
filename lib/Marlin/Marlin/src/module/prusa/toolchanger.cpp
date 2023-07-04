@@ -189,10 +189,13 @@ bool PrusaToolChanger::ensure_safe_move() {
     return true;
 }
 
-bool PrusaToolChanger::check_powerpanic() {
+bool PrusaToolChanger::check_emergency_stop() {
     #if ENABLED(CRASH_RECOVERY)
     if (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) {
         return true; // Powerpanic happened, do not move and quit as soon as possible
+    }
+    if (quick_stopped) {
+        return true; // Movements quick stoped, avoid errors that result from interrupted tool-change moves
     }
     #endif           /*ENABLED(CRASH_RECOVERY)*/
     return false;
@@ -201,25 +204,29 @@ bool PrusaToolChanger::check_powerpanic() {
 /**
  * Link from Marlin tool_change() to prusa_toolchanger.tool_change()
  */
-void tool_change(const uint8_t new_tool, tool_return_t return_type) {
+void tool_change(const uint8_t new_tool,
+    tool_return_t return_type /*= tool_return_t::to_current*/,
+    tool_change_lift_t z_lift /*= tool_change_lift_t::full_lift*/,
+    bool z_return /*= true*/) {
+
     // Check where we should return to
-    xyz_pos_t return_position = destination;
-    if (return_type == tool_return_t::to_current) {
-        if (all_axes_known()) {
-            return_position = current_position;
-        } else {
-            return_type = tool_return_t::no_return;
-        }
-    } else if (return_type <= tool_return_t::no_return) {
-        return_position = current_position; // If XY return is not requested, use current_position for return of Z
+    xyz_pos_t return_position = current_position;
+    if (return_type == tool_return_t::to_destination) {
+        return_position = destination;
     }
 
+    // if we don't know position of all axes, do not return to current position
+    if (return_type == tool_return_t::to_current && !all_axes_known())
+        return_type = tool_return_t::no_return;
+
     // Change tool, ignore return as Marlin doesn't care
-    bool ret [[maybe_unused]] = prusa_toolchanger.tool_change(new_tool, return_type, return_position);
+    bool ret [[maybe_unused]] = prusa_toolchanger.tool_change(new_tool, return_type, return_position, z_lift, z_return);
 }
 
-bool PrusaToolChanger::tool_change(const uint8_t new_tool, const tool_return_t return_type, xyz_pos_t return_position, bool suppress_z_lift) {
+bool PrusaToolChanger::tool_change(const uint8_t new_tool, tool_return_t return_type, xyz_pos_t return_position, tool_change_lift_t z_lift, bool z_return) {
     // WARNING: called from default(marlin) task
+
+    quick_stopped = false;
 
     // Prevent recursion
     if (block_tool_check.load()) {
@@ -247,15 +254,14 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, const tool_return_t r
     precrash_data = { new_tool, return_type, store_return_position };
 
     Dwarf *old_dwarf = picked_dwarf.load(); ///< Change from physically picked dwarf
-    float z_raise = 0;                      ///< Raise Z before toolchange by this amount
 
-    if (check_powerpanic()) {
+    if (check_emergency_stop()) {
         return false; // Need to quit as soon as possible
     }
 
     planner.synchronize();
 
-    if (check_powerpanic()) {
+    if (check_emergency_stop()) {
         return false; // Need to quit as soon as possible
     }
 
@@ -278,17 +284,14 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, const tool_return_t r
         }
     });
 
-    // Get maximal Z of MBL
-    float mbl_z_height = 0;
-    if (levelling_active) {
-        for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-            for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
-                if (const float z = Z_VALUES(x, y); !isnan(z) && (z > mbl_z_height)) {
-                    mbl_z_height = z;
-                }
-            }
-        }
+    // calculate the new tool offset difference before updating hotend_currently_applied_offset
+    xyz_pos_t new_hotend_offset;
+    if (new_dwarf != nullptr) {
+        new_hotend_offset = hotend_offset[new_dwarf->get_dwarf_nr() - 1];
+    } else {
+        new_hotend_offset.reset();
     }
+    const xyz_pos_t tool_offset_diff = hotend_currently_applied_offset - new_hotend_offset; ///< Difference between offset of new and old tools
 
     if (new_dwarf != old_dwarf) {
         // Ensure minimal feedrate for movements
@@ -297,19 +300,28 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, const tool_return_t r
         }
 
         // Raise Z before move
-        if (!suppress_z_lift) {
-            if (return_type > tool_return_t::no_move) {
+        float z_raise = 0; ///< Raise Z before toolchange by this amount
+        if (z_lift > tool_change_lift_t::no_lift) {
+            if (z_lift >= tool_change_lift_t::full_lift) {
                 // Do a small lift to avoid the workpiece for parking
                 z_raise = toolchange_settings.z_raise;
-                if (return_type > tool_return_t::no_return && (return_position.z - current_position.z) > 0) {
-                    // also immediately account for clearance in the return move
-                    z_raise += (return_position.z - current_position.z);
-                }
-                z_shift(z_raise + mbl_z_height);
-            } else {
-                z_shift(mbl_z_height); // Even though no_move, raise to get above MBL
+            }
+            if (return_type > tool_return_t::no_return && (return_position.z - current_position.z) > 0) {
+                // also immediately account for clearance in the return move
+                z_raise += (return_position.z - current_position.z);
+            }
+            if (levelling_active) {
+                z_raise += get_mbl_z_lift_height();
             }
         }
+        // if new_tool has positive offset that means Z needs to move away from print, we'll do it together with other raises to speed things up
+        // (negative offset is applied later after parking current tool)
+        if (tool_offset_diff.z > 0) {
+            z_raise += tool_offset_diff.z;
+        }
+
+        if (z_raise > 0)
+            z_shift(z_raise);
 
         // Home X and Y if needed
         if (!ensure_safe_move()) {
@@ -332,14 +344,6 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, const tool_return_t r
     update_software_endstops(Y_AXIS, old_tool, new_tool);
     update_software_endstops(Z_AXIS, old_tool, new_tool);
 
-    // calculate the new tool offset difference before updating hotend_currently_applied_offset
-    xyz_pos_t new_hotend_offset;
-    if (new_dwarf != nullptr) {
-        new_hotend_offset = hotend_offset[new_dwarf->get_dwarf_nr() - 1];
-    } else {
-        new_hotend_offset.reset();
-    }
-    const xyz_pos_t tool_offset_diff = hotend_currently_applied_offset - new_hotend_offset; ///< Difference between offset of new and old tools
     hotend_currently_applied_offset = new_hotend_offset;
 
     // Disable print fan on old dwarf, fan on new dwarf will be enabled by marlin
@@ -357,12 +361,13 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, const tool_return_t r
                 return false;
             }
 
+            if (tool_offset_diff.z < 0) {
+                // positive Z diff was already applied during Z move away, now apply negative z shift (move tool down)
+                z_shift(tool_offset_diff.z);
+            }
+
             // Pick new tool
-            float z_diff = 0;
-            if (return_type > tool_return_t::no_return) {
-                z_diff = tool_offset_diff.z; // If there is a move after toolchange, compensate tool Z now
-            }                                // else: compensate tool offset at the end, together with MBL and Z hop
-            if (!pickup(*new_dwarf, z_diff) || !check_skipped_step()) {
+            if (!pickup(*new_dwarf) || !check_skipped_step()) {
                 return false;
             }
 
@@ -372,44 +377,38 @@ bool PrusaToolChanger::tool_change(const uint8_t new_tool, const tool_return_t r
             }
         }
 
-        if (check_powerpanic()) {
+        if (check_emergency_stop()) {
             return false; // Need to quit as soon as possible
         }
 
-        // Move back
+        // update return_position to the new working offset
+        return_position += tool_offset_diff;
+        // Prevent a move outside physical bounds
+        apply_motion_limits(return_position);
+
+        // Move back in XY direction
         if (return_type > tool_return_t::no_return) {
-            // update return_position to the new working offset
-            return_position += tool_offset_diff;
-
-            // Prevent a move outside physical bounds
-            apply_motion_limits(return_position);
-
             // Move back to the original (or adjusted) position
             unpark_to(return_position); // schedule a smooth XY transition to return_position
+        }
 
-            // Finally move to return_position
+        // Now move down in Z
+        if (z_return) {
             set_bed_leveling_enabled(levelling_active); // Reenable MBL for this move
-            if (current_position != return_position) {
-                destination = return_position;
-                prepare_move_to_destination();
-            }
-        } else {
-            // No XY move, but return Z to original position
-            set_bed_leveling_enabled(levelling_active); // Reenable MBL for this move
-            if (current_position.z != return_position.z + tool_offset_diff.z) {
+            if (current_position.z != return_position.z) {
                 destination = current_position;
-                destination.z = return_position.z + tool_offset_diff.z;
+                destination.z = return_position.z;
                 prepare_move_to_destination();
             }
         }
 
-        if (check_powerpanic()) {
+        if (check_emergency_stop()) {
             return false; // Need to quit as soon as possible
         }
 
         // Wait for moves to finish
         /// @note This synchronization makes it a bit slower, but prevents errors of powerpanic and crash
-        ///   happening after this but during last moves of toochange.
+        ///   happening after this but during last moves of toolchange.
         planner.synchronize();
     }
 
@@ -457,7 +456,9 @@ void PrusaToolChanger::toolcrash() {
         || (crash_s.get_state() == Crash_s::TRIGGERED_ISR)                            // ISR crash happened, it will replay Tx gcode
         || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL)                       // Toolcrash is already in progress
         || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
-        || (crash_s.get_state() == Crash_s::REPEAT_WAIT)) {
+        || (crash_s.get_state() == Crash_s::REPEAT_WAIT)
+        || (crash_s.get_state() == Crash_s::SELFTEST)
+        || quick_stopped) {
         return; // Ignore
     }
     #endif      /*ENABLED(CRASH_RECOVERY)*/
@@ -528,7 +529,7 @@ bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
 
     if (!park(dwarf))
         return false;
-    if (!pickup(dwarf, 0))
+    if (!pickup(dwarf))
         return false;
 
     return true;
@@ -697,7 +698,7 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
 
 void PrusaToolChanger::z_shift(const float diff) {
     current_position.z += diff;
-    line_to_current_position(planner.settings.max_feedrate_mm_s[Z_AXIS]);
+    line_to_current_position(Z_HOP_FEEDRATE_MM_S);
     planner.synchronize();
 }
 
@@ -743,7 +744,7 @@ bool PrusaToolChanger::align_locks() {
     return true;
 }
 
-bool PrusaToolChanger::pickup(Dwarf &dwarf, const float diff_z) {
+bool PrusaToolChanger::pickup(Dwarf &dwarf) {
     auto dwarf_picked = [&dwarf]() {
         if (!dwarf.refresh_park_pick_status()) {
             return false;
@@ -809,9 +810,6 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf, const float diff_z) {
         toolcrash();
         return false;
     }
-
-    // compensate for the Z difference before unparking
-    z_shift(diff_z);
 
     move(info.dock_x + PICK_X_OFFSET_3, SAFE_Y_WITH_TOOL, feedrate_mm_s); // tool extracted
 

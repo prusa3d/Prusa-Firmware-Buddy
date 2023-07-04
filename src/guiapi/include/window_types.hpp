@@ -32,6 +32,8 @@ enum class has_footer : bool { no,
     yes };
 enum class positioning : bool { absolute,
     relative };
+enum class show_disabled_extension_t : bool { no,
+    yes };
 
 // type of window
 // carefull if any states are added - flags and getter must be modified

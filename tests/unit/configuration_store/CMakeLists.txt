@@ -3,6 +3,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/EEPROM_journal_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/dummy_eeprom_chip.cpp
   ${CMAKE_SOURCE_DIR}/src/configuration_store/journal/backend.cpp
+  ${CMAKE_SOURCE_DIR}/src/configuration_store/eeprom_storage.cpp
   ../mock/bsod.cpp
   ../mock/timing_dummy.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp

@@ -94,8 +94,11 @@ void MeasureAndCheckHBResistance_Impl(uint32_t hbIndex) {
         StateLogic::SetHBErrorFlag(hbIndex, HeatbedletError::HeaterShortCircuit);
     }
 
-    if (resistance > MAX_HB_RESISTANCE) {
+    if (is_used_bedlet(hbIndex) && (resistance > MAX_HB_RESISTANCE)) {
         StateLogic::SetHBErrorFlag(hbIndex, HeatbedletError::HeaterDisconnected);
+    }
+    if (!is_used_bedlet(hbIndex) && (resistance <= MAX_HB_RESISTANCE)) {
+        StateLogic::SetHBErrorFlag(hbIndex, HeatbedletError::HeaterConnected);
     }
 }
 

@@ -36,7 +36,7 @@ namespace detail {
                 if (raw_data.size() != ItemT::data_size) {
                     bsod("unexpected size difference");
                 }
-                typename ItemT ::type data;
+                typename ItemT ::value_type data;
                 memcpy(&data, raw_data.data(), raw_data.size());
                 std::get<I>(tuple).init(data);
             }))... });
@@ -55,10 +55,10 @@ namespace detail {
                     if (used_bytes != ItemT::data_size) {
                         bsod("unexpected size difference");
                     }
-                    typename ItemT::type data;
+                    typename ItemT::value_type data;
                     memcpy(&data, buffer.data(), used_bytes);
 
-                    typename ItemT::next_type::type new_data(data);
+                    typename ItemT::next_type::value_type new_data(data);
                     memcpy(buffer.data(), &new_data, sizeof(new_data));
                     return std::make_pair(ItemT::next_type::hashed_id, std::span<uint8_t>(buffer.data(), sizeof(new_data)));
                 }

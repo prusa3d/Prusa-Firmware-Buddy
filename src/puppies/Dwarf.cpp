@@ -50,6 +50,7 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
     , log_component(get_log_component(dwarf_nr))
     , selected(false)
     , time_sync(this->dwarf_nr)
+    , loadcell_samplerate {}
     , callbacks(Decoder::Callbacks_t {
           .log_handler = std::bind(&Dwarf::handle_log_fragment, this, std::placeholders::_1),
           .loadcell_handler = [this](LoadcellRecord data) {
@@ -57,7 +58,12 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
               if (!this->time_sync.is_time_sync_valid() || !this->selected)
                   return;
 
-              loadcell.ProcessSample(data.loadcell_raw_value, this->time_sync.buddy_time_us(data.timestamp)); },
+              // Store sample timestamp and count sample
+              loadcell_samplerate.last_timestamp = this->time_sync.buddy_time_us(data.timestamp);
+              loadcell_samplerate.count++;
+
+              // Process sample
+              loadcell.ProcessSample(data.loadcell_raw_value, loadcell_samplerate.last_timestamp); },
           .accelerometer_handler = [this](AccelerometerData data) {
               // throw away samples if time is not synced
               if (!this->time_sync.is_time_sync_valid() || !this->selected)
@@ -257,6 +263,17 @@ CommunicationStatus Dwarf::pull_fifo(bool &more) {
         Decoder decoder(fifo, read);
 
         decoder.decode(callbacks);
+
+        // Update sampling rate of the loadcell.ProcessSample()
+        if (loadcell_samplerate.count > 30) {
+            float interval = static_cast<float>(loadcell_samplerate.last_timestamp - loadcell_samplerate.last_processed_timestamp) / static_cast<float>(1000 * loadcell_samplerate.count);
+            // Ignore invalid values, values outside of 25% of expected value may be caused by glitch in modbus communication
+            if (interval >= loadcell_samplerate.expected * 0.75f && interval <= loadcell_samplerate.expected * 1.25f) {
+                loadcell.analysis.SetSamplingIntervalMs(interval); // Update sampling interval
+            }
+            loadcell_samplerate.count = 0;
+            loadcell_samplerate.last_processed_timestamp = loadcell_samplerate.last_timestamp;
+        }
 
         more = decoder.more();
         return CommunicationStatus::OK;

@@ -24,6 +24,7 @@ LOG_COMPONENT_DEF(Loadcell, LOG_SEVERITY_INFO);
 Loadcell loadcell;
 static metric_t metric_loadcell = METRIC("loadcell", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
 static metric_t metric_loadcell_hp = METRIC("loadcell_hp", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
+static metric_t metric_loadcell_xy = METRIC("loadcell_xy", METRIC_VALUE_FLOAT, 0, METRIC_HANDLER_DISABLE_ALL);
 static metric_t metric_loadcell_age = METRIC("loadcell_age", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
 
 // To be used by sensor info screen so we don't have to parse the CUSTOM_VALUE from the loadcell metric
@@ -42,8 +43,8 @@ Loadcell::Loadcell()
     , highPrecision(false)
     , tareMode(TareMode::Static)
     , offset(0)
-    , highPassFilter() {
-}
+    , z_filter()
+    , xy_filter() {}
 
 void Loadcell::ConfigureSignalEvent(osThreadId threadId, int32_t signal) {
     this->threadId = threadId;
@@ -72,7 +73,7 @@ void Loadcell::Tare(TareMode mode, bool wait) {
     tareMode = mode;
 
     // request tare from ISR routine
-    int requestedTareCount = tareMode == TareMode::Continuous ? highPassFilter.GetSettlingTime() : 4;
+    int requestedTareCount = tareMode == TareMode::Continuous ? std::max(z_filter.SETTLING_TIME, xy_filter.SETTLING_TIME) : 4;
     tareSum = 0;
     tareCount = requestedTareCount;
 
@@ -84,7 +85,7 @@ void Loadcell::Tare(TareMode mode, bool wait) {
             // Raising redscreen during AC power fault breaks the power panic resume cycle after restart
             // Loadcell values are irelevant here, because MBL will be restarted after power up
 #if ENABLED(POWER_PANIC)
-            if (power_panic::ac_power_fault_is_checked && power_panic::is_ac_fault_signal()) {
+            if (power_panic::ac_fault_triggered && power_panic::is_ac_fault_active()) {
                 log_info(Loadcell, "PowerPanic triggered during loadcell tare operation - tare cycle was broken");
                 tareCount = 0;
                 break;
@@ -106,9 +107,14 @@ void Loadcell::Clear() {
     tareCount = 0;
     loadcellRaw = 0;
     offset = 0;
-    highPassFilter.Reset();
+    reset_filters();
     endstop = false;
     xy_endstop = false;
+}
+
+void Loadcell::reset_filters() {
+    z_filter.reset();
+    xy_filter.reset();
 }
 
 bool Loadcell::GetMinZEndstop() const {
@@ -135,7 +141,7 @@ float Loadcell::GetHysteresis() const {
     return hysteresis;
 }
 
-int32_t Loadcell::GetRawValue() const {
+int32_t Loadcell::get_raw_value() const {
     return loadcellRaw;
 }
 
@@ -157,9 +163,10 @@ void Loadcell::set_xy_endstop(const bool enabled) {
 
 void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     this->loadcellRaw = loadcellRaw;
-    highPassFilter.Filter(loadcellRaw);
+    z_filter.filter(loadcellRaw);
+    xy_filter.filter(loadcellRaw);
 
-    float load = GetLoad();
+    float load = get_tared_z_load();
 
     int32_t ticks_us_from_now = ticks_diff(time_us, ticks_us());
     int32_t ticks_ms_from_now = ticks_us_from_now / 1000;
@@ -170,8 +177,11 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     metric_record_custom_at_time(&metric_loadcell, timestamp_ms, " r=%ii,o=%ii,s=%0.4f", loadcellRaw, offset, (double)scale);
     metric_record_float(&metric_loadcell_value, load);
 
-    float loadHighPass = GetHighPassLoad();
+    const float loadHighPass = get_filtered_z_load();
     metric_record_float_at_time(&metric_loadcell_hp, timestamp_ms, loadHighPass);
+
+    const float filtered_load_xy = get_filtered_xy();
+    metric_record_float_at_time(&metric_loadcell_xy, timestamp_ms, filtered_load_xy);
 
     metric_record_integer_at_time(&metric_loadcell_age, timestamp_ms, ticks_us_from_now);
 
@@ -218,11 +228,11 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     if (xy_endstop_enabled) {
         // Everything as absolute values, watch for changes.
         // Load perpendicular to the sensor sense vector is not guaranteed to have defined sign.
-        if (abs(load) > abs(threshold)) {
+        if (abs(filtered_load_xy) > abs(XY_PROBE_THRESHOLD)) {
             xy_endstop = true;
             buddy::hw::zMin.isr();
         }
-        if (abs(load) < abs(threshold) - abs(hysteresis)) {
+        if (abs(filtered_load_xy) < abs(XY_PROBE_THRESHOLD) - abs(XY_PROBE_HYSTERESIS)) {
             xy_endstop = false;
             buddy::hw::zMin.isr();
         }

@@ -24,15 +24,15 @@ float get_weight_adjusted_frequency(float mass, const AxisConfig &axis, const We
 }
 
 void M74_internal(const M74Params &params) {
-    const auto &config = current_config();
-    if (params.mass && config.axis_y && config.weight_adjust_y) {
-        float frequency = get_weight_adjusted_frequency(*params.mass, *config.axis_y, *config.weight_adjust_y);
-        set_axis_y_config(AxisConfig {
-            .type = config.axis_y->type,
-            .frequency = frequency,
-            .damping_ratio = config.axis_y->damping_ratio,
-            .vibration_reduction = config.axis_y->vibration_reduction,
-        });
+    const auto &config = get_config_for_m74();
+    if (params.mass && config.axis[Y_AXIS] && config.weight_adjust_y) {
+        float frequency = get_weight_adjusted_frequency(*params.mass, *config.axis[Y_AXIS], *config.weight_adjust_y);
+        set_axis_config(Y_AXIS, AxisConfig {
+                                    .type = config.axis[Y_AXIS]->type,
+                                    .frequency = frequency,
+                                    .damping_ratio = config.axis[Y_AXIS]->damping_ratio,
+                                    .vibration_reduction = config.axis[Y_AXIS]->vibration_reduction,
+                                });
     }
 }
 

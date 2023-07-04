@@ -28,7 +28,8 @@ version_t &boot_version = *(version_t *)(BOOTLOADER_VERSION_ADDRESS); // (addres
 
 volatile uint8_t *psys_fw_valid = (uint8_t *)0x080FFFFF;              // last byte in the flash
 
-void sys_reset(void) {
+// Needs to be RAM function as it is called when erasing the flash
+void __RAM_FUNC sys_reset(void) {
     static_assert(sizeof(data_exchange_t) == 16, "invalid sizeof(data_exchange_t)");
 
     uint32_t aircr = SCB->AIRCR & 0x0000ffff; // read AIRCR, mask VECTKEY

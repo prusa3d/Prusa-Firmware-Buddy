@@ -8,5 +8,4 @@
 
 namespace selftest {
 void calib_Z(bool move_down_after);
-void ensure_Z_away();
 }

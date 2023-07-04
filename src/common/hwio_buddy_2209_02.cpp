@@ -25,6 +25,7 @@
 #include <option/has_puppies.h>
 #include <option/has_loadcell.h>
 #include <option/has_gui.h>
+#include <option/has_modularbed.h>
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "../../lib/Marlin/Marlin/src/module/prusa/toolchanger.h"
@@ -41,7 +42,7 @@
     #include "puppies/Dwarf.hpp"
 #endif
 
-#define HAS_BEEPER_WITHOUT_PWM (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
+// #define HAS_BEEPER_WITHOUT_PWM
 
 namespace {
 /**
@@ -575,6 +576,11 @@ int digitalRead(uint32_t marlinPin) {
     case MARLIN_PIN(Z_MIN):
         return static_cast<bool>(buddy::hw::zMin.read());
 #endif
+#if HAS_MODULARBED()
+    case MARLIN_PIN(DUMMY): {
+        return 0;
+    }
+#endif
     default:
 #if _DEBUG
         if (!buddy::hw::physicalPinExist(marlinPin)) {
@@ -604,8 +610,12 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
 #endif //_DEBUG
     switch (marlinPin) {
     case MARLIN_PIN(BED_HEAT):
+#if HAS_MODULARBED()
+        return;
+#else
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulVal ? _pwm_analogWrite_max : 0);
         return;
+#endif
     case MARLIN_PIN(HEAT0):
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulVal ? _pwm_analogWrite_max : 0);
         return;
@@ -621,7 +631,6 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
     case MARLIN_PIN(FAN):
         Fans::print(0).setPWM(ulVal ? 255 : 0);
         return;
-
     default:
 #if _DEBUG
         if (!buddy::hw::isOutputPin(marlinPin)) {
@@ -638,7 +647,11 @@ uint32_t analogRead(uint32_t ulPin) {
         switch (ulPin) {
 
         case MARLIN_PIN(TEMP_BED):
+#if HAS_MODULARBED()
+            return 0;
+#else
             return AdcGet::bed();
+#endif
 
         case MARLIN_PIN(TEMP_0):
 #if (BOARD_IS_BUDDY || BOARD_IS_XBUDDY)
@@ -656,7 +669,6 @@ uint32_t analogRead(uint32_t ulPin) {
 
         case MARLIN_PIN(THERM2):
             return AdcGet::boardTemp();
-
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); // error: undefined pin analog read
         }
@@ -675,8 +687,12 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
             Fans::print(0).setPWM(ulValue);
             return;
         case MARLIN_PIN(BED_HEAT):
+#if HAS_MODULARBED()
+            return;
+#else
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_BED, ulValue);
             return;
+#endif
         case MARLIN_PIN(HEAT0):
             _hwio_pwm_analogWrite_set_val(HWIO_PWM_HEATER_0, ulValue);
             return;
@@ -689,4 +705,8 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
 
 void pinMode([[maybe_unused]] uint32_t ulPin, [[maybe_unused]] uint32_t ulMode) {
     // not supported, all pins are configured with Cube
+}
+
+void buddy::hw::hwio_configure_board_revision_changed_pins() {
+    // no pins whose configuration changes between HW revisions on this board
 }

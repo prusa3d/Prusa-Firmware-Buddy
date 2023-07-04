@@ -14,6 +14,7 @@
 #include "timing.h"
 #include "bsod.h"
 #include "otp.h"
+#include "device/board.h"
 #include <option/has_puppies_bootloader.h>
 #include <option/puppy_flash_fw.h>
 #include <option/has_dwarf.h>
@@ -88,9 +89,12 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
                 log_error(Puppies, "Not enough puppies discovered, will try again");
                 continue;
             } else {
+    #if HAS_DWARF()
                 if (result.discovered_num() == 0) {
                     fatal_error(ErrCode::ERR_SYSTEM_PUPPY_DISCOVER_ERR);
-                } else {
+                } else
+    #endif
+                {
                     // signal to user that puppy is not connected properly
                     auto get_first_missing_dock_string = [minimal_config, result]() -> const char * {
                         for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
@@ -310,9 +314,17 @@ void PuppyBootstrap::reset_puppies_range(Dock from, Dock to) {
         }
     };
 
+#if BOARD_IS_XBUDDY
+    write_puppies_reset_pin(from, to, Pin::State::low);
+    osDelay(1);
+    write_puppies_reset_pin(from, to, Pin::State::high);
+#elif BOARD_IS_XLBUDDY
     write_puppies_reset_pin(from, to, Pin::State::high);
     osDelay(1);
     write_puppies_reset_pin(from, to, Pin::State::low);
+#else
+    #error("Not defined for this board.")
+#endif
 }
 
 bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address address) {

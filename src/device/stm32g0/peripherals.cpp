@@ -2,6 +2,7 @@
 #include "bsod.h"
 #include "Pin.hpp"
 #include "hwio_pindef.h"
+#include "buddy/priorities_config.h"
 
 //
 // ADCs
@@ -38,7 +39,7 @@ void hw_dma_init(void) {
 
     // DMA interrupt init
     // DMA1_Channel1_IRQn interrupt configuration
-    HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, ISR_PRIORITY_DMA1_CHANNEL1, 0);
     HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 }
 

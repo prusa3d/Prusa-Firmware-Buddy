@@ -11,6 +11,7 @@ public:
     virtual void read_bytes(uint16_t address, std::span<uint8_t> buffer) = 0;
     virtual void write_byte(uint16_t address, uint8_t data) = 0;
     virtual void write_bytes(uint16_t address, std::span<const uint8_t> data) = 0;
+    virtual void erase_area(uint16_t start_address, uint16_t end_address) = 0;
     Storage() = default;
     virtual ~Storage() = default;
     Storage(const Storage &other) = delete;

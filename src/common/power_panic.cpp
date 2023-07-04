@@ -14,6 +14,7 @@
 #include "marlin_server.hpp"
 #include "media.h"
 
+#include "../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.h"
 #include "../lib/Marlin/Marlin/src/module/endstops.h"
 #include "../lib/Marlin/Marlin/src/module/temperature.h"
 #include "../lib/Marlin/Marlin/src/module/stepper.h"
@@ -64,7 +65,7 @@ LOG_COMPONENT_DEF(PowerPanic, LOG_SEVERITY_INFO);
 
 osThreadId ac_fault_task;
 
-void ac_fault_main([[maybe_unused]] void const *argument) {
+void ac_fault_task_main([[maybe_unused]] void const *argument) {
 
     // suspend until resumed by the fault isr
     vTaskSuspend(NULL);
@@ -109,6 +110,8 @@ struct flash_planner_t {
     int16_t extrude_min_temp;
 #if ENABLED(MODULAR_HEATBED)
     uint16_t enabled_bedlets_mask;
+#else
+    uint16_t _padding; // to keep alignment
 #endif
 
     uint8_t was_paused;
@@ -118,15 +121,9 @@ struct flash_planner_t {
     uint8_t axis_relative;
     uint8_t allow_cold_extrude;
 
-#if DISABLED(MODULAR_HEATBED)
-    uint8_t _padding[2];
-#endif
-
     // IS/PA
-    input_shaper::AxisConfig axis_x_config;
-    input_shaper::AxisConfig axis_y_config;
+    input_shaper::AxisConfig axis_config[3]; // XYZ
     input_shaper::WeightAdjustConfig axis_y_weight_adjust;
-    input_shaper::AxisConfig axis_z_config;
     pressure_advance::Config axis_e_config;
 };
 
@@ -208,6 +205,18 @@ struct __attribute__((packed)) flash_data {
 };
 
 static_assert(sizeof(flash_data) <= FLASH_SIZE, "powerpanic data exceeds reserved storage space");
+
+enum class PPState : uint8_t {
+    Inactive,
+    Prepared,
+    Triggered,
+    Retracting,
+    SaveState,
+    WaitingToDie,
+};
+
+std::atomic_bool ac_fault_triggered = false;
+static PPState power_panic_state = PPState::Inactive;
 
 // Temporary buffer for state filled at the time of the acFault trigger
 static struct {
@@ -384,6 +393,10 @@ const char *stored_media_path() {
         log_error(PowerPanic, "Failed to get media path.");
     }
     return state_buf.media_SFN_path;
+}
+
+bool panic_triggered() {
+    return power_panic_state == PPState::Triggered;
 }
 
 void prepare() {
@@ -627,22 +640,18 @@ void resume_loop() {
         gcode.axis_relative = state_buf.planner.axis_relative;
 
         // IS/PA
-        if (state_buf.planner.axis_x_config.frequency == 0.f)
-            input_shaper::set_axis_x_config(std::nullopt);
-        else
-            input_shaper::set_axis_x_config(state_buf.planner.axis_x_config);
+        LOOP_XYZ(i) {
+            if (state_buf.planner.axis_config[i].frequency == 0.f)
+                input_shaper::set_axis_config((AxisEnum)i, std::nullopt);
+            else
+                input_shaper::set_axis_config((AxisEnum)i, state_buf.planner.axis_config[i]);
+        }
+
         if (state_buf.planner.axis_y_weight_adjust.frequency_delta != 0.f)
             input_shaper::set_axis_y_weight_adjust(std::nullopt);
         else
             input_shaper::set_axis_y_weight_adjust(state_buf.planner.axis_y_weight_adjust);
-        if (state_buf.planner.axis_y_config.frequency == 0.f)
-            input_shaper::set_axis_y_config(std::nullopt);
-        else
-            input_shaper::set_axis_y_config(state_buf.planner.axis_y_config);
-        if (state_buf.planner.axis_z_config.frequency == 0.f)
-            input_shaper::set_axis_z_config(std::nullopt);
-        else
-            input_shaper::set_axis_z_config(state_buf.planner.axis_z_config);
+
         pressure_advance::set_axis_e_config(state_buf.planner.axis_e_config);
 
         // restore crash state
@@ -758,15 +767,13 @@ bool shutdown_loop_checked() {
     return processing;
 }
 
-std::atomic_bool ac_power_fault_is_checked = false;
-PPState power_panic_state = PPState::Inactive;
-
-void ac_fault_loop() {
+void panic_loop() {
     switch (power_panic_state) {
     case PPState::Triggered:
         // suspend the helper task
         vTaskSuspend(ac_fault_task);
         log_debug(PowerPanic, "powerpanic loop start");
+
         // reduce power of motors
         stepperX.rms_current(POWER_PANIC_X_CURRENT, 1);
 #if !HAS_PUPPIES() // Extruders are on puppy boards and dwarf MCUs are reset in powerpanic
@@ -922,7 +929,7 @@ std::atomic<bool> ac_fault_enabled = false;
 void check_ac_fault_at_startup() {
     // AC-fault during initialization //TODO: IXL Remove if after PP is ready
     if constexpr (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5) {
-        if (power_panic::is_ac_fault_signal()) {
+        if (power_panic::is_ac_fault_active()) {
 #if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
             fatal_error(ErrCode::ERR_ELECTRO_ACF_AT_INIT);
 #endif
@@ -937,8 +944,8 @@ void ac_fault_isr() {
         return;
     }
 
-    // disable EEPROM writes
-    ac_power_fault_is_checked = true;
+    // Mark ac_fault as triggered
+    ac_fault_triggered = true;
 
     // check if handling the fault is worth it (printer is active or can be resumed)
     if (!state_buf.nested_fault) {
@@ -1050,22 +1057,18 @@ void ac_fault_isr() {
         state_buf.planner.axis_relative = gcode.axis_relative;
 
         // IS/PA
-        if (!input_shaper::current_config().axis_x)
-            state_buf.planner.axis_x_config.frequency = 0.f;
-        else
-            state_buf.planner.axis_x_config = *input_shaper::current_config().axis_x;
+        LOOP_XYZ(i) {
+            if (!input_shaper::current_config().axis[i])
+                state_buf.planner.axis_config[i].frequency = 0.f;
+            else
+                state_buf.planner.axis_config[i] = *input_shaper::current_config().axis[i];
+        }
+
         if (!input_shaper::current_config().weight_adjust_y)
             state_buf.planner.axis_y_weight_adjust.frequency_delta = 0.f;
         else
             state_buf.planner.axis_y_weight_adjust = *input_shaper::current_config().weight_adjust_y;
-        if (!input_shaper::current_config().axis_y)
-            state_buf.planner.axis_y_config.frequency = 0.f;
-        else
-            state_buf.planner.axis_y_config = *input_shaper::current_config().axis_y;
-        if (!input_shaper::current_config().axis_z)
-            state_buf.planner.axis_z_config.frequency = 0.f;
-        else
-            state_buf.planner.axis_z_config = *input_shaper::current_config().axis_z;
+
         state_buf.planner.axis_e_config = pressure_advance::get_axis_e_config();
 
 #if HAS_TOOLCHANGER()
@@ -1104,7 +1107,7 @@ void ac_fault_isr() {
     CRITICAL_SECTION_END;
 }
 
-bool is_ac_fault_signal() {
+bool is_ac_fault_active() {
     return buddy::hw::acFault.read() == buddy::hw::Pin::State::low;
 }
 

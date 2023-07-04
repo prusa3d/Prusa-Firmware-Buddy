@@ -14,10 +14,6 @@ static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE = 50.F;
 #define MMU_ERR_Y_PAUSE_POS  0
 #define MMU_ERR_Z_PAUSE_LIFT 20
 
-//{ 14.4, 871 },
-
-//@@TODO extract into configuration if it makes sense
-
 // As discussed with our PrusaSlicer profile specialist
 // - ToolChange shall not try to push filament into the very tip of the nozzle
 // to have some space for additional G-code to tune the extruded filament length
@@ -25,9 +21,10 @@ static constexpr float MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE = 50.F;
 // Beware - this value is used to initialize the MMU logic layer - it will be sent to the MMU upon line up (written into its 8bit register 0x0b)
 // However - in the G-code we can get a request to set the extra load distance at runtime to something else (M708 A0xb Xsomething).
 // The printer intercepts such a call and sets its extra load distance to match the new value as well.
+// The same applies to Pulley slow feed rate (register 0x14)
 static constexpr uint8_t MMU2_TOOL_CHANGE_LOAD_LENGTH = 5;      // mm
-
 static constexpr float MMU2_LOAD_TO_NOZZLE_FEED_RATE = 20.0F;   // mm/s
+
 static constexpr float MMU2_UNLOAD_TO_FINDA_FEED_RATE = 120.0F; // mm/s
 
 // The first the MMU does is initialise its axis. Meanwhile the E-motor will unload 20mm of filament in approx. 1 second.

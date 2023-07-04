@@ -52,12 +52,14 @@ void buddy::metrics::RecordRuntimeStats() {
     static metric_t fw_version = METRIC("fw_version", METRIC_VALUE_STRING, 10 * 1000, METRIC_HANDLER_ENABLE_ALL);
     metric_record_string(&fw_version, "%s", project_version_full);
 
-    board_revision_t board_revision;
-    if (otp_get_board_revision(&board_revision) == false) {
-        board_revision.br = 0;
-    }
     static metric_t buddy_revision = METRIC("buddy_revision", METRIC_VALUE_STRING, 10 * 1002, METRIC_HANDLER_ENABLE_ALL);
-    metric_record_string(&buddy_revision, "%u.%u", board_revision.bytes[0], board_revision.bytes[1]);
+    if (metric_record_is_due(&buddy_revision)) {
+        board_revision_t board_revision;
+        if (otp_get_board_revision(&board_revision) == false) {
+            board_revision.br = 0;
+        }
+        metric_record_string(&buddy_revision, "%u.%u", board_revision.bytes[0], board_revision.bytes[1]);
+    }
 
     static metric_t current_filamnet = METRIC("filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
     auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);

@@ -26,6 +26,7 @@ CSelftestPart_Dock::~CSelftestPart_Dock() {
     HOTEND_LOOP() {
         prusa_toolchanger.getTool(e).set_led(); // Default LED config
     }
+    prusa_toolchanger.init(false);              // Ensure picked/active tool matches the reality
     toolcheck_reenable();
 }
 
@@ -65,7 +66,7 @@ LoopResult CSelftestPart_Dock::stateMoveAwayInit() {
 }
 
 LoopResult CSelftestPart_Dock::stateMoveAwayWait() {
-    if (planner.movesplanned()) {
+    if (planner.processing()) {
         return LoopResult::RunCurrent; // Wait while moving
     }
     endstops.not_homing();             // Revert endstops to global state
@@ -73,6 +74,9 @@ LoopResult CSelftestPart_Dock::stateMoveAwayWait() {
 }
 
 LoopResult CSelftestPart_Dock::state_initiate_manual_park() {
+    // Manual toolchange follows, let's not interfere
+    toolcheck_disable();
+
     // Handle parking of the possibly picked tool
     // (possibly different from the dock being calibrated)
     needs_manual_park = (prusa_toolchanger.detect_tool_nr() != PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
@@ -140,8 +144,7 @@ LoopResult CSelftestPart_Dock::state_ask_user_remove_pin() {
     result.progress = 30;
 
     // Disable automatic toolchange - we are going to do it manually
-    toolcheck_was_disabled = true;
-    prusa_toolchanger.toolcheck_disable();
+    toolcheck_disable();
 
     // Select the tool to mark it, unselect all others
     for (uint i = 0; i < HOTENDS; ++i) {

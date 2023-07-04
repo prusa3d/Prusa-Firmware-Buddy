@@ -46,17 +46,6 @@
             }
         },
         {
-            "name": "mk4-xBuddy034-400step-planetary",
-            "description": "Original Prusa MK4 with xBuddy 0.3.4, 400-step motors and planetary gearbox",
-            "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "MK4",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "0.3.4",
-                "PRESET_COMPILE_OPTIONS": "-DHAS_LDO_400_STEP -DHAS_PLANETARY_GEARBOX"
-            }
-        },
-        {
             "name": "iX-xBuddy027c-200step",
             "description": "Original Prusa iX with xBuddy 0.2.7c and 200-step motors",
             "cacheVariables": {
@@ -64,7 +53,10 @@
                 "PRINTER": "iX",
                 "BOARD": "<default>",
                 "BOARD_VERSION": "0.2.7",
-                "PRESET_COMPILE_OPTIONS": ""
+                "MODULARBED_BINARY_DIR": {
+                    "type": "FILEPATH",
+                    "value": "build-vscode-modularbed"
+                }
             }
         },
         {
@@ -74,7 +66,7 @@
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL",
                 "BOARD": "<default>",
-                "BOARD_VERSION": "0.5.0",
+                "BOARD_VERSION": "0.9.0",
                 "DWARF_BINARY_DIR": {
                     "type": "FILEPATH",
                     "value": "build-vscode-dwarf"
@@ -175,6 +167,17 @@
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "PRINTER": "XL",
+                "BOARD": "MODULARBED",
+                "BOARD_VERSION": "0.7.0",
+                "PRESET_COMPILE_OPTIONS": ""
+            }
+        },
+        {
+            "name": "ix-modularbed",
+            "description": "Original Prusa iX's Modular Bed",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "PRINTER": "iX",
                 "BOARD": "MODULARBED",
                 "BOARD_VERSION": "0.7.0",
                 "PRESET_COMPILE_OPTIONS": ""

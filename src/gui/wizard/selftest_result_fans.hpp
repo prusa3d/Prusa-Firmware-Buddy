@@ -13,9 +13,10 @@
 class ResultFans : public SelfTestGroup {
     SelfTestViewTextWithIconAndResult heatbreak;
     SelfTestViewTextWithIconAndResult print;
+    SelfTestViewTextWithIconAndResult fans_switched;
 
 public:
     ResultFans();
 
-    void SetState(TestResult hb_fan, TestResult print_fan);
+    void SetState(TestResult hb_fan, TestResult print_fan, TestResult fans_swtchd);
 };

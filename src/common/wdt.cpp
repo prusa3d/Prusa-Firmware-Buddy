@@ -83,7 +83,7 @@ void HAL_WWDG_MspInit(WWDG_HandleTypeDef *hwwdg) {
         // Peripheral clock enable
         __HAL_RCC_WWDG_CLK_ENABLE();
         // WWDG interrupt Init
-        HAL_NVIC_SetPriority(WWDG_IRQn, 0, 0);
+        HAL_NVIC_SetPriority(WWDG_IRQn, ISR_PRIORITY_WWDG, 0);
         HAL_NVIC_EnableIRQ(WWDG_IRQn);
     }
 }

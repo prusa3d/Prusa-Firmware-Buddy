@@ -6,6 +6,10 @@
 
 const char project_version[] = STR(FW_VERSION);
 
+constexpr const uint16_t project_version_major = FW_VERSION_MAJOR;
+constexpr const uint16_t project_version_minor = FW_VERSION_MINOR;
+constexpr const uint16_t project_version_patch = FW_VERSION_PATCH;
+
 const char project_version_full[] = STR(FW_VERSION_FULL);
 
 const char project_version_suffix[] = STR(FW_VERSION_SUFFIX);

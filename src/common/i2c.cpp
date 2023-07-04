@@ -1,4 +1,4 @@
-#include "i2c.h"
+#include "i2c.hpp"
 #include "bsod.h"
 #include "log.h"
 #include "cmsis_os.h"
@@ -9,8 +9,29 @@
 
 LOG_COMPONENT_REF(EEPROM);
 
-volatile std::atomic<uint32_t> I2C_TRANSMIT_RESULTS_HAL_OK = 0;
-volatile std::atomic<uint32_t> I2C_TRANSMIT_RESULTS_HAL_BUSY = 0;
+namespace i2c {
+
+namespace statistics {
+    std::atomic<uint32_t> transmit_HAL_OK = 0;
+    std::atomic<uint32_t> transmit_HAL_BUSY = 0;
+    std::atomic<uint32_t> transmit_HAL_ERROR = 0;
+    std::atomic<uint32_t> transmit_HAL_TIMEOUT = 0;
+    std::atomic<uint32_t> receive_HAL_OK = 0;
+    std::atomic<uint32_t> receive_HAL_BUSY = 0;
+    std::atomic<uint32_t> receive_HAL_ERROR = 0;
+    std::atomic<uint32_t> receive_HAL_TIMEOUT = 0;
+
+    uint32_t get_transmit_HAL_OK() { return transmit_HAL_OK; }
+    uint32_t get_transmit_HAL_BUSY() { return transmit_HAL_BUSY; }
+    uint32_t get_transmit_HAL_ERROR() { return transmit_HAL_ERROR; }
+    uint32_t get_transmit_HAL_TIMEOUT() { return transmit_HAL_TIMEOUT; }
+    uint32_t get_receive_HAL_OK() { return receive_HAL_OK; }
+    uint32_t get_receive_HAL_BUSY() { return receive_HAL_BUSY; }
+    uint32_t get_receive_HAL_ERROR() { return receive_HAL_ERROR; }
+    uint32_t get_receive_HAL_TIMEOUT() { return receive_HAL_TIMEOUT; }
+} // namespace statistics
+
+using namespace statistics;
 
 osMutexId i2c_mutex = 0; // mutex handle
 
@@ -26,8 +47,7 @@ static void I2C_unlock(void) {
     osMutexRelease(i2c_mutex);
 }
 
-extern "C" void I2C_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
-
+HAL_StatusTypeDef Transmit_ext(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
     int retries = EEPROM_MAX_RETRIES;
     HAL_StatusTypeDef result = HAL_ERROR;
     while (--retries) {
@@ -44,48 +64,42 @@ extern "C" void I2C_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8
         I2C_unlock();
         if (result != HAL_BUSY)
             break;
-        ++I2C_TRANSMIT_RESULTS_HAL_BUSY;
-        log_error(EEPROM, "%s: was BUSY at %d. try of %d, total retries %d", __FUNCTION__, EEPROM_MAX_RETRIES - retries, retries, I2C_TRANSMIT_RESULTS_HAL_BUSY);
+        ++transmit_HAL_BUSY;
+        log_error(EEPROM, "%s: was BUSY at %d. try of %d, total retries %d", __FUNCTION__, EEPROM_MAX_RETRIES - retries, retries, transmit_HAL_BUSY.load());
     }
 
-    if (result == HAL_OK) {
-        // print entire status only at log severity debug
-        log_debug(EEPROM, "%s: OK %u, BUSY %u", __FUNCTION__,
-            I2C_TRANSMIT_RESULTS_HAL_OK.load(), I2C_TRANSMIT_RESULTS_HAL_BUSY.load());
-    } else {
-        // some kind of error print entire status
-        log_info(EEPROM, "%s: OK %u, BUSY %u", __FUNCTION__,
-            I2C_TRANSMIT_RESULTS_HAL_OK.load(), I2C_TRANSMIT_RESULTS_HAL_BUSY.load());
-    }
+    return result;
+}
+
+Result Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
+    auto result = Transmit_ext(hi2c, DevAddress, pData, Size, Timeout);
 
     switch (result) {
     case HAL_OK:
-        ++I2C_TRANSMIT_RESULTS_HAL_OK;
+        ++transmit_HAL_OK;
         log_debug(EEPROM, "%s: OK", __FUNCTION__);
-        break;
+        return Result::ok;
     case HAL_ERROR:
+        ++transmit_HAL_ERROR;
         log_error(EEPROM, "%s: ERROR", __FUNCTION__);
-        fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_ERROR);
-        break;
+        return Result::error;
     case HAL_BUSY:
+        ++transmit_HAL_BUSY;
         log_error(EEPROM, "%s: BUSY", __FUNCTION__);
-        fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_BUSY);
-        break;
+        return Result::busy_after_retries;
     case HAL_TIMEOUT:
+        ++transmit_HAL_TIMEOUT;
         log_error(EEPROM, "%s: TIMEOUT", __FUNCTION__);
-        fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_TIMEOUT);
-        break;
+        return Result::timeout;
     default:
         log_critical(EEPROM, "%s: UNDEFINED", __FUNCTION__);
         fatal_error(ErrCode::ERR_ELECTRO_I2C_TX_UNDEFINED);
         break;
     }
+    return Result::error; // will not get here, just prevent warning
 }
 
-volatile std::atomic<uint32_t> I2C_RECEIVE_RESULTS_HAL_OK = 0;
-volatile std::atomic<uint32_t> I2C_RECEIVE_RESULTS_HAL_BUSY = 0;
-
-extern "C" void I2C_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
+Result Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
 
     int retries = EEPROM_MAX_RETRIES;
     HAL_StatusTypeDef result = HAL_ERROR;
@@ -103,40 +117,31 @@ extern "C" void I2C_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_
         I2C_unlock();
         if (result != HAL_BUSY)
             break;
-        ++I2C_RECEIVE_RESULTS_HAL_BUSY;
-        log_error(EEPROM, "%s: was BUSY at %d. try of %d, total retries %d", __FUNCTION__, EEPROM_MAX_RETRIES - retries, retries, I2C_TRANSMIT_RESULTS_HAL_BUSY);
-    }
-
-    if (result == HAL_OK) {
-        // print entire status only at log severity debug
-        log_debug(EEPROM, "%s: OK %d, BUSY %d", __FUNCTION__,
-            I2C_RECEIVE_RESULTS_HAL_OK.load(), I2C_RECEIVE_RESULTS_HAL_BUSY.load());
-    } else {
-        // some kind of error print entire status
-        log_info(EEPROM, "%s: OK %d, BUSY %d", __FUNCTION__,
-            I2C_RECEIVE_RESULTS_HAL_OK.load(), I2C_RECEIVE_RESULTS_HAL_BUSY.load());
+        ++receive_HAL_BUSY;
+        log_error(EEPROM, "%s: was BUSY at %d. try of %d, total retries %d", __FUNCTION__, EEPROM_MAX_RETRIES - retries, retries, receive_HAL_BUSY.load());
     }
 
     switch (result) {
     case HAL_OK:
-        ++I2C_RECEIVE_RESULTS_HAL_OK;
+        ++receive_HAL_OK;
         log_debug(EEPROM, "%s: OK", __FUNCTION__);
-        break;
+        return Result::ok;
     case HAL_ERROR:
+        ++receive_HAL_ERROR;
         log_error(EEPROM, "%s: ERROR", __FUNCTION__);
-        fatal_error(ErrCode::ERR_ELECTRO_I2C_RX_ERROR);
-        break;
+        return Result::error;
     case HAL_BUSY:
+        ++receive_HAL_BUSY;
         log_error(EEPROM, "%s: BUSY", __FUNCTION__);
-        fatal_error(ErrCode::ERR_ELECTRO_I2C_RX_BUSY);
-        break;
+        return Result::busy_after_retries;
     case HAL_TIMEOUT:
+        ++receive_HAL_TIMEOUT;
         log_error(EEPROM, "%s: TIMEOUT", __FUNCTION__);
-        fatal_error(ErrCode::ERR_ELECTRO_I2C_RX_TIMEOUT);
-        break;
+        return Result::timeout;
     default:
         log_critical(EEPROM, "%s: UNDEFINED", __FUNCTION__);
         fatal_error(ErrCode::ERR_ELECTRO_I2C_RX_UNDEFINED);
-        break;
     }
+    return Result::error; // will not get here, just prevent warning
 }
+} // namespace i2c

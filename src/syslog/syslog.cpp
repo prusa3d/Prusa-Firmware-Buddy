@@ -2,6 +2,7 @@
 #include "syslog.h"
 #include "log.h"
 #include "dns.h"
+#include <configuration_store.hpp>
 
 LOG_COMPONENT_DEF(Syslog, LOG_SEVERITY_INFO);
 
@@ -43,6 +44,15 @@ bool syslog_transport_check_is_open(syslog_transport_t *transport) {
 }
 
 bool syslog_transport_send(syslog_transport_t *transport, const char *message, int message_len) {
+    // Check that metrics were enabled by user
+    // TODO: filter host with a specific config_store().metrics_host
+    if (config_store().metrics_allow.get() != MetricsAllow::All) {
+        if (syslog_transport_check_is_open(transport)) {
+            syslog_transport_close(transport);
+        }
+        return false;
+    }
+
     if (!syslog_transport_check_is_open(transport))
         return false;
 
@@ -65,6 +75,12 @@ void syslog_transport_close(syslog_transport_t *transport) {
 }
 
 bool syslog_transport_open(syslog_transport_t *transport, const char *host, int port) {
+    // Check that metrics were enabled by user
+    // TODO: filter host with a specific config_store().metrics_host
+    if (config_store().metrics_allow.get() != MetricsAllow::All) {
+        return false;
+    }
+
     ip_addr_t addr;
     if (strlen(host) == 0)
         return false;

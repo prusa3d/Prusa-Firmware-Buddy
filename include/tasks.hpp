@@ -5,7 +5,7 @@
 #include <FreeRTOS.h>
 #include <event_groups.h>
 #include <stdint.h>
-#include "printers.h"
+#include <option/has_puppies.h>
 #include "utility_extensions.hpp"
 
 namespace TaskDeps {
@@ -43,7 +43,7 @@ constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
 /// Definitions of dependencies for different tasks/components
 namespace Tasks {
     inline constexpr dependency_t default_start = make(
-#if PRINTER_IS_PRUSA_XL
+#if HAS_PUPPIES()
         Dependency::puppies_ready,
 #endif
         Dependency::usbserial_ready);

@@ -20,7 +20,7 @@ Settings::Settings()
     , fast_load_length(GetDefaultFastLoadLength())
     , purge_length(GetDefaultPurgeLength())
     , retract(GetDefaultRetractLength())
-    , park_z_feedrate(HOMING_FEEDRATE_INVERTED_Z)
+    , park_z_feedrate(MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))
     , park_pos { NAN, NAN, NAN }
     , resume_pos { NAN, NAN, NAN, NAN }
     , target_extruder(0)
@@ -49,7 +49,7 @@ float Settings::GetDefaultRetractLength() {
 }
 
 float Settings::GetDefaultParkZFeedrate() {
-    return HOMING_FEEDRATE_INVERTED_Z;
+    return MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z);
 }
 
 void Settings::SetUnloadLength(const std::optional<float> &len) {
@@ -73,7 +73,7 @@ void Settings::SetRetractLength(const std::optional<float> &len) {
 }
 
 void Settings::SetParkZFeedrate(const std::optional<float> &feedrate) {
-    if (feedrate.has_value() && std::abs(feedrate.value()) < HOMING_FEEDRATE_INVERTED_Z) {
+    if (feedrate.has_value() && std::abs(feedrate.value()) < MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z)) {
         park_z_feedrate = std::abs(feedrate.value());
     } else {
         park_z_feedrate = GetDefaultParkZFeedrate();

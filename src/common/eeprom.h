@@ -94,34 +94,6 @@ typedef enum {
     TestResultNet_Up = 4,        // wifi present, eth cable plugged, selected in lan settings
 } TestResultNet;
 
-/**
- * @brief Results for selftests of one tool.
- */
-typedef struct {
-    TestResult printFan : 2;
-    TestResult heatBreakFan : 2;
-    TestResult nozzle : 2;
-    TestResult fsensor : 2;
-    TestResult loadcell : 2;
-    TestResult sideFsensor : 2;
-    TestResult dockoffset : 2;
-    TestResult tooloffset : 2;
-} SelftestTool;
-
-/**
- * @brief Test results compacted in eeprom.
- */
-typedef struct {
-    TestResult xaxis : 2;
-    TestResult yaxis : 2;
-    TestResult zaxis : 2;
-    TestResult bed : 2;
-    TestResultNet eth : 3;
-    TestResultNet wifi : 3;
-    TestResult zalign : 2;
-    SelftestTool tools[EEPROM_MAX_TOOL_COUNT];
-} SelftestResult;
-
 #pragma pack(pop)
 
 enum eevar_id {
@@ -182,7 +154,7 @@ enum eevar_id {
     EEVAR_SHEET_PROFILE5 = 0x25,
     EEVAR_SHEET_PROFILE6 = 0x26,
     EEVAR_SHEET_PROFILE_LAST = 0x27, //!< All SHEET_PROFILEs must be allocated consecutively.
-    EEVAR_SELFTEST_RESULT_V1 = 0x28, //!< Not used, was EEVAR_SELFTEST_RESULT, replaced by EEVAR_SELFTEST_RESULT_V2 - Not in config store
+    EEVAR_SELFTEST_RESULT_V1 = 0x28, //!< Not used, was EEVAR_SELFTEST_RESULT, replaced by EEVAR_SELFTEST_RESULT_PRE_23
     EEVAR_DEVHASH_IN_QR = 0x29,      // bool on / off sending UID in QR
     EEVAR_FOOTER_SETTING = 0x2a,
     EEVAR_FOOTER_DRAW_TYPE = 0x2b,
@@ -338,7 +310,7 @@ enum eevar_id {
     EEVAR_HWCHECK_MODEL = 0xB3,
     EEVAR_HWCHECK_FIRMW = 0xB4,
     EEVAR_HWCHECK_GCODE = 0xB5,
-    EEVAR_SELFTEST_RESULT_V2 = 0xB6, // Wider selftest results made for XL
+    EEVAR_SELFTEST_RESULT_PRE_23 = 0xB6, // Wider selftest results made for XL
     EEVAR_HOMING_BDIVISOR_X = 0xB7,
     EEVAR_HOMING_BDIVISOR_Y = 0xB8,
     EEVAR_ENABLE_SIDE_LEDS = 0xB9,      // bool side led on/off
@@ -354,6 +326,9 @@ enum eevar_id {
     EEVAR_ODOMETER_T4 = 0xC3,           // uint32_t, tool 4 pick counter
     EEVAR_ODOMETER_T5 = 0xC4,           // uint32_t, tool 5 pick counter
     EEVAR_HWCHECK_COMPATIBILITY = 0xC5, // uint8_t
+    EEVAR_SELFTEST_RESULT_V_23 = 0xC6,  // replaces EEVAR_SELFTEST_RESULT_PRE_23, added fansSwitched
+    EEVAR_NOZZLE_SOCK = 0xC7,           // bool, Nozzle sock (true if present)
+    EEVAR_NOZZLE_TYPE = 0xC8,           // uint8_t, Nozzle type
 
     EEVAR_CRC32                         // uint32_t crc32 for
 };

@@ -13,6 +13,7 @@
 #include "Configuration_adv.h"
 #include <option/has_control_menu.h>
 #include "MItem_bsod.hpp"
+#include "MItem_redscreen.hpp"
 
 #if HAS_MMU2
     #include "MItem_mmu.hpp"
@@ -37,7 +38,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_TOOLS_SETUP,
     #endif
     MI_USER_INTERFACE, MI_LANG_AND_TIME, MI_NETWORK, MI_HARDWARE, MI_SYSTEM,
-    MI_TRIGGER_BSOD
+    MI_TRIGGER_BSOD, MI_TRIGGER_REDSCREEN
     #if PRINTER_IS_PRUSA_MK4
     ,
     MI_INPUT_SHAPER

@@ -14,7 +14,7 @@ TestResult get_test_result(Action action, Tool tool) {
     case Action::Fans:
         return merge_hotends_evaluations(
             [&](int8_t e) {
-                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan);
+                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].fansSwitched);
             });
     case Action::ZAlign:
         return evaluate_results(sr.zalign);
@@ -93,14 +93,6 @@ uint64_t get_test_mask(Action action) {
     }
     assert(false);
     return stmNone;
-}
-
-Tool get_last_enabled_tool() {
-#if HAS_TOOLCHANGER()
-    return static_cast<Tool>(prusa_toolchanger.get_num_enabled_tools() - 1);
-#else
-    return Tool::Tool1;
-#endif
 }
 
 }

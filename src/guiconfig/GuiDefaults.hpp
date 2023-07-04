@@ -166,19 +166,23 @@ struct GuiDefaults {
     static constexpr Rect16 FileBrowserRect = Rect16::CutPadding(RectScreenNoHeader, FileBrowserPadding);
 
     // New msgbox
-    static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, 120 };                                                                                 // Msgbox rect for drawing icon + text
-    static constexpr Rect16 MessageTextRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left() + 48 + 15, GuiDefaults::MsgBoxLayoutRect.Top(), 300, 120); // 48px icon + 10px icon-text delimeter
-    static constexpr Rect16 MessageIconRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), GuiDefaults::MsgBoxLayoutRect.Top(), 48, 48);
     static constexpr uint8_t DefaultCornerRadius = 8;
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
+    static constexpr Rect16 MsgBoxLayoutRect = { 30, 90, 180, 120 };                                                                                 // Msgbox rect for drawing icon + text
+    static constexpr Rect16 MessageTextRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left() + 48 + 15, GuiDefaults::MsgBoxLayoutRect.Top(), 117, 120); // 48px icon + 10px icon-text delimeter
+
     static constexpr Rect16 DialogFrameRect = RectScreenBody;
     static constexpr uint16_t RadioButtonCornerRadius = 0;
     static constexpr bool EnableDialogBigLayout = false;
 #elif defined(USE_ILI9488)
+    static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, 120 };                                                                                 // Msgbox rect for drawing icon + text
+    static constexpr Rect16 MessageTextRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left() + 48 + 15, GuiDefaults::MsgBoxLayoutRect.Top(), 300, 120); // 48px icon + 10px icon-text delimeter
+
     static constexpr Rect16 DialogFrameRect = RectScreenNoHeader;
     static constexpr uint16_t RadioButtonCornerRadius = 8;
     static constexpr bool EnableDialogBigLayout = true;
 #endif // USE_<DISPLAY>
+    static constexpr Rect16 MessageIconRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), GuiDefaults::MsgBoxLayoutRect.Top(), 48, 48);
 
     static constexpr Rect16::Width_t InvalidPrinterIconMargin = 6;
     static constexpr Rect16::Height_t InvalidPrinterLineSpacing = 8;

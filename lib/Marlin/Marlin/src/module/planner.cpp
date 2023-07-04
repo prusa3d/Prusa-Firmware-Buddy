@@ -122,6 +122,9 @@ uint8_t Planner::delay_before_delivering;       // This counter delays delivery 
 // A flag to drop queuing of blocks and abort any pending move
 bool Planner::draining_buffer;
 
+// A flag to indicate that that buffer is being emptied intentionally
+bool Planner::emptying_buffer;
+
 planner_settings_t Planner::settings;           // Initialized by settings.load()
 
 uint32_t Planner::max_acceleration_steps_per_s2[XYZE_N]; // (steps/s^2) Derived from mm_per_s2
@@ -685,8 +688,8 @@ void Planner::discard_current_unprocessed_block() {
   assert(has_unprocessed_blocks_queued());
 
   block_t * block = &block_buffer[block_buffer_nonbusy];
-  assert(!block->flag.processed);
-  block->flag.processed = true;
+  assert(!block->busy);
+  block->busy = true;
 
   if (block_buffer_nonbusy != block_buffer_planned)
     block_buffer_nonbusy = next_block_index(block_buffer_nonbusy);
@@ -1127,7 +1130,10 @@ bool Planner::busy() {
  * Block until all buffered steps are executed / cleaned
  */
 void Planner::synchronize() {
+  bool emptying_buffer_orig = emptying();
+  emptying_buffer = true;
   while (busy()) idle(true);
+  emptying_buffer = emptying_buffer_orig;
 }
 
 /**
@@ -1364,6 +1370,7 @@ bool Planner::_populate_block(block_t * const block,
 
   // Clear all flags, including the "busy" bit
   block->flag.clear();
+  block->busy = false;
 
   // Set direction bits
   block->direction_bits = dm;
@@ -1662,18 +1669,24 @@ bool Planner::_populate_block(block_t * const block,
 
   // Slow down when the buffer starts to empty, rather than wait at the corner for a buffer refill
   #if EITHER(SLOWDOWN, ULTRA_LCD) || defined(XY_FREQUENCY_LIMIT)
-    // Segment time im micro seconds
+    // Segment time in microseconds
     uint32_t segment_time_us = LROUND(1000000.0f / inverse_secs);
   #endif
 
   #if ENABLED(SLOWDOWN)
+    #ifndef SLOWDOWN_DIVISOR
+      #define SLOWDOWN_DIVISOR 2
+    #endif
     // Take into account also blocks that are just waiting to be discarded because even those blocks
     // can't be modified, those blocks still aren't processed by PreciseStepping::process_one_step_event_from_queue().
     const uint8_t total_blocks_queued = movesplanned();
-    if (WITHIN(total_blocks_queued, 2, (BLOCK_BUFFER_SIZE) / 2 - 1)) {
-      if ((segment_time_us < settings.min_segment_time_us) && esteps) {
-        // buffer is draining, add extra time.  The amount of time added increases if the buffer is still emptied more.
-        const uint32_t nst = segment_time_us + LROUND(2 * (settings.min_segment_time_us - segment_time_us) / total_blocks_queued);
+
+    // Do not slowdown when implicitly stopping and/or when the queue still contains at least one command
+    if (!emptying() && queue.length <= 3 && WITHIN(total_blocks_queued, 2, (BLOCK_BUFFER_SIZE) / (SLOWDOWN_DIVISOR) - 1)) {
+      const int32_t time_diff = settings.min_segment_time_us - segment_time_us;
+      if (time_diff > 0) {
+        // Buffer is draining so add extra time. The amount of time added increases if the buffer is still emptied more.
+        const uint32_t nst = segment_time_us + LROUND(2 * time_diff / total_blocks_queued);
         inverse_secs = 1000000.0f / nst;
         #if defined(XY_FREQUENCY_LIMIT) || HAS_SPI_LCD
           segment_time_us = nst;

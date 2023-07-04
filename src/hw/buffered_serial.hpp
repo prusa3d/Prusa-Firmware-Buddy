@@ -2,6 +2,7 @@
 #include "stm32f4xx_hal.h"
 #include "uartrxbuff.h"
 #include "FreeRTOS.h"
+#include <option/has_puppies.h>
 
 #ifdef __cplusplus
 
@@ -55,7 +56,9 @@ namespace hw {
         static BufferedSerial uart2;
     #endif
     #if BOARD_IS_XBUDDY
+        #if !HAS_PUPPIES()
         static BufferedSerial uart6;
+        #endif
     #endif
 
     #if BOARD_IS_XLBUDDY
@@ -112,7 +115,9 @@ extern "C" {
 #endif //__cplusplus
 
 void uart2_idle_cb();
+#if !HAS_PUPPIES()
 void uart6_idle_cb();
+#endif
 
 #ifdef __cplusplus
 }

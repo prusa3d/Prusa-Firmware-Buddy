@@ -42,7 +42,9 @@ int32_t HX717::ReadValue(Channel nextChannel) {
     static constexpr int32_t zero = 0;
 
     // Minimum time for both low and high SCK
-    static constexpr int32_t minDelayCycles = timing_nanoseconds_to_cycles(200);
+    // 200ns is minimum from datasheet. Added 10% margin to avoid being at
+    // the edge and compensate for rounding errors while converting to cycles.
+    static constexpr int32_t minDelayCycles = timing_nanoseconds_to_cycles(220);
     // Conservative guesses + roughly checked by debugging
     static constexpr int32_t pinWriteCycles = 1;
     static constexpr int32_t pinReadCycles = 2;

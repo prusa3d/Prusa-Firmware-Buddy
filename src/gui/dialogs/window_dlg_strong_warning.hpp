@@ -30,11 +30,12 @@ protected: // inherited by unit tests, must be protected
 #if DEVELOPMENT_ITEMS()
     static constexpr const char *SteppersTimeoutMsg = N_("Steppers disabled due to inactivity.");
 #endif
-    static constexpr const char *USBFlashDiskError = N_("USB drive error, the print is now paused. Reconnect the drive.");
+    static constexpr const char *USBFlashDiskError = N_("USB drive or file error, the print is now paused. Reconnect the drive.");
 #if ENABLED(POWER_PANIC)
     static constexpr const char *HeatbedColdAfterPPMsg = N_("The heatbed cooled down during the power outage, printed object might have detached. Inspect it before continuing.");
 #endif
     static constexpr const char *HeatBreakThermistorFail = N_("Heatbreak thermistor is disconnected. Inspect the wiring.");
+    static constexpr const char *NozzleDoesNotHaveRoundSectionMsg = N_("Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed.");
 
     struct icon_title_text_t {
         const png::Resource *icon;
@@ -55,6 +56,7 @@ protected: // inherited by unit tests, must be protected
 #if ENABLED(POWER_PANIC)
         HeatbedColdAfterPP,
 #endif
+        NozzleDoesNotHaveRoundSection,
         count_
     };
 
@@ -68,12 +70,11 @@ protected: // inherited by unit tests, must be protected
         { &png::exposure_times_48x48, Title, SteppersTimeoutMsg },
 #endif
         { &png::usb_error_48x48, Title, USBFlashDiskError },
-        { nullptr, Title, HeatBreakThermistorFail } // TODO need icon for heatbreak thermistor disconect
+        { nullptr, Title, HeatBreakThermistorFail }, // TODO need icon for heatbreak thermistor disconnect
 #if ENABLED(POWER_PANIC)
-        ,
-        { nullptr, Title, HeatbedColdAfterPPMsg }
+        { nullptr, Title, HeatbedColdAfterPPMsg },
 #endif
-
+        { &png::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg }
     };
     static_assert(std::size(icon_title_text) == types::count_);
 
@@ -117,4 +118,5 @@ public:
 #if ENABLED(POWER_PANIC)
     static void ShowHeatbedColdAfterPP();
 #endif
+    static void ShowNozzleDoesNotHaveRoundSection();
 };

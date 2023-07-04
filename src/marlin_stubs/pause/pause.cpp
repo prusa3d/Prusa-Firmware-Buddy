@@ -99,7 +99,7 @@ void do_pause_e_move(const float &length, const feedRate_t &fr_mm_s) {
 void unhomed_z_lift(float amount_mm) {
     if (amount_mm > current_position.z) {
         TemporaryGlobalEndstopsState park_move_endstops(true);
-        do_homing_move((AxisEnum)(Z_AXIS), amount_mm - current_position.z, HOMING_FEEDRATE_INVERTED_Z, false); // warning: the speed must probably be exactly this, otherwise endstops don't work
+        do_homing_move((AxisEnum)(Z_AXIS), amount_mm - current_position.z, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), false); // warning: the speed must probably be exactly this, otherwise endstops don't work
         // note: do_homing_move() resets the Marlin's internal position (Planner::position) to 0 (in Z axis) at the beginning
         current_position.z = amount_mm;
         sync_plan_position();
@@ -697,7 +697,7 @@ bool Pause::ToolChange([[maybe_unused]] uint8_t target_extruder, [[maybe_unused]
     settings = settings_;
     FSM_HOLDER_LOAD_UNLOAD_LOGGING(*this, mode);
     setPhase(PhasesLoadUnload::ChangingTool);
-    return prusa_toolchanger.tool_change(target_extruder, tool_return_t::no_move, current_position);
+    return prusa_toolchanger.tool_change(target_extruder, tool_return_t::no_return, current_position);
 #else  /*HAS_TOOLCHANGER()*/
     return true;
 #endif /*HAS_TOOLCHANGER()*/
@@ -887,12 +887,15 @@ void Pause::loop_unload_AskUnloaded(Response response) {
         }
         break;
     case UnloadPhases_t::manual_unload:
-        if (response == Response::Continue) {
+        if (response == Response::Continue
+            && !(FSensors_instance().GetCurrentExtruder() == fsensor_t::HasFilament)) { // Allow to continue when nothing remains in filament sensor
             enable_e_steppers();
-            set(UnloadPhases_t::filament_not_in_fs);
+            set(UnloadPhases_t::_finish);
+        } else if (response == Response::Retry) { // Retry unloading
+            enable_e_steppers();
+            set(UnloadPhases_t::ram_sequence);
         }
         break;
-
     default:
         set(UnloadPhases_t::_finish);
     }
@@ -972,9 +975,13 @@ void Pause::loop_unload_change(Response response) {
         }
         break;
     case UnloadPhases_t::manual_unload:
-        if (response == Response::Continue) {
+        if (response == Response::Continue
+            && !(FSensors_instance().GetCurrentExtruder() == fsensor_t::HasFilament)) { // Allow to continue when nothing remains in filament sensor
             enable_e_steppers();
-            set(UnloadPhases_t::filament_not_in_fs);
+            set(UnloadPhases_t::_finish);
+        } else if (response == Response::Retry) { // Retry unloading
+            enable_e_steppers();
+            set(UnloadPhases_t::ram_sequence);
         }
         break;
     default:

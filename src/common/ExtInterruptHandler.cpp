@@ -12,16 +12,16 @@
 #include "power_panic.hpp"
 #if DISABLED(POWER_PANIC)
 namespace power_panic {
-std::atomic_bool ac_power_fault_is_checked = false;
+std::atomic_bool ac_fault_triggered = false;
 
-bool is_ac_fault_signal() {
+bool is_ac_fault_active() {
     return false;
 }
 
 // stub definition due to usage in the board pin macro table
 void ac_fault_isr() {
-    // disable EEPROM writes
-    ac_power_fault_is_checked = true;
+    // Mark ac_fault as triggered
+    ac_fault_triggered = true;
 }
 }
 #endif

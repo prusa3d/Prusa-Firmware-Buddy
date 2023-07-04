@@ -1,6 +1,7 @@
 // config.h - main configuration file
 #pragma once
 
+#include "printers.h"
 #include <stdint.h>
 #include <array>
 #include <cassert>
@@ -8,16 +9,14 @@
 //************************
 //*** System configuration
 
-#define SYSTEM_TICK_IRQ_PRIORITY 3
-#define HEATBEDLET_COUNT         16   // please do not change this value
-#define TICKS_PER_SECOND         1000 // please do not change this value
-#define DEFAULT_CHAMBER_TEMP     25.0f
+#define HEATBEDLET_COUNT     16   // please do not change this value
+#define TICKS_PER_SECOND     1000 // please do not change this value
+#define DEFAULT_CHAMBER_TEMP 25.0f
 
 //***********************
 //*** RS485 configuration
 
-#define RS485_IRQ_PRIORITY 1
-#define RS485_BUFFER_SIZE  256 // Modbus specification needs 256 Bytes
+#define RS485_BUFFER_SIZE 256 // Modbus specification needs 256 Bytes
 
 #define RS485_BAUDRATE  230400
 #define RS485_STOP_BITS UART_STOPBITS_2
@@ -104,12 +103,35 @@ inline constexpr std::array<float, Branch::count> UNEXPECTED_CURRENT_TOLERANCE {
 #define MIN_HB_RESISTANCE 4.5f  // for checking of "HeaterShortCircuit" error
 #define MAX_HB_RESISTANCE 40.0f // for checking of "HeaterDisconnected" error
 
+#if PRINTER_IS_PRUSA_iX
+inline constexpr bool is_used_bedlet(uint32_t heatbedletIndex) {
+    uint32_t connector_nr = heatbedletIndex + 1;
+    switch (connector_nr) {
+    case 1:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 15:
+    case 16:
+        return false;
+    default:
+        return true;
+    }
+}
+#elif PRINTER_IS_PRUSA_XL
+inline constexpr bool is_used_bedlet(uint32_t) {
+    return true;
+}
+#else
+    #error "unknown printer"
+#endif
+
 //*********************
 //*** PWM configuration
 
-#define PWM_TIMER_IRQ_PRIORITY 0
-#define PWM_TIMER_FREQUENCY    10000 // average duration of single IRQ handler call is 1.62 microseconds
-#define PWM_PERIOD_LENGTH      256
+#define PWM_TIMER_FREQUENCY 10000 // average duration of single IRQ handler call is 1.62 microseconds
+#define PWM_PERIOD_LENGTH   256
 inline constexpr std::array<float, Branch::count> PWM_MAX_CURRENT_AMPS { 10, 6 };
 
 #define PWM_RAMPING_START         0.85f  // defines starting point of current ramping; value means fraction of maximal PSU current

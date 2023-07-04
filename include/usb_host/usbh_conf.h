@@ -37,7 +37,8 @@ extern "C" {
 
 #if (USBH_USE_OS == 1)
     #include "cmsis_os.h"
-    #define USBH_PROCESS_PRIO       osPriorityNormal
+    #include "buddy/priorities_config.h"
+    #define USBH_PROCESS_PRIO       TASK_PRIORITY_USB_HOST
     #define USBH_PROCESS_STACK_SIZE ((uint16_t)320)
 #endif /* (USBH_USE_OS == 1) */
 

@@ -14,7 +14,7 @@ using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_PRUSALINK,
 #ifdef BUDDY_ENABLE_CONNECT
     MI_PRUSA_CONNECT,
 #endif
-    MI_NET_INTERFACE_t, MI_IP4_ADDR, MI_MAC_ADDR, MI_ETH_SETTINGS, MI_WIFI_SETTINGS>;
+    MI_NET_INTERFACE_t, MI_IP4_ADDR, MI_MAC_ADDR, MI_METRICS_ENABLE, MI_ETH_SETTINGS, MI_WIFI_SETTINGS>;
 
 class ScreenMenuNetwork : public ScreenMenuNetwork__ {
 public:

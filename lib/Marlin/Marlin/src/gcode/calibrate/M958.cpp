@@ -11,11 +11,9 @@
 #include "../gcode.h"
 #include "../../module/planner.h"
 #include "../../Marlin.h"
-#include "../../module/stepper.h"
+#include "../../module/stepper/trinamic.h"
 #include "../../module/prusa/accelerometer.h"
-#include "../../feature/precise_stepping/precise_stepping.hpp"
 #include "../../feature/input_shaper/input_shaper.hpp"
-#include "../../feature/input_shaper/input_shaper_config.hpp"
 #include "metric.h"
 #include <cmath>
 #include <numbers>
@@ -167,17 +165,22 @@ struct FrequencyGain3D {
 
 class MicrostepRestorer {
 public:
-    MicrostepRestorer()
-        : m_x_mres(stepperX.microsteps())
-        , m_y_mres(stepperY.microsteps()) {}
+    MicrostepRestorer() {
+        LOOP_XYZ(i) {
+            m_mres[i] = stepper_microsteps((AxisEnum)i);
+        }
+    }
 
     ~MicrostepRestorer() {
         while (has_steps()) {
             idle(true, true);
         }
-        stepperX.microsteps(m_x_mres);
-        stepperY.microsteps(m_y_mres);
+        LOOP_XYZ(i) {
+            stepper_microsteps((AxisEnum)i, m_mres[i]);
+        }
     }
+
+    const uint16_t *saved_mres() const { return m_mres; }
 
 private:
     bool has_steps() {
@@ -186,8 +189,8 @@ private:
         CRITICAL_SECTION_END;
         return retval;
     }
-    uint16_t m_x_mres;
-    uint16_t m_y_mres;
+
+    uint16_t m_mres[3];
 };
 
 template <size_t max_samples>
@@ -494,24 +497,25 @@ static
  * @return step and direction flags - see StepEventFlag
  */
 static StepEventFlag_t setup_axis() {
+    // enable all axes to have the same state as printing
+    enable_all_steppers();
+
     StepEventFlag_t axis_flag = 0;
-    enable_XY();
-    if (parser.seen('X')) {
-        stepper.microstep_mode(0, 128);
-        axis_flag |= StepEventFlag::STEP_EVENT_FLAG_STEP_X;
-        if (parser.seenval('X') && (-1 == (parser.value_long()))) {
-            axis_flag |= StepEventFlag::STEP_EVENT_FLAG_X_DIR;
+    LOOP_XYZ(i) {
+        const char axis_code = axis_codes[i];
+        if (parser.seen(axis_code)) {
+            stepper_microsteps((AxisEnum)i, 128);
+            axis_flag |= (StepEventFlag::STEP_EVENT_FLAG_STEP_X << i);
+            if (parser.seenval(axis_code) && (-1 == (parser.value_long()))) {
+                axis_flag |= (StepEventFlag::STEP_EVENT_FLAG_X_DIR << i);
+            }
         }
     }
-    if (parser.seen('Y')) {
-        stepper.microstep_mode(1, 128);
-        axis_flag |= StepEventFlag::STEP_EVENT_FLAG_STEP_Y;
-        if (parser.seenval('Y') && (-1 == (parser.value_long()))) {
-            axis_flag |= StepEventFlag::STEP_EVENT_FLAG_Y_DIR;
-        }
-    }
-    if (0 == axis_flag)
+    if (0 == axis_flag) {
+        // no axis requested, assume X
         axis_flag = StepEventFlag::STEP_EVENT_FLAG_STEP_X;
+        stepper_microsteps(X_AXIS, 128);
+    }
     return axis_flag;
 }
 
@@ -522,93 +526,115 @@ static StepEventFlag_t setup_axis() {
  * current microstep resolution and number of active motors.
  *
  * @param axis_flag All active motors when generating harmonic vibrations
+ * @param orig_mres Original microstep resolution (matching planner.mm_per_step)
  * @return step length in meters
  */
-static float get_step_len(StepEventFlag_t axis_flag) {
+static float get_step_len(StepEventFlag_t axis_flag, const uint16_t orig_mres[]) {
     constexpr float meters_in_mm = 0.001f;
-    constexpr float default_steps_per_mm[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-    static_assert(default_steps_per_mm[0] == default_steps_per_mm[1], "Same steps per unit expected in both axes.");
-#ifndef X_MICROSTEPS
-    #error "X_MICROSTEPS not defined"
-#endif
-    static_assert(X_MICROSTEPS == Y_MICROSTEPS, "Same resolution expected in both axes.");
-    constexpr float default_microsteps = X_MICROSTEPS;
-    constexpr float default_step_len = (1.f / default_steps_per_mm[0]) * meters_in_mm; // in meters
 
-    const unsigned num_motors = std::popcount(axis_flag & STEP_EVENT_FLAG_AXIS_MASK);
+    // index motors
+    uint8_t motor_cnt = 0;
+    AxisEnum motor_idx[3];
+    LOOP_XYZ(i) {
+        if (axis_flag & (STEP_EVENT_FLAG_STEP_X << i)) {
+            motor_idx[motor_cnt++] = (AxisEnum)i;
+        }
+    }
+    if (motor_cnt < 1) {
+        SERIAL_ECHOLN("error: at least one motor needs to be enabled");
+        return NAN;
+    }
 
-    const float current_microsteps = (axis_flag & STEP_EVENT_FLAG_STEP_X) ? stepperX.microsteps() : stepperY.microsteps();
+    // calculate the step_len for the first axis
+    const AxisEnum first_axis = motor_idx[0];
+    const float mm_per_step = planner.mm_per_step[first_axis] * (float)(orig_mres[first_axis]) / (float)stepper_microsteps(first_axis);
+    const float step_len = mm_per_step * meters_in_mm; // in meters
+
+    // check consistency for other axes
+    for (uint8_t i = 1; i != motor_cnt; ++i) {
+        const AxisEnum this_axis = motor_idx[i];
+        const float this_mm_per_step = planner.mm_per_step[this_axis] * (float)(orig_mres[this_axis]) / (float)stepper_microsteps(this_axis);
+        if (mm_per_step != this_mm_per_step) {
+            SERIAL_ECHOLN("error: same step resolution expected on all excited axes");
+            return NAN;
+        }
+    }
 
 #if IS_CARTESIAN
+    // return correct step length
+    if ((motor_cnt == 1 && (motor_idx[0] == X_AXIS || motor_idx[0] == Y_AXIS))
+        || (motor_cnt == 2 && motor_idx[0] == X_AXIS && motor_idx[1] == Y_AXIS)) {
+        // X, Y, XY
     #if IS_CORE
         #if CORE_IS_XY
-    switch (num_motors) {
-    case 1:
-        return sqrt(2.f) / 2.f * default_step_len * default_microsteps / current_microsteps;
-    case 2:
-        return default_step_len * default_microsteps / current_microsteps;
-    default:
-        bsod("Impossible num_motors.");
-    }
+        switch (motor_cnt) {
+        case 1:
+            // diagonal
+            return sqrt(2.f) / 2.f * step_len;
+        case 2:
+            // orthogonal
+            return step_len;
+        }
         #else
             #error "Not implemented."
         #endif
     #else
-    switch (num_motors) {
-    case 1:
-        return default_step_len * default_microsteps / current_microsteps;
-    case 2:
-        return sqrt(2.f) * default_step_len * default_microsteps / current_microsteps;
-    default:
-        bsod("Impossible num_motors.");
-    }
+        switch (motor_cnt) {
+        case 1:
+            // orthogonal
+            return step_len;
+        case 2:
+            // diagonal
+            return sqrt(2.f) * step_len;
+        }
     #endif
+    } else if (motor_cnt == 1) {
+        // single motor (not XY)
+        return step_len;
+    }
 #else
     #error "Not implemented."
 #endif
-}
 
-struct LogicalAxis {
-    bool is_x;
-    bool is_y;
-};
+    SERIAL_ECHOLN("error: unsupported configuration");
+    return NAN;
+}
 
 /**
  * @brief Get logical axis from motor axis_flag
  *
  * @param axis_flag motors and initial directions flags see StepEventFlag
- * @retval true for single logical axis if vibrations are generated aligned for that particular single axis only
- * @retval false for all logical axis if the move is not parallel to single logical axis - e.g. diagonal movement or no movement
+ * @retval !NO_AXIS_ENUM for single logical axis if vibrations are generated aligned for that particular single logical axis only
+ * @retval NO_AXIS_ENUM for all logical axis if the move is not parallel to single logical axis - e.g. diagonal movement or no movement
  */
-LogicalAxis get_logical_axis(const uint16_t axis_flag) {
+AxisEnum get_logical_axis(const uint16_t axis_flag) {
     const bool x_flag = axis_flag & STEP_EVENT_FLAG_STEP_X;
     const bool y_flag = axis_flag & STEP_EVENT_FLAG_STEP_Y;
-    LogicalAxis logicalAxis = { false, false };
+    const bool z_flag = axis_flag & STEP_EVENT_FLAG_STEP_Z;
 #if IS_CARTESIAN
+    if (z_flag) {
+        return (!x_flag && !y_flag ? Z_AXIS : NO_AXIS_ENUM);
+    }
+
     #if IS_CORE
         #if CORE_IS_XY
     if (x_flag == y_flag) {
         const bool x_dir = axis_flag & STEP_EVENT_FLAG_X_DIR;
         const bool y_dir = axis_flag & STEP_EVENT_FLAG_Y_DIR;
-        if (x_dir == y_dir) {
-            logicalAxis.is_x = true;
-        } else {
-            logicalAxis.is_y = true;
-        }
+        return (x_dir == y_dir ? X_AXIS : Y_AXIS);
     }
         #else
             #error "Not implemented."
         #endif
     #else
     if (x_flag != y_flag) {
-        logicalAxis.is_x = x_flag;
-        logicalAxis.is_y = y_flag;
+        return (x_flag ? X_AXIS : Y_AXIS);
     }
     #endif
 #else
     #error "Not implemented."
 #endif
-    return logicalAxis;
+    return NO_AXIS_ENUM;
 }
 
 /**
@@ -616,6 +642,7 @@ LogicalAxis get_logical_axis(const uint16_t axis_flag) {
  *
  * - X<direction> Vibrate with X motor, start in direction 1 or -1
  * - Y<direction> Vibrate with Y motor, start in direction 1 or -1
+ * - Z<direction> Vibrate with Z motor, start in direction 1 or -1
  * - F<Hz>     Frequency
  * - A<mm/s-2> Acceleration
  * - N<cycles> Number of full periods at desired frequency.
@@ -629,8 +656,10 @@ LogicalAxis get_logical_axis(const uint16_t axis_flag) {
  */
 void GcodeSuite::M958() {
     MicrostepRestorer microstepRestorer;
-    const StepEventFlag_t axis_flag = setup_axis();
-    const float step_len = get_step_len(axis_flag);
+    const StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
+    const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
+    if (isnan(step_len))
+        return;
 
     const bool klipper_mode = parser.seen('K');
 
@@ -669,11 +698,16 @@ static constexpr float epsilon = 0.01f;
  */
 static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, float end_frequency, float frequency_increment, float acceleration_requested, const float step_len, uint32_t cycles) {
     FrequencyGain maxFrequencyGain = { 0.f, 0.f };
-    const LogicalAxis logicalAxis = get_logical_axis(axis_flag);
     bool calibrate_accelerometer = true;
+    const AxisEnum logicalAxis = get_logical_axis(axis_flag);
+    if (logicalAxis == NO_AXIS_ENUM) {
+        SERIAL_ECHOLN("error: not moving along one logical axis");
+        return;
+    }
+
     for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
         FrequencyGain3D frequencyGain3D = vibrate_measure(axis_flag, false, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
-        FrequencyGain frequencyGain = { frequencyGain3D.frequency, logicalAxis.is_x ? frequencyGain3D.gain[0] : frequencyGain3D.gain[1] };
+        FrequencyGain frequencyGain = { frequencyGain3D.frequency, frequencyGain3D.gain[logicalAxis] };
         calibrate_accelerometer = false;
         if (frequencyGain.gain > maxFrequencyGain.gain) {
             maxFrequencyGain = frequencyGain;
@@ -682,24 +716,17 @@ static void naive_zv_tune(StepEventFlag_t axis_flag, float start_frequency, floa
     SERIAL_ECHOPAIR_F("Maximum resonant gain: ", maxFrequencyGain.gain);
     SERIAL_ECHOLNPAIR_F(" at frequency: ", maxFrequencyGain.frequency);
 
-    if (logicalAxis.is_x || logicalAxis.is_y) {
-        const float damping_ratio = get_zv_shaper_damping_ratio(maxFrequencyGain.gain);
-        SERIAL_ECHOLN("ZV shaper selected");
-        SERIAL_ECHOPAIR_F("Frequency: ", maxFrequencyGain.frequency);
-        SERIAL_ECHOLNPAIR_F(" damping ratio: ", damping_ratio, 5);
-        input_shaper::AxisConfig axis_config {
-            .type = input_shaper::Type::zv,
-            .frequency = maxFrequencyGain.frequency,
-            .damping_ratio = damping_ratio,
-            .vibration_reduction = 0.f,
-        };
-        if (logicalAxis.is_x) {
-            input_shaper::set_axis_x_config(axis_config);
-        }
-        if (logicalAxis.is_y) {
-            input_shaper::set_axis_y_config(axis_config);
-        }
-    }
+    const float damping_ratio = get_zv_shaper_damping_ratio(maxFrequencyGain.gain);
+    SERIAL_ECHOLN("ZV shaper selected");
+    SERIAL_ECHOPAIR_F("Frequency: ", maxFrequencyGain.frequency);
+    SERIAL_ECHOLNPAIR_F(" damping ratio: ", damping_ratio, 5);
+    input_shaper::AxisConfig axis_config {
+        .type = input_shaper::Type::zv,
+        .frequency = maxFrequencyGain.frequency,
+        .damping_ratio = damping_ratio,
+        .vibration_reduction = 0.f,
+    };
+    input_shaper::set_axis_config(logicalAxis, axis_config);
 }
 
 static float limit_end_frequency(const float start_frequency, float end_frequency, const float frequency_increment, const size_t max_samples) {
@@ -885,7 +912,7 @@ static Shaper_result fit_shaper(input_shaper::Type type, const Fl_Spectrum &psd,
         }
         progress_percent += 8;
         SERIAL_ECHO_START();
-        SERIAL_ECHOPAIR("For shaper type: ", static_cast<int>(type));
+        SERIAL_ECHOPAIR("For shaper type: ", to_string(type), "(", static_cast<int>(type), ")");
         switch (action) {
         case Action::find_best_result:
             SERIAL_ECHOPAIR(" lowest vibration frequency: ", selected_result.frequency);
@@ -912,11 +939,17 @@ struct Best_score {
 };
 static input_shaper::AxisConfig find_best_shaper(const Fl_Spectrum &psd, const Action final_action, input_shaper::AxisConfig default_config) {
     uint8_t progress_percent = 0;
+    static constexpr auto first_type = input_shaper::Type::first;
+    static_assert(first_type != input_shaper::Type::null, "ensure the first fit is not run with the null filter");
     Best_score best_shaper = {
-        .result = fit_shaper(input_shaper::Type::first, psd, progress_percent, final_action, default_config),
-        .type = input_shaper::Type::first
+        .result = fit_shaper(first_type, psd, progress_percent, final_action, default_config),
+        .type = first_type
     };
-    for (input_shaper::Type shaper_type = input_shaper::Type::second; shaper_type <= input_shaper::Type::last; ++shaper_type) {
+
+    for (input_shaper::Type shaper_type = first_type + 1; shaper_type <= input_shaper::Type::last; ++shaper_type) {
+        if (shaper_type == input_shaper::Type::null)
+            continue;
+
         Shaper_result shaper = fit_shaper(shaper_type, psd, progress_percent, final_action, default_config);
         if (shaper.score * 1.2f < best_shaper.result.score
             || ((shaper.score * 1.05f < best_shaper.result.score) && (shaper.smoothing * 1.1f < best_shaper.result.smoothing))) {
@@ -949,19 +982,18 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
     // Power spectrum density
     Fl_Spectrum psd(start_frequency, frequency_increment);
     end_frequency = limit_end_frequency(start_frequency, end_frequency, frequency_increment, psd.max_size());
-    LogicalAxis logicalAxis = get_logical_axis(axis_flag);
+    const AxisEnum logicalAxis = get_logical_axis(axis_flag);
+    if (logicalAxis == NO_AXIS_ENUM) {
+        SERIAL_ECHOLN("error: not moving along one logical axis");
+        return;
+    }
 
     bool calibrate_accelerometer = true;
     for (float frequency_requested = start_frequency; frequency_requested <= end_frequency + epsilon; frequency_requested += frequency_increment) {
         FrequencyGain3D frequencyGain3D = vibrate_measure(axis_flag, true, frequency_requested, acceleration_requested, step_len, cycles, calibrate_accelerometer);
         calibrate_accelerometer = false;
         if (subtract_excitation) {
-            if (logicalAxis.is_x) {
-                frequencyGain3D.gain[0] = max(frequencyGain3D.gain[0] - 1.f, 0.f);
-            }
-            if (logicalAxis.is_y) {
-                frequencyGain3D.gain[1] = max(frequencyGain3D.gain[1] - 1.f, 0.f);
-            }
+            frequencyGain3D.gain[logicalAxis] = max(frequencyGain3D.gain[logicalAxis] - 1.f, 0.f);
         }
         const float psd_xyz = sq(frequencyGain3D.gain[0]) + sq(frequencyGain3D.gain[1]) + sq(frequencyGain3D.gain[2]);
         psd.put(psd_xyz);
@@ -980,20 +1012,11 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
     }
 
     const Action final_action = subtract_excitation ? Action::find_best_result : Action::last;
-    if (logicalAxis.is_x) {
-        input_shaper::AxisConfig axis_config = find_best_shaper(psd, final_action, input_shaper::axis_x_default);
-        input_shaper::set_axis_x_config(axis_config);
-        SERIAL_ECHO_START();
-        SERIAL_ECHOPAIR_F("Activated x axis default damping and vibr. reduction shaper type: ", static_cast<int>(axis_config.type));
-        SERIAL_ECHOLNPAIR_F(" frequency: ", axis_config.frequency);
-    }
-    if (logicalAxis.is_y) {
-        input_shaper::AxisConfig axis_config = find_best_shaper(psd, final_action, input_shaper::axis_y_default);
-        input_shaper::set_axis_y_config(axis_config);
-        SERIAL_ECHO_START();
-        SERIAL_ECHOPAIR_F("Activated y axis default damping and vibr. reduction shaper type: ", static_cast<int>(axis_config.type));
-        SERIAL_ECHOLNPAIR_F(" frequency: ", axis_config.frequency);
-    }
+    input_shaper::AxisConfig axis_config = find_best_shaper(psd, final_action, input_shaper::axis_defaults[logicalAxis]);
+    input_shaper::set_axis_config(logicalAxis, axis_config);
+    SERIAL_ECHO_START();
+    SERIAL_ECHOPAIR("Activated ", axis_codes[logicalAxis], " axis default damping and vibr. reduction shaper type: ", to_string(axis_config.type), "(", static_cast<int>(axis_config.type), ")");
+    SERIAL_ECHOLNPAIR_F(" frequency: ", axis_config.frequency);
 }
 
 /**
@@ -1001,6 +1024,7 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  *
  * - X<direction> Vibrate with X motor, start in direction 1 or -1
  * - Y<direction> Vibrate with Y motor, start in direction 1 or -1
+ * - Z<direction> Vibrate with Z motor, start in direction 1 or -1
  * - K           select Klipper tune algorithm
  * - KM          select Klipper Marek modified tune algorithm
  * - F<Hz>       Start frequency
@@ -1012,8 +1036,11 @@ static void klipper_tune(const bool subtract_excitation, const StepEventFlag_t a
  */
 void GcodeSuite::M959() {
     MicrostepRestorer microstepRestorer;
-    StepEventFlag_t axis_flag = setup_axis();
-    const float step_len = get_step_len(axis_flag);
+    StepEventFlag_t axis_flag = setup_axis(); // modifies mres as a side-effect
+    const float step_len = get_step_len(axis_flag, microstepRestorer.saved_mres());
+    if (isnan(step_len))
+        return;
+
     const bool seen_m = parser.seen('M');
 
     float start_frequency = 5.f;

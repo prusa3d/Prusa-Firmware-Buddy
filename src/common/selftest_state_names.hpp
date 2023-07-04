@@ -116,6 +116,12 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "Heaters";
     case PhasesSelftest::SpecifyHotEnd:
         return "SpecifyHotEnd";
+    case PhasesSelftest::SpecifyHotEnd_sock:
+        return "SpecifyHotEnd_sock";
+    case PhasesSelftest::SpecifyHotEnd_nozzle_type:
+        return "SpecifyHotEnd_nozzle_type";
+    case PhasesSelftest::SpecifyHotEnd_retry:
+        return "SpecifyHotEnd_retry";
     case PhasesSelftest::FirstLayer_mbl:
         return "FirstLayer_mbl";
     case PhasesSelftest::FirstLayer_print:

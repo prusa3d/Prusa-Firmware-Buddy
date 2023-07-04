@@ -34,7 +34,6 @@ static constexpr const char *const unknown_err_txt = N_("Unknown Error");
 ScreenErrorQR::ScreenErrorQR()
     : AddSuperWindow<screen_reset_error_data_t>()
     , header(this)
-    , footer(this)
     , err_title(this, title_rect, is_multiline::no)
     , err_description(this, descr_rect, is_multiline::yes)
     , hand_icon(this, hand_rect, &png::hand_qr_59x72)
@@ -106,7 +105,7 @@ ScreenErrorQR::ScreenErrorQR()
         err_title.SetText(err_title_buff[0] ? _(err_title_buff) : _(unknown_err_txt));
         err_description.SetText(_(err_message_buff));
 
-        if (error_code != static_cast<std::underlying_type_t<ErrCode>>(ErrCode::ERR_UNDEF)) {
+        if (error_code != static_cast<std::underlying_type_t<ErrCode>>(ErrCode::ERR_UNDEF) && error_code / 1000 == ERR_PRINTER_CODE) {
             show_qr();
         } else {
             hide_qr();
@@ -118,7 +117,6 @@ ScreenErrorQR::ScreenErrorQR()
         hide_qr();
     }
 
-    /// draw footer information
     /// fw version, hash, [fw signed], [appendix]
     static const constexpr uint16_t fw_version_str_len = 13 + 1; // combined max length of project_version + .._suffix_short + null
     static char fw_version[fw_version_str_len];                  // intentionally limited to the number of practically printable characters without overwriting the nearby hash text

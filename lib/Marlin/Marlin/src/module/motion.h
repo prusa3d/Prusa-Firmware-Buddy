@@ -278,7 +278,7 @@ void set_axis_is_at_home(const AxisEnum axis, bool homing_z_with_probe = true);
 
 void set_axis_is_not_at_home(const AxisEnum axis);
 
-void homing_failed(std::function<void()> fallback_error, bool crash_was_active = false);
+void homing_failed(std::function<void()> fallback_error, bool crash_was_active = false, bool recover_z = false);
 
 [[nodiscard]] bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false, void (*enable_wavetable)(AxisEnum) = NULL, bool can_calibrate = true, bool homing_z_with_probe = true);
 

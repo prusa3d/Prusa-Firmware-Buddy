@@ -7,12 +7,14 @@
 
 #if ENABLED(PRUSA_TOOL_MAPPING)
 /**
- * M863: Tool remapping gcode
+ * @brief Tool remapping gcode
  *
- *  M863 M P0 L1 - Instead of tool 0, use tool 1
- *  M863 E1/0 - Enable/disable tool remapping
- *  M863 R - Reset tool remapping
- *  M863 - Print current tool mapping
+ * ## Example
+ *
+ * - `M863 M P0 L1` - Instead of tool 0, use tool 1
+ * - `M863 E1/0` - Enable/disable tool remapping
+ * - `M863 R` - Reset tool remapping
+ * - `M863` - Print current tool mapping
  */
 void PrusaGcodeSuite::M863() {
     if (parser.seen('M') && parser.seen("P") && parser.seen("L")) {

@@ -12,9 +12,10 @@ inline constexpr int max_bootstrap_perc { 90 };
 
 enum PuppyType : size_t {
 #if HAS_DWARF()
-    DWARF = 0,
+    DWARF,
 #endif
-    MODULARBED = 1,
+    MODULARBED,
+    PUPPY_TYPE_NUM_ELEMENTS,
 };
 
 /// Dock is a location where a Puppy can live
@@ -82,7 +83,7 @@ struct PuppyInfo {
 };
 
 // Data about each puppy type, indexed via PuppyType enum
-inline constexpr std::array<PuppyInfo, 2> puppy_info { {
+inline constexpr std::array<PuppyInfo, PUPPY_TYPE_NUM_ELEMENTS> puppy_info { {
 #if HAS_DWARF()
     {
         "dwarf",

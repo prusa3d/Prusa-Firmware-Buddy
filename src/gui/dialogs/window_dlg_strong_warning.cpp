@@ -144,3 +144,7 @@ void window_dlg_strong_warning_t::ShowHeatbedColdAfterPP() {
     Instance().show(HeatbedColdAfterPP);
 }
 #endif
+
+void window_dlg_strong_warning_t::ShowNozzleDoesNotHaveRoundSection() {
+    Instance().show(NozzleDoesNotHaveRoundSection);
+}

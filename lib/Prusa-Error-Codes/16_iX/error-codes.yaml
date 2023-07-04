@@ -1,5 +1,5 @@
 ---
-# Error codes list for Original Prusa MINI printer
+# Error codes list for Original Prusa iX printer
 # GitHub repo https://github.com/prusa3d/Prusa-Error-Codes
 # Printer code
 # IX             16xxx
@@ -75,13 +75,66 @@ Errors:
   text: "Check the heatbreak thermistor wiring for possible damage."
   id: "HEATBREAK_MAXTEMP_ERR"
   approved: true
-  # XX250-XX257 reserved
+- code: "16250"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
+  id: "MB_HEATER_DISCONNECTED"
+  approved: false
+- code: "16251"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d:\nDamaged tile or wiring.\nFollow online guide to diagnose."
+  id: "MB_HEATER_SHORT"
+  approved: false
+- code: "16252"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
+  id: "MB_MINTEMP_ERR"
+  approved: false
+- code: "16253"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d: \nTemperature measurement error; thermistor may be faulty."
+  id: "MB_MAXTEMP_ERR"
+  approved: false
+- code: "16254"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d: \nUnexpected temperature drop detected."
+  id: "MB_DROP_TEMP"
+  approved: false 
+- code: "16255"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d:\n Unexpected temperature peak detected."
+  id: "MB_PEAK_TEMP"
+  approved: false 
+- code: "16256"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d:\nPreheat error."
+  id: "MB_PREHEAT_ERR"
+  approved: false 
+- code: "16257"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d:\nTest heating error."
+  id: "MB_TEST_HEATING_ERR"
+  approved: false 
+- code: "16258"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed connector no. %d:\nNothing should be connected here."
+  id: "MB_HEATER_CONNECTED"
+  approved: false
 - code: "16301"
   title: "HOMING ERROR Z"
   text: "Failed to home the extruder in Z-axis, make sure the loadcell is working."
   id: "HOMING_ERROR_Z"
   approved: true
-  # XX302-XX303 reserved
+- code: "16302"
+  title: "MODULAR BED ERROR"
+  text: "Overcurrent detected."
+  id: "MB_OVERCURRENT"
+  approved: false
+- code: "16303"
+  title: "MODULAR BED ERROR"
+  text: "Unexpected invalid current."
+  id: "MB_INVALID_CURRENT"
+  approved: false
 - code: "16304"
   title: "HOMING ERROR X"
   text: "Failed to home the extruder in X-axis, make sure there is no obstacle on X-axis."
@@ -157,13 +210,25 @@ Errors:
   text: "HAL detected an I2C undefined error when receiving data via I2C."
   id: "I2C_RX_UNDEFINED"
   approved: true
-  # XX319-XX320 reserved
+- code: "16319"
+  title: "MODULAR BED ERROR"
+  text: "Power failure"
+  id: "MB_FAULT"
+- code: "16320"
+  title: "MODULAR BED ERROR"
+  text: "Power panic"
+  id: "MB_PANIC"
+  approved: true
 - code: "16321"
   title: "POWER PANIC"
   text: "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
   id: "ACF_AT_INIT"
   approved: false
-  # XX501-XX503 reserved
+- code: "16501"
+  title: "MODULAR BED ERROR"
+  text: "Heatbed tile no. %d:\nUnknown error: %d"
+  id: "MB_UNKNOWN_ERR"
+  approved: false
 - code: "16504"
   title: "ESP ERROR"
   text: "Reading ESP firmware failed."
@@ -194,7 +259,66 @@ Errors:
   text: "Emergency stop invoked from G-code (M112)."
   id: "EMERGENCY_STOP"
   approved: true
-  # XX511-XX522 reserved
+- code: "16511"
+  title: "PUPPY ERROR"
+  text: "Address assignment error"
+  id: "PUPPY_ADDR_ASSIGN_ERR"
+  approved: false
+- code: "16512"
+  title: "PUPPY ERROR"
+  text: "Unassigned puppy found"
+  id: "PUPPY_NO_ADDR"
+  approved: false
+- code: "16513"
+  title: "PUPPY ERROR"
+  text: "Puppy discovery error. No puppy found"
+  id: "PUPPY_DISCOVER_ERR"
+  approved: false
+- code: "16514"
+  title: "PUPPY ERROR"
+  text: "Puppy %s not responding"
+  id: "PUPPY_NOT_RESPONDING"
+  approved: false
+- code: "16515"
+  title: "PUPPY ERROR"
+  text: "Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
+  id: "PUPPY_INCOMPATIBLE_BOOTLODER"
+  approved: false
+- code: "16516"
+  title: "PUPPY ERROR"
+  text: "Unknown puppy type"
+  id: "PUPPY_UNKNOWN_TYPE"
+  approved: false  
+- code: "16517"
+  title: "PUPPY ERROR"
+  text: "Unable to start puppy application"
+  id: "PUPPY_START_APP_ERR"
+  approved: false   
+- code: "16518"
+  title: "PUPPY ERROR"
+  text: "Puppy %s firmware not found"
+  id: "PUPPY_FW_NOT_FOUND"
+  approved: false 
+- code: "16519"
+  title: "PUPPY ERROR"
+  text: "Puppy %s flash writing failed"
+  id: "PUPPY_WRITE_FLASH_ERR"
+  approved: false 
+- code: "16520"
+  title: "PUPPY ERROR"
+  text: "Puppy %s firmware fingerprint mismatch"
+  id: "PUPPY_FINGERPRINT_MISMATCH"
+  approved: false 
+- code: "16521"
+  title: "PUPPY ERROR"
+  text: "Waiting for fingerprint timed out"
+  id: "PUPPY_FINGERPRINT_TIMEOUT"
+  approved: false 
+- code: "16522"
+  title: "PUPPY ERROR"
+  text: "Waiting for puppies to start timed out"
+  id: "PUPPY_RUN_TIMEOUT"
+  approved: false
 - code: "16523"
   title: "LOADCELL NOT CALIBRATED"
   text: "Loadcell calibration is incomplete. Restart the printer."

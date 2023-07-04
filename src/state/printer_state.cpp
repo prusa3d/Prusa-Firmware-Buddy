@@ -2,6 +2,7 @@
 
 #include <fsm_types.hpp>
 #include <client_response.hpp>
+#include <marlin_vars.hpp>
 
 using namespace marlin_server;
 
@@ -57,9 +58,17 @@ namespace {
         case State::Resuming_UnparkHead_ZE:
             return DeviceState::Paused;
         case State::Finished:
-            return DeviceState::Finished;
+            if (ready) {
+                return DeviceState::Ready;
+            } else {
+                return DeviceState::Finished;
+            }
         case State::Aborted:
-            return DeviceState::Stopped;
+            if (ready) {
+                return DeviceState::Ready;
+            } else {
+                return DeviceState::Stopped;
+            }
         }
         return DeviceState::Unknown;
     }
@@ -94,7 +103,9 @@ namespace {
     }
 }
 
-DeviceState get_state(State state, const marlin_vars_t::FSMChange &fsm_change, bool ready) {
+DeviceState get_state(bool ready) {
+    auto fsm_change = marlin_vars()->get_last_fsm_change();
+    State state = marlin_vars()->print_state;
 
     switch (fsm_change.q0_change.get_fsm_type()) {
     case ClientFSM::Printing:
@@ -126,7 +137,7 @@ bool remote_print_ready(bool preview_only) {
         return !preview_only;
     }
 
-    switch (get_state(print_state, marlin_vars()->get_last_fsm_change(), false)) {
+    switch (get_state(false)) {
     case DeviceState::Idle:
     case DeviceState::Ready:
     case DeviceState::Stopped:
@@ -134,6 +145,45 @@ bool remote_print_ready(bool preview_only) {
         return true;
     default:
         return false;
+    }
+}
+
+bool has_job() {
+    switch (get_state(false)) {
+    case DeviceState::Printing:
+    case DeviceState::Paused:
+        return true;
+    case DeviceState::Attention:
+        // has job only if attention while printing
+        return marlin_vars()->get_last_fsm_change().q0_change.get_fsm_type() == ClientFSM::Printing;
+    default:
+        return false;
+    }
+}
+
+const char *to_str(DeviceState state) {
+    switch (state) {
+    case DeviceState::Idle:
+        return "IDLE";
+    case DeviceState::Printing:
+        return "PRINTING";
+    case DeviceState::Paused:
+        return "PAUSED";
+    case DeviceState::Finished:
+        return "FINISHED";
+    case DeviceState::Stopped:
+        return "STOPPED";
+    case DeviceState::Ready:
+        return "READY";
+    case DeviceState::Error:
+        return "ERROR";
+    case DeviceState::Busy:
+        return "BUSY";
+    case DeviceState::Attention:
+        return "ATTENTION";
+    case DeviceState::Unknown:
+    default:
+        return "UNKNOWN";
     }
 }
 

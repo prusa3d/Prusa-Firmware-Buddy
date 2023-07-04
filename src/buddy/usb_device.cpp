@@ -5,6 +5,7 @@
 #include "usb_device.h"
 #include "log.h"
 #include "otp.h"
+#include "buddy/priorities_config.h"
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -39,7 +40,7 @@ static void usb_device_task_run(const void *);
 
 static serial_nr_t serial_nr;
 
-osThreadDef(usb_device_task, usb_device_task_run, osPriorityRealtime, 0, USBD_STACK_SIZE);
+osThreadDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
 
 void usb_device_init() {
@@ -69,7 +70,7 @@ static void usb_device_task_run(const void *) {
     __HAL_RCC_USB_OTG_FS_CLK_ENABLE();
 
     // setup interrupt priority
-    HAL_NVIC_SetPriority(OTG_FS_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+    HAL_NVIC_SetPriority(OTG_FS_IRQn, ISR_PRIORITY_DEFAULT, 0);
 
     // disable vbus sensing
     USB_OTG_FS->GCCFG |= USB_OTG_GCCFG_NOVBUSSENS;

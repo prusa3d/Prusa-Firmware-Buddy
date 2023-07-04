@@ -66,6 +66,10 @@ void DummyEepromChip::write_bytes(uint16_t address, std::span<const uint8_t> dat
     set(address, data.data(), data.size());
 }
 
+void DummyEepromChip::erase_area(uint16_t, uint16_t) {
+    data.fill(0xff);
+}
+
 void st25dv64k_user_read_bytes(uint16_t address, void *pdata, uint16_t size) {
     eeprom_chip.get(address, static_cast<uint8_t *>(pdata), size);
 }

@@ -93,7 +93,7 @@ set(TOUCH_ENABLED
     )
 set(DEVELOPMENT_ITEMS_ENABLED
     "YES"
-    CACHE BOOL "Show development (green) items  in menus"
+    CACHE BOOL "Show development (green) items in menus and enable other devel features"
     )
 define_boolean_option(DEVELOPMENT_ITEMS ${DEVELOPMENT_ITEMS_ENABLED})
 
@@ -191,48 +191,6 @@ endif()
 list(REMOVE_ITEM MCU_VALID_OPTS "<default>")
 define_enum_option(NAME MCU VALUE ${MCU} ALL_VALUES ${MCU_VALID_OPTS})
 
-if(BOARD STREQUAL "XLBUDDY")
-  set(ENABLE_PUPPY_BOOTLOAD
-      "YES"
-      CACHE BOOL "Pack puppy firmwares into resources and bootload them on startup of the XL"
-      )
-endif()
-
-if(ENABLE_PUPPY_BOOTLOAD)
-  set(DWARF_BINARY_PATH
-      ""
-      CACHE PATH
-            "Where to get the Dwarf's binary from. If set, the project won't try to build anything."
-      )
-  if(NOT DWARF_BINARY_PATH)
-    set(DWARF_SOURCE_DIR
-        "${CMAKE_SOURCE_DIR}"
-        CACHE PATH "From which source directory to build the dwarf firmware."
-        )
-    set(DWARF_BINARY_DIR
-        "${CMAKE_BINARY_DIR}/dwarf-build"
-        CACHE PATH "Where to have build directory for the dwarf firmware."
-        )
-  endif()
-
-  set(MODULARBED_BINARY_PATH
-      ""
-      CACHE
-        PATH
-        "Where to get the Modularbed's binary from. If set, the project won't try to build anything."
-      )
-  if(NOT MODULARBED_BINARY_PATH)
-    set(MODULARBED_SOURCE_DIR
-        "${CMAKE_SOURCE_DIR}"
-        CACHE PATH "From which source directory to build the modular bed firmware."
-        )
-    set(MODULARBED_BINARY_DIR
-        "${CMAKE_BINARY_DIR}/modularbed-build"
-        CACHE PATH "Where to have build directory for the modular bed firmware."
-        )
-  endif()
-endif()
-
 # Set connect status/availability
 if(${BOARD} STREQUAL "DWARF" OR ${BOARD} STREQUAL "MODULARBED")
   set(CONNECT
@@ -291,13 +249,13 @@ set(PRINTERS_WITH_LOADCELL "MK4" "iX" "XL")
 set(PRINTERS_WITH_HEATBREAK_TEMP "MK4" "iX" "XL")
 set(PRINTERS_WITH_RESOURCES "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_BOWDEN_EXTRUDER "MINI")
-set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL")
+set(PRINTERS_WITH_PUPPIES_BOOTLOADER "XL" "iX")
 set(PRINTERS_WITH_DWARF "XL")
-set(PRINTERS_WITH_MODULARBED "XL")
+set(PRINTERS_WITH_MODULARBED "iX" "XL")
 set(PRINTERS_WITH_TOOLCHANGER "XL")
 set(PRINTERS_WITH_SIDE_FSENSOR "XL")
 set(PRINTERS_WITH_EMBEDDED_ESP32 "XL")
-set(PRINTERS_WITH_SIDE_LEDS "XL")
+set(PRINTERS_WITH_SIDE_LEDS "XL" "iX")
 set(PRINTERS_WITH_TRANSLATIONS "MINI")
 set(PRINTERS_WITH_LOVE_BOARD "MK4" "iX")
 
@@ -421,10 +379,7 @@ else()
 endif()
 define_boolean_option(HAS_HEATBREAK_TEMP ${HAS_HEATBREAK_TEMP})
 
-if((${BOARD} STREQUAL "DWARF")
-   OR (PRINTER STREQUAL "MK4")
-   OR (PRINTER STREQUAL "iX")
-   )
+if((${BOARD} STREQUAL "DWARF") OR (${BOARD} STREQUAL "XBUDDY" AND NOT PRINTER STREQUAL "MK3.5"))
   set(HAS_LOADCELL_HX717 YES)
 else()
   set(HAS_LOADCELL_HX717 NO)
@@ -507,6 +462,50 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_LEDS)
   set(HAS_LEDS YES)
 else()
   set(HAS_LEDS NO)
+endif()
+
+if(HAS_PUPPIES)
+  set(ENABLE_PUPPY_BOOTLOAD
+      "YES"
+      CACHE
+        BOOL
+        "Pack puppy firmwares into resources and bootload them on startup of the printer with puppies"
+      )
+endif()
+
+if(ENABLE_PUPPY_BOOTLOAD)
+  set(DWARF_BINARY_PATH
+      ""
+      CACHE PATH
+            "Where to get the Dwarf's binary from. If set, the project won't try to build anything."
+      )
+  if(NOT DWARF_BINARY_PATH)
+    set(DWARF_SOURCE_DIR
+        "${CMAKE_SOURCE_DIR}"
+        CACHE PATH "From which source directory to build the dwarf firmware."
+        )
+    set(DWARF_BINARY_DIR
+        "${CMAKE_BINARY_DIR}/dwarf-build"
+        CACHE PATH "Where to have build directory for the dwarf firmware."
+        )
+  endif()
+
+  set(MODULARBED_BINARY_PATH
+      ""
+      CACHE
+        PATH
+        "Where to get the Modularbed's binary from. If set, the project won't try to build anything."
+      )
+  if(NOT MODULARBED_BINARY_PATH)
+    set(MODULARBED_SOURCE_DIR
+        "${CMAKE_SOURCE_DIR}"
+        CACHE PATH "From which source directory to build the modular bed firmware."
+        )
+    set(MODULARBED_BINARY_DIR
+        "${CMAKE_BINARY_DIR}/modularbed-build"
+        CACHE PATH "Where to have build directory for the modular bed firmware."
+        )
+  endif()
 endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_PUPPIES_BOOTLOADER

@@ -20,6 +20,7 @@ public:
     static constexpr auto SLOW_ACCELERATION_MM_S2 = 400;          ///< Acceleration for parking and picking
     static constexpr auto FORCE_MOVE_MM_S = 30;                   ///< Not used here, feedrate for locking and unlocking the toolchange clamps
     static constexpr auto SLOW_MOVE_MM_S = 60;                    ///< Feedrate for tool picking and parking
+    static constexpr auto Z_HOP_FEEDRATE_MM_S = 10.0f;            ///< Feedrate for z hop
     static constexpr auto TRAVEL_MOVE_MM_S = 400;                 ///< Feedrate for moves around dock
     static constexpr uint32_t WAIT_TIME_TOOL_SELECT = 3000;       ///< Max wait for puppytask tool switch [ms], needs a lot of time if there is a hiccup in puppy communication
     static constexpr uint32_t WAIT_TIME_TOOL_PARKED_PICKED = 200; ///< Max wait for cheese to detect magnet [ms]
@@ -180,6 +181,12 @@ protected:
      * @param dwarf force active_tool to be this dwarf, or nullptr for no tool
      */
     void force_marlin_picked_tool(buddy::puppies::Dwarf *dwarf);
+
+    /**
+     * @brief Get maximum difference of MBL height
+     * @return float
+     */
+    float get_mbl_z_lift_height() const;
 
     /**
      * @brief Structure to sample and restore planner feedrate and acceleration.

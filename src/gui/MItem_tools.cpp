@@ -35,7 +35,10 @@
 #include "config_features.h"
 #include <option/has_side_fsensor.h>
 #include <configuration_store.hpp>
+#include <option/bootloader.h>
+#include <bootloader/bootloader.hpp>
 #include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
+#include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper.hpp"
 
 static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");
@@ -196,6 +199,13 @@ void do_factory_reset(bool wipe_fw) {
     }
     if (wipe_fw) {
         w25x_chip_erase();
+#if BOOTLOADER()
+        // Invalidate firmware by erasing part of it
+        if (!buddy::bootloader::fw_invalidate()) {
+            bsod("Error invalidating firmware");
+        }
+        // Never gets here
+#endif /*BOOTLOADER()*/
     }
     MsgBoxInfo(_("Reset complete. The system will now restart."), Responses_Ok);
     sys_reset();
@@ -553,6 +563,23 @@ MI_INFO_SERIAL_NUM::MI_INFO_SERIAL_NUM()
 }
 
 /*****************************************************************************/
+// MI_METRICS_ENABLE
+MI_METRICS_ENABLE::MI_METRICS_ENABLE()
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().metrics_allow.get() == MetricsAllow::All, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+
+void MI_METRICS_ENABLE::OnChange([[maybe_unused]] size_t old_index) {
+    if (index) { // Enable
+        if (MsgBoxWarning(_(txt_confirm), Responses_YesNo, 1) == Response::Yes) {
+            config_store().metrics_allow.set(MetricsAllow::All);
+        } else {
+            index = false; // User changed his mind
+        }
+    } else {
+        config_store().metrics_allow.set(MetricsAllow::None);
+    }
+}
+
+/*****************************************************************************/
 // MI_FS_AUTOLOAD
 is_hidden_t hide_autoload_item() {
     return FSensors_instance().GetAutoload() == fsensor_t::Disabled ? is_hidden_t::yes : is_hidden_t::no;
@@ -808,92 +835,175 @@ MI_INFO_SERIAL_NUM_XLCD::MI_INFO_SERIAL_NUM_XLCD()
 
 static bool input_shaper_x_enabled() {
 #if PRINTER_IS_PRUSA_MK4
-    return input_shaper::current_config().axis_x.has_value();
+    return config_store().input_shaper_axis_x_enabled.get();
 #else
-    return false; // TODO(InputShaperBeta)
+    return false; // TODO(InputShaper)
 #endif
 }
 
 static bool input_shaper_y_enabled() {
 #if PRINTER_IS_PRUSA_MK4
-    return input_shaper::current_config().axis_y.has_value();
+    return config_store().input_shaper_axis_y_enabled.get();
 #else
-    return false; // TODO(InputShaperBeta)
+    return false; // TODO(InputShaper)
 #endif
 }
 
 static int32_t input_shaper_x_type() {
-    if (const auto &axis_x = input_shaper::current_config().axis_x) {
-        return static_cast<int32_t>(axis_x->type);
-    }
-    return 0;
+    const auto axis_x = config_store().input_shaper_axis_x_config.get();
+    return static_cast<int32_t>(axis_x.type);
 }
 
 static int32_t input_shaper_y_type() {
-    if (const auto &axis_y = input_shaper::current_config().axis_y) {
-        return static_cast<int32_t>(axis_y->type);
-    }
-    return 0;
+    const auto axis_y = config_store().input_shaper_axis_y_config.get();
+    return static_cast<int32_t>(axis_y.type);
 }
 
 static uint32_t input_shaper_x_frequency() {
-    if (const auto &axis_x = input_shaper::current_config().axis_x) {
-        return static_cast<uint32_t>(axis_x->frequency);
-    }
-    return 0;
+    const auto axis_x = config_store().input_shaper_axis_x_config.get();
+    return static_cast<int32_t>(axis_x.frequency);
 }
 
 static uint32_t input_shaper_y_frequency() {
-    if (const auto &axis_y = input_shaper::current_config().axis_y) {
-        return static_cast<uint32_t>(axis_y->frequency);
+    const auto axis_y = config_store().input_shaper_axis_y_config.get();
+    return static_cast<int32_t>(axis_y.frequency);
+}
+
+static bool input_shaper_y_weight_compensation() {
+    return config_store().input_shaper_weight_adjust_y_enabled.get();
+}
+
+MI_IS_X_ONOFF::MI_IS_X_ONOFF()
+    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_x_enabled(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+}
+
+void MI_IS_X_ONOFF::OnChange(size_t) {
+    config_store().input_shaper_axis_x_enabled.set(index);
+    if (index) {
+        input_shaper::set_axis_config(X_AXIS, config_store().input_shaper_axis_x_config.get());
+    } else {
+        input_shaper::set_axis_config(X_AXIS, std::nullopt);
     }
-    return 0;
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)&param);
 }
 
-bool input_shaper_enabled() {
-    return input_shaper_x_enabled() || input_shaper_y_enabled();
+MI_IS_Y_ONOFF::MI_IS_Y_ONOFF()
+    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_y_enabled(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
 }
 
-MI_IS_ONOFF::MI_IS_ONOFF()
-    : WI_INFO_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
-    ChangeInformation(input_shaper_enabled() ? _(str_active) : _(str_idle));
-}
-
-MI_IS_TYPE::MI_IS_TYPE(int32_t val, string_view_utf8 label_src, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
-    : WI_SWITCH_t<6>(val, label_src, id_icon, enabled, hidden, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_ZV), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_ZVD), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_MZV), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_EI), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_2HUMP_EI), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_3HUMP_EI)) {
-}
-
-MI_IS_TYPE::~MI_IS_TYPE() {
+void MI_IS_Y_ONOFF::OnChange(size_t) {
+    config_store().input_shaper_axis_y_enabled.set(index);
+    if (index) {
+        input_shaper::set_axis_config(Y_AXIS, config_store().input_shaper_axis_y_config.get());
+    } else {
+        input_shaper::set_axis_config(Y_AXIS, std::nullopt);
+    }
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)&param);
 }
 
 MI_IS_X_TYPE::MI_IS_X_TYPE()
-    : MI_IS_TYPE(input_shaper_x_type(), _(label), nullptr, is_enabled_t::no, input_shaper_x_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    // clang-format off
+    : WI_SWITCH_t<6>(input_shaper_x_type(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::zv))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::zvd))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::mzv))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_2hump))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_3hump))
+    ) {
+    // clang-format on
+    if (!input_shaper_x_enabled())
+        DontShowDisabledExtension();
 }
 
-void MI_IS_X_TYPE::OnChange([[maybe_unused]] size_t old_index) {
-    // TODO(InputShaperBeta)
+void MI_IS_X_TYPE::OnChange(size_t) {
+    auto axis_x = config_store().input_shaper_axis_x_config.get();
+    axis_x.type = static_cast<input_shaper::Type>(GetIndex());
+    config_store().input_shaper_axis_x_config.set(axis_x);
+    input_shaper::set_axis_config(X_AXIS, axis_x);
 }
 
 MI_IS_Y_TYPE::MI_IS_Y_TYPE()
-    : MI_IS_TYPE(input_shaper_y_type(), _(label), nullptr, is_enabled_t::no, input_shaper_y_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    // clang-format off
+    : WI_SWITCH_t<6>(input_shaper_y_type(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::zv))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::zvd))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::mzv))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_2hump))
+    , string_view_utf8::MakeCPUFLASH((const uint8_t *)input_shaper::to_string(input_shaper::Type::ei_3hump))
+    ) {
+    // clang-format on
+    if (!input_shaper_y_enabled())
+        DontShowDisabledExtension();
 }
 
-void MI_IS_Y_TYPE::OnChange([[maybe_unused]] size_t old_index) {
-    // TODO(InputShaperBeta)
+void MI_IS_Y_TYPE::OnChange(size_t) {
+    auto axis_y = config_store().input_shaper_axis_y_config.get();
+    axis_y.type = static_cast<input_shaper::Type>(GetIndex());
+    config_store().input_shaper_axis_y_config.set(axis_y);
+    input_shaper::set_axis_config(Y_AXIS, axis_y);
 }
+
+static constexpr SpinConfigInt is_frequency_spin_config = makeSpinConfig<int>(
+    { static_cast<int>(input_shaper::frequency_safe_min), static_cast<int>(input_shaper::frequency_safe_max), 1 },
+    "Hz",
+    spin_off_opt_t::no);
 
 MI_IS_X_FREQUENCY::MI_IS_X_FREQUENCY()
-    : WiSpinInt(input_shaper_x_frequency(), SpinCnf::input_shaper_freq, _(label), nullptr, is_enabled_t::no, input_shaper_x_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : WiSpinInt(input_shaper_x_frequency(), is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    if (!input_shaper_x_enabled())
+        DontShowDisabledExtension();
 }
 
 void MI_IS_X_FREQUENCY::OnClick() {
-    // TODO(InputShaperBeta)
+    auto axis_x = config_store().input_shaper_axis_x_config.get();
+    axis_x.frequency = static_cast<float>(GetVal());
+    config_store().input_shaper_axis_x_config.set(axis_x);
+    input_shaper::set_axis_config(X_AXIS, axis_x);
 }
 
 MI_IS_Y_FREQUENCY::MI_IS_Y_FREQUENCY()
-    : WiSpinInt(input_shaper_y_frequency(), SpinCnf::input_shaper_freq, _(label), nullptr, is_enabled_t::no, input_shaper_y_enabled() ? is_hidden_t::no : is_hidden_t::yes) {
+    : WiSpinInt(input_shaper_y_frequency(), is_frequency_spin_config, _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    if (!input_shaper_y_enabled())
+        DontShowDisabledExtension();
 }
 
 void MI_IS_Y_FREQUENCY::OnClick() {
-    // TODO(InputShaperBeta)
+    auto axis_y = config_store().input_shaper_axis_y_config.get();
+    axis_y.frequency = static_cast<float>(GetVal());
+    config_store().input_shaper_axis_y_config.set(axis_y);
+    input_shaper::set_axis_config(Y_AXIS, axis_y);
+}
+
+MI_IS_Y_COMPENSATION::MI_IS_Y_COMPENSATION()
+    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_y_weight_compensation(), _(label), nullptr, is_enabled_t::no, is_hidden_t::dev) {
+    if (!input_shaper_y_enabled())
+        DontShowDisabledExtension();
+}
+
+void MI_IS_Y_COMPENSATION::OnChange(size_t) {
+    config_store().input_shaper_weight_adjust_y_enabled.set(index);
+    if (index) {
+        input_shaper::current_config().weight_adjust_y = config_store().input_shaper_weight_adjust_y_config.get();
+    } else {
+        input_shaper::current_config().weight_adjust_y = std::nullopt;
+    }
+}
+
+MI_IS_SET::MI_IS_SET()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
+}
+
+void MI_IS_SET::click(IWindowMenu &) {
+    MsgBoxISWarning(_("ATTENTION: Changing any Input Shaper values will overwrite them permanently. To revert to a stock setup, visit prusa.io/input-shaper or run a factory reset."), Responses_Ok);
+    Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)&param);
+}
+
+MI_IS_CALIB::MI_IS_CALIB()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+}
+
+void MI_IS_CALIB::click([[maybe_unused]] IWindowMenu &window_menu) {
+    // TODO(InputShaper)
 }

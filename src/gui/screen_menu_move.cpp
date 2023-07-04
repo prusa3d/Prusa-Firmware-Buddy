@@ -12,46 +12,48 @@
 I_MI_AXIS::I_MI_AXIS(size_t index)
     : WiSpinInt(round(marlin_vars()->logical_pos[index]),
         SpinCnf::axis_ranges[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
-    , lastQueuedPos(value.i) {}
+    , last_queued_position(value.i) {}
 
-invalidate_t I_MI_AXIS::change(int diff) {
-    auto res = WiSpinInt::change(diff);
-    return res;
-}
+void I_MI_AXIS::loop__(size_t axis) {
+    if ((int)value == (int)last_queued_position) {
+        // Yeah and every time I try to go where I really want to be
+        // it's already where I am 'cause I'm already there!
+        return;
+    }
 
-void I_MI_AXIS::loop__(size_t index, int8_t long_seg, uint8_t buffer_len) {
-    if (marlin_vars()->pqueue <= buffer_len) {
-        int difference = (int)value - lastQueuedPos;
-        if (difference != 0) {
-            float feedrate = MenuVars::GetManualFeedrate()[index];
-            uint8_t freeSlots = buffer_len - marlin_vars()->pqueue;
-            // move up and queue steps
-            for (uint8_t i = 0; i < freeSlots && lastQueuedPos != (int)value; i++) {
-                if (difference >= long_seg) {
-                    lastQueuedPos += long_seg;
-                    difference -= long_seg;
-                } else if (difference > 0) {
-                    lastQueuedPos++;
-                    difference--;
-                } else if (difference <= -long_seg) {
-                    lastQueuedPos -= long_seg;
-                    difference += long_seg;
-                } else if (difference < 0) {
-                    lastQueuedPos--;
-                    difference++;
-                }
-                marlin_move_axis(lastQueuedPos, feedrate, index);
-            }
+    // This empirical constant was carefully crafted in such
+    // a clever way that it seems to work most of the time.
+    constexpr float magic_constant = 1. / (BLOCK_BUFFER_SIZE * 60 * 1.25 * 5);
+    const float feedrate = MenuVars::GetManualFeedrate()[axis];
+    const float short_segment = feedrate * magic_constant;
+    const float long_segment = 5 * short_segment;
+
+    // Just fill the entire queue with movements.
+    for (uint8_t i = marlin_vars()->pqueue; i < BLOCK_BUFFER_SIZE; i++) {
+        const float difference = (int)value - last_queued_position;
+        if (difference == 0) {
+            break;
+        } else if (difference >= long_segment) {
+            last_queued_position += long_segment;
+        } else if (difference >= short_segment) {
+            last_queued_position += short_segment;
+        } else if (difference <= -long_segment) {
+            last_queued_position -= long_segment;
+        } else if (difference <= -short_segment) {
+            last_queued_position -= short_segment;
+        } else {
+            last_queued_position = int(value);
         }
+        marlin_move_axis(last_queued_position, feedrate, axis);
     }
 }
 
 void MI_AXIS_E::OnClick() {
-    marlin_gcode("G90");    // Set to Absolute Positioning
-    marlin_gcode("M82");    // Set extruder to absolute mode
-    marlin_gcode("G92 E0"); // Reset position before change
-    SetVal(0);              // Reset spin before change
-    lastQueuedPos = 0;      // zero it out so we wont go back when we exit the spinner
+    marlin_gcode("G90");      // Set to Absolute Positioning
+    marlin_gcode("M82");      // Set extruder to absolute mode
+    marlin_gcode("G92 E0");   // Reset position before change
+    SetVal(0);                // Reset spin before change
+    last_queued_position = 0; // zero it out so we wont go back when we exit the spinner
 }
 
 void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {

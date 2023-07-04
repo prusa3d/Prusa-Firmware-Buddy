@@ -9,10 +9,37 @@
             "command": "python3 ${workspaceFolder}/utils/bootstrap.py",
             "windows": {
                 "command": "python ${workspaceFolder}\\utils\\bootstrap.py"
+            }
+        },
+        {
+            "label": "Install simulator_as_qemu",
+            "type": "process",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "windows":{
+                "command": "${workspaceFolder}/.venv/Scripts/python.exe"
             },
+            "args": ["-m", "pip", "install", "-e", "./.vscode/simulator_as_qemu", "--disable-pip-version-check"],
+        },
+        {
+            "label": "Install pre-commit",
+            "type": "process",
+            "command": "${workspaceFolder}/.venv/bin/pre-commit",
+            "windows":{
+                "command": "${workspaceFolder}/.venv/Scripts/pre-commit.exe"
+            },
+            "args": ["install"],
+        },
+        {
+            "label": "Prepare Visual Studio Code",
             "runOptions": {
                 "runOn": "folderOpen"
-            }
+            },
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Bootstrap",
+                "Install simulator_as_qemu",
+                "Install pre-commit",
+            ]
         },
         {
             "label": "Wait 1",
@@ -35,9 +62,9 @@
         {
             "label": "Backup current ELF",
             "type": "shell",
-            "command": "python3 utils/backup_elf.py",
+            "command": "${workspaceFolder}/.venv/bin/python utils/backup_elf.py",
             "windows": {
-                "command": "python utils/backup_elf.py",
+                "command": "${workspaceFolder}/.venv/Scripts/python utils/backup_elf.py",
             },
             "presentation": {
                 "reveal": "silent",

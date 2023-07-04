@@ -16,6 +16,15 @@ bool powerpanic_resumed_get_and_clear();
 
 // Called once after each marlin server loop
 void print_utils_loop();
+
+enum DeleteResult {
+    Busy,
+    GeneralError,
+    Success
+};
+
+DeleteResult remove_file(const char *path);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

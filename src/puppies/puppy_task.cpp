@@ -51,6 +51,7 @@ static void verify_puppies_running() {
         bool modular_bed_ok = !modular_bed.is_enabled() || (modular_bed.ping() == ModularBed::CommunicationStatus::OK);
 
         uint8_t num_dwarfs_ok = 0, num_dwarfs_dead = 0;
+#if HAS_DWARF()
         for (Dwarf &dwarf : dwarfs) {
             if (dwarf.is_enabled()) {
                 if (dwarf.ping() == Dwarf::CommunicationStatus::OK) {
@@ -60,6 +61,7 @@ static void verify_puppies_running() {
                 }
             }
         }
+#endif
 
         if (num_dwarfs_dead == 0 && modular_bed_ok) {
             log_info(Puppies, "All puppies are reacheable. Continuing");
@@ -163,11 +165,13 @@ static void puppy_task_loop() {
 
 static bool puppy_initial_scan() {
     // init each puppy
+#if HAS_DWARF()
     for (Dwarf &dwarf : dwarfs) {
         if (dwarf.is_enabled())
             if (dwarf.initial_scan() != Dwarf::CommunicationStatus::OK)
                 return false;
     }
+#endif
 
     if (modular_bed.initial_scan() != ModularBed::CommunicationStatus::OK) {
         return false;
@@ -178,7 +182,7 @@ static bool puppy_initial_scan() {
 static void puppy_task_body([[maybe_unused]] void const *argument) {
     TaskDeps::wait(TaskDeps::Tasks::puppy_start);
 
-#if BOARD_VER_EQUAL_TO(0, 5, 0)
+#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 
@@ -256,7 +260,7 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 void start_puppy_task() {
     bootstrap_progress_lock_id = osMutexCreate(osMutex(bootstrap_progress_lock));
 
-    osThreadDef(puppies, puppy_task_body, osPriorityRealtime, 0, 128 * 6);
+    osThreadDef(puppies, puppy_task_body, TASK_PRIORITY_PUPPY_TASK, 0, 128 * 6);
     puppy_task_handle = osThreadCreate(osThread(puppies), NULL);
 }
 

@@ -396,7 +396,7 @@ namespace ExtUI {
   void setActiveTool(const extruder_t extruder) {
     #if EXTRUDERS > 1
       const uint8_t e = extruder - E0;
-      if (e != active_extruder) tool_change(e, tool_return_t::no_move);
+      if (e != active_extruder) tool_change(e, tool_return_t::no_return);
       active_extruder = e;
     #else
       UNUSED(extruder);

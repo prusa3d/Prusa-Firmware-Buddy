@@ -20,7 +20,7 @@
 #include <lwip/tcpip.h>
 #include <cmsis_os.h>
 
-#include "../../../src/common/basename.h"
+#include "../../../src/common/filepath_operation.h"
 
 size_t strlcpy(char *, const char *, size_t);
 

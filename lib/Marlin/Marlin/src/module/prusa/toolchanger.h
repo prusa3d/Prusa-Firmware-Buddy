@@ -18,11 +18,12 @@ public:
      * @warning Only run this from Marlin thread.
      * @param new_tool marlin id of new tool [indexed from 0]
      * @param return_type whether to return to previous position
-     * @param return_pos where to return to, needed for Z return even if no_move or no_return
-     * @param suppress_z_lift if true, don't lift Z before toolchange, useful for toolcrash recovery
+     * @param return_position where to return to, needed for Z return even if no_return
+     * @param z_lift select if printer should do Z lift before moving
+     * @param z_return when true, printer will go to return_position.z after toolchange is complete, false will leave Z in last state (possibly lifted by z_lift)
      * @return true if toolchange was successful
      */
-    [[nodiscard]] bool tool_change(const uint8_t new_tool, const tool_return_t return_type, xyz_pos_t return_position, bool suppress_z_lift = false);
+    [[nodiscard]] bool tool_change(const uint8_t new_tool, tool_return_t return_type, xyz_pos_t return_position, tool_change_lift_t z_lift = tool_change_lift_t::full_lift, bool z_return = true);
 
     /// Structure to remember wanted toolchange result in case of a crash
     struct PrecrashData {
@@ -108,11 +109,37 @@ public:
         }
     }
 
+    /**
+     * @brief Bail out this toolchange fast
+     *
+     * Used from self-test when moves are stooped to avoid error report from toolchanger.
+     *
+     * This is sad and desperate way to avoid errors from quick stopped moves during toolchange. Consider situation:
+     * - Selftest runs some operation that requires toolchange.
+     *   (It cannot call it directly, but rather schedules a gcode to call it async)
+     * - Toolchange is on default's task stack
+     * - Toolchange schedules a move
+     * - Schedule move gest on the default's task stack
+     * - Move calls idle
+     * - Now selftest button response is on the top of default's stack
+     * - Response is abort (we want to cancel everything, disable steppers)
+     *
+     * There seems to be no nice way how to communicate the quick stop was executed as response to abort.
+     * As the toolchange is already being run on the same stack as the response handling, it is already in the middle
+     * of the operation. The Abort handling cannot just wait for it to finish as it is being run on the same stack.
+     * Here a mature cooperative planning framework would terminate the toolchange task, but we are not that far.
+     * Instead we set a bool tell the toolchange it is ok to terminate now without errors.
+     */
+    inline void quick_stop() {
+        quick_stopped = true;
+    }
+
 private:
     PrecrashData precrash_data = {};                     ///< Remember wanted toolchange result in case of a crash
     std::atomic<bool> block_tool_check = false;          ///< When true, block loop() with automatic toolchange and toolfall detection
     uint8_t tool_check_fails = 0;                        ///< Count before toolfall
     static constexpr uint8_t TOOL_CHECK_FAILS_LIMIT = 3; ///< Limit of tool_check_fails before toolfall
+    std::atomic<bool> quick_stopped = false;             ///< The current toolchange was quick-stopped
 
     /**
      * @brief Ensure that X and Y are homed to be able to pick/park.
@@ -124,7 +151,7 @@ private:
      * @brief Check if powerpanic happened.
      * @return true if powerpanic happened and toolchange has to quit immediately
      */
-    [[nodiscard]] bool check_powerpanic();
+    [[nodiscard]] bool check_emergency_stop();
 
     /**
      * @brief Know if it is safe to move in X and Y.
@@ -135,10 +162,9 @@ private:
     /**
      * @brief Pickup tool.
      * @param dwarf this tool
-     * @param diff_z nozzle offset difference in Z
      * @return true on success
      */
-    [[nodiscard]] bool pickup(buddy::puppies::Dwarf &dwarf, const float diff_z);
+    [[nodiscard]] bool pickup(buddy::puppies::Dwarf &dwarf);
 
     /**
      * @brief Park tool.
@@ -180,6 +206,9 @@ private:
      */
     void toolfall();
 
+    /**
+     * @brief Purges too by extruding some filament outside of print area and tries to shake it away and wipe it by parking
+     */
     bool purge_tool(buddy::puppies::Dwarf &dwarf);
 };
 

@@ -105,7 +105,7 @@ screen_splash_data_t::screen_splash_data_t()
                 if (!prusa_toolchanger.is_tool_enabled(e)) {
                     continue;
                 }
-                if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
+                if (any_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].fansSwitched, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell, sr.tools[e].dockoffset, sr.tools[e].tooloffset)) {
                     return false;
                 }
             }

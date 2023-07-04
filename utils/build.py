@@ -2,16 +2,15 @@
 import argparse
 import os
 import json
-import platform
 import re
 import shutil
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from collections import namedtuple
 from copy import deepcopy
-from enum import Enum
+from enum import Enum, auto
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -19,10 +18,16 @@ from uuid import uuid4
 
 project_root = Path(__file__).resolve().parent.parent
 dependencies_dir = project_root / '.dependencies'
+utils_dir = project_root / 'utils'
 presets_dir = project_root / 'utils' / 'presets'
 
+# add the 'utils' dir to path so we can see the other packages
+sys.path.insert(0, str(utils_dir))
 
-def bootstrap(*args, interactive=False):
+import bootstrap
+
+
+def bootstrap_(*args, interactive=False):
     """Run the bootstrap script."""
     bootstrap_py = project_root / 'utils' / 'bootstrap.py'
     result = subprocess.run([sys.executable, str(bootstrap_py)] + list(args),
@@ -45,8 +50,7 @@ Preset = namedtuple('Preset', ['name', 'description', 'cache_variables'])
 @lru_cache()
 def get_dependency(name):
     """Return an installation path of a dependency."""
-    install_dir = Path(
-        bootstrap('--print-dependency-directory', name).stdout.strip())
+    install_dir = bootstrap.get_dependency_directory(name)
     if name == 'ninja':
         return install_dir / ('ninja')
     elif name == 'cmake':
@@ -116,23 +120,39 @@ class BuildConfiguration(ABC):
         return hash(self.name)
 
 
+class BuildLayout(Enum):
+    DEVELOPMENT = auto()
+    """
+    Used when configuring future build (cproject, etc)
+    Build dirs are placed under build-vscode-(buddy,dwarf,modularbed).
+    """
+
+    COMMON_BUILD_DIR = auto()
+    """
+    Used when building multiple configurations.
+    Build dirs are placed under build/<printer>_(release/debug)_(no,)boot>
+    """
+
+
 class FirmwareBuildConfiguration(BuildConfiguration):
     def __init__(self,
                  *,
                  preset: Preset,
                  bootloader: Bootloader,
                  build_type: BuildType,
-                 toolchain: Path = None,
+                 build_layout: BuildLayout,
+                 toolchain: Optional[Path] = None,
                  generator: str = 'Ninja',
                  generate_dfu: bool = False,
                  generate_bbf: bool = False,
-                 signing_key: Path = None,
-                 version_suffix: str = None,
-                 version_suffix_short: str = None,
-                 custom_entries: List[str] = None):
+                 signing_key: Optional[Path] = None,
+                 version_suffix: Optional[str] = None,
+                 version_suffix_short: Optional[str] = None,
+                 custom_entries: Optional[List[str]] = None):
         self.preset = preset
         self.build_type = build_type
         self.bootloader = bootloader
+        self.build_layout = build_layout
         self.toolchain = toolchain or FirmwareBuildConfiguration.default_toolchain(
         )
         self.generator = generator
@@ -165,6 +185,9 @@ class FirmwareBuildConfiguration(BuildConfiguration):
 
         # set preset's cache variables
         for name, value in self.preset.cache_variables.items():
+            ignore = ['MODULARBED_BINARY_DIR', 'DWARF_BINARY_DIR']
+            if self.build_layout == BuildLayout.COMMON_BUILD_DIR and name in ignore:
+                continue
             if isinstance(value, bool):
                 entries.append((name, 'BOOL', 'YES' if value else 'NO'))
             elif isinstance(value, str):
@@ -553,7 +576,8 @@ def store_products(products: List[Path], build_config: BuildConfiguration,
         if isinstance(build_config, FirmwareBuildConfiguration
                       ) and build_config.version_suffix != '<auto>':
             version = project_version()
-            name = base_name + '_' + version + build_config.version_suffix
+            name = base_name + '_' + version + (build_config.version_suffix
+                                                or '')
         else:
             name = base_name
         destination = products_dir / (name + product.suffix)
@@ -596,6 +620,8 @@ def cmake_cache_entry(arg):
 
 
 def main():
+    bootstrap.switch_to_venv_if_nedded()
+
     all_presets = load_presets()
     parser = argparse.ArgumentParser()
     # yapf: disable
@@ -719,9 +745,7 @@ def main():
         args.no_build = True
 
     # check all dependencis are installed
-    if bootstrap(interactive=True).returncode != 0:
-        print('bootstrap.py failed.')
-        sys.exit(1)
+    bootstrap.bootstrap()
 
     # parse what presets are selected by the user
     selected_preset_names = [
@@ -731,6 +755,7 @@ def main():
         preset for preset in all_presets
         if preset.name.lower() in selected_preset_names
     ]
+    build_layout = BuildLayout.DEVELOPMENT if args.generate_cproject or args.generate_cmake_presets else BuildLayout.COMMON_BUILD_DIR
 
     # prepare configurations
     configurations: List[BuildConfiguration] = [
@@ -738,6 +763,7 @@ def main():
             preset=preset,
             bootloader=bootloader,
             build_type=build_type,
+            build_layout=build_layout,
             generate_dfu=args.generate_dfu,
             generate_bbf=args.generate_bbf,
             signing_key=args.signing_key,

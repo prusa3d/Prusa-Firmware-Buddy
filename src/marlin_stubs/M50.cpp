@@ -1,4 +1,7 @@
-// selftest
+/**
+ * @file
+ * @brief selftest
+ */
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 
@@ -11,9 +14,12 @@
 
 #if HAS_GUI()
 
-// M50 .. selftest
-// use M50 because M48 is test of Z probing (also some kind of test)
-// and M49 was used
+/**
+ * @brief selftest
+ *
+ * use M50 because M48 is test of Z probing (also some kind of test)
+ * and M49 was used
+ */
 void PrusaGcodeSuite::M50() {
     bool X_test = parser.seen('X');
     bool Y_test = parser.seen('Y');

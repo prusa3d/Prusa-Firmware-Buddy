@@ -16,6 +16,10 @@ struct Version {
 /// Return version of installed bootloader.
 Version get_version();
 
+// Bootloader sectors
+static constexpr const size_t bootloader_sector_sizes[] = { 16384, 16384, 16384, 16384, 65536 };
+static constexpr const size_t bootloader_sector_count = std::size(bootloader_sector_sizes);
+
 #if BOOTLOADER_UPDATE()
 
 /// Return true if the bootloader needs to be updated/reflashed
@@ -33,5 +37,11 @@ using ProgressHook = std::function<void(int percent_done, UpdateStage stage)>;
 void update(ProgressHook progress);
 
 #endif
+
+/**
+ * @brief Erase part of firmware, so it cannot run and needs to be reflashed by bootloader.
+ * @return false on error, does not return on success
+ */
+[[nodiscard]] bool fw_invalidate(void);
 
 };

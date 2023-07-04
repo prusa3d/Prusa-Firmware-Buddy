@@ -8,6 +8,7 @@
 #include "footer_eeprom.hpp"
 #include "led_animations/led_types.h"
 #include <option/development_items.h>
+#include "selftest_result.hpp"
 
 namespace eeprom::v32787 {
 
@@ -111,7 +112,7 @@ struct vars_body_t : public eeprom::v12::vars_body_t {
     uint8_t EEVAR_HWCHECK_MODEL;
     uint8_t EEVAR_HWCHECK_FIRMW;
     uint8_t EEVAR_HWCHECK_GCODE;
-    SelftestResult SELFTEST_RESULT;
+    SelftestResult_pre_23 SELFTEST_RESULT_PRE_23;
 };
 
 #pragma pack(pop)
@@ -225,7 +226,7 @@ constexpr vars_body_t body_defaults = {
     1,  // EEVAR_HWCHECK_MODEL
     1,  // EEVAR_HWCHECK_FIRMW
     1,  // EEVAR_HWCHECK_GCODE
-    {}, // EEVAR_SELFTEST_RESULT_V2
+    {}, // EEVAR_SELFTEST_RESULT_PRE_23
 };
 
 inline vars_body_t convert(const eeprom::v12::vars_body_t &src) {

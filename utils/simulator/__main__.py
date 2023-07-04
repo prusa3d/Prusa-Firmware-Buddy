@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from contextlib import AsyncExitStack
 from typing import Optional
+import platform
 
 import click
 
@@ -126,7 +127,9 @@ def make_sync(f):
 @click.option('--simulator-path',
               type=click.Path(exists=True, path_type=Path),
               default=(friendly_path(
-                  get_dependency_directory('mini404') / 'qemu-system-buddy')),
+                  get_dependency_directory('mini404') /
+                  ('qemu-system-buddy.exe' if platform.system() == 'Windows'
+                   else 'qemu-system-buddy'))),
               show_default=True)
 @click.option('--simulator-dir',
               type=click.Path(path_type=Path),

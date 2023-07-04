@@ -32,7 +32,7 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     }
 
     // Move the nozzle up and away from the bed
-    do_homing_move(Z_AXIS, Z_CALIB_EXTRA_HIGHT, HOMING_FEEDRATE_INVERTED_Z, false, false);
+    do_homing_move(Z_AXIS, Z_CALIB_EXTRA_HIGHT, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), false, false);
     current_position.z = 0;
     sync_plan_position();
     current_position.x = X_MIN_POS + 2;
@@ -44,7 +44,7 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
 
     // Home the axis
     endstops.enable(true); // Stall endstops need to be enabled manually as in G28
-    if (!homeaxis(Z_AXIS, HOMING_FEEDRATE_INVERTED_Z, false, nullptr, true, z_probe)) {
+    if (!homeaxis(Z_AXIS, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), false, nullptr, true, z_probe)) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
     }
     endstops.not_homing();
@@ -77,7 +77,7 @@ static void safe_move_down() {
     float target_Z_offset = (AFTER_Z_CALIB_Z_POS - Z_AFTER_PROBING - Z_MAX_POS);
     current_position.z = Z_MIN_POS;
     Z_Calib_FSM N(ClientFSM::Selftest, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z_offset, 0, 100);
-    do_homing_move(AxisEnum::Z_AXIS, target_Z_offset, HOMING_FEEDRATE_INVERTED_Z);
+    do_homing_move(AxisEnum::Z_AXIS, target_Z_offset, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z));
     current_position.z = Z_MIN_POS;
     sync_plan_position();
     STOW_PROBE();
@@ -99,7 +99,7 @@ void selftest::calib_Z(bool move_down_after) {
     FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::CalibZ);
         #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX)
     endstops.enable(true); // Stall endstops need to be enabled manually as in G28
-    if (!homeaxis(Z_AXIS, HOMING_FEEDRATE_INVERTED_Z, true)) {
+    if (!homeaxis(Z_AXIS, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), true)) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
     }
     endstops.not_homing();
@@ -120,16 +120,6 @@ void selftest::calib_Z(bool move_down_after) {
     #endif     // HAS_BED_PROBE
 }
 #endif
-
-void selftest::ensure_Z_away() {
-    static constexpr auto minimum_safe_distance { 10 };
-
-    if (axis_known_position & Z_AXIS) {
-        do_blocking_move_to_z(Z_MIN_POS, feedRate_t(Z_CALIB_ALIGN_AXIS_FEEDRATE));
-    } else {
-        do_blocking_move_to_z(current_position.z + minimum_safe_distance, feedRate_t(Z_CALIB_ALIGN_AXIS_FEEDRATE));
-    }
-}
 
 void PrusaGcodeSuite::G162() {
     if (parser.seen('Z')) {

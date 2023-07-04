@@ -13,11 +13,22 @@ namespace dwarf::loadcell {
 // number of records in loadcell buffer
 static constexpr size_t LOADCELL_BUFFER_RECORDS_NUM = 14;
 
+// number of running average steps to filter the data
+static constexpr size_t RUNNING_AVERAGE_STEPS { 10 };
+static constexpr LoadcellSample_t MAX_DIFFERENCE { 50000 };
+static constexpr size_t MAX_SKIPPED { 3 };
+
 // circular buffer that stores loadcell samples
 CircleBuffer<LoadcellRecord, LOADCELL_BUFFER_RECORDS_NUM> sample_buffer;
 
 // indicator that sample_buffer was full
 uint32_t buffer_overflown = 0;
+
+// Running average sample value
+LoadcellSample_t running_average = 0;
+
+// Length of current skipped run
+size_t skipped_samples = 0;
 
 static bool loadcell_is_enabled = false;
 
@@ -51,8 +62,28 @@ void loadcell_irq() {
     }
 }
 
+bool filter(const LoadcellRecord &sample) {
+    bool ok = abs(sample.loadcell_raw_value - running_average) < MAX_DIFFERENCE;
+    running_average = (RUNNING_AVERAGE_STEPS * running_average + sample.loadcell_raw_value) / (RUNNING_AVERAGE_STEPS + 1);
+    return ok;
+}
+
 bool get_loadcell_sample(LoadcellRecord &sample) {
-    return sample_buffer.ConsumeFirst(sample);
+    // Consume samples until a good one is found
+    while (sample_buffer.ConsumeFirst(sample)) {
+        if (filter(sample)) {
+            // Sample looks good
+            skipped_samples = 0;
+            return true;
+        }
+        if (skipped_samples > MAX_SKIPPED) {
+            // Already skipped too many, needs to send something
+            return true;
+        }
+        skipped_samples++;
+    }
+
+    return false;
 }
 
 void loadcell_set_enable(bool enable) {

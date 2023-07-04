@@ -11,7 +11,7 @@ enum class eSOUND_MODE : uint8_t {
     DEFAULT_SOUND = LOUD
 };
 
-enum eSOUND_TYPE : uint8_t {
+enum class eSOUND_TYPE : uint8_t {
     ButtonEcho,
     StandardPrompt,
     StandardAlert,
@@ -21,5 +21,4 @@ enum eSOUND_TYPE : uint8_t {
     Start,
     SingleBeep,
     WaitingBeep,
-    count
 };

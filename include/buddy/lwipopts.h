@@ -47,6 +47,9 @@ extern "C" {
 #define LWIP_CHECKSUM_ON_COPY     1
 #define HTTPD_USE_CUSTOM_FSDATA   0
 
+#include "buddy/priorities_config.h"
+#define TCPIP_THREAD_PRIO TASK_PRIORITY_TCPIP_THREAD
+
 /*
  * FIXME:
  * Workaround:

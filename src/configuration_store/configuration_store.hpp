@@ -1,5 +1,5 @@
 #pragma once
-#include "eeprom_journal_config_store.hpp"
+#include "eeprom_journal/store_instance.hpp"
 
 /**
  * @brief Initializes all configuration stores

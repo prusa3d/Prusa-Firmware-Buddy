@@ -56,7 +56,7 @@ void SelftestFrameToolOffsets::change() {
         break;
 
     case PhasesSelftest::ToolOffsets_wait_user_install_pin:
-        text_phase.SetText(_("Remove heatbed sheet, install calibration pin."));
+        text_phase.SetText(_("- Remove heatbed sheet.\n- Install calibration pin."));
         text_detail.Hide();
         break;
 
@@ -78,7 +78,7 @@ void SelftestFrameToolOffsets::change() {
         break;
 
     case PhasesSelftest::ToolOffsets_wait_user_remove_pin:
-        text_phase.SetText(_("Remove calibration pin, install sheet on heatbed."));
+        text_phase.SetText(_("- Remove calibration pin.\n- Install sheet on heatbed."));
         text_detail.Hide();
         break;
 

@@ -7,13 +7,14 @@
 #include "log_platform.h"
 #include "syslog.h"
 #include "otp.h"
+#include <option/development_items.h>
 
 osMutexDef(syslog_buffer_lock);
 osMutexId syslog_buffer_lock_id;
 
 static bool initialized = false;
 static const char *remote_ip_address = "";
-static int remote_port = 6514;
+static int remote_port = 13514;
 static syslog_transport_t syslog_transport {};
 
 static int log_severity_to_syslog_severity(log_severity_t severity) {

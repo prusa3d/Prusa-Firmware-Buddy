@@ -19,6 +19,7 @@
 #include "stm32g0xx_hal.h"
 #include "stm32g0xx_hal_tim.h"
 #include "PuppyConfig.hpp"
+#include "buddy/priorities_config.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -43,7 +44,7 @@ HAL_StatusTypeDef HAL_InitTick([[maybe_unused]] uint32_t TickPriority) {
     uint32_t uwPrescalerValue = 0;
     uint32_t pFLatency;
     /*Configure the TIM1 IRQ priority */
-    HAL_NVIC_SetPriority(TIM1_BRK_UP_TRG_COM_IRQn, SYSTEM_TICK_IRQ_PRIORITY, 0);
+    HAL_NVIC_SetPriority(TIM1_BRK_UP_TRG_COM_IRQn, ISR_PRIORITY_TICK_TIMER, 0);
 
     /* Enable the TIM1 global Interrupt */
     HAL_NVIC_EnableIRQ(TIM1_BRK_UP_TRG_COM_IRQn);

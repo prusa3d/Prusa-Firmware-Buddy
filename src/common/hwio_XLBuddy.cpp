@@ -29,6 +29,10 @@
 #include "device/board.h"
 #include "Marlin/src/module/motion.h" // for active_extruder
 #include "puppies/modular_bed.hpp"
+#include "otp.h"
+#include "logging/log.h"
+
+LOG_COMPONENT_REF(Buddy);
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "Marlin/src/module/prusa/toolchanger.h"
@@ -76,6 +80,13 @@ enum {
 
 } // end anonymous namespace
 
+namespace buddy::hw {
+const OutputPin *Buzzer = nullptr;
+const OutputPin *SideLed_LcdSelector = nullptr;
+const OutputPin *XStep = nullptr;
+const OutputPin *YStep = nullptr;
+}
+
 /**
  * @brief analog output pins
  */
@@ -100,6 +111,9 @@ static TIM_HandleTypeDef *_pwm_p_htim[] = {
 static int *const _pwm_period_us[] = {
     &_tim1_period_us, //_PWM_FAN
 };
+
+// stores board revision from OTP for faster access
+board_revision_t board_revision;
 
 // buddy pwm output maximum values
 static constexpr int _pwm_max[] = { TIM1_default_Period };
@@ -397,9 +411,9 @@ void hwio_update_1ms(void) {
 
     if (hwio_beeper_pulses > 0) {
         if (hwio_beeper_pulses % 2) {
-            Buzzer.reset();
+            buddy::hw::Buzzer->reset();
         } else {
-            Buzzer.set();
+            buddy::hw::Buzzer->set();
         }
         hwio_beeper_pulses -= 1;
     }
@@ -498,6 +512,10 @@ int digitalRead(uint32_t marlinPin) {
         return buddy::puppies::dwarfs[3].is_tmc_enabled();
     case MARLIN_PIN(E4_ENA):
         return buddy::puppies::dwarfs[4].is_tmc_enabled();
+    case MARLIN_PIN(X_STEP):
+        return buddy::hw::XStep->read() == Pin::State::low ? 0 : 1;
+    case MARLIN_PIN(Y_STEP):
+        return buddy::hw::YStep->read() == Pin::State::low ? 0 : 1;
     default:
 #if _DEBUG
         if (!buddy::hw::physicalPinExist(marlinPin)) {
@@ -556,6 +574,12 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
         }
         break;
     }
+    case MARLIN_PIN(X_STEP):
+        buddy::hw::XStep->write(ulVal ? Pin::State::high : Pin::State::low);
+        break;
+    case MARLIN_PIN(Y_STEP):
+        buddy::hw::YStep->write(ulVal ? Pin::State::high : Pin::State::low);
+        break;
     case MARLIN_PIN(DUMMY): {
         break;
     }
@@ -605,4 +629,40 @@ void analogWrite(uint32_t ulPin, uint32_t ulValue) {
 
 void pinMode([[maybe_unused]] uint32_t ulPin, [[maybe_unused]] uint32_t ulMode) {
     // not supported, all pins are configured with Cube
+}
+
+void buddy::hw::hwio_configure_board_revision_changed_pins() {
+    if (!otp_get_board_revision(&board_revision) || board_revision.bytes[0] <= 4) {
+        bsod("Unable to determine board revision");
+    }
+    log_info(Buddy, "Detected board %d.%d", board_revision.bytes[0], board_revision.bytes[1]);
+
+    // Different HW revisions have different pins connections, figure it out here
+    if (board_revision.bytes[0] >= 9 || board_revision.bytes[0] == 4) {
+        Buzzer = &pin_a0;
+        XStep = &pin_d7;
+        YStep = &pin_d5;
+    } else {
+        Buzzer = &pin_d5;
+        XStep = &pin_a0;
+        YStep = &pin_a3;
+    }
+
+    if (board_revision.bytes[0] >= 9) {
+        SideLed_LcdSelector = &pin_e9;
+    }
+}
+
+void hw_init_spi_side_leds() {
+    // Side leds was connectet to dedicated SPI untill revision 8, in revision 9 SPI is shared with LCD. So init SPI only if needed.
+    if (board_revision.bytes[0] <= 8) {
+        hw_spi4_init();
+    }
+}
+SPI_HandleTypeDef *hw_get_spi_side_strip() {
+    if (board_revision.bytes[0] >= 9 || board_revision.bytes[0] == 4) {
+        return &SPI_HANDLE_FOR(lcd);
+    } else {
+        return &hspi4;
+    }
 }

@@ -130,6 +130,10 @@ public:
     virtual NetCreds net_creds() const = 0;
     virtual bool job_control(JobControl) = 0;
     virtual bool start_print(const char *path) = 0;
+    // Deletes a file.
+    //
+    // returns nullptr on success, message with reason of failure otherwise
+    virtual const char *delete_file(const char *path) = 0;
     // Enqueues a gcode command (single one).
     //
     // FIXME: For now, this is a "black hole". It'll just submit it without any

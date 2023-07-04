@@ -15,7 +15,7 @@ static constexpr const char *en_text_test_name = N_("Gearbox alignment");
 SelftestFrameGearsCalib::SelftestFrameGearsCalib(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_test_name), 1)
 
-    , footer(this, 0, footer::Item::FSensor)
+    , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::FSensor)
     , progress(this, WizardDefaults::row_1)
     , text(this, Rect16(WizardDefaults::col_0, content_top_y, WizardDefaults::RectSelftestFrame.Width() - WizardDefaults::MarginRight - WizardDefaults::MarginLeft, right_icon.h), is_multiline::yes)
     , text_left(this, Rect16(WizardDefaults::col_0, content_top_y, text_left_width, right_icon.h), is_multiline::yes)
@@ -53,7 +53,7 @@ void SelftestFrameGearsCalib::change() {
         break;
     case PhasesSelftest::GearsCalib_tighten:
         icon_res = &png::transmission_tight_187x175;
-        txt_left = N_("Tighten the M3 screws in the correct order, they should be slightly below the surface. Do not over-tighten!");
+        txt_left = N_("Tighten the M3 screws firmly in the correct order, they should be slightly below the surface. Do not over-tighten.");
         break;
     case PhasesSelftest::GearsCalib_done:
         icon_res = &png::transmission_close_187x175;

@@ -133,7 +133,7 @@ elseif(PRINTER STREQUAL "MK3.5")
   set(PRINTER_TYPE "1")
   set(PRINTER_VERSION "3")
   set(PRINTER_SUBVERSION "5")
-  set(PRINTER_CODE "13")
+  set(PRINTER_CODE "20")
 elseif(PRINTER STREQUAL "MINI")
   set(PRINTER_TYPE "2")
   set(PRINTER_CODE "12")
@@ -394,6 +394,7 @@ add_subdirectory(lib)
 
 if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
   string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower)
+  string(TOLOWER "${PRINTER}" PRINTER_lower)
 
   if(PRINTER STREQUAL "XL" AND BOARD_VERSION VERSION_EQUAL "0.4.0")
     set(dwarf_version_suffix "-04")
@@ -431,8 +432,10 @@ if(BOARD MATCHES ".*BUDDY" AND HAS_PUPPIES_BOOTLOADER)
       modularbed
       SOURCE_DIR "${MODULARBED_SOURCE_DIR}"
       BINARY_DIR "${MODULARBED_BINARY_DIR}"
-      CMAKE_ARGS --preset xl-modularbed${modular_bed_version_suffix}_${CMAKE_BUILD_TYPE_lower}_boot
-                 -B "${MODULARBED_BINARY_DIR}"
+      CMAKE_ARGS
+        --preset
+        ${PRINTER_lower}-modularbed${modular_bed_version_suffix}_${CMAKE_BUILD_TYPE_lower}_boot -B
+        "${MODULARBED_BINARY_DIR}"
       INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "Skipping install step"
       BUILD_BYPRODUCTS "${MODULARBED_BINARY_PATH}" "${MODULARBED_BINARY_DIR}/firmware"
       STEP_TARGETS build
@@ -655,6 +658,9 @@ set_property(
            FW_BUILD_NUMBER=${BUILD_NUMBER}
            FW_VERSION_FULL=${PROJECT_VERSION_FULL}
            FW_VERSION=${PROJECT_VERSION}
+           FW_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+           FW_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+           FW_VERSION_PATCH=${PROJECT_VERSION_PATCH}
            FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
            FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
   )

@@ -9,6 +9,7 @@
 #include <ranges>
 #include "indices.hpp"
 #include "utils/utility_extensions.hpp"
+#include "backend.hpp"
 
 namespace Journal {
 
@@ -22,19 +23,15 @@ template <BackendC BackendT, BackendT &(*backend)()>
 struct CurrentStoreConfig {
     static BackendT &get_backend() { return backend(); };
     using Backend = BackendT;
-    template <std::default_initializable DataT, const DataT &default_val, uint16_t id>
+    template <StoreItemDataC DataT, const DataT &default_val, typename BackendT::Id id>
     using StoreItem = JournalItem<DataT, default_val, BackendT, backend, id>;
 };
 
 template <BackendC BackendT>
 struct DeprecatedStoreConfig {
-    template <typename DataT, uint32_t HashedID, auto ptr>
-    using DeprecatedStoreItem
-        = DeprecatedJournalStoreItemImpl<DataT, HashedID, BackendT,
-            remove_member_pointer_t<decltype(ptr)>, extract_class_type_t<decltype(ptr)>, ptr>;
-
-    template <typename DataT, uint32_t HashedID>
-    using DeletedStoreItem = DeletedStoreItemImpl<DataT, HashedID, BackendT>;
+    template <StoreItemDataC DataT, const DataT &DefaultVal, typename BackendT::Id HashedID>
+    using StoreItem
+        = DeprecatedStoreItemImpl<DataT, DefaultVal, BackendT, HashedID>;
 };
 
 template <class T, class U>
@@ -62,12 +59,10 @@ static auto consteval has_unique_items() {
 /**
  * This class takes Config class as template parameter and it defines the items in ConfigStore, DeprecatedItems class has definition for deprecated items.
  */
-template <class Config, class DeprecatedItems>
+template <class Config, class DeprecatedItems, const std::span<const Journal::Backend::MigrationFunction> &MigrationFunctions>
 class ConfigStore : public Config {
-    static constexpr bool HAS_DEPRECATED = aggregate_arity<DeprecatedItems>::size() > 1;
 
     void dump_items() {
-
         std::apply([](auto &&...args) {
             (args.ram_dump(), ...);
         },
@@ -76,43 +71,21 @@ class ConfigStore : public Config {
 
 public:
     /**
-     * @brief Loads data from a byte array to a hash - handles migrations if the hash was deprecated already.
+     * @brief Loads data from a byte array with a hashed_id.
      * It's meant to be called only by migrating functions.
      *
      * @param id Hashed id of target store item
-     * @param buffer Holds incoming data, can be invalidated by the functions
-     * @param used_bytes Number of bytes wanted bytes in the buffer
+     * @param data Holds data in binary form to be loaded into current item
      */
-    bool load_item(uint16_t id, std::array<uint8_t, 512> &buffer, uint16_t used_bytes) {
+    void load_item(uint16_t id, std::span<uint8_t> data) {
         using TupleT = typename std::invoke_result<decltype(to_tie<Config>), Config &>::type;
         auto constexpr indices = get_current_indices<Config>();
-        std::span<uint8_t> span(buffer.data(), used_bytes);
-        bool migrated = false;
-
-        while (true) {
-            // try to find item in current items
-            auto res = std::lower_bound(indices.cbegin(), indices.cend(), detail::CurrentItemIndex<TupleT>(id, nullptr), [](const auto &a, const auto &b) { return a.id < b.id; });
-            if (res == indices.cend() || res->id != id) {
-                // if not found try to find it in deprecated
-                if constexpr (HAS_DEPRECATED) {
-                    auto constexpr indices_of_deprecated = get_deprecated_indices<DeprecatedItems>();
-                    auto deprecated = std::lower_bound(indices_of_deprecated.cbegin(), indices_of_deprecated.cend(), detail::DeprecatedItemIndex { id, nullptr }, [](const auto &a, const auto &b) { return a.id < b.id; });
-                    if (deprecated == indices_of_deprecated.cend() || deprecated->id != id) {
-                        // not deprecated and not current -> just return and do nothing
-                        return false;
-                    }
-                    // migrate item from old item to new item and try to find the id
-                    std::tie(id, span) = deprecated->fnc(buffer, used_bytes);
-                    migrated = true;
-                    continue;
-                } else {
-                    return false;
-                }
-            }
+        auto res = std::lower_bound(indices.cbegin(), indices.cend(), detail::CurrentItemIndex<TupleT>(id, nullptr),
+            [](const auto &a, const auto &b) { return a.id < b.id; });
+        if (res != indices.cend() && res->id == id) { // we found it in current RAM mirror
             // load data to the item itself
             auto tuple = to_tie(*static_cast<Config *>(this));
-            res->fnc(span, tuple);
-            return migrated;
+            res->fnc(data, tuple);
         }
     }
 
@@ -121,7 +94,7 @@ public:
     };
 
     void load_all() {
-        Config::get_backend().load_all([this](uint16_t id, std::array<uint8_t, 512> &buffer, uint16_t used_bytes) -> bool { return load_item(id, buffer, used_bytes); });
+        Config::get_backend().load_all([this](uint16_t id, std::span<uint8_t> data) -> void { return load_item(id, data); }, MigrationFunctions);
     };
     void init() {
         Config::get_backend().init([this]() {
@@ -136,9 +109,9 @@ public:
     ConfigStore &operator=(ConfigStore &&other) = delete;
 };
 
-template <class Config, class DeprecatedItems>
-inline ConfigStore<Config, DeprecatedItems> &journal() {
-    static ConfigStore<Config, DeprecatedItems> store {};
+template <class Config, class DeprecatedItems, const std::span<const Journal::Backend::MigrationFunction> &MigrationFunctions>
+inline ConfigStore<Config, DeprecatedItems, MigrationFunctions> &journal_store() {
+    static ConfigStore<Config, DeprecatedItems, MigrationFunctions> store {};
     return store;
 }
 }

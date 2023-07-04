@@ -27,7 +27,9 @@ bool selftest_warning_selftest_finished() {
         if (!prusa_toolchanger.is_tool_enabled(e)) {
             continue;
         }
-        if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].nozzle, sr.tools[e].fsensor, sr.tools[e].loadcell)) {
+        if (!all_passed(sr.tools[e].printFan, sr.tools[e].heatBreakFan,
+                sr.tools[e].nozzle, sr.tools[e].fsensor,
+                sr.tools[e].loadcell, sr.tools[e].fansSwitched)) {
             return false;
         }
         if (prusa_toolchanger.is_toolchanger_enabled()) {

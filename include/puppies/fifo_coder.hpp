@@ -41,10 +41,11 @@ typedef struct __attribute__((packed)) {
 
 // Payload types
 typedef uint32_t AccelerometerXyzSample;
+typedef uint32_t LoadcellSample_t;
 
 typedef struct __attribute__((packed)) {
     TimeStamp_us timestamp;
-    int32_t loadcell_raw_value;
+    LoadcellSample_t loadcell_raw_value;
 } LoadcellRecord;
 
 typedef std::array<char, 8> LogData;

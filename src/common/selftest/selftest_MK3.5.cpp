@@ -51,44 +51,70 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-static constexpr uint16_t Fan0min_rpm_table[] = { 10, 10, 10, 10, 10 };
-
-static constexpr uint16_t Fan0max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
-
-static constexpr uint16_t Fan1min_rpm_table[] = { 10, 10, 10, 10, 10 };
-
-static constexpr uint16_t Fan1max_rpm_table[] = { 10000, 10000, 10000, 10000, 10000 };
-
-static constexpr FanConfig_t Config_Fans[2] = {
-    { .type = fan_type_t::Print,
-        .tool_nr = 0,
-        .fanctl_fnc = Fans::print,
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan0min_rpm_table,
-        .rpm_max_table = Fan0max_rpm_table,
-        .steps = 5 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 0,
-        .fanctl_fnc = Fans::heat_break,
-        .pwm_start = 51,
-        .pwm_step = 51,
-        .rpm_min_table = Fan1min_rpm_table,
-        .rpm_max_table = Fan1max_rpm_table,
-        .steps = 5 },
+// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
+// 100%, where on MK4/XL we also check the rpm range. No data for MK3.5 yet.
+static constexpr SelftestFansConfig fans_configs[] = {
+    {
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 10 },
+            .rpm_max_table = { 10000, 10000 },
+            .fanctl_fnc = Fans::print,
+        },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 10 },
+            .rpm_max_table = { 10000, 10000 },
+            .fanctl_fnc = Fans::heat_break,
+        },
+    }
 };
 
 // reads data from eeprom, cannot be constexpr
-const AxisConfig_t selftest::Config_XAxis = { .partname = "X-Axis", .length = X_MAX_POS, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = X_MAX_POS, .length_max = X_MAX_POS + X_END_GAP, .axis = X_AXIS, .steps = xy_fr_table_size, .movement_dir = 1 }; // MINI has movement_dir -1
+const AxisConfig_t selftest::Config_XAxis = {
+    .partname = "X-Axis",
+    .length = X_MAX_POS,
+    .fr_table_fw = XYfr_table,
+    .fr_table_bw = XYfr_table,
+    .length_min = X_MAX_POS,
+    .length_max = X_MAX_POS + X_END_GAP,
+    .axis = X_AXIS,
+    .steps = xy_fr_table_size,
+    .movement_dir = 1,
+    .park = false,
+    .park_pos = 0,
+}; // MINI has movement_dir -1
 
-const AxisConfig_t selftest::Config_YAxis = { .partname = "Y-Axis", .length = Y_MAX_POS, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = Y_MAX_POS,
+const AxisConfig_t selftest::Config_YAxis = {
+    .partname = "Y-Axis",
+    .length = Y_MAX_POS,
+    .fr_table_fw = XYfr_table,
+    .fr_table_bw = XYfr_table,
+    .length_min = Y_MAX_POS,
     // I have measured length = 219mm, TODO test on more printers
     .length_max = Y_MAX_POS + Y_END_GAP + 5,
     .axis = Y_AXIS,
     .steps = xy_fr_table_size,
-    .movement_dir = 1 };
+    .movement_dir = 1,
+    .park = true,
+    .park_pos = 150,
+};
 
-static const AxisConfig_t Config_ZAxis = { .partname = "Z-Axis", .length = get_z_max_pos_mm(), .fr_table_fw = Zfr_table_fw, .fr_table_bw = Zfr_table_bw, .length_min = get_z_max_pos_mm() - 4, .length_max = get_z_max_pos_mm() + 6, .axis = Z_AXIS, .steps = z_fr_tables_size, .movement_dir = 1 };
+static const AxisConfig_t Config_ZAxis = {
+    .partname = "Z-Axis",
+    .length = get_z_max_pos_mm(),
+    .fr_table_fw = Zfr_table_fw,
+    .fr_table_bw = Zfr_table_bw,
+    .length_min = get_z_max_pos_mm() - 4,
+    .length_max = get_z_max_pos_mm() + 6,
+    .axis = Z_AXIS,
+    .steps = z_fr_tables_size,
+    .movement_dir = 1,
+    .park = false,
+    .park_pos = 0,
+};
 
 static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
     {
@@ -143,23 +169,27 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .min_pwm_to_measure = 26,
 };
 
-static constexpr FanConfig_t Config_Fan_fine[] = {
-    { .type = fan_type_t::Print,
-        .tool_nr = 0,
-        .fanctl_fnc = Fans::print,
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
-    { .type = fan_type_t::Heatbreak,
-        .tool_nr = 0,
-        .fanctl_fnc = Fans::heat_break,
-        .pwm_start = 20,
-        .pwm_step = 10,
-        .rpm_min_table = nullptr,
-        .rpm_max_table = nullptr,
-        .steps = 24 },
+// N.B. Using this for both rpm_min_table and rpm_max_table
+//      causes FanHandler::evaluate() to skip checking the RPM.
+static constexpr std::array<uint16_t, 2> null_rpm_table = { 0, 0 };
+
+static constexpr SelftestFansConfig Config_Fan_fine[] = {
+    {
+        .print_fan = {
+            .pwm_start = 20,
+            .pwm_step = 10,
+            .rpm_min_table = null_rpm_table,
+            .rpm_max_table = null_rpm_table,
+            .fanctl_fnc = Fans::print,
+        },
+        .heatbreak_fan = {
+            .pwm_start = 20,
+            .pwm_step = 10,
+            .rpm_min_table = null_rpm_table,
+            .rpm_max_table = null_rpm_table,
+            .fanctl_fnc = Fans::heat_break,
+        },
+    }
 };
 
 static const FirstLayerConfig_t Config_FirstLayer = { .partname = "First Layer" };
@@ -241,7 +271,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsFans:
-        if (selftest::phaseFans(pFans, Config_Fans))
+        if (selftest::phaseFans(pFans, fans_configs))
             return;
         break;
     case stsWait_fans:
@@ -293,7 +323,7 @@ void CSelftest::Loop() {
         selftest::phaseHeaters_bed_ena(pBed, Config_HeaterBed);
         break;
     case stsHeaters:
-        if (selftest::phaseHeaters(pNozzles, pBed))
+        if (selftest::phaseHeaters(pNozzles, &pBed))
             return;
         break;
     case stsWait_heaters:
@@ -420,6 +450,7 @@ void CSelftest::phaseSelftestStart() {
     if (m_Mask & stmFans) {
         m_result.tools[0].printFan = TestResult_Unknown;
         m_result.tools[0].heatBreakFan = TestResult_Unknown;
+        m_result.tools[0].fansSwitched = TestResult_Unknown;
     }
     if (m_Mask & stmXAxis)
         m_result.xaxis = TestResult_Unknown;

@@ -7,6 +7,7 @@
     #include "../../module/planner.h"
     #include "homing.h"
     #include "../tmc_util.h"
+    #include <optional>
 
 class Measure_axis {
 public:

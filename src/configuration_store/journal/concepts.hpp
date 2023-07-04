@@ -4,16 +4,16 @@
 #include <span>
 
 namespace Journal {
-using UpdateFunction = std::function<bool(uint16_t, std::array<uint8_t, 512> &, uint16_t)>;
+using UpdateFunction = std::function<void(uint16_t, std::span<uint8_t>)>;
 using DumpCallback = std::function<void(void)>;
 
 template <typename T>
-concept BackendC = requires(T &t, uint16_t id, std::span<uint8_t> data, const UpdateFunction &update_function, DumpCallback dump_callback) {
+concept BackendC = requires(T &t, uint16_t id, std::span<uint8_t> data, const UpdateFunction &update_function, DumpCallback dump_callback, std::span<const typename T::MigrationFunction> migration_functions) {
     { t.save(id, data) }
         -> std::same_as<void>;
     { t.lock() }
         -> std::same_as<std::unique_lock<FreeRTOS_Mutex>>;
-    { t.load_all(update_function) };
+    { t.load_all(update_function, migration_functions) };
     { T::MAX_ITEM_SIZE };
 };
 template <typename T>

@@ -1,5 +1,5 @@
 /**
- * @file M1700_1_parse.cpp
+ * @file
  * @brief Parsing of M170X g-codes
  */
 
@@ -9,20 +9,21 @@
 #include "M70X.hpp"
 
 /**
- * M1700: Preheat
+ * Preheat
+ *
  * not meant to be used during print
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  W<value>    - Preheat
- *              - W0  - preheat no return no cool down
- *              - W1  - preheat with cool down option
- *              - W2  - preheat with return option
- *              - W3  - preheat with cool down and return options - default
+ * ## Parameters
  *
- *  S           - Set filament
- *
- *  E           - Enforce target temperature
+ * - `T`- Extruder number. Required for mixing extruder.
+ *       For non-mixing, current extruder if omitted.
+ * - `W` - Preheat
+ *       - `W0`  - preheat no return no cool down
+ *       - `W1`  - preheat with cool down option
+ *       - `W2`  - preheat with return option
+ *       - `W3`  - preheat with cool down and return options - default
+ * - `S` - Set filament
+ * - `E` - Enforce target temperature
  */
 void PrusaGcodeSuite::M1700() {
     const uint8_t preheat = std::min(parser.byteval('W', 3), uint8_t(RetAndCool_t::last_));
@@ -35,15 +36,18 @@ void PrusaGcodeSuite::M1700() {
 }
 
 /**
- * M1701: Autoload
+ * Autoload
+ *
  * not meant to be used during print
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *                For non-mixing, current extruder if omitted.
- *  Z<distance> - Move the Z axis by this distance
- *  L<distance> - Extrude distance for insertion (positive value) (manual reload)
+ * ## Parameters
  *
- *  Default values are used for omitted arguments.
+ * - `T`- Extruder number. Required for mixing extruder.
+ *        For non-mixing, current extruder if omitted.
+ * - `Z` - Move the Z axis by this distance
+ * - `L` - Extrude distance for insertion (positive value) (manual reload)
+ *
+ * Default values are used for omitted arguments.
  */
 void PrusaGcodeSuite::M1701() {
     const bool isL = parser.seen('L');
@@ -58,16 +62,19 @@ void PrusaGcodeSuite::M1701() {
 }
 
 /**
- * M1600: non print filament change
+ * non-print filament change
+ *
  * not meant to be used during print
  *
- *  T<extruder> - Extruder number. Required for mixing extruder.
- *  R           - Preheat Return option
- *  U<value>    - Ask Unload type
- *              - U0 - return if filament unknown (default)
- *              - U1 - ask only if filament unknown
- *              - U2 - always ask
- *  S"Filament" - change to filament by name, for example S"PLA"
+ * ## Parameters
+ *
+ * - `T`- Extruder number. Required for mixing extruder.
+ * - `R`           - Preheat Return option
+ * - `U` - Ask Unload type
+ *       - `U0` - return if filament unknown (default)
+ *       - `U1` - ask only if filament unknown
+ *       - `U2` - always ask
+ * - `S"Filament"` - change to filament by name, for example `S"PLA"`
  */
 void PrusaGcodeSuite::M1600() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();

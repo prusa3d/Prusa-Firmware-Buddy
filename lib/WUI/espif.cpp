@@ -581,7 +581,7 @@ err_t espif_init_hw() {
 err_t espif_init(struct netif *netif) {
     log_info(ESPIF, "LwIP init");
 
-#if BOARD_VER_EQUAL_TO(0, 5, 0)
+#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 

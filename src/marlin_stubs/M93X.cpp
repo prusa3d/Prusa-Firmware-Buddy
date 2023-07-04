@@ -6,7 +6,8 @@
 #include "main.h"
 
 /**
- * Set up the prescaler of the LCD perifery SPI.
+ * @brief Set up the prescaler of the LCD perifery SPI.
+ *
  * This is used for manipulating communication frequency during HW testing.
  * If value was not set or was set 0, prescaler will set up 0 (frequency will be divided by 1 = unchanged).
  *
@@ -21,7 +22,8 @@ void PrusaGcodeSuite::M930() {
 }
 
 /**
- * Set up the prescaler of the EXT_FLASH perifery SPI.
+ * @brief Set up the prescaler of the EXT_FLASH perifery SPI.
+ *
  * This is used for manipulating communication frequency during HW testing.
  * If value was not set or was set 0, prescaler will set up 0 (frequency will be divided by 1 = unchanged).
  *
@@ -36,7 +38,8 @@ void PrusaGcodeSuite::M931() {
 }
 
 /**
- * Set up the prescaler of the TMC perifery SPI.
+ * @brief Set up the prescaler of the TMC perifery SPI.
+ *
  * This is used for manipulating communication frequency during HW testing.
  * If value was not set or was set 0, prescaler will set up 0 (frequency will be divided by 1 = unchanged).
  *

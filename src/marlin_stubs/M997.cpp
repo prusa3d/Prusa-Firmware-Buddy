@@ -35,17 +35,19 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
 }
 
 /**
- * M997: Perform in-application firmware update
+ * Perform in-application firmware update
  *
- *  O          - Update older or same firmware on restart == force reflash == from menu
- *  S<number>  - Firmware module number(s), default 0
- *             - 0 - main firmware.
- *             - 1 - WiFi module firmware
- *             - 2 - 4 - Reserved, check reprap wiki
- *  B<address> - Expansion board address, default 0
- *             - Currently unused, defined just to be reprap compatible
+ * ## Parameters
  *
- *  Default values are used for omitted arguments.
+ * - `O` - Update older or same firmware on restart == force reflash == from menu
+ * - `S` - Firmware module number(s), default 0
+ *       - 0 - main firmware.
+ *       - 1 - WiFi module firmware
+ *       - 2 - 4 - Reserved, check reprap wiki
+ * - `B` - Expansion board address, default 0
+ *       - Currently unused, defined just to be reprap compatible
+ *
+ * Default values are used for omitted arguments.
  */
 void PrusaGcodeSuite::M997() {
     M997_no_parser(parser.ulongval('S', 0), parser.ulongval('B', 0), parser.seen('O'));

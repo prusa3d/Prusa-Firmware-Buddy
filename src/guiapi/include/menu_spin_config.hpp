@@ -33,5 +33,4 @@ struct SpinCnf {
     static const SpinConfigInt loadcell_range;
     static const SpinConfigInt print_progress;
     static const SpinConfigInt int_num;
-    static const SpinConfigInt input_shaper_freq;
 };

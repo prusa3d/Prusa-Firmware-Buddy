@@ -141,7 +141,8 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
         return creator_firstlayer_questions;
     case SelftestParts::Result:
         return creator_result;
-    case SelftestParts::WizardEpilogue:
+    case SelftestParts::WizardEpilogue_ok:
+    case SelftestParts::WizardEpilogue_nok:
         return creator_epilogue;
     case SelftestParts::_none:
         break;
@@ -230,8 +231,10 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     case SelftestParts::FirstLayer:
     case SelftestParts::FirstLayerQuestions:
         return _(en_firstlay);
-    case SelftestParts::WizardEpilogue:
+    case SelftestParts::WizardEpilogue_ok:
         return _(en_wizard_ok);
+    case SelftestParts::WizardEpilogue_nok:
+        return _(en_wizard_nok);
     case SelftestParts::_none:
         break;
     }
@@ -268,7 +271,8 @@ const png::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::ToolOffsets:
 #endif
         return &png::selftest_16x16;
-    case SelftestParts::WizardEpilogue:
+    case SelftestParts::WizardEpilogue_ok:
+    case SelftestParts::WizardEpilogue_nok:
         return &png::wizard_16x16;
     case SelftestParts::_none:
         break;

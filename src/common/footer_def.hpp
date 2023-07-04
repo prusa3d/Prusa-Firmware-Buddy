@@ -52,6 +52,8 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     ZHeight,
     PrintFan,
     HeatbreakFan,
+    InputShaperX,
+    InputShaperY,
 #if defined(FOOTER_HAS_LIVE_Z)
     LiveZ,
 #endif
@@ -107,6 +109,10 @@ constexpr const char *to_string(Item item) {
         return N_("Print fan");
     case Item::HeatbreakFan:
         return N_("Heatbreak fan");
+    case Item::InputShaperX:
+        return N_("Input Shaper X");
+    case Item::InputShaperY:
+        return N_("Input Shaper Y");
 #if defined(FOOTER_HAS_LIVE_Z)
     case Item::LiveZ:
         return N_("Live Z");

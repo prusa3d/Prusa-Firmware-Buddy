@@ -1,6 +1,7 @@
 #include "tool_filament_sensor.hpp"
 #include "filters/median_filter.hpp"
 #include "adc.hpp"
+#include <limits>
 
 namespace dwarf::tool_filament_sensor {
 

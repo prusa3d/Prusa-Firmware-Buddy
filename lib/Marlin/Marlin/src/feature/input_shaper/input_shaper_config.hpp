@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <optional>
 
+enum AxisEnum : uint8_t; // FWD declaration to avoid Marlin dependency in tests
+
 namespace input_shaper {
 
 enum class Type : uint8_t {
@@ -10,8 +12,7 @@ enum class Type : uint8_t {
 
     first = 0,
     zv = first,
-    second,
-    zvd = second,
+    zvd,
     mzv,
     ei,
     ei_2hump,
@@ -20,9 +21,15 @@ enum class Type : uint8_t {
     last = null
 };
 
+const char *to_string(Type type);
+
+static inline constexpr Type operator+(const Type lhs, const std::underlying_type<Type>::type rhs) {
+    auto l_value = static_cast<std::underlying_type<Type>::type>(lhs);
+    return Type(l_value + rhs);
+}
+
 inline Type &operator++(Type &type) {
-    using IntType = typename std::underlying_type<Type>::type;
-    type = static_cast<Type>(static_cast<IntType>(type) + 1);
+    type = type + 1;
     return type;
 }
 
@@ -48,12 +55,11 @@ struct __attribute__((packed)) WeightAdjustConfig {
 };
 
 struct Config {
-    std::optional<AxisConfig> axis_x;
-    std::optional<AxisConfig> axis_y;
+    std::optional<AxisConfig> axis[3];
     std::optional<WeightAdjustConfig> weight_adjust_y;
-    std::optional<AxisConfig> axis_z;
 };
 
+// NOTE: On CoreXY the following apply to the logical movement axis, not the AB directions
 inline constexpr AxisConfig axis_x_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
 
@@ -79,6 +85,7 @@ inline constexpr AxisConfig axis_z_default {
     .damping_ratio = 0.,
     .vibration_reduction = 0.,
 };
+inline constexpr AxisConfig axis_defaults[3] = { axis_x_default, axis_y_default, axis_z_default };
 
 inline constexpr WeightAdjustConfig weight_adjust_y_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
@@ -89,10 +96,17 @@ inline constexpr WeightAdjustConfig weight_adjust_y_default {
 
 Config &current_config();
 
+void set_config_for_m74(const AxisEnum axis, const std::optional<AxisConfig> &axis_config);
+void set_config_for_m74(const std::optional<WeightAdjustConfig> &next_config);
+Config get_config_for_m74();
+
 void init();
-void set_axis_x_config(std::optional<AxisConfig> axis_config);
-void set_axis_y_config(std::optional<AxisConfig> axis_config);
+void set_axis_config(const AxisEnum axis, std::optional<AxisConfig> axis_config);
 void set_axis_y_weight_adjust(std::optional<WeightAdjustConfig> wa_config);
-void set_axis_z_config(std::optional<AxisConfig> axis_config);
+
+constexpr float frequency_safe_min = 10.0;
+constexpr float frequency_safe_max = 100.0;
+
+float clamp_frequency_to_safe_values(float frequency);
 
 }

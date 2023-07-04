@@ -196,7 +196,7 @@ const char *SelftestFrameDock::get_phase_name() {
     case PhasesSelftest::Dock_wait_user_remove_pins:
         return N_("Loosen pins");
     case PhasesSelftest::Dock_wait_user_lock_tool:
-        return N_("Lock tool");
+        return N_("Lock the tool");
 
     case PhasesSelftest::Dock_wait_user_tighten_bottom_screw:
     case PhasesSelftest::Dock_wait_user_tighten_top_screw:

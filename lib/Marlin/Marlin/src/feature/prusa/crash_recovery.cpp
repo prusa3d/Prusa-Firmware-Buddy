@@ -191,10 +191,13 @@ void Crash_s::set_state(state_t new_state) {
             isr_bsod("toolcrash or homing fail repeat");
         case PRINTING:
             isr_bsod("crash printing");
+        case SELFTEST:
+            isr_bsod("double selftest");
         }
     }
 
     switch (new_state) {
+    case SELFTEST:
     case IDLE:
         reset();
         break;
@@ -264,6 +267,7 @@ void Crash_s::set_state(state_t new_state) {
     case PRINTING:
         if (state != RECOVERY && state != REPEAT_WAIT && state != IDLE && state != REPLAY)
             isr_bsod("invalid printing transition");
+        homefail_z = false;
         reset_repeated_crash();
         if (state != REPLAY)
             activate();
@@ -415,6 +419,7 @@ void Crash_s::reset() {
     vars_locked = false;
     active = false;
     axis_hit = NO_AXIS_ENUM;
+    homefail_z = false;
 }
 
 void Crash_s::start_sensorless_homing_per_axis(const AxisEnum axis) {

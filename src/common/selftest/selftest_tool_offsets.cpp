@@ -107,6 +107,7 @@ LoopResult CSelftestPart_ToolOffsets::state_ask_user_confirm_start() {
 LoopResult CSelftestPart_ToolOffsets::state_clean_nozzle_start() {
     IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_user_clean_nozzle_cold);
     set_nozzle_temps(0);
+    disable_all_steppers(); // Let the user operate tools, pull out the filament if required
     return LoopResult::RunNext;
 }
 

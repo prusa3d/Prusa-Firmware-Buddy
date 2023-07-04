@@ -24,7 +24,7 @@
 
 #include "../HAL.h"
 #include "timers.h"
-#include "bsod.h"
+#include "buddy/priorities_config.h"
 
 // ------------------------
 // Local defines
@@ -63,7 +63,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
         TimerHandle[timer_num].handle.Init.CounterMode       = TIM_COUNTERMODE_UP;
         TimerHandle[timer_num].handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
         TimerHandle[timer_num].callback = (uint32_t)TC1_Handler;
-        HAL_NVIC_SetPriority(STEP_TIMER_IRQ_ID, STEP_TIMER_IRQ_PRIO, 0);
+        HAL_NVIC_SetPriority(STEP_TIMER_IRQ_ID,  ISR_PRIORITY_STEP_TIMER, 0);
         break;
 
       case MOVE_TIMER_NUM:
@@ -74,7 +74,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
         TimerHandle[timer_num].handle.Init.CounterMode    = TIM_COUNTERMODE_UP;
         TimerHandle[timer_num].handle.Init.ClockDivision  = TIM_CLOCKDIVISION_DIV1;
         TimerHandle[timer_num].callback = (uint32_t)TC6_Handler;
-        HAL_NVIC_SetPriority(MOVE_TIMER_IRQ_ID, MOVE_TIMER_IRQ_PRIO, 0);
+        HAL_NVIC_SetPriority(STEP_TIMER_IRQ_ID, ISR_PRIORITY_MOVE_TIMER, 0);
         break;
 
       case TEMP_TIMER_NUM:
@@ -85,7 +85,7 @@ void HAL_timer_start(const uint8_t timer_num, const uint32_t frequency) {
         TimerHandle[timer_num].handle.Init.CounterMode    = TIM_COUNTERMODE_UP;
         TimerHandle[timer_num].handle.Init.ClockDivision  = TIM_CLOCKDIVISION_DIV1;
         TimerHandle[timer_num].callback = (uint32_t)TC7_Handler;
-        HAL_NVIC_SetPriority(TEMP_TIMER_IRQ_ID, TEMP_TIMER_IRQ_PRIO, 0);
+        HAL_NVIC_SetPriority(TEMP_TIMER_IRQ_ID, ISR_PRIORITY_TEMP_TIMER, 0);
         break;
     }
     timers_initialized[timer_num] = true;

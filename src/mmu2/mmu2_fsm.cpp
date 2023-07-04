@@ -250,7 +250,11 @@ void Fsm::Loop() {
                 Activate(); // just open now, next loop will handle error
                 // TODO we might need to modify pause.cpp tho handle this state
             } else {
-                log_warning(MMU2, "Cannot report due closed FSM");
+                // We cannot report due to a closed FSM, this can happen
+                // (besides other errorneous states) e.g. when the FSM is
+                // closed before the last (valid) report is proceccessed by
+                // this Loop
+                Fsm::Instance().reporter.ConsumeReport();
             }
         }
         return;

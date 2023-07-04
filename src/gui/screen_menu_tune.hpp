@@ -13,6 +13,7 @@
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
 #include "MItem_bsod.hpp"
+#include "MItem_redscreen.hpp"
 
 /*****************************************************************************/
 // parent alias
@@ -57,7 +58,7 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
     MI_TEST,
 #endif                       //_DEBUG
     /* MI_FOOTER_SETTINGS,*/ // currently experimental, but we want it in future
-    MI_MESSAGES, MI_TRIGGER_BSOD>;
+    MI_MESSAGES, MI_TRIGGER_BSOD, MI_TRIGGER_REDSCREEN>;
 
 class ScreenMenuTune : public ScreenMenuTune__ {
 public:

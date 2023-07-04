@@ -68,9 +68,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         break;
     case PhasesPrintPreview::new_firmware_available: {
         const auto version = GCodeInfo::getInstance().get_valid_printer_settings().latest_fw_version;
-        static char str[] = "v00.00.000";
-        snprintf(str, std::size(str), "%d.%d.%d", version.major, version.minor, version.patch);
-        pMsgbox = makeMsgBox(_("New firmware available"), string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(str)));
+        pMsgbox = makeMsgBox(_("New firmware available"), string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(version)));
         break;
     }
     case PhasesPrintPreview::wrong_printer:

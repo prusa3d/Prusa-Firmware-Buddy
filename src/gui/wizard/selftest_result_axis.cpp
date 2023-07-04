@@ -11,9 +11,9 @@
 
 ResultAxis::ResultAxis()
     : SelfTestGroup(_("Axis check"))
-    , x(_("axis"), png::x_axis_16x16, TestResult_Unknown)
-    , y(_("axis"), png::y_axis_16x16, TestResult_Unknown)
-    , z(_("axis"), png::z_axis_16x16, TestResult_Unknown)
+    , x(_("axis"), &png::x_axis_16x16, TestResult_Unknown)
+    , y(_("axis"), &png::y_axis_16x16, TestResult_Unknown)
+    , z(_("axis"), &png::z_axis_16x16, TestResult_Unknown)
 #if HAS_LOADCELL()
     , txt(_("Axis check was skipped because Loadcell check failed."), is_multiline::yes)
 #else

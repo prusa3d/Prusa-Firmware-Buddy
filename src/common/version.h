@@ -7,6 +7,11 @@ extern "C" {
 /// Project's version (4.0.2)
 extern const char project_version[];
 
+/// Project's version (4.0.2) separated to components
+extern const uint16_t project_version_major;
+extern const uint16_t project_version_minor;
+extern const uint16_t project_version_patch;
+
 /// Full project's version (4.0.3-BETA+1035.PR111.B4)
 extern const char project_version_full[];
 

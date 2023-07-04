@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import os
 import sys
-import subprocess
 from pathlib import Path
 
 
@@ -24,8 +23,13 @@ def simulator_args(qemu_args):
             yield from option
 
 
-project_root = Path(__file__).parent.parent
-simulator_path = project_root / 'utils' / 'simulator'
-extra_args = [f'-X' + arg for arg in simulator_args(sys.argv[1:])]
+def main():
+    project_root = Path(__file__).parent.parent.parent.parent
+    simulator_path = project_root / 'utils' / 'simulator'
+    extra_args = [f'-X' + arg for arg in simulator_args(sys.argv[1:])]
 
-os.execv(sys.executable, [sys.executable, (simulator_path)] + extra_args)
+    os.execv(sys.executable, [sys.executable, (simulator_path)] + extra_args)
+
+
+if __name__ == '__main__':
+    main()

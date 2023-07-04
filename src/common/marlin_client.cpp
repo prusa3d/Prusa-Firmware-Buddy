@@ -349,7 +349,7 @@ void marlin_do_babysteps_Z(float offs) {
 void marlin_move_axis(float logical_pos, float feedrate, uint8_t axis) {
     char request[MARLIN_MAX_REQUEST];
     // check axis
-    if (axis < E_AXIS) {
+    if (axis <= E_AXIS) {
         snprintf(
             request,
             MARLIN_MAX_REQUEST,
@@ -446,6 +446,23 @@ bool marlin_print_started() {
         default:
             // Doing something else ‒ there's a lot of states where we are printing.
             return true;
+        }
+    }
+}
+
+bool marlin_print_exited() {
+    while (true) {
+        switch (marlin_vars()->print_state) {
+        case State::Finished:
+        case State::Aborted:
+        case State::Exit:
+            // We are still waiting
+            osDelay(10);
+            break;
+        case State::Idle:
+            return true;
+        default:
+            return false;
         }
     }
 }
@@ -694,7 +711,7 @@ template <typename T>
 void marlin_set_variable(MarlinVariable<T> &variable, T value) {
     char request[MARLIN_MAX_REQUEST];
 
-    const int n = snprintf(request, MARLIN_MAX_REQUEST, "!%c%d ", ftrstd::to_underlying(Msg::SetVariable), variable.get_identifier());
+    const int n = snprintf(request, MARLIN_MAX_REQUEST, "!%c%d ", ftrstd::to_underlying(Msg::SetVariable), reinterpret_cast<uintptr_t>(&variable));
     if (n < 0)
         bsod("Error formatting var name.");
 

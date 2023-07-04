@@ -86,6 +86,10 @@ std::array<ScreenSelftestTemp::hotend_result_t, sizeof...(Is)> ScreenSelftestTem
     return { (make_hotend_result_row(Is))... };
 }
 
+static bool is_tested(SelftestHeaters_t &dt, SelftestHeaters_t::TestedParts part) {
+    return dt.tested_parts & to_one_hot(part);
+}
+
 ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrame>(parent, ph, data)
 #if HAS_TOOLCHANGER()
@@ -124,42 +128,46 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
         }
     }
 #endif
-    change();
-}
-
-void ScreenSelftestTemp::change() {
+    footer.Erase(FOOTER_ITEMS_PER_LINE__); // Erase all footer items
     SelftestHeaters_t dt;
     if (FSMExtendedDataManager::get(dt)) {
-        auto is_tested = [&dt](SelftestHeaters_t::TestedParts part) {
-            return dt.tested_parts & to_one_hot(part);
-        };
-
-        if (is_tested(SelftestHeaters_t::TestedParts::noz) && is_tested(SelftestHeaters_t::TestedParts::bed)) {
-            footer.Erase(FOOTER_ITEMS_PER_LINE__);
-
+        if (is_tested(dt, SelftestHeaters_t::TestedParts::noz) && is_tested(dt, SelftestHeaters_t::TestedParts::bed)) {
+            // Nozzle & Bed are both tested
 #if HAS_TOOLCHANGER()
             footer.Create(prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::AllNozzles : footer::Item::Nozzle, 0);
 #else
             footer.Create(footer::Item::Nozzle, 0);
 #endif
             footer.Create(footer::Item::Bed, 1);
-        } else if (is_tested(SelftestHeaters_t::TestedParts::noz)) {
-            footer.Erase(FOOTER_ITEMS_PER_LINE__);
+
+            text_bed.SetRect(bottom_label_rect);
+            progress_bed.SetRect(bottom_progress_rect);
+            text_bed_prep.SetRect(bottom_row_0_text_rect);
+            icon_bed_prep.SetRect(bottom_row_0_icon_rect);
+            text_bed_heat.SetRect(bottom_row_1_text_rect);
+            icon_bed_heat.SetRect(bottom_row_1_icon_rect);
+
+        } else if (is_tested(dt, SelftestHeaters_t::TestedParts::noz)) {
+            // ONLY nozzle is tested
 #if HAS_TOOLCHANGER()
             footer.Create(prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::AllNozzles : footer::Item::Nozzle, 0);
 #else
             footer.Create(footer::Item::Nozzle, 0);
 #endif
-
-        } else if (is_tested(SelftestHeaters_t::TestedParts::bed)) {
-            footer.Erase(FOOTER_ITEMS_PER_LINE__);
+        } else if (is_tested(dt, SelftestHeaters_t::TestedParts::bed)) {
+            // ONLY bed is tested
             footer.Create(footer::Item::Bed, 0);
 
-        } else {
-            footer.Erase(FOOTER_ITEMS_PER_LINE__);
+            text_bed.SetRect(top_label_rect);
+            progress_bed.SetRect(top_progress_rect);
+            text_bed_prep.SetRect(top_row_0_text_rect);
+            icon_bed_prep.SetRect(top_row_0_icon_rect);
+            text_bed_heat.SetRect(top_row_1_text_rect);
+            icon_bed_heat.SetRect(top_row_1_icon_rect);
         }
 
-        if (is_tested(SelftestHeaters_t::TestedParts::noz)) {
+        if (is_tested(dt, SelftestHeaters_t::TestedParts::noz)) {
+            // Nozzle is tested - all cases
             text_noz.Show();
             progress_noz.Show();
             text_noz_prep.Show();
@@ -179,23 +187,6 @@ void ScreenSelftestTemp::change() {
 #endif
                 }
             }
-
-            uint8_t progress = std::numeric_limits<decltype(progress)>::max();
-
-            for (size_t i = 0; i < HOTENDS; i++) {
-#if HAS_TOOLCHANGER()
-                if (prusa_toolchanger.is_tool_enabled(i))
-#endif
-                {
-                    hotend_results[i].icon_noz_prep.SetState(dt.noz[i].prep_state);
-                    hotend_results[i].icon_noz_heat.SetState(dt.noz[i].heat_state);
-#if HAS_HEATBREAK_TEMP()
-                    hotend_results[i].icon_heatbreak.SetState(dt.noz[i].heatbreak_error ? SelftestSubtestState_t::not_good : SelftestSubtestState_t::ok);
-#endif
-                    progress = std::min(progress, dt.noz[i].progress);
-                }
-            }
-            progress_noz.SetProgressPercent(progress);
         } else {
             text_noz.Hide();
             progress_noz.Hide();
@@ -218,33 +209,14 @@ void ScreenSelftestTemp::change() {
             }
         }
 
-        if (is_tested(SelftestHeaters_t::TestedParts::bed)) {
-            if (is_tested(SelftestHeaters_t::TestedParts::noz)) { // if also testing nozzles
-                text_bed.SetRect(bottom_label_rect);
-                progress_bed.SetRect(bottom_progress_rect);
-                text_bed_prep.SetRect(bottom_row_0_text_rect);
-                icon_bed_prep.SetRect(bottom_row_0_icon_rect);
-                text_bed_heat.SetRect(bottom_row_1_text_rect);
-                icon_bed_heat.SetRect(bottom_row_1_icon_rect);
-            } else { // if testing only bed
-                text_bed.SetRect(top_label_rect);
-                progress_bed.SetRect(top_progress_rect);
-                text_bed_prep.SetRect(top_row_0_text_rect);
-                icon_bed_prep.SetRect(top_row_0_icon_rect);
-                text_bed_heat.SetRect(top_row_1_text_rect);
-                icon_bed_heat.SetRect(top_row_1_icon_rect);
-            }
-
+        if (is_tested(dt, SelftestHeaters_t::TestedParts::bed)) {
+            // Bed is tested - all cases
             text_bed.Show();
             progress_bed.Show();
             text_bed_prep.Show();
             icon_bed_prep.Show();
             text_bed_heat.Show();
             icon_bed_heat.Show();
-
-            icon_bed_prep.SetState(dt.bed.prep_state);
-            icon_bed_heat.SetState(dt.bed.heat_state);
-            progress_bed.SetProgressPercent(dt.bed.progress);
         } else {
             text_bed.Hide();
             progress_bed.Hide();
@@ -252,6 +224,40 @@ void ScreenSelftestTemp::change() {
             icon_bed_prep.Hide();
             text_bed_heat.Hide();
             icon_bed_heat.Hide();
+        }
+    }
+
+    change();
+}
+
+void ScreenSelftestTemp::change() {
+    SelftestHeaters_t dt;
+    if (FSMExtendedDataManager::get(dt)) {
+        if (is_tested(dt, SelftestHeaters_t::TestedParts::noz)) {
+
+            uint8_t progress = std::numeric_limits<decltype(progress)>::max();
+
+            for (size_t i = 0; i < HOTENDS; i++) {
+#if HAS_TOOLCHANGER()
+                if (prusa_toolchanger.is_tool_enabled(i))
+#endif
+                {
+                    hotend_results[i].icon_noz_prep.SetState(dt.noz[i].prep_state);
+                    hotend_results[i].icon_noz_heat.SetState(dt.noz[i].heat_state);
+#if HAS_HEATBREAK_TEMP()
+                    hotend_results[i].icon_heatbreak.SetState(dt.noz[i].heatbreak_error ? SelftestSubtestState_t::not_good : SelftestSubtestState_t::ok);
+#endif
+                    progress = std::min(progress, dt.noz[i].progress);
+                }
+            }
+            progress_noz.SetProgressPercent(progress);
+        }
+
+        if (is_tested(dt, SelftestHeaters_t::TestedParts::bed)) {
+
+            icon_bed_prep.SetState(dt.bed.prep_state);
+            icon_bed_heat.SetState(dt.bed.heat_state);
+            progress_bed.SetProgressPercent(dt.bed.progress);
         }
     }
 };

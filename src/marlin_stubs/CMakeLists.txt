@@ -40,3 +40,7 @@ endif()
 if(HAS_TOOLCHANGER)
   target_sources(firmware PRIVATE G425.cpp P.cpp)
 endif()
+
+if(HAS_GUI)
+  target_sources(firmware PRIVATE M0.cpp)
+endif()

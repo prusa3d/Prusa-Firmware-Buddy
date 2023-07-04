@@ -165,7 +165,7 @@ LoopResult CSelftestPart_Loadcell::stateToolSelectWaitFinish() {
 // but raw_load == 0 is also valid value
 // test rely on hw being unstable, raw_load must be different from 0 at least once during test period
 LoopResult CSelftestPart_Loadcell::stateConnectionCheck() {
-    int32_t raw_load = loadcell.GetRawValue();
+    int32_t raw_load = loadcell.get_raw_value();
     if (raw_load == std::numeric_limits<int32_t>::min()) {
         log_error(Selftest, "%s returned _I32_MIN", rConfig.partname);
         IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_fail);
@@ -189,8 +189,6 @@ LoopResult CSelftestPart_Loadcell::stateConnectionCheck() {
             return LoopResult::RunCurrent;
         }
     }
-    loadcell.EnableHighPrecision();
-    loadcell.Tare(Loadcell::TareMode::Continuous);
     return LoopResult::RunNext;
 }
 
@@ -210,6 +208,8 @@ LoopResult CSelftestPart_Loadcell::stateAskAbort() {
         log_error(Selftest, "%s user pressed abort, code should not reach this place", rConfig.partname);
         return LoopResult::Abort;
     case Response::Continue:
+        loadcell.EnableHighPrecision();
+        loadcell.Tare(Loadcell::TareMode::Static);
         log_info(Selftest, "%s user pressed continue", rConfig.partname);
         return LoopResult::RunNext;
     default:
@@ -227,9 +227,10 @@ LoopResult CSelftestPart_Loadcell::stateTapCheckCountDownInit() {
 }
 
 LoopResult CSelftestPart_Loadcell::stateTapCheckCountDown() {
-    int32_t load = loadcell.GetHighPassLoad();
-    rResult.progress = scale_percent_avoid_overflow(load, int32_t(0), rConfig.tap_min_load_ok); // tap_min_load_ok is really maximum value, not a bug
-    if (load >= rConfig.countdown_load_error_value) {
+    int32_t load = -1 * loadcell.get_tared_z_load(); // Positive when pushing the nozzle up
+    // Show tared value at 1/10 of the range, threshold tap_min_load_ok is needed to pass the test
+    rResult.progress = scale_percent_avoid_overflow(load, rConfig.tap_min_load_ok / -9, rConfig.tap_min_load_ok);
+    if (std::abs(load) >= rConfig.countdown_load_error_value) {
         log_info(Selftest, "%s load during countdown %dg exceeded error value %dg", rConfig.partname, load, rConfig.countdown_load_error_value);
         rResult.pressed_too_soon = true;
         return LoopResult::GoToMark;
@@ -262,7 +263,7 @@ LoopResult CSelftestPart_Loadcell::stateTapCheck() {
         return LoopResult::GoToMark; // timeout, retry entire touch sequence
     }
 
-    int32_t load = loadcell.GetHighPassLoad();
+    int32_t load = -1 * loadcell.get_tared_z_load(); // Positive when pushing the nozzle up
     bool pass = IsInClosedRange(load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
     if (pass) {
         log_info(Selftest, "%s tap check, load %dg successful in range <%d, %d>", rConfig.partname, load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
@@ -270,7 +271,8 @@ LoopResult CSelftestPart_Loadcell::stateTapCheck() {
         LogInfoTimed(log_fast, "%s tap check, load %dg not in range <%d, %d>", rConfig.partname, load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
     }
 
-    rResult.progress = scale_percent_avoid_overflow(load, int32_t(0), rConfig.tap_min_load_ok); // tap_min_load_ok is really maximum value, not a bug
+    // Show tared value at 1/10 of the range, threshold tap_min_load_ok is needed to pass the test
+    rResult.progress = scale_percent_avoid_overflow(load, rConfig.tap_min_load_ok / -9, rConfig.tap_min_load_ok);
     return pass ? LoopResult::RunNext : LoopResult::RunCurrent;
 }
 

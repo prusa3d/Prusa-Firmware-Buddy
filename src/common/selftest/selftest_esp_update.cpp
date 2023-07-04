@@ -16,9 +16,10 @@
 
 #include <array>
 #include <algorithm>
-#include <basename.h>
+#include <filepath_operation.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include "buddy/priorities_config.h"
 
 extern "C" {
 #include <esp_loader.h>
@@ -593,12 +594,12 @@ void update_esp(bool force) {
     TaskHandle_t xHandle = nullptr;
 
     xTaskCreate(
-        EspTask,          // Function that implements the task.
-        "ESP UPDATE",     // Text name for the task.
-        512,              // Stack size in words, not bytes.
-        (void *)(mask),   // Parameter passed into the task.
-        osPriorityNormal, // Priority at which the task is created.
-        &xHandle);        // Used to pass out the created task's handle.
+        EspTask,                  // Function that implements the task.
+        "ESP UPDATE",             // Text name for the task.
+        512,                      // Stack size in words, not bytes.
+        (void *)(mask),           // Parameter passed into the task.
+        TASK_PRIORITY_ESP_UPDATE, // Priority at which the task is created.
+        &xHandle);                // Used to pass out the created task's handle.
 
     // update did not start yet
     // no fsm was opened, it is safe to just return in case sask was not created

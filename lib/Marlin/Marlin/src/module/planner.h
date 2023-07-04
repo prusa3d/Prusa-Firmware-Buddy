@@ -85,7 +85,6 @@ typedef struct {
       bool nominal_length:1;
       bool continued:1;
       bool sync_position:1;
-      bool processed:1;
     };
   };
 
@@ -108,7 +107,8 @@ typedef struct {
  */
 typedef struct PlannerBlock {
 
-  volatile block_flags_t flag;              // Block flags
+  volatile block_flags_t flag;              // Block flags (modified by planner)
+  volatile bool busy;                       // Busy flag (modified by stepper)
 
   bool is_sync() { return flag.sync_position; }
   bool is_move() { return !is_sync(); }
@@ -361,6 +361,9 @@ class Planner {
 
     // A flag to drop queuing of blocks and abort any pending move
     static bool draining_buffer;
+
+    // A flag to indicate that that buffer is being emptied intentionally
+    static bool emptying_buffer;
 
   public:
 
@@ -810,6 +813,9 @@ class Planner {
      *   interrupted, all queued commands up to the next synchronize() call can
      *   be discarded, but no further.
      *
+     * emptying(): return true if the buffer is intentionally being emptied
+     *   (for synchronization barriers or while aborting)
+     *
      * busy(): is the underlying primitive behind synchronize() and will return
      *   true as long as pending motion hasn't completed or canceled. When a
      *   command has been canceled busy() is never true so that the command can
@@ -831,6 +837,9 @@ class Planner {
 
     // Wait for busy(). Does not wait when draining!
     static void synchronize();
+
+    // Indicate whether the buffer is being drained intentionally
+    static bool emptying() { return emptying_buffer || draining_buffer; }
 
     // Wait for busy(), then disable all steppers
     static void finish_and_disable();
@@ -860,7 +869,7 @@ class Planner {
      */
     static block_t *get_current_processed_block() {
       if (has_blocks_queued()) {
-        if (block_t *const block = &block_buffer[block_buffer_tail]; block->flag.processed)
+        if (block_t *const block = &block_buffer[block_buffer_tail]; block->busy)
           return block;
       }
       return nullptr;
@@ -875,7 +884,7 @@ class Planner {
       // If there are any moves queued ...
       if (has_unprocessed_blocks_queued()) {
         block_t *const block = &block_buffer[block_buffer_nonbusy];
-        assert(!block->flag.processed);
+        assert(!block->busy);
 
         // Recalculation pending? Don't execute yet.
         if (block->flag.recalculate)
@@ -902,7 +911,7 @@ class Planner {
     }
 
     // Check if the given block is busy or not
-    static bool is_block_busy(const block_t* const block) { return block->flag.processed; }
+    static bool is_block_busy(const block_t* const block) { return block->busy; }
 
     /**
      * "Release" the current block so its slot can be reused.
@@ -911,7 +920,7 @@ class Planner {
      */
     FORCE_INLINE static void discard_current_block() {
       assert(has_blocks_queued());
-      assert(block_buffer[block_buffer_tail].flag.processed);
+      assert(block_buffer[block_buffer_tail].busy);
       block_buffer_tail = next_block_index(block_buffer_tail);
     }
 

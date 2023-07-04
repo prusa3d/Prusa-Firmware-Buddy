@@ -15,12 +15,14 @@ TestResult get_test_result(Action action, Tool tool) {
     case Action::Fans:
         return merge_hotends_evaluations(
             [&](int8_t e) {
-                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan);
+                return evaluate_results(sr.tools[e].printFan, sr.tools[e].heatBreakFan, sr.tools[e].fansSwitched);
             });
     case Action::ZAlign:
         return evaluate_results(sr.zalign);
-    case Action::XYCheck:
-        return evaluate_results(sr.xaxis, sr.yaxis);
+    case Action::YCheck:
+        return evaluate_results(sr.yaxis);
+    case Action::XCheck:
+        return evaluate_results(sr.xaxis);
     case Action::DockCalibration:
         if (tool == Tool::_all_tools) {
             return merge_hotends_evaluations(
@@ -97,8 +99,10 @@ uint64_t get_test_mask(Action action) {
     switch (action) {
     case Action::Fans:
         return stmFans;
-    case Action::XYCheck:
-        return stmXYAxis;
+    case Action::YCheck:
+        return stmYAxis;
+    case Action::XCheck:
+        return stmXAxis;
     case Action::ZCheck:
         return stmZAxis;
     case Action::Heaters:
@@ -126,10 +130,23 @@ uint64_t get_test_mask(Action action) {
 
 Tool get_last_enabled_tool() {
 #if HAS_TOOLCHANGER()
-    return static_cast<Tool>(prusa_toolchanger.get_num_enabled_tools() - 1);
-#else
+    for (int i = EXTRUDERS - 1; i >= 0; --i) {
+        if (prusa_toolchanger.is_tool_enabled(i)) {
+            return static_cast<Tool>(i);
+        }
+    }
+#endif /*HAS_TOOLCHANGER()*/
     return Tool::Tool1;
-#endif
+}
+
+Tool get_next_tool(Tool tool) {
+#if HAS_TOOLCHANGER()
+    assert(tool != get_last_enabled_tool() && "Unhandled edge case");
+    do {
+        tool = tool + 1;
+    } while (!prusa_toolchanger.is_tool_enabled(ftrstd::to_underlying(tool)));
+#endif /*HAS_TOOLCHANGER()*/
+    return tool;
 }
 
 }

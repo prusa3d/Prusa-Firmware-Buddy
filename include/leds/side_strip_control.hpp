@@ -1,9 +1,19 @@
+/// @file
 #pragma once
+#include "../printers.h"
 #include <leds/side_strip.hpp>
 #include <math.h>
 #include <timing.h>
 #include <optional>
 #include <common/freertos_mutex.hpp>
+
+#if PRINTER_IS_PRUSA_iX
+    /// PresentColor duration_ms value 0 means forever
+    #define SIDE_STRIP_ENDLESS_CUSTOM_COLOR() 1
+#else
+    /// PresentColor duration_ms value 0 has no special meaning
+    #define SIDE_STRIP_ENDLESS_CUSTOM_COLOR() 0
+#endif
 
 namespace leds {
 
@@ -29,6 +39,9 @@ private:
         Idle,
         Active,
         CustomColor,
+#if SIDE_STRIP_ENDLESS_CUSTOM_COLOR()
+        EndlessCustomColor,
+#endif
         SetOff,
         Off,
     };

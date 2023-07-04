@@ -10,7 +10,7 @@
 static void metric_system_task_run(const void *);
 
 // task definition
-osThreadDef(metric_system_task, metric_system_task_run, osPriorityAboveNormal,
+osThreadDef(metric_system_task, metric_system_task_run, TASK_PRIORITY_METRIC_SYSTEM,
     0, 375);
 static osThreadId metric_system_task;
 
@@ -194,4 +194,8 @@ void metric_enable_for_handler(metric_t *metric, metric_handler_t *handler) {
 
 void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler) {
     metric->enabled_handlers &= ~(1 << handler->identifier);
+}
+
+bool metric_record_is_due(metric_t *metric) {
+    return check_min_interval(metric, ticks_ms());
 }

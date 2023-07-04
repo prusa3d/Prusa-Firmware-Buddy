@@ -3,12 +3,19 @@
 ## Requirements
 
 1. Python 3.7
-2. Install Python dependencies using `pip install -r tests/integration/requirements.txt`
-3. Make sure you have the project's dependencies downloaded if you haven't built the project before (`python utils/bootstrap.py`)
+2. Make sure you have the project's dependencies downloaded if you haven't built the project before (`python utils/bootstrap.py`)
 
 ## Running the suite
 
-Run `pytest tests/integration --firmware <firmware.bin to test>`
+Activate the virtualenv, if needed:
+```
+source .venv/bin/activate
+```
+
+Run the test suite
+```
+pytest tests/integration --firmware <firmware.bin to test>
+```
 
 -  Currently supported firmware builds are:
     - MK4, noboot variant

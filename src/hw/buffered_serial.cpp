@@ -7,6 +7,7 @@
 #include "FreeRTOS.h"
 #include "bsod.h"
 #include "timing.h"
+#include <option/has_puppies.h>
 
 #include "log.h"
 
@@ -27,8 +28,10 @@ static uint8_t uart2rx_data[32];
 BufferedSerial BufferedSerial::uart2(&huart2, &hdma_usart2_rx, nullptr, uart2rx_data, sizeof(uart2rx_data), BufferedSerial::CommunicationMode::IT);
 #endif // buddy or xbuddy
 #if BOARD_IS_XBUDDY
+    #if !HAS_PUPPIES()
 static uint8_t uart6rx_data[32];
 BufferedSerial BufferedSerial::uart6(&huart6, &hdma_usart6_rx, nullptr, uart6rx_data, sizeof(uart6rx_data), BufferedSerial::CommunicationMode::DMA);
+    #endif
 #endif // xbuddy
 
 BufferedSerial::BufferedSerial(
@@ -218,7 +221,9 @@ extern "C" void uart2_idle_cb() {
 }
 #endif // boddy or xbuddy
 #if BOARD_IS_XBUDDY
+    #if !HAS_PUPPIES()
 extern "C" void uart6_idle_cb() {
     buddy::hw::BufferedSerial::uart6.IdleISR();
 }
+    #endif
 #endif

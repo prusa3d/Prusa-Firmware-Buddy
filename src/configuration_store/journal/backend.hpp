@@ -14,6 +14,7 @@
 #include <span>
 #include <memory>
 #include "storage.hpp"
+#include <assert.h>
 namespace Journal {
 
 /**
@@ -35,16 +36,16 @@ namespace Journal {
  *                              | CRC32       |
  *                              +-------------+
  *
- * When we reach the end of bank or there is more than one transaction or we have migrated item in the configuration store we will migrate the bank to the other bank.
- * This means we will create a transaction in the other bank, which contains all non default values.
+ * When we reach the end of bank or there is more than one transaction or we have migrated item in the configuration store we will migrate the bank to the next bank.
+ * This means we will create a transaction in the next bank, which contains all non default values.
  */
 class Backend {
+public:
     using Address = uint16_t;
     using Offset = uint16_t;
     using Id = uint16_t;
     using BankSequenceId = uint32_t;
 
-public:
     enum class JournalState {
         ColdStart,
         ValidStart,
@@ -56,10 +57,16 @@ public:
     static constexpr size_t MAX_ITEM_SIZE = 512;
     static constexpr auto RESERVED_IDS = std::to_array<Id>({ LAST_ITEM_ID });
 
-private:
-#ifdef EEPROM_UNITTEST
-public:
-#endif
+    /**
+     * @brief Array of these is passed in init to be run in order of oldest -> newest. The journal is scanned in search of deprecated_ids and if it finds them, it is marked that 'this and all newer migration functions need to be run'.
+     *
+     */
+    struct MigrationFunction {
+        using MigrationFnT = void (*)(Backend &backend);
+        MigrationFnT migration_fn;
+        std::span<const Id> deprecated_ids;
+    };
+
     struct [[gnu::packed]] ItemHeader {
         bool last_item : 1;
         unsigned int id : 14;
@@ -112,14 +119,6 @@ public:
         std::optional<uint16_t> secondary_bank_address;
     };
 
-    enum class LoadAction {
-        Nothing,
-        ChangeBank,
-        MigrateBank,
-        FixEndItem,
-        FixEndItemAndMigrate,
-    };
-
     static constexpr ItemHeader LAST_ITEM_STOP = { .last_item = true, .id = LAST_ITEM_ID, .len = 0 };
     static constexpr size_t ITEM_HEADER_SIZE = sizeof(ItemHeader);
     static constexpr size_t BANK_HEADER_SIZE = sizeof(BankHeader);
@@ -129,35 +128,141 @@ public:
     using CallbackFunction = std::function<void(ItemHeader, std::array<uint8_t, MAX_ITEM_SIZE> &)>;
 
     struct Transaction {
+        enum class Type {
+            migration,             // bank flipping
+            transaction,           // writing to normal bank
+            migrating_transaction, // writing to the next bank (needed during migrations from older version)
+        };
+
         Backend &backend;
 
-        bool check_size = true;
-        Address last_item_address = backend.current_address;
+        Type type = Type::transaction;
+        Address last_item_address = type == Type::migrating_transaction ? backend.current_next_address : backend.current_address;
         CRCType crc = 0;
         CRCType last_item_crc = 0;
         ItemHeader last_item_header = { true, 0, 0 };
         uint16_t item_count = 0;
 
-        Transaction(bool check_size, Backend &backend);
+        Transaction(Type type, Backend &backend);
         ~Transaction();
         void calculate_crc(Id id, const std::span<uint8_t> &data);
         void store_item(Id id, const std::span<uint8_t> &data);
         void cancel();
     };
 
+    /**
+     * @brief Helper type for TransactionGuards
+     *
+     * @tparam (Backend::*StartFnc)()
+     * @tparam (Backend::*EndFnc)()
+     */
+    template <void (Backend::*StartFnc)(), void (Backend::*EndFnc)()>
+    struct [[nodiscard]] TransactionRAII {
+        TransactionRAII(Backend &backend_)
+            : backend(backend_) {
+            (backend.*StartFnc)();
+        }
+        ~TransactionRAII() {
+            (backend.*EndFnc)();
+        }
+
+        TransactionRAII(const TransactionRAII &other) = delete;
+        TransactionRAII(TransactionRAII &&other) = delete;
+        TransactionRAII &operator=(const TransactionRAII &other) = delete;
+        TransactionRAII &operator=(TransactionRAII &&other) = delete;
+
+        Backend &backend;
+    };
+
+    /**
+     * @brief Reads all items from the current bank and executes callback with stored the header and binary data
+     *
+     * @param callback
+     */
+    void read_all_current_bank_items(const CallbackFunction &callback);
+    /**
+     * @brief   Reads all items from both banks and executes callback with the stored header and binary data. This is meant to be used by migrating functions from older versions, otherwise this will read 'old' data rather than 'temporary migrated data'.
+     *
+     * @param callback
+     */
+    void read_items_for_migrations(const CallbackFunction &callback);
+
+    void erase_storage_area();
+
+    /**
+     * @brief If needed to initialize without having state set to cold_start, this will override the cold_start to valid_start
+     *
+     */
+    void override_cold_start_state();
+
+    /**
+     * @brief Shorthand meant for migrating functions to easily save data
+     *
+     * @tparam T
+     * @param hashed_id
+     * @param item_to_be_saved
+     */
+    template <typename T>
+    void save_migration_item(Id hashed_id, const T &item_to_be_saved) {
+        static_assert(sizeof(T) <= MAX_ITEM_SIZE, "Trying to save an item too big");
+        assert(transaction.has_value() && transaction->type == Transaction::Type::migrating_transaction); // migrating transaction must be in progress
+
+        std::array<uint8_t, sizeof(T)> buffer;
+        memcpy(buffer.data(), &item_to_be_saved, sizeof(T)); // Load the buffer with data
+        save(hashed_id, { buffer.data(), sizeof(T) });       // Save the data into the backend
+    }
+
+private:
+#ifdef EEPROM_UNITTEST
+public:
+#endif
+
     void transaction_start();
     void transaction_end();
+    using TransactionGuard = TransactionRAII<&Backend::transaction_start, &Backend::transaction_end>;
 
     void migration_start();
     void migration_end();
+    using MigrationGuard = TransactionRAII<&Backend::migration_start, &Backend::migration_end>;
+    MigrationGuard migration_guard();
+
+    void migrating_transaction_start();
+    void migrating_transaction_end();
+    using MigratingTransactionGuard = TransactionRAII<&Backend::migrating_transaction_start, &Backend::migrating_transaction_end>;
+    MigratingTransactionGuard migrating_transaction_guard();
 
     std::optional<Transaction> transaction = std::nullopt;
     std::optional<Transaction> migration = std::nullopt;
     Address start_address;
     Offset bank_size;
 
-    Address current_address = 0;
+    Address current_address = 0;      // current position of the main bank 'end' (where next item will be stored ie without end item transaction)
+    Address current_next_address = 0; // current position of the next bank 'end' (needed for migrating_transaction)
     uint32_t current_bank_id = 0;
+
+    /**
+     * @brief Generates intermediary transactions of migration functions into the next bank
+     * @param migration_functions array of previous 'migration versions' that will run (and all following functions) if one of deprecated_ids is found in the journal
+     *
+     * @return true if found a deprecated item
+     */
+
+    bool generate_migration_intermediaries(std::span<const MigrationFunction> migration_functions);
+
+    /**
+     * @brief Finds the oldest index of migration version in the migration_functions span.
+     *
+     * @param migration_functions migration versions
+     * @return returns min index into migration_functions that has at least one of deprecated_ids found in current bank
+     */
+    size_t find_oldest_migration_index(std::span<const MigrationFunction> migration_functions);
+
+    /**
+     * @brief Loads migrated intermediary data from the next bank into RAM mirror
+     *
+     * @param update_function
+     */
+    void load_migrated_data(const UpdateFunction &update_function);
 
     JournalState journal_state = JournalState::ValidStart;
 
@@ -166,14 +271,19 @@ public:
 
     FreeRTOS_Mutex mutex;
 
-    LoadAction handle_valid(const UpdateFunction &update_function, uint16_t num_of_transactions);
-    LoadAction handle_missing_end_item(const UpdateFunction &update_function, uint16_t num_of_transactions);
-
     static std::optional<BankHeader> validate_bank_header(const std::span<uint8_t> &data);
 
     std::optional<ItemLoadResult> load_item(Address address, Offset free_space, const std::span<uint8_t> &buffer);
-    bool load_items(Address address, Offset len_of_transactions, const UpdateFunction &update_function);
+    void load_items(Address address, Offset len_of_transactions, const UpdateFunction &update_function);
 
+    /**
+     * @brief Reads all items in the given range
+     *
+     * @param address Where to start reading
+     * @param free_space Where to stop reading
+     * @param fnc Function to be executed with every read item
+     */
+    void read_all_items(Address address, Offset free_space, const CallbackFunction &fnc);
     std::optional<Offset> map_over_transaction_unchecked(const Address address, const Offset free_space, const CallbackFunction &fnc);
     /**
      * @attention fnc callback can be called with invalid data
@@ -188,7 +298,7 @@ public:
     static std::optional<CRCType> get_crc(const std::span<uint8_t> data);
     static CRCType calculate_crc(const Backend::ItemHeader &, const std::span<uint8_t> &data, CRCType crc = 0);
 
-    void init_bank(const BankSelector bank, uint32_t id);
+    void init_bank(const BankSelector bank, uint32_t id, bool is_next_bank = false);
     std::optional<Backend::BanksState> choose_bank() const;
     void migrate_bank();
     bool fits_in_current_bank(uint16_t size) const;
@@ -203,7 +313,7 @@ public:
     void store_single_item(Id id, const std::span<uint8_t> &data);
 
 public:
-    void load_all(const UpdateFunction &update_function);
+    void load_all(const UpdateFunction &update_function, std::span<const MigrationFunction> migration_functions);
 
     void init(const DumpCallback &callback);
 
@@ -218,6 +328,12 @@ public:
      * Restart or reinitialization of eeprom is needed after this function
      */
     void reset();
+
+    /**
+     * @brief In case there's gonna be multiple writes in succession,  all the writes can be put into one transaction by starting a transaction via this guard and releasing the guard once the transaction is done
+     *
+     */
+    TransactionGuard transaction_guard();
 
     Backend(uint16_t offset, uint16_t size, configuration_store::Storage &storage);
     Backend(const Backend &other) = delete;

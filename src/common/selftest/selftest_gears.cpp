@@ -157,7 +157,8 @@ LoopResult SelftestGears::state_filament_unload_wait_finished() {
     // check if we returned from preheat or finished the unload
     PreheatStatus::Result res = PreheatStatus::ConsumeResult();
     if (res == PreheatStatus::Result::DoneNoFilament) {
-
+        queue.enqueue_one_now("M104 S0"); // cool down the nozzle
+        queue.enqueue_one_now("M140 S0"); // cool down the heatbed
         return LoopResult::RunNext;
     }
     return LoopResult::GoToMark;

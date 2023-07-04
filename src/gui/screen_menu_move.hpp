@@ -9,33 +9,32 @@
 
 class I_MI_AXIS : public WiSpinInt {
 protected:
-    int32_t lastQueuedPos;
+    float last_queued_position;
 
-    virtual invalidate_t change(int diff) override;
-    void loop__(size_t index, int8_t long_seg, uint8_t buffer_len);
+    void loop__(size_t index);
 
 public:
     I_MI_AXIS(size_t index);
 };
 
-template <size_t INDEX, int8_t LONG_SEG, uint8_t BUFFER_LEN>
+template <size_t INDEX>
 class MI_AXIS : public I_MI_AXIS {
 protected:
 public:
-    MI_AXIS<INDEX, LONG_SEG, BUFFER_LEN>()
+    MI_AXIS()
         : I_MI_AXIS(INDEX) {}
 
     // enqueue next moves according to value of spinners;
     virtual void Loop() override {
-        loop__(INDEX, LONG_SEG, BUFFER_LEN);
+        loop__(INDEX);
     }
 };
 
-class MI_AXIS_E : public MI_AXIS<3, 5, 8> {
+class MI_AXIS_E : public MI_AXIS<3> {
 
 public:
     MI_AXIS_E()
-        : MI_AXIS<3, 5, 8>() {}
+        : MI_AXIS<3>() {}
 
     virtual void OnClick() override;
 };
@@ -52,13 +51,9 @@ public:
     void Update();
 };
 
-using MI_AXIS_X = MI_AXIS<0, 5, 8>;
-using MI_AXIS_Y = MI_AXIS<1, 5, 8>;
-#if PRINTER_IS_PRUSA_MINI
-using MI_AXIS_Z = MI_AXIS<2, 1, 4>;
-#else
-using MI_AXIS_Z = MI_AXIS<2, 1, 12>;
-#endif
+using MI_AXIS_X = MI_AXIS<0>;
+using MI_AXIS_Y = MI_AXIS<1>;
+using MI_AXIS_Z = MI_AXIS<2>;
 
 using ScreenMenuMove__ = ScreenMenu<EFooter::On, MI_RETURN, MI_AXIS_X, MI_AXIS_Y, MI_AXIS_Z, MI_AXIS_E, DUMMY_AXIS_E, MI_COOLDOWN>;
 

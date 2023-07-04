@@ -16,7 +16,6 @@ static constexpr const char *mm = "mm";
 static constexpr const char *mA = "mA";
 static constexpr const char *rpm = "rpm"; // todo should I translate it?
 static constexpr const char *Second = "s";
-static constexpr const char *Hz = "Hz";
 
 // SpinConfig_t == SpinConfigWithUnit
 const SpinConfigInt SpinCnf::nozzle = SpinConfigInt(MenuVars::GetNozzleRange(), Celsius, spin_off_opt_t::yes);
@@ -56,4 +55,3 @@ const SpinConfigInt SpinCnf::fs_range = SpinConfigInt({ 50000, 2500000, 1000 }, 
 const SpinConfigInt SpinCnf::loadcell_range = { { 5, 30, 1 }, None };
 const SpinConfigInt SpinCnf::print_progress = SpinConfigInt({ 29, 200, 1 }, Second, spin_off_opt_t::yes); // lowest value is off
 const SpinConfigInt SpinCnf::int_num = SpinConfigInt({ 0, std::numeric_limits<int32_t>::max(), 1 }, None, spin_off_opt_t::no);
-const SpinConfigInt SpinCnf::input_shaper_freq = SpinConfigInt({ 10, 100, 50 }, Hz, spin_off_opt_t::no);

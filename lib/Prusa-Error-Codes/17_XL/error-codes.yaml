@@ -34,6 +34,21 @@ Errors:
   text: "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
   id: "TOOL_OFFSET_OUT_OF_BOUNDS"
   approved: false
+- code: "17105"
+  title: "XY PROBE UNSTABLE"
+  text: "XY probing failed due to the low measurement stability."
+  id: "XY_PROBE_UNSTABLE"
+  approved: false
+- code: "17106"
+  title: "XY POSITION INVALID"
+  text: "Probed XY position is %.3f mm from expected. This is more than allowed difference of %.3f mm."
+  id: "XY_POSITION_INVALID"
+  approved: false
+- code: "17107"
+  title: "PIN NOT REACHED"
+  text: "Calibration pin has not been reached. Please check the pin installation."
+  id: "PIN_NOT_REACHED"
+  approved: false
 - code: "17202"
   title: "EXTRUDER PREHEAT ERROR"
   text: "Check the heater and thermistor wiring for potential damage."

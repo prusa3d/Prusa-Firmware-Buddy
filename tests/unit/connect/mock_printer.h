@@ -60,6 +60,10 @@ public:
         return false;
     }
 
+    virtual const char *delete_file(const char *) override {
+        return nullptr;
+    }
+
     virtual void submit_gcode(const char *gcode) override {
         submitted_gcodes.push_back(gcode);
     }

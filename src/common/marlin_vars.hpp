@@ -76,10 +76,6 @@ public:
             value = new_value;
         }
     }
-    /**
-     * @brief Get identifier of this variable, can be used to uniquely identify marlin variable.
-     */
-    constexpr uintptr_t get_identifier();
 
 private:
     /// @brief  Underlying atomic variable
@@ -151,7 +147,7 @@ public:
      * @brief Check if this string is equal to another.
      *
      */
-    bool equals(char *with) const {
+    bool equals(const char *with) const {
         auto lock = MarlinVarsLockGuard();
         return std::strncmp(value, with, LENGTH) == 0;
     }
@@ -357,10 +353,4 @@ extern marlin_vars_t marlin_vars_instance;
 
 inline constexpr marlin_vars_t *marlin_vars() {
     return (marlin_vars_t *)&marlin_vars_instance;
-}
-
-template <typename T>
-constexpr uintptr_t MarlinVariable<T>::get_identifier() {
-    // offset inside marlin_vars_instance is identifier
-    return reinterpret_cast<uintptr_t>(this) - reinterpret_cast<uintptr_t>(&marlin_vars_instance);
 }

@@ -65,29 +65,9 @@ static std::optional<WeightAdjustConfig> get_weight_adjust_config(const WeightAd
     };
 }
 
-static const char *to_string(Type type) {
-    switch (type) {
-    case Type::zv:
-        return "zv";
-    case Type::zvd:
-        return "zvd";
-    case Type::mzv:
-        return "mzv";
-    case Type::ei:
-        return "ei";
-    case Type::ei_2hump:
-        return "ei_2hump";
-    case Type::ei_3hump:
-        return "ei_3hump";
-    case Type::null:
-        return "null";
-    }
-    return "unknown";
-}
-
-static void dump_axis_config(const char *prefix, const AxisConfig &c) {
+static void dump_axis_config(const AxisEnum axis, const AxisConfig &c) {
     char buff[128];
-    snprintf(buff, 128, "%s type=%s freq=%f damp=%f vr=%f", prefix, to_string(c.type), c.frequency, c.damping_ratio, c.vibration_reduction);
+    snprintf(buff, 128, "axis %c type=%s freq=%f damp=%f vr=%f", axis_codes[axis], to_string(c.type), c.frequency, c.damping_ratio, c.vibration_reduction);
     SERIAL_ECHO_START();
     SERIAL_ECHOLN(buff);
 }
@@ -100,46 +80,57 @@ static void dump_weight_adjust_config(const char *prefix, const WeightAdjustConf
 }
 
 static void dump_current_config() {
-    if (const auto &axis_x = current_config().axis_x) {
-        dump_axis_config("axis x", *axis_x);
-    } else {
-        SERIAL_ECHO_MSG("axis x disabled");
-    }
-    if (const auto &axis_y = current_config().axis_y) {
-        dump_axis_config("axis y", *axis_y);
-    } else {
-        SERIAL_ECHO_MSG("axis y disabled");
+    LOOP_XYZ(i) {
+        if (const auto &axis_config = current_config().axis[i]) {
+            dump_axis_config((AxisEnum)i, *axis_config);
+        } else {
+            SERIAL_ECHO_START();
+            SERIAL_ECHOLNPAIR("axis ", axis_codes[i], " disabled");
+        }
     }
     if (const auto &weight_adjust_y = current_config().weight_adjust_y) {
         dump_weight_adjust_config("weight_adjust y", *weight_adjust_y);
     } else {
         SERIAL_ECHO_MSG("weight adjust y disabled");
     }
-    if (const auto &axis_z = current_config().axis_z) {
-        dump_axis_config("axis z", *axis_z);
-    } else {
-        SERIAL_ECHO_MSG("axis z disabled");
+}
+
+static M593Params clamp_frequency(M593Params params) {
+    if (params.axis.frequency) {
+        const float original_frequency = *params.axis.frequency;
+        const float clamped_frequency = clamp_frequency_to_safe_values(original_frequency);
+        if (clamped_frequency != original_frequency) {
+            SERIAL_ECHO_MSG("Frequency clamped to safe values");
+            params.axis.frequency = clamped_frequency;
+        }
     }
+    return params;
+}
+
+static void M593_set_axis_config(const AxisEnum axis, const M593Params &params) {
+    const AxisConfig &prev_config = current_config().axis[axis].value_or(axis_defaults[axis]);
+    const std::optional<AxisConfig> next_config = get_axis_config(prev_config, clamp_frequency(params));
+    set_axis_config(axis, next_config);
+    set_config_for_m74(axis, next_config);
 }
 
 static void M593_internal(const M593Params &params) {
     if (contains_axis_change(params)) {
         if (params.seen_x || (!params.seen_y && !params.seen_z)) {
-            const AxisConfig prev_axis = current_config().axis_x.value_or(axis_x_default);
-            set_axis_x_config(get_axis_config(prev_axis, params));
+            M593_set_axis_config(X_AXIS, params);
         }
         if (params.seen_y || (!params.seen_x && !params.seen_z)) {
-            const AxisConfig prev_axis = current_config().axis_y.value_or(axis_y_default);
-            set_axis_y_config(get_axis_config(prev_axis, params));
+            M593_set_axis_config(Y_AXIS, params);
         }
         if (params.seen_z || (!params.seen_x && !params.seen_y)) {
-            const AxisConfig prev_axis = current_config().axis_z.value_or(axis_z_default);
-            set_axis_z_config(get_axis_config(prev_axis, params));
+            M593_set_axis_config(Z_AXIS, params);
         }
     }
     if (contains_weight_adjust_change(params)) {
-        const WeightAdjustConfig prev = current_config().weight_adjust_y.value_or(weight_adjust_y_default);
-        current_config().weight_adjust_y = get_weight_adjust_config(prev, params);
+        const WeightAdjustConfig prev_config = current_config().weight_adjust_y.value_or(weight_adjust_y_default);
+        const std::optional<WeightAdjustConfig> next_config = get_weight_adjust_config(prev_config, params);
+        current_config().weight_adjust_y = next_config;
+        set_config_for_m74(next_config);
     }
     if (params.seen_w) {
         config_store().set_input_shaper_config(current_config());
@@ -214,10 +205,10 @@ void GcodeSuite::M593() {
 
     if (parser.seen('M')) {
         const float m = parser.value_float();
-        if (m > 0)
+        if (m >= 0)
             params.weight_adjust.mass_limit = m;
         else
-            SERIAL_ECHO_MSG("?Weight adjust mass limit (M) must be greater than 0");
+            SERIAL_ECHO_MSG("?Weight adjust mass limit (M) must be greater or equal to 0");
     }
 
     input_shaper::M593_internal(params);

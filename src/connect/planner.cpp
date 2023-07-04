@@ -104,18 +104,6 @@ namespace {
     template <class>
     inline constexpr bool always_false_v = false;
 
-    const char *delete_file(const char *path) {
-        int result = remove(path);
-        if (result == -1) {
-            if (errno == EBUSY) {
-                return "File is busy";
-            } else {
-                return "Error deleting file";
-            }
-        }
-        return nullptr;
-    }
-
     const char *delete_dir(const char *path) {
         int result = rmdir(path);
         if (result == -1) {
@@ -644,7 +632,7 @@ void Planner::command(const Command &command, const DeleteFile &params) {
         reason = "Forbidden path";
     } else if (!file_exists(path)) {
         reason = "File not found";
-    } else if (auto err = delete_file(path); err != nullptr) {
+    } else if (auto err = printer.delete_file(path); err != nullptr) {
         reason = err;
     }
 

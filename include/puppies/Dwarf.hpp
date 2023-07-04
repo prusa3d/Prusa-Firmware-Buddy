@@ -228,6 +228,13 @@ private:
     size_t log_line_pos = 0;
     buddy::puppies::TimeSync time_sync;
 
+    struct LoadcellSamplerate {
+        static constexpr float expected = 1000.f / 320.f; ///< Expected sampling interval [ms]
+        uint32_t count;                                   ///< Number of samples processed in one fifo pull
+        uint32_t last_timestamp;                          ///< Timestamp of last sample
+        uint32_t last_processed_timestamp;                ///< Timestamp of last update of sampling rate
+    } loadcell_samplerate;
+
     const Decoder::Callbacks_t callbacks;
     CommunicationStatus write_general();
     CommunicationStatus write_tmc_enable();

@@ -37,34 +37,6 @@ CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisCo
     , log(1000) {
     log_info(Selftest, "%s Started", config.partname);
     homing_reset();
-
-#if PRINTER_IS_PRUSA_iX
-    char gcode[7];
-    // Avoid tool cleaner, TODO move this logic into G28
-    if (AxisLetter[config.axis] == 'Y') {
-        log_info(Selftest, "%s home XY", config.partname);
-        sprintf(gcode, "G28 XY");
-    }
-#else
-    char gcode[6];
-    // we have Z safe homing enabled, so Z might need to home all axis
-    if (AxisLetter[config.axis] == 'Z' && (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS))) {
-        log_info(Selftest, "%s home all axis", config.partname);
-        sprintf(gcode, "G28");
-    }
-#endif
-    else {
-        sprintf(gcode, "G28 %c", AxisLetter[config.axis]);
-        log_info(Selftest, "%s home single axis", config.partname);
-    }
-    queue.enqueue_one_now(gcode);
-
-#if HAS_TOOLCHANGER()
-    // Z axis check needs to be done with a tool
-    if (AxisLetter[config.axis] == 'Z' && prusa_toolchanger.is_toolchanger_enabled() && (prusa_toolchanger.has_tool() == false)) {
-        queue.enqueue_one_now("T0 S1");
-    }
-#endif /*HAS_TOOLCHANGER()*/
 }
 
 CSelftestPart_Axis::~CSelftestPart_Axis() {
@@ -188,6 +160,38 @@ void CSelftestPart_Axis::sg_sampling_disable() {
 
 CSelftestPart_Axis *CSelftestPart_Axis::m_pSGAxis = nullptr;
 
+LoopResult CSelftestPart_Axis::stateHome() {
+#if PRINTER_IS_PRUSA_iX
+    char gcode[7];
+    // Avoid tool cleaner, TODO move this logic into G28
+    if (AxisLetter[config.axis] == 'Y') {
+        log_info(Selftest, "%s home XY", config.partname);
+        sprintf(gcode, "G28 XY");
+    }
+#else
+    char gcode[6];
+    // we have Z safe homing enabled, so Z might need to home all axis
+    if (AxisLetter[config.axis] == 'Z' && (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS))) {
+        log_info(Selftest, "%s home all axis", config.partname);
+        sprintf(gcode, "G28");
+    }
+#endif
+    else {
+        sprintf(gcode, "G28 %c", AxisLetter[config.axis]);
+        log_info(Selftest, "%s home single axis", config.partname);
+    }
+    queue.enqueue_one_now(gcode);
+
+#if HAS_TOOLCHANGER()
+    // Z axis check needs to be done with a tool
+    if (AxisLetter[config.axis] == 'Z' && prusa_toolchanger.is_toolchanger_enabled() && (prusa_toolchanger.has_tool() == false)) {
+        queue.enqueue_one_now("T0 S1");
+    }
+#endif /*HAS_TOOLCHANGER()*/
+
+    return LoopResult::RunNext;
+}
+
 LoopResult CSelftestPart_Axis::stateWaitHome() {
     if (queue.has_commands_queued() || planner.processing())
         return LoopResult::RunCurrent;
@@ -221,12 +225,9 @@ LoopResult CSelftestPart_Axis::stateMoveWaitFinish() {
 }
 
 // MK4 heatbed stays in the front after Y axis selftest, blocking display view
-// Move heatbed back after selftest is completed
+// XL continues with homing which can be loud if starting at the edge
+// Move Y to better position after selftest is completed
 LoopResult CSelftestPart_Axis::stateParkAxis() {
-#if (!PRINTER_IS_PRUSA_MK4) && (!PRINTER_IS_PRUSA_MK3_5)
-    return LoopResult::RunNext;
-#endif // (!PRINTER_IS_PRUSA_MK4) && (!PRINTER_IS_PRUSA_MK3_5)
-
     static bool parking_initiated = false;
     if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
@@ -236,8 +237,11 @@ LoopResult CSelftestPart_Axis::stateParkAxis() {
         return LoopResult::RunNext;
     }
 
-    if (static_cast<AxisEnum>(config.axis) == AxisEnum::Y_AXIS) {
-        queue.enqueue_one_now("G1 Y150 F4200"); // Move bed back
+    if (config.park) {
+        char gcode[15];
+        log_info(Selftest, "%s park %c axis to %i", config.partname, AxisLetter[config.axis], static_cast<int>(config.park_pos));
+        snprintf(gcode, std::size(gcode), "G1 %c%i F4200", AxisLetter[config.axis], static_cast<int>(config.park_pos));
+        queue.enqueue_one_now(gcode); // Park Y
         parking_initiated = true;
         return LoopResult::RunCurrent;
     } else {

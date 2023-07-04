@@ -6,6 +6,11 @@
 #include <configuration_store.hpp>
 
 #include <segmented_json_macros.h>
+#include <json_encode.h>
+#include <config_features.h>
+#include <otp.h>
+#include <filepath_operation.h>
+#include <filename_type.hpp>
 #include <state/printer_state.hpp>
 
 #include <dirent.h>
@@ -114,7 +119,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     // This is a bit of a hacky solution, but using the get_state and still getting all the bools correct and not
     // accidentally messing something up seems too much work given we want to hopefully soon enough implement the new v1 api
     // and stop using this. This way we get only the new attention states without any risky changes.
-    auto link_state = printer_state::get_state(marlin_vars()->print_state, marlin_vars()->get_last_fsm_change(), false);
+    auto link_state = printer_state::get_state(false);
     if (link_state == DeviceState::Attention) {
         link_state_str = "ATTENTION";
         busy = printing = error = true;
@@ -197,7 +202,29 @@ JsonResult get_version(size_t resume_point, JsonOutput &output) {
     // clang-format on
 }
 
-JsonResult get_job(size_t resume_point, JsonOutput &output) {
+JsonResult get_info(size_t resume_point, JsonOutput &output) {
+    char hostname[ETH_HOSTNAME_LEN + 1];
+    netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
+    auto nozzle_diameter = config_store().get_nozzle_diameter(0);
+    auto mmu2_enabled = config_store().mmu2_enabled.get();
+    serial_nr_t serial {};
+    otp_get_serial_nr(&serial);
+
+    // Keep the indentation of the JSON in here!
+    // clang-format off
+    JSON_START;
+    JSON_OBJ_START;
+        JSON_FIELD_FFIXED("nozzle_diameter", nozzle_diameter, 2) JSON_COMMA;
+        JSON_FIELD_BOOL("mmu", mmu2_enabled) JSON_COMMA;
+        JSON_FIELD_STR("serial", serial.txt) JSON_COMMA;
+        JSON_FIELD_STR("hostname", hostname) JSON_COMMA;
+        JSON_FIELD_INT("min_extrusion_temp", EXTRUDE_MINTEMP);
+    JSON_OBJ_END;
+    JSON_END;
+    // clang-format on
+}
+
+JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     // Note about the marlin vars: It's true that on resumption we may get
     // different values. But they would still be reasonably "sane". If we eg.
     // finish a print and base what we include on previous version, we may
@@ -272,7 +299,7 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
 
     // The states here are different (and kinda weird, but changing it is not worth it, given we want to implement
     // the new v1 api anyway), but we probably still want the new attention states?.
-    auto link_state = printer_state::get_state(marlin_vars()->print_state, marlin_vars()->get_last_fsm_change(), false);
+    auto link_state = printer_state::get_state(false);
     if (link_state == DeviceState::Attention) {
         state = "Error";
         has_job = true;
@@ -311,6 +338,79 @@ JsonResult get_job(size_t resume_point, JsonOutput &output) {
         } else {
             JSON_CONTROL("\"job\": null,\"progress\": null");
         }
+    JSON_OBJ_END;
+    JSON_END;
+    // clang-format on
+}
+
+json::JsonResult get_job_v1(size_t resume_point, json::JsonOutput &output) {
+    uint32_t time_to_end = marlin_vars()->time_to_end;
+    const char *state = "ERROR";
+    auto link_state = printer_state::get_state(false);
+    switch (link_state) {
+    case printer_state::DeviceState::Printing:
+        state = "PRINTING";
+        break;
+    case printer_state::DeviceState::Paused:
+    case printer_state::DeviceState::Attention:
+        state = "PAUSED";
+        break;
+    case printer_state::DeviceState::Finished:
+        state = "FINISHED";
+        break;
+    case printer_state::DeviceState::Stopped:
+        state = "STOPPED";
+        break;
+    default:
+        state = "ERROR";
+        break;
+    }
+    char filename[FILE_NAME_MAX_LEN];
+    char sfn_path[FILE_PATH_MAX_LEN];
+    {
+        auto lock = MarlinVarsLockGuard();
+        marlin_vars()->media_LFN.copy_to(filename, sizeof(filename), lock);
+        marlin_vars()->media_SFN_path.copy_to(sfn_path, sizeof(sfn_path), lock);
+    }
+
+    bool has_stat { true };
+    struct stat st;
+    if (stat(sfn_path, &st) != 0) {
+        // This should not happen in practice, but if it did we still want to handle
+        // it gracefully
+        has_stat = false;
+    }
+
+    JSONIFY_STR(sfn_path);
+
+    // Keep the indentation of the JSON in here!
+    // clang-format off
+    JSON_START;
+    JSON_OBJ_START;
+        JSON_FIELD_INT("id", marlin_vars()->job_id) JSON_COMMA;
+        JSON_FIELD_STR("state", state) JSON_COMMA;
+        JSON_FIELD_FFIXED("progress", ((float)marlin_vars()->sd_percent_done), 2) JSON_COMMA;
+        if (time_to_end != TIME_TO_END_INVALID) {
+            JSON_FIELD_INT("time_remaining", time_to_end) JSON_COMMA;
+        }
+        JSON_FIELD_INT("time_printing", marlin_vars()->print_duration) JSON_COMMA;
+        JSON_FIELD_OBJ("file");
+            JSON_FIELD_OBJ("refs");
+                JSON_CUSTOM("\"icon\":\"/thumb/s%s\",", sfn_path_escaped);
+                JSON_CUSTOM("\"thumbnail\":\"/thumb/l%s\",", sfn_path_escaped);
+                JSON_FIELD_STR("download", sfn_path);
+            JSON_OBJ_END JSON_COMMA;
+            JSON_FIELD_STR("name", basename_b(sfn_path)) JSON_COMMA;
+            JSON_FIELD_STR("display_name", filename) JSON_COMMA;
+            // Note: This modifies the buffer, so it has to be done after all other
+            // uses of it above!!
+            dirname(sfn_path);
+            JSON_FIELD_STR("path", sfn_path) JSON_COMMA;
+            if (has_stat) {
+                JSON_FIELD_INT_G(has_stat, "size", st.st_size) JSON_COMMA;
+                JSON_FIELD_INT_G(has_stat, "m_timestamp", st.st_mtime);
+            }
+        JSON_OBJ_END;
     JSON_OBJ_END;
     JSON_END;
     // clang-format on

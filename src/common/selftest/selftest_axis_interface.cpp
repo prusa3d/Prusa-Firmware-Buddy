@@ -44,7 +44,8 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool sep
         // clang-format off
         m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis,
             staticResults[config_axis.axis],
-            &CSelftestPart_Axis::stateWaitHome, &CSelftestPart_Axis::stateInitProgressTimeCalculation, &CSelftestPart_Axis::stateCycleMark,
+            &CSelftestPart_Axis::stateHome, &CSelftestPart_Axis::stateWaitHome,
+            &CSelftestPart_Axis::stateInitProgressTimeCalculation, &CSelftestPart_Axis::stateCycleMark,
             &CSelftestPart_Axis::stateMove, &CSelftestPart_Axis::stateMoveWaitFinish, &CSelftestPart_Axis::stateParkAxis);
         // clang-format on
     }

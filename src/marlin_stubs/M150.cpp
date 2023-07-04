@@ -1,8 +1,14 @@
+/**
+ * @file
+ */
 #include "PrusaGcodeSuite.hpp"
 #include "../../lib/Marlin/Marlin/src/gcode/parser.h"
 #include "led_animations/led_types.h"
 #include "led_animations/printer_animation_state.hpp"
 #include "led_animations/animation.hpp"
+#if HAS_SIDE_LEDS()
+    #include "leds/side_strip_control.hpp"
+#endif
 #include <optional>
 
 std::optional<leds::Color> parse_color() {
@@ -21,20 +27,25 @@ std::optional<leds::Color> parse_color() {
 }
 
 /**
- * M150: Set led animations
- *
- * A[id] - animation type
- * S[id[ - printer state
+ * @brief Set display led animations
  *
  * Color input supports RGB and HSV format
  *
- * R[value] - from 0 to 255
- * G[value]
- * B[value]
+ * ## Parameters
  *
- * H[value] from 0 to 360
- * S[value] from 0 to 100
- * V[value] form 0 to 100
+ * ### RGB color space
+ *  - `R` - Red intensity from 0 to 255
+ *  - `G` - Green intensity from 0 to 255
+ *  - `B` - Blue intensity from 0 to 255
+ *
+ * ### HSV color space
+ *  - `H` - Hue from 0 to 360
+ *  - `S` - Saturation from 0 to 100
+ *  - `V` - Saturation form 0 to 100
+ *
+ * ### Effect
+ *  - `A` - animation type
+ *  - `S` - printer state
  */
 void PrusaGcodeSuite::M150() {
     if (parser.seen('A') && parser.seen('S')) {
@@ -51,3 +62,41 @@ void PrusaGcodeSuite::M150() {
         }
     }
 }
+
+/**
+ * @brief Set side strip
+ *
+ * Color input supports RGB and HSV format
+ *
+ * ## Parameters
+ *
+ * ### RGB color space
+ *  - `R` - Red intensity from 0 to 255
+ *  - `G` - Green intensity from 0 to 255
+ *  - `B` - Blue intensity from 0 to 255
+ *
+ * ### HSV color space
+ *  - `H` - Hue from 0 to 360
+ *  - `S` - Saturation from 0 to 100
+ *  - `V` - Saturation form 0 to 100
+ *
+ * ### Effect
+ *  - `D` - duration in milliseconds, iX only: set to 0 for infinite duration
+ *  - `T` - transition in milliseconds (fade in / fade out)
+ *
+ * Fade in is counted toward duration,
+ * so if duration is greater than 0 and less than transition,
+ * effect doesn't reach full color intensity.
+ * Fade out is not counted toward duration.
+ */
+#if HAS_SIDE_LEDS()
+void PrusaGcodeSuite::M151() {
+    auto color = parse_color();
+    if (color) {
+        auto color_val = color.value();
+        uint32_t duration = parser.ulongval('D', 400);
+        uint32_t transition = parser.ulongval('T', 100);
+        leds::side_strip_control.PresentColor(color_val, duration, transition);
+    }
+}
+#endif

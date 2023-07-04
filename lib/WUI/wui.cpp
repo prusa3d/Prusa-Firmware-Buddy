@@ -465,7 +465,7 @@ public:
         last_esp_ok = sys_now();
     }
     static void run_task() {
-        osThreadDef(network, task_main, osPriorityBelowNormal, 0, 1024);
+        osThreadDef(network, task_main, TASK_PRIORITY_WUI, 0, 1024);
         osThreadCreate(osThread(network), nullptr);
     }
     static void notify(NetworkAction action) {

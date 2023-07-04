@@ -2,25 +2,13 @@
 #include <stdint.h>
 #include "cmsis_os.h"
 
-#include "Marlin/src/feature/prusa/crash_recovery.h"
-
 namespace power_panic {
 
-enum class PPState : uint8_t {
-    Inactive,
-    Prepared,
-    Triggered,
-    Retracting,
-    SaveState,
-    WaitingToDie,
-};
+// Return true if PowerPanic has been triggered and the panic_loop() should be called
+bool panic_triggered();
 
-// A power panic is triggered only in the event of an AC power failure in the print state
-// ac_power_fault_is_checked is set in all cases of AC power failure (it is used to disable EEPROM writing)
-extern std::atomic_bool ac_power_fault_is_checked;
-
-// TODO: internal state can be hidden by improving the interface
-extern PPState power_panic_state;
+// Main fault loop handler
+void panic_loop();
 
 // Return true if print state has been stored
 bool state_stored();
@@ -48,21 +36,22 @@ void resume_continue();
 // Main resume loop handler
 void resume_loop();
 
-// Main fault loop handler
-void ac_fault_loop();
+// A power panic is triggered only in the event of an AC power failure in the print state
+// ac_fault_triggered is set in all cases of AC power failure (it is used to disable EEPROM writing)
+extern std::atomic_bool ac_fault_triggered;
 
-// AC fault ISR handler
-void ac_fault_isr();
+// Current acFault pin status
+bool is_ac_fault_active();
 
 // Raise error if ac fault is present on startup, enable interrupt
 void check_ac_fault_at_startup();
 
+// AC fault ISR handler
+void ac_fault_isr();
+
 // AC fault Task handler
 extern osThreadId ac_fault_task;
 
-void ac_fault_main(void const *argument);
-
-// Current acFault pin status
-bool is_ac_fault_signal();
+void ac_fault_task_main(void const *argument);
 
 };

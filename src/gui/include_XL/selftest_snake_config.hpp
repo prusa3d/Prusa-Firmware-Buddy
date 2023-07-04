@@ -15,10 +15,21 @@ enum class Tool {
     _first = Tool1,
 };
 
+constexpr Tool operator-(Tool tool, int i) {
+    assert(ftrstd::to_underlying(tool) - i >= ftrstd::to_underlying(Tool::_first));
+    return static_cast<Tool>(ftrstd::to_underlying(tool) - i);
+}
+
+constexpr Tool operator+(Tool tool, int i) {
+    assert(ftrstd::to_underlying(tool) + i <= ftrstd::to_underlying(Tool::_last));
+    return static_cast<Tool>(ftrstd::to_underlying(tool) + i);
+}
+
 // Order matters, snake and will be run in the same order, as well as menu items (with indices) will be
 enum class Action {
     Fans,
-    XYCheck,
+    YCheck,
+    XCheck,
     ZAlign, // also known as z_calib
     DockCalibration,
     Loadcell,
@@ -103,7 +114,8 @@ struct MenuItemText {
 inline constexpr MenuItemText blank_item_texts[] {
     { Action::Fans, N_("%d Fan Test") },
     { Action::ZAlign, N_("%d Z Alignment Calibration") },
-    { Action::XYCheck, N_("%d XY Axis Test") },
+    { Action::YCheck, N_("%d Y Axis Test") },
+    { Action::XCheck, N_("%d X Axis Test") },
     { Action::DockCalibration, N_("%d Dock Position Calibration") },
     { Action::Loadcell, N_("%d Loadcell Test") },
     { Action::ToolOffsetsCalibration, N_("%d Tool Offset Calibration") },
@@ -119,4 +131,10 @@ uint8_t get_tool_mask(Tool tool);
 uint64_t get_test_mask(Action action);
 Tool get_last_enabled_tool();
 
+/**
+ * @brief Get the next enabled tool.
+ * @param tool current tool
+ * @return next enabled tool
+ */
+Tool get_next_tool(Tool tool);
 }

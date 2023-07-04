@@ -28,12 +28,8 @@ LOG_COMPONENT_REF(Bootloader);
 using Version = buddy::bootloader::Version;
 using UpdateStage = buddy::bootloader::UpdateStage;
 
-constexpr static size_t bootloader_sector_sizes[] = { 16384, 16384, 16384, 16384, 65536 };
-
-constexpr static size_t bootloader_sector_count = sizeof(bootloader_sector_sizes) / sizeof(bootloader_sector_sizes[0]);
-
 constexpr size_t bootloader_sector_get_size(int sector) {
-    return bootloader_sector_sizes[sector];
+    return buddy::bootloader::bootloader_sector_sizes[sector];
 }
 
 constexpr const uint8_t *bootloader_sector_get_address(int sector) {
@@ -177,7 +173,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
     const size_t total_bytes = 131072;
     size_t bytes_in_preceding_sectors = 0;
 
-    for (unsigned sector = 0; sector < bootloader_sector_count; sector++) {
+    for (unsigned sector = 0; sector < buddy::bootloader::bootloader_sector_count; sector++) {
 
         // do not reflash preboot if not necessary
         if (sector == 0) {

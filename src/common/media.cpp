@@ -175,9 +175,9 @@ static void media_prefetch(const void *) {
             const bool need_fetch = back_buff_level == 0 && (bb_state != GCodeFilter::State::Eof && bb_state != GCodeFilter::State::Error);
             if (need_fetch) {
                 // We don't want other threads holding FS/media locks to inherit high priority
-                osThreadSetPriority(osThreadGetId(), osPriorityNormal);
+                osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_MEDIA_PREFETCH_WHILE_FREAD);
                 back_buff_level = fread(back_buff, 1, FILE_BUFF_SIZE, media_print_file);
-                osThreadSetPriority(osThreadGetId(), osPriorityHigh);
+                osThreadSetPriority(osThreadGetId(), TASK_PRIORITY_MEDIA_PREFETCH);
 
                 if (back_buff_level == FILE_BUFF_SIZE) { // if it returned anything other then requested number of bytes, EOF or error happened
                     bb_state = GCodeFilter::State::Ok;
@@ -204,7 +204,7 @@ static void media_prefetch(const void *) {
         }
     }
 }
-osThreadDef(media_prefetch, media_prefetch, osPriorityHigh, 0, 380);
+osThreadDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 380);
 
 void media_print_start__prepare(const char *sfnFilePath) {
     if (sfnFilePath) {
@@ -306,6 +306,8 @@ void media_print_resume(void) {
                 marlin_server::set_warning(WarningType::USBFlashDiskError);
                 close_file();
             }
+        } else {
+            marlin_server::set_warning(WarningType::USBFlashDiskError);
         }
     }
 }

@@ -36,3 +36,10 @@
 #define E0_CURRENT            450
 #define E0_MICROSTEPS         16
 #define E0_RSENSE             0.22
+
+typedef struct {
+    float Kp, Ki, Kd;
+} PID_t;
+typedef struct {
+    float Kp, Ki, Kd, Kc;
+} PIDC_t;

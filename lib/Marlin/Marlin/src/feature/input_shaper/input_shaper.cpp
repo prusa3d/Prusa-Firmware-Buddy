@@ -13,19 +13,17 @@
 #include "input_shaper.hpp"
 
 #include "../precise_stepping/precise_stepping.hpp"
+#include "../precise_stepping/internal.hpp"
+
 #include "../../module/planner.h"
 #include "input_shaper_config.hpp"
-#include "eeprom_journal_config_store.hpp"
+#include "eeprom_journal/store_instance.hpp"
 
 #include <cmath>
 #include <cfloat>
 
-input_shaper_state_t InputShaper::is_state_x;
-input_shaper_pulses_t InputShaper::is_pulses_x;
-input_shaper_state_t InputShaper::is_state_y;
-input_shaper_pulses_t InputShaper::is_pulses_y;
-input_shaper_state_t InputShaper::is_state_z;
-input_shaper_pulses_t InputShaper::is_pulses_z;
+input_shaper_state_t InputShaper::is_state[3];
+input_shaper_pulses_t InputShaper::is_pulses[3];
 
 static void init_input_shaper_pulses(const double a[], const double t[], const int num_pulses, input_shaper_pulses_t *is_pulses) {
     double sum_a = 0.;
@@ -380,6 +378,7 @@ FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator
 }
 
 step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state, const double flush_time) {
+    assert(step_generator.is_state != nullptr && step_generator.is_pulses != nullptr);
     step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0 };
     int is_update_state = 0;
     do {

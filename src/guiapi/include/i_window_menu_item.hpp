@@ -79,6 +79,7 @@ private:
     uint8_t hidden : 2;
     is_enabled_t enabled : 1;
     is_focused_t focused : 1 = is_focused_t::no;
+    show_disabled_extension_t show_disabled_extension : 1 = show_disabled_extension_t::yes; // Hide disabled menu_items's extension
 
 protected:
     is_selected_t selected : 1 = is_selected_t::no;                           // should be in IWiSpin, but is here because of size optimization
@@ -146,8 +147,22 @@ public:
             Invalidate();
         }
     }
+    void ShowDisabledExtension() {
+        if (show_disabled_extension != show_disabled_extension_t::yes) {
+            show_disabled_extension = show_disabled_extension_t::yes;
+            Invalidate();
+        }
+    }
+    void DontShowDisabledExtension() {
+        if (show_disabled_extension != show_disabled_extension_t::no) {
+            show_disabled_extension = show_disabled_extension_t::no;
+            Invalidate();
+        }
+    }
+
     bool IsEnabled() const { return enabled == is_enabled_t::yes; } // This translates to 'shadow' in window_t's derived classes (remains focusable but cant be executed)
     bool IsSelected() const { return selected == is_selected_t::yes; }
+    bool DoesShowDisabledExtension() const { return show_disabled_extension == show_disabled_extension_t::yes; }
 
     bool IsHidden() const;
     bool IsDevOnly() const;

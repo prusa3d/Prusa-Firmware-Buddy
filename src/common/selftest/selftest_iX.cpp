@@ -81,11 +81,47 @@ static constexpr SelftestFansConfig fans_configs[] = {
 // clang-format on
 
 // reads data from eeprom, cannot be constexpr
-const AxisConfig_t selftest::Config_XAxis = { .partname = "X-Axis", .length = X_MAX_POS, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = X_MAX_POS, .length_max = X_MAX_POS + X_END_GAP, .axis = X_AXIS, .steps = xy_fr_table_size, .movement_dir = -1 }; // MINI has movement_dir -1
+const AxisConfig_t selftest::Config_XAxis = {
+    .partname = "X-Axis",
+    .length = X_MAX_POS,
+    .fr_table_fw = XYfr_table,
+    .fr_table_bw = XYfr_table,
+    .length_min = X_MAX_POS,
+    .length_max = X_MAX_POS + X_END_GAP,
+    .axis = X_AXIS,
+    .steps = xy_fr_table_size,
+    .movement_dir = -1,
+    .park = false,
+    .park_pos = 0,
+}; // MINI has movement_dir -1
 
-const AxisConfig_t selftest::Config_YAxis = { .partname = "Y-Axis", .length = Y_MAX_POS, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = Y_MAX_POS, .length_max = Y_MAX_POS + Y_END_GAP, .axis = Y_AXIS, .steps = xy_fr_table_size, .movement_dir = -1 };
+const AxisConfig_t selftest::Config_YAxis = {
+    .partname = "Y-Axis",
+    .length = Y_MAX_POS,
+    .fr_table_fw = XYfr_table,
+    .fr_table_bw = XYfr_table,
+    .length_min = Y_MAX_POS,
+    .length_max = Y_MAX_POS + Y_END_GAP,
+    .axis = Y_AXIS,
+    .steps = xy_fr_table_size,
+    .movement_dir = -1,
+    .park = false,
+    .park_pos = 0,
+};
 
-static const AxisConfig_t Config_ZAxis = { .partname = "Z-Axis", .length = get_z_max_pos_mm(), .fr_table_fw = Zfr_table_fw, .fr_table_bw = Zfr_table_bw, .length_min = get_z_max_pos_mm() - 4, .length_max = get_z_max_pos_mm() + 6, .axis = Z_AXIS, .steps = z_fr_tables_size, .movement_dir = 1 };
+static const AxisConfig_t Config_ZAxis = {
+    .partname = "Z-Axis",
+    .length = get_z_max_pos_mm(),
+    .fr_table_fw = Zfr_table_fw,
+    .fr_table_bw = Zfr_table_bw,
+    .length_min = get_z_max_pos_mm() - 4,
+    .length_max = get_z_max_pos_mm() + 6,
+    .axis = Z_AXIS,
+    .steps = z_fr_tables_size,
+    .movement_dir = 1,
+    .park = false,
+    .park_pos = 0,
+};
 
 static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
     {
@@ -121,9 +157,9 @@ static constexpr LoadcellConfig_t Config_Loadcell[] = { {
     .print_fan_fnc = Fans::print,
     .cool_temp = 50,
     .countdown_sec = 5,
-    .countdown_load_error_value = 40,
-    .tap_min_load_ok = 80,
-    .tap_max_load_ok = 500,
+    .countdown_load_error_value = 250,
+    .tap_min_load_ok = 500,
+    .tap_max_load_ok = 2000,
     .tap_timeout_ms = 2000,
     .z_extra_pos = 100,
     .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
@@ -383,6 +419,7 @@ void CSelftest::phaseSelftestStart() {
     if (m_Mask & stmFans) {
         m_result.tools[0].printFan = TestResult_Unknown;
         m_result.tools[0].heatBreakFan = TestResult_Unknown;
+        m_result.tools[0].fansSwitched = TestResult_Unknown;
     }
     if (m_Mask & stmXAxis)
         m_result.xaxis = TestResult_Unknown;

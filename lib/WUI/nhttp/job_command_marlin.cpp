@@ -80,7 +80,7 @@ namespace {
         }
 
         // The states here are different, but we probably still want the new attention states, so we are consistent.
-        auto link_state = printer_state::get_state(marlin_vars()->print_state, marlin_vars()->get_last_fsm_change(), false);
+        auto link_state = printer_state::get_state(false);
         if (link_state == printer_state::DeviceState::Attention) {
             simple_state = SimplePrintState::Attention;
         }

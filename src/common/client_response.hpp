@@ -290,12 +290,15 @@ enum class PhasesSelftest : uint16_t {
     Result = _first_Result,
     _last_Result = Result,
 
-    _first_WizardEpilogue,
-    WizardEpilogue_ok = _first_WizardEpilogue, // ok is after result
-    WizardEpilogue_nok,                        // nok is before result
-    _last_WizardEpilogue = WizardEpilogue_nok,
+    _first_WizardEpilogue_ok,
+    WizardEpilogue_ok = _first_WizardEpilogue_ok, // ok is after result
+    _last_WizardEpilogue_ok = WizardEpilogue_ok,
 
-    _last = _last_WizardEpilogue
+    _first_WizardEpilogue_nok,
+    WizardEpilogue_nok = _first_WizardEpilogue_nok, // nok is before result
+    _last_WizardEpilogue_nok = WizardEpilogue_nok,
+
+    _last = _last_WizardEpilogue_nok
 };
 
 enum class PhasesCrashRecovery : uint16_t {
@@ -310,6 +313,12 @@ enum class PhasesCrashRecovery : uint16_t {
     home_fail,     //< Homing failed, ask to retry
     tool_recovery, //< Toolchanger recovery, tool fell off
     _last = tool_recovery
+};
+
+enum class PhasesQuickPause : uint16_t {
+    _first = static_cast<uint16_t>(PhasesCrashRecovery::_last) + 1,
+    QuickPaused = _first,
+    _last = QuickPaused
 };
 
 // static class for work with fsm responses (like button click)
@@ -335,7 +344,7 @@ class ClientResponses {
         { Response::Filament_removed },                           // RemoveFilament,
         { Response::Yes, Response::No },                          // IsFilamentUnloaded,
         {},                                                       // FilamentNotInFS
-        { Response::Continue },                                   // ManualUnload,
+        { Response::Continue, Response::Retry },                  // ManualUnload,
         { Response::Continue, Response::Stop },                   // UserPush_stoppable,
         { Response::Continue },                                   // UserPush_unstoppable,
         { Response::Stop },                                       // MakeSureInserted_stoppable,
@@ -547,12 +556,18 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::CrashRecoveryResponses) == CountPhases<PhasesCrashRecovery>());
 
+    static constexpr PhaseResponses QuickPauseResponses[] = {
+        { Response::Resume }, // QuickPaused
+    };
+    static_assert(std::size(ClientResponses::QuickPauseResponses) == CountPhases<PhasesQuickPause>());
+
     // methods to "bind" button array with enum type
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesLoadUnload phase) { return LoadUnloadResponses[static_cast<size_t>(phase)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesQuickPause::_first)]; }
 
 public:
     // get index of single response in PhaseResponses
@@ -620,7 +635,8 @@ enum class SelftestParts {
     FirstLayer,
     FirstLayerQuestions,
     Result,
-    WizardEpilogue,
+    WizardEpilogue_ok,
+    WizardEpilogue_nok,
 #if HAS_TOOLCHANGER()
     Dock,
     ToolOffsets,
@@ -673,8 +689,10 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_first_Result;
-    case SelftestParts::WizardEpilogue:
-        return PhasesSelftest::_first_WizardEpilogue;
+    case SelftestParts::WizardEpilogue_ok:
+        return PhasesSelftest::_first_WizardEpilogue_ok;
+    case SelftestParts::WizardEpilogue_nok:
+        return PhasesSelftest::_first_WizardEpilogue_nok;
     case SelftestParts::_none:
         break;
     }
@@ -725,8 +743,10 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
 #endif
     case SelftestParts::Result:
         return PhasesSelftest::_last_Result;
-    case SelftestParts::WizardEpilogue:
-        return PhasesSelftest::_last_WizardEpilogue;
+    case SelftestParts::WizardEpilogue_ok:
+        return PhasesSelftest::_last_WizardEpilogue_ok;
+    case SelftestParts::WizardEpilogue_nok:
+        return PhasesSelftest::_last_WizardEpilogue_nok;
     case SelftestParts::_none:
         break;
     }
@@ -782,8 +802,11 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
     if (SelftestPartContainsPhase(SelftestParts::CalibZ, ph))
         return SelftestParts::CalibZ;
 
-    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue, ph))
-        return SelftestParts::WizardEpilogue;
+    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_ok, ph))
+        return SelftestParts::WizardEpilogue_ok;
+
+    if (SelftestPartContainsPhase(SelftestParts::WizardEpilogue_nok, ph))
+        return SelftestParts::WizardEpilogue_nok;
 
     if (SelftestPartContainsPhase(SelftestParts::Result, ph))
         return SelftestParts::Result;

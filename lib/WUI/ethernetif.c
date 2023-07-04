@@ -14,6 +14,7 @@
 #include "wui_api.h"
 #include "otp.h"
 #include <stdbool.h>
+#include "buddy/priorities_config.h"
 
 /* The time to block waiting for input. */
 #define TIME_WAITING_FOR_INPUT (portMAX_DELAY)
@@ -89,7 +90,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *ethHandle) {
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
         /* Peripheral interrupt init */
-        HAL_NVIC_SetPriority(ETH_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY, 0);
+        HAL_NVIC_SetPriority(ETH_IRQn, ISR_PRIORITY_DEFAULT, 0);
         HAL_NVIC_EnableIRQ(ETH_IRQn);
     }
 }

@@ -18,6 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
+ * @file
  */
 
 #include <algorithm>
@@ -25,6 +26,7 @@
 #include <span>
 #include <stdint.h>
 #include <sys/types.h>
+#include <limits>
 
 #include "core/types.h"
 #include "metric.h"
@@ -57,6 +59,7 @@
 #endif
 
 #include <bsod_gui.hpp>
+#include <marlin_server.hpp>
 
 /**
  * G425 backs away from the calibration object by various distances
@@ -100,6 +103,8 @@ static metric_t metric_xy_hit = METRIC("g425_xy", METRIC_VALUE_CUSTOM, 100, METR
 static metric_t metric_z_raw_hit = METRIC("g425_rz", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
 // Averaged Z probe - N raw probes averaged [mm]
 static metric_t metric_z_hit = METRIC("g425_z", METRIC_VALUE_CUSTOM, 100, METRIC_HANDLER_ENABLE_ALL);
+// Max deviation
+static metric_t metric_xy_dev = METRIC("g425_xy_dev", METRIC_VALUE_FLOAT, 100, METRIC_HANDLER_ENABLE_ALL);
 
 constexpr xyz_float_t dimensions { { CALIBRATION_OBJECT_DIMENSIONS } };
 constexpr xy_float_t nod = { { { CALIBRATION_NOZZLE_OUTER_DIAMETER, CALIBRATION_NOZZLE_OUTER_DIAMETER } } };
@@ -116,17 +121,27 @@ constexpr float PROBE_XY_TIGHT_DIST_MM { PIN_DIAMETER_MM / 2 + 3 };
 constexpr float PROBE_XY_CERTAIN_DIST_MM { PROBE_XY_TIGHT_DIST_MM + 1 };
 constexpr float PROBE_XY_UNCERTAIN_DIST_MM { PROBE_XY_CERTAIN_DIST_MM + 1 };
 constexpr auto PROBE_FEEDRATE_MMS { 3 };
-constexpr auto INTERPROBE_FEEDRATE_MMS { 50 };
-constexpr float RETREAT_MM { 1 };
-constexpr auto NUM_PROBE_TRIES { 20 };
-constexpr auto PROBE_ALLOWED_ERROR { 0.02f };
+constexpr auto INTERPROBE_FEEDRATE_MMS { 25 };
+constexpr auto NUM_PROBE_TRIES { 5 }; // Keep low, the noise is not random, but rather the measurement jumps a few values
+constexpr auto PROBE_ALLOWED_ERROR { 0.03f };
 constexpr auto NUM_PROBE_SAMPLES { 2 };
-constexpr auto PROBE_FAIL_THRESHOLD_MM { 5 };
+constexpr auto PROBE_FAIL_THRESHOLD_MM { 3 };
+constexpr auto XY_ACCELERATION_MMSS { 500 };
+constexpr auto RESONANCE_DAMPER_WAIT_MS { 500 };
+constexpr auto MIN_TRAVELED_DISTANCE_MM { 0.1f };
+constexpr auto MAX_DEVIATION_MM { 0.2f };
 
 struct measurements_t {
     xyz_pos_t obj_center = true_top_center; // Non-static must be assigned from xyz_pos_t
     xyz_float_t pos_error;
     xy_float_t nozzle_outer_dimension = nod;
+};
+
+enum class Phase : uint8_t {
+    first,
+    second,
+    final,
+    _count
 };
 
 #define TEMPORARY_SOFT_ENDSTOP_STATE(enable) REMEMBER(tes, soft_endstops_enabled, enable);
@@ -142,6 +157,23 @@ struct measurements_t {
 #else
     #define TEMPORARY_BACKLASH_SMOOTHING(value)
 #endif
+
+/// Limit max acceleration to a value, restore old value when destroyed
+class AccelerationLimiter {
+public:
+    AccelerationLimiter(const float max_acceleration_mmss)
+        : previous_x(planner.settings.max_acceleration_mm_per_s2[X_AXIS])
+        , previous_y(planner.settings.max_acceleration_mm_per_s2[Y_AXIS]) {
+        planner.set_max_acceleration(X_AXIS | Y_AXIS, max_acceleration_mmss);
+    }
+    ~AccelerationLimiter() {
+        planner.set_max_acceleration(X_AXIS, previous_x);
+        planner.set_max_acceleration(Y_AXIS, previous_y);
+    }
+
+private:
+    const float previous_x, previous_y;
+};
 
 inline void calibration_move() {
     do_blocking_move_to(current_position, MMM_TO_MMS(CALIBRATION_FEEDRATE_TRAVEL));
@@ -232,15 +264,9 @@ float point_distance(const xy_pos_t a, const xy_pos_t b) {
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
 
-xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool, const uint8_t phase) {
+xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool, const Phase phase) {
     // Wait for movements to finish
     planner.synchronize();
-
-    // Wait for resonance to damper and setup probe
-    auto enabler = Loadcell::HighPrecisionEnabler(loadcell);
-    wait_ms(250);
-    loadcell.analysis.Reset();
-    loadcell.Tare();
 
     // Mark initial position
     xyze_long_t initial_pos = planner.get_position();
@@ -248,8 +274,21 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
         stepper.position(C_AXIS), stepper.position(E_AXIS) } } };
     xyze_pos_t initial_mm = current_position;
 
-    // Expect pin hit
+    // Setup probe
+    auto enabler = Loadcell::HighPrecisionEnabler(loadcell);
     loadcell.set_xy_endstop(true);
+
+    // Wait for resonance to damper and tare
+    wait_ms(RESONANCE_DAMPER_WAIT_MS);
+    loadcell.Tare(Loadcell::TareMode::Continuous, true);
+
+    if (loadcell.GetXYEndstop()) {
+        // This is hopefully rare situation when the loadcell data are totally wrong. If we know this happens
+        // and why it happens we should add a red screen with appropriate text.
+        bsod("XY probe triggered");
+    }
+
+    // Expect pin hit
     endstops.enable_xy_probe(true);
 #if ENABLED(CRASH_RECOVERY)
     crash_s.deactivate();
@@ -268,7 +307,7 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
 
     // Something is terribly wrong, maybe the nozzle is already being bend, bail out.
     if (!reached) {
-        kill("Not reached pin");
+        fatal_error(ErrCode::ERR_MECHANICAL_PIN_NOT_REACHED);
     }
 
     // Get hit position
@@ -279,6 +318,11 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
     xyze_pos_t hit_mm;
     corexy_ab_to_xyze(hit_steps, hit_mm);
 
+    // Discard result if not moved enough to reach the pin (probe triggered too early?)
+    if (point_distance(hit_mm, initial_mm) < MIN_TRAVELED_DISTANCE_MM) {
+        hit_mm.reset();
+    }
+
     // Return to initial
     planner._buffer_steps_raw(initial_pos, initial_mm, initial_steps - hit_steps, INTERPROBE_FEEDRATE_MMS, active_extruder);
     planner.synchronize();
@@ -288,7 +332,7 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
         &metric_xy_raw_hit,
         ",t=%u,p=%u,a=%.3f x=%.3f,y=%.3f",
         tool,
-        phase,
+        ftrstd::to_underlying(phase),
         static_cast<double>(angle),
         static_cast<double>(hit_mm.x),
         static_cast<double>(hit_mm.y));
@@ -301,39 +345,63 @@ xy_pos_t synthetic_probe(const xyz_pos_t center, const float angle) {
         .y = center.y + (PIN_DIAMETER_MM / 2 + PROBE_Z_BORE_MM) * sin(angle) } } };
 }
 
-xy_pos_t probe_xy_verify(const xyz_pos_t center, const float angle, const float probe_distance, const uint8_t tool, const uint8_t phase) {
+xy_pos_t probe_xy_verify(const xyz_pos_t center, const float angle, const float probe_distance, const uint8_t tool, const Phase phase) {
     go_to_safety_circle(center, probe_distance);
     go_to_initial(center, angle, probe_distance);
 
-    std::array<xy_pos_t, NUM_PROBE_SAMPLES> hits = {
-        probe_xy(center, angle, tool, phase),
-        probe_xy(center, angle, tool, phase)
-    };
-
-    for (uint i = 0; i < NUM_PROBE_TRIES; ++i) {
-        const float distance = point_distance(hits[0], hits[1]);
-        if (distance < PROBE_ALLOWED_ERROR) {
-            const xy_pos_t pos = (hits[0] + hits[1]) / 2;
-
-            metric_record_custom(
-                &metric_xy_hit,
-                ",t=%u,p=%u,a=%.3f x=%.3f,y=%.3f",
-                tool,
-                phase,
-                static_cast<double>(angle),
-                static_cast<double>(pos.x),
-                static_cast<double>(pos.y));
-
-            if (point_distance(pos, synthetic_probe(center, angle)) > PROBE_FAIL_THRESHOLD_MM) {
-                kill("XY probe failed: invalid position");
-            }
-
-            return pos;
-        }
-        hits[i % hits.size()] = probe_xy(center, angle, tool, phase);
+    // Take all samples
+    std::array<xy_pos_t, NUM_PROBE_SAMPLES> hits;
+    for (auto &hit : hits) {
+        hit = probe_xy(center, angle, tool, phase);
     }
 
-    kill("XY probe failed: unstable");
+    for (uint i = 0; i < NUM_PROBE_TRIES; ++i) {
+        // Compute position from hits
+        xy_pos_t pos {};
+        for (auto &hit : hits) {
+            pos += hit;
+        }
+        pos = pos / static_cast<int>(hits.size());
+
+        // Compute sum of hit distances from position
+        float distance = 0;
+        for (auto &hit : hits) {
+            auto dist = point_distance(pos, hit);
+            if (dist > distance) {
+                distance = dist;
+            }
+            if (!hit.magnitude()) {
+                distance = std::numeric_limits<float>::infinity();
+            }
+        }
+
+        // Check samples consistency
+        if (distance > PROBE_ALLOWED_ERROR) {
+            // Redo one of the samples and try again
+            hits[i % hits.size()] = probe_xy(center, angle, tool, phase);
+            continue;
+        }
+
+        // Samples are consistent
+        metric_record_custom(
+            &metric_xy_hit,
+            ",t=%u,p=%u,a=%.3f x=%.3f,y=%.3f",
+            tool,
+            ftrstd::to_underlying(phase),
+            static_cast<double>(angle),
+            static_cast<double>(pos.x),
+            static_cast<double>(pos.y));
+
+        const float exp_dist = point_distance(pos, synthetic_probe(center, angle));
+        if (exp_dist > PROBE_FAIL_THRESHOLD_MM) {
+            fatal_error(ErrCode::ERR_MECHANICAL_XY_POSITION_INVALID, static_cast<double>(exp_dist), static_cast<double>(PROBE_FAIL_THRESHOLD_MM));
+        }
+
+        return pos;
+    }
+
+    fatal_error(ErrCode::ERR_MECHANICAL_XY_PROBE_UNSTABLE);
+
     return hits[0];
 }
 
@@ -351,7 +419,7 @@ const xy_pos_t approx_center(std::span<const xy_pos_t> points) {
 }
 
 /// Probe in Z, first in the middle then it does circle around center of the pin, just to distribute the probes over larger area to minimize errors
-float probe_z(const xyz_pos_t position, float uncertainty, const int num_measurements, const uint8_t tool, const uint8_t phase) {
+float probe_z(const xyz_pos_t position, float uncertainty, const int num_measurements, const uint8_t tool, const Phase phase) {
     constexpr xyz_float_t dimensions = { { CALIBRATION_OBJECT_DIMENSIONS } };
 
     // radius of circle that we are probing around for more variety
@@ -376,7 +444,7 @@ float probe_z(const xyz_pos_t position, float uncertainty, const int num_measure
 
         float measurement = probe_here(top_expected_position);
         if (std::isnan(measurement)) {
-            kill("Z Probe not successful", "PROBING ERROR");
+            fatal_error(ErrCode::ERR_MECHANICAL_PIN_NOT_REACHED);
         }
         SERIAL_ECHOPAIR_F("Probe: ", static_cast<double>(measurement));
         SERIAL_EOL();
@@ -384,7 +452,7 @@ float probe_z(const xyz_pos_t position, float uncertainty, const int num_measure
             &metric_z_raw_hit,
             ",t=%u,p=%u,x=%.3f,y=%.3f z=%.3f",
             tool,
-            phase,
+            ftrstd::to_underlying(phase),
             static_cast<double>(current_position.x),
             static_cast<double>(current_position.y),
             static_cast<double>(measurement));
@@ -412,33 +480,60 @@ float probe_z(const xyz_pos_t position, float uncertainty, const int num_measure
     return measurement_avg;
 }
 
-const xyz_pos_t get_single_xyz_center(const xyz_pos_t initial, const uint8_t tool, const uint8_t phase) {
-    static constexpr uint8_t PHASE_XY_HITS[] = { 3, 3, 12 };
-    static constexpr uint8_t PHASE_Z_HITS[] = { 1, 0, NUM_Z_MEASUREMENTS };
-    static constexpr float PHASE_Z_UNCERTAINTY[] = { PROBE_XY_UNCERTAIN_DIST_MM, PROBE_Z_UNCERTAIN_DIST_MM, PROBE_Z_CERTAIN_DIST_MM };
+/// Issue a warning if a point deviates too much from the circle
+void check_deviation(const xy_pos_t &center, std::span<const xy_pos_t> points) {
+    // Compute average radius
+    float radius = 0;
+    for (const xy_pos_t &p : points) {
+        radius += point_distance(center, p);
+    }
+    radius /= points.size();
+
+    // Compute maximum deviation of point-center distance from average radius
+    float max_dev = 0;
+    for (const xy_pos_t &p : points) {
+        max_dev = max(max_dev, point_distance(center, p) - radius);
+    }
+
+    // Issue warning if maximum deviation is above threshold
+    if (max_dev > MAX_DEVIATION_MM) {
+        marlin_server::set_warning(WarningType::NozzleDoesNotHaveRoundSection);
+    }
+    metric_record_float(&metric_xy_dev, max_dev);
+}
+
+const xyz_pos_t get_single_xyz_center(const xyz_pos_t initial, const uint8_t tool, const Phase phase) {
+    static constexpr uint8_t PHASE_XY_HITS[ftrstd::to_underlying(Phase::_count)] = { 3, 3, 12 };
+    static constexpr uint8_t PHASE_Z_HITS[ftrstd::to_underlying(Phase::_count)] = { 1, 0, NUM_Z_MEASUREMENTS };
+    static constexpr float PHASE_Z_UNCERTAINTY[ftrstd::to_underlying(Phase::_count)] = { PROBE_XY_UNCERTAIN_DIST_MM, PROBE_Z_UNCERTAIN_DIST_MM, PROBE_Z_CERTAIN_DIST_MM };
     xyz_pos_t start = initial;
 
     // Get Z
-    if (PHASE_Z_HITS[phase]) {
-        start.z = probe_z(initial, PHASE_Z_UNCERTAINTY[phase], PHASE_Z_HITS[phase], tool, phase);
+    if (PHASE_Z_HITS[ftrstd::to_underlying(phase)]) {
+        start.z = probe_z(initial, PHASE_Z_UNCERTAINTY[ftrstd::to_underlying(phase)], PHASE_Z_HITS[ftrstd::to_underlying(phase)], tool, phase);
     }
 
     // Get XY
+    AccelerationLimiter al(XY_ACCELERATION_MMSS);
     static constexpr uint8_t MAX_HITS = *std::max_element(std::begin(PHASE_XY_HITS), std::end(PHASE_XY_HITS));
     std::array<xy_pos_t, MAX_HITS> max_hits;
-    std::span<xy_pos_t> hits(max_hits.begin(), PHASE_XY_HITS[phase]);
+    std::span<xy_pos_t> hits(max_hits.begin(), PHASE_XY_HITS[ftrstd::to_underlying(phase)]);
     for (uint hit_no = 0; xy_pos_t & hit : hits) {
         hit = probe_xy_verify(start, 2 * PI / hits.size() * hit_no++, PROBE_XY_UNCERTAIN_DIST_MM, tool, phase);
     }
     xyz_pos_t center = approx_center(hits);
     center.z = start.z;
 
+    if (phase == Phase::final) {
+        check_deviation(center, hits);
+    }
+
     return center;
 }
 
 const xyz_pos_t get_xyz_center(const uint8_t tool) {
     xyz_pos_t center = true_top_center;
-    for (uint8_t phase = 0; phase < 3; phase++) {
+    for (Phase phase = Phase::first; phase != Phase::_count; phase = Phase(ftrstd::to_underlying(phase) + 1)) {
         center = get_single_xyz_center(center, tool, phase);
     }
 
@@ -554,7 +649,7 @@ inline void calibrate_all() {
     calibrate_backlash(m);
 #endif
 
-    tool_change(prusa_toolchanger.MARLIN_NO_TOOL_PICKED, tool_return_t::no_move);
+    tool_change(prusa_toolchanger.MARLIN_NO_TOOL_PICKED, tool_return_t::no_return);
 }
 
 /**
@@ -566,6 +661,12 @@ inline void calibrate_all() {
  * - computes new offsets
  */
 inline void calibrate_all_simple() {
+    // Disable E steppers to reduce noise on loadcell
+    disable_e_steppers();
+
+    // Disable crash recovery. It would recover, but the measurement will be inaccurate anyway.
+    Crash_Temporary_Deactivate ctd;
+
     // Reset planner state
     planner.synchronize();
     planner.reset_position();
@@ -582,7 +683,7 @@ inline void calibrate_all_simple() {
             continue;
         }
 #endif
-        tool_change(e, tool_return_t::no_move);
+        tool_change(e, tool_return_t::no_return);
         centers[e] = get_xyz_center(e);
         metric_record_custom(
             &metric_center,
@@ -594,7 +695,7 @@ inline void calibrate_all_simple() {
     }
 
     // Pick zero offset tool to be sure no offset is applied on toolchange
-    tool_change(prusa_toolchanger.MARLIN_NO_TOOL_PICKED, tool_return_t::no_move);
+    tool_change(prusa_toolchanger.MARLIN_NO_TOOL_PICKED, tool_return_t::no_return);
 
     // Apply the offset
     HOTEND_LOOP() {

@@ -137,8 +137,13 @@ async def prepare_xflash_content(firmware_path, basic_printer_arguments,
                     str(flash_dir / 'firmware.bbf'))
 
     async def wait_for_bootstrap(printer: Printer):
-        while not await screen.is_on_homescreen(printer):
+        text = ''
+        while not all(fragment in text.lower()
+                      for fragment in {'preheat', 'settings'}) and not all(
+                          fragment in text.lower()
+                          for fragment in {'input', 'shaper'}):
             await asyncio.sleep(1)
+            text = await screen.read(printer)
 
     async with Simulator.run(**basic_printer_arguments,
                              mount_dir_as_flash=flash_dir,

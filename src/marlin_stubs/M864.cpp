@@ -7,11 +7,13 @@
 
 #if ENABLED(PRUSA_TOOL_MAPPING)
 /**
- * M864: Spool join settings gcode
+ * Spool join settings gcode
  *
- *  M864 J A1 B2 - When tool 1 runs out of filament, continue with tool 2
- *  M864 R - reset any settings
- *  M864 - Print current join settings
+ * ## Examples
+ *
+ * - `M864 J A1 B2` - When tool 1 runs out of filament, continue with tool 2
+ * - `M864 R` - reset any settings
+ * - `M864` - Print current join settings
  */
 void PrusaGcodeSuite::M864() {
     if (parser.seen('J') && parser.seen("A") && parser.seen("B")) {

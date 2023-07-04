@@ -2,6 +2,7 @@
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "Marlin/src/module/stepper.h"
+    #include "Marlin/src/feature/bedlevel/bedlevel.h"
     #include "Marlin.h"
     #include "log.h"
     #include "timing.h"
@@ -193,6 +194,21 @@ void PrusaToolChangerUtils::force_marlin_picked_tool(Dwarf *dwarf) {
     } else {
         active_extruder = dwarf->get_dwarf_nr() - 1;
     }
+}
+
+float PrusaToolChangerUtils::get_mbl_z_lift_height() const {
+    // Get maximal Z of MBL
+    float mbl_max_z_height = std::numeric_limits<float>::lowest();
+    float mbl_min_z_height = std::numeric_limits<float>::max();
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
+        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
+            if (const float z = Z_VALUES(x, y); !isnan(z)) {
+                mbl_min_z_height = std::min(mbl_min_z_height, z);
+                mbl_max_z_height = std::max(mbl_max_z_height, z);
+            }
+        }
+    }
+    return mbl_max_z_height - mbl_min_z_height;
 }
 
 uint8_t PrusaToolChangerUtils::detect_tool_nr() {

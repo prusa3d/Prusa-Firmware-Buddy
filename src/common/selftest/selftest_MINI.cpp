@@ -85,11 +85,47 @@ static constexpr SelftestFansConfig fans_configs[] = {
 };
 // clang-format on
 
-const AxisConfig_t selftest::Config_XAxis = { .partname = "X-Axis", .length = 186, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 178, .length_max = 188, .axis = X_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = -1 };
+const AxisConfig_t selftest::Config_XAxis = {
+    .partname = "X-Axis",
+    .length = 186,
+    .fr_table_fw = XYfr_table,
+    .fr_table_bw = XYfr_table,
+    .length_min = 178,
+    .length_max = 188,
+    .axis = X_AXIS,
+    .steps = xy_fr_table_size * 2,
+    .movement_dir = -1,
+    .park = false,
+    .park_pos = 0,
+};
 
-const AxisConfig_t selftest::Config_YAxis = { .partname = "Y-Axis", .length = 185, .fr_table_fw = XYfr_table, .fr_table_bw = XYfr_table, .length_min = 179, .length_max = 189, .axis = Y_AXIS, .steps = xy_fr_table_size * 2, .movement_dir = 1 };
+const AxisConfig_t selftest::Config_YAxis = {
+    .partname = "Y-Axis",
+    .length = 185,
+    .fr_table_fw = XYfr_table,
+    .fr_table_bw = XYfr_table,
+    .length_min = 179,
+    .length_max = 189,
+    .axis = Y_AXIS,
+    .steps = xy_fr_table_size * 2,
+    .movement_dir = 1,
+    .park = false,
+    .park_pos = 0,
+};
 
-static const AxisConfig_t Config_ZAxis = { .partname = "Z-Axis", .length = get_z_max_pos_mm(), .fr_table_fw = Zfr_table_fw, .fr_table_bw = Zfr_table_bw, .length_min = get_z_max_pos_mm() - 4, .length_max = get_z_max_pos_mm() + 6, .axis = Z_AXIS, .steps = z_fr_tables_size, .movement_dir = 1 };
+static const AxisConfig_t Config_ZAxis = {
+    .partname = "Z-Axis",
+    .length = get_z_max_pos_mm(),
+    .fr_table_fw = Zfr_table_fw,
+    .fr_table_bw = Zfr_table_bw,
+    .length_min = get_z_max_pos_mm() - 4,
+    .length_max = get_z_max_pos_mm() + 6,
+    .axis = Z_AXIS,
+    .steps = z_fr_tables_size,
+    .movement_dir = 1,
+    .park = false,
+    .park_pos = 0,
+};
 
 static const HeaterConfig_t Config_HeaterNozzle[] = {
     {
@@ -370,6 +406,7 @@ void CSelftest::phaseSelftestStart() {
     if (m_Mask & stmFans) {
         m_result.tools[0].printFan = TestResult_Unknown;
         m_result.tools[0].heatBreakFan = TestResult_Unknown;
+        m_result.tools[0].fansSwitched = TestResult_Unknown;
     }
     if (m_Mask & stmXAxis)
         m_result.xaxis = TestResult_Unknown;

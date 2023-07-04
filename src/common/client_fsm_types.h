@@ -16,6 +16,7 @@ enum class ClientFSM : uint8_t {
     Selftest,
     Printing, // not a dialog
     CrashRecovery,
+    QuickPause,
     PrintPreview,
     _none, // cannot be created, must have same index as _count
     _count = _none
@@ -68,7 +69,8 @@ enum class WarningType : uint32_t {
     USBFlashDiskError,
     HeatbedColdAfterPP,
     HeatBreakThermistorFail,
-    _last = HeatBreakThermistorFail
+    NozzleDoesNotHaveRoundSection,
+    _last = NozzleDoesNotHaveRoundSection
 };
 
 // Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).

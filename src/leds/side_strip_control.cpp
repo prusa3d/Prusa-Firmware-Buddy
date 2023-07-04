@@ -1,6 +1,6 @@
 #include <leds/side_strip_control.hpp>
+#include <timing.h>
 #include <mutex>
-#include "timing.h"
 
 using namespace leds;
 
@@ -36,12 +36,20 @@ void SideStripControl::Tick() {
     }
 
     auto set_idle = [&](int transition_ms = 5000) {
-        TransitionToColor(Color(0, 0, 0, 40), transition_ms);
+        if (SideStrip::HasWhiteLed()) {
+            TransitionToColor(Color(0, 0, 0, 40), transition_ms);
+        } else {
+            TransitionToColor(Color(40, 40, 40, 40), transition_ms);
+        }
         state = State::Idle;
     };
 
     auto set_active = [&](int transition_ms = 500) {
-        TransitionToColor(Color(0, 0, 0, 255), transition_ms);
+        if (SideStrip::HasWhiteLed()) {
+            TransitionToColor(Color(0, 0, 0, 255), transition_ms);
+        } else {
+            TransitionToColor(Color(255, 255, 255, 255), transition_ms);
+        }
         state = State::Active;
     };
 
@@ -72,15 +80,31 @@ void SideStripControl::Tick() {
         break;
     }
     case State::CustomColor: {
-        if (ticks_diff(ticks_ms(), custom_color->start_timestamp) > (int32_t)custom_color->state_duration) {
-            uint32_t transition_ms = custom_color->transition_duration;
-            custom_color.reset();
-            if (active) {
-                set_active(transition_ms);
-            } else {
-                set_idle(transition_ms);
+#if SIDE_STRIP_ENDLESS_CUSTOM_COLOR()
+        if (custom_color->state_duration) {
+#endif
+            if (ticks_diff(ticks_ms(), custom_color->start_timestamp) > (int32_t)custom_color->state_duration) {
+                uint32_t transition_ms = custom_color->transition_duration;
+                custom_color.reset();
+                if (active) {
+                    set_active(transition_ms);
+                } else {
+                    set_idle(transition_ms);
+                }
             }
+#if SIDE_STRIP_ENDLESS_CUSTOM_COLOR()
+        } else if (!current_transition.has_value()) {
+            custom_color.reset();
+            state = State::EndlessCustomColor;
         }
+
+        break;
+    }
+    case State::EndlessCustomColor: {
+        if (custom_color.has_value()) {
+            set_custom();
+        }
+#endif
         break;
     }
     case State::SetOff: {

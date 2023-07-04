@@ -743,7 +743,7 @@ void idle(
     joystick.inject_jog_moves();
   #endif
 
-  PreciseStepping::process_queue_of_blocks();
+  PreciseStepping::loop();
 
   if (waiting) delay(1);
 }

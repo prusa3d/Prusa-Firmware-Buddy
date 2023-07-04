@@ -6,6 +6,7 @@
 
 #include "sys.h"
 #include "buffered_serial.hpp"
+#include <option/has_puppies.h>
 #include <device/board.h>
 #include "log.h"
 #include "tusb.h"
@@ -102,7 +103,9 @@ void USART6_IRQHandler(void) {
 #if defined(BUDDY_ENABLE_WUI) && uart_esp == 6
         espif_receive_data(&huart6);
 #elif BOARD_IS_XBUDDY
+    #if !HAS_PUPPIES()
         uart6_idle_cb();
+    #endif
 #endif
     }
     HAL_UART_IRQHandler(&huart6);
@@ -231,8 +234,8 @@ void DMA1_Stream1_IRQHandler(void) {
     HAL_DMA_IRQHandler(&hdma_usart3_rx);
 }
 
-void DMA2_Stream1_IRQHandler(void) {
-    HAL_DMA_IRQHandler(&hdma_spi4_tx);
+void DMA1_Stream3_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_usart3_tx);
 }
 
 #endif
@@ -257,6 +260,10 @@ void DMA2_Stream4_IRQHandler(void) {
 void DMA2_Stream0_IRQHandler(void) {
     HAL_DMA_IRQHandler(&hdma_adc3);
 }
+
+void DMA2_Stream1_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_spi4_tx);
+}
 #endif
 
 /**
@@ -278,17 +285,6 @@ void DMA2_Stream1_IRQHandler(void) {
 #endif
 
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
-
-void DMA1_Stream3_IRQHandler(void) {
-    #if BOARD_IS_XLBUDDY
-    HAL_DMA_IRQHandler(&hdma_usart3_tx);
-    #else
-    traceISR_ENTER();
-    HAL_DMA_IRQHandler(&hdma_spi2_rx);
-    traceISR_EXIT();
-    #endif
-}
-
 /**
  * @brief This function handles DMA2 stream2 global interrupt.
  */

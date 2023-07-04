@@ -3,6 +3,7 @@
 #include "device/hal.h"
 #include <cstring>
 #include <hal/HAL_MultiWatchdog.hpp>
+#include "buddy/priorities_config.h"
 
 namespace modbus::ModbusTask {
 
@@ -24,7 +25,7 @@ static osSemaphoreId s_RXDataSemaphore = nullptr;
 static osSemaphoreDef(s_RXDataSemaphore);
 
 static osThreadId s_OSThredHandle = nullptr;
-osThreadDef(ModbusTask, ModbusTaskFunction, osPriorityAboveNormal, 1, (256 * 4));
+osThreadDef(ModbusTask, ModbusTaskFunction, TASK_PRIORITY_MODBUS, 1, (256 * 4));
 
 static bool s_ModbusEnabled = false;
 static bool s_ExitThread = false;

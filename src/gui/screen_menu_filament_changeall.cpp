@@ -91,6 +91,9 @@ void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
             marlin_set_display_nozzle(temperature, tool);
         }
 
+        // Lift Z to prevent unparking and parking of each tool
+        marlin_gcode("G27 P0 Z40");
+
         // Do all changes
         for (size_t tool = 0; tool < tool_count; tool++) {
             if (!valid[tool]) {

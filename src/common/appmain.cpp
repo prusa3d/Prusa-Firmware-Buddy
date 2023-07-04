@@ -153,7 +153,6 @@ void app_setup(void) {
     marlin_server::settings_load(); // load marlin variables from eeprom
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    buddy::hw::FUSB302B::ResetChip();
     buddy::hw::FUSB302B::InitChip();
 #endif
 }
@@ -167,21 +166,16 @@ enum class reset_usb_fs_t {
     END
 };
 
-enum class VBUS_state {
-    not_detected = 0x00,
-    detected = 0x80
-};
-
 reset_usb_fs_t reset_usb_fs = reset_usb_fs_t::IDLE;
 
 void check_usbc_connection() {
     static uint32_t last_USBC_update = 0;
     if (ticks_s() - last_USBC_update > 1) {
-        switch ((VBUS_state)buddy::hw::FUSB302B::ReadSTATUS0Reg()) {
-        case VBUS_state::not_detected: // VBUS not detected
+        switch (buddy::hw::FUSB302B::ReadSTATUS0Reg()) {
+        case buddy::hw::FUSB302B::VBUS_state::not_detected: // VBUS not detected
             reset_usb_fs = reset_usb_fs_t::START;
             break;
-        case VBUS_state::detected: // VBUS detected
+        case buddy::hw::FUSB302B::VBUS_state::detected: // VBUS detected
             break;
         }
 

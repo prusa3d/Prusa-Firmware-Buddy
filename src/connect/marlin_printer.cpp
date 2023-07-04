@@ -162,7 +162,7 @@ void MarlinPrinter::renew(std::optional<SharedBuffer::Borrow> new_borrow) {
     //
     // (We kind of assume there's no chance of renew not being called between a
     // print starts and ends and that we'll see it.).
-    if (get_state(marlin_vars()->print_state, marlin_vars()->get_last_fsm_change(), ready) != DeviceState::Ready) {
+    if (get_state(ready) != DeviceState::Ready) {
         ready = false;
     }
 }
@@ -176,7 +176,7 @@ Printer::Params MarlinPrinter::params() const {
 
     Params params(borrow);
     params.material = filament::get_description(current_filament).name;
-    params.state = get_state(marlin_vars()->print_state, marlin_vars()->get_last_fsm_change(), ready);
+    params.state = get_state(ready);
     params.temp_bed = marlin_vars()->temp_bed;
     params.target_bed = marlin_vars()->target_bed;
     params.temp_nozzle = marlin_vars()->active_hotend().temp_nozzle;
@@ -287,7 +287,7 @@ Printer::NetCreds MarlinPrinter::net_creds() const {
 
 bool MarlinPrinter::job_control(JobControl control) {
     // Renew was presumably called before short.
-    DeviceState state = get_state(marlin_vars()->print_state, marlin_vars()->get_last_fsm_change(), false);
+    DeviceState state = get_state(false);
 
     switch (control) {
     case JobControl::Pause:
@@ -323,6 +323,17 @@ bool MarlinPrinter::start_print(const char *path) {
 
     print_begin(path, true);
     return marlin_print_started();
+}
+
+const char *MarlinPrinter::delete_file(const char *path) {
+    auto result = remove_file(path);
+    if (result == DeleteResult::Busy) {
+        return "File is busy";
+    } else if (result == DeleteResult::GeneralError) {
+        return "Error deleting file";
+    } else {
+        return nullptr;
+    }
 }
 
 void MarlinPrinter::submit_gcode(const char *code) {

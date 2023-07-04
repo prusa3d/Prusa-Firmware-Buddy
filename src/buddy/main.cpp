@@ -33,10 +33,10 @@
 #include "logging.h"
 #include "common/disable_interrupts.h"
 #include <option/has_accelerometer.h>
+#include <option/has_puppies.h>
 #include <option/has_puppies_bootloader.h>
 #include <option/filament_sensor.h>
 #include <option/has_gui.h>
-#include <option/has_side_leds.h>
 #include <option/has_embedded_esp32.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
@@ -44,17 +44,13 @@
 #include <espif.h>
 #include "sound.hpp"
 
-#if BOARD_IS_XLBUDDY
+#if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
     #include "puppies/puppy_task.hpp"
 #endif
 
 #if ENABLED(POWER_PANIC)
     #include "power_panic.hpp"
-#endif
-
-#if HAS_SIDE_LEDS()
-    #include <leds/task.hpp>
 #endif
 
 #ifdef BUDDY_ENABLE_WUI
@@ -188,8 +184,11 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BOARD_IS_XLBUDDY
+    hw_init_spi_side_leds();
+#endif
+
+#if HAS_PUPPIES()
     UART_INIT(puppies);
-    SPI_INIT(led);
     buddy::puppies::PuppyBus::Open();
 #endif
 
@@ -229,7 +228,9 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if (BOARD_IS_XBUDDY)
+    #if !HAS_PUPPIES()
     buddy::hw::BufferedSerial::uart6.Open();
+    #endif
 #endif
 
     filesystem_init();
@@ -251,28 +252,28 @@ extern "C" void main_cpp(void) {
     espif_init_hw();
 #endif
 
-    osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 1024);
+    osThreadDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
     if (option::has_gui) {
-        osThreadDef(displayTask, StartDisplayTask, osPriorityNormal, 0, 1024 + 256 + 128);
+        osThreadDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 256 + 128);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 
 #if ENABLED(POWER_PANIC)
     power_panic::check_ac_fault_at_startup();
     /* definition and creation of acFaultTask */
-    osThreadDef(acFaultTask, power_panic::ac_fault_main, osPriorityRealtime, 0, 80);
+    osThreadDef(acFaultTask, power_panic::ac_fault_task_main, TASK_PRIORITY_AC_FAULT, 0, 80);
     power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
 #endif
 
-#if BOARD_IS_XLBUDDY
+#if HAS_PUPPIES()
     buddy::puppies::start_puppy_task();
 #endif
 
 #ifdef BUDDY_ENABLE_WUI
     #if HAS_EMBEDDED_ESP32()
-        #if BOARD_VER_EQUAL_TO(0, 5, 0)
+        #if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 
@@ -284,18 +285,13 @@ extern "C" void main_cpp(void) {
 
 #ifdef BUDDY_ENABLE_CONNECT
     /* definition and creation of connectTask */
-    osThreadDef(connectTask, StartConnectTask, osPriorityBelowNormal, 0, 2304);
+    osThreadDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
-#endif
-
-#if HAS_SIDE_LEDS()
-    osThreadDef(ledsTask, leds::run_task, osPriorityNormal, 0, 256);
-    osThreadCreate(osThread(ledsTask), NULL);
 #endif
 
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
-        osThreadDef(measurementTask, StartMeasurementTask, osPriorityNormal, 0, 512);
+        osThreadDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
         osThreadCreate(osThread(measurementTask), NULL);
     }
 }
@@ -342,29 +338,31 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
 #endif
 }
 
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *haurt) {
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 #if (BOARD_IS_BUDDY)
-    if (haurt == &huart2) {
+    if (huart == &huart2) {
         buddy::hw::BufferedSerial::uart2.WriteFinishedISR();
     }
 #endif
 
-#if BOARD_IS_XLBUDDY
-    if (haurt == &huart3) {
+#if HAS_PUPPIES()
+    if (huart == &UART_HANDLE_FOR(puppies)) {
         buddy::puppies::PuppyBus::bufferedSerial.WriteFinishedISR();
     }
 #endif
 
 #if (BOARD_IS_XBUDDY)
-    if (haurt == &huart6) {
+    #if !HAS_PUPPIES()
+    if (huart == &huart6) {
         //        log_debug(Buddy, "HAL_UART6_TxCpltCallback");
         buddy::hw::BufferedSerial::uart6.WriteFinishedISR();
-    #if HAS_MMU2
-            // instruct the RS485 converter, that we have finished sending data and from now on we are expecting a response from the MMU
-            // set to high in hwio_pindef.h
-            // buddy::hw::RS485FlowControl.write(buddy::hw::Pin::State::high);
-    #endif
+        #if HAS_MMU2
+                // instruct the RS485 converter, that we have finished sending data and from now on we are expecting a response from the MMU
+                // set to high in hwio_pindef.h
+                // buddy::hw::RS485FlowControl.write(buddy::hw::Pin::State::high);
+        #endif
     }
+    #endif
 #endif
 }
 
@@ -376,17 +374,18 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
     }
 #endif
 
-#if BOARD_IS_XLBUDDY
-    if (huart == &huart3) {
+#if HAS_PUPPIES()
+    if (huart == &UART_HANDLE_FOR(puppies)) {
         buddy::puppies::PuppyBus::bufferedSerial.FirstHalfReachedISR();
     }
 #endif
 
 #if (BOARD_IS_XBUDDY)
-
+    #if !HAS_PUPPIES()
     if (huart == &huart6) {
         buddy::hw::BufferedSerial::uart6.FirstHalfReachedISR();
     }
+    #endif
 #endif
 }
 
@@ -397,16 +396,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     }
 #endif
 
-#if (BOARD_IS_XLBUDDY)
-    if (huart == &huart3) {
+#if HAS_PUPPIES()
+    if (huart == &UART_HANDLE_FOR(puppies)) {
         buddy::puppies::PuppyBus::bufferedSerial.SecondHalfReachedISR();
     }
 #endif
 
 #if (BOARD_IS_XBUDDY)
+    #if !HAS_PUPPIES()
     if (huart == &huart6) {
         buddy::hw::BufferedSerial::uart6.SecondHalfReachedISR();
     }
+    #endif
 #endif
 }
 
@@ -528,7 +529,7 @@ void init_error_screen() {
 
         init_only_littlefs();
 
-        osThreadDef(displayTask, StartErrorDisplayTask, osPriorityNormal, 0, 1024 + 256);
+        osThreadDef(displayTask, StartErrorDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 256);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 }
@@ -624,7 +625,7 @@ int main() {
     enable_dfu_entry();
 
     // define the startup task
-    osThreadDef(startup, startup_task, osPriorityHigh, 0, 1024 + 512 + 256);
+    osThreadDef(startup, startup_task, TASK_PRIORITY_STARTUP, 0, 1024 + 512 + 256);
     osThreadCreate(osThread(startup), NULL);
 
     // start the RTOS with the single startup task

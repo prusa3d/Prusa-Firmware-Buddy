@@ -32,10 +32,48 @@
  * G27: Park the nozzle
  */
 void GcodeSuite::G27() {
-    // Don't allow nozzle parking without homing first
-    if (axis_unhomed_error())
-        return;
-    nozzle.park(parser.ushortval('P'));
+
+    const uint16_t P = parser.ushortval('P');
+    const bool doX = parser.seen('X');
+    const bool doY = parser.seen('Y');
+    const bool doZ = parser.seen('Z');
+
+    constexpr xyz_pos_t default_park_pos = { { NOZZLE_PARK_POINT } };
+    xyz_pos_t park_pos;
+
+    if (doX || doY || doZ) {
+        // Any one of XYZ was given, move only named axes
+        park_pos = current_position;
+
+        // Axis letter without number moves to default park position
+        if (doX) {
+            park_pos.x = parser.floatval('X', default_park_pos.x);
+        }
+        if (doY) {
+            park_pos.y = parser.floatval('Y', default_park_pos.y);
+        }
+        if (doZ) {
+            park_pos.z = parser.floatval('Z', default_park_pos.z);
+        }
+    } else {
+        // No axis was given, move all axes to default
+        park_pos = default_park_pos;
+    }
+
+    // If not homed, allow only Z clearance
+    if (axes_need_homing()) {
+        if (!doX && !doY && doZ && P == 0) {
+            // Only Z axis is given in P=0 mode, do Z clearance
+            do_z_clearance(park_pos.z);
+        } else {
+            // Don't allow nozzle parking without homing first
+            axis_unhomed_error();
+            return;
+        }
+    } else {
+        // Regular park
+        nozzle.park(P, park_pos);
+    }
 }
 
 #endif // NOZZLE_PARK_FEATURE

@@ -532,7 +532,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     #if ENABLED(PARKING_EXTRUDER)
       const bool pe_final_change_must_unpark = parking_extruder_unpark_after_homing(old_tool_index, X_HOME_DIR + 1 == old_tool_index * 2);
     #endif
-    tool_change(0, tool_return_t::no_move);
+    tool_change(0, tool_return_t::no_return);
   #endif
 
 
@@ -637,6 +637,11 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
         failed = true;
       }
     }
+
+    // X position is unknown or near right edge
+    if (!failed && (axes_need_homing(_BV(X_AXIS)) || current_position.x > X_MAX_POS - MOVE_BACK_BEFORE_HOMING_DISTANCE)) {
+      do_homing_move(X_AXIS, -1 * MOVE_BACK_BEFORE_HOMING_DISTANCE); // Move a bit left to avoid unlocking the tool
+    }
     #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
 
     // Home Y (before X)
@@ -714,7 +719,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
           #if ENABLED(PRUSA_TOOLCHANGER)
           if (active_extruder == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
             // When no tool is picked, make sure to pick one
-            failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_move, current_position);
+            failed = !prusa_toolchanger.tool_change(0, tool_return_t::no_return, current_position);
           }
           #endif
 

@@ -10,8 +10,8 @@
 
 ResultHeaters::ResultHeaters()
     : SelfTestGroup(_("Heaters check"))
-    , noz(_("Nozzle"), png::nozzle_16x16, TestResult_Unknown)
-    , bed(_("Heatbed"), png::heatbed_16x16, TestResult_Unknown) {
+    , noz(_("Nozzle"), &png::nozzle_16x16, TestResult_Unknown)
+    , bed(_("Heatbed"), &png::heatbed_16x16, TestResult_Unknown) {
     Add(noz);
     Add(bed);
 }

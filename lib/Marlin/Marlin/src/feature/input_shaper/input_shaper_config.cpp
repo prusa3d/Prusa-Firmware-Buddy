@@ -1,7 +1,7 @@
 #include "input_shaper_config.hpp"
 #include "input_shaper.hpp"
 
-#include "eeprom_journal_config_store.hpp"
+#include "eeprom_journal/store_instance.hpp"
 
 #include "../../module/planner.h"
 
@@ -10,6 +10,39 @@ namespace input_shaper {
 Config &current_config() {
     static Config config = config_store().get_input_shaper_config();
     return config;
+}
+
+static Config config_for_m74;
+
+void set_config_for_m74(const AxisEnum axis, const std::optional<AxisConfig> &next_config) {
+    // Only set the value if it was not set before.
+    // Older slicer versions issued both M593 and M74 which caused M74 to adjust already adjusted value.
+    // This gets reset after the boot and after the print is done.
+    if (!config_for_m74.axis[axis]) {
+        config_for_m74.axis[axis] = next_config;
+    }
+}
+
+void set_config_for_m74(const std::optional<WeightAdjustConfig> &next_config) {
+    // This function complements set_config_for_m74 for setting axis config
+    if (!config_for_m74.weight_adjust_y) {
+        config_for_m74.weight_adjust_y = next_config;
+    }
+}
+
+Config get_config_for_m74() {
+    // M593 might not be issued at all. In that case, we should use value from EEPROM.
+    auto result = config_for_m74;
+    const Config &eeprom_config = config_store().get_input_shaper_config();
+    LOOP_XYZ(i) {
+        if (!result.axis[i]) {
+            result.axis[i] = eeprom_config.axis[i];
+        }
+    }
+    if (!result.weight_adjust_y) {
+        result.weight_adjust_y = eeprom_config.weight_adjust_y;
+    }
+    return result;
 }
 
 static input_shaper_pulses_t get_input_shaper(const input_shaper::Type input_shaper_type, const float input_shaper_frequency, const float damping_ratio, const float vibration_reduction) {
@@ -36,63 +69,33 @@ static input_shaper_pulses_t get_input_shaper(const input_shaper::Type input_sha
 static auto get_input_shaper(const AxisConfig &c) {
     return get_input_shaper(c.type, c.frequency, c.damping_ratio, c.vibration_reduction);
 }
-static void set_axis_x_config_internal(std::optional<AxisConfig> axis_config) {
+static void set_axis_config_internal(const AxisEnum axis, std::optional<AxisConfig> axis_config) {
     if (axis_config) {
-        InputShaper::is_pulses_x = get_input_shaper(*axis_config);
-        PreciseStepping::step_generator_types |= INPUT_SHAPER_STEP_GENERATOR_X;
+        InputShaper::is_pulses[axis] = get_input_shaper(*axis_config);
+        PreciseStepping::step_generator_types |= (INPUT_SHAPER_STEP_GENERATOR_X << axis);
     } else {
-        PreciseStepping::step_generator_types &= ~INPUT_SHAPER_STEP_GENERATOR_X;
-    }
-}
-
-static void set_axis_y_config_internal(std::optional<AxisConfig> axis_config) {
-    if (axis_config) {
-        InputShaper::is_pulses_y = get_input_shaper(*axis_config);
-        PreciseStepping::step_generator_types |= INPUT_SHAPER_STEP_GENERATOR_Y;
-    } else {
-        PreciseStepping::step_generator_types &= ~INPUT_SHAPER_STEP_GENERATOR_Y;
-    }
-}
-
-static void set_axis_z_config_internal(std::optional<AxisConfig> axis_config) {
-    if (axis_config) {
-        InputShaper::is_pulses_z = get_input_shaper(*axis_config);
-        PreciseStepping::step_generator_types |= INPUT_SHAPER_STEP_GENERATOR_Z;
-    } else {
-        PreciseStepping::step_generator_types &= ~INPUT_SHAPER_STEP_GENERATOR_Z;
+        PreciseStepping::step_generator_types &= ~(INPUT_SHAPER_STEP_GENERATOR_X << axis);
     }
 }
 
 void init() {
     auto &config = current_config();
     config = config_store().get_input_shaper_config();
-    set_axis_x_config_internal(config.axis_x);
-    set_axis_y_config_internal(config.axis_y);
-    set_axis_z_config_internal(config.axis_z);
+    LOOP_XYZ(i) {
+        set_axis_config_internal((AxisEnum)i, config.axis[i]);
+    }
+    config_for_m74 = {};
 }
 
-void set_axis_x_config(std::optional<AxisConfig> axis_config) {
+void set_axis_config(const AxisEnum axis, std::optional<AxisConfig> axis_config) {
+    if (axis_config) {
+        axis_config->frequency = clamp_frequency_to_safe_values(axis_config->frequency);
+    }
     // For now, we must ensure that all queues are empty before changing input shapers parameters.
     // But later, it could be possible to wait just for block and move quests.
     planner.synchronize();
-    set_axis_x_config_internal(axis_config);
-    current_config().axis_x = axis_config;
-}
-
-void set_axis_y_config(std::optional<AxisConfig> axis_config) {
-    // For now, we must ensure that all queues are empty before changing input shapers parameters.
-    // But later, it could be possible to wait just for block and move quests.
-    planner.synchronize();
-    set_axis_y_config_internal(axis_config);
-    current_config().axis_y = axis_config;
-}
-
-void set_axis_z_config(std::optional<AxisConfig> axis_config) {
-    // For now, we must ensure that all queues are empty before changing input shapers parameters.
-    // But later, it could be possible to wait just for block and move quests.
-    planner.synchronize();
-    set_axis_z_config_internal(axis_config);
-    current_config().axis_z = axis_config;
+    set_axis_config_internal(axis, axis_config);
+    current_config().axis[axis] = axis_config;
 }
 
 void set_axis_y_weight_adjust(std::optional<WeightAdjustConfig> wa_config) {
@@ -101,6 +104,32 @@ void set_axis_y_weight_adjust(std::optional<WeightAdjustConfig> wa_config) {
     //   recomputes _current_ Y filter settings, if this assumption gets broken the power_panic
     //   code will require a different recovery procedure.
     current_config().weight_adjust_y = wa_config;
+}
+
+const char *to_string(Type type) {
+    switch (type) {
+    case Type::zv:
+        return "ZV";
+    case Type::zvd:
+        return "ZVD";
+    case Type::mzv:
+        return "MZV";
+    case Type::ei:
+        return "EI";
+    case Type::ei_2hump:
+        return "EI_2HUMP";
+    case Type::ei_3hump:
+        return "EI_3HUMP";
+    case Type::null:
+        return "null";
+    default:
+        break;
+    }
+    return "Unknown";
+}
+
+float clamp_frequency_to_safe_values(float frequency) {
+    return std::clamp(frequency, frequency_safe_min, frequency_safe_max);
 }
 
 }

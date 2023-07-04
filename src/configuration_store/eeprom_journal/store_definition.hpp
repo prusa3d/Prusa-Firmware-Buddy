@@ -1,7 +1,9 @@
 #pragma once
-#include "eeprom_journal.hpp"
+#include "constants.hpp"
+#include "defaults.hpp"
+#include "backend_instance.hpp"
+#include <journal/configuration_store.hpp>
 #include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
-#include "journal/configuration_store.hpp"
 #include <module/temperature.h>
 #include <config.h>
 #include <eeprom.h>
@@ -9,239 +11,10 @@
 #include <footer_eeprom.hpp>
 #include <time_tools.hpp>
 #include <filament.hpp>
-
-// TODO: Find a better home for this
-inline bool operator==(DockPosition lhs, DockPosition rhs) {
-    return lhs.x == rhs.x && lhs.y == rhs.y;
-}
-
-// TODO: Find a better home for this
-inline bool operator==(ToolOffset lhs, ToolOffset rhs) {
-    return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
-}
-
-// TODO: Find a better home for this
-inline bool operator==(SelftestResult lhs, SelftestResult rhs) {
-    for (size_t i = 0; i < std::size(lhs.tools); ++i) {
-        if (lhs.tools[i].dockoffset != rhs.tools[i].dockoffset
-            || lhs.tools[i].fsensor != rhs.tools[i].fsensor
-            || lhs.tools[i].sideFsensor != rhs.tools[i].sideFsensor
-            || lhs.tools[i].heatBreakFan != rhs.tools[i].heatBreakFan
-            || lhs.tools[i].printFan != rhs.tools[i].printFan
-            || lhs.tools[i].loadcell != rhs.tools[i].loadcell
-            || lhs.tools[i].nozzle != rhs.tools[i].nozzle
-            || lhs.tools[i].tooloffset != rhs.tools[i].tooloffset) {
-            return false;
-        }
-    }
-    return lhs.bed == rhs.bed
-        && lhs.eth == rhs.eth
-        && lhs.wifi == rhs.wifi
-        && lhs.xaxis == rhs.xaxis
-        && lhs.yaxis == rhs.yaxis
-        && lhs.zaxis == rhs.zaxis
-        && lhs.zalign == rhs.zalign;
-}
-
-// TODO: Find a better home for this
-inline bool operator==(Sheet lhs, Sheet rhs) {
-    for (size_t i = 0; i < std::size(lhs.name); ++i) {
-        if (lhs.name[i] != rhs.name[i]) {
-            return false;
-        }
-        if (lhs.name[i] == '\0') {
-            break;
-        }
-    }
-    return lhs.z_offset == rhs.z_offset;
-}
-
-// TODO: Find a better home for this
-enum class HWCheckSeverity : uint8_t {
-    Ignore = 0,
-    Warning = 1,
-    Abort = 2
-};
+#include <selftest_result.hpp>
+#include <metric_config.h>
 
 namespace eeprom_journal {
-
-// Holds default constants so they can be referenced by store item. Placing these constants in another header where it's more meaningful is welcome. These defaults could be passed directly as template parameter to store items from gcc 11 onwards (and store items would accept them as value instead of as a const ref).
-namespace defaults {
-    // Variables without a distinct default values can use these shared ones
-    inline constexpr bool bool_true { true };
-    inline constexpr bool bool_false { false };
-
-    inline constexpr float float_zero { 0.0f };
-    inline constexpr uint8_t uint8_t_zero { 0 };
-    inline constexpr uint16_t uint16_t_zero { 0 };
-    inline constexpr uint32_t uint32_t_zero { 0 };
-
-    // default values for variables that have distinct requirements
-    inline constexpr float pid_nozzle_p {
-#ifdef DEFAULT_Kp
-        DEFAULT_Kp
-#else
-        0.0f
-#endif
-    };
-    inline constexpr float pid_nozzle_i {
-#ifdef DEFAULT_Ki
-        scalePID_i(DEFAULT_Ki)
-#else
-        0.0f
-#endif
-    };
-    inline constexpr float pid_nozzle_d {
-#ifdef DEFAULT_Kd
-        scalePID_d(DEFAULT_Kd)
-#else
-        0.0f
-#endif
-    };
-
-    inline constexpr float pid_bed_p {
-#ifdef DEFAULT_bedKp
-        DEFAULT_bedKp
-#else
-        0.0f
-#endif
-    };
-    inline constexpr float pid_bed_i {
-#ifdef DEFAULT_bedKi
-        scalePID_i(DEFAULT_bedKi)
-#else
-        0.0f
-#endif
-    };
-    inline constexpr float pid_bed_d {
-#ifdef DEFAULT_bedKd
-        scalePID_d(DEFAULT_bedKd)
-#else
-        0.0f
-#endif
-    };
-
-    inline constexpr std::array<char, LAN_HOSTNAME_MAX_LEN + 1> net_hostname { DEFAULT_HOST_NAME };
-    inline constexpr int8_t lan_timezone { 1 };
-    inline constexpr std::array<char, WIFI_MAX_SSID_LEN + 1> wifi_ap_ssid { "" };
-    inline constexpr std::array<char, WIFI_MAX_PASSWD_LEN + 1> wifi_ap_password { "" };
-
-    inline constexpr eSOUND_MODE sound_mode { eSOUND_MODE::UNDEF };
-    inline constexpr uint8_t sound_volume { 5 };
-    inline constexpr uint16_t language { 0xffff };
-    inline constexpr uint32_t footer_setting { footer::eeprom::Encode(footer::DefaultItems) };
-    inline constexpr uint32_t footer_draw_type { footer::ItemDrawCnf::Default() };
-    inline constexpr std::array<char, PL_PASSWORD_SIZE> prusalink_password { "" };
-
-    inline constexpr std::array<char, CONNECT_HOST_SIZE + 1> connect_host { "buddy-a.\x01\x01" }; // "Compressed" - this means buddy-a.connect.prusa3d.com.
-    inline constexpr std::array<char, CONNECT_TOKEN_SIZE + 1> connect_token { "" };
-    inline constexpr uint16_t connect_port { 443 };
-
-    inline constexpr bool crash_enabled {
-#if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
-        false
-#else
-        true
-#endif // (( PRINTER_IS_PRUSA_MK4) || ( PRINTER_IS_PRUSA_MK3_5))
-    };
-
-    inline constexpr int16_t crash_sens[2] =
-#if ENABLED(CRASH_RECOVERY)
-        CRASH_STALL_GUARD;
-#else
-        { 0, 0 };
-#endif // ENABLED(CRASH_RECOVERY)
-
-    inline constexpr int16_t crash_sens_x { crash_sens[0] };
-    inline constexpr int16_t crash_sens_y { crash_sens[1] };
-
-    static constexpr uint16_t crash_max_period[2] =
-#if ENABLED(CRASH_RECOVERY)
-        CRASH_MAX_PERIOD;
-#else
-        { 0, 0 };
-#endif // ENABLED(CRASH_RECOVERY)
-
-    inline constexpr uint16_t crash_max_period_x { crash_max_period[0] };
-    inline constexpr uint16_t crash_max_period_y { crash_max_period[1] };
-
-    inline constexpr bool crash_filter {
-#if ENABLED(CRASH_RECOVERY)
-        CRASH_FILTER
-#else
-        false
-#endif // ENABLED(CRASH_RECOVERY)
-    };
-
-    inline constexpr time_format::TF_t time_format { time_format::TF_t::TF_24H };
-
-    inline constexpr float loadcell_scale { 0.0192f };
-    inline constexpr float loadcell_threshold_static { -125.f };
-    inline constexpr float loadcell_hysteresis { 80.f };
-    inline constexpr float loadcell_threshold_continuous { -40.f };
-
-    inline constexpr int32_t extruder_fs_ref_value { std::numeric_limits<int32_t>::min() }; // min == will require calibration
-    inline constexpr uint32_t extruder_fs_value_span {
-#if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
-        100
-#elif (BOARD_IS_XLBUDDY)
-        1000
-#else
-        350000
-#endif
-    };
-
-    inline constexpr int32_t side_fs_ref_value { std::numeric_limits<int32_t>::min() }; // min == will require calibration
-    inline constexpr uint32_t side_fs_value_span { 310 };
-
-    inline constexpr uint16_t print_progress_time { 30 };
-
-    inline constexpr DockPosition dock_position { 0, 0 };
-    inline constexpr ToolOffset tool_offset { 0, 0, 0 };
-
-    inline constexpr filament::Type filament_type { filament::Type::NONE };
-    inline constexpr float nozzle_diameter {
-#if PRINTER_IS_PRUSA_XL
-        0.60f
-#else
-        0.40f
-#endif
-    };
-
-    inline constexpr HWCheckSeverity hw_check_severity { HWCheckSeverity::Warning };
-    inline constexpr SelftestResult selftest_result {};
-
-    inline constexpr Sheet sheet_0 { "Smooth1", 0.0f };
-    inline constexpr Sheet sheet_1 { "Smooth2", eeprom_z_offset_uncalibrated };
-    inline constexpr Sheet sheet_2 { "Textur1", eeprom_z_offset_uncalibrated };
-    inline constexpr Sheet sheet_3 { "Textur2", eeprom_z_offset_uncalibrated };
-    inline constexpr Sheet sheet_4 { "Custom1", eeprom_z_offset_uncalibrated };
-    inline constexpr Sheet sheet_5 { "Custom2", eeprom_z_offset_uncalibrated };
-    inline constexpr Sheet sheet_6 { "Custom3", eeprom_z_offset_uncalibrated };
-    inline constexpr Sheet sheet_7 { "Custom4", eeprom_z_offset_uncalibrated };
-
-    inline constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
-    inline constexpr float axis_steps_per_unit_x { default_axis_steps_flt[0] * ((DEFAULT_INVERT_X_DIR == true) ? -1.f : 1.f) };
-    inline constexpr float axis_steps_per_unit_y { default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f) };
-    inline constexpr float axis_steps_per_unit_z { default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f) };
-    inline constexpr float axis_steps_per_unit_e0 { default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f) };
-    inline constexpr uint16_t axis_microsteps_X_ { X_MICROSTEPS };
-    inline constexpr uint16_t axis_microsteps_Y_ { Y_MICROSTEPS };
-    inline constexpr uint16_t axis_microsteps_Z_ { Z_MICROSTEPS };
-    inline constexpr uint16_t axis_microsteps_E0_ { E0_MICROSTEPS };
-    inline constexpr uint16_t axis_rms_current_ma_X_ { X_CURRENT };
-    inline constexpr uint16_t axis_rms_current_ma_Y_ { Y_CURRENT };
-    inline constexpr uint16_t axis_rms_current_ma_Z_ { Z_CURRENT };
-    inline constexpr uint16_t axis_rms_current_ma_E0_ { E0_CURRENT };
-    inline constexpr float axis_z_max_pos_mm {
-#ifdef DEFAULT_Z_MAX_POS
-        DEFAULT_Z_MAX_POS
-#else
-        0
-#endif
-    };
-}
-
 /**
  * @brief Holds all current store items -> there is a RAM mirror of this data which is loaded upon device restart from eeprom.
 
@@ -315,6 +88,13 @@ struct CurrentStore : public Journal::CurrentStoreConfig<Journal::Backend, backe
     StoreItem<uint16_t, defaults::connect_port, Journal::hash("Connect Port")> connect_port;
     StoreItem<bool, defaults::bool_true, Journal::hash("Connect TLS")> connect_tls;
     StoreItem<bool, defaults::bool_false, Journal::hash("Connect Enabled")> connect_enabled;
+
+    // Metrics
+    StoreItem<MetricsAllow, defaults::metrics_allow, Journal::hash("Metrics Allow")> metrics_allow; ///< Metrics are allowed to be enabled
+    ///@todo: Allow only one host.
+    /// StoreItem<std::array<char, METRICS_HOST_SIZE + 1>, defaults::metrics_host, Journal::hash("Metrics Host")> metrics_host; ///< Host used to allow and init metrics
+    ///@todo: Init host at start.
+    /// StoreItem<bool, defaults::bool_false, Journal::hash("Metrics Init")> metrics_init; ///< Init metrics host after start
 
     StoreItem<uint16_t, defaults::uint16_t_zero, Journal::hash("Job ID")> job_id; // print job id incremented at every print start
 
@@ -470,7 +250,7 @@ struct CurrentStore : public Journal::CurrentStoreConfig<Journal::Backend, backe
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, Journal::hash("HW Check G-code")> hw_check_gcode;
     StoreItem<HWCheckSeverity, defaults::hw_check_severity, Journal::hash("HW Check Compatibility")> hw_check_compatibility;
 
-    StoreItem<SelftestResult, defaults::selftest_result, Journal::hash("Selftest Result")> selftest_result;
+    StoreItem<SelftestResult, defaults::selftest_result, Journal::hash("Selftest Result V23")> selftest_result;
 
     SelftestTool get_selftest_result_tool(uint8_t index);
     void set_selftest_result_tool(uint8_t index, SelftestTool value);
@@ -488,7 +268,7 @@ struct CurrentStore : public Journal::CurrentStoreConfig<Journal::Backend, backe
     Sheet get_sheet(uint8_t index);
     void set_sheet(uint8_t index, Sheet value);
 
-    // axis microsteps and rms current have a capital axis + '_' at the end in name because of trinamic.cpp. Can be removed once that macro there is removed
+    // axis microsteps and rms current have a capital axis + '_' at the end in name because of trinamic.cpp. Can be removed once the macro there is removed
     StoreItem<float, defaults::axis_steps_per_unit_x, Journal::hash("Axis Steps Per Unit X")> axis_steps_per_unit_x;
     StoreItem<float, defaults::axis_steps_per_unit_y, Journal::hash("Axis Steps Per Unit Y")> axis_steps_per_unit_y;
     StoreItem<float, defaults::axis_steps_per_unit_z, Journal::hash("Axis Steps Per Unit Z")> axis_steps_per_unit_z;
@@ -518,35 +298,17 @@ struct CurrentStore : public Journal::CurrentStoreConfig<Journal::Backend, backe
 };
 
 /**
- * @brief Holds all deprecated store items. To deprecate an item, move it from CurrentStore to this DeprecatedStore, and change type (including parameters) accordingly.
+ * @brief Holds all deprecated store items. To deprecate an item, move it from CurrentStore to this DeprecatedStore. If you're adding a newer version of an item, make sure the succeeding CurentStore::StoreItem has a different HASHED ID than the one deprecated (ie successor to hash("Sound Mode") could be hash("Sound Mode V2"))
  *
- * Right now there are two available deprecation strategies, with helper types in the base class:
- *  - Delete an item -> DeletedStoreItem. If an journal entry with this HASH is found in journal, it is considered valid state, but this journal entry will be discarded
- *  - Migrate to a newer StoreItem -> DeprecatedStoreItem. One of the parameters is a member pointer to the succeeding CurentStore::StoreItem. Upon encountering this journal entry, it is read as the deprecated (old) item, then converted to the new item via constructor of the new item which accepts old type as parameter. The succeeding CurentStore::StoreItem has to have a different HASHED ID than one deprecated (ie successor to hash("Sound Mode") could be hash("Sound Mode V2"))
+ * This is pseudo 'graveyard' of old store items, so that it can be verified IDs don't cause conflicts and old 'default' values can be fetched if needed.
  *
- * !!! MAKE SURE StoreItems moved from current store to here KEEP their HASHED ID !!!
+ * If you want to migrate existing data to 'newer version', add a migration_function with the ids as well (see below). If all you want is to delete an item, just moving it here from CurrentStore is enough.
+ *
+ * !!! MAKE SURE moved StoreItems from CurrentStore to here KEEP their HASHED ID !!!
  */
 struct DeprecatedStore : public Journal::DeprecatedStoreConfig<Journal::Backend> {
+    // There was a ConfigStore version already before last eeprom version of SelftestResult was made, so it doesn't have old eeprom predecessor
+    StoreItem<SelftestResult_pre_23, defaults::selftest_result_pre_23, Journal::hash("Selftest Result")> selftest_result_pre_23;
 };
 
-enum class InitResult {
-    migrated_from_old,
-    cold_start,
-    normal,
-    not_yet_init
-};
-
-}
-
-/**
- * @brief Instance of ConfigStore journal with journal strategy and EEPROM backend. Currently there is only one config store in the entire project, hence why the 'simple' "config_store" name
- *
- */
-inline decltype(auto) config_store() {
-    return Journal::journal<eeprom_journal::CurrentStore, eeprom_journal::DeprecatedStore>();
-}
-
-inline eeprom_journal::InitResult &config_store_init_result() {
-    static eeprom_journal::InitResult init_result { eeprom_journal::InitResult::not_yet_init };
-    return init_result;
-}
+} // namespace eeprom_journal

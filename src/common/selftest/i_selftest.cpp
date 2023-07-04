@@ -1,6 +1,7 @@
 // selftest.cpp
 
 #include "i_selftest.hpp"
+#include "feature/prusa/crash_recovery.h"
 #include "stdarg.h"
 #include "log.h"
 #include "app.h"
@@ -20,14 +21,22 @@ ISelftest::ISelftest()
 void ISelftest::phaseStart() {
     FSensors_instance().IncEvLock(); // block autoload and M600
     marlin_server::set_exclusive_mode(1);
-    FSM_CREATE__LOGGING(Selftest);   // TODO data 0/1 selftest/wizard
+#if ENABLED(CRASH_RECOVERY)
+    crash_s.set_state(Crash_s::SELFTEST);
+#endif
+    FSM_CREATE__LOGGING(Selftest); // TODO data 0/1 selftest/wizard
     log_open();
 }
 
 void ISelftest::phaseFinish() {
     log_close();
     FSM_DESTROY__LOGGING(Selftest);
+    // Terminate all moves (the hard way)
+    marlin_server::quick_stop();
     marlin_server::set_exclusive_mode(0);
+#if ENABLED(CRASH_RECOVERY)
+    crash_s.set_state(Crash_s::IDLE);
+#endif
     FSensors_instance().DecEvLock(); // stop blocking autoload and M600
 }
 

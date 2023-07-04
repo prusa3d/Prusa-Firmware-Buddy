@@ -82,24 +82,6 @@ enum AD1 { // ADC1 channels
     heatbed_U,
     ADC1_CH_CNT
 };
-#elif (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
-enum AD1 { // ADC1 channels
-    hotend_T,
-    heatbed_T,
-    heatbreak_T,
-    hotend_U,
-    ADC1_CH_CNT
-};
-
-enum AD3 { // ADC3 channels
-    MMU_I,
-    board_T,
-    hotend_I,
-    board_I,
-    case_T,
-    ADC3_CH_CNT
-};
-
 #elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
 enum AD1 { // ADC1 channels
     hotend_T,
@@ -341,11 +323,7 @@ inline uint16_t boardTemp() { return adcDma3.get_and_shift_channel(AdcChannel::b
 inline uint16_t heaterVoltage() { return adcDma1.get_and_shift_channel(AdcChannel::hotend_U); }
 
 inline uint16_t inputVoltage() {
-    #if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
-    return 0; // no input voltage measurement for this board
-    #else
     return adcDma1.get_and_shift_channel(AdcChannel::heatbed_U);
-    #endif
 }
 inline uint16_t MMUCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::MMU_I); }
 inline uint16_t heaterCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::hotend_I); }

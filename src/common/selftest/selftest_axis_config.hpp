@@ -24,6 +24,8 @@ struct AxisConfig_t {
     uint32_t axis;        // AxisEnum
     uint32_t steps;
     int32_t movement_dir; // not motor dir, has values 1/-1. TODO FIXME -1 does not work
+    bool park;            ///< If true, park the axis after the test
+    float park_pos;       ///< Position to park the axis [mm]
 };
 
 };

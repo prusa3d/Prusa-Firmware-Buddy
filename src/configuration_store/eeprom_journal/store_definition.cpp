@@ -1,9 +1,11 @@
-#include "eeprom_journal_config_store.hpp"
+#include "store_instance.hpp"
 
 namespace eeprom_journal {
 
 static_assert(sizeof(CurrentStore) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
+#if !defined(EEPROM_JOURNAL_SKIP_DUPLICITY_CHECK)
 static_assert(Journal::has_unique_items<CurrentStore, DeprecatedStore>(), "Just added items are causing collisions");
+#endif
 
 int32_t CurrentStore::get_extruder_fs_ref_value(uint8_t index) {
     switch (index) {
@@ -568,14 +570,14 @@ void CurrentStore::set_sheet(uint8_t index, Sheet value) {
 input_shaper::Config CurrentStore::get_input_shaper_config() {
     input_shaper::Config config;
     if (input_shaper_axis_x_enabled.get()) {
-        config.axis_x = input_shaper_axis_x_config.get();
+        config.axis[X_AXIS] = input_shaper_axis_x_config.get();
     } else {
-        config.axis_x = std::nullopt;
+        config.axis[X_AXIS] = std::nullopt;
     }
     if (input_shaper_axis_y_enabled.get()) {
-        config.axis_y = input_shaper_axis_y_config.get();
+        config.axis[Y_AXIS] = input_shaper_axis_y_config.get();
     } else {
-        config.axis_y = std::nullopt;
+        config.axis[Y_AXIS] = std::nullopt;
     }
     if (input_shaper_weight_adjust_y_enabled.get()) {
         config.weight_adjust_y = input_shaper_weight_adjust_y_config.get();
@@ -586,14 +588,14 @@ input_shaper::Config CurrentStore::get_input_shaper_config() {
 }
 
 void CurrentStore::set_input_shaper_config(const input_shaper::Config &config) {
-    if (config.axis_x) {
-        input_shaper_axis_x_config.set(*config.axis_x);
+    if (config.axis[X_AXIS]) {
+        input_shaper_axis_x_config.set(*config.axis[X_AXIS]);
         input_shaper_axis_x_enabled.set(true);
     } else {
         input_shaper_axis_x_enabled.set(false);
     }
-    if (config.axis_y) {
-        input_shaper_axis_y_config.set(*config.axis_y);
+    if (config.axis[Y_AXIS]) {
+        input_shaper_axis_y_config.set(*config.axis[Y_AXIS]);
         input_shaper_axis_y_enabled.set(true);
     } else {
         input_shaper_axis_y_enabled.set(false);
@@ -606,4 +608,4 @@ void CurrentStore::set_input_shaper_config(const input_shaper::Config &config) {
     }
 }
 
-}
+} // namespace eeprom_journal

@@ -31,13 +31,13 @@ struct vars_body_t : public eeprom::v7::vars_body_t {
     Sheet SHEET_PROFILE5;
     Sheet SHEET_PROFILE6;
     Sheet SHEET_PROFILE7;
-    uint32_t SELFTEST_RESULT;
+    uint32_t SELFTEST_RESULT_V1;
     uint8_t DEVHASH_IN_QR;
 };
 
 #pragma pack(pop)
 
-static_assert(sizeof(vars_body_t) == sizeof(eeprom::v7::vars_body_t) + sizeof(vars_body_t::FILE_SORT) + sizeof(vars_body_t::MENU_TIMEOUT) + sizeof(vars_body_t::ACTIVE_SHEET) + 8 * sizeof(Sheet) + sizeof(vars_body_t::SELFTEST_RESULT) + sizeof(vars_body_t::DEVHASH_IN_QR),
+static_assert(sizeof(vars_body_t) == sizeof(eeprom::v7::vars_body_t) + sizeof(vars_body_t::FILE_SORT) + sizeof(vars_body_t::MENU_TIMEOUT) + sizeof(vars_body_t::ACTIVE_SHEET) + 8 * sizeof(Sheet) + sizeof(vars_body_t::SELFTEST_RESULT_V1) + sizeof(vars_body_t::DEVHASH_IN_QR),
     "eeprom body size does not match");
 
 constexpr vars_body_t body_defaults = {

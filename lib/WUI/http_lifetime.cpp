@@ -1,7 +1,8 @@
 #include "nhttp/server.h"
 #include "nhttp/common_selectors.h"
 #include "link_content/static_file.h"
-#include "link_content/prusa_link_api.h"
+#include "link_content/prusa_link_api_octo.h"
+#include "link_content/prusa_link_api_v1.h"
 #include "link_content/usb_files.h"
 #include "link_content/previews.h"
 #include "wui.h"
@@ -28,7 +29,7 @@ SemaphoreHandle_t httpd_mutex = NULL;
 
 class DefaultServerDefs final : public ServerDefs {
 private:
-    static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_file, &prusa_link_api, &usb_files, &previews, &unknown_request };
+    static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_file, &prusa_link_api_v1, &prusa_link_api_octo, &usb_files, &previews, &unknown_request };
 
 public:
     virtual const Selector *const *selectors() const override { return selectors_array; }

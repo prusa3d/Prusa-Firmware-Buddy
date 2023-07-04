@@ -1,22 +1,22 @@
-#include "bsod_gui.hpp"
-
-#include <cassert>
-#include <limits>
-#include <numeric>
 #include "puppies/modular_bed.hpp"
+#include "bsod_gui.hpp"
 #include "log.h"
 #include "metric.h"
 #include "puppy/modularbed/PuppyConfig.hpp"
 #include "timing.h"
 #include "puppies/PuppyBootstrap.hpp"
-#include <stddef.h>
-#include <stdint.h>
-#include <tuple>
+#include "otp.h"
+#include "power_panic.hpp"
+#include "printers.h"
 #include <utility_extensions.hpp>
 #include <i18n.h>
 #include <option/is_knoblet.h>
-#include "otp.h"
-#include "power_panic.hpp"
+#include <cassert>
+#include <limits>
+#include <numeric>
+#include <stddef.h>
+#include <stdint.h>
+#include <tuple>
 
 namespace buddy::puppies {
 
@@ -116,7 +116,7 @@ CommunicationStatus ModularBed::refresh(uint32_t cycle_ticks_ms, bool &worked) {
             log_debug(ModularBed, "Current fault: %d", general_status.value.current_fault_status);
 
             // Report panic and fault problems only when not in true system-wide power panic
-            if (!power_panic::ac_power_fault_is_checked && !power_panic::is_ac_fault_signal()) {
+            if (!power_panic::ac_fault_triggered && !power_panic::is_ac_fault_active()) {
                 if (general_status.value.current_fault_status) {
                     fatal_error(ErrCode::ERR_ELECTRO_MB_FAULT);
                 }
@@ -208,6 +208,10 @@ CommunicationStatus ModularBed::refresh(uint32_t cycle_ticks_ms, bool &worked) {
                         fatal_error(ErrCode::ERR_TEMPERATURE_MB_PREHEAT_ERR, bedlet_number);
                     } else if (fault_int & ftrstd::to_underlying(HeatbedletError::TestHeatingError)) {
                         fatal_error(ErrCode::ERR_TEMPERATURE_MB_TEST_HEATING_ERR, bedlet_number);
+#if PRINTER_IS_PRUSA_iX
+                    } else if (fault_int & ftrstd::to_underlying(HeatbedletError::HeaterConnected)) {
+                        fatal_error(ErrCode::ERR_TEMPERATURE_MB_HEATER_CONNECTED, bedlet_number);
+#endif
                     } else {
                         fatal_error(ErrCode::ERR_SYSTEM_MB_UNKNOWN_ERR, bedlet_number, fault_int);
                     }
@@ -323,13 +327,23 @@ float ModularBed::get_target(const uint8_t column, const uint8_t row) {
 uint16_t ModularBed::idx(const uint8_t column, const uint8_t row) {
     static_assert(BEDLET_MAX_X == 4);
     static_assert(BEDLET_MAX_Y == 4);
-
+#if PRINTER_IS_PRUSA_XL
     const static uint16_t map[4][4] = {
         { 7, 8, 9, 10 },
         { 6, 5, 12, 11 },
         { 3, 4, 13, 14 },
         { 2, 1, 16, 15 },
     };
+#elif PRINTER_IS_PRUSA_iX
+    const static uint16_t map[4][4] = {
+        { 5, 6, 11, 11 },
+        { 4, 13, 12, 12 },
+        { 3, 2, 14, 14 },
+        { 3, 2, 14, 14 },
+    };
+#else
+    #error "Not defined for this printer."
+#endif
     return map[row][column] - 1;
 }
 

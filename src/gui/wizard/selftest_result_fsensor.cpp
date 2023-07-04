@@ -10,8 +10,8 @@
 
 ResultFSensor::ResultFSensor()
     : SelfTestGroup(_("Filament sensor check"))
-    , tested(_("Filament sensor"), png::spool_16x16, TestResult_Unknown)
-    , skipped(_("Test skipped by user."), png::spool_16x16) {
+    , tested(_("Filament sensor"), &png::spool_16x16, TestResult_Unknown)
+    , skipped(_("Test skipped by user."), &png::spool_16x16) {
 }
 
 void ResultFSensor::SetState(TestResult res) {

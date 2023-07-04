@@ -82,6 +82,7 @@ class ScreenSelftest : public AddSuperWindow<screen_t> {
 private:
     static constexpr const char *en_wizard = N_("WIZARD");
     static constexpr const char *en_wizard_ok = N_("WIZARD - OK");
+    static constexpr const char *en_wizard_nok = N_("WIZARD - NOK");
     static constexpr const char *en_selftest = N_("SELFTEST");
     static constexpr const char *en_firstlay = N_("FIRST LAYER CALIBRATION");
     static constexpr const char *en_esp = N_("WI-FI MODULE");

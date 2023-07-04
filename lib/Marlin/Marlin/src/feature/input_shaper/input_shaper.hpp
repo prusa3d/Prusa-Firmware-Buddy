@@ -95,14 +95,8 @@ input_shaper_pulses_t create_3hump_ei_input_shaper_pulses(double shaper_freq, do
 class InputShaper {
 
 public:
-    static input_shaper_state_t is_state_x;
-    static input_shaper_pulses_t is_pulses_x;
-
-    static input_shaper_state_t is_state_y;
-    static input_shaper_pulses_t is_pulses_y;
-
-    static input_shaper_state_t is_state_z;
-    static input_shaper_pulses_t is_pulses_z;
+    static input_shaper_state_t is_state[3];
+    static input_shaper_pulses_t is_pulses[3];
 
     static bool enabled;
 

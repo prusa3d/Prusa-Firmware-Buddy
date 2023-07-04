@@ -17,6 +17,7 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extensi
     : label(label)
     , hidden((uint8_t)hidden)
     , enabled(enabled)
+    , show_disabled_extension(show_disabled_extension_t::yes)
     , extension_width(extension_width_)
     , id_icon(id_icon) {
 }
@@ -94,7 +95,7 @@ void IWindowMenuItem::Print(Rect16 rect) {
         roll.RenderTextAlign(getLabelRect(rect), GetLabel(), getLabelFont(), mi_color_back, mi_color_text, GuiDefaults::MenuPaddingItems, GuiDefaults::MenuAlignment());
     }
 
-    if (IsExtensionInvalid() && extension_width && icon_position != IconPosition::replaces_extends) {
+    if (IsExtensionInvalid() && extension_width && icon_position != IconPosition::replaces_extends && (IsEnabled() || DoesShowDisabledExtension())) {
         render_rect(getExtensionRect(rect), mi_color_back);
         printExtension(getExtensionRect(rect), mi_color_text, mi_color_back, raster_op);
     }

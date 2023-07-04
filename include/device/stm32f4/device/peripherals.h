@@ -88,13 +88,8 @@ extern TIM_HandleTypeDef htim14;
 #define THERM_0_Pin        GPIO_PIN_0
 #define THERM_0_GPIO_Port  GPIOC
 
-#if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
-    #define BUZZER_Pin       GPIO_PIN_5
-    #define BUZZER_GPIO_Port GPIOD
-#else
-    #define BUZZER_Pin       GPIO_PIN_0
-    #define BUZZER_GPIO_Port GPIOA
-#endif
+#define BUZZER_Pin       GPIO_PIN_0
+#define BUZZER_GPIO_Port GPIOA
 
 #define HW_IDENTIFY_Pin       GPIO_PIN_3
 #define HW_IDENTIFY_GPIO_Port GPIOA
@@ -156,16 +151,11 @@ extern TIM_HandleTypeDef htim14;
 #define MMU_CURRENT_Pin         GPIO_PIN_6
 #define MMU_CURRENT_GPIO_Port   GPIOF
 
-#if (BOARD_IS_XBUDDY && BOARD_VER_EQUAL_TO(0, 3, 4))
-    #define HEATER_VOLTAGE_Pin       GPIO_PIN_5
-    #define HEATER_VOLTAGE_GPIO_Port GPIOA
-#else
-    #define HEATER_VOLTAGE_Pin       GPIO_PIN_3
-    #define HEATER_VOLTAGE_GPIO_Port GPIOA
+#define HEATER_VOLTAGE_Pin       GPIO_PIN_3
+#define HEATER_VOLTAGE_GPIO_Port GPIOA
 
-    #define BED_VOLTAGE_Pin       GPIO_PIN_5
-    #define BED_VOLTAGE_GPIO_Port GPIOA
-#endif
+#define BED_VOLTAGE_Pin       GPIO_PIN_5
+#define BED_VOLTAGE_GPIO_Port GPIOA
 
 #define USB_OVERC_Pin               GPIO_PIN_4
 #define USB_OVERC_GPIO_Port         GPIOE
@@ -255,7 +245,11 @@ extern TIM_HandleTypeDef htim14;
     #define uart_esp          8
     #define spi_accelerometer 2
     #define spi_extconn       4
-    #define uart_mmu          6
+    #if PRINTER_IS_PRUSA_iX
+        #define uart_puppies 6
+    #else
+        #define uart_mmu 6
+    #endif
 #elif BOARD_IS_XLBUDDY
     #define i2c_eeprom        2
     #define i2c_usbc          1
@@ -266,11 +260,16 @@ extern TIM_HandleTypeDef htim14;
     #define spi_tmc           3
     #define uart_esp          8
     #define spi_accelerometer 2
-    #define spi_led           4
+    // Side LEDs use either SPI4 or share SPI with LCD, depending on HW revision
+    // #define spi_led           4 or spi_lcd
     #define uart_puppies      3
     #define uart_reserved     6
 #else
     #error Unknown board
+#endif
+
+#if PRINTER_IS_PRUSA_iX
+    #define spi_led spi_extconn
 #endif
 
 #define HAS_I2CN(n) ((n == i2c_eeprom) || (n == i2c_touch) || (n == i2c_usbc) || (n == i2c_io_extender))
@@ -309,17 +308,16 @@ void hw_uart8_init();
 
 #if HAS_I2CN(1)
 void hw_i2c1_init();
+void hw_i2c1_pins_init();
 #endif
 #if HAS_I2CN(2)
 void hw_i2c2_init();
+void hw_i2c2_pins_init();
 #endif
 #if HAS_I2CN(3)
 void hw_i2c3_init();
+void hw_i2c3_pins_init();
 #endif
-
-size_t hw_i2c1_get_busy_clear_count();
-size_t hw_i2c2_get_busy_clear_count();
-size_t hw_i2c3_get_busy_clear_count();
 
 void hw_spi2_init();
 void hw_spi3_init();
@@ -348,8 +346,8 @@ void hw_tim14_init();
 /// Get handle for given peripheral: UART_HANDLE_FOR(esp) -> huart3
 #define UART_HANDLE_FOR(peripheral) _JOIN(huart, uart_##peripheral, )
 
-/// Get handle for given DMA peripheral: UART_DMA_HANDLE_FOR(esp, rx) -> hdma_uart3_rx
-#define UART_DMA_HANDLE_FOR(peripheral, rx_tx) _JOIN(hdma_uart, uart_##peripheral, _##rx_tx)
+/// Get handle for given DMA peripheral: UART_DMA_HANDLE_FOR(esp, rx) -> hdma_usart3_rx
+#define UART_DMA_HANDLE_FOR(peripheral, rx_tx) _JOIN(hdma_usart, uart_##peripheral, _##rx_tx)
 
 /// Call initialization function for given peripheral
 /// Example: I2C_INIT(touch)

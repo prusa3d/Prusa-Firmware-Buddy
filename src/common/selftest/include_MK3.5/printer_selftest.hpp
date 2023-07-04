@@ -106,7 +106,7 @@ protected:
 protected:
     SelftestState_t m_State;
     SelftestMask_t m_Mask;
-    std::array<selftest::IPartHandler *, HOTENDS * 2> pFans;
+    std::array<selftest::IPartHandler *, HOTENDS> pFans;
     selftest::IPartHandler *pXAxis;
     selftest::IPartHandler *pYAxis;
     selftest::IPartHandler *pZAxis;

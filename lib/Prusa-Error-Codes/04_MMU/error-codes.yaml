@@ -30,21 +30,21 @@ Errors:
   approved: true
 
 - code: "04102"
-  title: "FINDA: FILAM. STUCK"
+  title: "FINDA FILAM. STUCK"
   text: "FINDA didn't switch off while unloading filament. Try unloading manually. Ensure filament can move and FINDA works."
   action: [Retry]
   id: "FINDA_FILAMENT_STUCK"
   approved: true
 
 - code: "04103"
-  title: "FSENSOR DIDNT TRIGGER"
-  text: "Filament sensor didn't trigger while loading the filament. Ensure the filament reached the fsensor and the sensor works."
+  title: "FSENSOR DIDNT TRIGG."
+  text: "Filament sensor didn't trigger while loading the filament. Ensure the sensor is calibrated and the filament reached it."
   action: [Retry]
   id: "FSENSOR_DIDNT_TRIGGER"
   approved: true
 
 - code: "04104"
-  title: "FSENSOR: FIL. STUCK"
+  title: "FSENSOR FIL. STUCK"
   text: "Filament sensor didn't switch off while unloading filament. Ensure filament can move and the sensor works."
   action: [Retry]
   id: "FSENSOR_FILAMENT_STUCK"
@@ -91,7 +91,7 @@ Errors:
 
 - code: "04116"
   title: "SELECTOR CANNOT MOVE"
-  text: "The Selector cannot move. Check for anything blocking its movement. Check the wiring."
+  text: "The Selector cannot move. Check for anything blocking its movement. Check if the wiring is correct."
   action: [Retry]
   id: "SELECTOR_CANNOT_MOVE"
   approved: true
@@ -105,7 +105,7 @@ Errors:
 
 - code: "04126"
   title: "IDLER CANNOT MOVE"
-  text: "The Idler cannot move properly. Check for anything blocking its movement. Check the wiring."
+  text: "The Idler cannot move properly. Check for anything blocking its movement. Check if the wiring is correct."
   action: [Retry]
   id: "IDLER_CANNOT_MOVE"
   approved: true
@@ -115,7 +115,7 @@ Errors:
   title: "WARNING TMC TOO HOT"
   text: "TMC driver for the Pulley motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
   text_short: "More details online."
-  action: [Continue, ResetMMU]
+  action: [Continue,ResetMMU]
   id: "WARNING_TMC_PULLEY_TOO_HOT"
   approved: true
 
@@ -123,7 +123,7 @@ Errors:
   title: "WARNING TMC TOO HOT"
   text: "TMC driver for the Selector motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
   text_short: "More details online."
-  action: [Continue, ResetMMU]
+  action: [Continue,ResetMMU]
   id: "WARNING_TMC_SELECTOR_TOO_HOT"
   approved: true
 
@@ -131,7 +131,7 @@ Errors:
   title: "WARNING TMC TOO HOT"
   text: "TMC driver for the Idler motor is almost overheating. Make sure there is sufficient airflow near the MMU board."
   text_short: "More details online."
-  action: [Continue, ResetMMU]
+  action: [Continue,ResetMMU]
   id: "WARNING_TMC_IDLER_TOO_HOT"
   approved: true
 
@@ -209,7 +209,7 @@ Errors:
   approved: true
 
 - code: "04303"
-  title: "TMC UNDERVOLTAGE ERROR"
+  title: "TMC UNDERVOLTAGE ERR"
   text: "Not enough current for the Pulley TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
   text_short: "More details online."
   action: [ResetMMU]
@@ -217,7 +217,7 @@ Errors:
   approved: true
 
 - code: "04313"
-  title: "TMC UNDERVOLTAGE ERROR"
+  title: "TMC UNDERVOLTAGE ERR"
   text: "Not enough current for the Selector TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
   text_short: "More details online."
   action: [ResetMMU]
@@ -225,7 +225,7 @@ Errors:
   approved: true
 
 - code: "04323"
-  title: "TMC UNDERVOLTAGE ERROR"
+  title: "TMC UNDERVOLTAGE ERR"
   text: "Not enough current for the Idler TMC driver. There is probably an issue with the electronics. Check the wiring and connectors."
   text_short: "More details online."
   action: [ResetMMU]
@@ -285,7 +285,7 @@ Errors:
   text: "MMU MCU detected a 5V undervoltage. There might be an issue with the electronics. Check the wiring and connectors"
   text_short: "More details online."
   action: [ResetMMU]
-  id: "ERR_ELECTRICAL_MCU_UNDERVOLTAGE_VCC"
+  id: "MCU_UNDERVOLTAGE_VCC"
   approved: true
 
 # CONNECTIVITY
@@ -305,16 +305,16 @@ Errors:
 
 # SYSTEM
 - code: "04501"
-  title: "FILAMENT ALREADY LOADED"
+  title: "FIL. ALREADY LOADED"
   text: "Cannot perform the action, filament is already loaded. Unload it first."
-  action: [Unload, Continue]
+  action: [Unload,Continue]
   id: "FILAMENT_ALREADY_LOADED"
   approved: true
 
 - code: "04502"
   title: "INVALID TOOL"
   text: "Requested filament tool is not available on this hardware. Check the G-code for tool index out of range (T0-T4)."
-  action: [StopPrint, ResetMMU]
+  action: [StopPrint,ResetMMU]
   id: "INVALID_TOOL"
   approved: true
 
@@ -326,8 +326,9 @@ Errors:
   approved: true
 
 - code: "04504"
-  title: "FW UPDATE NEEDED"
-  text: "The MMU reports its FW version incompatible with the printer's firmware. Make sure the MMU firmware is up to date."
+  title: "MMU FW UPDATE NEEDED"
+  text: "The MMU firmware version is incompatible with the printer's FW. Update to compatible version."
+  text_short: "MMU FW version is incompatible with printer FW.Update to version 2.1.9."
   action: [ResetMMU,DisableMMU]
   id: "FW_UPDATE_NEEDED"
   approved: true

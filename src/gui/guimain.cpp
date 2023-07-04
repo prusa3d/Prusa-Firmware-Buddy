@@ -190,6 +190,9 @@ void Warning_cb(WarningType type) {
         window_dlg_strong_warning_t::ShowHeatbedColdAfterPP();
         break;
 #endif
+    case WarningType::NozzleDoesNotHaveRoundSection:
+        window_dlg_strong_warning_t::ShowNozzleDoesNotHaveRoundSection();
+        break;
     default:
         break;
     }
@@ -371,7 +374,7 @@ static void finish_update() {
 }
 #endif
 
-#if BOARD_VER_EQUAL_TO(0, 5, 0)
+#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
 // This is temporary, remove once everyone has compatible hardware.
 // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 
@@ -500,10 +503,7 @@ void gui_error_run(void) {
     crash_dump::dump_in_xflash_set_displayed();
 
 #if HAS_LEDS
-    // Turn on LCD backlight
-    // TODO move SetBrightness to display
-    leds::SetBrightness(100);
-    leds::TickLoop();
+    leds::Init();
 #endif
 
     while (true) {
@@ -551,12 +551,8 @@ void gui_run(void) {
     }
 
     Screens::Access()->Loop();
-
 #if HAS_LEDS
-    // Turn on LCD backlight
-    // TODO move SetBrightness to display
-    leds::SetBrightness(100);
-    leds::TickLoop();
+    leds::Init();
 #endif
 
 #if ENABLED(RESOURCES())
@@ -568,7 +564,7 @@ void gui_run(void) {
     // Postpone starting Marlin after USBSerial handling in manufacture_report()
     TaskDeps::provide(TaskDeps::Dependency::usbserial_ready);
 
-#if BOARD_VER_EQUAL_TO(0, 5, 0)
+#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
 

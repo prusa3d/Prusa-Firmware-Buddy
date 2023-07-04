@@ -19,8 +19,10 @@ struct pressure_advance_step_generator_t;
 
 constexpr const uint16_t MAX_PRESSURE_ADVANCE_FILTER_LENGTH = 41;
 
-// Used for rounding the requested distance to interpolated positions.
-constexpr const double PRESSURE_ADVANCE_POSITION_ROUNDING = 0.00001;
+// The minimum difference of two consecutive position samples for which the step time is calculated
+// by interpolation between them. For differences smaller than this value, the step time will be
+// calculated by rounding to the earlier time of those samples.
+constexpr const double PRESSURE_ADVANCE_MIN_POSITION_DIFF = 0.00001;
 
 typedef struct pressure_advance_buffer_t {
     double data[MAX_PRESSURE_ADVANCE_FILTER_LENGTH] = {};
@@ -48,7 +50,7 @@ typedef struct pressure_advance_state_t {
     uint16_t buffer_length;
 
     double current_start_position;
-    double current_move_time;
+    double current_print_time;
     const move_t *current_move;
     uint32_t current_sample_idx;
 
@@ -58,13 +60,14 @@ typedef struct pressure_advance_state_t {
     bool step_dir;
     double offset;
 
-    double start_print_time;
-
     double start_v;
     double half_accel;
 
-    double current_pa_position;
-    double previous_pa_position_ratio;
+#ifndef NDEBUG
+    // This variable indicates if the actual position in steps has to be inside range: (previous_interpolated_position, current_interpolated_position).
+    // This is just for detecting numerical issues related to manipulating the actual position.
+    bool position_has_to_be_in_range;
+#endif
 } pressure_advance_state_t;
 
 pressure_advance_window_filter_t create_normalized_bartlett_window_filter(uint16_t filter_length);
@@ -86,4 +89,4 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
 
 void pressure_advance_step_generator_init(const move_t &move, pressure_advance_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 
-void pressure_advance_state_init(pressure_advance_state_t &state, const pressure_advance_params_t &params, const move_t &move);
+void pressure_advance_state_init(pressure_advance_state_t &state, const pressure_advance_params_t &params, const move_t &move, uint8_t axis);

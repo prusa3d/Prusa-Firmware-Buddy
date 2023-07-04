@@ -81,6 +81,12 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     case footer::Item::HeatbreakFan:
         new (&items[index]) FooterItemHeatBreakFan(this);
         break;
+    case footer::Item::InputShaperX:
+        new (&items[index]) FooterItemInputShaperX(this);
+        break;
+    case footer::Item::InputShaperY:
+        new (&items[index]) FooterItemInputShaperY(this);
+        break;
 #if defined(FOOTER_HAS_LIVE_Z)
     case footer::Item::LiveZ:
         new (&items[index]) FooterItemLiveZ(this);

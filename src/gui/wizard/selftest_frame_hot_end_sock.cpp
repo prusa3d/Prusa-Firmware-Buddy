@@ -75,7 +75,7 @@ void SelftestFrameHotEndSock::change() {
         show_settings = true;
         break;
     case PhasesSelftest::SpecifyHotEnd_sock:
-        txt = N_("Do you have a silicon hotend sock installed?");
+        txt = N_("Do you have a silicone hotend sock installed?");
         break;
     case PhasesSelftest::SpecifyHotEnd_nozzle_type:
         txt = N_("What kind of nozzle type do you have installed?");

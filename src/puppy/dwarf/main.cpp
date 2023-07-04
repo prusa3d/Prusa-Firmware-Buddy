@@ -11,6 +11,7 @@
 #include "safe_state.h"
 #include "bsod.h"
 #include "log.h"
+#include "buddy/priorities_config.h"
 
 LOG_COMPONENT_REF(Marlin);
 
@@ -92,7 +93,7 @@ int main() {
     enable_segger_sysview();
 
     // define the startup task
-    osThreadDef(startup, startup_task_entry, osPriorityHigh, 0, 512);
+    osThreadDef(startup, startup_task_entry, TASK_PRIORITY_STARTUP, 0, 512);
     osThreadCreate(osThread(startup), NULL);
 
     // start the RTOS with the single startup task

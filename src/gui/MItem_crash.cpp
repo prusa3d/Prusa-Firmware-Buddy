@@ -118,16 +118,44 @@ MI_POWER_PANICS::MI_POWER_PANICS()
     : WI_INFO_t(config_store().power_panics_count.get(), _(label)) {}
 
 MI_CRASHES_X_LAST::MI_CRASHES_X_LAST()
-    : WI_INFO_t(crash_s.counter_crash.x, _(label)) {}
+    : WI_INFO_t(crash_s.counter_crash.x, _(label),
+    #if PRINTER_IS_PRUSA_XL
+        is_hidden_t::no
+    #else
+        is_hidden_t::dev
+    #endif
+    ) {
+}
 
 MI_CRASHES_Y_LAST::MI_CRASHES_Y_LAST()
-    : WI_INFO_t(crash_s.counter_crash.y, _(label)) {}
+    : WI_INFO_t(crash_s.counter_crash.y, _(label),
+    #if PRINTER_IS_PRUSA_XL
+        is_hidden_t::no
+    #else
+        is_hidden_t::dev
+    #endif
+    ) {
+}
 
 MI_CRASHES_X::MI_CRASHES_X()
-    : WI_INFO_t(config_store().crash_count_x.get(), _(label)) {}
+    : WI_INFO_t(config_store().crash_count_x.get(), _(label),
+    #if PRINTER_IS_PRUSA_XL
+        is_hidden_t::no
+    #else
+        is_hidden_t::dev
+    #endif
+    ) {
+}
 
 MI_CRASHES_Y::MI_CRASHES_Y()
-    : WI_INFO_t(config_store().crash_count_y.get(), _(label)) {}
+    : WI_INFO_t(config_store().crash_count_y.get(), _(label),
+    #if PRINTER_IS_PRUSA_XL
+        is_hidden_t::no
+    #else
+        is_hidden_t::dev
+    #endif
+    ) {
+}
 
     #if HAS_DRIVER(TMC2130)
 MI_CRASH_FILTERING::MI_CRASH_FILTERING()
