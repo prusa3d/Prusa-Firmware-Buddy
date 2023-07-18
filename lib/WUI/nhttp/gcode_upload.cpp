@@ -43,11 +43,13 @@ using std::make_tuple;
 using std::move;
 using std::nullopt;
 using std::string_view;
+using std::variant;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
 using transfers::file_preallocate;
 using transfers::Monitor;
 using transfers::next_transfer_idx;
+using transfers::PartialFile;
 using transfers::transfer_name;
 using transfers::USB_MOUNT_POINT;
 using transfers::USB_MOUNT_POINT_LENGTH;
@@ -323,7 +325,7 @@ namespace {
         bool overwrite;
         size_t file_idx;
 
-        virtual FILE *file() const override {
+        virtual variant<FILE *, PartialFile *> file() const override {
             return f;
         }
         // TODO: alias for the type, probably unify with the UploadHooks::Result

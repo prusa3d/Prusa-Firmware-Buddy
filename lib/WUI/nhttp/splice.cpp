@@ -2,16 +2,28 @@
 #include "server.h"
 
 #include <transfers/files.hpp>
+#include <transfers/partial_file.hpp>
 
 using nhttp::splice::Result;
 using std::array;
+using std::get_if;
+using std::variant;
+using std::visit;
+using transfers::PartialFile;
 
 namespace nhttp::splice {
 
 namespace {
 
-    bool store_segment(FILE *f, pbuf *data, size_t offset) {
-        return transfers::write_block(f, static_cast<const uint8_t *>(data->payload) + offset, data->len - offset);
+    bool store_segment(variant<FILE *, PartialFile *> file, pbuf *data, size_t offset) {
+        if (FILE **f = get_if<FILE *>(&file); f != nullptr) {
+            return transfers::write_block(*f, static_cast<const uint8_t *>(data->payload) + offset, data->len - offset);
+        } else if (PartialFile **f = get_if<PartialFile *>(&file); f != nullptr) {
+            return (*f)->write(static_cast<const uint8_t *>(data->payload) + offset, data->len - offset);
+        } else {
+            assert(0);
+            return false;
+        }
     }
 
 } // namespace
@@ -36,7 +48,7 @@ void Done::final_callback() {
 Done Done::instance;
 
 bool Write::io_task() {
-    FILE *f = transfer->file();
+    auto f = transfer->file();
     if (transfer->result != Result::Ok) {
         return false;
     }

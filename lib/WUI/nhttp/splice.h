@@ -8,7 +8,14 @@
 #include <optional>
 #include <atomic>
 #include <cstdio>
+#include <variant>
 #include <lwip/altcp.h>
+
+namespace transfers {
+
+class PartialFile;
+
+} // namespace transfers
 
 namespace nhttp {
 
@@ -37,7 +44,7 @@ namespace splice {
         // Successive writes shall be skipped, the connection aborted.
         std::atomic<Result> result = Result::Ok;
         // Called from whatever thread!
-        virtual FILE *file() const = 0;
+        virtual std::variant<FILE *, transfers::PartialFile *> file() const = 0;
         // FIXME: How do we do this around pbufs? For the decryption, we actually
         // need some extra space after it.
         // virtual size_t transform(uint8_t *buffer, size_t size) = 0;
