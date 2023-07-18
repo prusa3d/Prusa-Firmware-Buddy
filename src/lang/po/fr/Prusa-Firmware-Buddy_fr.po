@@ -35,7 +35,7 @@ msgstr ""
 #. window_menu
 #: src/gui/MItem_tools.cpp:287
 msgid "A crash dump is being saved."
-msgstr "Un dump sur crash est en cours d'enregistrement."
+msgstr "Un rapport de vidage de mémoire est en cours d'enregistrement."
 
 #: src/gui/MItem_tools.cpp:289
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
@@ -988,7 +988,7 @@ msgstr "Veuillez positionner la feuille d'acier sur le plateau chauffant."
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:22
 msgid "Please remove filament from filament sensor."
-msgstr "Mot de passe."
+msgstr "Veuillez retirer le filament du capteur de filament"
 
 #: src/gui/wizard/xyzcalib.cpp:59 src/gui/wizard/xyzcalib.cpp:250
 msgid "Please remove steel sheet from heatbed."
@@ -1521,7 +1521,7 @@ msgstr "Avertissement"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:21
 msgid "Was filament unload successful?"
-msgstr "Le filament a-t-il été bien chargé ?"
+msgstr "Le filament a-t-il été bien déchargé ?"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
