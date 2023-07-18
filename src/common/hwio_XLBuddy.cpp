@@ -26,6 +26,7 @@
 #include <option/has_loadcell.h>
 #include <option/has_gui.h>
 #include <option/debug_with_beeps.h>
+#include <option/is_knoblet.h>
 #include "device/board.h"
 #include "Marlin/src/module/motion.h" // for active_extruder
 #include "puppies/modular_bed.hpp"
@@ -112,8 +113,8 @@ static int *const _pwm_period_us[] = {
     &_tim1_period_us, //_PWM_FAN
 };
 
-// stores board revision from OTP for faster access
-board_revision_t board_revision;
+// stores board bom ID from OTP for faster access
+uint8_t board_bom_id;
 
 // buddy pwm output maximum values
 static constexpr int _pwm_max[] = { TIM1_default_Period };
@@ -632,13 +633,17 @@ void pinMode([[maybe_unused]] uint32_t ulPin, [[maybe_unused]] uint32_t ulMode) 
 }
 
 void buddy::hw::hwio_configure_board_revision_changed_pins() {
-    if (!otp_get_board_revision(&board_revision) || board_revision.bytes[0] <= 4) {
-        bsod("Unable to determine board revision");
+    if (!otp_get_bom_id(&board_bom_id) || board_bom_id < 4) {
+        if constexpr (option::is_knoblet) {
+            board_bom_id = BOARD_VERSION_MINOR; // Knoblets can be without OTP (buzzer might not work)
+        } else {
+            bsod("Unable to determine board revision");
+        }
     }
-    log_info(Buddy, "Detected board %d.%d", board_revision.bytes[0], board_revision.bytes[1]);
+    log_info(Buddy, "Detected bom ID %d", board_bom_id);
 
     // Different HW revisions have different pins connections, figure it out here
-    if (board_revision.bytes[0] >= 9 || board_revision.bytes[0] == 4) {
+    if (board_bom_id >= 9 || board_bom_id == 4) {
         Buzzer = &pin_a0;
         XStep = &pin_d7;
         YStep = &pin_d5;
@@ -648,19 +653,19 @@ void buddy::hw::hwio_configure_board_revision_changed_pins() {
         YStep = &pin_a3;
     }
 
-    if (board_revision.bytes[0] >= 9) {
+    if (board_bom_id >= 9) {
         SideLed_LcdSelector = &pin_e9;
     }
 }
 
 void hw_init_spi_side_leds() {
     // Side leds was connectet to dedicated SPI untill revision 8, in revision 9 SPI is shared with LCD. So init SPI only if needed.
-    if (board_revision.bytes[0] <= 8) {
+    if (board_bom_id <= 8) {
         hw_spi4_init();
     }
 }
 SPI_HandleTypeDef *hw_get_spi_side_strip() {
-    if (board_revision.bytes[0] >= 9 || board_revision.bytes[0] == 4) {
+    if (board_bom_id >= 9 || board_bom_id == 4) {
         return &SPI_HANDLE_FOR(lcd);
     } else {
         return &hspi4;

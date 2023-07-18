@@ -33,7 +33,7 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     //=============ACCESS IN ADDR=================
     board_revision_t board_revision;
     if (otp_get_board_revision(&board_revision) == false) {
-        board_revision.br = 0;
+        board_revision = 0;
     }
 
     serial_nr_t serial_nr;
@@ -66,13 +66,13 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     if (end > begin) {
         // c=20 r=4
-        static const char fmt2Translate[] = N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d.%d\n%s");
+        static const char fmt2Translate[] = N_("\nBootloader Version\n%d.%d.%d\n\nBuddy Board\n%d\n%s");
         char fmt[20 * 4];
         _(fmt2Translate).copyToRAM(fmt, sizeof(fmt)); // note the underscore at the beginning of this line
         begin += snprintf(begin, end - begin,
             fmt,
             bootloader->major, bootloader->minor, bootloader->patch,
-            board_revision.bytes[0], board_revision.bytes[1],
+            board_revision,
             serial_nr.txt);
     }
 

@@ -41,9 +41,9 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
 
     board_revision_t board_revision;
     if (otp_get_board_revision(&board_revision) == false) {
-        board_revision.br = 0;
+        board_revision = 0;
     }
-    snprintf(help_str, GuiDefaults::infoDefaultLen, "%d.%d", board_revision.bytes[0], board_revision.bytes[1]);
+    snprintf(help_str, GuiDefaults::infoDefaultLen, "%d", board_revision);
     ;
     Item<MI_INFO_BOARD>().ChangeInformation(help_str);
 

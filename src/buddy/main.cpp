@@ -103,12 +103,6 @@ extern "C" void main_cpp(void) {
     hw_gpio_init();
     hw_dma_init();
 
-// must do this before timer 1
-// timer 1 interrupt calls Configuration
-#if BOARD_IS_XBUDDY
-    buddy::hw::Configuration::Instance();
-#endif
-
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim1_init();
 #endif
@@ -586,6 +580,12 @@ extern "C" void startup_task(void const *) {
     taskENTER_CRITICAL();
     init_stores();
     taskEXIT_CRITICAL();
+
+// must do this before timer 1, timer 1 interrupt calls Configuration
+// also must be before initializing global variables
+#if BOARD_IS_XBUDDY
+    buddy::hw::Configuration::Instance();
+#endif
 
     // init global variables and call constructors
     extern void __libc_init_array(void);

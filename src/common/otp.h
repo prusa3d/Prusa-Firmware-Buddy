@@ -28,10 +28,7 @@ typedef struct {
     uint8_t mac[6];
 } MAC_addr;
 
-typedef union {
-    uint16_t br;
-    uint8_t bytes[2];
-} board_revision_t;
+typedef uint16_t board_revision_t;
 
 typedef struct {
     char txt[25];
@@ -69,6 +66,9 @@ uint8_t otp_get_serial_nr(serial_nr_t *sn);
 
 /**
  * @brief Get BOM ID from OTP.
+ * BOM == bill of material - list of electronic parts
+ * some parts might need different fw
+ * so in case of different hw support it is better to check this than board version
  * @param bom_id output BOM ID
  * @return true if parsed correctly, false otherwise
  */

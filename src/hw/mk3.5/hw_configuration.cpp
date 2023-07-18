@@ -14,10 +14,10 @@ Configuration &Configuration::Instance() {
 }
 
 Configuration::Configuration() {
-    board_revision_t rev;
-    otp_get_board_revision(&rev);
+    uint8_t bom_id;
+    otp_get_bom_id(&bom_id);
 
-    if (rev.bytes[0] == 27) {
+    if (bom_id == 27) {
         bsod("Wrong board version");
     }
 }

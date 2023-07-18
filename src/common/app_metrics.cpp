@@ -56,9 +56,18 @@ void buddy::metrics::RecordRuntimeStats() {
     if (metric_record_is_due(&buddy_revision)) {
         board_revision_t board_revision;
         if (otp_get_board_revision(&board_revision) == false) {
-            board_revision.br = 0;
+            board_revision = 0;
         }
-        metric_record_string(&buddy_revision, "%u.%u", board_revision.bytes[0], board_revision.bytes[1]);
+        metric_record_string(&buddy_revision, "%u", board_revision);
+    }
+
+    static metric_t buddy_bom = METRIC("buddy_bom", METRIC_VALUE_STRING, 10 * 10003, METRIC_HANDLER_ENABLE_ALL);
+    if (metric_record_is_due(&buddy_bom)) {
+        uint8_t bom;
+        if (otp_get_bom_id(&bom) == false) {
+            bom = 0;
+        }
+        metric_record_string(&buddy_bom, "%u", bom);
     }
 
     static metric_t current_filamnet = METRIC("filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
