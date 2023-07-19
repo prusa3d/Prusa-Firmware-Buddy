@@ -14,15 +14,12 @@
     #include "../Marlin/src/feature/prusa/crash_recovery.h"
 #endif
 
-//octo icon, 86x69
-static point_ui16_t pt_ico() { return icon_meas(resource_ptr(IDR_PNG_serial_printing)); }
-
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
-    , octo_icon(this, Rect16((120 - png::serial_printing_172x138.w) / 2, GuiDefaults::RectScreenBody.Top() + 8, png::serial_printing_172x138.w, png::serial_printing_172x138.h), &png::serial_printing_172x138)
-    , w_progress(this, Rect16(10, GuiDefaults::RectScreenBody.Top() + pt_ico().y + 14, GuiDefaults::RectScreen.Width() - 2 * 10, 16))
-    , w_progress_txt(this, Rect16(10, GuiDefaults::RectScreenBody.Top() + pt_ico().y + 34, GuiDefaults::RectScreen.Width() - 2 * 10, 30))
-    , w_message(this, Rect16(10, GuiDefaults::RectScreenBody.Top() + pt_ico().y + 60, GuiDefaults::RectScreen.Width() - 2 * 10, 20))
+    , octo_icon(this, Rect16((120 - png::serial_printing_172x69.w) / 2, GuiDefaults::RectScreenBody.Top() + 8, png::serial_printing_172x69.w, png::serial_printing_172x69.h), &png::serial_printing_172x69)
+    , w_progress(this, Rect16(10, GuiDefaults::RectScreenBody.Top() + png::serial_printing_172x69.h + 14, GuiDefaults::RectScreen.Width() - 2 * 10, 16))
+    , w_progress_txt(this, Rect16(10, GuiDefaults::RectScreenBody.Top() + png::serial_printing_172x69.h + 34, GuiDefaults::RectScreen.Width() - 2 * 10, 30))
+    , w_message(this, Rect16(10, GuiDefaults::RectScreenBody.Top() + png::serial_printing_172x69.h + 60, GuiDefaults::RectScreen.Width() - 2 * 10, 20))
     , last_tick(0)
     , connection(connection_state_t::connected) {
     ClrMenuTimeoutClose();
