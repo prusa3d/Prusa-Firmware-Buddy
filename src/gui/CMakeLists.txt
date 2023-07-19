@@ -83,6 +83,7 @@ target_sources(
           window_file_list.cpp
           window_filebrowser.cpp
           window_header.cpp
+          window_lcd_message.cpp
           window_msgbox_wrong_printer.cpp
           window_print_progress.cpp
           window_temp_graph.cpp

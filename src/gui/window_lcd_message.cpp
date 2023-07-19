@@ -21,8 +21,8 @@
 #include "window_lcd_message.hpp"
 #include "gui.hpp"
 #include <algorithm>
-#include "resource.h"
-#include "marlin_client.h"
+#include "ScreenHandler.hpp"
+#include "marlin_client.hpp"
 
 char lcd_message_text[LCD_MESSAGE_MAX_LEN + 1];
 
