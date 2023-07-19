@@ -2071,6 +2071,8 @@ static void _server_update_vars() {
         uint8_t progress = 0;
         if (oProgressData.oPercentDone.mIsActual(marlin_vars()->print_duration))
             progress = static_cast<uint8_t>(oProgressData.oPercentDone.mGetValue());
+        else if (oProgressData.oPercentDirectControl.mIsActual(marlin_vars() ->print_duration))
+            progress = static_cast<uint8_t>(oProgressData.oPercentDirectControl.mGetValue());
         else
             progress = static_cast<uint8_t>(media_print_get_percent_done());
 

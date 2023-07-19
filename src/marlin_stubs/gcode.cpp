@@ -31,6 +31,11 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 50:
             PrusaGcodeSuite::M50(); // selftest
             break;
+        case 117:
+            PrusaGcodeSuite::M117();
+            if (!no_ok)
+                queue.ok_to_send();
+            return true;
 #if HAS_LEDS
         case 150:
             PrusaGcodeSuite::M150();
