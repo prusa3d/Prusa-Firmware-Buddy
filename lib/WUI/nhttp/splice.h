@@ -45,9 +45,23 @@ namespace splice {
         std::atomic<Result> result = Result::Ok;
         // Called from whatever thread!
         virtual std::variant<FILE *, transfers::PartialFile *> file() const = 0;
-        // FIXME: How do we do this around pbufs? For the decryption, we actually
-        // need some extra space after it.
-        // virtual size_t transform(uint8_t *buffer, size_t size) = 0;
+
+        // Perform an in-place transformation (eg. decryption). May be a NOP.
+        //
+        // size_in: How much relevant data there is in the buffer.
+        // size_out: How much data can be output (size of the buffer). At least size_in.
+        //
+        // Returns:
+        // * How much data was consumed (<= size_in).
+        // * How much data was produced (<= size_out).
+        // * How large the buffer needs to be to process the rest (might be 0).
+        //
+        // If the last one is not 0, it shall be called again with the rest and
+        // buffer of the right size. The data need to start at the beginning of
+        // that buffer (eg. caller handles offset in the buffer).
+        //
+        // Called inside the IO thread for now.
+        virtual std::tuple<size_t, size_t, size_t> transform(uint8_t *buffer, size_t size_in, size_t size_out) = 0;
 
         // Is supposed to close the file.
         // Called in the tcpip thread.
@@ -101,6 +115,17 @@ namespace splice {
         // Note: we write this in multiple shots and Ack after each one.
         pbuf *current = nullptr;
         std::atomic<uint16_t> to_ack;
+
+        struct WriteError {};
+        struct WriteComplete {};
+        struct NeedMore {
+            size_t used;
+            size_t buff_needed;
+        };
+
+        using ProcessResult = std::variant<WriteError, WriteComplete, NeedMore>;
+
+        ProcessResult process(uint8_t *buffer, size_t size_in, size_t size_out);
 
     public:
         virtual bool io_task() override;

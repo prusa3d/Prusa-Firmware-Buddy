@@ -43,6 +43,7 @@ using std::make_tuple;
 using std::move;
 using std::nullopt;
 using std::string_view;
+using std::tuple;
 using std::variant;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
@@ -396,6 +397,12 @@ namespace {
             assert(monitor_slot.has_value());
             monitor_slot->progress(len);
             return !monitor_slot->is_stopped();
+        }
+
+        virtual tuple<size_t, size_t, size_t> transform(uint8_t *, size_t size_in, size_t) override {
+            // A NOP transformation.
+            // We consumed the whole size_in, output the same and need no more buffers.
+            return make_tuple(size_in, size_in, 0);
         }
     };
 
