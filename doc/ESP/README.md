@@ -28,6 +28,7 @@ ssid= enter here the SSID of your wireless network
 psk= enter here the valid password
 ```
 
+- Leading and trailing spaces are stripped from the INI field values; a singly (`'`) or doubly (`"`) quoted string can be used to retain such spaces, if necessary.
 - Store the `prusa_printer_settings.ini` file in the root folder of the USB flash drive and plug in to the printer
 - Run the **Setting-> Load Settings from** command from the printer
 - Make sure the **Settings -> Lan setting**s is set to WiFi
