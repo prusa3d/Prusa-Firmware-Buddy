@@ -18,3 +18,6 @@ using SpinConfig_t = SpinConfig<T>;
 #endif
 
 using SpinConfigInt = SpinConfig_t<int>;
+using SpinConfigFlt = SpinConfig_t<float>;
+
+constexpr const char *const format_point2 = "%0.2f";

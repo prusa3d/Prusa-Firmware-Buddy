@@ -107,18 +107,17 @@ struct flash_planner_t {
     int16_t extrude_min_temp;
 #if ENABLED(MODULAR_HEATBED)
     uint16_t enabled_bedlets_mask;
+    uint8_t _padding_heat[2]; // padding to 2 or 4 bytes?
 #endif
 
+    uint16_t print_speed;
     uint8_t was_paused;
     uint8_t was_crashed;
     uint8_t fan_speed;
-    uint8_t print_speed;
     uint8_t axis_relative;
     uint8_t allow_cold_extrude;
 
-#if DISABLED(MODULAR_HEATBED)
-    uint8_t _padding[2];
-#endif
+    uint8_t _padding[1];
 };
 
 // fully independent state that persist across panics until the end of the print

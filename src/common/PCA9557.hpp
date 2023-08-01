@@ -1,6 +1,6 @@
 #pragma once
 #include "Pin.hpp"
-#include "i2c.h"
+#include "i2c.hpp"
 
 namespace buddy::hw {
 
@@ -53,7 +53,7 @@ private:
 
     void write_reg(Register_t reg, uint8_t value) {
         uint8_t data[2] = { (uint8_t)reg, value };
-        I2C_Transmit(&i2c, write_address, data, sizeof(data), TIMEOUT);
+        (void)i2c::Transmit(i2c, write_address, data, sizeof(data), TIMEOUT);
     }
 };
 

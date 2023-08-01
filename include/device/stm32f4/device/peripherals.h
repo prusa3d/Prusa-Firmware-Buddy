@@ -310,17 +310,16 @@ void hw_uart8_init();
 
 #if HAS_I2CN(1)
 void hw_i2c1_init();
+void hw_i2c1_pins_init();
 #endif
 #if HAS_I2CN(2)
 void hw_i2c2_init();
+void hw_i2c2_pins_init();
 #endif
 #if HAS_I2CN(3)
 void hw_i2c3_init();
+void hw_i2c3_pins_init();
 #endif
-
-size_t hw_i2c1_get_busy_clear_count();
-size_t hw_i2c2_get_busy_clear_count();
-size_t hw_i2c3_get_busy_clear_count();
 
 void hw_spi2_init();
 void hw_spi3_init();

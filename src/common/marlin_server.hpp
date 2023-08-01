@@ -121,7 +121,7 @@ typedef struct
     float nozzle_temp[EXTRUDERS]; // resume nozzle temperature
     bool nozzle_temp_paused;      // True if nozzle_temp is valid and hotend cools down
     uint8_t fan_speed;            // resume fan speed
-    uint8_t print_speed;          // resume printing speed
+    uint16_t print_speed;         // resume printing speed
 } resume_state_t;
 
 //

@@ -9,6 +9,11 @@
 #include "timer_defaults.h"
 #include "PCA9557.hpp"
 #include "log.h"
+#include "timing_precise.hpp"
+
+// breakpoint
+#include "FreeRTOS.h"
+#include "task.h"
 
 //
 // I2C
@@ -414,155 +419,137 @@ void hw_uart8_init() {
 }
 #endif
 
-LOG_COMPONENT_DEF(I2C, LOG_SEVERITY_INFO);
-
-static void wait_for_pin(int &workaround_step, GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState pin_state, uint32_t max_wait_us = 128) {
-    volatile uint32_t start_us = ticks_us();
-    while (HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) != pin_state) {
-        volatile uint32_t now = ticks_us();
-        if (((now - start_us) > max_wait_us) && HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) != pin_state) {
-            log_error(I2C, "not operational, busy reset step %d", workaround_step++);
-            return;
-        }
-    }
-}
-#if HAS_I2CN(1)
-static void hw_i2c1_base_init();
-#endif
-#if HAS_I2CN(2)
-static void hw_i2c2_base_init();
-#endif
-#if HAS_I2CN(3)
-static void hw_i2c3_base_init();
-#endif
+struct hw_pin {
+    GPIO_TypeDef *port;
+    uint16_t no;
+};
 
 /**
- * @brief I2C is busy and does not communicate
- * I have found similar issue in STM32F1 error datasheet (but not in STM32F4)
- * Description
- * The I2C analog filters embedded in the I2C I/Os may be tied to low level, whereas SCL and SDA lines are kept at
- * high level. This can occur after an MCU power-on reset, or during ESD stress. Consequently, the I2C BUSY flag
- * is set, and the I2C cannot enter master mode (START condition cannot be sent). The I2C BUSY flag cannot be
- * cleared by the SWRST control bit, nor by a peripheral or a system reset. BUSY bit is cleared under reset, but it
- * is set high again as soon as the reset is released, because the analog filter output is still at low level. This issue
- * occurs randomly.
- *
- * Note: Under the same conditions, the I2C analog filters may also provide a high level, whereas SCL and SDA lines are
- * kept to low level. This should not create issues as the filters output is correct after next SCL and SDA transition.
- *
- *
- * Workaround
- * The SCL and SDA analog filter output is updated after a transition occurs on the SCL and SDA line respectively.
- * The SCL and SDA transition can be forced by software configuring the I2C I/Os in output mode. Then, once the
- * analog filters are unlocked and output the SCL and SDA lines level, the BUSY flag can be reset with a software
- * reset, and the I2C can enter master mode. Therefore, the following sequence must be applied:
+ * @brief Set the pin to open-drain
  */
-static void i2c_busy_flag_error_workaround(I2C_HandleTypeDef *hi2c, GPIO_TypeDef *SDA_PORT, uint32_t SDA_PIN, GPIO_TypeDef *SCL_PORT, uint32_t SCL_PIN, void (*init_fn)()) {
-    int workaround_step = 0;
-
-    GPIO_InitTypeDef GPIO_InitStruct;
-
-    // 1. Disable the I2C peripheral by clearing the PE bit in I2Cx_CR1 register.
-    __HAL_I2C_DISABLE(hi2c);
-
-    // 2. Configure the SCL and SDA I/Os as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
-    GPIO_InitStruct.Pin = SDA_PIN;
+static void set_pin_od(hw_pin pin) {
+    GPIO_InitTypeDef GPIO_InitStruct {};
+    GPIO_InitStruct.Pin = pin.no;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
-    HAL_GPIO_Init(SDA_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = SCL_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
-    HAL_GPIO_Init(SCL_PORT, &GPIO_InitStruct);
-
-    HAL_GPIO_WritePin(SDA_PORT, SDA_PIN, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(SCL_PORT, SCL_PIN, GPIO_PIN_SET);
-
-    // 3. Check SCL and SDA High level in GPIOx_IDR.
-    wait_for_pin(workaround_step, SDA_PORT, SDA_PIN, GPIO_PIN_SET);
-    wait_for_pin(workaround_step, SCL_PORT, SCL_PIN, GPIO_PIN_SET);
-
-    // 4. Configure the SDA I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
-    GPIO_InitStruct.Pin = SDA_PIN;
-    HAL_GPIO_Init(SDA_PORT, &GPIO_InitStruct);
-
-    HAL_GPIO_TogglePin(SDA_PORT, SDA_PIN);
-
-    // 5. Check SDA Low level in GPIOx_IDR.
-    wait_for_pin(workaround_step, SDA_PORT, SDA_PIN, GPIO_PIN_RESET);
-
-    // 6. Configure the SCL I/O as General Purpose Output Open-Drain, Low level (Write 0 to GPIOx_ODR).
-    GPIO_InitStruct.Pin = SCL_PIN;
-    HAL_GPIO_Init(SCL_PORT, &GPIO_InitStruct);
-
-    HAL_GPIO_TogglePin(SCL_PORT, SCL_PIN);
-
-    // 7. Check SCL Low level in GPIOx_IDR.
-    wait_for_pin(workaround_step, SCL_PORT, SCL_PIN, GPIO_PIN_RESET);
-
-    // 8. Configure the SCL I/O as General Purpose Output Open-Drain, High level (Write 1 to GPIOx_ODR).
-    GPIO_InitStruct.Pin = SDA_PIN;
-    HAL_GPIO_Init(SDA_PORT, &GPIO_InitStruct);
-
-    HAL_GPIO_WritePin(SDA_PORT, SDA_PIN, GPIO_PIN_SET);
-
-    // 9. Check SCL High level in GPIOx_IDR.
-    wait_for_pin(workaround_step, SDA_PORT, SDA_PIN, GPIO_PIN_SET);
-
-    // 10. Configure the SDA I/O as General Purpose Output Open-Drain , High level (Write 1 to GPIOx_ODR).
-    GPIO_InitStruct.Pin = SCL_PIN;
-    HAL_GPIO_Init(SCL_PORT, &GPIO_InitStruct);
-
-    HAL_GPIO_WritePin(SCL_PORT, SCL_PIN, GPIO_PIN_SET);
-
-    // 11. Check SDA High level in GPIOx_IDR.
-    wait_for_pin(workaround_step, SCL_PORT, SCL_PIN, GPIO_PIN_SET);
-
-    // 12. Configure the SCL and SDA I/Os as Alternate function Open-Drain.
-    GPIO_InitStruct.Pin = SDA_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Alternate = 0x04; // 4 == I2C
-    HAL_GPIO_Init(SDA_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = SCL_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Alternate = 0x04; // 4 == I2C
-    HAL_GPIO_Init(SCL_PORT, &GPIO_InitStruct);
-
-    // 13. Set SWRST bit in I2Cx_CR1 register.
-    hi2c->Instance->CR1 |= I2C_CR1_SWRST;
-
-    // 14. Clear SWRST bit in I2Cx_CR1 register.
-    hi2c->Instance->CR1 ^= I2C_CR1_SWRST;
-
-    // need extra step - call init fnc
-    init_fn();
-
-    // 15. Enable the I2C peripheral by setting the PE bit in I2Cx_CR1 register.
-    // this step is done during I2C init function
-    __HAL_I2C_ENABLE(hi2c);
+    GPIO_InitStruct.Alternate = 0;
+    HAL_GPIO_Init(pin.port, &GPIO_InitStruct);
 }
 
-/// call busy flag reset function
-#define I2C_BUSY_FLAG_ERROR_WORKAROUND(i2c_num) i2c_busy_flag_error_workaround(&hi2c##i2c_num, \
-    i2c##i2c_num##_SDA_PORT, i2c##i2c_num##_SDA_PIN,                                           \
-    i2c##i2c_num##_SCL_PORT, i2c##i2c_num##_SCL_PIN, hw_i2c##i2c_num##_base_init)
+/**
+ * @brief Set the pin to input
+ */
+static void set_pin_in(hw_pin pin) {
+    GPIO_InitTypeDef GPIO_InitStruct {};
+    GPIO_InitStruct.Pin = pin.no;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
+    GPIO_InitStruct.Alternate = 0;
+    HAL_GPIO_Init(pin.port, &GPIO_InitStruct);
+}
 
-static std::atomic<size_t> i2c1_busy_clear_count = 0;
-static std::atomic<size_t> i2c2_busy_clear_count = 0;
-static std::atomic<size_t> i2c3_busy_clear_count = 0;
+/**
+ * @brief calculate edge timing
+ * edges timing is of half period
+ * round up
+ *
+ * @param clk frequency [Hz]
+ * @return constexpr uint32_t half of period [us]
+ */
+static constexpr uint32_t i2c_get_edge_us(uint32_t clk) {
+    // clk + 1 .. round up
+    // / 2     .. need half of period
+    return (1'000'000 % clk ? (1'000'000 / clk + 1) : (1'000'000 / clk)) / 2;
+}
 
-size_t hw_i2c1_get_busy_clear_count() { return i2c1_busy_clear_count.load(); }
-size_t hw_i2c2_get_busy_clear_count() { return i2c2_busy_clear_count.load(); }
-size_t hw_i2c3_get_busy_clear_count() { return i2c3_busy_clear_count.load(); }
+/**
+ * @brief unblock i2c data pin
+ * apply up to 9 clock pulses and check SDA logical level
+ * make sure it is in '1', so master can manipulate with it
+ * in case HW is OK it is ensured that 9 pulses is enough
+ * because in the worse case scenario 9th pulse would be expected to be ACK from master
+ *
+ * @param clk   frequency [Hz]
+ * @param sda   pin of data
+ * @param scl   pin of clock
+ */
+static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
+    delay_us_precise(i2c_get_edge_us(clk));                       // half period - ensure first edge is not too short
+    for (size_t i = 0; i < 9; ++i) {                              // 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
+        HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET);        // set clock to '1'
+        delay_us_precise(i2c_get_edge_us(clk));                   // wait half period
+        if (HAL_GPIO_ReadPin(sda.port, sda.no) == GPIO_PIN_SET) { // check if slave does not pull SDA to '0' while SCL == 1
+            return;                                               // sda is not pulled by a slave, it is done
+        }
+
+        HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_RESET); // set clock to '0'
+        delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+    }
+
+    // in case code reaches this, there is some HW issue
+    // but we cannot log it or rise red screen, it is too early
+#ifdef _DEBUG
+    // Breakpoint if debugger is connected
+    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
+        __BKPT(0);
+    }
+#endif
+    HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // this code should never be reached, just in case it was set clock to '1'
+}
+
+/**
+ * @brief free I2C in case of slave deadlock
+ * in case printer is resetted during I2C transmit, slave can deadlock
+ * it has not been resetted and is expecting clock to finish its command
+ * problem is that it can hold SDA in '0' - it blocks the bus so master cannot do start / stop condition
+ * this code generates a clock until SDA is in '1' and than master sdoes start + stop to end any slave communication
+ *
+ * @param clk   frequency [Hz]
+ * @param sda   pin of data
+ * @param scl   pin of clock
+ */
+static void i2c_free_bus_in_case_of_slave_deadlock(uint32_t clk, hw_pin sda, hw_pin scl) {
+    set_pin_in(sda);                                            // configure SDA to input
+    if (HAL_GPIO_ReadPin(sda.port, sda.no) == GPIO_PIN_RESET) { // check if slave pulls SDA to '0' while SCL == 1
+        set_pin_od(scl);                                        // configure SCL to open-drain
+        i2c_unblock_sda(clk, sda, scl);                         // get SDA pin in state pin can be "moved"
+    }
+
+    set_pin_od(sda);                                     // reconfigure SDA to open-drain, to be able to move it
+    HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_RESET); // set SDA to '0' while SCL == '1' - start condition
+    delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+    HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_RESET); // set SDA to '1' while SCL == '1' - stop condition
+    delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+}
 
 #if HAS_I2CN(1)
-void hw_i2c1_base_init() {
+
+static constexpr uint32_t i2c1_speed = 400'000;
+
+void hw_i2c1_pins_init() {
+    GPIO_InitTypeDef GPIO_InitStruct {};
+
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+
+    i2c_free_bus_in_case_of_slave_deadlock(i2c1_speed, { i2c1_SDA_PORT, i2c1_SDA_PIN }, { i2c1_SCL_PORT, i2c1_SCL_PIN });
+
+    // GPIO I2C mode
+    GPIO_InitStruct.Pin = i2c1_SDA_PIN | i2c1_SCL_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+    HAL_GPIO_Init(i2c1_SDA_PORT, &GPIO_InitStruct);
+
+    // Peripheral clock enable
+    __HAL_RCC_I2C1_CLK_ENABLE();
+}
+
+void hw_i2c1_init() {
     hi2c1.Instance = I2C1;
-    hi2c1.Init.ClockSpeed = 400000;
+    hi2c1.Init.ClockSpeed = i2c1_speed;
 
     hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
     hi2c1.Init.OwnAddress1 = 0;
@@ -586,21 +573,34 @@ void hw_i2c1_base_init() {
     }
     #endif
 }
-
-void hw_i2c1_init() {
-    hw_i2c1_base_init();
-
-    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) == SET) {
-        I2C_BUSY_FLAG_ERROR_WORKAROUND(1);
-        ++i2c1_busy_clear_count;
-    }
-}
 #endif // HAS_I2CN(1)
 
 #if HAS_I2CN(2)
-static void hw_i2c2_base_init() {
+
+static constexpr uint32_t i2c2_speed = 100'000;
+
+void hw_i2c2_pins_init() {
+    GPIO_InitTypeDef GPIO_InitStruct {};
+
+    __HAL_RCC_GPIOF_CLK_ENABLE();
+
+    i2c_free_bus_in_case_of_slave_deadlock(i2c2_speed, { i2c2_SDA_PORT, i2c2_SDA_PIN }, { i2c2_SCL_PORT, i2c2_SCL_PIN });
+
+    // GPIO I2C mode
+    GPIO_InitStruct.Pin = i2c2_SDA_PIN | i2c2_SCL_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
+    HAL_GPIO_Init(i2c2_SDA_PORT, &GPIO_InitStruct);
+
+    // Peripheral clock enable
+    __HAL_RCC_I2C2_CLK_ENABLE();
+}
+
+void hw_i2c2_init() {
     hi2c2.Instance = I2C2;
-    hi2c2.Init.ClockSpeed = 100000;
+    hi2c2.Init.ClockSpeed = i2c2_speed;
 
     hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
     hi2c2.Init.OwnAddress1 = 0;
@@ -618,27 +618,49 @@ static void hw_i2c2_base_init() {
     if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK) {
         Error_Handler();
     }
-    // Configure Digital filter
-    if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK) {
+    // Configure Digital filter to maximum (tHD:STA 0.357us delay)
+    if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0x0F) != HAL_OK) {
         Error_Handler();
     }
     #endif
 }
-
-void hw_i2c2_init() {
-    hw_i2c2_base_init();
-
-    if (__HAL_I2C_GET_FLAG(&hi2c2, I2C_FLAG_BUSY) == SET) {
-        I2C_BUSY_FLAG_ERROR_WORKAROUND(2);
-        ++i2c2_busy_clear_count;
-    }
-}
 #endif // HAS_I2CN(2)
 
 #if HAS_I2CN(3)
-static void hw_i2c3_base_init() {
+
+static constexpr uint32_t i2c3_speed = 100'000;
+
+void hw_i2c3_pins_init() {
+
+    GPIO_InitTypeDef GPIO_InitStruct {};
+
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    i2c_free_bus_in_case_of_slave_deadlock(i2c3_speed, { i2c3_SDA_PORT, i2c3_SDA_PIN }, { i2c3_SCL_PORT, i2c3_SCL_PIN });
+
+    // GPIO I2C mode
+    GPIO_InitStruct.Pin = i2c3_SDA_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
+    HAL_GPIO_Init(i2c3_SDA_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = i2c3_SCL_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
+    HAL_GPIO_Init(i2c3_SCL_PORT, &GPIO_InitStruct);
+
+    // Peripheral clock enable
+    __HAL_RCC_I2C3_CLK_ENABLE();
+}
+
+void hw_i2c3_init() {
     hi2c3.Instance = I2C3;
-    hi2c3.Init.ClockSpeed = 100000;
+    hi2c3.Init.ClockSpeed = i2c3_speed;
     hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
     hi2c3.Init.OwnAddress1 = 0;
     hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -660,15 +682,6 @@ static void hw_i2c3_base_init() {
         Error_Handler();
     }
     #endif
-}
-
-void hw_i2c3_init() {
-    hw_i2c3_base_init();
-
-    if (__HAL_I2C_GET_FLAG(&hi2c3, I2C_FLAG_BUSY) == SET) {
-        I2C_BUSY_FLAG_ERROR_WORKAROUND(3);
-        ++i2c3_busy_clear_count;
-    }
 }
 #endif // HAS_I2CN(3)
 

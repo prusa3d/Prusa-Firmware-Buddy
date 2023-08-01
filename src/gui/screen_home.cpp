@@ -25,7 +25,7 @@
 #include "RAII.hpp"
 #include "lazyfilelist.h"
 #include "i18n.h"
-#include "i2c.h"
+#include "i2c.hpp"
 #include "netdev.h"
 
 #include <option/has_control_menu.h>
@@ -294,21 +294,6 @@ void screen_home_data_t::on_enter() {
         return;
     }
     first_event = false;
-
-#if DEVELOPMENT_ITEMS()
-    static size_t last_busy_reset_count = 0;
-    size_t busy_reset_count1 = hw_i2c1_get_busy_clear_count();
-    size_t busy_reset_count2 = hw_i2c2_get_busy_clear_count();
-    size_t busy_reset_count3 = hw_i2c3_get_busy_clear_count();
-
-    if (last_busy_reset_count != busy_reset_count1 + busy_reset_count2 + busy_reset_count3) {
-        last_busy_reset_count = busy_reset_count1 + busy_reset_count2 + busy_reset_count3;
-        const char txt[] = "I2C workaround applied\nI2C1: %d\nI2C2: %d\nI2C3: %d";
-        std::array<char, sizeof(txt) + 19> buff; // leaves 2+6 digits per error .. max 99 999 999 error .. no way it would be so many
-        snprintf(buff.begin(), buff.size(), txt, busy_reset_count1, busy_reset_count2, busy_reset_count3);
-        MsgBoxWarning(string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(buff.begin())), Responses_Ok);
-    }
-#endif
 
 #if !DEVELOPER_MODE()
     #if PRINTER_IS_PRUSA_XL

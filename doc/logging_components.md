@@ -21,7 +21,6 @@ This file is generated automatically so don't edit it directly
 - FSensor: LOG_SEVERITY_INFO, src/common/filament_sensors_handler.cpp
 - FileSystem: LOG_SEVERITY_INFO, src/buddy/filesystem.cpp
 - GUI: LOG_SEVERITY_DEBUG, src/gui/logger.cpp
-- I2C: LOG_SEVERITY_INFO, src/device/stm32f4/peripherals.cpp
 - Led: LOG_SEVERITY_INFO, src/gui/led_animations/printer_animation_state.cpp
 - Loadcell: LOG_SEVERITY_INFO, src/common/loadcell.cpp
 - MMU2: LOG_SEVERITY_INFO, src/common/appmain.cpp

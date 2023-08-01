@@ -33,11 +33,13 @@ template <class T>
 struct SpinConfig {
     std::array<T, 3> range; // todo change array to struct containing min, max, step
     static const char *const prt_format;
+    const char *const prt_format_override;
     spin_off_opt_t off_opt;
     static constexpr const char *const off_opt_str = N_("Off");
 
-    constexpr SpinConfig(const std::array<T, 3> &arr, spin_off_opt_t off_opt_ = spin_off_opt_t::no)
+    constexpr SpinConfig(const std::array<T, 3> &arr, spin_off_opt_t off_opt_ = spin_off_opt_t::no, const char *const format_override = nullptr)
         : range(arr)
+        , prt_format_override(format_override)
         , off_opt(off_opt_) {}
     constexpr T Min() const { return range[0]; }
     constexpr T Max() const { return range[1]; }
@@ -63,7 +65,7 @@ size_t SpinConfig<T>::txtMeas(T val) const {
     if (IsOffOptionEnabled() && val == Min()) {
         return strlen(off_opt_str);
     } else {
-        return snprintf(nullptr, 0, prt_format, val);
+        return snprintf(nullptr, 0, prt_format_override ? prt_format_override : prt_format, val);
     }
 }
 
@@ -72,7 +74,7 @@ inline size_t SpinConfig<float>::txtMeas(float val) const {
     if (IsOffOptionEnabled() && val == Min()) {
         return strlen(off_opt_str);
     } else {
-        return snprintf(nullptr, 0, prt_format, (double)val);
+        return snprintf(nullptr, 0, prt_format_override ? prt_format_override : prt_format, (double)val);
     }
 }
 
@@ -80,8 +82,8 @@ template <class T>
 struct SpinConfigWithUnit : public SpinConfig<T> {
     const char *const unit;
 
-    constexpr SpinConfigWithUnit(const std::array<T, 3> &arr, const char *unit_, spin_off_opt_t off_opt_ = spin_off_opt_t::no)
-        : SpinConfig<T>(arr, off_opt_)
+    constexpr SpinConfigWithUnit(const std::array<T, 3> &arr, const char *unit_, spin_off_opt_t off_opt_ = spin_off_opt_t::no, const char *const format = nullptr)
+        : SpinConfig<T>(arr, off_opt_, format)
         , unit(unit_) {}
     constexpr const char *Unit() const { return unit; } // not virtual
 };

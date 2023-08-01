@@ -3,7 +3,7 @@
 #include <device/peripherals.h>
 #include <device/hal.h>
 #include <cstdint>
-#include "i2c.h"
+#include "i2c.hpp"
 
 namespace buddy {
 namespace hw {

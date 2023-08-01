@@ -10,15 +10,15 @@ void FUSB302B::InitChip() {
 
     uint8_t _enable_power[2] = { 0x0B, 0x0F };     // wake up circuit
     uint8_t _enable_interupts[2] = { 0x06, 0x05 }; // enable all interrupts
-    I2C_Transmit(&I2C_HANDLE_FOR(usbc), address | WRITE_FLAG, _enable_power, 2, 100);
-    I2C_Transmit(&I2C_HANDLE_FOR(usbc), address | WRITE_FLAG, _enable_interupts, 2, 100);
+    (void)i2c::Transmit(I2C_HANDLE_FOR(usbc), address | WRITE_FLAG, _enable_power, 2, 100);
+    (void)i2c::Transmit(I2C_HANDLE_FOR(usbc), address | WRITE_FLAG, _enable_interupts, 2, 100);
 }
 
 FUSB302B::VBUS_state FUSB302B::ReadSTATUS0Reg() {
     uint8_t _data_form_chip = 0x00;
     uint8_t _data_to_chip[1] = { 0x40 };
-    I2C_Transmit(&I2C_HANDLE_FOR(usbc), address | WRITE_FLAG, _data_to_chip, 1, 100);
-    I2C_Receive(&I2C_HANDLE_FOR(usbc), address, &_data_form_chip, 1, 100);
+    (void)i2c::Transmit(I2C_HANDLE_FOR(usbc), address | WRITE_FLAG, _data_to_chip, 1, 100);
+    (void)i2c::Receive(I2C_HANDLE_FOR(usbc), address, &_data_form_chip, 1, 100);
     return static_cast<VBUS_state>(_data_form_chip);
 }
 
@@ -28,8 +28,8 @@ void FUSB302B::DetectAddress() {
     for (auto tryAddress : address_options) {
         // reset chip, if chip has this address, it will confirm the transaction
         uint8_t _sw_reset[2] = { 0x0C, 0x03 };
-        auto res = I2C_Transmit_ext(&I2C_HANDLE_FOR(usbc), tryAddress | WRITE_FLAG, _sw_reset, 2, 100);
-        if (res == HAL_OK) {
+        auto res = i2c::Transmit(I2C_HANDLE_FOR(usbc), tryAddress | WRITE_FLAG, _sw_reset, 2, 100);
+        if (res == i2c::Result::ok) {
             FUSB302B::address = tryAddress;
             return;
         }

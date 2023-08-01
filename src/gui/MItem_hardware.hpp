@@ -3,28 +3,6 @@
 #include "i18n.h"
 #include <configuration_store.hpp>
 
-template <size_t SZ>
-class MI_SWITCH_NOZZLE_DIAMETER_t : public WI_SWITCH_t<SZ> {
-    static constexpr size_t TEXT_LENGTH = 8;
-    char str[SZ][TEXT_LENGTH];
-
-    auto float_to_string(size_t i, float f) {
-        snprintf(str[i], TEXT_LENGTH, "%0.2f mm", double(f));
-        return string_view_utf8::MakeRAM((uint8_t *)str[i]);
-    }
-
-    template <std::size_t... I>
-    MI_SWITCH_NOZZLE_DIAMETER_t(size_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden,
-        const std::array<float, SZ> &diameters, std::index_sequence<I...>)
-        : WI_SWITCH_t<SZ>(index, label, id_icon, enabled, hidden, float_to_string(I, diameters[I])...) {}
-
-public:
-    template <typename I = std::make_index_sequence<SZ>>
-    MI_SWITCH_NOZZLE_DIAMETER_t(size_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden,
-        const std::array<float, SZ> &diameters)
-        : MI_SWITCH_NOZZLE_DIAMETER_t<SZ>(index, label, id_icon, enabled, hidden, diameters, I {}) {}
-};
-
 enum class HWCheckType {
     nozzle,
     model,
@@ -89,19 +67,17 @@ protected:
     }
 };
 
-class MI_NOZZLE_DIAMETER : public MI_SWITCH_NOZZLE_DIAMETER_t<6> {
+class MI_NOZZLE_DIAMETER : public WiSpinFlt {
     static constexpr const char *const label = N_("Nozzle Diameter");
-    static constexpr const std::array diameters { 0.25f, 0.3f, 0.4f, 0.5f, 0.6f, 0.8f };
-    static constexpr const size_t DEFAULT_DIAMETER_INDEX = 2;
 
     int tool_idx; ///< Configure this tool [indexed from 0]
 
     /**
-     * @brief Get index to diameters array from stored eeprom value.
+     * @brief Get diameter value stored in eeprom.
      * @param tool_idx this tool [indexed from 0] (has to be parameter since internal variable is not yet inited when using this function)
-     * @return index to diameters array
+     * @return diameter value
      */
-    size_t get_eeprom(int tool_idx) const;
+    float get_eeprom(int tool_idx) const;
 
 public:
     /**
@@ -110,9 +86,7 @@ public:
      * @param with_toolchanger whether to hide this item if toolchanger is enabled
      */
     MI_NOZZLE_DIAMETER(int tool_idx = 0, is_hidden_t with_toolchanger = is_hidden_t::yes);
-
-protected:
-    void OnChange(size_t old_index) override;
+    virtual void OnClick() override;
 };
 
 class MI_HARDWARE_G_CODE_CHECKS : public WI_LABEL_t {

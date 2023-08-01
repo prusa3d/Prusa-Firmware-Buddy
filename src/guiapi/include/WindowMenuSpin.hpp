@@ -116,13 +116,13 @@ void WI_SPIN_t<T>::printSpinToBuffer() {
     if (config.IsOffOptionEnabled() && (T)(value) == config.Min()) {
         strlcpy(spin_text_buff.data(), config.off_opt_str, strlen(config.off_opt_str) + 1);
     } else {
-        snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, (T)(value));
+        snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format_override ? config.prt_format_override : config.prt_format, (T)(value));
     }
 }
 
 template <>
 inline void WI_SPIN_t<float>::printSpinToBuffer() {
-    snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format, static_cast<double>(value.flt));
+    snprintf(spin_text_buff.data(), spin_text_buff.size(), config.prt_format_override ? config.prt_format_override : config.prt_format, static_cast<double>(value.flt));
 }
 
 using WiSpinInt = WI_SPIN_t<int>;

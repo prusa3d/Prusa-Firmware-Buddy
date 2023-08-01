@@ -194,68 +194,25 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *hadc) {
 /**
  * @brief I2C MSP Initialization
  * This function configures the hardware resources used in this example
+ * Currently replaced by hw_i2cX_pins_init functions in peripherals.cpp
+ * It calls those functions to preserve functionality of HAL_I2C_Init
  * @param hi2c: I2C handle pointer
  * @retval None
  */
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
-
-    GPIO_InitTypeDef GPIO_InitStruct {};
-
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    if (hi2c->Instance == I2C2) {
-        static_assert(i2c2_SDA_PORT_BASE == GPIOF_BASE, "fix i2c2 sda port");
-        static_assert(i2c2_SCL_PORT_BASE == GPIOF_BASE, "fix i2c2 scl port");
-        __HAL_RCC_GPIOF_CLK_ENABLE();
-
-        GPIO_InitStruct.Pin = i2c2_SDA_PIN | i2c2_SCL_PIN;
-        GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-        GPIO_InitStruct.Pull = GPIO_PULLUP;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-        GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
-        HAL_GPIO_Init(i2c2_SDA_PORT, &GPIO_InitStruct);
-
-        /* Peripheral clock enable */
-        __HAL_RCC_I2C2_CLK_ENABLE();
-    } else if (hi2c->Instance == I2C3) {
-        static_assert(i2c3_SDA_PORT_BASE == GPIOC_BASE, "fix i2c3 sda port");
-        static_assert(i2c3_SCL_PORT_BASE == GPIOA_BASE, "fix i2c3 scl port");
-        __HAL_RCC_GPIOC_CLK_ENABLE();
-        __HAL_RCC_GPIOA_CLK_ENABLE();
-
-        GPIO_InitStruct.Pin = i2c3_SDA_PIN;
-        GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-        GPIO_InitStruct.Pull = GPIO_PULLUP;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-        GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
-        HAL_GPIO_Init(i2c3_SDA_PORT, &GPIO_InitStruct);
-
-        GPIO_InitStruct.Pin = i2c3_SCL_PIN;
-        GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-        GPIO_InitStruct.Pull = GPIO_PULLUP;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-        GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
-        HAL_GPIO_Init(i2c3_SCL_PORT, &GPIO_InitStruct);
-
-        /* Peripheral clock enable */
-        __HAL_RCC_I2C3_CLK_ENABLE();
+#if HAS_I2CN(1)
+    if (hi2c->Instance == I2C1) {
+        hw_i2c1_pins_init();
     }
 #endif
-
-#if (BOARD_IS_BUDDY || BOARD_IS_XLBUDDY)
-    if (hi2c->Instance == I2C1) {
-        static_assert(i2c1_SDA_PORT_BASE == GPIOB_BASE, "fix i2c3 sda port");
-        static_assert(i2c1_SCL_PORT_BASE == GPIOB_BASE, "fix i2c3 scl port");
-        __HAL_RCC_GPIOB_CLK_ENABLE();
-
-        GPIO_InitStruct.Pin = i2c1_SDA_PIN | i2c1_SCL_PIN;
-        GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-        GPIO_InitStruct.Pull = GPIO_PULLUP;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-        GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
-        HAL_GPIO_Init(i2c1_SDA_PORT, &GPIO_InitStruct);
-
-        /* Peripheral clock enable */
-        __HAL_RCC_I2C1_CLK_ENABLE();
+#if HAS_I2CN(2)
+    if (hi2c->Instance == I2C2) {
+        hw_i2c2_pins_init();
+    }
+#endif
+#if HAS_I2CN(3)
+    if (hi2c->Instance == I2C3) {
+        hw_i2c3_pins_init();
     }
 #endif
 }

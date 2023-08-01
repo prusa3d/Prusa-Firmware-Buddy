@@ -119,8 +119,11 @@ void GCodeInfo::EvaluateToolsValid() {
 #endif
 
         // nozzle diameter of this tool in gcode is different then printer has
-        if (per_extruder_info[e].nozzle_diameter.has_value() && per_extruder_info[e].nozzle_diameter != config_store().get_nozzle_diameter(e)) {
-            valid_printer_settings.wrong_nozzle_diameter.fail();
+        if (per_extruder_info[e].nozzle_diameter.has_value()) {
+            float nozzle_diameter_distance = per_extruder_info[e].nozzle_diameter.value() - config_store().get_nozzle_diameter(e);
+            if (nozzle_diameter_distance > 0.001f || nozzle_diameter_distance < -0.001f) {
+                valid_printer_settings.wrong_nozzle_diameter.fail();
+            }
         }
     }
 }

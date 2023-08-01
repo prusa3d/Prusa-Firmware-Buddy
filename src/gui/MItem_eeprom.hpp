@@ -6,7 +6,7 @@
  */
 #pragma once
 #include "WindowMenuInfo.hpp"
-
+#include "i2c.hpp"
 class MI_EEPROM_INIT_CRC_ERROR : public WI_INFO_DEV_t {
 public:
     MI_EEPROM_INIT_CRC_ERROR();
@@ -22,22 +22,39 @@ public:
     MI_EEPROM_INIT_UPGRADE_FAILED();
 };
 
-class MI_I2C_TRANSMIT_RESULTS_HAL_OK : public WI_INFO_DEV_t {
+const uint8_t *get_label_ok(uint8_t channel);
+const uint8_t *get_label_error(uint8_t channel);
+const uint8_t *get_label_busy(uint8_t channel);
+const uint8_t *get_label_timeout(uint8_t channel);
+
+template <uint8_t CHAN>
+class MI_I2C_RESULTS_HAL_OK : public WI_INFO_DEV_t {
 public:
-    MI_I2C_TRANSMIT_RESULTS_HAL_OK();
+    MI_I2C_RESULTS_HAL_OK()
+        : WI_INFO_DEV_t(i2c::statistics::get_hal_ok(CHAN), string_view_utf8::MakeCPUFLASH(get_label_ok(CHAN))) {
+    }
 };
 
-class MI_I2C_TRANSMIT_RESULTS_HAL_BUSY : public WI_INFO_DEV_t {
+template <uint8_t CHAN>
+class MI_I2C_RESULTS_HAL_ERROR : public WI_INFO_DEV_t {
 public:
-    MI_I2C_TRANSMIT_RESULTS_HAL_BUSY();
+    MI_I2C_RESULTS_HAL_ERROR()
+        : WI_INFO_DEV_t(i2c::statistics::get_hal_error(CHAN), string_view_utf8::MakeCPUFLASH(get_label_error(CHAN))) {
+    }
 };
 
-class MI_I2C_RECEIVE_RESULTS_HAL_OK : public WI_INFO_DEV_t {
+template <uint8_t CHAN>
+class MI_I2C_RESULTS_HAL_BUSY : public WI_INFO_DEV_t {
 public:
-    MI_I2C_RECEIVE_RESULTS_HAL_OK();
+    MI_I2C_RESULTS_HAL_BUSY()
+        : WI_INFO_DEV_t(i2c::statistics::get_hal_busy(CHAN), string_view_utf8::MakeCPUFLASH(get_label_busy(CHAN))) {
+    }
 };
 
-class MI_I2C_RECEIVE_RESULTS_HAL_BUSY : public WI_INFO_DEV_t {
+template <uint8_t CHAN>
+class MI_I2C_RESULTS_HAL_TIMEOUT : public WI_INFO_DEV_t {
 public:
-    MI_I2C_RECEIVE_RESULTS_HAL_BUSY();
+    MI_I2C_RESULTS_HAL_TIMEOUT()
+        : WI_INFO_DEV_t(i2c::statistics::get_hal_timeout(CHAN), string_view_utf8::MakeCPUFLASH(get_label_timeout(CHAN))) {
+    }
 };
