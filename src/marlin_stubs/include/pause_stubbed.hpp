@@ -41,9 +41,9 @@ protected:
         manual_unload,
         filament_not_in_fs,
         unload_from_gear,
-        run_mmu_unload,
         remove_filament,
-        _last = remove_filament,
+        run_mmu_eject,
+        _last = run_mmu_eject,
 
     };
 
@@ -58,7 +58,9 @@ protected:
         purge,
         ask_is_color_correct,
         eject,
-        _last = eject,
+        ask_mmu_load_filament,
+        mmu_load_filament,
+        _last = mmu_load_filament,
     };
 
     PausePrivatePhase();
@@ -171,6 +173,7 @@ private:
     void loop_unload(Response response);
     void loop_unload_AskUnloaded(Response response);
     void loop_unload_mmu(Response response);
+    void loop_unload_mmu_change(Response response);
     void loop_unloadFromGear(Response response); // autoload abort
     void loop_unload_change(Response response);
     void loop_unload_filament_stuck(Response response);
@@ -180,6 +183,7 @@ private:
     void loop_load_purge(Response response);
     void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
     void loop_load_mmu(Response response);
+    void loop_load_mmu_change(Response response);
     void loop_autoload(Response response); // todo force remove filament in retry
     void loop_loadToGear(Response response);
     void loop_load_change(Response response);

@@ -98,6 +98,7 @@ static const char *txt_mmu_hw_test_cleanup= N_("HW test cleanup");
 static const char *txt_mmu_hw_test_exec   = N_("HW test exec");
 static const char *txt_mmu_hw_test_display= N_("HW test display");
 static const char *txt_mmu_errhw_test_fail= N_("ERR HW test failed");
+static const char *txt_mmu_insert_filament= N_("Press CONTINUE and push filament into MMU.");
 
 //MMU_ErrWaitForUser, // need to distinguish error states based on prusa-error-codes @@TODO
 static const char *txt_mmu_err_wait_user  = N_("Waiting for user input");
@@ -141,6 +142,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_filament_stuck,       ClientResponses::GetResponses(PhasesLoadUnload::FilamentStuck),                 ph_txt_unload, DialogLoadUnload::phaseAlertSound },
 #endif
 #if HAS_MMU2()
+        DialogLoadUnload::State { txt_mmu_insert_filament,  ClientResponses::GetResponses(PhasesLoadUnload::LoadFilamentIntoMMU),   ph_txt_none }, // TODO how the button is Continue
         DialogLoadUnload::State { txt_mmu_engag_idler,      ClientResponses::GetResponses(PhasesLoadUnload::MMU_EngagingIdler),     ph_txt_none },
         DialogLoadUnload::State { txt_mmu_diseng_idler,     ClientResponses::GetResponses(PhasesLoadUnload::MMU_DisengagingIdler),  ph_txt_none },
         DialogLoadUnload::State { txt_mmu_unload_finda,     ClientResponses::GetResponses(PhasesLoadUnload::MMU_UnloadingToFinda),  ph_txt_none },

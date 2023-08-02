@@ -85,6 +85,8 @@ enum class PhasesLoadUnload : uint16_t {
 #endif
 
 #if HAS_MMU2()
+    // MMU-specific dialogs
+    LoadFilamentIntoMMU,
     // internal states of the MMU
     MMU_EngagingIdler,
     MMU_DisengagingIdler,
@@ -386,6 +388,8 @@ class ClientResponses {
         { Response::Unload }, // FilamentStuck
 #endif
 #if HAS_MMU2()
+        { Response::Continue }, // LoadFilamentIntoMMU,
+
         {}, // MMU_EngagingIdler,
         {}, // MMU_DisengagingIdler,
         {}, // MMU_UnloadingToFinda,
