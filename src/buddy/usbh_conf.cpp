@@ -120,7 +120,7 @@ USBH_StatusTypeDef USBH_LL_Init(USBH_HandleTypeDef *phost) {
         phost->pData = &hhcd_USB_OTG_HS;
 
         hhcd_USB_OTG_HS.Instance = USB_OTG_HS;
-        hhcd_USB_OTG_HS.Init.Host_channels = 12;
+        hhcd_USB_OTG_HS.Init.Host_channels = 4;
         hhcd_USB_OTG_HS.Init.speed = HCD_SPEED_FULL;
         hhcd_USB_OTG_HS.Init.dma_enable = DISABLE;
         hhcd_USB_OTG_HS.Init.phy_itface = USB_OTG_EMBEDDED_PHY;
