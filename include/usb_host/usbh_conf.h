@@ -36,6 +36,8 @@ extern "C" {
 
 #define USBH_USE_URB_EVENTS 0
 
+#define USBH_MSC_TRANSFER_SIZE 512
+
 /****************************************/
 /* #define for FS and HS identification */
 #define HOST_HS 0
