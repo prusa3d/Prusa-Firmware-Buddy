@@ -587,13 +587,14 @@ static USBH_StatusTypeDef USBH_MSC_RdWrProcess(USBH_HandleTypeDef *phost, uint8_
           error = USBH_FAIL;
         }
       }
-
+#if (USBH_USE_MSC_CLASS_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_CLASS_EVENT;
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
       (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       break;
@@ -618,13 +619,14 @@ static USBH_StatusTypeDef USBH_MSC_RdWrProcess(USBH_HandleTypeDef *phost, uint8_
           error = USBH_FAIL;
         }
       }
-
+#if (USBH_USE_MSC_CLASS_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_CLASS_EVENT;
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
       (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       break;
@@ -655,12 +657,14 @@ static USBH_StatusTypeDef USBH_MSC_RdWrProcess(USBH_HandleTypeDef *phost, uint8_
         }
       }
 
+#if (USBH_USE_MSC_CLASS_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_CLASS_EVENT;
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
       (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       break;
