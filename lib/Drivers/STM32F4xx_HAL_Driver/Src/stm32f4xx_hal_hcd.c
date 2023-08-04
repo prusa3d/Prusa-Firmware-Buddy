@@ -1388,6 +1388,8 @@ static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     hhcd->hc[ch_num].state = HC_XACTERR;
     (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
   }
+// We don't need ACK interrupt in FS mode
+#if (USBH_USE_ACK_INTERRUPTS == 1U)
   else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_ACK) == USB_OTG_HCINT_ACK)
   {
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_ACK);
@@ -1399,6 +1401,7 @@ static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
       (void)USB_HC_Halt(hhcd->Instance, (uint8_t)ch_num);
     }
   }
+#endif
   else if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_FRMOR) == USB_OTG_HCINT_FRMOR)
   {
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_FRMOR);

@@ -1769,8 +1769,13 @@ HAL_StatusTypeDef USB_HC_Init(USB_OTG_GlobalTypeDef *USBx, uint8_t ch_num,
       {
         if ((USBx->CID & (0x1U << 8)) != 0U)
         {
+// We don't need ACK interrupt in FS mode
+#if (USBH_USE_ACK_INTERRUPTS == 1U)
           USBx_HC((uint32_t)ch_num)->HCINTMSK |= USB_OTG_HCINTMSK_NYET |
                                                  USB_OTG_HCINTMSK_ACKM;
+#else     
+          USBx_HC((uint32_t)ch_num)->HCINTMSK |= USB_OTG_HCINTMSK_NYET;
+#endif                                          
         }
       }
       break;
