@@ -34,6 +34,8 @@ extern "C" {
 
 #define USBH_USE_ACK_INTERRUPTS 0
 
+#define USBH_USE_URB_EVENTS 0
+
 /****************************************/
 /* #define for FS and HS identification */
 #define HOST_HS 0
