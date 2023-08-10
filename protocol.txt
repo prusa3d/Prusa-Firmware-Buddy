@@ -1,0 +1,125 @@
+Starting from ESP firmware version 10, we are using new wire protocol.
+All messages have a fix-sized header and a variable-sized payload.
+Generic message description:
+
+        0               1               2               3
+        0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     0 |                                                               |
+       +                            Intron                             +
+     8 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    12 |     Type      |     Byte      |             Size              |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    16 |                                                               |
+       ~                                                               ~
+       ~                            Payload                            ~
+       ~                                                               ~
+       |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    Intron:         Each message is prefixed by 8 bytes. This is used
+                    to ensure synchronization, because we are using
+                    unreliable UART.
+                    Starting value is 'UN\x00\x01\x02\x03\x04\x05'.
+                    Printer may change it, see MSG_CLIENTCONFIG_V2.
+
+    Type:           This byte indicates type of the message.
+                    Possible values are:
+                        0: MSG_DEVINFO_V2
+                        6: MSG_CLIENTCONFIG_V2
+                        7: MSG_PACKET_V2
+                    Values 1-5 are deprecated and must not be used.
+
+    Byte:           Meaning of this field depends on the particular Type.
+
+    Size:           Size of the subsequent Payload, may be zero.
+                    Stored as 2 bytes in network order.
+                    It is not required to be a multiple of 4.
+
+    Payload:        Message payload of Size bytes, may not be present.
+                    Meaning of this field depends on the particular Type.
+
+
+MSG_DEVINFO_V2
+    This message is only sent from ESP to printer.
+
+        0               1               2               3
+        0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     0 |                                                               |
+       +                            Intron                             +
+     8 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    12 |       0       |    Version    |               6               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    16 |                                                               |
+       +              MAC              +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    20 |                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    Version:        ESP firmware version number. Must be 10 or higher.
+
+    MAC:            MAC address of the ESP.
+
+
+MSG_CLIENTCONFIG_V2
+    This message is only sent from printer to ESP.
+
+        0               1               2               3
+        0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     0 |                                                               |
+       +                            Intron                             +
+     8 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    12 |       6       |       0       |             Size              |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    16 |                                                               |
+       +                          New intron                           +
+    20 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    24 |                                                               |
+       ~                                                               ~
+       ~                         Client config                         ~
+       ~                                                               ~
+       |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    New intron:     To prevent prediction attacks, printer sends a new
+                    randomly generated intron. This intron must be used
+                    in all subsequent communication.
+
+    Client config:  This field contains serialized SSID and password.
+                    Both of them are serialized as 1 byte Length
+                    followed by Length bytes.
+
+
+MSG_PACKET_V2
+    This message is sent by both printer and ESP.
+
+        0               1               2               3
+        0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     0 |                                                               |
+       +                            Intron                             +
+     8 |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    12 |       7       |      Up       |             Size              |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    16 |                                                               |
+       ~                                                               ~
+       ~                            Packet                             ~
+       ~                                                               ~
+       |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+    Up:             This field is used to indicate connection state
+                    of the Wi-Fi in packets sent by ESP.
+                    The value is ignored in packets sent by the printer.
+
+    Packet:         This field contains networking packet.
+                    It may also not be present at all. Empty packets
+                    are used as a ping mechanism between printer and ESP.
+                    It keeps the line busy, prevents printer from
+                    reseting ESP and conveys Up field.
