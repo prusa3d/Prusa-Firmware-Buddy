@@ -12,7 +12,5 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 RUN git clone --recursive https://github.com/espressif/ESP8266_RTOS_SDK.git
 RUN cd /ESP8266_RTOS_SDK && git checkout a192988b7906680440213eefc730d99dec0ce237
 RUN cd /ESP8266_RTOS_SDK && PYTHONPATH=/usr/lib/python3.9/site-packages ./install.sh
-COPY main/0001-Move-UART-ISR-to-IRAM.patch /ESP8266_RTOS_SDK/
-RUN cd /ESP8266_RTOS_SDK && patch -p1 -i 0001-Move-UART-ISR-to-IRAM.patch
 RUN echo "source /ESP8266_RTOS_SDK/export.sh" >> ~/.bashrc
 
