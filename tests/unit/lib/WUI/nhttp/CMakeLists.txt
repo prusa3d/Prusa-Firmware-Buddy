@@ -4,6 +4,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/multipart_upload.cpp
   # Not really tests, just stuffings to satisfy the linker.
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/async_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/random_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/time_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/status_renderer_mock.cpp
@@ -27,6 +28,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_file.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/headers.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/status_page.cpp
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_json.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/transfer_renderer.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/req_parser.cpp
@@ -35,7 +37,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
@@ -95,7 +97,9 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src/common
-          ${CMAKE_SOURCE_DIR}/src/configuration_store
+          ${CMAKE_SOURCE_DIR}/src/common/http
+          ${CMAKE_SOURCE_DIR}/src/common/gcode
+          ${CMAKE_SOURCE_DIR}/src/persistent_stores
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include

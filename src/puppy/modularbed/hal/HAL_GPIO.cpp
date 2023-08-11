@@ -52,4 +52,4 @@ void ResetOverCurrentFault() {
 #endif
 }
 
-} // namespace
+} // namespace hal::GPIODriver

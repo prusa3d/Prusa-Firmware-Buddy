@@ -22,7 +22,7 @@
     #include <module/prusa/toolchanger.h>
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 // would be nice to have option leave phase as it was
 // something like std::pair<enum {delete, leave, has_value },PhasesPrintPreview>
@@ -40,6 +40,9 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
 
     case State::new_firmware_available_wait_user:
         return PhasesPrintPreview::new_firmware_available;
+    case State::tools_mapping_wait_user:
+    case State::tools_mapping_change:
+        return PhasesPrintPreview::tools_mapping;
 
     case State::wrong_printer_wait_user:
         return PhasesPrintPreview::wrong_printer;
@@ -216,6 +219,14 @@ PrintPreview::Result PrintPreview::Loop() {
         return Result::Inactive;
     case State::preview_wait_user:
         switch (response) {
+        case Response::Continue:
+#if HAS_TOOLCHANGER()
+            if (!(GCodeInfo::getInstance().UsedExtrudersCount() == 1 && prusa_toolchanger.get_num_enabled_tools() == 1)) {
+                ChangeState(State::tools_mapping_wait_user);
+                break;
+            }
+#endif
+            [[fallthrough]]; // else we have only 1-1 available, so do normal printing
         case Response::Print:
             ChangeState(stateFromSelftestCheck());
             break;
@@ -242,6 +253,23 @@ PrintPreview::Result PrintPreview::Loop() {
         switch (response) {
         case Response::Continue:
             ChangeState(stateFromPrinterCheck());
+            break;
+        default:
+            break;
+        }
+        break;
+    case State::tools_mapping_wait_user:
+    case State::tools_mapping_change:
+        switch (response) {
+        case Response::Back:
+            ChangeState(State::inactive);
+            return Result::Abort;
+        case Response::PRINT:
+            ChangeState(stateFromPrinterCheck());
+            break;
+        case Response::Change:
+            ChangeState(State::tools_mapping_change);
+            marlin_server::enqueue_gcode("M1600 R"); // TODO change, return option
             break;
         default:
             break;
@@ -358,6 +386,9 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     case State::inactive:
     case State::done:
         return Result::Inactive;
+    case State::tools_mapping_wait_user:
+    case State::tools_mapping_change:
+        return Result::ToolsMapping;
     }
     return Result::Inactive;
 }

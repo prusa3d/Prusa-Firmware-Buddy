@@ -49,4 +49,4 @@ bool upload_dumps_to_server();
  * @return true if at least one dump was removed
  */
 bool remove_dumps_from_filesystem();
-};
+}; // namespace buddy::puppies::crash_dump

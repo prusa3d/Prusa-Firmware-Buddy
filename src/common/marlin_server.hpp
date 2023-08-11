@@ -122,13 +122,19 @@ void quick_resume();
 // return true if the printer is not moving (idle, paused, aborted or finished)
 bool printer_idle();
 
+/**
+ * @brief Know if any print preview state is active.
+ * @return true if print preview is on
+ */
+bool print_preview();
+
 typedef struct
 {
     xyze_pos_t pos;               // resume position for unpark_head
     float nozzle_temp[EXTRUDERS]; // resume nozzle temperature
     bool nozzle_temp_paused;      // True if nozzle_temp is valid and hotend cools down
     uint8_t fan_speed;            // resume fan speed
-    uint8_t print_speed;          // resume printing speed
+    uint16_t print_speed;         // resume printing speed
 } resume_state_t;
 
 //
@@ -369,4 +375,4 @@ void powerpanic_finish_recovery();
 void powerpanic_finish_pause();
 void powerpanic_finish_toolcrash();
 
-} // marlin_server namespace
+} // namespace marlin_server

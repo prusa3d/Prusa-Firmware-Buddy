@@ -4,7 +4,6 @@
 
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_photoelectric.hpp"
-#include "eeprom.h"
 #include "marlin_client.hpp"
 #include "freertos_mutex.hpp"
 #include <mutex>

@@ -99,4 +99,4 @@ JsonResult TransferRenderer::renderStateOctoprint(size_t resume_point, json::Jso
     JSON_END;
     // clang-format on
 }
-}
+} // namespace nhttp::handler

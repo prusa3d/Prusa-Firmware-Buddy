@@ -47,4 +47,4 @@ uint64_t get_test_mask(Action action) {
     return stmNone;
 }
 
-}
+} // namespace SelftestSnake

@@ -61,4 +61,4 @@ float ProbePositionLookback::get_position_at(uint32_t time_us, std::function<flo
     }
 }
 
-}
+} // namespace buddy

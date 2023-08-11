@@ -2,6 +2,7 @@ add_subdirectory(probe_analysis)
 add_subdirectory(automata)
 add_subdirectory(Leds)
 add_subdirectory(http)
+add_subdirectory(utils)
 
 add_executable(
   support_utils_tests ${CMAKE_CURRENT_SOURCE_DIR}/support_utils_lib_test.cpp
@@ -56,8 +57,9 @@ target_include_directories(
 
 add_executable(
   gcode_filter_tests
-  ${CMAKE_CURRENT_SOURCE_DIR}/gcode_filter_test.cpp ${CMAKE_SOURCE_DIR}/src/common/gcode_filter.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode_filter.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/gcode_filter_test.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_filter.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_filter.hpp
   )
 target_include_directories(gcode_filter_tests PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
@@ -75,10 +77,10 @@ target_include_directories(
 
 add_executable(
   weighted_modus_tests ${CMAKE_CURRENT_SOURCE_DIR}/weighted_modus_test.cpp
-                       ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/module/precise_homing.cpp
+                       ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/module/prusa/homing_modus.cpp
   )
 target_include_directories(
-  weighted_modus_tests PUBLIC ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/module/
+  weighted_modus_tests PUBLIC ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/module/prusa/
   )
 
 add_executable(algorithm_range_tests algorithm_range_tests.cpp)

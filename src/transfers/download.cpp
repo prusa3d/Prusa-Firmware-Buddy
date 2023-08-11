@@ -30,7 +30,7 @@ const constexpr size_t BUF_SIZE = 256;
 // Time out after 5 seconds of downloading
 // (downloading of body doesn't block the main activity, so we can be generous)
 const constexpr uint32_t DOWNLOAD_INACTIVITY_LIMIT = 5000;
-}
+} // namespace
 
 extern "C" {
 
@@ -72,7 +72,7 @@ optional<tuple<unique_ptr<SocketConnectionFactory>, http::Response>> send_reques
     }
 }
 
-}
+} // namespace
 
 namespace transfers {
 
@@ -280,4 +280,4 @@ uint32_t Download::position() const {
     return status->transferred;
 }
 
-}
+} // namespace transfers

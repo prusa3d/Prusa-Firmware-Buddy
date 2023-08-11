@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <math.h>
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 #include "window_qr.hpp"
 #include "gui.hpp"
 #include "display.h"

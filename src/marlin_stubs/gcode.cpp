@@ -11,9 +11,10 @@
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
 #include <option/has_side_leds.h>
+#include <option/has_leds.h>
 
 #if HAS_LOADCELL()
-    #include "loadcell.h"
+    #include "loadcell.hpp"
 #endif
 
 #include "log.h"
@@ -35,7 +36,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 50:
             PrusaGcodeSuite::M50(); // selftest
             break;
-#if HAS_LEDS
+#if HAS_LEDS()
         case 150:
             PrusaGcodeSuite::M150();
             break;
@@ -63,9 +64,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 334:
             PrusaGcodeSuite::M334();
             break;
-        case 505:
-            PrusaGcodeSuite::M505();
-            break;
+        // case 505: // deprecated
+        //     PrusaGcodeSuite::M505();
+        //     break;
         case 704:
             PrusaGcodeSuite::M704();
             break;

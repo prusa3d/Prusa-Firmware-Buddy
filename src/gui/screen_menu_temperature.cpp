@@ -6,7 +6,7 @@
 #include "marlin_client.hpp"
 #include "ScreenHandler.hpp"
 #include "DialogMoveZ.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include <option/has_toolchanger.h>
 
 ScreenMenuTemperature::ScreenMenuTemperature()
@@ -14,18 +14,18 @@ ScreenMenuTemperature::ScreenMenuTemperature()
     EnableLongHoldScreenAction();
 
 #if (!PRINTER_IS_PRUSA_MINI)
-    header.SetIcon(&png::temperature_white_16x16);
+    header.SetIcon(&img::temperature_white_16x16);
 #endif // PRINTER_IS_PRUSA_MINI
 }
 
 void ScreenMenuTemperature::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
         HOTEND_LOOP() {
-            marlin_set_target_nozzle(0, e);
-            marlin_set_display_nozzle(0, e);
+            marlin_client::set_target_nozzle(0, e);
+            marlin_client::set_display_nozzle(0, e);
         }
-        marlin_set_target_bed(0);
-        marlin_set_fan_speed(0);
+        marlin_client::set_target_bed(0);
+        marlin_client::set_fan_speed(0);
         Item<MI_NOZZLE<0>>().SetVal(0);
 #if HAS_TOOLCHANGER()
         Item<MI_NOZZLE<1>>().SetVal(0);

@@ -8,7 +8,7 @@
 #include <module/prusa/toolchanger.h>
 #include <WindowMenuItems.hpp>
 #include <module/planner.h>
-#include <png_resources.hpp>
+#include <img_resources.hpp>
 #include <window_dlg_wait.hpp>
 
 namespace ToolBox {

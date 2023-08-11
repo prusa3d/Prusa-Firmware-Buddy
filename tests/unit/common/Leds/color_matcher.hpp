@@ -11,7 +11,7 @@ std::string colorToStr(const Color &color) {
     ss << "(" << color.r << ", " << color.g << ", " << color.b << ")";
     return ss.str();
 }
-}
+} // namespace leds
 
 namespace Catch {
 template <>
@@ -27,7 +27,7 @@ struct StringMaker<LedsDummy<COUNT>> {
         return Catch::rangeToString(value.leds);
     }
 };
-}
+} // namespace Catch
 
 template <size_t COUNT>
 struct LedsMatcher : Catch::MatcherBase<LedsDummy<COUNT>> {

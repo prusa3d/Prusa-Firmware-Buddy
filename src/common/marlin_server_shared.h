@@ -19,6 +19,7 @@ enum class State {
     PrintPreviewInit,
     PrintPreviewImage,
     PrintPreviewQuestions,
+    PrintPreviewToolsMapping,
     PrintInit,
     Printing,
     Pausing_Begin,
@@ -96,4 +97,4 @@ void marlin_msg_to_str(const Msg id, char *str);
 
 extern osThreadId server_task; // task of marlin server
 
-} // marlin_server namespace
+} // namespace marlin_server

@@ -14,4 +14,4 @@ void SetNth(Color clr, index n) {
 Color GetNth(index n) {
     return GetLeds().leds[static_cast<size_t>(n)];
 }
-}
+} // namespace leds

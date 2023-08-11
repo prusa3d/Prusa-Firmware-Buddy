@@ -62,4 +62,4 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt);
  * @param rop                   raster config struct
  * @param subrect               sub rectangle inside png - area to draw
  */
-void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect);
+void display_ex_draw_png(point_ui16_t pt, const img::Resource &png, color_t back_color, ropfn rop, Rect16 subrect);

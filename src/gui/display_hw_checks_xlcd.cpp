@@ -9,6 +9,7 @@
 #include "ScreenHandler.hpp"
 #include <option/has_touch.h>
 #include <device/peripherals.h>
+#include <option/has_leds.h>
 
 LOG_COMPONENT_REF(GUI);
 
@@ -26,7 +27,7 @@ void reinit_lcd_and_redraw() {
 
 void check_lcd() {
     bool do_reset = false;
-#if HAS_LEDS
+#if HAS_LEDS()
     leds::ForceRefresh(4);
 #endif
 

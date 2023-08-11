@@ -3,13 +3,13 @@
  */
 
 #include "footer_item_sheet_profile.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "SteelSheets.hpp"
 #include "i18n.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 FooterItemSheets::FooterItemSheets(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::sheets_profile_16x14, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::sheets_profile_16x14, static_makeView, static_readValue) {
 }
 
 int FooterItemSheets::static_readValue() {

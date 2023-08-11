@@ -5,7 +5,7 @@
 #include "selftest_frame_wizard_prologue.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "printers.h"
 
 #if PRINTER_IS_PRUSA_MINI
@@ -63,7 +63,7 @@ static constexpr Rect16 getTextIconRect() {
 SelftestFrameWizardPrologue::SelftestFrameWizardPrologue(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
 
-    , icon(this, getIconRect(), &png::pepa_92x140)
+    , icon(this, getIconRect(), &img::pepa_92x140)
     , text_icon(this, getTextIconRect(), is_multiline::yes)
     , text_full_frame(this, getTextRect(), is_multiline::yes) {
 

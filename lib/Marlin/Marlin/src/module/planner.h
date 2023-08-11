@@ -138,24 +138,21 @@ typedef struct PlannerBlock {
   };
   uint32_t step_event_count;                // The number of step events required to complete this block
 
-  // Settings for the trapezoid generator
-  uint32_t accelerate_until,                // The index of the step event on which to stop acceleration
-           decelerate_after;                // The index of the step event on which to start decelerating
-
   #if ENABLED(S_CURVE_ACCELERATION)
     uint32_t cruise_rate,                   // The actual cruise rate to use, between end of the acceleration phase and start of deceleration phase
              acceleration_time,             // Acceleration time and deceleration time in STEP timer counts
              deceleration_time,
              acceleration_time_inverse,     // Inverse of acceleration and deceleration periods, expressed as integer. Scale depends on CPU being used
              deceleration_time_inverse;
-  #else
-    uint32_t acceleration_rate;             // The acceleration rate used for acceleration calculation
+
+    uint32_t nominal_rate,                  // The nominal step rate for this block in step_events/sec
+             initial_rate,                  // The jerk-adjusted step rate at start of block
+             final_rate,                    // The minimal rate at exit
+             acceleration_steps_per_s2;     // acceleration steps/sec^2
   #endif
 
-  uint32_t nominal_rate,                    // The nominal step rate for this block in step_events/sec
-           initial_rate,                    // The jerk-adjusted step rate at start of block
-           final_rate,                      // The minimal rate at exit
-           acceleration_steps_per_s2;       // acceleration steps/sec^2
+  float initial_speed,                      // The jerk-adjusted spped at start of block
+        final_speed;                        // The minimal speed at exit of block
 
   void reset() { memset((char*)this, 0, sizeof(*this)); }
 
@@ -658,7 +655,6 @@ class Planner {
      * @param block         A block to populate
      * @param target        Target position in steps units
      * @param target_float  Target position in native mm
-     * @param cart_dist_mm  The pre-calculated move lengths for all axes, in mm
      * @param fr_mm_s       (target) speed of the move
      * @param extruder      target extruder
      * @param hints         parameters to aid planner calculations
@@ -667,9 +663,6 @@ class Planner {
      */
     static bool _populate_block(block_t * const block,
         const xyze_long_t &target, const xyze_pos_t &target_float
-      #if IS_CORE
-        , const xyze_long_t &delta_abce
-      #endif
       , feedRate_t fr_mm_s, const uint8_t extruder, const PlannerHints &hints
     );
 
@@ -978,7 +971,7 @@ class Planner {
       }
     #endif
 
-    static void calculate_trapezoid_for_block(block_t * const block, const_float_t entry_factor, const_float_t exit_factor);
+    static void calculate_trapezoid_for_block(block_t * const block, const_float_t entry_speed, const_float_t exit_speed);
 
     static void reverse_pass_kernel(block_t * const previous, block_t* const current, const block_t * const next OPTARG(ARC_SUPPORT, const_float_t safe_exit_speed_sqr));
     static void forward_pass_kernel(block_t * const previous, block_t* const current, uint8_t prev_index);

@@ -106,6 +106,7 @@ public:
     void ClrHasIcon();
     void SetRedLayout();
     void SetBlackLayout();
+    void SetBlueLayout();
     window_t(window_t *parent, Rect16 rect, win_type_t type = win_type_t::normal, is_closed_on_click_t close = is_closed_on_click_t::no);
     virtual ~window_t();
 
@@ -137,6 +138,7 @@ protected:
     void notifyVisibilityChange();
     virtual void setRedLayout();
     virtual void setBlackLayout();
+    virtual void setBlueLayout();
 
 protected:
     virtual void invalidate(Rect16 validation_rect);

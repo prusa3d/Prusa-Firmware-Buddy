@@ -1,6 +1,7 @@
 #include "MItem_menus.hpp"
 #include "ScreenHandler.hpp"
-#ifdef BUDDY_ENABLE_CONNECT
+#include <option/buddy_enable_connect.h>
+#if BUDDY_ENABLE_CONNECT()
     #include <connect/marlin_printer.hpp>
 #endif
 #include "screen_sysinf.hpp"
@@ -21,10 +22,11 @@
 #include <wui.h>
 #include "translator.hpp"
 #include "SteelSheets.hpp"
-#if HAS_LEDS
+#include <option/has_leds.h>
+#if HAS_LEDS()
     #include "led_animations/animator.hpp"
 #endif
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "power_panic.hpp"
 #include "screen_menu_filament.hpp"
 #include "screen_menu_temperature.hpp"
@@ -50,6 +52,7 @@
 #include "screen_menu_system.hpp"
 #include "screen_menu_statistics.hpp"
 #include "screen_menu_factory_reset.hpp"
+#include "screen_menu_error_test.hpp"
 #include "screen_menu_input_shaper.hpp"
 
 #include <printers.h>
@@ -69,7 +72,7 @@
     #include <leds/side_strip_control.hpp>
 #endif
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 /*****************************************************************************/
 // MI_VERSION_INFO
@@ -103,7 +106,7 @@ void MI_ODOMETER::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_FILAMENT
 MI_FILAMENT::MI_FILAMENT()
-    : WI_LABEL_t(_(label), &png::spool_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : WI_LABEL_t(_(label), &img::spool_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_FILAMENT::click(IWindowMenu & /*window_menu*/) {
@@ -144,7 +147,7 @@ MI_SUPPORT_disabled::MI_SUPPORT_disabled()
 /*****************************************************************************/
 // MI_TEMPERATURE
 MI_TEMPERATURE::MI_TEMPERATURE()
-    : WI_LABEL_t(_(label), &png::temperature_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : WI_LABEL_t(_(label), &img::temperature_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
@@ -154,7 +157,7 @@ void MI_TEMPERATURE::click(IWindowMenu & /*window_menu*/) {
 /*****************************************************************************/
 // MI_MOVE_AXIS
 MI_MOVE_AXIS::MI_MOVE_AXIS()
-    : WI_LABEL_t(_(label), &png::move_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : WI_LABEL_t(_(label), &img::move_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_MOVE_AXIS::click(IWindowMenu & /*window_menu*/) {
@@ -170,6 +173,18 @@ MI_SERVICE::MI_SERVICE()
 void MI_SERVICE::click(IWindowMenu & /*window_menu*/) {
     // screen_open(get_scr_menu_service()->id);
 }
+
+/*****************************************************************************/
+// MI_ERROR_TEST
+#if DEVELOPER_MODE()
+MI_ERROR_TEST::MI_ERROR_TEST()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {
+}
+
+void MI_ERROR_TEST::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuErrorTest>);
+}
+#endif /*DEVELOPMENT_ITEMS()*/
 
 /*****************************************************************************/
 // MI_TEST
@@ -195,7 +210,7 @@ void MI_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
 // MI_ETH_SETTINGS
 MI_ETH_SETTINGS::MI_ETH_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-    SetIconId(&png::lan_16x16);
+    SetIconId(&img::lan_16x16);
 }
 
 void MI_ETH_SETTINGS::click(IWindowMenu & /*window_menu*/) {
@@ -206,7 +221,7 @@ void MI_ETH_SETTINGS::click(IWindowMenu & /*window_menu*/) {
 // MI_WIFI_SETTINGS
 MI_WIFI_SETTINGS::MI_WIFI_SETTINGS()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-    SetIconId(&png::wifi_16x16);
+    SetIconId(&img::wifi_16x16);
 }
 
 void MI_WIFI_SETTINGS::click(IWindowMenu & /*window_menu*/) {
@@ -383,7 +398,7 @@ void MI_LOAD_SETTINGS::click(IWindowMenu & /*window_menu*/) {
     }
 
 // FIXME: Error handling
-#ifdef BUDDY_ENABLE_CONNECT
+#if BUDDY_ENABLE_CONNECT()
     connect_client::MarlinPrinter::load_cfg_from_ini();
 #endif
 }
@@ -482,7 +497,7 @@ MI_USB_MSC_ENABLE::MI_USB_MSC_ENABLE()
 void MI_USB_MSC_ENABLE::OnChange(size_t old_index) {
     config_store().usb_msc_enabled.set(!old_index);
 }
-#if HAS_LEDS
+#if HAS_LEDS()
 /**********************************************************************************************/
 // MI_LEDS_ENABLE
 MI_LEDS_ENABLE::MI_LEDS_ENABLE()
@@ -545,7 +560,7 @@ void MI_TRIGGER_POWER_PANIC::click([[maybe_unused]] IWindowMenu &windowMenu) {
 
 /*****************************************************************************/
 MI_CALIBRATE::MI_CALIBRATE()
-    : WI_LABEL_t(_(label), &png::calibrate_white_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : WI_LABEL_t(_(label), &img::calibrate_white_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_CALIBRATE::click(IWindowMenu & /*window_menu*/) {
@@ -578,7 +593,7 @@ void MI_CALIBRATE_DOCK::click(IWindowMenu & /*window_menu*/) {
 // MI_SELFTEST_SNAKE
 
 MI_SELFTEST_SNAKE::MI_SELFTEST_SNAKE()
-    : WI_LABEL_t(_(label), &png::calibrate_white_16x16,
+    : WI_LABEL_t(_(label), &img::calibrate_white_16x16,
     #if HAS_SELFTEST()
         is_enabled_t::yes
     #else

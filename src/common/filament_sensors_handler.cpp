@@ -14,6 +14,7 @@
 #include <log.h>
 #include "fsensor_eeprom.hpp"
 #include <option/has_selftest_snake.h>
+#include <option/has_mmu2.h>
 #if HAS_SELFTEST_SNAKE()
     #include <ScreenHandler.hpp>
     #include "screen_menu_selftest_snake.hpp"
@@ -272,7 +273,7 @@ void FilamentSensors::set_corresponding_variables() {
     } else {
         // if we don't have sensor it is automatically ok, "having sensor" is set by (re)configure_sensors
         const bool side_sensor_ok =
-#if HAS_MMU2
+#if HAS_MMU2()
             !has_mmu || // this might be unnecessary TODO try MK4 with MMU without it
 #endif
             !logical_sensors.current_side || FilamentSensors::IsWorking(logical_sensors.current_side->Get());

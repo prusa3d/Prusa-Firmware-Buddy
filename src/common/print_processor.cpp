@@ -39,13 +39,13 @@ void PrintProcessor::fsm_cb(uint32_t u32, uint16_t u16) {
 }
 
 void PrintProcessor::Update() {}
-void PrintProcessor::InjectGcode(const char *str) { marlin_gcode_push_front(str); }
+void PrintProcessor::InjectGcode(const char *str) { marlin_client::gcode_push_front(str); }
 bool PrintProcessor::IsPrinting() {
-    return marlin_is_printing();
+    return marlin_client::is_printing();
 }
 bool PrintProcessor::IsAutoloadEnabled() {
     return marlin_vars()->fs_autoload_enabled;
 }
 void PrintProcessor::Init() {
-    marlin_client_set_fsm_cb(fsm_cb);
+    marlin_client::set_fsm_cb(fsm_cb);
 }

@@ -10,4 +10,4 @@ namespace lcd {
  * it also reinitializes display when reconnected - not guaranteed!!! not recommended to try!!!
  */
 void communication_check();
-};
+}; // namespace lcd

@@ -3,6 +3,7 @@
 #include "adc.hpp"
 #include "bsod.h"
 #include "hwio_pindef.h"
+#include <option/has_mmu2.h>
 
 #if BOARD_IS_XBUDDY
     #include "hw_configuration.hpp"
@@ -64,7 +65,7 @@ void AdvancedPower::Update() {
         fatal_error(ErrCode::ERR_ELECTRO_NOZZLE_OVERCURRENT);
     } else if (OvercurrentFaultDetected()) {
         fatal_error(ErrCode::ERR_ELECTRO_INPUT_OVERCURRENT);
-        #if HAS_MMU2
+        #if HAS_MMU2()
     } else if (MMUOvercurentFaultDetected()) {
         fatal_error(ErrCode::ERR_ELECTRO_MMU_OVERCURRENT);
         #endif
@@ -88,7 +89,7 @@ void AdvancedPower::Update() {
 }
 #endif
 
-#if HAS_MMU2
+#if HAS_MMU2()
 bool AdvancedPower::MMUOvercurentFaultDetected() const {
     return (MMUFault.read() == Pin::State::high);
 }

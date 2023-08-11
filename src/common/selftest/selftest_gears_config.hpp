@@ -12,4 +12,4 @@ struct SelftestGearsConfig {
     float feedrate = 0;
 };
 
-};
+}; // namespace selftest

@@ -7,7 +7,7 @@
     #include "module/prusa/toolchanger.h"
 #endif
 
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 namespace {
 constexpr size_t icon_w = WizardDefaults::status_icon_w;
@@ -31,7 +31,7 @@ constexpr size_t row_bed_1 = row_bed_0 + row_h;
 constexpr size_t row_bed_2 = row_bed_1 + WizardDefaults::progress_row_h;
 constexpr size_t row_bed_3 = row_bed_2 + row_h;
 
-constexpr const png::Resource &reference_icon { png::dash_18x18 };
+constexpr const img::Resource &reference_icon { img::dash_18x18 };
 
 constexpr Rect16 top_label_rect { col_0, row_noz_0, WizardDefaults::X_space, txt_h };
 constexpr Rect16 top_progress_rect { WizardDefaults::progress_LR_margin, row_noz_1, WizardDefaults::progress_width, WizardDefaults::progress_h };
@@ -53,7 +53,7 @@ constexpr const char *en_text_bed = N_("Heatbed heater check");
 constexpr const char *en_text_prep = N_("Preparing");
 constexpr const char *en_text_heat = N_("Heater testing");
 constexpr const char *en_text_heatbreak = N_("Heatbreak status");
-}
+} // namespace
 
 ScreenSelftestTemp::hotend_result_t ScreenSelftestTemp::make_hotend_result_row(size_t index) {
     constexpr static int16_t ICON_SPACING = 20;

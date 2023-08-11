@@ -91,4 +91,4 @@ Step SendFile::step(std::string_view, bool, uint8_t *buffer, size_t buffer_size)
     return Step { 0, written, std::move(instruction) };
 }
 
-}
+} // namespace nhttp::handler

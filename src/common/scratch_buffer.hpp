@@ -36,4 +36,4 @@ public:
     ~Ownership();
 };
 
-};
+}; // namespace buddy::scratch_buffer

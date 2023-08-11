@@ -41,4 +41,4 @@ bool ReadFAULTSignal();
 
 void ResetOverCurrentFault();
 
-} // namespace
+} // namespace hal::GPIODriver

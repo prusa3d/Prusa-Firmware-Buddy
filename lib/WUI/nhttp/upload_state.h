@@ -288,4 +288,4 @@ public:
     }
 };
 
-}
+} // namespace nhttp::printer

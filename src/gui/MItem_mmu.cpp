@@ -12,7 +12,7 @@
 #include "screen_menu_mmu_load_to_nozzle.hpp"
 #include "screen_menu_mmu_fail_stats.hpp"
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT
@@ -58,10 +58,10 @@ MI_MMU_ISSUE_GCODE::MI_MMU_ISSUE_GCODE(const char *lbl, const char *gcode)
 }
 
 void MI_MMU_ISSUE_GCODE::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(marlin_server::Event::CommandBegin);
-    marlin_gcode(gcode);
-    //    while (!marlin_event_clr(Event::CommandBegin))
-    //        marlin_client_loop();
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+    marlin_client::gcode(gcode);
+    //    while (!marlin_client::event_clr(Event::CommandBegin))
+    //        marlin_client::loop();
     // gui_dlg_wait(gui_marlin_G28_or_G29_in_progress); // @@TODO perform some blocking wait on the LCD until the MMU finishes its job
     // Meanwhile an MMU error screen may occur!
 }
@@ -73,11 +73,11 @@ MI_MMU_LOAD_ALL::MI_MMU_LOAD_ALL()
 }
 
 void MI_MMU_LOAD_ALL::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(marlin_server::Event::CommandBegin);
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
     for (uint8_t i = 0; i < 5; ++i) {
         char gcode[] = "M704 Px";
         gcode[sizeof(gcode) - 2] = i + '0';
-        marlin_gcode(gcode);
+        marlin_client::gcode(gcode);
     }
 }
 

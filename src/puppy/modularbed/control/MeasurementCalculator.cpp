@@ -46,4 +46,4 @@ float CalcHBResistanceAtTemperature(float referenceResistance, float temperature
     return resistance;
 }
 
-} // namespace
+} // namespace modularbed

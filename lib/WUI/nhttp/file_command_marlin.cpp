@@ -15,7 +15,7 @@ namespace {
         return access(fname, R_OK) == 0;
     }
 
-}
+} // namespace
 
 FileCommand::StartResult FileCommand::start() {
     if (!exists(filename)) {
@@ -39,4 +39,4 @@ FileCommand::StartResult FileCommand::start() {
     }
 }
 
-}
+} // namespace nhttp::printer

@@ -6,7 +6,7 @@
 
 #include "catch2/catch.hpp"
 
-#include "common/gcode_filter.hpp"
+#include "common/gcode/gcode_filter.hpp"
 
 #define MAX_CMD_SIZE  96
 #define LOOP_MAX_READ 50

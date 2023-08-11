@@ -7,6 +7,9 @@
 #include "link_content/previews.h"
 #include "wui.h"
 #include "wui_api.h"
+#if NETWORKING_BENCHMARK_ENABLED
+    #include "nhttp/networking_benchmark_selector.h"
+#endif
 
 #include <FreeRTOS.h>
 #include <semphr.h>
@@ -29,7 +32,18 @@ SemaphoreHandle_t httpd_mutex = NULL;
 
 class DefaultServerDefs final : public ServerDefs {
 private:
-    static const constexpr handler::Selector *const selectors_array[] = { &validate_request, &static_file, &prusa_link_api_v1, &prusa_link_api_octo, &usb_files, &previews, &unknown_request };
+    static const constexpr handler::Selector *const selectors_array[] = {
+        &validate_request,
+        &static_file,
+        &prusa_link_api_v1,
+        &prusa_link_api_octo,
+        &usb_files,
+        &previews,
+#if NETWORKING_BENCHMARK_ENABLED
+        &networking_benchmark_selector,
+#endif
+        &unknown_request,
+    };
 
 public:
     virtual const Selector *const *selectors() const override { return selectors_array; }
@@ -75,7 +89,7 @@ const DefaultServerDefs server_defs;
 
 Server server(server_defs);
 
-}
+} // namespace
 
 void httpd_init(void) {
     assert(httpd_mutex == nullptr);

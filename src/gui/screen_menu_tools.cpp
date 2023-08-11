@@ -4,7 +4,7 @@
 
 #include "screen_menu_tools.hpp"
 #include "ScreenHandler.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 #include "module/motion.h"
 #include "module/prusa/toolchanger.h"
@@ -12,7 +12,7 @@
 
 #include <puppies/Dwarf.hpp>
 #include <limits>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 static int displayed_tool = 0;
 
@@ -22,7 +22,7 @@ MI_TOOL_NOZZLE_DIAMETER::MI_TOOL_NOZZLE_DIAMETER()
 
 static constexpr SpinConfig_t<float> POSITION_CONFIG({ 0, 500, 0.1 }, "mm");
 
-MI_POSITION::MI_POSITION(string_view_utf8 label, [[maybe_unused]] const png::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
+MI_POSITION::MI_POSITION(string_view_utf8 label, [[maybe_unused]] const img::Resource *id_icon, [[maybe_unused]] is_enabled_t enabled, [[maybe_unused]] is_hidden_t hidden, float initVal)
     : WiSpinFlt(initVal, POSITION_CONFIG, label, nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_POSITION::OnClick() {
@@ -54,7 +54,7 @@ static constexpr SpinConfig_t<float> OFFSET_CONFIG_X({ X_MIN_OFFSET, X_MAX_OFFSE
 static constexpr SpinConfig_t<float> OFFSET_CONFIG_Y({ Y_MIN_OFFSET, Y_MAX_OFFSET, 0.01 }, "mm");
 static constexpr SpinConfig_t<float> OFFSET_CONFIG_Z({ Z_MIN_OFFSET, Z_MAX_OFFSET, 0.01 }, "mm");
 
-MI_OFFSET::MI_OFFSET(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig_t<float> &config)
+MI_OFFSET::MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig_t<float> &config)
     : WiSpinFlt(initVal, config, label, id_icon, enabled, hidden) {}
 
 MI_OFFSET_X::MI_OFFSET_X()
@@ -86,7 +86,7 @@ MI_PICKUP_TOOL::MI_PICKUP_TOOL()
 }
 
 void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_gcode_printf("T%d S", displayed_tool);
+    marlin_client::gcode_printf("T%d S", displayed_tool);
 }
 
 MI_DOCK_CALIBRATE::MI_DOCK_CALIBRATE()
@@ -94,7 +94,7 @@ MI_DOCK_CALIBRATE::MI_DOCK_CALIBRATE()
 }
 
 void MI_DOCK_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_test_start_for_tools(stmDocks, 1 << displayed_tool);
+    marlin_client::test_start_for_tools(stmDocks, 1 << displayed_tool);
 }
 
 MI_FSENSORS_CALIBRATE::MI_FSENSORS_CALIBRATE()
@@ -106,7 +106,7 @@ void MI_FSENSORS_CALIBRATE::click([[maybe_unused]] IWindowMenu &window_menu) {
         return;
     }
 
-    marlin_test_start_for_tools(stmFSensor, 1 << displayed_tool);
+    marlin_client::test_start_for_tools(stmFSensor, 1 << displayed_tool);
 }
 
 ScreenMenuToolSetup::ScreenMenuToolSetup()
@@ -127,7 +127,7 @@ MI_PARK_TOOL::MI_PARK_TOOL()
 }
 
 void MI_PARK_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+    marlin_client::gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
 }
 
 ScreenMenuTools::ScreenMenuTools()

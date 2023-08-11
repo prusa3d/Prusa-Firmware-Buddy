@@ -4,8 +4,8 @@
 
 class screen_splash_data_t : public AddSuperWindow<screen_t> {
 #if defined(USE_ST7789)
-    png::ResourceSingleFile png_printer;
-    png::ResourceSingleFile png_marlin;
+    img::ResourceSingleFile png_printer;
+    img::ResourceSingleFile png_marlin;
 
     window_icon_t icon_logo_printer;
     window_text_t text_progress;

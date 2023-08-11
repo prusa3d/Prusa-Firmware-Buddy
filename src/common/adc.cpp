@@ -9,9 +9,30 @@ AdcDma3 adcDma3;
 
 using namespace buddy::hw;
 
-#if BOARD_IS_XLBUDDY
-AdcMultiplexer<AdcDma1, AdcChannel::POWER_MONITOR_HWID_AND_TEMP_CH_CNT> PowerHWIDAndTempMux(adcDma1, buddy::hw::AD1setA, buddy::hw::AD1setB, AdcChannel::mux1_x, AdcChannel::mux1_y);
+#if BOARD_IS_XBUDDY
+namespace AdcGet {
+SumRingBuffer<uint32_t, nozzle_buff_size> nozzle_ring_buff;
+}
+#endif
 
-AdcMultiplexer<AdcDma3, AdcChannel::SFS_AND_TEMP_CH_CNT> SFSAndTempMux(adcDma3, buddy::hw::AD2setA, buddy::hw::AD2setB, AdcChannel::mux2_x, AdcChannel::mux2_y);
+#if BOARD_IS_XLBUDDY
+AdcMultiplexer<AdcDma1, DMA2_Stream4_IRQn, AdcChannel::POWER_MONITOR_HWID_AND_TEMP_CH_CNT>
+    PowerHWIDAndTempMux(adcDma1,
+        buddy::hw::AD1setA, buddy::hw::AD1setB,
+        AdcChannel::mux1_x, AdcChannel::mux1_y);
+
+AdcMultiplexer<AdcDma3, DMA2_Stream0_IRQn, AdcChannel::SFS_AND_TEMP_CH_CNT>
+    SFSAndTempMux(adcDma3,
+        buddy::hw::AD2setA, buddy::hw::AD2setB,
+        AdcChannel::mux2_x, AdcChannel::mux2_y);
+
+// NOTE: This ISR is currently only enabled during AdcMultiplexer channel switching,
+//   and kept disabled most of the time. See AdcMultiplexer::switch_channel.
+extern "C" void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+    if (hadc == &PowerHWIDAndTempMux.adc_handle())
+        PowerHWIDAndTempMux.conv_isr();
+    else if (hadc == &SFSAndTempMux.adc_handle())
+        SFSAndTempMux.conv_isr();
+}
 
 #endif

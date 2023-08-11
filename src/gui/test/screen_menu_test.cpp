@@ -12,52 +12,6 @@
     #include "test_of_selftest_result.hpp"
     #include "screen_test_selftest.hpp"
 #endif
-#include "error_codes.hpp"
-#include "bsod_gui.hpp"
-
-// generate stack overflow
-static volatile int _recursive = 1;
-static void recursive(uint64_t i) {
-    uint64_t x = i + (uint64_t)_recursive;
-    osDelay(1);
-    if (_recursive)
-        recursive(x);
-}
-
-MI_STACK_OVERFLOW::MI_STACK_OVERFLOW()
-    : WI_LABEL_t(_("Stack overflow"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_STACK_OVERFLOW::click([[maybe_unused]] IWindowMenu &window_menu) {
-    recursive(0);
-}
-
-MI_DIV0::MI_DIV0()
-    : WI_LABEL_t(_("BSOD div 0"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_DIV0::click([[maybe_unused]] IWindowMenu &window_menu) {
-    static volatile int i = 0;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiv-by-zero"
-    i = i / 0;
-#pragma GCC diagnostic pop
-}
-
-MI_WATCHDOG::MI_WATCHDOG()
-    : WI_LABEL_t(_("Watchdog reset"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {}
-
-void MI_WATCHDOG::click([[maybe_unused]] IWindowMenu &window_menu) {
-    extern void iwdg_warning_cb();
-    iwdg_warning_cb();
-}
-
-MI_PREHEAT_ERROR::MI_PREHEAT_ERROR()
-    : WI_LABEL_t(_("Preheat error"), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {}
-
-void MI_PREHEAT_ERROR::click([[maybe_unused]] IWindowMenu &window_menu) {
-    fatal_error(ErrCode::ERR_TEMPERATURE_HOTEND_PREHEAT_ERROR);
-}
 
 MI_RESULT_TEST::MI_RESULT_TEST()
     : WI_LABEL_t(_("test selftest result"), nullptr, is_enabled_t::yes, is_hidden_t::dev, expands_t::yes) {

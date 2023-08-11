@@ -328,4 +328,4 @@ hal::ADCDriver::ADCChannel GetHBCurrentMeasurementChannel(uint32_t heatbedletInd
     return hal::ADCDriver::ADCChannel::Current_A;
 }
 
-} // namespace
+} // namespace modularbed::PWMLogic

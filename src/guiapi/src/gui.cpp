@@ -19,7 +19,7 @@
 #include "log.h"
 
 #include <option/has_touch.h>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_REF(GUI);
 LOG_COMPONENT_REF(Touch);
@@ -136,7 +136,7 @@ static uint8_t guiloop_nesting = 0;
 uint8_t gui_get_nesting(void) { return guiloop_nesting; }
 
 void gui_loop_cb() {
-    marlin_client_loop();
+    marlin_client::loop();
     GuiMediaEventsHandler::Tick();
 }
 
@@ -183,7 +183,7 @@ void gui_loop(void) {
             // we clicked on something, does not really matter on what we clicked
             // we must notify serve to so it knows user is doing something and resets menu timeout, heater timeout ...
             Screens::Access()->ResetTimeout();
-            marlin_notify_server_about_knob_click();
+            marlin_client::notify_server_about_knob_click();
             if (capture_ptr->GetRect().Contain(*point)) {
                 capture_ptr->WindowEvent(capture_ptr, GUI_event_t::TOUCH, un.pvoid);
             }

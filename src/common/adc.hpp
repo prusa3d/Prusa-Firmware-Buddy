@@ -39,7 +39,7 @@ xlBuddy:
     ADC3:
         PF10 - Rank 1 - CH8  - board temp
         PF6  - Rand 2 - CH4  - MUX2_Y
-        PC0  - Rank 3 - CH10 - MUX2_Y
+        PC0  - Rank 3 - CH10 - MUX2_X
 
     PowerMonitorsHWIDAndTempMux_X:
         X0 - 24V_sense
@@ -175,55 +175,85 @@ enum AD1 {
 #else
     #error "Unknown board."
 #endif
-}
+} // namespace AdcChannel
 
 inline constexpr uint16_t raw_adc_value_at_50_degreas_celsius = 993;
 
 template <ADC_HandleTypeDef &adc, size_t channels>
 class AdcDma {
 public:
+    static constexpr ADC_HandleTypeDef &handle = adc;
+    static constexpr uint16_t reset_value = UINT16_MAX;
+
+    // Sampling resolution
+    static constexpr uint16_t sample_bits = 12;
+    static constexpr uint16_t sample_max = (1 << sample_bits) - 1;
+
+    // Shift bits required to reduce from the full 12bit resolution to 10bit as expected by Marlin
+    static constexpr uint16_t shift_bits = 2;
+
     AdcDma()
-        : m_data()
-        , buff_nozzle() {};
+        : m_data() {}
+
     void init() {
+        // Ensure ADC is initialized to 12bit resolution for shifts to make sense
+        assert(adc.Init.Resolution == ADC_RESOLUTION_12B);
+
         HAL_ADC_Init(&adc);
 #if BOARD_IS_DWARF
         HAL_ADCEx_Calibration_Start(&adc);
         HAL_ADCEx_Calibration_SetValue(&adc, HAL_ADC_GetValue(&adc));
 #endif
-        HAL_ADC_Start_DMA(&adc, reinterpret_cast<uint32_t *>(m_data), channels); // Start ADC in DMA mode and
-    };
+        HAL_ADC_Start_DMA(&adc, reinterpret_cast<uint32_t *>(m_data), channels); // Start ADC in DMA mode
+    }
 
     void deinit() {
         HAL_ADC_Stop_DMA(&adc);
         HAL_ADC_DeInit(&adc);
     }
 
-    void put_data_to_buffer() {
-        buff_nozzle.Put(get_and_shift_channel(0));
-    }
+#ifdef ADC_MULTIPLEXER
+    void restart() {
+        // stop and reset ADC to discard any pending conversion
+        ADC_HandleTypeDef &adc_handle = handle;
+        __HAL_ADC_DISABLE(&adc_handle);
+        ADC_STATE_CLR_SET(adc_handle.State,
+            HAL_ADC_STATE_REG_BUSY | HAL_ADC_STATE_INJ_BUSY,
+            HAL_ADC_STATE_READY);
 
-    [[nodiscard]] uint32_t get_sum_from_nozzle_buffer() {
-        return buff_nozzle.GetSum();
-    }
+        // NOTE: when re-enabling the ADC normally a settling time is required, which we skip here
+        //   as we're inside an ISR. On the STM32G0 calibration might be required again. We
+        //   re-enable it ASAP before sampling is done, but it can still result in extra noise. An
+        //   extra wait iteration might be required if this sample requires higher precision.
+        __HAL_ADC_ENABLE(&handle);
 
-    [[nodiscard]] uint32_t get_size_from_nozzle_buffer() {
-        return buff_nozzle.GetSize();
+        // reset and restart DMA
+        // TODO: this is specific to STM32F4
+        DMA_HandleTypeDef &dma_handle = *adc_handle.DMA_Handle;
+        __HAL_DMA_CLEAR_FLAG(&dma_handle, (DMA_FLAG_HTIF0_4 | DMA_FLAG_TCIF0_4));
+        dma_handle.State = HAL_DMA_STATE_READY;
+        __HAL_DMA_ENABLE(&dma_handle);
+
+        // kickoff the first conversion
+        handle.Instance->CR2 |= ADC_CR2_SWSTART;
     }
+#endif // ADC_MULTIPLEXER
 
     [[nodiscard]] uint16_t get_channel(uint8_t index) const {
         return m_data[index];
     }
 
-    [[nodiscard]] uint16_t get_and_shift_channel(uint8_t index) const { // This function is need for convert 12bit to 10bit
-        return m_data[index] >> 2;
+    void set_channel(uint8_t index, uint16_t value) {
+        m_data[index] = value;
+    }
+
+    // Downscale from ADC full resolution as required by Marlin
+    [[nodiscard]] uint16_t get_and_shift_channel(uint8_t index) const {
+        return get_channel(index) >> shift_bits;
     }
 
 private:
-    uint16_t m_data[channels] = { 0 };
-    static constexpr size_t buff_size { 128 };
-    SumRingBuffer<uint32_t, buff_size> buff_nozzle;
-    static_assert(0xFFFF * buff_size <= 0xFFFFFFFF);
+    uint16_t m_data[channels] = { reset_value };
 };
 
 using AdcDma1 = AdcDma<hadc1, AdcChannel::ADC1_CH_CNT>;
@@ -238,10 +268,50 @@ extern AdcDma3 adcDma3;
     #include "hwio_pindef.h"
 using namespace buddy::hw;
 
-template <typename ADCDMA, size_t NUM_CHANNELS>
+/**
+ * @brief ADC 2x2 Multiplexer with DMA support
+ *
+ * get_channel()/get_channel_and_shift() return current values (as determined by the ADCDMA sampling
+ * interval) as long as the requested channel is active. If the channel is not active, the most
+ * recent updated value (from the latest sampled value before the channel switch) is returned
+ * otherwise.
+ *
+ * Notes on DMA and channel switching:
+ *
+ * The channel switching mechanism takes control of DMA_IRQn, which should be set to the IRQ of the
+ * selected DMA stream. It is used exclusively for synchronization and is expected to be disabled on
+ * start. When a channel switch is requested the IRQ is temporarily enabled and the switch happens
+ * at some point in the future.
+ *
+ * AdcDma keeps the ADC in continuous scanning mode, triggering a DMA request for each EOC
+ * interrupt. The EOC interrupt can't be used to perform channel switching since a DMA request can
+ * still be in-flight when handled, potentially overwriting any value in the destination buffer with
+ * a sample from the previous channel. For this reason the muxer temporarily shuts down the DMA
+ * stream (keeping the ADC in SCAN mode to ensure at least one more pending interrupt is generated)
+ * and handles the switch only when the DMA stream has stopped.
+ *
+ * By the time the channel switch can happen though the ADC can still be anywhere in the scanning
+ * sequence, and at least on the STM32F4 there's no way to read the current index besides manually
+ * keeping track of the EOC interrupt manually. The index cannot be recovered from the DMA offset
+ * either, since by the time the DMA interrupt is delivered the ADC has already advanced. In the
+ * transfer-complete IRQ we thus restart the ADC with the intent of resetting the sampling sequence
+ * (without changing other ADC parameters as the HAL would normally do) and restart both the ADC and
+ * DMA from a zero offset. This ensures that even if the DMA stream has stopped with an error
+ * condition we don't need to pay attention to the last transferred index.
+ *
+ * Once the channel switch is handled the DMA IRQn is no longer needed, so it is again disabled
+ * until a new switch is explicitly requested to save on resources.
+ */
+template <typename ADCDMA, IRQn_Type DMA_IRQn, size_t NUM_CHANNELS>
 class AdcMultiplexer {
 public:
-    AdcMultiplexer(const ADCDMA &adcDma, const buddy::hw::OutputPin &selectA, const buddy::hw::OutputPin &selectB, const uint8_t adc_input_pin_x, const uint8_t adc_input_pin_y)
+    static constexpr uint16_t reset_value = ADCDMA::reset_value;
+    static constexpr uint8_t channel_X_off = 0; // index offset for channel X
+    static constexpr uint8_t channel_Y_off = 4; // index offset for channel Y
+
+    AdcMultiplexer(ADCDMA &adcDma,
+        const buddy::hw::OutputPin &selectA, const buddy::hw::OutputPin &selectB,
+        const uint8_t adc_input_pin_x, const uint8_t adc_input_pin_y)
         : adcDma(adcDma)
         , m_setA(selectA)
         , m_setB(selectB)
@@ -250,48 +320,76 @@ public:
         static_assert(NUM_CHANNELS == 8, "This MUX class support only 8 inputs");
     }
 
-    void switch_channel() {
-        m_data[current_channel] = get_X();
-        m_data[current_channel + 4] = get_Y();
+    void conv_isr() {
+        if ((adcDma.handle.DMA_Handle->Instance->CR & DMA_SxCR_EN) != RESET)
+            return; // not disabled yet, we'll get another interrupt
 
-        current_channel = current_channel >= 3 ? 0 : current_channel + 1;
+        // update current values one last time
+        update_X();
+        update_Y();
 
-        if (current_channel & 0b00000001) {
-            m_setA.write(Pin::State::high);
-        } else {
-            m_setA.write(Pin::State::low);
-        }
+        // change channel
+        current_channel = (current_channel + 1) % 4;
+        m_setA.write((Pin::State)(current_channel & 0b01));
+        m_setB.write((Pin::State)(current_channel & 0b10));
 
-        if (current_channel & 0b00000010) {
-            m_setB.write(Pin::State::high);
-        } else {
-            m_setB.write(Pin::State::low);
-        }
+        // preset previously sampled values in the DMA buffer
+        // until they are overwritten by the new sample/transfer
+        adcDma.set_channel(adc_input_pin_x, m_data[current_channel + channel_X_off]);
+        adcDma.set_channel(adc_input_pin_y, m_data[current_channel + channel_Y_off]);
+
+        // disable DMA updates until next switch request
+        HAL_NVIC_DisableIRQ(DMA_IRQn);
+
+        // reset and restart ADC/DMA on the new channel
+        adcDma.restart();
     }
 
-    [[nodiscard]] uint16_t get_channel(uint8_t index) const {
+    void switch_channel() {
+        // prepare to switch channel
+        HAL_NVIC_EnableIRQ(DMA_IRQn);
+        __HAL_DMA_DISABLE(adcDma.handle.DMA_Handle);
+    }
+
+    [[nodiscard]] const ADC_HandleTypeDef &adc_handle() const {
+        return adcDma.handle;
+    }
+
+    [[nodiscard]] uint16_t get_channel(uint8_t index) {
+        // update current values
+        if (index == (current_channel + channel_X_off))
+            update_X();
+        else if (index == (current_channel + channel_Y_off))
+            update_Y();
+
         return m_data[index];
     }
 
-    [[nodiscard]] uint16_t get_and_shift_channel(uint8_t index) const { // This function is need for convert 12bit to 10bit because Marlin needs 10bit value
-
-        return m_data[index] >> 2;
+    // Downscale from ADC full resolution as required by Marlin
+    [[nodiscard]] uint16_t get_and_shift_channel(uint8_t index) {
+        return get_channel(index) >> ADCDMA::shift_bits;
     }
 
 private:
-    const ADCDMA &adcDma;
+    ADCDMA &adcDma;
     const buddy::hw::OutputPin &m_setA;
     const buddy::hw::OutputPin &m_setB;
     const uint8_t adc_input_pin_x;
     const uint8_t adc_input_pin_y;
     uint16_t m_data[NUM_CHANNELS];
     uint8_t current_channel = 0;
-    uint16_t get_X() { return adcDma.get_channel(adc_input_pin_x); };
-    uint16_t get_Y() { return adcDma.get_channel(adc_input_pin_y); };
+
+    void update_X() {
+        m_data[current_channel + channel_X_off] = adcDma.get_channel(adc_input_pin_x);
+    }
+
+    void update_Y() {
+        m_data[current_channel + channel_Y_off] = adcDma.get_channel(adc_input_pin_y);
+    }
 };
 
-extern AdcMultiplexer<AdcDma1, AdcChannel::POWER_MONITOR_HWID_AND_TEMP_CH_CNT> PowerHWIDAndTempMux;
-extern AdcMultiplexer<AdcDma3, AdcChannel::SFS_AND_TEMP_CH_CNT> SFSAndTempMux;
+extern AdcMultiplexer<AdcDma1, DMA2_Stream4_IRQn, AdcChannel::POWER_MONITOR_HWID_AND_TEMP_CH_CNT> PowerHWIDAndTempMux;
+extern AdcMultiplexer<AdcDma3, DMA2_Stream0_IRQn, AdcChannel::SFS_AND_TEMP_CH_CNT> SFSAndTempMux;
 #endif // ADC_MULTIPLEXER
 
 namespace AdcGet {
@@ -304,15 +402,35 @@ inline uint16_t bedMon() { return adcDma1.get_and_shift_channel(AdcChannel::heat
 #endif
 
 #if (BOARD_IS_XBUDDY)
+static constexpr size_t nozzle_buff_size { 128 };
+extern SumRingBuffer<uint32_t, nozzle_buff_size> nozzle_ring_buff;
+static_assert((adcDma1.sample_max * nozzle_buff_size) <= std::numeric_limits<decltype(nozzle_ring_buff)::sum_type>::max(),
+    "Sum buffer type can overflow");
+
 inline uint16_t nozzle() {
-    if (adcDma1.get_and_shift_channel(AdcChannel::hotend_T) > raw_adc_value_at_50_degreas_celsius) { // mean 50 degrees Celsius
-        return (adcDma1.get_sum_from_nozzle_buffer() / adcDma1.get_size_from_nozzle_buffer());
+    auto raw_temp = adcDma1.get_and_shift_channel(AdcChannel::hotend_T);
+
+    // increase oversampling for values lower than 50 degrees Celsius to reduce noise
+    if (raw_temp > raw_adc_value_at_50_degreas_celsius) {
+        // handle an empty buffer
+        if (nozzle_ring_buff.GetSize() == 0)
+            return adcDma1.reset_value;
+
+        // decimate to match the behavior of get_and_shift_channel()
+        auto raw_temp_avg = nozzle_ring_buff.GetSum() / nozzle_ring_buff.GetSize();
+        return raw_temp_avg >> adcDma1.shift_bits;
     }
-    return adcDma1.get_and_shift_channel(AdcChannel::hotend_T);
+
+    return raw_temp;
 }
 
 inline void sampleNozzle() {
-    adcDma1.put_data_to_buffer();
+    // the ring buffer is kept at full resolution
+    auto raw_temp = adcDma1.get_channel(AdcChannel::hotend_T);
+    if (raw_temp == adcDma1.reset_value)
+        nozzle_ring_buff.PopLast();
+    else
+        nozzle_ring_buff.Put(raw_temp);
 }
 
 inline uint16_t bed() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_T); }
@@ -375,4 +493,4 @@ inline uint16_t boardTemp() { return adcDma1.get_and_shift_channel(AdcChannel::n
 inline uint16_t toolFimalentSensor() { return adcDma1.get_channel(AdcChannel::TFS); }
 inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_temperature); }
 #endif
-}
+} // namespace AdcGet

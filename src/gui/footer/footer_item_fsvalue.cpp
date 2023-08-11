@@ -2,10 +2,10 @@
 
 #include "filament_sensors_handler.hpp"
 #include "display_helper.h" // font_meas_text
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 FooterItemFSValue::FooterItemFSValue(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::spool_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::spool_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFSValue::static_readValue() {

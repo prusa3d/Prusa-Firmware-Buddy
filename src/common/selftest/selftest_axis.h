@@ -56,4 +56,4 @@ public:
 extern const AxisConfig_t Config_XAxis;
 extern const AxisConfig_t Config_YAxis;
 
-};
+}; // namespace selftest

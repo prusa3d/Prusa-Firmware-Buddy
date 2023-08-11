@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include "window_menu_adv.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "touch_get.hpp"
 
@@ -35,12 +35,12 @@ static Rect16 rc_arrow_down(Rect16 rc) {
     return ret;
 }
 
-static const png::Resource *arrow_up() {
-    return touch::is_enabled() ? &png::arrow_up_white_24x24 : nullptr;
+static const img::Resource *arrow_up() {
+    return touch::is_enabled() ? &img::arrow_up_white_24x24 : nullptr;
 }
 
-static const png::Resource *arrow_down() {
-    return touch::is_enabled() ? &png::arrow_down_white_24x24 : nullptr;
+static const img::Resource *arrow_down() {
+    return touch::is_enabled() ? &img::arrow_down_white_24x24 : nullptr;
 }
 #endif
 
@@ -88,14 +88,14 @@ void WindowMenuAdv::windowEvent(EventLock /*has private ctor*/, window_t *sender
             menu.RollUp();
             // we clicked on one of menus move buttons
             // unlike knob we did not know it until now
-            marlin_notify_server_about_encoder_move();
+            marlin_client::notify_server_about_encoder_move();
             break;
         }
         if (down.GetRect().Contain(un.point)) {
             menu.RollDown();
             // we clicked on one of menus move buttons
             // unlike knob we did not know it until now
-            marlin_notify_server_about_encoder_move();
+            marlin_client::notify_server_about_encoder_move();
             break;
         }
 #endif // MENU_HAS_BUTTONS
@@ -143,14 +143,14 @@ void WindowFileBrowserAdv::windowEvent(EventLock /*has private ctor*/, window_t 
             file_browser.RollUp();
             // we clicked on one of file_browsers move buttons
             // unlike knob we did not know it until now
-            marlin_notify_server_about_encoder_move();
+            marlin_client::notify_server_about_encoder_move();
             break;
         }
         if (down.GetRect().Contain(un.point)) {
             file_browser.RollDown();
             // we clicked on one of file_browsers move buttons
             // unlike knob we did not know it until now
-            marlin_notify_server_about_encoder_move();
+            marlin_client::notify_server_about_encoder_move();
             break;
         }
 #endif // MENU_HAS_BUTTONS

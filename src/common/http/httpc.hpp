@@ -98,4 +98,4 @@ public:
     std::variant<Response, Error> send(Request &request, ExtraHeader *extra_resp_headers = nullptr);
 };
 
-}
+} // namespace http

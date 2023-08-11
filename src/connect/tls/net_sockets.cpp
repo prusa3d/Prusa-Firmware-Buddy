@@ -50,7 +50,7 @@ int convert_result(variant<size_t, Error> result, int timeout_error) {
     }
 }
 
-}
+} // namespace
 
 mbedtls_net_context::mbedtls_net_context(uint8_t timeout_s)
     : plain_conn(timeout_s)

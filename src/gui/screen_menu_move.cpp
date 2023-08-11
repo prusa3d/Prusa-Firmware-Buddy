@@ -6,8 +6,8 @@
 #include "marlin_client.hpp"
 #include "menu_spin_config.hpp"
 
-#include "png_resources.hpp"
-#include <configuration_store.hpp>
+#include "img_resources.hpp"
+#include <config_store/store_instance.hpp>
 
 I_MI_AXIS::I_MI_AXIS(size_t index)
     : WiSpinInt(round(marlin_vars()->logical_pos[index]),
@@ -44,20 +44,20 @@ void I_MI_AXIS::loop__(size_t axis) {
         } else {
             last_queued_position = int(value);
         }
-        marlin_move_axis(last_queued_position, feedrate, axis);
+        marlin_client::move_axis(last_queued_position, feedrate, axis);
     }
 }
 
 void MI_AXIS_E::OnClick() {
-    marlin_gcode("G90");      // Set to Absolute Positioning
-    marlin_gcode("M82");      // Set extruder to absolute mode
-    marlin_gcode("G92 E0");   // Reset position before change
-    SetVal(0);                // Reset spin before change
-    last_queued_position = 0; // zero it out so we wont go back when we exit the spinner
+    marlin_client::gcode("G90");    // Set to Absolute Positioning
+    marlin_client::gcode("M82");    // Set extruder to absolute mode
+    marlin_client::gcode("G92 E0"); // Reset position before change
+    SetVal(0);                      // Reset spin before change
+    last_queued_position = 0;       // zero it out so we wont go back when we exit the spinner
 }
 
 void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_gcode_printf("M1700 S E W2"); // set filament, preheat to target, return option
+    marlin_client::gcode_printf("M1700 S E W2"); // set filament, preheat to target, return option
 }
 
 /**
@@ -167,10 +167,10 @@ bool ScreenMenuMove::IsTempOk() {
 ScreenMenuMove::ScreenMenuMove()
     : ScreenMenuMove__(_(label)) {
 #if !PRINTER_IS_PRUSA_MINI
-    header.SetIcon(&png::move_16x16);
+    header.SetIcon(&img::move_16x16);
 #endif
     prev_accel = marlin_vars()->travel_acceleration;
-    marlin_gcode("M204 T200");
+    marlin_client::gcode("M204 T200");
     Hide<MI_AXIS_E>();     // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
     checkNozzleTemp();
     ClrMenuTimeoutClose(); // No timeout for move screen
@@ -179,14 +179,14 @@ ScreenMenuMove::ScreenMenuMove()
 ScreenMenuMove::~ScreenMenuMove() {
     char msg[20];
     snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
-    marlin_gcode(msg);
+    marlin_client::gcode(msg);
 }
 
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
-        marlin_set_target_nozzle(0);
-        marlin_set_display_nozzle(0);
-        marlin_set_target_bed(0);
+        marlin_client::set_target_nozzle(0);
+        marlin_client::set_display_nozzle(0);
+        marlin_client::set_target_bed(0);
     }
 
     if (event == GUI_event_t::LOOP) {

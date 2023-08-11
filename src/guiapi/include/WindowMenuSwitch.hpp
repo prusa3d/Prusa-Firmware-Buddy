@@ -28,7 +28,7 @@ public:
         };
         union {
             string_view_utf8 *texts;
-            const png::Resource **icon_resources;
+            const img::Resource **icon_resources;
         };
         uint16_t size;
         type_t type;
@@ -40,7 +40,7 @@ public:
             , type(type_t::text) {}
 
         // icon ctor
-        Items_t(const png::Resource *array[], size_t SZ)
+        Items_t(const img::Resource *array[], size_t SZ)
             : icon_resources(array)
             , size(SZ)
             , type(type_t::icon) {}
@@ -48,7 +48,7 @@ public:
 
 protected:
     using TextMemSpace_t = std::aligned_storage<sizeof(string_view_utf8), alignof(string_view_utf8)>;
-    using IconMemSpace_t = std::aligned_storage<sizeof(const png::Resource *), alignof(const png::Resource *)>;
+    using IconMemSpace_t = std::aligned_storage<sizeof(const img::Resource *), alignof(const img::Resource *)>;
 
     template <class T, class... E>
     Items_t FillArray(void *ArrayMem, E &&...e) {
@@ -63,7 +63,7 @@ protected:
     const Items_t items;
 
 public:
-    IWiSwitch(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_);
+    IWiSwitch(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, Items_t items_);
 
     void SetIndex(size_t idx);
     size_t GetIndex() const;
@@ -97,7 +97,7 @@ class WI_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
-    WI_SWITCH_t(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
+    WI_SWITCH_t(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
         : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<string_view_utf8>(&ArrayMemSpace, std::forward<E>(e)...)) {}
 };
 
@@ -108,6 +108,6 @@ class WI_ICON_SWITCH_t : public IWiSwitch {
 
 public:
     template <class... E>
-    WI_ICON_SWITCH_t(int32_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
-        : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<const png::Resource *>(&ArrayMemSpace, std::forward<E>(e)...)) {}
+    WI_ICON_SWITCH_t(int32_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, E &&...e)
+        : IWiSwitch(index, label, id_icon, enabled, hidden, FillArray<const img::Resource *>(&ArrayMemSpace, std::forward<E>(e)...)) {}
 };

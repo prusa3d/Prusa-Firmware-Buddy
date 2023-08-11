@@ -5,7 +5,7 @@
 #include "selftest_firstlayer.hpp"
 #include "selftest_sub_state.hpp"
 #include "selftest_part.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 namespace selftest {
 SelftestFirstLayer_t staticResult; // automatically initialized by PartHandler

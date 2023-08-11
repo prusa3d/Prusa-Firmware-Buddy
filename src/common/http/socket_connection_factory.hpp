@@ -18,4 +18,4 @@ private:
     uint16_t port;
     socket_con con;
 };
-};
+}; // namespace http

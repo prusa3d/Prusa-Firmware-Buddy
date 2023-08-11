@@ -54,6 +54,12 @@ public:
     void pause_animator(); //< Stops animation from running, they still can be added and removed, but they won't be run on the leds (blocks them from entering next_animation).
     bool animator_state();
 
+    /**
+     * @brief Quickly turn off LEDs.
+     * Useful for PowerPanic.
+     */
+    void panic_off();
+
 protected:
     template <typename... Ts>
     class MyContainer {

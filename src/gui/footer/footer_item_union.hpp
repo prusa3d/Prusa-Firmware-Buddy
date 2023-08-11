@@ -20,6 +20,7 @@
 #include "footer_item_multitool.hpp"
 #include "footer_item_fsvalue.hpp"
 #include "footer_item_input_shaper.hpp"
+#include <option/has_mmu2.h>
 
 namespace footer {
 using ItemUnion = std::aligned_union<
@@ -48,7 +49,7 @@ using ItemUnion = std::aligned_union<
 #endif
     ,
     FooterItemHeatBreak
-#if HAS_MMU2
+#if HAS_MMU2()
     ,
     FooterItemFinda
 #endif
@@ -67,4 +68,4 @@ inline Item DecodeItemFromEvent(const void *const encoded) {
     return static_cast<Item>(reinterpret_cast<intptr_t>(encoded));
 }
 
-}
+} // namespace footer

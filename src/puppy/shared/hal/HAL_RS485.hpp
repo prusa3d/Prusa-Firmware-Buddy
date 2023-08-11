@@ -15,4 +15,4 @@ bool Transmit(uint8_t *pData, uint32_t dataSize);
 void DMA_IRQHandler();
 void USART_IRQHandler();
 
-} // namespace
+} // namespace hal::RS485Driver

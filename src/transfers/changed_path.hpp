@@ -140,4 +140,4 @@ private:
     void ensure_chain_init();
 };
 
-}
+} // namespace transfers

@@ -26,7 +26,7 @@ const Automaton method(test::http_method::paths, test::http_method::transitions,
 const Automaton req_line(test::http_req::paths, test::http_req::transitions, test::http_req::states);
 const Automaton http_request(test::http::paths, test::http::transitions, test::http::states);
 
-}
+} // namespace
 
 TEST_CASE("Until comma") {
     TestExecution ex(until_comma);

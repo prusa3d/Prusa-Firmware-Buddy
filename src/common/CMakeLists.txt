@@ -11,19 +11,12 @@ if(BOARD MATCHES ".*BUDDY")
             client_response_texts.cpp
             crc32.cpp
             crc32_zlib.cpp
-            eeprom.cpp
-            eeprom_function_api.cpp
-            eeprom_loadsave.cpp
             ExtInterruptHandler.cpp
             filename_type.cpp
             filepath_operation.cpp
             footer_eeprom.cpp
             freertos_mutex.cpp
             fsm_types.cpp
-            gcode_file.cpp
-            gcode_filter.cpp
-            gcode_info.cpp
-            gcode_thumb_decoder.cpp
             hardware_serial.cpp
             heap.cpp
             hwio_pindef_check.cpp
@@ -144,7 +137,13 @@ if((BOARD STREQUAL "XBUDDY") OR (BOARD STREQUAL "BUDDY"))
 endif()
 
 if(NOT BOARD STREQUAL "DWARF" AND NOT BOARD STREQUAL "MODULARBED")
-  target_sources(firmware PRIVATE filament_sensors_handler_${PRINTER}.cpp)
+  if(PRINTER MATCHES "XL")
+    target_sources(
+      firmware PRIVATE filament_sensors_handler_XL.cpp filament_sensors_handler_XL_remap.cpp
+      )
+  else()
+    target_sources(firmware PRIVATE filament_sensors_handler_${PRINTER}.cpp)
+  endif()
 endif()
 
 if(GUI)
@@ -170,6 +169,7 @@ if(BOARD MATCHES "BUDDY")
   add_subdirectory(crash_dump)
   add_subdirectory(automata)
   add_subdirectory(http)
+  add_subdirectory(gcode)
 endif()
 
 add_subdirectory(utils)

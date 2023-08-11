@@ -48,12 +48,12 @@ struct window_header_t : public AddSuperWindow<window_frame_t> {
     void USB_On();
     void USB_Activate();
 
-    static const png::Resource *networkIcon(uint32_t netdev_id);
+    static const img::Resource *networkIcon(uint32_t netdev_id);
 
 public:
     window_header_t(window_t *parent, string_view_utf8 txt = string_view_utf8::MakeNULLSTR());
 
-    void SetIcon(const png::Resource *res);
+    void SetIcon(const img::Resource *res);
     void SetText(string_view_utf8 txt);
 
 protected:

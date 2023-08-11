@@ -47,4 +47,4 @@ public:
     const char *get_code() const;
 };
 
-}
+} // namespace connect_client

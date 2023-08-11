@@ -12,7 +12,7 @@
 #include "gpio.h"
 #include "adc.hpp"
 #include "Arduino.h"
-#include "loadcell.h"
+#include "loadcell.hpp"
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
 #include "bsod.h"
@@ -30,7 +30,7 @@
 #include "device/board.h"
 #include "Marlin/src/module/motion.h" // for active_extruder
 #include "puppies/modular_bed.hpp"
-#include "otp.h"
+#include "otp.hpp"
 #include "logging/log.h"
 
 LOG_COMPONENT_REF(Buddy);
@@ -86,7 +86,7 @@ const OutputPin *Buzzer = nullptr;
 const OutputPin *SideLed_LcdSelector = nullptr;
 const OutputPin *XStep = nullptr;
 const OutputPin *YStep = nullptr;
-}
+} // namespace buddy::hw
 
 /**
  * @brief analog output pins
@@ -633,11 +633,13 @@ void pinMode([[maybe_unused]] uint32_t ulPin, [[maybe_unused]] uint32_t ulMode) 
 }
 
 void buddy::hw::hwio_configure_board_revision_changed_pins() {
-    if (!otp_get_bom_id(&board_bom_id) || board_bom_id < 4) {
+    auto otp_bom_id = otp_get_bom_id();
+
+    if (!otp_bom_id || (board_bom_id = *otp_bom_id) < 4) {
         if constexpr (option::is_knoblet) {
             board_bom_id = BOARD_VERSION_MINOR; // Knoblets can be without OTP (buzzer might not work)
         } else {
-            bsod("Unable to determine board revision");
+            bsod("Unable to determine board BOM ID");
         }
     }
     log_info(Buddy, "Detected bom ID %d", board_bom_id);

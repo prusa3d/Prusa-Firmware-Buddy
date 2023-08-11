@@ -9,6 +9,7 @@
 #include "ScreenHandler.hpp"
 #include "footer_eeprom.hpp"
 #include <option/has_side_fsensor.h>
+#include <option/has_mmu2.h>
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)
     : AddSuperWindow<window_frame_t>(parent, footer::LineRect(line_no), positioning::relative) {
@@ -100,7 +101,7 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     case footer::Item::Heatbreak:
         new (&items[index]) FooterItemHeatBreak(this);
         break;
-#if HAS_MMU2
+#if HAS_MMU2()
     case footer::Item::Finda:
         new (&items[index]) FooterItemFinda(this);
         break;

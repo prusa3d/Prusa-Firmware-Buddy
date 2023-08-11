@@ -100,7 +100,7 @@ SelftestFrameResult::SelftestFrameResult(window_t *parent, PhasesSelftest ph, fs
 void SelftestFrameResult::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK:
-        marlin_FSM_response(phase_current, ClientResponses::GetResponses(phase_current)[0]);
+        marlin_client::FSM_response(phase_current, ClientResponses::GetResponses(phase_current)[0]);
         break;
     case GUI_event_t::ENC_DN:
         height_draw_offset = std::max(height_draw_offset - pixels_per_knob_move, 0);

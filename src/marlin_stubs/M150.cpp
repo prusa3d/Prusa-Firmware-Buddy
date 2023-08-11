@@ -10,6 +10,7 @@
     #include "leds/side_strip_control.hpp"
 #endif
 #include <optional>
+#include <gui/led_animations/animation_model.hpp>
 
 std::optional<leds::Color> parse_color() {
     if (parser.seen('R') && parser.seen('G') && parser.seen('B')) {

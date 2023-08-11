@@ -97,4 +97,4 @@ struct Factory {
     }
 };
 
-};
+}; // namespace selftest

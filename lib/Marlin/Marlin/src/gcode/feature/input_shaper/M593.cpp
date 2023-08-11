@@ -9,7 +9,7 @@
 #include "../../../feature/input_shaper/input_shaper_config.hpp"
 #include "../../../module/stepper.h"
 #include "gcode/parser.h"
-#include "configuration_store.hpp"
+#include <config_store/store_instance.hpp>
 #include <optional>
 
 namespace input_shaper {
@@ -96,7 +96,7 @@ static void dump_current_config() {
 }
 
 static M593Params clamp_frequency(M593Params params) {
-    if (params.axis.frequency) {
+    if (params.axis.frequency != 0.) {
         const float original_frequency = *params.axis.frequency;
         const float clamped_frequency = clamp_frequency_to_safe_values(original_frequency);
         if (clamped_frequency != original_frequency) {

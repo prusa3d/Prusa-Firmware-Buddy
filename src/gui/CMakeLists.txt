@@ -18,10 +18,10 @@ target_sources(
           gui_media_events.cpp
           gui_time.cpp
           guimain.cpp
+          img_resources.cpp
           IScreenPrinting.cpp
           logger.cpp
           menu_vars.cpp
-          MItem_bsod.cpp
           MItem_crash.cpp
           MItem_eeprom.cpp
           MItem_experimental_tools.cpp
@@ -30,11 +30,11 @@ target_sources(
           MItem_lan.cpp
           MItem_menus.cpp
           MItem_print.cpp
-          MItem_redscreen.cpp
           MItem_tools.cpp
           network_gui_tools.cpp
-          png_resources.cpp
           print_time_module.cpp
+          screen_blue_error.cpp
+          screen_bsod.cpp
           screen_dialog_does_not_exist.cpp
           screen_filebrowser.cpp
           screen_hardfault.cpp
@@ -45,6 +45,7 @@ target_sources(
           screen_menu_connect.cpp
           screen_menu_eeprom.cpp
           screen_menu_eeprom_diagnostics.cpp
+          screen_menu_error_test.cpp
           screen_menu_factory_reset.cpp
           screen_menu_fail_stat.cpp
           screen_menu_filament.cpp
@@ -76,8 +77,8 @@ target_sources(
           screen_reset_error.cpp
           screen_sheet_rename.cpp
           screen_splash.cpp
+          screen_stack_overflow.cpp
           screen_sysinf.cpp
-          screen_unknown.cpp
           screen_watchdog.cpp
           ScreenFactory.cpp
           ScreenHandler.cpp
@@ -116,7 +117,10 @@ else()
 endif()
 
 if(HAS_TOOLCHANGER)
-  target_sources(firmware PRIVATE screen_menu_filament_changeall.cpp screen_menu_tools.cpp)
+  target_sources(
+    firmware PRIVATE screen_menu_filament_changeall.cpp screen_menu_tools.cpp
+                     screen_tools_mapping.cpp
+    )
 else()
   target_sources(firmware PRIVATE screen_menu_no_tools.cpp)
 endif()
@@ -176,6 +180,10 @@ if(BOARD IN_LIST BOARDS_WITH_ST7789V)
   target_sources(firmware PRIVATE display_hw_checks_MINI.cpp version_info_ST7789V.cpp)
 elseif(BOARD IN_LIST BOARDS_WITH_ILI9488)
   target_sources(firmware PRIVATE display_hw_checks_xlcd.cpp version_info_ILI9488.cpp)
+endif()
+
+if(BOARD STREQUAL "XBUDDY" OR BOARD STREQUAL "XLBUDDY")
+  target_sources(firmware PRIVATE menu_item_xlcd.cpp)
 endif()
 
 if(PRINTER IN_LIST PRINTERS_WITH_LOVE_BOARD)

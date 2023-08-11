@@ -189,4 +189,4 @@ float LimitValue(float value, float min, float max) {
     return value;
 }
 
-} // namespace
+} // namespace modularbed::ControlLogic

@@ -6,12 +6,12 @@
 
 #include "selftest_result_fans.hpp"
 #include "i18n.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ResultFans::ResultFans()
     : SelfTestGroup(_("Fans check"))
-    , heatbreak(_("Hotend fan"), &png::fan_16x16, TestResult_Unknown)
-    , print(_("Print fan"), &png::turbine_16x16, TestResult_Unknown)
+    , heatbreak(_("Hotend fan"), &img::fan_16x16, TestResult_Unknown)
+    , print(_("Print fan"), &img::turbine_16x16, TestResult_Unknown)
     , fans_switched(_("Checking for switched fans"), nullptr, TestResult_Unknown) {
     Add(heatbreak);
     Add(print);

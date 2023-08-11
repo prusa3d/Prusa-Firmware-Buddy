@@ -24,7 +24,7 @@ size_t IRadioButton::cnt_labels(const PhaseTexts *labels) {
 }
 
 size_t IRadioButton::cnt_responses(Responses_t resp) {
-    return (std::find(resp.begin(), resp.end(), Response::_none)) - resp.begin();
+    return cnt_filled_responses(resp);
 }
 
 size_t IRadioButton::cnt_buttons(const PhaseTexts *labels, Responses_t resp) {
@@ -205,7 +205,8 @@ void IRadioButton::draw_0_btn() {
 // called internally, responses must exist
 void IRadioButton::draw_1_btn() {
     const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : BtnResponse::GetText(responseFromIndex(0));
-    button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print), pfont, IsEnabled());
+    button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print), pfont,
+        IsEnabled() && !disabled_drawing_selected);
 }
 
 // called internally, responses must exist
@@ -223,7 +224,8 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
             buffer[length] = 0;
             drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
         }
-        button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn, pfont, GetBtnIndex() == i && IsEnabled());
+        button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn, pfont,
+            GetBtnIndex() == i && IsEnabled() && !disabled_drawing_selected);
     }
     color_t spaces_clr = (GetBackColor() == COLOR_ORANGE) ? COLOR_BLACK : COLOR_ORANGE;
     for (size_t i = 0; i < btn_count - 1; ++i) {
@@ -250,6 +252,13 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
     GetRect().HorizontalSplit(ret.splits, ret.spaces, btn_count, GuiDefaults::ButtonSpacing, ret.text_widths);
 
     return ret;
+}
+
+void IRadioButton::DisableDrawingSelected() {
+    disabled_drawing_selected = true;
+}
+void IRadioButton::EnableDrawingSelected() {
+    disabled_drawing_selected = false;
 }
 
 void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected) {

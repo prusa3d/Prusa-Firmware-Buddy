@@ -42,39 +42,31 @@ MMU_RESET logic inverted
 */
 
 #pragma once
-#include "LoveBoard_EEPROM_Struct.h"
+#include "hw_configuration_common.hpp"
 
 namespace buddy::hw {
-class Configuration {
-    Configuration(const LoveBoardEeprom &eeprom);
+class Configuration : public ConfigurationCommon {
+    Configuration(const LoveBoardEeprom &loveboard);
     Configuration(const Configuration &) = delete;
 
     LoveBoardEeprom loveboard_eeprom;
 
-    uint8_t bom_id { 0 };
-
 public:
     /**
      * @brief Meyers singleton
-     * first call must provide parameters
-     * parameters ignored in other calls
-     *
-     * @param eeprom
      * @return Configuration&
      */
     static Configuration &Instance();
 
     const LoveBoardEeprom &get_love_board() const { return loveboard_eeprom; }
 
-    uint8_t get_board_bom_id() const { return bom_id; }
+    bool has_inverted_fans() const { return get_board_bom_id() < 37; }
 
-    bool has_inverted_fans() const { return bom_id < 37; }
+    bool has_inverted_mmu_reset() const { return get_board_bom_id() >= 37; }
 
-    bool has_inverted_mmu_reset() const { return bom_id >= 37; }
+    bool can_power_up_mmu_without_pulses() const { return get_board_bom_id() >= 37; }
 
-    bool can_power_up_mmu_without_pulses() const { return bom_id >= 37; }
-
-    bool has_trinamic_oscillators() const { return bom_id >= 37; }
+    bool has_trinamic_oscillators() const { return get_board_bom_id() >= 37; }
 
     /**
      * @brief voltage reference of current measurement
@@ -88,4 +80,4 @@ public:
     float curr_measurement_voltage_to_current(float voltage) const;
 };
 
-}
+} // namespace buddy::hw

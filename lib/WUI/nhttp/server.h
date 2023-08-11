@@ -16,6 +16,12 @@
 
 namespace nhttp {
 
+namespace splice {
+
+    class Transfer;
+
+}
+
 /**
  * \brief Server definitions.
  *
@@ -174,10 +180,12 @@ private:
 
     struct Buffer;
 
+    // Handling timeouts and such things.
     class BaseSlot {
     public:
         Server *server = nullptr;
         InactivityTimeout timeout;
+        virtual ~BaseSlot() = default;
     };
 
     /*
@@ -199,38 +207,99 @@ private:
      */
     std::array<BaseSlot, 3> idle_slots;
 
+    /*
+     * A slot in some way active.
+     *
+     * We actually have several modes here. One for the normal http handling -
+     * parsing, generating responses, morphing from one handler to another (the
+     * ConnectionSlot) and another that is mostly for just transfering data
+     * from a slot to a file with as high performance as possible, that's
+     * separate (needs direct access to pbufs during the handling and all
+     * that, but can afford more restrictions on what can and can not happen
+     * and doesn't support any kind of connection keep alive and all that).
+     */
     class Slot : public BaseSlot {
-    private:
-        void release_buffer();
-        void release_partial();
-        uint16_t send_space() const;
-        void step(std::string_view input, uint8_t *output, size_t output_size);
-        // Close whole connection and release
+    protected:
         bool close();
 
     public:
         altcp_pcb *conn = nullptr;
+
+        virtual void release();
+        virtual bool step() = 0;
+        virtual bool want_read() const = 0;
+        virtual bool want_write() const = 0;
+        virtual bool take_pbuf(pbuf *data) = 0;
+        // Did we send data the other side hasn't acked yet?
+        virtual bool has_unacked_data() const = 0;
+        // The other side has sent an ack.
+        virtual void sent(uint16_t len) = 0;
+    };
+
+    class ConnectionSlot : public Slot {
+    private:
+        void release_buffer();
+        uint16_t send_space() const;
+        void step(std::string_view input, uint8_t *output, size_t output_size);
+
+        bool client_closed = false;
+
+        // Close whole connection and release
+        void release_partial();
+
+    public:
         handler::ConnectionState state;
         // Owning a buffer?
         Buffer *buffer = nullptr;
         // Do we have a partially processed pbuf, with data left for later?
         std::unique_ptr<pbuf, PbufDeleter> partial;
         size_t partial_consumed = 0;
-        bool client_closed = false;
-
-        void release();
+        virtual void release() override;
         bool is_empty() const;
-        bool step();
-        bool want_read() const;
-        bool want_write() const;
+        virtual bool step() override;
+        virtual bool want_read() const override;
+        virtual bool want_write() const override;
+        virtual bool take_pbuf(pbuf *data) override;
+        virtual bool has_unacked_data() const override;
+        virtual void sent(uint16_t len) override;
     };
 
-    std::array<Slot, ACTIVE_CONNS> active_slots;
+    std::array<ConnectionSlot, ACTIVE_CONNS> active_slots;
     /*
      * Rotating finger to the last slot that did something. Next time we start
      * with the next one in a row to avoid starving connections.
      */
     uint8_t last_active_slot = 0;
+
+    class TransferSlot : public Slot {
+    private:
+        friend class ConnectionSlot;
+        // Bytes of data we expect to arrive from the connection.
+        size_t expected_data = 0;
+        // Requests (not bytes) submitted to the async thread, including
+        // closing of the file.
+        size_t reqs_pending = 0;
+        splice::Transfer *transfer = nullptr;
+        bool done_called = false;
+        std::optional<std::tuple<http::Status, const char *>> response;
+
+    public:
+        virtual void release() override;
+        virtual bool step() override;
+        virtual bool want_read() const override;
+        virtual bool want_write() const override;
+        virtual bool take_pbuf(pbuf *data) override;
+        virtual bool has_unacked_data() const override;
+        virtual void sent(uint16_t len) override;
+        // Callback from Write Async IO request
+        void write_done(uint16_t len, bool complete);
+        bool has_response();
+        // Callback from Done Async IO request
+        void done(std::optional<std::tuple<http::Status, const char *>> res);
+        void make_response(ConnectionSlot *slot = nullptr);
+    };
+
+    TransferSlot transfer_slot;
 
     /*
      * There's an activity on the given connection. Reset appropriate timeouts.
@@ -255,7 +324,9 @@ private:
 
     std::unique_ptr<altcp_pcb, ListenerDeleter> listener;
 
-    Slot *find_empty_slot();
+    void try_send_transfer_response(ConnectionSlot *slot);
+
+    ConnectionSlot *find_empty_slot();
     Buffer *find_empty_buffer();
     void step();
 
@@ -330,6 +401,21 @@ public:
     const char *get_password() const {
         return defs.get_password();
     }
+
+    // TODO: This is ... meh.
+    //
+    // The write requests to the IO thread report a write of this size
+    // was done.
+    //
+    // Complete means the whole batch / pbuf chain got finished.
+    //
+    // It would be better that called into the slot directly, but that
+    // would require a lot of shifting of classes to outside of the
+    // Server… leaving that refactoring for later on.
+    void write_done(uint16_t len, bool complete);
+
+    // Similar (the Done) request.
+    void transfer_done(std::optional<std::tuple<http::Status, const char *>> res);
 };
 
-}
+} // namespace nhttp

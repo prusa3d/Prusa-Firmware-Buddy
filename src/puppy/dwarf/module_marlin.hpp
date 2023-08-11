@@ -5,4 +5,4 @@ namespace marlin {
 
     void start();
 };
-};
+}; // namespace dwarf::modules

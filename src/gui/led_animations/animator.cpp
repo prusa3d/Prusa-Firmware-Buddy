@@ -67,3 +67,12 @@ bool AnimatorBase::animator_state() {
     std::lock_guard lock(mutex);
     return load_run_state();
 }
+
+void AnimatorBase::panic_off() {
+    std::lock_guard lock(mutex);
+    run = false;
+    next_animation = nullptr;
+    if (curr_animation) {
+        curr_animation->KillAnimation();
+    }
+}

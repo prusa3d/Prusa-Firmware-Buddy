@@ -97,7 +97,7 @@
 #endif
 
 #if ENABLED(NOZZLE_LOAD_CELL)
-  #include "feature/prusa/loadcell.h"
+  #include "loadcell.hpp"
 #endif
 
 #if ENABLED(POLL_JOG)

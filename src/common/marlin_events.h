@@ -74,4 +74,4 @@ enum class Cmd : uint32_t {
 
 const char *marlin_events_get_name(Event evt_id);
 
-} // marlin_server namespace
+} // namespace marlin_server

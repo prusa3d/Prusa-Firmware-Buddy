@@ -8,7 +8,7 @@
 #include <window_msgbox.hpp>
 #include <connect/connect.hpp>
 #include <connect/marlin_printer.hpp>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 using connect_client::ConnectionStatus;
 using connect_client::OnlineError;

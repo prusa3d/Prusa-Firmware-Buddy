@@ -79,6 +79,7 @@ set(WUI
     "YES"
     CACHE BOOL "Enable Web User Interface"
     )
+define_boolean_option("BUDDY_ENABLE_WUI" ${WUI})
 set(RESOURCES
     "<auto>"
     CACHE BOOL "Enable resources (managed files on external flash)"
@@ -203,6 +204,7 @@ else()
       CACHE BOOL "Enable Connect client"
       )
 endif()
+define_boolean_option(BUDDY_ENABLE_CONNECT ${CONNECT})
 
 # parse board version into its components
 string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" BOARD_VERSION_MATCH ${BOARD_VERSION})
@@ -239,7 +241,9 @@ set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI" "MK4" "MK3.5" "iX" "XL")
 set(PRINTERS_WITH_CRASH_DETECTION "MINI" "MK4" "XL") # this does require selftest to work
-set(PRINTERS_WITH_POWER_PANIC "MK4" "XL") # this does require selftest  and crash detection to work
+set(PRINTERS_WITH_POWER_PANIC "MK4" "XL") # this does require selftest and crash detection to work
+set(PRINTERS_WITH_PRECISE_HOMING "MINI" "MK4")
+set(PRINTERS_WITH_PRECISE_HOMING_COREXY "XL")
 # private MINI would not fit to 1MB so it has disabled selftest set(PRINTERS_WITH_SELFTEST "MINI"
 # "MK4")
 set(PRINTERS_WITH_SELFTEST "MK4" "MK3.5" "XL" "iX" "MINI")
@@ -258,6 +262,7 @@ set(PRINTERS_WITH_EMBEDDED_ESP32 "XL")
 set(PRINTERS_WITH_SIDE_LEDS "XL" "iX")
 set(PRINTERS_WITH_TRANSLATIONS "MINI")
 set(PRINTERS_WITH_LOVE_BOARD "MK4" "iX")
+set(PRINTERS_WITH_MMU2 "MK4" "MK3.5")
 
 # Set GUI settings
 set(PRINTERS_WITH_GUI "MINI" "MK4" "MK3.5" "XL" "iX")
@@ -351,6 +356,7 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY)
 else()
   set(INIT_TRINAMIC_FROM_MARLIN_ONLY NO)
 endif()
+define_boolean_option(INIT_TRINAMIC_FROM_MARLIN_ONLY ${INIT_TRINAMIC_FROM_MARLIN_ONLY})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_SELFTEST)
   set(HAS_SELFTEST YES)
@@ -391,6 +397,7 @@ if(${BOARD} IN_LIST BOARDS_WITH_ADVANCED_POWER)
 else()
   set(HAS_ADVANCED_POWER NO)
 endif()
+define_boolean_option(HAS_ADVANCED_POWER ${HAS_ADVANCED_POWER})
 
 if(${BOARD} IN_LIST BOARDS_WITH_ACCELEROMETER)
   set(HAS_ACCELEROMETER YES)
@@ -399,11 +406,12 @@ else()
 endif()
 define_boolean_option(HAS_ACCELEROMETER ${HAS_ACCELEROMETER})
 
-if(PRINTER STREQUAL "MK4")
+if(${PRINTER} IN_LIST PRINTERS_WITH_MMU2)
   set(HAS_MMU2 YES)
 else()
   set(HAS_MMU2 NO)
 endif()
+define_boolean_option(HAS_MMU2 ${HAS_MMU2})
 message(STATUS "MMU2: ${HAS_MMU2}")
 
 if(${TOUCH_ENABLED})
@@ -425,14 +433,14 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_BOWDEN_EXTRUDER)
 else()
   set(HAS_BOWDEN NO)
 endif()
-message(STATUS "BOWDEN EXTRUDER: ${HAS_BOWDEN}")
+define_boolean_option(HAS_BOWDEN ${HAS_BOWDEN})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_SERIAL_PRINTING)
   set(HAS_SERIAL_PRINT YES)
 else()
   set(HAS_SERIAL_PRINT NO)
 endif()
-message(STATUS "Support for printing via serial interface: ${HAS_SERIAL_PRINT}")
+define_boolean_option(HAS_SERIAL_PRINT ${HAS_SERIAL_PRINT})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_DWARF
    OR ${PRINTER} IN_LIST PRINTERS_WITH_MODULARBED
@@ -463,6 +471,7 @@ if(${PRINTER} IN_LIST PRINTERS_WITH_LEDS)
 else()
   set(HAS_LEDS NO)
 endif()
+define_boolean_option(HAS_LEDS ${HAS_LEDS})
 
 if(HAS_PUPPIES)
   set(ENABLE_PUPPY_BOOTLOAD
@@ -506,6 +515,9 @@ if(ENABLE_PUPPY_BOOTLOAD)
         CACHE PATH "Where to have build directory for the modular bed firmware."
         )
   endif()
+
+  # A BBF is required to update puppies
+  set(GENERATE_BBF "YES")
 endif()
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_PUPPIES_BOOTLOADER
@@ -553,7 +565,7 @@ else()
   define_boolean_option(HAS_EMBEDDED_ESP32 NO)
 endif()
 
-if(${PRINTER} IN_LIST PRINTERS_WITH_SIDE_LEDS)
+if(${PRINTER} IN_LIST PRINTERS_WITH_SIDE_LEDS AND NOT IS_KNOBLET)
   define_boolean_option(HAS_SIDE_LEDS YES)
 else()
   define_boolean_option(HAS_SIDE_LEDS NO)
@@ -561,8 +573,10 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEBUG YES)
+  define_boolean_option(NETWORKING_BENCHMARK_ENABLED YES)
 else()
   set(DEBUG NO)
+  define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
 endif()
 
 # define enabled features

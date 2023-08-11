@@ -11,6 +11,7 @@
 #include "log.h"
 #include "timing_precise.hpp"
 #include <option/has_puppies.h>
+#include <printers.h>
 
 // breakpoint
 #include "FreeRTOS.h"
@@ -228,7 +229,11 @@ void hw_dma_init() {
     HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
     // DMA2_Stream7_IRQn interrupt configuration
+    #if PRINTER_IS_PRUSA_iX
+    HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
+    #else
     HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, ISR_PRIORITY_DEFAULT, 0);
+    #endif
     HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 #endif
     // DMA1_Stream0_IRQn interrupt configuration
@@ -257,8 +262,12 @@ void hw_dma_init() {
     // DMA2_Stream1_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
-    // DMA2_Stream2_IRQn interrupt configuration
+// DMA2_Stream2_IRQn interrupt configuration
+#if (PRINTER_IS_PRUSA_iX)
+    HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
+#else
     HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, ISR_PRIORITY_DEFAULT, 0);
+#endif
     HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
     // DMA2_Stream2_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, ISR_PRIORITY_DEFAULT, 0);
@@ -321,7 +330,8 @@ void hw_adc1_init() {
     #error Unknown board
 #endif
 
-    HAL_NVIC_DisableIRQ(DMA2_Stream4_IRQn); // Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
+    // Disable ADC DMA IRQ by default. This is enabled on-demand by AdcMultiplexer
+    HAL_NVIC_DisableIRQ(DMA2_Stream4_IRQn);
 }
 
 #ifdef HAS_ADC3
@@ -345,7 +355,8 @@ void hw_adc3_init() {
         #error Unknown board
     #endif
 
-    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn); // Disable ADC DMA IRQ. This IRQ is not used. Save CPU usage.
+    // Disable ADC DMA IRQ by default. This is enabled on-demand by AdcMultiplexer
+    HAL_NVIC_DisableIRQ(DMA2_Stream0_IRQn);
 }
 #endif
 

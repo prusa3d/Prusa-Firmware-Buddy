@@ -31,7 +31,7 @@
 #include "../../queue.h"
 
 #if ENABLED(CRASH_RECOVERY)
-  #include "../../feature/prusa/crash_recovery.h"
+  #include "../../feature/prusa/crash_recovery.hpp"
 #endif
 
 #if ENABLED(MONITOR_DRIVER_STATUS)

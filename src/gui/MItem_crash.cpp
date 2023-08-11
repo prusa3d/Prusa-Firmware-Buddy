@@ -5,8 +5,8 @@
     #include "MItem_crash.hpp"
     #include "menu_spin_config.hpp"
     #include "../lib/Marlin/Marlin/src/module/stepper/trinamic.h"
-    #include "../Marlin/src/feature/prusa/crash_recovery.h"
-    #include <configuration_store.hpp>
+    #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
+    #include <config_store/store_instance.hpp>
 
 MI_CRASH_DETECTION::MI_CRASH_DETECTION()
     : WI_ICON_SWITCH_OFF_ON_t(0, _(label), nullptr, is_enabled_t::yes,

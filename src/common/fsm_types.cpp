@@ -58,7 +58,7 @@ const char *to_string(ClientFSM type) {
     }
     return "ERROR MEMORY CORRUPTED"; // cannot normally happen
 }
-}
+} // namespace
 
 /*****************************************************************************/
 // Queue

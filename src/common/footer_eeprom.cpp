@@ -5,7 +5,7 @@
  */
 
 #include "footer_eeprom.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 using namespace footer;
 using namespace footer::eeprom;

@@ -6,9 +6,9 @@
 #include "marlin_client.hpp"
 #include "ScreenSelftest.hpp"
 #include "ScreenHandler.hpp"
-#include "loadcell.h"
+#include "loadcell.hpp"
 #include "menu_spin_config.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 /*****************************************************************************/
 // MI_TEST_LOADCELL
@@ -18,7 +18,7 @@ MI_TEST_LOADCELL::MI_TEST_LOADCELL()
 
 void MI_TEST_LOADCELL::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmLoadcell);
+    marlin_client::test_start(stmLoadcell);
 }
 
 /*****************************************************************************/

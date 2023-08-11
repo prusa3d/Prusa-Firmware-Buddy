@@ -54,4 +54,4 @@ private:
      */
     static void check_all();
 };
-}
+} // namespace hal

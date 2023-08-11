@@ -9,8 +9,8 @@
 #include <utility>
 
 using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
-using PhaseIcons = std::array<const png::Resource *, MAX_RESPONSES>;
-using BtnResource = std::pair<const char *, const png::Resource *>;
+using PhaseIcons = std::array<const img::Resource *, MAX_RESPONSES>;
+using BtnResource = std::pair<const char *, const img::Resource *>;
 
 // todo make some automatic checks names vs enum
 // list of all button types
@@ -21,7 +21,7 @@ public:
     static constexpr const char *GetText(Response resp) {
         return texts_and_icons[static_cast<size_t>(resp)].first;
     }
-    static constexpr const png::Resource *GetIconId(Response resp) {
+    static constexpr const img::Resource *GetIconId(Response resp) {
         return texts_and_icons[static_cast<size_t>(resp)].second;
     }
 };

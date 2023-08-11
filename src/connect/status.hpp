@@ -48,4 +48,4 @@ using CommResult = std::variant<std::monostate, ConnectionStatus, OnlineError, E
 
 OnlineError err_to_status(http::Error error);
 
-}
+} // namespace connect_client

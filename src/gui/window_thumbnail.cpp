@@ -34,7 +34,7 @@ void WindowPreviewThumbnail::unconditionalDraw() {
 
     FILE f {};
 
-    png::Resource res("", 0, 0, 0, 0);
+    img::Resource res("", 0, 0, 0, 0);
     res.file = &f;
 
     fseek(file, 0, SEEK_SET);
@@ -74,7 +74,7 @@ void WindowProgressThumbnail::unconditionalDraw() {
 
     FILE f {};
 
-    png::Resource res("", 0, 0, 0, 0);
+    img::Resource res("", 0, 0, 0, 0);
     res.file = &f;
 
     fseek(file, 0, SEEK_SET);

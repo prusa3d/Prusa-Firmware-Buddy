@@ -14,7 +14,7 @@
 #include "i18n.h"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include <bitset>
 #include <option/development_items.h>
 
@@ -38,7 +38,7 @@ protected: // inherited by unit tests, must be protected
     static constexpr const char *NozzleDoesNotHaveRoundSectionMsg = N_("Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed.");
 
     struct icon_title_text_t {
-        const png::Resource *icon;
+        const img::Resource *icon;
         const char *title;
         const char *text;
     };
@@ -62,19 +62,19 @@ protected: // inherited by unit tests, must be protected
 
     // order must match to enum types
     static constexpr icon_title_text_t icon_title_text[] = {
-        { &png::fan_error_48x48, Title, HotendFanErrorMsg },
-        { &png::fan_error_48x48, Title, PrintFanErrorMsg },
+        { &img::fan_error_48x48, Title, HotendFanErrorMsg },
+        { &img::fan_error_48x48, Title, PrintFanErrorMsg },
         { nullptr, TitleNozzle, HotendTempDiscrepancyMsg },
-        { &png::exposure_times_48x48, Title, HeaterTimeoutMsg },
+        { &img::exposure_times_48x48, Title, HeaterTimeoutMsg },
 #if DEVELOPMENT_ITEMS()
-        { &png::exposure_times_48x48, Title, SteppersTimeoutMsg },
+        { &img::exposure_times_48x48, Title, SteppersTimeoutMsg },
 #endif
-        { &png::usb_error_48x48, Title, USBFlashDiskError },
+        { &img::usb_error_48x48, Title, USBFlashDiskError },
         { nullptr, Title, HeatBreakThermistorFail }, // TODO need icon for heatbreak thermistor disconnect
 #if ENABLED(POWER_PANIC)
         { nullptr, Title, HeatbedColdAfterPPMsg },
 #endif
-        { &png::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg }
+        { &img::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg }
     };
     static_assert(std::size(icon_title_text) == types::count_);
 
@@ -99,7 +99,7 @@ protected: // inherited by unit tests, must be protected
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     void show(types type);
     void screenJump();
-    void setIcon(const png::Resource *icon);
+    void setIcon(const img::Resource *icon);
     void adjustLayout();
     void setWarningText(types type);
 

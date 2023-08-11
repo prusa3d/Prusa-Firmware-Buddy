@@ -12,7 +12,7 @@
 #if BOARD_IS_XLBUDDY
     #include "src/module/prusa/toolchanger.h"
 #endif
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 namespace selftest {
 static SelftestFSensor_t staticResult; // automatically initialized by PartHandler
@@ -57,7 +57,14 @@ TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTE
             continue;
         }
 
-        in_progress = in_progress || m_pFSensor[i]->Loop();
+        if (m_pFSensor[i]->Loop()) {
+            in_progress = true;
+            break;    // Run only one Loop() at a time, test is still in progress for this tool
+        } else if (m_pFSensor[i]->GetResult() != TestResult_Passed) {
+            break;    // Test failed or skipped for this tool, abort test for all tools
+        } else {
+            continue; // Test successful for this tool continue to next tool
+        }
     }
     FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), staticResult.Serialize());
 
@@ -74,7 +81,7 @@ TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTE
 
         // Store filament sensor calibration state
         // Do not store if test was successful and now aborted, do not regress
-        if (i < EEPROM_MAX_TOOL_COUNT
+        if (i < config_store_ns::max_tool_count
             && !(eeres.tools[i].fsensor == TestResult_Passed && m_pFSensor[i]->GetResult() == TestResult_Skipped)) {
             eeres.tools[i].fsensor = m_pFSensor[i]->GetResult();
         }

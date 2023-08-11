@@ -89,4 +89,4 @@ private:
     U ptr;
 };
 
-};
+}; // namespace fsm

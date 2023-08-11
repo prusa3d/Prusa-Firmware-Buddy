@@ -107,7 +107,7 @@ protected:
 const constexpr char *const EXPECTED = "{\"hello\":true,\"world\":\"stuff\\\"escaped\",\"sub-something\":{\"answer\":42},\"list\":[{\"value\":0},{\"value\":1},{\"value\":2},{\"value\":3}]}";
 const constexpr char *const EXPECTED_WITH_INNER = "{\"hello\":\"hello world\"}";
 
-}
+} // namespace
 
 TEST_CASE("Json Big Buffer - no split") {
     TestJsonRenderer renderer;

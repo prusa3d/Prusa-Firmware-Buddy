@@ -1,7 +1,7 @@
 #pragma once
 
 #include "step.h"
-#include "../../../src/common/gcode_thumb_decoder.h"
+#include "gcode_thumb_decoder.h"
 #include "unique_file_ptr.hpp"
 
 #include <http/types.h>
@@ -29,4 +29,4 @@ public:
     handler::Step step(std::string_view input, bool terminated_by_client, uint8_t *buffer, size_t buffer_size);
 };
 
-}
+} // namespace nhttp::printer

@@ -807,4 +807,4 @@ private:
     }
 };
 
-}
+} // namespace buddy

@@ -7,6 +7,10 @@
 #include "fs_event_autolock.hpp"
 #include "static_alocation_ptr.hpp"
 #include "fsm_base_types.hpp"
+#include <option/has_toolchanger.h>
+#if HAS_TOOLCHANGER()
+    #include "screen_tools_mapping.hpp"
+#endif
 
 // inherited from ScreenPrintPreviewBase just to handel different display sizes
 // do not use AddSuperWindow<ScreenPrintPreviewBase>
@@ -25,13 +29,20 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
 
     PhasesPrintPreview phase;
 
-    using UniquePtr = static_unique_ptr<AddSuperWindow<MsgBoxIconned>>;
-    UniquePtr pMsgbox;
+    using UniquePtrBox = static_unique_ptr<AddSuperWindow<MsgBoxIconned>>;
+    UniquePtrBox pMsgbox;
 
+#if HAS_TOOLCHANGER()
+    using UniquePtrMapping = static_unique_ptr<ToolsMappingBody>;
+    UniquePtrMapping tools_mapping;
+
+    using MsgBoxMemSpace = std::aligned_union<0, MsgBoxTitled, ToolsMappingBody>::type;
+#else
     using MsgBoxMemSpace = std::aligned_union<0, MsgBoxTitled>::type;
+#endif
     MsgBoxMemSpace msgBoxMemSpace;
 
-    UniquePtr makeMsgBox(string_view_utf8 caption, string_view_utf8 text);
+    UniquePtrBox makeMsgBox(string_view_utf8 caption, string_view_utf8 text);
 
 public:
     ScreenPrintPreview();
@@ -43,5 +54,7 @@ protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 
 private:
-    bool event_in_progress { false };
+    void hide_main_dialog();
+    void show_main_dialog();
+    void show_tools_mapping();
 };

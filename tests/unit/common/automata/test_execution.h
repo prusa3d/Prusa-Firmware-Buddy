@@ -37,4 +37,4 @@ public:
     }
 };
 
-}
+} // namespace

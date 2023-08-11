@@ -14,7 +14,7 @@
 #include "marlin_server.hpp"
 #include "media.h"
 
-#include "../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.h"
+#include "../lib/Marlin/Marlin/src/feature/prusa/crash_recovery.hpp"
 #include "../lib/Marlin/Marlin/src/module/endstops.h"
 #include "../lib/Marlin/Marlin/src/module/temperature.h"
 #include "../lib/Marlin/Marlin/src/module/stepper.h"
@@ -31,6 +31,12 @@
 
 #if ENABLED(CANCEL_OBJECTS)
     #include "../Marlin/src/feature/cancel_object.h"
+#endif
+#if ENABLED(PRUSA_TOOL_MAPPING)
+    #include "module/prusa/tool_mapper.hpp"
+#endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+    #include "module/prusa/spool_join.hpp"
 #endif
 
 #include "../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
@@ -51,9 +57,20 @@
 #include "../lib/Marlin/Marlin/src/module/printcounter.h"
 
 #include "ili9488.hpp"
-#if HAS_LEDS
-    #include "../guiapi/include/gui_leds.hpp"
+#include <option/has_leds.h>
+#if HAS_LEDS()
+    #include <led_animations/animator.hpp>
 #endif
+
+#include <option/has_side_leds.h>
+#if HAS_SIDE_LEDS()
+    #include <leds/side_strip_control.hpp>
+#endif /*HAS_SIDE_LEDS()*/
+#include <option/has_puppies.h>
+#if HAS_PUPPIES()
+    #include "puppies/puppy_task.hpp"
+#endif
+#include "safe_state.h"
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
@@ -75,6 +92,10 @@ void ac_fault_task_main([[maybe_unused]] void const *argument) {
 
     // workaround for dislayTask locking the crc32 device (should be suspended instead!)
     osThreadSetPriority(displayTaskHandle, osPriorityIdle);
+#if HAS_PUPPIES()
+    // puppies will be suspended in AC fault - they are powered down and would not communicate anyway
+    buddy::puppies::suspend_puppy_task();
+#endif
 
     // switch into reaping mode: break out of any delay/signal wait until suspended
     osThreadSetPriority(NULL, osPriorityIdle);
@@ -110,19 +131,21 @@ struct flash_planner_t {
     int16_t extrude_min_temp;
 #if ENABLED(MODULAR_HEATBED)
     uint16_t enabled_bedlets_mask;
-#else
-    uint16_t _padding; // to keep alignment
+    uint8_t _padding_heat[2]; // padding to 2 or 4 bytes?
 #endif
 
+    uint16_t print_speed;
     uint8_t was_paused;
     uint8_t was_crashed;
     uint8_t fan_speed;
-    uint8_t print_speed;
     uint8_t axis_relative;
     uint8_t allow_cold_extrude;
 
+    uint8_t _padding_is[1];
+
     // IS/PA
     input_shaper::AxisConfig axis_config[3]; // XYZ
+    input_shaper::AxisConfig original_y;
     input_shaper::WeightAdjustConfig axis_y_weight_adjust;
     pressure_advance::Config axis_e_config;
 };
@@ -194,6 +217,12 @@ struct __attribute__((packed)) flash_data {
 #if ENABLED(CANCEL_OBJECTS)
         uint32_t canceled_objects;
 #endif
+#if ENABLED(PRUSA_TOOL_MAPPING)
+        ToolMapper::serialized_state_t tool_mapping;
+#endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+        SpoolJoin::serialized_state_t spool_join;
+#endif
         uint8_t invalid; // set to zero before writing, cleared on erase
 
         static void load();
@@ -207,6 +236,7 @@ struct __attribute__((packed)) flash_data {
 static_assert(sizeof(flash_data) <= FLASH_SIZE, "powerpanic data exceeds reserved storage space");
 
 enum class PPState : uint8_t {
+    // note: order is important, there is check that PPState >= Triggered
     Inactive,
     Prepared,
     Triggered,
@@ -235,6 +265,12 @@ static struct {
 
 #if ENABLED(CANCEL_OBJECTS)
     uint32_t canceled_objects;
+#endif
+#if ENABLED(PRUSA_TOOL_MAPPING)
+    ToolMapper::serialized_state_t tool_mapping;
+#endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+    SpoolJoin::serialized_state_t spool_join;
 #endif
 } state_buf;
 
@@ -305,6 +341,12 @@ void flash_data::state_t::save() {
 #if ENABLED(CANCEL_OBJECTS)
     FLASH_SAVE(state.canceled_objects, state_buf.canceled_objects);
 #endif
+#if ENABLED(PRUSA_TOOL_MAPPING)
+    FLASH_SAVE(state.tool_mapping, state_buf.tool_mapping);
+#endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+    FLASH_SAVE(state.spool_join, state_buf.spool_join);
+#endif
 
     FLASH_SAVE_EXPR(state.invalid, false);
     if (w25x_fetch_error()) {
@@ -320,6 +362,12 @@ void flash_data::state_t::load() {
     FLASH_LOAD(state.toolchanger, state_buf.toolchanger);
 #if ENABLED(CANCEL_OBJECTS)
     FLASH_LOAD(state.canceled_objects, state_buf.canceled_objects);
+#endif
+#if ENABLED(PRUSA_TOOL_MAPPING)
+    FLASH_LOAD(state.tool_mapping, state_buf.tool_mapping);
+#endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+    FLASH_LOAD(state.spool_join, state_buf.spool_join);
 #endif
     state_buf.nested_fault = true;
 }
@@ -395,8 +443,9 @@ const char *stored_media_path() {
     return state_buf.media_SFN_path;
 }
 
-bool panic_triggered() {
-    return power_panic_state == PPState::Triggered;
+bool panic_is_active() {
+    // panic loop is active when state is higher then triggered
+    return power_panic_state >= PPState::Triggered;
 }
 
 void prepare() {
@@ -546,6 +595,12 @@ void resume_loop() {
 #if ENABLED(CANCEL_OBJECTS)
         cancelable.canceled = state_buf.canceled_objects;
 #endif
+#if ENABLED(PRUSA_TOOL_MAPPING)
+        tool_mapper.deserialize(state_buf.tool_mapping);
+#endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+        spool_join.deserialize(state_buf.spool_join);
+#endif
 
 #if HAS_TOOLCHANGER()
         if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Was in toolchange area
@@ -647,6 +702,12 @@ void resume_loop() {
                 input_shaper::set_axis_config((AxisEnum)i, state_buf.planner.axis_config[i]);
         }
 
+        if (state_buf.planner.original_y.frequency == 0.f) {
+            input_shaper::set_config_for_m74(Y_AXIS, std::nullopt);
+        } else {
+            input_shaper::set_config_for_m74(Y_AXIS, state_buf.planner.original_y);
+        }
+
         if (state_buf.planner.axis_y_weight_adjust.frequency_delta != 0.f)
             input_shaper::set_axis_y_weight_adjust(std::nullopt);
         else
@@ -677,6 +738,10 @@ void resume_loop() {
     }
 }
 
+bool is_power_panic_resuming() {
+    return resume_state > ResumeState::Setup;
+}
+
 /// fully reset PP state for a new print
 void reset() {
     // reset all internal state
@@ -694,56 +759,37 @@ float distance_to_reset_point(const AxisEnum axis, uint8_t min_cycles) {
 
 uint8_t shutdown_state = 0;
 
-void shutdown_loop() {
+bool shutdown_loop() {
     // shut off devices one-at-a-time in order of power-draw/time saved
     switch (shutdown_state) {
     case 0:
-#if HAS_LEDS
-        // TODO: needs special function from @radekvana
-        leds::SetBrightness(0);
-        leds::Set0th(leds::Color(0));
-        leds::Set1st(leds::Color(0));
-        leds::Set2nd(leds::Color(0));
-        leds::TickLoop();
+#if HAS_SIDE_LEDS() || HAS_LEDS()
+        leds::enter_power_panic();
         break;
 #else
         ++shutdown_state;
         [[fallthrough]];
-#endif
+#endif /*HAS_SIDE_LEDS()*/
 
     case 1:
-#if 1
-        // TODO: needs special function from @radekvana
-        ili9488_cmd_dispoff();
+        ili9488_power_down();
+        break;
+    case 2:
+#if BOARD_IS_XLBUDDY
+        hwio_low_power_state();
         break;
 #else
         ++shutdown_state;
         [[fallthrough]];
 #endif
-
-    case 2:
-        // ethernet (PHY_POWERDOWN)
-        break;
-
-    case 3:
-        // eeprom
-        break;
-
-    case 4:
-        // accelerometer?
-        break;
-
-    case 5:
-        // esp8266?
-        break;
-
     default:
         // no more devices to shutdown, do not increment the sequence
-        return;
+        return false;
     }
 
     // advance the shutdown sequence
     ++shutdown_state;
+    return true;
 }
 
 bool shutdown_loop_checked() {
@@ -852,6 +898,12 @@ void panic_loop() {
 #if ENABLED(CANCEL_OBJECTS)
         state_buf.canceled_objects = cancelable.canceled;
 #endif
+#if ENABLED(PRUSA_TOOL_MAPPING)
+        tool_mapper.serialize(state_buf.tool_mapping);
+#endif
+#if ENABLED(PRUSA_SPOOL_JOIN)
+        spool_join.serialize(state_buf.spool_join);
+#endif
 #if HAS_TOOLCHANGER()
         // Store tool that was last requested and where to return in case toolchange is ongoing
         state_buf.toolchanger.precrash_tool = prusa_toolchanger.get_precrash().tool_nr;
@@ -907,15 +959,14 @@ void panic_loop() {
         break;
 
     case PPState::WaitingToDie:
-        shutdown_loop();
-
-        // hold the system for a while to avoid restarting for a short bursts
-        if ((ticks_ms() - state_buf.fault_stamp) >= POWER_PANIC_HOLD_RST_MS) {
-            // time's up: attempt to self-resume by resetting
-            sys_reset();
-            while (1)
-                ;
+        // turn off any remaining peripherals
+        while (shutdown_loop()) {
         }
+
+        // power panic is handled, stop execution of main thread, and wait here until CPU dies
+        while ((ticks_ms() - state_buf.fault_stamp) < POWER_PANIC_HOLD_RST_MS) {
+        }
+        sys_reset();
 
     case PPState::Inactive:
     case PPState::Prepared:
@@ -947,12 +998,17 @@ void ac_fault_isr() {
     // Mark ac_fault as triggered
     ac_fault_triggered = true;
 
+    // prevent re-entry
+    HAL_NVIC_DisableIRQ(buddy::hw::acFault.getIRQn());
+
     // check if handling the fault is worth it (printer is active or can be resumed)
     if (!state_buf.nested_fault) {
-        if ((marlin_server::printer_idle() && !marlin_server::printer_paused()) || marlin_server::aborting_or_aborted()) {
-            DISABLE_ISRS();
+        if ((marlin_server::printer_idle() && !marlin_server::printer_paused())
+            || marlin_server::aborting_or_aborted() || marlin_server::print_preview()) {
             state_buf.fault_stamp = ticks_ms();
             power_panic_state = PPState::WaitingToDie;
+            // will continue in the main loop
+            xTaskResumeFromISR(ac_fault_task);
             return;
         }
     }
@@ -964,8 +1020,6 @@ void ac_fault_isr() {
     HAL_NVIC_DisableIRQ(buddy::hw::xDiag.getIRQn());
     HAL_NVIC_DisableIRQ(buddy::hw::yDiag.getIRQn());
 
-    // prevent re-entry
-    HAL_NVIC_DisableIRQ(buddy::hw::acFault.getIRQn());
     state_buf.orig_state = power_panic_state;
     state_buf.fault_stamp = ticks_ms();
     power_panic_state = PPState::Triggered;
@@ -1063,6 +1117,11 @@ void ac_fault_isr() {
             else
                 state_buf.planner.axis_config[i] = *input_shaper::current_config().axis[i];
         }
+
+        if (!input_shaper::get_config_for_m74().axis[Y_AXIS])
+            state_buf.planner.original_y.frequency = 0.f;
+        else
+            state_buf.planner.original_y = *input_shaper::get_config_for_m74().axis[Y_AXIS];
 
         if (!input_shaper::current_config().weight_adjust_y)
             state_buf.planner.axis_y_weight_adjust.frequency_delta = 0.f;

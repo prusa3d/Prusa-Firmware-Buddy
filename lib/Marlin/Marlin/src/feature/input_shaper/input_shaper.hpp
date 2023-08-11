@@ -11,12 +11,14 @@
  * and can be fully run on a single 32-bit MCU with identical results as the implementation in Klipper.
  */
 #pragma once
+#include <array>
 #include "input_shaper_config.hpp"
 #include "../../core/types.h"
 
 struct move_t;
 struct step_event_info_t;
 struct step_generator_state_t;
+struct input_shaper_state_t;
 struct input_shaper_step_generator_t;
 
 constexpr const uint8_t MAX_INPUT_SHAPER_PULSES = 5;
@@ -46,21 +48,56 @@ struct Shaper {
 };
 
 Shaper get(double damping_ratio, double shaper_freq, double vibration_reduction, input_shaper::Type type);
-}
+} // namespace input_shaper
+
+typedef struct pulse_t {
+    double t;
+    double a;
+} pulse_t;
 
 typedef struct input_shaper_pulses_t {
     uint8_t num_pulses;
-    struct {
-        double t;
-        double a;
-    } pulses[MAX_INPUT_SHAPER_PULSES];
+    std::array<pulse_t, MAX_INPUT_SHAPER_PULSES> pulses;
 } input_shaper_pulses_t;
 
-typedef struct input_shaper_state_t {
-    const move_t *m[MAX_INPUT_SHAPER_PULSES];
-    double next_change[MAX_INPUT_SHAPER_PULSES];
+typedef struct logical_axis_input_shaper_t {
+    std::array<const move_t *, MAX_INPUT_SHAPER_PULSES> m_move;
+    std::array<double, MAX_INPUT_SHAPER_PULSES> m_next_change;
+
+    const input_shaper_pulses_t *m_pulses;
+
     // The largest index corresponds to the pointer to the rightmost time point (on the time axis).
     // And index zero corresponds to the pointer to the leftmost time point (on the time axis).
+    double m_start_pos;
+    double m_start_v;
+    double m_half_accel;
+    uint8_t m_axis;
+    double m_print_time;
+    uint8_t m_nearest_next_change_idx;
+
+    void init(const move_t &move, uint8_t axis);
+
+    bool update(const input_shaper_state_t &axis_is);
+
+    void set_nearest_next_change(double new_nearest_next_change);
+
+    uint8_t calc_nearest_next_change_idx() const;
+
+    double calc_half_accel() const;
+
+    double get_nearest_next_change() const {
+        return m_next_change[m_nearest_next_change_idx];
+    }
+
+    const move_t *load_next_move_segment(uint8_t m_idx);
+} logical_axis_input_shaper_t;
+
+typedef struct input_shaper_state_t {
+#ifdef COREXY
+    std::array<logical_axis_input_shaper_t, 2> m_axis_shaper;
+#else
+    std::array<logical_axis_input_shaper_t, 1> m_axis_shaper;
+#endif
 
     double start_pos;
     double start_v;
@@ -70,12 +107,8 @@ typedef struct input_shaper_state_t {
     double nearest_next_change;
     double print_time;
 
-    uint8_t nearest_next_change_idx;
-
     // Indicates if the current micro move segment is crossing zero velocity (needed change of stepper motor direction).
     bool is_crossing_zero_velocity;
-
-    FORCE_INLINE const move_t *load_next_move_segment(uint8_t m_idx);
 } input_shaper_state_t;
 
 input_shaper_pulses_t create_null_input_shaper_pulses();
@@ -96,9 +129,7 @@ class InputShaper {
 
 public:
     static input_shaper_state_t is_state[3];
-    static input_shaper_pulses_t is_pulses[3];
-
-    static bool enabled;
+    static input_shaper_pulses_t logical_axis_pulses[3];
 
     InputShaper() = default;
 };
@@ -109,6 +140,4 @@ void input_shaper_step_generator_init(const move_t &move, input_shaper_step_gene
 
 FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator_t &step_generator);
 
-void input_shaper_state_init(input_shaper_state_t &is_state, const input_shaper_pulses_t &is_pulses, const move_t &move, uint8_t axis);
-
-FORCE_INLINE std::pair<double, uint8_t> input_shaper_state_calc_nearest_next_change(const input_shaper_state_t &is_state, const input_shaper_pulses_t &is_pulses);
+void input_shaper_state_init(input_shaper_state_t &is_state, const move_t &move, uint8_t axis);

@@ -48,11 +48,11 @@ enum {
     MIC_ALT_CL_BOT_LEFT = 1 << 7,
 };
 
-namespace png {
+namespace img {
 /**
  * @brief this struct handles PNG resources
  * all pngs share single file and have offset
- * this shred file os opened at first acces and never closed
+ * this shred file is opened at first access and never closed
  *
  * If this struct is used for some temporary file, close of that file must be called manually (we need trivial destructor)
  * There is a child structure ResourceSingleFile to handle it automatically
@@ -87,9 +87,9 @@ private:
 };
 
 struct BtnIconRes {
-    const png::Resource *normal;
-    const png::Resource *focused;
-    const png::Resource *disabled;
+    const img::Resource *normal;
+    const img::Resource *focused;
+    const img::Resource *disabled;
 };
 
 /**
@@ -101,7 +101,7 @@ struct ResourceSingleFile : public Resource {
     ~ResourceSingleFile();
 };
 
-} // namespace png
+} // namespace img
 
 enum class EFooter { Off,
     On };
@@ -128,7 +128,9 @@ using point_ui16_t = point_t<uint16_t>;
 
 enum class layout_color : uint8_t { leave_it,
     black,
-    red };
+    red,
+    blue,
+};
 
 struct GUIStartupProgress {
     unsigned percent_done;

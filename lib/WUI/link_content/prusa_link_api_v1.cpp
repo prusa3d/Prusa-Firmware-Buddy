@@ -53,7 +53,7 @@ namespace {
         case DeviceState::Printing:
         case DeviceState::Paused:
         case DeviceState::Attention:
-            marlin_print_abort();
+            marlin_client::print_abort();
             return StatusPage(Status::NoContent, parser);
         default:
             return StatusPage(Status::Conflict, parser);
@@ -62,7 +62,7 @@ namespace {
 
     ConnectionState pause_print(const RequestParser &parser) {
         if (printer_state::get_state(false) == DeviceState::Printing) {
-            marlin_print_pause();
+            marlin_client::print_pause();
             return StatusPage(Status::NoContent, parser);
         } else {
             return StatusPage(Status::Conflict, parser);
@@ -71,7 +71,7 @@ namespace {
 
     ConnectionState resume_print(const RequestParser &parser) {
         if (printer_state::get_state(false) == DeviceState::Paused) {
-            marlin_print_resume();
+            marlin_client::print_resume();
             return StatusPage(Status::NoContent, parser);
         } else {
             return StatusPage(Status::Conflict, parser);
@@ -87,7 +87,7 @@ namespace {
             return StatusPage(Status::BadRequest, parser);
         }
     }
-}
+} // namespace
 
 optional<ConnectionState> PrusaLinkApiV1::accept(const RequestParser &parser) const {
     // This is a little bit of a hack (similar one is in Connect). We want to
@@ -201,4 +201,4 @@ optional<ConnectionState> PrusaLinkApiV1::accept(const RequestParser &parser) co
 
 const PrusaLinkApiV1 prusa_link_api_v1;
 
-}
+} // namespace nhttp::link_content

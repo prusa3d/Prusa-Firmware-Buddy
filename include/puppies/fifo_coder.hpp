@@ -80,7 +80,7 @@ template <>
 inline constexpr MessageType message_type<AccelerometerFastData>() {
     return MessageType::accelerometer_fast;
 }
-}
+} // namespace common::puppies::fifo
 
 namespace dwarf::accelerometer {
 struct AccelerometerRecord {
@@ -89,4 +89,4 @@ struct AccelerometerRecord {
     uint16_t y;
     uint16_t z;
 };
-}
+} // namespace dwarf::accelerometer

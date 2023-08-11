@@ -26,4 +26,4 @@ namespace selftest {
  * @return false continue to next selftest state
  */
 TestReturn phaseFSensor(const uint8_t tool_mask, std::array<IPartHandler *, HOTENDS> &m_pFSensor, const std::array<const FSensorConfig_t, HOTENDS> &configs);
-};
+}; // namespace selftest

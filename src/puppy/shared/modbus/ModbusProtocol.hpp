@@ -52,4 +52,4 @@ void SetOnReadFIFOCallback(OnReadFIFOCallback pCallback);
 
 bool ProcessFrame(ModbusBuffer *pRX_Buffer, ModbusBuffer *pTX_Buffer);
 
-} // namespace
+} // namespace modbus::ModbusProtocol

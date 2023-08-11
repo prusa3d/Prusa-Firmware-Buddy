@@ -15,7 +15,7 @@ void MI_HEAT_ENTIRE_BED::OnChange(size_t old_index) {
     config_store().heat_entire_bed.set(!old_index);
     index = !old_index;
     if (index == 1) {
-        marlin_gcode("M556 A"); // enable all bedlets now
+        marlin_client::gcode("M556 A"); // enable all bedlets now
     }
 }
 

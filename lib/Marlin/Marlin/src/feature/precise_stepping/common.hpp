@@ -172,23 +172,19 @@ typedef struct move_segment_step_generator_t : basic_step_generator_t {
 struct step_generator_state_t;
 typedef step_event_info_t (*generator_next_step_f)(move_segment_step_generator_t &step_generator, step_generator_state_t &step_generator_state, const double flush_time);
 
+typedef uint8_t step_index_t;
+
 struct step_generator_state_t {
     basic_step_generator_t *step_generator[4];
     generator_next_step_f next_step_func[4];
     step_event_info_t step_events[4];
-    size_t nearest_step_event_idx;
+    std::array<step_index_t, 4> step_event_index;
     double previous_step_time;
 
-    StepEventFlag_t flags;
+    StepEventFlag_t flags;      // current axis/direction flags
+    step_event_t buffered_step; // accumulator for multi-axis step fusion
 
     xyze_long_t current_distance;
-
-    // It represents the maximum value of how far in the time can some step event generators point.
-    // Used for computing flush time that ensures that none of the step event generators will produce step
-    // event beyond the flush time. Because for the same state of the move segment queue, some step
-    // event generator could generate step events far away from others, which could let to incorrect
-    // ordering of step events.
-    double max_lookback_time;
 
     // Number of markers indicating the start of move segments that need to be inserted into step events.
     // Be aware that very short move segments could produce just one single step event or none step event
@@ -205,7 +201,6 @@ typedef struct classic_step_generator_t : move_segment_step_generator_t {
 
 typedef struct input_shaper_step_generator_t : move_segment_step_generator_t {
     input_shaper_state_t *is_state = nullptr;
-    input_shaper_pulses_t *is_pulses = nullptr;
 } input_shaper_step_generator_t;
 
 typedef struct pressure_advance_step_generator_t : basic_step_generator_t {

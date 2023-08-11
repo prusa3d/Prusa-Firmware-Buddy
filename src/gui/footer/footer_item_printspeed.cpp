@@ -3,13 +3,13 @@
  */
 
 #include "footer_item_printspeed.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "i18n.h"
 #include <algorithm>
 
 FooterItemSpeed::FooterItemSpeed(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::speed_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::speed_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemSpeed::static_readValue() {

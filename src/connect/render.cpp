@@ -216,7 +216,7 @@ namespace {
                 JSON_FIELD_OBJ("data");
                     JSON_FIELD_STR("firmware", info.firmware_version) JSON_COMMA;
                     JSON_FIELD_PRINTER_TYPE JSON_COMMA;
-                    JSON_FIELD_STR("sn", info.serial_number.txt) JSON_COMMA;
+                    JSON_FIELD_STR("sn", info.serial_number.begin()) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;
                     JSON_FIELD_FFIXED("nozzle_diameter", params.nozzle_diameter, 2) JSON_COMMA;
@@ -462,7 +462,7 @@ namespace {
         }
 #endif
     }
-}
+} // namespace
 
 PreviewRenderer::PreviewRenderer(FILE *f)
     // Ask for anything bigger than 16x16 (at least 17x17).
@@ -536,7 +536,7 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
     // end ‒ we don't want to read through all the long gcode in the middle.
     // Of course, if the file is shorter, we just start from the beginning instead.
     if (resume_position == 0) {
-        if (fseek(f, -f_gcode_search_last_x_bytes, SEEK_END) != 0) {
+        if (fseek(f, -gcode::search_last_x_bytes, SEEK_END) != 0) {
             fseek(f, 0, SEEK_SET);
         }
     } else {
@@ -754,4 +754,4 @@ JsonResult Renderer::renderState(size_t resume_point, JsonOutput &output, Render
         state.action);
 }
 
-}
+} // namespace connect_client

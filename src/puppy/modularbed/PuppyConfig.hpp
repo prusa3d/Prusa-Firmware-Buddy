@@ -95,7 +95,7 @@ inline constexpr auto count = 2;
 inline void assert_idx([[maybe_unused]] const uint8_t idx) {
     assert(idx == A || idx == B);
 }
-};
+}; // namespace Branch
 
 inline constexpr std::array<float, Branch::count> OVERCURRENT_THRESHOLD_AMPS { 10.5f, 6.3f };
 inline constexpr std::array<float, Branch::count> UNEXPECTED_CURRENT_TOLERANCE { 2.0f, 1.2f };

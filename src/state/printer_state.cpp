@@ -21,6 +21,7 @@ namespace {
         case State::WaitGui:
         case State::PrintPreviewInit:
         case State::PrintPreviewImage:
+        case State::PrintPreviewToolsMapping:
         case State::PrintInit:
         case State::Exit:
             if (ready) {
@@ -101,7 +102,7 @@ namespace {
             return false;
         }
     }
-}
+} // namespace
 
 DeviceState get_state(bool ready) {
     auto fsm_change = marlin_vars()->get_last_fsm_change();
@@ -187,4 +188,4 @@ const char *to_str(DeviceState state) {
     }
 }
 
-}
+} // namespace printer_state

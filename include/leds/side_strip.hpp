@@ -64,4 +64,4 @@ private:
 
 extern SideStrip side_strip;
 
-}
+} // namespace leds

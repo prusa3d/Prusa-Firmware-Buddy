@@ -41,7 +41,7 @@
   #include "../../../feature/bed_preheat.hpp"
 
   #if ENABLED(NOZZLE_LOAD_CELL)
-    #include "feature/prusa/loadcell.h"
+    #include "loadcell.hpp"
   #endif
 
   #if ENABLED(DUAL_X_CARRIAGE)

@@ -7,11 +7,12 @@
 #include "screen_reset_error.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#if HAS_LEDS
+#include <option/has_leds.h>
+#if HAS_LEDS()
     #include "led_animations/animator.hpp"
 #endif
 
-struct ScreenErrorQR : public AddSuperWindow<screen_reset_error_data_t> {
+struct ScreenErrorQR : public AddSuperWindow<ScreenResetError> {
 
     window_header_t header;
     window_text_t err_title;
@@ -21,10 +22,7 @@ struct ScreenErrorQR : public AddSuperWindow<screen_reset_error_data_t> {
     window_text_t help_txt;
     window_text_t help_link;
     window_text_t qr_code_txt;
-    window_text_t fw_version_txt;
-    window_text_t signature_txt;
-    window_text_t appendix_txt;
-#if HAS_LEDS
+#if HAS_LEDS()
     AnimatorLCD::AnimationGuard anim;
 #endif
     window_t title_line;

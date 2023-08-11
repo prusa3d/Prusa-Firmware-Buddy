@@ -1,6 +1,28 @@
 #pragma once
 
-#include "eeprom.h"
+#include <config_store/constants.hpp>
+#include <config_store/old_eeprom/constants.hpp>
+
+/**
+ * @brief Generic selftest results.
+ */
+typedef enum {
+    TestResult_Unknown = 0,
+    TestResult_Skipped = 1,
+    TestResult_Passed = 2,
+    TestResult_Failed = 3,
+} TestResult;
+
+/**
+ * @brief Selftest results for a network interface.
+ */
+typedef enum {
+    TestResultNet_Unknown = 0,   // test did not run
+    TestResultNet_Unlinked = 1,  // wifi not present, eth cable unplugged
+    TestResultNet_Down = 2,      // wifi present, eth cable plugged, not selected in lan settings
+    TestResultNet_NoAddress = 3, // wifi present, no address obtained from DHCP
+    TestResultNet_Up = 4,        // wifi present, eth cable plugged, selected in lan settings
+} TestResultNet;
 
 #pragma pack(push, 1)
 /**
@@ -32,7 +54,7 @@ struct SelftestResult_pre_23 {
     TestResultNet eth : 3;
     TestResultNet wifi : 3;
     TestResult zalign : 2;
-    SelftestTool_pre_23 tools[EEPROM_MAX_TOOL_COUNT];
+    SelftestTool_pre_23 tools[config_store_ns::old_eeprom::EEPROM_MAX_TOOL_COUNT];
 };
 
 bool operator==(SelftestResult_pre_23 lhs, SelftestResult_pre_23 rhs);
@@ -65,7 +87,7 @@ struct SelftestResultV23 {
     TestResultNet eth : 3;
     TestResultNet wifi : 3;
     TestResult zalign : 2;
-    SelftestTool tools[EEPROM_MAX_TOOL_COUNT];
+    SelftestTool tools[config_store_ns::old_eeprom::EEPROM_MAX_TOOL_COUNT];
 };
 
 /**
@@ -74,14 +96,14 @@ struct SelftestResultV23 {
 struct SelftestResult {
     SelftestResult() = default;
     SelftestResult(const SelftestResult_pre_23 &sr_pre23);
-    TestResult xaxis : 2;
-    TestResult yaxis : 2;
-    TestResult zaxis : 2;
-    TestResult bed : 2;
-    TestResultNet eth : 3;
-    TestResultNet wifi : 3;
-    TestResult zalign : 2;
-    SelftestTool tools[EEPROM_MAX_TOOL_COUNT];
+    TestResult xaxis : 2 {};
+    TestResult yaxis : 2 {};
+    TestResult zaxis : 2 {};
+    TestResult bed : 2 {};
+    TestResultNet eth : 3 {};
+    TestResultNet wifi : 3 {};
+    TestResult zalign : 2 {};
+    SelftestTool tools[config_store_ns::max_tool_count] {};
 };
 
 bool operator==(SelftestResult lhs, SelftestResult rhs);

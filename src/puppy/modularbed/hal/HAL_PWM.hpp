@@ -10,4 +10,4 @@ void AddPWMPulse(uint32_t heatbedletIndex, uint32_t pulseStartEdge, uint32_t pul
 void ApplyPWMPattern();
 void TurnOffAll();
 
-} // namespace
+} // namespace hal::PWMDriver

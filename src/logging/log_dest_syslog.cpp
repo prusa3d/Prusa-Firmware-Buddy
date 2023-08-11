@@ -6,7 +6,7 @@
 #include "log_dest_syslog.h"
 #include "log_platform.h"
 #include "syslog.h"
-#include "otp.h"
+#include "otp.hpp"
 #include <option/development_items.h>
 
 osMutexDef(syslog_buffer_lock);
@@ -59,9 +59,9 @@ void syslog_format_event(log_event_t *event, void (*out_fn)(char character, void
     const int facility = 1; // user level message
     int severity = log_severity_to_syslog_severity(event->severity);
     int priority = facility * 8 + severity;
-    const char *hostname = otp_get_mac_address_str();
+    auto hostname = otp_get_mac_address_str();
     const char *appname = "buddy";
-    fctprintf(out_fn, arg, "<%i>1 - %s %s %s - - ", priority, hostname, appname, event->component->name);
+    fctprintf(out_fn, arg, "<%i>1 - %s %s %s - - ", priority, hostname.data(), appname, event->component->name);
     vfctprintf(out_fn, arg, event->fmt, *event->args);
 }
 

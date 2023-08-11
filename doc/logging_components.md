@@ -15,7 +15,7 @@ This file is generated automatically so don't edit it directly
 - Dwarf_4: LOG_SEVERITY_INFO, src/puppies/Dwarf.cpp
 - Dwarf_5: LOG_SEVERITY_INFO, src/puppies/Dwarf.cpp
 - Dwarf_6: LOG_SEVERITY_INFO, src/puppies/Dwarf.cpp
-- EEPROM: LOG_SEVERITY_INFO, src/common/eeprom.cpp
+- EEPROM: LOG_SEVERITY_INFO, src/persistent_stores/store_instances/config_store/store_c_api.cpp
 - ESPIF: LOG_SEVERITY_INFO, lib/WUI/espif.cpp
 - EspFlash: LOG_SEVERITY_DEBUG, lib/WUI/esp_flash.cpp
 - FSM: LOG_SEVERITY_INFO, src/common/fsm_types.cpp

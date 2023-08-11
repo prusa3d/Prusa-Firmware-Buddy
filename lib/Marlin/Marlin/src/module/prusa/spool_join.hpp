@@ -17,10 +17,12 @@
 class SpoolJoin {
 public:
     /// Spool join configuration structure
-    struct join_config_t {
+    struct __attribute__((packed)) join_config_t {
         uint8_t spool_1; // when this spool runs-out, spool2 will continue
         uint8_t spool_2;
     };
+
+    static constexpr uint8_t reset_value { std::numeric_limits<uint8_t>::max() };
 
     SpoolJoin() { reset(); }
 
@@ -31,6 +33,15 @@ public:
     /// Note: spool_1/2 refers to physical tool
     bool add_join(uint8_t spool_1, uint8_t spool_2);
 
+    // reroutes all succeeding joins to previous ones
+    bool remove_joins_containing(uint8_t spool);
+
+    // gets the first spool that will be printed with in the spool join chain
+    uint8_t get_earliest_spool_1(uint8_t spool_2) const;
+
+    // gets the spool_2 of the given spool_1
+    std::optional<uint8_t> get_join_for_tool(uint8_t tool);
+
     // return number of configured joins
     inline uint8_t get_num_joins() { return num_joins; }
 
@@ -39,12 +50,21 @@ public:
 
     /// Execute join
     bool do_join(uint8_t current_tool);
+    struct __attribute__((packed)) serialized_state_t {
+        join_config_t joins[EXTRUDERS];
+    };
+    /// Serialize data to packed serialized_state_t structure (for power panic)
+    void serialize(serialized_state_t &to);
+
+    /// deserialize data from packed serialized_state_t (recovery from power panic)
+    void deserialize(serialized_state_t &from);
 
 private:
-    uint8_t num_joins;                              ///< Total number of joins
-    std::array<join_config_t, EXTRUDERS - 1> joins; /// Configured joins
+    /// Removes join at idx from joins array and moves the last element into the idx position, so that new element can be inserted at the end again
+    void remove_join_at(size_t idx);
 
-    std::optional<uint8_t> get_join_for_tool(uint8_t tool);
+    uint8_t num_joins;                              ///< Total number of joins
+    std::array<join_config_t, EXTRUDERS - 1> joins; /// Configured joins, guaranteed that 0 ... num_joins - 1 are valid joins (but not any type of sort)
 };
 
 extern SpoolJoin spool_join;

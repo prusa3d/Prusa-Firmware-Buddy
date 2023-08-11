@@ -22,7 +22,7 @@ constexpr Animation_model default_animations[] {
     { static_cast<uint8_t>(AnimationTypes::Fading), 0, 255, 0, 1500, 0, 0 },    // EEVAR_ANIMATION_POWER_UP
 };
 static_assert(std::size(default_animations) == 9, "That's how many there were in old eeprom");
-}
+} // namespace
 
 PrinterState leds::mpsToAnimationState(marlin_server::State state) {
     switch (state) {
@@ -30,6 +30,7 @@ PrinterState leds::mpsToAnimationState(marlin_server::State state) {
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
     case State::PrintPreviewQuestions:
+    case State::PrintPreviewToolsMapping:
     case State::Exit:
         return PrinterState::Idle;
     case State::WaitGui:

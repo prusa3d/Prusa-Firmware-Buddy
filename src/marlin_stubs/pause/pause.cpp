@@ -39,7 +39,8 @@
 #include "fsm_loadunload_type.hpp"
 #include "RAII.hpp"
 #include <cmath>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
+#include <option/has_mmu2.h>
 
 #ifndef NOZZLE_UNPARK_XY_FEEDRATE
     #define NOZZLE_UNPARK_XY_FEEDRATE NOZZLE_PARK_XY_FEEDRATE
@@ -488,7 +489,7 @@ void Pause::loop_load_mmu([[maybe_unused]] Response response) {
     switch (getLoadPhase()) {
     case LoadPhases_t::_init: {
         auto nextPhase = LoadPhases_t::_finish;
-        if constexpr (HAS_MMU2) {
+        if constexpr (option::has_mmu2) {
             if (!MMU2::mmu2.load_filament_to_nozzle(settings.mmu_filament_to_load)) {
                 // TODO tell user that he has already loaded filament if he really wants to continue
                 // TODO check fsensor .. how should I behave if filament is not detected ???
@@ -906,7 +907,7 @@ void Pause::loop_unload_mmu([[maybe_unused]] Response response) {
     // transitions
     switch (getUnloadPhase()) {
     case UnloadPhases_t::_init:
-        if constexpr (HAS_MMU2)
+        if constexpr (option::has_mmu2)
             MMU2::mmu2.unload();
         set(UnloadPhases_t::_finish);
         break;

@@ -64,7 +64,7 @@ struct Test {
     }
 };
 
-}
+} // namespace
 
 TEST_CASE("Success scenario") {
     Test test;

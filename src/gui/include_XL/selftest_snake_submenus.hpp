@@ -20,7 +20,7 @@ namespace detail {
 
     using ScreenMenuFilamentSensorsCalibration = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
         MI_STS_FSensor_Calibration<Tool::Tool1>, MI_STS_FSensor_Calibration<Tool::Tool2>, MI_STS_FSensor_Calibration<Tool::Tool3>, MI_STS_FSensor_Calibration<Tool::Tool4>, MI_STS_FSensor_Calibration<Tool::Tool5>>;
-}
+} // namespace detail
 
 class ScreenMenuDockCalibration : public detail::ScreenMenuDockCalibration {
 public:
@@ -53,4 +53,4 @@ public:
 };
 
 void open_submenu(Action action);
-}
+} // namespace SelftestSnake

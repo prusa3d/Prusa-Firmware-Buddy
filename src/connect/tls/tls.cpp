@@ -27,7 +27,7 @@ struct InitContexts {
     }
 };
 
-}
+} // namespace
 
 namespace connect_client {
 
@@ -156,4 +156,4 @@ bool tls::poll_readable(uint32_t) {
     return true;
 }
 
-}
+} // namespace connect_client

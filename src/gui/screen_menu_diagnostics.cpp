@@ -4,11 +4,11 @@
 
 #include "screen_menu_diagnostics.hpp"
 #include "DialogMoveZ.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ScreenMenuDiagnostics::ScreenMenuDiagnostics()
     : ScreenMenuDiagnostics__(_(label)) {
-    header.SetIcon(&png::settings_16x16);
+    header.SetIcon(&img::settings_16x16);
 }
 
 void ScreenMenuDiagnostics::ScreenMenuDiagnostics::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {

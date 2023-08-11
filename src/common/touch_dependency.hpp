@@ -12,4 +12,4 @@ bool is_enabled();
 void enable();
 void disable();
 int get_touch_read_err_total();
-};
+}; // namespace touch

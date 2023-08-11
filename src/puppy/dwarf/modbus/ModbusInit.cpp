@@ -34,4 +34,4 @@ void modbus_init() {
     assert(ret);
 }
 
-}
+} // namespace dwarf

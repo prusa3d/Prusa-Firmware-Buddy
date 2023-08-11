@@ -56,4 +56,4 @@ public:
     void reset(const Block &iv, uint32_t size);
 };
 
-}
+} // namespace transfers

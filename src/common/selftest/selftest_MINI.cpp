@@ -9,7 +9,7 @@
 #include "selftest_firstlayer.hpp"
 #include "stdarg.h"
 #include "app.h"
-#include "otp.h"
+#include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
@@ -28,7 +28,7 @@
 #include "fanctl.hpp"
 #include "timing.h"
 #include "selftest_result_type.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 using namespace selftest;
 

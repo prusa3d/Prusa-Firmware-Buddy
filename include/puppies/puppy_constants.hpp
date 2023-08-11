@@ -140,4 +140,4 @@ constexpr uint8_t to_info_idx(Dock dock) {
 }
 
 static_assert(static_cast<uint8_t>(Dock::LAST) + 1 == dock_info.size(), "Each dock must have defined info");
-}
+} // namespace buddy::puppies

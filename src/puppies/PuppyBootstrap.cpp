@@ -13,8 +13,7 @@
 #include "tasks.hpp"
 #include "timing.h"
 #include "bsod.h"
-#include "otp.h"
-#include "device/board.h"
+#include "otp.hpp"
 #include <option/has_puppies_bootloader.h>
 #include <option/puppy_flash_fw.h>
 #include <option/has_dwarf.h>
@@ -314,17 +313,9 @@ void PuppyBootstrap::reset_puppies_range(Dock from, Dock to) {
         }
     };
 
-#if BOARD_IS_XBUDDY
-    write_puppies_reset_pin(from, to, Pin::State::low);
-    osDelay(1);
-    write_puppies_reset_pin(from, to, Pin::State::high);
-#elif BOARD_IS_XLBUDDY
     write_puppies_reset_pin(from, to, Pin::State::high);
     osDelay(1);
     write_puppies_reset_pin(from, to, Pin::State::low);
-#else
-    #error("Not defined for this board.")
-#endif
 }
 
 bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address address) {
@@ -357,19 +348,19 @@ bool PuppyBootstrap::discover(PuppyType type, BootloaderProtocol::Address addres
     }
 
     // Here it is possible to read raw puppy's OTP before flashing, perhaps to flash a different firmware
-    datamatrix_t puppy_datamatrix {};
     if (protocol_version >= 0x0302) { // OTP read was added in protocol 0x0302
 
         uint8_t otp[32];              // OTP v5 will fit to 32 Bytes
         if (check_status(flasher.read_otp_cmd(0, otp, 32)) == false) {
             return false;
         }
-
-        if (otp_parse_datamatrix(&puppy_datamatrix, otp, sizeof(otp)) == false) {
+        auto puppy_datamatrix = otp_parse_datamatrix(otp, sizeof(otp));
+        if (puppy_datamatrix) {
+            log_info(Puppies, "Puppy's hardware ID is %d with revision %d", puppy_datamatrix->product_id, puppy_datamatrix->revision);
+        } else {
             log_warning(Puppies, "Puppy's hardware ID was not written properly to its OTP");
         }
     } // else - older bootloader has revision 0
-    log_info(Puppies, "Puppy's hardware ID is %d with revision %d", puppy_datamatrix.product_id, puppy_datamatrix.revision);
 
     if (hwinfo.hw_type != puppy_info[type].hw_info_hwtype) {
         fatal_error(ErrCode::ERR_SYSTEM_PUPPY_UNKNOWN_TYPE);
@@ -539,4 +530,4 @@ void PuppyBootstrap::start_fingerprint_computation(BootloaderProtocol::Address a
     flasher.compute_fingerprint(salt);
 }
 
-}
+} // namespace buddy::puppies

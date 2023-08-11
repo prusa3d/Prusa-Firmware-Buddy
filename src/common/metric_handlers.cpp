@@ -7,7 +7,7 @@
 #include "stm32f4xx_hal.h"
 #include "timing.h"
 #include "syslog.h"
-#include "otp.h"
+#include "otp.hpp"
 #include "sensor_data_buffer.h"
 #include <option/development_items.h>
 
@@ -116,7 +116,7 @@ static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp)
     return snprintf(
         buffer, buffer_len,
         "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=3 ",
-        facility * 8 + severity, otp_get_mac_address_str(), appname, message_id++, timestamp);
+        facility * 8 + severity, otp_get_mac_address_str().data(), appname, message_id++, timestamp);
 }
 
 static void syslog_handler(metric_point_t *point) {

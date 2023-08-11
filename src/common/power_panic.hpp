@@ -5,7 +5,7 @@
 namespace power_panic {
 
 // Return true if PowerPanic has been triggered and the panic_loop() should be called
-bool panic_triggered();
+bool panic_is_active();
 
 // Main fault loop handler
 void panic_loop();
@@ -36,6 +36,8 @@ void resume_continue();
 // Main resume loop handler
 void resume_loop();
 
+bool is_power_panic_resuming();
+
 // A power panic is triggered only in the event of an AC power failure in the print state
 // ac_fault_triggered is set in all cases of AC power failure (it is used to disable EEPROM writing)
 extern std::atomic_bool ac_fault_triggered;
@@ -54,4 +56,4 @@ extern osThreadId ac_fault_task;
 
 void ac_fault_task_main(void const *argument);
 
-};
+}; // namespace power_panic

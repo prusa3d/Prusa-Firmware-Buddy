@@ -1,5 +1,5 @@
 #include <window_tool_action_box.hpp>
-#include <png_resources.hpp>
+#include <img_resources.hpp>
 #include <marlin_client.hpp>
 
 using namespace ToolBox;
@@ -52,10 +52,10 @@ is_hidden_t get_hidden_state(Tool tool, Action action, bool hidden_if_inactive) 
     return is_hidden_t::yes;
 }
 
-const png::Resource *get_icon(Action action) {
+const img::Resource *get_icon(Action action) {
     switch (action) {
     case Action::Return:
-        return &png::folder_up_16x16;
+        return &img::folder_up_16x16;
     default:
         return nullptr;
     }
@@ -73,16 +73,16 @@ void ToolBox::I_MI_TOOL::set_parent(IDialog *parent_) {
 void ToolBox::I_MI_TOOL::do_click(IWindowMenu &window_menu, Tool tool, Action action, bool close_on_click) {
     switch (action) {
     case Action::PickInactive:
-        marlin_gcode_printf("T%d S", ftrstd::to_underlying(tool));
+        marlin_client::gcode_printf("T%d S", ftrstd::to_underlying(tool));
         wait_until_done();
         break;
     case Action::Park:
-        marlin_gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+        marlin_client::gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
         wait_until_done();
         break;
     case Action::CalibrateDock:
 #if HAS_SELFTEST()
-        marlin_test_start_for_tools(stmDocks, 1 << ftrstd::to_underlying(tool));
+        marlin_client::test_start_for_tools(stmDocks, 1 << ftrstd::to_underlying(tool));
 #endif
         break;
     case Action::PickCurrent: // do nothing (Pick what is already picked)

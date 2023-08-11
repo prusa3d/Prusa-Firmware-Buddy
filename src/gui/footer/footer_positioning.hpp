@@ -20,4 +20,4 @@ constexpr Rect16 LineRect(size_t line_no) {
     return ret;
 }
 
-}
+} // namespace footer

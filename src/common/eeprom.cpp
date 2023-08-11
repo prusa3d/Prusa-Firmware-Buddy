@@ -1,3 +1,0 @@
-#include "log.h"
-
-LOG_COMPONENT_DEF(EEPROM, LOG_SEVERITY_INFO);

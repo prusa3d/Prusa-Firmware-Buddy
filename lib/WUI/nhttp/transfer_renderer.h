@@ -26,4 +26,4 @@ public:
         , api(api) {}
     virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, TransferState &state) const override;
 };
-}
+} // namespace nhttp::handler

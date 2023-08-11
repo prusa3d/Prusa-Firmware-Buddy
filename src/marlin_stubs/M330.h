@@ -15,4 +15,4 @@ void M332(); ///< disable metric
 void M333(); ///< print metrics and their settings for selected handler
 void M334(); ///< handler-specific configuration
 /// @}
-}
+} // namespace PrusaGcodeSuite

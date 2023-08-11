@@ -4,10 +4,10 @@
 #include "gui_media_events.hpp"
 #include "time_tools.hpp"
 #include "cpu_utils.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "netdev.h"
 #include "transfers/monitor.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 static const uint16_t span = 4;
 static const uint8_t x_offset = 14;
@@ -102,7 +102,7 @@ void window_header_t::updateTransfer() {
     last_transfer_progress = transfer_progress;
 }
 
-void window_header_t::SetIcon(const png::Resource *res) {
+void window_header_t::SetIcon(const img::Resource *res) {
     icon_base.SetRes(res);
     // There isn't any case where icon is removed after constructor, so we initialize label without icon and add if icon is set after constructor
     label.SetRect(Rect16(x_offset + base_w + span, y_text_offest, label_w, GuiDefaults::HeaderHeight - y_text_offest));
@@ -236,10 +236,10 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     , icon_base(this, Rect16(x_offset, y_offset, base_w, GuiDefaults::HeaderHeight - y_offset), nullptr)
     , label(this, Rect16(x_offset, y_text_offest, label_w, GuiDefaults::HeaderHeight - y_text_offest), txt)
     , time_val(this, Rect16(0, y_text_offest, time_12h_w, GuiDefaults::HeaderHeight - y_text_offest), is_multiline::no)
-    , icon_usb(this, Rect16(0, y_offset, usb_w, GuiDefaults::HeaderHeight - y_offset), &png::usb_32x16)
+    , icon_usb(this, Rect16(0, y_offset, usb_w, GuiDefaults::HeaderHeight - y_offset), &img::usb_32x16)
     , icon_network(this, Rect16(0, y_offset, lan_w, GuiDefaults::HeaderHeight - y_offset), window_header_t::networkIcon(netdev_get_active_id()))
     , transfer_val(this, Rect16(0, y_text_offest, transfer_val_w, GuiDefaults::HeaderHeight - y_text_offest), is_multiline::no)
-    , icon_transfer(this, Rect16(0, y_offset, transfer_w, GuiDefaults::HeaderHeight - y_offset), &png::transfer_icon_16x16)
+    , icon_transfer(this, Rect16(0, y_offset, transfer_w, GuiDefaults::HeaderHeight - y_offset), &img::transfer_icon_16x16)
     , active_netdev_id(netdev_get_active_id())
     , active_netdev_status(netdev_get_status(active_netdev_id))
     , redraw_usb(true)
@@ -328,6 +328,9 @@ void window_header_t::windowEvent(EventLock /*has private ctor*/, window_t *send
         case layout_color::red:
             SetRedLayout();
             break;
+        case layout_color::blue:
+            SetBlueLayout();
+            break;
         case layout_color::leave_it:
             break;
         }
@@ -371,15 +374,15 @@ void window_header_t::updateMedia(MediaState_t state) {
     }
 };
 
-const png::Resource *window_header_t::networkIcon(uint32_t netdev_id) {
-    const png::Resource *res = nullptr;
+const img::Resource *window_header_t::networkIcon(uint32_t netdev_id) {
+    const img::Resource *res = nullptr;
 
     switch (netdev_id) {
     case NETDEV_ETH_ID:
-        res = &png::lan_16x16;
+        res = &img::lan_16x16;
         break;
     case NETDEV_ESP_ID:
-        res = &png::wifi_16x16;
+        res = &img::wifi_16x16;
         break;
     default:
         break;

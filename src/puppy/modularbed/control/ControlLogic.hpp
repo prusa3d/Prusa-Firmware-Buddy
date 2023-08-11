@@ -11,4 +11,4 @@ void DisableControllers();
 
 void IterateContollers();
 
-} // namespace
+} // namespace modularbed::ControlLogic

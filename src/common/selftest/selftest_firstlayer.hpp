@@ -83,4 +83,4 @@ public:
     LoopResult stateHandleNext();
 };
 
-};
+}; // namespace selftest

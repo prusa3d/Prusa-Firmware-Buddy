@@ -55,10 +55,6 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__MBL_END() {}
   #include "../../../libs/vector_3.h"
 #endif
 
-#if ENABLED(NOZZLE_LOAD_CELL)
-  #include "feature/prusa/loadcell.h"
-#endif
-
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../../../core/debug_out.h"
 

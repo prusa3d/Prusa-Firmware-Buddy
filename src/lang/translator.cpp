@@ -8,7 +8,7 @@ string_view_utf8 gettext(const char *src) {
 namespace {
 // register the emptyProvider as "translator" for EN language ... i.e. return the source string intact
 ProviderRegistrator prEN("en", EmptyTranslationProvider::Instance());
-}
+} // namespace
 
 // this explicit initialization of currentProvider is here to make sure the pointer is always initialized
 // even if there were no registered languages at all

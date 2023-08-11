@@ -11,7 +11,7 @@
 #include "selftest_loadcell.h"
 #include "stdarg.h"
 #include "app.h"
-#include "otp.h"
+#include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
@@ -35,7 +35,8 @@
 #include "timing.h"
 #include "selftest_result_type.hpp"
 #include "selftest_types.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
+#include <option/has_mmu2.h>
 
 using namespace selftest;
 
@@ -170,7 +171,7 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensor = { {
     { .extruder_id = 0 },
 } };
 
-#if HAS_MMU2
+#if HAS_MMU2()
 static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensorMMU = { {
     { .extruder_id = 0, .mmu_mode = true },
 } };
@@ -301,7 +302,7 @@ void CSelftest::Loop() {
         if (selftest::phaseFSensor(1, pFSensor, Config_FSensor))
             return;
         break;
-#if HAS_MMU2
+#if HAS_MMU2()
     case stsFSensorMMU_calibration:
         if (selftest::phaseFSensor(1, pFSensor, Config_FSensorMMU))
             return;

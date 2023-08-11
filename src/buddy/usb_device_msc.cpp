@@ -3,7 +3,7 @@
 #include "usbh_msc.h"
 #include "log.h"
 #include "littlefs_internal.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_DEF(USBMSC, LOG_SEVERITY_DEBUG);
 

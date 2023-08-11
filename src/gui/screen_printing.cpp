@@ -23,7 +23,7 @@
 #include "Marlin/src/feature/bed_preheat.hpp"
 
 #if ENABLED(CRASH_RECOVERY)
-    #include "../Marlin/src/feature/prusa/crash_recovery.h"
+    #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
 #endif
 
 using namespace marlin_server;
@@ -56,7 +56,7 @@ void screen_printing_data_t::pauseAction() {
     }
     switch (GetState()) {
     case printing_state_t::PRINTING:
-        marlin_print_pause();
+        marlin_client::print_pause();
         change_print_state();
         break;
     case printing_state_t::ABSORBING_HEAT:
@@ -64,7 +64,7 @@ void screen_printing_data_t::pauseAction() {
         change_print_state();
         break;
     case printing_state_t::PAUSED:
-        marlin_print_resume();
+        marlin_client::print_resume();
         change_print_state();
         break;
     case printing_state_t::STOPPED:
@@ -84,7 +84,7 @@ void screen_printing_data_t::stopAction() {
     switch (GetState()) {
     case printing_state_t::STOPPED:
     case printing_state_t::PRINTED:
-        marlin_print_exit();
+        marlin_client::print_exit();
         return;
     case printing_state_t::PAUSING:
     case printing_state_t::RESUMING:
@@ -94,7 +94,7 @@ void screen_printing_data_t::stopAction() {
             == Response::Yes) {
             stop_pressed = true;
             waiting_for_abort = true;
-            marlin_print_abort();
+            marlin_client::print_abort();
             change_print_state();
         } else
             return;
@@ -134,7 +134,7 @@ screen_printing_data_t::screen_printing_data_t()
     , popup_rect(Rect16(30, 115, 250, 70))                            // Rect for printing messages from marlin.
 #endif // USE_<display>
     , time_end_format(PT_t::init) {
-    marlin_error_clr(MARLIN_ERR_ProbingFailed);
+    marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
     // we will handle HELD_RELEASED event in this window
     DisableLongHoldScreenAction();
 
@@ -226,29 +226,29 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
     if (
         stop_pressed
         && waiting_for_abort
-        && marlin_command() != ftrstd::to_underlying(Cmd::G29)
+        && marlin_client::get_command() != Cmd::G29
         && (p_state == printing_state_t::ABORTING || p_state == printing_state_t::PAUSED)) {
-        marlin_print_abort();
+        marlin_client::print_abort();
         waiting_for_abort = false;
         return;
     }
 
 #if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
-    if (marlin_error(MARLIN_ERR_NozzleCleaningFailed)) {
-        marlin_error_clr(MARLIN_ERR_NozzleCleaningFailed);
+    if (marlin_client::error(MARLIN_ERR_NozzleCleaningFailed)) {
+        marlin_client::error_clr(MARLIN_ERR_NozzleCleaningFailed);
         if (MsgBox(_("Nozzle cleaning failed."), Responses_RetryAbort) == Response::Retry) {
-            marlin_print_resume();
+            marlin_client::print_resume();
         } else {
-            marlin_print_abort();
+            marlin_client::print_abort();
             return;
         }
     }
 #endif
 
 #if HAS_BED_PROBE
-    if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_error(MARLIN_ERR_ProbingFailed)) {
-        marlin_error_clr(MARLIN_ERR_ProbingFailed);
-        marlin_print_abort();
+    if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_client::error(MARLIN_ERR_ProbingFailed)) {
+        marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
+        marlin_client::print_abort();
         while (marlin_vars()->print_state == State::Aborting_Begin
             || marlin_vars()->print_state == State::Aborting_WaitIdle
             || marlin_vars()->print_state == State::Aborting_ParkHead) {
@@ -290,7 +290,7 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 
     /// -- close screen when print is done / stopped and USB media is removed
     if (!marlin_vars()->media_inserted && (p_state == printing_state_t::PRINTED || p_state == printing_state_t::STOPPED)) {
-        marlin_print_exit();
+        marlin_client::print_exit();
         return;
     }
 
@@ -370,7 +370,12 @@ void screen_printing_data_t::screen_printing_reprint() {
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
+    #if not PRINTER_IS_PRUSA_MK4
     header.SetText(_("INPUT SHAPER (ALPHA)"));
+    #else
+    header.SetText(_("INPUT SHAPER"));
+    #endif
+
 #endif
 }
 
@@ -383,10 +388,10 @@ void screen_printing_data_t::screen_printing_reprint() {
         gui_loop();
     }
     //marlin_park_head();
-    marlin_gcode_printf("M104 S%F", (double)target_nozzle);
-    marlin_gcode_printf("M140 S%F", (double)target_bed);
-    marlin_gcode("G0 Z30"); //Z 30mm
-    marlin_gcode("M84");    //Disable steppers
+    marlin_client::gcode_printf("M104 S%F", (double)target_nozzle);
+    marlin_client::gcode_printf("M140 S%F", (double)target_bed);
+    marlin_client::gcode("G0 Z30"); //Z 30mm
+    marlin_client::gcode("M84");    //Disable steppers
     while (marlin_vars()->pqueue) {
         gui_loop();
     }
@@ -491,6 +496,7 @@ void screen_printing_data_t::change_print_state() {
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
     case State::PrintPreviewQuestions:
+    case State::PrintPreviewToolsMapping:
     case State::PrintInit:
         st = printing_state_t::INITIAL;
         break;

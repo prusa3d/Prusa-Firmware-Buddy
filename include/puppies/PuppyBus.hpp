@@ -64,5 +64,5 @@ namespace puppies {
         static constexpr uint32_t MINIMAL_PAUSE_BETWEEN_REQUESTS_US = 350;
     };
 
-}
-}
+} // namespace puppies
+} // namespace buddy

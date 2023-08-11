@@ -23,4 +23,4 @@ private:
     float m_value;
 };
 
-} // namespace
+} // namespace modularbed

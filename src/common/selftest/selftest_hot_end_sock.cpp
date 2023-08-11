@@ -4,7 +4,7 @@
 
 #include "selftest_hot_end_sock.hpp"
 #include "wizard_config.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #include <array>
 

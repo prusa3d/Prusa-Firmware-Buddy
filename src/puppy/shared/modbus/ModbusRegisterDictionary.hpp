@@ -26,4 +26,4 @@ bool GetInputRegisterValue(uint16_t address, uint16_t *pValue);
 bool SetInputRegisterValue(uint16_t address, uint16_t value);
 bool PutStringIntoInputRegisters(uint16_t from_address, uint16_t to_address, const char *string);
 
-} // namespace
+} // namespace modbus::RegisterDictionary

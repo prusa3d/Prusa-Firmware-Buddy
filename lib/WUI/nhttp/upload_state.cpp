@@ -66,7 +66,7 @@ constexpr const char *const FILENAME = "filename";
 constexpr const char *const FILE_TOKEN = "file";
 constexpr const char *const PRINT_TOKEN = "print";
 
-}
+} // namespace
 
 namespace nhttp::printer {
 
@@ -434,4 +434,4 @@ void UploadState::setup(UploadHooks *hooks) {
     this->hooks = hooks;
 }
 
-}
+} // namespace nhttp::printer

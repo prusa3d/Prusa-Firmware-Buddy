@@ -39,4 +39,4 @@ public:
         return ret;
     }
 };
-}
+} // namespace selftest

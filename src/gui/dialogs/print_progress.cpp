@@ -10,11 +10,15 @@
 #include "fonts.hpp"
 #include "gcode_file.h"
 #include "gcode_thumb_decoder.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 constexpr static const char *finish_print_text = N_("Print finished");
 constexpr static const char *stop_print_text = N_("Print stopped");
+#if not PRINTER_IS_PRUSA_MK4
 constexpr static const char *input_shaper_alpha_text = N_("Input Shaper (Alpha)");
+#else
+constexpr static const char *input_shaper_alpha_text = N_("Input Shaper");
+#endif
 
 PrintProgress::PrintProgress(window_t *parent)
     : AddSuperWindow<DialogTimed>(getTime() > SpinCnf::print_progress.Min() ? parent : nullptr, GuiDefaults::RectScreen, 1000 * getTime())

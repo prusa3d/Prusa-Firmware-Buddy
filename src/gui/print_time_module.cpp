@@ -5,7 +5,7 @@
 #include "marlin_client.hpp"
 #include "print_time_module.hpp"
 #include "time_tools.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[maybe_unused]] window_text_t *out_print_dur) {
     // TODO: for MINI - Add time_dur condition

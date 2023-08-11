@@ -379,4 +379,4 @@ void TIM3_IRQHandler() {
     pwm_wdg.kick(false);
 }
 
-} // namespace
+} // namespace hal::PWMDriver

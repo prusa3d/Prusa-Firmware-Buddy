@@ -6,7 +6,7 @@
 #include "../../lib/Marlin/Marlin/src/module/stepper.h"
 #include "../common/variant8.h"
 #include <bsod_gui.hpp>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #ifdef Z_AXIS_CALIBRATION
 void PrusaGcodeSuite::G64() {

@@ -44,7 +44,7 @@ Printer::Params params_printing() {
     return params;
 };
 
-}
+} // namespace
 
 TEST_CASE("Render") {
     string expected;

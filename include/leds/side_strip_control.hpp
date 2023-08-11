@@ -33,6 +33,12 @@ public:
 
     void SetEnable(bool isEnable);
 
+    /**
+     * @brief Quickly turn off LEDs.
+     * Useful for PowerPanic.
+     */
+    void PanicOff();
+
 private:
     enum class State {
         Startup,
@@ -152,4 +158,4 @@ private:
 
 extern SideStripControl side_strip_control;
 
-}
+} // namespace leds

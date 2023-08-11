@@ -31,4 +31,4 @@ public:
     LoopResult stateAskRetry();
 };
 
-};
+}; // namespace selftest

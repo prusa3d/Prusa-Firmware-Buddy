@@ -66,4 +66,4 @@ void blinking(uint8_t red, uint8_t green, uint8_t blue, uint32_t on_duration_ms,
     } // else nothing needs to be done
 }
 
-};
+}; // namespace led

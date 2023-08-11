@@ -8,7 +8,7 @@
 #include "selftest_fans_type.hpp"
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 namespace selftest {
 

@@ -26,7 +26,7 @@ namespace {
         Delay,
     };
 
-}
+} // namespace
 
 Timestamp now() {
     return ticks_ms();
@@ -156,4 +156,4 @@ void Sleep::perform(Printer &printer, Planner &planner) {
     }
 }
 
-}
+} // namespace connect_client

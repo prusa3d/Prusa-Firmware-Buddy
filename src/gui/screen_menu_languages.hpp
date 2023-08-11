@@ -12,7 +12,7 @@
 
 class MI_LangBase : public WI_LABEL_t {
 public:
-    MI_LangBase(const char *label, const png::Resource *icon);
+    MI_LangBase(const char *label, const img::Resource *icon);
 
 protected:
     virtual void click(IWindowMenu & /*window_menu*/) override;

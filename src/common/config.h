@@ -6,9 +6,10 @@
 
 //--------------------------------------
 // BUDDY_ENABLE_ETHERNET configuration
-#ifdef BUDDY_ENABLE_WUI
+#include <option/buddy_enable_wui.h>
+#if BUDDY_ENABLE_WUI()
     #define BUDDY_ENABLE_ETHERNET
-#endif // BUDDY_ENABLE_WUI
+#endif // BUDDY_ENABLE_WUI()
 
 // marlin api config
 enum {
@@ -34,9 +35,6 @@ enum {
 #if defined(_DEBUG)
     #define BUDDY_ENABLE_DFU_ENTRY
 #endif
-
-// display PSOD instead of BSOD
-// #define PSOD_BSOD
 
 // Enabled Z calibration (MK3, MK4, XL)
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL)

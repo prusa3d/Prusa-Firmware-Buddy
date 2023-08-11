@@ -243,5 +243,5 @@ namespace puppies {
         static constexpr uint32_t READ_TIMEOUT_FINALIZE_FLASH = 500;   // timeout for finalize flash command (sha256 fingerprint is calculated, so it takes longer)
     };
 
-}
-}
+} // namespace puppies
+} // namespace buddy

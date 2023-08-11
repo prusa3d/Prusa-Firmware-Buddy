@@ -14,5 +14,5 @@ namespace hw {
             return status == HAL_OK;
         };
     };
-}
-}
+} // namespace hw
+} // namespace buddy

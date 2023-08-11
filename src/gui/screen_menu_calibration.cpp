@@ -3,14 +3,14 @@
  */
 
 #include "screen_menu_calibration.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "DialogMoveZ.hpp"
 #include "printers.h"
 
 ScreenMenuCalibration::ScreenMenuCalibration()
     : ScreenMenuCalibration__(_(label)) {
 #if (!PRINTER_IS_PRUSA_MINI)
-    header.SetIcon(&png::calibrate_white_16x16);
+    header.SetIcon(&img::calibrate_white_16x16);
 #endif
 }
 

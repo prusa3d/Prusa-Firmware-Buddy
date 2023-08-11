@@ -280,14 +280,13 @@ void set_axis_is_not_at_home(const AxisEnum axis);
 
 void homing_failed(std::function<void()> fallback_error, bool crash_was_active = false, bool recover_z = false);
 
+// Home a single logical axis
 [[nodiscard]] bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s=0.0, bool invert_home_dir = false, void (*enable_wavetable)(AxisEnum) = NULL, bool can_calibrate = true, bool homing_z_with_probe = true);
 
-void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, bool can_move_back_before_homing = false, bool homing_z_with_probe = true);
+// Perform a single homing probe on a logical axis
+float homeaxis_single_run(const AxisEnum axis, const int axis_home_dir, const feedRate_t fr_mm_s = 0.0, bool invert_home_dir = false, bool homing_z_with_probe = true);
 
-#if ENABLED(PRECISE_HOMING_COREXY)
-  void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm);
-  bool refine_corexy_origin();
-#endif
+void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0, bool can_move_back_before_homing = false, bool homing_z_with_probe = true);
 
 /**
  * Workspace offsets
@@ -477,32 +476,3 @@ FORCE_INLINE bool position_is_reachable_by_probe(const xy_pos_t &pos) { return p
   sensorless_t start_sensorless_homing_per_axis(const AxisEnum axis);
   void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth);
 #endif
-
-#if ENABLED(PRECISE_HOMING)
-  
-  /**
-  * \returns offset of current position to calibrated safe home position.
-  * This includes HOME_GAP. Works for X and Y axes only.
-  */
-  float calibrated_home_offset(const AxisEnum axis);
-
-  /**
-   * Provides precise homing for X and Y axes
-   * \param axis axis to be homed (cartesian printers only)
-   * \param axis_home_dir direction where the home of the axis is
-   * \param can_calibrate allows re-calibration if homing is not successful
-   * calibration should be disabled for crash recovery, power loss recovery etc.
-   * \return probe offset
-   */ 
-  float home_axis_precise(AxisEnum axis, int axis_home_dir, bool can_calibrate = true);
-
-#endif // ENABLED(PRECISE_HOMING)
-
-#if ENABLED(PRECISE_HOMING_COREXY)
-
-  /**
-  * Convert raw AB steps to XY mm
-  */
-  void corexy_ab_to_xy(const xy_long_t& steps, xy_pos_t& mm);
-
-#endif // ENABLED(PRECISE_HOMING_COREXY)

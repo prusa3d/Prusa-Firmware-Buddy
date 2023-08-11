@@ -41,4 +41,4 @@ JsonParseResult parse_command(char *buff, size_t size, Callback &&callback) {
     }
 }
 
-}
+} // namespace nhttp::printer

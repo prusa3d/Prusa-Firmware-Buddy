@@ -4,7 +4,7 @@
 
 #include "footer_item_multitool.hpp"
 #include "marlin_client.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "i18n.h"
 #include <device/board.h>
 
@@ -14,7 +14,7 @@
 #endif
 
 FooterItemFinda::FooterItemFinda(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::finda_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::finda_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFinda::static_readValue() {
@@ -31,7 +31,7 @@ string_view_utf8 FooterItemFinda::static_makeView(int value) {
 }
 
 FooterItemCurrentTool::FooterItemCurrentTool(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::spool_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::spool_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemCurrentTool::static_readValue() {

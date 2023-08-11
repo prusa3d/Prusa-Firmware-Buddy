@@ -43,14 +43,6 @@ if(BOARD MATCHES ".*BUDDY")
   target_sources(
     Marlin
     PRIVATE $<$<NOT:$<STREQUAL:${PRINTER},XL>>:Marlin/Marlin/src/module/tool_change.cpp>
-            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp>
-            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp>
-            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
-            $<$<STREQUAL:${PRINTER},MK3.5>:Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp>
-            $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp>
-            $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp>
-            $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp>
-            $<$<STREQUAL:${PRINTER},MK4>:Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp>
             $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/spool_join.cpp>
             $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/tool_mapper.cpp>
             $<$<STREQUAL:${PRINTER},XL>:Marlin/Marlin/src/module/prusa/toolchanger.cpp>
@@ -75,7 +67,6 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance.cpp
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance_config.cpp
             Marlin/Marlin/src/feature/print_area.cpp
-            Marlin/Marlin/src/feature/prusa/homing.cpp
             Marlin/Marlin/src/feature/prusa/measure_axis.cpp
             Marlin/Marlin/src/feature/runout.cpp
             Marlin/Marlin/src/feature/spindle_laser.cpp
@@ -204,12 +195,12 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/libs/vector_3.cpp
             Marlin/Marlin/src/module/delta.cpp
             Marlin/Marlin/src/module/planner_bezier.cpp
-            Marlin/Marlin/src/module/precise_homing.cpp
             Marlin/Marlin/src/module/printcounter.cpp
             Marlin/Marlin/src/module/probe.cpp
             Marlin/Marlin/src/module/prusa/accelerometer_local.cpp
             Marlin/Marlin/src/module/prusa/accelerometer_remote.cpp
             Marlin/Marlin/src/module/prusa/accelerometer_utils.cpp
+            Marlin/Marlin/src/module/prusa/homing_utils.cpp
             Marlin/Marlin/src/module/scara.cpp
             Marlin/Marlin/src/module/servo.cpp
             Marlin/Marlin/src/module/stepper/L6470.cpp
@@ -219,6 +210,29 @@ if(BOARD MATCHES ".*BUDDY")
   if(PRINTER IN_LIST PRINTERS_WITH_POWER_PANIC OR PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
     # Power panic/crash detection module
     target_sources(Marlin PRIVATE Marlin/Marlin/src/feature/prusa/crash_recovery.cpp)
+  endif()
+
+  if(PRINTER IN_LIST PRINTERS_WITH_PRECISE_HOMING)
+    # cartesian precise homing
+    target_sources(
+      Marlin PRIVATE Marlin/Marlin/src/module/prusa/homing_cart.cpp
+                     Marlin/Marlin/src/module/prusa/homing_modus.cpp
+      )
+  endif()
+
+  if(PRINTER IN_LIST PRINTERS_WITH_PRECISE_HOMING_COREXY)
+    # corexy precise homing
+    target_sources(Marlin PRIVATE Marlin/Marlin/src/module/prusa/homing_corexy.cpp)
+  endif()
+
+  if(PRINTER IN_LIST PRINTERS_WITH_MMU2)
+    target_sources(
+      Marlin
+      PRIVATE Marlin/Marlin/src/feature/prusa/MMU2/mmu2_marlin2.cpp
+              Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp
+              Marlin/Marlin/src/feature/prusa/MMU2/protocol_logic.cpp
+              Marlin/Marlin/src/gcode/feature/prusa/MMU2/M403.cpp
+      )
   endif()
 endif()
 

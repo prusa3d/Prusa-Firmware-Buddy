@@ -12,4 +12,4 @@ public:
     virtual void SetColor(Color color) = 0;
 };
 
-}
+} // namespace leds

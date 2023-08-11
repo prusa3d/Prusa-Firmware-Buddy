@@ -157,4 +157,4 @@ bool remove_dumps_from_filesystem() {
     }
     return rc;
 }
-};
+}; // namespace buddy::puppies::crash_dump

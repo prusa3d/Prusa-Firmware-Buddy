@@ -26,4 +26,4 @@ private:
     uint8_t timeout_s;
 };
 
-}
+} // namespace http

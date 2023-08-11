@@ -1,6 +1,7 @@
 #include "printers.h"
 #include <device/board.h>
-#if HAS_MMU2
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
     #include "buffered_serial.hpp"
     #include "cmsis_os.h"
     #include "bsod.h"
@@ -57,7 +58,7 @@ MMU2Serial mmu2Serial;
 
 } // namespace MMU2
 
-#else // HAS_MMU2
+#else // HAS_MMU2()
 
     // a crude workaround to link FW for older incarnations of MK4's xBUDDY
     // Empty implementation for the MMU2Serial. Hopefully, with the release of MK4 this can be removed completely...
@@ -71,4 +72,4 @@ size_t MMU2Serial::write(const uint8_t * /*buffer*/, size_t /*size*/) { return 0
 MMU2Serial mmu2Serial;
 } // namespace MMU2
 
-#endif // HAS_MMU2
+#endif // HAS_MMU2()

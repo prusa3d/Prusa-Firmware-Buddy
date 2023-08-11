@@ -2,6 +2,7 @@
 
 #include "adc.hpp"
 #include "stdlib.h"
+#include <option/has_mmu2.h>
 
 class AdvancedPower {
 public:
@@ -76,7 +77,7 @@ public:
     }
 #endif
 
-#if HAS_MMU2
+#if HAS_MMU2()
     inline int GetMMUInputCurrentRaw() const {
         return AdcGet::MMUCurrent();
     }

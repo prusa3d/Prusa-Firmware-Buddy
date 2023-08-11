@@ -86,3 +86,17 @@ void hwio_safe_state(void) {
     Fans::heat_break(0).safeState();
 #endif
 }
+
+void hwio_low_power_state(void) {
+#if BOARD_IS_XLBUDDY
+    // Disable ESP
+    espPower.reset();
+
+    // Disable USBs
+    fsUSBPwrEnable.set();
+    hsUSBEnable.set();
+
+    // disable 5V regulator on splitter
+    splitter5vEnable.reset();
+#endif
+}

@@ -6,6 +6,7 @@
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
+#include <config_store/constants.hpp>
 
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
@@ -48,7 +49,7 @@ protected:
 };
 
 class MI_PL_PASSWORD_VALUE : public WI_LABEL_t {
-    static constexpr size_t PASSWD_STR_LENGTH = PL_PASSWORD_SIZE + 1; // don't need space for '%s' and '\0' since PL_PASSWORD_SIZE contains '\0' too
+    static constexpr size_t PASSWD_STR_LENGTH = config_store_ns::pl_password_size + 1; // don't need space for '%s' and '\0' since pl_password_size contains '\0' too
 
 #ifdef USE_ST7789
     constexpr static const char *const label = N_("");

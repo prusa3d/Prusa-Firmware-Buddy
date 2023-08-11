@@ -9,13 +9,12 @@
 #include "config_features.h" //EXTRUDER_AUTO_loadcell_TEMPERATURE
 #include "marlin_server.hpp"
 #include "selftest_log.hpp"
-#include "loadcell.h"
+#include "loadcell.hpp"
 #include <sound.hpp>
 #include <module/temperature.h>
 #include <module/planner.h>
 #include <module/stepper.h>
 #include <module/endstops.h>
-#include <feature/prusa/homing.h>
 #include <gcode/gcode.h>
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"

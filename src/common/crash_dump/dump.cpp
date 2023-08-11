@@ -8,36 +8,47 @@
 #include "w25x.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include <error_codes.hpp>
 
 namespace crash_dump {
 
+typedef struct __attribute__((packed)) _info_t {
+    DumpType type_flags;        //
+    unsigned char reserved[15]; // TODO: RTC time, code
+} info_t;
+
+typedef struct __attribute__((packed)) _message_t {
+    uint8_t not_displayed; ///< not displayed == 0xFF, displayed == 0x00
+    MsgType type;          ///< Mark if this structure has valid data
+    ErrCode error_code;    ///< error_code (0 == unknown error code -> we read dumped message
+    char title[MSG_TITLE_MAX_LEN];
+    char msg[MSG_MAX_LEN];
+} message_t;
+
 inline constexpr uint32_t dump_offset = w25x_dump_start_address;
 inline constexpr uint16_t dump_buff_size = 0x100;
-inline constexpr uint32_t dump_xflash_size = DUMP_RAM_SIZE + DUMP_CCRAM_SIZE;
+inline constexpr uint32_t dump_xflash_size = RAM_SIZE + CCRAM_SIZE;
 
 static_assert(dump_xflash_size <= w25x_error_start_adress, "Dump overflows reserved space.");
-static_assert(sizeof(dumpmessage_t) <= (w25x_pp_start_address - w25x_error_start_adress), "Error message overflows reserved space.");
+static_assert(sizeof(message_t) <= (w25x_pp_start_address - w25x_error_start_adress), "Error message overflows reserved space.");
 
-static const dumpmessage_t *dumpmessage_flash = reinterpret_cast<dumpmessage_t *>(w25x_error_start_adress);
+static const message_t *dumpmessage_flash = reinterpret_cast<message_t *>(w25x_error_start_adress);
 
-#define _STR(arg)  #arg
-#define __STR(arg) _STR(arg)
-
-static inline void dump_regs_SCB(void) {
+static inline void dump_regs_SCB() {
     // copy entire SCB to CCRAM
-    memcpy((uint8_t *)DUMP_REGS_SCB_ADDR, SCB, DUMP_REGS_SCB_SIZE);
+    memcpy((uint8_t *)REGS_SCB_ADDR, SCB, REGS_SCB_SIZE);
 }
 
-void dump_to_xflash(void) {
+void save_dump() {
     buddy::DisableInterrupts disable_interrupts;
     vTaskEndScheduler();
     if (!w25x_init()) {
         return;
     }
 
-    _Static_assert(sizeof(dumpinfo_t) == 16, "invalid sizeof(dumpinfo_t)");
-    if (dump_in_xflash_is_valid()) {
-        if (!dump_in_xflash_is_displayed()) {
+    _Static_assert(sizeof(info_t) == 16, "invalid sizeof(dumpinfo_t)");
+    if (dump_is_valid()) {
+        if (!dump_is_displayed()) {
             return;
         }
     }
@@ -45,97 +56,90 @@ void dump_to_xflash(void) {
     for (uint32_t addr = 0; addr < dump_xflash_size; addr += 0x10000) {
         w25x_block64_erase(dump_offset + addr);
     }
-    w25x_program(dump_offset, (uint8_t *)(DUMP_RAM_ADDR), DUMP_RAM_SIZE);
-    w25x_program(dump_offset + DUMP_RAM_SIZE, (uint8_t *)(DUMP_CCRAM_ADDR), DUMP_CCRAM_SIZE);
+    w25x_program(dump_offset, (uint8_t *)(RAM_ADDR), RAM_SIZE);
+    w25x_program(dump_offset + RAM_SIZE, (uint8_t *)(CCRAM_ADDR), CCRAM_SIZE);
     w25x_fetch_error();
 }
 
-/**
- * @retval true is valid
- * @retval false not valid or unable to read
- */
-bool dump_in_xflash_is_valid(void) {
-    dumpinfo_t dumpinfo;
-    w25x_rd_data(dump_offset + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo), DUMP_INFO_SIZE);
-    const DumpType dump_type = dumpinfo.type_flags & ~(DumpType::DUMP_NOT_SAVED | DumpType::DUMP_NOT_DISPL);
+bool dump_is_valid() {
+    info_t dumpinfo;
+    w25x_rd_data(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo), INFO_SIZE);
     if (w25x_fetch_error())
         return false;
-    return (dump_type == DumpType::DUMP_HARDFAULT) || (dump_type == DumpType::DUMP_IWDGW) || (dump_type == DumpType::DUMP_FATALERROR);
+
+    const uint8_t dump_type = ftrstd::to_underlying(dumpinfo.type_flags & DumpType::TYPEMASK);
+    return dump_type && ((dump_type & (dump_type - 1)) == 0); // Is exactly one bit set?
 }
 
-/**
- * @retval true is displayed
- * @retval false not displayed or unable to read
- */
-bool dump_in_xflash_is_displayed(void) {
-    dumpinfo_t dumpinfo;
-    w25x_rd_data(dump_offset + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
+bool dump_is_displayed() {
+    info_t dumpinfo;
+    w25x_rd_data(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, (uint8_t *)(&dumpinfo), INFO_SIZE);
     if (w25x_fetch_error())
         return false;
-    return !any(dumpinfo.type_flags & DumpType::DUMP_NOT_DISPL);
+    return !any(dumpinfo.type_flags & DumpType::NOT_DISPL);
 }
 
-/**
- * @retval DUMP_UNDEFINED Either there is no dump or failed to read.
- */
-DumpType dump_in_xflash_get_type(void) {
-    dumpinfo_t dumpinfo;
-    w25x_rd_data(dump_offset + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, (uint8_t *)(&dumpinfo), DUMP_INFO_SIZE);
+DumpType dump_get_type() {
+    info_t dumpinfo;
+    w25x_rd_data(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, (uint8_t *)(&dumpinfo), INFO_SIZE);
     if (w25x_fetch_error())
-        dumpinfo.type_flags = DumpType::DUMP_UNDEFINED;
-    return (dumpinfo.type_flags & ~(DumpType::DUMP_NOT_SAVED | DumpType::DUMP_NOT_DISPL));
+        dumpinfo.type_flags = DumpType::UNDEFINED;
+    return (dumpinfo.type_flags & ~(DumpType::NOT_SAVED | DumpType::NOT_DISPL));
 }
 
 /**
  * @todo Programming single byte more times is undocumented feature of w25x
  */
-void dump_in_xflash_clear_flag(const DumpType flag) {
+static void dump_clear_flag(const DumpType flag) {
     DumpType dumpinfo_type;
-    w25x_rd_data(dump_offset + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
+    w25x_rd_data(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
     if (!w25x_fetch_error() && any(dumpinfo_type & flag)) {
         dumpinfo_type = dumpinfo_type & ~flag;
-        w25x_program(dump_offset + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE - DUMP_INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
+        w25x_program(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
         w25x_fetch_error();
     }
 }
 
-void dump_in_xflash_set_saved(void) {
-    dump_in_xflash_clear_flag(DumpType::DUMP_NOT_SAVED);
+/**
+ * @brief Mark dump as saved.
+ */
+static void dump_set_saved() {
+    dump_clear_flag(DumpType::NOT_SAVED);
 }
 
-void dump_in_xflash_set_displayed(void) {
-    dump_in_xflash_clear_flag(DumpType::DUMP_NOT_DISPL);
+void dump_set_displayed() {
+    dump_clear_flag(DumpType::NOT_DISPL);
 }
 
-unsigned int dump_in_xflash_read_RAM(void *pRAM, unsigned int addr, unsigned int size) {
-    if ((addr >= DUMP_RAM_ADDR) && (addr < (DUMP_RAM_ADDR + DUMP_RAM_SIZE))) {
-        if (size > (DUMP_RAM_ADDR + DUMP_RAM_SIZE - addr))
-            size = (DUMP_RAM_ADDR + DUMP_RAM_SIZE - addr);
-        w25x_rd_data(dump_offset + addr - DUMP_RAM_ADDR, (uint8_t *)(pRAM), size);
+size_t load_dump_RAM(void *pRAM, uint32_t addr, size_t size) {
+    if ((addr >= RAM_ADDR) && (addr < (RAM_ADDR + RAM_SIZE))) {
+        if (size > (RAM_ADDR + RAM_SIZE - addr))
+            size = (RAM_ADDR + RAM_SIZE - addr);
+        w25x_rd_data(dump_offset + addr - RAM_ADDR, (uint8_t *)(pRAM), size);
         return size;
     }
     return 0;
 }
 
-unsigned int dump_in_xflash_read_regs_SCB(void *pRegsSCB, unsigned int size) {
-    if (size > DUMP_REGS_SCB_SIZE)
-        size = DUMP_REGS_SCB_SIZE;
-    w25x_rd_data(dump_offset + DUMP_RAM_SIZE + DUMP_REGS_SCB_ADDR - DUMP_CCRAM_ADDR, (uint8_t *)(pRegsSCB), size);
+size_t load_dump_regs_SCB(void *pRegsSCB, size_t size) {
+    if (size > REGS_SCB_SIZE)
+        size = REGS_SCB_SIZE;
+    w25x_rd_data(dump_offset + RAM_SIZE + REGS_SCB_ADDR - CCRAM_ADDR, (uint8_t *)(pRegsSCB), size);
     if (w25x_fetch_error())
         return 0;
     return size;
 }
 
-unsigned int dump_in_xflash_read_regs_GEN(void *pRegsGEN, unsigned int size) {
-    if (size > DUMP_REGS_GEN_SIZE)
-        size = DUMP_REGS_GEN_SIZE;
-    w25x_rd_data(dump_offset + DUMP_RAM_SIZE + DUMP_REGS_GEN_ADDR - DUMP_CCRAM_ADDR, (uint8_t *)(pRegsGEN), size);
+size_t load_dump_regs_GEN(void *pRegsGEN, size_t size) {
+    if (size > REGS_GEN_SIZE)
+        size = REGS_GEN_SIZE;
+    w25x_rd_data(dump_offset + RAM_SIZE + REGS_GEN_ADDR - CCRAM_ADDR, (uint8_t *)(pRegsGEN), size);
     if (w25x_fetch_error())
         return 0;
     return size;
 }
 
-void dump_in_xflash_reset(void) {
+void dump_reset() {
     static_assert(dump_xflash_size % w25x_block64_size == 0, "More than reserved area is erased.");
     for (uint32_t addr = 0; addr < dump_xflash_size; addr += w25x_block64_size) {
         w25x_block64_erase(dump_offset + addr);
@@ -143,7 +147,7 @@ void dump_in_xflash_reset(void) {
     w25x_fetch_error();
 }
 
-int dump_save_to_usb(const char *fn) {
+bool save_dump_to_usb(const char *fn) {
     FILE *fd;
     uint32_t addr;
     uint8_t buff[dump_buff_size];
@@ -165,47 +169,34 @@ int dump_save_to_usb(const char *fn) {
             bw_total += bw;
         }
         // save OTP
-        for (addr = 0; addr < DUMP_OTP_SIZE; addr += dump_buff_size) {
-            bw = fwrite((void *)(DUMP_OTP_ADDR + addr), 1, dump_buff_size, fd);
+        for (addr = 0; addr < OTP_SIZE; addr += dump_buff_size) {
+            bw = fwrite((void *)(OTP_ADDR + addr), 1, dump_buff_size, fd);
             if (bw <= 0) {
                 break;
             }
             bw_total += bw;
         }
         // save FLASH
-        for (addr = 0; addr < DUMP_FLASH_SIZE; addr += dump_buff_size) {
-            bw = fwrite((void *)(DUMP_FLASH_ADDR + addr), 1, dump_buff_size, fd);
+        for (addr = 0; addr < FLASH_SIZE; addr += dump_buff_size) {
+            bw = fwrite((void *)(FLASH_ADDR + addr), 1, dump_buff_size, fd);
             if (bw <= 0) {
                 break;
             }
             bw_total += bw;
         }
         fclose(fd);
-        if (bw_total != (dump_xflash_size + DUMP_OTP_SIZE + DUMP_FLASH_SIZE)) {
-            return 0;
+        if (bw_total != (dump_xflash_size + OTP_SIZE + FLASH_SIZE)) {
+            return false;
         }
-        dump_in_xflash_set_saved();
-        return 1;
+        dump_set_saved();
+        return true;
     }
-    return 0;
+    return false;
 }
 
-//
-void dump_hardfault_test_0(void) {
-#define test_0_var (*((volatile unsigned long *)(0x4b000000)))
-    test_0_var = 0;
-}
+void save_message(MsgType type, uint16_t error_code, const char *error, const char *title) {
+    static_assert(ftrstd::to_underlying(ErrCode::ERR_UNDEF) == 0, "This uses 0 as undefined error");
 
-// integer div by zero test
-int dump_hardfault_test_1(void) {
-    volatile int b = 0;
-    volatile int c = 1 / b;
-    return c;
-}
-
-// Dumping error message
-
-void dump_err_to_xflash(uint16_t error_code, const char *error, const char *title) {
     buddy::DisableInterrupts disable_interrupts;
     vTaskEndScheduler();
     if (!w25x_init()) {
@@ -213,45 +204,50 @@ void dump_err_to_xflash(uint16_t error_code, const char *error, const char *titl
     }
     w25x_sector_erase(w25x_error_start_adress);
 
-    decltype(dumpmessage_t::invalid) invalid = 0;
-    const size_t title_len = strnlen(title, sizeof(dumpmessage_t::title));
-    const size_t msg_len = strnlen(error, sizeof(dumpmessage_t::msg));
+    const size_t title_len = strnlen(title, std::size(dumpmessage_flash->title));
+    const size_t msg_len = strnlen(error, std::size(dumpmessage_flash->msg));
 
-    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->invalid), reinterpret_cast<uint8_t *>(&invalid), sizeof(invalid));
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->type), reinterpret_cast<uint8_t *>(&type), sizeof(type));
     w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->error_code), reinterpret_cast<uint8_t *>(&error_code), sizeof(error_code));
-    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), reinterpret_cast<const uint8_t *>(title), title_len);
-    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), reinterpret_cast<const uint8_t *>(error), msg_len);
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), reinterpret_cast<const uint8_t *>(title),
+        std::min(std::size(dumpmessage_flash->title), title_len + 1)); // +1 for null terminator
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), reinterpret_cast<const uint8_t *>(error),
+        std::min(std::size(dumpmessage_flash->msg), msg_len + 1));
     w25x_fetch_error();
 }
 
-bool dump_err_in_xflash_is_valid() {
-    uint8_t invalid;
-    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->invalid), &invalid, sizeof(dumpmessage_t::invalid));
+MsgType message_get_type() {
+    uint8_t type;
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->type), &type, sizeof(message_t::type));
     if (w25x_fetch_error())
-        return false; // Behave as invalid message
-    return !invalid;
+        return MsgType::EMPTY; // Behave as invalid message
+    return MsgType(type);
 }
 
-bool dump_err_in_xflash_is_displayed() {
+bool message_is_displayed() {
     uint8_t not_displayed;
-    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->not_displayed), &not_displayed, sizeof(dumpmessage_t::not_displayed));
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->not_displayed), &not_displayed, sizeof(message_t::not_displayed));
     if (w25x_fetch_error())
         return false;
     return !not_displayed;
 }
 
-void dump_err_in_xflash_set_displayed(void) {
+void message_set_displayed() {
     uint8_t not_displayed = 0;
-    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->not_displayed), &not_displayed, sizeof(dumpmessage_t::not_displayed));
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->not_displayed), &not_displayed, sizeof(message_t::not_displayed));
     w25x_fetch_error();
 }
 
-bool dump_err_in_xflash_get_message(char *msg_dst, uint16_t msg_dst_size, char *tit_dst, uint16_t tit_dst_size) {
-    const size_t title_max_size = sizeof(dumpmessage_t::title) > tit_dst_size ? tit_dst_size : sizeof(dumpmessage_t::title);
-    const size_t msg_max_size = sizeof(dumpmessage_t::msg) > msg_dst_size ? msg_dst_size : sizeof(dumpmessage_t::msg);
+bool load_message(char *msg_dst, size_t msg_dst_size, char *tit_dst, size_t tit_dst_size) {
+    const size_t title_max_size = std::min(std::size(dumpmessage_flash->title), tit_dst_size);
+    const size_t msg_max_size = std::min(std::size(dumpmessage_flash->msg), msg_dst_size);
 
-    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), (uint8_t *)(tit_dst), title_max_size);
-    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), (uint8_t *)(msg_dst), msg_max_size);
+    if (title_max_size > 0) {
+        w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->title), (uint8_t *)(tit_dst), title_max_size);
+    }
+    if (msg_max_size > 0) {
+        w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), (uint8_t *)(msg_dst), msg_max_size);
+    }
 
     if (title_max_size)
         tit_dst[title_max_size - 1] = '\0';
@@ -263,15 +259,15 @@ bool dump_err_in_xflash_get_message(char *msg_dst, uint16_t msg_dst_size, char *
     return true;
 }
 
-uint16_t dump_err_in_xflash_get_error_code(void) {
+uint16_t load_message_error_code() {
     uint16_t error_code;
     w25x_rd_data(
         reinterpret_cast<uint32_t>(&dumpmessage_flash->error_code),
         reinterpret_cast<uint8_t *>(&error_code),
-        sizeof(dumpmessage_t::error_code));
+        sizeof(message_t::error_code));
     if (w25x_fetch_error())
-        return 0;
+        return ftrstd::to_underlying(ErrCode::ERR_UNDEF);
     return error_code;
 }
 
-}
+} // namespace crash_dump

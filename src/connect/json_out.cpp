@@ -47,4 +47,4 @@ JsonPostRequest::RenderResult JsonPostRequest::write_body_chunk(char *data, size
     return Error::InternalError;
 }
 
-}
+} // namespace connect_client

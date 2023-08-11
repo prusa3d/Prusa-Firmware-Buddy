@@ -6,7 +6,7 @@
 #include "window_icon.hpp"
 #include "gui.hpp"
 #include "ScreenHandler.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "gcode_thumb_decoder.h"
 #include "gcode_file.h"
 #include "gui_invalidate.hpp"
@@ -15,14 +15,14 @@
 
 LOG_COMPONENT_REF(GUI);
 
-window_icon_t::window_icon_t(window_t *parent, Rect16 rect, const png::Resource *res, is_closed_on_click_t close)
+window_icon_t::window_icon_t(window_t *parent, Rect16 rect, const img::Resource *res, is_closed_on_click_t close)
     : AddSuperWindow<window_aligned_t>(parent, rect, win_type_t::normal, close)
     , pRes(res) {
     SetAlignment(Align_t::Center());
 }
 
 // Icon rect is increased by padding, icon is centered inside it
-window_icon_t::window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
+window_icon_t::window_icon_t(window_t *parent, const img::Resource *res, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
     : window_icon_t(
         parent,
         [pt, res, padding] {
@@ -36,7 +36,7 @@ window_icon_t::window_icon_t(window_t *parent, const png::Resource *res, point_i
         res, close) {
 }
 
-window_icon_t::window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, Center center, size_t center_size, is_closed_on_click_t close)
+window_icon_t::window_icon_t(window_t *parent, const img::Resource *res, point_i16_t pt, Center center, size_t center_size, is_closed_on_click_t close)
     : window_icon_t(
         parent,
         [pt, res, center, center_size] {
@@ -108,10 +108,14 @@ void window_icon_t::setBlackLayout() {
     super::setBlackLayout();
     ClrHasIcon(); // normal icon
 }
+void window_icon_t::setBlueLayout() {
+    super::setBlueLayout();
+    SetHasIcon(); // alternative icon
+}
 
 /*****************************************************************************/
 // window_icon_button_t
-window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const png::Resource *res, ButtonCallback cb)
+window_icon_button_t::window_icon_button_t(window_t *parent, Rect16 rect, const img::Resource *res, ButtonCallback cb)
     : AddSuperWindow<window_icon_t>(parent, rect, res)
     , callback(cb) {
     SetRoundCorners();
@@ -153,7 +157,7 @@ void WindowMultiIconButton::unconditionalDraw() {
     if (!pRes)
         return;
 
-    const png::Resource *pPng = &pRes->normal;
+    const img::Resource *pPng = &pRes->normal;
     if (IsFocused())
         pPng = &pRes->focused;
     if (IsShadowed())
@@ -177,7 +181,7 @@ void WindowMultiIconButton::windowEvent(EventLock /*has private ctor*/, window_t
 /*****************************************************************************/
 // window_icon_hourglass_t
 window_icon_hourglass_t::window_icon_hourglass_t(window_t *parent, point_i16_t pt, padding_ui8_t padding, is_closed_on_click_t close)
-    : AddSuperWindow<window_icon_t>(parent, &png::hourglass_26x39, pt, padding, close)
+    : AddSuperWindow<window_icon_t>(parent, &img::hourglass_26x39, pt, padding, close)
     , start_time(gui::GetTick())
     , animation_color(COLOR_ORANGE)
     , phase(0) {

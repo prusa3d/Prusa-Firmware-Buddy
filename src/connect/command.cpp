@@ -88,7 +88,7 @@ namespace {
             return true;
         }
     };
-}
+} // namespace
 
 Command Command::gcode_command(CommandId id, const string_view &body, SharedBuffer::Borrow buff) {
     if (body.size() > buff.size()) {
@@ -260,4 +260,4 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     };
 }
 
-}
+} // namespace connect_client

@@ -15,7 +15,8 @@
 #include "filament_sensors_handler.hpp"
 #include "printers.h"
 #include <inttypes.h>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
+#include <option/has_mmu2.h>
 
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -29,7 +30,7 @@ MI_WIZARD::MI_WIZARD()
 
 void MI_WIZARD::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmWizard);
+    marlin_client::test_start(stmWizard);
 }
 
 /*****************************************************************************/
@@ -40,7 +41,7 @@ MI_SELFTEST::MI_SELFTEST()
 
 void MI_SELFTEST::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmFullSelftest);
+    marlin_client::test_start(stmFullSelftest);
 }
 
 /*****************************************************************************/
@@ -51,7 +52,7 @@ MI_SELFTEST_RESULT::MI_SELFTEST_RESULT()
 
 void MI_SELFTEST_RESULT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmShow_result);
+    marlin_client::test_start(stmShow_result);
 }
 
 /*****************************************************************************/
@@ -63,7 +64,7 @@ MI_CALIB_FIRST::MI_CALIB_FIRST()
 void MI_CALIB_FIRST::click(IWindowMenu & /*window_menu*/) {
 #if PRINTER_IS_PRUSA_MINI || PRINTER_IS_PRUSA_MK3_5
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmFirstLayer);
+    marlin_client::test_start(stmFirstLayer);
 #endif
 }
 
@@ -75,7 +76,7 @@ MI_TEST_FANS::MI_TEST_FANS()
 
 void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmFans);
+    marlin_client::test_start(stmFans);
 }
 
 /*****************************************************************************/
@@ -86,7 +87,7 @@ MI_TEST_XYZ::MI_TEST_XYZ()
 
 void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmXYZAxis);
+    marlin_client::test_start(stmXYZAxis);
 }
 
 /*****************************************************************************/
@@ -97,7 +98,7 @@ MI_TEST_X::MI_TEST_X()
 
 void MI_TEST_X::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmXAxis);
+    marlin_client::test_start(stmXAxis);
 }
 
 /*****************************************************************************/
@@ -108,7 +109,7 @@ MI_TEST_Y::MI_TEST_Y()
 
 void MI_TEST_Y::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmYAxis);
+    marlin_client::test_start(stmYAxis);
 }
 
 /*****************************************************************************/
@@ -120,7 +121,7 @@ MI_TEST_Z::MI_TEST_Z()
 
 void MI_TEST_Z::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmZAxis);
+    marlin_client::test_start(stmZAxis);
 }
 #endif
 
@@ -132,7 +133,7 @@ MI_TEST_HEAT::MI_TEST_HEAT()
 
 void MI_TEST_HEAT::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmHeaters);
+    marlin_client::test_start(stmHeaters);
 }
 
 /*****************************************************************************/
@@ -143,7 +144,7 @@ MI_TEST_HOTEND::MI_TEST_HOTEND()
 
 void MI_TEST_HOTEND::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmHeaters_noz);
+    marlin_client::test_start(stmHeaters_noz);
 }
 
 /*****************************************************************************/
@@ -155,7 +156,7 @@ MI_TEST_BED::MI_TEST_BED()
 
 void MI_TEST_BED::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmHeaters_bed);
+    marlin_client::test_start(stmHeaters_bed);
 }
 #endif
 /*****************************************************************************/
@@ -167,10 +168,10 @@ MI_CALIB_FSENSOR::MI_CALIB_FSENSOR()
 
 void MI_CALIB_FSENSOR::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmFSensor);
+    marlin_client::test_start(stmFSensor);
 }
 
-    #if HAS_MMU2
+    #if HAS_MMU2()
 /*****************************************************************************/
 // MI_CALIB_FSENSOR_MMU
 MI_CALIB_FSENSOR_MMU::MI_CALIB_FSENSOR_MMU()
@@ -179,7 +180,7 @@ MI_CALIB_FSENSOR_MMU::MI_CALIB_FSENSOR_MMU()
 
 void MI_CALIB_FSENSOR_MMU::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmFSensorMMU);
+    marlin_client::test_start(stmFSensorMMU);
 }
     #endif
 
@@ -192,7 +193,7 @@ MI_CALIB_GEARS::MI_CALIB_GEARS()
 
 void MI_CALIB_GEARS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmGears);
+    marlin_client::test_start(stmGears);
 }
 #endif
 
@@ -205,7 +206,7 @@ MI_CALIBRATE_TOOL_OFFSETS::MI_CALIBRATE_TOOL_OFFSETS()
 
 void MI_CALIBRATE_TOOL_OFFSETS::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
-    marlin_test_start(stmToolOffsets);
+    marlin_client::test_start(stmToolOffsets);
 }
 
 /*****************************************************************************/
@@ -223,14 +224,14 @@ void MI_RESTORE_CALIBRATION_FROM_USB::click([[maybe_unused]] IWindowMenu &window
     // load dock positions
     success &= prusa_toolchanger.load_tool_info_from_usb();
     prusa_toolchanger.save_tool_info();
-    for (int i = 0; i < std::min(EEPROM_MAX_TOOL_COUNT, buddy::puppies::DWARF_MAX_COUNT); i++) {
+    for (int i = 0; i < std::min<int>(config_store_ns::max_tool_count, buddy::puppies::DWARF_MAX_COUNT); i++) {
         res.tools[i].dockoffset = prusa_toolchanger.is_tool_info_valid(buddy::puppies::dwarfs[i]) ? TestResult_Passed : TestResult_Failed;
     }
 
     // load tool offsets
     success &= prusa_toolchanger.load_tool_offsets_from_usb();
     prusa_toolchanger.save_tool_offsets();
-    for (int i = 0; i < std::min(EEPROM_MAX_TOOL_COUNT, buddy::puppies::DWARF_MAX_COUNT); i++) {
+    for (int i = 0; i < std::min<int>(config_store_ns::max_tool_count, buddy::puppies::DWARF_MAX_COUNT); i++) {
         auto tool_offset = config_store().get_tool_offset(i);
         bool looks_fine = tool_offset.x != 0 && tool_offset.y != 0 && tool_offset.z != 0;
         res.tools[i].tooloffset = looks_fine ? TestResult_Passed : TestResult_Failed;

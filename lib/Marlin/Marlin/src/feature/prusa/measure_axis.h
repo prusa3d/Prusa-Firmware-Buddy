@@ -5,7 +5,7 @@
 
     #include "../../core/types.h"
     #include "../../module/planner.h"
-    #include "homing.h"
+    #include "../../module/prusa/homing_utils.hpp"
     #include "../tmc_util.h"
     #include <optional>
 

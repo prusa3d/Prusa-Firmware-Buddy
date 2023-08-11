@@ -4,13 +4,13 @@
 
 #include <unistd.h>
 #include "window_wizard_icon.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 // dash ok and nok must be same size
-constexpr const png::Resource &id_res_na = png::dash_18x18;
-constexpr const png::Resource &id_res_ok = png::ok_color_18x18;
-constexpr const png::Resource &id_res_ng = png::nok_color_18x18;
-constexpr const std::array<const png::Resource *, 4> id_res_ip = { { &png::spinner0_16x16, &png::spinner1_16x16, &png::spinner2_16x16, &png::spinner3_16x16 } };
+constexpr const img::Resource &id_res_na = img::dash_18x18;
+constexpr const img::Resource &id_res_ok = img::ok_color_18x18;
+constexpr const img::Resource &id_res_ng = img::nok_color_18x18;
+constexpr const std::array<const img::Resource *, 4> id_res_ip = { { &img::spinner0_16x16, &img::spinner1_16x16, &img::spinner2_16x16, &img::spinner3_16x16 } };
 
 // Icon rect is increased by padding, icon is centered inside it
 WindowIcon_OkNg::WindowIcon_OkNg(window_t *parent, point_i16_t pt, SelftestSubtestState_t state, padding_ui8_t padding)
@@ -37,7 +37,7 @@ void WindowIcon_OkNg::SetState(SelftestSubtestState_t s) {
 }
 
 void WindowIcon_OkNg::unconditionalDraw() {
-    const png::Resource *id_res = nullptr;
+    const img::Resource *id_res = nullptr;
     switch (GetState()) {
     case SelftestSubtestState_t::ok:
         id_res = &id_res_ok;

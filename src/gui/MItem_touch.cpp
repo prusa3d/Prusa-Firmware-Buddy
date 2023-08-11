@@ -5,13 +5,13 @@
 #include "touch_get.hpp"
 #include "touch_dependency.hpp"
 #include "window_msgbox.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "ScreenHandler.hpp"
 #include <device/peripherals.h>
 
 static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");
-    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &png::info_16x16);
+    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &img::info_16x16);
     gui::TickLoop();
     gui_loop();
 }

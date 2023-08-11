@@ -2,7 +2,7 @@
 #include "syslog.h"
 #include "log.h"
 #include "dns.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_DEF(Syslog, LOG_SEVERITY_INFO);
 

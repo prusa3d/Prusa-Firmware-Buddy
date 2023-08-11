@@ -11,7 +11,7 @@
 #include <array>
 
 #include "wui_api.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 // ----------------------------------------------------------------
 // GUI Prusa Link Password regenerate
@@ -72,9 +72,9 @@ void ScreenMenuPrusaLink::windowEvent(EventLock /*has private ctor*/, window_t *
         uint32_t type = ((uint32_t)param) & 0xFFFF0000;
         switch (type) {
         case MI_PL_REGENERATE_PASSWORD::EventMask::value: {
-            char password[PL_PASSWORD_SIZE] = { 0 };
-            wui_generate_password(password, PL_PASSWORD_SIZE);
-            wui_store_password(password, PL_PASSWORD_SIZE);
+            char password[config_store_ns::pl_password_size] = { 0 };
+            wui_generate_password(password, config_store_ns::pl_password_size);
+            wui_store_password(password, config_store_ns::pl_password_size);
             display_passwd(password);
             break;
         }

@@ -44,22 +44,24 @@
 #include "../../module/planner.h"
 #include "../../module/tool_change.h"
 #include "../../module/endstops.h"
+#include "../../module/prusa/homing_corexy.hpp"
 #include "../../feature/bedlevel/bedlevel.h"
 #include "Marlin/src/gcode/gcode.h"
 #include "../../module/stepper.h"
 
 #if ENABLED(PRUSA_TOOLCHANGER)
-    #include "loadcell.h"
+    #include "loadcell.hpp"
     #include "../../module/prusa/toolchanger.h"
     #include "../../module/probe.h"
 #endif
 
 #if ENABLED(CRASH_RECOVERY)
-    #include "src/feature/prusa/crash_recovery.h"
+    #include "src/feature/prusa/crash_recovery.hpp"
 #endif
 
 #include <bsod_gui.hpp>
 #include <marlin_server.hpp>
+#include <center_approx.hpp>
 
 /**
  * G425 backs away from the calibration object by various distances
@@ -137,6 +139,10 @@ struct measurements_t {
     xy_float_t nozzle_outer_dimension = nod;
 };
 
+/// Center find phase
+// Center probing requires an approximate center as input. In order to increase precision the center
+// is probed several times starting from hardcoded center. As the center position is refined the probe
+// algorithms optimize retractions and increase number of hits in later phases.
 enum class Phase : uint8_t {
     first,
     second,
@@ -260,10 +266,6 @@ void go_to_initial(const xyz_pos_t center, const float angle, const float radius
     planner.synchronize();
 }
 
-float point_distance(const xy_pos_t a, const xy_pos_t b) {
-    return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
-}
-
 xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool, const Phase phase) {
     // Wait for movements to finish
     planner.synchronize();
@@ -319,7 +321,7 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
     corexy_ab_to_xyze(hit_steps, hit_mm);
 
     // Discard result if not moved enough to reach the pin (probe triggered too early?)
-    if (point_distance(hit_mm, initial_mm) < MIN_TRAVELED_DISTANCE_MM) {
+    if ((hit_mm - initial_mm).magnitude() < MIN_TRAVELED_DISTANCE_MM) {
         hit_mm.reset();
     }
 
@@ -366,7 +368,7 @@ xy_pos_t probe_xy_verify(const xyz_pos_t center, const float angle, const float 
         // Compute sum of hit distances from position
         float distance = 0;
         for (auto &hit : hits) {
-            auto dist = point_distance(pos, hit);
+            auto dist = (pos - hit).magnitude();
             if (dist > distance) {
                 distance = dist;
             }
@@ -392,7 +394,7 @@ xy_pos_t probe_xy_verify(const xyz_pos_t center, const float angle, const float 
             static_cast<double>(pos.x),
             static_cast<double>(pos.y));
 
-        const float exp_dist = point_distance(pos, synthetic_probe(center, angle));
+        const float exp_dist = (pos - synthetic_probe(center, angle)).magnitude();
         if (exp_dist > PROBE_FAIL_THRESHOLD_MM) {
             fatal_error(ErrCode::ERR_MECHANICAL_XY_POSITION_INVALID, static_cast<double>(exp_dist), static_cast<double>(PROBE_FAIL_THRESHOLD_MM));
         }
@@ -403,19 +405,6 @@ xy_pos_t probe_xy_verify(const xyz_pos_t center, const float angle, const float 
     fatal_error(ErrCode::ERR_MECHANICAL_XY_PROBE_UNSTABLE);
 
     return hits[0];
-}
-
-// Simple approx center as average
-const xy_pos_t approx_center(std::span<const xy_pos_t> points) {
-    // Average as center
-    xy_pos_t center = { { { .x = 0, .y = 0 } } };
-    for (const xy_pos_t &point : points) {
-        center += point;
-    }
-    center.x /= points.size();
-    center.y /= points.size();
-
-    return center;
 }
 
 /// Probe in Z, first in the middle then it does circle around center of the pin, just to distribute the probes over larger area to minimize errors
@@ -485,14 +474,14 @@ void check_deviation(const xy_pos_t &center, std::span<const xy_pos_t> points) {
     // Compute average radius
     float radius = 0;
     for (const xy_pos_t &p : points) {
-        radius += point_distance(center, p);
+        radius += (center - p).magnitude();
     }
     radius /= points.size();
 
     // Compute maximum deviation of point-center distance from average radius
     float max_dev = 0;
     for (const xy_pos_t &p : points) {
-        max_dev = max(max_dev, point_distance(center, p) - radius);
+        max_dev = max(max_dev, (center - p).magnitude() - radius);
     }
 
     // Issue warning if maximum deviation is above threshold
@@ -521,7 +510,7 @@ const xyz_pos_t get_single_xyz_center(const xyz_pos_t initial, const uint8_t too
     for (uint hit_no = 0; xy_pos_t & hit : hits) {
         hit = probe_xy_verify(start, 2 * PI / hits.size() * hit_no++, PROBE_XY_UNCERTAIN_DIST_MM, tool, phase);
     }
-    xyz_pos_t center = approx_center(hits);
+    xyz_pos_t center = approximate_center(hits);
     center.z = start.z;
 
     if (phase == Phase::final) {

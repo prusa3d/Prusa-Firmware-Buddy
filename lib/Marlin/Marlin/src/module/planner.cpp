@@ -96,7 +96,7 @@
 #endif
 
 #if ENABLED(CRASH_RECOVERY)
-  #include "../feature/prusa/crash_recovery.h"
+  #include "../feature/prusa/crash_recovery.hpp"
 #endif
 
 #include "configuration_store.h"
@@ -220,9 +220,9 @@ void Planner::init() {
   static FORCE_INLINE uint32_t get_period_inverse(const uint32_t d) {
     return d ? 0xFFFFFFFF / d : 0xFFFFFFFF;
   }
-#endif
 
 #define MINIMAL_STEP_RATE 120
+#endif
 
 /**
  * Calculate trapezoid parameters, multiplying the entry- and exit-speeds
@@ -234,19 +234,26 @@ void Planner::init() {
  * is not and will not use the block while we modify it, so it is safe to
  * alter its values.
  */
-void Planner::calculate_trapezoid_for_block(block_t * const block, const_float_t entry_factor, const_float_t exit_factor) {
+void Planner::calculate_trapezoid_for_block(block_t * const block, const_float_t entry_speed, const_float_t exit_speed) {
+  // Store new block parameters
+  block->initial_speed = entry_speed;
+  block->final_speed = exit_speed;
+
+  #if ENABLED(S_CURVE_ACCELERATION)
+    const float nomr = 1.0f / block->nominal_speed;
+    const float entry_factor = entry_speed * nomr,
+                exit_factor = exit_speed * nomr;
 
   uint32_t initial_rate = CEIL(block->nominal_rate * entry_factor),
            final_rate = CEIL(block->nominal_rate * exit_factor); // (steps per second)
 
+  // TODO @hejllukas: Probably we don't need to limit the minimal step rate at all because the current stepper routine should handle it without overflow.
   // Limit minimal step rate (Otherwise the timer will overflow.)
   NOLESS(initial_rate, uint32_t(MINIMAL_STEP_RATE));
   NOLESS(final_rate, uint32_t(MINIMAL_STEP_RATE));
 
-  #if ENABLED(S_CURVE_ACCELERATION)
     // If we have some plateau time, the cruise rate will be the nominal rate
     uint32_t cruise_rate = block->nominal_rate;
-  #endif
 
   // Steps for acceleration, plateau and deceleration
   int32_t plateau_steps = block->step_event_count;
@@ -275,16 +282,12 @@ void Planner::calculate_trapezoid_for_block(block_t * const block, const_float_t
     if (plateau_steps < 0) {
       accelerate_steps_float = CEIL((block->step_event_count + accelerate_steps_float - decelerate_steps_float) * 0.5f);
       accelerate_steps = _MIN(uint32_t(_MAX(accelerate_steps_float, 0)), block->step_event_count);
-      decelerate_steps = block->step_event_count - accelerate_steps;
 
-      #if ENABLED(S_CURVE_ACCELERATION)
         // We won't reach the cruising rate. Let's calculate the speed we will reach
         cruise_rate = final_speed(initial_rate, accel, accelerate_steps);
-      #endif
     }
   }
 
-  #if ENABLED(S_CURVE_ACCELERATION)
     const float rate_factor = inverse_accel * (STEPPER_TIMER_RATE);
     // Jerk controlled speed requires to express speed versus time, NOT steps
     uint32_t acceleration_time = rate_factor * float(cruise_rate - initial_rate),
@@ -292,20 +295,16 @@ void Planner::calculate_trapezoid_for_block(block_t * const block, const_float_t
     // And to offload calculations from the ISR, we also calculate the inverse of those times here
              acceleration_time_inverse = get_period_inverse(acceleration_time),
              deceleration_time_inverse = get_period_inverse(deceleration_time);
-  #endif
 
   // Store new block parameters
-  block->accelerate_until = accelerate_steps;
-  block->decelerate_after = block->step_event_count - decelerate_steps;
   block->initial_rate = initial_rate;
-  #if ENABLED(S_CURVE_ACCELERATION)
     block->acceleration_time = acceleration_time;
     block->deceleration_time = deceleration_time;
     block->acceleration_time_inverse = acceleration_time_inverse;
     block->deceleration_time_inverse = deceleration_time_inverse;
     block->cruise_rate = cruise_rate;
-  #endif
   block->final_rate = final_rate;
+  #endif
 }
 
 /**
@@ -627,8 +626,7 @@ void Planner::recalculate_trapezoids(TERN_(HINTS_SAFE_EXIT_SPEED, const_float_t 
         if (block->flag.recalculate) {
 
           // NOTE: Entry and exit factors always > 0 by all previous logic operations.
-          const float nomr = 1.0f / block->nominal_speed;
-          calculate_trapezoid_for_block(block, current_entry_speed * nomr, next_entry_speed * nomr);
+          calculate_trapezoid_for_block(block, current_entry_speed, next_entry_speed);
 
           // Reset current only to ensure next trapezoid is computed - The
           // stepper is free to use the block from now on.
@@ -658,9 +656,7 @@ void Planner::recalculate_trapezoids(TERN_(HINTS_SAFE_EXIT_SPEED, const_float_t 
     // if that is the case!
     if (!is_block_busy(block)) {
       // Block is not BUSY, we won the race against the Stepper ISR:
-
-      const float nomr = 1.0f / block->nominal_speed;
-      calculate_trapezoid_for_block(block, current_entry_speed * nomr, next_entry_speed * nomr);
+      calculate_trapezoid_for_block(block, current_entry_speed, next_entry_speed);
     }
 
     // Reset block to ensure its trapezoid is computed - The stepper is free to use
@@ -1167,12 +1163,7 @@ bool Planner::_buffer_steps_raw(const xyze_long_t &target, const xyze_pos_t &tar
   block_hints.raw_block = true;
 
   // Fill the block with the specified movement
-  if (!_populate_block(block, target, target_float
-    #if IS_CORE
-      , delta_abce
-    #endif
-    , fr_mm_s, extruder, block_hints
-  )) {
+  if (!_populate_block(block, target, target_float, fr_mm_s, extruder, block_hints)) {
     // Movement was not queued, probably because it was too short.
     //  Simply accept that as movement queued and done
     return true;
@@ -1208,37 +1199,8 @@ bool Planner::_buffer_steps(const xyze_long_t &target, const xyze_pos_t &target_
   block_t * const block = get_next_free_block(next_buffer_head);
   if (!block) return false;
 
-  #if IS_CORE
-    const int32_t da = target.a - position.a,
-                  db = target.b - position.b,
-                  dc = target.c - position.c;
-
-    // Number of steps for each axis
-    // See http://www.corexy.com/theory.html
-    xyze_long_t delta_abce;
-    #if CORE_IS_XY
-      delta_abce[A_AXIS] = da + db;
-      delta_abce[B_AXIS] = CORESIGN(da - db);
-      delta_abce[C_AXIS] = dc;
-    #elif CORE_IS_XZ
-      delta_abce[A_AXIS] = da + dc;
-      delta_abce[B_AXIS] = db;
-      delta_abce[C_AXIS] = CORESIGN(da - dc);
-    #elif CORE_IS_YZ
-      delta_abce[A_AXIS] = da;
-      delta_abce[B_AXIS] = db + dc;
-      delta_abce[C_AXIS] = CORESIGN(db - dc);
-    #endif
-  #endif
-
   // Fill the block with the specified movement
-  if (!_populate_block(block, target, target_float
-      #if IS_CORE
-        , delta_abce
-      #endif
-      , fr_mm_s, extruder, hints
-    )
-  ) {
+  if (!_populate_block(block, target, target_float, fr_mm_s, extruder, hints)) {
     // Movement was not queued, probably because it was too short.
     //  Simply accept that as movement queued and done
     return true;
@@ -1282,9 +1244,6 @@ bool Planner::_buffer_steps(const xyze_long_t &target, const xyze_pos_t &target_
  */
 bool Planner::_populate_block(block_t * const block,
   const abce_long_t &target, const xyze_pos_t &target_float
-  #if IS_CORE
-    , const xyze_long_t &delta_abce
-  #endif
   , feedRate_t fr_mm_s, const uint8_t extruder, const PlannerHints &hints
 ) {
   const int32_t da = target.a - position.a,
@@ -1336,29 +1295,9 @@ bool Planner::_populate_block(block_t * const block,
 
   // Compute direction bit-mask for this block
   uint8_t dm = 0;
-  #if CORE_IS_XY
-    if (da < 0) SBI(dm, X_HEAD);                // Save the real Extruder (head) direction in X Axis
-    if (db < 0) SBI(dm, Y_HEAD);                // ...and Y
-    if (dc < 0) SBI(dm, Z_AXIS);
-    if (delta_abce.a < 0) SBI(dm, A_AXIS);      // Motor A direction
-    if (delta_abce.b < 0) SBI(dm, B_AXIS);      // Motor B direction
-  #elif CORE_IS_XZ
-    if (da < 0) SBI(dm, X_HEAD);                // Save the real Extruder (head) direction in X Axis
-    if (db < 0) SBI(dm, Y_AXIS);
-    if (dc < 0) SBI(dm, Z_HEAD);                // ...and Z
-    if (delta_abce.a < 0) SBI(dm, A_AXIS);      // Motor A direction
-    if (delta_abce.c < 0) SBI(dm, C_AXIS);      // Motor C direction
-  #elif CORE_IS_YZ
-    if (da < 0) SBI(dm, X_AXIS);
-    if (db < 0) SBI(dm, Y_HEAD);                // Save the real Extruder (head) direction in Y Axis
-    if (dc < 0) SBI(dm, Z_HEAD);                // ...and Z
-    if (delta_abce.b < 0) SBI(dm, B_AXIS);      // Motor B direction
-    if (delta_abce.c < 0) SBI(dm, C_AXIS);      // Motor C direction
-  #else
-    if (da < 0) SBI(dm, X_AXIS);
-    if (db < 0) SBI(dm, Y_AXIS);
-    if (dc < 0) SBI(dm, Z_AXIS);
-  #endif
+  if (da < 0) SBI(dm, X_AXIS);
+  if (db < 0) SBI(dm, Y_AXIS);
+  if (dc < 0) SBI(dm, Z_AXIS);
   if (de < 0) SBI(dm, E_AXIS);
 
   #if EXTRUDERS
@@ -1376,12 +1315,8 @@ bool Planner::_populate_block(block_t * const block,
   block->direction_bits = dm;
 
   // Number of steps for each axis
-  #if IS_CORE
-    block->steps.set(ABS(delta_abce.a), ABS(delta_abce.b), ABS(delta_abce.c));
-  #else
-    // default non-h-bot planning
-    block->steps.set(ABS(da), ABS(db), ABS(dc));
-  #endif
+  // default non-h-bot planning
+  block->steps.set(ABS(da), ABS(db), ABS(dc));
 
   /**
    * This part of the code calculates the total length of the movement.
@@ -1391,36 +1326,10 @@ bool Planner::_populate_block(block_t * const block,
    * So we need to create other 2 "AXIS", named X_HEAD and Y_HEAD, meaning the real displacement of the Head.
    * Having the real displacement of the head, we can calculate the total movement length and apply the desired speed.
    */
-  struct DeltaMM : abce_float_t {
-    #if IS_CORE
-      xyz_pos_t head;
-    #endif
-  } delta_mm;
-  #if IS_CORE
-    #if CORE_IS_XY
-      delta_mm.head.x = da * mm_per_step[A_AXIS];
-      delta_mm.head.y = db * mm_per_step[B_AXIS];
-      delta_mm.z      = dc * mm_per_step[Z_AXIS];
-      delta_mm.a      = (da + db) * mm_per_step[A_AXIS];
-      delta_mm.b      = CORESIGN(da - db) * mm_per_step[B_AXIS];
-    #elif CORE_IS_XZ
-      delta_mm.head.x = da * mm_per_step[A_AXIS];
-      delta_mm.y      = db * mm_per_step[Y_AXIS];
-      delta_mm.head.z = dc * mm_per_step[C_AXIS];
-      delta_mm.a      = (da + dc) * mm_per_step[A_AXIS];
-      delta_mm.c      = CORESIGN(da - dc) * mm_per_step[C_AXIS];
-    #elif CORE_IS_YZ
-      delta_mm.x      = da * mm_per_step[X_AXIS];
-      delta_mm.head.y = db * mm_per_step[B_AXIS];
-      delta_mm.head.z = dc * mm_per_step[C_AXIS];
-      delta_mm.b      = (db + dc) * mm_per_step[B_AXIS];
-      delta_mm.c      = CORESIGN(db - dc) * mm_per_step[C_AXIS];
-    #endif
-  #else
-    delta_mm.a = da * mm_per_step[A_AXIS];
-    delta_mm.b = db * mm_per_step[B_AXIS];
-    delta_mm.c = dc * mm_per_step[C_AXIS];
-  #endif
+  abce_float_t delta_mm;
+  delta_mm.a = da * mm_per_step[A_AXIS];
+  delta_mm.b = db * mm_per_step[B_AXIS];
+  delta_mm.c = dc * mm_per_step[C_AXIS];
 
   #if EXTRUDERS
     delta_mm.e = esteps_float * mm_per_step[E_AXIS_N(extruder)];
@@ -1438,17 +1347,7 @@ bool Planner::_populate_block(block_t * const block,
     if (hints.millimeters)
       block->millimeters = hints.millimeters;
     else
-      block->millimeters = SQRT(
-        #if CORE_IS_XY
-          sq(delta_mm.head.x) + sq(delta_mm.head.y) + sq(delta_mm.z)
-        #elif CORE_IS_XZ
-          sq(delta_mm.head.x) + sq(delta_mm.y) + sq(delta_mm.head.z)
-        #elif CORE_IS_YZ
-          sq(delta_mm.x) + sq(delta_mm.head.y) + sq(delta_mm.head.z)
-        #else
-          sq(delta_mm.x) + sq(delta_mm.y) + sq(delta_mm.z)
-        #endif
-      );
+      block->millimeters = SQRT(sq(delta_mm.x) + sq(delta_mm.y) + sq(delta_mm.z));
 
     /**
      * At this point at least one of the axes has more steps than
@@ -1696,7 +1595,9 @@ bool Planner::_populate_block(block_t * const block,
   #endif
 
   block->nominal_speed = block->millimeters * inverse_secs;           // (mm/sec) Always > 0
+#if ENABLED(S_CURVE_ACCELERATION)
   block->nominal_rate = CEIL(block->step_event_count * inverse_secs); // (step/sec) Always > 0
+#endif
 
   #if ENABLED(FILAMENT_WIDTH_SENSOR)
     if (extruder == FILAMENT_SENSOR_EXTRUDER_NUM)   // Only for extruder with filament sensor
@@ -1712,7 +1613,12 @@ bool Planner::_populate_block(block_t * const block,
     #if ENABLED(DISTINCT_E_FACTORS)
       if (i == E_AXIS) i += extruder;
     #endif
+#ifdef COREXY_CONVERT_LIMITS
+    const float max_feedrate_mm_s = settings.max_feedrate_mm_s[i] / std::sqrt(2.f);
+    if (cs > max_feedrate_mm_s) NOMORE(speed_factor, max_feedrate_mm_s / cs);
+#else
     if (cs > settings.max_feedrate_mm_s[i]) NOMORE(speed_factor, settings.max_feedrate_mm_s[i] / cs);
+#endif
   }
 
   // Max segment time in µs.
@@ -1756,7 +1662,9 @@ bool Planner::_populate_block(block_t * const block,
   // Correct the speed
   if (speed_factor < 1.0f) {
     current_speed *= speed_factor;
+  #if ENABLED(S_CURVE_ACCELERATION)
     block->nominal_rate *= speed_factor;
+  #endif
     block->nominal_speed *= speed_factor;
   }
 
@@ -1805,11 +1713,10 @@ bool Planner::_populate_block(block_t * const block,
       LIMIT_ACCEL_FLOAT(E_AXIS, ACCEL_IDX);
     }
   }
+#if ENABLED(S_CURVE_ACCELERATION)
   block->acceleration_steps_per_s2 = accel;
+#endif
   block->acceleration = accel / steps_per_mm;
-  #if DISABLED(S_CURVE_ACCELERATION)
-    block->acceleration_rate = (uint32_t)(accel * (4096.0f * 4096.0f / (STEPPER_TIMER_RATE)));
-  #endif
   float vmax_junction_sqr; // Initial limit on the segment entry velocity (mm/s)^2
 
   #if DISABLED(CLASSIC_JERK)
@@ -2318,7 +2225,11 @@ void Planner::refresh_acceleration_rates() {
   #endif
   uint32_t highest_rate = 1;
   LOOP_XYZE_N(i) {
+#ifdef COREXY_CONVERT_LIMITS
+    max_acceleration_steps_per_s2[i] = settings.max_acceleration_mm_per_s2[i] * settings.axis_steps_per_mm[i] / std::sqrt(2.f);
+#else
     max_acceleration_steps_per_s2[i] = settings.max_acceleration_mm_per_s2[i] * settings.axis_steps_per_mm[i];
+#endif
     if (AXIS_CONDITION) NOLESS(highest_rate, max_acceleration_steps_per_s2[i]);
   }
   cutoff_long = 4294967295UL / highest_rate; // 0xFFFFFFFFUL

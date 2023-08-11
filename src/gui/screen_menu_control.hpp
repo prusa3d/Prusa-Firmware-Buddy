@@ -9,6 +9,7 @@
 #include <option/filament_sensor.h>
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
+#include <option/has_mmu2.h>
 #include <printers.h>
 #include "MItem_basic_selftest.hpp"
 
@@ -33,10 +34,10 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
         #if FILAMENT_SENSOR_IS_ADC()
     ,
     MI_CALIB_FSENSOR
-            #if HAS_MMU2
+            #if HAS_MMU2()
     ,
     MI_CALIB_FSENSOR_MMU
-            #endif // HAS_MMU2
+            #endif // HAS_MMU2()
         #endif     // FILAMENT_SENSOR_IS_ADC()
     ,
     MI_SELFTEST,

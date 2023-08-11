@@ -101,4 +101,4 @@ void HeatbedletInfo::AddMeasuredTemperature(float temperature) {
         m_MeasuredTemperatureHistoryIndex = 0;
 }
 
-} // namespace
+} // namespace modularbed

@@ -17,4 +17,4 @@ void validate();
 
 bool validate_for_cyclical_calls();
 
-}
+} // namespace GuiFSensor

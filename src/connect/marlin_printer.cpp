@@ -4,7 +4,7 @@
 #include <ini.h>
 #include <version.h>
 #include <support_utils.h>
-#include <otp.h>
+#include <otp.hpp>
 #include <odometer.hpp>
 #include <netdev.h>
 #include <print_utils.hpp>
@@ -19,7 +19,7 @@
 #include <mbedtls/sha256.h>
 #include <sys/statvfs.h>
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 using printer_state::DeviceState;
 using printer_state::get_state;
@@ -58,7 +58,7 @@ namespace {
                 return 0;
             }
         } else if (ini_string_match(section, INI_SECTION, name, "token")) {
-            if (len <= CONNECT_TOKEN_SIZE) {
+            if (len <= config_store_ns::connect_token_size) {
                 strlcpy(config->token, value, sizeof config->token);
                 config->loaded = true;
             } else {
@@ -103,8 +103,8 @@ namespace {
 
     // "Make up" some semi-unique, semi-stable serial number.
     uint8_t synthetic_serial(serial_nr_t *sn) {
-        memset(sn->txt, 0, sizeof sn->txt);
-        strlcpy(sn->txt, "DEVX", sizeof sn->txt);
+        memset(sn->begin(), 0, sn->size());
+        strlcpy(sn->begin(), "DEVX", sn->size());
         // Make sure different things generated based on these data produce different hashes.
         static const char salt[] = "Nj20je98gje";
         mbedtls_sha256_context ctx;
@@ -122,21 +122,21 @@ namespace {
         for (size_t i = 0; i < 15; i++) {
             // With 25 letters in the alphabet, this should provide us with nice
             // readable characters.
-            sn->txt[i + offset] = 'a' + (hash[i] & 0x0f);
+            (*sn)[i + offset] = 'a' + (hash[i] & 0x0f);
         }
         return 20;
     }
-}
+} // namespace
 
 MarlinPrinter::MarlinPrinter() {
-    marlin_client_init();
+    marlin_client::init();
 
     info.firmware_version = project_version_full;
     info.appendix = appendix_exist();
 
-    otp_get_serial_nr(&info.serial_number);
+    otp_get_serial_nr(info.serial_number);
 
-    if (!serial_valid(info.serial_number.txt)) {
+    if (!serial_valid(info.serial_number.begin())) {
         synthetic_serial(&info.serial_number);
     }
 
@@ -292,21 +292,21 @@ bool MarlinPrinter::job_control(JobControl control) {
     switch (control) {
     case JobControl::Pause:
         if (state == DeviceState::Printing) {
-            marlin_print_pause();
+            marlin_client::print_pause();
             return true;
         } else {
             return false;
         }
     case JobControl::Resume:
         if (state == DeviceState::Paused) {
-            marlin_print_resume();
+            marlin_client::print_resume();
             return true;
         } else {
             return false;
         }
     case JobControl::Stop:
         if (state == DeviceState::Paused || state == DeviceState::Printing || state == DeviceState::Attention) {
-            marlin_print_abort();
+            marlin_client::print_abort();
             return true;
         } else {
             return false;
@@ -322,7 +322,7 @@ bool MarlinPrinter::start_print(const char *path) {
     }
 
     print_begin(path, true);
-    return marlin_print_started();
+    return marlin_client::is_print_started();
 }
 
 const char *MarlinPrinter::delete_file(const char *path) {
@@ -337,7 +337,7 @@ const char *MarlinPrinter::delete_file(const char *path) {
 }
 
 void MarlinPrinter::submit_gcode(const char *code) {
-    marlin_gcode(code);
+    marlin_client::gcode(code);
 }
 
 bool MarlinPrinter::set_ready(bool ready) {
@@ -350,7 +350,7 @@ bool MarlinPrinter::set_ready(bool ready) {
 }
 
 bool MarlinPrinter::is_printing() const {
-    return marlin_is_printing();
+    return marlin_client::is_printing();
 }
 
-}
+} // namespace connect_client

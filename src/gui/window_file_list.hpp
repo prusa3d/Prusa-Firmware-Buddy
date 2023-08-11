@@ -37,7 +37,7 @@ public:
 
 class FL_LABEL : public WI_LABEL_t {
 public:
-    FL_LABEL(string_view_utf8 label, const png::Resource *icon)
+    FL_LABEL(string_view_utf8 label, const img::Resource *icon)
         : WI_LABEL_t(label, icon, is_enabled_t::yes, is_hidden_t::no) {}
 
 protected:
@@ -97,7 +97,7 @@ protected:
     void selectNewItem();             // sets focus and activates text rolling
     Rect16 itemRect(int index) const; // get rectangle of item with target index
     string_view_utf8 itemText(int index) const;
-    const png::Resource *itemIcon(int index) const;
+    const img::Resource *itemIcon(int index) const;
     FL_LABEL activeItem;   ///< used for text rolling
     MI_RETURN return_item; ///< used for return item
 

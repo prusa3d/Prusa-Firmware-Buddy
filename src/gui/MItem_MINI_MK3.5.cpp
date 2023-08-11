@@ -3,7 +3,7 @@
  */
 
 #include "MItem_MINI_MK3.5.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor.hpp"
 

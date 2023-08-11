@@ -5,7 +5,7 @@
 #include "ScreenHandler.hpp"
 #include "client_response_texts.hpp"
 #include "GuiDefaults.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 /*****************************************************************************/
 // Icon + Text layout adjusting tool
@@ -14,13 +14,13 @@ void AdjustLayout(window_text_t &text, window_icon_t &icon) {
     icon.SetAlignment(Align_t::LeftTop());
     Rect16 new_rect = text.GetRect();
 
-    uint16_t chars_in_row = text.GetRect().Width() / text.get_font()->w;
-    // if there are more than 3 rows, icon should be aligned with top of the text (not center)
-    if (text.text.computeNumUtf8CharsAndRewind() / (chars_in_row - 8) > 3) { // - 8 for simulating spaces on the end of each row                            // If there are more than 3 rows, icon will align to the top
-        new_rect -= Rect16::Top_t(3);                                        // Add Text's padding
+    /// @todo Cannot calculate number of lines of text in advance as it gets wrapped by words.
+    ///       Centering unknown text vertically is not possible now.
+    if (true /*text.text.computeNumLinesAndRewind() > 3*/) { // If there are more than 3 rows, icon will align to the top
+        new_rect -= Rect16::Top_t(text.padding.top);         // Add Text's padding
         text.SetAlignment(Align_t::LeftTop());
     } else {
-        new_rect = Rect16::Height_t(48);
+        new_rect = Rect16::Height_t(text.get_font()->h * 3); // Set height to 3 rows
         text.SetAlignment(Align_t::LeftCenter());
     }
     text.SetRect(new_rect);
@@ -51,6 +51,10 @@ Response MsgBoxBase::GetResult() {
     return result;
 }
 
+void MsgBoxBase::set_text_alignment(Align_t alignment) {
+    text.SetAlignment(alignment);
+}
+
 void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     event_conversion_union un;
     un.pvoid = param;
@@ -71,7 +75,7 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 /*****************************************************************************/
 // MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const png::Resource *title_icon, is_closed_on_click_t close)
+    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon, is_closed_on_click_t close)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     title.set_font(getTitleFont());
@@ -123,7 +127,7 @@ void MsgBoxTitled::unconditionalDraw() {
 /*****************************************************************************/
 // MsgBoxIconned
 MsgBoxIconned::MsgBoxIconned(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, const png::Resource *icon_res, is_closed_on_click_t close)
+    string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res, is_closed_on_click_t close)
     : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline, close)
     , icon(this, icon_res, { int16_t(rect.Left()), int16_t(rect.Top()) }, GuiDefaults::Padding) {
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
@@ -159,7 +163,7 @@ Rect16 MsgBoxIconned::getTextRect() {
 /*****************************************************************************/
 // MsgBoxIconPepa
 MsgBoxIconPepa::MsgBoxIconPepa(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, const png::Resource *ic)
+    string_view_utf8 txt, is_multiline multiline, const img::Resource *ic)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, ic) {
     icon.SetRect(getIconRect());
     icon.SetAlignment(Align_t::CenterTop());
@@ -179,7 +183,7 @@ Rect16 MsgBoxIconPepa::getIconRect() {
 /*****************************************************************************/
 // MsgBoxIconPepaCentered
 MsgBoxIconPepaCentered::MsgBoxIconPepaCentered(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, const png::Resource *ic)
+    string_view_utf8 txt, is_multiline multiline, const img::Resource *ic)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, ic) {
     icon.SetRect(getIconRect());
     icon.SetAlignment(Align_t::CenterTop());
@@ -198,7 +202,7 @@ Rect16 MsgBoxIconPepaCentered::getIconRect() {
 
 /*****************************************************************************/
 // MsgBoxIconnedError
-MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline, const png::Resource *icon_res)
+MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels, string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, icon_res) {
     SetRoundCorners();
     text.SetRect(getTextRect()); // reinit text, icon and title must be initialized
@@ -220,7 +224,7 @@ MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, 
 /*****************************************************************************/
 // MsgBoxIS
 MsgBoxIS::MsgBoxIS(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, const png::Resource *icon_res, is_closed_on_click_t close)
+    string_view_utf8 txt, is_multiline multiline, const img::Resource *icon_res, is_closed_on_click_t close)
     : AddSuperWindow<MsgBoxBase>(rect, resp, def_btn, labels, txt, multiline, close)
     , icon(this, icon_res, {}, GuiDefaults::Padding)
     , qr(this, {}, QR_ADDR) {
@@ -273,67 +277,67 @@ Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn
     return MsgBox_Custom<MsgBoxBase>(rect, resp, def_btn, txt, multiline);
 }
 
-Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, const png::Resource *icon_id, is_multiline multiline) {
+Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, const img::Resource *icon_id, is_multiline multiline) {
     return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, title, icon_id);
 }
 
 Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconnedError>(rect, resp, def_btn, txt, multiline, &png::error_white_48x48);
+        return MsgBox_Custom<MsgBoxIconnedError>(rect, resp, def_btn, txt, multiline, &img::error_white_48x48);
     } else {
         constexpr static const char *label = N_("Error");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &png::error_16x16);
+        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::error_16x16);
     }
 }
 
 Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &png::question_48x48);
+        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::question_48x48);
     } else {
         constexpr static const char *label = N_("Question");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &png::question_16x16);
+        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::question_16x16);
     }
 }
 
 Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &png::warning_48x48);
+        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::warning_48x48);
     } else {
         constexpr static const char *label = N_("Warning");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &png::warning_16x16);
+        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::warning_16x16);
     }
 }
 
 Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &png::info_48x48);
+        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::info_48x48);
     } else {
         constexpr static const char *label = N_("Information");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &png::info_16x16);
+        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::info_16x16);
     }
 }
 
 Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconPepa>(rect, resp, def_btn, txt, multiline, &png::pepa_92x140);
+        return MsgBox_Custom<MsgBoxIconPepa>(rect, resp, def_btn, txt, multiline, &img::pepa_92x140);
     } else {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &png::pepa_42x64);
+        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::pepa_42x64);
     }
 }
 
 Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIconPepaCentered>(rect, resp, def_btn, txt, multiline, &png::pepa_92x140);
+        return MsgBox_Custom<MsgBoxIconPepaCentered>(rect, resp, def_btn, txt, multiline, &img::pepa_92x140);
     } else {
-        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &png::pepa_42x64);
+        return MsgBox_Custom<MsgBoxIconned>(rect, resp, def_btn, txt, multiline, &img::pepa_42x64);
     }
 }
 
 Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp, size_t def_btn, Rect16 rect, is_multiline multiline) {
     if (GuiDefaults::EnableDialogBigLayout) {
-        return MsgBox_Custom<MsgBoxIS>(rect, resp, def_btn, txt, multiline, &png::error_white_48x48);
+        return MsgBox_Custom<MsgBoxIS>(rect, resp, def_btn, txt, multiline, &img::error_white_48x48);
     } else {
         constexpr static const char *label = N_("Warning");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &png::warning_16x16);
+        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::warning_16x16);
     }
 }

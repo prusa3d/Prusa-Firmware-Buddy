@@ -3,13 +3,13 @@
 #include "window_arrows.hpp"
 #include "gui.hpp"
 #include "guitypes.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 /// must be same size
-static constexpr const png::Resource *id_res_grey_up = &png::arrow_up_12x12;
-static constexpr const png::Resource *id_res_grey_down = &png::arrow_down_12x12;
-static constexpr const png::Resource *id_res_orange_up = &png::arrow_up_orange_12x12;
-static constexpr const png::Resource *id_res_orange_down = &png::arrow_down_orange_12x12;
+static constexpr const img::Resource *id_res_grey_up = &img::arrow_up_12x12;
+static constexpr const img::Resource *id_res_grey_down = &img::arrow_down_12x12;
+static constexpr const img::Resource *id_res_orange_up = &img::arrow_up_orange_12x12;
+static constexpr const img::Resource *id_res_orange_down = &img::arrow_down_orange_12x12;
 
 /// Icon rect is increased by padding, icon is centered inside it
 WindowArrows::WindowArrows(window_t *parent, point_i16_t pt, padding_ui8_t padding)
@@ -38,8 +38,8 @@ void WindowArrows::SetState(WindowArrows::State_t s) {
 }
 
 void WindowArrows::unconditionalDraw() {
-    const png::Resource *id_res1;
-    const png::Resource *id_res2;
+    const img::Resource *id_res1;
+    const img::Resource *id_res2;
     switch (GetState()) {
     case WindowArrows::State_t::up:
         id_res1 = id_res_orange_up;

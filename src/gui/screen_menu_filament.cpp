@@ -6,7 +6,7 @@
 #include "filament.hpp"
 #include "filament_sensors_handler.hpp"
 
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 #include "DialogHandler.hpp"
 #include <option/has_toolchanger.h>
@@ -22,7 +22,7 @@ enum {
 ScreenMenuFilament::ScreenMenuFilament()
     : ScreenMenuFilament__(_(label)) {
 #if (!PRINTER_IS_PRUSA_MINI)
-    header.SetIcon(&png::spool_white_16x16);
+    header.SetIcon(&img::spool_white_16x16);
 #endif // PRINTER_IS_PRUSA_MINI
     deactivate_item();
 }

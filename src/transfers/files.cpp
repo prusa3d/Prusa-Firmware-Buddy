@@ -16,7 +16,7 @@ namespace {
 
     static const char *const TRANSFER_TEMPLATE = "/usb/%zu.tmp";
 
-}
+} // namespace
 
 size_t next_transfer_idx() {
     return transfer_idx.fetch_add(1, memory_order_relaxed);
@@ -60,4 +60,4 @@ PreallocateResult file_preallocate(const char *fname, size_t size) {
     return file;
 }
 
-}
+} // namespace transfers

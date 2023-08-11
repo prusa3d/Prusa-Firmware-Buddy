@@ -31,7 +31,7 @@ bool all_nozzles_at_target() {
     }
     return true;
 }
-};
+}; // namespace
 
 /// @brief Helper class that turns fans to 100% on when cooldown is needed, and allows to reset fans back to normal control
 class FanCoolingManager {

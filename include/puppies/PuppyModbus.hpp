@@ -208,4 +208,4 @@ protected:
     bool enabled; //< When true, this puppy is connected and enabled
 };
 
-}
+} // namespace buddy::puppies

@@ -55,6 +55,8 @@ extern void sys_fw_update_on_restart_disable(void);
 
 extern int sys_fw_is_valid(void);
 
+extern void sys_set_reflash_bbf_sfn(const char *sfn);
+
 extern int sys_fw_invalidate(void);
 
 extern int sys_fw_validate(void);

@@ -43,7 +43,8 @@
 #include <cmath>
 #include "filament_sensors_handler.hpp"
 #include "filament.hpp"
-#if HAS_LEDS
+#include <option/has_leds.h>
+#if HAS_LEDS()
     #include "led_animations/printer_animation_state.hpp"
 #endif
 #if ENABLED(PRUSA_SPOOL_JOIN)
@@ -52,7 +53,7 @@
 
 static void M600_manual();
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 /**
  * M600: Pause for filament change
@@ -92,7 +93,7 @@ void M600_manual() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
     if (target_extruder < 0)
         return;
-#if HAS_LEDS
+#if HAS_LEDS()
     auto guard = PrinterStateAnimation::force_printer_state(PrinterState::Warning);
 #endif
 

@@ -23,9 +23,11 @@ void set_axis_e_config(const Config &config) {
     // set step generator
     e_axis_config = config;
     if (config.pressure_advance > 0.f)
-        PreciseStepping::step_generator_types |= PRESSURE_ADVANCE_STEP_GENERATOR_E;
+        PreciseStepping::physical_axis_step_generator_types |= PRESSURE_ADVANCE_STEP_GENERATOR_E;
     else
-        PreciseStepping::step_generator_types &= ~PRESSURE_ADVANCE_STEP_GENERATOR_E;
+        PreciseStepping::physical_axis_step_generator_types &= ~PRESSURE_ADVANCE_STEP_GENERATOR_E;
+
+    PreciseStepping::update_maximum_lookback_time();
 }
 
-}
+} // namespace pressure_advance

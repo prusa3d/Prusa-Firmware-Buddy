@@ -60,4 +60,4 @@ bool CachedFactory::is_valid() const {
     return holds_alternative<tls>(cache) || holds_alternative<socket_con>(cache);
 }
 
-}
+} // namespace connect_client

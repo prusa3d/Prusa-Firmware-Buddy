@@ -38,7 +38,8 @@
 
 #include "gui/test/screen_menu_test.hpp"
 
-#if HAS_MMU2
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
     #include "screen_menu_mmu_load_filament.hpp"
     #include "screen_menu_mmu_eject_filament.hpp"
     #include "screen_menu_mmu_cut_filament.hpp"
@@ -96,7 +97,7 @@ class ScreenFactory {
         ScreenMenuWifiSettings,
         ScreenMenuPrusaLink,
         ScreenMenuInputShaper,
-#if HAS_MMU2
+#if HAS_MMU2()
         ScreenMenuFilamentMMU,
         ScreenMenuMMUCutFilament,
         ScreenMenuMMUEjectFilament,

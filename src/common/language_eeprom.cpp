@@ -1,7 +1,7 @@
 
 #include "language_eeprom.hpp"
 #include "../lang/translator.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 /*!
  * Setter & getter class to store language code into a EEPROM

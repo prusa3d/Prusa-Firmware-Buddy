@@ -62,4 +62,9 @@ inline void Set0th(Color clr) { SetNth(clr, index::l0_D2); }
 inline void Set1st(Color clr) { SetNth(clr, index::l1_D21); }
 inline void Set2nd(Color clr) { SetNth(clr, index::l2_D10); }
 
+/**
+ * @brief Called from power panic module to quickly turn off leds from AC fault task
+ */
+void enter_power_panic();
+
 }; // namespace leds

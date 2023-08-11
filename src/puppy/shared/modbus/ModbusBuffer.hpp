@@ -47,4 +47,4 @@ private:
     uint32_t m_ActualDataIndex;
 };
 
-} // namespace
+} // namespace modbus

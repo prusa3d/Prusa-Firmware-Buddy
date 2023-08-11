@@ -14,7 +14,6 @@ public:
     void SelectLeds();
     void Restore();
     void WrBytes(uint8_t *pb, uint16_t size);
-    void Wait();
 
     SPI_HandleTypeDef *const spi;
 

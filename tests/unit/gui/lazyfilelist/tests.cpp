@@ -1,5 +1,6 @@
 #include "catch2/catch.hpp"
 
+#include <random>
 #include <iostream>
 #include <assert.h>
 
@@ -72,7 +73,9 @@ TEST_CASE("LazyDirView::SortByName test", "[LazyDirView]") {
     };
 
     for (size_t i = 0; i < 20; ++i) {
-        std::random_shuffle(testFiles0.begin(), testFiles0.end());
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(testFiles0.begin(), testFiles0.end(), g);
 
         LDV ldv;
         ldv.ChangeDirectory("path",
@@ -136,7 +139,9 @@ TEST_CASE("LazyDirView::SortByCrModDateTime test", "[LazyDirView]") {
     };
 
     for (size_t i = 0; i < 20; ++i) {
-        std::random_shuffle(testFiles0.begin(), testFiles0.end());
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(testFiles0.begin(), testFiles0.end(), g);
         LDV ldv;
         ldv.ChangeDirectory("path",
             LDV::SortPolicy::BY_CRMOD_DATETIME,
@@ -205,7 +210,9 @@ TEST_CASE("LazyDirView::StartWithDir test", "[LazyDirView]") {
     };
 
     for (size_t i = 0; i < 20; ++i) {
-        std::random_shuffle(testFiles0.begin(), testFiles0.end());
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(testFiles0.begin(), testFiles0.end(), g);
         LDV ldv;
         ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, "fw");
         CHECK(CheckFilesSeq(ldv, { "fw", "old", "11.g", "12.g", "10.g", "09.g", "07.g", "08.g", "06.g" }));
@@ -265,7 +272,9 @@ TEST_CASE("LazyDirView::StartWithFile test", "[LazyDirView]") {
         { "12.g", 10, false }
     };
     for (size_t i = 0; i < 20; ++i) {
-        std::random_shuffle(testFiles0.begin(), testFiles0.end());
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(testFiles0.begin(), testFiles0.end(), g);
         LDV ldv;
         ldv.ChangeDirectory("path", LDV::SortPolicy::BY_CRMOD_DATETIME, "07.g");
         // and this is gonna be interesting

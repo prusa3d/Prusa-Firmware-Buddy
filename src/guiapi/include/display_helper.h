@@ -15,7 +15,7 @@
 void get_char_position_in_font(unichar c, const font_t *pf, uint8_t *charX, uint8_t *charY);
 size_ui16_t render_text_singleline(Rect16 rc, string_view_utf8 str, const font_t *pf, color_t clr_bg, color_t clr_fg);
 void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, color_t clr0, color_t clr1, padding_ui8_t padding, text_flags flags, bool fill_rect = true);
-void render_icon_align(Rect16 rc, const png::Resource *res, color_t clr_back, icon_flags flags);
+void render_icon_align(Rect16 rc, const img::Resource *res, color_t clr_back, icon_flags flags);
 
 std::optional<size_ui16_t> characters_meas_text(string_view_utf8 &str, uint16_t max_chars_per_line, uint16_t *numOfUTF8Chars = nullptr);      // rewinds text to begin
 std::optional<size_ui16_t> font_meas_text(const font_t &font, string_view_utf8 &str, uint16_t max_width, uint16_t *numOfUTF8Chars = nullptr); // rewinds text to begin

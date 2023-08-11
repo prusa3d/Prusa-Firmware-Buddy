@@ -151,4 +151,4 @@ using Url = std::array<char, MAX_URL_LEN>;
 static const uint32_t valid_nonce_period = 5;
 static const uint32_t extended_valid_nonce_period = 8;
 
-}
+} // namespace http

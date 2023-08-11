@@ -22,7 +22,8 @@ using CrashRecovery = ScreenCrashRecovery;
 using CrashRecovery = ScreenDialogDoesNotExist;
 #endif
 
-#if HAS_SERIAL_PRINT
+#include <option/has_serial_print.h>
+#if HAS_SERIAL_PRINT()
     #include "screen_printing_serial.hpp"
 using SerialPrint = screen_printing_serial_data_t;
 #else

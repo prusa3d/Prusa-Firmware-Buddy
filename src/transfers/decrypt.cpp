@@ -77,4 +77,4 @@ void Decryptor::reset(const Block &iv, uint32_t orig_size) {
     leftover_size = 0;
 }
 
-}
+} // namespace transfers

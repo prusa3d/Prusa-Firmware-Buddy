@@ -40,7 +40,6 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #include "../../module/endstops.h"
 #include "../../module/planner.h"
 #include "../../module/stepper.h" // for various
-#include "../../module/precise_homing.h"
 
 #if HAS_MULTI_HOTEND
   #include "../../module/tool_change.h"
@@ -59,7 +58,11 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #endif
 
 #if ENABLED(CRASH_RECOVERY)
-  #include "../../feature/prusa/crash_recovery.h"
+  #include "../../feature/prusa/crash_recovery.hpp"
+#endif
+
+#if ENABLED(PRECISE_HOMING_COREXY)
+  #include "../../module/prusa/homing_corexy.hpp"
 #endif
 
 #include "../../module/probe.h"

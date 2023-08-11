@@ -344,4 +344,4 @@ public:
     std::tuple<ExecutionControl, size_t> consume(std::string_view data);
 };
 
-}
+} // namespace automata

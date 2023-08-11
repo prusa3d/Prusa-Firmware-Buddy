@@ -5,7 +5,7 @@
 #include "puppy/modularbed/PuppyConfig.hpp"
 #include "timing.h"
 #include "puppies/PuppyBootstrap.hpp"
-#include "otp.h"
+#include "otp.hpp"
 #include "power_panic.hpp"
 #include "printers.h"
 #include <utility_extensions.hpp>
@@ -51,13 +51,13 @@ CommunicationStatus ModularBed::initial_scan() {
         static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
             - ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_first) + 1;
         // Check size of text -1 as the terminating \0 is not sent
-        static_assert((raw_datamatrix_regsize * sizeof(uint16_t)) == (sizeof(sn.txt) - 1), "Size of raw datamatrix doesn't fit modbus registers");
+        static_assert((raw_datamatrix_regsize * sizeof(uint16_t)) == sn.size() - 1, "Size of raw datamatrix doesn't fit modbus registers");
 
         for (uint16_t i = 0; i < raw_datamatrix_regsize; ++i) {
-            sn.txt[i * 2] = general_static.value.hw_data_matrix[i] & 0xff;
-            sn.txt[i * 2 + 1] = general_static.value.hw_data_matrix[i] >> 8;
+            sn[i * 2] = general_static.value.hw_data_matrix[i] & 0xff;
+            sn[i * 2 + 1] = general_static.value.hw_data_matrix[i] >> 8;
         }
-        log_info(ModularBed, "HwDatamatrix: %s", sn.txt);
+        log_info(ModularBed, "HwDatamatrix: %s", sn.begin());
 
         log_info(ModularBed, "Bedlet count: %d", general_static.value.heatbedlet_count);
         assert(general_static.value.heatbedlet_count == BEDLET_COUNT);
@@ -454,6 +454,6 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
 }
 
 ModularBed modular_bed(puppyModbus, PuppyBootstrap::get_modbus_address_for_dock(Dock::MODULAR_BED));
-}
+} // namespace buddy::puppies
 
 AdvancedModularBed *const advanced_modular_bed = &buddy::puppies::modular_bed;

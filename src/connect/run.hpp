@@ -10,4 +10,4 @@ namespace connect_client {
 /// time and will simply pick it up once connect is enabled). Never terminates.
 void run() __attribute__((noreturn));
 
-}
+} // namespace connect_client

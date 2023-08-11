@@ -6,12 +6,12 @@
 
 #include "selftest_result_fsensor.hpp"
 #include "i18n.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ResultFSensor::ResultFSensor()
     : SelfTestGroup(_("Filament sensor check"))
-    , tested(_("Filament sensor"), &png::spool_16x16, TestResult_Unknown)
-    , skipped(_("Test skipped by user."), &png::spool_16x16) {
+    , tested(_("Filament sensor"), &img::spool_16x16, TestResult_Unknown)
+    , skipped(_("Test skipped by user."), &img::spool_16x16) {
 }
 
 void ResultFSensor::SetState(TestResult res) {

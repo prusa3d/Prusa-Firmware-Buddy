@@ -80,6 +80,7 @@ protected:
 
     virtual void setRedLayout() override;
     virtual void setBlackLayout() override;
+    virtual void setBlueLayout() override;
 
 public:
     bool IsChildCaptured() const;

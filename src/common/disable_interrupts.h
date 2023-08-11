@@ -92,4 +92,4 @@ private:
     uint32_t m_primask;
 };
 
-} /* namespace Buddy */
+} // namespace buddy

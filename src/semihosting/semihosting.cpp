@@ -163,4 +163,4 @@ void sys_write0(char *str) {
     semihosting_call(SYS_WRITE0, (int32_t)str);
 }
 
-}
+} // namespace semihosting

@@ -4,9 +4,9 @@
 #include "config.h"
 #include "config_features.h"
 #include "version.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #include "i18n.h"
 #include "../lang/translator.hpp"
@@ -155,7 +155,7 @@ screen_splash_data_t::screen_splash_data_t()
 }
 
 screen_splash_data_t::~screen_splash_data_t() {
-    png::Resource::EnableDefaultFile(); // now it is safe to use resources from xFlash
+    img::Resource::EnableDefaultFile(); // now it is safe to use resources from xFlash
 }
 
 void screen_splash_data_t::draw() {

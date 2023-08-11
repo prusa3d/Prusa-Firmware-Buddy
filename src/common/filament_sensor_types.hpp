@@ -93,4 +93,4 @@ enum class mmu_enable_result_t : int32_t {
     error_filament_sensor_disabled,
     error_mmu_not_supported
 };
-}
+} // namespace filament_sensor

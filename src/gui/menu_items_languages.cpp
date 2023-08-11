@@ -6,7 +6,7 @@
 
 #include "menu_items_languages.hpp"
 #include "translator.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "screen_menu_languages.hpp"
 #include "translation_provider_FILE.hpp"
 #include "ScreenHandler.hpp"
@@ -14,7 +14,7 @@
 /*****************************************************************************/
 // MI_LANGUAGE
 MI_LANGUAGE::MI_LANGUAGE()
-    : WI_LABEL_t(_(label), &png::language_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : WI_LABEL_t(_(label), &img::language_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
 
 void MI_LANGUAGE::click(IWindowMenu & /*window_menu*/) {

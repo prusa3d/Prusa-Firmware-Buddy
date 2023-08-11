@@ -59,7 +59,7 @@
 #endif
 
 #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
-    #include "eeprom_function_api.h"
+    #include "config_store/store_c_api.h"
 #endif // USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)

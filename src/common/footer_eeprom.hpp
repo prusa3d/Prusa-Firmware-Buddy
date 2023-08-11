@@ -143,4 +143,4 @@ record Decode(uint32_t encoded);
  */
 uint32_t ConvertFromOldEeprom(uint32_t encoded, size_t number_of_items_in_old_footer_eeprom);
 
-}
+} // namespace footer::eeprom

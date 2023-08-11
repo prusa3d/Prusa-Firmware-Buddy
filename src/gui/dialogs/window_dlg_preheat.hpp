@@ -92,7 +92,7 @@ using MenuContainerHasCool = WinMenuContainer<ALL_FILAMENTS, MI_COOLDOWN>;
 
 // no extra fields
 using MenuContainer = WinMenuContainer<ALL_FILAMENTS>;
-};
+}; // namespace NsPreheat
 
 class DialogMenuPreheat : public AddSuperWindow<IDialogMarlin> {
     // single memory space for all containers to save RAM

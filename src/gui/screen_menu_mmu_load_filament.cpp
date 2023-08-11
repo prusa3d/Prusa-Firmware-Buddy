@@ -3,9 +3,9 @@
  */
 
 #include "screen_menu_mmu_load_filament.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ScreenMenuMMULoadFilament::ScreenMenuMMULoadFilament()
     : ScreenMenuMMULoadFilament__(_(label)) {
-    header.SetIcon({ &png::info_16x16 });
+    header.SetIcon({ &img::info_16x16 });
 }

@@ -9,7 +9,7 @@
 #include "bsod.h"
 #include "metric.h"
 #include <device/board.h>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 using namespace buddy::hw;
 #if HAS_DRIVER(TMC2130)

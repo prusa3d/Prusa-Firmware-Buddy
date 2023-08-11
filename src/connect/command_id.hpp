@@ -12,4 +12,4 @@ public:
     virtual void character(char c, http::HeaderName name) override;
 };
 
-}
+} // namespace connect_client

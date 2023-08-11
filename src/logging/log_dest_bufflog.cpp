@@ -4,7 +4,7 @@
 
 #include "log_dest_bufflog.h"
 #include "log_platform.h"
-#include "otp.h"
+#include "otp.hpp"
 
 #define BUFFLOG_BUFFER_SIZE 256
 

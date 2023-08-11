@@ -6,11 +6,11 @@
 
 #include "selftest_result_loadcell.hpp"
 #include "i18n.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ResultLoadcell::ResultLoadcell()
     : SelfTestGroup(_("Loadcell check"))
-    , loadcell(_("Loadcell"), &png::nozzle_16x16, TestResult_Unknown) {
+    , loadcell(_("Loadcell"), &img::nozzle_16x16, TestResult_Unknown) {
     Add(loadcell);
 }
 

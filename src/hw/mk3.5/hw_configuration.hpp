@@ -27,20 +27,16 @@ MMU_RESET logic inverted
 */
 
 #pragma once
-#include "LoveBoard_EEPROM_Struct.h"
+#include "hw_configuration_common.hpp"
 
 namespace buddy::hw {
-class Configuration {
+class Configuration : public ConfigurationCommon {
     Configuration();
     Configuration(const Configuration &) = delete;
 
 public:
     /**
      * @brief Meyers singleton
-     * first call must provide parameters
-     * parameters ignored in other calls
-     *
-     * @param eeprom
      * @return Configuration&
      */
     static Configuration &Instance();
@@ -64,4 +60,4 @@ public:
     }
 };
 
-}
+} // namespace buddy::hw

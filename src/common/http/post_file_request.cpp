@@ -33,4 +33,4 @@ std::variant<size_t, Error> PostFile::write_body_chunk(char *data, size_t size) 
     }
 }
 
-};
+}; // namespace http

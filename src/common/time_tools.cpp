@@ -1,7 +1,7 @@
 // time_tools.cpp
 
 #include "time_tools.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 static bool time_format_changed = true;
 

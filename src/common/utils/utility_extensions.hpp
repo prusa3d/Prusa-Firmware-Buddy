@@ -15,7 +15,7 @@ constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept {
     return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
-};
+}; // namespace ftrstd
 
 /**
  * @brief If used in consteval functions, will cause a (rather cryptic) compile time error (call to non-constexpr function).

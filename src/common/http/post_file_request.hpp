@@ -18,4 +18,4 @@ private:
     const char *url_string;
     unique_file_ptr file;
 };
-};
+}; // namespace http

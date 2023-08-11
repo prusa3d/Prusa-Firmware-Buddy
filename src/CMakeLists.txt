@@ -8,7 +8,7 @@ add_subdirectory(common)
 add_subdirectory(guiconfig)
 
 if(BOARD MATCHES "BUDDY")
-  add_subdirectory(configuration_store) # Contains a file with long compile time, keep it near top
+  add_subdirectory(persistent_stores) # Contains a file with long compile time, keep it near top
 
   if(CONNECT OR WUI)
     add_subdirectory(transfers)

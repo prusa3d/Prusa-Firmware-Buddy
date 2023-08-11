@@ -65,4 +65,4 @@ http::ContentType guess_content_by_ext(const char *fname);
  */
 uint32_t compute_etag(const struct stat &stat);
 
-}
+} // namespace nhttp

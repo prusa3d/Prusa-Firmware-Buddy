@@ -28,4 +28,4 @@ public:
     Reporter reporter;
 };
 
-}
+} // namespace MMU2

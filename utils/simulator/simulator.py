@@ -254,22 +254,32 @@ class Simulator:
             return 1
         elif self.machine == MachineType.MINI and thermistor == Thermistor.NOZZLE:
             return 2
+        elif self.machine == MachineType.MK4 and thermistor == Thermistor.NOZZLE:
+            return 0
         elif self.machine == MachineType.MK4 and thermistor == Thermistor.BED:
             return 1
-        elif self.machine == MachineType.MK4 and thermistor == Thermistor.NOZZLE:
+        elif self.machine == MachineType.MK4 and thermistor == Thermistor.HEATBREAK:
             return 2
+        elif self.machine == MachineType.MK4 and thermistor == Thermistor.BOARD:
+            return 3
+        elif self.machine == MachineType.MK4 and thermistor == Thermistor.CASE:
+            return 4
+
         raise NotImplementedError('dont know the index of thermistor %s on %s',
                                   thermistor, self.machine)
 
     async def temperature_set(self, thermistor: Thermistor,
                               temperature: float):
         thermistor_idx = self._get_thermistor_idx(thermistor)
-        await self.command(f'thermistor{thermistor_idx}::Set({temperature})')
+        await self.command(
+            f'thermistor{"" if thermistor_idx == 0 else thermistor_idx}::Set({temperature})'
+        )
 
     async def temperature_get(self, thermistor: Thermistor) -> float:
         thermistor_idx = self._get_thermistor_idx(thermistor)
-        temp_str = await self.command(f'thermistor{thermistor_idx}::GetTemp()',
-                                      readline=True)
+        temp_str = await self.command(
+            f'thermistor{"" if thermistor_idx == 0 else thermistor_idx}::GetTemp()',
+            readline=True)
         return float(temp_str)  # type: ignore
 
     #

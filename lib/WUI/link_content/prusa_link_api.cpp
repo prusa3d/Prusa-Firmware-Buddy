@@ -145,7 +145,7 @@ namespace {
             return StatusPage(Status::Conflict, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
         }
     }
-}
+} // namespace
 
 optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) const {
     // This is a little bit of a hack (similar one is in Connect). We want to
@@ -310,4 +310,4 @@ optional<ConnectionState> PrusaLinkApi::accept(const RequestParser &parser) cons
 
 const PrusaLinkApi prusa_link_api;
 
-}
+} // namespace nhttp::link_content

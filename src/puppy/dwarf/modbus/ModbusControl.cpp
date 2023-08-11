@@ -4,7 +4,7 @@
 #include "log.h"
 #include "Marlin/src/module/temperature.h"
 #include "Marlin/src/module/stepper/trinamic.h"
-#include "loadcell.hpp"
+#include "../loadcell.hpp"
 #include "Pin.hpp"
 #include "Cheese.hpp"
 #include "tool_filament_sensor.hpp"
@@ -243,14 +243,23 @@ void SetDwarfSelected(bool selected) {
     log_info(ModbusControl, "Dwarf select state: %s", selected ? "YES" : "NO");
 }
 
+/**
+ * @brief Clamp float temeperature to int16_t, which can be transported in uint16_t modbus register.
+ * @param temperature temperature to clamp [deg C]
+ * @return clamped temperature [deg C]
+ */
+static inline int16_t clamp_to_int16(float temperature) {
+    return std::clamp(temperature, float(INT16_MIN), float(INT16_MAX));
+}
+
 void UpdateRegisters() {
-    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::hotend_measured_temperature, Temperature::degHotend(0));
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::hotend_measured_temperature, clamp_to_int16(Temperature::degHotend(0)));
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::hotend_pwm_state, Temperature::getHeaterPower(H_E0));
     ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_picked, Cheese::is_picked());
     ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_parked, Cheese::is_parked());
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tool_filament_sensor, dwarf::tool_filament_sensor::tool_filament_sensor_get_raw_data());
-    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::mcu_temperature, Temperature::degBoard());
-    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::heatbreak_temp, Temperature::degHeatbreak(0));
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::mcu_temperature, clamp_to_int16(Temperature::degBoard()));
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::heatbreak_temp, clamp_to_int16(Temperature::degHeatbreak(0)));
 
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::fan0_rpm, Fans::print(0).getActualRPM());
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::fan0_pwm, Fans::print(0).getPWM());
@@ -281,4 +290,4 @@ void TriggerMarlinKillFault(dwarf_shared::errors::FaultStatusMask fault, const c
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::fault_status, static_cast<uint16_t>(fault));
 }
 
-} // namespace
+} // namespace dwarf::ModbusControl

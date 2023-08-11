@@ -15,4 +15,4 @@ namespace modularbed::ControlTask {
 
 bool Init();
 
-} // namespace
+} // namespace modularbed::ControlTask

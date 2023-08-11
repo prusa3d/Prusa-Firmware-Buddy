@@ -33,7 +33,7 @@
 #include "../stepper.h"
 
 #if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
-    #include <configuration_store.hpp>
+    #include <config_store/store_instance.hpp>
 #endif
 
 #include <HardwareSerial.h>

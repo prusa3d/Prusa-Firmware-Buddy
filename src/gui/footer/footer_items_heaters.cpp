@@ -50,7 +50,7 @@ void FooterItemHeater::ResetDrawMode() {
     setDrawMode(footer::ItemDrawCnf::Default());
 }
 
-FooterItemHeater::FooterItemHeater(window_t *parent, const png::Resource *icon, view_maker_cb view_maker, reader_cb value_reader)
+FooterItemHeater::FooterItemHeater(window_t *parent, const img::Resource *icon, view_maker_cb view_maker, reader_cb value_reader)
     : AddSuperWindow<FooterIconText_IntVal>(parent, icon, view_maker, value_reader) {
 }
 

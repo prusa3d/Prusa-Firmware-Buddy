@@ -29,4 +29,4 @@ public:
         , hdrs(hdrs) {}
 };
 
-}
+} // namespace http

@@ -42,7 +42,7 @@
 #include "FreeRTOS.h"
 #include "MarlinPin.hpp"
 #include "config_buddy_2209_02.h"
-#include "loadcell.h"
+#include "loadcell.hpp"
 #include "../../lib/Marlin/Marlin/src/HAL/HAL_STM32_F4_F7/endstop_ISR.h"
 #include "device/peripherals.h"
 #include <type_traits>
@@ -55,9 +55,10 @@
     #error "Some printer type not defined."
 #endif
 
-#if HAS_ADVANCED_POWER
+#include <option/has_advanced_power.h>
+#if HAS_ADVANCED_POWER()
 // #include "advanced_power.hpp"
-#endif // HAS_ADVANCED_POWER
+#endif // HAS_ADVANCED_POWER()
 
 /**
  * @brief Init SPI for side leds
@@ -296,7 +297,7 @@ inline Pin::State zMinReadFn();
             MACRO_FUNCTION(buddy::hw::OutputPin, zCs, BUDDY_PIN(CS_Z), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                                     \
             MACRO_FUNCTION(buddy::hw::OutputPin, eCs, BUDDY_PIN(CS_E), Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                                                     \
             MACRO_FUNCTION(buddy::hw::OutputPin, RS485FlowControlPuppies, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p7, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler) \
-            MACRO_FUNCTION(buddy::hw::OutputPin, modularBedReset, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p8, Pin::State::high COMMA OMode::openDrain COMMA OSpeed::low, buddy::hw::noHandler)         \
+            MACRO_FUNCTION(buddy::hw::OutputPin_Inverted, modularBedReset, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p8, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler) \
             MACRO_FUNCTION(buddy::hw::OutputPin, MMUEnable, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p2, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)                \
             MACRO_FUNCTION(buddy::hw::InputPin, MMUFault, buddy::hw::IoPort::B COMMA buddy::hw::IoPin::p6, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                               \
             MACRO_FUNCTION(buddy::hw::InputPin, heaterCurrentFault, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p5, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                     \
@@ -306,7 +307,7 @@ inline Pin::State zMinReadFn();
             MACRO_FUNCTION(buddy::hw::OutputPin, fsUSBPwrEnable, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p11, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::low, buddy::hw::noHandler)          \
             MACRO_FUNCTION(buddy::hw::InputPin, hsUSBOvercurrent, buddy::hw::IoPort::D COMMA buddy::hw::IoPin::p9, IMode::input COMMA Pull::none, buddy::hw::noHandler)                                     \
             MACRO_FUNCTION(buddy::hw::InputPin, fsUSBOvercurrent, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p14, IMode::input COMMA Pull::none, buddy::hw::noHandler)                                    \
-            MACRO_FUNCTION(buddy::hw::OutputPin, acellCs, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p12, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                \
+            MACRO_FUNCTION(buddy::hw::OutputPin, acellCs, buddy::hw::IoPort::A COMMA buddy::hw::IoPin::p10, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)                \
             MACRO_FUNCTION(buddy::hw::InputPin, acFault, buddy::hw::IoPort::G COMMA buddy::hw::IoPin::p0, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                                \
             MACRO_FUNCTION(buddy::hw::OutputPin, extFlashCs, buddy::hw::IoPort::F COMMA buddy::hw::IoPin::p2, Pin::State::high COMMA OMode::pushPull COMMA OSpeed::high, buddy::hw::noHandler)              \
             MACRO_FUNCTION(buddy::hw::InputPin, fanTach, buddy::hw::IoPort::E COMMA buddy::hw::IoPin::p10, IMode::input COMMA Pull::up, buddy::hw::noHandler)                                               \

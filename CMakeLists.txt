@@ -87,7 +87,8 @@ target_include_directories(
             include/freertos
             src/hw
             src/common
-            src/configuration_store
+            src/persistent_stores
+            src/persistent_stores/store_instances
             src/guiconfig
             src/lang
             src/common/utils
@@ -179,7 +180,6 @@ target_compile_definitions(
             BOARD_VERSION_PATCH=${BOARD_VERSION_PATCH}
             MARLIN_DISABLE_INFINITE_LOOP
             PROCESS_CUSTOM_GCODE
-            HAS_MMU2=$<BOOL:${HAS_MMU2}>
             HAS_MARLIN=$<BOOL:${HAS_MARLIN}>
             _EXTUI
   )
@@ -465,10 +465,6 @@ target_compile_options(
           -Wdouble-promotion
   )
 
-if(WUI)
-  target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_WUI)
-endif()
-
 # Appending fw descriptor (with calculated fingerprint) to the ELF
 if(BOARD STREQUAL "DWARF" OR BOARD STREQUAL "MODULARBED")
   add_custom_command(
@@ -664,63 +660,6 @@ set_property(
            FW_VERSION_SUFFIX=${PROJECT_VERSION_SUFFIX}
            FW_VERSION_SUFFIX_SHORT=${PROJECT_VERSION_SUFFIX_SHORT}
   )
-
-set_property(
-  SOURCE src/common/appmain.cpp src/common/marlin_test.cpp src/common/thread_measurement.cpp
-         src/common/trinamic.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS
-           INIT_TRINAMIC_FROM_MARLIN_ONLY=$<BOOL:${INIT_TRINAMIC_FROM_MARLIN_ONLY}>
-  )
-
-set_property(
-  SOURCE src/buddy/main.cpp
-         src/mmu2_mmu2_log.cpp
-         src/mmu2_mmu2_power.cpp
-         src/mmu2_mmu2_progress_converter.cpp
-         src/mmu2/mmu2_serial.cpp
-         src/gui/screen_menu_settings.cpp
-         src/gui/screen_menu_footer_settings.cpp
-         src/gui/footer/footer_line.cpp
-         src/gui/footer/footer_item_multitool.cpp
-         src/gui/test/screen_test_load.cpp
-         src/common/marlin_server.cpp
-         src/common/filament_sensors_handler.cpp
-         src/marlin_stubs/pause/pause.cpp
-         src/gui/dialogs/DialogLoadUnload.cpp
-         src/gui/guimain.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_MMU2=$<BOOL:${HAS_MMU2}>
-  )
-set_property(
-  SOURCE src/gui/guimain.cpp
-         src/marlin_stubs/M150.cpp
-         src/marlin_stubs/gcode.cpp
-         src/marlin_stubs/pause/M600.cpp
-         src/marlin_stubs/pause/M601_2.cpp
-         src/gui/MItem_menus.cpp
-         src/gui/screen_menu_user_interface.cpp
-         src/gui/screen_qr_error.cpp
-         src/gui/display_hw_checks_xlcd.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_LEDS=$<BOOL:${HAS_LEDS}>
-  )
-set_property(
-  SOURCE src/marlin_stubs/pause/pause.cpp src/marlin_stubs/pause/M70X.cpp
-         src/marlin_stubs/pause/M701_2.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_BOWDEN=$<BOOL:${HAS_BOWDEN}>
-  )
-
-set_property(
-  SOURCE src/gui/dialogs/DialogHandler.cpp
-  APPEND
-  PROPERTY COMPILE_DEFINITIONS HAS_SERIAL_PRINT=$<BOOL:${HAS_SERIAL_PRINT}>
-  )
-
-if(HAS_ADVANCED_POWER)
-  add_compile_definitions(HAS_ADVANCED_POWER)
-endif()
 
 if(NOT CMAKE_CROSSCOMPILING)
   option(UNITTESTS_ENABLE "Enable building of unittest" ON)

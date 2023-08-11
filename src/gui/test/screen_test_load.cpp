@@ -10,6 +10,7 @@
 #include "error_codes_mmu.hpp"
 #include "../../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
 #include "../../../src/mmu2/mmu2_error_converter.h"
+#include <option/has_mmu2.h>
 
 static void WaitLoop() {
     static constexpr uint32_t switch_period = 2048;
@@ -31,7 +32,7 @@ static void LoadUnloadTest() {
     uint8_t progress = 0;
     fsm::Change change(fsm::QueueIndex::q0);
     fsm::BaseData base_data;
-#if HAS_MMU2
+#if HAS_MMU2()
     for (PhasesLoadUnload i = PhasesLoadUnload::_first; i < PhasesLoadUnload::MMU_ERRWaitingForUser; i = PhasesLoadUnload(int(i) + 1)) {
         set_state(i, progress);
 
@@ -90,7 +91,7 @@ static void LoadUnloadTest() {
         progress += 10;
         progress %= 110;
     }
-#endif // HAS_MMU2
+#endif // HAS_MMU2()
 
     // close
     change = fsm::Change(fsm::QueueIndex::q0, ClientFSM::_none, base_data);

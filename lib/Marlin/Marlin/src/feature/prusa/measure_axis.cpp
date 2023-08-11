@@ -13,7 +13,7 @@
 #include "measure_axis.h"
 #if ENABLED(AXIS_MEASURE)
 
-    #include "crash_recovery.h"
+    #include "crash_recovery.hpp"
     #include "../../module/stepper.h"
     #include "../../module/endstops.h"
 

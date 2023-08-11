@@ -81,4 +81,4 @@ public:
     bool HasReport() { return !reported; }
 };
 
-} // namespace
+} // namespace MMU2

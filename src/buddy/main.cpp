@@ -9,8 +9,9 @@
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"
-#include "configuration_store.hpp"
-#ifdef BUDDY_ENABLE_CONNECT
+#include <config_store/store_instance.hpp>
+#include <option/buddy_enable_connect.h>
+#if BUDDY_ENABLE_CONNECT()
     #include "connect/run.hpp"
 #endif
 
@@ -37,7 +38,7 @@
 #include <option/has_puppies_bootloader.h>
 #include <option/filament_sensor.h>
 #include <option/has_gui.h>
-#include <option/has_embedded_esp32.h>
+#include <option/has_mmu2.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -53,8 +54,10 @@
     #include "power_panic.hpp"
 #endif
 
-#ifdef BUDDY_ENABLE_WUI
+#include <option/buddy_enable_wui.h>
+#if BUDDY_ENABLE_WUI()
     #include "wui.h"
+    #include <transfers/async_io.hpp>
 #endif
 
 #if (BOARD_IS_XBUDDY)
@@ -83,6 +86,7 @@ void SystemClock_Config(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartConnectTask(void const *argument);
+void StartAsyncIoTask(void const *argument);
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
@@ -103,6 +107,14 @@ extern "C" void main_cpp(void) {
     hw_gpio_init();
     hw_dma_init();
 
+    // ADC/DMA
+    hw_adc1_init();
+    adcDma1.init();
+#ifdef HAS_ADC3
+    hw_adc3_init();
+    adcDma3.init();
+#endif
+
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim1_init();
 #endif
@@ -118,15 +130,15 @@ extern "C" void main_cpp(void) {
      * If we have BSOD or red screen we want to have as small boot process as we can.
      * We want to init just xflash, display and start gui task to display the bsod or redscreen
      */
-    if ((dump_in_xflash_is_valid() && !dump_in_xflash_is_displayed()) || (dump_err_in_xflash_is_valid() && !dump_err_in_xflash_is_displayed())) {
+    if ((dump_is_valid() && !dump_is_displayed()) || (message_get_type() != MsgType::EMPTY && !message_is_displayed())) {
         hwio_safe_state();
         init_error_screen();
         return;
     }
+    bsod_mark_shown(); // BSOD would be shown, allow new BSOD dump
 
     logging_init();
     TaskDeps::components_init();
-    hw_adc1_init();
 
 #if (BOARD_IS_BUDDY)
     hw_uart1_init();
@@ -134,10 +146,6 @@ extern "C" void main_cpp(void) {
 
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim3_init();
-#endif
-
-#ifdef HAS_ADC3
-    hw_adc3_init();
 #endif
 
 #if HAS_GUI()
@@ -165,11 +173,11 @@ extern "C" void main_cpp(void) {
     #error Do not know how to init TMC communication channel
 #endif
 
-#ifdef BUDDY_ENABLE_WUI
+#if BUDDY_ENABLE_WUI()
     UART_INIT(esp);
 #endif
 
-#if HAS_MMU2
+#if HAS_MMU2()
     UART_INIT(mmu);
 #endif
 
@@ -200,10 +208,10 @@ extern "C" void main_cpp(void) {
     HAL_PWM_Initialized = 1;
     HAL_SPI_Initialized = 1;
 
-    eeprom_journal::InitResult status = config_store_init_result();
-    if (status == eeprom_journal::InitResult::cold_start || status == eeprom_journal::InitResult::migrated_from_old) {
+    config_store_ns::InitResult status = config_store_init_result();
+    if (status == config_store_ns::InitResult::cold_start || status == config_store_ns::InitResult::migrated_from_old) {
         // this means we are either starting from defaults or after a FW upgrade -> invalidate the XFLASH dump, since it is not relevant anymore
-        dump_in_xflash_reset();
+        dump_reset();
     }
 
     // Restore sound settings from eeprom
@@ -229,12 +237,6 @@ extern "C" void main_cpp(void) {
 
     filesystem_init();
 
-    adcDma1.init();
-
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-    adcDma3.init();
-#endif
-
     static metric_handler_t *handlers[] = {
         &metric_handler_syslog,
         &metric_handler_info_screen,
@@ -242,7 +244,7 @@ extern "C" void main_cpp(void) {
     };
     metric_system_init(handlers);
 
-#ifdef BUDDY_ENABLE_WUI
+#if BUDDY_ENABLE_WUI()
     espif_init_hw();
 #endif
 
@@ -265,19 +267,22 @@ extern "C" void main_cpp(void) {
     buddy::puppies::start_puppy_task();
 #endif
 
-#ifdef BUDDY_ENABLE_WUI
-    #if HAS_EMBEDDED_ESP32()
-        #if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
-    // This is temporary, remove once everyone has compatible hardware.
-    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+#if BUDDY_ENABLE_WUI()
+    // Start a background thread for async IO
+    // (We tried smaller stack and were overflowing, but maybe if we migrate
+    // from fwrite to write, it could help?)
+    osThreadDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 180);
+    osThreadCreate(osThread(asyncIoTask), nullptr);
 
     TaskDeps::wait(TaskDeps::Tasks::network);
-        #endif
-    #endif
     start_network_task();
 #endif
 
-#ifdef BUDDY_ENABLE_CONNECT
+#if BUDDY_ENABLE_CONNECT()
+    #if !BUDDY_ENABLE_WUI()
+        // FIXME: We should be able to split networking to the lower-level network part and the Link part. Currently, both are done through WUI.
+        #error "Can't have connect without WUI"
+    #endif
     /* definition and creation of connectTask */
     osThreadDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
@@ -350,7 +355,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     if (huart == &huart6) {
         //        log_debug(Buddy, "HAL_UART6_TxCpltCallback");
         buddy::hw::BufferedSerial::uart6.WriteFinishedISR();
-        #if HAS_MMU2
+        #if HAS_MMU2()
                 // instruct the RS485 converter, that we have finished sending data and from now on we are expecting a response from the MMU
                 // set to high in hwio_pindef.h
                 // buddy::hw::RS485FlowControl.write(buddy::hw::Pin::State::high);
@@ -428,7 +433,13 @@ void StartErrorDisplayTask([[maybe_unused]] void const *argument) {
     }
 }
 
-#ifdef BUDDY_ENABLE_CONNECT
+#if BUDDY_ENABLE_WUI()
+void StartAsyncIoTask([[maybe_unused]] void const *argument) {
+    async_io::run();
+}
+#endif
+
+#if BUDDY_ENABLE_CONNECT()
 void StartConnectTask([[maybe_unused]] void const *argument) {
     connect_client::run();
 }
@@ -465,8 +476,8 @@ void system_core_error_handler() {
 
 void iwdg_warning_cb(void) {
 #ifdef _DEBUG
-    ///@note Watchdog is disabled in debug but,
-    /// so this will be helpful only if it is manually enabled or ifdef commented out
+    ///@note Watchdog is disabled in debug,
+    /// so this will be helpful only if it is manually enabled or ifdef commented out.
 
     // Breakpoint if debugger is connected
     if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
@@ -475,7 +486,7 @@ void iwdg_warning_cb(void) {
 #endif /*_DEBUG*/
     DUMP_IWDGW_TO_CCRAM(0x10);
     wdt_iwdg_refresh();
-    dump_to_xflash();
+    save_dump();
 #ifndef _DEBUG
     while (true)
         ;
@@ -578,7 +589,7 @@ extern "C" void startup_task(void const *) {
 
     // init eeprom module itself
     taskENTER_CRITICAL();
-    init_stores();
+    init_config_store();
     taskEXIT_CRITICAL();
 
 // must do this before timer 1, timer 1 interrupt calls Configuration
@@ -597,7 +608,7 @@ extern "C" void startup_task(void const *) {
     // terminate this thread (release its resources), we are done
     osThreadTerminate(osThreadGetId());
 }
-}
+} // namespace
 
 /// The entrypoint of our firmware
 ///

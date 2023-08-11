@@ -22,4 +22,4 @@ uint8_t Encoder::available_bytes() const {
     return fifo.size() * sizeof(uint16_t) - fifo_bytes_pos;
 }
 
-}
+} // namespace common::puppies::fifo

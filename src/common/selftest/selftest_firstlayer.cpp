@@ -14,7 +14,7 @@
 #include "../../Marlin/src/module/temperature.h"
 #include "../../marlin_stubs/G26.hpp"
 #include "M70X.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #include <array>
 

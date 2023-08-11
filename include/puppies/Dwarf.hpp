@@ -108,7 +108,7 @@ public:
     }
 
     int32_t get_tool_filament_sensor();
-    uint16_t get_mcu_temperature();
+    float get_mcu_temperature();
 
     void set_heatbreak_target_temp(int16_t target);
     void set_fan(uint8_t fan, uint16_t target);
@@ -256,4 +256,4 @@ private:
 
 extern std::array<Dwarf, DWARF_MAX_COUNT> dwarfs;
 
-}
+} // namespace buddy::puppies

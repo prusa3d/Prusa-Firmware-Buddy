@@ -175,8 +175,8 @@ struct GuiDefaults {
     static constexpr uint16_t RadioButtonCornerRadius = 0;
     static constexpr bool EnableDialogBigLayout = false;
 #elif defined(USE_ILI9488)
-    static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, 120 };                                                                                 // Msgbox rect for drawing icon + text
-    static constexpr Rect16 MessageTextRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left() + 48 + 15, GuiDefaults::MsgBoxLayoutRect.Top(), 300, 120); // 48px icon + 10px icon-text delimeter
+    static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, ScreenHeight - 90 - ButtonHeight };                                                // Msgbox rect for drawing icon + text
+    static constexpr Rect16 MessageTextRect = Rect16(MsgBoxLayoutRect.Left() + 48 + 15, MsgBoxLayoutRect.Top(), 300, MsgBoxLayoutRect.Height()); // 48px icon + 10px icon-text delimeter
 
     static constexpr Rect16 DialogFrameRect = RectScreenNoHeader;
     static constexpr uint16_t RadioButtonCornerRadius = 8;

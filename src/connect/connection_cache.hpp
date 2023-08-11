@@ -32,4 +32,4 @@ public:
     virtual bool is_valid() const override;
 };
 
-}
+} // namespace connect_client

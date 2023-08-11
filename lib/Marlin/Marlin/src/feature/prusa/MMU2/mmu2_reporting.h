@@ -91,4 +91,4 @@ void FullScreenMsgRestoringTemperature();
 void ScreenUpdateEnable();
 void ScreenClear();
 
-} // namespace
+} // namespace MMU2

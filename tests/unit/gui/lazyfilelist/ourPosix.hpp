@@ -3,6 +3,7 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 // needed to not include dirent from system libraries
 // if there is problem with multiple definitions, check dirent.h for its define

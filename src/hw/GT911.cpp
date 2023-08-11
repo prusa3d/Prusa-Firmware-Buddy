@@ -13,6 +13,7 @@
 #include "timing.h"
 #include "main.h" // LCD_I2C
 #include "log.h"
+#include "hw_configuration.hpp"
 #include <stdio.h>
 #include <unistd.h>
 #include <device/peripherals.h>
@@ -141,6 +142,10 @@ uint8_t GT911::CalcChecksum(uint8_t *buf, uint8_t len) {
     // ccsum %= 256;
     ccsum = (~ccsum) + 1;
     return ccsum;
+}
+
+GT911::GT911()
+    : inverted_interrupt(buddy::hw::Configuration::Instance().has_inverted_touch_interrupt()) {
 }
 
 static GT911 &Instance() {
@@ -304,7 +309,7 @@ void __attribute__((weak)) touch::disable() {
 // but hal is in busy state if we read too fast, 100ms seems to be ok
 void touch::poll() {
     static uint32_t now = ticks_ms();
-    if (buddy::hw::touch_sig.read() == buddy::hw::Pin::State::high) {
+    if (buddy::hw::touch_sig.read() == (Instance().has_inverted_interrupt() ? buddy::hw::Pin::State::low : buddy::hw::Pin::State::high)) {
         static uint32_t high = 0;
         ++high;
         if ((ticks_ms() - now) > 100) {

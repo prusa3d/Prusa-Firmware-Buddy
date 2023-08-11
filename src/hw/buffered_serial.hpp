@@ -102,8 +102,8 @@ namespace hw {
         void StartReceiving();
     };
 
-}
-}
+} // namespace hw
+} // namespace buddy
 
 #endif
 

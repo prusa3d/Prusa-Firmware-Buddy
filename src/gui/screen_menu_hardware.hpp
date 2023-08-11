@@ -20,6 +20,8 @@
 #if (HAS_TOOLCHANGER())
     #include "screen_menu_tools.hpp"
 #endif
+#include <option/has_toolchanger.h>
+#include <option/has_side_fsensor.h>
 #include <option/has_modularbed.h>
 #if HAS_MODULARBED()
     #include "screen_menu_modularbed.hpp"
@@ -34,6 +36,10 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     MI_NOZZLE_SOCK,
     MI_NOZZLE_TYPE
 #endif
+#if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
+    ,
+    MI_SIDE_FSENSOR_REMAP
+#endif /*HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()*/
 #if ENABLED(MODULAR_HEATBED)
     ,
     MI_HEAT_ENTIRE_BED
@@ -51,7 +57,7 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
     #endif
 #endif // ENABLED(CRASH_RECOVERY)
     ,
-    MI_FS_AUTOLOAD, MI_EXPERIMENTAL_SETTINGS, MI_XFLASH_RESET, MI_HF_TEST_0, MI_HF_TEST_1, MI_EEPROM
+    MI_FS_AUTOLOAD, MI_EXPERIMENTAL_SETTINGS, MI_XFLASH_RESET, MI_EEPROM
 #if HAS_LOADCELL()
     ,
     MI_LOADCELL_SCALE

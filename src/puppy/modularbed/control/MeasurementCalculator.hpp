@@ -15,4 +15,4 @@ float CalcHBReferenceResistance(float current, float temperature);
 
 float CalcHBResistanceAtTemperature(float referenceResistance, float temperature);
 
-} // namespace
+} // namespace modularbed

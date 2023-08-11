@@ -214,4 +214,4 @@ void UnregisterBuffer();
 /// \param point to handle
 void HandleNewData(metric_point_t *point);
 
-}
+} // namespace SensorData

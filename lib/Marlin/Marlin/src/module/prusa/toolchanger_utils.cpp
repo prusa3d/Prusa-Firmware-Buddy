@@ -1,4 +1,6 @@
 #include "toolchanger_utils.h"
+#include "tool_offset.hpp"
+#include "dock_position.hpp"
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "Marlin/src/module/stepper.h"
@@ -10,10 +12,10 @@
     #include <puppies/Dwarf.hpp>
 
     #if ENABLED(CRASH_RECOVERY)
-        #include "../../feature/prusa/crash_recovery.h"
+        #include "../../feature/prusa/crash_recovery.hpp"
     #endif /*ENABLED(CRASH_RECOVERY)*/
 
-    #include <configuration_store.hpp>
+    #include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_DEF(PrusaToolChanger, LOG_SEVERITY_DEBUG);
 
@@ -258,7 +260,7 @@ buddy::puppies::Dwarf &PrusaToolChangerUtils::getTool(uint8_t tool_index) {
 
 void PrusaToolChangerUtils::load_tool_info() {
     for (unsigned int i = 0; i < tool_info.size(); ++i) {
-        if (i < EEPROM_MAX_TOOL_COUNT) {
+        if (i < config_store_ns::max_tool_count) {
             DockPosition position = config_store().get_dock_position(i);
             tool_info[i].dock_x = position.x;
             tool_info[i].dock_y = position.y;
@@ -270,20 +272,20 @@ void PrusaToolChangerUtils::load_tool_info() {
 }
 
 void PrusaToolChangerUtils::save_tool_info() {
-    for (size_t i = 0; i < std::min<size_t>(tool_info.size(), EEPROM_MAX_TOOL_COUNT); ++i) {
+    for (size_t i = 0; i < std::min<size_t>(tool_info.size(), config_store_ns::max_tool_count); ++i) {
         config_store().set_dock_position(i, { .x = tool_info[i].dock_x, .y = tool_info[i].dock_y });
     }
 }
 
 void PrusaToolChangerUtils::save_tool_offsets() {
-    for (int8_t e = 0; e < std::min(HOTENDS, EEPROM_MAX_TOOL_COUNT); e++) {
+    for (int8_t e = 0; e < std::min<int8_t>(HOTENDS, config_store_ns::max_tool_count); e++) {
         config_store().set_tool_offset(e, { .x = hotend_offset[e].x, .y = hotend_offset[e].y, .z = hotend_offset[e].z });
     }
 }
 
 void PrusaToolChangerUtils::load_tool_offsets() {
     HOTEND_LOOP() {
-        if (e < EEPROM_MAX_TOOL_COUNT) {
+        if (e < static_cast<int8_t>(config_store_ns::max_tool_count)) {
             ToolOffset offset = config_store().get_tool_offset(e);
             hotend_offset[e].x = offset.x;
             hotend_offset[e].y = offset.y;

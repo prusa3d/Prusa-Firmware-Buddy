@@ -115,7 +115,7 @@ namespace impl {
         }
     }
 
-}
+} // namespace impl
 
 /// Search a JSON (pre-parsed by JSMN).
 ///
@@ -148,4 +148,4 @@ bool search(char *input, jsmntok_t *tokens, size_t cnt, Callback &&callback) {
     return impl::search_recursive(input, tokens, false, std::nullopt, 0, callback) != nullptr;
 }
 
-}
+} // namespace json

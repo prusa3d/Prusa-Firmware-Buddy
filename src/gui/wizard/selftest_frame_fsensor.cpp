@@ -9,7 +9,7 @@
 #include "wizard_config.hpp"
 #include "selftest_fsensor_type.hpp"
 #include "marlin_client.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include <option/has_side_fsensor.h>
 
 // hourglass wuth text
@@ -47,7 +47,7 @@ SelftestFrameFSensor::SelftestFrameFSensor(window_t *parent, PhasesSelftest ph, 
     , text_left(this, Rect16(col_0, top_of_changeable_area, text_left_width, height_of_changeable_area), is_multiline::yes)
     , text_right(this, Rect16(col_0 + icon_left_width + text_icon_space, top_of_changeable_area, text_right_width, height_of_changeable_area), is_multiline::yes)
 
-    , icon_left(this, Rect16(col_0, top_of_changeable_area, icon_left_width, height_of_changeable_area), &png::prusament_spool_white_100x100)
+    , icon_left(this, Rect16(col_0, top_of_changeable_area, icon_left_width, height_of_changeable_area), &img::prusament_spool_white_100x100)
     , icon_right(this, Rect16(col_0 + text_left_width + text_icon_space, top_of_changeable_area, icon_right_width, height_of_changeable_area), 0)
 
     , animation(this, { int16_t(GuiDefaults::ScreenWidth / 2), int16_t(row_2) })
@@ -69,7 +69,7 @@ void SelftestFrameFSensor::change() {
     const char *txt_left = nullptr;
     const char *txt_right = nullptr;
     const char *txt_result = nullptr;
-    const png::Resource *right_icon_id = nullptr; // hand ok hand with checkmark
+    const img::Resource *right_icon_id = nullptr; // hand ok hand with checkmark
     bool show_left_icon = false;                  // spool
     bool show_hourglass = false;
 
@@ -104,19 +104,19 @@ void SelftestFrameFSensor::change() {
 #else
         txt_left = N_("Insert the filament into the extruder until the sensor detects the filament.");
 #endif
-        right_icon_id = &png::hand_with_filament_150x130;
+        right_icon_id = &img::hand_with_filament_150x130;
         break;
     case PhasesSelftest::FSensor_insertion_ok:
         txt_left = N_("Filament inserted, press continue.");
 
-        right_icon_id = &png::hand_with_filament_ok_150x130;
+        right_icon_id = &img::hand_with_filament_ok_150x130;
         break;
     case PhasesSelftest::FSensor_insertion_calibrate:
         txt_result = N_("Calibrating, do not remove filament.");
         break;
     case PhasesSelftest::Fsensor_enforce_remove:
         txt_left = N_("Remove filament to finish.");
-        right_icon_id = &png::hand_with_filament_150x130;
+        right_icon_id = &img::hand_with_filament_150x130;
         break;
     case PhasesSelftest::FSensor_done:
 #if PRINTER_IS_PRUSA_XL

@@ -14,8 +14,8 @@
 #include "ScreenHandler.hpp"
 #include "cmath_ext.h"
 #include "gui_invalidate.hpp"
-#include "png_resources.hpp"
-#include <configuration_store.hpp>
+#include "img_resources.hpp"
+#include <config_store/store_instance.hpp>
 #if _DEBUG
     #include "bsod.h"
 #endif
@@ -323,14 +323,14 @@ Rect16 window_file_list_t::itemRect(int index) const {
     return GetRect().Intersection(rc);
 }
 
-const png::Resource *window_file_list_t::itemIcon(int index) const {
+const img::Resource *window_file_list_t::itemIcon(int index) const {
     auto item = ldv.LongFileNameAt(index);
     const bool isFile = item.second == LDV::EntryType::FILE;
     if (!item.first) {
         // this should normally not happen, visible_count shall limit indices to valid items only
         return nullptr; // ... but getting ready for the unexpected
     }
-    return isFile ? nullptr : &png::folder_full_16x16;
+    return isFile ? nullptr : &img::folder_full_16x16;
 }
 
 // special handling for the link back to printing screen - i.e. ".." will be renamed to "Home"

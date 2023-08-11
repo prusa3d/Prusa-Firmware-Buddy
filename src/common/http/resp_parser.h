@@ -39,6 +39,6 @@ namespace parser {
         ResponseParser(ExtraHeader *extra_hdr = nullptr);
     };
 
-}
+} // namespace parser
 
-}
+} // namespace http

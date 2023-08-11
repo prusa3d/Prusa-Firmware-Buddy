@@ -71,7 +71,7 @@ xyz_pos_t probe_offset; // Initialized by settings.load()
 #endif
 
 #if ENABLED(NOZZLE_LOAD_CELL)
-  #include "feature/prusa/loadcell.h"
+  #include "loadcell.hpp"
 #endif
 
 #if ENABLED(HOST_PROMPT_SUPPORT)

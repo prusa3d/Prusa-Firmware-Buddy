@@ -4,7 +4,7 @@
 #include "metric.h"
 #include "metric_handlers.h"
 #include <stdint.h>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 static metric_handler_t *selected_handler = NULL;
 

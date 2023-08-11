@@ -3,7 +3,7 @@
 
 using Catch::Matchers::Equals;
 
-#include "otp.h"
+#include "otp.hpp"
 #include <cstring>
 
 // This particular size of OTP on STM32F4 broke size check while parsing datamatrix
@@ -27,19 +27,19 @@ TEST_CASE("OTP test v4, DataMatrixID v5, date with offset", "[otp_v4]") {
         0x01, 0x23, 0x45, 0x67, 0x89, 0xab, // MAC address (6 bytes)       // weekly serial number
     };
 
-    board_revision_t br;
-    REQUIRE(otp_parse_board_revision(&br, otp, OTP_SIZE));
-    REQUIRE(br == 2);
+    auto br = otp_parse_board_revision(otp, OTP_SIZE);
+    REQUIRE(br);
+    REQUIRE(*br == 2);
 
-    datamatrix_t datamatrix;
-    REQUIRE(otp_parse_datamatrix(&datamatrix, otp, OTP_SIZE));
-    REQUIRE(datamatrix.product_id == 14558);
-    REQUIRE(datamatrix.revision == 2);
-    REQUIRE(datamatrix.supplier_id == 19);
-    REQUIRE(datamatrix.production_year == 2025);
-    REQUIRE(datamatrix.production_month == 5); // Thursday in 22th week of 2025
-    REQUIRE(datamatrix.production_day == 29);
-    REQUIRE(datamatrix.date_serial_number == 99999);
+    auto datamatrix = otp_parse_datamatrix(otp, OTP_SIZE);
+    REQUIRE(datamatrix);
+    REQUIRE(datamatrix->product_id == 14558);
+    REQUIRE(datamatrix->revision == 2);
+    REQUIRE(datamatrix->supplier_id == 19);
+    REQUIRE(datamatrix->production_year == 2025);
+    REQUIRE(datamatrix->production_month == 5); // Thursday in 22th week of 2025
+    REQUIRE(datamatrix->production_day == 29);
+    REQUIRE(datamatrix->date_serial_number == 99999);
 
     uint32_t timestamp;
     REQUIRE(otp_parse_timestamp(&timestamp, otp, OTP_SIZE));
@@ -55,12 +55,12 @@ TEST_CASE("OTP test v4, DataMatrixID v5, date with offset", "[otp_v4]") {
     REQUIRE(mac->mac[5] == 0xab);
 
     serial_nr_t sn;
-    REQUIRE(otp_parse_serial_nr(&sn, otp, OTP_SIZE) == 25);
-    REQUIRE(strncmp(sn.txt, "14558-0200001952299999", sizeof(sn.txt)) == 0);
+    REQUIRE(otp_parse_serial_nr(sn, otp, OTP_SIZE) == 25);
+    REQUIRE(strncmp(sn.begin(), "14558-0200001952299999", sn.size()) == 0);
 
-    uint8_t bomid;
-    REQUIRE(otp_parse_bom_id(&bomid, otp, OTP_SIZE));
-    REQUIRE(bomid == 15);
+    auto bomid = otp_parse_bom_id(otp, OTP_SIZE);
+    REQUIRE(bomid);
+    REQUIRE(*bomid == 15);
 }
 
 TEST_CASE("OTP test v4, DataMatrixID v5", "[otp_v4]") {
@@ -81,19 +81,19 @@ TEST_CASE("OTP test v4, DataMatrixID v5", "[otp_v4]") {
         0x01, 0x23, 0x45, 0x67, 0x89, 0xab, // MAC address (6 bytes)
     };
 
-    board_revision_t br;
-    REQUIRE(otp_parse_board_revision(&br, otp, OTP_SIZE));
-    REQUIRE(br == 2);
+    auto br = otp_parse_board_revision(otp, OTP_SIZE);
+    REQUIRE(br);
+    REQUIRE(*br == 2);
 
-    datamatrix_t datamatrix;
-    REQUIRE(otp_parse_datamatrix(&datamatrix, otp, OTP_SIZE));
-    REQUIRE(datamatrix.product_id == 14558);
-    REQUIRE(datamatrix.revision == 2);
-    REQUIRE(datamatrix.supplier_id == 19);
-    REQUIRE(datamatrix.production_year == 2020);
-    REQUIRE(datamatrix.production_month == 5); // Thursday in 22th week of 2020
-    REQUIRE(datamatrix.production_day == 28);
-    REQUIRE(datamatrix.date_serial_number == 99999);
+    auto datamatrix = otp_parse_datamatrix(otp, OTP_SIZE);
+    REQUIRE(datamatrix);
+    REQUIRE(datamatrix->product_id == 14558);
+    REQUIRE(datamatrix->revision == 2);
+    REQUIRE(datamatrix->supplier_id == 19);
+    REQUIRE(datamatrix->production_year == 2020);
+    REQUIRE(datamatrix->production_month == 5); // Thursday in 22th week of 2020
+    REQUIRE(datamatrix->production_day == 28);
+    REQUIRE(datamatrix->date_serial_number == 99999);
 
     uint32_t timestamp;
     REQUIRE(otp_parse_timestamp(&timestamp, otp, OTP_SIZE));
@@ -109,12 +109,12 @@ TEST_CASE("OTP test v4, DataMatrixID v5", "[otp_v4]") {
     REQUIRE(mac->mac[5] == 0xab);
 
     serial_nr_t sn;
-    REQUIRE(otp_parse_serial_nr(&sn, otp, OTP_SIZE) == 25);
-    REQUIRE(strncmp(sn.txt, "14558-0200001902299999", sizeof(sn.txt)) == 0);
+    REQUIRE(otp_parse_serial_nr(sn, otp, OTP_SIZE) == 25);
+    REQUIRE(strncmp(sn.begin(), "14558-0200001902299999", sn.size()) == 0);
 
-    uint8_t bomid;
-    REQUIRE(otp_parse_bom_id(&bomid, otp, OTP_SIZE));
-    REQUIRE(bomid == 15);
+    auto bomid = otp_parse_bom_id(otp, OTP_SIZE);
+    REQUIRE(bomid);
+    REQUIRE(*bomid == 15);
 }
 
 TEST_CASE("OTP test v4", "[otp_v4]") {
@@ -135,19 +135,19 @@ TEST_CASE("OTP test v4", "[otp_v4]") {
         0x01, 0x23, 0x45, 0x67, 0x89, 0xab, // MAC address (6 bytes)
     };
 
-    board_revision_t br;
-    REQUIRE(otp_parse_board_revision(&br, otp, OTP_SIZE));
-    REQUIRE(br == 2);
+    auto br = otp_parse_board_revision(otp, OTP_SIZE);
+    REQUIRE(br);
+    REQUIRE(*br == 2);
 
-    datamatrix_t datamatrix;
-    REQUIRE(otp_parse_datamatrix(&datamatrix, otp, OTP_SIZE));
-    REQUIRE(datamatrix.product_id == 4558);
-    REQUIRE(datamatrix.revision == 2);
-    REQUIRE(datamatrix.supplier_id == 19);
-    REQUIRE(datamatrix.production_year == 2020);
-    REQUIRE(datamatrix.production_month == 5);
-    REQUIRE(datamatrix.production_day == 25);
-    REQUIRE(datamatrix.date_serial_number == 9999);
+    auto datamatrix = otp_parse_datamatrix(otp, OTP_SIZE);
+    REQUIRE(datamatrix);
+    REQUIRE(datamatrix->product_id == 4558);
+    REQUIRE(datamatrix->revision == 2);
+    REQUIRE(datamatrix->supplier_id == 19);
+    REQUIRE(datamatrix->production_year == 2020);
+    REQUIRE(datamatrix->production_month == 5);
+    REQUIRE(datamatrix->production_day == 25);
+    REQUIRE(datamatrix->date_serial_number == 9999);
 
     uint32_t timestamp;
     REQUIRE(otp_parse_timestamp(&timestamp, otp, OTP_SIZE));
@@ -163,12 +163,12 @@ TEST_CASE("OTP test v4", "[otp_v4]") {
     REQUIRE(mac->mac[5] == 0xab);
 
     serial_nr_t sn;
-    REQUIRE(otp_parse_serial_nr(&sn, otp, OTP_SIZE) == 25);
-    REQUIRE(strncmp(sn.txt, "4558-02000019005259999", sizeof(sn.txt)) == 0);
+    REQUIRE(otp_parse_serial_nr(sn, otp, OTP_SIZE) == 25);
+    REQUIRE(strncmp(sn.begin(), "4558-02000019005259999", sn.size()) == 0);
 
-    uint8_t bomid;
-    REQUIRE(otp_parse_bom_id(&bomid, otp, OTP_SIZE));
-    REQUIRE(bomid == 15);
+    auto bomid = otp_parse_bom_id(otp, OTP_SIZE);
+    REQUIRE(bomid);
+    REQUIRE(*bomid == 15);
 }
 
 TEST_CASE("OTP test v3", "[otp_v3]") {
@@ -191,19 +191,19 @@ TEST_CASE("OTP test v3", "[otp_v3]") {
         0x10, 0x9C, 0x70, 0x28, 0x2E, 0x33, // MAC address (6 bytes)
     };
 
-    board_revision_t br;
-    REQUIRE(otp_parse_board_revision(&br, otp, OTP_SIZE));
-    REQUIRE(br == 27);
+    auto br = otp_parse_board_revision(otp, OTP_SIZE);
+    REQUIRE(br);
+    REQUIRE(*br == 27);
 
-    datamatrix_t datamatrix;
-    REQUIRE(otp_parse_datamatrix(&datamatrix, otp, OTP_SIZE));
-    REQUIRE(datamatrix.product_id == 4914);
-    REQUIRE(datamatrix.revision == 27);
-    REQUIRE(datamatrix.supplier_id == 145608);
-    REQUIRE(datamatrix.production_year == 2021);
-    REQUIRE(datamatrix.production_month == 10);
-    REQUIRE(datamatrix.production_day == 21);
-    REQUIRE(datamatrix.date_serial_number == 383);
+    auto datamatrix = otp_parse_datamatrix(otp, OTP_SIZE);
+    REQUIRE(datamatrix);
+    REQUIRE(datamatrix->product_id == 4914);
+    REQUIRE(datamatrix->revision == 27);
+    REQUIRE(datamatrix->supplier_id == 145608);
+    REQUIRE(datamatrix->production_year == 2021);
+    REQUIRE(datamatrix->production_month == 10);
+    REQUIRE(datamatrix->production_day == 21);
+    REQUIRE(datamatrix->date_serial_number == 383);
 
     uint32_t timestamp;
     REQUIRE(otp_parse_timestamp(&timestamp, otp, OTP_SIZE));
@@ -219,10 +219,10 @@ TEST_CASE("OTP test v3", "[otp_v3]") {
     REQUIRE(mac->mac[5] == 0x33);
 
     serial_nr_t sn;
-    REQUIRE(otp_parse_serial_nr(&sn, otp, OTP_SIZE) == 25);
-    REQUIRE(strncmp(sn.txt, "4914-27145608110210383", sizeof(sn.txt)) == 0);
+    REQUIRE(otp_parse_serial_nr(sn, otp, OTP_SIZE) == 25);
+    REQUIRE(strncmp(sn.begin(), "4914-27145608110210383", sn.size()) == 0);
 
-    uint8_t bomid;
-    REQUIRE(otp_parse_bom_id(&bomid, otp, OTP_SIZE));
-    REQUIRE(bomid == 12);
+    auto bomid = otp_parse_bom_id(otp, OTP_SIZE);
+    REQUIRE(bomid);
+    REQUIRE(*bomid == 12);
 }

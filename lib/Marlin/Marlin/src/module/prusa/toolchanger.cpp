@@ -17,7 +17,7 @@
     #include "module/temperature.h" // for fan control
 
     #if ENABLED(CRASH_RECOVERY)
-        #include "../../feature/prusa/crash_recovery.h"
+        #include "../../feature/prusa/crash_recovery.hpp"
     #endif /*ENABLED(CRASH_RECOVERY)*/
 
 LOG_COMPONENT_REF(PrusaToolChanger);
@@ -211,7 +211,7 @@ void tool_change(const uint8_t new_tool,
 
     // Check where we should return to
     xyz_pos_t return_position = current_position;
-    if (return_type == tool_return_t::to_destination) {
+    if (return_type == tool_return_t::to_destination || return_type == tool_return_t::purge_and_to_destination) {
         return_position = destination;
     }
 
@@ -488,7 +488,7 @@ void PrusaToolChanger::toolfall() {
 bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
     const size_t tool_nr = dwarf.get_dwarf_nr() - 1;
 
-    if (thermalManager.degHotend(tool_nr) < Temperature::extrude_min_temp) {
+    if (thermalManager.tooColdToExtrude(dwarf.get_dwarf_nr() - 1)) {
         // hotend is cold, skip purge because it can't do anything
         return true;
     }

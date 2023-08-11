@@ -9,11 +9,11 @@
 #include "ScreenHandler.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ScreenMenuFilamentMMU::ScreenMenuFilamentMMU()
     : ScreenMenuFilamentMMU__(_(label)) {
-    header.SetIcon(&png::spool_white_16x16);
+    header.SetIcon(&img::spool_white_16x16);
     ClrMenuTimeoutClose(); // don't close on menu timeout
 }
 

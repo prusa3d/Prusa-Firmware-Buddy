@@ -14,7 +14,7 @@
 #include "module/tool_change.h"
 #include "lcd/extensible_ui/ui_api.h" // for ExtUI::onStatusChanged to send notification about spool join
 #include "filament.hpp"               // for filament::set_type_in_extruder
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 SpoolJoin spool_join;
 
@@ -23,7 +23,7 @@ LOG_COMPONENT_REF(Marlin);
 void SpoolJoin::reset() {
     num_joins = 0;
     for (auto &join : joins) {
-        join.spool_1 = join.spool_2 = std::numeric_limits<uint8_t>::max();
+        join.spool_1 = join.spool_2 = reset_value;
     }
 }
 
@@ -34,10 +34,16 @@ bool SpoolJoin::add_join(uint8_t spool_1, uint8_t spool_2) {
     // join will be added at the end of existing joins, so when for example
     // 0 will join with 1, and we want to join0 with 2,  actual join created will be 1 -> 2,
     // because we first want to join 0 -> 1, and then 1 -> 2
-    for (auto &join : joins) {
-        if (join.spool_1 == spool_1) {
-            spool_1 = join.spool_2;
+    for (size_t i = 0; i < num_joins; ++i) {
+        if (joins[i].spool_1 == spool_1) {
+            spool_1 = joins[i].spool_2;
+            i = 0; // reset the search as we don't have order guaranteed
         }
+    }
+
+    // Prevent adding loops
+    if (get_earliest_spool_1(spool_2) == get_earliest_spool_1(spool_1)) {
+        return false;
     }
 
     // check again that we are not joining spool with itself - spool_1 might have changed above
@@ -60,8 +66,59 @@ bool SpoolJoin::add_join(uint8_t spool_1, uint8_t spool_2) {
     return true;
 }
 
+void SpoolJoin::remove_join_at(size_t idx) {
+    assert(num_joins > 0 && idx < num_joins);
+    joins[idx].spool_1 = joins[idx].spool_2 = reset_value;
+    // so that we can insert new join at num_joins, we need to store the last join instead of the one we're deleting (note: we can swap even if `idx == num_joins - 1`)
+    std::swap(joins[idx], joins[num_joins - 1]);
+    --num_joins;
+}
+
+bool SpoolJoin::remove_joins_containing(uint8_t spool) {
+
+    size_t preceding_idx { std::size(joins) };
+    size_t followup_idx { std::size(joins) };
+
+    for (size_t i = 0; i < num_joins; ++i) {
+        if (joins[i].spool_1 == spool) {
+            followup_idx = i;
+        } else if (joins[i].spool_2 == spool) {
+            preceding_idx = i;
+        }
+    }
+
+    if (preceding_idx != std::size(joins) && followup_idx != std::size(joins)) {
+        // if found && not last in chain && not first -> rechain
+        joins[preceding_idx].spool_2 = joins[followup_idx].spool_2;
+
+        remove_join_at(followup_idx);
+        return true;
+    } else if (preceding_idx != std::size(joins)) {
+        // if found && first in chain -> remove
+        remove_join_at(preceding_idx);
+        return true;
+    } else if (followup_idx != std::size(joins)) {
+        // if found && last in chain -> remove
+        remove_join_at(followup_idx);
+        return true;
+    } else {
+        // we don't have it
+        return false;
+    }
+}
+
+uint8_t SpoolJoin::get_earliest_spool_1(uint8_t spool_2) const {
+    for (size_t i = 0; i < num_joins; ++i) {
+        if (joins[i].spool_2 == spool_2) {
+            spool_2 = joins[i].spool_1;
+            i = 0; // reset the loop and search again
+        }
+    }
+    return spool_2;
+}
+
 std::optional<uint8_t> SpoolJoin::get_join_for_tool(uint8_t tool) {
-    for (size_t i = 0; i <= num_joins; i++) {
+    for (size_t i = 0; i < num_joins; i++) {
         if (joins[i].spool_1 == tool)
             return joins[i].spool_2;
     }
@@ -123,4 +180,20 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
     ExtUI::onStatusChanged("Spool joined");
 
     return true;
+}
+
+void SpoolJoin::serialize(serialized_state_t &to) {
+    // init to defaults
+    to = serialized_state_t();
+    for (size_t i = 0; i < num_joins; i++) {
+        to.joins[i] = joins[i];
+    }
+}
+
+void SpoolJoin::deserialize(serialized_state_t &from) {
+    reset();
+    for (auto join : from.joins) {
+        // this will fail for undefined joins and otherwise invalid joins. Only valid joins will be added
+        (void)add_join(join.spool_1, join.spool_2);
+    }
 }

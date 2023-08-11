@@ -11,4 +11,4 @@ void run() {
     client.run();
 }
 
-}
+} // namespace connect_client

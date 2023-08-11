@@ -11,6 +11,7 @@
 #include "selftest_part.hpp"
 #include "selftest_result_type.hpp"
 #include "config_features.h"
+#include <option/has_mmu2.h>
 
 typedef enum {
     stsIdle,
@@ -34,7 +35,7 @@ typedef enum {
     stsHeaters,
     stsWait_heaters,
     stsFSensor_calibration,
-#if HAS_MMU2
+#if HAS_MMU2()
     stsFSensorMMU_calibration,
 #endif
     stsNet_status,
@@ -71,7 +72,7 @@ enum SelftestMask_t : uint64_t {
     stmHeaters = stmHeaters_noz,
     stmWait_heaters = to_one_hot(stsWait_heaters),
     stmFSensor = to_one_hot(stsFSensor_calibration),
-#if HAS_MMU2
+#if HAS_MMU2()
     stmFSensorMMU = to_one_hot(stsFSensorMMU_calibration),
 #endif
     stmSelftestStart = to_one_hot(stsSelftestStart),

@@ -52,7 +52,7 @@ void search_file(char *path, C &&callback) {
     closedir(d);
 }
 
-}
+} // namespace
 
 void get_LFN(char *lfn, size_t lfn_size, char *path) {
     search_file(path, [&](char *fname, struct dirent *ent) {

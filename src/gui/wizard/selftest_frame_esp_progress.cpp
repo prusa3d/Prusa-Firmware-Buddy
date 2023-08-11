@@ -7,7 +7,7 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "marlin_client.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 static constexpr size_t icon_sz = 64;
 static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::row_h + WizardDefaults::txt_h;
@@ -20,7 +20,7 @@ SelftestFrameESP_progress::SelftestFrameESP_progress(window_t *parent, PhasesSel
     , text_top(this, Rect16(col_0, WizardDefaults::row_0, WizardDefaults::X_space, WizardDefaults::txt_h * 2), is_multiline::yes)
     , progress(this, row_2)
     , text_progress(this, Rect16(col_0, row_2b, WizardDefaults::X_space, WizardDefaults::txt_h), is_multiline::no)
-    , icon(this, Rect16((GuiDefaults::ScreenWidth - icon_sz) / 2, row_2, icon_sz, icon_sz), &png::wifi_64x64)
+    , icon(this, Rect16((GuiDefaults::ScreenWidth - icon_sz) / 2, row_2, icon_sz, icon_sz), &img::wifi_64x64)
 
     , text_bot(this, Rect16(col_0, row_3, WizardDefaults::X_space, WizardDefaults::txt_h * 4), is_multiline::yes)
 

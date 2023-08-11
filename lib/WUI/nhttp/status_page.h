@@ -67,4 +67,4 @@ public:
     Step step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size) override;
 };
 
-}
+} // namespace nhttp::handler

@@ -42,4 +42,4 @@ const char *to_str(DeviceState state) {
     }
 }
 
-}
+} // namespace printer_state

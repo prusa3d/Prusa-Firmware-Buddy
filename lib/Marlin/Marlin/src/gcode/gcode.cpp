@@ -51,7 +51,7 @@ GcodeSuite gcode;
 #endif
 
 #if ENABLED(CRASH_RECOVERY)
-  #include "../feature/prusa/crash_recovery.h"
+  #include "../feature/prusa/crash_recovery.hpp"
 #endif
 
 #if ENABLED(PRUSA_TOOLCHANGER)

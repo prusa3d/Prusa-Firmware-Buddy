@@ -187,12 +187,16 @@ public:
     bool Download(const char *fn);
 
     bool IsHwBroken() { return hw_not_operational; }
+    bool has_inverted_interrupt() const { return inverted_interrupt; }
+
+    GT911();
 
 private:
     uint8_t points[max_contacts * sizeof(GTPoint)]; // points buffer
 
     uint8_t devAddress = 0x5D;
     bool hw_not_operational = false;
+    const bool inverted_interrupt;
 
     void (*touchHandler)(int8_t, GTPoint *);
     static uint8_t CalcChecksum(uint8_t *buf, uint8_t len);

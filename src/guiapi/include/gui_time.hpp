@@ -16,4 +16,4 @@ uint32_t GetTick();                    // current loop tick value, every call in
 uint64_t GetTickU64();                 // current loop tick value, this will never overflow
 uint32_t GetTick_IgnoreTickLoop();     // this should be used rarely
 uint32_t GetTick_ForceActualization(); // needed during gui start
-};
+};                                     // namespace gui

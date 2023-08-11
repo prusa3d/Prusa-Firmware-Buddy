@@ -240,4 +240,4 @@ void WaitForBit(volatile uint32_t *pRegister, uint32_t bitMask, bool expectedVal
     }
 }
 
-} // namespace
+} // namespace hal::ADCDriver

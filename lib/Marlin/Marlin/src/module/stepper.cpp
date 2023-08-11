@@ -3121,7 +3121,7 @@ void Stepper::report_positions() {
 
 #endif // HAS_MICROSTEPS
 #if HAS_DRIVER(TMC2130) || HAS_DRIVER(TMC2209)
-#include "eeprom_function_api.h"
+#include "config_store/store_c_api.h"
 void Stepper::microstep_mode(const uint8_t driver, const uint8_t stepping){
     switch(driver){
       case 0:

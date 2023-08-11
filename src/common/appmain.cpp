@@ -18,9 +18,10 @@
 #include "language_eeprom.hpp"
 #include <device/board.h>
 
-#if HAS_ADVANCED_POWER
+#include <option/has_advanced_power.h>
+#if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
-#endif // HAS_ADVANCED_POWER
+#endif // HAS_ADVANCED_POWER()
 
 #include "marlin_server.hpp"
 #include "bsod.h"
@@ -45,6 +46,7 @@
 #if BOARD_IS_XLBUDDY
     #include <puppies/Dwarf.hpp>
     #include <Marlin/src/module/prusa/toolchanger.h>
+    #include <filament_sensors_handler_XL_remap.hpp>
 #endif
 
 #include <option/has_loadcell.h>
@@ -52,7 +54,7 @@
 #include <option/has_gui.h>
 
 #if HAS_LOADCELL()
-    #include "loadcell.h"
+    #include "loadcell.hpp"
 #endif
 
 #if HAS_LOADCELL_HX717()
@@ -71,7 +73,8 @@ LOG_COMPONENT_REF(Marlin);
 #endif
 
 #include "probe_position_lookback.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
+#include <option/init_trinamic_from_marlin_only.h>
 
 LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
@@ -134,7 +137,7 @@ void app_startup() {
 void app_setup(void) {
     metric_record_event(&metric_app_start);
 
-    if (INIT_TRINAMIC_FROM_MARLIN_ONLY == 0) {
+    if constexpr (!INIT_TRINAMIC_FROM_MARLIN_ONLY()) {
         init_tmc();
     } else {
         init_tmc_bare_minimum();
@@ -218,13 +221,13 @@ void app_run(void) {
 
     marlin_server::start_processing();
 
-#if defined(HAS_ADVANCED_POWER)
+#if HAS_ADVANCED_POWER()
     advancedpower.ResetOvercurrentFault();
 #endif
 
     log_info(Marlin, "Setup complete");
 
-    if (config_store_init_result() == eeprom_journal::InitResult::cold_start && marlin_server::processing()) {
+    if (config_store_init_result() == config_store_ns::InitResult::cold_start && marlin_server::processing()) {
         settings.reset();
 #if ENABLED(POWER_PANIC)
         power_panic::reset();
@@ -290,7 +293,7 @@ static void hx717_irq() {
 }
 #endif // HAS_LOADCELL_HX717()
 
-#ifdef HAS_ADVANCED_POWER
+#if HAS_ADVANCED_POWER()
 static uint8_t cnt_advanced_power_update = 0;
 
 void advanced_power_irq() {
@@ -303,7 +306,7 @@ void advanced_power_irq() {
         cnt_advanced_power_update = 0;
     }
 }
-#endif // #ifdef HAS_ADVANCED_POWER
+#endif // #if HAS_ADVANCED_POWER()
 
 #if (BOARD_IS_XLBUDDY && FILAMENT_SENSOR_IS_ADC())
 // update filament sensor irq = 76Hz
@@ -321,28 +324,28 @@ static void filament_sensor_irq() {
             fs_process_sample(dwarf.get_tool_filament_sensor(), dwarf.get_dwarf_nr() - 1);
 
             // Side filament sensor
-            auto side_sensor_chanel = AdcChannel::sfs1;
-            switch (dwarf.get_dwarf_nr()) {
-            case 1:
-                side_sensor_chanel = AdcChannel::sfs1;
-                break;
-            case 2:
-                side_sensor_chanel = AdcChannel::sfs2;
-                break;
-            case 3:
-                side_sensor_chanel = AdcChannel::sfs3;
-                break;
-            case 4:
-                side_sensor_chanel = AdcChannel::sfs6; // not a bug, 6 is swapped with 4
-                break;
-            case 5:
-                side_sensor_chanel = AdcChannel::sfs5;
-                break;
-            case 6:
-                side_sensor_chanel = AdcChannel::sfs4; // not a bug, 6 is swapped with 4
-                break;
-            }
-            side_fs_process_sample(AdcGet::side_filament_sensor(side_sensor_chanel), dwarf.get_dwarf_nr() - 1);
+            auto mapping = side_fsensor_remap::get_mapping();
+            assert(static_cast<size_t>(dwarf.get_dwarf_nr() - 1) < std::size(mapping));
+            const uint8_t remapped = mapping[dwarf.get_dwarf_nr() - 1];
+            assert(remapped < HOTENDS);
+
+            /**
+             * @brief Mapping of ADC channels to each extruder side filament sensor.
+             * ADC channels are laid left top to bottom and right bottom to top.
+             * Left    Right
+             * sfs1    sfs6
+             * sfs2    sfs5
+             * sfs3    sfs4
+             */
+            static const constexpr std::array<AdcChannel::SideFilamnetSensorsAndTempMux, HOTENDS> adc_channel_mapping = {
+                AdcChannel::SideFilamnetSensorsAndTempMux::sfs1, // T0    - left top
+                AdcChannel::SideFilamnetSensorsAndTempMux::sfs2, // T1    - left middle
+                AdcChannel::SideFilamnetSensorsAndTempMux::sfs3, // T2    - left bottom
+                AdcChannel::SideFilamnetSensorsAndTempMux::sfs6, // T3    - right top
+                AdcChannel::SideFilamnetSensorsAndTempMux::sfs5, // T4    - right middle
+                AdcChannel::SideFilamnetSensorsAndTempMux::sfs4, // Empty - right bottom
+            };
+            side_fs_process_sample(AdcGet::side_filament_sensor(adc_channel_mapping[remapped]), dwarf.get_dwarf_nr() - 1);
         }
         cnt_filament_sensor_update = 0;
     }
@@ -354,7 +357,7 @@ void adc_tick_1ms(void) {
     hx717_irq();
 #endif // HAS_LOADCELL_HX717()
 
-#ifdef HAS_ADVANCED_POWER
+#if HAS_ADVANCED_POWER()
     advanced_power_irq();
 #endif
 

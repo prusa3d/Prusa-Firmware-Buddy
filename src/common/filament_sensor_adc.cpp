@@ -14,7 +14,7 @@
 #include "config_buddy_2209_02.h"
 #include "algorithm_range.hpp"
 #include "rtos_api.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_REF(FSensor);
 

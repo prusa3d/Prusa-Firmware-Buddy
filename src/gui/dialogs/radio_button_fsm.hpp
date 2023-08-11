@@ -68,7 +68,7 @@ protected:
         switch (event) {
         case GUI_event_t::CLICK: {
             Response response = Click();
-            marlin_FSM_response(phase, response);
+            marlin_client::FSM_response(phase, response);
             break;
         }
         default:

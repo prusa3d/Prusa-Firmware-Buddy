@@ -26,13 +26,13 @@ public:
         unknown
     };
 
-    WI_SWITCH_0_1_NA_t(state_t index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
+    WI_SWITCH_0_1_NA_t(state_t index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden)
         : WI_SWITCH_t(size_t(index), label, id_icon, enabled, hidden, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_0), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_1), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_NA)) {}
 };
 
 class WI_ICON_SWITCH_OFF_ON_t : public WI_ICON_SWITCH_t<2> {
 public:
-    WI_ICON_SWITCH_OFF_ON_t(bool index, string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
+    WI_ICON_SWITCH_OFF_ON_t(bool index, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden);
 };
 
 class MI_RETURN : public WI_LABEL_t {

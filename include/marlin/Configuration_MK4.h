@@ -42,7 +42,7 @@
 #define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    #include "eeprom_function_api.h"
+    #include "config_store/store_c_api.h"
 #endif
 
 //===========================================================================
@@ -146,7 +146,8 @@
 
 // This defines the number of extruders
 // :[1, 2, 3, 4, 5, 6]
-#if HAS_MMU2
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
 #define EXTRUDERS 5
 #else
 #define EXTRUDERS 1
@@ -185,7 +186,7 @@
  *
  * For additional configuration see Configuration_adv.h
  */
-#if HAS_MMU2
+#if HAS_MMU2()
 #define MMU_MODEL PRUSA_MMU2S
 #endif
 
@@ -1445,13 +1446,13 @@
 // Homing speeds (mm/m)
 #ifdef HAS_LDO_400_STEP
     #include "hw_configuration.hpp"
-    #define HOMING_FEEDRATE_XY buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (80 * 60) : (62 * 60)
+    #define HOMING_FEEDRATE_XY (buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (80 * 60) : (62 * 60))
 #else
     #define HOMING_FEEDRATE_XY (80 * 60)//(150 * 60)
 #endif
 
 #define HOMING_FEEDRATE_Z (8 * 60)
-#define HOMING_FEEDRATE_INVERTED_Z buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (60 * 60) : (30 * 60)
+#define HOMING_FEEDRATE_INVERTED_Z (buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (60 * 60) : (30 * 60))
 
 // Validate that endstops are triggered on homing moves
 //#define VALIDATE_HOMING_ENDSTOPS

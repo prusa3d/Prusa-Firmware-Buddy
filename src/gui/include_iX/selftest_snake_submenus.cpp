@@ -5,4 +5,4 @@ namespace SelftestSnake {
 void open_submenu(Action action) {
     assert(false && "No submenus");
 }
-}
+} // namespace SelftestSnake

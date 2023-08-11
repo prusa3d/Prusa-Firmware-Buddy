@@ -24,7 +24,7 @@
 #include "../../module/motion.h"
 
 #include "../../../../../../src/common/variant8.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #if ENABLED(CNC_COORDINATE_SYSTEMS)
 

@@ -52,4 +52,4 @@ struct HeaterConfig_t {
     int8_t high_flow_nozzle_temp_offset { 0 };
 };
 
-};
+}; // namespace selftest

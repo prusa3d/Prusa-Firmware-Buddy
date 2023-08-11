@@ -15,4 +15,4 @@ struct FirstLayerConfig_t {
     const char *partname;
 };
 
-};
+}; // namespace selftest

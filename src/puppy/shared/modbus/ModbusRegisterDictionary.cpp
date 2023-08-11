@@ -174,4 +174,4 @@ bool PutStringIntoInputRegisters(uint16_t from_address, uint16_t to_address, con
     }
 }
 
-} // namespace
+} // namespace modbus::RegisterDictionary

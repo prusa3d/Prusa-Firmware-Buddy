@@ -35,4 +35,4 @@ bool url_decode(std::string_view url, char *decoded_url, size_t decoded_url_len)
     decoded_url[out_index] = '\0';
     return true;
 }
-}
+} // namespace http

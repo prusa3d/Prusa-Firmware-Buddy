@@ -1,6 +1,6 @@
 #include "sound.hpp"
 #include "hwio.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 struct SoundPattern {
     int8_t repeat;    /// signals repeats - how many times will sound signals repeat (-1 is infinite)
@@ -176,7 +176,7 @@ void Sound_Update1ms() {
 void Sound::restore_from_eeprom() {
     // Restore mode
     eSOUND_MODE eeprom_mode = config_store().sound_mode.get();
-    if (eeprom_mode != eSOUND_MODE::UNDEF) {
+    if (eeprom_mode <= eSOUND_MODE::_last) {
         setMode(eeprom_mode);
     }
     // Restore volume
@@ -276,10 +276,12 @@ void Sound::_sound(int rep, float frq, int16_t dur, int16_t del, [[maybe_unused]
         duration_set = dur;
         delay_set = del;
         volume = tmpVol;
+#ifdef _DEBUG
         /// for BSOD debugging
         if (eSoundMode == eSOUND_MODE::DEBUG) {
             volume = 0;
         }
+#endif
 
         /// end previous beep
         hwio_beeper_notone();

@@ -6,7 +6,7 @@
  */
 
 #include "window_dlg_preheat.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "stdlib.h"
 #include "i18n.h"
@@ -28,18 +28,18 @@ NsPreheat::I_MI_Filament::I_MI_Filament(string_view_utf8 name, unsigned t_noz, u
 
 void NsPreheat::I_MI_Filament::click_at(filament::Type filament) {
     const Response response = filament::get_description(filament).response;
-    marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
+    marlin_client::FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 
 /*****************************************************************************/
 // NsPreheat::MI_RETURN
 NsPreheat::MI_RETURN::MI_RETURN()
-    : WI_LABEL_t(_(label), &png::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
+    : WI_LABEL_t(_(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {
 }
 
 void NsPreheat::MI_RETURN::click(IWindowMenu &window_menu) {
     window_menu.Validate(); /// don't redraw since we leave the menu
-    marlin_FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
+    marlin_client::FSM_response(PhasesPreheat::UserTempSelection, Response::Abort);
 }
 
 /*****************************************************************************/
@@ -50,7 +50,7 @@ NsPreheat::MI_COOLDOWN::MI_COOLDOWN()
 
 void NsPreheat::MI_COOLDOWN::click([[maybe_unused]] IWindowMenu &window_menu) {
     const Response response = filament::get_description(filament::Type::NONE).response;
-    marlin_FSM_response(PhasesPreheat::UserTempSelection, response);
+    marlin_client::FSM_response(PhasesPreheat::UserTempSelection, response);
 }
 
 /*****************************************************************************/

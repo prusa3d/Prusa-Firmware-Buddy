@@ -32,7 +32,7 @@
 #include "../../../feature/bedlevel/bedlevel.h"
 
 #if ENABLED(CRASH_RECOVERY)
-    #include "../../../feature/prusa/crash_recovery.h"
+    #include "../../../feature/prusa/crash_recovery.hpp"
 #endif
 
 void GcodeSuite::G29() {

@@ -14,6 +14,7 @@
 #include "app.h"
 #include "bsod.h"
 #include "module/prusa/tool_mapper.hpp"
+#include "module/prusa/spool_join.hpp"
 #include "timing.h"
 #include "cmsis_os.h"
 #include "log.h"
@@ -33,7 +34,6 @@
 #include "../Marlin/src/feature/input_shaper/input_shaper.hpp"
 #include "../Marlin/src/feature/pause.h"
 #include "../Marlin/src/feature/prusa/measure_axis.h"
-#include "../Marlin/src/feature/prusa/homing.h"
 #include "../Marlin/src/libs/nozzle.h"
 #include "../Marlin/src/core/language.h" //GET_TEXT(MSG)
 #include "../Marlin/src/gcode/gcode.h"
@@ -57,7 +57,8 @@
 #include "odometer.hpp"
 #include "metric.h"
 
-#if HAS_LEDS
+#include <option/has_leds.h>
+#if HAS_LEDS()
     #include "led_animations/printer_animation_state.hpp"
 #endif
 
@@ -67,6 +68,7 @@
 #include <option/has_gui.h>
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
+#include <option/has_mmu2.h>
 
 #if HAS_SELFTEST()
     #include "printer_selftest.hpp"
@@ -79,7 +81,7 @@
 #endif
 
 #if ENABLED(CRASH_RECOVERY)
-    #include "../Marlin/src/feature/prusa/crash_recovery.h"
+    #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
     #include "crash_recovery_type.hpp"
     #include "selftest_axis.h"
 #endif
@@ -92,10 +94,12 @@
     #include "module/prusa/toolchanger.h"
 #endif
 
-#if HAS_MMU2
+#if HAS_MMU2()
     #include "mmu2_fsm.hpp"
 #endif
-#include <configuration_store.hpp>
+
+#include <variant8.h>
+#include <config_store/store_instance.hpp>
 using namespace ExtUI;
 
 LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
@@ -103,8 +107,10 @@ LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
 //-----------------------------------------------------------------------------
 // external variables from marlin_client
 
+namespace marlin_client {
 extern osThreadId marlin_client_task[MARLIN_MAX_CLIENTS];    // task handles
 extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
+} // namespace marlin_client
 
 namespace marlin_server {
 
@@ -338,7 +344,7 @@ void send_notifications_to_clients() {
     osMessageQId queue;
     uint64_t msk = 0;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
-        if ((queue = marlin_client_queue[client_id]) != 0) {
+        if ((queue = marlin_client::marlin_client_queue[client_id]) != 0) {
             if ((msk = server.client_events[client_id]) != 0)
                 server.client_events[client_id] &= ~_send_notify_events_to_client(client_id, queue, msk);
         }
@@ -358,7 +364,7 @@ int cycle(void) {
     }
 #endif
 
-#if HAS_MMU2
+#if HAS_MMU2()
     MMU2::Fsm::Instance().Loop();
 #endif
 
@@ -374,12 +380,8 @@ int cycle(void) {
 #endif
 
 #if HAS_TOOLCHANGER()
-    bool printing = (server.print_state != State::Idle)
-        && (server.print_state != State::Finished)
-        && (server.print_state != State::Aborted)
-        && (server.print_state != State::Paused);
     // Check if tool didn't fall off
-    prusa_toolchanger.loop(printing);
+    prusa_toolchanger.loop(!printer_idle());
 #endif /*HAS_TOOLCHANGER()*/
 
     int count = 0;
@@ -439,6 +441,7 @@ void static finalize_print() {
     print_area.reset_bounding_rect();
 #if ENABLED(PRUSA_TOOL_MAPPING)
     tool_mapper.reset();
+    spool_join.reset();
 #endif
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
     gcode.compatibility_mode = GcodeSuite::CompatibilityMode::NONE;
@@ -457,7 +460,7 @@ static void check_crash() {
 
     #if ENABLED(POWER_PANIC)
     // handle server state-change overrides happening in the ISRs here (and nowhere else)
-    if (power_panic::panic_triggered()) {
+    if (power_panic::panic_is_active()) {
         server.print_state = State::PowerPanic_acFault;
         return;
     }
@@ -674,7 +677,16 @@ bool printer_idle() {
     return server.print_state == State::Idle
         || server.print_state == State::Paused
         || server.print_state == State::Aborted
-        || server.print_state == State::Finished;
+        || server.print_state == State::Finished
+        || server.print_state == State::Exit;
+}
+
+bool print_preview() {
+    return server.print_state == State::PrintPreviewInit
+        || server.print_state == State::PrintPreviewImage
+        || server.print_state == State::PrintPreviewQuestions
+        || server.print_state == State::PrintPreviewToolsMapping
+        || server.print_state == State::WaitGui;
 }
 
 bool aborting_or_aborted() {
@@ -712,6 +724,7 @@ void print_start(const char *filename, bool skip_preview) {
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
     case State::PrintPreviewQuestions:
+    case State::PrintPreviewToolsMapping:
         media_print_start__prepare(filename);
         server.print_state = State::WaitGui;
         skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
@@ -759,6 +772,7 @@ void print_abort(void) {
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
     case State::PrintPreviewQuestions:
+    case State::PrintPreviewToolsMapping:
         // Can go directly to Idle because we didn't really start printing.
         server.print_state = State::Idle;
         PrintPreview::Instance().ChangeState(IPrintPreview::State::inactive);
@@ -1088,7 +1102,8 @@ bool heatbreak_fan_check() {
     ) {
         // Allow fan check only if fan had time to build up RPM (after CFanClt::rpm_stabilization)
         // CFanClt error states are checked in the end of each _server_print_loop()
-        if (Fans::heat_break(active_extruder).getState() == CFanCtl::running && !Fans::heat_break(active_extruder).getRPMIsOk()) {
+        auto hb_state = Fans::heat_break(active_extruder).getState();
+        if ((hb_state == CFanCtl::running || hb_state == CFanCtl::error_running || hb_state == CFanCtl::error_starting) && !Fans::heat_break(active_extruder).getRPMIsOk()) {
             log_error(MarlinServer, "HeatBreak FAN RPM is not OK - Actual: %d rpm, PWM: %d",
                 (int)Fans::heat_break(active_extruder).getActualRPM(),
                 Fans::heat_break(active_extruder).getPWM());
@@ -1153,7 +1168,8 @@ static void _server_print_loop(void) {
         break;
 
     case State::PrintPreviewImage:
-    case State::PrintPreviewQuestions: {
+    case State::PrintPreviewQuestions:
+    case State::PrintPreviewToolsMapping: {
         // button evaluation
         // We don't particularly care about the
         // difference, but downstream users do.
@@ -1171,10 +1187,32 @@ static void _server_print_loop(void) {
             new_state = did_not_start_print ? State::Idle : State::Finishing_WaitIdle;
             FSM_DESTROY__LOGGING(PrintPreview);
             break;
+        case PrintPreview::Result::ToolsMapping:
+            new_state = State::PrintPreviewToolsMapping;
+            break;
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
             did_not_start_print = false;
             new_state = State::PrintInit;
+
+#if HAS_TOOLCHANGER() && ENABLED(PRUSA_TOOL_MAPPING)
+            ///@todo Remove this when toolmapping screen is done.
+            /// If the G-code is sliced for singletool, allow printing with currently selected tool.
+            if (prusa_toolchanger.is_toolchanger_enabled()                                             // Toolchanger available
+                && GCodeInfo::getInstance().get_extruder_info(0).used()                                // Tool 0 is given in comments and used
+                && !GCodeInfo::getInstance().get_extruder_info(1).given()                              // Other tools are not given in comments at all
+                && !GCodeInfo::getInstance().get_extruder_info(2).given()                              // Sliced for multitool:  ; filament used [g] = 0.34, 0.00, 0.00, 0.00, 0.00
+                && !GCodeInfo::getInstance().get_extruder_info(3).given()                              // Sliced for singletool: ; filament used [g] = 0.34
+                && !GCodeInfo::getInstance().get_extruder_info(4).given()
+                && active_extruder > 0 && active_extruder < PrusaToolChanger::MARLIN_NO_TOOL_PICKED) { // User has picked tool 2, 3, 4 or 5
+
+                // Map tool 0 to picked tool
+                tool_mapper.reset();
+                spool_join.reset();
+                tool_mapper.set_mapping(0, active_extruder);
+                tool_mapper.set_enable(true);
+            }
+#endif /*HAS_TOOLCHANGER() && ENABLED(PRUSA_TOOL_MAPPING)*/
             break;
         }
 
@@ -2064,7 +2102,7 @@ static uint8_t _send_notify_event(Event evt_id, uint32_t usr32, uint16_t usr16) 
     uint8_t client_msk = 0;
     for (int client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (server.notify_events[client_id] & ((uint64_t)1 << ftrstd::to_underlying(evt_id))) {
-            if (_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
+            if (_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_id, usr32, usr16) == 0) {
                 server.client_events[client_id] |= ((uint64_t)1 << ftrstd::to_underlying(evt_id)); // event not sent, set bit
                 // save unsent data of the event for later retransmission
                 if (evt_id == Event::MeshUpdate) {
@@ -2178,7 +2216,7 @@ static void _server_update_vars() {
     marlin_vars()->travel_acceleration = planner.settings.travel_acceleration;
 
     uint8_t mmu2State =
-#if HAS_MMU2
+#if HAS_MMU2()
         uint8_t(MMU2::mmu2.State());
 #else
         2;
@@ -2186,7 +2224,7 @@ static void _server_update_vars() {
     marlin_vars()->mmu2_state = mmu2State;
 
     bool mmu2FindaPressed =
-#if HAS_MMU2
+#if HAS_MMU2()
         MMU2::mmu2.FindaDetectsFilament();
 #else
         false;
@@ -2341,7 +2379,7 @@ static bool _process_server_request(const char *request) {
     _server_update_vars();
 
     Event evt_result = processed ? Event::Acknowledge : Event::NotAcknowledge;
-    if (!_send_notify_event_to_client(client_id, marlin_client_queue[client_id], evt_result, 0, 0)) {
+    if (!_send_notify_event_to_client(client_id, marlin_client::marlin_client_queue[client_id], evt_result, 0, 0)) {
         // FIXME: Take care of resending process elsewhere.
         server.client_events[client_id] |= make_mask(evt_result); // set bit if notification not sent
     }
@@ -2529,7 +2567,7 @@ void marlin_msg_to_str(const marlin_server::Msg id, char *str) {
     str[2] = 0;
 }
 
-} // marlin_server namespace
+} // namespace marlin_server
 
 #if DEVELOPMENT_ITEMS() && PRINTER_IS_PRUSA_XL
 /// @note Hacky link for Marlin.cpp used for development.
@@ -2690,7 +2728,7 @@ void onMeshUpdate(const uint8_t xpos, const uint8_t ypos, const float zval) {
     _send_notify_event(Event::MeshUpdate, usr32, usr16);
 }
 
-} // ExtUI namespace
+} // namespace ExtUI
 
 alignas(std::max_align_t) uint8_t FSMExtendedDataManager::extended_data_buffer[FSMExtendedDataManager::buffer_size] = { 0 };
 size_t FSMExtendedDataManager::identifier = { 0 };

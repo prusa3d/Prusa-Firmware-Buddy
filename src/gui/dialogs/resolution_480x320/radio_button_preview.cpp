@@ -6,18 +6,18 @@
 #include "window_icon.hpp"
 #include "window_text.hpp"
 #include "i18n.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 const char *label_texts[] = {
     N_("Print"),
     N_("Back")
 };
 
-static constexpr const png::Resource *icons[] = {
-    &png::print_80x80,
-    &png::back_80x80,
-    &png::print_80x80_focused,
-    &png::back_80x80_focused
+static constexpr const img::Resource *icons[] = {
+    &img::print_80x80,
+    &img::back_80x80,
+    &img::print_80x80_focused,
+    &img::back_80x80_focused
 };
 
 static constexpr const uint8_t icon_label_delim = 5;
@@ -66,7 +66,7 @@ void RadioButtonPreview::windowEvent(EventLock /*has private ctor*/, window_t *s
         Response response = Click();
         event_conversion_union un;
         un.response = response;
-        marlin_FSM_response(phase, response); // Use FSM logic from RadioButtonFsm<>
+        marlin_client::FSM_response(phase, response); // Use FSM logic from RadioButtonFsm<>
         if (GetParent()) {
             GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
         }

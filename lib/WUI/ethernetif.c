@@ -12,7 +12,6 @@
 #include "cmsis_os.h"
 #include "lwip/netifapi.h"
 #include "wui_api.h"
-#include "otp.h"
 #include <stdbool.h>
 #include "buddy/priorities_config.h"
 
@@ -159,7 +158,7 @@ static void low_level_init(struct netif *netif) {
     heth.Init.AutoNegotiation = ETH_AUTONEGOTIATION_ENABLE;
     heth.Init.PhyAddress = LAN8742A_PHY_ADDRESS;
     // set  mac address from OTP memory
-    heth.Init.MACAddr = (uint8_t *)otp_get_mac_address()->mac;
+    heth.Init.MACAddr = ethernetif_get_mac();
     heth.Init.RxMode = ETH_RXINTERRUPT_MODE;
     heth.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
     heth.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;

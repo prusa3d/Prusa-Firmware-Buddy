@@ -92,4 +92,4 @@ public:
     bool WasSkipped() const { return skipped; }
 };
 
-};
+}; // namespace selftest

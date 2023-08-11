@@ -6,6 +6,8 @@
 #include "i18n.h"
 #include <option/has_toolchanger.h>
 #include <option/has_side_leds.h>
+#include <option/has_leds.h>
+#include <option/developer_mode.h>
 
 class MI_VERSION_INFO : public WI_LABEL_t {
     static constexpr const char *const label = N_("Version Info");
@@ -116,6 +118,22 @@ public:
 protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
+
+#if DEVELOPER_MODE()
+/**
+ * @brief Test Errors as BSOD, redscreens, watchdog and so on.
+ * @note Enabled only in developer mode. Can be used in release build.
+ */
+class MI_ERROR_TEST : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test Errors");
+
+public:
+    MI_ERROR_TEST();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+#endif /*DEVELOPMENT_ITEMS()*/
 
 class MI_TEST : public WI_LABEL_t {
     static constexpr const char *const label = N_("Test");
@@ -382,7 +400,7 @@ public:
     MI_USB_MSC_ENABLE();
     virtual void OnChange(size_t old_index) override;
 };
-#if HAS_LEDS
+#if HAS_LEDS()
 class MI_LEDS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("RGB Status Bar");
 
@@ -483,7 +501,11 @@ protected:
 };
 
 class MI_INPUT_SHAPER : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Input Shaper (Alpha)");
+#if not PRINTER_IS_PRUSA_MK4
+    constexpr static const char *label = N_("Input Shaper (Alpha)");
+#else
+    constexpr static const char *label = N_("Input Shaper");
+#endif
 
 public:
     MI_INPUT_SHAPER();

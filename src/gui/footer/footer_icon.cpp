@@ -7,7 +7,7 @@
 #include "footer_icon.hpp"
 #include "guitypes.hpp"
 
-FooterIcon::FooterIcon(window_t *parent, const png::Resource *icon)
+FooterIcon::FooterIcon(window_t *parent, const img::Resource *icon)
     : AddSuperWindow<window_icon_t>(
         parent,
         [parent, icon] {

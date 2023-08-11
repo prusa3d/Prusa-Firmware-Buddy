@@ -13,7 +13,7 @@ else:
 
 class MachineType(Enum):
     MINI = 'prusa-mini'
-    MK4 = 'prusa-mk4'
+    MK4 = 'prusa-mk4-027c'
     XL = 'prusa-xl-050'
     XL_DWARF_T0 = 'prusa-xl-extruder-040-0'
     XL_DWARF_T1 = 'prusa-xl-extruder-040-1'
@@ -53,6 +53,8 @@ class Thermistor(Enum):
     BED = auto()
     NOZZLE = auto()
     HEATBREAK = auto()
+    BOARD = auto()
+    CASE = auto()
 
 
 class NetworkInterface(Enum):

@@ -85,4 +85,4 @@ void WaitMicroseconds(uint32_t microseconds) {
     }
 }
 
-} // namespace
+} // namespace hal::System

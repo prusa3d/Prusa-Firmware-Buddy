@@ -18,5 +18,3 @@ target_sources(
   )
 
 add_subdirectory(tls)
-
-target_compile_definitions(firmware PRIVATE BUDDY_ENABLE_CONNECT)

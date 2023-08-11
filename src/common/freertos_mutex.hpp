@@ -43,4 +43,4 @@ namespace buddy {
 // not template, because someone could try to lock mutex once in wrapper and once not in wrapper => order could be inconsistent
 void lock(std::unique_lock<FreeRTOS_Mutex> &l1, std::unique_lock<FreeRTOS_Mutex> &l2);
 
-}
+} // namespace buddy

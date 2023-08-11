@@ -1,15 +1,12 @@
 target_sources(firmware PRIVATE cpu_utils.cpp)
 
 if(BOARD MATCHES ".*BUDDY")
-  target_sources(firmware PRIVATE buffered_serial.cpp)
-endif()
-
-if(BOARD STREQUAL "XBUDDY")
-  target_sources(firmware PRIVATE AT21CSxx.cpp)
+  target_sources(firmware PRIVATE at21csxx_otp.cpp buffered_serial.cpp)
 endif()
 
 if((BOARD STREQUAL "XBUDDY") OR BOARD STREQUAL "XLBUDDY")
-  target_sources(firmware PRIVATE FUSB302B.cpp fusb303.cpp)
+  target_sources(firmware PRIVATE at21csxx.cpp FUSB302B.cpp fusb303.cpp)
+  add_subdirectory(xbuddy_xlbuddy)
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)
@@ -27,5 +24,9 @@ if(BOARD MATCHES ".*BUDDY")
 
   if(PRINTER STREQUAL "MK3.5")
     add_subdirectory(mk3.5)
+  endif()
+
+  if(PRINTER STREQUAL "XL")
+    add_subdirectory(xl)
   endif()
 endif()

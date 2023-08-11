@@ -60,7 +60,7 @@ const CPUFLASHTranslationProviderCS::RawData CPUFLASHTranslationProviderCS::rawD
 namespace {
 static const CPUFLASHTranslationProviderCS cs;
 ProviderRegistrator csReg("cs", &cs);
-}
+} // namespace
 #endif
 
 #ifdef ENABLE_TRANSLATION_DE
@@ -80,7 +80,7 @@ const CPUFLASHTranslationProviderDE::RawData CPUFLASHTranslationProviderDE::rawD
 namespace {
 static const CPUFLASHTranslationProviderDE de;
 ProviderRegistrator deReg("de", &de);
-}
+} // namespace
 #endif
 
 // intentionally disable additional translations in debug mode (to fit within FLASH space)
@@ -101,7 +101,7 @@ const CPUFLASHTranslationProviderES::RawData CPUFLASHTranslationProviderES::rawD
 namespace {
 static const CPUFLASHTranslationProviderES es;
 ProviderRegistrator esReg("es", &es);
-}
+} // namespace
 #endif
 
 #ifdef ENABLE_TRANSLATION_FR
@@ -121,7 +121,7 @@ const CPUFLASHTranslationProviderFR::RawData CPUFLASHTranslationProviderFR::rawD
 namespace {
 static const CPUFLASHTranslationProviderFR fr;
 ProviderRegistrator frReg("fr", &fr);
-}
+} // namespace
 #endif
 
 #ifdef ENABLE_TRANSLATION_IT
@@ -141,7 +141,7 @@ const CPUFLASHTranslationProviderIT::RawData CPUFLASHTranslationProviderIT::rawD
 namespace {
 static const CPUFLASHTranslationProviderIT it;
 ProviderRegistrator itReg("it", &it);
-}
+} // namespace
 #endif
 
 #ifdef ENABLE_TRANSLATION_PL
@@ -161,5 +161,5 @@ const CPUFLASHTranslationProviderPL::RawData CPUFLASHTranslationProviderPL::rawD
 namespace {
 static const CPUFLASHTranslationProviderPL pl;
 ProviderRegistrator plReg("pl", &pl);
-}
+} // namespace
 #endif

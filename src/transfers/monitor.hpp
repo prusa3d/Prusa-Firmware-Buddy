@@ -200,6 +200,8 @@ public:
         ///
         /// If not called before dropping Error is automatically assigned.
         void done(Outcome reason);
+
+        const char *filepath();
     };
 
     friend class Slot;
@@ -287,4 +289,4 @@ public:
 
 const char *to_str(Monitor::Type type);
 
-}
+} // namespace transfers

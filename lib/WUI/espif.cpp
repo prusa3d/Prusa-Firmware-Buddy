@@ -122,7 +122,8 @@ static std::atomic<bool> esp_detected;
 static std::atomic<bool> esp_was_ok = false;
 uint8_t dma_buffer_rx[RX_BUFFER_LEN];
 static size_t old_dma_pos = 0;
-SemaphoreHandle_t uart_write_mutex = NULL;
+static FreeRTOS_Mutex uart_write_mutex;
+static bool espif_initialized = false;
 static bool uart_has_recovered_from_error = false;
 static uint8_t intron[8] = { 'U', 'N', '\x00', '\x01', '\x02', '\x03', '\x04', '\x05' };
 
@@ -469,7 +470,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
  * To improve security ESPIF generates random intron.
  */
 static void generate_intron() {
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
+    std::lock_guard lock { uart_write_mutex };
 
     // Send message header using old intro to ESP
     espif_transmit_data(intron, sizeof(intron));
@@ -480,13 +481,11 @@ static void generate_intron() {
         intron[i] = HAL_RNG_GetRandomNumber(&hrng);
     }
 
-    log_info(ESPIF, "New intron: %.*s", 8, intron);
+    log_info(ESPIF, "New intron: %02x%02x%02x%02x%02x%02x%02x%02x", intron[0], intron[1], intron[2], intron[3], intron[4], intron[5], intron[6], intron[7]);
 
     // Send new intron data
     espif_transmit_data(&msg_type, 1);
     espif_transmit_data(intron, sizeof(intron));
-
-    xSemaphoreGive(uart_write_mutex);
 }
 
 /**
@@ -504,7 +503,7 @@ static err_t low_level_output([[maybe_unused]] struct netif *netif, struct pbuf 
     uint32_t len = p->tot_len;
     log_debug(ESPIF, "Low level output packet size: %d", len);
 
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
+    std::lock_guard lock { uart_write_mutex };
     espif_transmit_data(intron, sizeof(intron));
     uint8_t msg_type = MSG_PACKET;
     espif_transmit_data(&msg_type, 1);
@@ -512,13 +511,11 @@ static err_t low_level_output([[maybe_unused]] struct netif *netif, struct pbuf 
     while (p != NULL) {
         if (espif_transmit_data((uint8_t *)p->payload, p->len) != ERR_OK) {
             log_error(ESPIF, "Low level output packet failed");
-            xSemaphoreGive(uart_write_mutex);
             return ERR_IF;
         }
         p = p->next;
     }
 
-    xSemaphoreGive(uart_write_mutex);
     return ERR_OK;
 }
 
@@ -531,11 +528,12 @@ static void force_down() {
 static void reset(const bool take_down_interfaces = true) {
     // Reset our expectation of the intron, the ESP will forget the
     // auto-generated one.
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-    for (uint i = 2; i < sizeof(intron); i++) {
-        intron[i] = i - 2;
+    {
+        std::lock_guard lock { uart_write_mutex };
+        for (uint i = 2; i < sizeof(intron); i++) {
+            intron[i] = i - 2;
+        }
     }
-    xSemaphoreGive(uart_write_mutex);
 
     if (take_down_interfaces) {
         force_down();
@@ -552,7 +550,7 @@ static void reset(const bool take_down_interfaces = true) {
 
 err_t espif_init_hw() {
     log_info(ESPIF, "LwIP init hw");
-    if (uart_write_mutex) {
+    if (espif_initialized) {
         log_error(ESPIF, "Already initialized !!!");
         assert(0);
         return ERR_ALREADY;
@@ -560,12 +558,7 @@ err_t espif_init_hw() {
 
     espif_reconfigure_uart(NIC_UART_BAUDRATE);
     esp_operating_mode = ESPIF_WAIT_INIT;
-
-    // Create mutex to protect UART writes
-    uart_write_mutex = xSemaphoreCreateMutex();
-    if (!uart_write_mutex) {
-        return ERR_IF;
-    }
+    espif_initialized = true;
 
     return ERR_OK;
 };
@@ -621,22 +614,23 @@ void espif_flash_initialize(const bool take_down_interfaces) {
     // all the time the ESP is being flashed might block LwIP thread and prevent
     // ethernet from being serviced. Still, all the writers must have finished -
     // this holds the lock and new writers will fail as mode is set to flashing.
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
-    esp_operating_mode = ESPIF_FLASHING_MODE;
-    espif_reconfigure_uart(FLASH_UART_BAUDRATE);
-    loader_stm32_config_t loader_config = {
-        .huart = &ESP_UART_HANDLE,
-        .port_io0 = GPIOE,
+    {
+        std::lock_guard lock { uart_write_mutex };
+        esp_operating_mode = ESPIF_FLASHING_MODE;
+        espif_reconfigure_uart(FLASH_UART_BAUDRATE);
+        loader_stm32_config_t loader_config = {
+            .huart = &ESP_UART_HANDLE,
+            .port_io0 = GPIOE,
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-        .pin_num_io0 = GPIO_PIN_15,
+            .pin_num_io0 = GPIO_PIN_15,
 #else
-        .pin_num_io0 = GPIO_PIN_6,
+            .pin_num_io0 = GPIO_PIN_6,
 #endif
-        .port_rst = GPIOC,
-        .pin_num_rst = GPIO_PIN_13,
-    };
-    loader_port_stm32_init(&loader_config);
-    xSemaphoreGive(uart_write_mutex);
+            .port_rst = GPIOC,
+            .pin_num_rst = GPIO_PIN_13,
+        };
+        loader_port_stm32_init(&loader_config);
+    }
     if (take_down_interfaces) {
         force_down();
     }
@@ -664,7 +658,7 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     log_info(ESPIF, "Joining AP %s:*(%d)", ssid, strlen(pass));
     esp_operating_mode = ESPIF_RUNNING_MODE;
 
-    xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
+    std::lock_guard lock { uart_write_mutex };
     espif_transmit_data(intron, sizeof(intron));
     uint8_t msg_type = MSG_CLIENTCONFIG;
     espif_transmit_data(&msg_type, sizeof(msg_type));
@@ -684,7 +678,6 @@ err_t espif_join_ap(const char *ssid, const char *pass) {
     espif_transmit_data(ssid_buf, ssid_len);
     espif_transmit_data(&pass_len, sizeof(pass_len));
     espif_transmit_data(pass_buf, pass_len);
-    xSemaphoreGive(uart_write_mutex);
 
     return ERR_OK;
 }
@@ -704,14 +697,13 @@ bool espif_tick() {
     }
 
     if (espif_link()) {
-        xSemaphoreTake(uart_write_mutex, portMAX_DELAY);
+        std::lock_guard lock { uart_write_mutex };
         const bool was_alive = seen_intron.exchange(false);
         // Poke the ESP somewhat to see if it's still alive and provoke it to
         // do some activity during next round.
         espif_transmit_data(intron, sizeof(intron));
         uint8_t msg_type = MSG_GETLINK;
         espif_transmit_data(&msg_type, sizeof(msg_type));
-        xSemaphoreGive(uart_write_mutex);
         return was_alive;
     }
 

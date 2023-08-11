@@ -17,4 +17,4 @@ const char *SocketConnectionFactory::host() {
     return hostname;
 }
 void SocketConnectionFactory::invalidate() {}
-};
+}; // namespace http

@@ -13,7 +13,7 @@
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
 #endif
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 namespace selftest {
 
@@ -69,7 +69,7 @@ TestReturn phaseLoadcell(const uint8_t tool_mask, std::array<IPartHandler *, HOT
 
         // Store loadcell test state
         // Do not store if test was successful and now aborted, do not regress
-        if (i < EEPROM_MAX_TOOL_COUNT
+        if (i < config_store_ns::max_tool_count
             && !(eeres.tools[i].tooloffset == TestResult_Passed && m_pLoadcell[i]->GetResult() == TestResult_Skipped)) {
             eeres.tools[i].loadcell = m_pLoadcell[i]->GetResult();
         }

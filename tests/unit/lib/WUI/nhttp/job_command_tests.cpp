@@ -43,7 +43,7 @@ void do_test(string_view data, optional<Cmd> expected_command) {
     }
 }
 
-}
+} // namespace
 
 namespace nhttp::printer {
 
@@ -73,7 +73,7 @@ bool JobCommand::stop() {
     return true;
 }
 
-}
+} // namespace nhttp::printer
 
 TEST_CASE("Job abort") {
     do_test("{\"command\": \"cancel\"}", Cmd::Stop);

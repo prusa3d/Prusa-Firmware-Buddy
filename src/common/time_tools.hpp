@@ -22,4 +22,4 @@ void Change(TF_t new_format);
 
 TF_t Get();
 
-}
+} // namespace time_format

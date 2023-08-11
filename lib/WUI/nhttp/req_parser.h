@@ -16,7 +16,7 @@
 namespace nhttp {
 class ServerDefs;
 class Server;
-}
+} // namespace nhttp
 
 namespace nhttp::handler {
 
@@ -155,4 +155,4 @@ public:
     std::string_view boundary() const { return std::string_view(url.begin() + url_size, boundary_size); }
 };
 
-}
+} // namespace nhttp::handler

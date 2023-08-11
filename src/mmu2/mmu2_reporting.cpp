@@ -12,7 +12,7 @@
 #include "mmu2_reporter.hpp"
 #include "pause_stubbed.hpp"
 #include "log.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_REF(MMU2);
 

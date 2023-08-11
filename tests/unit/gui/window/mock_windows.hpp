@@ -20,7 +20,7 @@ protected: // inherited by unit tests, must be protected
 
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     void show(string_view_utf8 txt); // could use const char *, but with stringview I can pass both translated and not translated texts
-    void setIcon(const png::Resource *res);
+    void setIcon(const img::Resource *res);
 
 public:
     static void ShowHotendFan();

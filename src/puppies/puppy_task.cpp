@@ -26,6 +26,7 @@ osThreadId puppy_task_handle;
 osMutexDef(bootstrap_progress_lock);
 osMutexId bootstrap_progress_lock_id;
 std::optional<PuppyBootstrap::Progress> bootstrap_progress;
+std::atomic<bool> stop_request = false; // when this is set to true, puppy task will gracefully stop its execution
 
 static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::BootstrapResult minimal_config) {
     // boostrap first
@@ -95,6 +96,9 @@ static void puppy_task_loop() {
 
     // periodically update puppies until there is a failure
     while (true) {
+        if (stop_request)
+            return;
+
         uint32_t cycle_ticks = ticks_ms(); ///< Only one tick read per cycle
         // One slow action
         bool worked = false;
@@ -252,6 +256,11 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
             puppy_task_loop();
         } while (false);
 
+        if (stop_request) {
+            // stop of puppy task was requested, stop here gracefully, without holding any mutexes and such
+            osThreadSuspend(nullptr);
+        }
+
         log_error(Puppies, "Communication error, going to recovery puppies");
         osDelay(1300); // Needs to be here to give puppies time to finish dumping
     } while (true);
@@ -264,4 +273,9 @@ void start_puppy_task() {
     puppy_task_handle = osThreadCreate(osThread(puppies), NULL);
 }
 
+void suspend_puppy_task() {
+    // ask puppy thread to stop its execution
+    stop_request = true;
 }
+
+} // namespace buddy::puppies

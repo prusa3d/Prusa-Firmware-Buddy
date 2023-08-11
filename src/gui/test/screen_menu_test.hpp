@@ -14,43 +14,10 @@
 #include "screen_qr_error.hpp"
 #include "screen_test_wizard_icons.hpp"
 #include "screen_test_dlg.hpp"
-#include "screen_menu_eeprom_test.hpp"
 #include "screen_test_load.hpp"
 
 // #include "menu_opener.hpp" TODO make it work
 #include "screen_menu.hpp"
-
-class MI_STACK_OVERFLOW : public WI_LABEL_t {
-public:
-    MI_STACK_OVERFLOW();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_DIV0 : public WI_LABEL_t {
-public:
-    MI_DIV0();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_WATCHDOG : public WI_LABEL_t {
-public:
-    MI_WATCHDOG();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_PREHEAT_ERROR : public WI_LABEL_t {
-public:
-    MI_PREHEAT_ERROR();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
 
 class MI_RESULT_TEST : public WI_LABEL_t {
 public:
@@ -78,7 +45,6 @@ protected:
 
 using ScreenMenuTest__ = ScreenMenu<EFooter::Off, MI_RETURN,
     MI_LOAD_UNLOAD_TEST,
-    // GENERATE_SCREEN_FN_ITEM_DEV(GetScreenMenuEepromTest, "test EEPROM"),
     /* TODO make it work
     GENERATE_SCREEN_ITEM_DEV(screen_test_gui_data_t, "test GUI"),
     GENERATE_SCREEN_ITEM_DEV(screen_test_term_data_t, "test TERM"),
@@ -87,7 +53,7 @@ using ScreenMenuTest__ = ScreenMenu<EFooter::Off, MI_RETURN,
     GENERATE_SCREEN_ITEM_DEV(screen_test_wizard_icons, "test Wizard icons"),
     GENERATE_SCREEN_ITEM_DEV(screen_test_dlg_data_t, "test dialog"),
     GENERATE_SCREEN_ITEM_DEV(ScreenErrorQR, "test QR error"),*/
-    MI_RESULT_TEST, MI_SELFTEST_TEST, MI_STACK_OVERFLOW, MI_DIV0, MI_WATCHDOG, MI_PREHEAT_ERROR>;
+    MI_RESULT_TEST, MI_SELFTEST_TEST>;
 
 class ScreenMenuTest : public ScreenMenuTest__ {
 public:

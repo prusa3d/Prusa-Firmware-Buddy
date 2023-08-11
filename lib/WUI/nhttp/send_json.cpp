@@ -90,4 +90,4 @@ template class SendJson<EmptyRenderer>;
 template class SendJson<TransferRenderer>;
 template class SendJson<StatusRenderer>;
 
-}
+} // namespace nhttp::handler

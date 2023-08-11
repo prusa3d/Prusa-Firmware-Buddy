@@ -4,17 +4,17 @@
 
 #include "footer_item_fsensor.hpp"
 #include "filament_sensors_handler.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "i18n.h"
 #include <algorithm>
 #include <cmath>
 
 FooterItemFSensor::FooterItemFSensor(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::filament_sensor_17x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::filament_sensor_17x16, static_makeView, static_readValue) {
 }
 
 FooterItemFSensorSide::FooterItemFSensorSide(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::side_filament_sensor_17x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::side_filament_sensor_17x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFSensor::static_readValue() {

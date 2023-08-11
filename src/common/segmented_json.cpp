@@ -113,4 +113,4 @@ std::tuple<JsonResult, size_t> LowLevelJsonRenderer::render(uint8_t *buffer, siz
     return make_tuple(result, written);
 }
 
-}
+} // namespace json

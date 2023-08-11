@@ -25,4 +25,4 @@ struct __attribute__((aligned(8))) FWDescriptor {
 
 static_assert(sizeof(FWDescriptor) % 8 == 0, "Config needs to be 8 byte aligned for flash write");
 static_assert(sizeof(FWDescriptor) <= APP_DESCRIPTOR_LENGTH, "Config needs to fit into region");
-};
+}; // namespace puppy_crash_dump

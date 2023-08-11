@@ -32,4 +32,4 @@ struct LoadcellConfig_t {
     uint32_t max_validation_time;
 };
 
-};
+}; // namespace selftest

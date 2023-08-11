@@ -6,8 +6,8 @@
 #include "config.h"
 #include "version.h"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
-#include "../common/otp.h"
-#include "png_resources.hpp"
+#include "../common/otp.hpp"
+#include "img_resources.hpp"
 
 uint16_t ScreenMenuVersionInfo::get_help_h() {
     return helper_lines * (resource_font(helper_font)->h + 1); // +1 for line paddings
@@ -23,23 +23,13 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     help.set_font(resource_font(helper_font));
     CaptureNormalWindow(menu); // set capture to list
 
-    //=============SCREEN INIT===============
-    header.SetIcon(&png::info_16x16);
-
-    //=============VARIABLES=================
+    header.SetIcon(&img::info_16x16);
 
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
 
-    //=============ACCESS IN ADDR=================
-    board_revision_t board_revision;
-    if (otp_get_board_revision(&board_revision) == false) {
-        board_revision = 0;
-    }
-
     serial_nr_t serial_nr;
-    otp_get_serial_nr(&serial_nr);
+    otp_get_serial_nr(serial_nr);
 
-    //=============SET TEXT================
     auto begin = version_info_str.begin();
     auto end = version_info_str.end();
     {
@@ -72,8 +62,8 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
         begin += snprintf(begin, end - begin,
             fmt,
             bootloader->major, bootloader->minor, bootloader->patch,
-            board_revision,
-            serial_nr.txt);
+            otp_get_board_revision().value_or(0),
+            serial_nr.data());
     }
 
     // this MakeRAM is safe - version_info_str is allocated in RAM for the lifetime of this

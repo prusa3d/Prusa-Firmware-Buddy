@@ -5,7 +5,7 @@
 #include "window_dlg_quickpause.hpp"
 #include "../../lang/string_view_utf8.hpp"
 #include "client_response.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "marlin_vars.hpp"
 #include "marlin_server_shared.h"
 
@@ -13,7 +13,7 @@ constexpr static const char quick_pause_txt[] = N_("Waiting for the user. Press 
 
 DialogQuickPause::DialogQuickPause(fsm::BaseData)
     : AddSuperWindow<IDialogMarlin>(GuiDefaults::RectScreenBody)
-    , icon(this, GuiDefaults::MessageIconRect, &png::warning_48x48)
+    , icon(this, GuiDefaults::MessageIconRect, &img::warning_48x48)
     , text(this, GuiDefaults::MessageTextRect, is_multiline::yes, is_closed_on_click_t::yes, _(quick_pause_txt))
     , gcode_name(this, Rect16(GuiDefaults::MsgBoxLayoutRect.Left(), 45, GuiDefaults::MsgBoxLayoutRect.Width(), 21))
     , radio(this, GuiDefaults::GetButtonRect_AvoidFooter(GuiDefaults::RectScreenBody), PhasesQuickPause::QuickPaused) {

@@ -149,7 +149,7 @@ static void try_fix_if_needed(Result result) {
 }
 
 [[nodiscard]] static Result eeprom_transmit(EepromCommandWrite cmd, uint8_t *pData, uint16_t size) {
-    return Transmit(&I2C_HANDLE_FOR(eeprom), ftrstd::to_underlying(cmd), pData, size, HAL_MAX_DELAY);
+    return Transmit(I2C_HANDLE_FOR(eeprom), ftrstd::to_underlying(cmd), pData, size, HAL_MAX_DELAY);
 }
 
 [[nodiscard]] static Result user_write_address_without_lock(EepromCommandWrite cmd, uint16_t address) {
@@ -202,7 +202,7 @@ static void try_fix_if_needed(Result result) {
 
     Result result = user_write_address_without_lock(eeprom_get_write_address(cmd), address);
     if (result == Result::ok) {
-        result = Receive(&I2C_HANDLE_FOR(eeprom), ftrstd::to_underlying(eeprom_get_read_address(cmd)), static_cast<uint8_t *>(pdata), size, HAL_MAX_DELAY);
+        result = Receive(I2C_HANDLE_FOR(eeprom), ftrstd::to_underlying(eeprom_get_read_address(cmd)), static_cast<uint8_t *>(pdata), size, HAL_MAX_DELAY);
     }
 
     return result;

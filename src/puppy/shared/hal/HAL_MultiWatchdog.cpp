@@ -88,4 +88,4 @@ void MultiWatchdog::check_all() {
     // Reload hardware
     HAL_IWDG_Refresh(&hiwdg);
 }
-}
+} // namespace hal

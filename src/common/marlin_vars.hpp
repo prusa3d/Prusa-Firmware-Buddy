@@ -307,7 +307,7 @@ public:
      * @brief Get the last fsm state
      *
      * This is needed, because in Prusa link there is no way to use the callbacks as there is no place to call
-     * marlin_client_loop periodically. Also for this to be stored in an atomic, we would need to make
+     * marlin_client::loop periodically. Also for this to be stored in an atomic, we would need to make
      * atomic<uint64_t> work, which I was not able to do, if anyone knows how to, let me know.
      *
      * @return last change for both FSM queues

@@ -70,4 +70,4 @@ public:
     constexpr bool IsActive() { return htr != nullptr; };
     void Fail() { htr->state_machine.Fail(); };
 };
-}
+} // namespace selftest

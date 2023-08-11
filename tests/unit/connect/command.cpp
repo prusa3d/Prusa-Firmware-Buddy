@@ -26,7 +26,7 @@ D command_test(const char *cmd) {
     return get<D>(command.command_data);
 }
 
-}
+} // namespace
 
 TEST_CASE("Invalid JSON command") {
     command_test<BrokenCommand>("This is not a JSON");

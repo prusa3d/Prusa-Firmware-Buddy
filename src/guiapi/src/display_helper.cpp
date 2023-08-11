@@ -225,7 +225,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
         /// 3rd pass reading the string_view_utf8 - draw the text
         text.rewind();
         text_wrapper<ram_buffer, const font_t *> wrapper(rc_pad.Width(), font);
-        for (size_t i = 0; i < layout.GetLineCount(); ++i) {
+        for (size_t i = 0; i < std::min(layout.GetLineCount(), MaxRowsInRect); ++i) {
             const size_t line_char_cnt = layout.LineCharacters(i);
             Rect16 line_rect(0, 0, font->w * line_char_cnt, font->h);
             line_rect.Align(line_to_align, flags.align);
@@ -253,7 +253,7 @@ void render_text_align(Rect16 rc, string_view_utf8 text, const font_t *font, col
     }
 }
 
-void render_icon_align(Rect16 rc, const png::Resource *res, color_t clr_back, icon_flags flags) {
+void render_icon_align(Rect16 rc, const img::Resource *res, color_t clr_back, icon_flags flags) {
 
     if (res) {
         point_ui16_t wh_ico = { res->w, res->h };

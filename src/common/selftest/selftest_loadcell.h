@@ -54,4 +54,4 @@ public:
     LoopResult stateTapOk();
 };
 
-};
+}; // namespace selftest

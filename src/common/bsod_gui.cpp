@@ -6,6 +6,8 @@
 #include <crash_dump/dump.hpp>
 #include "safe_state.h"
 
+#include <crash_dump/dump.hpp>
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "led_animations/animation.hpp"
@@ -111,54 +113,6 @@ typedef tskTCB TCB_t;
 // current thread from FreeRTOS
 extern PRIVILEGED_INITIALIZED_DATA TCB_t *volatile pxCurrentTCB;
 
-constexpr uint8_t PADDING = 10;
-static const constexpr uint16_t X_MAX = display::GetW() - PADDING * 2;
-
-//! @brief Put HW into safe state, activate display safe mode and initialize it twice
-static void stop_common(void) {
-    hwio_safe_state();
-
-#ifdef USE_ST7789
-    st7789v_enable_safe_mode();
-#endif
-
-#ifdef USE_ILI9488
-    ili9488_enable_safe_mode();
-#endif
-
-    hwio_beeper_notone();
-    display::Init();
-    display::Init();
-}
-
-void addFormatNum(char *buffer, const int size, int &position, const char *format, const uint32_t num) {
-    int ret = snprintf(&buffer[position], std::max(0, size - position), format, num);
-    if (ret > 0)
-        position += ret;
-    return;
-}
-
-void addFormatText(char *buffer, const int size, int &position, const char *format, const char *text) {
-    int ret = snprintf(&buffer[position], std::max(0, size - position), format, text);
-    if (ret > 0)
-        position += ret;
-    return;
-}
-
-void addText(char *buffer, const int size, int &position, const char *text) {
-    addFormatText(buffer, size, position, "%s", text);
-}
-
-/// \returns nth character of the string
-/// \returns \0 if the string is too short
-char nth_char(const char str[], uint16_t nth) {
-    while (nth > 0 && str[0] != 0) {
-        --nth;
-        ++str;
-    }
-    return str[0];
-}
-
 const ErrDesc &find_error(const ErrCode error_code) {
     // Iterating through error_list to find the error
     const auto error = std::ranges::find_if(error_list, [error_code](const auto &elem) { return (elem.err_code) == error_code; });
@@ -176,13 +130,7 @@ void raise_redscreen(ErrCode error_code, const char *error, const char *module) 
     }
 #endif /*_DEBUG*/
 
-    // don't trigger redscreen during a power outage
-    if (power_panic::is_ac_fault_active()) {
-        delay_ms(2000);
-        bsod("%s: %s", module, error);
-    }
-
-    crash_dump::dump_err_to_xflash(static_cast<std::underlying_type_t<ErrCode>>(error_code), error, module);
+    crash_dump::save_message(crash_dump::MsgType::RSOD, ftrstd::to_underlying(error_code), error, module);
     sys_reset();
 }
 
@@ -225,6 +173,96 @@ void fatal_error(const char *error, const char *module) {
     raise_redscreen(error_code, error, module);
 }
 
+/**
+ * @brief Cut path from long filename.
+ * @todo When our GCC can do __FILE_NAME__, remove this and modify bsod() macro to use __FILE_NAME__.
+ * @param path_and_file file including full path, __FILE__ macro
+ * @return pointer to file without path
+ */
+static const char *cut_path(const char *path_and_file) {
+    if (path_and_file == nullptr) {
+        return "Unknown File";
+    }
+
+    // Find last "/" or "\" and put pointer there
+    if (const char *pc = strrchr(path_and_file, '/'); pc != nullptr) {
+        path_and_file = pc + 1;
+    }
+    if (const char *pc = strrchr(path_and_file, '\\'); pc != nullptr) {
+        path_and_file = pc + 1;
+    }
+    return path_and_file;
+}
+
+/**
+ * @brief Put HW into safe state, activate display safe mode and initialize it twice
+ * @note Cannot be done from high priority ISR.
+ */
+static void stop_common(void) {
+    hwio_safe_state();
+
+#ifdef USE_ST7789
+    st7789v_enable_safe_mode();
+#endif
+
+#ifdef USE_ILI9488
+    ili9488_enable_safe_mode();
+#endif
+
+    hwio_beeper_notone();
+    display::Init();
+    display::Init();
+}
+
+/**
+ * @brief Show simplified fallback BSOD screen.
+ * Used if new BSOD happens before previous BSOD can be shown.
+ * @param fmt format string with fallback bsod message
+ * @param file_name file name where bsod happened
+ * @param line_number line number where bsod happened
+ * @param args arguments for fmt
+ */
+static void fallback_bsod(const char *fmt, const char *file_name, int line_number, va_list args) {
+    // Set BSOD as displayed to prevent loop
+    crash_dump::message_set_displayed();
+    crash_dump::dump_set_displayed();
+
+    // Disable after clearing dump flags
+    __disable_irq();
+
+    // Stop most HW
+    stop_common();
+
+    ///< Clear with dark blue color
+    display::Clear(COLOR_NAVY);
+
+    char fallback_bsod_text[300];
+
+    // Add filename to buffer
+    size_t consumed = snprintf(fallback_bsod_text, std::size(fallback_bsod_text), "Fallback BSOD\n(possibly BSODception)\n%s\n%s:%d\n",
+        project_version_full, cut_path(file_name), line_number);
+
+    // Add message to buffer
+    if (consumed < std::size(fallback_bsod_text)) {
+        vsnprintf(fallback_bsod_text + consumed, std::size(fallback_bsod_text) - consumed, fmt, args);
+    }
+
+    // Draw buffer
+    render_text_align(Rect16(8, 10, 230, 290),
+        string_view_utf8::MakeRAM((const uint8_t *)fallback_bsod_text), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE,
+        { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
+
+    // Endless loop
+    while (1) {
+        wdt_iwdg_refresh();
+    }
+}
+
+static bool use_fallback_bsod = true; ///< Use fallback BSOD before guimain is able to show a proper BSOD
+void bsod_mark_shown() {
+    use_fallback_bsod = false;        // BSOD would be shown now, can dump a new one
+}
+
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 #ifdef _DEBUG
     // Breakpoint if debugger is connected
@@ -235,162 +273,103 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
     va_list args;
     va_start(args, line_number);
-    __disable_irq(); // disable irq
 
-    char tskName[configMAX_TASK_NAME_LEN];
-    strlcpy(tskName, pxCurrentTCB->pcTaskName, sizeof(tskName));
-    StackType_t *pTopOfStack = (StackType_t *)pxCurrentTCB->pxTopOfStack;
-    StackType_t *pBotOfStack = pxCurrentTCB->pxStack;
-
-    stop_common();
-
-#ifdef PSOD_BSOD
-
-    display::Clear(COLOR_BLACK); // clear with black color
-    // DrawIcon requires ResourceId, but pepa png has new destination - DrawIcon will have to require window_icon_t::DataResourceId
-    // display::DrawIcon(point_ui16(75, 40), &png::pepa_92x140, COLOR_BLACK, 0);
-    display::DrawText(Rect16(25, 200, 200, 22), "Happy printing!", resource_font(IDR_FNT_BIG), COLOR_BLACK, COLOR_WHITE);
-
-#else
-
-    display::Clear(COLOR_NAVY); ///< clear with dark blue color
-    const int COLS = 32;
-    const int ROWS = 21;
-    int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
-    /// Buffer for text. PNG RAM cannot be used (font drawing).
-    char buffer[buffer_size];
-    int buffer_pos = 0; ///< position in buffer
-    buffer_pos += vsnprintf(&buffer[buffer_pos], std::max(0, buffer_size - buffer_pos), fmt, args);
-    addText(buffer, buffer_size, buffer_pos, "\n");
-    if (file_name != nullptr) {
-        // remove text before "/" and "\", to get filename without path
-        const char *pc;
-        pc = strrchr(file_name, '/');
-        if (pc != 0)
-            file_name = pc + 1;
-        pc = strrchr(file_name, '\\');
-        if (pc != 0)
-            file_name = pc + 1;
-        if (file_name != nullptr)
-            addFormatText(buffer, buffer_size, buffer_pos, "File: %s", file_name);
-        if ((file_name != nullptr) && (line_number != -1))
-            addText(buffer, buffer_size, buffer_pos, "\n");
-        if (line_number != -1)
-            addFormatNum(buffer, buffer_size, buffer_pos, "Line: %d", line_number);
-        if ((file_name != nullptr) || (line_number != -1))
-            addText(buffer, buffer_size, buffer_pos, "\n");
+    // Check recursive bsod, can happen if bsod happens during processing of a previous bsod
+    if (use_fallback_bsod) {
+        // There could already be a dump that was not displayed
+        fallback_bsod(fmt, file_name, line_number, args);
     }
 
-    addFormatText(buffer, buffer_size, buffer_pos, "TASK:%s\n", tskName);
-    addFormatNum(buffer, buffer_size, buffer_pos, "bot:0x%08x ", (uint32_t)pBotOfStack);
-    addFormatNum(buffer, buffer_size, buffer_pos, "top:0x%08x\n", (uint32_t)pTopOfStack);
+    // Disable after fallback check
+    __disable_irq();
 
-    const int lines = str2multiline(buffer, buffer_size, COLS);
-    const int lines_to_print = ROWS - lines - 1;
-    int stack_sz = pTopOfStack - pBotOfStack;
+    // Save dump
+    DUMP_BSOD_TO_CCRAM();
+    crash_dump::save_dump();
 
-    StackType_t *lastAddr;
-    if (stack_sz < lines_to_print * 2)
-        lastAddr = pBotOfStack - 1;
-    else
-        lastAddr = pTopOfStack - 2 * lines_to_print;
+    // Get file and line as title
+    char title[crash_dump::MSG_TITLE_MAX_LEN];
+    snprintf(title, std::size(title), "%s:%d", cut_path(file_name), line_number);
 
-    for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
-        addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", (uint32_t)*i);
-    }
-    render_text_align(Rect16(8, 10, 230, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
-    display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_NORMAL), COLOR_NAVY, COLOR_WHITE);
-
-#endif
-
-    while (1) // endless loop
-    {
-        wdt_iwdg_refresh();
-
-        // TODO: safe delay with sleep
-    }
-
+    // Get message
+    char msg[crash_dump::MSG_MAX_LEN];
+    vsnprintf(msg, std::size(msg), fmt, args);
     va_end(args);
+
+    // Save file, line and meessage
+    crash_dump::save_message(crash_dump::MsgType::BSOD, ftrstd::to_underlying(ErrCode::ERR_UNDEF), msg, title);
+
+    sys_reset();
+    while (1) {
+    }
 }
 
 #ifdef configCHECK_FOR_STACK_OVERFLOW
 
-static TaskHandle_t tsk_hndl = 0;
-static signed char *tsk_name = 0;
+extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, signed char *pcTaskName) {
+    #ifdef _DEBUG
+    // Breakpoint if debugger is connected
+    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
+        __BKPT(0);
+    }
+    #endif /*_DEBUG*/
 
-extern "C" void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName) {
-    tsk_hndl = xTask;
-    tsk_name = pcTaskName;
-    if (pcTaskName != nullptr && strlen((const char *)pcTaskName) < 20)
-        _bsod("STACK OVERFLOW\nHANDLE %p\n%s", 0, 0, xTask, pcTaskName);
-    else
-        _bsod("STACK OVERFLOW\nHANDLE %p\nTaskname ERROR", 0, 0, xTask);
+    // Save registers
+    DUMP_STACK_OVF_TO_CCRAM();
+    crash_dump::save_dump();
+
+    // Save task name as title
+    crash_dump::save_message(crash_dump::MsgType::BSOD, 0, "", reinterpret_cast<char *>(pcTaskName));
+
+    sys_reset();
 }
 
 #endif // configCHECK_FOR_STACK_OVERFLOW
 
-#ifndef PSOD_BSOD
-// https://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
+namespace bsod_details {
 
-/*
-+--------------------------------------------------------+-------------+-----------------+-------------+
-|                       Fault type                       |   Handler   | Status Register |  Bit Name   |
-+--------------------------------------------------------+-------------+-----------------+-------------+
-| Bus error on a vector read error                       | HardFault   | HFSR            | VECTTBL     |
-| Fault that is escalated to a hard fault                |             |                 | FORCED      |
-| Fault on breakpoint escalation                         |             |                 | DEBUGEVT    |
-| Fault on instruction access                            | MemManage   | MMFSR           | IACCVIOL    |
-| Fault on direct data access                            |             |                 | DACCVIOL    |
-| Context stacking, because of an MPU access violation   |             |                 | MSTKERR     |
-| Context unstacking, because of an MPU access violation |             |                 | MUNSTKERR   |
-| During lazy floating-point state preservation          |             |                 | MLSPERR     |
-| During exception stacking                              | BusFault    | BFSR            | STKERR      |
-| During exception unstacking                            |             |                 | UNSTKERR    |
-| During instruction prefetching, precise                |             |                 | IBUSERR     |
-| During lazy floating-point state preservation          |             |                 | LSPERR      |
-| Precise data access error, precise                     |             |                 | PRECISERR   |
-| Imprecise data access error, imprecise                 |             |                 | IMPRECISERR |
-| Undefined instruction                                  | UsageFault  | UFSR            | UNDEFINSTR  |
-| Attempt to enter an invalid instruction set state      |             |                 | INVSTATE    |
-| Failed integrity check on exception return             |             |                 | INVPC       |
-| Attempt to access a non-existing coprocessor           |             |                 | NOCPC       |
-| Illegal unaligned load or store                        |             |                 | UNALIGNED   |
-| Stack overflow                                         |             |                 | STKOF       |
-| Divide By 0                                            |             |                 | DIVBYZERO   |
-+--------------------------------------------------------+-------------+-----------------+-------------+
-*/
+const char *get_hardfault_reason() {
+    // https://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
 
-void ScreenHardFault(void) {
+    /*
+    +--------------------------------------------------------+-------------+-----------------+-------------+
+    |                       Fault type                       |   Handler   | Status Register |  Bit Name   |
+    +--------------------------------------------------------+-------------+-----------------+-------------+
+    | Bus error on a vector read error                       | HardFault   | HFSR            | VECTTBL     |
+    | Fault that is escalated to a hard fault                |             |                 | FORCED      |
+    | Fault on breakpoint escalation                         |             |                 | DEBUGEVT    |
+    | Fault on instruction access                            | MemManage   | MMFSR           | IACCVIOL    |
+    | Fault on direct data access                            |             |                 | DACCVIOL    |
+    | Context stacking, because of an MPU access violation   |             |                 | MSTKERR     |
+    | Context unstacking, because of an MPU access violation |             |                 | MUNSTKERR   |
+    | During lazy floating-point state preservation          |             |                 | MLSPERR     |
+    | During exception stacking                              | BusFault    | BFSR            | STKERR      |
+    | During exception unstacking                            |             |                 | UNSTKERR    |
+    | During instruction prefetching, precise                |             |                 | IBUSERR     |
+    | During lazy floating-point state preservation          |             |                 | LSPERR      |
+    | Precise data access error, precise                     |             |                 | PRECISERR   |
+    | Imprecise data access error, imprecise                 |             |                 | IMPRECISERR |
+    | Undefined instruction                                  | UsageFault  | UFSR            | UNDEFINSTR  |
+    | Attempt to enter an invalid instruction set state      |             |                 | INVSTATE    |
+    | Failed integrity check on exception return             |             |                 | INVPC       |
+    | Attempt to access a non-existing coprocessor           |             |                 | NOCPC       |
+    | Illegal unaligned load or store                        |             |                 | UNALIGNED   |
+    | Stack overflow                                         |             |                 | STKOF       |
+    | Divide By 0                                            |             |                 | DIVBYZERO   |
+    +--------------------------------------------------------+-------------+-----------------+-------------+
+    */
+
     static const constexpr uint32_t IACCVIOL_Msk = 1u << 0;
     static const constexpr uint32_t DACCVIOL_Msk = 1u << 1;
     static const constexpr uint32_t MSTKERR_Msk = 1u << 4;
     static const constexpr uint32_t MUNSTKERR_Msk = 1u << 3;
     static const constexpr uint32_t MLSPERR_Msk = 1u << 5;
-
-    static const constexpr char *IACCVIOL_Txt = "Fault on instruction access";
-    static const constexpr char *DACCVIOL_Txt = "Fault on direct data access";
-    static const constexpr char *MSTKERR_Txt = "Context stacking, because of an MPU access violation";
-    static const constexpr char *MUNSTKERR_Txt = "Context unstacking, because of an MPU access violation";
-    static const constexpr char *MLSPERR_Txt = "During lazy floating-point state preservation";
-
-    static const constexpr uint32_t MMARVALID_Msk = 1 << 7; // MemManage Fault Address Register (MMFAR) valid flag:
-
     static const constexpr uint32_t STKERR_Msk = 1u << 12;
     static const constexpr uint32_t UNSTKERR_Msk = 1u << 11;
     static const constexpr uint32_t IBUSERR_Msk = 1u << 8;
     static const constexpr uint32_t LSPERR_Msk = 1u << 13;
     static const constexpr uint32_t PRECISERR_Msk = 1u << 9;
     static const constexpr uint32_t IMPRECISERR_Msk = 1u << 10;
-
-    static const constexpr char *STKERR_Txt = "During exception stacking";
-    static const constexpr char *UNSTKERR_Txt = "During exception unstacking";
-    static const constexpr char *IBUSERR_Txt = "During instruction prefetching, precise";
-    static const constexpr char *LSPERR_Txt = "During lazy floating-point state preservation";
-    static const constexpr char *PRECISERR_Txt = "Precise data access error, precise";
-    static const constexpr char *IMPRECISERR_Txt = "Imprecise data access error, imprecise";
-
-    static const constexpr uint32_t BFARVALID_Msk = 1U << 15; // MemManage Fault Address Register (MMFAR) valid flag:
-
     static const constexpr uint32_t UNDEFINSTR_Msk = 1u << 16;
     static const constexpr uint32_t INVSTATE_Msk = 1u << 17;
     static const constexpr uint32_t INVPC_Msk = 1u << 18;
@@ -398,190 +377,194 @@ void ScreenHardFault(void) {
     static const constexpr uint32_t UNALIGNED_Msk = 1u << 24;
     static const constexpr uint32_t DIVBYZERO_Msk = 1u << 25;
 
-    static const constexpr char *UNDEFINSTR_Txt = "Undefined instruction";
-    static const constexpr char *INVSTATE_Txt = "Attempt to enter an invalid instruction set state";
-    static const constexpr char *INVPC_Txt = "Failed integrity check on exception return";
-    static const constexpr char *NOCPC_Txt = "Attempt to access a non-existing coprocessor";
-    static const constexpr char *UNALIGNED_Txt = "Illegal unaligned load or store";
-    static const constexpr char *DIVBYZERO_Txt = "Divide By 0";
-    // static const constexpr uint8_t STKOF = 1U << 0;
-
-    static const constexpr uint8_t ROWS = 21;
-    static const constexpr uint8_t COLS = 32;
-
-    char tskName[configMAX_TASK_NAME_LEN];
-    memset(tskName, '\0', sizeof(tskName) * sizeof(char)); // set to zeros to be on the safe side
-
-    uint32_t __pxCurrentTCB;
-    crash_dump::dump_in_xflash_read_RAM(&__pxCurrentTCB, (unsigned int)&pxCurrentTCB, sizeof(uint32_t));
-    TCB_t CurrentTCB;
-    crash_dump::dump_in_xflash_read_RAM(&CurrentTCB, __pxCurrentTCB, sizeof(TCB_t));
-
-    strlcpy(tskName, CurrentTCB.pcTaskName, sizeof(tskName));
-    StackType_t *pTopOfStack = (StackType_t *)CurrentTCB.pxTopOfStack;
-    StackType_t *pBotOfStack = CurrentTCB.pxStack;
-
-    display::Clear(COLOR_NAVY);        // clear with dark blue color
-
-    int buffer_size = COLS * ROWS + 1; ///< 7 bit ASCII allowed only (no UTF8)
-    /// Buffer for text. PNG RAM cannot be used (font drawing).
-    char buffer[buffer_size];
-    int buffer_pos = 0; ///< position in buffer
-
-    addFormatText(buffer, buffer_size, buffer_pos, "TASK: %s. ", tskName);
-
     uint32_t __SCB[35];
-    crash_dump::dump_in_xflash_read_regs_SCB(&__SCB, 35 * sizeof(uint32_t));
+    crash_dump::load_dump_regs_SCB(&__SCB, 35 * sizeof(uint32_t));
 
     uint32_t __CFSR = __SCB[0x28 >> 2];
 
     switch ((__CFSR) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
+        // case ????_Msk:
+        // urn "The error can have at most 38 chars -|"; // To fit into title
     case IACCVIOL_Msk:
-        addText(buffer, buffer_size, buffer_pos, IACCVIOL_Txt);
-        break;
+        return "Fault on instruction access";
     case DACCVIOL_Msk:
-        addText(buffer, buffer_size, buffer_pos, DACCVIOL_Txt);
-        break;
+        return "Fault on direct data access";
     case MSTKERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, MSTKERR_Txt);
-        break;
+        return "Context stacking, (MPU access)";
     case MUNSTKERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, MUNSTKERR_Txt);
-        break;
+        return "Context unstacking, (MPU access)";
     case MLSPERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, MLSPERR_Txt);
-        break;
-
+        return "During lazy FP state preservation (M)";
     case STKERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, STKERR_Txt);
-        break;
+        return "During exception stacking";
     case UNSTKERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, UNSTKERR_Txt);
-        break;
+        return "During exception unstacking";
     case IBUSERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, IBUSERR_Txt);
-        break;
+        return "During instr prefetching, precise";
     case LSPERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, LSPERR_Txt);
-        break;
+        return "During lazy FP state preservation";
     case PRECISERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, PRECISERR_Txt);
-        break;
+        return "Precise data access error, precise";
     case IMPRECISERR_Msk:
-        addText(buffer, buffer_size, buffer_pos, IMPRECISERR_Txt);
-        break;
-
+        return "Imprecise data access error, imprecise";
     case UNDEFINSTR_Msk:
-        addText(buffer, buffer_size, buffer_pos, UNDEFINSTR_Txt);
-        break;
+        return "Undefined instruction";
     case INVSTATE_Msk:
-        addText(buffer, buffer_size, buffer_pos, INVSTATE_Txt);
-        break;
+        return "Enter an invalid instruction set state";
     case INVPC_Msk:
-        addText(buffer, buffer_size, buffer_pos, INVPC_Txt);
-        break;
+        return "Integrity check on exception return";
     case NOCPC_Msk:
-        addText(buffer, buffer_size, buffer_pos, NOCPC_Txt);
-        break;
+        return "Access a non-existing coprocessor";
     case UNALIGNED_Msk:
-        addText(buffer, buffer_size, buffer_pos, UNALIGNED_Txt);
-        break;
+        return "Illegal unaligned load or store";
     case DIVBYZERO_Msk:
-        addText(buffer, buffer_size, buffer_pos, DIVBYZERO_Txt);
-        break;
+        return "Divide By 0";
 
-    default:
-        addFormatNum(buffer, buffer_size, buffer_pos, "Multiple Errors CFSR :%08x", __CFSR);
-        break;
+    default: {
+        static char buffer[39];
+        snprintf(buffer, std::size(buffer), "Multiple Errors CFSR :%08x", static_cast<unsigned int>(__CFSR));
+        return buffer;
     }
-    addText(buffer, buffer_size, buffer_pos, "\n");
-
-    addFormatNum(buffer, buffer_size, buffer_pos, "bot: 0x%08x ", (uint32_t)pBotOfStack);
-    addFormatNum(buffer, buffer_size, buffer_pos, "top: 0x%08x\n", (uint32_t)pTopOfStack);
-
-    uint32_t __CPUID = __SCB[0x00 >> 2];
-    uint32_t __ICSR = __SCB[0x04 >> 2];
-    uint32_t __VTOR = __SCB[0x08 >> 2];
-    uint32_t __AIRCR = __SCB[0x0c >> 2];
-    uint32_t __SCR = __SCB[0x10 >> 2];
-    uint32_t __CCR = __SCB[0x14 >> 2];
-    uint32_t __SHCSR = __SCB[0x24 >> 2];
-    uint32_t __HFSR = __SCB[0x2c >> 2];
-    uint32_t __DFSR = __SCB[0x30 >> 2];
-    uint32_t __MMFAR = __SCB[0x34 >> 2];
-    uint32_t __BFAR = __SCB[0x38 >> 2];
-    uint32_t __AFSR = __SCB[0x3c >> 2];
-    uint32_t __DFR = __SCB[0x48 >> 2];
-    uint32_t __ADR = __SCB[0x4c >> 2];
-    uint32_t __CPACR = __SCB[0x88 >> 2];
-
-    // 32 characters per line
-    addFormatNum(buffer, buffer_size, buffer_pos, "CPUID:%08x  ", __CPUID);
-    if (__ICSR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "ICSR :%08x  ", __ICSR);
-    if (__VTOR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "VTOR :%08x  ", __VTOR);
-    if (__AIRCR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "AIRCR:%08x  ", __AIRCR);
-    if (__SCR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "SCR  :%08x  ", __SCR);
-    if (__CCR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "CCR  :%08x  ", __CCR);
-    if (__SHCSR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "SHCSR:%08x  ", __SHCSR);
-    if (__HFSR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "HFSR :%08x  ", __HFSR);
-    if (__DFSR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "DFSR :%08x  ", __DFSR);
-    if ((__CFSR)&MMARVALID_Msk)
-        addFormatNum(buffer, buffer_size, buffer_pos, "MMFAR:%08x  ", __MMFAR); ///< print this only if value is valid
-    if ((__CFSR)&BFARVALID_Msk)
-        addFormatNum(buffer, buffer_size, buffer_pos, "BFAR :%08x  ", __BFAR);  ///< print this only if value is valid
-    if (__AFSR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "AFSR :%08x  ", __AFSR);
-    if (__DFR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "DFR  :%08x  ", __DFR);
-    if (__ADR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "ADR  :%08x  ", __ADR);
-    if (__CPACR)
-        addFormatNum(buffer, buffer_size, buffer_pos, "CPACR:%08x\n", __CPACR);
-
-    /*
-    term_printf(&term, "r0 :%08x", r0);
-    term_printf(&term, "r1 :%08x", r1);
-    term_printf(&term, "r2 :%08x", r2);
-    term_printf(&term, "r3 :%08x", r3);
-    term_printf(&term, "r12:%08x", r12);
-    term_printf(&term, "lr :%08x", lr);
-    term_printf(&term, "pc :%08x", pc);
-    term_printf(&term, "psr:%08x", psr);*/
-
-    // const int addr_string_len = 10;//"0x12345678"
-    const int strings_per_row = 3;
-
-    const int lines = str2multiline(buffer, buffer_size, COLS);
-    const int available_rows = lines < 0 ? 0 : ROWS - lines - 1;
-    // int available_chars = available_rows * COLS;
-    const int stack_sz = pTopOfStack - pBotOfStack;
-    // int stack_chars_to_print = (addr_string_len +1)* stack_sz - stack_sz / 3;//+1 == space, - stack_sz / 3 .. 3rd string does not have a space
-    const int requested_rows = stack_sz / 3; ///< 3 addresses per line
-
-    StackType_t *lastAddr;
-    if (requested_rows < available_rows)
-        lastAddr = pBotOfStack - 1;
-    else
-        lastAddr = pTopOfStack - available_rows * strings_per_row;
-
-    int space_counter = 0; // 3rd string does not have a space behind it
-    for (StackType_t *i = pTopOfStack; i != lastAddr; --i) {
-        space_counter++;
-        uint32_t sp = 0;
-        crash_dump::dump_in_xflash_read_RAM(&sp, (unsigned int)i, sizeof(uint32_t));
-        addFormatNum(buffer, buffer_size, buffer_pos, "0x%08x ", sp);
     }
-
-    render_text_align(Rect16(8, 10, 232, 290), string_view_utf8::MakeCPUFLASH((const uint8_t *)buffer), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE, { 0, 0, 0, 0 }, { Align_t::LeftTop(), is_multiline::yes });
-    display::DrawText(Rect16(8, 290, 220, 20), string_view_utf8::MakeCPUFLASH((const uint8_t *)project_version_full), resource_font(IDR_FNT_SMALL), COLOR_NAVY, COLOR_WHITE);
 }
 
-#endif // PSOD_BSOD
+size_t get_task_name(char *&buffer, size_t buffer_size) {
+    // Get task name from dump
+    uint32_t __pxCurrentTCB;
+    crash_dump::load_dump_RAM(&__pxCurrentTCB, (unsigned int)&pxCurrentTCB, sizeof(uint32_t));
+    TCB_t CurrentTCB;
+    crash_dump::load_dump_RAM(&CurrentTCB, __pxCurrentTCB, sizeof(TCB_t));
+
+    // Add to buffer
+    int written = snprintf(buffer, buffer_size, "task:%s\n", CurrentTCB.pcTaskName);
+
+    // Check that it fits to buffer
+    if (written >= 0 && static_cast<size_t>(written) < buffer_size) {
+        buffer += written;
+        return buffer_size - written;
+    } else {
+        buffer = nullptr;
+        return buffer_size;
+    }
+}
+
+size_t get_regs(char *&buffer, size_t buffer_size) {
+    uint32_t gen_regs[16];
+    crash_dump::load_dump_regs_GEN(&gen_regs, sizeof(gen_regs));
+
+    uint32_t scg_regs[35];
+    crash_dump::load_dump_regs_SCB(&scg_regs, sizeof(scg_regs));
+    const uint32_t cfsr = scg_regs[0x28 >> 2];
+
+    auto add_reg = [&](const char *name, unsigned int value, bool even_if_zero = false) {
+        // Ignore if it is empty or out of space in buffer
+        if (buffer == nullptr || buffer_size == 0
+            || (!even_if_zero && value == 0)) {
+            return true;
+        }
+
+        // Add to buffer
+        int written = snprintf(buffer, buffer_size, "%s:%08x ", name, value);
+
+        // Check that it fits to buffer
+        if (written >= 0 && static_cast<size_t>(written) < buffer_size) {
+            buffer += written;
+            buffer_size -= written;
+            return true;
+        } else {
+            buffer_size = 0;
+            buffer = nullptr;
+            return false;
+        }
+    };
+
+    // Core registers
+    add_reg("SP", gen_regs[12], true);
+    add_reg("LR", gen_regs[13], true);
+    add_reg("PC", gen_regs[14], true);
+
+    // Add newline at the end
+    if (buffer_size > 1) {
+        *buffer = '\n';
+        ++buffer;
+        *buffer = '\0';
+    }
+
+    // SCB registers
+    add_reg("CPUID", scg_regs[0x00 >> 2]);
+    add_reg("ICSR_", scg_regs[0x04 >> 2]);
+    add_reg("VTOR_", scg_regs[0x08 >> 2]);
+    add_reg("AIRCR", scg_regs[0x0c >> 2]);
+    add_reg("SCR__", scg_regs[0x10 >> 2]);
+    add_reg("CCR__", scg_regs[0x14 >> 2]);
+    add_reg("SHCSR", scg_regs[0x24 >> 2]);
+    add_reg("HFSR_", scg_regs[0x2c >> 2]);
+    add_reg("DFSR_", scg_regs[0x30 >> 2]);
+    // Print these only if value is valid
+    static const constexpr uint32_t MMARVALID_Msk = 1 << 7; ///< MemManage Fault Address Register (MMFAR) valid flag
+    if (cfsr & MMARVALID_Msk) {
+        add_reg("MMFAR", scg_regs[0x34 >> 2]);
+    }
+    static const constexpr uint32_t BFARVALID_Msk = 1U << 15; ///< BusFault Address Register (BFAR) valid flag
+    if (cfsr & BFARVALID_Msk) {
+        add_reg("BFAR_", scg_regs[0x38 >> 2]);
+    }
+    add_reg("AFSR_", scg_regs[0x3c >> 2]);
+    add_reg("DFR__", scg_regs[0x48 >> 2]);
+    add_reg("ADR__", scg_regs[0x4c >> 2]);
+    add_reg("CPACR", scg_regs[0x88 >> 2]);
+
+    // Add newline at the end
+    if (buffer_size > 1) {
+        *buffer = '\n';
+        ++buffer;
+        *buffer = '\0';
+    }
+
+    return buffer_size;
+}
+
+size_t get_stack(char *&buffer, size_t buffer_size) {
+    // Get stack from dump
+    uint32_t __pxCurrentTCB;
+    crash_dump::load_dump_RAM(&__pxCurrentTCB, (unsigned int)&pxCurrentTCB, sizeof(uint32_t));
+    TCB_t CurrentTCB;
+    crash_dump::load_dump_RAM(&CurrentTCB, __pxCurrentTCB, sizeof(TCB_t));
+
+    StackType_t *pTopOfStack = (StackType_t *)CurrentTCB.pxTopOfStack;
+    StackType_t *pBotOfStack = CurrentTCB.pxStack;
+
+    // Add location to buffer
+    int written = snprintf(buffer, buffer_size, "bot:%08x top:%08x stack:\n", reinterpret_cast<unsigned int>(pTopOfStack), reinterpret_cast<unsigned int>(pBotOfStack));
+
+    // Check that it fits to buffer
+    if (written >= 0 && static_cast<size_t>(written) < buffer_size) {
+        buffer += written;
+        buffer_size -= written;
+    } else {
+        buffer_size = 0;
+        buffer = nullptr;
+    }
+
+    for (StackType_t *i = pTopOfStack; i > pBotOfStack && buffer && buffer_size; --i) {
+        // Get stack content
+        uint32_t sp = 0;
+        crash_dump::load_dump_RAM(&sp, reinterpret_cast<uint32_t>(i), sizeof(uint32_t));
+
+        // Add content to buffer
+        written = snprintf(buffer, buffer_size, "%08x ", static_cast<unsigned int>(sp));
+
+        // Check that it fits to buffer
+        if (written >= 0 && static_cast<size_t>(written) < buffer_size) {
+            buffer += written;
+            buffer_size -= written;
+        } else {
+            buffer_size = 0;
+            buffer = nullptr;
+        }
+    };
+
+    return buffer_size;
+}
+
+} // namespace bsod_details

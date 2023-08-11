@@ -53,4 +53,4 @@ public:
     void perform(Printer &printer, Planner &planner);
 };
 
-}
+} // namespace connect_client

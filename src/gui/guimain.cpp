@@ -9,7 +9,6 @@
 
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
-#include "screen_unknown.hpp"
 #include "window_file_list.hpp"
 #include "window_header.hpp"
 #include "window_temp_graph.hpp"
@@ -21,6 +20,8 @@
 #include "screen_hardfault.hpp"
 #include "screen_qr_error.hpp"
 #include "screen_watchdog.hpp"
+#include "screen_bsod.hpp"
+#include "screen_stack_overflow.hpp"
 #include "screen_filebrowser.hpp"
 #include "screen_printing.hpp"
 #include "IScreenPrinting.hpp"
@@ -87,7 +88,8 @@ int guimain_spi_test = 0;
 #include "hwio_pindef.h"
 #include "main.h"
 #include "bsod.h"
-#if HAS_LEDS
+#include <option/has_leds.h>
+#if HAS_LEDS()
     #include "led_animations/printer_animation_state.hpp"
 #endif
 #include "log.h"
@@ -99,7 +101,7 @@ int guimain_spi_test = 0;
     #include "screen_menu_selftest_snake.hpp"
 #endif
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 using namespace buddy::hw;
 
@@ -129,9 +131,10 @@ const ili9488_config_t ili9488_cfg = {
     .gamma = 0,
     .brightness = 0,
     .is_inverted = 0,
-    .control = 0
+    .control = 0,
+    .pwm_inverted = 0b10110001 // inverted
 };
-#endif // USE_ILI9488
+#endif                         // USE_ILI9488
 
 marlin_vars_t *gui_marlin_vars = 0;
 
@@ -229,7 +232,7 @@ void client_gui_refresh() {
 
 namespace {
 void led_animation_step() {
-#if HAS_LEDS
+#if HAS_LEDS()
     PrinterStateAnimation::Update();
     Animator_LCD_leds().Step();
     leds::TickLoop();
@@ -293,14 +296,14 @@ void make_gui_ready_to_print() {
             Screens::Access()->ClosePrinting(); // set flag to close all appropriate screens
             if (have_file_browser) {
                 Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
-                Screens::Access()->Get()->Validate(); // Do not draw filebrowser now
+                Screens::Access()->Get()->Validate();   // Do not draw filebrowser now
             }
-            Screens::Access()->Loop();                // close those screens before marlin_gui_ready_to_print
-            marlin_gui_ready_to_print();              // notify server, that GUI is ready to print
+            Screens::Access()->Loop();                  // close those screens before marlin_gui_ready_to_print
+            marlin_client::marlin_gui_ready_to_print(); // notify server, that GUI is ready to print
         } else if (one_click_preview || filebrowser_preview) {
             // Print is called from Connect/pLink, while print preview is already open in GUI
             // notify server, that GUI is ready to print
-            marlin_gui_ready_to_print();
+            marlin_client::marlin_gui_ready_to_print();
         }
         // else not reachable
 
@@ -309,14 +312,14 @@ void make_gui_ready_to_print() {
         while (!DialogHandler::Access().IsAnyOpen()) {
             // main thread is processing a print
             // wait for print screen to open, any fsm can break waiting (f.e.: Print Preview)
-            gui_timers_cycle();   // refresh GUI time
-            marlin_client_loop(); // refresh fsm - required for dialog handler
+            gui_timers_cycle();    // refresh GUI time
+            marlin_client::loop(); // refresh fsm - required for dialog handler
             DialogHandler::Access().Loop();
         }
 
     } else {
         // Do not print on current screen -> main thread will set printer_state to Idle
-        marlin_gui_cant_print();
+        marlin_client::marlin_gui_cant_print();
     }
 }
 } // anonymous namespace
@@ -462,27 +465,27 @@ static void manufacture_report() {
  * Error has precedence over dump.
  */
 static ScreenFactory::Creator get_error_screen() {
-    if (crash_dump::dump_err_in_xflash_is_valid() && !crash_dump::dump_err_in_xflash_is_displayed()) {
+    if (crash_dump::message_get_type() == crash_dump::MsgType::RSOD && !crash_dump::message_is_displayed()) {
         return ScreenFactory::Screen<ScreenErrorQR>;
     }
 
-    if (crash_dump::dump_in_xflash_is_valid() && !crash_dump::dump_in_xflash_is_displayed()) {
-        switch (crash_dump::dump_in_xflash_get_type()) {
-        case crash_dump::DumpType::DUMP_HARDFAULT:
-            return ScreenFactory::Screen<screen_hardfault_data_t>;
-#ifndef _DEBUG
-        case crash_dump::DumpType::DUMP_IWDGW:
-            return ScreenFactory::Screen<screen_watchdog_data_t>;
-#endif
+    if (crash_dump::dump_is_valid() && !crash_dump::dump_is_displayed()) {
+        switch (crash_dump::dump_get_type()) {
+        case crash_dump::DumpType::HARDFAULT:
+            return ScreenFactory::Screen<ScreenHardfault>;
+        case crash_dump::DumpType::IWDGW:
+            return ScreenFactory::Screen<ScreenWatchdog>;
+        case crash_dump::DumpType::BSOD:
+            return ScreenFactory::Screen<ScreenBsod>;
+        case crash_dump::DumpType::STACK_OVF:
+            return ScreenFactory::Screen<ScreenStackOverflow>;
         default:
-            return ScreenFactory::Screen<screen_unknown_data_t>;
+            break;
         }
     }
 
-    // Do not display nullptr page in case of all previous fails
-    // Display an unknown error page instead
-    // TODO: This is not perfect, would be better to be sure there is some error to display.
-    return ScreenFactory::Screen<screen_unknown_data_t>;
+    // Display an unknown error page
+    return ScreenFactory::Screen<ScreenBlueError>;
 }
 
 void gui_error_run(void) {
@@ -499,17 +502,17 @@ void gui_error_run(void) {
     Screens::Init(screen_initializer);
 
     // Mark everything as displayed
-    crash_dump::dump_err_in_xflash_set_displayed();
-    crash_dump::dump_in_xflash_set_displayed();
+    crash_dump::message_set_displayed();
+    crash_dump::dump_set_displayed();
 
-#if HAS_LEDS
+#if HAS_LEDS()
     leds::Init();
 #endif
 
     while (true) {
         gui::StartLoop();
 
-#if HAS_LEDS
+#if HAS_LEDS()
         PrinterStateAnimation::Update();
         Animator_LCD_leds().Step();
         leds::TickLoop();
@@ -551,7 +554,7 @@ void gui_run(void) {
     }
 
     Screens::Access()->Loop();
-#if HAS_LEDS
+#if HAS_LEDS()
     leds::Init();
 #endif
 
@@ -577,25 +580,25 @@ void gui_run(void) {
     finish_update_puppies();
 #endif
 
-    marlin_client_init();
+    marlin_client::init();
     GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
 
     DialogHandler::Access(); // to create class NOW, not at first call of one of callback
-    marlin_client_set_fsm_cb(DialogHandler::command_c_compatible);
-    marlin_client_set_message_cb(MsgCircleBuffer_cb);
-    marlin_client_set_warning_cb(Warning_cb);
-    marlin_client_set_startup_cb(Startup_cb);
+    marlin_client::set_fsm_cb(DialogHandler::command_c_compatible);
+    marlin_client::set_message_cb(MsgCircleBuffer_cb);
+    marlin_client::set_warning_cb(Warning_cb);
+    marlin_client::set_startup_cb(Startup_cb);
 
     Sound_Play(eSOUND_TYPE::Start);
 
-    marlin_client_set_event_notify(marlin_server::EVENT_MSK_DEF, client_gui_refresh);
+    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, client_gui_refresh);
 
     GUIStartupProgress progr = { 100, std::nullopt };
     event_conversion_union un;
     un.pGUIStartupProgress = &progr;
     Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 
-#if HAS_LEDS && !HAS_SIDE_LEDS()
+#if HAS_LEDS() && !HAS_SIDE_LEDS()
     // we need to step the animator, to move the started animation to current to let it run for one cycle
     auto guard = leds::start_animation(PrinterState::PowerUp, 10);
     Animator_LCD_leds().Step();

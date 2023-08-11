@@ -72,7 +72,7 @@ enum NamedStates {
 
 const Automaton test_automaton(paths, transitions, states);
 
-}
+} // namespace
 
 TEST_CASE("Raw Hello") {
     TestExecution ex(test_automaton);

@@ -150,4 +150,4 @@ private:
 
 extern ModularBed modular_bed;
 
-}
+} // namespace buddy::puppies

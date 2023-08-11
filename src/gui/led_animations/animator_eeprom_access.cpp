@@ -1,5 +1,5 @@
 #include "animator.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 bool AnimatorBase::load_run_state() {
     return config_store().run_leds.get();

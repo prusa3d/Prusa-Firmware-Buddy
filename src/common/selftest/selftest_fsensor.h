@@ -58,4 +58,4 @@ public:
     LoopResult state_enforce_remove();
 };
 
-};
+}; // namespace selftest

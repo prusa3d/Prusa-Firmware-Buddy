@@ -1,7 +1,7 @@
 #include "box_unfinished_selftest.hpp"
 #include <selftest_result_type.hpp>
 #include "printers.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #if PRINTER_IS_PRUSA_XL
     #include <module/prusa/toolchanger.h>

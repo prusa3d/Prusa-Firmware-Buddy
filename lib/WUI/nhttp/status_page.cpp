@@ -117,4 +117,4 @@ Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_
 Step UnauthenticatedStatusPage::step(std::string_view input, bool terminated_by_client, uint8_t *output, size_t output_size) {
     return std::visit([&](auto auth) { return step(input, terminated_by_client, output, output_size, auth); }, auth_method);
 }
-}
+} // namespace nhttp::handler

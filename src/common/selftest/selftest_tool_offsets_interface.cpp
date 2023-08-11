@@ -1,7 +1,7 @@
 #include "selftest_part.hpp"
 #include "selftest_tool_offsets.hpp"
 #include <module/prusa/toolchanger.h>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 namespace selftest {
 
@@ -41,7 +41,7 @@ TestReturn phaseToolOffsets([[maybe_unused]] const uint8_t tool_mask, IPartHandl
     }
 
     SelftestResult eeres = config_store().selftest_result.get();
-    for (int i = 0; i < EEPROM_MAX_TOOL_COUNT; ++i) {
+    for (size_t i = 0; i < config_store_ns::max_tool_count; ++i) {
         if (!prusa_toolchanger.is_tool_enabled(i)) {
             continue; // Tool is not enabled
         }

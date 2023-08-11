@@ -85,4 +85,4 @@ private:
     uint8_t available_bytes() const;
 };
 
-}
+} // namespace common::puppies::fifo

@@ -12,6 +12,7 @@
 #include "printers.h"
 #include <option/has_side_leds.h>
 #include <option/has_toolchanger.h>
+#include <option/has_leds.h>
 
 using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_FOOTER_SETTINGS, MI_SORT_FILES, MI_PRINT_PROGRESS_TIME, MI_TIMEOUT, MI_SOUND_MODE, MI_HEATUP_BED
@@ -19,7 +20,7 @@ using ScreenMenuUserInterface__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     ,
     MI_SOUND_VOLUME
 #endif
-#if HAS_LEDS
+#if HAS_LEDS()
     ,
     MI_LEDS_ENABLE
 #endif

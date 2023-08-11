@@ -36,4 +36,4 @@ public:
     virtual bool poll_readable(uint32_t timeout) override;
 };
 
-}
+} // namespace connect_client

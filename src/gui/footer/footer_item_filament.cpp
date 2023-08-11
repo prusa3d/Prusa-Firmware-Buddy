@@ -5,9 +5,9 @@
 #include "footer_item_filament.hpp"
 #include "marlin_client.hpp"
 #include "display_helper.h" // font_meas_text
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "filament.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
@@ -15,7 +15,7 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 FooterItemFilament::FooterItemFilament(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::spool_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::spool_16x16, static_makeView, static_readValue) {
 }
 
 int FooterItemFilament::static_readValue() {

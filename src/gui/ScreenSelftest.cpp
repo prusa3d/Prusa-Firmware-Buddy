@@ -6,7 +6,7 @@
 #include "ScreenSelftest.hpp"
 #include "i18n.h"
 #include "ScreenHandler.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
@@ -157,7 +157,7 @@ ScreenSelftest::ScreenSelftest()
     , part_current(SelftestParts::_none)
     , part_previous(SelftestParts::_none) {
     ScreenSelftest::ClrMenuTimeoutClose(); // don't close on menu timeout
-    header.SetIcon(&png::selftest_16x16);
+    header.SetIcon(&img::selftest_16x16);
     ths = this;
 }
 
@@ -182,7 +182,7 @@ void ScreenSelftest::Change(fsm::BaseData data) {
 
     if (part_previous != part_current) {
         // update header
-        header.SetIcon(&png::home_shape_16x16);
+        header.SetIcon(&img::home_shape_16x16);
         header.SetIcon(getIconId(part_current));
         header.SetText(getCaption(part_current));
 
@@ -241,14 +241,14 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     return string_view_utf8::MakeCPUFLASH((uint8_t *)error);
 }
 
-const png::Resource *ScreenSelftest::getIconId(SelftestParts part) {
+const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
-        return &png::wizard_16x16;
+        return &img::wizard_16x16;
     case SelftestParts::ESP:
     case SelftestParts::ESP_progress:
     case SelftestParts::ESP_qr:
-        return &png::wifi_16x16;
+        return &img::wifi_16x16;
     case SelftestParts::Axis:
     case SelftestParts::Fans:
 #if HAS_LOADCELL()
@@ -270,24 +270,24 @@ const png::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     case SelftestParts::Dock:
     case SelftestParts::ToolOffsets:
 #endif
-        return &png::selftest_16x16;
+        return &img::selftest_16x16;
     case SelftestParts::WizardEpilogue_ok:
     case SelftestParts::WizardEpilogue_nok:
-        return &png::wizard_16x16;
+        return &img::wizard_16x16;
     case SelftestParts::_none:
         break;
     }
-    return &png::error_16x16;
+    return &img::error_16x16;
 }
 
 void ScreenSelftest::InitState(screen_init_variant var) {
     auto val = var.GetSelftestMask();
     if (val) {
-        marlin_test_start(*val);
+        marlin_client::test_start(*val);
         // check mask if contains wizard prologue
         // it is simplified method, but should work correctly for meaningfull use
         if ((*val) & stmWizardPrologue) {
-            header.SetIcon(&png::wizard_16x16);
+            header.SetIcon(&img::wizard_16x16);
             header.SetText(_(en_wizard));
         }
         // no need for else, selftest is default

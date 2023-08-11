@@ -46,6 +46,21 @@ const resource_entry_t resource_table[] = {
 
 };                                    // resource_table
 
+#ifdef USE_ST7789
+static_assert(resource_font_size(IDR_FNT_SMALL) == font_size_t { font_7x13.w, font_7x13.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_NORMAL) == font_size_t { font_11x18.w, font_11x18.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_BIG) == font_size_t { font_12x21.w, font_12x21.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_SPECIAL) == font_size_t { font_9x16.w, font_9x16.h }, "Font size doesn't match");
+#endif /*USE_ST7789*/
+
+#ifdef USE_ILI9488
+static_assert(resource_font_size(IDR_FNT_SMALL) == font_size_t { font_9x16_new.w, font_9x16_new.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_NORMAL) == font_size_t { font_11x19.w, font_11x19.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_BIG) == font_size_t { font_13x22.w, font_13x22.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_SPECIAL) == font_size_t { font_9x16.w, font_9x16.h }, "Font size doesn't match");
+static_assert(resource_font_size(IDR_FNT_LARGE) == font_size_t { font_30x53.w, font_30x53.h }, "Font size doesn't match");
+#endif /*USE_ILI9488*/
+
 const uint16_t resource_table_size = sizeof(resource_table);
 const uint16_t resource_count = sizeof(resource_table) / sizeof(resource_entry_t);
 

@@ -31,4 +31,4 @@ optional<ConnectionState> UnknownRequest::accept(const RequestParser &request) c
 
 const UnknownRequest unknown_request;
 
-}
+} // namespace nhttp::handler::selectors

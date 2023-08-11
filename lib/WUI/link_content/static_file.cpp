@@ -64,4 +64,4 @@ optional<ConnectionState> StaticFile::accept(const RequestParser &parser) const 
 
 const StaticFile static_file;
 
-}
+} // namespace nhttp::link_content

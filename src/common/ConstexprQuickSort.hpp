@@ -56,4 +56,4 @@ constexpr auto sort(Range &&range, Compare cmp = Compare {}) {
     quick_sort(std::begin(range), std::end(range), cmp);
     return range;
 }
-}
+} // namespace ConstexprQuickSort

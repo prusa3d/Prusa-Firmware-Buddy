@@ -13,7 +13,7 @@ namespace {
     };
 
     constexpr uint8_t compress_mark = 1;
-}
+} // namespace
 
 bool compress_host(const char *host, char *buffer, size_t buffer_len) {
     size_t len = strlen(host);
@@ -80,4 +80,4 @@ void decompress_host(char *host, size_t host_buffer) {
     strcpy(host + len - 2, suffixes[idx]);
 }
 
-}
+} // namespace connect_client

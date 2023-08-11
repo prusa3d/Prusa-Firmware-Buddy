@@ -529,3 +529,7 @@ void window_frame_t::setBlackLayout() {
     super::setBlackLayout();
     RecursiveCall(&window_t::SetBlackLayout); // SetBlackLayout is non virtual one
 }
+void window_frame_t::setBlueLayout() {
+    super::setBlueLayout();
+    RecursiveCall(&window_t::SetBlueLayout); // SetBlueLayout is non virtual one
+}

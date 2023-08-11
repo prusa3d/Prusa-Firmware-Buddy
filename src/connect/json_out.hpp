@@ -25,4 +25,4 @@ public:
     virtual RenderResult write_body_chunk(char *data, size_t size) override;
 };
 
-}
+} // namespace connect_client

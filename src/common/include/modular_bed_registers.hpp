@@ -102,4 +102,4 @@ enum class HBHoldingRegister : uint16_t {
     _first = max_allowed_current,
 };
 
-} // namespace modular_bed_shared
+} // namespace modular_bed_shared::registers

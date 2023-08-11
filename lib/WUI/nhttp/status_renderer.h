@@ -18,4 +18,4 @@ public:
         : JsonRenderer(StatusState(id)) {}
     virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, StatusState &state) const override;
 };
-}
+} // namespace nhttp::handler

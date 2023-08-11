@@ -299,4 +299,4 @@ float GetLastMeasuredAndCalculatedValue(ADCChannel channel) {
     }
 }
 
-} // namespace
+} // namespace modularbed::MeasurementLogic

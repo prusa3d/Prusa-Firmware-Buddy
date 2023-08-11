@@ -6,7 +6,7 @@
 #include "selftest_hot_end_sock_type.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 static constexpr size_t margin_texts = WizardDefaults::MarginLeft;
 static constexpr Align_t align_text_icon = Align_t::CenterTop();
@@ -19,7 +19,7 @@ static constexpr Rect16 get_text_rect() {
     return ret;
 }
 
-static constexpr Rect16 get_text_nozzle_rect() {
+static constexpr Rect16 get_text_sock_rect() {
     Rect16 ret = get_text_rect();
     ret = Rect16::Width_t(160);
     ret = Rect16::Height_t(WizardDefaults::txt_h);
@@ -27,13 +27,13 @@ static constexpr Rect16 get_text_nozzle_rect() {
     return ret;
 }
 
-static constexpr Rect16 get_text_sock_rect() {
-    Rect16 ret = get_text_nozzle_rect();
+static constexpr Rect16 get_text_nozzle_rect() {
+    Rect16 ret = get_text_sock_rect();
     ret += Rect16::Top_t(WizardDefaults::row_h);
     return ret;
 }
 
-static constexpr Rect16 get_text_nozzle_value_rect() {
+static constexpr Rect16 get_text_sock_value_rect() {
     Rect16 ret = get_text_rect();
     ret += Rect16::Left_t(ret.Width() - 160);
     ret = Rect16::Width_t(160);
@@ -42,8 +42,8 @@ static constexpr Rect16 get_text_nozzle_value_rect() {
     return ret;
 }
 
-static constexpr Rect16 get_text_sock_value_rect() {
-    Rect16 ret = get_text_nozzle_value_rect();
+static constexpr Rect16 get_text_nozzle_value_rect() {
+    Rect16 ret = get_text_sock_value_rect();
     ret += Rect16::Top_t(WizardDefaults::row_h);
     return ret;
 }
@@ -90,8 +90,12 @@ void SelftestFrameHotEndSock::change() {
     text.SetText(_(txt));
 
     if (show_settings) {
-        text_nozzle.Show();
-        text_nozzle_value.Show();
+        // Disable showing of nozzle
+        // text_nozzle.Show();
+        // text_nozzle_value.Show();
+        text_nozzle.Hide();
+        text_nozzle_value.Hide();
+
         text_sock.Show();
         text_sock_value.Show();
 

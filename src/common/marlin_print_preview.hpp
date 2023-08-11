@@ -30,6 +30,9 @@ public:
         mmu_filament_inserted_wait_user,
         mmu_filament_inserted_unload,
 
+        tools_mapping_wait_user,
+        tools_mapping_change,
+
         wrong_filament_wait_user,
         wrong_filament_change,
 
@@ -62,6 +65,7 @@ public:
         Image,
         // Asking the user something (wrong printer, etc).
         Questions,
+        ToolsMapping,
         Abort,
         Print,
         Inactive

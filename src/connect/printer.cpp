@@ -29,7 +29,7 @@ struct Crc {
     }
 };
 
-}
+} // namespace
 
 namespace connect_client {
 
@@ -137,4 +137,4 @@ const char *Printer::Params::job_lfn() const {
     }
 }
 
-}
+} // namespace connect_client

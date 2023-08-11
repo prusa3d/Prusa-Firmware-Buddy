@@ -3,12 +3,12 @@
 #include "marlin_client.hpp"
 #include "lwip/init.h"
 #include "netdev.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #include <segmented_json_macros.h>
 #include <json_encode.h>
 #include <config_features.h>
-#include <otp.h>
+#include <otp.hpp>
 #include <filepath_operation.h>
 #include <filename_type.hpp>
 #include <state/printer_state.hpp>
@@ -107,6 +107,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::WaitGui:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+    case State::PrintPreviewToolsMapping:
     case State::PrintInit:
         break;
     case State::PrintPreviewQuestions:
@@ -208,7 +209,7 @@ JsonResult get_info(size_t resume_point, JsonOutput &output) {
     auto nozzle_diameter = config_store().get_nozzle_diameter(0);
     auto mmu2_enabled = config_store().mmu2_enabled.get();
     serial_nr_t serial {};
-    otp_get_serial_nr(&serial);
+    otp_get_serial_nr(serial);
 
     // Keep the indentation of the JSON in here!
     // clang-format off
@@ -216,7 +217,7 @@ JsonResult get_info(size_t resume_point, JsonOutput &output) {
     JSON_OBJ_START;
         JSON_FIELD_FFIXED("nozzle_diameter", nozzle_diameter, 2) JSON_COMMA;
         JSON_FIELD_BOOL("mmu", mmu2_enabled) JSON_COMMA;
-        JSON_FIELD_STR("serial", serial.txt) JSON_COMMA;
+        JSON_FIELD_STR("serial", serial.begin()) JSON_COMMA;
         JSON_FIELD_STR("hostname", hostname) JSON_COMMA;
         JSON_FIELD_INT("min_extrusion_temp", EXTRUDE_MINTEMP);
     JSON_OBJ_END;
@@ -288,6 +289,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     case State::WaitGui:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+    case State::PrintPreviewToolsMapping:
     case State::PrintInit:
         state = "Operational";
         break;
@@ -430,7 +432,7 @@ namespace {
         return available;
     }
 
-}
+} // namespace
 
 JsonResult get_storage(size_t resume_point, JsonOutput &output) {
     // Keep the indentation of the JSON in here!
@@ -451,4 +453,4 @@ JsonResult get_storage(size_t resume_point, JsonOutput &output) {
     // clang-format on
 }
 
-}
+} // namespace nhttp::link_content

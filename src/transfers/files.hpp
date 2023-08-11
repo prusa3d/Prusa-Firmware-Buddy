@@ -37,4 +37,4 @@ using PreallocateResult = std::variant<const char *, unique_file_ptr>;
 /// an error.
 PreallocateResult file_preallocate(const char *fname, size_t size);
 
-}
+} // namespace transfers

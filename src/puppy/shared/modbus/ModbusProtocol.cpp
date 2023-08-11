@@ -631,4 +631,4 @@ uint16_t CalculateChecksum(ModbusBuffer *pBuffer, uint32_t dataSize) {
     return crc;
 }
 
-} // namespace
+} // namespace modbus::ModbusProtocol

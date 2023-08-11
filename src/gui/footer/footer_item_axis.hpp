@@ -18,7 +18,7 @@ class FooterItemAxisPos : public AddSuperWindow<FooterIconText_FloatVal> {
     static string_view_utf8 static_makeViewIntoBuff(float value);
 
 public:
-    FooterItemAxisPos(window_t *parent, const png::Resource *icon)
+    FooterItemAxisPos(window_t *parent, const img::Resource *icon)
         : AddSuperWindow<FooterIconText_FloatVal>(parent, icon, static_makeViewIntoBuff, static_readValue) {}
 };
 
@@ -53,7 +53,7 @@ class FooterItemAxisCurrPos : public AddSuperWindow<FooterIconText_FloatVal> {
     static string_view_utf8 static_makeViewIntoBuff(float value);
 
 public:
-    FooterItemAxisCurrPos(window_t *parent, const png::Resource *icon)
+    FooterItemAxisCurrPos(window_t *parent, const img::Resource *icon)
         : AddSuperWindow<FooterIconText_FloatVal>(parent, icon, static_makeViewIntoBuff, static_readValue) {}
 };
 

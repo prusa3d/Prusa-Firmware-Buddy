@@ -28,6 +28,15 @@ void OutputPin::configure() const {
     HAL_GPIO_Init(getHalPort(), &GPIO_InitStruct);
 }
 
+void OutputPin_Inverted::configure() const {
+    HAL_GPIO_WritePin(getHalPort(), m_halPin, static_cast<GPIO_PinState>(m_initState));
+    GPIO_InitTypeDef GPIO_InitStruct {};
+    GPIO_InitStruct.Pin = m_halPin;
+    GPIO_InitStruct.Mode = static_cast<uint32_t>(m_mode);
+    GPIO_InitStruct.Speed = static_cast<uint32_t>(m_speed);
+    HAL_GPIO_Init(getHalPort(), &GPIO_InitStruct);
+}
+
 void OutputInputPin::enableInput(Pull pull) const {
     GPIO_InitTypeDef GPIO_InitStruct {};
     GPIO_InitStruct.Pin = m_halPin;

@@ -351,4 +351,4 @@ void USART_IRQHandler() {
     }
 }
 
-} // namespace
+} // namespace hal::RS485Driver

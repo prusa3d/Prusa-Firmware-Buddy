@@ -47,4 +47,4 @@ public:
     void disable_caching();
 };
 
-}
+} // namespace nhttp::handler

@@ -1,11 +1,11 @@
 // selftest.cpp
 
 #include "i_selftest.hpp"
-#include "feature/prusa/crash_recovery.h"
+#include "feature/prusa/crash_recovery.hpp"
 #include "stdarg.h"
 #include "log.h"
 #include "app.h"
-#include "otp.h"
+#include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"
@@ -60,9 +60,9 @@ void ISelftest::log_open() {
     const char *suffix = get_log_suffix();
     char fname[64];
     serial_nr_t sn;
-    uint8_t sn_length = otp_get_serial_nr(&sn);
+    uint8_t sn_length = otp_get_serial_nr(sn);
     static const char unk[] = "unknown";
-    char const *serial = sn_length != 0 ? sn.txt : unk;
+    char const *serial = sn_length != 0 ? sn.begin() : unk;
     snprintf(fname, sizeof(fname), "/usb/test_%s%s.txt", serial, suffix);
 
     m_USBLog_fp = fopen(fname, "w+");

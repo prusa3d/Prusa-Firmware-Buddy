@@ -6,7 +6,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode_thumb_decoder.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/resp_parser.cpp
@@ -49,7 +49,8 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/connect
           ${CMAKE_SOURCE_DIR}/src/common
           ${CMAKE_SOURCE_DIR}/src/common/http
-          ${CMAKE_SOURCE_DIR}/src/configuration_store
+          ${CMAKE_SOURCE_DIR}/src/common/gcode
+          ${CMAKE_SOURCE_DIR}/src/persistent_stores
           ${CMAKE_SOURCE_DIR}/lib/jsmn
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/tests/stubs

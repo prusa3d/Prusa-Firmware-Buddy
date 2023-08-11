@@ -1,6 +1,6 @@
 #include "selftest_frame_dock.hpp"
 #include "i18n.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "wizard_config.hpp"
 
 LOG_COMPONENT_REF(Selftest);
@@ -21,9 +21,9 @@ SelftestFrameDock::SelftestFrameDock(window_t *parent, PhasesSelftest ph, fsm::P
     , progress(this, WizardDefaults::row_1)
     , text_info(this, get_info_text_rect(), is_multiline::yes)
     , text_estimate(this, get_estimate_text_rect(), is_multiline::no)
-    , icon_warning(this, &png::printer_is_moving, point_i16(col_texts, row_4))
-    , text_warning(this, Rect16(col_texts + png::warning_48x48.w + 20, row_4, WizardDefaults::X_space - png::warning_48x48.w - 20, 3 * txt_h), is_multiline::yes)
-    , icon_info(this, &png::parking1, text_info.GetRect().TopRight())
+    , icon_warning(this, &img::printer_is_moving, point_i16(col_texts, row_4))
+    , text_warning(this, Rect16(col_texts + img::warning_48x48.w + 20, row_4, WizardDefaults::X_space - img::warning_48x48.w - 20, 3 * txt_h), is_multiline::yes)
+    , icon_info(this, &img::parking1, text_info.GetRect().TopRight())
     , qr(this, get_info_icon_rect() + Rect16::Left_t(25), LINK)
     , text_link(this, get_link_text_rect(), is_multiline::no) {
     qr.Hide();
@@ -50,31 +50,31 @@ void SelftestFrameDock::change() {
         break;
 
     case PhasesSelftest::Dock_wait_user_park1:
-        set_info_layout(_(PARK1), &png::parking1);
+        set_info_layout(_(PARK1), &img::parking1);
         break;
 
     case PhasesSelftest::Dock_wait_user_park2:
-        set_info_layout(_(PARK2), &png::parking2);
+        set_info_layout(_(PARK2), &img::parking2);
         break;
 
     case PhasesSelftest::Dock_wait_user_park3:
-        set_info_layout(_(PARK3), &png::parking2);
+        set_info_layout(_(PARK3), &img::parking2);
         break;
 
     case PhasesSelftest::Dock_wait_user_remove_pins:
-        set_info_layout(_(REMOVE_DOCK_PINS), &png::loosen_screws2);
+        set_info_layout(_(REMOVE_DOCK_PINS), &img::loosen_screws2);
         break;
 
     case PhasesSelftest::Dock_wait_user_loosen_pillar:
-        set_info_layout(_(LOOSEN_DOCK_SCREW), &png::loosen_screws1);
+        set_info_layout(_(LOOSEN_DOCK_SCREW), &img::loosen_screws1);
         break;
 
     case PhasesSelftest::Dock_wait_user_lock_tool:
-        set_info_layout(_(LOCK_TOOL), &png::lock_carriage);
+        set_info_layout(_(LOCK_TOOL), &img::lock_carriage);
         break;
 
     case PhasesSelftest::Dock_wait_user_tighten_top_screw:
-        set_info_layout(_(TIGHTEN_TOP), &png::tighten_screw1);
+        set_info_layout(_(TIGHTEN_TOP), &img::tighten_screw1);
         break;
 
     case PhasesSelftest::Dock_measure:
@@ -82,11 +82,11 @@ void SelftestFrameDock::change() {
         break;
 
     case PhasesSelftest::Dock_wait_user_tighten_bottom_screw:
-        set_info_layout(_(TIGHTEN_BOT), &png::tighten_screw2);
+        set_info_layout(_(TIGHTEN_BOT), &img::tighten_screw2);
         break;
 
     case PhasesSelftest::Dock_wait_user_install_pins:
-        set_info_layout(_(INSTALL_DOCK_PINS), &png::tighten_screw3);
+        set_info_layout(_(INSTALL_DOCK_PINS), &img::tighten_screw3);
         break;
 
     case PhasesSelftest::Dock_selftest_park_test:
@@ -94,7 +94,7 @@ void SelftestFrameDock::change() {
         break;
 
     case PhasesSelftest::Dock_selftest_failed:
-        set_info_layout(_(TEST_FAILED), &png::error_white_48x48);
+        set_info_layout(_(TEST_FAILED), &img::error_white_48x48);
         break;
 
     case PhasesSelftest::Dock_calibration_success:
@@ -150,7 +150,7 @@ void SelftestFrameDock::set_warning_layout(string_view_utf8 txt) {
     text_warning.Show();
 }
 
-void SelftestFrameDock::set_info_layout(string_view_utf8 txt, const png::Resource *res) {
+void SelftestFrameDock::set_info_layout(string_view_utf8 txt, const img::Resource *res) {
     qr.Hide();
     text_link.Hide();
     text_warning.Hide();
@@ -169,7 +169,7 @@ void SelftestFrameDock::set_prologue() {
     text_info.SetRect(Rect16(col_texts, row_2, WizardDefaults::X_space * 1 / 2, txt_h * 6));
     text_info.SetText(_(PROLOGUE));
     icon_info.SetRect(Rect16(text_info.GetRect().TopRight(), text_info.GetRect().TopRight() + point_i16_t { (int16_t)59, (int16_t)72 }) + Rect16::Top_t(25));
-    icon_info.SetRes(&png::hand_qr_59x72);
+    icon_info.SetRes(&img::hand_qr_59x72);
     icon_info.Show();
     qr.Show();
     text_link.SetText(_(LINK));

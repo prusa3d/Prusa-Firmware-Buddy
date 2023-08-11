@@ -134,4 +134,4 @@ StatusPage JobCommand::process() {
     }
 }
 
-}
+} // namespace nhttp::printer

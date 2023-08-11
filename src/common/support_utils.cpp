@@ -2,7 +2,7 @@
 #include <cassert>
 
 #include "config.h"
-#include "otp.h"
+#include "otp.hpp"
 #include "sys.h"
 #include "shared_config.h"
 #include "support_utils.h"
@@ -34,7 +34,7 @@ void append_crc(char *str, const uint32_t str_size) {
 
 void printerHash(char *str, size_t size, bool state_prefix) {
     serial_nr_t serial_nr;
-    const uint8_t serial_nr_len = otp_get_serial_nr(&serial_nr);
+    const uint8_t serial_nr_len = otp_get_serial_nr(serial_nr);
 
     constexpr uint8_t bufferSize = sizeof(STM32_UUID) + sizeof(otp_get_mac_address()->mac) + sizeof(serial_nr);
     uint8_t toHash[bufferSize];
@@ -44,7 +44,7 @@ void printerHash(char *str, size_t size, bool state_prefix) {
     /// MAC
     memcpy(&toHash[sizeof(STM32_UUID)], otp_get_mac_address()->mac, sizeof(otp_get_mac_address()->mac));
     /// SN
-    memcpy(&toHash[sizeof(STM32_UUID) + sizeof(otp_get_mac_address()->mac)], serial_nr.txt, serial_nr_len);
+    memcpy(&toHash[sizeof(STM32_UUID) + sizeof(otp_get_mac_address()->mac)], serial_nr.begin(), serial_nr_len);
 
     uint32_t hash[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; /// 256 bits
     /// get hash;

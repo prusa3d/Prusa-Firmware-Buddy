@@ -154,4 +154,4 @@ void ChangedPath::media_inserted(bool inserted) {
 
 ChangedPath ChangedPath::instance;
 
-}
+} // namespace transfers

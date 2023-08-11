@@ -89,7 +89,7 @@ namespace detail {
 
     using ScreenMenuSTSCalibrations = menu_builder_t<GuiDefaults::MenuFooter, MenuType::Calibrations>;
     using ScreenMenuSTSWizard = menu_builder_t<GuiDefaults::MenuFooter, MenuType::Wizard>;
-}
+} // namespace detail
 } // namespace SelftestSnake
 
 class ScreenMenuSTSCalibrations : public SelftestSnake::detail::ScreenMenuSTSCalibrations {

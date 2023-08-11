@@ -17,6 +17,7 @@ public:
     using Responses_t = std::array<Response, max_buttons>; // maximum is 4 responses (4B), better to pass by value
 private:
     font_t *pfont;
+    bool disabled_drawing_selected { false }; ///< used for when radio button is not the only scrollable window on the screen to allow no button drawn
 
     static void button_draw(Rect16 rc_btn, color_t back_color, color_t parent_color, string_view_utf8 text, const font_t *pf, bool is_selected);
 
@@ -62,6 +63,11 @@ public:
     void SetBtnCount(uint8_t cnt) { flags.button_count = cnt & ((1 << RESPONSE_BITS) - 1); }
     uint8_t GetBtnCount() const { return flags.button_count; }
 
+    // Disables automatic redrawing of the currently selected button (useful when radio_button is not the only scrollable window on the screen)
+    void DisableDrawingSelected();
+    // Enables automatic redrawing of the currently selected button (useful when radio_button is not the only scrollable window on the screen)
+    void EnableDrawingSelected();
+
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
     virtual void unconditionalDraw() override;
@@ -82,4 +88,5 @@ protected:
     // it is done by having multiple radio buttons and show/hide them
     virtual void setRedLayout() override {}
     virtual void setBlackLayout() override {}
+    virtual void setBlueLayout() override {}
 };

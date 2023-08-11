@@ -69,4 +69,4 @@ public:
     LoopResult state_measure_rpm();
 };
 
-};
+}; // namespace selftest

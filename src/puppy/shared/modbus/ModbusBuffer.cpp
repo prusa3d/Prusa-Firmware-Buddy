@@ -62,4 +62,4 @@ void ModbusBuffer::AddWord(uint16_t value) {
     }
 }
 
-} // namespace
+} // namespace modbus

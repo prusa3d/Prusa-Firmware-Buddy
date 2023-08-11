@@ -7,10 +7,11 @@
  */
 #pragma once
 #include "common.hpp"
-#include "bsod.h"
 
-// Next steps are generated only if number of free slots in event buffer queue is bigger that this value.
-constexpr const uint8_t MIN_STEP_EVENT_FREE_SLOT = 0;
+#ifdef COREXY
+    #define COREXY_DISABLE_PRECISE_HOMING_SANITY_TESTS
+    #define COREXY_CONVERT_LIMITS
+#endif
 
 // Minimum number of free slots in the move segment queue must be available in the queue in all circumstances.
 // 1 free slot is required to ensure that we can add the empty ending move anytime.
@@ -19,6 +20,9 @@ constexpr const uint8_t MOVE_SEGMENT_QUEUE_MIN_FREE_SLOTS = 1;
 // Maximum number of step events produced in on move interrupt to limit time spent by move interrupt handler
 // when the step event queue is empty.
 constexpr const uint16_t MAX_STEP_EVENTS_PRODUCED_PER_ONE_CALL = 256;
+
+// Minimum length of move segment. Move segments shorted then this value will be rounded.
+constexpr const double EPSILON_DISTANCE = 0.000001;
 
 struct move_t;
 struct step_generator_state_t;
@@ -32,8 +36,8 @@ public:
 
     // Preallocated collection of all step event generators for all axis and all generator types (classic, input shaper, pressure advance).
     static step_generators_pool_t step_generators_pool;
-    // Indicate which type of step event generator is enabled on which axis.
-    static uint8_t step_generator_types;
+    // Indicate which type of step event generator is enabled on which physical axis.
+    static uint8_t physical_axis_step_generator_types;
 
     // Total number of ticks until the next step event will be processed.
     // Or number of ticks to next call of stepper ISR when step event queue is empty.
@@ -47,8 +51,16 @@ public:
     // Indicate which direction bits are inverted.
     static uint16_t inverted_dirs;
 
-    static double global_print_time;
-    static xyze_double_t global_start_pos;
+    // It represents the maximum value of how far in the time can some step event generators point.
+    // Used for computing flush time that ensures that none of the step event generators will produce step
+    // event beyond the flush time. Because for the same state of the move segment queue, some step
+    // event generator could generate step events far away from others, which could let to incorrect
+    // ordering of step events.
+    static double max_lookback_time;
+
+    static double total_print_time;
+    static xyze_double_t total_start_pos;
+    static xyze_long_t total_start_pos_steps;
 
     PreciseStepping() = default;
 
@@ -200,14 +212,9 @@ public:
 
     FORCE_INLINE static void step_generator_state_clear() {
         step_generator_state.initialized = false;
-        for (step_event_info_t &step_event_info : step_generator_state.step_events) {
-            step_event_info.time = 0.;
-            step_event_info.flags = 0;
-        }
 
-        step_generator_state.nearest_step_event_idx = 0;
-        step_generator_state.previous_step_time = 0.;
-        step_generator_state.current_distance = { 0, 0, 0, 0 };
+        // always drop buffered step/s as those can be processed also with an empty move queue
+        step_generator_state.buffered_step.flags = 0;
     }
 
     FORCE_INLINE static move_t *move_segment_queue_next_move(const move_t &move) {
@@ -220,6 +227,8 @@ public:
         else
             return &PreciseStepping::move_segment_queue.data[next_move_idx];
     }
+
+    static void update_maximum_lookback_time();
 
     // This function must be called after the whole actual move segment is processed or the artificially
     // created move segment is processed, as in the input shaper case.

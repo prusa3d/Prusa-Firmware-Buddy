@@ -12,7 +12,7 @@
 #include "gpio.h"
 #include "adc.hpp"
 #include "Arduino.h"
-#include "loadcell.h"
+#include "loadcell.hpp"
 #include "timer_defaults.h"
 #include "hwio_pindef.h"
 #include "bsod.h"
@@ -485,7 +485,7 @@ void hwio_update_1ms(void) {
 
 #if (BOARD_IS_XBUDDY && HAS_TEMP_HEATBREAK)
 extern "C" uint8_t hwio_get_loveboard_bomid() {
-    return buddy::hw::Configuration::Instance().get_love_board().bom_id;
+    return buddy::hw::Configuration::Instance().get_love_board().bomID;
 }
 #endif
 

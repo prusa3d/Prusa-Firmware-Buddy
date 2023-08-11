@@ -52,4 +52,4 @@ uint8_t Decoder::available_bytes() const {
     return (reinterpret_cast<uint8_t *>(fifo.data()) + len) - data;
 }
 
-}
+} // namespace common::puppies::fifo

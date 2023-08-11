@@ -3,7 +3,7 @@
  */
 
 #include "footer_item_input_shaper.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 static constexpr const char *const str_disabled = N_("Disabled");
 
@@ -28,7 +28,7 @@ static const char *to_short_string(input_shaper::Type type) {
 }
 
 FooterItemInputShaperX::FooterItemInputShaperX(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::x_axis_16x16, static_makeViewIntoBuff, static_readValue) {}
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::x_axis_16x16, static_makeViewIntoBuff, static_readValue) {}
 
 typename FooterItemInputShaperX::buffer_t FooterItemInputShaperX::buff;
 
@@ -55,7 +55,7 @@ string_view_utf8 FooterItemInputShaperX::static_makeViewIntoBuff(int value) {
 }
 
 FooterItemInputShaperY::FooterItemInputShaperY(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::y_axis_16x16, static_makeViewIntoBuff, static_readValue) {}
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::y_axis_16x16, static_makeViewIntoBuff, static_readValue) {}
 
 typename FooterItemInputShaperY::buffer_t FooterItemInputShaperY::buff;
 

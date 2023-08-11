@@ -3,10 +3,10 @@
 #include <module/prusa/toolchanger.h>
 #include <filament.hpp>
 #include <ScreenHandler.hpp>
-#include <png_resources.hpp>
+#include <img_resources.hpp>
 #include <marlin_client.hpp>
 #include "DialogHandler.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
     : WI_LAMBDA_SPIN(_(label),
@@ -30,7 +30,7 @@ I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
 }
 
 MI_FilamentApplyChanges::MI_FilamentApplyChanges()
-    : WI_LABEL_t(_(label), &png::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_FilamentApplyChanges::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->WindowEvent(GUI_event_t::CHILD_CLICK, (void *)this);
@@ -87,12 +87,12 @@ void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
             }
 
             uint16_t temperature = max(filament::get_description(new_filament[tool]).nozzle, filament::get_description(old_filament[tool]).nozzle);
-            marlin_set_target_nozzle(temperature, tool);
-            marlin_set_display_nozzle(temperature, tool);
+            marlin_client::set_target_nozzle(temperature, tool);
+            marlin_client::set_display_nozzle(temperature, tool);
         }
 
         // Lift Z to prevent unparking and parking of each tool
-        marlin_gcode("G27 P0 Z40");
+        marlin_client::gcode("G27 P0 Z40");
 
         // Do all changes
         for (size_t tool = 0; tool < tool_count; tool++) {
@@ -101,11 +101,11 @@ void ScreenChangeAllFilaments::windowEvent(EventLock /*has private ctor*/, windo
             }
 
             if (new_filament[tool] == filament::Type::NONE) {
-                marlin_gcode_printf("M702 T%d W2", tool);                                                             // Unload
+                marlin_client::gcode_printf("M702 T%d W2", tool);                                                             // Unload
             } else if (old_filament[tool] == filament::Type::NONE) {
-                marlin_gcode_printf("M701 S\"%s\" T%d W2", filament::get_description(new_filament[tool]).name, tool); // Load
+                marlin_client::gcode_printf("M701 S\"%s\" T%d W2", filament::get_description(new_filament[tool]).name, tool); // Load
             } else {
-                marlin_gcode_printf("M1600 S\"%s\" T%d R", filament::get_description(new_filament[tool]).name, tool); // Change, don't ask for unload
+                marlin_client::gcode_printf("M1600 S\"%s\" T%d R", filament::get_description(new_filament[tool]).name, tool); // Change, don't ask for unload
             }
 
             // Wait for one change to complete and show dialogs

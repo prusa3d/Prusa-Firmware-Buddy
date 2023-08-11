@@ -9,6 +9,7 @@
 #if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX
     #include "MItem_love_board.hpp"
 #endif
+#include "menu_item_xlcd.hpp"
 #include "MItem_tools.hpp"
 #include "GuiDefaults.hpp"
 #include "printers.h"

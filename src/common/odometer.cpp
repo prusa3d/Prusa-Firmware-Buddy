@@ -3,9 +3,9 @@
 #include <cmath>
 #include "odometer.hpp"
 #include "cmath_ext.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
-static_assert(HOTENDS <= EEPROM_MAX_TOOL_COUNT, "Too many hotends");
+static_assert(HOTENDS <= config_store_ns::max_tool_count, "Too many hotends");
 
 bool Odometer_s::changed() {
     // Note: While running the force_to_eeprom, it's possible a get will

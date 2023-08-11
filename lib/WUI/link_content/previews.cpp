@@ -70,4 +70,4 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
 
 const Previews previews;
 
-}
+} // namespace nhttp::link_content

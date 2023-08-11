@@ -7,7 +7,7 @@
 #include "timing.h"
 #include "loadcell.hpp"
 #include "PuppyConfig.hpp"
-#include "otp.h"
+#include "otp.hpp"
 #include "utility_extensions.hpp"
 
 namespace dwarf::ModbusRegisters {
@@ -43,29 +43,29 @@ void Init() {
     AddBlock(BlockType::HoldingRegister, s_SystemHoldingRegisters, MIN_SystemHoldingRegister, MAX_SystemHoldingRegister - MIN_SystemHoldingRegister + 1);
 
     // init registers from OTP
-    serial_nr_t sn;     // Serial number = raw datamatrix
+    serial_nr_t sn {};  // Serial number = raw datamatrix
     uint32_t timestamp; // Unix timestamp, seconds since 1970
-    uint8_t bom_id;
+    auto bom_id = otp_get_bom_id();
     timestamp = otp_get_timestamp();
-    if ((otp_get_serial_nr(&sn) != sizeof(sn.txt)) || (otp_get_bom_id(&bom_id) == false)) {
+    if ((otp_get_serial_nr(sn) != sn.size()) || !bom_id) {
 
         // Default to zero
         timestamp = 0;
         bom_id = 0;
-        memset(sn.txt, 0, sizeof(sn.txt));
+        memset(sn.data(), 0, sn.size());
     }
 
-    SetInputRegisterValue(ftrstd::to_underlying(SystemInputRegister::hw_bom_id), bom_id);
+    SetInputRegisterValue(ftrstd::to_underlying(SystemInputRegister::hw_bom_id), *bom_id);
     SetInputRegisterValue(ftrstd::to_underlying(SystemInputRegister::hw_otp_timestamp_0), timestamp & 0xFFFF);
     SetInputRegisterValue(ftrstd::to_underlying(SystemInputRegister::hw_otp_timestamp_1), timestamp >> 16);
 
     static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
         - ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_first) + 1;
     // Check size of text -1 as the terminating \0 is not sent
-    static_assert((raw_datamatrix_regsize * sizeof(uint16_t)) == (sizeof(sn.txt) - 1), "Size of raw datamatrix doesn't fit modbus registers");
+    static_assert((raw_datamatrix_regsize * sizeof(uint16_t)) == (sn.size() - 1), "Size of raw datamatrix doesn't fit modbus registers");
 
     for (uint16_t i = 0; i < raw_datamatrix_regsize; i++) {
-        uint16_t word = sn.txt[2 * i] | (sn.txt[2 * i + 1] << 8);
+        uint16_t word = sn[2 * i] | (sn[2 * i + 1] << 8);
         SetInputRegisterValue(ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_first) + i, word);
     }
 }
@@ -104,4 +104,4 @@ uint16_t GetRegValue(SystemHoldingRegister reg) {
     return value;
 }
 
-} // namespace
+} // namespace dwarf::ModbusRegisters

@@ -26,4 +26,4 @@ OnlineError err_to_status(Error error) {
     }
 }
 
-}
+} // namespace connect_client

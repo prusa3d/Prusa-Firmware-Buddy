@@ -137,7 +137,7 @@ namespace {
 
     // Send a full telemetry every 5 minutes.
     const constexpr uint32_t FULL_TELEMETRY_EVERY = 5 * 60 * 1000;
-}
+} // namespace
 
 Connect::ServerResp Connect::handle_server_resp(http::Response resp, CommandId command_id) {
     // TODO We want to make this buffer smaller, eventually. In case of custom
@@ -437,4 +437,4 @@ const char *registration_code() {
     }
 }
 
-}
+} // namespace connect_client

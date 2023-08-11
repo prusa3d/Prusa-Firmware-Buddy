@@ -7,6 +7,7 @@
 #include "st25dv64k.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <config_store/backend_instance.hpp>
 
 namespace {
 
@@ -25,7 +26,7 @@ struct Data {
     uint8_t reserved_for_future_use[8];
     HomeSample homeSamples[axisCount][PersistentStorage::homeSamplesCount];
 };
-static_assert(sizeof(Data) < EEPROM_ADDRESS, "Data collides with space used by eeprom.h");
+static_assert(sizeof(Data) < config_store_ns::start_address, "Data collides with space used by config_store");
 
 const Data *data = reinterpret_cast<Data *>(0x0);
 
@@ -116,7 +117,7 @@ bool PersistentStorage::isCalibratedHome(uint16_t (&mscnt)[homeSamplesCount], ui
 
 void PersistentStorage::erase() {
     constexpr uint32_t empty = 0xffffffff;
-    for (uint16_t address = 0; address <= (EEPROM_ADDRESS - 4); address += 4) {
+    for (uint16_t address = 0; address <= (config_store_ns::start_address - 4); address += 4) {
         st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
     }
 }

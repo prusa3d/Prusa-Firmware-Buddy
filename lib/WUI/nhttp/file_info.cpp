@@ -42,7 +42,7 @@ int stat_retry(const char *path, struct stat *st) {
     }
 }
 
-}
+} // namespace
 
 namespace nhttp::printer {
 
@@ -350,4 +350,4 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
     return { 0, 0, Terminating { 0, Done::CloseFast } };
 }
 
-}
+} // namespace nhttp::printer

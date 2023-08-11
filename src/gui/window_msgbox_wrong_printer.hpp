@@ -1,7 +1,7 @@
 #pragma once
 #include "gui.hpp"
 #include "gcode_info.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 class MsgBoxInvalidPrinter : public MsgBoxTitled {
     static constexpr const char *txt_wrong_printer_title = N_("The G-code isn't fully compatible");
@@ -28,5 +28,5 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     window_text_t unsupported_features_text;
 
 public:
-    MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, const png::Resource *title_icon_res);
+    MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, const img::Resource *title_icon_res);
 };

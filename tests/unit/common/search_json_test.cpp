@@ -30,7 +30,7 @@ const constexpr Event expected_events[] = {
     Event { 1, Type::Pop, nullopt, nullopt },
 };
 
-}
+} // namespace
 
 TEST_CASE("Json structural traversal") {
     jsmn_parser parser;

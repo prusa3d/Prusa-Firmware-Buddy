@@ -19,4 +19,4 @@ enum class Result {
 
 Result ConsumeResult(); // also used to clear
 
-}
+} // namespace PreheatStatus

@@ -256,4 +256,4 @@ public:
         : state(std::move(state)) {}
 };
 
-}
+} // namespace json

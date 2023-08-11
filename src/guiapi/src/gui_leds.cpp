@@ -12,6 +12,8 @@
 #if HAS_SIDE_LEDS()
     #include "leds/side_strip_control.hpp"
 #endif
+#include "ili9488.hpp"
+#include "led_animations/animator.hpp"
 
 using namespace leds;
 
@@ -46,7 +48,7 @@ void leds::TickLoop() {
 }
 
 void leds::SetNth(Color clr, leds::index n) {
-    if (n == index::count_) {
+    if (n >= index::count_) {
         for (size_t i = 0; i < Count; ++i) {
             SetNth(clr, leds::index(i));
         }
@@ -64,4 +66,37 @@ void leds::SetBrightness(unsigned percent) {
     percent /= 100;
 
     SetNth(Color(0, percent, 0), index::backlight);
+}
+
+extern osThreadId displayTaskHandle;
+
+void leds::enter_power_panic() {
+    // normally, GUI is accessing LCD & LEDs SPIs, but this is called from task handling power panic, and we need to turn leds off quickly. So we'll steal display's its SPI in a hacky way.
+
+    // 1. configure led animations to off, in case gui would want to write them again, this lock mutex, so has to be done before suspending display task
+#if HAS_SIDE_LEDS()
+    leds::side_strip_control.PanicOff();
+#endif
+    Animator_LCD_leds().panic_off();
+
+    // 2. Temporary suspend display task, so that it doesn't interfere with turning off leds
+    osThreadSuspend(displayTaskHandle);
+
+    // 3. Safe mode for display SPI is enabled (that disables DMA transfers and writes directly to SPI)
+    ili9488_enable_safe_mode();
+
+    // 4. Reinitialize SPI, so that we terminate any ongoing transfers to display or leds
+    // 5. turn off actual leds
+#if HAS_SIDE_LEDS()
+    hw_init_spi_side_leds();
+    side_strip.SetColor(Color(0, 0, 0));
+    side_strip.Update();
+#endif
+    SPI_INIT(lcd);
+    leds::SetNth(Color(0, 0, 0), leds::index::count_);
+    leds::ForceRefresh(size_t(leds::index::count_));
+    getNeopixels().Send();
+
+    // 5. reenable display task
+    osThreadResume(displayTaskHandle);
 }

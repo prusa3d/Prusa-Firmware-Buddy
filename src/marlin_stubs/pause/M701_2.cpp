@@ -21,11 +21,12 @@
 #include <cmath>
 #include "task.h"     //critical sections
 #include "filament_sensors_handler.hpp"
-#include "eeprom_function_api.h"
+#include "config_store/store_c_api.h"
 #include "RAII.hpp"
 #include "M70X.hpp"
 #include "fs_event_autolock.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
+#include <option/has_bowden.h>
 
 uint filament_gcodes::InProgress::lock = 0;
 
@@ -152,7 +153,7 @@ void SetResult(Result res) {
     preheatResult = res;
 }
 
-}
+} // namespace PreheatStatus
 
 void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint8_t target_extruder) {
     // modify temperatures
@@ -184,7 +185,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
 
 void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder) {
     InProgress progress;
-    if constexpr (HAS_BOWDEN) {
+    if constexpr (option::has_bowden) {
         config_store().set_filament_type(target_extruder, filament::Type::NONE);
         M701_no_parser(filament::Type::NONE, fast_load_length, z_min_pos, RetAndCool_t::Return, target_extruder, 0);
     } else {

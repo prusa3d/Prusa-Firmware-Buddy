@@ -15,9 +15,11 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/guiconfig
          ${CMAKE_SOURCE_DIR}/include
          ${CMAKE_BINARY_DIR}/include
-         ${CMAKE_SOURCE_DIR}/src/configuration_store
+         ${CMAKE_SOURCE_DIR}/src/persistent_stores
+         ${CMAKE_SOURCE_DIR}/src/persistent_stores/store_instances
          ${CMAKE_SOURCE_DIR}/tests/stubs
          ${CMAKE_SOURCE_DIR}/lib/cthash/include
+         ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/
   )
 
 # define custom macros

@@ -376,4 +376,4 @@ void CheckPreheatError(uint32_t heatbedletIndex) {
     }
 }
 
-} // namespace
+} // namespace modularbed::StateLogic

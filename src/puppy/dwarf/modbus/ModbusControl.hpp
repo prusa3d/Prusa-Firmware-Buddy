@@ -14,4 +14,4 @@ void UpdateRegisters();
 void TriggerMarlinKillFault(dwarf_shared::errors::FaultStatusMask fault_id, const char *component, const char *message);
 bool isDwarfSelected();
 
-} // namespace
+} // namespace dwarf::ModbusControl

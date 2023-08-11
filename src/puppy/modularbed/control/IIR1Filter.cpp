@@ -39,4 +39,4 @@ float IIR1Filter::GetValue() {
     return m_value;
 }
 
-} // namespace
+} // namespace modularbed

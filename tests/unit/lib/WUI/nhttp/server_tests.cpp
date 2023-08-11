@@ -353,7 +353,7 @@ string digest_auth_header(string method, string username, string nonce, string u
     return header;
 }
 
-}
+} // namespace
 
 TEST_CASE("Get index") {
     MockServer server;

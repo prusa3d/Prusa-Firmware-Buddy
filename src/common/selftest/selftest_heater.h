@@ -49,4 +49,4 @@ public:
     LoopResult stateMeasure();
 };
 
-};
+}; // namespace selftest

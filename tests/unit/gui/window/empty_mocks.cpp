@@ -16,6 +16,10 @@ void gui_invalidate(void) {}
 EventLock::EventLock(const char *event_method_name, window_t *sender, GUI_event_t event) {}
 void Sound_Play(eSOUND_TYPE eSoundType) {}
 void gui_loop() {}
-void marlin_notify_server_about_encoder_move() {}
-void marlin_notify_server_about_knob_click() {}
-FILE *png::Resource::Get() const { return nullptr; }
+
+namespace marlin_client {
+void notify_server_about_encoder_move() {}
+void notify_server_about_knob_click() {}
+} // namespace marlin_client
+
+FILE *img::Resource::Get() const { return nullptr; }

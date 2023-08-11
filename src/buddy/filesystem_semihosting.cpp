@@ -14,7 +14,7 @@ typedef struct {
     int32_t length;
     int32_t pos;
 } FIL_EX;
-}
+} // namespace fssemihosting
 
 using fssemihosting::FIL_EX;
 

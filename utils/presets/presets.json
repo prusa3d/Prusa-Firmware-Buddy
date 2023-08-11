@@ -100,26 +100,6 @@
             }
         },
         {
-            "name": "xl-knoblet-xbuddy04",
-            "description": "Knoblet of Original Prusa XL",
-            "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "PRINTER": "XL",
-                "BOARD": "<default>",
-                "BOARD_VERSION": "0.4.0",
-                "DWARF_BINARY_DIR": {
-                    "type": "FILEPATH",
-                    "value": "build-vscode-dwarf"
-                },
-                "MODULARBED_BINARY_DIR": {
-                    "type": "FILEPATH",
-                    "value": "build-vscode-modularbed"
-                },
-                "PRESET_COMPILE_OPTIONS": "",
-                "IS_KNOBLET":"TRUE"
-            }
-        },
-        {
             "name": "xl-xbuddy04",
             "description": "Original Prusa XL with XLBuddy 04",
             "cacheVariables": {

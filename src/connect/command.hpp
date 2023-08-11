@@ -88,4 +88,4 @@ struct Command {
     static Command parse_json_command(CommandId id, char *body, size_t body_size, SharedBuffer::Borrow buff);
 };
 
-}
+} // namespace connect_client

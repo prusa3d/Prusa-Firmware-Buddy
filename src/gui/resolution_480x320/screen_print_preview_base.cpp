@@ -3,7 +3,7 @@
  */
 
 #include "screen_print_preview_base.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "gcode_description.hpp" // TITLE_HEIGHT
 
 static constexpr Rect16 title_rect {
@@ -25,5 +25,5 @@ ScreenPrintPreviewBase::ScreenPrintPreviewBase()
     , title_text(this, title_rect)
     , radio(this, vertical_radio_buttons_rect) {
 
-    header.SetIcon(&png::print_16x16);
+    header.SetIcon(&img::print_16x16);
 }

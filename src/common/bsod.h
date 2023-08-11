@@ -35,7 +35,11 @@ __attribute__((noreturn)) void _bsod(const char *fmt, const char *fine_name, int
  */
 __attribute__((noreturn)) void fatal_error(const char *error, const char *module);
 
-void ScreenHardFault(void);
 #ifdef __cplusplus
 }
 #endif //__cplusplus
+
+/**
+ * @brief Mark when BSOD would be shown and allow dumping a new BSOD.
+ */
+void bsod_mark_shown();

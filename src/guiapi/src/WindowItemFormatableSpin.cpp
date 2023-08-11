@@ -2,7 +2,7 @@
 
 #include "WindowItemFormatableSpin.hpp"
 
-WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(string_view_utf8 label, size_t index_n_, const png::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, std::function<void(char *)> printAs)
+WI_LAMBDA_SPIN::WI_LAMBDA_SPIN(string_view_utf8 label, size_t index_n_, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, size_t init_index, std::function<void(char *)> printAs)
     : WI_LAMBDA_LABEL_t(label, icon, enabled, hidden, printAs)
     , index(init_index)
     , index_n(index_n_) {

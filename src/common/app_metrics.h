@@ -27,5 +27,5 @@ namespace metrics {
             }
         }
     };
-}
-}
+} // namespace metrics
+} // namespace buddy

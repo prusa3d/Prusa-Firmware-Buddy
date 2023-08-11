@@ -30,8 +30,8 @@ protected:
     }
 
 public:
-    IWiInfo(string_view_utf8 label, const png::Resource *id_icon, size_t info_len, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no);
-    IWiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const png::Resource *id_icon = nullptr);
+    IWiInfo(string_view_utf8 label, const img::Resource *id_icon, size_t info_len, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no);
+    IWiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr);
 
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 };
@@ -41,9 +41,9 @@ class WiInfo : public AddSuper<IWiInfo> {
     char information[INFO_LEN];
 
 public:
-    WiInfo(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
+    WiInfo(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, ExtensionLikeLabel extension_like_label = ExtensionLikeLabel::no)
         : AddSuper<IWiInfo>(label, id_icon, INFO_LEN, enabled, hidden, extension_like_label) {}
-    WiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const png::Resource *id_icon = nullptr)
+    WiInfo(uint32_t num_to_print, string_view_utf8 label, is_hidden_t hidden = is_hidden_t::no, const img::Resource *id_icon = nullptr)
         : WiInfo(label, id_icon, is_enabled_t::yes, hidden) {
         itoa(num_to_print, information, 10);
     }
@@ -72,9 +72,9 @@ public:
 template <size_t INFO_LEN>
 class WiInfoDev : public AddSuper<WiInfo<INFO_LEN>> {
 public:
-    WiInfoDev(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled = is_enabled_t::yes)
+    WiInfoDev(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled = is_enabled_t::yes)
         : AddSuper<WiInfo<INFO_LEN>>(label, id_icon, enabled, is_hidden_t::dev) {}
-    WiInfoDev(uint32_t num_to_print, string_view_utf8 label, const png::Resource *id_icon = nullptr)
+    WiInfoDev(uint32_t num_to_print, string_view_utf8 label, const img::Resource *id_icon = nullptr)
         : AddSuper<WiInfo<INFO_LEN>>(num_to_print, label, is_hidden_t::dev, id_icon) {}
 };
 

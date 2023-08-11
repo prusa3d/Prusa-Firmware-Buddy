@@ -1,4 +1,5 @@
 #include "server.h"
+#include "splice.h"
 
 #include <algorithm>
 #include <cassert>
@@ -36,22 +37,24 @@ bool Server::InactivityTimeout::past() const {
     return quants_left == 0;
 }
 
-void Server::Slot::release_buffer() {
+void Server::ConnectionSlot::release_buffer() {
     if (buffer) {
         buffer->reset();
         buffer = nullptr;
     }
 }
 
-void Server::Slot::release_partial() {
+void Server::ConnectionSlot::release_partial() {
     if (partial) {
-        altcp_recved(conn, partial->tot_len);
+        if (conn != nullptr) {
+            altcp_recved(conn, partial->tot_len);
+        }
         partial.reset();
     }
     partial_consumed = 0;
 }
 
-uint16_t Server::Slot::send_space() const {
+uint16_t Server::ConnectionSlot::send_space() const {
     if (conn) {
         return std::min(altcp_mss(conn), altcp_sndbuf(conn));
     } else {
@@ -59,11 +62,15 @@ uint16_t Server::Slot::send_space() const {
     }
 }
 
-bool Server::Slot::want_read() const {
+bool Server::ConnectionSlot::has_unacked_data() const {
+    return buffer != nullptr;
+}
+
+bool Server::ConnectionSlot::want_read() const {
     return std::visit([](const auto &phase) -> bool { return phase.want_read(); }, state);
 }
 
-bool Server::Slot::want_write() const {
+bool Server::ConnectionSlot::want_write() const {
     return std::visit([](const auto &phase) -> bool { return phase.want_write(); }, state);
 }
 
@@ -88,18 +95,48 @@ bool Server::Slot::close() {
 }
 
 void Server::Slot::release() {
-    release_buffer();
-    release_partial();
-    state = Idle();
     conn = nullptr;
-    client_closed = false;
 }
 
-bool Server::Slot::is_empty() const {
+void Server::ConnectionSlot::release() {
+    state = Idle();
+    release_partial();
+    release_buffer();
+    client_closed = false;
+    Slot::release();
+    server->try_send_transfer_response(this);
+}
+
+bool Server::ConnectionSlot::is_empty() const {
     return holds_alternative<Idle>(state);
 }
 
-void Server::Slot::step(string_view input, uint8_t *output, size_t out_size) {
+bool Server::ConnectionSlot::take_pbuf(pbuf *data) {
+    // data = null - other side did shutdown.
+    if (!data) {
+        client_closed = true;
+    }
+
+    // TODO: Is this really supposed to be checked _after_ the above client closed thing?
+    if (partial) {
+        /*
+         * We are still in the middle of the previous buffer. We don't want
+         * more yet. Come back to as with it later.
+         *
+         * Yes, we do _not_ free the pbuf.
+         */
+        return false;
+    }
+
+    assert(partial_consumed == 0);
+    if (data) {
+        partial.reset(data);
+    }
+
+    return true;
+}
+
+void Server::ConnectionSlot::step(string_view input, uint8_t *output, size_t out_size) {
     Step s = std::visit([this, input, output, out_size](auto &phase) -> Step {
         return phase.step(input, client_closed && input.empty() && output == nullptr, output, out_size);
     },
@@ -125,10 +162,56 @@ void Server::Slot::step(string_view input, uint8_t *output, size_t out_size) {
 
     if (holds_alternative<ConnectionState>(s.next)) {
         state = get<ConnectionState>(std::move(s.next));
+    } else if (holds_alternative<handler::TransferExpected>(s.next)) {
+        TransferSlot *dest = &server->transfer_slot;
+        // We are asked to perform a transfer from socket -> file. For that we:
+        // * Assume the transfer slot is free (must be ensured by the caller).
+        // * Rip the data out of this slot and move everything there.
+        assert(dest->transfer == nullptr);
+        assert(dest->reqs_pending == 0);
+        assert(dest->done_called == false);
+        // We are not allowed to go to the transfer at the same time as writing
+        // data (too complex and not needed).
+        assert(buffer == nullptr);
+        auto [transfer, expected] = get<handler::TransferExpected>(s.next);
+        dest->transfer = transfer;
+        dest->transfer->server = server;
+        dest->conn = conn;
+        dest->expected_data = expected;
+        altcp_arg(conn, dest);
+        server->activity(conn, dest);
+
+        conn = nullptr;
+        if (partial && partial->tot_len == partial_consumed) {
+            release_partial();
+        }
+
+        // Still some part of data to deal with.
+        if (partial) {
+            pbuf *data = partial.release(); // We take ownership and pass it to the Write request.
+            auto len = data->tot_len - partial_consumed;
+            if (len > dest->expected_data) {
+                pbuf_realloc(data, dest->expected_data + partial_consumed);
+                len = data->tot_len - partial_consumed;
+            }
+            dest->expected_data -= len;
+            auto req = splice::Write::find_empty();
+            // Because we have an empty transfer slot, it means no transfer is
+            // running and therefore all write requests shall be ready to be
+            // used.
+            assert(req != nullptr);
+            req->init(dest->transfer, data, partial_consumed);
+            dest->reqs_pending++;
+            async_io::enqueue(req);
+            // This part of data is already processed, we can confirm it (the Write confirms only its own part).
+            altcp_recved(dest->conn, partial_consumed);
+        }
+
+        release();
     }
 }
 
-bool Server::Slot::step() {
+bool Server::ConnectionSlot::step() {
     if (is_empty()) {
         /*
          * The rest would still work correctly for an empty slot, but it is
@@ -309,6 +392,7 @@ Server::Server(const ServerDefs &defs)
     for (auto &slot : active_slots) {
         slot.server = this;
     }
+    transfer_slot.server = this;
 }
 
 err_t Server::accept_wrap(void *me, struct altcp_pcb *new_conn, err_t err) {
@@ -381,7 +465,7 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
     if (is_active_slot(slot)) {
         active_slot = static_cast<Slot *>(slot);
         send_goodbye = active_slot->want_read();
-        has_unacked_data = active_slot->buffer;
+        has_unacked_data = active_slot->has_unacked_data();
     }
     lost_conn_wrap(slot, ERR_OK);
     if (conn != nullptr) {
@@ -435,7 +519,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
         /*
          * The connection was not yet active. Find a slot for it and activate it.
          */
-        if (Slot *active_slot = base_slot->server->find_empty_slot(); active_slot != nullptr) {
+        if (ConnectionSlot *active_slot = base_slot->server->find_empty_slot(); active_slot != nullptr) {
             assert(!active_slot->partial);
             assert(active_slot->partial_consumed == 0);
             assert(!active_slot->buffer);
@@ -462,45 +546,31 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
 
     assert(is_active_slot(base_slot));
     Slot *slot = static_cast<Slot *>(base_slot);
+
     slot->server->activity(conn, slot);
 
-    // data = null - other side did shutdown.
-    if (!data) {
-        slot->client_closed = true;
-    }
-
-    if (slot->partial) {
+    if (slot->take_pbuf(data)) {
         /*
-         * We are still in the middle of the previous buffer. We don't want
-         * more yet. Come back to as with it later.
+         * Will send data, consume data, free pbufs, release buffers and close
+         * connections as needed.
          *
-         * Yes, we do _not_ free the pbuf.
+         * Any freeing of the pbuf happens in there (or maybe even later on in
+         * case of async processing), as does the altcp_recved
          */
+        while (slot->step()) {
+        }
+
+        return ERR_OK;
+    } else {
+        // No freeing of pbuf!
         return ERR_MEM;
     }
-
-    assert(slot->partial_consumed == 0);
-    if (data) {
-        slot->partial.reset(data);
-    }
-
-    /*
-     * Will send data, consume data, free pbufs, release buffers and close
-     * connections as needed.
-     *
-     * Any freeing of the pbuf happens in there.
-     */
-    while (slot->step()) {
-    }
-
-    return ERR_OK;
 }
 
 err_t Server::sent_wrap(void *raw_slot, altcp_pcb *conn, uint16_t len) {
     if (is_active_slot(raw_slot)) {
         Slot *slot = static_cast<Slot *>(raw_slot);
 
-        assert(!holds_alternative<Idle>(slot->state));
         slot->server->sent(slot, len);
         slot->server->activity(conn, slot);
     }
@@ -508,13 +578,17 @@ err_t Server::sent_wrap(void *raw_slot, altcp_pcb *conn, uint16_t len) {
     return ERR_OK;
 }
 
-void Server::sent(Slot *slot, uint16_t len) {
-    Buffer *buffer = slot->buffer;
+void Server::ConnectionSlot::sent(uint16_t len) {
+    assert(buffer != nullptr);
     assert(buffer->write_pos >= buffer->acked);
     const uint16_t unacked = buffer->write_pos - buffer->acked;
     assert(len <= unacked);
     (void)unacked; // No warnings on release
     buffer->acked += len;
+}
+
+void Server::sent(Slot *slot, uint16_t len) {
+    slot->sent(len);
 
     step();
 }
@@ -543,7 +617,7 @@ bool Server::is_active_slot(void *slot) {
     }
 
     BaseSlot *s = static_cast<BaseSlot *>(slot);
-    return ((s >= s->server->active_slots.begin()) && (s < s->server->active_slots.end()));
+    return (dynamic_cast<ConnectionSlot *>(s) != nullptr) || (dynamic_cast<TransferSlot *>(s) != nullptr);
 }
 
 void Server::activity(altcp_pcb *conn, BaseSlot *slot) {
@@ -562,7 +636,7 @@ void Server::activity(altcp_pcb *conn, BaseSlot *slot) {
     }
 }
 
-Server::Slot *Server::find_empty_slot() {
+Server::ConnectionSlot *Server::find_empty_slot() {
     for (auto &slot : active_slots) {
         if (slot.is_empty()) {
             return &slot;
@@ -603,4 +677,188 @@ void Server::stop() {
     // Note: Letting the rest of the connections to live on!
 }
 
+void Server::TransferSlot::release() {
+    expected_data = 0;
+    reqs_pending = 0;
+    if (!done_called && transfer != nullptr) {
+        // Just make sure each file gets closed and transfer gets done.
+        //
+        // The TransferSlot now "looks empty" (and connection is closed and
+        // everything that), the Done instances is taken and a request is
+        // pending there. This looks like it could cause trouble if another
+        // transfer comes because this solves itself (by finishing the Done).
+        //
+        // The trick here is that the transfer / monitor slot is released
+        // inside the callback of Done and we won't accept a new transfer until
+        // then.
+        auto req = &splice::Done::instance;
+        reqs_pending++;
+        transfer->result = splice::Result::Timeout;
+        req->init(transfer);
+        async_io::enqueue(req);
+    }
+    transfer->release();
+    transfer = nullptr;
+    done_called = false;
+    response.reset();
+    Slot::release();
 }
+
+bool Server::TransferSlot::want_write() const {
+    return false;
+}
+
+bool Server::TransferSlot::want_read() const {
+    return expected_data > 0;
+}
+
+bool Server::TransferSlot::step() {
+    if (want_read() || reqs_pending > 0) {
+        // We don't do any processing here at all, we just say we want to wait
+        // for more data.
+        return false;
+    }
+
+    // We don't want to read, we don't want to write and all the data we have
+    // sent are acked -> we are done.
+    //
+    // Close can fail. Unlike the "usual" slots, we don't get called again in
+    // such case and it's going to be very rare and all that, so we just clean
+    // up the best way we can to avoid the complexity.
+    if (!close()) {
+        altcp_abort(conn);
+        release();
+    }
+    return false;
+}
+
+bool Server::TransferSlot::take_pbuf(pbuf *data) {
+    // Closed by client
+    if (data == nullptr && expected_data > 0 && !done_called) {
+        transfer->result = splice::Result::ClosedByClient;
+        auto done = &splice::Done::instance;
+        done->init(transfer);
+        reqs_pending++;
+        done_called = true;
+        async_io::enqueue(done);
+    }
+
+    auto request = splice::Write::find_empty();
+
+    if (request == nullptr) {
+        // Too many requests are pending right now, refuse the pbuf now and let
+        // LwIP give it to us later on.
+        return false;
+    }
+
+    // In case there's more data than we want, throw the rest out of the
+    // window (shouldn't happen, but don't just crash on other side's bad
+    // behaviour). Also never enqueue Write after Done. Can happen if we stop the transfer, but another
+    //  packet comes before we close the connection, in that case just ignore it and
+    //  throw away.
+    if (expected_data == 0 or done_called) {
+        pbuf_free(data);
+        return true;
+    }
+
+    if (data->tot_len > expected_data) {
+        // Shrink it to only the data we actually want
+        pbuf_realloc(data, expected_data);
+    }
+
+    assert(data->tot_len <= expected_data);
+    expected_data -= data->tot_len;
+
+    request->init(transfer, data);
+    reqs_pending++;
+    async_io::enqueue(request);
+
+    if (expected_data == 0 && !done_called) {
+        auto done = &splice::Done::instance;
+        done->init(transfer);
+        reqs_pending++;
+        done_called = true;
+        async_io::enqueue(done);
+    }
+
+    return true;
+}
+
+// TransferSlot never sends anything, so no unacked data
+bool Server::TransferSlot::has_unacked_data() const {
+    return false;
+}
+
+// TransferSlot never sends anything...
+void Server::TransferSlot::sent(uint16_t) {
+    // Intentionally empty
+}
+
+void Server::TransferSlot::write_done(uint16_t len, bool complete) {
+    if (complete) {
+        reqs_pending--;
+    }
+    // Confirm processing of our data and ask to get more
+    altcp_recved(conn, len);
+    server->activity(conn, this);
+
+    if (transfer->result != splice::Result::Ok && !done_called) {
+        auto done = &splice::Done::instance;
+        done->init(transfer);
+        reqs_pending++;
+        done_called = true;
+        async_io::enqueue(done);
+    } else {
+        step();
+    }
+}
+
+void Server::write_done(uint16_t len, bool complete) {
+    transfer_slot.write_done(len, complete);
+}
+
+void Server::TransferSlot::done(std::optional<std::tuple<http::Status, const char *>> res) {
+    reqs_pending--;
+    assert(reqs_pending == 0);
+
+    if (res.has_value()) {
+        response = res;
+        make_response();
+    }
+}
+
+void Server::try_send_transfer_response(ConnectionSlot *slot) {
+    if (transfer_slot.has_response()) {
+        transfer_slot.make_response(slot);
+    }
+}
+
+bool Server::TransferSlot::has_response() {
+    return response.has_value();
+}
+
+void Server::TransferSlot::make_response(ConnectionSlot *slot) {
+    auto &[status, message] = *response;
+    ConnectionSlot *active_slot = slot != nullptr ? slot : server->find_empty_slot();
+    if (active_slot != nullptr) {
+        active_slot->conn = conn;
+        if (status == http::Status::Ok) {
+            active_slot->state.emplace<printer::FileInfo>(transfer->filepath(), false, /*TODO:: is this correct?*/ false, true, printer::FileInfo::ReqMethod::Get, printer::FileInfo::APIVersion::v1, std::nullopt);
+        } else {
+            active_slot->state.emplace<handler::StatusPage>(status, handler::StatusPage::CloseHandling::Close, /*TODO: is this correct?*/ false, std::nullopt, message);
+        }
+        altcp_arg(conn, active_slot);
+        server->activity(conn, active_slot);
+        altcp_setprio(conn, ACTIVE_PRIO);
+        conn = nullptr;
+        release();
+        server->step();
+    }
+    // if not this will be called once more, from the ConnectionSlot::release
+}
+
+void Server::transfer_done(std::optional<std::tuple<http::Status, const char *>> res) {
+    transfer_slot.done(res);
+}
+
+} // namespace nhttp

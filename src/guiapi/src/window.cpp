@@ -43,12 +43,18 @@ void window_t::SetRedLayout() {
 void window_t::SetBlackLayout() {
     setBlackLayout();
 }
+void window_t::SetBlueLayout() {
+    setBlueLayout();
+}
 
 void window_t::setRedLayout() {
     SetBackColor(COLOR_RED_ALERT);
 }
 void window_t::setBlackLayout() {
     SetBackColor(COLOR_BLACK);
+}
+void window_t::setBlueLayout() {
+    SetBackColor(COLOR_NAVY);
 }
 
 void window_t::Validate(Rect16 validation_rect) {

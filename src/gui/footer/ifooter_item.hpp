@@ -56,8 +56,8 @@ protected:
 
 public:
     static Rect16::Width_t MeasureTextWidth(string_view_utf8 text);
-    IFooterIconText(window_t *parent, const png::Resource *icon, Rect16::W_t width); // icon width is calculated from resource
-    IFooterIconText(window_t *parent, const png::Resource *icon, string_view_utf8 view);
+    IFooterIconText(window_t *parent, const img::Resource *icon, Rect16::W_t width); // icon width is calculated from resource
+    IFooterIconText(window_t *parent, const img::Resource *icon, string_view_utf8 view);
 };
 
 // this class must be able to create stringview
@@ -83,7 +83,7 @@ protected:
     static Rect16::Width_t GetTotalWidth(Rect16::Width_t icon_w, string_view_utf8 view);
 
 public:
-    FooterIconText_IntVal(window_t *parent, const png::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
+    FooterIconText_IntVal(window_t *parent, const img::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
 };
 class FooterIconText_FloatVal : public AddSuperWindow<IFooterIconText> {
 public:
@@ -105,5 +105,5 @@ protected:
     static Rect16::Width_t GetTotalWidth(Rect16::Width_t icon_w, string_view_utf8 view);
 
 public:
-    FooterIconText_FloatVal(window_t *parent, const png::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
+    FooterIconText_FloatVal(window_t *parent, const img::Resource *icon, view_maker_cb view_maker, reader_cb value_reader);
 };

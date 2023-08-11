@@ -16,4 +16,4 @@ struct EspConfig_t {
     const char *partname;
 };
 
-};
+}; // namespace selftest

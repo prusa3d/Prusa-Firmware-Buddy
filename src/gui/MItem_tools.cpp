@@ -1,6 +1,5 @@
 #include "MItem_tools.hpp"
-#include "png_resources.hpp"
-#include "eeprom_loadsave.h"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "marlin_server.hpp"
 #include "gui.hpp"
@@ -34,7 +33,7 @@
 #include <time.h>
 #include "config_features.h"
 #include <option/has_side_fsensor.h>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 #include <option/bootloader.h>
 #include <bootloader/bootloader.hpp>
 #include "../../lib/Marlin/Marlin/src/feature/input_shaper/input_shaper_config.hpp"
@@ -42,7 +41,7 @@
 
 static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     constexpr static const char *title = N_("Information");
-    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &png::info_16x16);
+    MsgBoxTitled mbt(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, txt, is_multiline::yes, _(title), &img::info_16x16);
     gui::TickLoop();
     gui_loop();
 }
@@ -124,10 +123,10 @@ MI_AUTO_HOME::MI_AUTO_HOME()
 }
 
 void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
-    marlin_event_clr(marlin_server::Event::CommandBegin);
-    marlin_gcode("G28");
-    while (!marlin_event_clr(marlin_server::Event::CommandBegin))
-        marlin_client_loop();
+    marlin_client::event_clr(marlin_server::Event::CommandBegin);
+    marlin_client::gcode("G28");
+    while (!marlin_client::event_clr(marlin_server::Event::CommandBegin))
+        marlin_client::loop();
     gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 }
 
@@ -142,21 +141,21 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
     do {
         // home if we repeat MBL, nozzle may be in different position than expected
         if (!marlin_server::all_axes_homed() || response == Response::Yes) {
-            marlin_event_clr(marlin_server::Event::CommandBegin);
-            marlin_gcode("G28");
-            while (!marlin_event_clr(marlin_server::Event::CommandBegin))
-                marlin_client_loop();
+            marlin_client::event_clr(marlin_server::Event::CommandBegin);
+            marlin_client::gcode("G28");
+            while (!marlin_client::event_clr(marlin_server::Event::CommandBegin))
+                marlin_client::loop();
             gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
         }
         response = Response::No;
-        marlin_event_clr(marlin_server::Event::CommandBegin);
-        marlin_gcode("G29");
-        while (!marlin_event_clr(marlin_server::Event::CommandBegin))
-            marlin_client_loop();
+        marlin_client::event_clr(marlin_server::Event::CommandBegin);
+        marlin_client::gcode("G29");
+        while (!marlin_client::event_clr(marlin_server::Event::CommandBegin))
+            marlin_client::loop();
         gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
 
-        if (marlin_error(MARLIN_ERR_ProbingFailed)) {
-            marlin_error_clr(MARLIN_ERR_ProbingFailed);
+        if (marlin_client::error(MARLIN_ERR_ProbingFailed)) {
+            marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
             response = MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo);
         }
     } while (response != Response::No);
@@ -181,9 +180,9 @@ MI_DISABLE_STEP::MI_DISABLE_STEP()
 
 void MI_DISABLE_STEP::click(IWindowMenu & /*window_menu*/) {
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_MK3_5)
-    marlin_gcode("M18 X Y E");
+    marlin_client::gcode("M18 X Y E");
 #else
-    marlin_gcode("M18");
+    marlin_client::gcode("M18");
 #endif
 }
 
@@ -260,7 +259,7 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
     MsgBoxNonBlockInfo(_("A crash dump is being saved."));
-    if (crash_dump::dump_save_to_usb("/usb/dump.bin"))
+    if (crash_dump::save_dump_to_usb("/usb/dump.bin"))
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
@@ -273,103 +272,7 @@ MI_XFLASH_RESET::MI_XFLASH_RESET()
 }
 
 void MI_XFLASH_RESET::click(IWindowMenu & /*window_menu*/) {
-    crash_dump::dump_in_xflash_reset();
-}
-
-/*****************************************************************************/
-// MI_HF_TEST_0
-MI_HF_TEST_0::MI_HF_TEST_0()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_HF_TEST_0::click(IWindowMenu & /*window_menu*/) {
-    crash_dump::dump_hardfault_test_0();
-}
-
-/*****************************************************************************/
-// MI_HF_TEST_1
-MI_HF_TEST_1::MI_HF_TEST_1()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {
-}
-
-void MI_HF_TEST_1::click(IWindowMenu & /*window_menu*/) {
-    crash_dump::dump_hardfault_test_1();
-}
-
-/*****************************************************************************/
-// MI_EE_LOAD_400
-MI_EE_LOAD_400::MI_EE_LOAD_400()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_400::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.0-final+1965.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-// MI_EE_LOAD_401
-MI_EE_LOAD_401::MI_EE_LOAD_401()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_401::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.1-final+1974.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-// MI_EE_LOAD_402
-MI_EE_LOAD_402::MI_EE_LOAD_402()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_402::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.2-final+1977.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-// MI_EE_LOAD_403RC1
-MI_EE_LOAD_403RC1::MI_EE_LOAD_403RC1()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_403RC1::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.3-RC1+246.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-// MI_EE_LOAD_403
-MI_EE_LOAD_403::MI_EE_LOAD_403()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD_403::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom/eeprom_MINI-4.0.3-final+258.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-// MI_EE_LOAD
-MI_EE_LOAD::MI_EE_LOAD()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_LOAD::click(IWindowMenu & /*window_menu*/) {
-    eeprom_load_bin_from_usb("/usb/eeprom.bin");
-    sys_reset();
-}
-
-/*****************************************************************************/
-// MI_EE_SAVE
-MI_EE_SAVE::MI_EE_SAVE()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
-}
-
-void MI_EE_SAVE::click(IWindowMenu & /*window_menu*/) {
-    eeprom_save_bin_to_usb("/usb/eeprom.bin");
+    crash_dump::dump_reset();
 }
 
 /*****************************************************************************/
@@ -401,7 +304,7 @@ MI_M600::MI_M600()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 void MI_M600::click(IWindowMenu & /*window_menu*/) {
-    marlin_gcode_push_front("M600");
+    marlin_client::gcode_push_front("M600");
 }
 
 /*****************************************************************************/
@@ -421,7 +324,7 @@ void MI_TIMEOUT::OnChange(size_t old_index) {
 // MI_SOUND_MODE
 size_t MI_SOUND_MODE::init_index() const {
     eSOUND_MODE sound_mode = Sound_GetMode();
-    return (size_t)(sound_mode > eSOUND_MODE::ASSIST ? eSOUND_MODE::DEFAULT_SOUND : sound_mode);
+    return (size_t)(sound_mode > eSOUND_MODE::_last ? eSOUND_MODE::_default_sound : sound_mode);
 }
 MI_SOUND_MODE::MI_SOUND_MODE()
     : WI_SWITCH_t<MI_SOUND_MODE_COUNT>(init_index(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no,
@@ -535,7 +438,7 @@ MI_FAN_CHECK::MI_FAN_CHECK()
     : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fan_check_enabled), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_FAN_CHECK::OnChange(size_t old_index) {
-    marlin_set_fan_check(!old_index);
+    marlin_client::set_fan_check(!old_index);
     config_store().fan_check_enabled.set(static_cast<bool>(marlin_vars()->fan_check_enabled));
 }
 
@@ -588,7 +491,7 @@ is_hidden_t hide_autoload_item() {
 MI_FS_AUTOLOAD::MI_FS_AUTOLOAD()
     : WI_ICON_SWITCH_OFF_ON_t(bool(marlin_vars()->fs_autoload_enabled), _(label), nullptr, is_enabled_t::yes, hide_autoload_item()) {}
 void MI_FS_AUTOLOAD::OnChange(size_t old_index) {
-    marlin_set_fs_autoload(!old_index);
+    marlin_client::set_fs_autoload(!old_index);
     config_store().fs_autoload_enabled.set(static_cast<bool>(marlin_vars()->fs_autoload_enabled));
 }
 
@@ -674,7 +577,7 @@ MI_INFO_HBR_FAN::MI_INFO_HBR_FAN()
     : WI_FAN_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, const png::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
+MI_ODOMETER_DIST::MI_ODOMETER_DIST(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal)
     : WI_FORMATABLE_LABEL_t<float>(label, icon, enabled, hidden, initVal, [&](char *buffer) {
         float value_m = value / 1000; // change the unit from mm to m
         if (value_m > 999) {
@@ -827,9 +730,6 @@ void MI_HEATUP_BED::OnChange(size_t old_index) {
     config_store().heatup_bed.set(!old_index);
 }
 
-MI_INFO_SERIAL_NUM_XLCD::MI_INFO_SERIAL_NUM_XLCD()
-    : WiInfo<28>(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
-
 /*****************************************************************************/
 // INPUT SHAPER
 
@@ -874,7 +774,7 @@ static bool input_shaper_y_weight_compensation() {
 }
 
 MI_IS_X_ONOFF::MI_IS_X_ONOFF()
-    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_x_enabled(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_x_enabled(), _(label), nullptr, is_enabled_t::no, is_hidden_t::yes) {
 }
 
 void MI_IS_X_ONOFF::OnChange(size_t) {
@@ -888,7 +788,7 @@ void MI_IS_X_ONOFF::OnChange(size_t) {
 }
 
 MI_IS_Y_ONOFF::MI_IS_Y_ONOFF()
-    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_y_enabled(), _(label), nullptr, is_enabled_t::no, is_hidden_t::no) {
+    : WI_ICON_SWITCH_OFF_ON_t(input_shaper_y_enabled(), _(label), nullptr, is_enabled_t::no, is_hidden_t::yes) {
 }
 
 void MI_IS_Y_ONOFF::OnChange(size_t) {

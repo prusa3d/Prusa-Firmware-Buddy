@@ -33,7 +33,7 @@ typedef size_ui16_t(display_draw_text_t)(Rect16 rc, string_view_utf8 str, const 
 typedef uint32_t(display_buffer_pixel_size_t)();
 typedef void(display_store_char_in_buffer_t)(uint16_t char_cnt, uint16_t curr_char_idx, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg);
 typedef void(display_draw_from_buffer_t)(point_ui16_t pt, uint16_t w, uint16_t h);
-typedef void(display_draw_png_t)(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect);
+typedef void(display_draw_png_t)(point_ui16_t pt, const img::Resource &png, color_t back_color, ropfn rop, Rect16 subrect);
 typedef void(display_backlight_t)(uint8_t bck);
 typedef void(display_read_madctl_t)(uint8_t *pdata);
 typedef void(display_complete_lcd_reinit_t)();
@@ -97,10 +97,10 @@ public:
     constexpr static void DrawFromBuffer(point_ui16_t pt, uint16_t w, uint16_t h) { DRAW_FROM_BUFFER(pt, w, h); }
 
     // DrawPng functions intentionally don't have default parameters - to optimize multiple calls
-    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png) { DRAW_PNG(pt, png, 0, ropfn(), Rect16(0, 0, 0, 0)); }
-    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t back_color) { DRAW_PNG(pt, png, back_color, ropfn(), Rect16(0, 0, 0, 0)); }
-    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop) { DRAW_PNG(pt, png, back_color, rop, Rect16(0, 0, 0, 0)); }
-    constexpr static void DrawPng(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect) { DRAW_PNG(pt, png, back_color, rop, subrect); }
+    constexpr static void DrawPng(point_ui16_t pt, const img::Resource &png) { DRAW_PNG(pt, png, 0, ropfn(), Rect16(0, 0, 0, 0)); }
+    constexpr static void DrawPng(point_ui16_t pt, const img::Resource &png, color_t back_color) { DRAW_PNG(pt, png, back_color, ropfn(), Rect16(0, 0, 0, 0)); }
+    constexpr static void DrawPng(point_ui16_t pt, const img::Resource &png, color_t back_color, ropfn rop) { DRAW_PNG(pt, png, back_color, rop, Rect16(0, 0, 0, 0)); }
+    constexpr static void DrawPng(point_ui16_t pt, const img::Resource &png, color_t back_color, ropfn rop, Rect16 subrect) { DRAW_PNG(pt, png, back_color, rop, subrect); }
 
     constexpr static void SetBacklight(uint8_t bck) { BACKLIGHT(bck); }
     constexpr static void ReadMADCTL(uint8_t *pdata) { READ_MADCLT(pdata); }
@@ -148,7 +148,7 @@ using display = Display<ILI9488_COLS, ILI9488_ROWS,
     display_ex_store_char_in_buffer,
     display_ex_draw_from_buffer,
     display_ex_draw_png,
-    ili9488_set_backlight,
+    ili9488_brightness_set,
     ili9488_cmd_madctlrd,
     ili9488_set_complete_lcd_reinit>;
 #endif

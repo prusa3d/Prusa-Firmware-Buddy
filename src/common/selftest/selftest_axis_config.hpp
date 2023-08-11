@@ -28,4 +28,4 @@ struct AxisConfig_t {
     float park_pos;       ///< Position to park the axis [mm]
 };
 
-};
+}; // namespace selftest

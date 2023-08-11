@@ -54,4 +54,4 @@ void ScreenMenuFilamentSensorsCalibration::windowEvent(EventLock /*has private c
     do_menu_event(sender, event, param, action, true);
 }
 
-}
+} // namespace SelftestSnake

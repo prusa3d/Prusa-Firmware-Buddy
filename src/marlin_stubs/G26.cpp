@@ -11,7 +11,7 @@
 #include "filament.hpp"
 #include "G26.hpp"
 #include "cmath_ext.h"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 static const constexpr float filamentD = 1.75f;
 static const constexpr float layerHeight = 0.2f;

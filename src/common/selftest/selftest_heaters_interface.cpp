@@ -10,14 +10,16 @@
 #include "marlin_server.hpp"
 #include "selftest_part.hpp"
 #include "selftest_log.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 // disable power check, since measurement does not work
-#ifdef HAS_ADVANCED_POWER
+#include <option/has_advanced_power.h>
+#if HAS_ADVANCED_POWER()
     #undef HAS_ADVANCED_POWER
+    #define HAS_ADVANCED_POWER() 0
 #endif
 
-#ifdef HAS_ADVANCED_POWER
+#if HAS_ADVANCED_POWER()
     #include "power_check_both.hpp"
 #endif
 namespace selftest {
@@ -38,7 +40,7 @@ static void HeatbreakCorrelation(CSelftestPart_Heater &h) {
 static void HeatbreakCorrelation([[maybe_unused]] CSelftestPart_Heater &h) {}
 #endif // HAS_TEMP_HEATBREAK_CONTROL
 
-#ifndef HAS_ADVANCED_POWER
+#if !HAS_ADVANCED_POWER()
 // Dummy class in case there is no advanced power
 class PowerCheckBoth {
     constexpr PowerCheckBoth() = default;
@@ -192,7 +194,8 @@ bool phase_hot_end_sock(IPartHandler *&machine, const HotEndSockConfig &config) 
     config, sock_result,
     &CSelftestPart_HotEndSock::stateStart, &CSelftestPart_HotEndSock::stateAskAdjust,
     &CSelftestPart_HotEndSock::stateAskSockInit, &CSelftestPart_HotEndSock::stateAskSock,
-    &CSelftestPart_HotEndSock::stateAskNozzleInit, &CSelftestPart_HotEndSock::stateAskNozzle,
+    // Disable asking questions about nozzle
+   // &CSelftestPart_HotEndSock::stateAskNozzleInit, &CSelftestPart_HotEndSock::stateAskNozzle,
     &CSelftestPart_HotEndSock::stateAskRetryInit, &CSelftestPart_HotEndSock::stateAskRetry);
     // clang-format on
     bool in_progress = machine->Loop();

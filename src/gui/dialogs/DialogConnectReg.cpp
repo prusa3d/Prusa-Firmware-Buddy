@@ -1,5 +1,5 @@
 #include "DialogConnectReg.hpp"
-#include "../png_resources.hpp"
+#include "../img_resources.hpp"
 #include "../ScreenHandler.hpp"
 
 #include <connect/connect.hpp>
@@ -16,14 +16,14 @@ const PhaseTexts dlg_texts = { { N_("Leave") } };
 
 const constexpr size_t max_url_len = 128;
 
-}
+} // namespace
 
 bool DialogConnectRegister::DialogShown = false;
 
 DialogConnectRegister::DialogConnectRegister()
     : AddSuperWindow<IDialog>(WizardDefaults::RectSelftestFrame)
     , header(this, _(headerLabel))
-    , icon_phone(this, Positioner::phoneIconRect(), &png::hand_qr_59x72)
+    , icon_phone(this, Positioner::phoneIconRect(), &img::hand_qr_59x72)
     , qr(this, Positioner::qrcodeRect(), "")
     , text(this, Positioner::textRect(), is_multiline::yes)
     , code(this, Positioner::codeRect(), is_multiline::no)

@@ -3,7 +3,7 @@
  */
 
 #include "screen_menu_info.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "DialogMoveZ.hpp"
 
 void ScreenMenuInfo::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -19,6 +19,6 @@ ScreenMenuInfo::ScreenMenuInfo()
     : ScreenMenuInfo__(_(label)) {
     EnableLongHoldScreenAction();
 #if (!PRINTER_IS_PRUSA_MINI)
-    header.SetIcon(&png::info_16x16);
+    header.SetIcon(&img::info_16x16);
 #endif // PRINTER_IS_PRUSA_MINI
 }

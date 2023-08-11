@@ -7,7 +7,7 @@
 #include "marlin_client.hpp"
 #include "display_helper.h"
 #include "SteelSheets.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 #include "config_features.h"
 #include "gui_config_printer.hpp"
@@ -97,7 +97,7 @@ void WindowLiveAdjustZ::Change(int dif) {
     float baby_step = z_offset - old;
     if (baby_step != 0.0F) {
         number.SetValue(z_offset);
-        marlin_do_babysteps_Z(baby_step);
+        marlin_client::do_babysteps_Z(baby_step);
     }
 }
 
@@ -172,7 +172,7 @@ static constexpr const point_i16_t scale_pt = point_i16_t(180, 125);
 LiveAdjustZ::LiveAdjustZ()
     : AddSuperWindow<IDialog>(GuiDefaults::RectScreenBody)
     , text(this, textRect, is_multiline::yes, is_closed_on_click_t::no)
-    , nozzle_icon(this, nozzleRect, &png::nozzle_shape_48x48)
+    , nozzle_icon(this, nozzleRect, &img::nozzle_shape_48x48)
     , adjuster(this, adjuster_pt)
     , scale(this, scale_pt) {
 

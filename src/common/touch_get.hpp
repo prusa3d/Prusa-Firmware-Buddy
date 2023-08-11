@@ -16,4 +16,4 @@ bool is_hw_broken();
 bool does_read_work();
 bool is_enabled();
 void disable();
-};
+}; // namespace touch

@@ -91,4 +91,4 @@ struct Color {
     }
 };
 
-}
+} // namespace leds

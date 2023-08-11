@@ -3,7 +3,7 @@
  */
 
 #include "footer_item_heatbreak.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "i18n.h"
 #include <algorithm>
@@ -14,7 +14,7 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 FooterItemHeatBreak::FooterItemHeatBreak(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::heatbreak_dark_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::heatbreak_dark_16x16, static_makeView, static_readValue) {
 }
 
 /**

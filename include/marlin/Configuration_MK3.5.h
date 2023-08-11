@@ -42,7 +42,7 @@
 #define USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    #include "eeprom_function_api.h"
+    #include "config_store/store_c_api.h"
 #endif
 
 //===========================================================================
@@ -146,7 +146,8 @@
 
 // This defines the number of extruders
 // :[1, 2, 3, 4, 5, 6]
-#if HAS_MMU2
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
 #define EXTRUDERS 5
 #else
 #define EXTRUDERS 1
@@ -185,7 +186,7 @@
  *
  * For additional configuration see Configuration_adv.h
  */
-#if HAS_MMU2
+#if HAS_MMU2()
 #define MMU_MODEL PRUSA_MMU2S
 #endif
 

@@ -43,4 +43,4 @@ public:
     static bool load_cfg_from_ini();
 };
 
-}
+} // namespace connect_client

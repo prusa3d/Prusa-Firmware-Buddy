@@ -16,4 +16,4 @@ void StopTestHBHeating();
 
 void IterateTesting();
 
-} // namespace
+} // namespace modularbed::AutoconfLogic

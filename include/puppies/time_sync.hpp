@@ -39,4 +39,4 @@ private:
     int32_t correct_offset(const int32_t offset_us, const uint32_t now_us) const;
 };
 
-}
+} // namespace buddy::puppies

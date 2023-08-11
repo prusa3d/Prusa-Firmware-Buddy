@@ -27,16 +27,31 @@ public:
 
     /// Convert logical tool to physical
     /// note: might return NO_TOOL_MAPPED, so check for this value
-    uint8_t to_physical(uint8_t logical, bool ignore_enabled = false);
+    [[nodiscard]] uint8_t to_physical(uint8_t logical, bool ignore_enabled = false) const;
 
     /// Convert physical tool to logical
-    uint8_t to_logical(uint8_t physical);
+    [[nodiscard]] uint8_t to_logical(uint8_t physical) const;
 
     /// Reset all tool mapping
     void reset();
 
+    void set_all_unassigned();
+    bool set_unassigned(uint8_t logical);
+
     // This is special tool identifier, that says that this tool is not mapped to any tool, and is threfore disabled by tool mapping
     static constexpr auto NO_TOOL_MAPPED = std::numeric_limits<uint8_t>::max();
+
+    // Container with serialized state of tool mapping
+    struct __attribute__((packed)) serialized_state_t {
+        bool enabled;
+        uint8_t logical_to_physical[EXTRUDERS];
+    };
+
+    // serialize state into packed structure (for power panic)
+    void serialize(serialized_state_t &to);
+
+    // deserialize state into packed structure (after power panic)
+    void deserialize(serialized_state_t &from);
 
 private:
     bool enabled;

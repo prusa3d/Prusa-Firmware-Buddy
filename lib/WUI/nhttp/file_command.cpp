@@ -106,4 +106,4 @@ handler::Step FileCommand::step(string_view input, bool terminated_by_client, ui
     return Step { to_read, 0, process() };
 }
 
-}
+} // namespace nhttp::printer

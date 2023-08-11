@@ -133,4 +133,4 @@ handler::ConnectionState get_only(handler::ConnectionState state, const handler:
         return StatusPage(Status::MethodNotAllowed, StatusPage::CloseHandling::ErrorClose, parser.accepts_json);
     }
 }
-}
+} // namespace nhttp::link_content

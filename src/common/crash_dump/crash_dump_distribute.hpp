@@ -15,4 +15,4 @@ void create_url_string(std::array<char, url_buff_size> &url_buff, std::array<cha
 
 bool upload_dump_to_server(http::Request &req);
 
-}
+} // namespace crash_dump

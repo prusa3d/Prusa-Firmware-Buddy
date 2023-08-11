@@ -13,7 +13,7 @@
 #include "freertos_mutex.hpp"
 #include "filters/median_filter.hpp"
 #include <mutex>
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 using namespace MMU2;
 
@@ -44,13 +44,13 @@ filament_sensor::mmu_enable_result_t FilamentSensors::EnableSide() {
 }
 
 static void mmu_disable() {
-    marlin_gcode("M709 S0");
+    marlin_client::gcode("M709 S0");
     config_store().mmu2_enabled.set(false);
 }
 
 // cannot wait until it is enabled, it takes like 10 seconds !!!
 static void mmu_enable() {
-    marlin_gcode("M709 S1");
+    marlin_client::gcode("M709 S1");
     config_store().mmu2_enabled.set(true);
 }
 

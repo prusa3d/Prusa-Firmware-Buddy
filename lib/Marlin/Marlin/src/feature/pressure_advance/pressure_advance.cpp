@@ -14,7 +14,6 @@
 #include "../precise_stepping/internal.hpp"
 
 #include <cmath>
-#include "bsod.h"
 #include "core/macros.h"
 #include "module/planner.h"
 

@@ -29,4 +29,4 @@ private:
     const ToolOffsetsConfig_t &config;
 };
 
-};
+}; // namespace selftest

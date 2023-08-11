@@ -11,7 +11,7 @@
 #include "wui_api.h"
 #include "netdev.h"
 #include "version.h"
-#include "otp.h"
+#include "otp.hpp"
 #include "ini_handler.h"
 #include "stm32f4xx_hal.h"
 #include "print_utils.hpp"
@@ -42,9 +42,9 @@ extern RTC_HandleTypeDef hrtc;
 static bool sntp_time_init = false;
 
 void wui_marlin_client_init(void) {
-    marlin_client_init(); // init the client
+    marlin_client::init(); // init the client
     // force update variables when starts
-    marlin_client_set_event_notify(marlin_server::EVENT_MSK_DEF, NULL);
+    marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, NULL);
 }
 
 struct ini_load_def {
@@ -180,8 +180,8 @@ void save_net_params(ETH_config_t *ethconfig, ap_entry_t *ap, uint32_t netdev_id
 
     if (ap != NULL) {
         assert(netdev_id == NETDEV_ESP_ID);
-        static_assert(SSID_MAX_LEN == WIFI_MAX_SSID_LEN);
-        static_assert(WIFI_PSK_MAX == WIFI_MAX_PASSWD_LEN);
+        static_assert(SSID_MAX_LEN == config_store_ns::wifi_max_ssid_len);
+        static_assert(WIFI_PSK_MAX == config_store_ns::wifi_max_passwd_len);
 
         if (ethconfig->var_mask & ETHVAR_MSK(APVAR_SSID)) {
             config_store().wifi_ap_ssid.set(ap->ssid);
@@ -277,7 +277,7 @@ StartPrintResult wui_start_print(char *filename, bool autostart_if_able) {
     if (autostart_if_able) {
         if (printer_can_print) {
             print_begin(filename, true);
-            return marlin_print_started() ? StartPrintResult::PrintStarted : StartPrintResult::Failed;
+            return marlin_client::is_print_started() ? StartPrintResult::PrintStarted : StartPrintResult::Failed;
         } else {
             return StartPrintResult::Failed;
         }
@@ -302,7 +302,7 @@ bool wui_uploaded_gcode(char *filename, bool start_print) {
 
 bool wui_is_file_being_printed(const char *filename) {
 
-    if (!marlin_is_printing()) {
+    if (!marlin_client::is_printing()) {
         return false;
     }
 

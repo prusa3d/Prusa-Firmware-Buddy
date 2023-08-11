@@ -28,7 +28,6 @@
 #include "netif_settings.h"
 #include "wui_api.h"
 #include "espif.h"
-#include "otp.h"
 
 bool netdev_load_ini_to_eeprom() {
     ETH_config_t config[NETDEV_COUNT] = {};

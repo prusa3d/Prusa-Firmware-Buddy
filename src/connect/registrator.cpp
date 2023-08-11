@@ -56,7 +56,7 @@ namespace {
             // clang-format off
             JSON_START;
             JSON_OBJ_START;
-                JSON_FIELD_STR("sn", state.printer_info.serial_number.txt) JSON_COMMA;
+                JSON_FIELD_STR("sn", state.printer_info.serial_number.begin()) JSON_COMMA;
                 JSON_FIELD_STR("fingerprint", state.printer_info.fingerprint) JSON_COMMA;
                 JSON_FIELD_PRINTER_TYPE JSON_COMMA;
                 JSON_FIELD_STR("firmware", state.printer_info.firmware_version);
@@ -131,7 +131,7 @@ namespace {
             }
         }
     };
-}
+} // namespace
 
 CommResult Registrator::communicate(RefreshableFactory &conn_factory) {
     const auto [config, cfg_changed] = printer.config();
@@ -239,4 +239,4 @@ const char *Registrator::get_code() const {
     return code.begin();
 }
 
-}
+} // namespace connect_client

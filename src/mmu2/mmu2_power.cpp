@@ -1,8 +1,9 @@
 #include "printers.h"
 #include <device/board.h>
 #include "timing_precise.hpp"
+#include <option/has_mmu2.h>
 
-#if HAS_MMU2
+#if HAS_MMU2()
 
     #include "inttypes.h"
     #include "hwio_pindef.h"

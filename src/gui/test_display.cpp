@@ -233,7 +233,7 @@ extern const uint8_t png_icon_64x64_noise[];
 extern const uint16_t png_icon_64x64_noise_size;
 
 void test_display_random_png_64x64(uint16_t count) {
-    png::Resource res("", 0, 0, 64, 64);
+    img::Resource res("", 0, 0, 64, 64);
 
     uint16_t x;
     uint16_t y;

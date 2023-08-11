@@ -12,10 +12,10 @@
 #include "MItem_crash.hpp"
 #include "Configuration_adv.h"
 #include <option/has_control_menu.h>
-#include "MItem_bsod.hpp"
-#include "MItem_redscreen.hpp"
+#include <option/has_mmu2.h>
+#include <option/developer_mode.h>
 
-#if HAS_MMU2
+#if HAS_MMU2()
     #include "MItem_mmu.hpp"
 #endif
 
@@ -27,7 +27,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     MI_TEMPERATURE, MI_MOVE_AXIS, MI_DISABLE_STEP,
     #endif
     MI_FILAMENT_SENSOR,
-    #if HAS_MMU2
+    #if HAS_MMU2()
     MI_MMU_ENABLE,
     #endif
     MI_FAN_CHECK,
@@ -37,8 +37,11 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     #if HAS_TOOLCHANGER()
     MI_TOOLS_SETUP,
     #endif
-    MI_USER_INTERFACE, MI_LANG_AND_TIME, MI_NETWORK, MI_HARDWARE, MI_SYSTEM,
-    MI_TRIGGER_BSOD, MI_TRIGGER_REDSCREEN
+    MI_USER_INTERFACE, MI_LANG_AND_TIME, MI_NETWORK, MI_HARDWARE, MI_SYSTEM
+    #if DEVELOPER_MODE()
+    ,
+    MI_ERROR_TEST
+    #endif /*DEVELOPMENT_ITEMS()*/
     #if PRINTER_IS_PRUSA_MK4
     ,
     MI_INPUT_SHAPER
@@ -64,7 +67,7 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_T
     MI_USB_MSC_ENABLE,
     MI_SAVE_DUMP, MI_SOUND_MODE, MI_SOUND_VOLUME,
     MI_DEVHASH_IN_QR, MI_LANGUAGE, MI_LANGUAGUE_USB, MI_LANGUAGUE_XFLASH, MI_LOAD_LANG, MI_SORT_FILES,
-    MI_SOUND_TYPE, MI_XFLASH_RESET, MI_HF_TEST_0, MI_HF_TEST_1,
+    MI_SOUND_TYPE, MI_XFLASH_RESET,
     MI_EEPROM, MI_EXPERIMENTAL_SETTINGS, MI_OPEN_FACTORY_RESET>;
     #else
 using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_TEMPERATURE, MI_CURRENT_PROFILE, MI_MOVE_AXIS, MI_DISABLE_STEP,

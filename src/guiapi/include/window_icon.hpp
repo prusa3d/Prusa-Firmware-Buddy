@@ -12,13 +12,13 @@
  *
  */
 class window_icon_t : public AddSuperWindow<window_aligned_t> {
-    const png::Resource *pRes = nullptr;
+    const img::Resource *pRes = nullptr;
 
 public:
     enum class Center { x,
         y };
 
-    void SetRes(const png::Resource *res) {
+    void SetRes(const img::Resource *res) {
         if (pRes != res) {
             pRes = res;
             Invalidate();
@@ -27,9 +27,9 @@ public:
 
     bool IsIconValid() { return pRes ? true : false; }
 
-    window_icon_t(window_t *parent, Rect16 rect, const png::Resource *res, is_closed_on_click_t close = is_closed_on_click_t::no);
+    window_icon_t(window_t *parent, Rect16 rect, const img::Resource *res, is_closed_on_click_t close = is_closed_on_click_t::no);
 
-    window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
+    window_icon_t(window_t *parent, const img::Resource *res, point_i16_t pt, padding_ui8_t padding = { 0, 0, 0, 0 }, is_closed_on_click_t close = is_closed_on_click_t::no);
 
     /**
      * @brief ctor co center in one axis (for both axis different parameters would be needed)
@@ -41,19 +41,20 @@ public:
      * @param center_size   size limiting centering; for example 1px image pt = {0,0}, center_size = 3, will be drown at {1,0}
      * @param close
      */
-    window_icon_t(window_t *parent, const png::Resource *res, point_i16_t pt, Center center, size_t center_size, is_closed_on_click_t close = is_closed_on_click_t::no);
+    window_icon_t(window_t *parent, const img::Resource *res, point_i16_t pt, Center center, size_t center_size, is_closed_on_click_t close = is_closed_on_click_t::no);
 
 protected:
     virtual void unconditionalDraw() override;
     virtual void setRedLayout() override;
     virtual void setBlackLayout() override;
+    virtual void setBlueLayout() override;
 };
 
 class window_icon_button_t : public AddSuperWindow<window_icon_t> {
     ButtonCallback callback;
 
 public:
-    window_icon_button_t(window_t *parent, Rect16 rect, const png::Resource *res, ButtonCallback cb);
+    window_icon_button_t(window_t *parent, Rect16 rect, const img::Resource *res, ButtonCallback cb);
     void SetAction(ButtonCallback cb) { callback = cb; }
 
 protected:
@@ -68,9 +69,9 @@ protected:
 class WindowMultiIconButton : public AddSuperWindow<window_t> {
 public:
     struct Pngs {
-        const png::Resource &normal;
-        const png::Resource &focused;
-        const png::Resource &disabled;
+        const img::Resource &normal;
+        const img::Resource &focused;
+        const img::Resource &disabled;
     };
 
 private:

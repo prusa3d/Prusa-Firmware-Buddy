@@ -23,4 +23,4 @@ Step Terminating::step(string_view input, bool client_closed, uint8_t *, size_t)
     }
 }
 
-}
+} // namespace nhttp::handler

@@ -5,7 +5,7 @@ namespace {
 // in milliseconds
 uint32_t mock_time = 0;
 
-}
+} // namespace
 
 void advance_time_s(uint32_t by) {
     mock_time += 1000 * by;

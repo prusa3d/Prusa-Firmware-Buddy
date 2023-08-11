@@ -56,10 +56,10 @@ namespace {
         return BackgroundResult::More;
     }
 
-}
+} // namespace
 
 BackgroundResult step(BackgroundCmd &cmd, Printer &printer) {
     return visit([&](auto &cmd) { return step(cmd, printer); }, cmd);
 }
 
-}
+} // namespace connect_client

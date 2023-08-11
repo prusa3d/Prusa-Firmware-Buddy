@@ -83,4 +83,4 @@ Step GCodePreview::step(string_view, bool, uint8_t *buffer, size_t buffer_size) 
     }
 }
 
-}
+} // namespace nhttp::printer

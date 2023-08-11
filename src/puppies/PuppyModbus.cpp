@@ -317,4 +317,4 @@ ModbusErrorInfo PuppyModbus::ReadFIFO(uint8_t unit, uint16_t address, std::array
     return err;
 }
 
-}
+} // namespace buddy::puppies

@@ -28,4 +28,4 @@ using BackgroundCmd = std::variant<BackgroundGcode>;
 
 BackgroundResult step(BackgroundCmd &cmd, Printer &printer);
 
-}
+} // namespace connect_client

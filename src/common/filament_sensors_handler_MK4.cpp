@@ -4,7 +4,6 @@
 
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_adc.hpp"
-#include "eeprom.h"
 #include "marlin_client.hpp"
 #include "metric.h"
 #include "filters/median_filter.hpp"

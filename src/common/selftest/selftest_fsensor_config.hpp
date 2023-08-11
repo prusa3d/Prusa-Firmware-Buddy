@@ -22,4 +22,4 @@ struct FSensorConfig_t {
     bool mmu_mode = false;
 };
 
-};
+}; // namespace selftest

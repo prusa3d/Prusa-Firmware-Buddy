@@ -15,4 +15,4 @@ struct HotEndSockConfig {
     const char *partname;
 };
 
-};
+}; // namespace selftest

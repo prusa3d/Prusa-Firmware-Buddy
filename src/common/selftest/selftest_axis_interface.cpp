@@ -10,7 +10,7 @@
 #include "marlin_server.hpp"
 #include "../../Marlin/src/module/stepper.h"
 #include "selftest_part.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 namespace selftest {
 

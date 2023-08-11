@@ -44,4 +44,4 @@ void update(ProgressHook progress);
  */
 [[nodiscard]] bool fw_invalidate(void);
 
-};
+}; // namespace buddy::bootloader

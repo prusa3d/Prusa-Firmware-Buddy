@@ -1,4 +1,4 @@
-#include "loadcell.h"
+#include "loadcell.hpp"
 #include "bsod_gui.hpp"
 #include "error_codes.hpp"
 #include "gpio.h"

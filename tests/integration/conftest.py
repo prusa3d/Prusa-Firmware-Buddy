@@ -18,7 +18,7 @@ sys.path.insert(0, str(utils_dir))
 
 from .actions import screen
 from simulator import Simulator, MachineType, Printer
-from configuration_store import eeprom
+from persistent_stores import eeprom
 
 logger = logging.getLogger(__name__)
 
@@ -97,8 +97,17 @@ def get_language_code(lang):
     return data[1] << 8 | data[0]
 
 
+# Usage: In your module or test node use pytest.mark.parametrize('specific_eeprom_variable', DICT);
+# Where DICT is desired changes or additions to DEFAULT_EEPROM_CONTENT;
+# See test_prusa_link.py for example
 @pytest.fixture
-def eeprom_variables():
+def specific_eeprom_variables():
+    return {}
+
+
+@pytest.fixture
+def eeprom_variables(specific_eeprom_variables):
+    DEFAULT_EEPROM_CONTENT.update(specific_eeprom_variables)
     return DEFAULT_EEPROM_CONTENT
 
 

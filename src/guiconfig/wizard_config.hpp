@@ -30,4 +30,4 @@ inline constexpr Rect16 RectSelftestName = Rect16(MarginLeft, row_0, X_space, tx
 static constexpr Rect16 RectRadioButton(size_t lines_of_footer) {
     return GuiDefaults::GetButtonRect(RectSelftestFrame) - (lines_of_footer == 0 ? Rect16::Top_t(0) : Rect16::Top_t(GuiDefaults::FooterItemHeight * lines_of_footer + (lines_of_footer - 1) * GuiDefaults::FooterLinesSpace + GuiDefaults::FooterPadding.top + GuiDefaults::FooterPadding.bottom));
 }
-};
+}; // namespace WizardDefaults

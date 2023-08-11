@@ -1,7 +1,7 @@
 #include "window_msgbox_wrong_printer.hpp"
 
 MsgBoxInvalidPrinter::Message::Message(window_t *parent, const char *text, HWCheckSeverity severity, bool valid)
-    : icon(parent, {}, (severity == HWCheckSeverity::Abort) ? &png::nok_16x16 : &png::warning_16x16)
+    : icon(parent, {}, (severity == HWCheckSeverity::Abort) ? &img::nok_16x16 : &img::warning_16x16)
     , text(parent, {}, is_multiline::no, is_closed_on_click_t::no, _(text)) {
     if (valid) {
         icon.Hide();
@@ -9,7 +9,7 @@ MsgBoxInvalidPrinter::Message::Message(window_t *parent, const char *text, HWChe
     }
 }
 
-MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, const png::Resource *title_icon)
+MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, const img::Resource *title_icon)
     : MsgBoxTitled(rect, Responses_NONE, 0, nullptr, _(txt_wrong_printer_title), is_multiline::no, tit, title_icon, is_closed_on_click_t::no)
     , valid_printer_settings(GCodeInfo::getInstance().get_valid_printer_settings())
     , messages { { { this, txt_wrong_tools, valid_printer_settings.wrong_tools.get_severity(), valid_printer_settings.wrong_tools.is_valid() },
@@ -24,8 +24,8 @@ MsgBoxInvalidPrinter::MsgBoxInvalidPrinter(Rect16 rect, string_view_utf8 tit, co
     Rect16::Width_t icon_margin = GuiDefaults::InvalidPrinterIconMargin;
     Rect16::Height_t line_spacing = GuiDefaults::InvalidPrinterLineSpacing;
 
-    Rect16::Width_t png_w = png::warning_16x16.w;
-    Rect16::Height_t png_h = png::warning_16x16.h;
+    Rect16::Width_t png_w = img::warning_16x16.w;
+    Rect16::Height_t png_h = img::warning_16x16.h;
 
     Rect16::Height_t h = GuiDefaults::Font->h;
     Rect16::Height_t lineh = std::min(h, png_h) + line_spacing;

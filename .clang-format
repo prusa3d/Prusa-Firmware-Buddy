@@ -60,7 +60,7 @@ Cpp11BracedListStyle: false
 DerivePointerAlignment: false
 DisableFormat:   false
 ExperimentalAutoDetectBinPacking: false
-FixNamespaceComments: false
+FixNamespaceComments: true
 ForEachMacros:
   - foreach
   - Q_FOREACH

@@ -22,4 +22,4 @@ void LongPressScreenAction();
 
 bool EventEncoder(int diff);
 bool EventClick(BtnState_t state);
-}
+} // namespace gui::knob

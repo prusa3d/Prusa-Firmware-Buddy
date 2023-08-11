@@ -6,8 +6,8 @@
 #include <gcode/queue.h>
 #include <module/stepper.h>
 #include <module/endstops.h>
-#include <feature/prusa/homing.h>
 #include <module/tool_change.h>
+#include <module/prusa/homing_corexy.hpp>
 #include "bsod_gui.hpp"
 
 using buddy::puppies::Dwarf;

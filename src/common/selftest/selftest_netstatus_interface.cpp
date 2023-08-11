@@ -4,7 +4,7 @@
 #include "selftest_netstatus_interface.hpp"
 #include "netdev.h"
 #include "selftest_log.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_REF(Selftest);
 

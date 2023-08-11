@@ -37,4 +37,4 @@ private:
 
 extern ProbePositionLookback probePositionLookback;
 
-}
+} // namespace buddy

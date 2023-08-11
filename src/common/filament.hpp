@@ -42,4 +42,4 @@ const Description &get_description(Type type);
 
 Type get_type_to_load();
 void set_type_to_load(Type filament);
-};
+}; // namespace filament

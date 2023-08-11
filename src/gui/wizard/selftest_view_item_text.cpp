@@ -8,7 +8,7 @@
 #include "display_helper.h" // font_meas_text
 #include "GuiDefaults.hpp"
 #include "wizard_config.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 /**
  * @brief Construct a new Self Test View Text:: Self Test View Text object
@@ -64,7 +64,7 @@ void SelfTestViewText::render(Rect16 rc) const {
  * @param multiln   multiline flag
  * @param width     width to be able to measure height (number of lines) needed for multiline text
  */
-SelfTestViewTextWithIcon::SelfTestViewTextWithIcon(string_view_utf8 txt, const png::Resource *icon, is_multiline multiln, Rect16::Width_t width)
+SelfTestViewTextWithIcon::SelfTestViewTextWithIcon(string_view_utf8 txt, const img::Resource *icon, is_multiline multiln, Rect16::Width_t width)
     : SelfTestViewText(txt, multiln, width == 0 ? Rect16::Width_t(GuiDefaults::ScreenWidth) : Rect16::Width_t(width - text_pos_after_icon))
     , icon(icon) {}
 
@@ -92,7 +92,7 @@ static constexpr size_t status_icon_width = WizardDefaults::status_icon_w;
  * @param multiln   multiline flag
  * @param width     width to be able to measure height (number of lines) needed for multiline text
  */
-SelfTestViewTextWithIconAndResult::SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const png::Resource *icon, TestResult result, is_multiline multiln, Rect16::Width_t width)
+SelfTestViewTextWithIconAndResult::SelfTestViewTextWithIconAndResult(string_view_utf8 txt, const img::Resource *icon, TestResult result, is_multiline multiln, Rect16::Width_t width)
     : SelfTestViewTextWithIcon(txt, icon, multiln, width == 0 ? Rect16::Width_t(GuiDefaults::ScreenWidth) : Rect16::Width_t(width - status_icon_width))
     , icon_result(ResultToIconId(result)) {}
 
@@ -111,14 +111,14 @@ void SelfTestViewTextWithIconAndResult::Draw(Rect16::Top_t top) const {
     render_icon_align(Rect16(WizardDefaults::status_icon_X_pos, rc.Top(), icon_result->w, icon_result->h), icon_result, GuiDefaults::ColorBack, Align_t::LeftTop());
 }
 
-const png::Resource *SelfTestViewTextWithIconAndResult::ResultToIconId(TestResult res) {
+const img::Resource *SelfTestViewTextWithIconAndResult::ResultToIconId(TestResult res) {
     switch (res) {
     case TestResult_Passed:
-        return &png::ok_color_18x18;
+        return &img::ok_color_18x18;
     case TestResult_Failed:
-        return &png::nok_color_18x18;
+        return &img::nok_color_18x18;
     default:
         break;
     }
-    return &png::dash_18x18;
+    return &img::dash_18x18;
 }

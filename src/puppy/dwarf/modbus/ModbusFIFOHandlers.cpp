@@ -3,7 +3,7 @@
 #include "logging/log_dest_bufflog.h"
 #include "puppies/fifo_coder.hpp"
 #include "puppies/fifo_encoder.hpp"
-#include "loadcell.hpp"
+#include "../loadcell.hpp"
 #include "accelerometer.hpp"
 #include "Marlin/src/module/prusa/accelerometer_utils.h"
 #include "bsod.h"

@@ -3,7 +3,7 @@
 #include "selftest_dock_type.hpp"
 #include "src/module/prusa/toolchanger.h"
 #include "selftest_tool_helper.hpp"
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 namespace selftest {
 
@@ -99,7 +99,7 @@ TestReturn phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTEND
 
         // Store dock calibration state
         // Do not store if test was successful and now aborted, do not regress
-        if (i < EEPROM_MAX_TOOL_COUNT
+        if (i < config_store_ns::max_tool_count
             && !(eeres.tools[i].dockoffset == TestResult_Passed && pDocks[i]->GetResult() == TestResult_Skipped)) {
             eeres.tools[i].dockoffset = pDocks[i]->GetResult();
         }

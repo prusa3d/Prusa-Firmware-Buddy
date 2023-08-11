@@ -26,4 +26,4 @@ void tool_filament_sensor_irq() {
 int32_t tool_filament_sensor_get_raw_data() {
     return fs_filtered_value;
 }
-}
+} // namespace dwarf::tool_filament_sensor

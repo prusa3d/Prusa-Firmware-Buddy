@@ -23,7 +23,7 @@ void ac_fault_isr() {
     // Mark ac_fault as triggered
     ac_fault_triggered = true;
 }
-}
+} // namespace power_panic
 #endif
 
 using namespace buddy::hw;

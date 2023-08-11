@@ -114,7 +114,7 @@ private:
     screen_type ScreenType(PhasesCrashRecovery ph);
 };
 
-}
+} // namespace crash_recovery
 
 class ScreenCrashRecovery : public AddSuperWindow<screen_t> {
 protected:

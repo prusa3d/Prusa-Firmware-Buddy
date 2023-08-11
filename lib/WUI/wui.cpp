@@ -6,7 +6,7 @@
 #include "ethernetif.h"
 #include "espif.h"
 #include "stm32f4xx_hal.h"
-#include <otp.h>
+#include <otp.hpp>
 #include <mbedtls/sha256.h>
 
 #include "sntp_client.h"
@@ -30,8 +30,8 @@
 
 #include "netdev.h"
 
-#include "otp.h"
-#include <configuration_store.hpp>
+#include "otp.hpp"
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_DEF(WUI, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Network, LOG_SEVERITY_INFO);
@@ -69,9 +69,9 @@ namespace {
 
 void prusalink_password_init(void) {
     if (!strcmp(config_store().prusalink_password.get().data(), "")) {
-        char password[PL_PASSWORD_SIZE] = { 0 };
-        wui_generate_password(password, PL_PASSWORD_SIZE);
-        wui_store_password(password, PL_PASSWORD_SIZE);
+        char password[config_store_ns::pl_password_size] = { 0 };
+        wui_generate_password(password, config_store_ns::pl_password_size);
+        wui_store_password(password, config_store_ns::pl_password_size);
     }
 }
 
@@ -539,7 +539,7 @@ public:
 
 std::atomic<NetworkState *> NetworkState::instance = nullptr;
 
-}
+} // namespace
 
 void start_network_task() {
     NetworkState::run_task();
@@ -610,7 +610,7 @@ void modify_flag(uint32_t netdev_id, F &&f) {
     }
 }
 
-}
+} // namespace
 
 void netdev_set_static(uint32_t netdev_id) {
     modify_flag(netdev_id, [](uint8_t flag) -> uint8_t {

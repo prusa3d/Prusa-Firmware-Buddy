@@ -9,4 +9,4 @@ struct ToolOffsetsConfig_t {
     static constexpr SelftestParts part_type = SelftestParts::ToolOffsets;
 };
 
-};
+}; // namespace selftest

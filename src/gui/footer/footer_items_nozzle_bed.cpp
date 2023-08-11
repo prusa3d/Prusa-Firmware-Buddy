@@ -5,7 +5,7 @@
 #include "footer_items_nozzle_bed.hpp"
 #include "marlin_client.hpp"
 #include "filament.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "i18n.h"
 #include "config_features.h"
 #include "printers.h"
@@ -21,11 +21,11 @@
 #endif /*HAS_TOOLCHANGER()*/
 
 FooterItemNozzle::FooterItemNozzle(window_t *parent)
-    : AddSuperWindow<FooterItemHeater>(parent, &png::nozzle_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterItemHeater>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
 }
 
 FooterItemBed::FooterItemBed(window_t *parent)
-    : AddSuperWindow<FooterItemHeater>(parent, &png::heatbed_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterItemHeater>(parent, &img::heatbed_16x16, static_makeView, static_readValue) {
 #if ENABLED(MODULAR_HEATBED)
     icon.Hide();
 #endif
@@ -33,7 +33,7 @@ FooterItemBed::FooterItemBed(window_t *parent)
 }
 
 FooterItemAllNozzles::FooterItemAllNozzles(window_t *parent)
-    : AddSuperWindow<FooterIconText_IntVal>(parent, &png::nozzle_16x16, static_makeView, static_readValue) {
+    : AddSuperWindow<FooterIconText_IntVal>(parent, &img::nozzle_16x16, static_makeView, static_readValue) {
 #if HAS_TOOLCHANGER()
     icon.Hide();
 #endif /*HAS_TOOLCHANGER()*/

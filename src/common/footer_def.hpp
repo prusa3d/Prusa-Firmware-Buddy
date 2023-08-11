@@ -11,6 +11,7 @@
 #include "guiconfig.h"
 #include <array>
 #include <option/has_side_fsensor.h>
+#include <option/has_mmu2.h>
 #include "i18n.h"
 #include <bsod.h>
 
@@ -61,7 +62,7 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
 #if defined(FOOTER_HAS_SHEETS)
     Sheets,
 #endif
-#if HAS_MMU2
+#if HAS_MMU2()
     Finda,
 #endif
 #if defined(FOOTER_HAS_TOOL_NR)
@@ -123,7 +124,7 @@ constexpr const char *to_string(Item item) {
     case Item::Sheets:
         return N_("Sheets");
 #endif
-#if HAS_MMU2
+#if HAS_MMU2()
     case Item::Finda:
         return N_("Finda");
 #endif
@@ -232,4 +233,4 @@ constexpr bool operator!=(ItemDrawCnf lhs, ItemDrawCnf rhs) {
     return !(lhs == rhs);
 }
 
-}
+} // namespace footer

@@ -20,4 +20,4 @@ inline constexpr size_t axis_count = 3;
  */
 bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool separate = false);
 
-};
+}; // namespace selftest

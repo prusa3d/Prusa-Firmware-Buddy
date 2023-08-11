@@ -53,7 +53,7 @@ private:
 
     void write_reg(Register_t reg, uint8_t value) {
         uint8_t data[2] = { (uint8_t)reg, value };
-        (void)i2c::Transmit(&i2c, write_address, data, sizeof(data), TIMEOUT);
+        (void)i2c::Transmit(i2c, write_address, data, sizeof(data), TIMEOUT);
     }
 };
 
@@ -97,4 +97,4 @@ public:
     const buddy::hw::IoPin pin;  //< pin number
     const Pin::State init_state; //< Initial state (low or high)
 };
-}
+} // namespace buddy::hw

@@ -53,7 +53,7 @@ typedef struct {
     char *path; // Path is needed for fstat_r
 #endif
 } FIL_EX;
-}
+} // namespace fatfs
 
 using fatfs::FIL_EX;
 

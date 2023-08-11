@@ -32,7 +32,7 @@ void M151();
 #endif
 
 void M300(); ///< Beep
-void M505(); ///< set eeprom variable
+// void M505(); ///< set eeprom variable // deprecated
 
 /// @name MMU G-CODES
 /// @{
@@ -86,4 +86,4 @@ void M1701(); ///< Autoload. Prusa STM32 platform specific
 #if HAS_TOOLCHANGER()
 void P0(); ///< Tool park
 #endif
-}
+} // namespace PrusaGcodeSuite

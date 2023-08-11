@@ -207,4 +207,4 @@ public:
     std::optional<CommandId> background_command_id() const;
 };
 
-}
+} // namespace connect_client

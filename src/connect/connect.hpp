@@ -72,4 +72,4 @@ public:
     void run(void) __attribute__((noreturn));
 };
 
-}
+} // namespace connect_client

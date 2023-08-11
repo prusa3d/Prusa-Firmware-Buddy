@@ -11,4 +11,4 @@ struct RequestTiming {
     uint32_t end_us;
 };
 
-}
+} // namespace buddy::puppies

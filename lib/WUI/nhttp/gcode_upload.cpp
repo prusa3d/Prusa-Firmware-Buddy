@@ -2,6 +2,7 @@
 #include "upload_state.h"
 #include "file_info.h"
 #include "handler.h"
+#include "splice.h"
 #include "../../src/common/filename_type.hpp"
 #include "../wui_api.h"
 
@@ -28,12 +29,15 @@ using handler::RequestParser;
 using handler::StatusPage;
 using handler::Step;
 using http::Status;
+using splice::Result;
+using std::array;
 using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::make_tuple;
 using std::move;
 using std::nullopt;
+using std::optional;
 using std::string_view;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
@@ -55,8 +59,7 @@ GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool jso
     , json_errors(json_errors)
     , cleanup_temp_file(true)
     , tmp_upload_file(move(file))
-    , file_idx(upload_idx)
-    , filename_checked(false) {
+    , file_idx(upload_idx) {
 }
 
 GcodeUpload::GcodeUpload(GcodeUpload &&other)
@@ -67,8 +70,7 @@ GcodeUpload::GcodeUpload(GcodeUpload &&other)
     , json_errors(other.json_errors)
     , cleanup_temp_file(other.cleanup_temp_file)
     , tmp_upload_file(move(other.tmp_upload_file))
-    , file_idx(other.file_idx)
-    , filename_checked(other.filename_checked) {
+    , file_idx(other.file_idx) {
     // The ownership of the temp file is passed to the new instance.
     other.cleanup_temp_file = false;
 }
@@ -82,8 +84,6 @@ GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
     cleanup_temp_file = other.cleanup_temp_file;
     // The ownership of the temp file is passed to the new instance.
     other.cleanup_temp_file = false;
-
-    filename_checked = other.filename_checked;
 
     tmp_upload_file = move(other.tmp_upload_file);
     file_idx = other.file_idx;
@@ -152,11 +152,12 @@ Step GcodeUpload::step(string_view input, bool terminated_by_client, uint8_t *, 
         monitor_slot.done(Monitor::Outcome::Stopped);
         return { 0, 0, StatusPage(Status::ServiceTemporarilyUnavailable, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, "Upload stopped from connect") };
     }
-    monitor_slot.progress(read);
     return std::visit([input, read, this](auto &uploadParams) -> Step { return step(input, read, uploadParams); }, upload);
 }
 
 Step GcodeUpload::step(string_view input, const size_t read, UploadState &uploader) {
+    monitor_slot.progress(read);
+
     uploader.setup(this);
 
     uploader.feed(input.substr(0, read));
@@ -182,37 +183,6 @@ Step GcodeUpload::step(string_view input, const size_t read, UploadState &upload
     } else {
         return { read, 0, Continue() };
     }
-}
-
-Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParams) {
-    // remove the "/usb/" prefix
-    const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
-
-    // bit of a hack, would make more sense checking this in GcodeUpload::start,
-    // but that is a static method and we need check_filename to be virtual, so
-    // it can be used inside UploadState as a function of UploadHooks.
-    if (!filename_checked) {
-        auto filename_error = check_filename(filename);
-        if (std::get<0>(filename_error) != Status::Ok)
-            return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
-        filename_checked = true;
-    }
-
-    auto error = data(input.substr(0, read));
-    if (std::get<0>(error) != Status::Ok) {
-        return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(error)) };
-    }
-
-    size_rest -= read;
-    if (size_rest == 0) {
-        auto finish_error = finish(filename, putParams.print_after_upload);
-        if (std::get<0>(finish_error) != Status::Ok)
-            return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(finish_error)) };
-
-        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1, std::nullopt) };
-    }
-
-    return { read, 0, Continue() };
 }
 
 UploadHooks::Result GcodeUpload::data(std::string_view data) {
@@ -333,7 +303,93 @@ namespace {
             return f(fn);
         }
     }
-}
+
+    class PutTransfer final : public splice::Transfer {
+    public:
+        GcodeUpload::UploadedNotify *uploaded_notify = nullptr;
+        FILE *f = nullptr;
+        array<char, FILE_PATH_BUFFER_LEN> filepath;
+        bool print_after_upload;
+        bool overwrite;
+        size_t file_idx;
+
+        virtual FILE *file() const override {
+            return f;
+        }
+        // TODO: alias for the type, probably unify with the UploadHooks::Result
+        virtual std::optional<std::tuple<http::Status, const char *>> done() override {
+            assert(f != nullptr);
+            assert(monitor_slot.has_value());
+            bool cleanup_temp_file = true;
+            const auto fname = transfer_name(file_idx);
+            std::tuple<http::Status, const char *> error { Status::InternalServerError, "Unknown error" };
+            switch (result) {
+            case Result::Ok: {
+                // Remove the "/usb/" prefix
+                // FIXME: Why? Relict of old / Post / multipart upload?
+                const char *final_filename = filepath.data() + USB_MOUNT_POINT_LENGTH;
+
+                // create directories if uploading points to non existing one
+                if (error = make_dirs(final_filename); get<0>(error) != Status::Ok) {
+                    goto CLEANUP;
+                }
+
+                // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
+                (void)ftruncate(fileno(f), ftell(f));
+                fclose(f);
+                // Close the file first, otherwise it can't be moved
+                f = nullptr;
+                error = try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
+                    monitor_slot->done(Monitor::Outcome::Finished);
+                    ChangedPath::instance.changed_path(filename, Type::File, Incident::Created);
+                    cleanup_temp_file = false;
+                    if (uploaded_notify != nullptr) {
+                        if (uploaded_notify(filename, print_after_upload)) {
+                            return make_tuple(Status::Ok, nullptr);
+                        } else {
+                            return make_tuple(Status::Conflict, "Can't print right now");
+                        }
+                    } else {
+                        return make_tuple(Status::Ok, nullptr);
+                    }
+                });
+                break;
+            }
+            case Result::CantWrite:
+                error = { Status::InsufficientStorage, "USB write error or USB full" };
+                break;
+            case Result::Stopped:
+                error = { Status::ServiceTemporarilyUnavailable, "Upload stopped from connect" };
+                break;
+            case Result::ClosedByClient:
+                error = { Status::BadRequest, "Connection closed by client" };
+                break;
+            case Result::Timeout:
+                error = { Status::RequestTimeout, "Connection timeout" };
+                break;
+            }
+        CLEANUP:
+            if (f != nullptr) {
+                fclose(f);
+            }
+            f = nullptr;
+            if (cleanup_temp_file) {
+                remove(fname.begin());
+            }
+            release();
+            return error;
+        }
+
+        virtual bool progress(size_t len) override {
+            assert(monitor_slot.has_value());
+            monitor_slot->progress(len);
+            return !monitor_slot->is_stopped();
+        }
+    };
+
+    // TODO: A better place to have this? Or dynamic allocation? Share with the connect uploader?
+    PutTransfer put_transfer;
+} // namespace
 
 UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
     if (!filename_is_gcode(filename)) {
@@ -410,4 +466,24 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     });
 }
 
+Step GcodeUpload::step(string_view, const size_t read, PutParams &putParams) {
+    // remove the "/usb/" prefix
+    const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
+
+    auto filename_error = check_filename(filename);
+    if (std::get<0>(filename_error) != Status::Ok)
+        return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
+
+    assert(put_transfer.f == nullptr); // No other transfer is happening at the moment.
+    put_transfer.f = tmp_upload_file.release();
+    put_transfer.set_monitor_slot(move(monitor_slot));
+    put_transfer.uploaded_notify = uploaded_notify;
+    put_transfer.filepath = putParams.filepath;
+    put_transfer.print_after_upload = putParams.print_after_upload;
+    put_transfer.overwrite = putParams.overwrite;
+    put_transfer.file_idx = file_idx;
+    cleanup_temp_file = false;
+    return { 0, 0, make_tuple(&put_transfer, size_rest) };
 }
+
+} // namespace nhttp::printer

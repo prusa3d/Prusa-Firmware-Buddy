@@ -8,6 +8,7 @@
 #include "config.h"    // GUI_WINDOW_SUPPORT
 #include "guiconfig.h" // GUI_WINDOW_SUPPORT
 #include "unistd.h"
+#include "tasks.hpp"
 #include <state/printer_state.hpp>
 
 #include <option/bootloader.h>
@@ -64,6 +65,7 @@ void run_once_after_boot() {
             if (resume) {
                 // resume and bypass g-code autostart
                 power_panic::resume_print(auto_recover);
+                TaskDeps::provide(TaskDeps::Dependency::power_panic_initialized);
                 return;
             }
         }
@@ -78,6 +80,8 @@ void run_once_after_boot() {
         marlin_server::print_start(autostart_filename, true);
         oProgressData.mInit();
     }
+
+    TaskDeps::provide(TaskDeps::Dependency::power_panic_initialized);
 }
 
 void print_utils_loop() {
@@ -94,29 +98,31 @@ void print_utils_loop() {
 }
 
 void print_begin(const char *filename, bool skip_preview) {
-    marlin_print_start(filename, skip_preview);
+    marlin_client::print_start(filename, skip_preview);
     // FIXME: This should not be here and it should be handled
     // in Marlin. Needs refactoring!
     oProgressData.mInit();
 }
 
 DeleteResult remove_file(const char *path) {
-    switch (printer_state::get_state()) {
-    case printer_state::DeviceState::Finished:
-    case printer_state::DeviceState::Stopped:
-        // If the state is Finished or Stopped, this can't fail, the only reason of
-        // failure would be a change in the state between the check above
-        // and this call.
-        marlin_print_exit();
-        if (!marlin_print_exited()) {
+    if (marlin_vars()->media_SFN_path.equals(path)) {
+        switch (printer_state::get_state()) {
+        case printer_state::DeviceState::Finished:
+        case printer_state::DeviceState::Stopped:
+            // If the state is Finished or Stopped, this can't fail, the only reason of
+            // failure would be a change in the state between the check above
+            // and this call.
+            marlin_client::print_exit();
+            if (!marlin_client::is_print_exited()) {
+                return DeleteResult::Busy;
+            }
+            break;
+        case printer_state::DeviceState::Paused:
+        case printer_state::DeviceState::Printing:
             return DeleteResult::Busy;
+        default:
+            break;
         }
-        break;
-    case printer_state::DeviceState::Paused:
-    case printer_state::DeviceState::Printing:
-        return DeleteResult::Busy;
-    default:
-        break;
     }
     int result = remove(path);
     if (result == -1) {

@@ -217,3 +217,8 @@ void SideStripControl::SetEnable(bool isEnable) {
         state = State::SetOff;
     }
 }
+
+void SideStripControl::PanicOff() {
+    std::unique_lock lock(mutex);
+    state = State::Off;
+}

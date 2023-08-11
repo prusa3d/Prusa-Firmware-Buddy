@@ -8,15 +8,15 @@
 #include "config_features.h"
 #include "window_icon.hpp"
 #include "screen_menu_tune.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 #if ENABLED(CRASH_RECOVERY)
-    #include "../Marlin/src/feature/prusa/crash_recovery.h"
+    #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
 #endif
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
-    , octo_icon(this, Rect16((240 - png::serial_printing_172x138.w) / 2, GuiDefaults::RectScreenBody.Top(), png::serial_printing_172x138.w, png::serial_printing_172x138.h), &png::serial_printing_172x138)
+    , octo_icon(this, Rect16((240 - img::serial_printing_172x138.w) / 2, GuiDefaults::RectScreenBody.Top(), img::serial_printing_172x138.w, img::serial_printing_172x138.h), &img::serial_printing_172x138)
     , last_tick(0)
     , connection(connection_state_t::connected) {
     ClrMenuTimeoutClose();
@@ -39,7 +39,7 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
             DisableButton(BtnSocket::Middle);
             DisableButton(BtnSocket::Right);
 
-            marlin_gcode("M118 A1 action:disconnect");
+            marlin_client::gcode("M118 A1 action:disconnect");
 
             connection = connection_state_t::disconnecting;
         } else {
@@ -49,10 +49,10 @@ void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, 
 
     if (connection == connection_state_t::disconnecting && marlin_vars()->gqueue < 1) {
         connection = connection_state_t::disconnected;
-        marlin_gcode("G27 P2");     /// park nozzle and raise Z axis
-        marlin_gcode("M104 S0 D0"); /// set temperatures to zero
-        marlin_gcode("M140 S0");    /// set temperatures to zero
-        marlin_gcode("M107");       /// print fan off.
+        marlin_client::gcode("G27 P2");     /// park nozzle and raise Z axis
+        marlin_client::gcode("M104 S0 D0"); /// set temperatures to zero
+        marlin_client::gcode("M140 S0");    /// set temperatures to zero
+        marlin_client::gcode("M107");       /// print fan off.
         Odometer_s::instance().force_to_eeprom();
 #if ENABLED(CRASH_RECOVERY)
         crash_s.write_stat_to_eeprom();
@@ -71,7 +71,7 @@ void screen_printing_serial_data_t::tuneAction() {
 }
 
 void screen_printing_serial_data_t::pauseAction() {
-    marlin_gcode("M118 A1 action:pause");
+    marlin_client::gcode("M118 A1 action:pause");
 }
 
 void screen_printing_serial_data_t::stopAction() {

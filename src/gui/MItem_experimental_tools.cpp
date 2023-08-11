@@ -7,7 +7,7 @@
 #include "menu_spin_config.hpp"
 #include "ScreenHandler.hpp"
 #include "string.h" // memcmp
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 #define NOTRAN(x) string_view_utf8::MakeCPUFLASH((const uint8_t *)x)
 
@@ -219,7 +219,7 @@ void MI_RESET_CURRENTS::click([[maybe_unused]] IWindowMenu &window_menu) {
 /*****************************************************************************/
 // MI_SAVE_AND_RETURN
 MI_SAVE_AND_RETURN::MI_SAVE_AND_RETURN()
-    : WI_LABEL_t(NOTRAN(label), &png::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_LABEL_t(NOTRAN(label), &img::folder_up_16x16, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_SAVE_AND_RETURN::click([[maybe_unused]] IWindowMenu &window_menu) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)ClickCommand::Return);

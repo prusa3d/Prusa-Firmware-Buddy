@@ -5,6 +5,7 @@
 template <std::integral T, size_t SIZE>
 class SumRingBuffer {
 public:
+    typedef T sum_type;
     static_assert(SIZE > 0, "Invalid input");
 
     void Clear() {
@@ -22,6 +23,13 @@ public:
         if (++index >= SIZE)
             index = 0;
     };
+    void PopLast() {
+        if (count) {
+            size_t last_idx = (index - count) % SIZE;
+            sum -= pdata[last_idx];
+            --count;
+        }
+    }
     size_t GetSize() {
         return SIZE;
     };

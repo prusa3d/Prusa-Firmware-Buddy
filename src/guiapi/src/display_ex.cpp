@@ -533,7 +533,7 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
     return get_pixel_directColor_C(pt.x, pt.y);
 }
 
-void display_ex_draw_png(point_ui16_t pt, const png::Resource &png, color_t back_color, ropfn rop, Rect16 subrect) {
+void display_ex_draw_png(point_ui16_t pt, const img::Resource &png, color_t back_color, ropfn rop, Rect16 subrect) {
     FILE *file = png.Get();
     if (!file)
         return;

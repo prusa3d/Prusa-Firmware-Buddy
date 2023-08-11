@@ -146,7 +146,7 @@ ScreenMenuWifiSettings::ScreenMenuWifiSettings()
     #endif
 #endif
 
-    if (marlin_is_printing()) {
+    if (marlin_client::is_printing()) {
         DisableItem<MI_WIFI_INIT_t>();
         DisableItem<MI_WIFI_CREDENTIALS_INI_FILE_t>();
         DisableItem<MI_WIFI_CREDENTIALS_t>();

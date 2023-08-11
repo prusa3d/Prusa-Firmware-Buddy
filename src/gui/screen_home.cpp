@@ -12,12 +12,17 @@
 #include <wui_api.h>
 #include <espif.h>
 
+#if ENABLED(POWER_PANIC)
+    #include "power_panic.hpp"
+#endif
+
 #include "ScreenHandler.hpp"
 #include "ScreenFactory.hpp"
 #include "gui_media_events.hpp"
 #include "DialogMoveZ.hpp"
 #include "DialogHandler.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
+#include "tasks.hpp"
 
 #include "screen_printing.hpp"
 #include "filament_sensors_handler.hpp"
@@ -33,6 +38,7 @@
 #include <option/developer_mode.h>
 #include <option/development_items.h>
 #include <device/peripherals.h>
+#include <option/has_mmu2.h>
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_calibration.hpp"
@@ -41,7 +47,7 @@
     #include "screen_menu_control.hpp"
 #endif
 
-#if HAS_MMU2
+#if HAS_MMU2()
     #include "screen_menu_filament_mmu.hpp"
 #endif
 
@@ -58,11 +64,11 @@ bool screen_home_data_t::touch_broken_during_run = false;
 
 #ifdef USE_ST7789
     #define GEN_ICON_NAMES(ICON) \
-        { png::ICON##_64x64, png::ICON##_64x64_focused, png::ICON##_64x64_disabled }
+        { img::ICON##_64x64, img::ICON##_64x64_focused, img::ICON##_64x64_disabled }
 #endif // USE_ST7789
 #ifdef USE_ILI9488
     #define GEN_ICON_NAMES(ICON) \
-        { png::ICON##_80x80, png::ICON##_80x80_focused, png::ICON##_80x80_disabled }
+        { img::ICON##_80x80, img::ICON##_80x80_focused, img::ICON##_80x80_disabled }
 #endif // USE_ILI9488
 
 static constexpr const WindowMultiIconButton::Pngs icons[] = {
@@ -142,7 +148,7 @@ static void FilamentBtn_cb() {
 }
 
 static void FilamentBtnMMU_cb() {
-#if HAS_MMU2
+#if HAS_MMU2()
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilamentMMU>);
 #else
     FilamentBtn_cb();
@@ -158,11 +164,11 @@ screen_home_data_t::screen_home_data_t()
     , header(this)
     , footer(this)
 #ifdef USE_ST7789
-    , logo(this, logoRect, &png::printer_logo)
+    , logo(this, logoRect, &img::printer_logo)
 #endif // USE_ST7789
     , w_buttons {
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), nullptr, []() { marlin_gcode_printf("M1700"); } },
+        { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
 #if HAS_CONTROL_MENU()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
@@ -188,10 +194,15 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     WindowFileBrowser::SetRoot("/usb");
 
-    header.SetIcon(&png::home_shape_16x16);
+    header.SetIcon(&img::home_shape_16x16);
 #if !defined(_DEBUG) && !DEVELOPER_MODE()
     // regular home screen
+    #if not PRINTER_IS_PRUSA_MK4
     header.SetText(_("INPUT SHAPER (ALPHA)"));
+    #else
+    header.SetText(_("INPUT SHAPER"));
+    #endif
+
 #else
     // show the appropriate build header
     #if DEVELOPER_MODE() && defined(_DEBUG)
@@ -272,7 +283,7 @@ void screen_home_data_t::handle_crash_dump() {
     if (MsgBoxWarning(_("Crash detected. Save it to USB?"), Responses_YesNo)
         == Response::Yes) {
         auto do_stage = [&](string_view_utf8 msg, std::invocable<const ::crash_dump::DumpHandler *> auto fp) {
-            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &png::info_58x58);
+            MsgBoxIconned box(GuiDefaults::DialogFrameRect, Responses_NONE, 0, nullptr, std::move(msg), is_multiline::yes, &img::info_58x58);
             box.Show();
             draw();
             for (const auto &dump_handler : present_dumps) {
@@ -314,6 +325,8 @@ void screen_home_data_t::on_enter() {
         }
     }
 
+    // MK4 is releasing input shaper and therefore is warning no longer required
+    #if not PRINTER_IS_PRUSA_MK4
     static bool input_shaper_warning_shown = false;
     if (!input_shaper_warning_shown) {
         input_shaper_warning_shown = true;
@@ -323,6 +336,7 @@ void screen_home_data_t::on_enter() {
                             "More info at prusa.io/input-shaper"),
             Responses_Ok);
     }
+    #endif
 #endif
 }
 
@@ -376,11 +390,15 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
             const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
             if (try_esp_flash && esp_need_flash && netdev_is_enabled(NETDEV_ESP_ID)) {
                 try_esp_flash = false; // do esp flash only once (user can press abort)
-                marlin_gcode("M997 S1 O");
+                marlin_client::gcode("M997 S1 O");
                 return;
             } else {
                 // on esp update, can use one click print
-                if (GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
+                if (
+    #if ENABLED(POWER_PANIC)
+                    TaskDeps::check(TaskDeps::Dependency::power_panic_initialized) && !power_panic::is_power_panic_resuming() &&
+    #endif // ENABLED(POWER_PANIC)
+                    GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
                     // TODO this should be done in main thread before Event::MediaInserted is generated
                     // if it is not the latest gcode might not be selected
                     if (find_latest_gcode(

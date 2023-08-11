@@ -19,7 +19,7 @@ window_dlg_strong_warning_t::window_dlg_strong_warning_t()
     : AddSuperWindow<IDialog>(GuiDefaults::DialogFrameRect, IsStrong::yes)
     , header(this, _(Title))
     , footer(this)
-    , icon(this, { 0, 0, 0, 0 }, &png::exposure_times_48x48)
+    , icon(this, { 0, 0, 0, 0 }, &img::exposure_times_48x48)
     , text(this, { 0, 0, 0, 0 }, is_multiline::yes)
     , button(this, GuiDefaults::GetButtonRect(GetRect()) - (GuiDefaults::EnableDialogBigLayout ? Rect16::Top_t(0) : Rect16::Top_t(64)), dlg_responses, &ph_txt_continue) {
     if (GuiDefaults::EnableDialogBigLayout) {

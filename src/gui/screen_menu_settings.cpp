@@ -10,7 +10,7 @@
 
 #include "knob_event.hpp"
 #include "SteelSheets.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ScreenMenuSettings::ScreenMenuSettings()
     : ScreenMenuSettings__(_(label))
@@ -19,7 +19,7 @@ ScreenMenuSettings::ScreenMenuSettings()
     EnableLongHoldScreenAction();
 
 #if (!PRINTER_IS_PRUSA_MINI)
-    header.SetIcon(&png::settings_16x16);
+    header.SetIcon(&img::settings_16x16);
 #endif                                                                                                                                  // PRINTER_IS_PRUSA_MINI
 
     gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuExperimentalSettings>); }); // new hold action

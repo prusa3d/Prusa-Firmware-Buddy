@@ -11,4 +11,4 @@ void components_init() {
     assert(components_ready);
 }
 
-} // namespace
+} // namespace TaskDeps

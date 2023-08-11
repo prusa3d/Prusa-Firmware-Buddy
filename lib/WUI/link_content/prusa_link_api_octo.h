@@ -11,4 +11,4 @@ public:
 
 extern const PrusaLinkApiOcto prusa_link_api_octo;
 
-}
+} // namespace nhttp::link_content

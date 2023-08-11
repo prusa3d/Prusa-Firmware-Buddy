@@ -4,7 +4,7 @@
 #include "main.h"
 #include "usb_device.h"
 #include "log.h"
-#include "otp.h"
+#include "otp.hpp"
 #include "buddy/priorities_config.h"
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
@@ -78,7 +78,7 @@ static void usb_device_task_run(const void *) {
 
     // init serial number
     // this function correctly initializes the data and null terminates them
-    otp_get_serial_nr(&serial_nr);
+    otp_get_serial_nr(serial_nr);
 
     // initialize tinyusb stack
     tusb_init();
@@ -169,7 +169,7 @@ char const *string_desc_arr[] = {
     (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
     USBD_MANUFACTURER_STRING,      // 1: Manufacturer
     USBD_PRODUCT_STRING_FS,        // 2: Product
-    serial_nr.txt,                 // 3: Serials, should use chip ID
+    serial_nr.begin(),             // 3: Serials, should use chip ID
     "CDC",                         // 4: CDC Interface
 };
 

@@ -1,6 +1,6 @@
 #include "screen_menu_selftest_snake.hpp"
 #include <selftest_snake_submenus.hpp>
-#include <png_resources.hpp>
+#include <img_resources.hpp>
 #include <marlin_client.hpp>
 #include <ScreenHandler.hpp>
 #include <ScreenSelftest.hpp>
@@ -72,19 +72,19 @@ bool are_previous_completed(Action action) {
     return true;
 }
 
-const png::Resource *get_icon(Action action, Tool tool) {
+const img::Resource *get_icon(Action action, Tool tool) {
     switch (get_test_result(action, tool)) {
     case TestResult_Passed:
-        return &png::ok_color_16x16;
+        return &img::ok_color_16x16;
     case TestResult_Skipped:
     case TestResult_Unknown:
-        return &png::na_color_16x16;
+        return &img::na_color_16x16;
     case TestResult_Failed:
-        return &png::nok_color_16x16;
+        return &img::nok_color_16x16;
     }
 
     assert(false);
-    return &png::error_16x16;
+    return &img::error_16x16;
 }
 
 struct SnakeConfig {
@@ -134,9 +134,15 @@ void do_snake(Action action, Tool tool = Tool::_first) {
     }
 
     if (has_submenu(action)) {
-        marlin_test_start_for_tools(get_test_mask(action), get_tool_mask(tool));
+        if (snake_config.state == SnakeConfig::State::reset || tool == Tool::_first) { // Ask only for first tool or if it is selected in submenu
+            AutoRestore ar(querying_user, true);
+            ask_config(action);
+        }
+        marlin_client::test_start_for_tools(get_test_mask(action), get_tool_mask(tool));
     } else {
-        marlin_test_start(get_test_mask(action));
+        AutoRestore ar(querying_user, true);
+        ask_config(action);
+        marlin_client::test_start(get_test_mask(action));
     }
 
     snake_config.next(action, tool);
@@ -335,7 +341,7 @@ void ScreenMenuSTSCalibrations::windowEvent(EventLock /*has private ctor*/, wind
 
 ScreenMenuSTSWizard::ScreenMenuSTSWizard()
     : SelftestSnake::detail::ScreenMenuSTSWizard(_(label)) {
-    header.SetIcon(&png::wizard_16x16);
+    header.SetIcon(&img::wizard_16x16);
     ClrMenuTimeoutClose(); // No timeout for wizard's snake
 }
 

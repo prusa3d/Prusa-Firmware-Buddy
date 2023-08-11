@@ -91,8 +91,8 @@ namespace puppies {
             UNUSED(res);
         }
     }
-}
-}
+} // namespace puppies
+} // namespace buddy
 
 extern "C" void uart3_idle_cb() {
     buddy::puppies::PuppyBus::bufferedSerial.IdleISR();

@@ -79,4 +79,4 @@ public:
     uint32_t position() const;
 };
 
-}
+} // namespace transfers

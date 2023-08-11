@@ -29,9 +29,9 @@ void GuiMediaEventsHandler::Tick() {
 void GuiMediaEventsHandler::tick() {
     if (is_starting) {
         if ((gui::GetTick() - start_time) >= startup_finished_delay) {
-            marlin_event_clr(marlin_server::Event::MediaRemoved);
-            marlin_event_clr(marlin_server::Event::MediaInserted);
-            marlin_event_clr(marlin_server::Event::MediaError);
+            marlin_client::event_clr(marlin_server::Event::MediaRemoved);
+            marlin_client::event_clr(marlin_server::Event::MediaInserted);
+            marlin_client::event_clr(marlin_server::Event::MediaError);
             is_starting = false;
             media_state = marlin_vars()->media_inserted ? MediaState_t::inserted : MediaState_t::removed;
             if (media_state == MediaState_t::inserted)
@@ -44,11 +44,11 @@ void GuiMediaEventsHandler::tick() {
     // normal run
     MediaState_t actual_state = MediaState_t::unknown;
 
-    if (marlin_event_clr(marlin_server::Event::MediaInserted))
+    if (marlin_client::event_clr(marlin_server::Event::MediaInserted))
         actual_state = MediaState_t::inserted;
-    if (marlin_event_clr(marlin_server::Event::MediaRemoved))
+    if (marlin_client::event_clr(marlin_server::Event::MediaRemoved))
         actual_state = MediaState_t::removed;
-    if (marlin_event_clr(marlin_server::Event::MediaError))
+    if (marlin_client::event_clr(marlin_server::Event::MediaError))
         actual_state = MediaState_t::error;
 
     if (media_state == MediaState_t::error)

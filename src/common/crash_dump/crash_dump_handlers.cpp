@@ -29,7 +29,7 @@ public:
 
     BuddyDumpRequest(const char *url_string_)
         : hdrs {
-            { "Content-Length", static_cast<size_t>(DUMP_FLASH_SIZE + DUMP_OTP_SIZE + DUMP_RAM_SIZE + DUMP_CCRAM_SIZE), std::nullopt },
+            { "Content-Length", static_cast<size_t>(FLASH_SIZE + OTP_SIZE + RAM_SIZE + CCRAM_SIZE), std::nullopt },
             { nullptr, nullptr, std::nullopt },
         }
         , url_string(url_string_) {}
@@ -63,7 +63,7 @@ public:
 
         size_t read { 0 }; // number of bytes that have been read
         if (state == ReadState::ram) {
-            static constexpr size_t current_read_size { DUMP_RAM_SIZE + DUMP_CCRAM_SIZE };
+            static constexpr size_t current_read_size { RAM_SIZE + CCRAM_SIZE };
             const size_t to_read { calculate_to_read(idx, size, read, current_read_size) };
 
             memset(data, 0, to_read);
@@ -77,18 +77,18 @@ public:
         }
 
         if (state == ReadState::otp) {
-            static constexpr size_t current_read_size { DUMP_OTP_SIZE };
+            static constexpr size_t current_read_size { OTP_SIZE };
             const size_t to_read { calculate_to_read(idx, size, read, current_read_size) };
-            memcpy(data + read, (void *)(DUMP_OTP_ADDR + idx), to_read);
+            memcpy(data + read, (void *)(OTP_ADDR + idx), to_read);
 
             update_variables(idx, read, state, to_read, ReadState::flash, current_read_size);
         }
 
         if (state == ReadState::flash) {
-            static constexpr size_t current_read_size { DUMP_FLASH_SIZE };
+            static constexpr size_t current_read_size { FLASH_SIZE };
 
             const size_t to_read { calculate_to_read(idx, size, read, current_read_size) };
-            memcpy(data + read, (void *)(DUMP_FLASH_ADDR + idx), to_read);
+            memcpy(data + read, (void *)(FLASH_ADDR + idx), to_read);
 
             update_variables(idx, read, state, to_read, ReadState::done, current_read_size);
         }
@@ -110,4 +110,4 @@ void upload_buddy_dump_to_server() {
     BuddyDumpRequest req(escaped_url_string.data());
     upload_dump_to_server(req);
 }
-}
+} // namespace crash_dump

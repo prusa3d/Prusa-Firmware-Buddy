@@ -7,19 +7,20 @@
 #include "fonts.hpp"
 #include "mmu2_error_converter.h"
 #include "filament_sensors_handler.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "fsm_loadunload_type.hpp"
 #include <option/has_side_fsensor.h>
+#include <option/has_mmu2.h>
 
 RadioButtonMmuErr::RadioButtonMmuErr(window_t *parent, Rect16 rect)
     : AddSuperWindow<RadioButton>(parent, rect) {}
 
 void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
-#if HAS_MMU2
+#if HAS_MMU2()
     case GUI_event_t::CLICK: {
         Response response = Click();
-        marlin_FSM_response(PhasesLoadUnload::MMU_ERRWaitingForUser, response);
+        marlin_client::FSM_response(PhasesLoadUnload::MMU_ERRWaitingForUser, response);
         break;
     }
 #endif
@@ -55,7 +56,7 @@ static const char *txt_loading            = N_("Loading to nozzle");
 static const char *txt_purging            = N_("Purging");
 static const char *txt_is_color           = N_("Is color correct?");
 
-#if HAS_MMU2
+#if HAS_MMU2()
 // MMU-related
 static const char *txt_mmu_engag_idler    = N_("Engaging idler");
 static const char *txt_mmu_diseng_idler   = N_("Disengaging idler");
@@ -129,7 +130,7 @@ static DialogLoadUnload::States LoadUnloadFactory() {
         DialogLoadUnload::State { txt_is_color,             ClientResponses::GetResponses(PhasesLoadUnload::IsColor),                       ph_txt_iscolor, DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_is_color,             ClientResponses::GetResponses(PhasesLoadUnload::IsColorPurge),                  ph_txt_iscolor_purge, DialogLoadUnload::phaseAlertSound },
         DialogLoadUnload::State { txt_unparking,            ClientResponses::GetResponses(PhasesLoadUnload::Unparking),                     ph_txt_stop },
-#if HAS_MMU2
+#if HAS_MMU2()
         DialogLoadUnload::State { txt_mmu_engag_idler,      ClientResponses::GetResponses(PhasesLoadUnload::MMU_EngagingIdler),     ph_txt_none },
         DialogLoadUnload::State { txt_mmu_diseng_idler,     ClientResponses::GetResponses(PhasesLoadUnload::MMU_DisengagingIdler),  ph_txt_none },
         DialogLoadUnload::State { txt_mmu_unload_finda,     ClientResponses::GetResponses(PhasesLoadUnload::MMU_UnloadingToFinda),  ph_txt_none },
@@ -190,7 +191,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
 #if FOOTER_ITEMS_PER_LINE__ >= 5
           ,
           footer::Item::Nozzle, footer::Item::Bed, footer::Item::FSensor
-    #if HAS_MMU2
+    #if HAS_MMU2()
           ,
           FSensors_instance().HasMMU() ? footer::Item::Finda : footer::Item::None,
           FSensors_instance().HasMMU() ? footer::Item::FSValue : footer::Item::None
@@ -205,7 +206,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
           )
     , radio_for_red_screen(this, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
     , text_link(this, mmu_link_rect, is_multiline::yes, is_closed_on_click_t::no)
-    , icon_hand(this, mmu_icon_rect, &png::hand_qr_59x72)
+    , icon_hand(this, mmu_icon_rect, &img::hand_qr_59x72)
     , qr(this, mmu_qr_rect)
     , mode(ProgressSerializerLoadUnload(data.GetData()).mode) {
 
@@ -250,7 +251,7 @@ void DialogLoadUnload::phaseWaitSound() {
 }
 void DialogLoadUnload::phaseStopSound() { Sound_Stop(); }
 
-#if HAS_MMU2
+#if HAS_MMU2()
 static constexpr bool isRed(uint8_t phs) {
     int16_t err_pos = int16_t(PhasesLoadUnload::MMU_ERRWaitingForUser) - int16_t(PhasesLoadUnload::_first);
     return phs == err_pos;
@@ -264,7 +265,7 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         title.SetText(get_name(mode));
     }
 
-#if HAS_MMU2
+#if HAS_MMU2()
     // was black (or uninitialized), is red
     if ((!phase || !isRed(*phase)) && isRed(phs)) {
         SetRedLayout();

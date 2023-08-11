@@ -48,4 +48,4 @@ const char *marlin_events_get_name(Event evt_id) {
     return "";
 }
 
-} // marlin_server namespace
+} // namespace marlin_server

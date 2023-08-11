@@ -180,7 +180,7 @@ Response test_resp_req(const char *server_resp, Status status, ContentType conte
     return r;
 }
 
-}
+} // namespace
 
 TEST_CASE("Request - response no content") {
     // Note: content type is on its default octet-stream = "No idea, bunch of bytes I guess"

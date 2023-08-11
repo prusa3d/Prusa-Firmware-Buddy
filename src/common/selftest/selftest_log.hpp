@@ -52,4 +52,4 @@ public:
             log_debug(Selftest, __VA_ARGS__); \
         }                                     \
     }
-}
+} // namespace selftest

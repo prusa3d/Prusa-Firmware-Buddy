@@ -126,96 +126,6 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_HF_TEST_0 : public WI_LABEL_t {
-    static constexpr const char *const label = "HF0 Test"; // intentionally not translated, only for debugging
-
-public:
-    MI_HF_TEST_0();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_HF_TEST_1 : public WI_LABEL_t {
-    static constexpr const char *const label = "HF1 Test"; // intentionally not translated, only for debugging
-
-public:
-    MI_HF_TEST_1();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_400 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.0"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_400();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_401 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.1"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_401();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_402 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.2"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_402();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_403RC1 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.3-RC1"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_403RC1();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD_403 : public WI_LABEL_t {
-    static constexpr const char *const label = "EE 4.0.3"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD_403();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_LOAD : public WI_LABEL_t {
-    static constexpr const char *const label = "EE Load"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_LOAD();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
-class MI_EE_SAVE : public WI_LABEL_t {
-    static constexpr const char *const label = "EE Save"; // intentionally not translated, only for debugging
-
-public:
-    MI_EE_SAVE();
-
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
-};
-
 class MI_EE_SAVEXML : public WI_LABEL_t {
     static constexpr const char *const label = "TODO EE Save XML"; // intentionally not translated, only for debugging
 
@@ -497,13 +407,6 @@ public:
     MI_INFO_SERIAL_NUM();
 };
 
-class MI_INFO_SERIAL_NUM_XLCD : public WiInfo<28> {
-    static constexpr const char *const label = N_("xLCD");
-
-public:
-    MI_INFO_SERIAL_NUM_XLCD();
-};
-
 class MI_METRICS_ENABLE : public WI_ICON_SWITCH_OFF_ON_t {
     static constexpr const char *const label = N_("Allow Metrics");
     static constexpr const char *const txt_confirm = N_("This will allow metrics to be enabled by G-code. It can send unencrypted diagnostics data to the internet. Do you really want to allow metrics?");
@@ -575,7 +478,7 @@ public:
 };
 class MI_ODOMETER_DIST : public WI_FORMATABLE_LABEL_t<float> {
 public:
-    MI_ODOMETER_DIST(string_view_utf8 label, const png::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
+    MI_ODOMETER_DIST(string_view_utf8 label, const img::Resource *icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
 };
 
 class MI_ODOMETER_DIST_X : public MI_ODOMETER_DIST {

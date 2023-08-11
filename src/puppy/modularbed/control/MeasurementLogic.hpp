@@ -20,4 +20,4 @@ float PreciselyMeasureChannel(hal::ADCDriver::ADCChannel channel);
 
 float GetLastMeasuredAndCalculatedValue(hal::ADCDriver::ADCChannel channel);
 
-} // namespace
+} // namespace modularbed::MeasurementLogic

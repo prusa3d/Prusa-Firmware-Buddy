@@ -86,4 +86,4 @@ void ResponseParser::extra(char c, HeaderName name) {
     }
 }
 
-}
+} // namespace http::parser

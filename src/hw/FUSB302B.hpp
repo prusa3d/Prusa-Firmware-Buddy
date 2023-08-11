@@ -23,5 +23,5 @@ namespace hw {
 
         static void DetectAddress();
     };
-}
-}
+} // namespace hw
+} // namespace buddy

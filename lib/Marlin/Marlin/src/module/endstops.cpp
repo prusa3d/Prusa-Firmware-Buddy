@@ -55,7 +55,7 @@
 #endif
 
 #if HAS_LOADCELL()
-  #include "loadcell.h"
+  #include "loadcell.hpp"
 #endif
 
 Endstops endstops;

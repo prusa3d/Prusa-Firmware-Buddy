@@ -235,4 +235,4 @@ BootloaderProtocol::status_t BootloaderProtocol::assign_address(Address current_
     return res;
 }
 
-}
+} // namespace buddy::puppies

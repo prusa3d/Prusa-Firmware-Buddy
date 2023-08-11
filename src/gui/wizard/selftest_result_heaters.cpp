@@ -5,13 +5,13 @@
  */
 
 #include "selftest_result_heaters.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "i18n.h"
 
 ResultHeaters::ResultHeaters()
     : SelfTestGroup(_("Heaters check"))
-    , noz(_("Nozzle"), &png::nozzle_16x16, TestResult_Unknown)
-    , bed(_("Heatbed"), &png::heatbed_16x16, TestResult_Unknown) {
+    , noz(_("Nozzle"), &img::nozzle_16x16, TestResult_Unknown)
+    , bed(_("Heatbed"), &img::heatbed_16x16, TestResult_Unknown) {
     Add(noz);
     Add(bed);
 }

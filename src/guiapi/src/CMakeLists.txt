@@ -25,6 +25,7 @@ target_sources(
           window_event.cpp
           window_frame.cpp
           window_icon.cpp
+          window_line_connector.cpp
           window_menu.cpp
           window_menu_adv.cpp
           window_menu_bar.cpp

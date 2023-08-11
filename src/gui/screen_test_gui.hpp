@@ -7,7 +7,7 @@
 #include "screen.hpp"
 
 struct screen_test_gui_data_t : public AddSuperWindow<screen_t> {
-    png::ResourceSingleFile png_printer;
+    img::ResourceSingleFile png_printer;
     window_icon_t logo_prusa_printer;
     window_text_t text0;
     window_text_t text1;

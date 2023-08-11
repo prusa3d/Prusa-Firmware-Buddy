@@ -24,4 +24,4 @@ namespace selftest {
  */
 bool phaseFirstLayer(IPartHandler *&pFirstLayer, const FirstLayerConfig_t &config);
 
-};
+}; // namespace selftest

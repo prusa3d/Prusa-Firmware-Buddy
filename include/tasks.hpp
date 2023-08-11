@@ -6,6 +6,7 @@
 #include <event_groups.h>
 #include <stdint.h>
 #include <option/has_puppies.h>
+#include <option/has_embedded_esp32.h>
 #include "utility_extensions.hpp"
 
 namespace TaskDeps {
@@ -26,6 +27,8 @@ enum class Dependency {
     usbserial_ready,
     esp_flashed,
     manufacture_report_sent,
+    async_io_ready,
+    power_panic_initialized,
 
     _count
 };
@@ -50,9 +53,17 @@ namespace Tasks {
     inline constexpr dependency_t puppy_start = make(Dependency::resources_ready, Dependency::manufacture_report_sent);
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
-    inline constexpr dependency_t network = make(Dependency::esp_flashed);
+    inline constexpr dependency_t network = make(
+#if HAS_EMBEDDED_ESP32()
+    #if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
+        // This is temporary, remove once everyone has compatible hardware.
+        // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+        Dependency::esp_flashed,
+    #endif
+#endif
+        Dependency::async_io_ready);
 
-} // namespace
+} // namespace Tasks
 
 // Needed for inline methods being embedded to different compilation modules
 extern EventGroupHandle_t components_ready;
@@ -90,4 +101,4 @@ inline void provide(Dependency dependency) {
     xEventGroupSetBits(components_ready, 1 << ftrstd::to_underlying(dependency));
 }
 
-} // TaskDeps namespace
+} // namespace TaskDeps

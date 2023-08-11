@@ -17,6 +17,7 @@
 #include "option/has_loadcell.h"
 #include "option/filament_sensor.h"
 #include "option/has_toolchanger.h"
+#include <option/has_mmu2.h>
 
 enum { RESPONSE_BITS = 4,                   // number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; // maximum number of responses in one phase
@@ -79,7 +80,7 @@ enum class PhasesLoadUnload : uint16_t {
     IsColorPurge,
     Unparking,
 
-#if HAS_MMU2
+#if HAS_MMU2()
     // internal states of the MMU
     MMU_EngagingIdler,
     MMU_DisengagingIdler,
@@ -139,6 +140,8 @@ enum class PhasesPrintPreview : uint16_t {
     wrong_printer_abort,
     filament_not_inserted,
     mmu_filament_inserted,
+    tools_mapping,
+
     wrong_filament,
     _last = wrong_filament
 };
@@ -362,7 +365,7 @@ class ClientResponses {
         { Response::Yes, Response::Purge_more },                  // IsColorPurge
         {},                                                       // Unparking
 
-#if HAS_MMU2
+#if HAS_MMU2()
         {},                                                            // MMU_EngagingIdler,
         {},                                                            // MMU_DisengagingIdler,
         {},                                                            // MMU_UnloadingToFinda,
@@ -415,14 +418,25 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
     static constexpr PhaseResponses PrintPreviewResponses[] = {
-        { Response::Print, Response::Back },                   // main_dialog,
+        {
+#if PRINTER_IS_PRUSA_XL
+            Response::Continue,
+#else
+            Response::Print,
+#endif
+            Response::Back },                                  // main_dialog,
         { Response::Continue, Response::Abort },               // unfinished_selftest
         { Response::Continue },                                // new_firmware_available
         { Response::Abort, Response::PRINT },                  // wrong_printer
         { Response::Abort },                                   // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
         { Response::Yes, Response::No },                       // mmu_filament_inserted
-        { Response::Change, Response::Ok, Response::Abort }    // wrong_filament
+        { Response::Back, Response::PRINT },                   // tools_mapping
+        {
+#if !PRINTER_IS_PRUSA_XL
+            Response::Change,
+#endif
+            Response::Ok, Response::Abort } // wrong_filament
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
@@ -593,7 +607,7 @@ public:
 
     // get all responses accepted in phase
     template <class T>
-    static const PhaseResponses &GetResponses(const T phase) {
+    static constexpr const PhaseResponses &GetResponses(const T phase) {
         return getResponsesInPhase(phase);
     }
     template <class T>

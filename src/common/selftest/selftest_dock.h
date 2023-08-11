@@ -91,4 +91,4 @@ private:
     void revert_tool_info();
 };
 
-};
+}; // namespace selftest

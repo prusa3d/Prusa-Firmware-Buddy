@@ -12,6 +12,7 @@
 #include "tusb.h"
 #include <device/peripherals.h>
 #include "wdt.h"
+#include <option/buddy_enable_wui.h>
 
 #ifdef BUDDY_ENABLE_WUI
     #include "espif.h"
@@ -46,7 +47,7 @@ void __attribute__((naked)) HardFault_Handler(void) {
 #endif /*_DEBUG*/
 
     DUMP_HARDFAULT_TO_CCRAM();
-    dump_to_xflash();
+    save_dump();
     sys_reset();
     while (1) {
     }
@@ -100,7 +101,7 @@ void USART2_IRQHandler() {
 void USART6_IRQHandler(void) {
     if (__HAL_UART_GET_FLAG(&huart6, UART_FLAG_IDLE)) {
         __HAL_UART_CLEAR_IDLEFLAG(&huart6);
-#if defined(BUDDY_ENABLE_WUI) && uart_esp == 6
+#if BUDDY_ENABLE_WUI() && uart_esp == 6
         espif_receive_data(&huart6);
 #elif BOARD_IS_XBUDDY
     #if !HAS_PUPPIES()
@@ -275,7 +276,7 @@ void DMA2_Stream1_IRQHandler(void) {
 
     // HAL_DMA_IRQHandler(&hdma_usart6_rx);
     if (__HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_HT) != RESET || __HAL_DMA_GET_IT_SOURCE(&hdma_usart6_rx, DMA_IT_TC) != RESET) {
-    #ifdef BUDDY_ENABLE_WUI
+    #if BUDDY_ENABLE_WUI()
         espif_receive_data(&huart6);
     #endif // BUDDY_ENABLE_WUI
     }
@@ -318,9 +319,9 @@ void DMA1_Stream0_IRQHandler(void) {
  */
 void DMA1_Stream6_IRQHandler(void) {
     if (__HAL_DMA_GET_IT_SOURCE(&hdma_uart8_rx, DMA_IT_HT) != RESET || __HAL_DMA_GET_IT_SOURCE(&hdma_uart8_rx, DMA_IT_TC) != RESET) {
-    #ifdef BUDDY_ENABLE_WUI
+    #if BUDDY_ENABLE_WUI()
         espif_receive_data(&huart8);
-    #endif // BUDDY_ENABLE_WUI
+    #endif // BUDDY_ENABLE_WUI()
     }
     HAL_DMA_IRQHandler(&hdma_uart8_rx);
 }

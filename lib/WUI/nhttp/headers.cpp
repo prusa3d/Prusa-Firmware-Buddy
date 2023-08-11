@@ -48,7 +48,7 @@ namespace {
     };
 
     constexpr const size_t content_buffer_len = 128;
-}
+} // namespace
 
 const StatusText &StatusText::find(Status status) {
     for (const StatusText *t = texts; t < (texts + sizeof(texts) / sizeof(*texts)); t++) {
@@ -156,4 +156,4 @@ uint32_t compute_etag(const struct stat &stat) {
     return result;
 }
 
-}
+} // namespace nhttp

@@ -8,7 +8,7 @@
  */
 
 #include "config_features.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include <option/has_side_leds.h>
 #if HAS_SIDE_LEDS()
     #include <leds/side_strip_control.hpp>
@@ -20,7 +20,7 @@
     #include "i18n.h"
     #include "wizard_config.hpp"
     #include "crash_recovery_type.hpp"
-    #include "marlin_client.hpp" // marlin_FSM_response
+    #include "marlin_client.hpp" // marlin_client::FSM_response
     #include "sound.hpp"
 
     #include <option/has_toolchanger.h>
@@ -110,8 +110,8 @@ static constexpr const char *en_text_tool_careful = N_("!! Careful, tools are ho
 
 WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_check))
-    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &png::nozzle_crash_101x64)
-    , icon_nozzle(&screen, icon_nozzle_rc, &png::nozzle_shape_48x48)
+    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
+    , icon_nozzle(&screen, icon_nozzle_rc, &img::nozzle_shape_48x48)
     , text_checking_axis(&screen, text_checking_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_axis_test))
     , line(&screen, line_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
     , text_x_axis(&screen, text_x_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_X_axis))
@@ -129,8 +129,8 @@ WinsCheckAxis::WinsCheckAxis(ScreenCrashRecovery &screen)
 
 WinsHome::WinsHome(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_check))
-    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &png::nozzle_crash_101x64)
-    , icon_nozzle(&screen, icon_nozzle_rc, &png::nozzle_shape_48x48)
+    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
+    , icon_nozzle(&screen, icon_nozzle_rc, &img::nozzle_shape_48x48)
     , line(&screen, line_rc, line_h, COLOR_ORANGE, COLOR_ORANGE)
     , text_home_axes(&screen, text_x_axis_rc, is_multiline::no, is_closed_on_click_t::no, _(en_text_home_axes))
     , icon_home_axes(&screen, { col_2, row_4 }) {
@@ -161,8 +161,8 @@ WinsAxisNok::WinsAxisNok(ScreenCrashRecovery &screen)
 
 WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_repeat_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_repeat))
-    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &png::nozzle_crash_101x64)
-    , icon_nozzle(&screen, icon_nozzle_rc, &png::nozzle_shape_48x48)
+    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
+    , icon_nozzle(&screen, icon_nozzle_rc, &img::nozzle_shape_48x48)
     , text_info(&screen, text_repeat_info_rc, is_multiline::yes, is_closed_on_click_t::no,
     #if HAS_TOOLCHANGER()
           prusa_toolchanger.is_toolchanger_enabled() ? _(en_text_repeat_info_tool) : _(en_text_repeat_info)
@@ -183,8 +183,8 @@ WinsRepeatedCrash::WinsRepeatedCrash(ScreenCrashRecovery &screen)
 
 WinsHomeFail::WinsHomeFail(ScreenCrashRecovery &screen)
     : text_long(&screen, text_long_repeat_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_long_homefail))
-    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &png::nozzle_crash_101x64)
-    , icon_nozzle(&screen, icon_nozzle_rc, &png::nozzle_shape_48x48)
+    , icon_nozzle_crash(&screen, icon_nozzle_crash_rc, &img::nozzle_crash_101x64)
+    , icon_nozzle(&screen, icon_nozzle_rc, &img::nozzle_shape_48x48)
     , text_info(&screen, text_repeat_info_rc, is_multiline::yes, is_closed_on_click_t::no, _(en_text_homefail_info))
     , radio(&screen, GuiDefaults::GetButtonRect_AvoidFooter(screen.GetRect()), ClientResponses::GetResponses(PhasesCrashRecovery::home_fail), &texts) {
 
@@ -357,7 +357,7 @@ ScreenCrashRecovery::ScreenCrashRecovery()
 
     ScreenCrashRecovery::ClrMenuTimeoutClose(); // don't close on menu timeout
     header.SetText(_("CRASH DETECTED"));
-    header.SetIcon(&png::nozzle_16x16);
+    header.SetIcon(&img::nozzle_16x16);
     ths = this;
 }
 
@@ -468,7 +468,7 @@ void WinUnion::ButtonEvent(GUI_event_t event) {
             PhasesCrashRecovery send_phase = phase;
             if (phase == PhasesCrashRecovery::axis_short || phase == PhasesCrashRecovery::axis_long)
                 send_phase = PhasesCrashRecovery::axis_NOK;
-            marlin_FSM_response(send_phase, response);
+            marlin_client::FSM_response(send_phase, response);
             break;
         }
         case GUI_event_t::ENC_UP:

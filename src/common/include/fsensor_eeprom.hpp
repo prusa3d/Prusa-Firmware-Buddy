@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 class FSensorEEPROM {
 public:

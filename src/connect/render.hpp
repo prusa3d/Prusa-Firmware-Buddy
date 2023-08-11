@@ -95,4 +95,4 @@ public:
         : JsonRenderer(std::move(state)) {}
 };
 
-}
+} // namespace connect_client

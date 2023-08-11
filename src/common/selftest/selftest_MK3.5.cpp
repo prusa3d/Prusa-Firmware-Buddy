@@ -10,7 +10,7 @@
 #include "selftest_firstlayer_interface.hpp"
 #include "stdarg.h"
 #include "app.h"
-#include "otp.h"
+#include "otp.hpp"
 #include "hwio.h"
 #include "marlin_server.hpp"
 #include "wizard_config.hpp"

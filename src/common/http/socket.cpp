@@ -49,7 +49,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 namespace http {
 
@@ -173,4 +173,4 @@ bool socket_con::poll_readable(uint32_t timeout) {
     }
 }
 
-}
+} // namespace http

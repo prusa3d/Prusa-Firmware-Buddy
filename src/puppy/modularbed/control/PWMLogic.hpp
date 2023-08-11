@@ -21,4 +21,4 @@ void ApplyPWMValuesWithoutLimiters();
 
 hal::ADCDriver::ADCChannel GetHBCurrentMeasurementChannel(uint32_t heatbedletIndex);
 
-} // namespace
+} // namespace modularbed::PWMLogic

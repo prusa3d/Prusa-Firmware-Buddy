@@ -13,7 +13,7 @@
     #include "window_tool_action_box.hpp"
     #include "screen_menu_filament_changeall.hpp"
 #endif
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #if HAS_TOOLCHANGER()
 /// @brief  will show dialog where user can pick tool
@@ -47,7 +47,7 @@ void MI_LOAD::Do() {
 #endif
     auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
     if ((current_filament == filament::Type::NONE) || (MsgBoxWarning(_(warning_loaded), Responses_YesNo, 1) == Response::Yes)) {
-        marlin_gcode("M701 W2"); // load with return option
+        marlin_client::gcode("M701 W2"); // load with return option
     }
 }
 
@@ -62,8 +62,8 @@ void MI_UNLOAD::Do() {
         return;
     }
 #endif
-    marlin_gcode("M702 W2"); // unload with return option
-    Sound_Stop();            // TODO what is Sound_Stop(); doing here?
+    marlin_client::gcode("M702 W2"); // unload with return option
+    Sound_Stop();                    // TODO what is Sound_Stop(); doing here?
 }
 
 /*****************************************************************************/
@@ -98,8 +98,8 @@ void MI_CHANGE::Do() {
         return;
     }
 #endif
-    marlin_gcode("M1600 R"); // non print filament change
-    Sound_Stop();            // TODO what is Sound_Stop(); doing here?
+    marlin_client::gcode("M1600 R"); // non print filament change
+    Sound_Stop();                    // TODO what is Sound_Stop(); doing here?
 }
 
 #if HAS_TOOLCHANGER()
@@ -124,7 +124,7 @@ void MI_PURGE::Do() {
         return;
     }
 #endif
-    marlin_gcode("M701 L0 W2"); // load with distance 0 and return option
+    marlin_client::gcode("M701 L0 W2"); // load with distance 0 and return option
 }
 
 bool MI_PURGE::AvailableForTool(uint8_t tool) {

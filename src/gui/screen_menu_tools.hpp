@@ -18,7 +18,7 @@ public:
 
 class MI_POSITION : public WiSpinFlt {
 public:
-    MI_POSITION(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
+    MI_POSITION(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal);
 
 protected:
     virtual void set_pos(const float pos) = 0;
@@ -48,7 +48,7 @@ public:
 
 class MI_OFFSET : public WiSpinFlt {
 public:
-    MI_OFFSET(string_view_utf8 label, const png::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig_t<float> &config);
+    MI_OFFSET(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, float initVal, const SpinConfig_t<float> &config);
 };
 
 class MI_OFFSET_X : public MI_OFFSET {

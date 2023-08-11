@@ -7,14 +7,14 @@
 #include "selftest_result_eth.hpp"
 #include "i18n.h"
 #include "selftest_result_type.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ResultEth::ResultEth(bool is_wifi)
     : SelfTestGroup(is_wifi ? _("WiFi connection") : _("Ethernet connection"))
-    , skipped(_("Test did not run"), is_wifi ? &png::wifi_16x16 : &png::lan_16x16, is_multiline::yes)
-    , not_connected(is_wifi ? _("WiFi not connected") : _("Ethernet cable not plugged in"), is_wifi ? &png::wifi_16x16 : &png::lan_16x16, is_multiline::yes)
-    , inactive(_("Inactive"), is_wifi ? &png::wifi_16x16 : &png::lan_16x16, TestResult_Passed, is_multiline::yes)
-    , connected(_("Connected"), is_wifi ? &png::wifi_16x16 : &png::lan_16x16, TestResult_Passed, is_multiline::yes) {
+    , skipped(_("Test did not run"), is_wifi ? &img::wifi_16x16 : &img::lan_16x16, is_multiline::yes)
+    , not_connected(is_wifi ? _("WiFi not connected") : _("Ethernet cable not plugged in"), is_wifi ? &img::wifi_16x16 : &img::lan_16x16, is_multiline::yes)
+    , inactive(_("Inactive"), is_wifi ? &img::wifi_16x16 : &img::lan_16x16, TestResult_Passed, is_multiline::yes)
+    , connected(_("Connected"), is_wifi ? &img::wifi_16x16 : &img::lan_16x16, TestResult_Passed, is_multiline::yes) {
 }
 
 void ResultEth::SetState(TestResultNet res) {

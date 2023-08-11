@@ -5,7 +5,11 @@
 #include <state/printer_state.hpp>
 #include <transfers/monitor.hpp>
 #include <segmented_json_macros.h>
-#include <connect/connect.hpp>
+
+#include <option/buddy_enable_connect.h>
+#if BUDDY_ENABLE_CONNECT()
+    #include <connect/connect.hpp>
+#endif
 
 using namespace marlin_server;
 using transfers::Monitor;
@@ -24,7 +28,6 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
     uint32_t time_to_end = marlin_vars()->time_to_end;
     auto link_state = printer_state::get_state(false);
 
-    bool connect_ok = get<0>(connect_client::last_status()) == connect_client::ConnectionStatus::Ok;
     // Keep the indentation of the JSON in here!
     // clang-format off
     JSON_START;
@@ -60,24 +63,18 @@ json::JsonResult StatusRenderer::renderState(size_t resume_point, json::JsonOutp
             JSON_FIELD_FFIXED("target_nozzle", marlin_vars()->active_hotend().target_nozzle, 1) JSON_COMMA;
             // XYZE, mm
             JSON_FIELD_FFIXED("axis_z", marlin_vars()->logical_curr_pos[2], 1) JSON_COMMA;
-            if (!marlin_is_printing()) {
+            if (!marlin_client::is_printing()) {
                 JSON_FIELD_FFIXED("axis_x", marlin_vars()->logical_curr_pos[0], 1) JSON_COMMA;
                 JSON_FIELD_FFIXED("axis_y", marlin_vars()->logical_curr_pos[1], 1) JSON_COMMA;
             }
             JSON_FIELD_INT("flow", marlin_vars()->active_hotend().flow_factor) JSON_COMMA;
             JSON_FIELD_INT("speed", marlin_vars()->print_speed) JSON_COMMA;
             JSON_FIELD_INT("fan_hotend", marlin_vars()->active_hotend().heatbreak_fan_rpm) JSON_COMMA;
-            JSON_FIELD_INT("fan_print", marlin_vars()->active_hotend().print_fan_rpm) JSON_COMMA;
-            JSON_FIELD_OBJ("status_connect");
-                JSON_FIELD_BOOL("ok", connect_ok) JSON_COMMA;
-                // FIXME: Link right now compares this message to "ok" (case insensitive)
-                // and that actually determines if "Linked" or "Not Linked" is shown :-O
-                JSON_FIELD_STR("message", connect_ok ? "OK" : "");
-            JSON_OBJ_END;
+            JSON_FIELD_INT("fan_print", marlin_vars()->active_hotend().print_fan_rpm);
         JSON_OBJ_END;
     JSON_OBJ_END;
     JSON_END;
     // clang-format on
 }
 
-}
+} // namespace nhttp::handler

@@ -22,7 +22,7 @@ void LogErrorEvent_P(const char *msg_P);
 /// On the ARM platform it calls LogErrorEvent directly (silently expecting the compiler to optimize it away)
 void LogEchoEvent_P(const char *msg_P);
 
-} // namespace
+} // namespace MMU2
 
     #define SERIAL_MMU2() \
         { serialprintPGM(mmu2Magic); }

@@ -34,6 +34,7 @@ typedef struct _ili9488_config_t {
     uint8_t brightness;
     uint8_t is_inverted;
     uint8_t control;
+    uint8_t pwm_inverted;
 } ili9488_config_t;
 
 inline uint32_t color_to_666(uint32_t clr) {
@@ -53,7 +54,6 @@ extern void ili9488_wr(uint8_t *pdata, uint16_t size);
 extern void ili9488_fill_rect_colorFormat666(uint16_t rect_x, uint16_t rect_y, uint16_t rect_w, uint16_t rect_h, uint32_t clr666);
 
 extern void ili9488_draw_png_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, uint8_t rop, Rect16 subrect);
-extern void ili9488_set_backlight(uint8_t bck);
 
 extern void ili9488_inversion_on(void);
 extern void ili9488_inversion_off(void);
@@ -86,3 +86,5 @@ extern void ili9488_spi_rx_complete(void);
 extern void ili9488_cmd_madctlrd(uint8_t *pdata);
 
 extern void ili9488_set_complete_lcd_reinit();
+
+extern void ili9488_power_down();

@@ -5,6 +5,8 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <algorithm>
+#include <array>
 
 /**
  * @brief list of all button types
@@ -32,6 +34,7 @@ enum class Response : uint8_t {
     HighFlow,
     HIPS,
     Ignore,
+    Left,
     Load,
     MMU_disable,
     Never,
@@ -51,11 +54,14 @@ enum class Response : uint8_t {
     PVB,
     Quit,
     Reheat,
+    Replace,
     Restart,
     Resume,
     Retry,
+    Right,
     Skip,
     Slowly,
+    SpoolJoin,
     Stop,
     Unload,
     Yes,
@@ -65,4 +71,14 @@ enum class Response : uint8_t {
     _last = PRINT,
 };
 
-constexpr const Response ResponseNone = Response::_none;
+inline constexpr Response ResponseNone = Response::_none;
+
+template <size_t N>
+constexpr size_t cnt_filled_responses(const std::array<Response, N> &resps) {
+    return (std::find(resps.begin(), resps.end(), Response::_none)) - resps.begin();
+}
+
+template <size_t N>
+constexpr size_t get_response_idx(const std::array<Response, N> &resps, Response resp) {
+    return std::distance(resps.begin(), std::find(resps.begin(), resps.end(), resp));
+}

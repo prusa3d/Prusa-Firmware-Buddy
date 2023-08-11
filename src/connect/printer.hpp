@@ -1,6 +1,6 @@
 #pragma once
 
-#include <otp.h>
+#include <otp.hpp>
 #include <common/shared_buffer.hpp>
 
 #include <cstdint>
@@ -161,4 +161,4 @@ public:
     uint32_t info_fingerprint() const;
 };
 
-}
+} // namespace connect_client

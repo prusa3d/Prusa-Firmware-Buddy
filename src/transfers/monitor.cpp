@@ -84,6 +84,10 @@ void Monitor::Slot::done(Outcome outcome) {
     owner.history_latest = owner.current_id;
 }
 
+const char *Monitor::Slot::filepath() {
+    return owner.destination_path;
+}
+
 optional<Monitor::Status> Monitor::status(bool allow_stale) const {
     Lock lock(main_mutex);
 
@@ -232,4 +236,4 @@ uint32_t Monitor::Status::time_transferring() const {
     return ticks_s() - start;
 }
 
-}
+} // namespace transfers

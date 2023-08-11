@@ -12,4 +12,4 @@ struct DockConfig_t {
     feedRate_t z_extra_pos_fr; ///< Use this feedrate [mm/s]
 };
 
-};
+}; // namespace selftest

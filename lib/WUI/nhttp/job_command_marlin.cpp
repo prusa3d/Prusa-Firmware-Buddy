@@ -88,14 +88,14 @@ namespace {
         return simple_state;
     }
 
-}
+} // namespace
 
 // FIXME: There's a race between the check and the command. Does it matter?
 
 bool JobCommand::stop() {
     const auto state = get_state();
     if (state == SimplePrintState::Printing || state == SimplePrintState::Paused || state == SimplePrintState::Attention) {
-        marlin_print_abort();
+        marlin_client::print_abort();
         return true;
     } else {
         return false;
@@ -104,7 +104,7 @@ bool JobCommand::stop() {
 
 bool JobCommand::pause() {
     if (get_state() == SimplePrintState::Printing) {
-        marlin_print_pause();
+        marlin_client::print_pause();
         return true;
     } else {
         return false;
@@ -114,10 +114,10 @@ bool JobCommand::pause() {
 bool JobCommand::pause_toggle() {
     switch (get_state()) {
     case SimplePrintState::Printing:
-        marlin_print_pause();
+        marlin_client::print_pause();
         return true;
     case SimplePrintState::Paused:
-        marlin_print_resume();
+        marlin_client::print_resume();
         return true;
     default:
         assert(0);
@@ -130,11 +130,11 @@ bool JobCommand::pause_toggle() {
 
 bool JobCommand::resume() {
     if (get_state() == SimplePrintState::Paused) {
-        marlin_print_resume();
+        marlin_client::print_resume();
         return true;
     } else {
         return false;
     }
 }
 
-}
+} // namespace nhttp::printer

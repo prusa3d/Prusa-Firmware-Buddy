@@ -135,4 +135,4 @@ optional<ConnectionState> PrusaLinkApiOcto::accept(const RequestParser &parser) 
 
 const PrusaLinkApiOcto prusa_link_api_octo;
 
-}
+} // namespace nhttp::link_content

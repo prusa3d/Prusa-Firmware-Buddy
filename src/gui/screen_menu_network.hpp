@@ -9,9 +9,10 @@
 #include "MItem_menus.hpp"
 #include "MItem_tools.hpp"
 #include "MItem_lan.hpp"
+#include <option/buddy_enable_connect.h>
 
 using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_PRUSALINK,
-#ifdef BUDDY_ENABLE_CONNECT
+#if BUDDY_ENABLE_CONNECT()
     MI_PRUSA_CONNECT,
 #endif
     MI_NET_INTERFACE_t, MI_IP4_ADDR, MI_MAC_ADDR, MI_METRICS_ENABLE, MI_ETH_SETTINGS, MI_WIFI_SETTINGS>;

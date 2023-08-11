@@ -1,7 +1,7 @@
 #include "input_shaper_config.hpp"
 #include "input_shaper.hpp"
 
-#include "eeprom_journal/store_instance.hpp"
+#include <config_store/store_instance.hpp>
 
 #include "../../module/planner.h"
 
@@ -66,23 +66,57 @@ static input_shaper_pulses_t get_input_shaper(const input_shaper::Type input_sha
     }
 }
 
-static auto get_input_shaper(const AxisConfig &c) {
+static input_shaper_pulses_t get_input_shaper(const AxisConfig &c) {
     return get_input_shaper(c.type, c.frequency, c.damping_ratio, c.vibration_reduction);
 }
-static void set_axis_config_internal(const AxisEnum axis, std::optional<AxisConfig> axis_config) {
+
+#ifdef COREXY
+static std::pair<input_shaper_pulses_t, input_shaper_pulses_t> get_input_shaper(const AxisConfig &first_axis_config, const std::optional<AxisConfig> &second_axis_config) {
+    const input_shaper_pulses_t first_axis_pulses = get_input_shaper(first_axis_config);
+    const input_shaper_pulses_t second_axis_pulses = second_axis_config ? get_input_shaper(*second_axis_config) : create_null_input_shaper_pulses();
+    return { first_axis_pulses, second_axis_pulses };
+}
+#endif
+
+static void set_logical_axis_config_internal(const AxisEnum axis, std::optional<AxisConfig> axis_config) {
+#ifdef COREXY
     if (axis_config) {
-        InputShaper::is_pulses[axis] = get_input_shaper(*axis_config);
-        PreciseStepping::step_generator_types |= (INPUT_SHAPER_STEP_GENERATOR_X << axis);
+        if (axis == X_AXIS || axis == Y_AXIS) {
+            std::optional<AxisConfig> second_axis_config = current_config().axis[(axis == X_AXIS) ? Y_AXIS : X_AXIS];
+            std::tie(InputShaper::logical_axis_pulses[X_AXIS], InputShaper::logical_axis_pulses[Y_AXIS]) = get_input_shaper(*axis_config, second_axis_config);
+            PreciseStepping::physical_axis_step_generator_types |= INPUT_SHAPER_STEP_GENERATOR_X;
+            PreciseStepping::physical_axis_step_generator_types |= INPUT_SHAPER_STEP_GENERATOR_Y;
+        } else {
+            InputShaper::logical_axis_pulses[axis] = get_input_shaper(*axis_config);
+            PreciseStepping::physical_axis_step_generator_types |= (INPUT_SHAPER_STEP_GENERATOR_X << axis);
+        }
     } else {
-        PreciseStepping::step_generator_types &= ~(INPUT_SHAPER_STEP_GENERATOR_X << axis);
+        if (axis == X_AXIS || axis == Y_AXIS) {
+            if (std::optional<AxisConfig> second_axis_config = current_config().axis[(axis == X_AXIS) ? Y_AXIS : X_AXIS]; !second_axis_config) {
+                PreciseStepping::physical_axis_step_generator_types &= ~(INPUT_SHAPER_STEP_GENERATOR_X);
+                PreciseStepping::physical_axis_step_generator_types &= ~(INPUT_SHAPER_STEP_GENERATOR_Y);
+            }
+        } else {
+            PreciseStepping::physical_axis_step_generator_types &= ~(INPUT_SHAPER_STEP_GENERATOR_X << axis);
+        }
     }
+#else
+    if (axis_config) {
+        InputShaper::logical_axis_pulses[axis] = get_input_shaper(*axis_config);
+        PreciseStepping::physical_axis_step_generator_types |= (INPUT_SHAPER_STEP_GENERATOR_X << axis);
+    } else {
+        PreciseStepping::physical_axis_step_generator_types &= ~(INPUT_SHAPER_STEP_GENERATOR_X << axis);
+    }
+#endif
+
+    PreciseStepping::update_maximum_lookback_time();
 }
 
 void init() {
     auto &config = current_config();
     config = config_store().get_input_shaper_config();
     LOOP_XYZ(i) {
-        set_axis_config_internal((AxisEnum)i, config.axis[i]);
+        set_logical_axis_config_internal((AxisEnum)i, config.axis[i]);
     }
     config_for_m74 = {};
 }
@@ -94,7 +128,7 @@ void set_axis_config(const AxisEnum axis, std::optional<AxisConfig> axis_config)
     // For now, we must ensure that all queues are empty before changing input shapers parameters.
     // But later, it could be possible to wait just for block and move quests.
     planner.synchronize();
-    set_axis_config_internal(axis, axis_config);
+    set_logical_axis_config_internal(axis, axis_config);
     current_config().axis[axis] = axis_config;
 }
 
@@ -132,4 +166,4 @@ float clamp_frequency_to_safe_values(float frequency) {
     return std::clamp(frequency, frequency_safe_min, frequency_safe_max);
 }
 
-}
+} // namespace input_shaper

@@ -127,7 +127,7 @@ namespace {
         }
     };
 
-}
+} // namespace
 
 const HeaderOut *Request::extra_headers() const {
     return nullptr;
@@ -365,4 +365,4 @@ variant<Response, Error> HttpClient::send(Request &request, ExtraHeader *extra_r
     return HttpClient::parse_response(conn, extra_resp_hdr);
 }
 
-}
+} // namespace http

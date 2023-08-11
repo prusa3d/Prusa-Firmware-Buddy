@@ -183,4 +183,4 @@ private:
      */
     bool attempt_crash_dump_download(Dock dock, BootloaderProtocol::Address address);
 };
-}
+} // namespace buddy::puppies

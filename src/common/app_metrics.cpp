@@ -7,24 +7,26 @@
 #include "cmsis_os.h"
 #include "malloc.h"
 #include "heap.h"
-#if HAS_ADVANCED_POWER
+#include <option/has_advanced_power.h>
+#if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
-#endif // HAS_ADVANCED_POWER
+#endif // HAS_ADVANCED_POWER()
 #include "media.h"
 #include "timing.h"
 #include "config_buddy_2209_02.h"
-#include "otp.h"
+#include "otp.hpp"
 #include <array>
 #include "filament.hpp"
 #include "marlin_vars.hpp"
 #include "config_features.h"
+#include <option/has_mmu2.h>
 
 #include "../Marlin/src/module/temperature.h"
 #include "../Marlin/src/module/planner.h"
 #include "../Marlin/src/module/stepper.h"
 #include "../Marlin/src/feature/power.h"
 
-#include <configuration_store.hpp>
+#include <config_store/store_instance.hpp>
 
 #if BOARD_IS_XLBUDDY
     #include <puppies/Dwarf.hpp>
@@ -52,22 +54,14 @@ void buddy::metrics::RecordRuntimeStats() {
     static metric_t fw_version = METRIC("fw_version", METRIC_VALUE_STRING, 10 * 1000, METRIC_HANDLER_ENABLE_ALL);
     metric_record_string(&fw_version, "%s", project_version_full);
 
-    static metric_t buddy_revision = METRIC("buddy_revision", METRIC_VALUE_STRING, 10 * 1002, METRIC_HANDLER_ENABLE_ALL);
+    static metric_t buddy_revision = METRIC("buddy_revision", METRIC_VALUE_STRING, 10 * 10002, METRIC_HANDLER_ENABLE_ALL);
     if (metric_record_is_due(&buddy_revision)) {
-        board_revision_t board_revision;
-        if (otp_get_board_revision(&board_revision) == false) {
-            board_revision = 0;
-        }
-        metric_record_string(&buddy_revision, "%u", board_revision);
+        metric_record_string(&buddy_revision, "%u", otp_get_board_revision().value_or(0));
     }
 
     static metric_t buddy_bom = METRIC("buddy_bom", METRIC_VALUE_STRING, 10 * 10003, METRIC_HANDLER_ENABLE_ALL);
     if (metric_record_is_due(&buddy_bom)) {
-        uint8_t bom;
-        if (otp_get_bom_id(&bom) == false) {
-            bom = 0;
-        }
-        metric_record_string(&buddy_bom, "%u", bom);
+        metric_record_string(&buddy_bom, "%u", otp_get_bom_id().value_or(0));
     }
 
     static metric_t current_filamnet = METRIC("filament", METRIC_VALUE_STRING, 10 * 1007, METRIC_HANDLER_ENABLE_ALL);
@@ -226,7 +220,7 @@ void buddy::metrics::RecordMarlinVariables() {
 #endif
 }
 
-#ifdef HAS_ADVANCED_POWER
+#if HAS_ADVANCED_POWER()
     #if BOARD_IS_XBUDDY
 void buddy::metrics::RecordPowerStats() {
     static metric_t metric_bed_v_raw = METRIC("volt_bed_raw", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_DISABLE_ALL);
@@ -245,7 +239,7 @@ void buddy::metrics::RecordPowerStats() {
     metric_record_integer(&metric_input_i_raw, advancedpower.GetInputCurrentRaw());
     static metric_t metric_input_i = METRIC("curr_inp", METRIC_VALUE_FLOAT, 1007, METRIC_HANDLER_ENABLE_ALL);
     metric_record_float(&metric_input_i, advancedpower.GetInputCurrent());
-        #if HAS_MMU2
+        #if HAS_MMU2()
     static metric_t metric_mmu_i = METRIC("cur_mmu_imp", METRIC_VALUE_FLOAT, 1008, METRIC_HANDLER_ENABLE_ALL);
     metric_record_float(&metric_mmu_i, advancedpower.GetMMUInputCurrent());
         #endif
@@ -275,7 +269,7 @@ void buddy::metrics::RecordPowerStats() {
         #error "This board doesn't support ADVANCED_POWER"
     #endif
 
-#endif // HAS_ADVANCED_POWER
+#endif // HAS_ADVANCED_POWER()
 
 void buddy::metrics::RecordPrintFilename() {
     static metric_t file_name = METRIC("print_filename", METRIC_VALUE_STRING, 5000, METRIC_HANDLER_ENABLE_ALL);

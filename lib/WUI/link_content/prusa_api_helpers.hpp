@@ -22,4 +22,4 @@ handler::StatusPage delete_file(const char *filename, const handler::RequestPars
 handler::StatusPage print_file(char *filename, const handler::RequestParser &parser);
 
 handler::ConnectionState get_only(handler::ConnectionState state, const handler::RequestParser &parser);
-}
+} // namespace nhttp::link_content

@@ -7,7 +7,7 @@
 
 #include "bsod_gui.hpp"
 #include "log.h"
-#include "loadcell.h"
+#include "loadcell.hpp"
 #include "timing.h"
 #include "puppy/dwarf/loadcell_shared.hpp"
 #include "logging/log_dest_bufflog.h"
@@ -18,8 +18,8 @@
 #include "Marlin/src/inc/MarlinConfig.h"
 #include "utility_extensions.hpp"
 #include "dwarf_errors.hpp"
-#include "otp.h"
-#include <configuration_store.hpp>
+#include "otp.hpp"
+#include <config_store/store_instance.hpp>
 #include "Marlin/src/module/prusa/accelerometer.h"
 
 using namespace common::puppies::fifo;
@@ -80,8 +80,8 @@ Dwarf::Dwarf(PuppyModbus &bus, const uint8_t dwarf_nr, uint8_t modbus_address)
               report_accelerometer(data.size()); } }) {
 
     RegisterGeneralStatus.value.FaultStatus = dwarf_shared::errors::FaultStatusMask::NO_FAULT;
-    RegisterGeneralStatus.value.HotendMeasuredTemperature = 6;
-    RegisterGeneralStatus.value.HeatBreakMeasuredTemperature = 6;
+    RegisterGeneralStatus.value.HotendMeasuredTemperature = HEATER_0_MINTEMP + 1; // Init to temperature that won't immediately trigger mintemp
+    RegisterGeneralStatus.value.HeatBreakMeasuredTemperature = HEATBREAK_MINTEMP + 1;
 
     RegisterGeneralStatus.value.HotendPWMState = 0;
 
@@ -181,13 +181,13 @@ CommunicationStatus Dwarf::initial_scan() {
         static constexpr uint16_t raw_datamatrix_regsize = ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_last)
             - ftrstd::to_underlying(SystemInputRegister::hw_raw_datamatrix_first) + 1;
         // Check size of text -1 as the terminating \0 is not sent
-        static_assert((raw_datamatrix_regsize * sizeof(uint16_t)) == (sizeof(sn.txt) - 1), "Size of raw datamatrix doesn't fit modbus registers");
+        static_assert((raw_datamatrix_regsize * sizeof(uint16_t)) == (sn.size() - 1), "Size of raw datamatrix doesn't fit modbus registers");
 
         for (uint16_t i = 0; i < raw_datamatrix_regsize; ++i) {
-            sn.txt[i * 2] = GeneralStatic.value.HwDatamatrix[i] & 0xff;
-            sn.txt[i * 2 + 1] = GeneralStatic.value.HwDatamatrix[i] >> 8;
+            sn[i * 2] = GeneralStatic.value.HwDatamatrix[i] & 0xff;
+            sn[i * 2 + 1] = GeneralStatic.value.HwDatamatrix[i] >> 8;
         }
-        DWARF_LOG(LOG_SEVERITY_INFO, "HwDatamatrix: %s", sn.txt);
+        DWARF_LOG(LOG_SEVERITY_INFO, "HwDatamatrix: %s", sn.data());
     } else {
         DWARF_LOG(LOG_SEVERITY_ERROR, "Failed to read static general register pack");
         communication_error = true;
@@ -371,7 +371,8 @@ bool Dwarf::is_tmc_enabled() {
 }
 
 float Dwarf::get_hotend_temp() {
-    return (float)RegisterGeneralStatus.value.HotendMeasuredTemperature;
+    // Sent as int16 in uint16 modbus register
+    return static_cast<int16_t>(RegisterGeneralStatus.value.HotendMeasuredTemperature);
 }
 
 CommunicationStatus Dwarf::set_hotend_target_temp(float target) {
@@ -510,8 +511,9 @@ int32_t Dwarf::get_tool_filament_sensor() {
     return RegisterGeneralStatus.value.ToolFilamentSensor;
 }
 
-uint16_t Dwarf::get_mcu_temperature() {
-    return RegisterGeneralStatus.value.MCU_temperature;
+float Dwarf::get_mcu_temperature() {
+    // Sent as int16 in uint16 modbus register
+    return static_cast<int16_t>(RegisterGeneralStatus.value.MCU_temperature);
 }
 
 void Dwarf::set_heatbreak_target_temp(int16_t target) {
@@ -571,7 +573,8 @@ void Dwarf::handle_dwarf_fault() {
 }
 
 float Dwarf::get_heatbreak_temp() {
-    return RegisterGeneralStatus.value.HeatBreakMeasuredTemperature;
+    // Sent as int16 in uint16 modbus register
+    return static_cast<int16_t>(RegisterGeneralStatus.value.HeatBreakMeasuredTemperature);
 }
 
 uint16_t Dwarf::get_heatbreak_fan_pwr() {
@@ -597,4 +600,4 @@ std::array<Dwarf, DWARF_MAX_COUNT> dwarfs { {
     { puppyModbus, 5, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_5) },
     { puppyModbus, 6, PuppyBootstrap::get_modbus_address_for_dock(Dock::DWARF_6) },
 } };
-}
+} // namespace buddy::puppies

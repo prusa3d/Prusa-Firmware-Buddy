@@ -322,6 +322,51 @@ public:
     OSpeed m_speed;
 };
 
+class OutputPin_Inverted : protected Pin {
+public:
+    constexpr OutputPin_Inverted(IoPort ioPort, IoPin ioPin, State initState, OMode oMode, OSpeed oSpeed)
+        : Pin(ioPort, ioPin)
+        , m_initState((State::low == initState) ? State::high : State::low)
+        , m_mode(oMode)
+        , m_speed(oSpeed) {}
+    /**
+     * @brief  Read output pin.
+     *
+     * Reads output data register. Can not work for alternate function pin.
+     * @retval State::high
+     * @retval State::low
+     */
+    State read() const {
+        if ((getHalPort()->ODR & m_halPin) != static_cast<uint32_t>(GPIO_PIN_RESET)) {
+            return State::low;
+        } else {
+            return State::high;
+        }
+    }
+    void write(State pinState) const {
+        if (pinState != State::low) {
+            getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+        } else {
+            getHalPort()->BSRR = m_halPin;
+        }
+    }
+
+    __attribute__((always_inline)) inline void set() const {
+        getHalPort()->BSRR = static_cast<uint32_t>(m_halPin) << 16U;
+    }
+
+    __attribute__((always_inline)) inline void reset() const {
+        getHalPort()->BSRR = m_halPin;
+    }
+
+    void configure() const;
+
+public:
+    State m_initState;
+    OMode m_mode;
+    OSpeed m_speed;
+};
+
 /**
  * @brief This type of OutputPin allows runtime change of pin direction.
  *

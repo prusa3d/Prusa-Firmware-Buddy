@@ -58,4 +58,4 @@ size_t render_chunk(ConnectionHandling handling, uint8_t *buffer, size_t buffer_
     }
 }
 
-}
+} // namespace http

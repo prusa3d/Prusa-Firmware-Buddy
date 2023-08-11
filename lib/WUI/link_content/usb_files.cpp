@@ -63,4 +63,4 @@ optional<ConnectionState> UsbFiles::accept(const RequestParser &parser) const {
 
 const UsbFiles usb_files;
 
-}
+} // namespace nhttp::link_content

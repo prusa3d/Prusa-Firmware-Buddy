@@ -8,7 +8,7 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "selftest_fans_type.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #if HAS_TOOLCHANGER()
     #include "module/prusa/toolchanger.h"
 #endif
@@ -70,9 +70,9 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
 #endif
     , progress(this, WizardDefaults::row_1)
     , text_info(this, Rect16(col_texts, row_5, WizardDefaults::X_space, GetRect().Height() - GetRect().Top() - row_5 - 20), is_multiline::yes, is_closed_on_click_t::no, _(en_text_info))
-    , icon_hotend_fan(this, &png::fan_16x16, point_i16_t({ WizardDefaults::col_0, row_2 }))
+    , icon_hotend_fan(this, &img::fan_16x16, point_i16_t({ WizardDefaults::col_0, row_2 }))
     , text_hotend_fan(this, Rect16(col_texts, row_2, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_hotend_fan))
-    , icon_print_fan(this, &png::turbine_16x16, point_i16_t({ WizardDefaults::col_0, row_3 }))
+    , icon_print_fan(this, &img::turbine_16x16, point_i16_t({ WizardDefaults::col_0, row_3 }))
     , text_print_fan(this, Rect16(col_texts, row_3, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_print_fan))
     , text_fans_switched(this, Rect16(col_texts, row_4, col_texts_w, WizardDefaults::txt_h), is_multiline::no, is_closed_on_click_t::no, _(en_text_fans_switched))
     , fan_states(make_fan_row_array(std::make_index_sequence<HOTENDS>())) {

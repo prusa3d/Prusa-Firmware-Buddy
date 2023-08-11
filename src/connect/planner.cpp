@@ -209,7 +209,7 @@ namespace {
 
         return Download::start_connect_download(host, port, path, dpath, extra_hdrs, move(decryptor));
     }
-}
+} // namespace
 
 const char *to_str(EventType event) {
     switch (event) {
@@ -802,4 +802,4 @@ void Planner::recover_download() {
         result);
 }
 
-}
+} // namespace connect_client

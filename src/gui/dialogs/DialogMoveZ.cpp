@@ -1,7 +1,7 @@
 
 #include "DialogMoveZ.hpp"
 #include "ScreenHandler.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "marlin_client.hpp"
 #include "menu_vars.h"
 
@@ -24,14 +24,14 @@ DialogMoveZ::DialogMoveZ()
     , arrows(this, text_rc.TopRight(), { 0, 6, 0, 6 })
     , numb(this, numb_rc, value, "%d mm", GuiDefaults::FontBig)
     , header(this, _(headerLabel))
-    , icon(this, icon_rc, &png::turn_knob_81x55) {
+    , icon(this, icon_rc, &img::turn_knob_81x55) {
     DialogShown = true;
 
     prev_accel = marlin_vars()->travel_acceleration;
-    marlin_gcode("M204 T200");
+    marlin_client::gcode("M204 T200");
     /// using window_t 1bit flag
     flags.close_on_click = is_closed_on_click_t::yes;
-    header.SetIcon(&png::z_axis_16x16);
+    header.SetIcon(&img::z_axis_16x16);
 
     constexpr static padding_ui8_t padding({ 6, 0, 6, 0 });
 
@@ -119,7 +119,7 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
                         lastQueuedPos--;
                         difference++;
                     }
-                    marlin_move_axis(lastQueuedPos, MenuVars::GetManualFeedrate()[2], 2);
+                    marlin_client::move_axis(lastQueuedPos, MenuVars::GetManualFeedrate()[2], 2);
                 }
             }
         }
@@ -139,7 +139,7 @@ DialogMoveZ::~DialogMoveZ() {
     DialogShown = false;
     char msg[20];
     snprintf(msg, sizeof(msg), "M204 T%f", (double)prev_accel);
-    marlin_gcode(msg);
+    marlin_client::gcode(msg);
 }
 void DialogMoveZ::Show() {
     // checking nesting to not open over some other blocking dialog

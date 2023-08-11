@@ -6,7 +6,7 @@
 
 #include "selftest_frame_loadcell.hpp"
 #include "i18n.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "wizard_config.hpp"
 #include "selftest_loadcell_type.hpp"
 #include "marlin_client.hpp"
@@ -46,7 +46,7 @@ SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_loadcell_test), 1)
     , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::AxisZ) // ItemAxisZ to show Z coord while moving up
     , progress(this, WizardDefaults::row_1)
-    , icon_hand(this, &png::hand_with_nozzle1_154x100, hand_pos)
+    , icon_hand(this, &img::hand_with_nozzle1_154x100, hand_pos)
     , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 3), is_multiline::yes)
     , text_phase_additional(this, Rect16(col_texts, row_3, hand_pos.x - col_texts, hand_pos.y + hand_h - row_3), is_multiline::yes)
     , text_prebig(this, Rect16(col_texts, row_prebig_txt4, big_text_x_pos - col_texts, txt_h * 2), is_multiline::yes)
@@ -68,7 +68,7 @@ void SelftestFrameLoadcell::change() {
     const char *txt_prebig = nullptr;       // text_prebig
     string_view_utf8 txt_big;               // text_big
     bool txt_big_blink = false;             // text_big
-    const png::Resource *icon_id = nullptr; // icon_hand
+    const img::Resource *icon_id = nullptr; // icon_hand
     switch (phase_current) {
     case PhasesSelftest::Loadcell_prepare:
         txt_phase = N_("Validity check");
@@ -85,7 +85,7 @@ void SelftestFrameLoadcell::change() {
         break;
     case PhasesSelftest::Loadcell_cooldown: {
         txt_phase = N_("Cooling down.\n\nDo not touch the nozzle!");
-        icon_id = &png::hand_with_nozzle0_154x100;
+        icon_id = &img::hand_with_nozzle0_154x100;
 
         int16_t temperature = dt.temperature; // Make a local copy
         if ((temperature < 0) || (temperature > 999)) {
@@ -101,10 +101,10 @@ void SelftestFrameLoadcell::change() {
     }
     case PhasesSelftest::Loadcell_user_tap_ask_abort:
         txt_phase = dt.pressed_too_soon ? N_("You did not tap the nozzle or you tapped it too soon. Retry?\n\n ") : N_("We will need your help with this test. You will be asked to tap the nozzle. Don't worry; it is going to be cold.\n ");
-        icon_id = dt.pressed_too_soon ? &png::hand_with_nozzle2_154x100 : &png::hand_with_nozzle3_154x100;
+        icon_id = dt.pressed_too_soon ? &img::hand_with_nozzle2_154x100 : &img::hand_with_nozzle3_154x100;
         break;
     case PhasesSelftest::Loadcell_user_tap_countdown:
-        icon_id = &png::hand_with_nozzle1_154x100;
+        icon_id = &img::hand_with_nozzle1_154x100;
 
         snprintf(txt_big_buffer, std::size(txt_big_buffer), "%us", static_cast<unsigned int>(std::clamp<uint8_t>(dt.countdown, 0, 5)));
         txt_big = string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(txt_big_buffer));
@@ -112,7 +112,7 @@ void SelftestFrameLoadcell::change() {
 
         break;
     case PhasesSelftest::Loadcell_user_tap_check:
-        icon_id = &png::hand_with_nozzle4_154x100;
+        icon_id = &img::hand_with_nozzle4_154x100;
 
         txt_big = _("NOW");
         txt_prebig = N_("Tap nozzle");

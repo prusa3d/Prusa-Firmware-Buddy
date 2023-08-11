@@ -7,6 +7,7 @@
 #include "led_types.h"
 #include <mutex>
 #include "freertos_mutex.hpp"
+#include <gui/led_animations/animation_model.hpp>
 
 namespace leds {
 PrinterState mpsToAnimationState(marlin_server::State state);
@@ -14,7 +15,7 @@ PrinterState mpsToAnimationState(marlin_server::State state);
 AnimatorLCD::AnimationGuard start_animation(Animations animation, int priority);
 AnimatorLCD::AnimationGuard start_animation(PrinterState state, int priority);
 Animations get_animation(PrinterState state);
-}
+} // namespace leds
 
 class PrinterStateAnimation {
 public:

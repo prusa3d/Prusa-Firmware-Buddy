@@ -23,14 +23,17 @@ FORCE_INLINE double calc_distance(const double start_v, const double half_accel,
     return (start_v + half_accel * move_time) * move_time;
 }
 
-FORCE_INLINE xyze_double_t calc_position(const double start_v, const double half_accel, const double move_time, const xyze_double_t start_pos, const xyze_double_t axes_r) {
-    const double distance = calc_distance(start_v, half_accel, move_time);
-    const xyze_double_t end_pos = start_pos + xyze_double_t({ axes_r.x * distance, axes_r.y * distance, axes_r.z * distance, axes_r.e * distance });
-    return end_pos;
+FORCE_INLINE xyze_double_t calc_end_position(const xyze_double_t start_pos, const xyze_double_t axes_r, const double dist) {
+    return start_pos + (axes_r * dist);
+}
+
+FORCE_INLINE xyze_double_t calc_end_position(const double start_v, const double half_accel, const double move_time, const xyze_double_t start_pos, const xyze_double_t axes_r) {
+    const double dist = calc_distance(start_v, half_accel, move_time);
+    return calc_end_position(start_pos, axes_r, dist);
 }
 
 FORCE_INLINE xyze_double_t calc_end_position_move(const move_t *move) {
-    return calc_position(move->start_v, move->half_accel, move->move_t, move->start_pos, move->axes_r);
+    return calc_end_position(move->start_v, move->half_accel, move->move_t, move->start_pos, move->axes_r);
 }
 
 FORCE_INLINE float fast_sqrt(float in) {
@@ -66,18 +69,6 @@ FORCE_INLINE float calc_time_for_distance(const float start_velocity, const floa
         return (-fast_sqrt(sqr) - start_velocity) / acceleration;
 }
 
-// Calculates time that will take to travel the specified distance.
-FORCE_INLINE float calc_time_for_distance_block(const float start_velocity, const float acceleration, const float distance) {
-    if (acceleration == 0.f)
-        return distance / start_velocity;
-
-    // Preventing computing sqrt from negative numbers caused by numerical issues.
-    if (const float sqr = 2.f * acceleration * distance + SQR(start_velocity); sqr < 0.f)
-        return -start_velocity / acceleration;
-    else
-        return (fast_sqrt(sqr) - start_velocity) / acceleration;
-}
-
 FORCE_INLINE double get_move_half_accel(const move_t &move, const int axis) {
     return move.half_accel * move.axes_r[axis];
 }
@@ -103,20 +94,40 @@ FORCE_INLINE int get_move_step_dir(const move_t &move, const int axis) {
 // Reset all step_event that are equal to std::numeric_limits<float>::max() to zero.
 // std::numeric_limits<float>::max() indicates that all step events for the given move and its axis were already generated.
 FORCE_INLINE void step_generator_state_restart(step_generator_state_t &step_generator_state) {
-    for (step_event_info_t &step_event_info : step_generator_state.step_events)
-        if (step_event_info.time == std::numeric_limits<double>::max())
+    bool updated = false;
+    for (step_event_info_t &step_event_info : step_generator_state.step_events) {
+        if (step_event_info.time == std::numeric_limits<double>::max()) {
             step_event_info.time = 0;
+            updated = true;
+        }
+    }
+
+    // rebuild the step index
+    if (updated) {
+        std::sort(step_generator_state.step_event_index.begin(), step_generator_state.step_event_index.end(),
+            [&](auto a, auto b) { return step_generator_state.step_events[a].time < step_generator_state.step_events[b].time; });
+    }
 }
 
-// Find the next the nearest step event index.
-// Current implementation is iteration through all axis, so it could be better to have a tiny linked list of sorted step events
-// and iterate through this linked list. It could be much faster in most cases.
-FORCE_INLINE void step_generator_state_update_nearest_idx(step_generator_state_t &step_generator_state, double next_step_event_time) {
-    for (int idx = 0; idx < 4; ++idx)
-        if (step_generator_state.step_events[idx].time < next_step_event_time) {
-            next_step_event_time = step_generator_state.step_events[idx].time;
-            step_generator_state.nearest_step_event_idx = idx;
-        }
+// Update the step event index after updating the first entry (oldest) to keep it sorted.
+FORCE_INLINE void step_generator_state_update_nearest_idx(step_generator_state_t &step_generator_state) {
+    // index and time of the new event
+    auto first_index = step_generator_state.step_event_index[0];
+    const auto new_time = step_generator_state.step_events[first_index].time;
+
+    // find insertion position
+    auto lb = std::lower_bound(step_generator_state.step_event_index.begin() + 1, step_generator_state.step_event_index.end(),
+        new_time, [&](auto a, auto b) { return step_generator_state.step_events[a].time < b; });
+    step_index_t insert_pos = lb - step_generator_state.step_event_index.begin() - 1;
+
+    // move previous positions
+    for (step_index_t n = 0; n != insert_pos; ++n) {
+        asm volatile(""); // prevent call to memmove
+        step_generator_state.step_event_index[n] = step_generator_state.step_event_index[n + 1];
+    }
+
+    // update
+    step_generator_state.step_event_index[insert_pos] = first_index;
 }
 
 // Returns if all generators reach the end of the move queue and are unable to generate next-step events

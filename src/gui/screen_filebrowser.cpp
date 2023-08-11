@@ -11,7 +11,7 @@
 #include "i18n.h"
 #include "gui_media_events.hpp"
 #include "log.h"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 #include "GuiDefaults.hpp"
 
 #include "../Marlin/src/gcode/queue.h"
@@ -23,7 +23,7 @@ screen_filebrowser_data_t::screen_filebrowser_data_t()
     : AddSuperWindow<screen_t>()
     , header(this)
     , file_browser(this, GuiDefaults::RectScreenNoHeader, gui_media_SFN_path) {
-    header.SetIcon(&png::folder_full_16x16);
+    header.SetIcon(&img::folder_full_16x16);
     static const char sf[] = N_("PROJECTS");
     header.SetText(_(sf));
 

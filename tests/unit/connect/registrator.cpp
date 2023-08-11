@@ -68,7 +68,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 TEST_CASE("Registrator") {
     auto params = params_idle();

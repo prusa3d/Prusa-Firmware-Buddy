@@ -26,4 +26,4 @@ bool compress_host(const char *host, char *buffer, size_t buffer_len);
 // wouldn't fit, it leaves the original intact.
 void decompress_host(char *host, size_t host_buffer);
 
-}
+} // namespace connect_client

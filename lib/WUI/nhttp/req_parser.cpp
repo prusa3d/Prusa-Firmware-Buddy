@@ -369,7 +369,7 @@ namespace {
             sprintf(str + i * 2, "%02x", hash[i]);
         }
     }
-}
+} // namespace
 
 bool RequestParser::check_digest_auth(uint64_t nonce_to_use) const {
     if (auto digest_params = get_if<DigestAuthParams>(&auth_status)) {
@@ -403,4 +403,4 @@ bool RequestParser::check_digest_auth(uint64_t nonce_to_use) const {
     return false;
 }
 
-}
+} // namespace nhttp::handler

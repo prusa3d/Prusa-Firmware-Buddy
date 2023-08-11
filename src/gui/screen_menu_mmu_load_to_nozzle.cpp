@@ -3,9 +3,9 @@
  */
 
 #include "screen_menu_mmu_load_to_nozzle.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
 ScreenMenuMMULoadToNozzle::ScreenMenuMMULoadToNozzle()
     : ScreenMenuMMULoadToNozzle__(_(label)) {
-    header.SetIcon(&png::info_16x16);
+    header.SetIcon(&img::info_16x16);
 }

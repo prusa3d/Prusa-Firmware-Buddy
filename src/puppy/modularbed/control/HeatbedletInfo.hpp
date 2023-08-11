@@ -92,4 +92,4 @@ private:
     static HeatbedletInfo s_HBInfoArray[HEATBEDLET_COUNT];
 };
 
-} // namespace
+} // namespace modularbed

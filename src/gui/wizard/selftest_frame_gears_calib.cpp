@@ -2,9 +2,9 @@
 #include "i18n.h"
 #include "wizard_config.hpp"
 #include "selftest_gears_result.hpp"
-#include "png_resources.hpp"
+#include "img_resources.hpp"
 
-static constexpr const png::Resource &right_icon = png::transmission_loose_187x175;
+static constexpr const img::Resource &right_icon = img::transmission_loose_187x175;
 
 static constexpr size_t content_top_y = WizardDefaults::row_1 + WizardDefaults::progress_row_h;
 static constexpr size_t text_icon_space = 14;
@@ -30,7 +30,7 @@ void SelftestFrameGearsCalib::change() {
     SelftestGearsResult result(data_current);
 
     const char *txt = nullptr;
-    const png::Resource *icon_res = nullptr;
+    const img::Resource *icon_res = nullptr;
     const char *txt_left = nullptr;
 
     switch (phase_current) {
@@ -44,19 +44,19 @@ void SelftestFrameGearsCalib::change() {
         txt = N_("Before you proceed, make sure filament is unloaded from the Nextruder.");
         break;
     case PhasesSelftest::GearsCalib_release_screws:
-        icon_res = &png::transmission_loose_187x175;
+        icon_res = &img::transmission_loose_187x175;
         txt_left = N_("Rotate each screw counter-clockwise by 1.5 turns. The screw heads should be flush with the cover. Unlock and open the idler.");
         break;
     case PhasesSelftest::GearsCalib_alignment:
-        icon_res = &png::transmission_gears_187x175;
+        icon_res = &img::transmission_gears_187x175;
         txt_left = N_("Gearbox alignment in progress, please wait (approx. 20 seconds)");
         break;
     case PhasesSelftest::GearsCalib_tighten:
-        icon_res = &png::transmission_tight_187x175;
+        icon_res = &img::transmission_tight_187x175;
         txt_left = N_("Tighten the M3 screws firmly in the correct order, they should be slightly below the surface. Do not over-tighten.");
         break;
     case PhasesSelftest::GearsCalib_done:
-        icon_res = &png::transmission_close_187x175;
+        icon_res = &img::transmission_close_187x175;
         txt_left = N_("Close the idler door and secure it with the swivel. The calibration is done!");
         break;
     default:

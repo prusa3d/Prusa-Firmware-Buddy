@@ -13,6 +13,7 @@
 #include "WindowItemTempLabel.hpp"
 #include <option/has_toolchanger.h>
 #include <option/filament_sensor.h>
+#include <option/has_mmu2.h>
 
 class MI_WIZARD : public WI_LABEL_t {
     static constexpr const char *const label = N_("Wizard");
@@ -145,7 +146,7 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-    #if HAS_MMU2
+    #if HAS_MMU2()
 class MI_CALIB_FSENSOR_MMU : public WI_LABEL_t {
     static constexpr const char *const label = N_("Filament Sensor Calibration MMU");
 

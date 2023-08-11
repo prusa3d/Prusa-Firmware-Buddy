@@ -32,4 +32,4 @@ struct InstalledRevision {
     static bool set(const Revision &revision);
 };
 
-};
+}; // namespace buddy::resources

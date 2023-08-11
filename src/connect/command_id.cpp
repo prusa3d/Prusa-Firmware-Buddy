@@ -14,4 +14,4 @@ void ExtractCommanId::character(char c, HeaderName name) {
     // Ignoring other headers. That's kind of the point of the whole ExtraHeader exercise.
 }
 
-}
+} // namespace connect_client

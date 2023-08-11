@@ -12,4 +12,4 @@ void loadcell_loop();
 bool get_loadcell_sample(LoadcellRecord &sample);
 void loadcell_irq();
 void loadcell_set_enable(bool enable);
-}
+} // namespace dwarf::loadcell

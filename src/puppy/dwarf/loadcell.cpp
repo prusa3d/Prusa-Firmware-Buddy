@@ -97,4 +97,4 @@ void loadcell_set_enable(bool enable) {
         }
     }
 }
-}
+} // namespace dwarf::loadcell

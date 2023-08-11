@@ -5,10 +5,10 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include "gui.hpp"
-    #include "loadcell.h"
+    #include "loadcell.hpp"
     #include "gpio.h"
     #include "screens.h"
-    #include <configuration_store.hpp>
+    #include <config_store/store_instance.hpp>
 
 typedef struct
 {

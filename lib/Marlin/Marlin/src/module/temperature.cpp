@@ -3063,19 +3063,27 @@ void Temperature::readings_ready() {
     for (uint8_t e = 0; e < COUNT(temp_dir); e++) {
       const int8_t tdir = temp_dir[e];
       if (tdir) {
-        const int16_t rawtemp = temp_hotend[e].raw * tdir; // normal direction, +rawtemp, else -rawtemp
+        [[maybe_unused]] const int16_t rawtemp = temp_hotend[e].raw * tdir; // normal direction, +rawtemp, else -rawtemp
         const bool heater_on = (temp_hotend[e].target > 0
           #if ENABLED(PIDTEMP)
             || temp_hotend[e].soft_pwm_amount > 0
           #endif
         );
-        if (rawtemp > temp_range[e].raw_max * tdir) max_temp_error((heater_ind_t)e);
       #if ENABLED(PRUSA_TOOLCHANGER)
-        const float celsius = temp_hotend[e].celsius;
-        if (heater_on && celsius <= 0 && !is_preheating(e)) {
-      #else
-        if (heater_on && rawtemp < temp_range[e].raw_min * tdir && !is_preheating(e)) {
-      #endif
+        if (temp_hotend[e].celsius > temp_range[e].maxtemp) // Toolchanger doesn't report raw
+      #else /*ENABLED(PRUSA_TOOLCHANGER)*/
+        if (rawtemp > temp_range[e].raw_max * tdir)
+      #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
+        {
+          max_temp_error((heater_ind_t)e);
+        }
+
+      #if ENABLED(PRUSA_TOOLCHANGER)
+        if (heater_on && temp_hotend[e].celsius < temp_range[e].mintemp && !is_preheating(e)) // Toolchanger doesn't report raw
+      #else /*ENABLED(PRUSA_TOOLCHANGER)*/
+        if (heater_on && rawtemp < temp_range[e].raw_min * tdir && !is_preheating(e))
+      #endif /*ENABLED(PRUSA_TOOLCHANGER)*/
+        {
           #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
             if (++consecutive_low_temperature_error[e] >= MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
           #endif

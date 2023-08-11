@@ -30,7 +30,7 @@ async def leave_preview(printer: Printer, text: str):
 
 async def wait_for_bootstrap(printer: Printer):
     """Wait for the printer to boot up and be ready to use.
-    Click ok on ipnut shaper info if necessary."""
+    Click ok on input shaper info if necessary."""
 
     click_is_info = True
     text = ''

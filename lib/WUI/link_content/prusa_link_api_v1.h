@@ -11,4 +11,4 @@ public:
 
 extern const PrusaLinkApiV1 prusa_link_api_v1;
 
-}
+} // namespace nhttp::link_content

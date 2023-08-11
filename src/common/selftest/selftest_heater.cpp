@@ -9,6 +9,7 @@
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"
 #include <option/has_toolchanger.h>
+#include <common/nozzle_type.hpp>
 
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);
@@ -209,7 +210,7 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
     if (m_config.type == heater_type_t::Nozzle) {
         hw_diff += config_store().nozzle_sock.get() ? m_config.nozzle_sock_temp_offset : 0;
         uint8_t nozzle_type = config_store().nozzle_type.get(); // There will be more nozzle types in the future
-        if (nozzle_type == NozzleType::HighFlow) {
+        if (nozzle_type == ftrstd::to_underlying(NozzleType::HighFlow)) {
             hw_diff += m_config.high_flow_nozzle_temp_offset;
         }
 

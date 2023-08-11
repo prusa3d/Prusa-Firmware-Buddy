@@ -23,7 +23,7 @@ public:
         return data[i];
     }
 };
-}
+} // namespace std
 #else
 
     #include <array>
