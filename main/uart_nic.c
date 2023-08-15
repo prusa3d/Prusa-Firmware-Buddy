@@ -222,7 +222,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             }
             if (beacon_quirk && !found) {
                 for (int i = 0; i < ap_count; ++i) {
-                    if (ap_info.ssid && ap_info.ssid[0] && aps[i].ssid && aps[i].ssid[0]) {
+                    if (ap_info.ssid[0] && aps[i].ssid[0]) {
                         if (0 == strncmp((char *)(ap_info.ssid), (char *)(aps[i].ssid), 32)) {
                             found = true;
                             break;
@@ -364,7 +364,7 @@ static void IRAM_ATTR read_packet_message() {
 
     read_uart((uint8_t*)&size, sizeof(size));
     if(size > 2000) {
-        ESP_LOGI(TAG, "Invalid packet size: %d", size);
+        ESP_LOGI(TAG, "Invalid packet size: %" PRIu32, size);
         return;
     }
     // ESP_LOGI(TAG, "Receiving packet size: %d", size);
