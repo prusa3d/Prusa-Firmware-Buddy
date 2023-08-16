@@ -305,15 +305,15 @@ static void IRAM_ATTR send_device_info() {
 }
 
 static void IRAM_ATTR wait_for_intron() {
-    uint pos = 0;
-    while (pos < sizeof(tx_message.intron)) {
-        uint8_t c;
-        uart0_rx_bytes(&c, 1);
-        if (c == tx_message.intron[pos]) {
-            pos++;
-        } else {
-            pos = 0;
+    // Hope for the best...
+    uint8_t intron[8];
+    uart0_rx_bytes(intron, 8);
+    while (memcmp(intron, tx_message.intron, 8) != 0) {
+        // ...but be prepared for the worst.
+        for (int i = 0; i < 7; ++i) {
+            intron[i] = intron[i+1];
         }
+        uart0_rx_bytes(&intron[7], 1);
     }
 }
 
