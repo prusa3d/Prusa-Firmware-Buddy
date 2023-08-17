@@ -1,5 +1,7 @@
 #include "ff_gen_drv.h"
 #include "usbh_diskio.h"
+#include "usbh_async_diskio.hpp"
+#include "ccm_thread.hpp"
 
 #include <freertos_mutex.hpp>
 #include <mutex>
@@ -33,8 +35,90 @@ const Diskio_drvTypeDef USBH_Driver = {
 #endif /* FF_FS_READONLY == 0 */
 };
 
+osThreadId USBH_MSC_WorkerTaskHandle;
+static constexpr size_t queue_length = 5;
+static QueueHandle_t request_queue;
+
+void USBH_worker_notify(USBH_StatusTypeDef, void *semaphore, void *) {
+    xSemaphoreGive(semaphore);
+}
+
+// Queues the r/w request for processing (USBH_MSC_WorkerTask does it) and blocks until the end of processing is reported by the callback
+// we don't have any io scheduler, but if only tasks with the same priority send
+// their requests, they will be distributed fairly.
+static USBH_StatusTypeDef USBH_exec(UsbhMscRequest::UsbhMscRequestOperation operation,
+    BYTE lun, BYTE *buff, DWORD sector, uint16_t count) {
+    StaticSemaphore_t semaphore_data;
+    SemaphoreHandle_t semaphore = xSemaphoreCreateBinaryStatic(&semaphore_data);
+    UsbhMscRequest request {
+        operation,
+        lun,
+        count,
+        sector,
+        buff,
+        USBH_FAIL,
+        USBH_worker_notify,
+        semaphore,
+        nullptr
+    };
+    UsbhMscRequest *request_ptr = &request;
+
+    if (xQueueSend(request_queue, &request_ptr, USBH_MSC_RW_MAX_DELAY) != pdPASS)
+        return USBH_FAIL;
+
+    xSemaphoreTake(semaphore, portMAX_DELAY);
+
+    return request.result;
+}
+
+USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
+    // we don't have any io scheduler, but if only tasks with the same priority send
+    // their requests, they will be distributed fairly
+    assert((DWORD)request->data & 3);
+    if (xQueueSend(request_queue, &request, portMAX_DELAY) != pdPASS)
+        return USBH_FAIL;
+    return USBH_OK;
+}
+
+// A real-time priority task that takes individual requests from the request_queue and executes them,
+// most operations are deferred work from USB interrrupts, so they should be executed immediately (real-time priority).
+// Total CPU time is relatively small.
+static void USBH_MSC_WorkerTask(void const *) {
+    for (;;) {
+        UsbhMscRequest *request;
+        BaseType_t queue_status = xQueueReceive(request_queue, &request, portMAX_DELAY);
+        if (queue_status == pdPASS) {
+            {
+                Lock lock(mutex);
+
+                switch (request->operation) {
+                case UsbhMscRequest::UsbhMscRequestOperation::Read:
+                    request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                    break;
+                case UsbhMscRequest::UsbhMscRequestOperation::Write:
+                    request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                    break;
+                }
+            }
+            if (request->callback) {
+                request->callback(request->result, request->callback_param1, request->callback_param2);
+            }
+        }
+    }
+}
+
+static void USBH_StartMSCWorkerTask() {
+    static StaticQueue_t queue;
+    static uint8_t storage_area[queue_length * sizeof(UsbhMscRequest *)];
+    request_queue = xQueueCreateStatic(queue_length, sizeof(UsbhMscRequest *), storage_area, &queue);
+    configASSERT(request_queue);
+    osThreadDef(USBH_MSC_WorkerTask, USBH_MSC_WorkerTask, TASK_PRIORITY_USB_MSC_WORKER, 0U, 512);
+    USBH_MSC_WorkerTaskHandle = osThreadCreate(osThread(USBH_MSC_WorkerTask), NULL);
+}
+
 DSTATUS USBH_initialize([[maybe_unused]] BYTE lun) {
     Lock lock(mutex);
+    USBH_StartMSCWorkerTask();
     /* CAUTION : USB Host library has to be initialized in the application */
     return RES_OK;
 }
@@ -66,14 +150,13 @@ DSTATUS USBH_status(BYTE lun) {
  * @retval DRESULT: Operation result
  */
 DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
-    Lock lock(mutex);
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
 
     if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
         while ((count--) && (status == USBH_OK)) {
-            status = USBH_MSC_Read(&hUsbHostHS, lun, sector + count, (uint8_t *)scratch, 1);
+            status = USBH_exec(UsbhMscRequest::UsbhMscRequestOperation::Read, lun, (uint8_t *)scratch, sector + count, 1);
             if (status == USBH_OK) {
                 memcpy(&buff[count * FF_MAX_SS], scratch, FF_MAX_SS);
             } else {
@@ -81,12 +164,13 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
             }
         }
     } else {
-        status = USBH_MSC_Read(&hUsbHostHS, lun, sector, buff, count);
+        status = USBH_exec(UsbhMscRequest::UsbhMscRequestOperation::Read, lun, buff, sector, count);
     }
 
     if (status == USBH_OK) {
         res = RES_OK;
     } else {
+        Lock lock(mutex);
         USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
 
         switch (info.sense.asc) {
@@ -116,7 +200,6 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
  */
 #if FF_FS_READONLY == 0
 DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
-    Lock lock(mutex);
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
@@ -125,18 +208,19 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
         USBH_ErrLog("Suspicious DMA Alignment issue, do single up to aligned buffer");
         while (count--) {
             memcpy(scratch, &buff[count * FF_MAX_SS], FF_MAX_SS);
-            status = USBH_MSC_Write(&hUsbHostHS, lun, sector + count, (BYTE *)scratch, 1);
+            status = USBH_exec(UsbhMscRequest::UsbhMscRequestOperation::Write, lun, (BYTE *)scratch, sector + count, 1);
             if (status == USBH_FAIL) {
                 break;
             }
         }
     } else {
-        status = USBH_MSC_Write(&hUsbHostHS, lun, sector, (BYTE *)buff, count);
+        status = USBH_exec(UsbhMscRequest::UsbhMscRequestOperation::Write, lun, (BYTE *)buff, sector, count);
     }
 
     if (status == USBH_OK) {
         res = RES_OK;
     } else {
+        Lock lock(mutex);
         USBH_MSC_GetLUNInfo(&hUsbHostHS, lun, &info);
 
         switch (info.sense.asc) {

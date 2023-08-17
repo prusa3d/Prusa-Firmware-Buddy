@@ -73,7 +73,7 @@ void buddy::metrics::RecordRuntimeStats() {
     constexpr const uint32_t STACK_RUNTIME_RECORD_INTERVAL_MS = 3000; // Sample stack and runtime this often
     static auto should_record_stack_runtime = RunApproxEvery(STACK_RUNTIME_RECORD_INTERVAL_MS);
     if (should_record_stack_runtime()) {
-        static TaskStatus_t task_statuses[16] = {};
+        static TaskStatus_t task_statuses[17] = {};
 
 #if configGENERATE_RUN_TIME_STATS
         // Runtime since last record

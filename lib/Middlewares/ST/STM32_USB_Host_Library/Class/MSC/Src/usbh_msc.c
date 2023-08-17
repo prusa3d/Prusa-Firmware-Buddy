@@ -798,6 +798,12 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
 
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
+    if (USBH_LL_GetURBState(phost, MSC_Handle->OutPipe) != USBH_URB_DONE ||
+        USBH_LL_GetURBState(phost, MSC_Handle->InPipe) != USBH_URB_DONE)
+    {
+      ulTaskNotifyTake(pdFALSE, 500 / portTICK_PERIOD_MS);
+    }
+
     if (((phost->Timer - timeout) > (10000U * length)) || (phost->device.is_connected == 0U))
     {
       MSC_Handle->state = MSC_IDLE;
@@ -844,6 +850,12 @@ USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost,
   timeout = phost->Timer;
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
+    if (USBH_LL_GetURBState(phost, MSC_Handle->OutPipe) != USBH_URB_DONE ||
+        USBH_LL_GetURBState(phost, MSC_Handle->InPipe) != USBH_URB_DONE)
+    {
+      ulTaskNotifyTake(pdFALSE, 500 / portTICK_PERIOD_MS);
+    }
+
     if (((phost->Timer - timeout) > (10000U * length)) || (phost->device.is_connected == 0U))
     {
       MSC_Handle->state = MSC_IDLE;

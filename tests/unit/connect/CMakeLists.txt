@@ -64,6 +64,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/heatshrink
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/tests/stubs
+          ${CMAKE_SOURCE_DIR}/include/usb_host
   )
 target_link_libraries(connect_tests mbedTLS bgcode_core)
 add_definitions(-DUNITTESTS -DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0)
@@ -138,6 +139,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/jsmn
           ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
+          ${CMAKE_SOURCE_DIR}/include/usb_host
   )
 add_definitions(-DUNITTESTS)
 add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
@@ -195,6 +197,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/tests/stubs
+          ${CMAKE_SOURCE_DIR}/include/usb_host
   )
 add_dependencies(connect_registration_tests generate-httpc-automata-tests-connect)
 

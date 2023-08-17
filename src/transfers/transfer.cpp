@@ -270,6 +270,11 @@ void Transfer::update_backup(bool force) {
         return;
     }
 
+    if (!partial_file->sync()) {
+        log_error(transfers, "Failed to sync transfer file");
+        return;
+    }
+
     if (Transfer::update_backup(backup_file.get(), partial_file->get_state()) == false) {
         log_error(transfers, "Failed to update backup file");
     } else {

@@ -1,9 +1,11 @@
 #pragma once
+#include "cmsis_os.h"
 #include <memory>
 #include <variant>
 #include <optional>
 #include <array>
 #include <stdint.h>
+#include "usbh_async_diskio.hpp"
 
 #include <common/unique_file_ptr.hpp>
 
@@ -85,23 +87,56 @@ public:
     };
 
 private:
-    using DriveNbr = uint8_t;
-    using SectorNbr = uint32_t;
-    using SectorData = std::array<uint8_t, SECTOR_SIZE>;
+    static void usb_msc_write_finished_callback(USBH_StatusTypeDef result, void *param1, void *param2);
 
-    struct Sector {
-        SectorNbr nbr;
-        SectorData data;
+    /// Pre-allocated request pool for usbh_msc_submit_request operation with dynamically
+    /// allocated memory for sectors (needs DMA so not on stack that can be put into CCMRAM)
+    struct SectorPool {
+        /// sync operations require a minimum of 2 slots and 32 is the maximum due to slot_mask
+        static constexpr uint32_t size = 2;
+        static_assert(size >= 2 && size <= 32);
+
+        SectorPool(UsbhMscRequest::LunNbr lun, UsbhMscRequestCallback callback, void *callback_param1);
+        ~SectorPool();
+
+        /// Get a free slot, if none is available, it waits until it becomes free (returns nullptr in case of timeout)
+        UsbhMscRequest *acquire();
+
+        /// Release a previously acquired slot
+        void release(uint32_t slot);
+
+        /// Blocks until all slots (except skipped ones) are relesed
+        bool sync(uint32_t avoid = 0);
+
+    private:
+        bool is_available_slot() const { return slot_mask != ~0u; }
+
+        uint32_t get_available_slot() const;
+
+        // Objects for "condition_variable" synchronization
+        FreeRTOS_Mutex mutex;
+        SemaphoreHandle_t semaphore;
+
+        // Mask of acquired/free slots one bit per slot from least significant (1-acquired/unused, 0-free)
+        uint32_t slot_mask;
+
+        UsbhMscRequest pool[size];
     };
 
-    /// USB drive number (LUN)
-    DriveNbr drive;
+    // Pre-allocated request pool of sectors
+    SectorPool sector_pool;
+
+    // Asynchronous write operation completed callback
+    void usbh_msc_finished(USBH_StatusTypeDef result, uint32_t slot);
+
+    /// Flag whether an error occurred during writing (set asynchronously from the callback)
+    bool write_error;
 
     /// USB sector number where the first data of the file are located
-    SectorNbr first_sector_nbr;
+    UsbhMscRequest::SectorNbr first_sector_nbr;
 
     /// Write buffer for the active sector the user is writing to
-    std::optional<Sector> current_sector;
+    UsbhMscRequest *current_sector;
 
     /// Offset ("ftell") within the file where the user will write next
     size_t current_offset;
@@ -113,13 +148,16 @@ private:
     int last_progress_percent;
 
     /// Translate file offset to sector number
-    SectorNbr get_sector_nbr(size_t offset);
+    UsbhMscRequest::SectorNbr get_sector_nbr(size_t offset);
 
     /// Translate sector number to file offset
-    size_t get_offset(SectorNbr sector_nbr);
+    size_t get_offset(UsbhMscRequest::SectorNbr sector_nbr);
 
-    /// Write given sector over USB to the FatFS drive
-    bool write_sector(const Sector &sector);
+    /// Write current sector over USB to the FatFS drive
+    bool write_current_sector();
+
+    /// Discard current sector - it is necessary to release it from the sector_pool
+    void discard_current_sector();
 
     /// Extend the valid_head and/or valid_tail to include the new_part
     void extend_valid_part(ValidPart new_part);
@@ -134,10 +172,8 @@ private:
     int file_lock;
 
 public:
-    PartialFile(DriveNbr drive, SectorNbr first_sector, State state, int file_lock);
-
+    PartialFile(UsbhMscRequest::LunNbr drive, UsbhMscRequest::SectorNbr first_sector, State state, int file_lock);
     ~PartialFile();
-
     using Ptr = std::shared_ptr<PartialFile>;
 
     /// Try to create a new partial file of preallocated size
