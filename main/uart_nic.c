@@ -43,12 +43,13 @@
 
 #include "esp_private/wifi.h"
 #include "esp_wpa.h"
+#include <arpa/inet.h>
 
 
 // Externals with no header
 esp_err_t mac_init(void);
 
-static const uint16_t FW_VERSION = 8;
+#define FW_VERSION 10
 
 // Hack: because we don't see the beacon on some networks (and it's quite
 // common), but don't want to be "flapping", we set the timeout for beacon
@@ -63,39 +64,19 @@ static const uint16_t INACTIVE_BEACON_SECONDS = 3600 * 18;
 // pings to the AP?
 static const uint32_t INACTIVE_PACKET_SECONDS = 5;
 
-// intron
-// 0 as uint8_t
-// fw version as uint16_t
-// hw addr data as uint8_t[6]
-#define MSG_DEVINFO 0
+#define MSG_DEVINFO_V2 0
+#define MSG_CLIENTCONFIG_V2 6
+#define MSG_PACKET_V2 7
 
-// intron
-// 1 as uint8_t
-// link up as bool (uint8_t)
-#define MSG_LINK 1
-
-// intron
-// 2 as uint8_t
-#define MSG_GET_LINK 2
-
-// intron
-// 2 as uint8_t
-// ssid size as uint8_t
-// ssid bytes
-// pass size as uint8_t
-// pass bytes
-#define MSG_CLIENTCONFIG 3
-
-// intron
-// 3 as uint8_t
-// LEN as uint32_t
-// DATA
-#define MSG_PACKET 4
-
-// intron
-// 5 as uint8_t
-// new intron as uint8_t[8]
-#define MSG_INTRON 5
+struct __attribute__((packed)) header {
+    uint8_t type;
+    union {
+        uint8_t version; // when type == MSG_DEVINFO_V2
+        uint8_t unused;  // when type == MSG_CLIENTCONFIG_V2
+        uint8_t up;      // when type == MSG_PACKET_V2
+    };
+    uint16_t size;
+};
 
 static const uint8_t uart_nic_protocol = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N;
 
@@ -145,11 +126,13 @@ static void IRAM_ATTR free_wifi_send_buff(wifi_send_buff *buff) {
 
 static void send_link_status(uint8_t up) {
     ESP_LOGI(TAG, "Sending link status: %d", up);
+    struct header header;
+    header.type = MSG_PACKET_V2;
+    header.up = up;
+    header.size = htons(0);
     xSemaphoreTake(uart_mtx, portMAX_DELAY);
     uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-    const uint8_t t = MSG_LINK;
-    uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
-    uart_write_bytes(UART_NUM_0, (const char*)&up, sizeof(uint8_t));
+    uart_write_bytes(UART_NUM_0, (const char*)&header, sizeof(header));
     xSemaphoreGive(uart_mtx);
 }
 
@@ -293,25 +276,20 @@ void wifi_init_sta(void) {
 
 static void send_device_info() {
     ESP_LOGI(TAG, "Sending device info");
-    xSemaphoreTake(uart_mtx, portMAX_DELAY);
-
-    // Intron
-    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-
-    // Definfo mesage identifier
-    const uint8_t t = MSG_DEVINFO;
-    uart_write_bytes(UART_NUM_0, (const char*)&t, 1);
-
-    // FW version
-    uart_write_bytes(UART_NUM_0, (const char*)&FW_VERSION, sizeof(FW_VERSION));
-
     // MAC address
     int ret = esp_wifi_get_mac(WIFI_IF_STA, mac);
     if(ret != ESP_OK) {
         ESP_LOGI(TAG, "Failed to obtain MAC, returning last one or zeroes");
     }
-    uart_write_bytes(UART_NUM_0, (const char*)mac, sizeof(mac));
 
+    struct header header;
+    header.type = MSG_DEVINFO_V2;
+    header.version = FW_VERSION;
+    header.size = htons(6);
+    xSemaphoreTake(uart_mtx, portMAX_DELAY);
+    uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
+    uart_write_bytes(UART_NUM_0, (const char*)&header, sizeof(header));
+    uart_write_bytes(UART_NUM_0, (const char*)mac, sizeof(mac));
     xSemaphoreGive(uart_mtx);
 }
 
@@ -358,15 +336,7 @@ static size_t IRAM_ATTR read_uart(uint8_t *buff, size_t len) {
     return trr;
 }
 
-static void IRAM_ATTR read_packet_message() {
-    // ESP_LOGI(TAG, "Reading packet");
-    uint32_t size = 0;
-
-    read_uart((uint8_t*)&size, sizeof(size));
-    if(size > 2000) {
-        ESP_LOGI(TAG, "Invalid packet size: %" PRIu32, size);
-        return;
-    }
+static void IRAM_ATTR read_packet_message(uint16_t size) {
     // ESP_LOGI(TAG, "Receiving packet size: %d", size);
     // ESP_LOGI(TAG, "Allocating pbuf size: %d, free heap: %d", size, esp_get_free_heap_size());
 
@@ -399,6 +369,8 @@ nomem:
 }
 
 static void read_wifi_client_message() {
+    read_uart((uint8_t*)intron, sizeof(intron));
+
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config_t));
 
@@ -433,10 +405,6 @@ static void read_wifi_client_message() {
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
     ESP_ERROR_CHECK(esp_wifi_start());
     send_device_info();
-}
-
-static void IRAM_ATTR read_intron_message() {
-    read_uart((uint8_t*)intron, sizeof(intron));
 }
 
 static int get_link_status() {
@@ -479,24 +447,24 @@ static void IRAM_ATTR read_message() {
     // from the AP and we would block forever and never get to the check.
     check_online_status();
 
-    uint8_t type = 0;
-    size_t read = uart_read_bytes(UART_NUM_0, (uint8_t*)&type, 1, portMAX_DELAY);
-    if(read != 1) {
-        ESP_LOGI(TAG, "Cannot read message type");
+    struct header header;
+    size_t read = uart_read_bytes(UART_NUM_0, (uint8_t*)&header, sizeof(header), portMAX_DELAY);
+    if (read != sizeof(header)) {
+        ESP_LOGI(TAG, "Cannot read message header");
         return;
     }
 
-    // ESP_LOGI(TAG, "Detected message type: %d", type);
-    if(type == MSG_PACKET) {
-        read_packet_message();
-    } else if (type == MSG_CLIENTCONFIG) {
+    if (header.type == MSG_PACKET_V2) {
+        const uint16_t size = ntohs(header.size);
+        if (size) {
+            read_packet_message(size);
+        } else {
+            send_link_status(get_link_status());
+        }
+    } else if (header.type == MSG_CLIENTCONFIG_V2) {
         read_wifi_client_message();
-    } else if (type == MSG_GET_LINK) {
-        send_link_status(get_link_status());
-    } else if (type == MSG_INTRON) {
-        read_intron_message();
     } else {
-        ESP_LOGI(TAG, "Unknown message type: %d !!!", type);
+        ESP_LOGI(TAG, "Unknown message type: %d !!!", header.type);
     }
 }
 
@@ -537,12 +505,13 @@ static void IRAM_ATTR uart_tx_thread(void *arg) {
                 continue;
             }
             // ESP_LOGI(TAG, "Printing packet to UART");
+            struct header header;
+            header.type = MSG_PACKET_V2;
+            header.up = get_link_status();
+            header.size = htons(buff->len);
             xSemaphoreTake(uart_mtx, portMAX_DELAY);
             uart_write_bytes(UART_NUM_0, intron, sizeof(intron));
-            const uint8_t t = MSG_PACKET;
-            const uint32_t l = buff->len;
-            uart_write_bytes(UART_NUM_0, (const char*)&t, sizeof(t));
-            uart_write_bytes(UART_NUM_0, (const char*)&l, sizeof(l));
+            uart_write_bytes(UART_NUM_0, (const char*)&header, sizeof(header));
             uart_write_bytes(UART_NUM_0, (const char*)buff->data, buff->len);
             xSemaphoreGive(uart_mtx);
             // ESP_LOGI(TAG, "Packet UART out done");
