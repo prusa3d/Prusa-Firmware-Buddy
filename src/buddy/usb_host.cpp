@@ -8,6 +8,7 @@
 #include "common/timing.h"
 
 #include <atomic>
+#include "usbh_async_diskio.hpp"
 
 USBH_HandleTypeDef hUsbHostHS;
 ApplicationTypeDef Appli_state = APPLICATION_IDLE;
@@ -53,6 +54,9 @@ static void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t
 
     case HOST_USER_DISCONNECTION:
         Appli_state = APPLICATION_DISCONNECT;
+#ifdef USBH_MSC_READAHEAD
+        usbh_msc_readahead.disable();
+#endif
         media_set_removed();
         f_mount(0, (TCHAR const *)USBHPath, 1); // umount
         connected_at_startup = false;
@@ -66,6 +70,9 @@ static void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t
                 connected_at_startup = true;
             }
             media_set_inserted();
+#ifdef USBH_MSC_READAHEAD
+            usbh_msc_readahead.enable(USBHFatFS.pdrv);
+#endif
         } else
             media_set_error(media_error_MOUNT);
         break;

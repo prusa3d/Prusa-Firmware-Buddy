@@ -35,6 +35,10 @@ const Diskio_drvTypeDef USBH_Driver = {
 #endif /* FF_FS_READONLY == 0 */
 };
 
+#ifdef USBH_MSC_READAHEAD
+UsbhMscReadahead usbh_msc_readahead;
+#endif
+
 osThreadId USBH_MSC_WorkerTaskHandle;
 static constexpr size_t queue_length = 5;
 static QueueHandle_t request_queue;
@@ -86,7 +90,21 @@ USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
 static void USBH_MSC_WorkerTask(void const *) {
     for (;;) {
         UsbhMscRequest *request;
+#ifdef USBH_MSC_READAHEAD
+        usbh_msc_readahead.send_stats();
+        BaseType_t queue_status = xQueueReceive(request_queue, &request, 0);
+        if (queue_status != pdPASS) {
+            usbh_msc_readahead.read_next_sector();
+    #ifdef USBH_MSC_READAHEAD_STATISTICS
+            if (uxQueueMessagesWaiting(request_queue)) {
+                usbh_msc_readahead.inc_stats_block_another_io();
+            }
+    #endif
+            queue_status = xQueueReceive(request_queue, &request, portMAX_DELAY);
+        }
+#else
         BaseType_t queue_status = xQueueReceive(request_queue, &request, portMAX_DELAY);
+#endif
         if (queue_status == pdPASS) {
             {
                 Lock lock(mutex);
@@ -94,6 +112,9 @@ static void USBH_MSC_WorkerTask(void const *) {
                 switch (request->operation) {
                 case UsbhMscRequest::UsbhMscRequestOperation::Read:
                     request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+#ifdef USBH_MSC_READAHEAD
+                    usbh_msc_readahead.set_next_sector(request->lun, request->sector_nbr + request->count);
+#endif
                     break;
                 case UsbhMscRequest::UsbhMscRequestOperation::Write:
                     request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
@@ -154,6 +175,12 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
 
+#ifdef USBH_MSC_READAHEAD
+    if (count == 1 && usbh_msc_readahead.get(lun, sector, buff)) {
+        return RES_OK;
+    }
+#endif
+
     if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
         while ((count--) && (status == USBH_OK)) {
             status = USBH_exec(UsbhMscRequest::UsbhMscRequestOperation::Read, lun, (uint8_t *)scratch, sector + count, 1);
@@ -203,7 +230,11 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
-
+    #ifdef USBH_MSC_READAHEAD
+    for (UINT s = sector; s < sector + count; ++s) {
+        usbh_msc_readahead.invalidate(lun, s);
+    }
+    #endif
     if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
         USBH_ErrLog("Suspicious DMA Alignment issue, do single up to aligned buffer");
         while (count--) {
@@ -303,3 +334,104 @@ DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
     return res;
 }
 #endif /* FF_FS_READONLY == 0 */
+
+#ifdef USBH_MSC_READAHEAD
+
+bool UsbhMscReadahead::get(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr, uint8_t *data) {
+    if (this->lun_nbr != lun_nbr)
+        return false;
+    if (mutex.try_lock()) {
+        if (sector_nbr == cached_sector_nbr) {
+            inc_stats_hit();
+            goto hit;
+        } else {
+            inc_stats_missed();
+            mutex.unlock();
+            return false;
+        }
+    } else if (sector_nbr == cached_sector_nbr) {
+        // sector read in progress => wait for completion
+        mutex.lock();
+        if (sector_nbr == cached_sector_nbr) {
+            inc_stats_hit_in_progress();
+            goto hit;
+        }
+        inc_stats_missed();
+        mutex.unlock();
+        return false;
+    }
+    inc_stats_missed();
+    return false;
+hit:
+    memcpy(data, buffer, UsbhMscRequest::SECTOR_SIZE);
+    next_sector_nbr = cached_sector_nbr.load() + 1;
+    mutex.unlock();
+    // wake up the USBH_worker task to perform another readahead
+    xTaskNotifyGive(USBH_MSC_WorkerTaskHandle);
+    return true;
+}
+
+void UsbhMscReadahead::set_next_sector(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr) {
+    if (this->lun_nbr != lun_nbr)
+        return;
+    this->next_sector_nbr = sector_nbr;
+}
+
+void UsbhMscReadahead::enable(UsbhMscRequest::LunNbr lun_nbr) {
+    this->lun_nbr = lun_nbr;
+    next_sector_nbr = INVALID_SECTOR_NBR;
+    cached_sector_nbr = INVALID_SECTOR_NBR;
+}
+
+void UsbhMscReadahead::disable() {
+    this->lun_nbr = INVALID_LUN_NBR;
+    next_sector_nbr = INVALID_SECTOR_NBR;
+    cached_sector_nbr = INVALID_SECTOR_NBR;
+}
+
+void UsbhMscReadahead::invalidate(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr) {
+    if (this->lun_nbr != lun_nbr)
+        return;
+    if (this->cached_sector_nbr == sector_nbr) {
+        this->cached_sector_nbr = INVALID_SECTOR_NBR;
+    }
+}
+
+void UsbhMscReadahead::read_next_sector() {
+    if (lun_nbr == INVALID_LUN_NBR
+        || next_sector_nbr == INVALID_SECTOR_NBR
+        || next_sector_nbr == cached_sector_nbr)
+        return;
+    #ifdef USBH_MSC_READAHEAD_STATISTICS
+    stats_speculative_read_count++;
+    #endif
+
+    Lock lock(mutex);
+    // it is necessary to set it now so that a possible reading attempt will know about it
+    cached_sector_nbr = next_sector_nbr.load();
+    auto result = USBH_MSC_Read(&hUsbHostHS, lun_nbr, next_sector_nbr, buffer, 1);
+    if (result != USBH_OK) {
+        cached_sector_nbr = INVALID_SECTOR_NBR;
+        next_sector_nbr = INVALID_SECTOR_NBR;
+    }
+}
+
+void UsbhMscReadahead::send_stats() {
+    #ifdef USBH_MSC_READAHEAD_STATISTICS
+    auto now = osKernelSysTick();
+    if (now - sent_statistics_timestamp > 5000) {
+        log_info(USBHost, "MSC readahead stat speculative reads=%d, hit=%d, hit_in_progress=%d, missed=%d, blocking=%d",
+            stats_speculative_read_count.load(), stats_hit.load(), stats_hit_in_progress.load(),
+            stats_missed.load(), stats_block_another_io.load());
+        sent_statistics_timestamp = now;
+    }
+    #endif
+}
+
+void UsbhMscReadahead::inc_stats_block_another_io() {
+    #ifdef USBH_MSC_READAHEAD_STATISTICS
+    stats_block_another_io++;
+    #endif
+}
+
+#endif // USBH_MSC_READAHEAD
