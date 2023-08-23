@@ -38,13 +38,16 @@ private:
     // Max number of times we try to get the initial code.
     //
     // (When we have it, we keep trying forever).
-    uint8_t retries_left = 3;
+
+    uint8_t retries_left = starting_retries;
 
 public:
+    static constexpr uint8_t starting_retries = 3;
     Registrator(Printer &printer)
         : printer(printer) {}
     CommResult communicate(RefreshableFactory &conn_factory);
     const char *get_code() const;
+    uint8_t get_retries_left() const;
 };
 
 } // namespace connect_client
