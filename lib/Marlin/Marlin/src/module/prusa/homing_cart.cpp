@@ -221,10 +221,9 @@ public:
 
         data.probe_offset_avg = data.probe_offset_avg + (abs(probe_offset) - data.probe_offset_avg) / ++data.n;
 
-        // If the probe offset is off by more than 6mm after a couple of tries,
-        // it's way too sensitive, move on to next sensitivity early
-        if ((data.n >= HOMING_SENSITIVITY_CALIBRATION_TRIES / 2 && data.probe_offset_avg > 6)
-            || data.n >= HOMING_SENSITIVITY_CALIBRATION_TRIES) {
+        // If the average offset multiplied by number of tries is over 0.6mm,
+        // the sensitivity does not work well and we can move on to the next one
+        if ((data.probe_offset_avg * data.n) > 0.6 || data.n >= HOMING_SENSITIVITY_CALIBRATION_TRIES) {
             current_sensitivity++; // move on to the next sensitivity
             crash_s.home_sensitivity[axis] = current_sensitivity;
 
