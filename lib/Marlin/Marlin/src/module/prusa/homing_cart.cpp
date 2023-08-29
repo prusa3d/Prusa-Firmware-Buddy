@@ -229,17 +229,37 @@ public:
             crash_s.home_sensitivity[axis] = current_sensitivity;
 
             if (current_sensitivity > XY_STALL_SENSITIVITY_MAX) {
-                auto it = std::min_element(
-                    avgs.begin(),
-                    avgs.end(),
-                    [](const AvgData &a, const AvgData &b) { return a.probe_offset_avg < b.probe_offset_avg; });
+                auto it_last = avgs.begin();
+                // make it_last point to the last smallest average in the array
+                for (auto it = avgs.begin(); it < avgs.end(); ++it) {
+                    if (it->probe_offset_avg <= it_last->probe_offset_avg) {
+                        it_last = it;
+                    }
+                }
 
-                current_sensitivity = i2s(it - avgs.begin());
+                // make it_first point to the first smallest average in the
+                // array (in a continuous range from it_last)
+                auto it_first = it_last;
+                while (it_first > avgs.begin()) {
+                    if ((it_first - 1)->probe_offset_avg == it_last->probe_offset_avg) {
+                        --it_first;
+                    } else {
+                        break;
+                    }
+                }
+
+                // move it_last forward so that it points behind the last smallest average
+                ++it_last;
+
+                // select the sensitivity in the middle of the range, rounding up
+                auto it_selected = it_first + (it_last - it_first) / 2;
+
+                current_sensitivity = i2s(it_selected - avgs.begin());
                 crash_s.home_sensitivity[axis] = current_sensitivity;
 
                 SERIAL_ECHO_START();
                 SERIAL_ECHOPAIR("Homing sensitivity: calibrated to ", current_sensitivity);
-                SERIAL_ECHOLNPAIR(" of probe offset avg: ", it->probe_offset_avg);
+                SERIAL_ECHOLNPAIR(" of probe offset avg: ", it_selected->probe_offset_avg);
                 store_homing_sensitivity(axis, current_sensitivity);
                 calibrated = true;
             } else {
