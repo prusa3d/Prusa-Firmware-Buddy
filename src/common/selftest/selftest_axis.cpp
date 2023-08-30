@@ -194,6 +194,13 @@ void CSelftestPart_Axis::motor_switch(Motor steps) {
     // change FSM .. make user know
     PersistentStorage::erase();
 
+    config_store().homing_sens_x.set(config_store().homing_sens_x.default_val);
+    config_store().homing_sens_y.set(config_store().homing_sens_y.default_val);
+    config_store().homing_bump_divisor_x.set(config_store().homing_bump_divisor_x.default_val);
+    config_store().homing_bump_divisor_y.set(config_store().homing_bump_divisor_y.default_val);
+
+    queue.enqueue_one_now("M914 X Y"); // Reset XY homing sensitivity
+
     const char fmt_curr[] = "M906 X%u Y%u";
     int sz_curr = snprintf(NULL, 0, fmt_curr, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
     char gcode_curr[sz_curr + 1];                                                                       // note +1 for terminating null byte

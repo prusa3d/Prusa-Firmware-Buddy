@@ -46,6 +46,12 @@ void MI_MK4_MK39::OnChange([[maybe_unused]] size_t old_index) {
         config_store().xy_motors_400_step.set(!config_store().xy_motors_400_step.get());
         PersistentStorage::erase();
 
+        config_store().homing_sens_x.set(config_store().homing_sens_x.default_val);
+        config_store().homing_sens_y.set(config_store().homing_sens_y.default_val);
+        config_store().homing_bump_divisor_x.set(config_store().homing_bump_divisor_x.default_val);
+        config_store().homing_bump_divisor_y.set(config_store().homing_bump_divisor_y.default_val);
+
+        marlin_client::gcode("M914 X Y");                                                            // Reset XY homing sensitivity
         marlin_client::gcode_printf("M906 X%u Y%u", get_rms_current_ma_x(), get_rms_current_ma_y()); // XY motor currents
         marlin_client::gcode_printf("M350 X%u Y%u", get_microsteps_x(), get_microsteps_y());         // XY motor microsteps
     } else {
