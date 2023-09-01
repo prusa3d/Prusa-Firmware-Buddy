@@ -22,7 +22,8 @@ using UsbhMscRequestCallback = void (*)(USBH_StatusTypeDef result, void *param1,
 struct UsbhMscRequest {
     enum class UsbhMscRequestOperation : uint8_t {
         Read,
-        Write
+        Write,
+        Noop
     };
 
     static const size_t SECTOR_SIZE = 512;
@@ -48,28 +49,47 @@ USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *);
 
 #ifdef USBH_MSC_READAHEAD
 struct UsbhMscReadahead {
+    static constexpr uint8_t size = 4;
+
     UsbhMscReadahead() { disable(); }
     /// If the desired sector is already loaded or if it is being read (wait for the operation to complete), return true and copy the sector to data, otherwise return false immediately
     bool get(UsbhMscRequest::LunNbr, UsbhMscRequest::SectorNbr, uint8_t *data);
-    /// Set number of last readed sector + 1
-    void set_next_sector(UsbhMscRequest::LunNbr, UsbhMscRequest::SectorNbr);
+    /// Notify number of last readed sector
+    void notify_read(UsbhMscRequest::LunNbr, UsbhMscRequest::SectorNbr);
     /// Enable readahead on given LUN
     void enable(UsbhMscRequest::LunNbr);
     /// Disable readahead - initial state
     void disable();
-    /// Invalidate preloaded data (in case the sector is being written)
-    void invalidate(UsbhMscRequest::LunNbr, UsbhMscRequest::SectorNbr);
-    /// Perform a read of the next sector
-    void read_next_sector();
+    /// Invalidate preloaded data (in case the sectors are being written)
+    void invalidate(UsbhMscRequest::LunNbr, UsbhMscRequest::SectorNbr, size_t count);
+    /// Perform a read of the next sector, returns true if preload was performed
+    bool preload();
 
 private:
-    static constexpr const UsbhMscRequest::SectorNbr INVALID_SECTOR_NBR = std::numeric_limits<UsbhMscRequest::SectorNbr>::max();
-    static constexpr const UsbhMscRequest::LunNbr INVALID_LUN_NBR = std::numeric_limits<UsbhMscRequest::LunNbr>::max();
+    void reset();
+
+    static constexpr UsbhMscRequest::SectorNbr INVALID_SECTOR_NBR = std::numeric_limits<UsbhMscRequest::SectorNbr>::max();
+    static constexpr UsbhMscRequest::LunNbr INVALID_LUN_NBR = std::numeric_limits<UsbhMscRequest::LunNbr>::max();
     std::atomic<UsbhMscRequest::LunNbr> lun_nbr;
-    std::atomic<UsbhMscRequest::SectorNbr> next_sector_nbr;
-    std::atomic<UsbhMscRequest::SectorNbr> cached_sector_nbr;
-    uint8_t buffer[UsbhMscRequest::SECTOR_SIZE];
+
+    struct Entry {
+        std::atomic<UsbhMscRequest::SectorNbr> sector_nbr;
+        bool preloaded;
+        uint32_t timestamp;
+        FreeRTOS_Mutex mutex;
+        uint8_t data[UsbhMscRequest::SECTOR_SIZE];
+
+        void reset() {
+            sector_nbr = INVALID_SECTOR_NBR;
+            preloaded = false;
+            timestamp = 0;
+        }
+        bool operator==(UsbhMscRequest::SectorNbr sector_nbr) { return this->sector_nbr == sector_nbr; };
+        bool operator<(const Entry &e) { return timestamp < e.timestamp; }
+    };
+
     FreeRTOS_Mutex mutex;
+    std::array<Entry, size> cache;
 
     // Statictics
 public:
@@ -81,11 +101,9 @@ private:
     #ifdef USBH_MSC_READAHEAD_STATISTICS
     void inc_stats_hit() { stats_hit++; }
     void inc_stats_speculative_read_count() { stats_speculative_read_count++; }
-    void inc_stats_hit_in_progress() { stats_hit_in_progress++; }
     void inc_stats_missed() { stats_missed++; }
     std::atomic<uint32_t> stats_speculative_read_count = 0;
     std::atomic<uint32_t> stats_hit = 0;
-    std::atomic<uint32_t> stats_hit_in_progress = 0;
     std::atomic<uint32_t> stats_missed = 0;
     std::atomic<uint32_t> stats_block_another_io = 0;
     uint32_t sent_statistics_timestamp;
