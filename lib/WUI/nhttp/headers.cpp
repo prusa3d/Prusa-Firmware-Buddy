@@ -40,7 +40,7 @@ namespace {
         { Status::UnprocessableEntity, "Unprocessable Entity" },
         { Status::TooManyRequests, "Too Many Requests" },
         { Status::RequestHeaderFieldsTooLarge, "Request Header Fields Too Large" },
-        { Status::InternalServerError, "Infernal Server Error" },
+        { Status::InternalServerError, "Internal Server Error" },
         { Status::NotImplemented, "Not Implemented" },
         { Status::ServiceTemporarilyUnavailable, "Service Temporarily Unavailable" },
         { Status::GatewayTimeout, "Gateway Timeout" },
