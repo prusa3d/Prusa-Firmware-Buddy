@@ -182,12 +182,20 @@ class SensitivityCalibration {
     struct AvgData {
         float probe_offset_avg { 0.0 };
         uint8_t n { 0 };
+
+        bool is_bad() {
+            return (probe_offset_avg * n) > 0.6;
+        }
     };
+
+    static constexpr int16_t MIDDLE_SENSITIVITY = (XY_STALL_SENSITIVITY_MIN + XY_STALL_SENSITIVITY_MAX) / 2;
 
     AxisEnum axis;
     std::array<AvgData, XY_STALL_SENSITIVITY_MAX - XY_STALL_SENSITIVITY_MIN + 1> avgs;
-    int16_t current_sensitivity { XY_STALL_SENSITIVITY_MIN }; // start at the lowest sensitivity
+    // start in the middle of the sensitivity range
+    int16_t current_sensitivity { MIDDLE_SENSITIVITY };
     bool calibrated { false };
+    AvgData *best_data { nullptr };
 
     size_t s2i(int16_t sensitivity) {
         return sensitivity - XY_STALL_SENSITIVITY_MIN;
@@ -195,6 +203,44 @@ class SensitivityCalibration {
 
     int16_t i2s(size_t index) {
         return index + XY_STALL_SENSITIVITY_MIN;
+    }
+
+    bool have_good_data() {
+        return best_data != nullptr && !best_data->is_bad();
+    }
+
+    bool next_sensitivity() {
+        auto &data = avgs[s2i(current_sensitivity)];
+
+        if (best_data == nullptr || data.probe_offset_avg < best_data->probe_offset_avg) {
+            best_data = &data;
+        }
+
+        // go through the upper half of the range first
+        // (less chance to crush into the opposing endstop)
+        if (current_sensitivity >= MIDDLE_SENSITIVITY) {
+            // continue up the upper half as long as the results are not getting worse
+            if (current_sensitivity < XY_STALL_SENSITIVITY_MAX && (!have_good_data() || !data.is_bad())) {
+                ++current_sensitivity;
+                return true;
+            }
+
+            // if the middle was not bad or we haven't found a good result,
+            // move to the lower half of the range
+            auto &middle_data = avgs[s2i(MIDDLE_SENSITIVITY)];
+            if (MIDDLE_SENSITIVITY > XY_STALL_SENSITIVITY_MIN && (!have_good_data() || !middle_data.is_bad())) {
+                current_sensitivity = MIDDLE_SENSITIVITY - 1;
+                return true;
+            }
+        } else {
+            // go down the lower half of the range as long as the results are not getting worse
+            if (current_sensitivity > XY_STALL_SENSITIVITY_MIN && (!have_good_data() || !data.is_bad())) {
+                --current_sensitivity;
+                return true;
+            }
+        }
+
+        return false;
     }
 
 public:
@@ -223,15 +269,17 @@ public:
 
         // If the average offset multiplied by number of tries is over 0.6mm,
         // the sensitivity does not work well and we can move on to the next one
-        if ((data.probe_offset_avg * data.n) > 0.6 || data.n >= HOMING_SENSITIVITY_CALIBRATION_TRIES) {
-            current_sensitivity++; // move on to the next sensitivity
-            crash_s.home_sensitivity[axis] = current_sensitivity;
+        if (data.is_bad() || data.n >= HOMING_SENSITIVITY_CALIBRATION_TRIES) {
+            if (next_sensitivity()) {
+                crash_s.home_sensitivity[axis] = current_sensitivity;
+                SERIAL_ECHO_START();
+                SERIAL_ECHOLNPAIR("Homing sensitivity: calibrating at sensitivity ", current_sensitivity);
+            } else {
+                auto it_last = std::find_if(avgs.begin(), avgs.end(), [](const AvgData &d) { return d.n > 0; });
 
-            if (current_sensitivity > XY_STALL_SENSITIVITY_MAX) {
-                auto it_last = avgs.begin();
                 // make it_last point to the last smallest average in the array
                 for (auto it = avgs.begin(); it < avgs.end(); ++it) {
-                    if (it->probe_offset_avg <= it_last->probe_offset_avg) {
+                    if (it->n > 0 && it->probe_offset_avg <= it_last->probe_offset_avg) {
                         it_last = it;
                     }
                 }
@@ -240,7 +288,7 @@ public:
                 // array (in a continuous range from it_last)
                 auto it_first = it_last;
                 while (it_first > avgs.begin()) {
-                    if ((it_first - 1)->probe_offset_avg == it_last->probe_offset_avg) {
+                    if ((it_first - 1)->n > 0 && (it_first - 1)->probe_offset_avg == it_last->probe_offset_avg) {
                         --it_first;
                     } else {
                         break;
@@ -261,9 +309,6 @@ public:
                 SERIAL_ECHOLNPAIR(" of probe offset avg: ", it_selected->probe_offset_avg);
                 store_homing_sensitivity(axis, current_sensitivity);
                 calibrated = true;
-            } else {
-                SERIAL_ECHO_START();
-                SERIAL_ECHOLNPAIR("Homing sensitivity: calibrating at sensitivity ", current_sensitivity);
             }
         }
     }
