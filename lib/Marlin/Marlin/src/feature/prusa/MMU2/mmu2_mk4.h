@@ -9,10 +9,7 @@
 typedef float feedRate_t;
 
 #else
-
     #include "protocol_logic.h"
-    #include "../../Marlin/src/core/macros.h"
-    #include "../../Marlin/src/core/types.h"
     #include <atomic>
 #endif
 

@@ -1,4 +1,10 @@
 #include "mmu2_mk4.h"
+#ifndef UNITTEST
+    #include "../../Marlin/src/core/macros.h"
+    #include "../../Marlin/src/core/types.h"
+#else
+    #include "mmu2_config_unittest.h"
+#endif
 #include "mmu2_config.h"
 #include "mmu2_error_converter.h"
 #include "mmu2_fsensor.h"

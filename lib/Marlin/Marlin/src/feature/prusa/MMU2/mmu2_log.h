@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef UNITTEST
-    #include "../../core/serial.h"
-
 // Beware - before changing this prefix, think twice
 // you'd need to change appmain.cpp app_marlin_serial_output_write_hook
 // and MMU2::ReportError + MMU2::ReportProgress
@@ -23,6 +20,9 @@ void LogErrorEvent_P(const char *msg_P);
 void LogEchoEvent_P(const char *msg_P);
 
 } // namespace MMU2
+
+#ifndef UNITTEST
+    #include "../../core/serial.h"
 
     #define SERIAL_MMU2() \
         { serialprintPGM(mmu2Magic); }
@@ -49,14 +49,14 @@ void LogEchoEvent_P(const char *msg_P);
         } while (0)
     #define MMU2_ERROR_MSG(S) MMU2_ECHO_MSG(S) //!@todo Decide MMU2 errors  on serial line
 
-#else // #ifndef UNITTEST
-
-    #define MMU2_ECHO_MSGLN(S)    /* */
-    #define MMU2_ERROR_MSGLN(S)   /* */
-    #define MMU2_ECHO_MSGRPGM(S)  /* */
-    #define MMU2_ERROR_MSGRPGM(S) /* */
-    #define SERIAL_ECHOLNPGM(S)   /* */
+#else                                          // #ifndef UNITTEST
+    #include "stubs/stub_interfaces.h"
+    #define MMU2_ECHO_MSGLN(S)    marlinLogSim.AppendLine(S)
+    #define MMU2_ERROR_MSGLN(S)   marlinLogSim.AppendLine(S)
+    #define MMU2_ECHO_MSGRPGM(S)  /*marlinLogSim.AppendLine(S)*/
+    #define MMU2_ERROR_MSGRPGM(S) /*marlinLogSim.AppendLine(S)*/
+    #define SERIAL_ECHOLNPGM(S)   /*marlinLogSim.AppendLine(S)*/
     #define SERIAL_ECHOPGM(S)     /* */
-    #define SERIAL_ECHOLN(S)      /* */
+    #define SERIAL_ECHOLN(S)      /*marlinLogSim.AppendLine(S)*/
 
-#endif // #ifndef UNITTEST
+#endif                            // #ifndef UNITTEST

@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include "buttons.h"
 #include "../../../../../../Prusa-Error-Codes/04_MMU/button_operations.h"
-#include "../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
+#include "../../../../../../Prusa-Firmware-MMU/src/logic/error_codes.h"
 
 namespace MMU2 {
 
