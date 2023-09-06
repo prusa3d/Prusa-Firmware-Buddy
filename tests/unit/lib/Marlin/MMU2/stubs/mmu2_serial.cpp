@@ -24,6 +24,10 @@ void IOSimCheck() {
     // - check the mockLog - what has been called meanwhile
     // - check the marlinLog - what has been printed on the serial line - may be that's an overkill
     // - advance to the next record - take the next rx and submit it to the mmu2Serial for input
+    if (ioSimI == ioSim.cend()) {
+        return;
+    }
+
     const IOSimRec &r = *ioSimI;
 
     //    if( r.tx.empty() ){

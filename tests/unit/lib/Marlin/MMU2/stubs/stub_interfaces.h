@@ -17,8 +17,12 @@ struct MockLog {
 
     // log must match the msgs exactly
     bool Matches(std::initializer_list<std::string_view> msgs) const;
+    bool MatchesExpected() const;
     void Record(std::string_view s);
     void Clear();
+
+    void DeduplicateLog();
+    void DeduplicateExpected();
 
     consteval std::string_view MethodName(const char *s) {
         std::string_view prettyFunction(s);
@@ -104,3 +108,6 @@ void IncMillis(uint32_t diff = 1);
 } // extern "C"
 
 void InitEnvironment();
+
+void ResetErrorScreenRunning();
+void SetMarlinIsPrinting(bool p);

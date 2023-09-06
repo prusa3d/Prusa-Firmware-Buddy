@@ -1106,7 +1106,9 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
     if (!mmu2.RetryIfPossible(ec)) {
         // If retry attempts are all used up
         // or if 'Retry' operation is not available
-        // raise the MMU error sceen and wait for user input
+        // raise the MMU error screen and wait for user input
+
+        // @@TODO Here, we assume that BeginReport has already been called - which is not true for errors like MMU_NOT_RESPONDING
         ReportErrorHook((CommandInProgress)logic.CommandInProgress(), (uint16_t)ec, uint8_t(lastErrorSource));
     }
 

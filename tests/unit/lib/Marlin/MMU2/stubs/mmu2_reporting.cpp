@@ -1,14 +1,18 @@
 #include <mmu2_reporting.h>
 #include "stub_interfaces.h"
 
+bool errorScreenRunning = false;
+
+void ResetErrorScreenRunning() {
+    errorScreenRunning = false;
+}
+
 namespace MMU2 {
 
 // beware:
 // cip (command in progress) is an enum coded with letters representing the currently running command
 // therefore it should be safe to do '(char)cip'
-#define mockLog_RecordFnCipEc(cip, ec) mockLog.Record(std::string { mockLog.MethodName(__PRETTY_FUNCTION__) } + "(" + (char)cip + ", " + std::to_string(ec) + ")")
-
-bool errorScreenRunning = false;
+#define mockLog_RecordFnCipEc(cip, ec) mockLog.Record(std::string { mockLog.MethodName(__PRETTY_FUNCTION__) } + "(" + (char)(cip ? cip : 'x') + ", " + std::to_string(ec) + ")")
 
 /// Called at the begin of every MMU operation
 void BeginReport(CommandInProgress cip, uint16_t ec) {
@@ -30,7 +34,7 @@ bool isErrorScreenRunning() { return errorScreenRunning; }
 /// @param[in] es error source
 void ReportErrorHook(CommandInProgress cip, uint16_t ec, uint8_t es) {
     errorScreenRunning = true;
-    //    mockLog_RecordFnCipEc(cip, ec);
+    mockLog_RecordFnCipEc(cip, ec);
 }
 
 /// Called when the MMU sends operation progress update
@@ -61,10 +65,11 @@ void ReportErrorHookSensorLineRender() {
 }
 
 /// @returns true if the MMU is communicating and available
-/// can change at runtime
+/// report to the outer world, not important for the unit tests
 bool MMUAvailable() { return false; }
 
 /// Global Enable/Disable use MMU (to be stored in EEPROM)
+/// report to the outer world, not important for the unit tests
 bool UseMMU() { return false; }
 
 /// Increments EEPROM cell - number of failed loads into the nozzle
@@ -79,7 +84,7 @@ void IncrementMMUFails() {
 }
 
 /// @returns true when Cutter is enabled in the menus
-bool cutter_enabled() { return false; }
+bool cutter_enabled() { return true; }
 
 void MakeSound(SoundType s) {
     mockLog_RecordFn();

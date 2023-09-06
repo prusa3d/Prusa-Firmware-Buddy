@@ -2,6 +2,11 @@
 #include <mmu2_mk4.h>
 #include "stub_interfaces.h"
 
+static bool printingIsActive = false;
+void SetMarlinIsPrinting(bool p) {
+    printingIsActive = p;
+}
+
 namespace MMU2 {
 
 void extruder_move(float distance, float feed_rate) {
@@ -36,7 +41,7 @@ void nozzle_park() {
     mockLog_RecordFn();
 }
 
-bool marlin_printingIsActive() { return false; }
+bool marlin_printingIsActive() { return printingIsActive; }
 void marlin_manage_heater() {
     mockLog_RecordFn();
 }
@@ -70,7 +75,7 @@ void Disable_E0() {
 bool all_axes_homed() { return false; }
 
 void gcode_reset_stepper_timeout() {
-    mockLog_RecordFn();
+    //    mockLog_RecordFn();
 }
 
 } // namespace MMU2

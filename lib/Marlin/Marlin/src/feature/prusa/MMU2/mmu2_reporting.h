@@ -7,7 +7,7 @@ namespace MMU2 {
 
 enum CommandInProgress : uint8_t {
     NoCommand = 0,
-    CutFilament = 'C',
+    CutFilament = 'K',
     EjectFilament = 'E',
     Homing = 'H',
     LoadFilament = 'L',

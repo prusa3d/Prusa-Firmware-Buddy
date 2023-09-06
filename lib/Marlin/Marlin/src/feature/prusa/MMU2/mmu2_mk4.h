@@ -199,7 +199,9 @@ public:
     inline void IncrementTMCFailures() { ++tmcFailures; }
     inline void ClearTMCFailures() { tmcFailures = 0; }
 
+#ifndef UNITTEST
 private:
+#endif
     /// Perform software self-reset of the MMU (sends an X0 command)
     void ResetX0();
 
