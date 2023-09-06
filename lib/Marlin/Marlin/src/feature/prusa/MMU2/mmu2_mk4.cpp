@@ -906,6 +906,9 @@ bool MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         // - finished ok -> proceed with reading other commands
         marlin_idle(); // calls LogicStep() and remembers its return status
 
+        // @@TODO Ugly hack to prevent starting the cooling timer after being stopped
+        bool recoveringError = false;
+
         if (mmu_print_saved & SavedState::CooldownPending) {
             if (!nozzleTimeout.running()) {
                 nozzleTimeout.start();
@@ -918,6 +921,7 @@ bool MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
             }
         } else if (nozzleTimeout.running()) {
             nozzleTimeout.stop();
+            recoveringError = true;
             LogEchoEvent_P(PSTR("Cooling timer stopped"));
         }
 
@@ -947,7 +951,7 @@ bool MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         case CommunicationTimeout:
         case ProtocolError:
         case ButtonPushed:
-            if (!logic.InAutoRetry()) {
+            if ((!logic.InAutoRetry()) && (!recoveringError)) {
                 // Don't proceed to the park/save if we are doing an autoretry.
                 SaveAndPark(move_axes);
                 SaveHotendTemp(turn_off_nozzle);
