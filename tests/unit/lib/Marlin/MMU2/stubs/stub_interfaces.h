@@ -111,3 +111,6 @@ void InitEnvironment();
 
 void ResetErrorScreenRunning();
 void SetMarlinIsPrinting(bool p);
+
+void SetHotendTargetTemp(uint16_t t);
+void SetHotendCurrentTemp(uint16_t t);

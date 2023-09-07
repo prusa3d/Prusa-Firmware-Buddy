@@ -95,9 +95,11 @@ void thermal_setTargetHotend(int16_t t) {
 }
 
 void safe_delay_keep_alive(uint16_t t) {
-    safe_delay(t);
-    manage_inactivity(true);
-    ui.update();
+    //    safe_delay(t);
+    //    manage_inactivity(true);
+    //    ui.update();
+    // shouldn't we call idle() instead? At least the MMU communication can be run even during waiting for temperature
+    idle(true);
 }
 
 void gcode_reset_stepper_timeout() {

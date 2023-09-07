@@ -7,6 +7,21 @@ void SetMarlinIsPrinting(bool p) {
     printingIsActive = p;
 }
 
+static uint16_t hotendTargetTemp = 0;
+static uint16_t hotendTemp = 0;
+
+#define mockLog_RecordFnTemp(t) mockLog.Record(std::string { mockLog.MethodName(__PRETTY_FUNCTION__) } + "(" + std::to_string(t) + ")")
+
+void SetHotendTargetTemp(uint16_t t) {
+    mockLog_RecordFnTemp(t);
+    hotendTargetTemp = t;
+}
+
+void SetHotendCurrentTemp(uint16_t t) {
+    mockLog_RecordFnTemp(t);
+    hotendTemp = t;
+}
+
 namespace MMU2 {
 
 void extruder_move(float distance, float feed_rate) {
@@ -52,17 +67,25 @@ void marlin_idle() {
     mmu2.mmu_loop();
 }
 
-int16_t thermal_degTargetHotend() { return 0; }
-int16_t thermal_degHotend() { return 0; }
-void thermal_setExtrudeMintemp(int16_t t) {
-    mockLog_RecordFn();
+int16_t thermal_degTargetHotend() {
+    return hotendTargetTemp;
 }
+
+int16_t thermal_degHotend() {
+    return hotendTemp;
+}
+
+void thermal_setExtrudeMintemp(int16_t t) {
+    mockLog_RecordFnTemp(t);
+}
+
 void thermal_setTargetHotend(int16_t t) {
-    mockLog_RecordFn();
+    mockLog_RecordFnTemp(t);
 }
 
 void safe_delay_keep_alive(uint16_t t) {
-    mockLog_RecordFn();
+    // normally calls marlin idle() which contains the MMU loop as well
+    mmu2.mmu_loop();
 }
 
 void Enable_E0() {

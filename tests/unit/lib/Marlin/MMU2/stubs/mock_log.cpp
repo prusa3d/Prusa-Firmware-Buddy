@@ -39,6 +39,8 @@ void InitEnvironment() {
     ioSimI = ioSim.cend();
     SetMillis(0);
     ResetErrorScreenRunning();
+    SetHotendTargetTemp(0);
+    SetHotendCurrentTemp(0);
 
     // reset the mmu instance
     new (&MMU2::mmu2) MMU2::MMU2();

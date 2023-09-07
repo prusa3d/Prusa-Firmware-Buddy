@@ -7,7 +7,7 @@
 void SimulateCommStart(MMU2::MMU2 &mmu) {
     mmu.Start();
     // functions that were mandatory to execute
-    REQUIRE(mockLog.Matches({ "MMU2Serial::begin", "power_on", "MMU2Serial::flush" }));
+    REQUIRE(mockLog.Matches({ "SetHotendTargetTemp(0)", "SetHotendCurrentTemp(0)", "MMU2Serial::begin", "power_on", "MMU2Serial::flush" }));
 
     // make sure the calls get into the "expected" sequence for later evaluation
     // it's a bit of a hack but these records must happen every time the MMU is starting
@@ -71,8 +71,13 @@ constexpr std::string FormatEndReport(char command) {
     return std::string(tmp);
 }
 
+constexpr IOSimRec MakeQueryResponseProgressM(const char *command, ProgressCode pc, std::vector<std::string> s, IOSimRec::WorkFunc w = nullptr) {
+    return { "Q0", s, {}, std::string(command) + " P" + ToHex((uint16_t)pc), 1, w };
+}
+
 constexpr IOSimRec MakeQueryResponseProgress(const char *command, ProgressCode pc, IOSimRec::WorkFunc w = nullptr) {
-    return { "Q0", { FormatReportProgressHook(command[0], pc) }, {}, std::string(command) + " P" + ToHex((uint16_t)pc), 1, w };
+    //    return { "Q0", { FormatReportProgressHook(command[0], pc) }, {}, std::string(command) + " P" + ToHex((uint16_t)pc), 1, w };
+    return MakeQueryResponseProgressM(command, pc, { FormatReportProgressHook(command[0], pc) }, w);
 }
 
 constexpr IOSimRec MakeQueryResponseError(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
@@ -128,12 +133,12 @@ uint8_t selectorSlot = 5, idlerSlot = 5;
         MakeQueryResponseReadRegister(0x04, errors),                                   \
         MakeQueryResponseReadRegister(0x1a, pulley, timeout)
 
-#define MakeInitialQuery()        \
+#define MakeInitialQuery(timeout) \
     { "Q0", {}, {}, "X0 F0", 1 }, \
-        MakeRegistersQuery(0, 5, 5, 0, 0, 1)
+        MakeRegistersQuery(0, 5, 5, 0, 0, timeout)
 
 void SimulateQuery(MMU2::MMU2 &mmu) {
-    IOSimStart({ MakeInitialQuery() });
+    IOSimStart({ MakeInitialQuery(1) });
 
     while (ioSimI != ioSim.cend()) {
         mmu.mmu_loop();
@@ -196,7 +201,7 @@ TEST_CASE("Marlin::MMU2::MMU2 preload", "[Marlin][MMU2]") {
     // since this is a blocking call, we need to prepare all the stuff around it
     static constexpr char cmd[] = "L0";
     IOSimStart({
-        MakeInitialQuery(),
+        MakeInitialQuery(1),
 
         MakeCommandAccepted(cmd, "FullScreenMsgLoad"),
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
@@ -217,7 +222,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload", "[Marlin][MMU2]") {
     MMU2::fs = MMU2::FilamentState::NOT_PRESENT; // @@TODO why doesn't it work with fsensor on?
     static constexpr char cmd[] = "U0";
     IOSimStart({
-        MakeInitialQuery(),
+        MakeInitialQuery(1),
 
         MakeCommandAccepted(cmd, "MakeSound"),
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
@@ -247,7 +252,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
 
     static constexpr char cmd[] = "U0";
     IOSimStart({
-        MakeInitialQuery(),
+        MakeInitialQuery(1),
 
         MakeCommandAccepted(cmd, "MakeSound"),
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
@@ -298,7 +303,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
     //
     // TODO:
     // [ ] 8bit ScreenUpdateEnable shall be called within EndReport (code cleanup)
-    // [ ] Check heating timeout - if the recovery heats up and proceeds correctly
+    // [ ] heating in general - Check heating timeout - if the recovery heats up and proceeds correctly
     // [ ] Autoretry procedure (should be the same like an ordinary button
     // [ ] Command error
     // [ ] Communication error + recovery
@@ -315,7 +320,7 @@ TEST_CASE("Marlin::MMU2::MMU2 cut", "[Marlin][MMU2]") {
 
     static constexpr char cmd[] = "K0";
     IOSimStart({
-        MakeInitialQuery(),
+        MakeInitialQuery(1),
 
         MakeCommandAccepted(cmd, "FullScreenMsgCut"),
         MakeQueryResponseProgress(cmd, ProgressCode::SelectingFilamentSlot),
@@ -350,7 +355,7 @@ TEST_CASE("Marlin::MMU2::MMU2 eject", "[Marlin][MMU2]") {
 
     static constexpr char cmd[] = "E0";
     IOSimStart({
-        MakeInitialQuery(),
+        MakeInitialQuery(1),
 
         MakeCommandAccepted(cmd, "FullScreenMsgCut"),
         MakeQueryResponseProgress(cmd, ProgressCode::ParkingSelector),
@@ -389,7 +394,7 @@ TEST_CASE("Marlin::MMU2::MMU2 toolchange", "[Marlin][MMU2]") {
 
     static constexpr char cmd[] = "T0";
     IOSimStart({
-        MakeInitialQuery(),
+        MakeInitialQuery(1),
 
         MakeCommandAccepted(cmd, "MakeSound"),
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
@@ -417,4 +422,52 @@ TEST_CASE("Marlin::MMU2::MMU2 toolchange", "[Marlin][MMU2]") {
     mockLog.DeduplicateExpected();
     mockLog.DeduplicateLog();
     CHECK(mockLog.MatchesExpected()); // @@TODO tryunload sequence is missing
+}
+
+TEST_CASE("Marlin::MMU2::MMU2 unload with preheat", "[Marlin][MMU2]") {
+    InitEnvironment();
+    SimulateCommStart(MMU2::mmu2);
+
+    SetHotendTargetTemp(215);
+    mockLog.expected.push_back("SetHotendTargetTemp(215)");
+    MMU2::fs = MMU2::FilamentState::AT_FSENSOR; // beware - changing this will affect the fs state being reported after the command has been issued
+    static constexpr char cmd[] = "U0";
+    IOSimStart({
+        MakeInitialQuery(MMU2::heartBeatPeriod + 1),
+
+        // heat up POC
+        MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(50)" }, []() { SetHotendCurrentTemp(50); }),
+        MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(100)" }, []() { SetHotendCurrentTemp(100); }),
+        MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(150)" }, []() { SetHotendCurrentTemp(150); }),
+        MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(200)" }, []() { SetHotendCurrentTemp(200); }),
+        MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgressM("X0", ProgressCode::OK, { "SetHotendCurrentTemp(215)" }, []() { SetHotendCurrentTemp(215); }),
+        MakeRegistersQuery(1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+
+        MakeCommandAccepted(cmd, "MakeSound"),
+        //        MakeRegistersCommand(1, 1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
+        MakeRegistersCommand(1, 1, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgress(cmd, ProgressCode::UnloadingToFinda),
+        MakeRegistersCommand(1, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgress(cmd, ProgressCode::UnloadingToFinda, []() { MMU2::fs = MMU2::FilamentState::NOT_PRESENT; }),
+        MakeRegistersCommand(0, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgress(cmd, ProgressCode::RetractingFromFinda),
+        MakeRegistersCommand(0, 0, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseProgress(cmd, ProgressCode::DisengagingIdler),
+        MakeRegistersCommand(0, 0, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
+        MakeQueryResponseFinished(cmd),
+    });
+    MMU2::mmu2.unload();
+    // ReportErrorHook would have been called multiple times if the code didn't have a protection against it
+    // -> remove duplicit consecutive records in the expected sequence ;)
+    mockLog.DeduplicateExpected();
+    mockLog.DeduplicateLog();
+    CHECK(mockLog.MatchesExpected()); // @@TODO will be fixed when screenupdateenable moves into endreport
+
+    // Bugs:
+    // [ ] why aren't we reporting progress waiting for temperature?
 }
