@@ -10,7 +10,7 @@ extern "C" {
 #include <stdint.h>
 
 #define WITH_RTOS            1
-#define MEM_LIBC_MALLOC      1
+#define MEM_LIBC_MALLOC      0
 #define CHECKSUM_BY_HARDWARE 0
 #define LWIP_DHCP            1
 #define MEM_ALIGNMENT        4
@@ -50,6 +50,9 @@ extern "C" {
 
 #include "buddy/priorities_config.h"
 #define TCPIP_THREAD_PRIO TASK_PRIORITY_TCPIP_THREAD
+
+#define MEM_USE_POOLS         1
+#define MEMP_USE_CUSTOM_POOLS 1
 
 /*
  * FIXME:
