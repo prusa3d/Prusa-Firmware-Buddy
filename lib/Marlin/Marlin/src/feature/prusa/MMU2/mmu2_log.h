@@ -1,4 +1,7 @@
 #pragma once
+#ifdef __AVR__
+    #include <avr/pgmspace.h>
+#endif
 
 // Beware - before changing this prefix, think twice
 // you'd need to change appmain.cpp app_marlin_serial_output_write_hook
@@ -22,8 +25,11 @@ void LogEchoEvent_P(const char *msg_P);
 } // namespace MMU2
 
 #ifndef UNITTEST
-    #include "../../core/serial.h"
-
+    #ifdef __AVR__
+        #include "Marlin.h"
+    #else
+        #include "../../core/serial.h"
+    #endif
     #define SERIAL_MMU2() \
         { serialprintPGM(mmu2Magic); }
 
@@ -33,21 +39,21 @@ void LogEchoEvent_P(const char *msg_P);
             SERIAL_MMU2();       \
             SERIAL_ECHOLN(S);    \
         } while (0)
-    #define MMU2_ERROR_MSGLN(S) MMU2_ECHO_MSGLN(S) //!@todo Decide MMU2 errors  on serial line
+    #define MMU2_ERROR_MSGLN(S) MMU2_ECHO_MSGLN(S) //!@todo Decide MMU errors  on serial line
     #define MMU2_ECHO_MSGRPGM(S) \
         do {                     \
             SERIAL_ECHO_START(); \
             SERIAL_MMU2();       \
             SERIAL_ECHO(S);      \
         } while (0)
-    #define MMU2_ERROR_MSGRPGM(S) MMU2_ECHO_MSGRPGM(S) //!@todo Decide MMU2 errors  on serial line
+    #define MMU2_ERROR_MSGRPGM(S) MMU2_ECHO_MSGRPGM(S) //!@todo Decide MMU errors  on serial line
     #define MMU2_ECHO_MSG(S)     \
         do {                     \
             SERIAL_ECHO_START(); \
             SERIAL_MMU2();       \
             SERIAL_ECHO(S);      \
         } while (0)
-    #define MMU2_ERROR_MSG(S) MMU2_ECHO_MSG(S) //!@todo Decide MMU2 errors  on serial line
+    #define MMU2_ERROR_MSG(S) MMU2_ECHO_MSG(S) //!@todo Decide MMU errors  on serial line
 
 #else                                          // #ifndef UNITTEST
     #include "stubs/stub_interfaces.h"
