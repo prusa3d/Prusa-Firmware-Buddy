@@ -76,8 +76,8 @@ endif()
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.5f5322c31a3face56a9b.js" "/web/main.5f5322c31a3face56a9b.js")
-add_gzip_resource("web/main.f8ac848b2f92b82bcee8.css" "/web/main.f8ac848b2f92b82bcee8.css")
+add_gzip_resource("web/main.3714c67119f35607fd7d.js" "/web/main.3714c67119f35607fd7d.js")
+add_gzip_resource("web/main.71c989a4a290e5c10892.css" "/web/main.71c989a4a290e5c10892.css")
 
 # /png directory
 add_resource("${png_data_file}" "pngs")
