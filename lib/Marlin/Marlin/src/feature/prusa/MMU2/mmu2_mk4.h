@@ -66,6 +66,10 @@ public:
         ErrorSourceNone = 0xFF,
     };
 
+    /// Tune value in MMU registers as a way to recover from errors
+    /// e.g. Idler Stallguard threshold
+    void Tune();
+
     /// Perform a reset of the MMU
     /// @param level physical form of the reset
     void Reset(ResetForm level);
@@ -182,7 +186,7 @@ public:
     }
 
     /// Method to read-only mmu_print_saved
-    bool MMU_PRINT_SAVED() const { return mmu_print_saved != SavedState::None; }
+    inline bool MMU_PRINT_SAVED() const { return mmu_print_saved != SavedState::None; }
 
     /// Automagically "press" a Retry button if we have any retry attempts left
     /// @param ec ErrorCode enum value
@@ -198,6 +202,43 @@ public:
     inline uint16_t TMCFailures() const { return tmcFailures; }
     inline void IncrementTMCFailures() { ++tmcFailures; }
     inline void ClearTMCFailures() { tmcFailures = 0; }
+
+    /// Retrieve cached value parsed from ReadRegister()
+    /// or using M707
+    inline uint16_t GetLastReadRegisterValue() const {
+        return lastReadRegisterValue;
+    };
+    inline void InvokeErrorScreen(ErrorCode ec) {
+        // The printer may not raise an error when the MMU is busy
+        if (!logic.CommandInProgress()                // MMU must not be busy
+            && MMUCurrentErrorCode() == ErrorCode::OK // The protocol must not be in error state
+            && lastErrorCode != ec)                   // The error code is not a duplicate
+        {
+            ReportError(ec, ErrorSource::ErrorSourcePrinter);
+        }
+    }
+
+    void ClearPrinterError() {
+        logic.ClearPrinterError();
+        lastErrorCode = ErrorCode::OK;
+        lastErrorSource = ErrorSource::ErrorSourceNone;
+    }
+
+    /// @brief Queue a button operation which the printer can act upon
+    /// @param btn Button operation
+    inline void SetPrinterButtonOperation(Buttons btn) {
+        printerButtonOperation = btn;
+    }
+
+    /// @brief Get the printer button operation
+    /// @return currently set printer button operation, it can be NoButton if nothing is queued
+    inline Buttons GetPrinterButtonOperation() {
+        return printerButtonOperation;
+    }
+
+    inline void ClearPrinterButtonOperation() {
+        printerButtonOperation = Buttons::NoButton;
+    }
 
 #ifndef UNITTEST
 private:
@@ -313,6 +354,8 @@ private:
     ErrorCode lastErrorCode = ErrorCode::MMU_NOT_RESPONDING;
     ErrorSource lastErrorSource = ErrorSource::ErrorSourceNone;
     Buttons lastButton = Buttons::NoButton;
+    uint16_t lastReadRegisterValue = 0;
+    Buttons printerButtonOperation = Buttons::NoButton;
     uint8_t reportingStartedCnt;
 
     StepStatus logicStepLastStatus;
