@@ -65,10 +65,10 @@ static const char *const progressTexts[] = {
     MSG_PROGRESS_FEED_FSENSOR
 };
 
-const char *ProgressCodeToText(uint16_t pc) {
+const char *ProgressCodeToText(ProgressCode pc) {
     // @@TODO ?? a better fallback option?
-    return (pc <= (sizeof(progressTexts) / sizeof(progressTexts[0])))
-        ? progressTexts[pc]
+    return ((uint16_t)pc <= (sizeof(progressTexts) / sizeof(progressTexts[0])))
+        ? progressTexts[(uint16_t)pc]
         : progressTexts[0];
 }
 

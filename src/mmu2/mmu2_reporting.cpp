@@ -3,8 +3,6 @@
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_reporting.h"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.cpp"
 #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/buttons.h"
-#include "../../lib/Prusa-Firmware-MMU/src/logic/progress_codes.h"
-#include "../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
 #include "../common/marlin_server.hpp"
 #include "../common/sound.hpp"
 #include "mmu2_error_converter.h"
@@ -23,14 +21,14 @@ bool isErrorScreenRunning() {
     return false;
 }
 
-void ReportErrorHook(CommandInProgress cip, uint16_t ec, uint8_t es) {
+void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
     // An error always causes one specific screen to occur
     // Its content is given by the error code translated into Prusa-Error-Codes MMU
     // That needs to be coded into the context data passed to the screen
     // - in this case the raw pointer to error description
-    if (ec != (uint16_t)ErrorCode::MMU_NOT_RESPONDING) {
+    if (ec != ErrorCode::MMU_NOT_RESPONDING) {
         log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=% " PRIu16 " es=% " PRIu8, cip, ec, es);
-        Fsm::Instance().reporter.Change(cip, ErrorCode(ec), MMU2::ErrorSource(es));
+        Fsm::Instance().reporter.Change(cip, ec, MMU2::ErrorSource(es));
     } else {
         log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=% " PRIu16 " es=% " PRIu16 " - cannot be done, fsm closed", cip, ec, es);
     }
@@ -49,7 +47,7 @@ void ReportErrorHook(CommandInProgress cip, uint16_t ec, uint8_t es) {
     }
 }
 
-void ReportProgressHook(CommandInProgress cip, uint16_t ec) {
+void ReportProgressHook(CommandInProgress cip, ProgressCode ec) {
     if (Fsm::Instance().IsActive()) { // prevent accidental FSM change reports if there is no MMU progress/error dialog shown
         log_info(MMU2, "Report: CIP=%" PRIu8 " ec=% " PRIu16, cip, ec);
         Fsm::Instance().reporter.Change(cip, ProgressCode(ec));
@@ -58,11 +56,11 @@ void ReportProgressHook(CommandInProgress cip, uint16_t ec) {
     }
 }
 
-void BeginReport([[maybe_unused]] CommandInProgress cip, [[maybe_unused]] uint16_t ec) {
+void BeginReport([[maybe_unused]] CommandInProgress cip, [[maybe_unused]] ProgressCode ec) {
     Fsm::Instance().Activate();
 }
 
-void EndReport([[maybe_unused]] CommandInProgress cip, [[maybe_unused]] uint16_t ec) {
+void EndReport([[maybe_unused]] CommandInProgress cip, [[maybe_unused]] ProgressCode ec) {
     Fsm::Instance().Deactivate();
 }
 

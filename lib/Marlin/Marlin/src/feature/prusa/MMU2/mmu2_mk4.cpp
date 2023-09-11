@@ -255,7 +255,7 @@ void __attribute__((noinline)) MMU2::mmu_loop_inner(bool reportErrors) {
     if (isErrorScreenRunning()) {
         // Call this every iteration to keep the knob rotation responsive
         // This includes when mmu_loop is called within manage_response
-        ReportErrorHook((CommandInProgress)logic.CommandInProgress(), (uint16_t)lastErrorCode, uint8_t(lastErrorSource));
+        ReportErrorHook((CommandInProgress)logic.CommandInProgress(), lastErrorCode, uint8_t(lastErrorSource));
     }
 }
 
@@ -291,7 +291,7 @@ struct ReportingRAII {
     static void BeginReportRR(CommandInProgress cip, uint8_t &reportingStartedCnt) {
         if (topLevelReportBlock == 0) { // no top level RAII is active - async error screen occurred
             if (reportingStartedCnt == 0) {
-                BeginReport(cip, (uint16_t)ProgressCode::EngagingIdler);
+                BeginReport(cip, ProgressCode::EngagingIdler);
             }
             ++reportingStartedCnt;
         } // otherwise do nothing, BeginReport has already been called by some RAII instance
@@ -302,7 +302,7 @@ struct ReportingRAII {
             if (reportingStartedCnt > 0) {
                 --reportingStartedCnt;
                 if (reportingStartedCnt == 0) {
-                    EndReport(cip, (uint16_t)ProgressCode::OK);
+                    EndReport(cip, ProgressCode::OK);
                 }
             }
         } // otherwise do nothing, EndReport will be called by some RAII instance
@@ -312,12 +312,12 @@ struct ReportingRAII {
         : cip(cip)
         , reptStartedCnt(reportingStartedCnt) {
         ++topLevelReportBlock;
-        BeginReport(cip, (uint16_t)ProgressCode::EngagingIdler);
+        BeginReport(cip, ProgressCode::EngagingIdler);
     }
 
     inline ~ReportingRAII() {
         --topLevelReportBlock;
-        EndReport(cip, (uint16_t)ProgressCode::OK);
+        EndReport(cip, ProgressCode::OK);
     }
 };
 
@@ -1078,7 +1078,7 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
     if (ec != lastErrorCode) { // deduplicate: only report changes in error codes into the log
         lastErrorCode = ec;
         lastErrorSource = res;
-        LogErrorEvent_P(_O(PrusaErrorTitle(PrusaErrorCodeIndex((uint16_t)ec))));
+        LogErrorEvent_P(_O(PrusaErrorTitle(PrusaErrorCodeIndex(ec))));
 
         if (ec != ErrorCode::OK && ec != ErrorCode::FILAMENT_EJECTED) {
             IncrementMMUFails();
@@ -1109,7 +1109,7 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
         // raise the MMU error screen and wait for user input
 
         // @@TODO Here, we assume that BeginReport has already been called - which is not true for errors like MMU_NOT_RESPONDING
-        ReportErrorHook((CommandInProgress)logic.CommandInProgress(), (uint16_t)ec, uint8_t(lastErrorSource));
+        ReportErrorHook((CommandInProgress)logic.CommandInProgress(), ec, uint8_t(lastErrorSource));
     }
 
     static_assert(mmu2Magic[0] == 'M'
@@ -1122,8 +1122,8 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
 }
 
 void MMU2::ReportProgress(ProgressCode pc) {
-    ReportProgressHook((CommandInProgress)logic.CommandInProgress(), (uint16_t)pc);
-    LogEchoEvent_P(_O(ProgressCodeToText((uint16_t)pc)));
+    ReportProgressHook((CommandInProgress)logic.CommandInProgress(), pc);
+    LogEchoEvent_P(_O(ProgressCodeToText(pc)));
 }
 
 void MMU2::OnMMUProgressMsg(ProgressCode pc) {

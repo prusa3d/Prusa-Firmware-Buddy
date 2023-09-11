@@ -12,15 +12,15 @@ namespace MMU2 {
 // beware:
 // cip (command in progress) is an enum coded with letters representing the currently running command
 // therefore it should be safe to do '(char)cip'
-#define mockLog_RecordFnCipEc(cip, ec) mockLog.Record(std::string { mockLog.MethodName(__PRETTY_FUNCTION__) } + "(" + (char)(cip ? cip : 'x') + ", " + std::to_string(ec) + ")")
+#define mockLog_RecordFnCipEc(cip, ec) mockLog.Record(std::string { mockLog.MethodName(__PRETTY_FUNCTION__) } + "(" + (char)(cip ? cip : 'x') + ", " + std::to_string((uint16_t)ec) + ")")
 
 /// Called at the begin of every MMU operation
-void BeginReport(CommandInProgress cip, uint16_t ec) {
+void BeginReport(CommandInProgress cip, ProgressCode ec) {
     mockLog_RecordFnCipEc(cip, ec);
 }
 
 /// Called at the end of every MMU operation
-void EndReport(CommandInProgress cip, uint16_t ec) {
+void EndReport(CommandInProgress cip, ProgressCode ec) {
     mockLog_RecordFnCipEc(cip, ec);
 }
 
@@ -32,13 +32,13 @@ bool isErrorScreenRunning() { return errorScreenRunning; }
 /// and allow the MMU and printer to communicate with each other.
 /// @param[in] ec error code
 /// @param[in] es error source
-void ReportErrorHook(CommandInProgress cip, uint16_t ec, uint8_t es) {
+void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
     errorScreenRunning = true;
     mockLog_RecordFnCipEc(cip, ec);
 }
 
 /// Called when the MMU sends operation progress update
-void ReportProgressHook(CommandInProgress cip, uint16_t ec) {
+void ReportProgressHook(CommandInProgress cip, ProgressCode ec) {
     mockLog_RecordFnCipEc(cip, ec);
 }
 

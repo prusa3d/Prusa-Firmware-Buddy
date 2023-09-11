@@ -3,7 +3,7 @@
 
 namespace MMU2 {
 
-uint8_t PrusaErrorCodeIndex(uint16_t ec) {
+uint8_t PrusaErrorCodeIndex(ErrorCode ec) {
     return 0;
 }
 const char *PrusaErrorTitle(uint8_t i) {
