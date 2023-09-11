@@ -146,4 +146,13 @@ bool cutter_enabled() {
     return config_store().mmu2_cutter.get();
 }
 
+bool TuneMenuEntered() {
+    // @@TODO
+    return false;
+}
+
+void tuneIdlerStallguardThreshold() {
+    // @@TODO
+}
+
 } // namespace MMU2

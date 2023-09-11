@@ -67,6 +67,18 @@ void marlin_idle(bool) {
     mmu2.mmu_loop();
 }
 
+void marlin_refresh_print_state_in_ram() {
+    // @@TODO
+}
+
+void marlin_clear_print_state_in_ram() {
+    // @@TODO
+}
+
+void marlin_stop_and_save_print_to_ram() {
+    // @@TODO
+}
+
 int16_t thermal_degTargetHotend() {
     return hotendTargetTemp;
 }

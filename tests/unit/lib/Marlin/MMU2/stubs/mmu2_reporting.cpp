@@ -113,4 +113,13 @@ void ScreenClear() {
     mockLog_RecordFn();
 }
 
+bool TuneMenuEntered() {
+    // @@TODO
+    return false;
+}
+
+void tuneIdlerStallguardThreshold() {
+    // @@TODO
+}
+
 } // namespace MMU2
