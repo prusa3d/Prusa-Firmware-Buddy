@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include "main.h"
 #include "metric.h"
+#include "pbuf_rx.h"
 #include "wui.h"
 #include "lwip/opt.h"
 #include "lwip/timeouts.h"
@@ -335,7 +336,7 @@ static struct pbuf *low_level_input(struct netif *netif) {
 
     if (len > 0) {
         /* We allocate a pbuf chain of pbufs from the Lwip buffer pool */
-        p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+        p = pbuf_alloc_rx(len);
     }
 
     if (p != NULL) {

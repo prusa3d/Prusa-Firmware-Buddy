@@ -24,7 +24,8 @@ extern "C" {
 #define TCP_SND_BUF            (2 * TCP_MSS)
 #define LWIP_WND_SCALE         0
 #define TCP_RCV_SCALE          0
-#define PBUF_POOL_SIZE         16
+#define PBUF_POOL_SIZE         8
+#define PBUF_POOL_SMALL_SIZE   8
 #define IP_REASS_MAX_PBUFS     15
 #define TCPIP_THREAD_STACKSIZE 1088
 #define TCPIP_MBOX_SIZE        6

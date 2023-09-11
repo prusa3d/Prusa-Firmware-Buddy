@@ -15,6 +15,7 @@
 
 #include "main.h"
 #include "../metric.h"
+#include "pbuf_rx.h"
 #include "wui.h"
 #include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
@@ -410,7 +411,7 @@ static void uart_input(uint8_t *data, size_t size, struct netif *netif) {
 #if ETH_PAD_SIZE
                 rx_len += ETH_PAD_SIZE; /* allow room for Ethernet padding */
 #endif
-                rx_buff = pbuf_alloc(PBUF_RAW, rx_len, PBUF_POOL);
+                rx_buff = pbuf_alloc_rx(rx_len);
                 if (rx_buff) {
                     rx_buff_cur = rx_buff;
                     rx_read = 0;
