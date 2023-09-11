@@ -770,7 +770,7 @@ void MMU2::SaveAndPark(bool move_axes) {
             resume_position = planner_current_position(); // save current pos
 
             // lift Z
-            raise_z(MMU_ERR_Z_PAUSE_LIFT);
+            move_raise_z(MMU_ERR_Z_PAUSE_LIFT);
 
             // move XY aside
             if (all_axes_homed()) {
@@ -904,7 +904,7 @@ bool MMU2::manage_response(const bool move_axes, const bool turn_off_nozzle) {
         // - still running -> wait normally in idle()
         // - failed -> then do the safety moves on the printer like before
         // - finished ok -> proceed with reading other commands
-        marlin_idle(); // calls LogicStep() and remembers its return status
+        marlin_idle(true); // calls LogicStep() and remembers its return status
 
         // @@TODO Ugly hack to prevent starting the cooling timer after being stopped
         bool recoveringError = false;

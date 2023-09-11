@@ -31,7 +31,7 @@ void extruder_schedule_turning(float feed_rate) {
     mockLog_RecordFn();
 }
 
-float raise_z(float delta) {
+float move_raise_z(float delta) {
     mockLog_RecordFn();
     return 0;
 }
@@ -63,7 +63,7 @@ void marlin_manage_heater() {
 void marlin_manage_inactivity(bool b) {
     mockLog_RecordFn();
 }
-void marlin_idle() {
+void marlin_idle(bool) {
     mmu2.mmu_loop();
 }
 

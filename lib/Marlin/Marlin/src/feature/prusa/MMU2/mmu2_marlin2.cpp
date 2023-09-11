@@ -24,7 +24,7 @@ void extruder_schedule_turning(float feed_rate) {
     mapi::extruder_schedule_turning(feed_rate);
 }
 
-float raise_z(float delta) {
+float move_raise_z(float delta) {
     // @@TODO
     return 0.0F;
 }
@@ -74,8 +74,8 @@ void marlin_manage_inactivity(bool b) {
     manage_inactivity(b);
 }
 
-void marlin_idle() {
-    idle(true);
+void marlin_idle(bool b) {
+    idle(b);
 }
 
 int16_t thermal_degTargetHotend() {
@@ -119,17 +119,10 @@ bool all_axes_homed() {
 }
 
 void FullScreenMsg(const char *pgmS, uint8_t slot) {
-#ifdef __AVR__
-    lcd_update_enable(false);
-    lcd_clear();
-    lcd_puts_at_P(0, 1, pgmS);
-    lcd_print(' ');
-    lcd_print(slot + 1);
-#else
-#endif
 }
 
 void enqueue_gcode(const char *gcode) {
     marlin_server::enqueue_gcode(gcode);
 }
+
 } // namespace MMU2
