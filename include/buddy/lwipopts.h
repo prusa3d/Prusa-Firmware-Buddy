@@ -24,11 +24,11 @@ extern "C" {
 #define TCP_SND_BUF            (2 * TCP_MSS)
 #define LWIP_WND_SCALE         0
 #define TCP_RCV_SCALE          0
-#define PBUF_POOL_SIZE         8
-#define PBUF_POOL_SMALL_SIZE   8
+#define PBUF_POOL_SIZE         10
+#define PBUF_POOL_SMALL_SIZE   12
 #define IP_REASS_MAX_PBUFS     15
 #define TCPIP_THREAD_STACKSIZE 1088
-#define TCPIP_MBOX_SIZE        6
+#define TCPIP_MBOX_SIZE        PBUF_POOL_SIZE + PBUF_POOL_SMALL_SIZE
 
 #define DEFAULT_UDP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
 #define DEFAULT_TCP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
@@ -109,6 +109,8 @@ extern "C" {
 #define SO_REUSE         1 // Allow SOF_REUSEADDR to do something useful.
 
 #define MEMP_NUM_UDP_PCB 5
+
+#define MEMP_NUM_TCPIP_MSG_INPKT TCPIP_MBOX_SIZE
 
 #ifdef __cplusplus
 }
