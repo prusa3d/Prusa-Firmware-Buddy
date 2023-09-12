@@ -17,7 +17,7 @@ constexpr float axis_home_min_diff_xy_mk4 = -0.1F;
 constexpr float axis_home_max_diff_xy_mk3_9 = 0.2F;
 constexpr float axis_home_min_diff_xy_mk3_9 = -0.2F;
 
-constexpr float axis_home_max_diff_z = 0.5F;
+constexpr float axis_home_max_diff_z = 0.1F;
 constexpr float axis_home_min_diff_z = -0.1F;
 
 float axis_home_min_diff(uint8_t axis_num);
