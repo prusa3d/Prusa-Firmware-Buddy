@@ -58,7 +58,8 @@ public:
 class PrintPreview : public IPrintPreview {
 
     static constexpr uint32_t max_run_period_ms = 50;
-
+    uint32_t new_firmware_open_ms { 0 };
+    static constexpr uint32_t new_firmware_timeout_ms { 30000 }; // three seconds
 public:
     enum class Result {
         // Showing the image and asking if print.

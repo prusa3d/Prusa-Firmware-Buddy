@@ -258,6 +258,10 @@ PrintPreview::Result PrintPreview::Loop() {
             ChangeState(stateFromPrinterCheck());
             break;
         default:
+            // TODO this should be handled more generally with a possibility to set timeout for specific state, but this should work for now and is MUCH easier
+            if (ticks_ms() >= new_firmware_open_ms + new_firmware_timeout_ms) {
+                ChangeState(stateFromPrinterCheck());
+            }
             break;
         }
         break;
@@ -417,6 +421,7 @@ IPrintPreview::State PrintPreview::stateFromUpdateCheck() {
     if (GCodeInfo::getInstance().get_valid_printer_settings().outdated_firmware.is_valid()) {
         return stateFromPrinterCheck();
     } else {
+        new_firmware_open_ms = ticks_ms();
         return State::new_firmware_available_wait_user;
     }
 }
