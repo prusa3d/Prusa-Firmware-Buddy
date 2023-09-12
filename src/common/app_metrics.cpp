@@ -282,9 +282,28 @@ void buddy::metrics::RecordPrintFilename() {
 }
 
 #if BOARD_IS_XLBUDDY
-void buddy::metrics::record_dwarf_mcu_temperature() {
+void buddy::metrics::record_dwarf_internal_temperatures() {
+    // Dwarf board temperature for sensor screen
     buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getActiveToolOrFirst();
-    static metric_t metric_dwarfMCUTemperature = METRIC("dwarf_mcu_temp", METRIC_VALUE_FLOAT, 1001, METRIC_HANDLER_ENABLE_ALL);
-    metric_record_float(&metric_dwarfMCUTemperature, dwarf.get_mcu_temperature());
+    static metric_t metric_dwarfMCUTemperature = METRIC("dwarf_board_temp", METRIC_VALUE_INTEGER, 1001, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&metric_dwarfMCUTemperature, dwarf.get_mcu_temperature());
+
+    // All MCU temperatures
+    static metric_t mcu = METRIC("dwarfs_mcu_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL); // float value, tag "n": extruder index, tag "a": is active extruder
+    static auto mcu_should_record = RunApproxEvery(1002);
+    if (mcu_should_record()) {
+        FOREACH_EXTRUDER {
+            metric_record_custom(&mcu, ",n=%i,a=%i value=%i", e, e == active_extruder_or_first, static_cast<int>(buddy::puppies::dwarfs[e].get_mcu_temperature()));
+        }
+    }
+
+    // All board temperatures
+    static metric_t board = METRIC("dwarfs_board_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL); // float value, tag "n": extruder index, tag "a": is active extruder
+    static auto board_should_record = RunApproxEvery(1003);
+    if (board_should_record()) {
+        FOREACH_EXTRUDER {
+            metric_record_custom(&board, ",n=%i,a=%i value=%i", e, e == active_extruder_or_first, static_cast<int>(buddy::puppies::dwarfs[e].get_board_temperature()));
+        }
+    }
 }
 #endif

@@ -209,7 +209,7 @@ void app_idle(void) {
     buddy::metrics::RecordRuntimeStats();
     buddy::metrics::RecordPrintFilename();
 #if (BOARD_IS_XLBUDDY)
-    buddy::metrics::record_dwarf_mcu_temperature();
+    buddy::metrics::record_dwarf_internal_temperatures();
 #endif
     print_utils_loop();
 }

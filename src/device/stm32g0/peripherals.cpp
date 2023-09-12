@@ -110,8 +110,13 @@ void hw_adc1_init(void) {
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
-    // Configure Regular Channel
+    // Configure Internal Temperature Sensor
     sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+    // Configure Internal Reference
+    sConfig.Channel = ADC_CHANNEL_VREFINT;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }

@@ -312,21 +312,29 @@ void hw_adc1_init() {
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::board_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::pinda_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::heatbed_U);
+    config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
+    config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
 #elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::hotend_U);
+    config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
+    config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
 #elif (BOARD_IS_XBUDDY)
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::heatbreak_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::hotend_U);
+    config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
+    config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
 #elif BOARD_IS_XLBUDDY
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::dwarf_I);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::mux1_y);
     config_adc_ch(&hadc1, ADC_CHANNEL_8, AdcChannel::mux1_x);
+    config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
+    config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
 #else
     #error Unknown board
 #endif

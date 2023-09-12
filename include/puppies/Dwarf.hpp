@@ -197,9 +197,11 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
     inline bool refresh_buttons() { return refresh_discrete_general_status(); }
 
     [[nodiscard]] FSensor::value_type get_tool_filament_sensor();
-    [[nodiscard]] float get_mcu_temperature();
-    [[nodiscard]] float get_24V(); // Get 24V power supply voltage [V]
-    [[nodiscard]] float get_heater_current(); // Get heater electric current [A]
+
+    [[nodiscard]] int16_t get_mcu_temperature(); ///< Get MCU temperature [°C]
+    [[nodiscard]] int16_t get_board_temperature(); ///< Get board temperature [°C]
+    [[nodiscard]] float get_24V(); ///< Get 24V power supply voltage [V]
+    [[nodiscard]] float get_heater_current(); ///< Get heater electric current [A]
 
     void set_heatbreak_target_temp(int16_t target);
     void set_fan(uint8_t fan, uint16_t target);
@@ -307,7 +309,8 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
         uint16_t HotendMeasuredTemperature;
         uint16_t HotendPWMState;
         uint16_t ToolFilamentSensor;
-        uint16_t MCU_temperature;
+        uint16_t BoardTemperature;
+        uint16_t MCUTemperature;
         uint16_t HeatBreakMeasuredTemperature;
         uint16_t IsPickedRaw;
         uint16_t IsParkedRaw;

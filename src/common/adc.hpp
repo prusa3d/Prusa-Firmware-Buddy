@@ -80,6 +80,8 @@ enum AD1 { // ADC1 channels
     board_T,
     pinda_T,
     heatbed_U,
+    mcu_temperature,
+    vref,
     ADC1_CH_CNT
 };
 #elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
@@ -88,6 +90,8 @@ enum AD1 { // ADC1 channels
     heatbed_T,
     heatbed_U,
     hotend_U,
+    vref,
+    mcu_temperature,
     ADC1_CH_CNT
 };
 
@@ -107,6 +111,8 @@ enum AD1 { // ADC1 channels
     heatbed_U,
     heatbreak_T,
     hotend_U,
+    vref,
+    mcu_temperature,
     ADC1_CH_CNT
 };
 
@@ -124,6 +130,8 @@ enum AD1 { // ADC1 channels
     dwarf_I,
     mux1_y,
     mux1_x,
+    vref,
+    mcu_temperature,
     ADC1_CH_CNT
 };
 
@@ -169,6 +177,7 @@ enum AD1 {
     ntc2,
     dwarf_24V,
     mcu_temperature,
+    vref,
     ADC1_CH_CNT
 };
 
@@ -409,6 +418,8 @@ inline uint16_t bed() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed
 inline uint16_t boardTemp() { return adcDma1.get_and_shift_channel(AdcChannel::board_T); }
 inline uint16_t pinda() { return adcDma1.get_and_shift_channel(AdcChannel::pinda_T); }
 inline uint16_t bedMon() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_U); }
+inline uint16_t vref() { return adcDma1.get_channel(AdcChannel::vref); } ///< Internal reference necessary for mcu_temperature
+inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_temperature); } ///< Raw sensor, use getMCUTemp() instead
 #endif
 
 #if (BOARD_IS_XBUDDY)
@@ -457,6 +468,8 @@ inline uint16_t MMUCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::
 inline uint16_t heaterCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::hotend_I); }
 inline uint16_t inputCurrent() { return adcDma3.get_and_shift_channel(AdcChannel::board_I); }
 inline uint16_t ambientTemp() { return adcDma3.get_and_shift_channel(AdcChannel::case_T); }
+inline uint16_t vref() { return adcDma1.get_channel(AdcChannel::vref); } ///< Internal reference necessary for mcu_temperature
+inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_temperature); } ///< Raw sensor, use getMCUTemp() instead
 #endif
 
 #if BOARD_IS_XLBUDDY
@@ -482,6 +495,8 @@ inline uint16_t sideFilamentSensor5() { return SFSAndTempMux.get_channel(AdcChan
 inline uint16_t sideFilamentSensor6() { return SFSAndTempMux.get_channel(AdcChannel::sfs6); };
 inline uint16_t sandwichTemp() { return SFSAndTempMux.get_and_shift_channel(AdcChannel::sandwich_temp); };
 inline uint16_t ambientTemp() { return SFSAndTempMux.get_and_shift_channel(AdcChannel::ambient_temp); };
+inline uint16_t vref() { return adcDma1.get_channel(AdcChannel::vref); } ///< Internal reference necessary for mcu_temperature
+inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_temperature); } ///< Raw sensor, use getMCUTemp() instead
 #endif
 
 #if BOARD_IS_DWARF
@@ -501,6 +516,10 @@ inline uint16_t heatbreakTemp() { return adcDma1.get_and_shift_channel(AdcChanne
     #endif
 inline uint16_t boardTemp() { return adcDma1.get_and_shift_channel(AdcChannel::ntc_internal); }
 inline uint16_t toolFimalentSensor() { return adcDma1.get_channel(AdcChannel::TFS); }
-inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_temperature); }
+inline uint16_t mcuTemperature() { return adcDma1.get_channel(AdcChannel::mcu_temperature); } ///< Raw sensor, use getMCUTemp() instead
+inline uint16_t vref() { return adcDma1.get_channel(AdcChannel::vref); } ///< Internal reference necessary for mcu_temperature
 #endif
+
+int32_t getMCUTemp(); ///< Internal MCU temperature sensor [degrees C]
+
 } // namespace AdcGet

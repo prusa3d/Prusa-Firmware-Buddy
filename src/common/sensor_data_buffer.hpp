@@ -152,7 +152,7 @@ private:
                                                                             { "Sandwitch5VCurrent", Sensor::sandwich5VCurrent },
                                                                             { "xlbuddy5VCurrent", Sensor::buddy5VCurrent },
                                                                             { "loadcell_value", Sensor::loadCell },
-                                                                            { "dwarf_mcu_temp", Sensor::dwarfBoardTemperature },
+                                                                            { "dwarf_board_temp", Sensor::dwarfBoardTemperature },
                                                                             { "fan_speed", Sensor::printFan },
                                                                             { "fan_hbr_speed", Sensor::hbrFan },
                                                                             { "print_fan_act", Sensor::printFanAct },
