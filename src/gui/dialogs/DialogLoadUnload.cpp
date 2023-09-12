@@ -357,17 +357,13 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         if (isRedFStuck(phs)) {
             // An ugly workaround to abuse existing infrastructure - this is not an MMU-related error
             // yet we need to throw a dialog with a QR code and a button.
-            // @@TODO once the error makes it into Prusa-Error-Codes, we can remove the ErrDesc from this spot
-            static constexpr ErrDesc filamentStuckDesc {
-                title_filament_stuck,
-                "The filament seems to be stuck, please unload it and load it again.",
-                (ErrCode)(ERR_PRINTER_CODE * 1000 + 101),
-            };
+            auto err_desc = find_error(ErrCode::ERR_MECHANICAL_STUCK_FILAMENT_DETECTED);
+
             // I don't like the fact, that the one-and-only response from FilamentStuck (aka Unload) gets mapped onto the first button)
             // It doesn't look nice ;) ... therefore, some handcrafted ugly alignment is necessary at this spot
             PhaseResponses responses { Response::_none, Response::Unload, Response::_none };
             radio_for_red_screen.ChangePhase(PhasesLoadUnload::FilamentStuck, responses);
-            red_screen_update(ftrstd::to_underlying(filamentStuckDesc.err_code), filamentStuckDesc.err_title, filamentStuckDesc.err_text);
+            red_screen_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
         }
     #endif
         phase = phs; // set it directly, do not use super::change(phs, data);
