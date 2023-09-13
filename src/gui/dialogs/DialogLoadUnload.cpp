@@ -27,13 +27,6 @@ void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *se
     }
 }
 
-void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phase) {
-    if (current_phase == phase)
-        return;
-    current_phase = phase;
-    Change(ClientResponses::GetResponses(phase));
-}
-
 void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phase, PhaseResponses responses) {
     current_phase = phase;
     Change(responses);

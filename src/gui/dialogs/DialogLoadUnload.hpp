@@ -24,11 +24,10 @@ public:
      * @param rect   rectangle enclosing all buttons
      */
     RadioButtonMmuErr(window_t *parent, Rect16 rect);
-    void ChangePhase(PhasesLoadUnload phase);
     void ChangePhase(PhasesLoadUnload phase, PhaseResponses responses);
 
 protected:
-    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param);
+    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 /**
