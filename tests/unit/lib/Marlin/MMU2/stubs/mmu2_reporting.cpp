@@ -54,6 +54,10 @@ void TryLoadUnloadReporter::Render(uint8_t col, bool sensorState) {
     mockLog_RecordFn();
 }
 
+void TryLoadUnloadReporter::DumpToSerial() {
+    mockLog_RecordFn();
+}
+
 /// Remders the sensor status line. Also used by the "resume temperature" screen.
 void ReportErrorHookDynamicRender() {
     mockLog_RecordFn();

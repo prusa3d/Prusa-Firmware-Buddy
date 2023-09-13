@@ -411,7 +411,7 @@ bool MMU2::VerifyFilamentEnteredPTFE() {
     if (!filament_inserted) {
         IncrementLoadFails();
     }
-
+    tlur.DumpToSerial();
     return filament_inserted;
 }
 

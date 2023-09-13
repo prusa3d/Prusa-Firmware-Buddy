@@ -76,6 +76,10 @@ void TryLoadUnloadReporter::Render(uint8_t /*col*/, bool /*sensorState*/) {
     // @@TODO
 }
 
+void TryLoadUnloadReporter::DumpToSerial() {
+    // @@TODO
+}
+
 /// @returns true if the MMU is communicating and available
 /// can change at runtime
 bool MMUAvailable() { return true; }
