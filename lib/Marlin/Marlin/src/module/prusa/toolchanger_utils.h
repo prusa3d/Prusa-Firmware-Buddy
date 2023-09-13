@@ -104,6 +104,11 @@ public:
         return toolchanger_enabled;
     }
 
+    ///@return True if at least one dwarf is connected through splitter.
+    inline bool is_splitter_enabled() {
+        return is_tool_enabled(2) || is_tool_enabled(3) || is_tool_enabled(4) || is_tool_enabled(5);
+    }
+
     inline bool is_tool_enabled(uint8_t tool) {
         assert(tool < buddy::puppies::dwarfs.size());
         return buddy::puppies::dwarfs[tool].is_enabled();

@@ -199,7 +199,9 @@ void buddy::metrics::RecordMarlinVariables() {
             // The function takes downsampled ADC value multiplied by OVERSAMPLENR
             metric_record_float(&sandwich, Temperature::analog_to_celsius_board(sandwich_sum));
             sandwich_sum = 0;
-            metric_record_float(&splitter, Temperature::analog_to_celsius_board(splitter_sum));
+            if (prusa_toolchanger.is_splitter_enabled()) {
+                metric_record_float(&splitter, Temperature::analog_to_celsius_board(splitter_sum));
+            }
             splitter_sum = 0;
 #endif /*BOARD_IS_XLBUDDY*/
             sample_nr = 0;
