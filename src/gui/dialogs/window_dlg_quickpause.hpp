@@ -14,9 +14,6 @@ class DialogQuickPause : public AddSuperWindow<IDialogMarlin> {
     window_roll_text_t gcode_name;
     RadioButtonFsm<PhasesQuickPause> radio;
 
-protected:
-    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
-
 public:
     DialogQuickPause(fsm::BaseData data);
 };

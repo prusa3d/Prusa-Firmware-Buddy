@@ -280,31 +280,29 @@ void DialogLoadUnload::phaseWaitSound() {
 }
 void DialogLoadUnload::phaseStopSound() { Sound_Stop(); }
 
-static constexpr bool isRedMMU([[maybe_unused]] uint8_t phase) {
+static constexpr bool isRedMMU([[maybe_unused]] PhasesLoadUnload phase) {
 #if HAS_MMU2()
-    int16_t mmu_err_pos = int16_t(PhasesLoadUnload::MMU_ERRWaitingForUser) - int16_t(PhasesLoadUnload::_first);
-    return phase == mmu_err_pos;
+    return phase == PhasesLoadUnload::MMU_ERRWaitingForUser;
 #else
     return false;
 #endif
 }
 
-static constexpr bool isRedFStuck([[maybe_unused]] uint8_t phase) {
+static constexpr bool isRedFStuck([[maybe_unused]] PhasesLoadUnload phase) {
 #if HAS_LOADCELL()
-    int16_t fstuck_err_pos = int16_t(PhasesLoadUnload::FilamentStuck) - int16_t(PhasesLoadUnload::_first);
-    return phase == fstuck_err_pos;
+    return phase == PhasesLoadUnload::FilamentStuck;
 #else
     return false;
 #endif
 }
 
-static constexpr bool isRed(uint8_t phase) {
+static constexpr bool isRed(PhasesLoadUnload phase) {
     return isRedMMU(phase) || isRedFStuck(phase);
 }
 
 constexpr static const char title_filament_stuck[] = N_("FILAMENT STUCK");
 
-bool DialogLoadUnload::change(uint8_t phase, fsm::PhaseData data) {
+bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     LoadUnloadMode new_mode = ProgressSerializerLoadUnload(data).mode;
     if (new_mode != mode) {
         mode = new_mode;

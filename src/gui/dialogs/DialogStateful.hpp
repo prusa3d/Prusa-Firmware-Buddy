@@ -15,11 +15,9 @@
 using change_state_cb_t = void (*)();
 
 class IDialogMarlin : public IDialog {
-protected:
-    virtual bool change(uint8_t phase, fsm::PhaseData data) = 0;
-
 public:
-    bool Change(fsm::BaseData data) { return change(data.GetPhase(), data.GetData()); }
+    virtual bool Change([[maybe_unused]] fsm::BaseData data) { return true; }
+
     IDialogMarlin(Rect16 rc)
         : IDialog(rc) {}
     IDialogMarlin(std::optional<Rect16> rc = std::nullopt);
@@ -48,13 +46,9 @@ protected:
     window_progress_t progress;
     window_text_t label;
 
-    std::optional<uint8_t> current_phase = std::nullopt;
-
-    virtual bool can_change(uint8_t phase) = 0;
     // must be virtual because of `states` list is in template protected
     virtual void phaseEnter() = 0;
     virtual void phaseExit() = 0;
-    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
     virtual float deserialize_progress([[maybe_unused]] fsm::PhaseData data) const { return 0.F; }
 
     static Rect16 get_title_rect(Rect16 rect);
@@ -71,11 +65,12 @@ public:
 template <class T>
 class DialogStateful : public IDialogStateful {
 public:
-    enum { SZ = CountPhases<T>() };
+    static constexpr size_t SZ = CountPhases<T>();
     using States = std::array<State, SZ>;
 
 protected:
     States states; // phase text and radio button + onEnter & onExit cb
+    std::optional<T> current_phase = std::nullopt;
     RadioButtonFsm<T> radio;
 
 public:
@@ -86,26 +81,47 @@ public:
         CaptureNormalWindow(radio);
     }
 
+    bool Change(fsm::BaseData data) override final {
+        return change(GetEnumFromPhaseIndex<T>(data.GetPhase()), data.GetData());
+    }
+
 protected:
-    virtual bool can_change(uint8_t phase) { return phase < SZ; }
+    virtual bool can_change(T phase) { return phase < T::_last; }
+
+    virtual bool change(T phase, fsm::PhaseData data) {
+        if (!can_change(phase))
+            return false;
+        if ((!current_phase) || (current_phase != phase)) {
+            phaseExit();
+            current_phase = phase;
+            phaseEnter();
+        }
+
+        progress.SetValue(deserialize_progress(data));
+        return true;
+    }
+
+    State &get_current_state() {
+        return states[uint8_t(*current_phase)];
+    }
+
     // get arguments callbacks and call them
     virtual void phaseEnter() {
         if (!current_phase)
             return;
 
-        T fsm_phase = GetEnumFromPhaseIndex<T>(*current_phase);
-        radio.Change(fsm_phase /*, states[phase].btn_resp, &states[phase].btn_labels*/); // TODO alternative button label support
-        label.SetText(_(states[*current_phase].label));
-        if (states[*current_phase].onEnter) {
-            states[*current_phase].onEnter();
+        radio.Change(*current_phase /*, states[phase].btn_resp, &states[phase].btn_labels*/); // TODO alternative button label support
+        label.SetText(_(get_current_state().label));
+        if (get_current_state().onEnter) {
+            get_current_state().onEnter();
         }
     }
     virtual void phaseExit() {
         if (!current_phase)
             return;
 
-        if (states[*current_phase].onExit) {
-            states[*current_phase].onExit();
+        if (get_current_state().onExit) {
+            get_current_state().onExit();
         }
     }
 };

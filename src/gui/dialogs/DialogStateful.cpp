@@ -50,16 +50,3 @@ IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer
     label.set_font(GuiDefaults::EnableDialogBigLayout ? resource_font(IDR_FNT_SPECIAL) : GuiDefaults::FontBig);
     label.SetAlignment(Align_t::CenterTop());
 }
-
-bool IDialogStateful::change(uint8_t phase, fsm::PhaseData data) {
-    if (!can_change(phase))
-        return false;
-    if ((!current_phase) || (current_phase != phase)) {
-        phaseExit();
-        current_phase = phase;
-        phaseEnter();
-    }
-
-    progress.SetValue(deserialize_progress(data));
-    return true;
-}

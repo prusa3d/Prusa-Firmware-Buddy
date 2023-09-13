@@ -56,12 +56,12 @@ public:
 #if HAS_MMU2()
     /// Returns whether there is a dialog open on an MMU error screen (that is waiting for user input)
     static inline bool is_mmu2_error_screen_running() {
-        return instance && instance->current_phase.value_or(0) == int(PhasesLoadUnload::MMU_ERRWaitingForUser);
+        return instance && instance->current_phase == PhasesLoadUnload::MMU_ERRWaitingForUser;
     }
 #endif
 
 protected:
-    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
+    virtual bool change(PhasesLoadUnload phase, fsm::PhaseData data) override;
     void red_screen_update(uint16_t errCode, const char *errTitle, const char *errDesc);
     virtual float deserialize_progress(fsm::PhaseData data) const override;
     void phaseEnter() override;
