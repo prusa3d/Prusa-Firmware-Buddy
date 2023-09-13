@@ -250,8 +250,9 @@ void CommandOperation(MMU2::ProtocolLogic &pl, std::string cmdRq) {
 }
 
 /// Verify the protocol_logic layer - sitting idle
-TEST_CASE("Marlin::MMU2::ProtocolLogic Idle", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic Idle", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
 
     InitCommunication(pl);
@@ -259,8 +260,9 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic Idle", "[Marlin][MMU2][.]") {
 }
 
 /// Verify the protocol_logic layer - command
-TEST_CASE("Marlin::MMU2::ProtocolLogic Command", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic Command", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
 
     InitCommunication(pl);
@@ -296,8 +298,9 @@ void ResponseTimeout(MMU2::ProtocolLogic &pl) {
 }
 
 /// Verify the protocol_logic layer - timeouts waiting for a response msg
-TEST_CASE("Marlin::MMU2::ProtocolLogic TimeoutResponse", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic TimeoutResponse", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
 
     InitCommunication(pl);
@@ -374,21 +377,26 @@ void SimProtocolErrorStreamOfBadBytes(MMU2::ProtocolLogic &pl) {
 }
 
 /// Verify the protocol_logic layer - protocol error
-TEST_CASE("Marlin::MMU2::ProtocolLogic ProtocolError", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic ProtocolError", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
     pl.ToolChange(0);
     SimProtocolError(pl);
+    mmu2SerialSim.txbuffQ.clear();
     InitCommunication2(pl, "T0");
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic ProtocolErrorBadByteStream", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic ProtocolErrorBadByteStream", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
     pl.ToolChange(0);
     SimProtocolErrorStreamOfBadBytes(pl);
+    REQUIRE(mmu2SerialSim.TxBuffMatchesCRC("S0"));
+    mmu2SerialSim.txbuffQ.clear();
     InitCommunication2(pl, "T0");
 }
 
@@ -406,8 +414,9 @@ void SimCommandRejected(MMU2::ProtocolLogic &pl) {
 }
 
 /// Verify the protocol_logic layer - command rejected
-TEST_CASE("Marlin::MMU2::ProtocolLogic CommandRejected", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic CommandRejected", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
 
     InitCommunication(pl);
@@ -457,8 +466,9 @@ void SimCommandError(MMU2::ProtocolLogic &pl, std::string cmdRq) {
 }
 
 /// Verify the protocol_logic layer - command error
-TEST_CASE("Marlin::MMU2::ProtocolLogic CommandError", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic CommandError", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
 
     InitCommunication(pl);
@@ -480,6 +490,7 @@ void SimVersionMismatch(MMU2::ProtocolLogic &pl, int stage) {
         StepStatus sr;
         for (uint8_t retries = 0; retries < ProtocolLogic::maxRetries; ++retries) {
             mmu2SerialSim.SetRxBuffCRC(stage == 0 ? "S0 A1" : "S0 A" xstr(supportedMmuFWVersionMajor)); // place a response from the MMU into serialStub.rxbuff
+            mmu2SerialSim.txbuffQ.clear();
             sr = pl.Step();                                                                             // response should be processed in one step and another request shall appear in the txbuff
             IncMillis();
         }
@@ -497,6 +508,7 @@ void SimVersionMismatch(MMU2::ProtocolLogic &pl, int stage) {
         StepStatus sr;
         for (uint8_t retries = 0; retries < ProtocolLogic::maxRetries; ++retries) {
             mmu2SerialSim.SetRxBuffCRC(stage == 1 ? "S1 Af" : "S1 A" xstr(supportedMmuFWVersionMinor));
+            mmu2SerialSim.txbuffQ.clear();
             sr = pl.Step();
             IncMillis();
         }
@@ -514,6 +526,7 @@ void SimVersionMismatch(MMU2::ProtocolLogic &pl, int stage) {
         StepStatus sr;
         for (uint8_t retries = 0; retries < ProtocolLogic::maxRetries; ++retries) {
             mmu2SerialSim.rxbuff = AppendCRC(stage == 2 ? "S2 Af" : "S2 A" xstr(supportedMmuFWVersionRevision));
+            mmu2SerialSim.txbuffQ.clear();
             sr = pl.Step();
             IncMillis();
         }
@@ -532,22 +545,25 @@ void SimVersionMismatch(MMU2::ProtocolLogic &pl, int stage) {
 }
 
 /// Verify the protocol_logic layer - major version mismatch
-TEST_CASE("Marlin::MMU2::ProtocolLogic VersionMismatch0", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic VersionMismatch0", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     SimVersionMismatch(pl, 0);
 }
 
 /// Verify the protocol_logic layer - minor version mismatch
-TEST_CASE("Marlin::MMU2::ProtocolLogic VersionMismatch1", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic VersionMismatch1", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     SimVersionMismatch(pl, 1);
 }
 
 /// Verify the protocol_logic layer - revision version mismatch
-TEST_CASE("Marlin::MMU2::ProtocolLogic VersionMismatch2", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic VersionMismatch2", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     SimVersionMismatch(pl, 2);
 }
@@ -627,8 +643,9 @@ void SimInitSeqCorrupted(MMU2::ProtocolLogic &pl) {
     IdleOperation(pl);
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic InitSeqCorrupted", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic InitSeqCorrupted", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     SimInitSeqCorrupted(pl);
 }
@@ -708,7 +725,8 @@ void CheckInitSeqStage(MMU2::ProtocolLogic &pl) {
 
             // handle delayed restart
             IncMillis(heartBeatPeriod);
-            pl.Step();                       // should move to S0
+            pl.Step(); // next Step() should move to S0
+            mmu2SerialSim.txbuffQ.clear();
             break;
         case InitStageNext::RepeatSameQuery: // repeat the same query - pick next stage record
             NextStage(i);
@@ -721,8 +739,9 @@ void CheckInitSeqStage(MMU2::ProtocolLogic &pl) {
     }
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic InitSeqCorruptedExtendedTest", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic InitSeqCorruptedExtendedTest", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
 
     // What do we need:
@@ -738,8 +757,9 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic InitSeqCorruptedExtendedTest", "[Marlin][
 }
 
 /// Verify the protocol_logic layer - correctly handle an incoming command while waiting for a response from the MMU in Idle state
-TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqQuery", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqQuery", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
 
@@ -762,8 +782,9 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqQuery", "[Marlin][MMU2][.]"
 }
 
 /// Verify the protocol_logic layer - correctly handle an incoming command while waiting for a response from the MMU in Command state
-TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqCommand", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqCommand", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
 
@@ -806,8 +827,9 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqCommand", "[Marlin][MMU2][.
     REQUIRE(StepAndCheckState(pl, "B2 A", PST::Running, PSC::Command, Processing, "f0"));
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqCommandReset", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqCommandReset", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
 
@@ -828,13 +850,15 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic AsyncCommandRqCommandReset", "[Marlin][MM
 }
 
 /// Verify the protocol_logic layer - recovery of a running command after a communication dropout
-TEST_CASE("Marlin::MMU2::ProtocolLogic Recover Command", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic Recover Command", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     // @@TODO
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic repeated comm link attempts", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic repeated comm link attempts", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
 
     mmu2SerialSim.rxbuff.clear();
@@ -852,8 +876,9 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic repeated comm link attempts", "[Marlin][M
     }
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic Previous command finished while a new one issued", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic Previous command finished while a new one issued", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
 
@@ -896,10 +921,11 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic Previous command finished while a new one
     REQUIRE(StepAndCheckState(pl, "T0 A", PST::Running, PSC::Command, Processing, ""));
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic ReadRegister", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic ReadRegister", "[Marlin][MMU2]") {
     // At this moment ReadRegister can only occur in Idle mode.
     // It is not a limitation of the protocol but a safety precaution of the higher level of G-codes processing.
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
     IdleOperation(pl);
@@ -915,7 +941,7 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic ReadRegister", "[Marlin][MMU2][.]") {
     IdleOperation(pl);
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic WriteRegister", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic WriteRegister", "[Marlin][MMU2]") {
     using namespace MMU2;
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
@@ -932,8 +958,9 @@ TEST_CASE("Marlin::MMU2::ProtocolLogic WriteRegister", "[Marlin][MMU2][.]") {
     IdleOperation(pl);
 }
 
-TEST_CASE("Marlin::MMU2::ProtocolLogic Interrupted", "[Marlin][MMU2][.]") {
+TEST_CASE("Marlin::MMU2::ProtocolLogic Interrupted", "[Marlin][MMU2]") {
     using namespace MMU2;
+    InitEnvironment();
     ProtocolLogic pl(&mmu2Serial, MMU2_TOOL_CHANGE_LOAD_LENGTH, PULLEY_SLOW_FEED_RATE);
     InitCommunication(pl);
     IdleOperation(pl);
