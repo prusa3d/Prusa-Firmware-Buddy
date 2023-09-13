@@ -51,12 +51,12 @@ IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer
     label.SetAlignment(Align_t::CenterTop());
 }
 
-bool IDialogStateful::change(uint8_t phs, fsm::PhaseData data) {
-    if (!can_change(phs))
+bool IDialogStateful::change(uint8_t phase, fsm::PhaseData data) {
+    if (!can_change(phase))
         return false;
-    if ((!current_phase) || (current_phase != phs)) {
+    if ((!current_phase) || (current_phase != phase)) {
         phaseExit();
-        current_phase = phs;
+        current_phase = phase;
         phaseEnter();
     }
 

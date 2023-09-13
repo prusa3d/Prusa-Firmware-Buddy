@@ -27,15 +27,15 @@ void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *se
     }
 }
 
-void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phs) {
-    if (current_phase == phs)
+void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phase) {
+    if (current_phase == phase)
         return;
-    current_phase = phs;
-    Change(ClientResponses::GetResponses(phs));
+    current_phase = phase;
+    Change(ClientResponses::GetResponses(phase));
 }
 
-void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phs, PhaseResponses responses) {
-    current_phase = phs;
+void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phase, PhaseResponses responses) {
+    current_phase = phase;
     Change(responses);
 }
 
@@ -280,31 +280,31 @@ void DialogLoadUnload::phaseWaitSound() {
 }
 void DialogLoadUnload::phaseStopSound() { Sound_Stop(); }
 
-static constexpr bool isRedMMU([[maybe_unused]] uint8_t phs) {
+static constexpr bool isRedMMU([[maybe_unused]] uint8_t phase) {
 #if HAS_MMU2()
     int16_t mmu_err_pos = int16_t(PhasesLoadUnload::MMU_ERRWaitingForUser) - int16_t(PhasesLoadUnload::_first);
-    return phs == mmu_err_pos;
+    return phase == mmu_err_pos;
 #else
     return false;
 #endif
 }
 
-static constexpr bool isRedFStuck([[maybe_unused]] uint8_t phs) {
+static constexpr bool isRedFStuck([[maybe_unused]] uint8_t phase) {
 #if HAS_LOADCELL()
     int16_t fstuck_err_pos = int16_t(PhasesLoadUnload::FilamentStuck) - int16_t(PhasesLoadUnload::_first);
-    return phs == fstuck_err_pos;
+    return phase == fstuck_err_pos;
 #else
     return false;
 #endif
 }
 
-static constexpr bool isRed(uint8_t phs) {
-    return isRedMMU(phs) || isRedFStuck(phs);
+static constexpr bool isRed(uint8_t phase) {
+    return isRedMMU(phase) || isRedFStuck(phase);
 }
 
 constexpr static const char title_filament_stuck[] = N_("FILAMENT STUCK");
 
-bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
+bool DialogLoadUnload::change(uint8_t phase, fsm::PhaseData data) {
     LoadUnloadMode new_mode = ProgressSerializerLoadUnload(data).mode;
     if (new_mode != mode) {
         mode = new_mode;
@@ -313,7 +313,7 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
 
 #if HAS_MMU2() || HAS_LOADCELL()
     // was black (or uninitialized), is red
-    if ((!current_phase || !isRed(*current_phase)) && isRed(phs)) {
+    if ((!current_phase || !isRed(*current_phase)) && isRed(phase)) {
         SetRedLayout();
         // this dialog does not contain header, so it broadcasts event to all windows
         event_conversion_union uni;
@@ -336,12 +336,12 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
     }
 
     // is red
-    if (isRed(phs)) {
-        if (!can_change(phs))
+    if (isRed(phase)) {
+        if (!can_change(phase))
             return false;
 
     #if HAS_MMU2()
-        if (isRedMMU(phs)) {
+        if (isRedMMU(phase)) {
             const MMU2::MMUErrDesc *ptr_desc = fsm::PointerSerializer<MMU2::MMUErrDesc>(data).Get();
             PhaseResponses responses {
                 ButtonOperationToResponse(ptr_desc->buttons[0]),
@@ -354,7 +354,7 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
     #endif
     #if HAS_LOADCELL()
         // here, an "else" would be nice, but there might be printers with MMU and without loadcell in the future...
-        if (isRedFStuck(phs)) {
+        if (isRedFStuck(phase)) {
             // An ugly workaround to abuse existing infrastructure - this is not an MMU-related error
             // yet we need to throw a dialog with a QR code and a button.
             auto err_desc = find_error(ErrCode::ERR_MECHANICAL_STUCK_FILAMENT_DETECTED);
@@ -366,13 +366,13 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
             red_screen_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
         }
     #endif
-        current_phase = phs; // set it directly, do not use super::change(phs, data);
+        current_phase = phase; // set it directly, do not use super::change(phase, data);
 
         return true;
     }
 
     // was red (or uninitialized), is black
-    if ((!current_phase || isRed(*current_phase)) && !isRed(phs)) {
+    if ((!current_phase || isRed(*current_phase)) && !isRed(phase)) {
         title.SetRect(get_title_rect(GetRect()));
         SetBlackLayout();
         // this dialog does not contain header, so it broadcasts event to all windows
@@ -395,7 +395,7 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
 #endif
 
     // is black
-    return super::change(phs, data);
+    return super::change(phase, data);
 }
 
 void DialogLoadUnload::red_screen_update(uint16_t errCode, const char *errTitle, const char *errDesc) {

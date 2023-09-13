@@ -15,8 +15,8 @@
 template <class FSM_PHASE>
 class RadioButtonFsm : public AddSuperWindow<IRadioButton> {
 
-    size_t cnt_buttons(FSM_PHASE phs) const {
-        const PhaseResponses &resp = ClientResponses::GetResponses(phs); // ClientResponses::GetResponses returns array of 16 responses
+    size_t cnt_buttons(FSM_PHASE phase) const {
+        const PhaseResponses &resp = ClientResponses::GetResponses(phase); // ClientResponses::GetResponses returns array of 16 responses
         return std::min(cnt_responses(generateResponses(resp)), max_buttons); // generateResponses cuts it to 4
     }
 
@@ -26,18 +26,18 @@ public:
      *
      * @param parent window containing this object
      * @param rect   rectangle enclosing all buttons
-     * @param phs    fsm phase
+     * @param phase  fsm phase
      * @param labels array of button labels, if is set to nullptr, strings are assigned as default ones from given responses
      */
-    RadioButtonFsm(window_t *parent, Rect16 rect, FSM_PHASE phs)
-        : AddSuperWindow<IRadioButton>(parent, rect, cnt_buttons(phs))
-        , current_phase(phs) {}
+    RadioButtonFsm(window_t *parent, Rect16 rect, FSM_PHASE phase)
+        : AddSuperWindow<IRadioButton>(parent, rect, cnt_buttons(phase))
+        , current_phase(phase) {}
 
-    void Change(FSM_PHASE phs) {
-        if (current_phase == phs)
+    void Change(FSM_PHASE phase) {
+        if (current_phase == phase)
             return;
-        current_phase = phs;
-        SetBtnCount(HasIcon() ? max_icons : cnt_buttons(phs));
+        current_phase = phase;
+        SetBtnCount(HasIcon() ? max_icons : cnt_buttons(phase));
 
         // in iconned layout index will stay
         if (!HasIcon()) {
