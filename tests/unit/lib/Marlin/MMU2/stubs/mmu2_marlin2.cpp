@@ -113,4 +113,7 @@ void gcode_reset_stepper_timeout() {
     //    mockLog_RecordFn();
 }
 
+void enqueue_gcode(const char *gcode) {
+}
+
 } // namespace MMU2

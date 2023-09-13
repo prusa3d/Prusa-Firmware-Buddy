@@ -14,8 +14,13 @@
 #include "mmu2_power.h"
 #include "mmu2_progress_converter.h"
 #include "mmu2_reporting.h"
-#include "feature/prusa/e-stall_detector.h"
-#include "module/prusa/spool_join.hpp"
+#include "../e-stall_detector.h"
+#ifndef UNITTEST
+    // because it brings in whole Marlin and the unit tests commit suicide ...
+    #include "../../../module/prusa/spool_join.hpp"
+#else
+    #include "stubs/spool_join_stub.h"
+#endif
 #include "strlen_cx.h"
 
 #ifdef __AVR__
