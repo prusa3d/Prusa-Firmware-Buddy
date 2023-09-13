@@ -35,10 +35,13 @@
 #endif
 
 #if ENABLED(PRUSA_TOOLCHANGER)
-    #define FOREACH_EXTRUDER         for (int e = 0; e < EXTRUDERS - 1; e++)
+    // Loop through existing extruders
+    #define FOREACH_EXTRUDER()                  \
+        for (int e = 0; e < EXTRUDERS - 1; e++) \
+            if (buddy::puppies::dwarfs[e].is_enabled())
     #define active_extruder_or_first active_extruder
 #else
-    #define FOREACH_EXTRUDER         for (int e = 0; e < 1; e++)
+    #define FOREACH_EXTRUDER()       for (int e = 0; e < 1; e++)
     #define active_extruder_or_first 0
 #endif
 
@@ -151,7 +154,7 @@ void buddy::metrics::RecordMarlinVariables() {
     static metric_t heatbreak = METRIC("temp_hbr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL); // float value, tag "n": extruder index, tag "a": is active extruder
     static auto heatbreak_should_record = RunApproxEvery(1000);
     if (heatbreak_should_record()) {
-        FOREACH_EXTRUDER {
+        FOREACH_EXTRUDER() {
             metric_record_custom(&heatbreak, ",n=%i,a=%i value=%.2f", e, e == active_extruder_or_first, static_cast<double>(thermalManager.degHeatbreak(e)));
         }
     }
@@ -212,7 +215,7 @@ void buddy::metrics::RecordMarlinVariables() {
     static metric_t nozzle = METRIC("temp_noz", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
     static auto nozzle_should_record = RunApproxEvery(1000 - 10);
     if (nozzle_should_record()) {
-        FOREACH_EXTRUDER {
+        FOREACH_EXTRUDER() {
             metric_record_custom(&nozzle, ",n=%i,a=%i value=%.2f", e, e == active_extruder, static_cast<double>(thermalManager.degHotend(e)));
         }
     }
@@ -220,7 +223,7 @@ void buddy::metrics::RecordMarlinVariables() {
     static metric_t target_nozzle = METRIC("ttemp_noz", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
     static auto target_nozzle_should_record = RunApproxEvery(1000 + 9);
     if (target_nozzle_should_record()) {
-        FOREACH_EXTRUDER {
+        FOREACH_EXTRUDER() {
             metric_record_custom(&target_nozzle, ",n=%i,a=%i value=%ii", e, e == active_extruder, thermalManager.degTargetHotend(e));
         }
     }
@@ -334,7 +337,7 @@ void buddy::metrics::record_dwarf_internal_temperatures() {
     static metric_t mcu = METRIC("dwarfs_mcu_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL); // float value, tag "n": extruder index, tag "a": is active extruder
     static auto mcu_should_record = RunApproxEvery(1002);
     if (mcu_should_record()) {
-        FOREACH_EXTRUDER {
+        FOREACH_EXTRUDER() {
             metric_record_custom(&mcu, ",n=%i,a=%i value=%i", e, e == active_extruder_or_first, static_cast<int>(buddy::puppies::dwarfs[e].get_mcu_temperature()));
         }
     }
@@ -343,7 +346,7 @@ void buddy::metrics::record_dwarf_internal_temperatures() {
     static metric_t board = METRIC("dwarfs_board_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL); // float value, tag "n": extruder index, tag "a": is active extruder
     static auto board_should_record = RunApproxEvery(1003);
     if (board_should_record()) {
-        FOREACH_EXTRUDER {
+        FOREACH_EXTRUDER() {
             metric_record_custom(&board, ",n=%i,a=%i value=%i", e, e == active_extruder_or_first, static_cast<int>(buddy::puppies::dwarfs[e].get_board_temperature()));
         }
     }
