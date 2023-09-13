@@ -48,7 +48,7 @@ protected:
     window_progress_t progress;
     window_text_t label;
 
-    std::optional<uint8_t> phase = std::nullopt;
+    std::optional<uint8_t> current_phase = std::nullopt;
 
     virtual bool can_change(uint8_t phase) = 0;
     // must be virtual because of `states` list is in template protected
@@ -90,22 +90,22 @@ protected:
     virtual bool can_change(uint8_t phase) { return phase < SZ; }
     // get arguments callbacks and call them
     virtual void phaseEnter() {
-        if (!phase)
+        if (!current_phase)
             return;
 
-        T fsm_phase = GetEnumFromPhaseIndex<T>(*phase);
+        T fsm_phase = GetEnumFromPhaseIndex<T>(*current_phase);
         radio.Change(fsm_phase /*, states[phase].btn_resp, &states[phase].btn_labels*/); // TODO alternative button label support
-        label.SetText(_(states[*phase].label));
-        if (states[*phase].onEnter) {
-            states[*phase].onEnter();
+        label.SetText(_(states[*current_phase].label));
+        if (states[*current_phase].onEnter) {
+            states[*current_phase].onEnter();
         }
     }
     virtual void phaseExit() {
-        if (!phase)
+        if (!current_phase)
             return;
 
-        if (states[*phase].onExit) {
-            states[*phase].onExit();
+        if (states[*current_phase].onExit) {
+            states[*current_phase].onExit();
         }
     }
 };

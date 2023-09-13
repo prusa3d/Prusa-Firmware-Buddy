@@ -54,9 +54,9 @@ IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer
 bool IDialogStateful::change(uint8_t phs, fsm::PhaseData data) {
     if (!can_change(phs))
         return false;
-    if ((!phase) || (phase != phs)) {
+    if ((!current_phase) || (current_phase != phs)) {
         phaseExit();
-        phase = phs;
+        current_phase = phs;
         phaseEnter();
     }
 

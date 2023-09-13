@@ -14,7 +14,7 @@
  * automatic radio button cannot handle that
  */
 class RadioButtonMmuErr : public AddSuperWindow<RadioButton> {
-    PhasesLoadUnload phase;
+    PhasesLoadUnload current_phase;
 
 public:
     /**
@@ -56,7 +56,7 @@ public:
 #if HAS_MMU2()
     /// Returns whether there is a dialog open on an MMU error screen (that is waiting for user input)
     static inline bool is_mmu2_error_screen_running() {
-        return instance && instance->phase.value_or(0) == int(PhasesLoadUnload::MMU_ERRWaitingForUser);
+        return instance && instance->current_phase.value_or(0) == int(PhasesLoadUnload::MMU_ERRWaitingForUser);
     }
 #endif
 

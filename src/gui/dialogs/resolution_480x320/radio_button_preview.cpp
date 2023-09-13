@@ -75,7 +75,7 @@ void RadioButtonPreview::windowEvent(EventLock /*has private ctor*/, window_t *s
         Response response = Click();
         event_conversion_union un;
         un.response = response;
-        marlin_client::FSM_response(phase, response); // Use FSM logic from RadioButtonFsm<>
+        marlin_client::FSM_response(current_phase, response); // Use FSM logic from RadioButtonFsm<>
         if (GetParent()) {
             GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
         }

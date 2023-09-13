@@ -31,12 +31,12 @@ public:
      */
     RadioButtonFsm(window_t *parent, Rect16 rect, FSM_PHASE phs)
         : AddSuperWindow<IRadioButton>(parent, rect, cnt_buttons(phs))
-        , phase(phs) {}
+        , current_phase(phs) {}
 
     void Change(FSM_PHASE phs) {
-        if (phase == phs)
+        if (current_phase == phs)
             return;
-        phase = phs;
+        current_phase = phs;
         SetBtnCount(HasIcon() ? max_icons : cnt_buttons(phs));
 
         // in iconned layout index will stay
@@ -50,7 +50,7 @@ public:
     }
 
     virtual std::optional<size_t> IndexFromResponse(Response btn) const override {
-        uint8_t index = ClientResponses::GetIndex(phase, btn);
+        uint8_t index = ClientResponses::GetIndex(current_phase, btn);
         if (index < maxSize())
             return index;
 
@@ -58,17 +58,17 @@ public:
     }
 
 protected:
-    FSM_PHASE phase;
+    FSM_PHASE current_phase;
 
     virtual Response responseFromIndex(size_t index) const override {
-        return ClientResponses::GetResponse(phase, index);
+        return ClientResponses::GetResponse(current_phase, index);
     }
 
     void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override {
         switch (event) {
         case GUI_event_t::CLICK: {
             Response response = Click();
-            marlin_client::FSM_response(phase, response);
+            marlin_client::FSM_response(current_phase, response);
             break;
         }
         default:

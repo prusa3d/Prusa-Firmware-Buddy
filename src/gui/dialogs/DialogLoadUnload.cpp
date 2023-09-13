@@ -19,7 +19,7 @@ void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *se
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = Click();
-        marlin_client::FSM_response(phase, response);
+        marlin_client::FSM_response(current_phase, response);
         break;
     }
     default:
@@ -28,14 +28,14 @@ void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *se
 }
 
 void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phs) {
-    if (phase == phs)
+    if (current_phase == phs)
         return;
-    phase = phs;
+    current_phase = phs;
     Change(ClientResponses::GetResponses(phs));
 }
 
 void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phs, PhaseResponses responses) {
-    phase = phs;
+    current_phase = phs;
     Change(responses);
 }
 
@@ -313,7 +313,7 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
 
 #if HAS_MMU2() || HAS_LOADCELL()
     // was black (or uninitialized), is red
-    if ((!phase || !isRed(*phase)) && isRed(phs)) {
+    if ((!current_phase || !isRed(*current_phase)) && isRed(phs)) {
         SetRedLayout();
         // this dialog does not contain header, so it broadcasts event to all windows
         event_conversion_union uni;
@@ -366,13 +366,13 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
             red_screen_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
         }
     #endif
-        phase = phs; // set it directly, do not use super::change(phs, data);
+        current_phase = phs; // set it directly, do not use super::change(phs, data);
 
         return true;
     }
 
     // was red (or uninitialized), is black
-    if ((!phase || isRed(*phase)) && !isRed(phs)) {
+    if ((!current_phase || isRed(*current_phase)) && !isRed(phs)) {
         title.SetRect(get_title_rect(GetRect()));
         SetBlackLayout();
         // this dialog does not contain header, so it broadcasts event to all windows
@@ -440,7 +440,7 @@ float DialogLoadUnload::deserialize_progress(fsm::PhaseData data) const {
 }
 
 void DialogLoadUnload::phaseEnter() {
-    if (!phase)
+    if (!current_phase)
         return;
     AddSuperWindow<DialogStateful<PhasesLoadUnload>>::phaseEnter();
 
