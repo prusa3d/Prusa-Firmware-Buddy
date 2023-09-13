@@ -13,7 +13,7 @@
  * but MMU red screens are many states masked as single state
  * automatic radio button cannot handle that
  */
-class RadioButtonMmuErr : public AddSuperWindow<RadioButton> {
+class RadioButtonNotice : public AddSuperWindow<RadioButton> {
     PhasesLoadUnload current_phase;
 
 public:
@@ -23,7 +23,7 @@ public:
      * @param parent window containing this object
      * @param rect   rectangle enclosing all buttons
      */
-    RadioButtonMmuErr(window_t *parent, Rect16 rect);
+    RadioButtonNotice(window_t *parent, Rect16 rect);
     void ChangePhase(PhasesLoadUnload phase, PhaseResponses responses);
 
 protected:
@@ -61,14 +61,14 @@ public:
 
 protected:
     virtual bool change(PhasesLoadUnload phase, fsm::PhaseData data) override;
-    void red_screen_update(uint16_t errCode, const char *errTitle, const char *errDesc);
+    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc);
     virtual float deserialize_progress(fsm::PhaseData data) const override;
     void phaseEnter() override;
 
 private:
     StatusFooter footer;
 
-    RadioButtonMmuErr radio_for_red_screen; // workaround, see RadioButtonMmuErr comment
+    RadioButtonNotice radio_for_notice_dialog; // workaround, see RadioButtonNotice comment
 
     window_text_t text_link;
     window_icon_t icon_hand;

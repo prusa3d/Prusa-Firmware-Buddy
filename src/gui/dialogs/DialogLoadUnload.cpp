@@ -12,10 +12,10 @@
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
 
-RadioButtonMmuErr::RadioButtonMmuErr(window_t *parent, Rect16 rect)
+RadioButtonNotice::RadioButtonNotice(window_t *parent, Rect16 rect)
     : AddSuperWindow<RadioButton>(parent, rect) {}
 
-void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
+void RadioButtonNotice::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     switch (event) {
     case GUI_event_t::CLICK: {
         Response response = Click();
@@ -27,7 +27,7 @@ void RadioButtonMmuErr::windowEvent(EventLock /*has private ctor*/, window_t *se
     }
 }
 
-void RadioButtonMmuErr::ChangePhase(PhasesLoadUnload phase, PhaseResponses responses) {
+void RadioButtonNotice::ChangePhase(PhasesLoadUnload phase, PhaseResponses responses) {
     current_phase = phase;
     Change(responses);
 }
@@ -222,7 +222,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     #endif
 #endif
           )
-    , radio_for_red_screen(this, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
+    , radio_for_notice_dialog(this, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
     , text_link(this, mmu_link_rect, is_multiline::yes, is_closed_on_click_t::no)
     , icon_hand(this, mmu_icon_rect, &img::hand_qr_59x72)
     , filament_type_text(this, filament_type_text_rect, is_multiline::no)
@@ -236,8 +236,8 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
 
     text_link.set_font(resource_font(IDR_FNT_SMALL));
 
-    radio_for_red_screen.SetHasIcon();
-    radio_for_red_screen.Hide();
+    radio_for_notice_dialog.SetHasIcon();
+    radio_for_notice_dialog.Hide();
     text_link.Hide();
     icon_hand.Hide();
     qr.Hide();
@@ -273,7 +273,7 @@ void DialogLoadUnload::phaseWaitSound() {
 }
 void DialogLoadUnload::phaseStopSound() { Sound_Stop(); }
 
-static constexpr bool isRedMMU([[maybe_unused]] PhasesLoadUnload phase) {
+static constexpr bool is_notice_mmu([[maybe_unused]] PhasesLoadUnload phase) {
 #if HAS_MMU2()
     return phase == PhasesLoadUnload::MMU_ERRWaitingForUser;
 #else
@@ -281,7 +281,7 @@ static constexpr bool isRedMMU([[maybe_unused]] PhasesLoadUnload phase) {
 #endif
 }
 
-static constexpr bool isRedFStuck([[maybe_unused]] PhasesLoadUnload phase) {
+static constexpr bool is_notice_fstuck([[maybe_unused]] PhasesLoadUnload phase) {
 #if HAS_LOADCELL()
     return phase == PhasesLoadUnload::FilamentStuck;
 #else
@@ -289,8 +289,8 @@ static constexpr bool isRedFStuck([[maybe_unused]] PhasesLoadUnload phase) {
 #endif
 }
 
-static constexpr bool isRed(PhasesLoadUnload phase) {
-    return isRedMMU(phase) || isRedFStuck(phase);
+static constexpr bool is_notice(PhasesLoadUnload phase) {
+    return is_notice_mmu(phase) || is_notice_fstuck(phase);
 }
 
 bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
@@ -301,16 +301,16 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     }
 
 #if HAS_MMU2() || HAS_LOADCELL()
-    // was black (or uninitialized), is red
-    if ((!current_phase || !isRed(*current_phase)) && isRed(phase)) {
+    // was normal (or uninitialized), is notice
+    if ((!current_phase || !is_notice(*current_phase)) && is_notice(phase)) {
         title.SetRect(mmu_title_rect);
 
         progress.Hide();
 
         label.SetRect(mmu_desc_rect);
 
-        radio_for_red_screen.Show(); // show red screen radio button
-        CaptureNormalWindow(radio_for_red_screen); // capture red screen radio button
+        radio_for_notice_dialog.Show(); // show red screen radio button
+        CaptureNormalWindow(radio_for_notice_dialog); // capture red screen radio button
         radio.Hide(); // hide normal radio button
 
         text_link.Show();
@@ -318,26 +318,26 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
         qr.Show();
     }
 
-    // is red
-    if (isRed(phase)) {
+    // is notice
+    if (is_notice(phase)) {
         if (!can_change(phase))
             return false;
 
     #if HAS_MMU2()
-        if (isRedMMU(phase)) {
+        if (is_notice_mmu(phase)) {
             const MMU2::MMUErrDesc *ptr_desc = fsm::PointerSerializer<MMU2::MMUErrDesc>(data).Get();
             PhaseResponses responses {
                 ButtonOperationToResponse(ptr_desc->buttons[0]),
                 ButtonOperationToResponse(ptr_desc->buttons[1]),
                 ButtonOperationToResponse(ptr_desc->buttons[2])
             };
-            radio_for_red_screen.ChangePhase(PhasesLoadUnload::MMU_ERRWaitingForUser, responses);
-            red_screen_update(ftrstd::to_underlying(ptr_desc->err_code), ptr_desc->err_title, ptr_desc->err_text);
+            radio_for_notice_dialog.ChangePhase(PhasesLoadUnload::MMU_ERRWaitingForUser, responses);
+            notice_update(ftrstd::to_underlying(ptr_desc->err_code), ptr_desc->err_title, ptr_desc->err_text);
         }
     #endif
     #if HAS_LOADCELL()
         // here, an "else" would be nice, but there might be printers with MMU and without loadcell in the future...
-        if (isRedFStuck(phase)) {
+        if (is_notice_fstuck(phase)) {
             // An ugly workaround to abuse existing infrastructure - this is not an MMU-related error
             // yet we need to throw a dialog with a QR code and a button.
             auto err_desc = find_error(ErrCode::ERR_MECHANICAL_STUCK_FILAMENT_DETECTED);
@@ -345,8 +345,8 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
             // I don't like the fact, that the one-and-only response from FilamentStuck (aka Unload) gets mapped onto the first button)
             // It doesn't look nice ;) ... therefore, some handcrafted ugly alignment is necessary at this spot
             PhaseResponses responses { Response::_none, Response::Unload, Response::_none };
-            radio_for_red_screen.ChangePhase(PhasesLoadUnload::FilamentStuck, responses);
-            red_screen_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
+            radio_for_notice_dialog.ChangePhase(PhasesLoadUnload::FilamentStuck, responses);
+            notice_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
         }
     #endif
         current_phase = phase; // set it directly, do not use super::change(phase, data);
@@ -354,8 +354,8 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
         return true;
     }
 
-    // was red (or uninitialized), is black
-    if ((!current_phase || isRed(*current_phase)) && !isRed(phase)) {
+    // was notice (or uninitialized), is normal
+    if ((!current_phase || is_notice(*current_phase)) && !is_notice(phase)) {
         title.SetRect(get_title_rect(GetRect()));
         progress.Show();
 
@@ -363,7 +363,7 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
 
         radio.Show(); // show normal radio button
         CaptureNormalWindow(radio); // capture normal radio button
-        radio_for_red_screen.Hide(); // hide red screen radio button
+        radio_for_notice_dialog.Hide(); // hide red screen radio button
 
         text_link.Hide();
         icon_hand.Hide();
@@ -371,11 +371,11 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     }
 #endif
 
-    // is black
+    // is normal
     return super::change(phase, data);
 }
 
-void DialogLoadUnload::red_screen_update(uint16_t errCode, const char *errTitle, const char *errDesc) {
+void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, const char *errDesc) {
     title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
     label.SetText(string_view_utf8::MakeRAM((const uint8_t *)errDesc));
 
