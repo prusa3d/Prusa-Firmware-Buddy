@@ -68,7 +68,7 @@ static const char *txt_purging            = N_("Purging");
 static const char *txt_is_color           = N_("Is color correct?");
 static const char *txt_remove_filament    = N_("Please pull out filament immediately.");
 #if HAS_LOADCELL()
-static const char *txt_filament_stuck     = N_("The filament seems to be stuck, please unload it and load it again.");
+static const char *txt_filament_stuck     = ""; // Empty here, set from the error description
 #endif
 #if HAS_MMU2()
 // MMU-related
@@ -300,8 +300,6 @@ static constexpr bool isRed(PhasesLoadUnload phase) {
     return isRedMMU(phase) || isRedFStuck(phase);
 }
 
-constexpr static const char title_filament_stuck[] = N_("FILAMENT STUCK");
-
 bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     LoadUnloadMode new_mode = ProgressSerializerLoadUnload(data).mode;
     if (new_mode != mode) {
@@ -423,8 +421,6 @@ string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
         return _(title_unload);
     case LoadUnloadMode::Purge:
         return _(title_purge);
-    case LoadUnloadMode::FilamentStuck:
-        return _(title_filament_stuck);
     case LoadUnloadMode::Test:
         return _(title_test);
     default:
