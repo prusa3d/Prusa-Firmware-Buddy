@@ -7,6 +7,7 @@
 #include "cmsis_os.h"
 #include "malloc.h"
 #include "heap.h"
+#include <adc.hpp>
 #include <option/has_advanced_power.h>
 #if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
@@ -167,6 +168,41 @@ void buddy::metrics::RecordMarlinVariables() {
         = METRIC("temp_chamber", METRIC_VALUE_FLOAT, 1000 - 10, METRIC_HANDLER_DISABLE_ALL);
     metric_record_float(&chamber, thermalManager.degChamber());
 #endif /*HAS_TEMP_CHAMBER*/
+
+    // These temperature metrics go outside of Marlin and are filtered and converted here
+    static auto filtered_should_run = RunApproxEvery(1000 / OVERSAMPLENR);
+    if (filtered_should_run()) {
+        static uint8_t sample_nr = 0;
+
+        static metric_t mcu = METRIC("temp_mcu", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
+        static int32_t mcu_sum = 0;
+        mcu_sum += AdcGet::getMCUTemp();
+
+#if BOARD_IS_XLBUDDY
+        static metric_t sandwich = METRIC("temp_sandwich", METRIC_VALUE_FLOAT, 1000 - 10, METRIC_HANDLER_DISABLE_ALL);
+        static int sandwich_sum = 0;
+        sandwich_sum += AdcGet::sandwichTemp();
+
+        static metric_t splitter = METRIC("temp_splitter", METRIC_VALUE_FLOAT, 1000 - 11, METRIC_HANDLER_DISABLE_ALL);
+        static int splitter_sum = 0;
+        splitter_sum += AdcGet::splitterTemp();
+#endif /*BOARD_IS_XLBUDDY*/
+
+        if (++sample_nr >= OVERSAMPLENR) {
+            metric_record_integer(&mcu, mcu_sum / OVERSAMPLENR);
+            mcu_sum = 0;
+#if BOARD_IS_XLBUDDY
+            // The same thermistor, use the same conversion as TEMP_BOARD
+            // The function takes downsampled ADC value multiplied by OVERSAMPLENR
+            metric_record_float(&sandwich, Temperature::analog_to_celsius_board(sandwich_sum));
+            sandwich_sum = 0;
+            metric_record_float(&splitter, Temperature::analog_to_celsius_board(splitter_sum));
+            splitter_sum = 0;
+#endif /*BOARD_IS_XLBUDDY*/
+            sample_nr = 0;
+        }
+    }
+
     static metric_t bed = METRIC("temp_bed", METRIC_VALUE_FLOAT, 2000 + 23, METRIC_HANDLER_DISABLE_ALL);
     metric_record_float(&bed, thermalManager.degBed());
 
