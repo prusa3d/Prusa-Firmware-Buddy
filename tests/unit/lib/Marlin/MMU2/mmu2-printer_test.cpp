@@ -4,6 +4,26 @@
 #include <inttypes.h>
 #include "stubs/stub_interfaces.h"
 
+// @@TODO bugs:
+// [ ] ReportErrorHook is being called 3x after the error occurs and even more often while the error is active
+//     - ideally, the error hook shall be called only upon change
+//     - but - MK3 abuses the error hooks for keeping the UI responsive
+// [ ] Unload calls MakeSound before processing the request - do we want that?
+// [x] Retry via a Button makes some strange call sequence:
+//     - MMU button pushed (OK)
+//     - Cooldown flag cleared (OK)
+//     - Button (OK)
+//     - Cooling timer stopped (OK)
+//     - Saving and parking (WTF?) - it's because of a default buttonpressed handling - need an ugly hack to prevent this
+//     - Heater cooldown pending (WTF?)
+//     - Cooling timeout started (WTF?)
+//
+// TODO:
+// [ ] heating in general - Check heating timeout - if the recovery heats up and proceeds correctly
+// [ ] Autoretry procedure (should be the same like an ordinary button
+// [ ] Command error
+// [ ] Communication error + recovery
+
 void SimulateCommStart(MMU2::MMU2 &mmu) {
     mmu.Start();
     // functions that were mandatory to execute
@@ -84,6 +104,10 @@ constexpr IOSimRec MakeQueryResponseError(const char *command, ErrorCode pc, IOS
     return { "Q0", { "IncrementMMUFails", "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
 }
 
+constexpr IOSimRec MakeQueryResponseErrorNoIncMMUFails(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
+    return { "Q0", { "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
+}
+
 constexpr IOSimRec MakeQueryResponseErrorButton(const char *command, ErrorCode pc, uint16_t button, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " B" + ToHex(button), 1, w };
 }
@@ -93,7 +117,11 @@ constexpr IOSimRec MakeAcceptButton(uint16_t button, IOSimRec::WorkFunc w = null
 }
 
 constexpr IOSimRec MakeQueryResponseFinished(const char *command, IOSimRec::WorkFunc w = nullptr) {
-    return { "Q0", { "MakeSound", "ScreenUpdateEnable", FormatEndReport(command[0]) }, {}, std::string(command) + " F0", 1, w };
+    return { "Q0", { "MakeSound", FormatEndReport(command[0]), "ScreenUpdateEnable" }, {}, std::string(command) + " F0", 1, w };
+}
+
+constexpr IOSimRec MakeQueryResponseToolChangeFinished(const char *command, IOSimRec::WorkFunc w = nullptr) {
+    return { "Q0", { "TryLoadUnloadReporter::TryLoadUnloadReporter", "planner_any_moves", "TryLoadUnloadReporter::DumpToSerial", FormatEndReport(command[0]) }, {}, std::string(command) + " F0", 1, w };
 }
 
 constexpr IOSimRec MakeFSensorAccepted(uint8_t state, IOSimRec::WorkFunc w = nullptr) {
@@ -242,7 +270,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload", "[Marlin][MMU2]") {
     // -> remove duplicit consecutive records in the expected sequence ;)
     mockLog.DeduplicateExpected();
     mockLog.DeduplicateLog();
-    CHECK(mockLog.MatchesExpected()); // @@TODO will be fixed when screenupdateenable moves into endreport
+    CHECK(mockLog.MatchesExpected());
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
@@ -287,27 +315,6 @@ TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
         MakeRegistersCommand(0, 0, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
         MakeQueryResponseFinished(cmd),
     });
-    // @@TODO bugs:
-    // [ ] ReportErrorHook is being called 3x after the error occurs and even more often while the error is active
-    //     - ideally, the error hook shall be called only upon change
-    //     - but - MK3 abuses the error hooks for keeping the UI responsive
-    // [ ] Unload calls MakeSound before processing the request - do we want that?
-    // [x] Retry via a Button makes some strange call sequence:
-    //     - MMU button pushed (OK)
-    //     - Cooldown flag cleared (OK)
-    //     - Button (OK)
-    //     - Cooling timer stopped (OK)
-    //     - Saving and parking (WTF?) - it's because of a default buttonpressed handling - need an ugly hack to prevent this
-    //     - Heater cooldown pending (WTF?)
-    //     - Cooling timeout started (WTF?)
-    //
-    // TODO:
-    // [ ] 8bit ScreenUpdateEnable shall be called within EndReport (code cleanup)
-    // [ ] heating in general - Check heating timeout - if the recovery heats up and proceeds correctly
-    // [ ] Autoretry procedure (should be the same like an ordinary button
-    // [ ] Command error
-    // [ ] Communication error + recovery
-
     MMU2::mmu2.unload();
     mockLog.DeduplicateLog();
     mockLog.DeduplicateExpected();
@@ -346,7 +353,7 @@ TEST_CASE("Marlin::MMU2::MMU2 cut", "[Marlin][MMU2]") {
     MMU2::mmu2.cut_filament(0, true);
     mockLog.DeduplicateExpected();
     mockLog.DeduplicateLog();
-    CHECK(mockLog.MatchesExpected()); // @@TODO will be fixed when screenupdateenable moves into endreport
+    CHECK(mockLog.MatchesExpected());
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 eject", "[Marlin][MMU2]") {
@@ -357,7 +364,7 @@ TEST_CASE("Marlin::MMU2::MMU2 eject", "[Marlin][MMU2]") {
     IOSimStart({
         MakeInitialQuery(1),
 
-        MakeCommandAccepted(cmd, "FullScreenMsgCut"),
+        MakeCommandAccepted(cmd, "FullScreenMsgEject"),
         MakeQueryResponseProgress(cmd, ProgressCode::ParkingSelector),
         MakeRegistersCommand(0, 0, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
@@ -367,7 +374,7 @@ TEST_CASE("Marlin::MMU2::MMU2 eject", "[Marlin][MMU2]") {
         MakeQueryResponseProgress(cmd, ProgressCode::ERRDisengagingIdler),
         MakeRegistersCommand(0, 0, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
 
-        MakeQueryResponseError(cmd, ErrorCode::FILAMENT_EJECTED), // @@TODO check if it really shouldn't call ReportErrorHok
+        MakeQueryResponseErrorNoIncMMUFails(cmd, ErrorCode::FILAMENT_EJECTED),
         MakeRegistersCommand(0, 0, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
 
         // press middle button - filament eject has been completed
@@ -381,7 +388,7 @@ TEST_CASE("Marlin::MMU2::MMU2 eject", "[Marlin][MMU2]") {
     MMU2::mmu2.eject_filament(0, true);
     mockLog.DeduplicateExpected();
     mockLog.DeduplicateLog();
-    CHECK(mockLog.MatchesExpected()); // @@TODO will be fixed when screenupdateenable moves into endreport
+    CHECK(mockLog.MatchesExpected());
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 toolchange", "[Marlin][MMU2]") {
@@ -396,7 +403,7 @@ TEST_CASE("Marlin::MMU2::MMU2 toolchange", "[Marlin][MMU2]") {
     IOSimStart({
         MakeInitialQuery(1),
 
-        MakeCommandAccepted(cmd, "MakeSound"),
+        MakeCommandAccepted(cmd),
         MakeQueryResponseProgress(cmd, ProgressCode::EngagingIdler),
         MakeRegistersCommand(0, 0, 5, 5, 0, 0, MMU2::heartBeatPeriod + 1),
         MakeQueryResponseProgress(cmd, ProgressCode::FeedingToFinda),
@@ -411,7 +418,7 @@ TEST_CASE("Marlin::MMU2::MMU2 toolchange", "[Marlin][MMU2]") {
         MakeRegistersCommand(1, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
 
         // several finished records
-        MakeQueryResponseFinished(cmd),
+        MakeQueryResponseToolChangeFinished(cmd),
         MakeRegistersCommand(1, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
         MakeQueryResponseFinished(cmd),
         MakeRegistersCommand(1, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
@@ -466,7 +473,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload with preheat", "[Marlin][MMU2]") {
     // -> remove duplicit consecutive records in the expected sequence ;)
     mockLog.DeduplicateExpected();
     mockLog.DeduplicateLog();
-    CHECK(mockLog.MatchesExpected()); // @@TODO will be fixed when screenupdateenable moves into endreport
+    CHECK(mockLog.MatchesExpected());
 
     // Bugs:
     // [ ] why aren't we reporting progress waiting for temperature?

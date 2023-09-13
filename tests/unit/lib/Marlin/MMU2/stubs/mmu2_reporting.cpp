@@ -39,6 +39,7 @@ void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
 
 /// Called when the MMU sends operation progress update
 void ReportProgressHook(CommandInProgress cip, ProgressCode ec) {
+    errorScreenRunning = false;
     mockLog_RecordFnCipEc(cip, ec);
 }
 

@@ -222,6 +222,8 @@ bool MMU2::ReadRegister(uint8_t address) {
         logic.ReadRegister(address); // we may signal the accepted/rejected status of the response as return value of this function
     } while (!manage_response(false, false));
 
+    // Update cached value
+    lastReadRegisterValue = logic.rsp.paramValue;
     return true;
 }
 
@@ -622,9 +624,11 @@ bool MMU2::unload() {
 
     WaitForHotendTargetTempBeep();
 
-    ReportingRAII rep(CommandInProgress::UnloadFilament, reportingStartedCnt);
-    UnloadInner();
-
+    {
+        ReportingRAII rep(CommandInProgress::UnloadFilament, reportingStartedCnt);
+        UnloadInner();
+    }
+    ScreenUpdateEnable();
     return true;
 }
 
@@ -652,10 +656,10 @@ bool MMU2::cut_filament(uint8_t slot, bool enableFullScreenMsg /*= true*/) {
 
         ReportingRAII rep(CommandInProgress::CutFilament, reportingStartedCnt);
         CutFilamentInner(slot);
+        extruder = MMU2_NO_TOOL;
+        tool_change_extruder = MMU2_NO_TOOL;
+        MakeSound(SoundType::Confirm);
     }
-    extruder = MMU2_NO_TOOL;
-    tool_change_extruder = MMU2_NO_TOOL;
-    MakeSound(SoundType::Confirm);
     ScreenUpdateEnable();
     return true;
 }
@@ -681,20 +685,18 @@ bool MMU2::load_filament(uint8_t slot) {
         return false;
 
     FullScreenMsgLoad(slot);
-
-    ReportingRAII rep(CommandInProgress::LoadFilament, reportingStartedCnt);
-    for (;;) {
-        Disable_E0();
-        logic.LoadFilament(slot);
-        if (manage_response(false, false))
-            break;
-        IncrementMMUFails();
+    {
+        ReportingRAII rep(CommandInProgress::LoadFilament, reportingStartedCnt);
+        for (;;) {
+            Disable_E0();
+            logic.LoadFilament(slot);
+            if (manage_response(false, false))
+                break;
+            IncrementMMUFails();
+        }
+        MakeSound(SoundType::Confirm);
     }
-
-    MakeSound(SoundType::Confirm);
-
     ScreenUpdateEnable();
-
     return true;
 }
 
@@ -745,10 +747,11 @@ bool MMU2::eject_filament(uint8_t slot, bool enableFullScreenMsg /* = true */) {
                 break;
             IncrementMMUFails();
         }
+        extruder = MMU2_NO_TOOL;
+        tool_change_extruder = MMU2_NO_TOOL;
+        MakeSound(Confirm);
     }
-    extruder = MMU2_NO_TOOL;
-    tool_change_extruder = MMU2_NO_TOOL;
-    MakeSound(Confirm);
+    ScreenUpdateEnable();
     return true;
 }
 
