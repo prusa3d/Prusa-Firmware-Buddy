@@ -122,18 +122,20 @@ static bool flash_program(const uint8_t *flash_address, const uint8_t *data, siz
 }
 
 template <typename ProgressCallback>
-static bool flash_program_sector(int sector, FILE *fp, ProgressCallback progress) {
+static bool flash_program_sector(int sector, FILE *fp, std::span<uint8_t> buffer, ProgressCallback progress) {
     const size_t sector_size = bootloader_sector_get_size(sector);
     const uint8_t *address = reinterpret_cast<const uint8_t *>(bootloader_sector_get_address(sector));
     const uint8_t *next_sector_address = address + sector_size;
     size_t copied_bytes = 0;
 
-    static constexpr size_t buffer_size = bootloader_sector_get_size(1); ///< Fit smaller sector in one go
-    std::unique_ptr<uint8_t[]> buffer(new uint8_t[buffer_size]); ///< Buffer for FLASH programming
+    if (sector == 0) {
+        // make sure we will update the prebootloader in one go
+        assert(buffer.size() >= bootloader_sector_get_size(0));
+    }
 
     while (address < next_sector_address && !feof(fp)) {
-        size_t to_read = std::min(buffer_size, static_cast<size_t>(next_sector_address - address));
-        size_t read = fread(buffer.get(), 1, to_read, fp);
+        size_t to_read = std::min(buffer.size(), static_cast<size_t>(next_sector_address - address));
+        size_t read = fread(buffer.data(), 1, to_read, fp);
 
         if (ferror(fp)) {
             log_error(Bootloader, "Bootloader reading failed while flashing (errno %i)", errno);
@@ -141,7 +143,7 @@ static bool flash_program_sector(int sector, FILE *fp, ProgressCallback progress
         }
 
         log_debug(Bootloader, "Programming 0x%08X (size %zu)", address, read);
-        if (!flash_program(address, buffer.get(), read)) {
+        if (!flash_program(address, buffer.data(), read)) {
             log_error(Bootloader, "Writing the bootloader to FLASH failed", errno);
             return false;
         }
@@ -172,6 +174,10 @@ template <typename ProgressCallback>
 static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback progress) {
     const size_t total_bytes = 131072;
     size_t bytes_in_preceding_sectors = 0;
+
+    auto buffer_size = bootloader_sector_get_size(0);
+    auto buffer_mem = std::make_unique<uint8_t[]>(buffer_size);
+    auto buffer = std::span<uint8_t>(buffer_mem.get(), buffer_size);
 
     for (unsigned sector = 0; sector < buddy::bootloader::bootloader_sector_count; sector++) {
 
@@ -212,7 +218,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
         // program the sector
         HAL_FLASH_Unlock();
-        bool flash_successful = flash_program_sector(sector, bootloader_bin, [&](size_t bytes_written) {
+        bool flash_successful = flash_program_sector(sector, bootloader_bin, buffer, [&](size_t bytes_written) {
             if (sector != 0) {
                 // do not report progress for sector 0, as updating preboot is potentially dangerous
                 // and we want to be as quick as possible and minimize the code running in-between
