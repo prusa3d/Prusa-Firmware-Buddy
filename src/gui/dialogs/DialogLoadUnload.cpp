@@ -303,12 +303,6 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
 #if HAS_MMU2() || HAS_LOADCELL()
     // was black (or uninitialized), is red
     if ((!current_phase || !isRed(*current_phase)) && isRed(phase)) {
-        SetRedLayout();
-        // this dialog does not contain header, so it broadcasts event to all windows
-        event_conversion_union uni;
-        uni.header.layout = layout_color::red;
-        Screens::Access()->ScreenEvent(this, GUI_event_t::HEADER_COMMAND, uni.pvoid);
-
         title.SetRect(mmu_title_rect);
 
         progress.Hide();
@@ -363,12 +357,6 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     // was red (or uninitialized), is black
     if ((!current_phase || isRed(*current_phase)) && !isRed(phase)) {
         title.SetRect(get_title_rect(GetRect()));
-        SetBlackLayout();
-        // this dialog does not contain header, so it broadcasts event to all windows
-        event_conversion_union uni;
-        uni.header.layout = layout_color::black;
-        Screens::Access()->ScreenEvent(this, GUI_event_t::HEADER_COMMAND, uni.pvoid);
-
         progress.Show();
 
         label.SetRect(get_label_rect(GetRect(), has_footer::yes));
