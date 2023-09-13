@@ -161,6 +161,12 @@ void buddy::metrics::RecordMarlinVariables() {
         = METRIC("temp_brd", METRIC_VALUE_FLOAT, 1000 - 9, METRIC_HANDLER_DISABLE_ALL);
     metric_record_float(&board, thermalManager.degBoard());
 #endif
+
+#if HAS_TEMP_CHAMBER
+    static metric_t chamber
+        = METRIC("temp_chamber", METRIC_VALUE_FLOAT, 1000 - 10, METRIC_HANDLER_DISABLE_ALL);
+    metric_record_float(&chamber, thermalManager.degChamber());
+#endif /*HAS_TEMP_CHAMBER*/
     static metric_t bed = METRIC("temp_bed", METRIC_VALUE_FLOAT, 2000 + 23, METRIC_HANDLER_DISABLE_ALL);
     metric_record_float(&bed, thermalManager.degBed());
 

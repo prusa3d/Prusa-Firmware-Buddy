@@ -81,6 +81,9 @@
 #define MARLIN_PORT_Y_STEP   MARLIN_PORT_V // Y_STEP is virtual pin, because it is mapped to diffent pins on different HW revisions :(
 #define MARLIN_PIN_NR_Y_STEP MARLIN_PIN_NR_13
 
+#define MARLIN_PORT_AMBIENT   MARLIN_PORT_V
+#define MARLIN_PIN_NR_AMBIENT MARLIN_PIN_NR_14
+
 // only DUMMY pins below, to make compiler happy, but not really used
 
 // dummy pin, we map everything that is not needed here
