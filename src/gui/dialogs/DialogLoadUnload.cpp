@@ -222,12 +222,12 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     #endif
 #endif
           )
-    , radio_for_notice_dialog(this, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
     , text_link(this, mmu_link_rect, is_multiline::yes, is_closed_on_click_t::no)
     , icon_hand(this, mmu_icon_rect, &img::hand_qr_59x72)
+    , qr(this, mmu_qr_rect)
+    , radio_for_notice_dialog(this, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
     , filament_type_text(this, filament_type_text_rect, is_multiline::no)
     , filament_color_icon(this, filament_color_icon_rect)
-    , qr(this, mmu_qr_rect)
     , mode(ProgressSerializerLoadUnload(data.GetData()).mode) {
 
     filament_type_text.SetAlignment(Align_t::Center());
@@ -304,18 +304,17 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     // was normal (or uninitialized), is notice
     if ((!current_phase || !is_notice(*current_phase)) && is_notice(phase)) {
         title.SetRect(mmu_title_rect);
-
-        progress.Hide();
-
         label.SetRect(mmu_desc_rect);
 
-        radio_for_notice_dialog.Show(); // show red screen radio button
-        CaptureNormalWindow(radio_for_notice_dialog); // capture red screen radio button
-        radio.Hide(); // hide normal radio button
+        progress.Hide();
+        radio.Hide();
 
         text_link.Show();
         icon_hand.Show();
         qr.Show();
+        radio_for_notice_dialog.Show(); // show red screen radio button
+
+        CaptureNormalWindow(radio_for_notice_dialog);
     }
 
     // is notice
@@ -357,17 +356,17 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     // was notice (or uninitialized), is normal
     if ((!current_phase || is_notice(*current_phase)) && !is_notice(phase)) {
         title.SetRect(get_title_rect(GetRect()));
-        progress.Show();
-
         label.SetRect(get_label_rect(GetRect(), has_footer::yes));
 
-        radio.Show(); // show normal radio button
-        CaptureNormalWindow(radio); // capture normal radio button
-        radio_for_notice_dialog.Hide(); // hide red screen radio button
+        progress.Show();
+        radio.Show();
 
         text_link.Hide();
         icon_hand.Hide();
         qr.Hide();
+        radio_for_notice_dialog.Hide(); // hide red screen radio button
+
+        CaptureNormalWindow(radio);
     }
 #endif
 

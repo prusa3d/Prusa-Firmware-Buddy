@@ -68,14 +68,14 @@ protected:
 private:
     StatusFooter footer;
 
-    RadioButtonNotice radio_for_notice_dialog; // workaround, see RadioButtonNotice comment
-
     window_text_t text_link;
     window_icon_t icon_hand;
+    window_qr_t qr;
+    RadioButtonNotice radio_for_notice_dialog; // workaround, see RadioButtonNotice comment
+
     window_text_t filament_type_text;
     window_colored_rect filament_color_icon;
 
-    window_qr_t qr;
     char error_code_str[32 + MaxErrorCodeDigits + 1]; // static text before error code has 32 chars
     LoadUnloadMode mode;
 
