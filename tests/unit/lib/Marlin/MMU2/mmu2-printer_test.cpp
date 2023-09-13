@@ -24,6 +24,14 @@
 // [ ] Command error
 // [ ] Communication error + recovery
 
+// workaround for unsupported constexpr constructors for basic_string and other STL containers in gcc < 12.x
+#if __GNUC_PREREQ(12, 0)
+// If  gcc_version >= 12.0
+    #define constexpr_workaround constexpr
+#else
+    #define constexpr_workaround /* */
+#endif
+
 void SimulateCommStart(MMU2::MMU2 &mmu) {
     mmu.Start();
     // functions that were mandatory to execute
@@ -61,70 +69,70 @@ void SimulateCommStart(MMU2::MMU2 &mmu) {
     mmu.mmu_loop();
 }
 
-constexpr std::string ToHex(uint16_t c) {
+constexpr_workaround std::string ToHex(uint16_t c) {
     char tmp[16];
     snprintf(tmp, sizeof(tmp), "%x", c);
     return std::string(tmp);
 }
 
-constexpr std::string FormatReportProgressHook(char command, ProgressCode pc) {
+constexpr_workaround std::string FormatReportProgressHook(char command, ProgressCode pc) {
     char tmp[32];
     snprintf(tmp, sizeof(tmp), "ReportProgressHook(%c, %" PRIu16 ")", command, (uint16_t)pc);
     return std::string(tmp);
 }
 
-constexpr std::string FormatReportErrorHook(char command, ErrorCode pc) {
+constexpr_workaround std::string FormatReportErrorHook(char command, ErrorCode pc) {
     char tmp[32];
     snprintf(tmp, sizeof(tmp), "ReportErrorHook(%c, %" PRIu16 ")", command, (uint16_t)pc);
     return std::string(tmp);
 }
 
-constexpr std::string FormatBeginReport(char command) {
+constexpr_workaround std::string FormatBeginReport(char command) {
     char tmp[32];
     snprintf(tmp, sizeof(tmp), "BeginReport(%c, 1)", command);
     return std::string(tmp);
 }
 
-constexpr std::string FormatEndReport(char command) {
+constexpr_workaround std::string FormatEndReport(char command) {
     char tmp[32];
     snprintf(tmp, sizeof(tmp), "EndReport(%c, 0)", command);
     return std::string(tmp);
 }
 
-constexpr IOSimRec MakeQueryResponseProgressM(const char *command, ProgressCode pc, std::vector<std::string> s, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeQueryResponseProgressM(const char *command, ProgressCode pc, std::vector<std::string> s, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", s, {}, std::string(command) + " P" + ToHex((uint16_t)pc), 1, w };
 }
 
-constexpr IOSimRec MakeQueryResponseProgress(const char *command, ProgressCode pc, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeQueryResponseProgress(const char *command, ProgressCode pc, IOSimRec::WorkFunc w = nullptr) {
     //    return { "Q0", { FormatReportProgressHook(command[0], pc) }, {}, std::string(command) + " P" + ToHex((uint16_t)pc), 1, w };
     return MakeQueryResponseProgressM(command, pc, { FormatReportProgressHook(command[0], pc) }, w);
 }
 
-constexpr IOSimRec MakeQueryResponseError(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeQueryResponseError(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { "IncrementMMUFails", "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
 }
 
-constexpr IOSimRec MakeQueryResponseErrorNoIncMMUFails(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeQueryResponseErrorNoIncMMUFails(const char *command, ErrorCode pc, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { "ButtonAvailable", FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " E" + ToHex((uint16_t)pc), 1, w };
 }
 
-constexpr IOSimRec MakeQueryResponseErrorButton(const char *command, ErrorCode pc, uint16_t button, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeQueryResponseErrorButton(const char *command, ErrorCode pc, uint16_t button, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { FormatReportErrorHook(command[0], pc) }, {}, std::string(command) + " B" + ToHex(button), 1, w };
 }
 
-constexpr IOSimRec MakeAcceptButton(uint16_t button, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeAcceptButton(uint16_t button, IOSimRec::WorkFunc w = nullptr) {
     return { std::string("B") + ToHex(button), {}, {}, std::string("B") + ToHex(button) + " A", 1, w };
 }
 
-constexpr IOSimRec MakeQueryResponseFinished(const char *command, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeQueryResponseFinished(const char *command, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { "MakeSound", FormatEndReport(command[0]), "ScreenUpdateEnable" }, {}, std::string(command) + " F0", 1, w };
 }
 
-constexpr IOSimRec MakeQueryResponseToolChangeFinished(const char *command, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeQueryResponseToolChangeFinished(const char *command, IOSimRec::WorkFunc w = nullptr) {
     return { "Q0", { "TryLoadUnloadReporter::TryLoadUnloadReporter", "planner_any_moves", "TryLoadUnloadReporter::DumpToSerial", FormatEndReport(command[0]) }, {}, std::string(command) + " F0", 1, w };
 }
 
-constexpr IOSimRec MakeFSensorAccepted(uint8_t state, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeFSensorAccepted(uint8_t state, IOSimRec::WorkFunc w = nullptr) {
     if (state) {
         return { "f1", {}, {}, "f1 A", 1, w };
     } else {
@@ -132,15 +140,15 @@ constexpr IOSimRec MakeFSensorAccepted(uint8_t state, IOSimRec::WorkFunc w = nul
     }
 }
 
-constexpr IOSimRec MakeQueryResponseReadRegister(uint8_t addr, uint16_t value, uint32_t timeout = 1, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeQueryResponseReadRegister(uint8_t addr, uint16_t value, uint32_t timeout = 1, IOSimRec::WorkFunc w = nullptr) {
     return { std::string("R") + ToHex(addr), {}, {}, std::string("R") + ToHex(addr) + " A" + ToHex((uint16_t)value), timeout, w };
 }
 
-constexpr IOSimRec MakeCommandAccepted(const char *command, const char *fullScreenMsg, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeCommandAccepted(const char *command, const char *fullScreenMsg, IOSimRec::WorkFunc w = nullptr) {
     return { command, { fullScreenMsg, FormatBeginReport(command[0]) }, { "" }, std::string(command) + " A1", MMU2::heartBeatPeriod + 1, w };
 }
 
-constexpr IOSimRec MakeCommandAccepted(const char *command, IOSimRec::WorkFunc w = nullptr) {
+constexpr_workaround IOSimRec MakeCommandAccepted(const char *command, IOSimRec::WorkFunc w = nullptr) {
     return { command, { FormatBeginReport(command[0]) }, { "" }, std::string(command) + " A1", MMU2::heartBeatPeriod + 1, w };
 }
 
@@ -437,7 +445,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload with preheat", "[Marlin][MMU2]") {
 
     SetHotendTargetTemp(215);
     mockLog.expected.push_back("SetHotendTargetTemp(215)");
-    MMU2::fs = MMU2::FilamentState::AT_FSENSOR; // beware - changing this will affect the fs state being reported after the command has been issued
+    MMU2::fs = MMU2::FilamentState::NOT_PRESENT; // beware - changing this will affect the fs state being reported after the command has been issued
     static constexpr char cmd[] = "U0";
     IOSimStart({
         MakeInitialQuery(MMU2::heartBeatPeriod + 1),

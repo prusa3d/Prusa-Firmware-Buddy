@@ -22,5 +22,4 @@ add_executable(
 target_include_directories(
   Marlin_MMU2_tests PUBLIC . ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/feature/prusa/MMU2
   )
-
 add_catch_test(Marlin_MMU2_tests)
