@@ -9,13 +9,13 @@
 #include "../common/sys.h"
 
 static void update_main_board(bool update_older, const char *sfn) {
-    if (sfn != nullptr) { // Flash selected BBF
+    if (*sfn) { // Flash selected BBF
         sys_set_reflash_bbf_sfn(sfn);
     } else {
         if (update_older) {
             sys_fw_update_older_on_restart_enable();
         } else {
-            sys_fw_update_enable();
+            sys_fw_update_on_restart_enable();
         }
     }
 
@@ -58,13 +58,19 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
  */
 void PrusaGcodeSuite::M997() {
 
-    char sfn[13] = { 0 };
+    char sfn[13] = { '\0' };
     const char *file_path_ptr = nullptr;
-    if (parser.ulongval('S', 0) == 0) { // Reflashing main FW
-        file_path_ptr = strstr(parser.string_arg, "/");
-        if (file_path_ptr != nullptr)
-            strlcpy(sfn, file_path_ptr + 1, 13);
+    static constexpr const char *const usb_str = "/usb/";
+    size_t prefix_len = strlen(usb_str);
+
+    if (parser.ulongval('S', 0) == 0) {
+        if ((file_path_ptr = strstr(parser.string_arg, usb_str)) != nullptr) {
+            if (*(file_path_ptr + prefix_len)) {
+                strlcpy(sfn, file_path_ptr + prefix_len, sizeof(sfn));
+            }
+        }
     }
 
+    // NOTICE: Keep in mind, that parser.seen('B') can be triggered by the filename in path of '/' parameter
     M997_no_parser(parser.ulongval('S', 0), parser.ulongval('B', 0), parser.seen('O'), sfn);
 }
