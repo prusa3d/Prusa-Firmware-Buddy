@@ -642,7 +642,7 @@ int main() {
     enable_dfu_entry();
 
     // define the startup task
-    osThreadCCMDef(startup, startup_task, TASK_PRIORITY_STARTUP, 0, 1024 + 512 + 256);
+    osThreadDef(startup, startup_task, TASK_PRIORITY_STARTUP, 0, 1024 + 512 + 256);
     osThreadCreate(osThread(startup), NULL);
 
     // start the RTOS with the single startup task

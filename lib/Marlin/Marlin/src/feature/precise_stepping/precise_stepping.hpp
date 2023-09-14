@@ -54,7 +54,7 @@ static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_E == (PreciseSteppingFlag::PREC
 class PreciseStepping {
 
 public:
-    static step_event_queue_t step_event_queue;
+    static step_event_queue_t __attribute__((section(".ccmram"))) step_event_queue;
     static move_segment_queue_t move_segment_queue;
     static step_generator_state_t step_generator_state;
 
