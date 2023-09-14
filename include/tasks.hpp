@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <option/has_puppies.h>
 #include <option/has_embedded_esp32.h>
+#include <option/bootloader_update.h>
 #include "utility_extensions.hpp"
 
 namespace TaskDeps {
@@ -29,6 +30,7 @@ enum class Dependency {
     lwip_initialized,
     manufacture_report_sent,
     power_panic_initialized,
+    bootloader_update_passsed,
 #ifdef USE_ASYNCIO
     async_io_ready,
 #endif
@@ -61,8 +63,14 @@ namespace Tasks {
     inline constexpr dependency_t puppy_start = make(Dependency::resources_ready, Dependency::manufacture_report_sent);
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
+    inline constexpr dependency_t lwip_start = make(
+#if BOOTLOADER_UPDATE()
+        Dependency::bootloader_update_passsed
+#endif
+    );
     inline constexpr dependency_t connect = make(Dependency::lwip_initialized);
     inline constexpr dependency_t network = make(
+
 #if NETWORK_DEPENDS_ON_ESP_FLASHED
         // This is temporary, remove once everyone has compatible hardware.
         // Requires new sandwich rev. 06 or rev. 05 with R83 removed.

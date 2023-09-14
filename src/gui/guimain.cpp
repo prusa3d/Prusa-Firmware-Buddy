@@ -368,6 +368,7 @@ static bool finish_update(bool &bootstrap_update /*OUT parameter for correct dra
             });
         return true;
     }
+    TaskDeps::provide(TaskDeps::Dependency::bootloader_update_passsed);
     #endif
 
     if (!buddy::resources::has_resources(buddy::resources::revision::standard)) {
