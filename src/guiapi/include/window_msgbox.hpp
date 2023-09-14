@@ -102,6 +102,8 @@ public:
         string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon_res,
         is_closed_on_click_t close = is_closed_on_click_t::yes, dense_t dense = dense_t::no);
 
+    void set_title_alignment(Align_t alignment);
+
 protected:
     window_text_t title;
 
