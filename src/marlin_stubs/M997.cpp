@@ -61,7 +61,6 @@ void PrusaGcodeSuite::M997() {
 
     char sfn[13] = { '\0' };
     const char *file_path_ptr = nullptr;
-    bool force_flash_even_older = parser.seen('O');
     static constexpr const char *const usb_str = "/usb/";
     size_t prefix_len = strlen(usb_str);
 
@@ -71,9 +70,8 @@ void PrusaGcodeSuite::M997() {
                 strlcpy(sfn, file_path_ptr + prefix_len, sizeof(sfn));
             }
         }
-        force_flash_even_older = true; // M997 without parameter should force flash newest FW on USB - even older than current
     }
 
     // NOTICE: Keep in mind, that parser.seen('B') can be triggered by the filename in path of '/' parameter
-    M997_no_parser(parser.ulongval('S', 0), parser.ulongval('B', 0), force_flash_even_older, sfn);
+    M997_no_parser(parser.ulongval('S', 0), parser.ulongval('B', 0), parser.seen('O'), sfn);
 }
