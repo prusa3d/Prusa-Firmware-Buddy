@@ -30,7 +30,7 @@ void MockLog::DeduplicateExpected() {
 
 MockLog mockLog;
 
-void InitEnvironment() {
+void InitEnvironment(MMU2::FilamentState fsensor) {
     mockLog.Clear();
     mmu2SerialSim.rxbuff.clear();
     mmu2SerialSim.txbuffQ.clear();
@@ -41,6 +41,7 @@ void InitEnvironment() {
     ResetErrorScreenRunning();
     SetHotendTargetTemp(0);
     SetHotendCurrentTemp(0);
+    MMU2::fs = fsensor;
 
     // reset the mmu instance
     new (&MMU2::mmu2) MMU2::MMU2();

@@ -46,13 +46,13 @@ void SimulateCommStart(MMU2::MMU2 &mmu) {
     CHECK(mmu2SerialSim.TxBuffMatchesCRC("S0"));
 
     // mmu response on the mmu-serial
-    mmu2SerialSim.SetRxBuffCRC("S0 A2");
+    mmu2SerialSim.SetRxBuffCRC("S0 A3");
     mmu2SerialSim.txbuffQ.clear();
     mmu.mmu_loop();
-    mmu2SerialSim.SetRxBuffCRC("S1 A1");
+    mmu2SerialSim.SetRxBuffCRC("S1 A0");
     mmu2SerialSim.txbuffQ.clear();
     mmu.mmu_loop();
-    mmu2SerialSim.SetRxBuffCRC("S2 A9");
+    mmu2SerialSim.SetRxBuffCRC("S2 A1");
     mmu2SerialSim.txbuffQ.clear();
     mmu.mmu_loop();
     mmu2SerialSim.SetRxBuffCRC("S3 A345");
@@ -182,7 +182,7 @@ void SimulateQuery(MMU2::MMU2 &mmu) {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 start", "[Marlin][MMU2]") {
-    InitEnvironment();
+    InitEnvironment(MMU2::FilamentState::NOT_PRESENT);
     MMU2::MMU2 mmu;
     SimulateCommStart(mmu);
     SimulateQuery(mmu);
@@ -196,7 +196,7 @@ void MMU2StartTimeoutStep(MMU2::MMU2 &mmu) {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 start timeout", "[Marlin][MMU2]") {
-    InitEnvironment();
+    InitEnvironment(MMU2::FilamentState::NOT_PRESENT);
     MMU2::MMU2 mmu;
     mmu.Start();
 
@@ -230,7 +230,7 @@ TEST_CASE("Marlin::MMU2::MMU2 start timeout", "[Marlin][MMU2]") {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 preload", "[Marlin][MMU2]") {
-    InitEnvironment();
+    InitEnvironment(MMU2::FilamentState::NOT_PRESENT);
     SimulateCommStart(MMU2::mmu2);
 
     // issue a Preload command
@@ -253,9 +253,8 @@ TEST_CASE("Marlin::MMU2::MMU2 preload", "[Marlin][MMU2]") {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 unload", "[Marlin][MMU2]") {
-    InitEnvironment();
+    InitEnvironment(MMU2::FilamentState::AT_FSENSOR);
     SimulateCommStart(MMU2::mmu2);
-    MMU2::fs = MMU2::FilamentState::NOT_PRESENT; // @@TODO why doesn't it work with fsensor on?
     static constexpr char cmd[] = "U0";
     IOSimStart({
         MakeInitialQuery(1),
@@ -282,8 +281,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload", "[Marlin][MMU2]") {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
-    InitEnvironment();
-    MMU2::fs = MMU2::FilamentState::AT_FSENSOR;
+    InitEnvironment(MMU2::FilamentState::AT_FSENSOR);
     SimulateCommStart(MMU2::mmu2);
 
     static constexpr char cmd[] = "U0";
@@ -330,7 +328,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 cut", "[Marlin][MMU2]") {
-    InitEnvironment();
+    InitEnvironment(MMU2::FilamentState::NOT_PRESENT);
     SimulateCommStart(MMU2::mmu2);
 
     static constexpr char cmd[] = "K0";
@@ -365,7 +363,7 @@ TEST_CASE("Marlin::MMU2::MMU2 cut", "[Marlin][MMU2]") {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 eject", "[Marlin][MMU2]") {
-    InitEnvironment();
+    InitEnvironment(MMU2::FilamentState::NOT_PRESENT);
     SimulateCommStart(MMU2::mmu2);
 
     static constexpr char cmd[] = "E0";
@@ -400,9 +398,8 @@ TEST_CASE("Marlin::MMU2::MMU2 eject", "[Marlin][MMU2]") {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 toolchange", "[Marlin][MMU2]") {
-    InitEnvironment();
+    InitEnvironment(MMU2::FilamentState::NOT_PRESENT);
     SimulateCommStart(MMU2::mmu2);
-    MMU2::fs = MMU2::FilamentState::NOT_PRESENT;
 
     // @@TODO need to setup the "extruder" index in mmu2 - that's also a bug ;)
     SetMarlinIsPrinting(true);
@@ -440,12 +437,11 @@ TEST_CASE("Marlin::MMU2::MMU2 toolchange", "[Marlin][MMU2]") {
 }
 
 TEST_CASE("Marlin::MMU2::MMU2 unload with preheat", "[Marlin][MMU2]") {
-    InitEnvironment();
+    InitEnvironment(MMU2::FilamentState::AT_FSENSOR);
     SimulateCommStart(MMU2::mmu2);
 
     SetHotendTargetTemp(215);
     mockLog.expected.push_back("SetHotendTargetTemp(215)");
-    MMU2::fs = MMU2::FilamentState::NOT_PRESENT; // beware - changing this will affect the fs state being reported after the command has been issued
     static constexpr char cmd[] = "U0";
     IOSimStart({
         MakeInitialQuery(MMU2::heartBeatPeriod + 1),

@@ -107,7 +107,7 @@ void SetMillis(uint32_t m);
 void IncMillis(uint32_t diff = 1);
 } // extern "C"
 
-void InitEnvironment();
+void InitEnvironment(MMU2::FilamentState fsensor);
 
 void ResetErrorScreenRunning();
 void SetMarlinIsPrinting(bool p);
