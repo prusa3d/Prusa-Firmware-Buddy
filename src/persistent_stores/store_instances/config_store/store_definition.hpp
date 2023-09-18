@@ -278,12 +278,12 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<float, defaults::axis_steps_per_unit_y, journal::hash("Axis Steps Per Unit Y")> axis_steps_per_unit_y;
     StoreItem<float, defaults::axis_steps_per_unit_z, journal::hash("Axis Steps Per Unit Z")> axis_steps_per_unit_z;
     StoreItem<float, defaults::axis_steps_per_unit_e0, journal::hash("Axis Steps Per Unit E0")> axis_steps_per_unit_e0;
-    StoreItem<uint16_t, defaults::axis_microsteps_X_, journal::hash("Axis Microsteps X")> axis_microsteps_X_;
-    StoreItem<uint16_t, defaults::axis_microsteps_Y_, journal::hash("Axis Microsteps Y")> axis_microsteps_Y_;
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Axis Microsteps X")> axis_microsteps_X_; // 0 - depends on xy_motors_400_step, !=0 - user value independent on xy_motors_400_step
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Axis Microsteps Y")> axis_microsteps_Y_; // 0 - depends on xy_motors_400_step, !=0 - user value independent on xy_motors_400_step
     StoreItem<uint16_t, defaults::axis_microsteps_Z_, journal::hash("Axis Microsteps Z")> axis_microsteps_Z_;
     StoreItem<uint16_t, defaults::axis_microsteps_E0_, journal::hash("Axis Microsteps E0")> axis_microsteps_E0_;
-    StoreItem<uint16_t, defaults::axis_rms_current_ma_X_, journal::hash("Axis RMS Current MA X")> axis_rms_current_ma_X_;
-    StoreItem<uint16_t, defaults::axis_rms_current_ma_Y_, journal::hash("Axis RMS Current MA Y")> axis_rms_current_ma_Y_;
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Axis RMS Current MA X")> axis_rms_current_ma_X_; // 0 - depends on xy_motors_400_step, !=0 - user value independent on xy_motors_400_step
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Axis RMS Current MA Y")> axis_rms_current_ma_Y_; // 0 - depends on xy_motors_400_step, !=0 - user value independent on xy_motors_400_step
     StoreItem<uint16_t, defaults::axis_rms_current_ma_Z_, journal::hash("Axis RMS Current MA Z")> axis_rms_current_ma_Z_;
     StoreItem<uint16_t, defaults::axis_rms_current_ma_E0_, journal::hash("Axis RMS Current MA E0")> axis_rms_current_ma_E0_;
     StoreItem<float, defaults::axis_z_max_pos_mm, journal::hash("Axis Z Max Pos MM")> axis_z_max_pos_mm;
@@ -300,6 +300,11 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     input_shaper::Config get_input_shaper_config();
     void set_input_shaper_config(const input_shaper::Config &);
+
+    StoreItem<int16_t, defaults::homing_sens_x, journal::hash("Homing Sens X")> homing_sens_x; // X axis homing sensitivity
+    StoreItem<int16_t, defaults::homing_sens_y, journal::hash("Homing Sens Y")> homing_sens_y; // Y axis homing sensitivity
+
+    StoreItem<bool, defaults::xy_motors_400_step, journal::hash("400 step motors on X and Y axis")> xy_motors_400_step;
 };
 
 /**

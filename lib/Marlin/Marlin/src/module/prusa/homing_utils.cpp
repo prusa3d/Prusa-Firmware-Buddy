@@ -7,6 +7,7 @@
 #include "../../feature/prusa/crash_recovery.hpp"
 #include "../../module/endstops.h"
 #include "../stepper.h"
+#include <config_store/store_instance.hpp>
 
 #if HAS_WORKSPACE_OFFSET
 static workspace_xyz_t disable_workspace(bool do_x, bool do_y, bool do_z) {
@@ -108,9 +109,9 @@ el_current_xyz_t reset_current_if(bool condition) {
     if (!condition)
         return curr;
 
-    stepperX.rms_current(X_CURRENT);
-    stepperY.rms_current(Y_CURRENT);
-    stepperZ.rms_current(Z_CURRENT);
+    stepperX.rms_current(get_default_rms_current_ma_x());
+    stepperY.rms_current(get_default_rms_current_ma_y());
+    stepperZ.rms_current(get_default_rms_current_ma_z());
     return curr;
 }
 

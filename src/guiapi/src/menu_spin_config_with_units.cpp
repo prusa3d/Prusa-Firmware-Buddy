@@ -8,7 +8,7 @@
 #include "menu_spin_config.hpp"
 #include "config_features.h"
 
-static constexpr const char *Celsius = "\177C";
+static constexpr const char *Celsius = "\xC2\xB0\x43"; // degree Celsius
 static constexpr const char *Percent = "%";
 static constexpr const char *None = "";
 static constexpr const char *Hour = "h";

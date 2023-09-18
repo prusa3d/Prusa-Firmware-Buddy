@@ -240,16 +240,28 @@ bool is_microstep_value_valid(uint16_t microsteps) {
 extern "C" uint16_t get_microsteps_x() {
     uint16_t ret = config_store().axis_microsteps_X_.get();
     if (!is_microstep_value_valid(ret)) {
-        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        if (ret != 0) { // 0 means use default
+            log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        }
+#ifdef X_MICROSTEPS
         ret = X_MICROSTEPS;
+#else
+        ret = config_store().xy_motors_400_step.get() ? X_400_STEP_MICROSTEPS : X_200_STEP_MICROSTEPS;
+#endif
     }
     return ret;
 }
 extern "C" uint16_t get_microsteps_y() {
     uint16_t ret = config_store().axis_microsteps_Y_.get();
     if (!is_microstep_value_valid(ret)) {
-        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        if (ret != 0) { // 0 means use default
+            log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
+        }
+#ifdef Y_MICROSTEPS
         ret = Y_MICROSTEPS;
+#else
+        ret = config_store().xy_motors_400_step.get() ? Y_400_STEP_MICROSTEPS : Y_200_STEP_MICROSTEPS;
+#endif
     }
     return ret;
 }
@@ -271,7 +283,7 @@ extern "C" uint16_t get_microsteps_e() {
 }
 
 extern "C" void set_microsteps_x(uint16_t microsteps) {
-    if (is_microstep_value_valid(microsteps)) {
+    if (is_microstep_value_valid(microsteps) || microsteps == 0) {
         config_store().axis_microsteps_X_.set(microsteps);
         log_debug(EEPROM, "%s: microsteps %d ", __PRETTY_FUNCTION__, microsteps);
     } else {
@@ -279,7 +291,7 @@ extern "C" void set_microsteps_x(uint16_t microsteps) {
     }
 }
 extern "C" void set_microsteps_y(uint16_t microsteps) {
-    if (is_microstep_value_valid(microsteps)) {
+    if (is_microstep_value_valid(microsteps) || microsteps == 0) {
         config_store().axis_microsteps_Y_.set(microsteps);
         log_debug(EEPROM, "%s: microsteps %d ", __PRETTY_FUNCTION__, microsteps);
     } else {
@@ -303,13 +315,31 @@ extern "C" void set_microsteps_e(uint16_t microsteps) {
     }
 }
 
-/*****************************************************************************/
-// current must be > 0, return default value if it is not
+extern "C" uint16_t get_default_rms_current_ma_x() {
+#ifdef X_CURRENT
+    return X_CURRENT;
+#else
+    return config_store().xy_motors_400_step.get() ? X_400_STEP_CURRENT : X_200_STEP_CURRENT;
+#endif
+}
+extern "C" uint16_t get_default_rms_current_ma_y() {
+#ifdef Y_CURRENT
+    return Y_CURRENT;
+#else
+    return config_store().xy_motors_400_step.get() ? Y_400_STEP_CURRENT : Y_200_STEP_CURRENT;
+#endif
+}
+extern "C" uint16_t get_default_rms_current_ma_z() {
+    return Z_CURRENT;
+}
+extern "C" uint16_t get_default_rms_current_ma_e() {
+    return E0_CURRENT;
+}
+
 extern "C" uint16_t get_rms_current_ma_x() {
     uint16_t ret = config_store().axis_rms_current_ma_X_.get();
     if (ret == 0) {
-        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
-        ret = X_CURRENT;
+        ret = get_default_rms_current_ma_x();
     }
     log_debug(EEPROM, "%s: returned %d ", __PRETTY_FUNCTION__, ret);
     return ret;
@@ -317,8 +347,7 @@ extern "C" uint16_t get_rms_current_ma_x() {
 extern "C" uint16_t get_rms_current_ma_y() {
     uint16_t ret = config_store().axis_rms_current_ma_Y_.get();
     if (ret == 0) {
-        log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
-        ret = Y_CURRENT;
+        ret = get_default_rms_current_ma_y();
     }
     log_debug(EEPROM, "%s: returned %d ", __PRETTY_FUNCTION__, ret);
     return ret;
@@ -327,7 +356,7 @@ extern "C" uint16_t get_rms_current_ma_z() {
     uint16_t ret = config_store().axis_rms_current_ma_Z_.get();
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
-        ret = Z_CURRENT;
+        ret = get_default_rms_current_ma_z();
     }
     log_debug(EEPROM, "%s: returned %d ", __PRETTY_FUNCTION__, ret);
     return ret;
@@ -336,27 +365,19 @@ extern "C" uint16_t get_rms_current_ma_e() {
     uint16_t ret = config_store().axis_rms_current_ma_E0_.get();
     if (ret == 0) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
-        ret = E0_CURRENT;
+        ret = get_default_rms_current_ma_e();
     }
     log_debug(EEPROM, "%s: returned %d ", __PRETTY_FUNCTION__, ret);
     return ret;
 }
 
 extern "C" void set_rms_current_ma_x(uint16_t current) {
-    if (current > 0) {
-        config_store().axis_rms_current_ma_X_.set(current);
-        log_debug(EEPROM, "%s: current %d ", __PRETTY_FUNCTION__, current);
-    } else {
-        log_error(EEPROM, "%s: current must be greater than 0", __PRETTY_FUNCTION__);
-    }
+    config_store().axis_rms_current_ma_X_.set(current);
+    log_debug(EEPROM, "%s: current %d ", __PRETTY_FUNCTION__, current);
 }
 extern "C" void set_rms_current_ma_y(uint16_t current) {
-    if (current > 0) {
-        config_store().axis_rms_current_ma_Y_.set(current);
-        log_debug(EEPROM, "%s: current %d ", __PRETTY_FUNCTION__, current);
-    } else {
-        log_error(EEPROM, "%s: current must be greater than 0", __PRETTY_FUNCTION__);
-    }
+    config_store().axis_rms_current_ma_Y_.set(current);
+    log_debug(EEPROM, "%s: current %d ", __PRETTY_FUNCTION__, current);
 }
 extern "C" void set_rms_current_ma_z(uint16_t current) {
     if (current > 0) {

@@ -43,6 +43,7 @@
 #else
 static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0(){}
 #endif
+#include "homing_reporter.hpp"
 
 #if IS_SCARA
   #include "../libs/buzzer.h"
@@ -93,6 +94,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__POST_ZHOME_0(){}
 #endif
 
 #include <config_store/store_c_api.h>  // for has_inverted_axis
+
+#if !(BOARD_IS_DWARF)
+#include "configuration.hpp"
+#endif
 
 #define XYZ_CONSTS(T, NAME, OPT) const PROGMEM XYZval<T> NAME##_P = { X_##OPT, Y_##OPT, Z_##OPT }
 
@@ -1853,14 +1858,14 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
   );
 
   #ifdef HOMING_MAX_ATTEMPTS
-  const float* min_diff = invert_home_dir ? axis_home_invert_min_diff : axis_home_min_diff;
-  const float* max_diff = invert_home_dir ? axis_home_invert_max_diff : axis_home_max_diff;
+  float (*min_diff)(uint8_t) = invert_home_dir ? axis_home_invert_min_diff : axis_home_min_diff;
+  float (*max_diff)(uint8_t) = invert_home_dir ? axis_home_invert_max_diff : axis_home_max_diff;
 
     float probe_offset;
     for(size_t attempt = 0;;) {
       #if ENABLED(PRECISE_HOMING)
         if ((axis == X_AXIS || axis == Y_AXIS) && !invert_home_dir) {
-          probe_offset = home_axis_precise(axis, axis_home_dir, can_calibrate);
+          probe_offset = home_axis_precise(axis, axis_home_dir, can_calibrate, fr_mm_s);
           attempt = HOMING_MAX_ATTEMPTS; // call home_axis_precise() just once
         }
         else
@@ -1889,7 +1894,7 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
       }
 
       // check if the offset is acceptable
-      bool in_range = min_diff[axis] <= probe_offset && probe_offset <= max_diff[axis];
+      bool in_range = min_diff(axis) <= probe_offset && probe_offset <= max_diff(axis);
       metric_record_custom(&metric_home_diff, ",ax=%u,ok=%u v=%.3f,n=%u", (unsigned)axis, (unsigned)in_range, probe_offset, (unsigned)attempt);
       if (in_range) break; // OK offset in range
 
@@ -1898,13 +1903,19 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
         // not OK run out attempts
         switch (axis) {
         case X_AXIS:
-          homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X); }, orig_crash);
+          if (!HomingReporter::block_red_screen()) {
+            homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_X); }, orig_crash);
+          }
           return false;
         case Y_AXIS:
-          homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Y); }, orig_crash);
+          if (!HomingReporter::block_red_screen()) {
+            homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Y); }, orig_crash);
+          }
           return false;
         default:
-          homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z); }, orig_crash, true);
+          if (!HomingReporter::block_red_screen()) {
+            homing_failed([]() { fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z); }, orig_crash, true);
+          }
           return false;
         }
       }

@@ -7,7 +7,11 @@
 #include <option/developer_mode.h>
 #include <Marlin/src/module/motion.h>
 #include <version.h>
+#include <option/has_mmu2.h>
 
+#if ENABLED(PRUSA_MMU2)
+    #include "../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
+#endif
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
 #endif /*HAS_TOOLCHANGER()*/
@@ -44,8 +48,47 @@ bool GCodeInfo::hasThumbnail(FILE *file, size_ui16_t size) {
     return thumbnail_valid;
 }
 
+uint32_t printer_model2code(const char *model) {
+    struct {
+        const char *model;
+        uint32_t code;
+    } models[] = {
+        { "MK1", 100 },
+        { "MK2", 200 },
+        { "MK2MM", 201 },
+        { "MK2S", 202 },
+        { "MK2SMM", 203 },
+        { "MK2.5", 250 },
+        { "MK2.5MMU2", 20250 },
+        { "MK2.5S", 252 },
+        { "MK2.5SMMU2S", 20252 },
+        { "MK3", 300 },
+        { "MK3MMU2", 20300 },
+        { "MK3S", 302 },
+        { "MK3SMMU2S", 20302 },
+        { "MK3.5", 230 },
+        { "MK3.5MMU3", 30230 },
+        { "MK3.9", 210 },
+        { "MK3.9MMU3", 30210 },
+        { "MINI", 120 },
+        { "MK4", 130 },
+        { "MK4MMU3", 30130 },
+        { "iX", 160 },
+        { "XL", 170 },
+    };
+
+    for (auto &m : models) {
+        if (std::string_view(m.model) == model) {
+            return m.code;
+        }
+    }
+    assert(false);
+    return 0;
+}
+
 GCodeInfo::GCodeInfo()
-    : file_mutex_id(osMutexCreate(osMutex(file_mutex)))
+    : printer_model_code(printer_model2code(PRINTER_MODEL))
+    , file_mutex_id(osMutexCreate(osMutex(file_mutex)))
     , file(nullptr)
     , printing_time { "?" }
     , preview_thumbnail(false)
@@ -103,6 +146,10 @@ void GCodeInfo::deinitFile() {
         per_extruder_info.fill({});
         printing_time[0] = 0;
     }
+}
+
+uint32_t GCodeInfo::getPrinterModelCode() const {
+    return printer_model_code;
 }
 
 void GCodeInfo::EvaluateToolsValid() {
@@ -288,7 +335,7 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
                     break;
                 case '3': {
 #if ENABLED(GCODE_COMPATIBILITY_MK3)
-                    if (strncmp(cmd.get_string().c_str(), "MK3", 3) == 0) {
+                    if (strncmp(cmd.get_string().c_str(), "MK3", 3) == 0 && strncmp(cmd.get_string().c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
                         valid_printer_settings.mk3_compatibility_mode.fail();
                     }
 #endif
@@ -306,6 +353,13 @@ void GCodeInfo::parse_gcode(GCodeInfo::Buffer::String cmd, uint32_t &gcode_count
                     }
                     break;
                 case '2':
+#if PRINTER_IS_PRUSA_MK4
+                    if (!config_store().xy_motors_400_step.get()) {
+                        printer_model_code = printer_model2code(MMU2::mmu2.Enabled() ? "MK3.9MMU3" : "MK3.9");
+                    } else {
+                        printer_model_code = printer_model2code(PRINTER_MODEL);
+                    }
+#endif
                     if (cmd.get_uint() != printer_model_code) {
                         valid_printer_settings.wrong_printer_model.fail();
                     }

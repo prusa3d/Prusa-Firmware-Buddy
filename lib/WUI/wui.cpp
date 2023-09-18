@@ -27,6 +27,7 @@
 #include <mutex>
 #include "http_lifetime.h"
 #include "main.h"
+#include "tasks.hpp"
 
 #include "netdev.h"
 
@@ -327,6 +328,7 @@ private:
         //
         // Q: Do other threads, like connect, need to wait for this?
         tcpip_init(tcpip_init_done_raw, this);
+        TaskDeps::provide(TaskDeps::Dependency::lwip_initialized);
 
         prusalink_password_init();
 

@@ -19,8 +19,8 @@ static constexpr size_t row_h = WizardDefaults::row_h;
 static const size_t txt_big_h = resource_font(IDR_FNT_LARGE)->h;
 
 static constexpr size_t row_2 = WizardDefaults::row_1 + WizardDefaults::progress_row_h;
-static constexpr size_t row_3 = row_2 + row_h + txt_h + row_h;             // double line text: row_h + txt_h, extra space row_3
-static const size_t row_prebig_txt4 = row_3 + (txt_big_h - 2 * txt_h) / 2; // Center first 2 lines to middle of big font
+static constexpr size_t row_4 = row_2 + row_h * 2;
+static constexpr size_t row_6 = row_4 + row_h * 2;
 
 static constexpr size_t top_of_changeable_area = WizardDefaults::row_1 + WizardDefaults::progress_h;
 static constexpr size_t height_of_changeable_area = WizardDefaults::RectRadioButton(1).Top() - top_of_changeable_area;
@@ -40,17 +40,14 @@ static constexpr point_i16_t hand_pos = {
     WizardDefaults::RectRadioButton(1).Top() - hand_h + hand_y_offset
 };
 
-static const int16_t big_text_x_pos = hand_pos.x - 5 * resource_font(IDR_FNT_LARGE)->w - 4;
-
 SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_loadcell_test), 1)
     , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::AxisZ) // ItemAxisZ to show Z coord while moving up
     , progress(this, WizardDefaults::row_1)
     , icon_hand(this, &img::hand_with_nozzle1_154x100, hand_pos)
     , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 3), is_multiline::yes)
-    , text_phase_additional(this, Rect16(col_texts, row_3, hand_pos.x - col_texts, hand_pos.y + hand_h - row_3), is_multiline::yes)
-    , text_prebig(this, Rect16(col_texts, row_prebig_txt4, big_text_x_pos - col_texts, txt_h * 2), is_multiline::yes)
-    , text_big(this, Rect16(big_text_x_pos, row_3, hand_pos.x - big_text_x_pos, txt_big_h))
+    , text_prebig(this, Rect16(col_texts, row_4, display::GetW() - col_texts, txt_h), is_multiline::no)
+    , text_big(this, Rect16(0, row_6, hand_pos.x, txt_big_h))
     , text_result(this, ChangeableRect, is_multiline::no) {
     text_result.SetAlignment(Align_t::Center());
     text_big.set_font(resource_font(IDR_FNT_LARGE));
@@ -84,18 +81,18 @@ void SelftestFrameLoadcell::change() {
         txt_phase = N_("Selecting tool");
         break;
     case PhasesSelftest::Loadcell_cooldown: {
-        txt_phase = N_("Cooling down.\n\nDo not touch the nozzle!");
+        txt_phase = N_("Cooling down. Do not touch the nozzle!");
         icon_id = &img::hand_with_nozzle0_154x100;
 
-        int16_t temperature = dt.temperature; // Make a local copy
+        int16_t temperature = dt.temperature;                                     // Make a local copy
         if ((temperature < 0) || (temperature > 999)) {
-            snprintf(txt_big_buffer, std::size(txt_big_buffer), "-\177C");
+            snprintf(txt_big_buffer, std::size(txt_big_buffer), "-\xC2\xB0\x43"); // Degree Celsius
         } else {
-            snprintf(txt_big_buffer, std::size(txt_big_buffer), "%u\177C", static_cast<unsigned int>(temperature));
+            snprintf(txt_big_buffer, std::size(txt_big_buffer), "%u\xC2\xB0\x43", static_cast<unsigned int>(temperature));
         }
         txt_big = string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(txt_big_buffer));
         txt_big_blink = true;
-        txt_prebig = N_("Nozzle\ntemperature");
+        txt_prebig = N_("Nozzle temperature");
 
         break;
     }
@@ -108,14 +105,14 @@ void SelftestFrameLoadcell::change() {
 
         snprintf(txt_big_buffer, std::size(txt_big_buffer), "%us", static_cast<unsigned int>(std::clamp<uint8_t>(dt.countdown, 0, 5)));
         txt_big = string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(txt_big_buffer));
-        txt_prebig = N_("Tap nozzle\non beep");
+        txt_prebig = N_("Tap the nozzle on beep");
 
         break;
     case PhasesSelftest::Loadcell_user_tap_check:
         icon_id = &img::hand_with_nozzle4_154x100;
 
         txt_big = _("NOW");
-        txt_prebig = N_("Tap nozzle");
+        txt_prebig = N_("Tap the nozzle");
 
         break;
     case PhasesSelftest::Loadcell_user_tap_ok:

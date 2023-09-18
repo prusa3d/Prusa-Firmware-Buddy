@@ -283,8 +283,34 @@ static void user_write_bytes(EepromCommand cmd, uint16_t address, void const *pd
     rise_error_if_needed(result);
 }
 
+static void user_unverified_write_bytes(uint16_t address, void const *pdata, uint16_t size) {
+    if (size == 0) {
+        return;
+    }
+
+    i2c::Result result = i2c::Result::error;
+
+    for (uint32_t try_no = 0; try_no < RETRIES; ++try_no) {
+
+        st25dv64k_lock();
+        result = user_write_bytes_without_lock(EepromCommandWrite::addr_memory, address, pdata, size);
+        st25dv64k_unlock();
+        try_fix_if_needed(result);
+
+        if (result == Result::ok) {
+            break;
+        }
+    }
+
+    rise_error_if_needed(result);
+}
+
 void st25dv64k_user_write_bytes(uint16_t address, void const *pdata, uint16_t size) {
     user_write_bytes(EepromCommand::memory, address, pdata, size);
+}
+
+void st25dv64k_user_unverified_write_bytes(uint16_t address, void const *pdata, uint16_t size) {
+    user_unverified_write_bytes(address, pdata, size);
 }
 
 void st25dv64k_user_write(uint16_t address, uint8_t data) {

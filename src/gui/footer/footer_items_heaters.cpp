@@ -55,11 +55,11 @@ FooterItemHeater::FooterItemHeater(window_t *parent, const img::Resource *icon, 
 }
 
 // Must not contain buffer!!! every child must provide own buffer
-string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, std::array<char, 10> &buff) {
-    static constexpr const char *left_aligned_str = "%u/%u\177C";
-    static constexpr const char *const_size_str = "%3u/%3u\177C";
-    static constexpr const char *left_aligned_str_no_0 = "%u\177C";
-    static constexpr const char *const_size_str_no_0 = "%3u\177C";
+string_view_utf8 FooterItemHeater::static_makeViewIntoBuff(int value, buffer_t &buff) {
+    static constexpr const char *left_aligned_str = "%u/%u\xC2\xB0\x43";
+    static constexpr const char *const_size_str = "%3u/%3u\xC2\xB0\x43";
+    static constexpr const char *left_aligned_str_no_0 = "%u\xC2\xB0\x43";
+    static constexpr const char *const_size_str_no_0 = "%3u\xC2\xB0\x43";
 
     const StateAndTemps temps(value);
     const uint current = std::clamp(int(temps.current), 0, 999);

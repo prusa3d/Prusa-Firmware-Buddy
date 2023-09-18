@@ -22,6 +22,7 @@ bool phase_gears(IPartHandler *&selftest_gears, const SelftestGearsConfig &confi
             static_result,
             &SelftestGears::state_ask_first,
             &SelftestGears::state_get_fsensor_state,
+            &SelftestGears::state_cycle_mark0,
             &SelftestGears::state_ask_unload_init,
             &SelftestGears::state_ask_unload_wait,
             &SelftestGears::state_filament_unload_enqueue_gcode,
@@ -109,7 +110,7 @@ LoopResult SelftestGears::state_ask_unload_init() {
         break;
     }
 
-    return LoopResult::MarkLoop;
+    return LoopResult::RunNext;
 }
 
 LoopResult SelftestGears::state_ask_unload_wait() {
@@ -161,7 +162,7 @@ LoopResult SelftestGears::state_filament_unload_wait_finished() {
         queue.enqueue_one_now("M140 S0"); // cool down the heatbed
         return LoopResult::RunNext;
     }
-    return LoopResult::GoToMark;
+    return LoopResult::GoToMark0;
 }
 
 LoopResult SelftestGears::state_release_screws_init() {

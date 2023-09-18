@@ -79,7 +79,11 @@ protected:
      *          - preheat - green flickering
      */
     static HeatState getState(int current, int target, int display, int cold); // need signed values for comparison
-    static string_view_utf8 static_makeViewIntoBuff(int value, std::array<char, 10> &buff);
+
+    /// Buffer the exact size to fit temperature/target and degree Celsius
+    using buffer_t = std::array<char, sizeof("333/333\xC2\xB0\x43")>;
+
+    static string_view_utf8 static_makeViewIntoBuff(int value, buffer_t &buff);
 
 public:
     virtual resized_t updateState() override;

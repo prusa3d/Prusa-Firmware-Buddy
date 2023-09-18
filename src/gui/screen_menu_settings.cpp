@@ -4,6 +4,7 @@
 
 #include "screen_menu_settings.hpp"
 #include "screen_menu_experimental_settings.hpp"
+#include "screen_help_fw_update.hpp"
 #include "ScreenHandler.hpp"
 #include "netdev.h"
 #include "wui.h"
@@ -11,6 +12,19 @@
 #include "knob_event.hpp"
 #include "SteelSheets.hpp"
 #include "img_resources.hpp"
+
+/*****************************************************************************/
+// MI_HELP_FW_UPDATE
+MI_HELP_FW_UPDATE::MI_HELP_FW_UPDATE()
+    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+}
+
+void MI_HELP_FW_UPDATE::click(IWindowMenu & /*window_menu*/) {
+#if PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenHelpFWUpdate>);
+#endif
+    // TODO MINI will need a lot different screen due half size display
+}
 
 ScreenMenuSettings::ScreenMenuSettings()
     : ScreenMenuSettings__(_(label))

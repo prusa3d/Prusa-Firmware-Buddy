@@ -26,53 +26,22 @@ inline constexpr const char *m862 = "M862.";
 inline constexpr const char *m115 = "M115";
 }; // namespace gcode_info
 
-constexpr uint32_t printer_model2code(const char *model) {
-    struct {
-        const char *model;
-        uint32_t code;
-    } models[] = {
-        { "MK1", 100 },
-        { "MK2", 200 },
-        { "MK2MM", 201 },
-        { "MK2S", 202 },
-        { "MK2SMM", 203 },
-        { "MK2.5", 250 },
-        { "MK2.5MMU2", 20250 },
-        { "MK2.5S", 252 },
-        { "MK2.5SMMU2S", 20252 },
-        { "MK3", 300 },
-        { "MK3MMU2", 20300 },
-        { "MK3S", 302 },
-        { "MK3SMMU2S", 20302 },
-        { "MK3.5", 130 },
-        { "MK3.5MMU3", 30130 },
-        { "MINI", 120 },
-        { "MK4", 130 },
-        { "MK4MMU3", 30130 },
-        { "iX", 160 },
-        { "XL", 170 },
-    };
-
-    for (auto &m : models) {
-        if (std::string_view(m.model) == model) {
-            return m.code;
-        }
-    }
-    assert(false);
-}
-
 class GCodeInfo {
 public:
-    static constexpr const uint32_t printer_model_code = printer_model2code(PRINTER_MODEL);
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
+
+#if PRINTER_IS_PRUSA_MK4
+    static constexpr std::array<const char *, 3> printer_compatibility_list = { PRINTER_MODEL, "MK3.9", "MK3.9MMU3" }; ///< Basic compatibility for M862.3 G-code
+#else
     static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL }; ///< Basic compatibility for M862.3 G-code
+#endif
 
     /// Extended compatibility list for "; printer_model = ???" G-code comment
 #if PRINTER_IS_PRUSA_XL
     // XL is compatible with multitool models XL2 .. XL5
     static constexpr std::array<const char *, 5> printer_extended_compatibility_list = { PRINTER_MODEL, PRINTER_MODEL "2", PRINTER_MODEL "3", PRINTER_MODEL "4", PRINTER_MODEL "5" };
 #elif PRINTER_IS_PRUSA_MK4
-    static constexpr std::array<const char *, 2> printer_extended_compatibility_list = { PRINTER_MODEL, PRINTER_MODEL "IS" };
+    static constexpr std::array<const char *, 4> printer_extended_compatibility_list = { PRINTER_MODEL, PRINTER_MODEL "IS", "MK3.9", "MK3.9MMU3" };
 #else  /*PRINTER_IS*/
     static constexpr auto printer_extended_compatibility_list = printer_compatibility_list;
 #endif /*PRINTER_IS*/
@@ -158,6 +127,7 @@ public:
     using GCodePerExtruderInfo = std::array<ExtruderInfo, EXTRUDERS>;
 
 private:
+    uint32_t printer_model_code;                 ///< model code (see printer_model2code())
     osMutexDef(file_mutex);
     osMutexId file_mutex_id;                     ///< Mutex to protect file access
     FILE *file;                                  ///< G-code file, nullptr == not opened
@@ -250,6 +220,10 @@ public:
     /** Closes gcode file
      */
     void deinitFile();
+
+    /** Getter for printer_model_code
+     */
+    uint32_t getPrinterModelCode() const;
 
 private:
     /**

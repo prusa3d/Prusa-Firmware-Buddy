@@ -16,7 +16,7 @@ void PrusaGcodeSuite::M862_2() {
     if (parser.boolval('Q')) {
         SERIAL_ECHO_START();
         char temp_buf[sizeof("  M862.2 P0123456789")];
-        snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.2 P%lu"), GCodeInfo::printer_model_code);
+        snprintf(temp_buf, sizeof(temp_buf), PSTR("  M862.2 P%lu"), GCodeInfo::getInstance().getPrinterModelCode());
         SERIAL_ECHO(temp_buf);
         SERIAL_EOL();
     }

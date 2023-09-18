@@ -57,7 +57,9 @@
 #include <option/buddy_enable_wui.h>
 #if BUDDY_ENABLE_WUI()
     #include "wui.h"
-    #include <transfers/async_io.hpp>
+    #if USE_ASYNCIO
+        #include <transfers/async_io.hpp>
+    #endif
 #endif
 
 #if (BOARD_IS_XBUDDY)
@@ -86,7 +88,9 @@ void SystemClock_Config(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartConnectTask(void const *argument);
+#if USE_ASYNCIO
 void StartAsyncIoTask(void const *argument);
+#endif
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
@@ -268,11 +272,10 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    // Start a background thread for async IO
-    // (We tried smaller stack and were overflowing, but maybe if we migrate
-    // from fwrite to write, it could help?)
-    osThreadDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 180);
+    #if USE_ASYNCIO
+    osThreadCCMDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 256);
     osThreadCreate(osThread(asyncIoTask), nullptr);
+    #endif
 
     TaskDeps::wait(TaskDeps::Tasks::network);
     start_network_task();
@@ -283,6 +286,7 @@ extern "C" void main_cpp(void) {
         // FIXME: We should be able to split networking to the lower-level network part and the Link part. Currently, both are done through WUI.
         #error "Can't have connect without WUI"
     #endif
+    TaskDeps::wait(TaskDeps::Tasks::connect);
     /* definition and creation of connectTask */
     osThreadDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
@@ -433,7 +437,7 @@ void StartErrorDisplayTask([[maybe_unused]] void const *argument) {
     }
 }
 
-#if BUDDY_ENABLE_WUI()
+#if BUDDY_ENABLE_WUI() && USE_ASYNCIO
 void StartAsyncIoTask([[maybe_unused]] void const *argument) {
     async_io::run();
 }

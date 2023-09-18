@@ -52,7 +52,7 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         Invalidate();
         break;
     case ClickCommand::Reset_steps:
-        Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::GetDefaultStepsPerUnit()[3]);
+        Item<MI_STEPS_PER_UNIT_E>().SetVal(config_store().axis_steps_per_unit_e0.default_val);
         Invalidate();
         break;
     case ClickCommand::Reset_directions:

@@ -223,7 +223,7 @@ public:
 };
 
 class MI_TIMEZONE : public WiSpinInt {
-    constexpr static const char *const label = "Time Zone Offset"; // intentionally not translated
+    constexpr static const char *const label = N_("Time Zone Offset"); // intentionally not translated
 
 public:
     MI_TIMEZONE();
@@ -231,7 +231,7 @@ public:
 };
 
 class MI_TIME_FORMAT : public WI_SWITCH_t<2> {
-    constexpr static const char *const label = "Time Format"; // intentionally not translated
+    constexpr static const char *const label = N_("Time Format"); // intentionally not translated
 
     constexpr static const char *str_24h = N_("24h");
     constexpr static const char *str_12h = N_("12h");

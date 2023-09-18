@@ -52,13 +52,14 @@ namespace {
     class PostRenderer final : public JsonRenderer<ReqData> {
     protected:
         virtual JsonResult renderState(size_t resume_point, JsonOutput &output, ReqData &state) const {
+            PrinterVersion version = get_printer_version();
             // Keep the indentation of the JSON in here!
             // clang-format off
             JSON_START;
             JSON_OBJ_START;
                 JSON_FIELD_STR("sn", state.printer_info.serial_number.begin()) JSON_COMMA;
                 JSON_FIELD_STR("fingerprint", state.printer_info.fingerprint) JSON_COMMA;
-                JSON_FIELD_PRINTER_TYPE JSON_COMMA;
+                JSON_FIELD_STR_FORMAT("printer_type", "%hhu.%hhu.%hhu", version.type, version.version, version.subversion) JSON_COMMA;
                 JSON_FIELD_STR("firmware", state.printer_info.firmware_version);
             JSON_OBJ_END;
             JSON_END;

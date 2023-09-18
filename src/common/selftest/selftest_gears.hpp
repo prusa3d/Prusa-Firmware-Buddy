@@ -31,6 +31,7 @@ public:
     LoopResult state_get_fsensor_state();
 
     LoopResult state_ask_unload_init();
+    LoopResult state_cycle_mark0() { return LoopResult::MarkLoop0; }
     LoopResult state_ask_unload_wait();
     LoopResult state_filament_unload_enqueue_gcode();
     LoopResult state_filament_unload_wait_finished();

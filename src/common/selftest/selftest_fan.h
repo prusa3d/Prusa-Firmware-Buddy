@@ -64,7 +64,7 @@ public:
 
     LoopResult state_start();
     LoopResult state_wait_spindown();
-    LoopResult state_cycle_mark() { return LoopResult::MarkLoop; }
+    LoopResult state_cycle_mark() { return LoopResult::MarkLoop0; }
     LoopResult state_wait_rpm();
     LoopResult state_measure_rpm();
 };

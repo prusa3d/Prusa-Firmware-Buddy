@@ -63,7 +63,7 @@ struct SpinConfig {
 template <class T>
 size_t SpinConfig<T>::txtMeas(T val) const {
     if (IsOffOptionEnabled() && val == Min()) {
-        return strlen(off_opt_str);
+        return _(off_opt_str).computeNumUtf8CharsAndRewind();
     } else {
         return snprintf(nullptr, 0, prt_format_override ? prt_format_override : prt_format, val);
     }
@@ -72,7 +72,7 @@ size_t SpinConfig<T>::txtMeas(T val) const {
 template <>
 inline size_t SpinConfig<float>::txtMeas(float val) const {
     if (IsOffOptionEnabled() && val == Min()) {
-        return strlen(off_opt_str);
+        return _(off_opt_str).computeNumUtf8CharsAndRewind();
     } else {
         return snprintf(nullptr, 0, prt_format_override ? prt_format_override : prt_format, (double)val);
     }

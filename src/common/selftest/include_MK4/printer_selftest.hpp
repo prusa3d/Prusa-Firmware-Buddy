@@ -125,4 +125,5 @@ protected:
     selftest::IPartHandler *pGearsCalib;
 
     SelftestResult m_result;
+    bool full_selftest = false; // Wizard or a "Full Selftest" from the menu == not a stand alone axis test
 };

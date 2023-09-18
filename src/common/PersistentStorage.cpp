@@ -7,6 +7,7 @@
 #include "st25dv64k.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <array>
 #include <config_store/backend_instance.hpp>
 
 namespace {
@@ -115,9 +116,18 @@ bool PersistentStorage::isCalibratedHome(uint16_t (&mscnt)[homeSamplesCount], ui
     return isCalibrated;
 }
 
+template <size_t N>
+static constexpr std::array<uint8_t, N> generate_eeprom_erase_data() {
+    std::array<uint8_t, N> ret;
+    ret.fill(0xFF);
+    return ret;
+}
+
 void PersistentStorage::erase() {
-    constexpr uint32_t empty = 0xffffffff;
-    for (uint16_t address = 0; address <= (config_store_ns::start_address - 4); address += 4) {
-        st25dv64k_user_write_bytes(address, &empty, sizeof(empty));
+    static constexpr auto empty_arr = generate_eeprom_erase_data<16>();
+    static_assert(config_store_ns::start_address % empty_arr.size() == 0, "Wrong size of eeprom erase array");
+
+    for (uint16_t address = 0; address <= (config_store_ns::start_address - empty_arr.size()); address += empty_arr.size()) {
+        st25dv64k_user_unverified_write_bytes(address, empty_arr.begin(), empty_arr.size());
     }
 }

@@ -31,7 +31,7 @@ RadioButtonPreview::RadioButtonPreview(window_t *parent, Rect16 rect)
 Rect16 RadioButtonPreview::getVerticalIconRect(uint8_t idx) const {
     Rect16 rect = GetRect();
     return Rect16(
-        rect.Left(),
+        rect.Left() + (rect.Width() - GuiDefaults::ButtonIconSize) / 2,
         rect.Top() + idx * (GuiDefaults::ButtonIconSize + GuiDefaults::ButtonIconVerticalSpacing),
         GuiDefaults::ButtonIconSize,
         GuiDefaults::ButtonIconSize);
@@ -42,7 +42,7 @@ Rect16 RadioButtonPreview::getVerticalLabelRect(uint8_t idx) const {
     return Rect16(
         rect.Left(),
         rect.Top() + GuiDefaults::ButtonIconSize + icon_label_delim + idx * (GuiDefaults::ButtonIconSize + GuiDefaults::ButtonIconVerticalSpacing),
-        GuiDefaults::ButtonIconSize,
+        rect.Width(),
         label_height);
 }
 

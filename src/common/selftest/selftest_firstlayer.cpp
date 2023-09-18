@@ -171,7 +171,7 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentLoadWaitFinished() {
     }
 
     // Retry. Something went wrong. Probably user pressed abort
-    return LoopResult::GoToMark;
+    return LoopResult::GoToMark0;
 }
 
 /*****************************************************************************/
@@ -203,7 +203,7 @@ LoopResult CSelftestPart_FirstLayer::stateFilamentUnloadWaitFinished() {
     case PreheatStatus::Result::DoneNoFilament:
     case PreheatStatus::Result::Aborted:
     case PreheatStatus::Result::DidNotFinish:
-        return LoopResult::GoToMark;
+        return LoopResult::GoToMark0;
     default:
         break;
     }
@@ -344,7 +344,7 @@ LoopResult CSelftestPart_FirstLayer::stateCleanSheet() {
     switch (rStateMachine.GetButtonPressed()) {
     case Response::Next:
     case Response::Continue:
-        return LoopResult::GoToMark;
+        return LoopResult::GoToMark0;
     default:
         break;
     }

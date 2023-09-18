@@ -85,6 +85,10 @@ extern "C" {
 #define LWIP_SO_RCVTIMEO             1
 #define LWIP_SO_SNDTIMEO             1
 
+// Some attempts to "tune" it to use less memory in unstable network environment with many retries of new connections.
+#define LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT 5000 /* 5s for closing a connection must be enough... or let the other side time out */
+#define TCP_OVERSIZE                      0
+
 #define LWIP_DNS 1
 /*
  * We have a HTTP server (PrusaLink). The browsers tend to keep few

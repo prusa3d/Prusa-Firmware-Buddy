@@ -35,12 +35,14 @@ def cmd_create_font_png(non_ascii_chars_path: Path, src_png_path: Path,
     # not using with because I want to use charset outside of its scope
 
     with open(non_ascii_chars_path.resolve()) as file:
-        chars = file.read()
+        chars = file.read()  # discards 0xa0 non-breaking space character
         char_set = chars.split()
 
-    with Image.open(src_png_path.resolve(), formats=None) as src_png:
+    with Image.open(src_png_path.resolve()) as src_png:
         src_png_mode = src_png.mode
-
+        if src_png_mode != "RGB":
+            logger.error('%s mode is %s instead of required RGB', src_png_path,
+                         src_png_mode)
         num_of_rows = rows_to_copy + math.ceil(len(char_set) / chars_per_row)
         output_image = Image.new(
             src_png_mode,
@@ -59,6 +61,7 @@ def cmd_create_font_png(non_ascii_chars_path: Path, src_png_path: Path,
 
         x = 0
         y = rows_to_copy
+        print("IPP", ipp_path)
         with open(str(ipp_path.resolve()), "w") as file:
             file.write("{\n")
             for char in char_set:
@@ -82,7 +85,7 @@ def cmd_create_font_png(non_ascii_chars_path: Path, src_png_path: Path,
                 file.write("{")
                 file.write(" {}, {}, {}".format(
                     hex(int.from_bytes(char_bytes, "little")), x, y))
-                file.write("}\n")
+                file.write("},\n")
 
                 x += 1
                 if (x >= chars_per_row):

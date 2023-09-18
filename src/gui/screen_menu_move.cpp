@@ -9,6 +9,9 @@
 #include "img_resources.hpp"
 #include <config_store/store_instance.hpp>
 
+static constexpr const char *const heating_str = N_("Heating");
+static constexpr const char *const low_temp_str = N_("Low temp");
+
 I_MI_AXIS::I_MI_AXIS(size_t index)
     : WiSpinInt(round(marlin_vars()->logical_pos[index]),
         SpinCnf::axis_ranges[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
@@ -83,9 +86,9 @@ DUMMY_AXIS_E::DUMMY_AXIS_E()
         // this lambda is used during print, but does require item to be invalidated
         [&](char *buffer) {
             if (value) {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, N_("Heating"));
+                _(heating_str).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
             } else {
-                snprintf(buffer, GuiDefaults::infoDefaultLen, N_("Low temp"));
+                _(low_temp_str).copyToRAM(buffer, GuiDefaults::infoDefaultLen);
             }
         }) {}
 

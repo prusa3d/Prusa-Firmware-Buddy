@@ -45,6 +45,11 @@
   #include "../module/stepper.h"
 #endif
 
+#ifndef STALL_THRESHOLD_TMC2130
+#if !(BOARD_IS_DWARF)
+#include "configuration.hpp"
+#endif
+#endif
 /**
  * Check for over temperature or short to ground error flags.
  * Report and log warning of overtemperature condition.
@@ -976,8 +981,11 @@
 #if HAS_DRIVER(TMC2130)
   bool tmc_enable_stallguard(TMC2130Stepper &st) {
     bool stealthchop_was_enabled = st.en_pwm_mode();
-
+#ifdef STALL_THRESHOLD_TMC2130
     st.TCOOLTHRS(STALL_THRESHOLD_TMC2130);
+#else
+    st.TCOOLTHRS(get_stall_threshold());
+#endif
     st.en_pwm_mode(false);
     st.diag1_stall(true);
     st.sfilt(false);

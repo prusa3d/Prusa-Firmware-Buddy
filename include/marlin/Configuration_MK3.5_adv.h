@@ -466,14 +466,6 @@
     #define HOMING_MAX_ATTEMPTS 10
 #endif
 
-#ifdef HOMING_MAX_ATTEMPTS
-    // ranges in mm - allowed distance between homing probes for XYZ axes
-    constexpr float axis_home_min_diff[] = {-0.2, -0.2, -0.1};
-    constexpr float axis_home_max_diff[] = { 0.2,  0.2,  0.5};
-    constexpr float axis_home_invert_min_diff[] = {-1, -1, -1};
-    constexpr float axis_home_invert_max_diff[] = { 1,  1,  1};
-#endif// HOMING_MAX_ATTEMPTS
-
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 10
 #define Y_HOME_BUMP_MM 10
@@ -1736,25 +1728,13 @@
     // Milliseconds to wait on hold before auto-restarting during short power failures
     #define POWER_PANIC_HOLD_RST_MS 5000
 
-    #ifdef HAS_LDO_400_STEP
-        // TODO: currently arbitrary, needs to include optimal feedrates too
-        #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
-        #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
+    #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
+    #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
 
-        #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
-        #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
+    #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
+    #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
 
-        #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
-    #else
-        // TODO: currently arbitrary
-        #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
-        #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
-
-        #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
-        #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
-
-        #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
-    #endif
+    #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
 #endif
 
 /**

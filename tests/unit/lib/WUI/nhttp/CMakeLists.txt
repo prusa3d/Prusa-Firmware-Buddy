@@ -4,7 +4,6 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/multipart_upload.cpp
   # Not really tests, just stuffings to satisfy the linker.
   ${CMAKE_CURRENT_SOURCE_DIR}/missing_functions.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/async_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/random_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/time_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/status_renderer_mock.cpp
@@ -28,7 +27,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_file.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/headers.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/status_page.cpp
-  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_json.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/transfer_renderer.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/req_parser.cpp
@@ -85,6 +83,13 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
+if(USE_ASYNCIO)
+  target_sources(
+    nhttp_tests ${CMAKE_CURRENT_SOURCE_DIR}/async_io.cpp
+    ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
+    )
+  target_compile_definitions(nhttp_tests INTERFACE USE_ASYNCIO)
+endif()
 target_include_directories(
   nhttp_tests
   PRIVATE .

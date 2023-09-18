@@ -36,6 +36,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 #include "../gcode.h"
 
 #include "bsod_gui.hpp"
+#include "homing_reporter.hpp"
 
 #include "../../module/endstops.h"
 #include "../../module/planner.h"
@@ -131,8 +132,10 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       };
 
       #if ENABLED(CRASH_RECOVERY)
-        stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
-        stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
+        // Technically we should call end_sensorless_homing_per_axis() after
+        // the move, but what follows is homing anyway, so it's not needed.
+        crash_s.start_sensorless_homing_per_axis(X_AXIS);
+        crash_s.start_sensorless_homing_per_axis(Y_AXIS);
       #endif
     #endif
 
@@ -289,7 +292,7 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
 
 static void reenable_wavetable(AxisEnum axis)
 {
-    tmc_enable_wavetable(true, axis == X_AXIS, axis == Y_AXIS, false);
+    tmc_enable_wavetable(axis == X_AXIS, axis == Y_AXIS, false);
 }
 
 /**
@@ -347,7 +350,16 @@ void GcodeSuite::G28(const bool always_home_all) {
 bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bool X, bool Y, bool Z
   , bool no_change OPTARG(PRECISE_HOMING_COREXY, bool precise) OPTARG(DETECT_PRINT_SHEET, bool check_sheet)) {
 
+  HomingReporter reporter;
+
   MINDA_BROKEN_CABLE_DETECTION__BEGIN();
+
+#if PRINTER_IS_PRUSA_iX
+  // Avoid tool cleaner
+  if (Y) { 
+    X = true; 
+  }
+#endif
 
   DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
   if (DEBUGGING(LEVELING)) log_machine_info();
@@ -628,7 +640,7 @@ bool GcodeSuite::G28_no_parser(bool always_home_all, bool O, float R, bool S, bo
     // NOTE: change of Wave Table shall normally be done only when motors are guaranteed at zero-step. Here we are far enough from the print, so if the motors do something "wild" they should make no harm.
     // re-enabling wavetable back will take place during homing, when we are guaranteed at stepper zero
     if (!failed) {
-      tmc_enable_wavetable(false, wavetable_off_X, wavetable_off_Y, false);
+      tmc_disable_wavetable(wavetable_off_X, wavetable_off_Y, false);
     }
 
     #if ENABLED(PRUSA_TOOLCHANGER)

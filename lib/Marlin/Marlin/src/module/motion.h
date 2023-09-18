@@ -96,7 +96,6 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis);
 extern feedRate_t feedrate_mm_s;
 
 extern float homing_bump_divisor[];
-#define HOMING_BUMP_DIVISOR_STEP (1.03f)
 
 /**
  * Feedrate scaling is applied to all G0/G1, G2/G3, and G5 moves

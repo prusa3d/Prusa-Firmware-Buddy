@@ -7,7 +7,6 @@
 #include "window.hpp"
 #include "gui.hpp"
 #include "../lang/string_view_utf8.hpp"
-#include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
 

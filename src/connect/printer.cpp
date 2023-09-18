@@ -115,6 +115,9 @@ uint32_t Printer::info_fingerprint() const {
         .add_str(creds.pl_password)
         .add(parameters.has_usb)
         .add(parameters.nozzle_diameter)
+        .add(parameters.version.type)
+        .add(parameters.version.version)
+        .add(parameters.version.subversion)
         .done();
 }
 

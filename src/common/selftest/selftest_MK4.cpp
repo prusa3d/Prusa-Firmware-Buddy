@@ -47,7 +47,7 @@ static constexpr const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 /// These speeds create major chord
 /// https://en.wikipedia.org/wiki/Just_intonation
 
-static const float XYfr_table[] = { static_cast<float>(HOMING_FEEDRATE_XY / 60) };
+static const float XYfr_table[] = { 80.F };
 static constexpr size_t xy_fr_table_size = sizeof(XYfr_table) / sizeof(XYfr_table[0]);
 static constexpr float Zfr_table_fw[] = { maxFeedrates[Z_AXIS] }; // up
 static constexpr float Zfr_table_bw[] = { HOMING_FEEDRATE_Z / 60 };
@@ -241,6 +241,11 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stmFullSelftest)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
 
+    // TODO stmFullSelftest does not mean full selftest some refactoring would be nice
+
+    uint32_t full_test_check_mask = stmFans | stmXYZAxis | stmHeaters | stmLoadcell | stmFSensor;
+    full_selftest = (full_test_check_mask & test_mask) == full_test_check_mask;
+
     // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
@@ -314,18 +319,18 @@ void CSelftest::Loop() {
         break;
     }
     case stsXAxis: {
-        if (selftest::phaseAxis(pXAxis, Config_XAxis))
+        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no, full_selftest ? FullSelftest::yes : FullSelftest::no))
             return;
         // Y is not skipped even if X fails
         break;
     }
     case stsYAxis: {
-        if (selftest::phaseAxis(pYAxis, Config_YAxis))
+        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::no, full_selftest ? FullSelftest::yes : FullSelftest::no))
             return;
         break;
     }
     case stsZAxis: {
-        if (selftest::phaseAxis(pZAxis, Config_ZAxis))
+        if (selftest::phaseAxis(pZAxis, Config_ZAxis, Separate::no, full_selftest ? FullSelftest::yes : FullSelftest::no))
             return;
         break;
     }

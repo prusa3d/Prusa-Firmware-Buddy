@@ -7,8 +7,291 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Prusalator\n"
 
+#: src/gui/screen_menu_connect.cpp:83
+msgid "---"
+msgstr "---"
+
+#: src/gui/MItem_tools.hpp:237
+msgid "12h"
+msgstr "12h"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:39
+msgid ""
+"1. Please park current tool manually. Move the tool changing mechanism to "
+"the rear and align it with pins"
+msgstr ""
+"1. Please park current tool manually. Move the tool changing mechanism to "
+"the rear and align it with pins"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:87
+msgid ""
+"1. Scan the QR code or visit prusa.io/add.\n"
+"2. Log in.\n"
+"3. Add printer with code:"
+msgstr ""
+"1. Scan the QR code or visit prusa.io/add.\n"
+"2. Log in.\n"
+"3. Add printer with code:"
+
+#. intentionally not translated
+#: src/gui/MItem_tools.hpp:236
+msgid "24h"
+msgstr "24h"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:40
+msgid ""
+"2. Now move the tool changing mechanism to the right, the tool will be "
+"locked in the dock"
+msgstr ""
+"2. Now move the tool changing mechanism to the right, the tool will be "
+"locked in the dock"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:41
+msgid ""
+"3. The tool changing mechanism can now move freely.\n"
+"Move it a little bit to the front."
+msgstr ""
+"3. The tool changing mechanism can now move freely.\n"
+"Move it a little bit to the front."
+
+#: src/gui/MItem_tools.hpp:544
+msgid "5V Voltage"
+msgstr "5V Voltage"
+
+#. _none
+#. Abort
+#: src/common/client_response_texts.cpp:16
+#: src/common/client_response_texts.cpp:17
+msgid "ABORT"
+msgstr "ABORT"
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:263
+msgid "A crash dump is being saved."
+msgstr "A crash dump is being saved."
+
+#: src/gui/MItem_tools.cpp:265
+msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
+msgstr "A crash dump report (file dump.bin) has been saved to the USB drive."
+
+#: src/gui/screen_menu_connect.hpp:46
+msgid "Add printer to Connect"
+msgstr "Add printer to Connect"
+
+#. Abort_invalidate_test
+#. ABS filament, do not translate
+#: src/common/client_response_texts.cpp:19
+msgid "Adjust"
+msgstr "Adjust"
+
+#. / title text
+#: src/gui/dialogs/liveadjust_z.cpp:183
+msgid "Adjust the nozzle height above the heatbed by turning the knob"
+msgstr "Adjust the nozzle height above the heatbed by turning the knob"
+
+#: src/gui/MItem_menus.hpp:258
+msgid "Advanced"
+msgstr "Advanced"
+
+#: src/gui/resolution_480x320/screen_print_preview_base.hpp:17
+msgid "A filament specified in the G-code is either not loaded or wrong type."
+msgstr "A filament specified in the G-code is either not loaded or wrong type."
+
+#: src/gui/wizard/selftest_frame_dock.cpp:206
+msgid "Aligning tool"
+msgstr "Aligning tool"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:44
+msgid ""
+"Align the tool changing mechanism with the tool and lock it by sliding both "
+"metal bars to the right."
+msgstr ""
+"Align the tool changing mechanism with the tool and lock it by sliding both "
+"metal bars to the right."
+
+#. Adjust
+#: src/common/client_response_texts.cpp:20
+msgid "ALL"
+msgstr "ALL"
+
+#: src/gui/screen_tools_mapping.cpp:329
+msgid "All filaments are assigned."
+msgstr "All filaments are assigned."
+
+#: src/common/footer_def.hpp:135
+msgid "All nozzles"
+msgstr "All nozzles"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:174
+msgid "Allocation of dynamic buffer for PNG failed - out of memory."
+msgstr "Allocation of dynamic buffer for PNG failed - out of memory."
+
+#: src/gui/MItem_tools.hpp:411
+msgid "Allow Metrics"
+msgstr "Allow Metrics"
+
+#: src/gui/screen_menu_fw_update.hpp:12 src/gui/screen_menu_fw_update.hpp:49
+msgid "Always"
+msgstr "Always"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:52
+#, c-format
+msgid "Approx. %d min"
+msgstr "Approx. %d min"
+
+#: src/gui/screen_crash_recovery.cpp:88
+msgid ""
+"A printer collision\n"
+"has been detected."
+msgstr ""
+"A printer collision\n"
+"has been detected."
+
+#: src/gui/screen_printing.cpp:93
+msgid "Are you sure to stop this printing?"
+msgstr "Are you sure to stop this printing?"
+
+#: src/gui/MItem_tools.hpp:178
+msgid "Assist"
+msgstr "Assist"
+
+#: src/gui/screen_tools_mapping.cpp:572
+msgid ""
+"A tool is already assigned to this filament.\n"
+"\n"
+"Do you want to replace it\n"
+"or add it as an additional one\n"
+"for the Spool Join functionality?"
+msgstr ""
+"A tool is already assigned to this filament.\n"
+"\n"
+"Do you want to replace it\n"
+"or add it as an additional one\n"
+"for the Spool Join functionality?"
+
+#: src/gui/MItem_tools.cpp:901
+msgid ""
+"ATTENTION: Changing any Input Shaper values will overwrite them permanently. "
+"To revert to a stock setup, visit prusa.io/input-shaper or run a factory "
+"reset."
+msgstr ""
+"ATTENTION: Changing any Input Shaper values will overwrite them permanently. "
+"To revert to a stock setup, visit prusa.io/input-shaper or run a factory "
+"reset."
+
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:74
+msgid ""
+"Attention, the test has failed. Check below the expected printer setup and "
+"adjust it accordingly:"
+msgstr ""
+"Attention, the test has failed. Check below the expected printer setup and "
+"adjust it accordingly:"
+
+#: src/gui/wizard/selftest_frame_wizard_prologue.cpp:90
+msgid ""
+"At the bottom of screen in status bar you can check some information about "
+"your printer.During self-test, the individual information will alternate.\n"
+"\n"
+"After the test, you can select the parameters to be displayed in the status "
+"bar."
+msgstr ""
+"At the bottom of screen in status bar you can check some information about "
+"your printer.During self-test, the individual information will alternate.\n"
+"\n"
+"After the test, you can select the parameters to be displayed in the status "
+"bar."
+
+#: src/gui/MItem_tools.hpp:38
+msgid "Auto Home"
+msgstr "Auto Home"
+
+#. //MSG_PROGRESS_FEED_NOZZLE c=20
+#: src/mmu2/mmu2_progress_converter.cpp:15
+#: src/gui/dialogs/DialogLoadUnload.cpp:68
+msgid "Avoiding grind"
+msgstr "Avoiding grind"
+
+#: src/gui/wizard/selftest_frame_axis.cpp:28
+#: src/gui/wizard/selftest_frame_axis.cpp:29
+#: src/gui/wizard/selftest_frame_axis.cpp:30
+#: src/gui/wizard/selftest_result_axis.cpp:14
+#: src/gui/wizard/selftest_result_axis.cpp:15
+#: src/gui/wizard/selftest_result_axis.cpp:16
+msgid "axis"
+msgstr "axis"
+
+#: src/gui/wizard/selftest_result_axis.cpp:13
+msgid "Axis check"
+msgstr "Axis check"
+
+#: src/gui/wizard/selftest_result_axis.cpp:20
+msgid "Axis check was skipped"
+msgstr "Axis check was skipped"
+
+#: src/gui/wizard/selftest_result_axis.cpp:18
+msgid "Axis check was skipped because Loadcell check failed."
+msgstr "Axis check was skipped because Loadcell check failed."
+
+#: src/gui/dialogs/resolution_480x320/radio_button_preview.cpp:13
+msgid "Back"
+msgstr "Back"
+
+#. All
+#. ASA filament, do not translate
+#: src/common/client_response_texts.cpp:22
+msgid "BACK"
+msgstr "BACK"
+
+#: src/gui/MItem_basic_selftest.hpp:199
+msgid "Backup Calibration to USB"
+msgstr "Backup Calibration to USB"
+
+#: src/gui/wizard/selftest_frame_fans.cpp:31
+msgid ""
+"Based on the test it looks like the fans connectors are switched. Double "
+"check your wiring and repeat the test."
+msgstr ""
+"Based on the test it looks like the fans connectors are switched. Double "
+"check your wiring and repeat the test."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:223
+msgid "BBF ALLOCATION FAILED"
+msgstr "BBF ALLOCATION FAILED"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:228
+msgid "BBF INITIALIZATION FAILED"
+msgstr "BBF INITIALIZATION FAILED"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:229
+msgid "BBF initialization failed, repeat the action or try another USB drive."
+msgstr "BBF initialization failed, repeat the action or try another USB drive."
+
+#: src/common/footer_def.hpp:92
+msgid "Bed"
+msgstr "Bed"
+
+#: src/gui/MItem_tools.cpp:161 src/gui/screen_printing.cpp:257
+msgid "Bed leveling failed. Try again?"
+msgstr "Bed leveling failed. Try again?"
+
+#: src/gui/MItem_tools.hpp:428
+msgid "Bed Temperature"
+msgstr "Bed Temperature"
+
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:44
+msgid "Before you proceed, make sure filament is unloaded from the Nextruder."
+msgstr "Before you proceed, make sure filament is unloaded from the Nextruder."
+
+#: src/gui/MItem_tools.hpp:593
+msgid "Board Temperature"
+msgstr "Board Temperature"
+
+#: src/gui/MItem_tools.hpp:390
+msgid "Bootloader Version"
+msgstr "Bootloader Version"
+
 #. c=20 r=4
-#: src/gui/version_info_ST7789V.cpp:102
+#: src/gui/version_info_ST7789V.cpp:59
 #, c-format
 msgid ""
 "\n"
@@ -16,7 +299,7 @@ msgid ""
 "%d.%d.%d\n"
 "\n"
 "Buddy Board\n"
-"%d.%d.%d\n"
+"%d\n"
 "%s"
 msgstr ""
 "\n"
@@ -24,231 +307,537 @@ msgstr ""
 "%d.%d.%d\n"
 "\n"
 "Buddy Board\n"
-"%d.%d.%d\n"
+"%d\n"
 "%s"
 
-#. window_menu
-#: src/gui/MItem_tools.cpp:287
-msgid "A crash dump is being saved."
-msgstr "A crash dump is being saved."
+#: src/gui/MItem_tools.hpp:397
+msgid "Buddy Board"
+msgstr "Buddy Board"
 
-#: src/gui/MItem_tools.cpp:289
-msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
-msgstr "A crash dump report (file dump.bin) has been saved to the USB drive."
+#: src/gui/screen_menu_connect.cpp:89
+msgid "Bug"
+msgstr "Bug"
 
-#. _none
-#: src/common/client_response_texts.cpp:16
-msgid "ABORT"
-msgstr "ABORT"
+#: src/gui/MItem_menus.hpp:454 src/gui/screen_home.cpp:137
+msgid "Calibrate"
+msgstr "Calibrate"
 
-#. / title text
-#: src/gui/dialogs/liveadjust_z.cpp:188
-msgid "Adjust the nozzle height above the heatbed by turning the knob"
-msgstr "Adjust the nozzle height above the heatbed by turning the knob"
+#: src/guiapi/include/window_tool_action_box.hpp:88
+msgid "Calibrate Dock 1"
+msgstr "Calibrate Dock 1"
 
-#: src/gui/MItem_menus.hpp:220
-msgid "Advanced"
-msgstr "Advanced"
+#: src/guiapi/include/window_tool_action_box.hpp:89
+msgid "Calibrate Dock 2"
+msgstr "Calibrate Dock 2"
 
-#: src/gui/wizard/selftest.cpp:43
-msgid "All tests finished successfully!"
-msgstr "All tests finished successfully!"
+#: src/guiapi/include/window_tool_action_box.hpp:90
+msgid "Calibrate Dock 3"
+msgstr "Calibrate Dock 3"
 
-#: src/gui/screen_menu_fw_update.cpp:32
-msgid "Always"
-msgstr "Always"
+#: src/guiapi/include/window_tool_action_box.hpp:91
+msgid "Calibrate Dock 4"
+msgstr "Calibrate Dock 4"
 
-#: src/gui/screen_printing.cpp:104
-msgid "Are you sure to stop this printing?"
-msgstr "Are you sure to stop this printing?"
+#: src/guiapi/include/window_tool_action_box.hpp:92
+msgid "Calibrate Dock 5"
+msgstr "Calibrate Dock 5"
 
-#: src/gui/MItem_tools.hpp:334
-msgid "Assist"
-msgstr "Assist"
+#: src/gui/MItem_menus.hpp:474 src/gui/screen_menu_tools.hpp:91
+msgid "Calibrate Dock Position"
+msgstr "Calibrate Dock Position"
 
-#: src/gui/MItem_tools.hpp:44
-msgid "Auto Home"
-msgstr "Auto Home"
+#: src/gui/screen_menu_tools.hpp:100
+msgid "Calibrate Filament Sensor"
+msgstr "Calibrate Filament Sensor"
 
-#. Abort
-#. ABS filament, do not translate
-#. ASA filament, do not translate
-#: src/common/client_response_texts.cpp:19
-msgid "BACK"
-msgstr "BACK"
+#: src/gui/MItem_basic_selftest.hpp:176
+msgid "Calibrate Tool Offsets"
+msgstr "Calibrate Tool Offsets"
 
-#: src/gui/screen_print_preview.cpp:142
-msgid "Back"
-msgstr "Back"
+#: src/gui/MItem_tools.hpp:58
+msgid "Calibrate Z"
+msgstr "Calibrate Z"
 
-#: src/gui/footer/footer_items_nozzle_bed.hpp:25
-msgid "Bed"
-msgstr "Bed"
+#: src/gui/wizard/selftest_frame_fsensor.cpp:115
+msgid "Calibrating, do not remove filament."
+msgstr "Calibrating, do not remove filament."
 
-#: src/gui/MItem_tools.cpp:146 src/gui/screen_printing.cpp:211
-msgid "Bed leveling failed. Try again?"
-msgstr "Bed leveling failed. Try again?"
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:71
+msgid "Calibrating tool offsets."
+msgstr "Calibrating tool offsets."
 
-#: src/gui/gui_fsensor_api.hpp:21
-msgid "Both MMU and printer filament sensor not initialized. Disable them?"
-msgstr "Both MMU and printer filament sensor not initialized. Disable them?"
+#: src/gui/MItem_tools.hpp:720
+msgid "Calibration"
+msgstr "Calibration"
 
-#: src/gui/screen_menu_calibration.cpp:20
+#: src/gui/screen_menu_calibration.hpp:10
 msgid "CALIBRATION"
 msgstr "CALIBRATION"
 
+#: src/gui/MItem_basic_selftest.cpp:246
+msgid "Calibration data restored successfully"
+msgstr "Calibration data restored successfully"
+
+#: src/gui/MItem_basic_selftest.cpp:305
+msgid "Calibration data saved successfully"
+msgstr "Calibration data saved successfully"
+
+#: src/gui/MItem_menus.hpp:484
+msgid "Calibrations & Tests"
+msgstr "Calibrations & Tests"
+
 #. Back
-#: src/common/client_response_texts.cpp:20 src/gui/screen_sheet_rename.cpp:18
+#: src/common/client_response_texts.cpp:23 src/gui/screen_sheet_rename.cpp:21
 msgid "CANCEL"
 msgstr "CANCEL"
 
+#: src/gui/screen_menu_cancel_object.hpp:19
+msgid "Canceled"
+msgstr "Canceled"
+
+#: src/gui/MItem_tools.hpp:610
+msgid "Cancel Object (Experimental)"
+msgstr "Cancel Object (Experimental)"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:227
+msgid "Cannot perform the action, filament is already loaded. Unload it first."
+msgstr ""
+"Cannot perform the action, filament is already loaded. Unload it first."
+
+#: src/gui/MItem_mmu.cpp:97
+msgid "Can't enable MMU: enable the printer's filament sensor first."
+msgstr "Can't enable MMU: enable the printer's filament sensor first."
+
+#: src/gui/screen_crash_recovery.cpp:109
+msgid "!! Careful, tools are hot !!"
+msgstr "!! Careful, tools are hot !!"
+
+#: src/gui/screen_menu_filament_changeall.hpp:70
+msgid "Carry Out the Changes"
+msgstr "Carry Out the Changes"
+
+#: src/gui/screen_menu_footer_settings.hpp:101
+msgid "Center N and Fewer Items"
+msgstr "Center N and Fewer Items"
+
 #. Cancel
-#: src/common/client_response_texts.cpp:21
+#: src/common/client_response_texts.cpp:24
 msgid "CHANGE"
 msgstr "CHANGE"
 
-#: src/gui/MItem_filament.hpp:29 src/gui/dialogs/DialogFactory.cpp:8
+#: src/gui/MItem_filament.hpp:28 src/gui/MItem_tools.hpp:150
+msgid "Change Filament"
+msgstr "Change Filament"
+
+#: src/gui/MItem_filament.hpp:29
 msgid "CHANGE FILAMENT"
 msgstr "CHANGE FILAMENT"
 
+#: src/gui/MItem_filament.hpp:42
+msgid "Change Filament in All Tools"
+msgstr "Change Filament in All Tools"
+
+#: src/gui/screen_menu_filament_changeall.hpp:15
+msgid "Change to"
+msgstr "Change to"
+
+#: src/gui/MItem_menus.hpp:250
+msgid "Change Wave Table XYZ"
+msgstr "Change Wave Table XYZ"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:350
+msgid "Changing filament"
+msgstr "Changing filament"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:40
+msgid "Changing tool"
+msgstr "Changing tool"
+
+#: src/gui/screen_crash_recovery.cpp:89
+#: src/gui/wizard/selftest_frame_axis.cpp:27
+msgid "Checking axes"
+msgstr "Checking axes"
+
+#: src/gui/wizard/selftest_result_fans.cpp:15
+#: src/gui/wizard/selftest_frame_fans.cpp:28
+msgid "Checking for switched fans"
+msgstr "Checking for switched fans"
+
+#: src/gui/screen_menu_hardware_checks.hpp:22
+msgid "CHECKS"
+msgstr "CHECKS"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:9
+msgid "Check the heatbed heater & thermistor wiring for possible damage."
+msgstr "Check the heatbed heater & thermistor wiring for possible damage."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:19
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:29
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:39
+msgid "Check the heatbed thermistor wiring for possible damage."
+msgstr "Check the heatbed thermistor wiring for possible damage."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:59
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:64
+msgid "Check the heatbreak thermistor wiring for possible damage."
+msgstr "Check the heatbreak thermistor wiring for possible damage."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:14
+msgid "Check the print head heater & thermistor wiring for possible damage."
+msgstr "Check the print head heater & thermistor wiring for possible damage."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:24
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:34
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:44
+msgid "Check the print head thermistor wiring for possible damage."
+msgstr "Check the print head thermistor wiring for possible damage."
+
+#: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:66
+msgid "Clean steel sheet."
+msgstr "Clean steel sheet."
+
+#: src/gui/dialogs/DialogMoveZ.hpp:23
+msgid "Click the knob to close"
+msgstr "Click the knob to close"
+
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:60
+msgid ""
+"Close the idler door and secure it with the swivel. The calibration is done!"
+msgstr ""
+"Close the idler door and secure it with the swivel. The calibration is done!"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:220
+msgid "COMMUNICATION ERROR"
+msgstr "COMMUNICATION ERROR"
+
+#: src/gui/wizard/selftest_frame_esp.cpp:37
+msgid "Config detected on the USB drive. Overwrite current file?"
+msgstr "Config detected on the USB drive. Overwrite current file?"
+
+#: src/gui/wizard/selftest_result_eth.cpp:17
+msgid "Connected"
+msgstr "Connected"
+
+#: src/gui/screen_menu_connect.cpp:72
+msgid "Connecting"
+msgstr "Connecting"
+
+#: src/gui/wizard/selftest_frame_esp.cpp:58
+msgid "Connection successfully established! Wi-Fi is now ready for use."
+msgstr "Connection successfully established! Wi-Fi is now ready for use."
+
 #. Change
-#: src/common/client_response_texts.cpp:22
+#: src/common/client_response_texts.cpp:25
 msgid "CONTINUE"
 msgstr "CONTINUE"
 
+#: src/gui/screen_menu_selftest_snake.cpp:179
+msgid "Continue running Calibrations & Tests?"
+msgstr "Continue running Calibrations & Tests?"
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:56
+msgid ""
+"Continue to flash\n"
+"the ESP firmware."
+msgstr ""
+"Continue to flash\n"
+"the ESP firmware."
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:56
+msgid "Continue to flash the ESP firmware."
+msgstr "Continue to flash the ESP firmware."
+
+#: src/gui/screen_home.cpp:135
+msgid "Control"
+msgstr "Control"
+
+#: src/gui/screen_menu_control.hpp:55
+msgid "CONTROL"
+msgstr "CONTROL"
+
+#: src/gui/MItem_filament.hpp:66
+msgid "Cooldown"
+msgstr "Cooldown"
+
 #. Continue
-#: src/common/client_response_texts.cpp:23
+#: src/common/client_response_texts.cpp:26
 msgid "COOLDOWN"
 msgstr "COOLDOWN"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:84
+msgid "Cooling down. Do not touch the nozzle!"
+msgstr "Cooling down. Do not touch the nozzle!"
 
 #: src/gui/screen_sysinf.cpp:54
 msgid "CPU load"
 msgstr "CPU load"
 
-#: src/gui/wizard/xyzcalib.cpp:170
-msgid "Calibrating Z"
-msgstr "Calibrating Z"
+#. don't close on menu timeout
+#: src/gui/screen_crash_recovery.cpp:359
+msgid "CRASH DETECTED"
+msgstr "CRASH DETECTED"
 
-#: src/gui/screen_home.cpp:44
-msgid "Calibration"
-msgstr "Calibration"
+#: src/gui/screen_home.cpp:283
+msgid "Crash detected. Save it to USB?"
+msgstr "Crash detected. Save it to USB?"
 
-#: src/gui/wizard/xyzcalib.cpp:230
-msgid "Calibration XY"
-msgstr "Calibration XY"
+#: src/gui/MItem_crash.hpp:14
+msgid "Crash Detection"
+msgstr "Crash Detection"
 
-#: src/gui/wizard/screen_wizard.cpp:196
-msgid "Calibration successful! Happy printing!"
-msgstr "Calibration successful! Happy printing!"
+#: src/gui/MItem_crash.hpp:128
+msgid "Crash Detection Filter"
+msgstr "Crash Detection Filter"
 
-#: src/gui/screen_menu_footer_settings.cpp:130
-msgid "Center N and fewer items"
-msgstr "Center N and fewer items"
+#: src/gui/MItem_crash.hpp:114
+msgid "Crashes on X Axis"
+msgstr "Crashes on X Axis"
 
-#: src/gui/MItem_filament.hpp:28 src/gui/MItem_tools.hpp:306
-msgid "Change Filament"
-msgstr "Change Filament"
+#: src/gui/MItem_crash.hpp:121
+msgid "Crashes on Y Axis"
+msgstr "Crashes on Y Axis"
 
-#. r=5, c=20
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:45
-msgid "Check the heatbed heater & thermistor wiring for possible damage."
-msgstr "Check the heatbed heater & thermistor wiring for possible damage."
-
-#. r=5, c=20
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:57
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:69
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:81
-msgid "Check the heatbed thermistor wiring for possible damage."
-msgstr "Check the heatbed thermistor wiring for possible damage."
-
-#. r=5, c=20
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:51
-msgid "Check the print head heater & thermistor wiring for possible damage."
-msgstr "Check the print head heater & thermistor wiring for possible damage."
-
-#. r=5, c=20
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:63
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:75
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:87
-msgid "Check the print head thermistor wiring for possible damage."
-msgstr "Check the print head thermistor wiring for possible damage."
-
-#: src/gui/dialogs/DialogSelftestResult.cpp:42
-#: src/gui/dialogs/DialogSelftestAxis.cpp:24
-msgid "Checking axes"
-msgstr "Checking axes"
-
-#: src/gui/wizard/firstlay.cpp:175
-msgid "Clean steel sheet."
-msgstr "Clean steel sheet."
-
-#: src/gui/dialogs/DialogMoveZ.hpp:18
-msgid "Click knob to end"
-msgstr "Click knob to end"
-
-#: src/gui/wizard/selftest_frame_esp.cpp:38
-msgid "Config detected on the USB drive. Overwrite current file?"
-msgstr "Config detected on the USB drive. Overwrite current file?"
-
-#: src/gui/wizard/xyzcalib.cpp:289
-msgid "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
-msgstr "Congratulations! XYZ calibration is ok. XY axes are perpendicular."
-
-#: src/gui/wizard/selftest_frame_esp.cpp:59
-msgid "Connection successfully established! Wi-Fi is now ready for use."
-msgstr "Connection successfully established! Wi-Fi is now ready for use."
-
-#: src/gui/wizard/selftest_frame_esp_progress.cpp:52
-msgid ""
-"Continue to flash\n"
-"the ESP firmware."
-msgstr ""
-"Select Continue to\n"
-"flash the ESP\n"
-"firmware."
-
-#: src/gui/MItem_filament.hpp:46
-msgid "Cooldown"
-msgstr "Cooldown"
+#: src/gui/MItem_crash.hpp:44 src/gui/MItem_crash.hpp:65
+msgid "Crash Sensitivity XY"
+msgstr "Crash Sensitivity XY"
 
 #: src/gui/MItem_lan.hpp:40
-msgid "Create credentials"
-msgstr "Create credentials"
+msgid "Create Credentials"
+msgstr "Create Credentials"
 
-#: src/gui/wizard/selftest_frame_esp.cpp:41
+#: src/gui/wizard/selftest_frame_esp.cpp:40
 msgid "Creating the file failed! Check the USB drive!"
 msgstr "Creating the file failed! Check the USB drive!"
 
-#: src/gui/MItem_menus.hpp:179
+#: src/gui/MItem_menus.hpp:209
 msgid "Current Profile"
 msgstr "Current Profile"
 
-#: src/gui/footer/footer_item_fsensor.cpp:34
+#: src/common/footer_def.hpp:133
+msgid "Current tool"
+msgstr "Current tool"
+
+#: src/gui/MItem_mmu.hpp:38 src/gui/screen_menu_mmu_cut_filament.hpp:16
+msgid "Cut Filament"
+msgstr "Cut Filament"
+
+#: src/gui/MItem_mmu.hpp:190
+msgid "Cut Filament 1"
+msgstr "Cut Filament 1"
+
+#: src/gui/MItem_mmu.hpp:198
+msgid "Cut Filament 2"
+msgstr "Cut Filament 2"
+
+#: src/gui/MItem_mmu.hpp:205
+msgid "Cut Filament 3"
+msgstr "Cut Filament 3"
+
+#: src/gui/MItem_mmu.hpp:212
+msgid "Cut Filament 4"
+msgstr "Cut Filament 4"
+
+#: src/gui/MItem_mmu.hpp:219
+msgid "Cut Filament 5"
+msgstr "Cut Filament 5"
+
+#: src/gui/MItem_mmu.hpp:301
+msgid "Cutter"
+msgstr "Cutter"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:125
+#, c-format
+msgid "%d Bed Heater Test"
+msgstr "%d Bed Heater Test"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:119
+#, c-format
+msgid "%d Dock Position Calibration"
+msgstr "%d Dock Position Calibration"
+
+#: src/gui/MItem_lan.hpp:50
+msgid "Default"
+msgstr "Default"
+
+#: src/gui/MItem_menus.hpp:232
+msgid "Device Hash in QR"
+msgstr "Device Hash in QR"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:91
+#: src/gui/include_iX/selftest_snake_config.hpp:73
+#: src/gui/include_MINI/selftest_snake_config.hpp:73
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:91
+#: src/gui/include_XL/selftest_snake_config.hpp:115
+#, c-format
+msgid "%d Fan Test"
+msgstr "%d Fan Test"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:97
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:97
+#: src/gui/include_XL/selftest_snake_config.hpp:124
+#, c-format
+msgid "%d Filament Sensor Calibration"
+msgstr "%d Filament Sensor Calibration"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:96
+#: src/gui/include_iX/selftest_snake_config.hpp:76
+#: src/gui/include_MINI/selftest_snake_config.hpp:76
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:96
+#: src/gui/include_XL/selftest_snake_config.hpp:123
+#, c-format
+msgid "%d Heater Test"
+msgstr "%d Heater Test"
+
+#: src/gui/MItem_menus.hpp:288
+msgid "Diagnostics"
+msgstr "Diagnostics"
+
+#: src/gui/screen_menu_diagnostics.hpp:32
+msgid "DIAGNOSTICS"
+msgstr "DIAGNOSTICS"
+
+#: src/gui/footer/footer_item_fsensor.cpp:52
 msgid "DIS "
 msgstr "DIS "
 
 #. Cooldown
-#: src/common/client_response_texts.cpp:24
+#: src/common/client_response_texts.cpp:27
+msgid "DISABLE"
+msgstr "DISABLE"
+
+#: src/gui/footer/footer_item_input_shaper.cpp:8
+msgid "Disabled"
+msgstr "Disabled"
+
+#: src/gui/MItem_tools.cpp:527
+#, c-format
+msgid "disabled / %ld"
+msgstr "disabled / %ld"
+
+#. Finish
+#. FLEX filament, do not translate
+#: src/common/client_response_texts.cpp:31
+msgid "DISABLE FS"
+msgstr "DISABLE FS"
+
+#. Load
+#: src/common/client_response_texts.cpp:37
+msgid "DISABLE MMU"
+msgstr "DISABLE MMU"
+
+#: src/gui/MItem_tools.hpp:68
+msgid "Disable Motors"
+msgstr "Disable Motors"
+
+#. Disable
+#: src/common/client_response_texts.cpp:28
 msgid "DISABLE SENSOR"
 msgstr "DISABLE SENSOR"
 
-#: src/gui/dialogs/DialogMoveZ.hpp:20
-msgid "DOWN"
-msgstr "DOWN"
-
-#: src/gui/MItem_menus.hpp:202
-msgid "Device Hash in QR"
-msgstr "Device Hash in QR"
-
-#: src/gui/MItem_tools.hpp:144
-msgid "Disable Steppers"
-msgstr "Disable Steppers"
-
-#: src/gui/screen_printing_serial.hpp:11
+#: src/gui/ScreenPrintingModel.cpp:30
 msgid "Disconnect"
 msgstr "Disconnect"
 
-#: src/gui/wizard/selftest_frame_esp_progress.cpp:57
+#: src/gui/MItem_tools.cpp:523
+#, c-format
+msgid "disconnected / %ld"
+msgstr "disconnected / %ld"
+
+#. //MSG_PROGRESS_ENGAGE_IDLER c=20
+#: src/mmu2/mmu2_progress_converter.cpp:9
+#: src/gui/dialogs/DialogLoadUnload.cpp:62
+msgid "Disengaging idler"
+msgstr "Disengaging idler"
+
+#: src/gui/screen_menu_error_test.cpp:66
+msgid "Divide by Zero"
+msgstr "Divide by Zero"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:94
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:94
+#: src/gui/include_XL/selftest_snake_config.hpp:120
+#, c-format
+msgid "%d Loadcell Test"
+msgstr "%d Loadcell Test"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:126
+#, c-format
+msgid "%d Nozzle Heaters Test"
+msgstr "%d Nozzle Heaters Test"
+
+#: src/gui/screen_menu_connect.cpp:84
+msgid "DNS error"
+msgstr "DNS error"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:80
+msgid "Dock 1 Calibration"
+msgstr "Dock 1 Calibration"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:81
+msgid "Dock 2 Calibration"
+msgstr "Dock 2 Calibration"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:82
+msgid "Dock 3 Calibration"
+msgstr "Dock 3 Calibration"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:83
+msgid "Dock 4 Calibration"
+msgstr "Dock 4 Calibration"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:84
+msgid "Dock 5 Calibration"
+msgstr "Dock 5 Calibration"
+
+#: src/gui/wizard/selftest_frame_dock.cpp:19
+msgid "Dock Calibration"
+msgstr "Dock Calibration"
+
+#: src/gui/wizard/selftest_frame_dock.cpp:115
+#, c-format
+msgid "Dock %d calibration"
+msgstr "Dock %d calibration"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:51
+msgid "Dock successfully calibrated."
+msgstr "Dock successfully calibrated."
+
+#: src/gui/screen_menu_tools.hpp:30
+msgid "Dock X"
+msgstr "Dock X"
+
+#: src/gui/screen_menu_tools.hpp:40
+msgid "Dock Y"
+msgstr "Dock Y"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:92
+msgid "Done!"
+msgstr "Done!"
+
+#. Intentionally without translation
+#: src/gui/wizard/selftest_frame_dock.hpp:38
+msgid "Do not touch the printer. Be careful around the moving parts."
+msgstr "Do not touch the printer. Be careful around the moving parts."
+
+#: src/gui/wizard/selftest_frame_dock.hpp:46
+msgid ""
+"Do not touch the printer!\n"
+"The printer is moving while measuring dock position."
+msgstr ""
+"Do not touch the printer!\n"
+"The printer is moving while measuring dock position."
+
+#: src/gui/wizard/selftest_frame_dock.hpp:49
+msgid ""
+"Do not touch the printer!\n"
+"The printer is performing the parking test. Be careful around the moving "
+"parts."
+msgstr ""
+"Do not touch the printer!\n"
+"The printer is performing the parking test. Be careful around the moving "
+"parts."
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:61
 msgid ""
 "Do not unplug Wi-Fi\n"
 "or turn off printer!"
@@ -256,12 +845,41 @@ msgstr ""
 "Do not unplug Wi-Fi\n"
 "or turn off printer!"
 
-#: src/gui/wizard/firstlay.cpp:167
-msgid "Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?"
-msgstr "Do you want to repeat the last step and readjust the distance between the nozzle and heatbed?"
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:61
+msgid "Do not unplug Wi-Fi or turn off printer!"
+msgstr "Do not unplug Wi-Fi or turn off printer!"
 
-#. c=21 r=9
-#: src/gui/wizard/firstlay.cpp:118
+#: src/gui/screen_menu_filament_changeall.hpp:14
+msgid "Don't change"
+msgstr "Don't change"
+
+#: src/gui/dialogs/DialogMoveZ.hpp:25
+msgid "DOWN"
+msgstr "DOWN"
+
+#: src/gui/screen_help_fw_update.cpp:56
+msgid ""
+"Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
+"the drive into the printer and turn it on or restart it. Confirm the "
+"installation of the new firmware."
+msgstr ""
+"Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
+"the drive into the printer and turn it on or restart it. Confirm the "
+"installation of the new firmware."
+
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:78
+msgid "Do you have a silicone hotend sock installed?"
+msgstr "Do you have a silicone hotend sock installed?"
+
+#: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:62
+msgid ""
+"Do you want to repeat the last step and readjust the distance between the "
+"nozzle and heatbed?"
+msgstr ""
+"Do you want to repeat the last step and readjust the distance between the "
+"nozzle and heatbed?"
+
+#: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:54
 #, c-format
 msgid ""
 "Do you want to use the current value?\n"
@@ -274,993 +892,3250 @@ msgstr ""
 "Default: %0.3f.\n"
 "Click NO to use the default value (recommended)"
 
-#: src/gui/screen_menu_lan_settings.cpp:181
-msgid "ETHERNET SETTINGS"
-msgstr "ETHERNET SETTINGS"
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:84
+msgid "Do you wish to retry the heater selftest?"
+msgstr "Do you wish to retry the heater selftest?"
 
-#: src/gui/test/screen_mesh_bed_lv.cpp:62 src/gui/screen_sysinf.cpp:86
-msgid "EXIT"
-msgstr "EXIT"
+#: src/gui/include_XL/selftest_snake_config.hpp:121
+#, c-format
+msgid "%d Tool Offset Calibration"
+msgstr "%d Tool Offset Calibration"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:28
+#: src/gui/wizard/selftest_frame_axis.cpp:31
+msgid ""
+"During the test, the heatbed, and extruder will move in full range.\n"
+"\n"
+"Printer may vibrate and be noisier during homing."
+msgstr ""
+"During the test, the heatbed, and extruder will move in full range.\n"
+"\n"
+"Printer may vibrate and be noisier during homing."
+
+#: src/gui/screen_menu_tools.hpp:180
+msgid "Dwarf Board Temp"
+msgstr "Dwarf Board Temp"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:118
+#, c-format
+msgid "%d X Axis Test"
+msgstr "%d X Axis Test"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:93
+#: src/gui/include_iX/selftest_snake_config.hpp:74
+#: src/gui/include_MINI/selftest_snake_config.hpp:74
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:93
+#, c-format
+msgid "%d XY Axis Test"
+msgstr "%d XY Axis Test"
+
+#: src/gui/include_XL/selftest_snake_config.hpp:117
+#, c-format
+msgid "%d Y Axis Test"
+msgstr "%d Y Axis Test"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:169
+msgid "Dynamic allocation failed - out of memory. Reset the printer."
+msgstr "Dynamic allocation failed - out of memory. Reset the printer."
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:92
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:92
+#: src/gui/include_XL/selftest_snake_config.hpp:116
+#, c-format
+msgid "%d Z Alignment Calibration"
+msgstr "%d Z Alignment Calibration"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:95
+#: src/gui/include_iX/selftest_snake_config.hpp:75
+#: src/gui/include_MINI/selftest_snake_config.hpp:75
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:95
+#: src/gui/include_XL/selftest_snake_config.hpp:122
+#, c-format
+msgid "%d Z Axis Test"
+msgstr "%d Z Axis Test"
+
+#: src/gui/MItem_menus.hpp:278
+msgid "Eeprom Diagnostics"
+msgstr "Eeprom Diagnostics"
+
+#: src/gui/MItem_mmu.hpp:28 src/gui/screen_menu_mmu_eject_filament.hpp:16
+msgid "Eject Filament"
+msgstr "Eject Filament"
+
+#: src/gui/MItem_mmu.hpp:150
+msgid "Eject Filament 1"
+msgstr "Eject Filament 1"
+
+#: src/gui/MItem_mmu.hpp:158
+msgid "Eject Filament 2"
+msgstr "Eject Filament 2"
+
+#: src/gui/MItem_mmu.hpp:166
+msgid "Eject Filament 3"
+msgstr "Eject Filament 3"
+
+#: src/gui/MItem_mmu.hpp:174
+msgid "Eject Filament 4"
+msgstr "Eject Filament 4"
+
+#: src/gui/MItem_mmu.hpp:182
+msgid "Eject Filament 5"
+msgstr "Eject Filament 5"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:54
 msgid "Ejecting"
 msgstr "Ejecting"
 
-#: src/gui/screen_printing.cpp:163
-msgid "Elapsed"
-msgstr "Elapsed"
+#. //MSG_PROGRESS_PARK_SELECTOR c=20
+#: src/mmu2/mmu2_progress_converter.cpp:29
+#: src/gui/dialogs/DialogLoadUnload.cpp:81
+msgid "Ejecting filament"
+msgstr "Ejecting filament"
 
-#: src/gui/screen_prusa_link.cpp:39
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:178
+msgid "EMERGENCY STOP"
+msgstr "EMERGENCY STOP"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:179
+msgid "Emergency stop invoked from G-code (M112)."
+msgstr "Emergency stop invoked from G-code (M112)."
+
+#: src/gui/screen_menu_error_test.cpp:79
+msgid "Emulate Watchdog"
+msgstr "Emulate Watchdog"
+
+#: src/gui/screen_prusa_link.hpp:29 src/gui/screen_menu_connect.hpp:12
 msgid "Enabled"
 msgstr "Enabled"
 
-#: src/guiapi/src/window_msgbox.cpp:148
+#: src/gui/wizard/selftest_frame_dock.cpp:216
+msgid "End of test"
+msgstr "End of test"
+
+#. //MSG_PROGRESS_OK c=4
+#. MMU-related
+#: src/mmu2/mmu2_progress_converter.cpp:8
+#: src/gui/dialogs/DialogLoadUnload.cpp:61
+msgid "Engaging idler"
+msgstr "Engaging idler"
+
+#: src/gui/MItem_tools.cpp:195
+msgid ""
+"Erasing configuration,\n"
+"it will take some time..."
+msgstr ""
+"Erasing configuration,\n"
+"it will take some time..."
+
+#: src/gui/MItem_tools.cpp:195
+msgid ""
+"Erasing everything,\n"
+"it will take some time..."
+msgstr ""
+"Erasing everything,\n"
+"it will take some time..."
+
+#. //MSG_PROGRESS_ERR_INTERNAL c=20
+#: src/mmu2/mmu2_progress_converter.cpp:19
+msgid "ERR Help filament"
+msgstr "ERR Help filament"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:71
+msgid "ERR Helping filament"
+msgstr "ERR Helping filament"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:93
+msgid "ERR HW test failed"
+msgstr "ERR HW test failed"
+
+#. //MSG_PROGRESS_WAIT_USER c=20
+#: src/mmu2/mmu2_progress_converter.cpp:18
+#: src/gui/dialogs/DialogLoadUnload.cpp:70
+msgid "ERR Internal"
+msgstr "ERR Internal"
+
+#: src/guiapi/src/window_msgbox.cpp:288 src/gui/screen_menu_connect.cpp:70
+#: src/gui/screen_menu_connect.hpp:29
 msgid "Error"
 msgstr "Error"
 
+#: src/gui/screen_qr_error.cpp:26
+msgid "ERROR"
+msgstr "ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:254
+msgid ""
+"Error erasing\n"
+" flash! Restart\n"
+"the printer and\n"
+"try again."
+msgstr ""
+"Error erasing\n"
+" flash! Restart\n"
+"the printer and\n"
+"try again."
+
 #: src/gui/wizard/selftest_invalid_state.cpp:12
 msgid "Error invalid selftest state"
-msgstr "Error: Invalid selftest state"
+msgstr "Error invalid selftest state"
 
-#: src/gui/MItem_tools.cpp:291
-msgid "Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."
-msgstr "Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."
+#: src/gui/MItem_tools.cpp:267
+msgid ""
+"Error saving crash dump report to the USB drive. Please reinsert the USB "
+"drive and try again."
+msgstr ""
+"Error saving crash dump report to the USB drive. Please reinsert the USB "
+"drive and try again."
 
-#: src/gui/MItem_menus.hpp:129
+#: src/gui/MItem_touch.cpp:30
+msgid ""
+"Error saving touch registers to the USB drive. Please reinsert the USB drive "
+"and try again."
+msgstr ""
+"Error saving touch registers to the USB drive. Please reinsert the USB drive "
+"and try again."
+
+#: src/gui/MItem_touch.cpp:44
+msgid ""
+"Error uploading touch registers from the USB drive. Please reinsert the USB "
+"drive and try again."
+msgstr ""
+"Error uploading touch registers from the USB drive. Please reinsert the USB "
+"drive and try again."
+
+#. //MSG_PROGRESS_ERR_HELP_FIL c=20
+#: src/mmu2/mmu2_progress_converter.cpp:20
+#: src/gui/dialogs/DialogLoadUnload.cpp:72
+msgid "ERR TMC failed"
+msgstr "ERR TMC failed"
+
+#. //MSG_PROGRESS_FINISHING_MOVES c=20
+#: src/mmu2/mmu2_progress_converter.cpp:17
+msgid "ERR Wait for User"
+msgstr "ERR Wait for User"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:159
+msgid "ESP detected command error."
+msgstr "ESP detected command error."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:164
+msgid "ESP detected unknown error."
+msgstr "ESP detected unknown error."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:234
+msgid "ESP doesn't seem to be connected."
+msgstr "ESP doesn't seem to be connected."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:153
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:158
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:163
+msgid "ESP ERROR"
+msgstr "ESP ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:233
+msgid "ESP NOT CONNECTED"
+msgstr "ESP NOT CONNECTED"
+
+#: src/gui/MItem_menus.hpp:159
 msgid "Ethernet"
 msgstr "Ethernet"
 
-#: src/gui/wizard/selftest.cpp:45
-msgid "Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes."
-msgstr "Everything is alright. I will run XYZ calibration now. It will take approximately 12 minutes."
+#: src/gui/wizard/selftest_result_eth.cpp:15
+msgid "Ethernet cable not plugged in"
+msgstr "Ethernet cable not plugged in"
 
-#: src/gui/MItem_menus.hpp:240
-msgid "Experimental Settings"
-msgstr "Experimental Settings"
+#: src/gui/wizard/selftest_result_eth.cpp:13
+msgid "Ethernet connection"
+msgstr "Ethernet connection"
 
-#: src/gui/footer/footer_item_fsensor.hpp:17
-msgid "F. Sensor"
-msgstr "F. Sensor"
+#: src/gui/screen_menu_lan_settings.hpp:34
+msgid "ETHERNET SETTINGS"
+msgstr "ETHERNET SETTINGS"
 
-#: src/gui/screen_menu_filament.cpp:21
-msgid "FILAMENT"
-msgstr "FILAMENT"
+#: src/guiapi/include/WindowMenuItems.hpp:50
+msgid "Exit"
+msgstr "Exit"
 
-#: src/gui/wizard/screen_wizard.cpp:30
-msgid "FIRST LAYER CALIBRATION"
-msgstr "FIRST LAYER CALIBRATION"
+#: src/gui/screen_sysinf.cpp:89 src/gui/test/screen_mesh_bed_lv.cpp:61
+msgid "EXIT"
+msgstr "EXIT"
 
-#: src/gui/screen_menu_footer_settings.cpp:192
-msgid "FOOTER"
-msgstr "FOOTER"
-
-#: src/gui/screen_menu_footer_settings.cpp:207
-msgid "FOOTER ADVANCED"
-msgstr "FOOTER ADVANCED"
-
-#: src/gui/MItem_tools.hpp:420
-msgid "FS Autoload"
-msgstr "FS Autoload"
-
-#: src/gui/screen_menu_fw_update.cpp:71
-msgid "FW UPDATE"
-msgstr "FW UPDATE"
-
-#: src/gui/MItem_menus.hpp:119 src/gui/screen_menu_fw_update.cpp:19
-msgid "FW Update"
-msgstr "FW Update"
-
-#: src/gui/MItem_tools.hpp:154
+#: src/gui/MItem_menus.hpp:494
 msgid "Factory Reset"
 msgstr "Factory Reset"
 
-#: src/gui/MItem_tools.cpp:256
-msgid "Factory defaults loaded. The system will now restart."
-msgstr "Factory defaults loaded. The system will now restart."
+#: src/gui/screen_menu_factory_reset.hpp:12
+msgid "FACTORY RESET"
+msgstr "FACTORY RESET"
 
-#: src/gui/MItem_menus.hpp:59
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:74
+msgid ""
+"Failed to home the extruder in X-axis, make sure there is no obstacle on X-"
+"axis."
+msgstr ""
+"Failed to home the extruder in X-axis, make sure there is no obstacle on X-"
+"axis."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:69
+msgid ""
+"Failed to home the extruder in Z-axis, make sure the loadcell is working."
+msgstr ""
+"Failed to home the extruder in Z-axis, make sure the loadcell is working."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:79
+msgid "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
+msgstr "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
+
+#: src/gui/screen_menu_connect.cpp:43
+msgid ""
+"Failed to load config. Make sure the ini file downloaded from Connect is on "
+"the USB drive and try again."
+msgstr ""
+"Failed to load config. Make sure the ini file downloaded from Connect is on "
+"the USB drive and try again."
+
+#: src/gui/MItem_basic_selftest.cpp:248
+msgid "Failed to restore calibration data"
+msgstr "Failed to restore calibration data"
+
+#: src/gui/MItem_basic_selftest.cpp:307
+msgid "Failed to save calibration data"
+msgstr "Failed to save calibration data"
+
+#: src/gui/MItem_menus.hpp:73
 msgid "Fail Stats"
 msgstr "Fail Stats"
 
-#: src/gui/MItem_tools.hpp:410
+#: src/gui/screen_menu_fail_stat.hpp:22
+msgid "FAILURE STATISTICS"
+msgstr "FAILURE STATISTICS"
+
+#: src/gui/MItem_tools.hpp:372
 msgid "Fan Check"
 msgstr "Fan Check"
 
-#: src/gui/dialogs/DialogSelftestFans.cpp:18
-#: src/gui/dialogs/DialogSelftestResult.cpp:39
+#: src/gui/wizard/selftest_result_fans.cpp:12
+msgid "Fans check"
+msgstr "Fans check"
+
+#: src/gui/wizard/selftest_frame_fans.cpp:25
 msgid "Fan Test"
 msgstr "Fan Test"
 
-#: src/gui/footer/footer_item_filament.hpp:16 src/gui/MItem_menus.hpp:39
-#: src/gui/MItem_tools.hpp:450 src/gui/screen_home.cpp:43
+#: src/gui/wizard/selftest_frame_fans.cpp:29
+msgid "Fan test in progress, please wait."
+msgstr "Fan test in progress, please wait."
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:66
+msgid "Feeding to drive gear"
+msgstr "Feeding to drive gear"
+
+#. //MSG_PROGRESS_FEED_FINDA c=20
+#: src/mmu2/mmu2_progress_converter.cpp:13
+msgid "Feeding to extruder"
+msgstr "Feeding to extruder"
+
+#. //MSG_PROGRESS_UNLOAD_PULLEY c=20
+#: src/mmu2/mmu2_progress_converter.cpp:12
+#: src/gui/dialogs/DialogLoadUnload.cpp:65
+msgid "Feeding to FINDA"
+msgstr "Feeding to FINDA"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:85
+msgid "Feeding to fsensor"
+msgstr "Feeding to fsensor"
+
+#. //MSG_PROGRESS_MOVING_SELECTOR c=20
+#: src/mmu2/mmu2_progress_converter.cpp:33
+msgid "Feeding to FSensor"
+msgstr "Feeding to FSensor"
+
+#. //MSG_PROGRESS_FEED_EXTRUDER c=20
+#: src/mmu2/mmu2_progress_converter.cpp:14
+#: src/gui/dialogs/DialogLoadUnload.cpp:67
+msgid "Feeding to nozzle"
+msgstr "Feeding to nozzle"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:226
+msgid "FIL. ALREADY LOADED"
+msgstr "FIL. ALREADY LOADED"
+
+#: src/common/footer_def.hpp:94 src/gui/MItem_menus.hpp:43
+#: src/gui/screen_home.cpp:133 src/gui/MItem_tools.hpp:505
 msgid "Filament"
 msgstr "Filament"
 
-#: src/gui/MItem_tools.hpp:21 src/gui/MItem_tools.hpp:390
-msgid "Filament Sensor"
-msgstr "Filament Sensor"
+#: src/gui/screen_menu_filament.hpp:20
+msgid "FILAMENT"
+msgstr "FILAMENT"
 
 #: src/gui/MItem_filament.hpp:11
-msgid "Filament appears to be already loaded, are you sure you want to load it anyway?"
-msgstr "Filament appears to be already loaded, are you sure you want to load it anyway?"
+msgid ""
+"Filament appears to be already loaded, are you sure you want to load it "
+"anyway?"
+msgstr ""
+"Filament appears to be already loaded, are you sure you want to load it "
+"anyway?"
 
-#: src/gui/screen_print_preview.cpp:31
+#: src/gui/MItem_tools.hpp:420
+msgid "Filament Autoloading"
+msgstr "Filament Autoloading"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:257
+msgid ""
+"Filament detected unexpectedly. Ensure no filament is loaded. Check the "
+"sensors and wiring."
+msgstr ""
+"Filament detected unexpectedly. Ensure no filament is loaded. Check the "
+"sensors and wiring."
+
+#: src/gui/screen_print_preview.hpp:22
 msgid "Filament detected. Unload filament now? Select NO to cancel."
 msgstr "Filament detected. Unload filament now? Select NO to cancel."
 
-#: src/gui/screen_print_preview.cpp:31
-msgid "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."
-msgstr "Filament not detected. Load filament now? Select NO to cancel, or IGNORE to disable the filament sensor and continue."
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:262
+msgid "FILAMENT EJECTED"
+msgstr "FILAMENT EJECTED"
 
-#: src/gui/MItem_tools.cpp:82
+#: src/gui/wizard/selftest_frame_fsensor.cpp:110
+msgid "Filament inserted, press continue."
+msgstr "Filament inserted, press continue."
+
+#: src/gui/wizard/selftest_frame_fsensor.cpp:37
+msgid ""
+"Filament is required for the test, if you don't have it, press Abort. If "
+"filament is loaded in extruder press unload. If you have filament and "
+"filament is not loaded in extruder press next."
+msgstr ""
+"Filament is required for the test, if you don't have it, press Abort. If "
+"filament is loaded in extruder press unload. If you have filament and "
+"filament is not loaded in extruder press next."
+
+#: src/gui/screen_menu_filament_mmu.hpp:34
+msgid "FILAMENT MMU"
+msgstr "FILAMENT MMU"
+
+#: src/gui/screen_print_preview.hpp:21
+msgid ""
+"Filament not detected. Load filament now?\n"
+"Select NO to cancel the print.\n"
+"Select DISABLE FS to disable the filament sensor and continue print."
+msgstr ""
+"Filament not detected. Load filament now?\n"
+"Select NO to cancel the print.\n"
+"Select DISABLE FS to disable the filament sensor and continue print."
+
+#: src/gui/wizard/selftest_result_fsensor.cpp:13
+msgid "Filament sensor"
+msgstr "Filament sensor"
+
+#: src/gui/MItem_MINI_MK3.5.hpp:11 src/gui/MItem_tools.hpp:15
+#: src/gui/MItem_tools.hpp:444
+msgid "Filament Sensor"
+msgstr "Filament Sensor"
+
+#: src/gui/wizard/selftest_frame_fsensor.cpp:125
+msgid "Filament sensor calibrated."
+msgstr "Filament sensor calibrated."
+
+#: src/gui/wizard/selftest_frame_fsensor.cpp:34
+msgid "Filament sensor calibration"
+msgstr "Filament sensor calibration"
+
+#: src/gui/MItem_basic_selftest.hpp:140
+msgid "Filament Sensor Calibration"
+msgstr "Filament Sensor Calibration"
+
+#: src/gui/MItem_basic_selftest.hpp:151
+msgid "Filament Sensor Calibration MMU"
+msgstr "Filament Sensor Calibration MMU"
+
+#: src/gui/wizard/selftest_result_fsensor.cpp:12
+msgid "Filament sensor check"
+msgstr "Filament sensor check"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:29
+msgid ""
+"Filament sensor didn't switch off while unloading filament. Ensure filament "
+"can move and the sensor works."
+msgstr ""
+"Filament sensor didn't switch off while unloading filament. Ensure filament "
+"can move and the sensor works."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:23
+msgid ""
+"Filament sensor didn't trigger while loading the filament. Ensure the sensor "
+"is calibrated and the filament reached it."
+msgstr ""
+"Filament sensor didn't trigger while loading the filament. Ensure the sensor "
+"is calibrated and the filament reached it."
+
+#: src/gui/MItem_tools.cpp:78
 msgid "Filament sensor not connected, check wiring."
 msgstr "Filament sensor not connected, check wiring."
 
-#: src/gui/gui_fsensor_api.hpp:33
-msgid "Filament sensor not ready: calibration required. Disable printer filament sensor to continue anyway? To enable it you must perform calibration first. It is accessible from menu \"Calibrate\"."
-msgstr "Filament sensor not ready: calibration required. Disable printer filament sensor to continue anyway? To enable it you must perform calibration first. It is accessible from menu \"Calibrate\"."
-
 #: src/gui/MItem_tools.cpp:74
-msgid "Filament sensor not ready: perform calibration first. It is accessible from menu \"Calibrate\"."
-msgstr "Filament sensor not ready: perform calibration first. It is accessible from menu \"Calibrate\"."
+msgid "Filament sensor not ready: perform calibration first."
+msgstr "Filament sensor not ready: perform calibration first."
 
-#. ***************************************************************************
-#. clang-format off
-#: src/gui/dialogs/DialogG162.cpp:8 src/gui/dialogs/DialogLoadUnload.cpp:14
+#: src/gui/wizard/selftest_frame_fsensor.cpp:123
+msgid "Filament sensors calibrated."
+msgstr "Filament sensors calibrated."
+
+#: src/gui/wizard/selftest_frame_fsensor.cpp:32
+msgid "Filament sensors calibration"
+msgstr "Filament sensors calibration"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:41
+msgid ""
+"Filament sensor triggered too early while loading to extruder. Check there "
+"isn't anything stuck in PTFE tube. Check that sensor reads properly."
+msgstr ""
+"Filament sensor triggered too early while loading to extruder. Check there "
+"isn't anything stuck in PTFE tube. Check that sensor reads properly."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:289
+msgid ""
+"File system error!\n"
+"Try a different USB\n"
+"drive or format the\n"
+"drive with FAT32\n"
+"filesystem (all \n"
+"data will be lost)!"
+msgstr ""
+"File system error!\n"
+"Try a different USB\n"
+"drive or format the\n"
+"drive with FAT32\n"
+"filesystem (all \n"
+"data will be lost)!"
+
+#: src/common/footer_def.hpp:129
+msgid "Finda"
+msgstr "Finda"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:17
+msgid ""
+"FINDA didn't switch off while unloading filament. Try unloading manually. "
+"Ensure filament can move and FINDA works."
+msgstr ""
+"FINDA didn't switch off while unloading filament. Try unloading manually. "
+"Ensure filament can move and FINDA works."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:10
+msgid "FINDA DIDNT TRIGGER"
+msgstr "FINDA DIDNT TRIGGER"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:11
+msgid ""
+"FINDA didn't trigger while loading the filament. Ensure the filament can "
+"move and FINDA works."
+msgstr ""
+"FINDA didn't trigger while loading the filament. Ensure the filament can "
+"move and FINDA works."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:16
+msgid "FINDA FILAM. STUCK"
+msgstr "FINDA FILAM. STUCK"
+
+#. Filament_removed
+#: src/common/client_response_texts.cpp:29
+msgid "FINISH"
+msgstr "FINISH"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:39
 msgid "Finishing buffered gcodes."
 msgstr "Finishing buffered gcodes."
 
+#. //MSG_PROGRESS_AVOID_GRIND c=20
+#: src/mmu2/mmu2_progress_converter.cpp:16
+#: src/gui/dialogs/DialogLoadUnload.cpp:69
+msgid "Finishing moves"
+msgstr "Finishing moves"
+
+#: src/gui/screen_menu_selftest_snake.cpp:176
+msgid ""
+"FINISH remaining calibrations without proceeding to other tests, or perform "
+"ALL Calibrations and Tests?\n"
+"\n"
+"If you QUIT, all data up to this point is saved."
+msgstr ""
+"FINISH remaining calibrations without proceeding to other tests, or perform "
+"ALL Calibrations and Tests?\n"
+"\n"
+"If you QUIT, all data up to this point is saved."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:244
+msgid ""
+"Firmware file has\n"
+"invalid size!\n"
+"Check the file\n"
+"on the USB drive\n"
+"and try again."
+msgstr ""
+"Firmware file has\n"
+"invalid size!\n"
+"Check the file\n"
+"on the USB drive\n"
+"and try again."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:249
+msgid ""
+"Firmware file\n"
+"missing in the USB\n"
+"flash!"
+msgstr ""
+"Firmware file\n"
+"missing in the USB\n"
+"flash!"
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:71
+msgid ""
+"Firmware flashing\n"
+"failed!"
+msgstr ""
+"Firmware flashing\n"
+"failed!"
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:71
+msgid "Firmware flashing failed!"
+msgstr "Firmware flashing failed!"
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:66
+msgid ""
+"Firmware flashing\n"
+"successful!"
+msgstr ""
+"Firmware flashing\n"
+"successful!"
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:66
+msgid "Firmware flashing successful!"
+msgstr "Firmware flashing successful!"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:264
+msgid ""
+"Firmware hash\n"
+"verification failed!\n"
+"Firmware file is\n"
+"damaged. Try\n"
+"downloading and\n"
+"copying it onto the\n"
+"USB drive again."
+msgstr ""
+"Firmware hash\n"
+"verification failed!\n"
+"Firmware file is\n"
+"damaged. Try\n"
+"downloading and\n"
+"copying it onto the\n"
+"USB drive again."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:269
+msgid ""
+"Firmware in the\n"
+"internal flash\n"
+"corrupted! Please\n"
+"reflash the\n"
+"firmware."
+msgstr ""
+"Firmware in the\n"
+"internal flash\n"
+"corrupted! Please\n"
+"reflash the\n"
+"firmware."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:274
+msgid ""
+"Firmware/printer\n"
+"types do not match.\n"
+"Make sure you have\n"
+"the right firmware\n"
+"file for your\n"
+"printer model."
+msgstr ""
+"Firmware/printer\n"
+"types do not match.\n"
+"Make sure you have\n"
+"the right firmware\n"
+"file for your\n"
+"printer model."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:279
+msgid ""
+"Firmware/printer\n"
+"versions do not\n"
+"match! You are\n"
+"trying to flash\n"
+"FW meant for other\n"
+"revision of the\n"
+"Buddy board."
+msgstr ""
+"Firmware/printer\n"
+"versions do not\n"
+"match! You are\n"
+"trying to flash\n"
+"FW meant for other\n"
+"revision of the\n"
+"Buddy board."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:259
+msgid ""
+"Firmware signature\n"
+"verification failed!\n"
+"Only official\n"
+"signed firmware can\n"
+"be flashed."
+msgstr ""
+"Firmware signature\n"
+"verification failed!\n"
+"Only official\n"
+"signed firmware can\n"
+"be flashed."
+
+#: src/gui/MItem_hardware.hpp:121 src/gui/MItem_tools.hpp:382
+msgid "Firmware Version"
+msgstr "Firmware Version"
+
 #. r=1 c=20
-#: src/gui/version_info_ST7789V.cpp:80
+#: src/gui/version_info_ST7789V.cpp:37
 msgid "Firmware Version\n"
 msgstr "Firmware Version\n"
 
-#: src/gui/wizard/selftest_frame_esp_progress.cpp:67
-msgid ""
-"Firmware flashing\n"
-"failed!"
-msgstr ""
-"Firmware flashing\n"
-"failed!"
-
-#: src/gui/wizard/selftest_frame_esp_progress.cpp:62
-msgid ""
-"Firmware flashing\n"
-"successful!"
-msgstr ""
-"Firmware flashing\n"
-"successful!"
-
-#: src/gui/screen_menu_steel_sheets.cpp:84 src/gui/MItem_tools.hpp:84
-#: src/gui/ScreenFirstLayer.hpp:12
+#: src/gui/screen_menu_steel_sheets.hpp:54 src/gui/MItem_basic_selftest.hpp:49
 msgid "First Layer Calibration"
 msgstr "First Layer Calibration"
 
-#: src/gui/MItem_print.hpp:40
+#: src/gui/ScreenSelftest.hpp:87
+msgid "FIRST LAYER CALIBRATION"
+msgstr "FIRST LAYER CALIBRATION"
+
+#: src/gui/MItem_print.hpp:73
 msgid "Flow Factor"
 msgstr "Flow Factor"
 
-#: src/gui/MItem_menus.hpp:210
-msgid "Footer Settings"
-msgstr "Footer Settings"
+#: src/gui/window_msgbox_wrong_printer.hpp:15
+msgid "following features are required:"
+msgstr "following features are required:"
+
+#: src/gui/MItem_menus.hpp:240
+msgid "Footer"
+msgstr "Footer"
+
+#: src/gui/screen_menu_footer_settings.hpp:135
+msgid "FOOTER"
+msgstr "FOOTER"
+
+#: src/gui/screen_menu_footer_settings.hpp:143
+msgid "FOOTER ADVANCED"
+msgstr "FOOTER ADVANCED"
+
+#: src/gui/MItem_tools.hpp:620
+msgid "For filament change, preheat"
+msgstr "For filament change, preheat"
 
 #. abbreviated Friday - max 3 characters
 #: src/lang/format_print_will_end.cpp:53
 msgid "Fri"
 msgstr "Fri"
 
-#: src/gui/MItem_lan.hpp:109
-msgid "GW"
-msgstr "GW"
+#: src/common/footer_def.hpp:96
+msgid "FSensor"
+msgstr "FSensor"
 
-#: src/gui/screen_prusa_link.cpp:21
-msgid "Generate Api key"
-msgstr "Generate Api key"
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:22
+msgid "FSENSOR DIDNT TRIGG."
+msgstr "FSENSOR DIDNT TRIGG."
 
-#: src/gui/wizard/selftest_frame_esp.cpp:35
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:28
+msgid "FSENSOR FIL. STUCK"
+msgstr "FSENSOR FIL. STUCK"
+
+#: src/common/footer_def.hpp:139
+msgid "FSensor side"
+msgstr "FSensor side"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:40
+msgid "FSENSOR TOO EARLY"
+msgstr "FSENSOR TOO EARLY"
+
+#: src/gui/MItem_tools.hpp:348
+msgid "FS ref 1"
+msgstr "FS ref 1"
+
+#: src/gui/MItem_tools.hpp:350
+msgid "FS ref 2"
+msgstr "FS ref 2"
+
+#: src/gui/MItem_tools.hpp:352
+msgid "FS ref 3"
+msgstr "FS ref 3"
+
+#: src/gui/MItem_tools.hpp:354
+msgid "FS ref 4"
+msgstr "FS ref 4"
+
+#: src/gui/MItem_tools.hpp:356
+msgid "FS ref 5"
+msgstr "FS ref 5"
+
+#: src/gui/MItem_tools.hpp:358
+msgid "FS ref 6"
+msgstr "FS ref 6"
+
+#: src/gui/MItem_tools.hpp:285
+msgid "FS span 1"
+msgstr "FS span 1"
+
+#: src/gui/MItem_tools.hpp:287
+msgid "FS span 2"
+msgstr "FS span 2"
+
+#: src/gui/MItem_tools.hpp:289
+msgid "FS span 3"
+msgstr "FS span 3"
+
+#: src/gui/MItem_tools.hpp:291
+msgid "FS span 4"
+msgstr "FS span 4"
+
+#: src/gui/MItem_tools.hpp:293
+msgid "FS span 5"
+msgstr "FS span 5"
+
+#: src/gui/MItem_tools.hpp:295
+msgid "FS span 6"
+msgstr "FS span 6"
+
+#: src/common/footer_def.hpp:98
+msgid "FS Value"
+msgstr "FS Value"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:250
+msgid "FW RUNTIME ERROR"
+msgstr "FW RUNTIME ERROR"
+
+#: src/gui/screen_menu_settings.hpp:23
+msgid "FW update"
+msgstr "FW update"
+
+#: src/gui/MItem_menus.hpp:149 src/gui/screen_menu_fw_update.hpp:37
+msgid "FW Update"
+msgstr "FW Update"
+
+#: src/gui/screen_menu_fw_update.cpp:9 src/gui/screen_menu_fw_update.hpp:63
+msgid "FW UPDATE"
+msgstr "FW UPDATE"
+
+#: src/gui/MItem_hardware.hpp:95
+msgid "G-Code Checks"
+msgstr "G-Code Checks"
+
+#: src/gui/screen_tools_mapping.cpp:135
+msgid "G-Code filaments"
+msgstr "G-Code filaments"
+
+#: src/gui/MItem_hardware.hpp:129
+msgid "G-Code Level"
+msgstr "G-Code Level"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:13
+msgid "G-code version doesn't match"
+msgstr "G-code version doesn't match"
+
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:13
+msgid "Gearbox alignment"
+msgstr "Gearbox alignment"
+
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:52
+msgid "Gearbox alignment in progress, please wait (approx. 20 seconds)"
+msgstr "Gearbox alignment in progress, please wait (approx. 20 seconds)"
+
+#: src/gui/MItem_basic_selftest.hpp:164
+msgid "Gears Calibration"
+msgstr "Gears Calibration"
+
+#: src/gui/screen_prusa_link.hpp:14
+msgid "Generate Password"
+msgstr "Generate Password"
+
+#: src/gui/wizard/selftest_frame_esp.cpp:34
 msgid "Generate Wi-Fi credentials?"
 msgstr "Generate Wi-Fi credentials?"
 
-#: src/gui/screen_sysinf.cpp:75
+#: src/gui/MItem_lan.hpp:108
+msgid "GW"
+msgstr "GW"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:134
+msgid "HAL detected an I2C busy when receiving data via I2C."
+msgstr "HAL detected an I2C busy when receiving data via I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:114
+msgid "HAL detected an I2C busy when sending data via I2C."
+msgstr "HAL detected an I2C busy when sending data via I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:129
+msgid "HAL detected an I2C error when receiving data via I2C."
+msgstr "HAL detected an I2C error when receiving data via I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:109
+msgid "HAL detected an I2C error when sending data via I2C."
+msgstr "HAL detected an I2C error when sending data via I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:139
+msgid "HAL detected an I2C timeout when receiving data via I2C."
+msgstr "HAL detected an I2C timeout when receiving data via I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:119
+msgid "HAL detected an I2C timeout when sending data via I2C."
+msgstr "HAL detected an I2C timeout when sending data via I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:144
+msgid "HAL detected an I2C undefined error when receiving data via I2C."
+msgstr "HAL detected an I2C undefined error when receiving data via I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:124
+msgid "HAL detected an I2C undefined error when sending data via I2C."
+msgstr "HAL detected an I2C undefined error when sending data via I2C."
+
+#: src/gui/screen_menu_selftest_snake.cpp:387
+#: src/gui/wizard/selftest_frame_wizard_epilogue.cpp:60
+msgid "Happy printing!"
+msgstr "Happy printing!"
+
+#: src/gui/MItem_tools.hpp:88
+msgid "Hard Reset (USB with FW needed)"
+msgstr "Hard Reset (USB with FW needed)"
+
+#: src/gui/MItem_menus.hpp:337 src/gui/MItem_menus.hpp:347
+msgid "Hardware"
+msgstr "Hardware"
+
+#: src/gui/screen_menu_hardware_tune.hpp:24
+#: src/gui/screen_menu_hardware.hpp:103
+msgid "HARDWARE"
+msgstr "HARDWARE"
+
+#: src/gui/screen_sysinf.cpp:78
 msgid "HB Fan RPM"
-msgstr "HE Fan RPM"
+msgstr "HB Fan RPM"
 
-#: src/gui/screen_home.cpp:83
-msgid "HOME"
-msgstr "HOME"
-
-#: src/gui/dialogs/DialogFactory.cpp:47
-msgid "HOME TO MAX"
-msgstr "HOME TO MAX"
-
-#. r=1, c=19
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:91
-msgid "HOMING ERROR"
-msgstr "HOMING ERROR"
-
-#: src/gui/MItem_menus.hpp:169 src/gui/screen_menu_hw_setup.cpp:32
-msgid "HW Setup"
-msgstr "HW Setup"
-
-#: src/gui/MItem_print.hpp:16 src/gui/dialogs/DialogSelftestResult.cpp:48
+#: src/gui/wizard/selftest_result_heaters.cpp:14
 msgid "Heatbed"
 msgstr "Heatbed"
 
-#: src/gui/dialogs/DialogSelftestTemp.cpp:26
+#: src/gui/wizard/selftest_frame_temp.cpp:52
 msgid "Heatbed heater check"
 msgstr "Heatbed heater check"
 
-#: src/gui/dialogs/DialogSelftestTemp.cpp:28
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:98
+msgid "HEATBED PORT OVERCURRENT"
+msgstr "HEATBED PORT OVERCURRENT"
+
+#: src/gui/MItem_print.hpp:48
+msgid "Heatbed Temperature"
+msgstr "Heatbed Temperature"
+
+#: src/common/footer_def.hpp:122
+msgid "Heatbreak"
+msgstr "Heatbreak"
+
+#: src/gui/screen_menu_tools.hpp:199
+msgid "Heatbreak 1 temp"
+msgstr "Heatbreak 1 temp"
+
+#: src/gui/screen_menu_tools.hpp:201
+msgid "Heatbreak 2 temp"
+msgstr "Heatbreak 2 temp"
+
+#: src/gui/screen_menu_tools.hpp:203
+msgid "Heatbreak 3 temp"
+msgstr "Heatbreak 3 temp"
+
+#: src/gui/screen_menu_tools.hpp:205
+msgid "Heatbreak 4 temp"
+msgstr "Heatbreak 4 temp"
+
+#: src/gui/screen_menu_tools.hpp:207
+msgid "Heatbreak 5 temp"
+msgstr "Heatbreak 5 temp"
+
+#: src/common/footer_def.hpp:112
+msgid "Heatbreak fan"
+msgstr "Heatbreak fan"
+
+#: src/gui/MItem_tools.hpp:466
+msgid "Heatbreak Fan"
+msgstr "Heatbreak Fan"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:63
+msgid "HEATBREAK MAXTEMP ERROR"
+msgstr "HEATBREAK MAXTEMP ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:58
+msgid "HEATBREAK MINTEMP ERROR"
+msgstr "HEATBREAK MINTEMP ERROR"
+
+#: src/gui/wizard/selftest_frame_temp.cpp:55
+msgid "Heatbreak status"
+msgstr "Heatbreak status"
+
+#: src/gui/MItem_love_board.hpp:18 src/gui/screen_menu_tools.hpp:187
+msgid "Heatbreak Temp"
+msgstr "Heatbreak Temp"
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:37
+msgid "Heatbreak thermistor is disconnected. Inspect the wiring."
+msgstr "Heatbreak thermistor is disconnected. Inspect the wiring."
+
+#: src/gui/screen_menu_modularbed.hpp:10
+msgid "Heat Entire Bed"
+msgstr "Heat Entire Bed"
+
+#: src/gui/MItem_tools.hpp:551
+msgid "Heater Current"
+msgstr "Heater Current"
+
+#: src/gui/wizard/selftest_result_heaters.cpp:12
+msgid "Heaters check"
+msgstr "Heaters check"
+
+#: src/gui/wizard/selftest_frame_temp.cpp:54
 msgid "Heater testing"
 msgstr "Heater testing"
 
-#: src/gui/screen_menu_move.cpp:88
-#, c-format
+#: src/gui/MItem_tools.hpp:530
+msgid "Heater Voltage"
+msgstr "Heater Voltage"
+
+#: src/gui/screen_menu_move.cpp:12
 msgid "Heating"
 msgstr "Heating"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:36
-msgid "Heating disabled due to 30 minutes of inactivity."
-msgstr "Heating disabled due to 30 minutes of inactivity."
-
-#: src/gui/screen_printing.cpp:44
+#: src/gui/ScreenPrintingModel.cpp:26
 msgid "Heating..."
 msgstr "Heating..."
 
-#: src/gui/screen_printing.cpp:46
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:29
+msgid "Heating disabled due to 30 minutes of inactivity."
+msgstr "Heating disabled due to 30 minutes of inactivity."
+
+#. Yes
+#: src/common/client_response_texts.cpp:66
+msgid "HEATUP"
+msgstr "HEATUP"
+
+#: src/gui/MItem_crash.hpp:54
+msgid "High"
+msgstr "High"
+
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:103
+msgid "High-flow"
+msgstr "High-flow"
+
+#: src/gui/MItem_hardware.hpp:148
+msgid "High Flow"
+msgstr "High Flow"
+
+#. FS_disable
+#: src/common/client_response_texts.cpp:32
+msgid "HIGH-FLOW"
+msgstr "HIGH-FLOW"
+
+#: src/gui/wizard/selftest_frame_wizard_prologue.cpp:23
+msgid ""
+"Hi, this is your\n"
+"Original Prusa iX printer.\n"
+"I would like to guide you\n"
+"through the setup process."
+msgstr ""
+"Hi, this is your\n"
+"Original Prusa iX printer.\n"
+"I would like to guide you\n"
+"through the setup process."
+
+#: src/gui/wizard/selftest_frame_wizard_prologue.cpp:28
+msgid ""
+"Hi, this is your\n"
+"Original Prusa MK3.5 printer.\n"
+"I would like to guide you\n"
+"through the setup process."
+msgstr ""
+"Hi, this is your\n"
+"Original Prusa MK3.5 printer.\n"
+"I would like to guide you\n"
+"through the setup process."
+
+#: src/gui/wizard/selftest_frame_wizard_prologue.cpp:18
+msgid ""
+"Hi, this is your\n"
+"Original Prusa MK4 printer.\n"
+"I would like to guide you\n"
+"through the setup process."
+msgstr ""
+"Hi, this is your\n"
+"Original Prusa MK4 printer.\n"
+"I would like to guide you\n"
+"through the setup process."
+
+#: src/gui/screen_menu_selftest_snake.cpp:365
+#: src/gui/wizard/selftest_frame_wizard_prologue.cpp:33
+msgid ""
+"Hi, this is your\n"
+"Original Prusa XL printer.\n"
+"I would like to guide you\n"
+"through the setup process."
+msgstr ""
+"Hi, this is your\n"
+"Original Prusa XL printer.\n"
+"I would like to guide you\n"
+"through the setup process."
+
+#: src/gui/ScreenPrintingModel.cpp:28
 msgid "Home"
 msgstr "Home"
 
-#: src/gui/footer/footer_item_fans.hpp:49
-#: src/gui/dialogs/DialogSelftestFans.cpp:19
-#: src/gui/dialogs/DialogSelftestResult.cpp:40
-msgid "Hotend Fan"
-msgstr "Hotend Fan"
+#: src/gui/MItem_mmu.hpp:259
+msgid "Home safely"
+msgstr "Home safely"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:32
-msgid "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
-msgstr "Hotend fan not spinning. Check it for possible debris, then inspect the wiring."
+#. //MSG_PROGRESS_RETRACT_FINDA c=20
+#: src/mmu2/mmu2_progress_converter.cpp:31 src/gui/screen_crash_recovery.cpp:90
+#: src/gui/dialogs/DialogLoadUnload.cpp:83
+msgid "Homing"
+msgstr "Homing"
 
-#. Filament_removed
-#. FLEX filament, do not translate
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:73
+msgid "HOMING ERROR X"
+msgstr "HOMING ERROR X"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:78
+msgid "HOMING ERROR Y"
+msgstr "HOMING ERROR Y"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:68
+msgid "HOMING ERROR Z"
+msgstr "HOMING ERROR Z"
+
+#: src/gui/wizard/selftest_result_fans.cpp:13
+msgid "Hotend fan"
+msgstr "Hotend fan"
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:25
+msgid ""
+"Hotend fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
+msgstr ""
+"Hotend fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
+
+#: src/gui/wizard/selftest_frame_fans.cpp:26
+msgid "Hotend fan RPM test"
+msgstr "Hotend fan RPM test"
+
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:56
+msgid "Hotend sock"
+msgstr "Hotend sock"
+
+#: src/gui/screen_help_fw_update.cpp:55
+msgid "How to update firmware?"
+msgstr "How to update firmware?"
+
+#: src/gui/MItem_mmu.hpp:243
+msgid "HW Reset"
+msgstr "HW Reset"
+
+#: src/gui/MItem_menus.hpp:199 src/gui/screen_menu_hw_setup.hpp:23
+msgid "HW Setup"
+msgstr "HW Setup"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:86
+msgid "HW test begin"
+msgstr "HW test begin"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:90
+msgid "HW test cleanup"
+msgstr "HW test cleanup"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:92
+msgid "HW test display"
+msgstr "HW test display"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:91
+msgid "HW test exec"
+msgstr "HW test exec"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:87
+msgid "HW test idler"
+msgstr "HW test idler"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:89
+msgid "HW test pulley"
+msgstr "HW test pulley"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:88
+msgid "HW test selector"
+msgstr "HW test selector"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:133
+msgid "I2C RECEIVE BUSY"
+msgstr "I2C RECEIVE BUSY"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:128
+msgid "I2C RECEIVE FAILED"
+msgstr "I2C RECEIVE FAILED"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:138
+msgid "I2C RECEIVE TIMEOUT"
+msgstr "I2C RECEIVE TIMEOUT"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:143
+msgid "I2C RECEIVE UNDEFINED"
+msgstr "I2C RECEIVE UNDEFINED"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:113
+msgid "I2C SEND BUSY"
+msgstr "I2C SEND BUSY"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:108
+msgid "I2C SEND FAILED"
+msgstr "I2C SEND FAILED"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:118
+msgid "I2C SEND TIMEOUT"
+msgstr "I2C SEND TIMEOUT"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:123
+msgid "I2C SEND UNDEFINED"
+msgstr "I2C SEND UNDEFINED"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:70
+msgid "IDLER CANNOT HOME"
+msgstr "IDLER CANNOT HOME"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:76
+msgid "IDLER CANNOT MOVE"
+msgstr "IDLER CANNOT MOVE"
+
+#. HighFlow
 #. HIPS filament, do not translate
-#: src/common/client_response_texts.cpp:27
+#: src/common/client_response_texts.cpp:34
 msgid "IGNORE"
 msgstr "IGNORE"
 
-#: src/gui/screen_menu_eeprom_diagnostics.cpp:27
-#: src/gui/screen_menu_info.cpp:29
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:31
-msgid "INFO"
-msgstr "INFO"
+#: src/gui/wizard/selftest_result_eth.cpp:16
+msgid "Inactive"
+msgstr "Inactive"
 
-#: src/gui/MItem_lan.hpp:95
-msgid "IP"
-msgstr "IP"
-
-#: src/gui/MItem_lan.hpp:95
-msgid "IPv4 Address"
-msgstr "IPv4 Address"
-
-#: src/gui/MItem_lan.hpp:109
-msgid "IPv4 Gateway"
-msgstr "IPv4 Gateway"
-
-#: src/gui/MItem_lan.hpp:102
-msgid "IPv4 Netmask"
-msgstr "IPv4 Netmask"
-
-#. static const char en_text[] = N_("Observe the pattern and turn the knob to adjust the nozzle height in real time. Extruded plastic must stick to the print surface.");
-#: src/gui/wizard/firstlay.cpp:135
-msgid "In the next step, use the knob to adjust the nozzle height. Check the pictures in the handbook for reference."
-msgstr "In the next step, use the knob to adjust the nozzle height. Check the pictures in the handbook for reference."
-
-#: src/gui/screen_home.cpp:46
+#: src/gui/MItem_menus.hpp:377 src/gui/screen_home.cpp:140
 msgid "Info"
 msgstr "Info"
 
-#: src/gui/MItem_tools.cpp:280 src/guiapi/src/window_msgbox.cpp:167
+#. inherited by unit tests, must be protected
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:24
+#: src/gui/screen_menu_eeprom_diagnostics.hpp:33
+#: src/gui/screen_menu_info.hpp:21
+msgid "INFO"
+msgstr "INFO"
+
+#: src/guiapi/src/window_msgbox.cpp:315 src/gui/MItem_touch.cpp:13
+#: src/gui/MItem_tools.cpp:43
 msgid "Information"
 msgstr "Information"
 
-#: src/gui/wizard/selftest_frame_esp.cpp:47
-msgid "Insert USB drive with valid INI file."
-msgstr "Insert USB drive with valid INI file."
+#: src/gui/wizard/selftest_frame_fsensor.cpp:54
+msgid "in progress"
+msgstr "in progress"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:26
+#: src/gui/MItem_tools.hpp:558
+msgid "Input Current"
+msgstr "Input Current"
+
+#: src/gui/MItem_menus.hpp:507 src/gui/dialogs/print_progress.cpp:20
+msgid "Input Shaper"
+msgstr "Input Shaper"
+
+#: src/gui/screen_home.cpp:203 src/gui/screen_menu_input_shaper.hpp:20
+#: src/gui/screen_printing.cpp:376 src/gui/screen_printing.hpp:38
+msgid "INPUT SHAPER"
+msgstr "INPUT SHAPER"
+
+#: src/common/footer_def.hpp:114
+msgid "Input Shaper X"
+msgstr "Input Shaper X"
+
+#: src/common/footer_def.hpp:116
+msgid "Input Shaper Y"
+msgstr "Input Shaper Y"
+
+#: src/gui/MItem_tools.hpp:537
+msgid "Input Voltage"
+msgstr "Input Voltage"
+
+#. not calibrated would be too long
+#: src/gui/MItem_tools.cpp:525
+#, c-format
+msgid " INS / %7ld"
+msgstr " INS / %7ld"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:52
 msgid "Inserting"
 msgstr "Inserting"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:31
+#: src/gui/wizard/selftest_frame_fsensor.cpp:105
+msgid ""
+"Insert the filament into the extruder until the sensor detects the filament."
+msgstr ""
+"Insert the filament into the extruder until the sensor detects the filament."
+
+#: src/gui/wizard/selftest_frame_fsensor.cpp:103
+msgid ""
+"Insert the filament through the side filament sensor into the extruder until "
+"the tool filament sensor detects the filament."
+msgstr ""
+"Insert the filament through the side filament sensor into the extruder until "
+"the tool filament sensor detects the filament."
+
+#: src/gui/wizard/selftest_frame_esp.cpp:46
+msgid "Insert USB drive with valid INI file."
+msgstr "Insert USB drive with valid INI file."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:46
+msgid "INSPECT FINDA"
+msgstr "INSPECT FINDA"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:48
+msgid ""
+"Install and tighten the dock pins.\n"
+"\n"
+"Be careful in next step the printer will be moving."
+msgstr ""
+"Install and tighten the dock pins.\n"
+"\n"
+"Be careful in next step the printer will be moving."
+
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:102
+msgid "Installed"
+msgstr "Installed"
+
+#: src/gui/wizard/selftest_frame_dock.cpp:209
+msgid "Install pins"
+msgstr "Install pins"
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:49
+msgid "Install sheet on heatbed."
+msgstr "Install sheet on heatbed."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:251
+msgid "Internal runtime error. Try resetting the MMU or updating the firmware."
+msgstr ""
+"Internal runtime error. Try resetting the MMU or updating the firmware."
+
+#: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:59
+msgid ""
+"In the next step, use the knob to adjust the nozzle height. Check the "
+"pictures in the handbook for reference."
+msgstr ""
+"In the next step, use the knob to adjust the nozzle height. Check the "
+"pictures in the handbook for reference."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:232
+msgid "INVALID TOOL"
+msgstr "INVALID TOOL"
+
+#: src/gui/MItem_lan.hpp:94
+msgid "IP"
+msgstr "IP"
+
+#: src/gui/MItem_lan.hpp:94
+msgid "IPv4 Address"
+msgstr "IPv4 Address"
+
+#: src/gui/MItem_lan.hpp:108
+msgid "IPv4 Gateway"
+msgstr "IPv4 Gateway"
+
+#: src/gui/MItem_lan.hpp:101
+msgid "IPv4 Netmask"
+msgstr "IPv4 Netmask"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:57
 msgid "Is color correct?"
 msgstr "Is color correct?"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:27
+#: src/gui/dialogs/DialogLoadUnload.cpp:53
 msgid "Is filament in extruder gear?"
 msgstr "Is filament in extruder gear?"
 
-#: src/gui/wizard/xyzcalib.cpp:47 src/gui/wizard/xyzcalib.cpp:240
-msgid "Is steel sheet on heatbed?"
-msgstr "Is steel sheet on heatbed?"
+#: src/gui/wizard/selftest_frame_fsensor.cpp:94
+msgid "Is filament in the filament sensor?"
+msgstr "Is filament in the filament sensor?"
 
-#: src/gui/screen_menu_footer_settings.cpp:21
+#: src/gui/wizard/selftest_frame_fsensor.cpp:92
+msgid "Is there any filament in the tool or side filament sensors?"
+msgstr "Is there any filament in the tool or side filament sensors?"
+
+#: src/gui/screen_menu_footer_settings.hpp:60
 msgid "Item 1"
 msgstr "Item 1"
 
-#: src/gui/screen_menu_footer_settings.cpp:56
-msgid "Item 10"
-msgstr "Item 10"
-
-#: src/gui/screen_menu_footer_settings.cpp:24
+#: src/gui/screen_menu_footer_settings.hpp:62
 msgid "Item 2"
 msgstr "Item 2"
 
-#: src/gui/screen_menu_footer_settings.cpp:28
+#: src/gui/screen_menu_footer_settings.hpp:64
 msgid "Item 3"
 msgstr "Item 3"
 
-#: src/gui/screen_menu_footer_settings.cpp:32
+#: src/gui/screen_menu_footer_settings.hpp:66
 msgid "Item 4"
 msgstr "Item 4"
 
-#: src/gui/screen_menu_footer_settings.cpp:36
+#: src/gui/screen_menu_footer_settings.hpp:68
 msgid "Item 5"
 msgstr "Item 5"
 
-#: src/gui/screen_menu_footer_settings.cpp:40
-msgid "Item 6"
-msgstr "Item 6"
+#: src/gui/window_msgbox_wrong_printer.hpp:12
+msgid "it will run in MK3-compatibility mode"
+msgstr "it will run in MK3-compatibility mode"
 
-#: src/gui/screen_menu_footer_settings.cpp:44
-msgid "Item 7"
-msgstr "Item 7"
-
-#: src/gui/screen_menu_footer_settings.cpp:48
-msgid "Item 8"
-msgstr "Item 8"
-
-#: src/gui/screen_menu_footer_settings.cpp:52
-msgid "Item 9"
-msgstr "Item 9"
-
-#: src/gui/screen_menu_languages.cpp:136
-msgid "LANGUAGES"
-msgstr "LANGUAGES"
-
-#. Ignore
-#: src/common/client_response_texts.cpp:28
-msgid "LOAD"
-msgstr "LOAD"
-
-#: src/gui/dialogs/DialogFactory.cpp:9
-msgid "LOAD FILAMENT"
-msgstr "LOAD FILAMENT"
-
-#: src/gui/MItem_menus.hpp:159
+#: src/gui/menu_items_languages.hpp:11
 msgid "Language"
 msgstr "Language"
 
-#: src/gui/MItem_tools.hpp:34
+#: src/gui/screen_menu_languages.hpp:117
+msgid "LANGUAGES"
+msgstr "LANGUAGES"
+
+#: src/gui/MItem_menus.hpp:308
+msgid "Language & Time"
+msgstr "Language & Time"
+
+#: src/gui/screen_menu_lang_and_time.hpp:17
+msgid "LANGUAGE & TIME"
+msgstr "LANGUAGE & TIME"
+
+#: src/gui/MItem_crash.hpp:100
+msgid "Last Print Crashes on X Axis"
+msgstr "Last Print Crashes on X Axis"
+
+#: src/gui/MItem_crash.hpp:107
+msgid "Last Print Crashes on Y Axis"
+msgstr "Last Print Crashes on Y Axis"
+
+#. TODO: How does this thing get translated/marked for translation?
+#: src/gui/dialogs/DialogConnectReg.cpp:15
+msgid "Leave"
+msgstr "Leave"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:213
+msgid "LED MEMORY ERROR"
+msgstr "LED MEMORY ERROR"
+
+#. Ignore
+#: src/common/client_response_texts.cpp:35
+msgid "LEFT"
+msgstr "LEFT"
+
+#. *
+#. * There is no known way how this might happen on MINI printer to ordinary user.
+#. * If the motor is electrically disconnected, axis is too short.
+#. * If the pulley is loose, axis is too long, but the screen is not shown
+#. * as there is homing attempt before showing the screen which fails after 45 tries,
+#. * printer resets with homing failed red screen.
+#.
+#: src/gui/screen_crash_recovery.cpp:102
+msgid ""
+"Length of an axis is too long.\n"
+"Motor current is too low, probably.\n"
+"Retry check, pause or resume the print?"
+msgstr ""
+"Length of an axis is too long.\n"
+"Motor current is too low, probably.\n"
+"Retry check, pause or resume the print?"
+
+#: src/gui/screen_crash_recovery.cpp:94
+msgid ""
+"Length of an axis is too short.\n"
+"There's an obstacle or bearing issue.\n"
+"Retry check, pause or resume the print?"
+msgstr ""
+"Length of an axis is too short.\n"
+"There's an obstacle or bearing issue.\n"
+"Retry check, pause or resume the print?"
+
+#: src/gui/MItem_tools.hpp:28
 msgid "Live Adjust Z"
 msgstr "Live Adjust Z"
 
-#: src/gui/footer/footer_item_live_z.hpp:17
+#: src/common/footer_def.hpp:119
 msgid "Live Z"
 msgstr "Live Z"
 
-#: src/gui/MItem_filament.hpp:10
+#. Concatenated with filament name, "Change to" + " " + "PLA"
+#: src/gui/screen_menu_filament_changeall.hpp:16
+msgid "Load"
+msgstr "Load"
+
+#. Left
+#: src/common/client_response_texts.cpp:36
+msgid "LOAD"
+msgstr "LOAD"
+
+#: src/gui/MItem_mmu.hpp:48
+msgid "Load All"
+msgstr "Load All"
+
+#: src/gui/wizard/selftest_result_loadcell.cpp:13
+msgid "Loadcell"
+msgstr "Loadcell"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:203
+msgid "LOADCELL BAD CONFIGURATION"
+msgstr "LOADCELL BAD CONFIGURATION"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:184
+msgid "Loadcell calibration is incomplete. Restart the printer."
+msgstr "Loadcell calibration is incomplete. Restart the printer."
+
+#: src/gui/wizard/selftest_result_loadcell.cpp:12
+msgid "Loadcell check"
+msgstr "Loadcell check"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:199
+msgid "Loadcell measured an inifinite or undefined load value."
+msgstr "Loadcell measured an inifinite or undefined load value."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:198
+msgid "LOADCELL MEASURE FAILED"
+msgstr "LOADCELL MEASURE FAILED"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:183
+msgid "LOADCELL NOT CALIBRATED"
+msgstr "LOADCELL NOT CALIBRATED"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:188
+msgid "LOADCELL TARE ERROR"
+msgstr "LOADCELL TARE ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:193
+msgid "LOADCELL TARE FAILED"
+msgstr "LOADCELL TARE FAILED"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:29
+msgid "Loadcell Test"
+msgstr "Loadcell Test"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:122
+msgid "Loadcell test failed."
+msgstr "Loadcell test failed."
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:119
+msgid "Loadcell test passed OK."
+msgstr "Loadcell test passed OK."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:208
+msgid "LOADCELL TIMEOUT"
+msgstr "LOADCELL TIMEOUT"
+
+#: src/gui/MItem_loadcell.hpp:30
+msgid "Loadcell Value"
+msgstr "Loadcell Value"
+
+#: src/gui/MItem_lan.hpp:30
+msgid "Load Credentials"
+msgstr "Load Credentials"
+
+#: src/gui/screen_menu_connect.cpp:38
+msgid "Loaded successfully. Connect will activate shortly."
+msgstr "Loaded successfully. Connect will activate shortly."
+
+#: src/gui/screen_menu_connect.cpp:40
+msgid "Loaded successfully. Enable Connect to activate."
+msgstr "Loaded successfully. Enable Connect to activate."
+
+#: src/gui/MItem_filament.hpp:10 src/gui/screen_menu_mmu_load_filament.hpp:16
+#: src/gui/MItem_mmu.hpp:8
 msgid "Load Filament"
 msgstr "Load Filament"
 
-#: src/gui/screen_menu_settings.cpp:17
-msgid "Load Settings from file"
-msgstr "Load Settings from file"
+#: src/gui/MItem_mmu.hpp:69 src/gui/MItem_mmu.hpp:109
+msgid "Load Filament 1"
+msgstr "Load Filament 1"
 
-#: src/gui/MItem_lan.hpp:30
-msgid "Load credentials"
-msgstr "Load credentials"
+#: src/gui/MItem_mmu.hpp:77 src/gui/MItem_mmu.hpp:117
+msgid "Load Filament 2"
+msgstr "Load Filament 2"
 
-#: src/gui/wizard/selftest_frame_esp.cpp:50
+#: src/gui/MItem_mmu.hpp:85 src/gui/MItem_mmu.hpp:125
+msgid "Load Filament 3"
+msgstr "Load Filament 3"
+
+#: src/gui/MItem_mmu.hpp:93 src/gui/MItem_mmu.hpp:133
+msgid "Load Filament 4"
+msgstr "Load Filament 4"
+
+#: src/gui/MItem_mmu.hpp:101 src/gui/MItem_mmu.hpp:141
+msgid "Load Filament 5"
+msgstr "Load Filament 5"
+
+#. //MSG_PROGRESS_UNLOADING_FILAMENT c=20
+#: src/mmu2/mmu2_progress_converter.cpp:22
+#: src/gui/dialogs/DialogLoadUnload.cpp:74
+#: src/gui/dialogs/DialogLoadUnload.cpp:351
+msgid "Loading filament"
+msgstr "Loading filament"
+
+#: src/gui/wizard/selftest_frame_esp.cpp:49
 msgid "Loading the file failed! Check the USB drive!"
 msgstr "Loading the file failed! Check the USB drive!"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:29
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:53
+msgid ""
+"Loading to extruder failed. Inspect the filament tip shape. Refine the "
+"sensor calibration, if needed."
+msgstr ""
+"Loading to extruder failed. Inspect the filament tip shape. Refine the "
+"sensor calibration, if needed."
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:55
 msgid "Loading to nozzle"
 msgstr "Loading to nozzle"
 
-#: src/gui/MItem_tools.hpp:332
+#: src/gui/screen_menu_connect.hpp:36
+msgid "Load Settings"
+msgstr "Load Settings"
+
+#: src/gui/MItem_menus.hpp:318
+msgid "Load Settings from File"
+msgstr "Load Settings from File"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:52
+msgid "LOAD TO EXTR. FAILED"
+msgstr "LOAD TO EXTR. FAILED"
+
+#: src/gui/screen_menu_mmu_load_to_nozzle.hpp:16 src/gui/MItem_mmu.hpp:18
+msgid "Load to Nozzle"
+msgstr "Load to Nozzle"
+
+#: src/gui/MItem_touch.hpp:19
+msgid "Load Touch Registers from Flash Disc"
+msgstr "Load Touch Registers from Flash Disc"
+
+#: src/gui/wizard/selftest_frame_dock.cpp:199
+msgid "Lock the tool"
+msgstr "Lock the tool"
+
+#: src/gui/wizard/selftest_frame_dock.cpp:197
+msgid "Loosen pins"
+msgstr "Loosen pins"
+
+#: src/gui/wizard/selftest_frame_dock.cpp:195
+msgid "Loosen screws"
+msgstr "Loosen screws"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:43
+msgid ""
+"Loosen the two screws on the right side of the dock pillar (marked in "
+"orange) using the uni-wrench."
+msgstr ""
+"Loosen the two screws on the right side of the dock pillar (marked in "
+"orange) using the uni-wrench."
+
+#: src/gui/MItem_tools.hpp:176
 msgid "Loud"
 msgstr "Loud"
 
-#: src/gui/screen_menu_move.cpp:90
-#, c-format
+#: src/gui/MItem_love_board.hpp:11
+msgid "Love Board"
+msgstr "Love Board"
+
+#: src/gui/MItem_crash.hpp:52
+msgid "Low"
+msgstr "Low"
+
+#: src/gui/screen_menu_move.cpp:13
 msgid "Low temp"
 msgstr "Low temp"
 
-#: src/gui/MItem_tools.hpp:400
-msgid "M.I.N.D.A."
-msgstr "M.I.N.D.A."
-
-#: src/gui/MItem_lan.hpp:116
+#: src/gui/MItem_lan.hpp:115
 msgid "MAC"
 msgstr "MAC"
 
-#: src/gui/MItem_lan.hpp:116
+#: src/gui/MItem_lan.hpp:115
 msgid "MAC Address"
 msgstr "MAC Address"
 
-#. r=1, c=19
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:67
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:73
+#: src/gui/dialogs/DialogLoadUnload.cpp:51
+msgid "Make sure the filament is inserted through the sensor."
+msgstr "Make sure the filament is inserted through the sensor."
+
+#: src/gui/wizard/selftest_frame_esp.cpp:28
+msgid ""
+"Make sure USB drive with config file is connected.\n"
+"\n"
+"Continue to upload settings to the printer."
+msgstr ""
+"Make sure USB drive with config file is connected.\n"
+"\n"
+"Continue to upload settings to the printer."
+
+#: src/gui/screen_menu_hardware.cpp:45
+msgid ""
+"Manual change of the printer type is recommended only for advanced users. To "
+"automatically select the printer type, run the Self-test."
+msgstr ""
+"Manual change of the printer type is recommended only for advanced users. To "
+"automatically select the printer type, run the Self-test."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:219
+msgid ""
+"Marlin client could not send message to Marlin server and timeout was "
+"reached."
+msgstr ""
+"Marlin client could not send message to Marlin server and timeout was "
+"reached."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:218
+msgid "MARLIN REQUEST TIMEOUT"
+msgstr "MARLIN REQUEST TIMEOUT"
+
+#: src/gui/MItem_lan.hpp:101
+msgid "Mask"
+msgstr "Mask"
+
+#. Second line - material
+#: src/gui/gcode_description.cpp:137
+msgid "Material"
+msgstr "Material"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:28
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:33
 msgid "MAXTEMP ERROR"
 msgstr "MAXTEMP ERROR"
 
-#: src/gui/test/screen_mesh_bed_lv.cpp:56
+#: src/gui/screen_menu_modularbed.hpp:23
+msgid "MBed Board Temp"
+msgstr "MBed Board Temp"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:49
+msgid ""
+"Measured temperature is not matching expected value. Check the thermistor is "
+"in contact with heatbed. In case of damage, replace it."
+msgstr ""
+"Measured temperature is not matching expected value. Check the thermistor is "
+"in contact with heatbed. In case of damage, replace it."
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:28
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:54
+msgid ""
+"Measured temperature is not matching expected value. Check the thermistor is "
+"in contact with hotend. In case of damage, replace it."
+msgstr ""
+"Measured temperature is not matching expected value. Check the thermistor is "
+"in contact with hotend. In case of damage, replace it."
+
+#: src/gui/MItem_crash.hpp:53
+msgid "Medium"
+msgstr "Medium"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:214
+msgid "Memory allocation failed for scheduled LED animation"
+msgstr "Memory allocation failed for scheduled LED animation"
+
+#: src/gui/MItem_tools.hpp:160
+msgid "Menu Timeout"
+msgstr "Menu Timeout"
+
+#: src/gui/MItem_tools.hpp:48
+msgid "Mesh Bed Leveling"
+msgstr "Mesh Bed Leveling"
+
+#: src/gui/test/screen_mesh_bed_lv.cpp:55
 msgid "MESH BED LEVELING"
 msgstr "MESH BED LEVELING"
+
+#: src/gui/MItem_menus.hpp:179
+msgid "Message History"
+msgstr "Message History"
 
 #. Rect16(10, 28, 11 * 20, 18 * 16))
 #: src/gui/screen_messages.cpp:21
 msgid "MESSAGES"
 msgstr "MESSAGES"
 
-#. r=1, c=19
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:79
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:85
+#: src/gui/MItem_MINI_MK3.5.hpp:21
+msgid "M.I.N.D.A."
+msgstr "M.I.N.D.A."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:38
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:43
 msgid "MINTEMP ERROR"
 msgstr "MINTEMP ERROR"
 
-#: src/gui/gui_fsensor_api.hpp:27
-msgid "MMU not initialized. Disable MMU?"
-msgstr "MMU not initialized. Disable MMU?"
+#: src/gui/MItem_hardware.hpp:137
+msgid "MK3 Compatibility"
+msgstr "MK3 Compatibility"
 
-#: src/gui/screen_menu_move.cpp:144
-msgid "MOVE AXIS"
-msgstr "MOVE AXIS"
+#: src/gui/MItem_tools.hpp:565
+msgid "MMU Current"
+msgstr "MMU Current"
 
-#. this is a Short-File-Name path to the root of the dialog
-#: src/gui/window_file_list.hpp:43
-msgid "Main"
-msgstr "Main"
+#: src/gui/MItem_mmu.hpp:284
+msgid "MMU Enable"
+msgstr "MMU Enable"
 
-#: src/gui/wizard/selftest_frame_esp.cpp:29
+#: src/gui/screen_menu_mmu_fail_stats.hpp:14 src/gui/MItem_mmu.hpp:317
+msgid "MMU Fail Stats"
+msgstr "MMU Fail Stats"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:239
+msgid "MMU Firmware internal error, please reset the MMU."
+msgstr "MMU Firmware internal error, please reset the MMU."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:244
+msgid "MMU FW UPDATE NEEDED"
+msgstr "MMU FW UPDATE NEEDED"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:209
 msgid ""
-"Make sure USB drive with config file is connected.\n"
-"\n"
-"Continue to upload settings to the printer."
+"MMU MCU detected a 5V undervoltage. There might be an issue with the "
+"electronics. Check the wiring and connectors"
 msgstr ""
-"Make sure USB drive with config file is connected.\n"
-"\n"
-"Continue to upload settings to the printer."
+"MMU MCU detected a 5V undervoltage. There might be an issue with the "
+"electronics. Check the wiring and connectors"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:25
-msgid "Make sure the filament is inserted through the sensor."
-msgstr "Make sure the filament is inserted through the sensor."
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:208
+msgid "MMU MCU UNDERPOWER"
+msgstr "MMU MCU UNDERPOWER"
 
-#: src/gui/MItem_lan.hpp:102
-msgid "Mask"
-msgstr "Mask"
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:214
+msgid "MMU NOT RESPONDING"
+msgstr "MMU NOT RESPONDING"
 
-#: src/gui/gcode_description.cpp:37
-msgid "Material"
-msgstr "Material"
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:215
+msgid "MMU not responding. Check the wiring and connectors."
+msgstr "MMU not responding. Check the wiring and connectors."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
-msgid "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
-msgstr "Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it."
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:221
+msgid "MMU not responding correctly. Check the wiring and connectors."
+msgstr "MMU not responding correctly. Check the wiring and connectors."
 
-#: src/gui/wizard/xyzcalib.cpp:192
+#: src/gui/MItem_mmu.cpp:101
+msgid "MMU not supported!"
+msgstr "MMU not supported!"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:103
+msgid "MMU OVERCURRENT"
+msgstr "MMU OVERCURRENT"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:190
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:196
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:202
+msgid "MMU SELFTEST FAILED"
+msgstr "MMU SELFTEST FAILED"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:203
 msgid ""
-"Measuring reference\n"
-"height of calib.\n"
-"points"
+"MMU selftest failed on the Idler TMC driver. Check the wiring and "
+"connectors. If the issue persists contact support."
 msgstr ""
-"Measuring reference\n"
-"height of calib.\n"
-"points"
+"MMU selftest failed on the Idler TMC driver. Check the wiring and "
+"connectors. If the issue persists contact support."
 
-#: src/gui/MItem_tools.hpp:316
-msgid "Menu Timeout"
-msgstr "Menu Timeout"
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:191
+msgid ""
+"MMU selftest failed on the Pulley TMC driver. Check the wiring and "
+"connectors. If the issue persists contact support."
+msgstr ""
+"MMU selftest failed on the Pulley TMC driver. Check the wiring and "
+"connectors. If the issue persists contact support."
 
-#: src/gui/MItem_tools.hpp:54
-msgid "Mesh Bed Leveling"
-msgstr "Mesh Bed Leveling"
-
-#: src/gui/MItem_menus.hpp:149
-msgid "Messages"
-msgstr "Messages"
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:197
+msgid ""
+"MMU selftest failed on the Selector TMC driver. Check the wiring and "
+"connectors. If the issue persists contact support."
+msgstr ""
+"MMU selftest failed on the Selector TMC driver. Check the wiring and "
+"connectors. If the issue persists contact support."
 
 #. abbreviated Monday - max 3 characters
 #: src/lang/format_print_will_end.cpp:45
 msgid "Mon"
 msgstr "Mon"
 
-#: src/gui/MItem_menus.hpp:89
+#: src/gui/screen_qr_error.cpp:27
+msgid "More detail at"
+msgstr "More detail at"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:186
+#, c-format
+msgid ""
+"More detail at\n"
+"prusa.io/%05u"
+msgstr ""
+"More detail at\n"
+"prusa.io/%05u"
+
+#: src/gui/MItem_menus.hpp:103
 msgid "Move Axis"
 msgstr "Move Axis"
 
-#: src/gui/menu_vars.h:52
+#: src/gui/screen_menu_move.hpp:66
+msgid "MOVE AXIS"
+msgstr "MOVE AXIS"
+
+#: src/gui/menu_vars.h:50
 msgid "Move E"
 msgstr "Move E"
 
-#: src/gui/menu_vars.h:52
+#: src/gui/menu_vars.h:50
 msgid "Move X"
 msgstr "Move X"
 
-#: src/gui/menu_vars.h:52
+#: src/gui/menu_vars.h:50
 msgid "Move Y"
 msgstr "Move Y"
 
-#: src/gui/menu_vars.h:52
+#: src/gui/menu_vars.h:50
 msgid "Move Z"
 msgstr "Move Z"
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:76
+msgid "Moving away."
+msgstr "Moving away."
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:75
+msgid "Moving down"
+msgstr "Moving down"
+
+#. //MSG_PROGRESS_HOMING c=20
+#: src/mmu2/mmu2_progress_converter.cpp:32
+#: src/gui/dialogs/DialogLoadUnload.cpp:84
+msgid "Moving selector"
+msgstr "Moving selector"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:77
+msgid "Moving up"
+msgstr "Moving up"
+
+#. /< Number of tools shown in this menu
+#: src/gui/screen_menu_filament_changeall.hpp:95
+msgid "MULTITOOL FILAMENT CHANGE"
+msgstr "MULTITOOL FILAMENT CHANGE"
 
 #: src/guiapi/include/WindowItemFormatableLabel.hpp:18
 msgid "N/A"
 msgstr "N/A"
 
-#: src/gui/footer/footer_item_fsensor.cpp:24
+#: src/gui/footer/footer_item_fsensor.cpp:42
 msgid "N/A "
 msgstr "N/A "
 
-#: src/gui/footer/footer_item_fsensor.cpp:44
-msgid "NC "
-msgstr "NC "
-
-#: src/gui/footer/footer_item_fsensor.cpp:41
-msgid "NCAL "
-msgstr "NCAL "
-
-#: src/gui/screen_menu_network.cpp:19
-msgid "NETWORK"
-msgstr "NETWORK"
-
-#. Load
-#: src/common/client_response_texts.cpp:29
-msgid "NEXT"
-msgstr "NEXT"
-
-#: src/gui/footer/footer_item_fsensor.cpp:38
-msgid "NINIT "
-msgstr "NINIT "
-
-#. Next
-#: src/common/client_response_texts.cpp:30
-msgid "NO"
-msgstr "NO"
-
-#: src/gui/MItem_tools.hpp:364
+#: src/gui/MItem_tools.hpp:208
 msgid "Name"
 msgstr "Name"
 
-#: src/gui/MItem_menus.hpp:290
+#: src/gui/footer/footer_item_fsensor.cpp:62
+msgid "NC "
+msgstr "NC "
+
+#: src/gui/footer/footer_item_fsensor.cpp:59
+msgid "NCAL "
+msgstr "NCAL "
+
+#: src/gui/screen_menu_connect.cpp:90
+msgid "Net fail"
+msgstr "Net fail"
+
+#: src/gui/MItem_menus.hpp:327
 msgid "Network"
 msgstr "Network"
 
-#: src/gui/screen_home.cpp:47
-msgid "No USB"
-msgstr "No USB"
+#: src/gui/screen_menu_network.hpp:22
+msgid "NETWORK"
+msgstr "NETWORK"
 
-#: src/gui/screen_menu_steel_sheets.cpp:42
+#. MMU_disable
+#: src/common/client_response_texts.cpp:38
+msgid "NEVER"
+msgstr "NEVER"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:14
+msgid "newer firmware is required"
+msgstr "newer firmware is required"
+
+#: src/gui/screen_print_preview.cpp:83
+msgid "New firmware available"
+msgstr "New firmware available"
+
+#. Never
+#: src/common/client_response_texts.cpp:39
+msgid "NEXT"
+msgstr "NEXT"
+
+#: src/gui/MItem_hardware.hpp:158
+msgid "Nextruder silicone sock"
+msgstr "Nextruder silicone sock"
+
+#: src/gui/footer/footer_item_fsensor.cpp:56
+msgid "NINIT "
+msgstr "NINIT "
+
+#: src/gui/MItem_tools.cpp:526
+#, c-format
+msgid "NINS / %7ld"
+msgstr "NINS / %7ld"
+
+#. Next
+#: src/common/client_response_texts.cpp:40
+msgid "NO"
+msgstr "NO"
+
+#: src/gui/screen_menu_connect.cpp:69
+msgid "No Config"
+msgstr "No Config"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:284
+msgid ""
+"No firmware found\n"
+"in the internal\n"
+"flash! Please\n"
+"flash firmware\n"
+"first!"
+msgstr ""
+"No firmware found\n"
+"in the internal\n"
+"flash! Please\n"
+"flash firmware\n"
+"first!"
+
+#: src/common/footer_def.hpp:143 src/gui/MItem_hardware.hpp:18
+msgid "None"
+msgstr "None"
+
+#: src/gui/MItem_hardware.hpp:147
+msgid "Normal"
+msgstr "Normal"
+
+#: src/gui/screen_menu_steel_sheets.hpp:33
 msgid "Not Calib"
 msgstr "Not Calib"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:167
+msgid ""
+"Not enough current for the Idler TMC driver. There is probably an issue with "
+"the electronics. Check the wiring and connectors."
+msgstr ""
+"Not enough current for the Idler TMC driver. There is probably an issue with "
+"the electronics. Check the wiring and connectors."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:155
+msgid ""
+"Not enough current for the Pulley TMC driver. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+msgstr ""
+"Not enough current for the Pulley TMC driver. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:161
+msgid ""
+"Not enough current for the Selector TMC driver. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+msgstr ""
+"Not enough current for the Selector TMC driver. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
 
 #: src/guiapi/include/WindowItemFormatableLabel.hpp:19
 msgid "Not initialized"
 msgstr "Not initialized"
 
-#: src/gui/wizard/firstlay.cpp:104
-msgid "Now, let's calibrate the distance between the tip of the nozzle and the print sheet."
-msgstr "Now, let's calibrate the distance between the tip of the nozzle and the print sheet."
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:102
+msgid "Not installed"
+msgstr "Not installed"
 
-#: src/gui/footer/footer_items_nozzle_bed.hpp:16 src/gui/MItem_print.hpp:8
-#: src/gui/dialogs/DialogSelftestResult.cpp:47
+#. No
+#: src/common/client_response_texts.cpp:41
+msgid "NOT NOW"
+msgstr "NOT NOW"
+
+#: src/gui/screen_home.cpp:141
+msgid "No USB"
+msgstr "No USB"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:114
+msgid "NOW"
+msgstr "NOW"
+
+#: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:50
+msgid ""
+"Now, let's calibrate the distance between the tip of the nozzle and the "
+"print sheet."
+msgstr ""
+"Now, let's calibrate the distance between the tip of the nozzle and the "
+"print sheet."
+
+#: src/gui/MItem_tools.hpp:622
+msgid "Noz&Bed"
+msgstr "Noz&Bed"
+
+#: src/common/footer_def.hpp:90 src/gui/wizard/selftest_result_heaters.cpp:13
+#: src/gui/MItem_tools.hpp:621
 msgid "Nozzle"
 msgstr "Nozzle"
 
-#: src/gui/dialogs/DialogSelftestResult.cpp:46
-msgid "Nozzle and Heatbed"
-msgstr "Nozzle and Heatbed"
+#: src/gui/screen_menu_tools.hpp:234 src/gui/MItem_print.hpp:27
+msgid "Nozzle 1 Temperature"
+msgstr "Nozzle 1 Temperature"
 
-#: src/gui/dialogs/DialogSelftestTemp.cpp:25
+#: src/gui/screen_menu_tools.hpp:236 src/gui/MItem_print.hpp:29
+msgid "Nozzle 2 Temperature"
+msgstr "Nozzle 2 Temperature"
+
+#: src/gui/screen_menu_tools.hpp:238 src/gui/MItem_print.hpp:31
+msgid "Nozzle 3 Temperature"
+msgstr "Nozzle 3 Temperature"
+
+#: src/gui/screen_menu_tools.hpp:240 src/gui/MItem_print.hpp:33
+msgid "Nozzle 4 Temperature"
+msgstr "Nozzle 4 Temperature"
+
+#: src/gui/screen_menu_tools.hpp:242 src/gui/MItem_print.hpp:35
+msgid "Nozzle 5 Temperature"
+msgstr "Nozzle 5 Temperature"
+
+#: src/gui/screen_printing.cpp:239
+msgid "Nozzle cleaning failed."
+msgstr "Nozzle cleaning failed."
+
+#: src/gui/MItem_hardware.hpp:73 src/gui/MItem_hardware.hpp:105
+msgid "Nozzle Diameter"
+msgstr "Nozzle Diameter"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:10
+msgid "nozzle diameter doesn't match"
+msgstr "nozzle diameter doesn't match"
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:38
+msgid ""
+"Nozzle doesn't seem to have round cross section. Make sure it is clean and "
+"perpendicular to the bed."
+msgstr ""
+"Nozzle doesn't seem to have round cross section. Make sure it is clean and "
+"perpendicular to the bed."
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:44
+msgid ""
+"Nozzle have to be perfectly clean for good calibration results.\n"
+"- Clean all nozzles\n"
+"- Clean parking plate\n"
+"- Press continue when done"
+msgstr ""
+"Nozzle have to be perfectly clean for good calibration results.\n"
+"- Clean all nozzles\n"
+"- Clean parking plate\n"
+"- Press continue when done"
+
+#: src/gui/wizard/selftest_frame_temp.cpp:51
 msgid "Nozzle heater check"
 msgstr "Nozzle heater check"
 
-#: src/gui/screen_menu_odometer.cpp:18
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:93
+msgid "NOZZLE HEATER OVERCURRENT"
+msgstr "NOZZLE HEATER OVERCURRENT"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:95
+msgid "Nozzle temperature"
+msgstr "Nozzle temperature"
+
+#: src/gui/screen_menu_tools.hpp:222 src/gui/screen_menu_no_tools.hpp:10
+#: src/gui/MItem_print.hpp:9 src/gui/MItem_print.hpp:39
+msgid "Nozzle Temperature"
+msgstr "Nozzle Temperature"
+
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:54
+msgid "Nozzle type"
+msgstr "Nozzle type"
+
+#: src/gui/MItem_hardware.hpp:145
+msgid "Nozzle Type"
+msgstr "Nozzle Type"
+
+#: src/gui/screen_menu_cancel_object.hpp:16
+msgid "Object X"
+msgstr "Object X"
+
+#: src/gui/screen_menu_odometer.hpp:30
 msgid "ODOMETER"
 msgstr "ODOMETER"
 
-#: src/gui/footer/footer_item_fsensor.cpp:31
-msgid "OFF "
-msgstr "OFF "
-
-#. No
-#: src/common/client_response_texts.cpp:31 src/gui/screen_sheet_rename.cpp:17
-msgid "OK"
-msgstr "OK"
-
-#: src/gui/footer/footer_item_fsensor.cpp:28
-msgid "ON "
-msgstr "ON "
-
-#: src/gui/screen_menu_fw_update.cpp:30
-#: src/guiapi/include/WindowMenuItems.hpp:20
-#: src/guiapi/include/WindowMenuSpin.hpp:21
+#: src/guiapi/include/menu_spin_config_types.hpp:38
+#: src/gui/screen_menu_connect.cpp:68 src/gui/screen_menu_fw_update.hpp:47
 msgid "Off"
 msgstr "Off"
 
-#: src/gui/screen_menu_steel_sheets.cpp:39
+#: src/gui/footer/footer_item_fsensor.cpp:49
+msgid "OFF "
+msgstr "OFF "
+
+#: src/gui/screen_menu_steel_sheets.hpp:30
 msgid "Offset"
 msgstr "Offset"
 
-#: src/guiapi/include/WindowMenuItems.hpp:21
-msgid "On"
-msgstr "On"
+#: src/gui/screen_menu_tools.hpp:55
+msgid "Offset X"
+msgstr "Offset X"
 
-#: src/gui/screen_menu_fw_update.cpp:31
-msgid "On Restart"
-msgstr "On Restart"
+#: src/gui/screen_menu_tools.hpp:64
+msgid "Offset Y"
+msgstr "Offset Y"
 
-#: src/gui/MItem_tools.hpp:331
+#: src/gui/screen_menu_tools.hpp:73
+msgid "Offset Z"
+msgstr "Offset Z"
+
+#. clang-format off
+#. 01234567890123456789
+#. Not now
+#: src/mmu2/mmu2_progress_converter.cpp:7
+#: src/common/client_response_texts.cpp:42 src/gui/screen_sheet_rename.cpp:20
+msgid "OK"
+msgstr "OK"
+
+#: src/gui/footer/footer_item_fsensor.cpp:46
+msgid "ON "
+msgstr "ON "
+
+#: src/gui/MItem_tools.hpp:175
 msgid "Once"
 msgstr "Once"
 
-#: src/gui/ScreenFirstLayer.hpp:14
-msgid "Once the printer starts extruding plastic, adjust the nozzle height by turning the knob until the filament sticks to the print sheet."
-msgstr "Once the printer starts extruding plastic, adjust the nozzle height by turning the knob until the filament sticks to the print sheet."
+#: src/gui/wizard/selftest_frame_firstlayer.hpp:16
+msgid ""
+"Once the printer starts extruding plastic, adjust the nozzle height by "
+"turning the knob until the filament sticks to the print sheet."
+msgstr ""
+"Once the printer starts extruding plastic, adjust the nozzle height by "
+"turning the knob until the filament sticks to the print sheet."
 
-#: src/gui/screen_menu_preheat.cpp:26 src/gui/screen_menu_preheat.cpp:49
-msgid "PREHEAT"
-msgstr "PREHEAT"
+#: src/gui/screen_menu_connect.cpp:71
+msgid "Online"
+msgstr "Online"
 
-#. r=1, c=19
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:43
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:49
-msgid "PREHEAT ERROR"
-msgstr "PREHEAT ERROR"
+#: src/gui/screen_menu_fw_update.hpp:20 src/gui/screen_menu_fw_update.hpp:48
+msgid "On Restart"
+msgstr "On Restart"
 
-#: src/gui/dialogs/DialogFactory.cpp:12
-msgid "PREHEAT for LOAD"
-msgstr "PREHEAT for LOAD"
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:168
+msgid "OUT OF MEMORY"
+msgstr "OUT OF MEMORY"
 
-#: src/gui/dialogs/DialogFactory.cpp:14
-msgid "PREHEAT for PURGE"
-msgstr "PREHEAT for PURGE"
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:89
+msgid "Overcurrent detected on connected USB device, disconnect it."
+msgstr "Overcurrent detected on connected USB device, disconnect it."
 
-#: src/gui/dialogs/DialogFactory.cpp:13
-msgid "PREHEAT for UNLOAD"
-msgstr "PREHEAT for UNLOAD"
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:94
+msgid "Overcurrent detected on nozzle heater."
+msgstr "Overcurrent detected on nozzle heater."
 
-#: src/gui/screen_printing.hpp:44 src/gui/screen_printing.cpp:384
-msgid "PRINTING"
-msgstr "PRINTING"
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:104
+msgid "Overcurrent detected on the MMU port, disconnect the device."
+msgstr "Overcurrent detected on the MMU port, disconnect the device."
 
-#: src/gui/screen_filebrowser.cpp:44
-msgid "PROJECTS"
-msgstr "PROJECTS"
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:84
+msgid "Overcurrent detected on USB port."
+msgstr "Overcurrent detected on USB port."
 
-#: src/gui/screen_prusa_link.cpp:58
-msgid "PRUSALINK"
-msgstr "PRUSALINK"
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:99
+msgid "Overcurrent detected on xBuddy heatbed port, disconnect the device."
+msgstr "Overcurrent detected on xBuddy heatbed port, disconnect the device."
 
-#: src/gui/MItem_filament.hpp:38 src/gui/dialogs/DialogFactory.cpp:11
-msgid "PURGE FILAMENT"
-msgstr "PURGE FILAMENT"
+#: src/guiapi/include/window_tool_action_box.hpp:93
+#: src/gui/screen_menu_tools.hpp:161
+msgid "Park Current Tool"
+msgstr "Park Current Tool"
 
-#. Ok
-#. PC filament, do not translate
-#. PETG filament, do not translate
-#. PLA filament, do not translate
-#. PP filament, do not translate
-#: src/common/client_response_texts.cpp:36
-msgid "PURGE MORE"
-msgstr "PURGE MORE"
-
-#: src/gui/dialogs/DialogG162.cpp:9 src/gui/dialogs/DialogLoadUnload.cpp:15
+#: src/gui/dialogs/DialogLoadUnload.cpp:41
 msgid "Parking"
 msgstr "Parking"
 
-#: src/gui/ScreenPrintingModel.hpp:16 src/gui/screen_printing.cpp:39
+#. //MSG_PROGRESS_RETURN_SELECTOR c=20
+#: src/mmu2/mmu2_progress_converter.cpp:28
+#: src/gui/dialogs/DialogLoadUnload.cpp:80
+msgid "Parking selector"
+msgstr "Parking selector"
+
+#: src/gui/wizard/selftest_frame_dock.cpp:213
+msgid "Parking test"
+msgstr "Parking test"
+
+#: src/gui/wizard/selftest_frame_dock.hpp:50
+msgid ""
+"Parking test failed.\n"
+"\n"
+"Please try again."
+msgstr ""
+"Parking test failed.\n"
+"\n"
+"Please try again."
+
+#: src/gui/wizard/selftest_frame_dock.cpp:192
+msgid "Parking tool"
+msgstr "Parking tool"
+
+#: src/gui/screen_prusa_link.hpp:42 src/gui/screen_prusa_link.hpp:57
+msgid "Password"
+msgstr "Password"
+
+#: src/gui/ScreenPrintingModel.cpp:21
 msgid "Pause"
 msgstr "Pause"
 
-#: src/gui/screen_printing.cpp:40
+#. Ok
+#: src/common/client_response_texts.cpp:43
+msgid "PAUSE"
+msgstr "PAUSE"
+
+#: src/gui/ScreenPrintingModel.cpp:22
 msgid "Pausing..."
 msgstr "Pausing..."
 
-#: src/gui/wizard/xyzcalib.cpp:66 src/gui/wizard/xyzcalib.cpp:257
-msgid "Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off printer immediately!"
-msgstr "Place a sheet of paper under the nozzle during the calibration of first 4 points. If the nozzle catches the paper, power off printer immediately!"
+#: src/gui/screen_menu_tools.cpp:105
+msgid ""
+"Perform filament sensors calibration? This discards previous filament "
+"sensors calibration. The extruder will be replaced during calibration"
+msgstr ""
+"Perform filament sensors calibration? This discards previous filament "
+"sensors calibration. The extruder will be replaced during calibration"
 
-#: src/gui/wizard/xyzcalib.cpp:40 src/gui/wizard/xyzcalib.cpp:232
-msgid "Please clean the nozzle for calibration. Click NEXT when done."
-msgstr "Please clean the nozzle for calibration. Click NEXT when done."
+#. //MSG_PROGRESS_PUSH_FILAMENT c=20
+#: src/mmu2/mmu2_progress_converter.cpp:26
+#: src/gui/dialogs/DialogLoadUnload.cpp:78
+msgid "Performing cut"
+msgstr "Performing cut"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:23
+#: src/gui/MItem_menus.hpp:464
+msgid "Pick/Park Tool"
+msgstr "Pick/Park Tool"
+
+#: src/guiapi/include/window_tool_action_box.hpp:78
+msgid "Pick Tool 1"
+msgstr "Pick Tool 1"
+
+#: src/guiapi/include/window_tool_action_box.hpp:83
+msgid "Pick Tool 1 (Current)"
+msgstr "Pick Tool 1 (Current)"
+
+#: src/guiapi/include/window_tool_action_box.hpp:80
+msgid "Pick Tool 2"
+msgstr "Pick Tool 2"
+
+#: src/guiapi/include/window_tool_action_box.hpp:85
+msgid "Pick Tool 2 (Current)"
+msgstr "Pick Tool 2 (Current)"
+
+#: src/guiapi/include/window_tool_action_box.hpp:79
+msgid "Pick Tool 3"
+msgstr "Pick Tool 3"
+
+#: src/guiapi/include/window_tool_action_box.hpp:84
+msgid "Pick Tool 3 (Current)"
+msgstr "Pick Tool 3 (Current)"
+
+#: src/guiapi/include/window_tool_action_box.hpp:81
+msgid "Pick Tool 4"
+msgstr "Pick Tool 4"
+
+#: src/guiapi/include/window_tool_action_box.hpp:86
+msgid "Pick Tool 4 (Current)"
+msgstr "Pick Tool 4 (Current)"
+
+#: src/guiapi/include/window_tool_action_box.hpp:82
+msgid "Pick Tool 5"
+msgstr "Pick Tool 5"
+
+#: src/guiapi/include/window_tool_action_box.hpp:87
+msgid "Pick Tool 5 (Current)"
+msgstr "Pick Tool 5 (Current)"
+
+#: src/gui/screen_menu_tools.hpp:82
+msgid "Pickup Tool"
+msgstr "Pickup Tool"
+
+#: src/gui/screen_tools_mapping.cpp:321
+msgid "Please assign a tool for the filament."
+msgstr "Please assign a tool for the filament."
+
+#: src/gui/screen_print_preview.hpp:20 src/gui/box_unfinished_selftest.cpp:48
+msgid "Please complete Calibrations & Tests before using the printer."
+msgstr "Please complete Calibrations & Tests before using the printer."
+
+#: src/gui/wizard/selftest_frame_fsensor.cpp:84
+msgid ""
+"Please make sure there is no filament in the tool and side filament "
+"sensors.\n"
+"\n"
+"You will need filament to finish this test later."
+msgstr ""
+"Please make sure there is no filament in the tool and side filament "
+"sensors.\n"
+"\n"
+"You will need filament to finish this test later."
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:49
 msgid "Please open idler and remove filament manually"
 msgstr "Please open idler and remove filament manually"
 
-#: src/gui/wizard/xyzcalib.cpp:85 src/gui/wizard/xyzcalib.cpp:273
-msgid "Please place steel sheet on heatbed."
-msgstr "Please place steel sheet on heatbed."
-
-#: src/gui/dialogs/DialogLoadUnload.cpp:22
+#: src/gui/dialogs/DialogLoadUnload.cpp:48
 msgid "Please remove filament from filament sensor."
 msgstr "Please remove filament from filament sensor."
 
-#: src/gui/wizard/xyzcalib.cpp:59 src/gui/wizard/xyzcalib.cpp:250
-msgid "Please remove steel sheet from heatbed."
-msgstr "Please remove steel sheet from heatbed."
+#: src/gui/screen_tools_mapping.cpp:313
+msgid "Please select the filament."
+msgstr "Please select the filament."
 
-#: src/gui/dialogs/window_dlg_wait.cpp:16
+#: src/gui/wizard/selftest_frame_calib_z.cpp:17
+msgid "please wait"
+msgstr "please wait"
+
+#: src/gui/dialogs/window_dlg_wait.cpp:20
 msgid "Please wait"
 msgstr "Please wait"
 
-#: src/gui/screen_home.cpp:42
+#: src/gui/wizard/selftest_frame_fsensor.cpp:79
+msgid "Please wait until a tool is picked"
+msgstr "Please wait until a tool is picked"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:173
+msgid "PNG BUFFER FULL"
+msgstr "PNG BUFFER FULL"
+
+#: src/gui/MItem_mmu.hpp:251
+msgid "Power Cycle"
+msgstr "Power Cycle"
+
+#: src/gui/MItem_crash.hpp:93
+msgid "Power Failures"
+msgstr "Power Failures"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:148
+msgid "POWER PANIC"
+msgstr "POWER PANIC"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:149
+msgid ""
+"Power panic has been detected during printer initialization. Inspect wiring "
+"of PP-cable."
+msgstr ""
+"Power panic has been detected during printer initialization. Inspect wiring "
+"of PP-cable."
+
+#: src/gui/screen_home.cpp:132
 msgid "Preheat"
 msgstr "Preheat"
 
-#: src/gui/dialogs/DialogSelftestTemp.cpp:27
+#: src/gui/screen_menu_error_test.cpp:92
+msgid "Preheat Error"
+msgstr "Preheat Error"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:8
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:13
+msgid "PREHEAT ERROR"
+msgstr "PREHEAT ERROR"
+
+#: src/gui/dialogs/window_dlg_preheat.cpp:15
+msgid "Preheating for load"
+msgstr "Preheating for load"
+
+#: src/gui/dialogs/window_dlg_preheat.cpp:17
+msgid "Preheating for purge"
+msgstr "Preheating for purge"
+
+#: src/gui/dialogs/window_dlg_preheat.cpp:16
+msgid "Preheating for unload"
+msgstr "Preheating for unload"
+
+#: src/gui/wizard/selftest_frame_temp.cpp:53
 msgid "Preparing"
 msgstr "Preparing"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:18
+#. //MSG_PROGRESS_SELECT_SLOT c=20
+#: src/mmu2/mmu2_progress_converter.cpp:24
+#: src/gui/dialogs/DialogLoadUnload.cpp:76
+msgid "Preparing blade"
+msgstr "Preparing blade"
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:54
+msgid "Preparing for calibration pin installation."
+msgstr "Preparing for calibration pin installation."
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:44
 msgid "Preparing to ram"
 msgstr "Preparing to ram"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:24
+#: src/gui/dialogs/DialogLoadUnload.cpp:50
 msgid "Press CONTINUE and push filament into the extruder."
 msgstr "Press CONTINUE and push filament into the extruder."
 
-#: src/gui/wizard/screen_wizard.cpp:189
-msgid "Press NEXT to run the Selftest, which checks for potential issues related to the assembly."
-msgstr "Press NEXT to run the Selftest, which checks for potential issues related to the assembly."
+#: src/gui/screen_menu_selftest_snake.cpp:130
+msgid "Previous Calibrations & Tests are not all done. Continue anyway?"
+msgstr "Previous Calibrations & Tests are not all done. Continue anyway?"
 
-#: src/gui/screen_print_preview.cpp:138 src/gui/screen_home.cpp:41
+#: src/gui/screen_home.cpp:131
+#: src/gui/dialogs/resolution_480x320/radio_button_preview.cpp:12
 msgid "Print"
 msgstr "Print"
 
-#: src/gui/footer/footer_item_fans.hpp:34 src/gui/MItem_print.hpp:24
-#: src/gui/dialogs/DialogSelftestFans.cpp:20
-#: src/gui/dialogs/DialogSelftestResult.cpp:41
+#: src/gui/screen_print_preview.cpp:130
+#: src/gui/resolution_480x320/screen_print_preview_base.cpp:24
+msgid "PRINT"
+msgstr "PRINT"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:9
+msgid "printer doesn't have enough tools"
+msgstr "printer doesn't have enough tools"
+
+#: src/gui/MItem_tools.cpp:49
+msgid "Printer may vibrate and be noisier during homing."
+msgstr "Printer may vibrate and be noisier during homing."
+
+#: src/gui/MItem_hardware.hpp:113
+msgid "Printer Model"
+msgstr "Printer Model"
+
+#: src/gui/window_msgbox_wrong_printer.hpp:11
+msgid "printer model doesn't match"
+msgstr "printer model doesn't match"
+
+#: src/gui/screen_tools_mapping.cpp:136
+msgid "Printer tools"
+msgstr "Printer tools"
+
+#: src/common/footer_def.hpp:110 src/gui/wizard/selftest_result_fans.cpp:14
+msgid "Print fan"
+msgstr "Print fan"
+
+#: src/gui/MItem_tools.hpp:459
 msgid "Print Fan"
 msgstr "Print Fan"
 
-#: src/gui/gcode_description.cpp:36
-msgid "Print Time"
-msgstr "Print Time"
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:26
+msgid ""
+"Print fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
+msgstr ""
+"Print fan not spinning. Check it for possible debris, then inspect the "
+"wiring."
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
-msgid "Print fan not spinning. Check it for possible debris, then inspect the wiring."
-msgstr "Print fan not spinning. Check it for possible debris, then inspect the wiring."
-
-#: src/gui/MItem_tools.hpp:456
-msgid "Print time"
-msgstr "Print time"
-
-#. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-#. theoretically it can be removed completely in case the string is constant for the whole run of the screen
-#: src/gui/screen_printing.cpp:255
-msgid "Print will end"
-msgstr "Print will end"
-
-#: src/gui/screen_sysinf.cpp:71
+#: src/gui/screen_sysinf.cpp:74
 msgid "PrintFan RPM"
 msgstr "PrintFan RPM"
 
-#: src/gui/MItem_lan.hpp:79
+#: src/gui/wizard/selftest_frame_fans.cpp:27
+msgid "Print fan RPM test"
+msgstr "Print fan RPM test"
+
+#: src/gui/MItem_print.hpp:56
+msgid "Print Fan Speed"
+msgstr "Print Fan Speed"
+
+#: src/gui/dialogs/print_progress.cpp:15
+msgid "Print finished"
+msgstr "Print finished"
+
+#: src/gui/screen_menu_cancel_object.hpp:18
+msgid "Printing"
+msgstr "Printing"
+
+#: src/gui/screen_printing.cpp:158
+msgid "Printing time"
+msgstr "Printing time"
+
+#: src/gui/MItem_tools.hpp:473
+msgid "Print Progress Screen"
+msgstr "Print Progress Screen"
+
+#: src/gui/MItem_print.hpp:65
+msgid "Print Speed"
+msgstr "Print Speed"
+
+#: src/gui/MItem_menus.hpp:367
+msgid "Print Statistics"
+msgstr "Print Statistics"
+
+#: src/gui/screen_menu_statistics.hpp:21
+msgid "PRINT STATISTICS"
+msgstr "PRINT STATISTICS"
+
+#: src/gui/dialogs/print_progress.cpp:16
+msgid "Print stopped"
+msgstr "Print stopped"
+
+#. First line - Print Time
+#: src/gui/gcode_description.cpp:129 src/gui/MItem_tools.hpp:523
+msgid "Print Time"
+msgstr "Print Time"
+
+#: src/gui/print_time_module.hpp:24
+msgid "Print will end"
+msgstr "Print will end"
+
+#: src/gui/screen_filebrowser.cpp:27
+msgid "PROJECTS"
+msgstr "PROJECTS"
+
+#: src/gui/MItem_lan.hpp:78
 msgid "Protocol"
 msgstr "Protocol"
 
-#: src/gui/MItem_filament.hpp:37
+#: src/gui/screen_menu_connect.cpp:91
+msgid "Protocol err"
+msgstr "Protocol err"
+
+#: src/gui/MItem_menus.hpp:189
+msgid "Prusa Connect"
+msgstr "Prusa Connect"
+
+#. TODO: Doesn't fit
+#: src/gui/dialogs/DialogConnectReg.hpp:16 src/gui/screen_menu_connect.hpp:62
+msgid "PRUSA CONNECT"
+msgstr "PRUSA CONNECT"
+
+#: src/gui/screen_prusa_link.cpp:61
+msgid "PRUSALINK"
+msgstr "PRUSALINK"
+
+#. Pause
+#. PC filament, do not translate
+#. PETG filament, do not translate
+#. PETG_NH
+#. PLA filament, do not translate
+#. PP filament, do not translate
+#. Print
+#: src/common/client_response_texts.cpp:50
+msgid "PRUSA STOCK"
+msgstr "PRUSA STOCK"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:34
+msgid "PULLEY CANNOT MOVE"
+msgstr "PULLEY CANNOT MOVE"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:35
+msgid "Pulley motor stalled. Ensure the pulley can move and check the wiring."
+msgstr "Pulley motor stalled. Ensure the pulley can move and check the wiring."
+
+#: src/gui/MItem_filament.hpp:52
 msgid "Purge Filament"
 msgstr "Purge Filament"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:30
+#: src/gui/MItem_filament.hpp:53
+msgid "PURGE FILAMENT"
+msgstr "PURGE FILAMENT"
+
+#. PrusaStock
+#: src/common/client_response_texts.cpp:51
+msgid "PURGE MORE"
+msgstr "PURGE MORE"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:56
 msgid "Purging"
 msgstr "Purging"
 
-#: src/guiapi/src/window_msgbox.cpp:153
+#: src/gui/dialogs/DialogLoadUnload.cpp:353
+msgid "Purging filament"
+msgstr "Purging filament"
+
+#. //MSG_PROGRESS_PREPARE_BLADE c=20
+#: src/mmu2/mmu2_progress_converter.cpp:25
+#: src/gui/dialogs/DialogLoadUnload.cpp:77
+msgid "Pushing filament"
+msgstr "Pushing filament"
+
+#: src/guiapi/src/window_msgbox.cpp:297
 msgid "Question"
 msgstr "Question"
 
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:238
+msgid "QUEUE FULL"
+msgstr "QUEUE FULL"
+
 #. Purge_more
 #. PVB filament, do not translate
-#: src/common/client_response_texts.cpp:38
+#: src/common/client_response_texts.cpp:53
+msgid "QUIT"
+msgstr "QUIT"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:45
+msgid "Ramming"
+msgstr "Ramming"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:154
+msgid "Reading ESP firmware failed."
+msgstr "Reading ESP firmware failed."
+
+#: src/gui/screen_printing_serial.cpp:36
+msgid "Really Disconnect?"
+msgstr "Really Disconnect?"
+
+#: src/gui/screen_menu_connect.cpp:85
+msgid "Refused"
+msgstr "Refused"
+
+#: src/gui/screen_menu_connect.cpp:76
+msgid "Reg. code"
+msgstr "Reg. code"
+
+#: src/gui/screen_menu_connect.cpp:77
+msgid "Reg. done"
+msgstr "Reg. done"
+
+#: src/gui/screen_menu_connect.cpp:78
+msgid "Reg. error"
+msgstr "Reg. error"
+
+#. These are unlikely to be shown, we have another screen when
+#. registering. But we shall cover the complete set anyway.
+#: src/gui/screen_menu_connect.cpp:75
+msgid "Registering"
+msgstr "Registering"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:99
+msgid "Registration failed. Likely a network error. Try again later."
+msgstr "Registration failed. Likely a network error. Try again later."
+
+#. QUIT
+#: src/common/client_response_texts.cpp:54
 msgid "REHEAT"
 msgstr "REHEAT"
 
-#: src/gui/screen_sheet_rename.cpp:22
+#: src/gui/print_time_module.hpp:23
+msgid "Remaining time"
+msgstr "Remaining time"
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:81
+msgid ""
+"- Remove calibration pin.\n"
+"- Install sheet on heatbed."
+msgstr ""
+"- Remove calibration pin.\n"
+"- Install sheet on heatbed."
+
+#: src/gui/wizard/selftest_frame_fsensor.cpp:118
+msgid "Remove filament to finish."
+msgstr "Remove filament to finish."
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:59
+msgid ""
+"- Remove heatbed sheet.\n"
+"- Install calibration pin."
+msgstr ""
+"- Remove heatbed sheet.\n"
+"- Install calibration pin."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:263
+msgid "Remove the ejected filament from the front of the MMU."
+msgstr "Remove the ejected filament from the front of the MMU."
+
+#: src/gui/screen_menu_steel_sheets.hpp:64
+msgid "Rename"
+msgstr "Rename"
+
+#: src/gui/screen_sheet_rename.cpp:25
 msgid "RENAME"
 msgstr "RENAME"
+
+#: src/gui/screen_crash_recovery.cpp:103
+msgid ""
+"Repeated collision has been detected.\n"
+"Do you want to resume or pause the print?"
+msgstr ""
+"Repeated collision has been detected.\n"
+"Do you want to resume or pause the print?"
+
+#. Reheat
+#: src/common/client_response_texts.cpp:55
+msgid "REPLACE"
+msgstr "REPLACE"
+
+#: src/gui/ScreenPrintingModel.cpp:27
+msgid "Reprint"
+msgstr "Reprint"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:233
+msgid ""
+"Requested filament tool is not available on this hardware. Check the G-code "
+"for tool index out of range (T0-T4)."
+msgstr ""
+"Requested filament tool is not available on this hardware. Check the G-code "
+"for tool index out of range (T0-T4)."
+
+#: src/gui/screen_menu_steel_sheets.hpp:74 src/gui/MItem_tools.hpp:600
+msgid "Reset"
+msgstr "Reset"
+
+#: src/gui/MItem_tools.cpp:211
+msgid "Reset complete. The system will now restart."
+msgstr "Reset complete. The system will now restart."
+
+#: src/gui/MItem_touch.hpp:39
+msgid "Reset Display"
+msgstr "Reset Display"
 
 #: src/common/MindaRedscreen.cpp:175
 msgid "RESET PRINTER"
 msgstr "RESET PRINTER"
 
-#. Reheat
-#: src/common/client_response_texts.cpp:39
-msgid "RETRY"
-msgstr "RETRY"
+#: src/gui/MItem_tools.hpp:78
+msgid "Reset Settings & Calibrations"
+msgstr "Reset Settings & Calibrations"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:19
-msgid "Ramming"
-msgstr "Ramming"
+#: src/gui/MItem_touch.hpp:29
+msgid "Reset Touch Registers"
+msgstr "Reset Touch Registers"
 
-#: src/gui/screen_printing_serial.cpp:42
-msgid "Really Disconnect?"
-msgstr "Really Disconnect?"
+#. Replace
+#: src/common/client_response_texts.cpp:56
+msgid "RESTART"
+msgstr "RESTART"
 
-#. store string_view_utf8 for later use - should be safe, we get some static string from flash, no need to copy it into RAM
-#: src/gui/screen_printing.cpp:152 src/gui/screen_printing.cpp:259
-#: src/gui/screen_printing.cpp:379
-msgid "Remaining"
-msgstr "Remaining"
+#: src/gui/MItem_basic_selftest.hpp:186
+msgid "Restore Calibration from USB"
+msgstr "Restore Calibration from USB"
 
-#: src/gui/screen_menu_steel_sheets.cpp:97
-msgid "Rename"
-msgstr "Rename"
-
-#: src/gui/screen_printing.cpp:45
-msgid "Reprint"
-msgstr "Reprint"
-
-#: src/gui/screen_menu_steel_sheets.cpp:110 src/gui/MItem_tools.hpp:463
-msgid "Reset"
-msgstr "Reset"
-
-#: src/gui/screen_printing.cpp:42
+#: src/gui/ScreenPrintingModel.cpp:24
 msgid "Resume"
 msgstr "Resume"
 
-#: src/gui/screen_printing.cpp:43
+#. Restart
+#: src/common/client_response_texts.cpp:57
+msgid "RESUME"
+msgstr "RESUME"
+
+#: src/gui/ScreenPrintingModel.cpp:25
 msgid "Resuming..."
 msgstr "Resuming..."
 
-#: src/gui/dialogs/window_dlg_preheat.hpp:39
-#: src/guiapi/include/WindowMenuItems.hpp:55
+#. //MSG_PROGRESS_EJECT_FILAMENT c=20
+#: src/mmu2/mmu2_progress_converter.cpp:30
+msgid "Retract from FINDA"
+msgstr "Retract from FINDA"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:82
+msgid "Retracting from FINDA"
+msgstr "Retracting from FINDA"
+
+#. Resume
+#: src/common/client_response_texts.cpp:58
+msgid "RETRY"
+msgstr "RETRY"
+
+#: src/guiapi/include/WindowMenuItems.hpp:39
+#: src/guiapi/include/window_tool_action_box.hpp:94
+#: src/gui/dialogs/window_dlg_preheat.hpp:41
 msgid "Return"
 msgstr "Return"
 
-#: src/gui/screen_menu_languages.cpp:153
-msgid "SELECT LANGUAGE"
-msgstr "SELECT LANGUAGE"
+#. //MSG_PROGRESS_PERFORM_CUT c=20
+#: src/mmu2/mmu2_progress_converter.cpp:27
+#: src/gui/dialogs/DialogLoadUnload.cpp:79
+msgid "Returning selector"
+msgstr "Returning selector"
 
-#: src/gui/ScreenSelftest.hpp:47 src/gui/wizard/screen_wizard.cpp:28
-msgid "SELFTEST"
-msgstr "SELFTEST"
+#: src/gui/MItem_menus.hpp:415
+msgid "RGB Side Strip"
+msgstr "RGB Side Strip"
 
-#: src/gui/screen_menu_sensor_info.cpp:20
-msgid "SENSOR INFO"
-msgstr "SENSOR INFO"
-
-#. filament sensor will think printer is in printing state
-#: src/gui/screen_printing_serial.hpp:15
-msgid "SERIAL PRINTING"
-msgstr "SERIAL PRINTING"
-
-#: src/gui/screen_menu_settings.cpp:67
-msgid "SETTINGS"
-msgstr "SETTINGS"
+#: src/gui/MItem_menus.hpp:405
+msgid "RGB Status Bar"
+msgstr "RGB Status Bar"
 
 #. Retry
-#: src/common/client_response_texts.cpp:40
-msgid "SKIP"
-msgstr "SKIP"
+#: src/common/client_response_texts.cpp:59
+msgid "RIGHT"
+msgstr "RIGHT"
 
-#. Skip
-#: src/common/client_response_texts.cpp:41
-msgid "STOP"
-msgstr "STOP"
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:48
+msgid ""
+"Rotate each screw counter-clockwise by 1.5 turns. The screw heads should be "
+"flush with the cover. Unlock and open the idler."
+msgstr ""
+"Rotate each screw counter-clockwise by 1.5 turns. The screw heads should be "
+"flush with the cover. Unlock and open the idler."
+
+#: src/gui/MItem_basic_selftest.hpp:29
+msgid "Run Full Selftest"
+msgstr "Run Full Selftest"
+
+#: src/gui/MItem_tools.hpp:579
+msgid "Sandwich 5V Current"
+msgstr "Sandwich 5V Current"
 
 #. abbreviated Saturday - max 3 characters
 #: src/lang/format_print_will_end.cpp:55
 msgid "Sat"
 msgstr "Sat"
 
-#: src/gui/MItem_tools.hpp:176
+#: src/gui/MItem_tools.hpp:110
 msgid "Save Crash Dump"
 msgstr "Save Crash Dump"
 
-#: src/gui/wizard/xyzcalib.cpp:180
-msgid ""
-"Searching bed\n"
-"calibration points"
-msgstr ""
-"Searching bed\n"
-"calibration points"
+#: src/gui/MItem_touch.hpp:9
+msgid "Save Touch Registers to Flash Disc"
+msgstr "Save Touch Registers to Flash Disc"
 
-#: src/gui/screen_menu_steel_sheets.cpp:71
+#: src/gui/screen_home.cpp:295
+msgid "Saving to USB"
+msgstr "Saving to USB"
+
+#: src/gui/screen_menu_steel_sheets.hpp:44
 msgid "Select"
 msgstr "Select"
 
-#: src/gui/screen_menu_fw_update.cpp:98
-msgid "Select when you want to automatically flash updated firmware from USB flash disk."
-msgstr "Select when you want to automatically flash updated firmware from USB flash disk."
+#: src/gui/dialogs/DialogLoadUnload.cpp:75
+msgid "Selecting filament slot"
+msgstr "Selecting filament slot"
 
-#: src/gui/MItem_tools.hpp:64
-msgid "SelfTest"
-msgstr "SelfTest"
+#. //MSG_PROGRESS_UNLOADING_FILAMENT c=20
+#: src/mmu2/mmu2_progress_converter.cpp:23
+msgid "Selecting fil. slot"
+msgstr "Selecting fil. slot"
 
-#: src/gui/MItem_menus.hpp:19
+#: src/gui/wizard/selftest_frame_loadcell.cpp:81
+msgid "Selecting tool"
+msgstr "Selecting tool"
+
+#: src/gui/screen_menu_languages.hpp:130
+msgid "SELECT LANGUAGE"
+msgstr "SELECT LANGUAGE"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:58
+msgid "SELECTOR CANNOT HOME"
+msgstr "SELECTOR CANNOT HOME"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:64
+msgid "SELECTOR CANNOT MOVE"
+msgstr "SELECTOR CANNOT MOVE"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:47
+msgid ""
+"Selector can't move due to FINDA detecting a filament. Make sure no filament "
+"is in selector and FINDA works properly."
+msgstr ""
+"Selector can't move due to FINDA detecting a filament. Make sure no filament "
+"is in selector and FINDA works properly."
+
+#: src/gui/screen_menu_fw_update.cpp:36
+msgid ""
+"Select when you want to automatically flash updated firmware from USB flash "
+"disk."
+msgstr ""
+"Select when you want to automatically flash updated firmware from USB flash "
+"disk."
+
+#: src/gui/ScreenSelftest.hpp:86
+msgid "SELFTEST"
+msgstr "SELFTEST"
+
+#: src/gui/wizard/selftest_frame_result.cpp:62
+msgid ""
+"Selftest failed!\n"
+"Details below, use knob to scroll"
+msgstr ""
+"Selftest failed!\n"
+"Details below, use knob to scroll"
+
+#: src/gui/wizard/selftest_frame_result.cpp:64
+msgid ""
+"Selftest incomplete!\n"
+"Details below, use knob to scroll"
+msgstr ""
+"Selftest incomplete!\n"
+"Details below, use knob to scroll"
+
+#: src/gui/wizard/selftest_frame_result.cpp:60
+msgid ""
+"Selftest OK!\n"
+"Details below, use knob to scroll"
+msgstr ""
+"Selftest OK!\n"
+"Details below, use knob to scroll"
+
+#: src/gui/test/screen_menu_test.cpp:27
+msgid "selftest print screens"
+msgstr "selftest print screens"
+
+#: src/gui/wizard/selftest_frame_wizard_prologue.cpp:96
+msgid ""
+"Self-test will now begin to check for potential assembly-related issues."
+msgstr ""
+"Self-test will now begin to check for potential assembly-related issues."
+
+#: src/gui/MItem_menus.hpp:23
 msgid "Sensor Info"
 msgstr "Sensor Info"
 
-#. should not be
-#: src/gui/MItem_tools.cpp:70
+#: src/gui/screen_menu_sensor_info.hpp:17
+msgid "SENSOR INFO"
+msgstr "SENSOR INFO"
+
+#: src/gui/MItem_tools.cpp:83
 msgid "Sensor logic error, printer filament sensor disabled."
 msgstr "Sensor logic error, printer filament sensor disabled."
 
-#: src/gui/MItem_menus.hpp:99
+#: src/gui/MItem_tools.hpp:404
+msgid "Serial Number"
+msgstr "Serial Number"
+
+#. filament sensor will think printer is in printing state
+#: src/gui/screen_printing_serial.hpp:13
+msgid "SERIAL PRINTING"
+msgstr "SERIAL PRINTING"
+
+#: src/gui/MItem_menus.hpp:113
 msgid "Service"
 msgstr "Service"
 
-#: src/gui/screen_home.cpp:45
+#: src/gui/screen_home.cpp:139
 msgid "Settings"
 msgstr "Settings"
 
-#: src/gui/MItem_lan.hpp:20
-msgid "Setup Wi-Fi module"
-msgstr "Setup Wi-Fi module"
+#: src/gui/screen_menu_settings.hpp:105
+msgid "SETTINGS"
+msgstr "SETTINGS"
 
-#: src/gui/screen_menu_steel_sheets.cpp:133
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:194
+msgid "Setting the tare failed. Check the loadcell wiring and connection."
+msgstr "Setting the tare failed. Check the loadcell wiring and connection."
+
+#: src/gui/MItem_tools.hpp:709
+msgid "Set up values"
+msgstr "Set up values"
+
+#: src/gui/MItem_lan.hpp:20
+msgid "Setup Wi-Fi Module"
+msgstr "Setup Wi-Fi Module"
+
+#: src/gui/screen_menu_steel_sheets.hpp:94
 msgid "Sheet Profile"
 msgstr "Sheet Profile"
 
-#: src/gui/footer/footer_item_sheet_profile.hpp:16
+#: src/common/footer_def.hpp:125
 msgid "Sheets"
 msgstr "Sheets"
 
-#: src/gui/MItem_tools.hpp:74
-msgid "Show SelfTest result"
-msgstr "Show SelfTest result"
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:185
+msgid ""
+"Short circuit on the Idler TMC driver. Check the wiring and connectors. If "
+"the issue persists contact support."
+msgstr ""
+"Short circuit on the Idler TMC driver. Check the wiring and connectors. If "
+"the issue persists contact support."
 
-#: src/gui/MItem_tools.hpp:333
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:173
+msgid ""
+"Short circuit on the Pulley TMC driver. Check the wiring and connectors. If "
+"the issue persists contact support."
+msgstr ""
+"Short circuit on the Pulley TMC driver. Check the wiring and connectors. If "
+"the issue persists contact support."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:179
+msgid ""
+"Short circuit on the Selector TMC driver. Check the wiring and connectors. "
+"If the issue persists contact support."
+msgstr ""
+"Short circuit on the Selector TMC driver. Check the wiring and connectors. "
+"If the issue persists contact support."
+
+#: src/gui/MItem_basic_selftest.hpp:39
+msgid "Show Selftest Result"
+msgstr "Show Selftest Result"
+
+#: src/gui/MItem_tools.hpp:452
+msgid "Side Filament Sensor"
+msgstr "Side Filament Sensor"
+
+#: src/common/filament_sensors_handler_XL_remap.cpp:46
+msgid ""
+"Side Filament Sensor can be remapped to the right side.\n"
+"(calibration will follow)\n"
+"Remap?"
+msgstr ""
+"Side Filament Sensor can be remapped to the right side.\n"
+"(calibration will follow)\n"
+"Remap?"
+
+#: src/common/filament_sensors_handler_XL_remap.cpp:50
+msgid ""
+"Side Filament Sensors can be remapped to the right side.\n"
+"(calibration will follow)\n"
+"Remap?"
+msgstr ""
+"Side Filament Sensors can be remapped to the right side.\n"
+"(calibration will follow)\n"
+"Remap?"
+
+#: src/gui/MItem_hardware.hpp:169
+msgid "Side FSensor Remap"
+msgstr "Side FSensor Remap"
+
+#: src/gui/MItem_tools.hpp:330
+msgid "Side FS ref 1"
+msgstr "Side FS ref 1"
+
+#: src/gui/MItem_tools.hpp:332
+msgid "Side FS ref 2"
+msgstr "Side FS ref 2"
+
+#: src/gui/MItem_tools.hpp:334
+msgid "Side FS ref 3"
+msgstr "Side FS ref 3"
+
+#: src/gui/MItem_tools.hpp:336
+msgid "Side FS ref 4"
+msgstr "Side FS ref 4"
+
+#: src/gui/MItem_tools.hpp:338
+msgid "Side FS ref 5"
+msgstr "Side FS ref 5"
+
+#: src/gui/MItem_tools.hpp:340
+msgid "Side FS ref 6"
+msgstr "Side FS ref 6"
+
+#: src/gui/MItem_tools.hpp:267
+msgid "Side FS span 1"
+msgstr "Side FS span 1"
+
+#: src/gui/MItem_tools.hpp:269
+msgid "Side FS span 2"
+msgstr "Side FS span 2"
+
+#: src/gui/MItem_tools.hpp:271
+msgid "Side FS span 3"
+msgstr "Side FS span 3"
+
+#: src/gui/MItem_tools.hpp:273
+msgid "Side FS span 4"
+msgstr "Side FS span 4"
+
+#: src/gui/MItem_tools.hpp:275
+msgid "Side FS span 5"
+msgstr "Side FS span 5"
+
+#: src/gui/MItem_tools.hpp:277
+msgid "Side FS span 6"
+msgstr "Side FS span 6"
+
+#: src/gui/MItem_tools.hpp:177
 msgid "Silent"
 msgstr "Silent"
 
-#: src/gui/MItem_tools.hpp:362
-msgid "Sort Files by"
-msgstr "Sort Files by"
+#: src/gui/ScreenPrintingModel.cpp:29
+msgid "Skip"
+msgstr "Skip"
 
-#: src/gui/MItem_tools.hpp:329
+#. Right
+#: src/common/client_response_texts.cpp:60
+msgid "SKIP"
+msgstr "SKIP"
+
+#. Skip
+#: src/common/client_response_texts.cpp:61
+msgid "SLOWLY"
+msgstr "SLOWLY"
+
+#: src/gui/MItem_tools.hpp:206
+msgid "Sort Files"
+msgstr "Sort Files"
+
+#: src/gui/MItem_tools.hpp:173
 msgid "Sound Mode"
 msgstr "Sound Mode"
 
-#: src/gui/MItem_tools.hpp:373
+#: src/gui/MItem_tools.hpp:217
 msgid "Sound Volume"
 msgstr "Sound Volume"
 
-#: src/gui/footer/footer_item_printspeed.hpp:17 src/gui/MItem_print.hpp:32
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:224
+msgid ""
+"Space allocation for firmware BBF file failed. Repeat the action or try "
+"another USB drive."
+msgstr ""
+"Space allocation for firmware BBF file failed. Repeat the action or try "
+"another USB drive."
+
+#: src/common/footer_def.hpp:100
 msgid "Speed"
 msgstr "Speed"
 
-#: src/gui/screen_menu_lan_settings.cpp:152
+#: src/gui/MItem_tools.hpp:572
+msgid "Splitter 5V Current"
+msgstr "Splitter 5V Current"
+
+#: src/gui/MItem_mmu.hpp:293
+msgid "Spool Join"
+msgstr "Spool Join"
+
+#. Slowly
+#: src/common/client_response_texts.cpp:62
+msgid "SPOOL JOIN"
+msgstr "SPOOL JOIN"
+
+#: src/gui/screen_menu_connect.cpp:88
+msgid "Srv error"
+msgstr "Srv error"
+
+#: src/gui/screen_menu_error_test.cpp:57
+msgid "Stack Overflow"
+msgstr "Stack Overflow"
+
+#: src/gui/screen_menu_lan_settings.cpp:100
 msgid "Static IPv4 addresses were not set."
 msgstr "Static IPv4 addresses were not set."
 
-#: src/gui/MItem_menus.hpp:29
+#: src/gui/MItem_menus.hpp:63
+msgid "Statistic"
+msgstr "Statistic"
+
+#: src/gui/MItem_menus.hpp:33
 msgid "Statistics"
 msgstr "Statistics"
 
-#: src/gui/MItem_lan.hpp:13
+#: src/gui/screen_menu_connect.hpp:22 src/gui/MItem_lan.hpp:13
 msgid "Status"
 msgstr "Status"
 
-#: src/gui/screen_menu_steel_sheets.cpp:226 src/gui/screen_menu_hw_setup.cpp:16
+#: src/gui/MItem_mmu.hpp:309
+msgid "Stealth Mode"
+msgstr "Stealth Mode"
+
+#: src/gui/screen_menu_steel_sheets.hpp:138 src/gui/screen_menu_hw_setup.hpp:10
 msgid "Steel Sheets"
 msgstr "Steel Sheets"
 
-#: src/gui/ScreenPrintingModel.hpp:17 src/gui/screen_printing.cpp:41
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:31
+msgid "Steppers disabled due to inactivity."
+msgstr "Steppers disabled due to inactivity."
+
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:103
+msgid "Stock Prusa"
+msgstr "Stock Prusa"
+
+#: src/gui/ScreenPrintingModel.cpp:23
 msgid "Stop"
 msgstr "Stop"
 
-#: src/gui/test/screen_menu_eeprom_test.cpp:24
-msgid "Store"
-msgstr "Store"
+#. SpoolJoin
+#: src/common/client_response_texts.cpp:63
+msgid "STOP"
+msgstr "STOP"
 
-#: src/gui/wizard/selftest_frame_esp.cpp:56
+#: src/gui/MItem_hardware.hpp:20
+msgid "Strict"
+msgstr "Strict"
+
+#: src/gui/wizard/selftest_frame_esp.cpp:55
 msgid ""
 "Success!\n"
 "Please wait until the connection is established.\n"
@@ -1272,7 +4147,7 @@ msgstr ""
 "\n"
 "If nothing happens after 5-8 minutes, check & load your credentials again."
 
-#: src/gui/wizard/selftest_frame_esp.cpp:44
+#: src/gui/wizard/selftest_frame_esp.cpp:43
 msgid ""
 "Success!\n"
 "Remove the drive.\n"
@@ -1287,186 +4162,929 @@ msgstr ""
 msgid "Sun"
 msgstr "Sun"
 
-#. r=5, c=20
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:93
-msgid "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."
-msgstr "SuperPINDA sensor is probably broken or disconnected, could not home Z-axis properly."
-
-#: src/gui/MItem_menus.hpp:69
+#: src/gui/MItem_menus.hpp:83
 msgid "Support"
 msgstr "Support"
 
-#: src/gui/MItem_menus.hpp:49
+#: src/gui/MItem_mmu.hpp:235
+msgid "SW Reset"
+msgstr "SW Reset"
+
+#: src/gui/MItem_menus.hpp:357
+msgid "System"
+msgstr "System"
+
+#: src/gui/screen_menu_system.hpp:18
+msgid "SYSTEM"
+msgstr "SYSTEM"
+
+#: src/gui/MItem_menus.hpp:53
 msgid "System Info"
 msgstr "System Info"
 
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:34
-msgid "TEMP NOT MATCHING"
-msgstr "TEMP NOT MATCHING"
+#: src/gui/screen_crash_recovery.cpp:205
+msgid "T1"
+msgstr "T1"
 
-#: src/gui/screen_menu_temperature.cpp:18
-msgid "TEMPERATURE"
-msgstr "TEMPERATURE"
+#: src/gui/screen_crash_recovery.cpp:206
+msgid "T2"
+msgstr "T2"
 
-#. r=1, c=19
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:55
-#: lib/Prusa-Error-Codes/12_MINI/errors_list.h:61
-msgid "THERMAL RUNAWAY"
-msgstr "THERMAL RUNAWAY"
+#: src/gui/screen_crash_recovery.cpp:207
+msgid "T3"
+msgstr "T3"
 
-#: src/gui/screen_menu_tune.cpp:23
-msgid "TUNE"
-msgstr "TUNE"
+#: src/gui/screen_crash_recovery.cpp:208
+msgid "T4"
+msgstr "T4"
 
-#: src/gui/screen_menu_footer_settings.cpp:117
-msgid "Temp. show zero"
-msgstr "Temp. show zero"
+#: src/gui/screen_crash_recovery.cpp:209
+msgid "T5"
+msgstr "T5"
 
-#: src/gui/screen_menu_footer_settings.cpp:98
-msgid "Temp. style"
-msgstr "Temp. style"
+#: src/gui/screen_crash_recovery.cpp:210
+msgid "T6"
+msgstr "T6"
 
-#: src/gui/MItem_menus.hpp:79
+#: src/gui/wizard/selftest_frame_loadcell.cpp:115
+msgid "Tap the nozzle"
+msgstr "Tap the nozzle"
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:108
+msgid "Tap the nozzle on beep"
+msgstr "Tap the nozzle on beep"
+
+#: src/gui/MItem_menus.hpp:93
 msgid "Temperature"
 msgstr "Temperature"
 
-#: src/gui/MItem_menus.hpp:109
+#: src/gui/screen_menu_temperature.hpp:22
+msgid "TEMPERATURE"
+msgstr "TEMPERATURE"
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:27
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:48
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:53
+msgid "TEMP NOT MATCHING"
+msgstr "TEMP NOT MATCHING"
+
+#: src/gui/screen_menu_footer_settings.hpp:93
+msgid "Temp. show zero"
+msgstr "Temp. show zero"
+
+#: src/gui/screen_menu_footer_settings.hpp:82
+msgid "Temp. style"
+msgstr "Temp. style"
+
+#: src/gui/MItem_menus.hpp:139
 msgid "Test"
 msgstr "Test"
 
-#: src/gui/MItem_tools.hpp:94
-msgid "Test FANs"
-msgstr "Test FANs"
+#: src/gui/test/screen_menu_test.hpp:60
+msgid "TEST"
+msgstr "TEST"
 
-#: src/gui/MItem_tools.hpp:114
+#: src/gui/screen_menu_error_test.cpp:37
+msgid "Test bsod() Function"
+msgstr "Test bsod() Function"
+
+#: src/gui/wizard/selftest_result_eth.cpp:14
+msgid "Test did not run"
+msgstr "Test did not run"
+
+#: src/gui/screen_menu_error_test.hpp:70
+msgid "TEST ERROR"
+msgstr "TEST ERROR"
+
+#: src/gui/MItem_menus.hpp:128
+msgid "Test Errors"
+msgstr "Test Errors"
+
+#: src/gui/wizard/selftest_frame_fsensor.cpp:130
+msgid "Test FAILED!"
+msgstr "Test FAILED!"
+
+#: src/gui/MItem_basic_selftest.hpp:59
+msgid "Test Fans"
+msgstr "Test Fans"
+
+#: src/gui/MItem_basic_selftest.hpp:109
 msgid "Test Heaters"
 msgstr "Test Heaters"
 
-#: src/gui/MItem_tools.hpp:104
+#: src/gui/MItem_loadcell.hpp:12
+msgid "Test Loadcell"
+msgstr "Test Loadcell"
+
+#: src/gui/test/screen_menu_test.cpp:37
+msgid "test of load dialog"
+msgstr "test of load dialog"
+
+#: src/gui/test/screen_menu_test.cpp:17
+msgid "test selftest result"
+msgstr "test selftest result"
+
+#: src/gui/wizard/selftest_result_fsensor.cpp:14
+msgid "Test skipped by user."
+msgstr "Test skipped by user."
+
+#: src/gui/MItem_basic_selftest.hpp:69
 msgid "Test XYZ-Axis"
 msgstr "Test XYZ-Axis"
 
-#: src/gui/wizard/xyzcalib.cpp:298
-msgid "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
-msgstr "The XYZ calibration failed to finish. Double-check the printer's wiring and axes, then restart the XYZ calibration."
-
-#. save eeprom flag
-#: src/gui/wizard/firstlay.cpp:191
-msgid "The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration."
-msgstr "The first layer calibration failed to finish. Double-check the printer's wiring, nozzle and axes, then restart the calibration."
-
-#: src/gui/wizard/selftest.cpp:44
-msgid "The selftest failed to finish. Double-check the printer's wiring and axes. Then restart the Selftest."
-msgstr "The selftest failed to finish. Double-check the printer's wiring and axes. Then restart the Selftest."
-
-#: src/gui/wizard/screen_wizard.cpp:174
+#: src/gui/wizard/selftest_frame_dock.hpp:42
 msgid ""
-"The status bar is at the bottom of the screen. It contains information about:\n"
-"- Nozzle temp.\n"
-"- Heatbed temp.\n"
-"- Printing speed\n"
-"- Z-axis height\n"
-"- Selected filament"
+"The calibrated dock is illuminated at the bottom and front side is flashing "
+"with white color.\n"
+"\n"
+"Loosen and remove the dock pins."
 msgstr ""
-"The status bar is at the bottom of the screen. It contains information about:\n"
-"- Nozzle temp.\n"
-"- Heatbed temp.\n"
-"- Printing speed\n"
-"- Z-axis height\n"
-"- Selected filament"
+"The calibrated dock is illuminated at the bottom and front side is flashing "
+"with white color.\n"
+"\n"
+"Loosen and remove the dock pins."
 
-#: src/gui/screen_print_preview.cpp:72
-msgid "This G-CODE was set up for another filament type."
-msgstr "This G-CODE was set up for another filament type."
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:37
+msgid "The calibration should take a little over 14 minutes."
+msgstr "The calibration should take a little over 14 minutes."
 
-#: src/gui/screen_print_preview.cpp:93
-msgid "This G-CODE was set up for another printer type."
-msgstr "This G-CODE was set up for another printer type."
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:35
+msgid "The calibration should take a little over 7 minutes."
+msgstr "The calibration should take a little over 7 minutes."
+
+#: src/gui/gui_fsensor_api.cpp:25
+msgid ""
+"The filament sensors are not fully calibrated and must be disabled to "
+"proceed.\n"
+"\n"
+"You can calibrate them from the \"Control\" menu."
+msgstr ""
+"The filament sensors are not fully calibrated and must be disabled to "
+"proceed.\n"
+"\n"
+"You can calibrate them from the \"Control\" menu."
+
+#: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:69
+msgid ""
+"The first layer calibration failed to finish. Double-check the printer's "
+"wiring, nozzle and axes, then restart the calibration."
+msgstr ""
+"The first layer calibration failed to finish. Double-check the printer's "
+"wiring, nozzle and axes, then restart the calibration."
+
+#: src/gui/window_msgbox_wrong_printer.hpp:7
+msgid "The G-code isn't fully compatible"
+msgstr "The G-code isn't fully compatible"
+
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:38
+msgid ""
+"The gearbox calibration is only necessary for user-assembled or serviced "
+"gearboxes. In all other cases, you can skip this step."
+msgstr ""
+"The gearbox calibration is only necessary for user-assembled or serviced "
+"gearboxes. In all other cases, you can skip this step."
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:35
+msgid ""
+"The heatbed cooled down during the power outage, printed object might have "
+"detached. Inspect it before continuing."
+msgstr ""
+"The heatbed cooled down during the power outage, printed object might have "
+"detached. Inspect it before continuing."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:71
+msgid ""
+"The Idler cannot home properly. Check for anything blocking its movement."
+msgstr ""
+"The Idler cannot home properly. Check for anything blocking its movement."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:77
+msgid ""
+"The Idler cannot move properly. Check for anything blocking its movement. "
+"Check if the wiring is correct."
+msgstr ""
+"The Idler cannot move properly. Check for anything blocking its movement. "
+"Check if the wiring is correct."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:204
+msgid "The loadcell configuration is incorrect."
+msgstr "The loadcell configuration is incorrect."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:245
+msgid ""
+"The MMU firmware version is incompatible with the printer's FW. Update to "
+"compatible version."
+msgstr ""
+"The MMU firmware version is incompatible with the printer's FW. Update to "
+"compatible version."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:189
+msgid "There was an error requesting the tare for loadcell."
+msgstr "There was an error requesting the tare for loadcell."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:209
+msgid ""
+"There was a timeout while waiting for measurement sample, please repeat the "
+"action."
+msgstr ""
+"There was a timeout while waiting for measurement sample, please repeat the "
+"action."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:18
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:23
+msgid "THERMAL RUNAWAY"
+msgstr "THERMAL RUNAWAY"
+
+#: src/gui/wizard/selftest_frame_fans.cpp:30
+msgid ""
+"The RPM test has failed, check both fans are free to spin and connected "
+"correctly."
+msgstr ""
+"The RPM test has failed, check both fans are free to spin and connected "
+"correctly."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:59
+msgid ""
+"The Selector cannot home properly. Check for anything blocking its movement."
+msgstr ""
+"The Selector cannot home properly. Check for anything blocking its movement."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:65
+msgid ""
+"The Selector cannot move. Check for anything blocking its movement. Check if "
+"the wiring is correct."
+msgstr ""
+"The Selector cannot move. Check for anything blocking its movement. Check if "
+"the wiring is correct."
+
+#: src/gui/wizard/selftest_frame_wizard_epilogue.cpp:63
+msgid ""
+"The selftest failed to finish. Double-check the printer's wiring and axes. "
+"Then restart the Selftest."
+msgstr ""
+"The selftest failed to finish. Double-check the printer's wiring and axes. "
+"Then restart the Selftest."
+
+#: src/common/filament_sensors_handler_XL_remap.cpp:54
+msgid ""
+"Third Side Filament Sensor can be remapped to the right side.\n"
+"(calibration will follow)\n"
+"Remap?"
+msgstr ""
+"Third Side Filament Sensor can be remapped to the right side.\n"
+"(calibration will follow)\n"
+"Remap?"
+
+#: src/gui/resolution_240x320/screen_print_preview_base.hpp:15
+msgid "This G-code was set up for another filament type."
+msgstr "This G-code was set up for another filament type."
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:254
-msgid "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
-msgstr "This operation can't be undone, current configuration will be lost! Are you really sure to reset printer to factory defaults?"
+#: src/gui/MItem_tools.cpp:231
+#, c-format
+msgid ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to "
+"start the printer again.\n"
+"Do you really want to continue?"
+msgstr ""
+"This operation cannot be undone. Current configuration will be lost!\n"
+"You will need a USB drive with this firmware (%s_firmware_%s.bbf file) to "
+"start the printer again.\n"
+"Do you really want to continue?"
+
+#. window_menu
+#: src/gui/MItem_tools.cpp:221
+msgid ""
+"This operation cannot be undone. Current user configuration and passwords "
+"will be lost!\n"
+"Do you want to reset the printer to factory defaults?"
+msgstr ""
+"This operation cannot be undone. Current user configuration and passwords "
+"will be lost!\n"
+"Do you want to reset the printer to factory defaults?"
+
+#. XL should use snake instead of this
+#: src/gui/wizard/selftest_frame_result.cpp:57
+msgid ""
+"This screen shows only 1st tool!\n"
+"XL should use snake!"
+msgstr ""
+"This screen shows only 1st tool!\n"
+"XL should use snake!"
+
+#: src/gui/MItem_tools.hpp:412
+msgid ""
+"This will allow metrics to be enabled by G-code. It can send unencrypted "
+"diagnostics data to the internet. Do you really want to allow metrics?"
+msgstr ""
+"This will allow metrics to be enabled by G-code. It can send unencrypted "
+"diagnostics data to the internet. Do you really want to allow metrics?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:51
 msgid "Thr"
 msgstr "Thr"
 
-#: src/gui/MItem_tools.hpp:365
+#: src/gui/wizard/selftest_frame_dock.hpp:47
+msgid "Tighten only the bottom screw on the right side of the dock pillar."
+msgstr "Tighten only the bottom screw on the right side of the dock pillar."
+
+#: src/gui/wizard/selftest_frame_dock.cpp:203
+msgid "Tighten screw"
+msgstr "Tighten screw"
+
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:56
+msgid ""
+"Tighten the M3 screws firmly in the correct order, they should be slightly "
+"below the surface. Do not over-tighten."
+msgstr ""
+"Tighten the M3 screws firmly in the correct order, they should be slightly "
+"below the surface. Do not over-tighten."
+
+#: src/gui/wizard/selftest_frame_dock.hpp:45
+msgid ""
+"Tighten the top dock screw at the right side of the pillar\n"
+"\n"
+"Be careful in next step the printer will be moving"
+msgstr ""
+"Tighten the top dock screw at the right side of the pillar\n"
+"\n"
+"Be careful in next step the printer will be moving"
+
+#: src/gui/MItem_tools.hpp:209
 msgid "Time"
 msgstr "Time"
 
-#: src/gui/wizard/firstlay.cpp:40
-msgid "To calibrate with currently loaded filament, press NEXT. To change filament, press UNLOAD."
-msgstr "To calibrate with currently loaded filament, press NEXT. To change filament, press UNLOAD."
+#: src/gui/MItem_tools.hpp:234
+msgid "Time Format"
+msgstr "Time Format"
 
-#: src/gui/wizard/firstlay.cpp:57
-msgid "To calibrate with currently loaded filament, press NEXT. To load filament, press LOAD. To change filament, press UNLOAD."
-msgstr "To calibrate with currently loaded filament, press NEXT. To load filament, press LOAD. To change filament, press UNLOAD."
+#: src/gui/MItem_tools.hpp:515
+msgid "times"
+msgstr "times"
 
-#: src/gui/wizard/selftest_frame_esp_qr.cpp:40
-msgid "To setup or troubleshoot your Wi-Fi, please visit:\nprusa.io/wifimini"
-msgstr "To setup or troubleshoot your Wi-Fi, please visit:\nprusa.io/wifimini"
+#: src/gui/MItem_tools.hpp:226
+msgid "Time Zone Offset"
+msgstr "Time Zone Offset"
+
+#: src/gui/screen_menu_connect.cpp:86
+msgid "TLS error"
+msgstr "TLS error"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:118
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:124
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:130
+msgid "TMC DRIVER ERROR"
+msgstr "TMC DRIVER ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:95
+msgid ""
+"TMC driver for the Idler motor is almost overheating. Make sure there is "
+"sufficient airflow near the MMU board."
+msgstr ""
+"TMC driver for the Idler motor is almost overheating. Make sure there is "
+"sufficient airflow near the MMU board."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:131
+msgid ""
+"TMC driver for the Idler motor is not responding. Try resetting the MMU. If "
+"the issue persists contact support."
+msgstr ""
+"TMC driver for the Idler motor is not responding. Try resetting the MMU. If "
+"the issue persists contact support."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:113
+msgid ""
+"TMC driver for the Idler motor is overheated. Cool down the MMU board and "
+"reset MMU."
+msgstr ""
+"TMC driver for the Idler motor is overheated. Cool down the MMU board and "
+"reset MMU."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:149
+msgid ""
+"TMC driver for the Idler motor was restarted. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+msgstr ""
+"TMC driver for the Idler motor was restarted. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:83
+msgid ""
+"TMC driver for the Pulley motor is almost overheating. Make sure there is "
+"sufficient airflow near the MMU board."
+msgstr ""
+"TMC driver for the Pulley motor is almost overheating. Make sure there is "
+"sufficient airflow near the MMU board."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:119
+msgid ""
+"TMC driver for the Pulley motor is not responding. Try resetting the MMU. If "
+"the issue persists contact support."
+msgstr ""
+"TMC driver for the Pulley motor is not responding. Try resetting the MMU. If "
+"the issue persists contact support."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:101
+msgid ""
+"TMC driver for the Pulley motor is overheated. Cool down the MMU board and "
+"reset MMU."
+msgstr ""
+"TMC driver for the Pulley motor is overheated. Cool down the MMU board and "
+"reset MMU."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:137
+msgid ""
+"TMC driver for the Pulley motor was restarted. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+msgstr ""
+"TMC driver for the Pulley motor was restarted. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:89
+msgid ""
+"TMC driver for the Selector motor is almost overheating. Make sure there is "
+"sufficient airflow near the MMU board."
+msgstr ""
+"TMC driver for the Selector motor is almost overheating. Make sure there is "
+"sufficient airflow near the MMU board."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:125
+msgid ""
+"TMC driver for the Selector motor is not responding. Try resetting the MMU. "
+"If the issue persists contact support."
+msgstr ""
+"TMC driver for the Selector motor is not responding. Try resetting the MMU. "
+"If the issue persists contact support."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:107
+msgid ""
+"TMC driver for the Selector motor is overheated. Cool down the MMU board and "
+"reset MMU."
+msgstr ""
+"TMC driver for the Selector motor is overheated. Cool down the MMU board and "
+"reset MMU."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:143
+msgid ""
+"TMC driver for the Selector motor was restarted. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+msgstr ""
+"TMC driver for the Selector motor was restarted. There is probably an issue "
+"with the electronics. Check the wiring and connectors."
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:136
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:142
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:148
+msgid "TMC DRIVER RESET"
+msgstr "TMC DRIVER RESET"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:172
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:178
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:184
+msgid "TMC DRIVER SHORTED"
+msgstr "TMC DRIVER SHORTED"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:100
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:106
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:112
+msgid "TMC OVERHEAT ERROR"
+msgstr "TMC OVERHEAT ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:154
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:160
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:166
+msgid "TMC UNDERVOLTAGE ERR"
+msgstr "TMC UNDERVOLTAGE ERR"
+
+#: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:42
+msgid ""
+"To calibrate with currently loaded filament, press NEXT. To change filament, "
+"press UNLOAD."
+msgstr ""
+"To calibrate with currently loaded filament, press NEXT. To change filament, "
+"press UNLOAD."
+
+#: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:46
+msgid ""
+"To calibrate with currently loaded filament, press NEXT. To load filament, "
+"press LOAD. To change filament, press UNLOAD."
+msgstr ""
+"To calibrate with currently loaded filament, press NEXT. To load filament, "
+"press LOAD. To change filament, press UNLOAD."
 
 #. Used in "The print will end:", keep it up to 10 characters
 #: src/lang/format_print_will_end.cpp:29
 msgid "Today at"
 msgstr "Today at"
 
+#: src/gui/screen_help_fw_update.cpp:44
+msgid ""
+"To learn more including firmware downgrade, please visit:\n"
+"prusa.io/mk3.5-firmware"
+msgstr ""
+"To learn more including firmware downgrade, please visit:\n"
+"prusa.io/mk3.5-firmware"
+
+#: src/gui/screen_help_fw_update.cpp:36
+msgid ""
+"To learn more including firmware downgrade, please visit:\n"
+"prusa.io/mk3.9-firmware"
+msgstr ""
+"To learn more including firmware downgrade, please visit:\n"
+"prusa.io/mk3.9-firmware"
+
+#: src/gui/screen_help_fw_update.cpp:35
+msgid ""
+"To learn more including firmware downgrade, please visit:\n"
+"prusa.io/mk4-firmware"
+msgstr ""
+"To learn more including firmware downgrade, please visit:\n"
+"prusa.io/mk4-firmware"
+
+#: src/gui/screen_help_fw_update.cpp:52
+msgid ""
+"To learn more including firmware downgrade, please visit:\n"
+"prusa.io/xl-firmware"
+msgstr ""
+"To learn more including firmware downgrade, please visit:\n"
+"prusa.io/xl-firmware"
+
+#: src/gui/screen_menu_tools.hpp:267
+msgid "  Tool 1"
+msgstr "  Tool 1"
+
+#: src/gui/screen_menu_tools.hpp:133
+msgid "Tool 1"
+msgstr "Tool 1"
+
+#: src/gui/screen_menu_tools.hpp:116
+msgid "TOOL 1"
+msgstr "TOOL 1"
+
+#: src/gui/screen_menu_filament_changeall.hpp:45
+msgid "Tool 1 Filament"
+msgstr "Tool 1 Filament"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:66
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:66
+#: src/gui/include_XL/selftest_snake_config.hpp:90
+msgid "Tool 1 Filament Sensor Calibration"
+msgstr "Tool 1 Filament Sensor Calibration"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:61
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:61
+#: src/gui/include_XL/selftest_snake_config.hpp:85
+msgid "Tool 1 Loadcell Test"
+msgstr "Tool 1 Loadcell Test"
+
+#: src/gui/screen_menu_tools.hpp:269
+msgid "  Tool 2"
+msgstr "  Tool 2"
+
+#: src/gui/screen_menu_tools.hpp:135
+msgid "Tool 2"
+msgstr "Tool 2"
+
+#: src/gui/screen_menu_tools.hpp:116
+msgid "TOOL 2"
+msgstr "TOOL 2"
+
+#: src/gui/screen_menu_filament_changeall.hpp:47
+msgid "Tool 2 Filament"
+msgstr "Tool 2 Filament"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:67
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:67
+#: src/gui/include_XL/selftest_snake_config.hpp:91
+msgid "Tool 2 Filament Sensor Calibration"
+msgstr "Tool 2 Filament Sensor Calibration"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:62
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:62
+#: src/gui/include_XL/selftest_snake_config.hpp:86
+msgid "Tool 2 Loadcell Test"
+msgstr "Tool 2 Loadcell Test"
+
+#: src/gui/screen_menu_tools.hpp:271
+msgid "  Tool 3"
+msgstr "  Tool 3"
+
+#: src/gui/screen_menu_tools.hpp:137
+msgid "Tool 3"
+msgstr "Tool 3"
+
+#: src/gui/screen_menu_tools.hpp:116
+msgid "TOOL 3"
+msgstr "TOOL 3"
+
+#: src/gui/screen_menu_filament_changeall.hpp:49
+msgid "Tool 3 Filament"
+msgstr "Tool 3 Filament"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:68
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:68
+#: src/gui/include_XL/selftest_snake_config.hpp:92
+msgid "Tool 3 Filament Sensor Calibration"
+msgstr "Tool 3 Filament Sensor Calibration"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:63
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:63
+#: src/gui/include_XL/selftest_snake_config.hpp:87
+msgid "Tool 3 Loadcell Test"
+msgstr "Tool 3 Loadcell Test"
+
+#: src/gui/screen_menu_tools.hpp:273
+msgid "  Tool 4"
+msgstr "  Tool 4"
+
+#: src/gui/screen_menu_tools.hpp:139
+msgid "Tool 4"
+msgstr "Tool 4"
+
+#: src/gui/screen_menu_tools.hpp:116
+msgid "TOOL 4"
+msgstr "TOOL 4"
+
+#: src/gui/screen_menu_filament_changeall.hpp:51
+msgid "Tool 4 Filament"
+msgstr "Tool 4 Filament"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:69
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:69
+#: src/gui/include_XL/selftest_snake_config.hpp:93
+msgid "Tool 4 Filament Sensor Calibration"
+msgstr "Tool 4 Filament Sensor Calibration"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:64
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:64
+#: src/gui/include_XL/selftest_snake_config.hpp:88
+msgid "Tool 4 Loadcell Test"
+msgstr "Tool 4 Loadcell Test"
+
+#: src/gui/screen_menu_tools.hpp:275
+msgid "  Tool 5"
+msgstr "  Tool 5"
+
+#: src/gui/screen_menu_tools.hpp:141
+msgid "Tool 5"
+msgstr "Tool 5"
+
+#: src/gui/screen_menu_tools.hpp:116
+msgid "TOOL 5"
+msgstr "TOOL 5"
+
+#: src/gui/screen_menu_filament_changeall.hpp:53
+msgid "Tool 5 Filament"
+msgstr "Tool 5 Filament"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:70
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:70
+#: src/gui/include_XL/selftest_snake_config.hpp:94
+msgid "Tool 5 Filament Sensor Calibration"
+msgstr "Tool 5 Filament Sensor Calibration"
+
+#: src/gui/include_MK4/selftest_snake_config.hpp:65
+#: src/gui/include_MK3.5/selftest_snake_config.hpp:65
+#: src/gui/include_XL/selftest_snake_config.hpp:89
+msgid "Tool 5 Loadcell Test"
+msgstr "Tool 5 Loadcell Test"
+
+#: src/gui/screen_crash_recovery.cpp:106
+msgid ""
+"Toolchanger problem has been detected.\n"
+"Park all tools to docks\n"
+"and leave the carriage free."
+msgstr ""
+"Toolchanger problem has been detected.\n"
+"Park all tools to docks\n"
+"and leave the carriage free."
+
+#: src/gui/MItem_tools.hpp:442
+msgid "Tool Filament sensor"
+msgstr "Tool Filament sensor"
+
+#: src/gui/MItem_menus.hpp:425
+msgid "Tool Light"
+msgstr "Tool Light"
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:15
+msgid "Tool Offsets Calibration"
+msgstr "Tool Offsets Calibration"
+
+#: src/gui/MItem_menus.hpp:434
+msgid "Tools"
+msgstr "Tools"
+
+#: src/gui/screen_menu_tools.hpp:175
+msgid "TOOLS"
+msgstr "TOOLS"
+
+#: src/gui/MItem_tools.hpp:514
+msgid "Tools Changed"
+msgstr "Tools Changed"
+
+#: src/gui/screen_print_preview.cpp:142
+msgid "TOOLS MAPPING"
+msgstr "TOOLS MAPPING"
+
+#: src/gui/wizard/selftest_frame_esp_qr.cpp:35
+msgid "To setup or troubleshoot your Wi-Fi, please visit:"
+msgstr "To setup or troubleshoot your Wi-Fi, please visit:"
+
+#: src/gui/screen_home.cpp:324
+msgid ""
+"Touch disabled. This feature is work-in-progress and is going to be fully "
+"available in a future update."
+msgstr ""
+"Touch disabled. This feature is work-in-progress and is going to be fully "
+"available in a future update."
+
+#: src/gui/screen_touch_error.cpp:20
+msgid "Touch driver failed to initialize, touch functionality disabled"
+msgstr "Touch driver failed to initialize, touch functionality disabled"
+
+#: src/gui/MItem_touch.hpp:49
+msgid "Touch (Experimental)"
+msgstr "Touch (Experimental)"
+
+#. window_menu
+#: src/gui/MItem_touch.cpp:40 src/gui/MItem_touch.cpp:54
+msgid "Touch registers are being loaded."
+msgstr "Touch registers are being loaded."
+
+#. window_menu
+#: src/gui/MItem_touch.cpp:26
+msgid "Touch registers are being saved."
+msgstr "Touch registers are being saved."
+
+#: src/gui/MItem_touch.cpp:28
+msgid "Touch registers (file touch.bin) were saved to the USB drive."
+msgstr "Touch registers (file touch.bin) were saved to the USB drive."
+
+#: src/gui/MItem_touch.cpp:42
+msgid "Touch registers (file touch.bin) were uploaded from the USB drive."
+msgstr "Touch registers (file touch.bin) were uploaded from the USB drive."
+
+#: src/gui/MItem_touch.cpp:56
+msgid "Touch registers were reset."
+msgstr "Touch registers were reset."
+
+#: src/gui/screen_touch_error.cpp:11
+msgid "TOUCHSCREEN ERROR"
+msgstr "TOUCHSCREEN ERROR"
+
+#: src/gui/MItem_menus.hpp:444
+msgid "Trigger Power Panic"
+msgstr "Trigger Power Panic"
+
+#: src/gui/screen_menu_error_test.cpp:101
+msgid "Trigger Redscreen"
+msgstr "Trigger Redscreen"
+
+#: src/gui/screen_crash_recovery.cpp:105
+msgid ""
+"Try checking belt tension, decreasing sensitivity\n"
+"in the tune menu or recalibrating dock position."
+msgstr ""
+"Try checking belt tension, decreasing sensitivity\n"
+"in the tune menu or recalibrating dock position."
+
+#: src/gui/screen_crash_recovery.cpp:108
+msgid ""
+"Try checking belt tension\n"
+"or debris on the axes."
+msgstr ""
+"Try checking belt tension\n"
+"or debris on the axes."
+
+#: src/gui/screen_crash_recovery.cpp:104
+msgid ""
+"Try checking belt tension or decreasing\n"
+"sensitivity in the tune menu."
+msgstr ""
+"Try checking belt tension or decreasing\n"
+"sensitivity in the tune menu."
+
 #. abbreviated Tuesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:47
 msgid "Tue"
 msgstr "Tue"
 
-#: src/gui/ScreenPrintingModel.hpp:15 src/gui/screen_printing.cpp:38
+#: src/gui/ScreenPrintingModel.cpp:20
 msgid "Tune"
 msgstr "Tune"
 
-#: src/gui/dialogs/DialogMoveZ.hpp:17
-msgid "Turn the knob to change Z-axis"
-msgstr "Turn the knob to change Z-axis"
+#: src/gui/screen_menu_tune.hpp:67
+msgid "TUNE"
+msgstr "TUNE"
+
+#: src/gui/dialogs/DialogMoveZ.hpp:19
+msgid "Turn the knob to move Heatbed"
+msgstr "Turn the knob to move Heatbed"
+
+#: src/gui/dialogs/DialogMoveZ.hpp:21
+msgid "Turn the knob to move Z-axis"
+msgstr "Turn the knob to move Z-axis"
+
+#: src/gui/screen_crash_recovery.cpp:107
+msgid ""
+"Unable to home the printer.\n"
+"Do you want to try again?"
+msgstr ""
+"Unable to home the printer.\n"
+"Do you want to try again?"
+
+#: src/gui/screen_menu_connect.cpp:87
+msgid "Unauthorized"
+msgstr "Unauthorized"
+
+#: src/gui/MItem_tools.cpp:524
+#, c-format
+msgid "uncalibrated / %ld"
+msgstr "uncalibrated / %ld"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:269
+msgid "Unexpected error occurred."
+msgstr "Unexpected error occurred."
+
+#: src/gui/MItem_tools.cpp:528
+#, c-format
+msgid "uninitialized / %ld"
+msgstr "uninitialized / %ld"
+
+#: src/gui/screen_menu_connect.cpp:80
+msgid "Unknown"
+msgstr "Unknown"
+
+#: src/gui/screen_qr_error.cpp:28
+msgid "Unknown Error"
+msgstr "Unknown Error"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:268
+msgid "UNKNOWN ERROR"
+msgstr "UNKNOWN ERROR"
+
+#: src/gui/screen_menu_filament_changeall.hpp:13
+msgid "Unload"
+msgstr "Unload"
 
 #. Stop
-#: src/common/client_response_texts.cpp:42
+#: src/common/client_response_texts.cpp:64
 msgid "UNLOAD"
 msgstr "UNLOAD"
 
-#: src/gui/MItem_filament.hpp:20 src/gui/dialogs/DialogFactory.cpp:10
-msgid "UNLOAD FILAMENT"
-msgstr "UNLOAD FILAMENT"
-
-#: src/gui/dialogs/DialogMoveZ.hpp:19
-msgid "UP"
-msgstr "UP"
-
-#: src/gui/dialogs/window_dlg_strong_warning.hpp:37
-msgid "USB drive error, the print is now paused. Reconnect the drive."
-msgstr "USB drive error, the print is now paused. Reconnect the drive."
-
-#: src/gui/wizard/selftest_frame_esp.cpp:32
-msgid "USB drive not detected! Insert USB drive first!"
-msgstr "USB drive not detected! Insert USB drive first!"
-
-#: src/gui/MItem_filament.hpp:19
+#: src/gui/MItem_filament.hpp:19 src/gui/MItem_mmu.hpp:227
 msgid "Unload Filament"
 msgstr "Unload Filament"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:20
+#: src/gui/MItem_filament.hpp:20
+msgid "UNLOAD FILAMENT"
+msgstr "UNLOAD FILAMENT"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:46
 msgid "Unloading"
 msgstr "Unloading"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:16
+#. //MSG_PROGRESS_ERR_TMC c=20
+#: src/mmu2/mmu2_progress_converter.cpp:21
+#: src/gui/dialogs/DialogLoadUnload.cpp:73
+#: src/gui/dialogs/DialogLoadUnload.cpp:352
+msgid "Unloading filament"
+msgstr "Unloading filament"
+
+#. //MSG_PROGRESS_DISENGAGE_IDLER c=20
+#: src/mmu2/mmu2_progress_converter.cpp:10
+#: src/gui/dialogs/DialogLoadUnload.cpp:63
+msgid "Unloading to FINDA"
+msgstr "Unloading to FINDA"
+
+#. //MSG_PROGRESS_UNLOAD_FINDA c=20
+#: src/mmu2/mmu2_progress_converter.cpp:11
+#: src/gui/dialogs/DialogLoadUnload.cpp:64
+msgid "Unloading to pulley"
+msgstr "Unloading to pulley"
+
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:256
+msgid "UNLOAD MANUALLY"
+msgstr "UNLOAD MANUALLY"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:42
 msgid "Unparking"
 msgstr "Unparking"
 
-#: src/gui/wizard/selftest_frame_esp_progress.cpp:56
-#: src/gui/wizard/selftest_frame_esp_progress.cpp:61
-#: src/gui/wizard/selftest_frame_esp_progress.cpp:66
+#: src/gui/dialogs/DialogMoveZ.hpp:24
+msgid "UP"
+msgstr "UP"
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:60
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:65
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:70
 msgid "Updating Wi-Fi..."
 msgstr "Updating Wi-Fi..."
 
-#: src/gui/wizard/selftest_frame_esp.cpp:53
+#: src/gui/wizard/selftest_frame_esp.cpp:52
 msgid ""
 "Uploading config to the printer.\n"
 "\n"
@@ -1476,68 +5094,202 @@ msgstr ""
 "\n"
 "Please wait."
 
-#: src/gui/wizard/selftest_frame_esp_qr.cpp:37
+#: src/guiapi/include/WindowItemFanLabel.hpp:20
+#, c-format
+msgid "%u %% / running"
+msgstr "%u %% / running"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:88
+msgid "USB DEVICE OVERCURRENT"
+msgstr "USB DEVICE OVERCURRENT"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:239
+msgid ""
+"USB drive not\n"
+"connected! Please\n"
+"insert a USB drive\n"
+"with a valid\n"
+"firmware file."
+msgstr ""
+"USB drive not\n"
+"connected! Please\n"
+"insert a USB drive\n"
+"with a valid\n"
+"firmware file."
+
+#: src/gui/wizard/selftest_frame_esp.cpp:31
+msgid "USB drive not detected! Insert USB drive first!"
+msgstr "USB drive not detected! Insert USB drive first!"
+
+#: src/gui/dialogs/window_dlg_strong_warning.hpp:33
+msgid "USB drive or file error, the print is now paused. Reconnect the drive."
+msgstr "USB drive or file error, the print is now paused. Reconnect the drive."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:294
+msgid ""
+"USB flash drive contains\n"
+"unsupported firmware BBF file."
+msgstr ""
+"USB flash drive contains\n"
+"unsupported firmware BBF file."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:83
+msgid "USB PORT OVERCURRENT"
+msgstr "USB PORT OVERCURRENT"
+
+#. Third line - used filament in meters
+#: src/gui/gcode_description.cpp:153
+msgid "Used Amount"
+msgstr "Used Amount"
+
+#: src/gui/screen_prusa_link.hpp:72
+msgid "User"
+msgstr "User"
+
+#: src/gui/MItem_menus.hpp:298
+msgid "User Interface"
+msgstr "User Interface"
+
+#: src/gui/screen_menu_user_interface.hpp:46
+msgid "USER INTERFACE"
+msgstr "USER INTERFACE"
+
+#: src/gui/wizard/selftest_frame_esp_qr.cpp:32
 msgid ""
 "Use the online guide\n"
-"to setup your Wi-Fi\nprusa.io/wifimini"
+"to setup your Wi-Fi"
 msgstr ""
 "Use the online guide\n"
-"to setup your Wi-Fi\nprusa.io/wifimini"
+"to setup your Wi-Fi"
 
-#: src/gui/gcode_description.cpp:38
-msgid "Used Filament"
-msgstr "Used Filament"
+#: src/guiapi/include/WindowItemFanLabel.hpp:25
+#, c-format
+msgid "%u %% / stopped"
+msgstr "%u %% / stopped"
 
-#: src/gui/version_info_ST7789V.cpp:28
-msgid "VERSION INFO"
-msgstr "VERSION INFO"
+#: src/guiapi/include/WindowItemFanLabel.hpp:23
+#, c-format
+msgid "%u %% / stuck"
+msgstr "%u %% / stuck"
 
-#: src/gui/MItem_menus.hpp:9
+#: src/gui/wizard/selftest_frame_loadcell.cpp:71
+msgid "Validity check"
+msgstr "Validity check"
+
+#: src/gui/MItem_menus.hpp:13
 msgid "Version Info"
 msgstr "Version Info"
 
-#: src/gui/ScreenSelftest.hpp:48
-msgid "WI-FI MODULE"
-msgstr "WI-FI MODULE"
+#: src/gui/screen_menu_version_info_non_mini.hpp:27
+#: src/gui/screen_menu_version_info_mini.hpp:17
+msgid "VERSION INFO"
+msgstr "VERSION INFO"
 
-#: src/gui/screen_menu_lan_settings.cpp:201
-msgid "WI-FI SETTINGS"
-msgstr "WI-FI SETTINGS"
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:64
+msgid "Waiting for hotends to stabilize at calibration temperature:"
+msgstr "Waiting for hotends to stabilize at calibration temperature:"
 
-#: src/gui/wizard/screen_wizard.cpp:26
-msgid "WIZARD"
-msgstr "WIZARD"
-
-#: src/gui/ScreenSelftest.hpp:46 src/gui/wizard/screen_wizard.cpp:27
-msgid "WIZARD - OK"
-msgstr "WIZARD - OK"
-
-#: src/gui/dialogs/DialogLoadUnload.cpp:17
+#: src/gui/dialogs/DialogLoadUnload.cpp:43
 msgid "Waiting for temperature"
 msgstr "Waiting for temperature"
 
-#: src/guiapi/src/window_msgbox.cpp:158
+#: src/gui/dialogs/window_dlg_quickpause.cpp:12
+msgid "Waiting for the user. Press \"Resume\" once the printer is ready."
+msgstr "Waiting for the user. Press \"Resume\" once the printer is ready."
+
+#. MMU_ErrWaitForUser, // need to distinguish error states based on prusa-error-codes @@TODO
+#: src/gui/dialogs/DialogLoadUnload.cpp:96
+msgid "Waiting for user input"
+msgstr "Waiting for user input"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:33
+msgid "Wait please, getting the registration code."
+msgstr "Wait please, getting the registration code."
+
+#: src/gui/MItem_hardware.hpp:19
+msgid "Warn"
+msgstr "Warn"
+
+#: src/guiapi/src/window_msgbox.cpp:306 src/guiapi/src/window_msgbox.cpp:340
+#: src/gui/screen_print_preview.hpp:18
 msgid "Warning"
 msgstr "Warning"
 
-#: src/gui/dialogs/DialogLoadUnload.cpp:21
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:82
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:88
+#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:94
+msgid "WARNING TMC TOO HOT"
+msgstr "WARNING TMC TOO HOT"
+
+#: src/gui/dialogs/DialogLoadUnload.cpp:47
 msgid "Was filament unload successful?"
 msgstr "Was filament unload successful?"
+
+#: src/gui/screen_printing.cpp:273
+msgid "Was the print successful?"
+msgstr "Was the print successful?"
 
 #. abbreviated Wednesday - max 3 characters
 #: src/lang/format_print_will_end.cpp:49
 msgid "Wed"
 msgstr "Wed"
 
-#: src/gui/wizard/screen_wizard.cpp:126
-msgid "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
-msgstr "Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
+#: src/gui/wizard/selftest_frame_wizard_prologue.cpp:14
+msgid ""
+"Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
+msgstr ""
+"Welcome to the Original Prusa MINI setup wizard. Would you like to continue?"
 
-#: src/gui/MItem_menus.hpp:139
+#: src/gui/wizard/selftest_frame_fsensor.cpp:86
+msgid ""
+"We need to start without the filament in the extruder. Please make sure "
+"there is no filament in the filament sensor."
+msgstr ""
+"We need to start without the filament in the extruder. Please make sure "
+"there is no filament in the filament sensor."
+
+#: src/gui/wizard/selftest_frame_gears_calib.cpp:41
+msgid ""
+"We need to start without the filament in the extruder. Please unload it."
+msgstr ""
+"We need to start without the filament in the extruder. Please unload it."
+
+#. One dock takes approximately 1:45 to calibrate if you know what you are doing
+#: src/gui/wizard/selftest_frame_dock.hpp:36
+msgid "We suggest opening the online guide for the first-time calibration."
+msgstr "We suggest opening the online guide for the first-time calibration."
+
+#: src/gui/wizard/selftest_frame_tool_offsets.cpp:26
+msgid ""
+"We will need your help with this calibration. You will be asked to screw in "
+"a calibration pin."
+msgstr ""
+"We will need your help with this calibration. You will be asked to screw in "
+"a calibration pin."
+
+#: src/gui/wizard/selftest_frame_loadcell.cpp:100
+msgid ""
+"We will need your help with this test. You will be asked to tap the nozzle. "
+"Don't worry; it is going to be cold.\n"
+" "
+msgstr ""
+"We will need your help with this test. You will be asked to tap the nozzle. "
+"Don't worry; it is going to be cold.\n"
+" "
+
+#: src/gui/wizard/selftest_frame_hot_end_sock.cpp:81
+msgid "What kind of nozzle type do you have installed?"
+msgstr "What kind of nozzle type do you have installed?"
+
+#: src/gui/MItem_menus.hpp:169
 msgid "Wi-Fi"
 msgstr "Wi-Fi"
 
-#: src/gui/wizard/selftest_frame_esp_progress.cpp:51
+#: src/gui/wizard/selftest_result_eth.cpp:13
+msgid "WiFi connection"
+msgstr "WiFi connection"
+
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:55
 msgid ""
 "Wi-Fi (ESP) module\n"
 "firmware updater."
@@ -1545,70 +5297,129 @@ msgstr ""
 "Wi-Fi (ESP) module\n"
 "firmware updater."
 
-#: src/gui/MItem_tools.hpp:11
+#: src/gui/wizard/selftest_frame_esp_progress.cpp:55
+msgid "Wi-Fi (ESP) module firmware updater."
+msgstr "Wi-Fi (ESP) module firmware updater."
+
+#: src/gui/ScreenSelftest.hpp:88
+msgid "WI-FI MODULE"
+msgstr "WI-FI MODULE"
+
+#: src/gui/wizard/selftest_result_eth.cpp:15
+msgid "WiFi not connected"
+msgstr "WiFi not connected"
+
+#: src/gui/screen_menu_lan_settings.hpp:42
+msgid "WI-FI SETTINGS"
+msgstr "WI-FI SETTINGS"
+
+#: src/gui/MItem_basic_selftest.hpp:19
 msgid "Wizard"
 msgstr "Wizard"
 
-#: src/gui/footer/footer_item_axis.hpp:33
-msgid "X Axis"
-msgstr "X Axis"
+#: src/gui/ScreenSelftest.hpp:83
+msgid "WIZARD"
+msgstr "WIZARD"
 
-#: src/gui/MItem_tools.hpp:432
-msgid "X axis"
-msgstr "X axis"
+#: src/gui/ScreenSelftest.hpp:85
+msgid "WIZARD - NOK"
+msgstr "WIZARD - NOK"
 
-#: src/gui/dialogs/DialogSelftestResult.cpp:43
-#: src/gui/dialogs/DialogSelftestAxis.cpp:25
+#: src/gui/ScreenSelftest.hpp:84
+msgid "WIZARD - OK"
+msgstr "WIZARD - OK"
+
+#: src/common/footer_def.hpp:102
+msgid "X"
+msgstr "X"
+
+#: src/gui/screen_crash_recovery.cpp:91 src/gui/MItem_tools.hpp:640
 msgid "X-axis"
 msgstr "X-axis"
 
-#: src/gui/wizard/screen_wizard.cpp:29
-msgid "XYZ CALIBRATION"
-msgstr "XYZ CALIBRATION"
+#: src/gui/MItem_tools.hpp:485
+msgid "X Axis"
+msgstr "X Axis"
 
-#: src/gui/footer/footer_item_axis.hpp:48
-msgid "Y Axis"
-msgstr "Y Axis"
+#: src/gui/MItem_tools.hpp:662
+msgid "X-axis filter"
+msgstr "X-axis filter"
 
-#: src/gui/MItem_tools.hpp:438
-msgid "Y axis"
-msgstr "Y axis"
+#: src/gui/MItem_tools.hpp:682
+msgid "X-axis freq."
+msgstr "X-axis freq."
 
-#: src/gui/dialogs/DialogSelftestResult.cpp:44
-#: src/gui/dialogs/DialogSelftestAxis.cpp:26
+#: src/gui/MItem_tools.hpp:586
+msgid "XL Buddy 5V Current"
+msgstr "XL Buddy 5V Current"
+
+#: src/gui/menu_item_xlcd.hpp:10
+msgid "xLCD"
+msgstr "xLCD"
+
+#: src/common/footer_def.hpp:104
+msgid "Y"
+msgstr "Y"
+
+#: src/gui/screen_crash_recovery.cpp:92 src/gui/MItem_tools.hpp:651
 msgid "Y-axis"
 msgstr "Y-axis"
 
+#: src/gui/MItem_tools.hpp:491
+msgid "Y Axis"
+msgstr "Y Axis"
+
+#: src/gui/MItem_tools.hpp:672
+msgid "Y-axis filter"
+msgstr "Y-axis filter"
+
+#: src/gui/MItem_tools.hpp:691
+msgid "Y-axis freq."
+msgstr "Y-axis freq."
+
 #. Unload
-#: src/common/client_response_texts.cpp:43
+#: src/common/client_response_texts.cpp:65
 msgid "YES"
 msgstr "YES"
 
-#: src/gui/dialogs/DialogMoveZ.hpp:15
-msgid "Z AXIS MOVE"
-msgstr "Z AXIS MOVE"
+#: src/gui/wizard/selftest_frame_loadcell.cpp:100
+msgid ""
+"You did not tap the nozzle or you tapped it too soon. Retry?\n"
+"\n"
+" "
+msgstr ""
+"You did not tap the nozzle or you tapped it too soon. Retry?\n"
+"\n"
+" "
 
-#: src/gui/footer/footer_item_axis.hpp:63
-msgid "Z Axis"
-msgstr "Z Axis"
+#: src/gui/MItem_tools.hpp:699
+msgid "Y weight compensation"
+msgstr "Y weight compensation"
 
-#: src/gui/footer/footer_item_axis.hpp:75
-msgid "Z Height"
-msgstr "Z Height"
+#: src/common/footer_def.hpp:106
+msgid "Z"
+msgstr "Z"
 
-#: src/gui/MItem_tools.hpp:444
-msgid "Z axis"
-msgstr "Z axis"
-
-#: src/gui/dialogs/liveadjust_z.hpp:65
-msgid "Z height:"
-msgstr "Z height:"
-
-#: src/gui/dialogs/DialogSelftestResult.cpp:45
-#: src/gui/dialogs/DialogSelftestAxis.cpp:27 src/gui/dialogs/DialogMoveZ.hpp:16
+#: src/gui/dialogs/DialogMoveZ.hpp:17
 msgid "Z-axis"
 msgstr "Z-axis"
 
-#: src/gui/screen_menu_footer_settings.cpp:87
-msgid "none"
-msgstr "none"
+#: src/gui/MItem_tools.hpp:497
+msgid "Z Axis"
+msgstr "Z Axis"
+
+#: src/gui/wizard/selftest_frame_calib_z.cpp:16
+msgid "Z-axis calibration"
+msgstr "Z-axis calibration"
+
+#: src/gui/dialogs/DialogMoveZ.hpp:16
+msgid "Z AXIS MOVE"
+msgstr "Z AXIS MOVE"
+
+#: src/common/footer_def.hpp:108
+msgid "Z height"
+msgstr "Z height"
+
+#: src/gui/dialogs/liveadjust_z.hpp:69
+msgid "Z height:"
+msgstr "Z height:"

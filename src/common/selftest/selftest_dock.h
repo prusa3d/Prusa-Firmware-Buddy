@@ -16,6 +16,7 @@ public:
     LoopResult stateMoveAwayInit();
     LoopResult stateMoveAwayWait();
     LoopResult state_initiate_manual_park();
+    LoopResult state_cycle_mark0() { return LoopResult::MarkLoop0; }
     LoopResult state_wait_user_manual_park1();
     LoopResult state_wait_user_manual_park2();
     LoopResult state_wait_user_manual_park3();
@@ -36,6 +37,7 @@ public:
     LoopResult state_selftest_check_away();
     LoopResult state_selftest_check_state();
     LoopResult state_selftest_entry();
+    LoopResult state_cycle_mark1() { return LoopResult::MarkLoop1; }
     LoopResult state_selftest_pick();
     LoopResult state_selftest_park();
     LoopResult state_selftest_leave();

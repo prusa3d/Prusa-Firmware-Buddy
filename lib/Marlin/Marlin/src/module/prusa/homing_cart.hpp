@@ -16,4 +16,4 @@ float calibrated_home_offset(const AxisEnum axis);
  * calibration should be disabled for crash recovery, power loss recovery etc.
  * \return probe offset
  */
-float home_axis_precise(AxisEnum axis, int axis_home_dir, bool can_calibrate = true);
+float home_axis_precise(AxisEnum axis, int axis_home_dir, bool can_calibrate = true, float fr_mm_s = 0);

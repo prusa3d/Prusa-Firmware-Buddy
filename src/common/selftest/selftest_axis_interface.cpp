@@ -14,7 +14,7 @@
 
 namespace selftest {
 
-bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool separate) {
+bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate separate, [[maybe_unused]] FullSelftest full_selftest) {
     static SelftestSingleAxis_t staticResults[axis_count];
 
     // validity check
@@ -41,17 +41,68 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, bool sep
         staticResults[2].state = to_SubtestState(eeres.zaxis);
 
         // Allocate selftest part
-        // clang-format off
-        m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis,
-            staticResults[config_axis.axis],
-            &CSelftestPart_Axis::stateHome, &CSelftestPart_Axis::stateWaitHome,
-            &CSelftestPart_Axis::stateInitProgressTimeCalculation, &CSelftestPart_Axis::stateCycleMark,
-            &CSelftestPart_Axis::stateMove, &CSelftestPart_Axis::stateMoveWaitFinish, &CSelftestPart_Axis::stateParkAxis);
-        // clang-format on
+        switch (axis_to_letter(config_axis.axis)) {
+        case 'Z':
+            // clang-format off
+        m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
+            &CSelftestPart_Axis::stateHomeZ,
+            &CSelftestPart_Axis::stateWaitHome,
+            &CSelftestPart_Axis::stateEnableZProbe,
+            &CSelftestPart_Axis::stateInitProgressTimeCalculation,
+
+            &CSelftestPart_Axis::stateCycleMark2,
+            &CSelftestPart_Axis::stateMove,
+            &CSelftestPart_Axis::stateMoveFinishCycle,
+            &CSelftestPart_Axis::stateParkAxis);
+            // clang-format on
+            break;
+        case 'X':
+#if PRINTER_IS_PRUSA_MK4
+            // We have MK4 and it is full selftest (not a stand alone axis test)
+            // in this case we need to run a test with motor detection
+            if (full_selftest == FullSelftest::yes) {
+                // clang-format off
+        m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
+            &CSelftestPart_Axis::stateSwitchTo400step,
+
+            &CSelftestPart_Axis::stateCycleMark0,
+            &CSelftestPart_Axis::stateActivateHomingReporter,
+            &CSelftestPart_Axis::stateHomeXY,
+            &CSelftestPart_Axis::stateWaitHomingReporter,
+            &CSelftestPart_Axis::stateEvaluateHomingXY,
+
+            &CSelftestPart_Axis::stateCycleMark1,
+            &CSelftestPart_Axis::stateSwitchTo200stepAndRetry,
+            &CSelftestPart_Axis::stateInitProgressTimeCalculation,
+
+            &CSelftestPart_Axis::stateCycleMark2,
+            &CSelftestPart_Axis::stateMove,
+            &CSelftestPart_Axis::stateMoveFinishCycleWithMotorSwitch,
+            &CSelftestPart_Axis::stateParkAxis);
+                // clang-format on
+                break;
+            }
+            [[fallthrough]]; // FullSelftest::no
+                             // We have MK4 and it is a stand alone axis test
+                             // in this case we need to run the same type of test as Y axis have
+
+#endif                       // PRINTER_IS_PRUSA_MK4
+        case 'Y':
+            m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
+                &CSelftestPart_Axis::stateHomeXY,
+                &CSelftestPart_Axis::stateWaitHome,
+                &CSelftestPart_Axis::stateEvaluateHomingXY,
+                &CSelftestPart_Axis::stateInitProgressTimeCalculation,
+
+                &CSelftestPart_Axis::stateCycleMark2,
+                &CSelftestPart_Axis::stateMove,
+                &CSelftestPart_Axis::stateMoveFinishCycle,
+                &CSelftestPart_Axis::stateParkAxis);
+        }
     }
 
     bool in_progress = m_pAxis->Loop();
-    SelftestAxis_t result = SelftestAxis_t(staticResults[0], staticResults[1], staticResults[2], separate ? config_axis.axis : (Z_AXIS + 1)); // If separate, use >Z_AXIS
+    SelftestAxis_t result = SelftestAxis_t(staticResults[0], staticResults[1], staticResults[2], (separate == Separate::yes) ? config_axis.axis : (Z_AXIS + 1)); // If separate, use >Z_AXIS
     FSM_CHANGE_WITH_DATA__LOGGING(Selftest, IPartHandler::GetFsmPhase(), result.Serialize());
 
     if (in_progress) {

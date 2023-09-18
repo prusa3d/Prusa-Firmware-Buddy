@@ -61,9 +61,6 @@ struct MenuVars {
     constexpr static std::array<int, MenuVars::RANGE_SZ> axis_rms_currents_range = { 0, 800, 1 };
     constexpr static std::array<int, MenuVars::RANGE_SZ> steps_per_unit_range = { 1, 1000, 1 };       // small range, experimental feature
 
-    static const std::array<int, AXIS_CNT> GetDefaultStepsPerUnit();
-    static const std::array<int, AXIS_CNT> GetDefaultMicrosteps();
-    static const std::array<int, AXIS_CNT> GetDefaultCurrents();
     static const std::array<int, AXIS_CNT> GetManualFeedrate();
     static const std::array<char, AXIS_CNT> GetAxisLetters();
 
@@ -71,10 +68,6 @@ struct MenuVars {
     static const std::array<int, RANGE_SZ> GetBedRange();
     static const std::array<int, RANGE_SZ> GetMaximumZRange();
     static const std::array<std::array<int, RANGE_SZ>, AXIS_CNT> GetAxisRanges();
-
-    // to be implemented, currently we use 1 to 1000 step range and 0 to 800 crent range for all motors
-    // static const std::array<std::array<int, RANGE_SZ>, AXIS_CNT> GetStepsPerUnitRanges();
-    // static const std::array<std::array<int, RANGE_SZ>, AXIS_CNT> GetAxisRmsCurrentsRanges();
 
 private:
     MenuVars() = delete;

@@ -42,6 +42,7 @@
 #include "version.h"
 #include "touch_get.hpp"
 #include "touch_dependency.hpp"
+#include "language_eeprom.hpp"
 
 #include <option/bootloader.h>
 #include <option/bootloader_update.h>
@@ -508,6 +509,8 @@ void gui_error_run(void) {
 #if HAS_LEDS()
     leds::Init();
 #endif
+
+    LangEEPROM::getInstance(); // Initialize language EEPROM value
 
     while (true) {
         gui::StartLoop();

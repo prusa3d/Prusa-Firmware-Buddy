@@ -39,7 +39,7 @@ void MI_WIFI_CREDENTIALS_INI_FILE_t::click([[maybe_unused]] IWindowMenu &window_
 }
 
 MI_NET_INTERFACE_t::MI_NET_INTERFACE_t()
-    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {
+    : WI_SWITCH_t(0, _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_eth), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_wifi)) {
     if (netdev_get_active_id() == NETDEV_ESP_ID) {
         this->SetIndex(1);
     } else {
@@ -64,7 +64,7 @@ void MI_NET_IP_t::OnChange([[maybe_unused]] size_t old_index) {
 }
 
 MI_NET_IP_VER_t::MI_NET_IP_VER_t()
-    : WI_SWITCH_t(0, string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v4), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v6)) {
+    : WI_SWITCH_t(0, _(label), nullptr, is_enabled_t::no, is_hidden_t::no, string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v4), string_view_utf8::MakeCPUFLASH((const uint8_t *)str_v6)) {
     this->index = 0;
 }
 

@@ -14,7 +14,7 @@ using connect_client::ConnectionStatus;
 using connect_client::OnlineError;
 
 MI_CONNECT_ENABLED::MI_CONNECT_ENABLED()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().connect_enabled.get(), string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().connect_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_CONNECT_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
     config_store().connect_enabled.set(static_cast<bool>(index));

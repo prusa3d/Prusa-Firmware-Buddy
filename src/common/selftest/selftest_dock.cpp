@@ -88,7 +88,7 @@ LoopResult CSelftestPart_Dock::state_initiate_manual_park() {
         result.progress = 10;
     }
 
-    return LoopResult::MarkLoop;
+    return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_Dock::state_wait_user_manual_park1() {
@@ -113,7 +113,7 @@ LoopResult CSelftestPart_Dock::state_wait_user_manual_park3() {
     if (prusa_toolchanger.detect_tool_nr() != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
         SelftestInstance().log_printf("Tool picked after manual park\n");
         log_error(Selftest, "User failed to park the current tool", config.dock_id);
-        return LoopResult::GoToMark;
+        return LoopResult::GoToMark0;
     }
     return LoopResult::RunNext;
 }
@@ -375,7 +375,7 @@ LoopResult CSelftestPart_Dock::state_selftest_entry() {
     // Reenable automatic toolchange and toolchanger itself
     toolcheck_reenable();
 
-    return LoopResult::MarkLoop;
+    return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_Dock::state_selftest_pick() {
@@ -412,7 +412,7 @@ LoopResult CSelftestPart_Dock::state_selftest_park() {
 
 LoopResult CSelftestPart_Dock::state_selftest_leave() {
     if (remaining_park_unpark_cycles) {
-        return LoopResult::GoToMark;
+        return LoopResult::GoToMark1;
     }
     // Re-enable motor timeout (disable due to user waits)
     marlin_server::enqueue_gcode_printf("M18 S%d", DEFAULT_STEPPER_DEACTIVE_TIME);

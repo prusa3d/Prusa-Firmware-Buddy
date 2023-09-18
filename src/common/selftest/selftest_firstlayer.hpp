@@ -51,7 +51,7 @@ public:
         SelftestFirstLayer_t &result);
 
     LoopResult stateStart();
-    LoopResult stateCycleMark() { return LoopResult::MarkLoop; }
+    LoopResult stateCycleMark() { return LoopResult::MarkLoop0; }
     LoopResult stateAskFilamentInit();
     LoopResult stateAskFilament();
     LoopResult statePreheatEnqueueGcode();

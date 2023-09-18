@@ -187,6 +187,8 @@ Printer::Params MarlinPrinter::params() const {
     params.print_speed = marlin_vars()->print_speed;
     params.flow_factor = marlin_vars()->active_hotend().flow_factor;
     params.job_id = marlin_vars()->job_id;
+    // Version can change between MK4 and MK3.9 in runtime
+    params.version = get_printer_version();
 
     params.print_fan_rpm = marlin_vars()->active_hotend().print_fan_rpm;
     params.heatbreak_fan_rpm = marlin_vars()->active_hotend().heatbreak_fan_rpm;

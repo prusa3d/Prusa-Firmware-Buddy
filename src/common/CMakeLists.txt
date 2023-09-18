@@ -19,6 +19,7 @@ if(BOARD MATCHES ".*BUDDY")
             fsm_types.cpp
             hardware_serial.cpp
             heap.cpp
+            homing_reporter.cpp
             hwio_pindef_check.cpp
             i2c.cpp
             ini_handler.cpp
@@ -86,6 +87,7 @@ elseif(BOARD MATCHES "DWARF")
     firmware
     PRIVATE adc.cpp
             heap.cpp
+            homing_reporter.cpp
             marlin_log_component.cpp
             otp.cpp
             Pin.cpp

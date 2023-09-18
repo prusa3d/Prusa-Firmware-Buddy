@@ -191,10 +191,6 @@ LoopResult CSelftestPart_Loadcell::stateConnectionCheck() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_Loadcell::stateCycleMark() {
-    return LoopResult::MarkLoop;
-}
-
 LoopResult CSelftestPart_Loadcell::stateAskAbortInit() {
     IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_user_tap_ask_abort);
     return LoopResult::RunNext;
@@ -232,7 +228,7 @@ LoopResult CSelftestPart_Loadcell::stateTapCheckCountDown() {
     if (std::abs(load) >= rConfig.countdown_load_error_value) {
         log_info(Selftest, "%s load during countdown %dg exceeded error value %dg", rConfig.partname, load, rConfig.countdown_load_error_value);
         rResult.pressed_too_soon = true;
-        return LoopResult::GoToMark;
+        return LoopResult::GoToMark0;
     }
     LogDebugTimed(log, "%s load during countdown %dg", rConfig.partname, load);
 
@@ -259,7 +255,7 @@ LoopResult CSelftestPart_Loadcell::stateTapCheckInit() {
 LoopResult CSelftestPart_Loadcell::stateTapCheck() {
     if ((SelftestInstance().GetTime() - time_start_tap) >= rConfig.tap_timeout_ms) {
         log_info(Selftest, "%s user did not tap", rConfig.partname);
-        return LoopResult::GoToMark; // timeout, retry entire touch sequence
+        return LoopResult::GoToMark0; // timeout, retry entire touch sequence
     }
 
     int32_t load = -1 * loadcell.get_tared_z_load(); // Positive when pushing the nozzle up

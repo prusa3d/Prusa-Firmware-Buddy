@@ -12,7 +12,10 @@
 #include "i_selftest.hpp"
 #include "algorithm_scale.hpp"
 #include "printers.h"
+#include "homing_reporter.hpp"
+#include "PersistentStorage.h"
 
+#include <limits>
 #include <option/has_toolchanger.h>
 #if HAS_TOOLCHANGER()
     #include <module/prusa/toolchanger.h>
@@ -21,19 +24,11 @@
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);
 
-static const char AxisLetter[] = { 'X', 'Y', 'Z', 'E' };
 CSelftestPart_Axis::CSelftestPart_Axis(IPartHandler &state_machine, const AxisConfig_t &config,
     SelftestSingleAxis_t &result)
     : state_machine(state_machine)
     , config(config)
     , rResult(result)
-    , time_progress_start(0)
-    , time_progress_estimated_end(0)
-    , m_Step(0)
-    , m_StartPos_usteps(0)
-    , m_SGCount(0)
-    , m_SGSum(0)
-    , m_pSGOrig_cb(nullptr)
     , log(1000) {
     log_info(Selftest, "%s Started", config.partname);
     homing_reset();
@@ -160,31 +155,115 @@ void CSelftestPart_Axis::sg_sampling_disable() {
 
 CSelftestPart_Axis *CSelftestPart_Axis::m_pSGAxis = nullptr;
 
-LoopResult CSelftestPart_Axis::stateHome() {
-#if PRINTER_IS_PRUSA_iX
-    char gcode[7];
-    // Avoid tool cleaner, TODO move this logic into G28
-    if (AxisLetter[config.axis] == 'Y') {
-        log_info(Selftest, "%s home XY", config.partname);
-        sprintf(gcode, "G28 XY");
+LoopResult CSelftestPart_Axis::stateSwitchTo400step() {
+    if (config_store().xy_motors_400_step.get()) {
+        log_info(Selftest, "%s have 400step", config.partname);
+        return LoopResult::RunNext;
     }
-#else
-    char gcode[6];
-    // we have Z safe homing enabled, so Z might need to home all axis
-    if (AxisLetter[config.axis] == 'Z' && (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS))) {
-        log_info(Selftest, "%s home all axis", config.partname);
-        sprintf(gcode, "G28");
+
+    log_info(Selftest, "%s change to 400step", config.partname);
+
+    motor_switch(Motor::stp_400);
+
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateSwitchTo200stepAndRetry() {
+    if (homed) {
+        return LoopResult::RunNext;
     }
-#endif
-    else {
-        sprintf(gcode, "G28 %c", AxisLetter[config.axis]);
-        log_info(Selftest, "%s home single axis", config.partname);
+
+    if (!config_store().xy_motors_400_step.get()) {
+        // we already have 200 step, this means calibration failed on both 200 and 400 step
+        // switch setting of motors to default
+        motor_switch(config_store().xy_motors_400_step.default_val ? Motor::stp_400 : Motor::stp_200);
+        return LoopResult::Fail;
     }
+
+    log_info(Selftest, "%s change to 200step", config.partname);
+
+    motor_switch(Motor::stp_200);
+
+    return LoopResult::GoToMark0;
+}
+
+void CSelftestPart_Axis::motor_switch(Motor steps) {
+    config_store().xy_motors_400_step.set(steps == Motor::stp_400);
+
+    // TODO erase takes long
+    // change FSM .. make user know
+    PersistentStorage::erase();
+
+    const char fmt_curr[] = "M906 X%u Y%u";
+    int sz_curr = snprintf(NULL, 0, fmt_curr, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
+    char gcode_curr[sz_curr + 1];                                                                       // note +1 for terminating null byte
+    snprintf(gcode_curr, sizeof(gcode_curr), fmt_curr, get_rms_current_ma_x(), get_rms_current_ma_y()); // XY motor currents
+    queue.enqueue_one_now(gcode_curr);
+
+    const char fmt_microstep[] = "M350 X%u Y%u";
+    int sz_microstep = snprintf(NULL, 0, fmt_microstep, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
+    char gcode_microstep[sz_microstep + 1];                                                                    // note +1 for terminating null byte
+    snprintf(gcode_microstep, sizeof(gcode_microstep), fmt_microstep, get_microsteps_x(), get_microsteps_y()); // XY motor microsteps
+    queue.enqueue_one_now(gcode_microstep);
+}
+
+LoopResult CSelftestPart_Axis::stateActivateHomingReporter() {
+    HomingReporter::enable();
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateHomeXY() {
+    // Mark axis as not homed in case it was marked as homed before
+    set_axis_is_not_at_home(AxisEnum(config.axis));
+
+    // Trigger home on axis
+    char gcode[std::size("G28 X")];
+    snprintf(gcode, std::size(gcode), "G28 %c", axis_to_letter(config.axis));
+    log_info(Selftest, "%s home single axis", config.partname);
     queue.enqueue_one_now(gcode);
+
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateWaitHomingReporter() {
+    HomingReporter::State state = HomingReporter::consume_done();
+
+    switch (state) {
+    case HomingReporter::State::disabled:
+    case HomingReporter::State::enabled:
+        log_error(Selftest, "%s homing reporter is in wrong state", config.partname);
+        [[fallthrough]];
+    case HomingReporter::State::done:
+        return LoopResult::RunNext;
+    case HomingReporter::State::in_progress:
+        break;
+    }
+    return LoopResult::RunCurrent;
+}
+
+LoopResult CSelftestPart_Axis::stateEvaluateHomingXY() {
+    // TODO: Is it necessary to remember homed state?
+    // It can be checked later on. Motors will hold for another 2 minutes.
+    // The subsequent check seems immediate
+    homed = !axes_need_homing(_BV(config.axis));
+
+    endstops.enable(true);
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateHomeZ() {
+    // we have Z safe homing enabled, so Z might need to home all axis
+    if (!TEST(axis_known_position, X_AXIS) || !TEST(axis_known_position, Y_AXIS)) {
+        log_info(Selftest, "%s home all axis", config.partname);
+        queue.enqueue_one_now("G28");
+    } else {
+        log_info(Selftest, "%s home single axis", config.partname);
+        queue.enqueue_one_now("G28 Z");
+    }
 
 #if HAS_TOOLCHANGER()
     // Z axis check needs to be done with a tool
-    if (AxisLetter[config.axis] == 'Z' && prusa_toolchanger.is_toolchanger_enabled() && (prusa_toolchanger.has_tool() == false)) {
+    if (prusa_toolchanger.is_toolchanger_enabled() && (prusa_toolchanger.has_tool() == false)) {
         queue.enqueue_one_now("T0 S1");
     }
 #endif /*HAS_TOOLCHANGER()*/
@@ -196,9 +275,11 @@ LoopResult CSelftestPart_Axis::stateWaitHome() {
     if (queue.has_commands_queued() || planner.processing())
         return LoopResult::RunCurrent;
     endstops.enable(true);
-    if (config.axis == Z_AXIS) {
-        endstops.enable_z_probe(); // Enable Z probe only during Z axis test
-    }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateEnableZProbe() {
+    endstops.enable_z_probe();
     return LoopResult::RunNext;
 }
 
@@ -214,12 +295,31 @@ LoopResult CSelftestPart_Axis::stateMove() {
     return LoopResult::RunNext;
 }
 
-LoopResult CSelftestPart_Axis::stateMoveWaitFinish() {
+LoopResult CSelftestPart_Axis::stateMoveFinishCycleWithMotorSwitch() {
     LoopResult result = wait(getDir());
-    if (result != LoopResult::RunNext)
+    switch (result) {
+    case LoopResult::RunNext:
+        break;
+    case LoopResult::Fail:
+        homed = false;
+        return LoopResult::GoToMark1;
+    default:
         return result;
+    }
+
     if ((++m_Step) < config.steps) {
-        return LoopResult::GoToMark;
+        return LoopResult::GoToMark2;
+    }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Axis::stateMoveFinishCycle() {
+    LoopResult result = wait(getDir());
+    if (result != LoopResult::RunNext) {
+        return result;
+    }
+    if ((++m_Step) < config.steps) {
+        return LoopResult::GoToMark2;
     }
     return LoopResult::RunNext;
 }
@@ -239,8 +339,8 @@ LoopResult CSelftestPart_Axis::stateParkAxis() {
 
     if (config.park) {
         char gcode[15];
-        log_info(Selftest, "%s park %c axis to %i", config.partname, AxisLetter[config.axis], static_cast<int>(config.park_pos));
-        snprintf(gcode, std::size(gcode), "G1 %c%i F4200", AxisLetter[config.axis], static_cast<int>(config.park_pos));
+        log_info(Selftest, "%s park %c axis to %i", config.partname, axis_to_letter(config.axis), static_cast<int>(config.park_pos));
+        snprintf(gcode, std::size(gcode), "G1 %c%i F4200", axis_to_letter(config.axis), static_cast<int>(config.park_pos));
         queue.enqueue_one_now(gcode); // Park Y
         parking_initiated = true;
         return LoopResult::RunCurrent;

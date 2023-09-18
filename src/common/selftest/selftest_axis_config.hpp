@@ -12,6 +12,7 @@
 
 namespace selftest {
 // using 32bit variables, because it is stored in flash and access to 32bit variables is more efficient
+// TODO: If axis would be AxisEnum the code would be much less error prone at cost of extra shift operation in value access
 struct AxisConfig_t {
     using type_evaluation = SelftestSingleAxis_t;
     static constexpr SelftestParts part_type = SelftestParts::Axis;

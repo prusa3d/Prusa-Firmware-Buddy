@@ -744,12 +744,8 @@ bool PreciseStepping::is_waiting_before_delivering() {
     if (const uint8_t waiting_for_discard = Planner::movesplanned_processed(); waiting_for_discard >= (BLOCK_BUFFER_SIZE / 2)) {
         // In case the block queue contains plenty of short blocks waiting for discarding and step generators are unable to produce new
         // step events, we have to ensure that the next block can be processed (or the empty move segment can be placed into the queue).
-        if (has_all_generators_reached_end_of_move_queue(PreciseStepping::step_generator_state)) {
-            // We reset indicators that all step generators reach the end of the queue to ensure that this
-            // condition will not be triggered multiple times before the move interrupt handler is called.
-            reset_reached_end_of_move_queue_flag(PreciseStepping::step_generator_state);
+        if (has_all_generators_reached_end_of_move_queue(PreciseStepping::step_generator_state))
             return false;
-        }
 
         return true;
     }
@@ -867,7 +863,12 @@ void PreciseStepping::move_isr() {
     // causes too few steps to be produced per iteration, eventually running it dry
     assert(status == STEP_GENERATOR_STATUS_NO_STEP_EVENT_PRODUCED);
 
-    for (;;) {
+    // Until we break from this loop, no new blocks are appended into the block queue.
+    // To ensure that we are never stuck in the infinite loop (when some unexpected state happens),
+    // we will limit the number of iterations by the number of all blocks + 1.
+    // +1 is there to make one additional call when all blocks are processed because this additional
+    // call can append the ending empty move segment when all blocks were already processed.
+    for (uint16_t i = 0; i <= Planner::movesplanned(); ++i) {
         process_queue_of_blocks();
         if (!has_unprocessed_move_segments_queued()) {
             // the queue didn't avance: we're stuck

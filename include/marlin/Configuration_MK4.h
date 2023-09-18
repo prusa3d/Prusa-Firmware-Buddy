@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include "hw_configuration.hpp"
+
 // clang-format off
 
 /**
@@ -753,17 +755,8 @@
  * Override with M203
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
-#if defined(HAS_LDO_400_STEP)
-    #define DEFAULT_MAX_FEEDRATE \
-        { 400, 400, 40, 50 }
-    #define DEFAULT_MAX_FEEDRATE_STEALTHCHOP \
-        { 100, 100, 40, 45 }
-#else
-    #define DEFAULT_MAX_FEEDRATE \
-        { 200, 200, 40, 45 }
-    #define DEFAULT_MAX_FEEDRATE_STEALTHCHOP \
-        { 180, 165, 40, 45 }
-#endif //HAS_LDO_400_STEP
+#define DEFAULT_MAX_FEEDRATE \
+    { 400, 400, 40, 50 }
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -1054,16 +1047,9 @@
 #define DISABLE_INACTIVE_EXTRUDER // Keep only the active extruder enabled
 
 // default values
-#if defined(HAS_LDO_400_STEP)
-    #define DEFAULT_INVERT_X_DIR false
-    #define DEFAULT_INVERT_Y_DIR true
-    #define DEFAULT_INVERT_Z_DIR false
-#else
-    // 200 step .. MK3.9
-    #define DEFAULT_INVERT_X_DIR true
-    #define DEFAULT_INVERT_Y_DIR false
-    #define DEFAULT_INVERT_Z_DIR true
-#endif
+#define DEFAULT_INVERT_X_DIR false
+#define DEFAULT_INVERT_Y_DIR true
+#define DEFAULT_INVERT_Z_DIR false
 
 #if (!defined(HAS_PLANETARY_GEARBOX))
     #define DEFAULT_INVERT_E0_DIR true
@@ -1145,8 +1131,6 @@
 #define Y_END_GAP 5
 #define Z_END_GAP 10
 
-// MK3.9 (200 step motors) does not support precise homing
-#if defined(HAS_LDO_400_STEP)
 /**
  * Calibrates X, Y homing positions and uses
  * the reference to provide repeatable homing position.
@@ -1159,8 +1143,7 @@
  * Three times more tries are used when recovering from crash
  * or power panic.
  */
-#define PRECISE_HOMING_TRIES 15
-#endif
+#define PRECISE_HOMING_TRIES 12
 
 /**
  * Software Endstops
@@ -1443,13 +1426,7 @@
     #define Z_SAFE_HOMING_Y_POINT (-4) // Y point for Z homing when homing all axes (G28).
 #endif
 
-// Homing speeds (mm/m)
-#ifdef HAS_LDO_400_STEP
-    #include "hw_configuration.hpp"
-    #define HOMING_FEEDRATE_XY (buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (80 * 60) : (62 * 60))
-#else
-    #define HOMING_FEEDRATE_XY (80 * 60)//(150 * 60)
-#endif
+#define HOMING_FEEDRATE_XY (buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (80 * 60) : (62 * 60))
 
 #define HOMING_FEEDRATE_Z (8 * 60)
 #define HOMING_FEEDRATE_INVERTED_Z (buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (60 * 60) : (30 * 60))

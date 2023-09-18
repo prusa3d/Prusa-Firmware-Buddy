@@ -756,15 +756,9 @@
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
 
-#if !defined HAS_LDO_400_STEP
-    #define DEFAULT_AXIS_STEPS_PER_UNIT \
-        { 100, 100, 800, 400 }
-#else
-    #define DEFAULT_AXIS_STEPS_PER_UNIT \
-        { 50, 50, 800, 784 }
-#endif
-
-
+// 200 step motors
+#define DEFAULT_AXIS_STEPS_PER_UNIT \
+    { 100, 100, 800, 400 }
 
 
 /**

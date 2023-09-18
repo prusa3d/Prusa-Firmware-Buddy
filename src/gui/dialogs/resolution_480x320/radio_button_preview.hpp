@@ -21,6 +21,8 @@ public:
      */
     RadioButtonPreview(window_t *parent, Rect16 rect);
 
+    static constexpr const uint16_t vertical_buttons_width = 94; // Needs to be at least 94px for translations to fit to labels
+
 private:
     Rect16 getVerticalIconRect(uint8_t idx) const;
     Rect16 getVerticalLabelRect(uint8_t idx) const;

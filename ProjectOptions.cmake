@@ -260,7 +260,7 @@ set(PRINTERS_WITH_TOOLCHANGER "XL")
 set(PRINTERS_WITH_SIDE_FSENSOR "XL")
 set(PRINTERS_WITH_EMBEDDED_ESP32 "XL")
 set(PRINTERS_WITH_SIDE_LEDS "XL" "iX")
-set(PRINTERS_WITH_TRANSLATIONS "MINI")
+set(PRINTERS_WITH_TRANSLATIONS "MK4" "XL")
 set(PRINTERS_WITH_LOVE_BOARD "MK4" "iX")
 set(PRINTERS_WITH_MMU2 "MK4" "MK3.5")
 
@@ -578,6 +578,9 @@ else()
   set(DEBUG NO)
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
 endif()
+
+# asyncio causes speed regressions so let's disable it for now
+define_boolean_option(USE_ASYNCIO NO)
 
 # define enabled features
 

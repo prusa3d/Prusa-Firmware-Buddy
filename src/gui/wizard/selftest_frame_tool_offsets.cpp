@@ -62,7 +62,7 @@ void SelftestFrameToolOffsets::change() {
 
     case PhasesSelftest::ToolOffsets_wait_stable_temp:
         text_phase.SetText(_("Waiting for hotends to stabilize at calibration temperature:"));
-        snprintf(target_temp_text, std::size(target_temp_text), "%d\177C", SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE);
+        snprintf(target_temp_text, std::size(target_temp_text), "%d\xC2\xB0\x43", SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE); // \xB0\x43 == degree Celsius
         text_detail.SetText(string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(target_temp_text)));
         text_detail.Show();
         break;

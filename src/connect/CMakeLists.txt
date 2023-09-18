@@ -10,6 +10,7 @@ target_sources(
           marlin_printer.cpp
           planner.cpp
           printer.cpp
+          printer_type.cpp
           registrator.cpp
           render.cpp
           run.cpp

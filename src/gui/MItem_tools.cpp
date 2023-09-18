@@ -46,6 +46,8 @@ static inline void MsgBoxNonBlockInfo(string_view_utf8 txt) {
     gui_loop();
 }
 
+static constexpr const char *homing_text_info = N_("Printer may vibrate and be noisier during homing.");
+
 /**********************************************************************************************/
 // MI_FILAMENT_SENSOR
 bool MI_FILAMENT_SENSOR::init_index() const {
@@ -127,7 +129,7 @@ void MI_AUTO_HOME::click(IWindowMenu & /*window_menu*/) {
     marlin_client::gcode("G28");
     while (!marlin_client::event_clr(marlin_server::Event::CommandBegin))
         marlin_client::loop();
-    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+    gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
 }
 
 /*****************************************************************************/
@@ -145,7 +147,7 @@ void MI_MESH_BED::click(IWindowMenu & /*window_menu*/) {
             marlin_client::gcode("G28");
             while (!marlin_client::event_clr(marlin_server::Event::CommandBegin))
                 marlin_client::loop();
-            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress);
+            gui_dlg_wait(gui_marlin_G28_or_G29_in_progress, _(homing_text_info));
         }
         response = Response::No;
         marlin_client::event_clr(marlin_server::Event::CommandBegin);

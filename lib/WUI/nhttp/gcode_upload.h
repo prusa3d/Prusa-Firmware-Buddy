@@ -57,6 +57,7 @@ namespace printer {
         unique_file_ptr tmp_upload_file;
         // A way how to reconstruct the name of the temporary file.
         size_t file_idx;
+        bool filename_checked;
 
         virtual Result data(std::string_view data) override;
         virtual Result finish(const char *final_filename, bool start_print) override;

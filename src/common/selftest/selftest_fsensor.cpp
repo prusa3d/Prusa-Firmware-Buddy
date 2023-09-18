@@ -39,39 +39,41 @@ CSelftestPart_FSensor::CSelftestPart_FSensor(IPartHandler &state_machine, const 
     : rStateMachine(state_machine)
     , rConfig(config)
     , rResult(result)
-    , need_unload(false)
     , log(1000)
     , log_fast(500)
-    , show_remove(true) {
+    , extruder(GetExtruderFSensor(rConfig.extruder_id))
+    , side(GetSideFSensor(rConfig.extruder_id)) {
     log_info(Selftest, "%s Started", rConfig.partname);
 
-    MetricsSetEnabled(true);
+    if (extruder) {
+        extruder->MetricsSetEnabled(true);
+    }
+    if (side) {
+        side->MetricsSetEnabled(true);
+    }
+    if (!extruder) {
+        bsod("%s wrong printer sensor index", rConfig.partname);
+    }
 }
 CSelftestPart_FSensor::~CSelftestPart_FSensor() {
-    MetricsSetEnabled(false);
+    if (extruder) {
+        extruder->MetricsSetEnabled(false);
+    }
+    if (side) {
+        side->MetricsSetEnabled(false);
+    }
 }
 
 bool CSelftestPart_FSensor::AbortAndInvalidateIfAbortPressed() {
     if (rStateMachine.GetButtonPressed() == Response::Abort_invalidate_test) {
-        IFSensor *sensor = GetExtruderFSensor(rConfig.extruder_id);
-        if (sensor)
-            sensor->SetInvalidateCalibrationFlag();
-        sensor = GetSideFSensor(rConfig.extruder_id);
-        if (sensor)
-            sensor->SetInvalidateCalibrationFlag();
+        extruder->SetInvalidateCalibrationFlag();
+        if (side) {
+            side->SetInvalidateCalibrationFlag();
+        }
         log_info(Selftest, "%s user aborted test", rConfig.partname);
         return true;
     }
     return false;
-}
-
-void CSelftestPart_FSensor::MetricsSetEnabled(bool enable) {
-    IFSensor *sensor = GetExtruderFSensor(rConfig.extruder_id);
-    if (sensor)
-        sensor->MetricsSetEnabled(enable);
-    sensor = GetSideFSensor(rConfig.extruder_id);
-    if (sensor)
-        sensor->MetricsSetEnabled(enable);
 }
 
 LoopResult CSelftestPart_FSensor::state_init() {
@@ -95,7 +97,7 @@ LoopResult CSelftestPart_FSensor::state_wait_tool_pick() {
 
 LoopResult CSelftestPart_FSensor::state_ask_unload_init() {
     IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_ask_unload);
-    return LoopResult::MarkLoop;
+    return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_FSensor::state_ask_unload_wait() {
@@ -122,10 +124,13 @@ LoopResult CSelftestPart_FSensor::state_filament_unload_enqueue_gcode() {
     if (need_unload) {
         queue.enqueue_one_now("M702 W2"); // unload with return option
         log_info(Selftest, "%s unload enqueued", rConfig.partname);
-    } else {
-        // must change state here to avoid flickering
-        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_unload_confirm);
     }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_FSensor::state_filament_unload_confirm_preinit() {
+    // TODO set FSM for load dialog - to eliminate flickering
+    IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_unload_confirm);
     return LoopResult::RunNext;
 }
 
@@ -142,14 +147,9 @@ LoopResult CSelftestPart_FSensor::state_filament_unload_wait_finished() {
     // check if we returned from preheat or finished the unload
     PreheatStatus::Result res = PreheatStatus::ConsumeResult();
     if (res == PreheatStatus::Result::DoneNoFilament) {
-        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_unload_confirm);
+        return LoopResult::RunNext;
     }
-    return LoopResult::GoToMark;
-}
-
-LoopResult CSelftestPart_FSensor::state_ask_unload_confirm_init() {
-    IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_unload_confirm);
-    return LoopResult::RunNext;
+    return LoopResult::GoToMark0;
 }
 
 LoopResult CSelftestPart_FSensor::state_ask_unload_confirm_wait() {
@@ -157,9 +157,8 @@ LoopResult CSelftestPart_FSensor::state_ask_unload_confirm_wait() {
     switch (response) {
     case Response::Yes:
         // user said yes, there is filament, go back and ask him to remove it
-        return LoopResult::GoToMark;
+        return LoopResult::GoToMark0;
     case Response::No:
-        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_calibrate);
         return LoopResult::RunNext;
     default:
         break;
@@ -167,13 +166,14 @@ LoopResult CSelftestPart_FSensor::state_ask_unload_confirm_wait() {
     return LoopResult::RunCurrent;
 }
 
+LoopResult CSelftestPart_FSensor::state_calibrate_init() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_calibrate);
+    return LoopResult::RunNext;
+}
+
 LoopResult CSelftestPart_FSensor::state_calibrate() {
-    IFSensor *extruder = GetExtruderFSensor(rConfig.extruder_id);
-    if (extruder) {
-        extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
-        extruder->Enable(); // must be here for synchronization
-    }
-    IFSensor *side = GetSideFSensor(rConfig.extruder_id);
+    extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
+    extruder->Enable(); // must be here for synchronization
     if (side) {
         side->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateNoFilament);
         side->Enable(); // must be here for synchronization
@@ -190,21 +190,12 @@ LoopResult CSelftestPart_FSensor::state_calibrate_wait_finished() {
         return LoopResult::RunCurrent;
     }
 
-    IFSensor *sensor = GetExtruderFSensor(rConfig.extruder_id);
-    if (!sensor) {
-        log_error(Selftest, "%s wrong printer sensor index", rConfig.partname);
-        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
-        return LoopResult::Fail;
-    }
-    current_fs_state = sensor->Get();
-
-    std::array<fsensor_t, 2> states_to_check = { current_fs_state, fsensor_t::NoFilament };
+    std::array<fsensor_t, 2> states_to_check = { extruder->Get(), fsensor_t::NoFilament };
 
     if (!rConfig.mmu_mode) {
         // Try to get side sensor
-        sensor = GetSideFSensor(rConfig.extruder_id);
-        if (sensor) {
-            states_to_check[1] = sensor->Get();
+        if (side) {
+            states_to_check[1] = side->Get();
         }
     }
 
@@ -243,31 +234,22 @@ LoopResult CSelftestPart_FSensor::state_calibrate_wait_finished() {
 
 LoopResult CSelftestPart_FSensor::state_insertion_wait_init() {
     IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_insertion_wait);
-    return LoopResult::MarkLoop;
+    return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_FSensor::state_insertion_wait() {
     if (AbortAndInvalidateIfAbortPressed())
         return LoopResult::Fail;
 
-    IFSensor *sensor = GetExtruderFSensor(rConfig.extruder_id);
-    if (!sensor) {
-        log_error(Selftest, "%s wrong printer sensor index", rConfig.partname);
-        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
-        return LoopResult::Fail;
-    }
-    current_fs_state = sensor->Get();
-
-    std::array<fsensor_t, 2> states_to_check = { current_fs_state, fsensor_t::HasFilament };
+    std::array<fsensor_t, 2> states_to_check = { extruder->Get(), fsensor_t::HasFilament };
 
     // TODO this awkward mechanism fails for non-MMU FS Calibration on MK4 with MMU enabled.
     // The rConfig.mmu_mode flag is false, but unless filament is loaded
     // in MMU, FINDA has no filament and the test hence never detects the filament
     if (!rConfig.mmu_mode) {
         // Try to get side sensor
-        sensor = GetSideFSensor(rConfig.extruder_id);
-        if (sensor) {
-            states_to_check[1] = sensor->Get();
+        if (side) {
+            states_to_check[1] = side->Get();
         }
     }
 
@@ -315,37 +297,61 @@ LoopResult CSelftestPart_FSensor::state_insertion_ok() {
         return LoopResult::RunNext;
     }
 
-    IFSensor *extruder = GetExtruderFSensor(rConfig.extruder_id);
-    IFSensor *side = nullptr;
-    if (!rConfig.mmu_mode) {
-        side = GetSideFSensor(rConfig.extruder_id);
-    }
+    IFSensor *const side_local = rConfig.mmu_mode ? nullptr : side;
 
     // in case that any sensor doesn't think there is filament, go back to insert filament screen
-    if (extruder && extruder->Get() != fsensor_t::HasFilament) {
-        return LoopResult::GoToMark;
+    if (extruder->Get() != fsensor_t::HasFilament) {
+        return LoopResult::GoToMark1;
     }
 
-    if (side && side->Get() != fsensor_t::HasFilament) {
-        return LoopResult::GoToMark;
+    if (side_local && side_local->Get() != fsensor_t::HasFilament) {
+        return LoopResult::GoToMark1;
     }
 
     return LoopResult::RunCurrent;
 }
 
+LoopResult CSelftestPart_FSensor::state_insertion_calibrate_init() {
+    IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_insertion_calibrate);
+
+    log_info(Selftest, "%s calibrating with filament inserted", rConfig.partname);
+    return LoopResult::RunNext;
+}
+
 LoopResult CSelftestPart_FSensor::state_insertion_calibrate_start() {
-    IFSensor *extruder = GetExtruderFSensor(rConfig.extruder_id);
-    if (extruder) {
-        extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateHasFilament);
-    }
-    IFSensor *side = GetSideFSensor(rConfig.extruder_id);
+    extruder->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateHasFilament);
     if (side) {
         side->SetCalibrateRequest(IFSensor::CalibrateRequest::CalibrateHasFilament);
     }
 
-    IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_insertion_calibrate);
+    return LoopResult::RunNext;
+}
 
-    log_info(Selftest, "%s calibrating with filament inserted", rConfig.partname);
+LoopResult CSelftestPart_FSensor::state_insertion_calibrate() {
+    if (AbortAndInvalidateIfAbortPressed())
+        return LoopResult::Fail;
+
+    IFSensor *const side_local = rConfig.mmu_mode ? nullptr : side;
+
+    // if calibration not done, wait
+    if ((!extruder->IsCalibrationFinished()) || (side && !side->IsCalibrationFinished())) {
+        return LoopResult::RunCurrent;
+    }
+
+    // after calibration is done, only acceptable state is HasFilament, any other means sensor
+    //  disabled itself because he wasn't satisfied with what he read with filament
+    if (extruder->Get() != fsensor_t::HasFilament) {
+        extruder->SetInvalidateCalibrationFlag();
+        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
+        return LoopResult::Fail;
+    }
+
+    if (side_local && side_local->Get() != fsensor_t::HasFilament) {
+        side_local->SetInvalidateCalibrationFlag();
+        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
+        return LoopResult::Fail;
+    }
+
     return LoopResult::RunNext;
 }
 
@@ -353,58 +359,20 @@ LoopResult CSelftestPart_FSensor::state_insertion_calibrate_wait() {
     if (AbortAndInvalidateIfAbortPressed())
         return LoopResult::Fail;
 
-    // wait for calibration to finish
-    IFSensor *extruder = GetExtruderFSensor(rConfig.extruder_id);
-    IFSensor *side = nullptr;
-    if (!rConfig.mmu_mode) {
-        side = GetSideFSensor(rConfig.extruder_id);
-    }
-
-    // if calibration not done, wait
-    if ((extruder && !extruder->IsCalibrationFinished()) || (side && !side->IsCalibrationFinished())) {
+    if (!rStateMachine.WaitSoLastStateIsVisible()) {
         return LoopResult::RunCurrent;
     }
 
-    // after calibration is done, only acceptable state is HasFilament, any other means sensor
-    //  disabled itself because he wasn't satisfied with what he read with filament
-    if (extruder && extruder->Get() != fsensor_t::HasFilament) {
-        extruder->SetInvalidateCalibrationFlag();
-        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
-        return LoopResult::Fail;
-    }
-
-    if (side && side->Get() != fsensor_t::HasFilament) {
-        side->SetInvalidateCalibrationFlag();
-        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
-        return LoopResult::Fail;
-    }
-
-    IPartHandler::SetFsmPhase(PhasesSelftest::Fsensor_enforce_remove);
     return LoopResult::RunNext;
 }
 
 LoopResult CSelftestPart_FSensor::state_enforce_remove_init() {
-    IFSensor *sensor = GetExtruderFSensor(rConfig.extruder_id);
-    if (!sensor)
-        return LoopResult::Fail;
+    IPartHandler::SetFsmPhase(PhasesSelftest::Fsensor_enforce_remove);
+    return LoopResult::RunNext;
+}
 
-    const fsensor_t current_fs_state = sensor->Get();
-
-    switch (current_fs_state) {
-    case fsensor_t::HasFilament:
-        show_remove = true;
-        rResult.inserted = true;
-        break;
-    case fsensor_t::NoFilament:
-        rResult.inserted = false;
-        show_remove = false;
-        break;
-    default:
-        break;
-    }
-
-    if (show_remove) {
-        IPartHandler::SetFsmPhase(PhasesSelftest::Fsensor_enforce_remove);
+LoopResult CSelftestPart_FSensor::state_enforce_remove_mmu_move() {
+    if (extruder->Get() == fsensor_t::HasFilament) {
         // For MMU filament sensor - move back the same amount we moved forward
         if (rConfig.mmu_mode) {
             AutoRestore<bool> CE(thermalManager.allow_cold_extrude);
@@ -416,20 +384,10 @@ LoopResult CSelftestPart_FSensor::state_enforce_remove_init() {
 }
 
 LoopResult CSelftestPart_FSensor::state_enforce_remove() {
-    if (!show_remove) {
-        return LoopResult::RunNext; // OK - there is no filament in fsensor
-    }
-    IFSensor *sensor = GetExtruderFSensor(rConfig.extruder_id);
-
     if (AbortAndInvalidateIfAbortPressed())
         return LoopResult::Fail;
 
-    if (!sensor) {
-        log_error(Selftest, "%s wrong printer sensor index", rConfig.partname);
-        IPartHandler::SetFsmPhase(PhasesSelftest::FSensor_fail);
-        return LoopResult::Fail;
-    }
-    const fsensor_t new_fs_state = sensor->Get();
+    const fsensor_t new_fs_state = extruder->Get();
 
     switch (new_fs_state) {
     case fsensor_t::HasFilament:

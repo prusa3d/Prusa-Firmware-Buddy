@@ -19,6 +19,16 @@
     #include "MItem_mmu.hpp"
 #endif
 
+class MI_HELP_FW_UPDATE : public WI_LABEL_t {
+    static constexpr const char *const label = N_("FW update");
+
+public:
+    MI_HELP_FW_UPDATE();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
 /*****************************************************************************/
 
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX)
@@ -37,20 +47,19 @@ using ScreenMenuSettings__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
     #if HAS_TOOLCHANGER()
     MI_TOOLS_SETUP,
     #endif
-    MI_USER_INTERFACE, MI_LANG_AND_TIME, MI_NETWORK, MI_HARDWARE, MI_SYSTEM
     #if DEVELOPER_MODE()
-    ,
-    MI_ERROR_TEST
-    #endif /*DEVELOPMENT_ITEMS()*/
-    #if PRINTER_IS_PRUSA_MK4
-    ,
-    MI_INPUT_SHAPER
+    MI_ERROR_TEST,
     #endif
     #ifdef _DEBUG
-    ,
-    MI_TEST
+    MI_TEST,
     #endif
-    >;
+    MI_USER_INTERFACE, MI_LANG_AND_TIME, MI_NETWORK, MI_HARDWARE,
+    #if PRINTER_IS_PRUSA_MK4
+    MI_INPUT_SHAPER,
+    #endif
+    MI_HELP_FW_UPDATE,
+    // MI_SYSTEM needs to be last to ensure we can safely hit factory reset even in presence of unknown languages
+    MI_SYSTEM>;
 #else //  PRINTER_IS_PRUSA_MK4 ||  PRINTER_IS_PRUSA_XL ||  PRINTER_IS_PRUSA_iX
 
     #ifdef _DEBUG

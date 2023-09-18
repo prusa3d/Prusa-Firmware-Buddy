@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include <cmath>
+
 // clang-format off
 
 /**
@@ -480,10 +482,37 @@
 #define HOMING_MAX_ATTEMPTS 2
 #ifdef HOMING_MAX_ATTEMPTS
     // ranges in mm - allowed distance between homing probes for XYZ axes
-    constexpr float axis_home_min_diff[] = {-0.2, -0.2, -0.1};
-    constexpr float axis_home_max_diff[] = { 0.2,  0.2,  0.1};
-    constexpr float axis_home_invert_min_diff[] = {-1, -1, -1};
-    constexpr float axis_home_invert_max_diff[] = { 1,  1,  1};
+    inline constexpr float axis_home_min_diff(uint8_t axis_num) {
+        if (axis_num >= 3) {
+            return NAN;
+        }
+        float arr[] = {-0.2, -0.2, -0.1};
+        return arr[axis_num];
+    }
+
+    inline constexpr float axis_home_max_diff(uint8_t axis_num) {
+        if (axis_num >= 3) {
+            return NAN;
+        }
+        float arr[] = { 0.2,  0.2,  0.1};
+        return arr[axis_num];
+    }
+
+    inline constexpr float axis_home_invert_min_diff(uint8_t axis_num) {
+        if (axis_num >= 3) {
+            return NAN;
+        }
+        float arr[] = {-1, -1, -1};
+        return arr[axis_num];
+    }
+
+    inline constexpr float axis_home_invert_max_diff(uint8_t axis_num) {
+        if (axis_num >= 3) {
+            return NAN;
+        }
+        float arr[] = {1, 1, 1};
+        return arr[axis_num];
+    }
 #endif// HOMING_MAX_ATTEMPTS
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.

@@ -466,19 +466,6 @@
     #define HOMING_MAX_ATTEMPTS 10
 #endif
 
-#ifdef HOMING_MAX_ATTEMPTS
-    // ranges in mm - allowed distance between homing probes for XYZ axes
-#ifdef HAS_LDO_400_STEP
-    constexpr float axis_home_min_diff[] = {-0.1, -0.1, -0.1};
-    constexpr float axis_home_max_diff[] = { 0.1,  0.1,  0.5};
-#else
-    constexpr float axis_home_min_diff[] = {-0.2, -0.2, -0.1};
-    constexpr float axis_home_max_diff[] = { 0.2,  0.2,  0.5};
-#endif
-    constexpr float axis_home_invert_min_diff[] = {-1, -1, -1};
-    constexpr float axis_home_invert_max_diff[] = { 1,  1,  1};
-#endif// HOMING_MAX_ATTEMPTS
-
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 10
 #define Y_HOME_BUMP_MM 10
@@ -1530,20 +1517,17 @@
     constexpr float HOLD_MULTIPLIER[4] = {1, 1, 1, 1};  // Scales down the holding current from run current
     #define INTERPOLATE true // Interpolate X/Y/Z_MICROSTEPS to 256
 
-    #if defined(HAS_LDO_400_STEP) && (X_DRIVER_TYPE == TMC2130 && Y_DRIVER_TYPE == X_DRIVER_TYPE)
+    #if X_DRIVER_TYPE == TMC2130 && Y_DRIVER_TYPE == X_DRIVER_TYPE
         #define HAS_TMC_WAVETABLE // enable wavetable correction for this driver/motor type
     #endif
 
     #if AXIS_IS_TMC(X)
-        #if !defined HAS_LDO_400_STEP
-            //Multiply by 1.414 for peak current.
-            //#define X_CURRENT 290 // (mA) RMS current.  Minebea
-            #define X_CURRENT 300 // (mA) RMS current.  MK3 motors
-            #define X_MICROSTEPS 16 // 0..256
-        #else
-            #define X_CURRENT 550 // (mA) RMS current. Multiply by 1.414 for peak current.
-            #define X_MICROSTEPS 8 // 0..256
-        #endif
+        // Use 400_STEP values as default current and microstep. For 200 step motors (MK3.9) the values will
+        // be reconfigured in runtime if the printer is configured as MK3.9 in EEPROM.
+        #define X_400_STEP_CURRENT 550
+        #define X_400_STEP_MICROSTEPS 8 // 0..256
+        #define X_200_STEP_CURRENT 300
+        #define X_200_STEP_MICROSTEPS 16 // 0..256
         #define X_RSENSE 0.22
         #define X_CHAIN_POS 0
     #endif
@@ -1555,14 +1539,12 @@
     #endif
 
     #if AXIS_IS_TMC(Y)
-        #if !defined HAS_LDO_400_STEP
-            //#define Y_CURRENT 360 // Minebea
-            #define Y_CURRENT 370 // (mA) RMS current.  MK3 motors
-            #define Y_MICROSTEPS 16
-        #else
-            #define Y_CURRENT 700
-            #define Y_MICROSTEPS 8 // 0..256
-        #endif
+        // Use 400_STEP values as default current and microstep. For 200 step motors (MK3.9) the values will
+        // be reconfigured in runtime if the printer is configured as MK3.9 in EEPROM.
+        #define Y_400_STEP_CURRENT 700
+        #define Y_400_STEP_MICROSTEPS 8 // 0..256
+        #define Y_200_STEP_CURRENT 370
+        #define Y_200_STEP_MICROSTEPS 16 // 0..256
         #define Y_RSENSE 0.22
         #define Y_CHAIN_POS 0
     #endif
@@ -1758,25 +1740,14 @@
     // Milliseconds to wait on hold before auto-restarting during short power failures
     #define POWER_PANIC_HOLD_RST_MS 5000
 
-    #ifdef HAS_LDO_400_STEP
-        // TODO: currently arbitrary, needs to include optimal feedrates too
-        #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
-        #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
+    // TODO: currently arbitrary, needs to include optimal feedrates too
+    #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
+    #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
 
-        #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
-        #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
+    #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
+    #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
 
-        #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
-    #else
-        // TODO: currently arbitrary
-        #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
-        #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
-
-        #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
-        #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
-
-        #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
-    #endif
+    #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
 #endif
 
 /**
@@ -1806,39 +1777,32 @@
 
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
         #if X_DRIVER_TYPE == TMC2130
-            #if defined(HAS_LDO_400_STEP)
-                #include "hw_configuration.hpp"
-                #define X_STALL_SENSITIVITY buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (int16_t) -4 : (int16_t) -2
-            #else
-                #define X_STALL_SENSITIVITY 3
-            #endif
+            // The range of stallguard sensitivities to probe and calibrate
+            // (the required sensitivity varies by motor)
+            #define XY_STALL_SENSITIVITY_MIN -7
+            #define XY_STALL_SENSITIVITY_MAX -2
+
+            // Read from config. May be int16 max if uncalibrated, which is
+            // then handled in the Crash_s class.
+            #define X_STALL_SENSITIVITY config_store().homing_sens_x.get()
         #elif X_DRIVER_TYPE == TMC2209
             #define X_STALL_SENSITIVITY 140
         #endif
 
         #if Y_DRIVER_TYPE == TMC2130
-            #if defined(HAS_LDO_400_STEP)
-                #include "hw_configuration.hpp"
-                #define Y_STALL_SENSITIVITY buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (int16_t) -4 : (int16_t) -2
-            #else
-                #define Y_STALL_SENSITIVITY 3
-            #endif
+            // Read from config. May be int16 max if uncalibrated, which is
+            // then handled in the Crash_s class.
+            #define Y_STALL_SENSITIVITY config_store().homing_sens_y.get()
         #elif Y_DRIVER_TYPE == TMC2209
             #define Y_STALL_SENSITIVITY 130
         #endif
 
         #if Z_DRIVER_TYPE == TMC2130
-            #include "hw_configuration.hpp"
-            #define Z_STALL_SENSITIVITY buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? (int16_t) 1 : (int16_t) 3
+            #define Z_STALL_SENSITIVITY 3
         #elif Z_DRIVER_TYPE == TMC2209
             #define Z_STALL_SENSITIVITY 100
         #endif
 
-        #ifdef HAS_LDO_400_STEP
-            #define STALL_THRESHOLD_TMC2130 80
-        #else
-            #define STALL_THRESHOLD_TMC2130 400
-        #endif
         #define STALL_THRESHOLD_TMC2209 400
 
         #define IMPROVE_HOMING_RELIABILITY

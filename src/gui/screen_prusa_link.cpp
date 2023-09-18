@@ -25,8 +25,7 @@ void MI_PL_REGENERATE_PASSWORD::click(IWindowMenu &) {
 // ----------------------------------------------------------------
 // GUI Prusa Link start after printer startup
 MI_PL_ENABLED::MI_PL_ENABLED()
-    : WI_ICON_SWITCH_OFF_ON_t(config_store().prusalink_enabled.get(),
-        string_view_utf8::MakeCPUFLASH((const uint8_t *)label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(config_store().prusalink_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_PL_ENABLED::OnChange([[maybe_unused]] size_t old_index) {
     Screens::Access()->Get()->WindowEvent(nullptr, GUI_event_t::CHILD_CLICK, (void *)(EventMask::value | this->index));

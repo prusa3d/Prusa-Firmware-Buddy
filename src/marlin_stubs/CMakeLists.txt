@@ -24,6 +24,7 @@ add_subdirectory(pause)
 add_subdirectory(sdcard)
 add_subdirectory(host)
 add_subdirectory(feature)
+add_subdirectory(${PRINTER})
 
 if(HAS_SELFTEST)
   target_sources(firmware PRIVATE G162.cpp G163.cpp)

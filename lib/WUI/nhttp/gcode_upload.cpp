@@ -2,7 +2,9 @@
 #include "upload_state.h"
 #include "file_info.h"
 #include "handler.h"
-#include "splice.h"
+#if USE_ASYNCIO
+    #include "splice.h"
+#endif
 #include "../../src/common/filename_type.hpp"
 #include "../wui_api.h"
 
@@ -29,15 +31,17 @@ using handler::RequestParser;
 using handler::StatusPage;
 using handler::Step;
 using http::Status;
+#if USE_ASYNCIO
 using splice::Result;
 using std::array;
+using std::optional;
+#endif
 using std::get;
 using std::get_if;
 using std::holds_alternative;
 using std::make_tuple;
 using std::move;
 using std::nullopt;
-using std::optional;
 using std::string_view;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
@@ -59,7 +63,8 @@ GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool jso
     , json_errors(json_errors)
     , cleanup_temp_file(true)
     , tmp_upload_file(move(file))
-    , file_idx(upload_idx) {
+    , file_idx(upload_idx)
+    , filename_checked(false) {
 }
 
 GcodeUpload::GcodeUpload(GcodeUpload &&other)
@@ -70,7 +75,8 @@ GcodeUpload::GcodeUpload(GcodeUpload &&other)
     , json_errors(other.json_errors)
     , cleanup_temp_file(other.cleanup_temp_file)
     , tmp_upload_file(move(other.tmp_upload_file))
-    , file_idx(other.file_idx) {
+    , file_idx(other.file_idx)
+    , filename_checked(other.filename_checked) {
     // The ownership of the temp file is passed to the new instance.
     other.cleanup_temp_file = false;
 }
@@ -87,6 +93,7 @@ GcodeUpload &GcodeUpload::operator=(GcodeUpload &&other) {
 
     tmp_upload_file = move(other.tmp_upload_file);
     file_idx = other.file_idx;
+    filename_checked = other.filename_checked;
 
     return *this;
 }
@@ -303,7 +310,7 @@ namespace {
             return f(fn);
         }
     }
-
+#if USE_ASYNCIO
     class PutTransfer final : public splice::Transfer {
     public:
         GcodeUpload::UploadedNotify *uploaded_notify = nullptr;
@@ -389,6 +396,7 @@ namespace {
 
     // TODO: A better place to have this? Or dynamic allocation? Share with the connect uploader?
     PutTransfer put_transfer;
+#endif
 } // namespace
 
 UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
@@ -466,10 +474,12 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
     });
 }
 
-Step GcodeUpload::step(string_view, const size_t read, PutParams &putParams) {
+Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParams) {
     // remove the "/usb/" prefix
     const char *filename = putParams.filepath.data() + USB_MOUNT_POINT_LENGTH;
 
+#if USE_ASYNCIO
+    static_cast<void>(input);
     auto filename_error = check_filename(filename);
     if (std::get<0>(filename_error) != Status::Ok)
         return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
@@ -484,6 +494,35 @@ Step GcodeUpload::step(string_view, const size_t read, PutParams &putParams) {
     put_transfer.file_idx = file_idx;
     cleanup_temp_file = false;
     return { 0, 0, make_tuple(&put_transfer, size_rest) };
+#else
+    // bit of a hack, would make more sense checking this in GcodeUpload::start,
+    // but that is a static method and we need check_filename to be virtual, so
+    // it can be used inside UploadState as a function of UploadHooks.
+    if (!filename_checked) {
+        auto filename_error = check_filename(filename);
+        if (std::get<0>(filename_error) != Status::Ok)
+            return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
+        filename_checked = true;
+    }
+
+    auto error = data(input.substr(0, read));
+    if (std::get<0>(error) != Status::Ok) {
+        return { read, 0, StatusPage(std::get<0>(error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(error)) };
+    }
+
+    monitor_slot.progress(read);
+
+    size_rest -= read;
+    if (size_rest == 0) {
+        auto finish_error = finish(filename, putParams.print_after_upload);
+        if (std::get<0>(finish_error) != Status::Ok)
+            return { read, 0, StatusPage(std::get<0>(finish_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(finish_error)) };
+
+        return { read, 0, FileInfo(putParams.filepath.data(), false, json_errors, true, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1, std::nullopt) };
+    }
+
+    return { read, 0, Continue() };
+#endif
 }
 
 } // namespace nhttp::printer

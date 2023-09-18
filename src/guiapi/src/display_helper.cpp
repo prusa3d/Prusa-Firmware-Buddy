@@ -10,7 +10,6 @@
 #include "window.hpp"
 #include "gui.hpp"
 #include "../lang/string_view_utf8.hpp"
-#include "../lang/unaccent.hpp"
 #include "../common/str_utils.hpp"
 #include "ScreenHandler.hpp"
 #include <math.h>
@@ -142,7 +141,6 @@ size_ui16_t render_text_singleline(Rect16 rc, string_view_utf8 str, const font_t
 // count characters in lines
 static RectTextLayout multiline_loop(uint8_t MaxColsInRect, [[maybe_unused]] uint8_t MaxRowsInRect, string_view_utf8 str) {
     RectTextLayout layout;
-
     // prepare for stream processing
     unichar c = 0;
 
@@ -161,7 +159,7 @@ static RectTextLayout multiline_loop(uint8_t MaxColsInRect, [[maybe_unused]] uin
         /// Break line char or drawable char won't fit into this line any more
         case '\n':
             /// new line
-            if (!layout.NewLine()) { /// next char won't fit vertically
+            if (!layout.NewLine() || layout.GetLineCount() >= MaxRowsInRect) { /// next char won't fit vertically
                 exit = true;
             }
             break;

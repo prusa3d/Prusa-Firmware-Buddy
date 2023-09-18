@@ -40,7 +40,17 @@ tls::tls(uint8_t timeout_s)
 }
 
 tls::~tls() {
-    mbedtls_ssl_close_notify(&ssl_context);
+    // We currently do _not_ do this on purpose even though it's a good practice, because:
+    // * This'll create and try to send another packet over the TCP.
+    // * Nevertheless, we do this in case we think the TCP connection is _dead_.
+    //
+    // So the likely effect is just allocating more memory for the packet
+    // that'll retransmit multiple times and sit there for a long time, instead
+    // just getting rid of it. Even in the case where we _would_ send it
+    // successfully, it doesn't serve any particular purpose for us (we are
+    // between full request-response exchanges at this point, so there's
+    // nothing to effectively close/confirm).
+    // mbedtls_ssl_close_notify(&ssl_context);
     mbedtls_net_free(&net_context);
     mbedtls_ssl_free(&ssl_context);
     mbedtls_ssl_config_free(&ssl_config);

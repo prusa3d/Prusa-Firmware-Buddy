@@ -237,6 +237,12 @@ def cmd_generate_nonascii_chars(args):
     nonascii_chars = set(ch for translation in translations.values()
                          for entry in translation for ch in entry.msgstr
                          if ord(ch) > 127)
+
+    # characters contained in language names; not contained in *.po files
+    nonascii_chars.add('Č')
+    nonascii_chars.add('š')
+    nonascii_chars.add('ñ')
+    nonascii_chars.add('ç')
     nonascii_chars = sorted(nonascii_chars)
     open(args.output_dir / 'non-ascii-chars.txt', 'w',
          encoding='utf-8').write(' '.join(nonascii_chars))

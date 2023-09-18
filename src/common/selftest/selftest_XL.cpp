@@ -599,17 +599,17 @@ void CSelftest::Loop() {
         break;
     }
     case stsXAxis: {
-        if (selftest::phaseAxis(pXAxis, Config_XAxis, true))
+        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::yes))
             return;
         break;
     }
     case stsYAxis: {
-        if (selftest::phaseAxis(pYAxis, Config_YAxis, true))
+        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::yes))
             return;
         break;
     }
     case stsZAxis: {
-        if (selftest::phaseAxis(pZAxis, Config_ZAxis, true))
+        if (selftest::phaseAxis(pZAxis, Config_ZAxis, Separate::yes))
             return;
         break;
     }

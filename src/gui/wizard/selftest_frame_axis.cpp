@@ -28,7 +28,7 @@ static constexpr const char *en_text_axis_test = N_("Checking axes");
 static constexpr const char *en_text_X_axis = N_("axis");
 static constexpr const char *en_text_Y_axis = N_("axis");
 static constexpr const char *en_text_Z_axis = N_("axis");
-static constexpr const char *en_text_info = N_("During the test, the heatbed, and extruder will move in full range.");
+static constexpr const char *en_text_info = N_("During the test, the heatbed, and extruder will move in full range.\n\nPrinter may vibrate and be noisier during homing.");
 
 SelftestFrametAxis::SelftestFrametAxis(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamed>(parent, ph, data, _(en_text_axis_test))

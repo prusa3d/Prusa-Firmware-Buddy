@@ -26,6 +26,7 @@ TestReturn phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTEND
                 &CSelftestPart_Dock::stateMoveAwayInit,
                 &CSelftestPart_Dock::stateMoveAwayWait,
                 // Manual park picked tool
+                &CSelftestPart_Dock::state_cycle_mark0,
                 &CSelftestPart_Dock::state_initiate_manual_park,
                 &CSelftestPart_Dock::state_wait_user_manual_park1,
                 &CSelftestPart_Dock::state_wait_user_manual_park2,
@@ -60,6 +61,7 @@ TestReturn phaseDocks(const uint8_t tool_mask, std::array<IPartHandler *, HOTEND
                 &CSelftestPart_Dock::state_wait_moves_done,
                 &CSelftestPart_Dock::state_selftest_check_state,
                 // Park/unpark loop
+                &CSelftestPart_Dock::state_cycle_mark1,
                 &CSelftestPart_Dock::state_selftest_entry,
                 &CSelftestPart_Dock::state_selftest_pick,
                 &CSelftestPart_Dock::state_wait_moves_done,

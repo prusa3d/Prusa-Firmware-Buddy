@@ -131,12 +131,11 @@ static bool check_correct_filament_type(uint8_t tool) {
 }
 
 IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
-    bool isSensorEnabled = config_store().fsensor_enabled.get();
-    if (!isSensorEnabled) {
-        return State::done;
-    }
 
     if (FSensors_instance().HasMMU()) {
+        if (!config_store().fsensor_enabled.get()) {
+            return State::done;
+        }
         // with MMU, its only possible to check that filament is properly unloaded, no check of filaments presence in each "tool"
         if (FSensors_instance().MMUReadyToPrint()) {
             return State::done;
@@ -144,6 +143,10 @@ IPrintPreview::State PrintPreview::stateFromFilamentPresence() const {
             return State::mmu_filament_inserted_wait_user;
         }
     } else {
+        if (!config_store().fsensor_enabled.get()) {
+            return stateFromFilamentType();
+        }
+
         // no MMU, do regular check of filament presence in each tool
         HOTEND_LOOP() {
             if (check_tool_need_filament_load(e)) {

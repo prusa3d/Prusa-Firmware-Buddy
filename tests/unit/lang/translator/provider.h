@@ -3,7 +3,6 @@
 #include "translator.hpp"
 #include "translation_provider_CPUFLASH.hpp"
 #include "hash.hpp"
-#include "unaccent.hpp"
 #include <cstdio>
 #include <deque>
 #include <set>

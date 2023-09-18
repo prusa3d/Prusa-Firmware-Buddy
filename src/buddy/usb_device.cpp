@@ -31,6 +31,7 @@ LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 #define USBD_MANUFACTURER_STRING    "Prusa Research (prusa3d.com)"
 #define USBD_PRODUCT_STRING_FS      ("Original Prusa " PRINTER_MODEL)
 #define USBD_SERIALNUMBER_STRING_FS "00000000001A"
+#define USBD_PRODUCT_STRING_MK39    "Original Prusa MK3.9"
 
 #define USB_SIZ_BOS_DESC 0x0C
 
@@ -46,6 +47,31 @@ static osThreadId usb_device_task;
 void usb_device_init() {
     usb_device_task = osThreadCreate(osThread(usb_device_task), NULL);
 }
+
+// The descriptor of this USB device
+static tusb_desc_device_t desc_device = {
+    .bLength = sizeof(tusb_desc_device_t),
+    .bDescriptorType = TUSB_DESC_DEVICE,
+    .bcdUSB = 0x0200,
+
+    // Use Interface Association Descriptor (IAD) for CDC
+    // As required by USB Specs IAD's subclass must be common class (2) and protocol must be IAD (1)
+    .bDeviceClass = TUSB_CLASS_MISC,
+    .bDeviceSubClass = MISC_SUBCLASS_COMMON,
+    .bDeviceProtocol = MISC_PROTOCOL_IAD,
+
+    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
+
+    .idVendor = USBD_VID,
+    .idProduct = USBD_PID,
+    .bcdDevice = 0x0100,
+
+    .iManufacturer = 0x01,
+    .iProduct = 0x02,
+    .iSerialNumber = 0x03,
+
+    .bNumConfigurations = 0x01
+};
 
 static void usb_device_task_run(const void *) {
     GPIO_InitTypeDef GPIO_InitStruct;
@@ -106,34 +132,14 @@ int usb_device_log(const char *fmt, ...) {
     return length;
 }
 
-// The descriptor of this USB device
-static tusb_desc_device_t const desc_device = {
-    .bLength = sizeof(tusb_desc_device_t),
-    .bDescriptorType = TUSB_DESC_DEVICE,
-    .bcdUSB = 0x0200,
-
-    // Use Interface Association Descriptor (IAD) for CDC
-    // As required by USB Specs IAD's subclass must be common class (2) and protocol must be IAD (1)
-    .bDeviceClass = TUSB_CLASS_MISC,
-    .bDeviceSubClass = MISC_SUBCLASS_COMMON,
-    .bDeviceProtocol = MISC_PROTOCOL_IAD,
-
-    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
-
-    .idVendor = USBD_VID,
-    .idProduct = USBD_PID,
-    .bcdDevice = 0x0100,
-
-    .iManufacturer = 0x01,
-    .iProduct = 0x02,
-    .iSerialNumber = 0x03,
-
-    .bNumConfigurations = 0x01
-};
-
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application returns pointer to the descriptor
 uint8_t const *tud_descriptor_device_cb(void) {
+    if (!config_store().xy_motors_400_step.get()) {
+        desc_device.idProduct = 0x0015; // MK3.9 PID == 21 == 0x0015
+    } else {
+        desc_device.idProduct = 0x000D; // MK4 PID == 13 == 0x000D
+    }
     return (uint8_t const *)&desc_device;
 }
 
@@ -190,6 +196,11 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
             return NULL;
 
         const char *str = string_desc_arr[index];
+#if PRINTER_IS_PRUSA_MK4
+        if (!config_store().xy_motors_400_step.get()) {
+            str = USBD_PRODUCT_STRING_MK39;
+        }
+#endif
 
         // cap at max char
         chr_count = strlen(str);

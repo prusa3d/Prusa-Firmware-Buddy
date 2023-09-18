@@ -256,6 +256,8 @@ private:
         }
     }
 
+    void set_homing_sensitivity(const AxisEnum axis);
+
     /// Mayer's singleton must have part
 public:
     static Crash_s &instance();

@@ -25,7 +25,6 @@ class SelftestFrameLoadcell : public AddSuperWindow<SelftestFrameNamedWithRadio>
 
     window_icon_t icon_hand;
     window_text_t text_phase;
-    window_text_t text_phase_additional; // text next to icon
 
     window_text_t text_prebig;
     WindowBlinkingText text_big; // BIG, possibly blinking number

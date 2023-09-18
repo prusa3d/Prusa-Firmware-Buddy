@@ -22,16 +22,14 @@ class CSelftestPart_FSensor {
     const FSensorConfig_t &rConfig;
     SelftestFSensor_t &rResult;
     int32_t val_no_filament;
-    fsensor_t current_fs_state;
-    bool need_unload;
     LogTimer log;
     LogTimer log_fast;
-    bool show_remove;
+    IFSensor *const extruder;
+    IFSensor *const side;
+    bool need_unload = false;
     float extruder_moved_amount = 0;
 
     bool AbortAndInvalidateIfAbortPressed();
-
-    void MetricsSetEnabled(bool);
 
 public:
     CSelftestPart_FSensor(IPartHandler &state_machine, const FSensorConfig_t &config,
@@ -40,21 +38,27 @@ public:
 
     LoopResult state_init();
     LoopResult state_wait_tool_pick();
+    LoopResult stateCycleMark0() { return LoopResult::MarkLoop0; }
     LoopResult state_ask_unload_init();
     LoopResult state_ask_unload_wait();
     LoopResult state_filament_unload_enqueue_gcode();
+    LoopResult state_filament_unload_confirm_preinit();
     LoopResult state_filament_unload_wait_finished();
-    LoopResult state_ask_unload_confirm_init();
     LoopResult state_ask_unload_confirm_wait();
+    LoopResult state_calibrate_init();
     LoopResult state_calibrate();
     LoopResult state_calibrate_wait_finished();
     LoopResult state_insertion_wait_init();
     LoopResult state_insertion_wait();
+    LoopResult stateCycleMark1() { return LoopResult::MarkLoop1; }
     LoopResult state_insertion_ok_init();
     LoopResult state_insertion_ok();
+    LoopResult state_insertion_calibrate_init();
     LoopResult state_insertion_calibrate_start();
-    LoopResult state_insertion_calibrate_wait();
+    LoopResult state_insertion_calibrate();
+    LoopResult state_insertion_calibrate_wait(); // wait to be visible
     LoopResult state_enforce_remove_init();
+    LoopResult state_enforce_remove_mmu_move();
     LoopResult state_enforce_remove();
 };
 

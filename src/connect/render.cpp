@@ -215,7 +215,7 @@ namespace {
             if (event.type == EventType::Info) {
                 JSON_FIELD_OBJ("data");
                     JSON_FIELD_STR("firmware", info.firmware_version) JSON_COMMA;
-                    JSON_FIELD_PRINTER_TYPE JSON_COMMA;
+                    JSON_FIELD_STR_FORMAT("printer_type", "%hhu.%hhu.%hhu", params.version.type, params.version.version, params.version.subversion) JSON_COMMA;
                     JSON_FIELD_STR("sn", info.serial_number.begin()) JSON_COMMA;
                     JSON_FIELD_BOOL("appendix", info.appendix) JSON_COMMA;
                     JSON_FIELD_STR("fingerprint", info.fingerprint) JSON_COMMA;

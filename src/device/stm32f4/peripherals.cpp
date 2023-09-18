@@ -594,7 +594,8 @@ void hw_i2c1_init() {
 
 #if HAS_I2CN(2)
 
-static constexpr uint32_t i2c2_speed = 100'000;
+// speed must be 400k, to speedup PersistentStorage erase (mk3.9/4 switch)
+static constexpr uint32_t i2c2_speed = 400'000;
 
 void hw_i2c2_pins_init() {
     GPIO_InitTypeDef GPIO_InitStruct {};

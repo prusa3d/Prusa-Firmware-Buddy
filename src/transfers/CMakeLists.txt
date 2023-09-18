@@ -1,3 +1,5 @@
-target_sources(
-  firmware PRIVATE async_io.cpp changed_path.cpp decrypt.cpp download.cpp files.cpp monitor.cpp
-  )
+target_sources(firmware PRIVATE changed_path.cpp decrypt.cpp download.cpp files.cpp monitor.cpp)
+if(USE_ASYNCIO)
+  target_sources(firmware PRIVATE async_io.cpp)
+  target_compile_definitions(firmware INTERFACE USE_ASYNCIO)
+endif()

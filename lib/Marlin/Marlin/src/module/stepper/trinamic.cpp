@@ -40,11 +40,7 @@
 
 
 enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
-#if DISABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
 #define _TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, ST##_CURRENT, ST##_MICROSTEPS, ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX])
-#else
-#define _TMC_INIT(ST, STEALTH_INDEX) tmc_init(stepper##ST, config_store().axis_rms_current_ma_##ST##_.get(), config_store().axis_microsteps_##ST##_.get(), ST##_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_INDEX])
-#endif
 
 //   IC = TMC model number
 //   ST = Stepper object letter
@@ -144,41 +140,35 @@ enum StealthIndex : uint8_t { STEALTH_AXIS_XY, STEALTH_AXIS_Z, STEALTH_AXIS_E };
     st.stored.stealthChop_enabled = stealth;
     PWMCONF_t pwmconf{0};
     pwmconf.pwm_freq = 0b01; // f_pwm = 2/683 f_clk
-    #if defined(HAS_LDO_400_STEP)
+
+#if ENABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
+    const bool motors_400_step = config_store().xy_motors_400_step.get();
+#else
+    constexpr bool motors_400_step = false;
+#endif
+
     if ('X' == AXIS_LETTER)
     {
         pwmconf.pwm_autoscale = false;
-        //370 mA RMS/1phase at 60 mm/min and 5500 mm/min LDO 400 step
-        pwmconf.pwm_grad = 0x0C;
-        pwmconf.pwm_ampl = 0x12;
-    }
-    else if ('Y' == AXIS_LETTER)
-    {
-        pwmconf.pwm_autoscale = false;
-        //470 mA RMS/1phase at 60 mm/min and 5500 mm/min LDO 400 step
-        pwmconf.pwm_grad = 0x0D;
-        pwmconf.pwm_ampl = 0x16;
-    }
-    #else
-    if ('X' == AXIS_LETTER)
-    {
-        pwmconf.pwm_autoscale = false;
-        //LDO 200 step
+        //LDO 400 step (MK4)
+        //370 mA RMS/1phase at 60 mm/min and 5500 mm/min
+        //LDO 200 step (MK3.9)
         //258 mA RMS/1phase at 60 mm/min, 332 at 600, 355 at 1000, 372 at 2000, 369 at 3000, 352 at 4000,
         //343 at 5000, 323 at 6000, 314 at 7000, 306 at 8000, 296 at 9000, 250 at 10000, 193 at 11000
-        pwmconf.pwm_grad = 0x2E;
-        pwmconf.pwm_ampl = 0x1F;
+        pwmconf.pwm_grad = motors_400_step ? 0x0C : 0x2E;
+        pwmconf.pwm_ampl = motors_400_step ? 0x12 : 0x1F;
     }
     else if ('Y' == AXIS_LETTER)
     {
         pwmconf.pwm_autoscale = false;
-        //LDO 200 step
+        //LDO 400 step (MK4)
+        //470 mA RMS/1phase at 60 mm/min and 5500 mm/min LDO 400 step
+        //LDO 200 step (MK3.9)
         //255 mA RMS/1phase at 60 mm/min, 330mA at 600, 362 at 1000, 400 at 2000, 383 at 3000,
         //386 at 4000, 369 at 5000, 355 at 6000, 345 at 7000, 345 at 8000, 322 at 9000, 250 at 10000
-        pwmconf.pwm_grad = 0x30;
-        pwmconf.pwm_ampl = 0x1F;
+        pwmconf.pwm_grad = motors_400_step ? 0x0D : 0x30;
+        pwmconf.pwm_ampl = motors_400_step ? 0x16 : 0x1F;
     }
-    #endif //HAS_LDO_400_STEP
     else if ('E' == AXIS_LETTER)
     {
         pwmconf.pwm_autoscale = false;
@@ -712,19 +702,31 @@ void reset_trinamic_drivers() {
   };
 
   #if AXIS_IS_TMC(X)
+#if DISABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
     _TMC_INIT(X, STEALTH_AXIS_XY);
+#else
+tmc_init(stepperX, get_default_rms_current_ma_x(), get_microsteps_x(), X_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_XY]);
+#endif
   #endif
   #if AXIS_IS_TMC(X2)
     _TMC_INIT(X2, STEALTH_AXIS_XY);
   #endif
   #if AXIS_IS_TMC(Y)
+#if DISABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
     _TMC_INIT(Y, STEALTH_AXIS_XY);
+#else
+tmc_init(stepperY, get_default_rms_current_ma_y(), get_microsteps_y(), Y_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_XY]);
+#endif
   #endif
   #if AXIS_IS_TMC(Y2)
     _TMC_INIT(Y2, STEALTH_AXIS_XY);
   #endif
   #if AXIS_IS_TMC(Z)
+#if DISABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
     _TMC_INIT(Z, STEALTH_AXIS_Z);
+#else
+tmc_init(stepperZ, get_default_rms_current_ma_z(), get_microsteps_z(), Z_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_Z]);
+#endif
   #endif
   #if AXIS_IS_TMC(Z2)
     _TMC_INIT(Z2, STEALTH_AXIS_Z);
@@ -733,7 +735,11 @@ void reset_trinamic_drivers() {
     _TMC_INIT(Z3, STEALTH_AXIS_Z);
   #endif
   #if AXIS_IS_TMC(E0)
+#if DISABLED(USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES)
     _TMC_INIT(E0, STEALTH_AXIS_E);
+#else
+tmc_init(stepperE0, get_default_rms_current_ma_e(), get_microsteps_e(), E0_HYBRID_THRESHOLD, stealthchop_by_axis[STEALTH_AXIS_E]);
+#endif
   #endif
   #if AXIS_IS_TMC(E1)
     _TMC_INIT(E1, STEALTH_AXIS_E);

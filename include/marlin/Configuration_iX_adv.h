@@ -462,13 +462,6 @@
 
 //after enabling HOMING_MAX_ATTEMPTS, homing can fail
 #define HOMING_MAX_ATTEMPTS 10
-#ifdef HOMING_MAX_ATTEMPTS
-    //ranges in mm - allowed distance between homing probes
-    constexpr float axis_home_min_diff[] = {-3,-3,-0.5};
-    constexpr float axis_home_max_diff[] = {3,3,0.5};
-    constexpr float axis_home_invert_min_diff[] = {-1, -1, -1};
-    constexpr float axis_home_invert_max_diff[] = { 1,  1,  1};
-#endif// HOMING_MAX_ATTEMPTS
 
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 20
@@ -1526,18 +1519,10 @@
     constexpr float HOLD_MULTIPLIER[4] = {1, 1, 1, 1};  // Scales down the holding current from run current
     #define INTERPOLATE true // Interpolate X/Y/Z_MICROSTEPS to 256
 
-    #if defined(HAS_LDO_400_STEP) && (X_DRIVER_TYPE == TMC2130 && Y_DRIVER_TYPE == X_DRIVER_TYPE)
-        #define HAS_TMC_WAVETABLE // enable wavetable correction for this driver/motor type
-    #endif
-
     #if AXIS_IS_TMC(X)
-        #if !defined HAS_LDO_400_STEP
-            #define X_CURRENT 290 // (mA) RMS current. Multiply by 1.414 for peak current.
-            #define X_MICROSTEPS 16 // 0..256
-        #else
-            #define X_CURRENT 550 // (mA) RMS current. Multiply by 1.414 for peak current.
-            #define X_MICROSTEPS 8 // 0..256
-        #endif
+        // 200 step
+        #define X_CURRENT 290 // (mA) RMS current. Multiply by 1.414 for peak current.
+        #define X_MICROSTEPS 16 // 0..256
         #define X_RSENSE 0.22
         #define X_CHAIN_POS 0
     #endif
@@ -1549,13 +1534,9 @@
     #endif
 
     #if AXIS_IS_TMC(Y)
-        #if !defined HAS_LDO_400_STEP
-            #define Y_CURRENT 360
-            #define Y_MICROSTEPS 16
-        #else
-            #define Y_CURRENT 600
-            #define Y_MICROSTEPS 8 // 0..256
-        #endif
+        // 200 step
+        #define Y_CURRENT 360
+        #define Y_MICROSTEPS 16
         #define Y_RSENSE 0.22
         #define Y_CHAIN_POS 0
     #endif
@@ -1748,25 +1729,13 @@
     #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm
     #define POWER_PANIC_MAX_BED_DIFF 10 // Maximum bed temperature (C) difference for auto-recovery
 
-    #ifdef HAS_LDO_400_STEP
-        // TODO: currently arbitrary, needs to include optimal feedrates too
-        #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
-        #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
+    #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
+    #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
 
-        #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
-        #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
+    #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
+    #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
 
-        #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
-    #else
-        // TODO: currently arbitrary
-        #define POWER_PANIC_X_CURRENT 350 // (mA) RMS current for parking
-        #define POWER_PANIC_X_FEEDRATE 200 // (mm/s, running at POWER_PANIC_X_CURRENT)
-
-        #define POWER_PANIC_Z_CURRENT 350 // (mA) RMS current _after_ alignment
-        #define POWER_PANIC_Z_FEEDRATE 50 // (mm/s, running at default current)
-
-        #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
-    #endif
+    #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
 #endif
 
 /**

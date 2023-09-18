@@ -14,7 +14,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/lang/translator.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_CPUFLASH.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/translation_provider_FILE.cpp
-  ${CMAKE_SOURCE_DIR}/src/lang/unaccent.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/test_main.cpp
   ${CMAKE_SOURCE_DIR}/src/lang/gettext_string_hash.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/providerCPUFLASH.cpp
@@ -22,6 +21,7 @@ add_executable(
   # we need to add mo file generation to test files
   ${CMAKE_CURRENT_SOURCE_DIR}/providerFILE.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/provider.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fnt-indices.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   )
 

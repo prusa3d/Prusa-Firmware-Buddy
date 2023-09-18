@@ -203,7 +203,7 @@ LoopResult CSelftestPart_Fan::state_measure_rpm() {
         print_fan.next_step();
         heatbreak_fan.next_step();
 
-        return LoopResult::GoToMark;
+        return LoopResult::GoToMark0;
     }
 
     if (!print_fan.is_failed()) {

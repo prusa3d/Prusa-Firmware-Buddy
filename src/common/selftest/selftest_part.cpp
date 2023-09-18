@@ -7,6 +7,7 @@
 #include "selftest_part.hpp"
 #include "i_selftest.hpp"
 #include "selftest_log.hpp"
+#include "utility_extensions.hpp"
 
 using namespace selftest;
 LOG_COMPONENT_REF(Selftest);
@@ -16,8 +17,7 @@ PhasesSelftest IPartHandler::fsm_phase_index = PhasesSelftest::_none;
 IPartHandler::IPartHandler(size_t sz, SelftestParts part)
     : current_state(IndexIdle())
     , current_state_enter_time(SelftestInstance().GetTime())
-    , state_count(sz)
-    , loop_mark(0) {
+    , state_count(sz) {
     fsm_phase_index = SelftestGetFirstPhaseFromPart(part);
 }
 
@@ -43,7 +43,8 @@ bool IPartHandler::Loop() {
         break;
     }
 
-    switch (invokeCurrentState()) {
+    LoopResult current_loop_result = invokeCurrentState();
+    switch (current_loop_result) {
     case LoopResult::Abort:
         Abort();
         return false; // exit instantly
@@ -56,13 +57,33 @@ bool IPartHandler::Loop() {
     case LoopResult::RunNext:
         next(); // it will call Pass(), when switched to finished
         return true;
-    case LoopResult::MarkLoop:
-        loop_mark = current_state;
-        next();
-        return true;
-    case LoopResult::GoToMark:
-        changeCurrentState(loop_mark);
-        return true;
+    default: {
+        auto loop_mark = ftrstd::to_underlying(current_loop_result);
+
+        // LoopResult::MarkLoop0 also serves as flag, see enum definition
+        if (loop_mark & ftrstd::to_underlying(LoopResult::MarkLoop0)) {
+            loop_mark &= ~ftrstd::to_underlying(LoopResult::MarkLoop0);
+            if (loop_mark >= LoopMarkCount) {
+                bsod("MarkLoop out of range");
+            }
+            loop_marks[loop_mark] = current_state;
+            next();
+            return true;
+        }
+
+        // LoopResult::GoToMark0 also serves as flag, see enum definition
+        if (loop_mark & ftrstd::to_underlying(LoopResult::GoToMark0)) {
+            loop_mark &= ~ftrstd::to_underlying(LoopResult::GoToMark0);
+            if (loop_mark >= LoopMarkCount) {
+                bsod("GoToMark out of range");
+            }
+            changeCurrentState(loop_marks[loop_mark]);
+            next();
+            return true;
+        }
+
+        bsod("Undefined LoopResult");
+    }
     }
 
     // we should never get here

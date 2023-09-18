@@ -44,7 +44,7 @@ public:
     LoopResult stateCooldownInit();
     LoopResult stateCooldown();
     LoopResult stateCooldownDeinit();
-    LoopResult stateCycleMark();
+    LoopResult stateCycleMark() { return LoopResult::MarkLoop0; }
     LoopResult stateAskAbortInit();
     LoopResult stateAskAbort();
     LoopResult stateTapCheckCountDownInit();

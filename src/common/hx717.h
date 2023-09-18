@@ -1,6 +1,7 @@
 #pragma once
 #include "hwio_pindef.h"
 #include <inttypes.h>
+#include "timing_precise.hpp"
 
 class HX717 {
 
@@ -18,6 +19,21 @@ public:
 
     bool IsValueReady() {
         using namespace buddy::hw;
+
+        // For unknown reason hx717 does not run correctly after start with st490abdr rs422 drivers (xBuddy bom 39)
+        // making it sleep and wake up fixes it
+        static bool first_call = true;
+        if (first_call) {
+            first_call = false;
+
+            // sleep
+            loadcellSck.write(Pin::State::high);
+            delay_us_precise<61>();
+            // wake up
+            loadcellSck.write(Pin::State::low);
+            delay_ns_precise<100>();
+        }
+
         return (Pin::State::low == loadcellDout.read()) ? true : false;
     }
 

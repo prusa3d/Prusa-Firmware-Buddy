@@ -57,7 +57,7 @@ ScreenErrorQR::ScreenErrorQR()
     header.SetText(_(header_label));
 
     // Extract error code from xflash
-    const uint16_t error_code = load_message_error_code(); // Unknow code == ERR_UNDEF == 0
+    uint16_t error_code = load_message_error_code(); // Unknow code == ERR_UNDEF == 0
 
     const auto show_qr = [&]() {
         qr.SetQRHeader(error_code);
@@ -93,6 +93,12 @@ ScreenErrorQR::ScreenErrorQR()
         err_description.SetText(_(err_message_buff));
 
         if (error_code != static_cast<std::underlying_type_t<ErrCode>>(ErrCode::ERR_UNDEF) && error_code / 1000 == ERR_PRINTER_CODE) {
+#if PRINTER_IS_PRUSA_MK4
+            if (!config_store().xy_motors_400_step.get()) {
+                static_assert(ERR_PRINTER_CODE == 13, "PRUSA MK4's PID is no longer 13, which means this hardcoded calculation is no longer correct.");
+                error_code += 8000; // If MK4 has 200 step motors, it means it is MK3.9, which has it's own product ID (21 instead of MK4's 13) - so 13XXX have to be change in runtime to 21XXX (+8000)
+            }
+#endif
             show_qr();
         } else {
             hide_qr();

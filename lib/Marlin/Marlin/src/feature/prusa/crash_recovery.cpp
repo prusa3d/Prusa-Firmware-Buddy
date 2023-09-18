@@ -330,10 +330,10 @@ void Crash_s::send_reports() {
 
     float speed = -1;
     if (axis_hit == X_AXIS) {
-        speed = period_to_speed(X_MICROSTEPS, int(stepperX.TSTEP()), get_steps_per_unit_x());
+        speed = period_to_speed(get_microsteps_x(), int(stepperX.TSTEP()), get_steps_per_unit_x());
     }
     if (axis_hit == Y_AXIS) {
-        speed = period_to_speed(Y_MICROSTEPS, int(stepperY.TSTEP()), get_steps_per_unit_y());
+        speed = period_to_speed(get_microsteps_y(), int(stepperY.TSTEP()), get_steps_per_unit_y());
     }
 
     static metric_t crash_metric = METRIC("crash", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
@@ -415,21 +415,40 @@ void Crash_s::reset() {
     homefail_z = false;
 }
 
+void Crash_s::set_homing_sensitivity(const AxisEnum axis) {
+    // If XY_STALL_SENSITIVITY_MIN is defined, we have stallguard sensitivity
+    // calibration (currently on MK4). In that case, the sensitivity in
+    // home_sensitivity can be "unset" (int16 max), and we want to fall back to
+    // XY_STALL_SENSITIVITY_MIN until the calibration is done and we have the
+    // right value.
+    #if defined(XY_STALL_SENSITIVITY_MIN)
+    auto sensitivity_fallback = [](int16_t s) {
+        return s == config_store_ns::stallguard_sensitivity_unset ? XY_STALL_SENSITIVITY_MIN : s;
+    };
+    #else
+    auto sensitivity_fallback = [](int16_t s) {
+        return s;
+    };
+    #endif
+
+    if (axis == X_AXIS) {
+        stepperX.stall_sensitivity(sensitivity_fallback(crash_s.home_sensitivity[0]));
+    } else if (axis == Y_AXIS) {
+        stepperY.stall_sensitivity(sensitivity_fallback(crash_s.home_sensitivity[1]));
+    }
+}
+
 void Crash_s::start_sensorless_homing_per_axis(const AxisEnum axis) {
     if (axis < (sizeof(m_axis_is_homing) / sizeof(m_axis_is_homing[0]))) {
         m_axis_is_homing[axis] = true;
-    #if ENABLED(CORE_IS_XY)
         if (X_AXIS == axis || Y_AXIS == axis) {
-            stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
-            stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
-        }
+    #if ENABLED(CORE_IS_XY)
+            set_homing_sensitivity(X_AXIS);
+            set_homing_sensitivity(Y_AXIS);
     #else
-        if (X_AXIS == axis) {
-            stepperX.stall_sensitivity(crash_s.home_sensitivity[0]);
-        } else if (Y_AXIS == axis) {
-            stepperY.stall_sensitivity(crash_s.home_sensitivity[1]);
-        }
+            set_homing_sensitivity(axis);
     #endif
+        }
     }
 }
 

@@ -271,6 +271,7 @@ private:
      */
     uint8_t last_active_slot = 0;
 
+#if USE_ASYNCIO
     class TransferSlot : public Slot {
     private:
         friend class ConnectionSlot;
@@ -300,6 +301,7 @@ private:
     };
 
     TransferSlot transfer_slot;
+#endif
 
     /*
      * There's an activity on the given connection. Reset appropriate timeouts.
@@ -402,6 +404,7 @@ public:
         return defs.get_password();
     }
 
+#if USE_ASYNCIO
     // TODO: This is ... meh.
     //
     // The write requests to the IO thread report a write of this size
@@ -416,6 +419,7 @@ public:
 
     // Similar (the Done) request.
     void transfer_done(std::optional<std::tuple<http::Status, const char *>> res);
+#endif
 };
 
 } // namespace nhttp

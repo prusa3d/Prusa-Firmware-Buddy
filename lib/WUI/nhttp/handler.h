@@ -160,8 +160,10 @@ namespace handler {
         // TODO: Some generic generators/consumers
         Terminating>;
 
+#if USE_ASYNCIO
     // A transfer + the amount of data to transfer.
     using TransferExpected = std::tuple<splice::Transfer *, size_t>;
+#endif
 
     /**
      * \brief Instruction on what to do next, coming from a handler.
@@ -170,8 +172,12 @@ namespace handler {
      */
     using NextInstruction = std::variant<
         ConnectionState,
-        Continue,
-        TransferExpected>;
+        Continue
+#if USE_ASYNCIO
+        ,
+        TransferExpected
+#endif
+        >;
 
     /**
      * \brief The full response of the handler's step method.

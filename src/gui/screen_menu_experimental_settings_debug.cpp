@@ -9,6 +9,7 @@
 #include "sys.h"
 #include "string.h" // memcmp
 #include "MItem_experimental_tools.hpp"
+#include <config_store/store_instance.hpp>
 
 void ScreenMenuExperimentalSettings::clicked_return() {
     ExperimentalSettingsValues current(*this); // ctor will handle load of values
@@ -70,10 +71,10 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         Invalidate();
         break;
     case ClickCommand::Reset_steps:
-        Item<MI_STEPS_PER_UNIT_X>().SetVal(MenuVars::GetDefaultStepsPerUnit()[0]);
-        Item<MI_STEPS_PER_UNIT_Y>().SetVal(MenuVars::GetDefaultStepsPerUnit()[1]);
-        Item<MI_STEPS_PER_UNIT_Z>().SetVal(MenuVars::GetDefaultStepsPerUnit()[2]);
-        Item<MI_STEPS_PER_UNIT_E>().SetVal(MenuVars::GetDefaultStepsPerUnit()[3]);
+        Item<MI_STEPS_PER_UNIT_X>().SetVal(config_store().axis_steps_per_unit_x.default_val);
+        Item<MI_STEPS_PER_UNIT_Y>().SetVal(config_store().axis_steps_per_unit_y.default_val);
+        Item<MI_STEPS_PER_UNIT_Z>().SetVal(config_store().axis_steps_per_unit_z.default_val);
+        Item<MI_STEPS_PER_UNIT_E>().SetVal(config_store().axis_steps_per_unit_e0.default_val);
         Invalidate();
         break;
     case ClickCommand::Reset_directions:
@@ -85,17 +86,17 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         Invalidate();
         break;
     case ClickCommand::Reset_microsteps:
-        Item<MI_MICROSTEPS_X>().SetVal(MenuVars::GetDefaultMicrosteps()[0]);
-        Item<MI_MICROSTEPS_Y>().SetVal(MenuVars::GetDefaultMicrosteps()[1]);
-        Item<MI_MICROSTEPS_Z>().SetVal(MenuVars::GetDefaultMicrosteps()[2]);
-        Item<MI_MICROSTEPS_E>().SetVal(MenuVars::GetDefaultMicrosteps()[3]);
+        Item<MI_MICROSTEPS_X>().SetVal(config_store().axis_microsteps_X_.default_val);
+        Item<MI_MICROSTEPS_Y>().SetVal(config_store().axis_microsteps_Y_.default_val);
+        Item<MI_MICROSTEPS_Z>().SetVal(config_store().axis_microsteps_Z_.default_val);
+        Item<MI_MICROSTEPS_E>().SetVal(config_store().axis_microsteps_E_.default_val);
         Invalidate();
         break;
     case ClickCommand::Reset_currents:
-        Item<MI_CURRENT_X>().SetVal(MenuVars::GetDefaultCurrents()[0]);
-        Item<MI_CURRENT_Y>().SetVal(MenuVars::GetDefaultCurrents()[1]);
-        Item<MI_CURRENT_Z>().SetVal(MenuVars::GetDefaultCurrents()[2]);
-        Item<MI_CURRENT_E>().SetVal(MenuVars::GetDefaultCurrents()[3]);
+        Item<MI_CURRENT_X>().SetVal(config_store().axis_rms_current_ma_X_.default_val);
+        Item<MI_CURRENT_Y>().SetVal(config_store().axis_rms_current_ma_Y_.default_val);
+        Item<MI_CURRENT_Z>().SetVal(config_store().axis_rms_current_ma_Z_.default_val);
+        Item<MI_CURRENT_E>().SetVal(config_store().axis_rms_current_ma_E_.default_val);
         Invalidate();
         break;
     }

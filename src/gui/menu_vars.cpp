@@ -67,10 +67,6 @@ constexpr const char Y_home_gcode[] = {
     nth_char(Y_home, 8)
 };
 
-const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultStepsPerUnit() { return { DEFAULT_AXIS_STEPS_PER_UNIT }; };
-const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultMicrosteps() { return { { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS, E0_MICROSTEPS } }; };
-const std::array<int, MenuVars::AXIS_CNT> MenuVars::GetDefaultCurrents() { return { { X_CURRENT, Y_CURRENT, Z_CURRENT, E0_CURRENT } }; };
-
 const std::array<int, MenuVars::RANGE_SZ> MenuVars::GetMaximumZRange() { return { { Z_MIN_LEN_LIMIT, Z_MAX_LEN_LIMIT, 1 } }; };
 const std::array<std::array<int, MenuVars::RANGE_SZ>, MenuVars::AXIS_CNT> MenuVars::GetAxisRanges() {
     return { {

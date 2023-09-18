@@ -45,9 +45,9 @@ string_view_utf8 FooterItemHeatBreak::static_makeView(int value) {
     }
 
     static constexpr bool print_tenths = false; // change if needed better precision
-    static constexpr const char *str_with_tenths = "%u.%u\177C";
-    static constexpr const char *str = "%u\177C";
-    static char buff[print_tenths ? 8 : 6]; // max "999.9°C" / "999°C"
+    static constexpr const char *str_with_tenths = "%u.%u\xC2\xB0\x43";
+    static constexpr const char *str = "%u\xC2\xB0\x43";
+    static char buff[9]; // max "999.9°C" / "999°C"
     uint value_to_print = std::clamp(value, 0, 9999);
     uint tenths = value_to_print % 10;
     value_to_print = (value_to_print / 10) % 1000;

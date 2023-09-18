@@ -1,5 +1,7 @@
 #include "server.h"
-#include "splice.h"
+#if USE_ASYNCIO
+    #include "splice.h"
+#endif
 
 #include <algorithm>
 #include <cassert>
@@ -104,7 +106,9 @@ void Server::ConnectionSlot::release() {
     release_buffer();
     client_closed = false;
     Slot::release();
+#if USE_ASYNCIO
     server->try_send_transfer_response(this);
+#endif
 }
 
 bool Server::ConnectionSlot::is_empty() const {
@@ -162,6 +166,7 @@ void Server::ConnectionSlot::step(string_view input, uint8_t *output, size_t out
 
     if (holds_alternative<ConnectionState>(s.next)) {
         state = get<ConnectionState>(std::move(s.next));
+#if USE_ASYNCIO
     } else if (holds_alternative<handler::TransferExpected>(s.next)) {
         TransferSlot *dest = &server->transfer_slot;
         // We are asked to perform a transfer from socket -> file. For that we:
@@ -208,6 +213,7 @@ void Server::ConnectionSlot::step(string_view input, uint8_t *output, size_t out
         }
 
         release();
+#endif
     }
 }
 
@@ -392,7 +398,9 @@ Server::Server(const ServerDefs &defs)
     for (auto &slot : active_slots) {
         slot.server = this;
     }
+#if USE_ASYNCIO
     transfer_slot.server = this;
+#endif
 }
 
 err_t Server::accept_wrap(void *me, struct altcp_pcb *new_conn, err_t err) {
@@ -617,7 +625,11 @@ bool Server::is_active_slot(void *slot) {
     }
 
     BaseSlot *s = static_cast<BaseSlot *>(slot);
-    return (dynamic_cast<ConnectionSlot *>(s) != nullptr) || (dynamic_cast<TransferSlot *>(s) != nullptr);
+    return (dynamic_cast<ConnectionSlot *>(s) != nullptr)
+#if USE_ASYNCIO
+        || (dynamic_cast<TransferSlot *>(s) != nullptr)
+#endif
+        ;
 }
 
 void Server::activity(altcp_pcb *conn, BaseSlot *slot) {
@@ -677,6 +689,7 @@ void Server::stop() {
     // Note: Letting the rest of the connections to live on!
 }
 
+#if USE_ASYNCIO
 void Server::TransferSlot::release() {
     expected_data = 0;
     reqs_pending = 0;
@@ -860,5 +873,6 @@ void Server::TransferSlot::make_response(ConnectionSlot *slot) {
 void Server::transfer_done(std::optional<std::tuple<http::Status, const char *>> res) {
     transfer_slot.done(res);
 }
+#endif
 
 } // namespace nhttp

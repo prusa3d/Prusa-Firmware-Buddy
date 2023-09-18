@@ -15,6 +15,7 @@ inline Printer::Params params_idle() {
     params.job_id = 13;
     params.state = printer_state::DeviceState::Idle;
     params.nozzle_diameter = 0.4;
+    params.version = { 2, 3, 0 };
 
     return params;
 }

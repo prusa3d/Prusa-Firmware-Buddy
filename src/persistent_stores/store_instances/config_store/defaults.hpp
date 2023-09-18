@@ -188,12 +188,8 @@ namespace defaults {
     inline constexpr float axis_steps_per_unit_y { default_axis_steps_flt[1] * ((DEFAULT_INVERT_Y_DIR == true) ? -1.f : 1.f) };
     inline constexpr float axis_steps_per_unit_z { default_axis_steps_flt[2] * ((DEFAULT_INVERT_Z_DIR == true) ? -1.f : 1.f) };
     inline constexpr float axis_steps_per_unit_e0 { default_axis_steps_flt[3] * ((DEFAULT_INVERT_E0_DIR == true) ? -1.f : 1.f) };
-    inline constexpr uint16_t axis_microsteps_X_ { X_MICROSTEPS };
-    inline constexpr uint16_t axis_microsteps_Y_ { Y_MICROSTEPS };
     inline constexpr uint16_t axis_microsteps_Z_ { Z_MICROSTEPS };
     inline constexpr uint16_t axis_microsteps_E0_ { E0_MICROSTEPS };
-    inline constexpr uint16_t axis_rms_current_ma_X_ { X_CURRENT };
-    inline constexpr uint16_t axis_rms_current_ma_Y_ { Y_CURRENT };
     inline constexpr uint16_t axis_rms_current_ma_Z_ { Z_CURRENT };
     inline constexpr uint16_t axis_rms_current_ma_E0_ { E0_CURRENT };
     inline constexpr float axis_z_max_pos_mm {
@@ -204,6 +200,16 @@ namespace defaults {
 #endif
     };
 
+    inline constexpr int16_t homing_sens_x { stallguard_sensitivity_unset };
+    inline constexpr int16_t homing_sens_y { stallguard_sensitivity_unset };
+
+    inline constexpr bool xy_motors_400_step {
+#if PRINTER_IS_PRUSA_MK4
+        true
+#else
+        false
+#endif
+    };
 } // namespace defaults
 
 } // namespace config_store_ns

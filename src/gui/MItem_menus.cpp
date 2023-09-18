@@ -304,7 +304,7 @@ MI_WAVETABLE_XYZ::MI_WAVETABLE_XYZ()
     : WI_ICON_SWITCH_OFF_ON_t(config_store().tmc_wavetable_enabled.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::dev) {}
 void MI_WAVETABLE_XYZ::OnChange(size_t old_index) {
     /// enable
-    tmc_enable_wavetable(!old_index, true, true, true);
+    old_index ? tmc_disable_wavetable(true, true, true) : tmc_enable_wavetable(true, true, true);
     config_store().tmc_wavetable_enabled.set(!old_index);
 }
 #endif

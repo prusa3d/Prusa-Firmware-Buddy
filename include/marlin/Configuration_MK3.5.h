@@ -1100,12 +1100,11 @@
 #define Z_END_GAP 10
 
 // MK3.9 (200 step motors) does not support precise homing
-#if defined(HAS_LDO_400_STEP)
 /**
  * Calibrates X, Y homing positions and uses
  * the reference to provide repeatable homing position.
  */
-#define PRECISE_HOMING
+// #define PRECISE_HOMING
 
 /**
  * Number of precise homing tries
@@ -1113,8 +1112,7 @@
  * Three times more tries are used when recovering from crash
  * or power panic.
  */
-#define PRECISE_HOMING_TRIES 15
-#endif
+// #define PRECISE_HOMING_TRIES 15
 
 /**
  * Software Endstops

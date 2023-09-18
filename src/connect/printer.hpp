@@ -8,6 +8,7 @@
 #include <tuple>
 #include <optional>
 
+#include "printer_type.hpp"
 #include <state/printer_state.hpp>
 
 namespace connect_client {
@@ -65,6 +66,7 @@ public:
         uint8_t progress_percent = 0;
         bool has_usb = false;
         uint64_t usb_space_free = 0;
+        PrinterVersion version;
         printer_state::DeviceState state = printer_state::DeviceState::Unknown;
 
         uint32_t telemetry_fingerprint(bool include_xy_axes) const;

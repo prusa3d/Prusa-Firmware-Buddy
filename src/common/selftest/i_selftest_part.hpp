@@ -59,7 +59,7 @@ private:
     int current_state;
     uint32_t current_state_enter_time;
     int state_count;                     // did not use size_t to be able to compare with int
-    int loop_mark;                       // used in cyclic states
+    int loop_marks[LoopMarkCount] = {};  // used in cyclic states
     Response button_pressed;
     uint32_t time_to_show_result = 2048; // ms
 
