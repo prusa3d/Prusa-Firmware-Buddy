@@ -1,5 +1,12 @@
 #include "catch2/catch.hpp"
 #include "algorithm_range.hpp"
+#include <fstream>
+#include <string>
+#include <chrono>
+#include <regex>
+#include <string_view>
+#include <optional>
+#include "filters/median_filter.hpp"
 
 TEST_CASE("checking ranges", "[range]") {
     SECTION("equal to left") {

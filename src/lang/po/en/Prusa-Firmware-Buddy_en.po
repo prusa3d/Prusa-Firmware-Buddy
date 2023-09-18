@@ -66,17 +66,21 @@ msgid "ABORT"
 msgstr "ABORT"
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:263
+#: src/gui/MItem_tools.cpp:261
 msgid "A crash dump is being saved."
 msgstr "A crash dump is being saved."
 
-#: src/gui/MItem_tools.cpp:265
+#: src/gui/MItem_tools.cpp:263
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr "A crash dump report (file dump.bin) has been saved to the USB drive."
 
 #: src/gui/screen_menu_connect.hpp:46
 msgid "Add printer to Connect"
 msgstr "Add printer to Connect"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:254
+msgid "Address assignment error"
+msgstr "Address assignment error"
 
 #. Abort_invalidate_test
 #. ABS filament, do not translate
@@ -114,21 +118,14 @@ msgstr ""
 msgid "ALL"
 msgstr "ALL"
 
-#: src/gui/screen_tools_mapping.cpp:329
-msgid "All filaments are assigned."
-msgstr "All filaments are assigned."
-
 #: src/common/footer_def.hpp:135
 msgid "All nozzles"
 msgstr "All nozzles"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:174
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:244
 msgid "Allocation of dynamic buffer for PNG failed - out of memory."
 msgstr "Allocation of dynamic buffer for PNG failed - out of memory."
-
-#: src/gui/MItem_tools.hpp:411
-msgid "Allow Metrics"
-msgstr "Allow Metrics"
 
 #: src/gui/screen_menu_fw_update.hpp:12 src/gui/screen_menu_fw_update.hpp:49
 msgid "Always"
@@ -154,30 +151,6 @@ msgstr "Are you sure to stop this printing?"
 #: src/gui/MItem_tools.hpp:178
 msgid "Assist"
 msgstr "Assist"
-
-#: src/gui/screen_tools_mapping.cpp:572
-msgid ""
-"A tool is already assigned to this filament.\n"
-"\n"
-"Do you want to replace it\n"
-"or add it as an additional one\n"
-"for the Spool Join functionality?"
-msgstr ""
-"A tool is already assigned to this filament.\n"
-"\n"
-"Do you want to replace it\n"
-"or add it as an additional one\n"
-"for the Spool Join functionality?"
-
-#: src/gui/MItem_tools.cpp:901
-msgid ""
-"ATTENTION: Changing any Input Shaper values will overwrite them permanently. "
-"To revert to a stock setup, visit prusa.io/input-shaper or run a factory "
-"reset."
-msgstr ""
-"ATTENTION: Changing any Input Shaper values will overwrite them permanently. "
-"To revert to a stock setup, visit prusa.io/input-shaper or run a factory "
-"reset."
 
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:74
 msgid ""
@@ -255,14 +228,17 @@ msgstr ""
 "check your wiring and repeat the test."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:223
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:353
 msgid "BBF ALLOCATION FAILED"
 msgstr "BBF ALLOCATION FAILED"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:228
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:358
 msgid "BBF INITIALIZATION FAILED"
 msgstr "BBF INITIALIZATION FAILED"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:229
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:359
 msgid "BBF initialization failed, repeat the action or try another USB drive."
 msgstr "BBF initialization failed, repeat the action or try another USB drive."
 
@@ -270,7 +246,7 @@ msgstr "BBF initialization failed, repeat the action or try another USB drive."
 msgid "Bed"
 msgstr "Bed"
 
-#: src/gui/MItem_tools.cpp:161 src/gui/screen_printing.cpp:257
+#: src/gui/MItem_tools.cpp:159 src/gui/screen_printing.cpp:257
 msgid "Bed leveling failed. Try again?"
 msgstr "Bed leveling failed. Try again?"
 
@@ -366,10 +342,6 @@ msgstr "Calibrating, do not remove filament."
 msgid "Calibrating tool offsets."
 msgstr "Calibrating tool offsets."
 
-#: src/gui/MItem_tools.hpp:720
-msgid "Calibration"
-msgstr "Calibration"
-
 #: src/gui/screen_menu_calibration.hpp:10
 msgid "CALIBRATION"
 msgstr "CALIBRATION"
@@ -381,6 +353,12 @@ msgstr "Calibration data restored successfully"
 #: src/gui/MItem_basic_selftest.cpp:305
 msgid "Calibration data saved successfully"
 msgstr "Calibration data saved successfully"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:39
+msgid ""
+"Calibration pin has not been reached. Please check the pin installation."
+msgstr ""
+"Calibration pin has not been reached. Please check the pin installation."
 
 #: src/gui/MItem_menus.hpp:484
 msgid "Calibrations & Tests"
@@ -453,6 +431,10 @@ msgstr "Changing filament"
 msgid "Changing tool"
 msgstr "Changing tool"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:9
+msgid "Check all tools if they are properly parked or picked."
+msgstr "Check all tools if they are properly parked or picked."
+
 #: src/gui/screen_crash_recovery.cpp:89
 #: src/gui/wizard/selftest_frame_axis.cpp:27
 msgid "Checking axes"
@@ -479,8 +461,14 @@ msgstr "Check the heatbed thermistor wiring for possible damage."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:59
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:64
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:69
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:74
 msgid "Check the heatbreak thermistor wiring for possible damage."
 msgstr "Check the heatbreak thermistor wiring for possible damage."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:44
+msgid "Check the heater and thermistor wiring for potential damage."
+msgstr "Check the heater and thermistor wiring for potential damage."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:14
 msgid "Check the print head heater & thermistor wiring for possible damage."
@@ -491,6 +479,12 @@ msgstr "Check the print head heater & thermistor wiring for possible damage."
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:44
 msgid "Check the print head thermistor wiring for possible damage."
 msgstr "Check the print head thermistor wiring for possible damage."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:49
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:54
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:59
+msgid "Check the thermistor wiring for potential damage."
+msgstr "Check the thermistor wiring for potential damage."
 
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:66
 msgid "Clean steel sheet."
@@ -505,6 +499,10 @@ msgid ""
 "Close the idler door and secure it with the swivel. The calibration is done!"
 msgstr ""
 "Close the idler door and secure it with the swivel. The calibration is done!"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:229
+msgid "Command error"
+msgstr "Command error"
 
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:220
 msgid "COMMUNICATION ERROR"
@@ -525,6 +523,10 @@ msgstr "Connecting"
 #: src/gui/wizard/selftest_frame_esp.cpp:58
 msgid "Connection successfully established! Wi-Fi is now ready for use."
 msgstr "Connection successfully established! Wi-Fi is now ready for use."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:14
+msgid "Consider adjusting belt tension."
+msgstr "Consider adjusting belt tension."
 
 #. Change
 #: src/common/client_response_texts.cpp:25
@@ -564,9 +566,11 @@ msgstr "Cooldown"
 msgid "COOLDOWN"
 msgstr "COOLDOWN"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:84
-msgid "Cooling down. Do not touch the nozzle!"
-msgstr "Cooling down. Do not touch the nozzle!"
+#: src/gui/wizard/selftest_frame_loadcell.cpp:87
+msgid ""
+"Cooling down. Do not touch the nozzle!"
+msgstr ""
+"Cooling down. Do not touch the nozzle!"
 
 #: src/gui/screen_sysinf.cpp:54
 msgid "CPU load"
@@ -576,10 +580,6 @@ msgstr "CPU load"
 #: src/gui/screen_crash_recovery.cpp:359
 msgid "CRASH DETECTED"
 msgstr "CRASH DETECTED"
-
-#: src/gui/screen_home.cpp:283
-msgid "Crash detected. Save it to USB?"
-msgstr "Crash detected. Save it to USB?"
 
 #: src/gui/MItem_crash.hpp:14
 msgid "Crash Detection"
@@ -705,11 +705,7 @@ msgstr "DIS "
 msgid "DISABLE"
 msgstr "DISABLE"
 
-#: src/gui/footer/footer_item_input_shaper.cpp:8
-msgid "Disabled"
-msgstr "Disabled"
-
-#: src/gui/MItem_tools.cpp:527
+#: src/gui/MItem_tools.cpp:525
 #, c-format
 msgid "disabled / %ld"
 msgstr "disabled / %ld"
@@ -738,7 +734,7 @@ msgstr "DISABLE SENSOR"
 msgid "Disconnect"
 msgstr "Disconnect"
 
-#: src/gui/MItem_tools.cpp:523
+#: src/gui/MItem_tools.cpp:521
 #, c-format
 msgid "disconnected / %ld"
 msgstr "disconnected / %ld"
@@ -751,7 +747,7 @@ msgstr "Disengaging idler"
 
 #: src/gui/screen_menu_error_test.cpp:66
 msgid "Divide by Zero"
-msgstr "Divide by Zero"
+msgstr "Division by Zero"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:94
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:94
@@ -797,6 +793,15 @@ msgstr "Dock Calibration"
 #, c-format
 msgid "Dock %d calibration"
 msgstr "Dock %d calibration"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:19
+#, c-format
+msgid "Dock %d position differs too much from expected values."
+msgstr "Dock %d position differs too much from expected values."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:18
+msgid "DOCK POSITION OUT OF BOUNDS"
+msgstr "DOCK POSITION OUT OF BOUNDS"
 
 #: src/gui/wizard/selftest_frame_dock.hpp:51
 msgid "Dock successfully calibrated."
@@ -857,16 +862,6 @@ msgstr "Don't change"
 msgid "DOWN"
 msgstr "DOWN"
 
-#: src/gui/screen_help_fw_update.cpp:56
-msgid ""
-"Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
-"the drive into the printer and turn it on or restart it. Confirm the "
-"installation of the new firmware."
-msgstr ""
-"Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
-"the drive into the printer and turn it on or restart it. Confirm the "
-"installation of the new firmware."
-
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:78
 msgid "Do you have a silicone hotend sock installed?"
 msgstr "Do you have a silicone hotend sock installed?"
@@ -902,18 +897,31 @@ msgid "%d Tool Offset Calibration"
 msgstr "%d Tool Offset Calibration"
 
 #: src/gui/wizard/selftest_frame_axis.cpp:31
+msgid "During the test, the heatbed, and extruder will move in full range."
+msgstr "During the test, the heatbed, and extruder will move in full range."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:219
+#, c-format
+msgid "Dwarf board %d fault: %s"
+msgstr "Dwarf board %d fault: %s"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:214
+#, c-format
 msgid ""
-"During the test, the heatbed, and extruder will move in full range.\n"
-"\n"
-"Printer may vibrate and be noisier during homing."
+"Dwarf board encountered the following problem: \n"
+"%s"
 msgstr ""
-"During the test, the heatbed, and extruder will move in full range.\n"
-"\n"
-"Printer may vibrate and be noisier during homing."
+"Dwarf board encountered the following problem: \n"
+"%s"
 
 #: src/gui/screen_menu_tools.hpp:180
 msgid "Dwarf Board Temp"
 msgstr "Dwarf Board Temp"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:213
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:218
+msgid "DWARF ERROR"
+msgstr "DWARF ERROR"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:118
 #, c-format
@@ -934,6 +942,7 @@ msgid "%d Y Axis Test"
 msgstr "%d Y Axis Test"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:169
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:239
 msgid "Dynamic allocation failed - out of memory. Reset the printer."
 msgstr "Dynamic allocation failed - out of memory. Reset the printer."
 
@@ -992,8 +1001,13 @@ msgid "Ejecting filament"
 msgstr "Ejecting filament"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:178
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:248
 msgid "EMERGENCY STOP"
 msgstr "EMERGENCY STOP"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:249
+msgid "Emergency stop invoked by G-code (M112)."
+msgstr "Emergency stop invoked by G-code (M112)."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:179
 msgid "Emergency stop invoked from G-code (M112)."
@@ -1018,7 +1032,7 @@ msgstr "End of test"
 msgid "Engaging idler"
 msgstr "Engaging idler"
 
-#: src/gui/MItem_tools.cpp:195
+#: src/gui/MItem_tools.cpp:193
 msgid ""
 "Erasing configuration,\n"
 "it will take some time..."
@@ -1026,7 +1040,7 @@ msgstr ""
 "Erasing configuration,\n"
 "it will take some time..."
 
-#: src/gui/MItem_tools.cpp:195
+#: src/gui/MItem_tools.cpp:193
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -1063,6 +1077,7 @@ msgid "ERROR"
 msgstr "ERROR"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:254
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:384
 msgid ""
 "Error erasing\n"
 " flash! Restart\n"
@@ -1078,7 +1093,7 @@ msgstr ""
 msgid "Error invalid selftest state"
 msgstr "Error invalid selftest state"
 
-#: src/gui/MItem_tools.cpp:267
+#: src/gui/MItem_tools.cpp:265
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
@@ -1122,16 +1137,21 @@ msgid "ESP detected unknown error."
 msgstr "ESP detected unknown error."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:234
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:364
 msgid "ESP doesn't seem to be connected."
 msgstr "ESP doesn't seem to be connected."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:153
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:158
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:163
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:223
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:228
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:233
 msgid "ESP ERROR"
 msgstr "ESP ERROR"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:233
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:363
 msgid "ESP NOT CONNECTED"
 msgstr "ESP NOT CONNECTED"
 
@@ -1159,6 +1179,26 @@ msgstr "Exit"
 msgid "EXIT"
 msgstr "EXIT"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:53
+msgid "EXTRUDER MAXTEMP ERROR"
+msgstr "EXTRUDER MAXTEMP ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:58
+msgid "EXTRUDER MINTEMP ERROR"
+msgstr "EXTRUDER MINTEMP ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:43
+msgid "EXTRUDER PREHEAT ERROR"
+msgstr "EXTRUDER PREHEAT ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:63
+msgid "EXTRUDER TEMP NOT MATCHING"
+msgstr "EXTRUDER TEMP NOT MATCHING"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:48
+msgid "EXTRUDER THERMAL RUNAWAY"
+msgstr "EXTRUDER THERMAL RUNAWAY"
+
 #: src/gui/MItem_menus.hpp:494
 msgid "Factory Reset"
 msgstr "Factory Reset"
@@ -1181,9 +1221,29 @@ msgid ""
 msgstr ""
 "Failed to home the extruder in Z-axis, make sure the loadcell is working."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:134
+msgid ""
+"Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-"
+"axis."
+msgstr ""
+"Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-"
+"axis."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:139
+msgid ""
+"Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-"
+"axis."
+msgstr ""
+"Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-"
+"axis."
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:79
 msgid "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
 msgstr "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:119
+msgid "Failed to home the Z-axis, make sure the loadcell is working."
+msgstr "Failed to home the Z-axis, make sure the Loadcell is working."
 
 #: src/gui/screen_menu_connect.cpp:43
 msgid ""
@@ -1369,11 +1429,11 @@ msgstr ""
 "Filament sensor didn't trigger while loading the filament. Ensure the sensor "
 "is calibrated and the filament reached it."
 
-#: src/gui/MItem_tools.cpp:78
+#: src/gui/MItem_tools.cpp:76
 msgid "Filament sensor not connected, check wiring."
 msgstr "Filament sensor not connected, check wiring."
 
-#: src/gui/MItem_tools.cpp:74
+#: src/gui/MItem_tools.cpp:72
 msgid "Filament sensor not ready: perform calibration first."
 msgstr "Filament sensor not ready: perform calibration first."
 
@@ -1394,6 +1454,7 @@ msgstr ""
 "isn't anything stuck in PTFE tube. Check that sensor reads properly."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:289
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:419
 msgid ""
 "File system error!\n"
 "Try a different USB\n"
@@ -1465,6 +1526,7 @@ msgstr ""
 "If you QUIT, all data up to this point is saved."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:244
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:374
 msgid ""
 "Firmware file has\n"
 "invalid size!\n"
@@ -1479,6 +1541,7 @@ msgstr ""
 "and try again."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:249
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:379
 msgid ""
 "Firmware file\n"
 "missing in the USB\n"
@@ -1513,6 +1576,7 @@ msgid "Firmware flashing successful!"
 msgstr "Firmware flashing successful!"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:264
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:394
 msgid ""
 "Firmware hash\n"
 "verification failed!\n"
@@ -1531,6 +1595,7 @@ msgstr ""
 "USB drive again."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:269
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:399
 msgid ""
 "Firmware in the\n"
 "internal flash\n"
@@ -1544,7 +1609,12 @@ msgstr ""
 "reflash the\n"
 "firmware."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:413
+msgid "FIRMWARE MISSING"
+msgstr "FIRMWARE MISSING"
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:274
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:404
 msgid ""
 "Firmware/printer\n"
 "types do not match.\n"
@@ -1561,6 +1631,7 @@ msgstr ""
 "printer model."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:279
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:409
 msgid ""
 "Firmware/printer\n"
 "versions do not\n"
@@ -1579,6 +1650,7 @@ msgstr ""
 "Buddy board."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:259
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:389
 msgid ""
 "Firmware signature\n"
 "verification failed!\n"
@@ -1608,6 +1680,10 @@ msgstr "First Layer Calibration"
 #: src/gui/ScreenSelftest.hpp:87
 msgid "FIRST LAYER CALIBRATION"
 msgstr "FIRST LAYER CALIBRATION"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:383
+msgid "FLASH ERASE ERROR"
+msgstr "FLASH ERASE ERROR"
 
 #: src/gui/MItem_print.hpp:73
 msgid "Flow Factor"
@@ -1710,13 +1786,13 @@ msgstr "FS span 6"
 msgid "FS Value"
 msgstr "FS Value"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:398
+msgid "FW IN INTERNAL FLASH CORRUPTED"
+msgstr "FW IN INTERNAL FLASH CORRUPTED"
+
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:250
 msgid "FW RUNTIME ERROR"
 msgstr "FW RUNTIME ERROR"
-
-#: src/gui/screen_menu_settings.hpp:23
-msgid "FW update"
-msgstr "FW update"
 
 #: src/gui/MItem_menus.hpp:149 src/gui/screen_menu_fw_update.hpp:37
 msgid "FW Update"
@@ -1766,6 +1842,14 @@ msgstr "Generate Wi-Fi credentials?"
 msgid "GW"
 msgstr "GW"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:179
+msgid "HAL detected an I2C busy state when receiving data via I2C."
+msgstr "HAL detected an I2C busy state when receiving data via I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:159
+msgid "HAL detected an I2C busy state when sending data via I2C."
+msgstr "HAL detected an I2C busy state when sending data via I2C."
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:134
 msgid "HAL detected an I2C busy when receiving data via I2C."
 msgstr "HAL detected an I2C busy when receiving data via I2C."
@@ -1775,26 +1859,32 @@ msgid "HAL detected an I2C busy when sending data via I2C."
 msgstr "HAL detected an I2C busy when sending data via I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:129
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:174
 msgid "HAL detected an I2C error when receiving data via I2C."
 msgstr "HAL detected an I2C error when receiving data via I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:109
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:154
 msgid "HAL detected an I2C error when sending data via I2C."
 msgstr "HAL detected an I2C error when sending data via I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:139
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:184
 msgid "HAL detected an I2C timeout when receiving data via I2C."
 msgstr "HAL detected an I2C timeout when receiving data via I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:119
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:164
 msgid "HAL detected an I2C timeout when sending data via I2C."
 msgstr "HAL detected an I2C timeout when sending data via I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:144
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:189
 msgid "HAL detected an I2C undefined error when receiving data via I2C."
 msgstr "HAL detected an I2C undefined error when receiving data via I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:124
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:169
 msgid "HAL detected an I2C undefined error when sending data via I2C."
 msgstr "HAL detected an I2C undefined error when sending data via I2C."
 
@@ -1816,6 +1906,10 @@ msgstr "Hardware"
 msgid "HARDWARE"
 msgstr "HARDWARE"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:393
+msgid "HASH VERIFICATION FAILED"
+msgstr "HASH VERIFICATION FAILED"
+
 #: src/gui/screen_sysinf.cpp:78
 msgid "HB Fan RPM"
 msgstr "HB Fan RPM"
@@ -1835,6 +1929,73 @@ msgstr "HEATBED PORT OVERCURRENT"
 #: src/gui/MItem_print.hpp:48
 msgid "Heatbed Temperature"
 msgstr "Heatbed Temperature"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:79
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:84
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+"Damaged tile or wiring.\n"
+"Follow online guide to diagnose."
+msgstr ""
+"Heatbed tile no. %d:\n"
+"Damaged tile or wiring.\n"
+"Follow online guide to diagnose."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:109
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+"Preheat error."
+msgstr ""
+"Heatbed tile no. %d:\n"
+"Preheat error."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:89
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:94
+#, c-format
+msgid ""
+"Heatbed tile no. %d: \n"
+"Temperature measurement error; thermistor may be faulty."
+msgstr ""
+"Heatbed tile no. %d: \n"
+"Temperature measurement error; thermistor may be faulty."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:114
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+"Test heating error."
+msgstr ""
+"Heatbed tile no. %d:\n"
+"Test heating error."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:99
+#, c-format
+msgid ""
+"Heatbed tile no. %d: \n"
+"Unexpected temperature drop detected."
+msgstr ""
+"Heatbed tile no. %d: \n"
+"Unexpected temperature drop detected."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:104
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+" Unexpected temperature peak detected."
+msgstr ""
+"Heatbed tile no. %d:\n"
+" Unexpected temperature peak detected."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:209
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+"Unknown error: %d"
+msgstr ""
+"Heatbed tile no. %d:\n"
+"Unknown error: %d"
 
 #: src/common/footer_def.hpp:122
 msgid "Heatbreak"
@@ -1869,10 +2030,12 @@ msgid "Heatbreak Fan"
 msgstr "Heatbreak Fan"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:63
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:73
 msgid "HEATBREAK MAXTEMP ERROR"
 msgstr "HEATBREAK MAXTEMP ERROR"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:58
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:68
 msgid "HEATBREAK MINTEMP ERROR"
 msgstr "HEATBREAK MINTEMP ERROR"
 
@@ -1908,7 +2071,8 @@ msgstr "Heater testing"
 msgid "Heater Voltage"
 msgstr "Heater Voltage"
 
-#: src/gui/screen_menu_move.cpp:12
+#: src/gui/screen_menu_move.cpp:86
+#, c-format
 msgid "Heating"
 msgstr "Heating"
 
@@ -1995,6 +2159,11 @@ msgstr ""
 msgid "Home"
 msgstr "Home"
 
+#. regular home screen
+#: src/gui/screen_home.cpp:194
+msgid "HOME"
+msgstr "HOME"
+
 #: src/gui/MItem_mmu.hpp:259
 msgid "Home safely"
 msgstr "Home safely"
@@ -2006,14 +2175,17 @@ msgid "Homing"
 msgstr "Homing"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:73
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:133
 msgid "HOMING ERROR X"
 msgstr "HOMING ERROR X"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:78
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:138
 msgid "HOMING ERROR Y"
 msgstr "HOMING ERROR Y"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:68
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:118
 msgid "HOMING ERROR Z"
 msgstr "HOMING ERROR Z"
 
@@ -2036,10 +2208,6 @@ msgstr "Hotend fan RPM test"
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:56
 msgid "Hotend sock"
 msgstr "Hotend sock"
-
-#: src/gui/screen_help_fw_update.cpp:55
-msgid "How to update firmware?"
-msgstr "How to update firmware?"
 
 #: src/gui/MItem_mmu.hpp:243
 msgid "HW Reset"
@@ -2078,34 +2246,42 @@ msgid "HW test selector"
 msgstr "HW test selector"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:133
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:178
 msgid "I2C RECEIVE BUSY"
 msgstr "I2C RECEIVE BUSY"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:128
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:173
 msgid "I2C RECEIVE FAILED"
 msgstr "I2C RECEIVE FAILED"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:138
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:183
 msgid "I2C RECEIVE TIMEOUT"
 msgstr "I2C RECEIVE TIMEOUT"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:143
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:188
 msgid "I2C RECEIVE UNDEFINED"
 msgstr "I2C RECEIVE UNDEFINED"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:113
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:158
 msgid "I2C SEND BUSY"
 msgstr "I2C SEND BUSY"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:108
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:153
 msgid "I2C SEND FAILED"
 msgstr "I2C SEND FAILED"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:118
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:163
 msgid "I2C SEND TIMEOUT"
 msgstr "I2C SEND TIMEOUT"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:123
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:168
 msgid "I2C SEND UNDEFINED"
 msgstr "I2C SEND UNDEFINED"
 
@@ -2123,9 +2299,17 @@ msgstr "IDLER CANNOT MOVE"
 msgid "IGNORE"
 msgstr "IGNORE"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:388
+msgid "IMPOSTER! FAKE SIGNATURE"
+msgstr "IMPOSTER! FAKE SIGNATURE"
+
 #: src/gui/wizard/selftest_result_eth.cpp:16
 msgid "Inactive"
 msgstr "Inactive"
+
+#: src/gui/MItem_menus.hpp:240
+msgid "Independent Stepping"
+msgstr "Independent Stepping"
 
 #: src/gui/MItem_menus.hpp:377 src/gui/screen_home.cpp:140
 msgid "Info"
@@ -2151,29 +2335,12 @@ msgstr "in progress"
 msgid "Input Current"
 msgstr "Input Current"
 
-#: src/gui/MItem_menus.hpp:507 src/gui/dialogs/print_progress.cpp:20
-msgid "Input Shaper"
-msgstr "Input Shaper"
-
-#: src/gui/screen_home.cpp:203 src/gui/screen_menu_input_shaper.hpp:20
-#: src/gui/screen_printing.cpp:376 src/gui/screen_printing.hpp:38
-msgid "INPUT SHAPER"
-msgstr "INPUT SHAPER"
-
-#: src/common/footer_def.hpp:114
-msgid "Input Shaper X"
-msgstr "Input Shaper X"
-
-#: src/common/footer_def.hpp:116
-msgid "Input Shaper Y"
-msgstr "Input Shaper Y"
-
 #: src/gui/MItem_tools.hpp:537
 msgid "Input Voltage"
 msgstr "Input Voltage"
 
 #. not calibrated would be too long
-#: src/gui/MItem_tools.cpp:525
+#: src/gui/MItem_tools.cpp:523
 #, c-format
 msgid " INS / %7ld"
 msgstr " INS / %7ld"
@@ -2238,6 +2405,10 @@ msgid ""
 msgstr ""
 "In the next step, use the knob to adjust the nozzle height. Check the "
 "pictures in the handbook for reference."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:373
+msgid "INVALID FW SIZE ON USB FLASH DRIVE"
+msgstr "INVALID FW SIZE ON USB FLASH DRIVE"
 
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:232
 msgid "INVALID TOOL"
@@ -2329,6 +2500,7 @@ msgid "Leave"
 msgstr "Leave"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:213
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:343
 msgid "LED MEMORY ERROR"
 msgstr "LED MEMORY ERROR"
 
@@ -2391,6 +2563,7 @@ msgid "Loadcell"
 msgstr "Loadcell"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:203
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:333
 msgid "LOADCELL BAD CONFIGURATION"
 msgstr "LOADCELL BAD CONFIGURATION"
 
@@ -2398,27 +2571,40 @@ msgstr "LOADCELL BAD CONFIGURATION"
 msgid "Loadcell calibration is incomplete. Restart the printer."
 msgstr "Loadcell calibration is incomplete. Restart the printer."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:314
+msgid ""
+"Loadcell calibration is incomplete. Restart the printer and calibrate "
+"loadcell."
+msgstr ""
+"Loadcell calibration is incomplete. Restart the printer and calibrate the "
+"Loadcell."
+
 #: src/gui/wizard/selftest_result_loadcell.cpp:12
 msgid "Loadcell check"
 msgstr "Loadcell check"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:199
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:329
 msgid "Loadcell measured an inifinite or undefined load value."
 msgstr "Loadcell measured an inifinite or undefined load value."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:198
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:328
 msgid "LOADCELL MEASURE FAILED"
 msgstr "LOADCELL MEASURE FAILED"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:183
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:313
 msgid "LOADCELL NOT CALIBRATED"
 msgstr "LOADCELL NOT CALIBRATED"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:188
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:318
 msgid "LOADCELL TARE ERROR"
 msgstr "LOADCELL TARE ERROR"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:193
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:323
 msgid "LOADCELL TARE FAILED"
 msgstr "LOADCELL TARE FAILED"
 
@@ -2426,15 +2612,16 @@ msgstr "LOADCELL TARE FAILED"
 msgid "Loadcell Test"
 msgstr "Loadcell Test"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:122
+#: src/gui/wizard/selftest_frame_loadcell.cpp:125
 msgid "Loadcell test failed."
 msgstr "Loadcell test failed."
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:119
+#: src/gui/wizard/selftest_frame_loadcell.cpp:122
 msgid "Loadcell test passed OK."
 msgstr "Loadcell test passed OK."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:208
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:338
 msgid "LOADCELL TIMEOUT"
 msgstr "LOADCELL TIMEOUT"
 
@@ -2554,7 +2741,8 @@ msgstr "Love Board"
 msgid "Low"
 msgstr "Low"
 
-#: src/gui/screen_menu_move.cpp:13
+#: src/gui/screen_menu_move.cpp:88
+#, c-format
 msgid "Low temp"
 msgstr "Low temp"
 
@@ -2589,6 +2777,7 @@ msgstr ""
 "automatically select the printer type, run the Self-test."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:219
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:349
 msgid ""
 "Marlin client could not send message to Marlin server and timeout was "
 "reached."
@@ -2597,6 +2786,7 @@ msgstr ""
 "reached."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:218
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:348
 msgid "MARLIN REQUEST TIMEOUT"
 msgstr "MARLIN REQUEST TIMEOUT"
 
@@ -2617,6 +2807,14 @@ msgstr "MAXTEMP ERROR"
 #: src/gui/screen_menu_modularbed.hpp:23
 msgid "MBed Board Temp"
 msgstr "MBed Board Temp"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:64
+msgid ""
+"Measured temperature is not matching expected value. Check if the thermistor "
+"is in contact with the heaterblock. In case of damage, replace it."
+msgstr ""
+"Measured temperature is not matching the expected value. Check if the "
+"thermistor is in contact with the heaterblock. In case of damage, replace it."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:49
 msgid ""
@@ -2640,6 +2838,7 @@ msgid "Medium"
 msgstr "Medium"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:214
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:344
 msgid "Memory allocation failed for scheduled LED animation"
 msgstr "Memory allocation failed for scheduled LED animation"
 
@@ -2697,18 +2896,6 @@ msgstr "MMU Firmware internal error, please reset the MMU."
 msgid "MMU FW UPDATE NEEDED"
 msgstr "MMU FW UPDATE NEEDED"
 
-#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:209
-msgid ""
-"MMU MCU detected a 5V undervoltage. There might be an issue with the "
-"electronics. Check the wiring and connectors"
-msgstr ""
-"MMU MCU detected a 5V undervoltage. There might be an issue with the "
-"electronics. Check the wiring and connectors"
-
-#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:208
-msgid "MMU MCU UNDERPOWER"
-msgstr "MMU MCU UNDERPOWER"
-
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:214
 msgid "MMU NOT RESPONDING"
 msgstr "MMU NOT RESPONDING"
@@ -2759,6 +2946,22 @@ msgstr ""
 "MMU selftest failed on the Selector TMC driver. Check the wiring and "
 "connectors. If the issue persists contact support."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:78
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:83
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:88
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:93
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:98
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:103
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:108
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:113
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:123
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:128
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:193
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:198
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:208
+msgid "MODULAR BED ERROR"
+msgstr "MODULAR BED ERROR"
+
 #. abbreviated Monday - max 3 characters
 #: src/lang/format_print_will_end.cpp:45
 msgid "Mon"
@@ -2805,7 +3008,7 @@ msgstr "Move Z"
 msgid "Moving away."
 msgstr "Moving away."
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:75
+#: src/gui/wizard/selftest_frame_loadcell.cpp:78
 msgid "Moving down"
 msgstr "Moving down"
 
@@ -2815,7 +3018,7 @@ msgstr "Moving down"
 msgid "Moving selector"
 msgstr "Moving selector"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:77
+#: src/gui/wizard/selftest_frame_loadcell.cpp:80
 msgid "Moving up"
 msgstr "Moving up"
 
@@ -2882,7 +3085,7 @@ msgstr "Nextruder silicone sock"
 msgid "NINIT "
 msgstr "NINIT "
 
-#: src/gui/MItem_tools.cpp:526
+#: src/gui/MItem_tools.cpp:524
 #, c-format
 msgid "NINS / %7ld"
 msgstr "NINS / %7ld"
@@ -2897,6 +3100,7 @@ msgid "No Config"
 msgstr "No Config"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:284
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:414
 msgid ""
 "No firmware found\n"
 "in the internal\n"
@@ -2909,6 +3113,10 @@ msgstr ""
 "flash! Please\n"
 "flash firmware\n"
 "first!"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:378
+msgid "NO FW ON USB FLASH DRIVE"
+msgstr "NO FW ON USB FLASH DRIVE"
 
 #: src/common/footer_def.hpp:143 src/gui/MItem_hardware.hpp:18
 msgid "None"
@@ -2963,7 +3171,7 @@ msgstr "NOT NOW"
 msgid "No USB"
 msgstr "No USB"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:114
+#: src/gui/wizard/selftest_frame_loadcell.cpp:117
 msgid "NOW"
 msgstr "NOW"
 
@@ -3021,8 +3229,8 @@ msgid ""
 "Nozzle doesn't seem to have round cross section. Make sure it is clean and "
 "perpendicular to the bed."
 msgstr ""
-"Nozzle doesn't seem to have round cross section. Make sure it is clean and "
-"perpendicular to the bed."
+"The nozzle doesn't seem to have a round cross-section. Make sure it is clean "
+"and perpendicular to the bed."
 
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:44
 msgid ""
@@ -3044,9 +3252,11 @@ msgstr "Nozzle heater check"
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr "NOZZLE HEATER OVERCURRENT"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:95
-msgid "Nozzle temperature"
-msgstr "Nozzle temperature"
+#: src/gui/wizard/selftest_frame_loadcell.cpp:98
+msgid ""
+"Nozzle temperature"
+msgstr ""
+"Nozzle temperature"
 
 #: src/gui/screen_menu_tools.hpp:222 src/gui/screen_menu_no_tools.hpp:10
 #: src/gui/MItem_print.hpp:9 src/gui/MItem_print.hpp:39
@@ -3060,10 +3270,6 @@ msgstr "Nozzle type"
 #: src/gui/MItem_hardware.hpp:145
 msgid "Nozzle Type"
 msgstr "Nozzle Type"
-
-#: src/gui/screen_menu_cancel_object.hpp:16
-msgid "Object X"
-msgstr "Object X"
 
 #: src/gui/screen_menu_odometer.hpp:30
 msgid "ODOMETER"
@@ -3127,8 +3333,13 @@ msgid "On Restart"
 msgstr "On Restart"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:168
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:238
 msgid "OUT OF MEMORY"
 msgstr "OUT OF MEMORY"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:124
+msgid "Overcurrent detected."
+msgstr "Overcurrent detected."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:89
 msgid "Overcurrent detected on connected USB device, disconnect it."
@@ -3138,11 +3349,16 @@ msgstr "Overcurrent detected on connected USB device, disconnect it."
 msgid "Overcurrent detected on nozzle heater."
 msgstr "Overcurrent detected on nozzle heater."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:149
+msgid "Overcurrent detected on the connected USB device, disconnect it."
+msgstr "Overcurrent detected on the connected USB device, disconnect it."
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:104
 msgid "Overcurrent detected on the MMU port, disconnect the device."
 msgstr "Overcurrent detected on the MMU port, disconnect the device."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:84
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:144
 msgid "Overcurrent detected on USB port."
 msgstr "Overcurrent detected on USB port."
 
@@ -3262,9 +3478,9 @@ msgstr "Pick Tool 5 (Current)"
 msgid "Pickup Tool"
 msgstr "Pickup Tool"
 
-#: src/gui/screen_tools_mapping.cpp:321
-msgid "Please assign a tool for the filament."
-msgstr "Please assign a tool for the filament."
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:38
+msgid "PIN NOT REACHED"
+msgstr "PIN NOT REACHED"
 
 #: src/gui/screen_print_preview.hpp:20 src/gui/box_unfinished_selftest.cpp:48
 msgid "Please complete Calibrations & Tests before using the printer."
@@ -3290,10 +3506,6 @@ msgstr "Please open idler and remove filament manually"
 msgid "Please remove filament from filament sensor."
 msgstr "Please remove filament from filament sensor."
 
-#: src/gui/screen_tools_mapping.cpp:313
-msgid "Please select the filament."
-msgstr "Please select the filament."
-
 #: src/gui/wizard/selftest_frame_calib_z.cpp:17
 msgid "please wait"
 msgstr "please wait"
@@ -3307,6 +3519,7 @@ msgid "Please wait until a tool is picked"
 msgstr "Please wait until a tool is picked"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:173
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:243
 msgid "PNG BUFFER FULL"
 msgstr "PNG BUFFER FULL"
 
@@ -3314,21 +3527,35 @@ msgstr "PNG BUFFER FULL"
 msgid "Power Cycle"
 msgstr "Power Cycle"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:194
+msgid "Power failure"
+msgstr "Power failure"
+
 #: src/gui/MItem_crash.hpp:93
 msgid "Power Failures"
 msgstr "Power Failures"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:199
+msgid "Power panic"
+msgstr "Power panic"
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:148
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:203
 msgid "POWER PANIC"
 msgstr "POWER PANIC"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:149
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:204
 msgid ""
 "Power panic has been detected during printer initialization. Inspect wiring "
 "of PP-cable."
 msgstr ""
 "Power panic has been detected during printer initialization. Inspect wiring "
 "of PP-cable."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:13
+msgid "PRECISE REFINEMENT FAILED"
+msgstr "PRECISE REFINEMENT FAILED"
 
 #: src/gui/screen_home.cpp:132
 msgid "Preheat"
@@ -3395,10 +3622,6 @@ msgstr "PRINT"
 msgid "printer doesn't have enough tools"
 msgstr "printer doesn't have enough tools"
 
-#: src/gui/MItem_tools.cpp:49
-msgid "Printer may vibrate and be noisier during homing."
-msgstr "Printer may vibrate and be noisier during homing."
-
 #: src/gui/MItem_hardware.hpp:113
 msgid "Printer Model"
 msgstr "Printer Model"
@@ -3447,6 +3670,14 @@ msgstr "Print finished"
 msgid "Printing"
 msgstr "Printing"
 
+#: src/gui/screen_printing.cpp:373
+msgid "PRINTING"
+msgstr "PRINTING"
+
+#: src/gui/screen_printing.hpp:35
+msgid "PRINTING ..."
+msgstr "PRINTING ..."
+
 #: src/gui/screen_printing.cpp:158
 msgid "Printing time"
 msgstr "Printing time"
@@ -3479,6 +3710,15 @@ msgstr "Print Time"
 #: src/gui/print_time_module.hpp:24
 msgid "Print will end"
 msgstr "Print will end"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:34
+#, c-format
+msgid ""
+"Probed XY position is %.3f mm from expected. This is more than allowed "
+"difference of %.3f mm."
+msgstr ""
+"Probed XY position is %.3f mm from expected. This is more than the allowed "
+"difference of %.3f mm."
 
 #: src/gui/screen_filebrowser.cpp:27
 msgid "PROJECTS"
@@ -3523,6 +3763,52 @@ msgstr "PULLEY CANNOT MOVE"
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:35
 msgid "Pulley motor stalled. Ensure the pulley can move and check the wiring."
 msgstr "Pulley motor stalled. Ensure the pulley can move and check the wiring."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:264
+msgid "Puppy discovery error. No puppy found"
+msgstr "Puppy discovery error. No puppy found"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:253
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:258
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:263
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:268
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:273
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:278
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:283
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:288
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:293
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:298
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:303
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:308
+msgid "PUPPY ERROR"
+msgstr "PUPPY ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:299
+#, c-format
+msgid "Puppy %s firmware fingerprint mismatch"
+msgstr "Puppy %s firmware fingerprint mismatch"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:289
+#, c-format
+msgid "Puppy %s firmware not found"
+msgstr "Puppy %s firmware not found"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:294
+#, c-format
+msgid "Puppy %s flash writing failed"
+msgstr "Puppy %s flash writing failed"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:269
+#, c-format
+msgid "Puppy %s not responding"
+msgstr "Puppy %s not responding"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:274
+#, c-format
+msgid ""
+"Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
+msgstr ""
+"Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
 
 #: src/gui/MItem_filament.hpp:52
 msgid "Purge Filament"
@@ -3570,6 +3856,7 @@ msgid "Ramming"
 msgstr "Ramming"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:154
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:224
 msgid "Reading ESP firmware failed."
 msgstr "Reading ESP firmware failed."
 
@@ -3673,7 +3960,7 @@ msgstr ""
 msgid "Reset"
 msgstr "Reset"
 
-#: src/gui/MItem_tools.cpp:211
+#: src/gui/MItem_tools.cpp:209
 msgid "Reset complete. The system will now restart."
 msgstr "Reset complete. The system will now restart."
 
@@ -3800,7 +4087,7 @@ msgstr "Selecting filament slot"
 msgid "Selecting fil. slot"
 msgstr "Selecting fil. slot"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:81
+#: src/gui/wizard/selftest_frame_loadcell.cpp:84
 msgid "Selecting tool"
 msgstr "Selecting tool"
 
@@ -3815,14 +4102,6 @@ msgstr "SELECTOR CANNOT HOME"
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:64
 msgid "SELECTOR CANNOT MOVE"
 msgstr "SELECTOR CANNOT MOVE"
-
-#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:47
-msgid ""
-"Selector can't move due to FINDA detecting a filament. Make sure no filament "
-"is in selector and FINDA works properly."
-msgstr ""
-"Selector can't move due to FINDA detecting a filament. Make sure no filament "
-"is in selector and FINDA works properly."
 
 #: src/gui/screen_menu_fw_update.cpp:36
 msgid ""
@@ -3878,7 +4157,7 @@ msgstr "Sensor Info"
 msgid "SENSOR INFO"
 msgstr "SENSOR INFO"
 
-#: src/gui/MItem_tools.cpp:83
+#: src/gui/MItem_tools.cpp:81
 msgid "Sensor logic error, printer filament sensor disabled."
 msgstr "Sensor logic error, printer filament sensor disabled."
 
@@ -3899,17 +4178,14 @@ msgstr "Service"
 msgid "Settings"
 msgstr "Settings"
 
-#: src/gui/screen_menu_settings.hpp:105
+#: src/gui/screen_menu_settings.hpp:96
 msgid "SETTINGS"
 msgstr "SETTINGS"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:194
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:324
 msgid "Setting the tare failed. Check the loadcell wiring and connection."
 msgstr "Setting the tare failed. Check the loadcell wiring and connection."
-
-#: src/gui/MItem_tools.hpp:709
-msgid "Set up values"
-msgstr "Set up values"
 
 #: src/gui/MItem_lan.hpp:20
 msgid "Setup Wi-Fi Module"
@@ -4058,6 +4334,7 @@ msgid "Sound Volume"
 msgstr "Sound Volume"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:224
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:354
 msgid ""
 "Space allocation for firmware BBF file failed. Repeat the action or try "
 "another USB drive."
@@ -4080,7 +4357,7 @@ msgstr "Spool Join"
 #. Slowly
 #: src/common/client_response_texts.cpp:62
 msgid "SPOOL JOIN"
-msgstr "SPOOL JOIN"
+msgstr "SPOOLJOIN"
 
 #: src/gui/screen_menu_connect.cpp:88
 msgid "Srv error"
@@ -4206,13 +4483,15 @@ msgstr "T5"
 msgid "T6"
 msgstr "T6"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:115
+#: src/gui/wizard/selftest_frame_loadcell.cpp:118
 msgid "Tap the nozzle"
 msgstr "Tap the nozzle"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:108
-msgid "Tap the nozzle on beep"
-msgstr "Tap the nozzle on beep"
+#: src/gui/wizard/selftest_frame_loadcell.cpp:111
+msgid ""
+"Tap the nozzle on beep"
+msgstr ""
+"Tap the nozzle on beep"
 
 #: src/gui/MItem_menus.hpp:93
 msgid "Temperature"
@@ -4367,6 +4646,7 @@ msgstr ""
 "Check if the wiring is correct."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:204
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:334
 msgid "The loadcell configuration is incorrect."
 msgstr "The loadcell configuration is incorrect."
 
@@ -4379,10 +4659,12 @@ msgstr ""
 "compatible version."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:189
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:319
 msgid "There was an error requesting the tare for loadcell."
 msgstr "There was an error requesting the tare for loadcell."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:209
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:339
 msgid ""
 "There was a timeout while waiting for measurement sample, please repeat the "
 "action."
@@ -4440,7 +4722,7 @@ msgid "This G-code was set up for another filament type."
 msgstr "This G-code was set up for another filament type."
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:231
+#: src/gui/MItem_tools.cpp:229
 #, c-format
 msgid ""
 "This operation cannot be undone. Current configuration will be lost!\n"
@@ -4454,7 +4736,7 @@ msgstr ""
 "Do you really want to continue?"
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:221
+#: src/gui/MItem_tools.cpp:219
 msgid ""
 "This operation cannot be undone. Current user configuration and passwords "
 "will be lost!\n"
@@ -4472,14 +4754,6 @@ msgid ""
 msgstr ""
 "This screen shows only 1st tool!\n"
 "XL should use snake!"
-
-#: src/gui/MItem_tools.hpp:412
-msgid ""
-"This will allow metrics to be enabled by G-code. It can send unencrypted "
-"diagnostics data to the internet. Do you really want to allow metrics?"
-msgstr ""
-"This will allow metrics to be enabled by G-code. It can send unencrypted "
-"diagnostics data to the internet. Do you really want to allow metrics?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:51
@@ -4679,38 +4953,6 @@ msgstr ""
 msgid "Today at"
 msgstr "Today at"
 
-#: src/gui/screen_help_fw_update.cpp:44
-msgid ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk3.5-firmware"
-msgstr ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk3.5-firmware"
-
-#: src/gui/screen_help_fw_update.cpp:36
-msgid ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk3.9-firmware"
-msgstr ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk3.9-firmware"
-
-#: src/gui/screen_help_fw_update.cpp:35
-msgid ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk4-firmware"
-msgstr ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk4-firmware"
-
-#: src/gui/screen_help_fw_update.cpp:52
-msgid ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/xl-firmware"
-msgstr ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/xl-firmware"
-
 #: src/gui/screen_menu_tools.hpp:267
 msgid "  Tool 1"
 msgstr "  Tool 1"
@@ -4851,6 +5093,10 @@ msgstr "Tool 5 Filament Sensor Calibration"
 msgid "Tool 5 Loadcell Test"
 msgstr "Tool 5 Loadcell Test"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:8
+msgid "TOOLCHANGER ERROR"
+msgstr "TOOLCHANGER ERROR"
+
 #: src/gui/screen_crash_recovery.cpp:106
 msgid ""
 "Toolchanger problem has been detected.\n"
@@ -4861,6 +5107,11 @@ msgstr ""
 "Park all tools to docks\n"
 "and leave the carriage free."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:24
+#, c-format
+msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
+msgstr "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
+
 #: src/gui/MItem_tools.hpp:442
 msgid "Tool Filament sensor"
 msgstr "Tool Filament sensor"
@@ -4868,6 +5119,10 @@ msgstr "Tool Filament sensor"
 #: src/gui/MItem_menus.hpp:425
 msgid "Tool Light"
 msgstr "Tool Light"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:23
+msgid "TOOL OFFSET OUT OF BOUNDS"
+msgstr "TOOL OFFSET OUT OF BOUNDS"
 
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:15
 msgid "Tool Offsets Calibration"
@@ -4887,7 +5142,7 @@ msgstr "Tools Changed"
 
 #: src/gui/screen_print_preview.cpp:142
 msgid "TOOLS MAPPING"
-msgstr "TOOLS MAPPING"
+msgstr "TOOL MAPPING"
 
 #: src/gui/wizard/selftest_frame_esp_qr.cpp:35
 msgid "To setup or troubleshoot your Wi-Fi, please visit:"
@@ -4996,11 +5251,19 @@ msgstr ""
 "Unable to home the printer.\n"
 "Do you want to try again?"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:284
+msgid "Unable to start puppy application"
+msgstr "Unable to start puppy application"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:259
+msgid "Unassigned puppy found"
+msgstr "Unassigned puppy found"
+
 #: src/gui/screen_menu_connect.cpp:87
 msgid "Unauthorized"
 msgstr "Unauthorized"
 
-#: src/gui/MItem_tools.cpp:524
+#: src/gui/MItem_tools.cpp:522
 #, c-format
 msgid "uncalibrated / %ld"
 msgstr "uncalibrated / %ld"
@@ -5009,7 +5272,11 @@ msgstr "uncalibrated / %ld"
 msgid "Unexpected error occurred."
 msgstr "Unexpected error occurred."
 
-#: src/gui/MItem_tools.cpp:528
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:129
+msgid "Unexpected invalid current."
+msgstr "Unexpected invalid current."
+
+#: src/gui/MItem_tools.cpp:526
 #, c-format
 msgid "uninitialized / %ld"
 msgstr "uninitialized / %ld"
@@ -5018,6 +5285,10 @@ msgstr "uninitialized / %ld"
 msgid "Unknown"
 msgstr "Unknown"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:234
+msgid "Unknown error"
+msgstr "Unknown error"
+
 #: src/gui/screen_qr_error.cpp:28
 msgid "Unknown Error"
 msgstr "Unknown Error"
@@ -5025,6 +5296,10 @@ msgstr "Unknown Error"
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:268
 msgid "UNKNOWN ERROR"
 msgstr "UNKNOWN ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:279
+msgid "Unknown puppy type"
+msgstr "Unknown puppy type"
 
 #: src/gui/screen_menu_filament_changeall.hpp:13
 msgid "Unload"
@@ -5074,6 +5349,18 @@ msgstr "UNLOAD MANUALLY"
 msgid "Unparking"
 msgstr "Unparking"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:408
+msgid "UNSUPPORTED BUDDY FW"
+msgstr "UNSUPPORTED BUDDY FW"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:423
+msgid "UNSUPPORTED FIRMWARE BBF FILE"
+msgstr "UNSUPPORTED FIRMWARE BBF FILE"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:403
+msgid "UNSUPPORTED PRINTER MODEL"
+msgstr "UNSUPPORTED PRINTER MODEL"
+
 #: src/gui/dialogs/DialogMoveZ.hpp:24
 msgid "UP"
 msgstr "UP"
@@ -5100,6 +5387,7 @@ msgid "%u %% / running"
 msgstr "%u %% / running"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:88
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:148
 msgid "USB DEVICE OVERCURRENT"
 msgstr "USB DEVICE OVERCURRENT"
 
@@ -5117,6 +5405,14 @@ msgstr ""
 "with a valid\n"
 "firmware file."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:369
+msgid ""
+"USB drive not connected! \n"
+"Please insert a USB drive with a valid firmware file."
+msgstr ""
+"USB drive not connected! \n"
+"Please insert a USB drive with a valid firmware file."
+
 #: src/gui/wizard/selftest_frame_esp.cpp:31
 msgid "USB drive not detected! Insert USB drive first!"
 msgstr "USB drive not detected! Insert USB drive first!"
@@ -5126,6 +5422,7 @@ msgid "USB drive or file error, the print is now paused. Reconnect the drive."
 msgstr "USB drive or file error, the print is now paused. Reconnect the drive."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:294
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:424
 msgid ""
 "USB flash drive contains\n"
 "unsupported firmware BBF file."
@@ -5133,7 +5430,16 @@ msgstr ""
 "USB flash drive contains\n"
 "unsupported firmware BBF file."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:368
+msgid "USB FLASH DRIVE NOT CONNECTED"
+msgstr "USB FLASH DRIVE NOT CONNECTED"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:418
+msgid "USB FLASH ERROR"
+msgstr "USB FLASH ERROR"
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:83
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:143
 msgid "USB PORT OVERCURRENT"
 msgstr "USB PORT OVERCURRENT"
 
@@ -5172,7 +5478,7 @@ msgstr "%u %% / stopped"
 msgid "%u %% / stuck"
 msgstr "%u %% / stuck"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:71
+#: src/gui/wizard/selftest_frame_loadcell.cpp:74
 msgid "Validity check"
 msgstr "Validity check"
 
@@ -5185,9 +5491,17 @@ msgstr "Version Info"
 msgid "VERSION INFO"
 msgstr "VERSION INFO"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:304
+msgid "Waiting for fingerprint timed out"
+msgstr "Waiting for fingerprint timed out"
+
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:64
 msgid "Waiting for hotends to stabilize at calibration temperature:"
 msgstr "Waiting for hotends to stabilize at calibration temperature:"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:309
+msgid "Waiting for puppies to start timed out"
+msgstr "Waiting for puppies to start timed out"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:43
 msgid "Waiting for temperature"
@@ -5267,7 +5581,7 @@ msgstr ""
 "We will need your help with this calibration. You will be asked to screw in "
 "a calibration pin."
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:100
+#: src/gui/wizard/selftest_frame_loadcell.cpp:103
 msgid ""
 "We will need your help with this test. You will be asked to tap the nozzle. "
 "Don't worry; it is going to be cold.\n"
@@ -5341,14 +5655,6 @@ msgstr "X-axis"
 msgid "X Axis"
 msgstr "X Axis"
 
-#: src/gui/MItem_tools.hpp:662
-msgid "X-axis filter"
-msgstr "X-axis filter"
-
-#: src/gui/MItem_tools.hpp:682
-msgid "X-axis freq."
-msgstr "X-axis freq."
-
 #: src/gui/MItem_tools.hpp:586
 msgid "XL Buddy 5V Current"
 msgstr "XL Buddy 5V Current"
@@ -5356,6 +5662,18 @@ msgstr "XL Buddy 5V Current"
 #: src/gui/menu_item_xlcd.hpp:10
 msgid "xLCD"
 msgstr "xLCD"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:33
+msgid "XY POSITION INVALID"
+msgstr "XY POSITION INVALID"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:28
+msgid "XY PROBE UNSTABLE"
+msgstr "XY PROBE UNSTABLE"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:29
+msgid "XY probing failed due to the low measurement stability."
+msgstr "XY probing failed due to low measurement stability."
 
 #: src/common/footer_def.hpp:104
 msgid "Y"
@@ -5369,20 +5687,12 @@ msgstr "Y-axis"
 msgid "Y Axis"
 msgstr "Y Axis"
 
-#: src/gui/MItem_tools.hpp:672
-msgid "Y-axis filter"
-msgstr "Y-axis filter"
-
-#: src/gui/MItem_tools.hpp:691
-msgid "Y-axis freq."
-msgstr "Y-axis freq."
-
 #. Unload
 #: src/common/client_response_texts.cpp:65
 msgid "YES"
 msgstr "YES"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:100
+#: src/gui/wizard/selftest_frame_loadcell.cpp:103
 msgid ""
 "You did not tap the nozzle or you tapped it too soon. Retry?\n"
 "\n"
@@ -5391,10 +5701,6 @@ msgstr ""
 "You did not tap the nozzle or you tapped it too soon. Retry?\n"
 "\n"
 " "
-
-#: src/gui/MItem_tools.hpp:699
-msgid "Y weight compensation"
-msgstr "Y weight compensation"
 
 #: src/common/footer_def.hpp:106
 msgid "Z"

@@ -12,17 +12,19 @@
 #define MOVE_SEGMENT_QUEUE_MOD(n) ((n) & (MOVE_SEGMENT_QUEUE_SIZE - 1))
 #define STEP_EVENT_QUEUE_MOD(n)   ((n) & (STEP_EVENT_QUEUE_SIZE - 1))
 
-#define MOVE_FLAG_DIR_MASK         (0x00F0)
-#define MOVE_FLAG_AXIS_ACTIVE_MASK (0x0F00)
+constexpr const uint32_t MOVE_FLAG_DIR_MASK = 0x00F0;
+constexpr const uint32_t MOVE_FLAG_AXIS_ACTIVE_MASK = 0x0F00;
+constexpr const uint32_t MOVE_FLAG_RESET_POSITION_MASK = 0x000F0000;
 
-#define MOVE_FLAG_DIR_SHIFT         (4)
-#define MOVE_FLAG_AXIS_ACTIVE_SHIFT (8)
+constexpr const uint32_t MOVE_FLAG_DIR_SHIFT = 4;
+constexpr const uint32_t MOVE_FLAG_AXIS_ACTIVE_SHIFT = 8;
+constexpr const uint32_t MOVE_FLAG_RESET_POSITION_SHIFT = 16;
 
 struct pressure_advance_state_t;
 struct input_shaper_state_t;
 struct input_shaper_pulses_t;
 
-typedef uint16_t MoveFlag_t;
+typedef uint32_t MoveFlag_t;
 enum MoveFlag : MoveFlag_t {
     MOVE_FLAG_ACCELERATION_PHASE = _BV(0),
     MOVE_FLAG_DECELERATION_PHASE = _BV(1),
@@ -42,8 +44,24 @@ enum MoveFlag : MoveFlag_t {
     MOVE_FLAG_LAST_MOVE_SEGMENT_OF_BLOCK = _BV(13),  // Indicates if this move is the last move of the associated trapezoid block.
 
     MOVE_FLAG_BEGINNING_EMPTY_MOVE = _BV(14),        // Indicates if this move is the beginning empty move.
-    MOVE_FLAG_ENDING_EMPTY_MOVE = _BV(15)            // Indicates if this move is the ending empty move.
+    MOVE_FLAG_ENDING_EMPTY_MOVE = _BV(15),           // Indicates if this move is the ending empty move.
+
+    // Indicated that position of the axis should be reset to zero.
+    MOVE_FLAG_RESET_POSITION_X = _BV(16),
+    MOVE_FLAG_RESET_POSITION_Y = _BV(17),
+    MOVE_FLAG_RESET_POSITION_Z = _BV(18),
+    MOVE_FLAG_RESET_POSITION_E = _BV(19),
 };
+
+// Ensure XYZE bits are always adjacent and ordered.
+static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_Y == (MoveFlag::MOVE_FLAG_RESET_POSITION_X << 1));
+static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_Z == (MoveFlag::MOVE_FLAG_RESET_POSITION_X << 2));
+static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_E == (MoveFlag::MOVE_FLAG_RESET_POSITION_X << 3));
+
+// Verify shifts.
+static_assert(MoveFlag::MOVE_FLAG_X_DIR == (1ul << MOVE_FLAG_DIR_SHIFT));
+static_assert(MoveFlag::MOVE_FLAG_X_ACTIVE == (1ul << MOVE_FLAG_AXIS_ACTIVE_SHIFT));
+static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_X == (1ul << MOVE_FLAG_RESET_POSITION_SHIFT));
 
 typedef struct move_t {
     double start_v;
@@ -59,15 +77,15 @@ typedef struct move_t {
     mutable uint8_t reference_cnt = 0;
 } move_t;
 
-#define STEP_EVENT_FLAG_AXIS_MASK        (0x000Fu)
-#define STEP_EVENT_FLAG_DIR_MASK         (0x00F0u)
-#define STEP_EVENT_FLAG_AXIS_ACTIVE_MASK (0x0F00u)
-#define STEP_EVENT_FLAG_AXIS_OTHER_MASK  (0xF000u)
+constexpr const uint16_t STEP_EVENT_FLAG_AXIS_MASK = 0x000Fu;
+constexpr const uint16_t STEP_EVENT_FLAG_DIR_MASK = 0x00F0u;
+constexpr const uint16_t STEP_EVENT_FLAG_AXIS_ACTIVE_MASK = 0x0F00u;
+constexpr const uint16_t STEP_EVENT_FLAG_AXIS_OTHER_MASK = 0xF000u;
 
-#define STEP_EVENT_FLAG_AXIS_SHIFT        (0)
-#define STEP_EVENT_FLAG_DIR_SHIFT         (4)
-#define STEP_EVENT_FLAG_AXIS_ACTIVE_SHIFT (8)
-#define STEP_EVENT_FLAG_AXIS_OTHER_SHIFT  (12)
+constexpr const uint16_t STEP_EVENT_FLAG_AXIS_SHIFT = 0;
+constexpr const uint16_t STEP_EVENT_FLAG_DIR_SHIFT = 4;
+constexpr const uint16_t STEP_EVENT_FLAG_AXIS_ACTIVE_SHIFT = 8;
+constexpr const uint16_t STEP_EVENT_FLAG_AXIS_OTHER_SHIFT = 12;
 
 typedef uint16_t StepEventFlag_t;
 enum StepEventFlag : StepEventFlag_t {
@@ -145,9 +163,16 @@ enum StepGeneratorType : uint8_t {
     PRESSURE_ADVANCE_STEP_GENERATOR_E = _BV(3)
 };
 
+enum StepEventInfoStatus : uint8_t {
+    STEP_EVENT_INFO_STATUS_NOT_GENERATED = 0,     // Step event isn't produced by any step event generator. Such a step event cannot be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_GENERATED_INVALID = 1, // Step event is produced by a step event generator but cannot be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_GENERATED_VALID = 2,   // Step event is produced by a step event generator and can be inserted into the step event queue.
+};
+
 typedef struct step_event_info_t {
     double time;
     StepEventFlag_t flags;
+    StepEventInfoStatus status;
 } step_event_info_t;
 
 enum StepGeneratorStatus : uint8_t {
@@ -158,7 +183,6 @@ enum StepGeneratorStatus : uint8_t {
 
 typedef struct basic_step_generator_t {
     const uint8_t axis;
-    bool reached_end_of_move_queue = false;
 } basic_step_generator_t;
 
 // Groups variables for step event generators that work with move segments or micro move segments (input shaper).
@@ -170,7 +194,7 @@ typedef struct move_segment_step_generator_t : basic_step_generator_t {
 } move_segment_step_generator_t;
 
 struct step_generator_state_t;
-typedef step_event_info_t (*generator_next_step_f)(move_segment_step_generator_t &step_generator, step_generator_state_t &step_generator_state, const double flush_time);
+typedef step_event_info_t (*generator_next_step_f)(move_segment_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 
 typedef uint8_t step_index_t;
 

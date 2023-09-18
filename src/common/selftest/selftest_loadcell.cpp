@@ -144,7 +144,7 @@ LoopResult CSelftestPart_Loadcell::stateToolSelectInit() {
     if (active_extruder != rConfig.tool_nr) {
         IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_tool_select);
 
-        marlin_server::enqueue_gcode_printf("T%d S1", rConfig.tool_nr);
+        marlin_server::enqueue_gcode_printf("T%d S1 L0 D0", rConfig.tool_nr);
 
         // go to some reasonable position
         // Use reasonable feedrate as it was likely set by previous Z move

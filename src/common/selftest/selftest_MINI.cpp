@@ -62,7 +62,6 @@ static const uint16_t Fan1min_rpm_table[] = { 2350, 4750, 5950, 6850, 7650 };
 static const uint16_t Fan1max_rpm_table[] = { 3750, 5850, 7050, 8050, 8950 };
 */
 
-// clang-format off
 // We test two steps, at 20% (just to check if the fans spin at low PWM) and at
 // 100%, where on MK4/XL we also check the rpm range. No data for MINI yet.
 static constexpr SelftestFansConfig fans_configs[] = {
@@ -72,18 +71,17 @@ static constexpr SelftestFansConfig fans_configs[] = {
             .pwm_step = 204,
             .rpm_min_table = { 10, 10 },
             .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::print
+            .fanctl_fnc = Fans::print,
         },
         .heatbreak_fan = {
             .pwm_start = 51,
             .pwm_step = 204,
             .rpm_min_table = { 10, 10 },
             .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    }
+            .fanctl_fnc = Fans::heat_break,
+        },
+    },
 };
-// clang-format on
 
 const AxisConfig_t selftest::Config_XAxis = {
     .partname = "X-Axis",
@@ -322,12 +320,12 @@ void CSelftest::Loop() {
             return;
         break;
     case stsEpilogue_ok:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
         }
         break;
     case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok))
                 return;
         }
@@ -352,7 +350,7 @@ void CSelftest::phaseDidSelftestPass() {
     SelftestResult_Log(m_result);
 
     // dont run wizard again
-    if (SelftestResult_Passed(m_result)) {
+    if (SelftestResult_Passed_All(m_result)) {
         config_store().run_selftest.set(false);    // clear selftest flag
         config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag

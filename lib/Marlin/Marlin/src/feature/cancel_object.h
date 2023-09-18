@@ -24,15 +24,6 @@
 #include <stdint.h>
 
 class CancelObject {
-
-  struct ObjectNameItem {
-    int8_t obj;
-    ObjectNameItem* next;
-    char name[];
-  };
-
-  static ObjectNameItem *object_name_head;
-
 public:
   static bool skipping;
   static int8_t object_count, active_object;
@@ -44,9 +35,7 @@ public:
   static bool is_canceled(const int8_t obj) { return TEST(canceled, obj); }
   static void clear_active_object() { set_active_object(-1); }
   static void cancel_active_object() { cancel_object(active_object); }
-  static void save_object_name(int8_t obj, const char* name);
-  static const char* get_object_name(const int8_t obj);
-  static void reset();
+  static void reset() { canceled = 0x0000; object_count = 0; clear_active_object(); }
 };
 
 extern CancelObject cancelable;

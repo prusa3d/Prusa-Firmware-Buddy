@@ -106,6 +106,16 @@ void WI_LAMBDA_SPIN::touch(IWindowMenu &window_menu, point_ui16_t relative_touch
     }
 }
 
+void WI_LAMBDA_SPIN::SetIndex(size_t new_index) {
+    if (new_index < index_n) {
+        index = new_index;
+        UpdateText();      // Update extension width
+        InValidateLabel(); // Invalidate label to clear remaining longer text
+        OnChange();        // User overridable callback when selection changes
+        Invalidate();
+    }
+}
+
 /**
  * @brief Selected value changed by dif ticks.
  * Called from parents.

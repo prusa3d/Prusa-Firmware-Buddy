@@ -13,6 +13,7 @@
 #include <Stream.h>
 
 #include <option/has_puppies.h>
+#include <option/has_toolchanger.h>
 
 #if (__cplusplus == 201703L) && defined(__has_include)
 	#define SW_CAPABLE_PLATFORM __has_include(<SoftwareSerial.h>)
@@ -158,8 +159,9 @@ class TMCStepper {
 
 class TMC2130Stepper : public TMCStepper {
 	public:
-	#if HAS_PUPPIES()
-		TMC2130Stepper(bool remote, float RS = default_RS);
+	#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+		enum class Connection { Direct, Remote };
+		TMC2130Stepper(Connection connection, float RS = default_RS);
 	#endif
 		TMC2130Stepper(uint16_t pinCS, float RS = default_RS, int8_t link_index = -1);
 		TMC2130Stepper(uint16_t pinCS, uint16_t pinMOSI, uint16_t pinMISO, uint16_t pinSCK, int8_t link_index = -1);
@@ -376,9 +378,9 @@ class TMC2130Stepper : public TMCStepper {
 		static uint32_t spi_speed; // Default 2MHz
 		const uint16_t _pinCS;
 		SW_SPIClass * TMC_SW_SPI = NULL;
-		#if HAS_PUPPIES()
-		bool remote = false;
-		#endif
+	#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+		Connection connection = Connection::Direct;
+	#endif
 		static constexpr float default_RS = 0.11;
 
 		int8_t link_index;

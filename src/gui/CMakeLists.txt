@@ -19,6 +19,7 @@ target_sources(
           gui_time.cpp
           guimain.cpp
           img_resources.cpp
+          img_resources.cpp
           IScreenPrinting.cpp
           logger.cpp
           menu_vars.cpp
@@ -33,6 +34,7 @@ target_sources(
           MItem_tools.cpp
           network_gui_tools.cpp
           print_time_module.cpp
+          qoi_decoder.cpp
           screen_blue_error.cpp
           screen_bsod.cpp
           screen_dialog_does_not_exist.cpp
@@ -58,7 +60,9 @@ target_sources(
           screen_menu_input_shaper.cpp
           screen_menu_lan_settings.cpp
           screen_menu_lang_and_time.cpp
+          screen_menu_metrics.cpp
           screen_menu_move.cpp
+          screen_menu_move_utils.cpp
           screen_menu_network.cpp
           screen_menu_odometer.cpp
           screen_menu_sensor_info_${PRINTER}.cpp
@@ -179,6 +183,7 @@ endif()
 if(PRINTER STREQUAL "MK4"
    OR PRINTER STREQUAL "MK3.5"
    OR PRINTER STREQUAL "XL"
+   OR PRINTER STREQUAL "MINI"
    )
   target_sources(firmware PRIVATE screen_help_fw_update.cpp)
 endif()

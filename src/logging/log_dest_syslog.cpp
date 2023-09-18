@@ -8,13 +8,21 @@
 #include "syslog.h"
 #include "otp.hpp"
 #include <option/development_items.h>
+#include <config_store/store_instance.hpp>
+
+#include <atomic>
 
 osMutexDef(syslog_buffer_lock);
 osMutexId syslog_buffer_lock_id;
 
 static bool initialized = false;
-static const char *remote_ip_address = "";
-static int remote_port = 13514;
+
+osMutexDef(syslog_config_lock);
+osMutexId syslog_config_lock_id;
+static char remote_ip_address[config_store_ns::metrics_host_size + 1] = "";
+static uint16_t remote_port = 0;
+static std::atomic<bool> reinit = false; ///< Close and reopen connection
+
 static syslog_transport_t syslog_transport {};
 
 static int log_severity_to_syslog_severity(log_severity_t severity) {
@@ -50,6 +58,18 @@ void buffer_output(char character, void *arg) {
 void syslog_initialize() {
     if (initialized)
         return;
+
+    // Mutex for syslog server address and port
+    syslog_config_lock_id = osMutexCreate(osMutex(syslog_config_lock));
+
+    // Init host and port from eeprom
+    const MetricsAllow metrics_allow = config_store().metrics_allow.get();
+    if ((metrics_allow == MetricsAllow::One || metrics_allow == MetricsAllow::All)
+        && config_store().metrics_init.get()) {
+        const char *host = config_store().metrics_host.get_c_str();
+        const uint16_t port = config_store().syslog_port.get();
+        syslog_configure(host, port);
+    }
 
     syslog_buffer_lock_id = osMutexCreate(osMutex(syslog_buffer_lock));
     initialized = true;
@@ -88,20 +108,35 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
         return;
     vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX, (void *)1);
 
-    // is the transport ready?
-    bool open = syslog_transport_check_is_open(&syslog_transport);
-    // if not, try to open it
-    if (!open)
-        open = syslog_transport_open(&syslog_transport, remote_ip_address, remote_port);
-    // don't bother with the message if we still don't have an open transport
-    if (!open)
-        goto cleanup_and_return;
+    do {
+        // is the transport ready?
+        bool open = syslog_transport_check_is_open(&syslog_transport);
 
-    // prepare the message
-    static char buffer[128];
-    if (osMutexWait(syslog_buffer_lock_id, osWaitForever) != osOK)
-        goto cleanup_and_return;
-    {
+        // Request for reinit
+        if (reinit.exchange(false) && open) {
+            syslog_transport_close(&syslog_transport); // Close to use new host and port
+            open = false;
+        }
+
+        // if not, try to open it
+        if (!open) {
+            if (osMutexWait(syslog_config_lock_id, osWaitForever) != osOK) {
+                break; // Could not get mutex, maybe OS was killed
+            }
+            open = syslog_transport_open(&syslog_transport, remote_ip_address, remote_port);
+            osMutexRelease(syslog_config_lock_id);
+        }
+
+        // don't bother with the message if we still don't have an open transport
+        if (!open) {
+            break;
+        }
+
+        // prepare the message
+        static char buffer[128];
+        if (osMutexWait(syslog_buffer_lock_id, osWaitForever) != osOK) {
+            break;
+        }
         buffer_output_state_t buffer_state = {
             .data = buffer,
             .len = sizeof(buffer),
@@ -110,12 +145,30 @@ void syslog_log_event(log_destination_t *destination, log_event_t *event) {
         destination->log_format_fn(event, buffer_output, &buffer_state);
 
         // try to send the message if we have an open socket
-        bool sent = syslog_transport_send(&syslog_transport, buffer, buffer_state.used);
-        if (!sent)
+        if (!syslog_transport_send(&syslog_transport, buffer, buffer_state.used)) {
             syslog_transport_close(&syslog_transport);
-    }
+        }
 
-    osMutexRelease(syslog_buffer_lock_id);
-cleanup_and_return:
+        osMutexRelease(syslog_buffer_lock_id);
+    } while (0); // Just wrap to avoid goto
+
     vTaskSetThreadLocalStoragePointer(NULL, THREAD_LOCAL_STORAGE_SYSLOG_IDX, (void *)0);
+}
+
+void syslog_configure(const char *ip, uint16_t port) {
+    if (osMutexWait(syslog_config_lock_id, osWaitForever) != osOK) {
+        return; // Could not get mutex, maybe OS was killed
+    }
+    strlcpy(remote_ip_address, ip, sizeof(remote_ip_address));
+    remote_port = port;
+    reinit = true; // Close and reopen connection
+    osMutexRelease(syslog_config_lock_id);
+}
+
+const char *syslog_get_host() {
+    return remote_ip_address;
+}
+
+uint16_t syslog_get_port() {
+    return remote_port;
 }

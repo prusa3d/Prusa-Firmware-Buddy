@@ -228,6 +228,22 @@ TEST_CASE("Accept json") {
     REQUIRE_FALSE(ex.contains_enter(Names::ConnectionClose));
 }
 
+TEST_CASE("Encryption Mode CTR") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nContent-Encryption-Mode: AES-CTR\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::ContentEncryptionModeCTR));
+    REQUIRE_FALSE(ex.contains_enter(Names::ContentEncryptionModeCBC));
+}
+
+TEST_CASE("Encryption Mode CBC") {
+    using test::http::Names;
+    TestExecution ex(http_request);
+    ex.consume("GET / HTTP/1.1\r\nContent-Encryption-Mode: AES-CBC\r\n\r\n");
+    REQUIRE(ex.contains_enter(Names::ContentEncryptionModeCBC));
+    REQUIRE_FALSE(ex.contains_enter(Names::ContentEncryptionModeCTR));
+}
+
 TEST_CASE("No connection") {
     using test::http::Names;
     TestExecution ex(http_request);

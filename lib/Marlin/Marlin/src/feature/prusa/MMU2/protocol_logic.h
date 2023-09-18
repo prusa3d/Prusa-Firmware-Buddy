@@ -354,13 +354,15 @@ private:
     std::array<uint8_t, 16> lastReceivedBytes; ///< remembers the last few bytes of incoming communication for diagnostic purposes
     uint8_t lrb;
 
-    MMU2Serial *uart;          ///< UART interface
+    MMU2Serial *uart;                           ///< UART interface
 
-    ErrorCode errorCode;       ///< last received error code from the MMU
-    ProgressCode progressCode; ///< last received progress code from the MMU
-    Buttons buttonCode;        ///< Last received button from the MMU.
+    ErrorCode errorCode;                        ///< last received error code from the MMU
+    ProgressCode progressCode;                  ///< last received progress code from the MMU
+    Buttons buttonCode;                         ///< Last received button from the MMU.
 
-    uint8_t lastFSensor;       ///< last state of filament sensor
+    uint8_t lastFSensor;                        ///< last state of filament sensor
+
+    uint8_t txbuff[Protocol::MaxRequestSize()]; ///< Static transmit buffer (cannot be on stack as DMA cannot be used from CCMRAM)
 
     // 8bit registers
     static constexpr uint8_t regs8Count = 3;

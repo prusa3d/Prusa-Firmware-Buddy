@@ -80,6 +80,10 @@ enum class PhasesLoadUnload : uint16_t {
     IsColorPurge,
     Unparking,
 
+#if HAS_LOADCELL()
+    FilamentStuck,
+#endif
+
 #if HAS_MMU2()
     // internal states of the MMU
     MMU_EngagingIdler,
@@ -118,7 +122,13 @@ enum class PhasesLoadUnload : uint16_t {
     MMU_HWTestExec,
     MMU_HWTestDisplay,
     MMU_ErrHwTestFailed,
+#endif
 
+#if HAS_LOADCELL() && HAS_MMU2()
+    _last = MMU_ErrHwTestFailed
+#elif HAS_LOADCELL()
+    _last = FilamentStuck
+#elif HAS_MMU2()
     _last = MMU_ErrHwTestFailed
 #else
     _last = Unparking
@@ -133,7 +143,9 @@ enum class PhasesPreheat : uint16_t {
 
 enum class PhasesPrintPreview : uint16_t {
     _first = static_cast<uint16_t>(PhasesPreheat::_last) + 1,
-    main_dialog = _first,
+    loading = _first,
+    download_wait,
+    main_dialog,
     unfinished_selftest,
     new_firmware_available,
     wrong_printer,
@@ -364,7 +376,9 @@ class ClientResponses {
         { Response::Yes, Response::Purge_more, Response::Retry }, // IsColor,
         { Response::Yes, Response::Purge_more },                  // IsColorPurge
         {},                                                       // Unparking
-
+#if HAS_LOADCELL()
+        { Response::Unload },                                     // FilamentStuck
+#endif
 #if HAS_MMU2()
         {},                                                            // MMU_EngagingIdler,
         {},                                                            // MMU_DisengagingIdler,
@@ -418,9 +432,13 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
     static constexpr PhaseResponses PrintPreviewResponses[] = {
+        {},                 // loading
+        { Response::Quit }, // download_wait
         {
 #if PRINTER_IS_PRUSA_XL
             Response::Continue,
+#elif defined(USE_ST7789)
+            Response::PRINT,
 #else
             Response::Print,
 #endif
@@ -431,7 +449,7 @@ class ClientResponses {
         { Response::Abort },                                   // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
         { Response::Yes, Response::No },                       // mmu_filament_inserted
-        { Response::Back, Response::PRINT },                   // tools_mapping
+        { Response::Back, Response::Change, Response::PRINT }, // tools_mapping
         {
 #if !PRINTER_IS_PRUSA_XL
             Response::Change,
@@ -441,119 +459,128 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
     static constexpr PhaseResponses SelftestResponses[] = {
-        {},                                                         // _none == _first
+        {},                                       // _none == _first
 
-        { Response::Continue, Response::Cancel },                   // WizardPrologue_ask_run
-        { Response::Continue, Response::Cancel, Response::Ignore }, // WizardPrologue_ask_run_dev
-        { Response::Continue, Response::Cancel },                   // WizardPrologue_info
-        { Response::Continue, Response::Cancel },                   // WizardPrologue_info_detailed
+        { Response::Continue, Response::Cancel }, // WizardPrologue_ask_run
+        { Response::Continue, Response::Cancel
+#if not PRINTER_IS_PRUSA_MINI
+            ,
+            Response::Ignore
+#endif
+        },                                        // WizardPrologue_ask_run_dev
+        { Response::Continue, Response::Cancel }, // WizardPrologue_info
+        { Response::Continue, Response::Cancel }, // WizardPrologue_info_detailed
 
-        { Response::Continue, Response::Abort },                    // ESP_instructions
-        { Response::Yes, Response::Skip },                          // ESP_USB_not_inserted
-        { Response::Yes, Response::Skip },                          // ESP_ask_gen
-        { Response::Yes, Response::Skip },                          // ESP_ask_gen_overwrite
-        { Response::Yes, Response::Skip },                          // ESP_makefile_failed
-        { Response::Continue },                                     // ESP_eject_USB
-        { Response::Continue, Response::Abort },                    // ESP_insert_USB
-        { Response::Retry, Response::Abort },                       // ESP_invalid
-        { Response::Abort },                                        // ESP_uploading_config
-        { Response::Continue },                                     // ESP_enabling_WIFI
-        { Response::Continue },                                     // ESP_uploaded
+        { Response::Continue, Response::Abort },  // ESP_instructions
+        { Response::Yes, Response::Skip },        // ESP_USB_not_inserted
+        { Response::Yes, Response::Skip },        // ESP_ask_gen
+        { Response::Yes, Response::Skip },        // ESP_ask_gen_overwrite
+        { Response::Yes, Response::Skip },        // ESP_makefile_failed
+        { Response::Continue },                   // ESP_eject_USB
+        { Response::Continue, Response::Abort },  // ESP_insert_USB
+        { Response::Retry, Response::Abort },     // ESP_invalid
+        { Response::Abort },                      // ESP_uploading_config
+        { Response::Continue },                   // ESP_enabling_WIFI
+        { Response::Continue },                   // ESP_uploaded
 
-        { Response::Continue, Response::Abort },                    // ESP_progress_info
-        { Response::Abort },                                        // ESP_progress_upload
-        { Response::Continue },                                     // ESP_progress_passed
-        { Response::Continue },                                     // ESP_progress_failed
+        { Response::Continue, Response::Abort },  // ESP_progress_info
+        { Response::Abort },                      // ESP_progress_upload
+        { Response::Continue },                   // ESP_progress_passed
+        { Response::Continue },                   // ESP_progress_failed
+        { Response::Continue, Response::NotNow
+#if not PRINTER_IS_PRUSA_MINI
+            ,
+            Response::Never
+#endif
+        },                                                         // ESP_qr_instructions_flash
+        { Response::Continue, Response::Abort },                   // ESP_qr_instructions
 
-        { Response::Continue, Response::NotNow, Response::Never },  // ESP_qr_instructions_flash
-        { Response::Continue, Response::Abort },                    // ESP_qr_instructions
+        {},                                                        // Fans
 
-        {},                                                         // Fans
+        {},                                                        // Loadcell_prepare
+        {},                                                        // Loadcell_move_away
+        {},                                                        // Loadcell_tool_select
+        { Response::Abort },                                       // Loadcell_cooldown
 
-        {},                                                         // Loadcell_prepare
-        {},                                                         // Loadcell_move_away
-        {},                                                         // Loadcell_tool_select
-        { Response::Abort },                                        // Loadcell_cooldown
+        { Response::Continue, Response::Abort },                   // Loadcell_user_tap_ask_abort
+        {},                                                        // Loadcell_user_tap_countdown
+        {},                                                        // Loadcell_user_tap_check
+        {},                                                        // Loadcell_user_tap_ok
+        {},                                                        // Loadcell_fail
 
-        { Response::Continue, Response::Abort },                    // Loadcell_user_tap_ask_abort
-        {},                                                         // Loadcell_user_tap_countdown
-        {},                                                         // Loadcell_user_tap_check
-        {},                                                         // Loadcell_user_tap_ok
-        {},                                                         // Loadcell_fail
+        { Response::Continue, Response::Unload, Response::Abort }, // FSensor_ask_unload
+        {},                                                        // FSensor_wait_tool_pick
+        { Response::Yes, Response::No },                           // FSensor_unload_confirm
+        {},                                                        // FSensor_calibrate
+        { Response::Abort_invalidate_test },                       // FSensor_insertion_wait
+        { Response::Continue, Response::Abort_invalidate_test },   // FSensor_insertion_ok
+        { Response::Abort_invalidate_test },                       // FSensor_insertion_calibrate
+        { Response::Abort_invalidate_test },                       // Fsensor_enforce_remove
+        {},                                                        // FSensor_done
+        {},                                                        // FSensor_fail
 
-        { Response::Continue, Response::Unload, Response::Abort },  // FSensor_ask_unload
-        {},                                                         // FSensor_wait_tool_pick
-        { Response::Yes, Response::No },                            // FSensor_unload_confirm
-        {},                                                         // FSensor_calibrate
-        { Response::Abort_invalidate_test },                        // FSensor_insertion_wait
-        { Response::Continue, Response::Abort_invalidate_test },    // FSensor_insertion_ok
-        { Response::Abort_invalidate_test },                        // FSensor_insertion_calibrate
-        { Response::Abort_invalidate_test },                        // Fsensor_enforce_remove
-        {},                                                         // FSensor_done
-        {},                                                         // FSensor_fail
+        { Response::Continue, Response::Skip },                    // GearsCalib_filament_check
+        { Response::Unload, Response::Abort },                     // GearsCalib_filament_loaded_ask_unload
+        { Response::Continue, Response::Unload, Response::Abort }, // GearsCalib_filament_unknown_ask_unload
+        { Response::Continue, Response::Skip },                    // GearsCalib_release_screws
+        {},                                                        // GearsCalib_alignment
+        { Response::Continue },                                    // GearsCalib_tighten
+        { Response::Continue },                                    // GearsCalib_done
 
-        { Response::Continue, Response::Skip },                     // GearsCalib_filament_check
-        { Response::Unload, Response::Abort },                      // GearsCalib_filament_loaded_ask_unload
-        { Response::Continue, Response::Unload, Response::Abort },  // GearsCalib_filament_unknown_ask_unload
-        { Response::Continue, Response::Skip },                     // GearsCalib_release_screws
-        {},                                                         // GearsCalib_alignment
-        { Response::Continue },                                     // GearsCalib_tighten
-        { Response::Continue },                                     // GearsCalib_done
+        {},                                                        // CalibZ
 
-        {},                                                         // CalibZ
+        {},                                                        // Axis
 
-        {},                                                         // Axis
+        {},                                                        // Heaters
 
-        {},                                                         // Heaters
+        { Response::Adjust, Response::Skip },                      // SpecifyHotEnd
+        { Response::Yes, Response::No },                           // SpecifyHotEnd_sock
+        { Response::PrusaStock, Response::HighFlow },              // SpecifyHotEnd_nozzle_type
+        { Response::Yes, Response::No },                           // SpecifyHotEnd_retry
 
-        { Response::Adjust, Response::Skip },                       // SpecifyHotEnd
-        { Response::Yes, Response::No },                            // SpecifyHotEnd_sock
-        { Response::PrusaStock, Response::HighFlow },               // SpecifyHotEnd_nozzle_type
-        { Response::Yes, Response::No },                            // SpecifyHotEnd_retry
+        {},                                                        // FirstLayer_mbl
+        {},                                                        // FirstLayer_print
 
-        {},                                                         // FirstLayer_mbl
-        {},                                                         // FirstLayer_print
+        { Response::Next, Response::Unload },                      // FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions
+        { Response::Next, Response::Load, Response::Unload },      // FirstLayer_filament_not_known_or_unsensed
+        { Response::Next },                                        // FirstLayer_calib
+        { Response::Yes, Response::No },                           // FirstLayer_use_val
+        { Response::Next },                                        // FirstLayer_start_print
+        { Response::Yes, Response::No },                           // FirstLayer_reprint
+        { Response::Next },                                        // FirstLayer_clean_sheet
+        { Response::Next },                                        // FirstLayer_failed
 
-        { Response::Next, Response::Unload },                       // FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions
-        { Response::Next, Response::Load, Response::Unload },       // FirstLayer_filament_not_known_or_unsensed
-        { Response::Next },                                         // FirstLayer_calib
-        { Response::Yes, Response::No },                            // FirstLayer_use_val
-        { Response::Next },                                         // FirstLayer_start_print
-        { Response::Yes, Response::No },                            // FirstLayer_reprint
-        { Response::Next },                                         // FirstLayer_clean_sheet
-        { Response::Next },                                         // FirstLayer_failed
+        { Response::Continue, Response::Abort },                   // Dock_needs_calibartion
+        {},                                                        // Dock_move_away
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_park1
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_park2
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_park3
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_remove_pins
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_loosen_pillar
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_lock_tool
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_tighten_top_screw
+        { Response::Abort },                                       // Dock_measure
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_tighten_bottom_screw
+        { Response::Continue, Response::Abort },                   // Dock_wait_user_install_pins
+        { Response::Abort },                                       // Dock_selftest_park_test
+        {},                                                        // Dock_selftest_failed
+        { Response::Continue },                                    // Dock_calibration_success
 
-        { Response::Continue, Response::Abort },                    // Dock_needs_calibartion
-        {},                                                         // Dock_move_away
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_park1
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_park2
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_park3
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_remove_pins
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_loosen_pillar
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_lock_tool
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_tighten_top_screw
-        { Response::Abort },                                        // Dock_measure
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_tighten_bottom_screw
-        { Response::Continue, Response::Abort },                    // Dock_wait_user_install_pins
-        { Response::Abort },                                        // Dock_selftest_park_test
-        {},                                                         // Dock_selftest_failed
-        { Response::Continue },                                     // Dock_calibration_success
+        { Response::Continue, Response::Abort },                   // ToolOffsets_wait_user_confirm_start
+        { Response::Heatup, Response::Continue },                  // ToolOffsets_wait_user_clean_nozzle_cold
+        { Response::Cooldown, Response::Continue },                // ToolOffsets_wait_user_clean_nozzle_hot
+        { Response::Continue },                                    // ToolOffsets_wait_user_install_sheet
+        {},                                                        // ToolOffsets_pin_install_prepare
+        { Response::Continue },                                    // ToolOffsets_wait_user_install_pin
+        {},                                                        // ToolOffsets_wait_stable_temp
+        {},                                                        // ToolOffsets_wait_calibrate
+        {},                                                        // ToolOffsets_state_final_park
+        { Response::Continue },                                    // ToolOffsets_wait_user_remove_pin
 
-        { Response::Continue, Response::Abort },                    // ToolOffsets_wait_user_confirm_start
-        { Response::Heatup, Response::Continue },                   // ToolOffsets_wait_user_clean_nozzle_cold
-        { Response::Cooldown, Response::Continue },                 // ToolOffsets_wait_user_clean_nozzle_hot
-        { Response::Continue },                                     // ToolOffsets_wait_user_install_sheet
-        {},                                                         // ToolOffsets_pin_install_prepare
-        { Response::Continue },                                     // ToolOffsets_wait_user_install_pin
-        {},                                                         // ToolOffsets_wait_stable_temp
-        {},                                                         // ToolOffsets_wait_calibrate
-        {},                                                         // ToolOffsets_state_final_park
-        { Response::Continue },                                     // ToolOffsets_wait_user_remove_pin
+        { Response::Next },                                        // Result
 
-        { Response::Next },                                         // Result
-
-        { Response::Continue },                                     // WizardEpilogue_ok
-        { Response::Continue },                                     // WizardEpilogue_nok
+        { Response::Continue },                                    // WizardEpilogue_ok
+        { Response::Continue },                                    // WizardEpilogue_nok
     };
     static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
 

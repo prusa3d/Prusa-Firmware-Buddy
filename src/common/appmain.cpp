@@ -40,25 +40,24 @@
 #include "tasks.hpp"
 #include "Marlin/src/module/planner.h"
 #include <option/filament_sensor.h>
-
-#include "filament_sensors_handler.hpp"
+#include <option/has_gui.h>
 
 #if BOARD_IS_XLBUDDY
     #include <puppies/Dwarf.hpp>
     #include <Marlin/src/module/prusa/toolchanger.h>
+    #include <filament_sensors_handler.hpp>
     #include <filament_sensors_handler_XL_remap.hpp>
 #endif
 
 #include <option/has_loadcell.h>
-#include <option/has_loadcell_hx717.h>
-#include <option/has_gui.h>
-
 #if HAS_LOADCELL()
     #include "loadcell.hpp"
+    #include "feature/prusa/e-stall_detector.h"
 #endif
 
+#include <option/has_loadcell_hx717.h>
 #if HAS_LOADCELL_HX717()
-    #include "hx717.h"
+    #include "hx717mux.hpp"
 #endif
 
 LOG_COMPONENT_REF(MMU2);
@@ -79,8 +78,6 @@ LOG_COMPONENT_REF(Marlin);
 LOG_COMPONENT_DEF(Buddy, LOG_SEVERITY_DEBUG);
 LOG_COMPONENT_DEF(Core, LOG_SEVERITY_INFO);
 LOG_COMPONENT_DEF(MMU2, LOG_SEVERITY_INFO);
-
-extern void reset_trinamic_drivers();
 
 extern "C" {
 metric_t metric_app_start = METRIC("app_start", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
@@ -144,11 +141,19 @@ void app_setup(void) {
     }
 
 #if HAS_LOADCELL()
+    // loadcell configuration
     loadcell.SetScale(config_store().loadcell_scale.get());
     loadcell.SetThreshold(config_store().loadcell_threshold_static.get(), Loadcell::TareMode::Static);
     loadcell.SetThreshold(config_store().loadcell_threshold_continuous.get(), Loadcell::TareMode::Continuous);
     loadcell.SetHysteresis(config_store().loadcell_hysteresis.get());
-    loadcell.ConfigureSignalEvent(osThreadGetId(), 0x0A);
+
+    if (config_store().stuck_filament_detection.get()) {
+        EMotorStallDetector::Instance().Enable();
+    } // else keep it disabled (which is the default)
+
+    #if HAS_LOADCELL_HX717()
+    buddy::hw::hx717mux.init();
+    #endif
 #endif
 
     setup();
@@ -257,42 +262,6 @@ void app_assert([[maybe_unused]] uint8_t *file, [[maybe_unused]] uint32_t line) 
     bsod("app_assert");
 }
 
-#if HAS_LOADCELL_HX717()
-
-// HX717 sample function. Sample both HX channels
-static void hx717_irq() {
-    if (!hx717.IsValueReady())
-        return;
-
-    static int sample_counter = 0;
-    int32_t raw_value;
-
-    static HX717::Channel current_channel = hx717.CHANNEL_A_GAIN_128;
-    HX717::Channel next_channel;
-
-    sample_counter += 1;
-
-    if (!(loadcell.IsHighPrecisionEnabled()) && sample_counter % 13 == 0) {
-        next_channel = hx717.CHANNEL_B_GAIN_8;
-    } else {
-        next_channel = hx717.CHANNEL_A_GAIN_128;
-    }
-
-    raw_value = hx717.ReadValue(next_channel);
-
-    if (current_channel == hx717.CHANNEL_A_GAIN_128) {
-        auto sampleRate = hx717.GetSampleRate();
-        if (!std::isnan(sampleRate))
-            loadcell.analysis.SetSamplingIntervalMs(sampleRate);
-        uint32_t ts_ms = hx717.GetSampleTimestamp();
-        loadcell.ProcessSample(raw_value, ts_ms * 1000);
-    } else {
-        fs_process_sample(raw_value, 0);
-    }
-    current_channel = next_channel;
-}
-#endif // HAS_LOADCELL_HX717()
-
 #if HAS_ADVANCED_POWER()
 static uint8_t cnt_advanced_power_update = 0;
 
@@ -345,7 +314,15 @@ static void filament_sensor_irq() {
                 AdcChannel::SideFilamnetSensorsAndTempMux::sfs5, // T4    - right middle
                 AdcChannel::SideFilamnetSensorsAndTempMux::sfs4, // Empty - right bottom
             };
-            side_fs_process_sample(AdcGet::side_filament_sensor(adc_channel_mapping[remapped]), dwarf.get_dwarf_nr() - 1);
+
+            // ensure AdcGet::undefined_value is representable within FSensor::value_type
+            static_assert(static_cast<FSensor::value_type>(AdcGet::undefined_value) == AdcGet::undefined_value);
+
+            // widen the type to match the main sensor data type and translate the undefined value
+            FSensor::value_type fs_raw_value = AdcGet::side_filament_sensor(adc_channel_mapping[remapped]);
+            if (fs_raw_value == AdcGet::undefined_value)
+                fs_raw_value = FSensor::undefined_value;
+            side_fs_process_sample(fs_raw_value, dwarf.get_dwarf_nr() - 1);
         }
         cnt_filament_sensor_update = 0;
     }
@@ -353,10 +330,6 @@ static void filament_sensor_irq() {
 #endif
 
 void adc_tick_1ms(void) {
-#if HAS_LOADCELL_HX717()
-    hx717_irq();
-#endif // HAS_LOADCELL_HX717()
-
 #if HAS_ADVANCED_POWER()
     advanced_power_irq();
 #endif
@@ -365,7 +338,9 @@ void adc_tick_1ms(void) {
     SFSAndTempMux.switch_channel();
 #endif
 
+#if HAS_LOADCELL()
     buddy::probePositionLookback.update(planner.get_axis_position_mm(AxisEnum::Z_AXIS));
+#endif
 }
 
 void app_tim14_tick(void) {

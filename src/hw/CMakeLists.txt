@@ -1,12 +1,15 @@
 target_sources(firmware PRIVATE cpu_utils.cpp)
 
 if(BOARD MATCHES ".*BUDDY")
-  target_sources(firmware PRIVATE at21csxx_otp.cpp buffered_serial.cpp)
+  target_sources(firmware PRIVATE buffered_serial.cpp)
 endif()
 
 if((BOARD STREQUAL "XBUDDY") OR BOARD STREQUAL "XLBUDDY")
-  target_sources(firmware PRIVATE at21csxx.cpp FUSB302B.cpp fusb303.cpp)
+  target_sources(firmware PRIVATE FUSB302B.cpp fusb303.cpp)
   add_subdirectory(xbuddy_xlbuddy)
+  if(BOOTLOADER STREQUAL "NO")
+    target_sources(firmware PRIVATE at21csxx.cpp at21csxx_otp.cpp)
+  endif()
 endif()
 
 if(HAS_XLCD_TOUCH_DRIVER)

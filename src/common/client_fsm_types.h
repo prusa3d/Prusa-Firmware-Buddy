@@ -34,7 +34,8 @@ enum class LoadUnloadMode : uint8_t {
     Change,
     Load,
     Unload,
-    Purge
+    Purge,
+    FilamentStuck
 };
 
 enum class PreheatMode : uint8_t {
@@ -70,7 +71,8 @@ enum class WarningType : uint32_t {
     HeatbedColdAfterPP,
     HeatBreakThermistorFail,
     NozzleDoesNotHaveRoundSection,
-    _last = NozzleDoesNotHaveRoundSection
+    NotDownloaded,
+    _last = NotDownloaded
 };
 
 // Open dialog has a parameter because I need to set a caption of change filament dialog (load / unload / change).

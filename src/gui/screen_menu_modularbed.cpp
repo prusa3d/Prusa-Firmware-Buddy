@@ -4,6 +4,7 @@
 
 #include "screen_menu_modularbed.hpp"
 #include "marlin_client.hpp"
+#include <config_store/store_instance.hpp>
 
 /**********************************************************************************************/
 // MI_HEAT_ENTIRE_BED

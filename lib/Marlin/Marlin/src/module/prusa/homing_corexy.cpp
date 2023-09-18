@@ -22,14 +22,14 @@ void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm) {
     mm.y = y / planner.settings.axis_steps_per_mm[1];
 }
 
-// convert raw AB steps to XY mm and position
-static void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm, xy_long_t &pos) {
+// convert raw AB steps to XY mm and position in mini-steps
+static void corexy_ab_to_xy(const xy_long_t &steps, xy_pos_t &mm, xy_long_t &pos_msteps) {
     float x = static_cast<float>(steps.a + steps.b) / 2.f;
     float y = static_cast<float>(CORESIGN(steps.a - steps.b)) / 2.f;
     mm.x = x / planner.settings.axis_steps_per_mm[0];
     mm.y = y / planner.settings.axis_steps_per_mm[1];
-    pos.x = LROUND(x);
-    pos.y = LROUND(y);
+    pos_msteps.x = LROUND(x * PLANNER_STEPS_MULTIPLIER);
+    pos_msteps.y = LROUND(y * PLANNER_STEPS_MULTIPLIER);
 }
 
 // convert raw AB steps to XY mm, filling others from current state
@@ -40,33 +40,27 @@ void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm) {
     }
 }
 
-// convert raw AB steps to XY mm and position, filling others from current state
-static void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm, xyze_long_t &pos) {
-    pos = planner.get_position();
-    corexy_ab_to_xy(steps, mm, pos);
+// convert raw AB steps to XY mm and position in mini-steps, filling others from current state
+static void corexy_ab_to_xyze(const xy_long_t &steps, xyze_pos_t &mm, xyze_long_t &pos_msteps) {
+    pos_msteps = planner.get_position_msteps();
+    corexy_ab_to_xy(steps, mm, pos_msteps);
     LOOP_S_L_N(i, C_AXIS, XYZE_N) {
         mm[i] = planner.get_axis_position_mm((AxisEnum)i);
     }
 }
 
-static void plan_raw_move(const xyze_pos_t target_mm, const xyze_long_t target_pos,
-    const xyze_long_t delta_steps, const feedRate_t fr_mm_s) {
-    planner._buffer_steps_raw(target_pos, target_mm, delta_steps, fr_mm_s, active_extruder);
+static void plan_raw_move(const xyze_pos_t target_mm, const xyze_long_t target_pos, const feedRate_t fr_mm_s) {
+    planner._buffer_msteps_raw(target_pos, target_mm, fr_mm_s, active_extruder);
     planner.synchronize();
 }
 
 static void plan_corexy_raw_move(const xy_long_t &target_steps_ab, const feedRate_t fr_mm_s) {
     // reconstruct full final position
     xyze_pos_t target_mm;
-    xyze_long_t target_pos;
-    corexy_ab_to_xyze(target_steps_ab, target_mm, target_pos);
+    xyze_long_t target_pos_msteps;
+    corexy_ab_to_xyze(target_steps_ab, target_mm, target_pos_msteps);
 
-    // axis shift
-    xyze_long_t cur_steps = { stepper.position(A_AXIS), stepper.position(B_AXIS),
-        stepper.position(C_AXIS), stepper.position(E_AXIS) };
-    xyze_long_t target_steps = { target_steps_ab.a, target_steps_ab.b, cur_steps.c, cur_steps.e };
-
-    plan_raw_move(target_mm, target_pos, target_steps - cur_steps, fr_mm_s);
+    plan_raw_move(target_mm, target_pos_msteps, fr_mm_s);
 }
 
 // TMC µsteps(phase) per Marlin µsteps
@@ -126,20 +120,20 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
     // full target position
     xyze_long_t target_steps = { initial_steps.a, initial_steps.b + dist, initial_steps.c, initial_steps.e };
     xyze_pos_t target_mm;
-    xyze_long_t target_pos;
-    corexy_ab_to_xy(target_steps, target_mm, target_pos);
+    xyze_long_t target_pos_msteps;
+    corexy_ab_to_xy(target_steps, target_mm, target_pos_msteps);
     LOOP_S_L_N(i, C_AXIS, XYZE_N) {
         target_mm[i] = initial_mm[i];
     }
-    xyze_long_t initial_pos = planner.get_position();
+    xyze_long_t initial_pos_msteps = planner.get_position_msteps();
     LOOP_S_L_N(i, C_AXIS, XYZE_N) {
-        target_pos[i] = initial_pos[i];
+        target_pos_msteps[i] = initial_pos_msteps[i];
     }
 
     // move towards the endstop
     sensorless_t stealth_states = start_sensorless_homing_per_axis(B_AXIS);
     endstops.enable(true);
-    plan_raw_move(target_mm, target_pos, target_steps - initial_steps, homing_feedrate(B_AXIS));
+    plan_raw_move(target_mm, target_pos_msteps, homing_feedrate(B_AXIS));
     uint8_t hit = endstops.trigger_state();
     endstops.not_homing();
 
@@ -158,9 +152,8 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
     end_sensorless_homing_per_axis(B_AXIS, stealth_states);
 
     // move back to starting point
-    plan_raw_move(initial_mm, initial_pos, initial_steps - hit_steps, homing_feedrate(B_AXIS));
+    plan_raw_move(initial_mm, initial_pos_msteps, homing_feedrate(B_AXIS));
 
-#ifndef COREXY_DISABLE_PRECISE_HOMING_SANITY_TESTS
     // sanity checks
     if (hit_steps.a != initial_steps.a || initial_steps.a != stepper.position(A_AXIS)) {
         ui.status_printf_P(0, "A_AXIS didn't return");
@@ -170,7 +163,6 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
         ui.status_printf_P(0, "B_AXIS didn't return");
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
     }
-#endif
 
     // result values
     m_steps = hit_steps.b - initial_steps.b;

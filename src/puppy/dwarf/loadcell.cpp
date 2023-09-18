@@ -1,10 +1,10 @@
 #include "loadcell.hpp"
-#include "hx717.h"
+#include "hx717.hpp"
 #include "timing.h" // for ticks_ms
 #include "log.h"
 #include "circle_buffer.hpp"
-#include "loadcell_shared.hpp"
 #include "loadcell.hpp"
+#include "bsod.h"
 
 LOG_COMPONENT_REF(Dwarf);
 
@@ -33,8 +33,7 @@ size_t skipped_samples = 0;
 static bool loadcell_is_enabled = false;
 
 void loadcell_init() {
-    // read one value to unstuck the loadcell converter
-    hx717.ReadValue(hx717.CHANNEL_A_GAIN_128);
+    hx717.init(hx717.CHANNEL_A_GAIN_128);
 }
 
 void loadcell_loop() {
@@ -46,15 +45,27 @@ void loadcell_loop() {
     }
 }
 
-// HX717 sample function. Sample both HX channels
+// HX717 sample function. Samples loadcell channel only.
 void loadcell_irq() {
-    if (!loadcell_is_enabled || !hx717.IsValueReady())
+    if (!loadcell_is_enabled)
         return;
 
-    int32_t raw_value = hx717.ReadValue(hx717.CHANNEL_A_GAIN_128);
+    uint32_t timestamp = ticks_us();
+
+    [[maybe_unused]] bool was_initialized = hx717.IsInitialized();
+
+    int32_t raw_value = hx717.ReadValue(hx717.CHANNEL_A_GAIN_128, timestamp);
+
+    // we should never get an undefined value unless the read itself took too long, meaning the
+    // interrupt took longer than ~1ms. If this happens, the issue is *not* here but in
+    // higher-priority ISRs blocking too long!
+    assert(!(was_initialized && raw_value == HX717::undefined_value));
+
+    // always provide an increasing timestamp for all (potentially invalid) reads
+    uint32_t sample_timestamp = timestamp - hx717.GetSamplingInterval();
 
     LoadcellRecord record;
-    record.timestamp = ticks_us();
+    record.timestamp = sample_timestamp;
     record.loadcell_raw_value = raw_value;
     bool write_buffer_success = sample_buffer.push_back_DontRewrite(record);
     if (!write_buffer_success) {

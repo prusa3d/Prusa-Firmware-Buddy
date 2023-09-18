@@ -1,8 +1,6 @@
 /**
- * @file eeprom_function_api.h
- * @author Radek Vana
- * @brief api alowing access to eeprom via functions
- * @date 2021-08-26
+ * @file store_c_api.h
+ * @brief api allowing access to eeprom via functions
  */
 
 #pragma once
@@ -22,6 +20,10 @@ float get_steps_per_unit_x();
 float get_steps_per_unit_y();
 float get_steps_per_unit_z();
 float get_steps_per_unit_e();
+uint16_t get_default_microsteps_x();
+uint16_t get_default_microsteps_y();
+uint16_t get_default_microsteps_z();
+uint16_t get_default_microsteps_e();
 uint16_t get_microsteps_x();
 uint16_t get_microsteps_y();
 uint16_t get_microsteps_z();

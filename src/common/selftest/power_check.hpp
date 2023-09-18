@@ -5,19 +5,24 @@
  * calculates with single heater bed or nozzle
  * @date 2021-11-12
  */
+#pragma once
 
-#include "selftest_heater.h"
+#include "selftest_heater_config.hpp"
 #include "selftest_log.hpp"
 #include <cstdint>
 
 namespace selftest {
 
+// Power check of a single heater element
+//
+// Holds runtime data needed to monitor the heating element.
+// Instances are not reusable, runtime data is not reset. New instance needs
+// to be created when the measurement is repeated.
 class PowerCheck {
     static constexpr uint32_t log_minimal_delay = 1000;
-    CSelftestPart_Heater *htr;
-    uint32_t last_pwm;
-    uint32_t start_stable_time_meas;
-    bool force_next_stable_log;
+    uint32_t last_pwm = 0;
+    uint32_t start_stable_time_meas = 0;
+    bool force_next_stable_log = true;
     // we need separate time stamps to ensure logs are not blocked by other logging
     LogTimer log_load;
     LogTimer log_status;
@@ -51,23 +56,10 @@ public:
     }
 
     constexpr PowerCheck()
-        : htr(nullptr)
-        , last_pwm(0)
-        , start_stable_time_meas(0)
-        , force_next_stable_log(true)
-        , log_load(3000)
+        : log_load(3000)
         , log_status(3000) {}
 
-    status_t EvaluateHeaterStatus(uint32_t current_pwm);
-    load_t EvaluateLoad(uint32_t current_pwm, float current_load_W);
-
-    constexpr void Bind(CSelftestPart_Heater &f) {
-        htr = &f;
-        last_pwm = 0;
-        start_stable_time_meas = 0;
-    }
-    constexpr void UnBind() { htr = nullptr; }
-    constexpr bool IsActive() { return htr != nullptr; };
-    void Fail() { htr->state_machine.Fail(); };
+    status_t EvaluateHeaterStatus(uint32_t current_pwm, const HeaterConfig_t &config);
+    load_t EvaluateLoad(uint32_t current_pwm, float current_load_W, const HeaterConfig_t &config);
 };
 } // namespace selftest

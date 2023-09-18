@@ -7,9 +7,9 @@
  */
 #pragma once
 #include "common.hpp"
+#include <atomic>
 
 #ifdef COREXY
-    #define COREXY_DISABLE_PRECISE_HOMING_SANITY_TESTS
     #define COREXY_CONVERT_LIMITS
 #endif
 
@@ -27,10 +27,30 @@ constexpr const double EPSILON_DISTANCE = 0.000001;
 struct move_t;
 struct step_generator_state_t;
 
+typedef uint16_t PreciseSteppingFlag_t;
+enum PreciseSteppingFlag : PreciseSteppingFlag_t {
+    // Indicated that position of the axis should be reset to zero.
+    PRECISE_STEPPING_FLAG_RESET_POSITION_X = _BV(0),
+    PRECISE_STEPPING_FLAG_RESET_POSITION_Y = _BV(1),
+    PRECISE_STEPPING_FLAG_RESET_POSITION_Z = _BV(2),
+    PRECISE_STEPPING_FLAG_RESET_POSITION_E = _BV(3),
+};
+
+// Ensure XYZE bits are always adjacent and ordered.
+static_assert(PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_Y == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_X << 1));
+static_assert(PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_Z == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_X << 2));
+static_assert(PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_E == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_X << 3));
+
+// Verify mapping between PreciseSteppingFlag and MoveFlag.
+static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_X == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_X << MOVE_FLAG_RESET_POSITION_SHIFT));
+static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_Y == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_Y << MOVE_FLAG_RESET_POSITION_SHIFT));
+static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_Z == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_Z << MOVE_FLAG_RESET_POSITION_SHIFT));
+static_assert(MoveFlag::MOVE_FLAG_RESET_POSITION_E == (PreciseSteppingFlag::PRECISE_STEPPING_FLAG_RESET_POSITION_E << MOVE_FLAG_RESET_POSITION_SHIFT));
+
 class PreciseStepping {
 
 public:
-    static step_event_queue_t step_event_queue;
+    static step_event_queue_t __attribute__((section(".ccmram"))) step_event_queue;
     static move_segment_queue_t move_segment_queue;
     static step_generator_state_t step_generator_state;
 
@@ -46,7 +66,7 @@ public:
     // Precomputed period of calling PreciseStepping::isr() when there is no queued step event.
     static uint32_t stepper_isr_period_in_ticks;
     // Precomputed conversion rate from seconds to timer ticks.
-    static float ticks_per_sec;
+    static double ticks_per_sec;
 
     // Indicate which direction bits are inverted.
     static uint16_t inverted_dirs;
@@ -60,7 +80,11 @@ public:
 
     static double total_print_time;
     static xyze_double_t total_start_pos;
-    static xyze_long_t total_start_pos_steps;
+    static xyze_long_t total_start_pos_msteps;
+
+    // Flags that affect the whole precise stepping. Those flags are reset when all queues are empty.
+    // For now, used only for resetting the positions of axes.
+    static PreciseSteppingFlag_t flags;
 
     PreciseStepping() = default;
 
@@ -226,6 +250,14 @@ public:
             return nullptr;
         else
             return &PreciseStepping::move_segment_queue.data[next_move_idx];
+    }
+
+    FORCE_INLINE static StepEventInfoStatus get_nearest_step_event_status() {
+        return step_generator_state.step_events[step_generator_state.step_event_index[0]].status;
+    }
+
+    FORCE_INLINE static void reset_nearest_step_event_status() {
+        step_generator_state.step_events[step_generator_state.step_event_index[0]].status = STEP_EVENT_INFO_STATUS_NOT_GENERATED;
     }
 
     static void update_maximum_lookback_time();

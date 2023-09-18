@@ -8,7 +8,11 @@
 #include <cstring>
 #include <optional>
 
-typedef uint32_t color_t;
+typedef uint32_t color_t; // ??BBGGRR first byte unused currently
+
+inline color_t to_color_t(uint32_t red, uint32_t green, uint32_t blue) {
+    return blue << 16 | green << 8 | red;
+}
 
 // color constants
 static const color_t COLOR_BLACK = 0x00000000L;
@@ -49,47 +53,25 @@ enum {
 };
 
 namespace img {
-/**
- * @brief this struct handles PNG resources
- * all pngs share single file and have offset
- * this shred file is opened at first access and never closed
- *
- * If this struct is used for some temporary file, close of that file must be called manually (we need trivial destructor)
- * There is a child structure ResourceSingleFile to handle it automatically
- */
-struct Resource {
-    FILE *file = nullptr;       // default file
-    const char *name = nullptr; // name is optional, external file might not need it
-    size_t offset = 0;          // 0 == no offset, all "normal" png files containing only one png has no offset
-    size_t size = 0;            // 0 == calculate at run time
-    uint16_t w = 0;             // 0 == calculate at run time
-    uint16_t h = 0;             // 0 == calculate at run time
 
-    /**
-     * @brief ctor for multiple pngs contained in single file
-     */
-    constexpr Resource(const char *name, size_t offset, size_t size, uint16_t w, uint16_t h)
+struct Resource {
+    FILE *file;    ///< Open file handle, nullptr to use default get_resource_file()
+    size_t offset; ///< Offset in file [byte]
+    size_t size;   ///< Size of resource (informative) [byte]
+    uint16_t w;    ///< Width (informative) [pixel]
+    uint16_t h;    ///< Height (informative) [pixel]
+    constexpr Resource(size_t offset, size_t size, uint16_t w, uint16_t h)
         : file(nullptr)
-        , name(name)
         , offset(offset)
         , size(size)
         , w(w)
         , h(h) {}
-
-    Resource(const char *name);
-
-    FILE *Get() const;
-
-    static void EnableDefaultFile() { enabled = true; }
-
-private:
-    static bool enabled; // wait after bootstrap !!!
-};
-
-struct BtnIconRes {
-    const img::Resource *normal;
-    const img::Resource *focused;
-    const img::Resource *disabled;
+    constexpr Resource(FILE *file)
+        : file(file)
+        , offset(0)
+        , size(0)
+        , w(0)
+        , h(0) {}
 };
 
 /**

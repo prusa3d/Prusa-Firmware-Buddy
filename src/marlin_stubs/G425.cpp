@@ -88,7 +88,9 @@
 #define HAS_Y_CENTER BOTH(CALIBRATION_MEASURE_FRONT, CALIBRATION_MEASURE_BACK)
 
 #if ENABLED(ARC_SUPPORT)
-void plan_arc(const xyze_pos_t &cart, const ab_float_t &offset, const uint8_t clockwise);
+void plan_arc(const xyze_pos_t &, const ab_float_t &, const bool, const uint8_t);
+#else
+    #error "G425 requires ARC_SUPPORT"
 #endif
 
 namespace {
@@ -257,7 +259,7 @@ void go_to_initial(const xyz_pos_t center, const float angle, const float radius
 
     if (current != initial) {
         feedrate_mm_s = INTERPROBE_FEEDRATE_MMS;
-        plan_arc(initial, { { { .x = center.x - current.x, .y = center.y - current.y } } }, false);
+        plan_arc(initial, { { { .x = center.x - current.x, .y = center.y - current.y } } }, false, 0);
     }
     planner.synchronize();
 
@@ -271,7 +273,7 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
     planner.synchronize();
 
     // Mark initial position
-    xyze_long_t initial_pos = planner.get_position();
+    xyze_long_t initial_pos_msteps = planner.get_position_msteps();
     xyze_long_t initial_steps = { { { stepper.position(A_AXIS), stepper.position(B_AXIS),
         stepper.position(C_AXIS), stepper.position(E_AXIS) } } };
     xyze_pos_t initial_mm = current_position;
@@ -282,7 +284,8 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
 
     // Wait for resonance to damper and tare
     wait_ms(RESONANCE_DAMPER_WAIT_MS);
-    loadcell.Tare(Loadcell::TareMode::Continuous, true);
+    loadcell.WaitBarrier(); // Sync samples before tare
+    loadcell.Tare(Loadcell::TareMode::Continuous);
 
     if (loadcell.GetXYEndstop()) {
         // This is hopefully rare situation when the loadcell data are totally wrong. If we know this happens
@@ -326,7 +329,7 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
     }
 
     // Return to initial
-    planner._buffer_steps_raw(initial_pos, initial_mm, initial_steps - hit_steps, INTERPROBE_FEEDRATE_MMS, active_extruder);
+    planner._buffer_msteps_raw(initial_pos_msteps, initial_mm, initial_steps - hit_steps, INTERPROBE_FEEDRATE_MMS, active_extruder);
     planner.synchronize();
     current_position = initial_mm;
 

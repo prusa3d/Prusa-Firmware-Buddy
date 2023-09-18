@@ -73,7 +73,7 @@ void buddy::metrics::RecordRuntimeStats() {
     constexpr const uint32_t STACK_RUNTIME_RECORD_INTERVAL_MS = 3000;                               // Sample stack and runtime this often
     static auto should_record_stack_runtime = RunApproxEvery(STACK_RUNTIME_RECORD_INTERVAL_MS);
     if (should_record_stack_runtime()) {
-        static TaskStatus_t task_statuses[15] = {};
+        static TaskStatus_t task_statuses[16] = {};
 
 #if configGENERATE_RUN_TIME_STATS
         // Runtime since last record
@@ -86,7 +86,7 @@ void buddy::metrics::RecordRuntimeStats() {
         delta_totaltime = 10UL * TIM_BASE_CLK_MHZ * delta_totaltime;
 
         // Last runtime of all threads to get delta later
-        uint32_t last_runtime[17] = {};
+        uint32_t last_runtime[20] = {};
         for (size_t idx = 0; idx < std::size(task_statuses); idx++) {
             if ((task_statuses[idx].xTaskNumber > 0) && (task_statuses[idx].xTaskNumber <= std::size(last_runtime))) {
                 last_runtime[task_statuses[idx].xTaskNumber - 1] = task_statuses[idx].ulRunTimeCounter;

@@ -3,7 +3,7 @@
 #include "background.hpp"
 
 namespace transfers {
-class Download;
+class Transfer;
 }
 
 namespace connect_client {
@@ -29,8 +29,9 @@ private:
     //
     // We would prefer optional<&T>, but that doesn't exist in C++.
     BackgroundCmd *background_cmd;
-    transfers::Download *download;
-    bool recover_download;
+    transfers::Transfer *download;
+    bool cleanup_transfers;
+    bool run_transfer_recovery;
 
 #ifdef UNITTESTS
 public:
@@ -40,10 +41,11 @@ private:
     Duration milliseconds;
 
 public:
-    Sleep(Duration duration, BackgroundCmd *cmd, transfers::Download *download, bool recover_download)
+    Sleep(Duration duration, BackgroundCmd *cmd, transfers::Transfer *download, bool cleanup_transfers, bool run_transfer_recovery)
         : background_cmd(cmd)
         , download(download)
-        , recover_download(recover_download)
+        , cleanup_transfers(cleanup_transfers)
+        , run_transfer_recovery(run_transfer_recovery)
         , milliseconds(duration) {}
     static Sleep idle();
     /// Sleeps up to the given time, processing any background tasks if possible.

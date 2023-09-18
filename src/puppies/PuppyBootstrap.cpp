@@ -53,10 +53,6 @@ const char *PuppyBootstrap::Progress::description() {
         return "?";
 }
 
-PuppyBootstrap::PuppyBootstrap(ProgressHook aprogressHook)
-    : progressHook(aprogressHook) {
-}
-
 bool PuppyBootstrap::attempt_crash_dump_download(Dock dock, BootloaderProtocol::Address address) {
     flasher.set_address(address);
     std::array<uint8_t, BootloaderProtocol::MAX_RESPONSE_DATA_LEN> buffer;

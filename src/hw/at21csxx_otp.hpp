@@ -3,7 +3,6 @@
 
 #include "otp_types.hpp"
 #include "../hw/at21csxx.hpp"
-#include "crc32.h"
 
 /**
  * @brief reads OTP data from external onewire AT21CSxx eeprom

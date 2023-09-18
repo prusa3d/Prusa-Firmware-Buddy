@@ -67,7 +67,9 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance.cpp
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance_config.cpp
             Marlin/Marlin/src/feature/print_area.cpp
+            Marlin/Marlin/src/feature/prusa/e-stall_detector.cpp
             Marlin/Marlin/src/feature/prusa/measure_axis.cpp
+            Marlin/Marlin/src/feature/prusa/restore_z.cpp
             Marlin/Marlin/src/feature/runout.cpp
             Marlin/Marlin/src/feature/spindle_laser.cpp
             Marlin/Marlin/src/feature/touch/xpt2046.cpp
@@ -101,7 +103,6 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/control/M211.cpp
             Marlin/Marlin/src/gcode/control/M226.cpp
             Marlin/Marlin/src/gcode/control/M350_M351.cpp
-            Marlin/Marlin/src/gcode/control/M400.cpp
             Marlin/Marlin/src/gcode/control/M42.cpp
             Marlin/Marlin/src/gcode/control/M7-M9.cpp
             Marlin/Marlin/src/gcode/control/M80_M81.cpp
@@ -112,7 +113,6 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/control/T.cpp
             Marlin/Marlin/src/gcode/eeprom/M500-M504.cpp
             Marlin/Marlin/src/gcode/feature/advance/M900.cpp
-            Marlin/Marlin/src/gcode/feature/cancel/M486.cpp
             Marlin/Marlin/src/gcode/feature/input_shaper/M593.cpp
             Marlin/Marlin/src/gcode/feature/input_shaper/M74.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M556.cpp
@@ -144,6 +144,7 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/motion/G4.cpp
             Marlin/Marlin/src/gcode/motion/G5.cpp
             Marlin/Marlin/src/gcode/motion/M290.cpp
+            Marlin/Marlin/src/gcode/motion/M400.cpp
             Marlin/Marlin/src/gcode/probe/G30.cpp
             Marlin/Marlin/src/gcode/probe/M401_M402.cpp
             Marlin/Marlin/src/gcode/probe/M851.cpp
@@ -187,7 +188,6 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/HAL/shared/persistent_store_api.cpp
             Marlin/Marlin/src/libs/buzzer.cpp
             Marlin/Marlin/src/libs/crc16.cpp
-            Marlin/Marlin/src/libs/heatshrink/heatshrink_decoder.cpp
             Marlin/Marlin/src/libs/hex_print_routines.cpp
             Marlin/Marlin/src/libs/least_squares_fit.cpp
             Marlin/Marlin/src/libs/nozzle.cpp
@@ -241,6 +241,4 @@ target_include_directories(
   Marlin PUBLIC Marlin/Marlin/src Marlin/Marlin/src/gcode/lcd Marlin/Marlin Marlin
   )
 
-target_link_libraries(
-  Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes cthash
-  )
+target_link_libraries(Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes)

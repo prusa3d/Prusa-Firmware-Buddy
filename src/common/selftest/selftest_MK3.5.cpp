@@ -366,12 +366,12 @@ void CSelftest::Loop() {
             return;
         break;
     case stsEpilogue_ok:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
         }
         break;
     case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok))
                 return;
         }
@@ -396,7 +396,7 @@ void CSelftest::phaseDidSelftestPass() {
     SelftestResult_Log(m_result);
 
     // dont run wizard again
-    if (SelftestResult_Passed(m_result)) {
+    if (SelftestResult_Passed_All(m_result)) {
         config_store().run_selftest.set(false);    // clear selftest flag
         config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag

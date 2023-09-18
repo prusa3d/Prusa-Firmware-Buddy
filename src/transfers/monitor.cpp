@@ -56,15 +56,35 @@ Monitor::Slot &Monitor::Slot::operator=([[maybe_unused]] Slot &&other) {
     return *this;
 }
 
-void Monitor::Slot::progress(size_t additional_bytes) {
+void Monitor::Slot::update_expected_size(size_t expected) {
     Lock lock(owner.main_mutex);
 
-    owner.transferred += additional_bytes;
+    owner.expected = expected;
+}
+
+void Monitor::Slot::progress(PartialFile::State download_progress, bool has_issue) {
+    Lock lock(owner.main_mutex);
+
+    owner.download_progress = download_progress;
+    owner.download_has_issue = has_issue;
+}
+
+void Monitor::Slot::progress(size_t add_bytes) {
+    Lock lock(owner.main_mutex);
+
+    owner.download_progress.extend_head(add_bytes);
 }
 
 void Monitor::Slot::reset_progress() {
     Lock lock(owner.main_mutex);
-    owner.transferred = 0;
+
+    owner.download_progress = PartialFile::State();
+}
+
+const char *Monitor::Slot::destination() {
+    Lock lock(owner.main_mutex);
+
+    return owner.destination_path;
 }
 
 void Monitor::Slot::done(Outcome outcome) {
@@ -88,6 +108,11 @@ const char *Monitor::Slot::filepath() {
     return owner.destination_path;
 }
 
+TransferId Monitor::Slot::id() const {
+    // Must be available because we are the slot holding it in place.
+    return owner.id().value();
+}
+
 optional<Monitor::Status> Monitor::status(bool allow_stale) const {
     Lock lock(main_mutex);
 
@@ -99,9 +124,10 @@ optional<Monitor::Status> Monitor::status(bool allow_stale) const {
     result.type = type;
     result.id = current_id;
     result.start = start;
+    result.download_progress = download_progress;
+    result.download_has_issue = download_has_issue;
     result.expected = expected;
     result.print_after_upload = print_after_upload;
-    result.transferred = transferred;
     result.destination = strlen(destination_path) > 0 ? destination_path : nullptr;
 
     return result;
@@ -140,7 +166,7 @@ optional<TransferId> Monitor::id() const {
     }
 }
 
-optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t expected_size, bool print_after_upload) {
+optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t expected_size, bool print_after_upload, optional<TransferId> override_id) {
     Lock lock(main_mutex);
 
     if (transfer_active) {
@@ -163,7 +189,15 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
 
     // Order matters, these are atomics, and observable from another thread.
     // First change the ID before „activating“ the transfer.
-    current_id++;
+    if (override_id.has_value()) {
+        // Overriding the ID messes up our segment of history, so we just forget it. It doesn't matter, because:
+        // * Everything must be able to deal with missing history data anyway.
+        // * The ID override should happen only on start-up before we have any history.
+        history_len = 0;
+        current_id = *override_id;
+    } else {
+        current_id++;
+    }
     transfer_active = true;
     used = true;
     stopped = false;
@@ -171,7 +205,8 @@ optional<Monitor::Slot> Monitor::allocate(Type type, const char *dest, size_t ex
     // Store the details.
     this->type = type;
     expected = expected_size;
-    transferred = 0;
+    download_progress = PartialFile::State();
+    download_has_issue = false;
     this->print_after_upload = print_after_upload;
     start = ticks_s();
     if (dest != nullptr) {
@@ -214,7 +249,7 @@ const char *to_str(Monitor::Type type) {
 
 double Monitor::Status::progress_estimate() const {
     if (expected > 0) {
-        return static_cast<double>(transferred) / static_cast<double>(expected);
+        return static_cast<double>(download_progress.get_valid_size()) / static_cast<double>(expected);
     } else {
         return 0;
     }

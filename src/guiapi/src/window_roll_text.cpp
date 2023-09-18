@@ -43,3 +43,13 @@ void window_roll_text_t::SetText(string_view_utf8 txt) {
     super::SetText(txt);
     rollInit();
 }
+
+bool window_roll_text_t::SetRect(Rect16 rect) {
+    if (GetRect() == rect) {
+        return false; // to avoid pointless assignment/reinit
+    }
+
+    super::SetRect(rect);
+    rollInit();
+    return true;
+}

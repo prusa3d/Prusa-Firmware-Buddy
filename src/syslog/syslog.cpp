@@ -13,7 +13,7 @@ static void report_error(syslog_transport_t *transport, const char *message_pref
     }
 }
 
-static bool syslog_transport_open_ip4(syslog_transport_t *transport, ip_addr_t ip_address, int port) {
+static bool syslog_transport_open_ip4(syslog_transport_t *transport, ip_addr_t ip_address, uint16_t port) {
     transport->sock = -1;
     transport->is_open = false;
 
@@ -45,11 +45,9 @@ bool syslog_transport_check_is_open(syslog_transport_t *transport) {
 
 bool syslog_transport_send(syslog_transport_t *transport, const char *message, int message_len) {
     // Check that metrics were enabled by user
-    // TODO: filter host with a specific config_store().metrics_host
-    if (config_store().metrics_allow.get() != MetricsAllow::All) {
-        if (syslog_transport_check_is_open(transport)) {
-            syslog_transport_close(transport);
-        }
+    ///@note Not checking which host, it is done in open().
+    MetricsAllow metrics_allowed = config_store().metrics_allow.get();
+    if (metrics_allowed != MetricsAllow::One && metrics_allowed != MetricsAllow::All) {
         return false;
     }
 
@@ -74,16 +72,29 @@ void syslog_transport_close(syslog_transport_t *transport) {
     transport->is_open = false;
 }
 
-bool syslog_transport_open(syslog_transport_t *transport, const char *host, int port) {
-    // Check that metrics were enabled by user
-    // TODO: filter host with a specific config_store().metrics_host
-    if (config_store().metrics_allow.get() != MetricsAllow::All) {
-        return false;
+bool syslog_transport_open(syslog_transport_t *transport, const char *host, uint16_t port) {
+    MetricsAllow metrics_allowed = config_store().metrics_allow.get();
+    if (metrics_allowed == MetricsAllow::All) {
+        // All metrics are allowed, open the socket
+    } else if (metrics_allowed == MetricsAllow::One) {
+        // Check host and port
+        ///@note Checking for either log or metrics port.
+        /// Individually they need to be checked while configuring.
+        /// This is just a safety check.
+        if (strcmp(host, config_store().metrics_host.get_c_str()) != 0
+            || (port != config_store().metrics_port.get() && port != config_store().syslog_port.get())) {
+            return false; // Wrong host or port
+        }
+        // Metrics are allowed for this host
+    } else {
+        return false; // Metrics are not allowed
+    }
+
+    if (strlen(host) == 0 || port == 0) {
+        return false; // Do not allow empty host nor null port
     }
 
     ip_addr_t addr;
-    if (strlen(host) == 0)
-        return false;
     err_t res = dns_gethostbyname(host, &addr, NULL, NULL);
     if (res == ERR_OK) {
         // ip address already cached or the name was valid ip address

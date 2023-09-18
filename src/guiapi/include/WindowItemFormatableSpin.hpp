@@ -29,6 +29,11 @@ public:
      */
     size_t GetIndex() const { return index; };
 
+    /**
+     * @brief Set currently selected index.
+     */
+    void SetIndex(size_t new_index);
+
 protected:
     /**
      * @brief Update switch text and extension_width.

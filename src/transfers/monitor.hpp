@@ -4,6 +4,8 @@
 // Why is the FILE_PATH_BUFFER_LEN in gui?
 #include <gui/file_list_defs.h>
 
+#include "partial_file.hpp"
+
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -145,7 +147,10 @@ public:
         bool print_after_upload;
 
         /// How much got already transferred.
-        size_t transferred;
+        PartialFile::State download_progress;
+
+        /// True if there is an ongoing issue with the download
+        bool download_has_issue;
 
         /// The path where the transfer will be stored (once it's done).
         ///
@@ -183,14 +188,22 @@ public:
         Slot(const Slot &other) = delete;
         Slot &operator=(const Slot &other) = delete;
         ~Slot();
+
+        void update_expected_size(size_t expected);
+
         /// Update the progress report.
-        ///
-        /// More bytes were transferred, account for them in the tracking.
+        void progress(PartialFile::State download_state, bool has_issue);
+
+        /// Update the progress report.
         ///
         /// This is the increment, not the accumulated total.
         void progress(size_t add_bytes);
+
         // Damn. We have to start over from the beginning...
         void reset_progress();
+
+        /// The path where the transfer will be stored (once it's done).
+        const char *destination();
 
         bool is_stopped();
         /// The transfer is done.
@@ -202,6 +215,8 @@ public:
         void done(Outcome reason);
 
         const char *filepath();
+
+        TransferId id() const;
     };
 
     friend class Slot;
@@ -225,7 +240,8 @@ private:
     Type type;
     Timestamp start;
     size_t expected;
-    size_t transferred;
+    PartialFile::State download_progress;
+    bool download_has_issue;
     bool print_after_upload { false };
 
     char destination_path[FILE_PATH_BUFFER_LEN];
@@ -246,7 +262,7 @@ public:
     /// false otherwise.
     bool signal_stop();
 
-    std::optional<Slot> allocate(Type type, const char *dest, size_t expected_size, bool print_after_upload = false);
+    std::optional<Slot> allocate(Type type, const char *dest, size_t expected_size, bool print_after_upload = false, std::optional<TransferId> override_id = std::nullopt);
 
     /// Request the status of currently running transfer.
     ///

@@ -21,10 +21,10 @@ dump_t *dump_alloc(void) {
 
     dump_t *pd = (dump_t *)malloc(sizeof(dump_t));
     pd->ram = (uint8_t *)malloc(DUMP_RAM_SIZE);
-    pd->ccram = (uint8_t *)malloc(DUMP_CCRAM_SIZE);
+    pd->ccmram = (uint8_t *)malloc(DUMP_CCMRAM_SIZE);
     pd->otp = (uint8_t *)malloc(DUMP_OTP_SIZE);
     pd->flash = (uint8_t *)malloc(DUMP_FLASH_SIZE);
-    if (pd->ram && pd->ccram && pd->otp && pd->flash)
+    if (pd->ram && pd->ccmram && pd->otp && pd->flash)
         return pd;
     dump_free(pd);
     return 0;
@@ -33,14 +33,14 @@ dump_t *dump_alloc(void) {
 void dump_free(dump_t *pd) {
     if (pd->ram)
         free(pd->ram);
-    if (pd->ccram)
-        free(pd->ccram);
+    if (pd->ccmram)
+        free(pd->ccmram);
     if (pd->otp)
         free(pd->otp);
     if (pd->flash)
         free(pd->flash);
     pd->ram = 0;
-    pd->ccram = 0;
+    pd->ccmram = 0;
     pd->otp = 0;
     pd->flash = 0;
 }
@@ -52,11 +52,11 @@ dump_t *dump_load(const char *fn) {
     FILE *fdump_bin = fopen(fn, "rb");
     if (fdump_bin) {
         int rd_ram = fread(pd->ram, 1, DUMP_RAM_SIZE, fdump_bin);
-        int rd_ccram = fread(pd->ccram, 1, DUMP_CCRAM_SIZE, fdump_bin);
+        int rd_ccmram = fread(pd->ccmram, 1, DUMP_CCMRAM_SIZE, fdump_bin);
         int rd_otp = fread(pd->otp, 1, DUMP_OTP_SIZE, fdump_bin);
         int rd_flash = fread(pd->flash, 1, DUMP_FLASH_SIZE, fdump_bin);
         fclose(fdump_bin);
-        if ((rd_ram == DUMP_RAM_SIZE) && (rd_ccram == DUMP_CCRAM_SIZE) && (rd_otp == DUMP_OTP_SIZE) && (rd_flash == DUMP_FLASH_SIZE)) {
+        if ((rd_ram == DUMP_RAM_SIZE) && (rd_ccmram == DUMP_CCMRAM_SIZE) && (rd_otp == DUMP_OTP_SIZE) && (rd_flash == DUMP_FLASH_SIZE)) {
             pd->regs_gen = (dump_regs_gen_t *)dump_get_data_ptr(pd, DUMP_REGS_GEN);
             pd->regs_scb = (uint32_t *)dump_get_data_ptr(pd, DUMP_REGS_SCB);
             pd->info = (dump_info_t *)dump_get_data_ptr(pd, DUMP_INFO);
@@ -72,8 +72,8 @@ int dump_load_all_sections(dump_t *pd, const char *dir) {
     strcpy(path, dir);
     strcpy(path + strlen(dir), "dump_ram.bin");
     dump_load_bin_from_file(pd->ram, DUMP_RAM_SIZE, path);
-    strcpy(path + strlen(dir), "dump_ccram.bin");
-    dump_load_bin_from_file(pd->ccram, DUMP_CCRAM_SIZE, path);
+    strcpy(path + strlen(dir), "dump_ccmram.bin");
+    dump_load_bin_from_file(pd->ccmram, DUMP_CCMRAM_SIZE, path);
     strcpy(path + strlen(dir), "dump_otp.bin");
     dump_load_bin_from_file(pd->otp, DUMP_OTP_SIZE, path);
     strcpy(path + strlen(dir), "dump_flash.bin");
@@ -86,8 +86,8 @@ int dump_save_all_sections(dump_t *pd, const char *dir) {
     strcpy(path, dir);
     strcpy(path + strlen(dir), "dump_ram.bin");
     dump_save_bin_to_file(pd->ram, DUMP_RAM_SIZE, path);
-    strcpy(path + strlen(dir), "dump_ccram.bin");
-    dump_save_bin_to_file(pd->ccram, DUMP_CCRAM_SIZE, path);
+    strcpy(path + strlen(dir), "dump_ccmram.bin");
+    dump_save_bin_to_file(pd->ccmram, DUMP_CCMRAM_SIZE, path);
     strcpy(path + strlen(dir), "dump_otp.bin");
     dump_save_bin_to_file(pd->otp, DUMP_OTP_SIZE, path);
     strcpy(path + strlen(dir), "dump_flash.bin");
@@ -99,8 +99,8 @@ uint8_t *dump_get_data_ptr(dump_t *pd, uint32_t addr) {
     uint8_t *p = 0;
     if ((addr >= DUMP_RAM_ADDR) && (addr < (DUMP_RAM_ADDR + DUMP_RAM_SIZE)))
         p = pd->ram + addr - DUMP_RAM_ADDR;
-    else if ((addr >= DUMP_CCRAM_ADDR) && (addr < (DUMP_CCRAM_ADDR + DUMP_CCRAM_SIZE)))
-        p = pd->ccram + addr - DUMP_CCRAM_ADDR;
+    else if ((addr >= DUMP_CCMRAM_ADDR) && (addr < (DUMP_CCMRAM_ADDR + DUMP_CCMRAM_SIZE)))
+        p = pd->ccmram + addr - DUMP_CCMRAM_ADDR;
     else if ((addr >= DUMP_OTP_ADDR) && (addr < (DUMP_OTP_ADDR + DUMP_OTP_SIZE)))
         p = pd->otp + addr - DUMP_OTP_ADDR;
     else if ((addr >= DUMP_FLASH_ADDR) && (addr < (DUMP_FLASH_ADDR + DUMP_FLASH_SIZE)))

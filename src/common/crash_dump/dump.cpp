@@ -9,6 +9,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include <error_codes.hpp>
+#include <array>
 
 namespace crash_dump {
 
@@ -27,7 +28,7 @@ typedef struct __attribute__((packed)) _message_t {
 
 inline constexpr uint32_t dump_offset = w25x_dump_start_address;
 inline constexpr uint16_t dump_buff_size = 0x100;
-inline constexpr uint32_t dump_xflash_size = RAM_SIZE + CCRAM_SIZE;
+inline constexpr uint32_t dump_xflash_size = RAM_SIZE + CCMRAM_SIZE;
 
 static_assert(dump_xflash_size <= w25x_error_start_adress, "Dump overflows reserved space.");
 static_assert(sizeof(message_t) <= (w25x_pp_start_address - w25x_error_start_adress), "Error message overflows reserved space.");
@@ -35,7 +36,7 @@ static_assert(sizeof(message_t) <= (w25x_pp_start_address - w25x_error_start_adr
 static const message_t *dumpmessage_flash = reinterpret_cast<message_t *>(w25x_error_start_adress);
 
 static inline void dump_regs_SCB() {
-    // copy entire SCB to CCRAM
+    // copy entire SCB to CCMRAM
     memcpy((uint8_t *)REGS_SCB_ADDR, SCB, REGS_SCB_SIZE);
 }
 
@@ -57,13 +58,13 @@ void save_dump() {
         w25x_block64_erase(dump_offset + addr);
     }
     w25x_program(dump_offset, (uint8_t *)(RAM_ADDR), RAM_SIZE);
-    w25x_program(dump_offset + RAM_SIZE, (uint8_t *)(CCRAM_ADDR), CCRAM_SIZE);
+    w25x_program(dump_offset + RAM_SIZE, (uint8_t *)(CCMRAM_ADDR), CCMRAM_SIZE);
     w25x_fetch_error();
 }
 
 bool dump_is_valid() {
     info_t dumpinfo;
-    w25x_rd_data(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo), INFO_SIZE);
+    w25x_rd_data(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo), INFO_SIZE);
     if (w25x_fetch_error())
         return false;
 
@@ -73,7 +74,7 @@ bool dump_is_valid() {
 
 bool dump_is_displayed() {
     info_t dumpinfo;
-    w25x_rd_data(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, (uint8_t *)(&dumpinfo), INFO_SIZE);
+    w25x_rd_data(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, (uint8_t *)(&dumpinfo), INFO_SIZE);
     if (w25x_fetch_error())
         return false;
     return !any(dumpinfo.type_flags & DumpType::NOT_DISPL);
@@ -81,7 +82,7 @@ bool dump_is_displayed() {
 
 DumpType dump_get_type() {
     info_t dumpinfo;
-    w25x_rd_data(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, (uint8_t *)(&dumpinfo), INFO_SIZE);
+    w25x_rd_data(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, (uint8_t *)(&dumpinfo), INFO_SIZE);
     if (w25x_fetch_error())
         dumpinfo.type_flags = DumpType::UNDEFINED;
     return (dumpinfo.type_flags & ~(DumpType::NOT_SAVED | DumpType::NOT_DISPL));
@@ -92,10 +93,10 @@ DumpType dump_get_type() {
  */
 static void dump_clear_flag(const DumpType flag) {
     DumpType dumpinfo_type;
-    w25x_rd_data(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
+    w25x_rd_data(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
     if (!w25x_fetch_error() && any(dumpinfo_type & flag)) {
         dumpinfo_type = dumpinfo_type & ~flag;
-        w25x_program(dump_offset + RAM_SIZE + CCRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
+        w25x_program(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
         w25x_fetch_error();
     }
 }
@@ -117,6 +118,11 @@ size_t load_dump_RAM(void *pRAM, uint32_t addr, size_t size) {
             size = (RAM_ADDR + RAM_SIZE - addr);
         w25x_rd_data(dump_offset + addr - RAM_ADDR, (uint8_t *)(pRAM), size);
         return size;
+    } else if ((addr >= CCMRAM_ADDR) && (addr < (CCMRAM_ADDR + CCMRAM_SIZE))) {
+        if (size > (CCMRAM_ADDR + CCMRAM_SIZE - addr))
+            size = (CCMRAM_ADDR + CCMRAM_SIZE - addr);
+        w25x_rd_data(dump_offset + RAM_SIZE + addr - CCMRAM_ADDR, (uint8_t *)(pRAM), size);
+        return size;
     }
     return 0;
 }
@@ -124,7 +130,7 @@ size_t load_dump_RAM(void *pRAM, uint32_t addr, size_t size) {
 size_t load_dump_regs_SCB(void *pRegsSCB, size_t size) {
     if (size > REGS_SCB_SIZE)
         size = REGS_SCB_SIZE;
-    w25x_rd_data(dump_offset + RAM_SIZE + REGS_SCB_ADDR - CCRAM_ADDR, (uint8_t *)(pRegsSCB), size);
+    w25x_rd_data(dump_offset + RAM_SIZE + REGS_SCB_ADDR - CCMRAM_ADDR, (uint8_t *)(pRegsSCB), size);
     if (w25x_fetch_error())
         return 0;
     return size;
@@ -133,7 +139,7 @@ size_t load_dump_regs_SCB(void *pRegsSCB, size_t size) {
 size_t load_dump_regs_GEN(void *pRegsGEN, size_t size) {
     if (size > REGS_GEN_SIZE)
         size = REGS_GEN_SIZE;
-    w25x_rd_data(dump_offset + RAM_SIZE + REGS_GEN_ADDR - CCRAM_ADDR, (uint8_t *)(pRegsGEN), size);
+    w25x_rd_data(dump_offset + RAM_SIZE + REGS_GEN_ADDR - CCMRAM_ADDR, (uint8_t *)(pRegsGEN), size);
     if (w25x_fetch_error())
         return 0;
     return size;
@@ -155,7 +161,7 @@ bool save_dump_to_usb(const char *fn) {
     uint32_t bw_total = 0;
     fd = fopen(fn, "w");
     if (fd != NULL) {
-        // save dumped RAM and CCRAM from xflash
+        // save dumped RAM and CCMRAM from xflash
         for (addr = 0; addr < dump_xflash_size; addr += dump_buff_size) {
             memset(buff, 0, dump_buff_size);
             w25x_rd_data(addr, buff, dump_buff_size);

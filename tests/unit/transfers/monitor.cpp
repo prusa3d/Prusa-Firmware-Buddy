@@ -35,7 +35,7 @@ TEST_CASE("Transfers status watch") {
     // 0 from the time mock
     REQUIRE(status->start == 0);
     REQUIRE(status->expected == 1024);
-    REQUIRE(status->transferred == 0);
+    REQUIRE(status->download_progress.get_valid_size() == 0);
     REQUIRE(strcmp(status->destination, "/usb/path.gcode") == 0);
     auto old_id = status->id;
     REQUIRE(status->id == monitor.id());
@@ -50,7 +50,7 @@ TEST_CASE("Transfers status watch") {
 
     REQUIRE(status.has_value());
     REQUIRE(status->id == old_id);
-    REQUIRE(status->transferred == 30);
+    REQUIRE(status->download_progress.get_valid_size() == 30);
 
     status.reset();
     slot.reset();
@@ -62,7 +62,7 @@ TEST_CASE("Transfers status watch") {
     REQUIRE(status.has_value());
     // The info is still intact and the ID is also not changed.
     REQUIRE(status->id == old_id);
-    REQUIRE(status->transferred == 30);
+    REQUIRE(status->download_progress.get_valid_size() == 30);
     REQUIRE(strcmp(status->destination, "/usb/path.gcode") == 0);
 }
 

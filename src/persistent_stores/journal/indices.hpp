@@ -41,12 +41,6 @@ namespace detail {
                 std::get<I>(tuple).init(data);
             }))... });
     }
-
-    template <typename U, size_t... I>
-    consteval auto to_id_array(std::index_sequence<I...>) {
-        return std::to_array<uint16_t>({ (std::remove_cvref_t<std::tuple_element_t<I, U>>::hashed_id)... });
-    }
-
 } // namespace detail
 
 /**
@@ -59,23 +53,5 @@ auto constexpr get_current_indices() {
     auto index = detail::get_current_indices<TupleT>(std::make_index_sequence<std::tuple_size_v<TupleT>> {});
     std::sort(std::begin(index), std::end(index), [](const auto &a, const auto &b) { return a.id < b.id; });
     return index;
-}
-
-/**
- * @brief Returns a sorted std::array of IDs from a given struct/tuple of store items
- */
-template <typename T>
-auto constexpr to_sorted_id_array() {
-    auto index = detail::to_id_array<T>(std::make_index_sequence<std::tuple_size_v<T>> {});
-    std::sort(std::begin(index), std::end(index));
-    return index;
-}
-
-/**
- * @brief Returns a std::array of IDs from a given struct/tuple of store items (not sorted)
- */
-template <typename T>
-auto constexpr to_id_array() {
-    return detail::to_id_array<T>(std::make_index_sequence<std::tuple_size_v<T>> {});
 }
 } // namespace journal

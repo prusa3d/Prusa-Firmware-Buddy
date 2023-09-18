@@ -6,10 +6,13 @@
 #include "i_selftest_part.hpp"
 #include "selftest_heater_config.hpp"
 #include "selftest_log.hpp"
+#include "power_check.hpp"
 
 namespace selftest {
 
 class CSelftestPart_Heater {
+    friend class PowerCheckBoth;
+
 public:
     IPartHandler &state_machine;
     const HeaterConfig_t &m_config;
@@ -30,6 +33,13 @@ private:
     bool enable_cooldown;
     LogTimer log;
 
+    // Power check related stuff
+    PowerCheck check;
+    bool power_check_passed = false;
+    LogTimer check_log;
+    float power_avg = 0;
+    float pwm_avg = 0;
+
     static uint32_t estimate(const HeaterConfig_t &config);
     void actualizeProgress(float current, float progres_start, float progres_end) const;
 
@@ -47,6 +57,10 @@ public:
     LoopResult stateTargetTemp();
     LoopResult stateWait();
     LoopResult stateMeasure();
+    LoopResult stateCheckLoadChecked();
+
+    // Simple check callback for independent heaters
+    void single_check_callback();
 };
 
 }; // namespace selftest

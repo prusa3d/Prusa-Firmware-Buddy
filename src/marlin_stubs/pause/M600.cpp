@@ -23,6 +23,7 @@
 #include "config_features.h"
 #include "module/motion.h"
 #include "module/tool_change.h"
+#include "../PrusaGcodeSuite.hpp"
 
 // clang-format off
 #if (!ENABLED(ADVANCED_PAUSE_FEATURE)) || \
@@ -38,6 +39,7 @@
 #include "../../../lib/Marlin/Marlin/src/gcode/gcode.h"
 #include "../../../lib/Marlin/Marlin/src/module/motion.h"
 #include "../../../lib/Marlin/Marlin/src/module/temperature.h"
+#include "../../../lib/Marlin/Marlin/src/feature/prusa/e-stall_detector.h"
 #include "marlin_server.hpp"
 #include "pause_stubbed.hpp"
 #include <cmath>
@@ -72,6 +74,7 @@ static void M600_manual();
  */
 
 void GcodeSuite::M600() {
+    BlockEStallDetection block_e_stall_detection;
     bool do_manual_m600 = true;
 
     if (parser.seen('A')) {
@@ -88,6 +91,10 @@ void GcodeSuite::M600() {
         M600_manual();
     }
 }
+
+void M600_execute(xyz_pos_t park_point, int8_t target_extruder,
+    xyze_float_t resume_point, std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength,
+    pause::Settings::CalledFrom);
 
 void M600_manual() {
     const int8_t target_extruder = GcodeSuite::get_target_extruder_from_command();
@@ -118,19 +125,33 @@ void M600_manual() {
     park_point += hotend_offset[active_extruder];
 #endif
 
-    park_point.z += current_position.z;
     static const xyze_float_t no_return = { { { NAN, NAN, NAN, current_position.e } } };
+
+    M600_execute(park_point,
+        target_extruder,
+        parser.seen('N') ? no_return : current_position,
+        parser.seen('U') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
+        parser.seen('L') ? std::make_optional(parser.value_axis_units(E_AXIS)) : std::nullopt,
+        parser.seen('E') ? std::make_optional(std::abs(parser.value_axis_units(E_AXIS))) : std::nullopt,
+        pause::Settings::CalledFrom::Pause);
+}
+
+void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t resume_point,
+    std::optional<float> unloadLength, std::optional<float> fastLoadLength, std::optional<float> retractLength, pause::Settings::CalledFrom called_from) {
+
+    park_point.z += current_position.z;
 
     pause::Settings settings;
     settings.SetParkPoint(park_point);
-    settings.SetResumePoint(parser.seen('N') ? no_return : current_position);
-    if (parser.seen('U'))
-        settings.SetUnloadLength(parser.value_axis_units(E_AXIS));
-    if (parser.seen('L'))
-        settings.SetFastLoadLength(parser.value_axis_units(E_AXIS));
-    if (parser.seen('E')) {
-        settings.SetRetractLength(std::abs(parser.value_axis_units(E_AXIS)));
+    settings.SetResumePoint(resume_point);
+    if (unloadLength.has_value())
+        settings.SetUnloadLength(unloadLength.value());
+    if (fastLoadLength.has_value())
+        settings.SetFastLoadLength(fastLoadLength.value());
+    if (retractLength.has_value()) {
+        settings.SetRetractLength(retractLength.value());
     } // Initial retract before move to filament change position
+    settings.SetCalledFrom(called_from);
 
     // If paused restore nozzle temperature from pre-paused state
     if (marlin_server::printer_paused()) {
@@ -146,6 +167,7 @@ void M600_manual() {
     }
 
     filament::set_type_to_load(config_store().get_filament_type(target_extruder));
+    filament::set_color_to_load(std::nullopt);
     Pause::Instance().FilamentChange(settings);
 
     marlin_server::nozzle_timeout_on();
@@ -153,3 +175,23 @@ void M600_manual() {
         thermalManager.setTargetHotend(targ_temp, target_extruder);
     }
 }
+
+/// Filament stuck detected during print
+///
+/// ## Parameters
+/// none so far
+///
+/// ## Notes
+/// Enabled for LoadCell equipped printers
+#if HAS_LOADCELL()
+void PrusaGcodeSuite::M1601() {
+    M600_execute(
+        NOZZLE_PARK_POINT_M600,
+        active_extruder,
+        current_position,
+        std::nullopt, std::nullopt, std::nullopt,
+        pause::Settings::CalledFrom::FilamentStuck);
+}
+#else
+// otherwise the default weak implementation of M1601 is used, see gcode.cpp
+#endif

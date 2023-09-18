@@ -16,6 +16,7 @@ enum class State {
     Aborting_Begin,
     Aborting_WaitIdle,
     Aborting_ParkHead,
+    Aborting_Preview,
     Aborted,
     Finishing_WaitIdle,
     Finishing_ParkHead,

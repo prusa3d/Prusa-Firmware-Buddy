@@ -19,6 +19,7 @@ void print_utils_loop();
 
 enum DeleteResult {
     Busy,
+    ActiveTransfer, // do not try to delete transfer directories
     GeneralError,
     Success
 };

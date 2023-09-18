@@ -3,8 +3,12 @@
  * @brief non constant definitions from Configuration_MK4(_adv).h
  * (Prusa eeprom dependent for at least one Prusa printer type)
  */
+#pragma once
+
 #include <cstdint>
 #include <cmath>
+
+#include <Marlin/src/core/types.h>
 
 // ranges in mm - allowed distance between homing probes for XYZ axes
 constexpr float axis_home_max_diff_xy_mk4 = 0.1F;
@@ -36,4 +40,4 @@ inline constexpr float axis_home_invert_max_diff(uint8_t axis_num) {
     return arr[axis_num];
 }
 
-uint32_t get_stall_threshold();
+uint32_t get_homing_stall_threshold(AxisEnum axis_id);

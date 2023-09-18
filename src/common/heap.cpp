@@ -33,7 +33,8 @@ void vPortFree(void *pv) PRIVILEGED_FUNCTION {
 };
 
 void vApplicationMallocFailedHook() {
-    fatal_error("Out of memory", "HEAP MALLOC ERROR");
+    // This cannot be Red Screen as it can be called before GUI images are available
+    bsod("Out of heap memory");
 }
 
 size_t xPortGetFreeHeapSize(void) PRIVILEGED_FUNCTION {

@@ -12,6 +12,7 @@
 #include "tusb.h"
 #include <device/peripherals.h>
 #include "wdt.h"
+#include "safe_state.h"
 #include <option/buddy_enable_wui.h>
 
 #ifdef BUDDY_ENABLE_WUI
@@ -39,14 +40,13 @@ void NMI_Handler(void) {
  * @brief This function handles Hard fault interrupt.
  */
 void __attribute__((naked)) HardFault_Handler(void) {
+    DUMP_HARDFAULT_TO_CCMRAM();
+
 #ifdef _DEBUG
     // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
 #endif /*_DEBUG*/
 
-    DUMP_HARDFAULT_TO_CCRAM();
     save_dump();
     sys_reset();
     while (1) {
@@ -267,10 +267,17 @@ void DMA2_Stream1_IRQHandler(void) {
 }
 #endif
 
+#if (BOARD_IS_BUDDY)
+/**
+ * @brief This function handles DMA2 stream6 global interrupt.
+ */
+void DMA2_Stream6_IRQHandler(void) {
+    HAL_DMA_IRQHandler(&hdma_usart6_tx);
+}
+
 /**
  * @brief This function handles DMA2 stream1 global interrupt.
  */
-#if (BOARD_IS_BUDDY)
 void DMA2_Stream1_IRQHandler(void) {
     traceISR_ENTER();
 

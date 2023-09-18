@@ -6,6 +6,7 @@
 #include "log.h"
 #include "otp.hpp"
 #include "buddy/priorities_config.h"
+#include <ccm_thread.hpp>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -41,7 +42,7 @@ static void usb_device_task_run(const void *);
 
 static serial_nr_t serial_nr;
 
-osThreadDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
+osThreadCCMDef(usb_device_task, usb_device_task_run, TASK_PRIORITY_USB_DEVICE, 0, USBD_STACK_SIZE);
 static osThreadId usb_device_task;
 
 void usb_device_init() {

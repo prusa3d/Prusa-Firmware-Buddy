@@ -88,5 +88,6 @@ struct AccelerometerRecord {
     uint16_t x;
     uint16_t y;
     uint16_t z;
+    bool corrupted = false;
 };
 } // namespace dwarf::accelerometer

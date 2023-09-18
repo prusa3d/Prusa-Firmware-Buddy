@@ -10,8 +10,16 @@ bool filename_has_ext(const char *fname, const char *ext) {
     return (len >= ext_len) && (strcasecmp(fname + len - ext_len, ext) == 0);
 }
 
-bool filename_is_gcode(const char *fname) {
+bool filename_is_plain_gcode(const char *fname) {
     return filename_has_ext(fname, ".gcode") || filename_has_ext(fname, ".gc") || filename_has_ext(fname, ".g") || filename_has_ext(fname, ".gco");
+}
+
+bool filename_is_bgcode(const char *fname) {
+    return filename_has_ext(fname, ".bgcode") || filename_has_ext(fname, ".bgc");
+}
+
+bool filename_is_printable(const char *fname) {
+    return filename_is_plain_gcode(fname) || filename_is_bgcode(fname);
 }
 
 bool filename_is_firmware(const char *fname) {
@@ -19,7 +27,7 @@ bool filename_is_firmware(const char *fname) {
 };
 
 const char *file_type_by_ext(const char *fname) {
-    if (filename_is_gcode(fname)) {
+    if (filename_is_printable(fname)) {
         return "PRINT_FILE";
     } else if (filename_is_firmware(fname)) {
         return "FIRMWARE";

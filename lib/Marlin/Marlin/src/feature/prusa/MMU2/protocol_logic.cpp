@@ -204,7 +204,6 @@ StepStatus ProtocolLogic::ExpectingMessage() {
 }
 
 void ProtocolLogic::SendMsg(RequestMsg rq) {
-    uint8_t txbuff[Protocol::MaxRequestSize()];
     uint8_t len = Protocol::EncodeRequest(rq, txbuff);
     uart->write(txbuff, len);
     LogRequestMsg(txbuff, len);
@@ -212,7 +211,6 @@ void ProtocolLogic::SendMsg(RequestMsg rq) {
 }
 
 void ProtocolLogic::SendWriteMsg(RequestMsg rq) {
-    uint8_t txbuff[Protocol::MaxRequestSize()];
     uint8_t len = Protocol::EncodeWriteRequest(rq.value, rq.value2, txbuff);
     uart->write(txbuff, len);
     LogRequestMsg(txbuff, len);
@@ -373,6 +371,7 @@ StepStatus ProtocolLogic::ProcessCommandQueryResponse() {
         // It can also be an X0 F which means MMU just successfully restarted.
         if (ReqMsg().code == rsp.request.code && ReqMsg().value == rsp.request.value) {
             progressCode = ProgressCode::OK;
+            errorCode = ErrorCode::OK;
             scopeState = ScopeState::Ready;
             rq = RequestMsg(RequestMsgCodes::unknown, 0); // clear the successfully finished request
             return Finished;
@@ -717,9 +716,8 @@ void ProtocolLogic::FormatLastResponseMsgAndClearLRB(char *dst) {
     *dst++ = '<';
     for (uint8_t i = 0; i < lrb; ++i) {
         uint8_t b = lastReceivedBytes[i];
-        if (b < 32)
-            b = '.';
-        if (b > 127)
+        // Check for printable character, including space
+        if (b < 32 || b > 127)
             b = '.';
         *dst++ = b;
     }
@@ -733,9 +731,8 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
     static char lastMsg[rqs] = "";
     for (uint8_t i = 0; i < size; ++i) {
         uint8_t b = txbuff[i];
-        if (b < 32)
-            b = '.';
-        if (b > 127)
+        // Check for printable character, including space
+        if (b < 32 || b > 127)
             b = '.';
         tmp[i + 1] = b;
     }

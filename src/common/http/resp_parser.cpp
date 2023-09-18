@@ -64,6 +64,12 @@ ExecutionControl ResponseParser::event(Event event) {
     case Names::ConnectionKeepAlive:
         keep_alive = true;
         return ExecutionControl::Continue;
+    case Names::ContentEncryptionModeCBC:
+        content_encryption_mode = ContentEncryptionMode::AES_CBC;
+        return ExecutionControl::Continue;
+    case Names::ContentEncryptionModeCTR:
+        content_encryption_mode = ContentEncryptionMode::AES_CTR;
+        return ExecutionControl::Continue;
     case Names::Version:
         switch (event.payload) {
         case '.':

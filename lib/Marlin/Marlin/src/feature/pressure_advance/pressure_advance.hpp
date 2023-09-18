@@ -17,15 +17,18 @@ struct step_event_info_t;
 struct step_generator_state_t;
 struct pressure_advance_step_generator_t;
 
-constexpr const uint16_t MAX_PRESSURE_ADVANCE_FILTER_LENGTH = 41;
+// #define PRESSURE_ADVANCE_SIMPLE_WINDOW_FILTER // Use one value filter instead of the Bartlett window.
+
+constexpr const uint16_t PRESSURE_ADVANCE_MAX_FILTER_LENGTH = 41;
 
 // The minimum difference of two consecutive position samples for which the step time is calculated
 // by interpolation between them. For differences smaller than this value, the step time will be
 // calculated by rounding to the earlier time of those samples.
-constexpr const double PRESSURE_ADVANCE_MIN_POSITION_DIFF = 0.00001;
+constexpr const float PRESSURE_ADVANCE_MIN_POSITION_DIFF = 0.00001f;
 
 typedef struct pressure_advance_buffer_t {
-    double data[MAX_PRESSURE_ADVANCE_FILTER_LENGTH] = {};
+    float data[PRESSURE_ADVANCE_MAX_FILTER_LENGTH] = {};
+    uint16_t length = 0;
     uint16_t start_idx = 0;
     // How many samples of position in the buffer have the same value.
     // Used for skipping pressure advance computations for moves when the extruder isn't active.
@@ -33,35 +36,49 @@ typedef struct pressure_advance_buffer_t {
 } pressure_advance_buffer_t;
 
 typedef struct pressure_advance_window_filter_t {
-    double window[MAX_PRESSURE_ADVANCE_FILTER_LENGTH];
+    float window[PRESSURE_ADVANCE_MAX_FILTER_LENGTH];
     uint16_t length;
 } pressure_advance_window_filter_t;
 
 struct pressure_advance_params_t {
-    double pressure_advance_value;
-    double half_smooth_time;
+    float pressure_advance_value;
+    float sampling_rate_float;
     double sampling_rate;
+    double filter_total_time;
+    double filter_delay;
 
     pressure_advance_window_filter_t filter;
 };
 
 typedef struct pressure_advance_state_t {
     pressure_advance_buffer_t buffer;
-    uint16_t buffer_length;
-
-    double current_start_position;
-    double current_print_time;
     const move_t *current_move;
-    uint32_t current_sample_idx;
 
-    double previous_interpolated_position;
-    double current_interpolated_position;
+    // Index of next position sample within current move segment.
+    // It resets whenever the current move segment is processed.
+    uint32_t local_sample_idx;
 
+    // Index of next position sample over the whole print time.
+    // This value only increases and isn't reset during the pressure advance computations.
+    // So, with a sampling rate of 1000 samples per second, the maximum print is 49.7 hours without resetting this value.
+    uint32_t total_sample_idx;
+
+    // Index of the last position sample over the whole print time from the current move.
+    uint32_t current_move_last_total_sample_idx;
+
+    // Amount of time that was left after subtracting the current move segment end time (from the time of the next sample) after that was fully processed.
+    // This amount of time has to be added to time computed from local_sample_idx or total_sample_idx.
+    float local_sample_time_left;
+
+    // Two successive positions after applying pressure advance FIR filter.
+    // Between those two positions, interpolation of the requested position is done.
+    float prev_position;
+    float next_position;
+
+    float start_v;
+    float half_accel;
+    float start_pos;
     bool step_dir;
-    double offset;
-
-    double start_v;
-    double half_accel;
 
 #ifndef NDEBUG
     // This variable indicates if the actual position in steps has to be inside range: (previous_interpolated_position, current_interpolated_position).
@@ -85,8 +102,8 @@ public:
     PressureAdvance() = default;
 };
 
-step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advance_step_generator_t &step_generator, step_generator_state_t &step_generator_state, double flush_time);
+step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advance_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 
 void pressure_advance_step_generator_init(const move_t &move, pressure_advance_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 
-void pressure_advance_state_init(pressure_advance_state_t &state, const pressure_advance_params_t &params, const move_t &move, uint8_t axis);
+void pressure_advance_state_init(pressure_advance_step_generator_t &step_generator, const pressure_advance_params_t &params, const move_t &move, uint8_t axis);

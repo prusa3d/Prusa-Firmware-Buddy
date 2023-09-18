@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <printers.h>
 
 enum AxisEnum : uint8_t; // FWD declaration to avoid Marlin dependency in tests
 
@@ -64,7 +65,11 @@ inline constexpr AxisConfig axis_x_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
 
     .type = Type::mzv,
+#if PRINTER_IS_PRUSA_MINI
+    .frequency = 118.2,
+#else
     .frequency = 50.7f,
+#endif
     .damping_ratio = 0.1f,
     .vibration_reduction = 20.0f,
 };
@@ -72,7 +77,11 @@ inline constexpr AxisConfig axis_y_default {
     // DO NOT CHANGE DEFAULTS WITHOUT CHANGING EEPROM CODE!
 
     .type = Type::mzv,
+#if PRINTER_IS_PRUSA_MINI
+    .frequency = 32.8,
+#else
     .frequency = 40.6f,
+#endif
     .damping_ratio = 0.1f,
     .vibration_reduction = 20.0f,
 };
@@ -105,8 +114,12 @@ void set_axis_config(const AxisEnum axis, std::optional<AxisConfig> axis_config)
 void set_axis_y_weight_adjust(std::optional<WeightAdjustConfig> wa_config);
 
 constexpr float frequency_safe_min = 10.0;
+#if PRINTER_IS_PRUSA_MINI
+constexpr float frequency_safe_max = 150.0;
+#else
 constexpr float frequency_safe_max = 100.0;
+#endif
 
 float clamp_frequency_to_safe_values(float frequency);
 
-}
+} // namespace input_shaper

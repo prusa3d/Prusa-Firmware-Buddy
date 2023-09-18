@@ -51,12 +51,14 @@ void window_dlg_strong_warning_t::setWarningText(types type) {
 }
 
 void window_dlg_strong_warning_t::show(types type) {
-    if (shown[type])
+    if (on_top == type)
         return;
     shown[type] = true;
     on_top = type;
 
     setWarningText(type);
+
+    Invalidate(); // redraw window (mainly because of messed up button graphics...)
 
     if (!GetParent()) {
         window_t *parent = Screens::Access()->Get();
@@ -147,4 +149,8 @@ void window_dlg_strong_warning_t::ShowHeatbedColdAfterPP() {
 
 void window_dlg_strong_warning_t::ShowNozzleDoesNotHaveRoundSection() {
     Instance().show(NozzleDoesNotHaveRoundSection);
+}
+
+void window_dlg_strong_warning_t::ShowNotDownloaded() {
+    Instance().show(NotDownloaded);
 }

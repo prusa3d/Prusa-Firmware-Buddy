@@ -5,6 +5,7 @@
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_types.hpp"
 #include "filament_sensor_adc.hpp"
+#include "filament_sensor_adc_eval.hpp"
 #include "metric.h"
 #include "filters/median_filter.hpp"
 
@@ -41,6 +42,6 @@ void fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
     if (filter.filter(fs_raw_value)) { // fs_raw_value is rewritten - passed by reference
         FSensors_instance().AdcExtruder_FilteredIRQ(fs_raw_value, tool_index);
     } else {
-        FSensors_instance().AdcExtruder_FilteredIRQ(FSensorADC::fs_filtered_value_not_ready, tool_index);
+        FSensors_instance().AdcExtruder_FilteredIRQ(FSensorADCEval::filtered_value_not_ready, tool_index);
     }
 }

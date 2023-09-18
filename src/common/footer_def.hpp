@@ -53,12 +53,16 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
     ZHeight,
     PrintFan,
     HeatbreakFan,
+#if not PRINTER_IS_PRUSA_MINI
     InputShaperX,
     InputShaperY,
+#endif
 #if defined(FOOTER_HAS_LIVE_Z)
     LiveZ,
 #endif
+#if not PRINTER_IS_PRUSA_MINI
     Heatbreak,
+#endif
 #if defined(FOOTER_HAS_SHEETS)
     Sheets,
 #endif
@@ -109,17 +113,25 @@ constexpr const char *to_string(Item item) {
     case Item::PrintFan:
         return N_("Print fan");
     case Item::HeatbreakFan:
+#ifdef USE_ST7789
+        return N_("Hbrk fan");
+#else
         return N_("Heatbreak fan");
+#endif
+#if not PRINTER_IS_PRUSA_MINI
     case Item::InputShaperX:
         return N_("Input Shaper X");
     case Item::InputShaperY:
         return N_("Input Shaper Y");
+#endif
 #if defined(FOOTER_HAS_LIVE_Z)
     case Item::LiveZ:
         return N_("Live Z");
 #endif
+#if not PRINTER_IS_PRUSA_MINI
     case Item::Heatbreak:
         return N_("Heatbreak");
+#endif
 #if defined(FOOTER_HAS_SHEETS)
     case Item::Sheets:
         return N_("Sheets");

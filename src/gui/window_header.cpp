@@ -8,34 +8,39 @@
 #include "netdev.h"
 #include "transfers/monitor.hpp"
 #include <config_store/store_instance.hpp>
+#include <marlin_vars.hpp>
+#include "timing.h"
 
-static const uint16_t span = 4;
-static const uint8_t x_offset = 14;
-static const uint8_t y_offset = 9;
-static const uint8_t y_text_offest = 10;
+namespace {
+constexpr uint16_t inter_item_padding { 4 };
 // icon widths
-static const Rect16::Width_t base_w(16);
-static const Rect16::Width_t usb_w(36);
-static const Rect16::Width_t lan_w(20);
-static const Rect16::Width_t transfer_val_w(45);
-static const Rect16::Width_t transfer_w(20);
-static const Rect16::Width_t time_24h_w(46);
-static const Rect16::Width_t time_12h_w(72);
+constexpr Rect16::Width_t base_w { 16 };
+constexpr Rect16::Width_t usb_w { 32 };
+constexpr Rect16::Width_t lan_w { 16 };
 
-static const Rect16::Width_t icon_usb_width(36);
-static const Rect16::Width_t icon_lan_width(20);
-static const Rect16::Width_t icon_transfer_width(36);
-static const Rect16::Width_t icon_base_width(40);
+static_assert(resource_font_size(GuiDefaults::HeaderTextFont).h <= GuiDefaults::HeaderItemHeight, "Text wouldn't fit into header");
+static_assert(GuiDefaults::HeaderTextExtraPaddingTop <= GuiDefaults::HeaderPadding.bottom, "Text wouldn't fit into header");
+
+constexpr Rect16::Width_t transfer_val_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 4 };
+constexpr Rect16::Width_t transfer_w { 16 };
+constexpr Rect16::Width_t time_24h_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 5 };
+constexpr Rect16::Width_t time_12h_w { resource_font_size(GuiDefaults::HeaderTextFont).w * 8 };
+
+constexpr Rect16::Width_t bed_text_width { resource_font_size(GuiDefaults::HeaderTextFont).w * 5 };
+constexpr Rect16::Width_t bed_icon_width { 16 };
 
 // how long the icon remains after the transfer is finished [us]
-static const uint32_t transfer_hide_timeout = 1'000'000u;
+constexpr uint32_t transfer_hide_timeout { 1'000'000u };
+
+constexpr Rect16 first_rect_doesnt_matter { 0, 0, 0, 0 }; // first rect will be replaced by first recalculation anyway
 
 #if defined(USE_ST7789)
-static const Rect16::Width_t label_w(90);
+constexpr Rect16::Width_t label_w { 90 };
 #endif // USE_ILI9488
 #if defined(USE_ILI9488)
-static const Rect16::Width_t label_w(240);
+constexpr Rect16::Width_t label_w { 240 };
 #endif // USE_ILI9488
+} // namespace
 
 void window_header_t::updateNetwork(uint32_t netdev_id) {
     uint32_t netdev_status = netdev_get_status(netdev_id);
@@ -43,7 +48,6 @@ void window_header_t::updateNetwork(uint32_t netdev_id) {
     if (force_network || (netdev_id != active_netdev_id)) {
         icon_network.SetRes(window_header_t::networkIcon(netdev_id));
         active_netdev_id = netdev_id;
-        redraw_network = true;
     }
 
     if (active_netdev_id == NETDEV_NODEV_ID) {
@@ -54,7 +58,6 @@ void window_header_t::updateNetwork(uint32_t netdev_id) {
     } else {
         if (force_network || (netdev_status != NETDEV_UNLINKED && !icon_network.IsVisible())) {
             icon_network.Show();
-            redraw_network = true;
         }
         if (force_network || (active_netdev_status != netdev_status)) {
             if (netdev_status == NETDEV_NETIF_UP) {
@@ -74,6 +77,7 @@ void window_header_t::updateNetwork(uint32_t netdev_id) {
 void window_header_t::updateTransfer() {
     auto status = transfers::Monitor::instance.status();
     auto transfer_progress = status ? std::optional<uint8_t>(0.5 + status.value().progress_estimate() * 100) : std::nullopt;
+    auto transfer_has_issue = status ? status.value().download_has_issue : false;
     status = std::nullopt; // release internal lock
 
     if (transfer_progress && !last_transfer_progress) {
@@ -82,7 +86,6 @@ void window_header_t::updateTransfer() {
         if (transfer_val_on) {
             transfer_val.Show();
         }
-        redraw_transfer = true;
         Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
     } else if (!transfer_progress && last_transfer_progress) {
         transfer_hide_timer = ticks_us();
@@ -91,21 +94,22 @@ void window_header_t::updateTransfer() {
         transfer_hide_timer = std::nullopt;
         icon_transfer.Hide();
         transfer_val.Hide();
-        redraw_transfer = true;
         Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
     }
-    if (transfer_progress && transfer_val_on && transfer_progress != last_transfer_progress) {
+    if (transfer_progress && transfer_val_on && (transfer_progress != last_transfer_progress || transfer_has_issue != last_transfer_has_issue)) {
         snprintf(transfer_str, sizeof(transfer_str), "%d%%", transfer_progress.value());
         transfer_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)transfer_str));
+        transfer_val.SetTextColor(transfer_has_issue ? COLOR_ORANGE : COLOR_WHITE);
         transfer_val.Invalidate();
     }
     last_transfer_progress = transfer_progress;
+    last_transfer_has_issue = transfer_has_issue;
 }
 
 void window_header_t::SetIcon(const img::Resource *res) {
     icon_base.SetRes(res);
     // There isn't any case where icon is removed after constructor, so we initialize label without icon and add if icon is set after constructor
-    label.SetRect(Rect16(x_offset + base_w + span, y_text_offest, label_w, GuiDefaults::HeaderHeight - y_text_offest));
+    label.SetRect(Rect16(GuiDefaults::HeaderPadding.left + base_w + inter_item_padding, GuiDefaults::HeaderPadding.top + GuiDefaults::HeaderTextExtraPaddingTop, label_w, GuiDefaults::HeaderItemHeight));
     Invalidate();
 }
 
@@ -114,54 +118,24 @@ void window_header_t::SetText(string_view_utf8 txt) {
     Invalidate();
 }
 
-uint16_t window_header_t::calculate_usb_icon_x() {
-    Rect16::Width_t time_w = time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w;
-    if (time_val.IsVisible()) {
-        return Width() - x_offset - time_w - span - usb_w;
-    } else {
-        return Width() - x_offset - usb_w;
-    }
+void window_header_t::show_bed_info() {
+    bed_icon.Show();
+    bed_text.Show();
+    updateIcons(); // required because this will affect rects of items
+    Invalidate();
 }
 
-uint16_t window_header_t::calculate_lan_icon_x() {
-    Rect16::Width_t time_w = time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w;
-    if (time_val.IsVisible() && icon_usb.IsVisible()) {
-        return Width() - x_offset - time_w - span - usb_w - span - lan_w;
-    } else if (icon_usb.IsVisible()) {
-        return Width() - x_offset - usb_w - span - lan_w;
-    } else if (time_val.IsVisible()) {
-        return Width() - x_offset - time_w - span - lan_w;
-    } else {
-        return Width() - x_offset - lan_w;
-    }
-}
-
-uint16_t window_header_t::calculate_transfer_val_x() {
-    Rect16::Width_t time_w = time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w;
-    uint16_t x = Width() - x_offset - transfer_val_w - span;
-    x -= time_val.IsVisible() ? time_w + span : 0;
-    x -= icon_usb.IsVisible() ? usb_w + span : 0;
-    x -= icon_network.IsVisible() ? lan_w + span : 0;
-    return x;
-}
-
-uint16_t window_header_t::calculate_transfer_icon_x() {
-    Rect16::Width_t time_w = time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w;
-    uint16_t x = Width() - x_offset - transfer_w;
-    x -= time_val.IsVisible() ? time_w + span : 0;
-    x -= icon_usb.IsVisible() ? usb_w + span : 0;
-    x -= icon_network.IsVisible() ? lan_w + span : 0;
-    x -= transfer_val.IsVisible() ? transfer_val_w + span : 0;
-    return x;
+void window_header_t::hide_bed_info() {
+    bed_icon.Hide();
+    bed_text.Hide();
+    updateIcons(); // required because this will affect rects of items
+    Invalidate();
 }
 
 void window_header_t::updateTime() {
     time_t t = time(nullptr);
-    if (t != (time_t)-1 && time_on) {                             // Time is initialized in RTC (from sNTP)
+    if (t != (time_t)-1 && time_on) { // Time is initialized in RTC (from sNTP)
         if (!time_val.IsVisible()) {
-            redraw_usb = redraw_network = redraw_transfer = true; // Icons on the left of time_val have to be redrawn
-            Rect16::Width_t time_w = time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w;
-            time_val.SetRect(Rect16(Width() - x_offset - time_w, y_text_offest, time_w, GuiDefaults::HeaderHeight - y_text_offest));
             time_val.Show();
             Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
         }
@@ -180,9 +154,6 @@ void window_header_t::updateTime() {
             time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_str));
             time_val.Invalidate(); // Invalidate only time_val, when changing only time
             if (time_format::HasChanged()) {
-                Rect16::Width_t time_w = time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w;
-                time_val.SetRect(Rect16(Width() - x_offset - time_w, y_text_offest, time_w, GuiDefaults::HeaderHeight - y_text_offest));
-                redraw_transfer = redraw_network = redraw_usb = true;
                 Invalidate();
             }
             time_format::ClearChanged();
@@ -195,58 +166,100 @@ void window_header_t::updateTime() {
     }
 }
 
-void window_header_t::updateIcons() {
+void window_header_t::update_bed_info() {
+    if (!bed_icon.IsVisible() || !bed_text.IsVisible()) {
+        return;
+    }
 
+    static constexpr uint32_t blink_period_ms { 500 };
+    uint32_t now = ticks_ms();
+    if (now - bed_last_change_ms > blink_period_ms) {
+        if (bed_text.GetTextColor() != COLOR_ORANGE) {
+            bed_text.SetTextColor(COLOR_ORANGE);
+        } else {
+            bed_text.SetTextColor(COLOR_WHITE);
+        }
+        bed_last_change_ms = now;
+    }
+
+    snprintf(bed_str, sizeof(bed_str), "%d\xC2\xB0\x43", static_cast<int>(marlin_vars()->temp_bed.get()));
+    bed_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)bed_str));
+    bed_text.Invalidate();
+}
+
+void window_header_t::updateAllRects() {
+    // precondition: called after all other items have their status updated
+
+    uint16_t current_offset = Width() - GuiDefaults::HeaderPadding.right;
+    auto maybe_update = [&current_offset, this](auto &item, Rect16::Width_t item_width) {
+        if (item.IsVisible()) {
+            current_offset -= item_width;
+            auto top_position { GuiDefaults::HeaderPadding.top };
+            if constexpr (std::same_as<window_text_t, std::remove_cvref_t<decltype(item)>>) {
+                top_position += GuiDefaults::HeaderTextExtraPaddingTop;
+            }
+            Rect16 new_rect { Rect16(current_offset, top_position, item_width, GuiDefaults::HeaderItemHeight) };
+            if (item.GetRect() != new_rect) {
+
+                item.SetRect(new_rect);
+                Invalidate(); // invalidate everything, we've moved at least one item
+            }
+            current_offset -= inter_item_padding;
+        }
+    };
+
+    // note: call order also means order from the right
+    if (time_on) {
+        maybe_update(time_val, time_format::Get() == time_format::TF_t::TF_24H ? time_24h_w : time_12h_w);
+    }
+    maybe_update(icon_usb, usb_w);
+    maybe_update(icon_network, lan_w);
+    if (transfer_val_on) {
+        maybe_update(transfer_val, transfer_val_w);
+    }
+    maybe_update(icon_transfer, transfer_w);
+    maybe_update(bed_text, bed_text_width);
+    maybe_update(bed_icon, bed_icon_width);
+
+    auto label_width = current_offset - GuiDefaults::HeaderPadding.left;
+
+    // if label needs invalidation after being attempted to set it's rect
+    if (auto rc = [&]() {
+            if (icon_base.IsIconValid()) {
+                return label.SetRect(Rect16(GuiDefaults::HeaderPadding.left + base_w + inter_item_padding, GuiDefaults::HeaderPadding.top + GuiDefaults::HeaderTextExtraPaddingTop, label_width - base_w - inter_item_padding, GuiDefaults::HeaderItemHeight));
+            } else {
+                return label.SetRect(Rect16(GuiDefaults::HeaderPadding.left, GuiDefaults::HeaderPadding.top + GuiDefaults::HeaderTextExtraPaddingTop, label_width, GuiDefaults::HeaderItemHeight));
+            }
+        }();
+        rc) {
+        label.Invalidate();
+    }
+}
+
+void window_header_t::updateIcons() {
     updateNetwork(netdev_get_active_id());
     updateTransfer();
     updateTime();
+    update_bed_info();
 
-    // calculate usb icon's X coord
-    if (redraw_usb) {
-        if (icon_usb.IsVisible()) {
-            icon_usb.SetRect(Rect16(calculate_usb_icon_x(), y_offset, usb_w, GuiDefaults::HeaderHeight - y_offset));
-        }
-        Invalidate(); // Invalidate whole header to avoid icon leftovers in between icons
-    }
-
-    // calculate lan icon's X coord
-    if (redraw_network) {
-        if (icon_network.IsVisible()) {
-            icon_network.SetRect(Rect16(calculate_lan_icon_x(), y_offset, lan_w, GuiDefaults::HeaderHeight - y_offset));
-        }
-        icon_network.Invalidate();
-    }
-
-    // calculate lan icon's X coord
-    if (redraw_transfer) {
-        if (icon_transfer.IsVisible()) {
-            icon_transfer.SetRect(Rect16(calculate_transfer_icon_x(), y_offset, transfer_w, GuiDefaults::HeaderHeight - y_offset));
-        }
-        if (transfer_val.IsVisible()) {
-            transfer_val.SetRect(Rect16(calculate_transfer_val_x(), y_offset, transfer_val_w, GuiDefaults::HeaderHeight - y_offset));
-        }
-        icon_transfer.Invalidate();
-        transfer_val.Invalidate();
-    }
-    redraw_transfer = redraw_network = redraw_usb = false;
+    updateAllRects();
 }
 
 window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
     : AddSuperWindow<window_frame_t>(parent, GuiDefaults::RectHeader)
-    , icon_base(this, Rect16(x_offset, y_offset, base_w, GuiDefaults::HeaderHeight - y_offset), nullptr)
-    , label(this, Rect16(x_offset, y_text_offest, label_w, GuiDefaults::HeaderHeight - y_text_offest), txt)
-    , time_val(this, Rect16(0, y_text_offest, time_12h_w, GuiDefaults::HeaderHeight - y_text_offest), is_multiline::no)
-    , icon_usb(this, Rect16(0, y_offset, usb_w, GuiDefaults::HeaderHeight - y_offset), &img::usb_32x16)
-    , icon_network(this, Rect16(0, y_offset, lan_w, GuiDefaults::HeaderHeight - y_offset), window_header_t::networkIcon(netdev_get_active_id()))
-    , transfer_val(this, Rect16(0, y_text_offest, transfer_val_w, GuiDefaults::HeaderHeight - y_text_offest), is_multiline::no)
-    , icon_transfer(this, Rect16(0, y_offset, transfer_w, GuiDefaults::HeaderHeight - y_offset), &img::transfer_icon_16x16)
+    , icon_base(this, Rect16(GuiDefaults::HeaderPadding.left, GuiDefaults::HeaderPadding.top, base_w, GuiDefaults::HeaderItemHeight), nullptr)
+    , label(this, first_rect_doesnt_matter, txt)
+    , time_val(this, first_rect_doesnt_matter, is_multiline::no)
+    , icon_usb(this, first_rect_doesnt_matter, &img::usb_32x16)
+    , icon_network(this, first_rect_doesnt_matter, window_header_t::networkIcon(netdev_get_active_id()))
+    , transfer_val(this, first_rect_doesnt_matter, is_multiline::no)
+    , icon_transfer(this, first_rect_doesnt_matter, &img::transfer_icon_16x16)
+    , bed_text(this, first_rect_doesnt_matter, is_multiline::no)
+    , bed_icon(this, first_rect_doesnt_matter, &img::heatbed_16x16)
     , active_netdev_id(netdev_get_active_id())
     , active_netdev_status(netdev_get_status(active_netdev_id))
-    , redraw_usb(true)
-    , redraw_network(true)
-    , redraw_transfer(true)
     , force_network(true)
-#if PRINTER_IS_PRUSA_MINI
+#if defined(USE_ST7789)
     , transfer_val_on(false)
     , time_on(false)
 #else
@@ -255,23 +268,19 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
 #endif
 
 {
-#if defined(USE_ST7789)
-    /// label and icon aligmnent and offset
-    label.SetAlignment(Align_t::LeftBottom());
-    icon_base.SetAlignment(Align_t::CenterBottom());
-    icon_transfer.SetAlignment(Align_t::LeftTop());
-#elif defined(USE_ILI9488)
-    label.set_font(resource_font(IDR_FNT_SPECIAL));
-    label.SetAlignment(Align_t::LeftTop());
-    transfer_val.SetAlignment(Align_t::RightTop());
-    icon_base.SetAlignment(Align_t::LeftTop());
-    icon_usb.SetAlignment(Align_t::LeftTop());
-    icon_network.SetAlignment(Align_t::LeftTop());
-    icon_transfer.SetAlignment(Align_t::LeftTop());
-#endif // USE_<display>
+    label.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    label.SetAlignment(Align_t::LeftCenter());
+    transfer_val.SetAlignment(Align_t::LeftCenter());
+    transfer_val.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    icon_base.SetAlignment(Align_t::LeftCenter());
+    icon_usb.SetAlignment(Align_t::LeftCenter());
+    icon_network.SetAlignment(Align_t::LeftCenter());
+    icon_transfer.SetAlignment(Align_t::LeftCenter());
 
-    time_val.set_font(resource_font(IDR_FNT_SPECIAL));
-    time_val.SetAlignment(Align_t::RightTop());
+    time_val.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    time_val.SetAlignment(Align_t::RightCenter());
+    bed_text.set_font(resource_font(GuiDefaults::HeaderTextFont));
+    bed_icon.SetAlignment(Align_t::LeftCenter());
 
     time_val.Hide();
     icon_network.Hide();
@@ -291,6 +300,8 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
         }
         time_val.SetText(string_view_utf8::MakeRAM((const uint8_t *)time_str));
     }
+
+    hide_bed_info();
     updateMedia(GuiMediaEventsHandler::Get());
     updateIcons();
 
@@ -298,16 +309,13 @@ window_header_t::window_header_t(window_t *parent, string_view_utf8 txt)
 }
 
 void window_header_t::USB_Off() {
-    redraw_transfer = redraw_network = redraw_usb = true;
     icon_usb.Hide();
 }
 void window_header_t::USB_On() {
-    redraw_transfer = redraw_usb = redraw_network = true;
     icon_usb.Show();
     icon_usb.Shadow();
 }
 void window_header_t::USB_Activate() {
-    redraw_transfer = redraw_usb = redraw_network = true;
     icon_usb.Show();
     icon_usb.Unshadow();
 }

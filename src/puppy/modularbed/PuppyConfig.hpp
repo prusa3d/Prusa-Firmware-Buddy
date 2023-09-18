@@ -83,6 +83,7 @@ inline constexpr uint8_t ADC_BATCH_SIZE = 34; // please do not change this value
 
 #define TEMPERATURE_PEAK_THRESHOLD_DEGREES 3
 #define TEMPERATURE_PEAK_THRESHOLD_SECONDS 60
+#define TEMPERATURE_PEAK_AMBIENT_DEGREES   50
 
 #define TEMPERATURE_PREHEAT_CHECK_MIN_DEGREES_WITHOUT_FAN 0.5 // 0.5 degree increase per minute
 #define TEMPERATURE_PREHEAT_CHECK_MIN_DEGREES_WITH_FAN    -20 // With fan, we allow temperature to decrease

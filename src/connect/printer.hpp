@@ -144,6 +144,7 @@ public:
     virtual void submit_gcode(const char *gcode) = 0;
     virtual bool set_ready(bool ready) = 0;
     virtual bool is_printing() const = 0;
+    virtual bool is_idle() const = 0;
     // Turn connect on and set the token.
     //
     // Part of registration.

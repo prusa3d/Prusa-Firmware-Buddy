@@ -1,6 +1,8 @@
 #include "splice.h"
 #include "server.h"
 
+#include <transfers/files.hpp>
+
 using nhttp::splice::Result;
 using std::array;
 
@@ -9,17 +11,7 @@ namespace nhttp::splice {
 namespace {
 
     bool store_segment(FILE *f, pbuf *data, size_t offset) {
-        for (;;) {
-            const size_t written = fwrite(static_cast<const uint8_t *>(data->payload) + offset, data->len - offset, 1, f);
-            if (written < 1) {
-                if (errno == EAGAIN || errno == EINTR) {
-                    continue;
-                }
-                return false;
-            } else {
-                return true;
-            }
-        }
+        return transfers::write_block(f, static_cast<const uint8_t *>(data->payload) + offset, data->len - offset);
     }
 
 } // namespace

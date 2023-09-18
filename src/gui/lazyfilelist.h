@@ -180,7 +180,7 @@ public:
 private:
 #endif
 
-    std::array<Entry, WINDOW_SIZE> files; ///< roughly WINDOW_SIZE * 100B, can be placed in CCRAM if needed. For MINI it is only 9 entries -> only 900B
+    std::array<Entry, WINDOW_SIZE> files; ///< roughly WINDOW_SIZE * 100B, can be placed in CCMRAM if needed. For MINI it is only 9 entries -> only 900B
     size_t totalFiles;                    ///< total number of entries in the directory
     int windowStartingFrom;               ///< from which entry index the window starts (e.g. from the 3rd file in dir).
                                           ///< intentionally int, because -1 means ".."

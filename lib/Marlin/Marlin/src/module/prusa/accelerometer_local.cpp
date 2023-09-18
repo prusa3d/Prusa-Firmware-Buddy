@@ -6,9 +6,11 @@
     #include "main.hpp"
 
 PrusaAccelerometer::PrusaAccelerometer()
-    : m_error(Error::none)
-    , m_fifo(accelerometer) {
-    accelerometer.begin();
+    : m_fifo(accelerometer) {
+    m_error = Error::none;
+    if (IMU_SUCCESS != accelerometer.begin()) {
+        m_error = Error::communication;
+    }
     accelerometer.fifoBegin();
 }
 
@@ -20,4 +22,5 @@ void PrusaAccelerometer::clear() {
 int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     return m_fifo.get(acceleration);
 }
+PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;
 #endif // ENABLED(LOCAL_ACCELEROMETER)

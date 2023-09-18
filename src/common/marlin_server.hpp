@@ -184,6 +184,9 @@ void set_exclusive_mode(int exclusive);
 // display different value than target, used in preheat
 void set_temp_to_display(float value, uint8_t extruder);
 
+// called to set target bed (sets both marlin_vars and thermal_manager)
+void set_target_bed(float value);
+
 bool get_media_inserted();
 
 //

@@ -86,7 +86,8 @@ MI_PICKUP_TOOL::MI_PICKUP_TOOL()
 }
 
 void MI_PICKUP_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode_printf("T%d S", displayed_tool);
+    marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
+    marlin_client::gcode_printf("T%d S1 L0 D0", displayed_tool);
 }
 
 MI_DOCK_CALIBRATE::MI_DOCK_CALIBRATE()
@@ -127,7 +128,8 @@ MI_PARK_TOOL::MI_PARK_TOOL()
 }
 
 void MI_PARK_TOOL::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+    marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
+    marlin_client::gcode_printf("T%d S1 L0 D0", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
 }
 
 ScreenMenuTools::ScreenMenuTools()

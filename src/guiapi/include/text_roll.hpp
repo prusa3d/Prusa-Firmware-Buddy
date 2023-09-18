@@ -8,7 +8,7 @@ enum class invalidate_t { no,
 
 class txtroll_t {
     static constexpr uint32_t base_tick_ms = 40;
-    static constexpr uint32_t wait_before_roll_ms = 2000;
+    static constexpr uint32_t wait_before_roll_ms = 300;
     static constexpr uint32_t wait_after_roll_ms = 1000;
 
     enum class phase_t : uint8_t {

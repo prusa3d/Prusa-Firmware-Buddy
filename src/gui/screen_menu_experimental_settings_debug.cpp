@@ -71,10 +71,16 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         Invalidate();
         break;
     case ClickCommand::Reset_steps:
-        Item<MI_STEPS_PER_UNIT_X>().SetVal(config_store().axis_steps_per_unit_x.default_val);
-        Item<MI_STEPS_PER_UNIT_Y>().SetVal(config_store().axis_steps_per_unit_y.default_val);
-        Item<MI_STEPS_PER_UNIT_Z>().SetVal(config_store().axis_steps_per_unit_z.default_val);
-        Item<MI_STEPS_PER_UNIT_E>().SetVal(config_store().axis_steps_per_unit_e0.default_val);
+        // Show absolute value
+        Item<MI_STEPS_PER_UNIT_X>().SetVal(std::abs(config_store().axis_steps_per_unit_x.default_val));
+        Item<MI_STEPS_PER_UNIT_Y>().SetVal(std::abs(config_store().axis_steps_per_unit_y.default_val));
+        Item<MI_STEPS_PER_UNIT_Z>().SetVal(std::abs(config_store().axis_steps_per_unit_z.default_val));
+        Item<MI_STEPS_PER_UNIT_E>().SetVal(std::abs(config_store().axis_steps_per_unit_e0.default_val));
+        // Set default axis direction
+        Item<MI_DIRECTION_X>().SetIndex(0);
+        Item<MI_DIRECTION_Y>().SetIndex(0);
+        Item<MI_DIRECTION_Z>().SetIndex(0);
+        Item<MI_DIRECTION_E>().SetIndex(0);
         Invalidate();
         break;
     case ClickCommand::Reset_directions:
@@ -86,17 +92,21 @@ void ScreenMenuExperimentalSettings::windowEvent(EventLock /*has private ctor*/,
         Invalidate();
         break;
     case ClickCommand::Reset_microsteps:
+        // 0 is valid for X and Y axis
+        // it means default dependent on config_store().xy_motors_400_step
         Item<MI_MICROSTEPS_X>().SetVal(config_store().axis_microsteps_X_.default_val);
         Item<MI_MICROSTEPS_Y>().SetVal(config_store().axis_microsteps_Y_.default_val);
         Item<MI_MICROSTEPS_Z>().SetVal(config_store().axis_microsteps_Z_.default_val);
-        Item<MI_MICROSTEPS_E>().SetVal(config_store().axis_microsteps_E_.default_val);
+        Item<MI_MICROSTEPS_E>().SetVal(config_store().axis_microsteps_E0_.default_val);
         Invalidate();
         break;
     case ClickCommand::Reset_currents:
+        // 0 is valid for X and Y axis
+        // it means default dependent on config_store().xy_motors_400_step
         Item<MI_CURRENT_X>().SetVal(config_store().axis_rms_current_ma_X_.default_val);
         Item<MI_CURRENT_Y>().SetVal(config_store().axis_rms_current_ma_Y_.default_val);
         Item<MI_CURRENT_Z>().SetVal(config_store().axis_rms_current_ma_Z_.default_val);
-        Item<MI_CURRENT_E>().SetVal(config_store().axis_rms_current_ma_E_.default_val);
+        Item<MI_CURRENT_E>().SetVal(config_store().axis_rms_current_ma_E0_.default_val);
         Invalidate();
         break;
     }

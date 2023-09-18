@@ -9,7 +9,6 @@
 #include "common.hpp"
 #include "cmath_ext.h"
 
-// #define FAIL_ON_NEGATIVE_STEP_TIME
 // #define ISR_DEADLINE_DEBUGGING // Enable audible warnings on step deadline misses
 // #define ISR_DEADLINE_TRACKING // Accurate (but expensive) deadline miss tracking
 // #define ISR_EVENT_DEBUGGING // Enable audible warnings on event queue misses
@@ -19,7 +18,8 @@ constexpr const float EPSILON_FLOAT = 0.0000001f;
 
 constexpr const double MAX_PRINT_TIME = 10000000.;
 
-FORCE_INLINE double calc_distance(const double start_v, const double half_accel, const double move_time) {
+template <typename Type>
+FORCE_INLINE Type calc_distance(const Type start_v, const Type half_accel, const Type move_time) {
     return (start_v + half_accel * move_time) * move_time;
 }
 
@@ -28,7 +28,7 @@ FORCE_INLINE xyze_double_t calc_end_position(const xyze_double_t start_pos, cons
 }
 
 FORCE_INLINE xyze_double_t calc_end_position(const double start_v, const double half_accel, const double move_time, const xyze_double_t start_pos, const xyze_double_t axes_r) {
-    const double dist = calc_distance(start_v, half_accel, move_time);
+    const double dist = calc_distance<double>(start_v, half_accel, move_time);
     return calc_end_position(start_pos, axes_r, dist);
 }
 
@@ -55,18 +55,17 @@ FORCE_INLINE float calc_time_for_distance(const float start_velocity, const floa
         if (start_velocity != 0.f)
             return distance / start_velocity;
         else
-            return NAN;
-    }
-
-    // Preventing computing sqrt from negative numbers caused by numerical issues.
-    const float sqr = 2.f * acceleration * distance + SQR(start_velocity);
-    if (sqr < 0.f && sqr >= -EPSILON_FLOAT)
+            return std::numeric_limits<float>::infinity();
+    } else if (const float sqr = 2.f * acceleration * distance + SQR(start_velocity); sqr >= 0.f) {
+        if (step_dir)
+            return (fast_sqrt(sqr) - start_velocity) / acceleration;
+        else
+            return (-fast_sqrt(sqr) - start_velocity) / acceleration;
+    } else if (sqr < 0.f && sqr >= -EPSILON_FLOAT) {
         return -(start_velocity / acceleration);
-
-    if (step_dir)
-        return (fast_sqrt(sqr) - start_velocity) / acceleration;
-    else
-        return (-fast_sqrt(sqr) - start_velocity) / acceleration;
+    } else {
+        return std::numeric_limits<float>::infinity();
+    }
 }
 
 FORCE_INLINE double get_move_half_accel(const move_t &move, const int axis) {
@@ -85,28 +84,14 @@ FORCE_INLINE double get_move_start_pos(const move_t &move, const int axis) {
     return move.start_pos[axis];
 }
 
+FORCE_INLINE double get_move_end_pos(const move_t &move, const int axis) {
+    return move.start_pos[axis] + calc_distance<double>(move.start_v, move.half_accel, move.move_t);
+}
+
 // True - Positive direction
 // False - Negative direction
 FORCE_INLINE int get_move_step_dir(const move_t &move, const int axis) {
     return !(move.flags & (MOVE_FLAG_X_DIR << axis));
-}
-
-// Reset all step_event that are equal to std::numeric_limits<float>::max() to zero.
-// std::numeric_limits<float>::max() indicates that all step events for the given move and its axis were already generated.
-FORCE_INLINE void step_generator_state_restart(step_generator_state_t &step_generator_state) {
-    bool updated = false;
-    for (step_event_info_t &step_event_info : step_generator_state.step_events) {
-        if (step_event_info.time == std::numeric_limits<double>::max()) {
-            step_event_info.time = 0;
-            updated = true;
-        }
-    }
-
-    // rebuild the step index
-    if (updated) {
-        std::sort(step_generator_state.step_event_index.begin(), step_generator_state.step_event_index.end(),
-            [&](auto a, auto b) { return step_generator_state.step_events[a].time < step_generator_state.step_events[b].time; });
-    }
 }
 
 // Update the step event index after updating the first entry (oldest) to keep it sorted.
@@ -128,22 +113,6 @@ FORCE_INLINE void step_generator_state_update_nearest_idx(step_generator_state_t
 
     // update
     step_generator_state.step_event_index[insert_pos] = first_index;
-}
-
-// Returns if all generators reach the end of the move queue and are unable to generate next-step events
-// that means that the step queue will start draining.
-FORCE_INLINE bool has_all_generators_reached_end_of_move_queue(const step_generator_state_t &step_generator_state) {
-    bool all_generators_reached_end_of_move_queue = true;
-    for (const basic_step_generator_t *step_generator : step_generator_state.step_generator)
-        all_generators_reached_end_of_move_queue &= step_generator->reached_end_of_move_queue;
-
-    return all_generators_reached_end_of_move_queue;
-}
-
-// Reset reached_end_of_move_queue flag for all step event generators.
-FORCE_INLINE void reset_reached_end_of_move_queue_flag(const step_generator_state_t &step_generator_state) {
-    for (basic_step_generator_t *step_generator : step_generator_state.step_generator)
-        step_generator->reached_end_of_move_queue = false;
 }
 
 FORCE_INLINE constexpr bool is_active_x_axis(const move_t &move) {

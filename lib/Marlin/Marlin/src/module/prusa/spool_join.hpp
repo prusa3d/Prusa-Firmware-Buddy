@@ -34,19 +34,22 @@ public:
     bool add_join(uint8_t spool_1, uint8_t spool_2);
 
     // reroutes all succeeding joins to previous ones
-    bool remove_joins_containing(uint8_t spool);
+    bool reroute_joins_containing(uint8_t spool);
 
-    // gets the first spool that will be printed with in the spool join chain
-    uint8_t get_earliest_spool_1(uint8_t spool_2) const;
+    // removes whole join chain that contains given spool
+    bool remove_join_chain_containing(uint8_t spool);
+
+    // gets the first spool that will be printed with in the spool join chain, returns spool_2 if not in chain
+    uint8_t get_first_spool_1_from_chain(uint8_t spool_2) const;
 
     // gets the spool_2 of the given spool_1
-    std::optional<uint8_t> get_join_for_tool(uint8_t tool);
+    std::optional<uint8_t> get_spool_2(uint8_t spool_1) const;
 
     // return number of configured joins
-    inline uint8_t get_num_joins() { return num_joins; }
+    inline uint8_t get_num_joins() const { return num_joins; }
 
     /// Get join configuration with number
-    inline join_config_t get_join_nr(uint8_t join_nr) { return joins[join_nr]; }
+    inline join_config_t get_join_nr(uint8_t join_nr) const { return joins[join_nr]; }
 
     /// Execute join
     bool do_join(uint8_t current_tool);

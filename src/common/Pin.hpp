@@ -216,11 +216,24 @@ public:
      *          Lowest sub-priority depends on how available priority bits are assigned between
      *          priority and sub-priority.
      */
-    constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority)
+    constexpr InterruptPin(IoPort ioPort, IoPin ioPin, IMode iMode, Pull pull, uint8_t preemptPriority, uint8_t subPriority, bool startEnabled = true)
         : InputPin(ioPort, ioPin, iMode, pull)
-        , m_priority { preemptPriority, subPriority } {}
+        , m_priority { preemptPriority, subPriority }
+        , m_startEnabled(startEnabled) {}
     void configure() const;
+
+    // IRQ handler for the interrupt
     IRQn_Type getIRQn() const;
+
+    // EXTI interrupt flag management
+    bool getIT() const { return __HAL_GPIO_EXTI_GET_IT(m_halPin) != RESET; }
+    void clearIT() const { __HAL_GPIO_EXTI_CLEAR_IT(m_halPin); }
+    void triggerIT() const { __HAL_GPIO_EXTI_GENERATE_SWIT(m_halPin); }
+
+    // NVIC interrupt management
+    bool isIRQEnabled() const { return NVIC_GetEnableIRQ(getIRQn()); }
+    void enableIRQ() const { HAL_NVIC_EnableIRQ(getIRQn()); }
+    void disableIRQ() const { HAL_NVIC_DisableIRQ(getIRQn()); }
 
 protected:
     struct Priority {
@@ -228,6 +241,7 @@ protected:
         uint8_t subPriority : 4;
     };
     Priority m_priority;
+    bool m_startEnabled;
 };
 
 class InterruptPin_Inverted : public InterruptPin {

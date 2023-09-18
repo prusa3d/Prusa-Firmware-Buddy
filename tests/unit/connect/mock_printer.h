@@ -77,6 +77,10 @@ public:
         return false;
     }
 
+    virtual bool is_idle() const override {
+        return false;
+    }
+
     virtual void init_connect(char *) override {}
 };
 

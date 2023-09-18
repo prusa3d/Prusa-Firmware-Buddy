@@ -3,6 +3,7 @@
 #include "fsm_base_types.hpp"
 #include "log.h"
 #include "marlin_vars.hpp"
+#include <common/no_rtti_type_id.hpp>
 
 /// @brief Parent of all extended FSM data
 class FSMExtendedData {
@@ -48,6 +49,9 @@ public:
     /// @return id
     template <FSMExtendedDataSubclass T>
     static bool store(T &data) {
+        // do simple check that get_identifier works as expected and provides diffent value for different types
+        assert(get_identifier<T>() != get_identifier<FSMExtendedData>());
+
         // all operations are done under lock
         auto guard = MarlinVarsLockGuard();
 
@@ -82,7 +86,7 @@ public:
             result = *reinterpret_cast<T *>(&extended_data_buffer);
             return true;
         } else {
-            log_info(FSM, "FSM extended data get fail", typeid(T).name());
+            log_info(FSM, "FSM extended data get fail");
             return false;
         }
     }
@@ -96,8 +100,7 @@ private:
     /// @tparam T subclass of FSMExtendedData
     /// @return identifier
     template <FSMExtendedDataSubclass T>
-    static constexpr size_t get_identifier() {
-        // hash code of type is used to store type between
-        return typeid(T).hash_code();
+    static constexpr uintptr_t get_identifier() {
+        return no_rtti_hash_code<T>();
     }
 };

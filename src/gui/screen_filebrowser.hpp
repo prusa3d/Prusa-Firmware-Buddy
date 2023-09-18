@@ -13,6 +13,12 @@ class screen_filebrowser_data_t : public AddSuperWindow<screen_t> {
     void printTheFile();
     void goHome();
 
+    /**
+     * @brief Check if media is removed and close filebrowser.
+     * @param media_state media state from event or from global state
+     */
+    void checkMissingMedia(MediaState_t media_state);
+
 public:
     screen_filebrowser_data_t();
 

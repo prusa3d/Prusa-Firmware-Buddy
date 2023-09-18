@@ -14,6 +14,7 @@
 #include "metric.h"
 #include "screen_menu_tune.hpp"
 #include <option/has_human_interactions.h>
+#include <option/has_loadcell.h>
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
     #include "filament_sensors_handler.hpp"
@@ -116,7 +117,7 @@ screen_printing_data_t::screen_printing_data_t()
     , w_time_label(this, Rect16(10, 128, 101, 20), is_multiline::no)
     , w_time_value(this, Rect16(10, 148, 101, 20), is_multiline::no)
     , w_etime_label(this, Rect16(130, 128, 101, 20), is_multiline::no)
-    , w_etime_value(this, Rect16(30, 148, 201, 20), is_multiline::no)
+    , w_etime_value(this, Rect16(120, 148, 111, 37), is_multiline::yes)
 #elif defined(USE_ILI9488)
     , w_filename(this, Rect16(30, 38, 420, 24))
     , w_progress(this, Rect16(30, 65, GuiDefaults::RectScreen.Width() - 2 * 30, 16))
@@ -146,7 +147,8 @@ screen_printing_data_t::screen_printing_data_t()
     w_filename.SetAlignment(Align_t::LeftBottom());
     w_progress_txt.SetAlignment(Align_t::Center());
     w_etime_label.SetAlignment(Align_t::RightBottom());
-    w_etime_value.SetAlignment(Align_t::RightBottom());
+    w_etime_value.SetAlignment(Align_t::RightTop());
+    w_etime_value.SetPadding({ 0, 5, 0, 2 });
 
     ResourceId etime_val_font = IDR_FNT_SMALL;
     w_progress_txt.set_font(resource_font(IDR_FNT_NORMAL));
@@ -160,12 +162,15 @@ screen_printing_data_t::screen_printing_data_t()
     w_time_value.set_font(resource_font(IDR_FNT_SMALL));
     w_time_value.SetAlignment(align);
     w_time_value.SetPadding({ 0, 2, 0, 2 });
+    w_time_label.Hide();
+    w_time_value.Hide();
 #elif defined(USE_ILI9488)
     // ILI_9488 specific adjustments
     w_filename.SetAlignment(Align_t::LeftTop());
     w_progress_txt.SetAlignment(Align_t::RightTop());
     w_etime_label.SetAlignment(Align_t::LeftBottom());
     w_etime_value.SetAlignment(Align_t::LeftBottom());
+    w_etime_value.SetPadding({ 0, 2, 0, 2 });
 
     w_etime_label.SetTextColor(COLOR_SILVER);
     ResourceId etime_val_font = IDR_FNT_NORMAL;
@@ -175,17 +180,27 @@ screen_printing_data_t::screen_printing_data_t()
     w_filename.set_font(resource_font(IDR_FNT_BIG));
     w_filename.SetPadding({ 0, 0, 0, 0 });
     // this MakeRAM is safe - vars->media_LFN is statically allocated (even though it may not be obvious at the first look)
-    marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN));
-    marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path));
+    {
+        // Update printed filename from marlin_server, sample LFN+SFN atomically
+        auto lock = MarlinVarsLockGuard();
+        marlin_vars()->media_LFN.copy_to(gui_media_LFN, sizeof(gui_media_LFN), lock);
+        marlin_vars()->media_SFN_path.copy_to(gui_media_SFN_path, sizeof(gui_media_SFN_path), lock);
+    }
     w_filename.SetText(string_view_utf8::MakeRAM((const uint8_t *)gui_media_LFN));
 
     w_etime_label.set_font(resource_font(IDR_FNT_SMALL));
+
+#if defined(USE_ILI9488)
+    /// @note Initialize GCodeInfo of print progress.
+    ///   This needs to be done after gui_media_SFN_path is updated.
+    ///   This can take time if GCodeInfo was not yet inited, after powerpanic and such.
+    print_progress.init_gcode_info();
+#endif /*USE_ILI9488*/
 
     // Execute first print time update loop
     updateTimes();
 
     w_etime_value.set_font(resource_font(etime_val_font));
-    w_etime_value.SetPadding({ 0, 2, 0, 2 });
 
 #if defined(USE_ILI9488)
     print_progress.Pause();
@@ -233,8 +248,8 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
         return;
     }
 
-#if ENABLED(NOZZLE_LOAD_CELL) && ENABLED(PROBE_CLEANUP_SUPPORT)
-    if (marlin_client::error(MARLIN_ERR_NozzleCleaningFailed)) {
+#if HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
+    if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_client::error(MARLIN_ERR_NozzleCleaningFailed)) {
         marlin_client::error_clr(MARLIN_ERR_NozzleCleaningFailed);
         if (MsgBox(_("Nozzle cleaning failed."), Responses_RetryAbort) == Response::Retry) {
             marlin_client::print_resume();
@@ -248,15 +263,10 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 #if HAS_BED_PROBE
     if ((p_state == printing_state_t::PRINTED || p_state == printing_state_t::PAUSED) && marlin_client::error(MARLIN_ERR_ProbingFailed)) {
         marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
-        marlin_client::print_abort();
-        while (marlin_vars()->print_state == State::Aborting_Begin
-            || marlin_vars()->print_state == State::Aborting_WaitIdle
-            || marlin_vars()->print_state == State::Aborting_ParkHead) {
-            gui_loop(); // Wait while aborting
-        }
         if (MsgBox(_("Bed leveling failed. Try again?"), Responses_YesNo) == Response::Yes) {
-            screen_printing_reprint(); // Restart print
+            marlin_client::print_resume();
         } else {
+            marlin_client::print_abort();
             return;
         }
     }
@@ -310,8 +320,10 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 #if defined(USE_ILI9488)
     if (event == GUI_event_t::LOOP && p_state == printing_state_t::PRINTING) {
         auto vars = marlin_vars();
-        const bool midprint = vars->logical_curr_pos[MARLIN_VAR_INDEX_Z] >= 0.0f;
-        const bool extruder_moved = (vars->logical_curr_pos[MARLIN_VAR_INDEX_E] - last_e_axis_position) > 0;
+        const bool midprint = vars->logical_curr_pos[MARLIN_VAR_INDEX_Z] >= 1.0f;
+        const bool extruder_moved = (vars->logical_curr_pos[MARLIN_VAR_INDEX_E] - last_e_axis_position) > 0
+            && vars->logical_curr_pos[MARLIN_VAR_INDEX_E] > 0
+            && last_e_axis_position > 0; // Ignore negative movements and reset of E position (e.g. retraction)
         if (print_progress.isPaused() && midprint && extruder_moved) {
             print_progress.Resume();
         } else if (print_progress.isPaused()) {
@@ -370,12 +382,7 @@ void screen_printing_data_t::screen_printing_reprint() {
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
-    #if not PRINTER_IS_PRUSA_MK4
-    header.SetText(_("INPUT SHAPER (ALPHA)"));
-    #else
-    header.SetText(_("INPUT SHAPER"));
-    #endif
-
+    header.SetText(_(caption));
 #endif
 }
 
@@ -495,6 +502,7 @@ void screen_printing_data_t::change_print_state() {
     case State::WaitGui:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+    case State::PrintPreviewConfirmed:
     case State::PrintPreviewQuestions:
     case State::PrintPreviewToolsMapping:
     case State::PrintInit:
@@ -550,6 +558,7 @@ void screen_printing_data_t::change_print_state() {
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
     case State::Aborting_ParkHead:
+    case State::Aborting_Preview:
         stop_pressed = false;
         st = printing_state_t::ABORTING;
         break;

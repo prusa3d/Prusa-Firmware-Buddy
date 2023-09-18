@@ -44,6 +44,8 @@
 #include "safe_state.h"
 #include <espif.h>
 #include "sound.hpp"
+#include <ccm_thread.hpp>
+#include <printers.h>
 
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
@@ -62,7 +64,7 @@
     #endif
 #endif
 
-#if (BOARD_IS_XBUDDY)
+#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     #include "hw_configuration.hpp"
 #endif
 
@@ -114,6 +116,12 @@ extern "C" void main_cpp(void) {
     // ADC/DMA
     hw_adc1_init();
     adcDma1.init();
+
+#if PRINTER_IS_PRUSA_XL
+    // Read Sandwich hw revision
+    SandwichConfiguration::Instance();
+#endif
+
 #ifdef HAS_ADC3
     hw_adc3_init();
     adcDma3.init();
@@ -229,6 +237,7 @@ extern "C" void main_cpp(void) {
 
 #if (BOARD_IS_BUDDY)
     uartrxbuff_init(&uart1rxbuff, &hdma_usart1_rx, sizeof(uart1rx_data), uart1rx_data);
+    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(uart1rxbuff.buffer)));
     HAL_UART_Receive_DMA(&huart1, uart1rxbuff.buffer, uart1rxbuff.buffer_size);
     uartrxbuff_reset(&uart1rxbuff);
 #endif
@@ -252,18 +261,18 @@ extern "C" void main_cpp(void) {
     espif_init_hw();
 #endif
 
-    osThreadDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
+    osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
     if (option::has_gui) {
-        osThreadDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 256 + 128);
+        osThreadCCMDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 2048);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 
 #if ENABLED(POWER_PANIC)
     power_panic::check_ac_fault_at_startup();
     /* definition and creation of acFaultTask */
-    osThreadDef(acFaultTask, power_panic::ac_fault_task_main, TASK_PRIORITY_AC_FAULT, 0, 80);
+    osThreadCCMDef(acFaultTask, power_panic::ac_fault_task_main, TASK_PRIORITY_AC_FAULT, 0, 80);
     power_panic::ac_fault_task = osThreadCreate(osThread(acFaultTask), NULL);
 #endif
 
@@ -276,6 +285,7 @@ extern "C" void main_cpp(void) {
     osThreadCCMDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 256);
     osThreadCreate(osThread(asyncIoTask), nullptr);
     #endif
+    espif_task_create();
 
     TaskDeps::wait(TaskDeps::Tasks::network);
     start_network_task();
@@ -288,13 +298,13 @@ extern "C" void main_cpp(void) {
     #endif
     TaskDeps::wait(TaskDeps::Tasks::connect);
     /* definition and creation of connectTask */
-    osThreadDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
+    osThreadCCMDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
-        osThreadDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
+        osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
         osThreadCreate(osThread(measurementTask), NULL);
     }
 }
@@ -367,6 +377,9 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
     }
     #endif
 #endif
+    if (huart == &UART_HANDLE_FOR(esp)) {
+        return espif_tx_callback();
+    }
 }
 
 void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart) {
@@ -483,12 +496,9 @@ void iwdg_warning_cb(void) {
     ///@note Watchdog is disabled in debug,
     /// so this will be helpful only if it is manually enabled or ifdef commented out.
 
-    // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
 #endif /*_DEBUG*/
-    DUMP_IWDGW_TO_CCRAM(0x10);
+    DUMP_IWDGW_TO_CCMRAM(0x10);
     wdt_iwdg_refresh();
     save_dump();
 #ifndef _DEBUG
@@ -538,7 +548,7 @@ void init_error_screen() {
 
         init_only_littlefs();
 
-        osThreadDef(displayTask, StartErrorDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 256);
+        osThreadCCMDef(displayTask, StartErrorDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 256);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
 }
@@ -598,7 +608,7 @@ extern "C" void startup_task(void const *) {
 
 // must do this before timer 1, timer 1 interrupt calls Configuration
 // also must be before initializing global variables
-#if BOARD_IS_XBUDDY
+#if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
     buddy::hw::Configuration::Instance();
 #endif
 

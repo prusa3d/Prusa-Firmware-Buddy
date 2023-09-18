@@ -51,7 +51,7 @@ constexpr Rect16 SelftestFrameESP_qr::Positioner::qrcodeRect() {
             qrcodeHeight
         };
     } else {
-        return Rect16 { 160 - qrcodeWidth / 2, 200 - qrcodeHeight / 2, qrcodeWidth, qrcodeHeight };
+        return Rect16 { 160 - qrcodeWidth / 2, WizardDefaults::RectRadioButton(0).Top() - qrcodeHeight - 5, qrcodeWidth, qrcodeHeight };
     }
 }
 
@@ -83,6 +83,6 @@ constexpr Rect16 SelftestFrameESP_qr::Positioner::linkRect() {
     if (GuiDefaults::ScreenWidth > 240) {
         return Rect16 { WizardDefaults::col_0, WizardDefaults::Y_space - textHeight, phoneIconRect().Left() - WizardDefaults::col_0, textHeight };
     } else {
-        return Rect16 { WizardDefaults::col_0, WizardDefaults::Y_space - textHeight, WizardDefaults::X_space, textHeight };
+        return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textHeight, WizardDefaults::X_space, WizardDefaults::txt_h };
     }
 }

@@ -7,7 +7,6 @@
 #include <time_tools.hpp>
 #include <filament.hpp>
 #include <selftest_result.hpp>
-#include <metric_config.h>
 #include <option/development_items.h>
 #include <common/sheet.hpp>
 #include <module/prusa/dock_position.hpp>
@@ -92,10 +91,16 @@ namespace defaults {
 #if DEVELOPMENT_ITEMS()
     // Development build has metrics allowed
     inline constexpr MetricsAllow metrics_allow { MetricsAllow::All };
+    inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "matrix.prusa.vc" };
+    inline constexpr bool metrics_init { true };
 #else  /*DEVELOPMENT_ITEMS()*/
     // Production build need user to intentionally allow them
     inline constexpr MetricsAllow metrics_allow { MetricsAllow::None };
+    inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "" };
+    inline constexpr bool metrics_init { false };
 #endif /*DEVELOPMENT_ITEMS()*/
+    inline constexpr uint16_t metrics_port { 8514 };
+    inline constexpr uint16_t syslog_port { 13514 };
 
     inline constexpr bool crash_enabled {
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5)
@@ -140,7 +145,13 @@ namespace defaults {
     inline constexpr float loadcell_hysteresis { 80.f };
     inline constexpr float loadcell_threshold_continuous { -40.f };
 
-    inline constexpr int32_t extruder_fs_ref_value { std::numeric_limits<int32_t>::min() }; // min == will require calibration
+    // Filament sensor reference NOT INSERTED value
+    inline constexpr int32_t extruder_fs_ref_nins_value { std::numeric_limits<int32_t>::min() }; // min == will require calibration
+    // Filament sensor reference INSERTED value
+    // min == invalid value
+    // Note that previous FW versions didn't save this value during calibration, so fsensor has to work with this default value
+    inline constexpr int32_t extruder_fs_ref_ins_value { std::numeric_limits<int32_t>::min() };
+
     inline constexpr uint32_t extruder_fs_value_span {
 #if (BOARD_IS_XBUDDY && defined LOVEBOARD_HAS_PT100)
         100
@@ -151,7 +162,13 @@ namespace defaults {
 #endif
     };
 
-    inline constexpr int32_t side_fs_ref_value { std::numeric_limits<int32_t>::min() }; // min == will require calibration
+    // SIDE Filament sensor reference NOT INSERTED value
+    // min == will require calibration
+    inline constexpr int32_t side_fs_ref_nins_value { std::numeric_limits<int32_t>::min() };
+    // SIDE Filament sensor reference INSERTED value
+    // min == invalid value
+    // Note that previous FW versions didn't save this value during calibration, so fsensor has to work with this default value
+    inline constexpr int32_t side_fs_ref_ins_value { std::numeric_limits<int32_t>::min() };
     inline constexpr uint32_t side_fs_value_span { 310 };
 
     inline constexpr side_fsensor_remap::Mapping side_fs_remap = side_fsensor_remap::preset::no_mapping; // No remapping

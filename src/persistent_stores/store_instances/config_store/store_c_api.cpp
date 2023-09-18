@@ -177,19 +177,19 @@ extern "C" void set_positive_direction_e() {
 }
 
 extern "C" void set_negative_direction_x() {
-    float steps = config_store().axis_steps_per_unit_x.get();
+    float steps = std::abs(config_store().axis_steps_per_unit_x.get());
     config_store().axis_steps_per_unit_x.set(-steps);
 }
 extern "C" void set_negative_direction_y() {
-    float steps = config_store().axis_steps_per_unit_y.get();
+    float steps = std::abs(config_store().axis_steps_per_unit_y.get());
     config_store().axis_steps_per_unit_y.set(-steps);
 }
 extern "C" void set_negative_direction_z() {
-    float steps = config_store().axis_steps_per_unit_z.get();
+    float steps = std::abs(config_store().axis_steps_per_unit_z.get());
     config_store().axis_steps_per_unit_z.set(-steps);
 }
 extern "C" void set_negative_direction_e() {
-    float steps = config_store().axis_steps_per_unit_e0.get();
+    float steps = std::abs(config_store().axis_steps_per_unit_e0.get());
     config_store().axis_steps_per_unit_e0.set(-steps);
 }
 
@@ -236,6 +236,34 @@ bool is_microstep_value_valid(uint16_t microsteps) {
     return bs.count() == 1; // 1,2,4,8...
 }
 
+///@return default microstep value depending on motor type config
+extern "C" uint16_t get_default_microsteps_x() {
+#ifdef X_MICROSTEPS
+    return X_MICROSTEPS;
+#else
+    return config_store().xy_motors_400_step.get() ? X_400_STEP_MICROSTEPS : X_200_STEP_MICROSTEPS;
+#endif
+}
+
+///@return default microstep value depending on motor type config
+extern "C" uint16_t get_default_microsteps_y() {
+#ifdef Y_MICROSTEPS
+    return Y_MICROSTEPS;
+#else
+    return config_store().xy_motors_400_step.get() ? Y_400_STEP_MICROSTEPS : Y_200_STEP_MICROSTEPS;
+#endif
+}
+
+///@return default microstep value
+extern "C" uint16_t get_default_microsteps_z() {
+    return Z_MICROSTEPS;
+}
+
+///@return default microstep value
+extern "C" uint16_t get_default_microsteps_e() {
+    return E0_MICROSTEPS;
+}
+
 // return default value if eeprom value is invalid
 extern "C" uint16_t get_microsteps_x() {
     uint16_t ret = config_store().axis_microsteps_X_.get();
@@ -243,11 +271,7 @@ extern "C" uint16_t get_microsteps_x() {
         if (ret != 0) { // 0 means use default
             log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         }
-#ifdef X_MICROSTEPS
-        ret = X_MICROSTEPS;
-#else
-        ret = config_store().xy_motors_400_step.get() ? X_400_STEP_MICROSTEPS : X_200_STEP_MICROSTEPS;
-#endif
+        ret = get_default_microsteps_x();
     }
     return ret;
 }
@@ -257,11 +281,7 @@ extern "C" uint16_t get_microsteps_y() {
         if (ret != 0) { // 0 means use default
             log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
         }
-#ifdef Y_MICROSTEPS
-        ret = Y_MICROSTEPS;
-#else
-        ret = config_store().xy_motors_400_step.get() ? Y_400_STEP_MICROSTEPS : Y_200_STEP_MICROSTEPS;
-#endif
+        ret = get_default_microsteps_y();
     }
     return ret;
 }
@@ -269,7 +289,7 @@ extern "C" uint16_t get_microsteps_z() {
     uint16_t ret = config_store().axis_microsteps_Z_.get();
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
-        ret = Z_MICROSTEPS;
+        ret = get_default_microsteps_z();
     }
     return ret;
 }
@@ -277,7 +297,7 @@ extern "C" uint16_t get_microsteps_e() {
     uint16_t ret = config_store().axis_microsteps_E0_.get();
     if (!is_microstep_value_valid(ret)) {
         log_error(EEPROM, "%s: invalid value %d", __PRETTY_FUNCTION__, ret);
-        ret = E0_MICROSTEPS;
+        ret = get_default_microsteps_e();
     }
     return ret;
 }

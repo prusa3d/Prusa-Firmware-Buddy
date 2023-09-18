@@ -625,9 +625,10 @@ bool Server::is_active_slot(void *slot) {
     }
 
     BaseSlot *s = static_cast<BaseSlot *>(slot);
-    return (dynamic_cast<ConnectionSlot *>(s) != nullptr)
+
+    return s->get_slot_type() == BaseSlot::SlotType::ConnectionSlot
 #if USE_ASYNCIO
-        || (dynamic_cast<TransferSlot *>(s) != nullptr)
+        || s->get_slot_type() == BaseSlot::SlotType::TransferSlot
 #endif
         ;
 }

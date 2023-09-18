@@ -10,6 +10,7 @@
 #include "footer_eeprom.hpp"
 #include <option/has_side_fsensor.h>
 #include <option/has_mmu2.h>
+#include <printers.h>
 
 FooterLine::FooterLine(window_t *parent, size_t line_no)
     : AddSuperWindow<window_frame_t>(parent, footer::LineRect(line_no), positioning::relative) {
@@ -82,12 +83,14 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     case footer::Item::HeatbreakFan:
         new (&items[index]) FooterItemHeatBreakFan(this);
         break;
+#if not PRINTER_IS_PRUSA_MINI
     case footer::Item::InputShaperX:
         new (&items[index]) FooterItemInputShaperX(this);
         break;
     case footer::Item::InputShaperY:
         new (&items[index]) FooterItemInputShaperY(this);
         break;
+#endif
 #if defined(FOOTER_HAS_LIVE_Z)
     case footer::Item::LiveZ:
         new (&items[index]) FooterItemLiveZ(this);
@@ -98,9 +101,11 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
         new (&items[index]) FooterItemSheets(this);
         break;
 #endif
+#if not PRINTER_IS_PRUSA_MINI
     case footer::Item::Heatbreak:
         new (&items[index]) FooterItemHeatBreak(this);
         break;
+#endif
 #if HAS_MMU2()
     case footer::Item::Finda:
         new (&items[index]) FooterItemFinda(this);

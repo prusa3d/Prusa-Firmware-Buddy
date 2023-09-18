@@ -28,18 +28,26 @@ struct GuiDefaults {
     static constexpr size_t ScreenWidth = 240;
     static constexpr size_t ScreenHeight = 320;
     static constexpr size_t FooterHeight = FooterLines * FooterItemHeight + (FooterLines - 1) * FooterLinesSpace + FooterPadding.top + FooterPadding.bottom;
-    static constexpr size_t HeaderHeight = 32;
+    static constexpr padding_ui8_t HeaderPadding { 4, 4, 4, 4 }; // number of edge pixels that will remain black in all cases
+    static constexpr uint8_t HeaderTextExtraPaddingTop { 1 };    // extra padding to be added to the top, needed if font is weird
+    static constexpr auto HeaderTextFont { IDR_FNT_SPECIAL };
+    static constexpr size_t HeaderItemHeight { 16 };
+    static constexpr size_t HeaderHeight { HeaderItemHeight + HeaderPadding.top + HeaderPadding.bottom };
     static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };
     static constexpr Rect16 ProgressThumbnailRect = { 0, 0, 200, 240 };
     static constexpr uint8_t ButtonHeight = 30; // default button height
     static constexpr uint8_t ButtonSpacing = 6; // default button spacing
     static constexpr uint8_t ButtonIconSize = 64;
-    static constexpr uint16_t ButtonIconVerticalSpacing = 16;
+    static constexpr uint16_t ButtonIconVerticalSpacing = 24;
 #elif defined(USE_ILI9488)
     static constexpr size_t ScreenWidth = 480; // Some values are redundant on purpose - It's more convenient for future display's implementation
     static constexpr size_t ScreenHeight = 320;
     static constexpr size_t FooterHeight = 23;
-    static constexpr size_t HeaderHeight = 32;
+    static constexpr padding_ui8_t HeaderPadding { 14, 12, 14, 4 }; // number of edge pixels that will remain black in all cases
+    static constexpr uint8_t HeaderTextExtraPaddingTop { 1 };       // extra padding to be added to the top, needed if font is weird
+    static constexpr auto HeaderTextFont { IDR_FNT_SPECIAL };
+    static constexpr size_t HeaderItemHeight { 16 };
+    static constexpr size_t HeaderHeight { HeaderItemHeight + HeaderPadding.top + HeaderPadding.bottom };
     static constexpr Rect16 PreviewThumbnailRect = { 30, HeaderHeight + 50, 313, 173 };
     static constexpr Rect16 ProgressThumbnailRect = { 0, 0, 440, 240 };
     static constexpr uint8_t ButtonHeight = 32; // default button height
@@ -152,7 +160,7 @@ struct GuiDefaults {
     static constexpr padding_ui8_t MenuPaddingSpecial = padding_ui8_t({ 0, 6, 0, 0 });
 #endif
 
-    static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 14, 0, 5, 0 });
+    static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 5, 0, 5, 0 });
     static constexpr size_t MenuItemDelimeterHeight = MenuLinesBetweenItems ? 1 : 0;
 
     static constexpr Rect16::Width_t MenuIcon_w = MENU_HAS_BUTTONS ? 64 : 0;
@@ -171,8 +179,8 @@ struct GuiDefaults {
     static constexpr Rect16 MsgBoxLayoutRect = { 30, 90, 180, 120 };                                                                                 // Msgbox rect for drawing icon + text
     static constexpr Rect16 MessageTextRect = Rect16(GuiDefaults::MsgBoxLayoutRect.Left() + 48 + 15, GuiDefaults::MsgBoxLayoutRect.Top(), 117, 120); // 48px icon + 10px icon-text delimeter
 
-    static constexpr Rect16 DialogFrameRect = RectScreenBody;
-    static constexpr uint16_t RadioButtonCornerRadius = 0;
+    static constexpr Rect16 DialogFrameRect = Rect16(RectScreenNoHeader.Left() + 5, RectScreenNoHeader.Top(), RectScreenNoHeader.Width() - 10, RectScreenNoHeader.Height());
+    static constexpr uint16_t RadioButtonCornerRadius = 6;
     static constexpr bool EnableDialogBigLayout = false;
 #elif defined(USE_ILI9488)
     static constexpr Rect16 MsgBoxLayoutRect = { 70, 90, 363, ScreenHeight - 90 - ButtonHeight };                                                // Msgbox rect for drawing icon + text

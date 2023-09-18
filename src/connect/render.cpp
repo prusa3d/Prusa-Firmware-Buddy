@@ -4,15 +4,16 @@
 #include <segmented_json_macros.h>
 #include <lfn.h>
 #include <filename_type.hpp>
-#include <gcode_file.h>
 #include <filepath_operation.h>
 #include <timing.h>
 #include <state/printer_state.hpp>
+#include <transfers/transfer.hpp>
 
 #include <cassert>
 #include <cstring>
 
 #include <marlin_server_shared.h>
+#include <mbedtls/base64.h>
 
 using json::JsonOutput;
 using json::JsonResult;
@@ -98,7 +99,7 @@ namespace {
                     // And yes, we need the guard on each one, because we can
                     // resume at each and every of these fields.
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_id", transfer_status->id) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_transferred", transfer_status->transferred) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_transferred", transfer_status->download_progress.get_valid_size()) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "transfer_time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
                     JSON_FIELD_FFIXED_G(transfer_status.has_value(), "transfer_progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
                 }
@@ -290,6 +291,7 @@ namespace {
                         JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
+                    JSON_FIELD_BOOL("read_only", state.read_only) JSON_COMMA;
                     // Warning: the path->name() is there (hidden) for FileInfo
                     // but _not_ for JobInfo. Do not just copy that into that
                     // part!
@@ -316,7 +318,7 @@ namespace {
                     // And we really do need the guard on each one, because we
                     // can resume at each spot.
                     JSON_FIELD_INT_G(transfer_status.has_value(), "size", transfer_status->expected) JSON_COMMA;
-                    JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->transferred) JSON_COMMA;
+                    JSON_FIELD_INT_G(transfer_status.has_value(), "transferred", transfer_status->download_progress.get_valid_size()) JSON_COMMA;
                     JSON_FIELD_FFIXED_G(transfer_status.has_value(), "progress", transfer_status->progress_estimate() * 100.0, 1) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "time_remaining", transfer_status->time_remaining_estimate()) JSON_COMMA;
                     JSON_FIELD_INT_G(transfer_status.has_value(), "time_transferring", transfer_status->time_transferring()) JSON_COMMA;
@@ -449,34 +451,21 @@ namespace {
 
         return MetaFilter::Ignore;
     }
-
-    const char *display_name(const dirent *ent) {
-#ifdef UNITTESTS
-        return ent->d_name;
-#else
-        if (ent->lfn != nullptr) {
-            return ent->lfn;
-        } else {
-            // Fatfs without long file name...
-            return ent->d_name;
-        }
-#endif
-    }
 } // namespace
 
-PreviewRenderer::PreviewRenderer(FILE *f)
-    // Ask for anything bigger than 16x16 (at least 17x17).
-    : decoder(f, 17, 17, false, true) {}
-
 tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer_size) {
-    constexpr const char *intro = "\"preview\":\"";
-    constexpr const char *outro = "\",";
-    constexpr size_t intro_len = strlen(intro);
+    // base64 encodes 3 bytes to 4 ASCII chars, decoding needs to happen in multiples of this to work
+    constexpr static size_t encoded_chunk_size = 4;
+    constexpr static size_t decoded_chunk_size = 3;
+
+    constexpr static const char *intro = "\"preview\":\"";
+    constexpr static const char *outro = "\",";
+    constexpr static size_t intro_len = strlen(intro);
     // Ending quote and comma
-    constexpr size_t outro_len = strlen(outro);
+    constexpr static size_t outro_len = strlen(outro);
     // Don't bother with too small buffers to make the code easier. Extra char
     // for trying out there's some preview in there.
-    constexpr size_t min_len = intro_len + outro_len + 1;
+    constexpr static size_t min_len = intro_len + outro_len + encoded_chunk_size;
 
     if (buffer_size < min_len) {
         // Will be retried next time with bigger buffer.
@@ -486,69 +475,64 @@ tuple<JsonResult, size_t> PreviewRenderer::render(uint8_t *buffer, size_t buffer
     size_t written = 0;
 
     if (!started) {
-        // It's OK to write into the buffer even if we would claim not to have
-        // written there later on.
+        // get any thumbnail bigger than 17x17
+        if (!gcode->get()->stream_thumbnail_start(17, 17, IGcodeReader::ImgType::PNG, true)) {
+            // no thumbnail found in gcode, just dont send anything
+            return make_tuple(JsonResult::Complete, 0);
+        }
+        // write intro
         memcpy(buffer, intro, intro_len);
         written += intro_len;
         buffer += intro_len;
-        buffer_size -= intro_len;
+        started = true;
     }
 
-    const size_t available = buffer_size - outro_len;
-    assert(available > 0);
-    int decoded = decoder.Read(reinterpret_cast<char *>(buffer), available);
-    if (decoded == -1) {
-        // -1 signals error.
-        if (started) {
-            // At least terminate the field/string, so we don't destroy the
-            // whole JSON, even if the preview data is truncated.
-            memcpy(buffer, outro, outro_len);
-            return make_tuple(JsonResult::Complete, outro_len);
-        } else {
-            return make_tuple(JsonResult::Complete, 0);
+    bool write_end = false;
+    while ((buffer_size - written) >= (encoded_chunk_size + 1)) { // if there is space for another chunk (and ending \0)
+        // read chunk of decoded data
+        uint8_t dec_chunk[decoded_chunk_size] = { 0 };
+        size_t decoded_len = 0;
+        while (decoded_len < decoded_chunk_size) {
+            if (gcode->get()->stream_getc(reinterpret_cast<char &>(dec_chunk[decoded_len])) != IGcodeReader::Result_t::RESULT_OK) {
+                // probably end of data, or error. Either way stop reading and send whatever was read till now.
+                // if error happens while sending thumbnail, there is not much that can be done to signal that anyway.
+                write_end = true;
+                break;
+            }
+            ++decoded_len;
         }
+        // encode data, if there is something to encode
+        if (decoded_len == 0) {
+            // nothing to encode, end
+            break;
+        }
+        [[maybe_unused]] size_t encoded_len;
+        // note that mbedtls_base64_encode also writes ending zero, but we want to skip that
+        [[maybe_unused]] auto res = mbedtls_base64_encode(buffer, encoded_chunk_size + 1, &encoded_len, dec_chunk, decoded_len);
+        assert(res == 0 && encoded_len == encoded_chunk_size); // should not fail, buffer should always be big enough
+        written += encoded_chunk_size;
+        buffer += encoded_chunk_size;
     }
 
-    if (decoded == 0 && !started) {
-        // No preview -> just say we didn't do anything at all.
-        return make_tuple(JsonResult::Complete, 0);
-    }
-
-    started = true;
-    written += decoded;
-    buffer += decoded;
-    buffer_size -= decoded;
-
-    JsonResult result = JsonResult::Incomplete;
-
-    if (decoded < static_cast<int>(available)) {
+    if (write_end && (buffer_size - written) >= outro_len) {
         // This is the end!
-        result = JsonResult::Complete;
         memcpy(buffer, outro, outro_len);
         written += outro_len;
+        return make_tuple(JsonResult::Complete, written);
     }
 
-    return make_tuple(result, written);
+    return make_tuple(JsonResult::Incomplete, written);
 }
 
 tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buffer_size) {
-    // Special case, we "start" not an the beginning, but some amount from the
-    // end ‒ we don't want to read through all the long gcode in the middle.
-    // Of course, if the file is shorter, we just start from the beginning instead.
-    if (resume_position == 0) {
-        if (fseek(f, -gcode::search_last_x_bytes, SEEK_END) != 0) {
-            fseek(f, 0, SEEK_SET);
+    assert(gcode->is_open());
+    if (first_run) {
+        gcode_line_buffer = GcodeBuffer(); // reset buffer
+        if (!gcode->get()->stream_metadata_start()) {
+            return make_tuple(JsonResult::Complete, 0);
         }
-    } else {
-        // The last one didn't fit, so return before that one and retry.
-        // (we are fine not checking the errors; they'd be result of maybe
-        // removed USB drive or such and that'll just explode a bit lower in
-        // the code).
-        fseek(f, resume_position, SEEK_SET);
+        first_run = false;
     }
-
-    char name_buffer[64];
-    char value_buffer[32];
 
     size_t buffer_size_rest = buffer_size;
     // We are reusing the JsonOutput here, but not using the resume point
@@ -561,55 +545,79 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
     // to the next buffer of data.
     size_t pos = 0;
 
-    while (f_gcode_get_next_comment_assignment(f, name_buffer, sizeof name_buffer, value_buffer, sizeof value_buffer)) {
-        JsonResult result = JsonResult::Complete;
+    // This code iterates though metadata, and only if entire  key:value, fits to output buffer, send it.
+    // If just part of the string fits, skip it and try to place it into next packed.
+    while (true) {
+        if (gcode_line_buffer.line.is_empty()) {
+            // line is empty, that indicates that last line was already processed and we need to fetch another one
+            if (gcode->get()->stream_get_line(gcode_line_buffer) != IGcodeReader::Result_t::RESULT_OK) {
+                break;
+            }
+        }
 
-        const auto filter = meta_filter(name_buffer);
+        GcodeBuffer::String::parsed_metadata_t parsed = gcode_line_buffer.line.parse_metadata();
+        if (parsed.first.begin == nullptr || parsed.second.begin == nullptr) {
+            gcode_line_buffer = GcodeBuffer(); // reset buffer to fetch another line
+            continue;
+        }
+
+        // Either result of putting something to the buffer, or nullopt if this line should be skipped.
+        std::optional<JsonResult> result = nullopt;
+
+        const auto filter = meta_filter(parsed.first.c_str());
         switch (filter) {
         case MetaFilter::Ignore:
-            goto SKIP;
-
+            // do nothing, just go o next line
+            break;
         case MetaFilter::String:
-            result = output.output_field_str(0, name_buffer, value_buffer);
+            result = output.output_field_str(0, parsed.first.c_str(), parsed.second.c_str());
             break;
 
         case MetaFilter::Float: {
             char *end = nullptr;
-            double v = strtod(value_buffer, &end);
+            double v = strtod(parsed.second.c_str(), &end);
             if (end != nullptr && *end != '\0') {
-                goto SKIP;
+                // unable to parse, skip this
+            } else {
+                result = output.output_field_float_fixed(0, parsed.first.c_str(), v, 2);
             }
-
-            result = output.output_field_float_fixed(0, name_buffer, v, 2);
             break;
         }
 
         case MetaFilter::Int:
         case MetaFilter::Bool: {
             char *end = nullptr;
-            long v = strtol(value_buffer, &end, 10);
+            long v = strtol(parsed.second.c_str(), &end, 10);
             if (end != nullptr && *end != '\0') {
-                // Not really an int there.
-                goto SKIP;
-            }
-
-            if (filter == MetaFilter::Int) {
-                result = output.output_field_int(0, name_buffer, v);
+                // Not really an int there. Skip this line.
             } else {
-                // The gcode encodes bools as 0/1, JSON has True and False.
-                result = output.output_field_bool(0, name_buffer, v);
+                if (filter == MetaFilter::Int) {
+                    result = output.output_field_int(0, parsed.first.c_str(), v);
+                } else {
+                    // The gcode encodes bools as 0/1, JSON has True and False.
+                    result = output.output_field_bool(0, parsed.first.c_str(), v);
+                }
             }
             break;
         }
         }
 
-        if (result == JsonResult::Complete) {
+        if (!result.has_value()) {
+            // no result obtained from this line -> skip it
+            gcode_line_buffer = GcodeBuffer();
+            continue;
+        }
+
+        if (result.value() == JsonResult::Complete) {
+            // Line successfully put to buffer - now put ending ","
             result = output.output(0, ",");
         }
 
-        switch (result) {
+        switch (result.value()) {
         case JsonResult::Complete:
-            // Successfully put into the buffer.
+            // Successfully put content into into the buffer. update pos, and reset buffer to go to next line
+            pos = buffer_size - buffer_size_rest;
+            gcode_line_buffer = GcodeBuffer();
             break;
         case JsonResult::Abort:
             // We use only the primitive output functions and they are not
@@ -623,12 +631,6 @@ tuple<JsonResult, size_t> GcodeMetaRenderer::render(uint8_t *buffer, size_t buff
             // that's fine, we don't really need to make that distinction here.
             return make_tuple(JsonResult::Incomplete, pos);
         }
-
-    SKIP:
-        // Adjust these only after the whole field, including comma. Not in
-        // case it doesn't fit.
-        resume_position = ftell(f);
-        pos = buffer_size - buffer_size_rest;
     }
 
     return make_tuple(JsonResult::Complete, pos);
@@ -638,11 +640,30 @@ DirRenderer::DirRenderer(const char *base_path, unique_dir_ptr dir)
     : JsonRenderer(DirState { move(dir), base_path }) {}
 
 JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &output, DirState &state) const {
+    bool read_only = false;
     // Keep the indentation of the JSON in here!
     // clang-format off
     JSON_START;
     JSON_FIELD_ARR("children");
     while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
+
+        state.childsize = nullopt;
+        // Will skip all the .bbf and other files still being transfered
+        // (that's actually what we want, they are not usable until renamed).
+        if (state.ent->d_type == DT_DIR && filename_is_printable(state.ent->d_name)) {
+            MutablePath path(state.base_path);
+            path.push(state.ent->d_name);
+            // This also checks validity of the file
+            if (auto st_opt = transfers::Transfer::get_transfer_partial_file_stat(path); st_opt.has_value()) {
+                state.ent->d_type = DT_REG;
+                state.childsize = st_opt->st_size;
+                read_only = true;
+            } else {
+                continue;
+            }
+        } else {
+            read_only = false;
+        }
         state.child_cnt ++;
 
         if (!state.first) {
@@ -653,16 +674,15 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
 
         JSON_OBJ_START;
             JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
-            JSON_FIELD_STR("display_name", display_name(state.ent)) JSON_COMMA;
-            JSON_FIELD_INT("size", child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
+            JSON_FIELD_STR("display_name", dirent_lfn(state.ent)) JSON_COMMA;
+            JSON_FIELD_INT("size", state.childsize.has_value() ? state.childsize.value() : child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
 #ifdef UNITTESTS
             // While "our" dirent contains time, the "real" one doesn't, so disable for unit tests
             JSON_FIELD_INT("m_timestamp", 0) JSON_COMMA;
 #else
             JSON_FIELD_INT("m_timestamp", state.ent->time) JSON_COMMA;
 #endif
-            // We assume USB is not read only for us.
-            JSON_FIELD_BOOL("read_only", false) JSON_COMMA;
+            JSON_FIELD_BOOL("read_only", read_only) JSON_COMMA;
             JSON_FIELD_STR("type", file_type(state.ent));
         JSON_OBJ_END;
     }
@@ -672,9 +692,9 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
     // clang-format on
 }
 
-FileExtra::FileExtra(unique_file_ptr file)
-    : file(move(file))
-    , renderer(move(GcodeExtra(PreviewRenderer(this->file.get()), GcodeMetaRenderer(this->file.get())))) {}
+FileExtra::FileExtra(std::unique_ptr<AnyGcodeFormatReader> gcode_reader_)
+    : gcode_reader(std::move(gcode_reader_))
+    , renderer(std::move(GcodeExtra(PreviewRenderer(gcode_reader.get()), GcodeMetaRenderer(gcode_reader.get())))) {}
 
 FileExtra::FileExtra(const char *base_path, unique_dir_ptr dir)
     : renderer(move(DirRenderer(base_path, move(dir)))) {}
@@ -705,10 +725,14 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
             SharedPath spath = event->path.value();
             path = spath.path();
 
-            if (unique_dir_ptr d(opendir(path)); d.get() != nullptr) {
-                file_extra = FileExtra(path, move(d));
-            } else if (unique_file_ptr f(fopen(path, "r")); f.get() != nullptr) {
-                file_extra = FileExtra(move(f));
+            if (auto reader = std::make_unique<AnyGcodeFormatReader>(path); reader->is_open()) {
+                // AnyGcodeFormatReader also handles partial files - so if this is actualy directory with partial file, it will be handled here
+                file_extra = FileExtra(std::move(reader));
+            } else if (unique_dir_ptr d(opendir(path)); d.get() != nullptr) {
+                file_extra = FileExtra(path, std::move(d));
+            } else if (unique_file_ptr f(fopen(path, "r")); f != nullptr) {
+                // Non-gcode but existing file
+                file_extra = FileExtra();
             } else {
                 error = true;
             }
@@ -733,8 +757,19 @@ RenderState::RenderState(const Printer &printer, const Action &action, Tracked &
         default:;
         }
 
-        if (!error && path != nullptr && stat(path, &st) == 0) {
-            has_stat = true;
+        if (!error && path) {
+            MutablePath mut_path(path);
+            // Note: We allow only printable partial files in output and hide
+            // all the rest. Other files are not usable until fully downloaded
+            // & put into place (eg. a bbf), so we make sure Connect doesn't
+            // get ideas about trying to use them.
+            if (auto st_opt = transfers::Transfer::get_transfer_partial_file_stat(mut_path); st_opt.has_value() && filename_is_printable(path)) {
+                has_stat = true;
+                st = st_opt.value();
+                read_only = true;
+            } else if (stat(path, &st) == 0) {
+                has_stat = true;
+            }
         }
 
         // Some events override their transfer_id from another source, so we

@@ -16,6 +16,9 @@ private:
     static constexpr unsigned y_left_shift = 4;
     /// Z raw acceleration will occupy bits 20 .. 29 (LSB first)
     static constexpr unsigned z_left_shift = 14;
+    /// Reserved bit 30
+    /// Corrupted bit will occupy bit 31
+    static constexpr uint_least32_t corrupted_mask = 1 << 31;
 
 public:
     /**
@@ -29,7 +32,8 @@ public:
         constexpr uint_least32_t z_mask = y_mask << 10;
         return ((static_cast<common::puppies::fifo::AccelerometerXyzSample>(record.z) << z_left_shift) & z_mask)
             | ((static_cast<common::puppies::fifo::AccelerometerXyzSample>(record.y) << y_left_shift) & y_mask)
-            | ((static_cast<common::puppies::fifo::AccelerometerXyzSample>(record.x) >> x_right_shift) & x_mask);
+            | ((static_cast<common::puppies::fifo::AccelerometerXyzSample>(record.x) >> x_right_shift) & x_mask)
+            | (record.corrupted ? corrupted_mask : 0);
     }
 
 #if ENABLED(REMOTE_ACCELEROMETER)

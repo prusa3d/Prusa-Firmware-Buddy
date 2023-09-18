@@ -71,6 +71,7 @@
     #include "puppies/puppy_task.hpp"
 #endif
 #include "safe_state.h"
+#include "gcode_reader.hpp"
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
@@ -223,6 +224,7 @@ struct __attribute__((packed)) flash_data {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         SpoolJoin::serialized_state_t spool_join;
 #endif
+        PrusaPackGcodeReader::stream_restore_info_t gcode_stream_restore_info;
         uint8_t invalid; // set to zero before writing, cleared on erase
 
         static void load();
@@ -272,6 +274,7 @@ static struct {
 #if ENABLED(PRUSA_SPOOL_JOIN)
     SpoolJoin::serialized_state_t spool_join;
 #endif
+    PrusaPackGcodeReader::stream_restore_info_t gcode_stream_restore_info;
 } state_buf;
 
 // Helper functions to read/write to the flash area with type checking
@@ -347,6 +350,7 @@ void flash_data::state_t::save() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
     FLASH_SAVE(state.spool_join, state_buf.spool_join);
 #endif
+    FLASH_SAVE(state.gcode_stream_restore_info, state_buf.gcode_stream_restore_info);
 
     FLASH_SAVE_EXPR(state.invalid, false);
     if (w25x_fetch_error()) {
@@ -369,6 +373,7 @@ void flash_data::state_t::load() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
     FLASH_LOAD(state.spool_join, state_buf.spool_join);
 #endif
+    FLASH_LOAD(state.gcode_stream_restore_info, state_buf.gcode_stream_restore_info);
     state_buf.nested_fault = true;
 }
 
@@ -477,7 +482,7 @@ enum class ResumeState : uint8_t {
     Error,
 };
 
-ResumeState resume_state = ResumeState::Setup;
+std::atomic<ResumeState> resume_state = ResumeState::Setup;
 
 /// reset PP state during atomic_finish (holds print state)
 static void atomic_reset() {
@@ -601,6 +606,7 @@ void resume_loop() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         spool_join.deserialize(state_buf.spool_join);
 #endif
+        media_set_restore_info(state_buf.gcode_stream_restore_info);
 
 #if HAS_TOOLCHANGER()
         if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Was in toolchange area
@@ -822,6 +828,11 @@ void panic_loop() {
 
         // reduce power of motors
         stepperX.rms_current(POWER_PANIC_X_CURRENT, 1);
+#if ENABLED(COREXY)
+        // XY are linked, set both motors to the same current
+        stepperY.rms_current(POWER_PANIC_X_CURRENT, 1);
+#endif             /*ENABLED(COREXY)*/
+
 #if !HAS_PUPPIES() // Extruders are on puppy boards and dwarf MCUs are reset in powerpanic
         stepperE0.rms_current(POWER_PANIC_E_CURRENT, 1);
 #endif             /*HAS_PUPPIES()*/
@@ -904,6 +915,7 @@ void panic_loop() {
 #if ENABLED(PRUSA_SPOOL_JOIN)
         spool_join.serialize(state_buf.spool_join);
 #endif
+        state_buf.gcode_stream_restore_info = media_get_restore_info();
 #if HAS_TOOLCHANGER()
         // Store tool that was last requested and where to return in case toolchange is ongoing
         state_buf.toolchanger.precrash_tool = prusa_toolchanger.get_precrash().tool_nr;
@@ -923,8 +935,11 @@ void panic_loop() {
         // commit odometer trip values
         Odometer_s::instance().force_to_eeprom();
 
-        if (TEST(state_buf.crash.axis_known_position, X_AXIS)) {
-#if ENABLED(XY_LINKED_ENABLE)
+        /// Bitmask of axes that are needed to move
+        static constexpr uint8_t test_axes = ENABLED(COREXY) ? (_BV(X_AXIS) | _BV(Y_AXIS)) : _BV(X_AXIS);
+
+        if ((state_buf.crash.axis_known_position & test_axes) == test_axes) {
+#if ENABLED(XY_LINKED_ENABLE) && DISABLED(COREXY)
             // XBuddy has XY-EN linked, so the following move will indirectly enable Y.
             // In order to conserve power and keep Y disabled, set the chopper off time via SPI instead.
             stepperY.toff(0);
@@ -934,16 +949,26 @@ void panic_loop() {
 #endif
             feedrate_mm_s = POWER_PANIC_X_FEEDRATE;
             destination = current_position;
-
+            const PrintArea::rect_t print_rect = print_area.get_bounding_rect();         // We need to get out of print area
 #if HAS_TOOLCHANGER()
             if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Is in the toolchange area
                 // Do not move X or Y
             } else
 #endif /*HAS_TOOLCHANGER()*/
             {
-                if (TEST(state_buf.orig_axis_known_position, X_AXIS)) {
+                if ((state_buf.orig_axis_known_position & test_axes) == test_axes) {
                     // axis position is currently known, move to the closest endpoint
-                    destination.x = (current_position.x < X_BED_SIZE / 2 ? X_MIN_POS : X_MAX_POS);
+#if ENABLED(COREXY)
+                    if (std::min(current_position.x - print_rect.a.x, print_rect.b.x - current_position.x)
+                        > std::min(current_position.y - print_rect.a.y, print_rect.b.y - current_position.y)) {
+                        // Move to Y edge of printer in direction of nearest Y end of print area
+                        destination.y = (current_position.y < (print_rect.a.y + print_rect.b.y) / 2 ? Y_MIN_POS : Y_MAX_PRINT_POS);
+                    } else
+#endif /*ENABLED(COREXY)*/
+                    {
+                        // Move to X edge of printer in direction of nearest X end of print area
+                        destination.x = (current_position.x < (print_rect.a.x + print_rect.b.x) / 2 ? X_MIN_POS : X_MAX_POS);
+                    }
                 } else {
                     // we might be anywhere, plan some move towards the endstop
                     destination.x = current_position.x - (X_MAX_POS - X_MIN_POS);

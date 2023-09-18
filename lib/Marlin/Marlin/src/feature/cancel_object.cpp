@@ -33,8 +33,6 @@ int8_t CancelObject::object_count, // = 0
        CancelObject::active_object = -1;
 uint32_t CancelObject::canceled; // = 0x0000
 bool CancelObject::skipping; // = false
-CancelObject::ObjectNameItem *CancelObject::object_name_head;
-
 
 void CancelObject::set_active_object(const int8_t obj) {
   active_object = obj;
@@ -65,44 +63,6 @@ void CancelObject::uncancel_object(const int8_t obj) {
     CBI(canceled, obj);
     if (obj == active_object) skipping = false;
   }
-}
-
-void CancelObject::save_object_name(int8_t obj, const char* name) {
-  if (get_object_name(obj)) {
-    return;
-  }
-
-  int name_len = _MIN(static_cast<int>(strlen(name)), 16);
-  ObjectNameItem *item = (ObjectNameItem*)malloc(sizeof(ObjectNameItem) + name_len + 1);
-  snprintf(item->name, name_len + 1, "%s", name);
-
-  item->obj = obj;
-  item->next = object_name_head;
-
-  object_name_head = item;
-}
-
-const char* CancelObject::get_object_name(const int8_t obj) {
-  for (ObjectNameItem *item = object_name_head; item != nullptr; item = item->next) {
-    if (item->obj == obj) {
-      return item->name;
-    }
-  }
-  return nullptr;
-}
-
-void CancelObject::reset() {
-  canceled = 0x0000;
-  object_count = 0;
-  clear_active_object();
-
-  ObjectNameItem *item = object_name_head;
-  while (item) {
-    ObjectNameItem *next = item->next;
-    free(item);
-    item = next;
-  }
-  object_name_head = nullptr;
 }
 
 void CancelObject::report() {

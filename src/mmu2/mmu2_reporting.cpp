@@ -18,6 +18,11 @@ LOG_COMPONENT_REF(MMU2);
 
 namespace MMU2 {
 
+bool isErrorScreenRunning() {
+    // @@TODO function from 8-bit FW
+    return false;
+}
+
 void ReportErrorHook(CommandInProgress cip, uint16_t ec, uint8_t es) {
     // An error always causes one specific screen to occur
     // Its content is given by the error code translated into Prusa-Error-Codes MMU

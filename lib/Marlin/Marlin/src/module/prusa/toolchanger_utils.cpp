@@ -32,7 +32,7 @@ bool PrusaToolChangerUtils::init(bool first_run) {
         toolchanger_enabled = autodetect_toolchanger_enabled();
 
         if (toolchanger_enabled == false) {
-            if (dwarfs[0].set_selected(true) != Dwarf::CommunicationStatus::OK) {
+            if (dwarfs[0].set_selected(true) == CommunicationStatus::ERROR) {
                 return false;
             }
         }
@@ -134,7 +134,7 @@ bool PrusaToolChangerUtils::update() {
         Dwarf *new_tool = request_toolchange_dwarf.load();
         if (old_tool != new_tool) {
             if (old_tool) {
-                if (old_tool->set_selected(false) != Dwarf::CommunicationStatus::OK) {
+                if (old_tool->set_selected(false) == CommunicationStatus::ERROR) {
                     return false;
                 }
                 log_info(PrusaToolChanger, "Deactivated Dwarf %u", old_tool->get_dwarf_nr());
@@ -143,7 +143,7 @@ bool PrusaToolChangerUtils::update() {
                 loadcell.Clear();       // No loadcell is available now, make sure that it is not stuck in active mode
             }
             if (new_tool) {
-                if (new_tool->set_selected(true) != Dwarf::CommunicationStatus::OK) {
+                if (new_tool->set_selected(true) == CommunicationStatus::ERROR) {
                     return false;
                 }
                 log_info(PrusaToolChanger, "Activated Dwarf %u", new_tool->get_dwarf_nr());

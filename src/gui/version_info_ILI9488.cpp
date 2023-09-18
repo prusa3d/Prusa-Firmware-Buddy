@@ -8,6 +8,8 @@
 #include "img_resources.hpp"
 #include "shared_config.h" //BOOTLOADER_VERSION_ADDRESS
 #include "../common/otp.hpp"
+#include "common/filament_sensors_handler.hpp"
+#include "Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
 
 static constexpr size_t SN_STR_SIZE = 25;
 
@@ -36,6 +38,21 @@ ScreenMenuVersionInfo::ScreenMenuVersionInfo()
     const version_t *bootloader = (const version_t *)BOOTLOADER_VERSION_ADDRESS;
     snprintf(help_str, GuiDefaults::infoDefaultLen, "%d.%d.%d", bootloader->major, bootloader->minor, bootloader->patch);
     Item<MI_INFO_BOOTLOADER>().ChangeInformation(help_str);
+
+#if HAS_MMU
+    if (FSensors_instance().HasMMU()) {
+        const auto mmu_version = MMU2::mmu2.GetMMUFWVersion();
+        if (mmu_version.major != 0) {
+            snprintf(help_str, GuiDefaults::infoDefaultLen, "%d.%d.%d", mmu_version.major, mmu_version.minor, mmu_version.build);
+            Item<MI_INFO_MMU>().ChangeInformation(help_str);
+        } else {
+            Item<MI_INFO_MMU>().ChangeInformation("N/A");
+        }
+        Item<MI_INFO_MMU>().show();
+    } else {
+        Item<MI_INFO_MMU>().hide();
+    }
+#endif
 
     snprintf(help_str, GuiDefaults::infoDefaultLen, "%d", otp_get_board_revision().value_or(0));
 

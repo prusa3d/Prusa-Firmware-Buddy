@@ -26,7 +26,7 @@ private:
     float prev_accel;
 
     int32_t value;
-    int32_t lastQueuedPos;
+    float lastQueuedPos;
 
     window_text_t axisText;
     window_text_t infoText;

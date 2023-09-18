@@ -6,16 +6,19 @@
 #include "PrusaGcodeSuite.hpp"
 #include <stdint.h>
 #include "bsod_gui.hpp"
-#include "loadcell.hpp"
 #include "z_calibration_fsm.hpp"
 #include "calibration_z.hpp"
 #include "printers.h"
+
+#include <option/has_loadcell.h>
+#if HAS_LOADCELL()
+    #include "loadcell.hpp"
+#endif
 
 static constexpr feedRate_t Z_CALIB_ALIGN_AXIS_FEEDRATE = 15.f; // mm/s
 static constexpr float Z_CALIB_EXTRA_HIGHT = 5.f;               // mm
 
 #if PRINTER_IS_PRUSA_XL
-
     #include <module/prusa/toolchanger.h>
 
 void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
@@ -69,24 +72,28 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
     set_axis_is_not_at_home(Z_AXIS);
 }
 #else
-    #if HAS_BED_PROBE
-        #define AFTER_Z_CALIB_Z_POS 50
+static constexpr float AFTER_Z_CALIB_Z_POS = 50;
 
 static void safe_move_down() {
     DEPLOY_PROBE();
-    float target_Z_offset = (AFTER_Z_CALIB_Z_POS - Z_AFTER_PROBING - Z_MAX_POS);
-    current_position.z = Z_MIN_POS;
-    Z_Calib_FSM N(ClientFSM::Selftest, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z_offset, 0, 100);
-    do_homing_move(AxisEnum::Z_AXIS, target_Z_offset, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z));
-    current_position.z = Z_MIN_POS;
-    sync_plan_position();
+
+    // Move to AFTER_Z_CALIB_Z_POS with Z endstop enabled
+    float target_Z = AFTER_Z_CALIB_Z_POS - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
+    Z_Calib_FSM N(ClientFSM::Selftest, GetPhaseIndex(PhasesSelftest::CalibZ), current_position.z, target_Z, 0, 100);
+    if (do_homing_move(AxisEnum::Z_AXIS, target_Z - current_position.z, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z))) {
+        // endstop triggered, raise the nozzle
+        current_position.z = Z_MIN_POS;
+        sync_plan_position();
+        move_z_after_probing();
+    } else {
+        current_position.z = target_Z;
+        sync_plan_position();
+    }
+
     STOW_PROBE();
-    move_z_after_probing();
 }
-    #endif // HAS_BED_PROBE
 
 void selftest::calib_Z(bool move_down_after) {
-    #if HAS_BED_PROBE
     // backup original acceleration/feedrates and reset defaults for calibration
     static constexpr float def_feedrate[] = DEFAULT_MAX_FEEDRATE;
     static constexpr float def_accel[] = DEFAULT_MAX_ACCELERATION;
@@ -97,27 +104,29 @@ void selftest::calib_Z(bool move_down_after) {
 
     // Z axis lift
     FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::CalibZ);
-        #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX)
     endstops.enable(true); // Stall endstops need to be enabled manually as in G28
     if (!homeaxis(Z_AXIS, MMM_TO_MMS(HOMING_FEEDRATE_INVERTED_Z), true)) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
     }
     endstops.not_homing();
+
+    // push both Z axis few mm over HW limit to align motors
     const float target_Z = Z_MAX_POS + Z_CALIB_EXTRA_HIGHT;
     current_position.z = Z_MAX_POS;
     sync_plan_position();
-    do_blocking_move_to_z(target_Z, Z_CALIB_ALIGN_AXIS_FEEDRATE); // push both Z axis few mm over HW limit to align motors
-        #endif // ( PRINTER_IS_PRUSA_MK4 ||  PRINTER_IS_PRUSA_MK3_5 ||  PRINTER_IS_PRUSA_iX)
-    if (move_down_after) {
+    do_blocking_move_to_z(target_Z, Z_CALIB_ALIGN_AXIS_FEEDRATE);
+    current_position.z = Z_MAX_POS;
+    sync_plan_position();
+
+    if (move_down_after)
         safe_move_down();
-    } else {
-        sync_plan_position();
-    }
+
+    // always set axis as unhomed (Z_MAX_POS is unreliable, Z_MIN_POS is not probed with homeaxis()!)
+    set_axis_is_not_at_home(Z_AXIS);
 
     // restore original values
     planner.set_max_feedrate(Z_AXIS, orig_max_feedrate);
     planner.set_max_acceleration(Z_AXIS, orig_max_accel);
-    #endif     // HAS_BED_PROBE
 }
 #endif
 

@@ -194,17 +194,11 @@ Step GcodeUpload::step(string_view input, const size_t read, UploadState &upload
 
 UploadHooks::Result GcodeUpload::data(std::string_view data) {
     assert(tmp_upload_file);
-    for (;;) {
-        const size_t written = fwrite(data.begin(), 1, data.size(), tmp_upload_file.get());
-        if (written < data.size()) {
-            if (errno == EAGAIN) {
-                continue;
-            }
-            // Data won't fit into the flash drive -> Insufficient stogare.
-            return make_tuple(Status::InsufficientStorage, "USB write error or USB full");
-        } else {
-            return make_tuple(Status::Ok, nullptr);
-        }
+    if (transfers::write_block(tmp_upload_file.get(), reinterpret_cast<const uint8_t *>(data.begin()), data.size())) {
+        return make_tuple(Status::Ok, nullptr);
+    } else {
+        // Data won't fit into the flash drive -> Insufficient stogare.
+        return make_tuple(Status::InsufficientStorage, "USB write error or USB full");
     }
 }
 
@@ -400,7 +394,7 @@ namespace {
 } // namespace
 
 UploadHooks::Result GcodeUpload::check_filename(const char *filename) const {
-    if (!filename_is_gcode(filename)) {
+    if (!filename_is_printable(filename)) {
         return make_tuple(Status::UnsupportedMediaType, "Not a GCODE");
     }
 

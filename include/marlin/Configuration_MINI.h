@@ -148,7 +148,7 @@
 #define EXTRUDERS 1
 
 // Generally expected filament diameter (1.75, 2.85, 3.0, ...). Used for Volumetric, Filament Width Sensor, etc.
-#define DEFAULT_NOMINAL_FILAMENT_DIA 1.75
+#define DEFAULT_NOMINAL_FILAMENT_DIA 1.75f
 
 // For Cyclops or any "multi-extruder" that shares a single nozzle.
 //#define SINGLENOZZLE
@@ -1041,7 +1041,7 @@
  * Calibrates X, Y homing positions and uses
  * the reference to provide repeatable homing position.
  */
-#define PRECISE_HOMING
+//#define PRECISE_HOMING
 
 /**
  * Number of precise homing tries
@@ -1340,6 +1340,9 @@
 // Validate that endstops are triggered on homing moves
 //#define VALIDATE_HOMING_ENDSTOPS
 
+// Set STALTHCHOP on XY before homing
+#define XY_HOMING_STEALTCHCHOP
+
 // @section calibrate
 
 /**
@@ -1474,6 +1477,8 @@
 #if ENABLED(NOZZLE_PARK_FEATURE)
     #define Z_AXIS_LOAD_POS  40
     #define Z_AXIS_UNLOAD_POS 20
+    #define Y_AXIS_LOAD_POS    (std::numeric_limits<float>::quiet_NaN())
+    #define Y_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     // homing to this pos makes PTFE tube last longer
     #define X_AXIS_LOAD_POS  ((X_MAX_POS) / 4)
     #define X_AXIS_UNLOAD_POS  ((X_MAX_POS) / 4)

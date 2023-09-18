@@ -45,8 +45,6 @@ extern void gui_error_run(void);
 
 extern void gui_bare_loop(void);
 
-extern void gui_reset_menu_timer();
-
 // meant to be use as MsgCircleBuffer().push_back(txt);
 inline constexpr size_t MSG_STACK_SIZE = 8 + 1; // status message stack size
 inline constexpr size_t MSG_MAX_LENGTH = 63;    // status message max length

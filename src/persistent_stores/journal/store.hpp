@@ -1,6 +1,5 @@
 #pragma once
 #include <cstring>
-#include "cthash/sha2/sha256.hpp"
 #include "common/to_tie.hpp"
 #include "common/extract_member_pointer.hpp"
 #include "store_item.hpp"
@@ -10,13 +9,12 @@
 #include "indices.hpp"
 #include "utils/utility_extensions.hpp"
 #include "backend.hpp"
+#include <persistent_stores/journal/gen_journal_hashes.hpp>
 
 namespace journal {
 
 consteval uint16_t hash(std::string_view name) {
-    auto hash = cthash::simple<cthash::sha256>(name);
-    auto slice = (static_cast<uint16_t>(hash[0]) << 8) | static_cast<uint16_t>(hash[1]);
-    return slice & 0x3FFF;
+    return get_generated_hash(name);
 }
 
 template <BackendC BackendT, BackendT &(*backend)()>
@@ -34,23 +32,20 @@ struct DeprecatedStoreConfig {
         = DeprecatedStoreItem<DataT, DefaultVal, BackendT, HashedID>;
 };
 
-template <class T, class U>
-static auto consteval has_unique_items() {
-    using TupleT = typename std::invoke_result<decltype(to_tie<T>), T &>::type;
-    using TupleU = typename std::invoke_result<decltype(to_tie<U>), U &>::type;
-
-    using Tuple = decltype(std::tuple_cat(std::declval<TupleT>(), std::declval<TupleU>()));
-    constexpr auto index = to_id_array<Tuple>();
-    for (size_t i = 0; i < index.size(); i++) {
-        for (size_t j = i + 1; j < index.size(); j++) {
-            if (index[i] == index[j]) {
-                consteval_assert_false("Some newly added Ids cause collision");
-            }
-        }
-        for (auto reserved : T::Backend::RESERVED_IDS) {
-            if (index[i] == reserved) {
-                consteval_assert_false("Some newly added Ids cause collision with reserved Ids");
-            }
+/**
+ * @brief Check whether the store's backend's reserved IDs are not causing a collision with pregenerated hash ids
+ *
+ * @tparam CurrentStoreT
+ */
+template <class CurrentStoreT>
+bool consteval has_unique_items() {
+    for (auto reserved : CurrentStoreT::Backend::RESERVED_IDS) {
+        if (auto res = std::ranges::find_if(journal::generated_hashes, [&reserved](const journal::GeneratedPair &elem) {
+                return elem.hashed == reserved;
+            });
+            res != std::end(journal::generated_hashes)) {
+            consteval_assert_false("Some newly added Ids cause collision with reserved backend Ids");
+            return false;
         }
     }
     return true;

@@ -1,5 +1,7 @@
 #include "configuration.hpp"
 
+#include "feature/tmc_util.h"
+
 float axis_home_min_diff(uint8_t axis_num) {
     switch (axis_num) {
     case 0:
@@ -22,6 +24,14 @@ float axis_home_max_diff(uint8_t axis_num) {
     return NAN;
 }
 
-uint32_t get_stall_threshold() {
-    return config_store().xy_motors_400_step.get() ? 80 : 400;
+uint32_t get_homing_stall_threshold(AxisEnum axis_id) {
+    switch (axis_id) {
+    case X_AXIS:
+    case Y_AXIS:
+        return tmc_period_to_feedrate(get_microsteps_x(), HOMING_FEEDRATE_XY / 60 * 0.8, get_steps_per_unit_x());
+    case Z_AXIS:
+        return 80; // this value may or may not be correct
+    default:
+        bsod("Wrong axis for homing stall threshold");
+    }
 }

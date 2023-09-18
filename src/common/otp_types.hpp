@@ -34,6 +34,8 @@ struct __attribute__((packed)) OTP_v2 {
     uint32_t timestamp;     // UNIX Timestamp from 1970 (uint32_t little endian)
     uint8_t datamatrix[24]; // DataMatrix ID 1 (24 bytes)
 };
+// OTP_v2 is stored in RAM exchange area, it is better if its size is N*4
+static_assert(sizeof(OTP_v2) % 4 == 0, "wrong size of OTP_v2");
 
 struct __attribute__((packed)) OTP_v3 {
     uint8_t version;          // Data structure version (1 bytes)
@@ -42,7 +44,7 @@ struct __attribute__((packed)) OTP_v3 {
     uint32_t timestamp;       // UNIX Timestamp from 1970 (uint32_t little endian)
     uint8_t datamatrix[24];   // DataMatrix ID 1 (24 bytes)
     uint8_t datamatrix1[24];  // DataMatrix ID 2 (24 bytes)
-    uint8_t serialnumber[14]; // unknown item (kill Robert)
+    uint8_t serialnumber[14]; // unknown item
     MAC_addr mac_address;     // MAC address (6 bytes)
 };
 
@@ -77,9 +79,11 @@ struct datamatrix_t {
 typedef uint16_t board_revision_t;
 
 struct OtpStatus {
-    uint32_t single_read_error_counter = 0;
-    uint32_t repeated_read_error_counter = 0;
-    uint32_t cyclic_read_error_counter = 0;
-    uint32_t retried = 0;
+    uint16_t single_read_error_counter = 0;
+    uint16_t repeated_read_error_counter = 0;
+    uint16_t cyclic_read_error_counter = 0;
+    uint8_t retried = 0;
     bool data_valid = false;
 };
+static_assert(sizeof(OtpStatus) % 4 == 0, "wrong size of OtpStatus");
+// OtpStatus is stored in RAM exchange area, it is better if its size is N*4

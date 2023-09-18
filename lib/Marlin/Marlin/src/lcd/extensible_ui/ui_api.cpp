@@ -575,11 +575,13 @@ namespace ExtUI {
 
   void setAxisSteps_per_mm(const float value, const axis_t axis) {
     planner.settings.axis_steps_per_mm[axis] = value;
+    planner.settings.axis_msteps_per_mm[axis] = value * PLANNER_STEPS_MULTIPLIER;
   }
 
   void setAxisSteps_per_mm(const float value, const extruder_t extruder) {
     UNUSED_E(extruder);
     planner.settings.axis_steps_per_mm[E_AXIS_N(axis - E0)] = value;
+    planner.settings.axis_msteps_per_mm[E_AXIS_N(axis - E0)] = value * PLANNER_STEPS_MULTIPLIER;
   }
 
   feedRate_t getAxisMaxFeedrate_mm_s(const axis_t axis) {

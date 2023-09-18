@@ -63,9 +63,9 @@ enum {
     #error "Unknown PRINTER_TYPE!"
 #endif
 
-    // dumped ccram area (64kb), last 256 bytes used for register dump etc.
-    CCRAM_ADDR = 0x10000000,
-    CCRAM_SIZE = 0x00010000,
+    // dumped ccmram area (64kb), last 256 bytes used for register dump etc.
+    CCMRAM_ADDR = 0x10000000,
+    CCMRAM_SIZE = 0x00010000,
 
     // dumped otp area (32kb)
     OTP_ADDR = 0x1FFF0000,
@@ -78,20 +78,20 @@ enum {
 
 // DUMP constants for error message
 inline constexpr size_t MSG_TITLE_MAX_LEN { 40 };
-inline constexpr size_t MSG_MAX_LEN { 107 };
-// general registers stored to ccram
+inline constexpr size_t MSG_MAX_LEN { 140 };
+// general registers stored to ccmram
 // r0-r12, sp, lr, pc - 64 bytes
 // xpsr, fpcsr, PRIMASK, BASEPRI, FAULTMASK, CONTROL, MSP, PSP - 32 bytes
 inline constexpr uint32_t REGS_GEN_ADDR = 0x1000ff00;
 inline constexpr uint32_t REGS_GEN_SIZE = 0x00000060;
-// scb registers stored to ccram (140 bytes)
+// scb registers stored to ccmram (140 bytes)
 inline constexpr uint32_t REGS_SCB_ADDR = 0x1000ff60;
 inline constexpr uint32_t REGS_SCB_SIZE = 0x0000008c;
-// dump info stored to ccram (16 bytes)
+// dump info stored to ccmram (16 bytes)
 inline constexpr uint32_t INFO_ADDR = 0x1000fff0;
 inline constexpr uint32_t INFO_SIZE = 0x00000010;
 
-// prepare R0 and R3 for DUMP_REGS_GEN_EXC_TO_CCRAM in fault handlers
+// prepare R0 and R3 for DUMP_REGS_GEN_EXC_TO_CCMRAM in fault handlers
 #define DUMP_REGS_GEN_FAULT_BEGIN()                       \
     asm volatile(                                         \
         "    mov r3, lr             \n" /* save lrexc  */ \
@@ -101,7 +101,7 @@ inline constexpr uint32_t INFO_SIZE = 0x00000010;
         "    mrsne r0, PSP          \n" /* PSP -> r0  */  \
     )
 
-// prepare R0 and R3 for DUMP_REGS_GEN_EXC_TO_CCRAM in IWDG warning callback
+// prepare R0 and R3 for DUMP_REGS_GEN_EXC_TO_CCMRAM in IWDG warning callback
 #define DUMP_REGS_GEN_IWDGW_BEGIN(depth) \
     asm volatile(                        \
         "    mrs r1, MSP            \n"  \
@@ -113,17 +113,17 @@ inline constexpr uint32_t INFO_SIZE = 0x00000010;
         "    moveq r0, r1           \n"  \
         "    mrsne r0, PSP          \n")
 
-// Store general registers from exception to ccram for dump.
+// Store general registers from exception to ccmram for dump.
 // R0 must point to stack frame containing saved R0-R3, R12, LR, PC, xPSR (4x8bytes=32bytes)
 // R3 contain lrexc
-inline void __attribute__((naked)) dump_regs_gen_exc_to_ccram() {
+inline void __attribute__((naked)) dump_regs_gen_exc_to_ccmram() {
     asm volatile(
-        "    ldr r1, =0x1000ff00    \n"   /* hardcoded ccram addres - todo: use macro  */
+        "    ldr r1, =0x1000ff00    \n"   /* hardcoded ccmram addres - todo: use macro  */
         "    b .dump_continue       \n"   /* skip the .ltorg constants                 */
         "    .ltorg                 \n"   /* put the immediate constant 0x1000ff00 here*/
         ".dump_continue:            \n"
         "    ldr r2, [r0, #0x00]    \n"   /* load r0 from stack frame  */
-        "    str r2, [r1, #0x00]    \n"   /* store r0 to ccram  */
+        "    str r2, [r1, #0x00]    \n"   /* store r0 to ccmram  */
         "    ldr r2, [r0, #0x04]    \n"   /* r1  */
         "    str r2, [r1, #0x04]    \n"
         "    ldr r2, [r0, #0x08]    \n"   /* r2  */
@@ -139,7 +139,7 @@ inline void __attribute__((naked)) dump_regs_gen_exc_to_ccram() {
         "    str r10, [r1, #0x28]   \n"   /* r10  */
         "    str r11, [r1, #0x2c]   \n"   /* r11  */
         "    str r12, [r1, #0x30]   \n"   /* r12  */
-        "    str r0, [r1, #0x34]    \n"   /* store sp (r0) to ccram  */
+        "    str r0, [r1, #0x34]    \n"   /* store sp (r0) to ccmram  */
         "    ldr r2, [r0, #0x14]    \n"   /* lr  */
         "    str r2, [r1, #0x38]    \n"
         "    ldr r2, [r0, #0x18]    \n"   /* pc  */
@@ -162,47 +162,47 @@ inline void __attribute__((naked)) dump_regs_gen_exc_to_ccram() {
 }
 
 // fill dumpinfo
-#define DUMP_INFO_TO_CCRAM(type) \
+#define DUMP_INFO_TO_CCMRAM(type) \
     *((crash_dump::DumpType *)crash_dump::INFO_ADDR) = type | crash_dump::DumpType::NOT_SAVED | crash_dump::DumpType::NOT_DISPL;
 
 // perform hardfault dump (directly from HardFault_Handler that must be "naked")
-#define DUMP_HARDFAULT_TO_CCRAM()                            \
-    {                                                        \
-        DUMP_REGS_GEN_FAULT_BEGIN();                         \
-        crash_dump::dump_regs_gen_exc_to_ccram();            \
-        DUMP_INFO_TO_CCRAM(crash_dump::DumpType::HARDFAULT); \
+#define DUMP_HARDFAULT_TO_CCMRAM()                            \
+    {                                                         \
+        DUMP_REGS_GEN_FAULT_BEGIN();                          \
+        crash_dump::dump_regs_gen_exc_to_ccmram();            \
+        DUMP_INFO_TO_CCMRAM(crash_dump::DumpType::HARDFAULT); \
     }
 
 // perform iwdg warning dump (from wdt_iwdg_warning_cb, depth is exception MSP offset from current MSP)
-#define DUMP_IWDGW_TO_CCRAM(depth)                       \
-    {                                                    \
-        DUMP_REGS_GEN_IWDGW_BEGIN(depth);                \
-        crash_dump::dump_regs_gen_exc_to_ccram();        \
-        DUMP_INFO_TO_CCRAM(crash_dump::DumpType::IWDGW); \
+#define DUMP_IWDGW_TO_CCMRAM(depth)                       \
+    {                                                     \
+        DUMP_REGS_GEN_IWDGW_BEGIN(depth);                 \
+        crash_dump::dump_regs_gen_exc_to_ccmram();        \
+        DUMP_INFO_TO_CCMRAM(crash_dump::DumpType::IWDGW); \
     }
 
 // perform fatal error dump
-#define DUMP_FATALERROR_TO_CCRAM()                            \
-    {                                                         \
-        DUMP_REGS_GEN_FAULT_BEGIN();                          \
-        crash_dump::dump_regs_gen_exc_to_ccram();             \
-        DUMP_INFO_TO_CCRAM(crash_dump::DumpType::FATALERROR); \
+#define DUMP_FATALERROR_TO_CCMRAM()                            \
+    {                                                          \
+        DUMP_REGS_GEN_FAULT_BEGIN();                           \
+        crash_dump::dump_regs_gen_exc_to_ccmram();             \
+        DUMP_INFO_TO_CCMRAM(crash_dump::DumpType::FATALERROR); \
     }
 
 // perform bsod dump (directly from _bsod)
-#define DUMP_BSOD_TO_CCRAM()                            \
-    {                                                   \
-        DUMP_REGS_GEN_FAULT_BEGIN();                    \
-        crash_dump::dump_regs_gen_exc_to_ccram();       \
-        DUMP_INFO_TO_CCRAM(crash_dump::DumpType::BSOD); \
+#define DUMP_BSOD_TO_CCMRAM()                            \
+    {                                                    \
+        DUMP_REGS_GEN_FAULT_BEGIN();                     \
+        crash_dump::dump_regs_gen_exc_to_ccmram();       \
+        DUMP_INFO_TO_CCMRAM(crash_dump::DumpType::BSOD); \
     }
 
 // perform stack overflow dump (from vApplicationStackOverflowHook())
-#define DUMP_STACK_OVF_TO_CCRAM()                            \
-    {                                                        \
-        DUMP_REGS_GEN_FAULT_BEGIN();                         \
-        crash_dump::dump_regs_gen_exc_to_ccram();            \
-        DUMP_INFO_TO_CCRAM(crash_dump::DumpType::STACK_OVF); \
+#define DUMP_STACK_OVF_TO_CCMRAM()                            \
+    {                                                         \
+        DUMP_REGS_GEN_FAULT_BEGIN();                          \
+        crash_dump::dump_regs_gen_exc_to_ccmram();            \
+        DUMP_INFO_TO_CCMRAM(crash_dump::DumpType::STACK_OVF); \
     }
 
 /**
@@ -234,7 +234,7 @@ void dump_reset();
 void dump_set_displayed();
 
 /**
- * @brief Get RAM data from dump.
+ * @brief Get RAM or CCMRAM data from dump.
  * @param pRAM will be filled with RAM data
  * @param addr address of RAM data in dump
  * @param size size of pRAM [B]
@@ -267,7 +267,7 @@ bool save_dump_to_usb(const char *fn);
 
 /**
  * @brief Save dump to XFLASH.
- * Use one of DUMP_HARDFAULT_TO_CCRAM() before this to get registers to CCRAM.
+ * Use one of DUMP_HARDFAULT_TO_CCMRAM() before this to get registers to CCMRAM.
  */
 void save_dump();
 

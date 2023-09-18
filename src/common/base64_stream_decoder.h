@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 
 // dekodovani 3 bajtu ze 4 base64 znaku - jelikoz mame 80 znaku na radek
 // a 2 znaky jsou uvodni, tak 78/4 rozhodne neni cely cislo, takze to bude

@@ -4,6 +4,7 @@
 #include "client_response_texts.hpp"
 #include "i18n.h"
 #include "img_resources.hpp"
+#include <printers.h>
 
 // clang-format off
 /**
@@ -25,7 +26,7 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( N_("CONTINUE"),         &img::resume_48x48 ),       // Continue
     std::make_pair( N_("COOLDOWN"),         nullptr ),                  // Cooldown
     std::make_pair( N_("DISABLE"),          nullptr ),                  // Disable
-    std::make_pair( N_("DISABLE SENSOR"),   nullptr ),                  // Filament_removed
+    std::make_pair( N_("FILAMENT REMOVED"), nullptr ),                  // Filament_removed
     std::make_pair( N_("FINISH"),           nullptr ),                  // Finish
     std::make_pair( "FLEX",                 &img::spool_58x58 ),        // FLEX filament, do not translate
     std::make_pair( N_("DISABLE FS"),       nullptr ),                  // FS_disable
@@ -48,11 +49,18 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( "PP",                   &img::spool_58x58 ),        // PP filament, do not translate
     std::make_pair( "Print",                &img::print_58x58 ),        // Print
     std::make_pair( N_("PRUSA STOCK"),      nullptr ),                  // PrusaStock
-    std::make_pair( N_("PURGE MORE"),       &img::spool_58x58 ),        // Purge_more
+    std::make_pair(
+        #if PRINTER_IS_PRUSA_MINI
+         N_("MORE"),
+        #else
+         N_("PURGE MORE"),
+         #endif
+                &img::spool_58x58 ),        // Purge_more
     std::make_pair( "PVB",                  &img::spool_58x58 ),        // PVB filament, do not translate
     std::make_pair( N_("QUIT"),             nullptr ),                  // QUIT
     std::make_pair( N_("REHEAT"),           &img::preheat_58x58 ),      // Reheat
     std::make_pair( N_("REPLACE"),          nullptr),                   // Replace
+    std::make_pair( N_("REMOVE"),          nullptr),                   // Remove
     std::make_pair( N_("RESTART"),          &img::restart_58x58 ),      // Restart
     std::make_pair( N_("RESUME"),           &img::resume_48x48 ),       // Resume
     std::make_pair( N_("RETRY"),            &img::back_32x32 ),         // Retry

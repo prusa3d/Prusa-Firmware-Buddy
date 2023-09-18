@@ -4,6 +4,7 @@
 #include "log.h"
 #include "FreeRTOSConfig.h"
 #include <device/peripherals.h>
+#include "priorities_config.h"
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
@@ -314,7 +315,20 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
          * PC3     ------> SPI2_MOSI
          * PB10     ------> SPI2_SCK
          */
-        GPIO_InitStruct.Pin = GPIO_PIN_2 | GPIO_PIN_3;
+        GPIO_InitStruct.Pin = GPIO_PIN_2;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+
+    #if BOARD_IS_XBUDDY
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    #else
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+    #endif
+        GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+        GPIO_InitStruct.Pin = GPIO_PIN_3;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
     #if BOARD_IS_XBUDDY
@@ -973,6 +987,24 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
         // Link with DMA
         __HAL_LINKDMA(huart, hdmarx, hdma_usart6_rx);
 
+        /* USART6_TX Init */
+        hdma_usart6_tx.Instance = DMA2_Stream6;
+        hdma_usart6_tx.Init.Channel = DMA_CHANNEL_5;
+        hdma_usart6_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+        hdma_usart6_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+        hdma_usart6_tx.Init.MemInc = DMA_MINC_ENABLE;
+        hdma_usart6_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        hdma_usart6_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+        hdma_usart6_tx.Init.Mode = DMA_NORMAL;
+        hdma_usart6_tx.Init.Priority = DMA_PRIORITY_LOW;
+        hdma_usart6_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+        if (HAL_DMA_Init(&hdma_usart6_tx) != HAL_OK) {
+            Error_Handler();
+        }
+
+        // Link with DMA
+        __HAL_LINKDMA(huart, hdmatx, hdma_usart6_tx);
+
         // Enable interrupts on the peripheral
         __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
         __HAL_UART_ENABLE_IT(huart, UART_IT_TC);
@@ -1095,7 +1127,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
         hdma_uart8_tx.Init.MemInc = DMA_MINC_ENABLE;
         hdma_uart8_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
         hdma_uart8_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-        hdma_uart8_tx.Init.Mode = DMA_CIRCULAR;
+        hdma_uart8_tx.Init.Mode = DMA_NORMAL;
         hdma_uart8_tx.Init.Priority = DMA_PRIORITY_LOW;
         hdma_uart8_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
         if (HAL_DMA_Init(&hdma_uart8_tx) != HAL_OK) {

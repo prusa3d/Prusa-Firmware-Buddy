@@ -29,7 +29,7 @@ public:
 
     BuddyDumpRequest(const char *url_string_)
         : hdrs {
-            { "Content-Length", static_cast<size_t>(FLASH_SIZE + OTP_SIZE + RAM_SIZE + CCRAM_SIZE), std::nullopt },
+            { "Content-Length", static_cast<size_t>(FLASH_SIZE + OTP_SIZE + RAM_SIZE + CCMRAM_SIZE), std::nullopt },
             { nullptr, nullptr, std::nullopt },
         }
         , url_string(url_string_) {}
@@ -63,7 +63,7 @@ public:
 
         size_t read { 0 }; // number of bytes that have been read
         if (state == ReadState::ram) {
-            static constexpr size_t current_read_size { RAM_SIZE + CCRAM_SIZE };
+            static constexpr size_t current_read_size { RAM_SIZE + CCMRAM_SIZE };
             const size_t to_read { calculate_to_read(idx, size, read, current_read_size) };
 
             memset(data, 0, to_read);

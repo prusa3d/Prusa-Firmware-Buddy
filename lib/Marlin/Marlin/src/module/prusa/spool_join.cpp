@@ -37,12 +37,12 @@ bool SpoolJoin::add_join(uint8_t spool_1, uint8_t spool_2) {
     for (size_t i = 0; i < num_joins; ++i) {
         if (joins[i].spool_1 == spool_1) {
             spool_1 = joins[i].spool_2;
-            i = 0; // reset the search as we don't have order guaranteed
+            i = -1; // reset the search as we don't have order guaranteed
         }
     }
 
     // Prevent adding loops
-    if (get_earliest_spool_1(spool_2) == get_earliest_spool_1(spool_1)) {
+    if (get_first_spool_1_from_chain(spool_2) == get_first_spool_1_from_chain(spool_1)) {
         return false;
     }
 
@@ -74,8 +74,7 @@ void SpoolJoin::remove_join_at(size_t idx) {
     --num_joins;
 }
 
-bool SpoolJoin::remove_joins_containing(uint8_t spool) {
-
+bool SpoolJoin::reroute_joins_containing(uint8_t spool) {
     size_t preceding_idx { std::size(joins) };
     size_t followup_idx { std::size(joins) };
 
@@ -107,17 +106,58 @@ bool SpoolJoin::remove_joins_containing(uint8_t spool) {
     }
 }
 
-uint8_t SpoolJoin::get_earliest_spool_1(uint8_t spool_2) const {
+bool SpoolJoin::remove_join_chain_containing(uint8_t spool) {
+    size_t preceding_idx { std::size(joins) };
+    size_t followup_idx { std::size(joins) };
+
+    for (size_t i = 0; i < num_joins; ++i) {
+        if (joins[i].spool_1 == spool) {
+            followup_idx = i;
+        } else if (joins[i].spool_2 == spool) {
+            preceding_idx = i;
+        }
+    }
+
+    if (preceding_idx != std::size(joins) && followup_idx != std::size(joins)) {
+        // if found && not last in chain && not first -> rechain
+        auto tmp_preceding = joins[preceding_idx].spool_1;
+        auto tmp_followup = joins[followup_idx].spool_2;
+        remove_join_at(std::max(preceding_idx, followup_idx)); // remove_join_at can reoder last item, so remove the bigger of the two indices in case one of them is last
+        remove_join_at(std::min(preceding_idx, followup_idx)); // remove the other index
+
+        remove_join_chain_containing(tmp_preceding);
+        remove_join_chain_containing(tmp_followup);
+        return true;
+    } else if (preceding_idx != std::size(joins)) {
+        // if found && first in chain -> remove
+
+        auto tmp = joins[preceding_idx].spool_1;
+        remove_join_at(preceding_idx);
+        remove_join_chain_containing(tmp);
+        return true;
+    } else if (followup_idx != std::size(joins)) {
+        // if found && last in chain -> remove
+        auto tmp = joins[followup_idx].spool_2;
+        remove_join_at(followup_idx);
+        remove_join_chain_containing(tmp);
+        return true;
+    } else {
+        // we don't have it
+        return false;
+    }
+}
+
+uint8_t SpoolJoin::get_first_spool_1_from_chain(uint8_t spool_2) const {
     for (size_t i = 0; i < num_joins; ++i) {
         if (joins[i].spool_2 == spool_2) {
             spool_2 = joins[i].spool_1;
-            i = 0; // reset the loop and search again
+            i = -1; // reset the loop and search again
         }
     }
     return spool_2;
 }
 
-std::optional<uint8_t> SpoolJoin::get_join_for_tool(uint8_t tool) {
+std::optional<uint8_t> SpoolJoin::get_spool_2(uint8_t tool) const {
     for (size_t i = 0; i < num_joins; i++) {
         if (joins[i].spool_1 == tool)
             return joins[i].spool_2;
@@ -127,7 +167,7 @@ std::optional<uint8_t> SpoolJoin::get_join_for_tool(uint8_t tool) {
 }
 
 bool SpoolJoin::do_join(uint8_t current_tool) {
-    auto join_settings = spool_join.get_join_for_tool(current_tool);
+    auto join_settings = spool_join.get_spool_2(current_tool);
     if (!join_settings.has_value()) {
         return false;
     }
@@ -162,7 +202,7 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
 
     // set up new tool mapping, so that next Tx will use spool we are joining to
     // but do mapping of logical->physical, so first convert current_tool to its logical tool
-    if (!tool_mapper.set_mapping(tool_mapper.to_logical(current_tool), new_tool)) {
+    if (!tool_mapper.set_mapping(tool_mapper.to_gcode(current_tool), new_tool)) {
         return false;
     }
     tool_mapper.set_enable(true);

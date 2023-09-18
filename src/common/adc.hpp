@@ -351,6 +351,14 @@ public:
         __HAL_DMA_DISABLE(adcDma.handle.DMA_Handle);
     }
 
+    void read_all_channels() {
+        for (uint i = 0; i < NUM_CHANNELS / 2; ++i) {
+            // Switch channel and wait for it to be updated
+            switch_channel();
+            osDelay(1);
+        }
+    }
+
     [[nodiscard]] const ADC_HandleTypeDef &adc_handle() const {
         return adcDma.handle;
     }
@@ -393,6 +401,8 @@ extern AdcMultiplexer<AdcDma3, DMA2_Stream0_IRQn, AdcChannel::SFS_AND_TEMP_CH_CN
 #endif // ADC_MULTIPLEXER
 
 namespace AdcGet {
+static constexpr uint16_t undefined_value = AdcDma1::reset_value;
+
 #if (BOARD_IS_BUDDY)
 inline uint16_t nozzle() { return adcDma1.get_and_shift_channel(AdcChannel::hotend_T); }
 inline uint16_t bed() { return adcDma1.get_and_shift_channel(AdcChannel::heatbed_T); }
@@ -456,9 +466,9 @@ inline uint16_t inputVoltage24V() { return PowerHWIDAndTempMux.get_and_shift_cha
 inline uint16_t inputVoltage5V() { return PowerHWIDAndTempMux.get_and_shift_channel(AdcChannel::board_U5); };
 inline uint16_t sandwichCurrent5V() { return PowerHWIDAndTempMux.get_and_shift_channel(AdcChannel::sandwich_I5); };
 inline uint16_t xlbuddyCurrent5V() { return PowerHWIDAndTempMux.get_and_shift_channel(AdcChannel::xlbuddy_I5); };
-inline uint16_t hwId0() { return PowerHWIDAndTempMux.get_and_shift_channel(AdcChannel::hw_id_0); };
-inline uint16_t hwId1() { return PowerHWIDAndTempMux.get_and_shift_channel(AdcChannel::hw_id_1); };
-inline uint16_t hwId2() { return PowerHWIDAndTempMux.get_and_shift_channel(AdcChannel::hw_id_2); };
+inline uint16_t hwId0() { return PowerHWIDAndTempMux.get_channel(AdcChannel::hw_id_0); };
+inline uint16_t hwId1() { return PowerHWIDAndTempMux.get_channel(AdcChannel::hw_id_1); };
+inline uint16_t hwId2() { return PowerHWIDAndTempMux.get_channel(AdcChannel::hw_id_2); };
 inline uint16_t splitterTemp() { return PowerHWIDAndTempMux.get_and_shift_channel(AdcChannel::splitter_temp); };
 inline uint16_t side_filament_sensor(AdcChannel::SideFilamnetSensorsAndTempMux channel) {
     assert(channel >= AdcChannel::sfs1 && channel <= AdcChannel::sfs6);

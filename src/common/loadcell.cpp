@@ -18,6 +18,7 @@
 #endif // POWER_PANIC
 #include "../Marlin/src/module/planner.h"
 #include "../Marlin/src/module/endstops.h"
+#include "feature/prusa/e-stall_detector.h"
 
 LOG_COMPONENT_DEF(Loadcell, LOG_SEVERITY_INFO);
 
@@ -37,25 +38,24 @@ Loadcell::Loadcell()
     , hysteresis(0)
     , failsOnLoadAbove(INFINITY)
     , failsOnLoadBelow(-INFINITY)
-    , loadcellRaw(0)
-    , endstop(false)
-    , isSignalEventConfigured(false)
     , highPrecision(false)
     , tareMode(TareMode::Static)
-    , offset(0)
     , z_filter()
-    , xy_filter() {}
-
-void Loadcell::ConfigureSignalEvent(osThreadId threadId, int32_t signal) {
-    this->threadId = threadId;
-    this->signal = signal;
-    isSignalEventConfigured = 1;
+    , xy_filter() {
+    Clear();
 }
 
-void Loadcell::Tare(TareMode mode, bool wait) {
-    if (!isSignalEventConfigured)
-        bsod("loadcell signal not configured");
+void Loadcell::WaitBarrier(uint32_t ticks_ms) {
+    // the first sample we're waiting for needs to be valid
+    while (!planner.draining() && undefinedCnt)
+        idle(true, true);
 
+    // now wait until the requested timestamp
+    while (!planner.draining() && ticks_diff(loadcell.GetLastSampleTime(), ticks_ms) < 0)
+        idle(true, true);
+}
+
+float Loadcell::Tare(TareMode mode) {
     // ensure high-precision mode is enabled when taring
     if (!highPrecision)
         bsod("high precision not enabled during tare");
@@ -63,49 +63,42 @@ void Loadcell::Tare(TareMode mode, bool wait) {
     if (tareCount != 0)
         bsod("loadcell tare already requested");
 
-    // discard the current sample: it could have been started long ago
-    if (wait)
-        WaitForNextSample();
-
     if (endstops.is_z_probe_enabled() && (endstop || xy_endstop))
         fatal_error("LOADCELL", "Tare under load");
 
     tareMode = mode;
 
     // request tare from ISR routine
-    int requestedTareCount = tareMode == TareMode::Continuous ? std::max(z_filter.SETTLING_TIME, xy_filter.SETTLING_TIME) : 4;
+    int requestedTareCount = tareMode == TareMode::Continuous
+        ? std::max(z_filter.SETTLING_TIME, xy_filter.SETTLING_TIME)
+        : STATIC_TARE_SAMPLE_CNT;
     tareSum = 0;
     tareCount = requestedTareCount;
 
-    // wait untill wa have all the samples that were requested
-    while (tareCount != 0) {
-        osEvent evt = osSignalWait(signal, 500);
-        if (evt.status != osEventSignal) {
-            // Power panic during MBL causes returning osErrorValue or osEventTimeout
-            // Raising redscreen during AC power fault breaks the power panic resume cycle after restart
-            // Loadcell values are irelevant here, because MBL will be restarted after power up
-#if ENABLED(POWER_PANIC)
-            if (power_panic::ac_fault_triggered && power_panic::is_ac_fault_active()) {
-                log_info(Loadcell, "PowerPanic triggered during loadcell tare operation - tare cycle was broken");
-                tareCount = 0;
-                break;
-            }
-#endif                      // POWER_PANIC
-#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
-            fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TARE_FAILED);
-#endif
-        }
-    }
+    // wait until we have all the samples that were requested
+    while (!planner.draining() && tareCount != 0)
+        idle(true, true);
 
-    offset = tareSum / requestedTareCount;
+    if (!planner.draining()) {
+        if (tareMode == TareMode::Continuous) {
+            // double-check filters are ready after the tare
+            assert(z_filter.settled());
+            assert(xy_filter.settled());
+        }
+
+        offset = tareSum / requestedTareCount;
+    }
 
     endstop = false;
     xy_endstop = false;
+
+    return offset * scale; // Return offset scaled to output grams
 }
 
 void Loadcell::Clear() {
     tareCount = 0;
-    loadcellRaw = 0;
+    loadcellRaw = undefined_value;
+    undefinedCnt = 0;
     offset = 0;
     reset_filters();
     endstop = false;
@@ -115,6 +108,7 @@ void Loadcell::Clear() {
 void Loadcell::reset_filters() {
     z_filter.reset();
     xy_filter.reset();
+    loadcell.analysis.Reset();
 }
 
 bool Loadcell::GetMinZEndstop() const {
@@ -145,10 +139,6 @@ int32_t Loadcell::get_raw_value() const {
     return loadcellRaw;
 }
 
-bool Loadcell::IsSignalConfigured() const {
-    return isSignalEventConfigured;
-}
-
 void Loadcell::SetFailsOnLoadAbove(float failsOnLoadAbove) {
     this->failsOnLoadAbove = failsOnLoadAbove;
 }
@@ -162,45 +152,89 @@ void Loadcell::set_xy_endstop(const bool enabled) {
 }
 
 void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
-    this->loadcellRaw = loadcellRaw;
-    z_filter.filter(loadcellRaw);
-    xy_filter.filter(loadcellRaw);
+    if (loadcellRaw != undefined_value) {
+        this->loadcellRaw = loadcellRaw;
+        this->undefinedCnt = 0;
+    } else {
+        // undefined value, use forward-fill only for short bursts
+        if (++this->undefinedCnt >= UNDEFINED_SAMPLE_MAX_CNT)
+            fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
+    }
 
-    float load = get_tared_z_load();
+    // handle filters only in high precision mode
+    if (highPrecision) {
+        z_filter.filter(this->loadcellRaw);
+        xy_filter.filter(this->loadcellRaw);
+    }
 
+    // sample timestamp
     int32_t ticks_us_from_now = ticks_diff(time_us, ticks_us());
     int32_t ticks_ms_from_now = ticks_us_from_now / 1000;
     uint32_t timestamp_ms = ticks_ms() + ticks_ms_from_now;
-
     last_sample_time = timestamp_ms;
 
     metric_record_custom_at_time(&metric_loadcell, timestamp_ms, " r=%ii,o=%ii,s=%0.4f", loadcellRaw, offset, (double)scale);
-    metric_record_float(&metric_loadcell_value, load);
-
-    const float loadHighPass = get_filtered_z_load();
-    metric_record_float_at_time(&metric_loadcell_hp, timestamp_ms, loadHighPass);
-
-    const float filtered_load_xy = get_filtered_xy();
-    metric_record_float_at_time(&metric_loadcell_xy, timestamp_ms, filtered_load_xy);
-
     metric_record_integer_at_time(&metric_loadcell_age, timestamp_ms, ticks_us_from_now);
 
-    float z_pos = buddy::probePositionLookback.get_position_at(time_us, []() { return planner.get_axis_position_mm(AxisEnum::Z_AXIS); });
-    if (!std::isnan(z_pos)) {
-        analysis.StoreSample(z_pos, load);
-    } else {
-        log_warning(Loadcell, "Got NaN z-coordinate; skipping (age=%dus)", ticks_us_from_now);
-    }
-
-    if (!std::isfinite(load)) {
-#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
+    // filtered loads
+    const float tared_z_load = get_tared_z_load();
+    metric_record_float(&metric_loadcell_value, tared_z_load);
+    if (!std::isfinite(tared_z_load)) {
         fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_INFINITE_LOAD);
-#endif
     }
 
-    // Trigger Z endstop/probe
-    float loadForEndstops = tareMode == TareMode::Static ? load : loadHighPass;
-    float threshold = GetThreshold(tareMode);
+    const float filtered_z_load = get_filtered_z_load();
+    metric_record_float_at_time(&metric_loadcell_hp, timestamp_ms, filtered_z_load);
+
+    const float filtered_xy_load = get_filtered_xy();
+    metric_record_float_at_time(&metric_loadcell_xy, timestamp_ms, filtered_xy_load);
+
+    if (tareCount != 0) {
+        // Undergoing tare process, only use valid samples
+        if (loadcellRaw != undefined_value) {
+            tareSum += loadcellRaw;
+            tareCount -= 1;
+        }
+    } else {
+        // Trigger Z endstop/probe
+        float loadForEndstops, threshold;
+        if (tareMode == TareMode::Static) {
+            loadForEndstops = tared_z_load;
+            threshold = thresholdStatic;
+        } else {
+            assert(!Endstops::is_z_probe_enabled() || z_filter.settled());
+            loadForEndstops = filtered_z_load;
+            threshold = thresholdContinuous;
+        }
+
+        if (endstop) {
+            if (loadForEndstops >= (threshold + hysteresis)) {
+                endstop = false;
+            }
+            buddy::hw::zMin.isr();
+        } else {
+            if (loadForEndstops <= threshold) {
+                endstop = true;
+                buddy::hw::zMin.isr();
+            }
+        }
+
+        // Trigger XY endstop/probe
+        if (xy_endstop_enabled) {
+            assert(xy_filter.settled());
+
+            // Everything as absolute values, watch for changes.
+            // Load perpendicular to the sensor sense vector is not guaranteed to have defined sign.
+            if (abs(filtered_xy_load) > abs(XY_PROBE_THRESHOLD)) {
+                xy_endstop = true;
+                buddy::hw::zMin.isr();
+            }
+            if (abs(filtered_xy_load) < abs(XY_PROBE_THRESHOLD) - abs(XY_PROBE_HYSTERESIS)) {
+                xy_endstop = false;
+                buddy::hw::zMin.isr();
+            }
+        }
+    }
 
     if (Endstops::is_z_probe_enabled()) {
 #if 0
@@ -212,55 +246,16 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
 #endif
     }
 
-    if (endstop) {
-        if (loadForEndstops >= (threshold + hysteresis)) {
-            endstop = false;
-        }
-        buddy::hw::zMin.isr();
+    // push sample for analysis
+    float z_pos = buddy::probePositionLookback.get_position_at(time_us, []() { return planner.get_axis_position_mm(AxisEnum::Z_AXIS); });
+    if (!std::isnan(z_pos)) {
+        analysis.StoreSample(z_pos, tared_z_load);
     } else {
-        if (loadForEndstops <= threshold) {
-            endstop = true;
-            buddy::hw::zMin.isr();
-        }
+        log_warning(Loadcell, "Got NaN z-coordinate; skipping (age=%dus)", ticks_us_from_now);
     }
 
-    // Trigger XY endstop/probe
-    if (xy_endstop_enabled) {
-        // Everything as absolute values, watch for changes.
-        // Load perpendicular to the sensor sense vector is not guaranteed to have defined sign.
-        if (abs(filtered_load_xy) > abs(XY_PROBE_THRESHOLD)) {
-            xy_endstop = true;
-            buddy::hw::zMin.isr();
-        }
-        if (abs(filtered_load_xy) < abs(XY_PROBE_THRESHOLD) - abs(XY_PROBE_HYSTERESIS)) {
-            xy_endstop = false;
-            buddy::hw::zMin.isr();
-        }
-    }
-
-    if (tareCount != 0) {
-        tareSum += loadcellRaw;
-        tareCount -= 1;
-    }
-
-    if (isSignalEventConfigured) {
-        osSignalSet(threadId, signal);
-    }
-}
-
-int32_t Loadcell::WaitForNextSample() {
-    if (!isSignalEventConfigured)
-        bsod("loadcell signal not configured");
-
-    // hx717: output settling time is 400 ms (for reset, channel change, gain change)
-    // therefore 600 ms should be safe and if it takes longer, it is most likely an error
-    auto result = osSignalWait(signal, 600);
-    if (result.status != osEventSignal && !planner.draining()) {
-#if !PRINTER_IS_PRUSA_MK3_5 // TODO fix error codes
-        fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
-#endif
-    }
-    return loadcellRaw;
+    // Perform E motor stall detection
+    EMotorStallDetector::Instance().ProcessSample(this->loadcellRaw);
 }
 
 void Loadcell::HomingSafetyCheck() const {
@@ -312,22 +307,22 @@ Loadcell::FailureOnLoadAboveEnforcer::~FailureOnLoadAboveEnforcer() {
 /**
  * @brief Create object enabling high precision mode
  *
- * Enables high precision mode and tare continuously when created so lower threshold can be used,
- * disables high precision mode when destroyed.
+ * Keep high precision enabled when created, then restore when destroyed
  * @param enable Enable condition. Useful if you want to create enforcer based on condition.
  *              You can not put object simply inside if block, because you unintentionally also
  *              limit its scope.
  *   @arg @c true Normal operation
- *   @arg @c false Do not enable high precision mode and tare when created. (Doesn't affect destruction.)
+ *   @arg @c false Do not enable high precision mode and tare when created.
  */
 Loadcell::HighPrecisionEnabler::HighPrecisionEnabler(Loadcell &lcell,
     bool enable)
-    : m_lcell(lcell) {
-    if (enable) {
+    : m_lcell(lcell)
+    , m_enable(enable) {
+    if (m_enable)
         m_lcell.EnableHighPrecision();
-    }
 }
 
 Loadcell::HighPrecisionEnabler::~HighPrecisionEnabler() {
-    m_lcell.DisableHighPrecision();
+    if (m_enable)
+        m_lcell.DisableHighPrecision();
 }

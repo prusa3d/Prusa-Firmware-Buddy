@@ -1,12 +1,12 @@
 ; DO NOT EDIT (unless you know what you are doing)
 ;
 ; This subdirectory is a git "subrepo", and this file is maintained by the
-; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
 ;
 [subrepo]
 	remote = git@github.com:prusa3d/Prusa-Error-Codes.git
 	branch = master
-	commit = 46071ae0121d666e4ef2e7da981f574653925f4f
-	parent = 8d327ec89f57b157e81c918a2e3647c0fd85c1dd
+	commit = 008dce1329d524e4a726a43f5571735cc4345cd5
+	parent = 3d8d11500b38eea9b5f09c3ba176959f9ddce00d
 	method = merge
 	cmdver = 0.4.6

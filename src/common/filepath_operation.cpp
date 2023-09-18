@@ -16,3 +16,16 @@ void dirname(char *path) {
     }
     *last_slash = '\0';
 }
+
+const char *dirent_lfn(const struct dirent *ent) {
+#ifdef UNITTESTS
+    return ent->d_name;
+#else
+    if (ent->lfn != nullptr) {
+        return ent->lfn;
+    } else {
+        // Fatfs without long file name...
+        return ent->d_name;
+    }
+#endif
+}

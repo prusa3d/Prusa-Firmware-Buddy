@@ -35,6 +35,7 @@
 #include "planner.h"
 #include "../core/language.h"
 #include "../HAL/shared/Delay.h"
+#include "bsod.h"
 #include "metric.h"
 #include "../../../../src/common/hwio.h"
 #include "../../../../src/common/config_buddy_2209_02.h"
@@ -366,6 +367,7 @@ volatile bool Temperature::temp_meas_ready = false;
 
   inline void say_default_() { SERIAL_ECHOPGM("#define DEFAULT_"); }
 
+  #if ENABLED(PID_AUTOTUNE)
   /**
    * PID Autotuning (M303)
    *
@@ -663,6 +665,7 @@ volatile bool Temperature::temp_meas_ready = false;
       #endif
       return;
   }
+  #endif
 
 #endif // HAS_PID_HEATING
 
@@ -2129,7 +2132,8 @@ float scan_thermistor_table_bed(const int raw){
     #elif ENABLED(HEATBREAK_USES_THERMISTOR)
       #if (BOARD_IS_XBUDDY)
           uint8_t loveboard_bom = hwio_get_loveboard_bomid();
-          if (loveboard_bom < 33 && loveboard_bom != 0 /* error -> expect more common variant */) {
+          if ((loveboard_bom < 33 && loveboard_bom != 0) // error -> expect more common variant
+              || loveboard_bom == 0xff) { // error when run in simulator -> simulator uses table 5
               SCAN_THERMISTOR_TABLE((TT_NAME(5)), (COUNT(TT_NAME(5))));
           } else {
               SCAN_THERMISTOR_TABLE(HEATBREAK_TEMPTABLE, HEATBREAK_TEMPTABLE_LEN);

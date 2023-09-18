@@ -224,6 +224,9 @@ public:
 
         switch (type) {
         case EType::RAM:
+            // even though data on RAM can change, stringview never copies any data and therefore comparing pointers is enough
+            // => if pointer wasn't changed, data on the other end is the exact same data that is saved by stringview
+            // check MakeRAM; that should make everything clear
         case EType::CPUFLASH:
             return attrs.cpuflash.utf8raw == other.attrs.cpuflash.utf8raw;
         case EType::FILE:

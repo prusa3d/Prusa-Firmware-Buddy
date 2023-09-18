@@ -57,7 +57,6 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-// clang-format off
 // We test two steps, at 20% (just to check if the fans spin at low PWM) and at
 // 100%, where we also check the rpm range
 static constexpr SelftestFansConfig fans_configs[] = {
@@ -67,18 +66,17 @@ static constexpr SelftestFansConfig fans_configs[] = {
             .pwm_step = 204,
             .rpm_min_table = { 10, 5300 },
             .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print
+            .fanctl_fnc = Fans::print,
         },
         .heatbreak_fan = {
             .pwm_start = 51,
             .pwm_step = 204,
             .rpm_min_table = { 10, 6800 },
             .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    }
+            .fanctl_fnc = Fans::heat_break,
+        },
+    },
 };
-// clang-format on
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
@@ -408,12 +406,12 @@ void CSelftest::Loop() {
             return;
         break;
     case stsEpilogue_ok:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
         }
         break;
     case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok))
                 return;
         }
@@ -438,7 +436,7 @@ void CSelftest::phaseDidSelftestPass() {
     SelftestResult_Log(m_result);
 
     // dont run wizard again
-    if (SelftestResult_Passed(m_result)) {
+    if (SelftestResult_Passed_All(m_result)) {
         config_store().run_selftest.set(false);    // clear selftest flag
         config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
@@ -468,9 +466,13 @@ bool CSelftest::Abort() {
     abort_part((selftest::IPartHandler **)&pZAxis);
     for (auto &pNozzle : pNozzles)
         abort_part(&pNozzle);
+    abort_part(&pBed);
+    abort_part(&pSock);
     for (auto &loadcell : m_pLoadcell)
         abort_part(&loadcell);
     abort_part((selftest::IPartHandler **)&pFSensor);
+    abort_part(&pGearsCalib);
+
     m_State = stsAborted;
 
     phaseFinish();

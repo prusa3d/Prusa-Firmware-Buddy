@@ -10,18 +10,14 @@
 #include <stdint.h>
 #include <optional>
 #include <atomic>
-
-enum class fsensor_t : uint8_t {
-    NotInitialized, // enable enters this state too
-    NotCalibrated,
-    HasFilament,
-    NoFilament,
-    NotConnected,
-    Disabled
-};
+#include "filament_sensor_states.hpp"
+#include "hx717.hpp"
 
 class IFSensor {
 public:
+    typedef int32_t value_type;
+    static constexpr int32_t undefined_value = HX717::undefined_value;
+
     enum class event {
         NoFilament,
         HasFilament,

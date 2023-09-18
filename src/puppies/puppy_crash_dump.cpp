@@ -11,7 +11,7 @@ LOG_COMPONENT_REF(Puppies);
 
 namespace buddy::puppies::crash_dump {
 std::pair<bool, puppy_crash_dump::FWDescriptor> fetch_fw_descriptor(std::span<uint8_t> buffer,
-    const BootloaderProtocol &flasher, const char *puppy_name) {
+    BootloaderProtocol &flasher, const char *puppy_name) {
     assert(buffer.size() >= puppy_crash_dump::APP_DESCRIPTOR_LENGTH);
 
     if (auto st = flasher.read_flash_cmd(puppy_crash_dump::APP_DESCRIPTOR_OFFSET, buffer.data(), puppy_crash_dump::APP_DESCRIPTOR_LENGTH);
@@ -24,7 +24,7 @@ std::pair<bool, puppy_crash_dump::FWDescriptor> fetch_fw_descriptor(std::span<ui
 }
 
 bool download_dump_into_file(std::span<uint8_t> buffer,
-    const BootloaderProtocol &flasher, const char *puppy_name, const char *file_path) {
+    BootloaderProtocol &flasher, const char *puppy_name, const char *file_path) {
     if (auto [rc, fw_descriptor] = fetch_fw_descriptor(buffer, flasher, puppy_name); rc != true) {
         return rc;
     } else {

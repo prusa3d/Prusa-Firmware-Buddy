@@ -1,5 +1,6 @@
 
 #include "DialogMoveZ.hpp"
+#include "screen_menu_move_utils.hpp"
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
@@ -66,12 +67,6 @@ DialogMoveZ::DialogMoveZ()
 };
 
 void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-#if PRINTER_IS_PRUSA_MINI
-    constexpr static uint8_t len = 4;
-#else
-    constexpr static uint8_t len = 12;
-#endif
-
     switch (event) {
     case GUI_event_t::CLICK: {
         /// has set is_closed_on_click_t
@@ -106,29 +101,14 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         return;
     }
     case GUI_event_t::LOOP: {
-
-        if (marlin_vars()->pqueue <= len) {
-            int difference = value - lastQueuedPos;
-            uint8_t freeSlots = len - marlin_vars()->pqueue;
-            if (difference != 0) {
-                for (uint8_t i = 0; i < freeSlots && lastQueuedPos != (int)value; i++) {
-                    if (difference > 0) {
-                        lastQueuedPos++;
-                        difference--;
-                    } else if (difference < 0) {
-                        lastQueuedPos--;
-                        difference++;
-                    }
-                    marlin_client::move_axis(lastQueuedPos, MenuVars::GetManualFeedrate()[2], 2);
-                }
-            }
-        }
+        jog_axis(lastQueuedPos, value, Z_AXIS);
         return;
     }
     default:
         return;
     }
 }
+
 void DialogMoveZ::change(int diff) {
     int32_t val = diff + value;
     auto range = MenuVars::GetAxisRanges()[2];

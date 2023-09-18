@@ -16,6 +16,10 @@ LOG_COMPONENT_DEF(Modbus, LOG_SEVERITY_INFO);
 
 std::array<uint8_t, PuppyModbus::MODBUS_RECEIVE_BUFFER_SIZE> modbus_buffer;
 
+std::array<uint8_t, PuppyModbus::MODBUS_RECEIVE_BUFFER_SIZE> &PuppyModbus::share_buffer() {
+    return modbus_buffer;
+}
+
 static metric_t modbus_reqfail = METRIC("modbus_reqfail", METRIC_VALUE_EVENT, 0, METRIC_HANDLER_ENABLE_ALL);
 
 LIGHTMODBUS_WARN_UNUSED ModbusError modbusStaticAllocator([[maybe_unused]] ModbusBuffer *buffer, uint16_t size, [[maybe_unused]] void *context) {
@@ -148,16 +152,14 @@ ModbusErrorInfo PuppyModbus::make_single_request(RequestTiming *const timing) {
         read);
     log_internal_error(err);
     if (!modbusIsOk(err)) {
-        if (!supress_error_logs)
+        if (!suppress_error_logs)
             log_info(Modbus, "Error detected, recovering serial.");
         PuppyBus::ErrorRecovery();
     }
     return err;
 }
 
-ModbusErrorInfo PuppyModbus::make_request(RequestTiming *const timing) {
-    uint32_t attempt = 1;
-    static const uint32_t TOTAL_ATTEMPTS = 3;
+ModbusErrorInfo PuppyModbus::make_request(RequestTiming *const timing, uint8_t retries) {
     ModbusErrorInfo err;
 
     while (1) {
@@ -165,13 +167,14 @@ ModbusErrorInfo PuppyModbus::make_request(RequestTiming *const timing) {
         if (!modbusIsOk(err)) {
             // only repeat because of selected errors and maximal number of times
             bool repeat = (modbusGetResponseError(err) == MODBUS_ERROR_LENGTH || modbusGetResponseError(err) == MODBUS_ERROR_CRC)
-                && attempt < TOTAL_ATTEMPTS;
+                && retries;
 
             if (repeat) {
-                if (!supress_error_logs)
-                    log_error(Modbus, "Modbus request (attempt: %d/%d) failed, will repeat", attempt, TOTAL_ATTEMPTS);
+                if (!suppress_error_logs) {
+                    log_error(Modbus, "Request failed, will repeat: %d times", retries);
+                }
                 metric_record_event(&modbus_reqfail);
-                attempt++;
+                retries--;
                 osDelay(10);
                 continue;
             }
@@ -181,7 +184,7 @@ ModbusErrorInfo PuppyModbus::make_request(RequestTiming *const timing) {
 }
 
 void PuppyModbus::log_internal_error(ModbusErrorInfo error) {
-    if (modbusIsOk(error) || supress_error_logs) {
+    if (modbusIsOk(error) || suppress_error_logs) {
         return;
     }
 #ifdef LIGHTMODBUS_DEBUG
@@ -199,122 +202,144 @@ ModbusDevice::ModbusDevice(PuppyModbus &bus, uint8_t unit)
     : bus(bus)
     , unit(unit) {}
 
-ModbusErrorInfo PuppyModbus::read_input(uint8_t unit, bool *data, uint16_t count, uint16_t address) {
+CommunicationStatus PuppyModbus::read_input(uint8_t unit, bool *data, uint16_t count, uint16_t address, uint32_t &timestamp_ms, uint32_t max_age_ms) {
+    if (max_age_ms && last_ticks_ms() - timestamp_ms < max_age_ms) {
+        return CommunicationStatus::SKIPPED;
+    }
+
     bool locked = false;
     auto lock = PuppyBus::LockGuard(locked);
     if (!locked) {
-        return MODBUS_GENERAL_ERROR(OTHER); // Allow failure instead of bsod for toolchange and powerpanic cooperation
+        return CommunicationStatus::SKIPPED; // Allow failure instead of bsod for toolchange and powerpanic cooperation
     }
 
     log_debug(Modbus, "Communicate discrete input register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
 
-    ModbusErrorInfo err = modbusBuildRequest02RTU(&master, unit, address, count);
-    log_internal_error(err);
-    if (!modbusIsOk(err)) {
-        return err;
-    }
+    [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest02RTU(&master, unit, address, count);
+    assert(modbusIsOk(err));
 
     active_value = { data, unit, address, count };
 
-    return make_request(nullptr);
+    if (!modbusIsOk(make_request(nullptr))) {
+        log_error(Modbus, "Failed to read discrete input %u:0x%x@%u", unit, address, count);
+        return CommunicationStatus::ERROR;
+    }
+
+    timestamp_ms = last_ticks_ms();
+    return CommunicationStatus::OK;
 }
 
-ModbusErrorInfo PuppyModbus::read_input(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, RequestTiming *const timing) {
+CommunicationStatus PuppyModbus::read_input(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, RequestTiming *const timing, uint32_t &timestamp_ms, uint32_t max_age_ms) {
+    if (max_age_ms && last_ticks_ms() - timestamp_ms < max_age_ms) {
+        return CommunicationStatus::SKIPPED;
+    }
+
     auto lock = PuppyBus::LockGuard();
 
     log_debug(Modbus, "Communicate input register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
 
-    ModbusErrorInfo err = modbusBuildRequest04RTU(&master, unit, address, count);
-    log_internal_error(err);
-    if (!modbusIsOk(err)) {
-        return err;
-    }
+    [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest04RTU(&master, unit, address, count);
+    assert(modbusIsOk(err));
 
     active_value = { data, unit, address, count };
 
-    err = make_request(timing);
-    if (!modbusIsOk(err)) {
+    if (!modbusIsOk(make_request(timing))) {
+        log_error(Modbus, "Failed to read input %u:0x%x@%u", unit, address, count);
         // Clear data to propagate error
         std::fill(data, data + count, INVALID_REGISTER_VALUE);
+        return CommunicationStatus::ERROR;
     }
-    return err;
+
+    timestamp_ms = last_ticks_ms();
+    return CommunicationStatus::OK;
 }
 
-ModbusErrorInfo PuppyModbus::read_holding(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address) {
+CommunicationStatus PuppyModbus::read_holding(uint8_t unit, uint16_t *data, uint16_t count, uint16_t address, uint32_t &timestamp_ms, uint32_t max_age_ms) {
+    if (max_age_ms && last_ticks_ms() - timestamp_ms < max_age_ms) {
+        return CommunicationStatus::SKIPPED;
+    }
+
     auto lock = PuppyBus::LockGuard();
 
     log_debug(Modbus, "Read holding register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
 
-    ModbusErrorInfo err = modbusBuildRequest03RTU(&master, unit, address, count);
-    log_internal_error(err);
-    if (!modbusIsOk(err)) {
-        return err;
-    }
+    [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest03RTU(&master, unit, address, count);
+    assert(modbusIsOk(err));
 
     active_value = { data, unit, address, count };
 
-    err = make_request(nullptr);
-    if (!modbusIsOk(err)) {
+    if (!modbusIsOk(make_request(nullptr))) {
+        log_error(Modbus, "Failed to read holding %u:0x%x@%u", unit, address, count);
         // Clear data to propagate error
         std::fill(data, data + count, INVALID_REGISTER_VALUE);
+        return CommunicationStatus::ERROR;
     }
-    return err;
+
+    timestamp_ms = last_ticks_ms();
+    return CommunicationStatus::OK;
 }
 
-ModbusErrorInfo PuppyModbus::write_holding(uint8_t unit, const uint16_t *data, uint16_t count, uint16_t address) {
+CommunicationStatus PuppyModbus::write_holding(uint8_t unit, const uint16_t *data, uint16_t count, uint16_t address, bool &dirty) {
+    if (!dirty) {
+        return CommunicationStatus::SKIPPED;
+    }
+
     log_debug(Modbus, "Write holding register unit: %d, data: %x, count: %d, address: %x", unit, data, count, address);
 
     auto lock = PuppyBus::LockGuard();
 
-    ModbusErrorInfo err = modbusBuildRequest16RTU(&master, unit, address, count, data);
-    log_internal_error(err);
-    if (!modbusIsOk(err)) {
-        return err;
-    }
+    [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest16RTU(&master, unit, address, count, data);
+    assert(modbusIsOk(err));
 
     active_value = std::nullopt;
 
-    return make_request(nullptr);
+    if (!modbusIsOk(make_request(nullptr))) {
+        log_error(Modbus, "Failed to write holding %u:0x%x@%u", unit, address, count);
+        return CommunicationStatus::ERROR;
+    }
+
+    dirty = false;
+    return CommunicationStatus::OK;
 }
 
-ModbusErrorInfo PuppyModbus::write_coil(uint8_t unit, bool value, bool pending, uint16_t address) {
+CommunicationStatus PuppyModbus::write_coil(uint8_t unit, bool value, uint16_t address, bool &dirty) {
+    if (!dirty) {
+        return CommunicationStatus::SKIPPED;
+    }
+
     auto lock = PuppyBus::LockGuard();
 
-    if (!pending) {
-        return MODBUS_NO_ERROR();
-    }
+    log_debug(Modbus, "Communicate coil: %d, value: %x, address: %x", unit, value, address);
 
-    log_debug(Modbus, "Communicate coil: %d, value: %x, pending: %x, address: %x", unit, value, pending, address);
-
-    ModbusErrorInfo err = modbusBuildRequest05RTU(&master, unit, address, value);
-    log_internal_error(err);
-    if (!modbusIsOk(err)) {
-        return err;
-    }
+    [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest05RTU(&master, unit, address, value);
+    assert(modbusIsOk(err));
 
     active_value = std::nullopt;
 
-    err = make_request(nullptr);
-    if (modbusIsOk(err)) {
-        pending = false;
+    if (!modbusIsOk(make_request(nullptr))) {
+        log_error(Modbus, "Failed to write coil %u:0x%x", unit, address);
+        return CommunicationStatus::ERROR;
     }
-    return err;
+
+    dirty = false;
+    return CommunicationStatus::OK;
 }
 
-ModbusErrorInfo PuppyModbus::ReadFIFO(uint8_t unit, uint16_t address, std::array<uint16_t, 31> &buffer, size_t &read) {
+CommunicationStatus PuppyModbus::ReadFIFO(uint8_t unit, uint16_t address, std::array<uint16_t, 31> &buffer, size_t &read) {
     auto lock = PuppyBus::LockGuard();
 
-    ModbusErrorInfo err = modbusBuildRequest24RTU(&master, unit, address);
-    log_internal_error(err);
-    if (!modbusIsOk(err)) {
-        return err;
-    }
+    [[maybe_unused]] ModbusErrorInfo err = modbusBuildRequest24RTU(&master, unit, address);
+    assert(modbusIsOk(err));
 
     active_value = { static_cast<void *>(buffer.data()), unit, address, static_cast<uint16_t>(buffer.size()) };
 
-    err = make_request(nullptr);
+    if (!modbusIsOk(make_request(nullptr, 0))) {
+        log_error(Modbus, "Failed to read fifo %u:0x%x", unit, address);
+        return CommunicationStatus::ERROR;
+    }
+
     read = active_value->data_processed;
-    return err;
+    return CommunicationStatus::OK;
 }
 
 } // namespace buddy::puppies

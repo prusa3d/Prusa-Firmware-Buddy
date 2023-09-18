@@ -13,6 +13,9 @@ extern "C" {
 /// @param[in] device UART device
 void espif_receive_data(UART_HandleTypeDef *);
 
+void espif_tx_callback();
+void espif_task_create();
+
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESP for flash write
 /// @param [in] take_down_interfaces Deinitialize network interfaces,

@@ -25,7 +25,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
 
     GCodeInfo &gcode;
     GCodeInfoWithDescription gcode_description; // cannot be first
-    WindowPreviewThumbnail thumbnail;           // draws preview png
+    WindowPreviewThumbnail thumbnail;           // draws preview image
 
     PhasesPrintPreview phase;
 
@@ -43,6 +43,7 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     MsgBoxMemSpace msgBoxMemSpace;
 
     UniquePtrBox makeMsgBox(string_view_utf8 caption, string_view_utf8 text);
+    UniquePtrBox makeMsgBoxWait(string_view_utf8 text);
 
 public:
     ScreenPrintPreview();

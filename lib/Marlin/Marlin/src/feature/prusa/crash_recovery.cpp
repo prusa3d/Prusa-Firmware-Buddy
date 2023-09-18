@@ -64,8 +64,8 @@ void Crash_s::stop_and_save() {
 
         // recover delta E position
         // TODO: this is approximate when LA/PA is enabled
-        float d_e_steps = crash_block.e_steps * stepper.segment_progress();
-        e_position = crash_block.e_position + d_e_steps * planner.mm_per_step[E_AXIS_N(active_extruder)];
+        float d_e_msteps = crash_block.e_msteps * stepper.segment_progress();
+        e_position = crash_block.e_position + d_e_msteps * planner.mm_per_mstep[E_AXIS_N(active_extruder)];
     } else {
         // no block, get state from the queue & planner
         check_and_set_sdpos(queue.get_current_sdpos());
@@ -330,10 +330,10 @@ void Crash_s::send_reports() {
 
     float speed = -1;
     if (axis_hit == X_AXIS) {
-        speed = period_to_speed(get_microsteps_x(), int(stepperX.TSTEP()), get_steps_per_unit_x());
+        speed = tmc_period_to_feedrate(get_microsteps_x(), stepperX.TSTEP(), get_steps_per_unit_x());
     }
     if (axis_hit == Y_AXIS) {
-        speed = period_to_speed(get_microsteps_y(), int(stepperY.TSTEP()), get_steps_per_unit_y());
+        speed = tmc_period_to_feedrate(get_microsteps_y(), stepperY.TSTEP(), get_steps_per_unit_y());
     }
 
     static metric_t crash_metric = METRIC("crash", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);

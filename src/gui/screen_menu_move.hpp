@@ -9,7 +9,7 @@
 
 class I_MI_AXIS : public WiSpinInt {
 protected:
-    float last_queued_position;
+    float lastQueuedPos;
 
     void loop__(size_t index);
 
@@ -64,7 +64,7 @@ class ScreenMenuMove : public ScreenMenuMove__ {
 
 public:
     constexpr static const char *label = N_("MOVE AXIS");
-    static constexpr int temp_ok_range = 10;
+    static constexpr int temp_ok = 170; ///< Allow moving extruder if temperature is above this value [degC]
     static bool IsTempOk();
 
     ScreenMenuMove();

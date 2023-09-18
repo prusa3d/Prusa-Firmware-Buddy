@@ -59,8 +59,18 @@ public:
         }
     };
 
-    /// Constructor
-    PuppyBootstrap(ProgressHook progressHook);
+    /**
+     * @brief Constructor.
+     * @param BUFFER_SIZE size of buffer in bytes
+     * @param buffer buffer for bootloader protocol, needs to be in regular RAM as it is used by DMA
+     * @param progressHook callback to GUI for displaying bootstrap progress
+     */
+    template <size_t BUFFER_SIZE>
+    PuppyBootstrap(std::array<uint8_t, BUFFER_SIZE> &buffer, ProgressHook progressHook_)
+        : flasher(buffer.data())
+        , progressHook(progressHook_) {
+        static_assert(BUFFER_SIZE >= BootloaderProtocol::MAX_PACKET_LENGTH, "Buffer needs to be this large");
+    }
 
     /// Start bootstrap procedure
     BootstrapResult run(PuppyBootstrap::BootstrapResult minimal_config, unsigned int max_attempts = 3);

@@ -1,5 +1,6 @@
 #include "usb_files.h"
 #include "../nhttp/headers.h"
+#include <str_utils.hpp>
 
 // Why does FILE_PATH_BUFFER_LEN lives in *gui*!?
 #include "../../src/gui/file_list_defs.h"

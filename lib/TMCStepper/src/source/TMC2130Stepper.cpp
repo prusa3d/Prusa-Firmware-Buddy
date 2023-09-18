@@ -2,19 +2,24 @@
 #include "TMC_MACROS.h"
 #include "SPI.h"
 #include "log.h"
-#include "module/prusa/toolchanger.h"
 
+#include <option/has_puppies.h>
+#include <option/has_toolchanger.h>
+#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  #include "module/prusa/toolchanger.h"
+#endif
 
 int8_t TMC2130Stepper::chain_length = 0;
 uint32_t TMC2130Stepper::spi_speed = 16000000/8;
 
 
-#if ENABLED(PRUSA_TOOLCHANGER)
-TMC2130Stepper::TMC2130Stepper(bool remote, float RS) :
+#if HAS_PUPPIES() && HAS_TOOLCHANGER()
+TMC2130Stepper::TMC2130Stepper(Connection connection, float RS) :
   TMCStepper(RS),
   _pinCS(0),
-  remote(remote)
+  connection(connection)
 {
+  assert(connection == Connection::Remote);
   defaults();
 }
 #endif
@@ -126,8 +131,8 @@ uint32_t TMC2130Stepper::read(uint8_t addressByte) {
 
     switchCSpin(HIGH);
   }
-  #if ENABLED(PRUSA_TOOLCHANGER)
-  else if (remote) {
+  #if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  else if (connection == Connection::Remote) {
      out = prusa_toolchanger.getActiveToolOrFirst().tmc_read(addressByte);
   }
   #endif
@@ -199,8 +204,8 @@ void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {
     }
     switchCSpin(HIGH);
   }
-  #if ENABLED(PRUSA_TOOLCHANGER)
-  else if (remote) {
+  #if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  else if (connection == Connection::Remote) {
     prusa_toolchanger.getActiveToolOrFirst().tmc_write(addressByte, config);
   }
   #endif
@@ -228,8 +233,8 @@ void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {
 
 void TMC2130Stepper::begin() {
   //set pins
-  #if ENABLED(PRUSA_TOOLCHANGER)
-  if (!remote)
+  #if HAS_PUPPIES() && HAS_TOOLCHANGER()
+  if (connection == Connection::Direct)
   #endif
   {
     pinMode(_pinCS, OUTPUT);

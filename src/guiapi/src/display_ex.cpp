@@ -5,12 +5,13 @@
 #include <functional>
 #include <cmath>
 #include "guiconfig.h" //USE_ST7789 USE_ILI9488
+#include <img_resources.hpp>
 #include "display_math_helper.h"
 #include "font_flags.hpp"
+#include <bsod.h>
 
 #ifdef USE_ST7789
     #include "st7789v.hpp"
-    #include "st7789v_impl.hpp"
 /*****************************************************************************/
 // st7789v specific variables objects and function aliases
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ST7789V_COLS, ST7789V_ROWS); }
@@ -32,22 +33,28 @@ static constexpr size_t STORE_FN_PIXEL_SIZE = 1;   // TODO find out why it is !=
 
 static constexpr size_t buffROWS = ST7789V_BUFF_ROWS;
 
-static constexpr uint8_t *getBuff() { return st7789v_buff; }
+uint8_t *display_ex_borrow_buffer() {
+    return st7789v_borrow_buffer();
+}
+
+void display_ex_return_buffer() {
+    st7789v_return_buffer();
+}
 
 uint32_t display_ex_buffer_pixel_size() {
-    return sizeof(st7789v_buff) / BuffNATIVE_PIXEL_SIZE;
+    return st7789v_buffer_size() / BuffNATIVE_PIXEL_SIZE;
 }
 
 void display_ex_draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
-    st7789v_draw_char_from_buffer(pt.x, pt.y, w, h);
+    st7789v_draw_from_buffer(pt.x, pt.y, w, h);
 }
 
 void display_ex_clear(const color_t clr) {
     st7789v_clear(color_to_native(clr));
 }
 
-static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
-    st7789v_draw_png_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect);
+static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
+    st7789v_draw_qoi_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect);
 }
 
 static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
@@ -71,7 +78,6 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 
 #ifdef USE_ILI9488
     #include "ili9488.hpp"
-    #include "ili9488_impl.hpp"
 /*****************************************************************************/
 // ili9488 specific variables objects and function aliases
 static constexpr Rect16 DisplayClip() { return Rect16(0, 0, ILI9488_COLS, ILI9488_ROWS); }
@@ -92,10 +98,16 @@ static constexpr size_t BuffNATIVE_PIXEL_SIZE = 3; // bytes per pixel (can be sa
 static constexpr size_t STORE_FN_PIXEL_SIZE = 3;
 static constexpr size_t buffROWS = ILI9488_BUFF_ROWS;
 
-static constexpr uint8_t *getBuff() { return ili9488_buff; }
+uint8_t *display_ex_borrow_buffer() {
+    return ili9488_borrow_buffer();
+}
+
+void display_ex_return_buffer() {
+    ili9488_return_buffer();
+}
 
 uint32_t display_ex_buffer_pixel_size() {
-    return sizeof(ili9488_buff) / BuffNATIVE_PIXEL_SIZE;
+    return ili9488_buffer_size() / BuffNATIVE_PIXEL_SIZE;
 }
 
 void display_ex_draw_from_buffer(point_ui16_t pt, uint16_t w, uint16_t h) {
@@ -106,8 +118,8 @@ void display_ex_clear(const color_t clr) {
     ili9488_clear(color_to_native(clr));
 }
 
-static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
-    ili9488_draw_png_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect);
+static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
+    ili9488_draw_qoi_ex(pf, point_x, point_y, back_color, rop.ConvertToC(), subrect);
 }
 
 static inline uint8_t *get_block_C(uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y) {
@@ -152,7 +164,9 @@ static constexpr size_t BuffNATIVE_PIXEL_SIZE = 4; // bytes per pixel (can be sa
 static constexpr size_t STORE_FN_PIXEL_SIZE = 1;   // TODO find out why it is != BuffNATIVE_PIXEL_SIZE
 static constexpr size_t buffROWS = 256;            // TODO mock display has this value variable
 
-static inline uint8_t *getBuff() { return MockDisplay::Instance().getBuff(); }
+uint8_t *display_ex_borrow_buffer() { return MockDisplay::Instance().getBuff(); }
+
+void display_ex_return_buffer() {}
 
 uint32_t display_ex_buffer_pixel_size() {
     return (uint32_t)MockDisplay::Cols() * (uint32_t)MockDisplay::BuffRows();
@@ -166,7 +180,7 @@ void display_ex_clear(const color_t clr) {
     MockDisplay::Instance().clear(clr);
 }
 
-static inline void draw_png_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
+static inline void draw_qoi_ex_C(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t back_color, ropfn rop, Rect16 subrect) {
     // todo
 }
 
@@ -195,6 +209,7 @@ static constexpr size_t BuffAlphaLen = (1 << FontMaxBitLen); // size of buffer f
 // do not use directly, use DispBuffer instead
 template <size_t LEN, class DATA_TYPE, class PTR_TYPE, uint32_t NATIVE_PIXEL_SIZE>
 class TDispBuffer {
+    PTR_TYPE *const p_start;
     PTR_TYPE *p;
     DATA_TYPE clr_native[LEN];
     const color_t clr_bg;
@@ -203,19 +218,25 @@ class TDispBuffer {
 public:
     // pms (pixel mask) == number of combinations of font bits
     TDispBuffer(uint8_t pms, color_t clr_bg, color_t clr_fg)
-        : p((PTR_TYPE *)getBuff())
+        : p_start((PTR_TYPE *)display_ex_borrow_buffer())
+        , p(p_start)
         , clr_bg(clr_bg)
         , clr_fg(clr_fg) {
         for (size_t i = 0; i < std::min(LEN, size_t(pms + 1)); i++)
             clr_native[i] = color_to_native(color_alpha(clr_bg, clr_fg, 255 * i / pms));
     }
+
+    ~TDispBuffer() {
+        display_ex_return_buffer();
+    }
+
     void inline Insert(size_t pos) {
         *(DATA_TYPE *)p = clr_native[pos];
         p += NATIVE_PIXEL_SIZE / sizeof(BuffPTR_TYPE);
     }
 
     void inline OffsetInsert(size_t clr_pos, uint32_t offset) {
-        PTR_TYPE *ptr = (PTR_TYPE *)getBuff() + offset;
+        PTR_TYPE *ptr = p_start + offset;
         if constexpr (sizeof(BuffDATA_TYPE) == sizeof(BuffPTR_TYPE)) {
             *(DATA_TYPE *)ptr = clr_native[clr_pos];
         } else {
@@ -228,8 +249,8 @@ public:
 };
 using DispBuffer = TDispBuffer<BuffAlphaLen, BuffDATA_TYPE, BuffPTR_TYPE, BuffNATIVE_PIXEL_SIZE>;
 
-static inline void store_to_buffer(Rect16 rect, uint16_t artefact_width, color_t color) {
-    uint8_t *buff = getBuff() + (rect.Top() * artefact_width + rect.Left()) * BuffNATIVE_PIXEL_SIZE;
+static inline void store_to_buffer(uint8_t *buffer, Rect16 rect, uint16_t artefact_width, color_t color) {
+    uint8_t *buff = buffer + (rect.Top() * artefact_width + rect.Left()) * BuffNATIVE_PIXEL_SIZE;
     uint32_t clr = color_to_native(color);
     for (int i = 0; i < rect.Height(); i++) {
         int offset = i * artefact_width * BuffNATIVE_PIXEL_SIZE;
@@ -240,10 +261,6 @@ static inline void store_to_buffer(Rect16 rect, uint16_t artefact_width, color_t
         }
     }
     return;
-}
-
-static inline void clear_buffer_line(int i, color_t back) {
-    store_to_buffer(Rect16(0, i, DisplayClip().Width(), 1), DisplayClip().Width(), back);
 }
 
 static inline uint32_t get_pixel(uint16_t point_x, uint16_t point_y) {
@@ -401,32 +418,35 @@ uint8_t *display_ex_get_block(point_ui16_t start, point_ui16_t end) {
 // Draws rounded rect with only one pixel radius (draw_rounded_rect() process is not compatible with such a low radius)
 
 void display_ex_draw_rounded_rect_rad1(Rect16 rect, color_t back, color_t front, uint8_t flag, uint8_t loop, color_t secondary_color) {
+    uint8_t *buffer = display_ex_borrow_buffer();
 
     uint16_t h_left = rect.Height();
     for (uint8_t i = 0; i < loop; i++) { // If rectangle is higher than buffROWS (8 on ILI9488), it has to be separated
         uint8_t buff_rows_to_draw = (h_left < buffROWS ? h_left : buffROWS);
         // We paint whole rect with front color and then paint the round edge's complement in back color TO AVOID FLICKERING
-        store_to_buffer(Rect16(0, 0, rect.Width(), buff_rows_to_draw), rect.Width(), front);
+        store_to_buffer(buffer, Rect16(0, 0, rect.Width(), buff_rows_to_draw), rect.Width(), front);
 
         if (i == 0) { // Draw background color over the top row (1 px on each side)
             if (flag & MIC_TOP_LEFT) {
-                store_to_buffer(Rect16(0, 0, 1, 1), rect.Width(), flag & MIC_ALT_CL_TOP_LEFT ? secondary_color : back);
+                store_to_buffer(buffer, Rect16(0, 0, 1, 1), rect.Width(), flag & MIC_ALT_CL_TOP_LEFT ? secondary_color : back);
             }
             if (flag & MIC_TOP_RIGHT) {
-                store_to_buffer(Rect16(rect.Width() - 1, 0, 1, 1), rect.Width(), flag & MIC_ALT_CL_TOP_RIGHT ? secondary_color : back);
+                store_to_buffer(buffer, Rect16(rect.Width() - 1, 0, 1, 1), rect.Width(), flag & MIC_ALT_CL_TOP_RIGHT ? secondary_color : back);
             }
         }
         if (h_left == buff_rows_to_draw) { // Draw background color over the last row (1 px on each side)
             if (flag & MIC_BOT_LEFT) {
-                store_to_buffer(Rect16(0, buff_rows_to_draw - 1, 1, 1), rect.Width(), flag & MIC_ALT_CL_BOT_LEFT ? secondary_color : back);
+                store_to_buffer(buffer, Rect16(0, buff_rows_to_draw - 1, 1, 1), rect.Width(), flag & MIC_ALT_CL_BOT_LEFT ? secondary_color : back);
             }
             if (flag & MIC_BOT_RIGHT) {
-                store_to_buffer(Rect16(rect.Width() - 1, buff_rows_to_draw - 1, 1, 1), rect.Width(), flag & MIC_ALT_CL_BOT_RIGHT ? secondary_color : back);
+                store_to_buffer(buffer, Rect16(rect.Width() - 1, buff_rows_to_draw - 1, 1, 1), rect.Width(), flag & MIC_ALT_CL_BOT_RIGHT ? secondary_color : back);
             }
         }
         display_ex_draw_from_buffer({ uint16_t(rect.Left()), uint16_t(rect.Top() + i * buffROWS) }, rect.Width(), buff_rows_to_draw);
         h_left -= buff_rows_to_draw;
     }
+
+    display_ex_return_buffer();
 }
 
 /// Draws rounded rectangle with parametric corner radius
@@ -458,10 +478,12 @@ void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint
         return;
     }
 
+    uint8_t *buffer = display_ex_borrow_buffer();
+
     for (int part = 0; part < (carry ? div + 1 : div); part++) { // seperated parts
         // clear buffer
         uint16_t buff_rows_to_draw = (h_left < buff_rows ? h_left : buff_rows);
-        store_to_buffer(Rect16(0, 0, rect.Width(), buff_rows_to_draw), rect.Width(), front); // We paint whole rect with front color and then paint the round edge's complement in back color TO AVOID FLICKERING
+        store_to_buffer(buffer, Rect16(0, 0, rect.Width(), buff_rows_to_draw), rect.Width(), front); // We paint whole rect with front color and then paint the round edge's complement in back color TO AVOID FLICKERING
 
         // cycle trough buffer rows
         for (int i = 0; i < buff_rows_to_draw; i++) {
@@ -479,11 +501,11 @@ void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint
                 if (cnt > 0) {
                     // top right corner
                     if (flag & MIC_TOP_RIGHT) {
-                        store_to_buffer(Rect16(rect.Width() - cor_rad + cnt, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_TOP_RIGHT ? secondary_color : back);
+                        store_to_buffer(buffer, Rect16(rect.Width() - cor_rad + cnt, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_TOP_RIGHT ? secondary_color : back);
                     }
                     // top left corner
                     if (flag & MIC_TOP_LEFT) {
-                        store_to_buffer(Rect16(0, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_TOP_LEFT ? secondary_color : back);
+                        store_to_buffer(buffer, Rect16(0, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_TOP_LEFT ? secondary_color : back);
                     }
                 }
 
@@ -499,11 +521,11 @@ void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint
                 if (cnt > 0) {
                     // bottom right corner
                     if (flag & MIC_BOT_RIGHT) {
-                        store_to_buffer(Rect16(rect.Width() - cor_rad + cnt, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_BOT_RIGHT ? secondary_color : back);
+                        store_to_buffer(buffer, Rect16(rect.Width() - cor_rad + cnt, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_BOT_RIGHT ? secondary_color : back);
                     }
                     // bottom left corner
                     if (flag & MIC_BOT_LEFT) {
-                        store_to_buffer(Rect16(0, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_BOT_LEFT ? secondary_color : back);
+                        store_to_buffer(buffer, Rect16(0, i, (cor_rad - cnt), 1), rect.Width(), flag & MIC_ALT_CL_BOT_LEFT ? secondary_color : back);
                     }
                 }
             }
@@ -511,6 +533,8 @@ void display_ex_draw_rounded_rect(Rect16 rect, color_t back, color_t front, uint
         display_ex_draw_from_buffer({ uint16_t(rect.Left()), uint16_t(rect.Top() + part * buff_rows) }, rect.Width(), buff_rows_to_draw);
         h_left -= buff_rows;
     }
+
+    display_ex_return_buffer();
 }
 
 /// Turns the specified pixel to the specified color
@@ -533,10 +557,21 @@ uint16_t display_ex_get_pixel_displayNativeColor(point_ui16_t pt) {
     return get_pixel_directColor_C(pt.x, pt.y);
 }
 
-void display_ex_draw_png(point_ui16_t pt, const img::Resource &png, color_t back_color, ropfn rop, Rect16 subrect) {
-    FILE *file = png.Get();
-    if (!file)
-        return;
-    fseek(file, png.offset, SEEK_SET);
-    draw_png_ex_C(file, pt.x, pt.y, back_color, rop, subrect);
+void display_ex_draw_qoi(point_ui16_t pt, const img::Resource &qoi, color_t back_color, ropfn rop, Rect16 subrect) {
+    FILE *file;
+
+    // Use provided file or default resource file
+    if (!qoi.file) {
+        file = img::get_resource_file();
+    } else {
+        file = qoi.file;
+    }
+
+    if (!file) {
+        bsod("Could not get image resource file");
+    }
+
+    // Seek to the beginning of the image and draw
+    fseek(file, qoi.offset, SEEK_SET);
+    draw_qoi_ex_C(file, pt.x, pt.y, back_color, rop, subrect);
 }

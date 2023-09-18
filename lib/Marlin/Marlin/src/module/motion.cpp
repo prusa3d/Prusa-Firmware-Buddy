@@ -522,7 +522,25 @@ void do_blocking_move_to_xy_z(const xy_pos_t &raw, const float &z, const feedRat
   void do_z_clearance(const_float_t zclear, const bool lower_allowed/*=false*/) {
     float zdest = zclear;
     if (!lower_allowed) NOLESS(zdest, current_position.z);
-    do_blocking_move_to_z(_MIN(zdest, Z_MAX_POS), homing_feedrate(Z_AXIS));
+    NOMORE(zdest, Z_MAX_POS);
+
+    if (zdest != current_position.z) {
+      planner.synchronize(); // Wait for planner moves to finish!
+
+      remember_feedrate_scaling_off();
+      bool endstop_enabled = endstops.is_enabled();
+      endstops.enable(true);
+
+      const auto distance = zdest - current_position.z;
+      current_position.z = zdest;
+      do_homing_move(Z_AXIS, distance); // Move as a homing move to stop if we reach endstop
+      sync_plan_position();
+
+      if (!endstop_enabled) {
+        endstops.not_homing(); // Reset endstops only if they weren't enabled before
+      }
+      restore_feedrate_and_scaling();
+    }
   }
 #endif
 
@@ -1361,8 +1379,9 @@ feedRate_t get_homing_bump_feedrate(const AxisEnum axis) {
 /**
  * Home an individual linear axis
  * @param homing_z_with_probe false to use sensorless homing instead of probe
+ * @return endstop trigger state at the end of the move
  */
-void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s, [[maybe_unused]] bool can_move_back_before_homing, [[maybe_unused]] bool homing_z_with_probe) {
+uint8_t do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s, [[maybe_unused]] bool can_move_back_before_homing, [[maybe_unused]] bool homing_z_with_probe) {
 
   if (DEBUGGING(LEVELING)) {
     DEBUG_ECHOPAIR(">>> do_homing_move(", axis_codes[axis], ", ", distance, ", ");
@@ -1446,10 +1465,17 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
   #endif
 
   #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
-    // This guards cannot be hidden behind if (homing_z_with_probe) {
-    auto precisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, moving_probe_toward_bed);
+    // NOTE: This guard cannot be hidden behind an if block
+
+    // HighPrecision needs to be enabled with some time margin to prime the filters.
+    // If it hasn't been already we're being called in single-probe mode, enable it temporarily.
+    bool enableHighPrecision = !loadcell.IsHighPrecisionEnabled() && moving_probe_toward_bed;
+    if (enableHighPrecision) SERIAL_ECHO_MSG("probe: enabling high-precision for single-probe mode");
+    auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, enableHighPrecision);
     auto H = loadcell.CreateLoadAboveErrEnforcer(moving_probe_toward_bed);
     if (moving_probe_toward_bed) {
+      safe_delay(Z_FIRST_PROBE_DELAY); // dampen the system before the tare
+      loadcell.WaitBarrier(); // Sync samples before tare
       loadcell.Tare(Loadcell::TareMode::Continuous);
       endstops.enable_z_probe();
     }
@@ -1496,6 +1522,7 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
     }
   #endif
 
+  uint8_t trigger_state = endstops.trigger_state();
   endstops.validate_homing_move();
 
       // Re-enable stealthChop if used. Disable diag1 pin on driver.
@@ -1509,6 +1536,7 @@ void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t 
       #endif
 
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< do_homing_move(", axis_codes[axis], ")");
+  return trigger_state;
 }
 
 static void do_blocking_move_axis(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s) {
@@ -1708,49 +1736,6 @@ void set_axis_is_not_at_home(const AxisEnum axis) {
 // from outside this file for early registration
 metric_t metric_home_diff = METRIC("home_diff", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
 
-// in order to enable wavetable, we need to move the stepper to its zero-position so that it is safe
-// in order to reach zero-position, we must reconfigure the stepper to single-microstep stepping
-// in order to configure the stepper back, we need to step back to its natural position
-void do_blocking_move_enable_wavetable(const AxisEnum axis, void (*enable_wavetable)(AxisEnum), int direction, float min_mm, feedRate_t fdrt) {
-    float min_mm1 = min_mm / 2, min_mm2 = min_mm / 2;
-
-    uint16_t tmp_microsteps = planner.nsteps_per_qstep(axis) / 4;
-    uint16_t orig_microsteps = stepper_microsteps(axis, tmp_microsteps);
-    uint16_t ustep_ratio = tmp_microsteps / orig_microsteps; // assert tmp_microsteps % orig_microsteps == 0
-
-    // reeconfigure stepper to stepping by single-usteps, i.e. tmp_microsteps
-    float bck_steps_per_mm = planner.settings.axis_steps_per_mm[axis];
-    planner.settings.axis_steps_per_mm[axis] *= ustep_ratio;
-    planner.refresh_positioning();
-
-    // calculate distance so that we end at stepper zero, going by at least min_mm/2
-    float amount_mm = planner.mm_per_qsteps(axis, (uint32_t)(min_mm1 * planner.qsteps_per_mm(axis)) + 1);
-    amount_mm += planner.distance_to_stepper_zero(axis, has_inverted_axis(axis));
-
-    // go down the calculated distance
-    current_position[axis] += ABS(amount_mm) * direction;
-    line_to_current_position(fdrt); // NOTE by recofiguring planner, the speed is also proportionally slowed down. This is OK since we need to go slow in order not to loose steps.
-    planner.synchronize();
-
-    // enable wavetable for this axis
-    enable_wavetable(axis);
-
-    // calculate distance so we end up at stepper position valid for originally configured steps, going by at least min_mm/2
-    amount_mm = planner.mm_per_qsteps(axis, (uint32_t)(min_mm2 * planner.qsteps_per_mm(axis)) + 1);
-    uint16_t go_to_ustep = tmp_microsteps / orig_microsteps / 2;
-    amount_mm += go_to_ustep * planner.mm_per_step[axis];
-
-    // go down the calculated distance
-    current_position[axis] += ABS(amount_mm) * direction;
-    line_to_current_position(fdrt);
-    planner.synchronize();
-
-    // configure back steps to original state
-    (void)stepper_microsteps(axis, orig_microsteps);
-    planner.settings.axis_steps_per_mm[axis] = bck_steps_per_mm;
-    planner.refresh_positioning();
-}
-
 /**
  * @brief Call this when homing fails, it will try to recover.
  * After calling this, homing needs to end right away with fail return.
@@ -1857,9 +1842,14 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
       invert_home_dir ? (-home_dir(axis)) : home_dir(axis)
   );
 
+  #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
+    // Enable loadcell high precision across the entire axis homing to prime the noise filters
+    auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell, axis == Z_AXIS);
+  #endif
+
   #ifdef HOMING_MAX_ATTEMPTS
-  float (*min_diff)(uint8_t) = invert_home_dir ? axis_home_invert_min_diff : axis_home_min_diff;
-  float (*max_diff)(uint8_t) = invert_home_dir ? axis_home_invert_max_diff : axis_home_max_diff;
+    float (*min_diff)(uint8_t) = invert_home_dir ? axis_home_invert_min_diff : axis_home_min_diff;
+    float (*max_diff)(uint8_t) = invert_home_dir ? axis_home_invert_max_diff : axis_home_max_diff;
 
     float probe_offset;
     for(size_t attempt = 0;;) {
@@ -1939,23 +1929,18 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
       #endif
     ];
     if (backoff_mm) {
-      if (enable_wavetable != NULL) {
-        do_blocking_move_enable_wavetable(axis, enable_wavetable, -axis_home_dir, backoff_mm,
-          #if HOMING_Z_WITH_PROBE
-            (axis == Z_AXIS && homing_z_with_probe) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
-          #endif
-          homing_feedrate(axis)
-        );
-      } else {
-        current_position[axis] -= ABS(backoff_mm) * axis_home_dir;
-        line_to_current_position(
-          #if HOMING_Z_WITH_PROBE
-            (axis == Z_AXIS && homing_z_with_probe) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
-          #endif
-          homing_feedrate(axis)
-        );
-        planner.synchronize();
-      }
+      if (enable_wavetable != NULL)
+        enable_wavetable(axis);
+
+      current_position[axis] -= ABS(backoff_mm) * axis_home_dir;
+      line_to_current_position(
+        #if HOMING_Z_WITH_PROBE
+          (axis == Z_AXIS && homing_z_with_probe) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
+        #endif
+        homing_feedrate(axis)
+      );
+      planner.synchronize();
+
       SERIAL_ECHO_START();
       SERIAL_ECHOLNPAIR_F("Backoff ipos:", stepper.position_from_startup(axis));
     }

@@ -13,6 +13,7 @@
 #include <option/has_loadcell.h>
 #include <option/has_toolchanger.h>
 #include <option/developer_mode.h>
+#include <option/has_mmu2.h>
 
 /*****************************************************************************/
 // parent alias
@@ -33,13 +34,19 @@ using ScreenMenuTune__ = ScreenMenu<EFooter::On, MI_RETURN,
 #if HAS_LOADCELL()
     MI_LIVE_ADJUST_Z, // position with loadcell
 #endif
-    MI_FLOWFACT, MI_FILAMENT_SENSOR, MI_SOUND_MODE,
+    MI_FLOWFACT<0>,
+#if HAS_TOOLCHANGER()
+    MI_FLOWFACT<1>, MI_FLOWFACT<2>, MI_FLOWFACT<3>, MI_FLOWFACT<4>,
+#endif /*HAS_TOOLCHANGER()*/
+    MI_FILAMENT_SENSOR,
+#if HAS_LOADCELL()
+    MI_STUCK_FILAMENT_DETECTION,
+#endif
+    MI_SOUND_MODE,
 #if PRINTER_IS_PRUSA_MINI
     MI_SOUND_VOLUME,
 #endif
-#if PRINTER_IS_PRUSA_MK4
     MI_INPUT_SHAPER,
-#endif
     MI_FAN_CHECK
 #if ENABLED(CRASH_RECOVERY)
     ,

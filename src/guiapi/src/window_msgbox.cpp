@@ -55,6 +55,10 @@ void MsgBoxBase::set_text_alignment(Align_t alignment) {
     text.SetAlignment(alignment);
 }
 
+void MsgBoxBase::set_text_font(font_t *font) {
+    text.set_font(font);
+}
+
 void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     event_conversion_union un;
     un.pvoid = param;
@@ -75,30 +79,47 @@ void MsgBoxBase::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
 /*****************************************************************************/
 // MsgBoxTitled
 MsgBoxTitled::MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
-    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon, is_closed_on_click_t close)
+    string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon, is_closed_on_click_t close, dense_t dense)
     : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, title_icon, close)
     , title(this, GetRect(), is_multiline::no, is_closed_on_click_t::no, tit) {
     title.set_font(getTitleFont());
     title.SetRect(getTitleRect());
     icon.SetRect(getIconRect());
     text.SetRect(getTextRect());
+    if (dense == dense_t::yes) {
+        set_text_font(GuiDefaults::FontMenuSpecial);
+    }
+}
+
+void MsgBoxTitled::set_title_alignment(Align_t alignment) {
+    title.SetAlignment(alignment);
 }
 
 Rect16 MsgBoxTitled::getTitleRect() {
-    return Rect16(
-        icon.IsIconValid() ? Rect16::Left_t(MsgBoxTitled::TextPadding.left + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter) : Rect16::Left_t(MsgBoxTitled::TextPadding.left),
-        GetRect().Top() + 1 /* Visual delimeter */,
-        Rect16::Width_t(Width() - (MsgBoxTitled::TextPadding.left + MsgBoxTitled::TextPadding.right + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter)),
-        Rect16::Height_t(getTitleFont()->h));
+    const auto shared_top = GetRect().Top() + 1; /* Visual delimeter */
+    const auto shared_height = Rect16::Height_t(getTitleFont()->h);
+    if (icon.IsIconValid()) {
+        return Rect16(Rect16::Left_t(MsgBoxTitled::TextPadding.left + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter),
+            shared_top,
+            Rect16::Width_t(Width() - (MsgBoxTitled::TextPadding.left + MsgBoxTitled::TextPadding.right + GuiDefaults::FooterIconSize.w + MsgBoxTitled::IconTitleDelimeter)),
+            shared_height);
+    } else {
+        return Rect16(
+            Rect16::Left_t(MsgBoxTitled::TextPadding.left),
+            shared_top,
+            Rect16::Width_t(Width() - (MsgBoxTitled::TextPadding.left + MsgBoxTitled::TextPadding.right)),
+            shared_height);
+    }
 }
 
 Rect16 MsgBoxTitled::getLineRect() {
-    return Rect16(GetRect().Left(), getTitleRect().Top() + getTitleRect().Height() + 2 /* Visual delimeter */, GetRect().Width(), 1);
+    const auto title_rect { getTitleRect() };
+    return Rect16(GetRect().Left(), title_rect.EndPoint().y + 2 /* Visual delimeter */, GetRect().Width(), 1);
 }
 
 Rect16 MsgBoxTitled::getTextRect() {
     Rect16 text_rect = GetRect();
-    uint16_t y = getLineRect().TopEndPoint().y;
+    uint16_t y = getLineRect().EndPoint().y;
 
     text_rect -= Rect16::Height_t(y - text_rect.Top());
     text_rect -= GuiDefaults::GetButtonRect(GetRect()).Height();
@@ -116,12 +137,6 @@ Rect16 MsgBoxTitled::getIconRect() {
 
 font_t *MsgBoxTitled::getTitleFont() {
     return GuiDefaults::FontBig;
-}
-
-void MsgBoxTitled::unconditionalDraw() {
-    MsgBoxBase::unconditionalDraw();
-    Rect16 line = getLineRect();
-    display::DrawLine(line.TopLeft(), line.BottomRight(), COLOR_RED_ALERT);
 }
 
 /*****************************************************************************/
@@ -219,6 +234,18 @@ MsgBoxIconnedError::MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, 
     }
 
     pButtons->SetBackColor(COLOR_WHITE);
+}
+
+/*****************************************************************************/
+// MsgBoxIconnedWait
+MsgBoxIconnedWait::MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+    string_view_utf8 txt, is_multiline multiline)
+    : AddSuperWindow<MsgBoxIconned>(rect, resp, def_btn, labels, txt, multiline, &img::hourglass_26x39) {
+    icon.SetRect(Rect16(0, GuiDefaults::HeaderHeight, display::GetW(), 140));
+    icon.SetAlignment(Align_t::Center());
+
+    text.SetRect(Rect16(10, GuiDefaults::HeaderHeight + 147, display::GetW() - 10, 23 * 4));
+    text.SetAlignment(Align_t::Center());
 }
 
 /*****************************************************************************/
@@ -337,7 +364,13 @@ Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp, size_
     if (GuiDefaults::EnableDialogBigLayout) {
         return MsgBox_Custom<MsgBoxIS>(rect, resp, def_btn, txt, multiline, &img::error_white_48x48);
     } else {
-        constexpr static const char *label = N_("Warning");
-        return MsgBox_Custom<MsgBoxTitled>(rect, resp, def_btn, txt, multiline, _(label), &img::warning_16x16);
+        constexpr static const char *label = N_("Feature Preview");
+
+        const PhaseTexts labels = { BtnResponse::GetText(resp[0]), BtnResponse::GetText(resp[1]), BtnResponse::GetText(resp[2]), BtnResponse::GetText(resp[3]) };
+        MsgBoxTitled msgbox(rect, resp, def_btn, &labels, txt, multiline, _(label), nullptr, is_closed_on_click_t::yes, dense_t::yes);
+        msgbox.set_text_alignment(Align_t::Center());
+        msgbox.set_title_alignment(Align_t::Center());
+        msgbox.MakeBlocking();
+        return msgbox.GetResult();
     }
 }

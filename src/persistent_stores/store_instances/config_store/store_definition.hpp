@@ -11,11 +11,11 @@
 #include <time_tools.hpp>
 #include <filament.hpp>
 #include <selftest_result.hpp>
-#include <metric_config.h>
 #include <common/sheet.hpp>
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
 #include <filament_sensors_remap_data.hpp>
+#include <feature/prusa/restore_z_storage.h>
 
 namespace config_store_ns {
 /**
@@ -93,13 +93,13 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_false, journal::hash("Connect Enabled")> connect_enabled;
 
     // Metrics
-    StoreItem<MetricsAllow, defaults::metrics_allow, journal::hash("Metrics Allow")> metrics_allow; ///< Metrics are allowed to be enabled
-    ///@todo: Allow only one host.
-    /// StoreItem<std::array<char, METRICS_HOST_SIZE + 1>, defaults::metrics_host, journal::hash("Metrics Host")> metrics_host; ///< Host used to allow and init metrics
-    ///@todo: Init host at start.
-    /// StoreItem<bool, defaults::bool_false, journal::hash("Metrics Init")> metrics_init; ///< Init metrics host after start
+    StoreItem<MetricsAllow, defaults::metrics_allow, journal::hash("Metrics Allow")> metrics_allow;                         ///< Metrics are allowed to be enabled
+    StoreItem<std::array<char, metrics_host_size + 1>, defaults::metrics_host, journal::hash("Metrics Host")> metrics_host; ///< Host used to allow and init metrics
+    StoreItem<uint16_t, defaults::metrics_port, journal::hash("Metrics Port")> metrics_port;                                ///< Port used to allow and init metrics
+    StoreItem<uint16_t, defaults::syslog_port, journal::hash("Log Port")> syslog_port;                                      ///< Port used to allow and init log (uses metrics_host)
+    StoreItem<bool, defaults::metrics_init, journal::hash("Metrics Init")> metrics_init;                                    ///< Init metrics host after start
 
-    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Job ID")> job_id; // print job id incremented at every print start
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Job ID")> job_id;                                           // print job id incremented at every print start
 
     StoreItem<bool, defaults::crash_enabled, journal::hash("Crash Enabled")> crash_enabled;
     StoreItem<int16_t, defaults::crash_sens_x, journal::hash("Crash Sens X")> crash_sens_x; // X axis crash sensitivity
@@ -124,42 +124,58 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     // filament sensor values:
     // ref value: value of filament sensor in moment of calibration (w/o filament present)
     // value span: minimal difference of raw values between the two states of the filament sensor
-    StoreItem<int32_t, defaults::extruder_fs_ref_value, journal::hash("Extruder FS Ref Value 0")> extruder_fs_ref_value_0;
+    StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 0")> extruder_fs_ref_nins_value_0;
+    StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 0")> extruder_fs_ref_ins_value_0;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 0")> extruder_fs_value_span_0;
-    StoreItem<int32_t, defaults::extruder_fs_ref_value, journal::hash("Extruder FS Ref Value 1")> extruder_fs_ref_value_1;
+    StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 1")> extruder_fs_ref_nins_value_1;
+    StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 1")> extruder_fs_ref_ins_value_1;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 1")> extruder_fs_value_span_1;
-    StoreItem<int32_t, defaults::extruder_fs_ref_value, journal::hash("Extruder FS Ref Value 2")> extruder_fs_ref_value_2;
+    StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 2")> extruder_fs_ref_nins_value_2;
+    StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 2")> extruder_fs_ref_ins_value_2;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 2")> extruder_fs_value_span_2;
-    StoreItem<int32_t, defaults::extruder_fs_ref_value, journal::hash("Extruder FS Ref Value 3")> extruder_fs_ref_value_3;
+    StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 3")> extruder_fs_ref_nins_value_3;
+    StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 3")> extruder_fs_ref_ins_value_3;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 3")> extruder_fs_value_span_3;
-    StoreItem<int32_t, defaults::extruder_fs_ref_value, journal::hash("Extruder FS Ref Value 4")> extruder_fs_ref_value_4;
+    StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 4")> extruder_fs_ref_nins_value_4;
+    StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 4")> extruder_fs_ref_ins_value_4;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 4")> extruder_fs_value_span_4;
-    StoreItem<int32_t, defaults::extruder_fs_ref_value, journal::hash("Extruder FS Ref Value 5")> extruder_fs_ref_value_5;
+    StoreItem<int32_t, defaults::extruder_fs_ref_nins_value, journal::hash("Extruder FS Ref Value 5")> extruder_fs_ref_nins_value_5;
+    StoreItem<int32_t, defaults::extruder_fs_ref_ins_value, journal::hash("Extruder FS INS Ref Value 5")> extruder_fs_ref_ins_value_5;
     StoreItem<uint32_t, defaults::extruder_fs_value_span, journal::hash("Extruder FS Value Span 5")> extruder_fs_value_span_5;
 
-    StoreItem<int32_t, defaults::side_fs_ref_value, journal::hash("Side FS Ref Value 0")> side_fs_ref_value_0;
+    StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 0")> side_fs_ref_nins_value_0;
+    StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 0")> side_fs_ref_ins_value_0;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 0")> side_fs_value_span_0;
-    StoreItem<int32_t, defaults::side_fs_ref_value, journal::hash("Side FS Ref Value 1")> side_fs_ref_value_1;
+    StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 1")> side_fs_ref_nins_value_1;
+    StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 1")> side_fs_ref_ins_value_1;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 1")> side_fs_value_span_1;
-    StoreItem<int32_t, defaults::side_fs_ref_value, journal::hash("Side FS Ref Value 2")> side_fs_ref_value_2;
+    StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 2")> side_fs_ref_nins_value_2;
+    StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 2")> side_fs_ref_ins_value_2;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 2")> side_fs_value_span_2;
-    StoreItem<int32_t, defaults::side_fs_ref_value, journal::hash("Side FS Ref Value 3")> side_fs_ref_value_3;
+    StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 3")> side_fs_ref_nins_value_3;
+    StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 3")> side_fs_ref_ins_value_3;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 3")> side_fs_value_span_3;
-    StoreItem<int32_t, defaults::side_fs_ref_value, journal::hash("Side FS Ref Value 4")> side_fs_ref_value_4;
+    StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 4")> side_fs_ref_nins_value_4;
+    StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 4")> side_fs_ref_ins_value_4;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 4")> side_fs_value_span_4;
-    StoreItem<int32_t, defaults::side_fs_ref_value, journal::hash("Side FS Ref Value 5")> side_fs_ref_value_5;
+    StoreItem<int32_t, defaults::side_fs_ref_nins_value, journal::hash("Side FS Ref Value 5")> side_fs_ref_nins_value_5;
+    StoreItem<int32_t, defaults::side_fs_ref_ins_value, journal::hash("Side FS Ref INS Value 5")> side_fs_ref_ins_value_5;
     StoreItem<uint32_t, defaults::side_fs_value_span, journal::hash("Side FS Value Span 5")> side_fs_value_span_5;
 
     StoreItem<side_fsensor_remap::Mapping, defaults::side_fs_remap, journal::hash("Side FS Remap")> side_fs_remap; ///< Side filament sensor remapping
 
     //// Helper array-like access functions for filament sensors
-    int32_t get_extruder_fs_ref_value(uint8_t index);
-    void set_extruder_fs_ref_value(uint8_t index, int32_t value);
+    int32_t get_extruder_fs_ref_nins_value(uint8_t index);
+    int32_t get_extruder_fs_ref_ins_value(uint8_t index);
+    void set_extruder_fs_ref_nins_value(uint8_t index, int32_t value);
+    void set_extruder_fs_ref_ins_value(uint8_t index, int32_t value);
     uint32_t get_extruder_fs_value_span(uint8_t index);
     void set_extruder_fs_value_span(uint8_t index, uint32_t value);
 
-    int32_t get_side_fs_ref_value(uint8_t index);
-    void set_side_fs_ref_value(uint8_t index, int32_t value);
+    int32_t get_side_fs_ref_nins_value(uint8_t index);
+    int32_t get_side_fs_ref_ins_value(uint8_t index);
+    void set_side_fs_ref_nins_value(uint8_t index, int32_t value);
+    void set_side_fs_ref_ins_value(uint8_t index, int32_t value);
     uint32_t get_side_fs_value_span(uint8_t index);
     void set_side_fs_value_span(uint8_t index, uint32_t value);
 
@@ -291,6 +307,15 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_false, journal::hash("Nozzle Sock")> nozzle_sock;
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("Nozzle Type")> nozzle_type;
 
+    StoreItem<restore_z::Position, restore_z::default_position, journal::hash("Restore Z Coordinate After Boot")> restore_z_after_boot;
+
+    StoreItem<int16_t, defaults::homing_sens_x, journal::hash("Homing Sens X")> homing_sens_x; // X axis homing sensitivity
+    StoreItem<int16_t, defaults::homing_sens_y, journal::hash("Homing Sens Y")> homing_sens_y; // Y axis homing sensitivity
+
+    StoreItem<bool, defaults::xy_motors_400_step, journal::hash("400 step motors on X and Y axis")> xy_motors_400_step;
+
+    StoreItem<bool, defaults::bool_false, journal::hash("Stuck filament detection")> stuck_filament_detection;
+
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis X Enabled")> input_shaper_axis_x_enabled;
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_x_default, journal::hash("Input Shaper Axis X Config")> input_shaper_axis_x_config;
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis Y Enabled")> input_shaper_axis_y_enabled;
@@ -300,11 +325,6 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     input_shaper::Config get_input_shaper_config();
     void set_input_shaper_config(const input_shaper::Config &);
-
-    StoreItem<int16_t, defaults::homing_sens_x, journal::hash("Homing Sens X")> homing_sens_x; // X axis homing sensitivity
-    StoreItem<int16_t, defaults::homing_sens_y, journal::hash("Homing Sens Y")> homing_sens_y; // Y axis homing sensitivity
-
-    StoreItem<bool, defaults::xy_motors_400_step, journal::hash("400 step motors on X and Y axis")> xy_motors_400_step;
 };
 
 /**

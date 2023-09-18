@@ -5,6 +5,7 @@
 #include "screen_menu_fw_update.hpp"
 #include "sys.h"
 #include "ScreenHandler.hpp"
+#include "data_exchange.hpp"
 
 constexpr static const char *const label = N_("FW UPDATE");
 
@@ -22,10 +23,10 @@ void MI_ALWAYS::OnChange(size_t old_index) {
 /*****************************************************************************/
 // MI_ON_RESTART
 MI_ON_RESTART::MI_ON_RESTART()
-    : WI_ICON_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? true : (sys_fw_update_on_restart_is_enabled() ? true : false), _(label), nullptr, sys_fw_update_is_enabled() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {}
+    : WI_ICON_SWITCH_OFF_ON_t(sys_fw_update_is_enabled() ? true : data_exchange::is_fw_update_on_restart(), _(label), nullptr, sys_fw_update_is_enabled() ? is_enabled_t::no : is_enabled_t::yes, is_hidden_t::no) {}
 
 void MI_ON_RESTART::OnChange(size_t old_index) {
-    old_index == 0 ? sys_fw_update_on_restart_enable() : sys_fw_update_on_restart_disable();
+    old_index == 0 ? data_exchange::fw_update_on_restart_enable() : data_exchange::fw_update_on_restart_disable();
 }
 
 ScreenMenuFwUpdate::ScreenMenuFwUpdate()
@@ -40,11 +41,11 @@ MI_UPDATE_LABEL::MI_UPDATE_LABEL()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {};
 
 size_t MI_UPDATE::init_index() const {
-    return (size_t)sys_fw_update_on_restart_is_enabled()
-        ? 1
-        : sys_fw_update_is_enabled()
-        ? 2
-        : 0;
+    return size_t(data_exchange::is_fw_update_on_restart()
+            ? 1
+            : sys_fw_update_is_enabled()
+            ? 2
+            : 0);
 }
 
 MI_UPDATE::MI_UPDATE()
@@ -53,13 +54,13 @@ MI_UPDATE::MI_UPDATE()
 
 void MI_UPDATE::OnChange(size_t /*old_index*/) {
     if (index == 1) {
-        sys_fw_update_on_restart_enable();
+        data_exchange::fw_update_on_restart_enable();
         sys_fw_update_disable();
     } else if (index == 2) {
-        sys_fw_update_on_restart_disable();
+        data_exchange::fw_update_on_restart_disable();
         sys_fw_update_enable();
     } else if (index == 0) {
-        sys_fw_update_on_restart_disable();
+        data_exchange::fw_update_on_restart_disable();
         sys_fw_update_disable();
     }
 }

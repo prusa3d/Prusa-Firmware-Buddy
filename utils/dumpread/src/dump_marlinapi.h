@@ -25,6 +25,7 @@ typedef enum {
     mpsAborting_Begin,
     mpsAborting_WaitIdle,
     mpsAborting_ParkHead,
+    mpsAborting_Preview,
     mpsAborted,
     mpsFinishing_WaitIdle,
     mpsFinishing_ParkHead,

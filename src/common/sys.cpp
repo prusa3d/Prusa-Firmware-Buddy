@@ -7,6 +7,7 @@
 #include "main.h"
 #include "log.h"
 #include "disable_interrupts.h"
+#include "utility_extensions.hpp"
 #include <option/has_gui.h>
 #include <string.h>
 
@@ -23,16 +24,12 @@ static const constexpr uint16_t FW_UPDATE_FLAG_ADDRESS = 0x040B;
 // int sys_pll_freq = 100000000;
 int sys_pll_freq = 168000000;
 
-volatile data_exchange_t ram_data_exchange __attribute__((section(".boot_fw_data_exchange")));
-
 version_t &boot_version = *(version_t *)(BOOTLOADER_VERSION_ADDRESS); // (address) from flash -> "volatile" is not necessary
 
 volatile uint8_t *psys_fw_valid = (uint8_t *)0x080FFFFF;              // last byte in the flash
 
 // Needs to be RAM function as it is called when erasing the flash
 void __RAM_FUNC sys_reset(void) {
-    static_assert(sizeof(data_exchange_t) == 32, "invalid sizeof(data_exchange_t)");
-
     uint32_t aircr = SCB->AIRCR & 0x0000ffff; // read AIRCR, mask VECTKEY
     __disable_irq();
     aircr |= 0x05fa0000;                      // set VECTKEY
@@ -242,40 +239,15 @@ void sys_spi_set_prescaler(int prescaler_num) {
 }
 
 int sys_fw_update_is_enabled(void) {
-    return (FW_UPDATE_ENABLE == st25dv64k_user_read(FW_UPDATE_FLAG_ADDRESS)) ? 1 : 0;
+    return (ftrstd::to_underlying(FwAutoUpdate::on) == st25dv64k_user_read(FW_UPDATE_FLAG_ADDRESS)) ? 1 : 0;
 }
 
 void sys_fw_update_enable(void) {
-    st25dv64k_user_write(FW_UPDATE_FLAG_ADDRESS, FW_UPDATE_ENABLE);
+    st25dv64k_user_write(FW_UPDATE_FLAG_ADDRESS, ftrstd::to_underlying(FwAutoUpdate::on));
 }
 
 void sys_fw_update_disable(void) {
-    st25dv64k_user_write(FW_UPDATE_FLAG_ADDRESS, FW_UPDATE_DISABLE);
-}
-// firmware update on restart
-int sys_fw_update_on_restart_is_enabled(void) {
-    return (FW_UPDATE_ENABLE == ram_data_exchange.fw_update_flag) ? 1 : 0;
-}
-
-void sys_fw_update_on_restart_enable(void) {
-    ram_data_exchange.fw_update_flag = FW_UPDATE_ENABLE;
-}
-
-void sys_fw_update_older_on_restart_enable(void) {
-    ram_data_exchange.fw_update_flag = FW_UPDATE_OLDER;
-}
-
-void sys_fw_update_on_restart_disable(void) {
-    ram_data_exchange.fw_update_flag = FW_UPDATE_DISABLE;
-}
-
-int sys_bootloader_is_valid(void) {
-    return ram_data_exchange.bootloader_valid ? 1 : 0;
-}
-
-void sys_set_reflash_bbf_sfn(const char *sfn) {
-    ram_data_exchange.fw_update_flag = FW_UPDATE_SPECIFIED;
-    strlcpy((char *)ram_data_exchange.bbf_sfn, sfn, 13);
+    st25dv64k_user_write(FW_UPDATE_FLAG_ADDRESS, ftrstd::to_underlying(FwAutoUpdate::off));
 }
 
 int sys_flash_is_empty(void *ptr, int size) {

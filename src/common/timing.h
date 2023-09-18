@@ -16,6 +16,11 @@ uint32_t ticks_s();
 /// Overflows every 49 days
 uint32_t ticks_ms();
 
+/// Last value of millisecond ticks
+///
+/// Use for less important timing, be sure that you have called ticks_ms recently
+uint32_t last_ticks_ms();
+
 /// Ticks with microsecond precision
 ///
 /// Overflows every 71 minutes

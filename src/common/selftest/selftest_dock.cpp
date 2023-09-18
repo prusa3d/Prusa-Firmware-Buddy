@@ -24,9 +24,9 @@ CSelftestPart_Dock::CSelftestPart_Dock(IPartHandler &state_machine, const DockCo
 
 CSelftestPart_Dock::~CSelftestPart_Dock() {
     HOTEND_LOOP() {
-        prusa_toolchanger.getTool(e).set_led(); // Default LED config
+        prusa_toolchanger.getTool(e).set_cheese_led(); // Default LED config
     }
-    prusa_toolchanger.init(false);              // Ensure picked/active tool matches the reality
+    prusa_toolchanger.init(false);                     // Ensure picked/active tool matches the reality
     toolcheck_reenable();
 }
 
@@ -149,7 +149,7 @@ LoopResult CSelftestPart_Dock::state_ask_user_remove_pin() {
     // Select the tool to mark it, unselect all others
     for (uint i = 0; i < HOTENDS; ++i) {
         prusa_toolchanger.getTool(i).set_selected(i == config.dock_id);
-        prusa_toolchanger.getTool(i).set_led(0xff, 0x00); // LED on on the selected tool
+        prusa_toolchanger.getTool(i).set_cheese_led(0xff, 0x00); // LED on on the selected tool
     }
 
     // Disable steppers - let user operate with the printer
@@ -389,7 +389,7 @@ LoopResult CSelftestPart_Dock::state_selftest_pick() {
         return LoopResult::Fail;
     }
 
-    marlin_server::enqueue_gcode_printf("T%d S1", config.dock_id);
+    marlin_server::enqueue_gcode_printf("T%d S1 L0 D0", config.dock_id);
     marlin_server::enqueue_gcode("M400");
     return LoopResult::RunNext;
 }
@@ -405,7 +405,7 @@ LoopResult CSelftestPart_Dock::state_selftest_park() {
         return LoopResult::Fail;
     }
 
-    marlin_server::enqueue_gcode_printf("T%d S1", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+    marlin_server::enqueue_gcode_printf("T%d S1 L0 D0", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
     marlin_server::enqueue_gcode("M400");
     return LoopResult::RunNext;
 }

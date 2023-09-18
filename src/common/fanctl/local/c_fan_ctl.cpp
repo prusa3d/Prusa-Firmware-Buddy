@@ -260,6 +260,7 @@ bool CFanCtl::setPhaseShiftMode(uint8_t psm) {
 }
 
 void CFanCtl::safeState() {
+    setPWM(m_pwm.get_max_PWM());
     m_pwm.safeState();
     selftest_mode = false;
 }

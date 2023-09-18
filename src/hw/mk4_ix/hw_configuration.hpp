@@ -46,10 +46,10 @@ MMU_RESET logic inverted
 
 namespace buddy::hw {
 class Configuration : public ConfigurationCommon {
-    Configuration(const LoveBoardEeprom &loveboard);
+    Configuration(std::pair<LoveBoardEeprom, OtpStatus> loveboard_);
     Configuration(const Configuration &) = delete;
 
-    LoveBoardEeprom loveboard_eeprom;
+    std::pair<LoveBoardEeprom, OtpStatus> loveboard;
 
 public:
     /**
@@ -58,7 +58,9 @@ public:
      */
     static Configuration &Instance();
 
-    const LoveBoardEeprom &get_love_board() const { return loveboard_eeprom; }
+    const LoveBoardEeprom &get_love_board() const { return std::get<LoveBoardEeprom>(loveboard); }
+
+    const OtpStatus &get_loveboard_status() const { return std::get<OtpStatus>(loveboard); }
 
     bool has_inverted_fans() const { return get_board_bom_id() < 37; }
 

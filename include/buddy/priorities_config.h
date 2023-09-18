@@ -17,13 +17,20 @@ extern "C" {
  * Interrupt priorities:
  *************************************************/
 static_assert(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY == 5);
-    #define ISR_PRIORITY_TICK_TIMER    0
-    #define ISR_PRIORITY_WWDG          0
-    #define ISR_PRIORITY_ENDSTOP       0
-    #define ISR_PRIORITY_STEP_TIMER    1
-    #define ISR_PRIORITY_TEMP_TIMER    2
-    #define ISR_PRIORITY_PUPPIES_USART 5
+    #define ISR_PRIORITY_TICK_TIMER 0
+    #define ISR_PRIORITY_WWDG       0
+    #if !BOARD_IS_XBUDDY
+        #define ISR_PRIORITY_ENDSTOP 0 // High priority to preempt the STEP_TIMER when possible
+    #endif
+    #define ISR_PRIORITY_STEP_TIMER 1
+    #define ISR_PRIORITY_HX717_HARD 2
+    #if BOARD_IS_XBUDDY
+        #define ISR_PRIORITY_ENDSTOP ISR_PRIORITY_HX717_HARD // Shared EXTI line: avoid STEP jitter
+    #endif
+    #define ISR_PRIORITY_TEMP_TIMER    3
     #define ISR_PRIORITY_POWER_PANIC   5
+    #define ISR_PRIORITY_PUPPIES_USART 5
+    #define ISR_PRIORITY_HX717_SOFT    5
     #define ISR_PRIORITY_MOVE_TIMER    6
     #define ISR_PRIORITY_DEFAULT       7 // default ISR priority, used by ISRs that don't need specific ISR priority
     #define ISR_PRIORITY_PENDSV        15
@@ -35,6 +42,7 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_PUPPY_TASK                 osPriorityRealtime
     #define TASK_PRIORITY_USB_DEVICE                 osPriorityRealtime
     #define TASK_PRIORITY_AC_FAULT                   osPriorityRealtime
+    #define TASK_PRIORITY_ESP                        osPriorityRealtime
     #define TASK_PRIORITY_DEFAULT_TASK               osPriorityHigh
     #define TASK_PRIORITY_STARTUP                    osPriorityHigh
     #define TASK_PRIORITY_MEDIA_PREFETCH             osPriorityHigh
@@ -58,10 +66,11 @@ static_assert(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY == 0);
     #define IRQ_PRIORITY_DMA1_CHANNEL2_3 0
     #define ISR_PRIORITY_RS485           0
     #define ISR_PRIORITY_DMA1_CHANNEL1   0
-    #define ISR_PRIORITY_STEP_TIMER      2
-    #define ISR_PRIORITY_MOVE_TIMER      2
     #define ISR_PRIORITY_TICK_TIMER      1
+    #define ISR_PRIORITY_HX717           1
+    #define ISR_PRIORITY_STEP_TIMER      2
     #define ISR_PRIORITY_TEMP_TIMER      2
+    #define ISR_PRIORITY_MOVE_TIMER      2
 
     /************************************************
      * Task priorities

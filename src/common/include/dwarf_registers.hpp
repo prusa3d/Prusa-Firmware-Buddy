@@ -10,6 +10,8 @@ namespace dwarf_shared::registers {
 enum class SystemDiscreteInput : uint16_t {
     is_picked = 0x0000,
     is_parked = 0x0001,
+    is_button_up_pressed = 0x0002,
+    is_button_down_pressed = 0x0003,
 
     _post_last,
     _last = _post_last - 1,
@@ -54,15 +56,17 @@ enum class SystemInputRegister : uint16_t {
     fan1_pwm = 0x806D,
     fan1_state = 0x806E,
     fan1_is_rpm_ok = 0x806F,
+    system_24V_mV = 0x8070,     // [mV]
+    heater_current_mA = 0x8071, // [mA]
 
-    time_sync_lo = 0x8070,
-    time_sync_hi = 0x8071,
+    time_sync_lo = 0x8072,
+    time_sync_hi = 0x8073,
 
-    marlin_error_component_start = 0x8072, // 20 characters, 10 registers
-    marlin_error_component_end = 0x807B,
+    marlin_error_component_start = 0x8074, // 20 characters, 10 registers
+    marlin_error_component_end = 0x807D,
 
-    marlin_error_message_start = 0x807C, // 64 characters, 32 registers
-    marlin_error_message_end = 0x809B,
+    marlin_error_message_start = 0x807E, // 64 characters, 32 registers
+    marlin_error_message_end = 0x809D,
 
     _post_last,
     _last = _post_last - 1,
@@ -74,7 +78,9 @@ enum class SystemHoldingRegister : uint16_t {
     heatbreak_requested_temperature = 0xE001,
     fan0_pwm = 0xE002,
     fan1_pwm = 0xE003,
-    led_pwm = 0xE004, // 8 MSb PWM when selected, 8 LSb PWM when not selected [0 - 0xff]
+    led_pwm = 0xE004,            // 8 MSb PWM when selected, 8 LSb PWM when not selected [0 - 0xff]
+    status_color_start = 0xE005, // 8 MSb Green [0 - 0xff], 8 LSb Red [0 - 0xff]
+    status_color_end = 0xE006,   // 8 MSb status_led_mode, 8 LSb Blue [0 - 0xff]
 
     tmc_read_request = 0xE020,
     tmc_write_request_address = 0xE021,

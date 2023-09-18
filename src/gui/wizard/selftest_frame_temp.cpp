@@ -95,7 +95,12 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
 #if HAS_TOOLCHANGER()
     , footer(this, 0, prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::AllNozzles : footer::Item::Nozzle, footer::Item::Bed)
 #else
-    , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::Heatbreak)
+    , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed
+    #if not PRINTER_IS_PRUSA_MINI
+          ,
+          footer::Item::Heatbreak
+    #endif
+          )
 #endif
     // noz
     , text_noz(this, top_label_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_noz))

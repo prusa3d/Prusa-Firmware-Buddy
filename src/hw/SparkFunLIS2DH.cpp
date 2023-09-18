@@ -39,6 +39,7 @@ Distributed as-is; no warranty is given.
 #include <device/peripherals.h>
 #include <bit>
 #include "Marlin/src/core/serial.h"
+#include "printers.h"
 
 using namespace buddy::hw;
 
@@ -126,12 +127,19 @@ status_t LIS2DHCore::beginCore(void) {
         break;
     }
 
+    // Soft-reset device to ensure fresh state
+    writeRegister(LIS2DH_CTRL_REG5, 0b10000000);
+    osDelay(5);
+
     // Check the ID register to determine if the operation was a success.
     uint8_t readCheck;
     readRegister(&readCheck, LIS2DH_WHO_AM_I);
     if (readCheck != 0x33) {
         returnError = IMU_HW_ERROR;
     }
+
+    // Reset FIFO mode to bypass in order to reset FIFO
+    writeRegister(LIS2DH_FIFO_CTRL_REG, 0);
 
     return returnError;
 }
@@ -574,6 +582,10 @@ void LIS2DH::applySettings(void) {
 #endif
     // Now, write the patched together data
     writeRegister(LIS2DH_CTRL_REG4, dataToWrite);
+
+    // Just in case reset filtering by reading reference register
+    uint8_t dummy;
+    readRegister(&dummy, LIS2DH_REFERENCE);
 }
 //****************************************************************************//
 //
@@ -818,8 +830,14 @@ int Fifo::get(Acceleration &acceleration) {
 
 Fifo::Acceleration Fifo::to_acceleration(Record record) {
     Acceleration retval;
+#if PRINTER_IS_PRUSA_iX
+    retval.val[0] = m_accelerometer.calcAccel(record.raw_y);
+    retval.val[1] = m_accelerometer.calcAccel(record.raw_z);
+    retval.val[2] = m_accelerometer.calcAccel(record.raw_x);
+#else
     retval.val[0] = m_accelerometer.calcAccel(record.raw_x);
     retval.val[1] = m_accelerometer.calcAccel(record.raw_y);
     retval.val[2] = m_accelerometer.calcAccel(record.raw_z);
+#endif
     return retval;
 }

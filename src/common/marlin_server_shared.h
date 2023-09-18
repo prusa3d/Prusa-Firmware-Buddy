@@ -16,10 +16,11 @@ inline constexpr uint8_t CURRENT_TOOL = std::numeric_limits<uint8_t>::max();
 enum class State {
     Idle,
     WaitGui,
-    PrintPreviewInit,
-    PrintPreviewImage,
-    PrintPreviewQuestions,
-    PrintPreviewToolsMapping,
+    PrintPreviewInit,         ///< Print is being initialized
+    PrintPreviewImage,        ///< Showing print preview and waiting for user to click print
+    PrintPreviewConfirmed,    ///< Print is confirmed to be printed (either user clicked print, or WUI/Connect started print without confirmation on printer)
+    PrintPreviewQuestions,    ///< Some problems with print detected, ask user to skip/fix them
+    PrintPreviewToolsMapping, ///< Waiting for user to do the tool mapping/spool join
     PrintInit,
     Printing,
     Pausing_Begin,
@@ -34,6 +35,7 @@ enum class State {
     Aborting_Begin,
     Aborting_WaitIdle,
     Aborting_ParkHead,
+    Aborting_Preview, ///< Print preview can do filament load/unload and needs to be aborted properly
     Aborted,
     Finishing_WaitIdle,
     Finishing_ParkHead,

@@ -70,6 +70,7 @@ public:
 };
 #endif
 
+#if ANY(CRASH_RECOVERY, POWER_PANIC)
 class MI_CRASH_MAX_PERIOD_X : public WI_SPIN_CRASH_PERIOD_t {
 private:
     constexpr static const char *const label = "Crash Min. Speed X";
@@ -88,7 +89,6 @@ public:
     virtual void OnClick() override;
 };
 
-#if ANY(CRASH_RECOVERY, POWER_PANIC)
 class MI_POWER_PANICS : public WI_INFO_t {
     constexpr static const char *const label = N_("Power Failures");
 

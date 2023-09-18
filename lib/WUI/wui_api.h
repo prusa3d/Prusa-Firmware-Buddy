@@ -18,13 +18,8 @@
 
 #define PRUSA_LINK_USERNAME "maker"
 
-#define FW_VER_STR_LEN    32  // length of full Firmware version string
-#define MAC_ADDR_STR_LEN  18  // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
-#define SER_NUM_STR_LEN   16  // length of serial number string
-#define UUID_STR_LEN      32  // length of unique identifier string
-#define PRI_STATE_STR_LEN 10  // length of printer state string
-#define IP4_ADDR_STR_SIZE 16  // length of ip4 address string ((0-255).(0-255).(0-255).(0-255))
-#define MAX_INI_SIZE      320 // length of ini file string
+#define MAC_ADDR_STR_LEN 18  // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
+#define MAX_INI_SIZE     320 // length of ini file string
 
 #define ETHVAR_MSK(n_id) ((uint32_t)1 << (n_id))
 #define ETHVAR_STATIC_LAN_ADDRS \

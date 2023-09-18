@@ -132,17 +132,10 @@ static int32_t home_and_get_calibration_offset(AxisEnum axis, int axis_home_dir,
 }
 
 static void load_divisor_from_eeprom() {
-    for (int axis = 0; axis < XY; axis++) {
-        const float max = homing_bump_divisor_max[axis];
-        const float min = homing_bump_divisor_min[axis];
-        const float hbd = homing_bump_divisor[axis];
-        if (hbd >= min && hbd <= max) {
-            continue;
-        }
-
-        const float loaded = axis ? config_store().homing_bump_divisor_y.get() : config_store().homing_bump_divisor_x.get();
-        if (loaded >= min && loaded <= max) {
-            homing_bump_divisor[axis] = loaded;
+    LOOP_XY(axis) {
+        const float value = axis == X_AXIS ? config_store().homing_bump_divisor_x.get() : config_store().homing_bump_divisor_y.get();
+        if (value >= homing_bump_divisor_min[axis] && value <= homing_bump_divisor_max[axis]) {
+            homing_bump_divisor[axis] = value;
         } else {
             homing_bump_divisor[axis] = homing_bump_divisor_dflt[axis];
         }

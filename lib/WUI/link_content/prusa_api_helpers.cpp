@@ -99,6 +99,8 @@ StatusPage delete_file(const char *filename, const RequestParser &parser) {
     auto result = remove_file(filename);
     if (result == DeleteResult::Busy) {
         return StatusPage(Status::Conflict, parser, "File is busy");
+    } else if (result == DeleteResult::ActiveTransfer) {
+        return StatusPage(Status::Conflict, parser, "File is being transferred");
     } else if (result == DeleteResult::GeneralError) {
         return StatusPage(Status::NotFound, parser);
     } else {

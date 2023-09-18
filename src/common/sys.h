@@ -4,14 +4,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-
 extern version_t &boot_version; // (address) from flash -> "volatile" is not necessary
-
-extern "C" {
-#endif //__cplusplus
-
-extern volatile data_exchange_t ram_data_exchange;
 
 extern void sys_reset(void) __attribute__((noreturn));
 
@@ -45,28 +38,6 @@ extern void sys_fw_update_enable(void);
 
 extern void sys_fw_update_disable(void);
 
-extern int sys_fw_update_on_restart_is_enabled(void);
-
-extern void sys_fw_update_on_restart_enable(void);
-
-extern void sys_fw_update_older_on_restart_enable(void);
-
-extern void sys_fw_update_on_restart_disable(void);
-
-extern int sys_fw_is_valid(void);
-
-extern void sys_set_reflash_bbf_sfn(const char *sfn);
-
-extern int sys_fw_invalidate(void);
-
-extern int sys_fw_validate(void);
-
-/// Return 1 if the preboot set the bootloader_valid flag to true
-///
-/// Warning: requires bootloader version 2.0.0 (which includes preboot)
-/// or newer
-extern int sys_bootloader_is_valid(void);
-
 extern int sys_flash_is_empty(void *ptr, int size);
 
 extern int sys_flash_write(void *dst, void *src, int size);
@@ -75,7 +46,3 @@ extern int sys_flash_erase_sector(unsigned int sector);
 
 /// @return true if version a < (major, minor, patch)
 extern bool version_less_than(const version_t *a, const uint8_t major, const uint8_t minor, const uint8_t patch);
-
-#ifdef __cplusplus
-}
-#endif //__cplusplus

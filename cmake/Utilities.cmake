@@ -1,8 +1,13 @@
 get_filename_component(PROJECT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
 get_filename_component(PROJECT_ROOT_DIR "${PROJECT_CMAKE_DIR}" DIRECTORY)
 
+# cache BUDDY_NO_VIRTUALENV across builds
+set(BUDDY_NO_VIRTUALENV
+    $<BOOL:$ENV{BUDDY_NO_VIRTUALENV}>
+    CACHE BOOL "Disable python virtualenv management"
+    )
 if(NOT Python3_EXECUTABLE)
-  if(NOT DEFINED ENV{BUDDY_NO_VIRTUALENV})
+  if(NOT ${BUDDY_NO_VIRTUALENV})
     set(Python3_ROOT_DIR "${CMAKE_SOURCE_DIR}/.venv")
   endif()
   find_package(Python3 COMPONENTS Interpreter)

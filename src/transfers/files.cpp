@@ -60,4 +60,25 @@ PreallocateResult file_preallocate(const char *fname, size_t size) {
     return file;
 }
 
+bool write_block(FILE *f, const uint8_t *data, size_t size) {
+    while (size > 0) {
+        errno = 0; // Make sure there are no leftovers in successful-but-eof cases
+        const size_t written = fwrite(data, 1, size, f);
+        if (written == size) {
+            return true;
+        } else {
+            if (errno == EAGAIN || errno == EBUSY) {
+                // We have written possibly something, retry with the rest
+                data += written;
+                size -= written;
+            } else {
+                // Some other (unrecoverable?) error
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 } // namespace transfers

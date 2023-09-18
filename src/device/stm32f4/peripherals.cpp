@@ -4,6 +4,7 @@
 #include <atomic>
 #include "Pin.hpp"
 #include "hwio_pindef.h"
+#include "safe_state.h"
 #include "main.h"
 #include "adc.hpp"
 #include "timer_defaults.h"
@@ -225,9 +226,6 @@ void hw_dma_init() {
     // DMA2_Stream5_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
-    // DMA2_Stream6_IRQn interrupt configuration
-    HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, ISR_PRIORITY_DEFAULT, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
     // DMA2_Stream7_IRQn interrupt configuration
     #if PRINTER_IS_PRUSA_iX
     HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, ISR_PRIORITY_PUPPIES_USART, 0);
@@ -272,6 +270,9 @@ void hw_dma_init() {
     // DMA2_Stream2_IRQn interrupt configuration
     HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, ISR_PRIORITY_DEFAULT, 0);
     HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
+    // DMA2_Stream6_IRQn interrupt configuration
+    HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, ISR_PRIORITY_DEFAULT, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
 }
 
 void static config_adc(ADC_HandleTypeDef *hadc, ADC_TypeDef *ADC_NUM, uint32_t NbrOfConversion) {
@@ -509,9 +510,7 @@ static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
     // but we cannot log it or rise red screen, it is too early
 #ifdef _DEBUG
     // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
 #endif
     HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // this code should never be reached, just in case it was set clock to '1'
 }

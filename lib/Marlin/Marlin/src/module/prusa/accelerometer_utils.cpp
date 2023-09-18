@@ -21,6 +21,7 @@ PrusaAccelerometer::Acceleration AccelerometerUtils::unpack_sample(common::puppi
     accelerometer_sample.val[1] = static_cast<float>(acceleration) * factor2g;
     acceleration = (sample >> z_left_shift) & top_10_bits;
     accelerometer_sample.val[0] = static_cast<float>(acceleration) * factor2g;
+    accelerometer_sample.corrupted = sample & corrupted_mask;
     return accelerometer_sample;
 }
 #endif

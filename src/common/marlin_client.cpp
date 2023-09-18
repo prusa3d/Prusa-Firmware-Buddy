@@ -530,6 +530,15 @@ bool is_printing() {
     }
 }
 
+bool is_idle() {
+    switch (marlin_vars()->print_state) {
+    case State::Idle:
+        return true;
+    default:
+        return false;
+    }
+}
+
 //-----------------------------------------------------------------------------
 // private functions
 

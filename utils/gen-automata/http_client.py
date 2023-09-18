@@ -1,4 +1,4 @@
-from http import connection_header, content_type, read_header_value, response
+from http import connection_header, content_type, read_header_value, response, content_encryption_mode_header
 
 if __name__ == "__main__":
     want_headers = {
@@ -8,6 +8,7 @@ if __name__ == "__main__":
         'Code': read_header_value('Code'),
         'Connection': connection_header(),
         'Token': read_header_value('Token'),
+        'Content-Encryption-Mode': content_encryption_mode_header(),
     }
     http, final = response(want_headers)
     compiled = http.compile("con::parser::response")

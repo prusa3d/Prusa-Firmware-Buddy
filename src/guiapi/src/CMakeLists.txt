@@ -4,7 +4,6 @@ target_sources(
           display_helper.cpp
           gui.cpp
           gui_timer.cpp
-          guitypes.cpp
           i_window_menu_container.cpp
           i_window_menu_item.cpp
           i_window_text.cpp
@@ -13,7 +12,6 @@ target_sources(
           menu_item_event_dispatcher.cpp
           menu_opener.cpp
           menu_spin_config_types.cpp
-          png_measure.cpp
           Rect16.cpp
           screen.cpp
           ScreenShot.cpp
@@ -22,6 +20,7 @@ target_sources(
           text_roll.cpp
           window.cpp
           window_arrows.cpp
+          window_colored_rect.cpp
           window_event.cpp
           window_frame.cpp
           window_icon.cpp

@@ -35,10 +35,12 @@ async def read(printer: Printer):
 
 
 @timeoutable
-async def wait_for_text(printer: Printer, text):
+async def wait_for_text(printer: Printer, text: str):
+    """ Wait for the text to appear on screen.
+    Text is compared lower case because the OCR won't know c/C apart."""
     while True:
         text_on_screen = await read(printer)
-        if text in text_on_screen:
+        if text.lower() in text_on_screen.lower():
             return text_on_screen
         await asyncio.sleep(1)
 

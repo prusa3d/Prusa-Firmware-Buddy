@@ -7,8 +7,8 @@ target_include_directories(translations INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/hash_table_buckets.ipp"
          "${CMAKE_CURRENT_BINARY_DIR}/hash_table_buckets_count.ipp"
-  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/lang.py" "generate-hash-tables"
-          "${CMAKE_CURRENT_SOURCE_DIR}/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/translations_and_fonts/lang.py"
+          "generate-hash-tables" "${CMAKE_CURRENT_SOURCE_DIR}/po" "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating C++ files out of .po files."
   VERBATIM
   )
@@ -18,8 +18,8 @@ add_custom_target(
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/non-ascii-chars.txt"
          "${CMAKE_CURRENT_BINARY_DIR}/non-ascii-chars.raw"
-  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/lang.py" "generate-nonascii-chars"
-          "${CMAKE_CURRENT_SOURCE_DIR}/po" "${CMAKE_CURRENT_BINARY_DIR}"
+  COMMAND "${Python3_EXECUTABLE}" "${PROJECT_ROOT_DIR}/utils/translations_and_fonts/lang.py"
+          "generate-nonascii-chars" "${CMAKE_CURRENT_SOURCE_DIR}/po" "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating used non-ascii chars out of .po files."
   VERBATIM
   )

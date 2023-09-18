@@ -7,6 +7,8 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/random_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/time_mock.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/status_renderer_mock.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/partial_file_mock.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/transfer_mock.cpp
   # Some handlers are stubbed out.
   ${CMAKE_CURRENT_SOURCE_DIR}/server_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/req_parser_tests.cpp
@@ -35,16 +37,21 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/common/automata/core.cpp
-  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_thumb_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/base64_stream_decoder.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/url_decode.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_buffer.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/gcode/meatpack.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/sha256.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/md5.c
+  ${CMAKE_SOURCE_DIR}/lib/heatshrink/heatshrink_decoder.c
   # Dependencies.
   # It seems it's not possible to just link the damn LwIP library:
   # * Somehow, the target_link_libraries directive poisons include
@@ -110,6 +117,8 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
           ${CMAKE_SOURCE_DIR}/lib/jsmn
+          ${CMAKE_SOURCE_DIR}/lib/heatshrink
+          ${CMAKE_SOURCE_DIR}/lib
           ${CMAKE_SOURCE_DIR}/include/mbedtls
   )
 
@@ -129,7 +138,9 @@ add_custom_target(
   )
 add_dependencies(nhttp_tests generate-http-automata-tests)
 # target_link_libraries(http_tests LwIP)
-set_target_properties(nhttp_tests PROPERTIES CXX_STANDARD 17)
+set_target_properties(nhttp_tests PROPERTIES CXX_STANDARD 20)
+
+target_link_libraries(nhttp_tests bgcode_core mbedTLS)
 
 add_definitions(-DUNITTESTS)
 

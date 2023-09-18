@@ -35,7 +35,7 @@ using std::string_view;
 using std::variant;
 using std::visit;
 
-LOG_COMPONENT_DEF(connect, LOG_SEVERITY_DEBUG);
+LOG_COMPONENT_DEF(connect, LOG_SEVERITY_INFO);
 
 namespace connect_client {
 

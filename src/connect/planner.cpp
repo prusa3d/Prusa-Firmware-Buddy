@@ -2,6 +2,8 @@
 #include "printer.hpp"
 
 #include <filename_type.hpp>
+#include <log.h>
+#include <transfers/transfer.hpp>
 
 #include <alloca.h>
 #include <algorithm>
@@ -10,6 +12,7 @@
 #include <cstdio>
 #include <cinttypes>
 #include <sys/stat.h>
+#include "stat_retry.hpp"
 #include <unistd.h>
 
 using http::HeaderOut;
@@ -25,12 +28,14 @@ using std::visit;
 using transfers::ChangedPath;
 using transfers::Decryptor;
 using transfers::Download;
-using transfers::DownloadStep;
 using transfers::Monitor;
 using transfers::Storage;
+using transfers::Transfer;
 
 using Type = ChangedPath::Type;
 using Incident = ChangedPath::Incident;
+
+LOG_COMPONENT_REF(connect);
 
 namespace connect_client {
 
@@ -69,8 +74,6 @@ namespace {
     // we would never recover if the failure is repeateble with it.
     const constexpr uint8_t GIVE_UP_AFTER_ATTEMPTS = 5;
 
-    const constexpr uint8_t MAX_DOWNLOAD_RETRIES = 5;
-
     optional<Duration> since(optional<Timestamp> past_event) {
         // optional::transform would be nice, but it's C++23
         if (past_event.has_value()) {
@@ -91,14 +94,22 @@ namespace {
 
     bool file_exists(const char *path) {
         struct stat st = {};
-        // This could give some false negatives, in practice rare (we don't have permissions, and such).
-        return stat(path, &st) == 0 and !S_ISDIR(st.st_mode);
+        if (stat_retry(path, &st) != 0) {
+            return false;
+        }
+
+        if (S_ISDIR(st.st_mode)) {
+            MutablePath mp(path);
+            return transfers::Transfer::is_valid_transfer(mp);
+        }
+
+        return true;
     }
 
     bool dir_exists(const char *path) {
         struct stat st = {};
         // This could give some false negatives, in practice rare (we don't have permissions, and such).
-        return stat(path, &st) == 0 and S_ISDIR(st.st_mode);
+        return stat_retry(path, &st) == 0 and S_ISDIR(st.st_mode);
     }
 
     template <class>
@@ -161,21 +172,38 @@ namespace {
         strcat(buffer, enc_suffix);
     }
 
-    Download::DownloadResult init_download(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
+    Transfer::BeginResult init_transfer(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
         const char *dpath = download.path.path();
         if (!path_allowed(dpath)) {
             return Storage { "Not allowed outside /usb" };
         }
 
-        if (!filename_is_firmware(dpath) && !filename_is_gcode(dpath)) {
+        if (!filename_is_firmware(dpath) && !filename_is_printable(dpath)) {
             return Storage { "Unsupported file type" };
         }
 
         const auto [host, port] = host_and_port(config, download.port);
 
         char *path = nullptr;
-        HeaderOut *extra_hdrs = nullptr;
-        unique_ptr<Decryptor> decryptor;
+        unique_ptr<Download::EncryptionInfo> encryption;
+
+        auto get_headers = [&](size_t headers_count, HeaderOut *headers) -> size_t {
+            if (auto *plain = get_if<StartConnectDownload::Plain>(&download.details); plain != nullptr) {
+                constexpr size_t requires_headers = 2;
+
+                if (requires_headers <= headers_count) {
+                    const char *token = config.token;
+                    // Even though we get it from a temporary, the pointer itself is stable.
+                    const char *fingerprint = printer.printer_info().fingerprint;
+                    const size_t fingerprint_size = Printer::PrinterInfo::FINGERPRINT_HDR_SIZE;
+                    headers[0] = { "Fingerprint", fingerprint, fingerprint_size };
+                    headers[1] = { "Token", token, nullopt };
+                }
+
+                return requires_headers;
+            }
+            return 0;
+        };
 
         if (auto *plain = get_if<StartConnectDownload::Plain>(&download.details); plain != nullptr) {
             const char *prefix = "/p/teams/";
@@ -191,23 +219,17 @@ namespace {
             assert(written < buffer_len);
             // Avoid warning about unused in release builds (assert off)
             (void)written;
-            const char *token = config.token;
-            // Even though we get it from a temporary, the pointer itself is stable.
-            const char *fingerprint = printer.printer_info().fingerprint;
-            const size_t fingerprint_size = Printer::PrinterInfo::FINGERPRINT_HDR_SIZE;
-            extra_hdrs = reinterpret_cast<HeaderOut *>(alloca(3 * sizeof *extra_hdrs));
-            extra_hdrs[0] = { "Fingerprint", fingerprint, fingerprint_size };
-            extra_hdrs[1] = { "Token", token, nullopt };
-            extra_hdrs[2] = { nullptr, nullptr, nullopt };
         } else if (auto *encrypted = get_if<StartConnectDownload::Encrypted>(&download.details); encrypted != nullptr) {
             path = reinterpret_cast<char *>(alloca(enc_url_len));
             make_enc_url(path, encrypted->iv);
-            decryptor = make_unique<Decryptor>(encrypted->key, encrypted->iv, encrypted->orig_size);
+            encryption = make_unique<Download::EncryptionInfo>(encrypted->key, encrypted->iv, encrypted->orig_size);
         } else {
             assert(0);
         }
 
-        return Download::start_connect_download(host, port, path, dpath, extra_hdrs, move(decryptor));
+        auto request = Download::Request(host, port, path, get_headers, std::move(encryption));
+
+        return Transfer::begin(dpath, request);
     }
 } // namespace
 
@@ -252,7 +274,7 @@ void Planner::reset() {
     failed_attempts = 0;
 }
 
-Sleep Planner::sleep(Duration amount) {
+Sleep Planner::sleep(Duration amount, bool cooldown) {
     // Note for the case where planned_event.has_value():
     //
     // Processing of background command could generate another event that
@@ -266,9 +288,19 @@ Sleep Planner::sleep(Duration amount) {
     // "passively" watching what is or is not being transferred and the event
     // is generated after the fact anyway. No reason to block downloading for
     // that.
-    bool recover_download = download.has_value() ? download->need_retry : false;
-    Download *down = download.has_value() ? &download->download : nullptr;
-    return Sleep(amount, cmd, down, recover_download);
+    Transfer *down = transfer.has_value() ? &transfer.value() : nullptr;
+    // we don't want to allow moving the gcode file whenever there is a chance
+    // something is touching it
+    //
+    // We also don't want to allow it during downloading.
+    bool allow_transfer_cleanup = printer.is_idle() && need_transfer_cleanup && !Monitor::instance.id().has_value();
+    return Sleep(
+        amount,
+        cmd,
+        down,
+        /*run_transfer_cleanup=*/allow_transfer_cleanup,
+        /* The cooldown thing: We don't want to recover transfer before we get properly connected, maybe we don't have the IP yet or something. */
+        /*run_transfer_recovery=*/(transfer_recovery != TransferRecoveryState::Finished) && !cooldown);
 }
 
 Action Planner::next_action(SharedBuffer &buffer) {
@@ -304,7 +336,7 @@ Action Planner::next_action(SharedBuffer &buffer) {
     if (perform_cooldown) {
         perform_cooldown = false;
         assert(cooldown.has_value());
-        return sleep(*cooldown);
+        return sleep(*cooldown, true);
     }
 
     if (planned_event.has_value()) {
@@ -317,6 +349,13 @@ Action Planner::next_action(SharedBuffer &buffer) {
             EventType::Info,
         };
         return *planned_event;
+    }
+
+    auto current_transfer = Monitor::instance.id();
+
+    if (current_transfer.has_value()) {
+        // Some transfer (maybe even link one) is running, so it might need cleaning up afterwards.
+        need_transfer_cleanup = true;
     }
 
     if (auto current_transfer = Monitor::instance.id(); observed_transfer != current_transfer) {
@@ -382,7 +421,7 @@ Action Planner::next_action(SharedBuffer &buffer) {
             return SendTelemetry { false };
         } else {
             Duration sleep_amount = telemetry_interval - *since_telemetry;
-            return sleep(sleep_amount);
+            return sleep(sleep_amount, false);
         }
     } else {
         // TODO: Optimization: When can we send just empty telemetry instead of full one?
@@ -584,28 +623,26 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
         return;
     }
 
+    if (transfer_recovery == TransferRecoveryState::WaitingForUSB) {
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Not ready" };
+        return;
+    }
+
     if (config.tls && !holds_alternative<StartConnectDownload::Encrypted>(download.details)) {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Requested a non-encrypted download from TLS connection" };
         return;
     }
 
-    auto down_result = init_download(printer, config, download);
+    auto down_result = init_transfer(printer, config, download);
 
     visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
-        if constexpr (is_same_v<T, transfers::Download>) {
+        if constexpr (is_same_v<T, transfers::Transfer>) {
             // If there was another download, it wouldn't have succeeded
             // because it wouldn't acquire the transfer slot.
-            assert(!this->download.has_value());
+            assert(!this->transfer.has_value());
 
-            this->download = ResumableDownload { std::move(arg) };
-            this->download->port = download.port;
-            if (auto *enc = get_if<StartConnectDownload::Encrypted>(&download.details); enc != nullptr) {
-                this->download->orig_size = enc->orig_size;
-                this->download->orig_iv = enc->iv;
-                // TODO: Alternatively, do we want to allow more retries on larger files? Something like 3 + size / 1MB?
-                this->download->allowed_retries = MAX_DOWNLOAD_RETRIES;
-            }
+            this->transfer = Transfer { std::move(arg) };
             planned_event = Event { EventType::TransferInfo, command.id };
             planned_event->start_cmd_id = command.id;
             transfer_start_cmd = command.id;
@@ -746,60 +783,51 @@ void Planner::background_done(BackgroundResult result) {
     background_command.reset();
 }
 
-void Planner::download_done(DownloadStep result) {
-    // Similar reasons as with background_done
-    assert(download.has_value());
-    if (result == DownloadStep::FailedNetwork && download->allowed_retries > 0) {
-        assert(!download->need_retry);
-        download->allowed_retries--;
-        download->need_retry = true;
-    } else {
-        // We do _not_ set the event here. We do so in watching the transfer.
-        //
-        // But we make sure the observed_transfer is set even if there was no
-        // next_event in the meantime or if it was short-circuited.
-
-        observed_transfer = Monitor::instance.id();
-        assert(observed_transfer.has_value()); // Because download still holds the slot.
-        download.reset();
+void Planner::transfer_recovery_finished(std::optional<const char *> transfer_destination_path) {
+    transfer_recovery = TransferRecoveryState::Finished;
+    if (!transfer_destination_path.has_value()) {
+        log_info(connect, "No transfer to recover");
+        return;
     }
-}
 
-void Planner::recover_download() {
-    assert(download.has_value());
-    assert(download->need_retry);
-    download->need_retry = false;
-    uint32_t position = download->download.position();
+    log_info(connect, "Recovering transfer %s", *transfer_destination_path);
 
-    const auto [config, config_changed] = printer.config(false);
-    const auto [host, port] = host_and_port(config, download->port);
-
-    char url[enc_url_len];
-    make_enc_url(url, download->orig_iv);
-
-    char range[6 /* bytes = */ + 10 /* 2^32 in text */ + 1 /* - */ + 1 /* \0 */];
-    snprintf(range, sizeof range, "bytes=%" PRIu32 "-", position);
-    HeaderOut hdrs[2] = {
-        { "Range", range, nullopt },
-        { nullptr, nullptr, nullopt },
-    };
-
-    const auto result = download->download.recover_encrypted_connect_download(host, port, url, hdrs, download->orig_iv, download->orig_size);
-    visit([&](auto &&arg) {
+    auto recovery_result = Transfer::recover(*transfer_destination_path);
+    std::visit([&](auto &&arg) {
         using T = std::decay_t<decltype(arg)>;
-        if constexpr (is_same_v<T, transfers::Continued> || is_same_v<T, transfers::FromStart>) {
-            // Everything is fine!
-        } else if constexpr (is_same_v<T, transfers::Storage>) {
-            // This is not recoverable, abort the download.
-            download_done(DownloadStep::FailedOther);
-        } else if constexpr (is_same_v<T, transfers::RefusedRequest>) {
-            // Something network related. Do more retries later.
-            download_done(DownloadStep::FailedNetwork);
+        if constexpr (std::is_same_v<T, Transfer>) {
+            transfer = std::move(arg);
+        } else if constexpr (std::is_same_v<T, transfers::NoTransferSlot>) {
+            // this should not happen as we don't allow to start transfers before we finish recovery
+            log_error(connect, "No transfer slot available for recovery of a transfer");
+        } else if constexpr (std::is_same_v<T, transfers::Storage>) {
+            // not really something we can do about this I guess
+            log_error(connect, "Storage error during recovery of a transfer: %s", arg.msg);
         } else {
             static_assert(always_false_v<T>, "non-exhaustive visitor!");
         }
     },
-        result);
+        recovery_result);
+}
+
+void Planner::download_done(Transfer::State result) {
+    // Similar reasons as with background_done
+    log_info(connect, "Download done, result %i", static_cast<int>(result));
+    assert(transfer.has_value());
+
+    // We do _not_ set the event here. We do so in watching the transfer.
+    //
+    // But we make sure the observed_transfer is set even if there was no
+    // next_event in the meantime or if it was short-circuited.
+
+    observed_transfer = Monitor::instance.id();
+    assert(observed_transfer.has_value()); // Because download still holds the slot.
+    transfer.reset();
+}
+
+void Planner::transfer_cleanup_finished(bool success) {
+    // Retry in case of failure.
+    need_transfer_cleanup = !success;
 }
 
 } // namespace connect_client

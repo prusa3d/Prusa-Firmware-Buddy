@@ -4,22 +4,17 @@
 
 class screen_splash_data_t : public AddSuperWindow<screen_t> {
 #if defined(USE_ST7789)
-    img::ResourceSingleFile png_printer;
-    img::ResourceSingleFile png_marlin;
+    img::ResourceSingleFile img_printer;
+    img::ResourceSingleFile img_marlin;
 
     window_icon_t icon_logo_printer;
-    window_text_t text_progress;
-    window_progress_t progress;
-    window_text_t text_version;
     window_icon_t icon_logo_marlin;
 #endif // USE_7789
 
-#if defined(USE_ILI9488)
-    window_text_t text_version;
-    window_numberless_progress_t progress;
     window_text_t text_progress;
-#endif // USE_ILI9488
+    window_numberless_progress_t progress;
 
+    bool version_displayed;
     char text_progress_buffer[32];
 
 public:

@@ -8,6 +8,7 @@
 #include "mmu2_power.h"
 #include "mmu2_progress_converter.h"
 #include "mmu2_reporting.h"
+#include "../e-stall_detector.h"
 
 #include "strlen_cx.h"
 
@@ -97,15 +98,14 @@ MMU2 mmu2;
 #endif
 
 MMU2::MMU2()
-    : is_mmu_error_monitor_active(false)
-    , logic(
+    : logic(
 #if ENABLED(PRUSA_MMU2)
-          &mmu2Serial
+        &mmu2Serial
 #else
-          nullptr
+        nullptr
 #endif
-          ,
-          MMU2_TOOL_CHANGE_LOAD_LENGTH, MMU2_LOAD_TO_NOZZLE_FEED_RATE)
+        ,
+        MMU2_TOOL_CHANGE_LOAD_LENGTH, MMU2_LOAD_TO_NOZZLE_FEED_RATE)
     , extruder(MMU2_NO_TOOL)
     , tool_change_extruder(MMU2_NO_TOOL)
     , resume_position()
@@ -246,7 +246,7 @@ void MMU2::mmu_loop() {
 void __attribute__((noinline)) MMU2::mmu_loop_inner(bool reportErrors) {
     logicStepLastStatus = LogicStep(reportErrors); // it looks like the mmu_loop doesn't need to be a blocking call
 
-    if (is_mmu_error_monitor_active) {
+    if (isErrorScreenRunning()) {
         // Call this every iteration to keep the knob rotation responsive
         // This includes when mmu_loop is called within manage_response
         ReportErrorHook((CommandInProgress)logic.CommandInProgress(), (uint16_t)lastErrorCode, uint8_t(lastErrorSource));
@@ -349,7 +349,7 @@ bool MMU2::RetryIfPossible(ErrorCode ec) {
 bool MMU2::VerifyFilamentEnteredPTFE() {
     planner_synchronize();
 
-    if (WhereIsFilament() == FilamentState::NOT_PRESENT)
+    if (WhereIsFilament() != FilamentState::AT_FSENSOR)
         return false;
 
     // MMU has finished its load, push the filament further by some defined constant length
@@ -385,7 +385,7 @@ bool MMU2::VerifyFilamentEnteredPTFE() {
     for (uint8_t move = 0; move < 2; move++) {
         extruder_move(move == 0 ? tryload_length : -tryload_length, MMU2_VERIFY_LOAD_TO_NOZZLE_FEED_RATE);
         while (planner_any_moves()) {
-            filament_inserted = filament_inserted && (WhereIsFilament() != FilamentState::NOT_PRESENT);
+            filament_inserted = filament_inserted && (WhereIsFilament() == FilamentState::AT_FSENSOR);
             tlur.Progress(filament_inserted);
             safe_delay_keep_alive(0);
         }
@@ -474,6 +474,7 @@ bool MMU2::tool_change(uint8_t slot) {
 
         ReportingRAII rep(CommandInProgress::ToolChange, reportingStartedCnt);
         FSensorBlockRunout blockRunout;
+        BlockEStallDetection blockEStallDetection;
         planner_synchronize();
         ToolChangeCommon(slot);
     }
@@ -490,6 +491,7 @@ bool MMU2::tool_change(char code, uint8_t slot) {
         return false;
 
     FSensorBlockRunout blockRunout;
+    BlockEStallDetection blockEStallDetection;
 
     switch (code) {
     case '?': {
@@ -544,6 +546,7 @@ bool MMU2::set_filament_type(uint8_t /*slot*/, uint8_t /*type*/) {
 
 void MMU2::MMU2::UnloadInner() {
     FSensorBlockRunout blockRunout;
+    BlockEStallDetection blockEStallDetection;
     filament_ramming();
 
     // we assume the printer managed to relieve filament tip from the gears,
@@ -647,6 +650,7 @@ bool MMU2::load_filament_to_nozzle(uint8_t slot) {
         // used for MMU-menu operation "Load to Nozzle"
         ReportingRAII rep(CommandInProgress::ToolChange, reportingStartedCnt);
         FSensorBlockRunout blockRunout;
+        BlockEStallDetection blockEStallDetection;
 
         if (extruder != MMU2_NO_TOOL) { // we already have some filament loaded - free it + shape its tip properly
             filament_ramming();
@@ -820,7 +824,7 @@ void MMU2::CheckUserInput() {
             break;
         }
         break;
-    case Buttons::RestartMMU:
+    case Buttons::ResetMMU:
         Reset(CutThePower); // we cannot do power cycle on the MK3
         // ... but mmu2_power.cpp knows this and triggers a soft-reset instead.
         break;
@@ -1027,7 +1031,7 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
         lastErrorSource = res;
         LogErrorEvent_P(_O(PrusaErrorTitle(PrusaErrorCodeIndex((uint16_t)ec))));
 
-        if (ec != ErrorCode::OK) {
+        if (ec != ErrorCode::OK && ec != ErrorCode::FILAMENT_EJECTED) {
             IncrementMMUFails();
 
             // check if it is a "power" failure - we consider TMC-related errors as power failures
@@ -1133,7 +1137,6 @@ void MMU2::OnMMUProgressMsgSame(ProgressCode pc) {
         if (unloadFilamentStarted && !planner_any_moves()) { // Only plan a move if there is no move ongoing
             switch (WhereIsFilament()) {
             case FilamentState::AT_FSENSOR:
-            case FilamentState::IN_NOZZLE:
             case FilamentState::UNAVAILABLE: // actually Unavailable makes sense as well to start the E-move to release the filament from the gears
                 HelpUnloadToFinda();
                 break;
@@ -1156,6 +1159,10 @@ void MMU2::OnMMUProgressMsgSame(ProgressCode pc) {
             case FilamentState::NOT_PRESENT:
                 // fsensor not triggered, continue moving extruder
                 extruder_schedule_turning(logic.PulleySlowFeedRate());
+                break;
+            case FilamentState::UNAVAILABLE:
+                // @@TODO houston, we have a problem, fsensor unavailable, the MMU cannot continue doing anything without it
+                // log an error and wait for the worst
                 break;
             default:
                 // Abort here?

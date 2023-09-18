@@ -3,6 +3,7 @@ include(ExternalProject)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
+include(cmake/CheckRemotes.cmake)
 include(cmake/Littlefs.cmake)
 include(cmake/Options.cmake)
 
@@ -49,6 +50,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-Wall -Wsign-compare)
 add_compile_options(
   $<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
+  $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
   )
 
 # append custom C/C++ flags
@@ -620,12 +622,10 @@ if(BOARD MATCHES "BUDDY")
             FatFs
             flasher
             littlefs
-            lpng
             STM32::USBHost
             inih::inih
             $<$<BOOL:${WUI}>:WUI>
             jsmn::jsmn
-            cthash::cthash
             QR
             Buddy::Lang
             printf::printf
@@ -638,6 +638,8 @@ if(BOARD MATCHES "BUDDY")
             error_codes
             error_codes_mmu # TODO once MMU is not necessary for the build, replace with:
                             # $<$<BOOL:${HAS_MMU2}>:error_codes_mmu>
+            bgcode_core
+            heatshrink_decoder
     )
 elseif(BOARD STREQUAL "DWARF")
   target_link_libraries(

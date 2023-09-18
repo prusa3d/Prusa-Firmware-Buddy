@@ -25,6 +25,7 @@
 #include "../HAL.h"
 #include "timers.h"
 #include "buddy/priorities_config.h"
+#include "bsod.h"
 
 // ------------------------
 // Local defines

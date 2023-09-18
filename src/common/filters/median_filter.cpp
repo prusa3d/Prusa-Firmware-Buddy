@@ -23,24 +23,6 @@ bool MedianFilter::filter(int32_t &sample) {
     return m_output_valid;
 }
 
-/// Returns index of median of 3 numbers
-int MedianFilter::median_3_i32(int32_t *nums) {
-    // Compare each three number to find middle number
-    if (nums[0] > nums[1]) {
-        if (nums[1] > nums[2])
-            return 1;
-        if (nums[0] > nums[2])
-            return 2;
-        return 0;
-    } else {
-        if (nums[0] > nums[2])
-            return 0;
-        if (nums[1] > nums[2])
-            return 2;
-        return 1;
-    }
-}
-
 void MedianFilter::reset() {
     m_output_valid = false;
     m_next_sample_index = 0;

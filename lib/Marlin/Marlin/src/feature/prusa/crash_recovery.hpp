@@ -5,8 +5,10 @@
 
     #include <array>
     #include <optional>
+    #include <algorithm>
 
     #include "../../module/planner.h"
+    #include "bsod.h"
 
     /// sanity check
     #if DISABLED(SENSORLESS_HOMING)
@@ -49,7 +51,7 @@ public:
     struct crash_block_t {
         xyze_pos_t start_current_position; /// Starting logical position of the G-code
         float e_position;                  /// Starting physical position of the segment
-        int32_t e_steps;                   /// Length of the extrusion in steps
+        int32_t e_msteps;                  /// Length of the extrusion in mini-steps
         uint32_t sdpos;                    /// Media location of the interrupted G-code
         uint16_t segment_idx;              /// Aborted segment index
         InhibitFlags inhibit_flags;        /// Inhibit instruction replay flags
@@ -306,12 +308,3 @@ static constexpr struct {
 } crash_s;
 
 #endif // ENABLED(CRASH_RECOVERY)
-
-static constexpr float period_to_speed(uint16_t msteps, uint32_t thrs, const uint32_t steps_per_mm) {
-    if (thrs == 0)
-        return std::numeric_limits<float>::infinity();
-    if (steps_per_mm == 0)
-        bsod("0 steps per mm.");
-    msteps = _MAX(1, msteps); // 0 msteps is infact 1
-    return 12650000.f * msteps / (256.f * thrs * steps_per_mm);
-}

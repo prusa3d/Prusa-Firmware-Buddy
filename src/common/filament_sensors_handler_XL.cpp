@@ -5,6 +5,7 @@
 
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_adc.hpp"
+#include "filament_sensor_adc_eval.hpp"
 #include "filters/median_filter.hpp"
 #include "marlin_client.hpp"
 #include "freertos_mutex.hpp"
@@ -152,6 +153,6 @@ void side_fs_process_sample(int32_t fs_raw_value, uint8_t tool_index) {
     if (filter[tool_index].filter(fs_raw_value)) { // fs_raw_value is rewritten - passed by reference
         FSensors_instance().AdcSide_FilteredIRQ(fs_raw_value, tool_index);
     } else {
-        FSensors_instance().AdcSide_FilteredIRQ(FSensorADC::fs_filtered_value_not_ready, tool_index);
+        FSensors_instance().AdcSide_FilteredIRQ(FSensorADCEval::filtered_value_not_ready, tool_index);
     }
 }

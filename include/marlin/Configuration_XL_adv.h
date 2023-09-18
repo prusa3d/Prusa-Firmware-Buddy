@@ -31,7 +31,7 @@
  * Implement M486 to allow Marlin to skip objects
  */
 #define CANCEL_OBJECTS
-#if ENABLED(CANCEL_OBJECTS)
+#ifdef CANCEL_OBJECTS
   #define CANCEL_OBJECTS_REPORTING // Emit the current object as a status message
 #endif
 
@@ -1136,16 +1136,33 @@
 //
 // G2/G3 Arc Support
 //
-#define ARC_SUPPORT // Disable this feature to save ~3226 bytes
+#define ARC_SUPPORT                      // Requires ~3226 bytes
 #if ENABLED(ARC_SUPPORT)
-    #define MM_PER_ARC_SEGMENT 1 // Length of each arc segment
-    #define N_ARC_CORRECTION 25 // Number of intertpolated segments between corrections
-//#define ARC_P_CIRCLES         // Enable the 'P' parameter to specify complete circles
-//#define CNC_WORKSPACE_PLANES  // Allow G2/G3 to operate in XY, ZX, or YZ planes
+  #define MIN_ARC_SEGMENT_MM        0.1  // (mm) Minimum length of each arc segment
+  #define MAX_ARC_SEGMENT_MM        2.0  // (mm) Maximum length of each arc segment
+  #define MIN_ARC_SEGMENTS_PER_SEC 50    // Use the feedrate to choose the segment length
+  #define MAX_ARC_DEVIATION         0.02 // Maximum deviation from ideal arc due to segmentation
+  #define N_ARC_CORRECTION         25    // Number of interpolated segments between corrections
+  //#define ARC_P_CIRCLES                // Enable the 'P' parameter to specify complete circles
+  //#define SF_ARC_FIX                   // Enable only if using SkeinForge with "Arc Point" fillet procedure
 #endif
 
-// Support for G5 with XYZE destination and IJPQ offsets. Requires ~2666 bytes.
-//#define BEZIER_CURVE_SUPPORT
+// G5 Bézier Curve Support with XYZE destination and IJPQ offsets
+//#define BEZIER_CURVE_SUPPORT        // Requires ~2666 bytes
+
+#if EITHER(ARC_SUPPORT, BEZIER_CURVE_SUPPORT)
+  //#define CNC_WORKSPACE_PLANES      // Allow G2/G3/G5 to operate in XY, ZX, or YZ planes
+#endif
+
+/**
+ * Direct Stepping
+ *
+ * Comparable to the method used by Klipper, G6 direct stepping significantly
+ * reduces motion calculations, increases top printing speeds, and results in
+ * less step aliasing by calculating all motions in advance.
+ * Preparing your G-code: https://github.com/colinrgodsey/step-daemon
+ */
+//#define DIRECT_STEPPING
 
 /**
  * G38 Probe Target
@@ -1746,6 +1763,8 @@
 
     #define POWER_PANIC_E_CURRENT 300 // (mA) RMS current
 #endif
+
+//#define REBOOT_RESTORE_Z
 
 /**
    * TMC2130, TMC2160, TMC2660, TMC5130, and TMC5160 only
@@ -2503,3 +2522,8 @@
  * M862.x support for print checking Q commands (P are always supported)
  */
 #define PRINT_CHECKING_Q_CMDS
+
+/**
+ * Enable PID autotune
+ **/
+#define PID_AUTOTUNE

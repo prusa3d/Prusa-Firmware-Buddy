@@ -39,15 +39,15 @@ constexpr bool has_submenu(Action action) {
     }
 }
 
-constexpr bool is_multitool_only_action(Action action) {
+constexpr bool is_multitool_only_action([[maybe_unused]] Action action) {
     return false;
 }
 
-constexpr bool requires_toolchanger(Action action) {
+constexpr bool requires_toolchanger([[maybe_unused]] Action action) {
     return false;
 }
 
-constexpr bool is_singletool_only_action(Action action) {
+constexpr bool is_singletool_only_action([[maybe_unused]] Action action) {
     return false;
 }
 

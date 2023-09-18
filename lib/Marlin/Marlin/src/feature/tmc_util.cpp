@@ -33,6 +33,8 @@
 #include "../libs/duration_t.h"
 #include "../gcode/gcode.h"
 
+#include "printers.h"
+
 #if ENABLED(TMC_DEBUG)
   #include "../module/planner.h"
   #include "../libs/hex_print_routines.h"
@@ -45,11 +47,44 @@
   #include "../module/stepper.h"
 #endif
 
+#include "bsod.h"
+
 #ifndef STALL_THRESHOLD_TMC2130
 #if !(BOARD_IS_DWARF)
 #include "configuration.hpp"
 #endif
 #endif
+
+static inline uint32_t get_tmc_freq() {
+  #if PRINTER_IS_PRUSA_MK4
+    return buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? 16000000 : 12650000;
+  #else
+    return 12650000;
+  #endif
+}
+
+// The conversion between period and feedrate is symmetric, use a shared
+// implementation and just do a cast from float to uint32_t when needed.
+static float period_feedrate_conversion(uint16_t msteps, const float value, const uint32_t steps_per_mm) {
+  if (value == 0) {
+      return std::numeric_limits<float>::infinity();
+  }
+  if (steps_per_mm == 0) {
+      bsod("0 steps per mm.");
+  }
+  msteps = std::max<uint16_t>(1, msteps); // 0 msteps is infact 1
+
+  return get_tmc_freq() * msteps / (256.f * value * steps_per_mm);
+}
+
+float tmc_period_to_feedrate(uint16_t msteps, const uint32_t period, const uint32_t steps_per_mm) {
+  return period_feedrate_conversion(msteps, period, steps_per_mm);
+}
+
+uint32_t tmc_feedrate_to_period(uint16_t msteps, const float feedrate, const uint32_t steps_per_mm) {
+  return static_cast<uint32_t>(period_feedrate_conversion(msteps, feedrate, steps_per_mm));
+}
+
 /**
  * Check for over temperature or short to ground error flags.
  * Report and log warning of overtemperature condition.
@@ -979,12 +1014,12 @@
 #if USE_SENSORLESS
 
 #if HAS_DRIVER(TMC2130)
-  bool tmc_enable_stallguard(TMC2130Stepper &st) {
+  bool tmc_enable_stallguard(TMCMarlin<TMC2130Stepper> &st) {
     bool stealthchop_was_enabled = st.en_pwm_mode();
 #ifdef STALL_THRESHOLD_TMC2130
     st.TCOOLTHRS(STALL_THRESHOLD_TMC2130);
 #else
-    st.TCOOLTHRS(get_stall_threshold());
+    st.TCOOLTHRS(get_homing_stall_threshold(st.axis_id));
 #endif
     st.en_pwm_mode(false);
     st.diag1_stall(true);
@@ -992,7 +1027,7 @@
 
     return stealthchop_was_enabled;
   }
-  void tmc_disable_stallguard(TMC2130Stepper &st, const bool restore_stealth) {
+  void tmc_disable_stallguard(TMCMarlin<TMC2130Stepper> &st, const bool restore_stealth) {
     st.TCOOLTHRS(0);
     st.en_pwm_mode(restore_stealth);
     st.diag1_stall(false);
@@ -1000,21 +1035,21 @@
 #endif // HAS_DRIVER(TMC2130)
 
 #if HAS_DRIVER(TMC2209)
-  bool tmc_enable_stallguard(TMC2209Stepper &st) {
+  bool tmc_enable_stallguard(TMCMarlin<TMC2209Stepper> &st) {
     st.TCOOLTHRS(STALL_THRESHOLD_TMC2209);
     return true;
   }
-  void tmc_disable_stallguard(TMC2209Stepper &st, const bool restore_stealth _UNUSED) {
+  void tmc_disable_stallguard(TMCMarlin<TMC2209Stepper> &st, const bool restore_stealth _UNUSED) {
     st.TCOOLTHRS(0);
   }
 #endif // HAS_DRIVER(TMC2209)
 
 #if HAS_DRIVER(TMC2260)
-  bool tmc_enable_stallguard(TMC2660Stepper) {
+  bool tmc_enable_stallguard(TMCMarlin<TMC2660Stepper>) {
     // TODO
     return false;
   }
-  void tmc_disable_stallguard(TMC2660Stepper, const bool) {};
+  void tmc_disable_stallguard(TMCMarlin<TMC2660Stepper>, const bool) {};
 #endif // HAS_DRIVER(TMC2260)
 
 

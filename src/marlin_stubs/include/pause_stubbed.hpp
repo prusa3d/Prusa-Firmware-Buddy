@@ -34,6 +34,7 @@ protected:
     enum class UnloadPhases_t {
         _finish = intFinishVal,
         _init = 0,
+        filament_stuck_wait_user,
         ram_sequence,
         unload,
         unloaded__ask,
@@ -41,7 +42,8 @@ protected:
         filament_not_in_fs,
         unload_from_gear,
         run_mmu_unload,
-        _last = run_mmu_unload,
+        remove_filament,
+        _last = remove_filament,
 
     };
 
@@ -171,6 +173,7 @@ private:
     void loop_unload_mmu(Response response);
     void loop_unloadFromGear(Response response); // autoload abort
     void loop_unload_change(Response response);
+    void loop_unload_filament_stuck(Response response);
     // TODO loop_unload_change_mmu
 
     void loop_load(Response response);
@@ -180,6 +183,7 @@ private:
     void loop_autoload(Response response);          // todo force remove filament in retry
     void loop_loadToGear(Response response);
     void loop_load_change(Response response);
+    void loop_load_filament_stuck(Response response);
     // TODO loop_load_change_mmu
 
     // does not create FSM_HolderLoadUnload

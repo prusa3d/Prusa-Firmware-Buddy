@@ -12,6 +12,9 @@ extern "C" {
 uint32_t ticks_us();
 uint32_t ticks_s();
 uint32_t ticks_ms();
+inline uint32_t last_ticks_ms() {
+    return ticks_ms();
+}
 
 #ifdef __cplusplus
 }

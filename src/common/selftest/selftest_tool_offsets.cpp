@@ -165,11 +165,11 @@ LoopResult CSelftestPart_ToolOffsets::state_home_park() {
     marlin_server::enqueue_gcode("M18 S0");
 
     // Ensure tool 0 is picked (no risky toolchange is needed with calibration pin installed)
-    marlin_server::enqueue_gcode("T0 S1");
+    marlin_server::enqueue_gcode("T0 S1 L0 D0");
     marlin_server::enqueue_gcode("G28 O");
 
     // Park the nozzle for easier sheet removal
-    marlin_server::enqueue_gcode_printf("T%d", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+    marlin_server::enqueue_gcode_printf("T%d L0 D0", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
     return LoopResult::RunNext;
 }
 

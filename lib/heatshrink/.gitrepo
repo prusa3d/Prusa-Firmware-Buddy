@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:atomicobject/heatshrink.git
+	branch = master
+	commit = 7d419e1fa4830d0b919b9b6a91fe2fb786cf3280
+	parent = 6cf46b56d0a256df35ebd4bd9de2f046dfada615
+	method = merge
+	cmdver = 0.4.6

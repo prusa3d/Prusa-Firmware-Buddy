@@ -53,11 +53,13 @@ static void init_input_shaper_pulses(const double a[], const double t[], const i
 input_shaper::Shaper input_shaper::get(const double damping_ratio, const double shaper_freq, const double vibration_reduction, const input_shaper::Type type) {
     if (shaper_freq <= 0.)
         bsod("Zero or negative frequency of input shaper.");
+    else if (damping_ratio >= 1.)
+        bsod("Damping ration must always be less than 1.");
 
     switch (type) {
     case Type::zv: {
         constexpr int num_pulses = 2;
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
+        const double df = std::sqrt(1. - std::pow((float)damping_ratio, 2.f));
         const double K = std::exp(-damping_ratio * M_PI / df);
         const double t_d = 1. / (shaper_freq * df);
 
@@ -69,11 +71,11 @@ input_shaper::Shaper input_shaper::get(const double damping_ratio, const double 
     }
     case Type::zvd: {
         constexpr int num_pulses = 3;
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
+        const double df = std::sqrt(1. - std::pow((float)damping_ratio, 2.f));
         const double K = std::exp(-damping_ratio * M_PI / df);
         const double t_d = 1. / (shaper_freq * df);
 
-        const double a[num_pulses] = { 1., 2. * K, std::pow(K, 2) };
+        const double a[num_pulses] = { 1., 2. * K, std::pow((float)K, 2.f) };
         const double t[num_pulses] = { 0., .5 * t_d, t_d };
 
         input_shaper::Shaper shaper(a, t, num_pulses);
@@ -81,7 +83,7 @@ input_shaper::Shaper input_shaper::get(const double damping_ratio, const double 
     }
     case Type::mzv: {
         constexpr int num_pulses = 3;
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
+        const double df = std::sqrt(1. - std::pow((float)damping_ratio, 2.f));
         const double K = std::exp(-.75 * damping_ratio * M_PI / df);
         const double t_d = 1. / (shaper_freq * df);
 
@@ -98,7 +100,7 @@ input_shaper::Shaper input_shaper::get(const double damping_ratio, const double 
     case Type::ei: {
         constexpr int num_pulses = 3;
         const double v_tol = 1. / vibration_reduction; // vibration tolerance
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
+        const double df = std::sqrt(1. - std::pow((float)damping_ratio, 2.f));
         const double K = std::exp(-damping_ratio * M_PI / df);
         const double t_d = 1. / (shaper_freq * df);
 
@@ -115,11 +117,11 @@ input_shaper::Shaper input_shaper::get(const double damping_ratio, const double 
     case Type::ei_2hump: {
         constexpr int num_pulses = 4;
         const double v_tol = 1. / vibration_reduction; // vibration tolerance
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
+        const double df = std::sqrt(1. - std::pow((float)damping_ratio, 2.f));
         const double K = std::exp(-damping_ratio * M_PI / df);
         const double t_d = 1. / (shaper_freq * df);
-        const double V2 = std::pow(v_tol, 2.);
-        const double X = std::pow(V2 * (std::sqrt(1. - V2) + 1.), 1. / 3.);
+        const double V2 = std::pow((float)v_tol, 2.f);
+        const double X = std::pow((float)(V2 * (std::sqrt(1.f - V2) + 1.)), (float)(1. / 3.));
 
         const double a1 = (3. * X * X + 2. * X + 3. * V2) / (16. * X);
         const double a2 = (.5 - a1) * K;
@@ -135,7 +137,7 @@ input_shaper::Shaper input_shaper::get(const double damping_ratio, const double 
     case Type::ei_3hump: {
         constexpr int num_pulses = 5;
         const double v_tol = 1. / vibration_reduction; // vibration tolerance
-        const double df = std::sqrt(1. - std::pow(damping_ratio, 2.));
+        const double df = std::sqrt(1. - std::pow((float)damping_ratio, 2.f));
         const double K = std::exp(-damping_ratio * M_PI / df);
         const double t_d = 1. / (shaper_freq * df);
         const double K2 = K * K;
@@ -452,7 +454,7 @@ static bool input_shaper_state_update(input_shaper_state_t &is_state, const int 
 }
 
 FORCE_INLINE float calc_time_for_distance(const input_shaper_step_generator_t &step_generator, const float distance) {
-    return calc_time_for_distance(step_generator.start_v, step_generator.accel, distance, step_generator.is_state->step_dir);
+    return std::max(calc_time_for_distance(step_generator.start_v, step_generator.accel, distance, step_generator.is_state->step_dir), 0.f);
 }
 
 FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator_t &step_generator) {
@@ -462,28 +464,24 @@ FORCE_INLINE void input_shaper_step_generator_update(input_shaper_step_generator
     step_generator.step_dir = step_generator.is_state->step_dir;
 }
 
-step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state, const double flush_time) {
+step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_generator_t &step_generator, step_generator_state_t &step_generator_state) {
     assert(step_generator.is_state != nullptr);
-    step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0 };
-    int is_update_state = 0;
+    step_event_info_t next_step_event = { std::numeric_limits<double>::max(), 0, STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
+    bool is_updated = false;
     do {
         const bool step_dir = step_generator.is_state->step_dir;
         const float half_step_dist = Planner::mm_per_half_step[step_generator.axis];
-        const float current_distance = float(step_generator_state.current_distance[step_generator.axis]) * Planner::mm_per_step[step_generator.axis];
-        const float next_target = current_distance + (step_dir ? half_step_dist : -half_step_dist);
+        const float next_target = float(step_generator_state.current_distance[step_generator.axis] + (step_generator.step_dir ? 0 : -1)) * Planner::mm_per_step[step_generator.axis] + half_step_dist;
         const float next_distance = next_target - step_generator.start_pos;
         const float step_time = calc_time_for_distance(step_generator, next_distance);
 
-        // When step_time is NaN, it means that next_distance will never be reached.
+        // When step_time is infinity, it means that next_distance will never be reached.
         // This happens when next_target exceeds end_position, and deceleration decelerates velocity to zero or negative value.
         // Also, we need to stop when step_time exceeds local_end.
-        // Be aware that testing, if flush_time was exceeded, has to be after testing for exceeding print_time.
-        const double elapsed_time = double(step_time) + step_generator.is_state->print_time;
-        if (isnan(step_time) || elapsed_time > (step_generator.is_state->nearest_next_change + EPSILON)) {
-            is_update_state = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
+        if (const double elapsed_time = double(step_time) + step_generator.is_state->print_time; elapsed_time > (step_generator.is_state->nearest_next_change + EPSILON)) {
+            next_step_event.time = step_generator.is_state->nearest_next_change;
 
-            if (!is_update_state)
-                step_generator.reached_end_of_move_queue = true;
+            is_updated = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
 
             // Update step direction flag, which is cached until this move segment is processed.
             const uint16_t current_axis_dir_flag = (STEP_EVENT_FLAG_X_DIR << step_generator.axis);
@@ -497,17 +495,15 @@ step_event_info_t input_shaper_step_generator_next_step_event(input_shaper_step_
 
             input_shaper_step_generator_update(step_generator);
             PreciseStepping::move_segment_processed_handler();
-        } else if (elapsed_time > flush_time) {
-            step_generator.reached_end_of_move_queue = true;
-            break;
         } else {
             next_step_event.time = elapsed_time;
             next_step_event.flags = STEP_EVENT_FLAG_STEP_X << step_generator.axis;
             next_step_event.flags |= step_generator_state.flags;
+            next_step_event.status = STEP_EVENT_INFO_STATUS_GENERATED_VALID;
             step_generator_state.current_distance[step_generator.axis] += (step_dir ? 1 : -1);
             break;
         }
-    } while (is_update_state != 0);
+    } while (is_updated);
 
     return next_step_event;
 }

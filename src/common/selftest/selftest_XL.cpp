@@ -62,114 +62,36 @@ static constexpr std::array<uint16_t, 5> print_fan_max_rpm_table = { 10000, 1000
 static constexpr std::array<uint16_t, 5> heatbreak_fan_min_rpm_table = { 10, 10, 10, 10, 10 };
 static constexpr std::array<uint16_t, 5> heatbreak_fan_max_rpm_table = { 10000, 10000, 10000, 10000, 10000 };
 
-// clang-format off
 // We test two steps, at 20% (just to check if the fans spin at low PWM) and at
 // 100%, where we also check the rpm range
+static consteval SelftestFansConfig make_fan_config(uint8_t index) {
+    return {
+        .tool_nr = index,
+        .print_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 5300 },
+            .rpm_max_table = { 10000, 6500 },
+            .fanctl_fnc = Fans::print },
+        .heatbreak_fan = {
+            .pwm_start = 51,
+            .pwm_step = 204,
+            .rpm_min_table = { 10, 6800 },
+            .rpm_max_table = { 10000, 8700 },
+            .fanctl_fnc = Fans::heat_break,
+        }
+    };
+}
+
 static constexpr SelftestFansConfig fans_configs[] = {
-    {
-        .tool_nr = 0,
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    },
-    {
-        .tool_nr = 1,
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    },
-    {
-        .tool_nr = 2,
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    },
-    {
-        .tool_nr = 3,
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    },
-    {
-        .tool_nr = 4,
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    },
-    {
-        .tool_nr = 5,
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break
-        }
-    },
+    make_fan_config(0),
+    make_fan_config(1),
+    make_fan_config(2),
+    make_fan_config(3),
+    make_fan_config(4),
+    make_fan_config(5),
 };
-// clang-format on
+static_assert(std::size(fans_configs) == HOTENDS);
 
 // reads data from eeprom, cannot be constexpr
 //  FIXME: remove fixed lengths once the printer specs are finalized
@@ -215,122 +137,41 @@ static const AxisConfig_t Config_ZAxis = {
     .park_pos = 0,
 };
 
+template <int index>
+static consteval HeaterConfig_t make_nozzle_config(const char *name) {
+    return {
+        .partname = name,
+        .type = heater_type_t::Nozzle,
+        .tool_nr = index,
+        .getTemp = []() { return thermalManager.temp_hotend[index].celsius; },
+        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, index); thermalManager.setTargetHotend(target_temp, index); },
+        .refKp = Temperature::temp_hotend[index].pid.Kp,
+        .refKi = Temperature::temp_hotend[index].pid.Ki,
+        .refKd = Temperature::temp_hotend[index].pid.Kd,
+        .heatbreak_fan_fnc = Fans::heat_break,
+        .print_fan_fnc = Fans::print,
+        .heat_time_ms = 70000,
+        .start_temp = 40,
+        .undercool_temp = 37,
+        .target_temp = 290,
+        .heat_min_temp = 180,
+        .heat_max_temp = 230,
+        .heatbreak_min_temp = 10,
+        .heatbreak_max_temp = 45,
+        .heater_load_stable_ms = 3000,
+        .heater_full_load_min_W = 20,
+        .heater_full_load_max_W = 50,
+        .pwm_100percent_equivalent_value = 127,
+        .min_pwm_to_measure = 26
+    };
+}
+
 static constexpr HeaterConfig_t Config_HeaterNozzle[] = {
-    { .partname = "Nozzle 1",
-        .type = heater_type_t::Nozzle,
-        .tool_nr = 0,
-        .getTemp = []() { return thermalManager.temp_hotend[0].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 0); thermalManager.setTargetHotend(target_temp, 0); },
-        .refKp = Temperature::temp_hotend[0].pid.Kp,
-        .refKi = Temperature::temp_hotend[0].pid.Ki,
-        .refKd = Temperature::temp_hotend[0].pid.Kd,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .heat_time_ms = 70000,
-        .start_temp = 40,
-        .undercool_temp = 37,
-        .target_temp = 290,
-        .heat_min_temp = 180,
-        .heat_max_temp = 230,
-        .heatbreak_min_temp = 10,
-        .heatbreak_max_temp = 45,
-        .heater_load_stable_ms = 200,
-        .heater_full_load_min_W = 20,
-        .heater_full_load_max_W = 50,
-        .pwm_100percent_equivalent_value = 255,
-        .min_pwm_to_measure = 26 },
-    { .partname = "Nozzle 2",
-        .type = heater_type_t::Nozzle,
-        .tool_nr = 1,
-        .getTemp = []() { return thermalManager.temp_hotend[1].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 1); thermalManager.setTargetHotend(target_temp, 1); },
-        .refKp = Temperature::temp_hotend[1].pid.Kp,
-        .refKi = Temperature::temp_hotend[1].pid.Ki,
-        .refKd = Temperature::temp_hotend[1].pid.Kd,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .heat_time_ms = 70000,
-        .start_temp = 40,
-        .undercool_temp = 37,
-        .target_temp = 290,
-        .heat_min_temp = 180,
-        .heat_max_temp = 230,
-        .heatbreak_min_temp = 10,
-        .heatbreak_max_temp = 45,
-        .heater_load_stable_ms = 200,
-        .heater_full_load_min_W = 20,
-        .heater_full_load_max_W = 50,
-        .pwm_100percent_equivalent_value = 255,
-        .min_pwm_to_measure = 26 },
-    { .partname = "Nozzle 3",
-        .type = heater_type_t::Nozzle,
-        .tool_nr = 2,
-        .getTemp = []() { return thermalManager.temp_hotend[2].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 2); thermalManager.setTargetHotend(target_temp, 2); },
-        .refKp = Temperature::temp_hotend[2].pid.Kp,
-        .refKi = Temperature::temp_hotend[2].pid.Ki,
-        .refKd = Temperature::temp_hotend[2].pid.Kd,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .heat_time_ms = 70000,
-        .start_temp = 40,
-        .undercool_temp = 37,
-        .target_temp = 290,
-        .heat_min_temp = 180,
-        .heat_max_temp = 230,
-        .heatbreak_min_temp = 10,
-        .heatbreak_max_temp = 45,
-        .heater_load_stable_ms = 200,
-        .heater_full_load_min_W = 20,
-        .heater_full_load_max_W = 50,
-        .pwm_100percent_equivalent_value = 255,
-        .min_pwm_to_measure = 26 },
-    { .partname = "Nozzle 4",
-        .type = heater_type_t::Nozzle,
-        .tool_nr = 3,
-        .getTemp = []() { return thermalManager.temp_hotend[3].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 3); thermalManager.setTargetHotend(target_temp, 3); },
-        .refKp = Temperature::temp_hotend[3].pid.Kp,
-        .refKi = Temperature::temp_hotend[3].pid.Ki,
-        .refKd = Temperature::temp_hotend[3].pid.Kd,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .heat_time_ms = 70000,
-        .start_temp = 40,
-        .undercool_temp = 37,
-        .target_temp = 290,
-        .heat_min_temp = 180,
-        .heat_max_temp = 230,
-        .heatbreak_min_temp = 10,
-        .heatbreak_max_temp = 45,
-        .heater_load_stable_ms = 200,
-        .heater_full_load_min_W = 20,
-        .heater_full_load_max_W = 50,
-        .pwm_100percent_equivalent_value = 255,
-        .min_pwm_to_measure = 26 },
-    { .partname = "Nozzle 5",
-        .type = heater_type_t::Nozzle,
-        .tool_nr = 4,
-        .getTemp = []() { return thermalManager.temp_hotend[4].celsius; },
-        .setTargetTemp = [](int target_temp) { marlin_server::set_temp_to_display(target_temp, 4); thermalManager.setTargetHotend(target_temp, 4); },
-        .refKp = Temperature::temp_hotend[4].pid.Kp,
-        .refKi = Temperature::temp_hotend[4].pid.Ki,
-        .refKd = Temperature::temp_hotend[4].pid.Kd,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .heat_time_ms = 70000,
-        .start_temp = 40,
-        .undercool_temp = 37,
-        .target_temp = 290,
-        .heat_min_temp = 180,
-        .heat_max_temp = 230,
-        .heatbreak_min_temp = 10,
-        .heatbreak_max_temp = 45,
-        .heater_load_stable_ms = 200,
-        .heater_full_load_min_W = 20,
-        .heater_full_load_max_W = 50,
-        .pwm_100percent_equivalent_value = 255,
-        .min_pwm_to_measure = 26 },
+    make_nozzle_config<0>("Nozzle 1"),
+    make_nozzle_config<1>("Nozzle 2"),
+    make_nozzle_config<2>("Nozzle 3"),
+    make_nozzle_config<3>("Nozzle 4"),
+    make_nozzle_config<4>("Nozzle 5")
 };
 
 static float bed_fake_pid_constant = 0.0; // No PID change support for XL's bed (for now)
@@ -354,80 +195,37 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .heat_max_temp = 65,
     .heatbreak_min_temp = -1,
     .heatbreak_max_temp = -1,
-    .heater_load_stable_ms = 200,
-    // TODO RESTORE current measurement does not work
-    .heater_full_load_min_W = 100, // 150,
-    .heater_full_load_max_W = 220,
+    .heater_load_stable_ms = 3000,
+    .heater_full_load_min_W = 268,
+    .heater_full_load_max_W = 499,
     .pwm_100percent_equivalent_value = 127,
     .min_pwm_to_measure = 26
 };
 
+static consteval LoadcellConfig_t make_loadcell_config(uint8_t index, const char *name) {
+    return {
+        .partname = name,
+        .tool_nr = index,
+        .heatbreak_fan_fnc = Fans::heat_break,
+        .print_fan_fnc = Fans::print,
+        .cool_temp = 50,
+        .countdown_sec = 5,
+        .countdown_load_error_value = 250,
+        .tap_min_load_ok = 500,
+        .tap_max_load_ok = 2000,
+        .tap_timeout_ms = 2000,
+        .z_extra_pos = 100,
+        .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
+        .max_validation_time = 1000
+    };
+}
+
 static constexpr LoadcellConfig_t Config_Loadcell[] = {
-    { .partname = "Loadcell 1",
-        .tool_nr = 0,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .cool_temp = 50,
-        .countdown_sec = 5,
-        .countdown_load_error_value = 250,
-        .tap_min_load_ok = 500,
-        .tap_max_load_ok = 2000,
-        .tap_timeout_ms = 2000,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
-        .max_validation_time = 1000 },
-    { .partname = "Loadcell 2",
-        .tool_nr = 1,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .cool_temp = 50,
-        .countdown_sec = 5,
-        .countdown_load_error_value = 250,
-        .tap_min_load_ok = 500,
-        .tap_max_load_ok = 2000,
-        .tap_timeout_ms = 2000,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
-        .max_validation_time = 1000 },
-    { .partname = "Loadcell 3",
-        .tool_nr = 2,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .cool_temp = 50,
-        .countdown_sec = 5,
-        .countdown_load_error_value = 250,
-        .tap_min_load_ok = 500,
-        .tap_max_load_ok = 2000,
-        .tap_timeout_ms = 2000,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
-        .max_validation_time = 1000 },
-    { .partname = "Loadcell 4",
-        .tool_nr = 3,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .cool_temp = 50,
-        .countdown_sec = 5,
-        .countdown_load_error_value = 250,
-        .tap_min_load_ok = 500,
-        .tap_max_load_ok = 2000,
-        .tap_timeout_ms = 2000,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
-        .max_validation_time = 1000 },
-    { .partname = "Loadcell 5",
-        .tool_nr = 4,
-        .heatbreak_fan_fnc = Fans::heat_break,
-        .print_fan_fnc = Fans::print,
-        .cool_temp = 50,
-        .countdown_sec = 5,
-        .countdown_load_error_value = 250,
-        .tap_min_load_ok = 500,
-        .tap_max_load_ok = 2000,
-        .tap_timeout_ms = 2000,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = uint32_t(maxFeedrates[Z_AXIS]),
-        .max_validation_time = 1000 },
+    make_loadcell_config(0, "Loadcell 1"),
+    make_loadcell_config(1, "Loadcell 2"),
+    make_loadcell_config(2, "Loadcell 3"),
+    make_loadcell_config(3, "Loadcell 4"),
+    make_loadcell_config(4, "Loadcell 5")
 };
 
 static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensor = { {
@@ -439,38 +237,20 @@ static constexpr std::array<const FSensorConfig_t, HOTENDS> Config_FSensor = { {
     { .extruder_id = 5 },
 } };
 
-static constexpr std::array<const DockConfig_t, HOTENDS> Config_Docks = { {
-    {
-        .dock_id = 0,
+static consteval DockConfig_t make_dock_config(uint8_t index) {
+    return {
+        .dock_id = index,
         .z_extra_pos = 100,
         .z_extra_pos_fr = maxFeedrates[Z_AXIS],
-    },
-    {
-        .dock_id = 1,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = maxFeedrates[Z_AXIS],
-    },
-    {
-        .dock_id = 2,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = maxFeedrates[Z_AXIS],
-    },
-    {
-        .dock_id = 3,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = maxFeedrates[Z_AXIS],
-    },
-    {
-        .dock_id = 4,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = maxFeedrates[Z_AXIS],
-    },
-    {
-        .dock_id = 5,
-        .z_extra_pos = 100,
-        .z_extra_pos_fr = maxFeedrates[Z_AXIS],
-    },
-} };
+    };
+}
+
+static constexpr std::array<const DockConfig_t, HOTENDS> Config_Docks = { { make_dock_config(0),
+    make_dock_config(1),
+    make_dock_config(2),
+    make_dock_config(3),
+    make_dock_config(4),
+    make_dock_config(5) } };
 
 static constexpr ToolOffsetsConfig_t Config_ToolOffsets = {};
 
@@ -668,12 +448,12 @@ void CSelftest::Loop() {
             return;
         break;
     case stsEpilogue_ok:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
         }
         break;
     case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed(m_result)) {
+        if (SelftestResult_Passed_All(m_result)) {
             if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok))
                 return;
         }
@@ -703,7 +483,7 @@ void CSelftest::phaseDidSelftestPass() {
     SelftestResult_Log(m_result);
 
     // dont run wizard again
-    if (SelftestResult_Passed(m_result)) {
+    if (SelftestResult_Passed_All(m_result)) {
         config_store().run_selftest.set(false);    // clear selftest flag
         config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
@@ -731,6 +511,7 @@ bool CSelftest::Abort() {
     abort_part((selftest::IPartHandler **)&pXAxis);
     abort_part((selftest::IPartHandler **)&pYAxis);
     abort_part((selftest::IPartHandler **)&pZAxis);
+    abort_part(&pBed);
     for (auto &pNozzle : pNozzles)
         abort_part(&pNozzle);
     for (auto &loadcell : m_pLoadcell)
@@ -738,6 +519,10 @@ bool CSelftest::Abort() {
     abort_part((selftest::IPartHandler **)&pFSensor);
     for (auto &dock : pDocks) {
         abort_part(&dock);
+    }
+    abort_part(&pToolOffsets);
+    for (auto &fsensor : pFSensor) {
+        abort_part(&fsensor);
     }
     m_State = stsAborted;
 

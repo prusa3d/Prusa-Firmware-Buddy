@@ -37,7 +37,7 @@
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
-                    "value": "YES"
+                    "value": "NO"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -104,7 +104,7 @@
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
-                    "value": "YES"
+                    "value": "NO"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -171,7 +171,7 @@
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
-                    "value": "YES"
+                    "value": "NO"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",
@@ -238,7 +238,7 @@
                 },
                 "DEVELOPMENT_ITEMS_ENABLED": {
                     "type": "BOOL",
-                    "value": "YES"
+                    "value": "NO"
                 },
                 "BOOTLOADER": {
                     "type": "STRING",

@@ -22,7 +22,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if HAS_PID_HEATING
+#if HAS_PID_HEATING && ENABLED(PID_AUTOTUNE)
 
 #include "../gcode.h"
 #include "../../module/temperature.h"

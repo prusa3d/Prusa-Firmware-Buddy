@@ -14,7 +14,7 @@ public:
 
 protected:
     virtual void unconditionalDraw() = 0;
-    GCodeInfo &gcode_info; /**< information about current gcode (singleton)*/
+    AnyGcodeFormatReader gcode_reader;
 };
 
 class WindowProgressThumbnail : public AddSuperWindow<WindowThumbnail> {

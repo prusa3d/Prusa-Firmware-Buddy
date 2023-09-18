@@ -3,10 +3,12 @@
  */
 
 #include "screen_menu_move.hpp"
+#include "screen_menu_move_utils.hpp"
 #include "marlin_client.hpp"
 #include "menu_spin_config.hpp"
 
 #include "img_resources.hpp"
+#include <option/has_toolchanger.h>
 #include <config_store/store_instance.hpp>
 
 static constexpr const char *const heating_str = N_("Heating");
@@ -15,40 +17,10 @@ static constexpr const char *const low_temp_str = N_("Low temp");
 I_MI_AXIS::I_MI_AXIS(size_t index)
     : WiSpinInt(round(marlin_vars()->logical_pos[index]),
         SpinCnf::axis_ranges[index], _(MenuVars::labels[index]), nullptr, is_enabled_t::yes, is_hidden_t::no)
-    , last_queued_position(value.i) {}
+    , lastQueuedPos(GetVal()) {}
 
 void I_MI_AXIS::loop__(size_t axis) {
-    if ((int)value == (int)last_queued_position) {
-        // Yeah and every time I try to go where I really want to be
-        // it's already where I am 'cause I'm already there!
-        return;
-    }
-
-    // This empirical constant was carefully crafted in such
-    // a clever way that it seems to work most of the time.
-    constexpr float magic_constant = 1. / (BLOCK_BUFFER_SIZE * 60 * 1.25 * 5);
-    const float feedrate = MenuVars::GetManualFeedrate()[axis];
-    const float short_segment = feedrate * magic_constant;
-    const float long_segment = 5 * short_segment;
-
-    // Just fill the entire queue with movements.
-    for (uint8_t i = marlin_vars()->pqueue; i < BLOCK_BUFFER_SIZE; i++) {
-        const float difference = (int)value - last_queued_position;
-        if (difference == 0) {
-            break;
-        } else if (difference >= long_segment) {
-            last_queued_position += long_segment;
-        } else if (difference >= short_segment) {
-            last_queued_position += short_segment;
-        } else if (difference <= -long_segment) {
-            last_queued_position -= long_segment;
-        } else if (difference <= -short_segment) {
-            last_queued_position -= short_segment;
-        } else {
-            last_queued_position = int(value);
-        }
-        marlin_client::move_axis(last_queued_position, feedrate, axis);
-    }
+    jog_axis(lastQueuedPos, GetVal(), (AxisEnum)axis);
 }
 
 void MI_AXIS_E::OnClick() {
@@ -56,11 +28,11 @@ void MI_AXIS_E::OnClick() {
     marlin_client::gcode("M82");    // Set extruder to absolute mode
     marlin_client::gcode("G92 E0"); // Reset position before change
     SetVal(0);                      // Reset spin before change
-    last_queued_position = 0;       // zero it out so we wont go back when we exit the spinner
+    lastQueuedPos = 0;              // zero it out so we wont go back when we exit the spinner
 }
 
 void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
-    marlin_client::gcode_printf("M1700 S E W2"); // set filament, preheat to target, return option
+    marlin_client::gcode_printf("M1700 S E W2 B0"); // set filament, preheat to target, do not heat bed, return option
 }
 
 /**
@@ -100,7 +72,13 @@ void DUMMY_AXIS_E::Update() {
 }
 
 void ScreenMenuMove::checkNozzleTemp() {
-    DUMMY_AXIS_E::IsTargetTempOk() ? EnableItem<MI_COOLDOWN>() : DisableItem<MI_COOLDOWN>();
+#if HAS_TOOLCHANGER()
+    if (!prusa_toolchanger.is_toolchanger_enabled())
+    // MI_COOLDOWN is always visible on multitool
+#endif /*HAS_TOOLCHANGER()*/
+    {
+        DUMMY_AXIS_E::IsTargetTempOk() ? EnableItem<MI_COOLDOWN>() : DisableItem<MI_COOLDOWN>();
+    }
 
     if (IsTempOk() == Item<MI_AXIS_E>().IsHidden()) {
         menu.SwapVisibility(Item<DUMMY_AXIS_E>(), Item<MI_AXIS_E>());
@@ -161,10 +139,8 @@ void ScreenMenuMove::checkNozzleTemp() {
 #endif // 0 .. make unit test
 
 bool ScreenMenuMove::IsTempOk() {
-    auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
-    auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle;
-    return DUMMY_AXIS_E::IsTargetTempOk()                                                                   // target correctly set
-        && (marlin_vars()->active_hotend().temp_nozzle > (current_filament_nozzle_target - temp_ok_range)); // temperature nearly reached
+    return DUMMY_AXIS_E::IsTargetTempOk()                           // target correctly set
+        && (marlin_vars()->active_hotend().temp_nozzle >= temp_ok); // Temperature is above coldextrusion
 }
 
 ScreenMenuMove::ScreenMenuMove()
@@ -187,7 +163,9 @@ ScreenMenuMove::~ScreenMenuMove() {
 
 void ScreenMenuMove::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     if (event == GUI_event_t::CHILD_CLICK) {
-        marlin_client::set_target_nozzle(0);
+        HOTEND_LOOP() {
+            marlin_client::set_target_nozzle(0, e);
+        }
         marlin_client::set_display_nozzle(0);
         marlin_client::set_target_bed(0);
     }

@@ -110,16 +110,6 @@ protected:
     color_t GetTextColor() const;
     color_t GetBackColor() const;
 
-    void hide() {
-        hidden = (uint8_t)is_hidden_t::yes;
-    }
-    void show() {
-        if (hidden != (uint8_t)is_hidden_t::no) {
-            hidden = (uint8_t)is_hidden_t::no;
-            Invalidate();
-        }
-    }
-
     void showDevOnly() {
         if (hidden != (uint8_t)is_hidden_t::dev) {
             hidden = (uint8_t)is_hidden_t::dev;
@@ -147,6 +137,18 @@ public:
             Invalidate();
         }
     }
+
+    void hide() {
+        hidden = (uint8_t)is_hidden_t::yes;
+    }
+
+    void show() {
+        if (hidden != (uint8_t)is_hidden_t::no) {
+            hidden = (uint8_t)is_hidden_t::no;
+            Invalidate();
+        }
+    }
+
     void ShowDisabledExtension() {
         if (show_disabled_extension != show_disabled_extension_t::yes) {
             show_disabled_extension = show_disabled_extension_t::yes;

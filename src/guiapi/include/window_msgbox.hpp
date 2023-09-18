@@ -70,6 +70,7 @@ public:
     }
 
     void set_text_alignment(Align_t alignment);
+    void set_text_font(font_t *font);
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
@@ -99,11 +100,12 @@ class MsgBoxTitled : public AddSuperWindow<MsgBoxIconned> {
 public:
     MsgBoxTitled(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline, string_view_utf8 tit, const img::Resource *title_icon_res,
-        is_closed_on_click_t close = is_closed_on_click_t::yes);
+        is_closed_on_click_t close = is_closed_on_click_t::yes, dense_t dense = dense_t::no);
+
+    void set_title_alignment(Align_t alignment);
 
 protected:
     window_text_t title;
-    virtual void unconditionalDraw() override;
 
     // some methods to help with construction
     Rect16 getTextRect();
@@ -115,7 +117,7 @@ protected:
     static constexpr uint8_t IconTitleDelimeter = 5;
     static constexpr padding_ui8_t TextPadding =
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
-        { 0, 0, 0, 0 };
+        { 5, 0, 5, 0 };
 #elif defined(USE_ILI9488)
         { 24, 24, 24, 24 };
 #endif
@@ -151,6 +153,13 @@ class MsgBoxIconnedError : public AddSuperWindow<MsgBoxIconned> {
 public:
     MsgBoxIconnedError(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline, const img::Resource *icon);
+};
+
+// MsgBoxWait
+class MsgBoxIconnedWait : public AddSuperWindow<MsgBoxIconned> {
+public:
+    MsgBoxIconnedWait(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
+        string_view_utf8 txt, is_multiline multiline);
 };
 
 /*****************************************************************************/

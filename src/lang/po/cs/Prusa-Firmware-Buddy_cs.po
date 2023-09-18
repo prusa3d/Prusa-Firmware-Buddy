@@ -67,17 +67,21 @@ msgid "ABORT"
 msgstr "ZRUŠIT"
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:263
+#: src/gui/MItem_tools.cpp:261
 msgid "A crash dump is being saved."
 msgstr "Ukládá se výpis chyby."
 
-#: src/gui/MItem_tools.cpp:265
+#: src/gui/MItem_tools.cpp:263
 msgid "A crash dump report (file dump.bin) has been saved to the USB drive."
 msgstr "Výpis chyb (soubor dump.bin) byl zapsán na USB disk."
 
 #: src/gui/screen_menu_connect.hpp:46
 msgid "Add printer to Connect"
 msgstr "Přidat tiskárnu do Connectu"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:254
+msgid "Address assignment error"
+msgstr "Chyba přiřazení adresy."
 
 #. Abort_invalidate_test
 #. ABS filament, do not translate
@@ -115,21 +119,14 @@ msgstr ""
 msgid "ALL"
 msgstr "VŠE"
 
-#: src/gui/screen_tools_mapping.cpp:329
-msgid "All filaments are assigned."
-msgstr "Všechny filamenty přiřazeny."
-
 #: src/common/footer_def.hpp:135
 msgid "All nozzles"
 msgstr "Všechny trysky"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:174
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:244
 msgid "Allocation of dynamic buffer for PNG failed - out of memory."
 msgstr "Alokace dynamického zásobníku pro PNG selhala - došla paměť."
-
-#: src/gui/MItem_tools.hpp:411
-msgid "Allow Metrics"
-msgstr "Povolit metriky"
 
 #: src/gui/screen_menu_fw_update.hpp:12 src/gui/screen_menu_fw_update.hpp:49
 msgid "Always"
@@ -155,30 +152,6 @@ msgstr "Chcete zrušit tisk?"
 #: src/gui/MItem_tools.hpp:178
 msgid "Assist"
 msgstr "Assist"
-
-#: src/gui/screen_tools_mapping.cpp:572
-msgid ""
-"A tool is already assigned to this filament.\n"
-"\n"
-"Do you want to replace it\n"
-"or add it as an additional one\n"
-"for the Spool Join functionality?"
-msgstr ""
-"K tomuto filamentu je přiřazen nástroj.\n"
-"\n"
-"Chcete jej nahradit nebo\n"
-"přidat jako další pro\n"
-"funkci SpoolJoin?"
-
-#: src/gui/MItem_tools.cpp:901
-msgid ""
-"ATTENTION: Changing any Input Shaper values will overwrite them permanently. "
-"To revert to a stock setup, visit prusa.io/input-shaper or run a factory "
-"reset."
-msgstr ""
-"POZOR: Změna hodnot Input Shaperu přepíše výchozí hodnoty. K návratu na "
-"původní konfiguraci využijte návod na prusa.io/input-shaper nebo proveďte "
-"tovární reset."
 
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:74
 msgid ""
@@ -256,14 +229,17 @@ msgstr ""
 "Zkontrolujte kabeláž a test opakujte."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:223
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:353
 msgid "BBF ALLOCATION FAILED"
 msgstr "ALOKACE BBF SELHALA"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:228
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:358
 msgid "BBF INITIALIZATION FAILED"
 msgstr "INICIALIZACE BBF SELHALA"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:229
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:359
 msgid "BBF initialization failed, repeat the action or try another USB drive."
 msgstr "Inicializace BBF selhala. Opakujte akci nebo zkuste jiný USB disk."
 
@@ -271,7 +247,7 @@ msgstr "Inicializace BBF selhala. Opakujte akci nebo zkuste jiný USB disk."
 msgid "Bed"
 msgstr "Podložka"
 
-#: src/gui/MItem_tools.cpp:161 src/gui/screen_printing.cpp:257
+#: src/gui/MItem_tools.cpp:159 src/gui/screen_printing.cpp:257
 msgid "Bed leveling failed. Try again?"
 msgstr "Mesh Bed L. selhal. Opakovat?"
 
@@ -366,10 +342,6 @@ msgstr "Kalibruji, nevysouvejte filament"
 msgid "Calibrating tool offsets."
 msgstr "Kalibruji offsety nástrojů."
 
-#: src/gui/MItem_tools.hpp:720
-msgid "Calibration"
-msgstr "Kalibrace"
-
 #: src/gui/screen_menu_calibration.hpp:10
 msgid "CALIBRATION"
 msgstr "KALIBRACE"
@@ -381,6 +353,11 @@ msgstr "Kalibrační data načtena"
 #: src/gui/MItem_basic_selftest.cpp:305
 msgid "Calibration data saved successfully"
 msgstr "Kalibrační data uložena"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:39
+msgid ""
+"Calibration pin has not been reached. Please check the pin installation."
+msgstr "Kalibrační pin nenalezen. Zkontrolujte jeho instalaci."
 
 #: src/gui/MItem_menus.hpp:484
 msgid "Calibrations & Tests"
@@ -452,6 +429,10 @@ msgstr "Výměna filamentu"
 msgid "Changing tool"
 msgstr "Výměna nástroje"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:9
+msgid "Check all tools if they are properly parked or picked."
+msgstr "Jsou všechny nástroje správně dokovány a vybírány?"
+
 #: src/gui/screen_crash_recovery.cpp:89
 #: src/gui/wizard/selftest_frame_axis.cpp:27
 msgid "Checking axes"
@@ -479,8 +460,14 @@ msgstr "Zkontrolujte, zda není poškozen kabel termistoru vyhřívané podložk
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:59
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:64
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:69
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:74
 msgid "Check the heatbreak thermistor wiring for possible damage."
 msgstr "Zkontrolujte kabeláž termistoru pro heatbreak, zda není poškozená."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:44
+msgid "Check the heater and thermistor wiring for potential damage."
+msgstr "Zkontrolujte, zda není poškozen kabel vyhřívání nebo termistoru."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:14
 msgid "Check the print head heater & thermistor wiring for possible damage."
@@ -494,6 +481,12 @@ msgstr ""
 msgid "Check the print head thermistor wiring for possible damage."
 msgstr "Zkontrolujte, zda není poškozen kabel termistoru tiskové hlavy."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:49
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:54
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:59
+msgid "Check the thermistor wiring for potential damage."
+msgstr "Zkontrolujte, zda není poškozen kabel termistoru."
+
 #: src/gui/wizard/selftest_frame_firstlayer_questions.cpp:66
 msgid "Clean steel sheet."
 msgstr "Očistěte podložku."
@@ -506,6 +499,10 @@ msgstr "Stiskněte tlačítko pro ukončení"
 msgid ""
 "Close the idler door and secure it with the swivel. The calibration is done!"
 msgstr "Zavřete dvířka idleru a zajistěte je sponou. Kalibrace je hotová!"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:229
+msgid "Command error"
+msgstr "Chyba příkazu"
 
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:220
 msgid "COMMUNICATION ERROR"
@@ -526,6 +523,10 @@ msgstr "Připojuji"
 #: src/gui/wizard/selftest_frame_esp.cpp:58
 msgid "Connection successfully established! Wi-Fi is now ready for use."
 msgstr "Spojení navázáno! Wi-Fi je připravena."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:14
+msgid "Consider adjusting belt tension."
+msgstr "Zvažte úpravu napnutí řemene."
 
 #. Change
 #: src/common/client_response_texts.cpp:25
@@ -566,9 +567,10 @@ msgstr "Zchladit"
 msgid "COOLDOWN"
 msgstr "ZCHLADIT"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:84
-msgid "Cooling down. Do not touch the nozzle!"
-msgstr "Nedotýkejte se trysky! Probíhá ochlazování."
+#: src/gui/wizard/selftest_frame_loadcell.cpp:87
+msgid ""
+"Cooling down. Do not touch the nozzle!"
+msgstr "Ochlazování. Nedotýkejte se trysky!"
 
 #: src/gui/screen_sysinf.cpp:54
 msgid "CPU load"
@@ -578,10 +580,6 @@ msgstr "CPU vyt."
 #: src/gui/screen_crash_recovery.cpp:359
 msgid "CRASH DETECTED"
 msgstr "DETEKOVÁN NÁRAZ"
-
-#: src/gui/screen_home.cpp:283
-msgid "Crash detected. Save it to USB?"
-msgstr "Detekován náraz. Uložit na USB?"
 
 #: src/gui/MItem_crash.hpp:14
 msgid "Crash Detection"
@@ -707,11 +705,7 @@ msgstr "DIS "
 msgid "DISABLE"
 msgstr "VYPNOUT"
 
-#: src/gui/footer/footer_item_input_shaper.cpp:8
-msgid "Disabled"
-msgstr "Vypnuto"
-
-#: src/gui/MItem_tools.cpp:527
+#: src/gui/MItem_tools.cpp:525
 #, c-format
 msgid "disabled / %ld"
 msgstr "vypnuto / %ld"
@@ -740,7 +734,7 @@ msgstr "VYPNOUT SENZOR"
 msgid "Disconnect"
 msgstr "Odpojit"
 
-#: src/gui/MItem_tools.cpp:523
+#: src/gui/MItem_tools.cpp:521
 #, c-format
 msgid "disconnected / %ld"
 msgstr "odpojeno / %ld"
@@ -800,6 +794,15 @@ msgstr "Kalibrace doku"
 msgid "Dock %d calibration"
 msgstr "Dock %d - Kalibrace"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:19
+#, c-format
+msgid "Dock %d position differs too much from expected values."
+msgstr "Pozice doku %d se příliš liší od očekávaných hodnot."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:18
+msgid "DOCK POSITION OUT OF BOUNDS"
+msgstr "POZICE DOKU MIMO ROZSAH"
+
 #: src/gui/wizard/selftest_frame_dock.hpp:51
 msgid "Dock successfully calibrated."
 msgstr "Dok úspěšně zkalibrován."
@@ -858,16 +861,6 @@ msgstr "Neměnit"
 msgid "DOWN"
 msgstr "DOLŮ"
 
-#: src/gui/screen_help_fw_update.cpp:56
-msgid ""
-"Download and copy the firmware (.bbf) file to the USB flash drive. Insert "
-"the drive into the printer and turn it on or restart it. Confirm the "
-"installation of the new firmware."
-msgstr ""
-"Stáhněte a nakopírujte soubor firmwaru (.bbf) na USB disk. Vložte jej do "
-"tiskárny a přístroj zapněte či restartujte. Tlačítkem pak potvrďte instalaci "
-"nového firmwaru."
-
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:78
 msgid "Do you have a silicone hotend sock installed?"
 msgstr "Je na trysce silikonový návlek?"
@@ -903,18 +896,31 @@ msgid "%d Tool Offset Calibration"
 msgstr "%d kalibrace offsetu nástroje"
 
 #: src/gui/wizard/selftest_frame_axis.cpp:31
+msgid "During the test, the heatbed, and extruder will move in full range."
+msgstr "Během testu se extruder a podložka posunou v plném rozsahu."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:219
+#, c-format
+msgid "Dwarf board %d fault: %s"
+msgstr "Deska Dwarf %d má chybu: %s"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:214
+#, c-format
 msgid ""
-"During the test, the heatbed, and extruder will move in full range.\n"
-"\n"
-"Printer may vibrate and be noisier during homing."
+"Dwarf board encountered the following problem: \n"
+"%s"
 msgstr ""
-"Nyní se otestuje plný rozsah pohybu podložky a extruderu.\n"
-"\n"
-"Při homingu je tiskárna hlučnější a může vibrovat."
+"Deska Dwarf má následující problém:\n"
+"%s"
 
 #: src/gui/screen_menu_tools.hpp:180
 msgid "Dwarf Board Temp"
 msgstr "Teplota desky Dwarf"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:213
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:218
+msgid "DWARF ERROR"
+msgstr "CHYBA DWARF"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:118
 #, c-format
@@ -935,6 +941,7 @@ msgid "%d Y Axis Test"
 msgstr "%d Test osy Y"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:169
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:239
 msgid "Dynamic allocation failed - out of memory. Reset the printer."
 msgstr "Selhala dynamická alokace - došla paměť. Restartujte tiskárnu."
 
@@ -993,8 +1000,13 @@ msgid "Ejecting filament"
 msgstr "Vysunutí z MMU"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:178
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:248
 msgid "EMERGENCY STOP"
 msgstr "NOUZOVÉ ZASTAVENÍ"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:249
+msgid "Emergency stop invoked by G-code (M112)."
+msgstr "G-Code M112 aktivoval nouzové zastavení."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:179
 msgid "Emergency stop invoked from G-code (M112)."
@@ -1019,7 +1031,7 @@ msgstr "Konec testu"
 msgid "Engaging idler"
 msgstr "Aktivace idleru"
 
-#: src/gui/MItem_tools.cpp:195
+#: src/gui/MItem_tools.cpp:193
 msgid ""
 "Erasing configuration,\n"
 "it will take some time..."
@@ -1027,7 +1039,7 @@ msgstr ""
 "Odstraňuji konfiguraci,\n"
 "chvilku strpení..."
 
-#: src/gui/MItem_tools.cpp:195
+#: src/gui/MItem_tools.cpp:193
 msgid ""
 "Erasing everything,\n"
 "it will take some time..."
@@ -1064,6 +1076,7 @@ msgid "ERROR"
 msgstr "CHYBA"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:254
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:384
 msgid ""
 "Error erasing\n"
 " flash! Restart\n"
@@ -1079,7 +1092,7 @@ msgstr ""
 msgid "Error invalid selftest state"
 msgstr "Chyba: neplatný stav selftestu"
 
-#: src/gui/MItem_tools.cpp:267
+#: src/gui/MItem_tools.cpp:265
 msgid ""
 "Error saving crash dump report to the USB drive. Please reinsert the USB "
 "drive and try again."
@@ -1122,16 +1135,21 @@ msgid "ESP detected unknown error."
 msgstr "ESP detekoval neznámou chybu."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:234
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:364
 msgid "ESP doesn't seem to be connected."
 msgstr "ESP není pravděpodobně připojeno."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:153
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:158
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:163
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:223
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:228
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:233
 msgid "ESP ERROR"
 msgstr "CHYBA ESP"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:233
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:363
 msgid "ESP NOT CONNECTED"
 msgstr "ESP NEPŘIPOJENO"
 
@@ -1159,6 +1177,26 @@ msgstr "Ukončit"
 msgid "EXIT"
 msgstr "KONEC"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:53
+msgid "EXTRUDER MAXTEMP ERROR"
+msgstr "EXTRUDER: CHYBA MAXTEMP"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:58
+msgid "EXTRUDER MINTEMP ERROR"
+msgstr "EXTRUDER: CHYBA MINTEMP"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:43
+msgid "EXTRUDER PREHEAT ERROR"
+msgstr "EXTRUDER: CHYBA PŘEDEHŘEVU"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:63
+msgid "EXTRUDER TEMP NOT MATCHING"
+msgstr "TEP. EXTRUDERU NESOUHLASÍ"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:48
+msgid "EXTRUDER THERMAL RUNAWAY"
+msgstr "EXTRUDER THERMAL RUNAWAY"
+
 #: src/gui/MItem_menus.hpp:494
 msgid "Factory Reset"
 msgstr "Tovární nastavení"
@@ -1178,9 +1216,27 @@ msgid ""
 "Failed to home the extruder in Z-axis, make sure the loadcell is working."
 msgstr "Chyba při homingu na ose Z. Ujistěte se, že senzor Loadcell funguje."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:134
+msgid ""
+"Failed to home the X-axis, make sure there is no obstacle on X-axis or Y-"
+"axis."
+msgstr ""
+"Selhal homing na ose X. Ujistěte se, že na osách X a Y nejsou žádné překážky."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:139
+msgid ""
+"Failed to home the Y-axis, make sure there is no obstacle on X-axis or Y-"
+"axis."
+msgstr ""
+"Selhal homing na ose Y. Ujistěte se, že na osách X a Y nejsou žádné překážky."
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:79
 msgid "Failed to home the Y-axis, make sure there is no obstacle on Y-axis."
 msgstr "Selhal homing na ose Y. Ujistěte se, že v cestě nejsou žádné překážky."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:119
+msgid "Failed to home the Z-axis, make sure the loadcell is working."
+msgstr "Chyba při homingu osy Z - ujistěte se, že Loadcell funguje."
 
 #: src/gui/screen_menu_connect.cpp:43
 msgid ""
@@ -1364,11 +1420,11 @@ msgstr ""
 "Senzor filamentu nesepnul při zavádění filamentu. Zkontrolujte, zda je "
 "senzor zkalibrovaný a filament se k němu může dostat."
 
-#: src/gui/MItem_tools.cpp:78
+#: src/gui/MItem_tools.cpp:76
 msgid "Filament sensor not connected, check wiring."
 msgstr "Filament senzor není připojen. Zkontrolujte zapojení."
 
-#: src/gui/MItem_tools.cpp:74
+#: src/gui/MItem_tools.cpp:72
 msgid "Filament sensor not ready: perform calibration first."
 msgstr "Senzor filamentu nepřipraven: nejprve jej zkalibrujte."
 
@@ -1389,6 +1445,7 @@ msgstr ""
 "nejsou nečistoty. Ujistěte se, že senzor funguje správně."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:289
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:419
 msgid ""
 "File system error!\n"
 "Try a different USB\n"
@@ -1459,6 +1516,7 @@ msgstr ""
 "Pokud zvolíte KONEC, budou aktuální data uložena."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:244
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:374
 msgid ""
 "Firmware file has\n"
 "invalid size!\n"
@@ -1473,6 +1531,7 @@ msgstr ""
 "a akci opakujte."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:249
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:379
 msgid ""
 "Firmware file\n"
 "missing in the USB\n"
@@ -1507,6 +1566,7 @@ msgid "Firmware flashing successful!"
 msgstr "Firmware úspěšně nahrán!"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:264
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:394
 msgid ""
 "Firmware hash\n"
 "verification failed!\n"
@@ -1523,6 +1583,7 @@ msgstr ""
 "na USB disk znovu."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:269
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:399
 msgid ""
 "Firmware in the\n"
 "internal flash\n"
@@ -1536,7 +1597,12 @@ msgstr ""
 "Nahrajte FW\n"
 "znovu."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:413
+msgid "FIRMWARE MISSING"
+msgstr "CHYBÍ FIRMWARE"
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:274
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:404
 msgid ""
 "Firmware/printer\n"
 "types do not match.\n"
@@ -1553,6 +1619,7 @@ msgstr ""
 "tiskárnu."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:279
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:409
 msgid ""
 "Firmware/printer\n"
 "versions do not\n"
@@ -1569,6 +1636,7 @@ msgstr ""
 "Buddy."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:259
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:389
 msgid ""
 "Firmware signature\n"
 "verification failed!\n"
@@ -1597,6 +1665,10 @@ msgstr "Kalibrace první vrstvy"
 #: src/gui/ScreenSelftest.hpp:87
 msgid "FIRST LAYER CALIBRATION"
 msgstr "KALIBRACE PRVNÍ VRSTVY"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:383
+msgid "FLASH ERASE ERROR"
+msgstr "CHYBA MAZÁNÍ FLASH"
 
 #: src/gui/MItem_print.hpp:73
 msgid "Flow Factor"
@@ -1699,13 +1771,13 @@ msgstr "FS rozsah 6"
 msgid "FS Value"
 msgstr "FS hodnota"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:398
+msgid "FW IN INTERNAL FLASH CORRUPTED"
+msgstr "FW V INTERNÍ PAMĚTI POŠKOZEN"
+
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:250
 msgid "FW RUNTIME ERROR"
 msgstr "FW RUNTIME CHYBA"
-
-#: src/gui/screen_menu_settings.hpp:23
-msgid "FW update"
-msgstr "Aktualizace FW"
 
 #: src/gui/MItem_menus.hpp:149 src/gui/screen_menu_fw_update.hpp:37
 msgid "FW Update"
@@ -1755,6 +1827,14 @@ msgstr "Generovat Wi-Fi údaje?"
 msgid "GW"
 msgstr "GW"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:179
+msgid "HAL detected an I2C busy state when receiving data via I2C."
+msgstr "HAL detekoval zaneprázdněný stav I2C během přijímání dat přes I2C."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:159
+msgid "HAL detected an I2C busy state when sending data via I2C."
+msgstr "HAL detekoval zaneprázdněný stav I2C během posílání dat přes I2C."
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:134
 msgid "HAL detected an I2C busy when receiving data via I2C."
 msgstr "HAL detekoval I2C zaneprázdněný stav během přijímání dat přes I2C."
@@ -1764,26 +1844,32 @@ msgid "HAL detected an I2C busy when sending data via I2C."
 msgstr "HAL detekoval I2C zaneprázdněný stav během posílání dat přes I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:129
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:174
 msgid "HAL detected an I2C error when receiving data via I2C."
 msgstr "HAL detekoval I2C chybu během přijímání dat přes I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:109
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:154
 msgid "HAL detected an I2C error when sending data via I2C."
 msgstr "HAL detekoval I2C časový limit během odesílání dat přes I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:139
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:184
 msgid "HAL detected an I2C timeout when receiving data via I2C."
 msgstr "HAL detekoval I2C časový limit během přijímání dat přes I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:119
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:164
 msgid "HAL detected an I2C timeout when sending data via I2C."
 msgstr "HAL detekoval nedefinovanou chybu I2C při odesílání dat přes I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:144
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:189
 msgid "HAL detected an I2C undefined error when receiving data via I2C."
 msgstr "HAL detekoval nedefinovanou chybu I2C při přijímání dat přes I2C."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:124
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:169
 msgid "HAL detected an I2C undefined error when sending data via I2C."
 msgstr "HAL detekoval nedefinovanou chybu I2C při posílání dat přes I2C."
 
@@ -1805,6 +1891,10 @@ msgstr "Hardware"
 msgid "HARDWARE"
 msgstr "HARDWARE"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:393
+msgid "HASH VERIFICATION FAILED"
+msgstr "SELHALA VERIFIKACE HASH"
+
 #: src/gui/screen_sysinf.cpp:78
 msgid "HB Fan RPM"
 msgstr "Ot. vent. hotendu"
@@ -1824,6 +1914,73 @@ msgstr "NADPROUD PORTU PODLOŽKY"
 #: src/gui/MItem_print.hpp:48
 msgid "Heatbed Temperature"
 msgstr "Teplota podložky"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:79
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:84
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+"Damaged tile or wiring.\n"
+"Follow online guide to diagnose."
+msgstr ""
+"Vyhřívaná podložka %d:\n"
+"Poškozená dlaždice nebo kabeláž.\n"
+"Postupujte dle online nápovědy."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:109
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+"Preheat error."
+msgstr ""
+"Vyhřívaná podložka %d:\n"
+"Chyba předehřevu."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:89
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:94
+#, c-format
+msgid ""
+"Heatbed tile no. %d: \n"
+"Temperature measurement error; thermistor may be faulty."
+msgstr ""
+"Vyhřívaná podložka %d:\n"
+"Chyba měření teploty. Termistor může být vadný."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:114
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+"Test heating error."
+msgstr ""
+"Vyhřívaná podložka %d:\n"
+"Chyba testu výhřevu."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:99
+#, c-format
+msgid ""
+"Heatbed tile no. %d: \n"
+"Unexpected temperature drop detected."
+msgstr ""
+"Vyhřívaná podložka %d:\n"
+"Neočekávaný pokles teploty."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:104
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+" Unexpected temperature peak detected."
+msgstr ""
+"Vyhřívaná podložka %d:\n"
+"Neočekávaná teplotní špička."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:209
+#, c-format
+msgid ""
+"Heatbed tile no. %d:\n"
+"Unknown error: %d"
+msgstr ""
+"Vyhřívaná podložka %d:\n"
+"Neznámá chyba: %d"
 
 #: src/common/footer_def.hpp:122
 msgid "Heatbreak"
@@ -1858,10 +2015,12 @@ msgid "Heatbreak Fan"
 msgstr "Ventilátor heatbreaku"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:63
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:73
 msgid "HEATBREAK MAXTEMP ERROR"
 msgstr "CHYBA HEATBREAKU MAXTEMP"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:58
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:68
 msgid "HEATBREAK MINTEMP ERROR"
 msgstr "CHYBA HEATBREAKU MINTEMP"
 
@@ -1897,7 +2056,8 @@ msgstr "Testování výhřevu"
 msgid "Heater Voltage"
 msgstr "Napětí topného tělesa"
 
-#: src/gui/screen_menu_move.cpp:12
+#: src/gui/screen_menu_move.cpp:86
+#, c-format
 msgid "Heating"
 msgstr "Zahřívání"
 
@@ -1984,6 +2144,11 @@ msgstr ""
 msgid "Home"
 msgstr "Domů"
 
+#. regular home screen
+#: src/gui/screen_home.cpp:194
+msgid "HOME"
+msgstr "MENU"
+
 #: src/gui/MItem_mmu.hpp:259
 msgid "Home safely"
 msgstr "Bezpečný homing"
@@ -1995,14 +2160,17 @@ msgid "Homing"
 msgstr "Homing"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:73
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:133
 msgid "HOMING ERROR X"
 msgstr "CHYBA HOMINGU X"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:78
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:138
 msgid "HOMING ERROR Y"
 msgstr "CHYBA HOMINGU Y"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:68
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:118
 msgid "HOMING ERROR Z"
 msgstr "CHYBA HOMINGU Z"
 
@@ -2025,10 +2193,6 @@ msgstr "Test otáček vent. hotendu"
 #: src/gui/wizard/selftest_frame_hot_end_sock.cpp:56
 msgid "Hotend sock"
 msgstr "Návlek na hotend"
-
-#: src/gui/screen_help_fw_update.cpp:55
-msgid "How to update firmware?"
-msgstr "Jak aktualizovat firmware?"
 
 #: src/gui/MItem_mmu.hpp:243
 msgid "HW Reset"
@@ -2067,34 +2231,42 @@ msgid "HW test selector"
 msgstr "HW test selektoru"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:133
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:178
 msgid "I2C RECEIVE BUSY"
 msgstr "I2C PŘÍJEM - OBSAZENO"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:128
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:173
 msgid "I2C RECEIVE FAILED"
 msgstr "I2C PŘÍJEM SELHAL"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:138
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:183
 msgid "I2C RECEIVE TIMEOUT"
 msgstr "I2C PŘIJETÍ - ČASOVÝ LIMIT"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:143
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:188
 msgid "I2C RECEIVE UNDEFINED"
 msgstr "I2C PŘIJETÍ - NEDEFINOVÁNO"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:113
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:158
 msgid "I2C SEND BUSY"
 msgstr "I2C ODESLÁNÍ - OBSAZENO"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:108
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:153
 msgid "I2C SEND FAILED"
 msgstr "I2C ODESLÁNÍ SELHALO"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:118
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:163
 msgid "I2C SEND TIMEOUT"
 msgstr "I2C ODESLÁNÍ - ČASOVÝ LIMIT"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:123
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:168
 msgid "I2C SEND UNDEFINED"
 msgstr "I2C ODESLÁNÍ NEDEFINOVÁNO"
 
@@ -2112,9 +2284,17 @@ msgstr "IDLER - CHYBA POHYBU"
 msgid "IGNORE"
 msgstr "IGNOROVAT"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:388
+msgid "IMPOSTER! FAKE SIGNATURE"
+msgstr "CHYBA! FALEŠNÝ PODPIS!"
+
 #: src/gui/wizard/selftest_result_eth.cpp:16
 msgid "Inactive"
 msgstr "Neaktivní"
+
+#: src/gui/MItem_menus.hpp:240
+msgid "Independent Stepping"
+msgstr "Nezávislé krokování"
 
 #: src/gui/MItem_menus.hpp:377 src/gui/screen_home.cpp:140
 msgid "Info"
@@ -2140,29 +2320,12 @@ msgstr "probíhá"
 msgid "Input Current"
 msgstr "Vstupní proud"
 
-#: src/gui/MItem_menus.hpp:507 src/gui/dialogs/print_progress.cpp:20
-msgid "Input Shaper"
-msgstr "Input Shaper"
-
-#: src/gui/screen_home.cpp:203 src/gui/screen_menu_input_shaper.hpp:20
-#: src/gui/screen_printing.cpp:376 src/gui/screen_printing.hpp:38
-msgid "INPUT SHAPER"
-msgstr "INPUT SHAPER"
-
-#: src/common/footer_def.hpp:114
-msgid "Input Shaper X"
-msgstr "Input Shaper X"
-
-#: src/common/footer_def.hpp:116
-msgid "Input Shaper Y"
-msgstr "Input Shaper Y"
-
 #: src/gui/MItem_tools.hpp:537
 msgid "Input Voltage"
 msgstr "Vstupní napětí"
 
 #. not calibrated would be too long
-#: src/gui/MItem_tools.cpp:525
+#: src/gui/MItem_tools.cpp:523
 #, c-format
 msgid " INS / %7ld"
 msgstr "INS / %7ld"
@@ -2228,6 +2391,10 @@ msgid ""
 msgstr ""
 "V dalším kroku použijte ovládací tlačítko a nastavte výšku trysky. V "
 "příručce naleznete detailní instrukce a ilustrace."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:373
+msgid "INVALID FW SIZE ON USB FLASH DRIVE"
+msgstr "NEPLATNÁ VELIKOST FW NA USB"
 
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:232
 msgid "INVALID TOOL"
@@ -2319,6 +2486,7 @@ msgid "Leave"
 msgstr "Odejít"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:213
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:343
 msgid "LED MEMORY ERROR"
 msgstr "CHYBA LED PAMĚTI"
 
@@ -2381,6 +2549,7 @@ msgid "Loadcell"
 msgstr "Loadcell"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:203
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:333
 msgid "LOADCELL BAD CONFIGURATION"
 msgstr "ŠPATNÁ KONFIGURACE LOADCELL"
 
@@ -2388,27 +2557,40 @@ msgstr "ŠPATNÁ KONFIGURACE LOADCELL"
 msgid "Loadcell calibration is incomplete. Restart the printer."
 msgstr "Kalibrace senzoru Loadcell dokončena. Restartujte tiskárnu."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:314
+msgid ""
+"Loadcell calibration is incomplete. Restart the printer and calibrate "
+"loadcell."
+msgstr ""
+"Kalibrace snímače Loadcell neproběhla. Restartujte tiskárnu a zkalibrujte "
+"Loadcell."
+
 #: src/gui/wizard/selftest_result_loadcell.cpp:12
 msgid "Loadcell check"
 msgstr "Kontrola Loadcellu"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:199
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:329
 msgid "Loadcell measured an inifinite or undefined load value."
 msgstr "Loadcell naměřil nekonečnou či nedefinovanou hodnotu."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:198
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:328
 msgid "LOADCELL MEASURE FAILED"
 msgstr "MĚŘENÍ LOADCELLU SELHALO"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:183
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:313
 msgid "LOADCELL NOT CALIBRATED"
 msgstr "LOADCELL NENÍ ZKALIBROVÁN"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:188
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:318
 msgid "LOADCELL TARE ERROR"
 msgstr "CHYBA TÁROVÁNÍ LOADCELLU"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:193
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:323
 msgid "LOADCELL TARE FAILED"
 msgstr "LOADCELL TÁROVÁNÍ SELHALO"
 
@@ -2416,15 +2598,16 @@ msgstr "LOADCELL TÁROVÁNÍ SELHALO"
 msgid "Loadcell Test"
 msgstr "Test Loadcellu"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:122
+#: src/gui/wizard/selftest_frame_loadcell.cpp:125
 msgid "Loadcell test failed."
 msgstr "Loadcell test selhal."
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:119
+#: src/gui/wizard/selftest_frame_loadcell.cpp:122
 msgid "Loadcell test passed OK."
 msgstr "Test senzoru Loadcell OK."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:208
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:338
 msgid "LOADCELL TIMEOUT"
 msgstr "VYPRŠEL ČASOVÝ LIMIT PRO LOADCELL"
 
@@ -2544,7 +2727,8 @@ msgstr "LoveBoard"
 msgid "Low"
 msgstr "Nízký"
 
-#: src/gui/screen_menu_move.cpp:13
+#: src/gui/screen_menu_move.cpp:88
+#, c-format
 msgid "Low temp"
 msgstr "Nízká teplota"
 
@@ -2579,6 +2763,7 @@ msgstr ""
 "automatické rozpoznání typu tiskárny, spusťte Self-test."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:219
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:349
 msgid ""
 "Marlin client could not send message to Marlin server and timeout was "
 "reached."
@@ -2587,6 +2772,7 @@ msgstr ""
 "limit."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:218
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:348
 msgid "MARLIN REQUEST TIMEOUT"
 msgstr "ČASOVÝ LIMIT POŽADAVKU NA MARLIN"
 
@@ -2607,6 +2793,14 @@ msgstr "CHYBA MAXTEMP"
 #: src/gui/screen_menu_modularbed.hpp:23
 msgid "MBed Board Temp"
 msgstr "MBed teplota desky"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:64
+msgid ""
+"Measured temperature is not matching expected value. Check if the thermistor "
+"is in contact with the heaterblock. In case of damage, replace it."
+msgstr ""
+"Naměřená teplota neodpovídá očekávané hodnotě. Zkontrolujte, zda je "
+"termistor v kontaktu s topným tělískem. Pokud je poškozen, vyměňte ho."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:49
 msgid ""
@@ -2630,6 +2824,7 @@ msgid "Medium"
 msgstr "Střední"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:214
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:344
 msgid "Memory allocation failed for scheduled LED animation"
 msgstr "Pro LED animaci nelze alokovat paměť."
 
@@ -2687,18 +2882,6 @@ msgstr "Interní chyba MMU FW, restartujte MMU jednotku."
 msgid "MMU FW UPDATE NEEDED"
 msgstr "MMU VYŽADUJE NOVÝ FW"
 
-#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:209
-msgid ""
-"MMU MCU detected a 5V undervoltage. There might be an issue with the "
-"electronics. Check the wiring and connectors"
-msgstr ""
-"MMU MCU detekuje nedostatečné 5V napětí - možná chyba elektroniky. "
-"Zkontrolujte kabeláž a zapojení."
-
-#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:208
-msgid "MMU MCU UNDERPOWER"
-msgstr "MMU MCU NEDOSTATEČNÉ NAPÁJENÍ"
-
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:214
 msgid "MMU NOT RESPONDING"
 msgstr "MMU NEODPOVÍDÁ"
@@ -2749,6 +2932,22 @@ msgstr ""
 "Selhání selftestu MMU - TMC driver pro Selektor hlásí chybu. Zkontrolujte "
 "zapojení. Pokud problém přetrvává, kontaktujte podporu."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:78
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:83
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:88
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:93
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:98
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:103
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:108
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:113
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:123
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:128
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:193
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:198
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:208
+msgid "MODULAR BED ERROR"
+msgstr "CHYBA MODULÁRNÍHO BEDU"
+
 #. abbreviated Monday - max 3 characters
 #: src/lang/format_print_will_end.cpp:45
 msgid "Mon"
@@ -2795,7 +2994,7 @@ msgstr "Osa Z"
 msgid "Moving away."
 msgstr "Posouvám pryč."
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:75
+#: src/gui/wizard/selftest_frame_loadcell.cpp:78
 msgid "Moving down"
 msgstr "Pohyb dolů"
 
@@ -2805,7 +3004,7 @@ msgstr "Pohyb dolů"
 msgid "Moving selector"
 msgstr "Posouvám selektor"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:77
+#: src/gui/wizard/selftest_frame_loadcell.cpp:80
 msgid "Moving up"
 msgstr "Pohyb nahoru"
 
@@ -2872,7 +3071,7 @@ msgstr "Silikonový návlek Nextruderu"
 msgid "NINIT "
 msgstr "NINIT "
 
-#: src/gui/MItem_tools.cpp:526
+#: src/gui/MItem_tools.cpp:524
 #, c-format
 msgid "NINS / %7ld"
 msgstr "NINS / %7ld"
@@ -2887,6 +3086,7 @@ msgid "No Config"
 msgstr "Žádná konfigurace"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:284
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:414
 msgid ""
 "No firmware found\n"
 "in the internal\n"
@@ -2898,6 +3098,10 @@ msgstr ""
 "nebyl nalezen\n"
 "firmware. Nejprve\n"
 "nahrajte FW."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:378
+msgid "NO FW ON USB FLASH DRIVE"
+msgstr "NA USB DISKU NENÍ FW"
 
 #: src/common/footer_def.hpp:143 src/gui/MItem_hardware.hpp:18
 msgid "None"
@@ -2952,7 +3156,7 @@ msgstr "NYNÍ NE"
 msgid "No USB"
 msgstr "Vložte USB"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:114
+#: src/gui/wizard/selftest_frame_loadcell.cpp:117
 msgid "NOW"
 msgstr "NYNÍ"
 
@@ -3031,9 +3235,11 @@ msgstr "Výhřev trysky"
 msgid "NOZZLE HEATER OVERCURRENT"
 msgstr "NADPROUD VÝHŘEVU TRYSKY"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:95
-msgid "Nozzle temperature"
-msgstr "Teplota trysky"
+#: src/gui/wizard/selftest_frame_loadcell.cpp:98
+msgid ""
+"Nozzle temperature"
+msgstr ""
+"Teplota trysky"
 
 #: src/gui/screen_menu_tools.hpp:222 src/gui/screen_menu_no_tools.hpp:10
 #: src/gui/MItem_print.hpp:9 src/gui/MItem_print.hpp:39
@@ -3047,10 +3253,6 @@ msgstr "Typ trysky"
 #: src/gui/MItem_hardware.hpp:145
 msgid "Nozzle Type"
 msgstr "Typ trysky"
-
-#: src/gui/screen_menu_cancel_object.hpp:16
-msgid "Object X"
-msgstr "Objekt X"
 
 #: src/gui/screen_menu_odometer.hpp:30
 msgid "ODOMETER"
@@ -3114,8 +3316,13 @@ msgid "On Restart"
 msgstr "Při restartu"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:168
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:238
 msgid "OUT OF MEMORY"
 msgstr "DOŠLA PAMĚŤ"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:124
+msgid "Overcurrent detected."
+msgstr "Detekován nadproud."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:89
 msgid "Overcurrent detected on connected USB device, disconnect it."
@@ -3125,11 +3332,16 @@ msgstr "Na připojeném zařízení USB byl zjištěn nadproud, odpojte jej."
 msgid "Overcurrent detected on nozzle heater."
 msgstr "Nadproud detekován na výhřevu trysky."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:149
+msgid "Overcurrent detected on the connected USB device, disconnect it."
+msgstr "Detekován nadproud na připojeném zařízení USB. Odpojte jej."
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:104
 msgid "Overcurrent detected on the MMU port, disconnect the device."
 msgstr "Na portu MMU byl zjištěn nadproud, odpojte zařízení."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:84
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:144
 msgid "Overcurrent detected on USB port."
 msgstr "Na portu USB byl zjištěn nadproud."
 
@@ -3249,9 +3461,9 @@ msgstr "Vybrat Nástroj 5 (aktuální)"
 msgid "Pickup Tool"
 msgstr "Vyzvednutí nástroje"
 
-#: src/gui/screen_tools_mapping.cpp:321
-msgid "Please assign a tool for the filament."
-msgstr "Přiřaďte nástroj k filamentu."
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:38
+msgid "PIN NOT REACHED"
+msgstr "PIN NENALEZEN"
 
 #: src/gui/screen_print_preview.hpp:20 src/gui/box_unfinished_selftest.cpp:48
 msgid "Please complete Calibrations & Tests before using the printer."
@@ -3276,10 +3488,6 @@ msgstr "Otevřete idler a vyjměte filament ručně"
 msgid "Please remove filament from filament sensor."
 msgstr "Vyjměte filament ze senzoru filamentu."
 
-#: src/gui/screen_tools_mapping.cpp:313
-msgid "Please select the filament."
-msgstr "Prosím vyberte filament."
-
 #: src/gui/wizard/selftest_frame_calib_z.cpp:17
 msgid "please wait"
 msgstr "vyčkejte"
@@ -3293,6 +3501,7 @@ msgid "Please wait until a tool is picked"
 msgstr "Vyčkejte, než dojde k vyzvednutí nástroje"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:173
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:243
 msgid "PNG BUFFER FULL"
 msgstr "VYROVNÁVACÍ PAMĚŤ PNG PLNÁ"
 
@@ -3300,21 +3509,35 @@ msgstr "VYROVNÁVACÍ PAMĚŤ PNG PLNÁ"
 msgid "Power Cycle"
 msgstr "Napájecí cyklus"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:194
+msgid "Power failure"
+msgstr "Chyba napájení"
+
 #: src/gui/MItem_crash.hpp:93
 msgid "Power Failures"
 msgstr "Selhání napájení"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:199
+msgid "Power panic"
+msgstr "Power panic"
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:148
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:203
 msgid "POWER PANIC"
 msgstr "ZOTAVENÍ ZE ZTRÁTY NAPÁJENÍ"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:149
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:204
 msgid ""
 "Power panic has been detected during printer initialization. Inspect wiring "
 "of PP-cable."
 msgstr ""
 "Během inicializace tisku bylo aktivováno zotavení ze ztráty napájení. "
 "Zkontrolujte zapojení kabelu Power Panic."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:13
+msgid "PRECISE REFINEMENT FAILED"
+msgstr "PRECIZNÍ DOLADĚNÍ SELHALO"
 
 #: src/gui/screen_home.cpp:132
 msgid "Preheat"
@@ -3381,10 +3604,6 @@ msgstr "TISK"
 msgid "printer doesn't have enough tools"
 msgstr "tiskárna nemá dostatek nástrojů"
 
-#: src/gui/MItem_tools.cpp:49
-msgid "Printer may vibrate and be noisier during homing."
-msgstr "Při homingu je tiskárna hlučnější a může vibrovat."
-
 #: src/gui/MItem_hardware.hpp:113
 msgid "Printer Model"
 msgstr "Model tiskárny"
@@ -3433,6 +3652,14 @@ msgstr "Tisk dokončen"
 msgid "Printing"
 msgstr "Probíhá tisk"
 
+#: src/gui/screen_printing.cpp:373
+msgid "PRINTING"
+msgstr "TISK"
+
+#: src/gui/screen_printing.hpp:35
+msgid "PRINTING ..."
+msgstr "TISKNU..."
+
 #: src/gui/screen_printing.cpp:158
 msgid "Printing time"
 msgstr "Čas tisku"
@@ -3465,6 +3692,15 @@ msgstr "Doba tisku"
 #: src/gui/print_time_module.hpp:24
 msgid "Print will end"
 msgstr "Konec tisku:"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:34
+#, c-format
+msgid ""
+"Probed XY position is %.3f mm from expected. This is more than allowed "
+"difference of %.3f mm."
+msgstr ""
+"Testovaná pozice XY je o %.3f mm od očekávané pozice. To je více než "
+"povolená tolerance %.3f mm."
 
 #: src/gui/screen_filebrowser.cpp:27
 msgid "PROJECTS"
@@ -3509,6 +3745,52 @@ msgstr "KLADKA SE NEOTÁČÍ"
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:35
 msgid "Pulley motor stalled. Ensure the pulley can move and check the wiring."
 msgstr "Pulley motor se zasekl. Zkontrolujte zapojení a zda jej nic neblokuje."
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:264
+msgid "Puppy discovery error. No puppy found"
+msgstr "Puppy discovery error. No puppy found"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:253
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:258
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:263
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:268
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:273
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:278
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:283
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:288
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:293
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:298
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:303
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:308
+msgid "PUPPY ERROR"
+msgstr "PUPPY ERROR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:299
+#, c-format
+msgid "Puppy %s firmware fingerprint mismatch"
+msgstr "Puppy %s firmware fingerprint mismatch"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:289
+#, c-format
+msgid "Puppy %s firmware not found"
+msgstr "Puppy %s firmware not found"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:294
+#, c-format
+msgid "Puppy %s flash writing failed"
+msgstr "Puppy %s flash writing failed"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:269
+#, c-format
+msgid "Puppy %s not responding"
+msgstr "Puppy %s not responding"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:274
+#, c-format
+msgid ""
+"Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
+msgstr ""
+"Puppy uses incompatible bootloader protocol %04x, Buddy FW requires %04x"
 
 #: src/gui/MItem_filament.hpp:52
 msgid "Purge Filament"
@@ -3556,6 +3838,7 @@ msgid "Ramming"
 msgstr "Ramming"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:154
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:224
 msgid "Reading ESP firmware failed."
 msgstr "Čtení ESP FW selhalo"
 
@@ -3659,7 +3942,7 @@ msgstr ""
 msgid "Reset"
 msgstr "Reset"
 
-#: src/gui/MItem_tools.cpp:211
+#: src/gui/MItem_tools.cpp:209
 msgid "Reset complete. The system will now restart."
 msgstr "Obnovení dokončeno. Systém se restartuje."
 
@@ -3786,7 +4069,7 @@ msgstr "Vybírám fil. slot"
 msgid "Selecting fil. slot"
 msgstr "Vybírám fil. slot"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:81
+#: src/gui/wizard/selftest_frame_loadcell.cpp:84
 msgid "Selecting tool"
 msgstr "Vybírám nástroj"
 
@@ -3801,14 +4084,6 @@ msgstr "SELEKTOR: CHYBA HOMINGU"
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:64
 msgid "SELECTOR CANNOT MOVE"
 msgstr "SELEKTOR SE NEHÝBE"
-
-#: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:47
-msgid ""
-"Selector can't move due to FINDA detecting a filament. Make sure no filament "
-"is in selector and FINDA works properly."
-msgstr ""
-"Selektor se nemůže hýbat - FINDA detekovala filament. Ujistěte se, že v "
-"selektoru není filament a že FINDA funguje."
 
 #: src/gui/screen_menu_fw_update.cpp:36
 msgid ""
@@ -3862,7 +4137,7 @@ msgstr "Stav senzoru"
 msgid "SENSOR INFO"
 msgstr "STAV SENZORU"
 
-#: src/gui/MItem_tools.cpp:83
+#: src/gui/MItem_tools.cpp:81
 msgid "Sensor logic error, printer filament sensor disabled."
 msgstr "Chyba logiky senzoru. Senzor filamentu byl vypnut."
 
@@ -3883,18 +4158,15 @@ msgstr "Služba"
 msgid "Settings"
 msgstr "Nastavení"
 
-#: src/gui/screen_menu_settings.hpp:105
+#: src/gui/screen_menu_settings.hpp:96
 msgid "SETTINGS"
 msgstr "NASTAVENÍ"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:194
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:324
 msgid "Setting the tare failed. Check the loadcell wiring and connection."
 msgstr ""
 "Nastavení tárování se nezdařilo. Zkontrolujte zapojení senzoru loadcell."
-
-#: src/gui/MItem_tools.hpp:709
-msgid "Set up values"
-msgstr "Nastavit hodnoty"
 
 #: src/gui/MItem_lan.hpp:20
 msgid "Setup Wi-Fi Module"
@@ -4043,6 +4315,7 @@ msgid "Sound Volume"
 msgstr "Hlasitost"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:224
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:354
 msgid ""
 "Space allocation for firmware BBF file failed. Repeat the action or try "
 "another USB drive."
@@ -4191,13 +4464,15 @@ msgstr "T5"
 msgid "T6"
 msgstr "T6"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:115
+#: src/gui/wizard/selftest_frame_loadcell.cpp:118
 msgid "Tap the nozzle"
 msgstr "Dotkněte se trysky"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:108
-msgid "Tap the nozzle on beep"
-msgstr "Při pípnutí se dotkněte trysky"
+#: src/gui/wizard/selftest_frame_loadcell.cpp:111
+msgid ""
+"Tap the nozzle on beep"
+msgstr ""
+"Při pípnutí se dotkněte trysky."
 
 #: src/gui/MItem_menus.hpp:93
 msgid "Temperature"
@@ -4322,13 +4597,8 @@ msgid "The G-code isn't fully compatible"
 msgstr "G-Code není plně kompatibilní"
 
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:38
-msgid ""
-"The gearbox calibration is only necessary for user-assembled or serviced "
-"gearboxes. In all other cases, you can skip this step."
-msgstr ""
-"Kalibrace převodovky je nutná jen u tiskárny, kterou jste právě sestavili "
-"nebo pokud byla provedena údržba převodovky. V ostatních případech můžete "
-"tento krok přeskočit."
+msgid "The gearbox calibration is only necessary for user-assembled or serviced gearboxes. In all other cases, you can skip this step."
+msgstr "Kalibrace převodovky je nutná jen u tiskárny, kterou jste právě sestavili nebo pokud byla provedena údržba převodovky. V ostatních případech můžete tento krok přeskočit."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:35
 msgid ""
@@ -4354,6 +4624,7 @@ msgstr ""
 "Zkontrolujte zapojení."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:204
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:334
 msgid "The loadcell configuration is incorrect."
 msgstr "Konfigurace loadcell není správná."
 
@@ -4366,10 +4637,12 @@ msgstr ""
 "kompatibilní verzi."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:189
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:319
 msgid "There was an error requesting the tare for loadcell."
 msgstr "Došlo k chybě při požadavku na tárování pro loadcell."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:209
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:339
 msgid ""
 "There was a timeout while waiting for measurement sample, please repeat the "
 "action."
@@ -4426,7 +4699,7 @@ msgid "This G-code was set up for another filament type."
 msgstr "Tento G-Code byl připraven pro jiný typ filamentu."
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:231
+#: src/gui/MItem_tools.cpp:229
 #, c-format
 msgid ""
 "This operation cannot be undone. Current configuration will be lost!\n"
@@ -4440,7 +4713,7 @@ msgstr ""
 "Chcete skutečně pokračovat?"
 
 #. window_menu
-#: src/gui/MItem_tools.cpp:221
+#: src/gui/MItem_tools.cpp:219
 msgid ""
 "This operation cannot be undone. Current user configuration and passwords "
 "will be lost!\n"
@@ -4457,14 +4730,6 @@ msgid ""
 msgstr ""
 "Tato obrazovka ukazuje pouze 1. nástroj!\n"
 "XL by měla použít proceduru snake."
-
-#: src/gui/MItem_tools.hpp:412
-msgid ""
-"This will allow metrics to be enabled by G-code. It can send unencrypted "
-"diagnostics data to the internet. Do you really want to allow metrics?"
-msgstr ""
-"Toto umožní G-Code souborům povolit metriky. Pak je možné posílat "
-"nezašifrovaná data přes internet. Chcete skutečně funkci povolit?"
 
 #. abbreviated Thursday - max 3 characters
 #: src/lang/format_print_will_end.cpp:51
@@ -4664,38 +4929,6 @@ msgstr ""
 msgid "Today at"
 msgstr "Dnes v"
 
-#: src/gui/screen_help_fw_update.cpp:44
-msgid ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk3.5-firmware"
-msgstr ""
-"Více informací včetně návodu na instalaci starší verze FW:\n"
-"prusa.io/mk3.5-firmware"
-
-#: src/gui/screen_help_fw_update.cpp:36
-msgid ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk3.9-firmware"
-msgstr ""
-"Více informací včetně návodu na instalaci starší verze FW:\n"
-"prusa.io/mk3.9-firmware"
-
-#: src/gui/screen_help_fw_update.cpp:35
-msgid ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/mk4-firmware"
-msgstr ""
-"Více informací včetně návodu na instalaci starší verze FW:\n"
-"prusa.io/mk4-firmware"
-
-#: src/gui/screen_help_fw_update.cpp:52
-msgid ""
-"To learn more including firmware downgrade, please visit:\n"
-"prusa.io/xl-firmware"
-msgstr ""
-"Více informací včetně návodu na instalaci starší verze FW:\n"
-"prusa.io/xl-firmware"
-
 #: src/gui/screen_menu_tools.hpp:267
 msgid "  Tool 1"
 msgstr "Nástroj 1"
@@ -4836,6 +5069,10 @@ msgstr "Nástroj 5 - Kalibrace senzoru filamentu"
 msgid "Tool 5 Loadcell Test"
 msgstr "Nástroj 5 - Test Loadcell"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:8
+msgid "TOOLCHANGER ERROR"
+msgstr "CHYBA TOOLCHANGERU"
+
 #: src/gui/screen_crash_recovery.cpp:106
 msgid ""
 "Toolchanger problem has been detected.\n"
@@ -4845,6 +5082,11 @@ msgstr ""
 "Detekován problém s toolchangerem.\n"
 "Zaparkujte všechny nástroje do doků."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:24
+#, c-format
+msgid "Tool %d offset %c: %.3f is out of bounds [%.3f, %.3f]."
+msgstr "Nástroj %d má offset %c: %.3f je mimo rozsah [%.3f, %.3f]."
+
 #: src/gui/MItem_tools.hpp:442
 msgid "Tool Filament sensor"
 msgstr "Senzor filamentu v nástroji"
@@ -4852,6 +5094,10 @@ msgstr "Senzor filamentu v nástroji"
 #: src/gui/MItem_menus.hpp:425
 msgid "Tool Light"
 msgstr "Nástrojové světlo"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:23
+msgid "TOOL OFFSET OUT OF BOUNDS"
+msgstr "OFFSET NÁSTROJE MIMO ROZSAH"
 
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:15
 msgid "Tool Offsets Calibration"
@@ -4980,11 +5226,19 @@ msgstr ""
 "Nelze provést homing.\n"
 "Opakovat?"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:284
+msgid "Unable to start puppy application"
+msgstr "Unable to start puppy application"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:259
+msgid "Unassigned puppy found"
+msgstr "Unassigned puppy found"
+
 #: src/gui/screen_menu_connect.cpp:87
 msgid "Unauthorized"
 msgstr "Neautorizováno"
 
-#: src/gui/MItem_tools.cpp:524
+#: src/gui/MItem_tools.cpp:522
 #, c-format
 msgid "uncalibrated / %ld"
 msgstr "nekalibrováno / %ld"
@@ -4993,7 +5247,11 @@ msgstr "nekalibrováno / %ld"
 msgid "Unexpected error occurred."
 msgstr "Nastala nečekaná chyba."
 
-#: src/gui/MItem_tools.cpp:528
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:129
+msgid "Unexpected invalid current."
+msgstr "Neočekávaný neplatný proud."
+
+#: src/gui/MItem_tools.cpp:526
 #, c-format
 msgid "uninitialized / %ld"
 msgstr "neinicializováno / %ld"
@@ -5002,6 +5260,10 @@ msgstr "neinicializováno / %ld"
 msgid "Unknown"
 msgstr "Neznámý"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:234
+msgid "Unknown error"
+msgstr "Neznámá chyba"
+
 #: src/gui/screen_qr_error.cpp:28
 msgid "Unknown Error"
 msgstr "Neznámá chyba"
@@ -5009,6 +5271,10 @@ msgstr "Neznámá chyba"
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:268
 msgid "UNKNOWN ERROR"
 msgstr "NEZNÁMÁ CHYBA"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:279
+msgid "Unknown puppy type"
+msgstr "Unknown puppy type"
 
 #: src/gui/screen_menu_filament_changeall.hpp:13
 msgid "Unload"
@@ -5058,6 +5324,18 @@ msgstr "VYJMOUT RUČNĚ"
 msgid "Unparking"
 msgstr "Odparkování"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:408
+msgid "UNSUPPORTED BUDDY FW"
+msgstr "NEPODPOROVANY BUDDY FW"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:423
+msgid "UNSUPPORTED FIRMWARE BBF FILE"
+msgstr "NEPODPOROVANY FIRMWARE BBF SOUBOR"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:403
+msgid "UNSUPPORTED PRINTER MODEL"
+msgstr "NEPODPOROVANY TYP TISKARNY"
+
 #: src/gui/dialogs/DialogMoveZ.hpp:24
 msgid "UP"
 msgstr "NAHORU"
@@ -5084,6 +5362,7 @@ msgid "%u %% / running"
 msgstr "%u %% / běží"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:88
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:148
 msgid "USB DEVICE OVERCURRENT"
 msgstr "NADPROUD NA USB ZAŘÍZENÍ!"
 
@@ -5101,6 +5380,14 @@ msgstr ""
 "disk s platným\n"
 "firmwarem."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:369
+msgid ""
+"USB drive not connected! \n"
+"Please insert a USB drive with a valid firmware file."
+msgstr ""
+"USB disk není připojen!\n"
+"Prosím vložte USB disk s validním firmwarem."
+
 #: src/gui/wizard/selftest_frame_esp.cpp:31
 msgid "USB drive not detected! Insert USB drive first!"
 msgstr "USB disk nenalezen! Vložte USB disk!"
@@ -5110,6 +5397,7 @@ msgid "USB drive or file error, the print is now paused. Reconnect the drive."
 msgstr "Chyba USB disku nebo souboru, tisk pozastaven. Připojte disk znovu."
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:294
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:424
 msgid ""
 "USB flash drive contains\n"
 "unsupported firmware BBF file."
@@ -5117,7 +5405,16 @@ msgstr ""
 "USB disk obsahuje\n"
 "nepodporovaný firmware."
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:368
+msgid "USB FLASH DRIVE NOT CONNECTED"
+msgstr "USB DISK NEPRIPOJEN"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:418
+msgid "USB FLASH ERROR"
+msgstr "CHYBA USB DISKU"
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:83
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:143
 msgid "USB PORT OVERCURRENT"
 msgstr "NADPROUD NA USB PORTU!"
 
@@ -5156,7 +5453,7 @@ msgstr "%u %% / zastavený"
 msgid "%u %% / stuck"
 msgstr "%u %% / zaseklý"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:71
+#: src/gui/wizard/selftest_frame_loadcell.cpp:74
 msgid "Validity check"
 msgstr "Kontrola platnosti"
 
@@ -5169,9 +5466,17 @@ msgstr "Info o verzi"
 msgid "VERSION INFO"
 msgstr "INFO O VERZI"
 
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:304
+msgid "Waiting for fingerprint timed out"
+msgstr "Vypršela doba čekání na identifikátor"
+
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:64
 msgid "Waiting for hotends to stabilize at calibration temperature:"
 msgstr "Stabilizace hotendů na kalibračních teplotách:"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:309
+msgid "Waiting for puppies to start timed out"
+msgstr "Waiting for puppies to start timed out"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:43
 msgid "Waiting for temperature"
@@ -5249,7 +5554,7 @@ msgstr ""
 "U této kalibrace je vyžadována vaše asistence. Je potřeba nainstalovat "
 "kalibrační pin."
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:100
+#: src/gui/wizard/selftest_frame_loadcell.cpp:103
 msgid ""
 "We will need your help with this test. You will be asked to tap the nozzle. "
 "Don't worry; it is going to be cold.\n"
@@ -5322,14 +5627,6 @@ msgstr "Osa X"
 msgid "X Axis"
 msgstr "Osa X"
 
-#: src/gui/MItem_tools.hpp:662
-msgid "X-axis filter"
-msgstr "Filtr osy X"
-
-#: src/gui/MItem_tools.hpp:682
-msgid "X-axis freq."
-msgstr "Osa X frekv."
-
 #: src/gui/MItem_tools.hpp:586
 msgid "XL Buddy 5V Current"
 msgstr "XL Buddy 5V proud"
@@ -5337,6 +5634,18 @@ msgstr "XL Buddy 5V proud"
 #: src/gui/menu_item_xlcd.hpp:10
 msgid "xLCD"
 msgstr "xLCD"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:33
+msgid "XY POSITION INVALID"
+msgstr "NEPLATNA POZICE XY"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:28
+msgid "XY PROBE UNSTABLE"
+msgstr "XY SONDA NESTABILNÍ"
+
+#: build-vscode-buddy/lib/error_codes/error_list.hpp:29
+msgid "XY probing failed due to the low measurement stability."
+msgstr "Testování XY selhalo kvůli nízké stabilitě měření."
 
 #: src/common/footer_def.hpp:104
 msgid "Y"
@@ -5350,29 +5659,17 @@ msgstr "Osa Y"
 msgid "Y Axis"
 msgstr "Osa Y"
 
-#: src/gui/MItem_tools.hpp:672
-msgid "Y-axis filter"
-msgstr "Filtr osa Y"
-
-#: src/gui/MItem_tools.hpp:691
-msgid "Y-axis freq."
-msgstr "Osa Y frekv."
-
 #. Unload
 #: src/common/client_response_texts.cpp:65
 msgid "YES"
 msgstr "ANO"
 
-#: src/gui/wizard/selftest_frame_loadcell.cpp:100
+#: src/gui/wizard/selftest_frame_loadcell.cpp:103
 msgid ""
 "You did not tap the nozzle or you tapped it too soon. Retry?\n"
 "\n"
 " "
 msgstr "Nedotkli jste se trysky nebo jste se dotkli pozdě. Opakovat?"
-
-#: src/gui/MItem_tools.hpp:699
-msgid "Y weight compensation"
-msgstr "Kompenzace váhy na ose Y"
 
 #: src/common/footer_def.hpp:106
 msgid "Z"

@@ -1,10 +1,16 @@
 #include "ff_gen_drv.h"
 #include "usbh_diskio.h"
 
+#include <freertos_mutex.hpp>
+#include <mutex>
+
 LOG_COMPONENT_REF(USBHost);
+using Mutex = FreeRTOS_Mutex;
+using Lock = std::unique_lock<Mutex>;
 
 static const uint16_t USB_DEFAULT_BLOCK_SIZE = FF_MIN_SS;
 static DWORD scratch[FF_MAX_SS / 4];
+static Mutex mutex;
 
 extern USBH_HandleTypeDef hUsbHostHS;
 
@@ -28,6 +34,7 @@ const Diskio_drvTypeDef USBH_Driver = {
 };
 
 DSTATUS USBH_initialize([[maybe_unused]] BYTE lun) {
+    Lock lock(mutex);
     /* CAUTION : USB Host library has to be initialized in the application */
     return RES_OK;
 }
@@ -38,6 +45,7 @@ DSTATUS USBH_initialize([[maybe_unused]] BYTE lun) {
  * @retval DSTATUS: Operation status
  */
 DSTATUS USBH_status(BYTE lun) {
+    Lock lock(mutex);
     DRESULT res = RES_ERROR;
 
     if (USBH_MSC_UnitIsReady(&hUsbHostHS, lun)) {
@@ -58,6 +66,7 @@ DSTATUS USBH_status(BYTE lun) {
  * @retval DRESULT: Operation result
  */
 DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
+    Lock lock(mutex);
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
@@ -107,11 +116,13 @@ DRESULT USBH_read(BYTE lun, BYTE *buff, DWORD sector, UINT count) {
  */
 #if FF_FS_READONLY == 0
 DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
+    Lock lock(mutex);
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
     USBH_StatusTypeDef status = USBH_OK;
 
     if ((DWORD)buff & 3) { // DMA Alignment issue, do single up to aligned buffer
+        USBH_ErrLog("Suspicious DMA Alignment issue, do single up to aligned buffer");
         while (count--) {
             memcpy(scratch, &buff[count * FF_MAX_SS], FF_MAX_SS);
             status = USBH_MSC_Write(&hUsbHostHS, lun, sector + count, (BYTE *)scratch, 1);
@@ -160,6 +171,7 @@ DRESULT USBH_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count) {
  */
 #if FF_FS_READONLY == 0
 DRESULT USBH_ioctl(BYTE lun, BYTE cmd, void *buff) {
+    Lock lock(mutex);
     DRESULT res = RES_ERROR;
     MSC_LUNTypeDef info;
 

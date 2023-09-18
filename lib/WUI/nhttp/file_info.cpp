@@ -5,11 +5,13 @@
 #include "../../src/common/lfn.h"
 #include "../../src/common/filename_type.hpp"
 #include "../wui_api.h"
+#include "common/stat_retry.hpp"
 
 #include <http/chunked.h>
 #include <json_encode.h>
 #include <segmented_json_macros.h>
 #include <filepath_operation.h>
+#include <transfers/transfer.hpp>
 
 #include <cmsis_os.h>
 #include <cstring>
@@ -31,14 +33,34 @@ size_t strlcpy(char *, const char *, size_t);
 }
 
 namespace {
+enum class FileType {
+    File,
+    Directory,
+    Empty,
+    NotFound
+};
 
-int stat_retry(const char *path, struct stat *st) {
-    for (;;) {
-        errno = 0;
-        int result = stat(path, st);
-        if (result == 0 || (errno != EAGAIN && errno != EINTR && errno != EBUSY)) {
-            return result;
+struct FileMetadata {
+    FileType type {};
+    bool read_only {};
+};
+
+FileMetadata get_file_metadata(const char *path, struct stat &st, DIR *&dir) {
+    if (dir = opendir(path); dir) {
+        MutablePath mp(path);
+        if (auto st_opt = transfers::Transfer::get_transfer_partial_file_stat(mp); st_opt.has_value()) {
+            closedir(dir);
+            st = st_opt.value();
+            return { FileType::File, true };
+        } else {
+            return { FileType::Directory, false };
         }
+    } else if (stat_retry(path, &st) == 0) {
+        return { FileType::File, false };
+    } else if (strcmp(path, "/usb") == 0) {
+        return { FileType::Empty, false };
+    } else {
+        return { FileType::NotFound, false };
     }
 }
 
@@ -58,6 +80,7 @@ JsonResult FileInfo::DirRenderer::renderState(size_t resume_point, JsonOutput &o
 
 JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput &output, FileInfo::DirState &state) const {
     struct stat st {};
+    bool read_only = false;
 
     // Keep the indentation of the JSON in here!
     // clang-format off
@@ -77,8 +100,21 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
         JSON_FIELD_STR("name", state.filename) JSON_COMMA;
         JSON_FIELD_ARR("children");
         while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
-            if (state.ent->d_type != DT_DIR and !filename_is_gcode(state.ent->d_name)) {
+            if (state.ent->d_type != DT_DIR and !filename_is_printable(state.ent->d_name)) {
                 continue;
+            }
+
+            if (state.ent->d_type == DT_DIR && filename_is_printable(state.ent->d_name)) {
+                MutablePath mp(state.filepath);
+                mp.push(state.ent->d_name);
+                if (transfers::Transfer::is_valid_transfer(mp)) {
+                    state.ent->d_type = DT_REG;
+                    read_only = true;
+                } else {
+                    continue;
+                }
+            } else {
+                read_only = false;
             }
 
             if (!state.first) {
@@ -88,7 +124,7 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
             }
             JSON_OBJ_START;
                 JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
-                JSON_FIELD_BOOL("ro", false) JSON_COMMA;
+                JSON_FIELD_BOOL("ro", read_only) JSON_COMMA;
                 JSON_FIELD_STR("type", file_type(state.ent)) JSON_COMMA;
 #ifdef UNITTESTS
                 JSON_FIELD_INT("m_timestamp", 0) JSON_COMMA;
@@ -97,7 +133,7 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
 #endif
                 if (state.ent->d_type != DT_DIR) {
                     JSON_FIELD_OBJ("refs");
-                        if (filename_is_gcode(state.ent->d_name)) {
+                        if (filename_is_printable(state.ent->d_name)) {
                             JSON_FIELD_STR_FORMAT("icon", "/thumb/s%s/%s", state.filepath, state.ent->d_name) JSON_COMMA;
                             JSON_FIELD_STR_FORMAT("thumbnail", "/thumb/l%s/%s", state.filepath, state.ent->d_name) JSON_COMMA;
                         }
@@ -130,7 +166,7 @@ JsonResult FileInfo::DirRenderer::renderStateOctoprint(size_t resume_point, Json
                 // Note: ent, as the control variable, needs to be preserved inside the
                 // object, so it survives resumes.
                 while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
-                    if (!filename_is_gcode(state.ent->d_name)) {
+                    if (!filename_is_printable(state.ent->d_name)) {
                         continue;
                     }
 
@@ -187,13 +223,13 @@ JsonResult FileInfo::FileRenderer::renderStateV1(size_t resume_point, JsonOutput
     JSON_OBJ_START;
 
         JSON_FIELD_STR("name", basename_b(filename)) JSON_COMMA;
-        JSON_FIELD_BOOL("ro", false) JSON_COMMA;
+        JSON_FIELD_BOOL("ro", read_only) JSON_COMMA;
         JSON_FIELD_STR("type", type) JSON_COMMA;
         JSON_FIELD_INT("m_timestamp", state.m_timestamp) JSON_COMMA;
         JSON_FIELD_INT("size", state.size) JSON_COMMA;
         if (strcmp(type, "FOLDER") != 0) {
             JSON_FIELD_OBJ("refs");
-                if (filename_is_gcode(filename)) {
+                if (filename_is_printable(filename)) {
                     JSON_CUSTOM("\"icon\":\"/thumb/s%s\",", filename_escaped);
                     JSON_CUSTOM("\"thumbnail\":\"/thumb/l%s\",", filename_escaped);
                 }
@@ -264,20 +300,32 @@ Step FileInfo::step(std::string_view, bool, uint8_t *output, size_t output_size)
         // At this point we not only create the right renderer, we also produce
         // the right headers.
 
-        struct stat finfo;
+        struct stat finfo = {};
         first_packet = true;
+        DIR *dir_attempt = nullptr;
 
-        if (DIR *dir_attempt = opendir(filepath); dir_attempt) {
+        // Note: apart from just returning the type, it also fills
+        // either the DIR* or struct stat with the appropriate content,
+        // so we don't have to call it twice (especially opendir() which
+        // allocates).
+        auto file_metadata = get_file_metadata(filepath, finfo, dir_attempt);
+
+        switch (file_metadata.type) {
+        case FileType::Directory:
+            assert(dir_attempt != nullptr);
             renderer = DirRenderer(this, dir_attempt, api);
-        } else if (stat_retry(filepath, &finfo) == 0) {
-            renderer = FileRenderer(this, finfo.st_size, finfo.st_mtime, api);
+            break;
+        case FileType::File:
+            renderer = FileRenderer(this, finfo.st_size, finfo.st_mtime, api, file_metadata.read_only);
             // The passed etags are for directories only for now
             etag.reset();
-        } else if (strcmp(filepath, "/usb") == 0) {
+            break;
+        case FileType::Empty:
             // We are trying to list files in the root and it's not there -> USB is missing.
             // Special case it, we return empty list of files.
             renderer = DirRenderer(api); // Produces empty file list
-        } else {
+            break;
+        case FileType::NotFound:
             return Step { 0, 0, StatusPage(Status::NotFound, can_keep_alive ? StatusPage::CloseHandling::KeepAlive : StatusPage::CloseHandling::Close, json_errors) };
         }
 

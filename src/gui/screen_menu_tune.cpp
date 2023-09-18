@@ -25,6 +25,15 @@ void ScreenMenuTune::windowEvent(EventLock /*has private ctor*/, window_t *sende
         } else {
             Item<MI_M600>().Disable();
         }
+
+#if ENABLED(CANCEL_OBJECTS)
+        // Enable cancel object menu
+        if (marlin_vars()->cancel_object_count > 0) {
+            Item<MI_CO_CANCEL_OBJECT>().Enable();
+        } else {
+            Item<MI_CO_CANCEL_OBJECT>().Disable();
+        }
+#endif /* ENABLED(CANCEL_OBJECTS) */
         break;
     default:
         break;

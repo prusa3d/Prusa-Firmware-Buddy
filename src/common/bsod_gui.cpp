@@ -22,10 +22,8 @@
 #include "hwio.h"
 #include "version.h"
 #include "support_utils.h"
-#include "str_utils.hpp"
 #include "error_codes.hpp"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
-#include "scratch_buffer.hpp"
 #include "power_panic.hpp"
 
 // this is private struct definition from FreeRTOS
@@ -124,10 +122,7 @@ const ErrDesc &find_error(const ErrCode error_code) {
 
 void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
 #ifdef _DEBUG
-    // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
 #endif /*_DEBUG*/
 
     crash_dump::save_message(crash_dump::MsgType::RSOD, ftrstd::to_underlying(error_code), error, module);
@@ -168,6 +163,11 @@ void fatal_error(const char *error, const char *module) {
     } else if (strcmp(MSG_ERR_MAXTEMP_HEATBREAK, error) == 0) {
         fatal_error(ErrCode::ERR_TEMPERATURE_HEATBREAK_MAXTEMP_ERR);
     }
+#if PRINTER_IS_PRUSA_XL
+    else if (strcmp(MSG_ERR_NOZZLE_OVERCURRENT, error) == 0) {
+        fatal_error(ErrCode::ERR_ELECTRO_HEATER_HOTEND_OVERCURRENT, module);
+    }
+#endif
 
     // error code is not defined, raise redscreen with custom error message and error title
     raise_redscreen(error_code, error, module);
@@ -265,10 +265,7 @@ void bsod_mark_shown() {
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 #ifdef _DEBUG
-    // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
 #endif /*_DEBUG*/
 
     va_list args;
@@ -284,7 +281,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     __disable_irq();
 
     // Save dump
-    DUMP_BSOD_TO_CCRAM();
+    DUMP_BSOD_TO_CCMRAM();
     crash_dump::save_dump();
 
     // Get file and line as title
@@ -309,13 +306,11 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, signed char *pcTaskName) {
     #ifdef _DEBUG
     // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
+    buddy_breakpoint_disable_heaters();
     #endif /*_DEBUG*/
 
     // Save registers
-    DUMP_STACK_OVF_TO_CCRAM();
+    DUMP_STACK_OVF_TO_CCMRAM();
     crash_dump::save_dump();
 
     // Save task name as title

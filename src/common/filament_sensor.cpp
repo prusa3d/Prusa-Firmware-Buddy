@@ -64,8 +64,9 @@ IFSensor::event IFSensor::GenerateEvent() {
 
     const bool has_filament = fsensor_t::HasFilament == state;
 
-    // don't generate edges from not working states
-    if ((previous_state != fsensor_t::HasFilament) && (previous_state != fsensor_t::NoFilament)) {
+    // don't generate edges from not-working states or to not-working states
+    if (((previous_state != fsensor_t::HasFilament) && (previous_state != fsensor_t::NoFilament))
+        || ((last_evaluated_state != fsensor_t::HasFilament) && (last_evaluated_state != fsensor_t::NoFilament))) {
         return has_filament ? event::HasFilament : event::NoFilament;
     }
 

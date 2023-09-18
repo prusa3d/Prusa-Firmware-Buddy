@@ -29,6 +29,7 @@ PrinterState leds::mpsToAnimationState(marlin_server::State state) {
     case State::Idle:
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
+    case State::PrintPreviewConfirmed:
     case State::PrintPreviewQuestions:
     case State::PrintPreviewToolsMapping:
     case State::Exit:
@@ -51,6 +52,7 @@ PrinterState leds::mpsToAnimationState(marlin_server::State state) {
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
     case State::Aborting_ParkHead:
+    case State::Aborting_Preview:
     case State::Aborted:
         return PrinterState::Aborting;
     case State::Finishing_WaitIdle:

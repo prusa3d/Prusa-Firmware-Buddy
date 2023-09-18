@@ -26,6 +26,7 @@
 #if HAS_MODULARBED()
     #include "screen_menu_modularbed.hpp"
 #endif
+#include <screen_menu_hw_setup.hpp>
 
 class MI_MK4_MK39 : public WI_SWITCH_t<2> {
     static constexpr const char *const label = "Current Printer Type";
@@ -75,6 +76,9 @@ using ScreenMenuHardware__ = ScreenMenu<GuiDefaults::MenuFooter,
 #if HAS_LOADCELL()
     ,
     MI_LOADCELL_SCALE
+#else
+    ,
+    MI_STEEL_SHEETS
 #endif
 #if (BOARD_IS_XLBUDDY)
     ,

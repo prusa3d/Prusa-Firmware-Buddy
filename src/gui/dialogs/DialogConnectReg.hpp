@@ -11,6 +11,9 @@
 class DialogConnectRegister : public AddSuperWindow<IDialog> {
 private:
     static bool DialogShown;
+    // TODO change after textation so it is big enough for new texts
+    static char attempt_buffer[20];
+    static char detail_buffer[50];
 
     // TODO: Doesn't fit
     constexpr static const char *const headerLabel = N_("PRUSA CONNECT");
@@ -31,7 +34,7 @@ private:
         static constexpr size_t phoneWidth { 64 };
         static constexpr size_t phoneHeight { 82 };
         static constexpr size_t textWidth { WizardDefaults::X_space };
-        static constexpr size_t textLines { 3 };
+        static constexpr size_t textLines { 2 };
         static constexpr size_t textHeight { WizardDefaults::txt_h * textLines };
         static constexpr size_t codeWidth { WizardDefaults::X_space };
         static constexpr size_t codeHeight { WizardDefaults::txt_h };
@@ -44,24 +47,35 @@ private:
         static constexpr Rect16 phoneIconRect();
 
         /** @returns Rect16 position and size of the text widget */
-        static constexpr Rect16 textRect();
+        static constexpr Rect16 textRect(int16_t add_top = 0, uint16_t height = WizardDefaults::row_h, uint16_t width = WizardDefaults::X_space);
+
+        static constexpr Rect16 textRectTitle();
+        static constexpr Rect16 textRectState(bool final = false);
+        static constexpr Rect16 textRectAttempt(bool final = false);
+        static constexpr Rect16 textRectDetail(bool final = false);
+        static constexpr Rect16 lineRect();
 
         static constexpr Rect16 codeRect();
     };
 
     connect_client::OnlineStatus last_seen_status = std::make_tuple(connect_client::ConnectionStatus::Unknown, connect_client::OnlineError::NoError, std::nullopt);
     bool left_registration = false;
+    bool qr_rect = false;
 
     window_header_t header;
     window_icon_t icon_phone;
     window_qr_t qr;
-    window_text_t text;
-    window_text_t code;
+    window_text_t title;
+    window_t line;
+    window_text_t text_state;
+    window_text_t text_attempt;
+    window_text_t text_detail;
     RadioButton button;
 
     DialogConnectRegister();
 
     void hideDetails();
+    void showQR();
 
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;

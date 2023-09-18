@@ -34,7 +34,7 @@
 #include "../../inc/MarlinConfig.h"
 #include "../../feature/tmc_util.h"
 
-#define ____TMC_CLASS(MODEL, A, I, E) TMCMarlin<TMC##MODEL##Stepper, A, I, E>
+#define ____TMC_CLASS(MODEL, A, I, E) TMCMarlin<TMC##MODEL##Stepper>
 #define ___TMC_CLASS(MODEL, A, I, E) ____TMC_CLASS(MODEL, A, I, E)
 #define __TMC_CLASS(MODEL, A, I, E) ___TMC_CLASS(_##MODEL, A, I, E)
 #define _TMC_CLASS(MODEL, L, E) __TMC_CLASS(MODEL, L, E)

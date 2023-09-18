@@ -32,8 +32,8 @@ enum class printing_state_t : uint8_t {
 constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
-#if not PRINTER_IS_PRUSA_MK4
-    static constexpr const char *caption = N_("INPUT SHAPER (ALPHA)");
+#if !PRINTER_IS_PRUSA_MK4
+    static constexpr const char *caption = N_("INPUT SHAPER ALPHA");
 #else
     static constexpr const char *caption = N_("INPUT SHAPER");
 #endif

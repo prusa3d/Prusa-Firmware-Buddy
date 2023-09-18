@@ -98,7 +98,8 @@ size_ui16_t render_line(T &textWrapper, Rect16 rc, string_view_utf8 &str, const 
     const uint16_t fnt_w = pf->w; // char width
     const uint16_t fnt_h = pf->h; // char height
 
-    uint16_t buff_char_capacity = display::BufferPixelSize() / (fnt_w * fnt_h);
+    const uint16_t buff_char_capacity = display::BufferPixelSize() / (fnt_w * fnt_h);
+    assert(buff_char_capacity > 0 && "Buffer needs to take at least one character");
     uint16_t line_char_cnt = rc.Width() / fnt_w; // character count - rects are calculated through font measurings (newlines are ignored)
     uint16_t chars_cnt = 0;                      // character count of currently drawn loop iteration
     uint16_t chars_left = line_char_cnt;         // characters left to draw
@@ -258,7 +259,7 @@ void render_icon_align(Rect16 rc, const img::Resource *res, color_t clr_back, ic
         Rect16 rc_ico = Rect16(0, 0, wh_ico.x, wh_ico.y);
         rc_ico.Align(rc, flags.align);
         rc_ico = rc_ico.Intersection(rc);
-        display::DrawPng(point_ui16(rc_ico.Left(), rc_ico.Top()), *res, clr_back, flags.raster_flags);
+        display::DrawImg(point_ui16(rc_ico.Left(), rc_ico.Top()), *res, clr_back, flags.raster_flags);
     } else {
         display::FillRect(rc, clr_back);
     }

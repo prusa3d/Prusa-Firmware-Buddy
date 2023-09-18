@@ -4,6 +4,7 @@
 #include "log.h"
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
+#include <ccm_thread.hpp>
 #include "stm32f4xx_hal.h"
 
 LOG_COMPONENT_REF(W25X);
@@ -159,6 +160,7 @@ static int receive_dma(uint8_t *buffer, uint32_t len) {
     xEventGroupClearBits(event_group, EVENT_RX_COMPLETE);
 
     // initiate DMA transfer
+    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(buffer)));
     HAL_StatusTypeDef status = HAL_SPI_Receive_DMA(spi_handle, buffer, len);
     if (status != HAL_OK) {
         return hal_status_to_error(status);
@@ -184,6 +186,7 @@ static int send_dma(const uint8_t *buffer, uint32_t len) {
     xEventGroupClearBits(event_group, EVENT_TX_COMPLETE);
 
     // initiate DMA transfer
+    assert("Data for DMA cannot be in CCMRAM" && can_be_used_by_dma(reinterpret_cast<uintptr_t>(buffer)));
     HAL_StatusTypeDef status = HAL_SPI_Transmit_DMA(spi_handle, (uint8_t *)buffer, len);
     if (status != HAL_OK) {
         log_error(W25X, "DMA write error %u", status);

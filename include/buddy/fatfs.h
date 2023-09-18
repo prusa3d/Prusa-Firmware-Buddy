@@ -16,6 +16,15 @@ extern FIL USBHFile;     /* File object for USBH */
 
 void MX_FATFS_Init(void);
 
+/// Tests whether a FatFS file is contiguous.
+/// It moves the file pointer to undefined location in the file.
+///
+/// Source: http://elm-chan.org/fsw/ff/doc/expand.html
+///
+/// \param fp Open file object to be checked
+/// \param cont 1:Contiguous (including 0-length), 0:Fragmented
+FRESULT fatfs_test_contiguous_file(FIL *fp, int *cont);
+
 #ifdef __cplusplus
 }
 #endif

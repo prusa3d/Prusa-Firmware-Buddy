@@ -6,11 +6,14 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <metric_handlers.h>
+#include <ccm_thread.hpp>
+#include "priorities_config.h"
 
 static void metric_system_task_run(const void *);
 
 // task definition
-osThreadDef(metric_system_task, metric_system_task_run, TASK_PRIORITY_METRIC_SYSTEM,
+osThreadCCMDef(metric_system_task, metric_system_task_run, TASK_PRIORITY_METRIC_SYSTEM,
     0, 375);
 static osThreadId metric_system_task;
 
@@ -34,6 +37,9 @@ void metric_system_init(metric_handler_t *handlers[]) {
     if (metric_system_initialized)
         return;
     metric_system_handlers = handlers;
+
+    metric_handlers_init();
+
     metric_system_task = osThreadCreate(osThread(metric_system_task), NULL);
     metric_system_queue = osMailCreate(osMailQ(metric_system_queue), metric_system_task);
     metric_system_initialized = true;

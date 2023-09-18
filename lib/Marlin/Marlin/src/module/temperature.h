@@ -613,6 +613,7 @@ class Temperature {
      * Call periodically to manage heaters
      */
     static void manage_heater() __O2; // __O2 added to work around a compiler error
+    static inline void task() { manage_heater(); } // stub
 
     // Return true if the temperatures have been sampled at least once
     static bool temperatures_ready();
@@ -914,7 +915,9 @@ public:
      * Perform auto-tuning for hotend or bed in response to M303
      */
     #if HAS_PID_HEATING
-      static void PID_autotune(const float &target, const heater_ind_t hotend, const int8_t ncycles, const bool set_result=false);
+      #if ENABLED(PID_AUTOTUNE)
+        static void PID_autotune(const float &target, const heater_ind_t hotend, const int8_t ncycles, const bool set_result=false);
+      #endif
 
       #if ENABLED(NO_FAN_SLOWING_IN_PID_TUNING)
         static bool adaptive_fan_slowing;

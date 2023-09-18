@@ -9,6 +9,7 @@
 
 #pragma once
 #include "eeprom_v4.hpp"
+#include "config.h"
 
 namespace config_store_ns::old_eeprom::v6 {
 

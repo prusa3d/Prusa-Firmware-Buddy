@@ -96,6 +96,7 @@ private:
     class FileRenderer final : public json::JsonRenderer<FileState> {
     private:
         APIVersion api;
+        bool read_only {};
 
         json::JsonResult renderStateOctoprint(size_t resume_point, json::JsonOutput &output, FileState &state) const;
         json::JsonResult renderStateV1(size_t resume_point, json::JsonOutput &output, FileState &state) const;
@@ -104,9 +105,10 @@ private:
         virtual json::JsonResult renderState(size_t resume_point, json::JsonOutput &output, FileState &state) const override;
 
     public:
-        FileRenderer(FileInfo *owner, int64_t size, time_t m_timestamp, APIVersion api)
+        FileRenderer(FileInfo *owner, int64_t size, time_t m_timestamp, APIVersion api, bool read_only)
             : JsonRenderer(FileState(owner, size, m_timestamp))
-            , api(api) {}
+            , api(api)
+            , read_only(read_only) {}
     };
     friend class FileRenderer;
 

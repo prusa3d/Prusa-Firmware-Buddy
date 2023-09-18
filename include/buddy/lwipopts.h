@@ -27,7 +27,7 @@ extern "C" {
 #define PBUF_POOL_SIZE         16
 #define IP_REASS_MAX_PBUFS     15
 #define TCPIP_THREAD_STACKSIZE 1088
-#define TCPIP_MBOX_SIZE        6
+#define TCPIP_MBOX_SIZE        16
 
 #define DEFAULT_UDP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
 #define DEFAULT_TCP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
@@ -87,7 +87,7 @@ extern "C" {
 
 // Some attempts to "tune" it to use less memory in unstable network environment with many retries of new connections.
 #define LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT 5000 /* 5s for closing a connection must be enough... or let the other side time out */
-#define TCP_OVERSIZE                      0
+#define TCP_OVERSIZE                      128
 
 #define LWIP_DNS 1
 /*
@@ -105,6 +105,8 @@ extern "C" {
 #define SO_REUSE         1 // Allow SOF_REUSEADDR to do something useful.
 
 #define MEMP_NUM_UDP_PCB 5
+
+#define MEMP_NUM_TCPIP_MSG_INPKT 16
 
 #ifdef __cplusplus
 }

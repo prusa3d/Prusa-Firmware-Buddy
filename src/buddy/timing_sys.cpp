@@ -72,11 +72,17 @@ extern "C" uint32_t ticks_s() {
     return tick_cnt_s;
 }
 
+static uint32_t last_ms;
 extern "C" uint32_t ticks_ms() {
     uint32_t sec, subsec;
     sample_timer(sec, subsec);
 
-    return sec * thousand + subsec / (TIM_BASE_CLK_MHZ * thousand);
+    last_ms = sec * thousand + subsec / (TIM_BASE_CLK_MHZ * thousand);
+    return last_ms;
+}
+
+extern "C" uint32_t last_ticks_ms() {
+    return last_ms;
 }
 
 extern "C" uint32_t ticks_us() {

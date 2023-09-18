@@ -21,7 +21,7 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_fans(ScreenSelftest &rT
     return rThs.makePtr<SelftestFrameFans>(&rThs, phase, data);
 }
 
-#if HAS_LOADCELL()
+#if FILAMENT_SENSOR_IS_ADC()
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_fsensor(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameFSensor>(&rThs, phase, data);
 }
@@ -33,7 +33,7 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_gears_calib(ScreenSelft
 }
 #endif
 
-#if FILAMENT_SENSOR_IS_ADC()
+#if HAS_LOADCELL()
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_loadcell(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameLoadcell>(&rThs, phase, data);
 }

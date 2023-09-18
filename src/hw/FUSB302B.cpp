@@ -1,4 +1,5 @@
 #include "FUSB302B.hpp"
+#include "bsod.h"
 
 namespace buddy::hw {
 

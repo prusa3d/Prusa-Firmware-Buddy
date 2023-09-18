@@ -56,6 +56,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::CrashRecovery_Axis_NOK:
     case State::CrashRecovery_Repeated_Crash:
     case State::PowerPanic_acFault:
+    case State::PrintPreviewConfirmed:
         link_state_str = "BUSY";
         busy = true;
         // Fall through
@@ -90,6 +91,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
     case State::Aborting_ParkHead:
+    case State::Aborting_Preview:
         cancelling = busy = true;
         ready = operational = false;
         link_state_str = "BUSY";
@@ -239,6 +241,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     case State::Finishing_WaitIdle:
     case State::Finishing_ParkHead:
     case State::Printing:
+    case State::PrintPreviewConfirmed:
     case State::PowerPanic_acFault:
         has_job = true;
         state = "Printing";
@@ -279,6 +282,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     case State::Aborting_Begin:
     case State::Aborting_WaitIdle:
     case State::Aborting_ParkHead:
+    case State::Aborting_Preview:
         has_job = true;
         state = "Cancelling";
         break;

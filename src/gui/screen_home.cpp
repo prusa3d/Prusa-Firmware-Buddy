@@ -9,6 +9,7 @@
 #include "screen_filebrowser.hpp"
 #include "print_utils.hpp"
 #include "gui_fsensor_api.hpp"
+#include "filename_type.hpp"
 #include <wui_api.h>
 #include <espif.h>
 
@@ -168,7 +169,7 @@ screen_home_data_t::screen_home_data_t()
 #endif // USE_ST7789
     , w_buttons {
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
-        { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700"); } },
+        { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700 T-1"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
 #if HAS_CONTROL_MENU()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
@@ -194,11 +195,13 @@ screen_home_data_t::screen_home_data_t()
     window_frame_t::ClrOnSerialClose(); // don't close on Serial print
     WindowFileBrowser::SetRoot("/usb");
 
+#ifndef USE_ST7789
     header.SetIcon(&img::home_shape_16x16);
+#endif
 #if !defined(_DEBUG) && !DEVELOPER_MODE()
     // regular home screen
-    #if not PRINTER_IS_PRUSA_MK4
-    header.SetText(_("INPUT SHAPER (ALPHA)"));
+    #if !PRINTER_IS_PRUSA_MK4
+    header.SetText(_("INPUT SHAPER ALPHA"));
     #else
     header.SetText(_("INPUT SHAPER"));
     #endif
@@ -210,7 +213,7 @@ screen_home_data_t::screen_home_data_t()
     #elif DEVELOPER_MODE() && !defined(_DEBUG)
     static const uint8_t msgHome[] = "HOME - DEV";
     #else
-    static const uint8_t msgHome[] = "HOME - DEBUG - what a beautiful rolling text";
+    static const uint8_t msgHome[] = "HOME - DEBUG - what a beautiful rolling text!!!!!";
     #endif
     header.SetText(string_view_utf8::MakeCPUFLASH(msgHome)); // intentionally not translated
 #endif
@@ -325,16 +328,15 @@ void screen_home_data_t::on_enter() {
         }
     }
 
-    // MK4 is releasing input shaper and therefore is warning no longer required
-    #if not PRINTER_IS_PRUSA_MK4
+    #if !(PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX)
     static bool input_shaper_warning_shown = false;
     if (!input_shaper_warning_shown) {
         input_shaper_warning_shown = true;
         MsgBoxISWarning(_(
-                            "This firmware is still in development and is for testing purposes only.\n\n"
-                            "Input Shaper enabled. Do not leave the printer unattended.\n\n"
+                            "This firmware is still\nin development.\n\n"
+                            "Do not leave the printer unattended.\n\n"
                             "More info at prusa.io/input-shaper"),
-            Responses_Ok);
+            Responses_Ok, 0, GuiDefaults::RectScreen);
     }
     #endif
 #endif
@@ -442,7 +444,7 @@ bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fna
 
     while (dir.FindNext()) {
         // skip folders
-        if ((dir.fno->d_type & DT_DIR) != 0) {
+        if ((dir.fno->d_type & DT_DIR) != 0 && !filename_is_printable(dir.fno->d_name)) {
             continue;
         }
 

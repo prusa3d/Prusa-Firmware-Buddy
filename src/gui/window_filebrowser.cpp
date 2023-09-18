@@ -4,6 +4,7 @@
 
 #include "window_filebrowser.hpp"
 #include "log.h"
+#include <transfers/transfer.hpp>
 #include <algorithm>
 
 LOG_COMPONENT_REF(GUI);
@@ -20,8 +21,7 @@ static char firstVisibleSFN[SFN_len];
 char WindowFileBrowser::root[FILE_PATH_BUFFER_LEN] = "/usb";
 
 WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_SFN_path)
-    : AddSuperWindow<window_file_list_t>(parent, rect)
-    , gcode_info(GCodeInfo::getInstance()) {
+    : AddSuperWindow<window_file_list_t>(parent, rect) {
 
     // set root of the file list
     window_file_list_t::SetRoot(root);
@@ -84,6 +84,13 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
     bool currentIsFile;
     const char *currentSFN = CurrentSFN(&currentIsFile);
 
+    if (!currentIsFile) {
+        // check is transfer, if so, act as if file was selected
+        MutablePath path(sfn_path);
+        path.push(currentSFN);
+        currentIsFile = transfers::Transfer::is_valid_transfer(path);
+    }
+
     if (!strcmp(currentSFN, dirUp) && window_file_list_t::IsPathRoot(sfn_path)) {
         file_selected = true;
         event_conversion_union un;
@@ -98,6 +105,7 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
         SuperWindowEvent(sender, event, param);
         return;
     }
+
     if (!currentIsFile) {                // directory selected
         if (strcmp(currentSFN, dirUp)) { // not same -> not ..
             // append the dir name at the end of sfnPath

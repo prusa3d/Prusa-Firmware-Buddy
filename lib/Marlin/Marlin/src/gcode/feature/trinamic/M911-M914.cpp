@@ -30,6 +30,8 @@
 #include "../../../module/planner.h"
 #include "../../queue.h"
 
+#include "config_store/store_instance.hpp"
+
 #if ENABLED(CRASH_RECOVERY)
   #include "../../feature/prusa/crash_recovery.hpp"
 #endif
@@ -317,11 +319,14 @@
     bool report = true;
     const uint8_t index = parser.byteval('I');
     LOOP_XYZ(i) if (parser.seen(axis_codes[i])) {
-      const int16_t value = parser.value_int();
+      int16_t value = parser.value_int();
       report = false;
       switch (i) {
         #if X_SENSORLESS
           case X_AXIS:
+            if (!parser.has_value()) {
+              value = X_STALL_SENSITIVITY;
+            }
             #if AXIS_HAS_STALLGUARD(X)
               #if ENABLED(CRASH_RECOVERY)
                 if (index < 2) crash_s.home_sensitivity[0] = value;
@@ -340,6 +345,9 @@
         #endif
         #if Y_SENSORLESS
           case Y_AXIS:
+            if (!parser.has_value()) {
+              value = Y_STALL_SENSITIVITY;
+            }
             #if AXIS_HAS_STALLGUARD(Y)
               #if ENABLED(CRASH_RECOVERY)
                 if (index < 2) crash_s.home_sensitivity[1] = value;
@@ -358,6 +366,9 @@
         #endif
         #if Z_SENSORLESS
           case Z_AXIS:
+            if (!parser.has_value()) {
+              value = Z_STALL_SENSITIVITY;
+            }
             #if AXIS_HAS_STALLGUARD(Z)
               #if ENABLED(CRASH_RECOVERY)
                 if (index < 2) crash_s.home_sensitivity[2] = value;

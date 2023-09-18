@@ -55,6 +55,7 @@ enum class Response : uint8_t {
     Quit,
     Reheat,
     Replace,
+    Remove,
     Restart,
     Resume,
     Retry,

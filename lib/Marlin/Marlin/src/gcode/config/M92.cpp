@@ -80,12 +80,14 @@ void GcodeSuite::M92() {
             planner.max_jerk.e *= factor;
           #endif
           planner.settings.max_feedrate_mm_s[E_AXIS_N(target_extruder)] *= factor;
-          planner.max_acceleration_steps_per_s2[E_AXIS_N(target_extruder)] *= factor;
+          planner.max_acceleration_msteps_per_s2[E_AXIS_N(target_extruder)] *= factor;
         }
         planner.settings.axis_steps_per_mm[E_AXIS_N(target_extruder)] = value;
+        planner.settings.axis_msteps_per_mm[E_AXIS_N(target_extruder)] = value * PLANNER_STEPS_MULTIPLIER;
       }
       else {
         planner.settings.axis_steps_per_mm[i] = parser.value_per_axis_units((AxisEnum)i);
+        planner.settings.axis_msteps_per_mm[i] = parser.value_per_axis_units((AxisEnum)i) * PLANNER_STEPS_MULTIPLIER;
       }
     }
   }

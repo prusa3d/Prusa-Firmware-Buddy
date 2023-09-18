@@ -49,21 +49,56 @@ void set_rgb(uint8_t red, uint8_t green, uint8_t blue) {
 }
 #pragma GCC pop_options
 
-void blinking(uint8_t red, uint8_t green, uint8_t blue, uint32_t on_duration_ms, uint32_t off_duration_ms) {
-    static bool direction_on { false };
-    static uint32_t loop_tick_start_ms { 0 };
+namespace {
 
-    if (auto ticks_now_ms = ticks_ms(); ticks_now_ms < loop_tick_start_ms) {                           // ticker overflow
-        loop_tick_start_ms = ticks_now_ms;
-    } else if (auto diff = ticks_now_ms - loop_tick_start_ms; direction_on && diff > on_duration_ms) { // go to off
-        set_rgb(0, 0, 0);
-        direction_on = false;
-        loop_tick_start_ms = ticks_now_ms;
-    } else if (!direction_on && diff > off_duration_ms) { // go to on
-        set_rgb(red, green, blue);
-        direction_on = true;
-        loop_tick_start_ms = ticks_now_ms;
-    } // else nothing needs to be done
+    /**
+     * @brief Update loop start.
+     * @param period loop period [ms]
+     * @return ticks since current loop start
+     */
+    uint32_t sync_tick_start(uint32_t period) {
+        static uint32_t loop_tick_start_ms { 0 }; ///< Remember when ticks start to ease on division
+        auto ticks_now_ms = ticks_ms();
+
+        if (ticks_now_ms > loop_tick_start_ms + period) {                // Ticker overflow
+            loop_tick_start_ms = ticks_now_ms - ticks_now_ms % (period); // Synchronized flashing start
+        }
+
+        return ticks_now_ms - loop_tick_start_ms; // Ticks since current loop start
+    }
+
+} // namespace
+
+void blinking(uint8_t red, uint8_t green, uint8_t blue, uint32_t on_duration_ms, uint32_t off_duration_ms) {
+    auto ticks = sync_tick_start(on_duration_ms + off_duration_ms);
+
+    static bool current_state { false };
+    bool required_state = ticks < on_duration_ms;
+    if (required_state != current_state) {
+        if (required_state) { // On
+            set_rgb(red, green, blue);
+            current_state = true;
+        } else { // Off
+            set_rgb(0, 0, 0);
+            current_state = false;
+        }
+    }
+}
+
+void pulsing(uint8_t red0, uint8_t green0, uint8_t blue0, uint8_t red1, uint8_t green1, uint8_t blue1, uint32_t period_ms) {
+    auto ticks = sync_tick_start(period_ms);
+
+    uint32_t power;              // Color 0 power [0 - 0x100]
+    if (ticks < period_ms / 2) { // Going on
+        power = ticks * 2 * 0x100 / period_ms;
+    } else {                     // Going off
+        power = (period_ms - ticks) * 2 * 0x100 / period_ms;
+    }
+    uint32_t antipower = 0x100 - power; // Color 1 power [0 - 0x100]
+
+    set_rgb((red0 * power + red1 * antipower) >> 8,
+        (green0 * power + green1 * antipower) >> 8,
+        (blue0 * power + blue1 * antipower) >> 8);
 }
 
 }; // namespace led

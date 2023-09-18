@@ -10,7 +10,7 @@
                 "BOARD": "<default>",
                 "BOARD_VERSION": "<default>",
                 "PRESET_COMPILE_OPTIONS": "",
-                "DEVELOPMENT_ITEMS_ENABLED": true
+                "DEVELOPMENT_ITEMS_ENABLED": false
             }
         },
         {

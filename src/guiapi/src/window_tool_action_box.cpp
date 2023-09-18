@@ -73,11 +73,13 @@ void ToolBox::I_MI_TOOL::set_parent(IDialog *parent_) {
 void ToolBox::I_MI_TOOL::do_click(IWindowMenu &window_menu, Tool tool, Action action, bool close_on_click) {
     switch (action) {
     case Action::PickInactive:
-        marlin_client::gcode_printf("T%d S", ftrstd::to_underlying(tool));
+        marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
+        marlin_client::gcode_printf("T%d S1 L0 D0", ftrstd::to_underlying(tool));
         wait_until_done();
         break;
     case Action::Park:
-        marlin_client::gcode_printf("T%d S", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
+        marlin_client::gcode("G27 P0 Z5"); // Lift Z if not high enough
+        marlin_client::gcode_printf("T%d S1 L0 D0", PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
         wait_until_done();
         break;
     case Action::CalibrateDock:

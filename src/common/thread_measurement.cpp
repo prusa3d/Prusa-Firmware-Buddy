@@ -9,6 +9,7 @@
 #include "trinamic.h"
 #include "metric.h"
 #include "timing.h"
+#include "printers.h"
 
 static metric_t metrics_tmc_sg[4] = {
     METRIC("tmc_sg_x", METRIC_VALUE_INTEGER, 10, METRIC_HANDLER_DISABLE_ALL),
@@ -56,7 +57,13 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
 
         // sample stallguard
         if (checkTimestampsAscendingOrder(next_sg_cycle, now)) {
-            uint8_t updated_axes = tmc_sample();
+            uint8_t updated_axes =
+#if PRINTER_IS_PRUSA_MINI
+                0;
+#else
+                tmc_sample();
+#endif
+
             record_trinamic_metrics(updated_axes);
 
             // This represents the lowest samplerate per axis

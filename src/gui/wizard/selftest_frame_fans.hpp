@@ -23,12 +23,12 @@ class SelftestFrameFans : public AddSuperWindow<SelftestFrameNamedWithRadio> {
     window_icon_t icon_print_fan;
     window_text_t text_print_fan;
 
-    window_text_t text_fans_switched;
+    // window_text_t text_fans_switched;
 
     struct fan_state_t {
         WindowIcon_OkNg icon_heatbreak_fan_state;
         WindowIcon_OkNg icon_print_fan_state;
-        WindowIcon_OkNg icon_fans_switched_state;
+        // WindowIcon_OkNg icon_fans_switched_state;
     };
     std::array<fan_state_t, HOTENDS> fan_states;
 

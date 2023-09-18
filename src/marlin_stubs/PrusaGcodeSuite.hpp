@@ -23,7 +23,9 @@ void G162(); ///< calibrate Z
 void G163(); ///< measure length of axis
 
 void M0();
-void M50(); ///< selftest
+void M50();  ///< selftest
+
+void M123(); ///< Fan speed reporting
 
 void M150();
 
@@ -72,14 +74,17 @@ void M863(); ///< tool mapping control
 void M864(); ///< spool join control
 #endif
 
+void M591(); ///< configure Filament stuck monitoring
+
 void M930();
 void M931();
 void M932();
-void M997();  ///< Update firmware. Prusa STM32 platform specific
-void M999();  ///< reset MCU. Prusa STM32 platform specific
+void M997(); ///< Update firmware. Prusa STM32 platform specific
+void M999();
 
 void M1587(); ///< Wi-Fi credentials
 void M1600(); ///< Menu change filament. Prusa STM32 platform specific
+void M1601(); ///< Filament stuck detected, Prusa STM32 platform specific
 void M1700(); ///< Preheat. Prusa STM32 platform specific
 void M1701(); ///< Autoload. Prusa STM32 platform specific
 

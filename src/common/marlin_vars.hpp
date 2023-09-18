@@ -124,6 +124,21 @@ public:
     }
 
     /**
+     * @brief Call a callback with the current value.
+     *
+     * Calls the callback with the contained value (without copying it),
+     * protected by the guard. Returns the result of the callback.
+     *
+     * Do not "exfiltrate" the pointer from the callback (it is not guaranteed
+     * to be valid outside the callback).
+     */
+    template <class C>
+    auto execute_with(C &&c) {
+        auto guard = MarlinVarsLockGuard();
+        return c(value);
+    }
+
+    /**
      * @brief Atomically change contents of this string
      *
      * @param from
@@ -143,12 +158,23 @@ public:
         (void)guard; // Lock argument is here just to make sure lock is acquired.
         strlcpy(value, from, LENGTH);
     }
+
     /**
      * @brief Check if this string is equal to another.
-     *
+     * @param with compare to this null-terminated string
      */
     bool equals(const char *with) const {
-        auto lock = MarlinVarsLockGuard();
+        auto guard = MarlinVarsLockGuard();
+        return equals(with, guard);
+    }
+
+    /**
+     * @brief Check if this string is equal to another.
+     * You acquire lock yourself. Use this if you want to atomically sample multiple values.
+     * @param with compare to this null-terminated string
+     */
+    bool equals(const char *with, MarlinVarsLockGuard &guard) const {
+        (void)guard; // Lock argument is here just to make sure lock is acquired.
         return std::strncmp(value, with, LENGTH) == 0;
     }
 
@@ -225,6 +251,16 @@ public:
     MarlinVariableString<FILE_PATH_BUFFER_LEN> media_SFN_path;
     MarlinVariableString<FILE_NAME_BUFFER_LEN> media_LFN;
     MarlinVariable<marlin_server::State> print_state; // marlin_server.print_state
+
+#if ENABLED(CANCEL_OBJECTS)
+    MarlinVariable<uint32_t> cancel_object_mask;            ///< Copy of mask of canceled objects
+    MarlinVariable<int8_t> cancel_object_count;             ///< Number of objects that can be canceled
+
+    static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32;    ///< Maximal length of cancel_object_names strings
+    static constexpr size_t CANCEL_OBJECTS_NAME_COUNT = 16; ///< Maximal number of cancel objects
+    /// Names of cancelable objects
+    MarlinVariableString<CANCEL_OBJECT_NAME_LEN> cancel_object_names[CANCEL_OBJECTS_NAME_COUNT];
+#endif /*ENABLED(CANCEL_OBJECTS)*/
 
     // 2B base types
     MarlinVariable<uint16_t> print_speed;         // printing speed factor [%]

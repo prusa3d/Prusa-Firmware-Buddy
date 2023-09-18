@@ -3,6 +3,7 @@
 
 #if ENABLED(PRUSA_TOOLCHANGER)
     #include "toolchanger_utils.h"
+    #include "bsod.h"
 
     #include <module/motion.h>
 

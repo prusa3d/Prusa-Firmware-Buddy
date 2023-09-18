@@ -1,7 +1,7 @@
-FROM prusa3d/gcc-multilib:10
+FROM ubuntu:22.04
 RUN apt-get clean && \
     apt-get update -qq -y && \
-    apt-get install curl python3 python3-pip python3-venv libncurses5 g++-multilib -y
+    apt-get install git curl python3 python3-pip python3-venv libncurses5 g++-multilib -y
 WORKDIR /work
 ADD utils/bootstrap.py utils/bootstrap.py
 ADD utils/debug/10_custom_config_template.cfg utils/debug/10_custom_config_template.cfg

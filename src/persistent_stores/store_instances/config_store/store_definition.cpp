@@ -1,53 +1,97 @@
-#include "store_instance.hpp"
+#include "store_definition.hpp"
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
 
 namespace config_store_ns {
 
 static_assert(sizeof(CurrentStore) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
-#if !defined(EEPROM_JOURNAL_SKIP_DUPLICITY_CHECK)
-static_assert(journal::has_unique_items<CurrentStore, DeprecatedStore>(), "Just added items are causing collisions");
-#endif
+static_assert(journal::has_unique_items<config_store_ns::CurrentStore>(), "Just added items are causing collisions with reserved backend IDs");
 
-int32_t CurrentStore::get_extruder_fs_ref_value(uint8_t index) {
+int32_t CurrentStore::get_extruder_fs_ref_nins_value(uint8_t index) {
     switch (index) {
     case 0:
-        return extruder_fs_ref_value_0.get();
+        return extruder_fs_ref_nins_value_0.get();
     case 1:
-        return extruder_fs_ref_value_1.get();
+        return extruder_fs_ref_nins_value_1.get();
     case 2:
-        return extruder_fs_ref_value_2.get();
+        return extruder_fs_ref_nins_value_2.get();
     case 3:
-        return extruder_fs_ref_value_3.get();
+        return extruder_fs_ref_nins_value_3.get();
     case 4:
-        return extruder_fs_ref_value_4.get();
+        return extruder_fs_ref_nins_value_4.get();
     case 5:
-        return extruder_fs_ref_value_5.get();
+        return extruder_fs_ref_nins_value_5.get();
     default:
         assert(false && "invalid index");
         return 0;
     }
 }
 
-void CurrentStore::set_extruder_fs_ref_value(uint8_t index, int32_t value) {
+void CurrentStore::set_extruder_fs_ref_nins_value(uint8_t index, int32_t value) {
     switch (index) {
     case 0:
-        extruder_fs_ref_value_0.set(value);
+        extruder_fs_ref_nins_value_0.set(value);
         break;
     case 1:
-        extruder_fs_ref_value_1.set(value);
+        extruder_fs_ref_nins_value_1.set(value);
         break;
     case 2:
-        extruder_fs_ref_value_2.set(value);
+        extruder_fs_ref_nins_value_2.set(value);
         break;
     case 3:
-        extruder_fs_ref_value_3.set(value);
+        extruder_fs_ref_nins_value_3.set(value);
         break;
     case 4:
-        extruder_fs_ref_value_4.set(value);
+        extruder_fs_ref_nins_value_4.set(value);
         break;
     case 5:
-        extruder_fs_ref_value_5.set(value);
+        extruder_fs_ref_nins_value_5.set(value);
+        break;
+    default:
+        assert(false && "invalid index");
+        return;
+    }
+}
+
+int32_t CurrentStore::get_extruder_fs_ref_ins_value(uint8_t index) {
+    switch (index) {
+    case 0:
+        return extruder_fs_ref_ins_value_0.get();
+    case 1:
+        return extruder_fs_ref_ins_value_1.get();
+    case 2:
+        return extruder_fs_ref_ins_value_2.get();
+    case 3:
+        return extruder_fs_ref_ins_value_3.get();
+    case 4:
+        return extruder_fs_ref_ins_value_4.get();
+    case 5:
+        return extruder_fs_ref_ins_value_5.get();
+    default:
+        assert(false && "invalid index");
+        return 0;
+    }
+}
+
+void CurrentStore::set_extruder_fs_ref_ins_value(uint8_t index, int32_t value) {
+    switch (index) {
+    case 0:
+        extruder_fs_ref_ins_value_0.set(value);
+        break;
+    case 1:
+        extruder_fs_ref_ins_value_1.set(value);
+        break;
+    case 2:
+        extruder_fs_ref_ins_value_2.set(value);
+        break;
+    case 3:
+        extruder_fs_ref_ins_value_3.set(value);
+        break;
+    case 4:
+        extruder_fs_ref_ins_value_4.set(value);
+        break;
+    case 5:
+        extruder_fs_ref_ins_value_5.set(value);
         break;
     default:
         assert(false && "invalid index");
@@ -101,45 +145,91 @@ void CurrentStore::set_extruder_fs_value_span(uint8_t index, uint32_t value) {
     }
 }
 
-int32_t CurrentStore::get_side_fs_ref_value(uint8_t index) {
+int32_t CurrentStore::get_side_fs_ref_nins_value(uint8_t index) {
     switch (index) {
     case 0:
-        return side_fs_ref_value_0.get();
+        return side_fs_ref_nins_value_0.get();
     case 1:
-        return side_fs_ref_value_1.get();
+        return side_fs_ref_nins_value_1.get();
     case 2:
-        return side_fs_ref_value_2.get();
+        return side_fs_ref_nins_value_2.get();
     case 3:
-        return side_fs_ref_value_3.get();
+        return side_fs_ref_nins_value_3.get();
     case 4:
-        return side_fs_ref_value_4.get();
+        return side_fs_ref_nins_value_4.get();
     case 5:
-        return side_fs_ref_value_5.get();
+        return side_fs_ref_nins_value_5.get();
     default:
         assert(false && "invalid index");
         return 0;
     }
 }
 
-void CurrentStore::set_side_fs_ref_value(uint8_t index, int32_t value) {
+void CurrentStore::set_side_fs_ref_nins_value(uint8_t index, int32_t value) {
     switch (index) {
     case 0:
-        side_fs_ref_value_0.set(value);
+        side_fs_ref_nins_value_0.set(value);
         break;
     case 1:
-        side_fs_ref_value_1.set(value);
+        side_fs_ref_nins_value_1.set(value);
         break;
     case 2:
-        side_fs_ref_value_2.set(value);
+        side_fs_ref_nins_value_2.set(value);
         break;
     case 3:
-        side_fs_ref_value_3.set(value);
+        side_fs_ref_nins_value_3.set(value);
         break;
     case 4:
-        side_fs_ref_value_4.set(value);
+        side_fs_ref_nins_value_4.set(value);
         break;
     case 5:
-        side_fs_ref_value_5.set(value);
+        side_fs_ref_nins_value_5.set(value);
+        break;
+    default:
+        assert(false && "invalid index");
+        return;
+    }
+}
+
+int32_t CurrentStore::get_side_fs_ref_ins_value(uint8_t index) {
+    switch (index) {
+    case 0:
+        return side_fs_ref_ins_value_0.get();
+    case 1:
+        return side_fs_ref_ins_value_1.get();
+    case 2:
+        return side_fs_ref_ins_value_2.get();
+    case 3:
+        return side_fs_ref_ins_value_3.get();
+    case 4:
+        return side_fs_ref_ins_value_4.get();
+    case 5:
+        return side_fs_ref_ins_value_5.get();
+    default:
+        assert(false && "invalid index");
+        return 0;
+    }
+}
+
+void CurrentStore::set_side_fs_ref_ins_value(uint8_t index, int32_t value) {
+    switch (index) {
+    case 0:
+        side_fs_ref_ins_value_0.set(value);
+        break;
+    case 1:
+        side_fs_ref_ins_value_1.set(value);
+        break;
+    case 2:
+        side_fs_ref_ins_value_2.set(value);
+        break;
+    case 3:
+        side_fs_ref_ins_value_3.set(value);
+        break;
+    case 4:
+        side_fs_ref_ins_value_4.set(value);
+        break;
+    case 5:
+        side_fs_ref_ins_value_5.set(value);
         break;
     default:
         assert(false && "invalid index");

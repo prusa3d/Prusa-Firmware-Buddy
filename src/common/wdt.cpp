@@ -3,6 +3,7 @@
 #include <device/hal.h>
 #include "wdt.h"
 #include "config.h"
+#include "priorities_config.h"
 
 static const constexpr uint16_t WDT_IWDG_WARNING_DELAY = 3000; // 3s warning delay (1s for some actions)
 static const constexpr uint16_t WDT_IWDG_RELOAD = 4095;        // 4s max period
