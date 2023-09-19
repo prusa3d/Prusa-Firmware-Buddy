@@ -364,6 +364,10 @@ float home_axis_precise(AxisEnum axis, int axis_home_dir, bool can_calibrate, fl
         while (can_calibrate && !sens_calibration.is_calibrated()) {
             ui.status_printf_P(0, "Recalibrating %c axis. Printer may vibrate and be noisier.", axis_codes[axis]);
             home_and_get_calibration_offset(axis, axis_home_dir, probe_offset, false, fr_mm_s);
+            if (planner.draining()) {
+                // ensure we do not save aborted calibration probes
+                break;
+            }
             sens_calibration.update_probe_offset_avg(probe_offset);
         }
 #endif
