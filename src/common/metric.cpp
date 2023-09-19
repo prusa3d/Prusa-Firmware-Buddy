@@ -5,7 +5,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <metric_handlers.h>
 #include <ccm_thread.hpp>
 #include "priorities_config.h"
 #include <cstring>
@@ -54,8 +53,6 @@ void metric_system_init(metric_handler_t *handlers[]) {
         return;
     }
     metric_system_handlers = handlers;
-
-    metric_handlers_init();
 
     // first create mail queue, then thread, Note that we pass nullptr as thread_id to osMailCreate, but its unused so its fine.
     metric_system_queue = osMailCreate(osMailQ(metric_system_queue), nullptr);

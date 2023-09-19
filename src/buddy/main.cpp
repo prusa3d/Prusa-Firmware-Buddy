@@ -20,6 +20,7 @@
 #include "timer_defaults.h"
 #include "tick_timer_api.h"
 #include "thread_measurement.h"
+#include "log_dest_syslog.h"
 #include "metric_handlers.h"
 #include "hwio_pindef.h"
 #include "gui.hpp"
@@ -518,6 +519,11 @@ extern "C" void main_cpp(void) {
         connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
     }
 #endif
+
+    // There is no point in initializing syslog before networking is up
+    TaskDeps::wait(TaskDeps::Tasks::connect);
+    syslog_initialize();
+    metric_handlers_init();
 
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */

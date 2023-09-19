@@ -6,7 +6,7 @@
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
 #include "timing.h"
-#include "syslog.h"
+#include "syslog_transport.hpp"
 #include "otp.hpp"
 #include "sensor_data_buffer.h"
 #include <option/development_items.h>
@@ -115,17 +115,10 @@ metric_handler_t metric_handler_uart = {
 //
 // SysLog Handler
 //
-osMutexDef(syslog_server_lock);
-osMutexId syslog_server_lock_id;
-static char syslog_server_ipaddr[config_store_ns::metrics_host_size + 1] = "";
-static uint16_t syslog_server_port = 0;
-static syslog_transport_t syslog_transport;
-static std::atomic<bool> reinit = false; ///< Close and reopen connection
+// Note: This is not required to be in CCMRAM and can be moved to regular RAM if needed.
+static __attribute__((section(".ccmram"))) SyslogTransport syslog_transport;
 
 void metric_handlers_init() {
-    // Mutex for syslog server address and port
-    syslog_server_lock_id = osMutexCreate(osMutex(syslog_server_lock));
-
     // Init syslog handler address and port from eeprom
     const MetricsAllow metrics_allow = config_store().metrics_allow.get();
     if ((metrics_allow == MetricsAllow::One || metrics_allow == MetricsAllow::All)
@@ -185,32 +178,7 @@ static void syslog_handler(metric_point_t *point) {
 
     // send the buffer if it's full or old enough
     if (buffer_full || buffer_becoming_old) {
-        // is the socket ready?
-        bool open = syslog_transport_check_is_open(&syslog_transport);
-
-        // Request for reinit
-        if (reinit.exchange(false) && open) {
-            syslog_transport_close(&syslog_transport); // Close to use new host and port
-            open = false;
-        }
-
-        // if not, try to open the socket
-        if (!open) {
-            if (osMutexWait(syslog_server_lock_id, osWaitForever) != osOK) {
-                return; // Could not get mutex, maybe OS was killed
-            }
-            open = syslog_transport_open(&syslog_transport, syslog_server_ipaddr, syslog_server_port);
-            osMutexRelease(syslog_server_lock_id);
-        }
-
-        // try to send the message if we have an open socket
-        if (open) {
-            bool sent = syslog_transport_send(&syslog_transport, buffer, buffer_used);
-            if (!sent) {
-                syslog_transport_close(&syslog_transport);
-            }
-        }
-
+        syslog_transport.send(buffer, buffer_used);
         buffer_used = 0;
         buffer_has_header = false;
     }
@@ -224,21 +192,15 @@ static void syslog_handler(metric_point_t *point) {
 }
 
 void metric_handler_syslog_configure(const char *ip, uint16_t port) {
-    if (osMutexWait(syslog_server_lock_id, osWaitForever) != osOK) {
-        return; // Could not get mutex, maybe OS was killed
-    }
-    strlcpy(syslog_server_ipaddr, ip, sizeof(syslog_server_ipaddr));
-    syslog_server_port = port;
-    reinit = true; // Close and reopen connection
-    osMutexRelease(syslog_server_lock_id);
+    syslog_transport.reopen(ip, port);
 }
 
 const char *metric_handler_syslog_get_host() {
-    return syslog_server_ipaddr;
+    return syslog_transport.get_remote_host();
 }
 
 uint16_t metric_handler_syslog_get_port() {
-    return syslog_server_port;
+    return syslog_transport.get_remote_port();
 }
 
 metric_handler_t metric_handler_syslog = {

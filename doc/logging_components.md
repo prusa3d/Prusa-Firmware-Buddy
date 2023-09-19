@@ -44,7 +44,6 @@ This file is generated automatically so don't edit it directly
 - Puppies: LOG_SEVERITY_DEBUG, src/puppies/puppy_task.cpp
 - Resources: LOG_SEVERITY_DEBUG, src/resources/bootstrap.cpp
 - Selftest: LOG_SEVERITY_DEBUG, src/common/selftest/i_selftest.cpp
-- Syslog: LOG_SEVERITY_INFO, src/syslog/syslog.cpp
 - Touch: LOG_SEVERITY_INFO, src/hw/touchscreen/touchscreen_common.cpp
 - USBDevice: LOG_SEVERITY_INFO, src/buddy/usb_device.cpp
 - USBHost: LOG_SEVERITY_INFO, src/buddy/usbh_conf.cpp
