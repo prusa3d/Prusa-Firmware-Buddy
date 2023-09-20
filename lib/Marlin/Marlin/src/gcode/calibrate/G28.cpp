@@ -227,6 +227,11 @@ static inline void MINDA_BROKEN_CABLE_DETECTION__END() {}
       // Disallow detection if if X or Y or Z homing is needed
       if (homing_needed_error(_BV(X_AXIS) | _BV(Y_AXIS) | _BV(Z_AXIS))) return false;
 
+      #if ENABLED(NOZZLE_LOAD_CELL) && HOMING_Z_WITH_PROBE
+        // Enable loadcell high precision across the entire procedure to prime the noise filters
+        auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
+      #endif
+
       /**
        * Move the Z probe (or just the nozzle) to the sheet
        * detect point
