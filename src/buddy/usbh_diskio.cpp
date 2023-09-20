@@ -412,11 +412,13 @@ bool UsbhMscReadahead::get(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::Secto
     }
 }
 
+// typical fatfs read requests are 1kb so it's a good idea to preload 2 sectors
 void UsbhMscReadahead::notify_read(UsbhMscRequest::LunNbr lun_nbr, UsbhMscRequest::SectorNbr sector_nbr) {
     Lock lock(mutex);
     if (this->lun_nbr != lun_nbr)
         return;
     static_assert(size >= 2);
+    // find the oldest and second oldest slots
     auto it = begin(cache);
     auto first = it++;
     auto second = it++;

@@ -160,7 +160,12 @@ USBH_StatusTypeDef USBH_MSC_BOT_Init(USBH_HandleTypeDef *phost)
   return USBH_OK;
 }
 
-
+uint32_t calc_transfer_length(uint32_t length) {
+    uint32_t packets = (length + 63) / 64;
+    packets = MAX(packets, 1);
+    packets = MIN(packets, 16);
+    return packets * 64;
+}
 
 /**
   * @brief  USBH_MSC_BOT_Process
@@ -265,7 +270,7 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
     case BOT_DATA_IN:
       /* Send first packet */
       (void)USBH_BulkReceiveData(phost, MSC_Handle->hbot.pbuf,
-                                 MSC_Handle->InEpSize, MSC_Handle->InPipe);
+                                  calc_transfer_length(MSC_Handle->hbot.cbw.field.DataTransferLength), MSC_Handle->InPipe);
 
       MSC_Handle->hbot.state = BOT_DATA_IN_WAIT;
 
@@ -278,10 +283,11 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
       if (URB_Status == USBH_URB_DONE)
       {
         /* Adjust Data pointer and data length */
-        if (MSC_Handle->hbot.cbw.field.DataTransferLength > MSC_Handle->InEpSize)
+        uint32_t transfer_length = calc_transfer_length(MSC_Handle->hbot.cbw.field.DataTransferLength);
+        if (MSC_Handle->hbot.cbw.field.DataTransferLength > transfer_length)
         {
-          MSC_Handle->hbot.pbuf += MSC_Handle->InEpSize;
-          MSC_Handle->hbot.cbw.field.DataTransferLength -= MSC_Handle->InEpSize;
+          MSC_Handle->hbot.pbuf += transfer_length;
+          MSC_Handle->hbot.cbw.field.DataTransferLength -= transfer_length;
         }
         else
         {
@@ -293,7 +299,7 @@ USBH_StatusTypeDef USBH_MSC_BOT_Process(USBH_HandleTypeDef *phost, uint8_t lun)
         {
           /* Send next packet */
           (void)USBH_BulkReceiveData(phost, MSC_Handle->hbot.pbuf,
-                                     MSC_Handle->InEpSize, MSC_Handle->InPipe);
+                                     calc_transfer_length(MSC_Handle->hbot.cbw.field.DataTransferLength), MSC_Handle->InPipe);
         }
         else
         {
