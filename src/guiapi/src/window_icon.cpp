@@ -9,7 +9,6 @@
 #include "img_resources.hpp"
 #include "gcode_thumb_decoder.h"
 #include "gui_invalidate.hpp"
-#include "syslog.h"
 #include "timing.h"
 
 LOG_COMPONENT_REF(GUI);
