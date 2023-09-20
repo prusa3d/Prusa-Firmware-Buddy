@@ -42,8 +42,8 @@ void nozzle_park();
 
 bool marlin_printingIsActive();
 void marlin_manage_heater();
-void marlin_manage_inactivity(bool b);
-void marlin_idle(bool b);
+void marlin_manage_inactivity(bool ignore_stepper_queue);
+void marlin_idle(bool waiting);
 void marlin_refresh_print_state_in_ram();
 void marlin_clear_print_state_in_ram();
 void marlin_stop_and_save_print_to_ram();

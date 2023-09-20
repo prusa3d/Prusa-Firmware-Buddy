@@ -70,12 +70,12 @@ void marlin_manage_heater() {
     thermalManager.manage_heater();
 }
 
-void marlin_manage_inactivity(bool b) {
-    manage_inactivity(b);
+void marlin_manage_inactivity(bool ignore_stepper_queue) {
+    manage_inactivity(ignore_stepper_queue);
 }
 
-void marlin_idle(bool b) {
-    idle(b);
+void marlin_idle(bool waiting) {
+    idle(waiting);
 }
 
 void marlin_refresh_print_state_in_ram() {

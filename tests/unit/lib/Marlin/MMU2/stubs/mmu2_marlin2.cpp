@@ -60,10 +60,10 @@ bool marlin_printingIsActive() { return printingIsActive; }
 void marlin_manage_heater() {
     mockLog_RecordFn();
 }
-void marlin_manage_inactivity(bool b) {
+void marlin_manage_inactivity(bool /*ignore_stepper_queue*/) {
     mockLog_RecordFn();
 }
-void marlin_idle(bool) {
+void marlin_idle(bool /*waiting*/) {
     mmu2.mmu_loop();
 }
 
