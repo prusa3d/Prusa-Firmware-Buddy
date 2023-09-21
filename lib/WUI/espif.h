@@ -29,7 +29,7 @@ void espif_flash_deinitialize();
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize hw access
 /// , shared mutex, uart config and state used by normal and flash mode.
-err_t espif_init_hw();
+void espif_init_hw();
 
 ////////////////////////////////////////////////////////////////////////////
 /// @brief Initialize ESPIF (part of LwIP netif setup)
