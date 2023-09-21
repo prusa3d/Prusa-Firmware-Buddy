@@ -315,6 +315,9 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
         radio_for_notice_dialog.Show(); // show red screen radio button
 
         CaptureNormalWindow(radio_for_notice_dialog);
+
+        filament_type_text.Hide();
+        filament_color_icon.Hide();
     }
 
     // is notice
