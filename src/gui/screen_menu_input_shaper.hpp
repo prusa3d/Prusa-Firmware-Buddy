@@ -14,11 +14,7 @@ using ScreenMenuInputShaper = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_
 
 class ScreenMenuInputShaper : public detail::ScreenMenuInputShaper {
 public:
-#if !PRINTER_IS_PRUSA_MK4
-    constexpr static const char *label = N_("INPUT SHAPER (ALPHA)");
-#else
     constexpr static const char *label = N_("INPUT SHAPER");
-#endif
     ScreenMenuInputShaper();
 
 protected:
