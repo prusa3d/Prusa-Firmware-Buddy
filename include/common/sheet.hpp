@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 
 inline constexpr size_t MAX_SHEET_NAME_LENGTH { 8 };
 

@@ -10,6 +10,7 @@
 #pragma once
 #include "eeprom_v7.hpp"
 #include <common/sheet.hpp>
+#include <limits>
 
 namespace config_store_ns::old_eeprom::v9 {
 

@@ -8,11 +8,14 @@
 #include <cassert>
 #include <cinttypes>
 #include <timing.h>
+#include <mutex>
 
 #include <FreeRTOS.h>
+#include <freertos_mutex.hpp>
 #include <task.h>
 #include <semphr.h>
 #include <ccm_thread.hpp>
+#include <bsod.h>
 
 #include "main.h"
 #include "../metric.h"
@@ -36,6 +39,7 @@ extern "C" {
 #include <lwip/sys.h>
 
 #include "log.h"
+#include <Marlin/src/inc/MarlinConfigPre.h>
 
 LOG_COMPONENT_DEF(ESPIF, LOG_SEVERITY_INFO);
 

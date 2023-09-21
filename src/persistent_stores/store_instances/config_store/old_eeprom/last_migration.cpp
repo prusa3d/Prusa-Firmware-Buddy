@@ -3,6 +3,8 @@
 #include <journal/backend.hpp>
 #include <charconv>
 #include <version.h>
+#include <config_store/backend_instance.hpp>
+#include <journal/store.hpp>
 
 namespace config_store_ns::old_eeprom {
 void eeprom_init_ram_mirror(eeprom_data &eeprom_ram_mirror) {

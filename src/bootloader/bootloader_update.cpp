@@ -9,6 +9,7 @@
 #include "bsod.h"
 #include <string.h>
 #include "sys.h"
+#include <span>
 
 #include "data_exchange.hpp"
 #include "resources/bootstrap.hpp"

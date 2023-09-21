@@ -5,6 +5,8 @@
 #include "FreeRTOS.h"
 #include "tick_timer_api.h"
 #include "wdt.h"
+#include <buddy/priorities_config.h>
+
 #define TICK_TIMER_CNT (h_tick_tim.Instance->CNT)
 
 // Large numbers to avoid number of 0s errors

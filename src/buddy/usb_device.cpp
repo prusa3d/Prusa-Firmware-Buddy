@@ -7,6 +7,7 @@
 #include "otp.hpp"
 #include "buddy/priorities_config.h"
 #include <ccm_thread.hpp>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 

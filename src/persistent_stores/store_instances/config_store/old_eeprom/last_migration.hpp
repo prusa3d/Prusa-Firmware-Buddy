@@ -1,6 +1,7 @@
 #pragma once
 
 #include "eeprom_v_current.hpp"
+#include <journal/backend.hpp>
 
 /**
  * @brief Remnants of old eeprom required for migration

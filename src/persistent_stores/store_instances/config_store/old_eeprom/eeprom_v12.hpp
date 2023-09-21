@@ -7,6 +7,7 @@
 #pragma once
 #include "eeprom_v11.hpp"
 #include "footer_eeprom.hpp"
+#include <Marlin/src/inc/MarlinConfigPre.h>
 
 namespace config_store_ns::old_eeprom::v12 {
 

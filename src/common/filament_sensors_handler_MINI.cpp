@@ -5,6 +5,7 @@
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_types.hpp"
 #include "filament_sensor_photoelectric.hpp"
+#include <cassert>
 
 // Meyer's singleton
 static FSensorPhotoElectric *getExtruderFSensor(uint8_t index) {

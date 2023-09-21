@@ -10,6 +10,7 @@
 #pragma once
 #include "eeprom_v4.hpp"
 #include "config.h"
+#include <cstring>
 
 namespace config_store_ns::old_eeprom::v6 {
 

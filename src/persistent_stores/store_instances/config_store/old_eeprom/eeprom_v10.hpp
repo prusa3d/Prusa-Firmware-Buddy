@@ -9,6 +9,9 @@
 
 #pragma once
 #include "eeprom_v9.hpp"
+#include <footer_eeprom.hpp>
+#include <Configuration.h>
+#include <Configuration_adv.h>
 
 namespace config_store_ns::old_eeprom::v10 {
 
