@@ -141,22 +141,24 @@ public:
     /**
      * @brief Atomically change contents of this string
      *
-     * @param from
+     * @param from string to copy
+     * @param max_len use max this number of characters (not counting '\0')
      */
-    void set(const char *from) {
+    void set(const char *from, size_t max_len = LENGTH) {
         auto guard = MarlinVarsLockGuard();
-        set(from, guard);
+        set(from, max_len, guard);
     }
 
     /**
      * @brief Atomically change contents of this string
      * You acquire lock yourself. Use this if you want to atomically sample multiple values.
-     * @param from
+     * @param from string to copy
+     * @param max_len use max this number of characters (not counting '\0')
      * @param guard
      */
-    void set(const char *from, MarlinVarsLockGuard &guard) {
+    void set(const char *from, size_t max_len, MarlinVarsLockGuard &guard) {
         (void)guard; // Lock argument is here just to make sure lock is acquired.
-        strlcpy(value, from, LENGTH);
+        strlcpy(value, from, std::min(max_len + 1, LENGTH));
     }
 
     /**
