@@ -1217,7 +1217,17 @@ static void _server_print_loop(void) {
                 }
             }
 #endif /*HAS_TOOLCHANGER()*/
-
+#if HAS_MMU2()
+            if (MMU2::mmu2.Enabled() && GCodeInfo::getInstance().is_singletool_gcode() && MMU2::mmu2.get_current_tool() == MMU2::FILAMENT_UNKNOWN) {
+                // POC: Handle singletool G-code which doesn't have T commands in it
+                // In case we don't have other filament loaded!
+                // Unfortunately we don't have the nozzle heated, an ugly workaround is to enqueue an M109 :(
+                enqueue_gcode("M109 S215"); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
+                enqueue_gcode("T0"); // tool change T0 (can be remapped to anything)
+                enqueue_gcode("G92 E0");
+                enqueue_gcode("G1 E67 F6000"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
+            }
+#endif
             break;
         }
 
