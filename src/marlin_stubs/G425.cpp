@@ -278,8 +278,7 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
         stepper.position(C_AXIS), stepper.position(E_AXIS) } } };
     xyze_pos_t initial_mm = current_position;
 
-    // Setup probe
-    auto enabler = Loadcell::HighPrecisionEnabler(loadcell);
+    // Setup probe for XY endstop
     loadcell.set_xy_endstop(true);
 
     // Wait for resonance to damper and tare
@@ -524,6 +523,10 @@ const xyz_pos_t get_single_xyz_center(const xyz_pos_t initial, const uint8_t too
 }
 
 const xyz_pos_t get_xyz_center(const uint8_t tool) {
+
+    // Enable loadcell high precision across the entire procedure to prime the noise filters
+    auto loadcellPrecisionEnabler = Loadcell::HighPrecisionEnabler(loadcell);
+
     xyz_pos_t center = true_top_center;
     for (Phase phase = Phase::first; phase != Phase::_count; phase = Phase(ftrstd::to_underlying(phase) + 1)) {
         center = get_single_xyz_center(center, tool, phase);
