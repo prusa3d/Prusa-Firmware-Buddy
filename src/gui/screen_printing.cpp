@@ -370,12 +370,7 @@ void screen_printing_data_t::screen_printing_reprint() {
     SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Stop, LabelRes::Stop);
 
 #ifndef DEBUG_FSENSOR_IN_HEADER
-    #if not PRINTER_IS_PRUSA_MK4
-    header.SetText(_("INPUT SHAPER (ALPHA)"));
-    #else
-    header.SetText(_("INPUT SHAPER"));
-    #endif
-
+    header.SetText(_(caption));
 #endif
 }
 
