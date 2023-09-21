@@ -200,11 +200,7 @@ screen_home_data_t::screen_home_data_t()
 #endif
 #if !defined(_DEBUG) && !DEVELOPER_MODE()
     // regular home screen
-    #if !PRINTER_IS_PRUSA_MK4
-    header.SetText(_("INPUT SHAPER (ALPHA)"));
-    #else
-    header.SetText(_("INPUT SHAPER"));
-    #endif
+    header.SetText(_("HOME"));
 
 #else
     // show the appropriate build header
