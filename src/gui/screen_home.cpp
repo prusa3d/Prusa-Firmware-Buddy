@@ -330,8 +330,13 @@ void screen_home_data_t::on_enter() {
     if (!input_shaper_warning_shown) {
         input_shaper_warning_shown = true;
         MsgBoxISWarning(_(
+        #ifdef USE_ST7789
+                            "This firmware is still in development.\n\n"
+                            "Do not leave the printer unattended.\n\n"
+        #else
                             "This firmware is still in development and is for testing purposes only.\n\n"
                             "Input Shaper enabled. Do not leave the printer unattended.\n\n"
+        #endif
                             "More info at prusa.io/input-shaper"),
             Responses_Ok);
     }
