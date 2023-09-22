@@ -5,6 +5,7 @@ add_subdirectory(gcode)
 add_subdirectory(http)
 add_subdirectory(utils)
 add_subdirectory(filament_sensor)
+add_subdirectory(codepage)
 
 add_definitions(-DUNITTESTS)
 
