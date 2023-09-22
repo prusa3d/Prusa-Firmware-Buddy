@@ -6,11 +6,13 @@
 #include "gui/gui_media_events.hpp"
 
 #include <common/timing.h>
+#include <common/crc32.h>
 #include <common/filename_type.hpp>
 #include <common/bsod.h>
 #include <common/unique_dir_ptr.hpp>
 #include <common/print_utils.hpp>
 #include <common/stat_retry.hpp>
+#include <common/lfn.h>
 #include <state/printer_state.hpp>
 #include <option/has_human_interactions.h>
 
@@ -538,6 +540,11 @@ bool Transfer::cleanup_finalize(Path &transfer_path) {
     // move the partial file to temporary location
     const char *temporary_filename = "/usb/prusa-temporary-file.gcode";
     remove(temporary_filename); // remove the file if there is some leftover already
+
+    char SFN[FILE_PATH_BUFFER_LEN];
+    strlcpy(SFN, transfer_path.as_destination(), sizeof(SFN));
+    get_SFN_path(SFN);
+    uint32_t old_SFN_crc = crc32_calc((const uint8_t *)SFN, sizeof(SFN));
     if (rename(transfer_path.as_partial(), temporary_filename) != 0) {
         log_error(transfers, "Failed to move partial file to temporary location");
         return false;
@@ -552,6 +559,18 @@ bool Transfer::cleanup_finalize(Path &transfer_path) {
         return false;
     }
 
+    strlcpy(SFN, transfer_path.as_destination(), sizeof(SFN));
+    get_SFN_path(SFN);
+    uint32_t new_SFN_crc = crc32_calc((const uint8_t *)SFN, sizeof(SFN));
+
+    if (old_SFN_crc != new_SFN_crc) {
+        // if SFN changed, trigger a rescan of the whole folder
+        ChangedPath::instance.changed_path(transfer_path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Deleted);
+        ChangedPath::instance.changed_path(transfer_path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Created);
+    } else {
+        // else just send the FILE_INFO, to notify connect, that the filke is not read_only anymore
+        ChangedPath::instance.changed_path(transfer_path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Created);
+    }
     log_info(transfers, "Transfer %s cleaned up", transfer_path.as_destination());
 
     return true;
