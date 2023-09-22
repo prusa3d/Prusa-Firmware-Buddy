@@ -1,5 +1,12 @@
 #include "437.hpp"
 
+#include <cassert>
+#include <cstring>
+#include <tuple>
+
+using std::make_tuple;
+using std::tuple;
+
 namespace {
 
 // Table of 437->codepoint conversion.
@@ -289,12 +296,74 @@ size_t to_utf8(uint8_t *output, const uint8_t *input, size_t input_size, const u
 
     return pos;
 }
+
+// TODO: Also move somewhere shared once we have more encoding/decoding
+// TODO: Do we want to have some error detection for some future purposes?
+tuple<uint16_t, size_t> get_codepoint(const uint8_t *input, size_t size) {
+    assert(size > 0);
+    uint16_t first = *input;
+    // Handle multi-byte cases (that fit).
+    //
+    // We do not decode 4-byte ones, since that would be outside of the 16-bit
+    // range and we do not have/support any codepage with such characters.
+    //
+    // We also do not check the continuation bytes have leading 10, we are not
+    // _validating_.
+    if ((first & 0b11100000) == 0b11000000 && size >= 2) {
+        uint16_t second = input[1];
+        return make_tuple((first & 0b00011111) << 6 | (second & 0b00111111), 2);
+    }
+    if ((first & 0b11110000) == 0b11100000 && size >= 3) {
+        uint16_t second = input[1];
+        uint16_t third = input[2];
+        return make_tuple((first & 0b00001111) << 12 | (second & 0b00111111) << 6 | (third & 0b00111111), 3);
+    }
+    // This is either a valid 1-byte sequence or something invalid. Either way,
+    // we pass the byte as it is.
+    return make_tuple(first, 1);
+}
+
+size_t from_utf8(uint8_t *inout, size_t size, const uint16_t *table) {
+    size_t pos_in = 0;
+    size_t pos_out = 0;
+
+    while (pos_in < size) {
+        auto [codepoint, cp_len] = get_codepoint(inout + pos_in, size - pos_in);
+        if (codepoint < 256 && table[codepoint] == codepoint) {
+            // Just optimization, no need for linear search for "normal" characters.
+            inout[pos_out++] = codepoint;
+        } else {
+            bool found = false;
+            for (size_t i = 0; i < 256; i++) {
+                if (table[i] == codepoint) {
+                    inout[pos_out++] = i;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                // Code point not supported by this. Pass the whole code point bytes intact
+                memmove(inout + pos_out, inout + pos_in, cp_len);
+            }
+        }
+
+        pos_in += cp_len;
+    }
+
+    return pos_out;
+}
+
 } // namespace
 
 namespace codepage {
 
 size_t cp437_to_utf8(uint8_t *output, const uint8_t *input, size_t input_size) {
     return to_utf8(output, input, input_size, table);
+}
+
+size_t utf8_to_cp437(uint8_t *inout, size_t size) {
+    return from_utf8(inout, size, table);
 }
 
 } // namespace codepage

@@ -34,3 +34,13 @@ TEST_CASE("437 -> utf8") {
     REQUIRE(codepage::cp437_to_utf8(output, input, sizeof(input)) == len);
     REQUIRE(memcmp(expected, output, len) == 0);
 }
+
+TEST_CASE("utf8 -> 437 valid") {
+    REQUIRE(codepage::utf8_to_cp437(nullptr, 0) == 0);
+
+    const size_t len = sizeof(expected);
+    uint8_t buffer[len];
+    memcpy(buffer, expected, len);
+    REQUIRE(codepage::utf8_to_cp437(buffer, sizeof(buffer)) == sizeof(input));
+    REQUIRE(memcmp(input, buffer, sizeof(input)) == 0);
+}
