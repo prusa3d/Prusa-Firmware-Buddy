@@ -266,11 +266,16 @@ namespace {
                         JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("display_name", params.job_lfn() != nullptr ? params.job_lfn() : basename_b(params.job_path())) JSON_COMMA;
+                    if (params.job_lfn() != nullptr) {
+                        JSON_FIELD_STR("display_name", params.job_lfn());
+                    } else {
+                        JSON_FIELD_STR_437("display_name", basename_b(params.job_path()));
+                    }
+                    JSON_COMMA;
                     if (event.start_cmd_id.has_value()) {
                         JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("path", params.job_path());
+                    JSON_FIELD_STR_437("path", params.job_path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");
@@ -295,9 +300,11 @@ namespace {
                     // Warning: the path->name() is there (hidden) for FileInfo
                     // but _not_ for JobInfo. Do not just copy that into that
                     // part!
+                    //
+                    // XXX: Can the name be SFN?
                     JSON_FIELD_STR("display_name", event.path->name()) JSON_COMMA;
                     JSON_FIELD_STR("type", state.file_extra.renderer.holds_alternative<DirRenderer>() ? "FOLDER" : file_type_by_ext(event.path->path())) JSON_COMMA;
-                    JSON_FIELD_STR("path", event.path->path());
+                    JSON_FIELD_STR_437("path", event.path->path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::TransferInfo) {
                 JSON_FIELD_OBJ("data");
@@ -325,6 +332,9 @@ namespace {
                     // Note: This works, because destination cannot go from non null to null
                     // (if one transfer ends and another starts mid report, we bail out)
                     if (transfer_status->destination) {
+                        // FIXME: This one is problematic, part is SFN, part is LFN.
+                        //
+                        // For now, we consider it SFN (because that always produces valid utf8 at least), needs fix later on.
                         JSON_FIELD_STR_G(transfer_status.has_value(), "path", transfer_status->destination) JSON_COMMA;
                     }
                     if (event.start_cmd_id.has_value()) {
@@ -348,11 +358,11 @@ namespace {
                         JSON_FIELD_INT("free_space", params.usb_space_free) JSON_COMMA;
                     }
                     if (event.incident == transfers::ChangedPath::Incident::Created) {
-                        JSON_FIELD_STR("new_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR_437("new_path", event.path->path()) JSON_COMMA;
                     } else if (event.incident == transfers::ChangedPath::Incident::Deleted) {
-                        JSON_FIELD_STR("old_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR_437("old_path", event.path->path()) JSON_COMMA;
                     } else /*Combined*/ {
-                        JSON_FIELD_STR("new_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR_437("new_path", event.path->path()) JSON_COMMA;
                         JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
                     }
                     JSON_FIELD_OBJ("file")
@@ -676,7 +686,7 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
         }
 
         JSON_OBJ_START;
-            JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
+            JSON_FIELD_STR_437("name", state.ent->d_name) JSON_COMMA;
             JSON_FIELD_STR("display_name", dirent_lfn(state.ent)) JSON_COMMA;
             JSON_FIELD_INT("size", state.childsize.has_value() ? state.childsize.value() : child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
 #ifdef UNITTESTS

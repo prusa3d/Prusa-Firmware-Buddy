@@ -1,10 +1,12 @@
 #include "segmented_json.h"
 #include "json_encode.h"
+#include "codepage/437.hpp"
 
 #include <cassert>
 #include <cstdio>
 #include <cstdarg>
 #include <cinttypes>
+#include <cstring>
 
 using std::make_tuple;
 
@@ -30,6 +32,20 @@ JsonResult JsonOutput::output(size_t resume_point, const char *format, ...) {
         this->resume_point = resume_point;
         return written_something ? JsonResult::Incomplete : JsonResult::BufferTooSmall;
     }
+}
+
+JsonResult JsonOutput::output_field_str_437(size_t resume_point, const char *name, const char *value) {
+    const size_t len_value = strlen(value);
+    uint8_t buffer[len_value * 3]; // Encoding might grow up to 3 times (\0 is not needed)
+    size_t len_encoded = codepage::cp437_to_utf8(buffer, reinterpret_cast<const uint8_t *>(value), len_value);
+
+    assert(len_encoded <= sizeof(buffer));
+    // There are no JSON-special characters in there in the encoded data because:
+    // * Control characters don't exist as our "dingbats" version of 437
+    // * " and \ are not allowed in SFN and this is for SFNs and similar only.
+    assert(jsonify_str_buffer_len(reinterpret_cast<const char *>(buffer), len_encoded) == 0);
+
+    return output(resume_point, "\"%s\":\"%.*s\"", name, static_cast<int>(len_encoded), reinterpret_cast<const char *>(buffer));
 }
 
 JsonResult JsonOutput::output_field_str(size_t resume_point, const char *name, const char *value) {
