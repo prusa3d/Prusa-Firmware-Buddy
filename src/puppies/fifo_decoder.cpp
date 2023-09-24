@@ -34,6 +34,9 @@ void Decoder::decode(const Callbacks_t callbacks) {
         case MessageType::accelerometer_fast:
             make_call(callbacks.accelerometer_fast_handler);
             break;
+        case MessageType::accelerometer_sampling_rate:
+            make_call(callbacks.accelerometer_freq_handler);
+            break;
         default:
             assert(false);
         }

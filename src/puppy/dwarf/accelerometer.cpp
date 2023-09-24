@@ -4,6 +4,7 @@
 #include <cstdint>
 #include "circle_buffer.hpp"
 #include <atomic>
+#include <cassert>
 #include <lis2dh12_reg.h>
 #include "hwio_pindef.h"
 
@@ -18,8 +19,14 @@ static constexpr lis2dh12_odr_t low_sample_rate = LIS2DH12_ODR_400Hz;
 static constexpr lis2dh12_odr_t high_sample_rate = LIS2DH12_ODR_5kHz376_LP_1kHz344_NM_HP;
 
 CircleBuffer<AccelerometerRecord, ACCELEROMETER_BUFFER_RECORDS_NUM> sample_buffer;
+
+uint32_t first_sample_timestamp = 0;
+uint32_t last_sample_timestamp = 0;
+size_t samples_extracted = 0;
+
 size_t overflown_count = 0;
 size_t overflown_logged_count = 0;
+
 lis2dh12_odr_t current_sample_rate = low_sample_rate;
 stmdev_ctx_t dev_ctx;
 std::atomic<bool> initialized = false;
@@ -102,6 +109,15 @@ public:
 
 SampleRateDebug debug;
 
+void clear() {
+    sample_buffer.clear();
+    overflown_count = 0;
+    overflown_logged_count = 0;
+    first_sample_timestamp = 0;
+    last_sample_timestamp = 0;
+    samples_extracted = 0;
+}
+
 /*
  * @brief  Write generic device register
  *
@@ -143,10 +159,7 @@ void init() {
     assert(!initialized);
     debug.clear();
 
-    // Clear buffer
-    sample_buffer.clear();
-    overflown_count = 0;
-    overflown_logged_count = 0;
+    clear();
 
     // Initialize driver
     dev_ctx.write_reg = write_reg;
@@ -200,6 +213,19 @@ void deinit() {
     debug.report();
 }
 
+void on_new_samples(uint32_t count) {
+    if (count == 0)
+        return;
+
+    uint32_t now = ticks_us();
+    if (first_sample_timestamp == 0) {
+        first_sample_timestamp = now;
+        samples_extracted = 0;
+    }
+    last_sample_timestamp = now;
+    samples_extracted += count;
+}
+
 } // end anonymous namespace
 
 void dwarf::accelerometer::irq() {
@@ -213,6 +239,7 @@ void dwarf::accelerometer::irq() {
     lis2dh12_status_get(&dev_ctx, &status);
 
     // Get sample and store sample
+    on_new_samples(1);
     AccelerometerRecord record;
     record.timestamp = ticks_us();
     record.buffer_overflow = overflown_count > 0;
@@ -246,6 +273,8 @@ size_t dwarf::accelerometer::get_num_samples() {
 }
 
 void dwarf::accelerometer::set_enable(bool enabled) {
+    clear();
+
     if (initialized == enabled) {
         return;
     }
@@ -275,4 +304,11 @@ void dwarf::accelerometer::set_high_sample_rate(bool high) {
 
 bool dwarf::accelerometer::is_high_sample_rate() {
     return current_sample_rate == high_sample_rate;
+}
+
+float dwarf::accelerometer::measured_sampling_rate() {
+    uint32_t duration = ticks_diff(last_sample_timestamp, first_sample_timestamp);
+    if (duration == 0 || samples_extracted == 0)
+        return 0;
+    return (samples_extracted - 1) * 1000000.f / duration;
 }

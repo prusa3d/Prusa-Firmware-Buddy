@@ -207,6 +207,15 @@ static bool accelerometer_ok(PrusaAccelerometer& acc, YieldError yield_error) {
         case PrusaAccelerometer::Error::corrupted_sample_overrun:
             yield_error("overrun");
             return false;
+        case PrusaAccelerometer::Error::corrupted_buddy_overflow:
+            yield_error("corrupted_buddy_overflow");
+            return false;
+        case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
+            yield_error("corrupted_dwarf_overflow");
+            return false;
+        case PrusaAccelerometer::Error::corrupted_transmission_error:
+            yield_error("corrupted_transmission_error");
+            return false;
     }
     bsod("Unrecognized accelerometer error");
 }
@@ -388,9 +397,7 @@ void GcodeSuite::M975() {
     if (!accelerometer_ok(accelerometer, print_error))
         return;
 
-
-    const uint32_t start_time = micros();
-    constexpr int request_samples_num = 20'000;
+    constexpr int request_samples_num = 3'000;
 
     for (int i = 0; i < request_samples_num;) {
         PrusaAccelerometer::Acceleration measured_acceleration;
@@ -401,10 +408,8 @@ void GcodeSuite::M975() {
             idle(true, true);
         }
     }
-    const uint32_t now = micros();
-    const uint32_t duration_us = now - start_time;
 
-    double freq = 1000000.0 * request_samples_num / double(duration_us);
+    accelerometer_ok(accelerometer, print_error);
     SERIAL_ECHO("sample freq: ");
-    SERIAL_ECHOLN(freq);
+    SERIAL_ECHOLN(accelerometer.get_sampling_rate());
 }

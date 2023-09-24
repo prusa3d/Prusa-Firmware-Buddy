@@ -30,6 +30,7 @@ enum class MessageType : uint8_t {
     loadcell = 2,
     accelerometer = 3, ///< Single sample with timestamp
     accelerometer_fast = 4, ///< Multiple samples without timestamp
+    accelerometer_sampling_rate = 5, /// Single floating point number with frequency in Hz
     // ...
 };
 
@@ -55,6 +56,10 @@ typedef struct __attribute__((packed)) {
 } AccelerometerData;
 typedef std::array<AccelerometerXyzSample, 2> AccelerometerFastData;
 
+typedef struct {
+    float frequency;
+} AccelerometerSamplingRate;
+
 // Payload to message type mapping using template specialization
 template <typename T>
 inline constexpr MessageType message_type() {
@@ -79,6 +84,11 @@ inline constexpr MessageType message_type<AccelerometerData>() {
 template <>
 inline constexpr MessageType message_type<AccelerometerFastData>() {
     return MessageType::accelerometer_fast;
+}
+
+template <>
+inline constexpr MessageType message_type<AccelerometerSamplingRate>() {
+    return MessageType::accelerometer_sampling_rate;
 }
 } // namespace common::puppies::fifo
 

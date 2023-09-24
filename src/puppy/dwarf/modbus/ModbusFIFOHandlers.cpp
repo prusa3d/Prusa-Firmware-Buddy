@@ -12,6 +12,12 @@ using namespace common::puppies::fifo;
 LOG_COMPONENT_DEF(ModbusFIFOHandlers, LOG_SEVERITY_DEBUG);
 
 /**
+ * @brief Holds number of sent accelerometer samples; used for rate-limiting of
+ * frequency report
+ */
+static int acc_sample_counter = 0;
+
+/**
  * @brief Failed to encode
  *
  * to be used to handle impossible cases
@@ -83,6 +89,20 @@ size_t handle_encoded_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo) {
         encoded = false;
 
         pickup_accelerometer_sample(encoder, encoded);
+        if (encoded)
+            acc_sample_counter++;
+
+        if (acc_sample_counter >= 100) {
+            acc_sample_counter = 0;
+            if (encoder.can_encode<AccelerometerSamplingRate>()) {
+                AccelerometerSamplingRate sample = { .frequency = dwarf::accelerometer::measured_sampling_rate() };
+                if (encoder.encode(sample)) {
+                    encoded = true;
+                } else {
+                    failed_to_encode();
+                }
+            }
+        }
 
         // Pickup loadcell sample
         if (encoder.can_encode<LoadcellRecord>()) {
