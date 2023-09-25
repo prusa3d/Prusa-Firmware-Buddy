@@ -68,7 +68,8 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuCancelObject__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CO_CANCEL_CURRENT,
+namespace detail {
+using ScreenMenuCancelObject = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CO_CANCEL_CURRENT,
     MI_CO_OBJECT<0>,
     MI_CO_OBJECT<1>,
     MI_CO_OBJECT<2>,
@@ -85,9 +86,16 @@ using ScreenMenuCancelObject__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, 
     MI_CO_OBJECT<13>,
     MI_CO_OBJECT<14>,
     MI_CO_OBJECT<15>>;
+} // namespace detail
 
-class ScreenMenuCancelObject : public ScreenMenuCancelObject__ {
+class ScreenMenuCancelObject : public detail::ScreenMenuCancelObject {
     int loop_index = 0; ///< Refresh names only once every few loops
+
+    /**
+     * @brief Periodically unblock button, in case object state does not change after click.
+     */
+    void Unblock();
+
 public:
     constexpr static const char *label = "Canceled Objects";
     ScreenMenuCancelObject();
@@ -114,6 +122,8 @@ protected:
                 Item<MI_CO_OBJECT<13>>().UpdateName();
                 Item<MI_CO_OBJECT<14>>().UpdateName();
                 Item<MI_CO_OBJECT<15>>().UpdateName();
+
+                Unblock(); // Allow button press once a second
             }
             // Update state of all items
             Item<MI_CO_OBJECT<0>>().UpdateState();
