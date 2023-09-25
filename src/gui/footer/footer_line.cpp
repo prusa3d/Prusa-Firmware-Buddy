@@ -22,7 +22,7 @@ void FooterLine::windowEvent(EventLock /*has private ctor*/, window_t *sender, G
         positionWindows();
         break;
     case GUI_event_t::REINIT_FOOTER:
-        // count means all items changed, could be caused by change of centering option
+        // none means all items changed, could be caused by change of centering option
         if (footer::decode_item_from_event(param) == footer::Item::none) {
             positionWindows();
         }
@@ -88,38 +88,39 @@ bool FooterLine::Create(footer::Item item_id, size_t index) {
     case footer::Item::input_shaper_y:
         new (&items[index]) FooterItemInputShaperY(this);
         break;
-#if defined(FOOTER_HAS_LIVE_Z)
     case footer::Item::live_z:
+#if defined(FOOTER_HAS_LIVE_Z)
         new (&items[index]) FooterItemLiveZ(this);
-        break;
 #endif
-#if defined(FOOTER_HAS_SHEETS)
+        break;
     case footer::Item::sheets:
+#if defined(FOOTER_HAS_SHEETS)
         new (&items[index]) FooterItemSheets(this);
-        break;
 #endif
+        break;
     case footer::Item::heatbreak_temp:
         new (&items[index]) FooterItemHeatBreak(this);
         break;
-#if HAS_MMU2()
     case footer::Item::finda:
+#if HAS_MMU2()
         new (&items[index]) FooterItemFinda(this);
-        break;
 #endif
-#if defined(FOOTER_HAS_TOOL_NR)
+        break;
     case footer::Item::current_tool:
+#if defined(FOOTER_HAS_TOOL_NR)
         new (&items[index]) FooterItemCurrentTool(this);
+#endif
         break;
     case footer::Item::all_nozzles:
+#if defined(FOOTER_HAS_TOOL_NR)
         new (&items[index]) FooterItemAllNozzles(this);
-        break;
 #endif
-#if HAS_SIDE_FSENSOR()
-    case footer::Item::f_sensor_side:
-        new (&items[index]) FooterItemFSensorSide(this);
         break;
-#endif /*HAS_SIDE_FSENSOR()*/
-
+    case footer::Item::f_sensor_side:
+#if HAS_SIDE_FSENSOR()
+        new (&items[index]) FooterItemFSensorSide(this);
+#endif
+        break;
     case footer::Item::none:
     case footer::Item::_count:
         break;

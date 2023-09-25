@@ -9,9 +9,9 @@
 
 #pragma once
 #include "eeprom_v9.hpp"
-#include <footer_eeprom.hpp>
 #include <Configuration.h>
 #include <Configuration_adv.h>
+#include <footer_def.hpp>
 
 namespace config_store_ns::old_eeprom::v10 {
 
@@ -55,7 +55,7 @@ inline constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
 constexpr vars_body_t body_defaults = {
     old_eeprom::v9::body_defaults,
-    footer::eeprom::encode(footer::default_items), // EEVAR_FOOTER_SETTING
+    0, // EEVAR_FOOTER_SETTING // dropped by config store at one point, no longer needs to have a reasonable default
     uint32_t(footer::ItemDrawCnf::get_default()), // EEVAR_FOOTER_DRAW_TYPE
     true, // EEVAR_FAN_CHECK_ENABLED
     true, // EEVAR_FS_AUTOLOAD_ENABLED

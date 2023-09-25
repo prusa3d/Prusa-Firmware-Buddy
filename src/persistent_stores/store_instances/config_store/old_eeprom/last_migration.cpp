@@ -187,7 +187,7 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
     migrate_one(journal::hash("File Sort"), body.FILE_SORT);
     migrate_one(journal::hash("Menu Timeout"), body.MENU_TIMEOUT);
     migrate_one(journal::hash("Devhash in QR"), body.DEVHASH_IN_QR);
-    migrate_one(journal::hash("Footer Setting"), body.FOOTER_SETTING);
+    // migrate_one(journal::hash("Footer Setting"), body.FOOTER_SETTING); // No longer needed since this store item ends up being deleted
     migrate_one(journal::hash("Footer Draw Type"), body.FOOTER_DRAW_TYPE);
     migrate_one(journal::hash("Fan Check Enabled"), body.FAN_CHECK_ENABLED);
     migrate_one(journal::hash("FS Autoload Enabled"), body.FS_AUTOLOAD_ENABLED);

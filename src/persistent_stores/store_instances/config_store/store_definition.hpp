@@ -74,7 +74,16 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("File Sort")> file_sort; // filebrowser file sort options
     StoreItem<bool, defaults::bool_true, journal::hash("Menu Timeout")> menu_timeout; // on / off menu timeout flag
     StoreItem<bool, defaults::bool_true, journal::hash("Devhash in QR")> devhash_in_qr; // on / off sending UID in QR
-    StoreItem<uint32_t, defaults::footer_setting, journal::hash("Footer Setting")> footer_setting;
+
+    StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0")> footer_setting_0;
+    StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1")> footer_setting_1;
+    StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2")> footer_setting_2;
+    StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3")> footer_setting_3;
+    StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4")> footer_setting_4;
+
+    footer::Item get_footer_setting(uint8_t index);
+    void set_footer_setting(uint8_t index, footer::Item value);
+
     StoreItem<uint32_t, defaults::footer_draw_type, journal::hash("Footer Draw Type")> footer_draw_type;
     StoreItem<bool, defaults::bool_true, journal::hash("Fan Check Enabled")> fan_check_enabled;
     StoreItem<bool, defaults::bool_true, journal::hash("FS Autoload Enabled")> fs_autoload_enabled;
@@ -339,11 +348,14 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
  *
  * If you want to migrate existing data to 'newer version', add a migration_function with the ids as well (see below). If all you want is to delete an item, just moving it here from CurrentStore is enough.
  *
- * !!! MAKE SURE moved StoreItems from CurrentStore to here KEEP their HASHED ID !!!
+ * !!! MAKE SURE to move StoreItems from CurrentStore to here KEEP their HASHED ID !!! (to make sure backend works correctly when scanning through entries)
  */
 struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend> {
     // There was a ConfigStore version already before last eeprom version of SelftestResult was made, so it doesn't have old eeprom predecessor
     StoreItem<SelftestResult_pre_23, defaults::selftest_result_pre_23, journal::hash("Selftest Result")> selftest_result_pre_23;
+
+    // An item was added to the middle of the footer enum and it caused eeprom corruption. This store footer item  was deleted and a new one is created without migration so as to force default footer value onto everyone, which is better than 'random values' (especially on mini where it could cause duplicated items shown). Default value was removed since we no longer need to keep it
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Footer Setting")> footer_setting_v1;
 };
 
 } // namespace config_store_ns

@@ -39,45 +39,70 @@ inline constexpr uint8_t default_center_n_and_fewer = FOOTER_ITEMS_PER_LINE__ - 
  * - ItemUnion          in src/gui/footer/footer_item_union.hpp
  * - FooterLine::Create in src/gui/footer/footer_line.cpp
  * - to_string()        below
+ * !!!
+ - Do NOT:
+   - change item values (would corrupt eeprom) - Add new items to the end
+   - #ifdef any items (otherwise there could easily happen to be inconsistencies across printers that are difficult to fix (impossible without a migration)) - see disabled_items below on how to do it instead
+   - leave gaps in the numbering (makes it simpler to iterate through) - currently relied upon by screen_menu_footer_settings
  */
 enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::value_bit_size
-    nozzle,
-    bed,
-    filament,
-    f_s_value,
-    f_sensor,
-    speed,
-    axis_x,
-    axis_y,
-    axis_z,
-    z_height,
-    print_fan,
-    heatbreak_fan,
-    input_shaper_x,
-    input_shaper_y,
-#if defined(FOOTER_HAS_LIVE_Z)
-    live_z,
-#endif
-    heatbreak_temp,
-#if defined(FOOTER_HAS_SHEETS)
-    sheets,
-#endif
-#if HAS_MMU2()
-    finda,
-#endif
-#if defined(FOOTER_HAS_TOOL_NR)
-    current_tool,
-    all_nozzles,
-#endif
-#if HAS_SIDE_FSENSOR()
-    f_sensor_side,
-#endif /*HAS_SIDE_FSENSOR()*/
+    none = 0,
+    nozzle = 1,
+    bed = 2,
+    filament = 3,
+    f_s_value = 4,
+    f_sensor = 5,
+    speed = 6,
+    axis_x = 7,
+    axis_y = 8,
+    axis_z = 9,
+    z_height = 10,
+    print_fan = 11,
+    heatbreak_fan = 12,
+    input_shaper_x = 13,
+    input_shaper_y = 14,
+    live_z = 15,
+    heatbreak_temp = 16,
+    sheets = 17,
+    finda = 18,
+    current_tool = 19,
+    all_nozzles = 20,
+    f_sensor_side = 21,
 
-    /// @note ItemNone must be last for EEPROM compatibility.
-    ///  If we ever have better EEPROM system, we can move it to the beginning.
-    none,
-    _count
+    _count,
 };
+
+/**
+ * @brief Holds all items that are not be available for specific configurations - see Item brief for why this exists
+ * Note: if it were to happen that a specific configuration would have no items, ifdef it so that instead of std::to_array there's just plain std::array<Item,0>
+ */
+inline constexpr auto disabled_items { std::to_array<Item>({
+#if not defined(FOOTER_HAS_LIVE_Z)
+    Item::live_z,
+#endif
+#if not defined(FOOTER_HAS_SHEETS)
+        Item::sheets,
+#endif
+#if not HAS_MMU2()
+        Item::finda,
+#endif
+#if PRINTER_IS_PRUSA_MINI
+        Item::heatbreak_temp,
+#endif
+#if not defined(FOOTER_HAS_TOOL_NR)
+        Item::current_tool,
+        Item::all_nozzles,
+#endif
+#if not HAS_SIDE_FSENSOR()
+        Item::f_sensor_side,
+#endif
+#if not _DEBUG
+        Item::input_shaper_x,
+        Item::input_shaper_y,
+        Item::f_s_value,
+        Item::f_sensor_side,
+#endif
+}) };
 
 /**
  * @brief Get name of an item.
@@ -118,37 +143,51 @@ constexpr const char *to_string(Item item) {
         return N_("Input Shaper X");
     case Item::input_shaper_y:
         return N_("Input Shaper Y");
-#if defined(FOOTER_HAS_LIVE_Z)
     case Item::live_z:
+#if defined(FOOTER_HAS_LIVE_Z)
         return N_("Live Z");
+#else
+        break;
 #endif
     case Item::heatbreak_temp:
         return N_("Heatbreak");
-#if defined(FOOTER_HAS_SHEETS)
     case Item::sheets:
+#if defined(FOOTER_HAS_SHEETS)
         return N_("Sheets");
+#else
+        break;
 #endif
-#if HAS_MMU2()
     case Item::finda:
+#if HAS_MMU2()
         return N_("Finda");
+#else
+        break;
 #endif
-#if defined(FOOTER_HAS_TOOL_NR)
     case Item::current_tool:
+#if defined(FOOTER_HAS_TOOL_NR)
         return N_("Current tool");
-    case Item::all_nozzles:
-        return N_("All nozzles");
+#else
+        break;
 #endif
-#if HAS_SIDE_FSENSOR()
+    case Item::all_nozzles:
+#if defined(FOOTER_HAS_TOOL_NR)
+        return N_("All nozzles");
+#else
+        break;
+#endif
     case Item::f_sensor_side:
+#if HAS_SIDE_FSENSOR()
         return N_("FSensor side");
+#else
+        break;
 #endif /*HAS_SIDE_FSENSOR()*/
-
     case Item::none:
         return N_("None");
     case Item::_count:
         break;
     }
     bsod("Nonexistent footer item");
+    return "";
 }
 
 using Record = std::array<Item, FOOTER_ITEMS_PER_LINE__>;

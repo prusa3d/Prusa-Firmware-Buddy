@@ -27,6 +27,7 @@ struct CurrentStoreConfig {
 
 template <BackendC BackendT>
 struct DeprecatedStoreConfig {
+    // we don't care about default val, but we have it anyway to make deprecating an item a ctrl+c and ctrl+v operation (and in case we need it for some reason)
     template <StoreItemDataC DataT, const DataT &DefaultVal, typename BackendT::Id HashedID>
     using StoreItem
         = DeprecatedStoreItem<DataT, DefaultVal, BackendT, HashedID>;

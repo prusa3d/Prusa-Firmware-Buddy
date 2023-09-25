@@ -724,7 +724,9 @@ void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     FooterItemHeater::ResetDrawMode();
     FooterLine::SetCenterN(footer::default_center_n_and_fewer);
 
-    footer::eeprom::store(footer::default_items);
+    for (size_t i = 0; i < FOOTER_ITEMS_PER_LINE__; ++i) {
+        config_store().set_footer_setting(i, footer::default_items[i]);
+    }
     // send event for all footers
     Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::encode_item_for_event(footer::Item::none));
 

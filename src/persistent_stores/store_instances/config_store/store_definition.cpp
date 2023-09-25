@@ -7,6 +7,47 @@ namespace config_store_ns {
 static_assert(sizeof(CurrentStore) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
 static_assert(journal::has_unique_items<config_store_ns::CurrentStore>(), "Just added items are causing collisions with reserved backend IDs");
 
+footer::Item CurrentStore::get_footer_setting(uint8_t index) {
+    switch (index) {
+    case 0:
+        return footer_setting_0.get();
+    case 1:
+        return footer_setting_1.get();
+    case 2:
+        return footer_setting_2.get();
+    case 3:
+        return footer_setting_3.get();
+    case 4:
+        return footer_setting_4.get();
+    default:
+        assert(false && "invalid index");
+        return footer::Item::none;
+    }
+}
+
+void CurrentStore::set_footer_setting(uint8_t index, footer::Item value) {
+    switch (index) {
+    case 0:
+        footer_setting_0.set(value);
+        break;
+    case 1:
+        footer_setting_1.set(value);
+        break;
+    case 2:
+        footer_setting_2.set(value);
+        break;
+    case 3:
+        footer_setting_3.set(value);
+        break;
+    case 4:
+        footer_setting_4.set(value);
+        break;
+    default:
+        assert(false && "invalid index");
+        return;
+    }
+}
+
 int32_t CurrentStore::get_extruder_fs_ref_nins_value(uint8_t index) {
     switch (index) {
     case 0:
