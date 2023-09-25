@@ -30,8 +30,19 @@ inline constexpr const char *m555 = "M555";
 inline constexpr const char *m140 = "M140";
 }; // namespace gcode_info
 
+/// When initializing the heavy work is done in start_load, load and end_load functions,
+/// if you need to offload it to another thread, you can check the progress using
+/// start_load_result, can_be_printed and is_loaded.
+///
+/// Currently it can be done by sending PREFETCH_SIGNAL_GCODE_INFO_INIT signal to media_prefetch thread.
+/// Check code in PrintPreview::Loop for an example.
 class GCodeInfo {
 public:
+    enum class StartLoadResult {
+        None,
+        Started,
+        Failed
+    };
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
 
 #if PRINTER_IS_PRUSA_MK4
@@ -146,7 +157,11 @@ private:
     std::unique_ptr<AnyGcodeFormatReader> file_reader;
 
     uint32_t printer_model_code; ///< model code (see printer_model2code())
-    bool loaded = false;
+
+    // atomic flags to signal to other thread, the progress of gcode loading
+    std::atomic<bool> loaded = false; ///< did the load() function finish?
+    std::atomic<StartLoadResult> load_started {}; ///< None if nt started yet, Failed - opening gcode failed, Started - success
+    std::atomic<bool> printable {}; ///< is it valid for print?, checked by gcode reader "valid_for_print" function
 
     time_buff printing_time; ///< Stores string representation of printing time left
     bool preview_thumbnail; ///< True if gcode has preview thumbnail
@@ -244,7 +259,23 @@ public:
     /**
      * @brief Check if file is ready for print
      */
-    bool valid_for_print();
+    bool check_valid_for_print();
+
+    /**
+     * @brief Check the printable flag
+     *
+     * To be used concurently to `check_valid_for_print`,
+     * which does the real checking
+     */
+    bool can_be_printed() { return printable; }
+
+    /**
+     * @brief Check the result of starting the load
+     *
+     * To be used concurently to `start_load`,
+     * which does the starting.
+     */
+    StartLoadResult start_load_result() { return load_started; }
 
     /**
      * @brief Sets up gcode file and sets up info member variables for print preview

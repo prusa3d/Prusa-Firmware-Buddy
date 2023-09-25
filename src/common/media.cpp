@@ -18,6 +18,7 @@
 #include "metric.h"
 #include <errno.h>
 #include "gcode_reader.hpp"
+#include "gcode_info.hpp"
 #include <ccm_thread.hpp>
 #include <transfers/transfer.hpp>
 #include <algorithm>
@@ -90,9 +91,6 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
-#define PREFETCH_SIGNAL_START 1
-#define PREFETCH_SIGNAL_STOP  2
-#define PREFETCH_SIGNAL_FETCH 4
 // These buffers are HUGE. We need to rework the prefetcher logic
 // to be more efficient and add compression.
 #define FILE_BUFF_SIZE 5120
@@ -101,14 +99,13 @@ static char *file_buff;
 static uint32_t file_buff_level;
 static size_t back_buff_level = 0;
 static uint32_t file_buff_pos;
-static osThreadId prefetch_thread_id;
 static GCodeFilter::State prefetch_state;
 osMutexDef(prefetch_mutex);
-osMutexId prefetch_mutex_id;
+static osMutexId prefetch_mutex_id;
 
 static metric_t metric_prefetched_bytes = METRIC("media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-static void media_prefetch(const void *) {
+void media_prefetch(const void *) {
     metric_register(&metric_prefetched_bytes);
 
     for (;;) {
@@ -121,7 +118,26 @@ static void media_prefetch(const void *) {
 
         file_buff_level = file_buff_pos = 0;
 
-        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH, osWaitForever);
+        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_GCODE_INFO_INIT | PREFETCH_SIGNAL_GCODE_INFO_STOP, osWaitForever);
+        if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_INIT) {
+            auto &gcode_info = GCodeInfo::getInstance();
+            if (!gcode_info.start_load()) {
+                continue;
+            }
+            bool load_gcode = true;
+            while (!gcode_info.check_valid_for_print()) {
+                event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 1000);
+                if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
+                    gcode_info.end_load();
+                    load_gcode = false;
+                    break;
+                }
+            }
+            if (load_gcode) {
+                gcode_info.load();
+                gcode_info.end_load();
+            }
+        }
         if ((event.value.signals & PREFETCH_SIGNAL_START) == 0) {
             continue;
         }
@@ -220,7 +236,6 @@ static void media_prefetch(const void *) {
         }
     }
 }
-osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 580);
 
 void media_print_start__prepare(const char *sfnFilePath) {
     if (sfnFilePath) {
@@ -238,10 +253,9 @@ void media_print_start(const bool prefetch_start) {
         return;
     }
 
-    if (!prefetch_thread_id) {
+    if (!prefetch_mutex_id) {
         prefetch_mutex_id = osMutexCreate(osMutex(prefetch_mutex));
-        prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
-        // sanity check
+        //  sanity check
     }
 
     if (!prefetch_start) {

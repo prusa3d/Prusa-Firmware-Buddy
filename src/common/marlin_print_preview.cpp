@@ -3,6 +3,7 @@
  */
 
 #include "marlin_print_preview.hpp"
+#include "media.h"
 #include "client_fsm_types.h"
 #include "client_response.hpp"
 #include "general_response.hpp"
@@ -292,17 +293,8 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::inactive: // cannot be, but have it defined to enumerate all states
         return Result::Inactive;
     case State::init:
-        if (!gcode_info.start_load()) {
-            ChangeState(State::inactive);
-            marlin_server::set_warning(WarningType::USBFlashDiskError);
-            return Result::AbortNoFsm; // No screen was yet opened
-        }
-        if (!gcode_info.valid_for_print()) {
-            last_download_check = ticks_ms();
-            ChangeState(State::download_wait);
-        } else {
-            ChangeState(State::loading);
-        }
+        osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
+        ChangeState(State::loading);
         if (skip_if_able) {
             // if skip print confirmation was requested, mark the print as started immediately.
             // If not, it will be started later when user clicks print
@@ -312,29 +304,32 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::download_wait:
         switch (response) {
         case Response::Quit:
-            gcode_info.end_load();
+            osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_STOP);
             ChangeState(State::inactive);
             return Result::Abort;
         default:
             break;
         }
 
-        // check for file update every DOWNLOAD_CHECK_PERIOD, to avoid using too much CPU time
-        if (ticks_ms() - last_download_check > DOWNLOAD_CHECK_PERIOD) {
-            last_download_check = ticks_ms();
-            if (gcode_info.valid_for_print()) {
-                ChangeState(State::loading);
-            }
+        if (gcode_info.can_be_printed()) {
+            ChangeState(State::loading);
         }
         break;
     case State::loading:
-        gcode_info.load();
-        gcode_info.end_load();
-        if (gcode_info.is_loaded()) {
-            ChangeState(skip_if_able ? stateFromSelftestCheck() : State::preview_wait_user);
-        } else {
+        if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::None) {
+            break;
+        } else if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::Failed) {
             ChangeState(State::inactive);
             return Result::Abort;
+        }
+
+        if (!gcode_info.can_be_printed()) {
+            ChangeState(State::download_wait);
+            break;
+        }
+
+        if (gcode_info.is_loaded()) {
+            ChangeState(skip_if_able ? stateFromSelftestCheck() : State::preview_wait_user);
         }
         break;
     case State::preview_wait_user:

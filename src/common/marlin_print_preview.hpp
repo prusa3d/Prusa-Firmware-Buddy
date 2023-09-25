@@ -61,7 +61,6 @@ public:
 class PrintPreview : public IPrintPreview {
 
     static constexpr uint32_t max_run_period_ms = 50;
-    static constexpr uint32_t DOWNLOAD_CHECK_PERIOD = 2000;
     uint32_t new_firmware_open_ms { 0 };
     static constexpr uint32_t new_firmware_timeout_ms { 30000 }; // three seconds
 public:
@@ -74,7 +73,6 @@ public:
         ToolsMapping,
         MarkStarted,
         Abort,
-        AbortNoFsm, // Print aborted before any FSM was created
         Print,
         Inactive
     };
@@ -116,7 +114,6 @@ public:
 
 private:
     uint32_t last_run = 0;
-    uint32_t last_download_check = 0;
 
     bool skip_if_able = false;
 

@@ -9,6 +9,7 @@
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"
+#include "media.h"
 #include <config_store/store_instance.hpp>
 #include <option/buddy_enable_connect.h>
 #if BUDDY_ENABLE_CONNECT()
@@ -75,6 +76,7 @@ LOG_COMPONENT_REF(Buddy);
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
+osThreadId prefetch_thread_id;
 
 #if HAS_ACCELEROMETER()
 LIS2DH accelerometer(10);
@@ -302,6 +304,8 @@ extern "C" void main_cpp(void) {
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
+    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 630);
+    prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
         osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);

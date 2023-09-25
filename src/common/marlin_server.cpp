@@ -1198,9 +1198,6 @@ static void _server_print_loop(void) {
             new_state = did_not_start_print ? State::Idle : State::Finishing_WaitIdle;
             FSM_DESTROY__LOGGING(PrintPreview);
             break;
-        case PrintPreview::Result::AbortNoFsm:
-            new_state = State::Idle;
-            break;
         case PrintPreview::Result::ToolsMapping:
             new_state = State::PrintPreviewToolsMapping;
             break;

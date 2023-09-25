@@ -94,11 +94,15 @@ GCodeInfo::GCodeInfo()
 }
 
 bool GCodeInfo::start_load() {
+    reset_info();
     file_reader = std::make_unique<AnyGcodeFormatReader>(gcode_file_path);
     if (!file_reader || !file_reader->is_open()) {
         file_reader.reset();
+        load_started = StartLoadResult::Failed;
         return false;
     }
+    check_valid_for_print();
+    load_started = StartLoadResult::Started;
     return true;
 }
 
@@ -106,16 +110,16 @@ void GCodeInfo::end_load() {
     file_reader.reset();
 }
 
-bool GCodeInfo::valid_for_print() {
+bool GCodeInfo::check_valid_for_print() {
     assert(file_reader); // assert file is open
     transfers::Transfer::Path path(GetGcodeFilepath());
     file_reader->get()->update_validity(path);
-    return file_reader->get()->valid_for_print();
+    printable = file_reader->get()->valid_for_print();
+    return printable;
 }
 
 void GCodeInfo::load() {
     assert(file_reader); // assert file is open
-    reset_info();
 
     preview_thumbnail = hasThumbnail(*file_reader->get(), GuiDefaults::PreviewThumbnailRect.Size());
     progress_thumbnail = hasThumbnail(*file_reader->get(), GuiDefaults::ProgressThumbnailRect.Size());
@@ -137,12 +141,14 @@ int GCodeInfo::GivenExtrudersCount() const {
 
 void GCodeInfo::reset_info() {
     loaded = false;
+    printable = false;
     preview_thumbnail = false;
     progress_thumbnail = false;
     filament_described = false;
     valid_printer_settings = ValidPrinterSettings();
     per_extruder_info.fill({});
     printing_time[0] = 0;
+    load_started = StartLoadResult::None;
 }
 
 uint32_t GCodeInfo::getPrinterModelCode() const {
