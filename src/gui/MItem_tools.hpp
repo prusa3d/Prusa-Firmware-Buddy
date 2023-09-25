@@ -617,7 +617,7 @@ protected:
 };
 
 class MI_CO_CANCEL_OBJECT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Cancel Object (Experimental)");
+    static constexpr const char *const label = N_("Cancel Object");
 
 public:
     MI_CO_CANCEL_OBJECT();
