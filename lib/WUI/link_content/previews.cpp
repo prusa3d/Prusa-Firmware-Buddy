@@ -53,7 +53,7 @@ optional<ConnectionState> Previews::accept(const RequestParser &parser) const {
     }
 
     // Strip the extra prefix (without the last /)
-    memmove(fname, fname + extra_size - 1, FILE_NAME_BUFFER_LEN);
+    memmove(fname, fname + extra_size - 1, FILE_PATH_BUFFER_LEN);
 
     if (parser.method == Method::Get) {
         AnyGcodeFormatReader f(fname);

@@ -8,7 +8,7 @@ extern "C" size_t strlcpy(char *dst, const char *src, size_t dsize);
 
 class MutablePath {
 private:
-    static constexpr size_t BUFFER_SIZE = 104; // TODO: Provide proper defines of max path length
+    static constexpr size_t BUFFER_SIZE = 168; // TODO: Provide proper defines of max path length
     mutable char path[BUFFER_SIZE];
 
     /**

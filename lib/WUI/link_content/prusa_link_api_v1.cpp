@@ -161,7 +161,8 @@ optional<ConnectionState> PrusaLinkApiV1::accept(const RequestParser &parser) co
     } else if (remove_prefix(suffix, "files").has_value()) {
         static const auto prefix = "/api/v1/files";
         static const size_t prefix_len = strlen(prefix);
-        char filename[FILE_PATH_BUFFER_LEN + prefix_len];
+        // We need both one SFN + one LFN in case of upload of a file.
+        char filename[FILE_PATH_BUFFER_LEN + FILE_NAME_BUFFER_LEN + prefix_len];
         auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::NoRemap);
         if (error.has_value()) {
             return error;

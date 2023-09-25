@@ -145,7 +145,7 @@ enum class APIVersion {
 // * The URL must come first, so we know how much space there's after that.
 //
 // That saves quite some space compared with having two buffers.
-static const size_t MAX_URL_LEN = 100;
+static const size_t MAX_URL_LEN = 168;
 using Url = std::array<char, MAX_URL_LEN>;
 
 // # of seconds after which nonce becomes stale for digest authentication
