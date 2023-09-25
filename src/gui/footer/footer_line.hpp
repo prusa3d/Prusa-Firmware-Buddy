@@ -21,7 +21,7 @@ class FooterLine : public AddSuperWindow<window_frame_t> {
     size_t split(Rectangles &returned_rects, const std::array<Rect16::Width_t, max_items> &widths, size_t count) const; // split line rectangle into rectangles for items
     void setItemRectangles(Rectangles::iterator rectangles_begin, Rectangles::iterator rectangles_end); // set given rectangles into valid items, show those items and hide the rest
 public:
-    using IdArray = footer::record;
+    using IdArray = footer::Record;
 
 private:
     std::array<footer::ItemUnion, max_items> items;

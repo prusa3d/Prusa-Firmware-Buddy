@@ -30,7 +30,7 @@
 #endif
 
 namespace footer {
-inline constexpr uint8_t DefaultCenterNAndFewer = FOOTER_ITEMS_PER_LINE__ - 1;
+inline constexpr uint8_t default_center_n_and_fewer = FOOTER_ITEMS_PER_LINE__ - 1;
 
 /**
  * @brief enum enlisting all footer items
@@ -41,41 +41,41 @@ inline constexpr uint8_t DefaultCenterNAndFewer = FOOTER_ITEMS_PER_LINE__ - 1;
  * - to_string()        below
  */
 enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::value_bit_size
-    Nozzle,
-    Bed,
-    Filament,
-    FSValue,
-    FSensor,
-    Speed,
-    AxisX,
-    AxisY,
-    AxisZ,
-    ZHeight,
-    PrintFan,
-    HeatbreakFan,
-    InputShaperX,
-    InputShaperY,
+    nozzle,
+    bed,
+    filament,
+    f_s_value,
+    f_sensor,
+    speed,
+    axis_x,
+    axis_y,
+    axis_z,
+    z_height,
+    print_fan,
+    heatbreak_fan,
+    input_shaper_x,
+    input_shaper_y,
 #if defined(FOOTER_HAS_LIVE_Z)
-    LiveZ,
+    live_z,
 #endif
-    Heatbreak,
+    heatbreak_temp,
 #if defined(FOOTER_HAS_SHEETS)
-    Sheets,
+    sheets,
 #endif
 #if HAS_MMU2()
-    Finda,
+    finda,
 #endif
 #if defined(FOOTER_HAS_TOOL_NR)
-    CurrentTool,
-    AllNozzles,
+    current_tool,
+    all_nozzles,
 #endif
 #if HAS_SIDE_FSENSOR()
-    FSensorSide,
+    f_sensor_side,
 #endif /*HAS_SIDE_FSENSOR()*/
 
     /// @note ItemNone must be last for EEPROM compatibility.
     ///  If we ever have better EEPROM system, we can move it to the beginning.
-    None,
+    none,
     _count
 };
 
@@ -86,64 +86,64 @@ enum class Item : uint8_t { // stored in eeprom, must fit to footer::eeprom::val
  */
 constexpr const char *to_string(Item item) {
     switch (item) {
-    case Item::Nozzle:
+    case Item::nozzle:
         return N_("Nozzle");
-    case Item::Bed:
+    case Item::bed:
         return N_("Bed");
-    case Item::Filament:
+    case Item::filament:
         return N_("Filament");
-    case Item::FSensor:
+    case Item::f_sensor:
         return N_("FSensor");
-    case Item::FSValue:
+    case Item::f_s_value:
         return N_("FS Value");
-    case Item::Speed:
+    case Item::speed:
         return N_("Speed");
-    case Item::AxisX:
+    case Item::axis_x:
         return N_("X");
-    case Item::AxisY:
+    case Item::axis_y:
         return N_("Y");
-    case Item::AxisZ:
+    case Item::axis_z:
         return N_("Z");
-    case Item::ZHeight:
+    case Item::z_height:
         return N_("Z height");
-    case Item::PrintFan:
+    case Item::print_fan:
         return N_("Print fan");
-    case Item::HeatbreakFan:
+    case Item::heatbreak_fan:
 #ifdef USE_ST7789
         return N_("Hbrk fan");
 #else
         return N_("Heatbreak fan");
 #endif
-    case Item::InputShaperX:
+    case Item::input_shaper_x:
         return N_("Input Shaper X");
-    case Item::InputShaperY:
+    case Item::input_shaper_y:
         return N_("Input Shaper Y");
 #if defined(FOOTER_HAS_LIVE_Z)
-    case Item::LiveZ:
+    case Item::live_z:
         return N_("Live Z");
 #endif
-    case Item::Heatbreak:
+    case Item::heatbreak_temp:
         return N_("Heatbreak");
 #if defined(FOOTER_HAS_SHEETS)
-    case Item::Sheets:
+    case Item::sheets:
         return N_("Sheets");
 #endif
 #if HAS_MMU2()
-    case Item::Finda:
+    case Item::finda:
         return N_("Finda");
 #endif
 #if defined(FOOTER_HAS_TOOL_NR)
-    case Item::CurrentTool:
+    case Item::current_tool:
         return N_("Current tool");
-    case Item::AllNozzles:
+    case Item::all_nozzles:
         return N_("All nozzles");
 #endif
 #if HAS_SIDE_FSENSOR()
-    case Item::FSensorSide:
+    case Item::f_sensor_side:
         return N_("FSensor side");
 #endif /*HAS_SIDE_FSENSOR()*/
 
-    case Item::None:
+    case Item::none:
         return N_("None");
     case Item::_count:
         break;
@@ -151,73 +151,73 @@ constexpr const char *to_string(Item item) {
     bsod("Nonexistent footer item");
 }
 
-using record = std::array<Item, FOOTER_ITEMS_PER_LINE__>;
+using Record = std::array<Item, FOOTER_ITEMS_PER_LINE__>;
 
 /**
  * @brief default record
  */
 #if FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
-static constexpr record DefaultItems = { { Item::Speed,
-    Item::ZHeight,
-    Item::Filament } };
+inline constexpr Record default_items = { { Item::speed,
+    Item::z_height,
+    Item::filament } };
 #endif // FOOTER_LINES__ == 2 && FOOTER_ITEMS_PER_LINE__ == 3
 
 #if FOOTER_LINES__ == 1 && FOOTER_ITEMS_PER_LINE__ == 5
-static constexpr record DefaultItems = { { Item::Nozzle,
-    Item::Bed,
-    Item::Filament,
-    Item::None,
-    Item::None } };
+inline constexpr Record default_items = { { Item::nozzle,
+    Item::bed,
+    Item::filament,
+    Item::none,
+    Item::none } };
 #endif // FOOTER_LINES__ == 1 && FOOTER_ITEMS_PER_LINE__ == 5
 
 enum class ItemDrawType : uint8_t {
-    Static, // numbers at fixed positions
-    StaticLeftAligned, // numbers aligned to the left, but fix size
-    Dynamic // numbers aligned to the left, dynamic size
+    static_, // numbers at fixed positions
+    static_left_aligned, // numbers aligned to the left, but fix size
+    dynamic // numbers aligned to the left, dynamic size
 };
-inline constexpr ItemDrawType DefaultDrawType = ItemDrawType::Dynamic;
+inline constexpr ItemDrawType default_draw_type = ItemDrawType::dynamic;
 
 // ensure meaningfull value when flash is corrupted
-constexpr ItemDrawType Ui8ToItemDrawType(uint8_t data) {
+constexpr ItemDrawType to_item_draw_type(uint8_t data) {
     switch (data) {
-    case uint8_t(ItemDrawType::Static):
-        return ItemDrawType::Static;
-    case uint8_t(ItemDrawType::StaticLeftAligned):
-        return ItemDrawType::StaticLeftAligned;
-    case uint8_t(ItemDrawType::Dynamic):
-        return ItemDrawType::Dynamic;
+    case uint8_t(ItemDrawType::static_):
+        return ItemDrawType::static_;
+    case uint8_t(ItemDrawType::static_left_aligned):
+        return ItemDrawType::static_left_aligned;
+    case uint8_t(ItemDrawType::dynamic):
+        return ItemDrawType::dynamic;
     default:
-        return DefaultDrawType;
+        return default_draw_type;
     }
 }
 
 enum class draw_zero_t : bool { no,
     yes };
-inline constexpr draw_zero_t DefaultDrawZero = draw_zero_t::no;
+inline constexpr draw_zero_t default_draw_zero = draw_zero_t::no;
 
 struct ItemDrawCnf {
     ItemDrawType type;
     draw_zero_t zero;
-    uint8_t centerNAndFewer; // any value is safe, big numbers just disable center
+    uint8_t center_n_and_fewer; // any value is safe, big numbers just disable center
 
     constexpr operator uint32_t() const {
-        return uint32_t(type) | (uint32_t(zero) << 8) | (uint32_t(centerNAndFewer) << 16);
+        return uint32_t(type) | (uint32_t(zero) << 8) | (uint32_t(center_n_and_fewer) << 16);
     }
     constexpr ItemDrawCnf(uint32_t data)
-        : type(Ui8ToItemDrawType(data & 0xff))
+        : type(to_item_draw_type(data & 0xff))
         , zero((((data >> 8) & 0xff) == 0) ? draw_zero_t::no : draw_zero_t::yes)
-        , centerNAndFewer((data >> 16) & 0xff) {
+        , center_n_and_fewer((data >> 16) & 0xff) {
         // data was invalid, set default
         if (data != uint32_t(*this)) {
-            *this = Default();
+            *this = get_default();
         }
     }
-    constexpr ItemDrawCnf(ItemDrawType type, draw_zero_t zero, uint8_t centerNAndFewer)
+    constexpr ItemDrawCnf(ItemDrawType type, draw_zero_t zero, uint8_t center_n_and_fewer)
         : type(type)
         , zero(zero)
-        , centerNAndFewer(centerNAndFewer) {}
-    static constexpr ItemDrawCnf Default() {
-        return ItemDrawCnf(DefaultDrawType, DefaultDrawZero, DefaultCenterNAndFewer);
+        , center_n_and_fewer(center_n_and_fewer) {}
+    static constexpr ItemDrawCnf get_default() {
+        return ItemDrawCnf(default_draw_type, default_draw_zero, default_center_n_and_fewer);
     }
 };
 static_assert(sizeof(ItemDrawCnf) <= 4, "invalid ctor - constexpr ItemDrawCnf(uint32_t data)");
@@ -228,7 +228,7 @@ constexpr bool operator==(ItemDrawCnf lhs, ItemDrawCnf rhs) {
         return false;
     if (lhs.zero != rhs.zero)
         return false;
-    if (lhs.centerNAndFewer != rhs.centerNAndFewer)
+    if (lhs.center_n_and_fewer != rhs.center_n_and_fewer)
         return false;
     return true;
 }

@@ -71,7 +71,7 @@ SelftestFrameFans::SelftestFrameFans(window_t *parent, PhasesSelftest ph, fsm::P
     // when toolchanger is enabled, do not show footer with fan RPM, because its likely that no tool will be picked and it would just show zero RPM
     , footer(this, 0)
 #else
-    , footer(this, 0, footer::Item::PrintFan, footer::Item::HeatbreakFan)
+    , footer(this, 0, footer::Item::print_fan, footer::Item::heatbreak_fan)
 
 #endif
     , progress(this, WizardDefaults::row_1)

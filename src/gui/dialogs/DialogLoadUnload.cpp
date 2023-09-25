@@ -215,17 +215,17 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     , footer(this
 #if FOOTER_ITEMS_PER_LINE__ >= 5
           ,
-          footer::Item::Nozzle, footer::Item::Bed, footer::Item::FSensor
+          footer::Item::nozzle, footer::Item::bed, footer::Item::f_sensor
     #if HAS_MMU2()
           ,
-          FSensors_instance().HasMMU() ? footer::Item::Finda : footer::Item::None,
-          FSensors_instance().HasMMU() ? footer::Item::FSValue : footer::Item::None
+          FSensors_instance().HasMMU() ? footer::Item::finda : footer::Item::none,
+          FSensors_instance().HasMMU() ? footer::Item::f_s_value : footer::Item::none
     #elif HAS_SIDE_FSENSOR()
           ,
-          footer::Item::FSensorSide
+          footer::Item::f_sensor_side
     #else
           ,
-          footer::Item::None
+          footer::Item::none
     #endif
 #endif
           )

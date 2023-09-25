@@ -18,18 +18,18 @@ bool IFooter::SetSlot(FooterLine &line, size_t slot_id, footer::Item item) {
 }
 
 bool IFooter::SetSlotInit(size_t slot_id, footer::Item item) {
-    if (slot_id >= footer::eeprom::Load().size())
+    if (slot_id >= footer::eeprom::load().size())
         return false;
-    if (footer::eeprom::Load()[slot_id] != item) {
-        footer::eeprom::Set(item, slot_id);
+    if (footer::eeprom::load()[slot_id] != item) {
+        footer::eeprom::set(item, slot_id);
         // send event to all windows - there can be multiple footers, ScreenEvent is the best way
-        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(item));
+        Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::encode_item_for_event(item));
     }
     return true;
 }
 
 footer::Item IFooter::GetSlotInit(size_t slot_id) {
-    if (slot_id >= footer::eeprom::Load().size())
-        return footer::Item::None;
-    return footer::eeprom::Load()[slot_id];
+    if (slot_id >= footer::eeprom::load().size())
+        return footer::Item::none;
+    return footer::eeprom::load()[slot_id];
 }

@@ -79,8 +79,8 @@ namespace defaults {
     inline constexpr eSOUND_MODE sound_mode { eSOUND_MODE::_undef };
     inline constexpr uint8_t sound_volume { 5 };
     inline constexpr uint16_t language { 0xffff };
-    inline constexpr uint32_t footer_setting { footer::eeprom::Encode(footer::DefaultItems) };
-    inline constexpr uint32_t footer_draw_type { footer::ItemDrawCnf::Default() };
+    inline constexpr uint32_t footer_setting { footer::eeprom::encode(footer::default_items) };
+    inline constexpr uint32_t footer_draw_type { footer::ItemDrawCnf::get_default() };
     inline constexpr std::array<char, pl_password_size> prusalink_password { "" };
 
     inline constexpr std::array<char, connect_host_size + 1> connect_host { "buddy-a.\x01\x01" }; // "Compressed" - this means buddy-a.connect.prusa3d.com.

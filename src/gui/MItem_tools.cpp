@@ -722,11 +722,11 @@ void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     // simple reset of footer eeprom would be better
     // but footer does not have reload method
     FooterItemHeater::ResetDrawMode();
-    FooterLine::SetCenterN(footer::DefaultCenterNAndFewer);
+    FooterLine::SetCenterN(footer::default_center_n_and_fewer);
 
-    footer::eeprom::Store(footer::DefaultItems);
+    footer::eeprom::store(footer::default_items);
     // send event for all footers
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::Item::None));
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::encode_item_for_event(footer::Item::none));
 
     // close this menu, because it is no longer valid and needs to be redrawn
     Screens::Access()->Close();

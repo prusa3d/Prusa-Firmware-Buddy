@@ -55,8 +55,8 @@ inline constexpr float default_axis_steps_flt[4] = DEFAULT_AXIS_STEPS_PER_UNIT;
 
 constexpr vars_body_t body_defaults = {
     old_eeprom::v9::body_defaults,
-    footer::eeprom::Encode(footer::DefaultItems), // EEVAR_FOOTER_SETTING
-    uint32_t(footer::ItemDrawCnf::Default()), // EEVAR_FOOTER_DRAW_TYPE
+    footer::eeprom::encode(footer::default_items), // EEVAR_FOOTER_SETTING
+    uint32_t(footer::ItemDrawCnf::get_default()), // EEVAR_FOOTER_DRAW_TYPE
     true, // EEVAR_FAN_CHECK_ENABLED
     true, // EEVAR_FS_AUTOLOAD_ENABLED
     0, // EEVAR_ODOMETER_X

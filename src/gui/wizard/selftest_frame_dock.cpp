@@ -17,7 +17,7 @@ static constexpr size_t row_9 = row_8 + txt_h;
 
 SelftestFrameDock::SelftestFrameDock(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _("Dock Calibration"), 1)
-    , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::AxisZ) // ItemAxisZ to show Z coord while moving up
+    , footer(this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::axis_z) // ItemAxisZ to show Z coord while moving up
     , progress(this, WizardDefaults::row_1)
     , text_info(this, get_info_text_rect(), is_multiline::yes)
     , text_estimate(this, get_estimate_text_rect(), is_multiline::no)

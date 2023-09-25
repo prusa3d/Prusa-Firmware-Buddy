@@ -60,11 +60,11 @@ using ItemUnion = std::aligned_union<
 #endif
     >::type;
 
-inline void *EncodeItemForEvent(Item item) {
+inline void *encode_item_for_event(Item item) {
     return reinterpret_cast<void *>(static_cast<intptr_t>(item));
 }
 
-inline Item DecodeItemFromEvent(const void *const encoded) {
+inline Item decode_item_from_event(const void *const encoded) {
     return static_cast<Item>(reinterpret_cast<intptr_t>(encoded));
 }
 

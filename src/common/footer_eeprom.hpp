@@ -24,7 +24,7 @@ static_assert(ftrstd::to_underlying(Item::_count) <= (1 << value_bit_size), "Too
  *        next calls just return stored value
  * @return record
  */
-record Load();
+Record load();
 
 /**
  * @brief save footer settings to eeprom
@@ -33,7 +33,7 @@ record Load();
  * @return changed_t::yes - value chaged - was stored
  * @return changed_t::no - value already stored in eeprom - was not stored
  */
-changed_t Store(record rec);
+changed_t store(Record rec);
 
 /**
  * @brief store single footer item ID to eeprom
@@ -43,63 +43,63 @@ changed_t Store(record rec);
  * @return true success, value changed
  * @return false failed (index >= count) or value already stored in eeprom
  */
-bool Set(Item item, size_t index);
+bool set(Item item, size_t index);
 
 /**
  * @brief On first call load draw config from eeprom and store it than return stored value
  *        next calls just return stored value
  * @return ItemDrawCnf
  */
-ItemDrawCnf LoadItemDrawCnf();
+ItemDrawCnf load_item_draw_cnf();
 
 /**
  * @brief save footer draw config to eeprom
  *        and update local variable
  * @param cnf
  */
-changed_t Set(ItemDrawCnf cnf);
+changed_t set(ItemDrawCnf cnf);
 
 /**
  * @brief save footer draw type to eeprom
  *        and update local variable
  * @param type
  */
-changed_t Set(ItemDrawType type);
+changed_t set(ItemDrawType type);
 
 /**
  * @brief save footer draw zero option to eeprom
  *        and update local variable
  * @param zero
  */
-changed_t Set(draw_zero_t zero);
+changed_t set(draw_zero_t zero);
 
 /**
  * @brief save footer centerNAndFewer option to eeprom
  *        and update local variable
  * @param zero
  */
-changed_t SetCenterNAndFewer(uint8_t centerNAndFewer);
+changed_t set_center_n_and_fewer(uint8_t center_n_and_fewer);
 
 /**
  * @brief Get the Item Draw Type object
  *
  * @return ItemDrawType
  */
-ItemDrawType GetItemDrawType();
+ItemDrawType get_item_draw_type();
 
 /**
  * @brief Get the Item Draw Zero object
  *
  * @return draw_zero_t
  */
-draw_zero_t GetItemDrawZero();
+draw_zero_t get_item_draw_zero();
 
 /**
  * @brief Get the Center N And Fewer value
  *
  * @return uint8_t
  */
-uint8_t GetCenterNAndFewer();
+uint8_t get_center_n_and_fewer();
 
 /**
  * @brief encodes footer setting to uint32_t
@@ -107,7 +107,7 @@ uint8_t GetCenterNAndFewer();
  * @param rec footer setting to encode
  * @return constexpr uint32_t
  */
-constexpr uint32_t Encode(record rec) {
+constexpr uint32_t encode(Record rec) {
     uint32_t ret = uint32_t(rec[0]) << count_of_trailing_ones;
     for (size_t i = 1; i < count; ++i) {
         ret |= uint32_t(rec[i]) << ((value_bit_size * i) + count_of_trailing_ones);
@@ -126,14 +126,14 @@ constexpr uint32_t Encode(record rec) {
  * @param min_bit_size number of bits needed to encode one item
  * @return  record
  */
-record DecodeWithSize(uint32_t encoded, size_t min_bit_size);
+Record decode_with_size(uint32_t encoded, size_t min_bit_size);
 /**
  * @brief decodes footer setting from uint32_t
  *
  * @param encoded
  * @return  record
  */
-record Decode(uint32_t encoded);
+Record decode(uint32_t encoded);
 
 /**
  * Converts footer setting between old and current eeprom
@@ -141,6 +141,6 @@ record Decode(uint32_t encoded);
  * @param number_of_items_in_old_footer_eeprom number of possible items in old eeprom
  * @return encoded items in current encoding
  */
-uint32_t ConvertFromOldEeprom(uint32_t encoded, size_t number_of_items_in_old_footer_eeprom);
+uint32_t convert_from_old_eeprom(uint32_t encoded, size_t number_of_items_in_old_footer_eeprom);
 
 } // namespace footer::eeprom

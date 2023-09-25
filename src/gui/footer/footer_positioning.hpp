@@ -9,7 +9,7 @@
 namespace footer {
 // line number from 0
 // 0 is at bottom
-constexpr Rect16 LineRect(size_t line_no) {
+constexpr Rect16 line_rect(size_t line_no) {
     Rect16 ret = GuiDefaults::RectFooter;
     ret += Rect16::Left_t(GuiDefaults::FooterPadding.left);
     ret -= Rect16::Width_t(GuiDefaults::FooterPadding.left + GuiDefaults::FooterPadding.right);

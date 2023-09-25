@@ -40,9 +40,9 @@ SelftestFrameFSensor::SelftestFrameFSensor(window_t *parent, PhasesSelftest ph, 
 
     , footer(this, 0,
 #if HAS_SIDE_FSENSOR()
-          footer::Item::FSensorSide,
+          footer::Item::f_sensor_side,
 #endif /*HAS_SIDE_FSENSOR()*/
-          footer::Item::FSensor)
+          footer::Item::f_sensor)
     , progress(this, WizardDefaults::row_1)
     , text_left(this, Rect16(col_0, top_of_changeable_area, text_left_width, height_of_changeable_area), is_multiline::yes)
     , text_right(this, Rect16(col_0 + icon_left_width + text_icon_space, top_of_changeable_area, text_right_width, height_of_changeable_area), is_multiline::yes)

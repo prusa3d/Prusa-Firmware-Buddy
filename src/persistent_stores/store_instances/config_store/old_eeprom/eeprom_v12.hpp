@@ -95,7 +95,7 @@ inline vars_body_t convert(const old_eeprom::v11::vars_body_t &src) {
     // copy entire v11 struct
     memcpy(&ret, &src, sizeof(old_eeprom::v11::vars_body_t));
     // count of eeprom items in last eeprom version is 6
-    ret.FOOTER_SETTING = footer::eeprom::ConvertFromOldEeprom(ret.FOOTER_SETTING, 6);
+    ret.FOOTER_SETTING = footer::eeprom::convert_from_old_eeprom(ret.FOOTER_SETTING, 6);
 
     return ret;
 }
