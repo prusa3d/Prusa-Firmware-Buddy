@@ -53,7 +53,7 @@ void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
         stop();
     }
 
-    if (dump_region_start + DUMP_SIZE > reinterpret_cast<uint32_t>(&__fw_descriptor_start)) {
+    if (dump_region_start + DUMP_SIZE > reinterpret_cast<uint32_t>(&__fw_descriptor_start) - reinterpret_cast<uint32_t>(&__fw_descriptor_start) % FLASH_PAGE_SIZE) {
         stop(); // Not enough space for dump to be placed
     }
 
