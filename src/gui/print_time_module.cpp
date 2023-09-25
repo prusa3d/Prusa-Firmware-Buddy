@@ -49,7 +49,6 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
     out_print_end->Invalidate();
     last_time_to_end = time_to_end;
 
-#if defined(USE_ST7789)
     if (out_print_dur) {
         const time_t rawtime = (time_t)marlin_vars()->print_duration;
         if (rawtime != last_print_duration) {
@@ -57,7 +56,7 @@ PT_t PrintTime::update_loop(PT_t screen_format, window_text_t *out_print_end, [[
             out_print_dur->SetText(string_view_utf8::MakeRAM((const uint8_t *)text_time_dur.data()));
         }
     }
-#endif // USE_ST7789
+
     return time_end_format;
 }
 
