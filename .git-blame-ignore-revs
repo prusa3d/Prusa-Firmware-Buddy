@@ -15,3 +15,4 @@ a5f74b76a49ed2ce5a5c1627b749bbcd4a1d3303 # Migrate old eeprom to new config stor
 aa7bb070e259fb73fba4d8f4ea46abc24abbced9 # Rename marlin_client members
 2933bc5568ce0a1fd05e9221c1d8629a5a157329 # xl: Rename Dwarf::set_led() to Dwarf::set_cheese_led()
 87bb1927f87520ce063069a178291295183e1597 # Set ClangFormat AlignTrailingComments: Kind: Never
+bd27a08249dd1dc9919b547f4ca757258c779271 # Unify footer naming style with our dev guidelines
