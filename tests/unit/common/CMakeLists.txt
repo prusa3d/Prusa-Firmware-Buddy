@@ -67,7 +67,7 @@ add_executable(
   )
 target_include_directories(gcode_filter_tests PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
-add_executable(timing_tests ${CMAKE_SOURCE_DIR}/src/common/timing.cpp timing_tests.cpp)
+add_executable(timing_tests timing_tests.cpp)
 target_compile_definitions(timing_tests PRIVATE MCU=STM32F407VG)
 target_include_directories(
   timing_tests PUBLIC ${CMAKE_SOURCE_DIR}/src/common ${CMAKE_SOURCE_DIR}/include

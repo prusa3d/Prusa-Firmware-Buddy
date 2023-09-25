@@ -67,7 +67,6 @@ if(BOARD MATCHES ".*BUDDY")
             sys_time.cpp
             tasks.cpp
             time_tools.cpp
-            timing.cpp
             tools_mapping.cpp
             trinamic.cpp
             uartrxbuff.cpp
@@ -95,7 +94,6 @@ elseif(BOARD MATCHES "DWARF")
             Pin.cpp
             random_sw.cpp
             safe_state.cpp
-            timing.cpp
     )
 elseif(BOARD MATCHES "MODULARBED")
   target_sources(firmware PRIVATE heap.cpp otp.cpp)

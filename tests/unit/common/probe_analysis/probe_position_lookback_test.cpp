@@ -9,10 +9,6 @@ extern "C" uint32_t ticks_us() {
     return ticks;
 }
 
-extern "C" int32_t ticks_diff(uint32_t ticks_a, uint32_t ticks_b) {
-    static constexpr uint32_t TICKS_PERIOD = 0x80000000;
-    return ((int32_t)(((ticks_a - ticks_b + TICKS_PERIOD / 2) & (TICKS_PERIOD - 1)) - TICKS_PERIOD / 2));
-}
 TEST_CASE("probe_position_lookback_basic") {
     ProbePositionLookback l;
 
