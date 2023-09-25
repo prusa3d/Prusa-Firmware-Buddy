@@ -121,7 +121,7 @@ static void plan_arc2(const xy_pos_t &dest, const xy_pos_t &center, const feedRa
  * @param start_fr Starting (current) feedrate (mm/s)
  * @param end_fr Ending (parking) feedrate (mm/s)
  */
-static void plan_pos2dock(const float arc_r, const xy_pos_t &pos, const xy_pos_t &dock,
+static void plan_pos2dock(const float arc_r, const xy_pos_t pos, const xy_pos_t dock,
     const float start_fr, const float end_fr) {
 
     // arc parameters
@@ -142,7 +142,7 @@ static void plan_pos2dock(const float arc_r, const xy_pos_t &pos, const xy_pos_t
  * @param start_fr Starting (parking) feedrate (mm/s)
  * @param end_fr Ending (target) feedrate (mm/s)
  */
-static void plan_dock2pos(const float arc_r, const xy_pos_t &pos, const xy_pos_t &dock,
+static void plan_dock2pos(const float arc_r, const xy_pos_t pos, const xy_pos_t dock,
     const float start_fr, const float end_fr) {
     // arc parameters
     xy_pos_t point;
@@ -608,8 +608,7 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     // attempt to plan a smooth arc move
     float arc_r = arc_move::arc_radius(current_position, target_pos);
     if (arc_r >= arc_move::arc_min_radius) {
-        // make an explicit copy of current_position as it's updated while the move takes place!
-        arc_move::plan_pos2dock(arc_r, xy_pos_t(current_position), target_pos,
+        arc_move::plan_pos2dock(arc_r, current_position, target_pos,
             feedrate_mm_s, target_fr);
     }
 
@@ -803,8 +802,7 @@ void PrusaToolChanger::unpark_to(const xy_pos_t &destination) {
     // attempt to plan a smooth arc move
     float arc_r = arc_move::arc_radius(destination, current_position);
     if (arc_r >= arc_move::arc_min_radius) {
-        // make an explicit copy of current_position as it's updated while the move takes place!
-        arc_move::plan_dock2pos(arc_r, destination, xy_pos_t(current_position),
+        arc_move::plan_dock2pos(arc_r, destination, current_position,
             feedrate_mm_s, feedrate_mm_s);
     }
 
