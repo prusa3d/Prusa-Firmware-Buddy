@@ -53,7 +53,8 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
             &CSelftestPart_Axis::stateCycleMark2,
             &CSelftestPart_Axis::stateMove,
             &CSelftestPart_Axis::stateMoveFinishCycle,
-            &CSelftestPart_Axis::stateParkAxis);
+            &CSelftestPart_Axis::stateParkAxis,
+            &CSelftestPart_Axis::state_verify_coils);
             // clang-format on
             break;
         case 'X':
@@ -78,7 +79,8 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
             &CSelftestPart_Axis::stateCycleMark2,
             &CSelftestPart_Axis::stateMove,
             &CSelftestPart_Axis::stateMoveFinishCycleWithMotorSwitch,
-            &CSelftestPart_Axis::stateParkAxis);
+            &CSelftestPart_Axis::stateParkAxis,
+            &CSelftestPart_Axis::state_verify_coils);
                 // clang-format on
                 break;
             }
@@ -97,7 +99,8 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
                 &CSelftestPart_Axis::stateCycleMark2,
                 &CSelftestPart_Axis::stateMove,
                 &CSelftestPart_Axis::stateMoveFinishCycle,
-                &CSelftestPart_Axis::stateParkAxis);
+                &CSelftestPart_Axis::stateParkAxis,
+                &CSelftestPart_Axis::state_verify_coils);
         }
     }
 

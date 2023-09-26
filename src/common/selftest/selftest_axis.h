@@ -34,6 +34,7 @@ class CSelftestPart_Axis {
     uint8_t m_Step = 0;
     uint8_t m_SGOrig_mask;
     bool homed = false;
+    bool coils_ok = false; // Initially false, set to true when any coil check passes
     static CSelftestPart_Axis *m_pSGAxis;
 
     void sg_sample(uint16_t sg);
@@ -81,6 +82,15 @@ public:
     LoopResult stateMoveFinishCycle();
     LoopResult stateMoveFinishCycleWithMotorSwitch();
     LoopResult stateParkAxis();
+    LoopResult state_verify_coils(); ///< Report error when coils were never seen ok
+
+private:
+    /**
+     * \brief Check stepper coils for open/short circuit
+     * Needs to be called relatively during move to cope with false error detection.
+     * A single passing check sets coils_ok to true.
+     */
+    void check_coils();
 };
 
 extern const AxisConfig_t Config_XAxis;

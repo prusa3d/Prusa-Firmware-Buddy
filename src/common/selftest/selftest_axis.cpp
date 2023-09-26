@@ -323,6 +323,8 @@ LoopResult CSelftestPart_Axis::stateMoveFinishCycleWithMotorSwitch() {
 }
 
 LoopResult CSelftestPart_Axis::stateMoveFinishCycle() {
+    check_coils();
+
     LoopResult result = wait(getDir());
     if (result != LoopResult::RunNext) {
         return result;
@@ -337,6 +339,8 @@ LoopResult CSelftestPart_Axis::stateMoveFinishCycle() {
 // XL continues with homing which can be loud if starting at the edge
 // Move Y to better position after selftest is completed
 LoopResult CSelftestPart_Axis::stateParkAxis() {
+    check_coils();
+
     static bool parking_initiated = false;
     if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
@@ -362,4 +366,34 @@ void CSelftestPart_Axis::actualizeProgress() const {
     if (time_progress_start == time_progress_estimated_end)
         return; // don't have estimated end set correctly
     rResult.progress = scale_percent_avoid_overflow(SelftestInstance().GetTime(), time_progress_start, time_progress_estimated_end);
+}
+
+void CSelftestPart_Axis::check_coils() {
+    // Update coil check result. This is not reliable. We are fine with one ok reading
+
+    // On coreXY and when actually testing X,Y axes we need to check both A, B steppers
+    // as we would like X axis check to fail even when B stepper is not ok and vice versa.
+#ifdef COREXY
+    const bool check_ab = config.axis == X_AXIS || config.axis == Y_AXIS;
+#else
+    const bool check_ab = false;
+#endif
+
+    if (check_ab) {
+        if (tmc_check_coils(A_AXIS) && tmc_check_coils(B_AXIS)) {
+            coils_ok = true;
+        }
+    } else {
+        if (tmc_check_coils(config.axis)) {
+            coils_ok = true;
+        }
+    }
+}
+
+LoopResult CSelftestPart_Axis::state_verify_coils() {
+    if (!coils_ok) {
+        log_error(Selftest, "Axis coil error");
+        return LoopResult::Fail;
+    }
+    return LoopResult::RunNext;
 }

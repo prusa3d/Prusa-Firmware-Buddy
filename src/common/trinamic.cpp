@@ -323,4 +323,18 @@ extern uint16_t tmc_get_last_sg_sample(uint8_t axis) {
     return tmc_sg[axis];
 }
 
+bool tmc_check_coils(uint8_t axis) {
+    if (!pStep[axis]) {
+        return false;
+    }
+
+    const bool ola = pStep[axis]->ola();
+    const bool olb = pStep[axis]->olb();
+    const bool s2ga = pStep[axis]->s2ga();
+    const bool s2gb = pStep[axis]->s2gb();
+
+    // Yes, we could actually tell what is wrong. For now we are fine with boolean result.
+    return !ola && !olb && !s2ga && !s2gb;
+}
+
 } // extern "C"
