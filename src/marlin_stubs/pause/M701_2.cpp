@@ -185,6 +185,9 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
 }
 
 void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder) {
+    filament::set_type_to_load(filament::Type::NONE);
+    filament::set_color_to_load(std::nullopt);
+
     InProgress progress;
     if constexpr (option::has_bowden) {
         config_store().set_filament_type(target_extruder, filament::Type::NONE);
