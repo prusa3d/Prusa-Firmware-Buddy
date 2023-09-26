@@ -502,15 +502,9 @@ void iwdg_warning_cb(void) {
 
     buddy_breakpoint_disable_heaters();
 #endif /*_DEBUG*/
-    DUMP_IWDGW_TO_CCMRAM(0x10);
-    wdt_iwdg_refresh();
-    save_dump();
-#ifndef _DEBUG
-    while (true)
-        ;
-#else
-    sys_reset();
-#endif
+    crash_dump::save_message(crash_dump::MsgType::BSOD_IWDGW, 0, nullptr, nullptr);
+
+    trigger_crash_dump();
 }
 
 static uint32_t _spi_prescaler(int prescaler_num) {

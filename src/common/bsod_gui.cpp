@@ -25,6 +25,7 @@
 #include "error_codes.hpp"
 #include "../../lib/Marlin/Marlin/src/core/language.h"
 #include "power_panic.hpp"
+#include "crash_dump/dump_parse.hpp"
 
 // this is private struct definition from FreeRTOS
 /*
@@ -264,10 +265,6 @@ void bsod_mark_shown() {
 }
 
 void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
-#ifdef _DEBUG
-    buddy_breakpoint_disable_heaters();
-#endif /*_DEBUG*/
-
     va_list args;
     va_start(args, line_number);
 
@@ -276,13 +273,6 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
         // There could already be a dump that was not displayed
         fallback_bsod(fmt, file_name, line_number, args);
     }
-
-    // Disable after fallback check
-    __disable_irq();
-
-    // Save dump
-    DUMP_BSOD_TO_CCMRAM();
-    crash_dump::save_dump();
 
     // Get file and line as title
     char title[crash_dump::MSG_TITLE_MAX_LEN];
@@ -294,29 +284,18 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_end(args);
 
     // Save file, line and meessage
-    crash_dump::save_message(crash_dump::MsgType::BSOD, ftrstd::to_underlying(ErrCode::ERR_UNDEF), msg, title);
+    crash_dump::save_message(crash_dump::MsgType::BSOD_BSOD, ftrstd::to_underlying(ErrCode::ERR_UNDEF), msg, title);
 
-    sys_reset();
-    while (1) {
-    }
+    crash_dump::trigger_crash_dump();
 }
 
 #ifdef configCHECK_FOR_STACK_OVERFLOW
 
 extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, signed char *pcTaskName) {
-    #ifdef _DEBUG
-    // Breakpoint if debugger is connected
-    buddy_breakpoint_disable_heaters();
-    #endif /*_DEBUG*/
-
-    // Save registers
-    DUMP_STACK_OVF_TO_CCMRAM();
-    crash_dump::save_dump();
-
     // Save task name as title
-    crash_dump::save_message(crash_dump::MsgType::BSOD, 0, "", reinterpret_cast<char *>(pcTaskName));
+    crash_dump::save_message(crash_dump::MsgType::BSOD_STACK_OVF, 0, "", reinterpret_cast<char *>(pcTaskName));
 
-    sys_reset();
+    crash_dump::trigger_crash_dump();
 }
 
 #endif // configCHECK_FOR_STACK_OVERFLOW
@@ -372,12 +351,13 @@ const char *get_hardfault_reason() {
     static const constexpr uint32_t UNALIGNED_Msk = 1u << 24;
     static const constexpr uint32_t DIVBYZERO_Msk = 1u << 25;
 
-    uint32_t __SCB[35];
-    crash_dump::load_dump_regs_SCB(&__SCB, 35 * sizeof(uint32_t));
+    crash_dump::CrashCatcherDumpParser parser;
+    uint8_t scg_regs_data[sizeof(SCB_Type)];
+    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs);
+    parser.load_data(scg_regs_data, reinterpret_cast<uintptr_t>(SCB), sizeof(*SCB));
+    const uint32_t cfsr = scg_regs->CFSR;
 
-    uint32_t __CFSR = __SCB[0x28 >> 2];
-
-    switch ((__CFSR) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
+    switch ((cfsr) & (IACCVIOL_Msk | DACCVIOL_Msk | MSTKERR_Msk | MUNSTKERR_Msk | MLSPERR_Msk | STKERR_Msk | UNSTKERR_Msk | IBUSERR_Msk | LSPERR_Msk | PRECISERR_Msk | IMPRECISERR_Msk | UNDEFINSTR_Msk | INVSTATE_Msk | INVPC_Msk | NOCPC_Msk | UNALIGNED_Msk | DIVBYZERO_Msk)) {
         // case ????_Msk:
         // urn "The error can have at most 38 chars -|"; // To fit into title
     case IACCVIOL_Msk:
@@ -417,18 +397,20 @@ const char *get_hardfault_reason() {
 
     default: {
         static char buffer[39];
-        snprintf(buffer, std::size(buffer), "Multiple Errors CFSR :%08x", static_cast<unsigned int>(__CFSR));
+        snprintf(buffer, std::size(buffer), "Multiple Errors CFSR :%08x", static_cast<unsigned int>(cfsr));
         return buffer;
     }
     }
 }
 
 size_t get_task_name(char *&buffer, size_t buffer_size) {
+    crash_dump::CrashCatcherDumpParser parser;
+
     // Get task name from dump
-    uint32_t __pxCurrentTCB;
-    crash_dump::load_dump_RAM(&__pxCurrentTCB, (unsigned int)&pxCurrentTCB, sizeof(uint32_t));
+    uintptr_t __pxCurrentTCB;
+    parser.load_data((uint8_t *)(&__pxCurrentTCB), (uintptr_t)(&pxCurrentTCB), sizeof(uint32_t));
     TCB_t CurrentTCB;
-    crash_dump::load_dump_RAM(&CurrentTCB, __pxCurrentTCB, sizeof(TCB_t));
+    parser.load_data(reinterpret_cast<uint8_t *>(&CurrentTCB), reinterpret_cast<uintptr_t>(__pxCurrentTCB), sizeof(TCB_t));
 
     // Add to buffer
     int written = snprintf(buffer, buffer_size, "task:%s\n", CurrentTCB.pcTaskName);
@@ -444,12 +426,15 @@ size_t get_task_name(char *&buffer, size_t buffer_size) {
 }
 
 size_t get_regs(char *&buffer, size_t buffer_size) {
-    uint32_t gen_regs[16];
-    crash_dump::load_dump_regs_GEN(&gen_regs, sizeof(gen_regs));
+    crash_dump::CrashCatcherDumpParser parser;
 
-    uint32_t scg_regs[35];
-    crash_dump::load_dump_regs_SCB(&scg_regs, sizeof(scg_regs));
-    const uint32_t cfsr = scg_regs[0x28 >> 2];
+    crash_dump::CrashCatcherDumpParser::Registers_t gen_regs;
+    parser.load_registers(gen_regs);
+
+    uint8_t scg_regs_data[sizeof(SCB_Type)];
+    parser.load_data(scg_regs_data, reinterpret_cast<uintptr_t>(SCB), sizeof(*SCB));
+    SCB_Type *scg_regs = reinterpret_cast<SCB_Type *>(&scg_regs);
+    const uint32_t cfsr = scg_regs->CFSR;
 
     auto add_reg = [&](const char *name, unsigned int value, bool even_if_zero = false) {
         // Ignore if it is empty or out of space in buffer
@@ -474,9 +459,9 @@ size_t get_regs(char *&buffer, size_t buffer_size) {
     };
 
     // Core registers
-    add_reg("SP", gen_regs[12], true);
-    add_reg("LR", gen_regs[13], true);
-    add_reg("PC", gen_regs[14], true);
+    add_reg("SP", gen_regs.SP, true);
+    add_reg("LR", gen_regs.LR, true);
+    add_reg("PC", gen_regs.PC, true);
 
     // Add newline at the end
     if (buffer_size > 1) {
@@ -486,28 +471,28 @@ size_t get_regs(char *&buffer, size_t buffer_size) {
     }
 
     // SCB registers
-    add_reg("CPUID", scg_regs[0x00 >> 2]);
-    add_reg("ICSR_", scg_regs[0x04 >> 2]);
-    add_reg("VTOR_", scg_regs[0x08 >> 2]);
-    add_reg("AIRCR", scg_regs[0x0c >> 2]);
-    add_reg("SCR__", scg_regs[0x10 >> 2]);
-    add_reg("CCR__", scg_regs[0x14 >> 2]);
-    add_reg("SHCSR", scg_regs[0x24 >> 2]);
-    add_reg("HFSR_", scg_regs[0x2c >> 2]);
-    add_reg("DFSR_", scg_regs[0x30 >> 2]);
+    add_reg("CPUID", scg_regs->CPUID);
+    add_reg("ICSR_", scg_regs->ICSR);
+    add_reg("VTOR_", scg_regs->VTOR);
+    add_reg("AIRCR", scg_regs->AIRCR);
+    add_reg("SCR__", scg_regs->SCR);
+    add_reg("CCR__", scg_regs->CCR);
+    add_reg("SHCSR", scg_regs->SHCSR);
+    add_reg("HFSR_", scg_regs->HFSR);
+    add_reg("DFSR_", scg_regs->DFSR);
     // Print these only if value is valid
     static const constexpr uint32_t MMARVALID_Msk = 1 << 7; ///< MemManage Fault Address Register (MMFAR) valid flag
     if (cfsr & MMARVALID_Msk) {
-        add_reg("MMFAR", scg_regs[0x34 >> 2]);
+        add_reg("MMFAR", scg_regs->MMFAR);
     }
     static const constexpr uint32_t BFARVALID_Msk = 1U << 15; ///< BusFault Address Register (BFAR) valid flag
     if (cfsr & BFARVALID_Msk) {
-        add_reg("BFAR_", scg_regs[0x38 >> 2]);
+        add_reg("BFAR_", scg_regs->BFAR);
     }
-    add_reg("AFSR_", scg_regs[0x3c >> 2]);
-    add_reg("DFR__", scg_regs[0x48 >> 2]);
-    add_reg("ADR__", scg_regs[0x4c >> 2]);
-    add_reg("CPACR", scg_regs[0x88 >> 2]);
+    add_reg("AFSR_", scg_regs->AFSR);
+    add_reg("DFR__", scg_regs->DFR);
+    add_reg("ADR__", scg_regs->ADR);
+    add_reg("CPACR", scg_regs->CPACR);
 
     // Add newline at the end
     if (buffer_size > 1) {
@@ -520,11 +505,13 @@ size_t get_regs(char *&buffer, size_t buffer_size) {
 }
 
 size_t get_stack(char *&buffer, size_t buffer_size) {
+    crash_dump::CrashCatcherDumpParser parser;
+
     // Get stack from dump
-    uint32_t __pxCurrentTCB;
-    crash_dump::load_dump_RAM(&__pxCurrentTCB, (unsigned int)&pxCurrentTCB, sizeof(uint32_t));
+    uintptr_t __pxCurrentTCB;
+    parser.load_data((uint8_t *)(&__pxCurrentTCB), (uintptr_t)(&pxCurrentTCB), sizeof(uint32_t));
     TCB_t CurrentTCB;
-    crash_dump::load_dump_RAM(&CurrentTCB, __pxCurrentTCB, sizeof(TCB_t));
+    parser.load_data(reinterpret_cast<uint8_t *>(&CurrentTCB), reinterpret_cast<uintptr_t>(__pxCurrentTCB), sizeof(TCB_t));
 
     StackType_t *pTopOfStack = (StackType_t *)CurrentTCB.pxTopOfStack;
     StackType_t *pBotOfStack = CurrentTCB.pxStack;
@@ -544,7 +531,7 @@ size_t get_stack(char *&buffer, size_t buffer_size) {
     for (StackType_t *i = pTopOfStack; i > pBotOfStack && buffer && buffer_size; --i) {
         // Get stack content
         uint32_t sp = 0;
-        crash_dump::load_dump_RAM(&sp, reinterpret_cast<uint32_t>(i), sizeof(uint32_t));
+        parser.load_data(reinterpret_cast<uint8_t *>(&sp), reinterpret_cast<uintptr_t>(i), sizeof(uint32_t));
 
         // Add content to buffer
         written = snprintf(buffer, buffer_size, "%08x ", static_cast<unsigned int>(sp));

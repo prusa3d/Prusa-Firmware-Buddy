@@ -516,14 +516,18 @@ static ScreenFactory::Creator get_error_screen() {
     }
 
     if (crash_dump::dump_is_valid() && !crash_dump::dump_is_displayed()) {
-        switch (crash_dump::dump_get_type()) {
-        case crash_dump::DumpType::HARDFAULT:
+        if (crash_dump::message_is_displayed()) {
+            // In case message is stale (already displayed), it is not relevant anymore.
+            // We have just crash dump without message. CrashDump without message means it was caused by hardfault directly.
             return ScreenFactory::Screen<ScreenHardfault>;
-        case crash_dump::DumpType::IWDGW:
+        }
+
+        switch (crash_dump::message_get_type()) {
+        case crash_dump::MsgType::BSOD_IWDGW:
             return ScreenFactory::Screen<ScreenWatchdog>;
-        case crash_dump::DumpType::BSOD:
+        case crash_dump::MsgType::BSOD_BSOD:
             return ScreenFactory::Screen<ScreenBsod>;
-        case crash_dump::DumpType::STACK_OVF:
+        case crash_dump::MsgType::BSOD_STACK_OVF:
             return ScreenFactory::Screen<ScreenStackOverflow>;
         default:
             break;

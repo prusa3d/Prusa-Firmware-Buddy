@@ -10,15 +10,25 @@
 #include "task.h"
 #include <error_codes.hpp>
 #include <array>
+extern "C" {
+#include "CrashCatcher.h"
+}
 
 namespace crash_dump {
 
-typedef struct __attribute__((packed)) _info_t {
-    DumpType type_flags; //
-    unsigned char reserved[15]; // TODO: RTC time, code
+/// While dumping, this stores size of already dumped data
+static uint32_t dump_size;
+
+/// Just random value, used to check that dump is probably valid in flash
+inline constexpr uint32_t CRASH_DUMP_MAGIC_NR = 0x3DC53F;
+typedef struct __attribute__((packed)) {
+    /// Magic number, that indicates that crash dump is valid
+    uint32_t crash_dump_magic_nr;
+    DumpFlags dump_flags;
+    uint32_t dump_size;
 } info_t;
 
-typedef struct __attribute__((packed)) _message_t {
+typedef struct __attribute__((packed)) {
     uint8_t not_displayed; ///< not displayed == 0xFF, displayed == 0x00
     MsgType type; ///< Mark if this structure has valid data
     ErrCode error_code; ///< error_code (0 == unknown error code -> we read dumped message
@@ -26,175 +36,149 @@ typedef struct __attribute__((packed)) _message_t {
     char msg[MSG_MAX_LEN];
 } message_t;
 
-inline constexpr uint32_t dump_offset = w25x_dump_start_address;
-inline constexpr uint16_t dump_buff_size = 0x100;
-inline constexpr uint32_t dump_xflash_size = RAM_SIZE + CCMRAM_SIZE;
+/// Position of dump header
+inline constexpr uint32_t dump_header_addr = w25x_dump_start_address;
+/// Position of dump data
+inline constexpr uint32_t dump_data_addr = dump_header_addr + sizeof(info_t);
+/// Max size of dump (header + data)
+inline constexpr uint32_t dump_max_size = w25x_dump_size;
+/// Max size of dump data
+inline constexpr uint32_t dump_max_data_size = dump_max_size - sizeof(info_t);
 
-static_assert(dump_xflash_size <= w25x_error_start_adress, "Dump overflows reserved space.");
 static_assert(sizeof(message_t) <= (w25x_pp_start_address - w25x_error_start_adress), "Error message overflows reserved space.");
-
+/// Position of dump message in flash
 static const message_t *dumpmessage_flash = reinterpret_cast<message_t *>(w25x_error_start_adress);
 
-static inline void dump_regs_SCB() {
-    // copy entire SCB to CCMRAM
-    memcpy((uint8_t *)REGS_SCB_ADDR, SCB, REGS_SCB_SIZE);
+enum {
+#if PRINTER_IS_PRUSA_MINI
+    // dumped ram area (128kb)
+    RAM_ADDR = 0x20000000,
+    RAM_SIZE = 0x00020000,
+#elif (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX)
+    // dumped ram area (192kb)
+    RAM_ADDR = 0x20000000,
+    RAM_SIZE = 0x00030000,
+#else
+    #error "Unknown PRINTER_TYPE!"
+#endif
+
+    // dumped ccmram area (64kb)
+    CCMRAM_ADDR = CCMDATARAM_BASE,
+    CCMRAM_SIZE = CCMDATARAM_END - CCMDATARAM_BASE,
+
+    SCB_ADDR = (uintptr_t)SCB_BASE,
+    SCB_SIZE = sizeof(SCB_Type),
+
+};
+
+static bool dump_read_header(info_t &dumpinfo) {
+    w25x_rd_data(dump_header_addr, (uint8_t *)(&dumpinfo), sizeof(dumpinfo));
+    if (w25x_fetch_error())
+        return false;
+    return true;
 }
 
-void save_dump() {
-    buddy::DisableInterrupts disable_interrupts;
-    vTaskEndScheduler();
-    if (!w25x_init()) {
-        return;
-    }
-
-    _Static_assert(sizeof(info_t) == 16, "invalid sizeof(dumpinfo_t)");
-    if (dump_is_valid()) {
-        if (!dump_is_displayed()) {
-            return;
-        }
-    }
-    dump_regs_SCB();
-    for (uint32_t addr = 0; addr < dump_xflash_size; addr += 0x10000) {
-        w25x_block64_erase(dump_offset + addr);
-    }
-    w25x_program(dump_offset, (uint8_t *)(RAM_ADDR), RAM_SIZE);
-    w25x_program(dump_offset + RAM_SIZE, (uint8_t *)(CCMRAM_ADDR), CCMRAM_SIZE);
-    w25x_fetch_error();
+bool dump_is_exported() {
+    info_t dumpinfo;
+    dump_read_header(dumpinfo);
+    return !any(dumpinfo.dump_flags & DumpFlags::EXPORTED);
 }
 
 bool dump_is_valid() {
     info_t dumpinfo;
-    w25x_rd_data(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo), INFO_SIZE);
-    if (w25x_fetch_error())
-        return false;
-
-    const uint8_t dump_type = ftrstd::to_underlying(dumpinfo.type_flags & DumpType::TYPEMASK);
-    return dump_type && ((dump_type & (dump_type - 1)) == 0); // Is exactly one bit set?
+    dump_read_header(dumpinfo);
+    return (bool)(dumpinfo.crash_dump_magic_nr == CRASH_DUMP_MAGIC_NR) && dumpinfo.dump_size > 0 && dumpinfo.dump_size <= dump_max_data_size;
 }
 
 bool dump_is_displayed() {
     info_t dumpinfo;
-    w25x_rd_data(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, (uint8_t *)(&dumpinfo), INFO_SIZE);
-    if (w25x_fetch_error())
-        return false;
-    return !any(dumpinfo.type_flags & DumpType::NOT_DISPL);
+    dump_read_header(dumpinfo);
+    return !any(dumpinfo.dump_flags & DumpFlags::DISPL);
 }
 
-DumpType dump_get_type() {
+size_t dump_get_size() {
+    if (!dump_is_valid())
+        return 0;
     info_t dumpinfo;
-    w25x_rd_data(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, (uint8_t *)(&dumpinfo), INFO_SIZE);
-    if (w25x_fetch_error())
-        dumpinfo.type_flags = DumpType::UNDEFINED;
-    return (dumpinfo.type_flags & ~(DumpType::NOT_SAVED | DumpType::NOT_DISPL));
+    dump_read_header(dumpinfo);
+    return dumpinfo.dump_size;
+}
+
+bool dump_read_data(size_t offset, size_t size, uint8_t *ptr) {
+    w25x_rd_data(dump_data_addr + offset, ptr, size);
+    return !w25x_fetch_error();
 }
 
 /**
  * @todo Programming single byte more times is undocumented feature of w25x
  */
-static void dump_clear_flag(const DumpType flag) {
-    DumpType dumpinfo_type;
-    w25x_rd_data(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
-    if (!w25x_fetch_error() && any(dumpinfo_type & flag)) {
-        dumpinfo_type = dumpinfo_type & ~flag;
-        w25x_program(dump_offset + RAM_SIZE + CCMRAM_SIZE - INFO_SIZE, reinterpret_cast<uint8_t *>(&dumpinfo_type), 1);
+static void dump_set_flag(const DumpFlags flag) {
+    DumpFlags dump_flags;
+    w25x_rd_data(dump_header_addr + offsetof(info_t, dump_flags), reinterpret_cast<uint8_t *>(&dump_flags), 1);
+    // set bit to zero - that is active state of this bit
+    if (!w25x_fetch_error() && any(dump_flags & flag)) {
+        dump_flags = dump_flags & ~flag;
+        w25x_program(dump_header_addr + offsetof(info_t, dump_flags), reinterpret_cast<uint8_t *>(&dump_flags), 1);
         w25x_fetch_error();
     }
 }
 
-/**
- * @brief Mark dump as saved.
- */
-static void dump_set_saved() {
-    dump_clear_flag(DumpType::NOT_SAVED);
+void dump_set_exported() {
+    dump_set_flag(DumpFlags::EXPORTED);
 }
 
 void dump_set_displayed() {
-    dump_clear_flag(DumpType::NOT_DISPL);
-}
-
-size_t load_dump_RAM(void *pRAM, uint32_t addr, size_t size) {
-    if ((addr >= RAM_ADDR) && (addr < (RAM_ADDR + RAM_SIZE))) {
-        if (size > (RAM_ADDR + RAM_SIZE - addr))
-            size = (RAM_ADDR + RAM_SIZE - addr);
-        w25x_rd_data(dump_offset + addr - RAM_ADDR, (uint8_t *)(pRAM), size);
-        return size;
-    } else if ((addr >= CCMRAM_ADDR) && (addr < (CCMRAM_ADDR + CCMRAM_SIZE))) {
-        if (size > (CCMRAM_ADDR + CCMRAM_SIZE - addr))
-            size = (CCMRAM_ADDR + CCMRAM_SIZE - addr);
-        w25x_rd_data(dump_offset + RAM_SIZE + addr - CCMRAM_ADDR, (uint8_t *)(pRAM), size);
-        return size;
-    }
-    return 0;
-}
-
-size_t load_dump_regs_SCB(void *pRegsSCB, size_t size) {
-    if (size > REGS_SCB_SIZE)
-        size = REGS_SCB_SIZE;
-    w25x_rd_data(dump_offset + RAM_SIZE + REGS_SCB_ADDR - CCMRAM_ADDR, (uint8_t *)(pRegsSCB), size);
-    if (w25x_fetch_error())
-        return 0;
-    return size;
-}
-
-size_t load_dump_regs_GEN(void *pRegsGEN, size_t size) {
-    if (size > REGS_GEN_SIZE)
-        size = REGS_GEN_SIZE;
-    w25x_rd_data(dump_offset + RAM_SIZE + REGS_GEN_ADDR - CCMRAM_ADDR, (uint8_t *)(pRegsGEN), size);
-    if (w25x_fetch_error())
-        return 0;
-    return size;
+    dump_set_flag(DumpFlags::DISPL);
 }
 
 void dump_reset() {
-    static_assert(dump_xflash_size % w25x_block64_size == 0, "More than reserved area is erased.");
-    for (uint32_t addr = 0; addr < dump_xflash_size; addr += w25x_block64_size) {
-        w25x_block64_erase(dump_offset + addr);
+    static_assert(dump_header_addr % w25x_block64_size == 0 && (dump_header_addr + dump_max_size) % w25x_block_size == 0, "More than reserved area is erased.");
+    uint32_t addr = dump_header_addr;
+    // first fast-erase multiple sectors with 64KiB blocks
+    for (; addr + w25x_block64_size <= dump_max_size; addr += w25x_block64_size) {
+        w25x_block64_erase(addr);
     }
+    // now erase rest of the blocks
+    for (; addr + w25x_block_size <= dump_max_size; addr += w25x_block_size) {
+        w25x_sector_erase(addr);
+    }
+
     w25x_fetch_error();
 }
 
 bool save_dump_to_usb(const char *fn) {
     FILE *fd;
-    uint32_t addr;
+    constexpr uint16_t dump_buff_size = 0x100;
     uint8_t buff[dump_buff_size];
     int bw;
     uint32_t bw_total = 0;
+
+    info_t dump_info;
+    if (!dump_read_header(dump_info))
+        return false;
+
     fd = fopen(fn, "w");
     if (fd != NULL) {
         // save dumped RAM and CCMRAM from xflash
-        for (addr = 0; addr < dump_xflash_size; addr += dump_buff_size) {
-            memset(buff, 0, dump_buff_size);
-            w25x_rd_data(addr, buff, dump_buff_size);
-            if (w25x_fetch_error()) {
+        for (uint32_t offset = 0; offset < dump_info.dump_size;) {
+            size_t read_size = std::min(sizeof(buff), (size_t)(dump_info.dump_size - offset));
+
+            memset(buff, 0, read_size);
+            if (!dump_read_data(offset, read_size, buff)) {
                 break;
             }
-            bw = fwrite(buff, 1, dump_buff_size, fd);
+            bw = fwrite(buff, 1, read_size, fd);
             if (bw <= 0) {
                 break;
             }
             bw_total += bw;
-        }
-        // save OTP
-        for (addr = 0; addr < OTP_SIZE; addr += dump_buff_size) {
-            bw = fwrite((void *)(OTP_ADDR + addr), 1, dump_buff_size, fd);
-            if (bw <= 0) {
-                break;
-            }
-            bw_total += bw;
-        }
-        // save FLASH
-        for (addr = 0; addr < FLASH_SIZE; addr += dump_buff_size) {
-            bw = fwrite((void *)(FLASH_ADDR + addr), 1, dump_buff_size, fd);
-            if (bw <= 0) {
-                break;
-            }
-            bw_total += bw;
+            offset += read_size;
         }
         fclose(fd);
-        if (bw_total != (dump_xflash_size + OTP_SIZE + FLASH_SIZE)) {
+        if (bw_total != (dump_info.dump_size /*+ OTP_SIZE + FLASH_SIZE*/)) {
             return false;
         }
-        dump_set_saved();
+        dump_set_exported();
         return true;
     }
     return false;
@@ -276,4 +260,90 @@ uint16_t load_message_error_code() {
     return error_code;
 }
 
+static void dump_failed() {
+    // nothing left to do here, when dump fails just restart
+    HAL_NVIC_SystemReset();
+}
+
+static const CrashCatcherMemoryRegion regions[] = {
+    { crash_dump::SCB_ADDR, crash_dump::SCB_ADDR + crash_dump::SCB_SIZE, CRASH_CATCHER_WORD },
+    { crash_dump::RAM_ADDR, crash_dump::RAM_ADDR + crash_dump::RAM_SIZE, CRASH_CATCHER_BYTE },
+    { crash_dump::CCMRAM_ADDR, crash_dump::CCMRAM_ADDR + crash_dump::CCMRAM_SIZE, CRASH_CATCHER_BYTE },
+    { 0xFFFFFFFF, 0, CRASH_CATCHER_BYTE },
+};
+
+void trigger_crash_dump() {
+    // trigger hardfault, hardfault will dump the processor state
+    CRASH_CATCHER_INVALID_INSTRUCTION();
+
+    // just to make function no-return
+    while (1) {
+    }
+}
+
 } // namespace crash_dump
+
+const CrashCatcherMemoryRegion *CrashCatcher_GetMemoryRegions(void) {
+    return crash_dump::regions;
+}
+
+void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
+    __disable_irq();
+    vTaskEndScheduler();
+    if (!w25x_init()) {
+        crash_dump::dump_failed();
+    }
+
+    if (crash_dump::dump_is_valid() && !crash_dump::dump_is_displayed()) {
+        // do not owerwire dump that is already valid & wasn't displayed to user yet
+        crash_dump::dump_failed();
+    }
+
+    crash_dump::dump_reset();
+
+    crash_dump::dump_size = 0;
+}
+
+void CrashCatcher_DumpMemory(const void *pvMemory, CrashCatcherElementSizes element_size, size_t elementCount) {
+    if (element_size == CRASH_CATCHER_BYTE) {
+        if (crash_dump::dump_size + elementCount > crash_dump::dump_max_data_size)
+            crash_dump::dump_failed();
+
+        w25x_program(crash_dump::dump_data_addr + crash_dump::dump_size, (uint8_t *)pvMemory, elementCount);
+        crash_dump::dump_size += elementCount;
+    } else if (element_size == CRASH_CATCHER_WORD) {
+        if (crash_dump::dump_size + elementCount * sizeof(uint32_t) > crash_dump::dump_max_data_size)
+            crash_dump::dump_failed();
+
+        const uint32_t *ptr = reinterpret_cast<const uint32_t *>(pvMemory);
+        while (elementCount) {
+            uint32_t word = *ptr++;
+            w25x_program(crash_dump::dump_data_addr + crash_dump::dump_size, (uint8_t *)ptr, sizeof(word));
+            crash_dump::dump_size += sizeof(word);
+            elementCount--;
+        }
+    } else {
+        crash_dump::dump_failed();
+    }
+
+    if (w25x_fetch_error())
+        crash_dump::dump_failed();
+}
+
+CrashCatcherReturnCodes CrashCatcher_DumpEnd(void) {
+    // if we got up to here with success, program dump header
+    crash_dump::info_t dump_info {
+        .crash_dump_magic_nr = crash_dump::CRASH_DUMP_MAGIC_NR,
+        .dump_flags = crash_dump::DumpFlags::DEFAULT,
+        .dump_size = crash_dump::dump_size,
+    };
+    w25x_program(crash_dump::dump_header_addr, (uint8_t *)&dump_info, sizeof(dump_info));
+    if (w25x_fetch_error())
+        crash_dump::dump_failed();
+
+    // All done, now restart and display BSOD
+    HAL_NVIC_SystemReset();
+
+    // need to return something, but it should never get here.
+    return CRASH_CATCHER_TRY_AGAIN;
+}

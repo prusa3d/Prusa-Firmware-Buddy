@@ -608,7 +608,7 @@ target_include_directories(
           include/mbedtls
   )
 
-target_link_libraries(firmware PRIVATE BuddyHeaders Segger printf::printf)
+target_link_libraries(firmware PRIVATE BuddyHeaders Segger printf::printf CrashCatcher)
 
 if(BOARD MATCHES "BUDDY")
   target_link_libraries(
@@ -642,11 +642,9 @@ if(BOARD MATCHES "BUDDY")
             heatshrink_decoder
     )
 elseif(BOARD STREQUAL "DWARF")
-  target_link_libraries(
-    firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper CrashCatcher
-    )
+  target_link_libraries(firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper)
 elseif(BOARD STREQUAL "MODULARBED")
-  target_link_libraries(firmware PRIVATE BuddyHeaders CrashCatcher)
+  target_link_libraries(firmware PRIVATE BuddyHeaders)
 endif()
 
 set_property(

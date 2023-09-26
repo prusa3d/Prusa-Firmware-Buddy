@@ -27,10 +27,12 @@ inline constexpr auto dump_handlers { std::to_array<DumpHandler>({
     },
 #endif
         {
-            .presence_check = []() { return static_cast<bool>(dump_is_valid()); },
+            .presence_check = []() { return dump_is_valid() && !dump_is_exported(); },
             .usb_save = []() { save_dump_to_usb(buddy_dump_usb_path); },
             .server_upload = []() { upload_buddy_dump_to_server(); },
-            .remove = []() { dump_reset(); },
+            .remove = []() {
+                // dump is intentinaly not removed, just marked as exported. User can later export it from menu.
+                dump_set_exported(); },
         },
 }) };
 
