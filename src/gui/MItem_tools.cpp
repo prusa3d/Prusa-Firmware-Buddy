@@ -280,7 +280,7 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
     MsgBoxNonBlockInfo(_("A crash dump is being saved."));
-    if (crash_dump::save_dump_to_usb("/usb/dump.bin"))
+    if (crash_dump::dump_is_valid() && crash_dump::save_dump_to_usb("/usb/dump.bin"))
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
