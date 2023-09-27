@@ -47,7 +47,10 @@ static constexpr const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 /// These speeds create major chord
 /// https://en.wikipedia.org/wiki/Just_intonation
 
-static const float XYfr_table[] = { 80.F };
+// Feedrate for measuring X/Y axis length. Used to be HOMING_FEEDRATE_XY / 60,
+// but at those speeds the move sometimes, on certain printers, stalls during
+// the axis measurements. Higher speeds alleviate this problem.
+static const float XYfr_table[] = { 100.F };
 static constexpr size_t xy_fr_table_size = sizeof(XYfr_table) / sizeof(XYfr_table[0]);
 static constexpr float Zfr_table_fw[] = { maxFeedrates[Z_AXIS] }; // up
 static constexpr float Zfr_table_bw[] = { HOMING_FEEDRATE_Z / 60 };
