@@ -29,7 +29,7 @@ enum class printing_state_t : uint8_t {
     COUNT // setting this state == forced update
 };
 
-constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
+inline constexpr size_t POPUP_MSG_DUR_MS = 5000;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     static constexpr const char *caption = N_("PRINTING ...");

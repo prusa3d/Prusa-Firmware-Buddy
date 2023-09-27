@@ -3,10 +3,11 @@
  */
 #pragma once
 #include "img_resources.hpp"
+#include "window_icon.hpp"
 
-static constexpr uint16_t btn_padding = 8;
-static constexpr uint16_t btn_spacing = 16;
-static const WindowMultiIconButton::Pngs icon_resources[] = {
+inline constexpr uint16_t btn_padding = 8;
+inline constexpr uint16_t btn_spacing = 16;
+inline constexpr WindowMultiIconButton::Pngs icon_resources[] = {
     { img::settings_64x64, img::settings_64x64_focused, img::settings_64x64_disabled },
     { img::pause_64x64, img::pause_64x64_focused, img::pause_64x64_disabled },
     { img::stop_64x64, img::stop_64x64_focused, img::stop_64x64_disabled },

@@ -7,7 +7,7 @@
 #include "gui.hpp"
 #include "window_header.hpp"
 #include "status_footer.hpp"
-#include <utils/utility_extensions.hpp>
+#include <utility_extensions.hpp>
 
 class ScreenPrintingModel : public AddSuperWindow<IScreenPrinting> {
 protected:
@@ -15,9 +15,10 @@ protected:
         Left = 0,
         Middle,
         Right,
-        _last = Right,
+        _count,
+        _last = _count - 1,
     };
-    static constexpr size_t socket_count = ftrstd::to_underlying(BtnSocket::_last) + 1;
+    static constexpr size_t socket_count = ftrstd::to_underlying(BtnSocket::_count);
 
     enum class BtnRes {
         Settings = 0,
@@ -27,7 +28,8 @@ protected:
         Home,
         Reprint,
         Disconnect,
-        _last = Disconnect,
+        _count,
+        _last = _count - 1,
     };
 
     enum class LabelRes {
@@ -42,7 +44,8 @@ protected:
         Home,
         Skip,
         Disconnect,
-        _last = Disconnect,
+        _count,
+        _last = _count - 1,
     };
 
     WindowMultiIconButton buttons[socket_count];
