@@ -125,6 +125,21 @@ size_t PartialFile::get_offset(SectorNbr sector_nbr) {
 
 bool PartialFile::write_sector(const Sector &sector) {
     log_debug(transfers, "Sending sector over USB %d (%.20s)", sector.nbr, sector.data.data());
+    if (lseek(file_lock, 0, SEEK_SET) == -1) {
+        // Safety measure. It is possible that between creation of this
+        // PartialFile and current call to write_sector, the USB got unplugged
+        // and some other got plugged in. This would have severe effects on the
+        // filesystem, as we bypass the filesystem here and just send the data
+        // to specific offset.
+        //
+        // The "usual" file descriptors are already hooked up to this mechanism
+        // to protect them (hopefully), so we simply abuse that mechanism by
+        // "poking" the file descriptor for this given file. We use lseek as
+        // hopefully cheap way to "poke" it. We use the 'rewind' mode, the
+        // 'ftell' mode has a shortcut in it and actually does _not_ check the
+        // validity of the file.
+        return false;
+    }
     auto result = USBH_Driver.disk_write(drive, sector.data.data(), sector.nbr, 1);
     auto start = get_offset(sector.nbr);
     auto end = std::min(start + SECTOR_SIZE, state.total_size);
