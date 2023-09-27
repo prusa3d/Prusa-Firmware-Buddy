@@ -162,6 +162,8 @@ private:
 public:
     class RestoredTransfer {
     private:
+        static constexpr size_t max_size = 512; // read no more than this from backup file to avoid out of memory on corrupted filesystem
+
         FILE *file;
 
         PartialFile::State partial_file_state;

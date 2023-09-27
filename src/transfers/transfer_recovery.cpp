@@ -21,14 +21,14 @@ using FileOffset = long;
 
 struct SerializedString {
     long offset;
-    long size;
+    size_t size;
 
     static SerializedString serialize(const char *str, FILE *file, bool &error) {
-        const long len = strlen(str) + 1;
+        const size_t len = strlen(str) + 1;
         if (fwrite(str, len, 1, file) != 1) {
             error = true;
         }
-        return SerializedString { ftell(file) - len, len };
+        return SerializedString { ftell(file) - static_cast<long>(len), len };
     }
 
     template <typename T>
@@ -225,15 +225,25 @@ std::optional<Transfer::RestoredTransfer> Transfer::restore(FILE *file) {
 
     // check fw version
     {
-        char stored_version[transfer.fw_version.size];
         if (fseek(file, transfer.fw_version.offset, SEEK_SET) != 0) {
             return std::nullopt;
         }
-        if (fread(stored_version, transfer.fw_version.size, 1, file) != 1) {
+
+        // Fail if even version lengths differ
+        const size_t project_version_full_size = strlen(project_version_full);
+        if (transfer.fw_version.size != project_version_full_size + 1) { // +1 for terminating 0 byte not included in strlen
             return std::nullopt;
         }
-        if (strcmp(stored_version, project_version_full) != 0) {
-            return std::nullopt;
+
+        // Check version string byte by byte as its size and content cannot be trusted (not covered by CRC that we just checked)
+        for (size_t pos = 0; pos < transfer.fw_version.size && pos < project_version_full_size; pos++) {
+            char c;
+            if (fread(&c, 1, 1, file) != 1) {
+                return std::nullopt;
+            }
+            if (c != project_version_full[pos]) {
+                return std::nullopt;
+            }
         }
     }
 
@@ -323,7 +333,12 @@ std::optional<Download::Request> Transfer::RestoredTransfer::get_download_reques
     // prepare data buffer
     if (!data_buffer) {
         FileOffset data_offset = sizeof(SerializedTransfer);
-        uint32_t data_length = data_end - data_offset;
+        const size_t data_length = data_end - data_offset;
+        // Check file size is sane, its CRC has not been checked yet
+        if (data_length > max_size) {
+            log_error(transfers, "Corrupted backup?");
+            return std::nullopt;
+        }
         data_buffer = std::make_unique<char[]>(data_length);
         data_buffer_size = data_length;
 
