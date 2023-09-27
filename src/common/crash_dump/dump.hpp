@@ -138,5 +138,11 @@ void message_set_displayed();
  */
 uint16_t load_message_error_code();
 
+/**
+ * Function that should be called before error messages & dumps are issued.
+ * It will trigger breakpoint if necessary and put printer to safe state
+ */
+void before_dump();
+
 [[noreturn]] void trigger_crash_dump();
 } // namespace crash_dump

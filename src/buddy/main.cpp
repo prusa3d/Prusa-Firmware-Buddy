@@ -496,14 +496,8 @@ void system_core_error_handler() {
 }
 
 void iwdg_warning_cb(void) {
-#ifdef _DEBUG
-    ///@note Watchdog is disabled in debug,
-    /// so this will be helpful only if it is manually enabled or ifdef commented out.
-
-    buddy_breakpoint_disable_heaters();
-#endif /*_DEBUG*/
+    crash_dump::before_dump();
     crash_dump::save_message(crash_dump::MsgType::BSOD_IWDGW, 0, nullptr, nullptr);
-
     trigger_crash_dump();
 }
 

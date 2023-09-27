@@ -9,7 +9,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include <error_codes.hpp>
-#include <array>
+#include "safe_state.h"
 extern "C" {
 #include "CrashCatcher.h"
 }
@@ -18,6 +18,7 @@ namespace crash_dump {
 
 /// While dumping, this stores size of already dumped data
 static uint32_t dump_size;
+static bool dump_breakpoint_paused = false;
 
 /// Just random value, used to check that dump is probably valid in flash
 inline constexpr uint32_t CRASH_DUMP_MAGIC_NR = 0x3DC53F;
@@ -272,7 +273,24 @@ static const CrashCatcherMemoryRegion regions[] = {
     { 0xFFFFFFFF, 0, CRASH_CATCHER_BYTE },
 };
 
+void before_dump() {
+    // avoid triggering before_dump multiple times (it can be called before BSOD and then again in hardfault handler)
+    if (!dump_breakpoint_paused) {
+        dump_breakpoint_paused = true;
+        hwio_safe_state(); // put HW to safe state
+#ifdef _DEBUG
+        if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
+            // if case debugger is attached, issue breakpoint instead of crash dump.
+            // If you still want to do crash dump, resume the processor
+            CRASH_CATCHER_BREAKPOINT();
+        }
+#endif
+    }
+}
+
 void trigger_crash_dump() {
+    before_dump();
+
     // trigger hardfault, hardfault will dump the processor state
     CRASH_CATCHER_INVALID_INSTRUCTION();
 
@@ -290,6 +308,9 @@ const CrashCatcherMemoryRegion *CrashCatcher_GetMemoryRegions(void) {
 void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
     __disable_irq();
     vTaskEndScheduler();
+
+    crash_dump::before_dump();
+
     if (!w25x_init()) {
         crash_dump::dump_failed();
     }

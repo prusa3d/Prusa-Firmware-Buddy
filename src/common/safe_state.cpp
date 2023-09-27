@@ -100,19 +100,3 @@ void hwio_low_power_state(void) {
     splitter5vEnable.reset();
 #endif
 }
-
-void buddy_breakpoint_disable_heaters(void) {
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
-    gpio_init(MARLIN_PIN(HEAT0), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
-    gpio_set(MARLIN_PIN(HEAT0), 0);
-
-    gpio_init(MARLIN_PIN(BED_HEAT), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
-    gpio_set(MARLIN_PIN(BED_HEAT), 0);
-#endif
-#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
-    // Breakpoint if debugger is connected
-    if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
-        __BKPT(0);
-    }
-#endif
-}
