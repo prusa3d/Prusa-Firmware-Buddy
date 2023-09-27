@@ -172,6 +172,14 @@ namespace {
         Crash
     };
 
+    /**
+     * @brief Pauses reading from a file, stops watch, saves temperatures, disables fan.
+     * Does not change server.print_state. You need to set that manually.
+     * @param type pause type used for different media_print pause
+     * @param resume_pos position to resume from, used only in Pause_Type::Crash
+     */
+    void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos = UINT32_MAX);
+
     fsm::QueueWrapper<MARLIN_MAX_CLIENTS> fsm_event_queues;
 
     template <WarningType p_warning, bool p_disableHotend>
@@ -184,7 +192,8 @@ namespace {
             if (!condition && !m_failed) {
                 set_warning(p_warning);
                 if (server.print_state == State::Printing) {
-                    server.print_state = State::Pausing_Begin;
+                    pause_print(); // Must store current hotend temperatures before they are set to 0
+                    server.print_state = State::Pausing_WaitIdle;
                 }
                 if (p_disableHotend) {
                     HOTEND_LOOP() {
@@ -238,6 +247,32 @@ namespace {
 #endif
     HotendErrorChecker hotendErrorChecker;
 
+    void pause_print(Pause_Type type, uint32_t resume_pos) {
+        switch (type) {
+        case Pause_Type::Crash:
+            media_print_quick_stop(resume_pos);
+            break;
+        case Pause_Type::Repeat_Last_Code:
+            media_print_pause(true);
+            break;
+        default:
+            media_print_pause(false);
+        }
+
+        print_job_timer.pause();
+        HOTEND_LOOP() {
+            server.resume.nozzle_temp[e] = marlin_vars()->hotend(e).target_nozzle; // save nozzle target temp
+        }
+        server.resume.nozzle_temp_paused = true;
+        server.resume.fan_speed = marlin_vars()->print_fan_speed; // save fan speed
+        server.resume.print_speed = marlin_vars()->print_speed;
+#if FAN_COUNT > 0
+        if (hotendErrorChecker.runFullFan())
+            thermalManager.set_fan_speed(0, 255);
+        else
+            thermalManager.set_fan_speed(0, 0); // disable print fan
+#endif
+    }
 } // end anonymous namespace
 
 //-----------------------------------------------------------------------------
@@ -800,34 +835,6 @@ void print_pause(void) {
     }
 }
 
-/// Pauses reading from a file, stops watch, saves temperatures, disables fan
-static void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos = UINT32_MAX) {
-    switch (type) {
-    case Pause_Type::Crash:
-        media_print_quick_stop(resume_pos);
-        break;
-    case Pause_Type::Repeat_Last_Code:
-        media_print_pause(true);
-        break;
-    default:
-        media_print_pause(false);
-    }
-
-    print_job_timer.pause();
-    HOTEND_LOOP() {
-        server.resume.nozzle_temp[e] = marlin_vars()->hotend(e).target_nozzle; // save nozzle target temp
-    }
-    server.resume.nozzle_temp_paused = true;
-    server.resume.fan_speed = marlin_vars()->print_fan_speed; // save fan speed
-    server.resume.print_speed = marlin_vars()->print_speed;
-#if FAN_COUNT > 0
-    if (hotendErrorChecker.runFullFan())
-        thermalManager.set_fan_speed(0, 255);
-    else
-        thermalManager.set_fan_speed(0, 0); // disable print fan
-#endif
-}
-
 /**
  * @brief Restore paused nozzle temperature to enable filament change
  */
@@ -1119,6 +1126,15 @@ static void resuming_reheating() {
     if (heatbreak_fan_check()) {
         server.print_state = State::Paused;
         return;
+    }
+
+    // Check if nozzles are being reheated
+    HOTEND_LOOP() {
+        if (thermalManager.degTargetHotend(e) == 0 && server.resume.nozzle_temp[e] > 0) {
+            // Stopped reheating, can happen if there is an error during reheating
+            server.print_state = State::Paused;
+            return;
+        }
     }
 
     if (!print_reheat_ready())
