@@ -446,6 +446,25 @@ void screen_printing_data_t::set_pause_icon_and_label() {
         DisableButton(BtnSocket::Middle);
         break;
     }
+
+    switch (GetState()) {
+    case printing_state_t::PAUSING:
+        header.SetText(_("PAUSING ..."));
+        break;
+    case printing_state_t::MBL_FAILED:
+    case printing_state_t::PAUSED:
+        header.SetText(_("PAUSED"));
+        break;
+    case printing_state_t::ABORTING:
+        header.SetText(_("ABORTING ..."));
+        break;
+    case printing_state_t::STOPPED:
+        header.SetText(_("STOPPED"));
+        break;
+    default: // else printing
+        header.SetText(_(caption));
+        break;
+    }
 }
 
 void screen_printing_data_t::set_tune_icon_and_label() {
