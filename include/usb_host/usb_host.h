@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include "usbh_def.h"
 #include "stm32f4xx.h"
 #include "stm32f4xx_hal.h"
 
@@ -17,6 +18,7 @@ typedef enum {
 } ApplicationTypeDef;
 
 void MX_USB_HOST_Init(void);
+void USBH_UserProcess(USBH_HandleTypeDef *, uint8_t id);
 
 bool device_connected_at_startup();
 

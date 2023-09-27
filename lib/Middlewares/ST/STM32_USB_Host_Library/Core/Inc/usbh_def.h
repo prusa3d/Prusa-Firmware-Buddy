@@ -317,7 +317,7 @@ typedef enum
   USBH_FAIL,
   USBH_NOT_SUPPORTED,
   USBH_UNRECOVERED_ERROR,
-  USBH_ERROR_SPEED_UNKNOWN,
+  USBH_ERROR_SPEED_UNKNOWN
 } USBH_StatusTypeDef;
 
 
@@ -489,7 +489,7 @@ typedef struct _USBH_HandleTypeDef
 #endif
   uint32_t              os_msg;
 #endif
-
+  bool                  wdg_reset;
 } USBH_HandleTypeDef;
 
 
