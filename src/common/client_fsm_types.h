@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-#include <option/development_items.h>
-
 #ifdef __cplusplus
 // C++ checks enum classes
 
@@ -65,7 +63,7 @@ enum class WarningType : uint32_t {
     HeatersTimeout,
     HotendTempDiscrepancy,
     NozzleTimeout,
-    #if DEVELOPMENT_ITEMS()
+    #if _DEBUG
     SteppersTimeout,
     #endif
     USBFlashDiskError,

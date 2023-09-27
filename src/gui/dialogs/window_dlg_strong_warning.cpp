@@ -127,7 +127,7 @@ void window_dlg_strong_warning_t::ShowHeatersTimeout() {
     Instance().show(HeatersTimeout);
 }
 
-#if DEVELOPMENT_ITEMS()
+#if _DEBUG
 void window_dlg_strong_warning_t::ShowSteppersTimeout() {
     Instance().show(SteppersTimeout);
 }

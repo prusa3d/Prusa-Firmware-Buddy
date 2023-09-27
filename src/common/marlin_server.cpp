@@ -2615,7 +2615,7 @@ void marlin_msg_to_str(const marlin_server::Msg id, char *str) {
 
 } // namespace marlin_server
 
-#if DEVELOPMENT_ITEMS() && PRINTER_IS_PRUSA_XL
+#if _DEBUG && PRINTER_IS_PRUSA_XL
 /// @note Hacky link for Marlin.cpp used for development.
 /// @todo Remove when stepper timeout screen is solved properly.
 void marlin_server_steppers_timeout_warning() {

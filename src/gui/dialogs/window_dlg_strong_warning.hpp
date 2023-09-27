@@ -16,7 +16,6 @@
 #include "status_footer.hpp"
 #include "img_resources.hpp"
 #include <bitset>
-#include <option/development_items.h>
 
 // Singleton dialog for messages
 class window_dlg_strong_warning_t : public AddSuperWindow<IDialog> {
@@ -27,7 +26,7 @@ protected: // inherited by unit tests, must be protected
     static constexpr const char *TitleNozzle = N_("TEMP NOT MATCHING");
     static constexpr const char *HotendTempDiscrepancyMsg = N_("Measured temperature is not matching expected value. Check the thermistor is in contact with hotend. In case of damage, replace it.");
     static constexpr const char *HeaterTimeoutMsg = N_("Heating disabled due to 30 minutes of inactivity.");
-#if DEVELOPMENT_ITEMS()
+#if _DEBUG
     static constexpr const char *SteppersTimeoutMsg = N_("Steppers disabled due to inactivity.");
 #endif
     static constexpr const char *USBFlashDiskError = N_("USB drive or file error, the print is now paused. Reconnect the drive.");
@@ -49,7 +48,7 @@ protected: // inherited by unit tests, must be protected
         PrintFan,
         HotendTempDiscrepancy,
         HeatersTimeout,
-#if DEVELOPMENT_ITEMS()
+#if _DEBUG
         SteppersTimeout,
 #endif
         USBFlashDisk,
@@ -68,7 +67,7 @@ protected: // inherited by unit tests, must be protected
         { &img::fan_error_48x48, Title, PrintFanErrorMsg },
         { nullptr, TitleNozzle, HotendTempDiscrepancyMsg },
         { &img::exposure_times_48x48, Title, HeaterTimeoutMsg },
-#if DEVELOPMENT_ITEMS()
+#if _DEBUG
         { &img::exposure_times_48x48, Title, SteppersTimeoutMsg },
 #endif
         { &img::usb_error_48x48, Title, USBFlashDiskError },
@@ -113,7 +112,7 @@ public:
     static void ShowPrintFan();
     static void ShowHotendTempDiscrepancy();
     static void ShowHeatersTimeout();
-#if DEVELOPMENT_ITEMS()
+#if _DEBUG
     static void ShowSteppersTimeout();
 #endif
     static void ShowUSBFlashDisk();

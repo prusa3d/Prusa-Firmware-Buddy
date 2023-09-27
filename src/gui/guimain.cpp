@@ -190,7 +190,7 @@ void Warning_cb(WarningType type) {
     case WarningType::NozzleTimeout:
         window_dlg_strong_warning_t::ShowHeatersTimeout();
         break;
-#if DEVELOPMENT_ITEMS()
+#if _DEBUG
     case WarningType::SteppersTimeout:
         window_dlg_strong_warning_t::ShowSteppersTimeout();
         break;
