@@ -1,6 +1,7 @@
 #include "command.hpp"
 
 #include <search_json.h>
+#include <codepage/437.hpp>
 
 #include <cstdlib>
 #include <charconv>
@@ -217,6 +218,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
 
     auto get_path = [&](SharedPath &path) -> void {
         if (has_path) {
+            // Include the final \0 in the decoding too, so the new one gets auto-terminated by it.
+            codepage::utf8_to_cp437(buff.data(), strlen(reinterpret_cast<const char *>(buff.data())) + 1);
             path = SharedPath(move(buff));
         } else {
             // Missing parameters
@@ -244,6 +247,13 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
     } else if (auto *download = get_if<StartConnectDownload>(&data); download != nullptr) {
         const bool ok = has_path && download_acc.validate();
         if (ok) {
+            // XXX: We need some decoding here.
+            //
+            // However, the path is partially SFN (the dirname of it) and
+            // partially LFN (the basename/filename part). Each one needs
+            // different decoding, postponing this one until later, since we
+            // are not yet agreed on the way we'll be doing decoding of the LFN
+            // (or if at all, on our side).
             download->path = SharedPath(move(buff));
             download->details = move(*download_acc.details);
             download->port = port;
