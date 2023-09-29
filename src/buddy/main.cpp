@@ -304,7 +304,7 @@ extern "C" void main_cpp(void) {
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
-    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 630);
+    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 768);
     prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
