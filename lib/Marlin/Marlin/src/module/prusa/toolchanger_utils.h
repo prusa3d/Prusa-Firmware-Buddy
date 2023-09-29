@@ -16,12 +16,12 @@ public:
     static constexpr uint8_t MARLIN_NO_TOOL_PICKED = EXTRUDERS - 1;
     static constexpr auto PARKING_CURRENT_MA = 950; ///< Higher motor current on the lock and unlock moves
     static constexpr auto PARKING_STALL_SENSITIVITY = 4; ///< Stall sensitivity used when PARKING_CURRENT_MA is used
-    static constexpr auto PARKING_FINAL_MAX_SPEED = 375.f; ///< Maximum speed (mm/s) for parking
+    static constexpr auto PARKING_FINAL_MAX_SPEED = 300.f; ///< Maximum speed (mm/s) for parking
     static constexpr auto SLOW_ACCELERATION_MM_S2 = 400; ///< Acceleration for parking and picking
     static constexpr auto FORCE_MOVE_MM_S = 30; ///< Not used here, feedrate for locking and unlocking the toolchange clamps
     static constexpr auto SLOW_MOVE_MM_S = 60; ///< Feedrate for tool picking and parking
     static constexpr auto Z_HOP_FEEDRATE_MM_S = 10.0f; ///< Feedrate for z hop
-    static constexpr auto TRAVEL_MOVE_MM_S = 400; ///< Feedrate for moves around dock
+    static constexpr auto TRAVEL_MOVE_MM_S = 400.f; ///< Feedrate for moves around dock
     static constexpr uint32_t WAIT_TIME_TOOL_SELECT = 3000; ///< Max wait for puppytask tool switch [ms], needs a lot of time if there is a hiccup in puppy communication
     static constexpr uint32_t WAIT_TIME_TOOL_PARKED_PICKED = 200; ///< Max wait for cheese to detect magnet [ms]
     static constexpr auto SAFE_Y_WITH_TOOL = 360.0f;

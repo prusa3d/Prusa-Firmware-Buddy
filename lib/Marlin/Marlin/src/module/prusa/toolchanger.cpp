@@ -42,12 +42,11 @@ void plan_arc(const xyze_pos_t &cart, const ab_float_t &offset, const bool clock
 namespace arc_move {
 
 // generated arc parameters
-constexpr float arc_seg_len = 1.f; // mm
 constexpr float arc_max_radius = 75.f; // mm
-constexpr float arc_min_radius = 2.f; // mm
+constexpr float arc_min_radius = 10.f; // mm
 constexpr float arc_tg_jerk = 20.f; // mm/s
 constexpr bool arc_backtravel_allow = true;
-constexpr float arc_backtravel_max = 1.5f; // 1/ratio
+constexpr float arc_backtravel_max = 2.f; // 1/ratio
 
 /**
  * @brief Calculate the tangent arc radius
@@ -604,12 +603,19 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
 
     // reduce maximum parking speed to improve reliability during constant toolchanging
     float target_fr = fminf(PARKING_FINAL_MAX_SPEED, feedrate_mm_s);
+    float tangent_fr = fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s);
 
     // attempt to plan a smooth arc move
     float arc_r = arc_move::arc_radius(current_position, target_pos);
     if (arc_r >= arc_move::arc_min_radius) {
+        if (arc_r < arc_move::arc_max_radius) {
+            // Arc is smaller than typical, need to slow down
+            static_assert(arc_move::arc_max_radius != arc_move::arc_min_radius, "These cannot be equal");
+            float rel_size = (arc_r - arc_move::arc_min_radius) / (arc_move::arc_max_radius - arc_move::arc_min_radius);
+            tangent_fr = fminf(tangent_fr, PARKING_FINAL_MAX_SPEED + rel_size * (TRAVEL_MOVE_MM_S - PARKING_FINAL_MAX_SPEED));
+        }
         arc_move::plan_pos2dock(arc_r, current_position, target_pos,
-            feedrate_mm_s, target_fr);
+            tangent_fr, target_fr);
     }
 
     // go in front of the tool dock
@@ -799,11 +805,20 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 }
 
 void PrusaToolChanger::unpark_to(const xy_pos_t &destination) {
+    // Limit feedrate during the arc
+    float arc_fr = fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s);
+
     // attempt to plan a smooth arc move
     float arc_r = arc_move::arc_radius(destination, current_position);
     if (arc_r >= arc_move::arc_min_radius) {
-        arc_move::plan_dock2pos(arc_r, destination, current_position,
-            feedrate_mm_s, feedrate_mm_s);
+        if (arc_r < arc_move::arc_max_radius) {
+            // Arc is smaller than typical, need to slow down
+            static_assert(arc_move::arc_max_radius != arc_move::arc_min_radius, "These cannot be equal");
+            float rel_size = (arc_r - arc_move::arc_min_radius) / (arc_move::arc_max_radius - arc_move::arc_min_radius);
+            arc_fr = fminf(arc_fr, PARKING_FINAL_MAX_SPEED + rel_size * (TRAVEL_MOVE_MM_S - PARKING_FINAL_MAX_SPEED));
+        }
+
+        arc_move::plan_dock2pos(arc_r, destination, current_position, arc_fr, arc_fr);
     }
 
     // move to the destination
