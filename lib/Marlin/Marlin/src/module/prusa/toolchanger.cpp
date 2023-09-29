@@ -605,6 +605,10 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     float target_fr = fminf(PARKING_FINAL_MAX_SPEED, feedrate_mm_s);
     float tangent_fr = fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s);
 
+    // Arc will not be limited by jerk
+    planner.set_max_jerk(AxisEnum::X_AXIS, arc_move::arc_tg_jerk);
+    planner.set_max_jerk(AxisEnum::Y_AXIS, arc_move::arc_tg_jerk);
+
     // attempt to plan a smooth arc move
     float arc_r = arc_move::arc_radius(current_position, target_pos);
     if (arc_r >= arc_move::arc_min_radius) {
@@ -622,6 +626,7 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
     move(target_pos.x, target_pos.y, target_fr);
     move(target_pos.x, info.dock_y, target_fr);
     planner.synchronize(); // this creates a pause which allow the resonance in the tool to be damped before insertion of the tool in the dock
+    conf_restorer.restore_jerk();
 
     // set motor current and stall sensitivity to parking and remember old value
     auto x_current_ma = stepperX.rms_current();
@@ -808,6 +813,10 @@ void PrusaToolChanger::unpark_to(const xy_pos_t &destination) {
     // Limit feedrate during the arc
     float arc_fr = fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s);
 
+    // Arc will not be limited by jerk
+    planner.set_max_jerk(AxisEnum::X_AXIS, arc_move::arc_tg_jerk);
+    planner.set_max_jerk(AxisEnum::Y_AXIS, arc_move::arc_tg_jerk);
+
     // attempt to plan a smooth arc move
     float arc_r = arc_move::arc_radius(destination, current_position);
     if (arc_r >= arc_move::arc_min_radius) {
@@ -823,6 +832,8 @@ void PrusaToolChanger::unpark_to(const xy_pos_t &destination) {
 
     // move to the destination
     move(destination.x, destination.y, feedrate_mm_s);
+
+    conf_restorer.restore_jerk();
 }
 
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/

@@ -461,6 +461,7 @@ void PrusaToolChangerUtils::ConfRestorer::sample() {
     if (sampled) {
         bsod("Double sampled planner configuration");
     }
+    sampled_jerk = planner.max_jerk;
     sampled_travel_acceleration = planner.settings.travel_acceleration;
     sampled_feedrate_mm_s = feedrate_mm_s;
     sampled_feedrate_percentage = feedrate_percentage;
@@ -470,6 +471,13 @@ void PrusaToolChangerUtils::ConfRestorer::sample() {
 void PrusaToolChangerUtils::ConfRestorer::restore_clear() {
     restore();
     sampled = false;
+}
+
+void PrusaToolChangerUtils::ConfRestorer::restore_jerk() {
+    if (!sampled.load()) {
+        bsod("Restoring not sampled jerk");
+    }
+    planner.max_jerk = sampled_jerk;
 }
 
 void PrusaToolChangerUtils::ConfRestorer::restore_acceleration() {

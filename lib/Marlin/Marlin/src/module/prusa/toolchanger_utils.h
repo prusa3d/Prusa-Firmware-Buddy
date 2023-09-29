@@ -193,6 +193,7 @@ protected:
      * This is important for powerpanic which stores the original values and not temporary values used while changing tools.
      */
     class ConfRestorer {
+        xyze_pos_t sampled_jerk; ///< Copy of planner.planner.max_jerk
         float sampled_travel_acceleration; ///< Copy of planner.settings.travel_acceleration
         feedRate_t sampled_feedrate_mm_s; ///< Copy of feedrate_mm_s
         int16_t sampled_feedrate_percentage; ///< Copy of feedrate_percentage
@@ -211,6 +212,7 @@ protected:
          * @brief Restore planner feedrate and acceleration.
          */
         void restore() {
+            restore_jerk();
             restore_acceleration();
             restore_feedrate();
         }
@@ -231,6 +233,11 @@ protected:
          * @brief Restore and clear planner feedrate and acceleration.
          */
         void restore_clear();
+
+        /**
+         * @brief Restore planner jerk.
+         */
+        void restore_jerk();
 
         /**
          * @brief Restore planner acceleration.
