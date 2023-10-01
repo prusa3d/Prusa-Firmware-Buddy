@@ -10,6 +10,7 @@
 #include "print_utils.hpp"
 #include "gui_fsensor_api.hpp"
 #include "filename_type.hpp"
+#include "settings_ini.hpp"
 #include <wui_api.h>
 #include <espif.h>
 
@@ -403,13 +404,31 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                     TaskDeps::check(TaskDeps::Dependency::power_panic_initialized) && !power_panic::is_power_panic_resuming() &&
     #endif // ENABLED(POWER_PANIC)
                     GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
-                    // TODO this should be done in main thread before Event::MediaInserted is generated
-                    // if it is not the latest gcode might not be selected
-                    if (find_latest_gcode(
-                            gui_media_SFN_path,
-                            FILE_PATH_BUFFER_LEN,
-                            gui_media_LFN,
-                            FILE_NAME_BUFFER_LEN)) {
+
+                    // first we find if there is an WIFI config
+                    bool has_wifi_credentials = false;
+                    {
+                        std::unique_ptr<FILE, FileDeleter> fl;
+                        // if other thread modifies files during this action, detection might fail
+                        fl.reset(fopen(settings_ini::file_name, "r"));
+                        has_wifi_credentials = fl.get() != nullptr;
+                    }
+
+                    if (has_wifi_credentials) {
+                        if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo)
+                            == Response::Yes) {
+                            // TODO check if file contains SSID and password
+                            marlin_client::gcode("M997 S1"); // update esp, do not force update older fw
+                            return;
+                        }
+
+                        // TODO this should be done in main thread before Event::MediaInserted is generated
+                        // if it is not the latest gcode might not be selected
+                    } else if (find_latest_gcode(
+                                   gui_media_SFN_path,
+                                   FILE_PATH_BUFFER_LEN,
+                                   gui_media_LFN,
+                                   FILE_NAME_BUFFER_LEN)) {
                         print_begin(gui_media_SFN_path, false);
                     }
                 }
