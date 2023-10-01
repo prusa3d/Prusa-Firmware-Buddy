@@ -321,6 +321,10 @@ bool EspCredentials::make_file() {
     return !failed;
 }
 
+bool EspCredentials::delete_file() {
+    return remove(settings_ini::file_name);
+}
+
 bool EspCredentials::file_exists() {
     std::unique_ptr<FILE, FileDeleter> fl;
 
@@ -351,6 +355,7 @@ void EspCredentials::Loop() {
         usb_inserted = marlin_server::get_media_inserted();
         wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
         continue_pressed = false;
+        no_pressed = false;
 
         // we use only 3 responses here
         // it is safe to use it from different thread as long as no other thread reads it
@@ -360,6 +365,9 @@ void EspCredentials::Loop() {
             case Response::Retry:
             case Response::Yes:
                 continue_pressed = true;
+                break;
+            case Response::No:
+                no_pressed = true;
                 break;
             case Response::Abort:
             case Response::Skip:
@@ -551,11 +559,16 @@ void EspCredentials::loop() {
         }
         break;
     case esp_credential_action::ConfigUploaded: // config OK
-        progress_state = esp_credential_action::ConfigUploaded_wait_user;
+        progress_state = esp_credential_action::ConfigUploaded_wait_user; // asks user to delete file
         phase = PhasesSelftest::ESP_uploaded;
         break;
     case esp_credential_action::ConfigUploaded_wait_user:
         if (continue_pressed) {
+            delete_file();
+            progress_state = esp_credential_action::Done;
+            break;
+        }
+        if (no_pressed) {
             progress_state = esp_credential_action::Done;
         }
         break;

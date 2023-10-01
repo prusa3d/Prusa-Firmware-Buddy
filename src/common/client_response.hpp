@@ -481,7 +481,7 @@ class ClientResponses {
         { Response::Retry, Response::Abort }, // ESP_invalid
         { Response::Abort }, // ESP_uploading_config
         { Response::Continue }, // ESP_enabling_WIFI
-        { Response::Continue }, // ESP_uploaded
+        { Response::Yes, Response::No }, // ESP_uploaded
 
         { Response::Continue, Response::Abort }, // ESP_progress_info
         { Response::Abort }, // ESP_progress_upload

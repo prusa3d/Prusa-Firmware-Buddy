@@ -179,10 +179,12 @@ private:
     bool usb_inserted;
     bool wifi_enabled;
     bool continue_pressed;
+    bool no_pressed = false;
 
     bool make_file();
     static bool file_exists();
     bool upload_config();
+    bool delete_file();
 
     void loop();
     void loopCreateINI();
