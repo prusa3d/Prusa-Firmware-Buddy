@@ -120,10 +120,10 @@ public:
 
 enum class esp_credential_action {
     // ini creation
-    AskMakeFile,
     CheckUSB_inserted,
     USB_not_inserted,
     USB_not_inserted_wait, // wait for USB or user can force next step or abort
+    AskMakeFile,
     AskMakeFile_wait_user,
     MakeFile_failed,
     MakeFile_failed_wait_user,
@@ -142,11 +142,11 @@ enum class esp_credential_action {
     VerifyConfig,
     ConfigNOk,
     ConfigNOk_wait_user,
-    ConfigUploaded, // config OK
-    ConfigUploaded_wait_user,
     ShowEnableWIFI,
     EnableWIFI,
     WaitWIFI_enabled, // pressing abort will just restore connection interface (Eth / WiFi / none)
+    ConfigUploaded, // config OK
+    ConfigUploaded_wait_user,
     Aborted, // currently abort does not wait for user
     // Aborted_wait_user,
     Done
