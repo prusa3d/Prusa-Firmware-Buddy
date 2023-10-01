@@ -173,12 +173,12 @@ private:
     uint32_t time_stamp;
     type_t type;
     const uint8_t initial_netdev_id; // it is not enum because of stupid C api
-    esp_credential_action progress_state;
-    esp_credential_action last_state; // needed to invalidate time stamp at change of state
+    esp_credential_action progress_state = esp_credential_action::ShowInstructions;
+    esp_credential_action last_state = esp_credential_action::Done; // needed to invalidate time stamp at change of state, done ensures progress_state != last_state
     std::optional<PhasesSelftest> phase;
-    bool usb_inserted;
-    bool wifi_enabled;
-    bool continue_pressed;
+    bool usb_inserted = false;
+    bool wifi_enabled = false;
+    bool continue_yes_retry_pressed = false;
     bool no_pressed = false;
 
     bool make_file();

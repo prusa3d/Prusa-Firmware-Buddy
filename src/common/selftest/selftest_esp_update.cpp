@@ -286,11 +286,7 @@ EspCredentials::EspCredentials(marlin_server::FSM_Holder &fsm, type_t type)
     : rfsm(fsm)
     , type(type)
     , initial_netdev_id(netdev_get_active_id())
-    , progress_state(esp_credential_action::ShowInstructions)
-    , last_state(esp_credential_action::Done) // ensure progress_state != last_state
-    , usb_inserted(false)
-    , wifi_enabled(false)
-    , continue_pressed(false) {
+    , progress_state(esp_credential_action::ShowInstructions) {
     switch (type) {
     case type_t::credentials_standalone:
         progress_state = esp_credential_action::ShowInstructions_qr;
@@ -354,7 +350,7 @@ void EspCredentials::Loop() {
         }
         usb_inserted = marlin_server::get_media_inserted();
         wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
-        continue_pressed = false;
+        continue_yes_retry_pressed = false;
         no_pressed = false;
 
         // we use only 3 responses here
@@ -364,7 +360,7 @@ void EspCredentials::Loop() {
             case Response::Continue:
             case Response::Retry:
             case Response::Yes:
-                continue_pressed = true;
+                continue_yes_retry_pressed = true;
                 break;
             case Response::No:
                 no_pressed = true;
@@ -422,7 +418,7 @@ void EspCredentials::loopCreateINI() {
         phase = PhasesSelftest::ESP_USB_not_inserted;
         break;
     case esp_credential_action::USB_not_inserted_wait:
-        if (continue_pressed || usb_inserted)
+        if (continue_yes_retry_pressed || usb_inserted)
             progress_state = esp_credential_action::AskMakeFile;
         break;
     case esp_credential_action::AskMakeFile:
@@ -430,7 +426,7 @@ void EspCredentials::loopCreateINI() {
         progress_state = esp_credential_action::AskMakeFile_wait_user;
         break;
     case esp_credential_action::AskMakeFile_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = make_file() ? esp_credential_action::EjectUSB : esp_credential_action::MakeFile_failed;
         }
         break;
@@ -439,7 +435,7 @@ void EspCredentials::loopCreateINI() {
         phase = PhasesSelftest::ESP_makefile_failed;
         break;
     case esp_credential_action::MakeFile_failed_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::CheckUSB_inserted;
         }
         break;
@@ -453,7 +449,7 @@ void EspCredentials::loopCreateINI() {
         }
         break;
     case esp_credential_action::WaitUSB_ejected:
-        if (continue_pressed || !usb_inserted)
+        if (continue_yes_retry_pressed || !usb_inserted)
             progress_state = esp_credential_action::Done;
         break;
     default:
@@ -468,7 +464,7 @@ void EspCredentials::loop() {
         phase = PhasesSelftest::ESP_qr_instructions;
         break;
     case esp_credential_action::ShowInstructions_qr_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::ShowInstructions;
         }
         break;
@@ -477,7 +473,7 @@ void EspCredentials::loop() {
         phase = PhasesSelftest::ESP_instructions;
         break;
     case esp_credential_action::ShowInstructions_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::InsertUSB;
         }
         break;
@@ -491,7 +487,7 @@ void EspCredentials::loop() {
         }
         break;
     case esp_credential_action::WaitUSB_inserted:
-        if (continue_pressed || usb_inserted)
+        if (continue_yes_retry_pressed || usb_inserted)
             progress_state = esp_credential_action::VerifyConfig_init;
         break;
     case esp_credential_action::VerifyConfig_init:
@@ -530,7 +526,7 @@ void EspCredentials::loop() {
         phase = PhasesSelftest::ESP_invalid;
         break;
     case esp_credential_action::ConfigNOk_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::VerifyConfig_init;
         }
         break;
@@ -550,7 +546,7 @@ void EspCredentials::loop() {
         progress_state = esp_credential_action::WaitWIFI_enabled;
         break;
     case esp_credential_action::WaitWIFI_enabled:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::Done;
             break;
         }
@@ -563,7 +559,7 @@ void EspCredentials::loop() {
         phase = PhasesSelftest::ESP_uploaded;
         break;
     case esp_credential_action::ConfigUploaded_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             delete_file();
             progress_state = esp_credential_action::Done;
             break;
