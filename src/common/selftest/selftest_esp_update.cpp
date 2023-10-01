@@ -4,6 +4,7 @@
 
 #include "selftest_esp.hpp"
 #include "selftest_esp_update.hpp"
+#include "settings_ini.hpp"
 
 #include "RAII.hpp"
 #include "log.h"
@@ -304,19 +305,19 @@ EspCredentials::EspCredentials(marlin_server::FSM_Holder &fsm, type_t type)
 }
 
 bool EspCredentials::make_file() {
-    file.reset(fopen(file_name, "w"));
+    file.reset(fopen(settings_ini::file_name, "w"));
     if (file.get() == nullptr) {
-        log_error(Network, "ESP credentials: Unable to create file %s", file_name);
+        log_error(Network, "ESP credentials: Unable to create file %s", settings_ini::file_name);
         return false;
     }
 
     bool failed = fputs(file_str, file.get()) < 0;
     if (failed) {
-        log_error(Network, "ESP credentials: Unable to write into file %s", file_name);
+        log_error(Network, "ESP credentials: Unable to write into file %s", settings_ini::file_name);
     }
     file.reset(nullptr);
 
-    log_info(Network, "ESP credentials generated to %s", file_name);
+    log_info(Network, "ESP credentials generated to %s", settings_ini::file_name);
     return !failed;
 }
 
@@ -325,7 +326,7 @@ bool EspCredentials::file_exists() {
 
     // no other thread should modify files in file system during upload
     // or this might fail
-    fl.reset(fopen(file_name, "r"));
+    fl.reset(fopen(settings_ini::file_name, "r"));
     return fl.get() != nullptr;
 }
 

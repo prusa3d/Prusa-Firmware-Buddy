@@ -165,8 +165,6 @@ private:
                                             "ssid=\n"
                                             "psk=\n";
 
-    static constexpr const char *file_name = "/usb/prusa_printer_settings.ini";
-
     bool wait_in_progress(uint32_t ms);
     void capture_timestamp();
 
