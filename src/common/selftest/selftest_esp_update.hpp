@@ -88,6 +88,7 @@ protected:
     PhasesSelftest phase;
     const bool from_menu;
     const bool credentials_already_set;
+    const bool credentials_on_usb;
     uint8_t progress;
     uint8_t current_file_no;
     const uint8_t initial_netdev_id; // it is not enum because of stupid C api
@@ -97,9 +98,10 @@ protected:
     static std::atomic<uint32_t> status;
 
 public:
-    enum init_mask {
+    enum init_mask : uintptr_t {
         msk_from_menu = 0b01,
-        msk_credentials_already_set = msk_from_menu << 1
+        msk_credentials_already_set = msk_from_menu << 1,
+        msk_credentials_on_usb = msk_credentials_already_set << 1
     };
     enum class state {
         did_not_finished,
@@ -157,7 +159,8 @@ public:
     enum class type_t {
         credentials_standalone,
         credentials_sequence,
-        ini_creation
+        ini_creation,
+        credentials_user // file generated from slicer
     };
 
 private:

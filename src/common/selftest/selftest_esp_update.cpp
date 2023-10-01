@@ -60,6 +60,7 @@ ESPUpdate::ESPUpdate(uintptr_t mask)
     , phase(PhasesSelftest::_none)
     , from_menu(mask & init_mask::msk_from_menu)
     , credentials_already_set(mask & init_mask::msk_credentials_already_set)
+    , credentials_on_usb(mask & init_mask::msk_credentials_on_usb)
     , progress(0)
     , current_file_no(0)
     , initial_netdev_id(netdev_get_active_id())
@@ -216,7 +217,7 @@ void ESPUpdate::Loop() {
             esp_loader_flash_finish(true);
             espif_flash_deinitialize();
             notify_reconfigure();
-            if (credentials_already_set) {
+            if (credentials_already_set && !credentials_on_usb) {
                 netdev_set_active_id(NETDEV_ESP_ID);
                 progress_state = esp_upload_action::WaitWIFI_enabled;
                 phase = PhasesSelftest::ESP_enabling_WIFI;
@@ -296,6 +297,9 @@ EspCredentials::EspCredentials(marlin_server::FSM_Holder &fsm, type_t type)
         break;
     case type_t::ini_creation:
         progress_state = esp_credential_action::CheckUSB_inserted;
+        break;
+    case type_t::credentials_user:
+        progress_state = esp_credential_action::InsertUSB; // it skips first few screens, but it might return to them in case USB / config error
         break;
     }
 }
@@ -391,6 +395,7 @@ void EspCredentials::Loop() {
             switch (type) {
             case type_t::credentials_standalone:
             case type_t::credentials_sequence:
+            case type_t::credentials_user:
                 loop();
                 break;
             case type_t::ini_creation:
@@ -547,7 +552,7 @@ void EspCredentials::loop() {
         break;
     case esp_credential_action::WaitWIFI_enabled:
         if (continue_yes_retry_pressed) {
-            progress_state = esp_credential_action::Done;
+            progress_state = esp_credential_action::ConfigUploaded;
             break;
         }
         if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
@@ -594,13 +599,25 @@ static void EspTask(void *pvParameters) {
 }
 
 void update_esp(bool force) {
-    const bool credentials_already_set = EspCredentials::AlreadySet();
-    uintptr_t mask = 0;
-    if (force)
-        mask |= ESPUpdate::init_mask::msk_from_menu;
-    if (credentials_already_set)
-        mask |= ESPUpdate::init_mask::msk_credentials_already_set;
+    bool credentials_on_usb = false;
+    {
+        std::unique_ptr<FILE, FileDeleter> fl;
+        // if other thread modifies files during this action, detection might fail
+        fl.reset(fopen(settings_ini::file_name, "r"));
+        credentials_on_usb = fl.get() != nullptr;
+    }
 
+    const bool credentials_already_set = EspCredentials::AlreadySet();
+    uintptr_t mask = 0; // only way to pas data to FreeRTOS thread is via void*
+    if (force) {
+        mask |= ESPUpdate::init_mask::msk_from_menu;
+    }
+    if (credentials_already_set) {
+        mask |= ESPUpdate::init_mask::msk_credentials_already_set;
+    }
+    if (credentials_on_usb) {
+        mask |= ESPUpdate::init_mask::msk_credentials_on_usb;
+    }
     TaskHandle_t xHandle = nullptr;
 
     xTaskCreate(
@@ -636,24 +653,32 @@ void update_esp(bool force) {
     }
 
     // in case update was aborted credentials will not run
-    if (credentials_already_set || task_state != ESPUpdate::state::finished)
+    if ((credentials_already_set && !credentials_on_usb) || task_state != ESPUpdate::state::finished)
         return;
 
     // need scope to not have 2 instances of credentials at time
-    {
+    if (!credentials_on_usb) {
         EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::ini_creation);
         credentials.Loop();
     }
     // credentials will run even when ini file was skipped
     {
-        EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::credentials_sequence);
+        EspCredentials credentials(Selftest_from_macro, credentials_on_usb ? EspCredentials::type_t::credentials_user : EspCredentials::type_t::credentials_sequence);
         credentials.Loop();
     }
 }
 
 void update_esp_credentials() {
+    bool credentials_on_usb = false;
+    {
+        std::unique_ptr<FILE, FileDeleter> fl;
+        // if other thread modifies files during this action, detection might fail
+        fl.reset(fopen(settings_ini::file_name, "r"));
+        credentials_on_usb = fl.get() != nullptr;
+    }
+
     FSM_HOLDER__LOGGING(Selftest);
-    EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::credentials_standalone);
+    EspCredentials credentials(Selftest_from_macro, credentials_on_usb ? EspCredentials::type_t::credentials_user : EspCredentials::type_t::credentials_standalone);
     credentials.Loop();
 }
 
