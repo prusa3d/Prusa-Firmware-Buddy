@@ -62,24 +62,17 @@ static constexpr std::array<uint16_t, 5> print_fan_max_rpm_table = { 10000, 1000
 static constexpr std::array<uint16_t, 5> heatbreak_fan_min_rpm_table = { 10, 10, 10, 10, 10 };
 static constexpr std::array<uint16_t, 5> heatbreak_fan_max_rpm_table = { 10000, 10000, 10000, 10000, 10000 };
 
-// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
-// 100%, where we also check the rpm range
 static consteval SelftestFansConfig make_fan_config(uint8_t index) {
     return {
         .tool_nr = index,
         .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print },
+            .rpm_min = 5300,
+            .rpm_max = 6500,
+        },
         .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break,
-        }
+            .rpm_min = 6800,
+            .rpm_max = 8700,
+        },
     };
 }
 

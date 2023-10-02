@@ -51,24 +51,10 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
-// 100%, where on MK4/XL we also check the rpm range. No data for MK3.5 yet.
 static constexpr SelftestFansConfig fans_configs[] = {
     {
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::print,
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::heat_break,
-        },
+        .print_fan = benevolent_fan_config,
+        .heatbreak_fan = benevolent_fan_config,
     }
 };
 
@@ -167,29 +153,6 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .heater_full_load_max_W = 220,
     .pwm_100percent_equivalent_value = 127,
     .min_pwm_to_measure = 26,
-};
-
-// N.B. Using this for both rpm_min_table and rpm_max_table
-//      causes FanHandler::evaluate() to skip checking the RPM.
-static constexpr std::array<uint16_t, 2> null_rpm_table = { 0, 0 };
-
-static constexpr SelftestFansConfig Config_Fan_fine[] = {
-    {
-        .print_fan = {
-            .pwm_start = 20,
-            .pwm_step = 10,
-            .rpm_min_table = null_rpm_table,
-            .rpm_max_table = null_rpm_table,
-            .fanctl_fnc = Fans::print,
-        },
-        .heatbreak_fan = {
-            .pwm_start = 20,
-            .pwm_step = 10,
-            .rpm_min_table = null_rpm_table,
-            .rpm_max_table = null_rpm_table,
-            .fanctl_fnc = Fans::heat_break,
-        },
-    }
 };
 
 static const FirstLayerConfig_t Config_FirstLayer = { .partname = "First Layer" };
@@ -328,10 +291,6 @@ void CSelftest::Loop() {
         break;
     case stsWait_heaters:
         if (phaseWait())
-            return;
-        break;
-    case stsFans_fine:
-        if (selftest::phaseFans(pFans, Config_Fan_fine))
             return;
         break;
     case stsSelftestStop:

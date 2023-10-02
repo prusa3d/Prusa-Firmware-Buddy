@@ -62,24 +62,10 @@ static const uint16_t Fan1min_rpm_table[] = { 2350, 4750, 5950, 6850, 7650 };
 static const uint16_t Fan1max_rpm_table[] = { 3750, 5850, 7050, 8050, 8950 };
 */
 
-// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
-// 100%, where on MK4/XL we also check the rpm range. No data for MINI yet.
 static constexpr SelftestFansConfig fans_configs[] = {
     {
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::print,
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::heat_break,
-        },
+        .print_fan = benevolent_fan_config,
+        .heatbreak_fan = benevolent_fan_config,
     },
 };
 

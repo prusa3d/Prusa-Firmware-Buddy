@@ -22,9 +22,12 @@ bool phaseFans(std::array<IPartHandler *, HOTENDS> &fans_parts, const std::span<
         for (size_t i = 0; i < fans_parts.size(); i++) {
             fans_parts[i] = selftest::Factory::CreateDynamical<CSelftestPart_Fan>(fans_configs[i],
                 static_hotend_results[i],
-                &CSelftestPart_Fan::state_start, &CSelftestPart_Fan::state_wait_spindown,
-                &CSelftestPart_Fan::state_cycle_mark, &CSelftestPart_Fan::state_wait_rpm,
-                &CSelftestPart_Fan::state_measure_rpm);
+                &CSelftestPart_Fan::state_start,
+                &CSelftestPart_Fan::state_wait_rpm_100_percent,
+                &CSelftestPart_Fan::state_measure_rpm_100_percent,
+                &CSelftestPart_Fan::state_wait_rpm_0_percent,
+                &CSelftestPart_Fan::state_wait_rpm_20_percent,
+                &CSelftestPart_Fan::state_measure_rpm_20_percent);
         }
     }
 

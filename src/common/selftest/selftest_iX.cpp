@@ -58,24 +58,10 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
-// 100%, where on MK4/XL we also check the rpm range. No data for iX yet.
 static constexpr SelftestFansConfig fans_configs[] = {
     {
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::print,
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::heat_break,
-        },
+        .print_fan = benevolent_fan_config,
+        .heatbreak_fan = benevolent_fan_config,
     },
 };
 
