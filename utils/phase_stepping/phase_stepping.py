@@ -21,7 +21,7 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.express.colors import sample_colorscale
 
-from optimize import nelderMead, make2DSimplex
+from optimize import intervalSearch, nelderMead, make2DSimplex, goldenSearch
 
 PRUSA_VID = 0x2c99
 MOTOR_PERIOD = 1024
@@ -371,37 +371,62 @@ class ResonanceMeasurement:
                          for x in fftChunks], axis=0) / len(fftChunks)
         return zip(mags, phases)
 
+    @property
+    def directSpectrum(self) -> List[Tuple[float, float]]:
+        motorPeriodDuration = 1 / (self.speed * 50)  # 200-step motor
+        samplingDuration = len(self.rawSamples) / self.realSamplingFreq
+        motorPeriodCount = int(samplingDuration / motorPeriodDuration)
+        relevantSamplesCount = int(motorPeriodCount * motorPeriodDuration /
+                                   samplingDuration * len(self.rawSamples))
+
+        signal = [projectTo(s, (1, 1)) for s in self.rawSamples]
+
+        fft = rfft(signal[:relevantSamplesCount])
+
+        mags = np.abs(fft)
+        phas = np.angle(fft)
+
+        spectrum = [(0, 0)]
+        while True:
+            idx = len(spectrum) * motorPeriodCount
+            if idx >= len(fft):
+                break
+            spectrum.append(((mags[idx - 1] + mags[idx] + mags[idx + 1]) / 3,
+                             (phas[idx - 1] + phas[idx] + phas[idx + 1]) / 3))
+        return spectrum
+
 
 def valuesInRange(start: float, end: float, count: int) -> List[float]:
     return [start + (end - start) * i / (count - 1) for i in range(count)]
 
 
-def readLut(machine: Machine, axis: str) -> List[Tuple[int, int]]:
-    rawResponse = machine.command(f"M972 {axis}")
-    currents = [(0, 0) for _ in range(MOTOR_PERIOD)]
+def readLut(machine: Machine, axis: str, direction: str) -> PhaseCorrection:
+    rawResponse = machine.command(f"M972 {axis} {direction}")
 
+    correction = PhaseCorrection()
     for line in rawResponse:
         if not line.startswith(axis):
             continue
         values = line.split(",")
-        phase = int(values[1])
-        a = int(values[2])
-        b = int(values[3])
-        currents[phase] = (a, b)
+        dir = values[1]
+        if dir != direction:
+            continue
+        n = int(values[2])
+        mag = float(values[3])
+        pha = float(values[4])
 
-    return currents
+        correction.spectrum[n] = (mag, pha)
+    return correction
 
 
-def writeLut(machine: Machine, axis: str,
-             currents: List[Tuple[int, int]]) -> None:
-    assert len(currents) == MOTOR_PERIOD
-    assert all((-248 <= a <= 248) and (-248 <= b <= 248) for a, b in currents)
-
-    commands = [
-        f"M973 {axis} P{phase} A{a} B{b}"
-        for phase, (a, b) in enumerate(currents)
-    ]
-    machine.multiCommand(commands)
+def writeLut(machine: Machine, axis: str, direction: str,
+             correction: PhaseCorrection) -> None:
+    tableStr = " ".join(
+        [f"{mag:.5g},{pha:.5g}" for mag, pha in correction.spectrum[:16]])
+    command = f"M973 {axis}{direction} {tableStr}"
+    if len(command) > 256:
+        raise RuntimeError("Too long LUT command")
+    machine.command(command)
     return
 
 
@@ -436,24 +461,28 @@ def captureAccSamples(machine: Machine, axis: str, revs: float,
         raise
 
 
-def evaluateCorrection(machine: Machine, axis: str,
+def evaluateCorrection(machine: Machine, axis: str, direction: str,
                        correction: PhaseCorrection,
                        speed: float) -> List[float]:
     """
-    Given correction, return "badness" on individual harmonics
+    Given correction, return "badness" of individual harmonics
     """
     MEAS_COUNT = 1
-    writeLut(machine, axis, correction.currents())
+    writeLut(machine, axis, direction, correction)
     measurements = [
-        ResonanceMeasurement.measure(machine, axis, speed, revs=1)
+        ResonanceMeasurement.measure(machine,
+                                     axis,
+                                     speed,
+                                     revs=1 if direction == "B" else -1)
         for _ in range(MEAS_COUNT)
     ]
-    magnitudes = [map(lambda x: x[0], m.averageSpectrum) for m in measurements]
+    magnitudes = [map(lambda x: x[0], m.directSpectrum) for m in measurements]
     return [np.median(samples) for samples in zip(*magnitudes)]
 
 
 def reacalibrate(machine: Machine,
                  axis: str,
+                 direction: str,
                  initialCorrection: PhaseCorrection,
                  n: int,
                  magRange: float,
@@ -465,8 +494,8 @@ def reacalibrate(machine: Machine,
     """
     print(f"Recalibrating {n}, {magRange}, {phaseRange}")
     evaluate = lambda x: evaluateCorrection(
-        machine, axis, adjustedCorrection(initialCorrection, n, x[0], x[1]),
-        speed)[n]
+        machine, axis, direction,
+        adjustedCorrection(initialCorrection, n, x[0], x[1]), speed)[n]
 
     #initialSimplex = make2DSimplex([0, 0], 0.01)
     initialSimplex = [[0, 0], [magRange, -phaseRange], [-magRange, phaseRange]]
@@ -479,22 +508,23 @@ def reacalibrate(machine: Machine,
 
 def findPhaseMin(machine: Machine,
                  axis: str,
+                 direction: str,
                  initialCorrection: PhaseCorrection,
                  n: int,
                  mag: float,
-                 speed=float) -> float:
-    initialSimplex = [[np.pi / 3], [2 * np.pi / 3]]
+                 speed: float,
+                 guess: Optional[float] = None) -> float:
     evaluate = lambda x: evaluateCorrection(
-        machine, axis, adjustedCorrection(initialCorrection, n, mag, x), speed
-    )[n]
+        machine, axis, direction,
+        adjustedCorrection(initialCorrection, n, mag, x), speed)[n]
+    print(f"Finding pha {n}")
+    if guess is None:
+        brack = [0, 2 * np.pi]
+    else:
+        GUESS_WINDOW = 0.5
+        brack = [guess - GUESS_WINDOW, guess + GUESS_WINDOW]
 
-    # res, score = nelderMead(evaluate, initialSimplex, noImproveThr=np.pi/100, noImprovCount=5)
-    # return res[0]
-
-    res, fval, _, calls = scipy.optimize.brent(evaluate,
-                                               brack=[0, 2 * np.pi],
-                                               tol=0.01,
-                                               full_output=True)
+    res, fval, calls = goldenSearch(evaluate, brack=brack, tol=0.005)
     res = res % (2 * np.pi)
     print(f"Found f({res}) = {fval} in {calls}")
     return res
@@ -502,21 +532,23 @@ def findPhaseMin(machine: Machine,
 
 def findMagMin(machine: Machine,
                axis: str,
+               direction: str,
                initialCorrection: PhaseCorrection,
                n: int,
                maxMag: float,
-               speed=float) -> float:
-    initialSimplex = [[maxMag / 3], [2 * maxMag / 3]]
+               speed: float,
+               guess: Optional[float] = None) -> float:
     evaluate = lambda x: evaluateCorrection(
-        machine, axis, adjustedCorrection(initialCorrection, n, x, 0), speed)[n
-                                                                              ]
+        machine, axis, direction, adjustedCorrection(initialCorrection, n, x, 0
+                                                     ), speed)[n]
+    print(f"Finding mag {n}")
+    if guess is None:
+        brack = [0, maxMag]
+    else:
+        GUESS_WINDOW = 0.1
+        brack = [guess - GUESS_WINDOW, guess + GUESS_WINDOW]
 
-    # res, score = nelderMead(evaluate, initialSimplex, noImproveThr=0.001, noImprovCount=5)
-    # return res[0]
-    res, fval, _, calls = scipy.optimize.brent(evaluate,
-                                               brack=[0, maxMag],
-                                               tol=0.001,
-                                               full_output=True)
+    res, fval, calls = goldenSearch(evaluate, brack=brack, tol=0.0002)
     print(f"Found f({res}) = {fval} in {calls}")
     return res
 
@@ -525,11 +557,14 @@ def findMagMin(machine: Machine,
 @click.option("--axis",
               type=click.Choice(["X", "Y"]),
               help="Axis for reading LUT")
+@click.option("--dir",
+              type=click.Choice(["F", "B"]),
+              help="Table for which direction")
 @click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
-def readLutCmd(axis: str, port: str) -> None:
+def readLutCmd(axis: str, dir: str, port: str) -> None:
     with machineConnection(port) as machine:
         machine.waitForBoot()
-        currents = readLut(machine, axis)
+        currents = readLut(machine, axis, dir)
         json.dump(currents, sys.stdout, indent=4)
 
 
@@ -539,14 +574,16 @@ def readLutCmd(axis: str, port: str) -> None:
 @click.option("--axis",
               type=click.Choice(["X", "Y"]),
               help="Axis for reading LUT")
+@click.option("--dir",
+              type=click.Choice(["F", "B"]),
+              help="Table for which direction")
 @click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
-def writeLutCmd(axis: str, port: str, filepath: str) -> None:
+def writeLutCmd(axis: str, dir: str, port: str, filepath: str) -> None:
     with open(filepath) as f:
         correction = json.load(f)
-    currents = PhaseCorrection(correction).currents()
     with machineConnection(port) as machine:
         machine.waitForBoot()
-        writeLut(machine, axis, currents)
+        writeLut(machine, axis, dir, PhaseCorrection(correction))
 
 
 @click.command("analyseResonance")
@@ -707,7 +744,7 @@ def calibrateCmd(axis: str, port: str, speed: float, output: str) -> None:
         #     mag, pha = reacalibrate(machine, axis, correction, n, 0.1, 2 * np.pi, speed)
         #     correction = adjustedCorrection(correction, n, mag, pha)
 
-        writeLut(machine, "X", correction.currents())
+        writeLut(machine, "X", correction)
 
     if output is not None:
         with open(output, "w") as f:
@@ -720,12 +757,16 @@ def calibrateCmd(axis: str, port: str, speed: float, output: str) -> None:
 @click.option("--axis",
               type=click.Choice(["X", "Y"]),
               help="Axis for reading LUT")
+@click.option("--dir",
+              type=click.Choice(["F", "B"]),
+              help="Table for which direction")
 @click.option("--port", type=str, default=getPrusaPort(), help="Machine port")
-@click.option("--speed", type=float, default=1.5)
+@click.option("--speed", type=float, default=1.4)
 @click.option("--output",
               type=click.Path(file_okay=True, dir_okay=False),
               default=None)
-def calibrateIndivCmd(axis: str, port: str, speed: float, output: str) -> None:
+def calibrateIndivCmd(axis: str, dir: str, port: str, speed: float,
+                      output: str) -> None:
     with machineConnection(port) as machine:
         machine.waitForBoot()
         machine.command("M17")
@@ -733,22 +774,38 @@ def calibrateIndivCmd(axis: str, port: str, speed: float, output: str) -> None:
 
         def calib(initialCorrection: PhaseCorrection, n: int,
                   expectedMag: float) -> PhaseCorrection:
+            baseline = evaluateCorrection(machine, axis, dir,
+                                          initialCorrection, speed)[n]
+            print(f"Baseline for {n}: {baseline}")
             correction = PhaseCorrection(initialCorrection.spectrum)
-            pha = findPhaseMin(machine, axis, correction, n, expectedMag,
+            pha = findPhaseMin(machine, axis, dir, correction, n, expectedMag,
                                speed)
             print(f"Got min {n}. pha: {pha}")
             correction.spectrum[n] = (correction.spectrum[n][0], pha)
-            mag = findMagMin(machine, axis, correction, n, 2 * expectedMag,
-                             speed)
+            mag = findMagMin(machine, axis, dir, correction, n,
+                             2 * expectedMag, speed)
             print(f"Got min {n}. mag: {mag}")
             correction.spectrum[n] = (mag, correction.spectrum[n][1])
+
+            # print("Refinment")
+            # correction.spectrum[n] = (correction.spectrum[n][0], 0)
+            # pha = findPhaseMin(machine, axis, dir, correction, n, mag,
+            #                    speed, pha)
+            # print(f"Got ref min {n}. pha: {pha}")
+            # correction.spectrum[n] = (0, pha)
+            # mag = findMagMin(machine, axis, dir, correction, n,
+            #                  2 * expectedMag, speed, mag)
+            # print(f"Got ref min {n}. mag: {mag}")
+            # correction.spectrum[n] = (mag, correction.spectrum[n][1])
             return correction
 
         c = PhaseCorrection()
-        c = calib(c, 2, 0.05)
-        c = calib(c, 4, 0.05)
+        c = calib(c, 2, 0.028)
+        c = calib(c, 4, 0.022)
+        # c = calib(c, 8, 0.005)
+        # c = calib(c, 3, 0.005)
 
-        writeLut(machine, "X", c.currents())
+        writeLut(machine, "X", dir, c)
 
     print(c.spectrum)
     if output is not None:
@@ -771,19 +828,15 @@ def analyzeSamplesCmd(axis: str, port: str, speed: float, revs: float):
         print("Measuring accelerometer")
         # machine.measureAccSampligFreq()
         print(machine.accFreq)
-        measurements = [
-            ResonanceMeasurement.measure(machine, axis, speed, revs)
-            for _ in range(1)
-        ]
+        measurement = ResonanceMeasurement.measure(machine, axis, speed, revs)
 
-    for m in measurements:
-        # m.realSamplingFreq = m.extractSamplingFreq()
-        print(m.realSamplingFreq)
-        m.periodPlot().show()
-        m.autocorrPlot().show()
-        m.plotSpectrum(m.averageSpectrum).show()
-        # m.periodicityPlot().show()
-        break
+    measurement.periodPlot().show()
+    measurement.autocorrPlot().show()
+    measurement.plotSpectrum(measurement.averageSpectrum).show()
+    measurement.plotSpectrum(measurement.directSpectrum).show()
+    measurement.rawPeriodPlot().show()
+    measurement.rawWholePlot().show()
+    # measurement.periodicityPlot().show()
 
 
 @click.command("analyzeConsistency")

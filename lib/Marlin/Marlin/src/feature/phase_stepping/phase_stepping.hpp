@@ -13,30 +13,10 @@ struct move_segment_step_generator_t;
 
 #ifdef PHASE_STEPPING
 
-// Phase stepping is just logical extension of input shaper - just instead of
-// making precise steps, we directly control phase of the motor at sufficient
-// frequency. Therefore, phase_stepping reuses the whole internal logic of input
-// shaping; we just redefine step generator.
+#include "common.hpp"
+#include "lut.hpp"
 
 namespace phase_stepping {
-
-// The number of ticks per electrical period of the Trinamic driver
-static constexpr int MOTOR_PERIOD = 1024;
-
-class CurrentLut {
-public:
-    /**
-     * Initialize LUT with pure sine and cosine waves
-     */
-    CurrentLut();
-
-    void set_current(int idx, int sin, int cos);
-    std::pair< int, int > get_current(int idx) const;
-private:
-    std::array< uint8_t, MOTOR_PERIOD > _sin, _cos;
-    std::bitset< MOTOR_PERIOD >         _s_sin, _s_cos;
-};
-
 
 /**
   * Very simple and efficient implementation of 2-element queue of T*
@@ -113,13 +93,14 @@ struct MoveTarget {
 struct AxisState {
     AxisState() = default;
 
-    CurrentLut currents;
+    CorrectedCurrentLut forward_current, backward_current;
 
     std::atomic< bool > active = false;
 
     bool          inverted = false;     // Inverted axis direction flag
     int           zero_rotor_phase = 0; // Rotor phase for position 0
     int           last_phase       = 0; // Last known rotor phase
+    double        last_position    = 0;
     TwoOf<move_t> pending_moves;        // 2 element queue of the current and next move_t
     move_t *      current_move = nullptr;
     move_t *      last_processed_move = nullptr;
@@ -182,11 +163,6 @@ double pos_to_phase(int axis, double position);
  * position
  */
 double axis_position(const AxisState& axis_state, uint32_t move_epoch);
-
-/**
- * Given a phase, normalize it into range <0, MOTOR_PERIOD)
- **/
-int normalize_phase(int phase);
 
 /**
  * Extracts physical axis position from logical one

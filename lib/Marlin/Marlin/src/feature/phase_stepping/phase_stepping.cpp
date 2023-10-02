@@ -26,35 +26,6 @@ std::array<AxisState, 2> phase_stepping::axis_states;
 static int axis_num_to_refresh = 0;
 static const std::array< OutputPin, 3 > cs_pins = {{ xCs, yCs, zCs }};
 
-CurrentLut::CurrentLut() {
-    const int AMPLITUDE = 248;
-    for ( int i = 0; i != MOTOR_PERIOD; i++ ) {
-        double phase = 2 * M_PI * i / MOTOR_PERIOD;
-        set_current(i, AMPLITUDE * std::sin(phase), AMPLITUDE * std::cos(phase));
-    }
-}
-
-void CurrentLut::set_current(int idx, int sin, int cos) {
-    idx = normalize_phase(idx);
-
-    assert(std::abs(sin) <= 248);
-    assert(std::abs(cos) <= 248);
-
-    _sin[ idx ] = std::abs(sin);
-    _s_sin[ idx ] = sin >= 0;
-
-    _cos[ idx ] = std::abs(cos);
-    _s_cos[ idx ] = cos >= 0;
-}
-
-std::pair< int, int > CurrentLut::get_current(int idx) const {
-    idx = normalize_phase(idx);
-
-    int sin = _sin[ idx ] * ( _s_sin[idx] ? 1 : -1);
-    int cos = _cos[ idx ] * ( _s_cos[idx] ? 1 : -1);
-    return { sin, cos };
-}
-
 MoveTarget::MoveTarget(double position):
     initial_pos(position), half_accel(0), start_v(0), duration(0)
 {}
@@ -83,6 +54,7 @@ void phase_stepping::init_step_generator(
     axis_state.initial_time = ticks_us();
     // The initialization move segment is always at position 0, so we have to
     // adjust the zero rotor phase
+    axis_state.last_position = 0;
     axis_state.zero_rotor_phase = axis_state.last_phase;
     axis_state.target = MoveTarget(move, axis);
     axis_state.current_move = &move;
@@ -135,7 +107,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // mode.
     int current_phase = stepper.MSCNT();
 
-    auto [a, b] = axis_state.currents.get_current(current_phase);
+    auto [a, b] = axis_state.forward_current.get_current(current_phase);
 
     // Swapping coils isn't a mistake - TMC in Xdirect mode swaps coils
     stepper.coil_A(b);
@@ -265,8 +237,12 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     // Stepper::count_direction, Stepper::count_direction_from_startup and
     // Stepper::count_direction doesn't seem to be used anywhere. And we would
     // just burn CPU cycles on keeping them updated.
+    const auto& current_lut = position > axis_state.last_position
+        ? axis_state.forward_current
+        : axis_state. backward_current;
+    auto [a, b] = current_lut.get_current(axis_state.last_phase);
 
-    auto [a, b] = axis_state.currents.get_current(axis_state.last_phase);
+    axis_state.last_position = position;
 
     auto ret = spi::set_xdirect(axis_num_to_refresh, a, b);
     if (ret == HAL_OK)
@@ -275,7 +251,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         axis_state.missed_tx_cnt++;
     }
 
-    if (axis_state.missed_tx_cnt > 1000)
+    if (axis_state.missed_tx_cnt > 5000)
         bsod("Phase stepping: TX failure");
 }
 
@@ -304,11 +280,4 @@ __attribute__((optimize("-Ofast"))) double phase_stepping::axis_position(const A
     double epoch = move_epoch / 1000000.0;
     const MoveTarget& trg = axis_state.target;
     return trg.initial_pos + trg.start_v * epoch + trg.half_accel * epoch * epoch;
-}
-
-int phase_stepping::normalize_phase(int phase) {
-    phase = phase % MOTOR_PERIOD;
-    if (phase < 0)
-        phase += MOTOR_PERIOD;
-    return phase;
 }

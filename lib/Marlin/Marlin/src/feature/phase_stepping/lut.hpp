@@ -1,0 +1,55 @@
+#pragma once
+
+#include <array>
+#include <cmath>
+#include <cstdint>
+#include <cassert>
+
+#include "common.hpp"
+
+// This module is responsible for implementing any lookup tables used in phase
+// stepping.
+
+namespace phase_stepping {
+
+/**
+ * Lookup table-based implementation of sin/cos that uses MOTOR_PERIOD as its
+ * period. Returns integral value that is scaled to 248 - TMC max value.
+ */
+int sin_lut(int x);
+int cos_lut(int x);
+
+/**
+ * Given a phase, normalize it into range <0, MOTOR_PERIOD)
+ **/
+int normalize_phase(int phase);
+
+
+struct SpectralItem {
+    float mag = 0, pha = 0;
+};
+
+class CorrectedCurrentLut {
+public:
+    std::array< SpectralItem, CORRECTION_HARMONICS + 1 > _spectrum = {};
+    std::array< int8_t, MOTOR_PERIOD > _phase_shift = {};
+
+    void _update_phase_shift();
+public:
+    CorrectedCurrentLut() = default;
+
+    const auto &get_correction() const {
+        return _spectrum;
+    };
+
+    template < typename F >
+        requires requires(F f) { f(_spectrum ); }
+    void modify_correction(F f) {
+        f(_spectrum);
+        _update_phase_shift();
+    }
+
+    std::pair< int, int > get_current(int idx) const;
+};
+
+} // namespace phase_stepping

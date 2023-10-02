@@ -58,6 +58,7 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/feature/input_shaper/input_shaper.cpp
             Marlin/Marlin/src/feature/input_shaper/input_shaper_config.cpp
             Marlin/Marlin/src/feature/joystick.cpp
+            Marlin/Marlin/src/feature/phase_stepping/lut.cpp
             Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp
             Marlin/Marlin/src/feature/phase_stepping/quick_tmc_spi.cpp
             Marlin/Marlin/src/feature/power.cpp

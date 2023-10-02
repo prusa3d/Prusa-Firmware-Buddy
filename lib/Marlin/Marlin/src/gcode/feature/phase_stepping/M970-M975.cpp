@@ -7,6 +7,7 @@
 #include <feature/precise_stepping/precise_stepping.hpp>
 #include <feature/phase_stepping/phase_stepping.hpp>
 #include <string_view>
+#include <charconv>
 
 LOG_COMPONENT_REF(PhaseStepping);
 
@@ -25,6 +26,13 @@ static auto print_error = [](auto... args) {
     (SERIAL_ECHO(args), ...);
     SERIAL_CHAR('\n');
 };
+
+bool is_one_of(char c, std::string_view sv) {
+    for (char x : sv)
+        if (c == x)
+            return true;
+    return false;
+}
 
 class DisableBusyReport {
     bool original_state = false;
@@ -81,78 +89,121 @@ void GcodeSuite::M971() {
 }
 
 /**
- * @brief Retrieve current table
+ * @brief Retrieve current correction
  *
- * Outputs the current lookup table in format: `<axis>, <index>, <current A>,
- * <current B>` per line. Multiple axes can be specified.
+ * Outputs the current correction table in format: `<axis>, <direction>,
+ * <index>, <mag>, <pha>` per line. Multiple axes can be specified.
  **/
 void GcodeSuite::M972() {
-    for ( auto [axis, letter] : SUPPORTED_AXES) {
+    for (auto [axis, letter] : SUPPORTED_AXES) {
         if (!parser.seen(letter))
             continue;
-        const phase_stepping::CurrentLut& lut = phase_stepping::axis_states[axis].currents;
+        const phase_stepping::AxisState& axis_state = phase_stepping::axis_states[axis];
+        for (char dir : "FB"sv) {
+            if (!parser.seen(letter))
+                continue;
 
-        for (int i = 0; i != phase_stepping::MOTOR_PERIOD; i++ ) {
-            auto [a, b] = lut.get_current(i);
+            const phase_stepping::CorrectedCurrentLut& lut = dir == 'F'
+                ? axis_state.forward_current : axis_state.backward_current;
 
-            SERIAL_ECHO(letter);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHO(i);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHO(a);
-            SERIAL_ECHO(", ");
-            SERIAL_ECHO(b);
-            SERIAL_ECHO('\n');
+            const auto& table = lut.get_correction();
+            for (size_t i = 0; i != table.size(); i++ ) {
+                SERIAL_ECHO(letter);
+                SERIAL_ECHO(", ");
+                SERIAL_ECHO(dir);
+                SERIAL_ECHO(", ");
+                SERIAL_ECHO(i);
+                SERIAL_ECHO(", ");
+                SERIAL_ECHO(table[i].mag);
+                SERIAL_ECHO(", ");
+                SERIAL_ECHO(table[i].pha);
+                SERIAL_ECHO('\n');
+            }
         }
     }
 }
 
+static std::vector<std::pair<float, float>> parse_pairs(std::string_view str) {
+    std::vector<std::pair<float, float>> pairs;
+
+    while (!str.empty()) {
+        size_t comma_pos = str.find(',');
+        if (comma_pos == std::string_view::npos) {
+            print_error("Malformed input: missing comma");
+            return {}; // Return an empty vector on error
+        }
+
+        char* end_ptr;
+        float first = std::strtof(str.data(), &end_ptr);
+        if (end_ptr != str.data() + comma_pos) {
+            print_error("Malformed input: unable to parse first value of a pair");
+            return {}; // Return an empty vector on error
+        }
+
+        str.remove_prefix(comma_pos + 1);
+
+        size_t space_pos = str.find(' ');
+
+        float second = std::strtof(str.data(), &end_ptr);
+        auto expected_end_ptr = space_pos != std::string_view::npos ? str.data() + space_pos : str.data() + str.size();
+        if (end_ptr != expected_end_ptr) {
+            print_error("Malformed input: unable to parse second value of a pair");
+            return {}; // Return an empty vector on error
+        }
+
+        pairs.emplace_back(first, second);
+
+        str.remove_prefix(space_pos != std::string_view::npos ? space_pos + 1 : str.size());
+    }
+
+    return pairs;
+}
+
 /**
- * @brief Set single entry for the current table.
+ * @brief Set single entry for the current correction table.
  *
- * Parameters:
- * - X/Y - axis to set current
- * - P   - phase index (0-1023)
- * - A   - phase current A
- * - B   - phase current B
+ * Parameters: String argument in format: <X/Y><F/B><list of mag,phase pairs separated by space>
  **/
 void GcodeSuite::M973() {
-    bool valid = true;
-
-    for (char required : "PAB"sv) {
-        if (parser.seenval(required))
-            continue;
-        valid = false;
-        print_error("Missing ", required, "-parameter");
+    std::string_view str_arg {parser.string_arg};
+    if (str_arg.size() < 3 || !is_one_of(str_arg[0], "XY") || !is_one_of(str_arg[1], "FB")) {
+        print_error("Invalid format; should be <X/Y><F/B><list of mag,phase pairs separated by space");
     }
 
-    int axes_count = 0;
-    for ( auto [axis, letter] : SUPPORTED_AXES) {
-        if (parser.seen(letter))
-            axes_count++;
-    }
-    if (axes_count != 1) {
-        print_error("Exactly one axis has to be specified");
-        valid = false;
-    }
+    AxisEnum axis = str_arg[0] == 'X' ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
+    phase_stepping::AxisState& axis_state = phase_stepping::axis_states[axis];
+    phase_stepping::CorrectedCurrentLut& lut =
+        str_arg[1] == 'F'
+                ? axis_state.forward_current
+                : axis_state.backward_current;
 
-    if (!valid) {
-        print_error("Invalid parameters, no effect");
+    str_arg.remove_prefix(2);
+    auto data = parse_pairs(str_arg);
+
+    if (data.empty())
         return;
-    }
 
-
-    for ( auto [axis, letter] : SUPPORTED_AXES) {
-        if (!parser.seen(letter))
-            continue;
-        phase_stepping::CurrentLut& lut = phase_stepping::axis_states[axis].currents;
-
-        int phase = parser.intval('P');
-        int a = parser.intval('A');
-        int b = parser.intval('B');
-
-        lut.set_current(phase, a, b);
-    }
+    lut.modify_correction([&](auto& table) {
+        for (size_t n = 0; n != table.size(); n++) {
+            if (n < data.size()) {
+                SERIAL_ECHO("Setting ");
+                SERIAL_ECHO(n);
+                SERIAL_ECHO(": ");
+                SERIAL_ECHO(data[n].first);
+                SERIAL_ECHO(", ");
+                SERIAL_ECHOLN(data[n].second);
+                table[n] = phase_stepping::SpectralItem{
+                    .mag = data[n].first,
+                    .pha = data[n].second
+                };
+            } else {
+                table[n] = phase_stepping::SpectralItem{
+                    .mag = 0,
+                    .pha = 0
+                };
+            }
+        }
+    });
 }
 
 // Given change in physical space, return change in logical axis.
