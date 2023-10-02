@@ -96,6 +96,10 @@ dependencies = {
         'version': '0.4.9999',
         'url': 'https://github.com/posborne/cmsis-svd/archive/45a1e90afe488f01df94b3e0eb89a67c1a900a9a.zip',
     },
+    'CrashDebug': {
+        'version': 'ae191d',
+        'url': 'https://github.com/adamgreen/CrashDebug/archive/ae191d7ad96258570d5e6685619cab31c0d3859c.zip',
+    },
 }
 # yapf: enable
 
