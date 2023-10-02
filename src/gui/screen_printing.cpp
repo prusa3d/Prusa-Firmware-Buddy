@@ -211,10 +211,6 @@ extern int _is_in_M600_flg;
 extern uint32_t *pCommand;
 #endif
 
-#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE() && HAS_HUMAN_INTERACTIONS()
-static metric_t print_successful = METRIC("Print_successful", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_ENABLE_ALL);
-#endif
-
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
@@ -271,27 +267,6 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 #endif
 
     change_print_state();
-
-#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE() && HAS_HUMAN_INTERACTIONS()
-    if (p_state == printing_state_t::PRINTING)
-        print_feedback_pending = true;
-
-    if (p_state == printing_state_t::PRINTED && print_feedback_pending) {
-        print_feedback_pending = false;
-        switch (MsgBox(_("Was the print successful?"), Responses_YesNoIgnore, 2)) {
-        case Response::Yes:
-            metric_record_integer(&print_successful, 1);
-            break;
-        case Response::No:
-            metric_record_integer(&print_successful, 0);
-            break;
-        case Response::Ignore:
-            metric_record_integer(&print_successful, -1);
-        default:
-            break;
-        }
-    }
-#endif
 
     /// -- Print time update loop
     updateTimes();

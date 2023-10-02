@@ -61,10 +61,6 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     PrintTime print_time;
     PT_t time_end_format;
 
-#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE()
-    bool print_feedback_pending = false;
-#endif
-
 public:
     screen_printing_data_t();
 
