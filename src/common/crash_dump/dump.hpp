@@ -16,9 +16,9 @@ enum class DumpFlags : uint8_t {
 /// Codes for the message type item of message struct
 enum class MsgType : uint8_t {
     RSOD = 0, ///< Red screen of death
-    BSOD_IWDGW = 2, // IWDG warning
-    BSOD_BSOD = 3, // BSOD dump
-    BSOD_STACK_OVF = 4, // stack overflow dump
+    IWDGW = 2, // IWDG warning
+    BSOD = 3, // BSOD dump
+    STACK_OVF = 4, // stack overflow dump
 
     EMPTY = 0xff, ///< Nothing dumped
 };

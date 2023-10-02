@@ -19,7 +19,19 @@ public:
     };
 
     CrashCatcherDumpParser();
+
+    /**
+     * Load data that were on addres "from" when crash was dumped
+     * @param to Pointer where data will be saved
+     * @param from Data from dump we want to load (can be RAM or registers, whatever memory region that is inside dump)
+     * @param size Size of data to copy
+     * @return True when data found, false when not
+     */
     bool load_data(uint8_t *to, uintptr_t from, size_t size);
+
+    /**
+     * Loads registers at time of dump (see Registers_t)
+     */
     void load_registers(Registers_t &registers);
 
 private:

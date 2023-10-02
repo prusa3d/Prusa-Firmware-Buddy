@@ -176,7 +176,7 @@ bool save_dump_to_usb(const char *fn) {
             offset += read_size;
         }
         fclose(fd);
-        if (bw_total != (dump_info.dump_size /*+ OTP_SIZE + FLASH_SIZE*/)) {
+        if (bw_total != dump_info.dump_size) {
             return false;
         }
         dump_set_exported();
@@ -277,7 +277,7 @@ void before_dump() {
     // avoid triggering before_dump multiple times (it can be called before BSOD and then again in hardfault handler)
     if (!dump_breakpoint_paused) {
         dump_breakpoint_paused = true;
-        hwio_safe_state(); // put HW to safe state
+        buddy_disable_heaters(); // put HW to safe state
 #ifdef _DEBUG
         if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) {
             // if case debugger is attached, issue breakpoint instead of crash dump.
@@ -316,7 +316,7 @@ void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
     }
 
     if (crash_dump::dump_is_valid() && !crash_dump::dump_is_displayed()) {
-        // do not owerwire dump that is already valid & wasn't displayed to user yet
+        // do not overwrite dump that is already valid & wasn't displayed to user yet
         crash_dump::dump_failed();
     }
 

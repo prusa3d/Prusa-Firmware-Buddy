@@ -509,6 +509,7 @@ static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
 // in case code reaches this, there is some HW issue
 // but we cannot log it or rise red screen, it is too early
 #ifdef _DEBUG
+    buddy_disable_heaters();
     __BKPT(0);
 #endif
     HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // this code should never be reached, just in case it was set clock to '1'

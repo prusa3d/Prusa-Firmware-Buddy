@@ -281,7 +281,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
     va_end(args);
 
     // Save file, line and meessage
-    crash_dump::save_message(crash_dump::MsgType::BSOD_BSOD, ftrstd::to_underlying(ErrCode::ERR_UNDEF), msg, title);
+    crash_dump::save_message(crash_dump::MsgType::BSOD, ftrstd::to_underlying(ErrCode::ERR_UNDEF), msg, title);
 
     crash_dump::trigger_crash_dump();
 }
@@ -290,7 +290,7 @@ void _bsod(const char *fmt, const char *file_name, int line_number, ...) {
 
 extern "C" void vApplicationStackOverflowHook([[maybe_unused]] TaskHandle_t xTask, signed char *pcTaskName) {
     // Save task name as title
-    crash_dump::save_message(crash_dump::MsgType::BSOD_STACK_OVF, 0, "", reinterpret_cast<char *>(pcTaskName));
+    crash_dump::save_message(crash_dump::MsgType::STACK_OVF, 0, "", reinterpret_cast<char *>(pcTaskName));
 
     crash_dump::trigger_crash_dump();
 }

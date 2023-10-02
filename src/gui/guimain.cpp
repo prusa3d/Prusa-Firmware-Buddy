@@ -523,11 +523,11 @@ static ScreenFactory::Creator get_error_screen() {
         }
 
         switch (crash_dump::message_get_type()) {
-        case crash_dump::MsgType::BSOD_IWDGW:
+        case crash_dump::MsgType::IWDGW:
             return ScreenFactory::Screen<ScreenWatchdog>;
-        case crash_dump::MsgType::BSOD_BSOD:
+        case crash_dump::MsgType::BSOD:
             return ScreenFactory::Screen<ScreenBsod>;
-        case crash_dump::MsgType::BSOD_STACK_OVF:
+        case crash_dump::MsgType::STACK_OVF:
             return ScreenFactory::Screen<ScreenStackOverflow>;
         default:
             break;

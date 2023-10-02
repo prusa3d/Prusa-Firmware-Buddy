@@ -100,3 +100,15 @@ void hwio_low_power_state(void) {
     splitter5vEnable.reset();
 #endif
 }
+
+void buddy_disable_heaters(void) {
+    // this function is called before breakpoint, and has to be callable from ISR.
+    // Do not do any mutexes etc. Only simple pin
+#if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
+    gpio_init(MARLIN_PIN(HEAT0), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
+    gpio_set(MARLIN_PIN(HEAT0), 0);
+
+    gpio_init(MARLIN_PIN(BED_HEAT), GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);
+    gpio_set(MARLIN_PIN(BED_HEAT), 0);
+#endif
+}
