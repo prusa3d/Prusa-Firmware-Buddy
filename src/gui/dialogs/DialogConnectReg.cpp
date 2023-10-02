@@ -19,8 +19,6 @@ const constexpr size_t max_url_len = 128;
 
 } // namespace
 
-bool DialogConnectRegister::DialogShown = false;
-
 char DialogConnectRegister::attempt_buffer[20];
 char DialogConnectRegister::detail_buffer[50];
 
@@ -45,7 +43,6 @@ DialogConnectRegister::DialogConnectRegister()
 
     last_seen_status = std::make_tuple(connect_client::ConnectionStatus::Unknown, connect_client::OnlineError::NoError, std::nullopt);
 
-    DialogShown = true;
     text_state.SetText(_("Acquiring registration code, please wait..."));
 
     snprintf(attempt_buffer, sizeof(attempt_buffer), "Attempt %d/%d", 1, connect_client::Registrator::starting_retries);
@@ -61,8 +58,6 @@ DialogConnectRegister::DialogConnectRegister()
 }
 
 DialogConnectRegister::~DialogConnectRegister() {
-    DialogShown = false;
-
     if (!left_registration) {
         connect_client::leave_registration();
     }

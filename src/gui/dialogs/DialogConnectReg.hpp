@@ -10,7 +10,6 @@
 
 class DialogConnectRegister : public AddSuperWindow<IDialog> {
 private:
-    static bool DialogShown;
     // TODO change after textation so it is big enough for new texts
     static char attempt_buffer[20];
     static char detail_buffer[50];
