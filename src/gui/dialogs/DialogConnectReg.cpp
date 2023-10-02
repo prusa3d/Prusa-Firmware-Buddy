@@ -1,4 +1,5 @@
 #include "DialogConnectReg.hpp"
+#include "RAII.hpp"
 #include "../img_resources.hpp"
 #include "../ScreenHandler.hpp"
 #include "../lang/i18n.h"
@@ -69,11 +70,32 @@ void DialogConnectRegister::Show() {
 }
 
 void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) {
+    if (event_in_progress) {
+        return;
+    }
+
+    AutoRestore avoid_recursion(event_in_progress, true);
+
     switch (event) {
-    case GUI_event_t::CHILD_CLICK:
+    case GUI_event_t::CHILD_CLICK: {
         // We have a single button, so this simplification should work fine.
-        Screens::Access()->Close();
-        break;
+
+        bool close = true;
+
+        switch (get<0>(last_seen_status)) {
+        case ConnectionStatus::RegistrationRequesting:
+        case ConnectionStatus::RegistrationCode:
+            close = MsgBoxWarning(_("Prusa Connect setup is not finished. Do you want to exit and abort the process?"), Responses_YesNo)
+                == Response::Yes;
+            break;
+        default:
+            break;
+        }
+
+        if (close) {
+            Screens::Access()->Close();
+        }
+    } break;
     case GUI_event_t::LOOP: {
         const OnlineStatus status = connect_client::last_status();
         if (status != last_seen_status) {
