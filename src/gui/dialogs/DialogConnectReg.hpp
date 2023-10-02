@@ -61,6 +61,7 @@ private:
     connect_client::OnlineStatus last_seen_status = std::make_tuple(connect_client::ConnectionStatus::Unknown, connect_client::OnlineError::NoError, std::nullopt);
     bool left_registration = false;
     bool qr_rect = false;
+    bool event_in_progress = false;
 
     window_header_t header;
     window_icon_t icon_phone;
