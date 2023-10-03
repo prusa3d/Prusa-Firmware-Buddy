@@ -88,12 +88,12 @@ struct BootloaderUpdateBuffer {
         auto pool = memp_pools[MEMP_PBUF_POOL];
         memory = std::span<uint8_t>(static_cast<uint8_t *>(pool->base), pool->size * pool->num);
         assert(memory.size() >= bootloader_sector_get_size(0));
-        assert(TaskDeps::check(TaskDeps::Task::lwip_start) == false);
+        assert(TaskDeps::check(TaskDeps::Tasks::lwip_start) == false);
     }
 
     ~BootloaderUpdateBuffer() {
         // again, make sure we don't use the buffer while LwIP does
-        assert(TaskDeps::check(TaskDeps::Task::lwip_start) == false);
+        assert(TaskDeps::check(TaskDeps::Tasks::lwip_start) == false);
     }
 };
 
