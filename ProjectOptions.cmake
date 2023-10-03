@@ -582,8 +582,7 @@ else()
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
 endif()
 
-# asyncio causes speed regressions so let's disable it for now
-define_boolean_option(USE_ASYNCIO NO)
+define_boolean_option(USE_ASYNCIO YES)
 
 # define enabled features
 
