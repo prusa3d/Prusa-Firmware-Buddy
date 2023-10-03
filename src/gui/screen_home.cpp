@@ -34,6 +34,7 @@
 #include "i18n.h"
 #include "i2c.hpp"
 #include "netdev.h"
+#include "ini.h"
 
 #include <option/has_control_menu.h>
 #include <option/has_loadcell.h>
@@ -342,6 +343,72 @@ void screen_home_data_t::on_enter() {
     #endif
 #endif
 }
+namespace {
+struct Config {
+    bool ssid_equal = false;
+    bool psk_equal = false;
+    bool is_ok() { return psk_equal && ssid_equal; }
+};
+
+int ini_handler(void *user, const char *section, const char *name, const char *value) {
+    if (user == nullptr || section == nullptr || name == nullptr || value == nullptr) {
+        return 0;
+    }
+
+    if (strcmp("wifi", section)) {
+        return 1; // do I return 0 or 1 ??? I have no clue what would 0 do.
+    }
+
+    auto *config = reinterpret_cast<Config *>(user);
+    size_t len = strlen(value);
+
+    if (strcmp(name, "ssid") == 0) {
+        char buffer[config_store_ns::old_eeprom::WIFI_MAX_SSID_LEN];
+        if (len <= sizeof(buffer)) {
+            config->ssid_equal = !strncmp(value, config_store().wifi_ap_ssid.get_c_str(), sizeof(buffer));
+        }
+    } else if (strcmp(name, "psk") == 0) {
+        char buffer[config_store_ns::old_eeprom::WIFI_MAX_PASSWD_LEN];
+        if (len <= sizeof(buffer)) {
+            config->psk_equal = !strncmp(value, config_store().wifi_ap_password.get_c_str(), sizeof(buffer));
+        }
+    }
+
+    return 1;
+}
+
+bool is_name_and_psk_equal() {
+    Config config;
+    bool ok = ini_parse(settings_ini::file_name, ini_handler, &config) == 0;
+    ok = ok && config.is_ok();
+
+    return ok;
+}
+} // namespace
+
+void screen_home_data_t::handle_wifi_credentials() {
+    // first we find if there is an WIFI config
+    bool has_wifi_credentials = false;
+    {
+        std::unique_ptr<FILE, FileDeleter> fl;
+        // if other thread modifies files during this action, detection might fail
+        fl.reset(fopen(settings_ini::file_name, "r"));
+        has_wifi_credentials = fl.get() != nullptr;
+    }
+    if (has_wifi_credentials && !is_name_and_psk_equal()) {
+        if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo)
+            == Response::Yes) {
+            const auto fw_state = esp_fw_state();
+            const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
+            if (esp_need_flash) {
+                marlin_client::gcode("M997 S1"); // update esp, do not force update older fw
+            } else {
+                marlin_client::gcode("M1587"); // update esp credentials only
+            }
+            return;
+        }
+    }
+}
 
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
     // TODO: This easily freezes home screen when flash action fails to start.
@@ -385,6 +452,20 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::LOOP) {
         filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
 
+#if ENABLED(POWER_PANIC)
+        if (TaskDeps::check(TaskDeps::Dependency::power_panic_initialized) && !power_panic::is_power_panic_resuming())
+#endif // ENABLED(POWER_PANIC)
+        { // every time usb is inserted we check wifi credentials
+            if (usbInserted) {
+                if (need_check_wifi_credentials) {
+                    need_check_wifi_credentials = false;
+                    handle_wifi_credentials();
+                }
+            } else {
+                need_check_wifi_credentials = true; // usb is not inserted, when it gets inserted we want to recheck credentials file
+            }
+        }
+
 #if HAS_SELFTEST()
         if (!DialogHandler::Access().IsOpen() && !GuiFSensor::is_calib_dialog_open()) {
             // esp update has bigger priority tha one click print
@@ -401,31 +482,13 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                     TaskDeps::check(TaskDeps::Dependency::power_panic_initialized) && !power_panic::is_power_panic_resuming() &&
     #endif // ENABLED(POWER_PANIC)
                     GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
-
-                    // first we find if there is an WIFI config
-                    bool has_wifi_credentials = false;
-                    {
-                        std::unique_ptr<FILE, FileDeleter> fl;
-                        // if other thread modifies files during this action, detection might fail
-                        fl.reset(fopen(settings_ini::file_name, "r"));
-                        has_wifi_credentials = fl.get() != nullptr;
-                    }
-
-                    if (has_wifi_credentials) {
-                        if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo)
-                            == Response::Yes) {
-                            // TODO check if file contains SSID and password
-                            marlin_client::gcode("M997 S1"); // update esp, do not force update older fw
-                            return;
-                        }
-
-                        // TODO this should be done in main thread before Event::MediaInserted is generated
-                        // if it is not the latest gcode might not be selected
-                    } else if (find_latest_gcode(
-                                   gui_media_SFN_path,
-                                   FILE_PATH_BUFFER_LEN,
-                                   gui_media_LFN,
-                                   FILE_NAME_BUFFER_LEN)) {
+                    // TODO this should be done in main thread before Event::MediaInserted is generated
+                    // if it is not the latest gcode might not be selected
+                    if (find_latest_gcode(
+                            gui_media_SFN_path,
+                            FILE_PATH_BUFFER_LEN,
+                            gui_media_LFN,
+                            FILE_NAME_BUFFER_LEN)) {
                         print_begin(gui_media_SFN_path, false);
                     }
                 }

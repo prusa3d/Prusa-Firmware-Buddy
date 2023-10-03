@@ -22,6 +22,7 @@ private:
     MMU2::xState mmu_state { MMU2::xState::Stopped };
     bool event_in_progress { false };
     bool first_event { true };
+    bool need_check_wifi_credentials { true };
     MediaState_t media_event { MediaState_t::unknown };
 
     window_header_t header;
@@ -54,4 +55,5 @@ private:
 
     void on_enter();
     void handle_crash_dump();
+    void handle_wifi_credentials();
 };
