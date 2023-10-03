@@ -27,7 +27,7 @@ enum class Dependency {
     default_task_ready,
     usbserial_ready,
     esp_flashed,
-    lwip_initialized,
+    networking_ready,
     manufacture_report_sent,
     power_panic_initialized,
     bootloader_update_passsed,
@@ -68,7 +68,7 @@ namespace Tasks {
         Dependency::bootloader_update_passsed
 #endif
     );
-    inline constexpr dependency_t connect = make(Dependency::lwip_initialized);
+    inline constexpr dependency_t connect = make(Dependency::networking_ready);
     inline constexpr dependency_t network = make(
 
 #if NETWORK_DEPENDS_ON_ESP_FLASHED

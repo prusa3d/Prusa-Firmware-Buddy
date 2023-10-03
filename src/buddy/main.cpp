@@ -298,8 +298,8 @@ extern "C" void main_cpp(void) {
         // FIXME: We should be able to split networking to the lower-level network part and the Link part. Currently, both are done through WUI.
         #error "Can't have connect without WUI"
     #endif
-    TaskDeps::wait(TaskDeps::Tasks::connect);
     /* definition and creation of connectTask */
+    TaskDeps::wait(TaskDeps::Tasks::connect);
     osThreadCCMDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif

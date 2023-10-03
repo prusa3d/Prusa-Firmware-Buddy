@@ -114,3 +114,7 @@ void httpd_close(void) {
 
     xSemaphoreGive(httpd_mutex);
 }
+
+Server *httpd_instance() {
+    return &server;
+}

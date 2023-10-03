@@ -26,3 +26,9 @@ void httpd_start(void);
  * It can be re-enabled with @c httpd_reinit.
  */
 void httpd_close(void);
+
+namespace nhttp {
+struct Server;
+}
+
+nhttp::Server *httpd_instance();

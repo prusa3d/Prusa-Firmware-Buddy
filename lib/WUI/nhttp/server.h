@@ -285,8 +285,7 @@ private:
 
 #if USE_ASYNCIO
     class TransferSlot : public Slot {
-    private:
-        friend class ConnectionSlot;
+    public:
         // Bytes of data we expect to arrive from the connection.
         size_t expected_data = 0;
         // Requests (not bytes) submitted to the async thread, including
@@ -296,7 +295,6 @@ private:
         bool done_called = false;
         std::optional<std::tuple<http::Status, const char *>> response;
 
-    public:
         virtual void release() override;
         virtual bool step() override;
         virtual bool want_read() const override;
@@ -432,6 +430,7 @@ public:
 
     // Similar (the Done) request.
     void transfer_done(std::optional<std::tuple<http::Status, const char *>> res);
+    void inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, splice::Transfer *transfer, size_t expected_data);
 #endif
 };
 

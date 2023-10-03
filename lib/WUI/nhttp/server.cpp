@@ -140,6 +140,43 @@ bool Server::ConnectionSlot::take_pbuf(pbuf *data) {
     return true;
 }
 
+void Server::inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, splice::Transfer *transfer, size_t expected_data) {
+    TransferSlot *dest = &transfer_slot;
+    // We are asked to perform a transfer from socket -> file. For that we:
+    // * Assume the transfer slot is free (must be ensured by the caller).
+    // * Migrate an existing connection into it.
+    assert(dest->transfer == nullptr);
+    assert(dest->reqs_pending == 0);
+    assert(dest->done_called == false);
+    // We are not allowed to go to the transfer at the same time as writing
+    // data (too complex and not needed).
+    dest->transfer = transfer;
+    dest->transfer->server = this;
+    dest->conn = conn;
+    dest->expected_data = expected_data;
+    set_callbacks(conn, dest);
+
+    // Still some part of data to deal with.
+    if (data != nullptr) {
+        size_t len = data->tot_len - data_offset;
+        if (len > dest->expected_data) {
+            pbuf_realloc(data, dest->expected_data + data_offset);
+            len = data->tot_len - data_offset;
+        }
+        dest->expected_data -= len;
+        auto req = splice::Write::find_empty();
+        // Because we have an empty transfer slot, it means no transfer is
+        // running and therefore all write requests shall be ready to be
+        // used.
+        //
+        // XXX: Is it OK to send a 0-sized rest there?
+        assert(req != nullptr);
+        req->init(dest->transfer, data, data_offset);
+        dest->reqs_pending++;
+        async_io::enqueue(req);
+    }
+}
+
 void Server::ConnectionSlot::step(string_view input, uint8_t *output, size_t out_size) {
     Step s = std::visit([this, input, output, out_size](auto &phase) -> Step {
         return phase.step(input, client_closed && input.empty() && output == nullptr, output, out_size);
@@ -168,49 +205,20 @@ void Server::ConnectionSlot::step(string_view input, uint8_t *output, size_t out
         state = get<ConnectionState>(std::move(s.next));
 #if USE_ASYNCIO
     } else if (holds_alternative<handler::TransferExpected>(s.next)) {
-        TransferSlot *dest = &server->transfer_slot;
-        // We are asked to perform a transfer from socket -> file. For that we:
-        // * Assume the transfer slot is free (must be ensured by the caller).
-        // * Rip the data out of this slot and move everything there.
-        assert(dest->transfer == nullptr);
-        assert(dest->reqs_pending == 0);
-        assert(dest->done_called == false);
-        // We are not allowed to go to the transfer at the same time as writing
-        // data (too complex and not needed).
-        assert(buffer == nullptr);
-        auto [transfer, expected] = get<handler::TransferExpected>(s.next);
-        dest->transfer = transfer;
-        dest->transfer->server = server;
-        dest->conn = conn;
-        dest->expected_data = expected;
-        altcp_arg(conn, dest);
-        server->activity(conn, dest);
+        if (partial && partial_consumed > 0) {
+            // This part is already taken care of, make sure accounting books sum up.
+            altcp_recved(conn, partial_consumed);
+        }
 
-        conn = nullptr;
         if (partial && partial->tot_len == partial_consumed) {
             release_partial();
         }
 
-        // Still some part of data to deal with.
-        if (partial) {
-            pbuf *data = partial.release(); // We take ownership and pass it to the Write request.
-            auto len = data->tot_len - partial_consumed;
-            if (len > dest->expected_data) {
-                pbuf_realloc(data, dest->expected_data + partial_consumed);
-                len = data->tot_len - partial_consumed;
-            }
-            dest->expected_data -= len;
-            auto req = splice::Write::find_empty();
-            // Because we have an empty transfer slot, it means no transfer is
-            // running and therefore all write requests shall be ready to be
-            // used.
-            assert(req != nullptr);
-            req->init(dest->transfer, data, partial_consumed);
-            dest->reqs_pending++;
-            async_io::enqueue(req);
-            // This part of data is already processed, we can confirm it (the Write confirms only its own part).
-            altcp_recved(dest->conn, partial_consumed);
-        }
+        pbuf *data = partial.release(); // Steal the ownership of that pbuf and pass it on
+        auto [transfer, expected] = get<handler::TransferExpected>(s.next);
+        auto *inner_conn = conn;
+        conn = nullptr;
+        server->inject_transfer(inner_conn, data, partial_consumed, transfer, expected);
 
         release();
 #endif
