@@ -359,7 +359,6 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
 
     on_enter();
 
-    // This can be called during handling of different event (if it was stored during recursion call of windowEvent)
     if (media_event != MediaState_t::unknown) {
         switch (MediaState_t(media_event)) {
         case MediaState_t::inserted:
