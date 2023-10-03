@@ -115,6 +115,11 @@ void save_message(MsgType invalid, uint16_t error_code, const char *error, const
 bool load_message(char *msg_dst, size_t msg_dst_size, char *tit_dst, size_t tit_dst_size);
 
 /**
+ * @brief Check if message in flash is valid
+ */
+bool message_is_valid();
+
+/**
  * @brief Check if error message in XFLASH is valid.
  * @return type of the error message structure or EMPTY
  */

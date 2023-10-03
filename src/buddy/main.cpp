@@ -144,7 +144,7 @@ extern "C" void main_cpp(void) {
      * If we have BSOD or red screen we want to have as small boot process as we can.
      * We want to init just xflash, display and start gui task to display the bsod or redscreen
      */
-    if ((dump_is_valid() && !dump_is_displayed()) || (message_get_type() != MsgType::EMPTY && !message_is_displayed())) {
+    if ((dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed())) {
         hwio_safe_state();
         init_error_screen();
         return;

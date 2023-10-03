@@ -22,6 +22,9 @@ static bool dump_breakpoint_paused = false;
 
 /// Just random value, used to check that dump is probably valid in flash
 inline constexpr uint32_t CRASH_DUMP_MAGIC_NR = 0x3DC53F;
+
+/// Just random value, used to check that message is probably valid in flash
+inline constexpr uint32_t MESSAGE_DUMP_MAGIC_NR = 0xD87FA0DF;
 typedef struct __attribute__((packed)) {
     /// Magic number, that indicates that crash dump is valid
     uint32_t crash_dump_magic_nr;
@@ -30,6 +33,7 @@ typedef struct __attribute__((packed)) {
 } info_t;
 
 typedef struct __attribute__((packed)) {
+    uint32_t message_magic_nr; ///< Magic number that indicates that message in flash is valid
     uint8_t not_displayed; ///< not displayed == 0xFF, displayed == 0x00
     MsgType type; ///< Mark if this structure has valid data
     ErrCode error_code; ///< error_code (0 == unknown error code -> we read dumped message
@@ -204,7 +208,19 @@ void save_message(MsgType type, uint16_t error_code, const char *error, const ch
         std::min(std::size(dumpmessage_flash->title), title_len + 1)); // +1 for null terminator
     w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->msg), reinterpret_cast<const uint8_t *>(error),
         std::min(std::size(dumpmessage_flash->msg), msg_len + 1));
+
+    // write magic number to make flash record valid
+    uint32_t magic = MESSAGE_DUMP_MAGIC_NR;
+    w25x_program(reinterpret_cast<uint32_t>(&dumpmessage_flash->message_magic_nr), reinterpret_cast<const uint8_t *>(&magic), sizeof(magic));
     w25x_fetch_error();
+}
+
+bool message_is_valid() {
+    uint32_t magic;
+    w25x_rd_data(reinterpret_cast<uint32_t>(&dumpmessage_flash->message_magic_nr), reinterpret_cast<uint8_t *>(&magic), sizeof(message_t::message_magic_nr));
+    if (w25x_fetch_error())
+        return false;
+    return magic == MESSAGE_DUMP_MAGIC_NR;
 }
 
 MsgType message_get_type() {
