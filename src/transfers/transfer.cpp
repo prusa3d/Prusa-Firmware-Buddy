@@ -355,14 +355,14 @@ Transfer::Transfer(State state, std::optional<Download> &&download, Monitor::Slo
     assert(partial_file.get() != nullptr);
 }
 
-Transfer::State Transfer::step(uint32_t max_duration_ms, bool is_printing) {
+Transfer::State Transfer::step(bool is_printing) {
     switch (state) {
     case State::Downloading:
     case State::Retrying: {
         if (slot.is_stopped()) {
             done(State::Failed, Monitor::Outcome::Stopped);
         } else if (download.has_value()) {
-            switch (download->step(max_duration_ms)) {
+            switch (download->step()) {
             case DownloadStep::Continue: {
                 slot.progress(partial_file->get_state(), false);
                 update_backup(/*force=*/false);
@@ -376,6 +376,8 @@ Transfer::State Transfer::step(uint32_t max_duration_ms, bool is_printing) {
                     break;
                 case Transfer::Action::RangeJump:
                     download.reset();
+                    // So we don't "lose" part of the already downloaded file, for showing on screen, etc.
+                    update_backup(/*force=*/true);
                     restart_requested_by_jump = true;
                     break;
                 case Transfer::Action::Finished:
@@ -392,6 +394,10 @@ Transfer::State Transfer::step(uint32_t max_duration_ms, bool is_printing) {
                 break;
             case DownloadStep::Finished:
                 download.reset();
+                break;
+            case DownloadStep::Aborted:
+                // Unreachable - this is only after we've called the deleter
+                assert(0);
                 break;
             }
         } else if (last_connection_error_ms.has_value() == false || ticks_ms() - *last_connection_error_ms > 1000) {

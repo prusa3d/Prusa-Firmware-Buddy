@@ -291,6 +291,7 @@ bool PartialFile::has_valid_tail(size_t bytes) const {
 }
 
 void PartialFile::print_progress() {
+    // Note: we are accessing state here directly. We are being called from places that are already locked.
     std::array<char, 40> progress;
     for (auto &c : progress) {
         c = '-';

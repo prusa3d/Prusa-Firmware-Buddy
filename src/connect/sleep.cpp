@@ -123,7 +123,7 @@ void Sleep::perform(Printer &printer, Planner &planner) {
             need_download = false;
             assert(download != nullptr);
 
-            switch (auto result = download->step(max_step_time, printer.is_printing()); result) {
+            switch (auto result = download->step(printer.is_printing()); result) {
             case Transfer::State::Downloading:
             case Transfer::State::Retrying:
                 // Go for another iteration (now or during next sleep).

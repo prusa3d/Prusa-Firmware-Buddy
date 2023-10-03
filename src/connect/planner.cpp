@@ -633,6 +633,13 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
         return;
     }
 
+    if (!holds_alternative<StartConnectDownload::Encrypted>(download.details)) {
+        // TODO: As we don't support this any more, we can wastly simplify stuff around here (eg. get rid of the variant, juggling with stuff, etc.
+        // In the Transfer too, we can unconditionally store the key/iv and forget the path constructed here.
+        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Plain downloads are no longer supported" };
+        return;
+    }
+
     auto down_result = init_transfer(printer, config, download);
 
     visit([&](auto &&arg) {

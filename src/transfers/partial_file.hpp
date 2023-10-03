@@ -192,6 +192,11 @@ public:
     /// Seek to a given offset within the file
     bool seek(size_t offset);
 
+    /// Position in the file
+    size_t tell() {
+        return current_offset;
+    }
+
     /// Write data to the file at current offset
     bool write(const uint8_t *data, size_t size);
 

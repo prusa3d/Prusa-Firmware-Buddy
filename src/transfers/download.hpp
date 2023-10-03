@@ -29,6 +29,8 @@ enum class DownloadStep {
     Finished,
     FailedNetwork,
     FailedOther,
+    // Aborted by calling the deleter
+    Aborted,
 };
 
 //
@@ -97,19 +99,14 @@ public:
     };
 
 private:
-    using ConnFactory = std::unique_ptr<http::SocketConnectionFactory>;
-    // The connection factory. That holds the connection.
-    //
-    // We need to hide it behind a pointer, because the Response holds a
-    // pointer to it and we need to move the Download around.
-    ConnFactory conn_factory;
-    http::ResponseBody response;
-    PartialFile::Ptr partial_file;
-    uint32_t last_activity;
-    std::shared_ptr<EncryptionInfo> encryption_info;
-    std::unique_ptr<Decryptor> decryptor;
-    Download(ConnFactory &&factory, http::ResponseBody &&response, PartialFile::Ptr partial_file, std::shared_ptr<EncryptionInfo> encryption, std::unique_ptr<Decryptor> decryptor);
-    bool process(uint8_t *data, size_t size);
+    class Async;
+    class AsyncDeleter {
+    public:
+        void operator()(Async *);
+    };
+    using AsyncPtr = std::unique_ptr<Async, AsyncDeleter>;
+    AsyncPtr async;
+    Download(AsyncPtr &&async);
 
 public:
     Download(Download &&other) = default;
@@ -128,7 +125,7 @@ public:
     static BeginResult begin(const Request &request, DestinationPath destination, uint32_t start_range = 0, std::optional<uint32_t> end_range = std::nullopt);
 
     /// Continue the download.
-    DownloadStep step(uint32_t max_duration_ms);
+    DownloadStep step();
 
     /// Whether the same request can be made again with non-zero offset.
     bool allows_random_access() const;
@@ -137,9 +134,7 @@ public:
     uint32_t file_size() const;
 
     /// Returns the partial file object where the downloaded data is being stored.
-    PartialFile::Ptr get_partial_file() {
-        return partial_file;
-    }
+    PartialFile::Ptr get_partial_file() const;
 };
 
 } // namespace transfers

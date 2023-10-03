@@ -284,7 +284,7 @@ extern "C" void main_cpp(void) {
 
 #if BUDDY_ENABLE_WUI()
     #if USE_ASYNCIO
-    osThreadCCMDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 256);
+    osThreadCCMDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 400);
     osThreadCreate(osThread(asyncIoTask), nullptr);
     #endif
     espif_task_create();

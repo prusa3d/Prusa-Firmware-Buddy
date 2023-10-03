@@ -332,7 +332,7 @@ public:
     /// Given a destination path, restore the transfer (based on the <dest_path>/download file).
     static RecoverResult recover(const char *dest_path);
 
-    State step(uint32_t max_duration_ms, bool is_printing);
+    State step(bool is_printing);
 
     enum class RecoverySearchResult {
         WaitingForUSB,

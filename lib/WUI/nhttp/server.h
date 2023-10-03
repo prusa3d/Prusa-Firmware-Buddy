@@ -160,11 +160,13 @@ private:
     static const size_t BUFF_CNT = 2;
     // half-seconds... weird units of LwIP
     static const uint8_t POLL_TIME = 1;
-    // Idle connections time out after 10 seconds.
+    // Idle connections time out after 60 seconds.
     static const uint32_t IDLE_TIMEOUT = 60 * 1000;
     /*
      * Active connections are more expensive to keep around and they are
      * expected to be active, so time them out sooner.
+     *
+     * Note that this applies to downloads too (eg. Connect downloads).
      */
     static const uint32_t ACTIVE_TIMEOUT = 10 * 1000;
     static const uint32_t INACTIVITY_TIME_QUANT = 400;
