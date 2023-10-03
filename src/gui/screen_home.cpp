@@ -325,7 +325,7 @@ void screen_home_data_t::on_enter() {
         }
     }
 
-    #if !(PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX)
+    #if 0 /// disable the warning for now but let's keep it around as we might want to reenable it for the public release
     static bool input_shaper_warning_shown = false;
     if (!input_shaper_warning_shown) {
         input_shaper_warning_shown = true;
