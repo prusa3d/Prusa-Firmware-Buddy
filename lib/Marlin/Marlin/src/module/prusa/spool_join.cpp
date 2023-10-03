@@ -207,8 +207,8 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
     thermalManager.setTargetHotend(0, current_tool);
     marlin_server::set_temp_to_display(0, current_tool);
 
-    // store that we have no filament in old nozzle
-    config_store().set_filament_type(current_tool, filament::Type::NONE);
+    // We intentinally keep loaded filament type in EEPROM. That makes it possible for user to click "Change Filament" and printer will know what temperature to preheat to.
+    // Filament sensor should say that there is no filament, so it will not be possible to start print in this state.
 #endif
 
     // set up new tool mapping, so that next Tx will use spool we are joining to
