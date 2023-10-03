@@ -162,8 +162,6 @@ static void FilamentBtnMMU_cb() {
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
     , usbInserted(marlin_vars()->media_inserted)
-    , mmu_state(MMU2::xState::Stopped)
-    , event_in_progress(false)
     , header(this)
     , footer(this)
 #ifdef USE_ST7789

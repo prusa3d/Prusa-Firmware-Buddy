@@ -19,8 +19,8 @@ private:
     static bool touch_broken_during_run;
 
     bool usbInserted;
-    MMU2::xState mmu_state;
-    bool event_in_progress;
+    MMU2::xState mmu_state { MMU2::xState::Stopped };
+    bool event_in_progress { false };
     bool first_event { true };
     MediaState_t media_event { MediaState_t::unknown };
 
