@@ -47,7 +47,7 @@ static_assert(ftrstd::to_underlying(Dependency::_count) <= sizeof(dependency_t) 
 // Create dependency mask from the dependencies enum
 constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
     // Feel free to lift the assert in case some build configuration results in empty list
-#if NETWORK_DEPENDS_ON_ASYNCIO || NETWORK_DEPENDS_ON_ESP_FLASHED
+#if (NETWORK_DEPENDS_ON_ASYNCIO || NETWORK_DEPENDS_ON_ESP_FLASHED) && BOOTLOADER_UPDATE()
     static_assert(sizeof...(dependencies) > 0, "No dependencies, is this intended?");
 #endif
     return ((1 << ftrstd::to_underlying(dependencies)) | ... | 0);
