@@ -283,92 +283,92 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
     uint16_t get_heatbreak_fan_pwr();
 
     MODBUS_REGISTER GeneralStatic_t {
-        uint16_t HwBomId;
-        uint32_t HwOtpTimestsamp;
-        uint16_t HwDatamatrix[12];
+        uint16_t HwBomId {};
+        uint32_t HwOtpTimestsamp {};
+        uint16_t HwDatamatrix[12] {};
     };
-    ModbusInputRegisterBlock<HW_BOM_ID_ADDR, GeneralStatic_t> GeneralStatic;
+    ModbusInputRegisterBlock<HW_BOM_ID_ADDR, GeneralStatic_t> GeneralStatic {};
 
     MODBUS_DISCRETE DiscreteGeneralStatus_t {
-        bool is_picked;
-        bool is_parked;
-        bool is_button_up_pressed;
-        bool is_button_down_pressed;
+        bool is_picked {};
+        bool is_parked {};
+        bool is_button_up_pressed {};
+        bool is_button_down_pressed {};
     };
-    ModbusDiscreteInputBlock<GENERAL_DISCRETE_INPUTS_ADDR, DiscreteGeneralStatus_t> DiscreteGeneralStatus;
+    ModbusDiscreteInputBlock<GENERAL_DISCRETE_INPUTS_ADDR, DiscreteGeneralStatus_t> DiscreteGeneralStatus {};
 
     MODBUS_REGISTER FanReadRegisters {
-        uint16_t rpm;
-        uint16_t pwm;
-        uint16_t state;
-        uint16_t is_rpm_ok;
+        uint16_t rpm {};
+        uint16_t pwm {};
+        uint16_t state {};
+        uint16_t is_rpm_ok {};
     };
 
     MODBUS_REGISTER RegisterGeneralStatus_t {
-        dwarf_shared::errors::FaultStatusMask FaultStatus;
-        uint16_t HotendMeasuredTemperature;
-        uint16_t HotendPWMState;
-        uint16_t ToolFilamentSensor;
-        uint16_t BoardTemperature;
-        uint16_t MCUTemperature;
-        uint16_t HeatBreakMeasuredTemperature;
-        uint16_t IsPickedRaw;
-        uint16_t IsParkedRaw;
-        FanReadRegisters fan[NUM_FANS];
-        uint16_t system_24V_mV;
-        uint16_t heater_current_mA;
+        dwarf_shared::errors::FaultStatusMask FaultStatus {};
+        uint16_t HotendMeasuredTemperature {};
+        uint16_t HotendPWMState {};
+        uint16_t ToolFilamentSensor {};
+        uint16_t BoardTemperature {};
+        uint16_t MCUTemperature {};
+        uint16_t HeatBreakMeasuredTemperature {};
+        uint16_t IsPickedRaw {};
+        uint16_t IsParkedRaw {};
+        FanReadRegisters fan[NUM_FANS] {};
+        uint16_t system_24V_mV {};
+        uint16_t heater_current_mA {};
     };
-    ModbusInputRegisterBlock<FAULT_STATUS_ADDR, RegisterGeneralStatus_t> RegisterGeneralStatus;
+    ModbusInputRegisterBlock<FAULT_STATUS_ADDR, RegisterGeneralStatus_t> RegisterGeneralStatus {};
 
     MODBUS_REGISTER TimeSync_t {
-        uint32_t dwarf_time_us;
+        uint32_t dwarf_time_us {};
     };
-    ModbusInputRegisterBlock<TIME_SYNC_ADDR, TimeSync_t> TimeSync;
+    ModbusInputRegisterBlock<TIME_SYNC_ADDR, TimeSync_t> TimeSync {};
 
     MODBUS_REGISTER GeneralWrite_t {
-        uint16_t HotendRequestedTemperature;
-        uint16_t HeatbreakRequestedTemperature;
+        uint16_t HotendRequestedTemperature {};
+        uint16_t HeatbreakRequestedTemperature {};
 
         static constexpr uint16_t FAN_AUTO_PWM = std::numeric_limits<uint16_t>::max();
-        uint16_t fan_pwm[NUM_FANS]; // target PWM or when value is FAN_AUTO_RPM, use automatic control
+        uint16_t fan_pwm[NUM_FANS] {}; // target PWM or when value is FAN_AUTO_RPM, use automatic control
 
         struct __attribute__((packed)) {
-            uint8_t not_selected; // 8 LSb PWM when not selected [0 - 0xff]
-            uint8_t selected; // 8 MSb PWM when selected [0 - 0xff]
+            uint8_t not_selected {}; // 8 LSb PWM when not selected [0 - 0xff]
+            uint8_t selected {}; // 8 MSb PWM when selected [0 - 0xff]
         } led_pwm;
 
         /// Dwarf status LED control, for encoding see dwarf_shared::StatusLed
-        uint16_t status_led[dwarf_shared::StatusLed::REG_SIZE];
+        uint16_t status_led[dwarf_shared::StatusLed::REG_SIZE] {};
     };
     ModbusHoldingRegisterBlock<GENERAL_WRITE_REQUEST, GeneralWrite_t> GeneralWrite;
 
     MODBUS_REGISTER TmcWriteRequest_t {
-        uint16_t address;
-        uint32_t data;
+        uint16_t address {};
+        uint32_t data {};
     };
-    ModbusHoldingRegisterBlock<TMC_WRITE_REQUEST_ADDRESS, TmcWriteRequest_t> TmcWriteRequest;
+    ModbusHoldingRegisterBlock<TMC_WRITE_REQUEST_ADDRESS, TmcWriteRequest_t> TmcWriteRequest {};
 
     MODBUS_REGISTER TmcReadRequest_t {
-        uint16_t address;
+        uint16_t address {};
     };
-    ModbusHoldingRegisterBlock<TMC_READ_REQUEST_ADDRESS, TmcReadRequest_t> TmcReadRequest;
+    ModbusHoldingRegisterBlock<TMC_READ_REQUEST_ADDRESS, TmcReadRequest_t> TmcReadRequest {};
 
     MODBUS_REGISTER TmcReadResponse_t {
-        uint32_t value;
+        uint32_t value {};
     };
-    ModbusInputRegisterBlock<TMC_READ_RESPONSE_ADDRESS, TmcReadResponse_t> TmcReadResponse;
+    ModbusInputRegisterBlock<TMC_READ_RESPONSE_ADDRESS, TmcReadResponse_t> TmcReadResponse {};
 
-    ModbusCoil<TMC_ENABLE_ADDR> TmcEnable;
-    ModbusCoil<IS_SELECTED> IsSelectedCoil;
-    ModbusCoil<LOADCELL_ENABLE> LoadcellEnableCoil;
-    ModbusCoil<ACCELEROMETER_ENABLE> AccelerometerEnableCoil;
-    ModbusCoil<ACCELEROMETER_HIGH> AccelerometerHighCoil;
+    ModbusCoil<TMC_ENABLE_ADDR> TmcEnable {};
+    ModbusCoil<IS_SELECTED> IsSelectedCoil {};
+    ModbusCoil<LOADCELL_ENABLE> LoadcellEnableCoil {};
+    ModbusCoil<ACCELEROMETER_ENABLE> AccelerometerEnableCoil {};
+    ModbusCoil<ACCELEROMETER_HIGH> AccelerometerHighCoil {};
 
     MODBUS_REGISTER MarlinErrorString_t {
-        uint16_t title[10]; // 20 chars, title of error
-        uint16_t message[32]; // 64 chars, message of error
+        uint16_t title[10] {}; // 20 chars, title of error
+        uint16_t message[32] {}; // 64 chars, message of error
     };
-    ModbusInputRegisterBlock<MARLIN_ERROR_COMPONENT_START, MarlinErrorString_t> MarlinErrorString;
+    ModbusInputRegisterBlock<MARLIN_ERROR_COMPONENT_START, MarlinErrorString_t> MarlinErrorString {};
 
     inline uint8_t get_dwarf_nr() const {
         return dwarf_nr;

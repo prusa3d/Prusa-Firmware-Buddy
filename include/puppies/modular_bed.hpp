@@ -79,47 +79,47 @@ public:
     }
 
     MODBUS_DISCRETE GeneralStatus {
-        bool power_panic_status;
-        bool current_fault_status;
+        bool power_panic_status {};
+        bool current_fault_status {};
     };
 
     MODBUS_REGISTER GeneralStatic {
-        uint16_t hw_bom_id;
-        uint32_t hw_otp_timestamp;
-        uint16_t hw_data_matrix[12];
-        uint16_t heatbedlet_count;
+        uint16_t hw_bom_id {};
+        uint32_t hw_otp_timestamp {};
+        uint16_t hw_data_matrix[12] {};
+        uint16_t heatbedlet_count {};
     };
 
     MODBUS_REGISTER BedletData {
-        HeatbedletError fault_status[BEDLET_COUNT];
-        uint16_t measured_temperature[BEDLET_COUNT];
-        uint16_t pwm_state[BEDLET_COUNT];
-        uint16_t p_value[BEDLET_COUNT];
-        uint16_t i_value[BEDLET_COUNT];
-        uint16_t d_value[BEDLET_COUNT];
-        uint16_t tc_value[BEDLET_COUNT];
+        HeatbedletError fault_status[BEDLET_COUNT] {};
+        uint16_t measured_temperature[BEDLET_COUNT] {};
+        uint16_t pwm_state[BEDLET_COUNT] {};
+        uint16_t p_value[BEDLET_COUNT] {};
+        uint16_t i_value[BEDLET_COUNT] {};
+        uint16_t d_value[BEDLET_COUNT] {};
+        uint16_t tc_value[BEDLET_COUNT] {};
     };
 
     MODBUS_REGISTER CurrentsData {
-        int16_t A_measured;
-        int16_t B_measured;
-        int16_t A_expected;
-        int16_t B_expected;
+        int16_t A_measured {};
+        int16_t B_measured {};
+        int16_t A_expected {};
+        int16_t B_expected {};
     };
 
-    ModbusDiscreteInputBlock<GENERAL_DISCRETE_INPUTS_ADDR, GeneralStatus> general_status;
-    ModbusInputRegisterBlock<STATIC_INPUT_REGISTERS_ADDR, GeneralStatic> general_static;
-    ModbusInputRegisterBlock<BEDLET_INPUT_REGISTERS_ADDR, BedletData> bedlet_data;
-    ModbusHoldingRegisterBlock<BEDLET_TARGET_TEMP_ADDR, uint16_t[BEDLET_COUNT]> bedlet_target_temp;
-    ModbusHoldingRegisterBlock<BEDLET_MEASURED_MAX_CURRENT_ADDR, uint16_t[BEDLET_COUNT]> bedlet_measured_max_current;
-    ModbusInputRegisterBlock<CURRENTS_ADDR, CurrentsData> currents;
-    ModbusDiscreteInputBlock<BEDLET_DISCRETE_INPUTS_ADDR, bool> general_ready;
-    ModbusInputRegisterBlock<FAULT_STATUS_ADDR, SystemError> general_fault;
-    ModbusInputRegisterBlock<MCU_TEMPERATURE_ADDR, uint16_t> mcu_temperature;
-    ModbusCoil<CLEAR_FAULT_ADDR> clear_fault_status;
-    ModbusCoil<RESET_OVECURRENT_FAULT_ADDR> reset_overcurrent;
-    ModbusCoil<TEST_HEATING_ADDR> test_heating;
-    ModbusCoil<PRINT_FAN_ACTIVE_ADDR> print_fan_active;
+    ModbusDiscreteInputBlock<GENERAL_DISCRETE_INPUTS_ADDR, GeneralStatus> general_status {};
+    ModbusInputRegisterBlock<STATIC_INPUT_REGISTERS_ADDR, GeneralStatic> general_static {};
+    ModbusInputRegisterBlock<BEDLET_INPUT_REGISTERS_ADDR, BedletData> bedlet_data {};
+    ModbusHoldingRegisterBlock<BEDLET_TARGET_TEMP_ADDR, uint16_t[BEDLET_COUNT]> bedlet_target_temp {};
+    ModbusHoldingRegisterBlock<BEDLET_MEASURED_MAX_CURRENT_ADDR, uint16_t[BEDLET_COUNT]> bedlet_measured_max_current {};
+    ModbusInputRegisterBlock<CURRENTS_ADDR, CurrentsData> currents {};
+    ModbusDiscreteInputBlock<BEDLET_DISCRETE_INPUTS_ADDR, bool> general_ready {};
+    ModbusInputRegisterBlock<FAULT_STATUS_ADDR, SystemError> general_fault {};
+    ModbusInputRegisterBlock<MCU_TEMPERATURE_ADDR, uint16_t> mcu_temperature {};
+    ModbusCoil<CLEAR_FAULT_ADDR> clear_fault_status {};
+    ModbusCoil<RESET_OVECURRENT_FAULT_ADDR> reset_overcurrent {};
+    ModbusCoil<TEST_HEATING_ADDR> test_heating {};
+    ModbusCoil<PRINT_FAN_ACTIVE_ADDR> print_fan_active {};
 
 protected:
     struct cost_and_enable_mask_t {
