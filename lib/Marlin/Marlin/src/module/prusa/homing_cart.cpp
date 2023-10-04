@@ -369,6 +369,10 @@ float home_axis_precise(AxisEnum axis, int axis_home_dir, bool can_calibrate, fl
                 break;
             }
             sens_calibration.update_probe_offset_avg(probe_offset);
+
+            if (sens_calibration.is_calibrated()) {
+                PersistentStorage::erase_axis(axis);
+            }
         }
 #endif
 
