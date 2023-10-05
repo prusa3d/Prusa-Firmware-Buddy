@@ -229,10 +229,6 @@ void ESPUpdate::Loop() {
             readCount = 0;
             break;
         case esp_upload_action::WaitWIFI_enabled:
-            if (continue_pressed) {
-                progress_state = esp_upload_action::Done;
-                break;
-            }
             if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
                 progress_state = esp_upload_action::Finish;
             }

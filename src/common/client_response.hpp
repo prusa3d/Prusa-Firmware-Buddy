@@ -480,7 +480,7 @@ class ClientResponses {
         { Response::Continue, Response::Abort }, // ESP_insert_USB
         { Response::Retry, Response::Abort }, // ESP_invalid
         { Response::Abort }, // ESP_uploading_config
-        { Response::Continue }, // ESP_enabling_WIFI
+        { Response::Abort }, // ESP_enabling_WIFI
         { Response::Yes, Response::No }, // ESP_uploaded
 
         { Response::Continue, Response::Abort }, // ESP_progress_info
