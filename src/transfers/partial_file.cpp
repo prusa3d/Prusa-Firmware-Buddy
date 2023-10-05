@@ -13,6 +13,7 @@
 
 LOG_COMPONENT_REF(transfers);
 using namespace transfers;
+using std::unique_lock;
 using std::variant;
 
 static_assert(PartialFile::SECTOR_SIZE == FF_MAX_SS);
@@ -117,6 +118,7 @@ variant<const char *, PartialFile::Ptr> PartialFile::convert(const char *path, u
 
 UsbhMscRequest::SectorNbr PartialFile::get_sector_nbr(size_t offset) {
     auto sector = first_sector_nbr + offset / FF_MAX_SS;
+    // total_size won't change, don't have to lock
     if (offset >= state.total_size) {
         sector += 1;
     }
@@ -149,6 +151,7 @@ bool PartialFile::write_current_sector() {
     if (result != USBH_OK)
         return false;
     auto start = get_offset(current_sector->sector_nbr);
+    // total_size wont change, don't have to lock
     auto end = std::min(start + SECTOR_SIZE, state.total_size);
     extend_valid_part({ start, end });
     return true;
@@ -248,6 +251,7 @@ bool PartialFile::sync() {
 }
 
 void PartialFile::extend_valid_part(ValidPart new_part) {
+    unique_lock lock(state_mutex);
     // extend head
     if (state.valid_head) {
         state.valid_head->merge(new_part);
@@ -283,11 +287,13 @@ void PartialFile::extend_valid_part(ValidPart new_part) {
 }
 
 bool PartialFile::has_valid_head(size_t bytes) const {
-    return state.valid_head && state.valid_head->start == 0 && state.valid_head->end >= bytes;
+    auto st = get_state();
+    return st.valid_head && st.valid_head->start == 0 && st.valid_head->end >= bytes;
 }
 
 bool PartialFile::has_valid_tail(size_t bytes) const {
-    return state.valid_tail && state.valid_tail->start <= (state.total_size - bytes) && state.valid_tail->end == state.total_size;
+    auto st = get_state();
+    return st.valid_tail && st.valid_tail->start <= (st.total_size - bytes) && st.valid_tail->end == st.total_size;
 }
 
 void PartialFile::print_progress() {
@@ -393,4 +399,10 @@ void PartialFile::usbh_msc_finished(USBH_StatusTypeDef result, uint32_t slot) {
 
 void PartialFile::usb_msc_write_finished_callback(USBH_StatusTypeDef result, void *param1, void *param2) {
     reinterpret_cast<PartialFile *>(param1)->usbh_msc_finished(result, reinterpret_cast<uint32_t>(param2));
+}
+
+PartialFile::State PartialFile::get_state() const {
+    unique_lock lock(state_mutex);
+
+    return state;
 }

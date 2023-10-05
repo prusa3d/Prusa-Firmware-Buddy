@@ -8,6 +8,7 @@
 #include "usbh_async_diskio.hpp"
 
 #include <common/unique_file_ptr.hpp>
+#include <common/freertos_mutex.hpp>
 
 namespace transfers {
 
@@ -32,6 +33,9 @@ namespace transfers {
 ///         - consecutive writes gradually fill the sector
 ///         - when a sector is fully written to, it's flushed to the drive
 ///         - seek()  to a different sector while the current one hasn't been fully written to will discard the currently buffered data
+///
+/// Thread safety:
+/// - Getting the state (and related methods) are thread safe - it can happen concurrently to writes from other thread.
 class PartialFile {
 public:
     static const size_t SECTOR_SIZE = 512;
@@ -144,6 +148,8 @@ private:
     /// Valid parts of the file
     State state;
 
+    mutable FreeRTOS_Mutex state_mutex;
+
     /// Last reported progress over logs
     int last_progress_percent;
 
@@ -204,13 +210,13 @@ public:
     bool sync();
 
     /// Get the final size of the file
-    size_t final_size() const { return state.total_size; }
+    size_t final_size() const { return get_state().total_size; }
 
     /// Get the valid part of the file starting at offset 0
-    std::optional<ValidPart> get_valid_head() const { return state.valid_head; }
+    std::optional<ValidPart> get_valid_head() const { return get_state().valid_head; }
 
     /// Get the valid part of the file starting passed the head
-    std::optional<ValidPart> get_valid_tail() const { return state.valid_tail.has_value() ? state.valid_tail : std::nullopt; }
+    std::optional<ValidPart> get_valid_tail() const { return get_state().valid_tail; }
 
     /// Check if the file has valid data at [0, bytes) range
     bool has_valid_head(size_t bytes) const;
@@ -218,7 +224,7 @@ public:
     /// Check if the file has valid data at [file_size - bytes, file_size) range
     bool has_valid_tail(size_t bytes) const;
 
-    State get_state() const { return state; }
+    State get_state() const;
 
     void print_progress();
 };
