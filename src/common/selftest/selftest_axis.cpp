@@ -190,8 +190,7 @@ LoopResult CSelftestPart_Axis::stateSwitchTo200stepAndRetry() {
 void CSelftestPart_Axis::motor_switch(Motor steps) {
     config_store().xy_motors_400_step.set(steps == Motor::stp_400);
 
-    // TODO erase takes long
-    // change FSM .. make user know
+    // TODO change FSM .. make user know
     PersistentStorage::erase();
 
     config_store().homing_sens_x.set(config_store().homing_sens_x.default_val);
