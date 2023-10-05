@@ -2,7 +2,7 @@
 
 #include <transfers/async_io.hpp>
 #include <transfers/monitor.hpp>
-#include <types.h>
+#include <http/types.h>
 
 #include <array>
 #include <optional>

@@ -3,7 +3,7 @@
 #include "gcode_buffer.hpp"
 #include <variant>
 #include <algorithm>
-#include "core/core.hpp" // libbgcode
+#include <core/core.hpp> // libbgcode
 #include <optional>
 #include <transfers/partial_file.hpp>
 #include "base64_stream_decoder.h"

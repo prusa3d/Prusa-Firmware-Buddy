@@ -93,8 +93,8 @@ add_executable(
   )
 if(USE_ASYNCIO)
   target_sources(
-    nhttp_tests ${CMAKE_CURRENT_SOURCE_DIR}/async_io.cpp
-    ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
+    nhttp_tests INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/async_io.cpp
+                          ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
     )
   target_compile_definitions(nhttp_tests INTERFACE USE_ASYNCIO)
 endif()

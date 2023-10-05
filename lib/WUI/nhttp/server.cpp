@@ -140,6 +140,7 @@ bool Server::ConnectionSlot::take_pbuf(pbuf *data) {
     return true;
 }
 
+#if USE_ASYNCIO
 void Server::inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, splice::Transfer *transfer, size_t expected_data) {
     TransferSlot *dest = &transfer_slot;
     // We are asked to perform a transfer from socket -> file. For that we:
@@ -176,6 +177,7 @@ void Server::inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, 
         async_io::enqueue(req);
     }
 }
+#endif
 
 void Server::ConnectionSlot::step(string_view input, uint8_t *output, size_t out_size) {
     Step s = std::visit([this, input, output, out_size](auto &phase) -> Step {

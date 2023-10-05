@@ -2,13 +2,17 @@
 #include "files.hpp"
 
 #include <common/http/resp_parser.h>
-#include <nhttp/server.h>
+#ifndef UNITTESTS
+    // Avoid deep transitive dependency hell in unit tests...
+    #include <nhttp/server.h>
+#endif
 #include <nhttp/splice.h>
 #include <http_lifetime.h>
 #include <timing.h>
 
 #include <atomic>
 #include <cinttypes>
+#include <semphr.h>
 #include <lwip/tcpip.h>
 #include <lwip/altcp.h>
 #include <lwip/altcp_tcp.h>
@@ -263,7 +267,11 @@ public:
         // Note: Both lengths are before decryption.
         phase_payload.emplace<Splice>(this, resp.content_length.value());
         phase = Phase::Body;
+#ifdef UNITTESTS
+        assert(0); // Unimplemented here, see the note about dependency hell
+#else
         httpd_instance()->inject_transfer(conn, data, position, &get<Splice>(phase_payload), resp.content_length.value());
+#endif
 
         return ERR_OK;
     }
@@ -345,7 +353,10 @@ public:
         phase = Phase::Connecting;
         assert(holds_alternative<Request>(phase_payload));
         auto &request = get<Request>(phase_payload);
+#ifndef UNITTESTS
+        // Hack to make it compile during tests. Not actually executed.
         conn = altcp_new_ip_type(altcp_tcp_alloc, IP_GET_TYPE(request.ip));
+#endif
 
         if (conn == nullptr) {
             done(DownloadStep::FailedOther);
@@ -383,7 +394,7 @@ public:
     // Start it inside the tcpip thread.
     void start() {
         request_started = ticks_ms();
-        assert(holds_variant<Request>(phase_payload));
+        assert(holds_alternative<Request>(phase_payload));
         auto &request = get<Request>(phase_payload);
         phase = Phase::Dns;
         err_t dns_result = dns_gethostbyname(request.hostname, &request.ip, dns_found_wrap, this);
