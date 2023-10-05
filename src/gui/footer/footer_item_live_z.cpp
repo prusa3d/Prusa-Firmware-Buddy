@@ -25,7 +25,7 @@ string_view_utf8 FooterItemLiveZ::static_makeView(int value) {
 
     if (printed_chars < 1) {
         buff[0] = '\0';
-    } else {
+    } else if (size_t(printed_chars) < buff.size()) {
         // dont want it to erase last in 0.0, -1.0, -2.0
         while ((--printed_chars) > 2 && buff[printed_chars] == '0' && buff[printed_chars - 1] != '.') {
             buff[printed_chars] = '\0';

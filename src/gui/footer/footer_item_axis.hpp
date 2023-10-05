@@ -31,7 +31,8 @@ string_view_utf8 FooterItemAxisPos<AXIS>::static_makeViewIntoBuff(float value) {
 
     if (printed_chars < 1) {
         buff[0] = '\0';
-    } else {
+    } else if (size_t(printed_chars) < buff.size()) {
+        // Remove repeated trailing zeroes after the decimal point
         while (((--printed_chars) > 2) && (buff[printed_chars] == '0') && (buff[printed_chars - 1] != '.')) {
             buff[printed_chars] = '\0';
         }
@@ -66,7 +67,8 @@ string_view_utf8 FooterItemAxisCurrPos<AXIS>::static_makeViewIntoBuff(float valu
 
     if (printed_chars < 1) {
         buff[0] = '\0';
-    } else {
+    } else if (size_t(printed_chars) < buff.size()) {
+        // Remove repeated trailing zeroes after the decimal point
         while (((--printed_chars) > 2) && (buff[printed_chars] == '0') && (buff[printed_chars - 1] != '.')) {
             buff[printed_chars] = '\0';
         }

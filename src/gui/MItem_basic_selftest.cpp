@@ -338,7 +338,7 @@ bool MI_BACKUP_CALIBRATION_TO_USB::backup_fs_calibration() {
         int32_t ref_ins_value = side ? config_store().get_side_fs_ref_ins_value(e) : config_store().get_extruder_fs_ref_ins_value(e);
 
         int n = snprintf(buffer.data(), buffer.size(), "%" PRIi32 " %" PRIu32 " %" PRIi32 "\n", ref_nins_value, span_value, ref_ins_value);
-        fwrite(buffer.data(), sizeof(char), n, file);
+        fwrite(buffer.data(), sizeof(char), std::min<int>(n, buffer.size() - 1), file);
     }
 
     return fclose(file) == 0;

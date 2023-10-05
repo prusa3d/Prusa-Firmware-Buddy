@@ -399,9 +399,9 @@ namespace {
 
     off_t child_size(const char *base_path, const char *child_name) {
         char path_buf[FILE_PATH_BUFFER_LEN];
-        int formatted = snprintf(path_buf, sizeof path_buf, "%s/%s", base_path, child_name);
+        int formatted = snprintf(path_buf, sizeof(path_buf), "%s/%s", base_path, child_name);
         // Name didn't fit. That, in theory, should not happen, but better safe than sorry...
-        if (formatted >= FILE_NAME_BUFFER_LEN - 1) {
+        if (formatted >= FILE_NAME_BUFFER_LEN) {
             return -1;
         }
         struct stat st = {};

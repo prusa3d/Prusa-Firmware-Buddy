@@ -124,10 +124,11 @@ int usb_device_log(const char *fmt, ...) {
     int length = vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
 
+    length = std::min<int>(length, sizeof(buffer) - 1);
     if (length < 0) {
         log_error(USBDevice, "log encoding issue");
     } else if (length >= 1) {
-        buffer[length - 1] = 0; // remove newline
+        buffer[length - 1] = 0; // remove newline (or last character if the print was clipped, but that's acceptable)
         log_info(USBDevice, "%s", buffer);
     }
 

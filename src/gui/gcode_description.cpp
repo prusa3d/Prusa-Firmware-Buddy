@@ -45,14 +45,14 @@ void description_line_t::update(bool has_preview_thumbnail, size_t row, string_v
 }
 
 static std::span<char> delimited_items_per_extruder(std::span<char> buffer, char delimiter, std::function<int(int extruder, std::span<char> buffer)> echo_item) {
-    for (int e = 0; e < std::min(EXTRUDERS, 5) && buffer.size(); e++) {
+    for (int e = 0; e < std::min(EXTRUDERS, 5) && buffer.size() > 1 /* always needs space for trailing \0 */; e++) {
         if (e != 0) {
             int printed = snprintf(buffer.data(), buffer.size(), "%c", delimiter);
-            buffer = buffer.subspan(printed);
+            buffer = buffer.subspan(printed); // we print max 1 character, so we don't need to limit by buffer size here
         }
 
         int printed = echo_item(e, buffer);
-        buffer = buffer.subspan(printed);
+        buffer = buffer.subspan(std::min<int>(printed, buffer.size()));
     }
     return buffer;
 }

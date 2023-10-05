@@ -3,6 +3,8 @@
 #include "img_resources.hpp"
 #include "wizard_config.hpp"
 
+#include <algorithm>
+
 LOG_COMPONENT_REF(Selftest);
 static constexpr size_t col_texts = WizardDefaults::MarginLeft;
 static constexpr size_t txt_h = WizardDefaults::txt_h;
@@ -118,6 +120,7 @@ void SelftestFrameDock::set_name(SelftestDocks_t data) {
         char fmt[name_buff.size()];
         _(fmt2Translate).copyToRAM(fmt, sizeof(name_buff));
         buff_pos += snprintf(name_buff.data(), name_buff.size(), fmt, data.current_dock + 1);
+        buff_pos = std::min(buff_pos, name_buff.size());
     }
     if (const char *phase_name = get_phase_name(); phase_name != nullptr) {
         char phase_name_buff[50];

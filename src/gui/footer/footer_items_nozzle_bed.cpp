@@ -242,7 +242,7 @@ string_view_utf8 FooterItemAllNozzles::static_makeView(int value) {
         buff[0] = '\0';
     } else { // Dynamic is not allowed as it changes each second
         // left_aligned print need to end with spaces ensure fixed size
-        *(buff.end() - 1) = '\0';
+        buff.back() = '\0';
         for (; size_t(printed_chars) < buff.size() - 1; ++printed_chars) {
             buff[printed_chars] = ' ';
         }

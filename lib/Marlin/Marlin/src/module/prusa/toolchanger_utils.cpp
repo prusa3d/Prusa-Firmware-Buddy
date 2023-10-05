@@ -344,7 +344,7 @@ bool PrusaToolChangerUtils::save_tool_info_to_usb() {
     for (unsigned int i = 0; i < tool_info.size(); ++i) {
         std::array<char, 30> buffer;
         int n = snprintf(buffer.data(), buffer.size(), "%.2f %.2f\n", tool_info[i].dock_x, tool_info[i].dock_y);
-        fwrite(buffer.data(), sizeof(char), n, file);
+        fwrite(buffer.data(), sizeof(char), std::min<int>(n, buffer.size() - 1), file);
     }
 
     return fclose(file) == 0;
@@ -362,7 +362,7 @@ bool PrusaToolChangerUtils::save_tool_offsets_to_file(const char *filename) {
     HOTEND_LOOP() {
         std::array<char, 40> buffer;
         int n = snprintf(buffer.data(), buffer.size(), "%f %f %f\n", hotend_offset[e].x, hotend_offset[e].y, hotend_offset[e].z);
-        fwrite(buffer.data(), sizeof(char), n, file);
+        fwrite(buffer.data(), sizeof(char), std::min<int>(n, buffer.size() - 1), file);
     }
 
     return fclose(file) == 0;

@@ -720,8 +720,12 @@ void marlin_set_variable(MarlinVariable<T> &variable, T value) {
     char request[MARLIN_MAX_REQUEST];
 
     const int n = snprintf(request, MARLIN_MAX_REQUEST, "!%c%d ", ftrstd::to_underlying(Msg::SetVariable), reinterpret_cast<uintptr_t>(&variable));
-    if (n < 0)
+    if (n < 0) {
         bsod("Error formatting var name.");
+    }
+    if (size_t(n) >= sizeof(request)) {
+        bsod("Request too long.");
+    }
 
     int v;
     if constexpr (std::is_floating_point<T>::value) {
@@ -731,10 +735,13 @@ void marlin_set_variable(MarlinVariable<T> &variable, T value) {
     } else {
         bsod("no conversion");
     }
-    if (v < 0)
+
+    if (v < 0) {
         bsod("Error formatting var value.");
-    if (((size_t)v + (size_t)n) >= sizeof(request))
+    }
+    if (((size_t)v + (size_t)n) >= sizeof(request)) {
         bsod("Request too long.");
+    }
 
     _send_request_to_server_and_wait(request);
 }
