@@ -275,7 +275,8 @@ private:
 
         // read max size() characters continuosly
         // in our case word_buffer = std::array<uint32_t, 32>;
-        while (i < buffer_.size()) {
+        // character() function is writing to buffer_[index_] = 0, so we have to keep one free space in the buffer
+        while (i < buffer_.size() - 1) {
             c = s.getUtf8Char();
             buffer_[i] = c;
             if (c == static_cast<value_type>(CHAR_NL)
