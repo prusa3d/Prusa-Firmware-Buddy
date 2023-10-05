@@ -1,6 +1,7 @@
 #include "motion.hpp"
 
-#include "marlin_vars.hpp"
+#include <Marlin/src/module/planner.h>
+
 #include "src/module/motion.h"
 
 namespace mapi {
@@ -14,7 +15,7 @@ void extruder_move(float distance, float feed_rate) {
 }
 
 float extruder_schedule_turning(float feed_rate, float step) {
-    if (marlin_vars()->pqueue <= 3) {
+    if (planner.movesplanned() <= 3) {
         extruder_move(step, feed_rate);
         return step;
     }
