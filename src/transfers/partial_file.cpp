@@ -297,6 +297,13 @@ bool PartialFile::has_valid_tail(size_t bytes) const {
 }
 
 void PartialFile::print_progress() {
+    /*
+     * FIXME: This overflows the AsyncIO stack as it sends the large message over UDP from that particular thread.
+     *
+     * While the stack size was already increased because of other logs, we
+     * don't want to go even further for this message.
+     */
+#if 0
     // Note: we are accessing state here directly. We are being called from places that are already locked.
     std::array<char, 40> progress;
     for (auto &c : progress) {
@@ -318,6 +325,7 @@ void PartialFile::print_progress() {
     int percent = state.get_percent_valid();
 
     log_info(transfers, "Progress: %.40s  %i%%", progress.data(), percent);
+#endif
 }
 
 PartialFile::SectorPool::SectorPool(UsbhMscRequest::LunNbr lun, UsbhMscRequestCallback callback, void *callback_param)
