@@ -123,11 +123,13 @@ static constexpr std::array<uint8_t, N> generate_eeprom_erase_data() {
     return ret;
 }
 
-void PersistentStorage::erase() {
-    static constexpr auto empty_arr = generate_eeprom_erase_data<16>();
-    static_assert(config_store_ns::start_address % empty_arr.size() == 0, "Wrong size of eeprom erase array");
+void PersistentStorage::erase_axis(uint8_t axis) {
+    static constexpr auto empty_arr = generate_eeprom_erase_data<sizeof(Data::homeSamples[0])>();
 
-    for (uint16_t address = 0; address <= (config_store_ns::start_address - empty_arr.size()); address += empty_arr.size()) {
-        st25dv64k_user_unverified_write_bytes(address, empty_arr.begin(), empty_arr.size());
-    }
+    st25dv64k_user_unverified_write_bytes(reinterpret_cast<uint32_t>(&(data->homeSamples[axis])), empty_arr.begin(), empty_arr.size());
+}
+
+void PersistentStorage::erase() {
+    erase_axis(0);
+    erase_axis(1);
 }
