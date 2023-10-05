@@ -181,8 +181,7 @@ enum class PhasesSelftest : uint16_t {
     ESP_invalid,
     ESP_uploading_config,
     ESP_enabling_WIFI,
-    ESP_uploaded,
-    _last_ESP = ESP_uploaded,
+    _last_ESP = ESP_enabling_WIFI,
 
     _first_ESP_progress,
     ESP_progress_info = _first_ESP_progress,
@@ -480,8 +479,7 @@ class ClientResponses {
         { Response::Continue, Response::Abort }, // ESP_insert_USB
         { Response::Retry, Response::Abort }, // ESP_invalid
         { Response::Abort }, // ESP_uploading_config
-        { Response::Abort }, // ESP_enabling_WIFI
-        { Response::Yes, Response::No }, // ESP_uploaded
+        { Response::Yes, Response::No }, // ESP_enabling_WIFI
 
         { Response::Continue, Response::Abort }, // ESP_progress_info
         { Response::Abort }, // ESP_progress_upload

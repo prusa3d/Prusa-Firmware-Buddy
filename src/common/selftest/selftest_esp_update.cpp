@@ -548,19 +548,6 @@ void EspCredentials::loop() {
         break;
     case esp_credential_action::WaitWIFI_enabled:
         if (continue_yes_retry_pressed) {
-            progress_state = esp_credential_action::ConfigUploaded;
-            break;
-        }
-        if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
-            progress_state = esp_credential_action::ConfigUploaded;
-        }
-        break;
-    case esp_credential_action::ConfigUploaded: // config OK
-        progress_state = esp_credential_action::ConfigUploaded_wait_user; // asks user to delete file
-        phase = PhasesSelftest::ESP_uploaded;
-        break;
-    case esp_credential_action::ConfigUploaded_wait_user:
-        if (continue_yes_retry_pressed) {
             delete_file();
             progress_state = esp_credential_action::Done;
             break;

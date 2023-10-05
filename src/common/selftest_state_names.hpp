@@ -40,8 +40,6 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "ESP_uploading_config";
     case PhasesSelftest::ESP_enabling_WIFI:
         return "ESP_enabling_WIFI";
-    case PhasesSelftest::ESP_uploaded:
-        return "ESP_uploaded";
     case PhasesSelftest::ESP_progress_info:
         return "ESP_progress_info";
     case PhasesSelftest::ESP_progress_upload:
