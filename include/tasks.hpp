@@ -70,6 +70,9 @@ namespace Tasks {
     );
     inline constexpr dependency_t connect = make(Dependency::networking_ready);
     inline constexpr dependency_t network = make(
+        // 1. Leave RAM for resource initiation.
+        // 2. Don't start the server before we have the index.html, etc.
+        Dependency::resources_ready,
 
 #if NETWORK_DEPENDS_ON_ESP_FLASHED
         // This is temporary, remove once everyone has compatible hardware.
