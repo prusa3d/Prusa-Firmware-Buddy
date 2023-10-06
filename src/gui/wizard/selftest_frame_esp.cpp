@@ -52,7 +52,7 @@ void SelftestFrameESP::change() {
         txt = N_("Uploading config to the printer.\n\nPlease wait.");
         break;
     case PhasesSelftest::ESP_enabling_WIFI:
-        txt = N_("Credentials loaded successfully! The printer is now connecting to your Wi-Fi.\nYou may continue using your printer. Once the connection is established, a Wi-Fi icon will appear in the status bar. If nothing happens after a few minutes, check & load your credentials again.\nWould you like to delete the file with credentials? (Recommended)");
+        txt = N_("Credentials loaded, attempting to connect.\n\nYou may continue using printer. The Wi-Fi icon will appear in the status bar once connected.\n\nIf nothing happens after a few minutes, check & reload the credentials.\n\nDelete credentials file? (Recommended)");
         break;
     default:
         break;
