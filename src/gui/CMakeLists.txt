@@ -171,9 +171,9 @@ if(HAS_MMU2)
             screen_menu_filament_mmu.cpp
             screen_menu_mmu_cut_filament.cpp
             screen_menu_mmu_eject_filament.cpp
-            screen_menu_mmu_load_filament.cpp
             screen_menu_mmu_load_test_filament.cpp
             screen_menu_mmu_load_to_nozzle.cpp
+            screen_menu_mmu_preload_to_mmu.cpp
             screen_tools_mapping.cpp
     )
 endif()

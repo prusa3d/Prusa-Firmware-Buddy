@@ -41,7 +41,7 @@
 
 #include <option/has_mmu2.h>
 #if HAS_MMU2()
-    #include "screen_menu_mmu_load_filament.hpp"
+    #include "screen_menu_mmu_preload_to_mmu.hpp"
     #include "screen_menu_mmu_eject_filament.hpp"
     #include "screen_menu_mmu_cut_filament.hpp"
     #include "screen_menu_mmu_load_to_nozzle.hpp"
