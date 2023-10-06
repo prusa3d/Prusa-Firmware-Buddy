@@ -147,13 +147,15 @@ bool PartialFile::write_current_sector() {
         // validity of the file.
         return false;
     }
-    auto result = usbh_msc_submit_request(current_sector);
-    if (result != USBH_OK)
-        return false;
+    const uint32_t slot_idx = reinterpret_cast<uint32_t>(current_sector->callback_param2);
     auto start = get_offset(current_sector->sector_nbr);
     // total_size wont change, don't have to lock
     auto end = std::min(start + SECTOR_SIZE, state.total_size);
-    extend_valid_part({ start, end });
+    // Synchronized through release-acquire pair through the queue into USB thread
+    future_extend[slot_idx] = ValidPart { start, end };
+    auto result = usbh_msc_submit_request(current_sector);
+    if (result != USBH_OK)
+        return false;
     return true;
 }
 
@@ -192,6 +194,7 @@ bool PartialFile::write(const uint8_t *data, size_t size) {
                 return false;
             }
             const auto sector_nbr = get_sector_nbr(current_offset);
+
             current_sector = sector_pool.acquire();
             if (current_sector == nullptr) {
                 return false;
@@ -398,7 +401,10 @@ uint32_t PartialFile::SectorPool::get_available_slot() const {
 }
 
 void PartialFile::usbh_msc_finished(USBH_StatusTypeDef result, uint32_t slot) {
-    if (result != USBH_OK) {
+    if (result == USBH_OK && !write_error) {
+        // Still safe, slot can't be reused before release below, so one can't take this until then.
+        extend_valid_part(future_extend[slot]);
+    } else {
         log_error(transfers, "Failed to write sector");
         write_error = true;
     }

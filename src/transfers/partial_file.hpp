@@ -104,6 +104,8 @@ private:
         ~SectorPool();
 
         /// Get a free slot, if none is available, it waits until it becomes free (returns nullptr in case of timeout)
+        ///
+        /// Returns the slot and its index (can be paired with the number given to the callback)
         UsbhMscRequest *acquire();
 
         /// Release a previously acquired slot
@@ -129,6 +131,10 @@ private:
 
     // Pre-allocated request pool of sectors
     SectorPool sector_pool;
+
+    // Extend the valid parts by these once the relevant sectors are written
+    // (indexed by the sector number)
+    std::array<ValidPart, SectorPool::size> future_extend;
 
     // Asynchronous write operation completed callback
     void usbh_msc_finished(USBH_StatusTypeDef result, uint32_t slot);
