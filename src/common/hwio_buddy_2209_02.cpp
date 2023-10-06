@@ -622,6 +622,8 @@ void digitalWrite(uint32_t marlinPin, uint32_t ulVal) {
     case MARLIN_PIN(FAN1):
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX)
         _hwio_pwm_analogWrite_set_val(HWIO_PWM_FAN1, ulVal ? 80 : 0);
+#elif PRINTER_IS_PRUSA_MK3_5
+        Fans::heat_break(0).setPWM(ulVal ? _pwm_analogWrite_max : 0);
 #else
         Fans::heat_break(0).setPWM(ulVal ? 80 : 0);
 #endif

@@ -19,7 +19,13 @@ extern void record_fanctl_metrics();
 
 // FANCTLPRINT - printing fan
 inline constexpr uint8_t FANCTLPRINT_PWM_MIN = 10;
-inline constexpr uint8_t FANCTLPRINT_PWM_MAX = 50;
+inline constexpr uint8_t FANCTLPRINT_PWM_MAX =
+#if PRINTER_IS_PRUSA_MK3_5
+    255
+#else
+    50
+#endif
+    ;
 inline constexpr uint16_t FANCTLPRINT_RPM_MIN = 150;
 inline constexpr uint16_t FANCTLPRINT_RPM_MAX =
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX || PRINTER_IS_PRUSA_XL)
@@ -32,7 +38,13 @@ inline constexpr uint8_t FANCTLPRINT_PWM_THR = 20;
 
 // FANCTLHEATBREAK - heatbreak fan
 inline constexpr uint8_t FANCTLHEATBREAK_PWM_MIN = 0;
-inline constexpr uint8_t FANCTLHEATBREAK_PWM_MAX = 50;
+inline constexpr uint8_t FANCTLHEATBREAK_PWM_MAX =
+#if PRINTER_IS_PRUSA_MK3_5
+    255
+#else
+    50
+#endif
+    ;
 inline constexpr uint16_t FANCTLHEATBREAK_RPM_MIN = 1000;
 inline constexpr uint16_t FANCTLHEATBREAK_RPM_MAX =
 #if (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX || PRINTER_IS_PRUSA_XL)
