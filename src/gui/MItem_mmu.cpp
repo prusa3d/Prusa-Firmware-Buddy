@@ -17,11 +17,11 @@
 
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT
-MI_MMU_LOAD_FILAMENT::MI_MMU_LOAD_FILAMENT()
+MI_MMU_PRELOAD::MI_MMU_PRELOAD()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
 }
-void MI_MMU_LOAD_FILAMENT::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMULoadFilament>);
+void MI_MMU_PRELOAD::click(IWindowMenu & /*window_menu*/) {
+    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUPreloadToMMU>);
 }
 
 /**********************************************************************************************/
@@ -77,12 +77,12 @@ void MI_MMU_ISSUE_GCODE::click(IWindowMenu & /*window_menu*/) {
 }
 
 /**********************************************************************************************/
-// MI_MMU_LOAD_ALL
-MI_MMU_LOAD_ALL::MI_MMU_LOAD_ALL()
+// MI_MMU_PRELOAD_ALL
+MI_MMU_PRELOAD_ALL::MI_MMU_PRELOAD_ALL()
     : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no) {
 }
 
-void MI_MMU_LOAD_ALL::click(IWindowMenu & /*window_menu*/) {
+void MI_MMU_PRELOAD_ALL::click(IWindowMenu & /*window_menu*/) {
     marlin_client::event_clr(marlin_server::Event::CommandBegin);
     for (uint8_t i = 0; i < 5; ++i) {
         char gcode[] = "M704 Px";

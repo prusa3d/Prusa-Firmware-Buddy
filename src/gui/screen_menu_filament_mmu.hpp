@@ -14,7 +14,7 @@
 #include "MItem_filament.hpp"
 
 using ScreenMenuFilamentMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    MI_MMU_LOAD_FILAMENT,
+    MI_MMU_PRELOAD,
     MI_MMU_LOAD_TO_NOZZLE,
     MI_MMU_UNLOAD_FILAMENT,
     MI_MMU_EJECT_FILAMENT,

@@ -5,11 +5,11 @@
 #include "WindowMenuInfo.hpp"
 #include "i18n.h"
 
-class MI_MMU_LOAD_FILAMENT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Load Filament");
+class MI_MMU_PRELOAD : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Preload to MMU");
 
 public:
-    MI_MMU_LOAD_FILAMENT();
+    MI_MMU_PRELOAD();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -55,11 +55,11 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_LOAD_ALL : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Load All");
+class MI_MMU_PRELOAD_ALL : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Preload All");
 
 public:
-    MI_MMU_LOAD_ALL();
+    MI_MMU_PRELOAD_ALL();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -76,43 +76,43 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_LOAD_FILAMENT_1 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 1");
+class MI_MMU_PRELOAD_SLOT_1 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 1");
 
 public:
-    MI_MMU_LOAD_FILAMENT_1()
+    MI_MMU_PRELOAD_SLOT_1()
         : MI_MMU_ISSUE_GCODE(label, "M704 P0") {}
 };
 
-class MI_MMU_LOAD_FILAMENT_2 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 2");
+class MI_MMU_PRELOAD_SLOT_2 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 2");
 
 public:
-    MI_MMU_LOAD_FILAMENT_2()
+    MI_MMU_PRELOAD_SLOT_2()
         : MI_MMU_ISSUE_GCODE(label, "M704 P1") {}
 };
 
-class MI_MMU_LOAD_FILAMENT_3 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 3");
+class MI_MMU_PRELOAD_SLOT_3 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 3");
 
 public:
-    MI_MMU_LOAD_FILAMENT_3()
+    MI_MMU_PRELOAD_SLOT_3()
         : MI_MMU_ISSUE_GCODE(label, "M704 P2") {}
 };
 
-class MI_MMU_LOAD_FILAMENT_4 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 4");
+class MI_MMU_PRELOAD_SLOT_4 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 4");
 
 public:
-    MI_MMU_LOAD_FILAMENT_4()
+    MI_MMU_PRELOAD_SLOT_4()
         : MI_MMU_ISSUE_GCODE(label, "M704 P3") {}
 };
 
-class MI_MMU_LOAD_FILAMENT_5 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 5");
+class MI_MMU_PRELOAD_SLOT_5 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 5");
 
 public:
-    MI_MMU_LOAD_FILAMENT_5()
+    MI_MMU_PRELOAD_SLOT_5()
         : MI_MMU_ISSUE_GCODE(label, "M704 P4") {}
 };
 

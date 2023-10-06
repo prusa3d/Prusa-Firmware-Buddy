@@ -1,18 +1,15 @@
-/**
- * @file screen_menu_mmu_load_filament.hpp
- */
-
+/// @file
 #pragma once
 
 #include "screen_menu.hpp"
 #include "WindowMenuItems.hpp"
 #include "MItem_mmu.hpp"
 
-using ScreenMenuMMULoadFilament__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    MI_MMU_LOAD_ALL, MI_MMU_LOAD_FILAMENT_1, MI_MMU_LOAD_FILAMENT_2, MI_MMU_LOAD_FILAMENT_3, MI_MMU_LOAD_FILAMENT_4, MI_MMU_LOAD_FILAMENT_5>;
+using ScreenMenuMMUPreloadToMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
+    MI_MMU_PRELOAD_ALL, MI_MMU_PRELOAD_SLOT_1, MI_MMU_PRELOAD_SLOT_2, MI_MMU_PRELOAD_SLOT_3, MI_MMU_PRELOAD_SLOT_4, MI_MMU_PRELOAD_SLOT_5>;
 
-class ScreenMenuMMULoadFilament : public ScreenMenuMMULoadFilament__ {
+class ScreenMenuMMUPreloadToMMU : public ScreenMenuMMUPreloadToMMU__ {
 public:
-    constexpr static const char *label = N_("Load Filament");
-    ScreenMenuMMULoadFilament();
+    constexpr static const char *label = N_("Preload to MMU");
+    ScreenMenuMMUPreloadToMMU();
 };

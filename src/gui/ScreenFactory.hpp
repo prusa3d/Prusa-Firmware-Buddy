@@ -102,7 +102,7 @@ class ScreenFactory {
         ScreenMenuFilamentMMU,
         ScreenMenuMMUCutFilament,
         ScreenMenuMMUEjectFilament,
-        ScreenMenuMMULoadFilament,
+        ScreenMenuMMUPreloadToMMU,
         ScreenMenuMMULoadToNozzle,
 #endif
         screen_home_data_t, screen_splash_data_t>::type;
