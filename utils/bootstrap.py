@@ -85,11 +85,11 @@ dependencies = {
         'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.1.0-F5C0C1D9-781D-4A17-A96D-43AC9AC93910.zip',
     },
     'mini404': {
-        'version': '0.9.9',
+        'version': '0.9.10',
         'url': {
-            'Linux': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-v0.9.9-linux.tar.bz2',
-            'Windows': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-v0.9.9-w64.zip',
-            'Darwin': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/mini404-v0.9.9-macos.tar.bz2',
+            'Linux': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.10/Mini404-v0.9.10-linux.tar.bz2',
+            'Windows': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.10/Mini404-v0.9.10-w64.zip',
+            'Darwin': 'https://github.com/vintagepc/MINI404/releases/download/v0.9.10/Mini404-v0.9.10-macos.tar.bz2',
         }
     },
     'cmsis-svd': {
