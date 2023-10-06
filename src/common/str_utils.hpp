@@ -214,89 +214,104 @@ template <
 struct text_wrapper {
     using value_type = typename memory_buffer::value_type;
 
-    text_wrapper(uint32_t width, font_type font)
-        : width_(width) ///< width of the space for the text in pixels
-        , index_(-1) ///< current position in buffer where single word is
-        , current_width_(0) ///< width used already
-        , word_length_(0) ///< number characters of current word + trailing white character
+    text_wrapper(uint32_t wrap_width, font_type font)
+        : wrap_width_(wrap_width)
         , font_(font) {};
 
-    /// \returns false if the new word does not fit current line
-    template <typename source>
-    bool buffer_next_word(source &s) {
-        const uint32_t w = buffering(s); ///< current word's width in pixels
-        index_ = 0;
-        if ((w + current_width_) > width_ && current_width_ != 0) {
-            /// this word will not fit to this line but it's not the first word
-            /// on this line => break the line
-            current_width_ = w;
-            return false;
-        }
-        current_width_ += w;
-        return true;
-    }
-
+    /// Yields next character of the string
     template <typename source>
     value_type character(source &s) {
-        if (index_ < 0)
-            /// empty buffer => buffer next word
-            if (!buffer_next_word(s))
+        // Nothing in the buffer -> load next word
+        if (buffer_pos_ >= buffer_count_)
+            if (buffer_next_word(s))
                 return static_cast<value_type>(CHAR_NL);
 
-        const value_type c = buffer_[index_];
-        buffer_[index_] = 0;
-        if (index_ < word_length_) {
-            /// buffer not empty => send a character
-            index_++;
+        const value_type c = buffer_[buffer_pos_++];
+
+        // We're not at the end of the word -> simply return the character
+        if (buffer_pos_ < buffer_count_)
             return c;
+
+        // Mark that we should read next word in the next character call
+        buffer_count_ = 0;
+
+        if (c == static_cast<value_type>(CHAR_SPACE)) {
+            // Increase current width by the space size
+            // (because the word_width is not increased trailing space in buffer_next_word)
+            current_line_width_ += width::value(font_);
+
+            // Should the space be trailing at the end of the line, omit it and go straight to newline
+            if (buffer_next_word(s))
+                return static_cast<value_type>(CHAR_NL);
+
+        } else if (c == static_cast<value_type>(CHAR_NL)) {
+            current_line_width_ = 0;
         }
-        /// last character in the buffer
-        index_ = -1; ///< read next word next time
-        if (c == static_cast<value_type>(EOS)) {
-            return c;
-        } else if (c == static_cast<value_type>(CHAR_SPACE)) {
-            current_width_ += width::value(font_);
-            if (!buffer_next_word(s))
-                return static_cast<value_type>(CHAR_NL);
 
-        } else if (c == static_cast<value_type>(CHAR_NL))
-            current_width_ = 0;
         return c;
     }
 
 private:
-    /// Copies current word to the buffer
-    /// \returns word's width in pixels
+    /// Loads next word (potentially including a trailing whitespace) into the buffer.
+    /// Updates buffer_count_, current_line_width_. Resets buffer_pos_.
+    /// If the loaded word wouldn't fit on the current line, resets current_line_width_ and returns TRUE
+    /// to indicate a new line should be started before yielding the current buffer contents.
     template <typename source>
-    uint32_t buffering(source &s) {
+    bool buffer_next_word(source &s) {
         uint32_t i = 0;
-        uint32_t word_width = 0;
+        uint32_t buffer_width = 0;
         value_type c = 0;
+
+        const bool was_long_word_mode = long_word_mode_;
 
         // read max size() characters continuosly
         // in our case word_buffer = std::array<uint32_t, 32>;
-        // character() function is writing to buffer_[index_] = 0, so we have to keep one free space in the buffer
-        while (i < buffer_.size() - 1) {
+        while (true) {
+            if (i >= buffer_.size()) {
+                long_word_mode_ = true;
+                break;
+            }
+
             c = s.getUtf8Char();
-            buffer_[i] = c;
+            buffer_[i++] = c;
+
             if (c == static_cast<value_type>(CHAR_NL)
                 || c == static_cast<value_type>(CHAR_SPACE)
-                || c == static_cast<value_type>(EOS))
+                || c == static_cast<value_type>(EOS)) {
+                long_word_mode_ = false;
                 break;
-            word_width += width::value(font_);
-            if (c == static_cast<value_type>(CHAR_NBSP)) {
-                buffer_[i] = static_cast<value_type>(CHAR_SPACE);
             }
-            ++i;
+
+            buffer_width += width::value(font_);
+
+            if (c == static_cast<value_type>(CHAR_NBSP)) {
+                buffer_[i - 1] = static_cast<value_type>(CHAR_SPACE);
+            }
         }
-        word_length_ = i;
-        return word_width;
+
+        buffer_count_ = i;
+        buffer_pos_ = 0;
+
+        // If the current loaded word doesn't fit to the current line (and is not the first thing in the line) -> break the line
+        if ((buffer_width + current_line_width_) > wrap_width_ && current_line_width_ != 0 && !was_long_word_mode) {
+            current_line_width_ = buffer_width;
+            return true;
+        } else {
+            current_line_width_ += buffer_width;
+            return false;
+        }
     }
 
+private:
+    const uint32_t wrap_width_; ///< width of the space for the text in pixels
+    const font_type font_;
+
+private:
     memory_buffer buffer_;
-    uint32_t width_;
-    int32_t index_;
-    uint32_t current_width_;
-    int32_t word_length_;
-    font_type font_;
+    uint32_t buffer_pos_ = 0; ///< current position in buffer where single word is
+    uint32_t buffer_count_ = 0; ///< number of characters in the buffer (current word + trailing white character, if the word is shorter than the buffer)
+
+private:
+    uint32_t current_line_width_ = 0; ///< pixels already used in the current line
+    bool long_word_mode_ = false; ///< Set to true for consecutive buffer loads if the word is longer than buffer size
 };
