@@ -32,18 +32,18 @@ namespace MMU2 {
 static constexpr uint8_t supportedMmuFWVersion[3] PROGMEM = { mmuVersionMajor, mmuVersionMinor, mmuVersionPatch };
 
 const Register ProtocolLogic::regs8Addrs[ProtocolLogic::regs8Count] PROGMEM = {
-    Register::FINDA_State,           // FINDA state
+    Register::FINDA_State, // FINDA state
     Register::Set_Get_Selector_Slot, // Selector slot
-    Register::Set_Get_Idler_Slot,    // Idler slot
+    Register::Set_Get_Idler_Slot, // Idler slot
 };
 
 const Register ProtocolLogic::regs16Addrs[ProtocolLogic::regs16Count] PROGMEM = {
-    Register::MMU_Errors,          // MMU errors - aka statistics
+    Register::MMU_Errors, // MMU errors - aka statistics
     Register::Get_Pulley_Position, // Pulley position [mm]
 };
 
 const Register ProtocolLogic::initRegs8Addrs[ProtocolLogic::initRegs8Count] PROGMEM = {
-    Register::Extra_Load_Distance,  // extra load distance [mm]
+    Register::Extra_Load_Distance, // extra load distance [mm]
     Register::Pulley_Slow_Feedrate, // pulley slow feedrate [mm/s]
 };
 
@@ -186,7 +186,7 @@ StepStatus ProtocolLogic::ExpectingMessage() {
                 break;
             }
         }
-            [[fallthrough]];      // otherwise
+            [[fallthrough]]; // otherwise
         default:
             RecordUARTActivity(); // something has happened on the UART, update the timeout record
             return ProtocolError;
@@ -194,7 +194,7 @@ StepStatus ProtocolLogic::ExpectingMessage() {
     }
     if (bytesConsumed != 0) {
         RecordUARTActivity(); // something has happened on the UART, update the timeout record
-        return Processing;    // consumed some bytes, but message still not ready
+        return Processing; // consumed some bytes, but message still not ready
     } else if (Elapsed(linkLayerTimeout) && currentScope != Scope::Stopped) {
         return CommunicationTimeout;
     }
@@ -288,9 +288,9 @@ StepStatus ProtocolLogic::ScopeStep() {
         case Scope::StartSeq:
             return StartSeqStep(); // ~270B
         case Scope::Idle:
-            return IdleStep();     // ~300B
+            return IdleStep(); // ~300B
         case Scope::Command:
-            return CommandStep();  // ~430B
+            return CommandStep(); // ~430B
         case Scope::Stopped:
             return StoppedStep();
         default:
@@ -335,7 +335,7 @@ StepStatus ProtocolLogic::StartSeqStep() {
 StepStatus ProtocolLogic::DelayedRestartWait() {
     if (Elapsed(heartBeatPeriod)) { // this basically means, that we are waiting until there is some traffic on
         while (uart->read() != -1)
-            ;                       // clear the input buffer
+            ; // clear the input buffer
         // switch to StartSeq
         Start();
     }
@@ -730,7 +730,7 @@ void ProtocolLogic::FormatLastResponseMsgAndClearLRB(char *dst) {
         *dst++ = b;
     }
     *dst = 0; // terminate properly
-    lrb = 0;  // reset the input buffer index in case of a clean message
+    lrb = 0; // reset the input buffer index in case of a clean message
 }
 
 void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
@@ -812,7 +812,7 @@ StepStatus ProtocolLogic::Step() {
         // But the trouble is we must report a finished command if the previous command has just been finished
         // i.e. only try to find some planned command if we just finished the Idle cycle
         bool previousCommandFinished = currentScope == Scope::Command; // @@TODO this is a nasty hack :(
-        if (!ActivatePlannedRequest()) {                               // if nothing is planned, switch to Idle
+        if (!ActivatePlannedRequest()) { // if nothing is planned, switch to Idle
             SwitchToIdle();
         } else {
             // if the previous cycle was Idle and now we have planned a new command -> avoid returning Finished

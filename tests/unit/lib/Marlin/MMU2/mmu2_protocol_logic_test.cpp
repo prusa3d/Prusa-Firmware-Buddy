@@ -16,7 +16,7 @@
 #define Str(s)  #s
 
 static constexpr uint8_t MMU2_TOOL_CHANGE_LOAD_LENGTH = 30; // mm
-static constexpr uint8_t PULLEY_SLOW_FEED_RATE = 20;        // mm/s
+static constexpr uint8_t PULLEY_SLOW_FEED_RATE = 20; // mm/s
 
 using PST = MMU2::ProtocolLogic::State;
 using PSC = MMU2::ProtocolLogic::Scope;
@@ -491,7 +491,7 @@ void SimVersionMismatch(MMU2::ProtocolLogic &pl, int stage) {
         for (uint8_t retries = 0; retries < ProtocolLogic::maxRetries; ++retries) {
             mmu2SerialSim.SetRxBuffCRC(stage == 0 ? "S0 A1" : "S0 A" xstr(supportedMmuFWVersionMajor)); // place a response from the MMU into serialStub.rxbuff
             mmu2SerialSim.txbuffQ.clear();
-            sr = pl.Step();                                                                             // response should be processed in one step and another request shall appear in the txbuff
+            sr = pl.Step(); // response should be processed in one step and another request shall appear in the txbuff
             IncMillis();
         }
         REQUIRE(pl.state == PST::InitSequence);
@@ -663,12 +663,12 @@ void InitSeqPatchStrings(std::string &rx, std::string &tx, uint8_t stage) {
     int stageVersionNrs[] = { supportedMmuFWVersionMajor, supportedMmuFWVersionMinor, supportedMmuFWVersionRevision };
 
     // patch the strings ;)
-    std::replace(rx.begin(), rx.end(), 'x', stageChar);   // replace all 'x' with the current stage number
+    std::replace(rx.begin(), rx.end(), 'x', stageChar); // replace all 'x' with the current stage number
     std::replace(rx.begin(), rx.end(), 'y', stage_1Char); // replace all 'y' with the next stage
     rx = std::regex_replace(rx, std::regex("v"), (stage < 3 ? std::to_string(stageVersionNrs[stage]) : "0"));
     rx = std::regex_replace(rx, std::regex("S4.*"), "Wb A");
 
-    std::replace(tx.begin(), tx.end(), 'x', stageChar);     // replace all 'x' with the current stage number
+    std::replace(tx.begin(), tx.end(), 'x', stageChar); // replace all 'x' with the current stage number
     std::replace(tx.begin(), tx.end(), 'y', stage_1Char);
     tx = std::regex_replace(tx, std::regex("S4"), "Wb 1e"); // there is no stage3 but a 'Wb 1e' follows
 }
@@ -706,7 +706,7 @@ void CheckInitSeqStage(MMU2::ProtocolLogic &pl) {
         size_t sdi = stage[i].stageDefIndex + 1;
         if (sdi >= stageDefsCount)
             sdi = stageDefsCount - 1; // prevent out-bounds-access
-        stage[i] = stageDefs[sdi];    // this assignment clear the stagedefindex
+        stage[i] = stageDefs[sdi]; // this assignment clear the stagedefindex
         stage[i].stageDefIndex = sdi; // restore the index to intended value
         InitSeqPatchStrings(stage[i].rx, stage[i].expectedTX, i);
     };
@@ -720,7 +720,7 @@ void CheckInitSeqStage(MMU2::ProtocolLogic &pl) {
         case InitStageNext::ProtocolError:
             if (i > 0)
                 NextStage(i); // shift the stage to next record for next time
-            i = 0;            // returning to the beginning, but pick the next record in stage0
+            i = 0; // returning to the beginning, but pick the next record in stage0
             NextStage(i);
 
             // handle delayed restart

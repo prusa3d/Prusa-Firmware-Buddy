@@ -135,7 +135,7 @@ MMU2::MMU2()
 void MMU2::Start() {
     mmu2Serial.begin(MMU_BAUD);
 
-    PowerOn();          // I repurposed this to serve as our EEPROM disable toggle.
+    PowerOn(); // I repurposed this to serve as our EEPROM disable toggle.
     mmu2Serial.flush(); // make sure the UART buffer is clear before starting communication
 
     extruder = MMU2_NO_TOOL;
@@ -457,7 +457,7 @@ bool MMU2::ToolChangeCommonOnce(uint8_t slot) {
         }
         if (VerifyFilamentEnteredPTFE()) {
             return true; // success
-        } else {         // Prepare a retry attempt
+        } else { // Prepare a retry attempt
             UnloadInner();
             if (retries == 2 && cutter_enabled()) {
                 CutFilamentInner(slot); // try cutting filament tip at the last attempt
@@ -1139,7 +1139,7 @@ void MMU2::ReportError(ErrorCode ec, ErrorSource res) {
             // clang-format on
             static_assert(tmcMask == 0x7e00); // just make sure we fail compilation if any of the TMC error codes change
 
-            if ((uint16_t)ec & tmcMask) {     // @@TODO can be optimized to uint8_t operation
+            if ((uint16_t)ec & tmcMask) { // @@TODO can be optimized to uint8_t operation
                 // TMC-related errors are from 0x8200 higher
                 IncrementTMCFailures();
             }

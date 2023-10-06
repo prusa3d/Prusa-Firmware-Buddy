@@ -13,7 +13,7 @@
 #define ENABLED(x)              1
 #define EXTRUDE_MINTEMP         170
 #define NOZZLE_PARK_XY_FEEDRATE 100 // (mm/s) X and Y axes feedrate (also used for delta Z axis)
-#define NOZZLE_PARK_Z_FEEDRATE  5   // (mm/s) Z axis feedrate (not used for delta printers)
+#define NOZZLE_PARK_Z_FEEDRATE  5 // (mm/s) Z axis feedrate (not used for delta printers)
 #define pgm_read_float(addr)    ({ \
     decltype(addr) _addr = (addr); \
     *(const float *)(_addr);       \

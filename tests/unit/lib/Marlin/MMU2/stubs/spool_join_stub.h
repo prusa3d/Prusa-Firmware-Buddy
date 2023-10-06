@@ -19,7 +19,7 @@ public:
     // return number of configured joins
     inline uint8_t get_num_joins() const { return num_joins; }
 
-    uint8_t num_joins;                  ///< Total number of joins
+    uint8_t num_joins; ///< Total number of joins
     std::array<join_config_t, 4> joins; /// Configured joins, guaranteed that 0 ... num_joins - 1 are valid joins (but not any type of sort)
 };
 

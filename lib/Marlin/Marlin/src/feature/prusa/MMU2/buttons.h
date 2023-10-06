@@ -19,7 +19,7 @@ enum class Buttons : uint_least8_t {
     Eject,
     StopPrint,
     DisableMMU,
-    TuneMMU,        // Printer changes MMU register value
+    TuneMMU, // Printer changes MMU register value
 
     NoButton = 0xff // shall be kept last
 };

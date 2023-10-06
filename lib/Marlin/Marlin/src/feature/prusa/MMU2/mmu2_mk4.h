@@ -210,9 +210,9 @@ public:
     };
     inline void InvokeErrorScreen(ErrorCode ec) {
         // The printer may not raise an error when the MMU is busy
-        if (!logic.CommandInProgress()                // MMU must not be busy
+        if (!logic.CommandInProgress() // MMU must not be busy
             && MMUCurrentErrorCode() == ErrorCode::OK // The protocol must not be in error state
-            && lastErrorCode != ec)                   // The error code is not a duplicate
+            && lastErrorCode != ec) // The error code is not a duplicate
         {
             ReportError(ec, ErrorSource::ErrorSourcePrinter);
         }
