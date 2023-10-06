@@ -132,7 +132,7 @@ public:
         virtual optional<tuple<Status, const char *>> done() override {
             bool success = (transfer_rest == 0);
             if (success) {
-                owner->destination->sync();
+                success = owner->destination->sync();
             } // else - we potentially have an incomplete segment and we don't want to store that one.
             owner->done(success ? DownloadStep::Finished : DownloadStep::FailedNetwork);
             // Not generating response, we are the client here.

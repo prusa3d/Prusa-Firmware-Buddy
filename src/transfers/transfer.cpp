@@ -198,6 +198,8 @@ bool Transfer::restart_download() {
     }
 
     init_download_order_if_needed();
+    // If the previous download attempt failed due to write error / timeout, don't carry that one to the next attempt.
+    partial_file->reset_error();
     uint32_t position = std::visit([&](auto &&arg) { return arg.get_next_offset(*partial_file); }, *order);
     position = position / PartialFile::SECTOR_SIZE * PartialFile::SECTOR_SIZE; // ensure we start at a sector boundary
 
@@ -267,11 +269,6 @@ void Transfer::update_backup(bool force) {
     unique_file_ptr backup_file(fopen(path.as_backup(), "r+"));
     if (backup_file.get() == nullptr) {
         log_error(transfers, "Failed to open backup file for update");
-        return;
-    }
-
-    if (!partial_file->sync()) {
-        log_error(transfers, "Failed to sync transfer file");
         return;
     }
 

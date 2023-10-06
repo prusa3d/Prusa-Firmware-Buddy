@@ -1,6 +1,7 @@
 #pragma once
 #include "cmsis_os.h"
 #include <memory>
+#include <atomic>
 #include <variant>
 #include <optional>
 #include <array>
@@ -112,15 +113,18 @@ private:
         void release(uint32_t slot);
 
         /// Blocks until all slots (except skipped ones) are relesed
-        bool sync(uint32_t avoid = 0);
+        /// If force is true, it waits potentially forever for the operations to complete
+        /// (to be used in destructor, so under no circumstances a reference-after-free may happen)
+        bool sync(uint32_t avoid, bool force);
 
     private:
         bool is_available_slot() const { return slot_mask != ~0u; }
 
         uint32_t get_available_slot() const;
 
-        // Objects for "condition_variable" synchronization
+        // Protects the slots acquisition / mask
         FreeRTOS_Mutex mutex;
+        // Represents the number of free slots (update of mask must be protected by this)
         SemaphoreHandle_t semaphore;
 
         // Mask of acquired/free slots one bit per slot from least significant (1-acquired/unused, 0-free)
@@ -140,7 +144,7 @@ private:
     void usbh_msc_finished(USBH_StatusTypeDef result, uint32_t slot);
 
     /// Flag whether an error occurred during writing (set asynchronously from the callback)
-    bool write_error;
+    std::atomic<bool> write_error;
 
     /// USB sector number where the first data of the file are located
     UsbhMscRequest::SectorNbr first_sector_nbr;
@@ -214,6 +218,9 @@ public:
 
     /// Flush the current sector to the USB drive
     bool sync();
+
+    /// Resets the content of current sector (if any) and resets the write error flag.
+    void reset_error();
 
     /// Get the final size of the file
     size_t final_size() const { return get_state().total_size; }

@@ -33,3 +33,5 @@ bool PartialFile::sync() {
 PartialFile::State PartialFile::get_state() const {
     return state;
 }
+
+void PartialFile::reset_error() {}

@@ -34,7 +34,7 @@ PartialFile::~PartialFile() {
     // the current sector may contain incomplete content, so we must avoid overwriting potentially valid data
     discard_current_sector();
     // synchronization is required due to the validity of callback pointers
-    sync();
+    sector_pool.sync(0, true);
     close(file_lock);
 }
 
@@ -216,8 +216,11 @@ bool PartialFile::write(const uint8_t *data, size_t size) {
             fatal_error("Request to write past the end of file.", "transfers");
         }
         if (next_sector_nbr != current_sector->sector_nbr) {
-            write_current_sector();
-            current_sector = nullptr;
+            if (write_current_sector()) {
+                current_sector = nullptr;
+            } else {
+                return false;
+            }
         }
 
         // advance
@@ -242,14 +245,17 @@ bool PartialFile::sync() {
         memcpy(copied_sector->data, current_sector->data, SECTOR_SIZE);
         copied_sector->sector_nbr = current_sector->sector_nbr;
         auto status = write_current_sector();
-        current_sector = copied_sector;
-        if (!status) {
+        if (status) {
+            current_sector = copied_sector;
+        } else {
+            sector_pool.release(reinterpret_cast<uint32_t>(copied_sector->callback_param2));
             log_error(transfers, "Failed to write sector");
             return false;
         }
     }
-    if (!sector_pool.sync(sync_avoid))
+    if (!sector_pool.sync(sync_avoid, false)) {
         return false;
+    }
     return !write_error;
 }
 
@@ -332,7 +338,7 @@ void PartialFile::print_progress() {
 }
 
 PartialFile::SectorPool::SectorPool(UsbhMscRequest::LunNbr lun, UsbhMscRequestCallback callback, void *callback_param)
-    : semaphore(xSemaphoreCreateBinary())
+    : semaphore(xSemaphoreCreateCounting(size, size))
     , slot_mask(~0u << size) {
     for (unsigned i = 0; i < size; ++i) {
         pool[i] = {
@@ -350,26 +356,24 @@ PartialFile::SectorPool::SectorPool(UsbhMscRequest::LunNbr lun, UsbhMscRequestCa
 }
 
 PartialFile::SectorPool::~SectorPool() {
-    sync();
+    sync(0, true);
     for (unsigned i = 0; i < size; ++i) {
-        delete pool[i].data;
+        delete[] pool[i].data;
     }
+    vSemaphoreDelete(semaphore);
 }
 
 UsbhMscRequest *PartialFile::SectorPool::acquire() {
-    //    log_debug(DiskIO, "SectorPool Acquire");
-    mutex.lock();
-    while (!is_available_slot()) {
-        mutex.unlock();
-        auto result = xSemaphoreTake(semaphore, USBH_MSC_RW_MAX_DELAY);
-        if (result != pdPASS)
-            return nullptr;
-        mutex.lock();
+    auto result = xSemaphoreTake(semaphore, USBH_MSC_RW_MAX_DELAY);
+    if (result != pdPASS) {
+        return nullptr;
     }
 
+    mutex.lock();
     auto slot = get_available_slot();
     slot_mask |= 1 << slot;
     mutex.unlock();
+
     memset(pool[slot].data, 0, SECTOR_SIZE);
     return pool + slot;
 }
@@ -381,18 +385,31 @@ void PartialFile::SectorPool::release(uint32_t slot) {
     mutex.unlock();
 }
 
-bool PartialFile::SectorPool::sync(uint32_t avoid) {
+bool PartialFile::SectorPool::sync(uint32_t avoid, bool force) {
     assert(avoid <= size);
-    mutex.lock();
-    while (std::popcount(slot_mask) != (int)(32 - avoid)) {
-        mutex.unlock();
-        auto result = xSemaphoreTake(semaphore, USBH_MSC_RW_MAX_DELAY);
-        if (result != pdPASS)
-            return false;
-        mutex.lock();
+
+    // We flush the whole queue by blocking all the slots for ourselves before
+    // returning them back. When we have them all, none can be in flight.
+    uint32_t block = size - avoid;
+    uint32_t acquired = 0; // How many were actually acquired (in case of timeouts, it can be less)
+    for (uint32_t i = 0; i < block; i++) {
+        if (xSemaphoreTake(semaphore, force ? portMAX_DELAY : USBH_MSC_RW_MAX_DELAY) == pdPASS) {
+            acquired++;
+        } else {
+            break;
+        }
     }
-    mutex.unlock();
-    return true;
+    for (uint32_t i = 0; i < acquired; i++) {
+        xSemaphoreGive(semaphore);
+    }
+
+    return block == acquired;
+}
+
+void PartialFile::reset_error() {
+    discard_current_sector();
+    sector_pool.sync(0, true);
+    write_error = false;
 }
 
 uint32_t PartialFile::SectorPool::get_available_slot() const {
