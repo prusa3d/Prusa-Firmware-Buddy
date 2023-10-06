@@ -182,18 +182,21 @@ bool Transfer::restart_download() {
     auto backup_file = unique_file_ptr(fopen(path.as_backup(), "r"));
     if (backup_file.get() == nullptr) {
         log_error(transfers, "Failed to open backup file");
+        last_connection_error_ms = ticks_ms();
         return false;
     }
 
     auto backup = Transfer::restore(backup_file.get());
     if (backup.has_value() == false) {
         log_error(transfers, "Failed to restore backup file");
+        last_connection_error_ms = ticks_ms();
         return false;
     }
 
     auto request = backup->get_download_request();
     if (request.has_value() == false) {
         log_error(transfers, "Failed to get download request from backup file");
+        last_connection_error_ms = ticks_ms();
         return false;
     }
 
