@@ -477,9 +477,15 @@ TEST_CASE("multi-line", "[text_wrap]") {
             std::make_tuple<std::string, size_t, std::string>(
                 "LoooooOoOoOOoOoOooooOOoOoOoOOng word", 2, "LoooooOoOoOOoOoOooooOOoOoOoOOng\nword"),
             std::make_tuple<std::string, size_t, std::string>(
-                "LoooooOoOoOOoOoOooooOOoOoOoOOong word", 3, "LoooooOoOoOOoOoOooooOOoOoOoOOong\nword"),
+                "LoooooOoOoOOoOoOooooOOoOoOoOOong word", 2, "LoooooOoOoOOoOoOooooOOoOoOoOOong\nword"),
             std::make_tuple<std::string, size_t, std::string>(
-                "LoooooOoOoOOoOoOooooOOoOoOoOOoOng word", 3, "LoooooOoOoOOoOoOooooOOoOoOoOOoOng\nword"));
+                "LoooooOoOoOOoOoOooooOOoOoOoOOoOng word", 2, "LoooooOoOoOOoOoOooooOOoOoOoOOoOng\nword"),
+            std::make_tuple<std::string, size_t, std::string>(
+                "VeryLongWordThatHasMoreThan32Characters SlightlyShorterWord VeryLongWordThatHasMoreThan32Characters Test Test\nTest VeryLongWordThatHasMoreThan32Characters\nVeryLongWordThatHasMoreThan32Characters Test",
+                8,
+                "VeryLongWordThatHasMoreThan32Characters\nSlightlyShorterWord\nVeryLongWordThatHasMoreThan32Characters\nTest Test\nTest\nVeryLongWordThatHasMoreThan32Characters\nVeryLongWordThatHasMoreThan32Characters\nTest") //,
+
+        );
 
         memory_source mem(origin);
         monospace font;
