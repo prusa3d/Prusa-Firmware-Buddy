@@ -50,7 +50,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
         if (dwarf_init_done) {
             dwarf::tool_filament_sensor::tool_filament_sensor_irq();
-            dwarf::accelerometer::accelerometer_irq();
             Fans::tick();
         }
     }

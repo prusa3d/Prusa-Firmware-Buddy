@@ -68,6 +68,7 @@ static_assert(configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY == 0);
     #define ISR_PRIORITY_DMA1_CHANNEL1   0
     #define ISR_PRIORITY_TICK_TIMER      1
     #define ISR_PRIORITY_HX717           1
+    #define ISR_PRIORITY_LIS2DH12        1
     #define ISR_PRIORITY_STEP_TIMER      2
     #define ISR_PRIORITY_TEMP_TIMER      2
     #define ISR_PRIORITY_MOVE_TIMER      2

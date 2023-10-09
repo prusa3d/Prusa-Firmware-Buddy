@@ -17,7 +17,12 @@ if(HAS_XLCD_TOUCH_DRIVER)
 endif()
 
 if(HAS_ACCELEROMETER)
-  target_sources(firmware PRIVATE SparkFunLIS2DH.cpp)
+  if(BOARD STREQUAL "XBUDDY")
+    target_sources(firmware PRIVATE SparkFunLIS2DH.cpp)
+  endif()
+  if(BOARD STREQUAL "DWARF")
+    target_link_libraries(firmware PRIVATE LIS2DH12)
+  endif()
 endif()
 
 if(BOARD MATCHES ".*BUDDY")

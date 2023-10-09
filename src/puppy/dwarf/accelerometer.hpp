@@ -13,4 +13,5 @@ void accelerometer_loop();
 void accelerometer_irq();
 bool accelerometer_get_sample(AccelerometerRecord &sample);
 size_t get_num_samples();
+void irq();
 } // namespace dwarf::accelerometer
