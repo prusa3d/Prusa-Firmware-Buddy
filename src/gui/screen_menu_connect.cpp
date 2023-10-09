@@ -102,8 +102,13 @@ void ScreenMenuConnect::updateStatus() {
     Item<MI_CONNECT_ENABLED>().SetIndex(config_store().connect_enabled.get());
 }
 
+#undef S
+#undef E
+
 ScreenMenuConnect::ScreenMenuConnect()
     : ScreenMenuConnect__(_(label)) {
+    // Make the status info available right from the start, do not wait for the first loop
+    updateStatus();
 }
 
 void ScreenMenuConnect::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
