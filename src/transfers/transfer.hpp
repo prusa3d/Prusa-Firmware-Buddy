@@ -14,7 +14,7 @@
 
 namespace transfers {
 
-inline constexpr size_t MAX_RETRIES = 5;
+inline constexpr size_t MAX_RETRIES = 50;
 
 struct NoTransferSlot {};
 
