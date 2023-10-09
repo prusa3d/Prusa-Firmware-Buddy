@@ -12,6 +12,7 @@
 #include <marlin_print_preview.hpp>
 #include <utility_extensions.hpp>
 #include "mmu2_toolchanger_common.hpp"
+#include <tools_mapping.hpp>
 
 uint8_t get_num_of_enabled_tools() {
 #if HAS_TOOLCHANGER()
@@ -610,24 +611,13 @@ bool ToolsMappingBody::are_all_gcode_tools_mapped() const {
     return true;
 }
 
-uint8_t ToolsMappingBody::to_gcode_tool(uint8_t physical_tool) {
-    if (auto gcode_tool = mapper.to_gcode(physical_tool); gcode_tool != ToolMapper::NO_TOOL_MAPPED) {
-        return gcode_tool;
-    } else if (auto earliest_physical = joiner.get_first_spool_1_from_chain(physical_tool); earliest_physical != physical_tool) {
-        auto earliests_gcode_tool = mapper.to_gcode(earliest_physical);
-        assert(earliests_gcode_tool != ToolMapper::NO_TOOL_MAPPED); // otherwise invalid spool_join
-        return earliests_gcode_tool;
-    }
-    return ToolMapper::NO_TOOL_MAPPED;
-}
-
 std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ToolsMappingBody::build_preselect_array() {
     std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ret;
     ret.fill(ftrstd::to_underlying(filament::Type::NONE)); // Don't change
 
     for (size_t idx = 0; idx < get_num_of_enabled_tools(); ++idx) {
         const auto real_phys = right_phys_idx_to_real[idx];
-        if (auto real_mapped_gcode = to_gcode_tool(real_phys); real_mapped_gcode == ToolMapper::NO_TOOL_MAPPED) { // not assigned
+        if (auto real_mapped_gcode = tools_mapping::to_gcode_tool_custom(mapper, joiner, real_phys); real_mapped_gcode == tools_mapping::no_tool) { // not assigned
             continue; // leave preselection as Don't change
         } else if (const auto &opt_name = gcode.get_extruder_info(real_mapped_gcode).filament_name; opt_name.has_value()) {
             assert(gcode.get_extruder_info(real_mapped_gcode).used()); // otherwise bug in mapping
@@ -648,7 +638,7 @@ std::array<std::optional<filament::Colour>, I_MI_FilamentSelect::max_I_MI_Filame
 
     for (size_t idx = 0; idx < get_num_of_enabled_tools(); ++idx) {
         const auto real_phys = right_phys_idx_to_real[idx];
-        if (auto real_mapped_gcode = to_gcode_tool(real_phys); real_mapped_gcode == ToolMapper::NO_TOOL_MAPPED) { // not assigned
+        if (auto real_mapped_gcode = tools_mapping::to_gcode_tool_custom(mapper, joiner, real_phys); real_mapped_gcode == tools_mapping::no_tool) { // not assigned
             continue; // leave preselection as Don't change
         } else if (const auto &opt_color = gcode.get_extruder_info(real_mapped_gcode).extruder_colour; opt_color.has_value()) {
             assert(gcode.get_extruder_info(real_mapped_gcode).used()); // otherwise bug in mapping
@@ -805,66 +795,29 @@ void ToolsMappingBody::update_shown_state() {
 
 void ToolsMappingBody::update_icons() {
     // precondition: nicely ordered, otherwise the icons will not match
-    num_unassigned_gcodes = num_mismatched_filaments = num_mismatched_nozzles = num_unloaded_tools = 0;
+    auto validity = PrintPreview::check_tools_mapping_validity(mapper, joiner, gcode);
+    num_unassigned_gcodes = validity.unassigned_gcodes.count();
+    num_mismatched_filaments = validity.mismatched_filaments.count();
+    num_mismatched_nozzles = validity.mismatched_nozzles.count();
+    num_unloaded_tools = validity.unloaded_tools.count();
 
-    for (int idx = 0; idx < gcode.UsedExtrudersCount(); ++idx) {
-        const auto real_gcode = left_gcode_idx_to_real[idx];
-        if (mapper.to_physical(real_gcode) == ToolMapper::NO_TOOL_MAPPED) {
+    for (size_t real_gcode = 0; real_gcode < std::size(left_gcode_icons); ++real_gcode) {
+        if (validity.unassigned_gcodes.test(real_gcode)) {
             left_gcode_icons[real_gcode].SetRes(unassigned_filament_icon);
-            ++num_unassigned_gcodes;
         } else {
             left_gcode_icons[real_gcode].SetRes(nullptr);
         }
     }
 
-    auto nozzles_match = [&](uint8_t physical_extruder) {
-        auto gcode_real = to_gcode_tool(physical_extruder);
-        if (gcode_real == ToolMapper::NO_TOOL_MAPPED) {
-            return true;
-        }
-
-        assert(gcode.get_extruder_info(gcode_real).used()); // otherwise bug in mapping
-        if (!gcode.get_extruder_info(gcode_real).nozzle_diameter.has_value()) {
-            return true;
-        }
-
-        float nozzle_diameter_distance = gcode.get_extruder_info(gcode_real).nozzle_diameter.value() - static_cast<float>(get_nozzle_diameter(physical_extruder));
-        if (nozzle_diameter_distance > 0.001f || nozzle_diameter_distance < -0.001f) {
-            return false;
-        }
-
-        return true;
-    };
-
-    auto tool_needs_to_be_loaded = [&]([[maybe_unused]] uint8_t physical_extruder) { // if any tool needs filament load
-#if HAS_TOOLCHANGER()
-        if (!config_store().fsensor_enabled.get()) {
-            return false;
-        }
-
-        return PrintPreview::check_extruder_need_filament_load(physical_extruder, ToolMapper::NO_TOOL_MAPPED, [&](uint8_t pe) {
-            return to_gcode_tool(pe);
-        });
-#elif HAS_MMU2()
-        return false; // MMU is purposefully unloaded before print
-#endif
-    };
-
-    for (size_t idx = 0; idx < get_num_of_enabled_tools(); ++idx) {
-        const auto real_phys = right_phys_idx_to_real[idx];
-        if (tool_needs_to_be_loaded(real_phys)) {
-            right_phys_icons[real_phys].SetRes(unloaded_tools_icon);
-            ++num_unloaded_tools;
-        } else if (!nozzles_match(real_phys)) {
-            right_phys_icons[real_phys].SetRes(mismatched_nozzles_icon);
-            ++num_mismatched_nozzles;
-        } else if (!PrintPreview::check_correct_filament_type(real_phys, ToolMapper::NO_TOOL_MAPPED, [&](uint8_t physical_extruder) {
-                       return to_gcode_tool(physical_extruder);
-                   })) {
-            right_phys_icons[real_phys].SetRes(mismatched_filaments_icon);
-            ++num_mismatched_filaments;
+    for (size_t real_physical = 0; real_physical < std::size(right_phys_icons); ++real_physical) {
+        if (validity.unloaded_tools.test(real_physical)) {
+            right_phys_icons[real_physical].SetRes(unloaded_tools_icon);
+        } else if (validity.mismatched_nozzles.test(real_physical)) {
+            right_phys_icons[real_physical].SetRes(mismatched_nozzles_icon);
+        } else if (validity.mismatched_filaments.test(real_physical)) {
+            right_phys_icons[real_physical].SetRes(mismatched_filaments_icon);
         } else {
-            right_phys_icons[real_phys].SetRes(nullptr);
+            right_phys_icons[real_physical].SetRes(nullptr);
         }
     }
 }

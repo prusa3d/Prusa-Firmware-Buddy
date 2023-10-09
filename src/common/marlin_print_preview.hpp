@@ -5,6 +5,9 @@
 #pragma once
 #include "gcode_info.hpp"
 #include "client_response.hpp"
+#include <module/prusa/tool_mapper.hpp>
+#include <module/prusa/spool_join.hpp>
+#include <bitset>
 
 /**
  * @brief Parent class handling changes of state
@@ -111,6 +114,18 @@ public:
      * @param gcode_extruder_getter Call to get assigned gcode extruder to physical_extruder
      */
     static bool check_extruder_need_filament_load(uint8_t physical_extruder, uint8_t no_gcode_value, std::function<uint8_t(uint8_t)> gcode_extruder_getter);
+
+#if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
+    struct ToolsMappingValidty {
+        std::bitset<EXTRUDERS> unassigned_gcodes {};
+        std::bitset<EXTRUDERS> mismatched_filaments {};
+        std::bitset<EXTRUDERS> mismatched_nozzles {};
+        std::bitset<EXTRUDERS> unloaded_tools {};
+
+        [[nodiscard]] bool all_ok() const;
+    };
+    [[nodiscard]] static ToolsMappingValidty check_tools_mapping_validity(const ToolMapper &mapper, const SpoolJoin &joiner, const GCodeInfo &gcode);
+#endif
 
 private:
     uint32_t last_run = 0;

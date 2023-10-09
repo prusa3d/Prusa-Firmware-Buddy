@@ -149,9 +149,6 @@ private:
     // refreshes lables within window texts to match current state of loaded filaments
     void refresh_physical_tool_filament_labels();
 
-    // gets mapped gcode to given physical tool or ToolMapper::NO_TOOL_MAPPED
-    uint8_t to_gcode_tool(uint8_t physical_tool);
-
     // builds default selection array for change all dialog so that physical tools try to load based on what the gcodes want to print with (that they're mapped to)
     std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> build_preselect_array();
 
