@@ -1736,7 +1736,7 @@
 /**
  * Measure and check axis length on repeated crashes
  */
-//#define AXIS_MEASURE
+#define AXIS_MEASURE
 #ifdef AXIS_MEASURE
     #define AXIS_MEASURE_STALL_GUARD 1
     #define AXIS_MEASURE_CRASH_PERIOD 210
