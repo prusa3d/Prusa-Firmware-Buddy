@@ -561,6 +561,14 @@ PrintPreview::Result PrintPreview::Loop() {
         break;
     case State::checks_done:
         if (tools_mapping::is_tool_mapping_possible()) {
+#if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
+            if (skip_if_able && PrintPreview::check_tools_mapping_validity(tool_mapper, spool_join, gcode_info).all_ok()) {
+                // we can skip tools mapping if there is not warning/error in global tools mapping
+                ChangeState(State::done);
+                break;
+            }
+#endif
+
             ChangeState(State::tools_mapping_wait_user);
 
             // start preheating bed to save time in absorbing heat
