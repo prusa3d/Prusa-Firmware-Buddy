@@ -40,7 +40,6 @@ if(BOARD MATCHES ".*BUDDY")
             media.cpp
             metric.cpp
             metric_handlers.cpp
-            non_file_printing_counter.cpp
             odometer.cpp
             otp.cpp
             path_utils.cpp

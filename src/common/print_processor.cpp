@@ -8,7 +8,6 @@
 #include "marlin_client.hpp"
 #include "filament_sensors_handler.hpp"
 #include "fsm_types.hpp"
-#include "non_file_printing_counter.hpp"
 
 ClientFSM type_of_q0 = ClientFSM::_none;
 ClientFSM type_of_q1 = ClientFSM::_none;
