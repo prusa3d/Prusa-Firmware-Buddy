@@ -56,7 +56,7 @@ namespace async_io {
 //
 // Need to be large enough to fit all needed requests, so the sender has no
 // chance of blocking.
-constexpr size_t REQ_CNT = 4 + 1;
+constexpr size_t REQ_CNT = 8 + 1;
 
 __attribute__((noreturn)) void run();
 

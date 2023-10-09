@@ -109,7 +109,7 @@ namespace splice {
         // file data), until the very end.
         size_t offset = 0;
         // Synchronize with the number in async_io.hpp
-        static constexpr size_t REQ_CNT = 4;
+        static constexpr size_t REQ_CNT = 8;
         static std::array<Write, REQ_CNT> instances;
 
         // Note: we write this in multiple shots and Ack after each one.
