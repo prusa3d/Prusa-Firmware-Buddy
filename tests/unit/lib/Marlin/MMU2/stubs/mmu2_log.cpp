@@ -12,4 +12,11 @@ void LogEchoEvent_P(const char *msg_P) {
     marlinLogSim.log.push_back(msg_P);
 }
 
+void LogRequestMsg(const char *msg) {
+    marlinLogSim.log.push_back(msg);
+}
+void LogResponseMsg(const char *msg) {
+    marlinLogSim.log.push_back(msg);
+}
+
 } // namespace MMU2

@@ -22,6 +22,12 @@ void LogErrorEvent_P(const char *msg_P);
 /// On the ARM platform it calls LogErrorEvent directly (silently expecting the compiler to optimize it away)
 void LogEchoEvent_P(const char *msg_P);
 
+/// Called for logging request messages (board->mmu) to syslog/metrics (on Buddy)
+void LogRequestMsg(const char *msg);
+
+/// Called for logging response messages (mmu->board) to syslog/metrics (on Buddy)
+void LogResponseMsg(const char *msg);
+
 } // namespace MMU2
 
 #ifndef UNITTEST

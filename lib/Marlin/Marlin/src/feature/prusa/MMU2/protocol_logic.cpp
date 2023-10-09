@@ -6,7 +6,7 @@
     // on MK3/S/+ we shuffle the timers a bit, thus "_millis" may not equal "millis"
     #include "system_timer.h"
 #else
-    // irrelevant on Buddy FW, just keep "_millis" as "millis"
+// irrelevant on Buddy FW, just keep "_millis" as "millis"
     #include <wiring_time.h>
     #define _millis millis
     #ifdef UNITTEST
@@ -753,7 +753,7 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
         // trying to find the MMU, but since it has been reliable in the past
         // we can live without it for now.
     } else {
-        MMU2_ECHO_MSGLN(tmp);
+        MMU2::LogRequestMsg(tmp);
     }
     strncpy(lastMsg, tmp, rqs);
 }
@@ -770,7 +770,7 @@ void ProtocolLogic::LogError(const char *reason_P) {
 void ProtocolLogic::LogResponse() {
     char lrb[lastReceivedBytes.size()];
     FormatLastResponseMsgAndClearLRB(lrb);
-    MMU2_ECHO_MSGLN(lrb);
+    MMU2::LogResponseMsg(lrb);
 }
 
 StepStatus ProtocolLogic::SuppressShortDropOuts(const char *msg_P, StepStatus ss) {
