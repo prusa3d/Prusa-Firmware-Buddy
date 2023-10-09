@@ -136,7 +136,11 @@ std::variant<size_t, Error> tls::tx(const uint8_t *send_buffer, size_t data_len)
     int status = mbedtls_ssl_write(&ssl_context, (const unsigned char *)send_buffer, data_len);
 
     if (status <= 0) {
-        return Error::Network;
+        if (net_context.timeout_happened) {
+            return Error::Timeout;
+        } else {
+            return Error::Network;
+        }
     }
 
     bytes_sent = (size_t)status;
@@ -152,7 +156,11 @@ std::variant<size_t, Error> tls::rx(uint8_t *read_buffer, size_t buffer_len, [[m
     int status = mbedtls_ssl_read(&ssl_context, (unsigned char *)read_buffer, buffer_len);
 
     if (status <= 0) {
-        return Error::Network;
+        if (net_context.timeout_happened) {
+            return Error::Timeout;
+        } else {
+            return Error::Network;
+        }
     }
 
     bytes_received = (size_t)status;
