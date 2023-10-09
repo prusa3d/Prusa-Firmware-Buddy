@@ -57,7 +57,6 @@ protected:
 public:
     static Rect16::Width_t MeasureTextWidth(string_view_utf8 text);
     IFooterIconText(window_t *parent, const img::Resource *icon, Rect16::W_t width); // icon width is calculated from resource
-    IFooterIconText(window_t *parent, const img::Resource *icon, string_view_utf8 view);
 };
 
 // this class must be able to create stringview
