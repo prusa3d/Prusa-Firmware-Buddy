@@ -217,8 +217,14 @@ public:
         return s;
     }
 
+    /// Use is_same_ref instead
+    bool operator==(const string_view_utf8 &other) const = delete;
+
+    /// Use !is_same_ref instead
+    bool operator!=(const string_view_utf8 &other) const = delete;
+
     /// string view has the same resource
-    bool operator==(const string_view_utf8 &other) const {
+    bool is_same_ref(const string_view_utf8 &other) const {
         if (type != other.type)
             return false; // type mismatch
 
@@ -239,9 +245,5 @@ public:
             return true;
         }
         return false; // somehow out of enum range
-    }
-
-    bool operator!=(const string_view_utf8 &other) const {
-        return !((*this) == other);
     }
 };

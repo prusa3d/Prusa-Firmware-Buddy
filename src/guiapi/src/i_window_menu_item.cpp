@@ -212,7 +212,7 @@ bool IWindowMenuItem::IsDevOnly() const {
 }
 
 void IWindowMenuItem::SetLabel(string_view_utf8 text) {
-    if (label != text) {
+    if (!label.is_same_ref(text)) {
         label = text;
         InValidateLabel();
     }
