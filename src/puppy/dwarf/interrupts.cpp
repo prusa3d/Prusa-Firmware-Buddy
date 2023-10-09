@@ -89,3 +89,27 @@ extern "C" void EXTI2_3_IRQHandler() {
     PIN_TABLE(HANDLE_EXTI2_3_PINS)
     return;
 }
+
+static constexpr bool isEXTI0_1Pin(IoPort, IoPin ioPin) {
+    switch (ioPin) {
+    case IoPin::p0:
+    case IoPin::p1:
+        return true;
+    default:
+        return false;
+    }
+}
+
+#define HANDLE_EXTI0_1_PINS(TYPE, NAME, PORTPIN, PARAMETERS, INTERRUPT_HANDLER)                              \
+    if ((std::is_same_v<TYPE, InterruptPin> || std::is_base_of_v<InterruptPin, TYPE>)&&isEXTI0_1Pin(PORTPIN) \
+        && (__HAL_GPIO_EXTI_GET_IT(getIoHalPin(PORTPIN)) != RESET)) {                                        \
+        __HAL_GPIO_EXTI_CLEAR_IT(getIoHalPin(PORTPIN));                                                      \
+        traceISR_ENTER();                                                                                    \
+        INTERRUPT_HANDLER();                                                                                 \
+        traceISR_EXIT();                                                                                     \
+    }
+
+extern "C" void EXTI0_1_IRQHandler() {
+    PIN_TABLE(HANDLE_EXTI0_1_PINS)
+    return;
+}
