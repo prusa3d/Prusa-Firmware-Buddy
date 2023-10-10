@@ -1,7 +1,5 @@
 #pragma once
 
-#if __cplusplus >= 202002L
-
 #include <array>
 #include <concepts>
 #include <cstddef>
@@ -327,7 +325,6 @@ struct tuple_impl<std::index_sequence<Is...>, index_function_list<Fs...>, Ts...>
 
   private:
     template <typename Indices, typename Funcs, typename... Us>
-        requires(... and std::equality_comparable_with<Ts, Us>)
     [[nodiscard]] friend constexpr auto
     operator==(tuple_impl const &lhs,
                tuple_impl<Indices, Funcs, Us...> const &rhs) -> bool {
@@ -335,7 +332,6 @@ struct tuple_impl<std::index_sequence<Is...>, index_function_list<Fs...>, Ts...>
     }
 
     template <typename Indices, typename Funcs, typename... Us>
-        requires(... and std::three_way_comparable_with<Ts, Us>)
     [[nodiscard]] friend constexpr auto
     operator<=>(tuple_impl const &lhs,
                 tuple_impl<Indices, Funcs, Us...> const &rhs) {
@@ -430,4 +426,3 @@ template <typename... Ts> auto forward_as_tuple(Ts &&...ts) {
 } // namespace v1
 } // namespace stdx
 
-#endif
