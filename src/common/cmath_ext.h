@@ -38,12 +38,6 @@
         a = (b); \
         b = c; })
 
-/// \returns random integer in range <0,max_val>
-#define RAND(max_val) ((int)((float)rand() / RAND_MAX * (max_val)))
-
-/// \returns random float in range <0,MAX>
-#define FRAND(max_val) ((float)rand() / RAND_MAX * (max_val));
-
 /// Compares two float numbers whether they are almost equal or not
 /// \param max_abs_diff is maximal absolute difference allowed for equality
 #define nearlyEqual(a, b, max_abs_diff) \

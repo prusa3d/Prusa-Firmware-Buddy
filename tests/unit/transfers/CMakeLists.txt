@@ -3,6 +3,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/crc32.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/random_sw.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/decrypt.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp

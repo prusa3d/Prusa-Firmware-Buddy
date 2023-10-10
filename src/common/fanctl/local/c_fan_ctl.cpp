@@ -9,6 +9,7 @@
 #include "gpio.h"
 #include <stdlib.h>
 #include <device/board.h>
+#include <random.h>
 
 #if (BOARD_IS_XBUDDY)
     #include "hw_configuration.hpp"
@@ -69,7 +70,7 @@ int8_t CFanCtlPWM::tick() {
                 }
                 break;
             case random:
-                pha = pha_max * ((float)rand() / RAND_MAX);
+                pha = pha_max * rand_f();
                 break;
             }
 #endif

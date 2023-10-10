@@ -23,8 +23,7 @@
 #include "wui.h"
 #include <tasks.hpp>
 #include <option/has_embedded_esp32.h>
-
-#include "stm32f4xx_hal_rng.h"
+#include <random.h>
 
 extern "C" {
 #include "stm32_port.h"
@@ -299,7 +298,7 @@ static void espif_tx_update_metrics(uint32_t len) {
         new_intron[i] = tx_message.intron[i];
     }
     for (uint i = 2; i < sizeof(tx_message.intron); i++) {
-        new_intron[i] = HAL_RNG_GetRandomNumber(&hrng);
+        new_intron[i] = rand_u();
     }
 
     const uint8_t ssid_len = strlen(ssid);

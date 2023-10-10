@@ -1,6 +1,13 @@
 #include <cstdint>
 
-bool random32bit(uint32_t *random) {
-    *random = 0xaaaaaaaa;
-    return true;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+uint32_t rand_u() {
+    return 0xaaaaaaaa;
 }
+
+#ifdef __cplusplus
+}
+#endif

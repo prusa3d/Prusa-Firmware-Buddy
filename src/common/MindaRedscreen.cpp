@@ -5,7 +5,6 @@
 #include <inttypes.h>
 
 #include "MindaRedscreen.h"
-#include "stm32f4xx_hal.h"
 #include "config.h"
 #include "gui.hpp"
 #include "safe_state.h"

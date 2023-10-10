@@ -2,7 +2,6 @@
 #include "cmsis_os.h"
 #include "timing.h"
 #include "log.h"
-#include "stm32f4xx_hal.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>

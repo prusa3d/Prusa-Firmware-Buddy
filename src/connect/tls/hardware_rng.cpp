@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stm32f4xx_hal.h>
 #include <mbedtls/entropy_poll.h>
+#include <random.h>
 
 int mbedtls_hardware_poll([[maybe_unused]] void *Data, unsigned char *Output, size_t Len, size_t *oLen) {
 
@@ -10,11 +11,7 @@ int mbedtls_hardware_poll([[maybe_unused]] void *Data, unsigned char *Output, si
     *oLen = 0;
 
     while (bytesWritten < Len) {
-
-        if (HAL_RNG_GenerateRandomNumber(&hrng, &randomValue) != HAL_OK) {
-            return 1;
-        }
-
+        randomValue = rand_u();
         size_t bytes_left = Len - bytesWritten;
         size_t to_write = (bytes_left > sizeof randomValue) ? sizeof randomValue : bytes_left;
         memcpy((Output + bytesWritten), (const char *)&randomValue, to_write);

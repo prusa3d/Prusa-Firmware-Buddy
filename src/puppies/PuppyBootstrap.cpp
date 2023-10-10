@@ -20,6 +20,7 @@
 #include <option/has_modularbed.h>
 #include <puppies/puppy_crash_dump.hpp>
 #include <cstring>
+#include <random.h>
 #include "bsod_gui.hpp"
 
 LOG_COMPONENT_REF(Puppies);
@@ -114,9 +115,9 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
 
     // Select random salt for modular bed and for dwarf
     fingerprints_t fingerprints;
-    HAL_RNG_GenerateRandomNumber(&hrng, &(fingerprints.get_salt(Dock::MODULAR_BED)));
+    fingerprints.get_salt(Dock::MODULAR_BED) = rand_u();
     #if HAS_DWARF()
-    HAL_RNG_GenerateRandomNumber(&hrng, &(fingerprints.get_salt(Dock::DWARF_1)));
+    fingerprints.get_salt(Dock::DWARF_1) = rand_u();
     for (Dock dock = Dock::DWARF_1; dock <= Dock::LAST; dock = dock + 1) {
         fingerprints.get_salt(dock) = fingerprints.get_salt(Dock::DWARF_1); // Copy salt to all dwarfs
     }
@@ -441,7 +442,7 @@ void PuppyBootstrap::flash_firmware(Dock dock, fingerprints_t &fw_fingerprints, 
         progressHook({ percent_offset + percent_span, FlashingStage::CHECK_FINGERPRINT, puppy_type });
 
         // Calculate new fingerprint, salt needs to be changed so the flashing cannot be faked
-        HAL_RNG_GenerateRandomNumber(&hrng, &(fw_fingerprints.get_salt(dock)));
+        fw_fingerprints.get_salt(dock) = rand_u();
         start_fingerprint_computation(get_boot_address_for_dock(dock), fw_fingerprints.get_salt(dock));
 
         auto fingerprint_wait_start = ticks_ms();

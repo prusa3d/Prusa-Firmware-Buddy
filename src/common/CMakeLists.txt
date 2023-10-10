@@ -48,6 +48,7 @@ if(BOARD MATCHES ".*BUDDY")
             print_processor.cpp
             print_utils.cpp
             probe_analysis.cpp
+            random_hw.cpp
             safe_state.cpp
             segmented_json.cpp
             selftest_result.cpp
@@ -91,6 +92,7 @@ elseif(BOARD MATCHES "DWARF")
             marlin_log_component.cpp
             otp.cpp
             Pin.cpp
+            random_sw.cpp
             safe_state.cpp
             timing.cpp
     )
