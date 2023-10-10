@@ -50,7 +50,7 @@ static void OpenPrintScreen(ClientFSM dialog) {
 // method definitions
 void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
     if (ptr)
-        return; // the dialog is already opened, not an error, we can preopen dialogs or even screens (wizard)
+        return; // the dialog is already opened, not an error (TODO really?)
 
     // todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     //  only ptr = dialog_creators[dialog](data); should remain
@@ -153,7 +153,6 @@ void DialogHandler::Command(std::pair<uint32_t, uint16_t> serialized) {
  * @brief determine correct operation with data
  * 3 possibilities: create(open), change(modify), destroy(destroy)
  * can contain close screen + open dialog
- * preopen can put data in queue too!!!
  *
  * @param change data containing description of a change, can be even open + close
  */
@@ -193,11 +192,6 @@ void DialogHandler::command(fsm::DequeStates changes) {
     // no need to check if data changed, queue handles it
     change(changes.current.get_fsm_type(), changes.current.get_data());
     return;
-}
-
-void DialogHandler::PreOpen([[maybe_unused]] ClientFSM dialog, fsm::BaseData data) {
-    const fsm::Change change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
-    Command(change.serialize());
 }
 
 void DialogHandler::Loop() {
