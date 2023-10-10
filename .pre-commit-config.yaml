@@ -85,5 +85,6 @@ exclude: |
     ^lib/LiquidCrystal_I2C/|
     ^lib/CrashCatcher/|
     ^lib/libbgcode/|
+    ^lib/cpp-std-extensions/|
     ^lib/heatshrink/
   )
