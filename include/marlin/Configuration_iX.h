@@ -1055,9 +1055,9 @@
 #define DISABLE_INACTIVE_EXTRUDER // Keep only the active extruder enabled
 
 // default values
-#define DEFAULT_INVERT_X_DIR true
-#define DEFAULT_INVERT_Y_DIR true
-#define DEFAULT_INVERT_Z_DIR false
+#define DEFAULT_INVERT_X_DIR false
+#define DEFAULT_INVERT_Y_DIR false
+#define DEFAULT_INVERT_Z_DIR true
 #define DEFAULT_INVERT_E0_DIR false
 
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
