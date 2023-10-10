@@ -1,0 +1,53 @@
+
+== `function_traits.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/function_traits.hpp[`function_traits.hpp`]
+contains type traits for introspecting function signatures. It works with
+functions, lambda expressions, and classes with `operator()`.
+
+Examples:
+[source,cpp]
+----
+auto f1() -> void {}
+using f1_return = stdx::return_t<decltype(f1)>;         // void
+using f1_args = stdx::args_t<decltype(f1), std::tuple>; // std::tuple<>
+
+auto f2(int) -> int { return 0; }
+using f2_return = stdx::return_t<decltype(f2)>;         // int
+using f2_args = stdx::args_t<decltype(f2), std::tuple>; // std::tuple<int>
+
+auto l = [] (int) -> int { return 0; };
+using l_return = stdx::return_t<decltype(l)>;         // int
+using l_args = stdx::args_t<decltype(l), std::tuple>; // std::tuple<int>
+----
+
+`stdx::args_t` returns a list of the function arguments. `std::decayed_args_t`
+returns the same list, but with `std::decay_t` applied to each element. This is
+useful for example when you need to copy and store a tuple of the arguments.
+[source,cpp]
+----
+auto f(int&, std::string&) -> void {}
+using f_args = stdx::decayed_args_t<decltype(f), std::tuple>; // std::tuple<int, std::string>
+----
+
+`stdx::arity_t` returns the arity of a function (as a `std::integral_constant`).
+`stdx::arity_v` provides convenient access to the value.
+[source,cpp]
+----
+auto f(int&, std::string&) -> void {}
+using f_arity_t = stdx::arity_t<decltype(f)>; // std::integral_constant<std::size_t, 2>
+constexpr auto f_arity_v = stdx::arity_v<decltype(f)>;
+----
+
+
+NOTE: Function traits work on functions (and function objects): not function
+templates or overload sets. For instance therefore, they will not work on generic
+lambda expressions.
+
+The one exception to this is `stdx::arity_t` - it works on generic lambdas.
+[source,cpp]
+----
+auto l = [](auto, auto) -> void {};
+using f_arity_t = stdx::arity_t<decltype(l)>; // std::integral_constant<std::size_t, 2>
+constexpr auto f_arity_v = stdx::arity_v<decltype(l)>;
+----

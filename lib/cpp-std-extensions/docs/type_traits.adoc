@@ -1,0 +1,47 @@
+
+== `type_traits.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/type_traits.hpp[`type_traits.hpp`]
+contains a few things from the standard:
+
+* https://en.cppreference.com/w/cpp/types/remove_cvref[`remove_cvref_t`] (from C++20)
+* https://en.cppreference.com/w/cpp/utility/to_underlying[`to_underlying`] (from C++23)
+* https://en.cppreference.com/w/cpp/types/conditional[`conditional_t`]
+  (implemented with fewer template instantiations than a typical standard
+  implementation)
+* https://en.cppreference.com/w/cpp/types/is_function[`is_function_v`] (implemented with Walter Brown's method)
+* https://en.cppreference.com/w/cpp/types/is_constant_evaluated[`is_constant_evaluated`] (from C++20)
+
+`always_false_v` is a variable template that can be instantiated
+with any number of type arguments and always evaluates to false at compile-time.
+This is useful for writing `static_assert` where it must depend on types (at
+least before C++23 and https://wg21.link/p2593[P2593]).
+
+[source,cpp]
+----
+template <typename T>
+auto f(T) {
+  if constexpr (std::integral<T>) {
+  } else {
+    // doesn't work before C++23
+    // static_assert(false, "S must be instantiated with an integral type");
+
+    // instead, this works
+    static_assert(stdx::always_false_v<T>, "S must be instantiated with an integral type");
+  }
+};
+----
+
+`is_specialization_of_v` is a variable template that detects whether a type is a
+specialization of a given template.
+
+[source,cpp]
+----
+using O = std::optional<int>;
+
+stdx::is_specialization_of_v<O, std::optional>;   // true
+stdx::is_specialization_of_v<int, std::optional>; // false
+----
+
+NOTE: `is_specialization_of` is suitable for templates with type parameters
+only (not template-template parameters or NTTPs).

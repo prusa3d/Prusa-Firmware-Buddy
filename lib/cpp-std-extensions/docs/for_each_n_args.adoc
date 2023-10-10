@@ -1,0 +1,29 @@
+
+== `for_each_n_args.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/for_each_n_args.hpp[`for_each_n_args.hpp`]
+provides a method for calling a function (or other callable) with batches of
+arguments from a parameter pack.
+
+Examples:
+[source,cpp]
+----
+auto f(int x, int y) -> void { /* do something with x and y */ }
+stdx::for_each_n_args(f, 1, 2, 3, 4); // this calls f(1, 2) and f(3, 4)
+----
+
+The number of arguments passed to `for_each_n_args` must be a multiple of the
+argument "batch size" - which by default is the arity of the passed function.
+
+Sometimes, the passed callable is a generic function where the arity cannot be
+automatically determined, or sometimes it may be a function with default
+arguments which we want to use. In that case it is possible to override the
+default batch size:
+[source,cpp]
+----
+auto f(auto x, auto y) -> void { /* do something with x and y */ }
+stdx::for_each_n_args<2>(f, 1, 2, 3, 4); // this calls f(1, 2) and f(3, 4)
+
+auto g(int x, int y, int z = 42) -> void { /* do something with x, y and z */ }
+stdx::for_each_n_args<2>(g, 1, 2, 3, 4); // this calls g(1, 2, 42) and g(3, 4, 42)
+----

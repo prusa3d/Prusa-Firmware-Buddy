@@ -1,0 +1,30 @@
+
+== `intrusive_list.hpp`
+
+`intrusive_list` is a doubly-linked list designed for use at compile-time or
+with static objects. It supports pushing and popping at the front or back, and
+removal from the middle.
+
+[source,cpp]
+----
+// A node in an intrusive_list must have prev and next pointers
+struct node {
+  node *prev{};
+  node *next{};
+};
+
+stdx::intrusive_list<node> l;
+
+node n1{};
+l.push_front(&n1);
+
+node n2{};
+l.push_back(&n2);
+
+node n3{};
+l.push_back(&n3);
+
+l.remove(&n2); // removal from the middle is constant-time
+l.pop_front();
+l.pop_back();
+----

@@ -1,0 +1,27 @@
+
+== `priority.hpp`
+
+`priority_t<N>` is a class that can be used for easily selecting complex
+function overloads. `priority_t<0>` is the lowest priority. `priority<N>` is a
+value of type `priority_t<N>`.
+
+[source,cpp]
+----
+template </*some strong constraint*/ T>
+auto f(T t, stdx::priority_t<2>) {
+  // highest priority: call this function if possible
+}
+
+template </*some weaker/less preferred constraint*/ T>
+auto f(T t, stdx::priority_t<1>) {
+  // call this function if the highest-priority overload can't be called
+}
+
+template <typename /*no constraint*/ T>
+auto f(T t, stdx::priority_t<0>) {
+  // fallback to this function if both higher priority overloads don't fit
+}
+
+// at the call site, use the highest priority
+auto result = f(t, stdx::priority<2>);
+----

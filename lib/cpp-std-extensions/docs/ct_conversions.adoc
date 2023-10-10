@@ -1,0 +1,15 @@
+
+== `ct_conversions.hpp`
+
+https://github.com/intel/cpp-std-extensions/blob/main/include/stdx/ct_conversions.hpp[`ct_conversions.hpp`]
+provides two compile-time functions for obtaining strings of type names and
+enumerator names.
+
+[source,cpp]
+----
+template <typename T>
+consteval auto type_as_string() -> std::string_view;
+
+template <auto E>
+consteval auto enum_as_string() -> std::string_view;
+----

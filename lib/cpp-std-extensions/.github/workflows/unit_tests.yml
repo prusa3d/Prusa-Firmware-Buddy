@@ -1,0 +1,236 @@
+name: Unit Tests
+
+on:
+  workflow_dispatch:
+  merge_group:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  CMAKE_GENERATOR: Ninja
+  DEFAULT_CXX_STANDARD: 20
+  DEFAULT_LLVM_VERSION: 17
+  DEFAULT_GCC_VERSION: 12
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build_and_test:
+    runs-on: intel-ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [clang, gcc]
+        version: [12, 13, 14, 15, 16, 17]
+        cxx_standard: [17, 20]
+        stdlib: [libstdc++, libc++]
+        build_type: [Debug]
+        include:
+          - compiler: clang
+            cc: "clang"
+            cxx: "clang++"
+            cxx_flags: "-stdlib=libstdc++"
+          - version: 17
+            compiler: clang
+            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 17
+            toolchain_root: "/usr/lib/llvm-17"
+          - version: 17
+            compiler: clang
+            stdlib: libc++
+            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 17 && sudo apt install -y libc++-17-dev libc++abi-17-dev
+            cxx_flags: "-stdlib=libc++"
+          - version: 16
+            compiler: clang
+            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 16
+            toolchain_root: "/usr/lib/llvm-16"
+          - version: 16
+            compiler: clang
+            stdlib: libc++
+            install: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 16 && sudo apt install -y libc++-16-dev libc++abi-16-dev
+            cxx_flags: "-stdlib=libc++"
+          - version: 15
+            compiler: clang
+            install: sudo apt update && sudo apt install -y clang-15
+            toolchain_root: "/usr/lib/llvm-15"
+          - version: 15
+            compiler: clang
+            stdlib: libc++
+            install: sudo apt update && sudo apt install -y clang-15 libc++-15-dev libc++abi-15-dev
+            cxx_flags: "-stdlib=libc++"
+          - version: 14
+            compiler: clang
+            install: sudo apt update && sudo apt install -y clang-14
+            toolchain_root: "/usr/lib/llvm-14"
+          - version: 14
+            compiler: clang
+            stdlib: libc++
+            install: sudo apt update && sudo apt install -y clang-14 libc++-14-dev libc++abi-14-dev
+            cxx_flags: "-stdlib=libc++"
+          - compiler: gcc
+            toolchain_root: "/usr"
+            cxx_flags: ""
+          - version: 13
+            compiler: gcc
+            install: sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test && sudo apt update && sudo apt-get install -y gcc-13 g++-13
+            cc: "gcc-13"
+            cxx: "g++-13"
+          - version: 12
+            compiler: gcc
+            install: sudo apt update && sudo apt install -y gcc-12
+            cc: "gcc-12"
+            cxx: "g++-12"
+            cxx_flags: ""
+        exclude:
+          - compiler: gcc
+            version: 17
+          - compiler: gcc
+            version: 16
+          - compiler: gcc
+            version: 15
+          - compiler: gcc
+            version: 14
+          - compiler: clang
+            version: 13
+          - compiler: clang
+            version: 12
+          - compiler: gcc
+            stdlib: libc++
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          ${{ matrix.install }}
+          sudo apt install -y ninja-build
+
+      - name: Configure CMake
+        env:
+          CC: ${{matrix.toolchain_root}}/bin/${{matrix.cc}}
+          CXX: ${{matrix.toolchain_root}}/bin/${{matrix.cxx}}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_CXX_STANDARD=${{matrix.cxx_standard}} -DCMAKE_CXX_FLAGS_INIT=${{matrix.cxx_flags}} -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+
+      - name: Build Unit Tests
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}} -v -t build_unit_tests
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -j $(nproc) -C ${{matrix.build_type}}
+
+  quality_checks_pass:
+    runs-on: intel-ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{env.DEFAULT_LLVM_VERSION}}
+          sudo apt install -y python3-pip ninja-build clang-tidy-${{env.DEFAULT_LLVM_VERSION}} clang-format-${{env.DEFAULT_LLVM_VERSION}}
+
+      - name: Install cmake-format
+        run: |
+          sudo pip3 install --upgrade pip
+          sudo pip3 install pyyaml cmake-format
+
+      - name: Configure CMake
+        env:
+          CC: "/usr/lib/llvm-${{env.DEFAULT_LLVM_VERSION}}/bin/clang"
+          CXX: "/usr/lib/llvm-${{env.DEFAULT_LLVM_VERSION}}/bin/clang++"
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_CXX_STANDARD=${{env.DEFAULT_CXX_STANDARD}}
+
+      - name: Run quality checks
+        run: cmake --build ${{github.workspace}}/build -t quality
+
+  sanitize:
+    runs-on: intel-ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [undefined, address, thread]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh ${{env.DEFAULT_LLVM_VERSION}}
+          sudo apt install -y ninja-build
+
+      - name: Configure CMake
+        env:
+          CC: "/usr/lib/llvm-${{env.DEFAULT_LLVM_VERSION}}/bin/clang"
+          CXX: "/usr/lib/llvm-${{env.DEFAULT_LLVM_VERSION}}/bin/clang++"
+          SANITIZERS: ${{matrix.sanitizer}}
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_CXX_STANDARD=${{env.DEFAULT_CXX_STANDARD}}
+
+      - name: Build Unit Tests
+        run: cmake --build ${{github.workspace}}/build -t unit_tests
+
+  valgrind:
+    runs-on: intel-ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: sudo apt update && sudo apt install -y gcc-12 ninja-build valgrind
+
+      - name: Configure CMake
+        env:
+          CC: "/usr/bin/gcc-${{env.DEFAULT_GCC_VERSION}}"
+          CXX: "/usr/bin/g++-${{env.DEFAULT_GCC_VERSION}}"
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_CXX_STANDARD=${{env.DEFAULT_CXX_STANDARD}}
+
+      - name: Build Unit Tests
+        run: cmake --build ${{github.workspace}}/build -t build_unit_tests
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: |
+          ctest -j $(nproc) -E EXPECT_FAIL -T memcheck
+
+          LOGFILE=$(ls ./Testing/Temporary/LastDynamicAnalysis_*.log)
+          FAILSIZE=$(du -c ./Testing/Temporary/MemoryChecker.* | tail -1 | cut -f1)
+          echo "<details>" >> $GITHUB_STEP_SUMMARY
+
+          echo "<summary>" >> $GITHUB_STEP_SUMMARY
+          if [ $FAILSIZE != "0" ]; then
+            echo "Failing tests:" | tee -a $GITHUB_STEP_SUMMARY
+          else
+            echo "No failing tests" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "</summary>" >> $GITHUB_STEP_SUMMARY
+
+          for f in ./Testing/Temporary/MemoryChecker.*
+          do
+            if [ -s $f ]; then
+              FILENAME=$(cd $(dirname $f) && pwd)/$(basename $f)
+              TEST_COMMAND=$(grep $FILENAME $LOGFILE)
+              echo "" | tee -a $GITHUB_STEP_SUMMARY
+              echo "========================================"
+              echo $TEST_COMMAND | tee -a $GITHUB_STEP_SUMMARY
+              echo "--------------------"
+              cat $f
+            fi
+          done
+
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          test $FAILSIZE = "0"
+
+  merge_ok:
+    runs-on: intel-ubuntu-22.04
+    needs: [build_and_test, quality_checks_pass, sanitize, valgrind]
+    if: ${{ always() }}
+    steps:
+      - name: Enable merge
+        if: >-
+          ${{
+               contains(needs.*.result, 'failure')
+            || contains(needs.*.result, 'cancelled')
+            || contains(needs.*.result, 'skipped')
+          }}
+        run: exit 1

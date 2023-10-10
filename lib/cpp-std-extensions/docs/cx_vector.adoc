@@ -1,0 +1,61 @@
+
+== `cx_vector.hpp`
+
+`cx_vector` is a contiguous data structure with a compile-time capacity and
+variable (but bounded) size. Basically parts of the `std::vector` interface
+applied to a `std::array`.
+
+[source,cpp]
+----
+template <typename T,
+          std::size_t N>
+class cx_vector;
+----
+
+The `cx_vector` interface:
+[source,cpp]
+----
+template <typename T, std::size_t N>
+auto f(stdx::cx_vector<T, N> v) {
+    // here we can:
+    std::size_t sz = v.size(); // ask for v's size
+    constexpr std::size_t cap = v.capacity(); // ask for v's capacity (same as N)
+    bool is_empty = v.empty(); // ask whether a cx_vector is empty
+    bool is_full = v.full(); // ask whether a cx_vector is full
+    bool equal = v == v; // compare two cx_vectors (of the same type)
+    v.clear() // clear a cx_vector
+
+    // we can use some of the usual functions
+    v.push_back(T{});
+    T& t1 = v[0];
+    T& t2 = v.back();
+    T t = v.pop_back();
+
+    // and use iterators:
+    // begin and end
+    // cbegin and cend
+    // rbegin and rend
+    // crbegin and crend
+    // (therefore also range-for loops)
+
+    // we can have compile-time access with get
+    T& t3 = get<0>(v);
+
+    // and we can use resize_and_overwrite for efficient initialization
+    resize_and_overwrite(v,
+      [] (T* data, std::size_t sz) -> std::size_t {
+        // copy Ts to data and return the new size
+        return 0;
+      });
+  }
+};
+----
+NOTE: `capacity` is always available as `constexpr`, even though `v` above is a
+function parameter and therefore not `constexpr`.
+
+A `cx_vector` may also be initialized with CTAD:
+[source,cpp]
+----
+// v is a cx_vector<int, 3>
+auto v = cx_vector{1, 2, 3};
+----
