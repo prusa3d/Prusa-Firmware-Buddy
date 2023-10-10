@@ -233,6 +233,24 @@ extern "C" void main_cpp(void) {
 
     wdt_iwdg_warning_cb = iwdg_warning_cb;
 
+    filesystem_init();
+
+    if (option::has_gui) {
+        osThreadCCMDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 512);
+        displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+    }
+
+    // Wait until bootloader is updated and dependencies installed.
+    // It needs lots of dynamic RAM, so by waiting with initialization of rest of the firmware, it will have more free memory available.
+    TaskDeps::wait(TaskDeps::Tasks::resources_ready);
+
+    static metric_handler_t *handlers[] = {
+        &metric_handler_syslog,
+        &metric_handler_info_screen,
+        NULL
+    };
+    metric_system_init(handlers);
+
 #if (BOARD_IS_BUDDY)
     buddy::hw::BufferedSerial::uart2.Open();
 #endif
@@ -250,26 +268,12 @@ extern "C" void main_cpp(void) {
     #endif
 #endif
 
-    filesystem_init();
-
-    static metric_handler_t *handlers[] = {
-        &metric_handler_syslog,
-        &metric_handler_info_screen,
-        NULL
-    };
-    metric_system_init(handlers);
-
 #if BUDDY_ENABLE_WUI()
     espif_init_hw();
 #endif
 
     osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-
-    if (option::has_gui) {
-        osThreadCCMDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 512);
-        displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
-    }
 
 #if ENABLED(POWER_PANIC)
     power_panic::check_ac_fault_at_startup();
