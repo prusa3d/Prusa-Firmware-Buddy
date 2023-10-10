@@ -80,7 +80,7 @@ static USBH_StatusTypeDef USBH_exec(UsbhMscRequest::UsbhMscRequestOperation oper
 USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
     // we don't have any io scheduler, but if only tasks with the same priority send
     // their requests, they will be distributed fairly
-    assert((DWORD)request->data & 3);
+    assert(((DWORD)request->data & 3) == 0);
 #ifdef USBH_MSC_READAHEAD
     switch (request->operation) {
     case UsbhMscRequest::UsbhMscRequestOperation::Read:
