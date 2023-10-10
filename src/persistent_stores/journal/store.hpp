@@ -59,10 +59,9 @@ template <class Config, class DeprecatedItems, const std::span<const journal::Ba
 class Store : public Config {
 
     void dump_items() {
-        std::apply([](auto &&...args) {
+        to_tie(*static_cast<Config *>(this)).apply([](auto &&...args) {
             (args.ram_dump(), ...);
-        },
-            to_tie(*static_cast<Config *>(this)));
+        });
     }
 
 public:
