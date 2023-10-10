@@ -703,7 +703,6 @@ void Server::stop() {
 #if USE_ASYNCIO
 void Server::TransferSlot::release() {
     expected_data = 0;
-    reqs_pending = 0;
     if (!done_called && transfer != nullptr) {
         // Just make sure each file gets closed and transfer gets done.
         //

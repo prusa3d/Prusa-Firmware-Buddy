@@ -170,7 +170,6 @@ public:
 
     void done(DownloadStep how) {
         if (phase != Phase::Done) {
-            phase_payload = monostate {};
             if (conn != nullptr) {
                 // This happens during error states. When we successfuly
                 // transfer everything, the conn is already passed into the
