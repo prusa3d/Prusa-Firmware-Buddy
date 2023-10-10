@@ -27,6 +27,7 @@
 #include "fs_event_autolock.hpp"
 #include <config_store/store_instance.hpp>
 #include <option/has_bowden.h>
+#include <option/has_human_interactions.h>
 
 uint filament_gcodes::InProgress::lock = 0;
 
@@ -219,31 +220,33 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
             return;
         }
 
-        PreheatData data(PreheatMode::Autoload, RetAndCool_t::Return);
-        auto preheat_ret = preheat_for_change_load(data, target_extruder);
+        if constexpr (option::has_human_interactions) {
+            PreheatData data(PreheatMode::Autoload, RetAndCool_t::Return);
+            auto preheat_ret = preheat_for_change_load(data, target_extruder);
 
-        if (preheat_ret.first) {
-            // canceled
-            Pause::Instance().UnloadFromGear();
-            M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
-            FSensors_instance().ClrAutoloadSent();
-            return;
-        }
+            if (preheat_ret.first) {
+                // canceled
+                Pause::Instance().UnloadFromGear();
+                M70X_process_user_response(PreheatStatus::Result::DoneNoFilament, target_extruder);
+                FSensors_instance().ClrAutoloadSent();
+                return;
+            }
 
-        filament::Type filament = preheat_ret.second;
-        filament::set_type_to_load(filament);
-        filament::set_color_to_load(std::nullopt);
+            filament::Type filament = preheat_ret.second;
+            filament::set_type_to_load(filament);
+            filament::set_color_to_load(std::nullopt);
 
-        if (z_min_pos > 0 && z_min_pos > current_position.z + 0.1F) {
-            xyz_pos_t park_position = { NAN, NAN, z_min_pos };
-            // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
-            settings.SetParkPoint(park_position);
-        }
+            if (z_min_pos > 0 && z_min_pos > current_position.z + 0.1F) {
+                xyz_pos_t park_position = { NAN, NAN, z_min_pos };
+                // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
+                settings.SetParkPoint(park_position);
+            }
 
-        if (load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, settings)) {
-            M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
-        } else {
-            M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
+            if (load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, settings)) {
+                M70X_process_user_response(PreheatStatus::Result::DoneHasFilament, target_extruder);
+            } else {
+                M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
+            }
         }
     }
 
