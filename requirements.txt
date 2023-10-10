@@ -2,7 +2,7 @@ pip~=23.0
 ecdsa~=0.18
 polib~=1.2
 pyyaml~=6.0
-littlefs-python==0.4
+littlefs-python==0.8
 numpy~=1.24.0
 pillow~=9.5
 qoi~=0.3.1
