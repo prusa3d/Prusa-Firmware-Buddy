@@ -327,7 +327,6 @@ private:
     void run() __attribute__((noreturn)) {
         // Note: this is the only thing to initialize now, rest is after the tcpip
         // thread starts.
-        TaskDeps::wait(TaskDeps::Tasks::lwip_start);
         tcpip_init(tcpip_init_done_raw, this);
 
         prusalink_password_init();
