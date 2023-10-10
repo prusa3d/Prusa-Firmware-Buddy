@@ -201,16 +201,6 @@ void DialogHandler::command(fsm::DequeStates changes) {
     return;
 }
 
-void DialogHandler::WaitUntilClosed(ClientFSM dialog, fsm::BaseData data) {
-    PreOpen(dialog, data);
-    waiting_closed = dialog;
-    while (waiting_closed == dialog) {
-        gui::TickLoop();
-        Loop();
-        gui_loop();
-    }
-}
-
 void DialogHandler::PreOpen([[maybe_unused]] ClientFSM dialog, fsm::BaseData data) {
     const fsm::Change change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
     Command(change.serialize());

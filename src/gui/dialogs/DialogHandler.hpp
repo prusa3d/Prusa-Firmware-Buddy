@@ -27,7 +27,6 @@ public:
     static void PreOpen(ClientFSM dialog, fsm::BaseData data); // can be enforced (pre opened), unlike change/close
 
     void Loop(); // synchronization loop, call it outside event
-    void WaitUntilClosed(ClientFSM dialog, fsm::BaseData data); // opens dialog, waits until closed, auto loops
     bool IsOpen() const; // returns true if any dialog is active (we dont want popups)
 
     bool IsOpen(ClientFSM fsm) const;
