@@ -45,7 +45,7 @@ static_assert(ftrstd::to_underlying(Dependency::_count) <= sizeof(dependency_t) 
 // Create dependency mask from the dependencies enum
 constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
     // Feel free to lift the assert in case some build configuration results in empty list
-#if (NETWORK_DEPENDS_ON_ASYNCIO || NETWORK_DEPENDS_ON_ESP_FLASHED) && BOOTLOADER_UPDATE()
+#if (NETWORK_DEPENDS_ON_ASYNCIO || NETWORK_DEPENDS_ON_ESP_FLASHED)
     static_assert(sizeof...(dependencies) > 0, "No dependencies, is this intended?");
 #endif
     return ((1 << ftrstd::to_underlying(dependencies)) | ... | 0);
@@ -61,7 +61,9 @@ namespace Tasks {
     inline constexpr dependency_t puppy_start = make(Dependency::resources_ready, Dependency::manufacture_report_sent);
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
+    inline constexpr dependency_t resources_ready = make(Dependency::resources_ready);
     inline constexpr dependency_t connect = make(Dependency::networking_ready);
+
     inline constexpr dependency_t network = make(
         // 1. Leave RAM for resource initiation.
         // 2. Don't start the server before we have the index.html, etc.
