@@ -45,14 +45,6 @@ struct StartConnectDownload {
     SharedPath path;
     // Port override.
     std::optional<uint16_t> port;
-    // For unencrypted downloads
-    struct Plain {
-        // The hash itself is max 28 chars
-        static constexpr size_t HASH_BUFF = 29;
-        // In the original string form
-        char hash[HASH_BUFF];
-        uint64_t team;
-    };
 
     struct Encrypted {
         static constexpr size_t BLOCK_SIZE = 16;
@@ -63,7 +55,7 @@ struct StartConnectDownload {
         uint32_t orig_size;
     };
 
-    using Details = std::variant<Plain, Encrypted>;
+    using Details = std::variant<Encrypted>;
     Details details;
 };
 struct DeleteFile {

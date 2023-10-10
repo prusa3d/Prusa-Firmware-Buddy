@@ -50,7 +50,6 @@ namespace {
     struct DownloadAccumulator {
         bool ok = true;
         optional<StartConnectDownload::Details> details;
-        bool has_team = false;
         bool has_key = false;
         bool has_iv = false;
         bool has_size = false;
@@ -65,9 +64,6 @@ namespace {
             } else {
                 ok = false;
             }
-        }
-        bool validate(const StartConnectDownload::Plain &plain) const {
-            return has_team && plain.hash[0] != '\0';
         }
         bool validate([[maybe_unused]] const StartConnectDownload::Encrypted &encrypted) const {
             return has_key && has_iv && has_size;
@@ -155,10 +151,7 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("DELETE_FOLDER", DeleteFolder)
             T("CREATE_FOLDER", CreateFolder)
             T("STOP_TRANSFER", StopTransfer)
-            if (event.value == "START_CONNECT_DOWNLOAD") {
-                data = StartConnectDownload {};
-                download_acc.set<StartConnectDownload::Plain>([&]([[maybe_unused]] auto &d) {});
-            } else if (event.value == "START_ENCRYPTED_DOWNLOAD") {
+            if (event.value == "START_ENCRYPTED_DOWNLOAD") {
                 data = StartConnectDownload {};
                 download_acc.set<StartConnectDownload::Encrypted>([&]([[maybe_unused]] auto &d) {});
             } else {
@@ -176,22 +169,8 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             const size_t len = min(event.value->size() + 1, buff.size());
             strlcpy(reinterpret_cast<char *>(buff.data()), event.value->data(), len);
             has_path = true;
-        } else if (is_arg("team_id", Type::Primitive)) {
-            if (auto val = convert_int<uint64_t>(event); val.has_value()) {
-                download_acc.set<StartConnectDownload::Plain>([&](auto &d) {
-                    d.team = *val;
-                    download_acc.has_team = true;
-                });
-            } else {
-                download_acc.ok = false;
-            }
         } else if (is_arg("port", Type::Primitive)) {
             port = convert_int<uint16_t>(event);
-        } else if (is_arg("hash", Type::String)) {
-            download_acc.set<StartConnectDownload::Plain>([&](auto &d) {
-                const size_t len = min(event.value->size() + 1, sizeof d.hash);
-                strlcpy(d.hash, event.value->data(), len);
-            });
         } else if (is_arg("key", Type::String)) {
             download_acc.set<StartConnectDownload::Encrypted>([&](auto &d) {
                 download_acc.has_key = download_acc.decode_hex(event, d.key);

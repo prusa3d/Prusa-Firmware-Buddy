@@ -96,50 +96,6 @@ TEST_CASE("Send transfer info") {
     command_test<SendTransferInfo>("{\"command\": \"SEND_TRANSFER_INFO\", \"args\": [], \"kwargs\": {}}");
 }
 
-TEST_CASE("Start connect download - missing params") {
-    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {}}");
-    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"hash\": \"abcdef\"}}");
-    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42}}");
-    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"team_id\": 42, \"hash\": \"abcdef\"}}");
-}
-
-TEST_CASE("Start connect download") {
-    auto cmd = command_test<StartConnectDownload>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\"}}");
-    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
-    REQUIRE_FALSE(cmd.port.has_value());
-    auto plain = get_if<StartConnectDownload::Plain>(&cmd.details);
-    REQUIRE(plain != nullptr);
-    REQUIRE(strcmp(plain->hash, "abcdef") == 0);
-    REQUIRE(plain->team == 42);
-}
-
-TEST_CASE("Start connect download with port") {
-    auto cmd = command_test<StartConnectDownload>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\", \"port\": 444}}");
-    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
-    REQUIRE(cmd.port == 444);
-    auto plain = get_if<StartConnectDownload::Plain>(&cmd.details);
-    REQUIRE(plain != nullptr);
-    REQUIRE(strcmp(plain->hash, "abcdef") == 0);
-    REQUIRE(plain->team == 42);
-}
-
-TEST_CASE("Start connect download - reversed") {
-    // The command field is after the args, check that we are able to deal with it in the wrong order too.
-    auto cmd = command_test<StartConnectDownload>("{\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"team_id\": 42, \"hash\": \"abcdef\"}, \"command\": \"START_CONNECT_DOWNLOAD\"}");
-    REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
-    auto plain = get_if<StartConnectDownload::Plain>(&cmd.details);
-    REQUIRE(plain != nullptr);
-    REQUIRE(strcmp(plain->hash, "abcdef") == 0);
-    REQUIRE(plain->team == 42);
-}
-
-// Can't decide if it shall or shall not be encrypted.
-TEST_CASE("Start connect download - colliding params") {
-    command_test<BrokenCommand>("{\"command\": \"START_CONNECT_DOWNLOAD\", \"args\": [], \"kwargs\": {\"team_id\": 42, \"hash\": \"abcdef\", \"orig_size\": 42}}");
-    command_test<BrokenCommand>("{\"command\": \"START_ENCRYPTED_DOWNLOAD\", \"args\": [], \"kwargs\": {\"team_id\": 42, \"hash\": \"abcdef\", \"orig_size\": 42}}");
-    command_test<BrokenCommand>("{\"command\": \"START_ENCRYPTED_DOWNLOAD\", \"args\": [], \"kwargs\": {\"team_id\": 42, \"hash\": \"abcdef\"}}");
-}
-
 TEST_CASE("Start connect download - encrypted") {
     auto cmd = command_test<StartConnectDownload>("{\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"key\": \"000102030405060708090a0B0c0D0e0F\", \"iv\": \"101112131415161718191a1B1c1D1e1F\", \"orig_size\": 42}, \"command\": \"START_ENCRYPTED_DOWNLOAD\"}");
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
