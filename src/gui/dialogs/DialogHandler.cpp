@@ -49,9 +49,6 @@ static void OpenPrintScreen(ClientFSM dialog) {
 //*****************************************************************************
 // method definitions
 void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
-    ++opened_times[size_t(fsm_type)]; // preopen can mess this up
-    log_info(GUI, "Dialog opened_times[%u] = %u", size_t(fsm_type), opened_times[size_t(fsm_type)]);
-
     if (ptr)
         return; // the dialog is already opened, not an error, we can preopen dialogs or even screens (wizard)
 
@@ -92,9 +89,6 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
 }
 
 void DialogHandler::close(ClientFSM fsm_type) {
-    ++closed_times[size_t(fsm_type)];
-    log_info(GUI, "Dialog closed_times[%u] = %u", size_t(fsm_type), closed_times[size_t(fsm_type)]);
-
     if (waiting_closed == fsm_type) {
         waiting_closed = ClientFSM::_none;
     } else {
