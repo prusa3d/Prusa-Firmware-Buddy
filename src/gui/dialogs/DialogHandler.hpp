@@ -7,7 +7,6 @@
 class DialogHandler {
     static_unique_ptr<IDialogMarlin> ptr;
     DialogFactory::Ctors dialog_ctors;
-    ClientFSM waiting_closed = ClientFSM::_none;
     fsm::SmartQueue command_queue;
 
     DialogHandler(DialogFactory::Ctors ctors)

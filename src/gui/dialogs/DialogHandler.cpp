@@ -89,26 +89,20 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
 }
 
 void DialogHandler::close(ClientFSM fsm_type) {
-    if (waiting_closed == fsm_type) {
-        waiting_closed = ClientFSM::_none;
-    } else {
-
-        // following are screens (not dialogs)
-        switch (fsm_type) {
-        case ClientFSM::Serial_printing:
-        case ClientFSM::Printing:
-            Screens::Access()->CloseAll();
-            break;
-        case ClientFSM::PrintPreview:
-        case ClientFSM::CrashRecovery:
-        case ClientFSM::Selftest:
-            Screens::Access()->Close();
-            break;
-        default:
-            break;
-        }
+    // following are screens (not dialogs)
+    switch (fsm_type) {
+    case ClientFSM::Serial_printing:
+    case ClientFSM::Printing:
+        Screens::Access()->CloseAll();
+        break;
+    case ClientFSM::PrintPreview:
+    case ClientFSM::CrashRecovery:
+    case ClientFSM::Selftest:
+        Screens::Access()->Close();
+        break;
+    default:
+        break;
     }
-
     ptr = nullptr; // destroy current dialog
 }
 
