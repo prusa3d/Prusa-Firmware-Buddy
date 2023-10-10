@@ -251,3 +251,4 @@ target_include_directories(
   )
 
 target_link_libraries(Marlin PUBLIC Arduino::Core Arduino::TMCStepper Marlin_Config error_codes)
+target_link_libraries(Marlin PRIVATE CppStdExtensions)

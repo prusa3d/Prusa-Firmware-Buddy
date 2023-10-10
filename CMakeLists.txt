@@ -628,6 +628,7 @@ if(BOARD MATCHES "BUDDY")
             jsmn::jsmn
             QR
             Buddy::Lang
+            CppStdExtensions
             printf::printf
             sysbase
             Segger
