@@ -87,7 +87,7 @@ void components_init();
  * Check whether all dependencies are fulfilled already
  */
 inline bool check(dependency_t dependencies) {
-    return xEventGroupGetBits(components_ready) & dependencies;
+    return (xEventGroupGetBits(components_ready) & dependencies) == dependencies;
 }
 
 /**
