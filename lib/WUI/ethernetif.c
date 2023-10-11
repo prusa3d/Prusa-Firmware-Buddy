@@ -161,7 +161,10 @@ static void low_level_init(struct netif *netif) {
     // set  mac address from OTP memory
     heth.Init.MACAddr = ethernetif_get_mac();
     heth.Init.RxMode = ETH_RXINTERRUPT_MODE;
-    heth.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
+    // Hardware checksum seems to reset correctly computed ICMP checksums to 0
+    // Anyway we don't need it, since we compute checksums in software because of the ESP
+    // TODO: LWIP now supports setting checksum policy per device.
+    heth.Init.ChecksumMode = ETH_CHECKSUM_BY_SOFTWARE;
     heth.Init.MediaInterface = ETH_MEDIA_INTERFACE_RMII;
 
     HAL_ETH_Init(&heth);
