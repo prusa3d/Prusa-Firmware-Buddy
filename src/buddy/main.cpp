@@ -311,8 +311,6 @@ extern "C" void main_cpp(void) {
 
     MX_FATFS_Init();
 
-    usb_device_init();
-
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
     HAL_PWM_Initialized = 1;
@@ -348,6 +346,8 @@ extern "C" void main_cpp(void) {
         HAL_NVIC_SystemReset();
     }
 #endif
+
+    usb_device_init();
 
 #if ENABLED(RESOURCES())
     resources_update();
