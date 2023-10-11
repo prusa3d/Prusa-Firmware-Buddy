@@ -18,15 +18,14 @@
 #include <option/has_dwarf.h>
 #include <ccm_thread.hpp>
 #include "bsod_gui.hpp"
+#include "gui_bootstrap_screen.hpp"
 
 LOG_COMPONENT_DEF(Puppies, LOG_SEVERITY_DEBUG);
 
 namespace buddy::puppies {
 
 osThreadId puppy_task_handle;
-osMutexDef(bootstrap_progress_lock);
-osMutexId bootstrap_progress_lock_id;
-std::optional<PuppyBootstrap::Progress> bootstrap_progress;
+
 std::atomic<bool> stop_request = false; // when this is set to true, puppy task will gracefully stop its execution
 
 static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::BootstrapResult minimal_config) {
@@ -34,9 +33,7 @@ static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::Bootstr
     log_info(Puppies, "Starting bootstrap");
     PuppyBootstrap puppy_bootstrap(PuppyModbus::share_buffer(), [](PuppyBootstrap::Progress progress) {
         log_info(Puppies, "Bootstrap stage: %s", progress.description());
-        osMutexWait(bootstrap_progress_lock_id, osWaitForever);
-        bootstrap_progress = progress;
-        osMutexRelease(bootstrap_progress_lock_id);
+        gui_bootstrap_screen_set_state(progress.percent_done, progress.description());
     });
     return puppy_bootstrap.run(minimal_config);
 }
@@ -77,17 +74,6 @@ static void verify_puppies_running() {
             fatal_error(ErrCode::ERR_SYSTEM_PUPPY_RUN_TIMEOUT);
         }
     } while (true);
-}
-
-std::optional<PuppyBootstrap::Progress> get_bootstrap_progress() {
-    if (!bootstrap_progress_lock_id) {
-        return std::nullopt;
-    }
-
-    osMutexWait(bootstrap_progress_lock_id, osWaitForever);
-    auto progress = bootstrap_progress;
-    osMutexRelease(bootstrap_progress_lock_id);
-    return progress;
 }
 
 static void puppy_task_loop() {
@@ -271,7 +257,6 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 }
 
 void start_puppy_task() {
-    bootstrap_progress_lock_id = osMutexCreate(osMutex(bootstrap_progress_lock));
 
     osThreadCCMDef(puppies, puppy_task_body, TASK_PRIORITY_PUPPY_TASK, 0, 512);
     puppy_task_handle = osThreadCreate(osThread(puppies), NULL);

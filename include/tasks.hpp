@@ -30,7 +30,7 @@ enum class Dependency {
 #ifdef USE_ASYNCIO
     async_io_ready,
 #endif
-
+    gui_screen_ready,
     _count
 };
 
@@ -58,7 +58,19 @@ namespace Tasks {
     );
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
-    inline constexpr dependency_t resources_ready = make(Dependency::resources_ready);
+    inline constexpr dependency_t bootstrap_done = make(
+        Dependency::resources_ready
+#if NETWORK_DEPENDS_ON_ESP_FLASHED
+        ,
+        // This is temporary, remove once everyone has compatible hardware.
+        // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
+        Dependency::esp_flashed
+#endif
+#if HAS_PUPPIES()
+        ,
+        Dependency::puppies_ready
+#endif
+    );
     inline constexpr dependency_t connect = make(Dependency::networking_ready);
 
     inline constexpr dependency_t network = make(
@@ -74,6 +86,7 @@ namespace Tasks {
         Dependency::async_io_ready
 #endif
     );
+    inline constexpr dependency_t bootstrap_start = make(Dependency::gui_screen_ready);
 
 } // namespace Tasks
 

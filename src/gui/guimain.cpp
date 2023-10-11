@@ -23,6 +23,7 @@
 #include "screen_stack_overflow.hpp"
 #include "screen_filebrowser.hpp"
 #include "screen_printing.hpp"
+#include "gui_bootstrap_screen.hpp"
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
@@ -44,13 +45,7 @@
 #include "touch_dependency.hpp"
 #include "language_eeprom.hpp"
 
-#include <option/bootloader.h>
-#include <option/bootloader_update.h>
-#include <option/resources.h>
-#include <option/has_puppies.h>
-#include <option/has_puppies_bootloader.h>
 #include <option/has_side_leds.h>
-#include <option/has_embedded_esp32.h>
 
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
     #include "hw_configuration.hpp"
@@ -58,19 +53,6 @@
 
 #if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
-#endif
-
-#if ENABLED(RESOURCES())
-    #include "resources/bootstrap.hpp"
-    #include "resources/revision_standard.hpp"
-#endif
-#if ENABLED(HAS_PUPPIES())
-    #include "puppies/PuppyBootstrap.hpp"
-    #include "puppies/puppy_task.hpp"
-using buddy::puppies::PuppyBootstrap;
-#endif
-#if BOTH(RESOURCES(), BOOTLOADER())
-    #include "bootloader/bootloader.hpp"
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -96,7 +78,6 @@ using buddy::puppies::PuppyBootstrap;
     #include "led_animations/printer_animation_state.hpp"
 #endif
 #include "log.h"
-#include <esp_flash.hpp>
 #include <printers.h>
 
 #include <option/has_selftest_snake.h>
@@ -222,7 +203,7 @@ static void Startup_cb(void) {
 
 // Draw smooth progressbar 1s
 // Bootstrap resets the progressbar so we go from 0%
-bool fw_gui_splash_progress([[maybe_unused]] bool bootstrap) {
+bool fw_gui_splash_progress() {
     static uint32_t start = gui::GetTick_ForceActualization();
     static uint32_t tick = 0;
     static uint32_t last_tick = 0;
@@ -234,15 +215,7 @@ bool fw_gui_splash_progress([[maybe_unused]] bool bootstrap) {
         percent = (tick - start) / (1000 / 100); // 1000ms / 100%
         percent = percent > 100 ? 100 : percent;
 
-#if PRINTER_IS_PRUSA_XL
-        // XL has a puppy bootstrap which ends the progress bar at buddy::puppies::max_bootstrap_perc
-        percent = buddy::puppies::max_bootstrap_perc + percent * buddy::puppies::max_bootstrap_perc / 100;
-#elif BOOTLOADER()
-        // when running under bootloader, we take over the progress bar at 50 %
-        if (!bootstrap) {
-            percent = 50 + percent / 2;
-        }
-#endif
+        percent = gui_bootstrap_screen_get_percent();
 
         GUIStartupProgress progr = { unsigned(percent), std::nullopt };
         event_conversion_union un;
@@ -340,110 +313,6 @@ void make_gui_ready_to_print() {
     }
 }
 } // anonymous namespace
-
-#if ENABLED(RESOURCES())
-// Return TRUE if bootloader was updated -> in this case we have to reset the system, because important data addresses could be moved
-static bool finish_update(bool &bootstrap_update /*OUT parameter for correct drawing of progressbar*/) {
-    #if ENABLED(BOOTLOADER_UPDATE())
-    display::FillRect(Rect16(0, SPLASHSCREEN_VERSION_Y + 18, display::GetW(), display::GetH() - SPLASHSCREEN_VERSION_Y - 18), COLOR_BLACK);
-    if (buddy::bootloader::needs_update()) {
-        buddy::bootloader::update(
-            [](int percent_done, buddy::bootloader::UpdateStage stage) {
-                std::optional<const char *> stage_description = std::nullopt;
-                switch (stage) {
-                case buddy::bootloader::UpdateStage::LookingForBbf:
-                    stage_description = "Looking for BBF...";
-                    break;
-                case buddy::bootloader::UpdateStage::PreparingUpdate:
-                case buddy::bootloader::UpdateStage::Updating:
-                    stage_description = "Updating bootloader";
-                    break;
-                default:
-                    bsod("unreachable");
-                }
-
-                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description.value_or(""), percent_done);
-                screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
-                gui_redraw();
-            });
-        return true;
-    }
-    #endif
-
-    if (!buddy::resources::has_resources(buddy::resources::revision::standard)) {
-        bootstrap_update = true;
-        buddy::resources::bootstrap(
-            buddy::resources::revision::standard, [](int percent_done, buddy::resources::BootstrapStage stage) {
-                std::optional<const char *> stage_description = std::nullopt;
-                switch (stage) {
-                case buddy::resources::BootstrapStage::LookingForBbf:
-                    stage_description = "Looking for BBF...";
-                    break;
-                case buddy::resources::BootstrapStage::PreparingBootstrap:
-                    stage_description = "Preparing";
-                    break;
-                case buddy::resources::BootstrapStage::CopyingFiles:
-                    stage_description = "Installing";
-                    break;
-                default:
-                    bsod("unreachable");
-                }
-                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description.value_or(""), percent_done);
-                screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
-                gui_redraw();
-            });
-    }
-    TaskDeps::provide(TaskDeps::Dependency::resources_ready);
-    return false;
-}
-#endif
-
-#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
-// This is temporary, remove once everyone has compatible hardware.
-// Requires new sandwich rev. 06 or rev. 05 with R83 removed.
-
-    #if HAS_EMBEDDED_ESP32()
-static void finish_update_ESP32() {
-    // Show ESP flash progress
-    while (TaskDeps::check(TaskDeps::Dependency::esp_flashed) == false) {
-        const ESPFlash::Progress progress = ESPFlash::get_progress();
-        const uint8_t percent = progress.bytes_total ? 100 * progress.bytes_flashed / progress.bytes_total : 0;
-        std::optional<const char *> stage_description = std::nullopt;
-        switch (progress.state) {
-        case ESPFlash::State::Init:
-            stage_description = "Connecting ESP";
-            break;
-        case ESPFlash::State::WriteData:
-            stage_description = "Flashing ESP";
-            break;
-        case ESPFlash::State::Checking:
-            stage_description = "Checking ESP";
-            break;
-        default:
-            stage_description = "Unknown ESP state";
-        }
-        screen_splash_data_t::bootstrap_cb(percent, stage_description);
-
-        gui_redraw();
-        osDelay(20);
-    }
-}
-    #endif
-#endif
-
-#if ENABLED(HAS_PUPPIES())
-static void finish_update_puppies() {
-    // wait for puppies to become available
-    while (TaskDeps::check(TaskDeps::Dependency::puppies_ready) == false) {
-        auto progress = buddy::puppies::get_bootstrap_progress();
-        if (progress.has_value()) {
-            screen_splash_data_t::bootstrap_cb(progress->percent_done * buddy::puppies::max_bootstrap_perc / 100, progress->description());
-            gui_redraw();
-        }
-        osDelay(20);
-    }
-}
-#endif
 
 static void log_onewire_otp() {
 #if DEVELOPMENT_ITEMS()
@@ -578,29 +447,8 @@ void gui_run(void) {
 #if HAS_LEDS()
     leds::Init();
 #endif
-
-    bool bootstrap_update = false; // Out parameter for progressbar drawing
-#if ENABLED(RESOURCES())
-    if (finish_update(bootstrap_update)) {
-        // Wait a while, before restart (this prevents some older board without appendix to enter internal bootloader on reset)
-        osDelay(300);
-        __disable_irq();
-        HAL_NVIC_SystemReset();
-    }
-#endif
-
-#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
-    // This is temporary, remove once everyone has compatible hardware.
-    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
-
-    #if HAS_EMBEDDED_ESP32()
-    finish_update_ESP32();
-    #endif
-#endif
-
-#if ENABLED(HAS_PUPPIES())
-    finish_update_puppies();
-#endif
+    // Show bootstrap screen untill firmware initializes
+    gui_bootstrap_screen_run();
 
     marlin_client::init();
     GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
@@ -615,8 +463,10 @@ void gui_run(void) {
 
     marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, nullptr);
 
-    while (fw_gui_splash_progress(bootstrap_update)) {
-    } // draw a smooth progressbar from 50% - 100%
+    while (fw_gui_splash_progress()) {
+    } // draw a smooth progressbar from last percent to 100%
+
+    gui_bootstrap_screen_delete();
 
 #if HAS_LEDS() && !HAS_SIDE_LEDS()
     // we need to step the animator, to move the started animation to current to let it run for one cycle

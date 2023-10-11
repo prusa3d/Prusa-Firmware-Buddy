@@ -10,6 +10,7 @@
 #include <log.h>
 #include <cstring>
 #include <bsod.h>
+#include "gui_bootstrap_screen.hpp"
 
 LOG_COMPONENT_DEF(EspFlash, LOG_SEVERITY_DEBUG);
 
@@ -156,11 +157,23 @@ ESPFlash::State ESPFlash::flash_part(esp_fw_entry &fwpart) {
 }
 
 void ESPFlash::update_progress() {
-    progress = { state, total_size, total_read };
-}
+    uint8_t percent = total_size ? 100 * total_read / total_size : 0;
+    const char *stage_description;
+    switch (state) {
+    case ESPFlash::State::Init:
+        stage_description = "Connecting ESP";
+        break;
+    case ESPFlash::State::WriteData:
+        stage_description = "Flashing ESP";
+        break;
+    case ESPFlash::State::Checking:
+        stage_description = "Checking ESP";
+        break;
+    default:
+        stage_description = "Unknown ESP state";
+    }
 
-ESPFlash::Progress ESPFlash::get_progress() {
-    return progress;
+    gui_bootstrap_screen_set_state(percent, stage_description);
 }
 
 void ESPFlash::fatal_err(const State state) {
@@ -179,5 +192,3 @@ void ESPFlash::fatal_err(const State state) {
         fatal_error(ErrCode::ERR_SYSTEM_ESP_UNKNOWN_ERR);
     }
 }
-
-ESPFlash::Progress ESPFlash::progress({ ESPFlash::State::Init, 0, 0 });

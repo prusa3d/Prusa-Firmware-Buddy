@@ -40,6 +40,8 @@
 #include <option/filament_sensor.h>
 #include <option/has_gui.h>
 #include <option/has_mmu2.h>
+#include <option/resources.h>
+#include <option/bootloader_update.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -49,10 +51,18 @@
 #include <printers.h>
 #include "version.h"
 #include "str_utils.hpp"
+#include "bootloader/bootloader.hpp"
+#include "gui_bootstrap_screen.hpp"
+#include "resources/bootstrap.hpp"
+#include "resources/revision.hpp"
 
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
     #include "puppies/puppy_task.hpp"
+#endif
+#if ENABLED(RESOURCES())
+    #include "resources/bootstrap.hpp"
+    #include "resources/revision_standard.hpp"
 #endif
 
 #if ENABLED(POWER_PANIC)
@@ -134,6 +144,59 @@ static void manufacture_report() {
     SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
+}
+
+#if ENABLED(RESOURCES()) && ENABLED(BOOTLOADER_UPDATE())
+// Return TRUE if bootloader was updated -> in this case we have to reset the system, because important data addresses could be moved
+static bool bootloader_update() {
+    if (buddy::bootloader::needs_update()) {
+        buddy::bootloader::update(
+            [](int percent_done, buddy::bootloader::UpdateStage stage) {
+                const char *stage_description = nullptr;
+                switch (stage) {
+                case buddy::bootloader::UpdateStage::LookingForBbf:
+                    stage_description = "Looking for BBF...";
+                    break;
+                case buddy::bootloader::UpdateStage::PreparingUpdate:
+                case buddy::bootloader::UpdateStage::Updating:
+                    stage_description = "Updating bootloader";
+                    break;
+                default:
+                    bsod("unreachable");
+                }
+
+                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
+                gui_bootstrap_screen_set_state(percent_done, stage_description);
+            });
+        return true;
+    }
+    return false;
+}
+#endif
+
+static void resources_update() {
+    if (!buddy::resources::has_resources(buddy::resources::revision::standard)) {
+        buddy::resources::bootstrap(
+            buddy::resources::revision::standard, [](int percent_done, buddy::resources::BootstrapStage stage) {
+                const char *stage_description = nullptr;
+                switch (stage) {
+                case buddy::resources::BootstrapStage::LookingForBbf:
+                    stage_description = "Looking for BBF...";
+                    break;
+                case buddy::resources::BootstrapStage::PreparingBootstrap:
+                    stage_description = "Preparing";
+                    break;
+                case buddy::resources::BootstrapStage::CopyingFiles:
+                    stage_description = "Installing";
+                    break;
+                default:
+                    bsod("unreachable");
+                }
+                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
+                gui_bootstrap_screen_set_state(percent_done, stage_description);
+            });
+    }
+    TaskDeps::provide(TaskDeps::Dependency::resources_ready);
 }
 
 extern "C" void main_cpp(void) {
@@ -268,14 +331,27 @@ extern "C" void main_cpp(void) {
 
     filesystem_init();
 
+    gui_bootstrap_screen_init();
+
     if (option::has_gui) {
         osThreadCCMDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 512);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
+    // wait for gui to init and render loading screen before starting flashing. It looks very laggy if we don't wait here.
+    TaskDeps::wait(TaskDeps::Tasks::bootstrap_start);
 
-    // Wait until bootloader is updated and dependencies installed.
-    // It needs lots of dynamic RAM, so by waiting with initialization of rest of the firmware, it will have more free memory available.
-    TaskDeps::wait(TaskDeps::Tasks::resources_ready);
+#if ENABLED(RESOURCES()) && ENABLED(BOOTLOADER_UPDATE())
+    if (bootloader_update()) {
+        // Wait a while, before restart (this prevents some older board without appendix to enter internal bootloader on reset)
+        osDelay(300);
+        __disable_irq();
+        HAL_NVIC_SystemReset();
+    }
+#endif
+
+#if ENABLED(RESOURCES())
+    resources_update();
+#endif
 
     static metric_handler_t *handlers[] = {
         &metric_handler_syslog,

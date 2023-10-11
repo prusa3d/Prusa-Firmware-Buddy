@@ -15,6 +15,7 @@ target_sources(
           file_sort.cpp
           fonts.cpp
           gcode_description.cpp
+          gui_bootstrap_screen.cpp
           gui_fsensor_api.cpp
           gui_media_events.cpp
           gui_time.cpp
