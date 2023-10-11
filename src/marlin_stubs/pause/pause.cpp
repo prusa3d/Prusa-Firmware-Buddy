@@ -1171,6 +1171,9 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
         return; // unable to reach safe temperature
     }
 
+    // Lock filament sensor, so it does not enqueue new M600, beacuse of filament run out
+    FS_EventAutolock runout_disable;
+
     // Indicate that the printer is paused
     ++did_pause_print;
 
@@ -1178,8 +1181,6 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
 
     // Wait for buffered blocks to complete
     planner.synchronize();
-    // Lock filament sensor, so it does not enqueue new M600, beacuse of filament run out
-    FS_EventAutolock runout_disable;
 
 #if ENABLED(ADVANCED_PAUSE_FANS_PAUSE) && FAN_COUNT > 0
     thermalManager.set_fans_paused(true);

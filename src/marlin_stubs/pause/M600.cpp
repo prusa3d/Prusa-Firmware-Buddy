@@ -72,20 +72,25 @@ static void M600_manual();
  */
 
 void GcodeSuite::M600() {
+    const bool is_auto_m600 = parser.seen('A');
+
     bool do_manual_m600 = true;
 
-    if (parser.seen('A')) {
 #if ENABLED(PRUSA_SPOOL_JOIN)
+    if (is_auto_m600) {
         if (spool_join.do_join(active_extruder)) {
             // if automatic M600 succeeded, don't do manual M600, if not, do manual M600
             do_manual_m600 = false;
         }
-#endif
-        FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
     }
+#endif
 
     if (do_manual_m600) {
         M600_manual();
+    }
+
+    if (is_auto_m600) {
+        FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
     }
 }
 
