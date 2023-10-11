@@ -99,16 +99,14 @@ TEST_CASE("Send transfer info") {
 TEST_CASE("Start connect download - encrypted") {
     auto cmd = command_test<StartConnectDownload>("{\"args\": [], \"kwargs\": {\"path\":\"/usb/whatever.gcode\", \"key\": \"000102030405060708090a0B0c0D0e0F\", \"iv\": \"101112131415161718191a1B1c1D1e1F\", \"orig_size\": 42}, \"command\": \"START_ENCRYPTED_DOWNLOAD\"}");
     REQUIRE(strcmp(cmd.path.path(), "/usb/whatever.gcode") == 0);
-    auto encrypted = get_if<StartConnectDownload::Encrypted>(&cmd.details);
-    REQUIRE(encrypted != nullptr);
-    REQUIRE(encrypted->orig_size == 42);
+    REQUIRE(cmd.orig_size == 42);
     array<uint8_t, 16> expected;
     for (uint8_t i = 0; i < expected.size(); i++) {
         expected[i] = i;
     }
-    REQUIRE(encrypted->key == expected);
+    REQUIRE(cmd.key == expected);
     for (uint8_t i = 0; i < expected.size(); i++) {
         expected[i] = 16 + i;
     }
-    REQUIRE(encrypted->iv == expected);
+    REQUIRE(cmd.iv == expected);
 }

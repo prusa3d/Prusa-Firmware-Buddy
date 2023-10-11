@@ -127,9 +127,6 @@ public:
     /// Continue the download.
     DownloadStep step();
 
-    /// Whether the same request can be made again with non-zero offset.
-    bool allows_random_access() const;
-
     /// Returns the final size of the file being downloaded.
     uint32_t file_size() const;
 

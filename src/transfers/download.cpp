@@ -496,13 +496,6 @@ uint32_t Download::file_size() const {
     return get_partial_file()->final_size();
 }
 
-bool Download::allows_random_access() const {
-    // TODO: We have dropped all the modes that do not support random access
-    // over the time. We can get rid of this method eventually, kept for now to
-    // minimize changes done at one go.
-    return true;
-}
-
 PartialFile::Ptr Download::get_partial_file() const {
     return async->destination;
 }

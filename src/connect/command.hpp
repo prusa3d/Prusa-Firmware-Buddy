@@ -46,17 +46,12 @@ struct StartConnectDownload {
     // Port override.
     std::optional<uint16_t> port;
 
-    struct Encrypted {
-        static constexpr size_t BLOCK_SIZE = 16;
-        using Block = std::array<uint8_t, BLOCK_SIZE>;
-        Block key;
-        Block iv;
-        // Fatfs can't do bigger than 4GB files anyway, right?
-        uint32_t orig_size;
-    };
-
-    using Details = std::variant<Encrypted>;
-    Details details;
+    static constexpr size_t BLOCK_SIZE = 16;
+    using Block = std::array<uint8_t, BLOCK_SIZE>;
+    Block key;
+    Block iv;
+    // Fatfs can't do bigger than 4GB files anyway, right?
+    uint32_t orig_size;
 };
 struct DeleteFile {
     SharedPath path;

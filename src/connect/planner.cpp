@@ -158,7 +158,7 @@ namespace {
     constexpr const char *const enc_suffix = "/raw";
     const size_t enc_prefix_len = strlen(enc_prefix);
     const size_t enc_suffix_len = strlen(enc_suffix);
-    const size_t iv_len = 2 /* Binary->hex conversion*/ * StartConnectDownload::Encrypted::BLOCK_SIZE;
+    const size_t iv_len = 2 /* Binary->hex conversion*/ * StartConnectDownload::BLOCK_SIZE;
     const size_t enc_url_len = enc_prefix_len + enc_suffix_len + iv_len + 1;
 
     void make_enc_url(char *buffer /* assumed to be at least enc_url_len large */, const Decryptor::Block &iv) {
@@ -191,13 +191,9 @@ namespace {
             return 0;
         };
 
-        if (auto *encrypted = get_if<StartConnectDownload::Encrypted>(&download.details); encrypted != nullptr) {
-            path = reinterpret_cast<char *>(alloca(enc_url_len));
-            make_enc_url(path, encrypted->iv);
-            encryption = make_unique<Download::EncryptionInfo>(encrypted->key, encrypted->iv, encrypted->orig_size);
-        } else {
-            assert(0);
-        }
+        path = reinterpret_cast<char *>(alloca(enc_url_len));
+        make_enc_url(path, download.iv);
+        encryption = make_unique<Download::EncryptionInfo>(download.key, download.iv, download.orig_size);
 
         auto request = Download::Request(host, port, path, get_headers, std::move(encryption));
 
@@ -597,18 +593,6 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
 
     if (transfer_recovery == TransferRecoveryState::WaitingForUSB) {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Not ready" };
-        return;
-    }
-
-    if (config.tls && !holds_alternative<StartConnectDownload::Encrypted>(download.details)) {
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Requested a non-encrypted download from TLS connection" };
-        return;
-    }
-
-    if (!holds_alternative<StartConnectDownload::Encrypted>(download.details)) {
-        // TODO: As we don't support this any more, we can wastly simplify stuff around here (eg. get rid of the variant, juggling with stuff, etc.
-        // In the Transfer too, we can unconditionally store the key/iv and forget the path constructed here.
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Plain downloads are no longer supported" };
         return;
     }
 

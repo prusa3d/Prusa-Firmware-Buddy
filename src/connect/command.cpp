@@ -49,27 +49,14 @@ namespace {
     // * Picks either of the flavors of the message and detects potential collisions.
     struct DownloadAccumulator {
         bool ok = true;
-        optional<StartConnectDownload::Details> details;
+        StartConnectDownload::Block key;
+        StartConnectDownload::Block iv;
+        size_t orig_size;
         bool has_key = false;
         bool has_iv = false;
         bool has_size = false;
-        template <class V, class C>
-        void set(C &&callback) {
-            if (!details.has_value()) {
-                details = V();
-            }
-
-            if (auto *v = get_if<V>(&details.value()); v != nullptr) {
-                callback(*v);
-            } else {
-                ok = false;
-            }
-        }
-        bool validate([[maybe_unused]] const StartConnectDownload::Encrypted &encrypted) const {
-            return has_key && has_iv && has_size;
-        }
         bool validate() const {
-            return ok && details.has_value() && visit([&](const auto &d) { return validate(d); }, *details);
+            return ok && has_key && has_iv && has_size;
         }
         template <size_t S>
         bool decode_hex(const Event &event, array<uint8_t, S> &dest) {
@@ -153,7 +140,6 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             T("STOP_TRANSFER", StopTransfer)
             if (event.value == "START_ENCRYPTED_DOWNLOAD") {
                 data = StartConnectDownload {};
-                download_acc.set<StartConnectDownload::Encrypted>([&]([[maybe_unused]] auto &d) {});
             } else {
                 return;
             }
@@ -172,19 +158,13 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
         } else if (is_arg("port", Type::Primitive)) {
             port = convert_int<uint16_t>(event);
         } else if (is_arg("key", Type::String)) {
-            download_acc.set<StartConnectDownload::Encrypted>([&](auto &d) {
-                download_acc.has_key = download_acc.decode_hex(event, d.key);
-            });
+            download_acc.has_key = download_acc.decode_hex(event, download_acc.key);
         } else if (is_arg("iv", Type::String)) {
-            download_acc.set<StartConnectDownload::Encrypted>([&](auto &d) {
-                download_acc.has_iv = download_acc.decode_hex(event, d.iv);
-            });
+            download_acc.has_iv = download_acc.decode_hex(event, download_acc.iv);
         } else if (is_arg("orig_size", Type::Primitive)) {
             if (auto val = convert_int<uint64_t>(event); val.has_value()) {
-                download_acc.set<StartConnectDownload::Encrypted>([&](auto &d) {
-                    d.orig_size = *val;
-                    download_acc.has_size = true;
-                });
+                download_acc.orig_size = *val;
+                download_acc.has_size = true;
             } else {
                 download_acc.ok = false;
             }
@@ -234,7 +214,9 @@ Command Command::parse_json_command(CommandId id, char *body, size_t body_size, 
             // are not yet agreed on the way we'll be doing decoding of the LFN
             // (or if at all, on our side).
             download->path = SharedPath(move(buff));
-            download->details = move(*download_acc.details);
+            download->key = download_acc.key;
+            download->iv = download_acc.iv;
+            download->orig_size = download_acc.orig_size;
             download->port = port;
         } else {
             // Missing parameters, conflicting parameters, etc..

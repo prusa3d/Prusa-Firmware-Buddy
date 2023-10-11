@@ -3,7 +3,6 @@
 #include <array>
 #include <cstdint>
 #include <cstdlib>
-#include <variant>
 #include <assert.h>
 
 #include <mbedtls/aes.h>
@@ -32,10 +31,6 @@ public:
         }
 
         void reset(const Block &nonce, uint32_t offset);
-
-        bool allows_random_access() const {
-            return true;
-        }
     };
 
     // TODO: Leftover from the time we supported multiple different modes. For
