@@ -46,6 +46,7 @@ typedef enum {
     METRIC_VALUE_INTEGER = 0x02,
     METRIC_VALUE_STRING = 0x03,
     METRIC_VALUE_CUSTOM = 0x04, // multiple values formatted via customized line protocol (see metrics.md)
+    METRIC_VALUE_LOG = 0x05, // Same as string, but datapoints with the same timestamp are appended and not overwritten (this is achieved by adding the _seq tag with unique value for each record)
 } metric_value_type_t;
 
 /// A metric definition.
@@ -118,11 +119,8 @@ typedef struct {
         /// Integer value (if metric.type == METRIC_VALUE_INTEGER)
         int value_int;
 
-        /// String value (if metric.type == METRIC_VALUE_STRING)
-        char value_str[48];
-
-        /// Custom value (if metric.type == METRIC_VALUE_CUSTOM)
-        char value_custom[48];
+        /// String value (if metric.type == METRIC_VALUE_STRING || METRIC_VALUE_LOG || METRIC_VALUE_CUSTOM)
+        char value_str_log_custom[48];
 
         /// Error message (if recording.error == true)
         char error_msg[48];
@@ -173,11 +171,22 @@ void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float val
 /// Record an integer with given timestamp (metric.type has to be METRIC_VALUE_INTEGER)
 void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value);
 
+/// Record a string/log/custom with given timestamp (metric.type has to be METRIC_VALUE_STRING or METRIC_VALUE_LOG or METRIC_VALUE_CUSTOM)
+void metric_record_str_log_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
+
 /// Record a string (metric.type has to be METRIC_VALUE_STRING)
 #define metric_record_string(metric, fmt, ...) metric_record_string_at_time(metric, ticks_ms(), fmt, ##__VA_ARGS__)
 
 /// Record a string with given timestamp (metric.type has to be METRIC_VALUE_STRING)
-void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
+#define metric_record_string_at_time(metric, timestamp, fmt, ...) metric_record_str_log_custom_at_time(metric, timestamp, fmt, ##__VA_ARGS__)
+
+/// Record a log (metric.type has to be METRIC_VALUE_LOG)
+/// Log is the same as string, but datapoints with the same timestamp are appended and not overwritten (this is achieved by adding the _seq tag with unique value for each record)
+#define metric_record_log(metric, fmt, ...) metric_record_log_at_time(metric, ticks_ms(), fmt, ##__VA_ARGS__)
+
+/// Record a log with given timestamp (metric.type has to be METRIC_VALUE_LOG)
+/// Log is the same as string, but datapoints with the same timestamp are appended and not overwritten (this is achieved by adding the _seq tag with unique value for each record)
+#define metric_record_log_at_time(metric, timestamp, fmt, ...) metric_record_str_log_custom_at_time(metric, timestamp, fmt, ##__VA_ARGS__)
 
 /// Record an event (metric.type has to be METRIC_VALUE_EVENT)
 #define metric_record_event(metric) metric_record_event_at_time(metric, ticks_ms())
@@ -189,7 +198,7 @@ void metric_record_event_at_time(metric_t *metric, uint32_t timestamp);
 #define metric_record_custom(metric, fmt, ...) metric_record_custom_at_time(metric, ticks_ms(), fmt, ##__VA_ARGS__)
 
 /// Record a custom event with given timestamp (metric.type has to be METRIC_VALUE_CUSTOM)
-void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
+#define metric_record_custom_at_time(metric, timestamp, fmt, ...) metric_record_str_log_custom_at_time(metric, timestamp, fmt, ##__VA_ARGS__)
 
 /// Records an error for a given metric.
 void metric_record_error(metric_t *metric, const char *fmt, ...);

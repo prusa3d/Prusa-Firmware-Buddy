@@ -13,14 +13,14 @@ void LogEchoEvent_P(const char *msg_P) {
     SERIAL_ECHOLN();
 }
 
-static metric_t metric_mmu_comm = METRIC("mmu_comm", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
+static metric_t metric_mmu_comm = METRIC("mmu_comm", METRIC_VALUE_LOG, 0, METRIC_HANDLER_DISABLE_ALL);
 
 void LogRequestMsg(const char *msg) {
-    metric_record_string(&metric_mmu_comm, "%s", msg);
+    metric_record_log(&metric_mmu_comm, "%s", msg);
 }
 
 void LogResponseMsg(const char *msg) {
-    metric_record_string(&metric_mmu_comm, "%s", msg);
+    metric_record_log(&metric_mmu_comm, "%s", msg);
 }
 
 } // namespace MMU2

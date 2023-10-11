@@ -38,47 +38,48 @@ static int textprotocol_append_escaped(char *buffer, int buffer_len, char *val) 
     return appended;
 }
 
-static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_t *point, int timestamp_diff) {
-    int buffer_used;
-    if (point->metric->type == METRIC_VALUE_CUSTOM) {
-        buffer_used = snprintf(buffer, buffer_len, "%s%s", point->metric->name, point->value_custom);
-    } else {
-        buffer_used = snprintf(buffer, buffer_len, "%s ", point->metric->name);
-    }
+/// Used for indexing METRIC_VALUE_LOG entries. Should be called from a single thread, so we don't need to make this atomic.
+static uint32_t metric_log_index_counter = 0;
 
-    // If we've clipped already, we don't need to continue further with snprintf
-    // Same logic applies for the same checks further in this function
-    if (buffer_used >= buffer_len) {
-        return buffer_used;
+static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_t *point, int timestamp_diff) {
+// If we've clipped already, we don't need to continue further with snprintf
+// Same logic applies for the same checks further in this function
+#define CHECK_BUFFER_END           \
+    if (buffer_used >= buffer_len) \
+    return buffer_used
+
+    int buffer_used = snprintf(buffer, buffer_len, "%s", point->metric->name);
+    CHECK_BUFFER_END;
+
+    if (point->metric->type == METRIC_VALUE_CUSTOM) {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "%s", point->value_str_log_custom);
+    } else if (point->metric->type == METRIC_VALUE_LOG) {
+        // Log -> we need to add a tag with an unique value each time to prevent the values from being overriden
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, ",_seq=%lu ", metric_log_index_counter++);
+    } else {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, " ");
     }
+    CHECK_BUFFER_END;
 
     if (point->metric->type == METRIC_VALUE_CUSTOM) {
     } else if (point->error) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"");
-        if (buffer_used >= buffer_len) {
-            return buffer_used;
-        }
+        CHECK_BUFFER_END;
 
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->error_msg);
-        if (buffer_used >= buffer_len) {
-            return buffer_used;
-        }
+        CHECK_BUFFER_END;
 
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
     } else if (point->metric->type == METRIC_VALUE_FLOAT) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%f", (double)point->value_float);
     } else if (point->metric->type == METRIC_VALUE_INTEGER) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%ii", point->value_int);
-    } else if (point->metric->type == METRIC_VALUE_STRING) {
+    } else if (point->metric->type == METRIC_VALUE_STRING || point->metric->type == METRIC_VALUE_LOG) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=\"");
-        if (buffer_used >= buffer_len) {
-            return buffer_used;
-        }
+        CHECK_BUFFER_END;
 
-        buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->value_str);
-        if (buffer_used >= buffer_len) {
-            return buffer_used;
-        }
+        buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->value_str_log_custom);
+        CHECK_BUFFER_END;
 
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
     } else if (point->metric->type == METRIC_VALUE_EVENT) {
@@ -86,13 +87,12 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
     } else {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"Unknown value type\"");
     }
-
-    if (buffer_used >= buffer_len) {
-        return buffer_used;
-    }
+    CHECK_BUFFER_END;
 
     buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, " %i\n", timestamp_diff);
     return buffer_used;
+
+#undef CHECK_BUFFER_END
 }
 
 //

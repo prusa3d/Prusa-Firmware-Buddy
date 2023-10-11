@@ -247,8 +247,8 @@ void __attribute__((weak)) PrusaGcodeSuite::G162() { log_error(PRUSA_GCODE, "G16
 void __attribute__((weak)) PrusaGcodeSuite::G163() { log_error(PRUSA_GCODE, "G163 unsupported"); }
 
 static void record_pre_gcode_metrics() {
-    static metric_t gcode = METRIC("gcode", METRIC_VALUE_STRING, 0, METRIC_HANDLER_DISABLE_ALL);
-    metric_record_string(&gcode, "%s", parser.command_ptr);
+    static metric_t gcode = METRIC("gcode", METRIC_VALUE_LOG, 0, METRIC_HANDLER_DISABLE_ALL);
+    metric_record_log(&gcode, "%s", parser.command_ptr);
 
 #if HAS_LOADCELL()
     static metric_t loadcell_scale_m = METRIC("loadcell_scale", METRIC_VALUE_FLOAT, 5000, METRIC_HANDLER_ENABLE_ALL);
