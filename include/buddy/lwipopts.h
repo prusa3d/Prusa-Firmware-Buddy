@@ -92,6 +92,8 @@ extern "C" {
 // Some attempts to "tune" it to use less memory in unstable network environment with many retries of new connections.
 #define LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT 5000 /* 5s for closing a connection must be enough... or let the other side time out */
 #define TCP_OVERSIZE                      128
+#define LWIP_TCP_SACK_OUT                 1
+#define TCP_OOSEQ_MAX_PBUFS               3
 
 #define LWIP_DNS 1
 /*
