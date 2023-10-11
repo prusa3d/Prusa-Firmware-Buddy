@@ -396,7 +396,7 @@ void screen_home_data_t::handle_wifi_credentials() {
         has_wifi_credentials = fl.get() != nullptr;
     }
     if (has_wifi_credentials && !is_name_and_psk_equal()) {
-        if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo)
+        if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo, 1)
             == Response::Yes) {
             const auto fw_state = esp_fw_state();
             const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
