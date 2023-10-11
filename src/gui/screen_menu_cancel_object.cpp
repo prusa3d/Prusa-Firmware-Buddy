@@ -108,4 +108,47 @@ void MI_CO_CANCEL_CURRENT::click(IWindowMenu & /*window_menu*/) {
     }
 }
 
+void ScreenMenuCancelObject::windowEvent(EventLock /*has private ctor*/, window_t *, GUI_event_t event, void *) {
+    if (event == GUI_event_t::LOOP) {
+        if (loop_index++ > 20) { // Approx once a second
+            loop_index = 0;
+            // Update all object names and visibility
+            Item<MI_CO_OBJECT<0>>().UpdateName();
+            Item<MI_CO_OBJECT<1>>().UpdateName();
+            Item<MI_CO_OBJECT<2>>().UpdateName();
+            Item<MI_CO_OBJECT<3>>().UpdateName();
+            Item<MI_CO_OBJECT<4>>().UpdateName();
+            Item<MI_CO_OBJECT<5>>().UpdateName();
+            Item<MI_CO_OBJECT<6>>().UpdateName();
+            Item<MI_CO_OBJECT<7>>().UpdateName();
+            Item<MI_CO_OBJECT<8>>().UpdateName();
+            Item<MI_CO_OBJECT<9>>().UpdateName();
+            Item<MI_CO_OBJECT<10>>().UpdateName();
+            Item<MI_CO_OBJECT<11>>().UpdateName();
+            Item<MI_CO_OBJECT<12>>().UpdateName();
+            Item<MI_CO_OBJECT<13>>().UpdateName();
+            Item<MI_CO_OBJECT<14>>().UpdateName();
+            Item<MI_CO_OBJECT<15>>().UpdateName();
+
+            Unblock(); // Allow button press once a second
+        }
+        // Update state of all items
+        Item<MI_CO_OBJECT<0>>().UpdateState();
+        Item<MI_CO_OBJECT<1>>().UpdateState();
+        Item<MI_CO_OBJECT<2>>().UpdateState();
+        Item<MI_CO_OBJECT<3>>().UpdateState();
+        Item<MI_CO_OBJECT<4>>().UpdateState();
+        Item<MI_CO_OBJECT<5>>().UpdateState();
+        Item<MI_CO_OBJECT<6>>().UpdateState();
+        Item<MI_CO_OBJECT<7>>().UpdateState();
+        Item<MI_CO_OBJECT<8>>().UpdateState();
+        Item<MI_CO_OBJECT<9>>().UpdateState();
+        Item<MI_CO_OBJECT<10>>().UpdateState();
+        Item<MI_CO_OBJECT<11>>().UpdateState();
+        Item<MI_CO_OBJECT<12>>().UpdateState();
+        Item<MI_CO_OBJECT<13>>().UpdateState();
+        Item<MI_CO_OBJECT<14>>().UpdateState();
+        Item<MI_CO_OBJECT<15>>().UpdateState();
+    }
+}
 #endif /* ENABLED(CANCEL_OBJECTS) */
