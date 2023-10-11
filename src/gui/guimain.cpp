@@ -589,9 +589,6 @@ void gui_run(void) {
     }
 #endif
 
-    // Postpone starting Marlin after USBSerial handling in manufacture_report()
-    TaskDeps::provide(TaskDeps::Dependency::usbserial_ready);
-
 #if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
     // Requires new sandwich rev. 06 or rev. 05 with R83 removed.

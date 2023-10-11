@@ -124,7 +124,7 @@ extern "C" void app_setup_marlin_logging();
  * in cross-linked messages because the logging subsystem intentionally has no prevention (locks/mutexes) against such a situation.
  * Therefore the only reliable output is the "Marlin's" serial output (before Marlin is actually started)
  * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot),
- * and Marlin itself is guaranteed to not have been started due to dependency USBSERIAL_READY.
+ * and Marlin itself is guaranteed to not have been started by order of startup task initialization
  */
 static void manufacture_report() {
     // The first '\n' is just a precaution - terminate any partially printed message from Marlin if any
@@ -134,8 +134,6 @@ static void manufacture_report() {
     SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
     SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
     SerialUSB.write('\n');
-
-    TaskDeps::provide(TaskDeps::Dependency::manufacture_report_sent);
 }
 
 extern "C" void main_cpp(void) {

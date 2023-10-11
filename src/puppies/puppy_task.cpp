@@ -189,7 +189,6 @@ static bool puppy_initial_scan() {
 }
 
 static void puppy_task_body([[maybe_unused]] void const *argument) {
-    TaskDeps::wait(TaskDeps::Tasks::puppy_start);
 
 #if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
