@@ -47,6 +47,8 @@
 #include "sound.hpp"
 #include <ccm_thread.hpp>
 #include <printers.h>
+#include "version.h"
+#include "str_utils.hpp"
 
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
@@ -102,6 +104,39 @@ void iwdg_warning_cb(void);
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[32];
 #endif
+
+extern "C" void app_setup_marlin_logging();
+
+/**
+ * @brief Bootstrap finished
+ *
+ * Report bootstrap finished and firmware version.
+ * This needs to be called after resources were successfully updated
+ * in xFlash. This also needs to be called even if xFlash / resources
+ * are unused. This needs to be output to standard USB CDC destination.
+ * Format of the messages can not be changed as test station
+ * expect those as step in manufacturing process.
+ * The board needs to be able to report this with no additional
+ * dependencies to connected peripherals.
+ *
+ * It is expected, that the testing station opens printer's serial port at 115200 bauds to obtain these messages.
+ * Beware: previous attempts to writing these messages onto USB CDC log destination (baudrate 57600) resulted
+ * in cross-linked messages because the logging subsystem intentionally has no prevention (locks/mutexes) against such a situation.
+ * Therefore the only reliable output is the "Marlin's" serial output (before Marlin is actually started)
+ * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot),
+ * and Marlin itself is guaranteed to not have been started due to dependency USBSERIAL_READY.
+ */
+static void manufacture_report() {
+    // The first '\n' is just a precaution - terminate any partially printed message from Marlin if any
+    static const uint8_t intro[] = "\nbootstrap finished\nfirmware version: ";
+
+    static_assert(sizeof(intro) > 1); // prevent accidental buffer underrun below
+    SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
+    SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
+    SerialUSB.write('\n');
+
+    TaskDeps::provide(TaskDeps::Dependency::manufacture_report_sent);
+}
 
 extern "C" void main_cpp(void) {
     // save and clear reset flags
@@ -250,6 +285,8 @@ extern "C" void main_cpp(void) {
         NULL
     };
     metric_system_init(handlers);
+
+    manufacture_report();
 
 #if (BOARD_IS_BUDDY)
     buddy::hw::BufferedSerial::uart2.Open();
