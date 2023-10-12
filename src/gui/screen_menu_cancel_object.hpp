@@ -91,17 +91,12 @@ using ScreenMenuCancelObject = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI
 class ScreenMenuCancelObject : public detail::ScreenMenuCancelObject {
     int loop_index = 0; ///< Refresh names only once every few loops
 
-    /**
-     * @brief Periodically unblock button, in case object state does not change after click.
-     */
-    void Unblock();
-
 public:
     constexpr static const char *label = "Canceled Objects";
     ScreenMenuCancelObject();
 
 protected:
-    void windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) override;
+    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
 #else /* ENABLED(CANCEL_OBJECTS) */

@@ -2335,6 +2335,31 @@ bool _process_server_valid_request(const char *request, int client_id) {
         do_babystep_Z(offs);
         return true;
     }
+#if ENABLED(CANCEL_OBJECTS)
+    case Msg::CancelObjectID: {
+        int obj_id;
+        if (sscanf(data, "%d", &obj_id) != 1)
+            return false;
+
+        cancelable.cancel_object(obj_id);
+        return true;
+    }
+    case Msg::UncancelObjectID: {
+        int obj_id;
+        if (sscanf(data, "%d", &obj_id) != 1)
+            return false;
+        cancelable.uncancel_object(obj_id);
+        return true;
+    }
+    case Msg::CancelCurrentObject:
+        cancelable.cancel_active_object();
+        return true;
+#else
+    case Msg::CancelObjectID:
+    case Msg::UncancelObjectID:
+    case Msg::CancelCurrentObject:
+        return false;
+#endif
     case Msg::ConfigSave:
         settings_save();
         return true;

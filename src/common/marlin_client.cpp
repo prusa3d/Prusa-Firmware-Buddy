@@ -774,4 +774,22 @@ void set_fs_autoload(bool val) {
     return marlin_set_variable(marlin_vars()->fs_autoload_enabled, static_cast<uint8_t>(val));
 }
 
+#if ENABLED(CANCEL_OBJECTS)
+void cancel_object(int object_id) {
+    char request[MARLIN_MAX_REQUEST];
+    snprintf(request, MARLIN_MAX_REQUEST, "!%c%d", ftrstd::to_underlying(Msg::CancelObjectID), object_id);
+    _send_request_to_server_and_wait(request);
+}
+
+void uncancel_object(int object_id) {
+    char request[MARLIN_MAX_REQUEST];
+    snprintf(request, MARLIN_MAX_REQUEST, "!%c%d", ftrstd::to_underlying(Msg::UncancelObjectID), object_id);
+    _send_request_to_server_and_wait(request);
+}
+
+void cancel_current_object() {
+    _send_request_id_to_server_and_wait(Msg::CancelCurrentObject);
+}
+#endif
+
 } // namespace marlin_client

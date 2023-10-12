@@ -87,6 +87,9 @@ enum class Msg : char {
     Move = 'a',
     PrintReady = 'b',
     GuiCantPrint = 'c',
+    CancelObjectID = 'd',
+    UncancelObjectID = 'e',
+    CancelCurrentObject = 'f',
 };
 
 inline bool is_abort_state(State st) {

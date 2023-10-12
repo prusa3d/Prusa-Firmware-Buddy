@@ -8,16 +8,9 @@
 #include <marlin_client.hpp>
 
 #if ENABLED(CANCEL_OBJECTS)
-namespace {
-bool block_button = false; ///< Set after button click to block until any object changes state
-}
 
 ScreenMenuCancelObject::ScreenMenuCancelObject()
     : detail::ScreenMenuCancelObject(_(label)) {}
-
-void ScreenMenuCancelObject::Unblock() {
-    block_button = false; // Unblock button periodically in case object state doesn't change after click
-}
 
 MI_CO_CANCEL_OBJECT::MI_CO_CANCEL_OBJECT()
     : WI_LABEL_t(
@@ -42,7 +35,6 @@ MI_CO_OBJECT_N::MI_CO_OBJECT_N(int ObjectId_)
 void MI_CO_OBJECT_N::UpdateState() {
     size_t new_index = (marlin_vars()->cancel_object_mask & (1 << ObjectId)) ? 1 : 0;
     if (GetIndex() != new_index) {
-        block_button = false; // State of any object changes, unblock button
         SetIndex(new_index);
     }
 }
@@ -86,13 +78,10 @@ void MI_CO_OBJECT_N::UpdateName() {
 }
 
 void MI_CO_OBJECT_N::OnChange(size_t old_index) {
-    if (block_button == false) {
-        block_button = true; // Lock button to prevent overflow of G-code
-        if (old_index == 0) { // is printing
-            marlin_client::gcode_printf("M486 P%i", ObjectId); // Cancel object N
-        } else {
-            marlin_client::gcode_printf("M486 U%i", ObjectId); // Uncancel object N
-        }
+    if (old_index == 0) { // is printing
+        marlin_client::cancel_object(ObjectId);
+    } else {
+        marlin_client::uncancel_object(ObjectId);
     }
 
     SetIndex(old_index); // Keep previous index and wait for UpdateState()
@@ -102,10 +91,7 @@ MI_CO_CANCEL_CURRENT::MI_CO_CANCEL_CURRENT()
     : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, marlin_vars()->cancel_object_count > 0 ? is_hidden_t::no : is_hidden_t::yes) {}
 
 void MI_CO_CANCEL_CURRENT::click(IWindowMenu & /*window_menu*/) {
-    if (block_button == false) {
-        block_button = true; // Lock button to prevent overflow of G-code
-        marlin_client::gcode("M486 C"); // Cancel current object
-    }
+    marlin_client::cancel_current_object();
 }
 
 void ScreenMenuCancelObject::windowEvent(EventLock /*has private ctor*/, window_t *, GUI_event_t event, void *) {
@@ -129,8 +115,6 @@ void ScreenMenuCancelObject::windowEvent(EventLock /*has private ctor*/, window_
             Item<MI_CO_OBJECT<13>>().UpdateName();
             Item<MI_CO_OBJECT<14>>().UpdateName();
             Item<MI_CO_OBJECT<15>>().UpdateName();
-
-            Unblock(); // Allow button press once a second
         }
         // Update state of all items
         Item<MI_CO_OBJECT<0>>().UpdateState();
