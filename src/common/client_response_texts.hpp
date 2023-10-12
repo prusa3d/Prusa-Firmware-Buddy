@@ -9,7 +9,6 @@
 #include <utility_extensions.hpp>
 
 using PhaseTexts = std::array<const char *, MAX_RESPONSES>;
-using PhaseIcons = std::array<const img::Resource *, MAX_RESPONSES>;
 using BtnResource = std::pair<const char *, const img::Resource *>;
 
 // todo make some automatic checks names vs enum

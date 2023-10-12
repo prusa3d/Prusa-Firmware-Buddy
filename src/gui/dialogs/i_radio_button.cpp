@@ -93,31 +93,22 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
         un.pvoid = param;
         std::optional<size_t> new_index = std::nullopt;
 
-        if (HasIcon()) {
-            for (size_t i = 0; i < max_icons; ++i) {
-                if (getIconRect(i).Contain(un.point)) {
+        size_t btn_count = GetBtnCount();
+        switch (btn_count) {
+        case 0:
+            break;
+        case 1:
+            new_index = 0; // single button fils entire area, no need to test if it was clicked, just return it
+            break;
+        default: {
+            Layout layout = getNormalBtnRects(btn_count);
+            for (uint8_t i = 0; i < btn_count; ++i) {
+                if (layout.splits[i].Contain(un.point)) {
                     new_index = i;
                     break;
                 }
             }
-        } else {
-            size_t btn_count = GetBtnCount();
-            switch (btn_count) {
-            case 0:
-                break;
-            case 1:
-                new_index = 0; // single button fils entire area, no need to test if it was clicked, just return it
-                break;
-            default: {
-                Layout layout = getNormalBtnRects(btn_count);
-                for (uint8_t i = 0; i < btn_count; ++i) {
-                    if (layout.splits[i].Contain(un.point)) {
-                        new_index = i;
-                        break;
-                    }
-                }
-            }
-            }
+        }
         }
 
         if (new_index) {
@@ -139,56 +130,17 @@ void IRadioButton::windowEvent(EventLock /*has private ctor*/, window_t *sender,
 }
 
 void IRadioButton::unconditionalDraw() {
-    if (!HasIcon()) {
-        const size_t cnt = GetBtnCount();
-        switch (cnt) {
-        case 0:
-            draw_0_btn(); // cannot use draw_n_btns, would div by 0
-            break;
-        case 1:
-            draw_1_btn(); // could use draw_n_btns, but this is much faster
-            break;
-        default:
-            draw_n_btns(cnt);
-            break;
-        }
-    } else {
-        window_t *const prev_focus = focused_ptr; // store focus
-        // draw background
-        if (!HasValidBackground()) {
-            draw_0_btn();
-            ValidateBackground();
-        }
-
-        const color_t background_color = GetParent() ? GetParent()->GetBackColor() : GetBackColor(); // color behind rounded corners
-        // draw foreground
-        for (size_t i = 0; i < std::min<size_t>(max_icons, GetBtnCount()); ++i) {
-            // Iconed buttons support horizontal alignment
-
-            const Rect16 rcIcon = getIconRect(i);
-            if (isIndexValid(i)) {
-                window_frame_t base(nullptr, rcIcon); // window_icon_button_t needs parent to draw properly (corners)
-                base.SetBackColor(background_color);
-                window_icon_button_t icon(&base, rcIcon, BtnResponse::GetIconId(responseFromIndex(i)), []() {});
-                window_text_t label(nullptr, getLabelRect(i), is_multiline::no, is_closed_on_click_t::no, _(BtnResponse::GetText(responseFromIndex(i))));
-
-                label.SetBackColor(background_color);
-                label.SetAlignment(Align_t::Center());
-                label.set_font(resource_font(IDR_FNT_SMALL));
-
-                if (i == GetBtnIndex()) {
-                    focused_ptr = &icon;
-                }
-                icon.Draw();
-                label.Draw();
-                if (i == GetBtnIndex()) {
-                    focused_ptr = nullptr;
-                }
-            } else {
-                display::DrawRoundedRect(rcIcon, background_color, COLOR_ORANGE, GuiDefaults::DefaultCornerRadius, MIC_ALL_CORNERS);
-            }
-        }
-        focused_ptr = prev_focus; // return focus
+    const size_t cnt = GetBtnCount();
+    switch (cnt) {
+    case 0:
+        draw_0_btn(); // cannot use draw_n_btns, would div by 0
+        break;
+    case 1:
+        draw_1_btn(); // could use draw_n_btns, but this is much faster
+        break;
+    default:
+        draw_n_btns(cnt);
+        break;
     }
 }
 
@@ -206,7 +158,7 @@ void IRadioButton::draw_0_btn() {
 void IRadioButton::draw_1_btn() {
     const char *txt_to_print = getAlternativeTexts() ? (*getAlternativeTexts())[0] : BtnResponse::GetText(responseFromIndex(0));
     button_draw(GetRect(), GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), _(txt_to_print), pfont,
-        IsEnabled() && !disabled_drawing_selected);
+        IsEnabled(0) && !disabled_drawing_selected);
 }
 
 // called internally, responses must exist
@@ -224,8 +176,10 @@ void IRadioButton::draw_n_btns(size_t btn_count) {
             buffer[length] = 0;
             drawn = string_view_utf8::MakeRAM((const uint8_t *)buffer);
         }
-        button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn, pfont,
-            GetBtnIndex() == i && IsEnabled() && !disabled_drawing_selected);
+        if (responseFromIndex(i) != Response::_none) {
+            button_draw(layout.splits[i], GetBackColor(), GetParent() ? GetParent()->GetBackColor() : GetBackColor(), drawn, pfont,
+                GetBtnIndex() == i && IsEnabled(i) && !disabled_drawing_selected);
+        }
     }
     color_t spaces_clr = (GetBackColor() == COLOR_ORANGE) ? COLOR_BLACK : COLOR_ORANGE;
     for (size_t i = 0; i < btn_count - 1; ++i) {
@@ -249,7 +203,13 @@ IRadioButton::Layout IRadioButton::getNormalBtnRects(size_t btn_count) const {
         string_view_utf8 txt = _(ret.txts_to_print[index]);
         ret.text_widths[index] = pfont->w * static_cast<uint8_t>(txt.computeNumUtf8CharsAndRewind());
     }
-    GetRect().HorizontalSplit(ret.splits, ret.spaces, btn_count, GuiDefaults::ButtonSpacing, ret.text_widths);
+    GetRect().HorizontalSplit(
+        ret.splits,
+        ret.spaces,
+        btn_count,
+        GuiDefaults::ButtonSpacing,
+        // For fixed width buttons, disregard text lengths (assuming all texts will fit)
+        fixed_width_buttons_count == 0 ? ret.text_widths : nullptr);
 
     return ret;
 }
@@ -272,8 +232,8 @@ void IRadioButton::button_draw(Rect16 rc_btn, color_t back_color, color_t parent
     render_text_align(rc_btn, text, pf, button_cl, text_cl, { 0, 0, 0, 0 }, Align_t::Center());
 }
 
-bool IRadioButton::IsEnabled() const {
-    return responseFromIndex(0) != Response::_none; // faster than cnt_responses(responses)!=0
+bool IRadioButton::IsEnabled(size_t index) const {
+    return responseFromIndex(index) != Response::_none;
 }
 
 /**
@@ -286,18 +246,13 @@ void IRadioButton::validateBtnIndex() {
     if (isIndexValid(GetBtnIndex()))
         return; // index valid
 
-    // default index for not iconned is 0
-    if (!HasIcon()) {
-        SetBtnIndex(0);
-        return;
-    }
+    SetBtnIndex(0);
 
-    if (HasIcon()) {
-        SetBtnIndex(1); // default index for iconned is 1
+    if (fixed_width_buttons_count > 0) {
         if (isIndexValid(GetBtnIndex()))
-            return; // index 1 is valid
+            return;
 
-        for (size_t i = 0; i < max_icons; ++i) {
+        for (size_t i = 0; i < fixed_width_buttons_count; ++i) {
             if (responseFromIndex(i) != Response::_none) {
                 SetBtnIndex(i);
                 return;
@@ -307,7 +262,7 @@ void IRadioButton::validateBtnIndex() {
 }
 
 bool IRadioButton::isIndexValid(size_t index) {
-    if (HasIcon()) {
+    if (fixed_width_buttons_count > 0) {
         return (responseFromIndex(index) != Response::_none);
     }
 
@@ -321,7 +276,7 @@ bool IRadioButton::isIndexValid(size_t index) {
  */
 void IRadioButton::invalidateWhatIsNeeded() {
     bool validate_background = false;
-    if (HasIcon() && HasValidBackground()) {
+    if (fixed_width_buttons_count > 0 && HasValidBackground()) {
         validate_background = true;
     }
     Invalidate();
@@ -344,68 +299,15 @@ void IRadioButton::SetBtn(Response btn) {
         SetBtnIndex(*index);
 }
 
-Rect16 IRadioButton::getIconRect(uint8_t idx) const {
-    Rect16 rect = GetRect();
-    rect = Rect16::Width_t(button_base_size); // button width
-    rect = Rect16::Height_t(button_base_size); // button height
-
-    // FIXED CENTER ALIGNMENT
-    switch (std::min<size_t>(max_icons, GetBtnCount())) {
-    case 1:
-        rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
-        rect -= Rect16::Left_t(button_base_size / 2); // button 1 pos
-        break;
-    case 2:
-        rect += Rect16::Left_t(GetRect().Width() - (button_delim_size / 2 + button_base_size)); // first button pos
-        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size)); // current button pos
-        break;
-    case 3:
-        rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
-        rect -= Rect16::Left_t(button_base_size / 2 + button_base_size + button_delim_size); // first button pos
-        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size)); // current button pos
-        break;
-    default:
-        rect = Rect16();
-        break;
-    }
-    return rect;
-}
-
-Rect16 IRadioButton::getLabelRect(uint8_t idx) const {
-    Rect16 rect = GetRect();
-    rect += Rect16::Top_t(button_base_size); // label is under button
-    rect = Rect16::Width_t(label_base_size); // labels width
-    rect -= Rect16::Height_t(button_base_size); // labels height
-
-    switch (std::min<size_t>(max_icons, GetBtnCount())) {
-    case 1:
-        rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
-        rect -= Rect16::Left_t(label_base_size / 2); // labels 1 pos
-        break;
-    case 2:
-        rect = Rect16::Left_t(idx == 0 ? 0 : (GetRect().Width() - label_base_size));
-        break;
-    case 3:
-        rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
-        rect -= Rect16::Left_t(label_base_size / 2); // labels 1 pos
-        rect += Rect16::Left_t(idx * (label_base_size + label_delim_size)); // current labels pos
-        break;
-    default:
-        rect = Rect16();
-        break;
-    }
-    return rect;
-}
-
 size_t IRadioButton::maxSize() const {
-    return HasIcon() ? max_icons : max_buttons;
+    return fixed_width_buttons_count > 0 ? fixed_width_buttons_count : max_buttons;
 }
 
 // 4th response for iconned layout is ensured to be _none
-IRadioButton::Responses_t IRadioButton::generateResponses(const PhaseResponses &resp) const {
+IRadioButton::Responses_t IRadioButton::generateResponses(const PhaseResponses &resp) {
     Responses_t newResponses;
     newResponses[3] = Response::_none;
-    for (size_t i = 0; i < maxSize(); ++i) {
+    for (size_t i = 0; i < max_buttons; ++i) {
         newResponses[i] = resp[i];
     }
     return newResponses;

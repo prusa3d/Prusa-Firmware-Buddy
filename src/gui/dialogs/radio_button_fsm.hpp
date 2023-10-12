@@ -37,10 +37,10 @@ public:
         if (current_phase == phase)
             return;
         current_phase = phase;
-        SetBtnCount(HasIcon() ? max_icons : cnt_buttons(phase));
+        SetBtnCount(fixed_width_buttons_count > 0 ? fixed_width_buttons_count : cnt_buttons(phase));
 
         // in iconned layout index will stay
-        if (!HasIcon()) {
+        if (fixed_width_buttons_count == 0) {
             SetBtnIndex(0);
         }
 

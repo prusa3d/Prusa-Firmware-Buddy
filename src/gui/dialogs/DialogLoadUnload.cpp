@@ -228,7 +228,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     , notice_link(&notice_frame, notice_link_rect, is_multiline::yes)
     , notice_icon_hand(&notice_frame, notice_icon_rect, &img::hand_qr_59x72)
     , notice_qr(&notice_frame, notice_qr_rect)
-    , notice_radio_button(&notice_frame, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
+    , notice_radio_button(&notice_frame, GuiDefaults::GetButtonRect_AvoidFooter(GetRect()))
     , filament_type_text(&progress_frame, filament_type_text_rect, is_multiline::no)
     , filament_color_icon(&progress_frame, filament_color_icon_rect)
     , mode(ProgressSerializerLoadUnload(data.GetData()).mode) {
@@ -243,8 +243,6 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     instance = this;
 
     notice_link.set_font(resource_font(IDR_FNT_SMALL));
-
-    notice_radio_button.SetHasIcon();
 
     Change(data);
 }
@@ -325,7 +323,9 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
                 ButtonOperationToResponse(ptr_desc->buttons[1]),
                 ButtonOperationToResponse(ptr_desc->buttons[2])
             };
-            notice_radio_button.ChangePhase(PhasesLoadUnload::MMU_ERRWaitingForUser, responses);
+
+            notice_radio_button.set_fixed_width_buttons_count(3);
+            notice_radio_button.ChangePhase(phase, responses);
             notice_update(ftrstd::to_underlying(ptr_desc->err_code), ptr_desc->err_title, ptr_desc->err_text);
         }
     #endif
@@ -336,10 +336,8 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
             // yet we need to throw a dialog with a QR code and a button.
             auto err_desc = find_error(ErrCode::ERR_MECHANICAL_STUCK_FILAMENT_DETECTED);
 
-            // I don't like the fact, that the one-and-only response from FilamentStuck (aka Unload) gets mapped onto the first button)
-            // It doesn't look nice ;) ... therefore, some handcrafted ugly alignment is necessary at this spot
-            PhaseResponses responses { Response::_none, Response::Unload, Response::_none };
-            notice_radio_button.ChangePhase(PhasesLoadUnload::FilamentStuck, responses);
+            notice_radio_button.set_fixed_width_buttons_count(0);
+            notice_radio_button.ChangePhase(phase, { Response::Unload });
             notice_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
         }
     #endif
