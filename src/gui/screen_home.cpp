@@ -146,6 +146,7 @@ const char *labels[] = {
 };
 
 bool screen_home_data_t::usbWasAlreadyInserted = false;
+bool screen_home_data_t::need_check_wifi_credentials = true;
 
 static void FilamentBtn_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
