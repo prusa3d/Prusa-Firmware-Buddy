@@ -188,11 +188,11 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 // clang-format on
 /*****************************************************************************/
 
-static constexpr Rect16 mmu_title_rect = { 14, 44, 317, 22 };
-static constexpr Rect16 mmu_desc_rect = { 14, 66, 224, 105 };
-static constexpr Rect16 mmu_icon_rect = { 263, 73, 59, 72 };
-static constexpr Rect16 mmu_link_rect = { 14, 165, 317, 32 }; // 2x font size + a bit of margin
-static constexpr Rect16 mmu_qr_rect = { 341, 44, 125, 125 };
+static constexpr Rect16 notice_title_rect = { 14, 44, 317, 22 };
+static constexpr Rect16 notice_text_rect = { 14, 72, 224, 105 };
+static constexpr Rect16 notice_link_rect = { 14, 165, 317, 32 }; // 2x font size + a bit of margin
+static constexpr Rect16 notice_icon_rect = { 263, 73, 59, 72 };
+static constexpr Rect16 notice_qr_rect = { 341, 44, 125, 125 };
 static constexpr char error_code_link_format[] = N_("More detail at\nprusa.io/%05u");
 namespace {
 constexpr size_t color_size { 16 };
@@ -222,25 +222,29 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     #endif
 #endif
           )
-    , text_link(this, mmu_link_rect, is_multiline::yes, is_closed_on_click_t::no)
-    , icon_hand(this, mmu_icon_rect, &img::hand_qr_59x72)
-    , qr(this, mmu_qr_rect)
-    , radio_for_notice_dialog(this, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
-    , filament_type_text(this, filament_type_text_rect, is_multiline::no)
-    , filament_color_icon(this, filament_color_icon_rect)
+    , notice_frame(this, get_frame_rect(GetRect(), has_footer::yes))
+    , notice_title(&notice_frame, notice_title_rect, is_multiline::no)
+    , notice_text(&notice_frame, notice_text_rect, is_multiline::yes)
+    , notice_link(&notice_frame, notice_link_rect, is_multiline::yes)
+    , notice_icon_hand(&notice_frame, notice_icon_rect, &img::hand_qr_59x72)
+    , notice_qr(&notice_frame, notice_qr_rect)
+    , notice_radio_button(&notice_frame, GuiDefaults::GetIconnedButtonRect(GetRect()) - Rect16::Top_t(GuiDefaults::FooterHeight))
+    , filament_type_text(&progress_frame, filament_type_text_rect, is_multiline::no)
+    , filament_color_icon(&progress_frame, filament_color_icon_rect)
     , mode(ProgressSerializerLoadUnload(data.GetData()).mode) {
+    notice_frame.CaptureNormalWindow(notice_radio_button);
+
+    notice_title.set_font(GuiDefaults::FontBig);
+
+    notice_text.set_font(resource_font(IDR_FNT_SPECIAL));
 
     filament_type_text.SetAlignment(Align_t::Center());
     filament_color_icon.SetRoundCorners();
     instance = this;
 
-    text_link.set_font(resource_font(IDR_FNT_SMALL));
+    notice_link.set_font(resource_font(IDR_FNT_SMALL));
 
-    radio_for_notice_dialog.SetHasIcon();
-    radio_for_notice_dialog.Hide();
-    text_link.Hide();
-    icon_hand.Hide();
-    qr.Hide();
+    notice_radio_button.SetHasIcon();
 
     Change(data);
 }
@@ -303,21 +307,9 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
 #if HAS_MMU2() || HAS_LOADCELL()
     // was normal (or uninitialized), is notice
     if ((!current_phase || !is_notice(*current_phase)) && is_notice(phase)) {
-        title.SetRect(mmu_title_rect);
-        label.SetRect(mmu_desc_rect);
-
-        progress.Hide();
-        radio.Hide();
-
-        text_link.Show();
-        icon_hand.Show();
-        qr.Show();
-        radio_for_notice_dialog.Show(); // show red screen radio button
-
-        CaptureNormalWindow(radio_for_notice_dialog);
-
-        filament_type_text.Hide();
-        filament_color_icon.Hide();
+        progress_frame.Hide();
+        notice_frame.Show();
+        CaptureNormalWindow(notice_frame);
     }
 
     // is notice
@@ -333,7 +325,7 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
                 ButtonOperationToResponse(ptr_desc->buttons[1]),
                 ButtonOperationToResponse(ptr_desc->buttons[2])
             };
-            radio_for_notice_dialog.ChangePhase(PhasesLoadUnload::MMU_ERRWaitingForUser, responses);
+            notice_radio_button.ChangePhase(PhasesLoadUnload::MMU_ERRWaitingForUser, responses);
             notice_update(ftrstd::to_underlying(ptr_desc->err_code), ptr_desc->err_title, ptr_desc->err_text);
         }
     #endif
@@ -347,7 +339,7 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
             // I don't like the fact, that the one-and-only response from FilamentStuck (aka Unload) gets mapped onto the first button)
             // It doesn't look nice ;) ... therefore, some handcrafted ugly alignment is necessary at this spot
             PhaseResponses responses { Response::_none, Response::Unload, Response::_none };
-            radio_for_notice_dialog.ChangePhase(PhasesLoadUnload::FilamentStuck, responses);
+            notice_radio_button.ChangePhase(PhasesLoadUnload::FilamentStuck, responses);
             notice_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
         }
     #endif
@@ -358,18 +350,9 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
 
     // was notice (or uninitialized), is normal
     if ((!current_phase || is_notice(*current_phase)) && !is_notice(phase)) {
-        title.SetRect(get_title_rect(GetRect()));
-        label.SetRect(get_label_rect(GetRect(), has_footer::yes));
-
-        progress.Show();
-        radio.Show();
-
-        text_link.Hide();
-        icon_hand.Hide();
-        qr.Hide();
-        radio_for_notice_dialog.Hide(); // hide red screen radio button
-
-        CaptureNormalWindow(radio);
+        progress_frame.Show();
+        notice_frame.Hide();
+        CaptureNormalWindow(progress_frame);
     }
 #endif
 
@@ -378,13 +361,13 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
 }
 
 void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, const char *errDesc) {
-    title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
-    label.SetText(string_view_utf8::MakeRAM((const uint8_t *)errDesc));
+    notice_title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
+    notice_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)errDesc));
 
     snprintf(error_code_str, sizeof(error_code_str), error_code_link_format, errCode);
-    text_link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
+    notice_link.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_code_str));
 
-    qr.SetQRHeader(errCode);
+    notice_qr.SetQRHeader(errCode);
 }
 
 constexpr static const char title_change[] = N_("Changing filament");

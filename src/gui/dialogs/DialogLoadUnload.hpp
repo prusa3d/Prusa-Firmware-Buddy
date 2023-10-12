@@ -68,10 +68,14 @@ protected:
 private:
     StatusFooter footer;
 
-    window_text_t text_link;
-    window_icon_t icon_hand;
-    window_qr_t qr;
-    RadioButtonNotice radio_for_notice_dialog; // workaround, see RadioButtonNotice comment
+    window_frame_t notice_frame;
+
+    window_text_t notice_title;
+    window_text_t notice_text;
+    window_text_t notice_link;
+    window_icon_t notice_icon_hand;
+    window_qr_t notice_qr;
+    RadioButtonNotice notice_radio_button; // workaround, see RadioButtonNotice comment
 
     window_text_t filament_type_text;
     window_colored_rect filament_color_icon;

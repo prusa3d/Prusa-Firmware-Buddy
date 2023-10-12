@@ -42,6 +42,8 @@ public:
     };
 
 protected:
+    window_frame_t progress_frame;
+
     window_text_t title;
     window_progress_t progress;
     window_text_t label;
@@ -51,6 +53,7 @@ protected:
     virtual void phaseExit() = 0;
     virtual float deserialize_progress([[maybe_unused]] fsm::PhaseData data) const { return 0.F; }
 
+    static Rect16 get_frame_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer);
     static Rect16 get_title_rect(Rect16 rect);
     static Rect16 get_progress_rect(Rect16 rect);
     static Rect16 get_label_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer);
@@ -77,8 +80,9 @@ public:
     DialogStateful(string_view_utf8 name, States st, std::optional<has_footer> child_has_footer = std::nullopt)
         : IDialogStateful(name, child_has_footer)
         , states(st)
-        , radio(this, (child_has_footer == has_footer::yes) ? GuiDefaults::GetButtonRect_AvoidFooter(GetRect()) : GuiDefaults::GetButtonRect(GetRect()), T::_first) {
-        CaptureNormalWindow(radio);
+        , radio(&progress_frame, (child_has_footer == has_footer::yes) ? GuiDefaults::GetButtonRect_AvoidFooter(GetRect()) : GuiDefaults::GetButtonRect(GetRect()), T::_first) {
+        progress_frame.CaptureNormalWindow(radio);
+        CaptureNormalWindow(progress_frame);
     }
 
     bool Change(fsm::BaseData data) override final {

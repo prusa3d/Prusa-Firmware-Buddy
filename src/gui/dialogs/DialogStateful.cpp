@@ -22,6 +22,14 @@ static const constexpr int PROGRESS_TOP = GuiDefaults::EnableDialogBigLayout ? 1
 static const constexpr int LABEL_TOP = GuiDefaults::EnableDialogBigLayout ? 180 : PROGRESS_TOP + PROGRESS_H;
 static const constexpr int PROGRESS_BAR_X_PAD = GuiDefaults::EnableDialogBigLayout ? 24 : 10;
 
+Rect16 IDialogStateful::get_frame_rect(Rect16 rect, std::optional<has_footer> dialog_has_footer) {
+    return Rect16(
+        rect.Left(),
+        rect.Top(),
+        rect.Width(),
+        rect.Height() - (!dialog_has_footer || *dialog_has_footer == has_footer::no ? 0 : GuiDefaults::FooterHeight));
+}
+
 Rect16 IDialogStateful::get_title_rect(Rect16 rect) {
     return Rect16(rect.Left(), GuiDefaults::EnableDialogBigLayout ? TITLE_TOP : (int)rect.Top(), rect.Width(), TITLE_HEIGHT);
 }
@@ -40,9 +48,10 @@ Rect16 IDialogStateful::get_label_rect(Rect16 rect, std::optional<has_footer> di
 //*****************************************************************************
 IDialogStateful::IDialogStateful(string_view_utf8 name, std::optional<has_footer> child_has_footer)
     : IDialogMarlin(GuiDefaults::GetDialogRect(child_has_footer))
-    , title(this, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
-    , progress(this, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, GuiDefaults::EnableDialogBigLayout ? COLOR_DARK_GRAY : COLOR_GRAY, PROGRESS_BAR_CORNER_RADIUS)
-    , label(this, get_label_rect(GetRect(), child_has_footer), is_multiline::yes) {
+    , progress_frame(this, get_frame_rect(GetRect(), child_has_footer))
+    , title(&progress_frame, get_title_rect(GetRect()), is_multiline::no, is_closed_on_click_t::no, name)
+    , progress(&progress_frame, get_progress_rect(GetRect()), PROGRESS_BAR_H, COLOR_ORANGE, GuiDefaults::EnableDialogBigLayout ? COLOR_DARK_GRAY : COLOR_GRAY, PROGRESS_BAR_CORNER_RADIUS)
+    , label(&progress_frame, get_label_rect(GetRect(), child_has_footer), is_multiline::yes) {
     title.set_font(GuiDefaults::FontBig);
     title.SetAlignment(Align_t::Center());
     progress.set_font(resource_font(IDR_FNT_BIG));
