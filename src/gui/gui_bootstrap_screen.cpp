@@ -4,14 +4,18 @@
 #include <option/has_puppies_bootloader.h>
 #include <option/has_embedded_esp32.h>
 #include <option/bootloader_update.h>
+#include <option/bootloader.h>
 #include "tasks.hpp"
 #include "screen_splash.hpp"
 
 osMutexDef(bootstrap_progress_lock);
 
+// if this is build with bootloader, we take over when it drawn 50% of progress bar, so start with that
+static constexpr unsigned STARTING_PERCENTAGE = option::bootloader ? 50 : 0;
+
 // Sync structure for GUI bootstrap screen display
 struct Progress {
-    unsigned percent = 0;
+    unsigned percent = STARTING_PERCENTAGE;
     const char *message = "";
     bool need_redraw = false;
     osMutexId lock_id = nullptr;
@@ -50,6 +54,7 @@ void gui_bootstrap_screen_init() {
 
 void gui_bootstrap_screen_run() {
     // draw somehting on screen before bootstrap strart
+    screen_splash_data_t::bootstrap_cb(bootstrap_progress->percent, bootstrap_progress->message);
     gui_redraw();
     // start flashing resources
     TaskDeps::provide(TaskDeps::Dependency::gui_screen_ready);

@@ -203,30 +203,32 @@ static void Startup_cb(void) {
 
 // Draw smooth progressbar 1s
 // Bootstrap resets the progressbar so we go from 0%
-bool fw_gui_splash_progress() {
-    static uint32_t start = gui::GetTick_ForceActualization();
-    static uint32_t tick = 0;
-    static uint32_t last_tick = 0;
+void fw_gui_splash_progress() {
+    uint32_t start = gui::GetTick_ForceActualization();
 
-    tick = gui::GetTick_ForceActualization();
-    uint8_t percent = 0;
+    // take over at whatever was last %
+    const uint8_t start_percent = gui_bootstrap_screen_get_percent();
+    const uint8_t percent_remaining = 100 - start_percent;
 
-    if (last_tick != tick) {
-        percent = (tick - start) / (1000 / 100); // 1000ms / 100%
-        percent = percent > 100 ? 100 : percent;
+    uint32_t last_tick = 0;
+    uint8_t percent = start_percent;
+    while (percent != 100) {
+        uint32_t tick = gui::GetTick_ForceActualization();
 
-        percent = gui_bootstrap_screen_get_percent();
+        if (last_tick != tick) {
+            percent = start_percent + ((tick - start) * percent_remaining) / 1000;
+            percent = std::min(uint8_t(100), percent);
 
-        GUIStartupProgress progr = { unsigned(percent), std::nullopt };
-        event_conversion_union un;
-        un.pGUIStartupProgress = &progr;
-        Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
+            GUIStartupProgress progr = { unsigned(percent), std::nullopt };
+            event_conversion_union un;
+            un.pGUIStartupProgress = &progr;
+            Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
 
-        last_tick = tick;
-        gui_redraw();
+            last_tick = tick;
+            gui_redraw();
+            osDelay(20);
+        }
     }
-
-    return percent != 100;
 }
 
 namespace {
@@ -463,8 +465,7 @@ void gui_run(void) {
 
     marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, nullptr);
 
-    while (fw_gui_splash_progress()) {
-    } // draw a smooth progressbar from last percent to 100%
+    fw_gui_splash_progress(); // draw a smooth progressbar from last percent to 100%
 
     gui_bootstrap_screen_delete();
 
