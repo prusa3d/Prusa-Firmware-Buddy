@@ -31,67 +31,79 @@ static constexpr uint8_t progress_code_to_percentage(CommandInProgress cip, Prog
     }
 
     switch (cip) {
-    case CutFilament:
+
+    case CutFilament: {
+        constexpr int step_count = 11;
         switch (ec) {
         case ProgressCode::UnloadingToFinda:
-            return StepOf(1, 11);
+            return StepOf(1, step_count);
         case ProgressCode::RetractingFromFinda:
-            return StepOf(2, 11);
+            return StepOf(2, step_count);
         case ProgressCode::DisengagingIdler:
-            return StepOf(3, 11);
+            return StepOf(3, step_count);
         case ProgressCode::SelectingFilamentSlot:
-            return StepOf(4, 11);
+            return StepOf(4, step_count);
         case ProgressCode::FeedingToFinda:
-            return StepOf(5, 11);
+            return StepOf(5, step_count);
         case ProgressCode::UnloadingToPulley:
-            return StepOf(6, 11);
+            return StepOf(6, step_count);
         case ProgressCode::PreparingBlade:
-            return StepOf(7, 11);
+            return StepOf(7, step_count);
         case ProgressCode::PushingFilament:
-            return StepOf(8, 11);
+            return StepOf(8, step_count);
         case ProgressCode::PerformingCut:
-            return StepOf(9, 11);
+            return StepOf(9, step_count);
         case ProgressCode::ReturningSelector:
-            return StepOf(10, 11);
+            return StepOf(10, step_count);
         default:
             return 0;
         }
         return 0;
-    case EjectFilament:
+    }
+
+    case EjectFilament: {
+        constexpr int step_count = 7;
         switch (ec) {
         case ProgressCode::UnloadingToFinda:
-            return StepOf(1, 7);
+            return StepOf(1, step_count);
         case ProgressCode::RetractingFromFinda:
-            return StepOf(2, 7);
+            return StepOf(2, step_count);
         case ProgressCode::DisengagingIdler:
             // this depends on the sequences - disengaging happens twice
-            return StepOf(3, 7);
+            return StepOf(3, step_count);
         case ProgressCode::ParkingSelector:
-            return StepOf(4, 7);
+            return StepOf(4, step_count);
         case ProgressCode::EjectingFilament:
-            return StepOf(5, 7);
+            return StepOf(5, step_count);
         default:
             return 0;
         }
         return 0;
+    }
+
     case Homing:
         return 50;
-    case LoadFilament:
+
+    case LoadFilament: {
+        constexpr int step_count = 4;
         switch (ec) {
         case ProgressCode::FeedingToFinda:
-            return StepOf(1, 4);
+            return StepOf(1, step_count);
         case ProgressCode::RetractingFromFinda:
-            return StepOf(2, 4);
+            return StepOf(2, step_count);
         case ProgressCode::DisengagingIdler:
-            return StepOf(3, 4);
+            return StepOf(3, step_count);
         default:
             return 0;
         }
         return 0;
+    }
+
     case Reset:
         return 50;
+
     case TestLoad: // test load is almost the same like a toolchange, just different visualization
-    case ToolChange:
+    case ToolChange: {
         // current sequence reported from the MMU:
         // T1 A*27
         // T1 P3*d1
@@ -101,15 +113,17 @@ static constexpr uint8_t progress_code_to_percentage(CommandInProgress cip, Prog
         // T1 P1c*45
         // T1 P2*c4
         // T1 F0*31
+
+        constexpr int step_count = 5;
         switch (ec) {
         case ProgressCode::UnloadingToFinda:
-            return StepOf(1, 5);
+            return StepOf(1, step_count);
         case ProgressCode::FeedingToFinda:
-            return StepOf(2, 5);
+            return StepOf(2, step_count);
         case ProgressCode::FeedingToBondtech:
-            return StepOf(3, 5);
+            return StepOf(3, step_count);
         case ProgressCode::FeedingToFSensor:
-            return StepOf(4, 5);
+            return StepOf(4, step_count);
         case ProgressCode::DisengagingIdler:
             // disengaging idler comes 2x at different spots, not necessary for visualization of progress
             return 0;
@@ -117,18 +131,23 @@ static constexpr uint8_t progress_code_to_percentage(CommandInProgress cip, Prog
             return 0;
         }
         return 0;
-    case UnloadFilament:
+    }
+
+    case UnloadFilament: {
+        constexpr int step_count = 4;
         switch (ec) {
         case ProgressCode::UnloadingToFinda:
-            return StepOf(1, 4);
+            return StepOf(1, step_count);
         case ProgressCode::RetractingFromFinda:
-            return StepOf(2, 4);
+            return StepOf(2, step_count);
         case ProgressCode::DisengagingIdler:
-            return StepOf(3, 4);
+            return StepOf(3, step_count);
         default:
             return 0;
         }
         return 0;
+    }
+
     default:
         return 0;
     }
@@ -296,20 +315,28 @@ Response Fsm::GetResponse() const {
 }
 
 bool Fsm::Activate() {
-    if (Pause::IsFsmActive())
+    if (Pause::IsFsmActive()) {
         return false; // FSM not ours, avoid setting the created_this flag
-    if (created_this)
+    }
+
+    if (created_this) {
         return false; // already created by us, skip repeated fsm_create
+    }
+
     created_this = true;
     FSM_CREATE__LOGGING(Load_unload);
     return true;
 }
 
 bool Fsm::Deactivate() {
-    if (Pause::IsFsmActive())
+    if (Pause::IsFsmActive()) {
         return false; // FSM not ours, avoid killing the FSM even if created_this == true
-    if (!created_this)
+    }
+
+    if (!created_this) {
         return false; // not created at all, avoid caling fsm_destroy
+    }
+
     created_this = false;
     FSM_DESTROY__LOGGING(Load_unload);
     return true;

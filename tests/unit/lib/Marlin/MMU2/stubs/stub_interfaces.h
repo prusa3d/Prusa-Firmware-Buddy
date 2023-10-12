@@ -45,10 +45,21 @@ class MMU2Serial;
 }
 
 struct IOSimRec {
+    /// Mock data that are "sent" to the MMU
     std::string tx;
+
+    /// MMU logic functions log debugging data to the mock log.
+    /// This field containts what mock data is expected to be added to the mock log by the logic while execution this sim rec.
+    /// The check is not performed automatically, one has to call CHECK(mockLog.MatchesExpected());
     std::vector<std::string> mock;
+
+    /// This is used for checking against expected marlin log, but the checks are currently commented out (?)
     std::vector<std::string> marlin;
+
+    /// Mock data that are "received" from the MMU
+    /// This data is appended to the mmu2SerialSim.rxbuff mmu rx buffer emulator
     std::string rx;
+
     uint32_t incMs;
 
     using WorkFunc = void (*)();
