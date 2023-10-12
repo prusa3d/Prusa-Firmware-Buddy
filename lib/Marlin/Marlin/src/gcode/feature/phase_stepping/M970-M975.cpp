@@ -91,7 +91,7 @@ void GcodeSuite::M972() {
             if (!parser.seen(letter))
                 continue;
 
-            const phase_stepping::CorrectedCurrentLut& lut = dir == 'F'
+            const auto& lut = dir == 'F'
                 ? axis_state.forward_current : axis_state.backward_current;
 
             const auto& table = lut.get_correction();
@@ -122,7 +122,7 @@ static std::vector<std::pair<float, float>> parse_pairs(std::string_view str) {
         }
 
         char* end_ptr;
-        float first = std::strtof(str.data(), &end_ptr);
+        float first = std::strtod(str.data(), &end_ptr);
         if (end_ptr != str.data() + comma_pos) {
             print_error("Malformed input: unable to parse first value of a pair");
             return {}; // Return an empty vector on error
@@ -132,7 +132,7 @@ static std::vector<std::pair<float, float>> parse_pairs(std::string_view str) {
 
         size_t space_pos = str.find(' ');
 
-        float second = std::strtof(str.data(), &end_ptr);
+        float second = std::strtod(str.data(), &end_ptr);
         auto expected_end_ptr = space_pos != std::string_view::npos ? str.data() + space_pos : str.data() + str.size();
         if (end_ptr != expected_end_ptr) {
             print_error("Malformed input: unable to parse second value of a pair");
@@ -160,7 +160,7 @@ void GcodeSuite::M973() {
 
     AxisEnum axis = str_arg[0] == 'X' ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
     phase_stepping::AxisState& axis_state = phase_stepping::axis_states[axis];
-    phase_stepping::CorrectedCurrentLut& lut =
+    auto& lut =
         str_arg[1] == 'F'
                 ? axis_state.forward_current
                 : axis_state.backward_current;
@@ -289,12 +289,12 @@ static void wait_for_accel_end(volatile phase_stepping::AxisState& axis_state) {
 static void wait_for_zero_phase(volatile phase_stepping::AxisState& axis_state) {
     // We busy wait as the process should be fairly quick
     if (axis_state.target.start_v > 0) {
-        while(phase_stepping::normalize_phase(axis_state.last_phase) <= phase_stepping::MOTOR_PERIOD / 4);
-        while(phase_stepping::normalize_phase(axis_state.last_phase) >= phase_stepping::MOTOR_PERIOD / 4);
+        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) <= phase_stepping::MOTOR_PERIOD / 4);
+        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) >= phase_stepping::MOTOR_PERIOD / 4);
     }
     else {
-        while(phase_stepping::normalize_phase(axis_state.last_phase) >= 3 * phase_stepping::MOTOR_PERIOD / 4);
-        while(phase_stepping::normalize_phase(axis_state.last_phase) <= 3 * phase_stepping::MOTOR_PERIOD / 4);
+        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) >= 3 * phase_stepping::MOTOR_PERIOD / 4);
+        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) <= 3 * phase_stepping::MOTOR_PERIOD / 4);
     }
 }
 

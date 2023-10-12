@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <cmath>
 #include <cstdint>
 #include <cassert>
@@ -22,7 +23,12 @@ int cos_lut(int x);
 /**
  * Given a phase, normalize it into range <0, MOTOR_PERIOD)
  **/
-int normalize_phase(int phase);
+int normalize_motor_phase(int phase);
+
+/**
+ * Given a phase, normalize it into range <0, SIN_PERIOD)
+ **/
+int normalize_sin_phase(int phase);
 
 
 struct SpectralItem {
@@ -37,6 +43,48 @@ public:
     void _update_phase_shift();
 public:
     CorrectedCurrentLut() = default;
+
+    const auto &get_correction() const {
+        return _spectrum;
+    };
+
+    template < typename F >
+        requires requires(F f) { f(_spectrum ); }
+    void modify_correction(F f) {
+        f(_spectrum);
+        _update_phase_shift();
+    }
+
+    std::pair< int, int > get_current(int idx) const;
+};
+
+class CorrectedCurrentLut2 {
+public:
+    struct CurrentTrace {
+        std::array< uint8_t, MOTOR_PERIOD > _val;
+        std::bitset< MOTOR_PERIOD > _sign;
+
+        int get(int idx) const {
+            idx = normalize_motor_phase(idx);
+            return _val[ idx ] * ( _sign[idx] ? 1 : -1);
+        }
+
+        void set(int idx, int val) {
+            idx = normalize_motor_phase(idx);
+            _sign[idx] = val > 0;
+            _val[idx] = abs(val);
+        }
+    };
+
+
+    std::array< SpectralItem, CORRECTION_HARMONICS + 1 > _spectrum = {};
+    CurrentTrace _sin, _cos;
+
+    void _update_phase_shift();
+public:
+    CorrectedCurrentLut2() {
+        _update_phase_shift();
+    }
 
     const auto &get_correction() const {
         return _spectrum;
