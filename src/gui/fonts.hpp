@@ -51,9 +51,8 @@ consteval font_size_t resource_font_size(ResourceId id) {
     case IDR_FNT_SMALL:
         return { 7, 13 };
     case IDR_FNT_NORMAL:
+    case IDR_FNT_BIG: // Big font removed to save flash
         return { 11, 18 };
-    case IDR_FNT_BIG:
-        return { 12, 21 };
     case IDR_FNT_SPECIAL:
         return { 9, 16 };
 #endif /*USE_ST7789*/
