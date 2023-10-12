@@ -48,6 +48,10 @@ set(CMAKE_CXX_STANDARD 20)
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
+
+# make all paths stored inside firmware relative
+add_compile_options(-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.)
+
 add_compile_options(
   $<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
