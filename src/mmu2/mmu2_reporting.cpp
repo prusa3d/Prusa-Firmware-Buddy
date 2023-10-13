@@ -94,6 +94,11 @@ bool MMUAvailable() { return true; }
 // changed by user from menu
 bool UseMMU() { return true; }
 
+/// Disables MMU in EEPROM
+void DisableMMUInSettings() {
+    config_store().mmu2_enabled.set(false);
+}
+
 void MakeSound(SoundType s) {
     return; // @@TODO currently broken
     switch (s) {

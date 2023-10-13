@@ -149,7 +149,7 @@ void MMU2::Start() {
 
 void MMU2::Stop() {
     StopKeepPowered();
-    PowerOff(); // This also disables the MMU in the EEPROM.
+    PowerOff();
 }
 
 void MMU2::StopKeepPowered() {
@@ -913,7 +913,8 @@ void MMU2::CheckUserInput() {
         // ... but mmu2_power.cpp knows this and triggers a soft-reset instead.
         break;
     case Buttons::DisableMMU:
-        Stop(); // Poweroff handles updating the EEPROM shutoff.
+        Stop();
+        DisableMMUInSettings();
         break;
     case Buttons::StopPrint:
         // @@TODO not sure if we shall handle this high level operation at this spot

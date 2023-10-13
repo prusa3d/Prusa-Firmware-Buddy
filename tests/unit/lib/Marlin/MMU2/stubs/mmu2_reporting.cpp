@@ -70,6 +70,10 @@ bool MMUAvailable() { return false; }
 /// report to the outer world, not important for the unit tests
 bool UseMMU() { return false; }
 
+void DisableMMUInSettings() {
+    // Do nothing
+}
+
 /// Increments EEPROM cell - number of failed loads into the nozzle
 /// Note: technically, this is not an MMU error but an error of the printer.
 void IncrementLoadFails() {
