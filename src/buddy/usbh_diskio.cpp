@@ -2,8 +2,6 @@
 #include "usbh_diskio.h"
 #include "usbh_async_diskio.hpp"
 #include "ccm_thread.hpp"
-#include "usb_host.h"
-#include "timing.h"
 
 #include <freertos_mutex.hpp>
 #include <mutex>
@@ -98,25 +96,6 @@ USBH_StatusTypeDef usbh_msc_submit_request(UsbhMscRequest *request) {
     return USBH_OK;
 }
 
-// limit the maximum number of watchdog resets to 3 in 15 minutes due to usb flash protection
-static bool reset_rate_limiter() {
-    static uint32_t events[] = { 0, 0 };
-    static uint8_t ptr = 0;
-    auto now = ticks_s();
-    uint32_t recent_events_count = 0;
-    for (auto t : events) {
-        if (t && now - t < 15 * 60) {
-            recent_events_count++;
-        }
-    }
-    if (recent_events_count < std::size(events)) {
-        events[ptr] = now;
-        ptr = (ptr + 1) % std::size(events);
-        return false;
-    }
-    return true;
-}
-
 // A real-time priority task that takes individual requests from the request_queue and executes them,
 // most operations are deferred work from USB interrrupts, so they should be executed immediately (real-time priority).
 // Total CPU time is relatively small.
@@ -149,39 +128,15 @@ static void USBH_MSC_WorkerTask(void const *) {
             {
                 Lock lock(diskio_mutex);
 
-                for (int retry = 0; retry < 2; ++retry) {
-                    switch (request->operation) {
-                    case UsbhMscRequest::UsbhMscRequestOperation::Read:
-                        request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
-                        break;
-                    case UsbhMscRequest::UsbhMscRequestOperation::Write:
-                        request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
-                        break;
-                    case UsbhMscRequest::UsbhMscRequestOperation::Noop:
-                        request->result = USBH_OK;
-                        break;
-                    }
-
-                    if (request->result == USBH_FAIL) {
-                        if (reset_rate_limiter()) {
-                            break;
-                        }
-                        log_info(USBHost, "USB watchdog reset");
-                        hUsbHostHS.wdg_reset = true;
-                        USBH_Stop(&hUsbHostHS);
-                        osDelay(150);
-                        USBH_Start(&hUsbHostHS);
-                        for (auto i = 0; hUsbHostHS.wdg_reset && i < 50; ++i) { // total delay 5s
-                            osDelay(100);
-                        }
-                        if (hUsbHostHS.wdg_reset) {
-                            hUsbHostHS.wdg_reset = false;
-                            USBH_UserProcess(&hUsbHostHS, HOST_USER_DISCONNECTION);
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
+                switch (request->operation) {
+                case UsbhMscRequest::UsbhMscRequestOperation::Read:
+                    request->result = USBH_MSC_Read(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                    break;
+                case UsbhMscRequest::UsbhMscRequestOperation::Write:
+                    request->result = USBH_MSC_Write(&hUsbHostHS, request->lun, request->sector_nbr, request->data, request->count);
+                    break;
+                case UsbhMscRequest::UsbhMscRequestOperation::Noop:
+                    continue;
                 }
             }
             if (request->callback) {

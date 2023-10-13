@@ -16,6 +16,8 @@ ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 static uint32_t one_click_print_timeout { 0 };
 static std::atomic<bool> connected_at_startup { false };
 
+static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
+
 void MX_USB_HOST_Init(void) {
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8, GPIO_PIN_SET);
@@ -40,11 +42,12 @@ void MX_USB_HOST_Init(void) {
     }
 }
 
-void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
+static void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
     // don't detect device at startup when ticks_ms() overflows (every ~50 hours)
     if (one_click_print_timeout > 0 && ticks_ms() >= one_click_print_timeout) {
         one_click_print_timeout = 0;
     }
+
     switch (id) {
     case HOST_USER_SELECT_CONFIGURATION:
         break;
@@ -54,31 +57,24 @@ void USBH_UserProcess([[maybe_unused]] USBH_HandleTypeDef *phost, uint8_t id) {
 #ifdef USBH_MSC_READAHEAD
         usbh_msc_readahead.disable();
 #endif
-        if (!phost->wdg_reset) {
-            media_set_removed();
-            f_mount(0, (TCHAR const *)USBHPath, 1); // umount
-            connected_at_startup = false;
-        }
+        media_set_removed();
+        f_mount(0, (TCHAR const *)USBHPath, 1); // umount
+        connected_at_startup = false;
         break;
 
     case HOST_USER_CLASS_ACTIVE: {
-        if (!phost->wdg_reset) {
-            Appli_state = APPLICATION_READY;
-            FRESULT result = f_mount(&USBHFatFS, (TCHAR const *)USBHPath, 0);
-            if (result == FR_OK) {
-                if (one_click_print_timeout > 0 && ticks_ms() < one_click_print_timeout) {
-                    connected_at_startup = true;
-                }
-                media_set_inserted();
-#ifdef USBH_MSC_READAHEAD
-                usbh_msc_readahead.enable(USBHFatFS.pdrv);
-#endif
-            } else {
-                media_set_error(media_error_MOUNT);
+        Appli_state = APPLICATION_READY;
+        FRESULT result = f_mount(&USBHFatFS, (TCHAR const *)USBHPath, 0);
+        if (result == FR_OK) {
+            if (one_click_print_timeout > 0 && ticks_ms() < one_click_print_timeout) {
+                connected_at_startup = true;
             }
-        } else {
-            phost->wdg_reset = false;
-        }
+            media_set_inserted();
+#ifdef USBH_MSC_READAHEAD
+            usbh_msc_readahead.enable(USBHFatFS.pdrv);
+#endif
+        } else
+            media_set_error(media_error_MOUNT);
         break;
     }
     case HOST_USER_CONNECTION:
