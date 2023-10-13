@@ -255,10 +255,14 @@ bool tmc_serial_lock_acquire(void) {
     // We have taken the mutex, now let's try to take over the lock from ISR in
     // busy waiting. We will wait at most one period of phase stepping (~25 µs)
     BusOwner owner = BusOwner::NOBODY;
+    uint32_t start = ticks_ms();
     while (!tmc_bus_owner.compare_exchange_weak(owner, BusOwner::TASK,
         std::memory_order_relaxed,
         std::memory_order_relaxed)) {
         owner = BusOwner::NOBODY;
+        if (ticks_diff(ticks_ms(), start) > 100) {
+            bsod("Couldn't acquire TMC bus within 100ms");
+        }
     }
     return res;
 }
