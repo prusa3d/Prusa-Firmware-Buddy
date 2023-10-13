@@ -530,9 +530,6 @@ void Transfer::done(State state, Monitor::Outcome outcome) {
             // before we notify about them.
             cleanup_finalize(path);
         }
-        if (!already_notified) {
-            notify_created();
-        }
     } else {
         // FIXME: We need some kind of error handling strategy to deal with
         // failed transfers. But for now, we just need to make 100% sure
