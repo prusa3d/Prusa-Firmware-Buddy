@@ -95,7 +95,7 @@ public:
     static void init();
 
     // Reset the motion/stepper generator state from halt
-    static void reset_from_halt();
+    static void reset_from_halt(bool preserve_step_fraction = true);
 
     // The step ISR scheduler
     static void step_isr();

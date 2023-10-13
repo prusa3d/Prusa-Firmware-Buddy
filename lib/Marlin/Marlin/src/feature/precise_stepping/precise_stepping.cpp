@@ -89,7 +89,7 @@ std::atomic<bool> PreciseStepping::stop_pending = false;
 volatile uint8_t PreciseStepping::step_dl_miss = 0;
 volatile uint8_t PreciseStepping::step_ev_miss = 0;
 
-FORCE_INLINE xyze_long_t get_oriented_steps_from_block(const block_t &block) {
+FORCE_INLINE xyze_long_t get_oriented_msteps_from_block(const block_t &block) {
     const xyze_long_t direction = {
         { { (block.direction_bits & _BV(X_AXIS)) ? -1 : 1,
             (block.direction_bits & _BV(Y_AXIS)) ? -1 : 1,
@@ -282,7 +282,7 @@ bool append_move_segments_to_queue(const block_t &block) {
         print_time += decel_t;
     }
 
-    PreciseStepping::total_start_pos_msteps += get_oriented_steps_from_block(block);
+    PreciseStepping::total_start_pos_msteps += get_oriented_msteps_from_block(block);
     PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
     PreciseStepping::total_print_time = print_time;
 
@@ -513,19 +513,36 @@ void PreciseStepping::init() {
 
     PreciseStepping::move_segment_queue_clear();
     PreciseStepping::step_event_queue_clear();
-    PreciseStepping::reset_from_halt();
+    PreciseStepping::reset_from_halt(false);
     PreciseStepping::update_maximum_lookback_time();
 
     HAL_timer_start(MOVE_TIMER_NUM, MOVE_TIMER_FREQUENCY);
     ENABLE_MOVE_INTERRUPT();
 }
 
-void PreciseStepping::reset_from_halt() {
+void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     PreciseStepping::step_generator_state_clear();
     PreciseStepping::total_print_time = 0.;
-    PreciseStepping::total_start_pos = { 0., 0., 0., 0. };
-    PreciseStepping::total_start_pos_msteps = { 0, 0, 0, 0 };
     PreciseStepping::flags = 0;
+
+    if (preserve_step_fraction) {
+#ifdef COREXY
+        total_start_pos_msteps.x -= (step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
+        total_start_pos_msteps.y -= (step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
+#else
+        total_start_pos_msteps.x -= step_generator_state.current_distance.x * PLANNER_STEPS_MULTIPLIER;
+        total_start_pos_msteps.y -= step_generator_state.current_distance.y * PLANNER_STEPS_MULTIPLIER;
+#endif
+
+        total_start_pos_msteps.z -= step_generator_state.current_distance.z * PLANNER_STEPS_MULTIPLIER;
+        // Because of pressure advance, the amount of material in total_start_pos_msteps doesn't have to equal to step_generator_state.current_distance.e.
+        // So we always reset extrude steps to zero because losing a fraction of a step in the E-axis shouldn't cause any issues.
+        total_start_pos_msteps.e = 0;
+        PreciseStepping::total_start_pos = convert_oriented_msteps_to_distance(PreciseStepping::total_start_pos_msteps);
+    } else {
+        PreciseStepping::total_start_pos_msteps = { 0, 0, 0, 0 };
+        PreciseStepping::total_start_pos = { 0., 0., 0., 0. };
+    }
 }
 
 uint16_t PreciseStepping::process_one_step_event_from_queue() {
@@ -792,7 +809,7 @@ void PreciseStepping::process_queue_of_blocks() {
             return;
 
         // we can now reset to a halt
-        reset_from_halt();
+        reset_from_halt(true);
     }
 
     // fetch next block
@@ -1166,7 +1183,7 @@ void PreciseStepping::reset_queues() {
     // reset internal state and queues
     step_event_queue_clear();
     move_segment_queue_clear();
-    reset_from_halt();
+    reset_from_halt(false);
 
     // at this point the planner might still have queued extra moves, flush them
     planner.clear_block_buffer();
