@@ -1137,6 +1137,11 @@ void Pause::unpark_nozzle_and_notify() {
         PauseFsmNotifier N(*this, current_position.z, settings.resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
         do_blocking_move_to_z(settings.resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
     }
+
+    // Unretract
+    if (settings.retract) {
+        plan_e_move(-settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
+    }
 }
 
 /**
@@ -1193,7 +1198,15 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
             filamentUnload(&Pause::loop_unload_change);
         // Feed a little bit of filament to stabilize pressure in nozzle
         if (filamentLoad(&Pause::loop_load_change)) {
+
+            // Last poop after user clicked color - yes
             plan_e_move(5, 10);
+
+            // Retract again, it will be unretracted at the end of unpark
+            if (settings.retract) {
+                plan_e_move(settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
+            }
+
             planner.synchronize();
             delay(500);
         }
