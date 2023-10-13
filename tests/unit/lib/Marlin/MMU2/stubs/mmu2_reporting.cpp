@@ -1,12 +1,6 @@
 #include <mmu2_reporting.h>
 #include "stub_interfaces.h"
 
-bool errorScreenRunning = false;
-
-void ResetErrorScreenRunning() {
-    errorScreenRunning = false;
-}
-
 namespace MMU2 {
 
 // beware:
@@ -24,8 +18,9 @@ void EndReport(CommandInProgress cip, ProgressCode ec) {
     mockLog_RecordFnCipEc(cip, ec);
 }
 
-/// Return true if the printer's LCD is drawing the error screen
-bool isErrorScreenRunning() { return errorScreenRunning; }
+void CheckErrorScreenUserInput() {
+    // Do nothing
+}
 
 /// @brief Called when the MMU or MK3S sends operation error (even repeatedly).
 /// Render MMU error screen on the LCD. This must be non-blocking
@@ -33,13 +28,11 @@ bool isErrorScreenRunning() { return errorScreenRunning; }
 /// @param[in] ec error code
 /// @param[in] es error source
 void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
-    errorScreenRunning = true;
     mockLog_RecordFnCipEc(cip, ec);
 }
 
 /// Called when the MMU sends operation progress update
 void ReportProgressHook(CommandInProgress cip, ProgressCode ec) {
-    errorScreenRunning = false;
     mockLog_RecordFnCipEc(cip, ec);
 }
 

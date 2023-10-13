@@ -305,7 +305,7 @@ TEST_CASE("Marlin::MMU2::MMU2 unload failed", "[Marlin][MMU2]") {
         // after button gets received from the MMU, registers are queried
         MakeRegistersCommand(0, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
         // next, the button gets sent back to the MMU - need to ack-it
-        MakeAcceptButton(1, []() { ResetErrorScreenRunning(); }),
+        MakeAcceptButton(1),
         // after the button, registers are queried again
         MakeRegistersCommand(0, 1, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
 
@@ -386,7 +386,7 @@ TEST_CASE("Marlin::MMU2::MMU2 eject", "[Marlin][MMU2]") {
         // press middle button - filament eject has been completed
         MakeQueryResponseErrorButton(cmd, ErrorCode::FILAMENT_EJECTED, 1),
         MakeRegistersCommand(0, 0, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
-        MakeAcceptButton(1, []() { ResetErrorScreenRunning(); }),
+        MakeAcceptButton(1),
         MakeRegistersCommand(0, 0, 0, 0, 0, 0, MMU2::heartBeatPeriod + 1),
 
         MakeQueryResponseFinished(cmd),

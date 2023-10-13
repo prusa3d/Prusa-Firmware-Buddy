@@ -120,7 +120,6 @@ void IncMillis(uint32_t diff = 1);
 
 void InitEnvironment(MMU2::FilamentState fsensor);
 
-void ResetErrorScreenRunning();
 void SetMarlinIsPrinting(bool p);
 
 void SetHotendTargetTemp(uint16_t t);

@@ -11,26 +11,15 @@
 #include "pause_stubbed.hpp"
 #include "log.h"
 #include <config_store/store_instance.hpp>
+#include "gui/dialogs/DialogLoadUnload.hpp"
 
 LOG_COMPONENT_REF(MMU2);
 
 namespace MMU2 {
 
-bool isErrorScreenRunning() {
-    // @@TODO function from 8-bit FW
-    return false;
-}
-
-void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
-    // An error always causes one specific screen to occur
-    // Its content is given by the error code translated into Prusa-Error-Codes MMU
-    // That needs to be coded into the context data passed to the screen
-    // - in this case the raw pointer to error description
-    if (ec != ErrorCode::MMU_NOT_RESPONDING) {
-        log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=% " PRIu16 " es=% " PRIu8, cip, ec, es);
-        Fsm::Instance().reporter.Change(cip, ec, MMU2::ErrorSource(es));
-    } else {
-        log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=% " PRIu16 " es=% " PRIu16 " - cannot be done, fsm closed", cip, ec, es);
+void CheckErrorScreenUserInput() {
+    if (!DialogLoadUnload::is_mmu2_error_screen_running()) {
+        return;
     }
 
     // A temporary workaround:
@@ -44,6 +33,23 @@ void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
     Response rsp = Fsm::Instance().GetResponse();
     if (rsp != Response::_none) {
         SetButtonResponse(ResponseToButtonOperations(rsp));
+    }
+}
+
+void ReportErrorHook(CommandInProgress cip, ErrorCode ec, uint8_t es) {
+    if (ec == ErrorCode::OK || ec == ErrorCode::RUNNING) {
+        return;
+    }
+
+    // An error always causes one specific screen to occur
+    // Its content is given by the error code translated into Prusa-Error-Codes MMU
+    // That needs to be coded into the context data passed to the screen
+    // - in this case the raw pointer to error description
+    if (ec != ErrorCode::MMU_NOT_RESPONDING) {
+        log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=% " PRIu16 " es=% " PRIu8, cip, ec, es);
+        Fsm::Instance().reporter.Change(cip, ec, MMU2::ErrorSource(es));
+    } else {
+        log_error(MMU2, "Error report: CIP=%" PRIu8 " ec=% " PRIu16 " es=% " PRIu16 " - cannot be done, fsm closed", cip, ec, es);
     }
 }
 

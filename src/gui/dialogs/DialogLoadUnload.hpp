@@ -37,8 +37,34 @@ protected:
  * MMU error are handled extra and are red
  */
 class DialogLoadUnload : public AddSuperWindow<DialogStateful<PhasesLoadUnload>> {
+
 public:
     static constexpr uint8_t MaxErrorCodeDigits = 10;
+
+public:
+    DialogLoadUnload(fsm::BaseData data);
+    virtual ~DialogLoadUnload() override;
+
+    static void phaseAlertSound();
+    static void phaseWaitSound();
+    static void phaseStopSound();
+
+    static string_view_utf8 get_name(LoadUnloadMode mode);
+    LoadUnloadMode get_mode() { return mode; }
+
+public:
+#if HAS_MMU2()
+    /// Returns whether there is a dialog open on an MMU error screen (that is waiting for user input)
+    static inline bool is_mmu2_error_screen_running() {
+        return instance && instance->phase.value_or(0) == int(PhasesLoadUnload::MMU_ERRWaitingForUser);
+    }
+#endif
+
+protected:
+    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
+    void red_screen_update(uint16_t errCode, const char *errTitle, const char *errDesc);
+    virtual float deserialize_progress(fsm::PhaseData data) const override;
+    void phaseEnter() override;
 
 private:
     StatusFooter footer;
@@ -55,21 +81,4 @@ private:
     LoadUnloadMode mode;
 
     static DialogLoadUnload *instance; // needed for sounds
-
-protected:
-    virtual bool change(uint8_t phase, fsm::PhaseData data) override;
-    void red_screen_update(uint16_t errCode, const char *errTitle, const char *errDesc);
-    virtual float deserialize_progress(fsm::PhaseData data) const override;
-    void phaseEnter() override;
-
-public:
-    DialogLoadUnload(fsm::BaseData data);
-    virtual ~DialogLoadUnload() override;
-
-    static void phaseAlertSound();
-    static void phaseWaitSound();
-    static void phaseStopSound();
-
-    static string_view_utf8 get_name(LoadUnloadMode mode);
-    LoadUnloadMode get_mode() { return mode; }
 };
