@@ -116,6 +116,7 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     pause::Settings settings;
     settings.SetExtruder(target_extruder);
     settings.SetUnloadLength(unload_length);
+    settings.SetRetractLength(0.f);
     xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, Y_AXIS_UNLOAD_POS, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
     settings.SetParkPoint(park_position);
     xyze_pos_t current_position_tmp = current_position;
