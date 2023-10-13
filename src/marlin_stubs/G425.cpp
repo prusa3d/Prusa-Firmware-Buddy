@@ -124,8 +124,8 @@ constexpr float PIN_DIAMETER_MM { 6 };
 constexpr float PROBE_XY_TIGHT_DIST_MM { PIN_DIAMETER_MM / 2 + 3 };
 constexpr float PROBE_XY_CERTAIN_DIST_MM { PROBE_XY_TIGHT_DIST_MM + 1 };
 constexpr float PROBE_XY_UNCERTAIN_DIST_MM { PROBE_XY_CERTAIN_DIST_MM + 1 };
-constexpr auto PROBE_FEEDRATE_MMS { 3 };
-constexpr auto INTERPROBE_FEEDRATE_MMS { 25 };
+constexpr feedRate_t PROBE_FEEDRATE_MMS { 3 };
+constexpr feedRate_t INTERPROBE_FEEDRATE_MMS { 25 };
 constexpr auto NUM_PROBE_TRIES { 5 }; // Keep low, the noise is not random, but rather the measurement jumps a few values
 constexpr auto PROBE_ALLOWED_ERROR { 0.03f };
 constexpr auto NUM_PROBE_SAMPLES { 2 };
@@ -274,8 +274,6 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
 
     // Mark initial position
     xyze_long_t initial_pos_msteps = planner.get_position_msteps();
-    xyze_long_t initial_steps = { { { stepper.position(A_AXIS), stepper.position(B_AXIS),
-        stepper.position(C_AXIS), stepper.position(E_AXIS) } } };
     xyze_pos_t initial_mm = current_position;
 
     // Setup probe for XY endstop
@@ -328,7 +326,7 @@ xy_pos_t probe_xy(const xyz_pos_t center, const float angle, const uint8_t tool,
     }
 
     // Return to initial
-    planner._buffer_msteps_raw(initial_pos_msteps, initial_mm, initial_steps - hit_steps, INTERPROBE_FEEDRATE_MMS, active_extruder);
+    planner._buffer_msteps_raw(initial_pos_msteps, initial_mm, INTERPROBE_FEEDRATE_MMS, active_extruder);
     planner.synchronize();
     current_position = initial_mm;
 
