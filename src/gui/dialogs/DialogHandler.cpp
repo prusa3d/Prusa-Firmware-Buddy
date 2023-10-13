@@ -4,6 +4,7 @@
 #include "DialogFactory.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenESP.hpp"
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
@@ -83,6 +84,11 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
         }
 #endif // HAS_SELFTEST
         break;
+    case ClientFSM::ESP:
+        if (!ScreenESP::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenESP>);
+        }
+        break;
     default:
         ptr = dialog_ctors[size_t(fsm_type)](data);
     }
@@ -98,6 +104,7 @@ void DialogHandler::close(ClientFSM fsm_type) {
     case ClientFSM::PrintPreview:
     case ClientFSM::CrashRecovery:
     case ClientFSM::Selftest:
+    case ClientFSM::ESP:
         Screens::Access()->Close();
         break;
     default:
@@ -125,6 +132,11 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
             ScreenSelftest::GetInstance()->Change(data);
         }
 #endif // HAS_SELFTEST
+        break;
+    case ClientFSM::ESP:
+        if (ScreenESP::GetInstance()) {
+            ScreenESP::GetInstance()->Change(data);
+        }
         break;
     default:
         if (ptr)

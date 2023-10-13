@@ -1,19 +1,13 @@
-/**
- * @file selftest_frame_esp_qr.hpp
- * @brief part of screen containing update of esp credentials
- * this frame contains qr code
- */
-
 #pragma once
 
-#include "selftest_frame.hpp"
+#include "esp_frame.hpp"
 #include "window_icon.hpp"
 #include "window_qr.hpp"
 #include "window_wizard_progress.hpp"
 
 #include "printers.h"
 
-class SelftestFrameESP_qr : public AddSuperWindow<SelftestFrameWithRadio> {
+class ESPFrameQR : public AddSuperWindow<ESPFrame> {
     /** @brief Calculates the position of individual elements of the frame
      *
      * Resulting layout depends on GuiDefaults(ScreenWidth & ScreenHeight)
@@ -67,5 +61,5 @@ private:
 #endif
 
 public:
-    SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data);
+    ESPFrameQR(window_t *parent, PhasesESP ph, fsm::PhaseData data);
 };

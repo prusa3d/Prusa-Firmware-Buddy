@@ -12,6 +12,7 @@ enum class ClientFSM : uint8_t {
     Load_unload,
     Preheat,
     Selftest,
+    ESP,
     Printing, // not a dialog
     CrashRecovery,
     QuickPause,

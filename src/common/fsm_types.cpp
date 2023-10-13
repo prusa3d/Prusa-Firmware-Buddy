@@ -45,6 +45,8 @@ const char *to_string(ClientFSM type) {
         return "Preheat";
     case ClientFSM::Selftest:
         return "Selftest";
+    case ClientFSM::ESP:
+        return "ESP";
     case ClientFSM::Printing:
         return "Printing";
     case ClientFSM::CrashRecovery:

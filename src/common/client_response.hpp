@@ -170,31 +170,6 @@ enum class PhasesSelftest : uint16_t {
     WizardPrologue_info_detailed,
     _last_WizardPrologue = WizardPrologue_info_detailed,
 
-    _first_ESP,
-    ESP_instructions = _first_ESP,
-    ESP_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
-    ESP_ask_gen,
-    ESP_ask_gen_overwrite,
-    ESP_makefile_failed,
-    ESP_eject_USB,
-    ESP_insert_USB,
-    ESP_invalid,
-    ESP_uploading_config,
-    ESP_enabling_WIFI,
-    _last_ESP = ESP_enabling_WIFI,
-
-    _first_ESP_progress,
-    ESP_progress_info = _first_ESP_progress,
-    ESP_progress_upload,
-    ESP_progress_passed,
-    ESP_progress_failed,
-    _last_ESP_progress = ESP_progress_failed,
-
-    _first_ESP_qr,
-    ESP_qr_instructions_flash = _first_ESP_qr,
-    ESP_qr_instructions,
-    _last_ESP_qr = ESP_qr_instructions,
-
     _first_Fans,
     Fans = _first_Fans,
     _last_Fans = Fans,
@@ -315,8 +290,40 @@ enum class PhasesSelftest : uint16_t {
     _last = _last_WizardEpilogue_nok
 };
 
-enum class PhasesCrashRecovery : uint16_t {
+enum class PhasesESP : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftest::_last) + 1,
+    _none = _first,
+
+    _first_ESP,
+    ESP_instructions = _first_ESP,
+    ESP_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
+    ESP_ask_gen,
+    ESP_ask_gen_overwrite,
+    ESP_makefile_failed,
+    ESP_eject_USB,
+    ESP_insert_USB,
+    ESP_invalid,
+    ESP_uploading_config,
+    ESP_enabling_WIFI,
+    _last_ESP = ESP_enabling_WIFI,
+
+    _first_ESP_progress,
+    ESP_progress_info = _first_ESP_progress,
+    ESP_progress_upload,
+    ESP_progress_passed,
+    ESP_progress_failed,
+    _last_ESP_progress = ESP_progress_failed,
+
+    _first_ESP_qr,
+    ESP_qr_instructions_flash = _first_ESP_qr,
+    ESP_qr_instructions,
+    _last_ESP_qr = ESP_qr_instructions,
+
+    _last = _last_ESP_qr,
+};
+
+enum class PhasesCrashRecovery : uint16_t {
+    _first = static_cast<uint16_t>(PhasesESP::_last) + 1,
     check_X = _first, // in this case is safe to have check_X == _first
     check_Y,
     home,
@@ -470,29 +477,6 @@ class ClientResponses {
         { Response::Continue, Response::Cancel }, // WizardPrologue_info
         { Response::Continue, Response::Cancel }, // WizardPrologue_info_detailed
 
-        { Response::Continue, Response::Abort }, // ESP_instructions
-        { Response::Yes, Response::Skip }, // ESP_USB_not_inserted
-        { Response::Yes, Response::Skip }, // ESP_ask_gen
-        { Response::Yes, Response::Skip }, // ESP_ask_gen_overwrite
-        { Response::Yes, Response::Skip }, // ESP_makefile_failed
-        { Response::Continue }, // ESP_eject_USB
-        { Response::Continue, Response::Abort }, // ESP_insert_USB
-        { Response::Retry, Response::Abort }, // ESP_invalid
-        { Response::Abort }, // ESP_uploading_config
-        { Response::Yes, Response::No }, // ESP_enabling_WIFI
-
-        { Response::Continue, Response::Abort }, // ESP_progress_info
-        { Response::Abort }, // ESP_progress_upload
-        { Response::Continue }, // ESP_progress_passed
-        { Response::Continue }, // ESP_progress_failed
-        { Response::Continue, Response::NotNow
-#if not PRINTER_IS_PRUSA_MINI
-            ,
-            Response::Never
-#endif
-        }, // ESP_qr_instructions_flash
-        { Response::Continue, Response::Abort }, // ESP_qr_instructions
-
         {}, // Fans
 
         {}, // Loadcell_prepare
@@ -582,6 +566,34 @@ class ClientResponses {
     };
     static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
 
+    static constexpr PhaseResponses ESPResponses[] = {
+        {}, // _none == _first
+
+        { Response::Continue, Response::Abort }, // ESP_instructions
+        { Response::Yes, Response::Skip }, // ESP_USB_not_inserted
+        { Response::Yes, Response::Skip }, // ESP_ask_gen
+        { Response::Yes, Response::Skip }, // ESP_ask_gen_overwrite
+        { Response::Yes, Response::Skip }, // ESP_makefile_failed
+        { Response::Continue }, // ESP_eject_USB
+        { Response::Continue, Response::Abort }, // ESP_insert_USB
+        { Response::Retry, Response::Abort }, // ESP_invalid
+        { Response::Abort }, // ESP_uploading_config
+        { Response::Yes, Response::No }, // ESP_enabling_WIFI
+
+        { Response::Continue, Response::Abort }, // ESP_progress_info
+        { Response::Abort }, // ESP_progress_upload
+        { Response::Continue }, // ESP_progress_passed
+        { Response::Continue }, // ESP_progress_failed
+        { Response::Continue, Response::NotNow
+#if not PRINTER_IS_PRUSA_MINI
+            ,
+            Response::Never
+#endif
+        }, // ESP_qr_instructions_flash
+        { Response::Continue, Response::Abort }, // ESP_qr_instructions
+    };
+    static_assert(std::size(ClientResponses::ESPResponses) == CountPhases<PhasesESP>());
+
     static constexpr PhaseResponses CrashRecoveryResponses[] = {
         {}, // check X == _first
         {}, // check Y
@@ -605,6 +617,7 @@ class ClientResponses {
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesESP phase) { return ESPResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesESP::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesQuickPause::_first)]; }
 
@@ -654,9 +667,6 @@ public:
 
 enum class SelftestParts {
     WizardPrologue,
-    ESP,
-    ESP_progress,
-    ESP_qr,
     Axis,
     Fans,
 #if HAS_LOADCELL()
@@ -684,16 +694,18 @@ enum class SelftestParts {
     _count = _none
 };
 
+enum class ESPParts {
+    ESP,
+    ESP_progress,
+    ESP_qr,
+    _none, // cannot be created, must have same index as _count
+    _count = _none
+};
+
 static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
         return PhasesSelftest::_first_WizardPrologue;
-    case SelftestParts::ESP:
-        return PhasesSelftest::_first_ESP;
-    case SelftestParts::ESP_progress:
-        return PhasesSelftest::_first_ESP_progress;
-    case SelftestParts::ESP_qr:
-        return PhasesSelftest::_first_ESP_qr;
     case SelftestParts::Axis:
         return PhasesSelftest::_first_Axis;
     case SelftestParts::Fans:
@@ -738,16 +750,24 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     return PhasesSelftest::_none;
 }
 
+static constexpr PhasesESP ESPGetFirstPhaseFromPart(ESPParts part) {
+    switch (part) {
+    case ESPParts::ESP:
+        return PhasesESP::_first_ESP;
+    case ESPParts::ESP_progress:
+        return PhasesESP::_first_ESP_progress;
+    case ESPParts::ESP_qr:
+        return PhasesESP::_first_ESP_qr;
+    case ESPParts::_none:
+        break;
+    }
+    return PhasesESP::_none;
+}
+
 static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
         return PhasesSelftest::_last_WizardPrologue;
-    case SelftestParts::ESP:
-        return PhasesSelftest::_last_ESP;
-    case SelftestParts::ESP_progress:
-        return PhasesSelftest::_last_ESP_progress;
-    case SelftestParts::ESP_qr:
-        return PhasesSelftest::_last_ESP_qr;
     case SelftestParts::Axis:
         return PhasesSelftest::_last_Axis;
     case SelftestParts::Fans:
@@ -792,6 +812,20 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     return PhasesSelftest::_none;
 }
 
+static constexpr PhasesESP ESPGetLastPhaseFromPart(ESPParts part) {
+    switch (part) {
+    case ESPParts::ESP:
+        return PhasesESP::_last_ESP;
+    case ESPParts::ESP_progress:
+        return PhasesESP::_last_ESP_progress;
+    case ESPParts::ESP_qr:
+        return PhasesESP::_last_ESP_qr;
+    case ESPParts::_none:
+        break;
+    }
+    return PhasesESP::_none;
+}
+
 static constexpr bool SelftestPartContainsPhase(SelftestParts part, PhasesSelftest ph) {
     const uint16_t ph_u16 = uint16_t(ph);
 
@@ -806,13 +840,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     if (SelftestPartContainsPhase(SelftestParts::WizardPrologue, ph))
         return SelftestParts::WizardPrologue;
-
-    if (SelftestPartContainsPhase(SelftestParts::ESP, ph))
-        return SelftestParts::ESP;
-    if (SelftestPartContainsPhase(SelftestParts::ESP_progress, ph))
-        return SelftestParts::ESP_progress;
-    if (SelftestPartContainsPhase(SelftestParts::ESP_qr, ph))
-        return SelftestParts::ESP_qr;
 
     if (SelftestPartContainsPhase(SelftestParts::Fans, ph))
         return SelftestParts::Fans;
@@ -857,6 +884,20 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 #endif
     return SelftestParts::_none;
 };
+
+static constexpr bool ESPPartContainsPhase(ESPParts part, PhasesESP ph) {
+    const uint16_t ph_u16 = uint16_t(ph);
+
+    return (ph_u16 >= uint16_t(ESPGetFirstPhaseFromPart(part))) && (ph_u16 <= uint16_t(ESPGetLastPhaseFromPart(part)));
+}
+
+static constexpr ESPParts ESPGetPartFromPhase(PhasesESP ph) {
+    for (size_t i = 0; i < size_t(ESPParts::_none); ++i) {
+        if (ESPPartContainsPhase(ESPParts(i), ph))
+            return ESPParts(i);
+    }
+    return ESPParts::_none;
+}
 
 enum class FSM_action {
     no_action,

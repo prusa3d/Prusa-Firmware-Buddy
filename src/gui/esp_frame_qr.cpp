@@ -1,8 +1,5 @@
-/**
- * @file selftest_frame_esp_qr.cpp
- */
+#include "esp_frame_qr.hpp"
 
-#include "selftest_frame_esp_qr.hpp"
 #include "selftest_esp_type.hpp"
 #include "i18n.h"
 #include "wizard_config.hpp"
@@ -10,8 +7,8 @@
 #include "img_resources.hpp"
 #include <cstring>
 
-SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
-    : AddSuperWindow<SelftestFrameWithRadio>(parent, ph, data)
+ESPFrameQR::ESPFrameQR(window_t *parent, PhasesESP ph, fsm::PhaseData data)
+    : AddSuperWindow<ESPFrame>(parent, ph, data)
     , text(this, Positioner::textRect(), is_multiline::yes)
     , link(this, Positioner::linkRect(), is_multiline::no)
     , icon_phone(this, Positioner::phoneIconRect(), &img::hand_qr_59x72)
@@ -22,16 +19,16 @@ SelftestFrameESP_qr::SelftestFrameESP_qr(window_t *parent, PhasesSelftest ph, fs
     change();
 }
 
-void SelftestFrameESP_qr::change() {
+void ESPFrameQR::change() {
 
     const char *txt = "MISSING";
 
     // texts
     switch (phase_current) {
-    case PhasesSelftest::ESP_qr_instructions_flash:
+    case PhasesESP::ESP_qr_instructions_flash:
         txt = N_("Use the online guide\nto setup your Wi-Fi");
         break;
-    case PhasesSelftest::ESP_qr_instructions:
+    case PhasesESP::ESP_qr_instructions:
         txt = N_("To setup or troubleshoot your Wi-Fi, please visit:");
         break;
     default:
@@ -42,7 +39,7 @@ void SelftestFrameESP_qr::change() {
     link.SetText(string_view_utf8::MakeCPUFLASH(reinterpret_cast<const uint8_t *>(ADDR_IN_TEXT)));
 };
 
-constexpr Rect16 SelftestFrameESP_qr::Positioner::qrcodeRect() {
+constexpr Rect16 ESPFrameQR::Positioner::qrcodeRect() {
     if (GuiDefaults::ScreenWidth > 240) {
         return Rect16 {
             GuiDefaults::ScreenWidth - WizardDefaults::MarginRight - qrcodeWidth,
@@ -56,7 +53,7 @@ constexpr Rect16 SelftestFrameESP_qr::Positioner::qrcodeRect() {
 }
 
 /** @returns Rect16 position and size of the phone icon widget */
-constexpr Rect16 SelftestFrameESP_qr::Positioner::phoneIconRect() {
+constexpr Rect16 ESPFrameQR::Positioner::phoneIconRect() {
     if (GuiDefaults::ScreenWidth > 240) {
         return Rect16 {
             qrcodeRect().Left() - phoneWidth,
@@ -70,7 +67,7 @@ constexpr Rect16 SelftestFrameESP_qr::Positioner::phoneIconRect() {
 }
 
 /** @returns Rect16 position and size of the text widget */
-constexpr Rect16 SelftestFrameESP_qr::Positioner::textRect() {
+constexpr Rect16 ESPFrameQR::Positioner::textRect() {
     if (GuiDefaults::ScreenWidth > 240) {
         return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, phoneIconRect().Left() - WizardDefaults::col_0, textHeight };
     } else {
@@ -79,7 +76,7 @@ constexpr Rect16 SelftestFrameESP_qr::Positioner::textRect() {
 }
 
 /** @returns Rect16 position and size of the link widget */
-constexpr Rect16 SelftestFrameESP_qr::Positioner::linkRect() {
+constexpr Rect16 ESPFrameQR::Positioner::linkRect() {
     if (GuiDefaults::ScreenWidth > 240) {
         return Rect16 { WizardDefaults::col_0, WizardDefaults::Y_space - textHeight, phoneIconRect().Left() - WizardDefaults::col_0, textHeight };
     } else {

@@ -68,18 +68,6 @@ static_unique_ptr<SelftestFrame> ScreenSelftest::creator_epilogue(ScreenSelftest
     return rThs.makePtr<SelftestFrameWizardEpilogue>(&rThs, phase, data);
 }
 
-static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-    return rThs.makePtr<SelftestFrameESP>(&rThs, phase, data);
-}
-
-static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_progress(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-    return rThs.makePtr<SelftestFrameESP_progress>(&rThs, phase, data);
-}
-
-static_unique_ptr<SelftestFrame> ScreenSelftest::creator_esp_qr(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
-    return rThs.makePtr<SelftestFrameESP_qr>(&rThs, phase, data);
-}
-
 #if BOARD_IS_XLBUDDY
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_dock(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameDock>(&rThs, phase, data);
@@ -97,12 +85,6 @@ ScreenSelftest::fnc ScreenSelftest::Get(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
         return creator_prologue;
-    case SelftestParts::ESP:
-        return creator_esp;
-    case SelftestParts::ESP_progress:
-        return creator_esp_progress;
-    case SelftestParts::ESP_qr:
-        return creator_esp_qr;
     case SelftestParts::Axis:
         return creator_axis;
     case SelftestParts::Fans:
@@ -204,10 +186,6 @@ string_view_utf8 ScreenSelftest::getCaption(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
         return _(en_wizard);
-    case SelftestParts::ESP:
-    case SelftestParts::ESP_progress:
-    case SelftestParts::ESP_qr:
-        return _(en_esp);
     case SelftestParts::Axis:
     case SelftestParts::Fans:
 #if HAS_LOADCELL()
@@ -245,10 +223,6 @@ const img::Resource *ScreenSelftest::getIconId(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
         return &img::wizard_16x16;
-    case SelftestParts::ESP:
-    case SelftestParts::ESP_progress:
-    case SelftestParts::ESP_qr:
-        return &img::wifi_16x16;
     case SelftestParts::Axis:
     case SelftestParts::Fans:
 #if HAS_LOADCELL()

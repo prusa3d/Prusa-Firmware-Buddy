@@ -45,13 +45,13 @@ struct esp_entry {
 };
 
 struct status_t {
-    PhasesSelftest phase;
+    PhasesESP phase;
     uint8_t progress;
     uint8_t current_file : 4;
     uint8_t count_of_files : 4;
 
     void Empty() {
-        phase = PhasesSelftest::_none;
+        phase = PhasesESP::_none;
         progress = 0;
     }
 
@@ -85,7 +85,7 @@ protected:
     esp_upload_action progress_state;
     esp_entry *current_file;
     uint32_t readCount;
-    PhasesSelftest phase;
+    PhasesESP phase;
     const bool from_menu;
     const bool credentials_already_set;
     const bool credentials_on_usb;
@@ -176,7 +176,7 @@ private:
     const uint8_t initial_netdev_id; // it is not enum because of stupid C api
     esp_credential_action progress_state = esp_credential_action::ShowInstructions;
     esp_credential_action last_state = esp_credential_action::Done; // needed to invalidate time stamp at change of state, done ensures progress_state != last_state
-    std::optional<PhasesSelftest> phase;
+    std::optional<PhasesESP> phase;
     bool usb_inserted = false;
     bool wifi_enabled = false;
     bool continue_yes_retry_pressed = false;
