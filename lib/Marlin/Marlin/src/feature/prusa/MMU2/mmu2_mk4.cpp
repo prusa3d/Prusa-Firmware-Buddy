@@ -156,6 +156,12 @@ void MMU2::StopKeepPowered() {
     state = xState::Stopped;
     logic.Stop();
     mmu2Serial.close();
+
+    // This should reset the error reporter to no error
+    ReportProgressHook(CommandInProgress::Reset, ProgressCode::OK);
+
+    // Deactivate the FSM
+    EndReport(CommandInProgress::Reset, ProgressCode::OK);
 }
 
 void MMU2::Tune() {
@@ -207,9 +213,9 @@ void MMU2::PowerCycle() {
     // Sadly, MK3/S/+ cannot do this
     // NOTE: the below will toggle the EEPROM var. Should we
     // assert this function is never called in the MK3 FW? Do we even care?
-    PowerOff();
+    Stop();
     safe_delay_keep_alive(1000);
-    PowerOn();
+    Start();
 }
 
 void MMU2::PowerOff() {
