@@ -5,6 +5,7 @@
 #include <utility>
 #include <bitset>
 #include <array>
+#include <optional>
 
 struct move_t;
 struct step_event_info_t;
@@ -19,64 +20,74 @@ struct move_segment_step_generator_t;
 namespace phase_stepping {
 
 /**
-  * Very simple and efficient implementation of 2-element queue of T*
+  * Very simple and efficient implementation of 2-element queue of T
   **/
 template < typename T >
 class TwoOf {
 public:
-    TwoOf(): _items({ nullptr, nullptr }), _active( 0 ) {};
+    TwoOf(): _items({{}, {}}), _active(0) {};
 
     int size() const {
-        return int( _items[0] != nullptr ) + int( _items[1] != nullptr );
+        return int(_items[0].has_value()) + int(_items[1].has_value());
     }
 
     bool empty() const {
-        return _items[0] == nullptr && _items[1] == nullptr;
+        return !_items[0].has_value() && !_items[1].has_value();
     }
 
     bool full() const {
-        return _items[0] != nullptr && _items[1] != nullptr;
+        return _items[0].has_value() && _items[1].has_value();
     }
 
-    T& front() const {
+    const T& front() const {
         assert(!empty());
 
-        return *_items[ _active ];
+        return *_items[_active];
     }
 
-    T& back() const {
+    const T& back() const {
         assert(!empty());
 
         int next_idx = _next_idx();
-        if ( _items[ next_idx ] != nullptr)
+        if (_items[ next_idx ].has_value())
             return *_items[next_idx];
         return *_items[_active];
     }
 
-    T *pop() {
+    T pop() {
         assert(!empty());
 
-        T* val = _items[ _active ];
-        _items[ _active ] = nullptr;
+        T val = *_items[_active];
+        _items[_active].reset();
         _active = _next_idx();
         return val;
     }
 
-    void push( T *t ) {
+    void push(T t) {
         assert(!full());
 
-        if ( _items[ _active ] == nullptr)
-            _items[ _active ] = t;
+        if (!_items[ _active ].has_value())
+            _items[_active] = std::move(t);
         else
-            _items[ _next_idx() ] = t;
+            _items[_next_idx()] = std::move(t);
+    }
+
+    template < typename... Args >
+    void emplace(Args... args) {
+        assert(!full());
+
+        if (!_items[ _active ].has_value())
+            _items[_active].emplace(std::forward<Args>(args)...);
+        else
+            _items[_next_idx()].emplace(std::forward<Args>(args)...);
     }
 private:
     unsigned _next_idx() const {
         return (_active + 1) % 2;
     }
 
-    std::array< T *, 2 > _items;
-    unsigned             _active;
+    std::array< std::optional< T >, 2 > _items;
+    unsigned                            _active;
 };
 
 struct MoveTarget {
@@ -91,25 +102,29 @@ struct MoveTarget {
 };
 
 struct AxisState {
-    AxisState() = default;
+    AxisState(int axis_index): axis_index(axis_index) {}
+
+    int axis_index;
 
     CorrectedCurrentLut forward_current, backward_current;
 
     std::atomic< bool > active = false;
 
-    bool          inverted = false;     // Inverted axis direction flag
-    int           zero_rotor_phase = 0; // Rotor phase for position 0
-    int           last_phase       = 0; // Last known rotor phase
-    double        last_position    = 0;
-    TwoOf<move_t> pending_moves;        // 2 element queue of the current and next move_t
-    move_t *      current_move = nullptr;
-    move_t *      last_processed_move = nullptr;
+    bool              inverted = false;     // Inverted axis direction flag
+    int               zero_rotor_phase = 0; // Rotor phase for position 0
+    int               last_phase       = 0; // Last known rotor phase
+    double            last_position    = 0;
+    TwoOf<MoveTarget> pending_targets;      // 2 element queue of pre-processed elements
+    move_t *          last_processed_move = nullptr;
 
-    uint32_t      initial_time = 0;     // Initial timestamp when the movement start
-    MoveTarget    target;
+    uint32_t                  initial_time = 0; // Initial timestamp when the movement start
+    std::optional<MoveTarget> target;           // Current target to move
 
-    int           missed_tx_cnt = 0;
-    double        target_time = 0;
+    int32_t initial_count_position = 0; // Value for updating Stepper::count_position
+    int32_t initial_count_position_from_startup = 0; // Value for updating Stepper::count_position_from_startup
+
+    int    missed_tx_cnt = 0;
+    double target_time = 0;
 };
 
 /**
@@ -164,6 +179,11 @@ bool any_axis_active();
  * Given position, compute coefficient for converting position to motor phase
  **/
 double pos_to_phase(int axis, double position);
+
+/**
+ * Given position, compute step equivalent
+ **/
+int32_t pos_to_steps(int axis, double position);
 
 /**
  * Given axis state and time in µs ticks from movement start, compute axis

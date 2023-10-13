@@ -184,6 +184,7 @@ enum StepEventInfoStatus : uint8_t {
     STEP_EVENT_INFO_STATUS_NOT_GENERATED = 0, // Step event isn't produced by any step event generator. Such a step event cannot be inserted into the step event queue.
     STEP_EVENT_INFO_STATUS_GENERATED_INVALID = 1, // Step event is produced by a step event generator but cannot be inserted into the step event queue.
     STEP_EVENT_INFO_STATUS_GENERATED_VALID = 2, // Step event is produced by a step event generator and can be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_PENDING = 3, // Step event isn't produced by the step-event generator, but no new data are needed
 };
 
 typedef struct step_event_info_t {

@@ -270,25 +270,24 @@ static int clear_accelerometer(PrusaAccelerometer& accelerometer) {
     return remaining_samples;
 }
 
-static void wait_for_movement_start(volatile phase_stepping::AxisState& axis_state) {
-    move_t *last_current_movement = axis_state.current_move;
-    while (last_current_movement == nullptr) {
-        last_current_movement = axis_state.current_move;
-        idle(false);
-    }
-    while (last_current_movement == axis_state.current_move) {
-        idle(false);
+static void wait_for_movement_start(phase_stepping::AxisState& axis_state) {
+    while (!axis_state.target.has_value()) {
+        idle(true);
     }
 }
 
-static void wait_for_accel_end(volatile phase_stepping::AxisState& axis_state) {
-    while (axis_state.target.half_accel != 0)
+static void wait_for_accel_end(phase_stepping::AxisState& axis_state) {
+    if (!axis_state.target.has_value())
+        return;
+    while (axis_state.target->half_accel != 0)
         idle(false);
 }
 
-static void wait_for_zero_phase(volatile phase_stepping::AxisState& axis_state) {
+static void wait_for_zero_phase(phase_stepping::AxisState& axis_state) {
+    if (!axis_state.target)
+        return;
     // We busy wait as the process should be fairly quick
-    if (axis_state.target.start_v > 0) {
+    if (axis_state.target->start_v > 0) {
         while(phase_stepping::normalize_motor_phase(axis_state.last_phase) <= phase_stepping::MOTOR_PERIOD / 4);
         while(phase_stepping::normalize_motor_phase(axis_state.last_phase) >= phase_stepping::MOTOR_PERIOD / 4);
     }
@@ -307,10 +306,11 @@ static void wait_for_zero_phase(volatile phase_stepping::AxisState& axis_state) 
 template < typename F >
 double measure_resonance(AxisEnum axis, double speed, double revs, F yield_sample) {
     static const double MOVE_MARGIN = 0.1; // To account for acceleration and deceleration we use simple hard-coded constant
+    static const double ACC_RESONANCE_PERIOD = 0.4
     Planner::synchronize();
 
-    volatile phase_stepping::AxisState &axis_state = phase_stepping::axis_states[axis];
-    volatile phase_stepping::MoveTarget& axis_target = axis_state.target;
+    phase_stepping::AxisState &axis_state = phase_stepping::axis_states[axis];
+    std::optional<phase_stepping::MoveTarget>& axis_target = axis_state.target;
 
     // Find move target that corresponds to given number of revs
     int direction = revs > 0 ? 1 : -1;
@@ -331,13 +331,15 @@ double measure_resonance(AxisEnum axis, double speed, double revs, F yield_sampl
 
     wait_for_movement_start(axis_state);
     wait_for_accel_end(axis_state);
-    wait_for_zero_phase(axis_state);
+    delay(ACC_RESONANCE_PERIOD * 1000);
 
     uint32_t start_time = ticks_us();
     int samples_taken = 0;
     int counter = 0;
     PrusaAccelerometer accelerometer;
-    while (axis_target.half_accel == 0) {
+    if (!accelerometer_ok(accelerometer, print_error))
+        return 0;
+    while (axis_target.has_value() && axis_target->half_accel == 0) {
         counter++;
         PrusaAccelerometer::Acceleration sample;
         int new_sample = accelerometer.get_sample(sample);

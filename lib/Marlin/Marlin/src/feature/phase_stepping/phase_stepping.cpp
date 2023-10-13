@@ -20,7 +20,10 @@ using namespace phase_stepping;
 using namespace buddy::hw;
 
 // Global definitions
-std::array<AxisState, SUPPORTED_AXIS_COUNT> phase_stepping::axis_states;
+std::array<AxisState, SUPPORTED_AXIS_COUNT> phase_stepping::axis_states {{
+    { AxisEnum::X_AXIS },
+    { AxisEnum::Y_AXIS }
+}};
 
 // Module definitions
 static int axis_num_to_refresh = 0;
@@ -57,9 +60,9 @@ void phase_stepping::init_step_generator(
     axis_state.last_position = 0;
     axis_state.zero_rotor_phase = axis_state.last_phase;
     axis_state.target = MoveTarget(move, axis);
-    axis_state.current_move = &move;
     axis_state.last_processed_move = &move;
-    mark_ownership(move);
+    axis_state.initial_count_position = Stepper::count_position[axis];
+    axis_state.initial_count_position_from_startup = Stepper::count_position_from_startup[axis];
 
     axis_state.active = true;
 }
@@ -73,25 +76,27 @@ step_event_info_t phase_stepping::next_step_event(
     assert(axis_state.last_processed_move != nullptr);
 
     move_t *next_move = PreciseStepping::move_segment_queue_next_move(*axis_state.last_processed_move);
-    bool new_move_enqueued = false;
-    if (!axis_state.pending_moves.full() && next_move != nullptr) {
+    StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
+    if (axis_state.pending_targets.full()) {
+        status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
+    }
+    else if (next_move != nullptr) {
         // PreciseStepping generates and infinite move segment on motion stop.
         // We cannot enqueue such segment
         if (!is_ending_empty_move(*next_move)) {
-            axis_state.pending_moves.push(next_move);
-            mark_ownership(*next_move);
+            axis_state.pending_targets.emplace(*next_move, axis_state.axis_index);
+            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_VALID;
         }
         axis_state.last_processed_move = next_move;
-        new_move_enqueued = true;
     }
+
 
     move_t& last_move = *axis_state.last_processed_move;
     return step_event_info_t{
-                .time = last_move.print_time + last_move.move_t,
-                .flags = STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis,
-                .status = new_move_enqueued
-                            ? STEP_EVENT_INFO_STATUS_GENERATED_VALID
-                            : STEP_EVENT_INFO_STATUS_GENERATED_INVALID };
+        .time = last_move.print_time + last_move.move_t,
+        .flags = STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis,
+        .status = status
+    };
 }
 
 
@@ -118,7 +123,6 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // segment to come will be move segment to zero, let's prepare for that.
     axis_state.zero_rotor_phase = current_phase;
     axis_state.last_phase = current_phase;
-    axis_state.current_move = nullptr;
     axis_state.target = MoveTarget(0);
 
     // Read axis configuration and cache it so we can access it fast
@@ -216,45 +220,43 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     }
 
     uint32_t now = ticks_us();
-    uint32_t move_epoch = now - axis_state.initial_time;
+    uint32_t move_epoch = ticks_diff(now, axis_state.initial_time);
 
-    while (move_epoch > axis_state.target.duration) {
+    while (!axis_state.target.has_value() || move_epoch > axis_state.target->duration) {
         uint32_t time_overshoot = 0;
-
-        if (axis_state.current_move != nullptr) {
-            discard_ownership(*axis_state.current_move);
-            axis_state.current_move = nullptr;
-            // We just overshot; if there is pending segment we should continue
-            // with it, otherwise it means there was a delay and we should start
-            // with current the time
-            time_overshoot = move_epoch - axis_state.target.duration;
+        if (axis_state.target.has_value()) {
+            time_overshoot = ticks_diff(move_epoch, axis_state.target->duration);
+            axis_state.target.reset();
         }
 
-        if (!axis_state.pending_moves.empty()) {
+        if (!axis_state.pending_targets.empty()) {
             // Pull new movement
-            axis_state.current_move = axis_state.pending_moves.pop();
-            axis_state.target = MoveTarget(*axis_state.current_move, axis_num_to_refresh);
+            axis_state.target = axis_state.pending_targets.pop();
+            // Time overshoots accounts for the lost time in the previous state
             axis_state.initial_time = now - time_overshoot;
             move_epoch = time_overshoot;
         } else {
-            // Stay in position
-            move_epoch = axis_state.target.duration;
             break;
         }
     }
 
-    double position = axis_position(axis_state, move_epoch);
+    double position = axis_state.target.has_value()
+        ? axis_position(axis_state, move_epoch)
+        : (axis_state.inverted ? axis_state.last_position : -axis_state.last_position);
     if (!axis_state.inverted)
         position = -position;
     axis_state.last_phase = pos_to_phase(axis_num_to_refresh, position) + axis_state.zero_rotor_phase;
 
-    // TBA report movement to Stepper - we don't do it at the moment as
-    // Stepper::count_direction, Stepper::count_direction_from_startup and
-    // Stepper::count_direction doesn't seem to be used anywhere. And we would
-    // just burn CPU cycles on keeping them updated.
+    // Report movement to Stepper: we skip at the moment as it takes too long to compute
+    // int32_t steps_made = pos_to_steps(position, axis_num_to_refresh);
+    // Stepper::count_position[axis_num_to_refresh] =
+    //     axis_state.initial_count_position + steps_made;
+    // Stepper::count_position_from_startup[axis_num_to_refresh] =
+    //     axis_state.initial_count_position_from_startup + steps_made;
+
     const auto& current_lut = position > axis_state.last_position
         ? axis_state.forward_current
-        : axis_state. backward_current;
+        : axis_state.backward_current;
     auto [a, b] = current_lut.get_current(axis_state.last_phase);
 
     axis_state.last_position = position;
@@ -291,8 +293,12 @@ __attribute__((optimize("-Ofast"))) double phase_stepping::pos_to_phase(int axis
     // return position * 256 * STEPS_PER_UNIT[axis] / MICROSTEPS[axis];
 }
 
+__attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axis, double position) {
+    return position / 80; // TBA take into account actual printer config (at the moment hard-coded for performance reasons)
+}
+
 __attribute__((optimize("-Ofast"))) double phase_stepping::axis_position(const AxisState& axis_state, uint32_t move_epoch) {
     double epoch = move_epoch / 1000000.0;
-    const MoveTarget& trg = axis_state.target;
+    const MoveTarget& trg = *axis_state.target;
     return trg.initial_pos + trg.start_v * epoch + trg.half_accel * epoch * epoch;
 }

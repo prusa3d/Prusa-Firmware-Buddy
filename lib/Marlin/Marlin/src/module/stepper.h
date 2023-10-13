@@ -49,6 +49,10 @@
   #include "speed_lookuptable.h"
 #endif
 
+#ifdef PHASE_STEPPING
+  #include "../feature/phase_stepping/phase_stepping.hpp"
+#endif
+
 // Disable multiple steps per ISR
 //#define DISABLE_MULTI_STEPPING
 
@@ -624,6 +628,14 @@ private:
 #endif
 
     friend class PreciseStepping;
+#ifdef PHASE_STEPPING
+    friend void ::phase_stepping::handle_periodic_refresh();
+    friend void ::phase_stepping::init_step_generator(
+      const move_t &move,
+      move_segment_step_generator_t &step_generator,
+      step_generator_state_t &step_generator_state
+    );
+#endif
 };
 
 extern Stepper stepper;
