@@ -53,7 +53,6 @@
 #include "str_utils.hpp"
 #include "bootloader/bootloader.hpp"
 #include "gui_bootstrap_screen.hpp"
-#include "resources/bootstrap.hpp"
 #include "resources/revision.hpp"
 
 #if HAS_PUPPIES()
