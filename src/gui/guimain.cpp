@@ -434,8 +434,6 @@ void gui_run(void) {
         ScreenFactory::Screen<screen_splash_data_t>, // splash
         ScreenFactory::Screen<screen_home_data_t> // home
     };
-
-    // Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
     // TIMEOUT variable getting value from EEPROM when EEPROM interface is initialized
@@ -468,6 +466,9 @@ void gui_run(void) {
     fw_gui_splash_progress(); // draw a smooth progressbar from last percent to 100%
 
     gui_bootstrap_screen_delete();
+
+    // Close bootstrap screen, open home screen
+    Screens::Access()->Close();
 
 #if HAS_LEDS() && !HAS_SIDE_LEDS()
     // we need to step the animator, to move the started animation to current to let it run for one cycle

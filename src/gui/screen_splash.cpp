@@ -210,9 +210,6 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_u
 
         progress.SetProgressPercent(std::clamp(percent, 0, 100));
 
-        if (percent > 99) {
-            Screens::Access()->Close();
-        }
 #else // _EXTUI
     if (HAL_GetTick() > 3000) {
         Screens::Access()->Close();

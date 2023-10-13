@@ -45,6 +45,9 @@ void gui_bootstrap_screen_set_state(unsigned percent, const char *str) {
     bootstrap_progress->message = str != nullptr ? str : "";
     bootstrap_progress->need_redraw = true;
     osMutexRelease(bootstrap_progress->lock_id);
+
+    // wait a little to give GUI change to draw screen (it has lower priority, so we need to free up the CPU)
+    osDelay(1);
 }
 
 void gui_bootstrap_screen_init() {
