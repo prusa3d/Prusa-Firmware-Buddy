@@ -143,8 +143,8 @@ void MMU2::Start() {
 
     // start the communication
     logic.Start();
-
     logic.ResetRetryAttempts();
+    logic.ResetCommunicationTimeoutAttempts();
 }
 
 void MMU2::Stop() {

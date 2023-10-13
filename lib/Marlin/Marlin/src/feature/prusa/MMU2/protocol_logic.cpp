@@ -256,7 +256,7 @@ StepStatus ProtocolLogic::ProcessVersionResponse(uint8_t stage) {
                 SendVersion(stage);
             }
         } else {
-            dataTO.Reset(); // got a meaningful response from the MMU, stop data layer timeout tracking
+            ResetCommunicationTimeoutAttempts(); // got a meaningful response from the MMU, stop data layer timeout tracking
             SendVersion(stage + 1);
         }
     }
@@ -776,7 +776,7 @@ void ProtocolLogic::LogResponse() {
 StepStatus ProtocolLogic::SuppressShortDropOuts(const char *msg_P, StepStatus ss) {
     if (dataTO.Record(ss)) {
         LogError(msg_P);
-        dataTO.Reset(); // prepare for another run of consecutive retries before firing an error
+        ResetCommunicationTimeoutAttempts(); // prepare for another run of consecutive retries before firing an error
         return dataTO.InitialCause();
     } else {
         return Processing; // suppress short drop outs of communication
@@ -865,6 +865,11 @@ void ProtocolLogic::DecrementRetryAttempts() {
 void ProtocolLogic::ResetRetryAttempts() {
     SERIAL_ECHOLNPGM("ResetRetryAttempts");
     retryAttempts = MAX_RETRIES;
+}
+
+void ProtocolLogic::ResetCommunicationTimeoutAttempts() {
+    SERIAL_ECHOLNPGM("RSTCommTimeout");
+    dataTO.Reset();
 }
 
 bool DropOutFilter::Record(StepStatus ss) {
