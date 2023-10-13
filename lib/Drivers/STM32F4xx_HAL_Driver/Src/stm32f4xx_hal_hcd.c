@@ -1327,7 +1327,11 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
     }
     else
     {
-      /* ... */
+      /* re-activate the channel */
+      tmpreg = USBx_HC(ch_num)->HCCHAR;
+      tmpreg &= ~USB_OTG_HCCHAR_CHDIS;
+      tmpreg |= USB_OTG_HCCHAR_CHENA;
+      USBx_HC(ch_num)->HCCHAR = tmpreg;
     }
     __HAL_HCD_CLEAR_HC_INT(ch_num, USB_OTG_HCINT_CHH);
 
