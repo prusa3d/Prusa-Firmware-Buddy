@@ -41,7 +41,6 @@ public:
         wrong_filament_wait_user,
         wrong_filament_change,
         checks_done,
-
         done,
     };
 
@@ -95,8 +94,10 @@ public:
     Result Loop();
 
     void Init();
-    void SkipIfAble() { skip_if_able = true; }
-    void DontSkip() { skip_if_able = false; }
+
+    inline void set_skip_if_able(bool set) {
+        skip_if_able = set;
+    }
     /**
      * @brief Checks whether the given physical extruder has corrent filament type for the print. Parametrized with getter to be callable without global tool_mapper/spool_join being in a valid state
      *

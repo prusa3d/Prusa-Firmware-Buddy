@@ -34,6 +34,7 @@
 // but not currently needed
 std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPreview::State state) {
     switch (state) {
+
     case State::inactive:
         return std::nullopt;
 
@@ -52,6 +53,7 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
 
     case State::new_firmware_available_wait_user:
         return PhasesPrintPreview::new_firmware_available;
+
     case State::tools_mapping_wait_user:
         return PhasesPrintPreview::tools_mapping;
 
@@ -90,8 +92,10 @@ void IPrintPreview::ChangeState(State s) {
 void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
     FSM_action action = IsFSM_action_needed(phase, wantedPhase);
     switch (action) {
+
     case FSM_action::no_action:
         break;
+
     case FSM_action::create:
         if (wantedPhase && *wantedPhase != PhasesPrintPreview::_first) {
             FSM_CREATE_WITH_DATA__LOGGING(PrintPreview, *wantedPhase, fsm::PhaseData({ 0, 0, 0, 0 }));
@@ -99,10 +103,12 @@ void IPrintPreview::setFsm(std::optional<PhasesPrintPreview> wantedPhase) {
             FSM_CREATE__LOGGING(PrintPreview);
         }
         break;
+
     case FSM_action::destroy:
         // do not call FSM_DESTROY__LOGGING(PrintPreview);
         // we need to call it manually later to be atomic
         break;
+
     case FSM_action::change:
         FSM_CHANGE__LOGGING(PrintPreview, *wantedPhase); // wantedPhase is not nullopt, FSM_action would not be change otherwise
         break;
@@ -376,8 +382,10 @@ PrintPreview::Result PrintPreview::Loop() {
     auto &gcode_info = GCodeInfo::getInstance();
 
     switch (GetState()) {
+
     case State::inactive: // cannot be, but have it defined to enumerate all states
         return Result::Inactive;
+
     case State::init:
         osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
         ChangeState(State::loading);
@@ -387,12 +395,15 @@ PrintPreview::Result PrintPreview::Loop() {
             return Result::MarkStarted;
         }
         break;
+
     case State::download_wait:
         switch (response) {
+
         case Response::Quit:
             osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_STOP);
             ChangeState(State::inactive);
             return Result::Abort;
+
         default:
             break;
         }
@@ -401,6 +412,7 @@ PrintPreview::Result PrintPreview::Loop() {
             ChangeState(State::loading);
         }
         break;
+
     case State::loading:
         if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::None) {
             break;
@@ -418,40 +430,52 @@ PrintPreview::Result PrintPreview::Loop() {
             ChangeState(skip_if_able ? stateFromSelftestCheck() : State::preview_wait_user);
         }
         break;
+
     case State::preview_wait_user:
         switch (response) {
+
         case Response::Continue: // no difference in state machine, some checks will not be run if tools_mapping is possible
         case Response::Print:
         case Response::PRINT:
             ChangeState(stateFromSelftestCheck());
-            if (!skip_if_able)
+            if (!skip_if_able) {
                 // If print wasn't maked as started immediately, mark it now
                 return Result::MarkStarted;
+            }
             break;
+
         case Response::Back:
             ChangeState(State::inactive);
             return Result::Abort;
+
         default:
             break;
         }
         break;
+
     case State::unfinished_selftest_wait_user:
         switch (response) {
+
         case Response::Continue:
             ChangeState(stateFromUpdateCheck());
             break;
+
         case Response::Abort:
             ChangeState(State::inactive);
             return Result::Abort;
+
         default:
             break;
         }
         break;
+
     case State::new_firmware_available_wait_user:
         switch (response) {
+
         case Response::Continue:
             ChangeState(stateFromPrinterCheck());
             break;
+
         default:
             // TODO this should be handled more generally with a possibility to set timeout for specific state, but this should work for now and is MUCH easier
             if (ticks_ms() >= new_firmware_open_ms + new_firmware_timeout_ms) {
@@ -460,29 +484,37 @@ PrintPreview::Result PrintPreview::Loop() {
             break;
         }
         break;
+
     case State::tools_mapping_wait_user:
         switch (response) {
+
         case Response::Back:
             ChangeState(State::inactive);
             tools_mapping_cleanup();
             return Result::Abort;
+
         case Response::PRINT:
             tools_mapping_cleanup(true);
             ChangeState(State::done);
             break;
+
         default:
             break;
         }
         break;
+
     case State::wrong_printer_wait_user:
     case State::wrong_printer_wait_user_abort:
         switch (response) {
+
         case Response::PRINT:
             ChangeState(stateFromFilamentPresence());
             break;
+
         case Response::Abort:
             ChangeState(State::inactive);
             return Result::Abort;
+
         default:
             break;
         }
@@ -490,17 +522,21 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::filament_not_inserted_wait_user:
         switch (response) {
+
         case Response::FS_disable:
             FSensors_instance().Disable();
             ChangeState(State::checks_done);
             break;
+
         case Response::No:
             ChangeState(State::inactive);
             return Result::Abort;
+
         case Response::Yes:
             ChangeState(State::filament_not_inserted_load);
             queue_filament_load_gcodes();
             break;
+
         default:
             break;
         }
@@ -514,13 +550,17 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::mmu_filament_inserted_wait_user:
         switch (response) {
+
         case Response::No:
             ChangeState(State::inactive);
             return Result::Inactive;
+
         case Response::Yes:
+
             ChangeState(State::mmu_filament_inserted_unload);
             marlin_server::enqueue_gcode("M702 W0"); // load, no return or cooldown
             break;
+
         default:
             break;
         }
@@ -534,16 +574,20 @@ PrintPreview::Result PrintPreview::Loop() {
 
     case State::wrong_filament_wait_user: // change / ignore / abort
         switch (response) {
+
         case Response::Change:
             ChangeState(State::wrong_filament_change);
             queue_filament_change_gcodes();
             break;
+
         case Response::Ok:
             ChangeState(State::checks_done);
             break;
+
         case Response::Abort:
             ChangeState(State::inactive);
             return Result::Abort;
+
         default:
             break;
         }
@@ -598,8 +642,10 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     case State::download_wait:
     case State::loading:
         return Result::Wait;
+
     case State::preview_wait_user:
         return Result::Image;
+
     case State::unfinished_selftest_wait_user:
     case State::new_firmware_available_wait_user:
     case State::wrong_printer_wait_user:
@@ -612,9 +658,11 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     case State::mmu_filament_inserted_wait_user:
     case State::checks_done:
         return Result::Questions;
+
     case State::inactive:
     case State::done:
         return Result::Inactive;
+
     case State::tools_mapping_wait_user:
         return Result::ToolsMapping;
     }

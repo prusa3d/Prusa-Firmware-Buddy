@@ -31,9 +31,11 @@ namespace {
         SimplePrintState simple_state {};
 
         switch (vars->print_state) {
+
         case State::Printing:
             simple_state = SimplePrintState::Printing;
             break;
+
         case State::PowerPanic_acFault:
         case State::PowerPanic_Resume:
         case State::PowerPanic_AwaitingResume:
@@ -63,18 +65,22 @@ namespace {
         case State::PrintPreviewConfirmed:
             simple_state = SimplePrintState::Busy;
             break;
+
         case State::Paused:
             simple_state = SimplePrintState::Paused;
             break;
+
         case State::Aborted:
         case State::Finished:
         case State::Idle:
         case State::Exit:
             simple_state = SimplePrintState::Idle;
             break;
+
         case State::PrintPreviewQuestions:
             simple_state = SimplePrintState::Attention;
             break;
+
         default:
             assert(0);
             simple_state = SimplePrintState::Idle;

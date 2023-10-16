@@ -25,7 +25,10 @@ public:
         : file(&f) {}
 
     IGcodeReader(IGcodeReader &&other)
-        : file(nullptr) { *this = std::move(other); }
+        : file(nullptr) {
+        *this = std::move(other);
+    }
+
     IGcodeReader &operator=(IGcodeReader &&);
 
     virtual ~IGcodeReader();
@@ -123,6 +126,8 @@ public:
 
 protected:
     FILE *file;
+
+    /// nullopt -> everything available; empty state -> error
     std::optional<transfers::PartialFile::State> validity = std::nullopt;
 
     typedef IGcodeReader::Result_t (IGcodeReader::*stream_getc_type)(char &out);

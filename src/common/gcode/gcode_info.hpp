@@ -159,13 +159,13 @@ private:
     uint32_t printer_model_code; ///< model code (see printer_model2code())
 
     // atomic flags to signal to other thread, the progress of gcode loading
-    std::atomic<bool> loaded = false; ///< did the load() function finish?
-    std::atomic<StartLoadResult> load_started {}; ///< None if nt started yet, Failed - opening gcode failed, Started - success
-    std::atomic<bool> printable {}; ///< is it valid for print?, checked by gcode reader "valid_for_print" function
+    std::atomic<bool> is_loaded_ = false; ///< did the load() function finish?
+    std::atomic<StartLoadResult> start_load_result_ = {}; ///< None if nt started yet, Failed - opening gcode failed, Started - success
+    std::atomic<bool> is_printable_ = false; ///< is it valid for print?, checked by gcode reader "valid_for_print" function
 
     time_buff printing_time; ///< Stores string representation of printing time left
-    bool preview_thumbnail; ///< True if gcode has preview thumbnail
-    bool progress_thumbnail; ///< True if gcode has progress thumbnail
+    bool has_preview_thumbnail_; ///< True if gcode has preview thumbnail
+    bool has_progress_thumbnail_; ///< True if gcode has progress thumbnail
     bool filament_described; ///< Filament info was found in gcode's comments
     ValidPrinterSettings valid_printer_settings; ///< Info about matching hardware
     GCodePerExtruderInfo per_extruder_info; ///< Info about G-code for each extruder
@@ -174,9 +174,10 @@ private:
 
 public:
     const time_buff &get_printing_time() const { return printing_time; } ///< Get string representation of printing time left
-    bool is_loaded() const { return loaded; } ///< Check if file has preview thumbnail
-    bool has_preview_thumbnail() const { return preview_thumbnail; } ///< Check if file has preview thumbnail
-    bool has_progress_thumbnail() const { return progress_thumbnail; } ///< Check if file has progress thumbnail
+    bool is_loaded() const { return is_loaded_; } ///< Check if file has preview thumbnail
+
+    bool has_preview_thumbnail() const { return has_preview_thumbnail_; } ///< Check if file has preview thumbnail
+    bool has_progress_thumbnail() const { return has_progress_thumbnail_; } ///< Check if file has progress thumbnail
     bool has_filament_described() const { return filament_described; } ///< Check if file has filament described
     const ValidPrinterSettings &get_valid_printer_settings() const { return valid_printer_settings; } ///< Get info about matching hardware
     const GCodePerExtruderInfo &get_per_extruder_info() const { return per_extruder_info; } ///< Get info about G-code for each extruder
@@ -267,7 +268,7 @@ public:
      * To be used concurently to `check_valid_for_print`,
      * which does the real checking
      */
-    bool can_be_printed() { return printable; }
+    bool can_be_printed() { return is_printable_; }
 
     /**
      * @brief Check the result of starting the load
@@ -275,7 +276,7 @@ public:
      * To be used concurently to `start_load`,
      * which does the starting.
      */
-    StartLoadResult start_load_result() { return load_started; }
+    StartLoadResult start_load_result() { return start_load_result_; }
 
     /**
      * @brief Sets up gcode file and sets up info member variables for print preview

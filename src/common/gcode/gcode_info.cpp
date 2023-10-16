@@ -85,8 +85,8 @@ uint32_t printer_model2code(const char *model) {
 GCodeInfo::GCodeInfo()
     : printer_model_code(printer_model2code(PRINTER_MODEL))
     , printing_time { "?" }
-    , preview_thumbnail(false)
-    , progress_thumbnail(false)
+    , has_preview_thumbnail_(false)
+    , has_progress_thumbnail_(false)
     , filament_described(false)
     , per_extruder_info()
     , gcode_file_path(nullptr)
@@ -95,15 +95,18 @@ GCodeInfo::GCodeInfo()
 
 bool GCodeInfo::start_load() {
     reset_info();
+
     file_reader = std::make_unique<AnyGcodeFormatReader>(gcode_file_path);
-    if (!file_reader || !file_reader->is_open()) {
+    if (file_reader->is_open()) {
+        start_load_result_ = StartLoadResult::Started;
+        check_valid_for_print(); // This only updates is_valid, will change over the prefetch change
+        return true;
+
+    } else {
         file_reader.reset();
-        load_started = StartLoadResult::Failed;
+        start_load_result_ = StartLoadResult::Failed;
         return false;
     }
-    check_valid_for_print();
-    load_started = StartLoadResult::Started;
-    return true;
 }
 
 void GCodeInfo::end_load() {
@@ -111,22 +114,25 @@ void GCodeInfo::end_load() {
 }
 
 bool GCodeInfo::check_valid_for_print() {
-    assert(file_reader); // assert file is open
+    assert(file_reader);
+    auto &reader = *file_reader->get();
+
     transfers::Transfer::Path path(GetGcodeFilepath());
-    file_reader->get()->update_validity(path);
-    printable = file_reader->get()->valid_for_print();
-    return printable;
+    reader.update_validity(path);
+    is_printable_ = reader.valid_for_print();
+
+    return is_printable_;
 }
 
 void GCodeInfo::load() {
     assert(file_reader); // assert file is open
 
-    preview_thumbnail = hasThumbnail(*file_reader->get(), GuiDefaults::PreviewThumbnailRect.Size());
-    progress_thumbnail = hasThumbnail(*file_reader->get(), GuiDefaults::ProgressThumbnailRect.Size());
+    has_preview_thumbnail_ = hasThumbnail(*file_reader->get(), GuiDefaults::PreviewThumbnailRect.Size());
+    has_progress_thumbnail_ = hasThumbnail(*file_reader->get(), GuiDefaults::ProgressThumbnailRect.Size());
 
     // scan info G-codes and comments
     PreviewInit();
-    loaded = true;
+    is_loaded_ = true;
 }
 
 int GCodeInfo::UsedExtrudersCount() const {
@@ -140,15 +146,15 @@ int GCodeInfo::GivenExtrudersCount() const {
 }
 
 void GCodeInfo::reset_info() {
-    loaded = false;
-    printable = false;
-    preview_thumbnail = false;
-    progress_thumbnail = false;
+    is_loaded_ = false;
+    is_printable_ = false;
+    has_preview_thumbnail_ = false;
+    has_progress_thumbnail_ = false;
     filament_described = false;
     valid_printer_settings = ValidPrinterSettings();
     per_extruder_info.fill({});
     printing_time[0] = 0;
-    load_started = StartLoadResult::None;
+    start_load_result_ = StartLoadResult::None;
 }
 
 uint32_t GCodeInfo::getPrinterModelCode() const {
@@ -441,32 +447,36 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
 #pragma GCC diagnostic ignored "-Wformat-truncation"
         snprintf(printing_time.begin(), printing_time.size(), "%s", val.c_str());
 #pragma GCC diagnostic pop
+
     } else {
-        bool is_filament_type = name == gcode_info::filament_type;
-        bool is_filament_used_mm = name == gcode_info::filament_mm;
-        bool is_filament_used_g = name == gcode_info::filament_g;
-        bool is_extruder_colour = name == gcode_info::extruder_colour;
+        const bool is_filament_type = (name == gcode_info::filament_type);
+        const bool is_filament_used_mm = (name == gcode_info::filament_mm);
+        const bool is_filament_used_g = (name == gcode_info::filament_g);
+        const bool is_extruder_colour = (name == gcode_info::extruder_colour);
 
         if (is_filament_type || is_filament_used_g || is_filament_used_mm || is_extruder_colour) {
             std::span<char> value(val.c_str(), val.len());
             int extruder = 0;
             while (std::optional<std::span<char>> item = iterate_items(value, is_filament_type || is_extruder_colour ? ';' : ',')) {
-                if (item.has_value() == false) {
+                if (!item.has_value()) {
                     break;
-                }
-                if (is_filament_type) {
+
+                } else if (is_filament_type) {
                     filament_buff filament_name;
                     snprintf(filament_name.begin(), filament_name.size(), "%.*s", item->size(), item->data());
                     per_extruder_info[extruder].filament_name = filament_name;
                     filament_described = true;
+
                 } else if (is_filament_used_mm) {
                     float filament_used_mm;
                     sscanf(item->data(), "%f", &filament_used_mm);
                     per_extruder_info[extruder].filament_used_mm = filament_used_mm;
+
                 } else if (is_filament_used_g) {
                     float filament_used_g;
                     sscanf(item->data(), "%f", &filament_used_g);
                     per_extruder_info[extruder].filament_used_g = filament_used_g;
+
                 } else if (is_extruder_colour) {
                     uint32_t red;
                     uint32_t green;

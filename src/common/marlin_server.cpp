@@ -735,18 +735,14 @@ void print_start(const char *filename, bool skip_preview) {
         return;
 
     // handle preview / reprint
-    switch (server.print_state) {
-    case State::Finished:
-    case State::Aborted:
+    if (server.print_state == State::Finished || server.print_state == State::Aborted) {
         // correctly end previous print
         finalize_print();
         FSM_DESTROY__LOGGING(Printing);
-        break;
-    default:
-        break;
     }
 
     switch (server.print_state) {
+
     case State::Idle:
     case State::Finished:
     case State::Aborted:
@@ -757,8 +753,9 @@ void print_start(const char *filename, bool skip_preview) {
     case State::PrintPreviewToolsMapping:
         media_print_start__prepare(filename);
         server.print_state = State::WaitGui;
-        skip_preview ? PrintPreview::Instance().SkipIfAble() : PrintPreview::Instance().DontSkip();
+        PrintPreview::Instance().set_skip_if_able(skip_preview);
         break;
+
     default:
         break;
     }
@@ -766,9 +763,11 @@ void print_start(const char *filename, bool skip_preview) {
 
 void gui_ready_to_print() {
     switch (server.print_state) {
+
     case State::WaitGui:
         server.print_state = State::PrintPreviewInit;
         break;
+
     default:
         log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", State::WaitGui, server.print_state);
         break;
@@ -777,9 +776,11 @@ void gui_ready_to_print() {
 
 void gui_cant_print() {
     switch (server.print_state) {
+
     case State::WaitGui:
         server.print_state = State::Idle;
         break;
+
     default:
         log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", State::WaitGui, server.print_state);
         break;
@@ -787,7 +788,9 @@ void gui_cant_print() {
 }
 
 void print_abort(void) {
+
     switch (server.print_state) {
+
 #if ENABLED(POWER_PANIC)
     case State::PowerPanic_Resume:
     case State::PowerPanic_AwaitingResume:
@@ -799,6 +802,7 @@ void print_abort(void) {
     case State::CrashRecovery_Tool_Pickup:
         server.print_state = State::Aborting_Begin;
         break;
+
     case State::PrintPreviewInit:
     case State::PrintPreviewImage:
     case State::PrintPreviewConfirmed:
@@ -806,6 +810,7 @@ void print_abort(void) {
     case State::PrintPreviewToolsMapping:
         server.print_state = State::Aborting_Preview;
         break;
+
     default:
         break;
     }
@@ -813,6 +818,7 @@ void print_abort(void) {
 
 void print_exit(void) {
     switch (server.print_state) {
+
 #if ENABLED(POWER_PANIC)
     case State::PowerPanic_Resume:
     case State::PowerPanic_AwaitingResume:
@@ -823,6 +829,7 @@ void print_exit(void) {
     case State::Finishing_WaitIdle:
         // do nothing
         break;
+
     default:
         server.print_state = State::Exit;
         break;
@@ -1187,8 +1194,10 @@ static void _server_print_loop(void) {
         auto old_state = server.print_state;
         auto new_state = old_state;
         switch (PrintPreview::Instance().Loop()) {
+
         case PrintPreview::Result::Wait:
             break;
+
         case PrintPreview::Result::MarkStarted:
             // The job_id is used to identify a job for Connect & Link. We want to
             // have a unique one for each job, but have the same one through the
@@ -1204,19 +1213,24 @@ static void _server_print_loop(void) {
 
             new_state = State::PrintPreviewConfirmed;
             break;
+
         case PrintPreview::Result::Image:
             new_state = State::PrintPreviewImage;
             break;
+
         case PrintPreview::Result::Questions:
             new_state = State::PrintPreviewQuestions;
             break;
+
         case PrintPreview::Result::Abort:
             new_state = did_not_start_print ? State::Idle : State::Finishing_WaitIdle;
             FSM_DESTROY__LOGGING(PrintPreview);
             break;
+
         case PrintPreview::Result::ToolsMapping:
             new_state = State::PrintPreviewToolsMapping;
             break;
+
         case PrintPreview::Result::Print:
         case PrintPreview::Result::Inactive:
             did_not_start_print = false;

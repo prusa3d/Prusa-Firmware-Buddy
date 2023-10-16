@@ -84,32 +84,40 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     case PhasesPrintPreview::download_wait:
         pMsgbox = makeMsgBoxWait(_("Downloading..."));
         break;
+
     case PhasesPrintPreview::main_dialog:
         gcode_description.update(gcode);
         assert(gcode.is_loaded() && "GCodeInfo must be initialized before ScreenPrintPreview is created");
         show_main_dialog();
         break;
+
     case PhasesPrintPreview::unfinished_selftest:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_unfinished_selftest));
         break;
+
     case PhasesPrintPreview::new_firmware_available: {
         const auto version = GCodeInfo::getInstance().get_valid_printer_settings().latest_fw_version;
         pMsgbox = makeMsgBox(_("New firmware available"), string_view_utf8::MakeRAM(reinterpret_cast<const uint8_t *>(version)));
         break;
     }
+
     case PhasesPrintPreview::wrong_printer:
     case PhasesPrintPreview::wrong_printer_abort:
         pMsgbox = make_static_unique_ptr<MsgBoxInvalidPrinter>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, _(labelWarning), &img::warning_16x16);
         break;
+
     case PhasesPrintPreview::filament_not_inserted:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_not_detected));
         break;
+
     case PhasesPrintPreview::mmu_filament_inserted:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_fil_detected_mmu));
         break;
+
     case PhasesPrintPreview::wrong_filament:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_fil_type));
         break;
+
     case PhasesPrintPreview::tools_mapping:
         show_tools_mapping();
         break;

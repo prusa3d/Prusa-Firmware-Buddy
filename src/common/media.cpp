@@ -261,6 +261,7 @@ void media_print_start(const bool prefetch_start) {
     if (!prefetch_start) {
         return;
     }
+
     media_print_file.open(marlin_vars()->media_SFN_path.get_ptr());
     if (media_print_file.is_open() && media_print_file.get()->stream_gcode_start()) {
         media_gcode_position = media_current_position = 0;
