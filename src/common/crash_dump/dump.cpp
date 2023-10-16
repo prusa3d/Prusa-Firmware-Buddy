@@ -10,6 +10,7 @@
 #include "task.h"
 #include <error_codes.hpp>
 #include "safe_state.h"
+#include "wdt.h"
 extern "C" {
 #include "CrashCatcher.h"
 }
@@ -19,6 +20,7 @@ namespace crash_dump {
 /// While dumping, this stores size of already dumped data
 static uint32_t dump_size;
 static bool dump_breakpoint_paused = false;
+static bool wdg_reset_safeguard = false; ///< Safeguard to prevent multiple refresh of watchdog in dump
 
 /// Just random value, used to check that dump is probably valid in flash
 inline constexpr uint32_t CRASH_DUMP_MAGIC_NR = 0x3DC53F;
@@ -336,6 +338,13 @@ void CrashCatcher_DumpStart([[maybe_unused]] const CrashCatcherInfo *pInfo) {
         crash_dump::dump_failed();
     }
 
+    // Erase takes 300ms typically. But according to dataheet, it can take multiple seconds.
+    // If we are dumping watchdog reset, we don't have much time. So we'll refresh the watchdog once
+    // to give us aditionall 4s to dump it. Safeguard is here to prevent infinite watchdog reset in case something goes horribly wrong.
+    if (!crash_dump::wdg_reset_safeguard) {
+        wdt_iwdg_refresh();
+        crash_dump::wdg_reset_safeguard = true;
+    }
     crash_dump::dump_reset();
 
     crash_dump::dump_size = 0;
