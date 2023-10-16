@@ -32,6 +32,7 @@ void ScreenESP::Change(fsm::BaseData data) {
 
     if (part_previous != part_current) {
         ReleaseCaptureOfNormalWindow(); // release is not automatic !!!
+        ptr = nullptr; // Must explicitly assign nullptr, otherwise destructor is not called
         switch (part_current) {
         case ESPParts::ESP:
             ptr = makePtr<ESPFrameText>(this, phase, data.GetData());
@@ -43,7 +44,6 @@ void ScreenESP::Change(fsm::BaseData data) {
             ptr = makePtr<ESPFrameQR>(this, phase, data.GetData());
             break;
         default:
-            ptr = nullptr;
             break;
         }
         if (ptr) {
