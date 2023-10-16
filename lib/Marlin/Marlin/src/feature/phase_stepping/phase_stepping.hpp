@@ -92,12 +92,12 @@ private:
 
 struct MoveTarget {
     MoveTarget() = default;
-    MoveTarget(double position);
+    MoveTarget(float position);
     MoveTarget(const move_t& move, int axis);
 
-    double initial_pos = 0;
-    double half_accel  = 0;
-    double start_v     = 0;
+    float initial_pos  = 0;
+    float half_accel   = 0;
+    float start_v      = 0;
     uint32_t duration  = 0; // Movement duration in us
 };
 
@@ -113,7 +113,7 @@ struct AxisState {
     bool              inverted = false;     // Inverted axis direction flag
     int               zero_rotor_phase = 0; // Rotor phase for position 0
     int               last_phase       = 0; // Last known rotor phase
-    double            last_position    = 0;
+    float             last_position    = 0.f;
     TwoOf<MoveTarget> pending_targets;      // 2 element queue of pre-processed elements
     move_t *          last_processed_move = nullptr;
 
@@ -124,7 +124,6 @@ struct AxisState {
     int32_t initial_count_position_from_startup = 0; // Value for updating Stepper::count_position_from_startup
 
     int    missed_tx_cnt = 0;
-    double target_time = 0;
 };
 
 /**
@@ -178,24 +177,24 @@ bool any_axis_active();
 /**
  * Given position, compute coefficient for converting position to motor phase
  **/
-double pos_to_phase(int axis, double position);
+int32_t pos_to_phase(int axis, float position);
 
 /**
  * Given position, compute step equivalent
  **/
-int32_t pos_to_steps(int axis, double position);
+int32_t pos_to_steps(int axis, float position);
 
 /**
  * Given axis state and time in µs ticks from movement start, compute axis
- * position
+ * speed and position.
  */
-double axis_position(const AxisState& axis_state, uint32_t move_epoch);
+std::pair<float, float> axis_position(const AxisState& axis_state, uint32_t move_epoch);
 
 /**
  * Extracts physical axis position from logical one
  **/
 template < typename Pos >
-double extract_physical_position(AxisEnum axis, const Pos& pos) {
+float extract_physical_position(AxisEnum axis, const Pos& pos) {
     #ifdef COREXY
         if (axis == X_AXIS)
             return pos[0] + pos[1];

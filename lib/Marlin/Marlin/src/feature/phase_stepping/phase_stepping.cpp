@@ -29,15 +29,15 @@ std::array<AxisState, SUPPORTED_AXIS_COUNT> phase_stepping::axis_states {{
 static int axis_num_to_refresh = 0;
 static const std::array< OutputPin, SUPPORTED_AXIS_COUNT > cs_pins = {{ xCs, yCs }};
 
-MoveTarget::MoveTarget(double position):
+MoveTarget::MoveTarget(float position):
     initial_pos(position), half_accel(0), start_v(0), duration(0)
 {}
 
 MoveTarget::MoveTarget(const move_t& move, int axis) {
-    double r = get_move_axis_r(move, axis);
+    float r = get_move_axis_r(move, axis);
     initial_pos = extract_physical_position(AxisEnum(axis), move.start_pos);
-    half_accel = r * move.half_accel;
-    start_v = r * move.start_v;
+    half_accel = r * float(move.half_accel);
+    start_v = r * float(move.start_v);
     duration = move.move_t * 1'000'000;
 }
 
@@ -57,9 +57,10 @@ void phase_stepping::init_step_generator(
     axis_state.initial_time = ticks_us();
     // The initialization move segment is always at position 0, so we have to
     // adjust the zero rotor phase
-    axis_state.last_position = 0;
+    axis_state.last_position = 0.f;
     axis_state.zero_rotor_phase = axis_state.last_phase;
     axis_state.target = MoveTarget(move, axis);
+    assert(axis_state.target->initial_pos == 0.f);
     axis_state.last_processed_move = &move;
     axis_state.initial_count_position = Stepper::count_position[axis];
     axis_state.initial_count_position_from_startup = Stepper::count_position_from_startup[axis];
@@ -94,7 +95,7 @@ step_event_info_t phase_stepping::next_step_event(
     move_t& last_move = *axis_state.last_processed_move;
     return step_event_info_t{
         .time = last_move.print_time + last_move.move_t,
-        .flags = STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis,
+        .flags = static_cast<StepEventFlag_t>(STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis),
         .status = status
     };
 }
@@ -240,19 +241,21 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         }
     }
 
-    double position = axis_state.target.has_value()
+    auto [speed, position] = axis_state.target.has_value()
         ? axis_position(axis_state, move_epoch)
-        : (axis_state.inverted ? axis_state.last_position : -axis_state.last_position);
-    if (!axis_state.inverted)
+        : std::make_pair( 0.f, (axis_state.inverted ? axis_state.last_position : -axis_state.last_position) );
+    if (!axis_state.inverted) {
         position = -position;
+        speed = -speed;
+    }
     axis_state.last_phase = pos_to_phase(axis_num_to_refresh, position) + axis_state.zero_rotor_phase;
 
-    // Report movement to Stepper: we skip at the moment as it takes too long to compute
-    // int32_t steps_made = pos_to_steps(position, axis_num_to_refresh);
-    // Stepper::count_position[axis_num_to_refresh] =
-    //     axis_state.initial_count_position + steps_made;
-    // Stepper::count_position_from_startup[axis_num_to_refresh] =
-    //     axis_state.initial_count_position_from_startup + steps_made;
+    // Report movement to Stepper
+    int32_t steps_made = pos_to_steps(position, axis_num_to_refresh);
+    Stepper::count_position[axis_num_to_refresh] =
+        axis_state.initial_count_position + steps_made;
+    Stepper::count_position_from_startup[axis_num_to_refresh] =
+        axis_state.initial_count_position_from_startup + steps_made;
 
     const auto& current_lut = position > axis_state.last_position
         ? axis_state.forward_current
@@ -280,25 +283,42 @@ bool phase_stepping::any_axis_active() {
     return false;
 }
 
-__attribute__((optimize("-Ofast"))) double phase_stepping::pos_to_phase(int axis, double position) {
-    return position * (256.0 * 80.0 / 16.0); // TBA take into account actual printer config
+__attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_phase(int axis, float position) {
+    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+        static_assert(SUPPORTED_AXIS_COUNT <= 3);
 
-    // The following original version took 3.2µs to compute:
+        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+        int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
 
-    // static constexpr int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-    // static constexpr int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
-
-    // assert(axis >= 0 && axis <= 2);
-
-    // return position * 256 * STEPS_PER_UNIT[axis] / MICROSTEPS[axis];
+        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+            ret[i] = 256.f * STEPS_PER_UNIT[i] / MICROSTEPS[i];
+        }
+        return ret;
+    }();
+    return position * FACTORS[axis];
 }
 
-__attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axis, double position) {
-    return position / 80; // TBA take into account actual printer config (at the moment hard-coded for performance reasons)
+__attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axis, float position) {
+    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+        static_assert(SUPPORTED_AXIS_COUNT <= 3);
+
+        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+
+        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+            ret[i] = float(STEPS_PER_UNIT[i]);
+        }
+        return ret;
+    }();
+    return position * FACTORS[axis];
 }
 
-__attribute__((optimize("-Ofast"))) double phase_stepping::axis_position(const AxisState& axis_state, uint32_t move_epoch) {
-    double epoch = move_epoch / 1000000.0;
+__attribute__((optimize("-Ofast"))) std::pair<float, float> phase_stepping::axis_position(const AxisState& axis_state, uint32_t move_epoch) {
+    float epoch = move_epoch / 1000000.f;
     const MoveTarget& trg = *axis_state.target;
-    return trg.initial_pos + trg.start_v * epoch + trg.half_accel * epoch * epoch;
+    return {
+        trg.start_v + 2.f * trg.half_accel * epoch,
+        trg.initial_pos + trg.start_v * epoch + trg.half_accel * epoch * epoch
+    };
 }
