@@ -43,9 +43,6 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
 #endif
     MsgBoxMemSpace msgBoxMemSpace;
 
-    UniquePtrBox makeMsgBox(string_view_utf8 caption, string_view_utf8 text);
-    UniquePtrBox makeMsgBoxWait(string_view_utf8 text);
-
 public:
     ScreenPrintPreview();
     virtual ~ScreenPrintPreview() override;

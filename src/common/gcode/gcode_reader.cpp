@@ -5,6 +5,7 @@
 
 #include "gcode_reader.hpp"
 #include "transfers/transfer.hpp"
+#include "lang/i18n.h"
 #include <filename_type.hpp>
 
 using bgcode::core::BlockHeader;
@@ -87,24 +88,43 @@ void IGcodeReader::update_validity(transfers::Transfer::Path &filename) {
     using transfers::PartialFile;
     using transfers::Transfer;
 
-    auto result = Transfer::load_state(filename.as_destination());
+    const auto transfer_state = Transfer::load_state(filename.as_destination());
+    const auto new_validity = std::visit(
+        [this](const auto &arg) -> std::optional<PartialFile::State> {
+            using T = std::decay_t<decltype(arg)>;
 
-    auto state = std::visit([](const auto &arg) -> std::optional<PartialFile::State> {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, PartialFile::State>) {
-            return arg;
-        } else if constexpr (std::is_same_v<T, Transfer::Error>) {
-            // State saying "nothing available"
-            return PartialFile::State();
-        } else if constexpr (std::is_same_v<T, Transfer::Complete>) {
-            // Whole file available -> no restrictions on what ranges of files it can access.
-            return std::nullopt;
-        }
-    },
-        result);
+            if constexpr (std::is_same_v<T, PartialFile::State>) {
+                return arg;
 
-    set_validity(state);
+            } else if constexpr (std::is_same_v<T, Transfer::Error>) {
+                set_error(N_("File read error"));
+                // State saying "nothing available"
+                return PartialFile::State();
+
+            } else if constexpr (std::is_same_v<T, Transfer::Complete>) {
+                // Whole file available -> no restrictions on what ranges of files it can access.
+                return std::nullopt;
+            }
+        },
+        transfer_state);
+
+    set_validity(new_validity);
 #endif
+}
+
+bool IGcodeReader::check_file_starts_with_BGCODE_magic() const {
+    // Todo respect file availability?
+    rewind(file);
+
+    static constexpr int magicSize = bgcode::core::MAGIC.size();
+    char check_buffer[magicSize];
+    if (!fread(check_buffer, magicSize, 1, file))
+        return false;
+
+    if (memcmp(check_buffer, bgcode::core::MAGIC.data(), magicSize))
+        return false;
+
+    return true;
 }
 
 PlainGcodeReader::PlainGcodeReader(FILE &f, const struct stat &stat_info)
@@ -301,10 +321,18 @@ bool PlainGcodeReader::IsBeginThumbnail(GcodeBuffer &buffer, uint16_t expected_w
     return false;
 }
 
-bool PlainGcodeReader::verify_file(std::span<uint8_t> crc_calc_buffer) const {
+IGcodeReader::FileVerificationResult PlainGcodeReader::verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer) const {
+    // If plain gcode starts with bgcode magic, that means it's most like a binary gcode -> it's not a valid plain gcode
+    if (check_file_starts_with_BGCODE_magic())
+        return { .error_str = N_("The file seems to be a binary gcode with a wrong suffix.") };
+
+    // Plain GCode does not have CRC checking
     (void)crc_calc_buffer;
-    // no CRC or format to verify here, just assume file is valid
-    return true;
+
+    // No more checks for different levels for now
+    (void)level;
+
+    return { .is_ok = true };
 }
 
 bool PlainGcodeReader::valid_for_print() {
@@ -319,11 +347,18 @@ PrusaPackGcodeReader::PrusaPackGcodeReader(FILE &f, const struct stat &stat_info
 }
 
 bool PrusaPackGcodeReader::read_and_check_header() {
-    if (!range_valid(0, sizeof(file_header)))
+    if (!range_valid(0, sizeof(file_header))) {
+        set_error(N_("Invalid BGCODE file header"));
         return false;
+    }
+
     rewind(file);
-    if (bgcode::core::read_header(*file, file_header, nullptr) != bgcode::core::EResult::Success)
+
+    if (bgcode::core::read_header(*file, file_header, nullptr) != bgcode::core::EResult::Success) {
+        set_error(N_("Invalid BGCODE file header"));
         return false;
+    }
+
     return true;
 }
 
@@ -763,10 +798,25 @@ uint32_t PrusaPackGcodeReader::get_gcode_stream_size() {
     return gcode_stream_size_uncompressed;
 }
 
-bool PrusaPackGcodeReader::verify_file(std::span<uint8_t> crc_calc_buffer) const {
-    // todo: this doesn't respect file validity
-    rewind(file);
-    return bgcode::core::is_valid_binary_gcode(*file, true, crc_calc_buffer.data(), crc_calc_buffer.size()) == bgcode::core::EResult::Success;
+IGcodeReader::FileVerificationResult PrusaPackGcodeReader::verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer) const {
+    // Every binary gcode has to start a magic sequence
+    if (!check_file_starts_with_BGCODE_magic())
+        return { .error_str = N_("The file is not a valid bgcode file.") };
+
+    // Further checks are for FileVerificationLevel::full
+    if (int(level) < int(FileVerificationLevel::full)) {
+        return { .is_ok = true };
+    }
+
+    // Check CRC
+    {
+        // todo: this doesn't respect file validity
+        rewind(file);
+        if (bgcode::core::is_valid_binary_gcode(*file, true, crc_calc_buffer.data(), crc_calc_buffer.size()) != bgcode::core::EResult::Success)
+            return { .error_str = N_("The file is not a valid bgcode file.") };
+    }
+
+    return { .is_ok = true };
 }
 
 bool PrusaPackGcodeReader::init_decompression() {

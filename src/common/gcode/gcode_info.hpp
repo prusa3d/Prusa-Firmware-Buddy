@@ -163,6 +163,8 @@ private:
     std::atomic<StartLoadResult> start_load_result_ = {}; ///< None if nt started yet, Failed - opening gcode failed, Started - success
     std::atomic<bool> is_printable_ = false; ///< is it valid for print?, checked by gcode reader "valid_for_print" function
 
+    std::atomic<const char *> error_str_ = nullptr; ///< If there is an error, this variable can be used to report the error string
+
     time_buff printing_time; ///< Stores string representation of printing time left
     bool has_preview_thumbnail_; ///< True if gcode has preview thumbnail
     bool has_progress_thumbnail_; ///< True if gcode has progress thumbnail
@@ -175,6 +177,9 @@ private:
 public:
     const time_buff &get_printing_time() const { return printing_time; } ///< Get string representation of printing time left
     bool is_loaded() const { return is_loaded_; } ///< Check if file has preview thumbnail
+
+    inline bool has_error() const { return error_str_; } ///< Returns whether there is an (unrecoverable) error detected. The error message can then be obtained using error_str
+    inline const char *error_str() const { return error_str_; } ///< If there is any reportable error, returns it. Otherwise returns nullptr.
 
     bool has_preview_thumbnail() const { return has_preview_thumbnail_; } ///< Check if file has preview thumbnail
     bool has_progress_thumbnail() const { return has_progress_thumbnail_; } ///< Check if file has progress thumbnail
@@ -261,6 +266,10 @@ public:
      * @brief Check if file is ready for print
      */
     bool check_valid_for_print();
+
+    /// Checks validity of the file (possibly CRC and such). Returns if the file is valid.
+    /// Updates error_str if the file is not valid.
+    bool verify_file();
 
     /**
      * @brief Check the printable flag

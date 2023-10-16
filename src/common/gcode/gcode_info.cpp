@@ -121,7 +121,28 @@ bool GCodeInfo::check_valid_for_print() {
     reader.update_validity(path);
     is_printable_ = reader.valid_for_print();
 
+    if (reader.has_error()) {
+        error_str_ = reader.error_str();
+    }
+
     return is_printable_;
+}
+
+bool GCodeInfo::verify_file() {
+    assert(file_reader);
+
+    log_info(Buddy, "Starting file verify...");
+
+    // TODO: enable CRC verification, but now its disabled because it takes ages due to slow USB read and suboptimal implementation
+    // For now we're only doing quick verification
+    if (auto result = file_reader->get()->verify_file(IGcodeReader::FileVerificationLevel::quick); !result) {
+        error_str_ = result.error_str;
+        log_info(Buddy, "File verify FAIL: %s", result.error_str);
+        return false;
+    }
+
+    log_info(Buddy, "File verify OK");
+    return true;
 }
 
 void GCodeInfo::load() {
@@ -155,6 +176,7 @@ void GCodeInfo::reset_info() {
     per_extruder_info.fill({});
     printing_time[0] = 0;
     start_load_result_ = StartLoadResult::None;
+    error_str_ = {};
 }
 
 uint32_t GCodeInfo::getPrinterModelCode() const {
@@ -506,47 +528,39 @@ void GCodeInfo::PreviewInit() {
     per_extruder_info = {}; // Reset extruder info
 
     GcodeBuffer buffer;
-
-// TODO: enable CRC verification, but now its disabled because it takes ages due to slow USB card read and suboptimal implementation
-#if 0
-    log_info(Buddy, "Starting CRC verify...");
-    // first verify file integrity, reuse buffer for gcode line for CRC calculation
-    if (!file.get()->verify_file({reinterpret_cast<uint8_t*>(buffer.buffer.data()), buffer.buffer.size()})) {
-        log_info(Buddy, "CRC verify FAIL");
-        return;
-    }
-    log_info(Buddy, "CRC verify OK");
-#endif
+    auto &reader = *file_reader->get();
 
     // parse metadata
-    if (!file_reader->get()->stream_metadata_start()) {
+    if (reader.stream_metadata_start()) {
+        while (true) {
+            auto res = reader.stream_get_line(buffer);
+
+            // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
+            assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+            if (res != IGcodeReader::Result_t::RESULT_OK) {
+                break;
+            }
+
+            parse_comment(buffer.line);
+        }
+
+    } else {
         log_error(Buddy, "Metadata in gcode not found");
-        return;
-    }
-    while (true) {
-        auto res = file_reader->get()->stream_get_line(buffer);
-
-        // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
-        assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
-
-        if (res != IGcodeReader::Result_t::RESULT_OK)
-            break;
-        parse_comment(buffer.line);
     }
 
     // parse first few gcodes
-    uint32_t gcode_counter = 0;
-    if (!file_reader->get()->stream_gcode_start())
-        return;
-    while (true) {
-        auto res = file_reader->get()->stream_get_line(buffer);
+    if (reader.stream_gcode_start()) {
+        uint32_t gcode_counter = 0;
+        while (true) {
+            // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
+            auto res = reader.stream_get_line(buffer);
+            assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
+            if (res != IGcodeReader::Result_t::RESULT_OK || gcode_counter >= search_first_x_gcodes) {
+                break;
+            }
 
-        // valid_for_print should is supposed to make sure that file is downloaded-enough to not run out of bounds here.
-        assert(res != IGcodeReader::Result_t::RESULT_OUT_OF_RANGE);
-
-        if (res != IGcodeReader::Result_t::RESULT_OK || gcode_counter >= search_first_x_gcodes)
-            break;
-        parse_gcode(buffer.line, gcode_counter);
+            parse_gcode(buffer.line, gcode_counter);
+        }
     }
 }
 

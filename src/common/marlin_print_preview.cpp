@@ -75,6 +75,9 @@ std::optional<PhasesPrintPreview> IPrintPreview::getCorrespondingPhase(IPrintPre
     case State::wrong_filament_change:
         return PhasesPrintPreview::wrong_filament;
 
+    case State::file_error_wait_user:
+        return PhasesPrintPreview::file_error;
+
     case State::checks_done:
     case State::done:
         return std::nullopt;
@@ -416,6 +419,11 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::loading:
         if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::None) {
             break;
+
+        } else if (gcode_info.has_error()) {
+            ChangeState(State::file_error_wait_user);
+            break;
+
         } else if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::Failed) {
             ChangeState(State::inactive);
             return Result::Abort;
@@ -603,6 +611,15 @@ PrintPreview::Result PrintPreview::Loop() {
             }
         }
         break;
+
+    case State::file_error_wait_user:
+        // Only one possible response -> abort
+        if (response == Response::Abort) {
+            ChangeState(State::inactive);
+            return Result::Abort;
+        }
+        break;
+
     case State::checks_done:
         if (tools_mapping::is_tool_mapping_possible()) {
 #if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
@@ -657,6 +674,7 @@ PrintPreview::Result PrintPreview::stateToResult() const {
     case State::mmu_filament_inserted_unload:
     case State::mmu_filament_inserted_wait_user:
     case State::checks_done:
+    case State::file_error_wait_user:
         return Result::Questions;
 
     case State::inactive:

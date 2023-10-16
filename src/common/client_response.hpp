@@ -153,9 +153,9 @@ enum class PhasesPrintPreview : uint16_t {
     filament_not_inserted,
     mmu_filament_inserted,
     tools_mapping,
-
     wrong_filament,
-    _last = wrong_filament
+    file_error, ///< Something is wrong with the gcode file
+    _last = file_error
 };
 
 // GUI phases of selftest/wizard
@@ -460,7 +460,8 @@ class ClientResponses {
 #if !PRINTER_IS_PRUSA_XL
             Response::Change,
 #endif
-            Response::Ok, Response::Abort } // wrong_filament
+            Response::Ok, Response::Abort }, // wrong_filament
+        { Response::Abort }, // file_error
     };
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 

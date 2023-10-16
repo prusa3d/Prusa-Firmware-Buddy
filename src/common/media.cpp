@@ -119,28 +119,48 @@ void media_prefetch(const void *) {
         file_buff_level = file_buff_pos = 0;
 
         event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_GCODE_INFO_INIT | PREFETCH_SIGNAL_GCODE_INFO_STOP, osWaitForever);
+
         if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_INIT) {
             auto &gcode_info = GCodeInfo::getInstance();
             if (!gcode_info.start_load()) {
                 continue;
             }
-            bool load_gcode = true;
-            while (!gcode_info.check_valid_for_print()) {
-                event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 1000);
-                if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
-                    gcode_info.end_load();
-                    load_gcode = false;
-                    break;
+
+            const bool should_load_gcode = [&] {
+                // Verify the file CRC
+                if (!gcode_info.verify_file()) {
+                    return false;
                 }
-            }
-            if (load_gcode) {
+
+                // Wait for gcode to be valid
+                while (true) {
+                    if (gcode_info.check_valid_for_print())
+                        break;
+
+                    if (gcode_info.has_error())
+                        return false;
+
+                    // Check for signal to stop loading (for example Quit button during the Downloading screen)
+                    event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 500);
+                    if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }();
+
+            if (should_load_gcode) {
                 gcode_info.load();
-                gcode_info.end_load();
             }
+
+            gcode_info.end_load();
         }
+
         if ((event.value.signals & PREFETCH_SIGNAL_START) == 0) {
             continue;
         }
+
         assert(media_print_file.get());
         log_info(MarlinServer, "Media prefetch: started");
 

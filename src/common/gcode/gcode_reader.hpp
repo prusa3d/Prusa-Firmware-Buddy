@@ -49,6 +49,24 @@ public:
         QOI,
     };
 
+    enum class FileVerificationLevel {
+        /// Quick verification, does not perform full CRC check,
+        /// just checks for some markers that the file is valid (for exapmle GCDE at the beginning)
+        quick,
+
+        /// Everything from quick verify plus full CRC check, if the format supports it
+        full,
+    };
+
+    struct FileVerificationResult {
+        bool is_ok = false;
+        const char *error_str = nullptr; ///< Oblitagory error message
+
+        inline explicit operator bool() const {
+            return is_ok;
+        }
+    };
+
     /**
      * @brief Start streaming metadata from gcode
      */
@@ -89,9 +107,10 @@ public:
     virtual uint32_t get_gcode_stream_size() = 0;
 
     /**
-     * @brief Verify file contents validity (CRC and such). Not available for all formats
+     * @brief Verify file contents validity (CRC and such). Not available for all formats.
+     * @returns nullptr on success, error message on failure
      */
-    virtual bool verify_file(std::span<uint8_t> crc_calc_buffer = std::span<uint8_t>()) const = 0;
+    virtual FileVerificationResult verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer = std::span<uint8_t>()) const = 0;
 
     /* @brief Sets what part of file are already valid.
      *
@@ -124,6 +143,28 @@ public:
      */
     void update_validity(transfers::Transfer::Path &filename);
 
+    /// Returns whtether the reader is in an (unrecoverable) error state
+    inline bool has_error() const {
+        return error_str_;
+    }
+
+    /// Returns error message if has_error() is true
+    inline const char *error_str() const {
+        return error_str_;
+    }
+
+protected:
+    inline void set_error(const char *msg) {
+        assert(msg);
+        error_str_ = msg;
+    }
+
+protected:
+    /// Returns whether the file starts with "GCDE" - mark for recognizing a binary gcode
+    /// Can be used as a part of verify_file - even for non-bgcoode files (to check that they're not disguised bgcodes actually)
+    /// Modifies the file reader.
+    bool check_file_starts_with_BGCODE_magic() const;
+
 protected:
     FILE *file;
 
@@ -147,6 +188,10 @@ protected:
      *   downloaded file), the function always returns true.
      */
     bool range_valid(size_t start, size_t end) const;
+
+private:
+    /// If set to not null, the reader is considered to be in an unrecoverable error state
+    const char *error_str_ = nullptr;
 };
 
 /**
@@ -165,7 +210,7 @@ public:
     virtual Result_t stream_get_block(char *out_data, size_t &size) override;
     virtual uint32_t get_gcode_stream_size_estimate() override;
     virtual uint32_t get_gcode_stream_size() override;
-    virtual bool verify_file(std::span<uint8_t> crc_calc_buffer) const override;
+    virtual FileVerificationResult verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer) const override;
     virtual bool valid_for_print() override;
 
 private:
@@ -231,7 +276,7 @@ public:
     virtual uint32_t get_gcode_stream_size_estimate() override;
     virtual uint32_t get_gcode_stream_size() override;
 
-    virtual bool verify_file(std::span<uint8_t> crc_calc_buffer) const override;
+    virtual FileVerificationResult verify_file(FileVerificationLevel level, std::span<uint8_t> crc_calc_buffer) const override;
 
     struct stream_restore_info_rec_t {
         uint32_t block_file_pos = 0; //< Of block header in file

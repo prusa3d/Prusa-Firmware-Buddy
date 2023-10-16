@@ -48,13 +48,6 @@ ScreenPrintPreview *ScreenPrintPreview::ths = nullptr;
 
 ScreenPrintPreview *ScreenPrintPreview::GetInstance() { return ths; }
 
-ScreenPrintPreview::UniquePtrBox ScreenPrintPreview::makeMsgBox(string_view_utf8 caption, string_view_utf8 text) {
-    return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &img::warning_16x16, is_closed_on_click_t::no);
-}
-ScreenPrintPreview::UniquePtrBox ScreenPrintPreview::makeMsgBoxWait(string_view_utf8 text) {
-    return make_static_unique_ptr<MsgBoxIconnedWait>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
-}
-
 void ScreenPrintPreview::Change(fsm::BaseData data) {
     auto old_phase = phase;
     phase = GetEnumFromPhaseIndex<PhasesPrintPreview>(data.GetPhase());
@@ -74,6 +67,13 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
         header.hide_bed_info();
     }
 #endif
+
+    const auto makeMsgBox = [this](string_view_utf8 caption, string_view_utf8 text, const img::Resource &icon = img::warning_16x16) {
+        return make_static_unique_ptr<MsgBoxTitled>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes, caption, &icon, is_closed_on_click_t::no);
+    };
+    const auto makeMsgBoxWait = [this](string_view_utf8 text) {
+        return make_static_unique_ptr<MsgBoxIconnedWait>(&msgBoxMemSpace, GuiDefaults::RectScreenNoHeader, Responses_NONE, 0, nullptr, text, is_multiline::yes);
+    };
 
     switch (phase) {
 
@@ -116,6 +116,10 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
 
     case PhasesPrintPreview::wrong_filament:
         pMsgbox = makeMsgBox(_(labelWarning), _(txt_wrong_fil_type));
+        break;
+
+    case PhasesPrintPreview::file_error:
+        pMsgbox = makeMsgBox(_("File error"), _(gcode.error_str()), img::error_16x16);
         break;
 
     case PhasesPrintPreview::tools_mapping:
