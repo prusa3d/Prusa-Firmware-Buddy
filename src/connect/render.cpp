@@ -106,6 +106,7 @@ namespace {
 
                 // These are not included in the fingerprint as they are changing a lot.
                 if (printing) {
+                    JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
                     if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
                         JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
@@ -130,7 +131,6 @@ namespace {
                     }
                     JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
                     if (printing) {
-                        JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
                         JSON_FIELD_INT("fan_extruder", params.heatbreak_fan_rpm) JSON_COMMA;
                         JSON_FIELD_INT("fan_print", params.print_fan_rpm) JSON_COMMA;
                         JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;

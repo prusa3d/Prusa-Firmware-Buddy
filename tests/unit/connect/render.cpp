@@ -64,6 +64,7 @@ TEST_CASE("Render") {
         action = SendTelemetry { false };
         // clang-format off
         expected = "{"
+            "\"job_id\":42,"
             "\"time_printing\":0,"
             "\"time_remaining\":0,"
             "\"progress\":12,"
@@ -74,7 +75,6 @@ TEST_CASE("Render") {
             "\"speed\":0,"
             "\"flow\":0,"
             "\"axis_z\":0.00,"
-            "\"job_id\":42,"
             "\"fan_extruder\":0,"
             "\"fan_print\":0,"
             "\"filament\":0.0,"
