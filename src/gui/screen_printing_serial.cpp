@@ -9,6 +9,7 @@
 #include "window_icon.hpp"
 #include "screen_menu_tune.hpp"
 #include "img_resources.hpp"
+#include <serial_printing.hpp>
 
 #if ENABLED(CRASH_RECOVERY)
     #include "../Marlin/src/feature/prusa/crash_recovery.hpp"
@@ -16,11 +17,12 @@
 
 screen_printing_serial_data_t::screen_printing_serial_data_t()
     : AddSuperWindow<ScreenPrintingModel>(_(caption))
-    , octo_icon(this, Rect16((240 - img::serial_printing_172x138.w) / 2, GuiDefaults::RectScreenBody.Top(), img::serial_printing_172x138.w, img::serial_printing_172x138.h), &img::serial_printing_172x138)
+    , octo_icon(this, Rect16((display::GetW() - img::serial_printing_172x138.w) / 2, GuiDefaults::RectScreenBody.Top(), img::serial_printing_172x138.w, img::serial_printing_172x138.h), &img::serial_printing_172x138)
     , last_tick(0)
-    , connection(connection_state_t::connected) {
+    , connection(connection_state_t::connected)
+    , last_state(marlin_server::State::Aborted) {
     ClrMenuTimeoutClose();
-    ClrOnSerialClose(); // don't close on Serial print
+    SetOnSerialClose();
 
     octo_icon.Disable();
     octo_icon.Unshadow();
@@ -29,38 +31,27 @@ screen_printing_serial_data_t::screen_printing_serial_data_t()
 }
 
 void screen_printing_serial_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
-    /// end sequence waiting for empty marlin gcode queue
-    /// parking -> cooldown hotend & bed -> turn off print fan
-    if (connection == connection_state_t::disconnect) {
-        connection = connection_state_t::disconnect_ask;
-        if (MsgBoxWarning(_("Really Disconnect?"), Responses_YesNo, 1) == Response::Yes) {
+    marlin_server::State state = marlin_vars()->print_state;
 
-            DisableButton(BtnSocket::Left);
+    if (state != last_state) {
+        switch (state) {
+        case marlin_server::State::Paused:
+            // print is paused -> show resume button
+            SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Resume, LabelRes::Resume);
+            EnableButton(BtnSocket::Middle);
+            break;
+        case marlin_server::State::Printing:
+            // print is running -> show pause button
+            SetButtonIconAndLabel(BtnSocket::Middle, BtnRes::Pause, LabelRes::Pause);
+            EnableButton(BtnSocket::Middle);
+            break;
+        default:
+            // Any other state means printer pausing or resuming, so just wait for this to finish
             DisableButton(BtnSocket::Middle);
-            DisableButton(BtnSocket::Right);
-
-            marlin_client::gcode("M118 A1 action:disconnect");
-
-            connection = connection_state_t::disconnecting;
-        } else {
-            connection = connection_state_t::connected;
+            break;
         }
-    }
 
-    if (connection == connection_state_t::disconnecting && marlin_vars()->gqueue < 1) {
-        connection = connection_state_t::disconnected;
-        marlin_client::gcode("G27 P2"); /// park nozzle and raise Z axis
-        marlin_client::gcode("M104 S0 D0"); /// set temperatures to zero
-        marlin_client::gcode("M140 S0"); /// set temperatures to zero
-        marlin_client::gcode("M107"); /// print fan off.
-        Odometer_s::instance().force_to_eeprom();
-#if ENABLED(CRASH_RECOVERY)
-        crash_s.write_stat_to_eeprom();
-#endif
-        return;
-    }
-    if (connection == connection_state_t::disconnected) {
-        Screens::Access()->Close();
+        last_state = state;
     }
 
     SuperWindowEvent(sender, event, param);
@@ -71,9 +62,22 @@ void screen_printing_serial_data_t::tuneAction() {
 }
 
 void screen_printing_serial_data_t::pauseAction() {
-    marlin_client::gcode("M118 A1 action:pause");
+    // pause or resume button, depenging on what state we are in
+    marlin_server::State state = marlin_vars()->print_state;
+    switch (state) {
+    case marlin_server::State::Paused:
+        marlin_client::print_resume();
+        break;
+    case marlin_server::State::Printing:
+        marlin_client::print_pause();
+        break;
+    default:
+        break;
+    }
 }
 
 void screen_printing_serial_data_t::stopAction() {
-    connection = connection_state_t::disconnect;
+    // abort print, disable button and wait for screen to close from marlin server
+    marlin_client::print_abort();
+    DisableButton(BtnSocket::Right);
 }

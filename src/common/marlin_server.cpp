@@ -125,6 +125,7 @@ namespace {
         EventMask client_events[MARLIN_MAX_CLIENTS]; // client event mask - unsent messages
         variant8_t event_messages[MARLIN_MAX_CLIENTS]; // last Event::Message for clients, cannot use cvariant, destructor would free memory
         State print_state; // printing state (printing, paused, ...)
+        bool print_is_serial;
 #if ENABLED(CRASH_RECOVERY) //
         bool aborting_did_crash_trigger = false; // To remember crash_s state when aborting
 #endif /*ENABLED(CRASH_RECOVERY)*/
@@ -248,16 +249,20 @@ namespace {
     HotendErrorChecker hotendErrorChecker;
 
     void pause_print(Pause_Type type, uint32_t resume_pos) {
-        switch (type) {
-        case Pause_Type::Crash:
-            media_print_quick_stop(resume_pos);
-            break;
-        case Pause_Type::Repeat_Last_Code:
-            media_print_pause(true);
-            break;
-        default:
-            media_print_pause(false);
+        if (!server.print_is_serial) {
+            switch (type) {
+            case Pause_Type::Crash:
+                media_print_quick_stop(resume_pos);
+                break;
+            case Pause_Type::Repeat_Last_Code:
+                media_print_pause(true);
+                break;
+            default:
+                media_print_pause(false);
+            }
         }
+
+        SerialPrinting::pause();
 
         print_job_timer.pause();
         HOTEND_LOOP() {
@@ -477,6 +482,8 @@ void static finalize_print() {
 #endif
     // Reset IS at the end of the print
     input_shaper::init();
+
+    server.print_is_serial = false; // reset flag about serial print
 }
 
 static const uint8_t MARLIN_IDLE_CNT_BUSY = 1;
@@ -726,6 +733,10 @@ bool printer_paused() {
     return server.print_state == State::Paused;
 }
 
+void serial_print_start() {
+    server.print_state = State::SerialPrintInit;
+}
+
 void print_start(const char *filename, bool skip_preview) {
 #if HAS_SELFTEST()
     if (SelftestInstance().IsInProgress())
@@ -738,7 +749,10 @@ void print_start(const char *filename, bool skip_preview) {
     if (server.print_state == State::Finished || server.print_state == State::Aborted) {
         // correctly end previous print
         finalize_print();
-        FSM_DESTROY__LOGGING(Printing);
+        if (fsm_event_queues.GetFsm0() == ClientFSM::Printing) {
+            // exit from print screen, if opened
+            FSM_DESTROY__LOGGING(Printing);
+        }
     }
 
     switch (server.print_state) {
@@ -783,6 +797,21 @@ void gui_cant_print() {
 
     default:
         log_error(MarlinServer, "Wrong print state, expected: %d, is: %d", State::WaitGui, server.print_state);
+        break;
+    }
+}
+
+void serial_print_finalize(void) {
+    switch (server.print_state) {
+
+    case State::Printing:
+    case State::Paused:
+    case State::Resuming_Reheating:
+    case State::Finishing_WaitIdle:
+    case State::CrashRecovery_Tool_Pickup:
+        server.print_state = State::Finishing_WaitIdle;
+        break;
+    default:
         break;
     }
 }
@@ -1265,6 +1294,7 @@ static void _server_print_loop(void) {
         break;
     }
     case State::PrintInit:
+        server.print_is_serial = false;
         feedrate_percentage = 100;
 
         // Reset flow factor for all extruders
@@ -1314,17 +1344,40 @@ static void _server_print_loop(void) {
         server.mbl_failed = false;
 #endif
         break;
+    case State::SerialPrintInit:
+        server.print_is_serial = true;
+#if ENABLED(CRASH_RECOVERY)
+        crash_s.reset();
+        crash_s.reset_crash_counter();
+        endstops.enable_globally(true);
+        crash_s.set_state(Crash_s::PRINTING);
+#endif // ENABLED(CRASH_RECOVERY)
+#if ENABLED(CANCEL_OBJECTS)
+        cancelable.reset();
+        for (auto &cancel_object_name : marlin_vars()->cancel_object_names) {
+            cancel_object_name.set(""); // Erase object names
+        }
+#endif
+        print_job_timer.start();
+        FSM_CREATE__LOGGING(Serial_printing);
+        server.print_state = State::Printing;
+        break;
+
     case State::Printing:
-        switch (media_print_get_state()) {
-        case media_print_state_PRINTING:
-            break;
-        case media_print_state_PAUSED:
-            /// TODO don't pause in pause/abort/crash etx.
-            server.print_state = State::Pausing_Begin;
-            break;
-        case media_print_state_NONE:
-            server.print_state = State::Finishing_WaitIdle;
-            break;
+        if (server.print_is_serial) {
+            SerialPrinting::print_loop();
+        } else {
+            switch (media_print_get_state()) {
+            case media_print_state_PRINTING:
+                break;
+            case media_print_state_PAUSED:
+                /// TODO don't pause in pause/abort/crash etx.
+                server.print_state = State::Pausing_Begin;
+                break;
+            case media_print_state_NONE:
+                server.print_state = State::Finishing_WaitIdle;
+                break;
+            }
         }
         break;
     case State::Pausing_Begin:
@@ -1385,7 +1438,12 @@ static void _server_print_loop(void) {
         if (heatbreak_fan_check()) {
             abort_resuming = true;
         }
-        if (queue.has_commands_queued() || planner.processing() || (media_print_get_state() != media_print_state_PAUSED))
+
+        if (!server.print_is_serial && (media_print_get_state() != media_print_state_PAUSED)) {
+            break;
+        }
+
+        if (queue.has_commands_queued() || planner.processing())
             break;
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.get_state() == Crash_s::RECOVERY) {
@@ -1412,15 +1470,18 @@ static void _server_print_loop(void) {
             break;
         }
         // server.motion_param.load();  // TODO: currently disabled (see Crash_s::save_parameters())
-        media_print_resume();
+        if (!server.print_is_serial)
+            media_print_resume();
         if (print_job_timer.isPaused())
             print_job_timer.start();
 #if FAN_COUNT > 0
         thermalManager.set_fan_speed(0, server.resume.fan_speed); // restore fan speed
 #endif
         feedrate_percentage = server.resume.print_speed;
+        SerialPrinting::resume();
         server.print_state = State::Printing;
         break;
+
     case State::Aborting_Begin:
 #if ENABLED(CRASH_RECOVERY)
         if (crash_s.is_toolchange_in_progress()) {
@@ -1460,6 +1521,10 @@ static void _server_print_loop(void) {
 
         // allow movements again
         planner.resume_queuing();
+        if (server.print_is_serial) {
+            // will enqueue gcode that will send abort to print host
+            SerialPrinting::abort();
+        }
         set_current_from_steppers();
         sync_plan_position();
         report_current_position();
@@ -1496,6 +1561,9 @@ static void _server_print_loop(void) {
 #endif // Z_ALWAYS_ON
             disable_e_steppers();
             server.print_state = State::Aborted;
+            if (server.print_is_serial) {
+                FSM_DESTROY__LOGGING(Serial_printing);
+            }
             finalize_print();
         }
         break;
@@ -1526,16 +1594,21 @@ static void _server_print_loop(void) {
 #endif // ENABLED(CRASH_RECOVERY)
 
 #ifdef PARK_HEAD_ON_PRINT_FINISH
-            park_head();
+            if (!server.print_is_serial)
+                // do not move head if printing via serial
+                park_head();
 #endif // PARK_HEAD_ON_PRINT_FINISH
             if (print_job_timer.isRunning())
                 print_job_timer.stop();
+
             server.print_state = State::Finishing_ParkHead;
         }
         break;
     case State::Finishing_ParkHead:
         if (!queue.has_commands_queued() && !planner.processing()) {
             server.print_state = State::Finished;
+            if (server.print_is_serial)
+                FSM_DESTROY__LOGGING(Serial_printing);
             finalize_print();
         }
         break;
@@ -1544,6 +1617,9 @@ static void _server_print_loop(void) {
         if (fsm_event_queues.GetFsm0() == ClientFSM::Printing) { // the printing state can only occur in the Fsm0 queue
             finalize_print();
             FSM_DESTROY__LOGGING(Printing);
+        }
+        if (fsm_event_queues.GetFsm0() == ClientFSM::Serial_printing) {
+            finalize_print();
         }
         server.print_state = State::Idle;
         break;

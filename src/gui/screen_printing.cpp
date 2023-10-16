@@ -567,6 +567,7 @@ void screen_printing_data_t::change_print_state() {
         st = printing_state_t::PRINTED;
         break;
     case State::PowerPanic_acFault:
+    case State::SerialPrintInit:
         // this state is never reached
         __builtin_unreachable();
         return;

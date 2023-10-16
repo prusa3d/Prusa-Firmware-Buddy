@@ -58,6 +58,7 @@ JsonResult get_printer(size_t resume_point, JsonOutput &output) {
     case State::CrashRecovery_Repeated_Crash:
     case State::PowerPanic_acFault:
     case State::PrintPreviewConfirmed:
+    case State::SerialPrintInit:
         link_state_str = "BUSY";
         busy = true;
         // Fall through
@@ -249,6 +250,7 @@ JsonResult get_job_octoprint(size_t resume_point, JsonOutput &output) {
     case State::Printing:
     case State::PrintPreviewConfirmed:
     case State::PowerPanic_acFault:
+    case State::SerialPrintInit:
         has_job = true;
         state = "Printing";
         break;

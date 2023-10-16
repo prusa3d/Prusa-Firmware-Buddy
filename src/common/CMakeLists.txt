@@ -54,6 +54,7 @@ if(BOARD MATCHES ".*BUDDY")
             selftest_result.cpp
             selftest_result_type.cpp
             sensor_data_buffer.cpp
+            serial_printing.cpp
             sound.cpp
             st25dv64k.cpp
             stat_retry.cpp

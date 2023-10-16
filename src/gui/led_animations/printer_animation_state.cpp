@@ -37,6 +37,7 @@ PrinterState leds::mpsToAnimationState(marlin_server::State state) {
     case State::WaitGui:
     case State::Printing:
     case State::PrintInit:
+    case State::SerialPrintInit:
         return PrinterState::Printing;
     case State::Pausing_Begin:
     case State::Pausing_Failed_Code:
