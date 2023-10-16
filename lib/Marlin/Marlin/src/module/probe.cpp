@@ -669,19 +669,12 @@ float run_z_probe(float expected_trigger_z, bool single_only, bool *endstop_trig
     // move down quickly before doing the slow probe
     const float z = expected_trigger_z + Z_CLEARANCE_DEPLOY_PROBE + 5.0 + (probe_offset.z < 0 ? -probe_offset.z : 0) - TERN0(HAS_HOTEND_OFFSET, hotend_currently_applied_offset.z);
     if (current_position.z > z) {
-      // Probe down fast. If the probe doesn't fail raise for probe clearance
+      // Probe down fast. If the probe never triggered, raise for probe clearance
       if (!do_probe_move(z, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
         do_blocking_move_to_z(current_position.z + Z_CLEARANCE_BETWEEN_PROBES, MMM_TO_MMS(Z_PROBE_SPEED_FAST));
         #if ENABLED(NOZZLE_LOAD_CELL)
           reference_tare = loadcell_retare_for_analysis();
         #endif
-      } else {
-        if(endstop_triggered)
-          *endstop_triggered = false;
-        #if ENABLED(HALT_ON_PROBING_ERROR)
-          kill("PROBING ERROR", "Could not reach the bed, FAST Probe fail!");
-        #endif
-        return NAN;
       }
     }
   #endif
