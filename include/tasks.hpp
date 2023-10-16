@@ -26,7 +26,7 @@ enum class Dependency {
     default_task_ready,
     esp_flashed,
     networking_ready,
-    power_panic_initialized,
+    usb_and_temp_ready, ///< Check autoprint and powerpanic state
 #ifdef USE_ASYNCIO
     async_io_ready,
 #endif

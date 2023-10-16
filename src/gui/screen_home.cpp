@@ -454,7 +454,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
         filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
 
 #if ENABLED(POWER_PANIC)
-        if (TaskDeps::check(TaskDeps::Dependency::power_panic_initialized) && !power_panic::is_power_panic_resuming())
+        if (TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming())
 #endif // ENABLED(POWER_PANIC)
         { // every time usb is inserted we check wifi credentials
             if (usbInserted) {
@@ -480,7 +480,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 // on esp update, can use one click print
                 if (
     #if ENABLED(POWER_PANIC)
-                    TaskDeps::check(TaskDeps::Dependency::power_panic_initialized) && !power_panic::is_power_panic_resuming() &&
+                    TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming() &&
     #endif // ENABLED(POWER_PANIC)
                     GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
                     // TODO this should be done in main thread before Event::MediaInserted is generated
