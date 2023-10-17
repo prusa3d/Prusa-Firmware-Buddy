@@ -3,8 +3,10 @@
 #include "../img_resources.hpp"
 #include "../ScreenHandler.hpp"
 #include "../lang/i18n.h"
-
+#include "error_list.hpp"
+#include "error_codes.hpp"
 #include <connect/connect.hpp>
+#include "bsod_gui.hpp"
 
 using connect_client::ConnectionStatus;
 using connect_client::OnlineStatus;
@@ -20,8 +22,8 @@ const constexpr size_t max_url_len = 128;
 
 } // namespace
 
-char DialogConnectRegister::attempt_buffer[20];
-char DialogConnectRegister::detail_buffer[50];
+char DialogConnectRegister::attempt_buffer[30];
+char DialogConnectRegister::detail_buffer[70];
 
 DialogConnectRegister::DialogConnectRegister()
     : AddSuperWindow<IDialog>(WizardDefaults::RectSelftestFrame)
@@ -134,10 +136,6 @@ void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t
                 break;
             }
             case ConnectionStatus::RegistrationError: {
-                const char *url_buffer { "help.prusa3d.com/connect_error" };
-                showQR();
-
-                text_state.SetText(_("Registration to Prusa Connect failed due to:"));
                 const char *err_buffer;
                 switch (get<1>(last_seen_status)) {
                 case connect_client::OnlineError::Dns:
@@ -168,26 +166,40 @@ void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t
                     err_buffer = "";
                 }
 
+                char url_buffer[15] = { 0 };
+                char error_help_buffer[50];
+                char error_msg[80];
+
+                auto error = find_error(ErrCode::ERR_CONNECT_CONNECT_REGISTRATION_FAILED);
+                _(error.err_text).copyToRAM(error_help_buffer, sizeof(error_help_buffer)); // Translation
+                snprintf(error_msg, sizeof(error_msg), "%s %s", error_help_buffer, err_buffer);
+                text_state.SetText(string_view_utf8::MakeRAM((const uint8_t *)error_msg));
+
+                snprintf(url_buffer, sizeof(url_buffer), "prusa.io/%d", static_cast<int>(error.err_code));
+                qr.SetText(url_buffer);
+                showQR();
+
                 text_attempt.SetRect(Positioner::textRectAttempt(true));
                 text_attempt.SetAlignment(Align_t::Left());
                 text_attempt.Show();
 
                 snprintf(attempt_buffer, sizeof(attempt_buffer), "%s", err_buffer);
-                text_attempt.SetText(_(attempt_buffer));
+                text_attempt.SetText(string_view_utf8::MakeRAM((const uint8_t *)attempt_buffer));
 
                 // Detail uses the same buffer from the start so SetText here is obsolete as it does nothing and the text is changed within memory
-                snprintf(detail_buffer, sizeof(detail_buffer), "More details at:\n%s", url_buffer);
+                _(moreDetailTxt).copyToRAM(error_help_buffer, sizeof(error_help_buffer)); // Translation
+                snprintf(detail_buffer, sizeof(detail_buffer), "%s:\n%s", error_help_buffer, url_buffer);
                 text_detail.SetText(_(detail_buffer));
-                qr.SetText(url_buffer);
                 text_detail.Invalidate();
                 break;
             }
             default:
                 const auto &retries_count { get<2>(last_seen_status) };
                 if (retries_count.has_value()) {
-
+                    char help_buff[20] = { 0 };
+                    _(attemptTxt).copyToRAM(help_buff, sizeof(help_buff)); // Translation
                     if (get<1>(last_seen_status) != connect_client::OnlineError::NoError) {
-                        snprintf(attempt_buffer, sizeof(attempt_buffer), "Attempt %d/%d", (connect_client::Registrator::starting_retries - retries_count.value()), connect_client::Registrator::starting_retries);
+                        snprintf(attempt_buffer, sizeof(attempt_buffer), "%s %d/%d", help_buff, (connect_client::Registrator::starting_retries - retries_count.value()), connect_client::Registrator::starting_retries);
                         text_attempt.Invalidate();
                     }
                 }

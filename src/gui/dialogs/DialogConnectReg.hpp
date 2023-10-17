@@ -11,11 +11,14 @@
 class DialogConnectRegister : public AddSuperWindow<IDialog> {
 private:
     // TODO change after textation so it is big enough for new texts
-    static char attempt_buffer[20];
-    static char detail_buffer[50];
+    static char attempt_buffer[30];
+    static char detail_buffer[70];
 
     // TODO: Doesn't fit
     constexpr static const char *const headerLabel = N_("PRUSA CONNECT");
+
+    constexpr static const char *const moreDetailTxt = N_("More detail at");
+    constexpr static const char *const attemptTxt = N_("Attempt");
 
     // TODO: Stolen from selftest_frame_esp_qr.hpp ‒ unify to a common place.
     /** @brief Calculates the position of individual elements of the frame
