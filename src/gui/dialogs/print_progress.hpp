@@ -27,7 +27,6 @@ class PrintProgress : public AddSuperWindow<DialogTimed> {
     window_text_t estime_label;
     window_text_t estime_value;
     window_text_t info_text;
-    window_text_t input_shaper_text;
     WindowPrintVerticalProgress progress_bar;
     WindowNumbPrintProgress progress_num;
     WindowProgressThumbnail thumbnail;

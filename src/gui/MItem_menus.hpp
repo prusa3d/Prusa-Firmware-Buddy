@@ -512,11 +512,7 @@ protected:
 };
 
 class MI_INPUT_SHAPER : public WI_LABEL_t {
-#if !PRINTER_IS_PRUSA_MK4
-    constexpr static const char *label = N_("Input Shaper (Alpha)");
-#else
     constexpr static const char *label = N_("Input Shaper");
-#endif
 
 public:
     MI_INPUT_SHAPER();
