@@ -57,17 +57,15 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-static constexpr std::array<uint16_t, 5> print_fan_min_rpm_table = { 10, 10, 10, 10, 10 };
-static constexpr std::array<uint16_t, 5> print_fan_max_rpm_table = { 10000, 10000, 10000, 10000, 10000 };
-static constexpr std::array<uint16_t, 5> heatbreak_fan_min_rpm_table = { 10, 10, 10, 10, 10 };
-static constexpr std::array<uint16_t, 5> heatbreak_fan_max_rpm_table = { 10000, 10000, 10000, 10000, 10000 };
-
 static consteval SelftestFansConfig make_fan_config(uint8_t index) {
     return {
         .tool_nr = index,
         .print_fan = {
+            ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
+            ///  Blocked fan increases its RPMs over 7000.
+            ///  With XL shroud the values can be 6200 - 6600 depending on fan shroud version.
             .rpm_min = 5300,
-            .rpm_max = 6500,
+            .rpm_max = 6799,
         },
         .heatbreak_fan = {
             .rpm_min = 6800,
@@ -75,6 +73,7 @@ static consteval SelftestFansConfig make_fan_config(uint8_t index) {
         },
     };
 }
+static_assert(make_fan_config(0).print_fan.rpm_max < make_fan_config(0).heatbreak_fan.rpm_min, "These cannot overlap for switched fan detection.");
 
 static constexpr SelftestFansConfig fans_configs[] = {
     make_fan_config(0),

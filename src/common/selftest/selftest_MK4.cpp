@@ -63,8 +63,11 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr SelftestFansConfig fans_configs[] = {
     {
         .print_fan = {
+            ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
+            ///  Blocked fan increases its RPMs over 7000.
+            ///  With MK4 shroud the values can be 6400 or so.
             .rpm_min = 5300,
-            .rpm_max = 6500,
+            .rpm_max = 6799,
         },
         .heatbreak_fan = {
             .rpm_min = 6800,
@@ -72,6 +75,7 @@ static constexpr SelftestFansConfig fans_configs[] = {
         },
     },
 };
+static_assert(fans_configs[0].print_fan.rpm_max < fans_configs[0].heatbreak_fan.rpm_min, "These cannot overlap for switched fan detection.");
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
