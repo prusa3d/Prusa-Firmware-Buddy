@@ -7,6 +7,7 @@
 #include <option/bootloader.h>
 #include "tasks.hpp"
 #include "screen_splash.hpp"
+#include "ScreenHandler.hpp"
 
 osMutexDef(bootstrap_progress_lock);
 
@@ -51,11 +52,13 @@ void gui_bootstrap_screen_set_state(unsigned percent, const char *str) {
 }
 
 void gui_bootstrap_screen_init() {
+    assert(bootstrap_progress == nullptr);
     bootstrap_progress = new Progress();
     assert(bootstrap_progress);
 }
 
 void gui_bootstrap_screen_run() {
+    assert(bootstrap_progress);
     // draw somehting on screen before bootstrap strart
     screen_splash_data_t::bootstrap_cb(bootstrap_progress->percent, bootstrap_progress->message);
     gui_redraw();
@@ -83,4 +86,5 @@ unsigned gui_bootstrap_screen_get_percent() {
 void gui_bootstrap_screen_delete() {
     // now delete helper synchronization variable
     delete bootstrap_progress;
+    bootstrap_progress = nullptr;
 }
