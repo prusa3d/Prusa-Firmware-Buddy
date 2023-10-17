@@ -98,8 +98,7 @@ protected:
 
 public:
     enum init_mask : uintptr_t {
-        msk_from_menu = 0b01,
-        msk_credentials_already_set = msk_from_menu << 1,
+        msk_credentials_already_set = 0b01,
         msk_credentials_on_usb = msk_credentials_already_set << 1
     };
     enum class state {
