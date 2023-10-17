@@ -86,7 +86,6 @@ protected:
     esp_entry *current_file;
     uint32_t readCount;
     PhasesESP phase;
-    const bool from_menu;
     const bool credentials_already_set;
     const bool credentials_on_usb;
     uint8_t progress;
