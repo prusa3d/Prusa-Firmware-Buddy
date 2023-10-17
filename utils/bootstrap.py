@@ -68,20 +68,24 @@ dependencies = {
         }
     },
     'bootloader-mini': {
-        'version': '2.0.8',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.0.8-3B8FF97C-B4C2-415C-87F6-3F177FD80F4A.zip',
+        'version': '2.1.3',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mini-2.1.3-A1F9AE7E-4F72-42D1-BA61-0442847AC0AD.zip',
     },
     'bootloader-mk4': {
-        'version': '2.0.8',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.0.8-D9CA7958-9971-45A6-B8FF-64CC14DF3E27.zip',
+        'version': '2.1.3',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.1.3-249792D2-A9EC-4A9E-BDD2-6008F1A99C3E.zip',
+    },
+    'bootloader-mk3.5': {
+        'version': '2.1.3',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-mk4-2.1.3-249792D2-A9EC-4A9E-BDD2-6008F1A99C3E.zip',
     },
     'bootloader-xl': {
-        'version': '2.0.8',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.0.8-C266D037-5B76-4277-A92D-FC44B8C64D41.zip',
+        'version': '2.1.3',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-xl-2.1.3-28F7CB2D-B01C-46B8-9EAF-8CE77871D1CA.zip',
     },
     'bootloader-ix': {
-        'version': '2.0.8',
-        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.0.8-3195E1CC-B211-4C95-BC3B-E7779D52E82B.zip',
+        'version': '2.1.3',
+        'url': 'https://prusa-buddy-firmware-dependencies.s3.eu-central-1.amazonaws.com/bootloader-ix-2.1.3-CA06F7A6-07EF-46E3-858B-F4E3DB8C030F.zip',
     },
     'mini404': {
         'version': '0.9.9',
