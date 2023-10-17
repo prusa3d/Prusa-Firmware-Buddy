@@ -44,7 +44,7 @@ namespace splice {
         // Successive writes shall be skipped, the connection aborted.
         std::atomic<Result> result = Result::Ok;
         // Called from whatever thread!
-        virtual std::variant<FILE *, transfers::PartialFile *> file() const = 0;
+        virtual transfers::PartialFile *file() const = 0;
 
         // Perform an in-place transformation (eg. decryption). May be a NOP.
         //

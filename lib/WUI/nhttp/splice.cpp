@@ -14,21 +14,6 @@ using transfers::PartialFile;
 
 namespace nhttp::splice {
 
-namespace {
-
-    bool store_segment(variant<FILE *, PartialFile *> file, const uint8_t *data, size_t size) {
-        if (FILE **f = get_if<FILE *>(&file); f != nullptr) {
-            return transfers::write_block(*f, data, size);
-        } else if (PartialFile **f = get_if<PartialFile *>(&file); f != nullptr) {
-            return (*f)->write(data, size);
-        } else {
-            assert(0);
-            return false;
-        }
-    }
-
-} // namespace
-
 bool Done::io_task() {
     // Empty on purpose
     return false;
@@ -53,7 +38,7 @@ Write::ProcessResult Write::process(uint8_t *data, size_t size_in, size_t size_o
     assert(size_out >= produced);
     auto f = transfer->file();
 
-    if (!store_segment(f, data, produced)) {
+    if (!f->write(data, produced)) {
         return WriteError {};
     }
 

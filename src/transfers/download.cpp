@@ -108,7 +108,7 @@ public:
             : owner(owner)
             , transfer_rest(transfer_rest) {}
 
-        virtual variant<FILE *, PartialFile *> file() const override {
+        virtual PartialFile *file() const override {
             return owner->destination.get();
         }
 
