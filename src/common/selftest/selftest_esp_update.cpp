@@ -580,7 +580,7 @@ static void EspTask(void *pvParameters) {
     vTaskDelete(NULL); // kill itself
 }
 
-void update_esp(bool) {
+void update_esp() {
     bool credentials_on_usb = false;
     {
         std::unique_ptr<FILE, FileDeleter> fl;

@@ -32,7 +32,7 @@ static void M997_no_parser(uint module_number, [[maybe_unused]] uint address, bo
         break;
 #if HAS_SELFTEST()
     case 1:
-        update_esp(force_update_older);
+        update_esp();
         break;
 #endif // HAS_SELFTEST
     default:
