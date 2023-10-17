@@ -23,15 +23,15 @@ msgstr ""
 "1. Bitte parken Sie das aktuelle Werkzeug manuell. Bewegen Sie den "
 "Werkzeugwechselmechanismus nach hinten und richten Sie ihn an den Stiften aus"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:87
+#: src/gui/dialogs/DialogConnectReg.cpp:126
 msgid ""
 "1. Scan the QR code or visit prusa.io/add.\n"
 "2. Log in.\n"
-"3. Add printer with code:"
+"3. Add printer with code:\n"
 msgstr ""
 "1. Scannen Sie den QR-Code oder besuchen Sie prusa.io/add.\n"
 "2. Melden Sie sich an.\n"
-"3. Drucker mit Code hinzufügen:"
+"3. Drucker hinzufügen mit Code:"
 
 #. intentionally not translated
 #: src/gui/MItem_tools.hpp:236
@@ -64,6 +64,10 @@ msgstr "5V Spannung"
 #: src/common/client_response_texts.cpp:17
 msgid "ABORT"
 msgstr "Abbruch"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:47
+msgid "Acquiring registration code, please wait..."
+msgstr "Erhalte Registrierungscode, bitte warten..."
 
 #. window_menu
 #: src/gui/MItem_tools.cpp:263
@@ -599,7 +603,7 @@ msgstr "CPU Auslastung"
 msgid "CRASH DETECTED"
 msgstr "CRASH ERKANNT"
 
-#: src/gui/screen_home.cpp:283
+#: src/gui/screen_home.cpp:278
 msgid "Crash detected. Save it to USB?"
 msgstr "Kollision erkannt. Auf USB speichern?"
 
@@ -831,10 +835,6 @@ msgstr "Dock X"
 #: src/gui/screen_menu_tools.hpp:40
 msgid "Dock Y"
 msgstr "Dock Y"
-
-#: src/gui/dialogs/DialogConnectReg.cpp:92
-msgid "Done!"
-msgstr "Fertig!"
 
 #. Intentionally without translation
 #: src/gui/wizard/selftest_frame_dock.hpp:38
@@ -2040,6 +2040,11 @@ msgstr ""
 msgid "Home"
 msgstr "Home"
 
+#. regular home screen
+#: src/gui/screen_home.cpp:200
+msgid "HOME"
+msgstr "HOME"
+
 #: src/gui/MItem_mmu.hpp:259
 msgid "Home safely"
 msgstr "Sicher Homen"
@@ -2200,8 +2205,7 @@ msgstr "Eingangs-Strom"
 msgid "Input Shaper"
 msgstr "Input Shaper"
 
-#: src/gui/screen_home.cpp:203 src/gui/screen_menu_input_shaper.hpp:20
-#: src/gui/screen_printing.cpp:376 src/gui/screen_printing.hpp:38
+#: src/gui/screen_menu_input_shaper.hpp:20
 msgid "INPUT SHAPER"
 msgstr "INPUT SHAPER"
 
@@ -2372,7 +2376,7 @@ msgid "Last Print Crashes on Y Axis"
 msgstr "letzter Druck Kollisionen Y-Achse"
 
 #. TODO: How does this thing get translated/marked for translation?
-#: src/gui/dialogs/DialogConnectReg.cpp:15
+#: src/gui/dialogs/DialogConnectReg.cpp:17
 msgid "Leave"
 msgstr "Verlassen"
 
@@ -3519,6 +3523,10 @@ msgstr "Druck beendet"
 msgid "Printing"
 msgstr "Drucke"
 
+#: src/gui/screen_printing.hpp:35
+msgid "PRINTING ..."
+msgstr "DRUCKE ..."
+
 #: src/gui/screen_printing.cpp:158
 msgid "Printing time"
 msgstr "Druckzeit"
@@ -3569,11 +3577,23 @@ msgid "Prusa Connect"
 msgstr "Prusa Connect"
 
 #. TODO: Doesn't fit
-#: src/gui/dialogs/DialogConnectReg.hpp:16 src/gui/screen_menu_connect.hpp:62
+#: src/gui/dialogs/DialogConnectReg.hpp:18 src/gui/screen_menu_connect.hpp:62
 msgid "PRUSA CONNECT"
 msgstr "PRUSA CONNECT"
 
-#: src/gui/screen_prusa_link.cpp:61
+#: src/gui/dialogs/DialogConnectReg.cpp:43
+msgid "Prusa Connect - printer setup"
+msgstr "Prusa Connect - Druckereinrichtung"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:88
+msgid ""
+"Prusa Connect setup is not finished. Do you want to exit and abort the "
+"process?"
+msgstr ""
+"Einrichtung von Prusa Connect noch nicht abgeschlossen. Möchten Sie den "
+"Prozess beenden und abbrechen?"
+
+#: src/gui/screen_prusa_link.cpp:60
 msgid "PRUSALINK"
 msgstr "PRUSALINK"
 
@@ -3673,11 +3693,13 @@ msgstr "Reg. Fehler"
 msgid "Registering"
 msgstr "Registriere"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:99
-msgid "Registration failed. Likely a network error. Try again later."
-msgstr ""
-"Registrierung fehlgeschlagen. Wahrscheinlich ein Netzwerkfehler. Versuchen "
-"Sie es später noch einmal."
+#: src/gui/dialogs/DialogConnectReg.cpp:131
+msgid "Registration successful, continue at connect.prusa3d.com"
+msgstr "Registrierung erfolgreich, weiter bei connect.prusa3d.com"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:140
+msgid "Registration to Prusa Connect failed due to:"
+msgstr "Registrierung bei Prusa Connect fehlgeschlagen aufgrund von:"
 
 #. QUIT
 #: src/common/client_response_texts.cpp:54
@@ -3860,7 +3882,7 @@ msgstr "Crash Dump speichern"
 msgid "Save Touch Registers to Flash Disc"
 msgstr "Touch-Register auf USB-Stick sichern"
 
-#: src/gui/screen_home.cpp:295
+#: src/gui/screen_home.cpp:290
 msgid "Saving to USB"
 msgstr "Sichern auf USB"
 
@@ -4998,7 +5020,7 @@ msgstr ""
 "Um Ihr Wi-Fi einzurichten oder Fehler zu beheben, besuchen Sie bitte unsere "
 "Website:"
 
-#: src/gui/screen_home.cpp:324
+#: src/gui/screen_home.cpp:319
 msgid ""
 "Touch disabled. This feature is work-in-progress and is going to be fully "
 "available in a future update."
@@ -5309,10 +5331,6 @@ msgstr ""
 #: src/gui/dialogs/DialogLoadUnload.cpp:96
 msgid "Waiting for user input"
 msgstr "Warte auf Benutzer"
-
-#: src/gui/dialogs/DialogConnectReg.cpp:33
-msgid "Wait please, getting the registration code."
-msgstr "Warten Sie bitte, um den Registrierungscode zu erhalten."
 
 #: src/gui/MItem_hardware.hpp:19
 msgid "Warn"

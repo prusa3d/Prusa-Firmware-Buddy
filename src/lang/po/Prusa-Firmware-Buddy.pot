@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Prusa-Firmware-Buddy 4.1\n"
 "Report-Msgid-Bugs-To: info@prusa3d.com\n"
-"POT-Creation-Date: 2023-09-01 09:10+0200\n"
+"POT-Creation-Date: 2023-10-10 11:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -195,11 +195,11 @@ msgid ""
 "the rear and align it with pins"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:87
+#: src/gui/dialogs/DialogConnectReg.cpp:126
 msgid ""
 "1. Scan the QR code or visit prusa.io/add.\n"
 "2. Log in.\n"
-"3. Add printer with code:"
+"3. Add printer with code:\n"
 msgstr ""
 
 #: src/gui/MItem_tools.hpp:237
@@ -272,6 +272,10 @@ msgid ""
 "ATTENTION: Changing any Input Shaper values will overwrite them permanently. "
 "To revert to a stock setup, visit prusa.io/input-shaper or run a factory "
 "reset."
+msgstr ""
+
+#: src/gui/dialogs/DialogConnectReg.cpp:47
+msgid "Acquiring registration code, please wait..."
 msgstr ""
 
 #: src/gui/screen_menu_connect.hpp:46
@@ -700,7 +704,7 @@ msgstr ""
 msgid "Crash Sensitivity XY"
 msgstr ""
 
-#: src/gui/screen_home.cpp:283
+#: src/gui/screen_home.cpp:278
 msgid "Crash detected. Save it to USB?"
 msgstr ""
 
@@ -921,10 +925,6 @@ msgstr ""
 
 #: src/gui/screen_menu_filament_changeall.hpp:14
 msgid "Don't change"
-msgstr ""
-
-#: src/gui/dialogs/DialogConnectReg.cpp:92
-msgid "Done!"
 msgstr ""
 
 #: src/gui/screen_help_fw_update.cpp:56
@@ -1730,6 +1730,11 @@ msgstr ""
 msgid "HIGH-FLOW"
 msgstr ""
 
+#. regular home screen
+#: src/gui/screen_home.cpp:200
+msgid "HOME"
+msgstr ""
+
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:73
 msgid "HOMING ERROR X"
 msgstr ""
@@ -2013,13 +2018,11 @@ msgstr ""
 msgid "INFO"
 msgstr ""
 
-#: src/gui/screen_home.cpp:203 src/gui/screen_menu_input_shaper.hpp:20
-#: src/gui/screen_printing.cpp:376 src/gui/screen_printing.hpp:38
+#: src/gui/screen_menu_input_shaper.hpp:20
 msgid "INPUT SHAPER"
 msgstr ""
 
-#: src/gui/screen_home.cpp:201 src/gui/screen_menu_input_shaper.hpp:18
-#: src/gui/screen_printing.cpp:374 src/gui/screen_printing.hpp:36
+#: src/gui/screen_menu_input_shaper.hpp:18
 msgid "INPUT SHAPER (ALPHA)"
 msgstr ""
 
@@ -2235,7 +2238,7 @@ msgid "Last Print Crashes on Y Axis"
 msgstr ""
 
 #. TODO: How does this thing get translated/marked for translation?
-#: src/gui/dialogs/DialogConnectReg.cpp:15
+#: src/gui/dialogs/DialogConnectReg.cpp:17
 msgid "Leave"
 msgstr ""
 
@@ -2986,12 +2989,16 @@ msgstr ""
 msgid "PRINT STATISTICS"
 msgstr ""
 
+#: src/gui/screen_printing.hpp:35
+msgid "PRINTING ..."
+msgstr ""
+
 #: src/gui/screen_filebrowser.cpp:27
 msgid "PROJECTS"
 msgstr ""
 
 #. TODO: Doesn't fit
-#: src/gui/dialogs/DialogConnectReg.hpp:16 src/gui/screen_menu_connect.hpp:62
+#: src/gui/dialogs/DialogConnectReg.hpp:18 src/gui/screen_menu_connect.hpp:62
 msgid "PRUSA CONNECT"
 msgstr ""
 
@@ -3006,7 +3013,7 @@ msgstr ""
 msgid "PRUSA STOCK"
 msgstr ""
 
-#: src/gui/screen_prusa_link.cpp:61
+#: src/gui/screen_prusa_link.cpp:60
 msgid "PRUSALINK"
 msgstr ""
 
@@ -3313,6 +3320,16 @@ msgstr ""
 msgid "Prusa Connect"
 msgstr ""
 
+#: src/gui/dialogs/DialogConnectReg.cpp:43
+msgid "Prusa Connect - printer setup"
+msgstr ""
+
+#: src/gui/dialogs/DialogConnectReg.cpp:88
+msgid ""
+"Prusa Connect setup is not finished. Do you want to exit and abort the "
+"process?"
+msgstr ""
+
 #: build-vscode-buddy/lib/error_codes/error_list_mmu.hpp:35
 msgid "Pulley motor stalled. Ensure the pulley can move and check the wiring."
 msgstr ""
@@ -3429,8 +3446,12 @@ msgstr ""
 msgid "Registering"
 msgstr ""
 
-#: src/gui/dialogs/DialogConnectReg.cpp:99
-msgid "Registration failed. Likely a network error. Try again later."
+#: src/gui/dialogs/DialogConnectReg.cpp:131
+msgid "Registration successful, continue at connect.prusa3d.com"
+msgstr ""
+
+#: src/gui/dialogs/DialogConnectReg.cpp:140
+msgid "Registration to Prusa Connect failed due to:"
 msgstr ""
 
 #: src/gui/print_time_module.hpp:23
@@ -3602,7 +3623,7 @@ msgstr ""
 msgid "Save Touch Registers to Flash Disc"
 msgstr ""
 
-#: src/gui/screen_home.cpp:295
+#: src/gui/screen_home.cpp:290
 msgid "Saving to USB"
 msgstr ""
 
@@ -4268,7 +4289,7 @@ msgstr ""
 msgid "This G-code was set up for another filament type."
 msgstr ""
 
-#: src/gui/screen_home.cpp:334
+#: src/gui/screen_home.cpp:329
 msgid ""
 "This firmware is still in development and is for testing purposes only.\n"
 "\n"
@@ -4522,7 +4543,7 @@ msgstr ""
 msgid "Touch (Experimental)"
 msgstr ""
 
-#: src/gui/screen_home.cpp:324
+#: src/gui/screen_home.cpp:319
 msgid ""
 "Touch disabled. This feature is work-in-progress and is going to be fully "
 "available in a future update."
@@ -4779,10 +4800,6 @@ msgstr ""
 
 #: src/gui/ScreenSelftest.hpp:84
 msgid "WIZARD - OK"
-msgstr ""
-
-#: src/gui/dialogs/DialogConnectReg.cpp:33
-msgid "Wait please, getting the registration code."
 msgstr ""
 
 #: src/gui/wizard/selftest_frame_tool_offsets.cpp:64

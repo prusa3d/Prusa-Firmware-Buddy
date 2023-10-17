@@ -25,11 +25,11 @@ msgstr ""
 "1. Zaparkuj narzędzie ręcznie. Przesuń mechanizm zmiany narzędzi do tyłu i "
 "wyrównaj go z kołkami"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:87
+#: src/gui/dialogs/DialogConnectReg.cpp:126
 msgid ""
 "1. Scan the QR code or visit prusa.io/add.\n"
 "2. Log in.\n"
-"3. Add printer with code:"
+"3. Add printer with code:\n"
 msgstr ""
 "1. Zeskanuj kod QR lub odwiedź prusa.io/add.\n"
 "2. Zaloguj się.\n"
@@ -66,6 +66,10 @@ msgstr "Napięcie 5V"
 #: src/common/client_response_texts.cpp:17
 msgid "ABORT"
 msgstr "PRZERWIJ"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:47
+msgid "Acquiring registration code, please wait..."
+msgstr "Proszę czekać, odbieram kod rejestracyjny..."
 
 #. window_menu
 #: src/gui/MItem_tools.cpp:263
@@ -111,7 +115,7 @@ msgid ""
 "metal bars to the right."
 msgstr ""
 "Wyrównaj mechanizm zmieniarki narzędzi z narzędziem i zablokuj, przesuwając "
-"oba metalowe listwy w prawo."
+"obie metalowe listwy w prawo."
 
 #. Adjust
 #: src/common/client_response_texts.cpp:20
@@ -359,7 +363,7 @@ msgstr "Kalibruj przesunięcia narzędzi"
 
 #: src/gui/MItem_tools.hpp:58
 msgid "Calibrate Z"
-msgstr "Kalibracja Z"
+msgstr "Kalibruj Z"
 
 #: src/gui/wizard/selftest_frame_fsensor.cpp:115
 msgid "Calibrating, do not remove filament."
@@ -465,7 +469,7 @@ msgstr "Sprawdzanie osi"
 #: src/gui/wizard/selftest_result_fans.cpp:15
 #: src/gui/wizard/selftest_frame_fans.cpp:28
 msgid "Checking for switched fans"
-msgstr "Sprawdzanie zamiany wentylatorów"
+msgstr "Test zamiany wentylatorów"
 
 #: src/gui/screen_menu_hardware_checks.hpp:22
 msgid "CHECKS"
@@ -584,7 +588,7 @@ msgstr "Obciążenie CPU"
 msgid "CRASH DETECTED"
 msgstr "WYKRYTO ZDERZENIE"
 
-#: src/gui/screen_home.cpp:283
+#: src/gui/screen_home.cpp:278
 msgid "Crash detected. Save it to USB?"
 msgstr "Wykryto zderzenie. Zapisać na USB?"
 
@@ -817,10 +821,6 @@ msgstr "Dok X"
 msgid "Dock Y"
 msgstr "Dok Y"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:92
-msgid "Done!"
-msgstr "Gotowe!"
-
 #. Intentionally without translation
 #: src/gui/wizard/selftest_frame_dock.hpp:38
 msgid "Do not touch the printer. Be careful around the moving parts."
@@ -841,8 +841,7 @@ msgid ""
 "parts."
 msgstr ""
 "Nie dotykaj drukarki!\n"
-"Drukarka wykonuje test parkowania. Zachowaj ostrożność w pobliżu ruchomych "
-"części."
+"Wykonuje test parkowania. Zachowaj ostrożność w pobliżu ruchomych części."
 
 #: src/gui/wizard/selftest_frame_esp_progress.cpp:61
 msgid ""
@@ -862,7 +861,7 @@ msgstr "Nie zmieniaj"
 
 #: src/gui/dialogs/DialogMoveZ.hpp:25
 msgid "DOWN"
-msgstr "DÓŁ"
+msgstr "NIE DZIAŁA"
 
 #: src/gui/screen_help_fw_update.cpp:56
 msgid ""
@@ -2010,6 +2009,11 @@ msgstr ""
 msgid "Home"
 msgstr "Ekran główny"
 
+#. regular home screen
+#: src/gui/screen_home.cpp:200
+msgid "HOME"
+msgstr "EKRAN GŁÓWNY"
+
 #: src/gui/MItem_mmu.hpp:259
 msgid "Home safely"
 msgstr "Bazuj bezpiecznie"
@@ -2170,8 +2174,7 @@ msgstr "Prąd wejściowy"
 msgid "Input Shaper"
 msgstr "Input Shaper"
 
-#: src/gui/screen_home.cpp:203 src/gui/screen_menu_input_shaper.hpp:20
-#: src/gui/screen_printing.cpp:376 src/gui/screen_printing.hpp:38
+#: src/gui/screen_menu_input_shaper.hpp:20
 msgid "INPUT SHAPER"
 msgstr "INPUT SHAPER"
 
@@ -2339,7 +2342,7 @@ msgid "Last Print Crashes on Y Axis"
 msgstr "Ostatni wydruk - zderzenia w osi Y"
 
 #. TODO: How does this thing get translated/marked for translation?
-#: src/gui/dialogs/DialogConnectReg.cpp:15
+#: src/gui/dialogs/DialogConnectReg.cpp:17
 msgid "Leave"
 msgstr "Wyjdź"
 
@@ -3461,6 +3464,10 @@ msgstr "Drukowanie zakończone"
 msgid "Printing"
 msgstr "Drukowanie"
 
+#: src/gui/screen_printing.hpp:35
+msgid "PRINTING ..."
+msgstr "DRUKOWANIE ..."
+
 #: src/gui/screen_printing.cpp:158
 msgid "Printing time"
 msgstr "Czas drukowania"
@@ -3492,7 +3499,7 @@ msgstr "Czas druku"
 
 #: src/gui/print_time_module.hpp:24
 msgid "Print will end"
-msgstr "Druk zakończy się"
+msgstr "Koniec druku"
 
 #: src/gui/screen_filebrowser.cpp:27
 msgid "PROJECTS"
@@ -3511,11 +3518,23 @@ msgid "Prusa Connect"
 msgstr "Prusa Connect"
 
 #. TODO: Doesn't fit
-#: src/gui/dialogs/DialogConnectReg.hpp:16 src/gui/screen_menu_connect.hpp:62
+#: src/gui/dialogs/DialogConnectReg.hpp:18 src/gui/screen_menu_connect.hpp:62
 msgid "PRUSA CONNECT"
 msgstr "PRUSA CONNECT"
 
-#: src/gui/screen_prusa_link.cpp:61
+#: src/gui/dialogs/DialogConnectReg.cpp:43
+msgid "Prusa Connect - printer setup"
+msgstr "Prusa Connect - konfiguracja drukarki"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:88
+msgid ""
+"Prusa Connect setup is not finished. Do you want to exit and abort the "
+"process?"
+msgstr ""
+"Konfiguracja Prusa Connect nie została zakończona. Czy chcesz wyjść i "
+"przerwać proces?"
+
+#: src/gui/screen_prusa_link.cpp:60
 msgid "PRUSALINK"
 msgstr "PRUSALINK"
 
@@ -3551,7 +3570,7 @@ msgstr "CZYSZCZENIE"
 #. PrusaStock
 #: src/common/client_response_texts.cpp:51
 msgid "PURGE MORE"
-msgstr "CZYŚĆ PONOWNIE"
+msgstr "CZYŚĆ DALEJ"
 
 #: src/gui/dialogs/DialogLoadUnload.cpp:56
 msgid "Purging"
@@ -3615,11 +3634,13 @@ msgstr "Błąd rejestracji"
 msgid "Registering"
 msgstr "Rejestrowanie"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:99
-msgid "Registration failed. Likely a network error. Try again later."
-msgstr ""
-"Rejestracja nie powiodła się. Prawdopodobnie błąd sieci. Spróbuj ponownie "
-"później."
+#: src/gui/dialogs/DialogConnectReg.cpp:131
+msgid "Registration successful, continue at connect.prusa3d.com"
+msgstr "Rejestracja zakończona powodzeniem, kontynuuj na connect.prusa3d.com"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:140
+msgid "Registration to Prusa Connect failed due to:"
+msgstr "Rejestracja w Prusa Connect nie powiodła się:"
 
 #. QUIT
 #: src/common/client_response_texts.cpp:54
@@ -3802,7 +3823,7 @@ msgstr "Zapisz zrzut pamięci"
 msgid "Save Touch Registers to Flash Disc"
 msgstr "Zapisz rejestry dotyku na dysku flash"
 
-#: src/gui/screen_home.cpp:295
+#: src/gui/screen_home.cpp:290
 msgid "Saving to USB"
 msgstr "Zapis na USB"
 
@@ -4923,7 +4944,7 @@ msgstr "MAPOWANIE NARZĘDZI"
 msgid "To setup or troubleshoot your Wi-Fi, please visit:"
 msgstr "Aby skonfigurować Wi-Fi lub rozwiązać problem, wejdź na:"
 
-#: src/gui/screen_home.cpp:324
+#: src/gui/screen_home.cpp:319
 msgid ""
 "Touch disabled. This feature is work-in-progress and is going to be fully "
 "available in a future update."
@@ -5105,7 +5126,7 @@ msgstr "Odparkowanie"
 
 #: src/gui/dialogs/DialogMoveZ.hpp:24
 msgid "UP"
-msgstr "GÓRA"
+msgstr "DZIAŁA"
 
 #: src/gui/wizard/selftest_frame_esp_progress.cpp:60
 #: src/gui/wizard/selftest_frame_esp_progress.cpp:65
@@ -5233,10 +5254,6 @@ msgstr ""
 #: src/gui/dialogs/DialogLoadUnload.cpp:96
 msgid "Waiting for user input"
 msgstr "Czekam na użytkownika"
-
-#: src/gui/dialogs/DialogConnectReg.cpp:33
-msgid "Wait please, getting the registration code."
-msgstr "Proszę czekać, odbieram kod rejestracyjny."
 
 #: src/gui/MItem_hardware.hpp:19
 msgid "Warn"

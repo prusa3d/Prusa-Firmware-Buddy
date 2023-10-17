@@ -23,15 +23,15 @@ msgstr ""
 "1. Veuillez stationner l'outil actuel manuellement. Déplacez le mécanisme de "
 "changement d'outil vers l'arrière et alignez-le avec les ergots"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:87
+#: src/gui/dialogs/DialogConnectReg.cpp:126
 msgid ""
 "1. Scan the QR code or visit prusa.io/add.\n"
 "2. Log in.\n"
-"3. Add printer with code:"
+"3. Add printer with code:\n"
 msgstr ""
-"1. Scannez le QR code ou visitez prusa.io/add.\n"
+"1. Scannez le code QR ou visitez prusa.io/add.\n"
 "2. Connectez-vous.\n"
-"3. Ajoutez l'imprimante avec le code :"
+"3. Ajoutez une imprimante avec le code:"
 
 #. intentionally not translated
 #: src/gui/MItem_tools.hpp:236
@@ -65,6 +65,10 @@ msgstr "Tension 5V"
 #: src/common/client_response_texts.cpp:17
 msgid "ABORT"
 msgstr "STOPPER"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:47
+msgid "Acquiring registration code, please wait..."
+msgstr "Acquisition du code d'enregistrement, veuillez patienter..."
 
 #. window_menu
 #: src/gui/MItem_tools.cpp:263
@@ -596,7 +600,7 @@ msgstr "Charge CPU"
 msgid "CRASH DETECTED"
 msgstr "CRASH DÉTECTÉ"
 
-#: src/gui/screen_home.cpp:283
+#: src/gui/screen_home.cpp:278
 msgid "Crash detected. Save it to USB?"
 msgstr "Crash détecté. L'enregistrer sur USB ?"
 
@@ -828,10 +832,6 @@ msgstr "Dock X"
 #: src/gui/screen_menu_tools.hpp:40
 msgid "Dock Y"
 msgstr "Dock Y"
-
-#: src/gui/dialogs/DialogConnectReg.cpp:92
-msgid "Done!"
-msgstr "Terminé !"
 
 #. Intentionally without translation
 #: src/gui/wizard/selftest_frame_dock.hpp:38
@@ -1737,13 +1737,12 @@ msgstr "La version du G-code ne correspond pas"
 
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:13
 msgid "Gearbox alignment"
-msgstr "Alignement de la démultiplication"
+msgstr "Alignement du réducteur"
 
 #: src/gui/wizard/selftest_frame_gears_calib.cpp:52
 msgid "Gearbox alignment in progress, please wait (approx. 20 seconds)"
 msgstr ""
-"Alignement de la démultiplication en cours, veuillez patienter (environ 20 "
-"secondes)"
+"Alignement du réducteur en cours, veuillez patienter (environ 20 secondes)"
 
 #: src/gui/MItem_basic_selftest.hpp:164
 msgid "Gears Calibration"
@@ -1992,6 +1991,11 @@ msgstr ""
 msgid "Home"
 msgstr "Accueil"
 
+#. regular home screen
+#: src/gui/screen_home.cpp:200
+msgid "HOME"
+msgstr "ACCUEIL"
+
 #: src/gui/MItem_mmu.hpp:259
 msgid "Home safely"
 msgstr "Prise d'origine en sécurité"
@@ -2152,8 +2156,7 @@ msgstr "Courant d'entrée"
 msgid "Input Shaper"
 msgstr "Input Shaper"
 
-#: src/gui/screen_home.cpp:203 src/gui/screen_menu_input_shaper.hpp:20
-#: src/gui/screen_printing.cpp:376 src/gui/screen_printing.hpp:38
+#: src/gui/screen_menu_input_shaper.hpp:20
 msgid "INPUT SHAPER"
 msgstr "INPUT SHAPER"
 
@@ -2325,7 +2328,7 @@ msgid "Last Print Crashes on Y Axis"
 msgstr "Crashes de la dernière impression sur l'axe Y"
 
 #. TODO: How does this thing get translated/marked for translation?
-#: src/gui/dialogs/DialogConnectReg.cpp:15
+#: src/gui/dialogs/DialogConnectReg.cpp:17
 msgid "Leave"
 msgstr "Quitter"
 
@@ -3458,6 +3461,10 @@ msgstr "Impression terminée"
 msgid "Printing"
 msgstr "Impression"
 
+#: src/gui/screen_printing.hpp:35
+msgid "PRINTING ..."
+msgstr "IMPRESSION ..."
+
 #: src/gui/screen_printing.cpp:158
 msgid "Printing time"
 msgstr "Temps d'impression"
@@ -3508,11 +3515,23 @@ msgid "Prusa Connect"
 msgstr "Prusa Connect"
 
 #. TODO: Doesn't fit
-#: src/gui/dialogs/DialogConnectReg.hpp:16 src/gui/screen_menu_connect.hpp:62
+#: src/gui/dialogs/DialogConnectReg.hpp:18 src/gui/screen_menu_connect.hpp:62
 msgid "PRUSA CONNECT"
 msgstr "PRUSA CONNECT"
 
-#: src/gui/screen_prusa_link.cpp:61
+#: src/gui/dialogs/DialogConnectReg.cpp:43
+msgid "Prusa Connect - printer setup"
+msgstr "Prusa Connect - configuration de l'imprimante"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:88
+msgid ""
+"Prusa Connect setup is not finished. Do you want to exit and abort the "
+"process?"
+msgstr ""
+"La configuration de Prusa Connect n'est pas terminée. Voulez-vous abandonner "
+"le processus ?"
+
+#: src/gui/screen_prusa_link.cpp:60
 msgid "PRUSALINK"
 msgstr "PRUSALINK"
 
@@ -3612,11 +3631,13 @@ msgstr "Error d'enregistrement"
 msgid "Registering"
 msgstr "Enregistrement"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:99
-msgid "Registration failed. Likely a network error. Try again later."
-msgstr ""
-"Échec de l'enregistrement. Probablement une erreur de réseau. Réessayez plus "
-"tard."
+#: src/gui/dialogs/DialogConnectReg.cpp:131
+msgid "Registration successful, continue at connect.prusa3d.com"
+msgstr "Inscription réussi, continuer à connect.prusa3d.com"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:140
+msgid "Registration to Prusa Connect failed due to:"
+msgstr "Échec de l'enregistrement a Prusa Connect:"
 
 #. QUIT
 #: src/common/client_response_texts.cpp:54
@@ -3799,7 +3820,7 @@ msgstr "Sauv. Suppression Mémoire"
 msgid "Save Touch Registers to Flash Disc"
 msgstr "Enregistrer les registres du tactile sur le disque flash"
 
-#: src/gui/screen_home.cpp:295
+#: src/gui/screen_home.cpp:290
 msgid "Saving to USB"
 msgstr "Enregistrement sur USB"
 
@@ -4362,9 +4383,9 @@ msgid ""
 "The gearbox calibration is only necessary for user-assembled or serviced "
 "gearboxes. In all other cases, you can skip this step."
 msgstr ""
-"La calibration de la démultiplication n'est nécessaire que pour les "
-"démultiplications assemblées par l'utilisateur ou en maintenance. Dans tous "
-"les autres cas, vous pouvez ignorer cette étape."
+"La calibration du réducteur n'est nécessaire que pour les réducteurs "
+"assemblés par l'utilisateur ou en maintenance. Dans tous les autres cas, "
+"vous pouvez ignorer cette étape."
 
 #: src/gui/dialogs/window_dlg_strong_warning.hpp:35
 msgid ""
@@ -4923,7 +4944,7 @@ msgstr "CARTOGRAPHIE DES OUTILS"
 msgid "To setup or troubleshoot your Wi-Fi, please visit:"
 msgstr "Pour configurer ou dépanner votre Wi-Fi, veuillez visiter :"
 
-#: src/gui/screen_home.cpp:324
+#: src/gui/screen_home.cpp:319
 msgid ""
 "Touch disabled. This feature is work-in-progress and is going to be fully "
 "available in a future update."
@@ -5233,10 +5254,6 @@ msgstr ""
 #: src/gui/dialogs/DialogLoadUnload.cpp:96
 msgid "Waiting for user input"
 msgstr "Attente de la saisie de l'utilisateur"
-
-#: src/gui/dialogs/DialogConnectReg.cpp:33
-msgid "Wait please, getting the registration code."
-msgstr "Attendez s'il vous plaît, obtention du code d'enregistrement."
 
 #: src/gui/MItem_hardware.hpp:19
 msgid "Warn"

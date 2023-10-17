@@ -23,11 +23,11 @@ msgstr ""
 "1. Aparca manualmente el cabezal actual. Mueve el mecanismo de cambio de "
 "herramienta hacia atrás y alinéalo con los pines"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:87
+#: src/gui/dialogs/DialogConnectReg.cpp:126
 msgid ""
 "1. Scan the QR code or visit prusa.io/add.\n"
 "2. Log in.\n"
-"3. Add printer with code:"
+"3. Add printer with code:\n"
 msgstr ""
 "1. Escanea el código QR o visita prusa.io/add.\n"
 "2. Inicia sesión.\n"
@@ -64,6 +64,10 @@ msgstr "Voltaje 5V"
 #: src/common/client_response_texts.cpp:17
 msgid "ABORT"
 msgstr "ABORTAR"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:47
+msgid "Acquiring registration code, please wait..."
+msgstr "Adquiriendo código de registro, por favor espera..."
 
 #. window_menu
 #: src/gui/MItem_tools.cpp:263
@@ -596,7 +600,7 @@ msgstr "Carga del procesador"
 msgid "CRASH DETECTED"
 msgstr "CHOQUE DETECTADO"
 
-#: src/gui/screen_home.cpp:283
+#: src/gui/screen_home.cpp:278
 msgid "Crash detected. Save it to USB?"
 msgstr "Choque detectado. ¿Guardar al USB?"
 
@@ -667,7 +671,7 @@ msgstr "Cuchilla"
 #: src/gui/include_XL/selftest_snake_config.hpp:125
 #, c-format
 msgid "%d Bed Heater Test"
-msgstr "Test Calentador Cama %d"
+msgstr "%d Test Calentador Cama"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:119
 #, c-format
@@ -689,14 +693,14 @@ msgstr "Hash del dispositivo en QR"
 #: src/gui/include_XL/selftest_snake_config.hpp:115
 #, c-format
 msgid "%d Fan Test"
-msgstr "Test Ventiladores %d"
+msgstr "%d Test Ventiladores"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:97
 #: src/gui/include_MK3.5/selftest_snake_config.hpp:97
 #: src/gui/include_XL/selftest_snake_config.hpp:124
 #, c-format
 msgid "%d Filament Sensor Calibration"
-msgstr "Calibración Sensor de Filamento %d"
+msgstr "%d Calibración Sensor de Filamento"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:96
 #: src/gui/include_iX/selftest_snake_config.hpp:76
@@ -777,12 +781,12 @@ msgstr "División por cero"
 #: src/gui/include_XL/selftest_snake_config.hpp:120
 #, c-format
 msgid "%d Loadcell Test"
-msgstr "Test Célula de carga %d"
+msgstr "%d Test Célula de carga"
 
 #: src/gui/include_XL/selftest_snake_config.hpp:126
 #, c-format
 msgid "%d Nozzle Heaters Test"
-msgstr "Test Calentadores Boquilla %d"
+msgstr "%d Test Calentadores Boquilla"
 
 #: src/gui/screen_menu_connect.cpp:84
 msgid "DNS error"
@@ -828,10 +832,6 @@ msgstr "Dock X"
 #: src/gui/screen_menu_tools.hpp:40
 msgid "Dock Y"
 msgstr "Dock Y"
-
-#: src/gui/dialogs/DialogConnectReg.cpp:92
-msgid "Done!"
-msgstr "¡Listo!"
 
 #. Intentionally without translation
 #: src/gui/wizard/selftest_frame_dock.hpp:38
@@ -918,7 +918,7 @@ msgstr "¿Deseas reintentar el selftes del calentador?"
 #: src/gui/include_XL/selftest_snake_config.hpp:121
 #, c-format
 msgid "%d Tool Offset Calibration"
-msgstr "Calibración Offset Cabezal %d"
+msgstr "%d Calibración Offset Cabezal"
 
 #: src/gui/wizard/selftest_frame_axis.cpp:31
 msgid ""
@@ -939,7 +939,7 @@ msgstr "Temp Placa Dwarf"
 #: src/gui/include_XL/selftest_snake_config.hpp:118
 #, c-format
 msgid "%d X Axis Test"
-msgstr "Test Eje X %d"
+msgstr "%d Test Eje X"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:93
 #: src/gui/include_iX/selftest_snake_config.hpp:74
@@ -952,7 +952,7 @@ msgstr "Test Ejes XY %d"
 #: src/gui/include_XL/selftest_snake_config.hpp:117
 #, c-format
 msgid "%d Y Axis Test"
-msgstr "Test Eje Y %d"
+msgstr "%d Test Eje Y"
 
 #: build-vscode-buddy/lib/error_codes/error_list.hpp:169
 msgid "Dynamic allocation failed - out of memory. Reset the printer."
@@ -963,7 +963,7 @@ msgstr "Asignación dinámica fallida - sin memoria. Reinicia la impresora."
 #: src/gui/include_XL/selftest_snake_config.hpp:116
 #, c-format
 msgid "%d Z Alignment Calibration"
-msgstr "Calibración Alineación Z %d"
+msgstr "%d Calibración Alineación Z"
 
 #: src/gui/include_MK4/selftest_snake_config.hpp:95
 #: src/gui/include_iX/selftest_snake_config.hpp:75
@@ -972,7 +972,7 @@ msgstr "Calibración Alineación Z %d"
 #: src/gui/include_XL/selftest_snake_config.hpp:122
 #, c-format
 msgid "%d Z Axis Test"
-msgstr "Test Eje Z %d"
+msgstr "%d Test Eje Z"
 
 #: src/gui/MItem_menus.hpp:278
 msgid "Eeprom Diagnostics"
@@ -2019,6 +2019,11 @@ msgstr ""
 msgid "Home"
 msgstr "Inicio"
 
+#. regular home screen
+#: src/gui/screen_home.cpp:200
+msgid "HOME"
+msgstr "INICIO"
+
 #: src/gui/MItem_mmu.hpp:259
 msgid "Home safely"
 msgstr "Home seguro"
@@ -2179,8 +2184,7 @@ msgstr "Corriente de Entrada"
 msgid "Input Shaper"
 msgstr "Input Shaper"
 
-#: src/gui/screen_home.cpp:203 src/gui/screen_menu_input_shaper.hpp:20
-#: src/gui/screen_printing.cpp:376 src/gui/screen_printing.hpp:38
+#: src/gui/screen_menu_input_shaper.hpp:20
 msgid "INPUT SHAPER"
 msgstr "INPUT SHAPER"
 
@@ -2348,7 +2352,7 @@ msgid "Last Print Crashes on Y Axis"
 msgstr "Choques en el Eje Y de la Última Impresión"
 
 #. TODO: How does this thing get translated/marked for translation?
-#: src/gui/dialogs/DialogConnectReg.cpp:15
+#: src/gui/dialogs/DialogConnectReg.cpp:17
 msgid "Leave"
 msgstr "Salir"
 
@@ -3492,6 +3496,10 @@ msgstr "Impresión acabada"
 msgid "Printing"
 msgstr "Imprimiendo"
 
+#: src/gui/screen_printing.hpp:35
+msgid "PRINTING ..."
+msgstr "IMPRIMIENDO ..."
+
 #: src/gui/screen_printing.cpp:158
 msgid "Printing time"
 msgstr "Tiempo de impresión"
@@ -3542,11 +3550,23 @@ msgid "Prusa Connect"
 msgstr "Prusa Connect"
 
 #. TODO: Doesn't fit
-#: src/gui/dialogs/DialogConnectReg.hpp:16 src/gui/screen_menu_connect.hpp:62
+#: src/gui/dialogs/DialogConnectReg.hpp:18 src/gui/screen_menu_connect.hpp:62
 msgid "PRUSA CONNECT"
 msgstr "PRUSA CONNECT"
 
-#: src/gui/screen_prusa_link.cpp:61
+#: src/gui/dialogs/DialogConnectReg.cpp:43
+msgid "Prusa Connect - printer setup"
+msgstr "Prusa Connect - configuración de la impresora"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:88
+msgid ""
+"Prusa Connect setup is not finished. Do you want to exit and abort the "
+"process?"
+msgstr ""
+"La configuración de Prusa Connect no ha finalizado. ¿Desea salir y abortar "
+"el proceso?"
+
+#: src/gui/screen_prusa_link.cpp:60
 msgid "PRUSALINK"
 msgstr "PRUSALINK"
 
@@ -3646,11 +3666,13 @@ msgstr "Error reg."
 msgid "Registering"
 msgstr "Registrando"
 
-#: src/gui/dialogs/DialogConnectReg.cpp:99
-msgid "Registration failed. Likely a network error. Try again later."
-msgstr ""
-"Registro fallido. Probablemente un error de red. Vuelve a intentarlo más "
-"tarde."
+#: src/gui/dialogs/DialogConnectReg.cpp:131
+msgid "Registration successful, continue at connect.prusa3d.com"
+msgstr "Registro realizado correctamente, continua en connect.prusa3d.com"
+
+#: src/gui/dialogs/DialogConnectReg.cpp:140
+msgid "Registration to Prusa Connect failed due to:"
+msgstr "El registro en Prusa Connect ha fallado debido a:"
 
 #. QUIT
 #: src/common/client_response_texts.cpp:54
@@ -3832,7 +3854,7 @@ msgstr "Guardar arch. de errores"
 msgid "Save Touch Registers to Flash Disc"
 msgstr "Guardar Registros Táctiles en Memoria Flash"
 
-#: src/gui/screen_home.cpp:295
+#: src/gui/screen_home.cpp:290
 msgid "Saving to USB"
 msgstr "Guardar al USB"
 
@@ -4958,7 +4980,7 @@ msgstr "MAPEADO CABEZAL"
 msgid "To setup or troubleshoot your Wi-Fi, please visit:"
 msgstr "Para configurar o solucionar los problemas de tu Wi-Fi, visita:"
 
-#: src/gui/screen_home.cpp:324
+#: src/gui/screen_home.cpp:319
 msgid ""
 "Touch disabled. This feature is work-in-progress and is going to be fully "
 "available in a future update."
@@ -5273,10 +5295,6 @@ msgstr ""
 #: src/gui/dialogs/DialogLoadUnload.cpp:96
 msgid "Waiting for user input"
 msgstr "Esperando la entrada del usuario"
-
-#: src/gui/dialogs/DialogConnectReg.cpp:33
-msgid "Wait please, getting the registration code."
-msgstr "Espera por favor, obteniendo el código de registro."
 
 #: src/gui/MItem_hardware.hpp:19
 msgid "Warn"
