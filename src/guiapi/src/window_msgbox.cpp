@@ -47,10 +47,6 @@ Rect16 MsgBoxBase::getTextRect() {
     }
 }
 
-Response MsgBoxBase::GetResult() {
-    return result;
-}
-
 void MsgBoxBase::set_text_alignment(Align_t alignment) {
     text.SetAlignment(alignment);
 }
