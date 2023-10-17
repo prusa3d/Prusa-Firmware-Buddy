@@ -35,7 +35,7 @@ protected: // inherited by unit tests, must be protected
 #endif
     static constexpr const char *HeatBreakThermistorFail = N_("Heatbreak thermistor is disconnected. Inspect the wiring.");
     static constexpr const char *NozzleDoesNotHaveRoundSectionMsg = N_("Nozzle doesn't seem to have round cross section. Make sure it is clean and perpendicular to the bed.");
-    static constexpr const char *NotDownloadedMsg = N_("Streamed gcode not downloaded yet. Check network, wait and try again or transfer the gcode to USB directly.");
+    static constexpr const char *NotDownloadedMsg = N_("G-Code transfer running too slow. Check your network for issues or use a USB drive. Press Continue to resume printing.");
 
     struct icon_title_text_t {
         const img::Resource *icon;
@@ -76,7 +76,7 @@ protected: // inherited by unit tests, must be protected
         { nullptr, Title, HeatbedColdAfterPPMsg },
 #endif
         { &img::nozzle_34x32, Title, NozzleDoesNotHaveRoundSectionMsg },
-        { nullptr, Title, NotDownloadedMsg }
+        { &img::no_stream_48x48, Title, NotDownloadedMsg }, // NotDownloaded
     };
     static_assert(std::size(icon_title_text) == types::count_);
 

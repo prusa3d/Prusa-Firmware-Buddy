@@ -88,6 +88,7 @@ info_58x58.png
 language_16x16.png
 move_16x16.png
 nok_16x16.png
+no_stream_48x48.png
 nozzle_34x32.png
 nozzle_shape_48x48.png
 pepa_92x140.png
