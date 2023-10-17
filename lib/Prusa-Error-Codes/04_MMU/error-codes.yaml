@@ -280,14 +280,6 @@ Errors:
   id: "MMU_IDLER_SELFTEST_FAILED"
   approved: false
 
-- code: "04306"
-  title: "MMU MCU UNDERPOWER"
-  text: "MMU MCU detected a 5V undervoltage. There might be an issue with the electronics. Check the wiring and connectors"
-  text_short: "More details online."
-  action: [ResetMMU]
-  id: "MCU_UNDERVOLTAGE_VCC"
-  approved: true
-
 # CONNECTIVITY
 - code: "04401"
   title: "MMU NOT RESPONDING"

@@ -224,6 +224,11 @@ Errors:
   text: "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
   id: "ACF_AT_INIT"
   approved: false
+- code: "16401"
+  title: "CONNECT REGISTRATION FAILED"
+  text: "Registration to Prusa Connect failed due to:"
+  id: "CONNECT_REGISTRATION_FAILED"
+  approved: true
 - code: "16501"
   title: "MODULAR BED ERROR"
   text: "Heatbed tile no. %d:\nUnknown error: %d"

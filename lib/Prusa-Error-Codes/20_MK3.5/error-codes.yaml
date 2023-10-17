@@ -162,6 +162,11 @@ Errors:
   text: "Power panic has been detected during printer initialization. Inspect wiring of PP-cable."
   id: "ACF_AT_INIT"
   approved: false
+- code: "20401"
+  title: "CONNECT REGISTRATION FAILED"
+  text: "Registration to Prusa Connect failed due to:"
+  id: "CONNECT_REGISTRATION_FAILED"
+  approved: true
   # XX501-XX503 reserved
 - code: "20504"
   title: "ESP ERROR"

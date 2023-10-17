@@ -158,6 +158,11 @@ Errors:
   id: "I2C_RX_UNDEFINED"
   approved: true
   # XX319-XX320 reserved
+- code: "12401"
+  title: "CONNECT REGISTRATION FAILED"
+  text: "Registration to Prusa Connect failed due to:"
+  id: "CONNECT_REGISTRATION_FAILED"
+  approved: true
   # XX501-XX503 reserved
 - code: "12504"
   title: "ESP ERROR"
