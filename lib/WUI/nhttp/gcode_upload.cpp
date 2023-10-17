@@ -58,7 +58,7 @@ using transfers::USB_MOUNT_POINT_LENGTH;
 using Type = ChangedPath::Type;
 using Incident = ChangedPath::Incident;
 
-GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, unique_file_ptr file, UploadedNotify *uploaded)
+GcodeUpload::GcodeUpload(UploadParams &&uploader, Monitor::Slot &&slot, bool json_errors, size_t length, size_t upload_idx, PartialFile::Ptr &&file, UploadedNotify *uploaded)
     : upload(move(uploader))
     , monitor_slot(move(slot))
     , uploaded_notify(uploaded)
@@ -153,11 +153,11 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     const size_t file_idx = next_transfer_idx();
     const auto fname = transfer_name(file_idx);
 
-    auto preallocated = file_preallocate(fname.begin(), *parser.content_length);
+    auto preallocated = PartialFile::create(fname.begin(), *parser.content_length);
     if (const char **err = get_if<const char *>(&preallocated); err != nullptr) {
         return StatusPage(Status::InsufficientStorage, StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, *err);
     } else {
-        return GcodeUpload(move(uploadParams), move(*slot), json_errors, *parser.content_length, file_idx, move(get<unique_file_ptr>(preallocated)), uploaded);
+        return GcodeUpload(move(uploadParams), move(*slot), json_errors, *parser.content_length, file_idx, move(get<PartialFile::Ptr>(preallocated)), uploaded);
     }
 }
 
@@ -206,7 +206,7 @@ Step GcodeUpload::step(string_view input, const size_t read, UploadState &upload
 
 UploadHooks::Result GcodeUpload::data(std::string_view data) {
     assert(tmp_upload_file);
-    if (transfers::write_block(tmp_upload_file.get(), reinterpret_cast<const uint8_t *>(data.begin()), data.size())) {
+    if (tmp_upload_file->write(reinterpret_cast<const uint8_t *>(data.begin()), data.size())) {
         return make_tuple(Status::Ok, nullptr);
     } else {
         // Data won't fit into the flash drive -> Insufficient stogare.
@@ -320,14 +320,14 @@ namespace {
     class PutTransfer final : public splice::Transfer {
     public:
         GcodeUpload::UploadedNotify *uploaded_notify = nullptr;
-        FILE *f = nullptr;
+        PartialFile::Ptr f;
         array<char, FILE_PATH_BUFFER_LEN> filepath;
         bool print_after_upload;
         bool overwrite;
         size_t file_idx;
 
-        virtual variant<FILE *, PartialFile *> file() const override {
-            return f;
+        virtual PartialFile *file() const override {
+            return f.get();
         }
         // TODO: alias for the type, probably unify with the UploadHooks::Result
         virtual std::optional<std::tuple<http::Status, const char *>> done() override {
@@ -346,12 +346,13 @@ namespace {
                 if (error = make_dirs(final_filename); get<0>(error) != Status::Ok) {
                     goto CLEANUP;
                 }
+                if (!f->sync()) {
+                    error = { Status::InsufficientStorage, "Couldn't sync to file" };
+                    goto CLEANUP;
+                }
 
-                // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
-                (void)ftruncate(fileno(f), ftell(f));
-                fclose(f);
                 // Close the file first, otherwise it can't be moved
-                f = nullptr;
+                f.reset();
                 error = try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
                     monitor_slot->done(Monitor::Outcome::Finished);
                     ChangedPath::instance.changed_path(filename, Type::File, Incident::Created);
@@ -382,10 +383,7 @@ namespace {
                 break;
             }
         CLEANUP:
-            if (f != nullptr) {
-                fclose(f);
-            }
-            f = nullptr;
+            f.reset();
             if (cleanup_temp_file) {
                 remove(fname.begin());
             }
@@ -465,10 +463,18 @@ UploadHooks::Result GcodeUpload::finish(const char *final_filename, bool start_p
         return error;
     }
 
-    // Remove extra pre-allocated space (ignore the result explicitly to avoid warnings)
-    (void)ftruncate(fileno(tmp_upload_file.get()), ftell(tmp_upload_file.get()));
+    // In the "POST" mode (old / legacy), we don't know the exact size in
+    // advance, we have only an upper limit. Therefore, the pre-allocated size
+    // is a bit bigger and we need to truncate it.
+    size_t written = tmp_upload_file->tell();
+    if (!tmp_upload_file->sync()) {
+        return std::make_tuple(Status::InsufficientStorage, "Couldn't sync to file");
+    }
     // Close the file first, otherwise it can't be moved
     tmp_upload_file.reset();
+    if (truncate(fname.begin(), written) != 0) {
+        return std::make_tuple(Status::InsufficientStorage, "Couldn't set length of file");
+    }
     auto putParams = std::get_if<PutParams>(&upload);
     bool overwrite = putParams != nullptr && putParams->overwrite;
     return try_rename(fname.begin(), final_filename, overwrite, [&](char *filename) -> UploadHooks::Result {
@@ -497,7 +503,8 @@ Step GcodeUpload::step(string_view input, const size_t read, PutParams &putParam
         return { read, 0, StatusPage(std::get<0>(filename_error), StatusPage::CloseHandling::ErrorClose, json_errors, nullopt, std::get<1>(filename_error)) };
 
     assert(put_transfer.f == nullptr); // No other transfer is happening at the moment.
-    put_transfer.f = tmp_upload_file.release();
+    put_transfer.f = move(tmp_upload_file);
+    tmp_upload_file.reset(); // Does move really set it to nullptr, or is it just a copy?
     put_transfer.set_monitor_slot(move(monitor_slot));
     put_transfer.uploaded_notify = uploaded_notify;
     put_transfer.filepath = putParams.filepath;

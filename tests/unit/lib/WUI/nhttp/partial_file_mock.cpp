@@ -9,3 +9,7 @@ std::variant<const char *, PartialFile::Ptr> PartialFile::create(const char *pat
 bool PartialFile::write(const uint8_t *data, size_t size) {
     return true;
 }
+
+bool PartialFile::sync() {
+    return true;
+}
