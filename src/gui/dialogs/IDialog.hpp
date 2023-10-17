@@ -15,27 +15,14 @@ class IDialog : public AddSuperWindow<window_frame_t> {
 public:
     enum class IsStrong : bool {
         no,
-        yes
+        yes,
     };
     IDialog(Rect16 rc = GuiDefaults::DialogFrameRect, IsStrong strong = IsStrong::no);
     IDialog(window_t *parent, Rect16 rc = GuiDefaults::DialogFrameRect);
 
 public:
     // could be static, but I want it to be usable only from dialog
-    void MakeBlocking() const {
-        while (!consumeCloseFlag()) {
-            guiLoop();
-        }
-    }
-
-    // could be static, but I want it to be usable only from dialog
-    template <typename F>
-    void MakeBlocking(F loopCallback) const {
-        while (!consumeCloseFlag()) {
-            guiLoop();
-            loopCallback();
-        }
-    }
+    void MakeBlocking(std::function<void()> loopCallback = {}) const;
 
 protected:
     // used in MakeBlocking

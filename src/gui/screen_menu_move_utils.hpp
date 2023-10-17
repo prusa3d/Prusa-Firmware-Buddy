@@ -21,4 +21,4 @@
  * @param target Target position of the axis
  * @param axis Axis to jog
  */
-void jog_axis(float &position, const int target, const AxisEnum axis);
+void jog_axis(float &position, const float target, const AxisEnum axis);

@@ -7,8 +7,8 @@
 #include "menu_vars.h"
 #include "marlin_client.hpp"
 
-void jog_axis(float &position, const int target, const AxisEnum axis) {
-    if ((int)position == target) {
+void jog_axis(float &position, const float target, const AxisEnum axis) {
+    if (position == target) {
         // Yeah and every time I try to go where I really want to be
         // it's already where I am 'cause I'm already there!
         return;
@@ -22,7 +22,8 @@ void jog_axis(float &position, const int target, const AxisEnum axis) {
     const float long_segment = 5 * short_segment;
 
     // Just fill the entire queue with movements.
-    for (uint8_t i = marlin_vars()->pqueue; i < BLOCK_BUFFER_SIZE; i++) {
+    // When i went up to BLOCK_BUFFER_SIZE, it was still choppy in certain situations
+    for (uint8_t i = marlin_vars()->pqueue; i < BLOCK_BUFFER_SIZE - 1; i++) {
         const float difference = (float)target - position;
         if (difference == 0) {
             break;
@@ -35,7 +36,7 @@ void jog_axis(float &position, const int target, const AxisEnum axis) {
         } else if (difference <= -short_segment) {
             position -= short_segment;
         } else {
-            position = (float)target;
+            position = target;
         }
         marlin_client::move_axis(position, feedrate, axis);
     }

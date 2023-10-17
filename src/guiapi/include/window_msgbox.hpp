@@ -45,7 +45,7 @@ public:
     MsgBoxBase(Rect16 rect, const PhaseResponses &resp, size_t def_btn, const PhaseTexts *labels,
         string_view_utf8 txt, is_multiline multiline = is_multiline::yes, is_closed_on_click_t close = is_closed_on_click_t::yes);
 
-    inline Response GetResult() const {
+    [[nodiscard]] inline Response GetResult() const {
         return result;
     }
 

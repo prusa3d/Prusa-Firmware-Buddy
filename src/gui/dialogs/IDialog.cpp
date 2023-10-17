@@ -12,6 +12,14 @@ IDialog::IDialog(window_t *parent, Rect16 rc)
     Enable();
 }
 
+void IDialog::MakeBlocking(std::function<void()> loopCallback) const {
+    while (!consumeCloseFlag()) {
+        guiLoop();
+        if (loopCallback)
+            loopCallback();
+    }
+}
+
 bool IDialog::consumeCloseFlag() const {
     return Screens::Access()->ConsumeClose();
 }
