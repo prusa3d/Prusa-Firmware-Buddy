@@ -188,11 +188,12 @@ static DialogLoadUnload::States LoadUnloadFactory() {
 // clang-format on
 /*****************************************************************************/
 
-static constexpr Rect16 notice_title_rect = { 14, 44, 317, 22 };
-static constexpr Rect16 notice_text_rect = { 14, 72, 224, 105 };
-static constexpr Rect16 notice_link_rect = { 14, 165, 317, 32 }; // 2x font size + a bit of margin
-static constexpr Rect16 notice_icon_rect = { 263, 73, 59, 72 };
-static constexpr Rect16 notice_qr_rect = { 341, 44, 125, 125 };
+static constexpr Rect16 notice_title_rect = { 86, 44, 374, 22 };
+static constexpr Rect16 notice_text_rect = { 86, 72, 244, 140 };
+static constexpr Rect16 notice_link_rect = { 86, 218, 244, 32 };
+static constexpr Rect16 notice_icon_rect = { 370, 180, 59, 72 };
+static constexpr Rect16 notice_icon_type_rect = { 24, 44, 48, 48 };
+static constexpr Rect16 notice_qr_rect = { 350, 72, 100, 100 };
 static constexpr char error_code_link_format[] = N_("More detail at\nprusa.io/%05u");
 namespace {
 constexpr size_t color_size { 16 };
@@ -227,6 +228,7 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     , notice_text(&notice_frame, notice_text_rect, is_multiline::yes)
     , notice_link(&notice_frame, notice_link_rect, is_multiline::yes)
     , notice_icon_hand(&notice_frame, notice_icon_rect, &img::hand_qr_59x72)
+    , notice_icon_type(&notice_frame, notice_icon_type_rect, &img::warning_48x48)
     , notice_qr(&notice_frame, notice_qr_rect)
     , notice_radio_button(&notice_frame, GuiDefaults::GetButtonRect_AvoidFooter(GetRect()))
     , filament_type_text(&progress_frame, filament_type_text_rect, is_multiline::no)
@@ -326,7 +328,7 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
 
             notice_radio_button.set_fixed_width_buttons_count(3);
             notice_radio_button.ChangePhase(phase, responses);
-            notice_update(ftrstd::to_underlying(ptr_desc->err_code), ptr_desc->err_title, ptr_desc->err_text);
+            notice_update(ftrstd::to_underlying(ptr_desc->err_code), ptr_desc->err_title, ptr_desc->err_text, ptr_desc->type);
         }
     #endif
     #if HAS_LOADCELL()
@@ -338,7 +340,7 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
 
             notice_radio_button.set_fixed_width_buttons_count(0);
             notice_radio_button.ChangePhase(phase, { Response::Unload });
-            notice_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
+            notice_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text, MMU2::ErrType::WARNING);
         }
     #endif
         current_phase = phase; // set it directly, do not use super::change(phase, data);
@@ -358,7 +360,19 @@ bool DialogLoadUnload::change(PhasesLoadUnload phase, fsm::PhaseData data) {
     return super::change(phase, data);
 }
 
-void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, const char *errDesc) {
+void DialogLoadUnload::notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, MMU2::ErrType type) {
+    switch (type) {
+    case MMU2::ErrType::ERROR:
+        notice_icon_type.SetRes(&img::error_48x48);
+        break;
+    case MMU2::ErrType::WARNING:
+        notice_icon_type.SetRes(&img::warning_48x48);
+        break;
+    case MMU2::ErrType::USER_ACTION:
+        notice_icon_type.SetRes(&img::info_48x48);
+        break;
+    }
+
     notice_title.SetText(string_view_utf8::MakeRAM((const uint8_t *)errTitle));
     notice_text.SetText(string_view_utf8::MakeRAM((const uint8_t *)errDesc));
 

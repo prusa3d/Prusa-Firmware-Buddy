@@ -61,7 +61,7 @@ public:
 
 protected:
     virtual bool change(PhasesLoadUnload phase, fsm::PhaseData data) override;
-    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc);
+    void notice_update(uint16_t errCode, const char *errTitle, const char *errDesc, MMU2::ErrType type);
     virtual float deserialize_progress(fsm::PhaseData data) const override;
     void phaseEnter() override;
 
@@ -74,6 +74,7 @@ private:
     window_text_t notice_text;
     window_text_t notice_link;
     window_icon_t notice_icon_hand;
+    window_icon_t notice_icon_type;
     window_qr_t notice_qr;
     RadioButtonNotice notice_radio_button; // workaround, see RadioButtonNotice comment
 
