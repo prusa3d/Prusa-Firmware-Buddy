@@ -328,13 +328,11 @@ extern "C" void main_cpp(void) {
 
     filesystem_init();
 
-    gui_bootstrap_screen_init();
-
     if (option::has_gui) {
         osThreadCCMDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 512);
         displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
     }
-    // wait for gui to init and render loading screen before starting flashing. It looks very laggy if we don't wait here.
+    // wait for gui to init and render loading screen before starting flashing. We need to init bootstrap screen so we can send process percentage to it. Also it would look laggy without it.
     TaskDeps::wait(TaskDeps::Tasks::bootstrap_start);
 
 #if ENABLED(RESOURCES()) && ENABLED(BOOTLOADER_UPDATE())
