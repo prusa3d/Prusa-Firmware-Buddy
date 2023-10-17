@@ -346,9 +346,21 @@ void screen_home_data_t::on_enter() {
 }
 namespace {
 struct Config {
-    bool ssid_equal = false;
-    bool psk_equal = false;
-    bool is_ok() { return psk_equal && ssid_equal; }
+    enum class Status { missing,
+        equal,
+        not_equal };
+
+    Status ssid_status = Status::missing;
+    Status psk_status = Status::missing;
+
+    Status get_status() {
+        if (ssid_status == Status::missing || psk_status == Status::missing) {
+            return Status::missing;
+        } else if (ssid_status == Status::not_equal || psk_status == Status::not_equal) {
+            return Status::not_equal;
+        }
+        return Status::equal;
+    }
 };
 
 int ini_handler(void *user, const char *section, const char *name, const char *value) {
@@ -366,24 +378,25 @@ int ini_handler(void *user, const char *section, const char *name, const char *v
     if (strcmp(name, "ssid") == 0) {
         char buffer[config_store_ns::old_eeprom::WIFI_MAX_SSID_LEN];
         if (len <= sizeof(buffer)) {
-            config->ssid_equal = !strncmp(value, config_store().wifi_ap_ssid.get_c_str(), sizeof(buffer));
+            config->ssid_status = strncmp(value, config_store().wifi_ap_ssid.get_c_str(), sizeof(buffer)) ? Config::Status::not_equal : Config::Status::equal;
         }
     } else if (strcmp(name, "psk") == 0) {
         char buffer[config_store_ns::old_eeprom::WIFI_MAX_PASSWD_LEN];
         if (len <= sizeof(buffer)) {
-            config->psk_equal = !strncmp(value, config_store().wifi_ap_password.get_c_str(), sizeof(buffer));
+            config->psk_status = strncmp(value, config_store().wifi_ap_password.get_c_str(), sizeof(buffer)) ? Config::Status::not_equal : Config::Status::equal;
         }
     }
 
     return 1;
 }
 
-bool is_name_and_psk_equal() {
+Config::Status name_and_psk_status() {
     Config config;
     bool ok = ini_parse(settings_ini::file_name, ini_handler, &config) == 0;
-    ok = ok && config.is_ok();
-
-    return ok;
+    if (!ok) {
+        return Config::Status::missing;
+    }
+    return config.get_status();
 }
 } // namespace
 
@@ -396,7 +409,7 @@ void screen_home_data_t::handle_wifi_credentials() {
         fl.reset(fopen(settings_ini::file_name, "r"));
         has_wifi_credentials = fl.get() != nullptr;
     }
-    if (has_wifi_credentials && !is_name_and_psk_equal()) {
+    if (has_wifi_credentials && (name_and_psk_status() == Config::Status::not_equal)) {
         if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo, 1)
             == Response::Yes) {
             const auto fw_state = esp_fw_state();
