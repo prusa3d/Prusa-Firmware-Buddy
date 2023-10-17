@@ -47,7 +47,6 @@ using std::tuple;
 using std::variant;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
-using transfers::file_preallocate;
 using transfers::Monitor;
 using transfers::next_transfer_idx;
 using transfers::PartialFile;
