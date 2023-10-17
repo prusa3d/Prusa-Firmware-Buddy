@@ -168,8 +168,7 @@ struct flash_crash_t {
     uint8_t axis_known_position; /// axis state before crashing
     uint8_t leveling_active; /// state of MBL before crashing
     feedRate_t fr_mm_s; /// current move feedrate
-    xy_uint_t counter_crash = { 0, 0 }; /// number of crashes per axis
-    uint16_t counter_power_panic = 0; /// number of power panics
+    Crash_s_Counters::Data counters;
     Crash_s::InhibitFlags inhibit_flags; /// inhibit instruction replay flags
 
     uint8_t _padding[1]; // silence warning
@@ -724,15 +723,18 @@ void resume_loop() {
         pressure_advance::set_axis_e_config(state_buf.planner.axis_e_config);
 
         // restore crash state
-        crash_s.start_current_position = state_buf.crash.start_current_position;
-        crash_s.crash_current_position = state_buf.crash.crash_current_position;
-        crash_s.crash_position = state_buf.crash.crash_position;
-        crash_s.segments_finished = state_buf.crash.segments_finished;
-        crash_s.leveling_active = state_buf.crash.leveling_active;
-        crash_s.inhibit_flags = state_buf.crash.inhibit_flags;
-        crash_s.fr_mm_s = state_buf.crash.fr_mm_s;
-        crash_s.counter_crash = state_buf.crash.counter_crash;
-        crash_s.counter_power_panic = state_buf.crash.counter_power_panic;
+        {
+            const auto &d = state_buf.crash;
+
+            crash_s.start_current_position = d.start_current_position;
+            crash_s.crash_current_position = d.crash_current_position;
+            crash_s.crash_position = d.crash_position;
+            crash_s.segments_finished = d.segments_finished;
+            crash_s.leveling_active = d.leveling_active;
+            crash_s.inhibit_flags = d.inhibit_flags;
+            crash_s.fr_mm_s = d.fr_mm_s;
+            crash_s.counters.restore_data(d.counters);
+        }
 
         atomic_finish();
         log_info(PowerPanic, "resuming complete");
@@ -1106,8 +1108,9 @@ void ac_fault_isr() {
         state_buf.crash.leveling_active = crash_s.leveling_active;
         state_buf.crash.inhibit_flags = crash_s.inhibit_flags;
         state_buf.crash.fr_mm_s = crash_s.fr_mm_s;
-        state_buf.crash.counter_crash = crash_s.counter_crash;
-        state_buf.crash.counter_power_panic = crash_s.counter_power_panic + 1;
+
+        crash_s.counters.increment(Crash_s::Counter::power_panic);
+        state_buf.crash.counters = crash_s.counters.backup_data();
 
         // save print temperatures
         if (state_buf.planner.was_paused || resume.nozzle_temp_paused) { // Paused print or whenever nozzle is cooled down

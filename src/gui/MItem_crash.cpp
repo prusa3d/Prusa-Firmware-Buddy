@@ -118,7 +118,7 @@ MI_POWER_PANICS::MI_POWER_PANICS()
     : WI_INFO_t(config_store().power_panics_count.get(), _(label)) {}
 
 MI_CRASHES_X_LAST::MI_CRASHES_X_LAST()
-    : WI_INFO_t(crash_s.counter_crash.x, _(label),
+    : WI_INFO_t(crash_s.counters.get(Crash_s::Counter::axis_crash_x), _(label),
     #if PRINTER_IS_PRUSA_XL
         is_hidden_t::no
     #else
@@ -128,7 +128,7 @@ MI_CRASHES_X_LAST::MI_CRASHES_X_LAST()
 }
 
 MI_CRASHES_Y_LAST::MI_CRASHES_Y_LAST()
-    : WI_INFO_t(crash_s.counter_crash.y, _(label),
+    : WI_INFO_t(crash_s.counters.get(Crash_s::Counter::axis_crash_y), _(label),
     #if PRINTER_IS_PRUSA_XL
         is_hidden_t::no
     #else

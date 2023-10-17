@@ -319,11 +319,6 @@ void Crash_s::set_sensitivity(xy_long_t sens) {
     }
 }
 
-void Crash_s::reset_crash_counter() {
-    counter_crash = xy_uint_t({ 0, 0 });
-    counter_power_panic = 0;
-}
-
 void Crash_s::send_reports() {
     if (axis_hit != X_AXIS && axis_hit != Y_AXIS)
         return;
@@ -349,28 +344,6 @@ void Crash_s::set_max_period(xy_long_t mp) {
     }
 }
 
-void Crash_s::write_stat_to_eeprom() {
-    xy_uint_t total({ config_store().crash_count_x.get(), config_store().crash_count_y.get() });
-    uint16_t power_panics = config_store().power_panics_count.get();
-
-    LOOP_XY(axis) {
-        if (counter_crash.pos[axis] > 0) {
-            total.pos[axis] += counter_crash.pos[axis];
-            if (axis == 0) {
-                config_store().crash_count_x.set(total.pos[axis]);
-            } else if (axis == 1) {
-                config_store().crash_count_y.set(total.pos[axis]);
-            }
-            static metric_t crash_stat = METRIC("crash_stat", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);
-            metric_record_custom(&crash_stat, ",axis=%c last=%ui,total=%ui", axis_codes[axis], counter_crash.pos[axis], total.pos[axis]);
-        }
-    }
-    power_panics += counter_power_panic;
-    config_store().power_panics_count.set(power_panics);
-
-    reset_crash_counter();
-}
-
 uint32_t Crash_s::clean_history() {
     int valid = 0;
     for (auto &ts : crash_timestamps) {
@@ -389,8 +362,9 @@ void Crash_s::reset_history() {
 }
 
 void Crash_s::count_crash() {
-    if (axis_hit == X_AXIS || axis_hit == Y_AXIS)
-        ++counter_crash.pos[axis_hit];
+    if (axis_hit == X_AXIS || axis_hit == Y_AXIS) {
+        counters.increment(axis_hit == X_AXIS ? Counter::axis_crash_x : Counter::axis_crash_y);
+    }
 
     uint32_t valid = clean_history();
     if (valid == crash_timestamps.size()) {

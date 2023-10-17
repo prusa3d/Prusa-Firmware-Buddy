@@ -1303,7 +1303,7 @@ static void _server_print_loop(void) {
 
 #if ENABLED(CRASH_RECOVERY)
         crash_s.reset();
-        crash_s.reset_crash_counter();
+        crash_s.counters.reset();
         endstops.enable_globally(true);
         crash_s.set_state(Crash_s::PRINTING);
 #endif // ENABLED(CRASH_RECOVERY)
@@ -1346,7 +1346,7 @@ static void _server_print_loop(void) {
         server.print_is_serial = true;
 #if ENABLED(CRASH_RECOVERY)
         crash_s.reset();
-        crash_s.reset_crash_counter();
+        crash_s.counters.reset();
         endstops.enable_globally(true);
         // Crash Detection is disabled during serial printing, because it does not work
         // crash_s.set_state(Crash_s::PRINTING);
@@ -1509,7 +1509,7 @@ static void _server_print_loop(void) {
         // TODO: the following should be moved to State::Aborting_ParkHead once the "stopping"
         // state is handled properly
         endstops.enable_globally(false);
-        crash_s.write_stat_to_eeprom();
+        crash_s.counters.save_to_eeprom();
         server.aborting_did_crash_trigger = crash_s.did_trigger(); // Remember as it is cleared by crash_s.reset()
         crash_s.reset();
 #endif // ENABLED(CRASH_RECOVERY)
@@ -1590,7 +1590,7 @@ static void _server_print_loop(void) {
             // TODO: the following should be moved to State::Finishing_ParkHead once the "stopping"
             // state is handled properly
             endstops.enable_globally(false);
-            crash_s.write_stat_to_eeprom();
+            crash_s.counters.save_to_eeprom();
             crash_s.reset();
 #endif // ENABLED(CRASH_RECOVERY)
 

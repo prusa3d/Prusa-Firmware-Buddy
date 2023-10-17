@@ -203,7 +203,10 @@ if(BOARD MATCHES ".*BUDDY")
 
   if(PRINTER IN_LIST PRINTERS_WITH_POWER_PANIC OR PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
     # Power panic/crash detection module
-    target_sources(Marlin PRIVATE Marlin/Marlin/src/feature/prusa/crash_recovery.cpp)
+    target_sources(
+      Marlin PRIVATE Marlin/Marlin/src/feature/prusa/crash_recovery.cpp
+                     Marlin/Marlin/src/feature/prusa/crash_recovery_counters.cpp
+      )
   endif()
 
   if(PRINTER IN_LIST PRINTERS_WITH_PRECISE_HOMING)
