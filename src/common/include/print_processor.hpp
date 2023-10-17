@@ -18,6 +18,7 @@ public:
     static void Update();
     static void InjectGcode(const char *str);
     static bool IsPrinting();
+    static bool IsPaused();
     static bool IsAutoloadEnabled();
 
     static void Init();

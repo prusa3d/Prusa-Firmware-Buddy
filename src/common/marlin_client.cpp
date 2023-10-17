@@ -530,6 +530,15 @@ bool is_printing() {
     }
 }
 
+bool is_paused() {
+    switch (marlin_vars()->print_state) {
+    case State::Paused:
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool is_idle() {
     switch (marlin_vars()->print_state) {
     case State::Idle:

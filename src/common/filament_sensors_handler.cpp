@@ -219,7 +219,9 @@ void FilamentSensors::Cycle() {
         if (!has_mmu && !opt_event_m600 && events.secondary_runout) {
             opt_event_m600 = evaluateM600(*events.secondary_runout);
         }
-    } else {
+    }
+    if (!PrintProcessor::IsPrinting()
+        || (!option::has_human_interactions && PrintProcessor::IsPaused())) {
         if (events.autoload)
             opt_event_autoload = evaluateAutoload(*events.autoload);
     }

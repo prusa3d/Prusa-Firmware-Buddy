@@ -170,6 +170,8 @@ void notify_server_about_knob_click();
 // returns true if printer is printing, else false;
 bool is_printing();
 
+bool is_paused();
+
 bool is_idle();
 
 // returns true if reheating is in progress, otherwise 0

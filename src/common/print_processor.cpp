@@ -42,6 +42,9 @@ void PrintProcessor::InjectGcode(const char *str) { marlin_client::gcode_push_fr
 bool PrintProcessor::IsPrinting() {
     return marlin_client::is_printing();
 }
+bool PrintProcessor::IsPaused() {
+    return marlin_client::is_paused();
+}
 bool PrintProcessor::IsAutoloadEnabled() {
     return marlin_vars()->fs_autoload_enabled;
 }
