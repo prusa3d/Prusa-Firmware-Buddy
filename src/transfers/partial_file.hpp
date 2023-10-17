@@ -107,7 +107,7 @@ private:
         /// Get a free slot, if none is available, it waits until it becomes free (returns nullptr in case of timeout)
         ///
         /// Returns the slot and its index (can be paired with the number given to the callback)
-        UsbhMscRequest *acquire();
+        UsbhMscRequest *acquire(bool block_waiting);
 
         /// Release a previously acquired slot
         void release(uint32_t slot);
@@ -212,6 +212,27 @@ public:
     size_t tell() {
         return current_offset;
     }
+
+    struct WouldBlock {};
+    struct WriteError {};
+    struct OutOfRange {};
+
+    using BufferAndOffset = std::tuple<uint8_t *, size_t>;
+    using BufferPeek = std::variant<BufferAndOffset, WouldBlock, WriteError, OutOfRange>;
+
+    /// Provides a data pointer and offset (to the place where already written) to the current write buffer.
+    ///
+    /// The caller is responsible to offset the place where it writes.
+    ///
+    /// Will allocate a new one as needed. If blocking_wait is set to true and
+    /// no buffer is available for allocation, it waits for one to become
+    /// available.
+    ///
+    /// The total buffer is always SECTOR_SIZE large.
+    BufferPeek get_current_buffer(bool blocking_wait);
+
+    /// Advance the write position, submit the current buffer to USB if completely full.
+    bool advance_written(size_t by);
 
     /// Write data to the file at current offset
     bool write(const uint8_t *data, size_t size);

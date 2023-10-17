@@ -13,6 +13,8 @@
 
 LOG_COMPONENT_REF(transfers);
 using namespace transfers;
+using std::holds_alternative;
+using std::make_tuple;
 using std::unique_lock;
 using std::variant;
 
@@ -183,50 +185,78 @@ void PartialFile::discard_current_sector() {
     }
 }
 
+PartialFile::BufferPeek PartialFile::get_current_buffer(bool block_waiting) {
+    if (!current_sector) {
+        if (current_offset >= state.total_size) {
+            return OutOfRange {};
+        }
+        const auto sector_nbr = get_sector_nbr(current_offset);
+
+        current_sector = sector_pool.acquire(block_waiting);
+        if (current_sector == nullptr) {
+            if (block_waiting) {
+                return WriteError {};
+            } else {
+                return WouldBlock {};
+            }
+        }
+        current_sector->sector_nbr = sector_nbr;
+    }
+
+    const size_t sector_offset = current_offset % SECTOR_SIZE;
+    return make_tuple(current_sector->data, sector_offset);
+}
+
+bool PartialFile::advance_written(size_t by) {
+    assert(current_sector);
+    const auto next_offset = current_offset + by;
+    const auto next_sector_nbr = get_sector_nbr(next_offset);
+    if (next_offset > state.total_size) {
+        fatal_error("Request to write past the end of file.", "transfers");
+    }
+    if (next_sector_nbr != current_sector->sector_nbr) {
+        // TODO: We may need some non-blocking way?
+        if (write_current_sector()) {
+            current_sector = nullptr;
+        } else {
+            return false;
+        }
+    }
+
+    current_offset = next_offset;
+    return true;
+}
+
 bool PartialFile::write(const uint8_t *data, size_t size) {
     if (write_error)
         return false;
     while (size) {
-        // open a new sector buffer if needed
-        if (!current_sector) {
-            if (current_offset >= state.total_size) {
-                log_error(transfers, "Write past end of file attempted");
-                return false;
-            }
-            const auto sector_nbr = get_sector_nbr(current_offset);
+        auto buffer = get_current_buffer(true);
 
-            current_sector = sector_pool.acquire();
-            if (current_sector == nullptr) {
-                return false;
-            }
-            current_sector->sector_nbr = sector_nbr;
-        }
-
-        // write data to the sector buffer
-        const size_t sector_offset = current_offset % SECTOR_SIZE;
-        const size_t sector_remaining = SECTOR_SIZE - sector_offset;
-        const size_t write_size = std::min(size, sector_remaining);
-        memcpy(current_sector->data + sector_offset, data, write_size);
-        log_debug(transfers, "Writing %d bytes to sector %d with offset %d", write_size, current_sector->sector_nbr, sector_offset);
-
-        // flush the sector if needed
-        const auto next_offset = current_offset + write_size;
-        const auto next_sector_nbr = get_sector_nbr(next_offset);
-        if (next_offset > state.total_size) {
-            fatal_error("Request to write past the end of file.", "transfers");
-        }
-        if (next_sector_nbr != current_sector->sector_nbr) {
-            if (write_current_sector()) {
-                current_sector = nullptr;
-            } else {
-                return false;
-            }
-        }
-
-        // advance
-        if (!seek(current_offset + write_size)) {
+        if (holds_alternative<WouldBlock>(buffer)) {
+            // We ask for blocking mode
+            assert(0);
+            return false;
+        } else if (holds_alternative<WriteError>(buffer)) {
+            return false;
+        } else if (holds_alternative<OutOfRange>(buffer)) {
+            log_error(transfers, "Write past end of file attempted");
             return false;
         }
+        // else -> we got a buffer
+        assert(holds_alternative<BufferAndOffset>(buffer));
+        auto [buff_ptr, offset] = get<BufferAndOffset>(buffer);
+
+        const size_t sector_remaining = SECTOR_SIZE - offset;
+        const size_t write_size = std::min(size, sector_remaining);
+        assert(sector_remaining > 0);
+        assert(write_size > 0);
+        memcpy(buff_ptr + offset, data, write_size);
+
+        if (!advance_written(write_size)) {
+            return false;
+        }
+
         data += write_size;
         size -= write_size;
     }
@@ -238,7 +268,7 @@ bool PartialFile::sync() {
     uint32_t sync_avoid = 0;
     if (current_sector) {
         sync_avoid = 1;
-        auto copied_sector = sector_pool.acquire();
+        auto copied_sector = sector_pool.acquire(true);
         if (!copied_sector) {
             return false;
         }
@@ -363,8 +393,8 @@ PartialFile::SectorPool::~SectorPool() {
     vSemaphoreDelete(semaphore);
 }
 
-UsbhMscRequest *PartialFile::SectorPool::acquire() {
-    auto result = xSemaphoreTake(semaphore, USBH_MSC_RW_MAX_DELAY);
+UsbhMscRequest *PartialFile::SectorPool::acquire(bool block_waiting) {
+    auto result = xSemaphoreTake(semaphore, block_waiting ? USBH_MSC_RW_MAX_DELAY : 0);
     if (result != pdPASS) {
         return nullptr;
     }
