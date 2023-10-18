@@ -452,8 +452,14 @@ void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
         parse_m555(cmd);
     }
 
-    else if (cmd.skip_gcode(gcode_info::m140_set_bed_temp) && cmd.skip_to_param('S')) {
+    else if ((cmd.skip_gcode(gcode_info::m140_set_bed_temp) || cmd.skip_gcode(gcode_info::m190_wait_bed_temp)) && cmd.skip_to_param('S')) {
         bed_preheat_temp = cmd.get_uint();
+    }
+
+    else if ((cmd.skip_gcode(gcode_info::m104_set_hotend_temp) || cmd.skip_gcode(gcode_info::m109_wait_hotend_temp)) && cmd.skip_to_param('S')) {
+        // Consider the maximum found value found in the gcode (search_first_x_gcodes)
+        // This is because there can be lower preheating for ABL
+        hotend_preheat_temp = std::max<uint16_t>(cmd.get_uint(), hotend_preheat_temp.value_or(0));
     }
 }
 

@@ -54,7 +54,7 @@ public:
     static constexpr std::array<const char *, 1> printer_compatibility_list = { PRINTER_MODEL }; ///< Basic compatibility for M862.3 G-code
 #endif
 
-    // search this many g-code at the beginning of the file for the M862.x g-codes
+    // search this many g-code at the beginning of the file for the various g-codes (M862.x nozzle size, bed heating, nozzle heating)
     static constexpr size_t search_first_x_gcodes = 200;
 
     /// Extended compatibility list for "; printer_model = ???" G-code comment
@@ -176,6 +176,7 @@ private:
     GCodePerExtruderInfo per_extruder_info; ///< Info about G-code for each extruder
     std::optional<uint16_t> bed_preheat_temp { std::nullopt }; ///< Holds bed preheat temperature
     std::optional<PrintArea::rect_t> bed_preheat_area { std::nullopt }; ///< Holds bed preheat area
+    std::optional<uint16_t> hotend_preheat_temp { std::nullopt }; ///< Holds hotend preheat temperature
 
 public:
     const time_buff &get_printing_time() const { return printing_time; } ///< Get string representation of printing time left
@@ -191,6 +192,7 @@ public:
     const GCodePerExtruderInfo &get_per_extruder_info() const { return per_extruder_info; } ///< Get info about G-code for each extruder
     const std::optional<uint16_t> &get_bed_preheat_temp() const { return bed_preheat_temp; } ///< Get info about bed preheat temperature
     const std::optional<PrintArea::rect_t> &get_bed_preheat_area() const { return bed_preheat_area; } ///< Get info about G-preheat area
+    inline const std::optional<uint16_t> &get_hotend_preheat_temp() const { return hotend_preheat_temp; }
 
     /**
      * @brief Check if gcode is sliced with singletool profile.
