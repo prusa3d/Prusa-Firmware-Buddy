@@ -306,13 +306,11 @@ bool RequestParser::nonce_valid(uint64_t nonce_to_check) const {
     uint32_t random = static_cast<uint32_t>(nonce_to_check >> 32);
     uint32_t time = nonce_to_check & 0xffffffff;
     uint32_t age = ticks_s() - time;
-    // Make valid period for POST and PUT longer, to avoid infinit uploading
-    // loops if nonce get stale for upload request.
-    uint32_t max_valid_age = has_body(method) ? http::extended_valid_nonce_period : http::valid_nonce_period;
+
     // sanity check
     if (nonce_random != 0) {
         // really valid?
-        if (random == nonce_random && age < max_valid_age) {
+        if (random == nonce_random && age < http::valid_nonce_period) {
             return true;
         }
     }
