@@ -46,22 +46,15 @@ namespace splice {
         // Called from whatever thread!
         virtual transfers::PartialFile *file() const = 0;
 
-        // Perform an in-place transformation (eg. decryption). May be a NOP.
+        // Transfer some data from the in buffer to the out buffer.
         //
-        // size_in: How much relevant data there is in the buffer.
-        // size_out: How much data can be output (size of the buffer). At least size_in.
+        // This'll be called with non-empty buffers (eg. in_size > 0 && out_size > 0).
         //
-        // Returns:
-        // * How much data was consumed (<= size_in).
-        // * How much data was produced (<= size_out).
-        // * How large the buffer needs to be to process the rest (might be 0).
-        //
-        // If the last one is not 0, it shall be called again with the rest and
-        // buffer of the right size. The data need to start at the beginning of
-        // that buffer (eg. caller handles offset in the buffer).
-        //
-        // Called inside the IO thread for now.
-        virtual std::tuple<size_t, size_t, size_t> transform(uint8_t *buffer, size_t size_in, size_t size_out) = 0;
+        // It may be a simple memcpy, but it also can do an arbitrary
+        // transformation. It returns how much of in-buffer and out-buffer was
+        // actually used. At least one of them must be non-zero and these
+        // numbers can be different.
+        virtual std::tuple<size_t, size_t> write(const uint8_t *in, size_t in_size, uint8_t *out, size_t out_size) = 0;
 
         // Is supposed to close the file.
         // Called in the tcpip thread.
@@ -105,8 +98,8 @@ namespace splice {
         Transfer *transfer = nullptr;
         // The data to write (the whole thing).
         pbuf *data = nullptr;
-        // Skip this first number of bytes (already processed before start of the
-        // file data), until the very end.
+        // Offset against the start of the current buffer.
+        // (or the data in the beginning).
         size_t offset = 0;
         // Synchronize with the number in async_io.hpp
         static constexpr size_t REQ_CNT = 8;
@@ -122,10 +115,6 @@ namespace splice {
             size_t used;
             size_t buff_needed;
         };
-
-        using ProcessResult = std::variant<WriteError, WriteComplete, NeedMore>;
-
-        ProcessResult process(uint8_t *buffer, size_t size_in, size_t size_out);
 
     public:
         virtual bool io_task() override;

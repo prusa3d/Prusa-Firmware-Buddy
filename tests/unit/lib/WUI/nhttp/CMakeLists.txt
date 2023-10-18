@@ -89,6 +89,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
 if(USE_ASYNCIO)

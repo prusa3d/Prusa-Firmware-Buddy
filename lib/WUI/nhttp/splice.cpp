@@ -31,96 +31,77 @@ void Done::final_callback() {
     transfer = nullptr;
 }
 
-Done Done::instance;
-
-Write::ProcessResult Write::process(uint8_t *data, size_t size_in, size_t size_out) {
-    auto [consumed, produced, need_buff] = transfer->transform(data, size_in, size_out);
-    assert(size_out >= produced);
-    auto f = transfer->file();
-
-    if (!f->write(data, produced)) {
-        return WriteError {};
-    }
-
-    assert((consumed == size_in && need_buff == 0) || (consumed < size_in && need_buff >= size_in - consumed));
-    if (need_buff > 0) {
-        return NeedMore {
-            consumed,
-            need_buff,
-        };
-    } else {
-        return WriteComplete {};
-    }
+void Done::init(Transfer *transfer) {
+    assert(this->transfer == nullptr);
+    assert(transfer != nullptr);
+    this->transfer = transfer;
 }
+
+Done Done::instance;
 
 bool Write::io_task() {
     if (transfer->result != Result::Ok) {
         return false;
     }
 
-    uint16_t skip = 0;
+    // Init (current == nullptr at the start)
     if (current == nullptr) {
-        skip = offset;
         if (!transfer->progress(data->tot_len - offset)) {
             transfer->result = Result::Stopped;
             return false;
         }
 
-        // A pbuf is a linked-list with disjoint blocks.
         current = data;
-        while (skip >= current->len) {
-            skip -= current->len;
-            current = current->next;
-            if (current == nullptr) {
-                return false;
-            }
-        }
     }
 
-    // We may need to decrypt the data. We try to do it as much as possible
-    // in-place, but in rare cases (the size not being multiple of the cipher
-    // block size), we need to handle a "tail".
-    //
-    // Our TCP settings motivate the sender to prefer packets of 1024B
-    // payloads, so that should help in not having many tails.
-    uint8_t *data = static_cast<uint8_t *>(current->payload) + skip;
-    auto result_1 = process(data, current->len - skip, current->len - skip);
-
-    if (holds_alternative<WriteError>(result_1)) {
-        transfer->result = Result::CantWrite;
-        return false;
-    } else if (auto more_buff = get_if<NeedMore>(&result_1); more_buff != nullptr) {
-        size_t leftover = current->len - skip - more_buff->used;
-        assert(leftover > 0);
-        assert(leftover <= more_buff->buff_needed);
-        uint8_t buff[more_buff->buff_needed];
-        memcpy(buff, data + more_buff->used, leftover);
-
-        auto result_2 = process(buff, leftover, more_buff->buff_needed);
-
-        if (holds_alternative<WriteError>(result_2)) {
-            transfer->result = Result::CantWrite;
+    // A pbuf is a linked-list with disjoint blocks.
+    // Find the right pbuf chain node
+    while (offset >= current->len) {
+        offset -= current->len;
+        current = current->next;
+        if (current == nullptr) {
             return false;
         }
-        // The second attempt must go through, we've given it the buffer it asked for.
-        assert(!holds_alternative<NeedMore>(result_2));
-    } else {
-        // complete OK
     }
 
-    to_ack.fetch_add(current->len - skip);
-    current = current->next;
-    if (current == nullptr) {
+    // Get in-buffer
+    assert(current != nullptr);
+    assert(offset < current->len);
+    const uint8_t *in = static_cast<uint8_t *>(current->payload) + offset;
+    const size_t in_size = current->len - offset;
+
+    // Get out buffer
+    auto f = transfer->file();
+    auto buff = f->get_current_buffer(true);
+    if (holds_alternative<PartialFile::WouldBlock>(buff)) {
+        // We ask for blocking mode
+        assert(0);
+        transfer->result = Result::CantWrite;
         return false;
-    } else {
-        return true;
+    } else if (holds_alternative<PartialFile::WriteError>(buff) || holds_alternative<PartialFile::OutOfRange>(buff)) {
+        transfer->result = Result::CantWrite;
+        return false;
     }
-}
+    assert(std::holds_alternative<PartialFile::BufferAndOffset>(buff));
+    auto [buff_ptr, buff_off] = get<PartialFile::BufferAndOffset>(buff);
+    uint8_t *out = buff_ptr + buff_off;
+    const size_t out_size = PartialFile::SECTOR_SIZE - buff_off;
 
-void Done::init(Transfer *transfer) {
-    assert(this->transfer == nullptr);
-    assert(transfer != nullptr);
-    this->transfer = transfer;
+    // Perform a write/transformation of the data into the out buffer
+    const auto [in_used, out_used] = transfer->write(in, in_size, out, out_size);
+    assert(in_used <= in_size);
+    assert(out_used <= out_size);
+
+    if (!f->advance_written(out_used)) {
+        transfer->result = Result::CantWrite;
+        return false;
+    }
+
+    to_ack.fetch_add(in_used);
+    offset += in_used;
+
+    // Do we have more data to process? Do we want to get called again?
+    return (current->len > offset || current->next != nullptr);
 }
 
 void Write::callback() {

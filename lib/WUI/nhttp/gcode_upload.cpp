@@ -390,16 +390,16 @@ namespace {
             return error;
         }
 
+        virtual tuple<size_t, size_t> write(const uint8_t *in, size_t in_size, uint8_t *out, size_t out_size) override {
+            const size_t write_size = std::min(in_size, out_size);
+            memcpy(out, in, write_size);
+            return make_tuple(write_size, write_size);
+        }
+
         virtual bool progress(size_t len) override {
             assert(monitor_slot.has_value());
             monitor_slot->progress(len);
             return !monitor_slot->is_stopped();
-        }
-
-        virtual tuple<size_t, size_t, size_t> transform(uint8_t *, size_t size_in, size_t) override {
-            // A NOP transformation.
-            // We consumed the whole size_in, output the same and need no more buffers.
-            return make_tuple(size_in, size_in, 0);
         }
     };
 

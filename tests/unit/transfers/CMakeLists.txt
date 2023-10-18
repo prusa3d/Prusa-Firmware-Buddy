@@ -10,6 +10,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   decrypt.cpp
   monitor.cpp
   missing_functions.cpp

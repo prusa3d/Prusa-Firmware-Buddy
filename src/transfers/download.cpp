@@ -112,21 +112,8 @@ public:
             return owner->destination.get();
         }
 
-        virtual tuple<size_t, size_t, size_t> transform(uint8_t *data, size_t size_in, size_t size_out) override {
-            // Enough room to "round up" the output to block size?
-            size_t rounded_up = (size_in + Decryptor::BlockSize - 1) / Decryptor::BlockSize * Decryptor::BlockSize;
-            size_t need_buff;
-            if (rounded_up > size_out) {
-                // If not, we round down the input size.
-                size_in = size_in / Decryptor::BlockSize * Decryptor::BlockSize;
-                need_buff = Decryptor::BlockSize;
-            } else {
-                need_buff = 0;
-            }
-
-            size_t output = owner->decryptor->decrypt(data, size_in);
-            assert(output <= size_out);
-            return make_tuple(size_in, output, need_buff);
+        virtual tuple<size_t, size_t> write(const uint8_t *in, size_t in_size, uint8_t *out, size_t out_size) override {
+            return owner->decryptor->decrypt(in, in_size, out, out_size);
         }
 
         virtual optional<tuple<Status, const char *>> done() override {
@@ -462,7 +449,7 @@ Download::BeginResult Download::begin(const Request &request, DestinationPath de
     // Plain downloads are no longer supported, need encryption info
     assert(request.encryption);
     size_t file_size = request.encryption->orig_size;
-    auto decryptor = make_unique<Decryptor>(request.encryption->key, Decryptor::CTR(request.encryption->nonce, start_range), file_size - start_range);
+    auto decryptor = make_unique<Decryptor>(request.encryption->key, request.encryption->nonce, start_range, file_size - start_range);
 
     PartialFile::Ptr file;
     if (auto f = get_if<PartialFile::Ptr>(&destination); f != nullptr) {

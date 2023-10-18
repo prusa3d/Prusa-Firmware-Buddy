@@ -40,7 +40,7 @@ vector<uint8_t> read_file(string_view name) {
 }
 
 const Decryptor::Block key = { 0x1c, 0x44, 0x5f, 0xac, 0x4b, 0xb4, 0x01, 0x7c, 0x1e, 0xff, 0x53, 0x73, 0xea, 0x7f, 0x95, 0x1d };
-const Decryptor::Block iv = { 0xa7, 0xf6, 0x5b, 0xce, 0xe0, 0xa6, 0xf4, 0x5f, 0xdf, 0x16, 0x9e, 0x31, 0x29, 0xf0, 0xa4, 0x37 };
+const Decryptor::Block nonce = { 0xa7, 0xf6, 0x5b, 0xce, 0xe0, 0xa6, 0xf4, 0x5f, 0xdf, 0x16, 0x9e, 0x31, 0x29, 0xf0, 0xa4, 0x37 };
 
 } // namespace
 
@@ -48,8 +48,7 @@ TEST_CASE("Decrypt file") {
     const auto encrypted = read_file("box.crypt");
     const auto plain = read_file("box.gcode");
 
-    auto ctr = Decryptor::CTR(iv);
-    Decryptor decryptor(key, ctr, plain.size());
+    Decryptor decryptor(key, nonce, 0, plain.size());
 
     size_t block_size = 1;
 
@@ -79,20 +78,19 @@ TEST_CASE("Decrypt file") {
 
     while (position_in < encrypted.size()) {
         size_t rest = encrypted.size() - position_in;
-        size_t block_in = min(rest, block_size);
-        // Need in-out buffer.
-        uint8_t block[block_in + 16];
-        memcpy(block, &encrypted[0] + position_in, block_in);
-        size_t out = decryptor.decrypt(block, block_in);
-        REQUIRE(out <= block_in + 16);
-        for (size_t i = 0; i < out; i++) {
+        size_t chunk = min(rest, block_size);
+        uint8_t out_buff[chunk];
+        auto [in_used, out_used] = decryptor.decrypt(&encrypted[0] + position_in, chunk, out_buff, chunk);
+        REQUIRE(in_used <= chunk);
+        REQUIRE(out_used <= chunk);
+        for (size_t i = 0; i < out_used; i++) {
             size_t pos_exp = position_out + i;
             INFO("Position " << pos_exp);
-            REQUIRE(block[i] == plain[pos_exp]);
+            REQUIRE(out_buff[i] == plain[pos_exp]);
         }
 
-        position_in += block_in;
-        position_out += out;
+        position_in += in_used;
+        position_out += out_used;
     }
 
     REQUIRE(position_out == plain.size());
