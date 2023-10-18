@@ -609,7 +609,6 @@ void system_core_error_handler() {
 }
 
 void iwdg_warning_cb(void) {
-    crash_dump::before_dump();
     crash_dump::save_message(crash_dump::MsgType::IWDGW, 0, nullptr, nullptr);
     trigger_crash_dump();
 }

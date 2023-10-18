@@ -122,7 +122,7 @@ const ErrDesc &find_error(const ErrCode error_code) {
 }
 
 void raise_redscreen(ErrCode error_code, const char *error, const char *module) {
-    crash_dump::before_dump();
+
     crash_dump::save_message(crash_dump::MsgType::RSOD, ftrstd::to_underlying(error_code), error, module);
     sys_reset();
 }
