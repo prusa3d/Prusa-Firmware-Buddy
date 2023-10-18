@@ -92,6 +92,7 @@ no_stream_48x48.png
 nozzle_34x32.png
 nozzle_shape_48x48.png
 pepa_92x140.png
+pepa_42x64.png
 serial_printing_172x138.png
 settings_16x16.png
 sheets_profile_16x14.png

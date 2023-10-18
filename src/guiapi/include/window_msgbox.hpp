@@ -21,6 +21,7 @@ inline constexpr PhaseResponses Responses_YesNoIgnore          = { Response::Yes
 inline constexpr PhaseResponses Responses_YesRetry             = { Response::Yes,      Response::Retry,  Response::_none,       Response::_none };
 inline constexpr PhaseResponses Responses_RetryCancel          = { Response::Retry,    Response::Cancel, Response::_none,       Response::_none };
 inline constexpr PhaseResponses Responses_Disable              = { Response::Disable,  Response::_none,  Response::_none,       Response::_none };
+inline constexpr PhaseResponses Responses_INVALID              = { Response::_last,    Response::_last,  Response::_last,       Response::_last };
 
 // clang-format on
 /*****************************************************************************/
@@ -187,15 +188,68 @@ private:
     static auto constexpr QR_ADDR = "https://prusa.io/input-shaper";
 };
 
-// todo enum default button
-// todo enum for size?
-Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxTitle(string_view_utf8 title, string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, const img::Resource *icon = nullptr, is_multiline multiline = is_multiline::yes);
-Response MsgBoxIcon(string_view_utf8 txt, const img::Resource *icon_id, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
-Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0, Rect16 rect = GuiDefaults::DialogFrameRect, is_multiline multiline = is_multiline::yes);
+enum class MsgBoxType : uint8_t {
+    standard,
+    titled,
+    error, ///< Has default icon & title
+    question, ///< Has default icon & title
+    warning, ///< Has default icon & title
+    info, ///< Has default icon & title
+    pepa, ///< Has default icon
+    pepa_centered, ///< Has default icon
+    input_shaper_warning, ///< Has default icon
+    _count,
+};
+
+enum class MsgBoxDefaultButton : uint8_t {
+    b0,
+    b1,
+    b2,
+    b3
+};
+
+struct MsgBoxBuilder {
+
+public:
+    /// Type/shape of the message box
+    MsgBoxType type = MsgBoxType::standard;
+
+    string_view_utf8 text;
+
+    /// Title override. Effective only in some dialog types.
+    /// Some dialog types provide a default icon.
+    string_view_utf8 title = {};
+
+    /// Icon override. Effective only in some dialog types.
+    /// Some dialog types provide a default icon.
+    const img::Resource *icon = nullptr;
+
+    /// Responses override. Some dialog types have default responses.
+    PhaseResponses responses = Responses_Ok;
+
+    /// Index of the button that is to be selected as default
+    MsgBoxDefaultButton default_button = MsgBoxDefaultButton::b0;
+
+    Rect16 rect = GuiDefaults::DialogFrameRect;
+
+    is_multiline multiline = is_multiline::yes;
+
+public:
+    /// Callback that is called after every loop tick during the dialog blocking execution
+    std::function<void()> loop_callback = {};
+
+public:
+    /// Blocking displays the msg box, returns the response
+    Response exec() const;
+};
+
+Response msg_box(MsgBoxType type, string_view_utf8 txt, const PhaseResponses &resp = Responses_Ok, MsgBoxDefaultButton default_button = MsgBoxDefaultButton::b0);
+
+Response MsgBox(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxError(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxQuestion(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxInfo(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxPepa(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxPepaCentered(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);
+Response MsgBoxISWarning(string_view_utf8 txt, const PhaseResponses &resp = Responses_NONE, size_t def_btn = 0);

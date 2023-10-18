@@ -100,25 +100,19 @@ void MI_RETURN_ScreenMenuMove::click(IWindowMenu &window_menu) {
     };
 
     if (!are_moves_finished()) {
-        Response msg_box_result;
-
         // Show question message box
-        // In subblock to prevent screen repaint in dialog destructor
-        {
-            const auto txt = _("Target position not yet reached.\n\nCancel the movement immediately?");
-            const PhaseResponses resp = { Response::Yes, Response::No, Response::Cancel };
-            const PhaseTexts labels = { BtnResponse::GetText(resp[0]), BtnResponse::GetText(resp[1]), BtnResponse::GetText(resp[2]) };
-
-            MsgBoxIconned msg_box(GuiDefaults::DialogFrameRect, resp, 0, &labels, txt, is_multiline::yes, &img::question_48x48);
-            msg_box.MakeBlocking([&] {
+        const Response response = MsgBoxBuilder {
+            .type = MsgBoxType::question,
+            .text = _("Target position not yet reached.\n\nCancel the movement immediately?"),
+            .responses = { Response::Yes, Response::No, Response::Back },
+            .loop_callback = [&] {
                 if (are_moves_finished()) {
                     Screens::Access()->Close();
                 }
-            });
-            msg_box_result = msg_box.GetResult();
-        }
+            }
+        }.exec();
 
-        switch (msg_box_result) {
+        switch (response) {
 
         case Response::No: // Finish moves
             for (auto i : move_items) {
@@ -130,7 +124,7 @@ void MI_RETURN_ScreenMenuMove::click(IWindowMenu &window_menu) {
         default: // Cancelled because moves finished
             break;
 
-        case Response::Cancel: // Do not return to the previous menu
+        case Response::Back: // Do not return to the previous menu
             return;
         }
 
