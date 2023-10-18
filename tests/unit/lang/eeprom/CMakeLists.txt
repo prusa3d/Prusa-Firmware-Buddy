@@ -22,6 +22,7 @@ target_include_directories(
          ${CMAKE_SOURCE_DIR}/src/persistent_stores/store_instances
          ${CMAKE_SOURCE_DIR}/tests/stubs
          ${CMAKE_SOURCE_DIR}/lib/Marlin/Marlin/src/
+         ${CMAKE_SOURCE_DIR}/lib/Marlin/
   )
 
 # define custom macros

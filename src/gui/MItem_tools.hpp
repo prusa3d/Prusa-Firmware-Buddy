@@ -10,6 +10,7 @@
 #include "config.h"
 #include <utility_extensions.hpp>
 #include <option/has_dwarf.h>
+#include <option/has_side_fsensor.h>
 
 class MI_FILAMENT_SENSOR : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Filament Sensor");
@@ -255,7 +256,9 @@ public:
 
 // TODO move to different files (filament sensor adc related ones ...)
 class IMI_FS_SPAN : public WiSpinInt {
+#if HAS_SIDE_FSENSOR()
     bool is_side;
+#endif
     size_t index;
 
 public:
@@ -266,6 +269,10 @@ public:
 template <size_t Index, bool IsSide>
 class MI_FS_SPAN : public IMI_FS_SPAN {
     static_assert(Index < 6, "Index out of range");
+#if not HAS_SIDE_FSENSOR()
+    static_assert(IsSide == false, "Invalid configuration");
+#endif
+
     struct index_data {
         const char *label;
         size_t extruder_index;
@@ -318,7 +325,9 @@ public:
 };
 
 class IMI_FS_REF : public WiSpinInt {
+#if HAS_SIDE_FSENSOR()
     bool is_side;
+#endif
     size_t index;
 
 public:
@@ -329,6 +338,10 @@ public:
 template <size_t Index, bool IsSide>
 class MI_FS_REF : public IMI_FS_REF {
     static_assert(Index < 6, "Index out of range");
+#if not HAS_SIDE_FSENSOR()
+    static_assert(IsSide == false, "Invalid configuration");
+#endif
+
     struct index_data {
         const char *label;
         size_t extruder_index;

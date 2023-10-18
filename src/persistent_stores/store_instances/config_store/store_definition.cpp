@@ -1,24 +1,36 @@
 #include "store_definition.hpp"
+#include <Marlin/src/inc/MarlinConfigPre.h>
 #include <module/prusa/dock_position.hpp>
 #include <module/prusa/tool_offset.hpp>
+#include <option/has_side_fsensor.h>
+#include <option/has_mmu2.h>
+#include <option/has_toolchanger.h>
 
 namespace config_store_ns {
 
 static_assert(sizeof(CurrentStore) < (BANK_SIZE / 100) * 75, "EEPROM bank is almost full");
 static_assert(journal::has_unique_items<config_store_ns::CurrentStore>(), "Just added items are causing collisions with reserved backend IDs");
 
-footer::Item CurrentStore::get_footer_setting(uint8_t index) {
+footer::Item CurrentStore::get_footer_setting([[maybe_unused]] uint8_t index) {
     switch (index) {
     case 0:
         return footer_setting_0.get();
+#if FOOTER_ITEMS_PER_LINE__ > 1
     case 1:
         return footer_setting_1.get();
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
     case 2:
         return footer_setting_2.get();
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
     case 3:
         return footer_setting_3.get();
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
     case 4:
         return footer_setting_4.get();
+#endif
     default:
         assert(false && "invalid index");
         return footer::Item::none;
@@ -30,25 +42,37 @@ void CurrentStore::set_footer_setting(uint8_t index, footer::Item value) {
     case 0:
         footer_setting_0.set(value);
         break;
+#if FOOTER_ITEMS_PER_LINE__ > 1
     case 1:
         footer_setting_1.set(value);
         break;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 2
     case 2:
         footer_setting_2.set(value);
         break;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 3
     case 3:
         footer_setting_3.set(value);
         break;
+#endif
+#if FOOTER_ITEMS_PER_LINE__ > 4
     case 4:
         footer_setting_4.set(value);
         break;
+#endif
     default:
         assert(false && "invalid index");
         return;
     }
 }
 
-int32_t CurrentStore::get_extruder_fs_ref_nins_value(uint8_t index) {
+int32_t CurrentStore::get_extruder_fs_ref_nins_value([[maybe_unused]] uint8_t index) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    return extruder_fs_ref_nins_value_0.get();
+#else
     switch (index) {
     case 0:
         return extruder_fs_ref_nins_value_0.get();
@@ -66,9 +90,14 @@ int32_t CurrentStore::get_extruder_fs_ref_nins_value(uint8_t index) {
         assert(false && "invalid index");
         return 0;
     }
+#endif
 }
 
-void CurrentStore::set_extruder_fs_ref_nins_value(uint8_t index, int32_t value) {
+void CurrentStore::set_extruder_fs_ref_nins_value([[maybe_unused]] uint8_t index, int32_t value) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    extruder_fs_ref_nins_value_0.set(value);
+#else
     switch (index) {
     case 0:
         extruder_fs_ref_nins_value_0.set(value);
@@ -92,9 +121,14 @@ void CurrentStore::set_extruder_fs_ref_nins_value(uint8_t index, int32_t value) 
         assert(false && "invalid index");
         return;
     }
+#endif
 }
 
-int32_t CurrentStore::get_extruder_fs_ref_ins_value(uint8_t index) {
+int32_t CurrentStore::get_extruder_fs_ref_ins_value([[maybe_unused]] uint8_t index) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    return extruder_fs_ref_ins_value_0.get();
+#else
     switch (index) {
     case 0:
         return extruder_fs_ref_ins_value_0.get();
@@ -112,9 +146,14 @@ int32_t CurrentStore::get_extruder_fs_ref_ins_value(uint8_t index) {
         assert(false && "invalid index");
         return 0;
     }
+#endif
 }
 
-void CurrentStore::set_extruder_fs_ref_ins_value(uint8_t index, int32_t value) {
+void CurrentStore::set_extruder_fs_ref_ins_value([[maybe_unused]] uint8_t index, int32_t value) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    extruder_fs_ref_ins_value_0.set(value);
+#else
     switch (index) {
     case 0:
         extruder_fs_ref_ins_value_0.set(value);
@@ -138,9 +177,14 @@ void CurrentStore::set_extruder_fs_ref_ins_value(uint8_t index, int32_t value) {
         assert(false && "invalid index");
         return;
     }
+#endif
 }
 
-uint32_t CurrentStore::get_extruder_fs_value_span(uint8_t index) {
+uint32_t CurrentStore::get_extruder_fs_value_span([[maybe_unused]] uint8_t index) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    return extruder_fs_value_span_0.get();
+#else
     switch (index) {
     case 0:
         return extruder_fs_value_span_0.get();
@@ -158,9 +202,14 @@ uint32_t CurrentStore::get_extruder_fs_value_span(uint8_t index) {
         assert(false && "invalid index");
         return 0;
     }
+#endif
 }
 
-void CurrentStore::set_extruder_fs_value_span(uint8_t index, uint32_t value) {
+void CurrentStore::set_extruder_fs_value_span([[maybe_unused]] uint8_t index, uint32_t value) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    extruder_fs_value_span_0.set(value);
+#else
     switch (index) {
     case 0:
         extruder_fs_value_span_0.set(value);
@@ -184,8 +233,10 @@ void CurrentStore::set_extruder_fs_value_span(uint8_t index, uint32_t value) {
         assert(false && "invalid index");
         return;
     }
+#endif
 }
 
+#if HAS_SIDE_FSENSOR()
 int32_t CurrentStore::get_side_fs_ref_nins_value(uint8_t index) {
     switch (index) {
     case 0:
@@ -323,7 +374,9 @@ void CurrentStore::set_side_fs_value_span(uint8_t index, uint32_t value) {
         return;
     }
 }
+#endif
 
+#if HAS_TOOLCHANGER()
 DockPosition CurrentStore::get_dock_position(uint8_t index) {
     switch (index) {
     case 0:
@@ -415,8 +468,13 @@ void CurrentStore::set_tool_offset(uint8_t index, ToolOffset value) {
         return;
     }
 }
+#endif
 
-filament::Type CurrentStore::get_filament_type(uint8_t index) {
+filament::Type CurrentStore::get_filament_type([[maybe_unused]] uint8_t index) {
+#if EXTRUDERS <= 1
+    assert(index == 0);
+    return filament_type_0.get();
+#else
     switch (index) {
     case 0:
         return filament_type_0.get();
@@ -434,9 +492,14 @@ filament::Type CurrentStore::get_filament_type(uint8_t index) {
         assert(false && "invalid index");
         return {};
     }
+#endif
 }
 
-void CurrentStore::set_filament_type(uint8_t index, filament::Type value) {
+void CurrentStore::set_filament_type([[maybe_unused]] uint8_t index, filament::Type value) {
+#if EXTRUDERS <= 1
+    assert(index == 0);
+    filament_type_0.set(value);
+#else
     switch (index) {
     case 0:
         filament_type_0.set(value);
@@ -460,9 +523,14 @@ void CurrentStore::set_filament_type(uint8_t index, filament::Type value) {
         assert(false && "invalid index");
         return;
     }
+#endif
 }
 
-float CurrentStore::get_nozzle_diameter(uint8_t index) {
+float CurrentStore::get_nozzle_diameter([[maybe_unused]] uint8_t index) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    return nozzle_diameter_0.get();
+#else
     switch (index) {
     case 0:
         return nozzle_diameter_0.get();
@@ -480,9 +548,14 @@ float CurrentStore::get_nozzle_diameter(uint8_t index) {
         assert(false && "invalid index");
         return {};
     }
+#endif
 }
 
-void CurrentStore::set_nozzle_diameter(uint8_t index, float value) {
+void CurrentStore::set_nozzle_diameter([[maybe_unused]] uint8_t index, float value) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    nozzle_diameter_0.set(value);
+#else
     switch (index) {
     case 0:
         nozzle_diameter_0.set(value);
@@ -506,6 +579,7 @@ void CurrentStore::set_nozzle_diameter(uint8_t index, float value) {
         assert(false && "invalid index");
         return;
     }
+#endif
 }
 
 float CurrentStore::get_odometer_axis(uint8_t index) {
@@ -540,7 +614,11 @@ void CurrentStore::set_odometer_axis(uint8_t index, float value) {
     }
 }
 
-float CurrentStore::get_odometer_extruded_length(uint8_t index) {
+float CurrentStore::get_odometer_extruded_length([[maybe_unused]] uint8_t index) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    return odometer_extruded_length_0.get();
+#else
     switch (index) {
     case 0:
         return odometer_extruded_length_0.get();
@@ -558,9 +636,14 @@ float CurrentStore::get_odometer_extruded_length(uint8_t index) {
         assert(false && "invalid index");
         return {};
     }
+#endif
 }
 
-void CurrentStore::set_odometer_extruded_length(uint8_t index, float value) {
+void CurrentStore::set_odometer_extruded_length([[maybe_unused]] uint8_t index, float value) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    odometer_extruded_length_0.set(value);
+#else
     switch (index) {
     case 0:
         odometer_extruded_length_0.set(value);
@@ -584,9 +667,14 @@ void CurrentStore::set_odometer_extruded_length(uint8_t index, float value) {
         assert(false && "invalid index");
         return;
     }
+#endif
 }
 
-uint32_t CurrentStore::get_odometer_toolpicks(uint8_t index) {
+uint32_t CurrentStore::get_odometer_toolpicks([[maybe_unused]] uint8_t index) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    return odometer_toolpicks_0.get();
+#else
     switch (index) {
     case 0:
         return odometer_toolpicks_0.get();
@@ -604,9 +692,14 @@ uint32_t CurrentStore::get_odometer_toolpicks(uint8_t index) {
         assert(false && "invalid index");
         return {};
     }
+#endif
 }
 
-void CurrentStore::set_odometer_toolpicks(uint8_t index, uint32_t value) {
+void CurrentStore::set_odometer_toolpicks([[maybe_unused]] uint8_t index, uint32_t value) {
+#if HOTENDS <= 1
+    assert(index == 0);
+    odometer_toolpicks_0.set(value);
+#else
     switch (index) {
     case 0:
         odometer_toolpicks_0.set(value);
@@ -630,6 +723,7 @@ void CurrentStore::set_odometer_toolpicks(uint8_t index, uint32_t value) {
         assert(false && "invalid index");
         return;
     }
+#endif
 }
 
 SelftestTool CurrentStore::get_selftest_result_tool(uint8_t index) {

@@ -17,6 +17,7 @@
 #include <cstring>
 #include <cstdio>
 #include "printers.h"
+#include <option/has_mmu2.h>
 
 using namespace json;
 using namespace marlin_server;
@@ -209,7 +210,12 @@ JsonResult get_info(size_t resume_point, JsonOutput &output) {
     char hostname[ETH_HOSTNAME_LEN + 1];
     netdev_get_hostname(netdev_get_active_id(), hostname, sizeof hostname);
     auto nozzle_diameter = config_store().get_nozzle_diameter(0);
-    auto mmu2_enabled = config_store().mmu2_enabled.get();
+    auto mmu2_enabled =
+#if HAS_MMU2()
+        config_store().mmu2_enabled.get();
+#else
+        false;
+#endif
     serial_nr_t serial {};
     otp_get_serial_nr(serial);
 
@@ -217,7 +223,7 @@ JsonResult get_info(size_t resume_point, JsonOutput &output) {
     // clang-format off
     JSON_START;
     JSON_OBJ_START;
-        JSON_FIELD_FFIXED("nozzle_diameter", nozzle_diameter, 2) JSON_COMMA;
+        JSON_FIELD_FFIXED("nozzle_diameter", static_cast<double>(nozzle_diameter), 2) JSON_COMMA;
         JSON_FIELD_BOOL("mmu", mmu2_enabled) JSON_COMMA;
         JSON_FIELD_STR("serial", serial.begin()) JSON_COMMA;
         JSON_FIELD_STR("hostname", hostname) JSON_COMMA;
