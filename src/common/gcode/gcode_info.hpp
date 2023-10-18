@@ -27,7 +27,10 @@ inline constexpr const char *printer = "printer_model";
 inline constexpr const char *m862 = "M862.";
 inline constexpr const char *m115 = "M115";
 inline constexpr const char *m555 = "M555";
-inline constexpr const char *m140 = "M140";
+inline constexpr const char *m140_set_bed_temp = "M140";
+inline constexpr const char *m190_wait_bed_temp = "M190";
+inline constexpr const char *m104_set_hotend_temp = "M104";
+inline constexpr const char *m109_wait_hotend_temp = "M109";
 }; // namespace gcode_info
 
 /// When initializing the heavy work is done in start_load, load and end_load functions,
@@ -196,21 +199,7 @@ public:
      * Sliced for multitool:  ; filament used [g] = 0.34, 0.00, 0.00, 0.00, 0.00
      * Sliced for singletool: ; filament used [g] = 0.34
      */
-    bool is_singletool_gcode() const {
-        // Tool 0 needs to be given in comments and used
-        if (!per_extruder_info[0].used()) {
-            return false;
-        }
-
-        // Other tools need to not be given in comments at all
-        for (uint8_t e = 1; e < std::size(per_extruder_info); e++) {
-            if (per_extruder_info[e].given()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
+    bool is_singletool_gcode() const;
 
     /**
      * @brief Get info about G-code for given extruder
@@ -323,6 +312,7 @@ private:
     GCodeInfo(const GCodeInfo &) = delete;
 
     void parse_m555(GcodeBuffer::String cmd);
+    void parse_m862(GcodeBuffer::String cmd);
     void parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter);
     void parse_comment(GcodeBuffer::String cmd);
     bool is_up_to_date(const char *new_version);

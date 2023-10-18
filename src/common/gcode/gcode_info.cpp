@@ -330,6 +330,91 @@ void GCodeInfo::parse_m555(GcodeBuffer::String cmd) {
     }
 }
 
+void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
+    char subcode = cmd.pop_front();
+    cmd.skip_ws();
+
+    // Parse parameters
+    uint8_t tool = 0; // Default is first tool
+    float p_diameter = NAN;
+    while (!cmd.is_empty()) {
+        char letter = cmd.pop_front();
+        if (letter == 'T') {
+            tool = cmd.get_uint(); // Check particular tool (only for M862.1)
+        } else if (letter == 'P') {
+            switch (subcode) {
+            case '1':
+                p_diameter = cmd.get_float(); // Only store value in case Tx comes later
+                break;
+            case '3': {
+#if ENABLED(GCODE_COMPATIBILITY_MK3)
+                if (strncmp(cmd.get_string().c_str(), "MK3", 3) == 0 && strncmp(cmd.get_string().c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
+                    valid_printer_settings.mk3_compatibility_mode.fail();
+                }
+#endif
+
+                // Check basic printer model as MK4 or XL
+                if (!is_printer_compatible(cmd.get_string(), printer_compatibility_list)) {
+                    valid_printer_settings.wrong_printer_model.fail();
+                }
+                break;
+            }
+            case '4':
+                // Parse M862.4 for minimal required firmware version
+                if (!is_up_to_date(cmd.c_str())) {
+                    valid_printer_settings.wrong_firmware.fail();
+                }
+                break;
+            case '2':
+#if PRINTER_IS_PRUSA_MK4
+                if (!config_store().xy_motors_400_step.get()) {
+                    printer_model_code = printer_model2code(MMU2::mmu2.Enabled() ? "MK3.9MMU3" : "MK3.9");
+                } else {
+                    printer_model_code = printer_model2code(PRINTER_MODEL);
+                }
+#endif
+                if (cmd.get_uint() != printer_model_code) {
+                    valid_printer_settings.wrong_printer_model.fail();
+                }
+                break;
+            case '5':
+                if (cmd.get_uint() > gcode_level) {
+                    valid_printer_settings.wrong_gcode_level.fail();
+                }
+                break;
+            case '6':
+                auto compare = [](GcodeBuffer::String &a, const char *b) {
+                    for (char *c = a.begin;; ++c, ++b) {
+                        if (c == a.end || *b == '\0')
+                            return c == a.end && *b == '\0';
+                        if (toupper(*c) != toupper(*b))
+                            return false;
+                    }
+                    return *b == '\0';
+                };
+                auto find = [&](GcodeBuffer::String feature) {
+                    for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures)
+                        if (compare(feature, f))
+                            return true;
+                    return false;
+                };
+                auto feature = cmd.get_string();
+                feature.trim();
+                if (!find(feature))
+                    valid_printer_settings.add_unsupported_feature(feature.begin, feature.end - feature.begin);
+                break;
+            }
+        }
+        cmd.skip_nws();
+        cmd.skip_ws();
+    }
+
+    // store nozzle diameter
+    if (!isnan(p_diameter) && tool < EXTRUDERS) {
+        per_extruder_info[tool].nozzle_diameter = p_diameter;
+    }
+}
+
 void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
     cmd.skip_ws();
     if (cmd.front() == ';' || cmd.is_empty()) {
@@ -343,94 +428,12 @@ void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
         cmd.skip([](auto c) -> bool { return isdigit(c) || isspace(c); });
     }
 
-    if (cmd.if_heading_skip(gcode_info::m862)) {
-        char subcode = cmd.pop_front();
-        cmd.skip_ws();
-
-        // Parse parameters
-        uint8_t tool = 0; // Default is first tool
-        float p_diameter = NAN;
-        while (!cmd.is_empty()) {
-            char letter = cmd.pop_front();
-            if (letter == 'T') {
-                tool = cmd.get_uint(); // Check particular tool (only for M862.1)
-            } else if (letter == 'P') {
-                switch (subcode) {
-                case '1':
-                    p_diameter = cmd.get_float(); // Only store value in case Tx comes later
-                    break;
-                case '3': {
-#if ENABLED(GCODE_COMPATIBILITY_MK3)
-                    if (strncmp(cmd.get_string().c_str(), "MK3", 3) == 0 && strncmp(cmd.get_string().c_str(), "MK3.", 4) != 0) { // second condition due to MK3.5 & MK3.9
-                        valid_printer_settings.mk3_compatibility_mode.fail();
-                    }
-#endif
-
-                    // Check basic printer model as MK4 or XL
-                    if (!is_printer_compatible(cmd.get_string(), printer_compatibility_list)) {
-                        valid_printer_settings.wrong_printer_model.fail();
-                    }
-                    break;
-                }
-                case '4':
-                    // Parse M862.4 for minimal required firmware version
-                    if (!is_up_to_date(cmd.c_str())) {
-                        valid_printer_settings.wrong_firmware.fail();
-                    }
-                    break;
-                case '2':
-#if PRINTER_IS_PRUSA_MK4
-                    if (!config_store().xy_motors_400_step.get()) {
-                        printer_model_code = printer_model2code(MMU2::mmu2.Enabled() ? "MK3.9MMU3" : "MK3.9");
-                    } else {
-                        printer_model_code = printer_model2code(PRINTER_MODEL);
-                    }
-#endif
-                    if (cmd.get_uint() != printer_model_code) {
-                        valid_printer_settings.wrong_printer_model.fail();
-                    }
-                    break;
-                case '5':
-                    if (cmd.get_uint() > gcode_level) {
-                        valid_printer_settings.wrong_gcode_level.fail();
-                    }
-                    break;
-                case '6':
-                    auto compare = [](GcodeBuffer::String &a, const char *b) {
-                        for (char *c = a.begin;; ++c, ++b) {
-                            if (c == a.end || *b == '\0')
-                                return c == a.end && *b == '\0';
-                            if (toupper(*c) != toupper(*b))
-                                return false;
-                        }
-                        return *b == '\0';
-                    };
-                    auto find = [&](GcodeBuffer::String feature) {
-                        for (auto &f : PrusaGcodeSuite::m862_6SupportedFeatures)
-                            if (compare(feature, f))
-                                return true;
-                        return false;
-                    };
-                    auto feature = cmd.get_string();
-                    feature.trim();
-                    if (!find(feature))
-                        valid_printer_settings.add_unsupported_feature(feature.begin, feature.end - feature.begin);
-                    break;
-                }
-            }
-            cmd.skip_nws();
-            cmd.skip_ws();
-        }
-
-        // store nozzle diameter
-        if (!isnan(p_diameter) && tool < EXTRUDERS) {
-            per_extruder_info[tool].nozzle_diameter = p_diameter;
-        }
+    if (cmd.skip_gcode(gcode_info::m862)) {
+        parse_m862(cmd);
     }
 
     // Parse M115 Ux.yy.z for newer firmware info
-    if (cmd.if_heading_skip(gcode_info::m115)) {
-        cmd.skip_ws();
+    else if (cmd.skip_gcode(gcode_info::m115)) {
         if (cmd.pop_front() == 'U') {
             // Terminate string if not already
             // cmd.end is a pointer to 1 character past the end of the string in the zero-terminated pre-allocated buffer, so this is safe
@@ -445,15 +448,12 @@ void GCodeInfo::parse_gcode(GcodeBuffer::String cmd, uint32_t &gcode_counter) {
         }
     }
 
-    if (cmd.if_heading_skip(gcode_info::m555)) {
+    else if (cmd.skip_gcode(gcode_info::m555)) {
         parse_m555(cmd);
     }
 
-    if (cmd.if_heading_skip(gcode_info::m140)) {
-        cmd.skip_ws();
-        if (cmd.pop_front() == 'S') {
-            bed_preheat_temp = cmd.get_uint();
-        }
+    else if (cmd.skip_gcode(gcode_info::m140_set_bed_temp) && cmd.skip_to_param('S')) {
+        bed_preheat_temp = cmd.get_uint();
     }
 }
 
@@ -590,4 +590,20 @@ std::optional<std::span<char>> GCodeInfo::iterate_items(std::span<char> &buffer,
         return std::nullopt;
     }
     return item;
+}
+
+bool GCodeInfo::is_singletool_gcode() const {
+    // Tool 0 needs to be given in comments and used
+    if (!per_extruder_info[0].used()) {
+        return false;
+    }
+
+    // Other tools need to not be given in comments at all
+    for (uint8_t e = 1; e < std::size(per_extruder_info); e++) {
+        if (per_extruder_info[e].given()) {
+            return false;
+        }
+    }
+
+    return true;
 }

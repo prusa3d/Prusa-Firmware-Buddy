@@ -33,16 +33,34 @@ GcodeBuffer::String GcodeBuffer::String::get_string() {
     return String(end, end);
 }
 
-bool GcodeBuffer::String::if_heading_skip(const char *str) {
-    for (auto it = begin;; ++it, ++str) {
-        if (*str == '\0') {
+bool GcodeBuffer::String::skip_gcode(const char *gcode_str) {
+    for (auto it = begin;; ++it, ++gcode_str) {
+        if (*gcode_str == '\0' && (it == end || isspace(*it))) {
             begin = it;
+            skip_ws();
             return true;
-        }
-        if (it == end || *it != *str) {
+
+        } else if (it == end || *it != *gcode_str) {
             return false;
         }
     }
+}
+
+bool GcodeBuffer::String::skip_to_param(char param) {
+    const auto orig_begin = begin;
+
+    while (!is_empty()) {
+        skip_ws();
+
+        if (pop_front() == param) {
+            return true;
+        }
+
+        skip_nws();
+    }
+
+    begin = orig_begin;
+    return false;
 }
 
 GcodeBuffer::String::parsed_metadata_t GcodeBuffer::String::parse_metadata() {

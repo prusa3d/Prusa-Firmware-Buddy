@@ -52,7 +52,15 @@ public:
         String get_string();
 
         bool operator==(const char *str) const { return std::equal(begin, end, str); }
-        bool if_heading_skip(const char *str);
+
+        /// Returns true if the gcode command starts with $str (and is followed by whitespace or string end) and skips the gcode code (plus whitespace).
+        /// Returns false and does nothing otherwise.
+        bool skip_gcode(const char *gcode_str);
+
+        /// Skips until it finds param definition starting with the $param char. Returns true if found.
+        /// On success, the string is positioned after the param char, so it is ready to read the param value.
+        /// If the param is not found, returns false and does nothing.
+        bool skip_to_param(char param);
 
         char *c_str() { return &*begin; }
         size_t len() { return end - begin; }
