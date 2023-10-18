@@ -6,6 +6,7 @@
 #include <bitset>
 #include <array>
 #include <optional>
+#include <memory>
 
 struct move_t;
 struct step_event_info_t;
@@ -102,7 +103,7 @@ struct MoveTarget {
 };
 
 struct AxisState {
-    AxisState(int axis_index): axis_index(axis_index) {}
+    AxisState(AxisEnum axis): axis_index(axis) {}
 
     int axis_index;
 
@@ -125,6 +126,12 @@ struct AxisState {
 
     int    missed_tx_cnt = 0;
 };
+
+/**
+ * Initializes phase stepping. It has to be called before any other phase
+ * stepping function.
+ **/
+void init();
 
 /**
  * Generic function for enabling/disabling axis. Unless needed otherwise, this
@@ -213,7 +220,9 @@ float extract_physical_position(AxisEnum axis, const Pos& pos) {
 /**
  * This array keeps axis state (and LUT tables) for each axis
  **/
-extern std::array<AxisState, SUPPORTED_AXIS_COUNT> axis_states;
+extern std::array<
+    std::unique_ptr<AxisState>,
+    SUPPORTED_AXIS_COUNT> axis_states;
 
 
 /**
@@ -226,7 +235,7 @@ class EnsureState {
 public:
     EnsureState() {
         for (std::size_t i = 0; i != axis_states.size(); i++) {
-            _prev_active[i] = axis_states[i].active;
+            _prev_active[i] = axis_states[i]->active;
             phase_stepping::enable(AxisEnum(i), ENABLED);
         }
     }

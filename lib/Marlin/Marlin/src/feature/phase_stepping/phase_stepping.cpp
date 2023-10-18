@@ -20,13 +20,12 @@ using namespace phase_stepping;
 using namespace buddy::hw;
 
 // Global definitions
-std::array<AxisState, SUPPORTED_AXIS_COUNT> phase_stepping::axis_states {{
-    { AxisEnum::X_AXIS },
-    { AxisEnum::Y_AXIS }
-}};
+std::array<
+    std::unique_ptr<AxisState>,
+    SUPPORTED_AXIS_COUNT> phase_stepping::axis_states = {{ nullptr, nullptr }};
 
 // Module definitions
-static int axis_num_to_refresh = 0;
+static unsigned int axis_num_to_refresh = 0;
 static const std::array< OutputPin, SUPPORTED_AXIS_COUNT > cs_pins = {{ xCs, yCs }};
 
 MoveTarget::MoveTarget(float position):
@@ -39,6 +38,11 @@ MoveTarget::MoveTarget(const move_t& move, int axis) {
     half_accel = r * float(move.half_accel);
     start_v = r * float(move.start_v);
     duration = move.move_t * 1'000'000;
+}
+
+void phase_stepping::init() {
+    phase_stepping::axis_states[0].reset(new AxisState(AxisEnum::X_AXIS));
+    phase_stepping::axis_states[1].reset(new AxisState(AxisEnum::Y_AXIS));
 }
 
 void phase_stepping::init_step_generator(
@@ -114,7 +118,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto& stepper = static_cast< TMC2130Stepper& >(stepper_axis(axis_num));
-    auto& axis_state = axis_states[axis_num];
+    auto& axis_state = *axis_states[axis_num];
 
     // In order to start phase stepping, we have to set phase currents that are
     // in sync with current position, and then switch the driver to current
@@ -155,7 +159,7 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
 
     // We know that PHASE_STEPPING is enabled only on TMC2130 boards
     auto& stepper = static_cast<TMC2130Stepper&>(stepper_axis(axis_num));
-    auto& axis_state = axis_states[axis_num];
+    auto& axis_state = *axis_states[axis_num];
 
     axis_state.active = false;
     auto enable_mask = PHASE_STEPPING_GENERATOR_X << axis_num;
@@ -196,7 +200,7 @@ void phase_stepping::disable_phase_stepping(AxisEnum axis_num) {
 void phase_stepping::enable(AxisEnum axis_num, bool enable) {
     assert(axis_num < SUPPORTED_AXIS_COUNT);
     auto& axis_state = axis_states[axis_num];
-    if (axis_state.active == enable)
+    if (axis_state->active == enable)
         return;
     if (enable)
         phase_stepping::enable_phase_stepping(axis_num);
@@ -222,7 +226,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
     if (axis_num_to_refresh == axis_states.size())
         axis_num_to_refresh = 0;
 
-    AxisState& axis_state = axis_states[axis_num_to_refresh];
+    AxisState& axis_state = *axis_states[axis_num_to_refresh];
 
     if (!axis_state.active) {
         return;
@@ -285,7 +289,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
 
 bool phase_stepping::any_axis_active() {
     for ( auto& state : axis_states ) {
-        if (state.active)
+        if (state->active)
             return true;
     }
     return false;

@@ -86,7 +86,7 @@ void GcodeSuite::M972() {
     for (auto [axis, letter] : SUPPORTED_AXES) {
         if (!parser.seen(letter))
             continue;
-        const phase_stepping::AxisState& axis_state = phase_stepping::axis_states[axis];
+        const phase_stepping::AxisState& axis_state = *phase_stepping::axis_states[axis];
         for (char dir : "FB"sv) {
             if (!parser.seen(letter))
                 continue;
@@ -159,7 +159,7 @@ void GcodeSuite::M973() {
     }
 
     AxisEnum axis = str_arg[0] == 'X' ? AxisEnum::X_AXIS : AxisEnum::Y_AXIS;
-    phase_stepping::AxisState& axis_state = phase_stepping::axis_states[axis];
+    phase_stepping::AxisState& axis_state = *phase_stepping::axis_states[axis];
     auto& lut =
         str_arg[1] == 'F'
                 ? axis_state.forward_current

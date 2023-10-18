@@ -32,6 +32,9 @@
 
 #include "feature/input_shaper/input_shaper_config.hpp"
 #include "feature/pressure_advance/pressure_advance_config.hpp"
+#ifdef PHASE_STEPPING
+  #include "feature/phase_stepping/phase_stepping.hpp"
+#endif
 
 #include "core/utility.h"
 #include "lcd/ultralcd.h"
@@ -1015,6 +1018,9 @@ void setup() {
   // NOTE: this enables (timer) interrupts!
   planner.init();
   stepper.init();
+#ifdef PHASE_STEPPING
+  phase_stepping::init();
+#endif
   PreciseStepping::init();
 #ifdef ADVANCED_STEP_GENERATORS
   input_shaper::init();

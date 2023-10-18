@@ -524,14 +524,14 @@ void PreciseStepping::init() {
     Stepper::count_direction.e = (Stepper::last_direction_bits & STEP_EVENT_FLAG_E_DIR) ? -1 : 1;
 #if PHASE_STEPPING
     LOOP_XYZ(i) {
-        PreciseStepping::step_generators_pool.classic_step_generator[i].phase_step_state = &phase_stepping::axis_states[i];
+        PreciseStepping::step_generators_pool.classic_step_generator[i].phase_step_state = phase_stepping::axis_states[i].get();
     }
 #endif
 #ifdef ADVANCED_STEP_GENERATORS
     LOOP_XYZ(i) {
         PreciseStepping::step_generators_pool.input_shaper_step_generator[i].is_state = &InputShaper::is_state[i];
     #if PHASE_STEPPING
-        PreciseStepping::step_generators_pool.input_shaper_step_generator[i].phase_step_state = &phase_stepping::axis_states[i];
+        PreciseStepping::step_generators_pool.input_shaper_step_generator[i].phase_step_state = phase_stepping::axis_states[i].get();
     #endif
     }
     PreciseStepping::step_generators_pool.pressure_advance_step_generator_e.pa_state = &PressureAdvance::pressure_advance_state;
