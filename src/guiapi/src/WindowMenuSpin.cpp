@@ -17,7 +17,7 @@ void IWiSpin::click(IWindowMenu & /*window_menu*/) {
     if (selected == is_selected_t::yes) {
         OnClick();
     }
-    selected = selected == is_selected_t::yes ? is_selected_t::no : is_selected_t::yes;
+    selected = (selected == is_selected_t::yes) ? is_selected_t::no : is_selected_t::yes;
 }
 
 /**

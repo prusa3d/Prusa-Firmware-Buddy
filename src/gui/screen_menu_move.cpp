@@ -20,6 +20,10 @@ I_MI_AXIS::I_MI_AXIS(size_t index)
     , axis_index(index)
     , last_queued_pos(GetVal()) {}
 
+I_MI_AXIS::~I_MI_AXIS() {
+    finish_move();
+}
+
 void I_MI_AXIS::Loop() {
     jog_axis(last_queued_pos, static_cast<float>(GetVal()), static_cast<AxisEnum>(axis_index));
 }
@@ -34,6 +38,32 @@ void I_MI_AXIS::finish_move() {
     }
 
     marlin_client::move_axis(GetVal(), MenuVars::GetManualFeedrate()[axis_index], axis_index);
+}
+
+void MI_AXIS_Z::click(IWindowMenu &window_menu) {
+    // Continue this function only when we're unselecting the spinner
+    if (selected == is_selected_t::no || is_move_finished()) {
+        MI_AXIS<Z_AXIS>::click(window_menu);
+        return;
+    }
+
+    // Show question message box
+    const Response response = MsgBoxBuilder {
+        .type = MsgBoxType::question,
+        .text = _("Target position not yet reached.\n\nCancel the movement immediately?"),
+        .responses = { Response::Yes, Response::No },
+        .loop_callback = [&] {
+            if (is_move_finished()) {
+                Screens::Access()->Close();
+            }
+        }
+    }.exec();
+
+    if (response == Response::Yes) {
+        SetVal(last_queued_pos);
+    }
+
+    MI_AXIS<Z_AXIS>::click(window_menu);
 }
 
 void MI_AXIS_E::OnClick() {
@@ -82,57 +112,6 @@ void DUMMY_AXIS_E::Update() {
         value = IsTargetTempOk();
         InValidateExtension();
     }
-}
-
-void MI_RETURN_ScreenMenuMove::click(IWindowMenu &window_menu) {
-    assert(Screens::Access()->IsScreenOpened<ScreenMenuMove>());
-    ScreenMenuMove *screen = static_cast<ScreenMenuMove *>(Screens::Access()->Get());
-
-    const auto move_items = std::to_array<I_MI_AXIS *>({
-        &screen->Item<MI_AXIS_X>(),
-        &screen->Item<MI_AXIS_Y>(),
-        &screen->Item<MI_AXIS_Z>(),
-        &screen->Item<MI_AXIS_E>(),
-    });
-
-    const auto are_moves_finished = [&]() {
-        return std::ranges::all_of(move_items.begin(), move_items.end(), [](auto *i) { return i->is_move_finished(); });
-    };
-
-    if (!are_moves_finished()) {
-        // Show question message box
-        const Response response = MsgBoxBuilder {
-            .type = MsgBoxType::question,
-            .text = _("Target position not yet reached.\n\nCancel the movement immediately?"),
-            .responses = { Response::Yes, Response::No, Response::Back },
-            .loop_callback = [&] {
-                if (are_moves_finished()) {
-                    Screens::Access()->Close();
-                }
-            }
-        }.exec();
-
-        switch (response) {
-
-        case Response::No: // Finish moves
-            for (auto i : move_items) {
-                i->finish_move();
-            }
-            break;
-
-        case Response::Yes: // Do not plan ending moves
-        default: // Cancelled because moves finished
-            break;
-
-        case Response::Back: // Do not return to the previous menu
-            return;
-        }
-
-        // We will be closing the screen immediately, so this is to prevent ugly screen redraw between dialog close and screen exit.
-        screen->Validate();
-    }
-
-    MI_RETURN::click(window_menu);
 }
 
 void ScreenMenuMove::checkNozzleTemp() {

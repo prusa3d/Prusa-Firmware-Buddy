@@ -54,9 +54,9 @@ protected:
     Rect16 getUnitRect(Rect16 extension_rect) const;
     void changeExtentionWidth(size_t unit_len, unichar uchar, size_t width);
 
-    virtual void click(IWindowMenu &window_menu) final;
-    virtual void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
-    virtual void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
+    void click(IWindowMenu &window_menu) override;
+    void touch(IWindowMenu &window_menu, point_ui16_t relative_touch_point) final;
+    void printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, ropfn raster_op) const override;
 
 public:
     IWiSpin(SpinType val, string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, string_view_utf8 units_, size_t extension_width_);
