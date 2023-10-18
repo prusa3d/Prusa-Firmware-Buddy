@@ -55,12 +55,20 @@ void phase_stepping::init_step_generator(
     step_generator_state.next_step_func[axis] = (generator_next_step_f)next_step_event;
 
     axis_state.initial_time = ticks_us();
-    // The initialization move segment is always at position 0, so we have to
-    // adjust the zero rotor phase
-    axis_state.last_position = 0.f;
-    axis_state.zero_rotor_phase = axis_state.last_phase;
+
     axis_state.target = MoveTarget(move, axis);
-    assert(axis_state.target->initial_pos == 0.f);
+
+    // Adjust rotor phase such that we virtually move, we don't move physically
+    float last_target_position = axis_state.last_position;
+    float new_start_position = axis_state.inverted
+        ? axis_state.target->initial_pos
+        : -axis_state.target->initial_pos;
+    axis_state.zero_rotor_phase = normalize_motor_phase(
+        + axis_state.zero_rotor_phase
+        - pos_to_phase(axis, new_start_position)
+        + pos_to_phase(axis, last_target_position));
+
+    axis_state.last_position = new_start_position;
     axis_state.last_processed_move = &move;
     axis_state.initial_count_position = Stepper::count_position[axis];
     axis_state.initial_count_position_from_startup = Stepper::count_position_from_startup[axis];
@@ -248,7 +256,7 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         position = -position;
         speed = -speed;
     }
-    axis_state.last_phase = pos_to_phase(axis_num_to_refresh, position) + axis_state.zero_rotor_phase;
+    axis_state.last_phase = normalize_motor_phase(pos_to_phase(axis_num_to_refresh, position) + axis_state.zero_rotor_phase);
 
     // Report movement to Stepper
     int32_t steps_made = pos_to_steps(position, axis_num_to_refresh);
@@ -296,7 +304,7 @@ __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_phase(int axi
         }
         return ret;
     }();
-    return position * FACTORS[axis];
+    return normalize_motor_phase(position * FACTORS[axis]);
 }
 
 __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axis, float position) {
