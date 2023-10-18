@@ -7,6 +7,8 @@
 
 #include <hwio_pindef.h>
 
+#ifdef PHASE_STEPPING
+
 using namespace phase_stepping;
 
 // Module definitions
@@ -92,3 +94,5 @@ void CorrectedCurrentLut2::_update_phase_shift() {
 std::pair< int, int > CorrectedCurrentLut2::get_current(int idx) const {
     return { _sin.get(idx), _cos.get(idx)};
 }
+
+#endif // ifdef PHASE_STEPPING

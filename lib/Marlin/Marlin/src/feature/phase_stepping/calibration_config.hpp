@@ -2,6 +2,8 @@
 
 #include <Configuration.h>
 
+#ifdef PHASE_STEPPING
+
 namespace phase_stepping {
 
 struct CalibrationPhase {
@@ -65,3 +67,5 @@ inline PrinterCalibrationConfig get_printer_calibration_config() {
 }
 
 };
+
+#endif // ifdef PHASE_STEPPING

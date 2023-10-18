@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../inc/MarlinConfig.h"
+
 namespace phase_stepping {
     static constexpr int MOTOR_PERIOD = 1024; // The number of ticks per electrical period of the Trinamic driver
     static constexpr int SIN_FRACTION = 4;
@@ -13,4 +15,4 @@ namespace phase_stepping {
     };
 
     using MotorPhaseCorrection = std::array<SpectralItem, CORRECTION_HARMONICS + 1>;
-} // phase_stepping
+} // namespace phase_stepping

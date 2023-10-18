@@ -11,6 +11,8 @@
 #include "common.hpp"
 #include "lut.hpp"
 
+#ifdef PHASE_STEPPING
+
 namespace phase_stepping {
 
 /**
@@ -93,3 +95,5 @@ std::optional<std::tuple<MotorPhaseCorrection, MotorPhaseCorrection>>
     calibrate_axis(AxisEnum axis, CalibrationReporterBase& reporter);
 
 } // namespace phase_stepping
+
+#endif // ifdef PHASE_STEPPING
