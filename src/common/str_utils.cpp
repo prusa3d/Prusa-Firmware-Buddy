@@ -1,5 +1,6 @@
 #include "str_utils.hpp"
 #include <string.h>
+#include <stdarg.h>
 
 static word_buffer ram_word_buffer;
 
@@ -194,4 +195,96 @@ int str2multiline(char *str, size_t max_size, size_t line_width) {
 int str2multilineUnicode(uint32_t *str, size_t max_size, size_t line_width) {
     static const uint32_t nl[2] = { 0xa, 0 };
     return str2multilineT(str, max_size, line_width, nl);
+}
+
+// StringBuilder
+// ---------------------------------------------
+void StringBuilder::init(char *buffer, size_t buffer_size) {
+    buffer_start_ = buffer;
+    current_pos_ = buffer;
+    buffer_end_ = buffer + buffer_size;
+
+    // Make the resulting string valid from the go
+    *current_pos_ = '\0';
+}
+
+void StringBuilder::append_char(char ch) {
+    char *ptr = alloc_chars(1);
+    if (!ptr) {
+        return;
+    }
+
+    *ptr = ch;
+}
+
+void StringBuilder::append_string(const char *str) {
+    if (is_problem()) {
+        return;
+    }
+
+    // Accomodate for terminating null
+    char *buffer_pre_end = buffer_end_ - 1;
+    char *buffer_pos = current_pos_;
+
+    while (true) {
+        // At the end of the appended string -> success
+        if (*str == '\0') {
+            current_pos_ = buffer_pos;
+            break;
+        }
+
+        // Check if we're not at the end of the buffer
+        if (buffer_pos >= buffer_pre_end) {
+            is_ok_ = false;
+            break;
+        }
+
+        *buffer_pos++ = *str++;
+    }
+
+    // Ensure the string is valid by appending nullterm
+    *current_pos_ = '\0';
+}
+
+void StringBuilder::append_printf(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    append_vprintf(fmt, args);
+    va_end(args);
+}
+
+void StringBuilder::append_vprintf(const char *fmt, va_list args) {
+    if (is_problem()) {
+        return;
+    }
+
+    const int available_bytes = int(buffer_end_ - current_pos_);
+    const int ret = vsnprintf(current_pos_, available_bytes, fmt, args);
+
+    // >= because we need to account fo rhte terminating \0
+    if (ret < 0 || ret >= available_bytes) {
+        *current_pos_ = '\0';
+        is_ok_ = false;
+        return;
+    }
+
+    current_pos_ += ret;
+}
+
+char *StringBuilder::alloc_chars(size_t cnt) {
+    if (is_problem()) {
+        return nullptr;
+    }
+
+    const size_t available_bytes = int(buffer_end_ - current_pos_);
+
+    // >= because we need to account fo rhte terminating \0
+    if (cnt >= available_bytes) {
+        is_ok_ = false;
+        return nullptr;
+    }
+
+    current_pos_ += cnt;
+    *current_pos_ = '\0';
+    return current_pos_ - cnt;
 }
