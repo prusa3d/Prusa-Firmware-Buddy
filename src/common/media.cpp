@@ -188,7 +188,7 @@ void media_prefetch(const void *) {
             osMutexWait(prefetch_mutex_id, osWaitForever);
             if (file_buff_pos == file_buff_level) { // file buffer depleted
                 prefetch_state = bb_state;
-                if (back_buff_level > 0) { // swap to back buffer
+                if (back_buff_level > 0 && bb_state != GCodeFilter::State::Timeout) { // swap to back buffer
                     if (file_buff == prefetch_buff[0]) {
                         file_buff = prefetch_buff[1];
                         back_buff = prefetch_buff[0];
@@ -238,6 +238,7 @@ void media_prefetch(const void *) {
                     log_warning(MarlinServer, "Media prefetch: EOF");
                 } else if (read_res == IGcodeReader::Result_t::RESULT_TIMEOUT) {
                     bb_state = GCodeFilter::State::Timeout;
+                    back_buff_level = 0;
                     rerun_loop = true;
                     log_warning(MarlinServer, "Media prefetch: timeout");
                 } else {
