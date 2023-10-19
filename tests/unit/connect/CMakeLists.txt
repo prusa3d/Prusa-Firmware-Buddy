@@ -203,7 +203,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/libbgcode/src/LibBGCode
           ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
-add_definitions(-DUNITTESTS -DUSE_ASYNCIO=1)
+add_definitions(-DUNITTESTS)
 add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
 
 add_executable(

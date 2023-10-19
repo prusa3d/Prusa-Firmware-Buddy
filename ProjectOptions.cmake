@@ -582,8 +582,6 @@ else()
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
 endif()
 
-define_boolean_option(USE_ASYNCIO YES)
-
 # define enabled features
 
 if(BOOTLOADER STREQUAL "YES"

@@ -54,7 +54,6 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_ESP_UPDATE                 osPriorityNormal
     #define TASK_PRIORITY_MEDIA_PREFETCH_WHILE_FREAD osPriorityNormal // decreased priroity when media prefetch calls fread
     #define TASK_PRIORITY_TCPIP_THREAD               osPriorityBelowNormal
-    #define TASK_PRIORITY_ASYNCIO                    osPriorityBelowNormal
     #define TASK_PRIORITY_WUI                        osPriorityBelowNormal
     #define TASK_PRIORITY_CONNECT                    osPriorityBelowNormal
 static_assert(configTIMER_TASK_PRIORITY == 5); // 5 is more than osPriorityRealtime

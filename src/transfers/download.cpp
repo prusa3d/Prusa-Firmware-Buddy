@@ -257,7 +257,9 @@ public:
 #ifdef UNITTESTS
         assert(0); // Unimplemented here, see the note about dependency hell
 #else
-        httpd_instance()->inject_transfer(conn, data, position, &get<Splice>(phase_payload), len);
+        tcp_pcb *c = conn;
+        conn = nullptr;
+        httpd_instance()->inject_transfer(c, data, position, &get<Splice>(phase_payload), len);
 #endif
 
         return ERR_OK;

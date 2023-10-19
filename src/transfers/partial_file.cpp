@@ -147,6 +147,10 @@ bool PartialFile::write_current_sector() {
         // hopefully cheap way to "poke" it. We use the 'rewind' mode, the
         // 'ftell' mode has a shortcut in it and actually does _not_ check the
         // validity of the file.
+        //
+        // FIXME: This actually can block! It probably doesn't "do" anything
+        // with the USB itself, but acqires some lock and it takes a long time
+        // to do so.
         return false;
     }
     const uint32_t slot_idx = reinterpret_cast<uint32_t>(current_sector->callback_param2);
@@ -155,6 +159,13 @@ bool PartialFile::write_current_sector() {
     auto end = std::min(start + SECTOR_SIZE, state.total_size);
     // Synchronized through release-acquire pair through the queue into USB thread
     future_extend[slot_idx] = ValidPart { start, end };
+    // This _in theory_ can block, which we don't like. But, as the queue for
+    // the requests is currently 5 long, we can put at most 2 there, there can
+    // be other 3 threads doing something with the USB at the same time and
+    // still not block... unlikely.
+    //
+    // So we don't complicate the things and keep it this way (at worst, we
+    // will stall tcpip thread for a short bit).
     auto result = usbh_msc_submit_request(current_sector);
     if (result != USBH_OK)
         return false;
@@ -456,6 +467,12 @@ void PartialFile::usbh_msc_finished(USBH_StatusTypeDef result, uint32_t slot) {
         write_error = true;
     }
     sector_pool.release(slot);
+
+    // Call the callback. Make sure this is _after_ we released the slot, so it
+    // can be reused from there.
+    if (written_callback != nullptr) {
+        written_callback(written_callback_arg);
+    }
 }
 
 void PartialFile::usb_msc_write_finished_callback(USBH_StatusTypeDef result, void *param1, void *param2) {

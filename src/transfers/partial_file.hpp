@@ -187,6 +187,10 @@ private:
     /// don't actually _use_ it for anything).
     int file_lock;
 
+    typedef void WrittenCallback(void *);
+    WrittenCallback *written_callback = nullptr;
+    void *written_callback_arg;
+
 public:
     PartialFile(UsbhMscRequest::LunNbr drive, UsbhMscRequest::SectorNbr first_sector, State state, int file_lock);
     ~PartialFile();
@@ -261,6 +265,14 @@ public:
     State get_state() const;
 
     void print_progress();
+
+    // Callback to be called whenever a block is written/failed to be written.
+    //
+    // Can be set to null.
+    void set_written_callback(WrittenCallback *cback, void *arg) {
+        written_callback = cback;
+        written_callback_arg = arg;
+    }
 };
 
 } // namespace transfers

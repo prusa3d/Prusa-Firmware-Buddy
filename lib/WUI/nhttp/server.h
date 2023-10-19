@@ -249,6 +249,8 @@ private:
         virtual constexpr SlotType get_slot_type() override = 0;
     };
 
+    using PbufPtr = std::unique_ptr<pbuf, PbufDeleter>;
+
     class ConnectionSlot : public Slot {
     private:
         void release_buffer();
@@ -265,7 +267,7 @@ private:
         // Owning a buffer?
         Buffer *buffer = nullptr;
         // Do we have a partially processed pbuf, with data left for later?
-        std::unique_ptr<pbuf, PbufDeleter> partial;
+        PbufPtr partial;
         size_t partial_consumed = 0;
         virtual void release() override;
         bool is_empty() const;
@@ -285,16 +287,35 @@ private:
      */
     uint8_t last_active_slot = 0;
 
-#if USE_ASYNCIO
     class TransferSlot : public Slot {
     public:
+        static constexpr size_t PbufQueueMax = 8;
+        // Queue of pbufs to process/write into the file.
+        //
+        // The 0 index is the oldest one (being processed right now), we append
+        // to the end as needed. When we take the processed one out, we just
+        // shift them (there's only few of them, the complexity of a ringbuffer
+        // is not worth it).
+        //
+        // This stores the pbuf heads (pbufs form linked lists).
+        std::array<PbufPtr, PbufQueueMax> pbuf_queue;
+        // # of pbufs in the queue
+        size_t pbuf_queue_size;
+        // A shortcut/finger into the pbuf chain/linked list, pointing to the
+        // currently processed node of pbuf_queue[0]. Owned by pbuf_queue, not
+        // us.
+        //
+        // May be null, in that case we haven't yet started dealing with
+        // pbuf_queue[0] (or, pbuf_queue_size == 0).
+        pbuf *current_pbuf;
+        // Number of bytes processed from the current_pbuf (relative to the
+        // current node, not to the pbuf_queue[0]).
+        size_t pbuf_processed;
+
         // Bytes of data we expect to arrive from the connection.
         size_t expected_data = 0;
-        // Requests (not bytes) submitted to the async thread, including
-        // closing of the file.
-        size_t reqs_pending = 0;
+
         splice::Transfer *transfer = nullptr;
-        bool done_called = false;
         std::optional<std::tuple<http::Status, const char *>> response;
 
         virtual void release() override;
@@ -304,17 +325,17 @@ private:
         virtual bool take_pbuf(pbuf *data) override;
         virtual bool has_unacked_data() const override;
         virtual void sent(uint16_t len) override;
-        // Callback from Write Async IO request
-        void write_done(uint16_t len, bool complete);
         bool has_response();
         // Callback from Done Async IO request
-        void done(std::optional<std::tuple<http::Status, const char *>> res);
         void make_response(ConnectionSlot *slot = nullptr);
         virtual constexpr SlotType get_slot_type() override { return SlotType::TransferSlot; }
+        // Notification from PartialFile that something was written and we can try submitting more.
+        static void segment_written(void *arg);
+        // The same, but not in our thread (this one is wrapper that sends it to tcpip thread).
+        static void send_segment_written(void *arg);
     };
 
     TransferSlot transfer_slot;
-#endif
 
     /*
      * There's an activity on the given connection. Reset appropriate timeouts.
@@ -417,23 +438,7 @@ public:
         return defs.get_password();
     }
 
-#if USE_ASYNCIO
-    // TODO: This is ... meh.
-    //
-    // The write requests to the IO thread report a write of this size
-    // was done.
-    //
-    // Complete means the whole batch / pbuf chain got finished.
-    //
-    // It would be better that called into the slot directly, but that
-    // would require a lot of shifting of classes to outside of the
-    // Server… leaving that refactoring for later on.
-    void write_done(uint16_t len, bool complete);
-
-    // Similar (the Done) request.
-    void transfer_done(std::optional<std::tuple<http::Status, const char *>> res);
     void inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, splice::Transfer *transfer, size_t expected_data);
-#endif
 };
 
 } // namespace nhttp

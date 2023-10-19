@@ -26,6 +26,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/server.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/job_command.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/static_mem.cpp
+  ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/send_file.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/headers.cpp
   ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/status_page.cpp
@@ -92,13 +93,6 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/unit/mock/bsod.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/http_req_automaton.cpp
   )
-if(USE_ASYNCIO)
-  target_sources(
-    nhttp_tests INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/async_io.cpp
-                          ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
-    )
-  target_compile_definitions(nhttp_tests INTERFACE USE_ASYNCIO)
-endif()
 target_include_directories(
   nhttp_tests
   PRIVATE .

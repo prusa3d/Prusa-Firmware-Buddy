@@ -71,9 +71,6 @@
 #include <option/buddy_enable_wui.h>
 #if BUDDY_ENABLE_WUI()
     #include "wui.h"
-    #if USE_ASYNCIO
-        #include <transfers/async_io.hpp>
-    #endif
 #endif
 
 #if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
@@ -103,9 +100,6 @@ void SystemClock_Config(void);
 void StartDefaultTask(void const *argument);
 void StartDisplayTask(void const *argument);
 void StartConnectTask(void const *argument);
-#if USE_ASYNCIO
-void StartAsyncIoTask(void const *argument);
-#endif
 void StartESPTask(void const *argument);
 void iwdg_warning_cb(void);
 
@@ -398,10 +392,6 @@ extern "C" void main_cpp(void) {
 #endif
 
 #if BUDDY_ENABLE_WUI()
-    #if USE_ASYNCIO
-    osThreadCCMDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 400);
-    osThreadCreate(osThread(asyncIoTask), nullptr);
-    #endif
     espif_task_create();
 
     TaskDeps::wait(TaskDeps::Tasks::network);
@@ -566,12 +556,6 @@ void StartErrorDisplayTask([[maybe_unused]] void const *argument) {
         osDelay(1);
     }
 }
-
-#if BUDDY_ENABLE_WUI() && USE_ASYNCIO
-void StartAsyncIoTask([[maybe_unused]] void const *argument) {
-    async_io::run();
-}
-#endif
 
 #if BUDDY_ENABLE_CONNECT()
 void StartConnectTask([[maybe_unused]] void const *argument) {
