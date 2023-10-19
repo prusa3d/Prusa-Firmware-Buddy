@@ -8,6 +8,7 @@
 #include <metric_handlers.h>
 #include <ccm_thread.hpp>
 #include "priorities_config.h"
+#include "str_utils.hpp"
 
 static void metric_system_task_run(const void *);
 
@@ -126,47 +127,63 @@ static void point_enqueue(metric_point_t *recording) {
 }
 
 void metric_register(metric_t *metric) {
-    if (metric->_registered)
+    if (metric->_registered) {
         return;
+    }
+
     for (metric_handler_t **handlers = metric_system_handlers; *handlers != NULL; handlers++) {
         metric_handler_t *handler = *handlers;
         if (handler->on_metric_registered_fn)
             handler->on_metric_registered_fn(metric);
     }
+
     metric->_registered = true;
     metric_linked_list_append(metric);
 }
 
 void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_FLOAT);
-    if (!recording)
+    if (!recording) {
         return;
+    }
+
     recording->value_float = value;
     point_enqueue(recording);
 }
 
 void metric_record_str_log_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, metric->type);
-    if (!recording)
+    if (!recording) {
         return;
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(recording->value_str_log_custom, sizeof(recording->value_str_log_custom), fmt, args);
-    va_end(args);
+    }
+
+    {
+        StringBuilder sb(recording->value_stream);
+        va_list args;
+        va_start(args, fmt);
+        sb.append_vprintf(fmt, args);
+        va_end(args);
+        assert(sb.is_ok());
+    }
+
     point_enqueue(recording);
 }
 
 void metric_record_event_at_time(metric_t *metric, uint32_t timestamp) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_EVENT);
-    if (!recording)
+    if (!recording) {
         return;
+    }
+
     point_enqueue(recording);
 }
 
 void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value) {
     metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_INTEGER);
-    if (!recording)
+    if (!recording) {
         return;
+    }
+
     recording->value_int = value;
     point_enqueue(recording);
 }
@@ -174,13 +191,21 @@ void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int val
 void metric_record_error(metric_t *metric, const char *fmt, ...) {
     // TODO: we might want separate throttling for errors
     metric_point_t *recording = point_check_and_prepare(metric, ticks_ms(), metric->type);
-    if (!recording)
+    if (!recording) {
         return;
+    }
+
     recording->error = true;
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(recording->error_msg, sizeof(recording->error_msg), fmt, args);
-    va_end(args);
+
+    {
+        StringBuilder sb(recording->value_stream);
+        va_list args;
+        va_start(args, fmt);
+        sb.append_vprintf(fmt, args);
+        va_end(args);
+        assert(sb.is_ok());
+    }
+
     point_enqueue(recording);
 }
 

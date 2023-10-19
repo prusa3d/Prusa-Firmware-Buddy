@@ -57,10 +57,10 @@ typedef struct metric_s {
     ///
     /// Keep this short and informative.
     /// It is the unique identifier for the metric.
-    const char *name;
+    const char *const name;
 
     /// The type of the values associated with this metric.
-    metric_value_type_t type;
+    const metric_value_type_t type;
 
     /// Allows throttling of the recorded values.
     ///
@@ -119,11 +119,8 @@ typedef struct {
         /// Integer value (if metric.type == METRIC_VALUE_INTEGER)
         int value_int;
 
-        /// String value (if metric.type == METRIC_VALUE_STRING || METRIC_VALUE_LOG || METRIC_VALUE_CUSTOM)
-        char value_str_log_custom[48];
-
-        /// Error message (if recording.error == true)
-        char error_msg[48];
+        /// String/bytes value (if error || metric.type == METRIC_VALUE_STRING || METRIC_VALUE_LOG || METRIC_VALUE_CUSTOM)
+        char value_stream[64];
     };
 } metric_point_t;
 
