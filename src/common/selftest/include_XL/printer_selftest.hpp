@@ -101,7 +101,6 @@ protected:
     void phaseSelftestStart();
     void restoreAfterSelftest();
     virtual void next() override;
-    virtual const char *get_log_suffix() override;
     void phaseShowResult();
     bool phaseWaitUser(PhasesSelftest phase);
     void phaseDidSelftestPass();

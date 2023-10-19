@@ -199,7 +199,6 @@ LoopResult CSelftestPart_Heater::stateMeasure() {
         return true;
     }
     m_Temp /= m_TempCount;
-    Selftest.log_printf("%s %5u ms  %5.1f C\n", m_config.partname, m_Time - m_MeasureStartTime, (double)m_Temp);
     if ((m_Time - m_MeasureStartTime) < m_config.heat_time_ms) {
         m_Time = Selftest.m_Time;
         m_Temp = 0;
