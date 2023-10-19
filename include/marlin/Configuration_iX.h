@@ -1564,10 +1564,10 @@
 #if ENABLED(NOZZLE_PARK_FEATURE)
     #define Z_AXIS_LOAD_POS  40
     #define Z_AXIS_UNLOAD_POS 20
-    #define Y_AXIS_LOAD_POS    (std::numeric_limits<float>::quiet_NaN())
-    #define Y_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
-    #define X_AXIS_LOAD_POS  (std::numeric_limits<float>::quiet_NaN())
-    #define X_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
+    #define Y_AXIS_LOAD_POS    (Y_MAX_POS - 10)
+    #define Y_AXIS_UNLOAD_POS  (Y_MAX_POS - 10)
+    #define X_AXIS_LOAD_POS  (X_MIN_POS + 10)
+    #define X_AXIS_UNLOAD_POS  (X_MIN_POS + 10)
     // Specify a park position as { X, Y, Z }
     #define NOZZLE_PARK_POINT \
         { (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 }
