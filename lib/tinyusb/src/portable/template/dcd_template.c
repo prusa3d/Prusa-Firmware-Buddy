@@ -1,4 +1,4 @@
-/* 
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2018, hathach (tinyusb.org)
@@ -26,7 +26,7 @@
 
 #include "tusb_option.h"
 
-#if CFG_TUSB_MCU == OPT_MCU_NONE
+#if CFG_TUD_ENABLED && CFG_TUSB_MCU == OPT_MCU_NONE
 
 #include "device/dcd.h"
 
@@ -82,6 +82,14 @@ void dcd_disconnect(uint8_t rhport)
   (void) rhport;
 }
 
+void dcd_sof_enable(uint8_t rhport, bool en)
+{
+  (void) rhport;
+  (void) en;
+
+  // TODO implement later
+}
+
 //--------------------------------------------------------------------+
 // Endpoint API
 //--------------------------------------------------------------------+
@@ -132,5 +140,7 @@ void dcd_edpt_clear_stall (uint8_t rhport, uint8_t ep_addr)
   (void) rhport;
   (void) ep_addr;
 }
+
+
 
 #endif

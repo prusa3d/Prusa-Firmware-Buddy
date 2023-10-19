@@ -1,4 +1,4 @@
-/* 
+/*
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Ha Thach (tinyusb.org)
@@ -23,6 +23,7 @@
  *
  */
 
+#include "bsp/board_api.h"
 #include "tusb.h"
 #include "usb_descriptors.h"
 
@@ -75,12 +76,28 @@ uint8_t const * tud_descriptor_device_cb(void)
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
-#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_VIDEO_CAPTURE_DESC_LEN)
+#if defined(CFG_EXAMPLE_VIDEO_READONLY) && !defined(CFG_EXAMPLE_VIDEO_DISABLE_MJPEG)
+# if 1 == CFG_TUD_VIDEO_STREAMING_BULK
+#  define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_VIDEO_CAPTURE_DESC_MJPEG_BULK_LEN)
+# else
+#  define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_VIDEO_CAPTURE_DESC_MJPEG_LEN)
+# endif
+#else
+# if 1 == CFG_TUD_VIDEO_STREAMING_BULK
+#  define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_VIDEO_CAPTURE_DESC_UNCOMPR_BULK_LEN)
+# else
+#  define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_VIDEO_CAPTURE_DESC_UNCOMPR_LEN)
+# endif
+#endif
 
 #if TU_CHECK_MCU(OPT_MCU_LPC175X_6X, OPT_MCU_LPC177X_8X, OPT_MCU_LPC40XX)
   // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
   // 0 control, 1 In, 2 Bulk, 3 Iso, 4 In, 5 Bulk etc ...
+#if 1 == CFG_TUD_VIDEO_STREAMING_BULK
+  #define EPNUM_VIDEO_IN    0x82
+#else
   #define EPNUM_VIDEO_IN    0x83
+#endif
 
 #elif TU_CHECK_MCU(OPT_MCU_NRF5X)
   // nRF5x ISO can only be endpoint 8
@@ -95,10 +112,29 @@ uint8_t const desc_fs_configuration[] =
 {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0, 500),
+
   // IAD for Video Control
-  TUD_VIDEO_CAPTURE_DESCRIPTOR(4, EPNUM_VIDEO_IN,
-                               FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE,
-                               CFG_TUD_VIDEO_STREAMING_EP_BUFSIZE)
+#if defined(CFG_EXAMPLE_VIDEO_READONLY) && !defined(CFG_EXAMPLE_VIDEO_DISABLE_MJPEG)
+# if 1 == CFG_TUD_VIDEO_STREAMING_BULK
+  TUD_VIDEO_CAPTURE_DESCRIPTOR_MJPEG_BULK(4, EPNUM_VIDEO_IN,
+                                          FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE,
+                                          64)
+# else
+  TUD_VIDEO_CAPTURE_DESCRIPTOR_MJPEG(4, EPNUM_VIDEO_IN,
+                                     FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE,
+                                     CFG_TUD_VIDEO_STREAMING_EP_BUFSIZE)
+# endif
+#else
+# if 1 == CFG_TUD_VIDEO_STREAMING_BULK
+  TUD_VIDEO_CAPTURE_DESCRIPTOR_UNCOMPR_BULK(4, EPNUM_VIDEO_IN,
+                                            FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE,
+                                            64)
+# else
+  TUD_VIDEO_CAPTURE_DESCRIPTOR_UNCOMPR(4, EPNUM_VIDEO_IN,
+                                       FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE,
+                                       CFG_TUD_VIDEO_STREAMING_EP_BUFSIZE)
+# endif
+#endif
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
@@ -115,52 +151,64 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
 // String Descriptors
 //--------------------------------------------------------------------+
 
+// String Descriptor Index
+enum {
+  STRID_LANGID = 0,
+  STRID_MANUFACTURER,
+  STRID_PRODUCT,
+  STRID_SERIAL,
+};
+
 // array of pointer to string descriptors
-char const* string_desc_arr [] =
+char const *string_desc_arr[] =
 {
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
   "TinyUSB",                     // 1: Manufacturer
   "TinyUSB Device",              // 2: Product
-  "123456",                      // 3: Serials, should use chip ID
+  NULL,                          // 3: Serials will use unique ID if possible
   "TinyUSB UVC",                 // 4: UVC Interface
 };
 
-static uint16_t _desc_str[32];
+static uint16_t _desc_str[32 + 1];
 
 // Invoked when received GET STRING DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
-uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid)
-{
+uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
   (void) langid;
+  size_t chr_count;
 
-  uint8_t chr_count;
+  switch ( index ) {
+    case STRID_LANGID:
+      memcpy(&_desc_str[1], string_desc_arr[0], 2);
+      chr_count = 1;
+      break;
 
-  if ( index == 0)
-  {
-    memcpy(&_desc_str[1], string_desc_arr[0], 2);
-    chr_count = 1;
-  }else
-  {
-    // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
-    // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
+    case STRID_SERIAL:
+      chr_count = board_usb_get_serial(_desc_str + 1, 32);
+      break;
 
-    if ( !(index < sizeof(string_desc_arr)/sizeof(string_desc_arr[0])) ) return NULL;
+    default:
+      // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
+      // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
 
-    const char* str = string_desc_arr[index];
+      if ( !(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0])) ) return NULL;
 
-    // Cap at max char
-    chr_count = strlen(str);
-    if ( chr_count > 31 ) chr_count = 31;
+      const char *str = string_desc_arr[index];
 
-    // Convert ASCII string into UTF-16
-    for(uint8_t i=0; i<chr_count; i++)
-    {
-      _desc_str[1+i] = str[i];
-    }
+      // Cap at max char
+      chr_count = strlen(str);
+      size_t const max_count = sizeof(_desc_str) / sizeof(_desc_str[0]) - 1; // -1 for string type
+      if ( chr_count > max_count ) chr_count = max_count;
+
+      // Convert ASCII string into UTF-16
+      for ( size_t i = 0; i < chr_count; i++ ) {
+        _desc_str[1 + i] = str[i];
+      }
+      break;
   }
 
   // first byte is length (including header), second byte is string type
-  _desc_str[0] = (TUSB_DESC_STRING << 8 ) | (2*chr_count + 2);
+  _desc_str[0] = (uint16_t) ((TUSB_DESC_STRING << 8) | (2 * chr_count + 2));
 
   return _desc_str;
 }
