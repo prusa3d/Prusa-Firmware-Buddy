@@ -148,6 +148,7 @@ typedef struct
 
 //
 void print_pause();
+void print_pause_unload();
 
 void unpause_nozzle(const uint8_t extruder);
 

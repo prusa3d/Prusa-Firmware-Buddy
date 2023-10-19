@@ -7,6 +7,7 @@
 #include "../../../lib/Marlin/Marlin/src/feature/prusa/e-stall_detector.h"
 #include "pause_stubbed.hpp"
 #include "pause_settings.hpp"
+#include <option/has_human_interactions.h>
 
 using namespace filament_gcodes;
 
@@ -70,6 +71,10 @@ void GcodeSuite::M701() {
     }
 
     M701_no_parser(filament_to_be_loaded, fast_load_length, min_Z_pos, op_preheat, target_extruder, mmu_slot, color_to_be_loaded);
+
+#if !HAS_HUMAN_INTERACTIONS()
+    FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
+#endif
 }
 
 /**

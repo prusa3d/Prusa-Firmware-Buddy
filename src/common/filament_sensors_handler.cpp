@@ -15,6 +15,7 @@
 #include "fsensor_eeprom.hpp"
 #include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
+#include <option/has_human_interactions.h>
 #if HAS_SELFTEST_SNAKE()
     #include <ScreenHandler.hpp>
     #include "screen_menu_selftest_snake.hpp"
@@ -232,7 +233,11 @@ void FilamentSensors::Cycle() {
     // for now M600 just has higher prior thanks to "else if"
     if (opt_event_m600) {
         m600_sent = true;
+#if HAS_HUMAN_INTERACTIONS()
         PrintProcessor::InjectGcode("M600 A"); // change filament
+#else
+        PrintProcessor::InjectGcode("M25 U"); // pause and unload filament
+#endif
         log_info(FSensor, "Injected runout");
     } else if (opt_event_autoload && !has_mmu && !isAutoloadLocked()
 #if HAS_SELFTEST_SNAKE()

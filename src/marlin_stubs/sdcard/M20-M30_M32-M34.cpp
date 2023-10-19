@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #include <dirent.h>
 
 #include "../../lib/Marlin/Marlin/src/gcode/gcode.h"
@@ -44,9 +47,17 @@ void GcodeSuite::M24() {
     marlin_server::print_resume();
 }
 
-// M25 - Pause SD print
+/**
+ * @brief Pause SD print
+ *
+ * - U Unload filament when paused
+ */
 void GcodeSuite::M25() {
-    marlin_server::print_pause();
+    if (parser.seen('U')) {
+        marlin_server::print_pause_unload();
+    } else {
+        marlin_server::print_pause();
+    }
 }
 
 // M26 - Set SD position

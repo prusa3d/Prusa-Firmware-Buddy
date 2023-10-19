@@ -175,6 +175,7 @@ namespace {
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
         bool mbl_failed;
 #endif
+        bool pause_unload_requested = false;
     };
 
     server_t server; // server structure - initialize task to zero
@@ -941,6 +942,13 @@ void print_pause(void) {
     }
 }
 
+void print_pause_unload(void) {
+    if (server.print_state == State::Printing) {
+        server.print_state = State::Pausing_Begin;
+        server.pause_unload_requested = true;
+    }
+}
+
 /**
  * @brief Restore paused nozzle temperature to enable filament change
  */
@@ -1470,6 +1478,11 @@ static void _server_print_loop(void) {
     case State::Paused:
         nozzle_timeout_loop();
         gcode.reset_stepper_timeout(); // prevent disable axis
+        if (server.pause_unload_requested) {
+            if (enqueue_gcode("M702 W2")) {
+                server.pause_unload_requested = false;
+            }
+        }
         break;
     case State::Resuming_Begin:
 #if ENABLED(CRASH_RECOVERY)
