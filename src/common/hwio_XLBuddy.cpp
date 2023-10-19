@@ -56,13 +56,13 @@ namespace {
  */
 enum {
     HWIO_ERR_UNINI_DIG_RD = 0x01, //!< uninitialized digital read
-    HWIO_ERR_UNINI_DIG_WR,        //!< uninitialized digital write
-    HWIO_ERR_UNINI_ANA_RD,        //!< uninitialized analog read
-    HWIO_ERR_UNINI_ANA_WR,        //!< uninitialized analog write
-    HWIO_ERR_UNDEF_DIG_RD,        //!< undefined pin digital read
-    HWIO_ERR_UNDEF_DIG_WR,        //!< undefined pin digital write
-    HWIO_ERR_UNDEF_ANA_RD,        //!< undefined pin analog write
-    HWIO_ERR_UNDEF_ANA_WR,        //!< undefined pin analog write
+    HWIO_ERR_UNINI_DIG_WR, //!< uninitialized digital write
+    HWIO_ERR_UNINI_ANA_RD, //!< uninitialized analog read
+    HWIO_ERR_UNINI_ANA_WR, //!< uninitialized analog write
+    HWIO_ERR_UNDEF_DIG_RD, //!< undefined pin digital read
+    HWIO_ERR_UNDEF_DIG_WR, //!< undefined pin digital write
+    HWIO_ERR_UNDEF_ANA_RD, //!< undefined pin analog write
+    HWIO_ERR_UNDEF_ANA_WR, //!< undefined pin analog write
 };
 
 enum {
@@ -120,11 +120,11 @@ uint8_t board_bom_id;
 static constexpr int _pwm_max[] = { TIM1_default_Period };
 
 static const TIM_OC_InitTypeDef sConfigOC_default = {
-    TIM_OCMODE_PWM1,       // OCMode
-    0,                     // Pulse
-    TIM_OCPOLARITY_HIGH,   // OCPolarity
-    TIM_OCNPOLARITY_HIGH,  // OCNPolarity
-    TIM_OCFAST_DISABLE,    // OCFastMode
+    TIM_OCMODE_PWM1, // OCMode
+    0, // Pulse
+    TIM_OCPOLARITY_HIGH, // OCPolarity
+    TIM_OCNPOLARITY_HIGH, // OCNPolarity
+    TIM_OCFAST_DISABLE, // OCFastMode
     TIM_OCIDLESTATE_RESET, // OCIdleState
     TIM_OCNIDLESTATE_RESET // OCNIdleState
 };
@@ -602,6 +602,8 @@ uint32_t analogRead(uint32_t ulPin) {
             return 0;
         case MARLIN_PIN(THERM2):
             return AdcGet::boardTemp();
+        case MARLIN_PIN(AMBIENT):
+            return AdcGet::ambientTemp();
         default:
             hwio_arduino_error(HWIO_ERR_UNDEF_ANA_RD, ulPin); // error: undefined pin analog read
         }

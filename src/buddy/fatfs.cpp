@@ -2,10 +2,10 @@
 
 #include <time.h>
 
-uint8_t retUSBH;  /* Return value for USBH */
+uint8_t retUSBH; /* Return value for USBH */
 char USBHPath[4]; /* USBH logical drive path */
-FATFS USBHFatFS;  /* File system object for USBH logical drive */
-FIL USBHFile;     /* File object for USBH */
+FATFS USBHFatFS; /* File system object for USBH logical drive */
+FIL USBHFile; /* File object for USBH */
 
 void MX_FATFS_Init(void) {
     retUSBH = FATFS_LinkDriver(&USBH_Driver, USBHPath);
@@ -27,7 +27,7 @@ DWORD get_fattime(void) {
 /// Check if fatfs file is contiguous
 /// Source: http://elm-chan.org/fsw/ff/doc/appnote.html#limits
 FRESULT fatfs_test_contiguous_file(
-    FIL *fp,  /* [IN]  Open file object to be checked */
+    FIL *fp, /* [IN]  Open file object to be checked */
     int *cont /* [OUT] 1:Contiguous, 0:Fragmented or zero-length */
 ) {
     DWORD clst, clsz, step;
@@ -53,14 +53,14 @@ FRESULT fatfs_test_contiguous_file(
             if (fr != FR_OK)
                 return fr;
             if (clst + 1 != fp->clust)
-                break;   /* Is not the cluster next to previous one? */
+                break; /* Is not the cluster next to previous one? */
             clst = fp->clust;
             fsz -= step; /* Get current cluster for next test */
         }
         if (fsz == 0)
             *cont = 1; /* All done without fail? */
     } else {
-        *cont = 1;     /* A 0-sized file is continuous by definition. */
+        *cont = 1; /* A 0-sized file is continuous by definition. */
     }
 
     return FR_OK;

@@ -91,7 +91,7 @@ LoopResult CSelftestPart_Heater::stateTakeControlOverFans() {
 LoopResult CSelftestPart_Heater::stateFansActivate() {
     if (enable_cooldown) {
         log_info(Selftest, "%s set fans to maximum", m_config.partname);
-        m_config.print_fan_fnc(m_config.tool_nr).SelftestSetPWM(255);     // it will be restored by ExitSelftestMode
+        m_config.print_fan_fnc(m_config.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
         m_config.heatbreak_fan_fnc(m_config.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
     }
     return LoopResult::RunNext;
@@ -138,7 +138,7 @@ LoopResult CSelftestPart_Heater::stateTargetTemp() {
 LoopResult CSelftestPart_Heater::stateWait() {
     float current_temp = m_config.getTemp();
     if (current_temp >= m_config.start_temp) {
-        rResult.prep_state = SelftestSubtestState_t::ok;      // preheat temperature ok
+        rResult.prep_state = SelftestSubtestState_t::ok; // preheat temperature ok
         rResult.heat_state = SelftestSubtestState_t::running; // waiting final heat
         m_MeasureStartTime = SelftestInstance().GetTime();
         m_StartTime = SelftestInstance().GetTime();
@@ -238,7 +238,7 @@ LoopResult CSelftestPart_Heater::stateCheckLoadChecked() {
 
 void CSelftestPart_Heater::actualizeProgress(float current, float progres_start, float progres_end) const {
     if (progres_start >= progres_end)
-        return;                                                      // don't have estimated end set correctly
+        return; // don't have estimated end set correctly
     uint8_t current_progress = scale_percent_avoid_overflow(current, progres_start, progres_end);
     rResult.progress = std::max(rResult.progress, current_progress); // heater progress can only rise
 }

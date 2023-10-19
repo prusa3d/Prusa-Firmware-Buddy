@@ -44,6 +44,14 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
     uint32_t next_fs_cycle = ticks_ms();
     uint32_t next_sg_cycle = ticks_ms();
 
+    tmc_set_sg_mask(
+#if PRINTER_IS_PRUSA_MINI
+        0 // disable sampling on mini
+#else
+        0x07 // XYZ
+#endif
+    );
+
     for (;;) {
         marlin_client::loop();
         uint32_t now = ticks_ms();
@@ -57,12 +65,7 @@ void StartMeasurementTask([[maybe_unused]] void const *argument) {
 
         // sample stallguard
         if (checkTimestampsAscendingOrder(next_sg_cycle, now)) {
-            uint8_t updated_axes =
-#if PRINTER_IS_PRUSA_MINI
-                0;
-#else
-                tmc_sample();
-#endif
+            uint8_t updated_axes = tmc_sample();
 
             record_trinamic_metrics(updated_axes);
 

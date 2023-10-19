@@ -46,7 +46,7 @@ public:
     static constexpr uint16_t TMC_WRITE_REQUEST_ADDRESS { ftrstd::to_underlying(SystemHoldingRegister::tmc_write_request_address) };
     static constexpr uint16_t ENCODED_FIFO_ADDRESS { ftrstd::to_underlying(SystemFIFO::encoded_stream) };
 
-    static constexpr uint32_t DWARF_READ_PERIOD = 200;      ///< Read registers this often [ms]
+    static constexpr uint32_t DWARF_READ_PERIOD = 200; ///< Read registers this often [ms]
     static constexpr uint32_t DWARF_FIFO_PULL_PERIOD = 200; ///< Pull fifo of unselected dwarf this often [ms]
     static constexpr uint_fast8_t NUM_FANS = 2;
     static constexpr uint8_t FIFO_RETRIES = 3;
@@ -197,9 +197,11 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
     inline bool refresh_buttons() { return refresh_discrete_general_status(); }
 
     [[nodiscard]] FSensor::value_type get_tool_filament_sensor();
-    [[nodiscard]] float get_mcu_temperature();
-    [[nodiscard]] float get_24V();            // Get 24V power supply voltage [V]
-    [[nodiscard]] float get_heater_current(); // Get heater electric current [A]
+
+    [[nodiscard]] int16_t get_mcu_temperature(); ///< Get MCU temperature [°C]
+    [[nodiscard]] int16_t get_board_temperature(); ///< Get board temperature [°C]
+    [[nodiscard]] float get_24V(); ///< Get 24V power supply voltage [V]
+    [[nodiscard]] float get_heater_current(); ///< Get heater electric current [A]
 
     void set_heatbreak_target_temp(int16_t target);
     void set_fan(uint8_t fan, uint16_t target);
@@ -281,91 +283,92 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
     uint16_t get_heatbreak_fan_pwr();
 
     MODBUS_REGISTER GeneralStatic_t {
-        uint16_t HwBomId;
-        uint32_t HwOtpTimestsamp;
-        uint16_t HwDatamatrix[12];
+        uint16_t HwBomId {};
+        uint32_t HwOtpTimestsamp {};
+        uint16_t HwDatamatrix[12] {};
     };
-    ModbusInputRegisterBlock<HW_BOM_ID_ADDR, GeneralStatic_t> GeneralStatic;
+    ModbusInputRegisterBlock<HW_BOM_ID_ADDR, GeneralStatic_t> GeneralStatic {};
 
     MODBUS_DISCRETE DiscreteGeneralStatus_t {
-        bool is_picked;
-        bool is_parked;
-        bool is_button_up_pressed;
-        bool is_button_down_pressed;
+        bool is_picked {};
+        bool is_parked {};
+        bool is_button_up_pressed {};
+        bool is_button_down_pressed {};
     };
-    ModbusDiscreteInputBlock<GENERAL_DISCRETE_INPUTS_ADDR, DiscreteGeneralStatus_t> DiscreteGeneralStatus;
+    ModbusDiscreteInputBlock<GENERAL_DISCRETE_INPUTS_ADDR, DiscreteGeneralStatus_t> DiscreteGeneralStatus {};
 
     MODBUS_REGISTER FanReadRegisters {
-        uint16_t rpm;
-        uint16_t pwm;
-        uint16_t state;
-        uint16_t is_rpm_ok;
+        uint16_t rpm {};
+        uint16_t pwm {};
+        uint16_t state {};
+        uint16_t is_rpm_ok {};
     };
 
     MODBUS_REGISTER RegisterGeneralStatus_t {
-        dwarf_shared::errors::FaultStatusMask FaultStatus;
-        uint16_t HotendMeasuredTemperature;
-        uint16_t HotendPWMState;
-        uint16_t ToolFilamentSensor;
-        uint16_t MCU_temperature;
-        uint16_t HeatBreakMeasuredTemperature;
-        uint16_t IsPickedRaw;
-        uint16_t IsParkedRaw;
-        FanReadRegisters fan[NUM_FANS];
-        uint16_t system_24V_mV;
-        uint16_t heater_current_mA;
+        dwarf_shared::errors::FaultStatusMask FaultStatus {};
+        uint16_t HotendMeasuredTemperature {};
+        uint16_t HotendPWMState {};
+        uint16_t ToolFilamentSensor {};
+        uint16_t BoardTemperature {};
+        uint16_t MCUTemperature {};
+        uint16_t HeatBreakMeasuredTemperature {};
+        uint16_t IsPickedRaw {};
+        uint16_t IsParkedRaw {};
+        FanReadRegisters fan[NUM_FANS] {};
+        uint16_t system_24V_mV {};
+        uint16_t heater_current_mA {};
     };
-    ModbusInputRegisterBlock<FAULT_STATUS_ADDR, RegisterGeneralStatus_t> RegisterGeneralStatus;
+    ModbusInputRegisterBlock<FAULT_STATUS_ADDR, RegisterGeneralStatus_t> RegisterGeneralStatus {};
 
     MODBUS_REGISTER TimeSync_t {
-        uint32_t dwarf_time_us;
+        uint32_t dwarf_time_us {};
     };
-    ModbusInputRegisterBlock<TIME_SYNC_ADDR, TimeSync_t> TimeSync;
+    ModbusInputRegisterBlock<TIME_SYNC_ADDR, TimeSync_t> TimeSync {};
 
     MODBUS_REGISTER GeneralWrite_t {
-        uint16_t HotendRequestedTemperature;
-        uint16_t HeatbreakRequestedTemperature;
+        uint16_t HotendRequestedTemperature {};
+        uint16_t HeatbreakRequestedTemperature {};
 
         static constexpr uint16_t FAN_AUTO_PWM = std::numeric_limits<uint16_t>::max();
-        uint16_t fan_pwm[NUM_FANS]; // target PWM or when value is FAN_AUTO_RPM, use automatic control
+        uint16_t fan_pwm[NUM_FANS] {}; // target PWM or when value is FAN_AUTO_RPM, use automatic control
 
         struct __attribute__((packed)) {
-            uint8_t not_selected; // 8 LSb PWM when not selected [0 - 0xff]
-            uint8_t selected;     // 8 MSb PWM when selected [0 - 0xff]
+            uint8_t not_selected {}; // 8 LSb PWM when not selected [0 - 0xff]
+            uint8_t selected {}; // 8 MSb PWM when selected [0 - 0xff]
         } led_pwm;
 
         /// Dwarf status LED control, for encoding see dwarf_shared::StatusLed
-        uint16_t status_led[dwarf_shared::StatusLed::REG_SIZE];
+        uint16_t status_led[dwarf_shared::StatusLed::REG_SIZE] {};
     };
     ModbusHoldingRegisterBlock<GENERAL_WRITE_REQUEST, GeneralWrite_t> GeneralWrite;
 
     MODBUS_REGISTER TmcWriteRequest_t {
-        uint16_t address;
-        uint32_t data;
+        uint16_t address {};
+        uint32_t data {};
     };
-    ModbusHoldingRegisterBlock<TMC_WRITE_REQUEST_ADDRESS, TmcWriteRequest_t> TmcWriteRequest;
+    ModbusHoldingRegisterBlock<TMC_WRITE_REQUEST_ADDRESS, TmcWriteRequest_t> TmcWriteRequest {};
 
     MODBUS_REGISTER TmcReadRequest_t {
-        uint16_t address;
+        uint16_t address {};
     };
-    ModbusHoldingRegisterBlock<TMC_READ_REQUEST_ADDRESS, TmcReadRequest_t> TmcReadRequest;
+    ModbusHoldingRegisterBlock<TMC_READ_REQUEST_ADDRESS, TmcReadRequest_t> TmcReadRequest {};
 
     MODBUS_REGISTER TmcReadResponse_t {
-        uint32_t value;
+        uint32_t value {};
     };
-    ModbusInputRegisterBlock<TMC_READ_RESPONSE_ADDRESS, TmcReadResponse_t> TmcReadResponse;
+    ModbusInputRegisterBlock<TMC_READ_RESPONSE_ADDRESS, TmcReadResponse_t> TmcReadResponse {};
 
-    ModbusCoil<TMC_ENABLE_ADDR> TmcEnable;
-    ModbusCoil<IS_SELECTED> IsSelectedCoil;
-    ModbusCoil<LOADCELL_ENABLE> LoadcellEnableCoil;
-    ModbusCoil<ACCELEROMETER_ENABLE> AccelerometerEnableCoil;
-    ModbusCoil<ACCELEROMETER_HIGH> AccelerometerHighCoil;
+    ModbusCoil<TMC_ENABLE_ADDR> TmcEnable {};
+    ModbusCoil<IS_SELECTED> IsSelectedCoil {};
+    ModbusCoil<LOADCELL_ENABLE> LoadcellEnableCoil {};
+    ModbusCoil<ACCELEROMETER_ENABLE> AccelerometerEnableCoil {};
+    ModbusCoil<ACCELEROMETER_HIGH> AccelerometerHighCoil {};
 
     MODBUS_REGISTER MarlinErrorString_t {
-        uint16_t title[10];   // 20 chars, title of error
-        uint16_t message[32]; // 64 chars, message of error
+        uint16_t title[10] {}; // 20 chars, title of error
+        uint16_t message[32] {}; // 64 chars, message of error
     };
-    ModbusInputRegisterBlock<MARLIN_ERROR_COMPONENT_START, MarlinErrorString_t> MarlinErrorString;
+    ModbusInputRegisterBlock<MARLIN_ERROR_COMPONENT_START, MarlinErrorString_t> MarlinErrorString {};
 
     inline uint8_t get_dwarf_nr() const {
         return dwarf_nr;
@@ -388,9 +391,9 @@ private:
 
     struct LoadcellSamplerate {
         static constexpr float expected = 1000.f / HX717::sample_rate; ///< Expected sampling interval [ms]
-        uint32_t count;                                                ///< Number of samples processed in one fifo pull
-        uint32_t last_timestamp;                                       ///< Timestamp of last sample
-        uint32_t last_processed_timestamp;                             ///< Timestamp of last update of sampling rate
+        uint32_t count; ///< Number of samples processed in one fifo pull
+        uint32_t last_timestamp; ///< Timestamp of last sample
+        uint32_t last_processed_timestamp; ///< Timestamp of last update of sampling rate
     } loadcell_samplerate;
 
     const Decoder::Callbacks_t callbacks;
@@ -406,14 +409,14 @@ private:
     CommunicationStatus read_general_status();
     void handle_dwarf_fault();
     void report_accelerometer(int samples_received);
-    bool raw_set_loadcell(bool active);                                                       // Low level loadcell enable/disable, no dependencies
-    bool raw_set_accelerometer(bool active);                                                  // Low level accelerometer enable/disable, no dependencies
+    bool raw_set_loadcell(bool active); // Low level loadcell enable/disable, no dependencies
+    bool raw_set_accelerometer(bool active); // Low level accelerometer enable/disable, no dependencies
     CommunicationStatus read_fifo(std::array<uint16_t, MODBUS_FIFO_LEN> &fifo, size_t &read); // Handle fifo read retries
 
     // Register refresh control
     uint32_t last_update_ms = 0; ///< Last time we updated registers
-    uint32_t refresh_nr = 0;     ///< Switch of different refresh cases
-    uint32_t last_pull_ms = 0;   ///< Last time we pulled data from fifo
+    uint32_t refresh_nr = 0; ///< Switch of different refresh cases
+    uint32_t last_pull_ms = 0; ///< Last time we pulled data from fifo
 };
 
 extern std::array<Dwarf, DWARF_MAX_COUNT> dwarfs;

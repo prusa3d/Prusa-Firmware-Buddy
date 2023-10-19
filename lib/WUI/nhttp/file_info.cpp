@@ -80,7 +80,6 @@ JsonResult FileInfo::DirRenderer::renderState(size_t resume_point, JsonOutput &o
 
 JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput &output, FileInfo::DirState &state) const {
     struct stat st {};
-    bool read_only = false;
 
     // Keep the indentation of the JSON in here!
     // clang-format off
@@ -97,24 +96,30 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
             state.base_folder_timestamp = st.st_mtime;
             JSON_FIELD_INT("m_timestamp", state.base_folder_timestamp) JSON_COMMA;
         }
-        JSON_FIELD_STR("name", state.filename) JSON_COMMA;
+        JSON_FIELD_STR_437("name", state.filename) JSON_COMMA;
         JSON_FIELD_ARR("children");
         while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
+            if (const char *lfn = dirent_lfn(state.ent); lfn && lfn[0] == '.') {
+                continue;
+            }
+
             if (state.ent->d_type != DT_DIR and !filename_is_printable(state.ent->d_name)) {
                 continue;
             }
 
+            state.read_only = false;
+            state.partial = false;
+
             if (state.ent->d_type == DT_DIR && filename_is_printable(state.ent->d_name)) {
                 MutablePath mp(state.filepath);
                 mp.push(state.ent->d_name);
-                if (transfers::Transfer::is_valid_transfer(mp)) {
+                if (transfers::is_valid_transfer(mp)) {
                     state.ent->d_type = DT_REG;
-                    read_only = true;
+                    state.read_only = true;
+                    state.partial = true;
                 } else {
                     continue;
                 }
-            } else {
-                read_only = false;
             }
 
             if (!state.first) {
@@ -123,8 +128,8 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
                 state.first = false;
             }
             JSON_OBJ_START;
-                JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
-                JSON_FIELD_BOOL("ro", read_only) JSON_COMMA;
+                JSON_FIELD_STR_437("name", state.ent->d_name) JSON_COMMA;
+                JSON_FIELD_BOOL("ro", state.read_only) JSON_COMMA;
                 JSON_FIELD_STR("type", file_type(state.ent)) JSON_COMMA;
 #ifdef UNITTESTS
                 JSON_FIELD_INT("m_timestamp", 0) JSON_COMMA;
@@ -135,13 +140,23 @@ JsonResult FileInfo::DirRenderer::renderStateV1(size_t resume_point, JsonOutput 
                     JSON_FIELD_OBJ("refs");
                         if (filename_is_printable(state.ent->d_name)) {
                             JSON_FIELD_STR_FORMAT("icon", "/thumb/s%s/%s", state.filepath, state.ent->d_name) JSON_COMMA;
-                            JSON_FIELD_STR_FORMAT("thumbnail", "/thumb/l%s/%s", state.filepath, state.ent->d_name) JSON_COMMA;
+                            JSON_FIELD_STR_FORMAT("thumbnail", "/thumb/l%s/%s", state.filepath, state.ent->d_name);
+                            if (!state.partial) {
+                                // Oh, why can't json just support a trailing comma :-(
+                                JSON_COMMA;
+                            }
                         }
-                        JSON_FIELD_STR_FORMAT("download", "%s/%s", state.filepath, state.ent->d_name);
+                        if (!state.partial) {
+                            // We don't allow downloading a partial file until it is fully in place
+                            // (we probably could once it is in the partial
+                            // state but already having 100% of it, but that
+                            // would be complicated).
+                            JSON_FIELD_STR_FORMAT("download", "%s/%s", state.filepath, state.ent->d_name);
+                        }
                     JSON_OBJ_END JSON_COMMA;
                 }
 #ifdef UNITTESTS
-                JSON_FIELD_STR("display_name", state.ent->d_name);
+                JSON_FIELD_STR_437("display_name", state.ent->d_name);
 #else
                 JSON_FIELD_STR("display_name", state.ent->lfn);
 #endif
@@ -177,12 +192,13 @@ JsonResult FileInfo::DirRenderer::renderStateOctoprint(size_t resume_point, Json
                     }
 
                     JSON_OBJ_START;
-                        JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
+                        JSON_FIELD_STR_437("name", state.ent->d_name) JSON_COMMA;
 #ifdef UNITTESTS
-                        JSON_FIELD_STR("display", state.ent->d_name) JSON_COMMA;
+                        JSON_FIELD_STR_437("display", state.ent->d_name) JSON_COMMA;
 #else
                         JSON_FIELD_STR("display", state.ent->lfn) JSON_COMMA;
 #endif
+                        // XXX All of these... how?
                         JSON_FIELD_STR_FORMAT("path", "%s/%s", state.filename, state.ent->d_name) JSON_COMMA;
                         JSON_CONTROL("\"origin\":\"usb\",");
                         JSON_FIELD_OBJ("refs");

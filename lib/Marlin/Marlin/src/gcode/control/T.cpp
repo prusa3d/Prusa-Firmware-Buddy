@@ -65,7 +65,7 @@ void GcodeSuite::T(uint8_t tool_index) {
   if (map) {
     tool_index = tool_mapper.to_physical(tool_index);
     if (tool_index == tool_mapper.NO_TOOL_MAPPED) {
-        fatal_error("Toolchange to tool that is disabled by tool mapping", "PrusaToolChanger");
+      raise_redscreen(ErrCode::ERR_UNDEF, "Toolchange to tool that is disabled by tool mapping", "PrusaToolChanger");
     }
   }
 #endif

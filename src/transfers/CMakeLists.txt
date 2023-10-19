@@ -8,6 +8,7 @@ target_sources(
           monitor.cpp
           partial_file.cpp
           transfer.cpp
+          transfer_file_check.cpp
           transfer_recovery.cpp
   )
 if(USE_ASYNCIO)

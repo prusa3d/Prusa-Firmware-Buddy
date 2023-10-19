@@ -57,10 +57,10 @@ struct MenuVars {
 #else
     constexpr static std::array<int, RANGE_SZ> feedrate_range = { 10, 255, 1 };
 #endif
-    constexpr static std::array<int, MenuVars::RANGE_SZ> microstep_exponential_range = { 1, 256, 2 };        // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
+    constexpr static std::array<int, MenuVars::RANGE_SZ> microstep_exponential_range = { 1, 256, 2 }; // 2^0 - 2^8 .. 1, 2, 4, .. , 128, 256
     constexpr static std::array<int, MenuVars::RANGE_SZ> microstep_exponential_range_with_0 = { 0, 256, 2 }; // 0 + 2^0 - 2^8 .. 0, 1, 2, 4, .. , 128, 256
     constexpr static std::array<int, MenuVars::RANGE_SZ> axis_rms_currents_range = { 0, 800, 1 };
-    constexpr static std::array<int, MenuVars::RANGE_SZ> steps_per_unit_range = { 1, 1000, 1 };              // small range, experimental feature
+    constexpr static std::array<int, MenuVars::RANGE_SZ> steps_per_unit_range = { 1, 1000, 1 }; // small range, experimental feature
 
     static const std::array<int, AXIS_CNT> GetManualFeedrate();
     static const std::array<char, AXIS_CNT> GetAxisLetters();

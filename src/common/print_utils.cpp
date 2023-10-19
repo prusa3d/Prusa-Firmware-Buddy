@@ -9,7 +9,7 @@
 #include "marlin_server.hpp"
 #include "unique_file_ptr.hpp"
 #include "timing.h"
-#include "config.h"    // GUI_WINDOW_SUPPORT
+#include "config.h" // GUI_WINDOW_SUPPORT
 #include "guiconfig.h" // GUI_WINDOW_SUPPORT
 #include "unistd.h"
 #include "str_utils.hpp"
@@ -27,19 +27,13 @@
     #endif
 #endif
 
-static const char *autostart_filename = "/usb/AUTO.GCO";
-static bool run_once_done = false;
-static uint32_t current_time = 0;
-static uint32_t rescan_delay = 1500;
-static uint32_t max_rescan_time = 100000;
-
 #if ENABLED(POWER_PANIC)
 static bool file_exists(const char *filename) {
     auto open_file = unique_file_ptr(fopen(filename, "r"));
     bool file_exists = open_file != nullptr;
     if (!file_exists) {
         MutablePath path(filename);
-        file_exists = transfers::Transfer::is_valid_transfer(path);
+        file_exists = transfers::is_valid_transfer(path);
     }
     return file_exists;
 }
@@ -110,7 +104,6 @@ void run_once_after_boot() {
             if (resume) {
                 // resume and bypass g-code autostart
                 power_panic::resume_print(auto_recover);
-                TaskDeps::provide(TaskDeps::Dependency::power_panic_initialized);
                 return;
             }
         }
@@ -120,24 +113,28 @@ void run_once_after_boot() {
 #endif
 
     // g-code autostart
+    static constexpr const char *autostart_filename = "/usb/AUTO.GCO";
     if (access(autostart_filename, F_OK) == 0) {
         // call directly marlin server start print. This function is not safe
         marlin_server::print_start(autostart_filename, true);
         oProgressData.mInit();
     }
-
-    TaskDeps::provide(TaskDeps::Dependency::power_panic_initialized);
 }
 
 void print_utils_loop() {
-    if (run_once_done == false && HAL_GetTick() >= current_time + rescan_delay) {
+    static constexpr uint32_t rescan_delay = 1500; ///< Check run_once_after_boot this often [ms]
+    static constexpr uint32_t max_rescan_time = 100000; ///< Wait for run_once_after_boot at most [ms]
+
+    static uint32_t current_time = ticks_ms();
+
+    if (!TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && ticks_ms() >= current_time + rescan_delay) {
         current_time += rescan_delay;
         if (media_get_state() == media_state_INSERTED && thermalManager.temperatures_ready()) {
-            run_once_done = true;
             run_once_after_boot();
+            TaskDeps::provide(TaskDeps::Dependency::usb_and_temp_ready);
         } else if (current_time > max_rescan_time || !marlin_server::printer_idle()) {
             // no longer attempt to run the autostart sequence
-            run_once_done = true;
+            TaskDeps::provide(TaskDeps::Dependency::usb_and_temp_ready);
         }
     }
 }
@@ -171,7 +168,7 @@ DeleteResult remove_file(const char *path) {
     }
 
     MutablePath mp(path);
-    if (transfers::Transfer::is_valid_transfer(mp)) {
+    if (transfers::is_valid_transfer(mp)) {
         return DeleteResult::ActiveTransfer;
     }
 

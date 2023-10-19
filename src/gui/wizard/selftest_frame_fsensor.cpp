@@ -19,7 +19,7 @@ static constexpr size_t row_3 = 200;
 static constexpr size_t col_0 = WizardDefaults::MarginLeft;
 
 static constexpr size_t text_icon_space = 24;
-static constexpr size_t icon_left_width = 100;  // 150x130
+static constexpr size_t icon_left_width = 100; // 150x130
 static constexpr size_t icon_right_width = 150; // 100x100
 static constexpr size_t text_left_width = WizardDefaults::X_space - icon_right_width - text_icon_space;
 static constexpr size_t text_right_width = WizardDefaults::X_space - icon_left_width - text_icon_space;
@@ -40,9 +40,9 @@ SelftestFrameFSensor::SelftestFrameFSensor(window_t *parent, PhasesSelftest ph, 
 
     , footer(this, 0,
 #if HAS_SIDE_FSENSOR()
-          footer::Item::FSensorSide,
+          footer::Item::f_sensor_side,
 #endif /*HAS_SIDE_FSENSOR()*/
-          footer::Item::FSensor)
+          footer::Item::f_sensor)
     , progress(this, WizardDefaults::row_1)
     , text_left(this, Rect16(col_0, top_of_changeable_area, text_left_width, height_of_changeable_area), is_multiline::yes)
     , text_right(this, Rect16(col_0 + icon_left_width + text_icon_space, top_of_changeable_area, text_right_width, height_of_changeable_area), is_multiline::yes)
@@ -70,7 +70,7 @@ void SelftestFrameFSensor::change() {
     const char *txt_right = nullptr;
     const char *txt_result = nullptr;
     const img::Resource *right_icon_id = nullptr; // hand ok hand with checkmark
-    bool show_left_icon = false;                  // spool
+    bool show_left_icon = false; // spool
     bool show_hourglass = false;
 
     // texts

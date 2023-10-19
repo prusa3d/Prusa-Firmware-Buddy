@@ -48,7 +48,7 @@ enum class HBCoil : uint16_t {
 enum class SystemInputRegister : uint16_t {
     fault_status = 0x8000,
     hw_bom_id = 0x8001,
-    hw_otp_timestamp_0 = 0x8002,      // 4 B UNIX timestamp, seconds since 1970
+    hw_otp_timestamp_0 = 0x8002, // 4 B UNIX timestamp, seconds since 1970
     hw_otp_timestamp_1 = 0x8003,
     hw_raw_datamatrix_first = 0x8004, // 24 B raw datamatrix string
     hw_raw_datamatrix_last = 0x800f,

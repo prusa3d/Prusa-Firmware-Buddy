@@ -21,22 +21,23 @@ extern "C" {
 #define W25X_BLOCK64_SIZE       0x10000
 #define W25X_DUMP_START_ADDRESS 0
 #if PRINTER_IS_PRUSA_MINI
-    // 48 = 192KiB offset for crash dump, which is the total RAM size
-    #define W25X_ERR_START_ADDRESS (48 * W25X_BLOCK_SIZE)
-    #define W25X_PP_START_ADDRESS  (49 * W25X_BLOCK_SIZE)
-    #define W25X_FS_START_ADDRESS  (50 * W25X_BLOCK_SIZE)
+    // Some MINIes have 1MB flash, some have 8M
+    // 49 = 196KiB offset for crash dump
+    #define W25X_ERR_START_ADDRESS (49 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (50 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (51 * W25X_BLOCK_SIZE)
 #elif (PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5 || PRINTER_IS_PRUSA_iX)
     // 8M = 2K of 4K blocks
-    // 64 = 256KiB offset for crash dump, which is the total RAM size
-    #define W25X_ERR_START_ADDRESS (64 * W25X_BLOCK_SIZE)
-    #define W25X_PP_START_ADDRESS  (65 * W25X_BLOCK_SIZE)
-    #define W25X_FS_START_ADDRESS  (66 * W25X_BLOCK_SIZE)
+    // 65 = 260KiB offset for crash dump
+    #define W25X_ERR_START_ADDRESS (65 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (66 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (67 * W25X_BLOCK_SIZE)
 #elif PRINTER_IS_PRUSA_XL
     // 8M = 2K of 4K blocks
-    // 64 = 256KiB offset for crash dump, which is the total RAM size
-    #define W25X_ERR_START_ADDRESS (64 * W25X_BLOCK_SIZE)
-    #define W25X_PP_START_ADDRESS  (65 * W25X_BLOCK_SIZE)
-    #define W25X_FS_START_ADDRESS  (67 * W25X_BLOCK_SIZE)
+    // 65 = 260KiB offset for crash dump, which is the total RAM size
+    #define W25X_ERR_START_ADDRESS (65 * W25X_BLOCK_SIZE)
+    #define W25X_PP_START_ADDRESS  (66 * W25X_BLOCK_SIZE)
+    #define W25X_FS_START_ADDRESS  (68 * W25X_BLOCK_SIZE)
 #else
     #error "Unknown PRINTER_TYPE!"
 #endif
@@ -49,6 +50,7 @@ inline constexpr uint32_t w25x_error_start_adress = W25X_ERR_START_ADDRESS;
 inline constexpr uint32_t w25x_pp_start_address = W25X_PP_START_ADDRESS;
 inline constexpr uint32_t w25x_fs_start_address = W25X_FS_START_ADDRESS;
 inline constexpr size_t w25x_pp_size = w25x_fs_start_address - w25x_pp_start_address;
+inline constexpr uint32_t w25x_dump_size = w25x_error_start_adress - w25x_dump_start_address;
 #endif // defined(__cplusplus)
 
 /// Initialize the w25x module

@@ -5,6 +5,8 @@
 #include "FreeRTOS.h"
 #include "tick_timer_api.h"
 #include "wdt.h"
+#include <buddy/priorities_config.h>
+
 #define TICK_TIMER_CNT (h_tick_tim.Instance->CNT)
 
 // Large numbers to avoid number of 0s errors
@@ -46,7 +48,7 @@ static void sample_timer(uint32_t &sec, uint32_t &subsec) {
 
     do {
         sec_1st_read = tick_cnt_s;
-        lower_cnt = TICK_TIMER_CNT;         // Will be in range 0 .. TIM_BASE_CLK_MHZ * million - 1
+        lower_cnt = TICK_TIMER_CNT; // Will be in range 0 .. TIM_BASE_CLK_MHZ * million - 1
         sec_2nd_read = tick_cnt_s;
     } while (sec_1st_read != sec_2nd_read); // Repeat if overflow of the timer has happened
 
@@ -140,7 +142,7 @@ extern "C" HAL_StatusTypeDef tick_timer_init() {
     TICK_TIMER_CLK_ENABLE();
 
     h_tick_tim.Instance = TICK_TIMER;
-    h_tick_tim.Init.Prescaler = 0;                             // no prescaler = we get full 84Mhz
+    h_tick_tim.Init.Prescaler = 0; // no prescaler = we get full 84Mhz
     h_tick_tim.Init.CounterMode = TIM_COUNTERMODE_UP;
     h_tick_tim.Init.Period = (TIM_BASE_CLK_MHZ * million) - 1; // set period to 1s
     h_tick_tim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

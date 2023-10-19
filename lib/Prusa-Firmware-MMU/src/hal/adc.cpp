@@ -14,12 +14,12 @@ void Init() {
 uint16_t ReadADC(uint8_t channel) {
     uint8_t admux = ADMUX;
     admux &= ~0x1F;
-    admux |= channel & 0x07;
+    admux |= channel & 0x1F;
     ADMUX = admux;
 
     uint8_t adcsrb = ADCSRB;
     adcsrb &= ~(1 << MUX5);
-    adcsrb |= (channel & 0x08) << 1;
+    adcsrb |= channel & 0x20;
     ADCSRB = adcsrb;
 
     ADCSRA |= (1 << ADSC);

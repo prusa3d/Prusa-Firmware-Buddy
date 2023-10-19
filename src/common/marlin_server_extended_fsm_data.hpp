@@ -93,7 +93,7 @@ public:
 
 private:
     static constexpr size_t buffer_size = 32; //< size of buffer that is used to exchange extended data between server->client
-    static size_t identifier;                 //< contains identifier of type, that is currently stored
+    static size_t identifier; //< contains identifier of type, that is currently stored
     static uint8_t extended_data_buffer[buffer_size];
 
     /// @brief Obtain type identifier of stored data

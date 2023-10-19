@@ -108,7 +108,7 @@ LoopResult CSelftestPart_Loadcell::stateCooldownInit() {
         log_info(Selftest, "%s cooling needed, target: %d current: %f", rConfig.partname, rConfig.cool_temp, (double)temp);
         rConfig.print_fan_fnc(rConfig.tool_nr).EnterSelftestMode();
         rConfig.heatbreak_fan_fnc(rConfig.tool_nr).EnterSelftestMode();
-        rConfig.print_fan_fnc(rConfig.tool_nr).SelftestSetPWM(255);     // it will be restored by ExitSelftestMode
+        rConfig.print_fan_fnc(rConfig.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
         rConfig.heatbreak_fan_fnc(rConfig.tool_nr).SelftestSetPWM(255); // it will be restored by ExitSelftestMode
         log_info(Selftest, "%s fans set to maximum", rConfig.partname);
     }
@@ -160,18 +160,12 @@ LoopResult CSelftestPart_Loadcell::stateToolSelectWaitFinish() {
     return LoopResult::RunNext;
 }
 
-// disconnected sensor -> raw_load == 0
-// but raw_load == 0 is also valid value
-// test rely on hw being unstable, raw_load must be different from 0 at least once during test period
+// disconnected sensor -> raw_load == undefined_value
+// test rely on hw being unstable, raw_load must be different from undefined_value at least once during test period
 LoopResult CSelftestPart_Loadcell::stateConnectionCheck() {
     int32_t raw_load = loadcell.get_raw_value();
-    if (raw_load == std::numeric_limits<int32_t>::min()) {
-        log_error(Selftest, "%s returned _I32_MIN", rConfig.partname);
-        IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_fail);
-        return LoopResult::Fail;
-    }
-    if (raw_load == std::numeric_limits<int32_t>::max()) {
-        log_error(Selftest, "%s returned _I32_MAX", rConfig.partname);
+    if (raw_load == Loadcell::undefined_value) {
+        log_error(Selftest, "%s returned undefined_value", rConfig.partname);
         IPartHandler::SetFsmPhase(PhasesSelftest::Loadcell_fail);
         return LoopResult::Fail;
     }
@@ -203,8 +197,6 @@ LoopResult CSelftestPart_Loadcell::stateAskAbort() {
         log_error(Selftest, "%s user pressed abort, code should not reach this place", rConfig.partname);
         return LoopResult::Abort;
     case Response::Continue:
-        loadcell.EnableHighPrecision();
-        loadcell.Tare(Loadcell::TareMode::Static);
         log_info(Selftest, "%s user pressed continue", rConfig.partname);
         return LoopResult::RunNext;
     default:
@@ -214,6 +206,12 @@ LoopResult CSelftestPart_Loadcell::stateAskAbort() {
 }
 
 LoopResult CSelftestPart_Loadcell::stateTapCheckCountDownInit() {
+    // Enable high precision and take a reference tare
+    loadcell.EnableHighPrecision();
+    safe_delay(Z_FIRST_PROBE_DELAY);
+    loadcell.WaitBarrier();
+    loadcell.Tare(Loadcell::TareMode::Static);
+
     time_start_countdown = SelftestInstance().GetTime();
     rResult.countdown = SelftestLoadcell_t::countdown_undef;
     rResult.pressed_too_soon = true;
@@ -255,20 +253,22 @@ LoopResult CSelftestPart_Loadcell::stateTapCheckInit() {
 LoopResult CSelftestPart_Loadcell::stateTapCheck() {
     if ((SelftestInstance().GetTime() - time_start_tap) >= rConfig.tap_timeout_ms) {
         log_info(Selftest, "%s user did not tap", rConfig.partname);
+        loadcell.DisableHighPrecision();
         return LoopResult::GoToMark0; // timeout, retry entire touch sequence
     }
 
     int32_t load = -1 * loadcell.get_tared_z_load(); // Positive when pushing the nozzle up
     bool pass = IsInClosedRange(load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
     if (pass) {
+        loadcell.DisableHighPrecision();
         log_info(Selftest, "%s tap check, load %dg successful in range <%d, %d>", rConfig.partname, load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
-    } else {
-        LogInfoTimed(log_fast, "%s tap check, load %dg not in range <%d, %d>", rConfig.partname, load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
+        return LoopResult::RunNext;
     }
 
+    LogInfoTimed(log_fast, "%s tap check, load %dg not in range <%d, %d>", rConfig.partname, load, rConfig.tap_min_load_ok, rConfig.tap_max_load_ok);
     // Show tared value at 1/10 of the range, threshold tap_min_load_ok is needed to pass the test
     rResult.progress = scale_percent_avoid_overflow(load, rConfig.tap_min_load_ok / -9, rConfig.tap_min_load_ok);
-    return pass ? LoopResult::RunNext : LoopResult::RunCurrent;
+    return LoopResult::RunCurrent;
 }
 
 LoopResult CSelftestPart_Loadcell::stateTapOk() {

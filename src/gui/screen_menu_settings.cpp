@@ -33,7 +33,7 @@ ScreenMenuSettings::ScreenMenuSettings()
 
 #if (!PRINTER_IS_PRUSA_MINI)
     header.SetIcon(&img::settings_16x16);
-#endif                                                                                                                                  // PRINTER_IS_PRUSA_MINI
+#endif // PRINTER_IS_PRUSA_MINI
 
     gui::knob::RegisterLongPressScreenAction([]() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuExperimentalSettings>); }); // new hold action
     EnableLongHoldScreenAction();

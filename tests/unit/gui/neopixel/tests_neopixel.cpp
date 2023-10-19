@@ -47,7 +47,7 @@ void spi_wr_bytes__string(uint8_t *pb, uint16_t size) {
 
     size_t add_front_zeroes = size_t(SZ - size * 8); // difference between maximum current size
     cmp_string.insert(0, add_front_zeroes, '0');
-    cmp_string.resize(SZ, '0');                      // resize to be comparable with bitfield, fill unused fields with zeroes
+    cmp_string.resize(SZ, '0'); // resize to be comparable with bitfield, fill unused fields with zeroes
     REQUIRE(cmp_string == bs.to_string());
 }
 
@@ -114,8 +114,8 @@ TEST_CASE("LEDS") {
         led_test<1, 0, 0, 1, 0, 1>(cl1, std::vector<uint8_t>({ 0, 0, 0x01 }));
         Leds_base<1>::color_array colors = { { 0x00123456 } };
         led_test<1, 0, 0, 1, 0, 1>(colors, std::vector<uint8_t>({ 0x12, 0x34, 0x56 }));
-        led_test<1, 0, 0, 1, 1, 1>(colors, std::vector<uint8_t>({ 0x12, 0x34, 0x56, 0 }));                                                 // add one bit (rounded up to bytes) and fill with zeroes
-        led_test<1, 0, 0, 1, 16, 1>(colors, std::vector<uint8_t>({ 0x12, 0x34, 0x56, 0, 0 }));                                             // add 16 bit (rounded up to bytes) and fill with zeroes
+        led_test<1, 0, 0, 1, 1, 1>(colors, std::vector<uint8_t>({ 0x12, 0x34, 0x56, 0 })); // add one bit (rounded up to bytes) and fill with zeroes
+        led_test<1, 0, 0, 1, 16, 1>(colors, std::vector<uint8_t>({ 0x12, 0x34, 0x56, 0, 0 })); // add 16 bit (rounded up to bytes) and fill with zeroes
         led_test<1, 1, 1, 1, 0, 1>(cl0, std::vector<uint8_t>({ 0b10101010, 0b10101010, 0b10101010, 0b10101010, 0b10101010, 0b10101010 })); // set both logical 1 and 0 to generate signal "10"
 
         // 0001 0010  0011 0100  0101 0110

@@ -12,7 +12,7 @@
     #include <stm32g0xx.h>
 #elif defined(UNITTEST)
 
-#else  /*MCU*/
+#else /*MCU*/
     #error "Unknown MCU"
 #endif /*MCU*/
 
@@ -349,7 +349,7 @@ uint8_t otp_parse_serial_nr(serial_nr_t &sn, const uint8_t *memory, size_t len) 
         sn[OTP_DATAMATRIX_TEXT_SIZE] = 0; // terminate with a \0
         return sn.size();
     } break;
-    case 2:   // OTP v2 is the same as OTP v5
+    case 2: // OTP v2 is the same as OTP v5
     case 5: { // OTP v5
         if (len < sizeof(OTP_v5)) {
             return 0;
@@ -392,7 +392,7 @@ std::optional<uint8_t> otp_parse_bom_id(const uint8_t *memory, size_t len) {
         const OTP_v4 *otp = (const OTP_v4 *)memory;
         return otp->bomID;
     } break;
-    case 2:   // OTP v2 is the same as OTP v5
+    case 2: // OTP v2 is the same as OTP v5
     case 5: { // OTP v5
         if (len < sizeof(OTP_v5)) {
             break;

@@ -24,7 +24,7 @@ void extruder_schedule_turning(float feed_rate) {
     mapi::extruder_schedule_turning(feed_rate);
 }
 
-float raise_z(float delta) {
+float move_raise_z(float delta) {
     // @@TODO
     return 0.0F;
 }
@@ -70,12 +70,24 @@ void marlin_manage_heater() {
     thermalManager.manage_heater();
 }
 
-void marlin_manage_inactivity(bool b) {
-    manage_inactivity(b);
+void marlin_manage_inactivity(bool ignore_stepper_queue) {
+    manage_inactivity(ignore_stepper_queue);
 }
 
-void marlin_idle() {
-    idle(true);
+void marlin_idle(bool waiting) {
+    idle(waiting);
+}
+
+void marlin_refresh_print_state_in_ram() {
+    // @@TODO
+}
+
+void marlin_clear_print_state_in_ram() {
+    // @@TODO
+}
+
+void marlin_stop_and_save_print_to_ram() {
+    // @@TODO
 }
 
 int16_t thermal_degTargetHotend() {
@@ -95,9 +107,11 @@ void thermal_setTargetHotend(int16_t t) {
 }
 
 void safe_delay_keep_alive(uint16_t t) {
-    safe_delay(t);
-    manage_inactivity(true);
-    ui.update();
+    //    safe_delay(t);
+    //    manage_inactivity(true);
+    //    ui.update();
+    // shouldn't we call idle() instead? At least the MMU communication can be run even during waiting for temperature
+    idle(true);
 }
 
 void gcode_reset_stepper_timeout() {
@@ -117,13 +131,10 @@ bool all_axes_homed() {
 }
 
 void FullScreenMsg(const char *pgmS, uint8_t slot) {
-#ifdef __AVR__
-    lcd_update_enable(false);
-    lcd_clear();
-    lcd_puts_at_P(0, 1, pgmS);
-    lcd_print(' ');
-    lcd_print(slot + 1);
-#else
-#endif
 }
+
+void enqueue_gcode(const char *gcode) {
+    marlin_server::enqueue_gcode(gcode);
+}
+
 } // namespace MMU2

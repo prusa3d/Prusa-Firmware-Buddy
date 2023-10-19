@@ -256,10 +256,11 @@ static bool is_full() {
 }
 
 static void enqueue_step(int step_us, bool dir, StepEventFlag_t axis_flags) {
+    assert(step_us <= STEP_TIMER_MAX_TICKS_LIMIT);
     uint16_t next_queue_head = 0;
 
     CRITICAL_SECTION_START;
-    step_event_t *step_event = PreciseStepping::get_next_free_step_event(next_queue_head);
+    step_event_u16_t *step_event = PreciseStepping::get_next_free_step_event(next_queue_head);
     step_event->time_ticks = step_us;
     step_event->flags = axis_flags;
     if (dir)

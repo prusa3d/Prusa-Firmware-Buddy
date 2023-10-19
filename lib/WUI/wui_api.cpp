@@ -10,20 +10,12 @@
 
 #include "wui_api.h"
 #include "netdev.h"
-#include "version.h"
-#include "otp.hpp"
 #include "ini_handler.h"
 #include "stm32f4xx_hal.h"
 #include "print_utils.hpp"
 #include "marlin_client.hpp"
-#include "fsm_types.hpp"
-#include "printers.h"
 
-#include <filepath_operation.h>
 #include <lfn.h>
-#include <ScreenHandler.hpp>
-#include <screen_home.hpp>
-#include <screen_print_preview.hpp>
 #include <state/printer_state.hpp>
 
 #include <cassert>

@@ -16,6 +16,7 @@
 #include "modules/pulley.h"
 #include "modules/selector.h"
 #include "modules/permanent_storage.h"
+#include "modules/voltage.h"
 
 /** @defgroup register_table Register Table
  *
@@ -143,11 +144,11 @@
 | ^        | ^        | ^                          | 01h 1        | ^           | stealth                                  | ^            | ^          | ^
 | 0x0bh 11 | uint8    | extra_load_distance        | 00h 0        | 1eh 30      | unit mm                                  | Read / Write | M707 A0x0b | M708 A0x0b Xnn
 | 0x0ch 12 | uint8    | FSensor_unload_check_dist. | 00h 0        | 28h 30      | unit mm                                  | Read / Write | M707 A0x0c | M708 A0x0c Xnn
-| 0x0dh 13 | uint16   | Pulley_unload_feedrate     | 0000h 0      | 0078h 120   | unit mm/s                                | Read / Write | M707 A0x0d | M708 A0x0d Xnnnn
+| 0x0dh 13 | uint16   | Pulley_unload_feedrate     | 0000h 0      | 005fh 95    | unit mm/s                                | Read / Write | M707 A0x0d | M708 A0x0d Xnnnn
 | 0x0eh 14 | uint16   | Pulley_acceleration        | 0000h 0      | 320h 800.0  | unit mm/s²                               | Read (Write) | M707 A0x0e | (M708 A0x0e Xnnnn)
 | 0x0fh 15 | uint16   | Selector_acceleration      | 0000h 0      | 00c8h 200.0 | unit mm/s²                               | Read (Write) | M707 A0x0f | (M708 A0x0f Xnnnn)
 | 0x10h 16 | uint16   | Idler_acceleration         | 0000h 0      | 01f4h 500.0 | unit deg/s²                              | Read (Write) | M707 A0x10 | (M708 A0x10 Xnnnn)
-| 0x11h 17 | uint16   | Pulley_load_feedrate       | 0000h 0      | 0050h 80    | unit mm/s                                | Read / Write | M707 A0x11 | M708 A0x11 Xnnnn
+| 0x11h 17 | uint16   | Pulley_load_feedrate       | 0000h 0      | 005fh 95    | unit mm/s                                | Read / Write | M707 A0x11 | M708 A0x11 Xnnnn
 | 0x12h 18 | uint16   | Selector_nominal_feedrate  | 0000h 0      | 002dh 45    | unit mm/s                                | Read / Write | M707 A0x12 | M708 A0x12 Xnnnn
 | 0x13h 19 | uint16   | Idler_nominal_feedrate     | 0000h 0      | 012ch 300   | unit deg/s                               | Read / Write | M707 A0x13 | M708 A0x13 Xnnnn
 | 0x14h 20 | uint16   | Pulley_slow_feedrate       | 0000h 0      | 0014h 20    | unit mm/s                                | Read / Write | M707 A0x14 | M708 A0x14 Xnnnn
@@ -159,25 +160,51 @@
 | 0x1ah 26 | uint16   | Get Pulley position        | 0000h 0      | ffffh 65535 | unit mm                                  | Read only    | M707 A0x1a | N/A
 | 0x1bh 27 | uint16   | Set/Get_Selector_slot      | 0000h 0      | ffffh 65535 | unit slot [0-4/5] 5=park pos             | Read / Write | M707 A0x1b | M708 A0x1b Xn
 | 0x1ch 28 | uint16   | Set/Get_Idler_slot         | 0000h 0      | ffffh 65535 | unit slot [0-4/5] 5=disengaged           | Read / Write | M707 A0x1c | M708 A0x1c Xn
-| 0x1dh 29 | uint8    | Set/Get Selector cut iRun current | 0 to 63 (aka 0-1024mA)| 31 (530mA) |                | Read / Write | M707 A0x1d | M708 A0x1d Xn
-| 0x1eh 30 | uint16   | Set/Get Pulley iRun current| 0-31         | 14h 20      | 20->350mA: see TMC2130 current conversion| Read / Write | M707 A0x1e | M708 A0x1e Xn
+| 0x1dh 29 | uint8    | Set/Get Selector cut iRun current | 0 to 63 (aka 0-1024mA)| 31 (530mA) |                           | Read / Write | M707 A0x1d | M708 A0x1d Xn
+| 0x1eh 30 | uint16   | Set/Get Pulley iRun current| 0-31         | 0dh 13      | 13->230mA: see TMC2130 current conversion| Read / Write | M707 A0x1e | M708 A0x1e Xn
 | 0x1fh 31 | uint16  |Set/Get Selector iRun current| 0-31         | 1fh 31      | 31->530mA: see TMC2130 current conversion| Read / Write | M707 A0x1f | M708 A0x1f Xn
 | 0x20h 32 | uint16   | Set/Get Idler iRun current | 0-31         | 1fh 31      | 31->530mA: see TMC2130 current conversion| Read / Write | M707 A0x20 | M708 A0x20 Xn
+| 0x21h 33 | uint16   | Reserved for internal use  | 225          |             | N/A                                      | N/A          | N/A        | N/A
+| 0x22h 34 | uint16   | Bowden length              | 341-1000     | 168h 360    | unit mm                                  | Read / Write Persistent | M707 A0x22 | M708 A0x22 Xn
 */
 
-struct RegisterFlags {
-    uint8_t writable : 1;
-    uint8_t rwfuncs : 1; // 1: register needs special read and write functions
-    uint8_t size : 2; // 0: 1 bit, 1: 1 byte, 2: 2 bytes
-    constexpr RegisterFlags(bool writable, uint8_t size)
-        : writable(writable)
-        , rwfuncs(0)
-        , size(size) {}
-    constexpr RegisterFlags(bool writable, bool rwfuncs, uint8_t size)
-        : writable(writable)
-        , rwfuncs(rwfuncs)
-        , size(size) {}
+struct __attribute__((packed)) RegisterFlags {
+    struct __attribute__((packed)) A {
+        uint8_t size : 2; // 0: 1 bit, 1: 1 byte, 2: 2 bytes - keeping size as the lowest 2 bits avoids costly shifts when accessing them
+        uint8_t writable : 1;
+        uint8_t rwfuncs : 1; // 1: register needs special read and write functions
+        constexpr A(uint8_t size, bool writable)
+            : size(size)
+            , writable(writable)
+            , rwfuncs(0) {}
+        constexpr A(uint8_t size, bool writable, bool rwfuncs)
+            : size(size)
+            , writable(writable)
+            , rwfuncs(rwfuncs) {}
+    };
+    union __attribute__((packed)) U {
+        A bits;
+        uint8_t b;
+        constexpr U(uint8_t size, bool writable)
+            : bits(size, writable) {}
+        constexpr U(uint8_t size, bool writable, bool rwfuncs)
+            : bits(size, writable, rwfuncs) {}
+        constexpr U(uint8_t b)
+            : b(b) {}
+    } u;
+    constexpr RegisterFlags(uint8_t size, bool writable)
+        : u(size, writable) {}
+    constexpr RegisterFlags(uint8_t size, bool writable, bool rwfuncs)
+        : u(size, writable, rwfuncs) {}
+    explicit constexpr RegisterFlags(uint8_t b)
+        : u(b) {}
+
+    constexpr bool Writable() const { return u.bits.writable; }
+    constexpr bool RWFuncs() const { return u.bits.rwfuncs; }
+    constexpr uint8_t Size() const { return u.bits.size; }
 };
+
+static_assert(sizeof(RegisterFlags) == 1);
 
 using TReadFunc = uint16_t (*)();
 using TWriteFunc = void (*)(uint16_t);
@@ -185,9 +212,9 @@ using TWriteFunc = void (*)(uint16_t);
 // dummy zero register common to all empty registers
 static constexpr uint16_t dummyZero = 0;
 
-struct RegisterRec {
+struct __attribute__((packed)) RegisterRec {
     RegisterFlags flags;
-    union U1 {
+    union __attribute__((packed)) U1 {
         void *addr;
         TReadFunc readFunc;
         constexpr explicit U1(const TReadFunc &r)
@@ -196,7 +223,7 @@ struct RegisterRec {
             : addr(a) {}
     } A1;
 
-    union U2 {
+    union __attribute__((packed)) U2 {
         void *addr;
         TWriteFunc writeFunc;
         constexpr explicit U2(const TWriteFunc &w)
@@ -207,24 +234,30 @@ struct RegisterRec {
 
     template <typename T>
     constexpr RegisterRec(bool writable, T *address)
-        : flags(RegisterFlags(writable, sizeof(T)))
+        : flags(RegisterFlags(sizeof(T), writable))
         , A1((void *)address)
         , A2((void *)nullptr) {}
     constexpr RegisterRec(const TReadFunc &readFunc, uint8_t bytes)
-        : flags(RegisterFlags(false, true, bytes))
+        : flags(RegisterFlags(bytes, false, true))
         , A1(readFunc)
         , A2((void *)nullptr) {}
 
     constexpr RegisterRec(const TReadFunc &readFunc, const TWriteFunc &writeFunc, uint8_t bytes)
-        : flags(RegisterFlags(true, true, bytes))
+        : flags(RegisterFlags(bytes, true, true))
         , A1(readFunc)
         , A2(writeFunc) {}
 
     constexpr RegisterRec()
-        : flags(RegisterFlags(false, false, 1))
+        : flags(RegisterFlags(1, false, false))
         , A1((void *)&dummyZero)
         , A2((void *)nullptr) {}
 };
+
+// Make sure the structure is tightly packed - necessary for unit tests.
+static_assert(sizeof(RegisterRec) == sizeof(uint8_t) + sizeof(void *) + sizeof(void *));
+// Beware: the size is expected to be 17B on an x86_64 and it requires the platform to be able to do unaligned reads.
+// That might be a problem when running unit tests on non-x86 platforms.
+// So far, no countermeasures have been taken to tackle this potential issue.
 
 // @@TODO it is nice to see all the supported registers at one spot,
 // however it requires including all bunch of dependencies
@@ -244,7 +277,7 @@ struct RegisterRec {
 // In this project that's really not an issue since we have half of the RAM empty:
 // Data: 1531 bytes (59.8% Full)
 // But it would be nice to fix that in the future - might be hard to push the compiler to such a construct
-static const RegisterRec registers[] /*PROGMEM*/ = {
+static const RegisterRec registers[] PROGMEM = {
     // 0x00
     RegisterRec(false, &project_major),
     // 0x01
@@ -255,7 +288,7 @@ static const RegisterRec registers[] /*PROGMEM*/ = {
     RegisterRec(false, &project_build_number),
     // 0x04
     RegisterRec( // MMU errors
-        []() -> uint16_t { return mg::globals.DriveErrors(); },
+        []() -> uint16_t { return mg::globals.DriveErrors(); }, // compiles to: <{lambda()#1}::_FUN()>: jmp <modules::permanent_storage::DriveError::get()>
         // [](uint16_t) {}, // @@TODO think about setting/clearing the error counter from the outside
         2),
     // 0x05
@@ -394,38 +427,48 @@ static const RegisterRec registers[] /*PROGMEM*/ = {
         []() -> uint16_t { return mm::motion.CurrentsForAxis(config::Idler).iRun; },
         [](uint16_t d) { mm::motion.SetIRunForAxis(config::Idler, d); },
         1),
+    // 0x21 Current VCC voltage level R
+    RegisterRec(
+        []() -> uint16_t { return 225; /*mv::vcc.CurrentBandgapVoltage();*/ },
+        2),
+
+    // 0x22 Detected bowden length R
+    RegisterRec(
+        []() -> uint16_t { return mps::BowdenLength::Get(); },
+        [](uint16_t d) { mps::BowdenLength::Set(d); },
+        2),
 };
 
 static constexpr uint8_t registersSize = sizeof(registers) / sizeof(RegisterRec);
+static_assert(registersSize == 35);
 
 bool ReadRegister(uint8_t address, uint16_t &value) {
     if (address >= registersSize) {
         return false;
     }
     value = 0;
-    if (!registers[address].flags.rwfuncs) {
-        switch (registers[address].flags.size) {
+
+    // Get pointer to register at address
+    const uint8_t *addr = reinterpret_cast<const uint8_t *>(registers + address);
+    const RegisterFlags rf(hal::progmem::read_byte(addr));
+    // beware - abusing the knowledge of RegisterRec memory layout to do lpm_reads
+    const void *varAddr = addr + sizeof(RegisterFlags);
+    if (!rf.RWFuncs()) {
+        switch (rf.Size()) {
         case 0:
         case 1:
-            value = *static_cast<uint8_t *>(registers[address].A1.addr);
+            value = *hal::progmem::read_ptr<const uint8_t *>(varAddr);
             break;
         case 2:
-            value = *static_cast<uint16_t *>(registers[address].A1.addr);
+            value = *hal::progmem::read_ptr<const uint16_t *>(varAddr);
             break;
         default:
             return false;
         }
         return true;
     } else {
-        switch (registers[address].flags.size) {
-        case 0:
-        case 1:
-        case 2:
-            value = registers[address].A1.readFunc();
-            break;
-        default:
-            return false;
-        }
+        auto readFunc = hal::progmem::read_ptr<const TReadFunc>(varAddr);
+        value = readFunc();
         return true;
     }
 }
@@ -434,32 +477,32 @@ bool WriteRegister(uint8_t address, uint16_t value) {
     if (address >= registersSize) {
         return false;
     }
-    if (!registers[address].flags.writable) {
+
+    const uint8_t *addr = reinterpret_cast<const uint8_t *>(registers + address);
+    const RegisterFlags rf(hal::progmem::read_byte(addr));
+
+    if (!rf.Writable()) {
         return false;
     }
-    if (!registers[address].flags.rwfuncs) {
-        switch (registers[address].flags.size) {
+    // beware - abusing the knowledge of RegisterRec memory layout to do lpm_reads
+    // addr offset should be 3 on AVR, but 9 on x86_64, therefore "1 + sizeof(void*)"
+    const void *varAddr = addr + sizeof(RegisterFlags) + sizeof(RegisterRec::A1);
+    if (!rf.RWFuncs()) {
+        switch (rf.Size()) {
         case 0:
         case 1:
-            *static_cast<uint8_t *>(registers[address].A1.addr) = value;
+            *hal::progmem::read_ptr<uint8_t *>(varAddr) = value;
             break;
         case 2:
-            *static_cast<uint16_t *>(registers[address].A1.addr) = value;
+            *hal::progmem::read_ptr<uint16_t *>(varAddr) = value;
             break;
         default:
             return false;
         }
         return true;
     } else {
-        switch (registers[address].flags.size) {
-        case 0:
-        case 1:
-        case 2:
-            registers[address].A2.writeFunc(value);
-            break;
-        default:
-            return false;
-        }
+        auto writeFunc = hal::progmem::read_ptr<const TWriteFunc>(varAddr);
+        writeFunc(value);
         return true;
     }
 }

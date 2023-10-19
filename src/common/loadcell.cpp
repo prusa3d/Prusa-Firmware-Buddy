@@ -98,7 +98,7 @@ float Loadcell::Tare(TareMode mode) {
 void Loadcell::Clear() {
     tareCount = 0;
     loadcellRaw = undefined_value;
-    undefinedCnt = 0;
+    undefinedCnt = -UNDEFINED_INIT_MAX_CNT;
     offset = 0;
     reset_filters();
     endstop = false;
@@ -157,7 +157,7 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
         this->undefinedCnt = 0;
     } else {
         // undefined value, use forward-fill only for short bursts
-        if (++this->undefinedCnt >= UNDEFINED_SAMPLE_MAX_CNT)
+        if (++this->undefinedCnt > UNDEFINED_SAMPLE_MAX_CNT)
             fatal_error(ErrCode::ERR_SYSTEM_LOADCELL_TIMEOUT);
     }
 
@@ -251,7 +251,11 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     if (!std::isnan(z_pos)) {
         analysis.StoreSample(z_pos, tared_z_load);
     } else {
-        log_warning(Loadcell, "Got NaN z-coordinate; skipping (age=%dus)", ticks_us_from_now);
+        // Temporary disabled as this causes positive feedback loop by blocking the calling thread if the logs are
+        // being uploaded to a remote server. This does not solve the problem entirely. There are other logs that
+        // can block. Still this should fix most of the issues and allow us to test the rest of the functionality
+        // until a proper solution is found.
+        // log_warning(Loadcell, "Got NaN z-coordinate; skipping (age=%dus)", ticks_us_from_now);
     }
 
     // Perform E motor stall detection

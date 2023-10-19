@@ -1,6 +1,7 @@
 /// @file eeprom.h
 #pragma once
 #include <stdint.h>
+#include <stddef.h>
 
 namespace hal {
 
@@ -9,7 +10,11 @@ namespace eeprom {
 
 class EEPROM {
 public:
+#ifdef UNITTEST
+    using addr_t = size_t;
+#else
     using addr_t = uint16_t;
+#endif
 
     static void WriteByte(addr_t addr, uint8_t value);
     static void UpdateByte(addr_t addr, uint8_t value);

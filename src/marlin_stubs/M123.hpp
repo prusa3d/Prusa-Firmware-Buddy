@@ -4,6 +4,7 @@
  */
 
 #pragma once
+#include <cstdint>
 
 namespace M123 {
 extern uint32_t fan_auto_report_delay;

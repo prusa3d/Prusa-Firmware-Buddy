@@ -70,7 +70,7 @@ private:
     bool default_current;
     bool leveling;
 
-    void state_start();  //< triggered just after state change
+    void state_start(); //< triggered just after state change
     void state_finish(); //< triggered just before state change
 
     // changes state and calls hooks

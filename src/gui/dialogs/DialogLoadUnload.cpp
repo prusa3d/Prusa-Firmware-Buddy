@@ -215,17 +215,17 @@ DialogLoadUnload::DialogLoadUnload(fsm::BaseData data)
     , footer(this
 #if FOOTER_ITEMS_PER_LINE__ >= 5
           ,
-          footer::Item::Nozzle, footer::Item::Bed, footer::Item::FSensor
+          footer::Item::nozzle, footer::Item::bed, footer::Item::f_sensor
     #if HAS_MMU2()
           ,
-          FSensors_instance().HasMMU() ? footer::Item::Finda : footer::Item::None,
-          FSensors_instance().HasMMU() ? footer::Item::FSValue : footer::Item::None
+          FSensors_instance().HasMMU() ? footer::Item::finda : footer::Item::none,
+          FSensors_instance().HasMMU() ? footer::Item::f_s_value : footer::Item::none
     #elif HAS_SIDE_FSENSOR()
           ,
-          footer::Item::FSensorSide
+          footer::Item::f_sensor_side
     #else
           ,
-          footer::Item::None
+          footer::Item::none
     #endif
 #endif
           )
@@ -326,9 +326,9 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
 
         label.SetRect(mmu_desc_rect);
 
-        radio_for_red_screen.Show();               // show red screen radio button
+        radio_for_red_screen.Show(); // show red screen radio button
         CaptureNormalWindow(radio_for_red_screen); // capture red screen radio button
-        radio.Hide();                              // hide normal radio button
+        radio.Hide(); // hide normal radio button
 
         text_link.Show();
         icon_hand.Show();
@@ -357,17 +357,13 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
         if (isRedFStuck(phs)) {
             // An ugly workaround to abuse existing infrastructure - this is not an MMU-related error
             // yet we need to throw a dialog with a QR code and a button.
-            // @@TODO once the error makes it into Prusa-Error-Codes, we can remove the ErrDesc from this spot
-            static constexpr ErrDesc filamentStuckDesc {
-                title_filament_stuck,
-                "The filament seems to be stuck, please unload it and load it again.",
-                (ErrCode)(ERR_PRINTER_CODE * 1000 + 101),
-            };
+            auto err_desc = find_error(ErrCode::ERR_MECHANICAL_STUCK_FILAMENT_DETECTED);
+
             // I don't like the fact, that the one-and-only response from FilamentStuck (aka Unload) gets mapped onto the first button)
             // It doesn't look nice ;) ... therefore, some handcrafted ugly alignment is necessary at this spot
             PhaseResponses responses { Response::_none, Response::Unload, Response::_none };
             radio_for_red_screen.ChangePhase(PhasesLoadUnload::FilamentStuck, responses);
-            red_screen_update(ftrstd::to_underlying(filamentStuckDesc.err_code), filamentStuckDesc.err_title, filamentStuckDesc.err_text);
+            red_screen_update(ftrstd::to_underlying(err_desc.err_code), err_desc.err_title, err_desc.err_text);
         }
     #endif
         phase = phs; // set it directly, do not use super::change(phs, data);
@@ -388,8 +384,8 @@ bool DialogLoadUnload::change(uint8_t phs, fsm::PhaseData data) {
 
         label.SetRect(get_label_rect(GetRect(), has_footer::yes));
 
-        radio.Show();                // show normal radio button
-        CaptureNormalWindow(radio);  // capture normal radio button
+        radio.Show(); // show normal radio button
+        CaptureNormalWindow(radio); // capture normal radio button
         radio_for_red_screen.Hide(); // hide red screen radio button
 
         text_link.Hide();
@@ -416,6 +412,7 @@ constexpr static const char title_change[] = N_("Changing filament");
 constexpr static const char title_load[] = N_("Loading filament");
 constexpr static const char title_unload[] = N_("Unloading filament");
 constexpr static const char title_purge[] = N_("Purging filament");
+constexpr static const char title_test[] = N_("Testing filament");
 constexpr static const char title_index_error[] = "Index error"; // intentionally not to be translated
 
 string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
@@ -430,6 +427,8 @@ string_view_utf8 DialogLoadUnload::get_name(LoadUnloadMode mode) {
         return _(title_purge);
     case LoadUnloadMode::FilamentStuck:
         return _(title_filament_stuck);
+    case LoadUnloadMode::Test:
+        return _(title_test);
     default:
         break;
     }

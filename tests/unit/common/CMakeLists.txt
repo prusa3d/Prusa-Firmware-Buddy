@@ -5,6 +5,7 @@ add_subdirectory(gcode)
 add_subdirectory(http)
 add_subdirectory(utils)
 add_subdirectory(filament_sensor)
+add_subdirectory(codepage)
 
 add_definitions(-DUNITTESTS)
 
@@ -121,6 +122,7 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/search_json_test.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/json_encode_tests.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/segmented_json_rendering.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   )

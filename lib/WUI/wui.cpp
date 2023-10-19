@@ -8,6 +8,7 @@
 #include "stm32f4xx_hal.h"
 #include <otp.hpp>
 #include <mbedtls/sha256.h>
+#include <tasks.hpp>
 
 #include "sntp_client.h"
 #include "log.h"
@@ -326,11 +327,7 @@ private:
     void run() __attribute__((noreturn)) {
         // Note: this is the only thing to initialize now, rest is after the tcpip
         // thread starts.
-        //
-        // Q: Do other threads, like connect, need to wait for this?
-        TaskDeps::wait(TaskDeps::Tasks::lwip_start);
         tcpip_init(tcpip_init_done_raw, this);
-        TaskDeps::provide(TaskDeps::Dependency::lwip_initialized);
 
         prusalink_password_init();
 
@@ -361,8 +358,7 @@ private:
                 // (No need to go through the notification.)
                 events |= Reconfigure;
                 initialized = true;
-                // TODO: Publish to the world we are initialized. Maybe something
-                // (connect) wants to wait for that.
+                TaskDeps::provide(TaskDeps::Dependency::networking_ready);
             }
 
             // Note: This is allowed even before we are fully initialized. This

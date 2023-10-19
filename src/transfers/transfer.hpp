@@ -10,10 +10,11 @@
 #include "monitor.hpp"
 #include "partial_file.hpp"
 #include "download.hpp"
+#include "transfer_file_check.hpp"
 
 namespace transfers {
 
-const constexpr size_t MAX_RETRIES = 5;
+inline constexpr size_t MAX_RETRIES = 50;
 
 struct NoTransferSlot {};
 
@@ -89,8 +90,6 @@ private:
     using DownloadOrder = std::variant<GenericFileDownloadOrder, PlainGcodeDownloadOrder>;
 
 public:
-    static constexpr const char *partial_filename = "p";
-    static constexpr const char *backup_filename = "d";
     //
     // File Path Helpers
     //
@@ -163,6 +162,8 @@ private:
 public:
     class RestoredTransfer {
     private:
+        static constexpr size_t max_size = 512; // read no more than this from backup file to avoid out of memory on corrupted filesystem
+
         FILE *file;
 
         PartialFile::State partial_file_state;
@@ -207,11 +208,6 @@ public:
     /// * Error if something is broken but the file is not available (probably won't be recoverable?)
     /// * A PartialFile::State with information about that file.
     static std::variant<Error, Complete, PartialFile::State> load_state(const char *path);
-
-    /// Checks if it is a folder with a partial and backup file and is valid.
-    /// It is valid, if the trasnfer is finished, in progress, or we intent to
-    /// retry it when avaiable, if we gave up on trying it will be not valid.
-    static bool is_valid_transfer(MutablePath &destination_path);
 
     /// If the path is a valid transfer (checked by "is_valid_transfer" above) it will return stat
     /// of the partial file, otherwise nullopt is returned.
@@ -314,7 +310,7 @@ private:
     // This is one line per file, LFN (at least the last segment).
     // These are candidates - that is, transfer listed here can be already moved
     // into place, not exist, etc. It just helps us not to search the whole USB.
-    static constexpr const char *transfer_index = "/usb/prusa_transfers.txt";
+    static constexpr const char *transfer_index = "/usb/.prusa_transfers.txt";
 
     static bool store_transfer_index(const char *path);
 
@@ -336,7 +332,7 @@ public:
     /// Given a destination path, restore the transfer (based on the <dest_path>/download file).
     static RecoverResult recover(const char *dest_path);
 
-    State step(uint32_t max_duration_ms, bool is_printing);
+    State step(bool is_printing);
 
     enum class RecoverySearchResult {
         WaitingForUSB,

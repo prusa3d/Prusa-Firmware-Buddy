@@ -56,6 +56,8 @@ class Simulator:
         simulator_path = simulator_path.absolute()
         params = ['-machine', machine.value]
         params += ['-kernel', str(firmware_path.absolute())]
+        # disable SOF usb interrupts, because it is not used and it makes simulator run slowly
+        params += ['-global', 'STM32F4xx-usb.disable_sof_interrupt=true']
         if machine.is_puppy:
             params += ['-icount', '5']
         else:

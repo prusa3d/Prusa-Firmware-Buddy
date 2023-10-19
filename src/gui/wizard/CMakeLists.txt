@@ -4,9 +4,6 @@ target_sources(
   firmware
   PRIVATE selftest_frame_axis.cpp
           selftest_frame_calib_z.cpp
-          selftest_frame_esp.cpp
-          selftest_frame_esp_progress.cpp
-          selftest_frame_esp_qr.cpp
           selftest_frame_fans.cpp
           selftest_frame_firstlayer.cpp
           selftest_frame_firstlayer_questions.cpp

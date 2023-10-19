@@ -6,10 +6,8 @@
 #include "status_footer.hpp"
 #include "window_text.hpp"
 #include <array>
-#include "non_file_printing_counter.hpp"
 
 class screen_printing_serial_data_t : public AddSuperWindow<ScreenPrintingModel> {
-    NonFilePrintingCounter fs_lock; // filament sensor will think printer is in printing state
     static constexpr const char *caption = N_("SERIAL PRINTING");
 
     window_icon_t octo_icon;

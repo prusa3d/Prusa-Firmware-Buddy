@@ -1,4 +1,5 @@
 #include "DialogConnectReg.hpp"
+#include "RAII.hpp"
 #include "../img_resources.hpp"
 #include "../ScreenHandler.hpp"
 #include "../lang/i18n.h"
@@ -18,8 +19,6 @@ const PhaseTexts dlg_texts = { { N_("Leave") } };
 const constexpr size_t max_url_len = 128;
 
 } // namespace
-
-bool DialogConnectRegister::DialogShown = false;
 
 char DialogConnectRegister::attempt_buffer[20];
 char DialogConnectRegister::detail_buffer[50];
@@ -45,7 +44,6 @@ DialogConnectRegister::DialogConnectRegister()
 
     last_seen_status = std::make_tuple(connect_client::ConnectionStatus::Unknown, connect_client::OnlineError::NoError, std::nullopt);
 
-    DialogShown = true;
     text_state.SetText(_("Acquiring registration code, please wait..."));
 
     snprintf(attempt_buffer, sizeof(attempt_buffer), "Attempt %d/%d", 1, connect_client::Registrator::starting_retries);
@@ -61,8 +59,6 @@ DialogConnectRegister::DialogConnectRegister()
 }
 
 DialogConnectRegister::~DialogConnectRegister() {
-    DialogShown = false;
-
     if (!left_registration) {
         connect_client::leave_registration();
     }
@@ -74,11 +70,32 @@ void DialogConnectRegister::Show() {
 }
 
 void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t event, void *param) {
+    if (event_in_progress) {
+        return;
+    }
+
+    AutoRestore avoid_recursion(event_in_progress, true);
+
     switch (event) {
-    case GUI_event_t::CHILD_CLICK:
+    case GUI_event_t::CHILD_CLICK: {
         // We have a single button, so this simplification should work fine.
-        Screens::Access()->Close();
-        break;
+
+        bool close = true;
+
+        switch (get<0>(last_seen_status)) {
+        case ConnectionStatus::RegistrationRequesting:
+        case ConnectionStatus::RegistrationCode:
+            close = MsgBoxWarning(_("Prusa Connect setup is not finished. Do you want to exit and abort the process?"), Responses_YesNo)
+                == Response::Yes;
+            break;
+        default:
+            break;
+        }
+
+        if (close) {
+            Screens::Access()->Close();
+        }
+    } break;
     case GUI_event_t::LOOP: {
         const OnlineStatus status = connect_client::last_status();
         if (status != last_seen_status) {
@@ -108,7 +125,7 @@ void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t
 
 #ifdef USE_ST7789
                 text_state.SetText(_("Scan QR or visit prusa.io/add, log in and add printer code:"));
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
                 text_state.SetText(_("1. Scan the QR code or visit prusa.io/add.\n2. Log in.\n3. Add printer with code:\n"));
 #endif /*USE_ST7789*/
                 break;
@@ -127,7 +144,7 @@ void DialogConnectRegister::windowEvent(EventLock, window_t *sender, GUI_event_t
 
 #ifdef USE_ST7789
                 text_state.SetText(_("Registration to Prusa Connect failed"));
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
                 text_state.SetText(_("Registration to Prusa Connect failed due to:"));
                 const char *err_buffer;
                 switch (get<1>(last_seen_status)) {
@@ -232,7 +249,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::qrcodeRect() {
         qrcodeWidth,
         qrcodeHeight
     };
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
     return Rect16 { 160 - qrcodeWidth / 2, 200 - qrcodeHeight / 2, qrcodeWidth, qrcodeHeight };
 #endif /*USE_ST7789*/
 }
@@ -245,7 +262,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::phoneIconRect() {
         phoneWidth,
         phoneHeight
     };
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
     return Rect16 { 20, 165, phoneWidth, phoneHeight };
 #endif /*USE_ST7789*/
 }
@@ -264,7 +281,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::textRect(int16_t add_top, ui
 constexpr Rect16 DialogConnectRegister::Positioner::textRectTitle() {
 #ifndef USE_ST7789
     return textRect();
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
     return Rect16 {}; // Empty, this is not used
 #endif /*USE_ST7789*/
 }
@@ -278,7 +295,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::textRectState([[maybe_unused
     } else {
         return textRect(WizardDefaults::row_h * 2, WizardDefaults::row_h * 2);
     }
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
     return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0, textWidth, WizardDefaults::txt_h * 4 };
 #endif /*USE_ST7789*/
 }
@@ -291,7 +308,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::textRectAttempt([[maybe_unus
     } else {
         return textRect(textRectState().Bottom());
     }
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
     return Rect16 {};
 #endif /*USE_ST7789*/
 }
@@ -306,7 +323,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::textRectDetail([[maybe_unuse
         return textRect(WizardDefaults::Y_space - textHeight - WizardDefaults::row_1);
     }
 
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
     return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + WizardDefaults::txt_h * 4, textWidth, WizardDefaults::txt_h * 2 };
 #endif /*USE_ST7789*/
 }
@@ -315,7 +332,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::textRectDetail([[maybe_unuse
 constexpr Rect16 DialogConnectRegister::Positioner::lineRect() {
 #ifndef USE_ST7789
     return Rect16 { WizardDefaults::col_0, WizardDefaults::row_1, textWidth, WizardDefaults::progress_h };
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
     return Rect16 {};
 #endif /*USE_ST7789*/
 }
@@ -324,7 +341,7 @@ constexpr Rect16 DialogConnectRegister::Positioner::lineRect() {
 constexpr Rect16 DialogConnectRegister::Positioner::codeRect() {
 #ifndef USE_ST7789
     return Rect16 { WizardDefaults::col_0, WizardDefaults::Y_space - textHeight, phoneIconRect().Left() - WizardDefaults::col_0, textHeight };
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
     return Rect16 { WizardDefaults::col_0, WizardDefaults::row_0 + textLines * WizardDefaults::row_h, textWidth, codeHeight };
 #endif /*USE_ST7789*/
 }

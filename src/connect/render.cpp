@@ -106,6 +106,7 @@ namespace {
 
                 // These are not included in the fingerprint as they are changing a lot.
                 if (printing) {
+                    JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
                     JSON_FIELD_INT("time_printing", params.print_duration) JSON_COMMA;
                     if (params.time_to_end != marlin_server::TIME_TO_END_INVALID) {
                         JSON_FIELD_INT("time_remaining", params.time_to_end) JSON_COMMA;
@@ -130,7 +131,6 @@ namespace {
                     }
                     JSON_FIELD_FFIXED("axis_z", params.pos[Printer::Z_AXIS_POS], 2) JSON_COMMA;
                     if (printing) {
-                        JSON_FIELD_INT("job_id", params.job_id) JSON_COMMA;
                         JSON_FIELD_INT("fan_extruder", params.heatbreak_fan_rpm) JSON_COMMA;
                         JSON_FIELD_INT("fan_print", params.print_fan_rpm) JSON_COMMA;
                         JSON_FIELD_FFIXED("filament", params.filament_used, 1) JSON_COMMA;
@@ -266,11 +266,16 @@ namespace {
                         JSON_FIELD_INT("size", state.st.st_size) JSON_COMMA;
                         JSON_FIELD_INT("m_timestamp", state.st.st_mtime) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("display_name", params.job_lfn() != nullptr ? params.job_lfn() : basename_b(params.job_path())) JSON_COMMA;
+                    if (params.job_lfn() != nullptr) {
+                        JSON_FIELD_STR("display_name", params.job_lfn());
+                    } else {
+                        JSON_FIELD_STR_437("display_name", basename_b(params.job_path()));
+                    }
+                    JSON_COMMA;
                     if (event.start_cmd_id.has_value()) {
                         JSON_FIELD_INT("start_cmd_id", *event.start_cmd_id) JSON_COMMA;
                     }
-                    JSON_FIELD_STR("path", params.job_path());
+                    JSON_FIELD_STR_437("path", params.job_path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::FileInfo) {
                 JSON_FIELD_OBJ("data");
@@ -295,9 +300,11 @@ namespace {
                     // Warning: the path->name() is there (hidden) for FileInfo
                     // but _not_ for JobInfo. Do not just copy that into that
                     // part!
+                    //
+                    // XXX: Can the name be SFN?
                     JSON_FIELD_STR("display_name", event.path->name()) JSON_COMMA;
                     JSON_FIELD_STR("type", state.file_extra.renderer.holds_alternative<DirRenderer>() ? "FOLDER" : file_type_by_ext(event.path->path())) JSON_COMMA;
-                    JSON_FIELD_STR("path", event.path->path());
+                    JSON_FIELD_STR_437("path", event.path->path());
                 JSON_OBJ_END JSON_COMMA;
             } else if (event.type == EventType::TransferInfo) {
                 JSON_FIELD_OBJ("data");
@@ -325,6 +332,9 @@ namespace {
                     // Note: This works, because destination cannot go from non null to null
                     // (if one transfer ends and another starts mid report, we bail out)
                     if (transfer_status->destination) {
+                        // FIXME: This one is problematic, part is SFN, part is LFN.
+                        //
+                        // For now, we consider it SFN (because that always produces valid utf8 at least), needs fix later on.
                         JSON_FIELD_STR_G(transfer_status.has_value(), "path", transfer_status->destination) JSON_COMMA;
                     }
                     if (event.start_cmd_id.has_value()) {
@@ -348,11 +358,11 @@ namespace {
                         JSON_FIELD_INT("free_space", params.usb_space_free) JSON_COMMA;
                     }
                     if (event.incident == transfers::ChangedPath::Incident::Created) {
-                        JSON_FIELD_STR("new_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR_437("new_path", event.path->path()) JSON_COMMA;
                     } else if (event.incident == transfers::ChangedPath::Incident::Deleted) {
-                        JSON_FIELD_STR("old_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR_437("old_path", event.path->path()) JSON_COMMA;
                     } else /*Combined*/ {
-                        JSON_FIELD_STR("new_path", event.path->path()) JSON_COMMA;
+                        JSON_FIELD_STR_437("new_path", event.path->path()) JSON_COMMA;
                         JSON_FIELD_BOOL("rescan", true) JSON_COMMA;
                     }
                     JSON_FIELD_OBJ("file")
@@ -389,9 +399,9 @@ namespace {
 
     off_t child_size(const char *base_path, const char *child_name) {
         char path_buf[FILE_PATH_BUFFER_LEN];
-        int formatted = snprintf(path_buf, sizeof path_buf, "%s/%s", base_path, child_name);
+        int formatted = snprintf(path_buf, sizeof(path_buf), "%s/%s", base_path, child_name);
         // Name didn't fit. That, in theory, should not happen, but better safe than sorry...
-        if (formatted >= FILE_NAME_BUFFER_LEN - 1) {
+        if (formatted >= FILE_NAME_BUFFER_LEN) {
             return -1;
         }
         struct stat st = {};
@@ -640,12 +650,15 @@ DirRenderer::DirRenderer(const char *base_path, unique_dir_ptr dir)
     : JsonRenderer(DirState { move(dir), base_path }) {}
 
 JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &output, DirState &state) const {
-    bool read_only = false;
     // Keep the indentation of the JSON in here!
     // clang-format off
     JSON_START;
     JSON_FIELD_ARR("children");
     while (state.dir.get() && (state.ent = readdir(state.dir.get()))) {
+        if (const char *lfn = dirent_lfn(state.ent); lfn && lfn[0] == '.') {
+            // Skip dot-files (should be hidden).
+            continue;
+        }
 
         state.childsize = nullopt;
         // Will skip all the .bbf and other files still being transfered
@@ -657,12 +670,12 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
             if (auto st_opt = transfers::Transfer::get_transfer_partial_file_stat(path); st_opt.has_value()) {
                 state.ent->d_type = DT_REG;
                 state.childsize = st_opt->st_size;
-                read_only = true;
+                state.read_only = true;
             } else {
                 continue;
             }
         } else {
-            read_only = false;
+            state.read_only = false;
         }
         state.child_cnt ++;
 
@@ -673,7 +686,7 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
         }
 
         JSON_OBJ_START;
-            JSON_FIELD_STR("name", state.ent->d_name) JSON_COMMA;
+            JSON_FIELD_STR_437("name", state.ent->d_name) JSON_COMMA;
             JSON_FIELD_STR("display_name", dirent_lfn(state.ent)) JSON_COMMA;
             JSON_FIELD_INT("size", state.childsize.has_value() ? state.childsize.value() : child_size(state.base_path, state.ent->d_name)) JSON_COMMA;
 #ifdef UNITTESTS
@@ -682,7 +695,7 @@ JsonResult DirRenderer::renderState(size_t resume_point, json::JsonOutput &outpu
 #else
             JSON_FIELD_INT("m_timestamp", state.ent->time) JSON_COMMA;
 #endif
-            JSON_FIELD_BOOL("read_only", read_only) JSON_COMMA;
+            JSON_FIELD_BOOL("read_only", state.read_only) JSON_COMMA;
             JSON_FIELD_STR("type", file_type(state.ent));
         JSON_OBJ_END;
     }

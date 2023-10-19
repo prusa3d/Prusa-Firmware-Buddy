@@ -17,6 +17,6 @@ protected:
     void unconditionalDraw() override;
 
 private:
-    uint8_t border_thickness { 1 };       // how thick is the encircling border, 0 for none
+    uint8_t border_thickness { 1 }; // how thick is the encircling border, 0 for none
     color_t parent_color { COLOR_BLACK }; // Needed for rounded mode to draw the background properly
 };

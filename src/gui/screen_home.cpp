@@ -10,6 +10,7 @@
 #include "print_utils.hpp"
 #include "gui_fsensor_api.hpp"
 #include "filename_type.hpp"
+#include "settings_ini.hpp"
 #include <wui_api.h>
 #include <espif.h>
 
@@ -29,10 +30,11 @@
 #include "filament_sensors_handler.hpp"
 
 #include "RAII.hpp"
-#include "lazyfilelist.h"
+#include "lazyfilelist.hpp"
 #include "i18n.h"
 #include "i2c.hpp"
 #include "netdev.h"
+#include "ini.h"
 
 #include <option/has_control_menu.h>
 #include <option/has_loadcell.h>
@@ -55,6 +57,7 @@
 #include <crash_dump/crash_dump_handlers.hpp>
 #include "box_unfinished_selftest.hpp"
 #include <option/has_control_menu.h>
+#include <transfers/transfer_file_check.hpp>
 
 // TODO remove netdev_is_enabled after it is defined
 bool __attribute__((weak)) netdev_is_enabled([[maybe_unused]] const uint32_t netdev_id) { return true; }
@@ -143,6 +146,7 @@ const char *labels[] = {
 };
 
 bool screen_home_data_t::usbWasAlreadyInserted = false;
+bool screen_home_data_t::need_check_wifi_credentials = true;
 
 static void FilamentBtn_cb() {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuFilament>);
@@ -160,8 +164,6 @@ static void FilamentBtnMMU_cb() {
 screen_home_data_t::screen_home_data_t()
     : AddSuperWindow<screen_t>()
     , usbInserted(marlin_vars()->media_inserted)
-    , mmu_state(MMU2::xState::Stopped)
-    , event_in_progress(false)
     , header(this)
     , footer(this)
 #ifdef USE_ST7789
@@ -186,8 +188,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no },
         { this, Rect16(), is_multiline::no }
-    },
-    gcode(GCodeInfo::getInstance()) {
+    } {
     // clang-format on
 
     EnableLongHoldScreenAction();
@@ -200,11 +201,7 @@ screen_home_data_t::screen_home_data_t()
 #endif
 #if !defined(_DEBUG) && !DEVELOPER_MODE()
     // regular home screen
-    #if !PRINTER_IS_PRUSA_MK4
-    header.SetText(_("INPUT SHAPER ALPHA"));
-    #else
-    header.SetText(_("INPUT SHAPER"));
-    #endif
+    header.SetText(_("HOME"));
 
 #else
     // show the appropriate build header
@@ -328,18 +325,89 @@ void screen_home_data_t::on_enter() {
         }
     }
 
-    #if !(PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_iX)
+    #if 0 /// disable the warning for now but let's keep it around as we might want to reenable it for the public release
     static bool input_shaper_warning_shown = false;
     if (!input_shaper_warning_shown) {
         input_shaper_warning_shown = true;
         MsgBoxISWarning(_(
+        #ifdef USE_ST7789
                             "This firmware is still\nin development.\n\n"
                             "Do not leave the printer unattended.\n\n"
+        #else
+                            "This firmware is still in development and is for testing purposes only.\n\n"
+                            "Do not leave the printer unattended.\n\n"
+        #endif
                             "More info at prusa.io/input-shaper"),
             Responses_Ok, 0, GuiDefaults::RectScreen);
     }
     #endif
 #endif
+}
+namespace {
+struct Config {
+    bool ssid_equal = false;
+    bool psk_equal = false;
+    bool is_ok() { return psk_equal && ssid_equal; }
+};
+
+int ini_handler(void *user, const char *section, const char *name, const char *value) {
+    if (user == nullptr || section == nullptr || name == nullptr || value == nullptr) {
+        return 0;
+    }
+
+    if (strcmp("wifi", section)) {
+        return 1; // do I return 0 or 1 ??? I have no clue what would 0 do.
+    }
+
+    auto *config = reinterpret_cast<Config *>(user);
+    size_t len = strlen(value);
+
+    if (strcmp(name, "ssid") == 0) {
+        char buffer[config_store_ns::old_eeprom::WIFI_MAX_SSID_LEN];
+        if (len <= sizeof(buffer)) {
+            config->ssid_equal = !strncmp(value, config_store().wifi_ap_ssid.get_c_str(), sizeof(buffer));
+        }
+    } else if (strcmp(name, "psk") == 0) {
+        char buffer[config_store_ns::old_eeprom::WIFI_MAX_PASSWD_LEN];
+        if (len <= sizeof(buffer)) {
+            config->psk_equal = !strncmp(value, config_store().wifi_ap_password.get_c_str(), sizeof(buffer));
+        }
+    }
+
+    return 1;
+}
+
+bool is_name_and_psk_equal() {
+    Config config;
+    bool ok = ini_parse(settings_ini::file_name, ini_handler, &config) == 0;
+    ok = ok && config.is_ok();
+
+    return ok;
+}
+} // namespace
+
+void screen_home_data_t::handle_wifi_credentials() {
+    // first we find if there is an WIFI config
+    bool has_wifi_credentials = false;
+    {
+        std::unique_ptr<FILE, FileDeleter> fl;
+        // if other thread modifies files during this action, detection might fail
+        fl.reset(fopen(settings_ini::file_name, "r"));
+        has_wifi_credentials = fl.get() != nullptr;
+    }
+    if (has_wifi_credentials && !is_name_and_psk_equal()) {
+        if (MsgBoxInfo(_("Wi-Fi credentials (SSID and password) discovered on the USB flash drive. Would you like to connect your printer to Wi-Fi now?"), Responses_YesNo, 1)
+            == Response::Yes) {
+            const auto fw_state = esp_fw_state();
+            const bool esp_need_flash = fw_state == EspFwState::WrongVersion || fw_state == EspFwState::NoFirmware;
+            if (esp_need_flash) {
+                marlin_client::gcode("M997 S1"); // update esp, do not force update older fw
+            } else {
+                marlin_client::gcode("M1587"); // update esp credentials only
+            }
+            return;
+        }
+    }
 }
 
 void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -356,7 +424,6 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
 
     on_enter();
 
-    // This can be called during handling of different event (if it was stored during recursion call of windowEvent)
     if (media_event != MediaState_t::unknown) {
         switch (MediaState_t(media_event)) {
         case MediaState_t::inserted:
@@ -385,6 +452,20 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
     if (event == GUI_event_t::LOOP) {
         filamentBtnSetState(MMU2::xState(marlin_vars()->mmu2_state.get()));
 
+#if ENABLED(POWER_PANIC)
+        if (TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming())
+#endif // ENABLED(POWER_PANIC)
+        { // every time usb is inserted we check wifi credentials
+            if (usbInserted) {
+                if (need_check_wifi_credentials) {
+                    need_check_wifi_credentials = false;
+                    handle_wifi_credentials();
+                }
+            } else {
+                need_check_wifi_credentials = true; // usb is not inserted, when it gets inserted we want to recheck credentials file
+            }
+        }
+
 #if HAS_SELFTEST()
         if (!DialogHandler::Access().IsOpen() && !GuiFSensor::is_calib_dialog_open()) {
             // esp update has bigger priority tha one click print
@@ -398,7 +479,7 @@ void screen_home_data_t::windowEvent(EventLock /*has private ctor*/, window_t *s
                 // on esp update, can use one click print
                 if (
     #if ENABLED(POWER_PANIC)
-                    TaskDeps::check(TaskDeps::Dependency::power_panic_initialized) && !power_panic::is_power_panic_resuming() &&
+                    TaskDeps::check(TaskDeps::Dependency::usb_and_temp_ready) && !power_panic::is_power_panic_resuming() &&
     #endif // ENABLED(POWER_PANIC)
                     GuiMediaEventsHandler::ConsumeOneClickPrinting()) {
                     // TODO this should be done in main thread before Event::MediaInserted is generated
@@ -433,6 +514,7 @@ bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fna
     fname[0] = 0;
     strlcpy(fpath, "/usb", fpath_len);
     F_DIR_RAII_Iterator dir(fpath);
+    MutablePath dir_path { fpath };
     fpath[4] = '/';
 
     if (dir.result == ResType::NOK) {
@@ -444,12 +526,15 @@ bool screen_home_data_t::find_latest_gcode(char *fpath, int fpath_len, char *fna
 
     while (dir.FindNext()) {
         // skip folders
-        if ((dir.fno->d_type & DT_DIR) != 0 && !filename_is_printable(dir.fno->d_name)) {
+        MutablePath dpath { dir_path }; // copy to avoid having to pop d_name every time
+        dpath.push(dir.fno->d_name);
+
+        if ((dir.fno->d_type & DT_DIR) != 0 && !transfers::is_valid_transfer(dpath)) {
             continue;
         }
 
-        if (LessFE(dir.fno, entry)) {
-            entry.CopyFrom(dir.fno);
+        if (LessFE({ *dir.fno, dpath }, entry)) {
+            entry.CopyFrom({ *dir.fno, dpath });
 
             strlcpy(fpath + 5, dir.fno->d_name, fpath_len - 5);
             strlcpy(fname, entry.lfn, fname_len);

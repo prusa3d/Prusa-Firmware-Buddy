@@ -9,14 +9,14 @@
 namespace qoi {
 
 void Decoder::push_byte(uint8_t byte) {
-    constexpr const uint8_t QOI_OP_RGB = 0xfe;   // 11111110
-    constexpr const uint8_t QOI_OP_RGBA = 0xff;  // 11111111
+    constexpr const uint8_t QOI_OP_RGB = 0xfe; // 11111110
+    constexpr const uint8_t QOI_OP_RGBA = 0xff; // 11111111
 
-    constexpr const uint8_t QOI_MASK_2 = 0xc0;   // 11000000
+    constexpr const uint8_t QOI_MASK_2 = 0xc0; // 11000000
     constexpr const uint8_t QOI_OP_INDEX = 0x00; // 00xxxxxx
-    constexpr const uint8_t QOI_OP_DIFF = 0x40;  // 01xxxxxx
-    constexpr const uint8_t QOI_OP_LUMA = 0x80;  // 10xxxxxx
-    constexpr const uint8_t QOI_OP_RUN = 0xc0;   // 11xxxxxx
+    constexpr const uint8_t QOI_OP_DIFF = 0x40; // 01xxxxxx
+    constexpr const uint8_t QOI_OP_LUMA = 0x80; // 10xxxxxx
+    constexpr const uint8_t QOI_OP_RUN = 0xc0; // 11xxxxxx
 
     switch (state) {
     case State::initial:

@@ -18,7 +18,7 @@
 // use template instead IWinMenuContainer *pContainer;
 // I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class WindowMenu : public AddSuperWindow<IWindowMenu> {
-    uint8_t index_of_first;             /// container index of first item on screen
+    uint8_t index_of_first; /// container index of first item on screen
     uint8_t max_items_on_screen;
     uint8_t visible_count_at_last_draw; // to redraw last item, if it was hidden, has no effect in case entire window is invalid
     IWinMenuContainer *pContainer;
@@ -76,9 +76,9 @@ public:
     /// \returns visible index of item
     std::optional<size_t> GetIndex(IWindowMenuItem &item) const;
     /// \returns number of all menu items including hidden ones
-    uint8_t GetCount() const;                      // count of all visible items in container
+    uint8_t GetCount() const; // count of all visible items in container
     IWindowMenuItem *GetItem(uint8_t index) const; // nth visible item in container
-    IWindowMenuItem *GetActiveItem() const;        // focused item
+    IWindowMenuItem *GetActiveItem() const; // focused item
     bool SetActiveItem(IWindowMenuItem &item) {
         std::optional<size_t> index = GetIndex(item);
         if (!index)

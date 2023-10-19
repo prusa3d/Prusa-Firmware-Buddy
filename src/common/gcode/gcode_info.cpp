@@ -10,7 +10,6 @@
 #include "mutable_path.hpp"
 #include "log.h"
 #include <option/has_mmu2.h>
-#include "wdt.h"
 
 LOG_COMPONENT_REF(Buddy);
 
@@ -95,11 +94,15 @@ GCodeInfo::GCodeInfo()
 }
 
 bool GCodeInfo::start_load() {
+    reset_info();
     file_reader = std::make_unique<AnyGcodeFormatReader>(gcode_file_path);
     if (!file_reader || !file_reader->is_open()) {
         file_reader.reset();
+        load_started = StartLoadResult::Failed;
         return false;
     }
+    check_valid_for_print();
+    load_started = StartLoadResult::Started;
     return true;
 }
 
@@ -107,23 +110,22 @@ void GCodeInfo::end_load() {
     file_reader.reset();
 }
 
-bool GCodeInfo::valid_for_print() {
+bool GCodeInfo::check_valid_for_print() {
     assert(file_reader); // assert file is open
     transfers::Transfer::Path path(GetGcodeFilepath());
     file_reader->get()->update_validity(path);
-    return file_reader->get()->valid_for_print();
+    printable = file_reader->get()->valid_for_print();
+    return printable;
 }
 
-void GCodeInfo::load(bool thumbnail_only) {
+void GCodeInfo::load() {
     assert(file_reader); // assert file is open
-    reset_info();
 
     preview_thumbnail = hasThumbnail(*file_reader->get(), GuiDefaults::PreviewThumbnailRect.Size());
     progress_thumbnail = hasThumbnail(*file_reader->get(), GuiDefaults::ProgressThumbnailRect.Size());
 
     // scan info G-codes and comments
-    if (!thumbnail_only)
-        PreviewInit();
+    PreviewInit();
     loaded = true;
 }
 
@@ -139,12 +141,14 @@ int GCodeInfo::GivenExtrudersCount() const {
 
 void GCodeInfo::reset_info() {
     loaded = false;
+    printable = false;
     preview_thumbnail = false;
     progress_thumbnail = false;
     filament_described = false;
     valid_printer_settings = ValidPrinterSettings();
     per_extruder_info.fill({});
     printing_time[0] = 0;
+    load_started = StartLoadResult::None;
 }
 
 uint32_t GCodeInfo::getPrinterModelCode() const {
@@ -489,12 +493,9 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
 
 void GCodeInfo::PreviewInit() {
     valid_printer_settings = ValidPrinterSettings(); // reset to valid state
-    per_extruder_info = {};                          // Reset extruder info
+    per_extruder_info = {}; // Reset extruder info
 
     GcodeBuffer buffer;
-
-    // refresh watchdog, in case loading of gcode info takes long time
-    wdt_iwdg_refresh();
 
 // TODO: enable CRC verification, but now its disabled because it takes ages due to slow USB card read and suboptimal implementation
 #if 0
@@ -522,9 +523,6 @@ void GCodeInfo::PreviewInit() {
             break;
         parse_comment(buffer.line);
     }
-
-    // refresh watchdog, in case loading of gcode info takes long time
-    wdt_iwdg_refresh();
 
     // parse first few gcodes
     uint32_t gcode_counter = 0;

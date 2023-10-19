@@ -37,6 +37,16 @@ extern void tmc_set_sg_sample_cb(tmc_sg_sample_cb_t *cb);
 
 extern void tmc_enable_wavetable(bool X, bool Y, bool Z);
 extern void tmc_disable_wavetable(bool X, bool Y, bool Z);
+
+/**
+ * \brief Check stepper coils for open/short circuit
+ *
+ * This reports false errors when not moving or moving too fast.
+ *
+ * \param axis axis to check
+ * \return true if all coils are ok, false otherwise
+ */
+extern bool tmc_check_coils(uint8_t axis);
 #ifdef __cplusplus
 }
 

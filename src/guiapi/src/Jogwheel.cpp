@@ -3,7 +3,7 @@
 #include "Jogwheel.hpp"
 #include "hwio_pindef.h"
 #include "cmsis_os.h" //__disable_irq, __enabe_irq, HAL_GetTick
-#include "queue.h"    // freertos queue
+#include "queue.h" // freertos queue
 #include "bsod.h"
 
 using SpinMessage_t = int32_t;
@@ -22,7 +22,7 @@ void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
     button_queue_handle = xQueueCreateStatic(length, item_sz, storage_area, &queue);
 }
 
-#else  // (configSUPPORT_STATIC_ALLOCATION == 1 )
+#else // (configSUPPORT_STATIC_ALLOCATION == 1 )
 
 void Jogwheel::InitButtonMessageQueueInstance_NotFromISR() {
     button_queue_handle = xQueueCreate(ButtonMessageQueueLength, sizeof(BtnState_t));
@@ -78,7 +78,7 @@ uint8_t Jogwheel::ReadHwInputsFromISR() {
     if (jogWheelENC.read() == Pin::State::high) {
         signals |= JG_BUTTON_PRESSED; // bit 2 - button press
     }
-    signals ^= JG_BUTTON_PRESSED;     // we are using inverted button pin
+    signals ^= JG_BUTTON_PRESSED; // we are using inverted button pin
 
     if (jogWheelEN1.read() == Pin::State::high) {
         signals |= JG_PHASE_0; // bit 0 - phase0
@@ -233,7 +233,7 @@ int32_t Jogwheel::JogwheelTypeBehaviour(uint8_t change, uint8_t signals) const {
 void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
     uint8_t change = signals ^ jogwheel_signals;
 
-    if (change & JG_PHASES_CHANGED)                                   // encoder phase signals changed
+    if (change & JG_PHASES_CHANGED) // encoder phase signals changed
     {
         int32_t new_encoder = JogwheelTypeBehaviour(change, signals); // derived function - different types of jogwheel
 
@@ -254,8 +254,8 @@ void Jogwheel::UpdateVariablesFromISR(uint8_t signals) {
 
     if (change & (JG_PHASES_OR_BUTTON_CHANGED | JG_ENCODER_CHANGED)) // encoder phase signals, encoder or button changed
     {
-        jogwheel_signals_old = jogwheel_signals;                     // save old signal state
-        jogwheel_signals = signals;                                  // update signal state
+        jogwheel_signals_old = jogwheel_signals; // save old signal state
+        jogwheel_signals = signals; // update signal state
     }
 
     threadsafe_enc.value = int16_t(encoder);

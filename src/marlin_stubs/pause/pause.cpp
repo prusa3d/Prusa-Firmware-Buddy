@@ -110,7 +110,7 @@ void unhomed_z_lift(float amount_mm) {
 class RammingSequence {
 public:
     struct Item {
-        int16_t e;        ///< relative movement of Extruder
+        int16_t e; ///< relative movement of Extruder
         int16_t feedrate; ///< feedrate of the move
     };
 
@@ -189,10 +189,10 @@ Response PausePrivatePhase::getResponse() {
 
 bool PausePrivatePhase::CanSafetyTimerExpire() const {
     if (HasTempToRestore())
-        return false;                                                                                                                   // already expired
+        return false; // already expired
     if ((getPhase() == PhasesLoadUnload::MakeSureInserted_stoppable) || (getPhase() == PhasesLoadUnload::MakeSureInserted_unstoppable)) // special waiting state without button
-        return true;                                                                                                                    // waits for filament sensor
-    return ClientResponses::HasButton(getPhase());                                                                                      // button in current phase == can wait on user == can timeout
+        return true; // waits for filament sensor
+    return ClientResponses::HasButton(getPhase()); // button in current phase == can wait on user == can timeout
 }
 
 void PausePrivatePhase::NotifyExpiredFromSafetyTimer() {
@@ -351,7 +351,7 @@ void Pause::loop_load(Response response) {
         if (response == Response::Stop)
             settings.do_stop = true;
         break;
-    case LoadPhases_t::load_in_gear:                                                                                  // slow load
+    case LoadPhases_t::load_in_gear: // slow load
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         // if filament is not present we want to break and not set loaded filament
@@ -456,7 +456,7 @@ void Pause::loop_load_not_blocking([[maybe_unused]] Response response) {
     case LoadPhases_t::_init:
         set(LoadPhases_t::load_in_gear);
         break;
-    case LoadPhases_t::load_in_gear:                                                                                  // slow load
+    case LoadPhases_t::load_in_gear: // slow load
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
@@ -541,7 +541,7 @@ void Pause::loop_autoload(Response response) {
         if (response == Response::Stop)
             settings.do_stop = true;
         break;
-    case LoadPhases_t::load_in_gear:                                                                                  // slow load
+    case LoadPhases_t::load_in_gear: // slow load
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         // if filament is not present we want to break and not set loaded filament
@@ -637,7 +637,7 @@ void Pause::loop_load_change(Response response) {
         if (response == Response::Stop)
             settings.do_stop = true;
         break;
-    case LoadPhases_t::load_in_gear:                                                                                  // slow load
+    case LoadPhases_t::load_in_gear: // slow load
         setPhase(PhasesLoadUnload::Inserting_unstoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         // if filament is not present we want to break and not set loaded filament
@@ -717,7 +717,7 @@ void Pause::loop_load_filament_stuck(Response response) {
         if (response == Response::Stop)
             settings.do_stop = true;
         break;
-    case LoadPhases_t::load_in_gear:                                                                                  // slow load
+    case LoadPhases_t::load_in_gear: // slow load
         setPhase(PhasesLoadUnload::Inserting_unstoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         // if filament is not present we want to break and not set loaded filament
@@ -905,7 +905,7 @@ bool Pause::invoke_loop(loop_fn fn) {
         }
         ret = !process_stop(); // why is this 2nd call here ???, some workaround ???
         if (ret) {
-            idle(true, true);  // idle loop to prevent wdt and manage heaters etc, true == do not shutdown steppers
+            idle(true, true); // idle loop to prevent wdt and manage heaters etc, true == do not shutdown steppers
         } else {
             set(intFinishVal);
             continue;
@@ -1245,7 +1245,7 @@ void Pause::park_nozzle_and_notify() {
             // We have moved both axes, go to park position if not requested otherwise
     #ifdef NOZZLE_PARK_POINT_M600
             static constexpr xyz_pos_t park = NOZZLE_PARK_POINT_M600;
-    #else  /*NOZZLE_PARK_POINT_M600*/
+    #else /*NOZZLE_PARK_POINT_M600*/
             static constexpr xyz_pos_t park = NOZZLE_PARK_POINT;
     #endif /*NOZZLE_PARK_POINT_M600*/
             LOOP_XY(axis) {
@@ -1260,7 +1260,7 @@ void Pause::park_nozzle_and_notify() {
                 }
             }
         }
-#else  /*CORE_IS_XY*/
+#else /*CORE_IS_XY*/
         // home the X or Y axis if it is not homed and we want to move it
         // homing is after Z move to be clear of all obstacles
         // Should not affect other operations than Load/Unload/Change filament run from home screen without homing. We are homed during print
@@ -1302,7 +1302,7 @@ void Pause::unpark_nozzle_and_notify() {
     const float &end_pos = x_greater_than_y ? settings.resume_pos.x : settings.resume_pos.y;
 
     const float Z_len = current_position.z - settings.resume_pos.z; // sign does not matter, does not check Z max val (unlike park_nozzle_and_notify)
-    const float XY_len = begin_pos - end_pos;                       // sign does not matter
+    const float XY_len = begin_pos - end_pos; // sign does not matter
 
     // home the axis if it is not homed
     // we can move only one axis during parking and not home the other one and then unpark and move the not homed one, so we need to home it
@@ -1323,6 +1323,11 @@ void Pause::unpark_nozzle_and_notify() {
     {
         PauseFsmNotifier N(*this, current_position.z, settings.resume_pos.z, parkMoveXYPercent(Z_len, XY_len), 100, marlin_vars()->native_pos[MARLIN_VAR_INDEX_Z]); // from XY% to 100%
         do_blocking_move_to_z(settings.resume_pos.z, feedRate_t(NOZZLE_PARK_Z_FEEDRATE));
+    }
+
+    // Unretract
+    if (settings.retract) {
+        plan_e_move(-settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
     }
 }
 
@@ -1358,6 +1363,9 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
         return; // unable to reach safe temperature
     }
 
+    // Lock filament sensor, so it does not enqueue new M600, beacuse of filament run out
+    FS_EventAutolock runout_disable;
+
     // Indicate that the printer is paused
     ++did_pause_print;
 
@@ -1365,8 +1373,6 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
 
     // Wait for buffered blocks to complete
     planner.synchronize();
-    // Lock filament sensor, so it does not enqueue new M600, beacuse of filament run out
-    FS_EventAutolock runout_disable;
 
 #if ENABLED(ADVANCED_PAUSE_FANS_PAUSE) && FAN_COUNT > 0
     thermalManager.set_fans_paused(true);
@@ -1380,7 +1386,15 @@ void Pause::FilamentChange(const pause::Settings &settings_) {
             filamentUnload(&Pause::loop_unload_change);
         // Feed a little bit of filament to stabilize pressure in nozzle
         if (filamentLoad(&Pause::loop_load_change)) {
+
+            // Last poop after user clicked color - yes
             plan_e_move(5, 10);
+
+            // Retract again, it will be unretracted at the end of unpark
+            if (settings.retract) {
+                plan_e_move(settings.retract, PAUSE_PARK_RETRACT_FEEDRATE);
+            }
+
             planner.synchronize();
             delay(500);
         }

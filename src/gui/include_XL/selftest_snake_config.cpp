@@ -10,7 +10,7 @@
     #if HAS_SIDE_FSENSOR()
         #include <filament_sensors_handler_XL_remap.hpp>
     #endif /*HAS_SIDE_FSENSOR()*/
-#endif     /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
 
 namespace SelftestSnake {
 TestResult get_test_result(Action action, Tool tool) {
@@ -138,7 +138,7 @@ void ask_config(Action action) {
     case Action::FilamentSensorCalibration: {
 #if HAS_TOOLCHANGER() && HAS_SIDE_FSENSOR()
         side_fsensor_remap::ask_to_remap(); // Ask user whether to remap filament sensors
-#endif                                      /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
     } break;
 
     default:

@@ -5,6 +5,7 @@
 
 #include "filament_sensors_handler.hpp"
 #include "filament_sensor_types.hpp"
+#include <cassert>
 
 bool FilamentSensors::has_mmu2_enabled() const {
     return false;

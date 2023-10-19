@@ -42,7 +42,7 @@ FooterItemAllNozzles::FooterItemAllNozzles(window_t *parent)
 uint FooterItemAllNozzles::nozzle_n = 0;
 
 footer::ItemDrawType FooterItemAllNozzles::GetDrawType() {
-    return footer::eeprom::GetItemDrawType();
+    return footer::eeprom::get_item_draw_type();
 }
 
 void FooterItemBed::unconditionalDraw() {
@@ -210,9 +210,9 @@ int FooterItemAllNozzles::static_readValue() {
     }
 
     return keep_value; // Return nozzle number in higher 16 bits and shown temperature in lower 16 bits
-#else                  /*HAS_TOOLCHANGER()*/
+#else /*HAS_TOOLCHANGER()*/
     return static_cast<uint16_t>(marlin_vars()->active_hotend().temp_nozzle); // Nozzle 0 temperature
-#endif                 /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
 }
 
 // This methods cannot be one - need separate buffers
@@ -235,14 +235,14 @@ string_view_utf8 FooterItemAllNozzles::static_makeView(int value) {
     const uint nozzle_n = value >> 16;
     const uint temperature = std::clamp(int(value & 0xffff), 0, 999);
 
-    const char *const str = (GetDrawType() == footer::ItemDrawType::Static) ? const_size_str : left_aligned_str;
+    const char *const str = (GetDrawType() == footer::ItemDrawType::static_) ? const_size_str : left_aligned_str;
     int printed_chars = snprintf(buff.data(), buff.size(), str, nozzle_n + 1, temperature);
 
     if (printed_chars <= 0) {
         buff[0] = '\0';
     } else { // Dynamic is not allowed as it changes each second
         // left_aligned print need to end with spaces ensure fixed size
-        *(buff.end() - 1) = '\0';
+        buff.back() = '\0';
         for (; size_t(printed_chars) < buff.size() - 1; ++printed_chars) {
             buff[printed_chars] = ' ';
         }

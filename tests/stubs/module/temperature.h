@@ -22,7 +22,7 @@
 #define DEFAULT_INVERT_Z_DIR  true
 #define DEFAULT_INVERT_E0_DIR false
 #define X_CURRENT             650 // (mA) RMS current. Multiply by 1.414 for peak current.
-#define X_MICROSTEPS          16  // 0..256
+#define X_MICROSTEPS          16 // 0..256
 #define X_RSENSE              0.22
 #define X_CHAIN_POS           0
 #define Y_CURRENT             650

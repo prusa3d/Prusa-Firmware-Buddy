@@ -51,24 +51,10 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
-// 100%, where on MK4/XL we also check the rpm range. No data for MK3.5 yet.
 static constexpr SelftestFansConfig fans_configs[] = {
     {
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::print,
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::heat_break,
-        },
+        .print_fan = benevolent_fan_config,
+        .heatbreak_fan = benevolent_fan_config,
     }
 };
 
@@ -169,29 +155,6 @@ static constexpr HeaterConfig_t Config_HeaterBed = {
     .min_pwm_to_measure = 26,
 };
 
-// N.B. Using this for both rpm_min_table and rpm_max_table
-//      causes FanHandler::evaluate() to skip checking the RPM.
-static constexpr std::array<uint16_t, 2> null_rpm_table = { 0, 0 };
-
-static constexpr SelftestFansConfig Config_Fan_fine[] = {
-    {
-        .print_fan = {
-            .pwm_start = 20,
-            .pwm_step = 10,
-            .rpm_min_table = null_rpm_table,
-            .rpm_max_table = null_rpm_table,
-            .fanctl_fnc = Fans::print,
-        },
-        .heatbreak_fan = {
-            .pwm_start = 20,
-            .pwm_step = 10,
-            .rpm_min_table = null_rpm_table,
-            .rpm_max_table = null_rpm_table,
-            .fanctl_fnc = Fans::heat_break,
-        },
-    }
-};
-
 static const FirstLayerConfig_t Config_FirstLayer = { .partname = "First Layer" };
 
 CSelftest::CSelftest()
@@ -221,11 +184,11 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stmHeaters)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_heaters));
     if (m_Mask & stmZAxis)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup));       // if Z is calibrated, move it up
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
     if (m_Mask & stmFullSelftest)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
     // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
@@ -330,10 +293,6 @@ void CSelftest::Loop() {
         if (phaseWait())
             return;
         break;
-    case stsFans_fine:
-        if (selftest::phaseFans(pFans, Config_Fan_fine))
-            return;
-        break;
     case stsSelftestStop:
         restoreAfterSelftest();
         break;
@@ -397,8 +356,8 @@ void CSelftest::phaseDidSelftestPass() {
 
     // dont run wizard again
     if (SelftestResult_Passed_All(m_result)) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
     }
 }
@@ -408,8 +367,8 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
         Abort();
     }
@@ -493,16 +452,16 @@ void CSelftest::next() {
     // this must be done after mask check
     m_result = config_store().selftest_result.get();
     switch (m_State) {
-    case stsZAxis:   // both X and Y must be OK to test Z
+    case stsZAxis: // both X and Y must be OK to test Z
         if (m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     case stsMoveZup: // Z must be OK, if axis are not homed, it could be stacked at the top and generate noise, but the way states are generated from mask should prevent it
         if (m_result.zaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     default:
-        return;      // current state can be run
+        return; // current state can be run
     }
 
     // current state cannot be run

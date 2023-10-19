@@ -4,6 +4,7 @@
 
 #include "selftest_esp.hpp"
 #include "selftest_esp_update.hpp"
+#include "settings_ini.hpp"
 
 #include "RAII.hpp"
 #include "log.h"
@@ -56,9 +57,10 @@ ESPUpdate::ESPUpdate(uintptr_t mask)
     , progress_state(esp_upload_action::Initial)
     , current_file(firmware_set.begin())
     , readCount(0)
-    , phase(PhasesSelftest::_none)
+    , phase(PhasesESP::_none)
     , from_menu(mask & init_mask::msk_from_menu)
     , credentials_already_set(mask & init_mask::msk_credentials_already_set)
+    , credentials_on_usb(mask & init_mask::msk_credentials_on_usb)
     , progress(0)
     , current_file_no(0)
     , initial_netdev_id(netdev_get_active_id())
@@ -99,7 +101,7 @@ void ESPUpdate::Loop() {
 
         switch (progress_state) {
         case esp_upload_action::Initial:
-            phase = PhasesSelftest::ESP_qr_instructions_flash;
+            phase = PhasesESP::ESP_qr_instructions_flash;
             progress_state = esp_upload_action::Initial_wait_user;
             break;
         case esp_upload_action::Initial_wait_user:
@@ -116,7 +118,7 @@ void ESPUpdate::Loop() {
             }
             break;
         case esp_upload_action::Info:
-            phase = PhasesSelftest::ESP_progress_info;
+            phase = PhasesESP::ESP_progress_info;
             progress_state = esp_upload_action::Info_wait_user;
             break;
         case esp_upload_action::Info_wait_user:
@@ -126,7 +128,7 @@ void ESPUpdate::Loop() {
             break;
         case esp_upload_action::Connect_show: {
             progress_state = esp_upload_action::DisableWIFI_if_needed;
-            phase = PhasesSelftest::ESP_progress_upload; // will show [0/3] during enabling of wifi
+            phase = PhasesESP::ESP_progress_upload; // will show [0/3] during enabling of wifi
             break;
         }
         case esp_upload_action::DisableWIFI_if_needed:
@@ -215,10 +217,10 @@ void ESPUpdate::Loop() {
             esp_loader_flash_finish(true);
             espif_flash_deinitialize();
             notify_reconfigure();
-            if (credentials_already_set) {
+            if (credentials_already_set && !credentials_on_usb) {
                 netdev_set_active_id(NETDEV_ESP_ID);
                 progress_state = esp_upload_action::WaitWIFI_enabled;
-                phase = PhasesSelftest::ESP_enabling_WIFI;
+                phase = PhasesESP::ESP_enabling_WIFI;
             } else {
                 // leave wifi disabled, so credentials don't have to disable it again
                 progress_state = esp_upload_action::Finish;
@@ -227,16 +229,12 @@ void ESPUpdate::Loop() {
             readCount = 0;
             break;
         case esp_upload_action::WaitWIFI_enabled:
-            if (continue_pressed) {
-                progress_state = esp_upload_action::Done;
-                break;
-            }
             if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
                 progress_state = esp_upload_action::Finish;
             }
             break;
         case esp_upload_action::Finish:
-            phase = PhasesSelftest::ESP_progress_passed;
+            phase = PhasesESP::ESP_progress_passed;
             progress_state = esp_upload_action::Finish_wait_user;
 
             break;
@@ -247,7 +245,7 @@ void ESPUpdate::Loop() {
             break;
         case esp_upload_action::ESP_error:
         case esp_upload_action::USB_error: {
-            phase = PhasesSelftest::ESP_progress_failed;
+            phase = PhasesESP::ESP_progress_failed;
             esp_loader_flash_finish(false);
             progress_state = esp_upload_action::Error_wait_user;
             current_file = firmware_set.begin();
@@ -285,11 +283,7 @@ EspCredentials::EspCredentials(marlin_server::FSM_Holder &fsm, type_t type)
     : rfsm(fsm)
     , type(type)
     , initial_netdev_id(netdev_get_active_id())
-    , progress_state(esp_credential_action::ShowInstructions)
-    , last_state(esp_credential_action::Done) // ensure progress_state != last_state
-    , usb_inserted(false)
-    , wifi_enabled(false)
-    , continue_pressed(false) {
+    , progress_state(esp_credential_action::ShowInstructions) {
     switch (type) {
     case type_t::credentials_standalone:
         progress_state = esp_credential_action::ShowInstructions_qr;
@@ -300,24 +294,31 @@ EspCredentials::EspCredentials(marlin_server::FSM_Holder &fsm, type_t type)
     case type_t::ini_creation:
         progress_state = esp_credential_action::CheckUSB_inserted;
         break;
+    case type_t::credentials_user:
+        progress_state = esp_credential_action::InsertUSB; // it skips first few screens, but it might return to them in case USB / config error
+        break;
     }
 }
 
 bool EspCredentials::make_file() {
-    file.reset(fopen(file_name, "w"));
+    file.reset(fopen(settings_ini::file_name, "w"));
     if (file.get() == nullptr) {
-        log_error(Network, "ESP credentials: Unable to create file %s", file_name);
+        log_error(Network, "ESP credentials: Unable to create file %s", settings_ini::file_name);
         return false;
     }
 
     bool failed = fputs(file_str, file.get()) < 0;
     if (failed) {
-        log_error(Network, "ESP credentials: Unable to write into file %s", file_name);
+        log_error(Network, "ESP credentials: Unable to write into file %s", settings_ini::file_name);
     }
     file.reset(nullptr);
 
-    log_info(Network, "ESP credentials generated to %s", file_name);
+    log_info(Network, "ESP credentials generated to %s", settings_ini::file_name);
     return !failed;
+}
+
+bool EspCredentials::delete_file() {
+    return remove(settings_ini::file_name);
 }
 
 bool EspCredentials::file_exists() {
@@ -325,7 +326,7 @@ bool EspCredentials::file_exists() {
 
     // no other thread should modify files in file system during upload
     // or this might fail
-    fl.reset(fopen(file_name, "r"));
+    fl.reset(fopen(settings_ini::file_name, "r"));
     return fl.get() != nullptr;
 }
 
@@ -349,7 +350,8 @@ void EspCredentials::Loop() {
         }
         usb_inserted = marlin_server::get_media_inserted();
         wifi_enabled = netdev_get_active_id() == NETDEV_ESP_ID;
-        continue_pressed = false;
+        continue_yes_retry_pressed = false;
+        no_pressed = false;
 
         // we use only 3 responses here
         // it is safe to use it from different thread as long as no other thread reads it
@@ -358,7 +360,10 @@ void EspCredentials::Loop() {
             case Response::Continue:
             case Response::Retry:
             case Response::Yes:
-                continue_pressed = true;
+                continue_yes_retry_pressed = true;
+                break;
+            case Response::No:
+                no_pressed = true;
                 break;
             case Response::Abort:
             case Response::Skip:
@@ -386,6 +391,7 @@ void EspCredentials::Loop() {
             switch (type) {
             case type_t::credentials_standalone:
             case type_t::credentials_sequence:
+            case type_t::credentials_user:
                 loop();
                 break;
             case type_t::ini_creation:
@@ -410,41 +416,41 @@ void EspCredentials::loopCreateINI() {
         break;
     case esp_credential_action::USB_not_inserted:
         progress_state = esp_credential_action::USB_not_inserted_wait;
-        phase = PhasesSelftest::ESP_USB_not_inserted;
+        phase = PhasesESP::ESP_USB_not_inserted;
         break;
     case esp_credential_action::USB_not_inserted_wait:
-        if (continue_pressed || usb_inserted)
+        if (continue_yes_retry_pressed || usb_inserted)
             progress_state = esp_credential_action::AskMakeFile;
         break;
     case esp_credential_action::AskMakeFile:
-        phase = file_exists() ? PhasesSelftest::ESP_ask_gen_overwrite : PhasesSelftest::ESP_ask_gen;
+        phase = file_exists() ? PhasesESP::ESP_ask_gen_overwrite : PhasesESP::ESP_ask_gen;
         progress_state = esp_credential_action::AskMakeFile_wait_user;
         break;
     case esp_credential_action::AskMakeFile_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = make_file() ? esp_credential_action::EjectUSB : esp_credential_action::MakeFile_failed;
         }
         break;
     case esp_credential_action::MakeFile_failed:
         progress_state = esp_credential_action::MakeFile_failed_wait_user;
-        phase = PhasesSelftest::ESP_makefile_failed;
+        phase = PhasesESP::ESP_makefile_failed;
         break;
     case esp_credential_action::MakeFile_failed_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::CheckUSB_inserted;
         }
         break;
     case esp_credential_action::EjectUSB:
         if (usb_inserted) {
             progress_state = esp_credential_action::WaitUSB_ejected;
-            phase = PhasesSelftest::ESP_eject_USB;
+            phase = PhasesESP::ESP_eject_USB;
         } else {
             // this should not happen
             progress_state = esp_credential_action::Done;
         }
         break;
     case esp_credential_action::WaitUSB_ejected:
-        if (continue_pressed || !usb_inserted)
+        if (continue_yes_retry_pressed || !usb_inserted)
             progress_state = esp_credential_action::Done;
         break;
     default:
@@ -456,37 +462,37 @@ void EspCredentials::loop() {
     switch (progress_state) {
     case esp_credential_action::ShowInstructions_qr:
         progress_state = esp_credential_action::ShowInstructions_qr_wait_user;
-        phase = PhasesSelftest::ESP_qr_instructions;
+        phase = PhasesESP::ESP_qr_instructions;
         break;
     case esp_credential_action::ShowInstructions_qr_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::ShowInstructions;
         }
         break;
     case esp_credential_action::ShowInstructions:
         progress_state = esp_credential_action::ShowInstructions_wait_user;
-        phase = PhasesSelftest::ESP_instructions;
+        phase = PhasesESP::ESP_instructions;
         break;
     case esp_credential_action::ShowInstructions_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::InsertUSB;
         }
         break;
     case esp_credential_action::InsertUSB:
         if (!usb_inserted) {
             progress_state = esp_credential_action::WaitUSB_inserted;
-            phase = PhasesSelftest::ESP_insert_USB;
+            phase = PhasesESP::ESP_insert_USB;
         } else {
             // this should not happen
             progress_state = esp_credential_action::VerifyConfig_init;
         }
         break;
     case esp_credential_action::WaitUSB_inserted:
-        if (continue_pressed || usb_inserted)
+        if (continue_yes_retry_pressed || usb_inserted)
             progress_state = esp_credential_action::VerifyConfig_init;
         break;
     case esp_credential_action::VerifyConfig_init:
-        phase = PhasesSelftest::ESP_uploading_config;
+        phase = PhasesESP::ESP_uploading_config;
         progress_state = esp_credential_action::DisableWIFI_if_needed;
         break;
     case esp_credential_action::DisableWIFI_if_needed:
@@ -518,10 +524,10 @@ void EspCredentials::loop() {
         if (wait_in_progress(2048))
             break;
         progress_state = esp_credential_action::ConfigNOk_wait_user;
-        phase = PhasesSelftest::ESP_invalid;
+        phase = PhasesESP::ESP_invalid;
         break;
     case esp_credential_action::ConfigNOk_wait_user:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
             progress_state = esp_credential_action::VerifyConfig_init;
         }
         break;
@@ -531,7 +537,7 @@ void EspCredentials::loop() {
         if (wait_in_progress(2048))
             break;
         progress_state = esp_credential_action::EnableWIFI;
-        phase = PhasesSelftest::ESP_enabling_WIFI;
+        phase = PhasesESP::ESP_enabling_WIFI;
         break;
     case esp_credential_action::EnableWIFI:
         // give GUI some time to draw before call of netdev_set_active_id
@@ -541,20 +547,12 @@ void EspCredentials::loop() {
         progress_state = esp_credential_action::WaitWIFI_enabled;
         break;
     case esp_credential_action::WaitWIFI_enabled:
-        if (continue_pressed) {
+        if (continue_yes_retry_pressed) {
+            delete_file();
             progress_state = esp_credential_action::Done;
             break;
         }
-        if (wifi_enabled && netdev_get_status(NETDEV_ESP_ID) == NETDEV_NETIF_UP) {
-            progress_state = esp_credential_action::ConfigUploaded;
-        }
-        break;
-    case esp_credential_action::ConfigUploaded: // config OK
-        progress_state = esp_credential_action::ConfigUploaded_wait_user;
-        phase = PhasesSelftest::ESP_uploaded;
-        break;
-    case esp_credential_action::ConfigUploaded_wait_user:
-        if (continue_pressed) {
+        if (no_pressed) {
             progress_state = esp_credential_action::Done;
         }
         break;
@@ -584,22 +582,34 @@ static void EspTask(void *pvParameters) {
 }
 
 void update_esp(bool force) {
-    const bool credentials_already_set = EspCredentials::AlreadySet();
-    uintptr_t mask = 0;
-    if (force)
-        mask |= ESPUpdate::init_mask::msk_from_menu;
-    if (credentials_already_set)
-        mask |= ESPUpdate::init_mask::msk_credentials_already_set;
+    bool credentials_on_usb = false;
+    {
+        std::unique_ptr<FILE, FileDeleter> fl;
+        // if other thread modifies files during this action, detection might fail
+        fl.reset(fopen(settings_ini::file_name, "r"));
+        credentials_on_usb = fl.get() != nullptr;
+    }
 
+    const bool credentials_already_set = EspCredentials::AlreadySet();
+    uintptr_t mask = 0; // only way to pas data to FreeRTOS thread is via void*
+    if (force) {
+        mask |= ESPUpdate::init_mask::msk_from_menu;
+    }
+    if (credentials_already_set) {
+        mask |= ESPUpdate::init_mask::msk_credentials_already_set;
+    }
+    if (credentials_on_usb) {
+        mask |= ESPUpdate::init_mask::msk_credentials_on_usb;
+    }
     TaskHandle_t xHandle = nullptr;
 
     xTaskCreate(
-        EspTask,                  // Function that implements the task.
-        "ESP UPDATE",             // Text name for the task.
-        512,                      // Stack size in words, not bytes.
-        (void *)(mask),           // Parameter passed into the task.
+        EspTask, // Function that implements the task.
+        "ESP UPDATE", // Text name for the task.
+        512, // Stack size in words, not bytes.
+        (void *)(mask), // Parameter passed into the task.
         TASK_PRIORITY_ESP_UPDATE, // Priority at which the task is created.
-        &xHandle);                // Used to pass out the created task's handle.
+        &xHandle); // Used to pass out the created task's handle.
 
     // update did not start yet
     // no fsm was opened, it is safe to just return in case sask was not created
@@ -607,7 +617,7 @@ void update_esp(bool force) {
         return;
 
     task_state = ESPUpdate::state::did_not_finished;
-    FSM_HOLDER__LOGGING(Selftest);
+    FSM_HOLDER__LOGGING(ESP);
     status_t status;
     status.Empty();
 
@@ -618,7 +628,7 @@ void update_esp(bool force) {
         if (current != status) {
             status = current;
             SelftestESP_t data(status.progress, status.current_file, status.count_of_files);
-            FSM_HOLDER_CHANGE_METHOD__LOGGING(Selftest_from_macro, status.phase, data.Serialize());
+            FSM_HOLDER_CHANGE_METHOD__LOGGING(ESP_from_macro, status.phase, data.Serialize());
         }
 
         // call idle loop to prevent watchdog
@@ -626,29 +636,37 @@ void update_esp(bool force) {
     }
 
     // in case update was aborted credentials will not run
-    if (credentials_already_set || task_state != ESPUpdate::state::finished)
+    if ((credentials_already_set && !credentials_on_usb) || task_state != ESPUpdate::state::finished)
         return;
 
     // need scope to not have 2 instances of credentials at time
-    {
-        EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::ini_creation);
+    if (!credentials_on_usb) {
+        EspCredentials credentials(ESP_from_macro, EspCredentials::type_t::ini_creation);
         credentials.Loop();
     }
     // credentials will run even when ini file was skipped
     {
-        EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::credentials_sequence);
+        EspCredentials credentials(ESP_from_macro, credentials_on_usb ? EspCredentials::type_t::credentials_user : EspCredentials::type_t::credentials_sequence);
         credentials.Loop();
     }
 }
 
 void update_esp_credentials() {
-    FSM_HOLDER__LOGGING(Selftest);
-    EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::credentials_standalone);
+    bool credentials_on_usb = false;
+    {
+        std::unique_ptr<FILE, FileDeleter> fl;
+        // if other thread modifies files during this action, detection might fail
+        fl.reset(fopen(settings_ini::file_name, "r"));
+        credentials_on_usb = fl.get() != nullptr;
+    }
+
+    FSM_HOLDER__LOGGING(ESP);
+    EspCredentials credentials(ESP_from_macro, credentials_on_usb ? EspCredentials::type_t::credentials_user : EspCredentials::type_t::credentials_standalone);
     credentials.Loop();
 }
 
 void credentials_generate_ini() {
-    FSM_HOLDER__LOGGING(Selftest);
-    EspCredentials credentials(Selftest_from_macro, EspCredentials::type_t::ini_creation);
+    FSM_HOLDER__LOGGING(ESP);
+    EspCredentials credentials(ESP_from_macro, EspCredentials::type_t::ini_creation);
     credentials.Loop();
 }

@@ -100,7 +100,7 @@ namespace {
 
         if (S_ISDIR(st.st_mode)) {
             MutablePath mp(path);
-            return transfers::Transfer::is_valid_transfer(mp);
+            return transfers::is_valid_transfer(mp);
         }
 
         return true;
@@ -158,7 +158,7 @@ namespace {
     constexpr const char *const enc_suffix = "/raw";
     const size_t enc_prefix_len = strlen(enc_prefix);
     const size_t enc_suffix_len = strlen(enc_suffix);
-    const size_t iv_len = 2 /* Binary->hex conversion*/ * StartConnectDownload::Encrypted::BLOCK_SIZE;
+    const size_t iv_len = 2 /* Binary->hex conversion*/ * StartConnectDownload::BLOCK_SIZE;
     const size_t enc_url_len = enc_prefix_len + enc_suffix_len + iv_len + 1;
 
     void make_enc_url(char *buffer /* assumed to be at least enc_url_len large */, const Decryptor::Block &iv) {
@@ -172,7 +172,7 @@ namespace {
         strcat(buffer, enc_suffix);
     }
 
-    Transfer::BeginResult init_transfer(Printer &printer, const Printer::Config &config, const StartConnectDownload &download) {
+    Transfer::BeginResult init_transfer(Printer &, const Printer::Config &config, const StartConnectDownload &download) {
         const char *dpath = download.path.path();
         if (!path_allowed(dpath)) {
             return Storage { "Not allowed outside /usb" };
@@ -187,45 +187,13 @@ namespace {
         char *path = nullptr;
         unique_ptr<Download::EncryptionInfo> encryption;
 
-        auto get_headers = [&](size_t headers_count, HeaderOut *headers) -> size_t {
-            if (auto *plain = get_if<StartConnectDownload::Plain>(&download.details); plain != nullptr) {
-                constexpr size_t requires_headers = 2;
-
-                if (requires_headers <= headers_count) {
-                    const char *token = config.token;
-                    // Even though we get it from a temporary, the pointer itself is stable.
-                    const char *fingerprint = printer.printer_info().fingerprint;
-                    const size_t fingerprint_size = Printer::PrinterInfo::FINGERPRINT_HDR_SIZE;
-                    headers[0] = { "Fingerprint", fingerprint, fingerprint_size };
-                    headers[1] = { "Token", token, nullopt };
-                }
-
-                return requires_headers;
-            }
+        auto get_headers = [&](size_t, HeaderOut *) -> size_t {
             return 0;
         };
 
-        if (auto *plain = get_if<StartConnectDownload::Plain>(&download.details); plain != nullptr) {
-            const char *prefix = "/p/teams/";
-            const char *infix = "/files/";
-            const char *suffix = "/raw";
-            const size_t buffer_len = strlen(prefix) + 21 /* max len of 64bit number */ + strlen(infix) + strlen(plain->hash) + strlen(suffix) + 1;
-            path = reinterpret_cast<char *>(alloca(buffer_len));
-            size_t written = snprintf(path, buffer_len, "%s%" PRIu64 "%s%s%s", prefix, plain->team, infix, plain->hash, suffix);
-            // Written is number of chars that _would_ be written if there's enough
-            // space, which means that if it's size or longer, we got it truncated.
-            //
-            // That would mean we somehow miscalculated the buffer estimate.
-            assert(written < buffer_len);
-            // Avoid warning about unused in release builds (assert off)
-            (void)written;
-        } else if (auto *encrypted = get_if<StartConnectDownload::Encrypted>(&download.details); encrypted != nullptr) {
-            path = reinterpret_cast<char *>(alloca(enc_url_len));
-            make_enc_url(path, encrypted->iv);
-            encryption = make_unique<Download::EncryptionInfo>(encrypted->key, encrypted->iv, encrypted->orig_size);
-        } else {
-            assert(0);
-        }
+        path = reinterpret_cast<char *>(alloca(enc_url_len));
+        make_enc_url(path, download.iv);
+        encryption = make_unique<Download::EncryptionInfo>(download.key, download.iv, download.orig_size);
 
         auto request = Download::Request(host, port, path, get_headers, std::move(encryption));
 
@@ -625,11 +593,6 @@ void Planner::command(const Command &command, const StartConnectDownload &downlo
 
     if (transfer_recovery == TransferRecoveryState::WaitingForUSB) {
         planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Not ready" };
-        return;
-    }
-
-    if (config.tls && !holds_alternative<StartConnectDownload::Encrypted>(download.details)) {
-        planned_event = Event { EventType::Rejected, command.id, nullopt, nullopt, nullopt, "Requested a non-encrypted download from TLS connection" };
         return;
     }
 

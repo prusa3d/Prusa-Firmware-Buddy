@@ -50,7 +50,7 @@ void WindowIcon_OkNg::unconditionalDraw() {
         break;
     case SelftestSubtestState_t::running: {
         const size_t blink_state = (flags.blink1 << 1) | flags.blink0; // sets 2 lowest bits guaranted to be 0 .. 3
-        id_res = id_res_ip[blink_state];                               // no need to check index out of array range
+        id_res = id_res_ip[blink_state]; // no need to check index out of array range
     } break;
     }
 

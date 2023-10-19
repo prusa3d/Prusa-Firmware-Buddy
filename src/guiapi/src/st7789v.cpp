@@ -31,8 +31,8 @@ enum {
     CMD_MADCTLRD = 0x0b, // Read MADCTL register
     CMD_SLPIN = 0x10,
     CMD_SLPOUT = 0x11,
-    CMD_INVOFF = 0x20,    // Display Inversion Off
-    CMD_INVON = 0x21,     // Display Inversion On
+    CMD_INVOFF = 0x20, // Display Inversion Off
+    CMD_INVON = 0x21, // Display Inversion On
     CMD_GAMMA_SET = 0x26, // gamma set
     CMD_DISPOFF = 0x28,
     CMD_DISPON = 0x29,
@@ -80,17 +80,17 @@ enum {
 
 uint8_t st7789v_flg = 0; // flags
 
-uint16_t st7789v_x = 0;  // current x coordinate (CASET)
-uint16_t st7789v_y = 0;  // current y coordinate (RASET)
+uint16_t st7789v_x = 0; // current x coordinate (CASET)
+uint16_t st7789v_y = 0; // current y coordinate (RASET)
 uint16_t st7789v_cx = 0; //
 uint16_t st7789v_cy = 0; //
 
 #ifdef ST7789V_USE_RTOS
 osThreadId st7789v_task_handle = 0;
-#endif                                                      // ST7789V_USE_RTOS
+#endif // ST7789V_USE_RTOS
 
 uint8_t st7789v_buff[ST7789V_COLS * 2 * ST7789V_BUFF_ROWS]; // display buffer
-bool st7789v_buff_borrowed = false;                         ///< True if buffer is borrowed by someone else
+bool st7789v_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
 uint8_t *st7789v_borrow_buffer() {
     assert(!st7789v_buff_borrowed && "Already lent");
@@ -207,7 +207,7 @@ void st7789v_spi_wr_bytes(uint8_t *pb, uint16_t size) {
         HAL_SPI_Transmit_DMA(st7789v_config.phspi, pb, size);
 #ifdef ST7789V_USE_RTOS
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
-#else  // ST7789V_USE_RTOS
+#else // ST7789V_USE_RTOS
 // TODO:
 #endif // ST7789V_USE_RTOS
     } else
@@ -231,20 +231,20 @@ void st7789v_spi_rd_bytes(uint8_t *pb, uint16_t size) {
         osSignalWait(ST7789V_SIG_SPI_TX, osWaitForever);
     #endif // ST7789V_USE_RTOS
     }
-#else      // ST7789V_DMA
+#else // ST7789V_DMA
     HAL_SPI_Receive(st7789v_config.phspi, pb, size, HAL_MAX_DELAY);
-#endif     // ST7789V_DMA
+#endif // ST7789V_DMA
 }
 
 void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
-    uint16_t tmp_flg = st7789v_flg;        // save flags
+    uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS)
-        st7789v_clr_cs();                  // CS = L
+        st7789v_clr_cs(); // CS = L
     if (st7789v_flg & FLG_RS)
-        st7789v_clr_rs();                  // RS = L
-    st7789v_spi_wr_byte(cmd);              // write command byte
+        st7789v_clr_rs(); // RS = L
+    st7789v_spi_wr_byte(cmd); // write command byte
     if (pdata && size) {
-        st7789v_set_rs();                  // RS = H
+        st7789v_set_rs(); // RS = H
         st7789v_spi_wr_bytes(pdata, size); // write data bytes
     }
     if (tmp_flg & FLG_CS)
@@ -256,9 +256,9 @@ void st7789v_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
 void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
     uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS)
-        st7789v_clr_cs();           // CS = L
+        st7789v_clr_cs(); // CS = L
     if (st7789v_flg & FLG_RS)
-        st7789v_clr_rs();           // RS = L
+        st7789v_clr_rs(); // RS = L
     uint8_t data_to_write[ST7789V_MAX_COMMAND_READ_LENGHT] = { 0x00 };
     data_to_write[0] = cmd;
     data_to_write[1] = 0x00;
@@ -270,28 +270,28 @@ void st7789v_cmd_rd(uint8_t cmd, uint8_t *pdata) {
 
 void st7789v_wr(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
-        return;                        // null or empty data - return
-    uint16_t tmp_flg = st7789v_flg;    // save flags
+        return; // null or empty data - return
+    uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS)
-        st7789v_clr_cs();              // CS = L
+        st7789v_clr_cs(); // CS = L
     if (!(st7789v_flg & FLG_RS))
-        st7789v_set_rs();              // RS = H
+        st7789v_set_rs(); // RS = H
     st7789v_spi_wr_bytes(pdata, size); // write data bytes
     if (tmp_flg & FLG_CS)
-        st7789v_set_cs();              // CS = H
+        st7789v_set_cs(); // CS = H
 }
 
 void st7789v_rd(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
-        return;                        // null or empty data - return
-    uint16_t tmp_flg = st7789v_flg;    // save flags
+        return; // null or empty data - return
+    uint16_t tmp_flg = st7789v_flg; // save flags
     if (st7789v_flg & FLG_CS)
-        st7789v_clr_cs();              // CS = L
+        st7789v_clr_cs(); // CS = L
     if (!(st7789v_flg & FLG_RS))
-        st7789v_set_rs();              // RS = H
+        st7789v_set_rs(); // RS = H
     st7789v_spi_rd_bytes(pdata, size); // read data bytes
     if (tmp_flg & FLG_CS)
-        st7789v_set_cs();              // CS = H
+        st7789v_set_cs(); // CS = H
 }
 
 void st7789v_cmd_slpout(void) {
@@ -370,15 +370,15 @@ void st7789v_init(void) {
         st7789v_flg &= ~(uint8_t)ST7789V_FLG_DMA;
     else
         st7789v_flg = st7789v_config.flg;
-    st7789v_init_ctl_pins();                   // CS=H, RS=H, RST=H
-    st7789v_reset();                           // 15ms reset pulse
-    st7789v_delay_ms(120);                     // 120ms wait
-    st7789v_cmd_slpout();                      // wakeup
-    st7789v_delay_ms(120);                     // 120ms wait
+    st7789v_init_ctl_pins(); // CS=H, RS=H, RST=H
+    st7789v_reset(); // 15ms reset pulse
+    st7789v_delay_ms(120); // 120ms wait
+    st7789v_cmd_slpout(); // wakeup
+    st7789v_delay_ms(120); // 120ms wait
     st7789v_cmd_madctl(st7789v_config.madctl); // interface pixel format
     st7789v_cmd_colmod(st7789v_config.colmod); // memory data access control
-    st7789v_cmd_dispon();                      // display on
-    st7789v_delay_ms(10);                      // 10ms wait
+    st7789v_cmd_dispon(); // display on
+    st7789v_delay_ms(10); // 10ms wait
 }
 
 void st7789v_done(void) {
@@ -597,11 +597,11 @@ void st7789v_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
 
     // Prepare input buffer
     std::span<uint8_t> i_buf(st7789v_buff, 512); ///< Input file buffer
-    std::span<uint8_t> i_data;                   ///< Span of input data read from file
+    std::span<uint8_t> i_data; ///< Span of input data read from file
 
     // Prepare output buffer
     std::span<uint8_t> p_buf(st7789v_buff + i_buf.size(), std::size(st7789v_buff) - i_buf.size()); ///< Output pixel buffer
-    auto o_data = p_buf.begin();                                                                   ///< Pointer to output pixel data in buffer
+    auto o_data = p_buf.begin(); ///< Pointer to output pixel data in buffer
 
 #if 0
     // Measure time it takes to draw QOI image
@@ -698,14 +698,14 @@ void st7789v_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
 }
 
 st7789v_config_t st7789v_config = {
-    0,            // spi handle pointer
-    0,            // flags (DMA, MISO)
-    0,            // interface pixel format (5-6-5, hi-color)
-    0,            // memory data access control (no mirror XY)
+    0, // spi handle pointer
+    0, // flags (DMA, MISO)
+    0, // interface pixel format (5-6-5, hi-color)
+    0, // memory data access control (no mirror XY)
     GAMMA_CURVE0, // gamma curve
-    0,            // brightness
-    0,            // inverted
-    0,            // default control reg value
+    0, // brightness
+    0, // inverted
+    0, // default control reg value
 };
 
 // measured delay from low to hi in reset cycle

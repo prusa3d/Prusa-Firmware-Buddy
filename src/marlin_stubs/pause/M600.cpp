@@ -52,6 +52,11 @@
 #if ENABLED(PRUSA_SPOOL_JOIN)
     #include "module/prusa/spool_join.hpp"
 #endif
+#include <option/has_toolchanger.h>
+#include <option/has_mmu2.h>
+#if HAS_MMU2()
+    #include "../../../lib/Marlin/Marlin/src/feature/prusa/MMU2/mmu2_mk4.h"
+#endif
 
 static void M600_manual();
 
@@ -74,21 +79,36 @@ static void M600_manual();
  */
 
 void GcodeSuite::M600() {
+    const bool is_auto_m600 = parser.seen('A');
+
     BlockEStallDetection block_e_stall_detection;
     bool do_manual_m600 = true;
 
-    if (parser.seen('A')) {
 #if ENABLED(PRUSA_SPOOL_JOIN)
-        if (spool_join.do_join(active_extruder)) {
+    if (is_auto_m600) {
+
+        uint8_t current_tool = 0;
+    #if HAS_TOOLCHANGER()
+        current_tool = active_extruder;
+    #elif HAS_MMU2()
+        // active_extruder variable is not altered by MMU2 (always 0)
+        // We need to select current filament slot
+        current_tool = MMU2::mmu2.get_current_tool();
+    #endif
+
+        if (spool_join.do_join(current_tool)) {
             // if automatic M600 succeeded, don't do manual M600, if not, do manual M600
             do_manual_m600 = false;
         }
-#endif
-        FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
     }
+#endif
 
     if (do_manual_m600) {
         M600_manual();
+    }
+
+    if (is_auto_m600) {
+        FSensors_instance().ClrM600Sent(); // reset filament sensor M600 sent flag
     }
 }
 
@@ -144,10 +164,12 @@ void M600_execute(xyz_pos_t park_point, int8_t target_extruder, xyze_float_t res
     pause::Settings settings;
     settings.SetParkPoint(park_point);
     settings.SetResumePoint(resume_point);
-    if (unloadLength.has_value())
+    if (unloadLength.has_value()) {
         settings.SetUnloadLength(unloadLength.value());
-    if (fastLoadLength.has_value())
+    }
+    if (fastLoadLength.has_value()) {
         settings.SetFastLoadLength(fastLoadLength.value());
+    }
     if (retractLength.has_value()) {
         settings.SetRetractLength(retractLength.value());
     } // Initial retract before move to filament change position

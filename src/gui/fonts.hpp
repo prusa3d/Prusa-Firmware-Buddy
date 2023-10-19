@@ -17,11 +17,11 @@ enum ResourceId : uint8_t {
 };
 
 struct font_t {
-    uint8_t w;    // char width [pixels]
-    uint8_t h;    // char height [pixels]
-    uint8_t bpr;  // bytes per row
+    uint8_t w; // char width [pixels]
+    uint8_t h; // char height [pixels]
+    uint8_t bpr; // bytes per row
     uint32_t flg; // flags
-    void *pcs;    // charset data pointer
+    void *pcs; // charset data pointer
     char asc_min; // min ascii code (first character)
     char asc_max; // max ascii code (last character)
 };
@@ -51,9 +51,8 @@ consteval font_size_t resource_font_size(ResourceId id) {
     case IDR_FNT_SMALL:
         return { 7, 13 };
     case IDR_FNT_NORMAL:
+    case IDR_FNT_BIG: // Big font removed to save flash
         return { 11, 18 };
-    case IDR_FNT_BIG:
-        return { 12, 21 };
     case IDR_FNT_SPECIAL:
         return { 9, 16 };
 #endif /*USE_ST7789*/

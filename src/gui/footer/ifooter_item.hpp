@@ -18,7 +18,7 @@ class IFooterItem : public AddSuperWindow<window_frame_t> {
     uint16_t last_updated;
 
 public:
-    static constexpr char no_tool_str[] = "---";                          ///< String shown if no tool is picked
+    static constexpr char no_tool_str[] = "---"; ///< String shown if no tool is picked
     static constexpr int no_tool_value = std::numeric_limits<int>::min(); ///< Value passed if no tool is picked
 
     static constexpr size_t item_h = GuiDefaults::FooterItemHeight;
@@ -57,7 +57,6 @@ protected:
 public:
     static Rect16::Width_t MeasureTextWidth(string_view_utf8 text);
     IFooterIconText(window_t *parent, const img::Resource *icon, Rect16::W_t width); // icon width is calculated from resource
-    IFooterIconText(window_t *parent, const img::Resource *icon, string_view_utf8 view);
 };
 
 // this class must be able to create stringview

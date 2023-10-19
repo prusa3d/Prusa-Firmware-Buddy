@@ -16,7 +16,7 @@
 
 enum {
     F_EEPROM = 0x01, // filament is known
-    F_SENSED = 0x02  // filament is not in sensor
+    F_SENSED = 0x02 // filament is not in sensor
 };
 
 ScreenMenuFilament::ScreenMenuFilament()
@@ -37,7 +37,7 @@ void ScreenMenuFilament::windowEvent(EventLock /*has private ctor*/, window_t *s
         MI_event_dispatcher *const item = reinterpret_cast<MI_event_dispatcher *>(param);
         if (item->IsEnabled()) {
 
-            item->Do();               // do action (load filament ...)
+            item->Do(); // do action (load filament ...)
             header.SetText(_(label)); // restore label
         }
         return;

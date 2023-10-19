@@ -84,13 +84,6 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
     bool currentIsFile;
     const char *currentSFN = CurrentSFN(&currentIsFile);
 
-    if (!currentIsFile) {
-        // check is transfer, if so, act as if file was selected
-        MutablePath path(sfn_path);
-        path.push(currentSFN);
-        currentIsFile = transfers::Transfer::is_valid_transfer(path);
-    }
-
     if (!strcmp(currentSFN, dirUp) && window_file_list_t::IsPathRoot(sfn_path)) {
         file_selected = true;
         event_conversion_union un;
@@ -106,7 +99,7 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
         return;
     }
 
-    if (!currentIsFile) {                // directory selected
+    if (!currentIsFile) { // directory selected
         if (strcmp(currentSFN, dirUp)) { // not same -> not ..
             // append the dir name at the end of sfnPath
             if (sfn_path[sfnPathLen - 1] != slash) {

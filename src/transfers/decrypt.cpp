@@ -17,10 +17,7 @@ Decryptor::Decryptor(const Block &key, const Mode mode, uint32_t orig_size)
     : size_left(orig_size)
     , mode(mode) {
     mbedtls_aes_init(&context);
-    std::visit([&](auto &&arg) {
-        arg.setup_context(context, key);
-    },
-        this->mode);
+    this->mode.setup_context(context, key);
 }
 
 Decryptor::~Decryptor() {
@@ -53,10 +50,7 @@ uint32_t Decryptor::decrypt(uint8_t *buffer, uint32_t buffer_size) {
 
         // Decrypt that one block
         Block output;
-        std::visit([&](auto &&arg) {
-            arg.decrypt(context, leftover, output);
-        },
-            this->mode);
+        mode.decrypt(context, leftover, output);
 
         // Shuffle the things around - we need to make room for the whole block
         // in the buffer, so we move whatever stands in the way into leftover
@@ -106,14 +100,6 @@ void Decryptor::CTR::reset(const Block &nonce, uint32_t offset) {
         this->nonce[i] = block_idx & 0xff;
         block_idx >>= 8;
     }
-}
-void Decryptor::CBC::setup_context(mbedtls_aes_context &context, const Block &key) {
-    mbedtls_aes_init(&context);
-    mbedtls_aes_setkey_dec(&context, key.data(), key.size() * 8);
-}
-
-void Decryptor::CBC::decrypt(mbedtls_aes_context &context, const Block &input, Block &output) {
-    mbedtls_aes_crypt_cbc(&context, MBEDTLS_AES_DECRYPT, BlockSize, iv.data() /* updated in place */, input.begin(), output.begin());
 }
 
 } // namespace transfers

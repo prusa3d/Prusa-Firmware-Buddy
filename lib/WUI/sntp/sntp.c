@@ -69,7 +69,7 @@
     /* Handle support for more than one server via SNTP_MAX_SERVERS */
     #if SNTP_MAX_SERVERS > 1
         #define SNTP_SUPPORT_MULTIPLE_SERVERS 1
-    #else  /* NTP_MAX_SERVERS > 1 */
+    #else /* NTP_MAX_SERVERS > 1 */
         #define SNTP_SUPPORT_MULTIPLE_SERVERS 0
     #endif /* NTP_MAX_SERVERS > 1 */
 
@@ -250,7 +250,7 @@ static u8_t sntp_set_servers_from_dhcp;
     #if SNTP_SUPPORT_MULTIPLE_SERVERS
 /** The currently used server (initialized to 0) */
 static u8_t sntp_current_server;
-    #else  /* SNTP_SUPPORT_MULTIPLE_SERVERS */
+    #else /* SNTP_SUPPORT_MULTIPLE_SERVERS */
         #define sntp_current_server 0
     #endif /* SNTP_SUPPORT_MULTIPLE_SERVERS */
 
@@ -458,7 +458,7 @@ sntp_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr,
     #if SNTP_CHECK_RESPONSE >= 1
     /* check server address and port */
     if (((sntp_opmode != SNTP_OPMODE_POLL) || ip_addr_cmp(addr, &sntp_last_server_address)) && (port == SNTP_PORT))
-    #else  /* SNTP_CHECK_RESPONSE >= 1 */
+    #else /* SNTP_CHECK_RESPONSE >= 1 */
     LWIP_UNUSED_ARG(addr);
     LWIP_UNUSED_ARG(port);
     #endif /* SNTP_CHECK_RESPONSE >= 1 */
@@ -896,4 +896,4 @@ sntp_getservername(u8_t idx) {
 }
     #endif /* SNTP_SERVER_DNS */
 
-#endif     /* LWIP_UDP */
+#endif /* LWIP_UDP */

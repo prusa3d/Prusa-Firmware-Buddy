@@ -9,7 +9,7 @@ void FUSB302B::InitChip() {
 
     DetectAddress();
 
-    uint8_t _enable_power[2] = { 0x0B, 0x0F };     // wake up circuit
+    uint8_t _enable_power[2] = { 0x0B, 0x0F }; // wake up circuit
     uint8_t _enable_interupts[2] = { 0x06, 0x05 }; // enable all interrupts
     (void)i2c::Transmit(I2C_HANDLE_FOR(usbc), address | WRITE_FLAG, _enable_power, 2, 100);
     (void)i2c::Transmit(I2C_HANDLE_FOR(usbc), address | WRITE_FLAG, _enable_interupts, 2, 100);

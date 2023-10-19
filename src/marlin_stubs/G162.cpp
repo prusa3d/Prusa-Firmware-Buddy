@@ -16,7 +16,7 @@
 #endif
 
 static constexpr feedRate_t Z_CALIB_ALIGN_AXIS_FEEDRATE = 15.f; // mm/s
-static constexpr float Z_CALIB_EXTRA_HIGHT = 5.f;               // mm
+static constexpr float Z_CALIB_EXTRA_HIGHT = 5.f; // mm
 
 #if PRINTER_IS_PRUSA_XL
     #include <module/prusa/toolchanger.h>
@@ -54,8 +54,8 @@ void selftest::calib_Z([[maybe_unused]] bool move_down_after) {
 
     // Check loadcell before ramming
     if (z_probe) {
-        endstops.enable_z_probe();                            // Enable z probe to get GetMinZEndstop()
-        if (loadcell.GetMinZEndstop()) {                      // Sitting on the nozzle, cannot ram the Z axis
+        endstops.enable_z_probe(); // Enable z probe to get GetMinZEndstop()
+        if (loadcell.GetMinZEndstop()) { // Sitting on the nozzle, cannot ram the Z axis
             fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z); // There was something wrong with the Z homing
         }
         endstops.enable_z_probe(false);

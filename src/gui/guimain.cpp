@@ -23,6 +23,7 @@
 #include "screen_stack_overflow.hpp"
 #include "screen_filebrowser.hpp"
 #include "screen_printing.hpp"
+#include "gui_bootstrap_screen.hpp"
 #include "IScreenPrinting.hpp"
 #include "DialogHandler.hpp"
 #include "sound.hpp"
@@ -44,13 +45,7 @@
 #include "touch_dependency.hpp"
 #include "language_eeprom.hpp"
 
-#include <option/bootloader.h>
-#include <option/bootloader_update.h>
-#include <option/resources.h>
-#include <option/has_puppies.h>
-#include <option/has_puppies_bootloader.h>
 #include <option/has_side_leds.h>
-#include <option/has_embedded_esp32.h>
 
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
     #include "hw_configuration.hpp"
@@ -58,19 +53,6 @@
 
 #if HAS_SELFTEST()
     #include "ScreenSelftest.hpp"
-#endif
-
-#if ENABLED(RESOURCES())
-    #include "resources/bootstrap.hpp"
-    #include "resources/revision_standard.hpp"
-#endif
-#if ENABLED(HAS_PUPPIES())
-    #include "puppies/PuppyBootstrap.hpp"
-    #include "puppies/puppy_task.hpp"
-using buddy::puppies::PuppyBootstrap;
-#endif
-#if BOTH(RESOURCES(), BOOTLOADER())
-    #include "bootloader/bootloader.hpp"
 #endif
 
 #if HAS_SIDE_LEDS()
@@ -96,7 +78,6 @@ using buddy::puppies::PuppyBootstrap;
     #include "led_animations/printer_animation_state.hpp"
 #endif
 #include "log.h"
-#include <esp_flash.hpp>
 #include <printers.h>
 
 #include <option/has_selftest_snake.h>
@@ -124,8 +105,8 @@ extern void blockISR(); // do not want to include marlin temperature
 
 #ifdef USE_ST7789
 const st7789v_config_t st7789v_cfg = {
-    .phspi = &hspi2,              // spi handle pointer
-    .flg = ST7789V_FLG_DMA,       // flags (DMA, MISO)
+    .phspi = &hspi2, // spi handle pointer
+    .flg = ST7789V_FLG_DMA, // flags (DMA, MISO)
     .colmod = ST7789V_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
     .madctl = ST7789V_DEF_MADCTL, // memory data access control (no mirror XY)
     .gamma = 0,
@@ -138,16 +119,16 @@ const st7789v_config_t st7789v_cfg = {
 #ifdef USE_ILI9488
 const ili9488_config_t ili9488_cfg = {
     .phspi = &SPI_HANDLE_FOR(lcd), // spi handle pointer
-    .flg = ILI9488_FLG_DMA,        // flags (DMA, MISO)
-    .colmod = ILI9488_DEF_COLMOD,  // interface pixel format (5-6-5, hi-color)
-    .madctl = ILI9488_DEF_MADCTL,  // memory data access control (no mirror XY)
+    .flg = ILI9488_FLG_DMA, // flags (DMA, MISO)
+    .colmod = ILI9488_DEF_COLMOD, // interface pixel format (5-6-5, hi-color)
+    .madctl = ILI9488_DEF_MADCTL, // memory data access control (no mirror XY)
     .gamma = 0,
     .brightness = 0,
     .is_inverted = 0,
     .control = 0,
     .pwm_inverted = 0b10110001 // inverted
 };
-#endif                         // USE_ILI9488
+#endif // USE_ILI9488
 
 marlin_vars_t *gui_marlin_vars = 0;
 
@@ -190,7 +171,7 @@ void Warning_cb(WarningType type) {
     case WarningType::NozzleTimeout:
         window_dlg_strong_warning_t::ShowHeatersTimeout();
         break;
-#if DEVELOPMENT_ITEMS()
+#if _DEBUG
     case WarningType::SteppersTimeout:
         window_dlg_strong_warning_t::ShowSteppersTimeout();
         break;
@@ -218,42 +199,6 @@ void Warning_cb(WarningType type) {
 }
 
 static void Startup_cb(void) {
-}
-
-// Draw smooth progressbar 1s
-// Bootstrap resets the progressbar so we go from 0%
-bool fw_gui_splash_progress([[maybe_unused]] bool bootstrap) {
-    static uint32_t start = gui::GetTick_ForceActualization();
-    static uint32_t tick = 0;
-    static uint32_t last_tick = 0;
-
-    tick = gui::GetTick_ForceActualization();
-    uint8_t percent = 0;
-
-    if (last_tick != tick) {
-        percent = (tick - start) / (1000 / 100); // 1000ms / 100%
-        percent = percent > 100 ? 100 : percent;
-
-#if PRINTER_IS_PRUSA_XL
-        // XL has a puppy bootstrap which ends the progress bar at buddy::puppies::max_bootstrap_perc
-        percent = buddy::puppies::max_bootstrap_perc + percent * buddy::puppies::max_bootstrap_perc / 100;
-#elif BOOTLOADER()
-        // when running under bootloader, we take over the progress bar at 50 %
-        if (!bootstrap) {
-            percent = 50 + percent / 2;
-        }
-#endif
-
-        GUIStartupProgress progr = { unsigned(percent), std::nullopt };
-        event_conversion_union un;
-        un.pGUIStartupProgress = &progr;
-        Screens::Access()->WindowEvent(GUI_event_t::GUI_STARTUP, un.pvoid);
-
-        last_tick = tick;
-        gui_redraw();
-    }
-
-    return percent != 100;
 }
 
 namespace {
@@ -299,7 +244,6 @@ void make_gui_ready_to_print() {
     bool filebrowser_preview = Screens::Access()->Count() == 2 && Screens::Access()->IsScreenOpened<ScreenPrintPreview>() && Screens::Access()->IsScreenOnStack<screen_filebrowser_data_t>();
 
     if (can_print_on_current_screen || one_click_preview || filebrowser_preview) {
-        // Parse the printed file for preview info
         {
             // Update printed filename from marlin_server, sample LFN+SFN atomically
             auto lock = MarlinVarsLockGuard();
@@ -313,9 +257,9 @@ void make_gui_ready_to_print() {
             Screens::Access()->ClosePrinting(); // set flag to close all appropriate screens
             if (have_file_browser) {
                 Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>);
-                Screens::Access()->Get()->Validate();   // Do not draw filebrowser now
+                Screens::Access()->Get()->Validate(); // Do not draw filebrowser now
             }
-            Screens::Access()->Loop();                  // close those screens before marlin_gui_ready_to_print
+            Screens::Access()->Loop(); // close those screens before marlin_gui_ready_to_print
             marlin_client::marlin_gui_ready_to_print(); // notify server, that GUI is ready to print
         } else if (one_click_preview || filebrowser_preview) {
             // Print is called from Connect/pLink, while print preview is already open in GUI
@@ -325,11 +269,12 @@ void make_gui_ready_to_print() {
         // else not reachable
 
         Screens::Access()->Get()->Validate(); // Do not redraw after CloseAll (keep wait dialog displayed)
-        // wait for start of the print - to prevent any unwanted GUI action
-        while (!DialogHandler::Access().IsAnyOpen()) {
+
+        while (!DialogHandler::Access().IsAnyOpen() // Wait for start of the print - to prevent any unwanted GUI action
+            && marlin_vars()->print_state != marlin_server::State::Idle) { // Abort if print was not started (this function is called when State::WaitGui)
             // main thread is processing a print
             // wait for print screen to open, any fsm can break waiting (f.e.: Print Preview)
-            gui_timers_cycle();    // refresh GUI time
+            gui_timers_cycle(); // refresh GUI time
             marlin_client::loop(); // refresh fsm - required for dialog handler
             DialogHandler::Access().Loop();
         }
@@ -340,142 +285,6 @@ void make_gui_ready_to_print() {
     }
 }
 } // anonymous namespace
-
-#if ENABLED(RESOURCES())
-// Return TRUE if bootloader was updated -> in this case we have to reset the system, because important data addresses could be moved
-static bool finish_update(bool &bootstrap_update /*OUT parameter for correct drawing of progressbar*/) {
-    #if ENABLED(BOOTLOADER_UPDATE())
-    display::FillRect(Rect16(0, SPLASHSCREEN_VERSION_Y + 18, display::GetW(), display::GetH() - SPLASHSCREEN_VERSION_Y - 18), COLOR_BLACK);
-    if (buddy::bootloader::needs_update()) {
-        buddy::bootloader::update(
-            [](int percent_done, buddy::bootloader::UpdateStage stage) {
-                std::optional<const char *> stage_description = std::nullopt;
-                switch (stage) {
-                case buddy::bootloader::UpdateStage::LookingForBbf:
-                    stage_description = "Looking for BBF...";
-                    break;
-                case buddy::bootloader::UpdateStage::PreparingUpdate:
-                case buddy::bootloader::UpdateStage::Updating:
-                    stage_description = "Updating bootloader";
-                    break;
-                default:
-                    bsod("unreachable");
-                }
-
-                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description.value_or(""), percent_done);
-                screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
-                gui_redraw();
-            });
-        return true;
-    }
-    TaskDeps::provide(TaskDeps::Dependency::bootloader_update_passsed);
-    #endif
-
-    if (!buddy::resources::has_resources(buddy::resources::revision::standard)) {
-        bootstrap_update = true;
-        buddy::resources::bootstrap(
-            buddy::resources::revision::standard, [](int percent_done, buddy::resources::BootstrapStage stage) {
-                std::optional<const char *> stage_description = std::nullopt;
-                switch (stage) {
-                case buddy::resources::BootstrapStage::LookingForBbf:
-                    stage_description = "Looking for BBF...";
-                    break;
-                case buddy::resources::BootstrapStage::PreparingBootstrap:
-                    stage_description = "Preparing";
-                    break;
-                case buddy::resources::BootstrapStage::CopyingFiles:
-                    stage_description = "Installing";
-                    break;
-                default:
-                    bsod("unreachable");
-                }
-                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description.value_or(""), percent_done);
-                screen_splash_data_t::bootstrap_cb(percent_done, stage_description);
-                gui_redraw();
-            });
-    }
-    TaskDeps::provide(TaskDeps::Dependency::resources_ready);
-    return false;
-}
-#endif
-
-#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
-// This is temporary, remove once everyone has compatible hardware.
-// Requires new sandwich rev. 06 or rev. 05 with R83 removed.
-
-    #if HAS_EMBEDDED_ESP32()
-static void finish_update_ESP32() {
-    // Show ESP flash progress
-    while (TaskDeps::check(TaskDeps::Dependency::esp_flashed) == false) {
-        const ESPFlash::Progress progress = ESPFlash::get_progress();
-        const uint8_t percent = progress.bytes_total ? 100 * progress.bytes_flashed / progress.bytes_total : 0;
-        std::optional<const char *> stage_description = std::nullopt;
-        switch (progress.state) {
-        case ESPFlash::State::Init:
-            stage_description = "Connecting ESP";
-            break;
-        case ESPFlash::State::WriteData:
-            stage_description = "Flashing ESP";
-            break;
-        case ESPFlash::State::Checking:
-            stage_description = "Checking ESP";
-            break;
-        default:
-            stage_description = "Unknown ESP state";
-        }
-        screen_splash_data_t::bootstrap_cb(percent, stage_description);
-
-        gui_redraw();
-        osDelay(20);
-    }
-}
-    #endif
-#endif
-
-#if ENABLED(HAS_PUPPIES())
-static void finish_update_puppies() {
-    // wait for puppies to become available
-    while (TaskDeps::check(TaskDeps::Dependency::puppies_ready) == false) {
-        auto progress = buddy::puppies::get_bootstrap_progress();
-        if (progress.has_value()) {
-            screen_splash_data_t::bootstrap_cb(progress->percent_done * buddy::puppies::max_bootstrap_perc / 100, progress->description());
-            gui_redraw();
-        }
-        osDelay(20);
-    }
-}
-#endif
-
-/**
- * @brief Bootstrap finished
- *
- * Report bootstrap finished and firmware version.
- * This needs to be called after resources were successfully updated
- * in xFlash. This also needs to be called even if xFlash / resources
- * are unused. This needs to be output to standard USB CDC destination.
- * Format of the messages can not be changed as test station
- * expect those as step in manufacturing process.
- * The board needs to be able to report this with no additional
- * dependencies to connected peripherals.
- *
- * It is expected, that the testing station opens printer's serial port at 115200 bauds to obtain these messages.
- * Beware: previous attempts to writing these messages onto USB CDC log destination (baudrate 57600) resulted
- * in cross-linked messages because the logging subsystem intentionally has no prevention (locks/mutexes) against such a situation.
- * Therefore the only reliable output is the "Marlin's" serial output (before Marlin is actually started)
- * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot),
- * and Marlin itself is guaranteed to not have been started due to dependency USBSERIAL_READY.
- */
-static void manufacture_report() {
-    // The first '\n' is just a precaution - terminate any partially printed message from Marlin if any
-    static const uint8_t intro[] = "\nbootstrap finished\nfirmware version: ";
-
-    static_assert(sizeof(intro) > 1);          // prevent accidental buffer underrun below
-    SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
-    SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
-    SerialUSB.write('\n');
-
-    TaskDeps::provide(TaskDeps::Dependency::manufacture_report_sent);
-}
 
 static void log_onewire_otp() {
 #if DEVELOPMENT_ITEMS()
@@ -517,14 +326,18 @@ static ScreenFactory::Creator get_error_screen() {
     }
 
     if (crash_dump::dump_is_valid() && !crash_dump::dump_is_displayed()) {
-        switch (crash_dump::dump_get_type()) {
-        case crash_dump::DumpType::HARDFAULT:
+        if (crash_dump::message_is_displayed()) {
+            // In case message is stale (already displayed), it is not relevant anymore.
+            // We have just crash dump without message. CrashDump without message means it was caused by hardfault directly.
             return ScreenFactory::Screen<ScreenHardfault>;
-        case crash_dump::DumpType::IWDGW:
+        }
+
+        switch (crash_dump::message_get_type()) {
+        case crash_dump::MsgType::IWDGW:
             return ScreenFactory::Screen<ScreenWatchdog>;
-        case crash_dump::DumpType::BSOD:
+        case crash_dump::MsgType::BSOD:
             return ScreenFactory::Screen<ScreenBsod>;
-        case crash_dump::DumpType::STACK_OVF:
+        case crash_dump::MsgType::STACK_OVF:
             return ScreenFactory::Screen<ScreenStackOverflow>;
         default:
             break;
@@ -589,10 +402,8 @@ void gui_run(void) {
 
     screen_node screen_initializer[] {
         ScreenFactory::Screen<screen_splash_data_t>, // splash
-        ScreenFactory::Screen<screen_home_data_t>    // home
+        ScreenFactory::Screen<screen_home_data_t> // home
     };
-
-    // Screens::Init(ScreenFactory::Screen<screen_splash_data_t>);
     Screens::Init(screen_initializer, screen_initializer + (sizeof(screen_initializer) / sizeof(screen_initializer[0])));
 
     // TIMEOUT variable getting value from EEPROM when EEPROM interface is initialized
@@ -606,33 +417,8 @@ void gui_run(void) {
 #if HAS_LEDS()
     leds::Init();
 #endif
-
-    bool bootstrap_update = false; // Out parameter for progressbar drawing
-#if ENABLED(RESOURCES())
-    if (finish_update(bootstrap_update)) {
-        osDelay(3000);
-        __disable_irq();
-        HAL_NVIC_SystemReset();
-    }
-#endif
-
-    manufacture_report();
-
-    // Postpone starting Marlin after USBSerial handling in manufacture_report()
-    TaskDeps::provide(TaskDeps::Dependency::usbserial_ready);
-
-#if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
-    // This is temporary, remove once everyone has compatible hardware.
-    // Requires new sandwich rev. 06 or rev. 05 with R83 removed.
-
-    #if HAS_EMBEDDED_ESP32()
-    finish_update_ESP32();
-    #endif
-#endif
-
-#if ENABLED(HAS_PUPPIES())
-    finish_update_puppies();
-#endif
+    // Show bootstrap screen untill firmware initializes
+    gui_bootstrap_screen_run();
 
     marlin_client::init();
     GCodeInfo::getInstance().Init(gui_media_LFN, gui_media_SFN_path);
@@ -647,8 +433,8 @@ void gui_run(void) {
 
     marlin_client::set_event_notify(marlin_server::EVENT_MSK_DEF, nullptr);
 
-    while (fw_gui_splash_progress(bootstrap_update)) {
-    } // draw a smooth progressbar from 50% - 100%
+    // Close bootstrap screen, open home screen
+    Screens::Access()->Close();
 
 #if HAS_LEDS() && !HAS_SIDE_LEDS()
     // we need to step the animator, to move the started animation to current to let it run for one cycle

@@ -28,7 +28,7 @@ enum class MessageType : uint8_t {
     no_data = 0, // Padding
     log = 1,
     loadcell = 2,
-    accelerometer = 3,      ///< Single sample with timestamp
+    accelerometer = 3, ///< Single sample with timestamp
     accelerometer_fast = 4, ///< Multiple samples without timestamp
     // ...
 };

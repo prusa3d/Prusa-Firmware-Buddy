@@ -21,6 +21,11 @@ void PrusaGcodeSuite::M704() {
     filament_gcodes::mmu_load(val);
 }
 
+void PrusaGcodeSuite::M1704() {
+    const uint8_t val = parser.byteval('P', 0);
+    filament_gcodes::mmu_load_test(val);
+}
+
 /**
  * @brief Eject filament from MMU
  *
@@ -56,3 +61,4 @@ void PrusaGcodeSuite::M706() {
 __attribute__((weak)) void filament_gcodes::mmu_load([[maybe_unused]] uint8_t data) {}
 __attribute__((weak)) void filament_gcodes::mmu_eject([[maybe_unused]] uint8_t data) {}
 __attribute__((weak)) void filament_gcodes::mmu_cut([[maybe_unused]] uint8_t data) {}
+__attribute__((weak)) void filament_gcodes::mmu_load_test([[maybe_unused]] uint8_t data) {}

@@ -100,7 +100,7 @@ static constexpr const char *const metrics_host = host;
 static constexpr const char *const log_host = host;
 static constexpr const char *const metrics_port = N_("Metrics Port");
 static constexpr const char *const log_port = N_("Log Port");
-#else  /*USE_ST7789*/
+#else /*USE_ST7789*/
 // Keep spaces in front for menu alignment
 static constexpr const char *const host = N_("  Host");
 static constexpr const char *const metrics_host = N_("  Metrics Host");

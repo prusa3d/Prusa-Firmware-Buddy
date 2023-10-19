@@ -6,21 +6,21 @@
 #include <stdbool.h>
 
 enum {
-    VARIANT8_EMPTY = 0x00,       // empty - no data
-    VARIANT8_I8 = 0x01,          // signed char - 1byte
+    VARIANT8_EMPTY = 0x00, // empty - no data
+    VARIANT8_I8 = 0x01, // signed char - 1byte
     VARIANT8_BOOL = VARIANT8_I8, // bool - 1byte
-    VARIANT8_UI8 = 0x02,         // unsigned char - 1byte
-    VARIANT8_I16 = 0x03,         // signed short - 2byte
-    VARIANT8_UI16 = 0x04,        // unsigned short - 2byte
-    VARIANT8_I32 = 0x05,         // signed long - 4byte
-    VARIANT8_UI32 = 0x06,        // unsigned long - 4byte
-    VARIANT8_FLT = 0x07,         // float - 4byte
-    VARIANT8_CHAR = 0x08,        // char - 1byte
-    VARIANT8_USER = 0x09,        // user - up to 7 bytes
-    VARIANT8_PTR = 0x80,         // pointer - 4 bytes,
-    VARIANT8_ERROR = 0x3f,       // error
-    VARIANT8_PTR_OWNER = 0x40,   // pointer ownership
-                                 // pointer types
+    VARIANT8_UI8 = 0x02, // unsigned char - 1byte
+    VARIANT8_I16 = 0x03, // signed short - 2byte
+    VARIANT8_UI16 = 0x04, // unsigned short - 2byte
+    VARIANT8_I32 = 0x05, // signed long - 4byte
+    VARIANT8_UI32 = 0x06, // unsigned long - 4byte
+    VARIANT8_FLT = 0x07, // float - 4byte
+    VARIANT8_CHAR = 0x08, // char - 1byte
+    VARIANT8_USER = 0x09, // user - up to 7 bytes
+    VARIANT8_PTR = 0x80, // pointer - 4 bytes,
+    VARIANT8_ERROR = 0x3f, // error
+    VARIANT8_PTR_OWNER = 0x40, // pointer ownership
+                               // pointer types
     VARIANT8_PI8 = (VARIANT8_I8 | VARIANT8_PTR),
     VARIANT8_PUI8 = (VARIANT8_UI8 | VARIANT8_PTR),
     VARIANT8_PI16 = (VARIANT8_I16 | VARIANT8_PTR),
@@ -34,13 +34,13 @@ enum {
 // variant errors
 enum {
     VARIANT8_ERR_MALLOC = 1, // memory allocation error (during conversion to strings and allocating pointer types)
-    VARIANT8_ERR_UNSTYP,     // unsupported conversion (during conversion)
-    VARIANT8_ERR_UNSCON,     // unsupported conversion (during conversion)
-    VARIANT8_ERR_INVFMT,     // invalid format (during conversion from string)
-    VARIANT8_ERR_OOFRNG,     // out of range (during conversion from bigger to lower range number)
+    VARIANT8_ERR_UNSTYP, // unsupported conversion (during conversion)
+    VARIANT8_ERR_UNSCON, // unsupported conversion (during conversion)
+    VARIANT8_ERR_INVFMT, // invalid format (during conversion from string)
+    VARIANT8_ERR_OOFRNG, // out of range (during conversion from bigger to lower range number)
 };
 
-#if INTPTR_MAX == INT32_MAX   // 32 bit system
+#if INTPTR_MAX == INT32_MAX // 32 bit system
 typedef uint64_t variant8_t;
 #elif INTPTR_MAX == INT64_MAX // 64 bit system
 typedef unsigned __int128 variant8_t;

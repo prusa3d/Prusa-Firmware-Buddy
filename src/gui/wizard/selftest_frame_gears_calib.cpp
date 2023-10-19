@@ -15,7 +15,7 @@ static constexpr const char *en_text_test_name = N_("Gearbox alignment");
 SelftestFrameGearsCalib::SelftestFrameGearsCalib(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_test_name), 1)
 
-    , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::FSensor)
+    , footer(this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::f_sensor)
     , progress(this, WizardDefaults::row_1)
     , text(this, Rect16(WizardDefaults::col_0, content_top_y, WizardDefaults::RectSelftestFrame.Width() - WizardDefaults::MarginRight - WizardDefaults::MarginLeft, right_icon.h), is_multiline::yes)
     , text_left(this, Rect16(WizardDefaults::col_0, content_top_y, text_left_width, right_icon.h), is_multiline::yes)

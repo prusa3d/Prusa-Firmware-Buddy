@@ -3,8 +3,8 @@
 #include <config_store/store_instance.hpp>
 
 struct SoundPattern {
-    int8_t repeat;    /// signals repeats - how many times will sound signals repeat (-1 is infinite)
-    int16_t delay;    /// delays for repeat sounds (ms)
+    int8_t repeat; /// signals repeats - how many times will sound signals repeat (-1 is infinite)
+    int16_t delay; /// delays for repeat sounds (ms)
     int16_t duration; /// durations for sound modes
 };
 
@@ -16,8 +16,8 @@ struct SoundSettings {
     SoundPattern silent;
     SoundPattern assist;
     float frequency; /// frequency of signals in ms
-    float volume;    /// volumes of signals in ms
-    bool forced;     /// forced types of sounds - mainly for ERROR sounds. Ignores volume settings.
+    float volume; /// volumes of signals in ms
+    bool forced; /// forced types of sounds - mainly for ERROR sounds. Ignores volume settings.
 
     const SoundPattern &pattern(eSOUND_MODE mode) const {
         switch (mode) {

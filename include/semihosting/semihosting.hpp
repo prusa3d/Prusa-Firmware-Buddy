@@ -32,17 +32,17 @@ enum {
 };
 
 typedef enum {
-    OPEN_MODE_R = 0,    /// read
-    OPEN_MODE_RB = 1,   /// read binary
-    OPEN_MODE_RP = 2,   /// read plus
-    OPEN_MODE_RPB = 3,  /// read plus binary
-    OPEN_MODE_W = 4,    /// write
-    OPEN_MODE_WB = 5,   /// write binary
-    OPEN_MODE_WP = 6,   /// write plus
-    OPEN_MODE_WPB = 7,  /// write plus binary
-    OPEN_MODE_A = 8,    /// append
-    OPEN_MODE_AB = 9,   /// append binary
-    OPEN_MODE_AP = 10,  /// append plus
+    OPEN_MODE_R = 0, /// read
+    OPEN_MODE_RB = 1, /// read binary
+    OPEN_MODE_RP = 2, /// read plus
+    OPEN_MODE_RPB = 3, /// read plus binary
+    OPEN_MODE_W = 4, /// write
+    OPEN_MODE_WB = 5, /// write binary
+    OPEN_MODE_WP = 6, /// write plus
+    OPEN_MODE_WPB = 7, /// write plus binary
+    OPEN_MODE_A = 8, /// append
+    OPEN_MODE_AB = 9, /// append binary
+    OPEN_MODE_AP = 10, /// append plus
     OPEN_MODE_APB = 11, /// append plus binary
 } open_mode_t;
 

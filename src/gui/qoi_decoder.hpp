@@ -28,11 +28,11 @@ private:
         error,
         pixel,
     };
-    State state;     ///< Current state of QOI decoder
+    State state; ///< Current state of QOI decoder
 
-    Pixel px;        ///< Remembered pixel value
-    int8_t vg;       ///< Green difference for luma operation remembered between first and second byte
-    uint8_t run;     ///< Number of remaining pixels in current run
+    Pixel px; ///< Remembered pixel value
+    int8_t vg; ///< Green difference for luma operation remembered between first and second byte
+    uint8_t run; ///< Number of remaining pixels in current run
     Pixel index[64]; ///< Decompression color index
 
 public:

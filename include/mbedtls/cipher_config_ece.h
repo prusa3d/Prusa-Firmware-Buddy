@@ -64,7 +64,6 @@
 #define MBEDTLS_SHA256_SMALLER
 
 // For symmetric connect transfer encrypiton
-#define MBEDTLS_CIPHER_MODE_CBC
 #define MBEDTLS_CIPHER_MODE_CTR
 
 #define MBEDTLS_BASE64_C

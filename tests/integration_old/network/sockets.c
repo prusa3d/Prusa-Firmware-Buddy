@@ -216,7 +216,7 @@ void netconn_listen_test() {
             static const char request_header[] = "@@@SERVER RESPONSE DATA###";
             res = esp_netconn_write(client, request_header, sizeof(request_header) - 1); /* Send data to client */
             if (res == espOK) {
-                res = esp_netconn_flush(client);                                         /* Flush data to output */
+                res = esp_netconn_flush(client); /* Flush data to output */
             }
         }
         /* Delete client */
@@ -271,13 +271,13 @@ void netconn_client_test() {
          * Function will block thread until we are successfully connected (or not) to server
          */
         res = esp_netconn_connect(client, NETCONN_HOST, NETCONN_PORT);
-        if (res == espOK) {                                                              /* Are we successfully connected? */
+        if (res == espOK) { /* Are we successfully connected? */
             _dbg("Connected to " NETCONN_HOST "\r\n");
             res = esp_netconn_write(client, request_header, sizeof(request_header) - 1); /* Send data to server */
             if (res == espOK) {
-                res = esp_netconn_flush(client);                                         /* Flush data to output */
+                res = esp_netconn_flush(client); /* Flush data to output */
             }
-            if (res == espOK) {                                                          /* Were data sent? */
+            if (res == espOK) { /* Were data sent? */
                 _dbg("Data were successfully sent to server\r\n");
 
                 /*

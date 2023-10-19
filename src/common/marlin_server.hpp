@@ -26,7 +26,7 @@ namespace marlin_server {
 // FIXME define the same type for these and marlin_server.flags
 constexpr uint16_t MARLIN_SFLG_STARTED = 0x0001; // server started (set in marlin_server::init)
 constexpr uint16_t MARLIN_SFLG_PROCESS = 0x0002; // loop processing in main thread is enabled
-constexpr uint16_t MARLIN_SFLG_BUSY = 0x0004;    // loop is busy
+constexpr uint16_t MARLIN_SFLG_BUSY = 0x0004; // loop is busy
 constexpr uint16_t MARLIN_SFLG_PENDREQ = 0x0008; // pending request
 constexpr uint16_t MARLIN_SFLG_EXCMODE = 0x0010; // exclusive mode enabled (currently used for selftest/wizard)
 constexpr uint16_t MARLIN_SFLG_STOPPED = 0x0020; // moves stopped until command drain
@@ -39,7 +39,7 @@ typedef void(idle_t)();
 // callback for idle operation inside marlin (called from ExtUI handler onIdle)
 extern idle_t *idle_cb;
 
-extern osMessageQId server_queue;      // input queue (uint8_t)
+extern osMessageQId server_queue; // input queue (uint8_t)
 extern osSemaphoreId server_semaphore; // semaphore handle
 
 //-----------------------------------------------------------------------------
@@ -130,11 +130,11 @@ bool print_preview();
 
 typedef struct
 {
-    xyze_pos_t pos;               // resume position for unpark_head
+    xyze_pos_t pos; // resume position for unpark_head
     float nozzle_temp[EXTRUDERS]; // resume nozzle temperature
-    bool nozzle_temp_paused;      // True if nozzle_temp is valid and hotend cools down
-    uint8_t fan_speed;            // resume fan speed
-    uint16_t print_speed;         // resume printing speed
+    bool nozzle_temp_paused; // True if nozzle_temp is valid and hotend cools down
+    uint8_t fan_speed; // resume fan speed
+    uint16_t print_speed; // resume printing speed
 } resume_state_t;
 
 //
@@ -236,7 +236,7 @@ class FSM_notifier {
     struct data { // used floats - no need to retype
         ClientFSM type;
         uint8_t phase;
-        float scale = 1;  // scale from value to progress
+        float scale = 1; // scale from value to progress
         float offset = 0; // offset from lowest value
         uint8_t progress_min = 0;
         uint8_t progress_max = 100;

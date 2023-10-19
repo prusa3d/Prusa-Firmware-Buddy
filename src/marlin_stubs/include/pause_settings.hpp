@@ -57,13 +57,13 @@ private:
     float retract;
     float park_z_feedrate; ///< feedrate for park z move [mm/s]
 
-    xyz_pos_t park_pos;    // if axis is NAN, don't move it
+    xyz_pos_t park_pos; // if axis is NAN, don't move it
     xyze_pos_t resume_pos;
 
     uint8_t mmu_filament_to_load = 0;
     uint8_t target_extruder;
     bool can_stop; // true by default, only runout cannot stop, set by Pause
-    bool do_stop;  // part of settings just o be resetted
+    bool do_stop; // part of settings just o be resetted
 
     CalledFrom called_from = CalledFrom::Pause;
 };

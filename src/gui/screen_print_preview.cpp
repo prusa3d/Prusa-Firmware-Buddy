@@ -17,7 +17,11 @@
 #include "box_unfinished_selftest.hpp"
 #include "window_msgbox_wrong_printer.hpp"
 #include <option/has_toolchanger.h>
+#include <option/has_mmu2.h>
 #include <device/board.h>
+#if HAS_MMU2()
+    #include <feature/prusa/MMU2/mmu2_mk4.h>
+#endif
 
 ScreenPrintPreview::ScreenPrintPreview()
     : gcode(GCodeInfo::getInstance())
@@ -64,7 +68,7 @@ void ScreenPrintPreview::Change(fsm::BaseData data) {
     if (phase != PhasesPrintPreview::main_dialog) {
         hide_main_dialog();
     }
-#if HAS_TOOLCHANGER()
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     if (phase != PhasesPrintPreview::tools_mapping) {
         spool_join.reset();
         header.hide_bed_info();
@@ -142,7 +146,12 @@ void ScreenPrintPreview::show_main_dialog() {
 }
 
 void ScreenPrintPreview::show_tools_mapping() {
-#if HAS_TOOLCHANGER()
+#if HAS_TOOLCHANGER() || HAS_MMU2()
+    #if HAS_MMU2()
+    if (!MMU2::mmu2.Enabled())
+        return;
+    #endif
+
     tools_mapping = make_static_unique_ptr<ToolsMappingBody>(&msgBoxMemSpace, this, gcode);
     CaptureNormalWindow(*tools_mapping);
     tools_mapping->Show();

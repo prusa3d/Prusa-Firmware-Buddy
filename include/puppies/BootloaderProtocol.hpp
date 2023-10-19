@@ -55,16 +55,16 @@ namespace puppies {
         /// Addresses (on puppy bus) that each puppy uses
         enum Address : uint8_t {
             DEFAULT_ADDRESS = 0x00, //< address that puppies will have after boot to bootloader
-            FIRST_ASSIGNED = 0x0A,  //< First assigned address in bootloader
+            FIRST_ASSIGNED = 0x0A, //< First assigned address in bootloader
 
-            MODBUS_OFFSET = 0x1A,   //< Address offset in modbus, this is the first assigned address after jump to app
+            MODBUS_OFFSET = 0x1A, //< Address offset in modbus, this is the first assigned address after jump to app
         };
 
         /// Hardware info, used in response to GET_HARDWARE_INFO
         struct HwInfo {
-            uint8_t hw_type;           ///< Hardware type as in puppy_info
-            uint16_t hw_revision;      ///< Hardware revision
-            uint32_t bl_version;       ///< Bootloader version
+            uint8_t hw_type; ///< Hardware type as in puppy_info
+            uint16_t hw_revision; ///< Hardware revision
+            uint32_t bl_version; ///< Bootloader version
             uint32_t application_size; ///< Space for application and fixed application size
         };
 
@@ -267,8 +267,8 @@ namespace puppies {
         static constexpr uint32_t MAX_FLASH_TOTAL_LENGTH = ((128 * 1024) - 8192);
 
         static constexpr uint32_t READ_TIMEOUT_RESPONSE_DEFAULT = 100; // Default time to wait until response starts coming
-        static constexpr uint32_t READ_TIMEOUT_PER_CHAR = 1;           // Timeout for each byte that will be received
-        static constexpr uint32_t READ_TIMEOUT_FINALIZE_FLASH = 500;   // timeout for finalize flash command (sha256 fingerprint is calculated, so it takes longer)
+        static constexpr uint32_t READ_TIMEOUT_PER_CHAR = 1; // Timeout for each byte that will be received
+        static constexpr uint32_t READ_TIMEOUT_FINALIZE_FLASH = 500; // timeout for finalize flash command (sha256 fingerprint is calculated, so it takes longer)
     };
 
 } // namespace puppies

@@ -56,7 +56,6 @@ uint32_t Printer::Params::telemetry_fingerprint(bool include_xy_axes) const {
         .add(int(pos[Printer::Z_AXIS_POS]))
         .add(print_speed)
         .add(flow_factor)
-        .add(job_id)
         // The RPM values are in thousands and fluctuating a bit, we don't want
         // that to trigger the send too often, only when it actually really
         // changes.

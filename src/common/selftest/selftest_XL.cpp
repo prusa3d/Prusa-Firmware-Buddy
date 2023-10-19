@@ -57,31 +57,23 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-static constexpr std::array<uint16_t, 5> print_fan_min_rpm_table = { 10, 10, 10, 10, 10 };
-static constexpr std::array<uint16_t, 5> print_fan_max_rpm_table = { 10000, 10000, 10000, 10000, 10000 };
-static constexpr std::array<uint16_t, 5> heatbreak_fan_min_rpm_table = { 10, 10, 10, 10, 10 };
-static constexpr std::array<uint16_t, 5> heatbreak_fan_max_rpm_table = { 10000, 10000, 10000, 10000, 10000 };
-
-// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
-// 100%, where we also check the rpm range
 static consteval SelftestFansConfig make_fan_config(uint8_t index) {
     return {
         .tool_nr = index,
         .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print },
+            ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
+            ///  Blocked fan increases its RPMs over 7000.
+            ///  With XL shroud the values can be 6200 - 6600 depending on fan shroud version.
+            .rpm_min = 5300,
+            .rpm_max = 6799,
+        },
         .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break,
-        }
+            .rpm_min = 6800,
+            .rpm_max = 8700,
+        },
     };
 }
+static_assert(make_fan_config(0).print_fan.rpm_max < make_fan_config(0).heatbreak_fan.rpm_min, "These cannot overlap for switched fan detection.");
 
 static constexpr SelftestFansConfig fans_configs[] = {
     make_fan_config(0),
@@ -288,11 +280,11 @@ bool CSelftest::Start(const uint64_t test_mask, const uint8_t tool_mask) {
     if (m_Mask & stmLoadcell)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_loadcell));
     if (m_Mask & stmZAxis)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup));       // if Z is calibrated, move it up
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
     if (m_Mask & stmFullSelftest)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
     this->tool_mask = static_cast<ToolMask>(tool_mask);
 
     // dont show message about footer and do not wait response
@@ -484,8 +476,8 @@ void CSelftest::phaseDidSelftestPass() {
 
     // dont run wizard again
     if (SelftestResult_Passed_All(m_result)) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
     }
 }
@@ -495,8 +487,8 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
         Abort();
     }

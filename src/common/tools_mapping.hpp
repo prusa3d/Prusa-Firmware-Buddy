@@ -2,6 +2,8 @@
 #include <limits>
 #include <stdint.h>
 #include <functional>
+#include <module/prusa/tool_mapper.hpp>
+#include <module/prusa/spool_join.hpp>
 
 namespace tools_mapping {
 
@@ -26,6 +28,17 @@ uint8_t to_physical_tool(uint8_t gcode_tool);
  * @param physical_tool
  */
 uint8_t to_gcode_tool(uint8_t physical_tool);
+
+#if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
+/**
+ * @brief Returns the gcode_tool that is printed by given physical_tool, with the given mapper/joiner configuration
+ *
+ * @param mapper
+ * @param joiner
+ * @param physical_tool
+ */
+uint8_t to_gcode_tool_custom(const ToolMapper &mapper, const SpoolJoin &joiner, uint8_t physical_tool);
+#endif
 
 /**
  * @brief Executes executable on a whole spool join chain

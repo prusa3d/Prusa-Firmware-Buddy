@@ -19,7 +19,7 @@ inline constexpr const Resource &printer_logo = prusa_mini_logo_153x40;
 
     #ifndef _DEBUG
 inline constexpr const Resource &printer_logo = prusa_mk4_logo_153x40;
-    #else  // _DEBUG
+    #else // _DEBUG
 inline constexpr const Resource &printer_logo = prusa_mk4_logo_debug_158x40;
     #endif // _DEBUG
 
@@ -28,7 +28,7 @@ inline constexpr const Resource &printer_logo = prusa_mk4_logo_debug_158x40;
 
     #ifndef _DEBUG
 inline constexpr const Resource &printer_logo = prusa_xl_logo_158x40;
-    #else  // _DEBUG
+    #else // _DEBUG
 inline constexpr const Resource &printer_logo = prusa_xl_logo_debug_158x40;
     #endif // _DEBUG
 #endif

@@ -1804,7 +1804,7 @@ bool homeaxis(const AxisEnum axis, const feedRate_t fr_mm_s, bool invert_home_di
 
   #if ENABLED(CRASH_RECOVERY)
     Crash_Temporary_Deactivate ctd;
-    const bool orig_crash = ctd.get_orig_state();
+    const bool orig_crash [[maybe_unused]] = ctd.get_orig_state();
   #else /*ENABLED(CRASH_RECOVERY)*/
     constexpr bool orig_crash [[maybe_unused]] = false;
   #endif /*ENABLED(CRASH_RECOVERY)*/

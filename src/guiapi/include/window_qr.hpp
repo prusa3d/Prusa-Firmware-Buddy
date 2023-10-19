@@ -24,9 +24,9 @@ protected:
     char text[MAX_LEN_4QR + 1];
     uint16_t error_num;
     // 8 bit
-    uint8_t border;        /// border size in pixels; same for all sides
+    uint8_t border; /// border size in pixels; same for all sides
     uint8_t px_per_module; /// width/height of module (single colored square)
-    Align_t align;         /// alignment of QR code in the window
+    Align_t align; /// alignment of QR code in the window
     // other
     bool scale; /// changes px_per_module so the QR code is the biggest that fits in the window
 

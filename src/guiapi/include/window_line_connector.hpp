@@ -49,8 +49,8 @@ protected:
 private:
     ParentSide parent_side { ParentSide::left }; // whether the middle connection line is vertical or horizontal (this has an effect on everything), is dependant on the parent side
 
-    PointsT points {};                           //  points need to be on a perpendicular line (same row in vertical mode), so only row coords are needed to be stored
-    ParentsT parents {};                         // holds connections between child side (index) and parent side (value)
+    PointsT points {}; //  points need to be on a perpendicular line (same row in vertical mode), so only row coords are needed to be stored
+    ParentsT parents {}; // holds connections between child side (index) and parent side (value)
 
     uint16_t line_thickness { 5 };
 };

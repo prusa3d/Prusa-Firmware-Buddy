@@ -54,7 +54,7 @@ public:
 class Crash_recovery_tool_fsm {
 public:
     uint8_t enabled; ///< Mask of enabled dwarves
-    uint8_t parked;  ///< Mask of parked dwarves
+    uint8_t parked; ///< Mask of parked dwarves
 
     /**
      * @brief Constructor with dwarf masks or empty.

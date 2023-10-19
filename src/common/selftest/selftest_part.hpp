@@ -67,7 +67,7 @@ public:
         , instance(*this, cnf, refResult_)
         , arr { std::forward<E>(e)... }
         , refResult(refResult_)
-        , fnc_state_changed([](T &) {})  // use empty lambda for state enter, so I don't need to check nullptr
+        , fnc_state_changed([](T &) {}) // use empty lambda for state enter, so I don't need to check nullptr
         , fnc_state_remained([](T &) {}) // use empty lambda for state remain, so I don't need to check nullptr
     {
         // result can refer to static variable, need to reset its value

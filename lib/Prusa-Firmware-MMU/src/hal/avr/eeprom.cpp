@@ -20,5 +20,13 @@ void EEPROM::UpdateByte(EEPROM::addr_t addr, uint8_t value) {
     eeprom_update_byte((uint8_t *)addr, value);
 }
 
+uint16_t EEPROM::ReadWord(EEPROM::addr_t addr) {
+    return eeprom_read_word((const uint16_t *)addr);
+}
+
+void EEPROM::UpdateWord(EEPROM::addr_t addr, uint16_t value) {
+    eeprom_update_word((uint16_t *)addr, value);
+}
+
 } // namespace eeprom
 } // namespace hal

@@ -15,7 +15,4 @@ extern void start_puppy_task();
 /// Suspend puppy task
 extern void suspend_puppy_task();
 
-/// Get progress of the bootstrap stage (if currently active)
-extern std::optional<PuppyBootstrap::Progress> get_bootstrap_progress();
-
 } // namespace buddy::puppies

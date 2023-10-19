@@ -45,14 +45,14 @@ class FooterItemAllNozzles : public AddSuperWindow<FooterIconText_IntVal> {
     void unconditionalDraw() override;
     changed_t updateValue() override;
 
-    static uint nozzle_n;                        ///< Cycle through nozzles, 0 is "Tool 1" displayed as "T1"
+    static uint nozzle_n; ///< Cycle through nozzles, 0 is "Tool 1" displayed as "T1"
     static constexpr uint32_t CYCLE_TIME = 2000; ///< Time to cycle nozzles [ms]
-    static constexpr uint COLD = 45;             ///< Nozzle is cold under this [deg C]
+    static constexpr uint COLD = 45; ///< Nozzle is cold under this [deg C]
 
 #if HAS_TOOLCHANGER()
     static constexpr uint NOZZLES_COUNT = 5; ///< This icon only works for 5 nozzles
     static_assert(NOZZLES_COUNT <= EXTRUDERS);
-#endif                                       /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
 
 public:
     FooterItemAllNozzles(window_t *parent);

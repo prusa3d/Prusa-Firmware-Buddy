@@ -38,7 +38,7 @@ public:
 protected:
     T data[SIZE];
     size_t begin_pos; // position of first element
-    size_t end_pos;   // position behind last element == write position
+    size_t end_pos; // position behind last element == write position
 
 public:
     template <typename constnessT> // Should be "T" or "const T"
@@ -51,9 +51,9 @@ public:
         using reference = element_type &;
 
     private:
-        pointer data;            ///< Pointer to the data array
+        pointer data; ///< Pointer to the data array
         const size_t *begin_pos; ///< Begin position
-        size_t current_pos;      ///< Iterator position
+        size_t current_pos; ///< Iterator position
 
     public:
         template_iterator(pointer data_, size_t current_pos_, const size_t &begin_pos_)
@@ -204,10 +204,10 @@ public:
 
     constexpr size_t Size() const { return SIZE; }
 
-    bool ConsumeFirst(T &elem);      // data must be processed before next push_back
-    bool ConsumeLast(T &elem);       // data must be processed before next push_back
+    bool ConsumeFirst(T &elem); // data must be processed before next push_back
+    bool ConsumeLast(T &elem); // data must be processed before next push_back
     const T &GetFirstIfAble() const; // data must be processed before next push_back, must not be empty
-    const T &GetLastIfAble() const;  // data must be processed before next push_back, must not be empty
+    const T &GetLastIfAble() const; // data must be processed before next push_back, must not be empty
 };
 
 template <class T, size_t SIZE>

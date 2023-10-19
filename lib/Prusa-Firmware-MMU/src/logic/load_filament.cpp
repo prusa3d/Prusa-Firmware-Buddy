@@ -56,7 +56,6 @@ void logic::LoadFilament::Reset2(bool feedPhaseLimited) {
 }
 
 void logic::LoadFilament::GoToRetractingFromFinda() {
-    ml::leds.SetPairButOffOthers(mg::globals.ActiveSlot(), ml::blink0, ml::off);
     state = ProgressCode::RetractingFromFinda;
     error = ErrorCode::RUNNING;
     retract.Reset();
@@ -64,7 +63,7 @@ void logic::LoadFilament::GoToRetractingFromFinda() {
 
 void logic::LoadFilament::LoadFinishedCorrectly() {
     FinishedOK();
-    ml::leds.SetPairButOffOthers(mg::globals.ActiveSlot(), ml::off, ml::off);
+    ml::leds.SetAllOff();
     mpu::pulley.Disable();
 }
 

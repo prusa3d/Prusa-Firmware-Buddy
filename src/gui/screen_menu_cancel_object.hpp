@@ -18,13 +18,13 @@ class MI_CO_OBJECT_N : public WI_SWITCH_t<2> {
     char label_buffer[marlin_vars_t::CANCEL_OBJECT_NAME_LEN] = {}; ///< Buffer for object name, start empty
 
     /// True if object name form G-code is valid, false if backup_label is used or if object name changed
-    bool backup_label_used = false;                              ///< Write backup on first call to UpdateName()
+    bool backup_label_used = false; ///< Write backup on first call to UpdateName()
     constexpr static const char *backup_label = N_("Object %i"); ///< "Object <number>", needs to have exactly one "%i" in it
 
-    constexpr static const char *str_printing = N_("Printing");  ///< Object is being printed as normal
-    constexpr static const char *str_canceled = N_("Canceled");  ///< Object was canceled and is skipped during print
+    constexpr static const char *str_printing = N_("Printing"); ///< Object is being printed as normal
+    constexpr static const char *str_canceled = N_("Canceled"); ///< Object was canceled and is skipped during print
 
-    const int ObjectId;                                          ///< Id of object to cancel with this switch
+    const int ObjectId; ///< Id of object to cancel with this switch
 
 public:
     MI_CO_OBJECT_N(int ObjectId_);
@@ -68,7 +68,8 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-using ScreenMenuCancelObject__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CO_CANCEL_CURRENT,
+namespace detail {
+using ScreenMenuCancelObject = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, MI_CO_CANCEL_CURRENT,
     MI_CO_OBJECT<0>,
     MI_CO_OBJECT<1>,
     MI_CO_OBJECT<2>,
@@ -85,58 +86,20 @@ using ScreenMenuCancelObject__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN, 
     MI_CO_OBJECT<13>,
     MI_CO_OBJECT<14>,
     MI_CO_OBJECT<15>>;
+} // namespace detail
 
-class ScreenMenuCancelObject : public ScreenMenuCancelObject__ {
+class ScreenMenuCancelObject : public detail::ScreenMenuCancelObject {
     int loop_index = 0; ///< Refresh names only once every few loops
+
 public:
     constexpr static const char *label = "Canceled Objects";
     ScreenMenuCancelObject();
 
 protected:
-    void windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe_unused]] void *param) override {
-        if (event == GUI_event_t::LOOP) {
-            if (loop_index++ > 20) { // Approx once a second
-                loop_index = 0;
-                // Update all object names and visibility
-                Item<MI_CO_OBJECT<0>>().UpdateName();
-                Item<MI_CO_OBJECT<1>>().UpdateName();
-                Item<MI_CO_OBJECT<2>>().UpdateName();
-                Item<MI_CO_OBJECT<3>>().UpdateName();
-                Item<MI_CO_OBJECT<4>>().UpdateName();
-                Item<MI_CO_OBJECT<5>>().UpdateName();
-                Item<MI_CO_OBJECT<6>>().UpdateName();
-                Item<MI_CO_OBJECT<7>>().UpdateName();
-                Item<MI_CO_OBJECT<8>>().UpdateName();
-                Item<MI_CO_OBJECT<9>>().UpdateName();
-                Item<MI_CO_OBJECT<10>>().UpdateName();
-                Item<MI_CO_OBJECT<11>>().UpdateName();
-                Item<MI_CO_OBJECT<12>>().UpdateName();
-                Item<MI_CO_OBJECT<13>>().UpdateName();
-                Item<MI_CO_OBJECT<14>>().UpdateName();
-                Item<MI_CO_OBJECT<15>>().UpdateName();
-            }
-            // Update state of all items
-            Item<MI_CO_OBJECT<0>>().UpdateState();
-            Item<MI_CO_OBJECT<1>>().UpdateState();
-            Item<MI_CO_OBJECT<2>>().UpdateState();
-            Item<MI_CO_OBJECT<3>>().UpdateState();
-            Item<MI_CO_OBJECT<4>>().UpdateState();
-            Item<MI_CO_OBJECT<5>>().UpdateState();
-            Item<MI_CO_OBJECT<6>>().UpdateState();
-            Item<MI_CO_OBJECT<7>>().UpdateState();
-            Item<MI_CO_OBJECT<8>>().UpdateState();
-            Item<MI_CO_OBJECT<9>>().UpdateState();
-            Item<MI_CO_OBJECT<10>>().UpdateState();
-            Item<MI_CO_OBJECT<11>>().UpdateState();
-            Item<MI_CO_OBJECT<12>>().UpdateState();
-            Item<MI_CO_OBJECT<13>>().UpdateState();
-            Item<MI_CO_OBJECT<14>>().UpdateState();
-            Item<MI_CO_OBJECT<15>>().UpdateState();
-        }
-    }
+    void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
 };
 
-#else  /* ENABLED(CANCEL_OBJECTS) */
+#else /* ENABLED(CANCEL_OBJECTS) */
 
 class ScreenMenuCancelObject {};
 

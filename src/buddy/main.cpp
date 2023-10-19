@@ -9,6 +9,7 @@
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"
+#include "media.h"
 #include <config_store/store_instance.hpp>
 #include <option/buddy_enable_connect.h>
 #if BUDDY_ENABLE_CONNECT()
@@ -39,6 +40,8 @@
 #include <option/filament_sensor.h>
 #include <option/has_gui.h>
 #include <option/has_mmu2.h>
+#include <option/resources.h>
+#include <option/bootloader_update.h>
 #include "tasks.hpp"
 #include <appmain.hpp>
 #include "safe_state.h"
@@ -46,10 +49,19 @@
 #include "sound.hpp"
 #include <ccm_thread.hpp>
 #include <printers.h>
+#include "version.h"
+#include "str_utils.hpp"
+#include "bootloader/bootloader.hpp"
+#include "gui_bootstrap_screen.hpp"
+#include "resources/revision.hpp"
 
 #if HAS_PUPPIES()
     #include "puppies/PuppyBus.hpp"
     #include "puppies/puppy_task.hpp"
+#endif
+#if ENABLED(RESOURCES())
+    #include "resources/bootstrap.hpp"
+    #include "resources/revision_standard.hpp"
 #endif
 
 #if ENABLED(POWER_PANIC)
@@ -75,6 +87,7 @@ LOG_COMPONENT_REF(Buddy);
 osThreadId defaultTaskHandle;
 osThreadId displayTaskHandle;
 osThreadId connectTaskHandle;
+osThreadId prefetch_thread_id;
 
 #if HAS_ACCELEROMETER()
 LIS2DH accelerometer(10);
@@ -100,6 +113,90 @@ void iwdg_warning_cb(void);
 uartrxbuff_t uart1rxbuff;
 static uint8_t uart1rx_data[32];
 #endif
+
+extern "C" void app_setup_marlin_logging();
+
+/**
+ * @brief Bootstrap finished
+ *
+ * Report bootstrap finished and firmware version.
+ * This needs to be called after resources were successfully updated
+ * in xFlash. This also needs to be called even if xFlash / resources
+ * are unused. This needs to be output to standard USB CDC destination.
+ * Format of the messages can not be changed as test station
+ * expect those as step in manufacturing process.
+ * The board needs to be able to report this with no additional
+ * dependencies to connected peripherals.
+ *
+ * It is expected, that the testing station opens printer's serial port at 115200 bauds to obtain these messages.
+ * Beware: previous attempts to writing these messages onto USB CDC log destination (baudrate 57600) resulted
+ * in cross-linked messages because the logging subsystem intentionally has no prevention (locks/mutexes) against such a situation.
+ * Therefore the only reliable output is the "Marlin's" serial output (before Marlin is actually started)
+ * as nothing else is actually using this serial line (therefore no cross-linked messages can appear at this spot),
+ * and Marlin itself is guaranteed to not have been started by order of startup task initialization
+ */
+static void manufacture_report() {
+    // The first '\n' is just a precaution - terminate any partially printed message from Marlin if any
+    static const uint8_t intro[] = "\nbootstrap finished\nfirmware version: ";
+
+    static_assert(sizeof(intro) > 1); // prevent accidental buffer underrun below
+    SerialUSB.write(intro, sizeof(intro) - 1); // -1 prevents from writing the terminating \0 onto the serial line
+    SerialUSB.write(reinterpret_cast<const uint8_t *>(project_version_full), strlen_constexpr(project_version_full));
+    SerialUSB.write('\n');
+}
+
+#if ENABLED(RESOURCES()) && ENABLED(BOOTLOADER_UPDATE())
+// Return TRUE if bootloader was updated -> in this case we have to reset the system, because important data addresses could be moved
+static bool bootloader_update() {
+    if (buddy::bootloader::needs_update()) {
+        buddy::bootloader::update(
+            [](int percent_done, buddy::bootloader::UpdateStage stage) {
+                const char *stage_description = nullptr;
+                switch (stage) {
+                case buddy::bootloader::UpdateStage::LookingForBbf:
+                    stage_description = "Looking for BBF...";
+                    break;
+                case buddy::bootloader::UpdateStage::PreparingUpdate:
+                case buddy::bootloader::UpdateStage::Updating:
+                    stage_description = "Updating bootloader";
+                    break;
+                default:
+                    bsod("unreachable");
+                }
+
+                log_info(Buddy, "Bootloader update progress %s (%i %%)", stage_description, percent_done);
+                gui_bootstrap_screen_set_state(percent_done, stage_description);
+            });
+        return true;
+    }
+    return false;
+}
+#endif
+
+static void resources_update() {
+    if (!buddy::resources::has_resources(buddy::resources::revision::standard)) {
+        buddy::resources::bootstrap(
+            buddy::resources::revision::standard, [](int percent_done, buddy::resources::BootstrapStage stage) {
+                const char *stage_description = nullptr;
+                switch (stage) {
+                case buddy::resources::BootstrapStage::LookingForBbf:
+                    stage_description = "Looking for BBF...";
+                    break;
+                case buddy::resources::BootstrapStage::PreparingBootstrap:
+                    stage_description = "Preparing";
+                    break;
+                case buddy::resources::BootstrapStage::CopyingFiles:
+                    stage_description = "Installing";
+                    break;
+                default:
+                    bsod("unreachable");
+                }
+                log_info(Buddy, "Bootstrap progress %s (%i %%)", stage_description, percent_done);
+                gui_bootstrap_screen_set_state(percent_done, stage_description);
+            });
+    }
+    TaskDeps::provide(TaskDeps::Dependency::resources_ready);
+}
 
 extern "C" void main_cpp(void) {
     // save and clear reset flags
@@ -142,7 +239,7 @@ extern "C" void main_cpp(void) {
      * If we have BSOD or red screen we want to have as small boot process as we can.
      * We want to init just xflash, display and start gui task to display the bsod or redscreen
      */
-    if ((dump_is_valid() && !dump_is_displayed()) || (message_get_type() != MsgType::EMPTY && !message_is_displayed())) {
+    if ((dump_is_valid() && !dump_is_displayed()) || (message_is_valid() && message_get_type() != MsgType::EMPTY && !message_is_displayed())) {
         hwio_safe_state();
         init_error_screen();
         return;
@@ -213,8 +310,6 @@ extern "C" void main_cpp(void) {
 
     MX_FATFS_Init();
 
-    usb_device_init();
-
     HAL_GPIO_Initialized = 1;
     HAL_ADC_Initialized = 1;
     HAL_PWM_Initialized = 1;
@@ -230,6 +325,39 @@ extern "C" void main_cpp(void) {
     Sound::getInstance().restore_from_eeprom();
 
     wdt_iwdg_warning_cb = iwdg_warning_cb;
+
+    filesystem_init();
+
+    if (option::has_gui) {
+        osThreadCCMDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 1024 + 512);
+        displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
+    }
+    // wait for gui to init and render loading screen before starting flashing. We need to init bootstrap screen so we can send process percentage to it. Also it would look laggy without it.
+    TaskDeps::wait(TaskDeps::Tasks::bootstrap_start);
+
+#if ENABLED(RESOURCES()) && ENABLED(BOOTLOADER_UPDATE())
+    if (bootloader_update()) {
+        // Wait a while, before restart (this prevents some older board without appendix to enter internal bootloader on reset)
+        osDelay(300);
+        __disable_irq();
+        HAL_NVIC_SystemReset();
+    }
+#endif
+
+    usb_device_init();
+
+#if ENABLED(RESOURCES())
+    resources_update();
+#endif
+
+    static metric_handler_t *handlers[] = {
+        &metric_handler_syslog,
+        &metric_handler_info_screen,
+        NULL
+    };
+    metric_system_init(handlers);
+
+    manufacture_report();
 
 #if (BOARD_IS_BUDDY)
     buddy::hw::BufferedSerial::uart2.Open();
@@ -248,26 +376,12 @@ extern "C" void main_cpp(void) {
     #endif
 #endif
 
-    filesystem_init();
-
-    static metric_handler_t *handlers[] = {
-        &metric_handler_syslog,
-        &metric_handler_info_screen,
-        NULL
-    };
-    metric_system_init(handlers);
-
 #if BUDDY_ENABLE_WUI()
     espif_init_hw();
 #endif
 
     osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-
-    if (option::has_gui) {
-        osThreadCCMDef(displayTask, StartDisplayTask, TASK_PRIORITY_DISPLAY_TASK, 0, 2048);
-        displayTaskHandle = osThreadCreate(osThread(displayTask), NULL);
-    }
 
 #if ENABLED(POWER_PANIC)
     power_panic::check_ac_fault_at_startup();
@@ -282,7 +396,7 @@ extern "C" void main_cpp(void) {
 
 #if BUDDY_ENABLE_WUI()
     #if USE_ASYNCIO
-    osThreadCCMDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 256);
+    osThreadCCMDef(asyncIoTask, StartAsyncIoTask, TASK_PRIORITY_ASYNCIO, 0, 400);
     osThreadCreate(osThread(asyncIoTask), nullptr);
     #endif
     espif_task_create();
@@ -296,12 +410,14 @@ extern "C" void main_cpp(void) {
         // FIXME: We should be able to split networking to the lower-level network part and the Link part. Currently, both are done through WUI.
         #error "Can't have connect without WUI"
     #endif
-    TaskDeps::wait(TaskDeps::Tasks::connect);
     /* definition and creation of connectTask */
+    TaskDeps::wait(TaskDeps::Tasks::connect);
     osThreadCCMDef(connectTask, StartConnectTask, TASK_PRIORITY_CONNECT, 0, 2304);
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
+    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 768);
+    prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
         osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
@@ -492,37 +608,25 @@ void system_core_error_handler() {
 }
 
 void iwdg_warning_cb(void) {
-#ifdef _DEBUG
-    ///@note Watchdog is disabled in debug,
-    /// so this will be helpful only if it is manually enabled or ifdef commented out.
-
-    buddy_breakpoint_disable_heaters();
-#endif /*_DEBUG*/
-    DUMP_IWDGW_TO_CCMRAM(0x10);
-    wdt_iwdg_refresh();
-    save_dump();
-#ifndef _DEBUG
-    while (true)
-        ;
-#else
-    sys_reset();
-#endif
+    crash_dump::before_dump();
+    crash_dump::save_message(crash_dump::MsgType::IWDGW, 0, nullptr, nullptr);
+    trigger_crash_dump();
 }
 
 static uint32_t _spi_prescaler(int prescaler_num) {
     switch (prescaler_num) {
     case 0:
-        return SPI_BAUDRATEPRESCALER_2;   // 0x00000000U
+        return SPI_BAUDRATEPRESCALER_2; // 0x00000000U
     case 1:
-        return SPI_BAUDRATEPRESCALER_4;   // 0x00000008U
+        return SPI_BAUDRATEPRESCALER_4; // 0x00000008U
     case 2:
-        return SPI_BAUDRATEPRESCALER_8;   // 0x00000010U
+        return SPI_BAUDRATEPRESCALER_8; // 0x00000010U
     case 3:
-        return SPI_BAUDRATEPRESCALER_16;  // 0x00000018U
+        return SPI_BAUDRATEPRESCALER_16; // 0x00000018U
     case 4:
-        return SPI_BAUDRATEPRESCALER_32;  // 0x00000020U
+        return SPI_BAUDRATEPRESCALER_32; // 0x00000020U
     case 5:
-        return SPI_BAUDRATEPRESCALER_64;  // 0x00000028U
+        return SPI_BAUDRATEPRESCALER_64; // 0x00000028U
     case 6:
         return SPI_BAUDRATEPRESCALER_128; // 0x00000030U
     case 7:

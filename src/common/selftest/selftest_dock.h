@@ -57,7 +57,7 @@ private:
     xy_long_t position_before_measure;
     PrusaToolInfo old_tool_calibration;
     uint8_t remaining_park_unpark_cycles = NUM_PARK_PICK_CYCLES;
-    buddy::puppies::Dwarf &dwarf;        ///< Reference to the dwarf whose dock is to be calibrated
+    buddy::puppies::Dwarf &dwarf; ///< Reference to the dwarf whose dock is to be calibrated
 
     bool toolcheck_was_disabled = false; ///< Remember if toolcheck was disabled to not reenable
 
@@ -78,11 +78,11 @@ private:
     }
 
     struct MoveRequired {
-        bool picked;            ///< Dwarf should have this picked state
-        bool parked;            ///< Dwarf should have this parked state
+        bool picked; ///< Dwarf should have this picked state
+        bool parked; ///< Dwarf should have this parked state
         uint32_t timeout_start; ///< Dwarf should be in the above state a short moment after this time [ms]
-        bool timeout_valid;     ///< If true, variable timeout_start is valid
-    } move_required;            ///< Requirements for the current move to be successful
+        bool timeout_valid; ///< If true, variable timeout_start is valid
+    } move_required; ///< Requirements for the current move to be successful
 
     /**
      * @brief Enable endstops to make a homing move.

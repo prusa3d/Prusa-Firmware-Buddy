@@ -262,7 +262,7 @@ uint32_t PlainGcodeReader::get_gcode_stream_size() {
 }
 
 bool PlainGcodeReader::IsBeginThumbnail(GcodeBuffer &buffer, uint16_t expected_width, uint16_t expected_height, ImgType expected_type, bool allow_larder, unsigned long &num_bytes) const {
-    constexpr const char thumbnailBegin_png[] = "; thumbnail begin ";     // pozor na tu mezeru na konci
+    constexpr const char thumbnailBegin_png[] = "; thumbnail begin "; // pozor na tu mezeru na konci
     constexpr const char thumbnailBegin_qoi[] = "; thumbnail_QOI begin "; // pozor na tu mezeru na konci
 
     const char *thumbnailBegin = nullptr;
@@ -420,7 +420,7 @@ PrusaPackGcodeReader::stream_restore_info_rec_t *PrusaPackGcodeReader::get_resto
 bool PrusaPackGcodeReader::stream_gcode_start(uint32_t offset) {
     BlockHeader start_block;
     uint32_t block_decompressed_offset; //< what is offset of first byte inside block that we start streaming from
-    uint32_t block_throwaway_bytes;     //< How many bytes to throw away from current block (after decompression)
+    uint32_t block_throwaway_bytes; //< How many bytes to throw away from current block (after decompression)
 
     if (offset == 0) {
         // get first gcode block
@@ -884,7 +884,7 @@ void PrusaPackGcodeReader::stream_t::reset() {
     current_block_header = bgcode::core::BlockHeader();
     encoding = (uint16_t)bgcode::core::EGCodeEncodingType::None;
     block_remaining_bytes_compressed = 0; //< remaining bytes in current block
-    uncompressed_offset = 0;              //< offset of next char that will be outputted
+    uncompressed_offset = 0; //< offset of next char that will be outputted
     if (hs_decoder) {
         heatshrink_decoder_free(hs_decoder);
         hs_decoder = nullptr;

@@ -11,7 +11,7 @@
 
 #include "WindowMenuLabel.hpp"
 #include "window_icon.hpp" //CalculateMinimalSize
-#include <type_traits>     //aligned_storage
+#include <type_traits> //aligned_storage
 
 /*****************************************************************************/
 // IWiSwitch

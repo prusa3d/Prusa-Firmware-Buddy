@@ -17,12 +17,12 @@ class PuppyBootstrap {
 public:
     /// GUI callback enum
     enum class FlashingStage {
-        START,                 ///< Reset puppies
-        DISCOVERY,             ///< and assign them addresses
+        START, ///< Reset puppies
+        DISCOVERY, ///< and assign them addresses
         CALCULATE_FINGERPRINT, ///< Puppies are calculating fingerprints
-        CHECK_FINGERPRINT,     ///< Check match of fingerprint
-        FLASHING,              ///< Writing firmware
-        DONE,                  ///< Starting app
+        CHECK_FINGERPRINT, ///< Check match of fingerprint
+        FLASHING, ///< Writing firmware
+        DONE, ///< Starting app
     };
 
     struct Progress {

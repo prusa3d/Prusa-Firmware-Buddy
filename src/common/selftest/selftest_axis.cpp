@@ -192,8 +192,7 @@ LoopResult CSelftestPart_Axis::stateSwitchTo200stepAndRetry() {
 void CSelftestPart_Axis::motor_switch(Motor steps) {
     config_store().xy_motors_400_step.set(steps == Motor::stp_400);
 
-    // TODO erase takes long
-    // change FSM .. make user know
+    // TODO change FSM .. make user know
     PersistentStorage::erase();
 
     config_store().homing_sens_x.set(config_store().homing_sens_x.default_val);
@@ -205,13 +204,13 @@ void CSelftestPart_Axis::motor_switch(Motor steps) {
 
     const char fmt_curr[] = "M906 X%u Y%u";
     int sz_curr = snprintf(NULL, 0, fmt_curr, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
-    char gcode_curr[sz_curr + 1];                                                                       // note +1 for terminating null byte
+    char gcode_curr[sz_curr + 1]; // note +1 for terminating null byte
     snprintf(gcode_curr, sizeof(gcode_curr), fmt_curr, get_rms_current_ma_x(), get_rms_current_ma_y()); // XY motor currents
     queue.enqueue_one_now(gcode_curr);
 
     const char fmt_microstep[] = "M350 X%u Y%u";
     int sz_microstep = snprintf(NULL, 0, fmt_microstep, std::numeric_limits<unsigned int>::max(), std::numeric_limits<unsigned int>::max());
-    char gcode_microstep[sz_microstep + 1];                                                                    // note +1 for terminating null byte
+    char gcode_microstep[sz_microstep + 1]; // note +1 for terminating null byte
     snprintf(gcode_microstep, sizeof(gcode_microstep), fmt_microstep, get_microsteps_x(), get_microsteps_y()); // XY motor microsteps
     queue.enqueue_one_now(gcode_microstep);
 }
@@ -323,6 +322,8 @@ LoopResult CSelftestPart_Axis::stateMoveFinishCycleWithMotorSwitch() {
 }
 
 LoopResult CSelftestPart_Axis::stateMoveFinishCycle() {
+    check_coils();
+
     LoopResult result = wait(getDir());
     if (result != LoopResult::RunNext) {
         return result;
@@ -337,6 +338,8 @@ LoopResult CSelftestPart_Axis::stateMoveFinishCycle() {
 // XL continues with homing which can be loud if starting at the edge
 // Move Y to better position after selftest is completed
 LoopResult CSelftestPart_Axis::stateParkAxis() {
+    check_coils();
+
     static bool parking_initiated = false;
     if (queue.has_commands_queued() || planner.processing()) {
         return LoopResult::RunCurrent;
@@ -362,4 +365,34 @@ void CSelftestPart_Axis::actualizeProgress() const {
     if (time_progress_start == time_progress_estimated_end)
         return; // don't have estimated end set correctly
     rResult.progress = scale_percent_avoid_overflow(SelftestInstance().GetTime(), time_progress_start, time_progress_estimated_end);
+}
+
+void CSelftestPart_Axis::check_coils() {
+    // Update coil check result. This is not reliable. We are fine with one ok reading
+
+    // On coreXY and when actually testing X,Y axes we need to check both A, B steppers
+    // as we would like X axis check to fail even when B stepper is not ok and vice versa.
+#ifdef COREXY
+    const bool check_ab = config.axis == X_AXIS || config.axis == Y_AXIS;
+#else
+    const bool check_ab = false;
+#endif
+
+    if (check_ab) {
+        if (tmc_check_coils(A_AXIS) && tmc_check_coils(B_AXIS)) {
+            coils_ok = true;
+        }
+    } else {
+        if (tmc_check_coils(config.axis)) {
+            coils_ok = true;
+        }
+    }
+}
+
+LoopResult CSelftestPart_Axis::state_verify_coils() {
+    if (!coils_ok) {
+        log_error(Selftest, "Axis coil error");
+        return LoopResult::Fail;
+    }
+    return LoopResult::RunNext;
 }

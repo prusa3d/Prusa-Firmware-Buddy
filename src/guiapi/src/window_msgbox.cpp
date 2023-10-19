@@ -17,7 +17,7 @@ void AdjustLayout(window_text_t &text, window_icon_t &icon) {
     /// @todo Cannot calculate number of lines of text in advance as it gets wrapped by words.
     ///       Centering unknown text vertically is not possible now.
     if (true /*text.text.computeNumLinesAndRewind() > 3*/) { // If there are more than 3 rows, icon will align to the top
-        new_rect -= Rect16::Top_t(text.padding.top);         // Add Text's padding
+        new_rect -= Rect16::Top_t(text.padding.top); // Add Text's padding
         text.SetAlignment(Align_t::LeftTop());
     } else {
         new_rect = Rect16::Height_t(text.get_font()->h * 3); // Set height to 3 rows

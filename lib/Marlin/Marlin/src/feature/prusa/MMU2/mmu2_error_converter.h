@@ -1,15 +1,20 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#include "buttons.h"
-#include "../../../../../../Prusa-Error-Codes/04_MMU/button_operations.h"
-#include "../../lib/Prusa-Firmware-MMU/src/logic/error_codes.h"
+#ifdef __AVR__
+    #include "mmu2/buttons.h"
+    #include "mmu2/error_codes.h"
+#else
+    #include "buttons.h"
+    #include "../../../../../../Prusa-Error-Codes/04_MMU/button_operations.h"
+    #include "../../../../../../Prusa-Firmware-MMU/src/logic/error_codes.h"
+#endif
 
 namespace MMU2 {
 
 /// Translates MMU2::ErrorCode into an index of Prusa-Error-Codes
 /// Basically this is the way to obtain an index into all other functions in this API
-uint8_t PrusaErrorCodeIndex(uint16_t ec);
+uint8_t PrusaErrorCodeIndex(ErrorCode ec);
 
 /// @returns pointer to a PROGMEM string representing the Title of the Prusa-Error-Codes error
 /// @param i index of the error - obtained by calling ErrorCodeIndex

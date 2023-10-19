@@ -30,6 +30,10 @@
 #include "../../module/temperature.h"
 #include "feature/precise_stepping/internal.hpp"
 
+#if ENABLED(CANCEL_OBJECTS)
+  #include <feature/cancel_object.h>
+#endif /*ENABLED(CANCEL_OBJECTS)*/
+
 #if ENABLED(DELTA)
   #include "../../module/delta.h"
 #elif ENABLED(SCARA)
@@ -453,7 +457,9 @@ void GcodeSuite::G2_G3(const bool clockwise) {
     if (parser.seenval(bchar)) arc_offset.b = parser.value_linear_units();
   }
 
-  if (arc_offset) {
+  if (TERN0(CANCEL_OBJECTS, cancelable.skipping)) {
+    // Canceling an object, skip arc move
+  } else if (arc_offset) {
 
     #if ENABLED(ARC_P_CIRCLES)
       // P indicates number of circles to do

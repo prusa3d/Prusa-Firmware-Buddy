@@ -835,7 +835,7 @@ void tool_change(const uint8_t new_tool,
     #endif
 
     const uint8_t old_tool = active_extruder;
-    const bool can_move_away = (return_type > tool_return_t::no_move) && !idex_full_control;
+    const bool can_move_away = (return_type > tool_return_t::no_return) && !idex_full_control;
 
     // calculate where we should return to
     auto return_position = destination;

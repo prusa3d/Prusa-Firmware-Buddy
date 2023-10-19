@@ -47,11 +47,11 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     // LAN settings
     // lan_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("LAN Flag")> lan_flag;
-    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 Address")> lan_ip4_addr;    // X.X.X.X address encoded
-    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 Mask")> lan_ip4_mask;       // X.X.X.X address encoded
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 Address")> lan_ip4_addr; // X.X.X.X address encoded
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 Mask")> lan_ip4_mask; // X.X.X.X address encoded
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 Gateway")> lan_ip4_gateway; // X.X.X.X address encoded
-    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 DNS1")> lan_ip4_dns1;       // X.X.X.X address encoded
-    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 DNS2")> lan_ip4_dns2;       // X.X.X.X address encoded
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 DNS1")> lan_ip4_dns1; // X.X.X.X address encoded
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("LAN IP4 DNS2")> lan_ip4_dns2; // X.X.X.X address encoded
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("LAN Hostname")> lan_hostname;
 
     StoreItem<int8_t, defaults::lan_timezone, journal::hash("LAN Timezone")> timezone; // hour difference from UTC
@@ -59,11 +59,11 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     // WIFI settings
     // wifi_flag & 1 -> On = 0/off = 1, lan_flag & 2 -> dhcp = 0/static = 1, wifi_flag & 0b1100 -> reserved, previously ap_sec_t security
     StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("WIFI Flag")> wifi_flag;
-    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 Address")> wifi_ip4_addr;    // X.X.X.X address encoded
-    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 Mask")> wifi_ip4_mask;       // X.X.X.X address encoded
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 Address")> wifi_ip4_addr; // X.X.X.X address encoded
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 Mask")> wifi_ip4_mask; // X.X.X.X address encoded
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 Gateway")> wifi_ip4_gateway; // X.X.X.X address encoded
-    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 DNS1")> wifi_ip4_dns1;       // X.X.X.X address encoded
-    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 DNS2")> wifi_ip4_dns2;       // X.X.X.X address encoded
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 DNS1")> wifi_ip4_dns1; // X.X.X.X address encoded
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("WIFI IP4 DNS2")> wifi_ip4_dns2; // X.X.X.X address encoded
     StoreItem<std::array<char, lan_hostname_max_len + 1>, defaults::net_hostname, journal::hash("WIFI Hostname")> wifi_hostname;
     StoreItem<std::array<char, wifi_max_ssid_len + 1>, defaults::wifi_ap_ssid, journal::hash("WIFI AP SSID")> wifi_ap_ssid;
     StoreItem<std::array<char, wifi_max_passwd_len + 1>, defaults::wifi_ap_password, journal::hash("WIFI AP Password")> wifi_ap_password;
@@ -71,10 +71,19 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<eSOUND_MODE, defaults::sound_mode, journal::hash("Sound Mode")> sound_mode;
     StoreItem<uint8_t, defaults::sound_volume, journal::hash("Sound Volume")> sound_volume;
     StoreItem<uint16_t, defaults::language, journal::hash("Language")> language;
-    StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("File Sort")> file_sort;   // filebrowser file sort options
-    StoreItem<bool, defaults::bool_true, journal::hash("Menu Timeout")> menu_timeout;   // on / off menu timeout flag
+    StoreItem<uint8_t, defaults::uint8_t_zero, journal::hash("File Sort")> file_sort; // filebrowser file sort options
+    StoreItem<bool, defaults::bool_true, journal::hash("Menu Timeout")> menu_timeout; // on / off menu timeout flag
     StoreItem<bool, defaults::bool_true, journal::hash("Devhash in QR")> devhash_in_qr; // on / off sending UID in QR
-    StoreItem<uint32_t, defaults::footer_setting, journal::hash("Footer Setting")> footer_setting;
+
+    StoreItem<footer::Item, defaults::footer_setting_0, journal::hash("Footer Setting 0")> footer_setting_0;
+    StoreItem<footer::Item, defaults::footer_setting_1, journal::hash("Footer Setting 1")> footer_setting_1;
+    StoreItem<footer::Item, defaults::footer_setting_2, journal::hash("Footer Setting 2")> footer_setting_2;
+    StoreItem<footer::Item, defaults::footer_setting_3, journal::hash("Footer Setting 3")> footer_setting_3;
+    StoreItem<footer::Item, defaults::footer_setting_4, journal::hash("Footer Setting 4")> footer_setting_4;
+
+    footer::Item get_footer_setting(uint8_t index);
+    void set_footer_setting(uint8_t index, footer::Item value);
+
     StoreItem<uint32_t, defaults::footer_draw_type, journal::hash("Footer Draw Type")> footer_draw_type;
     StoreItem<bool, defaults::bool_true, journal::hash("Fan Check Enabled")> fan_check_enabled;
     StoreItem<bool, defaults::bool_true, journal::hash("FS Autoload Enabled")> fs_autoload_enabled;
@@ -93,13 +102,13 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<bool, defaults::bool_false, journal::hash("Connect Enabled")> connect_enabled;
 
     // Metrics
-    StoreItem<MetricsAllow, defaults::metrics_allow, journal::hash("Metrics Allow")> metrics_allow;                         ///< Metrics are allowed to be enabled
+    StoreItem<MetricsAllow, defaults::metrics_allow, journal::hash("Metrics Allow")> metrics_allow; ///< Metrics are allowed to be enabled
     StoreItem<std::array<char, metrics_host_size + 1>, defaults::metrics_host, journal::hash("Metrics Host")> metrics_host; ///< Host used to allow and init metrics
-    StoreItem<uint16_t, defaults::metrics_port, journal::hash("Metrics Port")> metrics_port;                                ///< Port used to allow and init metrics
-    StoreItem<uint16_t, defaults::syslog_port, journal::hash("Log Port")> syslog_port;                                      ///< Port used to allow and init log (uses metrics_host)
-    StoreItem<bool, defaults::metrics_init, journal::hash("Metrics Init")> metrics_init;                                    ///< Init metrics host after start
+    StoreItem<uint16_t, defaults::metrics_port, journal::hash("Metrics Port")> metrics_port; ///< Port used to allow and init metrics
+    StoreItem<uint16_t, defaults::syslog_port, journal::hash("Log Port")> syslog_port; ///< Port used to allow and init log (uses metrics_host)
+    StoreItem<bool, defaults::metrics_init, journal::hash("Metrics Init")> metrics_init; ///< Init metrics host after start
 
-    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Job ID")> job_id;                                           // print job id incremented at every print start
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Job ID")> job_id; // print job id incremented at every print start
 
     StoreItem<bool, defaults::crash_enabled, journal::hash("Crash Enabled")> crash_enabled;
     StoreItem<int16_t, defaults::crash_sens_x, journal::hash("Crash Sens X")> crash_sens_x; // X axis crash sensitivity
@@ -109,9 +118,9 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<uint16_t, defaults::crash_max_period_x, journal::hash("Crash Sens Max Period X")> crash_max_period_x;
     // Y axis max crash period (speed) threshold
     StoreItem<uint16_t, defaults::crash_max_period_y, journal::hash("Crash Sens Max Period Y")> crash_max_period_y;
-    StoreItem<bool, defaults::crash_filter, journal::hash("Crash Filter")> crash_filter;                  // Stallguard filtration
-    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Crash Count X")> crash_count_x;           // number of crashes of X axis in total
-    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Crash Count Y")> crash_count_y;           // number of crashes of Y axis in total
+    StoreItem<bool, defaults::crash_filter, journal::hash("Crash Filter")> crash_filter; // Stallguard filtration
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Crash Count X")> crash_count_x; // number of crashes of X axis in total
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Crash Count Y")> crash_count_y; // number of crashes of Y axis in total
     StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("Power Panics Count")> power_panics_count; // number of power losses in total
 
     StoreItem<time_format::TF_t, defaults::time_format, journal::hash("Time Format")> time_format;
@@ -180,10 +189,10 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     void set_side_fs_value_span(uint8_t index, uint32_t value);
 
     StoreItem<uint16_t, defaults::print_progress_time, journal::hash("Print Progress Time")> print_progress_time; // screen progress time in seconds
-    StoreItem<bool, defaults::bool_true, journal::hash("TMC Wavetable Enabled")> tmc_wavetable_enabled;           // wavetable in TMC drivers
+    StoreItem<bool, defaults::bool_true, journal::hash("TMC Wavetable Enabled")> tmc_wavetable_enabled; // wavetable in TMC drivers
 
     StoreItem<bool, defaults::bool_false, journal::hash("MMU2 Enabled")> mmu2_enabled;
-    StoreItem<bool, defaults::bool_false, journal::hash("MMU2 Cutter")> mmu2_cutter;             // use MMU2 cutter when it sees fit
+    StoreItem<bool, defaults::bool_false, journal::hash("MMU2 Cutter")> mmu2_cutter; // use MMU2 cutter when it sees fit
     StoreItem<bool, defaults::bool_false, journal::hash("MMU2 Stealth Mode")> mmu2_stealth_mode; // run MMU2 in stealth mode wherever possible
 
     StoreItem<bool, defaults::bool_true, journal::hash("Run LEDs")> run_leds;
@@ -316,6 +325,11 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
 
     StoreItem<bool, defaults::bool_false, journal::hash("Stuck filament detection")> stuck_filament_detection;
 
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 load fails")> mmu2_load_fails;
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 total load fails")> mmu2_total_load_fails;
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 general fails")> mmu2_fails;
+    StoreItem<uint16_t, defaults::uint16_t_zero, journal::hash("MMU2 total general fails")> mmu2_total_fails;
+
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis X Enabled")> input_shaper_axis_x_enabled;
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_x_default, journal::hash("Input Shaper Axis X Config")> input_shaper_axis_x_config;
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis Y Enabled")> input_shaper_axis_y_enabled;
@@ -334,11 +348,14 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
  *
  * If you want to migrate existing data to 'newer version', add a migration_function with the ids as well (see below). If all you want is to delete an item, just moving it here from CurrentStore is enough.
  *
- * !!! MAKE SURE moved StoreItems from CurrentStore to here KEEP their HASHED ID !!!
+ * !!! MAKE SURE to move StoreItems from CurrentStore to here KEEP their HASHED ID !!! (to make sure backend works correctly when scanning through entries)
  */
 struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend> {
     // There was a ConfigStore version already before last eeprom version of SelftestResult was made, so it doesn't have old eeprom predecessor
     StoreItem<SelftestResult_pre_23, defaults::selftest_result_pre_23, journal::hash("Selftest Result")> selftest_result_pre_23;
+
+    // An item was added to the middle of the footer enum and it caused eeprom corruption. This store footer item  was deleted and a new one is created without migration so as to force default footer value onto everyone, which is better than 'random values' (especially on mini where it could cause duplicated items shown). Default value was removed since we no longer need to keep it
+    StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Footer Setting")> footer_setting_v1;
 };
 
 } // namespace config_store_ns

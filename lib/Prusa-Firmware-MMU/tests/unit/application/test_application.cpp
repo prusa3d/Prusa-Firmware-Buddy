@@ -10,7 +10,7 @@ TEST_CASE("application::ReportVersion", "[application]") {
 
     application.ReportReadRegister(mp::RequestMsg(mp::RequestMsgCodes::Version, 0));
 
-    REQUIRE(modules::serial::tx == "S0 A2*37\n");
+    REQUIRE(modules::serial::tx == "S0 A3*22\n");
 }
 
 TEST_CASE("application::WriteRegister", "[application]") {

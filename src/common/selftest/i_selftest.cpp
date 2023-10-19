@@ -53,7 +53,7 @@ bool ISelftest::phaseWait() {
 void ISelftest::log_open() {
 #ifndef _DEBUG
     return; // Enabling USB logs only in debug builds
-#endif      // _DEBUG
+#endif // _DEBUG
 
     const char *suffix = get_log_suffix();
     char fname[64];
@@ -86,7 +86,7 @@ void ISelftest::log_printf(const char *fmt, ...) {
     char line[SELFTEST_MAX_LOG_PRINTF];
     va_list va;
     va_start(va, fmt);
-    int str_len = vsnprintf(line, SELFTEST_MAX_LOG_PRINTF, fmt, va);
+    int str_len = std::min<int>(vsnprintf(line, SELFTEST_MAX_LOG_PRINTF, fmt, va), SELFTEST_MAX_LOG_PRINTF - 1);
     va_end(va);
 
     while (str_len > 0) {

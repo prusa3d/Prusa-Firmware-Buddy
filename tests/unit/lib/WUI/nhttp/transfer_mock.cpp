@@ -1,4 +1,5 @@
 #include "transfers/transfer.hpp"
+#include <transfers/transfer_file_check.hpp>
 #include <sys/stat.h>
 
 using namespace transfers;
@@ -8,6 +9,8 @@ std::optional<struct stat> Transfer::get_transfer_partial_file_stat(MutablePath 
     return st;
 }
 
-bool Transfer::is_valid_transfer(MutablePath &destination_path) {
+namespace transfers {
+bool is_valid_transfer(const MutablePath &destination_path) {
     return true;
 }
+} // namespace transfers

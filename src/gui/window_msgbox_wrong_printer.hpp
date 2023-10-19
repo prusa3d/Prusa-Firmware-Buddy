@@ -27,7 +27,7 @@ class MsgBoxInvalidPrinter : public MsgBoxTitled {
     };
     const GCodeInfo::ValidPrinterSettings &valid_printer_settings;
     std::array<Message, 5> messages;
-    Message wrong_fw_message;            ///< Message with new firmware
+    Message wrong_fw_message; ///< Message with new firmware
     window_text_t wrong_fw_version_text; ///< Display which firmware version
     Message unsupported_features;
     window_text_t unsupported_features_text;

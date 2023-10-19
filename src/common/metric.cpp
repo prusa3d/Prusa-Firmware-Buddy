@@ -40,8 +40,9 @@ void metric_system_init(metric_handler_t *handlers[]) {
 
     metric_handlers_init();
 
+    // first create mail queue, then thread, Note that we pass nullptr as thread_id to osMailCreate, but its unused so its fine.
+    metric_system_queue = osMailCreate(osMailQ(metric_system_queue), nullptr);
     metric_system_task = osThreadCreate(osThread(metric_system_task), NULL);
-    metric_system_queue = osMailCreate(osMailQ(metric_system_queue), metric_system_task);
     metric_system_initialized = true;
 }
 
@@ -63,6 +64,7 @@ void metric_linked_list_append(metric_t *metric) {
 static void metric_system_task_run(const void *) {
     for (;;) {
         osEvent event = osMailGet(static_cast<osMailQId>(metric_system_queue), osWaitForever);
+        assert(event.status == osEventMail);
         metric_point_t *point = (metric_point_t *)event.value.p;
 
         for (metric_handler_t **handlers = metric_system_handlers; *handlers != NULL; handlers++) {

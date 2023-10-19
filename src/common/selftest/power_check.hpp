@@ -29,9 +29,9 @@ class PowerCheck {
 
 public:
     enum class status_t {
-        stable,          // evaluation time changed, measurement data valid
-        unstable,        // timeout did not end
-        changed,         // value just changed
+        stable, // evaluation time changed, measurement data valid
+        unstable, // timeout did not end
+        changed, // value just changed
         unmeasurable_pwm // pwm is too small to get reasonable value
     };
     enum class load_t {

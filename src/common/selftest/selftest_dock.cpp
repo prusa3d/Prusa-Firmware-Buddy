@@ -26,7 +26,7 @@ CSelftestPart_Dock::~CSelftestPart_Dock() {
     HOTEND_LOOP() {
         prusa_toolchanger.getTool(e).set_cheese_led(); // Default LED config
     }
-    prusa_toolchanger.init(false);                     // Ensure picked/active tool matches the reality
+    prusa_toolchanger.init(false); // Ensure picked/active tool matches the reality
     toolcheck_reenable();
 }
 
@@ -51,11 +51,11 @@ void CSelftestPart_Dock::prepare_homing() {
 }
 
 LoopResult CSelftestPart_Dock::stateMoveAwayInit() {
-    planner.synchronize();                                     // Finish current move
+    planner.synchronize(); // Finish current move
 
     IPartHandler::SetFsmPhase(PhasesSelftest::Dock_move_away); // Set moving down screen
 
-    prepare_homing();                                          // Prepare homing to terminate next move as soon as endstop hits
+    prepare_homing(); // Prepare homing to terminate next move as soon as endstop hits
 
     // Start move to z_extra_pos
     if (config.z_extra_pos > current_position.z) {
@@ -69,7 +69,7 @@ LoopResult CSelftestPart_Dock::stateMoveAwayWait() {
     if (planner.processing()) {
         return LoopResult::RunCurrent; // Wait while moving
     }
-    endstops.not_homing();             // Revert endstops to global state
+    endstops.not_homing(); // Revert endstops to global state
     return LoopResult::RunNext;
 }
 
@@ -194,7 +194,7 @@ LoopResult CSelftestPart_Dock::state_measure() {
     position_before_measure = xy_long_t({ { {
         .x = stepper.position_from_startup(AxisEnum::A_AXIS),
         .y = stepper.position_from_startup(AxisEnum::B_AXIS),
-    } } });                              // GCC bug? (should be .a = ..., .b = ...) works with GCC 12.2.1
+    } } }); // GCC bug? (should be .a = ..., .b = ...) works with GCC 12.2.1
 
     marlin_server::enqueue_gcode("G91"); // Relative positioning
     // Detach from dock

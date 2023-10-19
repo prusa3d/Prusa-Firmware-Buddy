@@ -1,8 +1,6 @@
 #include "screen_tools_mapping.hpp"
 #include <log.h>
 #include <marlin_client.hpp>
-#include <module/prusa/toolchanger.h>
-#include <option/has_toolchanger.h>
 #include <string.h>
 #include <window_msgbox.hpp>
 #include <printers.h>
@@ -13,6 +11,18 @@
 #include <img_resources.hpp>
 #include <marlin_print_preview.hpp>
 #include <utility_extensions.hpp>
+#include "mmu2_toolchanger_common.hpp"
+#include <tools_mapping.hpp>
+
+uint8_t get_num_of_enabled_tools() {
+#if HAS_TOOLCHANGER()
+    return prusa_toolchanger.get_num_enabled_tools();
+#elif HAS_MMU2()
+    return MMU2::mmu2.Enabled() ? EXTRUDERS : 1; // MMU has all slots available
+#else
+    return EXTRUDERS;
+#endif
+}
 
 namespace {
 
@@ -77,7 +87,7 @@ constexpr size_t alert_icon_size { 16 };
 
 constexpr uint16_t get_icon_row(size_t idx) {
     return row_first_item + text_row_separation * idx
-        + text_height / 2      // center point of row
+        + text_height / 2 // center point of row
         - alert_icon_size / 2; // offset up
 }
 
@@ -134,6 +144,14 @@ void disable_radio(RadioButton &radio) {
     radio.Invalidate();
 }
 
+double get_nozzle_diameter([[maybe_unused]] size_t idx) {
+#if HAS_TOOLCHANGER()
+    return static_cast<double>(config_store().get_nozzle_diameter(idx));
+#elif HAS_MMU2()
+    return static_cast<double>(config_store().get_nozzle_diameter(0));
+#endif
+}
+
 void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsMappingBody::max_item_text_width>, ToolsMappingBody::max_item_rows> &text_buffers, bool drawing_nozzles) {
     // IDX here means REAL
 
@@ -144,7 +162,7 @@ void print_right_tool_into_buffer(size_t idx, std::array<std::array<char, ToolsM
 
     if (drawing_nozzles) {
         const auto cur_strlen = strlen(text_buffers[idx].data());
-        snprintf(text_buffers[idx].data() + cur_strlen, ToolsMappingBody::max_item_text_width - cur_strlen, " %-4.2f", static_cast<double>(config_store().get_nozzle_diameter(idx)));
+        snprintf(text_buffers[idx].data() + cur_strlen, ToolsMappingBody::max_item_text_width - cur_strlen, " %-4.2f", get_nozzle_diameter(idx));
     }
 }
 
@@ -154,7 +172,7 @@ window_text_t make_right_phys_text(size_t idx, window_t *parent,
 
     print_right_tool_into_buffer(idx, text_buffers, drawing_nozzles);
     window_text_t wtxt { parent, get_right_phys_rect(idx), is_multiline::no, is_closed_on_click_t::no, _(text_buffers[idx].data()) };
-    if (!prusa_toolchanger.is_tool_enabled(idx)) {
+    if (!is_tool_enabled(idx)) {
         wtxt.Hide();
     }
     return wtxt;
@@ -276,21 +294,15 @@ bool all_nozzles_same(GCodeInfo &gcode_info) {
     }
 
     // check physicals
-#if HAS_TOOLCHANGER()
     EXTRUDER_LOOP() {
-        if (!prusa_toolchanger.is_tool_enabled(e)) {
+        if (!is_tool_enabled(e)) {
             continue;
         }
 
-        if (!nozzles_are_matching(first_value, config_store().get_nozzle_diameter(e))) {
+        if (!nozzles_are_matching(first_value, get_nozzle_diameter(e))) {
             return false;
         }
     }
-#else
-    if (!nozzles_are_matching(first_value, config_store().get_nozzle_diameter(0))) {
-        return false;
-    }
-#endif
     return true;
 }
 
@@ -333,8 +345,8 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
     // Setup idx_to_real array with values
 
     // first set them to have default 1-1 2-2 order
-    std::iota(std::begin(left_gcode_idx_to_real), std::begin(left_gcode_idx_to_real) + gcode.UsedExtrudersCount(), 0);                // default normal order
-    std::iota(std::begin(right_phys_idx_to_real), std::begin(right_phys_idx_to_real) + prusa_toolchanger.get_num_enabled_tools(), 0); // default normal order
+    std::iota(std::begin(left_gcode_idx_to_real), std::begin(left_gcode_idx_to_real) + gcode.UsedExtrudersCount(), 0); // default normal order
+    std::iota(std::begin(right_phys_idx_to_real), std::begin(right_phys_idx_to_real) + get_num_of_enabled_tools(), 0); // default normal order
 
     // Then skip some numbers (and increment the rest) if a tool is missing (ie dwarf 1 is not connected)
     for (int left_idx = 0; left_idx < gcode.UsedExtrudersCount(); ++left_idx) {
@@ -348,12 +360,12 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
         }
     }
 
-    for (int right_idx = 0; right_idx < prusa_toolchanger.get_num_enabled_tools(); ++right_idx) {
+    for (int right_idx = 0; right_idx < get_num_of_enabled_tools(); ++right_idx) {
         for (size_t current_real = right_phys_idx_to_real[right_idx]; current_real < std::min<size_t>(max_item_rows, EXTRUDERS); ++current_real) {
             // loop until we find a valid physical tool
-            if (prusa_toolchanger.is_tool_enabled(current_real)) {
+            if (is_tool_enabled(current_real)) {
                 // increment by 1 from this offset to the rest of the array
-                std::iota(std::begin(right_phys_idx_to_real) + right_idx, std::begin(right_phys_idx_to_real) + prusa_toolchanger.get_num_enabled_tools(), current_real);
+                std::iota(std::begin(right_phys_idx_to_real) + right_idx, std::begin(right_phys_idx_to_real) + get_num_of_enabled_tools(), current_real);
                 break; // go to fill the next physical tool
             }
         }
@@ -371,7 +383,7 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
 
     // finally make sure that rest of the idx_to_real arrays are filled with inactive gcode/physical tools (ie if we have dwarfs 1,3 , the rest of the array should be 2,4,5)
     fill_end_of_array_with_missing_numbers(left_gcode_idx_to_real, gcode.UsedExtrudersCount());
-    fill_end_of_array_with_missing_numbers(right_phys_idx_to_real, prusa_toolchanger.get_num_enabled_tools());
+    fill_end_of_array_with_missing_numbers(right_phys_idx_to_real, get_num_of_enabled_tools());
 
     std::iota(std::begin(left_gcode_pos_to_real), std::end(left_gcode_pos_to_real), 0); // default order with spaces
     std::iota(std::begin(right_phys_pos_to_real), std::end(right_phys_pos_to_real), 0); // default order with spaces
@@ -382,7 +394,7 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
         mapper.set_unassigned(left_gcode_idx_to_real[i]);
     }
     // also unassign when the right side is not available
-    for (size_t i = prusa_toolchanger.get_num_enabled_tools(); i < std::size(right_phys_idx_to_real); ++i) {
+    for (size_t i = get_num_of_enabled_tools(); i < std::size(right_phys_idx_to_real); ++i) {
         mapper.set_unassigned(right_phys_idx_to_real[i]);
     }
     mapper.set_enable(true);
@@ -394,8 +406,8 @@ ToolsMappingBody::ToolsMappingBody(window_t *parent, GCodeInfo &gcode_info)
     middle_points.fill(window_line_connector::unassigned_value);
     for (size_t i = 0; i < max_item_rows; ++i) {
         middle_points[i] = row_first_item + text_row_separation * i // row
-            + text_height / 2                                       // center of text
-            - connector_line_height / 2;                            // offset up to center the line
+            + text_height / 2 // center of text
+            - connector_line_height / 2; // offset up to center the line
     }
 
     middle_connector.set_points(middle_points);
@@ -450,7 +462,7 @@ void ToolsMappingBody::Show() {
     }
 
     for (size_t i = 0; i < std::size(right_phys_texts); ++i) {
-        if (prusa_toolchanger.is_tool_enabled(i)) {
+        if (is_tool_enabled(i)) {
             right_phys_texts[i].Show();
         }
     }
@@ -559,7 +571,7 @@ void ToolsMappingBody::go_right() {
         real_physical == ToolMapper::NO_TOOL_MAPPED) {
         // if left has nothing assigned on the right
         current_idx = 0; // 0 in case all tools are assigned
-        for (size_t i = 0; i < prusa_toolchanger.get_num_enabled_tools(); ++i) {
+        for (size_t i = 0; i < get_num_of_enabled_tools(); ++i) {
             // need to iterate from 0 to properly break on it if unassigned
             if (mapper.to_gcode(right_phys_idx_to_real[i]) == ToolMapper::NO_TOOL_MAPPED
                 && joiner.get_first_spool_1_from_chain(right_phys_idx_to_real[i]) == right_phys_idx_to_real[i]) { // if this tool is unassigned
@@ -570,7 +582,7 @@ void ToolsMappingBody::go_right() {
     } else {
         // left has something assigned on the right
         auto right_idx = std::distance(std::begin(right_phys_idx_to_real), std::ranges::find(right_phys_idx_to_real, real_physical));
-        assert(right_idx >= 0 && right_idx < prusa_toolchanger.get_num_enabled_tools());
+        assert(right_idx >= 0 && right_idx < get_num_of_enabled_tools());
         current_idx = right_idx;
     }
     set_hovered(right_phys_texts[right_phys_idx_to_real[current_idx]], nullptr);
@@ -586,7 +598,7 @@ void ToolsMappingBody::go_right() {
 
 uint8_t ToolsMappingBody::get_cnt_current_items() {
     const size_t cnt_left_items = gcode.UsedExtrudersCount();
-    const size_t cnt_right_items = prusa_toolchanger.get_num_enabled_tools();
+    const size_t cnt_right_items = get_num_of_enabled_tools();
     return state == State::right ? cnt_right_items : cnt_left_items;
 }
 
@@ -599,27 +611,16 @@ bool ToolsMappingBody::are_all_gcode_tools_mapped() const {
     return true;
 }
 
-uint8_t ToolsMappingBody::to_gcode_tool(uint8_t physical_tool) {
-    if (auto gcode_tool = mapper.to_gcode(physical_tool); gcode_tool != ToolMapper::NO_TOOL_MAPPED) {
-        return gcode_tool;
-    } else if (auto earliest_physical = joiner.get_first_spool_1_from_chain(physical_tool); earliest_physical != physical_tool) {
-        auto earliests_gcode_tool = mapper.to_gcode(earliest_physical);
-        assert(earliests_gcode_tool != ToolMapper::NO_TOOL_MAPPED); // otherwise invalid spool_join
-        return earliests_gcode_tool;
-    }
-    return ToolMapper::NO_TOOL_MAPPED;
-}
-
 std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ToolsMappingBody::build_preselect_array() {
     std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ret;
     ret.fill(ftrstd::to_underlying(filament::Type::NONE)); // Don't change
 
-    for (size_t idx = 0; idx < prusa_toolchanger.get_num_enabled_tools(); ++idx) {
+    for (size_t idx = 0; idx < get_num_of_enabled_tools(); ++idx) {
         const auto real_phys = right_phys_idx_to_real[idx];
-        if (auto real_mapped_gcode = to_gcode_tool(real_phys); real_mapped_gcode == ToolMapper::NO_TOOL_MAPPED) { // not assigned
-            continue;                                                                                             // leave preselection as Don't change
+        if (auto real_mapped_gcode = tools_mapping::to_gcode_tool_custom(mapper, joiner, real_phys); real_mapped_gcode == tools_mapping::no_tool) { // not assigned
+            continue; // leave preselection as Don't change
         } else if (const auto &opt_name = gcode.get_extruder_info(real_mapped_gcode).filament_name; opt_name.has_value()) {
-            assert(gcode.get_extruder_info(real_mapped_gcode).used());                                            // otherwise bug in mapping
+            assert(gcode.get_extruder_info(real_mapped_gcode).used()); // otherwise bug in mapping
             if (auto desired_filament = filament::get_type(opt_name.value().data(), strlen(opt_name.value().data()));
                 config_store().get_filament_type(real_phys) != desired_filament) {
                 // only preselect if we don't have it already
@@ -635,12 +636,12 @@ std::array<std::optional<filament::Colour>, I_MI_FilamentSelect::max_I_MI_Filame
     std::array<std::optional<filament::Colour>, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> ret;
     ret.fill(std::nullopt); // No color given
 
-    for (size_t idx = 0; idx < prusa_toolchanger.get_num_enabled_tools(); ++idx) {
+    for (size_t idx = 0; idx < get_num_of_enabled_tools(); ++idx) {
         const auto real_phys = right_phys_idx_to_real[idx];
-        if (auto real_mapped_gcode = to_gcode_tool(real_phys); real_mapped_gcode == ToolMapper::NO_TOOL_MAPPED) { // not assigned
-            continue;                                                                                             // leave preselection as Don't change
+        if (auto real_mapped_gcode = tools_mapping::to_gcode_tool_custom(mapper, joiner, real_phys); real_mapped_gcode == tools_mapping::no_tool) { // not assigned
+            continue; // leave preselection as Don't change
         } else if (const auto &opt_color = gcode.get_extruder_info(real_mapped_gcode).extruder_colour; opt_color.has_value()) {
-            assert(gcode.get_extruder_info(real_mapped_gcode).used());                                            // otherwise bug in mapping
+            assert(gcode.get_extruder_info(real_mapped_gcode).used()); // otherwise bug in mapping
             ret[real_phys] = { .red = opt_color.value().red, .green = opt_color.value().green, .blue = opt_color.value().blue };
         }
     }
@@ -758,6 +759,7 @@ void ToolsMappingBody::update_shown_state_after_scroll(uint8_t previous_idx) {
 }
 
 void ToolsMappingBody::update_dwarf_lights() {
+#if PRINTER_IS_PRUSA_XL
     HOTEND_LOOP() {
         prusa_toolchanger.getTool(e).set_cheese_led(0, 0); // disable all
     }
@@ -775,13 +777,14 @@ void ToolsMappingBody::update_dwarf_lights() {
             prusa_toolchanger.getTool(assigned_tool).set_cheese_led(0xff, 0xff);
 
             // light up all tools that have assigned_tool as their earliest spool_1
-            std::for_each(std::begin(right_phys_idx_to_real), std::begin(right_phys_idx_to_real) + prusa_toolchanger.get_num_enabled_tools(), [&](const auto &right_real) {
+            std::for_each(std::begin(right_phys_idx_to_real), std::begin(right_phys_idx_to_real) + get_num_of_enabled_tools(), [&](const auto &right_real) {
                 if (joiner.get_first_spool_1_from_chain(right_real) == assigned_tool) {
                     prusa_toolchanger.getTool(right_real).set_cheese_led(0xff, 0xff);
                 }
             });
         } // else unassigned and do nothing
     }
+#endif // PRINTER_IS_PRUSA_XL
 }
 
 void ToolsMappingBody::update_shown_state() {
@@ -792,62 +795,29 @@ void ToolsMappingBody::update_shown_state() {
 
 void ToolsMappingBody::update_icons() {
     // precondition: nicely ordered, otherwise the icons will not match
-    num_unassigned_gcodes = num_mismatched_filaments = num_mismatched_nozzles = num_unloaded_tools = 0;
+    auto validity = PrintPreview::check_tools_mapping_validity(mapper, joiner, gcode);
+    num_unassigned_gcodes = validity.unassigned_gcodes.count();
+    num_mismatched_filaments = validity.mismatched_filaments.count();
+    num_mismatched_nozzles = validity.mismatched_nozzles.count();
+    num_unloaded_tools = validity.unloaded_tools.count();
 
-    for (int idx = 0; idx < gcode.UsedExtrudersCount(); ++idx) {
-        const auto real_gcode = left_gcode_idx_to_real[idx];
-        if (mapper.to_physical(real_gcode) == ToolMapper::NO_TOOL_MAPPED) {
+    for (size_t real_gcode = 0; real_gcode < std::size(left_gcode_icons); ++real_gcode) {
+        if (validity.unassigned_gcodes.test(real_gcode)) {
             left_gcode_icons[real_gcode].SetRes(unassigned_filament_icon);
-            ++num_unassigned_gcodes;
         } else {
             left_gcode_icons[real_gcode].SetRes(nullptr);
         }
     }
 
-    auto nozzles_match = [&](uint8_t physical_extruder) {
-        auto gcode_real = to_gcode_tool(physical_extruder);
-        if (gcode_real == ToolMapper::NO_TOOL_MAPPED) {
-            return true;
-        }
-
-        assert(gcode.get_extruder_info(gcode_real).used()); // otherwise bug in mapping
-        if (!gcode.get_extruder_info(gcode_real).nozzle_diameter.has_value()) {
-            return true;
-        }
-
-        float nozzle_diameter_distance = gcode.get_extruder_info(gcode_real).nozzle_diameter.value() - config_store().get_nozzle_diameter(physical_extruder);
-        if (nozzle_diameter_distance > 0.001f || nozzle_diameter_distance < -0.001f) {
-            return false;
-        }
-
-        return true;
-    };
-
-    auto tool_needs_to_be_loaded = [&](uint8_t physical_extruder) { // if any tool needs filament load
-        if (!config_store().fsensor_enabled.get()) {
-            return false;
-        }
-
-        return PrintPreview::check_extruder_need_filament_load(physical_extruder, ToolMapper::NO_TOOL_MAPPED, [&](uint8_t pe) {
-            return to_gcode_tool(pe);
-        });
-    };
-
-    for (size_t idx = 0; idx < prusa_toolchanger.get_num_enabled_tools(); ++idx) {
-        const auto real_phys = right_phys_idx_to_real[idx];
-        if (tool_needs_to_be_loaded(real_phys)) {
-            right_phys_icons[real_phys].SetRes(unloaded_tools_icon);
-            ++num_unloaded_tools;
-        } else if (!nozzles_match(real_phys)) {
-            right_phys_icons[real_phys].SetRes(mismatched_nozzles_icon);
-            ++num_mismatched_nozzles;
-        } else if (!PrintPreview::check_correct_filament_type(real_phys, ToolMapper::NO_TOOL_MAPPED, [&](uint8_t physical_extruder) {
-                       return to_gcode_tool(physical_extruder);
-                   })) {
-            right_phys_icons[real_phys].SetRes(mismatched_filaments_icon);
-            ++num_mismatched_filaments;
+    for (size_t real_physical = 0; real_physical < std::size(right_phys_icons); ++real_physical) {
+        if (validity.unloaded_tools.test(real_physical)) {
+            right_phys_icons[real_physical].SetRes(unloaded_tools_icon);
+        } else if (validity.mismatched_nozzles.test(real_physical)) {
+            right_phys_icons[real_physical].SetRes(mismatched_nozzles_icon);
+        } else if (validity.mismatched_filaments.test(real_physical)) {
+            right_phys_icons[real_physical].SetRes(mismatched_filaments_icon);
         } else {
-            right_phys_icons[real_phys].SetRes(nullptr);
+            right_phys_icons[real_physical].SetRes(nullptr);
         }
     }
 }
@@ -863,7 +833,7 @@ void ToolsMappingBody::update_middle_connectors() {
         parents[right_pos] = found_left_pos;
     };
 
-    for (size_t right_idx = 0; right_idx < prusa_toolchanger.get_num_enabled_tools(); ++right_idx) {
+    for (size_t right_idx = 0; right_idx < get_num_of_enabled_tools(); ++right_idx) {
 
         auto right_pos = std::distance(std::begin(right_phys_pos_to_real), std::ranges::find(right_phys_pos_to_real, right_phys_idx_to_real[right_idx]));
         assert(right_pos >= 0 && right_pos < std::ssize(right_phys_pos_to_real)); // we should be guaranteed that find finds something
@@ -893,8 +863,8 @@ void ToolsMappingBody::adjust_index(int difference) {
     size_t previous_index { current_idx };
     // add difference to current_idx only if we're not at the respective min/max
     if ((difference > 0
-            && ((state == State::left && current_idx + 1 < static_cast<uint8_t>(gcode.UsedExtrudersCount() + responses_count - 1))                    // no print
-                || (state == State::right && current_idx + 1 < static_cast<uint8_t>(prusa_toolchanger.get_num_enabled_tools() + responses_count - 1)) // no print
+            && ((state == State::left && current_idx + 1 < static_cast<uint8_t>(gcode.UsedExtrudersCount() + responses_count - 1)) // no print
+                || (state == State::right && current_idx + 1 < static_cast<uint8_t>(get_num_of_enabled_tools() + responses_count - 1)) // no print
                 || (state == State::done && current_idx + 1 < static_cast<uint8_t>(gcode.UsedExtrudersCount() + responses_count))))
         || (difference < 0
             && current_idx > 0)) {
@@ -927,7 +897,7 @@ void ToolsMappingBody::ensure_nicely_ordered() {
             } else if (lhs_mapped_to == ToolMapper::NO_TOOL_MAPPED) {
                 // only lhs is unassigned -> rhs should be in the left side, lhs should be on the right
                 return false; // lhs should be on the right side of the array
-            } else {          // if (rhs_mapped_to == ToolMapper::NO_TOOL_MAPPED)
+            } else { // if (rhs_mapped_to == ToolMapper::NO_TOOL_MAPPED)
                 // only rhs is unassigned -> lhs should be left, rhs should be right
                 return true;
             }
@@ -966,7 +936,7 @@ void ToolsMappingBody::ensure_nicely_ordered() {
         // left_index + used_spool_joins refers to current row (position)
 
         if (left_index < first_unassigned_idx) {
-            assert(left_index + used_spool_joins < std::ssize(left_gcode_pos_to_real));                                  // assigned should be guaranteed to have a valid row available
+            assert(left_index + used_spool_joins < std::ssize(left_gcode_pos_to_real)); // assigned should be guaranteed to have a valid row available
             std::swap(left_gcode_pos_to_real[left_index + used_spool_joins], left_gcode_pos_to_real[real_left_cur_pos]); // swap the real to where we want it
         } else {
             // thanks to order precondition, this happens only AFTER all assigned lefts are positioned properly, with blanks (and possibly unassigned lefts) filled into position
@@ -1042,7 +1012,7 @@ void ToolsMappingBody::ensure_nicely_ordered() {
         }
     };
 
-    order_idx_arr_based_on_pos(right_phys_pos_to_real, right_phys_idx_to_real, prusa_toolchanger.get_num_enabled_tools());
+    order_idx_arr_based_on_pos(right_phys_pos_to_real, right_phys_idx_to_real, get_num_of_enabled_tools());
     order_idx_arr_based_on_pos(left_gcode_pos_to_real, left_gcode_idx_to_real, gcode.UsedExtrudersCount());
 
     // update rects
@@ -1065,7 +1035,7 @@ void ToolsMappingBody::handle_right_steal() {
     auto real_left_has_this_mapped = mapper.to_gcode(right_phys_idx_to_real[current_idx]);
     if (real_left_has_this_mapped != ToolMapper::NO_TOOL_MAPPED) { // if this right was directly mapped to something left
         auto followup_spool { joiner.get_spool_2(right_phys_idx_to_real[current_idx]) };
-        if (followup_spool.has_value()) {                          // and there is a join to this already
+        if (followup_spool.has_value()) { // and there is a join to this already
             mapper.set_mapping(real_left_has_this_mapped, followup_spool.value());
         } else {
             mapper.set_unassigned(real_left_has_this_mapped);

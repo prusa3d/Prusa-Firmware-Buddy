@@ -116,7 +116,7 @@ screen_splash_data_t::screen_splash_data_t()
 #endif
 #if HAS_TOUCH()
             { touch::is_hw_broken() ? ScreenFactory::Screen<ScreenTouchError> : nullptr }, // touch error will show after language
-#endif                                                                                     // HAS_TOUCH
+#endif // HAS_TOUCH
 
 #if HAS_SELFTEST()
     #if HAS_SELFTEST_SNAKE()
@@ -162,7 +162,7 @@ void screen_splash_data_t::draw() {
     #if defined(USE_ILI9488)
     display::DrawText(Rect16(340, 130, 60, 13), string_view_utf8::MakeCPUFLASH((const uint8_t *)dbg), resource_font(IDR_FNT_SMALL), COLOR_BLACK, COLOR_RED);
     #endif // USE_ILI9488
-#endif     //_DEBUG
+#endif //_DEBUG
 }
 
 /**
@@ -210,10 +210,7 @@ void screen_splash_data_t::windowEvent(EventLock /*has private ctor*/, [[maybe_u
 
         progress.SetProgressPercent(std::clamp(percent, 0, 100));
 
-        if (percent > 99) {
-            Screens::Access()->Close();
-        }
-#else  // _EXTUI
+#else // _EXTUI
     if (HAL_GetTick() > 3000) {
         Screens::Access()->Close();
 #endif // _EXTUI

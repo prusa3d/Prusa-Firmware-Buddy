@@ -11,8 +11,8 @@ IWDG_HandleTypeDef MultiWatchdog::hiwdg = {
     .Instance = IWDG,
     .Init = {
         .Prescaler = 0x6, // Slowest, approx 32 kHz / 256 = 125 Hz
-        .Reload = 0xfff,  // Maximal, approx 2^12 / (~32 kHz / 256) = 32.768 s
-        .Window = 0xfff,  // Window disabled
+        .Reload = 0xfff, // Maximal, approx 2^12 / (~32 kHz / 256) = 32.768 s
+        .Window = 0xfff, // Window disabled
     },
 };
 
@@ -55,7 +55,7 @@ void MultiWatchdog::init() {
  * @param hardware true to reset hardware, false to only mark (another instance must reset the hardware)
  */
 void MultiWatchdog::kick(bool hardware) {
-    mark = 0xff;     // Mark itself
+    mark = 0xff; // Mark itself
     if (hardware) {
         check_all(); // Check others
     }

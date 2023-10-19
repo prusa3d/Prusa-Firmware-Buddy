@@ -20,6 +20,8 @@ void Idler::PrepareMoveToPlannedSlot() {
 }
 
 void Idler::PlanHomingMoveForward() {
+    mm::motion.SetPosition(mm::Idler, mm::unitToSteps<mm::I_pos_t>(config::IdlerOffsetFromHome));
+    axisStart = mm::axisUnitToTruncatedUnit<config::U_deg>(mm::motion.CurPosition<mm::Idler>());
     mm::motion.PlanMove<mm::Idler>(mm::unitToAxisUnit<mm::I_pos_t>(config::idlerLimits.lenght * 2),
         mm::unitToAxisUnit<mm::I_speed_t>(mg::globals.IdlerHomingFeedrate_deg_s()));
     dbg_logic_P(PSTR("Plan Homing Idler Forward"));
@@ -36,8 +38,8 @@ void Idler::PlanHomingMoveBack() {
 
 bool Idler::FinishHomingAndPlanMoveToParkPos() {
     // check the axis' length
-    int32_t axisEnd = mm::axisUnitToTruncatedUnit<config::U_deg>(mm::motion.CurPosition<mm::Idler>());
-    if (abs(axisEnd - axisStart) < (config::idlerLimits.lenght.v - 10)) { //@@TODO is 10 degrees ok?
+    if (AxisDistance(mm::axisUnitToTruncatedUnit<config::U_deg>(mm::motion.CurPosition<mm::Idler>()))
+        < (config::idlerLimits.lenght.v - 10)) { //@@TODO is 10 degrees ok?
         return false; // we couldn't home correctly, we cannot set the Idler's position
     }
 
@@ -53,7 +55,7 @@ bool Idler::FinishHomingAndPlanMoveToParkPos() {
 
 void Idler::FinishMove() {
     currentlyEngaged = plannedMove;
-    hal::tmc2130::MotorCurrents c = mm::motion.CurrentsForAxis(axis);
+    hal::tmc2130::MotorCurrents c = mm::motion.CurrentsForAxis(mm::Idler);
     if (Disengaged()) // reduce power into the Idler motor when disengaged (less force necessary)
         SetCurrents(c.iRun, c.iHold);
     else if (Engaged()) { // maximum motor power when the idler is engaged
@@ -61,8 +63,13 @@ void Idler::FinishMove() {
     }
 }
 
+bool Idler::StallGuardAllowed(bool forward) const {
+    const uint8_t checkDistance = forward ? 220 : 200;
+    return AxisDistance(mm::axisUnitToTruncatedUnit<config::U_deg>(mm::motion.CurPosition<mm::Idler>())) > checkDistance;
+}
+
 Idler::OperationResult Idler::Disengage() {
-    if (state == Moving || state == OnHold) {
+    if (state == Moving || IsOnHold()) {
         dbg_logic_P(PSTR("Moving --> Disengage refused"));
         return OperationResult::Refused;
     }
@@ -94,7 +101,7 @@ Idler::OperationResult Idler::Engage(uint8_t slot) {
 }
 
 Idler::OperationResult Idler::PlanMoveInner(uint8_t slot, Operation plannedOp) {
-    if (state == Moving || state == OnHold) {
+    if (state == Moving || IsOnHold()) {
         dbg_logic_P(PSTR("Moving --> Engage refused"));
         return OperationResult::Refused;
     }
@@ -125,6 +132,10 @@ Idler::OperationResult Idler::PlanMoveInner(uint8_t slot, Operation plannedOp) {
 }
 
 bool Idler::Step() {
+    if (IsOnHold()) {
+        return true; // just wait, do nothing!
+    }
+
     if (state != TMCFailed) {
         CheckTMC();
     }
@@ -148,10 +159,7 @@ bool Idler::Step() {
             return false;
         }
         return true;
-    case OnHold:
-        return true; // just wait, do nothing!
     case TMCFailed:
-        dbg_logic_P(PSTR("Idler Failed"));
     default:
         return true;
     }

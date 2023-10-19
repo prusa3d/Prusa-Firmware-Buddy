@@ -23,7 +23,7 @@ static inline bool initialize_swo_lock() {
 
 static bool swo_is_enabled() {
     return (((ITM->TCR & ITM_TCR_ITMENA_Msk) != 0UL) && // ITM enabled
-        ((ITM->TER & 1UL) != 0UL));                     // ITM Port #0 enabled
+        ((ITM->TER & 1UL) != 0UL)); // ITM Port #0 enabled
 }
 
 /// Send one character over SWO (blocking)

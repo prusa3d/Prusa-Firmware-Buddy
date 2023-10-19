@@ -3,7 +3,6 @@
 #include <array>
 #include <cstdint>
 #include <cstdlib>
-#include <variant>
 #include <assert.h>
 
 #include <mbedtls/aes.h>
@@ -32,35 +31,13 @@ public:
         }
 
         void reset(const Block &nonce, uint32_t offset);
-
-        bool allows_random_access() const {
-            return true;
-        }
     };
 
-    class CBC {
-        friend class Decryptor;
-        Block iv;
-
-    private:
-        void setup_context(mbedtls_aes_context &context, const Block &key);
-
-        void decrypt(mbedtls_aes_context &context, const Block &input, Block &output);
-
-    public:
-        CBC(const Block &iv)
-            : iv(iv) {}
-
-        void reset(const Block &iv) {
-            this->iv = iv;
-        }
-
-        bool allows_random_access() const {
-            return false;
-        }
-    };
-
-    using Mode = std::variant<CTR, CBC>;
+    // TODO: Leftover from the time we supported multiple different modes. For
+    // now, we only allow CTR, but leaving it here for eather a dedicated
+    // clean-up pull request or decision that we may want to support some more
+    // modes in the future again.
+    using Mode = CTR;
 
 private:
     uint32_t size_left;

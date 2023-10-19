@@ -20,40 +20,6 @@ constexpr const char *get_selftest_state_name(PhasesSelftest state) {
         return "WizardPrologue_info";
     case PhasesSelftest::WizardPrologue_info_detailed:
         return "WizardPrologue_info_detailed";
-    case PhasesSelftest::ESP_instructions:
-        return "ESP_instructions";
-    case PhasesSelftest::ESP_USB_not_inserted:
-        return "ESP_USB_not_inserted";
-    case PhasesSelftest::ESP_ask_gen:
-        return "ESP_ask_gen";
-    case PhasesSelftest::ESP_ask_gen_overwrite:
-        return "ESP_ask_gen_overwrite";
-    case PhasesSelftest::ESP_makefile_failed:
-        return "ESP_makefile_failed";
-    case PhasesSelftest::ESP_eject_USB:
-        return "ESP_eject_USB";
-    case PhasesSelftest::ESP_insert_USB:
-        return "ESP_insert_USB";
-    case PhasesSelftest::ESP_invalid:
-        return "ESP_invalid";
-    case PhasesSelftest::ESP_uploading_config:
-        return "ESP_uploading_config";
-    case PhasesSelftest::ESP_enabling_WIFI:
-        return "ESP_enabling_WIFI";
-    case PhasesSelftest::ESP_uploaded:
-        return "ESP_uploaded";
-    case PhasesSelftest::ESP_progress_info:
-        return "ESP_progress_info";
-    case PhasesSelftest::ESP_progress_upload:
-        return "ESP_progress_upload";
-    case PhasesSelftest::ESP_progress_passed:
-        return "ESP_progress_passed";
-    case PhasesSelftest::ESP_progress_failed:
-        return "ESP_progress_failed";
-    case PhasesSelftest::ESP_qr_instructions_flash:
-        return "ESP_qr_instructions_flash";
-    case PhasesSelftest::ESP_qr_instructions:
-        return "ESP_qr_instructions";
     case PhasesSelftest::Fans:
         return "Fans";
     case PhasesSelftest::Loadcell_prepare:

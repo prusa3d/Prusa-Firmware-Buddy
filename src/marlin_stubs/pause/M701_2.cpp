@@ -19,7 +19,7 @@
 #include "pause_stubbed.hpp"
 #include <functional> // std::invoke
 #include <cmath>
-#include "task.h"     //critical sections
+#include "task.h" //critical sections
 #include "filament_sensors_handler.hpp"
 #include "config_store/store_c_api.h"
 #include "RAII.hpp"
@@ -116,6 +116,7 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     pause::Settings settings;
     settings.SetExtruder(target_extruder);
     settings.SetUnloadLength(unload_length);
+    settings.SetRetractLength(0.f);
     xyz_pos_t park_position = { X_AXIS_UNLOAD_POS, Y_AXIS_UNLOAD_POS, z_min_pos > 0 ? std::max(current_position.z, z_min_pos) : NAN };
     settings.SetParkPoint(park_position);
     xyze_pos_t current_position_tmp = current_position;
@@ -177,7 +178,7 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
     case PreheatStatus::Result::Error:
     case PreheatStatus::Result::DidNotFinish: // cannot happen
     default:
-        break;                                // do not alter temp
+        break; // do not alter temp
     }
 
     // store result, so other threads can see it
@@ -185,6 +186,9 @@ void filament_gcodes::M70X_process_user_response(PreheatStatus::Result res, uint
 }
 
 void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder) {
+    filament::set_type_to_load(filament::Type::NONE);
+    filament::set_color_to_load(std::nullopt);
+
     InProgress progress;
     if constexpr (option::has_bowden) {
         config_store().set_filament_type(target_extruder, filament::Type::NONE);

@@ -251,7 +251,7 @@ void Backend::load_all(const UpdateFunction &update_function, std::span<const Mi
 
         current_address = tmp.end_of_last_transaction;
 
-        if (tmp.state == BankState::Corrupted) {         // older bank also corrupted
+        if (tmp.state == BankState::Corrupted) { // older bank also corrupted
             write_end_item(tmp.end_of_last_transaction); // "erase" the older bank as well
             journal_state = JournalState::CorruptedBank;
             return;
@@ -263,7 +263,7 @@ void Backend::load_all(const UpdateFunction &update_function, std::span<const Mi
     }
 
     if (state == BankState::MissingEndItem) { // intentionally not 'else if'
-        write_end_item(current_address);      // fix missing end item
+        write_end_item(current_address); // fix missing end item
         journal_state = JournalState::MissingEndItem;
     } else if (state == BankState::Valid) {
         journal_state = JournalState::ValidStart;

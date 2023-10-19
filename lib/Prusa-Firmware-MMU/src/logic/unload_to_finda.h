@@ -21,8 +21,10 @@ struct UnloadToFinda {
         FailedFINDA,
         FailedFSensor
     };
-    inline UnloadToFinda()
-        : maxTries(3) {}
+    inline constexpr UnloadToFinda()
+        : state(OK)
+        , maxTries(3)
+        , unloadStart_mm(0) {}
 
     /// Restart the automaton
     /// @param maxTries maximum number of retried attempts before reporting a fail

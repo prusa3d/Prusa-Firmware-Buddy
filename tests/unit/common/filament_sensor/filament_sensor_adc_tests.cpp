@@ -31,11 +31,11 @@ std::optional<DataPoint> ParseLine(const std::string &line) {
         // Create a std::tm struct
         std::tm tm = {};
         tm.tm_year = year - 1900; // Year since 1900
-        tm.tm_mon = month - 1;    // Month (0-based)
-        tm.tm_mday = day;         // Day of the month
-        tm.tm_hour = hour;        // Hour
-        tm.tm_min = minute;       // Minute
-        tm.tm_sec = second;       // Second
+        tm.tm_mon = month - 1; // Month (0-based)
+        tm.tm_mday = day; // Day of the month
+        tm.tm_hour = hour; // Hour
+        tm.tm_min = minute; // Minute
+        tm.tm_sec = second; // Second
 
         // Convert the std::tm struct to time_t
         std::time_t t = std::mktime(&tm);

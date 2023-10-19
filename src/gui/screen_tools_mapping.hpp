@@ -12,7 +12,8 @@
 #include <window_colored_rect.hpp>
 #include <gcode_info.hpp>
 #include <option/has_toolchanger.h>
-#if HAS_TOOLCHANGER()
+#include <option/has_mmu2.h>
+#if HAS_TOOLCHANGER() || HAS_MMU2()
     #include <module/prusa/spool_join.hpp>
     #include <module/prusa/tool_mapper.hpp>
 #endif
@@ -72,8 +73,8 @@ private:
 
     const bool drawing_nozzles { true };
 
-    uint8_t current_idx { 0 };    // we have two exclusive columns of items + bottom row of buttons, indexing from top to bottom right.
-    uint8_t last_left_idx { 0 };  // when going to the right column, this holds the value of the left index
+    uint8_t current_idx { 0 }; // we have two exclusive columns of items + bottom row of buttons, indexing from top to bottom right.
+    uint8_t last_left_idx { 0 }; // when going to the right column, this holds the value of the left index
     uint8_t last_left_real { 0 }; // required for when going back to left column to preselect proper value
 
     window_text_t left_header;
@@ -98,7 +99,7 @@ private:
     std::array<window_text_t, max_item_rows> left_gcode_texts; // "real" gcode tool text windows
     std::array<window_text_t, max_item_rows> right_phys_texts; // "real" physical tool text windows
 
-                                                               // "real" gcode colors (right currently unsupported) -> hacky way of doing colors, no text and coloured background
+    // "real" gcode colors (right currently unsupported) -> hacky way of doing colors, no text and coloured background
     std::array<window_colored_rect, max_item_rows> left_gcode_colors;
     std::array<window_icon_t, max_item_rows> left_gcode_icons; // "real" gcode icons for pre-print checks
     std::array<window_icon_t, max_item_rows> right_phys_icons; // "real" physical icons for pre-print checks
@@ -112,13 +113,13 @@ private:
     std::array<std::array<char, max_item_text_width>, max_item_rows> left_gcode_label_buffers;
     std::array<std::array<char, max_item_text_width>, max_item_rows> right_phys_label_buffers;
 
-    window_text_t bottom_guide;             // Currently supports up to two lines of text on our ILI. Shows some text to the user guiding them on what to do/fix
-    window_icon_t bottom_icon;              // Shows most important icon on the left of the bottom guide
+    window_text_t bottom_guide; // Currently supports up to two lines of text on our ILI. Shows some text to the user guiding them on what to do/fix
+    window_icon_t bottom_icon; // Shows most important icon on the left of the bottom guide
 
-    uint8_t num_unassigned_gcodes { 0 };    // holds the number of currently drawn unassigned gcodes
+    uint8_t num_unassigned_gcodes { 0 }; // holds the number of currently drawn unassigned gcodes
     uint8_t num_mismatched_filaments { 0 }; // holds the number of physical tools with mismatched filament
-    uint8_t num_mismatched_nozzles { 0 };   // holds the number of physical tools with mismatched nozzles
-    uint8_t num_unloaded_tools { 0 };       // holds the number of physical tools that are assigned but aren't loaded
+    uint8_t num_mismatched_nozzles { 0 }; // holds the number of physical tools with mismatched nozzles
+    uint8_t num_unloaded_tools { 0 }; // holds the number of physical tools that are assigned but aren't loaded
 
     RadioButton bottom_radio;
 
@@ -128,7 +129,7 @@ private:
         done,
     };
 
-    void go_left();  /// Sets current state to left or done depending on if done, handles related tasks
+    void go_left(); /// Sets current state to left or done depending on if done, handles related tasks
     void go_right(); /// Sets current state to right, handles related tasks
     State state { State::left };
     GCodeInfo &gcode;
@@ -147,9 +148,6 @@ private:
 
     // refreshes lables within window texts to match current state of loaded filaments
     void refresh_physical_tool_filament_labels();
-
-    // gets mapped gcode to given physical tool or ToolMapper::NO_TOOL_MAPPED
-    uint8_t to_gcode_tool(uint8_t physical_tool);
 
     // builds default selection array for change all dialog so that physical tools try to load based on what the gcodes want to print with (that they're mapped to)
     std::array<size_t, I_MI_FilamentSelect::max_I_MI_FilamentSelect_idx + 1> build_preselect_array();

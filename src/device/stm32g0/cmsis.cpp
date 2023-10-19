@@ -80,19 +80,19 @@
 
 #if !defined(HSE_VALUE)
     #define HSE_VALUE (8000000UL) /*!< Value of the External oscillator in Hz */
-#endif                            /* HSE_VALUE */
+#endif /* HSE_VALUE */
 
 #if !defined(HSI_VALUE)
     #define HSI_VALUE (16000000UL) /*!< Value of the Internal oscillator in Hz*/
-#endif                             /* HSI_VALUE */
+#endif /* HSI_VALUE */
 
 #if !defined(LSI_VALUE)
     #define LSI_VALUE (32000UL) /*!< Value of LSI in Hz*/
-#endif                          /* LSI_VALUE */
+#endif /* LSI_VALUE */
 
 #if !defined(LSE_VALUE)
     #define LSE_VALUE (32768UL) /*!< Value of LSE in Hz*/
-#endif                          /* LSE_VALUE */
+#endif /* LSE_VALUE */
 
 /**
  * @}
@@ -249,7 +249,7 @@ void SystemCoreClockUpdate(void) {
         break;
 
     case 0x00000000U: /* HSI used as system clock */
-    default:          /* HSI used as system clock */
+    default: /* HSI used as system clock */
         hsidiv = (1UL << ((READ_BIT(RCC->CR, RCC_CR_HSIDIV)) >> RCC_CR_HSIDIV_Pos));
         SystemCoreClock = (HSI_VALUE / hsidiv);
         break;

@@ -7,6 +7,7 @@
 #include "cmsis_os.h"
 #include "malloc.h"
 #include "heap.h"
+#include <adc.hpp>
 #include <option/has_advanced_power.h>
 #if HAS_ADVANCED_POWER()
     #include "advanced_power.hpp"
@@ -34,10 +35,13 @@
 #endif
 
 #if ENABLED(PRUSA_TOOLCHANGER)
-    #define FOREACH_EXTRUDER         for (int e = 0; e < EXTRUDERS - 1; e++)
+    // Loop through existing extruders
+    #define FOREACH_EXTRUDER()                  \
+        for (int e = 0; e < EXTRUDERS - 1; e++) \
+            if (buddy::puppies::dwarfs[e].is_enabled())
     #define active_extruder_or_first active_extruder
 #else
-    #define FOREACH_EXTRUDER         for (int e = 0; e < 1; e++)
+    #define FOREACH_EXTRUDER()       for (int e = 0; e < 1; e++)
     #define active_extruder_or_first 0
 #endif
 
@@ -68,12 +72,12 @@ void buddy::metrics::RecordRuntimeStats() {
     auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
     metric_record_string(&current_filamnet, "%s", filament::get_description(current_filament).name);
 
-    static metric_t stack = METRIC("stack", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL);     // Thread stack usage
+    static metric_t stack = METRIC("stack", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL); // Thread stack usage
     static metric_t runtime = METRIC("runtime", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_ENABLE_ALL); // Thread runtime usage
-    constexpr const uint32_t STACK_RUNTIME_RECORD_INTERVAL_MS = 3000;                               // Sample stack and runtime this often
+    constexpr const uint32_t STACK_RUNTIME_RECORD_INTERVAL_MS = 3000; // Sample stack and runtime this often
     static auto should_record_stack_runtime = RunApproxEvery(STACK_RUNTIME_RECORD_INTERVAL_MS);
     if (should_record_stack_runtime()) {
-        static TaskStatus_t task_statuses[16] = {};
+        static TaskStatus_t task_statuses[17] = {};
 
 #if configGENERATE_RUN_TIME_STATS
         // Runtime since last record
@@ -150,7 +154,7 @@ void buddy::metrics::RecordMarlinVariables() {
     static metric_t heatbreak = METRIC("temp_hbr", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL); // float value, tag "n": extruder index, tag "a": is active extruder
     static auto heatbreak_should_record = RunApproxEvery(1000);
     if (heatbreak_should_record()) {
-        FOREACH_EXTRUDER {
+        FOREACH_EXTRUDER() {
             metric_record_custom(&heatbreak, ",n=%i,a=%i value=%.2f", e, e == active_extruder_or_first, static_cast<double>(thermalManager.degHeatbreak(e)));
         }
     }
@@ -161,6 +165,49 @@ void buddy::metrics::RecordMarlinVariables() {
         = METRIC("temp_brd", METRIC_VALUE_FLOAT, 1000 - 9, METRIC_HANDLER_DISABLE_ALL);
     metric_record_float(&board, thermalManager.degBoard());
 #endif
+
+#if HAS_TEMP_CHAMBER
+    static metric_t chamber
+        = METRIC("temp_chamber", METRIC_VALUE_FLOAT, 1000 - 10, METRIC_HANDLER_DISABLE_ALL);
+    metric_record_float(&chamber, thermalManager.degChamber());
+#endif /*HAS_TEMP_CHAMBER*/
+
+    // These temperature metrics go outside of Marlin and are filtered and converted here
+    static auto filtered_should_run = RunApproxEvery(1000 / OVERSAMPLENR);
+    if (filtered_should_run()) {
+        static uint8_t sample_nr = 0;
+
+        static metric_t mcu = METRIC("temp_mcu", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_DISABLE_ALL);
+        static int32_t mcu_sum = 0;
+        mcu_sum += AdcGet::getMCUTemp();
+
+#if BOARD_IS_XLBUDDY
+        static metric_t sandwich = METRIC("temp_sandwich", METRIC_VALUE_FLOAT, 1000 - 10, METRIC_HANDLER_DISABLE_ALL);
+        static int sandwich_sum = 0;
+        sandwich_sum += AdcGet::sandwichTemp();
+
+        static metric_t splitter = METRIC("temp_splitter", METRIC_VALUE_FLOAT, 1000 - 11, METRIC_HANDLER_DISABLE_ALL);
+        static int splitter_sum = 0;
+        splitter_sum += AdcGet::splitterTemp();
+#endif /*BOARD_IS_XLBUDDY*/
+
+        if (++sample_nr >= OVERSAMPLENR) {
+            metric_record_integer(&mcu, mcu_sum / OVERSAMPLENR);
+            mcu_sum = 0;
+#if BOARD_IS_XLBUDDY
+            // The same thermistor, use the same conversion as TEMP_BOARD
+            // The function takes downsampled ADC value multiplied by OVERSAMPLENR
+            metric_record_float(&sandwich, Temperature::analog_to_celsius_board(sandwich_sum));
+            sandwich_sum = 0;
+            if (prusa_toolchanger.is_splitter_enabled()) {
+                metric_record_float(&splitter, Temperature::analog_to_celsius_board(splitter_sum));
+            }
+            splitter_sum = 0;
+#endif /*BOARD_IS_XLBUDDY*/
+            sample_nr = 0;
+        }
+    }
+
     static metric_t bed = METRIC("temp_bed", METRIC_VALUE_FLOAT, 2000 + 23, METRIC_HANDLER_DISABLE_ALL);
     metric_record_float(&bed, thermalManager.degBed());
 
@@ -170,7 +217,7 @@ void buddy::metrics::RecordMarlinVariables() {
     static metric_t nozzle = METRIC("temp_noz", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
     static auto nozzle_should_record = RunApproxEvery(1000 - 10);
     if (nozzle_should_record()) {
-        FOREACH_EXTRUDER {
+        FOREACH_EXTRUDER() {
             metric_record_custom(&nozzle, ",n=%i,a=%i value=%.2f", e, e == active_extruder, static_cast<double>(thermalManager.degHotend(e)));
         }
     }
@@ -178,7 +225,7 @@ void buddy::metrics::RecordMarlinVariables() {
     static metric_t target_nozzle = METRIC("ttemp_noz", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL);
     static auto target_nozzle_should_record = RunApproxEvery(1000 + 9);
     if (target_nozzle_should_record()) {
-        FOREACH_EXTRUDER {
+        FOREACH_EXTRUDER() {
             metric_record_custom(&target_nozzle, ",n=%i,a=%i value=%ii", e, e == active_extruder, thermalManager.degTargetHotend(e));
         }
     }
@@ -282,9 +329,28 @@ void buddy::metrics::RecordPrintFilename() {
 }
 
 #if BOARD_IS_XLBUDDY
-void buddy::metrics::record_dwarf_mcu_temperature() {
+void buddy::metrics::record_dwarf_internal_temperatures() {
+    // Dwarf board temperature for sensor screen
     buddy::puppies::Dwarf &dwarf = prusa_toolchanger.getActiveToolOrFirst();
-    static metric_t metric_dwarfMCUTemperature = METRIC("dwarf_mcu_temp", METRIC_VALUE_FLOAT, 1001, METRIC_HANDLER_ENABLE_ALL);
-    metric_record_float(&metric_dwarfMCUTemperature, dwarf.get_mcu_temperature());
+    static metric_t metric_dwarfMCUTemperature = METRIC("dwarf_board_temp", METRIC_VALUE_INTEGER, 1001, METRIC_HANDLER_ENABLE_ALL);
+    metric_record_integer(&metric_dwarfMCUTemperature, dwarf.get_mcu_temperature());
+
+    // All MCU temperatures
+    static metric_t mcu = METRIC("dwarfs_mcu_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL); // float value, tag "n": extruder index, tag "a": is active extruder
+    static auto mcu_should_record = RunApproxEvery(1002);
+    if (mcu_should_record()) {
+        FOREACH_EXTRUDER() {
+            metric_record_custom(&mcu, ",n=%i,a=%i value=%i", e, e == active_extruder_or_first, static_cast<int>(buddy::puppies::dwarfs[e].get_mcu_temperature()));
+        }
+    }
+
+    // All board temperatures
+    static metric_t board = METRIC("dwarfs_board_temp", METRIC_VALUE_CUSTOM, 0, METRIC_HANDLER_DISABLE_ALL); // float value, tag "n": extruder index, tag "a": is active extruder
+    static auto board_should_record = RunApproxEvery(1003);
+    if (board_should_record()) {
+        FOREACH_EXTRUDER() {
+            metric_record_custom(&board, ",n=%i,a=%i value=%i", e, e == active_extruder_or_first, static_cast<int>(buddy::puppies::dwarfs[e].get_board_temperature()));
+        }
+    }
 }
 #endif

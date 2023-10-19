@@ -6,11 +6,13 @@
 #include "gui/gui_media_events.hpp"
 
 #include <common/timing.h>
+#include <common/crc32.h>
 #include <common/filename_type.hpp>
 #include <common/bsod.h>
 #include <common/unique_dir_ptr.hpp>
 #include <common/print_utils.hpp>
 #include <common/stat_retry.hpp>
+#include <common/lfn.h>
 #include <state/printer_state.hpp>
 #include <option/has_human_interactions.h>
 
@@ -27,6 +29,7 @@ LOG_COMPONENT_REF(transfers);
 
 using namespace transfers;
 using std::is_same_v;
+using std::optional;
 
 Transfer::PlainGcodeDownloadOrder::PlainGcodeDownloadOrder(const PartialFile &file) {
     if (file.has_valid_head(HeadSize)) {
@@ -179,26 +182,46 @@ bool Transfer::restart_download() {
     auto backup_file = unique_file_ptr(fopen(path.as_backup(), "r"));
     if (backup_file.get() == nullptr) {
         log_error(transfers, "Failed to open backup file");
+        last_connection_error_ms = ticks_ms();
         return false;
     }
 
     auto backup = Transfer::restore(backup_file.get());
     if (backup.has_value() == false) {
         log_error(transfers, "Failed to restore backup file");
+        last_connection_error_ms = ticks_ms();
         return false;
     }
 
     auto request = backup->get_download_request();
     if (request.has_value() == false) {
         log_error(transfers, "Failed to get download request from backup file");
+        last_connection_error_ms = ticks_ms();
         return false;
     }
 
     init_download_order_if_needed();
+    // If the previous download attempt failed due to write error / timeout, don't carry that one to the next attempt.
+    partial_file->reset_error();
     uint32_t position = std::visit([&](auto &&arg) { return arg.get_next_offset(*partial_file); }, *order);
     position = position / PartialFile::SECTOR_SIZE * PartialFile::SECTOR_SIZE; // ensure we start at a sector boundary
 
-    auto &&download = Download::begin(*request, partial_file, position);
+    optional<uint32_t> end_range;
+    if (auto tail = partial_file->get_valid_tail(); tail.has_value()) {
+        if (tail->end == partial_file->final_size() && position < tail->start) {
+            // We can request not until the end of file, but until the
+            // beginning of the tail - we'll stop there and have the complete
+            // file by then (the tail is already all the way to the end).
+            //
+            // Note: end_range is _inclusive_ in the http (eg. range 0-4 will
+            // return 5 bytes).
+            assert(tail->start % PartialFile::SECTOR_SIZE == 0);
+            end_range = tail->start - 1;
+        }
+    }
+
+    auto &&download = Download::begin(*request, partial_file, position, end_range);
+
     log_info(transfers, "Download request initiated, position: %u", position);
 
     return std::visit([&](auto &&arg) {
@@ -258,31 +281,6 @@ void Transfer::update_backup(bool force) {
         log_info(transfers, "Backup file updated");
     }
     last_backup_update_ms = ticks_ms();
-}
-
-bool Transfer::is_valid_transfer(MutablePath &destination_path) {
-    destination_path.push(partial_filename);
-    struct stat st;
-
-    bool partial_file_found = stat_retry(destination_path.get(), &st) == 0 && S_ISREG(st.st_mode);
-    destination_path.pop();
-    destination_path.push(backup_filename);
-    bool backup_file_found = stat_retry(destination_path.get(), &st) == 0 && S_ISREG(st.st_mode);
-    bool backup_is_empty = backup_file_found && st.st_size == 0;
-    destination_path.pop();
-
-    if (partial_file_found && !backup_file_found) {
-        // finished trasnfer, waiting for move to file
-        return true;
-    } else if (partial_file_found && backup_is_empty) {
-        // we gave up on this one, waiting to be removed
-        return false;
-    } else if (partial_file_found && backup_file_found) {
-        // still in progress
-        return true;
-    } else /*!partial_file_found*/ {
-        return false;
-    }
 }
 
 std::optional<struct stat> Transfer::get_transfer_partial_file_stat(MutablePath &destination_path) {
@@ -357,14 +355,14 @@ Transfer::Transfer(State state, std::optional<Download> &&download, Monitor::Slo
     assert(partial_file.get() != nullptr);
 }
 
-Transfer::State Transfer::step(uint32_t max_duration_ms, bool is_printing) {
+Transfer::State Transfer::step(bool is_printing) {
     switch (state) {
     case State::Downloading:
     case State::Retrying: {
         if (slot.is_stopped()) {
             done(State::Failed, Monitor::Outcome::Stopped);
         } else if (download.has_value()) {
-            switch (download->step(max_duration_ms)) {
+            switch (download->step()) {
             case DownloadStep::Continue: {
                 slot.progress(partial_file->get_state(), false);
                 update_backup(/*force=*/false);
@@ -378,6 +376,8 @@ Transfer::State Transfer::step(uint32_t max_duration_ms, bool is_printing) {
                     break;
                 case Transfer::Action::RangeJump:
                     download.reset();
+                    // So we don't "lose" part of the already downloaded file, for showing on screen, etc.
+                    update_backup(/*force=*/true);
                     restart_requested_by_jump = true;
                     break;
                 case Transfer::Action::Finished:
@@ -394,6 +394,10 @@ Transfer::State Transfer::step(uint32_t max_duration_ms, bool is_printing) {
                 break;
             case DownloadStep::Finished:
                 download.reset();
+                break;
+            case DownloadStep::Aborted:
+                // Unreachable - this is only after we've called the deleter
+                assert(0);
                 break;
             }
         } else if (last_connection_error_ms.has_value() == false || ticks_ms() - *last_connection_error_ms > 1000) {
@@ -526,9 +530,6 @@ void Transfer::done(State state, Monitor::Outcome outcome) {
             // before we notify about them.
             cleanup_finalize(path);
         }
-        if (!already_notified) {
-            notify_created();
-        }
     } else {
         // FIXME: We need some kind of error handling strategy to deal with
         // failed transfers. But for now, we just need to make 100% sure
@@ -547,6 +548,11 @@ bool Transfer::cleanup_finalize(Path &transfer_path) {
     // move the partial file to temporary location
     const char *temporary_filename = "/usb/prusa-temporary-file.gcode";
     remove(temporary_filename); // remove the file if there is some leftover already
+
+    char SFN[FILE_PATH_BUFFER_LEN];
+    strlcpy(SFN, transfer_path.as_destination(), sizeof(SFN));
+    get_SFN_path(SFN);
+    uint32_t old_SFN_crc = crc32_calc((const uint8_t *)SFN, sizeof(SFN));
     if (rename(transfer_path.as_partial(), temporary_filename) != 0) {
         log_error(transfers, "Failed to move partial file to temporary location");
         return false;
@@ -561,6 +567,18 @@ bool Transfer::cleanup_finalize(Path &transfer_path) {
         return false;
     }
 
+    strlcpy(SFN, transfer_path.as_destination(), sizeof(SFN));
+    get_SFN_path(SFN);
+    uint32_t new_SFN_crc = crc32_calc((const uint8_t *)SFN, sizeof(SFN));
+
+    if (old_SFN_crc != new_SFN_crc) {
+        // if SFN changed, trigger a rescan of the whole folder
+        ChangedPath::instance.changed_path(transfer_path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Deleted);
+        ChangedPath::instance.changed_path(transfer_path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Created);
+    } else {
+        // else just send the FILE_INFO, to notify connect, that the filke is not read_only anymore
+        ChangedPath::instance.changed_path(transfer_path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Created);
+    }
     log_info(transfers, "Transfer %s cleaned up", transfer_path.as_destination());
 
     return true;
@@ -571,7 +589,12 @@ bool Transfer::cleanup_remove(Path &path) {
     // removed (eg. because it's being shown as a preview, or being printed).
     // In such case we want to make sure _not_ to delete the (possibly failed)
     // backup.
-    return (remove(path.as_partial()) == 0) && (remove(path.as_backup()) == 0) && (rmdir(path.as_destination()) == 0);
+    bool success = (remove(path.as_partial()) == 0) && (remove(path.as_backup()) == 0) && (rmdir(path.as_destination()) == 0);
+
+    if (success) {
+        ChangedPath::instance.changed_path(path.as_destination(), ChangedPath::Type::File, ChangedPath::Incident::Deleted);
+    }
+    return success;
 }
 
 bool Transfer::store_transfer_index(const char *path) {

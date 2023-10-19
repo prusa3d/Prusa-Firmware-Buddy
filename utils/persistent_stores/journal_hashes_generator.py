@@ -22,7 +22,7 @@ struct GeneratedPair {{
 {array_line}
 
 consteval uint16_t get_generated_hash(std::string_view name) {{
-    if (auto res = std::ranges::lower_bound(generated_hashes, GeneratedPair{{ .name = name }}, [&](const GeneratedPair &elem, const GeneratedPair &value) {{
+    if (auto res = std::ranges::lower_bound(generated_hashes, GeneratedPair{{ .name = name, .hashed = 0 }}, [&](const GeneratedPair &elem, const GeneratedPair &value) {{
             return elem.name < value.name;
         }});
         res != std::end(generated_hashes) && res->name == name) {{

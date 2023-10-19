@@ -29,7 +29,7 @@ static_assert(sizeof(vars_body_t) == sizeof(old_eeprom::v6::vars_body_t) + sizeo
 
 constexpr vars_body_t body_defaults = {
     old_eeprom::v6::body_defaults,
-    5,      // EEVAR_SOUND_VOLUME
+    5, // EEVAR_SOUND_VOLUME
     0xffff, // EEVAR_LANGUAGE
 };
 

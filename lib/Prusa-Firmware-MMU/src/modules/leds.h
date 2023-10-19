@@ -119,6 +119,9 @@ public:
     /// Sets active slot LEDs to some mode and turns off all the others
     void SetPairButOffOthers(uint8_t activeSlot, modules::leds::Mode greenMode, modules::leds::Mode redMode);
 
+    /// Turn off all LEDs
+    void SetAllOff();
+
 private:
     constexpr static const uint8_t ledPairs = config::toolCount;
     /// pairs of LEDs:

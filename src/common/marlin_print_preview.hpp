@@ -5,6 +5,9 @@
 #pragma once
 #include "gcode_info.hpp"
 #include "client_response.hpp"
+#include <module/prusa/tool_mapper.hpp>
+#include <module/prusa/spool_join.hpp>
+#include <bitset>
 
 /**
  * @brief Parent class handling changes of state
@@ -61,7 +64,6 @@ public:
 class PrintPreview : public IPrintPreview {
 
     static constexpr uint32_t max_run_period_ms = 50;
-    static constexpr uint32_t DOWNLOAD_CHECK_PERIOD = 2000;
     uint32_t new_firmware_open_ms { 0 };
     static constexpr uint32_t new_firmware_timeout_ms { 30000 }; // three seconds
 public:
@@ -113,9 +115,20 @@ public:
      */
     static bool check_extruder_need_filament_load(uint8_t physical_extruder, uint8_t no_gcode_value, std::function<uint8_t(uint8_t)> gcode_extruder_getter);
 
+#if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
+    struct ToolsMappingValidty {
+        std::bitset<EXTRUDERS> unassigned_gcodes {};
+        std::bitset<EXTRUDERS> mismatched_filaments {};
+        std::bitset<EXTRUDERS> mismatched_nozzles {};
+        std::bitset<EXTRUDERS> unloaded_tools {};
+
+        [[nodiscard]] bool all_ok() const;
+    };
+    [[nodiscard]] static ToolsMappingValidty check_tools_mapping_validity(const ToolMapper &mapper, const SpoolJoin &joiner, const GCodeInfo &gcode);
+#endif
+
 private:
     uint32_t last_run = 0;
-    uint32_t last_download_check = 0;
 
     bool skip_if_able = false;
 

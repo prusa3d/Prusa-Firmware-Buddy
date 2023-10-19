@@ -9,18 +9,13 @@
 #include "bsod.h"
 #include <string.h>
 #include "sys.h"
+#include <span>
 
-#include "tasks.hpp"
 #include "data_exchange.hpp"
 #include "resources/bootstrap.hpp"
 #include "resources/revision_bootloader.hpp"
 #include "bootloader/bootloader.hpp"
 #include "bootloader/required_version.hpp"
-#include "option/buddy_enable_wui.h"
-
-#if BUDDY_ENABLE_WUI()
-    #include "lwip/memp.h"
-#endif
 
 // FIXME: Those includes are here only for the RNG.
 // We should add support for the stdlib's standard random function
@@ -75,39 +70,6 @@ static bool calculate_file_crc(FILE *fp, uint32_t length, uint32_t &crc) {
     }
     return true;
 }
-
-#if BUDDY_ENABLE_WUI()
-// If the firmware uses LwIP, we can/must use the LwIP's largest buffer for the bootloader update process.
-// To make sure we don't use the buffer while LwIP does, we don't start LwIP before the bootloader update process passes.
-
-struct BootloaderUpdateBuffer {
-    std::span<uint8_t> memory;
-
-    BootloaderUpdateBuffer() {
-        auto pool = memp_pools[MEMP_PBUF_POOL];
-        memory = std::span<uint8_t>(static_cast<uint8_t *>(pool->base), pool->size * pool->num);
-        assert(memory.size() >= bootloader_sector_get_size(0));
-        assert(TaskDeps::check(TaskDeps::Tasks::lwip_start) == false);
-    }
-
-    ~BootloaderUpdateBuffer() {
-        // again, make sure we don't use the buffer while LwIP does
-        assert(TaskDeps::check(TaskDeps::Tasks::lwip_start) == false);
-    }
-};
-
-#else
-
-struct BootloaderUpdateBuffer {
-    std::array<uint8_t, bootloader_sector_get_size(0)> buffer;
-    std::span<uint8_t> memory;
-
-    BootloaderUpdateBuffer()
-        : memory(buffer) {
-    }
-};
-
-#endif
 
 [[nodiscard]] static bool flash_erase_sector(int sector) {
     __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
@@ -213,14 +175,16 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
     const size_t total_bytes = 131072;
     size_t bytes_in_preceding_sectors = 0;
 
-    auto buffer = BootloaderUpdateBuffer();
+    auto buffer_size = bootloader_sector_get_size(0);
+    auto buffer_mem = std::make_unique<uint8_t[]>(buffer_size);
+    if (buffer_mem.get() == nullptr)
+        bsod("Not enough memory");
+    auto buffer = std::span<uint8_t>(buffer_mem.get(), buffer_size);
 
     for (unsigned sector = 0; sector < buddy::bootloader::bootloader_sector_count; sector++) {
 
-        bool is_preboot_sector = sector == 0;
-
         // do not reflash preboot if not necessary
-        if (is_preboot_sector) {
+        if (sector == 0) {
             uint32_t expected_preboot_crc = 0;
             if (!calculate_file_crc(bootloader_bin, bootloader_sector_get_size(0), expected_preboot_crc)) {
                 fatal_error("expected preboot crc calculation failed");
@@ -238,7 +202,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
         log_info(Bootloader, "Flashing sector %i", sector);
 
         // add random delay to make preboot flashing less predictable
-        if (is_preboot_sector) {
+        if (sector == 0) {
             uint32_t delay_ms = 100 + (random_number() % 7000);
             osDelay(delay_ms);
         }
@@ -256,7 +220,7 @@ static void copy_bootloader_to_flash(FILE *bootloader_bin, ProgressCallback prog
 
         // program the sector
         HAL_FLASH_Unlock();
-        bool flash_successful = flash_program_sector(sector, bootloader_bin, buffer.memory, [&](size_t bytes_written) {
+        bool flash_successful = flash_program_sector(sector, bootloader_bin, buffer, [&](size_t bytes_written) {
             if (sector != 0) {
                 // do not report progress for sector 0, as updating preboot is potentially dangerous
                 // and we want to be as quick as possible and minimize the code running in-between

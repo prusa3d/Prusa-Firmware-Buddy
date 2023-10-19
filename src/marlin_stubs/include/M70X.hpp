@@ -56,6 +56,7 @@ void M1700_no_parser(RetAndCool_t preheat, PreheatMode mode, int8_t target_extru
 void M1701_no_parser(const std::optional<float> &fast_load_length, float z_min_pos, uint8_t target_extruder);
 
 void mmu_load(uint8_t data);
+void mmu_load_test(uint8_t data);
 void mmu_eject(uint8_t data);
 void mmu_cut(uint8_t data);
 

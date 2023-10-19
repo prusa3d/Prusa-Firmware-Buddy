@@ -398,9 +398,9 @@ void ModularBed::update_bedlet_temps(uint16_t enabled_mask, float target_temp) {
 uint16_t ModularBed::expand_to_sides(uint16_t enabled_mask, float target_temp) {
     // calculate costs of touching all different sides
     cost_and_enable_mask_t cost_and_masks[4];
-    cost_and_masks[0] = touch_side(enabled_mask, side_t { 0, 1 });  // right
+    cost_and_masks[0] = touch_side(enabled_mask, side_t { 0, 1 }); // right
     cost_and_masks[1] = touch_side(enabled_mask, side_t { 0, -1 }); // left
-    cost_and_masks[2] = touch_side(enabled_mask, side_t { 1, 1 });  // up
+    cost_and_masks[2] = touch_side(enabled_mask, side_t { 1, 1 }); // up
     cost_and_masks[3] = touch_side(enabled_mask, side_t { 1, -1 }); // down
 
     // order sides by ascending costs
@@ -445,7 +445,7 @@ void ModularBed::update_gradients(uint16_t enabled_mask) {
 
                     const float dist = std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2)); // distance between bedlets
                     if (dist > bedlet_gradient_cutoff)
-                        continue;                                                              // if bedlet distance is over BEDLET_GRADIENT_CUTOFF, don't do anything, temperature is already zero
+                        continue; // if bedlet distance is over BEDLET_GRADIENT_CUTOFF, don't do anything, temperature is already zero
 
                     const int16_t temp2 = temp1 - temp1 * pow(1 / bedlet_gradient_cutoff * dist, bedlet_gradient_exponent);
                     bedlet_target_temp.value[idx2] = std::max(temp2, (int16_t)bedlet_target_temp.value[idx2]);

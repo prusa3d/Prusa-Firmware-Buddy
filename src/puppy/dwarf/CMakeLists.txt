@@ -8,7 +8,6 @@ target_sources(
           # by Default_Handler (no compiler error)
           accelerometer.cpp
           Cheese.cpp
-          crash_catcher_integration.cpp
           fifo_encoder.cpp
           interrupts.cpp
           led.cpp
@@ -19,7 +18,6 @@ target_sources(
           task_startup.cpp
           timing_sys.cpp
           tool_filament_sensor.cpp
-          trigger_crash_dump.cpp
   )
 
 target_include_directories(firmware PUBLIC .)

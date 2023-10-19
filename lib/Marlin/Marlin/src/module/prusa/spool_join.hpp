@@ -66,7 +66,7 @@ private:
     /// Removes join at idx from joins array and moves the last element into the idx position, so that new element can be inserted at the end again
     void remove_join_at(size_t idx);
 
-    uint8_t num_joins;                              ///< Total number of joins
+    uint8_t num_joins; ///< Total number of joins
     std::array<join_config_t, EXTRUDERS - 1> joins; /// Configured joins, guaranteed that 0 ... num_joins - 1 are valid joins (but not any type of sort)
 };
 

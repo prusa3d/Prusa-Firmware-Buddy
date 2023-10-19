@@ -20,7 +20,7 @@
 void unhomed_z_lift(float amount_mm);
 
 class PausePrivatePhase : public IPause {
-    PhasesLoadUnload phase;       // needed for CanSafetyTimerExpire
+    PhasesLoadUnload phase; // needed for CanSafetyTimerExpire
     int load_unload_shared_phase; // shared variable for UnloadPhases_t and LoadPhases_t
     std::optional<LoadUnloadMode> load_unload_mode = std::nullopt;
 
@@ -180,7 +180,7 @@ private:
     void loop_load_purge(Response response);
     void loop_load_not_blocking(Response response); // no buttons at all - printer without GUI etc
     void loop_load_mmu(Response response);
-    void loop_autoload(Response response);          // todo force remove filament in retry
+    void loop_autoload(Response response); // todo force remove filament in retry
     void loop_loadToGear(Response response);
     void loop_load_change(Response response);
     void loop_load_filament_stuck(Response response);
@@ -205,8 +205,8 @@ private:
     void do_e_move_notify_progress(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_coldextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
     void do_e_move_notify_progress_hotextrude(const float &length, const feedRate_t &fr_mm_s, uint8_t progress_min, uint8_t progress_max);
-    bool check_user_stop();                                  //< stops motion and fsm and returns true it user triggered stop
-    bool wait_or_stop();                                     //< waits until motion is finished; if stop is triggered then returns true
+    bool check_user_stop(); //< stops motion and fsm and returns true it user triggered stop
+    bool wait_or_stop(); //< waits until motion is finished; if stop is triggered then returns true
     bool process_stop();
     void handle_filament_removal(LoadPhases_t phase_to_set); //<checks if filament is present if not it sets different phase
 

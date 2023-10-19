@@ -121,7 +121,7 @@ screen_printing_data_t::screen_printing_data_t()
 #elif defined(USE_ILI9488)
     , w_filename(this, Rect16(30, 38, 420, 24))
     , w_progress(this, Rect16(30, 65, GuiDefaults::RectScreen.Width() - 2 * 30, 16))
-    , w_progress_txt(this, Rect16(300, 115, 150, 54))                 // Left side option: 30, 115, 100, 54 | font: Large (53x30 px)
+    , w_progress_txt(this, Rect16(300, 115, 150, 54)) // Left side option: 30, 115, 100, 54 | font: Large (53x30 px)
     , w_etime_label(this, Rect16(30, 114, 150, 20), is_multiline::no) // Right side option: 300, 118, 150, 20
     , w_etime_value(this, Rect16(30, 138, 200, 23), is_multiline::no) // Right side option: 250, 138, 200, 23
 #endif // USE_<display>
@@ -132,7 +132,7 @@ screen_printing_data_t::screen_printing_data_t()
 #if defined(USE_ST7789)
     , popup_rect(Rect16::Merge(std::array<Rect16, 4>({ w_time_label.GetRect(), w_time_value.GetRect(), w_etime_label.GetRect(), w_etime_value.GetRect() })))
 #elif defined(USE_ILI9488)
-    , popup_rect(Rect16(30, 115, 250, 70))                            // Rect for printing messages from marlin.
+    , popup_rect(Rect16(30, 115, 250, 70)) // Rect for printing messages from marlin.
 #endif // USE_<display>
     , time_end_format(PT_t::init) {
     marlin_client::error_clr(MARLIN_ERR_ProbingFailed);
@@ -162,8 +162,6 @@ screen_printing_data_t::screen_printing_data_t()
     w_time_value.set_font(resource_font(IDR_FNT_SMALL));
     w_time_value.SetAlignment(align);
     w_time_value.SetPadding({ 0, 2, 0, 2 });
-    w_time_label.Hide();
-    w_time_value.Hide();
 #elif defined(USE_ILI9488)
     // ILI_9488 specific adjustments
     w_filename.SetAlignment(Align_t::LeftTop());
@@ -213,24 +211,20 @@ extern int _is_in_M600_flg;
 extern uint32_t *pCommand;
 #endif
 
-#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE() && HAS_HUMAN_INTERACTIONS()
-static metric_t print_successful = METRIC("Print_successful", METRIC_VALUE_INTEGER, 0, METRIC_HANDLER_ENABLE_ALL);
-#endif
-
 void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
 #ifdef DEBUG_FSENSOR_IN_HEADER
     static int _last = 0;
     if (gui::GetTick() - _last > 300) {
         _last = gui::GetTick();
 
-        static char buff[] = "Sx Mx x xxxx";                        //"x"s are replaced
-        buff[1] = FSensors_instance().Get() + '0';                  // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
-        buff[4] = FSensors_instance().GetM600_send_on();            // Me edge, Ml level, Mn never, Mx undefined
-        buff[6] = FSensors_instance().WasM600_send() ? 's' : 'n';   // s == send, n== not send
-        buff[8] = _is_in_M600_flg ? 'M' : '0';                      // M == marlin is doing M600
-        buff[9] = marlin_event(Event::CommandBegin) ? 'B' : '0';    // B == Event begin
+        static char buff[] = "Sx Mx x xxxx"; //"x"s are replaced
+        buff[1] = FSensors_instance().Get() + '0'; // S0 init, S1 has filament, S2 no filament, S3 not connected, S4 disabled
+        buff[4] = FSensors_instance().GetM600_send_on(); // Me edge, Ml level, Mn never, Mx undefined
+        buff[6] = FSensors_instance().WasM600_send() ? 's' : 'n'; // s == send, n== not send
+        buff[8] = _is_in_M600_flg ? 'M' : '0'; // M == marlin is doing M600
+        buff[9] = marlin_event(Event::CommandBegin) ? 'B' : '0'; // B == Event begin
         buff[10] = marlin_command() == MARLIN_CMD_M600 ? 'C' : '0'; // C == Command M600
-        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0';        // s == server - Command M600
+        buff[11] = *pCommand == MARLIN_CMD_M600 ? 's' : '0'; // s == server - Command M600
         header.SetText(buff);
     }
 
@@ -273,27 +267,6 @@ void screen_printing_data_t::windowEvent(EventLock /*has private ctor*/, window_
 #endif
 
     change_print_state();
-
-#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE() && HAS_HUMAN_INTERACTIONS()
-    if (p_state == printing_state_t::PRINTING)
-        print_feedback_pending = true;
-
-    if (p_state == printing_state_t::PRINTED && print_feedback_pending) {
-        print_feedback_pending = false;
-        switch (MsgBox(_("Was the print successful?"), Responses_YesNoIgnore, 2)) {
-        case Response::Yes:
-            metric_record_integer(&print_successful, 1);
-            break;
-        case Response::No:
-            metric_record_integer(&print_successful, 0);
-            break;
-        case Response::Ignore:
-            metric_record_integer(&print_successful, -1);
-        default:
-            break;
-        }
-    }
-#endif
 
     /// -- Print time update loop
     updateTimes();
@@ -446,6 +419,25 @@ void screen_printing_data_t::set_pause_icon_and_label() {
         break;
     case printing_state_t::ABORTING:
         DisableButton(BtnSocket::Middle);
+        break;
+    }
+
+    switch (GetState()) {
+    case printing_state_t::PAUSING:
+        header.SetText(_("PAUSING ..."));
+        break;
+    case printing_state_t::MBL_FAILED:
+    case printing_state_t::PAUSED:
+        header.SetText(_("PAUSED"));
+        break;
+    case printing_state_t::ABORTING:
+        header.SetText(_("ABORTING ..."));
+        break;
+    case printing_state_t::STOPPED:
+        header.SetText(_("STOPPED"));
+        break;
+    default: // else printing
+        header.SetText(_(caption));
         break;
     }
 }

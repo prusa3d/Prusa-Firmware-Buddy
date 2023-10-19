@@ -510,9 +510,14 @@ FSensor::value_type Dwarf::get_tool_filament_sensor() {
     return value;
 }
 
-float Dwarf::get_mcu_temperature() {
+int16_t Dwarf::get_mcu_temperature() {
     // Sent as int16 in uint16 modbus register
-    return static_cast<int16_t>(RegisterGeneralStatus.value.MCU_temperature);
+    return static_cast<int16_t>(RegisterGeneralStatus.value.MCUTemperature);
+}
+
+int16_t Dwarf::get_board_temperature() {
+    // Sent as int16 in uint16 modbus register
+    return static_cast<int16_t>(RegisterGeneralStatus.value.BoardTemperature);
 }
 
 float Dwarf::get_24V() {

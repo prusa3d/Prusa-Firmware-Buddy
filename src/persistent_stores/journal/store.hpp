@@ -27,6 +27,7 @@ struct CurrentStoreConfig {
 
 template <BackendC BackendT>
 struct DeprecatedStoreConfig {
+    // we don't care about default val, but we have it anyway to make deprecating an item a ctrl+c and ctrl+v operation (and in case we need it for some reason)
     template <StoreItemDataC DataT, const DataT &DefaultVal, typename BackendT::Id HashedID>
     using StoreItem
         = DeprecatedStoreItem<DataT, DefaultVal, BackendT, HashedID>;
@@ -58,10 +59,9 @@ template <class Config, class DeprecatedItems, const std::span<const journal::Ba
 class Store : public Config {
 
     void dump_items() {
-        std::apply([](auto &&...args) {
+        to_tie(*static_cast<Config *>(this)).apply([](auto &&...args) {
             (args.ram_dump(), ...);
-        },
-            to_tie(*static_cast<Config *>(this)));
+        });
     }
 
 public:

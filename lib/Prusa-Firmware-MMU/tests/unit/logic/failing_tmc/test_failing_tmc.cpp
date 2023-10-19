@@ -3,7 +3,6 @@
 // Moreover, I didn't want to spoil the unit tests of the state machines themself with this.
 
 #include "catch2/catch_test_macros.hpp"
-#include "catch2/matchers/catch_matchers_vector.hpp"
 
 #include "../../../../src/modules/buttons.h"
 #include "../../../../src/modules/finda.h"
@@ -22,8 +21,6 @@
 
 #include "../stubs/main_loop_stub.h"
 #include "../stubs/stub_motion.h"
-
-using Catch::Matchers::Equals;
 
 #include "../helpers/helpers.ipp"
 

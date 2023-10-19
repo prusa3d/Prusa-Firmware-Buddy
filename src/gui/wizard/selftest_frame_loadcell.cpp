@@ -42,7 +42,7 @@ static constexpr point_i16_t hand_pos = {
 
 SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrameNamedWithRadio>(parent, ph, data, _(en_text_loadcell_test), 1)
-    , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed, footer::Item::AxisZ) // ItemAxisZ to show Z coord while moving up
+    , footer(this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::axis_z) // ItemAxisZ to show Z coord while moving up
     , progress(this, WizardDefaults::row_1)
     , icon_hand(this, &img::hand_with_nozzle1_154x100, hand_pos)
     , text_phase(this, Rect16(col_texts, row_2, WizardDefaults::X_space, txt_h * 3), is_multiline::yes)
@@ -60,11 +60,11 @@ SelftestFrameLoadcell::SelftestFrameLoadcell(window_t *parent, PhasesSelftest ph
 void SelftestFrameLoadcell::change() {
     SelftestLoadcell_t dt(data_current);
 
-    const char *txt_phase = nullptr;        // text_phase
-    const char *txt_result = nullptr;       // text_result
-    const char *txt_prebig = nullptr;       // text_prebig
-    string_view_utf8 txt_big;               // text_big
-    bool txt_big_blink = false;             // text_big
+    const char *txt_phase = nullptr; // text_phase
+    const char *txt_result = nullptr; // text_result
+    const char *txt_prebig = nullptr; // text_prebig
+    string_view_utf8 txt_big; // text_big
+    bool txt_big_blink = false; // text_big
     const img::Resource *icon_id = nullptr; // icon_hand
     switch (phase_current) {
     case PhasesSelftest::Loadcell_prepare:
@@ -84,7 +84,7 @@ void SelftestFrameLoadcell::change() {
         txt_phase = N_("Cooling down. Do not touch the nozzle!");
         icon_id = &img::hand_with_nozzle0_154x100;
 
-        int16_t temperature = dt.temperature;                                     // Make a local copy
+        int16_t temperature = dt.temperature; // Make a local copy
         if ((temperature < 0) || (temperature > 999)) {
             snprintf(txt_big_buffer, std::size(txt_big_buffer), "-\xC2\xB0\x43"); // Degree Celsius
         } else {

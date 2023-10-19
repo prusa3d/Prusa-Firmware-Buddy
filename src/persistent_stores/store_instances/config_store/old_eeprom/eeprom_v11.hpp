@@ -38,19 +38,19 @@ static_assert(sizeof(vars_body_t) == sizeof(old_eeprom::v10::vars_body_t) + size
 
 constexpr vars_body_t body_defaults = {
     old_eeprom::v10::body_defaults,
-    0,                // EEVAR_ACTIVE_NETDEV
-    1,                // EEVAR_PL_RUN
-    "",               // EEVAR_PL_PASSWORD
-    0,                // EEVAR_WIFI_FLAG
-    0,                // EEVAR_WIFI_IP4_ADDR
-    0,                // EEVAR_WIFI_IP4_MSK
-    0,                // EEVAR_WIFI_IP4_GW
-    0,                // EEVAR_WIFI_IP4_DNS1
-    0,                // EEVAR_WIFI_IP4_DNS2
+    0, // EEVAR_ACTIVE_NETDEV
+    1, // EEVAR_PL_RUN
+    "", // EEVAR_PL_PASSWORD
+    0, // EEVAR_WIFI_FLAG
+    0, // EEVAR_WIFI_IP4_ADDR
+    0, // EEVAR_WIFI_IP4_MSK
+    0, // EEVAR_WIFI_IP4_GW
+    0, // EEVAR_WIFI_IP4_DNS1
+    0, // EEVAR_WIFI_IP4_DNS2
     LAN_HOSTNAME_DEF, // EEVAR_WIFI_HOSTNAME
-    "",               // EEVAR_WIFI_AP_SSID
-    "",               // EEVAR_WIFI_AP_PASSWD
-    false,            // EEVAR_USB_MSC_ENABLED
+    "", // EEVAR_WIFI_AP_SSID
+    "", // EEVAR_WIFI_AP_PASSWD
+    false, // EEVAR_USB_MSC_ENABLED
 };
 
 inline vars_body_t convert(const old_eeprom::v10::vars_body_t &src) {

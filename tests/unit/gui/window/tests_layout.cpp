@@ -13,7 +13,7 @@
 // 8 bit resolution 1px per row .. 1 byte per row
 uint8_t font_dot_data[] = {
     0x00, // '0' 8 bit resolution
-    0xff  // '1' 8 bit resolution
+    0xff // '1' 8 bit resolution
 };
 
 // 1 px font
@@ -27,7 +27,7 @@ uint8_t font_2dot_data[] = {
 
     // '1' full square 2x2
     0xff, // '1' 2px 4 bit resolution line 0
-    0xff  // '1' 2px 4 bit resolution line 1
+    0xff // '1' 2px 4 bit resolution line 1
 };
 
 // 2x2 px font
@@ -352,7 +352,7 @@ TEST_CASE("Visibility notifycation test, hidden win registration", "[window]") {
     window_t win(nullptr, rc);
     win.Hide();
 
-    screen.RegisterSubWin(win);             // register hidden win
+    screen.RegisterSubWin(win); // register hidden win
     REQUIRE(screen.GetInvRect().IsEmpty()); // hidden win should not set invalidation rect
 }
 
@@ -361,7 +361,7 @@ TEST_CASE("Capturable test window in screen", "[window]") {
     MockDisplay::Instance().clear(COLOR_BLACK);
     MockScreen screen;
     Screens::Access()->Set(&screen); // instead of screen registration
-    screen.Draw();                   // clears invalidation rect
+    screen.Draw(); // clears invalidation rect
 
     // just test one of windows, does not matter which one
     window_t &win = screen.w0;
@@ -424,7 +424,7 @@ TEST_CASE("Timed dialog tests", "[window]") {
         MockDialogTimed dlg_timed(&screen, rc);
         REQUIRE(screen.GetInvRect() == rc);
 
-        dlg_timed.Show();                   // win is hidden by default
+        dlg_timed.Show(); // win is hidden by default
         REQUIRE(screen.GetInvRect() == rc); // unlike frame, screen invalidates on Show too, (multiple dialog priority, far shorter code)
 
         dlg_timed.Hide();
@@ -434,9 +434,9 @@ TEST_CASE("Timed dialog tests", "[window]") {
         REQUIRE(screen.GetInvalidationRect().IsEmpty()); // cleared by draw
     }
 
-    hal_tick = 1000;                                   // set opened on popup
+    hal_tick = 1000; // set opened on popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); // loop will initialize popup timeout
-    hal_tick = 10000;                                  // timeout popup
+    hal_tick = 10000; // timeout popup
     screen.ScreenEvent(&screen, GUI_event_t::LOOP, 0); // loop event will unregister popup
 
     // at the end of all sections screen must be returned to its original state

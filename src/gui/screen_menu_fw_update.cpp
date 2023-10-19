@@ -33,7 +33,7 @@ ScreenMenuFwUpdate::ScreenMenuFwUpdate()
     : ScreenMenuFwUpdate__(_(label)) {
 }
 
-#else  // !USE_ILI9488
+#else // !USE_ILI9488
 static constexpr const char *en_txt_helper = N_("Select when you want to automatically flash updated firmware from USB flash disk.");
 static const constexpr uint8_t blank_space_h = 10; // Visual bottom padding for HELP string
 

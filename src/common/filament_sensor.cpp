@@ -76,5 +76,5 @@ IFSensor::event IFSensor::GenerateEvent() {
     /// state has changed
     if (has_filament)
         return event::EdgeFilamentInserted; // has && !had
-    return event::EdgeFilamentRemoved;      //! has && had
+    return event::EdgeFilamentRemoved; //! has && had
 }

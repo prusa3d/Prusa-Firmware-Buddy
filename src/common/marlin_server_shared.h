@@ -16,10 +16,10 @@ inline constexpr uint8_t CURRENT_TOOL = std::numeric_limits<uint8_t>::max();
 enum class State {
     Idle,
     WaitGui,
-    PrintPreviewInit,         ///< Print is being initialized
-    PrintPreviewImage,        ///< Showing print preview and waiting for user to click print
-    PrintPreviewConfirmed,    ///< Print is confirmed to be printed (either user clicked print, or WUI/Connect started print without confirmation on printer)
-    PrintPreviewQuestions,    ///< Some problems with print detected, ask user to skip/fix them
+    PrintPreviewInit, ///< Print is being initialized
+    PrintPreviewImage, ///< Showing print preview and waiting for user to click print
+    PrintPreviewConfirmed, ///< Print is confirmed to be printed (either user clicked print, or WUI/Connect started print without confirmation on printer)
+    PrintPreviewQuestions, ///< Some problems with print detected, ask user to skip/fix them
     PrintPreviewToolsMapping, ///< Waiting for user to do the tool mapping/spool join
     PrintInit,
     Printing,
@@ -87,6 +87,9 @@ enum class Msg : char {
     Move = 'a',
     PrintReady = 'b',
     GuiCantPrint = 'c',
+    CancelObjectID = 'd',
+    UncancelObjectID = 'e',
+    CancelCurrentObject = 'f',
 };
 
 inline bool is_abort_state(State st) {

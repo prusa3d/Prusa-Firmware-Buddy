@@ -14,6 +14,10 @@ class MovableBase;
 /// The logic namespace handles the application logic on top of the modules.
 namespace logic {
 
+/// Bitwise OR (ErrorCode::TMC_PULLEY_BIT << axis) into ec
+/// where axis ranges from 0 to 2
+ErrorCode AddErrorAxisBit(ErrorCode ec, uint8_t axis);
+
 /// @brief Base class defining common API for high-level operations/commands/state machines
 ///
 /// Which state machines are high-level? Those which are being initiated either by a command over the serial line or from a button
@@ -24,7 +28,7 @@ namespace logic {
 /// These tasks report their progress and only one of these tasks is allowed to run at once.
 class CommandBase {
 public:
-    inline CommandBase()
+    inline constexpr CommandBase()
         : state(ProgressCode::OK)
         , error(ErrorCode::OK)
         , deferredErrorCode(ErrorCode::OK)

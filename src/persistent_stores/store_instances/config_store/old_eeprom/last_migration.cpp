@@ -3,6 +3,8 @@
 #include <journal/backend.hpp>
 #include <charconv>
 #include <version.h>
+#include <config_store/backend_instance.hpp>
+#include <journal/store.hpp>
 
 namespace config_store_ns::old_eeprom {
 void eeprom_init_ram_mirror(eeprom_data &eeprom_ram_mirror) {
@@ -106,7 +108,7 @@ bool eeprom_convert_from([[maybe_unused]] eeprom_data &data) {
 
     // if update was successful, version will be current
     return version == EEPROM_VERSION;
-#else  // NO_EEPROM_UPGRADES
+#else // NO_EEPROM_UPGRADES
     return false; // forces defaults
 #endif // NO_EEPROM_UPGRADES
 }
@@ -185,9 +187,7 @@ void migrate(old_eeprom::current::vars_body_t &body, journal::Backend &backend) 
     migrate_one(journal::hash("File Sort"), body.FILE_SORT);
     migrate_one(journal::hash("Menu Timeout"), body.MENU_TIMEOUT);
     migrate_one(journal::hash("Devhash in QR"), body.DEVHASH_IN_QR);
-#if not PRINTER_IS_PRUSA_MINI // WORKAROUND for mini - never migrate footer, always set defaults
-    migrate_one(journal::hash("Footer Setting"), body.FOOTER_SETTING);
-#endif
+    // migrate_one(journal::hash("Footer Setting"), body.FOOTER_SETTING); // No longer needed since this store item ends up being deleted
     migrate_one(journal::hash("Footer Draw Type"), body.FOOTER_DRAW_TYPE);
     migrate_one(journal::hash("Fan Check Enabled"), body.FAN_CHECK_ENABLED);
     migrate_one(journal::hash("FS Autoload Enabled"), body.FS_AUTOLOAD_ENABLED);

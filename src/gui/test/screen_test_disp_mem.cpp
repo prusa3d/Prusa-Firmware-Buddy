@@ -612,4 +612,4 @@ int screen_test_disp_mem_event(screen_t *screen, window_t *window, uint8_t event
 
     return 0;
 }
-#endif     // #if 0
+#endif // #if 0

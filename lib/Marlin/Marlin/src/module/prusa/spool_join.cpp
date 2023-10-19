@@ -1,5 +1,8 @@
 #include "spool_join.hpp"
-#include "Configuration_XL.h"
+#include "printers.h"
+#if PRINTER_IS_PRUSA_XL
+    #include "Configuration_XL.h"
+#endif
 #include "log.h"
 #include "marlin_server.hpp"
 #include "module/motion.h"
@@ -7,14 +10,22 @@
 #include <cmath>
 #include <limits>
 #include <optional>
-#include "module/prusa/toolchanger.h"
 #include "module/temperature.h"
 #include "module/planner.h" // for get_axis_position_mm
 #include "marlin_vars.hpp"
 #include "module/tool_change.h"
 #include "lcd/extensible_ui/ui_api.h" // for ExtUI::onStatusChanged to send notification about spool join
-#include "filament.hpp"               // for filament::set_type_in_extruder
+#include "filament.hpp" // for filament::set_type_in_extruder
 #include <config_store/store_instance.hpp>
+#include "mmu2_toolchanger_common.hpp"
+
+bool is_tool_enabled([[maybe_unused]] uint8_t idx) {
+#if HAS_TOOLCHANGER()
+    return prusa_toolchanger.is_tool_enabled(idx);
+#elif HAS_MMU2()
+    return MMU2::mmu2.Enabled(); // All 5 filament slots are always available
+#endif
+}
 
 SpoolJoin spool_join;
 
@@ -28,7 +39,7 @@ void SpoolJoin::reset() {
 }
 
 bool SpoolJoin::add_join(uint8_t spool_1, uint8_t spool_2) {
-    if (num_joins >= joins.size() || !prusa_toolchanger.is_tool_enabled(spool_1) || !prusa_toolchanger.is_tool_enabled(spool_2) || spool_1 == spool_2)
+    if (num_joins >= joins.size() || !is_tool_enabled(spool_1) || !is_tool_enabled(spool_2) || spool_1 == spool_2)
         return false;
 
     // join will be added at the end of existing joins, so when for example
@@ -181,7 +192,7 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
 
     xyze_pos_t return_pos = current_position;
 
-#if DISABLED(SIGNLENOZZLE)
+#if DISABLED(SIGNLENOZZLE) && PRINTER_IS_PRUSA_XL
 
     // Park current tool, to get away from print
     tool_change(PrusaToolChanger::MARLIN_NO_TOOL_PICKED, tool_return_t::no_return);
@@ -196,8 +207,8 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
     thermalManager.setTargetHotend(0, current_tool);
     marlin_server::set_temp_to_display(0, current_tool);
 
-    // store that we have no filament in old nozzle
-    config_store().set_filament_type(current_tool, filament::Type::NONE);
+    // We intentinally keep loaded filament type in EEPROM. That makes it possible for user to click "Change Filament" and printer will know what temperature to preheat to.
+    // Filament sensor should say that there is no filament, so it will not be possible to start print in this state.
 #endif
 
     // set up new tool mapping, so that next Tx will use spool we are joining to
@@ -207,7 +218,7 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
     }
     tool_mapper.set_enable(true);
 
-#if DISABLED(SINGLENOZZLE)
+#if DISABLED(SINGLENOZZLE) && PRINTER_IS_PRUSA_XL
     if (target_temp != 0) {
         thermalManager.wait_for_hotend(new_tool, false, true);
     }
@@ -215,7 +226,12 @@ bool SpoolJoin::do_join(uint8_t current_tool) {
 
     // change to new tool
     destination = return_pos;
-    tool_change(new_tool, tool_return_t::purge_and_to_destination);
+
+#if ENABLED(PRUSA_MMU2)
+    MMU2::mmu2.tool_change_full(new_tool);
+#else
+    tool_change(new_tool, tool_return_t::purge_and_to_destination /* For MMU unused */);
+#endif
 
     ExtUI::onStatusChanged("Spool joined");
 

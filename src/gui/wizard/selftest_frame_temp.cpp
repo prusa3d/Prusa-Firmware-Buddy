@@ -93,14 +93,9 @@ static bool is_tested(SelftestHeaters_t &dt, SelftestHeaters_t::TestedParts part
 ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm::PhaseData data)
     : AddSuperWindow<SelftestFrame>(parent, ph, data)
 #if HAS_TOOLCHANGER()
-    , footer(this, 0, prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::AllNozzles : footer::Item::Nozzle, footer::Item::Bed)
+    , footer(this, 0, prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::all_nozzles : footer::Item::nozzle, footer::Item::bed)
 #else
-    , footer(this, 0, footer::Item::Nozzle, footer::Item::Bed
-    #if not PRINTER_IS_PRUSA_MINI
-          ,
-          footer::Item::Heatbreak
-    #endif
-          )
+    , footer(this, 0, footer::Item::nozzle, footer::Item::bed, footer::Item::heatbreak_temp)
 #endif
     // noz
     , text_noz(this, top_label_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_noz))
@@ -139,11 +134,11 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
         if (is_tested(dt, SelftestHeaters_t::TestedParts::noz) && is_tested(dt, SelftestHeaters_t::TestedParts::bed)) {
             // Nozzle & Bed are both tested
 #if HAS_TOOLCHANGER()
-            footer.Create(prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::AllNozzles : footer::Item::Nozzle, 0);
+            footer.Create(prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::all_nozzles : footer::Item::nozzle, 0);
 #else
-            footer.Create(footer::Item::Nozzle, 0);
+            footer.Create(footer::Item::nozzle, 0);
 #endif
-            footer.Create(footer::Item::Bed, 1);
+            footer.Create(footer::Item::bed, 1);
 
             text_bed.SetRect(bottom_label_rect);
             progress_bed.SetRect(bottom_progress_rect);
@@ -155,13 +150,13 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
         } else if (is_tested(dt, SelftestHeaters_t::TestedParts::noz)) {
             // ONLY nozzle is tested
 #if HAS_TOOLCHANGER()
-            footer.Create(prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::AllNozzles : footer::Item::Nozzle, 0);
+            footer.Create(prusa_toolchanger.is_toolchanger_enabled() ? footer::Item::all_nozzles : footer::Item::nozzle, 0);
 #else
-            footer.Create(footer::Item::Nozzle, 0);
+            footer.Create(footer::Item::nozzle, 0);
 #endif
         } else if (is_tested(dt, SelftestHeaters_t::TestedParts::bed)) {
             // ONLY bed is tested
-            footer.Create(footer::Item::Bed, 0);
+            footer.Create(footer::Item::bed, 0);
 
             text_bed.SetRect(top_label_rect);
             progress_bed.SetRect(top_progress_rect);

@@ -92,6 +92,7 @@ public:
 
     bool print_after_upload : 1;
     bool overwrite_file : 1;
+    bool create_folder : 1;
 
 private:
     struct DigestAuthParams {

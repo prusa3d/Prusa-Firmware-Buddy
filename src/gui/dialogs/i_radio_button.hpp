@@ -52,7 +52,7 @@ public:
     IRadioButton &operator++(); // Prefix increment operator no overflow
     IRadioButton &operator--(); // Prefix decrement operator no underflow
 
-    Response Click() const;     // click returns response to be send, 0 buttons will return Response::_none
+    Response Click() const; // click returns response to be send, 0 buttons will return Response::_none
     bool IsEnabled() const;
 
     void SetBtnIndex(uint8_t index);
@@ -77,7 +77,7 @@ protected:
     void invalidateWhatIsNeeded();
     void validateBtnIndex(); // needed for iconned layout
     bool isIndexValid(size_t index);
-    size_t maxSize() const;  // depends id it is iconned
+    size_t maxSize() const; // depends id it is iconned
     Responses_t generateResponses(const PhaseResponses &resp) const;
 
     static size_t cnt_labels(const PhaseTexts *labels);

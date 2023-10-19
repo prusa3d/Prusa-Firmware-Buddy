@@ -84,13 +84,13 @@ class MeatPack {
     static const uint8_t kSpaceCharIdx = 11;
     static const char kSpaceCharReplace = 'E';
 
-    bool cmd_is_next;        // A command is pending
-    bool active;             // MeatPack encoding active
-    bool no_spaces;          // No spaces mode active
-    uint8_t second_char;     // Buffers a character if dealing with out-of-sequence pairs
-    uint8_t cmd_count,       // Counter of command bytes received (need 2)
-        full_char_count,     // Counter for full-width characters to be received
-        char_out_count;      // Stores number of characters to be read out.
+    bool cmd_is_next; // A command is pending
+    bool active; // MeatPack encoding active
+    bool no_spaces; // No spaces mode active
+    uint8_t second_char; // Buffers a character if dealing with out-of-sequence pairs
+    uint8_t cmd_count, // Counter of command bytes received (need 2)
+        full_char_count, // Counter for full-width characters to be received
+        char_out_count; // Stores number of characters to be read out.
     uint8_t char_out_buf[2]; // Output buffer for caching up to 2 characters
 
 public:

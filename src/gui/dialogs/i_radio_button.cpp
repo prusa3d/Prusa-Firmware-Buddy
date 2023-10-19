@@ -295,7 +295,7 @@ void IRadioButton::validateBtnIndex() {
     if (HasIcon()) {
         SetBtnIndex(1); // default index for iconned is 1
         if (isIndexValid(GetBtnIndex()))
-            return;     // index 1 is valid
+            return; // index 1 is valid
 
         for (size_t i = 0; i < max_icons; ++i) {
             if (responseFromIndex(i) != Response::_none) {
@@ -346,23 +346,23 @@ void IRadioButton::SetBtn(Response btn) {
 
 Rect16 IRadioButton::getIconRect(uint8_t idx) const {
     Rect16 rect = GetRect();
-    rect = Rect16::Width_t(button_base_size);  // button width
+    rect = Rect16::Width_t(button_base_size); // button width
     rect = Rect16::Height_t(button_base_size); // button height
 
     // FIXED CENTER ALIGNMENT
     switch (std::min<size_t>(max_icons, GetBtnCount())) {
     case 1:
         rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
-        rect -= Rect16::Left_t(button_base_size / 2);  // button 1 pos
+        rect -= Rect16::Left_t(button_base_size / 2); // button 1 pos
         break;
     case 2:
         rect += Rect16::Left_t(GetRect().Width() - (button_delim_size / 2 + button_base_size)); // first button pos
-        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size));                   // current button pos
+        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size)); // current button pos
         break;
     case 3:
-        rect += Rect16::Left_t(GetRect().Width() / 2);                                       // middle of rect
+        rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
         rect -= Rect16::Left_t(button_base_size / 2 + button_base_size + button_delim_size); // first button pos
-        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size));                // current button pos
+        rect += Rect16::Left_t(idx * (button_base_size + button_delim_size)); // current button pos
         break;
     default:
         rect = Rect16();
@@ -373,21 +373,21 @@ Rect16 IRadioButton::getIconRect(uint8_t idx) const {
 
 Rect16 IRadioButton::getLabelRect(uint8_t idx) const {
     Rect16 rect = GetRect();
-    rect += Rect16::Top_t(button_base_size);    // label is under button
-    rect = Rect16::Width_t(label_base_size);    // labels width
+    rect += Rect16::Top_t(button_base_size); // label is under button
+    rect = Rect16::Width_t(label_base_size); // labels width
     rect -= Rect16::Height_t(button_base_size); // labels height
 
     switch (std::min<size_t>(max_icons, GetBtnCount())) {
     case 1:
         rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
-        rect -= Rect16::Left_t(label_base_size / 2);   // labels 1 pos
+        rect -= Rect16::Left_t(label_base_size / 2); // labels 1 pos
         break;
     case 2:
         rect = Rect16::Left_t(idx == 0 ? 0 : (GetRect().Width() - label_base_size));
         break;
     case 3:
-        rect += Rect16::Left_t(GetRect().Width() / 2);                      // middle of rect
-        rect -= Rect16::Left_t(label_base_size / 2);                        // labels 1 pos
+        rect += Rect16::Left_t(GetRect().Width() / 2); // middle of rect
+        rect -= Rect16::Left_t(label_base_size / 2); // labels 1 pos
         rect += Rect16::Left_t(idx * (label_base_size + label_delim_size)); // current labels pos
         break;
     default:

@@ -103,7 +103,7 @@ pressure_advance_window_filter_t create_simple_window_filter(const uint16_t filt
 }
 
 static constexpr double round(const double value, const uint32_t number_of_decimal_places) {
-    const double precision = double(std::pow(10.f, number_of_decimal_places));
+    const double precision = double(std::pow(10, number_of_decimal_places));
     return std::round(value * precision) / precision;
 }
 

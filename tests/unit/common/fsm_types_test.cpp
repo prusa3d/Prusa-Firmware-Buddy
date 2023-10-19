@@ -466,9 +466,9 @@ TEST_CASE("fsm::SmartQueue", "[fsm]") {
         // second q0_create
         const BaseData data2(0x02, { { 0x02, 0x02, 0x02, 0x02 } });
         q.PushCreate(ClientFSM::Load_unload, data2);
-        REQUIRE(q.GetCount() == 1);                          // it must replace destroy in q0
+        REQUIRE(q.GetCount() == 1); // it must replace destroy in q0
         REQUIRE(q.GetOpenFsmQ0() == ClientFSM::Load_unload); // must be inserted to q0
-        REQUIRE(q.GetOpenFsmQ1() == ClientFSM::_none);       // can not be inserted to q1
+        REQUIRE(q.GetOpenFsmQ1() == ClientFSM::_none); // can not be inserted to q1
 
         states = q.dequeue();
         REQUIRE(states.has_value());
@@ -807,7 +807,7 @@ TEST_CASE("fsm::SmartQueue", "[fsm]") {
 
         states = q.dequeue();
         REQUIRE(states.has_value());
-        REQUIRE(states->current.get_fsm_type() == ClientFSM::_none);     // ClientFSM::_none == destroy
+        REQUIRE(states->current.get_fsm_type() == ClientFSM::_none); // ClientFSM::_none == destroy
         REQUIRE(states->current.get_queue_index() == QueueIndex::q0);
         REQUIRE(states->last_sent.get_fsm_type() == ClientFSM::Preheat); // type of fsm being destroyed
         REQUIRE(states->last_sent.get_queue_index() == QueueIndex::q0);
@@ -862,7 +862,7 @@ TEST_CASE("fsm::SmartQueue", "[fsm]") {
         // send destroy from Q1
         states = q.dequeue();
         REQUIRE(states.has_value());
-        REQUIRE(states->current.get_fsm_type() == ClientFSM::_none);         // ClientFSM::_none == destroy
+        REQUIRE(states->current.get_fsm_type() == ClientFSM::_none); // ClientFSM::_none == destroy
         REQUIRE(states->current.get_queue_index() == QueueIndex::q1);
         REQUIRE(states->last_sent.get_fsm_type() == ClientFSM::Load_unload); // type of fsm being destroyed
         REQUIRE(states->last_sent.get_queue_index() == QueueIndex::q1);
@@ -872,7 +872,7 @@ TEST_CASE("fsm::SmartQueue", "[fsm]") {
         REQUIRE(states.has_value());
         REQUIRE(states->current.get_fsm_type() == ClientFSM::Preheat);
         REQUIRE(states->current.get_queue_index() == QueueIndex::q0);
-        REQUIRE(states->current.get_data() == ch_data_1);                // new data are the changed ones
+        REQUIRE(states->current.get_data() == ch_data_1); // new data are the changed ones
         REQUIRE(states->last_sent.get_fsm_type() == ClientFSM::Preheat); // type did not change .. change command
         REQUIRE(states->last_sent.get_queue_index() == QueueIndex::q0);
 
@@ -919,7 +919,7 @@ TEST_CASE("fsm::SmartQueue", "[fsm]") {
         REQUIRE(states.has_value());
         REQUIRE(states->current.get_fsm_type() == ClientFSM::Preheat);
         REQUIRE(states->current.get_queue_index() == QueueIndex::q0);
-        REQUIRE(states->current.get_data() == ch_data_1);                // new data are the changed ones
+        REQUIRE(states->current.get_data() == ch_data_1); // new data are the changed ones
         REQUIRE(states->last_sent.get_fsm_type() == ClientFSM::Preheat); // type did not change .. change command
         REQUIRE(states->last_sent.get_queue_index() == QueueIndex::q0);
 

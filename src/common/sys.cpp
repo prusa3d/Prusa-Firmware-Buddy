@@ -26,17 +26,17 @@ int sys_pll_freq = 168000000;
 
 version_t &boot_version = *(version_t *)(BOOTLOADER_VERSION_ADDRESS); // (address) from flash -> "volatile" is not necessary
 
-volatile uint8_t *psys_fw_valid = (uint8_t *)0x080FFFFF;              // last byte in the flash
+volatile uint8_t *psys_fw_valid = (uint8_t *)0x080FFFFF; // last byte in the flash
 
 // Needs to be RAM function as it is called when erasing the flash
 void __RAM_FUNC sys_reset(void) {
     uint32_t aircr = SCB->AIRCR & 0x0000ffff; // read AIRCR, mask VECTKEY
     __disable_irq();
-    aircr |= 0x05fa0000;                      // set VECTKEY
-    aircr |= 0x00000004;                      // set SYSRESETREQ
-    SCB->AIRCR = aircr;                       // write AIRCR
+    aircr |= 0x05fa0000; // set VECTKEY
+    aircr |= 0x00000004; // set SYSRESETREQ
+    SCB->AIRCR = aircr; // write AIRCR
     while (1)
-        ;                                     // endless loop
+        ; // endless loop
 }
 
 void sys_dfu_request_and_reset(void) {
@@ -64,7 +64,7 @@ void sys_dfu_boot_enter(void) {
     volatile uintptr_t system_addr_start = 0x1FFF0000;
     auto system_bootloader_start = (void (*)(void))(*(uint32_t *)(system_addr_start + 4));
     __set_MSP(*(uint32_t *)system_addr_start); // prepare stack pointer
-    system_bootloader_start();                 // jump into the bootloader
+    system_bootloader_start(); // jump into the bootloader
 
     // we should never reach this
     abort();
@@ -88,7 +88,7 @@ int sys_pll_is_enabled(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct {};
     RCC_ClkInitTypeDef RCC_ClkInitStruct {};
     uint32_t FLatency;
-    HAL_RCC_GetOscConfig(&RCC_OscInitStruct);              // read Osc config
+    HAL_RCC_GetOscConfig(&RCC_OscInitStruct); // read Osc config
     HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency); // read Clk config
     return ((RCC_OscInitStruct.PLL.PLLState == RCC_PLL_ON) && (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_PLLCLK)) ? 1 : 0;
 }
@@ -97,16 +97,16 @@ void sys_pll_disable(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct {};
     RCC_ClkInitTypeDef RCC_ClkInitStruct {};
     uint32_t FLatency;
-    HAL_RCC_GetOscConfig(&RCC_OscInitStruct);              // read Osc config
+    HAL_RCC_GetOscConfig(&RCC_OscInitStruct); // read Osc config
     HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency); // read Clk config
     if ((RCC_OscInitStruct.PLL.PLLState == RCC_PLL_OFF) && (RCC_ClkInitStruct.SYSCLKSource != RCC_SYSCLKSOURCE_PLLCLK))
-        return;                                            // already disabled - exit
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_OFF;          // set PLL off
+        return; // already disabled - exit
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_OFF; // set PLL off
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE; // set CLK source HSE
 
     buddy::DisableInterrupts disable_interrupts;
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, sys_calc_flash_latency(HSE_VALUE)); // set Clk config first
-    HAL_RCC_OscConfig(&RCC_OscInitStruct);                                      // set Osc config
+    HAL_RCC_OscConfig(&RCC_OscInitStruct); // set Osc config
 }
 
 void sys_pll_enable(void) {
@@ -135,15 +135,15 @@ void sys_pll_enable(void) {
 */
 
     uint32_t FLatency;
-    HAL_RCC_GetOscConfig(&RCC_OscInitStruct);                 // read Osc config
-    HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency);    // read Clk config
+    HAL_RCC_GetOscConfig(&RCC_OscInitStruct); // read Osc config
+    HAL_RCC_GetClockConfig(&RCC_ClkInitStruct, &FLatency); // read Clk config
     if ((RCC_OscInitStruct.PLL.PLLState == RCC_PLL_ON) && (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_PLLCLK))
-        return;                                               // already enabled - exit
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;              // set PLL off
+        return; // already enabled - exit
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON; // set PLL off
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK; // set CLK source HSE
 
     buddy::DisableInterrupts disable_interrupts;
-    HAL_RCC_OscConfig(&RCC_OscInitStruct);                                         // set Osc config first
+    HAL_RCC_OscConfig(&RCC_OscInitStruct); // set Osc config first
     HAL_RCC_ClockConfig(&RCC_ClkInitStruct, sys_calc_flash_latency(sys_pll_freq)); // set Clk config
 }
 
@@ -206,7 +206,7 @@ void sys_sscg_set_config(int freq, int depth) {
     // INCSTEP = round [(215 - 1) x md x PLLN) / (100 x 5 x MODPER)
     incstep = (uint32_t)((((float)214 * depth * plln) / (100 * 5 * modper)) + 0.5F);
     spreadsel = 0; // center spread
-    sscgen = 1;    // spread spectrum modulation ENABLE
+    sscgen = 1; // spread spectrum modulation ENABLE
     sscgr = 0;
     sscgr |= (modper << RCC_SSCGR_MODPER_Pos) & RCC_SSCGR_MODPER_Msk;
     sscgr |= (incstep << RCC_SSCGR_INCSTEP_Pos) & RCC_SSCGR_INCSTEP_Msk;

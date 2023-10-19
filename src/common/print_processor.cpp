@@ -8,7 +8,6 @@
 #include "marlin_client.hpp"
 #include "filament_sensors_handler.hpp"
 #include "fsm_types.hpp"
-#include "non_file_printing_counter.hpp"
 
 ClientFSM type_of_q0 = ClientFSM::_none;
 ClientFSM type_of_q1 = ClientFSM::_none;
@@ -34,7 +33,7 @@ void PrintProcessor::fsm_cb(uint32_t u32, uint16_t u16) {
         } else if (change.get_fsm_type() == ClientFSM::Load_unload) {
             FSensors_instance().IncEvLock(); // ClientFSM::Load_unload create
         }
-        *fsm_type = change.get_fsm_type();   // store new FSM type
+        *fsm_type = change.get_fsm_type(); // store new FSM type
     }
 }
 

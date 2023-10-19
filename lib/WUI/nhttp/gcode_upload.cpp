@@ -43,11 +43,14 @@ using std::make_tuple;
 using std::move;
 using std::nullopt;
 using std::string_view;
+using std::tuple;
+using std::variant;
 using transfers::ChangedPath;
 using transfers::CHECK_FILENAME;
 using transfers::file_preallocate;
 using transfers::Monitor;
 using transfers::next_transfer_idx;
+using transfers::PartialFile;
 using transfers::transfer_name;
 using transfers::USB_MOUNT_POINT;
 using transfers::USB_MOUNT_POINT_LENGTH;
@@ -128,6 +131,15 @@ GcodeUpload::UploadResult GcodeUpload::start(const RequestParser &parser, Upload
     // One day we may want to support chunked and connection-close, but we are not there yet.
     if (!parser.content_length.has_value()) {
         return StatusPage(Status::LengthRequired, StatusPage::CloseHandling::ErrorClose, json_errors);
+    }
+
+    if (parser.content_length.value() == 0) {
+        // Somehow, we never get our ::step called later on due to that. We
+        // could hack around it, but supporting 0-sized files seems like a
+        // niche thing to spend the time on. At least report it doesn't work
+        // instead of getting into some weird transfer-stuck state that never
+        // goes away.
+        return StatusPage(Status::NotImplemented, parser, "0-sized files aren't implemented");
     }
 
     const char *path = holds_alternative<PutParams>(uploadParams) ? get<PutParams>(uploadParams).filepath.data() : nullptr;
@@ -314,7 +326,7 @@ namespace {
         bool overwrite;
         size_t file_idx;
 
-        virtual FILE *file() const override {
+        virtual variant<FILE *, PartialFile *> file() const override {
             return f;
         }
         // TODO: alias for the type, probably unify with the UploadHooks::Result
@@ -385,6 +397,12 @@ namespace {
             assert(monitor_slot.has_value());
             monitor_slot->progress(len);
             return !monitor_slot->is_stopped();
+        }
+
+        virtual tuple<size_t, size_t, size_t> transform(uint8_t *, size_t size_in, size_t) override {
+            // A NOP transformation.
+            // We consumed the whole size_in, output the same and need no more buffers.
+            return make_tuple(size_in, size_in, 0);
         }
     };
 

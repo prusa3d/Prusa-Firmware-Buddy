@@ -191,6 +191,15 @@
 #endif
 
 /**
+ * Tool mapping and spool join - adopted from XL's toolchange, reimplemented for MMU2
+ */
+#if HAS_MMU2()
+#define PRUSA_TOOL_MAPPING
+#define PRUSA_SPOOL_JOIN
+#endif
+
+
+/**
  *  Compatibility mode with gcode's slided for the MK3
  *
  *  When switched on and the compatibility mode is turned on at runtime,
@@ -1539,9 +1548,8 @@
     #define Z_AXIS_UNLOAD_POS 20
     #define Y_AXIS_LOAD_POS    (std::numeric_limits<float>::quiet_NaN())
     #define Y_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
-    // same position as MINI, until decided otherwise
-    #define X_AXIS_LOAD_POS  ((X_MAX_POS) / 4)
-    #define X_AXIS_UNLOAD_POS  ((X_MAX_POS) / 4)
+    #define X_AXIS_LOAD_POS  (std::numeric_limits<float>::quiet_NaN())
+    #define X_AXIS_UNLOAD_POS  (std::numeric_limits<float>::quiet_NaN())
     // Specify a park position as { X, Y, Z }
     #define NOZZLE_PARK_POINT \
         { (X_MAX_POS - 10), (Y_MAX_POS - 10), 20 }

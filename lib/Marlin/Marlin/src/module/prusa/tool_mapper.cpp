@@ -5,7 +5,16 @@
 #if ENABLED(PRUSA_TOOL_MAPPING)
 
     #include "module/prusa/tool_mapper.hpp"
-    #include "module/prusa/toolchanger.h"
+    #include "mmu2_toolchanger_common.hpp"
+
+// This value is important only for XL, for MMU it should just be something bigger than 5 (num of slots)
+uint8_t get_invalid_tool_number() {
+    #if HAS_TOOLCHANGER()
+    return PrusaToolChanger::MARLIN_NO_TOOL_PICKED;
+    #elif HAS_MMU2()
+    return 6; // MMU has 5 slots
+    #endif
+}
 
 ToolMapper tool_mapper;
 
@@ -15,12 +24,12 @@ ToolMapper::ToolMapper() {
 
 bool ToolMapper::set_mapping(uint8_t logical, uint8_t physical) {
     // physical tool is enabled and valid
-    if (physical >= EXTRUDERS || !prusa_toolchanger.is_tool_enabled(physical)) {
+    if (physical >= EXTRUDERS || !is_tool_enabled(physical)) {
         return false;
     }
 
     // check that logical tool is valid as well
-    if (logical >= EXTRUDERS || logical == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+    if (logical >= EXTRUDERS || logical == get_invalid_tool_number()) {
         return false;
     }
 
@@ -37,7 +46,7 @@ bool ToolMapper::set_mapping(uint8_t logical, uint8_t physical) {
 
 bool ToolMapper::set_unassigned(uint8_t logical) {
     // check that logical tool is valid
-    if (logical >= EXTRUDERS || logical == PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
+    if (logical >= EXTRUDERS || logical == get_invalid_tool_number()) {
         return false;
     }
 

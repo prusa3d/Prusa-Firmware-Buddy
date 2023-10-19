@@ -168,7 +168,7 @@ void GT911::Input() {
         // released after single touch
         // do this before write
         if (touch_count == 0 && last_touch_count == 1) {
-            const size_t offset = 0;                                       // we need oly 1st point
+            const size_t offset = 0; // we need oly 1st point
             GT911::GTPoint *p_point = (GT911::GTPoint *)(points + offset); // get point
             log_info(Touch, "point ID %d, x %d, y %d, area %d", p_point->trackId, p_point->x_position, p_point->y_position, p_point->area);
 
@@ -226,7 +226,7 @@ bool GT911::Upload(const char *fn) {
         int ret = fread((void *)cfg, 1, CONFIG_LEN, fd);
 
         cfg[CONFIG_LEN - 2] = GT911::CalcChecksum(cfg, CONFIG_LEN - 2); // recalculate checksum
-        cfg[CONFIG_LEN - 1] = 1;                                        // enforce update flag
+        cfg[CONFIG_LEN - 1] = 1; // enforce update flag
         Instance().Write(GT911::GT_REG_CFG, cfg, CONFIG_LEN);
 
         fclose(fd);
@@ -254,7 +254,7 @@ bool GT911::ResetRegisters() {
 
         memcpy(cfg, default_config, CONFIG_LEN - 2);
         cfg[CONFIG_LEN - 2] = CalcChecksum(cfg, CONFIG_LEN - 2); // recalculate checksum (not needed when setting from default data, just to be safe)
-        cfg[CONFIG_LEN - 1] = 1;                                 // enforce update flag
+        cfg[CONFIG_LEN - 1] = 1; // enforce update flag
 
         try_no = 0;
         do {

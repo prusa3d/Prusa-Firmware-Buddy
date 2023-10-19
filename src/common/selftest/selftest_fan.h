@@ -9,33 +9,27 @@ namespace selftest {
 
 class FanHandler {
 public:
-    FanHandler(const char *name, const FanConfig<2> &config, uint8_t tool_nr);
+    using FanCtlFnc = CFanCtl &(*)(size_t);
+
+    FanHandler(const char *name, const FanCtlFnc &fanctl_fnc, uint8_t tool_nr);
 
     void enter_selftest();
     void exit_selftest();
     void set_pwm(uint8_t pwm);
-    uint8_t get_pwm();
-    uint8_t get_pwm_percent();
-    uint16_t get_actual_rpm();
-
+    void reset_samples();
     void record_sample();
-    void evaluate(uint8_t step);
-    void next_step();
-    uint16_t get_avg_rpm() { return avg_rpm; }
+    void evaluate(const FanConfig &fan_config, uint16_t avg_rpm);
+    uint16_t calculate_avg_rpm() const;
 
-    bool is_failed() { return failed || failed_at_last_step; }
-    bool is_failed_at_last_step() { return failed_at_last_step; }
+    bool is_failed() { return failed; }
 
 private:
     const char *name;
-    const FanConfig<2> &config;
+    const FanCtlFnc fanctl_fnc;
     uint8_t tool_nr { 0 };
-
+    bool failed { false };
     uint16_t sample_count { 0 };
     uint32_t sample_sum { 0 };
-    uint16_t avg_rpm { 0 }; // stored only so we can pull it out to compare max rpm for the switched test
-    bool failed { false };
-    bool failed_at_last_step { false };
 };
 
 class CSelftestPart_Fan {
@@ -49,12 +43,7 @@ class CSelftestPart_Fan {
     FanHandler print_fan;
     FanHandler heatbreak_fan;
 
-    uint8_t step { 0 };
-    bool do_fans_switched_prompt { false };
-
-    bool wait_for_spindown { true };
-
-    static uint32_t estimate(const SelftestFansConfig &config);
+    static uint32_t estimate();
     void update_progress();
 
 public:
@@ -63,10 +52,11 @@ public:
     ~CSelftestPart_Fan();
 
     LoopResult state_start();
-    LoopResult state_wait_spindown();
-    LoopResult state_cycle_mark() { return LoopResult::MarkLoop0; }
-    LoopResult state_wait_rpm();
-    LoopResult state_measure_rpm();
+    LoopResult state_wait_rpm_100_percent();
+    LoopResult state_measure_rpm_100_percent();
+    LoopResult state_wait_rpm_0_percent();
+    LoopResult state_wait_rpm_20_percent();
+    LoopResult state_measure_rpm_20_percent();
 };
 
 }; // namespace selftest

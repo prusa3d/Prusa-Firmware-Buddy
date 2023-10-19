@@ -40,7 +40,7 @@ public:
     static void cooldown() {
         for (uint8_t tool_nr = 0; tool_nr < HOTENDS; tool_nr++) {
             if (is_tool_selftest_enabled(tool_nr, 0xFF) && thermalManager.degHotend(tool_nr) > SelftestToolOffsets_t::TOOL_CALIBRATION_TEMPERATURE && // tool is hot
-                !tool_cooling_down[tool_nr]) {                                                                                                        // cooling is not already turned on
+                !tool_cooling_down[tool_nr]) { // cooling is not already turned on
 
                 start_cooling(tool_nr);
             }
@@ -63,7 +63,7 @@ public:
     static void reset() {
         for (uint8_t tool_nr = 0; tool_nr < HOTENDS; tool_nr++) {
             if (is_tool_selftest_enabled(tool_nr, 0xFF) && // manage temperature on all tools, its not possible to calibrate just one tool
-                tool_cooling_down[tool_nr]) {              // tool is cooling down
+                tool_cooling_down[tool_nr]) { // tool is cooling down
 
                 stop_cooling(tool_nr);
             }
@@ -206,8 +206,8 @@ LoopResult CSelftestPart_ToolOffsets::state_final_park() {
     IPartHandler::SetFsmPhase(PhasesSelftest::ToolOffsets_wait_final_park);
     // Let user uninstall the pin
     marlin_server::enqueue_gcode("P0 S1"); // Park tool
-    marlin_server::enqueue_gcode("G27");   // Park head
-    marlin_server::enqueue_gcode("M18");   // Disable steppers
+    marlin_server::enqueue_gcode("G27"); // Park head
+    marlin_server::enqueue_gcode("M18"); // Disable steppers
     return LoopResult::RunNext;
 }
 

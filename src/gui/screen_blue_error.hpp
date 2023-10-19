@@ -33,10 +33,10 @@ public:
     static const constexpr size_t description_expected_chars = description_char_width * description_char_height;
 
 protected:
-    window_text_t header;             ///< BSOD, HARDFAULT, WATCHDOG, Needs to be filled in child
-    window_text_t title;              ///< Title with hardfault source or filename of bsod, Needs to be filled in child
-    window_text_t description;        ///< Description of error, Needs to be filled in child
+    window_text_t header; ///< BSOD, HARDFAULT, WATCHDOG, Needs to be filled in child
+    window_text_t title; ///< Title with hardfault source or filename of bsod, Needs to be filled in child
+    window_text_t description; ///< Description of error, Needs to be filled in child
 #if HAS_LEDS()
     AnimatorLCD::AnimationGuard anim; ///< Blue flashing
-#endif                                /*HAS_LEDS()*/
+#endif /*HAS_LEDS()*/
 };

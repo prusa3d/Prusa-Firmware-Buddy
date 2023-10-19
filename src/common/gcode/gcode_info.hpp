@@ -30,8 +30,19 @@ inline constexpr const char *m555 = "M555";
 inline constexpr const char *m140 = "M140";
 }; // namespace gcode_info
 
+/// When initializing the heavy work is done in start_load, load and end_load functions,
+/// if you need to offload it to another thread, you can check the progress using
+/// start_load_result, can_be_printed and is_loaded.
+///
+/// Currently it can be done by sending PREFETCH_SIGNAL_GCODE_INFO_INIT signal to media_prefetch thread.
+/// Check code in PrintPreview::Loop for an example.
 class GCodeInfo {
 public:
+    enum class StartLoadResult {
+        None,
+        Started,
+        Failed
+    };
     static constexpr uint32_t gcode_level = GCODE_LEVEL;
 
 #if PRINTER_IS_PRUSA_MK4
@@ -69,10 +80,10 @@ public:
         };
 
         std::optional<filament_buff> filament_name; /**< stores string representation of filament type */
-        std::optional<float> filament_used_g;       /**< stores how much filament will be used for this print (weight) */
-        std::optional<float> filament_used_mm;      /**< stores how much filament will be used for this print (distance) */
-        std::optional<float> nozzle_diameter;       /**< stores diameter of nozzle*/
-        std::optional<Colour> extruder_colour;      /**< stores colour of extruder*/
+        std::optional<float> filament_used_g; /**< stores how much filament will be used for this print (weight) */
+        std::optional<float> filament_used_mm; /**< stores how much filament will be used for this print (distance) */
+        std::optional<float> nozzle_diameter; /**< stores diameter of nozzle*/
+        std::optional<Colour> extruder_colour; /**< stores colour of extruder*/
 
         inline bool used() const {
             /// At least this much filament [g] to be considered used (just purge is about 0.06 g on both XL and MK3)
@@ -101,13 +112,13 @@ public:
             void fail() { wrong = true; }
         };
 
-        Feature wrong_tools { HWCheckSeverity::Abort };                         // Tools that are used, are not connected (toolchanger only). Can be handled by tools mapping screen
+        Feature wrong_tools { HWCheckSeverity::Abort }; // Tools that are used, are not connected (toolchanger only). Can be handled by tools mapping screen
         Feature wrong_nozzle_diameter { config_store().hw_check_nozzle.get() }; // M862.1 disagree (or M862.10 - M862.15 for multihotend gcode). Can be handled by tools mapping screen
-        Feature wrong_printer_model { config_store().hw_check_model.get() };    // M862.2 or M862.3 or printer_model (from comments) disagree
-        Feature wrong_gcode_level { config_store().hw_check_gcode.get() };      // M862.5 disagree
-        Feature wrong_firmware { config_store().hw_check_firmware.get() };      // M862.4 Px.yy.z disagrees
+        Feature wrong_printer_model { config_store().hw_check_model.get() }; // M862.2 or M862.3 or printer_model (from comments) disagree
+        Feature wrong_gcode_level { config_store().hw_check_gcode.get() }; // M862.5 disagree
+        Feature wrong_firmware { config_store().hw_check_firmware.get() }; // M862.4 Px.yy.z disagrees
         Feature mk3_compatibility_mode { config_store().hw_check_compatibility.get() };
-        Feature outdated_firmware { config_store().hw_check_firmware.get() };   // M115 Ux.yy.z disagrees (TODO: Separate EEVAR?)
+        Feature outdated_firmware { config_store().hw_check_firmware.get() }; // M115 Ux.yy.z disagrees (TODO: Separate EEVAR?)
         bool unsupported_features { false };
         char unsupported_features_text[37] { "" };
         void add_unsupported_feature(const char *feature, size_t length);
@@ -146,26 +157,30 @@ private:
     std::unique_ptr<AnyGcodeFormatReader> file_reader;
 
     uint32_t printer_model_code; ///< model code (see printer_model2code())
-    bool loaded = false;
 
-    time_buff printing_time;                                            ///< Stores string representation of printing time left
-    bool preview_thumbnail;                                             ///< True if gcode has preview thumbnail
-    bool progress_thumbnail;                                            ///< True if gcode has progress thumbnail
-    bool filament_described;                                            ///< Filament info was found in gcode's comments
-    ValidPrinterSettings valid_printer_settings;                        ///< Info about matching hardware
-    GCodePerExtruderInfo per_extruder_info;                             ///< Info about G-code for each extruder
-    std::optional<uint16_t> bed_preheat_temp { std::nullopt };          ///< Holds bed preheat temperature
+    // atomic flags to signal to other thread, the progress of gcode loading
+    std::atomic<bool> loaded = false; ///< did the load() function finish?
+    std::atomic<StartLoadResult> load_started {}; ///< None if nt started yet, Failed - opening gcode failed, Started - success
+    std::atomic<bool> printable {}; ///< is it valid for print?, checked by gcode reader "valid_for_print" function
+
+    time_buff printing_time; ///< Stores string representation of printing time left
+    bool preview_thumbnail; ///< True if gcode has preview thumbnail
+    bool progress_thumbnail; ///< True if gcode has progress thumbnail
+    bool filament_described; ///< Filament info was found in gcode's comments
+    ValidPrinterSettings valid_printer_settings; ///< Info about matching hardware
+    GCodePerExtruderInfo per_extruder_info; ///< Info about G-code for each extruder
+    std::optional<uint16_t> bed_preheat_temp { std::nullopt }; ///< Holds bed preheat temperature
     std::optional<PrintArea::rect_t> bed_preheat_area { std::nullopt }; ///< Holds bed preheat area
 
 public:
-    const time_buff &get_printing_time() const { return printing_time; }                              ///< Get string representation of printing time left
-    bool is_loaded() const { return loaded; }                                                         ///< Check if file has preview thumbnail
-    bool has_preview_thumbnail() const { return preview_thumbnail; }                                  ///< Check if file has preview thumbnail
-    bool has_progress_thumbnail() const { return progress_thumbnail; }                                ///< Check if file has progress thumbnail
-    bool has_filament_described() const { return filament_described; }                                ///< Check if file has filament described
+    const time_buff &get_printing_time() const { return printing_time; } ///< Get string representation of printing time left
+    bool is_loaded() const { return loaded; } ///< Check if file has preview thumbnail
+    bool has_preview_thumbnail() const { return preview_thumbnail; } ///< Check if file has preview thumbnail
+    bool has_progress_thumbnail() const { return progress_thumbnail; } ///< Check if file has progress thumbnail
+    bool has_filament_described() const { return filament_described; } ///< Check if file has filament described
     const ValidPrinterSettings &get_valid_printer_settings() const { return valid_printer_settings; } ///< Get info about matching hardware
-    const GCodePerExtruderInfo &get_per_extruder_info() const { return per_extruder_info; }           ///< Get info about G-code for each extruder
-    const std::optional<uint16_t> &get_bed_preheat_temp() const { return bed_preheat_temp; }          ///< Get info about bed preheat temperature
+    const GCodePerExtruderInfo &get_per_extruder_info() const { return per_extruder_info; } ///< Get info about G-code for each extruder
+    const std::optional<uint16_t> &get_bed_preheat_temp() const { return bed_preheat_temp; } ///< Get info about bed preheat temperature
     const std::optional<PrintArea::rect_t> &get_bed_preheat_area() const { return bed_preheat_area; } ///< Get info about G-preheat area
 
     /**
@@ -244,13 +259,29 @@ public:
     /**
      * @brief Check if file is ready for print
      */
-    bool valid_for_print();
+    bool check_valid_for_print();
+
+    /**
+     * @brief Check the printable flag
+     *
+     * To be used concurently to `check_valid_for_print`,
+     * which does the real checking
+     */
+    bool can_be_printed() { return printable; }
+
+    /**
+     * @brief Check the result of starting the load
+     *
+     * To be used concurently to `start_load`,
+     * which does the starting.
+     */
+    StartLoadResult start_load_result() { return load_started; }
 
     /**
      * @brief Sets up gcode file and sets up info member variables for print preview
      * @note start_load and end_load shall be called before&after
      */
-    void load(bool thumbnail_only = false);
+    void load();
 
     /** Evaluates tool compatibility*/
     void EvaluateToolsValid();

@@ -85,12 +85,13 @@ FORCE_INLINE double get_move_start_pos(const move_t &move, const int axis) {
 }
 
 FORCE_INLINE double get_move_end_pos(const move_t &move, const int axis) {
-    return move.start_pos[axis] + calc_distance<double>(move.start_v, move.half_accel, move.move_t);
+    const double axis_r = move.axes_r[axis];
+    return move.start_pos[axis] + calc_distance<double>(move.start_v * axis_r, move.half_accel * axis_r, move.move_t);
 }
 
 // True - Positive direction
 // False - Negative direction
-FORCE_INLINE int get_move_step_dir(const move_t &move, const int axis) {
+FORCE_INLINE bool get_move_step_dir(const move_t &move, const int axis) {
     return !(move.flags & (MOVE_FLAG_X_DIR << axis));
 }
 

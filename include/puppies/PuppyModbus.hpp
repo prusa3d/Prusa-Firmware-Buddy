@@ -7,6 +7,7 @@
 #include <cstring>
 #include <type_traits>
 #include <optional>
+#include <limits>
 
 namespace buddy::puppies {
 
@@ -16,11 +17,11 @@ class ModbusDevice;
 #define MODBUS_REGISTER struct __attribute__((__packed__)) __attribute__((aligned(sizeof(uint16_t))))
 
 struct ModbusInputBase {
-    uint32_t last_read_timestamp_ms;
+    uint32_t last_read_timestamp_ms = std::numeric_limits<uint32_t>::max();
 };
 
 struct ModbusOutputBase {
-    bool dirty; // Whether the value needs write
+    bool dirty = false; // Whether the value needs write
 };
 
 /**
@@ -29,11 +30,11 @@ struct ModbusOutputBase {
 template <uint16_t ADDRESS, typename DATA_T>
 struct ModbusDiscreteInputBlock : ModbusInputBase {
     static_assert(sizeof(DATA_T) < 2000 * sizeof(bool), "Max register read size as defined by Modbus 584-844");
-    static_assert(std::is_standard_layout<DATA_T>() && std::is_trivial<DATA_T>(), "This only works with plain data");
+    static_assert(std::is_standard_layout<DATA_T>(), "This only works with plain data");
     static_assert(sizeof(DATA_T) % sizeof(bool) == 0, "Registers need to cover data");
 
     union {
-        DATA_T value;                                  // Discrete register data block as application value
+        DATA_T value {}; // Discrete register data block as application value
         bool registers[sizeof(DATA_T) / sizeof(bool)]; // Input register data block as Modbus registers
     };
 };
@@ -44,11 +45,11 @@ struct ModbusDiscreteInputBlock : ModbusInputBase {
 template <uint16_t ADDRESS, typename DATA_T>
 struct ModbusRegisterBlock {
     static_assert(sizeof(DATA_T) < 125 * sizeof(uint16_t), "Max register read size as defined by Modbus 584-844");
-    static_assert(std::is_standard_layout<DATA_T>() && std::is_trivial<DATA_T>(), "This only works with plain data");
+    static_assert(std::is_standard_layout<DATA_T>(), "This only works with plain data");
     static_assert(sizeof(DATA_T) % sizeof(uint16_t) == 0, "Registers need to cover data");
 
     union {
-        DATA_T value;                                          // Register data block as application value
+        DATA_T value {}; // Register data block as application value
         uint16_t registers[sizeof(DATA_T) / sizeof(uint16_t)]; // Register data block as Modbus registers
     };
 };
@@ -70,7 +71,7 @@ struct ModbusHoldingRegisterBlock : ModbusRegisterBlock<ADDRESS, DATA_T>, Modbus
  */
 template <uint16_t ADDRESS>
 struct ModbusCoil : ModbusOutputBase {
-    bool value;
+    bool value {};
 };
 
 struct ModbusValueReference {

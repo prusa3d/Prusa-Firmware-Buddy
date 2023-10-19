@@ -17,22 +17,21 @@ void Init();
 /// Erase the whole EEPROM
 void EraseAll();
 
-/// @brief Read manipulate and store bowden length
+/// @brief Read and store bowden length
 ///
-/// Value is stored independently for each filament.
-/// Active filament is deduced from active_extruder global variable.
+/// Legacy functions for setting bowden length for each slot have been removed (we are out of space).
+/// It doesn't look to be practical to set bowden lengths for per slot anymore,
+/// because the filament loading algoritm is much more intelligent than in FW 1.0.6
+/// and slight differences in pulley gear diameters will be hard to spot at runtime.
+/// Moreover, the FW now contains autotuning of the bowden length,
+/// so the user should not need to set the register in any way.
 class BowdenLength {
 public:
-    static uint16_t get();
-    static const uint8_t stepSize = 10u; ///< increase()/decrease() bowden length step size
-    BowdenLength();
-    bool increase();
-    bool decrease();
-    ~BowdenLength();
+    /// @returns default bowden length in millimeters
+    static uint16_t Get();
 
-private:
-    uint8_t filament; ///< Selected filament
-    uint16_t length; ///< Selected filament bowden length
+    /// Sets
+    static void Set(uint16_t mm);
 };
 
 /// @brief Read and store last filament loaded to nozzle

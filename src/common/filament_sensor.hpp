@@ -65,9 +65,9 @@ protected:
     std::atomic<fsensor_t> state = fsensor_t::NotInitialized;
 
     virtual void record_state() = 0; // record metrics
-    virtual void cycle() = 0;        // sensor type specific evaluation cycle
-    virtual void enable() = 0;       // enables sensor called from Enable(), does not have locks
-    virtual void disable() = 0;      // disables sensor called from Disable(), does not have locks
+    virtual void cycle() = 0; // sensor type specific evaluation cycle
+    virtual void enable() = 0; // enables sensor called from Enable(), does not have locks
+    virtual void disable() = 0; // disables sensor called from Disable(), does not have locks
 };
 
 // basic filament sensor api

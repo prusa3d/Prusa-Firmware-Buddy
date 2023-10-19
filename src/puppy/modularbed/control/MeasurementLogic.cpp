@@ -11,9 +11,9 @@
 using namespace hal::ADCDriver;
 
 #define CHANNEL_PREPARE_DELAY_MICROSECONDS       500
-#define CHANNEL_MEASUREMENT_TIMEOUT_MICROSECONDS 5000  // actual measurement time is 2220 microseconds
+#define CHANNEL_MEASUREMENT_TIMEOUT_MICROSECONDS 5000 // actual measurement time is 2220 microseconds
 #define CURRENT_STABILIZATION_TIME_MICROSECONDS  80000 // theoretical time constant of used analog RC filter is 10000 microseconds
-uint16_t constexpr DEFAULT_MEASURED_VREF = 24150;      // measured on real ModularBed board
+uint16_t constexpr DEFAULT_MEASURED_VREF = 24150; // measured on real ModularBed board
 
 #define PRECISE_MEASUREMENT_COUNT 10
 #define DEFAULT_CURRENT_ADC_ZERO  32900

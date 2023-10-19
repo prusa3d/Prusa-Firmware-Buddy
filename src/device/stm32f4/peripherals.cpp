@@ -312,21 +312,29 @@ void hw_adc1_init() {
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::board_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::pinda_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::heatbed_U);
+    config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
+    config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
 #elif (BOARD_IS_XBUDDY && PRINTER_IS_PRUSA_MK3_5)
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::hotend_U);
+    config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
+    config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
 #elif (BOARD_IS_XBUDDY)
     config_adc_ch(&hadc1, ADC_CHANNEL_10, AdcChannel::hotend_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::heatbed_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::heatbed_U);
     config_adc_ch(&hadc1, ADC_CHANNEL_6, AdcChannel::heatbreak_T);
     config_adc_ch(&hadc1, ADC_CHANNEL_3, AdcChannel::hotend_U);
+    config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
+    config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
 #elif BOARD_IS_XLBUDDY
     config_adc_ch(&hadc1, ADC_CHANNEL_4, AdcChannel::dwarf_I);
     config_adc_ch(&hadc1, ADC_CHANNEL_5, AdcChannel::mux1_y);
     config_adc_ch(&hadc1, ADC_CHANNEL_8, AdcChannel::mux1_x);
+    config_adc_ch(&hadc1, ADC_CHANNEL_VREFINT, AdcChannel::vref);
+    config_adc_ch(&hadc1, ADC_CHANNEL_TEMPSENSOR, AdcChannel::mcu_temperature);
 #else
     #error Unknown board
 #endif
@@ -494,23 +502,23 @@ static constexpr uint32_t i2c_get_edge_us(uint32_t clk) {
  * @param scl   pin of clock
  */
 static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
-    delay_us_precise(i2c_get_edge_us(clk));                       // half period - ensure first edge is not too short
-    for (size_t i = 0; i < 9; ++i) {                              // 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
-        HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET);        // set clock to '1'
-        delay_us_precise(i2c_get_edge_us(clk));                   // wait half period
+    delay_us_precise(i2c_get_edge_us(clk)); // half period - ensure first edge is not too short
+    for (size_t i = 0; i < 9; ++i) { // 9 pulses, there is no point to try it more times - 9th bit is ACK (will be NACK)
+        HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // set clock to '1'
+        delay_us_precise(i2c_get_edge_us(clk)); // wait half period
         if (HAL_GPIO_ReadPin(sda.port, sda.no) == GPIO_PIN_SET) { // check if slave does not pull SDA to '0' while SCL == 1
-            return;                                               // sda is not pulled by a slave, it is done
+            return; // sda is not pulled by a slave, it is done
         }
 
         HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_RESET); // set clock to '0'
-        delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+        delay_us_precise(i2c_get_edge_us(clk)); // wait half period
     }
 
-    // in case code reaches this, there is some HW issue
-    // but we cannot log it or rise red screen, it is too early
+// in case code reaches this, there is some HW issue
+// but we cannot log it or rise red screen, it is too early
 #ifdef _DEBUG
-    // Breakpoint if debugger is connected
-    buddy_breakpoint_disable_heaters();
+    buddy_disable_heaters();
+    __BKPT(0);
 #endif
     HAL_GPIO_WritePin(scl.port, scl.no, GPIO_PIN_SET); // this code should never be reached, just in case it was set clock to '1'
 }
@@ -527,17 +535,17 @@ static void i2c_unblock_sda(uint32_t clk, hw_pin sda, hw_pin scl) {
  * @param scl   pin of clock
  */
 static void i2c_free_bus_in_case_of_slave_deadlock(uint32_t clk, hw_pin sda, hw_pin scl) {
-    set_pin_in(sda);                                            // configure SDA to input
+    set_pin_in(sda); // configure SDA to input
     if (HAL_GPIO_ReadPin(sda.port, sda.no) == GPIO_PIN_RESET) { // check if slave pulls SDA to '0' while SCL == 1
-        set_pin_od(scl);                                        // configure SCL to open-drain
-        i2c_unblock_sda(clk, sda, scl);                         // get SDA pin in state pin can be "moved"
+        set_pin_od(scl); // configure SCL to open-drain
+        i2c_unblock_sda(clk, sda, scl); // get SDA pin in state pin can be "moved"
     }
 
-    set_pin_od(sda);                                     // reconfigure SDA to open-drain, to be able to move it
+    set_pin_od(sda); // reconfigure SDA to open-drain, to be able to move it
     HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_RESET); // set SDA to '0' while SCL == '1' - start condition
-    delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+    delay_us_precise(i2c_get_edge_us(clk)); // wait half period
     HAL_GPIO_WritePin(sda.port, sda.no, GPIO_PIN_RESET); // set SDA to '1' while SCL == '1' - stop condition
-    delay_us_precise(i2c_get_edge_us(clk));              // wait half period
+    delay_us_precise(i2c_get_edge_us(clk)); // wait half period
 }
 
 #if HAS_I2CN(1)
@@ -818,7 +826,7 @@ void hw_tim1_init() {
     htim1.Instance = TIM1;
     htim1.Init.Prescaler = TIM1_default_Prescaler; // 0x3fff was 100;
     htim1.Init.CounterMode = TIM_COUNTERMODE_DOWN;
-    htim1.Init.Period = TIM1_default_Period;       // 0xff was 42000;
+    htim1.Init.Period = TIM1_default_Period; // 0xff was 42000;
     htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim1.Init.RepetitionCounter = 0;
     if (HAL_TIM_Base_Init(&htim1) != HAL_OK) {

@@ -122,7 +122,7 @@ void PrusaToolChangerUtils::request_active_switch(Dwarf *new_dwarf) {
         if (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) {
             return; // Fail silently, so powerpanic can work
         }
-    #endif          /*ENABLED(CRASH_RECOVERY)*/
+    #endif /*ENABLED(CRASH_RECOVERY)*/
         toolchanger_error("Tool switch failed");
     }
 }
@@ -140,7 +140,7 @@ bool PrusaToolChangerUtils::update() {
                 log_info(PrusaToolChanger, "Deactivated Dwarf %u", old_tool->get_dwarf_nr());
 
                 active_dwarf = nullptr; // No dwarf is selected right now
-                loadcell.Clear();       // No loadcell is available now, make sure that it is not stuck in active mode
+                loadcell.Clear(); // No loadcell is available now, make sure that it is not stuck in active mode
             }
             if (new_tool) {
                 if (new_tool->set_selected(true) == CommunicationStatus::ERROR) {
@@ -149,7 +149,7 @@ bool PrusaToolChangerUtils::update() {
                 log_info(PrusaToolChanger, "Activated Dwarf %u", new_tool->get_dwarf_nr());
 
                 active_dwarf = new_tool; // New tool is necessary for stepperE0.push()
-                stepperE0.push();        // Write current stepper settings
+                stepperE0.push(); // Write current stepper settings
             }
         }
         // Update physically picked tool before clearing the request
@@ -344,7 +344,7 @@ bool PrusaToolChangerUtils::save_tool_info_to_usb() {
     for (unsigned int i = 0; i < tool_info.size(); ++i) {
         std::array<char, 30> buffer;
         int n = snprintf(buffer.data(), buffer.size(), "%.2f %.2f\n", tool_info[i].dock_x, tool_info[i].dock_y);
-        fwrite(buffer.data(), sizeof(char), n, file);
+        fwrite(buffer.data(), sizeof(char), std::min<int>(n, buffer.size() - 1), file);
     }
 
     return fclose(file) == 0;
@@ -362,7 +362,7 @@ bool PrusaToolChangerUtils::save_tool_offsets_to_file(const char *filename) {
     HOTEND_LOOP() {
         std::array<char, 40> buffer;
         int n = snprintf(buffer.data(), buffer.size(), "%f %f %f\n", hotend_offset[e].x, hotend_offset[e].y, hotend_offset[e].z);
-        fwrite(buffer.data(), sizeof(char), n, file);
+        fwrite(buffer.data(), sizeof(char), std::min<int>(n, buffer.size() - 1), file);
     }
 
     return fclose(file) == 0;
@@ -461,6 +461,7 @@ void PrusaToolChangerUtils::ConfRestorer::sample() {
     if (sampled) {
         bsod("Double sampled planner configuration");
     }
+    sampled_jerk = planner.max_jerk;
     sampled_travel_acceleration = planner.settings.travel_acceleration;
     sampled_feedrate_mm_s = feedrate_mm_s;
     sampled_feedrate_percentage = feedrate_percentage;
@@ -470,6 +471,13 @@ void PrusaToolChangerUtils::ConfRestorer::sample() {
 void PrusaToolChangerUtils::ConfRestorer::restore_clear() {
     restore();
     sampled = false;
+}
+
+void PrusaToolChangerUtils::ConfRestorer::restore_jerk() {
+    if (!sampled.load()) {
+        bsod("Restoring not sampled jerk");
+    }
+    planner.max_jerk = sampled_jerk;
 }
 
 void PrusaToolChangerUtils::ConfRestorer::restore_acceleration() {
@@ -491,8 +499,8 @@ void PrusaToolChangerUtils::ConfRestorer::restore_feedrate() {
 bool PrusaToolChangerUtils::wait(std::function<bool()> function, uint32_t timeout_ms) {
     uint32_t start_time = ticks_ms();
     bool result = false;
-    while (!(result = function())                    // Wait for this and remember its state for return
-        && !planner.draining()                       // This triggers on powerpanic and quickstop
+    while (!(result = function()) // Wait for this and remember its state for return
+        && !planner.draining() // This triggers on powerpanic and quickstop
         && (ticks_ms() - start_time) < timeout_ms) { // Timeout
         idle(true, true);
     }

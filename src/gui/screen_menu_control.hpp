@@ -42,7 +42,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     ,
     MI_CALIB_FSENSOR_MMU
             #endif // HAS_MMU2()
-        #endif     // FILAMENT_SENSOR_IS_ADC()
+        #endif // FILAMENT_SENSOR_IS_ADC()
     ,
     MI_SELFTEST,
     MI_DIAGNOSTICS

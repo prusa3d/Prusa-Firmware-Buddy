@@ -181,8 +181,8 @@ public:
 
 protected:
     static constexpr uint32_t max_pulse_len = T1H + T1L > T0H + T0L ? T1H + T1L : T0H + T0L; // std::max( T1H + T1L,  T0H + T0L); - not constexpr
-    static constexpr uint32_t max_size = max_pulse_len * 24;                                 // 3*8bit color
-    static constexpr uint32_t bitfield_size = COUNT * max_size;                              // theoretical maximum size in bits
+    static constexpr uint32_t max_size = max_pulse_len * 24; // 3*8bit color
+    static constexpr uint32_t bitfield_size = COUNT * max_size; // theoretical maximum size in bits
     std::bitset<bitfield_size> led_bitset;
 
     void setHi(size_t &rBitfieldPos) {
@@ -213,7 +213,7 @@ protected:
 template <size_t COUNT, size_t T1H, size_t T1L, size_t T0H, size_t T0L>
 size_t LedsSPI_base<COUNT, T1H, T1L, T0H, T0L>::setBitset() {
     if (this->leds_to_rewrite == 0 && !this->force_refresh)
-        return 0;       // nothing to set
+        return 0; // nothing to set
 
     led_bitset.reset(); // clear bit array
 

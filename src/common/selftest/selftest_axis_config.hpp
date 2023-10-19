@@ -22,11 +22,11 @@ struct AxisConfig_t {
     const float *fr_table_bw; // backward
     float length_min;
     float length_max;
-    uint32_t axis;        // AxisEnum
+    uint32_t axis; // AxisEnum
     uint32_t steps;
     int32_t movement_dir; // not motor dir, has values 1/-1. TODO FIXME -1 does not work
-    bool park;            ///< If true, park the axis after the test
-    float park_pos;       ///< Position to park the axis [mm]
+    bool park; ///< If true, park the axis after the test
+    float park_pos; ///< Position to park the axis [mm]
 };
 
 }; // namespace selftest

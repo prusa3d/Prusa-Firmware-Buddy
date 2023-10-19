@@ -19,7 +19,7 @@ ScreenStackOverflow::ScreenStackOverflow()
     char *buffer;
 
     // Get BSOD title, it has the offending task name
-    if (crash_dump::message_get_type() == crash_dump::MsgType::BSOD) {
+    if (crash_dump::message_get_type() == crash_dump::MsgType::STACK_OVF) {
         if (crash_dump::load_message(nullptr, 0, txt_err_title, std::size(txt_err_title))) {
             title.SetText(string_view_utf8::MakeRAM(reinterpret_cast<uint8_t *>(txt_err_title)));
         }

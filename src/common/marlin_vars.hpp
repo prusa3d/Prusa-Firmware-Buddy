@@ -141,22 +141,24 @@ public:
     /**
      * @brief Atomically change contents of this string
      *
-     * @param from
+     * @param from string to copy
+     * @param max_len use max this number of characters (not counting '\0')
      */
-    void set(const char *from) {
+    void set(const char *from, size_t max_len = LENGTH) {
         auto guard = MarlinVarsLockGuard();
-        set(from, guard);
+        set(from, max_len, guard);
     }
 
     /**
      * @brief Atomically change contents of this string
      * You acquire lock yourself. Use this if you want to atomically sample multiple values.
-     * @param from
+     * @param from string to copy
+     * @param max_len use max this number of characters (not counting '\0')
      * @param guard
      */
-    void set(const char *from, MarlinVarsLockGuard &guard) {
+    void set(const char *from, size_t max_len, MarlinVarsLockGuard &guard) {
         (void)guard; // Lock argument is here just to make sure lock is acquired.
-        strlcpy(value, from, LENGTH);
+        strlcpy(value, from, std::min(max_len + 1, LENGTH));
     }
 
     /**
@@ -236,47 +238,47 @@ public:
      * pos is taken from immediate stepper position.
      * curr_pos is taken from Marlin's current_position variable which is the target of current move before MBL is compensated.
      */
-    MarlinVariable<float> native_pos[4];       ///< immediate position XYZE (native coordinates) [mm]
-    MarlinVariable<float> logical_pos[4];      ///< immediate position XYZE (logical coordinates) [mm]
-    MarlinVariable<float> native_curr_pos[4];  ///< current position XYZE (native coordinates) [mm]
+    MarlinVariable<float> native_pos[4]; ///< immediate position XYZE (native coordinates) [mm]
+    MarlinVariable<float> logical_pos[4]; ///< immediate position XYZE (logical coordinates) [mm]
+    MarlinVariable<float> native_curr_pos[4]; ///< current position XYZE (native coordinates) [mm]
     MarlinVariable<float> logical_curr_pos[4]; ///< current position XYZE (logical coordinates) [mm]
 
-    MarlinVariable<float> temp_bed;            // bed temperature [C]
-    MarlinVariable<float> target_bed;          // bed target temperature [C]
-    MarlinVariable<float> z_offset;            // probe z-offset [mm]
+    MarlinVariable<float> temp_bed; // bed temperature [C]
+    MarlinVariable<float> target_bed; // bed target temperature [C]
+    MarlinVariable<float> z_offset; // probe z-offset [mm]
     MarlinVariable<float> travel_acceleration; // travel acceleration from planner
-    MarlinVariable<uint32_t> print_duration;   // print_job_timer.duration() [ms]
-    MarlinVariable<uint32_t> time_to_end;      // remaining print time (dumbly) calculated with speed [s]
+    MarlinVariable<uint32_t> print_duration; // print_job_timer.duration() [ms]
+    MarlinVariable<uint32_t> time_to_end; // remaining print time (dumbly) calculated with speed [s]
 
     MarlinVariableString<FILE_PATH_BUFFER_LEN> media_SFN_path;
     MarlinVariableString<FILE_NAME_BUFFER_LEN> media_LFN;
     MarlinVariable<marlin_server::State> print_state; // marlin_server.print_state
 
 #if ENABLED(CANCEL_OBJECTS)
-    MarlinVariable<uint32_t> cancel_object_mask;            ///< Copy of mask of canceled objects
-    MarlinVariable<int8_t> cancel_object_count;             ///< Number of objects that can be canceled
+    MarlinVariable<uint32_t> cancel_object_mask; ///< Copy of mask of canceled objects
+    MarlinVariable<int8_t> cancel_object_count; ///< Number of objects that can be canceled
 
-    static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32;    ///< Maximal length of cancel_object_names strings
+    static constexpr size_t CANCEL_OBJECT_NAME_LEN = 32; ///< Maximal length of cancel_object_names strings
     static constexpr size_t CANCEL_OBJECTS_NAME_COUNT = 16; ///< Maximal number of cancel objects
     /// Names of cancelable objects
     MarlinVariableString<CANCEL_OBJECT_NAME_LEN> cancel_object_names[CANCEL_OBJECTS_NAME_COUNT];
 #endif /*ENABLED(CANCEL_OBJECTS)*/
 
     // 2B base types
-    MarlinVariable<uint16_t> print_speed;         // printing speed factor [%]
-    MarlinVariable<uint16_t> job_id;              // print job id incremented at every print start(for connect)
+    MarlinVariable<uint16_t> print_speed; // printing speed factor [%]
+    MarlinVariable<uint16_t> job_id; // print job id incremented at every print start(for connect)
     MarlinVariable<uint16_t> enabled_bedlet_mask; // enabled bedlet mask 1 - enabled, 0 disabled
 
     // 1B base types
-    MarlinVariable<uint8_t> gqueue;              // number of commands in gcode queue
-    MarlinVariable<uint8_t> pqueue;              // number of commands in planner queue
-    MarlinVariable<uint8_t> sd_percent_done;     // card.percentDone() [%]
-    MarlinVariable<uint8_t> media_inserted;      // media_is_inserted()
-    MarlinVariable<uint8_t> fan_check_enabled;   // fan_check [on/off]
+    MarlinVariable<uint8_t> gqueue; // number of commands in gcode queue
+    MarlinVariable<uint8_t> pqueue; // number of commands in planner queue
+    MarlinVariable<uint8_t> sd_percent_done; // card.percentDone() [%]
+    MarlinVariable<uint8_t> media_inserted; // media_is_inserted()
+    MarlinVariable<uint8_t> fan_check_enabled; // fan_check [on/off]
     MarlinVariable<uint8_t> fs_autoload_enabled; // fs_autoload [on/off]
-    MarlinVariable<uint8_t> mmu2_state;          // 1 if MMU2 is on and works, 2 connecting, 0 otherwise - clients may use this variable to change behavior - with/without the MMU
-    MarlinVariable<uint8_t> mmu2_finda;          // FINDA pressed = 1, FINDA not pressed = 0 - shall be used as the main fsensor in case of mmu2State
-    MarlinVariable<uint8_t> active_extruder;     // See marlin's active_extruder. It will contain currently selected extruder (tool in case of XL, loaded filament nr in case of MMU2)
+    MarlinVariable<uint8_t> mmu2_state; // 1 if MMU2 is on and works, 2 connecting, 0 otherwise - clients may use this variable to change behavior - with/without the MMU
+    MarlinVariable<uint8_t> mmu2_finda; // FINDA pressed = 1, FINDA not pressed = 0 - shall be used as the main fsensor in case of mmu2State
+    MarlinVariable<uint8_t> active_extruder; // See marlin's active_extruder. It will contain currently selected extruder (tool in case of XL, loaded filament nr in case of MMU2)
 
     // TODO: prints fans should be in extruder struct, but we are not able to control multiple print fans yet
     MarlinVariable<uint8_t> print_fan_speed; // print fan speed [0..255]
@@ -284,17 +286,17 @@ public:
     // PER-Hotend variables (access via hotend(num) or active_hotend())
     struct Hotend {
         // nozzle
-        MarlinVariable<float> temp_nozzle;    // nozzle temperature [C]
-        MarlinVariable<float> target_nozzle;  // nozzle target temperature [C]
+        MarlinVariable<float> temp_nozzle; // nozzle temperature [C]
+        MarlinVariable<float> target_nozzle; // nozzle target temperature [C]
         MarlinVariable<float> display_nozzle; // nozzle temperature to display [C]
 
         // heatbreak
-        MarlinVariable<float> temp_heatbreak;       // heatbreak temperature [C]
-        MarlinVariable<float> target_heatbreak;     // heatbreak target temperature [C]
+        MarlinVariable<float> temp_heatbreak; // heatbreak temperature [C]
+        MarlinVariable<float> target_heatbreak; // heatbreak target temperature [C]
         MarlinVariable<uint16_t> heatbreak_fan_rpm; // Fans::heat_break(active_extruder).getActualRPM() [1/min]
 
         // others
-        MarlinVariable<uint16_t> flow_factor;   // flow factor [%]
+        MarlinVariable<uint16_t> flow_factor; // flow factor [%]
         MarlinVariable<uint16_t> print_fan_rpm; // Fans::print(active_extruder).getActualRPM() [1/min]
 
         Hotend() {}
@@ -374,11 +376,11 @@ public:
     void unlock();
 
 private:
-    osMutexDef(mutex);                           // Declare mutex
-    osMutexId mutex_id;                          // Mutex ID
+    osMutexDef(mutex); // Declare mutex
+    osMutexId mutex_id; // Mutex ID
     std::atomic<osThreadId> current_mutex_owner; // current mutex owner -> to check for recursive locking
-    std::array<Hotend, HOTENDS> hotends;         // array of hotends (use hotend()/active_hotend() getter)
-    FSMChange last_fsm_state;                    // last fsm state, used in connect and link
+    std::array<Hotend, HOTENDS> hotends; // array of hotends (use hotend()/active_hotend() getter)
+    FSMChange last_fsm_state; // last fsm state, used in connect and link
 
     // disable copy constructor
     marlin_vars_t(const marlin_vars_t &) = delete;

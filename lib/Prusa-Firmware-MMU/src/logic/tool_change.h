@@ -11,8 +11,9 @@ namespace logic {
 /// @brief  A high-level command state machine - handles the complex logic of tool change - which is basically a chain of an Unload and a Load operation.
 class ToolChange : public CommandBase {
 public:
-    inline ToolChange()
-        : CommandBase() {}
+    inline constexpr ToolChange()
+        : CommandBase()
+        , plannedSlot(-1) {}
 
     /// Restart the automaton
     /// @param param index of filament slot to change to - i.e. to load

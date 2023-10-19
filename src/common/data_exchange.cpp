@@ -10,14 +10,14 @@ struct __attribute__((packed)) DataExchange {
     FwAutoUpdate fw_update_flag;
     uint8_t appendix_status;
     uint8_t fw_signature;
-    uint8_t bootloader_valid;         //< Initialized by preboot to false; bootloader sets it to true
+    uint8_t bootloader_valid; //< Initialized by preboot to false; bootloader sets it to true
     char bbf_sfn[13];
-    uint8_t reserved__[3];            // aligned to N*4B (20B), set to 0 - so value is defined, in case we need ot gor versioning etc.
-    OtpStatus xlcd_status;            // 8B
-    XlcdEeprom xlcd_eeprom;           // 32B
-    OtpStatus loveboard_status;       // 8B
+    uint8_t reserved__[3]; // aligned to N*4B (20B), set to 0 - so value is defined, in case we need ot gor versioning etc.
+    OtpStatus xlcd_status; // 8B
+    XlcdEeprom xlcd_eeprom; // 32B
+    OtpStatus loveboard_status; // 8B
     LoveBoardEeprom loveboard_eeprom; // 32B
-};                                    // 100B in total
+}; // 100B in total
 
 DataExchange ram_data_exchange __attribute__((section(".boot_fw_data_exchange")));
 

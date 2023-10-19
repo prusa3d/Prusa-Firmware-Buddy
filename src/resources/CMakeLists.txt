@@ -57,7 +57,7 @@ target_include_directories(firmware PUBLIC "${resources_include_dir}")
 
 if(PRINTER STREQUAL "MINI")
   # Some revisions of mini has 1MB flash, so limit resource size to remaining size
-  add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 206)
+  add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 205)
 else()
   add_lfs_image(resources-image BLOCK_SIZE 4096 BLOCK_COUNT 512)
 endif()
@@ -83,8 +83,8 @@ endif()
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.5f5322c31a3face56a9b.js" "/web/main.5f5322c31a3face56a9b.js")
-add_gzip_resource("web/main.f8ac848b2f92b82bcee8.css" "/web/main.f8ac848b2f92b82bcee8.css")
+add_gzip_resource("web/main.bf4381d9e5ab54702172.js" "/web/main.bf4381d9e5ab54702172.js")
+add_gzip_resource("web/main.71c989a4a290e5c10892.css" "/web/main.71c989a4a290e5c10892.css")
 
 # non-packed images, set the list of images to process
 set(NONPACKED_PNG_SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/resources")

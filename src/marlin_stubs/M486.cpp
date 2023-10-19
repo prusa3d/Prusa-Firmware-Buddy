@@ -38,18 +38,43 @@
  *   U<index> : Un-cancel object with the given index
  *   C        : Cancel the current object (the last index given by S<index>)
  *   S-1      : Start a non-object like a brim or purge tower that should always print
- *   N<name>  : Name the current object
+ *
+ *   Aname    : Name the current object
+ *   Nname    : Legacy, same as Aname
+ *   A and N need to be alone in the G-code line, use "M486 S1\nM486 AMyAwesomeObject".
+ *   Spaces in name can get consumed by meatpack.
  */
 void GcodeSuite::M486() {
 
-    // Get object name and store it in marlin_vars
-    const char *name_prefix = "M486 A";
-    const size_t name_prefix_len = strlen(name_prefix);
-    if (strlen(parser.command_ptr) > name_prefix_len && memcmp(parser.command_ptr, name_prefix, name_prefix_len) == 0) {
-        if (size_t active = cancelable.active_object; active < marlin_vars()->CANCEL_OBJECT_NAME_LEN) { // Check that object id is within bounds
-            marlin_vars()->cancel_object_names[cancelable.active_object].set(parser.command_ptr + name_prefix_len);
-            return;
+    ///@note This must be before other checks and return when A or N is found,
+    ///    otherwise objects with C in name get themselves canceled immediately.
+    char *arg = nullptr;
+    size_t len = strlen(parser.command_ptr);
+    if (len >= 6 && (parser.command_ptr[4] == 'A' || parser.command_ptr[4] == 'N')) { // Catch "M486Aname" and "M486Nname"
+        arg = parser.command_ptr + 5;
+        len -= 5;
+    } else if (len >= 7 && parser.command_ptr[4] == ' ' && (parser.command_ptr[5] == 'A' || parser.command_ptr[5] == 'N')) { // Catch "M486 Aname" and "M486 Nname"
+        arg = parser.command_ptr + 6;
+        len -= 6;
+    } else if (parser.boolval('A') || parser.boolval('N')) {
+        return; // Ignore the entire line if A or N are not at the first position
+    }
+
+    if (arg) {
+        if (static_cast<size_t>(cancelable.active_object) >= marlin_vars_t::CANCEL_OBJECTS_NAME_COUNT) {
+            return; // out of bounds, nothing can be done
         }
+        if (*arg == '\"') {
+            arg++; // Skip "
+            len--;
+        }
+        if (len > 0) {
+            if (arg[len - 1] == '\"') {
+                len--; // Remove " at the end
+            }
+            marlin_vars()->cancel_object_names[cancelable.active_object].set(arg, len);
+        }
+        return; // Do not parse the line if A or N are found
     }
 
     if (parser.seen('T')) {

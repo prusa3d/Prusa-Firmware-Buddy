@@ -3,7 +3,7 @@
 #include "gcode_buffer.hpp"
 #include <variant>
 #include <algorithm>
-#include "core/core.hpp" // libbgcode
+#include <core/core.hpp> // libbgcode
 #include <optional>
 #include <transfers/partial_file.hpp>
 #include "base64_stream_decoder.h"
@@ -34,7 +34,7 @@ public:
     enum class Result_t {
         RESULT_OK,
         RESULT_EOF,
-        RESULT_TIMEOUT,      // low level USB function might return timeout in case they can't get mutex in time
+        RESULT_TIMEOUT, // low level USB function might return timeout in case they can't get mutex in time
         RESULT_ERROR,
         RESULT_OUT_OF_RANGE, // Outside of the validity range
     };
@@ -229,7 +229,7 @@ public:
     virtual bool verify_file(std::span<uint8_t> crc_calc_buffer) const override;
 
     struct stream_restore_info_rec_t {
-        uint32_t block_file_pos = 0;     //< Of block header in file
+        uint32_t block_file_pos = 0; //< Of block header in file
         uint32_t block_start_offset = 0; //< Offset of decompressed data on start of the block
     };
     typedef std::array<stream_restore_info_rec_t, 2> stream_restore_info_t;
@@ -240,7 +240,7 @@ public:
     virtual bool valid_for_print() override;
 
 private:
-    uint32_t file_size;                   ///< Size of PrusaPack file in bytes
+    uint32_t file_size; ///< Size of PrusaPack file in bytes
     bgcode::core::FileHeader file_header; // cached header
 
     struct stream_t {
@@ -248,7 +248,7 @@ private:
         bgcode::core::BlockHeader current_block_header;
         uint16_t encoding = (uint16_t)bgcode::core::EGCodeEncodingType::None;
         uint32_t block_remaining_bytes_compressed = 0; //< remaining bytes in current block
-        uint32_t uncompressed_offset = 0;              //< offset of next char that will be outputted
+        uint32_t uncompressed_offset = 0; //< offset of next char that will be outputted
         MeatPack meatpack;
         heatshrink_decoder *hs_decoder = nullptr;
 
@@ -261,8 +261,8 @@ private:
     /// helper enum for iterate_blocks function
     enum class IterateResult_t {
         Continue, //< continue iterating
-        Return,   //< return current block
-        End,      //< end search
+        Return, //< return current block
+        End, //< end search
     };
 
     std::optional<bgcode::core::BlockHeader> iterate_blocks(std::function<IterateResult_t(bgcode::core::BlockHeader &)> function);

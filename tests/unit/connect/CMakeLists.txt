@@ -16,6 +16,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/render.cpp
@@ -30,6 +31,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/lib/heatshrink/heatshrink_decoder.c
   command.cpp
@@ -45,6 +47,30 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
+  # LwIP parts
+  # See reason why we do it this way in
+  # tests/unit/lib/WUI/nhttp/CMakeLists.txt
+  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/def.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/pbuf.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ip.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_addr.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/icmp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/etharp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/udp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/dns.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp_in.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp_out.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/timeouts.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/memp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/netif.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/netif/ethernet.c
   )
 target_include_directories(
   connect_tests
@@ -59,9 +85,15 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/common/gcode
           ${CMAKE_SOURCE_DIR}/src/persistent_stores
           ${CMAKE_SOURCE_DIR}/lib/jsmn
+          ${CMAKE_SOURCE_DIR}/lib/WUI
           ${CMAKE_SOURCE_DIR}/lib/heatshrink
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/tests/stubs
+          ${CMAKE_SOURCE_DIR}/include/usb_host
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
+          ${CMAKE_SOURCE_DIR}/lib/libbgcode/src/LibBGCode
+          ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
 target_link_libraries(connect_tests mbedTLS bgcode_core)
 add_definitions(-DUNITTESTS -DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0)
@@ -96,6 +128,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/http/socket.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/connection.cpp
   ${CMAKE_SOURCE_DIR}/src/common/http/socket_connection_factory.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/planner.cpp
@@ -108,6 +141,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/files.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/jsmn_impl.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
@@ -121,6 +155,30 @@ add_executable(
   gui_media_events_mock.cpp
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aes.c
   ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/library/aesni.c
+  # LwIP parts
+  # See reason why we do it this way in
+  # tests/unit/lib/WUI/nhttp/CMakeLists.txt
+  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/def.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/pbuf.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ip.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_addr.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/icmp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/etharp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/udp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/dns.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp_in.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp_out.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/timeouts.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/memp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/netif.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/netif/ethernet.c
   )
 target_include_directories(
   connect_planner_tests
@@ -132,10 +190,16 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/src
           ${CMAKE_SOURCE_DIR}/lib/jsmn
+          ${CMAKE_SOURCE_DIR}/lib/WUI
           ${CMAKE_SOURCE_DIR}/tests/stubs
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
+          ${CMAKE_SOURCE_DIR}/include/usb_host
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
+          ${CMAKE_SOURCE_DIR}/lib/libbgcode/src/LibBGCode
+          ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
-add_definitions(-DUNITTESTS)
+add_definitions(-DUNITTESTS -DUSE_ASYNCIO=1)
 add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
 
 add_executable(
@@ -153,6 +217,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/json_encode.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filename_type.cpp
   ${CMAKE_SOURCE_DIR}/src/common/filepath_operation.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/common/segmented_json.cpp
   ${CMAKE_SOURCE_DIR}/src/connect/background.cpp
@@ -168,12 +233,34 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer.cpp
+  ${CMAKE_SOURCE_DIR}/src/transfers/transfer_file_check.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/transfer_recovery.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/fake_freertos_mutex.cpp
   ${CMAKE_SOURCE_DIR}/tests/stubs/strlcpy.c
   ${CMAKE_SOURCE_DIR}/tests/stubs/printer_type.cpp
   ${CMAKE_SOURCE_DIR}/tests/unit/common/printer_state_mock.cpp
   missing_functions.cpp
+  ${CMAKE_SOURCE_DIR}/tests/unit/lib/WUI/nhttp/missing_functions.c
+  ${CMAKE_SOURCE_DIR}/src/buddy/lwip.cpp
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/altcp_tcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/def.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/pbuf.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ip.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_addr.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/icmp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/etharp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/udp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/dns.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp_in.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/tcp_out.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/timeouts.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/memp.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/core/netif.c
+  ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/netif/ethernet.c
   registrator.cpp
   time_mock.cpp
   partial_file_mock.cpp
@@ -189,6 +276,13 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/src/gui
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/tests/stubs
+          ${CMAKE_SOURCE_DIR}/include/usb_host
+          ${CMAKE_SOURCE_DIR}/lib/WUI
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/src/include
+          ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/LwIP/system
+          ${CMAKE_SOURCE_DIR}/lib/libbgcode/src/LibBGCode
+          ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
 add_dependencies(connect_registration_tests generate-httpc-automata-tests-connect)
 

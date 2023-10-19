@@ -109,6 +109,19 @@ StatusPage delete_file(const char *filename, const RequestParser &parser) {
     }
 }
 
+StatusPage create_folder(const char *filename, const RequestParser &parser) {
+    if (mkdir(filename, 777) != 0) {
+        if (errno == EEXIST) {
+            return StatusPage(Status::Conflict, parser, "Already exists");
+        } else {
+            return StatusPage(Status::InternalServerError, parser, "Error creating directory");
+        }
+    }
+
+    ChangedPath::instance.changed_path(filename, Type::Folder, Incident::Created);
+    return StatusPage(Status::Created, parser);
+}
+
 StatusPage print_file(char *filename, const RequestParser &parser) {
     // if not exists
     if (access(filename, R_OK) != 0) {

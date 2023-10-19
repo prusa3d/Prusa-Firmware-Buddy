@@ -14,9 +14,9 @@
 LOG_COMPONENT_REF(GUI);
 
 static int touch_read_err_total = 0;
-static constexpr uint32_t touch_err_cnt_to_be_reset = 4;                // how many times must touch read fail to be considered an error
+static constexpr uint32_t touch_err_cnt_to_be_reset = 4; // how many times must touch read fail to be considered an error
 static constexpr uint32_t disable_touch_after_n_resets_in_sequence = 4; // if 4 resets did not help, just disable it, home screen will show msgbox
-static uint32_t touch_read_err = 0;                                     // errors in row
+static uint32_t touch_read_err = 0; // errors in row
 
 namespace {
 void reinit_lcd_and_redraw() {
@@ -70,7 +70,7 @@ void check_lcd() {
 } // anonymous namespace
 
 void lcd::communication_check() {
-    const uint32_t min_check_period_ms = 2048;                           // both touch and display
+    const uint32_t min_check_period_ms = 2048; // both touch and display
     static uint32_t last_touch_check_ms = gui::GetTick_IgnoreTickLoop(); // sync with loop time would be unwanted
 
     uint32_t now = gui::GetTick_IgnoreTickLoop();

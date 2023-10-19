@@ -121,7 +121,7 @@
 /  memory for the working buffer, memory management functions, ff_memalloc() and
 /  ff_memfree() exemplified in ffsystem.c, need to be added to the project. */
 
-#define FF_LFN_UNICODE 0
+#define FF_LFN_UNICODE 2
 /* This option switches the character encoding on the API when LFN is enabled.
 /
 /   0: ANSI/OEM in current CP (TCHAR = char)
@@ -133,7 +133,7 @@
 /  When LFN is not enabled, this option has no effect. */
 
 #define FF_LFN_BUF 255
-#define FF_SFN_BUF 12
+#define FF_SFN_BUF 34
 /* This set of options defines size of file name members in the FILINFO structure
 /  which is used to read out directory items. These values should be suffcient for
 /  the file names to read. The maximum possible length of the read file name depends

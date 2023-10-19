@@ -242,8 +242,9 @@ set(PRINTERS_WITH_FILAMENT_SENSOR_BINARY "MINI" "MK3.5")
 set(PRINTERS_WITH_FILAMENT_SENSOR_ADC "MK4" "XL" "iX")
 set(PRINTERS_WITH_INIT_TRINAMIC_FROM_MARLIN_ONLY "MINI" "MK4" "MK3.5" "XL" "iX")
 set(PRINTERS_WITH_ADVANCED_PAUSE "MINI" "MK4" "MK3.5" "iX" "XL")
-set(PRINTERS_WITH_CRASH_DETECTION "MINI" "MK4" "XL") # this does require selftest to work
-set(PRINTERS_WITH_POWER_PANIC "MK4" "XL") # this does require selftest and crash detection to work
+set(PRINTERS_WITH_CRASH_DETECTION "MINI" "MK4" "MK3.5" "XL") # this does require selftest to work
+set(PRINTERS_WITH_POWER_PANIC "MK4" "MK3.5" "XL") # this does require selftest and crash detection
+                                                  # to work
 set(PRINTERS_WITH_PRECISE_HOMING "MK4")
 set(PRINTERS_WITH_PRECISE_HOMING_COREXY "XL")
 # private MINI would not fit to 1MB so it has disabled selftest set(PRINTERS_WITH_SELFTEST "MINI"
@@ -581,8 +582,7 @@ else()
   define_boolean_option(NETWORKING_BENCHMARK_ENABLED NO)
 endif()
 
-# asyncio causes speed regressions so let's disable it for now
-define_boolean_option(USE_ASYNCIO NO)
+define_boolean_option(USE_ASYNCIO YES)
 
 # define enabled features
 

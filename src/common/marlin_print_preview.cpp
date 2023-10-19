@@ -3,6 +3,7 @@
  */
 
 #include "marlin_print_preview.hpp"
+#include "media.h"
 #include "client_fsm_types.h"
 #include "client_response.hpp"
 #include "general_response.hpp"
@@ -26,6 +27,7 @@
 #include "tools_mapping.hpp"
 #include <module/prusa/tool_mapper.hpp>
 #include <module/prusa/spool_join.hpp>
+#include <mmu2_toolchanger_common.hpp>
 
 // would be nice to have option leave phase as it was
 // something like std::pair<enum {delete, leave, has_value },PhasesPrintPreview>
@@ -118,6 +120,91 @@ static bool is_same(const char *curr_filament, const GCodeInfo::filament_buff &f
 static bool filament_known(const char *curr_filament) {
     return strncmp(curr_filament, "---", 3) != 0;
 }
+
+#if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
+
+bool PrintPreview::ToolsMappingValidty::all_ok() const {
+    return unassigned_gcodes.count() == 0 && mismatched_filaments.count() == 0 && mismatched_nozzles.count() == 0 && unloaded_tools.count() == 0;
+}
+
+auto PrintPreview::check_tools_mapping_validity(const ToolMapper &mapper, const SpoolJoin &joiner, const GCodeInfo &gcode) -> ToolsMappingValidty {
+    ToolsMappingValidty result;
+
+    // unassigned gcode check
+    for (int gcode_tool = 0; gcode_tool < gcode.GivenExtrudersCount(); ++gcode_tool) {
+        if (!gcode.get_extruder_info(gcode_tool).used()) {
+            continue;
+        }
+
+        if (mapper.to_physical(gcode_tool) == ToolMapper::NO_TOOL_MAPPED) {
+            result.unassigned_gcodes.set(gcode_tool);
+        }
+    }
+
+    auto get_nozzle_diameter = [&]([[maybe_unused]] size_t idx) {
+    #if HAS_TOOLCHANGER()
+        return config_store().get_nozzle_diameter(idx);
+    #elif HAS_MMU2()
+        return config_store().get_nozzle_diameter(0);
+    #endif // else unknown configuration
+    };
+
+    auto nozzles_match = [&](uint8_t physical_extruder) {
+        auto gcode_tool = tools_mapping::to_gcode_tool_custom(mapper, joiner, physical_extruder);
+        if (gcode_tool == tools_mapping::no_tool
+            || !gcode.get_extruder_info(gcode_tool).used()
+            || !gcode.get_extruder_info(gcode_tool).nozzle_diameter.has_value()) {
+            return true;
+        }
+
+        float nozzle_diameter_distance = gcode.get_extruder_info(gcode_tool).nozzle_diameter.value() - get_nozzle_diameter(physical_extruder);
+        if (nozzle_diameter_distance > 0.001f || nozzle_diameter_distance < -0.001f) {
+            return false;
+        }
+
+        return true;
+    };
+
+    auto tool_needs_to_be_loaded = [&]([[maybe_unused]] uint8_t physical_extruder) { // if any tool needs filament load
+    #if HAS_TOOLCHANGER()
+        if (!config_store().fsensor_enabled.get()) {
+            return false;
+        }
+
+        return PrintPreview::check_extruder_need_filament_load(physical_extruder, ToolMapper::NO_TOOL_MAPPED, [&](uint8_t pe) {
+            return tools_mapping::to_gcode_tool_custom(mapper, joiner, pe);
+        });
+    #elif HAS_MMU2()
+        return false; // MMU is purposefully unloaded before print
+    #endif
+    };
+
+    auto tool_has_correct_filament_type = [&](uint8_t physical_extruder) {
+        return PrintPreview::check_correct_filament_type(physical_extruder, ToolMapper::NO_TOOL_MAPPED, [&](uint8_t pe) {
+            return tools_mapping::to_gcode_tool_custom(mapper, joiner, pe);
+        });
+    };
+
+    // The other 3 checks
+    for (size_t physical = 0; physical < EXTRUDERS; ++physical) {
+        if (!is_tool_enabled(physical)) {
+            continue;
+        }
+        if (tool_needs_to_be_loaded(physical)) {
+            result.unloaded_tools.set(physical);
+        }
+        if (!nozzles_match(physical)) {
+            result.mismatched_nozzles.set(physical);
+        }
+        if (!tool_has_correct_filament_type(physical)) {
+            result.mismatched_filaments.set(physical);
+        }
+    }
+
+    return result;
+}
+
+#endif
 
 bool PrintPreview::check_extruder_need_filament_load(uint8_t physical_extruder, uint8_t no_gcode_value, std::function<uint8_t(uint8_t)> gcode_extruder_getter) {
     auto gcode_extruder = gcode_extruder_getter(physical_extruder);
@@ -292,16 +379,8 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::inactive: // cannot be, but have it defined to enumerate all states
         return Result::Inactive;
     case State::init:
-        if (!gcode_info.start_load()) {
-            ChangeState(State::inactive);
-            return Result::Abort;
-        }
-        if (!gcode_info.valid_for_print()) {
-            last_download_check = ticks_ms();
-            ChangeState(State::download_wait);
-        } else {
-            ChangeState(State::loading);
-        }
+        osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_INIT);
+        ChangeState(State::loading);
         if (skip_if_able) {
             // if skip print confirmation was requested, mark the print as started immediately.
             // If not, it will be started later when user clicks print
@@ -311,29 +390,32 @@ PrintPreview::Result PrintPreview::Loop() {
     case State::download_wait:
         switch (response) {
         case Response::Quit:
-            gcode_info.end_load();
+            osSignalSet(prefetch_thread_id, PREFETCH_SIGNAL_GCODE_INFO_STOP);
             ChangeState(State::inactive);
             return Result::Abort;
         default:
             break;
         }
 
-        // check for file update every DOWNLOAD_CHECK_PERIOD, to avoid using too much CPU time
-        if (ticks_ms() - last_download_check > DOWNLOAD_CHECK_PERIOD) {
-            last_download_check = ticks_ms();
-            if (gcode_info.valid_for_print()) {
-                ChangeState(State::loading);
-            }
+        if (gcode_info.can_be_printed()) {
+            ChangeState(State::loading);
         }
         break;
     case State::loading:
-        gcode_info.load();
-        gcode_info.end_load();
-        if (gcode_info.is_loaded()) {
-            ChangeState(skip_if_able ? stateFromSelftestCheck() : State::preview_wait_user);
-        } else {
+        if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::None) {
+            break;
+        } else if (gcode_info.start_load_result() == GCodeInfo::StartLoadResult::Failed) {
             ChangeState(State::inactive);
             return Result::Abort;
+        }
+
+        if (!gcode_info.can_be_printed()) {
+            ChangeState(State::download_wait);
+            break;
+        }
+
+        if (gcode_info.is_loaded()) {
+            ChangeState(skip_if_able ? stateFromSelftestCheck() : State::preview_wait_user);
         }
         break;
     case State::preview_wait_user:
@@ -479,6 +561,14 @@ PrintPreview::Result PrintPreview::Loop() {
         break;
     case State::checks_done:
         if (tools_mapping::is_tool_mapping_possible()) {
+#if ENABLED(PRUSA_SPOOL_JOIN) && ENABLED(PRUSA_TOOL_MAPPING)
+            if (skip_if_able && PrintPreview::check_tools_mapping_validity(tool_mapper, spool_join, gcode_info).all_ok()) {
+                // we can skip tools mapping if there is not warning/error in global tools mapping
+                ChangeState(State::done);
+                break;
+            }
+#endif
+
             ChangeState(State::tools_mapping_wait_user);
 
             // start preheating bed to save time in absorbing heat

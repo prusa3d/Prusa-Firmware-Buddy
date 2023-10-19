@@ -1,18 +1,18 @@
 
 #include "screen_menu_filament_changeall.hpp"
-#include <module/prusa/toolchanger.h>
 #include <filament.hpp>
 #include <ScreenHandler.hpp>
 #include <img_resources.hpp>
 #include <marlin_client.hpp>
 #include "DialogHandler.hpp"
 #include <config_store/store_instance.hpp>
+#include "mmu2_toolchanger_common.hpp"
 
 I_MI_FilamentSelect::I_MI_FilamentSelect(const char *const label, int tool_n)
     : WI_LAMBDA_SPIN(_(label),
         (ftrstd::to_underlying(filament::Type::_last) + (config_store().get_filament_type(tool_n) != filament::Type::NONE ? 2 : 1)), // Allow unload only if something is loaded now
-        nullptr, is_enabled_t::yes, prusa_toolchanger.is_tool_enabled(tool_n) ? is_hidden_t::no : is_hidden_t::yes,
-        0,                                                                                                                           // Default "Don't change"
+        nullptr, is_enabled_t::yes, is_tool_enabled(tool_n) ? is_hidden_t::no : is_hidden_t::yes,
+        0, // Default "Don't change"
         [&](char *buffer) {
             const size_t index = GetIndex();
             if (index == nochange_index) {
@@ -43,14 +43,14 @@ ScreenChangeAllFilaments::ScreenChangeAllFilaments()
 }
 
 namespace {
-void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_count> &selection, const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors = {}) {
+void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_count> &selection, [[maybe_unused]] const std::array<std::optional<filament::Colour>, ScreenChangeAllFilaments::tool_count> &colors = {}) {
     static constexpr auto tool_count = ScreenChangeAllFilaments::tool_count;
 
     filament::Type new_filament[tool_count] = {}; // Filled with NONE
     filament::Type old_filament[tool_count] = {};
-    bool valid[tool_count] = {};                  // Nothing valid
+    bool valid[tool_count] = {}; // Nothing valid
     for (size_t tool = 0; tool < tool_count; tool++) {
-        if (!prusa_toolchanger.is_tool_enabled(tool)) {
+        if (!is_tool_enabled(tool)) {
             continue; // Tool not enabled
         }
 
@@ -72,6 +72,7 @@ void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_c
         valid[tool] = true;
     }
 
+#if PRINTER_IS_PRUSA_XL
     // Set all temperatures
     for (size_t tool = 0; tool < tool_count; tool++) {
         if (!valid[tool]) {
@@ -102,7 +103,7 @@ void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_c
         }
 
         if (new_filament[tool] == filament::Type::NONE) {
-            marlin_client::gcode_printf("M702 T%d W2", tool);    // Unload
+            marlin_client::gcode_printf("M702 T%d W2", tool); // Unload
         } else if (old_filament[tool] == filament::Type::NONE) { // Load
             if (colors[tool].has_value()) {
                 marlin_client::gcode_printf("M701 S\"%s\" T%d W2 O%d", filament::get_description(new_filament[tool]).name, tool,
@@ -127,6 +128,44 @@ void handle_change_all(const std::array<size_t, ScreenChangeAllFilaments::tool_c
             gui_loop();
         }
     }
+
+#elif PRINTER_IS_PRUSA_MK4 || PRINTER_IS_PRUSA_MK3_5
+
+    /* MMU2 Reimplementation
+
+        MMU should be in unloaded state right now (as every start of print)
+        For all selected tools (in this case tool == MMU's filament slot) change filament
+        This means MMU will go through selected tools and load to the slot (NOT load to extruder)
+        M704 for filament pre-load does not support color specification
+    */
+
+    UNUSED(old_filament);
+
+    for (size_t tool = 0; tool < tool_count; tool++) {
+        if (!valid[tool]) { // Unloading is manual on MMU
+            continue;
+        }
+
+        if (selection[tool] == I_MI_FilamentSelect::unload_index) {
+            config_store().set_filament_type(tool, filament::Type::NONE);
+            continue;
+        }
+
+        marlin_client::gcode_printf("M704 P%d", tool);
+        // change filament type in EEPROM;
+        config_store().set_filament_type(tool, new_filament[tool]);
+
+        /// @note Wait while there are more than one command in queue.
+        ///  Keep one G-code in queue at all times to prevent race.
+        ///  If the queue is empty for a short moment, the printer seems to be idle and other stuff can happen.
+        while (queue.length > 1) {
+            gui::TickLoop();
+            DialogHandler::Access().Loop();
+            gui_loop();
+        }
+    }
+
+#endif // PRINTER_IS_PRUSA_XXX
 
     // Wait for all changes to finish
     while (queue.has_commands_queued() || planner.processing()) {

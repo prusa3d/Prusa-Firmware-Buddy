@@ -1,0 +1,25 @@
+
+== `functional.hpp`
+
+`with_result_of` is a class that can be used for lazy evaluation.
+`with_result_of` wraps a callable (often a lambda expression) and can
+implicitly convert to the return type of the callable. It may be passed to
+functions that perfectly forward their arguments - a good example is an
+`emplace` function on a container - and the conversion happens only when the
+required value is actually used.
+
+[source,cpp]
+----
+// S is a type that is some work to construct
+// so we use a maker function
+struct S { ... };
+auto make_S() -> S;
+
+std::unordered_map<int, S> m;
+
+v.emplace(0, make_S()); // this works, but incurs a temporary construct, move and destruct
+v.emplace(0, stdx::with_result_of{make_S}); // this constructs S in-place thanks to RVO
+----
+
+`with_result_of` can help to achieve in-place construction, effectively by deferring
+evaluation of function arguments.

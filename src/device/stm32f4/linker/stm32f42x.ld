@@ -160,9 +160,6 @@ SECTIONS
 
     . = ALIGN(4);
     _eccmram = .;       /* create a global symbol at ccmram end */
-
-    _sccmdump = .;      /* Start of free space for dump */
-    . += 0x100;         /* At least 256 byte needed */
   } >CCMRAM
 
 

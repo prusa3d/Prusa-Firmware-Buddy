@@ -21,7 +21,8 @@ public:
     Loadcell();
 
     static constexpr int32_t undefined_value = std::numeric_limits<int32_t>::min();
-    static constexpr unsigned int UNDEFINED_SAMPLE_MAX_CNT = 2; // About 6ms of stale data @ 320Hz, 78ms over a channel switch
+    static constexpr int UNDEFINED_INIT_MAX_CNT = 6; // Maximum number of undefined samples to ignore during startup (>=0)
+    static constexpr int UNDEFINED_SAMPLE_MAX_CNT = 2; // About 6ms of stale data @ 320Hz, 78ms over a channel switch
     static constexpr unsigned int STATIC_TARE_SAMPLE_CNT = 16;
 
     static constexpr float XY_PROBE_THRESHOLD { 40 };
@@ -106,7 +107,7 @@ public:
     /// @brief Request highest precision available from loadcell
     inline void EnableHighPrecision() {
         assert(!highPrecision); // ensure HP is not recursively enabled
-        reset_filters();        // reset filters before we turn on HP
+        reset_filters(); // reset filters before we turn on HP
         highPrecision = true;
     }
     inline void DisableHighPrecision() {
@@ -168,14 +169,14 @@ private:
         static constexpr std::array<const float, 5> a = { { 1, -3.678167822936356, 5.211060348827695, -3.364842682922483, 0.837181651256023 } };
         static constexpr size_t settling_time = 120; // 375ms
     };
-#else                                                /*PRINTER*/
+#else /*PRINTER*/
     // Original
     struct ZFilterParams {
         static constexpr float gain = 5.724846511e+01f;
         static constexpr std::array<const float, 5> a = { { 1, -3.6132919084, 4.9481816585, -3.0510427201, 0.7164075250 } };
         static constexpr size_t settling_time = 120; // 375ms
     };
-#endif                                               /*PRINTER*/
+#endif /*PRINTER*/
 
     // Tweaked butter(2, [0.005 0.08])
     // Consider increasing the low threshold in case the offset takes to long to remove
@@ -268,8 +269,8 @@ private:
     float failsOnLoadAbove;
     float failsOnLoadBelow;
 
-    int32_t loadcellRaw;       // current sample
-    unsigned int undefinedCnt; // undefined sample run length
+    int32_t loadcellRaw; // current sample
+    int undefinedCnt; // undefined sample run length
 
     bool endstop;
     std::atomic<bool> xy_endstop;

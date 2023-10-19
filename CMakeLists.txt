@@ -3,7 +3,6 @@ include(ExternalProject)
 include(cmake/Utilities.cmake)
 include(cmake/GetGitRevisionDescription.cmake)
 include(cmake/ProjectVersion.cmake)
-include(cmake/CheckRemotes.cmake)
 include(cmake/Littlefs.cmake)
 include(cmake/Options.cmake)
 
@@ -48,6 +47,10 @@ set(CMAKE_CXX_STANDARD 20)
 
 # enable all warnings (well, not all, but some)
 add_compile_options(-Wall -Wsign-compare)
+
+# make all paths stored inside firmware relative
+add_compile_options(-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.)
+
 add_compile_options(
   $<$<COMPILE_LANGUAGE:CXX>:-Wno-register> $<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>
   $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
@@ -608,7 +611,7 @@ target_include_directories(
           include/mbedtls
   )
 
-target_link_libraries(firmware PRIVATE BuddyHeaders Segger printf::printf)
+target_link_libraries(firmware PRIVATE BuddyHeaders Segger printf::printf CrashCatcher)
 
 if(BOARD MATCHES "BUDDY")
   target_link_libraries(
@@ -628,6 +631,7 @@ if(BOARD MATCHES "BUDDY")
             jsmn::jsmn
             QR
             Buddy::Lang
+            CppStdExtensions
             printf::printf
             sysbase
             Segger
@@ -642,11 +646,9 @@ if(BOARD MATCHES "BUDDY")
             heatshrink_decoder
     )
 elseif(BOARD STREQUAL "DWARF")
-  target_link_libraries(
-    firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper CrashCatcher
-    )
+  target_link_libraries(firmware PRIVATE BuddyHeaders Marlin Arduino::Core Arduino::TMCStepper)
 elseif(BOARD STREQUAL "MODULARBED")
-  target_link_libraries(firmware PRIVATE BuddyHeaders CrashCatcher)
+  target_link_libraries(firmware PRIVATE BuddyHeaders)
 endif()
 
 set_property(

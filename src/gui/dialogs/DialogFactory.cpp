@@ -35,6 +35,7 @@ DialogFactory::Ctors DialogFactory::GetAll() {
     ret[size_t(ClientFSM::Load_unload)] = load_unload;
     ret[size_t(ClientFSM::Preheat)] = Preheat;
     ret[size_t(ClientFSM::Selftest)] = screen_not_dialog;
+    ret[size_t(ClientFSM::ESP)] = screen_not_dialog;
 
     if (std::find(std::begin(ret), std::end(ret), nullptr) != std::end(ret))
         bsod("Error missing dialog Ctor"); // GUI init will throw this

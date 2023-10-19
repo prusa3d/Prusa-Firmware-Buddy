@@ -8,7 +8,7 @@ namespace FSensorADCEval {
 
 static constexpr int32_t filtered_value_not_ready { std::numeric_limits<int32_t>::min() }; // invalid value of fs_filtered_value
 static constexpr int32_t ref_value_not_calibrated { std::numeric_limits<int32_t>::min() }; // invalid value of fs_filtered_value
-static constexpr int32_t lower_limit =                                                     // value for detecting disconnected sensor
+static constexpr int32_t lower_limit = // value for detecting disconnected sensor
 #if (BOARD_IS_XLBUDDY)
     20;
 #else

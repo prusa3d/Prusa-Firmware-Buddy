@@ -18,9 +18,9 @@ static TMC2130Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 static TMC2209Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
 #endif
 
-static uint16_t tmc_sg[4];                          // stallguard result for each axis
-static uint8_t tmc_sg_mask = 7;                     // stallguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
-static uint8_t tmc_sg_axis = 0;                     // current axis for stallguard result sampling (0-x, 1-y, ...)
+static uint16_t tmc_sg[4]; // stallguard result for each axis
+static uint8_t tmc_sg_mask = 7; // stallguard result sampling mask (bit0-x, bit1-y, ...), xyz by default
+static uint8_t tmc_sg_axis = 0; // current axis for stallguard result sampling (0-x, 1-y, ...)
 
 static tmc_sg_sample_cb_t *tmc_sg_sample_cb = NULL; // sg sample callback
 
@@ -321,6 +321,20 @@ uint8_t tmc_sample(void) {
 
 extern uint16_t tmc_get_last_sg_sample(uint8_t axis) {
     return tmc_sg[axis];
+}
+
+bool tmc_check_coils(uint8_t axis) {
+    if (!pStep[axis]) {
+        return false;
+    }
+
+    const bool ola = pStep[axis]->ola();
+    const bool olb = pStep[axis]->olb();
+    const bool s2ga = pStep[axis]->s2ga();
+    const bool s2gb = pStep[axis]->s2gb();
+
+    // Yes, we could actually tell what is wrong. For now we are fine with boolean result.
+    return !ola && !olb && !s2ga && !s2gb;
 }
 
 } // extern "C"

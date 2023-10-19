@@ -11,15 +11,15 @@ namespace {
  *
  */
 constexpr Animation_model default_animations[] {
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_IDLE
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 }, // EEVAR_ANIMATION_IDLE
     { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_PRINTING
     { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_PAUSING
     { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 150, 255, 0, 0, 0 }, // EEVAR_ANIMATION_RESUMING
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_ABORTING
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 255, 0, 0, 0, 0 },   // EEVAR_ANIMATION_FINISHING
-    { static_cast<uint8_t>(AnimationTypes::Fading), 255, 255, 0, 1000, 0, 0 },  // EEVAR_ANIMATION_WARNING
-    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 },     // EEVAR_ANIMATION_POWER_PANIC
-    { static_cast<uint8_t>(AnimationTypes::Fading), 0, 255, 0, 1500, 0, 0 },    // EEVAR_ANIMATION_POWER_UP
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 }, // EEVAR_ANIMATION_ABORTING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 255, 0, 0, 0, 0 }, // EEVAR_ANIMATION_FINISHING
+    { static_cast<uint8_t>(AnimationTypes::Fading), 255, 255, 0, 1000, 0, 0 }, // EEVAR_ANIMATION_WARNING
+    { static_cast<uint8_t>(AnimationTypes::SolidColor), 0, 0, 0, 0, 0, 0 }, // EEVAR_ANIMATION_POWER_PANIC
+    { static_cast<uint8_t>(AnimationTypes::Fading), 0, 255, 0, 1500, 0, 0 }, // EEVAR_ANIMATION_POWER_UP
 };
 static_assert(std::size(default_animations) == 9, "That's how many there were in old eeprom");
 } // namespace

@@ -29,14 +29,10 @@ enum class printing_state_t : uint8_t {
     COUNT // setting this state == forced update
 };
 
-constexpr static const size_t POPUP_MSG_DUR_MS = 5000;
+inline constexpr size_t POPUP_MSG_DUR_MS = 5000;
 
 class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
-#if !PRINTER_IS_PRUSA_MK4
-    static constexpr const char *caption = N_("INPUT SHAPER ALPHA");
-#else
-    static constexpr const char *caption = N_("INPUT SHAPER");
-#endif
+    static constexpr const char *caption = N_("PRINTING ...");
 
 #if defined(USE_ILI9488)
     PrintProgress print_progress;
@@ -53,7 +49,7 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     window_text_t w_etime_value;
 
     // std::array<char, 15> label_etime;  // "Remaining Time" or "Print will end" // nope, if you have only 2 static const strings, you can swap pointers
-    string_view_utf8 label_etime;      // not sure if we really must keep this in memory
+    string_view_utf8 label_etime; // not sure if we really must keep this in memory
     std::array<char, 5> text_filament; // 999m\0 | 1.2m\0
     uint32_t message_timer;
     bool stop_pressed;
@@ -64,10 +60,6 @@ class screen_printing_data_t : public AddSuperWindow<ScreenPrintingModel> {
     const Rect16 popup_rect;
     PrintTime print_time;
     PT_t time_end_format;
-
-#if DEVELOPMENT_ITEMS() && !DEVELOPER_MODE()
-    bool print_feedback_pending = false;
-#endif
 
 public:
     screen_printing_data_t();

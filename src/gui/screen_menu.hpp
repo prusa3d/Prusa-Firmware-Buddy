@@ -13,8 +13,6 @@
 // parent to not repeat code in templates
 class IScreenMenu : public AddSuperWindow<screen_t> {
 protected:
-    constexpr static const char *no_labelS = "MISSING";
-    static string_view_utf8 no_label;
     window_header_t header;
     window_menu_t menu;
     StatusFooter footer;

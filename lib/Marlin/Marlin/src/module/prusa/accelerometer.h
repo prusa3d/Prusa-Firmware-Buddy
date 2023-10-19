@@ -30,9 +30,9 @@ public:
         communication,
         no_active_tool,
         busy,
-        corrupted_buddy_overflow,     // Data not consistent, sample missed on buddy
+        corrupted_buddy_overflow, // Data not consistent, sample missed on buddy
     #if HAS_PUPPIES()
-        corrupted_dwarf_overflow,     // Data not consistent, sample missed on dwarf
+        corrupted_dwarf_overflow, // Data not consistent, sample missed on dwarf
         corrupted_transmission_error, // Data not consistent, sample possibly lost in transfer
     #endif
     };

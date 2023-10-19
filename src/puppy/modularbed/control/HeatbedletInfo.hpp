@@ -13,9 +13,9 @@ namespace modularbed {
 
 enum class HeatbedletState {
     Inactive, // target temp. = 0
-    Heating,  // target temp. > 0; measured temp. < target temp.; temperature not stabilized
-    Cooling,  // target temp. > 0; measured temp. > target temp.; temperature not stabilized
-    Stable,   // target temp. > 0, temperature stabilized
+    Heating, // target temp. > 0; measured temp. < target temp.; temperature not stabilized
+    Cooling, // target temp. > 0; measured temp. > target temp.; temperature not stabilized
+    Stable, // target temp. > 0, temperature stabilized
     Error,
 };
 

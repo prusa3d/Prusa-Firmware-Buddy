@@ -86,7 +86,7 @@ metric_t metric_cpu_usage = METRIC("cpu_usage", METRIC_VALUE_INTEGER, 1000, METR
 
 #ifdef BUDDY_ENABLE_ETHERNET
 extern osThreadId webServerTaskHandle; // Webserver thread(used for fast boot mode)
-#endif                                 // BUDDY_ENABLE_ETHERNET
+#endif // BUDDY_ENABLE_ETHERNET
 
 void app_marlin_serial_output_write_hook(const uint8_t *buffer, int size) {
     while (size && (buffer[size - 1] == '\n' || buffer[size - 1] == '\r'))
@@ -209,7 +209,7 @@ void app_idle(void) {
     buddy::metrics::RecordRuntimeStats();
     buddy::metrics::RecordPrintFilename();
 #if (BOARD_IS_XLBUDDY)
-    buddy::metrics::record_dwarf_mcu_temperature();
+    buddy::metrics::record_dwarf_internal_temperatures();
 #endif
     print_utils_loop();
 }

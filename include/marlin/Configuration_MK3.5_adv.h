@@ -37,6 +37,16 @@
  */
 #define CONFIGURATION_ADV_H_VERSION 020000
 
+/**
+ * Cancel Objects
+ *
+ * Implement M486 to allow Marlin to skip objects
+ */
+#define CANCEL_OBJECTS
+#ifdef CANCEL_OBJECTS
+  #define CANCEL_OBJECTS_REPORTING // Emit the current object as a status message
+#endif
+
 // @section temperature
 
 //===========================================================================
@@ -1580,7 +1590,7 @@
     #endif
 
     #if AXIS_IS_TMC(E0)
-        #define E0_CURRENT 450
+        #define E0_CURRENT 490
         #define E0_MICROSTEPS 32
         #define E0_RSENSE 0.22
         #define E0_CHAIN_POS 0
@@ -1714,7 +1724,7 @@
  * Provides crash detection during printing and proper crash recovery.
  * Sensorless homing must be turned on and sensitivities set accordingly.
  */
-//#define CRASH_RECOVERY
+#define CRASH_RECOVERY
 #ifdef CRASH_RECOVERY
     #define CRASH_STALL_GUARD { 2, 2 }    // internal value representing sensitivity
     #define CRASH_MAX_PERIOD { 210, 210 } // (steps per tick) - reciprocal value of minimal speed
@@ -1726,7 +1736,7 @@
 /**
  * Measure and check axis length on repeated crashes
  */
-//#define AXIS_MEASURE
+#define AXIS_MEASURE
 #ifdef AXIS_MEASURE
     #define AXIS_MEASURE_STALL_GUARD 1
     #define AXIS_MEASURE_CRASH_PERIOD 210
@@ -1736,7 +1746,7 @@
  * Recovery from power failure. This is a distinct implementation from
  * POWER_LOSS_RECOVERY specific to Prusa printers.
  */
-//#define POWER_PANIC
+#define POWER_PANIC
 
 #ifdef POWER_PANIC
     #define POWER_PANIC_Z_LIFT_CYCLES 4 // 4xFullStep cycles = ~0.64mm

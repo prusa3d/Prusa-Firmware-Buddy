@@ -62,8 +62,8 @@ LOG_COMPONENT_REF(GUI);
 
 // ili9488 CTRL Display
 static const uint8_t MASK_CTRLD_BCTRL = (0x01 << 5); // Brightness Control Block
-static const uint8_t MASK_CTRLD_DD(0x01 << 3);       // Display Dimming
-static const uint8_t MASK_CTRLD_BL(0x01 << 2);       // Backlight Control
+static const uint8_t MASK_CTRLD_DD(0x01 << 3); // Display Dimming
+static const uint8_t MASK_CTRLD_BL(0x01 << 2); // Backlight Control
 
 const uint8_t CMD_MADCTLRD = 0x0B;
 constexpr static uint8_t CMD_NOP = 0x00;
@@ -76,10 +76,10 @@ bool do_complete_lcd_reinit = false;
 
 #ifdef ILI9488_USE_RTOS
 osThreadId ili9488_task_handle = 0;
-#endif                                                      // ILI9488_USE_RTOS
+#endif // ILI9488_USE_RTOS
 
 uint8_t ili9488_buff[ILI9488_COLS * 3 * ILI9488_BUFF_ROWS]; // 3 bytes for pixel color
-bool ili9488_buff_borrowed = false;                         ///< True if buffer is borrowed by someone else
+bool ili9488_buff_borrowed = false; ///< True if buffer is borrowed by someone else
 
 uint8_t *ili9488_borrow_buffer() {
     assert(!ili9488_buff_borrowed && "Already lent");
@@ -183,7 +183,7 @@ void ili9488_spi_wr_bytes(uint8_t *pb, uint16_t size) {
         HAL_SPI_Transmit_DMA(ili9488_config.phspi, pb, size);
 #ifdef ILI9488_USE_RTOS
         osSignalWait(ILI9488_SIG_SPI_TX, osWaitForever);
-#else  // ILI9488_USE_RTOS
+#else // ILI9488_USE_RTOS
 // TODO:
 #endif // ILI9488_USE_RTOS
     } else
@@ -220,14 +220,14 @@ void ili9488_spi_rd_bytes(uint8_t *pb, uint16_t size) {
 }
 
 void ili9488_cmd(uint8_t cmd, uint8_t *pdata, uint16_t size) {
-    ili9488_clr_cs();                      // CS = L
-    ili9488_clr_rs();                      // RS = L
-    ili9488_spi_wr_byte(cmd);              // write command byte
+    ili9488_clr_cs(); // CS = L
+    ili9488_clr_rs(); // RS = L
+    ili9488_spi_wr_byte(cmd); // write command byte
     if (pdata && size) {
-        ili9488_set_rs();                  // RS = H
+        ili9488_set_rs(); // RS = H
         ili9488_spi_wr_bytes(pdata, size); // write data bytes
     }
-    ili9488_set_cs();                      // CS = H
+    ili9488_set_cs(); // CS = H
 }
 
 template <size_t SZ>
@@ -274,11 +274,11 @@ void ili9488_cmd_rd(uint8_t cmd, uint8_t *pdata) {
 
 void ili9488_wr(uint8_t *pdata, uint16_t size) {
     if (!(pdata && size))
-        return;                        // null or empty data - return
-    ili9488_clr_cs();                  // CS = L
-    ili9488_set_rs();                  // RS = H
+        return; // null or empty data - return
+    ili9488_clr_cs(); // CS = L
+    ili9488_set_rs(); // RS = H
     ili9488_spi_wr_bytes(pdata, size); // write data bytes
-    ili9488_set_cs();                  // CS = H
+    ili9488_set_cs(); // CS = H
 }
 
 void ili9488_rd(uint8_t *pdata, uint16_t size) {
@@ -289,13 +289,13 @@ void ili9488_rd(uint8_t *pdata, uint16_t size) {
     ili9488_delay_ms(1);
     displayCs.write(Pin::State::low);
 
-    ili9488_clr_cs();                  // CS = L
-    ili9488_clr_rs();                  // RS = L
-    ili9488_spi_wr_byte(CMD_RAMRD);    // write command byte
-    ili9488_spi_wr_byte(0);            // write dummy byte, datasheet p.122
+    ili9488_clr_cs(); // CS = L
+    ili9488_clr_rs(); // RS = L
+    ili9488_spi_wr_byte(CMD_RAMRD); // write command byte
+    ili9488_spi_wr_byte(0); // write dummy byte, datasheet p.122
 
     ili9488_spi_rd_bytes(pdata, size); // read data bytes
-    ili9488_set_cs();                  // CS = H
+    ili9488_set_cs(); // CS = H
 
     // generate little pulse on displayCs, because ILI need change displayCs logic level
     displayCs.write(Pin::State::high);
@@ -396,14 +396,14 @@ void ili9488_set_complete_lcd_reinit() {
 }
 
 static void startup_old_manufacturer() {
-    ili9488_cmd_slpout();                      // wakeup
-    ili9488_delay_ms(120);                     // 120ms wait
+    ili9488_cmd_slpout(); // wakeup
+    ili9488_delay_ms(120); // 120ms wait
     ili9488_cmd_madctl(ili9488_config.madctl); // interface pixel format
     ili9488_cmd_colmod(ili9488_config.colmod); // memory data access control
-    ili9488_cmd_dispon();                      // display on
-    ili9488_delay_ms(10);                      // 10ms wait
-    ili9488_clear(COLOR_BLACK);                // black screen after power on
-    ili9488_delay_ms(100);                     // time to set black color
+    ili9488_cmd_dispon(); // display on
+    ili9488_delay_ms(10); // 10ms wait
+    ili9488_clear(COLOR_BLACK); // black screen after power on
+    ili9488_delay_ms(100); // time to set black color
     ili9488_inversion_on();
 }
 
@@ -422,7 +422,7 @@ static void startup_new_manufacturer() {
     // Frame Rate Control (In Normal Mode/Full Colors) (this seems to be default)
     ili9488_cmd_array(0xB1, std::to_array<uint8_t>({
                                 0xa0, // division ratio for internal clocks - Fosc, frame frequency of full color normal mode
-                                0x11  // Clocks per line
+                                0x11 // Clocks per line
                             }));
 
     // Display Inversion Control (this seems to be default)
@@ -431,7 +431,7 @@ static void startup_new_manufacturer() {
     // Power Control 1
     ili9488_cmd_array(0xC0, std::to_array<uint8_t>({
                                 0x0f, // Set the VREG1OUT voltage for positive gamma
-                                0x0f  // Set the VREG2OUT voltage for negative gammas
+                                0x0f // Set the VREG2OUT voltage for negative gammas
                             }));
 
     // Power Control 2
@@ -444,7 +444,7 @@ static void startup_new_manufacturer() {
     ili9488_cmd_array(0xC5, std::to_array<uint8_t>({
                                 0x00, // 0: NV memory is not programmed
                                 0x53, // VCM_REG [7:0]
-                                0x80  // 1: VCOM value from VCM_REG [7:0].
+                                0x80 // 1: VCOM value from VCM_REG [7:0].
                             }));
 
     // Entry Mode Set
@@ -473,11 +473,11 @@ static void startup_new_manufacturer() {
                                 0x0F,
                             }));
 
-    ili9488_inversion_on();     // Display Inversion ON
+    ili9488_inversion_on(); // Display Inversion ON
 
-    ili9488_cmd_slpout();       // Sleep OUT - turns off the sleep mode
-    ili9488_delay_ms(120);      // 120ms wait
-    ili9488_cmd_dispon();       // display on
+    ili9488_cmd_slpout(); // Sleep OUT - turns off the sleep mode
+    ili9488_delay_ms(120); // 120ms wait
+    ili9488_cmd_dispon(); // display on
     ili9488_clear(COLOR_BLACK); // black screen after power on
     // ili9488_delay_ms(100);      // time to set black color
 }
@@ -494,7 +494,7 @@ void ili9488_init(void) {
     }
 
     if (!option::bootloader || do_complete_lcd_reinit) {
-        ili9488_reset();       // 15ms reset pulse
+        ili9488_reset(); // 15ms reset pulse
         ili9488_delay_ms(120); // 120ms wait
         if (buddy::hw::Configuration::Instance().has_display_backlight_control()) {
             startup_new_manufacturer();
@@ -632,11 +632,11 @@ void ili9488_draw_qoi_ex(FILE *pf, uint16_t point_x, uint16_t point_y, uint32_t 
 
     // Prepare input buffer
     std::span<uint8_t> i_buf(ili9488_buff, 512); ///< Input file buffer
-    std::span<uint8_t> i_data;                   ///< Span of input data read from file
+    std::span<uint8_t> i_data; ///< Span of input data read from file
 
     // Prepare output buffer
     std::span<uint8_t> p_buf(ili9488_buff + i_buf.size(), std::size(ili9488_buff) - i_buf.size()); ///< Output pixel buffer
-    auto o_data = p_buf.begin();                                                                   ///< Pointer to output pixel data in buffer
+    auto o_data = p_buf.begin(); ///< Pointer to output pixel data in buffer
 
 #if 0
     // Measure time it takes to draw QOI image
@@ -815,15 +815,15 @@ void ili9488_ctrl_set(uint8_t ctrl) {
 }
 
 ili9488_config_t ili9488_config = {
-    0,            // spi handle pointer
-    0,            // flags (DMA, MISO)
-    0,            // interface pixel format (5-6-5, hi-color)
-    0,            // memory data access control (no mirror XY)
+    0, // spi handle pointer
+    0, // flags (DMA, MISO)
+    0, // interface pixel format (5-6-5, hi-color)
+    0, // memory data access control (no mirror XY)
     GAMMA_CURVE0, // gamma curve
-    0,            // brightness
-    0,            // inverted
-    0,            // default control reg value
-    0b10110001    // inverted pwm
+    0, // brightness
+    0, // inverted
+    0, // default control reg value
+    0b10110001 // inverted pwm
 };
 
 //! @brief enable safe mode (direct acces + safe delay)

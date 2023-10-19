@@ -9,10 +9,7 @@
 typedef float feedRate_t;
 
 #else
-
     #include "protocol_logic.h"
-    #include "../../Marlin/src/core/macros.h"
-    #include "../../Marlin/src/core/types.h"
     #include <atomic>
 #endif
 
@@ -48,17 +45,17 @@ public:
 
     /// Different levels of resetting the MMU
     enum ResetForm : uint8_t {
-        Software = 0,     ///< sends a X0 command into the MMU, the MMU will watchdog-reset itself
-        ResetPin = 1,     ///< trigger the reset pin of the MMU
-        CutThePower = 2,  ///< power off and power on (that includes +5V and +24V power lines)
+        Software = 0, ///< sends a X0 command into the MMU, the MMU will watchdog-reset itself
+        ResetPin = 1, ///< trigger the reset pin of the MMU
+        CutThePower = 2, ///< power off and power on (that includes +5V and +24V power lines)
         EraseEEPROM = 42, ///< erase MMU EEPROM and then perform a software reset
     };
 
     /// Saved print state on error.
     enum SavedState : uint8_t {
-        None = 0,         // No state saved.
+        None = 0, // No state saved.
         ParkExtruder = 1, // The extruder was parked.
-        Cooldown = 2,     // The extruder was allowed to cool.
+        Cooldown = 2, // The extruder was allowed to cool.
         CooldownPending = 4,
     };
 
@@ -68,6 +65,10 @@ public:
         ErrorSourceMMU = 1,
         ErrorSourceNone = 0xFF,
     };
+
+    /// Tune value in MMU registers as a way to recover from errors
+    /// e.g. Idler Stallguard threshold
+    void Tune();
 
     /// Perform a reset of the MMU
     /// @param level physical form of the reset
@@ -99,6 +100,18 @@ public:
     /// @param slot of the slot to be selected
     /// @returns false if the operation cannot be performed (Stopped)
     bool tool_change(uint8_t slot);
+
+    /// Tool change that unloads the filament all the way from the nozzle and
+    /// loads it also all the way into the nozzle. The "normal" toolchange
+    /// relies on gcode to do the ramming and a load-to-nozzle sequence.
+    ///
+    /// It also parks the nozzle before unloading and unparks after loading the
+    /// new filament. Used e.g. during spooljoin, which can't have gcode
+    /// support and just has to do the change with minimal impact on the print.
+    ///
+    /// @param slot of the slot to be selected
+    /// @returns false if the operation cannot be performed (Stopped)
+    bool tool_change_full(uint8_t slot);
 
     /// Handling of special Tx, Tc, T? commands
     bool tool_change(char code, uint8_t slot);
@@ -173,7 +186,7 @@ public:
     }
 
     /// Method to read-only mmu_print_saved
-    bool MMU_PRINT_SAVED() const { return mmu_print_saved != SavedState::None; }
+    inline bool MMU_PRINT_SAVED() const { return mmu_print_saved != SavedState::None; }
 
     /// Automagically "press" a Retry button if we have any retry attempts left
     /// @param ec ErrorCode enum value
@@ -190,7 +203,46 @@ public:
     inline void IncrementTMCFailures() { ++tmcFailures; }
     inline void ClearTMCFailures() { tmcFailures = 0; }
 
+    /// Retrieve cached value parsed from ReadRegister()
+    /// or using M707
+    inline uint16_t GetLastReadRegisterValue() const {
+        return lastReadRegisterValue;
+    };
+    inline void InvokeErrorScreen(ErrorCode ec) {
+        // The printer may not raise an error when the MMU is busy
+        if (!logic.CommandInProgress() // MMU must not be busy
+            && MMUCurrentErrorCode() == ErrorCode::OK // The protocol must not be in error state
+            && lastErrorCode != ec) // The error code is not a duplicate
+        {
+            ReportError(ec, ErrorSource::ErrorSourcePrinter);
+        }
+    }
+
+    void ClearPrinterError() {
+        logic.ClearPrinterError();
+        lastErrorCode = ErrorCode::OK;
+        lastErrorSource = ErrorSource::ErrorSourceNone;
+    }
+
+    /// @brief Queue a button operation which the printer can act upon
+    /// @param btn Button operation
+    inline void SetPrinterButtonOperation(Buttons btn) {
+        printerButtonOperation = btn;
+    }
+
+    /// @brief Get the printer button operation
+    /// @return currently set printer button operation, it can be NoButton if nothing is queued
+    inline Buttons GetPrinterButtonOperation() {
+        return printerButtonOperation;
+    }
+
+    inline void ClearPrinterButtonOperation() {
+        printerButtonOperation = Buttons::NoButton;
+    }
+
+#ifndef UNITTEST
 private:
+#endif
     /// Perform software self-reset of the MMU (sends an X0 command)
     void ResetX0();
 
@@ -291,8 +343,8 @@ private:
     void UnloadInner();
     void CutFilamentInner(uint8_t slot);
 
-    ProtocolLogic logic;          ///< implementation of the protocol logic layer
-    uint8_t extruder;             ///< currently active slot in the MMU ... somewhat... not sure where to get it from yet
+    ProtocolLogic logic; ///< implementation of the protocol logic layer
+    uint8_t extruder; ///< currently active slot in the MMU ... somewhat... not sure where to get it from yet
     uint8_t tool_change_extruder; ///< only used for UI purposes
 
     pos3d resume_position;
@@ -302,6 +354,8 @@ private:
     ErrorCode lastErrorCode = ErrorCode::MMU_NOT_RESPONDING;
     ErrorSource lastErrorSource = ErrorSource::ErrorSourceNone;
     Buttons lastButton = Buttons::NoButton;
+    uint16_t lastReadRegisterValue = 0;
+    Buttons printerButtonOperation = Buttons::NoButton;
     uint8_t reportingStartedCnt;
 
     StepStatus logicStepLastStatus;

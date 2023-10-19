@@ -87,10 +87,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *hadc) {
         analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);
 #elif BOARD_IS_XBUDDY
         analog_gpio_init(GPIOA, THERM_1_Pin | THERM_HEATBREAK_Pin | HEATER_VOLTAGE_Pin | BED_VOLTAGE_Pin); /*Initialize GPIOA pins as analog input*/
-        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);                                                  /*Initialize GPIOC pins as analog input*/
+        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin); /*Initialize GPIOC pins as analog input*/
 #elif BOARD_IS_BUDDY
         analog_gpio_init(GPIOA, BED_MON_Pin | THERM_1_Pin | THERM_2_Pin | THERM_PINDA_Pin); /*Initialize GPIOA pins as analog input*/
-        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin);                                   /*Initialize GPIOC pins as analog input*/
+        analog_gpio_init(THERM_0_GPIO_Port, THERM_0_Pin); /*Initialize GPIOC pins as analog input*/
 #elif BOARD_IS_XLBUDDY
         analog_gpio_init(GPIOA, GPIO_PIN_4 | GPIO_PIN_5);
         analog_gpio_init(GPIOB, GPIO_PIN_0);
@@ -1030,9 +1030,16 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
          * PD8     ------> USART3_TX
          * PD9     ------> USART3_RX
          */
-        GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9;
+        GPIO_InitStruct.Pin = GPIO_PIN_8;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+        HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+        GPIO_InitStruct.Pin = GPIO_PIN_9;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_PULLUP;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
         GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
         HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);

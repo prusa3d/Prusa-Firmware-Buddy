@@ -189,7 +189,7 @@ LiveAdjustZ::LiveAdjustZ()
 
 void LiveAdjustZ::moveNozzle() {
     uint16_t old_top = nozzle_icon.Top();
-    Rect16 moved_rect = nozzleRect;                                                        // starting position - 0%
+    Rect16 moved_rect = nozzleRect; // starting position - 0%
     float relative = (z_offset_max - adjuster.GetValue()) / (z_offset_max - z_offset_min); // relative z_offset value
 
     // set move for a scale line indicator

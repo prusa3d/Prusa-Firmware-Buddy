@@ -21,10 +21,10 @@
 void FSensorPhotoElectric::cycle0() {
     if (FSensorPins::Get()) {
         FSensorPins::pullDown();
-        measure_cycle = Cycle::no1;       // next cycle shall be 1
+        measure_cycle = Cycle::no1; // next cycle shall be 1
     } else {
         set_state(fsensor_t::NoFilament); // it is filtered, 2 requests are needed to change state
-        measure_cycle = Cycle::no0;       // remain in cycle 0
+        measure_cycle = Cycle::no0; // remain in cycle 0
     }
 }
 

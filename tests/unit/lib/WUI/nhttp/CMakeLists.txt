@@ -44,6 +44,7 @@ add_executable(
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_reader.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/gcode_buffer.cpp
   ${CMAKE_SOURCE_DIR}/src/common/gcode/meatpack.cpp
+  ${CMAKE_SOURCE_DIR}/src/common/codepage/437.cpp
   ${CMAKE_SOURCE_DIR}/src/common/stat_retry.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/monitor.cpp
   ${CMAKE_SOURCE_DIR}/src/transfers/changed_path.cpp
@@ -92,8 +93,8 @@ add_executable(
   )
 if(USE_ASYNCIO)
   target_sources(
-    nhttp_tests ${CMAKE_CURRENT_SOURCE_DIR}/async_io.cpp
-    ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
+    nhttp_tests INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/async_io.cpp
+                          ${CMAKE_SOURCE_DIR}/lib/WUI/nhttp/splice.cpp
     )
   target_compile_definitions(nhttp_tests INTERFACE USE_ASYNCIO)
 endif()
@@ -120,6 +121,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/heatshrink
           ${CMAKE_SOURCE_DIR}/lib
           ${CMAKE_SOURCE_DIR}/include/mbedtls
+          ${CMAKE_SOURCE_DIR}/include/usb_host
   )
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)

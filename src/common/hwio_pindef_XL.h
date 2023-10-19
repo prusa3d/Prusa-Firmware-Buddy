@@ -9,7 +9,7 @@
 
 #define MARLIN_PORT_X_DIR    MARLIN_PORT_D
 #define MARLIN_PIN_NR_X_DIR  MARLIN_PIN_NR_6
-#define MARLIN_PORT_X_ENA    MARLIN_PORT_B   // XY enable
+#define MARLIN_PORT_X_ENA    MARLIN_PORT_B // XY enable
 #define MARLIN_PIN_NR_X_ENA  MARLIN_PIN_NR_9 // XY enable
 #define MARLIN_PORT_X_DIAG   MARLIN_PORT_G
 #define MARLIN_PIN_NR_X_DIAG MARLIN_PIN_NR_9
@@ -18,7 +18,7 @@
 
 #define MARLIN_PORT_Y_DIR    MARLIN_PORT_D
 #define MARLIN_PIN_NR_Y_DIR  MARLIN_PIN_NR_4
-#define MARLIN_PORT_Y_ENA    MARLIN_PORT_B   // XY enable
+#define MARLIN_PORT_Y_ENA    MARLIN_PORT_B // XY enable
 #define MARLIN_PIN_NR_Y_ENA  MARLIN_PIN_NR_9 // XY enable
 #define MARLIN_PORT_Y_DIAG   MARLIN_PORT_E
 #define MARLIN_PIN_NR_Y_DIAG MARLIN_PIN_NR_13
@@ -80,6 +80,10 @@
 
 #define MARLIN_PORT_Y_STEP   MARLIN_PORT_V // Y_STEP is virtual pin, because it is mapped to diffent pins on different HW revisions :(
 #define MARLIN_PIN_NR_Y_STEP MARLIN_PIN_NR_13
+
+// Ambient temperature sensor connector on sandwich. Measured by AdcGet::ambientTemp().
+#define MARLIN_PORT_AMBIENT   MARLIN_PORT_V
+#define MARLIN_PIN_NR_AMBIENT MARLIN_PIN_NR_14
 
 // only DUMMY pins below, to make compiler happy, but not really used
 

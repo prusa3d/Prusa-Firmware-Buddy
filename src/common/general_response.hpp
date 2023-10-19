@@ -14,8 +14,8 @@
  * !!! MAINTAIN ALPHABETICAL ORDER !!!
  */
 enum class Response : uint8_t {
-    _none = 0,             // none must be zero because of empty initialization of array
-    Abort,                 // when used in selftest, handled automatically in PartHandler
+    _none = 0, // none must be zero because of empty initialization of array
+    Abort, // when used in selftest, handled automatically in PartHandler
     Abort_invalidate_test, // when used in selftest, ignored by PartHandler, must be handled in test. This behavior allows to run additional code before abort
     ABS,
     Adjust,

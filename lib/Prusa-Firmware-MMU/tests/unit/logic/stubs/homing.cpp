@@ -57,8 +57,8 @@ void SimulateIdlerAndSelectorHoming(logic::CommandBase &cb) {
 }
 
 void SimulateIdlerHoming(logic::CommandBase &cb) {
-    // do 5 steps until we trigger the simulated StallGuard
-    for (uint8_t i = 0; i < 5; ++i) {
+    uint32_t idlerStepsFwd = mm::unitToSteps<mm::I_pos_t>(config::idlerLimits.lenght - 5.0_deg);
+    for (uint32_t i = 0; i < idlerStepsFwd; ++i) {
         main_loop();
         cb.Step();
     }
@@ -82,7 +82,17 @@ void SimulateIdlerHoming(logic::CommandBase &cb) {
             mm::motion.StallGuardReset(mm::Idler);
         }
     }
+}
 
+void SimulateIdlerWaitForHomingValid(logic::CommandBase &cb) {
+    // Wait for the HomingValid flag to be set
+    while (!mi::idler.HomingValid()) {
+        main_loop();
+        cb.Step();
+    }
+}
+
+void SimulateIdlerMoveToParkingPosition(logic::CommandBase &cb) {
     // now the Idler shall perform a move into their parking positions
     while (mi::idler.State() != mm::MovableBase::Ready) {
         main_loop();
@@ -116,9 +126,26 @@ void SimulateSelectorHoming(logic::CommandBase &cb) {
             mm::motion.StallGuardReset(mm::Selector);
         }
     }
+}
 
+void SimulateSelectorWaitForHomingValid(logic::CommandBase &cb) {
+    // Wait for the HomingValid flag to be set
+    while (!ms::selector.HomingValid()) {
+        main_loop();
+        cb.Step();
+    }
+}
+
+void SimulateSelectorWaitForReadyState(logic::CommandBase &cb) {
     // now the Selector shall perform a move into their parking positions
     while (ms::selector.State() != mm::MovableBase::Ready) {
+        main_loop();
+        cb.Step();
+    }
+}
+
+void SimulateSelectorAndIdlerWaitForReadyState(logic::CommandBase &cb) {
+    while (ms::selector.State() != ms::Selector::Ready && mi::idler.State() != mi::Idler::Ready) {
         main_loop();
         cb.Step();
     }
@@ -163,9 +190,12 @@ bool SimulateFailedHomeFirstTime(logic::CommandBase &cb) {
     if (ms::selector.HomingValid())
         return false;
 
+    constexpr uint32_t selectorSteps = mm::unitToSteps<mm::S_pos_t>(config::selectorLimits.lenght) + 1;
     {
         // do 5 steps until we trigger the simulated StallGuard
-        for (uint8_t i = 0; i < 5; ++i) {
+        constexpr uint32_t idlerStepsFwd = mm::unitToSteps<mm::I_pos_t>(config::idlerLimits.lenght - 5.0_deg);
+        static_assert(idlerStepsFwd < selectorSteps); // beware, we expect that the Idler homes faster than Selector (less steps)
+        for (uint32_t i = 0; i < idlerStepsFwd; ++i) {
             main_loop();
             cb.Step();
         }
@@ -178,11 +208,11 @@ bool SimulateFailedHomeFirstTime(logic::CommandBase &cb) {
         mm::motion.StallGuardReset(mm::Idler);
     }
     // now do a correct amount of steps of each axis towards the other end
-    uint32_t idlerSteps = mm::unitToSteps<mm::I_pos_t>(config::idlerLimits.lenght);
+    constexpr uint32_t idlerSteps = mm::unitToSteps<mm::I_pos_t>(config::idlerLimits.lenght);
     // now do LESS steps than expected to simulate something is blocking the selector
-    uint32_t selectorSteps = mm::unitToSteps<mm::S_pos_t>(config::selectorLimits.lenght) + 1;
-    uint32_t selectorTriggerShort = std::min(idlerSteps, selectorSteps) / 2;
-    uint32_t maxSteps = selectorTriggerShort + 1;
+
+    constexpr uint32_t selectorTriggerShort = std::min(idlerSteps, selectorSteps) / 2;
+    constexpr uint32_t maxSteps = selectorTriggerShort + 1;
     {
         for (uint32_t i = 0; i < maxSteps; ++i) {
             main_loop();
@@ -206,7 +236,7 @@ bool SimulateFailedHomeFirstTime(logic::CommandBase &cb) {
             }
         }
 
-        while (ms::selector.State() != mm::MovableBase::HomingFailed) {
+        while (!(ms::selector.State() & mm::MovableBase::OnHold)) {
             main_loop();
             cb.Step();
         }
@@ -247,7 +277,7 @@ bool SimulateFailedHomeSelectorRepeated(logic::CommandBase &cb) {
             }
         }
 
-        while (ms::selector.State() != mm::MovableBase::HomingFailed) {
+        while (!(ms::selector.State() & mm::MovableBase::OnHold)) {
             main_loop();
             cb.Step();
         }

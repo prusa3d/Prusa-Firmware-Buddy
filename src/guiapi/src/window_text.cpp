@@ -4,8 +4,10 @@
 #include "ScreenHandler.hpp"
 
 void window_text_t::SetText(string_view_utf8 txt) {
-    if (text == txt)
+    if (text.is_same_ref(txt)) {
         return; // prevent invalidation if texts are the same
+    }
+
     text = txt;
     Invalidate();
 }

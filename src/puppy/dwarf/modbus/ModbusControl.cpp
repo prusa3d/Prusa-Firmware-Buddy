@@ -7,6 +7,7 @@
 #include "../loadcell.hpp"
 #include "Pin.hpp"
 #include "Cheese.hpp"
+#include "module_marlin.hpp"
 #include "tool_filament_sensor.hpp"
 #include "timing.h"
 #include "ModbusFIFOHandlers.hpp"
@@ -26,10 +27,10 @@ struct ModbusMessage {
 
 /// Struct used to decompose the 16 bit holding register into 2 8-bit values
 union __attribute__((packed)) LedPwm {
-    uint16_t reg_value;       ///< 16 bit register value
+    uint16_t reg_value; ///< 16 bit register value
     struct {
         uint8_t not_selected; ///< 8 LSb PWM when not selected [0 - 0xff]
-        uint8_t selected;     ///< 8 MSb PWM when selected [0 - 0xff]
+        uint8_t selected; ///< 8 MSb PWM when selected [0 - 0xff]
     };
 
     LedPwm(uint8_t selected_, uint8_t not_selected_)
@@ -273,7 +274,10 @@ void UpdateRegisters() {
     ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_button_up_pressed, buddy::hw::button1.read() == buddy::hw::Pin::State::low);
     ModbusRegisters::SetBitValue(ModbusRegisters::SystemDiscreteInput::is_button_down_pressed, buddy::hw::button2.read() == buddy::hw::Pin::State::low);
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::tool_filament_sensor, dwarf::tool_filament_sensor::tool_filament_sensor_get_filtered_data());
-    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::mcu_temperature, clamp_to_int16(Temperature::degBoard()));
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::board_temperature, clamp_to_int16(Temperature::degBoard()));
+    static int32_t mcu_temp_filter = 0;
+    mcu_temp_filter = (mcu_temp_filter * 7 + AdcGet::getMCUTemp()) / 8; // Simple EWMA filter
+    ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::mcu_temperature, clamp_to_int16(mcu_temp_filter));
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::heatbreak_temp, clamp_to_int16(Temperature::degHeatbreak(0)));
 
     ModbusRegisters::SetRegValue(ModbusRegisters::SystemInputRegister::fan0_rpm, Fans::print(0).getActualRPM());

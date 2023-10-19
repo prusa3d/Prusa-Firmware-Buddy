@@ -98,7 +98,7 @@ bool LoadTranslatedStringsFile(const char *fname, deque<string> *st) {
         string s;
         getline(f, s);
         PreprocessRawLineStrings(s);
-        if (!s.empty()) {              // beware of empty strings
+        if (!s.empty()) { // beware of empty strings
             st->emplace_back(move(s)); // make a copy of the string
         }
     } while (f.good());

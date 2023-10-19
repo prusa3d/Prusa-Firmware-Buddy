@@ -10,7 +10,7 @@ using std::optional;
 
 namespace {
 
-inline constexpr uint8_t SOCKET_TIMEOUT_SEC = 3;
+inline constexpr uint8_t SOCKET_TIMEOUT_SEC = 5;
 
 }
 

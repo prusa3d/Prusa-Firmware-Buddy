@@ -7,7 +7,7 @@ namespace metrics {
     void RecordRuntimeStats();
     void RecordPowerStats();
     void RecordPrintFilename();
-    void record_dwarf_mcu_temperature();
+    void record_dwarf_internal_temperatures();
 
     struct RunApproxEvery {
         uint32_t interval_ms;

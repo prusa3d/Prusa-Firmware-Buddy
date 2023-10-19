@@ -17,13 +17,13 @@ namespace PrusaGcodeSuite {
 using M862_6SupportedFeatures = std::array<const char *, 1>;
 extern M862_6SupportedFeatures m862_6SupportedFeatures;
 
-void G26();  ///< first layer calibration
-void G64();  ///< Measure Z_AXIS height
+void G26(); ///< first layer calibration
+void G64(); ///< Measure Z_AXIS height
 void G162(); ///< calibrate Z
 void G163(); ///< measure length of axis
 
 void M0();
-void M50();  ///< selftest
+void M50(); ///< selftest
 
 void M123(); ///< Fan speed reporting
 
@@ -39,6 +39,7 @@ void M300(); ///< Beep
 /// @name MMU G-CODES
 /// @{
 void M704(); ///< Load filament to MMU
+void M1704(); ///< Load test
 void M705(); ///< Eject filament from MMU
 void M706(); ///< Cut filament by MMU
 void M707(); ///< Read variable from MMU

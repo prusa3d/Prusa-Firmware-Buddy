@@ -78,6 +78,7 @@ pipeline {
             steps {
                 sh """
                 export XDG_CACHE_HOME=\$PWD/.precommit
+                git config --unset-all core.hooksPath
                 pre-commit install
                 pre-commit run \
                     --source remotes/origin/${env.CHANGE_TARGET} \

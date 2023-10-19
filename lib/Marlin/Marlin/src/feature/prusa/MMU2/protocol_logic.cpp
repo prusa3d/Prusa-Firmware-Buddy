@@ -6,7 +6,7 @@
     // on MK3/S/+ we shuffle the timers a bit, thus "_millis" may not equal "millis"
     #include "system_timer.h"
 #else
-    // irrelevant on Buddy FW, just keep "_millis" as "millis"
+// irrelevant on Buddy FW, just keep "_millis" as "millis"
     #include <wiring_time.h>
     #define _millis millis
     #ifdef UNITTEST
@@ -25,28 +25,26 @@ namespace MMU2 {
 /// Changing the supportedMmuVersion numbers requires patching MSG_DESC_FW_UPDATE_NEEDED and all its related translations by hand.
 ///
 /// The message reads:
-///   "The MMU firmware version incompatible with the printer's FW. Update to version 2.1.6."
+///   "MMU FW version is incompatible with printer FW.Update to version 2.1.9."
 ///
 /// Currently, this is not possible to perform automatically at compile time with the existing languages/translations infrastructure.
 /// To save space a "dumb" solution was chosen + a few static_assert checks in errors_list.h preventing the code from compiling when the string doesn't match.
-/// -----
-/// On Buddy FW we should improve the error screen to be able to print formatted strings
 static constexpr uint8_t supportedMmuFWVersion[3] PROGMEM = { mmuVersionMajor, mmuVersionMinor, mmuVersionPatch };
 
-const uint8_t ProtocolLogic::regs8Addrs[ProtocolLogic::regs8Count] PROGMEM = {
-    8,    // FINDA state
-    0x1b, // Selector slot
-    0x1c, // Idler slot
+const Register ProtocolLogic::regs8Addrs[ProtocolLogic::regs8Count] PROGMEM = {
+    Register::FINDA_State, // FINDA state
+    Register::Set_Get_Selector_Slot, // Selector slot
+    Register::Set_Get_Idler_Slot, // Idler slot
 };
 
-const uint8_t ProtocolLogic::regs16Addrs[ProtocolLogic::regs16Count] PROGMEM = {
-    4,    // MMU errors - aka statistics
-    0x1a, // Pulley position [mm]
+const Register ProtocolLogic::regs16Addrs[ProtocolLogic::regs16Count] PROGMEM = {
+    Register::MMU_Errors, // MMU errors - aka statistics
+    Register::Get_Pulley_Position, // Pulley position [mm]
 };
 
-const uint8_t ProtocolLogic::initRegs8Addrs[ProtocolLogic::initRegs8Count] PROGMEM = {
-    0x0b, // extra load distance [mm]
-    0x14, // pulley slow feedrate [mm/s]
+const Register ProtocolLogic::initRegs8Addrs[ProtocolLogic::initRegs8Count] PROGMEM = {
+    Register::Extra_Load_Distance, // extra load distance [mm]
+    Register::Pulley_Slow_Feedrate, // pulley slow feedrate [mm/s]
 };
 
 void ProtocolLogic::CheckAndReportAsyncEvents() {
@@ -188,7 +186,7 @@ StepStatus ProtocolLogic::ExpectingMessage() {
                 break;
             }
         }
-            [[fallthrough]];      // otherwise
+            [[fallthrough]]; // otherwise
         default:
             RecordUARTActivity(); // something has happened on the UART, update the timeout record
             return ProtocolError;
@@ -196,7 +194,7 @@ StepStatus ProtocolLogic::ExpectingMessage() {
     }
     if (bytesConsumed != 0) {
         RecordUARTActivity(); // something has happened on the UART, update the timeout record
-        return Processing;    // consumed some bytes, but message still not ready
+        return Processing; // consumed some bytes, but message still not ready
     } else if (Elapsed(linkLayerTimeout) && currentScope != Scope::Stopped) {
         return CommunicationTimeout;
     }
@@ -204,6 +202,11 @@ StepStatus ProtocolLogic::ExpectingMessage() {
 }
 
 void ProtocolLogic::SendMsg(RequestMsg rq) {
+#ifdef __AVR__
+    // Buddy FW cannot use stack-allocated txbuff - DMA doesn't work with CCMRAM
+    // No restrictions on MK3/S/+ though
+    uint8_t txbuff[Protocol::MaxRequestSize()];
+#endif
     uint8_t len = Protocol::EncodeRequest(rq, txbuff);
     uart->write(txbuff, len);
     LogRequestMsg(txbuff, len);
@@ -211,6 +214,11 @@ void ProtocolLogic::SendMsg(RequestMsg rq) {
 }
 
 void ProtocolLogic::SendWriteMsg(RequestMsg rq) {
+#ifdef __AVR__
+    // Buddy FW cannot use stack-allocated txbuff - DMA doesn't work with CCMRAM
+    // No restrictions on MK3/S/+ though
+    uint8_t txbuff[Protocol::MaxRequestSize()];
+#endif
     uint8_t len = Protocol::EncodeWriteRequest(rq.value, rq.value2, txbuff);
     uart->write(txbuff, len);
     LogRequestMsg(txbuff, len);
@@ -280,9 +288,9 @@ StepStatus ProtocolLogic::ScopeStep() {
         case Scope::StartSeq:
             return StartSeqStep(); // ~270B
         case Scope::Idle:
-            return IdleStep();     // ~300B
+            return IdleStep(); // ~300B
         case Scope::Command:
-            return CommandStep();  // ~430B
+            return CommandStep(); // ~430B
         case Scope::Stopped:
             return StoppedStep();
         default:
@@ -327,7 +335,7 @@ StepStatus ProtocolLogic::StartSeqStep() {
 StepStatus ProtocolLogic::DelayedRestartWait() {
     if (Elapsed(heartBeatPeriod)) { // this basically means, that we are waiting until there is some traffic on
         while (uart->read() != -1)
-            ;                       // clear the input buffer
+            ; // clear the input buffer
         // switch to StartSeq
         Start();
     }
@@ -722,7 +730,7 @@ void ProtocolLogic::FormatLastResponseMsgAndClearLRB(char *dst) {
         *dst++ = b;
     }
     *dst = 0; // terminate properly
-    lrb = 0;  // reset the input buffer index in case of a clean message
+    lrb = 0; // reset the input buffer index in case of a clean message
 }
 
 void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
@@ -745,7 +753,7 @@ void ProtocolLogic::LogRequestMsg(const uint8_t *txbuff, uint8_t size) {
         // trying to find the MMU, but since it has been reliable in the past
         // we can live without it for now.
     } else {
-        MMU2_ECHO_MSGLN(tmp);
+        MMU2::LogRequestMsg(tmp);
     }
     strncpy(lastMsg, tmp, rqs);
 }
@@ -762,12 +770,13 @@ void ProtocolLogic::LogError(const char *reason_P) {
 void ProtocolLogic::LogResponse() {
     char lrb[lastReceivedBytes.size()];
     FormatLastResponseMsgAndClearLRB(lrb);
-    MMU2_ECHO_MSGLN(lrb);
+    MMU2::LogResponseMsg(lrb);
 }
 
 StepStatus ProtocolLogic::SuppressShortDropOuts(const char *msg_P, StepStatus ss) {
     if (dataTO.Record(ss)) {
         LogError(msg_P);
+        dataTO.Reset(); // prepare for another run of consecutive retries before firing an error
         return dataTO.InitialCause();
     } else {
         return Processing; // suppress short drop outs of communication
@@ -803,7 +812,7 @@ StepStatus ProtocolLogic::Step() {
         // But the trouble is we must report a finished command if the previous command has just been finished
         // i.e. only try to find some planned command if we just finished the Idle cycle
         bool previousCommandFinished = currentScope == Scope::Command; // @@TODO this is a nasty hack :(
-        if (!ActivatePlannedRequest()) {                               // if nothing is planned, switch to Idle
+        if (!ActivatePlannedRequest()) { // if nothing is planned, switch to Idle
             SwitchToIdle();
         } else {
             // if the previous cycle was Idle and now we have planned a new command -> avoid returning Finished

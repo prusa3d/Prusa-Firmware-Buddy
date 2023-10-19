@@ -20,6 +20,10 @@
         #include "../../feature/prusa/crash_recovery.hpp"
     #endif /*ENABLED(CRASH_RECOVERY)*/
 
+    #if DISABLED(ARC_SUPPORT)
+        #error "toolchanger requires ARC_SUPPORT"
+    #endif
+
 LOG_COMPONENT_REF(PrusaToolChanger);
 
 /**
@@ -33,15 +37,16 @@ PrusaToolChanger prusa_toolchanger;
 using namespace buddy::puppies;
 
 // internal helpers for arc planning
+void plan_arc(const xyze_pos_t &cart, const ab_float_t &offset, const bool clockwise, const uint8_t circles);
+
 namespace arc_move {
 
 // generated arc parameters
-constexpr float arc_seg_len = 1.f;         // mm
-constexpr float arc_max_radius = 75.f;     // mm
-constexpr float arc_min_radius = 2.f;      // mm
-constexpr float arc_tg_jerk = 20.f;        // mm/s
+constexpr float arc_max_radius = 75.f; // mm
+constexpr float arc_min_radius = 10.f; // mm
+constexpr float arc_tg_jerk = 20.f; // mm/s
 constexpr bool arc_backtravel_allow = true;
-constexpr float arc_backtravel_max = 1.5f; // 1/ratio
+constexpr float arc_backtravel_max = 2.f; // 1/ratio
 
 /**
  * @brief Calculate the tangent arc radius
@@ -68,12 +73,10 @@ static float arc_radius(const xy_pos_t &pos, const xy_pos_t &target) {
  * @param pos Starting position
  * @param target Dock position
  * @param arc_x Output: Calculated arc center X position
- * @param arc_a Output: Calculated angle (rad) of tangent point over arc center
- * @param arc_d_a Output: Absolute angle delta (rad) to travel along
  * @param point Output: Tangent point
  */
 static void tangent_point(const float arc_r, const xy_pos_t &pos, const xy_pos_t &target,
-    float &arc_x, float &arc_a, float &arc_d_a, xy_pos_t &point) {
+    float &arc_x, xy_pos_t &point) {
 
     float arc_dir = pos.x < target.x ? 1 : -1;
     arc_x = target.x - arc_r * arc_dir;
@@ -81,22 +84,32 @@ static void tangent_point(const float arc_r, const xy_pos_t &pos, const xy_pos_t
     float arc_d_y = (pos.y - target.y);
     float d = hypotf(arc_d_x, arc_d_y);
     float h = sqrtf(SQR(d) - SQR(arc_r));
-    arc_a = atan2f(arc_d_y, arc_d_x) + atanf(h / arc_r) * arc_dir;
+    float arc_a = atan2f(arc_d_y, arc_d_x) + atanf(h / arc_r) * arc_dir;
     point.x = arc_x + cosf(arc_a) * arc_r;
     point.y = target.y + sinf(arc_a) * arc_r;
-    arc_d_a = arc_dir > 0 ? -arc_a : -arc_a - M_PI;
 }
 
 /**
- * @brief Calculate the arc stepping parameters
- * @param arc_r Arc radius (mm)
- * @param arc_d_a Absolute angle delta (rad) to travel along
- * @param sen_n Output: Segment count
- * @param sen_a Output: Angle delta (rad) for each segment
+ * @brief Calculate arc move
+ * @param dest Destination XY position
+ * @param center Rotation center
+ * @param fr Target feedrate
  */
-static void arc_segments(const float arc_r, const float arc_d_a, unsigned &seg_n, float &seg_a) {
-    seg_n = (unsigned)(fabsf(arc_d_a) * arc_r / arc_seg_len);
-    seg_a = arc_d_a / seg_n;
+static void plan_arc2(const xy_pos_t &dest, const xy_pos_t &center, const feedRate_t fr) {
+    xyze_pos_t xyze_dest = current_position;
+    xyze_dest.set(dest);
+
+    if (current_position.x == xyze_dest.x) {
+        planner.buffer_line(xyze_dest, fr);
+    } else {
+        feedRate_t orig_feedrate = feedrate_mm_s;
+        feedrate_mm_s = fr;
+
+        ab_float_t offset = center - current_position;
+        plan_arc(xyze_dest, offset, (current_position.x > xyze_dest.x), 0);
+
+        feedrate_mm_s = orig_feedrate;
+    }
 }
 
 /**
@@ -107,69 +120,36 @@ static void arc_segments(const float arc_r, const float arc_d_a, unsigned &seg_n
  * @param start_fr Starting (current) feedrate (mm/s)
  * @param end_fr Ending (parking) feedrate (mm/s)
  */
-static void plan_pos2dock(const float arc_r, const xy_pos_t &pos, const xy_pos_t &dock,
+static void plan_pos2dock(const float arc_r, const xy_pos_t pos, const xy_pos_t dock,
     const float start_fr, const float end_fr) {
 
     // arc parameters
     xy_pos_t point;
-    unsigned seg_n;
-    float arc_x, arc_a, arc_d_a, seg_a;
-    tangent_point(arc_r, pos, dock, arc_x, arc_a, arc_d_a, point);
-    arc_segments(arc_r, arc_d_a, seg_n, seg_a);
+    float arc_x;
+    tangent_point(arc_r, pos, dock, arc_x, point);
 
     // move towards the tangent
     PrusaToolChanger::move(point.x, point.y, start_fr);
-
-    // ensure jerk doesn't limit the arc move (TODO: use planner hints with Marlin 2.1)
-    const auto cur_jerk = planner.max_jerk;
-    planner.max_jerk[X_AXIS] = arc_tg_jerk;
-    planner.max_jerk[Y_AXIS] = arc_tg_jerk;
-
-    // plan arc segments
-    float fr_n = (end_fr - start_fr) / seg_n;
-    for (unsigned i = 1; i < seg_n; ++i) {
-        float s_a = arc_a + seg_a * i;
-        float s_x = arc_x + cosf(s_a) * arc_r;
-        float s_y = dock.y + sinf(s_a) * arc_r;
-        PrusaToolChanger::move(s_x, s_y, start_fr + fr_n * i);
-    }
-
-    planner.max_jerk = cur_jerk;
+    plan_arc2(dock, { arc_x, dock.y }, start_fr);
 }
 
 /**
  * @brief Plan a smooth pickup move from dock to position
  * @param arc_r Arc radius (mm)
- * @param pos Current position (warning: must be constant)
+ * @param pos Destination position (warning: must be constant)
  * @param dock Dock position (warning: must be constant)
  * @param start_fr Starting (parking) feedrate (mm/s)
  * @param end_fr Ending (target) feedrate (mm/s)
  */
-static void plan_dock2pos(const float arc_r, const xy_pos_t &pos, const xy_pos_t &dock,
+static void plan_dock2pos(const float arc_r, const xy_pos_t pos, const xy_pos_t dock,
     const float start_fr, const float end_fr) {
-
     // arc parameters
     xy_pos_t point;
-    unsigned seg_n;
-    float arc_x, arc_a, arc_d_a, seg_a;
-    tangent_point(arc_r, pos, dock, arc_x, arc_a, arc_d_a, point);
-    arc_segments(arc_r, arc_d_a, seg_n, seg_a);
+    float arc_x;
+    tangent_point(arc_r, pos, dock, arc_x, point);
 
-    // ensure jerk doesn't limit the arc move (TODO: use planner hints with Marlin 2.1)
-    const auto cur_jerk = planner.max_jerk;
-    planner.max_jerk[X_AXIS] = arc_tg_jerk;
-    planner.max_jerk[Y_AXIS] = arc_tg_jerk;
-
-    // plan arc segments
-    float fr_n = (end_fr - start_fr) / seg_n;
-    for (unsigned i = 1; i < seg_n; ++i) {
-        float s_a = (arc_a + arc_d_a) - seg_a * i;
-        float s_x = arc_x + cosf(s_a) * arc_r;
-        float s_y = dock.y + sinf(s_a) * arc_r;
-        PrusaToolChanger::move(s_x, s_y, start_fr + fr_n * i);
-    }
-
-    planner.max_jerk = cur_jerk;
+    // arc to tangent point
+    plan_arc2(point, { arc_x, dock.y }, end_fr);
 }
 
 } // namespace arc_move
@@ -197,7 +177,7 @@ bool PrusaToolChanger::check_emergency_stop() {
     if (quick_stopped) {
         return true; // Movements quick stoped, avoid errors that result from interrupted tool-change moves
     }
-    #endif           /*ENABLED(CRASH_RECOVERY)*/
+    #endif /*ENABLED(CRASH_RECOVERY)*/
     return false;
 }
 
@@ -435,7 +415,7 @@ bool PrusaToolChanger::check_skipped_step() {
 
 void PrusaToolChanger::crash_deselect_dwarf() {
     if (active_extruder != PrusaToolChanger::MARLIN_NO_TOOL_PICKED) {
-        prusa_toolchanger.request_active_switch(nullptr);          // Deselect dwarf
+        prusa_toolchanger.request_active_switch(nullptr); // Deselect dwarf
         const uint8_t old_tool_index = active_extruder;
         active_extruder = PrusaToolChanger::MARLIN_NO_TOOL_PICKED; // Mark no tool for Marlin
         update_software_endstops(X_AXIS, old_tool_index, PrusaToolChanger::MARLIN_NO_TOOL_PICKED);
@@ -452,16 +432,16 @@ void PrusaToolChanger::toolcrash() {
     }
 
     if (((crash_s.get_state() == Crash_s::RECOVERY) && crash_s.is_toolchange_event()) // Already recovering, cannot disrupt crash_s, it will replay Tx gcode
-        || (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT)                       // Power panic, end quickly and don't do anything
-        || (crash_s.get_state() == Crash_s::TRIGGERED_ISR)                            // ISR crash happened, it will replay Tx gcode
-        || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL)                       // Toolcrash is already in progress
+        || (crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) // Power panic, end quickly and don't do anything
+        || (crash_s.get_state() == Crash_s::TRIGGERED_ISR) // ISR crash happened, it will replay Tx gcode
+        || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLFALL) // Toolcrash is already in progress
         || (crash_s.get_state() == Crash_s::TRIGGERED_TOOLCRASH)
         || (crash_s.get_state() == Crash_s::REPEAT_WAIT)
         || (crash_s.get_state() == Crash_s::SELFTEST)
         || quick_stopped) {
         return; // Ignore
     }
-    #endif      /*ENABLED(CRASH_RECOVERY)*/
+    #endif /*ENABLED(CRASH_RECOVERY)*/
 
     // Can happen if toolchange is a part of replay, would need a bigger change in crash_recovery.cpp
     toolchanger_error("Tool crashed");
@@ -475,7 +455,7 @@ void PrusaToolChanger::toolfall() {
     }
 
     if ((crash_s.get_state() == Crash_s::TRIGGERED_AC_FAULT) // Power panic, end quickly and don't do anything
-        || (crash_s.get_state() == Crash_s::IDLE)) {         // Print ended
+        || (crash_s.get_state() == Crash_s::IDLE)) { // Print ended
         return;
     }
     #endif /*ENABLED(CRASH_RECOVERY)*/
@@ -538,7 +518,7 @@ bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
 void PrusaToolChanger::loop(bool printing) {
     // WARNING: called from default(marlin) task
 
-    if (block_tool_check.load()         // This function can be blocked
+    if (block_tool_check.load() // This function can be blocked
         || !is_toolchanger_enabled()) { // Ignore on singletool
         return;
     }
@@ -550,9 +530,9 @@ void PrusaToolChanger::loop(bool printing) {
         picked_update = false;
 
         // Automatically change tool
-        if (force_toolchange_gcode.load()                                                        // Force toolchange after reset to force all marlin tool variables
-            || ((picked != active)                                                               // When user parked or picked manually
-                && (printing == false)                                                           // Only if not printing
+        if (force_toolchange_gcode.load() // Force toolchange after reset to force all marlin tool variables
+            || ((picked != active) // When user parked or picked manually
+                && (printing == false) // Only if not printing
                 && (queue.has_commands_queued() == false) && (planner.processing() == false))) { // And nothing is in queue
             force_toolchange_gcode = false;
 
@@ -623,19 +603,30 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
 
     // reduce maximum parking speed to improve reliability during constant toolchanging
     float target_fr = fminf(PARKING_FINAL_MAX_SPEED, feedrate_mm_s);
+    float tangent_fr = fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s);
+
+    // Arc will not be limited by jerk
+    planner.set_max_jerk(AxisEnum::X_AXIS, arc_move::arc_tg_jerk);
+    planner.set_max_jerk(AxisEnum::Y_AXIS, arc_move::arc_tg_jerk);
 
     // attempt to plan a smooth arc move
     float arc_r = arc_move::arc_radius(current_position, target_pos);
     if (arc_r >= arc_move::arc_min_radius) {
-        // make an explicit copy of current_position as it's updated while the move takes place!
-        arc_move::plan_pos2dock(arc_r, xy_pos_t(current_position), target_pos,
-            feedrate_mm_s, target_fr);
+        if (arc_r < arc_move::arc_max_radius) {
+            // Arc is smaller than typical, need to slow down
+            static_assert(arc_move::arc_max_radius != arc_move::arc_min_radius, "These cannot be equal");
+            float rel_size = (arc_r - arc_move::arc_min_radius) / (arc_move::arc_max_radius - arc_move::arc_min_radius);
+            tangent_fr = fminf(tangent_fr, PARKING_FINAL_MAX_SPEED + rel_size * (TRAVEL_MOVE_MM_S - PARKING_FINAL_MAX_SPEED));
+        }
+        arc_move::plan_pos2dock(arc_r, current_position, target_pos,
+            tangent_fr, target_fr);
     }
 
     // go in front of the tool dock
     move(target_pos.x, target_pos.y, target_fr);
     move(target_pos.x, info.dock_y, target_fr);
     planner.synchronize(); // this creates a pause which allow the resonance in the tool to be damped before insertion of the tool in the dock
+    conf_restorer.restore_jerk();
 
     // set motor current and stall sensitivity to parking and remember old value
     auto x_current_ma = stepperX.rms_current();
@@ -667,7 +658,7 @@ bool PrusaToolChanger::park(Dwarf &dwarf) {
         log_warning(PrusaToolChanger, "Dwarf %u not parked, trying to wiggle it in", dwarf.get_dwarf_nr());
 
         move(info.dock_x - DOCK_WIGGLE_OFFSET, info.dock_y, SLOW_MOVE_MM_S); // wiggle left
-        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                      // wiggle back
+        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // wiggle back
         planner.synchronize();
 
         if (!wait(dwarf_parked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -731,9 +722,9 @@ bool PrusaToolChanger::align_locks() {
     // Bump right edge
     if (!homeaxis(X_AXIS, 0, true)) {
         CBI(axis_known_position, X_AXIS); // Needs homing
-        return false;                     // Failed to bump right edge
+        return false; // Failed to bump right edge
     }
-    CBI(axis_known_position, X_AXIS);     // Needs homing after
+    CBI(axis_known_position, X_AXIS); // Needs homing after
     current_position.x = X_MAX_POS;
     sync_plan_position();
 
@@ -761,10 +752,10 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 
     const PrusaToolInfo &info = get_tool_info(dwarf, /*check_calibrated=*/true);
 
-    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s);          // go in front of the tool
-    move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s);  // pre-insert fast the tool
+    move(info.dock_x, SAFE_Y_WITHOUT_TOOL, feedrate_mm_s); // go in front of the tool
+    move(info.dock_x, info.dock_y + PICK_Y_OFFSET, feedrate_mm_s); // pre-insert fast the tool
     planner.settings.travel_acceleration = SLOW_ACCELERATION_MM_S2; // low acceleration
-    move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                 // insert slowly the last mm to allow part fitting + soft touch between TCM and tool thanks to the gentle deceleration
+    move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // insert slowly the last mm to allow part fitting + soft touch between TCM and tool thanks to the gentle deceleration
     planner.synchronize();
 
     // Wait until dwarf is registering as picked
@@ -772,7 +763,7 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
         log_warning(PrusaToolChanger, "Dwarf %u not picked, trying to wiggle it in", dwarf.get_dwarf_nr());
 
         move(info.dock_x, info.dock_y + DOCK_WIGGLE_OFFSET, SLOW_MOVE_MM_S); // wiggle pull
-        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S);                      // wiggle back
+        move(info.dock_x, info.dock_y, SLOW_MOVE_MM_S); // wiggle back
         planner.synchronize();
 
         if (!wait(dwarf_picked, WAIT_TIME_TOOL_PARKED_PICKED)) {
@@ -793,7 +784,7 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
     stepperY.stall_sensitivity(PARKING_STALL_SENSITIVITY);
 
     move(info.dock_x + PICK_X_OFFSET_1, info.dock_y, SLOW_MOVE_MM_S); // accelerate gently to low speed to gently place the tool against the TCM
-    conf_restorer.restore_acceleration();                             // back to high acceleration
+    conf_restorer.restore_acceleration(); // back to high acceleration
     move(info.dock_x + PICK_X_OFFSET_2, info.dock_y, SLOW_MOVE_MM_S); // this line is just to allow a gentle acceleration and a quick deceleration
     move(info.dock_x + PICK_X_OFFSET_3, info.dock_y, SLOW_MOVE_MM_S);
     planner.synchronize();
@@ -819,16 +810,30 @@ bool PrusaToolChanger::pickup(Dwarf &dwarf) {
 }
 
 void PrusaToolChanger::unpark_to(const xy_pos_t &destination) {
+    // Limit feedrate during the arc
+    float arc_fr = fminf(TRAVEL_MOVE_MM_S, feedrate_mm_s);
+
+    // Arc will not be limited by jerk
+    planner.set_max_jerk(AxisEnum::X_AXIS, arc_move::arc_tg_jerk);
+    planner.set_max_jerk(AxisEnum::Y_AXIS, arc_move::arc_tg_jerk);
+
     // attempt to plan a smooth arc move
     float arc_r = arc_move::arc_radius(destination, current_position);
     if (arc_r >= arc_move::arc_min_radius) {
-        // make an explicit copy of current_position as it's updated while the move takes place!
-        arc_move::plan_dock2pos(arc_r, destination, xy_pos_t(current_position),
-            feedrate_mm_s, feedrate_mm_s);
+        if (arc_r < arc_move::arc_max_radius) {
+            // Arc is smaller than typical, need to slow down
+            static_assert(arc_move::arc_max_radius != arc_move::arc_min_radius, "These cannot be equal");
+            float rel_size = (arc_r - arc_move::arc_min_radius) / (arc_move::arc_max_radius - arc_move::arc_min_radius);
+            arc_fr = fminf(arc_fr, PARKING_FINAL_MAX_SPEED + rel_size * (TRAVEL_MOVE_MM_S - PARKING_FINAL_MAX_SPEED));
+        }
+
+        arc_move::plan_dock2pos(arc_r, destination, current_position, arc_fr, arc_fr);
     }
 
     // move to the destination
     move(destination.x, destination.y, feedrate_mm_s);
+
+    conf_restorer.restore_jerk();
 }
 
 #endif /*ENABLED(PRUSA_TOOLCHANGER)*/

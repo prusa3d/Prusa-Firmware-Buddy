@@ -40,17 +40,17 @@ LoopResult CSelftestPart_FirstLayer::stateStart() {
 
 enum class filament_status {
     TypeUnknown_SensorNoFilament = 0b00, // filament type is not stored in the eeprom, filament sensor is enabled and it does not detect a filament
-    TypeKnown_SensorNoFilament = 0b01,   // filament type stored in the eeprom,        filament sensor is enabled and it does not detect a filament
-    TypeUnknown_SensorValid = 0b10,      // filament type is not stored in the eeprom, filament sensor is enabled and it detects a filament or it is not enabled
-    TypeKnown_SensorValid = 0b11         // filament type is stored in the eeprom,     filament sensor is enabled and it detects a filament or it is not enabled
+    TypeKnown_SensorNoFilament = 0b01, // filament type stored in the eeprom,        filament sensor is enabled and it does not detect a filament
+    TypeUnknown_SensorValid = 0b10, // filament type is not stored in the eeprom, filament sensor is enabled and it detects a filament or it is not enabled
+    TypeKnown_SensorValid = 0b11 // filament type is stored in the eeprom,     filament sensor is enabled and it detects a filament or it is not enabled
 };
 
 static filament_status get_filament_status() {
-    auto filament = config_store().get_filament_type(0);                                                                                                            // first layer calib is on single tool printers only, so should be fine
+    auto filament = config_store().get_filament_type(0); // first layer calib is on single tool printers only, so should be fine
 
-    uint8_t eeprom = filament != filament::Type::NONE ? static_cast<uint8_t>(filament_status::TypeKnown_SensorNoFilament) : uint8_t(0);                             // set eeprom flag
+    uint8_t eeprom = filament != filament::Type::NONE ? static_cast<uint8_t>(filament_status::TypeKnown_SensorNoFilament) : uint8_t(0); // set eeprom flag
     uint8_t sensor = FSensors_instance().GetPrimaryRunout() != fsensor_t::NoFilament ? static_cast<uint8_t>(filament_status::TypeUnknown_SensorValid) : uint8_t(0); // set sensor flag
-    return static_cast<filament_status>(eeprom | sensor);                                                                                                           // combine flags
+    return static_cast<filament_status>(eeprom | sensor); // combine flags
 }
 
 /**
@@ -71,7 +71,7 @@ LoopResult CSelftestPart_FirstLayer::stateAskFilamentInit() {
         rResult.preselect_response = Response::Unload;
         break;
     case filament_status::TypeUnknown_SensorNoFilament: // allow load, prepick LOAD, force ask preheat
-    case filament_status::TypeUnknown_SensorValid:      // most likely same as TypeUnknown_SensorNoFilament, but user inserted filament into sensor
+    case filament_status::TypeUnknown_SensorValid: // most likely same as TypeUnknown_SensorNoFilament, but user inserted filament into sensor
     default:
         rStateMachine.SetFsmPhase(PhasesSelftest::FirstLayer_filament_not_known_or_unsensed);
         rResult.preselect_response = Response::Load;

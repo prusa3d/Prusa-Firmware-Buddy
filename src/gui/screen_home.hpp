@@ -14,14 +14,15 @@ public:
 
 private:
     static bool usbWasAlreadyInserted; // usb inserted at least once
-    static bool ever_been_opened;      // set by ctor
-    static bool try_esp_flash;         // we try this maximum once
+    static bool ever_been_opened; // set by ctor
+    static bool try_esp_flash; // we try this maximum once
     static bool touch_broken_during_run;
 
     bool usbInserted;
-    MMU2::xState mmu_state;
-    bool event_in_progress;
+    MMU2::xState mmu_state { MMU2::xState::Stopped };
+    bool event_in_progress { false };
     bool first_event { true };
+    static bool need_check_wifi_credentials;
     MediaState_t media_event { MediaState_t::unknown };
 
     window_header_t header;
@@ -32,8 +33,6 @@ private:
 #endif // USE_ST7789
     WindowMultiIconButton w_buttons[button_count];
     window_text_t w_labels[button_count];
-
-    GCodeInfo &gcode;
 
 public:
     static void SetTouchBrokenDuringRun() { touch_broken_during_run = true; }
@@ -56,4 +55,5 @@ private:
 
     void on_enter();
     void handle_crash_dump();
+    void handle_wifi_credentials();
 };

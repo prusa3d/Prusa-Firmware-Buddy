@@ -13,7 +13,7 @@ class FooterDoubleLine : public AddSuperWindow<IFooter> {
     FooterLine line_1;
 
     // line0 cannot be changed, it shows temperatures only
-    static constexpr FooterLine::IdArray line1_defaults = { { footer::Item::Nozzle, footer::Item::Bed, footer::Item::None } };
+    static constexpr FooterLine::IdArray line1_defaults = { { footer::Item::nozzle, footer::Item::bed, footer::Item::none } };
 
 public:
     FooterDoubleLine(window_t *parent);

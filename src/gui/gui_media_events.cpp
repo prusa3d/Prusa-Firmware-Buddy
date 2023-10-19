@@ -50,7 +50,7 @@ void GuiMediaEventsHandler::tick() {
     case MediaState_t::error:
         one_click_printing = false;
         state_sent = false;
-        break;  // update after break
+        break; // update after break
     default:
         return; // nothing happened, nothing to do .. just return
     }
@@ -80,7 +80,7 @@ void GuiMediaEventsHandler::ClrMediaError() {
 }
 
 bool GuiMediaEventsHandler::ConsumeSent(MediaState_t &ret) {
-    Tick();                       // first update
+    Tick(); // first update
     ret = Instance().media_state; // remember
     bool sent = Instance().state_sent;
     if (ret != MediaState_t::error)

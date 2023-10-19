@@ -30,6 +30,16 @@ extern "C" {
 
 #define USBH_USE_OS 1
 
+#define USBH_USE_MSC_CLASS_EVENTS 0
+
+#define USBH_USE_ACK_INTERRUPTS 0
+
+#define USBH_USE_URB_EVENTS 0
+
+#define USBH_MSC_TRANSFER_SIZE 512
+
+#define USBH_MSC_IO_TIMEOUT 10000U
+
 /****************************************/
 /* #define for FS and HS identification */
 #define HOST_HS 0

@@ -169,9 +169,9 @@ float CalculateVREF(uint32_t VREF_ADCValue) {
 
 uint32_t TranslateADCChannel(ADCChannel channel) {
     switch (channel) {
-    case ADCChannel::Heatbedlet_8:  // 0
+    case ADCChannel::Heatbedlet_8: // 0
         return 16;
-    case ADCChannel::Heatbedlet_9:  // 1
+    case ADCChannel::Heatbedlet_9: // 1
         return 15;
     case ADCChannel::Heatbedlet_10: // 2
         return 4;
@@ -185,21 +185,21 @@ uint32_t TranslateADCChannel(ADCChannel channel) {
         return 1;
     case ADCChannel::Heatbedlet_15: // 7
         return 5;
-    case ADCChannel::Heatbedlet_0:  // 8
+    case ADCChannel::Heatbedlet_0: // 8
         return 7;
-    case ADCChannel::Heatbedlet_1:  // 9
+    case ADCChannel::Heatbedlet_1: // 9
         return 17;
-    case ADCChannel::Heatbedlet_2:  // 10
+    case ADCChannel::Heatbedlet_2: // 10
         return 18;
-    case ADCChannel::Heatbedlet_3:  // 11
+    case ADCChannel::Heatbedlet_3: // 11
         return 8;
-    case ADCChannel::Heatbedlet_4:  // 12
+    case ADCChannel::Heatbedlet_4: // 12
         return 9;
-    case ADCChannel::Heatbedlet_5:  // 13
+    case ADCChannel::Heatbedlet_5: // 13
         return 9;
-    case ADCChannel::Heatbedlet_6:  // 14
+    case ADCChannel::Heatbedlet_6: // 14
         return 11;
-    case ADCChannel::Heatbedlet_7:  // 15
+    case ADCChannel::Heatbedlet_7: // 15
         return 11;
     case ADCChannel::Current_A:
         return 6;

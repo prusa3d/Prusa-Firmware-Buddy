@@ -96,34 +96,34 @@ uint8_t MeatPack::unpack_chars(const uint8_t pk, uint8_t *__restrict const chars
  * according to the current MeatPack state.
  */
 void MeatPack::handle_rx_char_inner(const uint8_t c) {
-    if (active) {                                     // Is MeatPack active?
-        if (!full_char_count) {                       // No literal characters to fetch?
+    if (active) { // Is MeatPack active?
+        if (!full_char_count) { // No literal characters to fetch?
             uint8_t buf[2] = { 0, 0 };
             const uint8_t res = unpack_chars(c, buf); // Decode the byte into one or two characters.
-            if (res & kFirstCharIsLiteral) {          // The 1st character couldn't be packed.
-                ++full_char_count;                    // So the next stream byte is a full character.
+            if (res & kFirstCharIsLiteral) { // The 1st character couldn't be packed.
+                ++full_char_count; // So the next stream byte is a full character.
                 if (res & kSecondCharIsLiteral)
-                    ++full_char_count;                // The 2nd character couldn't be packed. Another stream byte is a full character.
+                    ++full_char_count; // The 2nd character couldn't be packed. Another stream byte is a full character.
                 else
-                    second_char = buf[1];             // Retain the unpacked second character.
+                    second_char = buf[1]; // Retain the unpacked second character.
             } else {
-                handle_output_char(buf[0]);           // Send the unpacked first character out.
-                if (buf[0] != '\n') {                 // After a newline the next char won't be set
+                handle_output_char(buf[0]); // Send the unpacked first character out.
+                if (buf[0] != '\n') { // After a newline the next char won't be set
                     if (res & kSecondCharIsLiteral)
-                        ++full_char_count;            // The 2nd character couldn't be packed. The next stream byte is a full character.
+                        ++full_char_count; // The 2nd character couldn't be packed. The next stream byte is a full character.
                     else
-                        handle_output_char(buf[1]);   // Send the unpacked second character out.
+                        handle_output_char(buf[1]); // Send the unpacked second character out.
                 }
             }
         } else {
-            handle_output_char(c);               // Pass through the character that couldn't be packed...
+            handle_output_char(c); // Pass through the character that couldn't be packed...
             if (second_char) {
                 handle_output_char(second_char); // ...and send an unpacked 2nd character, if set.
                 second_char = 0;
             }
             --full_char_count; // One literal character was consumed
         }
-    } else                     // Packing not enabled, just copy character to output
+    } else // Packing not enabled, just copy character to output
         handle_output_char(c);
 }
 
@@ -177,8 +177,8 @@ void MeatPack::handle_command(const MeatPack_Command c) {
  * according to the current meatpack state.
  */
 void MeatPack::handle_rx_char(const uint8_t c) {
-    if (c == kCommandByte) {    // A command (0xFF) byte?
-        if (cmd_count) {        // In fact, two in a row?
+    if (c == kCommandByte) { // A command (0xFF) byte?
+        if (cmd_count) { // In fact, two in a row?
             cmd_is_next = true; // Then a MeatPack command follows
             cmd_count = 0;
         } else
@@ -186,13 +186,13 @@ void MeatPack::handle_rx_char(const uint8_t c) {
         return;
     }
 
-    if (cmd_is_next) {                       // Were two command bytes received?
+    if (cmd_is_next) { // Were two command bytes received?
         handle_command((MeatPack_Command)c); // Then the byte is a MeatPack command
         cmd_is_next = false;
         return;
     }
 
-    if (cmd_count) {                        // Only a single 0xFF was received
+    if (cmd_count) { // Only a single 0xFF was received
         handle_rx_char_inner(kCommandByte); // A single 0xFF is passed on literally so it can be interpreted as kFirstNotPacked|kSecondNotPacked
         cmd_count = 0;
     }

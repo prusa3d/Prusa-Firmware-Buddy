@@ -408,7 +408,10 @@
 #define TEMP_SENSOR_4 5
 #define TEMP_SENSOR_5 5
 #define TEMP_SENSOR_BED 5
-#define TEMP_SENSOR_CHAMBER 0
+
+// Chamber temperature is thermistor connector on sandwich. Connected to virtual MARLIN_PIN(AMBIENT) and AdcGet::ambientTemp().
+#define TEMP_SENSOR_CHAMBER 2000 // TODO: Unknown thermistor, set properly
+
 #define TEMP_SENSOR_HEATBREAK 5
 #define HEATER_CHAMBER_PIN -1 // On/off pin for enclosure heating system
 #define TEMP_SENSOR_BOARD 2000
@@ -990,7 +993,7 @@
 #define Z_PROBE_SPEED_SLOW 70
 
 // [ms] delay before first Z probe for taring
-#define Z_FIRST_PROBE_DELAY 250
+#define Z_FIRST_PROBE_DELAY 300
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   // Enable G29 P9 for nozzle cleanup

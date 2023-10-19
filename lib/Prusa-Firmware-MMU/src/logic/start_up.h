@@ -8,7 +8,7 @@ namespace logic {
 /// @brief Firmware start up sequence with error handling & reporting
 class StartUp : public CommandBase {
 public:
-    inline StartUp()
+    inline constexpr StartUp()
         : CommandBase() {}
 
     /// Restart the automaton

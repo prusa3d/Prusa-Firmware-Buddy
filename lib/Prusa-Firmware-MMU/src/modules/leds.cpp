@@ -56,12 +56,16 @@ void LEDs::Step() {
 }
 
 void LEDs::SetPairButOffOthers(uint8_t activeSlot, ml::Mode greenMode, ml::Mode redMode) {
+    SetAllOff();
+    SetMode(activeSlot, ml::green, greenMode);
+    SetMode(activeSlot, ml::red, redMode);
+}
+
+void LEDs::SetAllOff() {
     for (uint8_t i = 0; i < ledPairs; ++i) {
         SetMode(i, ml::green, ml::off);
         SetMode(i, ml::red, ml::off);
     }
-    SetMode(activeSlot, ml::green, greenMode);
-    SetMode(activeSlot, ml::red, redMode);
 }
 
 } // namespace leds

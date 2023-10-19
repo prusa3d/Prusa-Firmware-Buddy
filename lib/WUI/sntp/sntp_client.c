@@ -2,7 +2,7 @@
 #include "sntp_client.h"
 #include "netdev.h"
 
-static ip_addr_t ntp_server;      // testing ntp server located in Prague
+static ip_addr_t ntp_server; // testing ntp server located in Prague
 static uint32_t sntp_running = 0; // describes if sntp is currently running or not
 void sntp_client_init(void) {
     sntp_setoperatingmode(SNTP_OPMODE_POLL);

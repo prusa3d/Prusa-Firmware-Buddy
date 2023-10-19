@@ -111,10 +111,10 @@ TEST_CASE("Jogwheel tests", "[jogwheel]") {
 
         j.SetEncoderPhase(phase_t::P0lo_P1lo);
 
-        REQUIRE(j.GetEncoder() == 0);         // read at tick 0
+        REQUIRE(j.GetEncoder() == 0); // read at tick 0
 
-        j.SpinR(1, 2);                        // 2 ms  not filtered out
-        REQUIRE(j.GetEncoder() == 0);         // not initialized by read, must return 0
+        j.SpinR(1, 2); // 2 ms  not filtered out
+        REQUIRE(j.GetEncoder() == 0); // not initialized by read, must return 0
 
         jogWheelENC.state = Pin::State::high; // inverted
         j.Update1msFromISR();
@@ -136,15 +136,15 @@ TEST_CASE("Jogwheel tests", "[jogwheel]") {
     SECTION("encoder - noise filter") {
         j.SetEncoderPhase(phase_t::P0lo_P1lo);
 
-        REQUIRE(j.GetEncoder() == 0);       // read at tick 0
+        REQUIRE(j.GetEncoder() == 0); // read at tick 0
 
-        j.SpinR(1, 0);                      // 0 ms must be filtered out
-        REQUIRE(j.GetEncoder() == 0);       // must still be 0, noise filter filtered spin out
+        j.SpinR(1, 0); // 0 ms must be filtered out
+        REQUIRE(j.GetEncoder() == 0); // must still be 0, noise filter filtered spin out
 
-        j.SpinR(1, 1);                      // 1 ms must be filtered out
-        REQUIRE(j.GetEncoder() == 0);       // must still be 0, noise filter filtered spin out
+        j.SpinR(1, 1); // 1 ms must be filtered out
+        REQUIRE(j.GetEncoder() == 0); // must still be 0, noise filter filtered spin out
 
-        j.SpinR(1, 2);                      // 2 ms must not be filtered out
+        j.SpinR(1, 2); // 2 ms must not be filtered out
         REQUIRE_FALSE(j.GetEncoder() == 0); // tick did not changed, must read 0
     }
 

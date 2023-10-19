@@ -17,10 +17,10 @@ struct StatusLed {
     /// Mode of the Dwarf status LED
     enum class Mode : uint8_t {
         dwarf_status = 0, ///< Show dwarf internal status
-        solid_color = 1,  ///< Show continuous color
-        blink = 2,        ///< Blink on and off
-        pulse = 3,        ///< Pulse on and off
-        pulse_w = 4,      ///< Pulse color and white
+        solid_color = 1, ///< Show continuous color
+        blink = 2, ///< Blink on and off
+        pulse = 3, ///< Pulse on and off
+        pulse_w = 4, ///< Pulse color and white
         // others - reserved
     };
 

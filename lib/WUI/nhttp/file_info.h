@@ -48,6 +48,8 @@ private:
         dirent *ent = nullptr;
         time_t base_folder_timestamp {};
         bool first = true;
+        bool read_only = false;
+        bool partial = false;
         DirState() = default;
         DirState(FileInfo *owner, DIR *dir)
             : filepath(owner->filepath)

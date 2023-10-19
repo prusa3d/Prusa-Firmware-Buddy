@@ -19,7 +19,7 @@
 #include "option/has_toolchanger.h"
 #include <option/has_mmu2.h>
 
-enum { RESPONSE_BITS = 4,                   // number of bits used to encode response
+enum { RESPONSE_BITS = 4, // number of bits used to encode response
     MAX_RESPONSES = (1 << RESPONSE_BITS) }; // maximum number of responses in one phase
 
 using PhaseResponses = std::array<Response, MAX_RESPONSES>;
@@ -170,32 +170,6 @@ enum class PhasesSelftest : uint16_t {
     WizardPrologue_info_detailed,
     _last_WizardPrologue = WizardPrologue_info_detailed,
 
-    _first_ESP,
-    ESP_instructions = _first_ESP,
-    ESP_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
-    ESP_ask_gen,
-    ESP_ask_gen_overwrite,
-    ESP_makefile_failed,
-    ESP_eject_USB,
-    ESP_insert_USB,
-    ESP_invalid,
-    ESP_uploading_config,
-    ESP_enabling_WIFI,
-    ESP_uploaded,
-    _last_ESP = ESP_uploaded,
-
-    _first_ESP_progress,
-    ESP_progress_info = _first_ESP_progress,
-    ESP_progress_upload,
-    ESP_progress_passed,
-    ESP_progress_failed,
-    _last_ESP_progress = ESP_progress_failed,
-
-    _first_ESP_qr,
-    ESP_qr_instructions_flash = _first_ESP_qr,
-    ESP_qr_instructions,
-    _last_ESP_qr = ESP_qr_instructions,
-
     _first_Fans,
     Fans = _first_Fans,
     _last_Fans = Fans,
@@ -316,8 +290,40 @@ enum class PhasesSelftest : uint16_t {
     _last = _last_WizardEpilogue_nok
 };
 
-enum class PhasesCrashRecovery : uint16_t {
+enum class PhasesESP : uint16_t {
     _first = static_cast<uint16_t>(PhasesSelftest::_last) + 1,
+    _none = _first,
+
+    _first_ESP,
+    ESP_instructions = _first_ESP,
+    ESP_USB_not_inserted, // must be before ask_gen/ask_gen_overwrite, because it depends on file existence
+    ESP_ask_gen,
+    ESP_ask_gen_overwrite,
+    ESP_makefile_failed,
+    ESP_eject_USB,
+    ESP_insert_USB,
+    ESP_invalid,
+    ESP_uploading_config,
+    ESP_enabling_WIFI,
+    _last_ESP = ESP_enabling_WIFI,
+
+    _first_ESP_progress,
+    ESP_progress_info = _first_ESP_progress,
+    ESP_progress_upload,
+    ESP_progress_passed,
+    ESP_progress_failed,
+    _last_ESP_progress = ESP_progress_failed,
+
+    _first_ESP_qr,
+    ESP_qr_instructions_flash = _first_ESP_qr,
+    ESP_qr_instructions,
+    _last_ESP_qr = ESP_qr_instructions,
+
+    _last = _last_ESP_qr,
+};
+
+enum class PhasesCrashRecovery : uint16_t {
+    _first = static_cast<uint16_t>(PhasesESP::_last) + 1,
     check_X = _first, // in this case is safe to have check_X == _first
     check_Y,
     home,
@@ -325,7 +331,7 @@ enum class PhasesCrashRecovery : uint16_t {
     axis_short,
     axis_long,
     repeated_crash,
-    home_fail,     //< Homing failed, ask to retry
+    home_fail, //< Homing failed, ask to retry
     tool_recovery, //< Toolchanger recovery, tool fell off
     _last = tool_recovery
 };
@@ -344,79 +350,79 @@ class ClientResponses {
 
     // declare 2d arrays of single buttons for radio buttons
     static constexpr PhaseResponses LoadUnloadResponses[] = {
-        {},                                                       //_first
-        {},                                                       // ChangingTool,
-        { Response::Stop },                                       // Parking_stoppable
-        {},                                                       // Parking_unstoppable,
-        { Response::Stop },                                       // WaitingTemp_stoppable,
-        {},                                                       // WaitingTemp_unstoppable,
-        { Response::Stop },                                       // PreparingToRam_stoppable,
-        {},                                                       // PreparingToRam_unstoppable
-        { Response::Stop },                                       // Ramming_stoppable,
-        {},                                                       // Ramming_unstoppable,
-        { Response::Stop },                                       // Unloading_stoppable,
-        {},                                                       // Unloading_unstoppable,
-        { Response::Filament_removed },                           // RemoveFilament,
-        { Response::Yes, Response::No },                          // IsFilamentUnloaded,
-        {},                                                       // FilamentNotInFS
-        { Response::Continue, Response::Retry },                  // ManualUnload,
-        { Response::Continue, Response::Stop },                   // UserPush_stoppable,
-        { Response::Continue },                                   // UserPush_unstoppable,
-        { Response::Stop },                                       // MakeSureInserted_stoppable,
-        {},                                                       // MakeSureInserted_unstoppable,
-        { Response::Stop },                                       // Inserting_stoppable,
-        {},                                                       // Inserting_unstoppable,
-        { Response::Yes, Response::No },                          // IsFilamentInGear,
-        { Response::Stop },                                       // Ejecting_stoppable,
-        {},                                                       // Ejecting_unstoppable,
-        { Response::Stop },                                       // Loading_stoppable,
-        {},                                                       // Loading_unstoppable,
-        { Response::Stop },                                       // Purging_stoppable,
-        {},                                                       // Purging_unstoppable,
+        {}, //_first
+        {}, // ChangingTool,
+        { Response::Stop }, // Parking_stoppable
+        {}, // Parking_unstoppable,
+        { Response::Stop }, // WaitingTemp_stoppable,
+        {}, // WaitingTemp_unstoppable,
+        { Response::Stop }, // PreparingToRam_stoppable,
+        {}, // PreparingToRam_unstoppable
+        { Response::Stop }, // Ramming_stoppable,
+        {}, // Ramming_unstoppable,
+        { Response::Stop }, // Unloading_stoppable,
+        {}, // Unloading_unstoppable,
+        { Response::Filament_removed }, // RemoveFilament,
+        { Response::Yes, Response::No }, // IsFilamentUnloaded,
+        {}, // FilamentNotInFS
+        { Response::Continue, Response::Retry }, // ManualUnload,
+        { Response::Continue, Response::Stop }, // UserPush_stoppable,
+        { Response::Continue }, // UserPush_unstoppable,
+        { Response::Stop }, // MakeSureInserted_stoppable,
+        {}, // MakeSureInserted_unstoppable,
+        { Response::Stop }, // Inserting_stoppable,
+        {}, // Inserting_unstoppable,
+        { Response::Yes, Response::No }, // IsFilamentInGear,
+        { Response::Stop }, // Ejecting_stoppable,
+        {}, // Ejecting_unstoppable,
+        { Response::Stop }, // Loading_stoppable,
+        {}, // Loading_unstoppable,
+        { Response::Stop }, // Purging_stoppable,
+        {}, // Purging_unstoppable,
         { Response::Yes, Response::Purge_more, Response::Retry }, // IsColor,
-        { Response::Yes, Response::Purge_more },                  // IsColorPurge
-        {},                                                       // Unparking
+        { Response::Yes, Response::Purge_more }, // IsColorPurge
+        {}, // Unparking
 #if HAS_LOADCELL()
-        { Response::Unload },                                     // FilamentStuck
+        { Response::Unload }, // FilamentStuck
 #endif
 #if HAS_MMU2()
-        {},                                                            // MMU_EngagingIdler,
-        {},                                                            // MMU_DisengagingIdler,
-        {},                                                            // MMU_UnloadingToFinda,
-        {},                                                            // MMU_UnloadingToPulley,
-        {},                                                            // MMU_FeedingToFinda,
-        {},                                                            // MMU_FeedingToBondtech,
-        {},                                                            // MMU_FeedingToNozzle,
-        {},                                                            // MMU_AvoidingGrind,
-        {},                                                            // MMU_FinishingMoves,
-        {},                                                            // MMU_ERRDisengagingIdler,
-        {},                                                            // MMU_ERREngagingIdler,
+        {}, // MMU_EngagingIdler,
+        {}, // MMU_DisengagingIdler,
+        {}, // MMU_UnloadingToFinda,
+        {}, // MMU_UnloadingToPulley,
+        {}, // MMU_FeedingToFinda,
+        {}, // MMU_FeedingToBondtech,
+        {}, // MMU_FeedingToNozzle,
+        {}, // MMU_AvoidingGrind,
+        {}, // MMU_FinishingMoves,
+        {}, // MMU_ERRDisengagingIdler,
+        {}, // MMU_ERREngagingIdler,
         { Response::Retry, Response::Slowly, Response::Continue, Response::Restart,
             Response::Unload, Response::Stop, Response::MMU_disable }, // MMU_ERRWaitingForUser,
-        {},                                                            // MMU_ERRInternal,
-        {},                                                            // MMU_ERRHelpingFilament,
-        {},                                                            // MMU_ERRTMCFailed,
-        {},                                                            // MMU_UnloadingFilament,
-        {},                                                            // MMU_LoadingFilament,
-        {},                                                            // MMU_SelectingFilamentSlot,
-        {},                                                            // MMU_PreparingBlade,
-        {},                                                            // MMU_PushingFilament,
-        {},                                                            // MMU_PerformingCut,
-        {},                                                            // MMU_ReturningSelector,
-        {},                                                            // MMU_ParkingSelector,
-        {},                                                            // MMU_EjectingFilament,
-        {},                                                            // MMU_RetractingFromFinda,
-        {},                                                            // MMU_Homing,
-        {},                                                            // MMU_MovingSelector,
-        {},                                                            // MMU_FeedingToFSensor,
-        {},                                                            // MMU_HWTestBegin,
-        {},                                                            // MMU_HWTestIdler,
-        {},                                                            // MMU_HWTestSelector,
-        {},                                                            // MMU_HWTestPulley,
-        {},                                                            // MMU_HWTestCleanup,
-        {},                                                            // MMU_HWTestExec,
-        {},                                                            // MMU_HWTestDisplay,
-        {},                                                            // MMU_ErrHwTestFailed,
+        {}, // MMU_ERRInternal,
+        {}, // MMU_ERRHelpingFilament,
+        {}, // MMU_ERRTMCFailed,
+        {}, // MMU_UnloadingFilament,
+        {}, // MMU_LoadingFilament,
+        {}, // MMU_SelectingFilamentSlot,
+        {}, // MMU_PreparingBlade,
+        {}, // MMU_PushingFilament,
+        {}, // MMU_PerformingCut,
+        {}, // MMU_ReturningSelector,
+        {}, // MMU_ParkingSelector,
+        {}, // MMU_EjectingFilament,
+        {}, // MMU_RetractingFromFinda,
+        {}, // MMU_Homing,
+        {}, // MMU_MovingSelector,
+        {}, // MMU_FeedingToFSensor,
+        {}, // MMU_HWTestBegin,
+        {}, // MMU_HWTestIdler,
+        {}, // MMU_HWTestSelector,
+        {}, // MMU_HWTestPulley,
+        {}, // MMU_HWTestCleanup,
+        {}, // MMU_HWTestExec,
+        {}, // MMU_HWTestDisplay,
+        {}, // MMU_ErrHwTestFailed,
 #endif
     };
     static_assert(std::size(ClientResponses::LoadUnloadResponses) == CountPhases<PhasesLoadUnload>());
@@ -432,7 +438,7 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PreheatResponses) == CountPhases<PhasesPreheat>());
 
     static constexpr PhaseResponses PrintPreviewResponses[] = {
-        {},                 // loading
+        {}, // loading
         { Response::Quit }, // download_wait
         {
 #if PRINTER_IS_PRUSA_XL
@@ -442,13 +448,13 @@ class ClientResponses {
 #else
             Response::Print,
 #endif
-            Response::Back },                                  // main_dialog,
-        { Response::Continue, Response::Abort },               // unfinished_selftest
-        { Response::Continue },                                // new_firmware_available
-        { Response::Abort, Response::PRINT },                  // wrong_printer
-        { Response::Abort },                                   // wrong_printer_abort
+            Response::Back }, // main_dialog,
+        { Response::Continue, Response::Abort }, // unfinished_selftest
+        { Response::Continue }, // new_firmware_available
+        { Response::Abort, Response::PRINT }, // wrong_printer
+        { Response::Abort }, // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
-        { Response::Yes, Response::No },                       // mmu_filament_inserted
+        { Response::Yes, Response::No }, // mmu_filament_inserted
         { Response::Back, Response::Change, Response::PRINT }, // tools_mapping
         {
 #if !PRINTER_IS_PRUSA_XL
@@ -459,7 +465,7 @@ class ClientResponses {
     static_assert(std::size(ClientResponses::PrintPreviewResponses) == CountPhases<PhasesPrintPreview>());
 
     static constexpr PhaseResponses SelftestResponses[] = {
-        {},                                       // _none == _first
+        {}, // _none == _first
 
         { Response::Continue, Response::Cancel }, // WizardPrologue_ask_run
         { Response::Continue, Response::Cancel
@@ -467,133 +473,137 @@ class ClientResponses {
             ,
             Response::Ignore
 #endif
-        },                                        // WizardPrologue_ask_run_dev
+        }, // WizardPrologue_ask_run_dev
         { Response::Continue, Response::Cancel }, // WizardPrologue_info
         { Response::Continue, Response::Cancel }, // WizardPrologue_info_detailed
 
-        { Response::Continue, Response::Abort },  // ESP_instructions
-        { Response::Yes, Response::Skip },        // ESP_USB_not_inserted
-        { Response::Yes, Response::Skip },        // ESP_ask_gen
-        { Response::Yes, Response::Skip },        // ESP_ask_gen_overwrite
-        { Response::Yes, Response::Skip },        // ESP_makefile_failed
-        { Response::Continue },                   // ESP_eject_USB
-        { Response::Continue, Response::Abort },  // ESP_insert_USB
-        { Response::Retry, Response::Abort },     // ESP_invalid
-        { Response::Abort },                      // ESP_uploading_config
-        { Response::Continue },                   // ESP_enabling_WIFI
-        { Response::Continue },                   // ESP_uploaded
+        {}, // Fans
 
-        { Response::Continue, Response::Abort },  // ESP_progress_info
-        { Response::Abort },                      // ESP_progress_upload
-        { Response::Continue },                   // ESP_progress_passed
-        { Response::Continue },                   // ESP_progress_failed
+        {}, // Loadcell_prepare
+        {}, // Loadcell_move_away
+        {}, // Loadcell_tool_select
+        { Response::Abort }, // Loadcell_cooldown
+
+        { Response::Continue, Response::Abort }, // Loadcell_user_tap_ask_abort
+        {}, // Loadcell_user_tap_countdown
+        {}, // Loadcell_user_tap_check
+        {}, // Loadcell_user_tap_ok
+        {}, // Loadcell_fail
+
+        { Response::Continue, Response::Unload, Response::Abort }, // FSensor_ask_unload
+        {}, // FSensor_wait_tool_pick
+        { Response::Yes, Response::No }, // FSensor_unload_confirm
+        {}, // FSensor_calibrate
+        { Response::Abort_invalidate_test }, // FSensor_insertion_wait
+        { Response::Continue, Response::Abort_invalidate_test }, // FSensor_insertion_ok
+        { Response::Abort_invalidate_test }, // FSensor_insertion_calibrate
+        { Response::Abort_invalidate_test }, // Fsensor_enforce_remove
+        {}, // FSensor_done
+        {}, // FSensor_fail
+
+        { Response::Continue, Response::Skip }, // GearsCalib_filament_check
+        { Response::Unload, Response::Abort }, // GearsCalib_filament_loaded_ask_unload
+        { Response::Continue, Response::Unload, Response::Abort }, // GearsCalib_filament_unknown_ask_unload
+        { Response::Continue, Response::Skip }, // GearsCalib_release_screws
+        {}, // GearsCalib_alignment
+        { Response::Continue }, // GearsCalib_tighten
+        { Response::Continue }, // GearsCalib_done
+
+        {}, // CalibZ
+
+        {}, // Axis
+
+        {}, // Heaters
+
+        { Response::Adjust, Response::Skip }, // SpecifyHotEnd
+        { Response::Yes, Response::No }, // SpecifyHotEnd_sock
+        { Response::PrusaStock, Response::HighFlow }, // SpecifyHotEnd_nozzle_type
+        { Response::Yes, Response::No }, // SpecifyHotEnd_retry
+
+        {}, // FirstLayer_mbl
+        {}, // FirstLayer_print
+
+        { Response::Next, Response::Unload }, // FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions
+        { Response::Next, Response::Load, Response::Unload }, // FirstLayer_filament_not_known_or_unsensed
+        { Response::Next }, // FirstLayer_calib
+        { Response::Yes, Response::No }, // FirstLayer_use_val
+        { Response::Next }, // FirstLayer_start_print
+        { Response::Yes, Response::No }, // FirstLayer_reprint
+        { Response::Next }, // FirstLayer_clean_sheet
+        { Response::Next }, // FirstLayer_failed
+
+        { Response::Continue, Response::Abort }, // Dock_needs_calibartion
+        {}, // Dock_move_away
+        { Response::Continue, Response::Abort }, // Dock_wait_user_park1
+        { Response::Continue, Response::Abort }, // Dock_wait_user_park2
+        { Response::Continue, Response::Abort }, // Dock_wait_user_park3
+        { Response::Continue, Response::Abort }, // Dock_wait_user_remove_pins
+        { Response::Continue, Response::Abort }, // Dock_wait_user_loosen_pillar
+        { Response::Continue, Response::Abort }, // Dock_wait_user_lock_tool
+        { Response::Continue, Response::Abort }, // Dock_wait_user_tighten_top_screw
+        { Response::Abort }, // Dock_measure
+        { Response::Continue, Response::Abort }, // Dock_wait_user_tighten_bottom_screw
+        { Response::Continue, Response::Abort }, // Dock_wait_user_install_pins
+        { Response::Abort }, // Dock_selftest_park_test
+        {}, // Dock_selftest_failed
+        { Response::Continue }, // Dock_calibration_success
+
+        { Response::Continue, Response::Abort }, // ToolOffsets_wait_user_confirm_start
+        { Response::Heatup, Response::Continue }, // ToolOffsets_wait_user_clean_nozzle_cold
+        { Response::Cooldown, Response::Continue }, // ToolOffsets_wait_user_clean_nozzle_hot
+        { Response::Continue }, // ToolOffsets_wait_user_install_sheet
+        {}, // ToolOffsets_pin_install_prepare
+        { Response::Continue }, // ToolOffsets_wait_user_install_pin
+        {}, // ToolOffsets_wait_stable_temp
+        {}, // ToolOffsets_wait_calibrate
+        {}, // ToolOffsets_state_final_park
+        { Response::Continue }, // ToolOffsets_wait_user_remove_pin
+
+        { Response::Next }, // Result
+
+        { Response::Continue }, // WizardEpilogue_ok
+        { Response::Continue }, // WizardEpilogue_nok
+    };
+    static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
+
+    static constexpr PhaseResponses ESPResponses[] = {
+        {}, // _none == _first
+
+        { Response::Continue, Response::Abort }, // ESP_instructions
+        { Response::Yes, Response::Skip }, // ESP_USB_not_inserted
+        { Response::Yes, Response::Skip }, // ESP_ask_gen
+        { Response::Yes, Response::Skip }, // ESP_ask_gen_overwrite
+        { Response::Yes, Response::Skip }, // ESP_makefile_failed
+        { Response::Continue }, // ESP_eject_USB
+        { Response::Continue, Response::Abort }, // ESP_insert_USB
+        { Response::Retry, Response::Abort }, // ESP_invalid
+        { Response::Abort }, // ESP_uploading_config
+        { Response::Yes, Response::No }, // ESP_enabling_WIFI
+
+        { Response::Continue, Response::Abort }, // ESP_progress_info
+        { Response::Abort }, // ESP_progress_upload
+        { Response::Continue }, // ESP_progress_passed
+        { Response::Continue }, // ESP_progress_failed
         { Response::Continue, Response::NotNow
 #if not PRINTER_IS_PRUSA_MINI
             ,
             Response::Never
 #endif
-        },                                                         // ESP_qr_instructions_flash
-        { Response::Continue, Response::Abort },                   // ESP_qr_instructions
-
-        {},                                                        // Fans
-
-        {},                                                        // Loadcell_prepare
-        {},                                                        // Loadcell_move_away
-        {},                                                        // Loadcell_tool_select
-        { Response::Abort },                                       // Loadcell_cooldown
-
-        { Response::Continue, Response::Abort },                   // Loadcell_user_tap_ask_abort
-        {},                                                        // Loadcell_user_tap_countdown
-        {},                                                        // Loadcell_user_tap_check
-        {},                                                        // Loadcell_user_tap_ok
-        {},                                                        // Loadcell_fail
-
-        { Response::Continue, Response::Unload, Response::Abort }, // FSensor_ask_unload
-        {},                                                        // FSensor_wait_tool_pick
-        { Response::Yes, Response::No },                           // FSensor_unload_confirm
-        {},                                                        // FSensor_calibrate
-        { Response::Abort_invalidate_test },                       // FSensor_insertion_wait
-        { Response::Continue, Response::Abort_invalidate_test },   // FSensor_insertion_ok
-        { Response::Abort_invalidate_test },                       // FSensor_insertion_calibrate
-        { Response::Abort_invalidate_test },                       // Fsensor_enforce_remove
-        {},                                                        // FSensor_done
-        {},                                                        // FSensor_fail
-
-        { Response::Continue, Response::Skip },                    // GearsCalib_filament_check
-        { Response::Unload, Response::Abort },                     // GearsCalib_filament_loaded_ask_unload
-        { Response::Continue, Response::Unload, Response::Abort }, // GearsCalib_filament_unknown_ask_unload
-        { Response::Continue, Response::Skip },                    // GearsCalib_release_screws
-        {},                                                        // GearsCalib_alignment
-        { Response::Continue },                                    // GearsCalib_tighten
-        { Response::Continue },                                    // GearsCalib_done
-
-        {},                                                        // CalibZ
-
-        {},                                                        // Axis
-
-        {},                                                        // Heaters
-
-        { Response::Adjust, Response::Skip },                      // SpecifyHotEnd
-        { Response::Yes, Response::No },                           // SpecifyHotEnd_sock
-        { Response::PrusaStock, Response::HighFlow },              // SpecifyHotEnd_nozzle_type
-        { Response::Yes, Response::No },                           // SpecifyHotEnd_retry
-
-        {},                                                        // FirstLayer_mbl
-        {},                                                        // FirstLayer_print
-
-        { Response::Next, Response::Unload },                      // FirstLayer_filament_known_and_not_unsensed = _first_FirstLayerQuestions
-        { Response::Next, Response::Load, Response::Unload },      // FirstLayer_filament_not_known_or_unsensed
-        { Response::Next },                                        // FirstLayer_calib
-        { Response::Yes, Response::No },                           // FirstLayer_use_val
-        { Response::Next },                                        // FirstLayer_start_print
-        { Response::Yes, Response::No },                           // FirstLayer_reprint
-        { Response::Next },                                        // FirstLayer_clean_sheet
-        { Response::Next },                                        // FirstLayer_failed
-
-        { Response::Continue, Response::Abort },                   // Dock_needs_calibartion
-        {},                                                        // Dock_move_away
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_park1
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_park2
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_park3
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_remove_pins
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_loosen_pillar
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_lock_tool
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_tighten_top_screw
-        { Response::Abort },                                       // Dock_measure
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_tighten_bottom_screw
-        { Response::Continue, Response::Abort },                   // Dock_wait_user_install_pins
-        { Response::Abort },                                       // Dock_selftest_park_test
-        {},                                                        // Dock_selftest_failed
-        { Response::Continue },                                    // Dock_calibration_success
-
-        { Response::Continue, Response::Abort },                   // ToolOffsets_wait_user_confirm_start
-        { Response::Heatup, Response::Continue },                  // ToolOffsets_wait_user_clean_nozzle_cold
-        { Response::Cooldown, Response::Continue },                // ToolOffsets_wait_user_clean_nozzle_hot
-        { Response::Continue },                                    // ToolOffsets_wait_user_install_sheet
-        {},                                                        // ToolOffsets_pin_install_prepare
-        { Response::Continue },                                    // ToolOffsets_wait_user_install_pin
-        {},                                                        // ToolOffsets_wait_stable_temp
-        {},                                                        // ToolOffsets_wait_calibrate
-        {},                                                        // ToolOffsets_state_final_park
-        { Response::Continue },                                    // ToolOffsets_wait_user_remove_pin
-
-        { Response::Next },                                        // Result
-
-        { Response::Continue },                                    // WizardEpilogue_ok
-        { Response::Continue },                                    // WizardEpilogue_nok
+        }, // ESP_qr_instructions_flash
+        { Response::Continue, Response::Abort }, // ESP_qr_instructions
     };
-    static_assert(std::size(ClientResponses::SelftestResponses) == CountPhases<PhasesSelftest>());
+    static_assert(std::size(ClientResponses::ESPResponses) == CountPhases<PhasesESP>());
 
     static constexpr PhaseResponses CrashRecoveryResponses[] = {
-        {},                                                     // check X == _first
-        {},                                                     // check Y
-        {},                                                     // home
+        {}, // check X == _first
+        {}, // check Y
+        {}, // home
         { Response::Retry, Response::Pause, Response::Resume }, // axis NOK
-        {},                                                     // axis short
-        {},                                                     // axis long
-        { Response::Resume, Response::Pause },                  // repeated crash
-        { Response::Retry },                                    // home_fail
-        { Response::Continue },                                 // toolchanger recovery
+        {}, // axis short
+        {}, // axis long
+        { Response::Resume, Response::Pause }, // repeated crash
+        { Response::Retry }, // home_fail
+        { Response::Continue }, // toolchanger recovery
     };
     static_assert(std::size(ClientResponses::CrashRecoveryResponses) == CountPhases<PhasesCrashRecovery>());
 
@@ -607,6 +617,7 @@ class ClientResponses {
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPreheat phase) { return PreheatResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPreheat::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesPrintPreview phase) { return PrintPreviewResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesPrintPreview::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesSelftest phase) { return SelftestResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesSelftest::_first)]; }
+    static constexpr const PhaseResponses &getResponsesInPhase(const PhasesESP phase) { return ESPResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesESP::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesCrashRecovery phase) { return CrashRecoveryResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesCrashRecovery::_first)]; }
     static constexpr const PhaseResponses &getResponsesInPhase(const PhasesQuickPause phase) { return QuickPauseResponses[static_cast<size_t>(phase) - static_cast<size_t>(PhasesQuickPause::_first)]; }
 
@@ -656,9 +667,6 @@ public:
 
 enum class SelftestParts {
     WizardPrologue,
-    ESP,
-    ESP_progress,
-    ESP_qr,
     Axis,
     Fans,
 #if HAS_LOADCELL()
@@ -686,16 +694,18 @@ enum class SelftestParts {
     _count = _none
 };
 
+enum class ESPParts {
+    ESP,
+    ESP_progress,
+    ESP_qr,
+    _none, // cannot be created, must have same index as _count
+    _count = _none
+};
+
 static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
         return PhasesSelftest::_first_WizardPrologue;
-    case SelftestParts::ESP:
-        return PhasesSelftest::_first_ESP;
-    case SelftestParts::ESP_progress:
-        return PhasesSelftest::_first_ESP_progress;
-    case SelftestParts::ESP_qr:
-        return PhasesSelftest::_first_ESP_qr;
     case SelftestParts::Axis:
         return PhasesSelftest::_first_Axis;
     case SelftestParts::Fans:
@@ -740,16 +750,24 @@ static constexpr PhasesSelftest SelftestGetFirstPhaseFromPart(SelftestParts part
     return PhasesSelftest::_none;
 }
 
+static constexpr PhasesESP ESPGetFirstPhaseFromPart(ESPParts part) {
+    switch (part) {
+    case ESPParts::ESP:
+        return PhasesESP::_first_ESP;
+    case ESPParts::ESP_progress:
+        return PhasesESP::_first_ESP_progress;
+    case ESPParts::ESP_qr:
+        return PhasesESP::_first_ESP_qr;
+    case ESPParts::_none:
+        break;
+    }
+    return PhasesESP::_none;
+}
+
 static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part) {
     switch (part) {
     case SelftestParts::WizardPrologue:
         return PhasesSelftest::_last_WizardPrologue;
-    case SelftestParts::ESP:
-        return PhasesSelftest::_last_ESP;
-    case SelftestParts::ESP_progress:
-        return PhasesSelftest::_last_ESP_progress;
-    case SelftestParts::ESP_qr:
-        return PhasesSelftest::_last_ESP_qr;
     case SelftestParts::Axis:
         return PhasesSelftest::_last_Axis;
     case SelftestParts::Fans:
@@ -794,6 +812,20 @@ static constexpr PhasesSelftest SelftestGetLastPhaseFromPart(SelftestParts part)
     return PhasesSelftest::_none;
 }
 
+static constexpr PhasesESP ESPGetLastPhaseFromPart(ESPParts part) {
+    switch (part) {
+    case ESPParts::ESP:
+        return PhasesESP::_last_ESP;
+    case ESPParts::ESP_progress:
+        return PhasesESP::_last_ESP_progress;
+    case ESPParts::ESP_qr:
+        return PhasesESP::_last_ESP_qr;
+    case ESPParts::_none:
+        break;
+    }
+    return PhasesESP::_none;
+}
+
 static constexpr bool SelftestPartContainsPhase(SelftestParts part, PhasesSelftest ph) {
     const uint16_t ph_u16 = uint16_t(ph);
 
@@ -808,13 +840,6 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 
     if (SelftestPartContainsPhase(SelftestParts::WizardPrologue, ph))
         return SelftestParts::WizardPrologue;
-
-    if (SelftestPartContainsPhase(SelftestParts::ESP, ph))
-        return SelftestParts::ESP;
-    if (SelftestPartContainsPhase(SelftestParts::ESP_progress, ph))
-        return SelftestParts::ESP_progress;
-    if (SelftestPartContainsPhase(SelftestParts::ESP_qr, ph))
-        return SelftestParts::ESP_qr;
 
     if (SelftestPartContainsPhase(SelftestParts::Fans, ph))
         return SelftestParts::Fans;
@@ -859,6 +884,20 @@ static constexpr SelftestParts SelftestGetPartFromPhase(PhasesSelftest ph) {
 #endif
     return SelftestParts::_none;
 };
+
+static constexpr bool ESPPartContainsPhase(ESPParts part, PhasesESP ph) {
+    const uint16_t ph_u16 = uint16_t(ph);
+
+    return (ph_u16 >= uint16_t(ESPGetFirstPhaseFromPart(part))) && (ph_u16 <= uint16_t(ESPGetLastPhaseFromPart(part)));
+}
+
+static constexpr ESPParts ESPGetPartFromPhase(PhasesESP ph) {
+    for (size_t i = 0; i < size_t(ESPParts::_none); ++i) {
+        if (ESPPartContainsPhase(ESPParts(i), ph))
+            return ESPParts(i);
+    }
+    return ESPParts::_none;
+}
 
 enum class FSM_action {
     no_action,

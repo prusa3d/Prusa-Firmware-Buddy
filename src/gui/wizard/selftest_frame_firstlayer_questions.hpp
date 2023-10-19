@@ -11,7 +11,7 @@
 class SelftestFrameFirstLayerQuestions : public AddSuperWindow<SelftestFrameWithRadio> {
     StatusFooter footer;
 
-    window_text_t text;                    // in middle of screen
+    window_text_t text; // in middle of screen
 
     std::array<char, 21 * 9 + 1> txt_buff; // 21 columns, 9 lines + '\0' char
 protected:

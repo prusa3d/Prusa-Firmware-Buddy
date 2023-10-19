@@ -8,7 +8,7 @@ namespace motion {
 
 MovableBase::OperationResult MovableBase::PlanHome() {
     InvalidateHoming();
-    if (state == OnHold)
+    if (IsOnHold())
         return OperationResult::Refused;
 
     // switch to normal mode on this axis
@@ -32,7 +32,7 @@ void __attribute__((noinline)) MovableBase::SetCurrents(uint8_t iRun, uint8_t iH
 }
 
 void MovableBase::HoldOn() {
-    state = OnHold;
+    state |= OnHold; // set the on-hold bit
     mm::motion.AbortPlannedMoves(axis);
     // Force turn off motors - prevent overheating and allow servicing during an error state.
     // And don't worry about TMC2130 creep after axis enabled - we'll rehome both axes later when needed.
@@ -69,9 +69,11 @@ void MovableBase::PerformHomeForward() {
     if (mm::motion.StallGuard(axis)) {
         // we have reached the front end of the axis - first part homed probably ok
         mm::motion.StallGuardReset(axis);
-        mm::motion.AbortPlannedMoves(axis, true);
-        PlanHomingMoveBack();
-        state = HomeBack;
+        if (StallGuardAllowed(true)) {
+            mm::motion.AbortPlannedMoves(axis, true);
+            PlanHomingMoveBack();
+            state = HomeBack;
+        }
     } else if (mm::motion.QueueEmpty(axis)) {
         HomeFailed();
     }
@@ -81,14 +83,16 @@ void MovableBase::PerformHomeBack() {
     if (mm::motion.StallGuard(axis)) {
         // we have reached the back end of the axis - second part homed probably ok
         mm::motion.StallGuardReset(axis);
-        mm::motion.AbortPlannedMoves(axis, true);
-        mm::motion.SetMode(axis, mg::globals.MotorsStealth() ? mm::Stealth : mm::Normal);
-        if (!FinishHomingAndPlanMoveToParkPos()) {
-            // the measured axis' length was incorrect, something is blocking it, report an error, homing procedure terminated
-            HomeFailed();
-        } else {
-            homingValid = true;
-            // state = Ready; // not yet - we have to move to our parking or target position after homing the axis
+        if (StallGuardAllowed(false)) {
+            mm::motion.AbortPlannedMoves(axis, true);
+            mm::motion.SetMode(axis, mg::globals.MotorsStealth() ? mm::Stealth : mm::Normal);
+            if (!FinishHomingAndPlanMoveToParkPos()) {
+                // the measured axis' length was incorrect, something is blocking it, report an error, homing procedure terminated
+                HomeFailed();
+            } else {
+                homingValid = true;
+                // state = Ready; // not yet - we have to move to our parking or target position after homing the axis
+            }
         }
     } else if (mm::motion.QueueEmpty(axis)) {
         HomeFailed();
@@ -110,6 +114,10 @@ void MovableBase::CheckTMC() {
         mm::motion.AbortPlannedMoves(axis, true);
         state = TMCFailed;
     }
+}
+
+uint16_t __attribute__((noinline)) MovableBase::AxisDistance(int32_t curPos) const {
+    return abs(curPos - axisStart);
 }
 
 } // namespace motion

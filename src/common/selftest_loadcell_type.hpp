@@ -34,7 +34,7 @@ struct SelftestLoadcell_t {
     constexpr fsm::PhaseData Serialize() const {
         fsm::PhaseData ret;
         ret[0] = progress;
-        ret[1] = countdown & 0x7f;                // 7 bits for countdown
+        ret[1] = countdown & 0x7f; // 7 bits for countdown
         ret[1] |= pressed_too_soon ? 0x80 : 0x00; // 8th bit for pressed_too_soon
         ret[2] = temperature & 0xff;
         ret[3] = temperature >> 8;
@@ -43,7 +43,7 @@ struct SelftestLoadcell_t {
 
     constexpr void Deserialize(fsm::PhaseData new_data) {
         progress = new_data[0];
-        countdown = new_data[1] & 0x7f;                  // 7 bits for countdown
+        countdown = new_data[1] & 0x7f; // 7 bits for countdown
         pressed_too_soon = (new_data[1] & 0x80) == 0x80; // 8th bit for pressed_too_soon
         temperature = new_data[2] | (new_data[3] << 8);
     }
@@ -64,6 +64,6 @@ struct SelftestLoadcell_t {
     void Fail() {
         progress = 100;
         failed = true;
-    }               // don't touch countdown and pressed_too_soon
+    } // don't touch countdown and pressed_too_soon
     void Abort() {} // currently not needed
 };

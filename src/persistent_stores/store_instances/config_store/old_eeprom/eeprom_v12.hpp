@@ -6,7 +6,7 @@
 
 #pragma once
 #include "eeprom_v11.hpp"
-#include "footer_eeprom.hpp"
+#include <Marlin/src/inc/MarlinConfigPre.h>
 
 namespace config_store_ns::old_eeprom::v12 {
 
@@ -93,8 +93,8 @@ inline vars_body_t convert(const old_eeprom::v11::vars_body_t &src) {
 
     // copy entire v11 struct
     memcpy(&ret, &src, sizeof(old_eeprom::v11::vars_body_t));
-    // count of eeprom items in last eeprom version is 6
-    ret.FOOTER_SETTING = footer::eeprom::ConvertFromOldEeprom(ret.FOOTER_SETTING, 6);
+    // we're forcing defaults at one point in config_store, so no need to keep old eeprom footer migrations
+    ret.FOOTER_SETTING = 0;
 
     return ret;
 }

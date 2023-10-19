@@ -4,6 +4,7 @@
 #include "DialogFactory.hpp"
 #include "IScreenPrinting.hpp"
 #include "ScreenHandler.hpp"
+#include "ScreenESP.hpp"
 #include "screen_printing.hpp"
 #include "config_features.h"
 #include "screen_print_preview.hpp"
@@ -49,11 +50,8 @@ static void OpenPrintScreen(ClientFSM dialog) {
 //*****************************************************************************
 // method definitions
 void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
-    ++opened_times[size_t(fsm_type)]; // preopen can mess this up
-    log_info(GUI, "Dialog opened_times[%u] = %u", size_t(fsm_type), opened_times[size_t(fsm_type)]);
-
     if (ptr)
-        return; // the dialog is already opened, not an error, we can preopen dialogs or even screens (wizard)
+        return; // the dialog is already opened, not an error (TODO really?)
 
     // todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     //  only ptr = dialog_creators[dialog](data); should remain
@@ -86,35 +84,32 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
         }
 #endif // HAS_SELFTEST
         break;
+    case ClientFSM::ESP:
+        if (!ScreenESP::GetInstance()) {
+            Screens::Access()->Open(ScreenFactory::Screen<ScreenESP>);
+        }
+        break;
     default:
         ptr = dialog_ctors[size_t(fsm_type)](data);
     }
 }
 
 void DialogHandler::close(ClientFSM fsm_type) {
-    ++closed_times[size_t(fsm_type)];
-    log_info(GUI, "Dialog closed_times[%u] = %u", size_t(fsm_type), closed_times[size_t(fsm_type)]);
-
-    if (waiting_closed == fsm_type) {
-        waiting_closed = ClientFSM::_none;
-    } else {
-
-        // following are screens (not dialogs)
-        switch (fsm_type) {
-        case ClientFSM::Serial_printing:
-        case ClientFSM::Printing:
-            Screens::Access()->CloseAll();
-            break;
-        case ClientFSM::PrintPreview:
-        case ClientFSM::CrashRecovery:
-        case ClientFSM::Selftest:
-            Screens::Access()->Close();
-            break;
-        default:
-            break;
-        }
+    // following are screens (not dialogs)
+    switch (fsm_type) {
+    case ClientFSM::Serial_printing:
+    case ClientFSM::Printing:
+        Screens::Access()->CloseAll();
+        break;
+    case ClientFSM::PrintPreview:
+    case ClientFSM::CrashRecovery:
+    case ClientFSM::Selftest:
+    case ClientFSM::ESP:
+        Screens::Access()->Close();
+        break;
+    default:
+        break;
     }
-
     ptr = nullptr; // destroy current dialog
 }
 
@@ -137,6 +132,11 @@ void DialogHandler::change(ClientFSM fsm_type, fsm::BaseData data) {
             ScreenSelftest::GetInstance()->Change(data);
         }
 #endif // HAS_SELFTEST
+        break;
+    case ClientFSM::ESP:
+        if (ScreenESP::GetInstance()) {
+            ScreenESP::GetInstance()->Change(data);
+        }
         break;
     default:
         if (ptr)
@@ -165,7 +165,6 @@ void DialogHandler::Command(std::pair<uint32_t, uint16_t> serialized) {
  * @brief determine correct operation with data
  * 3 possibilities: create(open), change(modify), destroy(destroy)
  * can contain close screen + open dialog
- * preopen can put data in queue too!!!
  *
  * @param change data containing description of a change, can be even open + close
  */
@@ -205,21 +204,6 @@ void DialogHandler::command(fsm::DequeStates changes) {
     // no need to check if data changed, queue handles it
     change(changes.current.get_fsm_type(), changes.current.get_data());
     return;
-}
-
-void DialogHandler::WaitUntilClosed(ClientFSM dialog, fsm::BaseData data) {
-    PreOpen(dialog, data);
-    waiting_closed = dialog;
-    while (waiting_closed == dialog) {
-        gui::TickLoop();
-        Loop();
-        gui_loop();
-    }
-}
-
-void DialogHandler::PreOpen([[maybe_unused]] ClientFSM dialog, fsm::BaseData data) {
-    const fsm::Change change(fsm::QueueIndex::q0, ClientFSM::Selftest, data);
-    Command(change.serialize());
 }
 
 void DialogHandler::Loop() {

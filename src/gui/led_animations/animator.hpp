@@ -140,16 +140,16 @@ public:
 
     template <class T>
     AnimationGuard start_animations(const T &animation, int priority); //< Starts new animation
-    void stop_animation(Animation *animation);                         //< Stops animation, it lets the animation end peacefully and then starts next animation in queue (if it has any) or leaves the leds turned off
+    void stop_animation(Animation *animation); //< Stops animation, it lets the animation end peacefully and then starts next animation in queue (if it has any) or leaves the leds turned off
     void start_animator();
 
 private:
     void insert_animation(AnimationStorage animation); //< Inserts animation to animator
-    Animation *get_first_animation();                  //< Gets animation to run now
-    void remove_animation(Animation *animation);       //<removes animation from animator
-    void update_next_animation();                      //< checks if we have animation which should be running, but it is not and queues it up to be run
-    int get_next_pos(int priority);                    //< Gets next position of animation with priority (when animation has equal priority, the newer animation is run (stack like behavior))
-    void clear_space();                                //< removes ended animations from animator
+    Animation *get_first_animation(); //< Gets animation to run now
+    void remove_animation(Animation *animation); //<removes animation from animator
+    void update_next_animation(); //< checks if we have animation which should be running, but it is not and queues it up to be run
+    int get_next_pos(int priority); //< Gets next position of animation with priority (when animation has equal priority, the newer animation is run (stack like behavior))
+    void clear_space(); //< removes ended animations from animator
 
     SpaceAllocator<MemSpace, COUNT> space_allocator;
     std::array<AnimationStorage, COUNT> animations;

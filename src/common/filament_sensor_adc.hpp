@@ -17,9 +17,9 @@ public:
     static constexpr float fs_selftest_span_multipler { 1.2 }; // when doing selftest, fs with filament and without has to be different by this value times configured span to pass selftest
 
 protected:
-    int32_t fs_value_span { 0 };            ///< minimal difference of raw values between the two states of the filament sensor
-    int32_t fs_ref_ins_value { 0 };         ///< value of filament insert in extruder
-    int32_t fs_ref_nins_value { 0 };        ///< value of filament not inserted in extruder
+    int32_t fs_value_span { 0 }; ///< minimal difference of raw values between the two states of the filament sensor
+    int32_t fs_ref_ins_value { 0 }; ///< value of filament insert in extruder
+    int32_t fs_ref_nins_value { 0 }; ///< value of filament not inserted in extruder
 
     std::atomic<int32_t> fs_filtered_value; ///< current filtered value set from interrupt
 

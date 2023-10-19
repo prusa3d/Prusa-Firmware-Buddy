@@ -50,7 +50,7 @@ struct __attribute__((packed)) WeightAdjustConfig {
     // DO NOT CHANGE LAYOUT OF THIS CLASS WITHOUT CHANGING EEPROM CODE!
 
     float frequency_delta; // Hz
-    float mass_limit;      // g
+    float mass_limit; // g
 
     friend auto operator<=>(const WeightAdjustConfig &, const WeightAdjustConfig &) = default;
 };
@@ -67,6 +67,8 @@ inline constexpr AxisConfig axis_x_default {
     .type = Type::mzv,
 #if PRINTER_IS_PRUSA_MINI
     .frequency = 118.2,
+#elif PRINTER_IS_PRUSA_XL
+    .frequency = 35.8,
 #else
     .frequency = 50.7f,
 #endif
@@ -79,6 +81,8 @@ inline constexpr AxisConfig axis_y_default {
     .type = Type::mzv,
 #if PRINTER_IS_PRUSA_MINI
     .frequency = 32.8,
+#elif PRINTER_IS_PRUSA_XL
+    .frequency = 35.4,
 #else
     .frequency = 40.6f,
 #endif

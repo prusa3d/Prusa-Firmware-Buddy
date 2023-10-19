@@ -6,7 +6,7 @@ using namespace ToolBox;
 
 namespace {
 void wait_until_done() {
-    static constexpr int wait_duration { 10 };                              // ms
+    static constexpr int wait_duration { 10 }; // ms
     static constexpr int show_in_progress_after_cnt { 50 / wait_duration }; // ms / ms
 
     for (int cnt = 0; queue.has_commands_queued() || planner.processing(); cnt++) {
@@ -88,7 +88,7 @@ void ToolBox::I_MI_TOOL::do_click(IWindowMenu &window_menu, Tool tool, Action ac
 #endif
         break;
     case Action::PickCurrent: // do nothing (Pick what is already picked)
-    case Action::Return:      // do nothing (Just close)
+    case Action::Return: // do nothing (Just close)
         break;
     }
 

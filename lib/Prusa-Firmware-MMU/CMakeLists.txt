@@ -34,6 +34,10 @@ set(BUILD_NUMBER
     ""
     CACHE STRING "Build number of the firmware. Resolved automatically if not specified."
     )
+set(PROJECT_VERSION_TIMESTAMP
+    ""
+    CACHE STRING "Timestamp for the build. Resolved automatically if not specified."
+    )
 set(CUSTOM_COMPILE_OPTIONS
     ""
     CACHE STRING "Allows adding custom C/C++ flags"
@@ -96,8 +100,8 @@ add_compile_options(-g)
 
 # optimizations
 if(CMAKE_CROSSCOMPILING)
-  # TODO: get date from the last git commit to set as epoch
-  set_source_epoch(0)
+  # set source epoch
+  set_source_epoch(${PROJECT_VERSION_TIMESTAMP})
 
   # default optimization flags
   set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
@@ -179,7 +183,7 @@ if(CMAKE_CROSSCOMPILING)
     COMMAND ${CMAKE_OBJCOPY} firmware -O binary --gap-fill 0xFF --pad-to 0x00007000 firmware.bin
     COMMAND ${CMAKE_COMMAND} -E cat firmware.bin bootloader.bin > fw_bootloader.bin
     COMMAND ${CMAKE_OBJCOPY} -I binary -O ihex fw_bootloader.bin
-            "MMU2SR_${PROJECT_VERSION}${PROJECT_VERSION_SUFFIX_SHORT}_bootloader.hex"
+            "MMU3_${PROJECT_VERSION}${PROJECT_VERSION_SUFFIX_SHORT}_bootloader.hex"
     BYPRODUCTS bootloader.bin firmware.bin fw_bootloader.bin
     )
 
@@ -208,7 +212,7 @@ if(CMAKE_CROSSCOMPILING)
     POST_BUILD
     COMMAND
       ${CMAKE_COMMAND} -D WORK_DIR=${CMAKE_BINARY_DIR} -D
-      HEX_NAME="MMU2SR_${PROJECT_VERSION}${PROJECT_VERSION_SUFFIX_SHORT}.hex" -P
+      HEX_NAME="MMU3_${PROJECT_VERSION}${PROJECT_VERSION_SUFFIX_SHORT}.hex" -P
       ${CMAKE_SOURCE_DIR}/cmake/HexConcat.cmake DEPENDS firmware.hex
     )
 

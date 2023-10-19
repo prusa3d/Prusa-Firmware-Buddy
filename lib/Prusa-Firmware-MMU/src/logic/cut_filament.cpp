@@ -107,7 +107,8 @@ bool CutFilament::StepInner() {
         if (mi::idler.Disengaged()) {
             state = ProgressCode::PerformingCut;
             // set highest available current for the Selector
-            ms::selector.SetCurrents(mg::globals.CutIRunCurrent(), config::selector.iHold);
+            // Since we probably need to change the vSense bit (to double the current), we must reinit the axis
+            mm::motion.InitAxis(mm::Selector, mm::MotorCurrents(mg::globals.CutIRunCurrent(), config::selector.iHold));
             // lower move speed
             savedSelectorFeedRate_mm_s = mg::globals.SelectorFeedrate_mm_s().v;
             mg::globals.SetSelectorFeedrate_mm_s(mg::globals.SelectorHomingFeedrate_mm_s().v);
@@ -116,17 +117,22 @@ bool CutFilament::StepInner() {
         break;
     case ProgressCode::PerformingCut:
         if (ms::selector.Slot() == cutSlot) { // this may not be necessary if we want the selector and pulley move at once
-            state = ProgressCode::ReturningSelector;
+            state = ProgressCode::Homing;
             // revert current to Selector's normal value
-            ms::selector.SetCurrents(config::selector.iRun, config::selector.iHold);
+            mm::motion.InitAxis(mm::Selector, mm::MotorCurrents(config::selector.iRun, config::selector.iHold));
             // revert move speed
             mg::globals.SetSelectorFeedrate_mm_s(savedSelectorFeedRate_mm_s);
             ms::selector.InvalidateHoming();
             mpu::pulley.PlanMove(-config::cuttingEdgeRetract, config::pulleySlowFeedrate);
         }
         break;
+    case ProgressCode::Homing:
+        if (ms::selector.HomingValid()) {
+            state = ProgressCode::ReturningSelector;
+        }
+        break;
     case ProgressCode::ReturningSelector:
-        if (ms::selector.HomingValid()) { // selector rehomed
+        if (ms::selector.State() == ms::selector.Ready) {
             FinishedOK();
             ml::leds.SetPairButOffOthers(mg::globals.ActiveSlot(), ml::on, ml::off);
         }

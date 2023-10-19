@@ -32,7 +32,7 @@ void PrusaGcodeSuite::M1700() {
 
     int8_t target_extruder;
     if (parser.seen('T') && parser.intval('T') == -1) {
-        target_extruder = -1;                                             // -1 means all extruders
+        target_extruder = -1; // -1 means all extruders
     } else {
         target_extruder = GcodeSuite::get_target_extruder_from_command(); // Get particular extruder or current extruder
         if (target_extruder < 0) {

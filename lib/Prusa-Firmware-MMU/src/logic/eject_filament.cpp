@@ -1,7 +1,6 @@
 /// @file eject_filament.cpp
 #include "eject_filament.h"
 #include "../modules/buttons.h"
-#include "../modules/finda.h"
 #include "../modules/globals.h"
 #include "../modules/idler.h"
 #include "../modules/leds.h"
@@ -35,6 +34,7 @@ bool EjectFilament::Reset(uint8_t param) {
 
 void EjectFilament::MoveSelectorAside() {
     state = ProgressCode::ParkingSelector;
+    error = ErrorCode::RUNNING;
     const uint8_t selectorParkedPos = (slot <= 2) ? 4 : 0;
     if (ms::selector.MoveToSlot(selectorParkedPos) == ms::Selector::OperationResult::Refused) {
         GoToErrDisengagingIdler(ErrorCode::FINDA_FLICKERS);
@@ -80,6 +80,7 @@ bool EjectFilament::StepInner() {
             ResumeIdlerSelector();
             switch (error) {
             case ErrorCode::FILAMENT_EJECTED: // the user clicked "Done", we can finish the Eject operation
+                ml::leds.SetAllOff();
                 FinishedOK();
                 break;
             case ErrorCode::FINDA_FLICKERS:

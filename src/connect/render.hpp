@@ -43,6 +43,7 @@ struct DirState {
     const char *base_path;
     size_t child_cnt = 0;
     bool first = true;
+    bool read_only = false;
     std::optional<size_t> childsize = std::nullopt;
     struct dirent *ent = nullptr;
 };

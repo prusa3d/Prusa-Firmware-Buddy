@@ -29,17 +29,17 @@ class Crash_s {
 public:
     /// Crash detection/recovery states
     typedef enum {
-        IDLE,                /// initial/disabled state
-        PRINTING,            /// printer is working in a usual way (also in pause)
-        TRIGGERED_ISR,       /// crash was detected, handling ISR
-        TRIGGERED_AC_FAULT,  /// crash was triggered during an AC fault
-        TRIGGERED_TOOLFALL,  /// dwarf fell off the toolchanger, not during toolchange, regular crash recovery + tool pickup
+        IDLE, /// initial/disabled state
+        PRINTING, /// printer is working in a usual way (also in pause)
+        TRIGGERED_ISR, /// crash was detected, handling ISR
+        TRIGGERED_AC_FAULT, /// crash was triggered during an AC fault
+        TRIGGERED_TOOLFALL, /// dwarf fell off the toolchanger, not during toolchange, regular crash recovery + tool pickup
         TRIGGERED_TOOLCRASH, /// crash during toolchange, no recovery, just pause and wait for tool pickup
-        TRIGGERED_HOMEFAIL,  /// couldn't home, no recovery, just rehome
-        REPEAT_WAIT,         /// waiting for user to repark dwarves or to rehome, skips parking and replay
-        RECOVERY,            /// crash was detected and recovery is being done
-        REPLAY,              /// printer was re-homed and the last G code is being replayed
-        SELFTEST,            /// Selftest is running, do not interfere
+        TRIGGERED_HOMEFAIL, /// couldn't home, no recovery, just rehome
+        REPEAT_WAIT, /// waiting for user to repark dwarves or to rehome, skips parking and replay
+        RECOVERY, /// crash was detected and recovery is being done
+        REPLAY, /// printer was re-homed and the last G code is being replayed
+        SELFTEST, /// Selftest is running, do not interfere
     } state_t;
 
     /// Recovery inhibition types
@@ -50,12 +50,12 @@ public:
 
     struct crash_block_t {
         xyze_pos_t start_current_position; /// Starting logical position of the G-code
-        float e_position;                  /// Starting physical position of the segment
-        int32_t e_msteps;                  /// Length of the extrusion in mini-steps
-        uint32_t sdpos;                    /// Media location of the interrupted G-code
-        uint16_t segment_idx;              /// Aborted segment index
-        InhibitFlags inhibit_flags;        /// Inhibit instruction replay flags
-        feedRate_t fr_mm_s;                /// Move feedrate
+        float e_position; /// Starting physical position of the segment
+        int32_t e_msteps; /// Length of the extrusion in mini-steps
+        uint32_t sdpos; /// Media location of the interrupted G-code
+        uint16_t segment_idx; /// Aborted segment index
+        InhibitFlags inhibit_flags; /// Inhibit instruction replay flags
+        feedRate_t fr_mm_s; /// Move feedrate
     };
 
     int16_t home_sensitivity[3]; ///< Homing sensitivity
@@ -66,13 +66,13 @@ public:
     /// Temporary data for the first entry in a logical move
     struct {
         xyze_pos_t start_current_position; /// Starting logical position of the G-code
-        uint32_t sdpos;                    /// Media location of the G-code
+        uint32_t sdpos; /// Media location of the G-code
     } move_start;
 
     /// Logical g-code state
     struct {
-        uint32_t sdpos;             /// Current media location of the G-code
-        uint16_t segment_idx;       /// Current segment index
+        uint32_t sdpos; /// Current media location of the G-code
+        uint16_t segment_idx; /// Current segment index
         InhibitFlags inhibit_flags; /// Inhibit instruction replay flags
     } gcode_state;
 
@@ -93,17 +93,17 @@ public:
 
     xyze_pos_t start_current_position; /// absolute logical starting XYZE position of the gcode instruction
     xyze_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
-    abce_pos_t crash_position;         /// absolute physical ABCE position of the crash location
+    abce_pos_t crash_position; /// absolute physical ABCE position of the crash location
     #if ENABLED(LIN_ADVANCE)
-    float advance_mm = 0;              /// accumulated linear advance mm
+    float advance_mm = 0; /// accumulated linear advance mm
     #endif
-    xy_uint_t counter_crash;           /// 2x uint16_t
+    xy_uint_t counter_crash; /// 2x uint16_t
     uint16_t counter_power_panic;
     uint16_t segments_finished;
     uint8_t crash_axis_known_position; /// axis state before crashing
-    bool leveling_active;              /// state of MBL before crashing
-    InhibitFlags inhibit_flags;        /// instruction replay flags before crashing
-    feedRate_t fr_mm_s;                /// Replay feedrate
+    bool leveling_active; /// state of MBL before crashing
+    InhibitFlags inhibit_flags; /// instruction replay flags before crashing
+    feedRate_t fr_mm_s; /// Replay feedrate
 
     /// Inhibit partial gcode instruction replay for the current instruction
     void inhibit_gcode_replay(InhibitFlags flags = INHIBIT_ALL) {
@@ -120,7 +120,7 @@ public:
 
 private:
     Crash_s();
-    xy_long_t max_period;  ///< max. period of motor phases to trigger crash
+    xy_long_t max_period; ///< max. period of motor phases to trigger crash
     xy_long_t sensitivity; ///< Crash sensitivity
     // Round buffer for crash timestamps.
     // -1 (UINT32_MAX) is treated as undefined.
@@ -131,17 +131,17 @@ private:
     state_t state;
     uint8_t crash_timestamps_idx; ///< index for round buffer
     bool repeated_crash;
-    bool enabled;                 ///< has to cache EEPROM to avoid IRQ deadlock
-    bool m_axis_is_homing[2];     ///< Axis is sensorlessly homing now
-    bool m_enable_stealth[2];     ///< Stealth mode should be enabled if crash detection is disabled
+    bool enabled; ///< has to cache EEPROM to avoid IRQ deadlock
+    bool m_axis_is_homing[2]; ///< Axis is sensorlessly homing now
+    bool m_enable_stealth[2]; ///< Stealth mode should be enabled if crash detection is disabled
     #if HAS_DRIVER(TMC2130)
-    bool filter;                  /// use TMC filtering
+    bool filter; /// use TMC filtering
     #endif
     AxisEnum axis_hit;
-    bool toolchange_event;       ///< True if the event was triggered by TRIGGERED_TOOLCRASH or TRIGGERED_TOOLFALL
+    bool toolchange_event; ///< True if the event was triggered by TRIGGERED_TOOLCRASH or TRIGGERED_TOOLFALL
     bool toolchange_in_progress; ///< True while changing tools, set externally by the prusa_toolchanger
     bool pretoolchange_leveling; ///< True if leveling was active before toolchange, set externally by the prusa_toolchanger
-    bool homefail_z;             ///< True if Z axis was homing before homing fail, set externally by homing_failed()
+    bool homefail_z; ///< True if Z axis was homing before homing fail, set externally by homing_failed()
 
     /// methods
 public:
@@ -245,12 +245,12 @@ public:
 
 private:
     void update_machine();
-    void stop_and_save();     ///< Stop the planner and update the crash state
-    void restore_state();     ///< Restore planner state for a saved crash. *Must* be called one server loop later!
-    void resume_movement();   ///< Release the planner from a stop. *Must* be called one server loop later!
+    void stop_and_save(); ///< Stop the planner and update the crash state
+    void restore_state(); ///< Restore planner state for a saved crash. *Must* be called one server loop later!
+    void resume_movement(); ///< Release the planner from a stop. *Must* be called one server loop later!
 
     uint32_t clean_history(); /// remove old timestamps, returns number of valid timestamps
-    void reset_history();     /// remove all timestamps
+    void reset_history(); /// remove all timestamps
     void reset_repeated_crash() {
         if (repeated_crash) {
             repeated_crash = false;
@@ -288,7 +288,9 @@ public:
     }
     ~Crash_Temporary_Deactivate() {
         if (orig_state) {
-            assert(!planner.processing());
+            // Restore previous state, as long as we ensure the motion has been stopped/is stopping
+            // NOTE: that the assertion order is important if the block is aborted while checking!
+            assert(!planner.processing() || planner.draining());
             crash_s.activate();
         }
     }

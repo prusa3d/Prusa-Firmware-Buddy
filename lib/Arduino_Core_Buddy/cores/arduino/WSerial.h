@@ -94,7 +94,7 @@ extern void serialEventUSB(void) __attribute__((weak));
                 #warning "No generic 'Serial' defined!"
             #endif
         #endif /* SERIAL_UART_INSTANCE == x */
-    #endif     /* !HWSERIAL_NONE && SERIAL_UART_INSTANCE */
+    #endif /* !HWSERIAL_NONE && SERIAL_UART_INSTANCE */
 
     #if defined(ENABLE_HWSERIALLP1)
         #if defined(LPUART1_BASE)

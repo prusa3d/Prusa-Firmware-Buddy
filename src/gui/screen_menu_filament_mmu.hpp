@@ -14,15 +14,12 @@
 #include "MItem_filament.hpp"
 
 using ScreenMenuFilamentMMU__ = ScreenMenu<GuiDefaults::MenuFooter, MI_RETURN,
-    MI_MMU_LOAD_FILAMENT,
+    MI_MMU_PRELOAD,
     MI_MMU_LOAD_TO_NOZZLE,
     MI_MMU_UNLOAD_FILAMENT,
     MI_MMU_EJECT_FILAMENT,
     MI_MMU_CUT_FILAMENT,
     // MI_PURGE, doing purges in MMU mode is not only unsupported but dangerous and doesn't play well with the preferred workflow of the MMU-enabled machine
-    MI_MMU_SPOOLJOIN,
-    MI_MMU_CUTTER,
-    MI_MMU_FAIL_STATS,
     // @@TODO debug items, but the functionality will be used by the error screens
     MI_MMU_HOME0,
     MI_MMU_SW_RESET,

@@ -963,7 +963,7 @@
 #define Z_PROBE_SPEED_SLOW 70
 
 // [ms] delay before first Z probe for taring
-#define Z_FIRST_PROBE_DELAY 250
+#define Z_FIRST_PROBE_DELAY 300
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   // Enable G29 P9 for nozzle cleanup

@@ -75,7 +75,7 @@ static int16_t phase_cycle_steps(const AxisEnum axis) {
 
 static int16_t phase_backoff_steps(const AxisEnum axis) {
     int16_t effectorBackoutDir; // Direction in which the effector mm coordinates move away from endstop.
-    int16_t stepperBackoutDir;  // Direction in which the TMC µstep count(phase) move away from endstop.
+    int16_t stepperBackoutDir; // Direction in which the TMC µstep count(phase) move away from endstop.
     switch (axis) {
     case X_AXIS:
         effectorBackoutDir = -X_HOME_DIR;
@@ -175,7 +175,7 @@ static bool measure_b_axis_distance(xy_long_t origin_steps, int32_t dist, int32_
  */
 struct measure_phase_cycles_ret {
     bool output_valid; // c_dist_n are valid and position can be refined
-    bool success;      // True on success
+    bool success; // True on success
     measure_phase_cycles_ret(bool output_valid_, bool success_)
         : output_valid(output_valid_)
         , success(success_) {}
@@ -222,7 +222,7 @@ static measure_phase_cycles_ret measure_phase_cycles(int32_t &c_dist_a, int32_t 
     if (retry == XY_HOMING_ORIGIN_MAX_RETRIES) {
         ui.status_printf_P(0, "Precise refinement failed"); // User is most likely to get this version of ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED
         homing_failed([]() { fatal_error(ErrCode::ERR_MECHANICAL_PRECISE_REFINEMENT_FAILED); }, orig_crash);
-        return { false, false };                            // Homing failed
+        return { false, false }; // Homing failed
     }
 
     // calculate the absolute cycle coordinates
@@ -277,7 +277,7 @@ bool refine_corexy_origin() {
 #if ENABLED(CRASH_RECOVERY)
     Crash_Temporary_Deactivate ctd;
     const bool orig_crash = ctd.get_orig_state();
-#else  /*ENABLED(CRASH_RECOVERY)*/
+#else /*ENABLED(CRASH_RECOVERY)*/
     constexpr bool orig_crash = false;
 #endif /*ENABLED(CRASH_RECOVERY)*/
 

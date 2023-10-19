@@ -2,16 +2,29 @@
 #include "server.h"
 
 #include <transfers/files.hpp>
+#include <transfers/partial_file.hpp>
 
 using nhttp::splice::Result;
 using std::array;
+using std::get_if;
+using std::holds_alternative;
+using std::variant;
+using std::visit;
+using transfers::PartialFile;
 
 namespace nhttp::splice {
 
 namespace {
 
-    bool store_segment(FILE *f, pbuf *data, size_t offset) {
-        return transfers::write_block(f, static_cast<const uint8_t *>(data->payload) + offset, data->len - offset);
+    bool store_segment(variant<FILE *, PartialFile *> file, const uint8_t *data, size_t size) {
+        if (FILE **f = get_if<FILE *>(&file); f != nullptr) {
+            return transfers::write_block(*f, data, size);
+        } else if (PartialFile **f = get_if<PartialFile *>(&file); f != nullptr) {
+            return (*f)->write(data, size);
+        } else {
+            assert(0);
+            return false;
+        }
     }
 
 } // namespace
@@ -35,8 +48,27 @@ void Done::final_callback() {
 
 Done Done::instance;
 
+Write::ProcessResult Write::process(uint8_t *data, size_t size_in, size_t size_out) {
+    auto [consumed, produced, need_buff] = transfer->transform(data, size_in, size_out);
+    assert(size_out >= produced);
+    auto f = transfer->file();
+
+    if (!store_segment(f, data, produced)) {
+        return WriteError {};
+    }
+
+    assert((consumed == size_in && need_buff == 0) || (consumed < size_in && need_buff >= size_in - consumed));
+    if (need_buff > 0) {
+        return NeedMore {
+            consumed,
+            need_buff,
+        };
+    } else {
+        return WriteComplete {};
+    }
+}
+
 bool Write::io_task() {
-    FILE *f = transfer->file();
     if (transfer->result != Result::Ok) {
         return false;
     }
@@ -60,9 +92,35 @@ bool Write::io_task() {
         }
     }
 
-    if (!store_segment(f, current, skip)) {
+    // We may need to decrypt the data. We try to do it as much as possible
+    // in-place, but in rare cases (the size not being multiple of the cipher
+    // block size), we need to handle a "tail".
+    //
+    // Our TCP settings motivate the sender to prefer packets of 1024B
+    // payloads, so that should help in not having many tails.
+    uint8_t *data = static_cast<uint8_t *>(current->payload) + skip;
+    auto result_1 = process(data, current->len - skip, current->len - skip);
+
+    if (holds_alternative<WriteError>(result_1)) {
         transfer->result = Result::CantWrite;
         return false;
+    } else if (auto more_buff = get_if<NeedMore>(&result_1); more_buff != nullptr) {
+        size_t leftover = current->len - skip - more_buff->used;
+        assert(leftover > 0);
+        assert(leftover <= more_buff->buff_needed);
+        uint8_t buff[more_buff->buff_needed];
+        memcpy(buff, data + more_buff->used, leftover);
+
+        auto result_2 = process(buff, leftover, more_buff->buff_needed);
+
+        if (holds_alternative<WriteError>(result_2)) {
+            transfer->result = Result::CantWrite;
+            return false;
+        }
+        // The second attempt must go through, we've given it the buffer it asked for.
+        assert(!holds_alternative<NeedMore>(result_2));
+    } else {
+        // complete OK
     }
 
     to_ack.fetch_add(current->len - skip);

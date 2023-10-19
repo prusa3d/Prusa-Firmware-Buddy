@@ -11,29 +11,22 @@
 
 namespace selftest {
 
-template <size_t STEPS>
 struct FanConfig {
-    using FanCtlFnc = CFanCtl &(*)(size_t);
-
-    uint8_t pwm_start { 0 };
-    uint8_t pwm_step { 0 };
-    std::array<uint16_t, STEPS> rpm_min_table;
-    std::array<uint16_t, STEPS> rpm_max_table;
-
-    FanCtlFnc fanctl_fnc;
+    uint16_t rpm_min;
+    uint16_t rpm_max;
 };
+
+constexpr selftest::FanConfig benevolent_fan_config = { .rpm_min = 10, .rpm_max = 10000 };
 
 struct SelftestFansConfig {
     using type_evaluation = SelftestFanHotendResult;
 
     static constexpr SelftestParts part_type = SelftestParts::Fans;
 
-    static constexpr size_t steps { 2 };
-
     uint8_t tool_nr { 0 };
 
-    FanConfig<steps> print_fan;
-    FanConfig<steps> heatbreak_fan;
+    FanConfig print_fan;
+    FanConfig heatbreak_fan;
 };
 
 } // namespace selftest

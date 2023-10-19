@@ -47,7 +47,10 @@ static constexpr const char *_suffix[] = { "_fan", "_xyz", "_heaters" };
 /// These speeds create major chord
 /// https://en.wikipedia.org/wiki/Just_intonation
 
-static const float XYfr_table[] = { 80.F };
+// Feedrate for measuring X/Y axis length. Used to be HOMING_FEEDRATE_XY / 60,
+// but at those speeds the move sometimes, on certain printers, stalls during
+// the axis measurements. Higher speeds alleviate this problem.
+static const float XYfr_table[] = { 120.F };
 static constexpr size_t xy_fr_table_size = sizeof(XYfr_table) / sizeof(XYfr_table[0]);
 static constexpr float Zfr_table_fw[] = { maxFeedrates[Z_AXIS] }; // up
 static constexpr float Zfr_table_bw[] = { HOMING_FEEDRATE_Z / 60 };
@@ -57,26 +60,22 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
-// 100%, where we also check the rpm range
 static constexpr SelftestFansConfig fans_configs[] = {
     {
         .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 5300 },
-            .rpm_max_table = { 10000, 6500 },
-            .fanctl_fnc = Fans::print,
+            ///@note Datasheet says 5900 +-10%, but that is without any fan shroud.
+            ///  Blocked fan increases its RPMs over 7000.
+            ///  With MK4 shroud the values can be 6400 or so.
+            .rpm_min = 5300,
+            .rpm_max = 6799,
         },
         .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 6800 },
-            .rpm_max_table = { 10000, 8700 },
-            .fanctl_fnc = Fans::heat_break,
+            .rpm_min = 6800,
+            .rpm_max = 8700,
         },
     },
 };
+static_assert(fans_configs[0].print_fan.rpm_max < fans_configs[0].heatbreak_fan.rpm_min, "These cannot overlap for switched fan detection.");
 
 // reads data from eeprom, cannot be constexpr
 const AxisConfig_t selftest::Config_XAxis = {
@@ -233,11 +232,11 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stmLoadcell)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_loadcell));
     if (m_Mask & stmZAxis)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup));       // if Z is calibrated, move it up
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
     if (m_Mask & stmFullSelftest)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
     // TODO stmFullSelftest does not mean full selftest some refactoring would be nice
 
@@ -437,8 +436,8 @@ void CSelftest::phaseDidSelftestPass() {
 
     // dont run wizard again
     if (SelftestResult_Passed_All(m_result)) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
     }
 }
@@ -448,8 +447,8 @@ bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
     if (response == Response::Abort || response == Response::Cancel)
         Abort();
     if (response == Response::Ignore) {
-        config_store().run_selftest.set(false);    // clear selftest flag
-        config_store().run_xyz_calib.set(false);   // clear XYZ calib flag
+        config_store().run_selftest.set(false); // clear selftest flag
+        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
         Abort();
     }
@@ -547,16 +546,16 @@ void CSelftest::next() {
             return; // current state can be run
         break;      // current state cannot be run
 #endif
-    case stsZAxis:   // loadcell and both X and Y must be OK to test Z
+    case stsZAxis: // loadcell and both X and Y must be OK to test Z
         if (m_result.tools[0].loadcell == TestResult_Passed && m_result.xaxis == TestResult_Passed && m_result.yaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     case stsMoveZup: // Z must be OK, if axis are not homed, it could be stacked at the top and generate noise, but the way states are generated from mask should prevent it
         if (m_result.zaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     default:
-        return;      // current state can be run
+        return; // current state can be run
     }
 
     // current state cannot be run

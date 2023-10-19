@@ -107,11 +107,7 @@ void ISheetProfileMenuScreen::windowEvent(EventLock /*has private ctor*/, window
     case profile_action::Calibrate:
         log_debug(GUI, "MI_SHEET_CALIBRATE");
         SteelSheets::SelectSheet(value);
-#if PRINTER_IS_PRUSA_MINI
         marlin_client::test_start(stmFirstLayer);
-#else  /*PRINTER_IS_PRUSA_MINI*/
-        assert(false); // This printer doesn't have selftest for first layer calibration
-#endif /*PRINTER_IS_PRUSA_MINI*/
         Item<MI_SHEET_OFFSET>().SetOffset(SteelSheets::GetSheetOffset(value));
         break;
     case profile_action::Rename:

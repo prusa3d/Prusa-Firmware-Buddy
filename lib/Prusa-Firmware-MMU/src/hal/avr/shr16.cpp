@@ -42,8 +42,41 @@ void SHR16::Write(uint16_t v) {
 
 void SHR16::SetLED(uint16_t led) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        led = ((led & 0x00ff) << 8) | ((led & 0x0300) >> 2);
-        Write((shr16_v & ~SHR16_LED_MSK) | led);
+        // led = ((led & 0x00ff) << 8) | ((led & 0x0300) >> 2);
+        // save 12 bytes by rewriting the bit operations into unions ... avr-gcc7 is not very strong in this kind of optimization
+        // and the Atmega instruction set doesn't help it either
+        union InputU {
+            struct __attribute__((packed)) S {
+                uint8_t l8 : 8;
+                uint8_t l0 : 1;
+                uint8_t l1 : 1;
+                uint8_t empty : 6;
+            } s;
+            uint16_t u;
+            constexpr InputU(uint16_t u)
+                : u(u) {}
+        };
+        static_assert(sizeof(InputU) == 2);
+
+        union OutputU {
+            struct __attribute__((packed)) S {
+                uint8_t empty : 6;
+                uint8_t l0 : 1;
+                uint8_t l1 : 1;
+                uint8_t l8 : 8;
+                constexpr explicit S(InputU iu)
+                    : empty(0)
+                    , l0(iu.s.l0)
+                    , l1(iu.s.l1)
+                    , l8(iu.s.l8) {}
+            } s;
+            uint16_t u;
+            constexpr OutputU(InputU iu)
+                : s(iu) {}
+        };
+        static_assert(sizeof(OutputU) == 2);
+
+        Write((shr16_v & ~SHR16_LED_MSK) | OutputU(InputU(led)).u);
     }
 }
 

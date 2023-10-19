@@ -23,7 +23,7 @@ public:
     virtual bool Start(const uint64_t test_mask, const uint8_t tool_mask) = 0;
     virtual void Loop() = 0;
     virtual bool Abort() = 0;
-    uint32_t GetTime() { return m_Time; }  // to synchronize time in selftest by loop ticks
+    uint32_t GetTime() { return m_Time; } // to synchronize time in selftest by loop ticks
     void log_printf(const char *fmt, ...); // return 1 on succeessful fprint
 
 protected:

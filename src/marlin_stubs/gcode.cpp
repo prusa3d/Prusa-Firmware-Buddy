@@ -80,6 +80,9 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
         case 704:
             PrusaGcodeSuite::M704();
             break;
+        case 1704:
+            PrusaGcodeSuite::M1704();
+            break;
         case 705:
             PrusaGcodeSuite::M705();
             break;
@@ -224,6 +227,7 @@ bool GcodeSuite::process_parsed_command_custom(bool no_ok) {
 void __attribute__((weak)) PrusaGcodeSuite::M0() { log_error(PRUSA_GCODE, "M0 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M50() { log_error(PRUSA_GCODE, "M50 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M704() { log_error(PRUSA_GCODE, "M704 unsupported"); }
+void __attribute__((weak)) PrusaGcodeSuite::M1704() { log_error(PRUSA_GCODE, "M1704 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M705() { log_error(PRUSA_GCODE, "M705 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M706() { log_error(PRUSA_GCODE, "M706 unsupported"); }
 void __attribute__((weak)) PrusaGcodeSuite::M707() { log_error(PRUSA_GCODE, "M707 unsupported"); }

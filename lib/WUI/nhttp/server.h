@@ -160,11 +160,13 @@ private:
     static const size_t BUFF_CNT = 2;
     // half-seconds... weird units of LwIP
     static const uint8_t POLL_TIME = 1;
-    // Idle connections time out after 10 seconds.
+    // Idle connections time out after 60 seconds.
     static const uint32_t IDLE_TIMEOUT = 60 * 1000;
     /*
      * Active connections are more expensive to keep around and they are
      * expected to be active, so time them out sooner.
+     *
+     * Note that this applies to downloads too (eg. Connect downloads).
      */
     static const uint32_t ACTIVE_TIMEOUT = 10 * 1000;
     static const uint32_t INACTIVITY_TIME_QUANT = 400;
@@ -285,8 +287,7 @@ private:
 
 #if USE_ASYNCIO
     class TransferSlot : public Slot {
-    private:
-        friend class ConnectionSlot;
+    public:
         // Bytes of data we expect to arrive from the connection.
         size_t expected_data = 0;
         // Requests (not bytes) submitted to the async thread, including
@@ -296,7 +297,6 @@ private:
         bool done_called = false;
         std::optional<std::tuple<http::Status, const char *>> response;
 
-    public:
         virtual void release() override;
         virtual bool step() override;
         virtual bool want_read() const override;
@@ -432,6 +432,7 @@ public:
 
     // Similar (the Done) request.
     void transfer_done(std::optional<std::tuple<http::Status, const char *>> res);
+    void inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, splice::Transfer *transfer, size_t expected_data);
 #endif
 };
 

@@ -13,7 +13,7 @@ namespace logic {
 void RetractFromFinda::Reset() {
     dbg_logic_P(PSTR("\nRetract from FINDA\n\n"));
     state = EngagingIdler;
-    ml::leds.SetMode(mg::globals.ActiveSlot(), ml::green, ml::blink0);
+    ml::leds.SetPairButOffOthers(mg::globals.ActiveSlot(), ml::blink0, ml::off);
     mi::idler.Engage(mg::globals.ActiveSlot());
 }
 

@@ -10,12 +10,17 @@ Motion motion;
 // Intentionally inited with strange values
 // Need to call ReinitMotion() each time we start some unit test
 AxisSim axes[3] = {
-    { -32767, false, false, false, {} }, // pulley
-    { -32767, false, false, false, {} }, // selector //@@TODO proper selector positions once defined
-    { -32767, false, false, false, {} }, // idler
+    { -32767, false, false, false, config::pulley.sg_thrs, {} }, // pulley
+    { -32767, false, false, false, config::selector.sg_thrs, {} }, // selector //@@TODO proper selector positions once defined
+    { -32767, false, false, false, config::idler.sg_thrs, {} }, // idler
 };
 
 bool Motion::InitAxis(Axis axis) {
+    SetEnabled(axis, true);
+    return true;
+}
+
+bool Motion::InitAxis(Axis axis, MotorCurrents /*mc*/) {
     SetEnabled(axis, true);
     return true;
 }
@@ -36,8 +41,9 @@ void TriggerStallGuard(Axis axis) {
     axes[axis].stallGuard = true;
 }
 
-void Motion::PlanStallGuardThreshold(Axis axis, uint8_t sg_thrs) {
+void Motion::PlanStallGuardThreshold(Axis axis, int8_t sg_thrs) {
     // do nothing for now
+    axes[axis].sg_thrs = sg_thrs;
 }
 
 void Motion::PlanMoveTo(Axis axis, pos_t pos, steps_t feed_rate, steps_t end_rate) {

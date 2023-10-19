@@ -10,7 +10,7 @@ extern "C" {
 /// Timestamp from the startup
 typedef struct {
     uint32_t sec; ///< Seconds since the start of the system
-    uint32_t us;  ///< Microseconds consistent with sec
+    uint32_t us; ///< Microseconds consistent with sec
 } log_timestamp_t;
 
 /// Task identifier (-1 if unknown)

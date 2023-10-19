@@ -46,6 +46,10 @@ def main():
     offset = 0
     with open(args.resources_file, 'w') as resources_file, \
          open(args.data_file, 'wb+') as data_file:
+
+        if filtered_pngs:
+            resources_file.write(f"// filter file used: {args.input_filter}\n")
+
         for png_file in png_files:
             with Image.open(png_file.resolve()).convert('RGBA') as png:
                 name = png_file.name.split('.')[0]

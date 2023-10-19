@@ -250,7 +250,7 @@ void Measure_axis::state_start() {
         if (TEST(axis_homed, Z_AXIS)) {
             destination.z = std::max(raise_z, destination.z); //< lift at least to raise_z
         } else {
-            destination.z += raise_z;                         //< lift by raise_z because we don't know where the Z is
+            destination.z += raise_z; //< lift by raise_z because we don't know where the Z is
         }
         const feedRate_t fr_z = homing_feedrate(Z_AXIS);
         plan_park_move_to_xyz(destination, fr_z, fr_z);

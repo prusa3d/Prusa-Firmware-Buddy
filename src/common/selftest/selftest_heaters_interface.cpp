@@ -215,7 +215,7 @@ bool phaseHeaters(std::array<IPartHandler *, HOTENDS> &pNozzles, IPartHandler **
     }
 
     resultHeaters.tested_parts = 0; // reset tested parts so they can be set next time again
-    return false;                   // finished
+    return false; // finished
 }
 
 SelftestHotEndSockType sock_result;

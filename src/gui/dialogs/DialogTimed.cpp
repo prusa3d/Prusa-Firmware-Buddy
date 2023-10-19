@@ -46,7 +46,7 @@ void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         }
         if (event == GUI_event_t::LOOP)
             updateLoop(visibility_changed_t::no); // virtual update loop for derived classes
-    } else {                                      // not visible
+    } else { // not visible
 
         // Reset timeout
         if (GUI_event_IsKnob(event) // knob events sent to all windows
@@ -58,7 +58,7 @@ void DialogTimed::windowEvent(EventLock /*has private ctor*/, window_t *sender, 
         if (now - time_of_last_action >= open_period) {
             Show();
             updateLoop(visibility_changed_t::yes); // virtual show callback for derived classes
-            return;                                // event consumed
+            return; // event consumed
         }
     }
 

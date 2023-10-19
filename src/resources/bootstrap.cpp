@@ -122,8 +122,7 @@ public:
         , current_stage(stage)
         , files_copied(0)
         , directories_copied(0)
-        , bytes_copied(0)
-        , last_reported_percent_done(std::nullopt) {
+        , bytes_copied(0) {
     }
 
     void report() {
@@ -137,10 +136,7 @@ public:
 
     void report_percent_done() {
         unsigned percent_done = this->percent_done();
-        if (last_reported_percent_done != percent_done) {
-            progress_hook(percent_done, current_stage);
-            last_reported_percent_done = percent_done;
-        }
+        progress_hook(percent_done, current_stage);
     }
 
     void assign_scan_result(ResourcesScanResult result) {

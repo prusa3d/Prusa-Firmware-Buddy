@@ -642,13 +642,13 @@ private:
                 if (features.r2_30ms.compressionEnd <= 0.005205066641792655f) {
                     if (features.riseLine.GetY(features.decompressionEndTime) <= -0.18971788883209229f) {
                         return 0; // bad
-                    } else {      /* if features.riseLine.GetY(features.decompressionEndTime) > -0.18971788883209229f */
+                    } else { /* if features.riseLine.GetY(features.decompressionEndTime) > -0.18971788883209229f */
                         return 0; // bad
                     }
-                } else {          /* if features.r2_30ms.compressionEnd > 0.005205066641792655f */
+                } else { /* if features.r2_30ms.compressionEnd > 0.005205066641792655f */
                     if (features.compressionLine.GetY(features.compressionStartTime) <= -51.45247840881348f) {
                         return 0; // bad
-                    } else {      /* if features.compressionLine.GetY(features.compressionStartTime) > -51.45247840881348f */
+                    } else { /* if features.compressionLine.GetY(features.compressionStartTime) > -51.45247840881348f */
                         return 1; // good
                     }
                 }
@@ -656,13 +656,13 @@ private:
                 if (features.loadAngleCompressionEnd <= 51.137014389038086f) {
                     if (features.loadMeanBeforeCompression <= -23.7804012298584f) {
                         return 0; // bad
-                    } else {      /* if features.loadMeanBeforeCompression > -23.7804012298584f */
+                    } else { /* if features.loadMeanBeforeCompression > -23.7804012298584f */
                         return 1; // good
                     }
-                } else {          /* if features.loadAngleCompressionEnd > 51.137014389038086f */
+                } else { /* if features.loadAngleCompressionEnd > 51.137014389038086f */
                     if (features.loadAngleDecompressionStart <= 135.77788543701172f) {
                         return 1; // good
-                    } else {      /* if features.loadAngleDecompressionStart > 135.77788543701172f */
+                    } else { /* if features.loadAngleDecompressionStart > 135.77788543701172f */
                         return 1; // good
                     }
                 }
@@ -672,13 +672,13 @@ private:
                 if (features.r2_50ms.compressionStart <= 0.6476757228374481f) {
                     if (features.r2_60ms.decompressionEnd <= -321.4128608703613f) {
                         return 1; // good
-                    } else {      /* if features.r2_60ms.decompressionEnd > -321.4128608703613f */
+                    } else { /* if features.r2_60ms.decompressionEnd > -321.4128608703613f */
                         return 0; // bad
                     }
-                } else {          /* if features.r2_50ms.compressionStart > 0.6476757228374481f */
+                } else { /* if features.r2_50ms.compressionStart > 0.6476757228374481f */
                     if (features.riseLine.GetY(features.decompressionEndTime) <= 0.07457397505640984f) {
                         return 1; // good
-                    } else {      /* if features.riseLine.GetY(features.decompressionEndTime) > 0.07457397505640984f */
+                    } else { /* if features.riseLine.GetY(features.decompressionEndTime) > 0.07457397505640984f */
                         return 1; // good
                     }
                 }
@@ -686,13 +686,13 @@ private:
                 if (features.loadAngleDecompressionStart <= 152.87728118896484f) {
                     if (features.loadMeanBeforeCompression <= -36.56223678588867f) {
                         return 0; // bad
-                    } else {      /* if features.loadMeanBeforeCompression > -36.56223678588867f */
+                    } else { /* if features.loadMeanBeforeCompression > -36.56223678588867f */
                         return 1; // good
                     }
-                } else {          /* if features.loadAngleDecompressionStart > 152.87728118896484f */
+                } else { /* if features.loadAngleDecompressionStart > 152.87728118896484f */
                     if (features.loadAngleDecompressionStart <= 161.35951232910156f) {
                         return 0; // bad
-                    } else {      /* if features.loadAngleDecompressionStart > 161.35951232910156f */
+                    } else { /* if features.loadAngleDecompressionStart > 161.35951232910156f */
                         return 0; // bad
                     }
                 }

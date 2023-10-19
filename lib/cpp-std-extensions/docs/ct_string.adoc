@@ -1,0 +1,57 @@
+
+== `ct_string.hpp`
+
+A `ct_string` is a compile-time string that can be used as a non-type template
+parameter (NTTP).
+
+NOTE: `ct_string` is available only in C++20 and later. It requires compiler
+support for https://wg21.link/p0732[using structural types as NTTPs].
+
+Example usage:
+[source,cpp]
+----
+template <ct_string S>
+struct named_thing { ... };
+
+auto my_thing = named_thing<"mine">{};
+----
+Here we declare a `struct` with an NTTP, and instantiate the template with a
+string. When compiled, `"mine"` will create a `ct_string` which is the NTTP
+passed to `named_thing`.
+
+NOTE: `ct_string` is a class template. The declaration of `named_thing` here
+uses `ct_string` as a _placeholder type_ for an NTTP, whose concrete type will
+be deduced. This is new for C++20 - see
+https://en.cppreference.com/w/cpp/language/template_parameters for details.
+
+The `ct_string` interface:
+[source,cpp]
+----
+template <ct_string S>
+struct named_thing {
+  template <ct_string Other>
+  auto f() {
+    // here we can:
+    constexpr std::size_t sz = S.size();  // ask for ct_string's size
+    constexpr bool is_empty = S.empty();  // ask whether a ct_string is empty
+    constexpr bool equal = S == Other;    // compare two ct_strings
+
+    // we can also convert to/from cib string constants
+    constexpr auto cib_sc_string = stdx::ct_string_to_type<S, sc::string_constant>();
+    constexpr auto stdx_ct_string = stdx::ct_string_from_type(cib_sc_string);
+    static_assert(S == stdx_ct_string);
+
+    // and we can split a ct_string at the first occurrence of a character,
+    // optaining a pair of ct_strings
+    constexpr auto p = stdx::split<S, '/'>();
+    // if the character doesn't exist, p.first is equal to S and p.second is empty
+    // otherwise p.first is everything up to (but not including) the character,
+    // and p.second is everything after (also not including)
+  }
+};
+----
+
+NOTE: `size` and `empty` are always available as `constexpr`.
+
+See https://github.com/intel/compile-time-init-build/tree/main/include/sc[cib
+documentation] for details about the cib string constant class.

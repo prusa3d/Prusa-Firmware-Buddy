@@ -1,0 +1,31 @@
+= stdx - Polyfill for the C++ standard library
+:revnumber: 0.1
+:revdate: Sep 09, 2023
+:source-highlighter: rouge
+:rouge-style: base16.solarized
+:source-language: c++
+:toc: left
+
+include::intro.adoc[]
+include::bit.adoc[]
+include::bitset.adoc[]
+include::compiler.adoc[]
+include::concepts.adoc[]
+include::ct_conversions.adoc[]
+include::ct_string.adoc[]
+include::cx_map.adoc[]
+include::cx_multimap.adoc[]
+include::cx_queue.adoc[]
+include::cx_set.adoc[]
+include::cx_vector.adoc[]
+include::for_each_n_args.adoc[]
+include::function_traits.adoc[]
+include::functional.adoc[]
+include::intrusive_list.adoc[]
+include::panic.adoc[]
+include::priority.adoc[]
+include::tuple.adoc[]
+include::tuple_algorithms.adoc[]
+include::tuple_destructure.adoc[]
+include::type_traits.adoc[]
+include::utility.adoc[]

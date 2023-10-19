@@ -490,21 +490,24 @@ enum {
 
 char *
 variant8_to_str(variant8_t *pvar8, const char *fmt) {
-    // FIXME - do we need to print to buff and then to str?
-    char buff[VARIANT8_TO_STR_MAX_BUFF] = "";
-    int n = variant8_snprintf(buff, VARIANT8_TO_STR_MAX_BUFF, fmt, pvar8);
-    if (n <= 0)
+    char buff[VARIANT8_TO_STR_MAX_BUFF];
+
+    /// Output buffer size, including the terminating \0
+    int out_buff_size = variant8_snprintf(buff, sizeof(buff), fmt, pvar8) + 1;
+    if (out_buff_size <= 1)
         return nullptr;
 
-    char *str = (char *)variant8_malloc(n + 1);
+    char *str = (char *)variant8_malloc(out_buff_size);
     if (!str)
         return nullptr;
 
-    if (n > (VARIANT8_TO_STR_MAX_BUFF - 1))
-        // FIXME will this ever happen?
-        variant8_snprintf(str, n, fmt, pvar8);
-    else
-        strlcpy(str, buff, n);
+    // If the string fit inside buff, we can copy it and we don't need to call snprintf again
+    if (n < sizeof(buff)) {
+        memcpy(str, buff, out_buff_size);
+    } else {
+        variant8_snprintf(str, out_buff_size, fmt, pvar8);
+    }
+
     return str;
 }
 #endif
@@ -706,7 +709,7 @@ public: // assignment operators
 
 private:
     int32_t get_valid_int() const; // helper for extractors, works ony on integer values
-public:                            // extractors
+public: // extractors
     // clang-format off
     operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?   int8_t(data_.flt)           : 0); }
     operator uint8_t()      const { return (is_integer())           ?  uint8_t(get_valid_int()) : ((data_.type == VARIANT8_FLT) ?  uint8_t(data_.flt)           : 0); }
@@ -830,7 +833,7 @@ public: // assignment operators
 
 private:
     int32_t get_valid_int() const; // helper for extractors, works ony on integer values
-public:                            // extractors
+public: // extractors
     // clang-format off
     operator int8_t()       const { return (is_integer())           ?   int8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?   int8_t(flt)           : 0); }
     operator uint8_t()      const { return (is_integer())           ?  uint8_t(get_valid_int()) : ((type == VARIANT8_FLT) ?  uint8_t(flt)           : 0); }

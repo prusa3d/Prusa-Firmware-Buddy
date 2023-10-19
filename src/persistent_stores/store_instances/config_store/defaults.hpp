@@ -79,8 +79,44 @@ namespace defaults {
     inline constexpr eSOUND_MODE sound_mode { eSOUND_MODE::_undef };
     inline constexpr uint8_t sound_volume { 5 };
     inline constexpr uint16_t language { 0xffff };
-    inline constexpr uint32_t footer_setting { footer::eeprom::Encode(footer::DefaultItems) };
-    inline constexpr uint32_t footer_draw_type { footer::ItemDrawCnf::Default() };
+
+    inline constexpr footer::Item footer_setting_0 {
+#if FOOTER_ITEMS_PER_LINE__ > 0
+        footer::default_items[0]
+#else
+        footer::Item::none
+#endif
+    };
+    inline constexpr footer::Item footer_setting_1 {
+#if FOOTER_ITEMS_PER_LINE__ > 1
+        footer::default_items[1]
+#else
+        footer::Item::none
+#endif
+    };
+    inline constexpr footer::Item footer_setting_2 {
+#if FOOTER_ITEMS_PER_LINE__ > 2
+        footer::default_items[2]
+#else
+        footer::Item::none
+#endif
+    };
+    inline constexpr footer::Item footer_setting_3 {
+#if FOOTER_ITEMS_PER_LINE__ > 3
+        footer::default_items[3]
+#else
+        footer::Item::none
+#endif
+    };
+    inline constexpr footer::Item footer_setting_4 {
+#if FOOTER_ITEMS_PER_LINE__ > 4
+        footer::default_items[4]
+#else
+        footer::Item::none
+#endif
+    };
+
+    inline constexpr uint32_t footer_draw_type { footer::ItemDrawCnf::get_default() };
     inline constexpr std::array<char, pl_password_size> prusalink_password { "" };
 
     inline constexpr std::array<char, connect_host_size + 1> connect_host { "buddy-a.\x01\x01" }; // "Compressed" - this means buddy-a.connect.prusa3d.com.
@@ -91,9 +127,9 @@ namespace defaults {
 #if DEVELOPMENT_ITEMS()
     // Development build has metrics allowed
     inline constexpr MetricsAllow metrics_allow { MetricsAllow::All };
-    inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "matrix.prusa.vc" };
+    inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "" };
     inline constexpr bool metrics_init { true };
-#else  /*DEVELOPMENT_ITEMS()*/
+#else /*DEVELOPMENT_ITEMS()*/
     // Production build need user to intentionally allow them
     inline constexpr MetricsAllow metrics_allow { MetricsAllow::None };
     inline constexpr std::array<char, metrics_host_size + 1> metrics_host { "" };

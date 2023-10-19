@@ -280,7 +280,9 @@ MI_SAVE_DUMP::MI_SAVE_DUMP()
 
 void MI_SAVE_DUMP::click(IWindowMenu & /*window_menu*/) {
     MsgBoxNonBlockInfo(_("A crash dump is being saved."));
-    if (crash_dump::save_dump_to_usb("/usb/dump.bin"))
+    if (!crash_dump::dump_is_valid())
+        MsgBoxInfo(_("No crash dump to save."), Responses_Ok);
+    else if (crash_dump::save_dump_to_usb("/usb/dump.bin"))
         MsgBoxInfo(_("A crash dump report (file dump.bin) has been saved to the USB drive."), Responses_Ok);
     else
         MsgBoxError(_("Error saving crash dump report to the USB drive. Please reinsert the USB drive and try again."), Responses_Ok);
@@ -393,7 +395,7 @@ void MI_SOUND_VOLUME::OnClick() {
 MI_SORT_FILES::MI_SORT_FILES()
     : WI_SWITCH_t<2>(config_store().file_sort.get(), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_time), _(str_name)) {}
 void MI_SORT_FILES::OnChange(size_t old_index) {
-    if (old_index == WF_SORT_BY_TIME) {        // default option - was sorted by time of change, set by name
+    if (old_index == WF_SORT_BY_TIME) { // default option - was sorted by time of change, set by name
         GuiFileSort::Set(WF_SORT_BY_NAME);
     } else if (old_index == WF_SORT_BY_NAME) { // was sorted by name, set by time
         GuiFileSort::Set(WF_SORT_BY_TIME);
@@ -415,7 +417,7 @@ MI_TIME_FORMAT::MI_TIME_FORMAT()
     : WI_SWITCH_t<2>(static_cast<uint8_t>(config_store().time_format.get()), _(label), nullptr, is_enabled_t::yes, is_hidden_t::no, _(str_12h), _(str_24h)) {}
 
 void MI_TIME_FORMAT::OnChange(size_t old_index) {
-    if (old_index == (size_t)time_format::TF_t::TF_12H) {        // default option - 12h time format
+    if (old_index == (size_t)time_format::TF_t::TF_12H) { // default option - 12h time format
         time_format::Change(time_format::TF_t::TF_24H);
     } else if (old_index == (size_t)time_format::TF_t::TF_24H) { // 24h time format
         time_format::Change(time_format::TF_t::TF_12H);
@@ -722,11 +724,13 @@ void MI_FOOTER_RESET::click([[maybe_unused]] IWindowMenu &window_menu) {
     // simple reset of footer eeprom would be better
     // but footer does not have reload method
     FooterItemHeater::ResetDrawMode();
-    FooterLine::SetCenterN(footer::DefaultCenterNAndFewer);
+    FooterLine::SetCenterN(footer::default_center_n_and_fewer);
 
-    footer::eeprom::Store(footer::DefaultItems);
+    for (size_t i = 0; i < FOOTER_ITEMS_PER_LINE__; ++i) {
+        config_store().set_footer_setting(i, footer::default_items[i]);
+    }
     // send event for all footers
-    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::EncodeItemForEvent(footer::Item::None));
+    Screens::Access()->ScreenEvent(nullptr, GUI_event_t::REINIT_FOOTER, footer::encode_item_for_event(footer::Item::none));
 
     // close this menu, because it is no longer valid and needs to be redrawn
     Screens::Access()->Close();

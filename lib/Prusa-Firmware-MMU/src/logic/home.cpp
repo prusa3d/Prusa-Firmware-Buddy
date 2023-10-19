@@ -1,6 +1,5 @@
 /// @file home.cpp
 #include "home.h"
-#include "../modules/finda.h"
 #include "../modules/globals.h"
 #include "../modules/idler.h"
 #include "../modules/motion.h"

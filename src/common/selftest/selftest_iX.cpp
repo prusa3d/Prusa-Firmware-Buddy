@@ -58,24 +58,10 @@ static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_tab
 static constexpr size_t z_fr_tables_size = sizeof(Zfr_table_fw) / sizeof(Zfr_table_fw[0]) + sizeof(Zfr_table_bw) / sizeof(Zfr_table_bw[0]);
 #endif
 
-// We test two steps, at 20% (just to check if the fans spin at low PWM) and at
-// 100%, where on MK4/XL we also check the rpm range. No data for iX yet.
 static constexpr SelftestFansConfig fans_configs[] = {
     {
-        .print_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::print,
-        },
-        .heatbreak_fan = {
-            .pwm_start = 51,
-            .pwm_step = 204,
-            .rpm_min_table = { 10, 10 },
-            .rpm_max_table = { 10000, 10000 },
-            .fanctl_fnc = Fans::heat_break,
-        },
+        .print_fan = benevolent_fan_config,
+        .heatbreak_fan = benevolent_fan_config,
     },
 };
 
@@ -204,7 +190,7 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stmFullSelftest)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
     if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop));  // any selftest state will trigger selftest additional deinit
+        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
     // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
@@ -469,10 +455,10 @@ void CSelftest::next() {
 #endif
     case stsMoveZup: // Z must be OK, if axis are not homed, it could be stacked at the top and generate noise, but the way states are generated from mask should prevent it
         if (m_result.zaxis == TestResult_Passed)
-            return;  // current state can be run
-        break;       // current state cannot be run
+            return; // current state can be run
+        break; // current state cannot be run
     default:
-        return;      // current state can be run
+        return; // current state can be run
     }
 
     // current state cannot be run

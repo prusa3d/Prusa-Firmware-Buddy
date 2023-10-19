@@ -59,6 +59,7 @@ RequestParser::RequestParser(const Server &server)
     , accepts_json(false)
     , print_after_upload(false)
     , overwrite_file(false)
+    , create_folder(false)
     // default authentication method when none comes
     , auth_status(DigestAuthParams()) {}
 
@@ -89,6 +90,9 @@ ExecutionControl RequestParser::event(Event event) {
     case Names::PrintAfterUploadNumeric:
     case Names::PrintAfterUploadRFC:
         print_after_upload = true;
+        return ExecutionControl::Continue;
+    case Names::CreateFolder:
+        create_folder = true;
         return ExecutionControl::Continue;
     case Names::Url:
         assert(boundary_size == 0);

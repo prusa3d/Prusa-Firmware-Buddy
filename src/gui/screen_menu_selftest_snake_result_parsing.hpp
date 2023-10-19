@@ -9,13 +9,13 @@ namespace SelftestSnake {
 constexpr TestResult evaluate_results(std::same_as<TestResult> auto... results) {
     static_assert(sizeof...(results) > 0, "Pass at least one result");
 
-    if (((results == TestResult_Passed) && ... && true)) {          // all passed
+    if (((results == TestResult_Passed) && ... && true)) { // all passed
         return TestResult_Passed;
-    } else if (((results == TestResult_Failed) || ... || false)) {  // any failed
+    } else if (((results == TestResult_Failed) || ... || false)) { // any failed
         return TestResult_Failed;
     } else if (((results == TestResult_Skipped) || ... || false)) { // any skipped
         return TestResult_Skipped;
-    } else {                                                        // only unknowns and passed (max n-1) are left
+    } else { // only unknowns and passed (max n-1) are left
         return TestResult_Unknown;
     }
 }

@@ -6,7 +6,7 @@
 // Marlin errors
 enum {
     MARLIN_ERR_TMCDriverError, //
-    MARLIN_ERR_ProbingFailed,  //
+    MARLIN_ERR_ProbingFailed, //
     MARLIN_ERR_NozzleCleaningFailed,
     MARLIN_ERR_MAX = MARLIN_ERR_NozzleCleaningFailed,
 };

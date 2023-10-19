@@ -31,7 +31,7 @@ char *args[] = {
 int main(int argc, char **argv) {
     argc = sizeof(args) / sizeof(char *);
     argv = args;
-#else  //_DEBUG_ARGS
+#else //_DEBUG_ARGS
 int main(int argc, char **argv) {
 #endif //_DEBUG_ARGS
 
@@ -164,13 +164,13 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
 
     // output charset variables
     FILE *out = 0;
-    int char_ppb = 8 / char_bpp;                        // pixels per byte (bpp= 1:8, 2:4, 4:2, 8:1)
-    int char_pms = ((1 << char_bpp) - 1);               // pixel mask (bpp= 1:1, 2:3, 4:15, 8:255)
-    int char_psr = (3 - fbs(char_bpp));                 // pixel shift right (bpp =1:3, 2:2, 4:1, 8:0)
+    int char_ppb = 8 / char_bpp; // pixels per byte (bpp= 1:8, 2:4, 4:2, 8:1)
+    int char_pms = ((1 << char_bpp) - 1); // pixel mask (bpp= 1:1, 2:3, 4:15, 8:255)
+    int char_psr = (3 - fbs(char_bpp)); // pixel shift right (bpp =1:3, 2:2, 4:1, 8:0)
     int char_bpr = (char_w + char_ppb - 1) >> char_psr; // bytes per row
-    int char_size = char_h * char_bpr;                  // character size in bytes
-    int char_count = charset_cols * charset_rows;       // character count
-    int charset_size = char_size * char_count;          // charset size in bytes
+    int char_size = char_h * char_bpr; // character size in bytes
+    int char_count = charset_cols * charset_rows; // character count
+    int charset_size = char_size * char_count; // charset size in bytes
     uint8_t *charset_data = 0;
 
     // image process variables
@@ -259,19 +259,19 @@ int png2font(char *src_filename, char *dst_filename, char *out_filename, int cha
             g = src_pp[1];
             b = src_pp[2];
             lum = (r + g + b) / 3; // luminance
-            opa = 255 - lum;       // opacity from luminance
+            opa = 255 - lum; // opacity from luminance
             // TODO: opacity from alpha
 
-            opa = opa >> (8 - char_bpp);                            // round opacity to bpp
-            opa8 = 255 * opa / char_pms;                            // recalc to 8bit (0..255) for preview
+            opa = opa >> (8 - char_bpp); // round opacity to bpp
+            opa8 = 255 * opa / char_pms; // recalc to 8bit (0..255) for preview
 
             char_code = (x / char_w) + charset_cols * (y / char_h); // character code
-            char_offs = char_code * char_size;                      // character offset in charset [bytes]
-            char_x = (x % char_w);                                  // character pixel x-coord (0..char_w-1)
-            char_y = (y % char_h);                                  // character pixel y-coord (0..char_h-1)
-            char_row_offs = char_y * char_bpr;                      // character row offset [bytes]
-            char_pix_offs = char_x >> char_psr;                     // character pixel offset [bytes]
-            offs = char_offs + char_row_offs + char_pix_offs;       // total offset in charset [bytes]
+            char_offs = char_code * char_size; // character offset in charset [bytes]
+            char_x = (x % char_w); // character pixel x-coord (0..char_w-1)
+            char_y = (y % char_h); // character pixel y-coord (0..char_h-1)
+            char_row_offs = char_y * char_bpr; // character row offset [bytes]
+            char_pix_offs = char_x >> char_psr; // character pixel offset [bytes]
+            offs = char_offs + char_row_offs + char_pix_offs; // total offset in charset [bytes]
             i = (char_x % char_ppb);
             i = (8 - char_bpp) - (i * char_bpp);
             // i = (8 - char_bpp) - char_bpp * (char_x % (1 << char_bpp)); //shift in current byte
@@ -338,13 +338,13 @@ void print_char_to_png(png_structp dst_png, png_infop dst_ppi, uint8_t *dst_data
     int dst_pix_size = dst_row_size / dst_w;
     int dst_size = dst_row_size * dst_h;
     uint8_t *dst_pp = 0;
-    int char_ppb = 8 / char_bpp;                        // pixels per byte (bpp= 1:8, 2:4, 4:2, 8:1)
-    int char_pms = ((1 << char_bpp) - 1);               // pixel mask (bpp= 1:1, 2:3, 4:15, 8:255)
-    int char_psr = (3 - fbs(char_bpp));                 // pixel shift right (bpp =1:3, 2:2, 4:1, 8:0)
+    int char_ppb = 8 / char_bpp; // pixels per byte (bpp= 1:8, 2:4, 4:2, 8:1)
+    int char_pms = ((1 << char_bpp) - 1); // pixel mask (bpp= 1:1, 2:3, 4:15, 8:255)
+    int char_psr = (3 - fbs(char_bpp)); // pixel shift right (bpp =1:3, 2:2, 4:1, 8:0)
     int char_bpr = (char_w + char_ppb - 1) >> char_psr; // bytes per row
-    int char_size = char_h * char_bpr;                  // character size in bytes
-    int char_count = charset_cols * charset_rows;       // character count
-    int charset_size = char_size * char_count;          // charset size in bytes
+    int char_size = char_h * char_bpr; // character size in bytes
+    int char_count = charset_cols * charset_rows; // character count
+    int charset_size = char_size * char_count; // charset size in bytes
     int opa;
     int opa8;
     uint8_t char_data = 0;

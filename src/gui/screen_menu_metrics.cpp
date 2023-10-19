@@ -96,7 +96,7 @@ MI_METRICS_ALLOW::MI_METRICS_ALLOW()
 void MI_METRICS_ALLOW::OnChange(size_t old_index) {
     if (old_index == ftrstd::to_underlying(MetricsAllow::None) && index != ftrstd::to_underlying(MetricsAllow::None)) { // Enable
         if (warning_not_shown && MsgBoxWarning(_(txt_confirm), Responses_YesNo, 1) != Response::Yes) {
-            index = ftrstd::to_underlying(MetricsAllow::None);                                                          // User changed his mind
+            index = ftrstd::to_underlying(MetricsAllow::None); // User changed his mind
         } else {
             warning_not_shown = false;
         }

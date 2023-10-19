@@ -3,6 +3,7 @@
 #include "main.h"
 #include "log.h"
 #include "device/board.h"
+#include "usbh_async_diskio.hpp"
 
 LOG_COMPONENT_DEF(USBHost, LOG_SEVERITY_INFO);
 
@@ -93,6 +94,11 @@ void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef *hhcd, [[maybe_unused
 #if (USBH_USE_OS == 1)
     USBH_LL_NotifyURBChange(static_cast<USBH_HandleTypeDef *>(hhcd->pData));
 #endif
+    if (USBH_MSC_WorkerTaskHandle) {
+        BaseType_t pxHigherPriorityTaskWoken;
+        vTaskNotifyGiveFromISR(USBH_MSC_WorkerTaskHandle, &pxHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+    }
 }
 
 void HAL_HCD_PortEnabled_Callback(HCD_HandleTypeDef *hhcd) {
@@ -120,9 +126,9 @@ USBH_StatusTypeDef USBH_LL_Init(USBH_HandleTypeDef *phost) {
         phost->pData = &hhcd_USB_OTG_HS;
 
         hhcd_USB_OTG_HS.Instance = USB_OTG_HS;
-        hhcd_USB_OTG_HS.Init.Host_channels = 12;
+        hhcd_USB_OTG_HS.Init.Host_channels = 4;
         hhcd_USB_OTG_HS.Init.speed = HCD_SPEED_FULL;
-        hhcd_USB_OTG_HS.Init.dma_enable = DISABLE;
+        hhcd_USB_OTG_HS.Init.dma_enable = ENABLE;
         hhcd_USB_OTG_HS.Init.phy_itface = USB_OTG_EMBEDDED_PHY;
         hhcd_USB_OTG_HS.Init.Sof_enable = DISABLE;
         hhcd_USB_OTG_HS.Init.low_power_enable = DISABLE;

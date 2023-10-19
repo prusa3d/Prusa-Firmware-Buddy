@@ -63,7 +63,7 @@ void MI_UNLOAD::Do() {
     }
 #endif
     marlin_client::gcode("M702 W2"); // unload with return option
-    Sound_Stop();                    // TODO what is Sound_Stop(); doing here?
+    Sound_Stop(); // TODO what is Sound_Stop(); doing here?
 }
 
 /*****************************************************************************/
@@ -99,7 +99,7 @@ void MI_CHANGE::Do() {
     }
 #endif
     marlin_client::gcode("M1600 R"); // non print filament change
-    Sound_Stop();                    // TODO what is Sound_Stop(); doing here?
+    Sound_Stop(); // TODO what is Sound_Stop(); doing here?
 }
 
 #if HAS_TOOLCHANGER()
@@ -129,16 +129,12 @@ void MI_PURGE::Do() {
 
 bool MI_PURGE::AvailableForTool(uint8_t tool) {
     bool has_filament_eeprom = config_store().get_filament_type(tool) != filament::Type::NONE;
-    bool has_filament_fs = true;
-    if (tool == marlin_vars()->active_extruder) {
-        // todo: Do this also for inactive extruders, when filament sensors are ready to supply info for non-picked tools
-        FilamentSensors::BothSensors sensors = FSensors_instance().GetBothSensors();
+    bool has_filament_fs = GetExtruderFSensor(tool)->Get() == fsensor_t::HasFilament;
 #if PRINTER_IS_PRUSA_XL
-        has_filament_fs = (sensors.extruder == fsensor_t::HasFilament && sensors.side == fsensor_t::HasFilament);
-#else
-        has_filament_fs = sensors.extruder == fsensor_t::HasFilament;
+    // for XL, also check for side FS
+    has_filament_fs = has_filament_fs && GetSideFSensor(tool)->Get() == fsensor_t::HasFilament;
 #endif
-    }
+
     return has_filament_eeprom && has_filament_fs;
 }
 

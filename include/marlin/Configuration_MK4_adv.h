@@ -37,6 +37,16 @@
  */
 #define CONFIGURATION_ADV_H_VERSION 020000
 
+/**
+ * Cancel Objects
+ *
+ * Implement M486 to allow Marlin to skip objects
+ */
+#define CANCEL_OBJECTS
+#ifdef CANCEL_OBJECTS
+  #define CANCEL_OBJECTS_REPORTING // Emit the current object as a status message
+#endif
+
 // @section temperature
 
 //===========================================================================
@@ -1396,7 +1406,7 @@
         //   For direct drive, the full length of the nozzle.
     //#define ADVANCED_PAUSE_CONTINUOUS_PURGE       // Purge continuously up to the purge length until interrupted.
     #define ADVANCED_PAUSE_PURGE_FEEDRATE 2.7 // (mm/s) Extrude feedrate (after loading). Should be slower than load feedrate.
-    #define ADVANCED_PAUSE_PURGE_LENGTH 21 // (mm) Length to extrude after loading. //50
+    #define ADVANCED_PAUSE_PURGE_LENGTH 27 // (mm) Length to extrude after loading. //50
         //   Set to 0 for manual extrusion.
         //   Filament can be extruded repeatedly from the Filament Change menu
         //   until extrusion is consistent, and to purge old filament.

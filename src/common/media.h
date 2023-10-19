@@ -4,14 +4,20 @@
 #include <inttypes.h>
 #include <gcode/gcode_reader.hpp> // for PrusaPackGcodeReader::stream_restore_info_t
 
+#define PREFETCH_SIGNAL_START           1
+#define PREFETCH_SIGNAL_STOP            2
+#define PREFETCH_SIGNAL_FETCH           4
+#define PREFETCH_SIGNAL_GCODE_INFO_INIT 8
+#define PREFETCH_SIGNAL_GCODE_INFO_STOP 16
+
 typedef enum {
-    media_state_REMOVED = 0,  // media is inserted
+    media_state_REMOVED = 0, // media is inserted
     media_state_INSERTED = 1, // media is removed
-    media_state_ERROR = 2,    // media is in error state (TODO)
+    media_state_ERROR = 2, // media is in error state (TODO)
 } media_state_t;
 
 typedef enum {
-    media_error_OK = 0,    // no error
+    media_error_OK = 0, // no error
     media_error_MOUNT = 1, // error - mounting media - f_mount failed
 } media_error_t;
 
@@ -27,6 +33,8 @@ extern "C" {
 
 extern media_state_t media_get_state(void);
 
+extern osThreadId prefetch_thread_id;
+void media_prefetch(const void *);
 /// Copies the content of sfnFilePath into marlin_vars->media_SFN_path
 /// Updates marlin_vars->media_LFN as a side-effect by opening the marlin_vars->media_SFN_path and reading its LFN
 extern void media_print_start__prepare(const char *sfnFilePath);

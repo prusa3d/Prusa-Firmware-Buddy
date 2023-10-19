@@ -158,19 +158,19 @@ struct flash_print_t {
 
 // crash recovery data
 struct flash_crash_t {
-    uint32_t sdpos;                      /// sdpos of the gcode instruction being aborted
-    xyze_pos_t start_current_position;   /// absolute logical starting XYZE position of the gcode instruction
-    xyze_pos_t crash_current_position;   /// absolute logical XYZE position of the crash location
-    abce_pos_t crash_position;           /// absolute physical ABCE position of the crash location
+    uint32_t sdpos; /// sdpos of the gcode instruction being aborted
+    xyze_pos_t start_current_position; /// absolute logical starting XYZE position of the gcode instruction
+    xyze_pos_t crash_current_position; /// absolute logical XYZE position of the crash location
+    abce_pos_t crash_position; /// absolute physical ABCE position of the crash location
     uint16_t segments_finished = 0;
-    uint8_t axis_known_position;         /// axis state before crashing
-    uint8_t leveling_active;             /// state of MBL before crashing
-    feedRate_t fr_mm_s;                  /// current move feedrate
-    xy_uint_t counter_crash = { 0, 0 };  /// number of crashes per axis
-    uint16_t counter_power_panic = 0;    /// number of power panics
+    uint8_t axis_known_position; /// axis state before crashing
+    uint8_t leveling_active; /// state of MBL before crashing
+    feedRate_t fr_mm_s; /// current move feedrate
+    xy_uint_t counter_crash = { 0, 0 }; /// number of crashes per axis
+    uint16_t counter_power_panic = 0; /// number of power panics
     Crash_s::InhibitFlags inhibit_flags; /// inhibit instruction replay flags
 
-    uint8_t _padding[1];                 // silence warning
+    uint8_t _padding[1]; // silence warning
 };
 
 // print progress data
@@ -185,11 +185,11 @@ struct flash_progress_t {
 //   can't use PrusaToolChanger::PrecrashData as it doesn't have to be packed
 struct flash_toolchanger_t {
 #if HAS_TOOLCHANGER()
-    xyz_pos_t return_pos;          ///< Position wanted after toolchange
-    uint8_t precrash_tool;         ///< Tool wanted to be picked before panic
+    xyz_pos_t return_pos; ///< Position wanted after toolchange
+    uint8_t precrash_tool; ///< Tool wanted to be picked before panic
     tool_return_t return_type : 8; ///< Where to return after recovery
-    uint32_t : 16;                 ///< Padding to keep the structure size aligned to 32 bit
-#endif                             /*HAS_TOOLCHANGER()*/
+    uint32_t : 16; ///< Padding to keep the structure size aligned to 32 bit
+#endif /*HAS_TOOLCHANGER()*/
 };
 
 #pragma GCC diagnostic pop
@@ -256,7 +256,7 @@ static struct {
     PPState orig_state;
     char media_SFN_path[FILE_PATH_MAX_LEN]; // temporary buffer
     uint8_t orig_axis_known_position;
-    uint32_t fault_stamp;                   // time since acFault trigger
+    uint32_t fault_stamp; // time since acFault trigger
 
     // Temporary copy to handle nested fault handling
     flash_crash_t crash;
@@ -506,7 +506,7 @@ static void atomic_finish() {
 
 #if HAS_TOOLCHANGER()
     if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL // Was in toolchange area
-        && prusa_toolchanger.is_toolchanger_enabled()) {                      // Toolchanger is installed
+        && prusa_toolchanger.is_toolchanger_enabled()) { // Toolchanger is installed
 
         // Continue with toolcrash recovery
         marlin_server::powerpanic_finish_toolcrash();
@@ -525,7 +525,7 @@ static void atomic_finish() {
 }
 
 void resume_print(bool auto_recover) {
-    assert(state_stored());                // caller is responsible for checking
+    assert(state_stored()); // caller is responsible for checking
     assert(marlin_server::printer_idle()); // caller is responsible for checking
 
     log_info(PowerPanic, "resuming print");
@@ -613,8 +613,8 @@ void resume_loop() {
             prusa_toolchanger.set_precrash_state({ state_buf.toolchanger.precrash_tool,
                 state_buf.toolchanger.return_type,
                 state_buf.toolchanger.return_pos }); // Set result for tool recovery
-            resume_state = ResumeState::Finish;      // Do not reheat, do not unpark
-            break;                                   // Skip lift and rehome
+            resume_state = ResumeState::Finish; // Do not reheat, do not unpark
+            break; // Skip lift and rehome
             // Will continue with toolcrash recovery
         }
 #endif /*HAS_TOOLCHANGER()*/
@@ -831,11 +831,11 @@ void panic_loop() {
 #if ENABLED(COREXY)
         // XY are linked, set both motors to the same current
         stepperY.rms_current(POWER_PANIC_X_CURRENT, 1);
-#endif             /*ENABLED(COREXY)*/
+#endif /*ENABLED(COREXY)*/
 
 #if !HAS_PUPPIES() // Extruders are on puppy boards and dwarf MCUs are reset in powerpanic
         stepperE0.rms_current(POWER_PANIC_E_CURRENT, 1);
-#endif             /*HAS_PUPPIES()*/
+#endif /*HAS_PUPPIES()*/
 
         // extend XY endstops so that we can still retract/park within an interrupted homing move
         soft_endstop.min.x = X_MIN_POS - (X_MAX_POS - X_MIN_POS);
@@ -949,7 +949,7 @@ void panic_loop() {
 #endif
             feedrate_mm_s = POWER_PANIC_X_FEEDRATE;
             destination = current_position;
-            const PrintArea::rect_t print_rect = print_area.get_bounding_rect();         // We need to get out of print area
+            const PrintArea::rect_t print_rect = print_area.get_bounding_rect(); // We need to get out of print area
 #if HAS_TOOLCHANGER()
             if (state_buf.crash.crash_position.y > PrusaToolChanger::SAFE_Y_WITH_TOOL) { // Is in the toolchange area
                 // Do not move X or Y
@@ -1090,7 +1090,7 @@ void ac_fault_isr() {
             state_buf.crash.start_current_position = prusa_toolchanger.get_precrash().return_pos;
             toNative(state_buf.crash.start_current_position); // return_pos is in logical coordinates, needs to be modified in place
         } else
-#endif                                                        /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
         {
             state_buf.crash.start_current_position = crash_s.start_current_position;
         }
@@ -1178,7 +1178,7 @@ void ac_fault_isr() {
     // heaters are *already* disabled via HW, but stop temperature and fan regulation too
     thermalManager.disable_all_heaters();
     thermalManager.zero_fan_speeds();
-#if !HAS_PUPPIES()
+#if !HAS_PUPPIES() && HAS_TEMP_HEATBREAK && HAS_TEMP_HEATBREAK_CONTROL
     thermalManager.suspend_heatbreak_fan(2000);
 #endif
 

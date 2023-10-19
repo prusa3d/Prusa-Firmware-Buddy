@@ -22,8 +22,8 @@
             #define ENABLE_TRANSLATION_IT
             #define ENABLE_TRANSLATION_PL
         #endif // HAS_TRANSLATIONS()
-    #endif     //!_DEBUG
-#endif         // TRANSLATIONS_UNITTEST
+    #endif //!_DEBUG
+#endif // TRANSLATIONS_UNITTEST
 
 using TPBSH = CPUFLASHTranslationProviderBase::SHashTable;
 #ifndef TRANSLATIONS_UNITTEST
@@ -44,9 +44,9 @@ const TPBSH::BucketRange TPBSH::hash_table[TPBSH::Buckets()] =
 /// Wrappers of statically precomputed translation data for each language
 
 #ifdef ENABLE_TRANSLATION_CZ
-        struct StringTableCS {            // why the hell does clang-format indent this line so weird?
+        struct StringTableCS { // why the hell does clang-format indent this line so weird?
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
-    static const uint8_t utf8Raw[];       ///< a piece of memory where the null-terminated strings are situated
+    static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
 using CPUFLASHTranslationProviderCS = CPUFLASHTranslationProvider<StringTableCS>;
@@ -66,7 +66,7 @@ ProviderRegistrator csReg("cs", &cs);
 #ifdef ENABLE_TRANSLATION_DE
 struct StringTableDE {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
-    static const uint8_t utf8Raw[];       ///< a piece of memory where the null-terminated strings are situated
+    static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
 using CPUFLASHTranslationProviderDE = CPUFLASHTranslationProvider<StringTableDE>;
@@ -87,7 +87,7 @@ ProviderRegistrator deReg("de", &de);
 #ifdef ENABLE_TRANSLATION_ES
 struct StringTableES {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
-    static const uint8_t utf8Raw[];       ///< a piece of memory where the null-terminated strings are situated
+    static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
 using CPUFLASHTranslationProviderES = CPUFLASHTranslationProvider<StringTableES>;
@@ -107,7 +107,7 @@ ProviderRegistrator esReg("es", &es);
 #ifdef ENABLE_TRANSLATION_FR
 struct StringTableFR {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
-    static const uint8_t utf8Raw[];       ///< a piece of memory where the null-terminated strings are situated
+    static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
 using CPUFLASHTranslationProviderFR = CPUFLASHTranslationProvider<StringTableFR>;
@@ -127,7 +127,7 @@ ProviderRegistrator frReg("fr", &fr);
 #ifdef ENABLE_TRANSLATION_IT
 struct StringTableIT {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
-    static const uint8_t utf8Raw[];       ///< a piece of memory where the null-terminated strings are situated
+    static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
 using CPUFLASHTranslationProviderIT = CPUFLASHTranslationProvider<StringTableIT>;
@@ -147,7 +147,7 @@ ProviderRegistrator itReg("it", &it);
 #ifdef ENABLE_TRANSLATION_PL
 struct StringTablePL {
     static const uint16_t stringBegins[]; ///< this will get statically precomputed for each translation language separately
-    static const uint8_t utf8Raw[];       ///< a piece of memory where the null-terminated strings are situated
+    static const uint8_t utf8Raw[]; ///< a piece of memory where the null-terminated strings are situated
 };
 
 using CPUFLASHTranslationProviderPL = CPUFLASHTranslationProvider<StringTablePL>;

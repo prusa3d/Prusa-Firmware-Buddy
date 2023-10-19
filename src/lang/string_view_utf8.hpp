@@ -31,12 +31,12 @@ class string_view_utf8 {
         /// interface for utf-8 strings stored in the CPU FLASH.
         struct FromCPUFLASH_RAM {
             const uint8_t *utf8raw; ///< pointer to raw utf8 data
-            const uint8_t *readp;   ///< read pointer, aka read iterator
+            const uint8_t *readp; ///< read pointer, aka read iterator
         } cpuflash;
         /// interface for utf-8 string stored in a FILE - used for validation of the whole translation infrastructure
         struct FromFile {
-            ::FILE *f;           ///< shared FILE pointer with other instances accessing the same file
-            uint16_t startOfs;   ///< start offset in input file
+            ::FILE *f; ///< shared FILE pointer with other instances accessing the same file
+            uint16_t startOfs; ///< start offset in input file
             uint16_t currentOfs; ///< position of next byt to read
         } file;
     };
@@ -217,8 +217,14 @@ public:
         return s;
     }
 
+    /// Use is_same_ref instead
+    bool operator==(const string_view_utf8 &other) const = delete;
+
+    /// Use !is_same_ref instead
+    bool operator!=(const string_view_utf8 &other) const = delete;
+
     /// string view has the same resource
-    bool operator==(const string_view_utf8 &other) const {
+    bool is_same_ref(const string_view_utf8 &other) const {
         if (type != other.type)
             return false; // type mismatch
 
@@ -233,15 +239,11 @@ public:
             return (attrs.file.f == other.attrs.file.f) && (attrs.file.startOfs == other.attrs.file.startOfs);
         case EType::SPIFLASH:
         case EType::USBFLASH:
-            assert(false);   // ends program in debug
+            assert(false); // ends program in debug
             return false;
         case EType::NULLSTR: // all null strings are equal
             return true;
         }
         return false; // somehow out of enum range
-    }
-
-    bool operator!=(const string_view_utf8 &other) const {
-        return !((*this) == other);
     }
 };

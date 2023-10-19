@@ -11,7 +11,7 @@ static constexpr uint8_t StepOf(uint32_t step, uint32_t total) {
     return (step * 100U / total);
 }
 
-static bool is_error_code(ProgressCode ec) {
+static constexpr bool is_error_code(ProgressCode ec) {
     switch (ec) {
     case ProgressCode::ERRDisengagingIdler:
     case ProgressCode::ERRWaitingForUser:
@@ -24,7 +24,7 @@ static bool is_error_code(ProgressCode ec) {
 }
 
 // this requires knowledge of the state machines inside of the MMU and the consequence of steps they run through
-static uint8_t progress_code_to_percentage(CommandInProgress cip, ProgressCode ec) {
+static constexpr uint8_t progress_code_to_percentage(CommandInProgress cip, ProgressCode ec) {
     // error states will report 50% progress as we don't know what will come up next
     if (is_error_code(ec)) {
         return 50;
@@ -90,6 +90,7 @@ static uint8_t progress_code_to_percentage(CommandInProgress cip, ProgressCode e
         return 0;
     case Reset:
         return 50;
+    case TestLoad: // test load is almost the same like a toolchange, just different visualization
     case ToolChange:
         // current sequence reported from the MMU:
         // T1 A*27
@@ -134,7 +135,7 @@ static uint8_t progress_code_to_percentage(CommandInProgress cip, ProgressCode e
     return 0;
 }
 
-static LoadUnloadMode progress_code_to_mode(CommandInProgress cip, ProgressCode ec) {
+static constexpr LoadUnloadMode progress_code_to_mode(CommandInProgress cip, ProgressCode ec) {
     if (is_error_code(ec)) {
         return LoadUnloadMode::Load;
     }
@@ -144,13 +145,15 @@ static LoadUnloadMode progress_code_to_mode(CommandInProgress cip, ProgressCode 
         return LoadUnloadMode::Change;
     case UnloadFilament:
         return LoadUnloadMode::Unload;
+    case TestLoad:
+        return LoadUnloadMode::Test;
     default:
         return LoadUnloadMode::Load;
     }
     return LoadUnloadMode::Load;
 }
 
-static fsm::PhaseData progress_code_to_phase_data(CommandInProgress cip, ProgressCode ec) {
+static constexpr fsm::PhaseData progress_code_to_phase_data(CommandInProgress cip, ProgressCode ec) {
     LoadUnloadMode mode = progress_code_to_mode(cip, ec);
     uint8_t percentage = progress_code_to_percentage(cip, ec);
     return ProgressSerializerLoadUnload(mode, percentage).Serialize();

@@ -10,7 +10,7 @@ extern void hwio_safe_state(void);
 
 extern void hwio_low_power_state(void);
 
-extern void buddy_breakpoint_disable_heaters(void);
+extern void buddy_disable_heaters(void);
 
 #ifdef __cplusplus
 }

@@ -14,7 +14,7 @@ namespace logic {
 
 class HWSanity : public CommandBase {
 public:
-    inline HWSanity()
+    inline constexpr HWSanity()
         : CommandBase() {}
 
     /// Restart the automaton
@@ -44,7 +44,7 @@ private:
     static void PrepareAxis(config::Axis axis);
 
     uint8_t test_step = 0;
-    config::Axis axis;
+    config::Axis axis = config::Axis::Pulley;
     uint8_t fault_masks[3] = { 0 };
     ProgressCode next_state = ProgressCode::HWTestBegin;
     uint16_t wait_start = 0;

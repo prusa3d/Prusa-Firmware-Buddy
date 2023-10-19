@@ -12,6 +12,8 @@
 template <typename index_t = uint_fast8_t, index_t size = 16>
 class CircularIndex {
 public:
+    static constexpr bool size_is_power2 = !(size & (size - 1));
+
     static_assert(size <= std::numeric_limits<index_t>::max() / 2,
         "index_t is too small for the requested size");
 
@@ -26,9 +28,7 @@ public:
 
     /// @returns true if full
     inline bool full() const {
-        // alternative without wrap-around logic:
-        //   return tail != head && mask(tail) == mask(head);
-        return ((index_t)(head - tail) % (size * 2)) == size;
+        return count() == size;
     }
 
     /// Reset the indexes to empty
@@ -61,15 +61,14 @@ public:
     }
 
     /// @returns number of elements in the buffer
-    /// @@TODO better solution if it exists
     inline index_t count() const {
-        index_t i = tail;
-        index_t c = 0;
-        while (i != head) {
-            i = next(i);
-            ++c;
+        if constexpr (size_is_power2)
+            return head - tail;
+        else {
+            return head >= tail
+                ? (head - tail)
+                : (size * 2 + head) - tail;
         }
-        return c;
     }
 
 protected:
@@ -83,8 +82,10 @@ protected:
     static index_t next(index_t cursor) {
         // note: the modulo can be avoided if size is a power of two: we can do this
         // relying on the optimizer eliding the following check at compile time.
-        static constexpr bool power2 = !(size & (size - 1));
-        return power2 ? (cursor + 1) : (cursor + 1) % (size * 2);
+        if constexpr (size_is_power2)
+            return (cursor + 1);
+        else
+            return (cursor + 1) % (size * 2);
     }
 };
 

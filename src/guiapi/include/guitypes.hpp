@@ -55,11 +55,11 @@ enum {
 namespace img {
 
 struct Resource {
-    FILE *file;    ///< Open file handle, nullptr to use default get_resource_file()
+    FILE *file; ///< Open file handle, nullptr to use default get_resource_file()
     size_t offset; ///< Offset in file [byte]
-    size_t size;   ///< Size of resource (informative) [byte]
-    uint16_t w;    ///< Width (informative) [pixel]
-    uint16_t h;    ///< Height (informative) [pixel]
+    size_t size; ///< Size of resource (informative) [byte]
+    uint16_t w; ///< Width (informative) [pixel]
+    uint16_t h; ///< Height (informative) [pixel]
     constexpr Resource(size_t offset, size_t size, uint16_t w, uint16_t h)
         : file(nullptr)
         , offset(offset)
@@ -158,11 +158,11 @@ using padding_ui8_t = padding_t<uint8_t>;
 using padding_ui16_t = padding_t<uint16_t>;
 
 struct bitmap_t {
-    uint16_t w;  // bitmap width [pixels]
-    uint16_t h;  // bitmap height [pixels]
+    uint16_t w; // bitmap width [pixels]
+    uint16_t h; // bitmap height [pixels]
     uint8_t bpp; // bits per pixel
     uint8_t bpr; // bytes per row
-    void *ppx;   // pixel data pointer
+    void *ppx; // pixel data pointer
 };
 
 inline point_i16_t point_i16(int16_t x, int16_t y) {

@@ -1,5 +1,4 @@
 #include "catch2/catch_test_macros.hpp"
-#include "catch2/matchers/catch_matchers_vector.hpp"
 
 #include "../../../../src/modules/buttons.h"
 #include "../../../../src/modules/finda.h"
@@ -23,7 +22,6 @@
 
 #include <functional>
 
-using Catch::Matchers::Equals;
 using namespace std::placeholders;
 
 #include "../helpers/helpers.ipp"
@@ -81,6 +79,7 @@ bool SimulateUnloadFilament(uint32_t step, const logic::CommandBase *tc, uint32_
 
 void ToolChange(logic::ToolChange &tc, uint8_t fromSlot, uint8_t toSlot) {
     ForceReinitAllAutomata();
+    SetMinimalBowdenLength();
 
     REQUIRE(EnsureActiveSlotIndex(fromSlot, mg::FilamentLoadState::InNozzle));
     SetFINDAStateAndDebounce(true);
@@ -106,6 +105,7 @@ void ToolChange(logic::ToolChange &tc, uint8_t fromSlot, uint8_t toSlot) {
 
 void NoToolChange(logic::ToolChange &tc, uint8_t fromSlot, uint8_t toSlot) {
     ForceReinitAllAutomata();
+    SetMinimalBowdenLength();
 
     REQUIRE(EnsureActiveSlotIndex(fromSlot, mg::FilamentLoadState::InNozzle));
     // the filament is LOADED
@@ -125,6 +125,7 @@ void NoToolChange(logic::ToolChange &tc, uint8_t fromSlot, uint8_t toSlot) {
 void JustLoadFilament(logic::ToolChange &tc, uint8_t slot) {
     for (uint8_t startSelectorSlot = 0; startSelectorSlot < config::toolCount; ++startSelectorSlot) {
         ForceReinitAllAutomata();
+        SetMinimalBowdenLength();
         // make sure all the modules are ready
         // MMU-196: Move selector to a "random" slot
         REQUIRE(EnsureActiveSlotIndex(startSelectorSlot, mg::FilamentLoadState::AtPulley));
@@ -190,6 +191,7 @@ TEST_CASE("tool_change::same_slot_just_unloaded_filament", "[tool_change]") {
 
 void ToolChangeFailLoadToFinda(logic::ToolChange &tc, uint8_t fromSlot, uint8_t toSlot) {
     ForceReinitAllAutomata();
+    SetMinimalBowdenLength();
 
     REQUIRE(EnsureActiveSlotIndex(fromSlot, mg::FilamentLoadState::InNozzle));
     SetFINDAStateAndDebounce(true);
@@ -219,7 +221,23 @@ void ToolChangeFailLoadToFindaMiddleBtn(logic::ToolChange &tc, uint8_t toSlot) {
 
     REQUIRE_FALSE(mi::idler.HomingValid());
     REQUIRE_FALSE(ms::selector.HomingValid());
-    SimulateIdlerAndSelectorHoming(tc); // failed load to FINDA = nothing blocking the selector - it can rehome
+
+    // We've entered FeedToFinda state machine
+    REQUIRE(tc.TopLevelState() == ProgressCode::FeedingToFinda);
+
+    // Idler homes first
+    SimulateIdlerHoming(tc);
+    SimulateIdlerMoveToParkingPosition(tc);
+
+    // Now home the selector
+    SimulateSelectorHoming(tc);
+
+    // Wait for Selector to return to the planned slot
+    REQUIRE(WhileCondition(
+        tc, [&](uint32_t) {
+            return tc.feed.State() == tc.feed.EngagingIdler;
+        },
+        selectorMoveMaxSteps));
 
     // @@TODO here is nasty disrepancy - FINDA is not pressed, but we pretend to have something in the Selector.
     //
@@ -301,6 +319,7 @@ TEST_CASE("tool_change::load_fail_FINDA_resolve_btnM", "[tool_change]") {
 void ToolChangeFailFSensor(logic::ToolChange &tc, uint8_t fromSlot, uint8_t toSlot) {
     using namespace std::placeholders;
     ForceReinitAllAutomata();
+    SetMinimalBowdenLength();
 
     REQUIRE(EnsureActiveSlotIndex(fromSlot, mg::FilamentLoadState::InNozzle));
     SetFINDAStateAndDebounce(true);
@@ -333,8 +352,17 @@ void ToolChangeFailFSensorMiddleBtn(logic::ToolChange &tc, uint8_t fromSlot, uin
 
     // make FINDA trigger - Idler will rehome in this step, Selector must remain at its place
     SimulateIdlerHoming(tc);
+
+    REQUIRE_FALSE(mi::idler.HomingValid());
+    REQUIRE_FALSE(ms::selector.HomingValid());
+
+    SimulateIdlerWaitForHomingValid(tc);
+
     REQUIRE(mi::idler.HomingValid());
     REQUIRE_FALSE(ms::selector.HomingValid());
+
+    SimulateIdlerMoveToParkingPosition(tc);
+
     // now trigger the FINDA
     REQUIRE(WhileCondition(tc, std::bind(SimulateFeedToFINDA, _1, 100), 5000));
     REQUIRE(VerifyState(tc, mg::FilamentLoadState::InSelector, fromSlot, fromSlot, true, true, ml::blink0, ml::off, ErrorCode::RUNNING, ProgressCode::UnloadingFilament));
@@ -374,6 +402,7 @@ TEST_CASE("tool_change::load_fail_FSensor_resolve_btnM", "[tool_change]") {
 
 void ToolChangeWithFlickeringFINDA(logic::ToolChange &tc, uint8_t fromSlot, uint8_t toSlot, bool keepFindaPressed) {
     ForceReinitAllAutomata();
+    SetMinimalBowdenLength();
 
     REQUIRE(EnsureActiveSlotIndex(fromSlot, mg::FilamentLoadState::InNozzle));
     SetFINDAStateAndDebounce(true);
@@ -434,8 +463,8 @@ void ToolChangeWithFlickeringFINDA(logic::ToolChange &tc, uint8_t fromSlot, uint
         tc.Step();
 
         // now both Idler and Selector are on hold again
-        REQUIRE(mi::idler.state == mi::Idler::OnHold);
-        REQUIRE(ms::selector.state == ms::Selector::OnHold);
+        REQUIRE(mi::idler.IsOnHold());
+        REQUIRE(ms::selector.IsOnHold());
 
         REQUIRE(VerifyState2(tc, mg::FilamentLoadState::AtPulley, mi::idler.IdleSlotIndex(), fromSlot, true, false, toSlot, ml::off, ml::blink0, ErrorCode::FINDA_FLICKERS, ProgressCode::ERRWaitingForUser));
 
@@ -472,6 +501,7 @@ TEST_CASE("tool_change::test_flickering_FINDA_keepPressed", "[tool_change]") {
 
 void ToolChangeFSENSOR_TOO_EARLY(logic::ToolChange &tc, uint8_t slot) {
     ForceReinitAllAutomata();
+    SetMinimalBowdenLength();
     REQUIRE(EnsureActiveSlotIndex(slot, mg::FilamentLoadState::AtPulley));
 
     // verify filament NOT loaded
@@ -516,6 +546,14 @@ void ToolChangeFSENSOR_TOO_EARLY(logic::ToolChange &tc, uint8_t slot) {
 
     // still unloading, but Selector can start homing
     SimulateSelectorHoming(tc);
+    SimulateSelectorWaitForHomingValid(tc);
+
+    // Make sure we're still in unloading state
+    REQUIRE(tc.TopLevelState() == ProgressCode::UnloadingFilament);
+
+    // The unload filament state machine explicitly waits for (ms::selector.State() == ms::Selector::Ready)
+    SimulateSelectorWaitForReadyState(tc);
+
     // wait for finishing of UnloadingFilament
     WhileTopState(tc, ProgressCode::UnloadingFilament, 5000);
 

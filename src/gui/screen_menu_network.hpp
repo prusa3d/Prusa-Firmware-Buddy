@@ -10,17 +10,12 @@
 #include "MItem_tools.hpp"
 #include "MItem_lan.hpp"
 #include <option/buddy_enable_connect.h>
-#include <printers.h>
 
 using ScreenMenuNetwork__ = ScreenMenu<EFooter::Off, MI_RETURN, MI_PRUSALINK,
 #if BUDDY_ENABLE_CONNECT()
     MI_PRUSA_CONNECT,
 #endif
-    MI_NET_INTERFACE_t, MI_IP4_ADDR, MI_MAC_ADDR,
-#if not PRINTER_IS_PRUSA_MINI
-    MI_METRICS_SETTINGS,
-#endif
-    MI_ETH_SETTINGS, MI_WIFI_SETTINGS>;
+    MI_NET_INTERFACE_t, MI_IP4_ADDR, MI_MAC_ADDR, MI_METRICS_SETTINGS, MI_ETH_SETTINGS, MI_WIFI_SETTINGS>;
 
 class ScreenMenuNetwork : public ScreenMenuNetwork__ {
 public:

@@ -24,11 +24,11 @@ void I_MI_AXIS::loop__(size_t axis) {
 }
 
 void MI_AXIS_E::OnClick() {
-    marlin_client::gcode("G90");    // Set to Absolute Positioning
-    marlin_client::gcode("M82");    // Set extruder to absolute mode
+    marlin_client::gcode("G90"); // Set to Absolute Positioning
+    marlin_client::gcode("M82"); // Set extruder to absolute mode
     marlin_client::gcode("G92 E0"); // Reset position before change
-    SetVal(0);                      // Reset spin before change
-    lastQueuedPos = 0;              // zero it out so we wont go back when we exit the spinner
+    SetVal(0); // Reset spin before change
+    lastQueuedPos = 0; // zero it out so we wont go back when we exit the spinner
 }
 
 void DUMMY_AXIS_E::click([[maybe_unused]] IWindowMenu &window_menu) {
@@ -49,7 +49,7 @@ void DUMMY_AXIS_E::touch(IWindowMenu &window_menu, point_ui16_t relative_touch_p
 bool DUMMY_AXIS_E::IsTargetTempOk() {
     auto current_filament = config_store().get_filament_type(marlin_vars()->active_extruder);
     auto current_filament_nozzle_target = filament::get_description(current_filament).nozzle;
-    return (current_filament != filament::Type::NONE)                                                    // filament is selected
+    return (current_filament != filament::Type::NONE) // filament is selected
         && (int(marlin_vars()->active_hotend().target_nozzle + 0.9F) >= current_filament_nozzle_target); // target temperature is high enough - +0.9 to avoid float round error
 }
 
@@ -139,7 +139,7 @@ void ScreenMenuMove::checkNozzleTemp() {
 #endif // 0 .. make unit test
 
 bool ScreenMenuMove::IsTempOk() {
-    return DUMMY_AXIS_E::IsTargetTempOk()                           // target correctly set
+    return DUMMY_AXIS_E::IsTargetTempOk() // target correctly set
         && (marlin_vars()->active_hotend().temp_nozzle >= temp_ok); // Temperature is above coldextrusion
 }
 
@@ -150,7 +150,7 @@ ScreenMenuMove::ScreenMenuMove()
 #endif
     prev_accel = marlin_vars()->travel_acceleration;
     marlin_client::gcode("M204 T200");
-    Hide<MI_AXIS_E>();     // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
+    Hide<MI_AXIS_E>(); // one of pair MI_AXIS_E DUMMY_AXIS_E must be hidden for swap to work
     checkNozzleTemp();
     ClrMenuTimeoutClose(); // No timeout for move screen
 }

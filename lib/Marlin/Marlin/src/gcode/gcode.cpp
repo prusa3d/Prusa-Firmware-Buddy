@@ -922,11 +922,16 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
     }
     break;
 
-    case 'T': T(parser.codenum); break;                           // Tn: Tool Change
-#if ENABLED(REDIRECT_GCODE_SUPPORT)
-    case 'R': R(parser.codenum); break;                           // Rn: Redirect command
-#endif
-    default: parser.unknown_command_error();
+    #if EXTRUDERS > 1
+      case 'T': T(parser.codenum); break;                           // Tn: Tool Change
+    #endif
+
+    #if ENABLED(REDIRECT_GCODE_SUPPORT)
+      case 'R': R(parser.codenum); break;                           // Rn: Redirect command
+    #endif
+
+    default:
+      parser.unknown_command_error();
   }
 
   if (!no_ok) queue.ok_to_send();

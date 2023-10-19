@@ -29,6 +29,8 @@ enum class DownloadStep {
     Finished,
     FailedNetwork,
     FailedOther,
+    // Aborted by calling the deleter
+    Aborted,
 };
 
 //
@@ -97,19 +99,14 @@ public:
     };
 
 private:
-    using ConnFactory = std::unique_ptr<http::SocketConnectionFactory>;
-    // The connection factory. That holds the connection.
-    //
-    // We need to hide it behind a pointer, because the Response holds a
-    // pointer to it and we need to move the Download around.
-    ConnFactory conn_factory;
-    http::ResponseBody response;
-    PartialFile::Ptr partial_file;
-    uint32_t last_activity;
-    std::shared_ptr<EncryptionInfo> encryption_info;
-    std::unique_ptr<Decryptor> decryptor;
-    Download(ConnFactory &&factory, http::ResponseBody &&response, PartialFile::Ptr partial_file, std::shared_ptr<EncryptionInfo> encryption, std::unique_ptr<Decryptor> decryptor);
-    bool process(uint8_t *data, size_t size);
+    class Async;
+    class AsyncDeleter {
+    public:
+        void operator()(Async *);
+    };
+    using AsyncPtr = std::unique_ptr<Async, AsyncDeleter>;
+    AsyncPtr async;
+    Download(AsyncPtr &&async);
 
 public:
     Download(Download &&other) = default;
@@ -125,21 +122,16 @@ public:
     /// \param destination The destination file. If PartialFile is provided, it has to match the final file size. If a string is provided, the PartialFile will be created with the same name.
     /// \param offset The offset to start the download from.
     /// \return A Download object if the request was successful and the caller is expected to call step() in a loop to continue with the download.
-    static BeginResult begin(const Request &request, DestinationPath destination, uint32_t offset = 0);
+    static BeginResult begin(const Request &request, DestinationPath destination, uint32_t start_range = 0, std::optional<uint32_t> end_range = std::nullopt);
 
     /// Continue the download.
-    DownloadStep step(uint32_t max_duration_ms);
-
-    /// Whether the same request can be made again with non-zero offset.
-    bool allows_random_access() const;
+    DownloadStep step();
 
     /// Returns the final size of the file being downloaded.
     uint32_t file_size() const;
 
     /// Returns the partial file object where the downloaded data is being stored.
-    PartialFile::Ptr get_partial_file() {
-        return partial_file;
-    }
+    PartialFile::Ptr get_partial_file() const;
 };
 
 } // namespace transfers

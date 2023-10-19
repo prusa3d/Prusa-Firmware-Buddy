@@ -15,7 +15,7 @@ ResultFans::ResultFans()
     , fans_switched(_("Checking for switched fans"), nullptr, TestResult_Unknown) {
     Add(heatbreak);
     Add(print);
-    // Add(fans_switched);
+    Add(fans_switched);
 
     failed = false;
 }
@@ -25,7 +25,5 @@ void ResultFans::SetState(TestResult hb_fan, TestResult print_fan, TestResult fa
     print.SetState(print_fan);
     fans_switched.SetState(fans_swtchd);
 
-    failed = (hb_fan == TestResult_Failed || print_fan == TestResult_Failed
-        // || fans_swtchd == TestResult_Failed
-    );
+    failed = (hb_fan == TestResult_Failed || print_fan == TestResult_Failed || fans_swtchd == TestResult_Failed);
 }

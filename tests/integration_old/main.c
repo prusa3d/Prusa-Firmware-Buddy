@@ -15,7 +15,7 @@ static void tap_netif_init(void *arg) {
     /* init network interfaces */
     ip4_addr_t ipaddr, netmask, gw;
 
-    IP4_ADDR(&gw, 10, 0, 0, 1);     // host IP address of TAP device
+    IP4_ADDR(&gw, 10, 0, 0, 1); // host IP address of TAP device
     IP4_ADDR(&ipaddr, 10, 0, 0, 2); // LwIP virtual program IP address
     IP4_ADDR(&netmask, 255, 255, 255, 0);
 

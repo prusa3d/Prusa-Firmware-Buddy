@@ -31,29 +31,6 @@ extern "C" {
 /******************************************************************************/
 
 /**
- * @brief This function handles Non maskable interrupt.
- */
-void NMI_Handler(void) {
-}
-
-/**
- * @brief This function handles Hard fault interrupt.
- */
-void __attribute__((naked)) HardFault_Handler(void) {
-    DUMP_HARDFAULT_TO_CCMRAM();
-
-#ifdef _DEBUG
-    // Breakpoint if debugger is connected
-    buddy_breakpoint_disable_heaters();
-#endif /*_DEBUG*/
-
-    save_dump();
-    sys_reset();
-    while (1) {
-    }
-}
-
-/**
  * @brief This function handles Memory management fault.
  */
 void MemManage_Handler(void) {

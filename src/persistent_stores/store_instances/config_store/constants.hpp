@@ -21,8 +21,8 @@ enum class HWCheckSeverity : uint8_t {
  */
 enum class MetricsAllow : uint8_t {
     None = 0, ///< Metrics are not allowed
-    One = 1,  ///< Metrics can be enabled only to one selected host
-    All = 2,  ///< Metrics can be enabled to any host
+    One = 1, ///< Metrics can be enabled only to one selected host
+    All = 2, ///< Metrics can be enabled to any host
 };
 
 namespace config_store_ns {

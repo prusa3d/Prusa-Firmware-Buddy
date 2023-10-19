@@ -84,8 +84,8 @@ private:
 
     MotorStallFilter emf;
     bool detected; ///< true if filter value exceeded the threshold
-    bool blocked;  ///< The block flag is used to prevent the filter from generating further detected events even if they were real - e.g. while doing a toolchange.
-    bool enabled;  ///< Enables/Disables the whole feature - used to control the filter from the UI
+    bool blocked; ///< The block flag is used to prevent the filter from generating further detected events even if they were real - e.g. while doing a toolchange.
+    bool enabled; ///< Enables/Disables the whole feature - used to control the filter from the UI
 };
 
 class BlockEStallDetection {

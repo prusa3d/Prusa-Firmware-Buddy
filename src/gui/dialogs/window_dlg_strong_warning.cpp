@@ -85,8 +85,8 @@ void window_dlg_strong_warning_t::windowEvent(EventLock /*has private ctor*/, wi
     if (!GetParent())
         return;
     if (event == GUI_event_t::CLICK) { // todo use timer
-        shown[on_top] = false;         // remove from mask
-        on_top = types::count_;        // erase on_top
+        shown[on_top] = false; // remove from mask
+        on_top = types::count_; // erase on_top
 
         if (shown.any()) {
             for (types t = types(0); t < types::count_; t = types(t + 1)) {
@@ -127,7 +127,7 @@ void window_dlg_strong_warning_t::ShowHeatersTimeout() {
     Instance().show(HeatersTimeout);
 }
 
-#if DEVELOPMENT_ITEMS()
+#if _DEBUG
 void window_dlg_strong_warning_t::ShowSteppersTimeout() {
     Instance().show(SteppersTimeout);
 }

@@ -2,13 +2,24 @@
 // Menu items related to the MMU
 #pragma once
 #include "WindowMenuItems.hpp"
+#include "WindowMenuInfo.hpp"
 #include "i18n.h"
 
-class MI_MMU_LOAD_FILAMENT : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Load Filament");
+class MI_MMU_PRELOAD : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Preload to MMU");
 
 public:
-    MI_MMU_LOAD_FILAMENT();
+    MI_MMU_PRELOAD();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_MMU_LOAD_TEST_FILAMENT : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Loading Test");
+
+public:
+    MI_MMU_LOAD_TEST_FILAMENT();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -44,11 +55,11 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_LOAD_ALL : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Load All");
+class MI_MMU_PRELOAD_ALL : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Preload All");
 
 public:
-    MI_MMU_LOAD_ALL();
+    MI_MMU_PRELOAD_ALL();
 
 protected:
     virtual void click(IWindowMenu &window_menu) override;
@@ -65,43 +76,43 @@ protected:
     virtual void click(IWindowMenu &window_menu) override;
 };
 
-class MI_MMU_LOAD_FILAMENT_1 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 1");
+class MI_MMU_PRELOAD_SLOT_1 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 1");
 
 public:
-    MI_MMU_LOAD_FILAMENT_1()
+    MI_MMU_PRELOAD_SLOT_1()
         : MI_MMU_ISSUE_GCODE(label, "M704 P0") {}
 };
 
-class MI_MMU_LOAD_FILAMENT_2 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 2");
+class MI_MMU_PRELOAD_SLOT_2 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 2");
 
 public:
-    MI_MMU_LOAD_FILAMENT_2()
+    MI_MMU_PRELOAD_SLOT_2()
         : MI_MMU_ISSUE_GCODE(label, "M704 P1") {}
 };
 
-class MI_MMU_LOAD_FILAMENT_3 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 3");
+class MI_MMU_PRELOAD_SLOT_3 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 3");
 
 public:
-    MI_MMU_LOAD_FILAMENT_3()
+    MI_MMU_PRELOAD_SLOT_3()
         : MI_MMU_ISSUE_GCODE(label, "M704 P2") {}
 };
 
-class MI_MMU_LOAD_FILAMENT_4 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 4");
+class MI_MMU_PRELOAD_SLOT_4 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 4");
 
 public:
-    MI_MMU_LOAD_FILAMENT_4()
+    MI_MMU_PRELOAD_SLOT_4()
         : MI_MMU_ISSUE_GCODE(label, "M704 P3") {}
 };
 
-class MI_MMU_LOAD_FILAMENT_5 : public MI_MMU_ISSUE_GCODE {
-    static constexpr const char *const label = N_("Load Filament 5");
+class MI_MMU_PRELOAD_SLOT_5 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Preload slot 5");
 
 public:
-    MI_MMU_LOAD_FILAMENT_5()
+    MI_MMU_PRELOAD_SLOT_5()
         : MI_MMU_ISSUE_GCODE(label, "M704 P4") {}
 };
 
@@ -231,6 +242,56 @@ public:
         : MI_MMU_ISSUE_GCODE(label, "M702 W2") {}
 };
 
+class MI_MMU_LOAD_TEST_ALL : public WI_LABEL_t {
+    static constexpr const char *const label = N_("Test All");
+
+public:
+    MI_MMU_LOAD_TEST_ALL();
+
+protected:
+    virtual void click(IWindowMenu &window_menu) override;
+};
+
+class MI_MMU_LOAD_TEST_FILAMENT_1 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Test Filament 1");
+
+public:
+    MI_MMU_LOAD_TEST_FILAMENT_1()
+        : MI_MMU_ISSUE_GCODE(label, "M1704 P0") {}
+};
+
+class MI_MMU_LOAD_TEST_FILAMENT_2 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Test Filament 2");
+
+public:
+    MI_MMU_LOAD_TEST_FILAMENT_2()
+        : MI_MMU_ISSUE_GCODE(label, "M1704 P1") {}
+};
+
+class MI_MMU_LOAD_TEST_FILAMENT_3 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Test Filament 3");
+
+public:
+    MI_MMU_LOAD_TEST_FILAMENT_3()
+        : MI_MMU_ISSUE_GCODE(label, "M1704 P2") {}
+};
+
+class MI_MMU_LOAD_TEST_FILAMENT_4 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Test Filament 4");
+
+public:
+    MI_MMU_LOAD_TEST_FILAMENT_4()
+        : MI_MMU_ISSUE_GCODE(label, "M1704 P3") {}
+};
+
+class MI_MMU_LOAD_TEST_FILAMENT_5 : public MI_MMU_ISSUE_GCODE {
+    static constexpr const char *const label = N_("Test Filament 5");
+
+public:
+    MI_MMU_LOAD_TEST_FILAMENT_5()
+        : MI_MMU_ISSUE_GCODE(label, "M1704 P4") {}
+};
+
 class MI_MMU_SW_RESET : public MI_MMU_ISSUE_GCODE {
     static constexpr const char *const label = N_("SW Reset");
 
@@ -289,14 +350,6 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_MMU_SPOOLJOIN : public WI_ICON_SWITCH_OFF_ON_t {
-    constexpr static const char *const label = N_("Spool Join");
-
-public:
-    MI_MMU_SPOOLJOIN();
-    virtual void OnChange(size_t old_index) override;
-};
-
 class MI_MMU_CUTTER : public WI_ICON_SWITCH_OFF_ON_t {
     constexpr static const char *const label = N_("Cutter");
 
@@ -313,12 +366,31 @@ public:
     virtual void OnChange(size_t old_index) override;
 };
 
-class MI_MMU_FAIL_STATS : public WI_LABEL_t {
-    static constexpr const char *const label = N_("MMU Fail Stats");
+class MI_MMU_LOAD_FAILS : public WI_INFO_t {
+    constexpr static const char *const label = N_("Load Fails in Print");
 
 public:
-    MI_MMU_FAIL_STATS();
+    MI_MMU_LOAD_FAILS();
+};
 
-protected:
-    virtual void click(IWindowMenu &window_menu) override;
+class MI_MMU_TOTAL_LOAD_FAILS : public WI_INFO_t {
+    constexpr static const char *const label = N_("Total Load Fails");
+
+public:
+    MI_MMU_TOTAL_LOAD_FAILS();
+};
+
+class MI_MMU_GENERAL_FAILS : public WI_INFO_t {
+    constexpr static const char *const label = N_("General Fails in Print");
+
+public:
+    MI_MMU_GENERAL_FAILS();
+    ;
+};
+
+class MI_MMU_TOTAL_GENERAL_FAILS : public WI_INFO_t {
+    constexpr static const char *const label = N_("Total General Fails");
+
+public:
+    MI_MMU_TOTAL_GENERAL_FAILS();
 };

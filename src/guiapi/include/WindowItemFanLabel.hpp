@@ -17,14 +17,14 @@ public:
                 const int8_t percent = std::clamp(raw_value, 0u, 100u);
                 const char *const format = [&]() {
                     if (rpm) {
-                        return N_("%u %% / running");
+                        return N_("%u %% / %li RPM");
                     }
                     if (pwm) {
                         return N_("%u %% / stuck");
                     }
                     return N_("%u %% / stopped");
                 }();
-                snprintf(buffer, GuiDefaults::infoDefaultLen, format, percent);
+                snprintf(buffer, GuiDefaults::infoDefaultLen, format, percent, rpm);
             } else {
                 if (value.first.attribute.valid || value.second.attribute.valid) {
                     strlcpy(buffer, NA, GuiDefaults::infoDefaultLen);

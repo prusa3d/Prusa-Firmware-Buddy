@@ -41,10 +41,10 @@ enum MoveFlag : MoveFlag_t {
     MOVE_FLAG_E_ACTIVE = _BV(11),
 
     MOVE_FLAG_FIRST_MOVE_SEGMENT_OF_BLOCK = _BV(12), // Indicates if this move is the first move of the associated trapezoid block.
-    MOVE_FLAG_LAST_MOVE_SEGMENT_OF_BLOCK = _BV(13),  // Indicates if this move is the last move of the associated trapezoid block.
+    MOVE_FLAG_LAST_MOVE_SEGMENT_OF_BLOCK = _BV(13), // Indicates if this move is the last move of the associated trapezoid block.
 
-    MOVE_FLAG_BEGINNING_EMPTY_MOVE = _BV(14),        // Indicates if this move is the beginning empty move.
-    MOVE_FLAG_ENDING_EMPTY_MOVE = _BV(15),           // Indicates if this move is the ending empty move.
+    MOVE_FLAG_BEGINNING_EMPTY_MOVE = _BV(14), // Indicates if this move is the beginning empty move.
+    MOVE_FLAG_ENDING_EMPTY_MOVE = _BV(15), // Indicates if this move is the ending empty move.
 
     // Indicated that position of the axis should be reset to zero.
     MOVE_FLAG_RESET_POSITION_X = _BV(16),
@@ -105,7 +105,7 @@ enum StepEventFlag : StepEventFlag_t {
     STEP_EVENT_FLAG_E_ACTIVE = _BV(11),
 
     STEP_EVENT_FLAG_BEGINNING_OF_MOVE_SEGMENT = _BV(12), // Indicate that this step event is the first step event from a move segment.
-    STEP_EVENT_END_OF_MOTION = _BV(13),                  // Last event before coming to a halt
+    STEP_EVENT_END_OF_MOTION = _BV(13), // Last event before coming to a halt
 };
 
 // Ensure XYZE bits are always adjacent and ordered as required in most loops
@@ -124,10 +124,19 @@ static_assert(StepEventFlag::STEP_EVENT_FLAG_STEP_X == (1u << STEP_EVENT_FLAG_AX
 static_assert(StepEventFlag::STEP_EVENT_FLAG_X_DIR == (1u << STEP_EVENT_FLAG_DIR_SHIFT));
 static_assert(StepEventFlag::STEP_EVENT_FLAG_X_ACTIVE == (1u << STEP_EVENT_FLAG_AXIS_ACTIVE_SHIFT));
 
-typedef struct step_event_t {
+struct step_event_i32_t {
     int32_t time_ticks;
     StepEventFlag_t flags;
-} step_event_t;
+};
+
+// Used by step event queue. So, the maximum time difference between step events is 2^16 / STEPPER_TIMER_RATE,
+// which is currently 65.536ms.
+// Probably, we will almost never have a step event with such a time difference. But when those step events occur,
+// they are split into several step events.
+struct step_event_u16_t {
+    uint16_t time_ticks;
+    StepEventFlag_t flags;
+};
 
 // Circular queue for move segments.
 // head == tail              : the queue is empty
@@ -145,7 +154,7 @@ typedef struct move_segment_queue_t {
 // head != tail              : step events are in the queue
 // head == (tail - 1) % size : the queue is full
 typedef struct step_event_queue_t {
-    step_event_t data[STEP_EVENT_QUEUE_SIZE];
+    step_event_u16_t data[STEP_EVENT_QUEUE_SIZE];
     volatile uint16_t tail = 0;
     volatile uint16_t head = 0;
 } step_event_queue_t;
@@ -164,9 +173,9 @@ enum StepGeneratorType : uint8_t {
 };
 
 enum StepEventInfoStatus : uint8_t {
-    STEP_EVENT_INFO_STATUS_NOT_GENERATED = 0,     // Step event isn't produced by any step event generator. Such a step event cannot be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_NOT_GENERATED = 0, // Step event isn't produced by any step event generator. Such a step event cannot be inserted into the step event queue.
     STEP_EVENT_INFO_STATUS_GENERATED_INVALID = 1, // Step event is produced by a step event generator but cannot be inserted into the step event queue.
-    STEP_EVENT_INFO_STATUS_GENERATED_VALID = 2,   // Step event is produced by a step event generator and can be inserted into the step event queue.
+    STEP_EVENT_INFO_STATUS_GENERATED_VALID = 2, // Step event is produced by a step event generator and can be inserted into the step event queue.
 };
 
 typedef struct step_event_info_t {
@@ -205,8 +214,8 @@ struct step_generator_state_t {
     std::array<step_index_t, 4> step_event_index;
     double previous_step_time;
 
-    StepEventFlag_t flags;      // current axis/direction flags
-    step_event_t buffered_step; // accumulator for multi-axis step fusion
+    StepEventFlag_t flags; // current axis/direction flags
+    step_event_i32_t buffered_step; // accumulator for multi-axis step fusion
 
     xyze_long_t current_distance;
 

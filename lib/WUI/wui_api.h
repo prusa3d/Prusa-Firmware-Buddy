@@ -18,7 +18,7 @@
 
 #define PRUSA_LINK_USERNAME "maker"
 
-#define MAC_ADDR_STR_LEN 18  // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
+#define MAC_ADDR_STR_LEN 18 // length of mac address string ("MM:MM:MM:SS:SS:SS" + 0)
 #define MAX_INI_SIZE     320 // length of ini file string
 
 #define ETHVAR_MSK(n_id) ((uint32_t)1 << (n_id))
@@ -39,18 +39,18 @@ extern "C" {
 #endif
 
 typedef enum {
-    ETHVAR_LAN_FLAGS,    // uint8_t, lan.flag
-    ETHVAR_HOSTNAME,     // char[20 + 1], hostname
+    ETHVAR_LAN_FLAGS, // uint8_t, lan.flag
+    ETHVAR_HOSTNAME, // char[20 + 1], hostname
     ETHVAR_LAN_ADDR_IP4, // ip4_addr_t, lan.addr_ip4
-    ETHVAR_LAN_MSK_IP4,  // ip4_addr_t, lan.msk_ip4
-    ETHVAR_LAN_GW_IP4,   // ip4_addr_t, lan.gw_ip4
-    ETHVAR_TIMEZONE,     // int8_t, timezone
-    ETHVAR_DNS1_IP4,     // ip_addr_t, dns1_ip4
-    ETHVAR_DNS2_IP4,     // ip_addr_t, dns2_ip4
-    ETHVAR_MAC_ADDRESS,  // is not included in ethconfig (used in stringifying for screen)
+    ETHVAR_LAN_MSK_IP4, // ip4_addr_t, lan.msk_ip4
+    ETHVAR_LAN_GW_IP4, // ip4_addr_t, lan.gw_ip4
+    ETHVAR_TIMEZONE, // int8_t, timezone
+    ETHVAR_DNS1_IP4, // ip_addr_t, dns1_ip4
+    ETHVAR_DNS2_IP4, // ip_addr_t, dns2_ip4
+    ETHVAR_MAC_ADDRESS, // is not included in ethconfig (used in stringifying for screen)
 
-    APVAR_SSID,          // char[32 + 1], ap_entry_t::ssid
-    APVAR_PASS,          // char[64 + 1], ap_entry_t::pass
+    APVAR_SSID, // char[32 + 1], ap_entry_t::ssid
+    APVAR_PASS, // char[64 + 1], ap_entry_t::pass
 } ETHVAR_t;
 
 typedef char mac_address_t[MAC_ADDR_STR_LEN];
@@ -140,8 +140,8 @@ void wui_store_password(char *, uint32_t);
 
 #ifdef __cplusplus
 enum class StartPrintResult {
-    Failed,       /// uploading file failed
-    Uploaded,     /// uploading succeeded, able to print
+    Failed, /// uploading file failed
+    Uploaded, /// uploading succeeded, able to print
     PrintStarted, /// uploading succeeded and print started immediately
 };
 

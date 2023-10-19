@@ -19,9 +19,9 @@ void HX717Mux::init() {
     channel_switch_timestamp = 0;
 
     // init HX717
+    hx717.init(hx717.CHANNEL_A_GAIN_128);
     hx717Soft.clearIT();
     hx717Soft.enableIRQ();
-    hx717.init(hx717.CHANNEL_A_GAIN_128);
 }
 
 void HX717Mux::handler() {
@@ -32,7 +32,7 @@ void HX717Mux::handler() {
     sample_counter = (sample_counter + 1) % sample_switch_count;
     HX717::Channel next_channel;
     if (!(loadcell.IsHighPrecisionEnabled()) && !sample_counter)
-        next_channel = hx717.CHANNEL_B_GAIN_8;   // fs
+        next_channel = hx717.CHANNEL_B_GAIN_8; // fs
     else
         next_channel = hx717.CHANNEL_A_GAIN_128; // loadcell
 

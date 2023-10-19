@@ -161,7 +161,8 @@ optional<ConnectionState> PrusaLinkApiV1::accept(const RequestParser &parser) co
     } else if (remove_prefix(suffix, "files").has_value()) {
         static const auto prefix = "/api/v1/files";
         static const size_t prefix_len = strlen(prefix);
-        char filename[FILE_PATH_BUFFER_LEN + prefix_len];
+        // We need both one SFN + one LFN in case of upload of a file.
+        char filename[FILE_PATH_BUFFER_LEN + FILE_NAME_BUFFER_LEN + prefix_len];
         auto error = parse_file_url(parser, prefix_len, filename, sizeof(filename), RemapPolicy::NoRemap);
         if (error.has_value()) {
             return error;
@@ -172,12 +173,16 @@ optional<ConnectionState> PrusaLinkApiV1::accept(const RequestParser &parser) co
         }
         switch (parser.method) {
         case Method::Put: {
-            GcodeUpload::PutParams putParams;
-            putParams.overwrite = parser.overwrite_file;
-            putParams.print_after_upload = parser.print_after_upload;
-            strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
-            auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
-            return std::visit([](auto upload) -> ConnectionState { return upload; }, std::move(upload));
+            if (parser.create_folder) {
+                return create_folder(filename, parser);
+            } else {
+                GcodeUpload::PutParams putParams;
+                putParams.overwrite = parser.overwrite_file;
+                putParams.print_after_upload = parser.print_after_upload;
+                strlcpy(putParams.filepath.data(), filename, sizeof(putParams.filepath));
+                auto upload = GcodeUpload::start(parser, wui_uploaded_gcode, parser.accepts_json, std::move(putParams));
+                return std::visit([](auto upload) -> ConnectionState { return upload; }, std::move(upload));
+            }
         }
         case Method::Get: {
             return FileInfo(filename, parser.can_keep_alive(), parser.accepts_json, false, FileInfo::ReqMethod::Get, FileInfo::APIVersion::v1, etag);

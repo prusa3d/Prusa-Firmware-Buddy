@@ -62,7 +62,7 @@
 #if HAS_LOADCELL_HX717()
 namespace buddy::hw {
 inline Pin::State zMinReadFn();
-extern "C" void hx717_irq();  // fast data interrupt, used to trigger the following ...
+extern "C" void hx717_irq(); // fast data interrupt, used to trigger the following ...
 extern "C" void hx717_soft(); // low-priority soft read interrupt
 } // namespace buddy::hw
 #endif
@@ -164,9 +164,9 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
         #define MARLIN_PIN_NR_HEATER_ENABLE MARLIN_PIN_NR_10
         #define MARLIN_PORT_THERM2          MARLIN_PORT_V
         #define MARLIN_PIN_NR_THERM2        MARLIN_PIN_NR_2 // ADC
-        #define MARLIN_PORT_X_ENA           MARLIN_PORT_B   // XY enable
+        #define MARLIN_PORT_X_ENA           MARLIN_PORT_B // XY enable
         #define MARLIN_PIN_NR_X_ENA         MARLIN_PIN_NR_9 // XY enable
-        #define MARLIN_PORT_Y_ENA           MARLIN_PORT_B   // XY enable
+        #define MARLIN_PORT_Y_ENA           MARLIN_PORT_B // XY enable
         #define MARLIN_PIN_NR_Y_ENA         MARLIN_PIN_NR_9 // XY enable
         #define MARLIN_PORT_CS_X            MARLIN_PORT_G
         #define MARLIN_PIN_NR_CS_X          MARLIN_PIN_NR_15
@@ -257,7 +257,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
     #if (!PRINTER_IS_PRUSA_MK3_5)
         #define MARLIN_PORT_TEMP_HEATBREAK   MARLIN_PORT_A
         #define MARLIN_PIN_NR_TEMP_HEATBREAK MARLIN_PIN_NR_6 // ADC
-    #endif                                                   // !PRINTER_IS_PRUSA_MK3_5
+    #endif // !PRINTER_IS_PRUSA_MK3_5
 
     #define MARLIN_PORT_TEMP_0   MARLIN_PORT_C
     #define MARLIN_PIN_NR_TEMP_0 MARLIN_PIN_NR_0
@@ -498,7 +498,7 @@ inline constexpr SPI_HandleTypeDef *hw_get_spi_side_strip() {
         #define VIRTUAL_PIN_TABLE(MACRO_FUNCTION)
     #endif // HAS_LOADCELL_HX717()
 
-#endif     // Not special board with separate pin definition file.
+#endif // Not special board with separate pin definition file.
 
 /** @}*/
 
@@ -515,14 +515,14 @@ VIRTUAL_PIN_TABLE(DECLARE_VIRTUAL_PINS)
 
 #if HAS_ZMIN_READ_FN
 inline Pin::State zMinReadFn() {
-    const bool zStall = !static_cast<bool>(buddy::hw::zDiag.read());        // TMC2130 driver has inverted diag output
+    const bool zStall = !static_cast<bool>(buddy::hw::zDiag.read()); // TMC2130 driver has inverted diag output
     return static_cast<Pin::State>(!(loadcell.GetMinZEndstop() || zStall)); // Marlin expects inverted Z MIN endstop
 }
 #endif
 
 #if HAS_XYPROBE_READ_FN
 inline Pin::State xyProbeReadFn() {
-    const bool zStall = !static_cast<bool>(buddy::hw::zDiag.read());      // TMC2130 driver has inverted diag output
+    const bool zStall = !static_cast<bool>(buddy::hw::zDiag.read()); // TMC2130 driver has inverted diag output
     return static_cast<Pin::State>(!(loadcell.GetXYEndstop() || zStall)); // Marlin expects inverted XY PROBE endstop
 }
 #endif

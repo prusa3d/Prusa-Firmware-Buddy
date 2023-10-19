@@ -24,6 +24,10 @@ constexpr const uint16_t MAX_STEP_EVENTS_PRODUCED_PER_ONE_CALL = 256;
 // Minimum length of move segment. Move segments shorted then this value will be rounded.
 constexpr const double EPSILON_DISTANCE = 0.000001;
 
+// Maximum difference in ticks between step events that fit into time_ticks without splitting.
+// Currently, it is equal to 65.536ms.
+constexpr const int32_t STEP_TIMER_MAX_TICKS_LIMIT = int32_t(std::numeric_limits<decltype(step_event_u16_t::time_ticks)>::max());
+
 struct move_t;
 struct step_generator_state_t;
 
@@ -61,10 +65,10 @@ public:
 
     // Total number of ticks until the next step event will be processed.
     // Or number of ticks to next call of stepper ISR when step event queue is empty.
-    static uint32_t left_ticks_to_next_step_event;
+    static uint16_t left_ticks_to_next_step_event;
 
     // Precomputed period of calling PreciseStepping::isr() when there is no queued step event.
-    static uint32_t stepper_isr_period_in_ticks;
+    static uint16_t stepper_isr_period_in_ticks;
     // Precomputed conversion rate from seconds to timer ticks.
     static double ticks_per_sec;
 
@@ -91,7 +95,7 @@ public:
     static void init();
 
     // Reset the motion/stepper generator state from halt
-    static void reset_from_halt();
+    static void reset_from_halt(bool preserve_step_fraction = true);
 
     // The step ISR scheduler
     static void step_isr();
@@ -113,7 +117,7 @@ public:
 
     // Generate step pulses for the stepper motors.
     // Returns time to the next step event or ISR call.
-    static uint32_t process_one_step_event_from_queue();
+    static uint16_t process_one_step_event_from_queue();
 
     // Returns the index of the next move segment in the queue.
     static constexpr uint8_t move_segment_queue_next_index(const uint8_t move_segment_index) { return MOVE_SEGMENT_QUEUE_MOD(move_segment_index + 1); }
@@ -210,7 +214,7 @@ public:
     FORCE_INLINE static uint16_t step_event_queue_free_slots() { return STEP_EVENT_QUEUE_SIZE - 1 - step_event_queue_size(); }
 
     // Returns the current step event, nullptr if the queue is empty.
-    static step_event_t *get_current_step_event() {
+    static step_event_u16_t *get_current_step_event() {
         if (has_step_events_queued())
             return &step_event_queue.data[step_event_queue.tail];
 
@@ -219,7 +223,7 @@ public:
 
     // Returns the first head step event, nullptr if the queue is full.
     // Also, it returns the next step event queue head index (passed by reference).
-    FORCE_INLINE static step_event_t *get_next_free_step_event(uint16_t &next_step_event_queue_head) {
+    FORCE_INLINE static step_event_u16_t *get_next_free_step_event(uint16_t &next_step_event_queue_head) {
         if (is_step_event_queue_full())
             return nullptr;
 
@@ -244,7 +248,7 @@ public:
     FORCE_INLINE static move_t *move_segment_queue_next_move(const move_t &move) {
         int32_t move_idx = &move - &move_segment_queue.data[0];
         assert(move_idx >= 0 && move_idx < MOVE_SEGMENT_QUEUE_SIZE); // move_idx out of bounds of the move queue.
-        assert(move_idx != move_segment_queue.head);                 // Input move segment is out of the move queue.
+        assert(move_idx != move_segment_queue.head); // Input move segment is out of the move queue.
 
         if (uint8_t next_move_idx = move_segment_queue_next_index(uint8_t(move_idx)); next_move_idx == move_segment_queue.head)
             return nullptr;

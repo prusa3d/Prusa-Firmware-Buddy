@@ -1,6 +1,7 @@
 
 #include <fanctl.hpp>
 #include "hwio_pindef.h"
+#include "bsod.h"
 
 CFanCtl &Fans::print(size_t index) {
     static CFanCtl instance = CFanCtl(

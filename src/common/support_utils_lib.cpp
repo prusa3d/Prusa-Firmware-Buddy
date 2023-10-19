@@ -32,9 +32,9 @@ void clearBit(uint8_t *c, const uint8_t b) {
 }
 
 void rShift2Bits(uint32_t &toShift, uint32_t &overflow) {
-    overflow &= 0x3FFF'FFFF;         /// clear 2 MBS bits
+    overflow &= 0x3FFF'FFFF; /// clear 2 MBS bits
     overflow |= (toShift & 3) << 30; /// add 2 bits
-    toShift >>= 2;                   /// shift number
+    toShift >>= 2; /// shift number
 }
 
 char to32(uint8_t number[], uint8_t startBit) {

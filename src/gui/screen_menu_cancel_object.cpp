@@ -10,7 +10,7 @@
 #if ENABLED(CANCEL_OBJECTS)
 
 ScreenMenuCancelObject::ScreenMenuCancelObject()
-    : ScreenMenuCancelObject__(_(label)) {}
+    : detail::ScreenMenuCancelObject(_(label)) {}
 
 MI_CO_CANCEL_OBJECT::MI_CO_CANCEL_OBJECT()
     : WI_LABEL_t(
@@ -33,14 +33,17 @@ MI_CO_OBJECT_N::MI_CO_OBJECT_N(int ObjectId_)
 }
 
 void MI_CO_OBJECT_N::UpdateState() {
-    SetIndex((marlin_vars()->cancel_object_mask & (1 << ObjectId)) ? 1 : 0);
+    size_t new_index = (marlin_vars()->cancel_object_mask & (1 << ObjectId)) ? 1 : 0;
+    if (GetIndex() != new_index) {
+        SetIndex(new_index);
+    }
 }
 
 void MI_CO_OBJECT_N::UpdateName() {
     if (marlin_vars()->cancel_object_count > ObjectId) {
         bool empty; ///< True if object name from G-code is empty
 
-        {           // Do all things in one lock
+        { // Do all things in one lock
             MarlinVarsLockGuard lock;
 
             // Check if object name is empty
@@ -54,7 +57,7 @@ void MI_CO_OBJECT_N::UpdateName() {
                 backup_label_used = false;
                 Invalidate(); // The string memory is the same, so it needs to be invalidated manually
             }
-        }                     // Unlock marlin_vars
+        } // Unlock marlin_vars
 
         // Switch from object name to backup_label
         if (empty && !backup_label_used) {
@@ -62,7 +65,7 @@ void MI_CO_OBJECT_N::UpdateName() {
             _(backup_label).copyToRAM(temporary_buffer, std::size(temporary_buffer));
             snprintf(label_buffer, std::size(label_buffer), temporary_buffer, ObjectId); // Source string backup_label needs to have exactly one %i
             backup_label_used = true;
-            Invalidate();                                                                // The string memory is the same, so it needs to be invalidated manually
+            Invalidate(); // The string memory is the same, so it needs to be invalidated manually
         }
 
         show();
@@ -75,10 +78,10 @@ void MI_CO_OBJECT_N::UpdateName() {
 }
 
 void MI_CO_OBJECT_N::OnChange(size_t old_index) {
-    if (old_index == 0) {                                  // is printing
-        marlin_client::gcode_printf("M486 P%i", ObjectId); // Cancel object N
+    if (old_index == 0) { // is printing
+        marlin_client::cancel_object(ObjectId);
     } else {
-        marlin_client::gcode_printf("M486 U%i", ObjectId); // Uncancel object N
+        marlin_client::uncancel_object(ObjectId);
     }
 
     SetIndex(old_index); // Keep previous index and wait for UpdateState()
@@ -88,7 +91,48 @@ MI_CO_CANCEL_CURRENT::MI_CO_CANCEL_CURRENT()
     : WI_LABEL_t(_(label), &img::arrow_right_10x16, is_enabled_t::yes, marlin_vars()->cancel_object_count > 0 ? is_hidden_t::no : is_hidden_t::yes) {}
 
 void MI_CO_CANCEL_CURRENT::click(IWindowMenu & /*window_menu*/) {
-    marlin_client::gcode("M486 C"); // Cancel current object
+    marlin_client::cancel_current_object();
 }
 
+void ScreenMenuCancelObject::windowEvent(EventLock /*has private ctor*/, window_t *, GUI_event_t event, void *) {
+    if (event == GUI_event_t::LOOP) {
+        if (loop_index++ > 20) { // Approx once a second
+            loop_index = 0;
+            // Update all object names and visibility
+            Item<MI_CO_OBJECT<0>>().UpdateName();
+            Item<MI_CO_OBJECT<1>>().UpdateName();
+            Item<MI_CO_OBJECT<2>>().UpdateName();
+            Item<MI_CO_OBJECT<3>>().UpdateName();
+            Item<MI_CO_OBJECT<4>>().UpdateName();
+            Item<MI_CO_OBJECT<5>>().UpdateName();
+            Item<MI_CO_OBJECT<6>>().UpdateName();
+            Item<MI_CO_OBJECT<7>>().UpdateName();
+            Item<MI_CO_OBJECT<8>>().UpdateName();
+            Item<MI_CO_OBJECT<9>>().UpdateName();
+            Item<MI_CO_OBJECT<10>>().UpdateName();
+            Item<MI_CO_OBJECT<11>>().UpdateName();
+            Item<MI_CO_OBJECT<12>>().UpdateName();
+            Item<MI_CO_OBJECT<13>>().UpdateName();
+            Item<MI_CO_OBJECT<14>>().UpdateName();
+            Item<MI_CO_OBJECT<15>>().UpdateName();
+        }
+        // Update state of all items
+        Item<MI_CO_OBJECT<0>>().UpdateState();
+        Item<MI_CO_OBJECT<1>>().UpdateState();
+        Item<MI_CO_OBJECT<2>>().UpdateState();
+        Item<MI_CO_OBJECT<3>>().UpdateState();
+        Item<MI_CO_OBJECT<4>>().UpdateState();
+        Item<MI_CO_OBJECT<5>>().UpdateState();
+        Item<MI_CO_OBJECT<6>>().UpdateState();
+        Item<MI_CO_OBJECT<7>>().UpdateState();
+        Item<MI_CO_OBJECT<8>>().UpdateState();
+        Item<MI_CO_OBJECT<9>>().UpdateState();
+        Item<MI_CO_OBJECT<10>>().UpdateState();
+        Item<MI_CO_OBJECT<11>>().UpdateState();
+        Item<MI_CO_OBJECT<12>>().UpdateState();
+        Item<MI_CO_OBJECT<13>>().UpdateState();
+        Item<MI_CO_OBJECT<14>>().UpdateState();
+        Item<MI_CO_OBJECT<15>>().UpdateState();
+    }
+}
 #endif /* ENABLED(CANCEL_OBJECTS) */

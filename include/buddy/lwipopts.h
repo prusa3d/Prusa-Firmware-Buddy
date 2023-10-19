@@ -10,7 +10,7 @@ extern "C" {
 #include <stdint.h>
 
 #define WITH_RTOS            1
-#define MEM_LIBC_MALLOC      1
+#define MEM_LIBC_MALLOC      0
 #define CHECKSUM_BY_HARDWARE 0
 #define LWIP_DHCP            1
 #define MEM_ALIGNMENT        4
@@ -24,10 +24,11 @@ extern "C" {
 #define TCP_SND_BUF            (2 * TCP_MSS)
 #define LWIP_WND_SCALE         0
 #define TCP_RCV_SCALE          0
-#define PBUF_POOL_SIZE         16
+#define PBUF_POOL_SIZE         10
+#define PBUF_POOL_SMALL_SIZE   12
 #define IP_REASS_MAX_PBUFS     15
 #define TCPIP_THREAD_STACKSIZE 1088
-#define TCPIP_MBOX_SIZE        16
+#define TCPIP_MBOX_SIZE        PBUF_POOL_SIZE + PBUF_POOL_SMALL_SIZE
 
 #define DEFAULT_UDP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
 #define DEFAULT_TCP_RECVMBOX_SIZE TCPIP_MBOX_SIZE
@@ -50,6 +51,9 @@ extern "C" {
 
 #include "buddy/priorities_config.h"
 #define TCPIP_THREAD_PRIO TASK_PRIORITY_TCPIP_THREAD
+
+#define MEM_USE_POOLS         1
+#define MEMP_USE_CUSTOM_POOLS 1
 
 /*
  * FIXME:
@@ -88,6 +92,8 @@ extern "C" {
 // Some attempts to "tune" it to use less memory in unstable network environment with many retries of new connections.
 #define LWIP_TCP_CLOSE_TIMEOUT_MS_DEFAULT 5000 /* 5s for closing a connection must be enough... or let the other side time out */
 #define TCP_OVERSIZE                      128
+#define LWIP_TCP_SACK_OUT                 1
+#define TCP_OOSEQ_MAX_PBUFS               3
 
 #define LWIP_DNS 1
 /*
@@ -106,7 +112,7 @@ extern "C" {
 
 #define MEMP_NUM_UDP_PCB 5
 
-#define MEMP_NUM_TCPIP_MSG_INPKT 16
+#define MEMP_NUM_TCPIP_MSG_INPKT TCPIP_MBOX_SIZE
 
 #ifdef __cplusplus
 }

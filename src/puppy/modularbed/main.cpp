@@ -52,7 +52,7 @@ void _bsod([[maybe_unused]] const char *fmt, [[maybe_unused]] const char *file_n
 
 static hal::MultiWatchdog idle_task_watchdog; // Add one instance of watchdog
 static void idle_task_watchdog_callback() {
-    idle_task_watchdog.kick(false);           // Mark this watchdog instance, do not reload hardware from this instance
+    idle_task_watchdog.kick(false); // Mark this watchdog instance, do not reload hardware from this instance
 }
 
 /// The entrypoint of our firmware
@@ -75,7 +75,7 @@ int main(void) {
 
     __libc_init_array();
 
-    hal::MultiWatchdog::init();                         // Configure hardware watchdog
+    hal::MultiWatchdog::init(); // Configure hardware watchdog
     osSetIdleTaskWatchdog(idle_task_watchdog_callback); // Add watchdog to idle task
 
     if (hal::GPIODriver::Init() == false) {

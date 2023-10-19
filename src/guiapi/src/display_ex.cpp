@@ -25,11 +25,11 @@ inline uint32_t color_from_native(uint16_t clr) {
 }
 
 // TDispBuffer configuration
-static constexpr size_t FontMaxBitLen = 4;         // used in mask and buffer size
-using BuffDATA_TYPE = uint16_t;                    // type of buffer internally used in TDispBuffer
-using BuffPTR_TYPE = uint16_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
+static constexpr size_t FontMaxBitLen = 4; // used in mask and buffer size
+using BuffDATA_TYPE = uint16_t; // type of buffer internally used in TDispBuffer
+using BuffPTR_TYPE = uint16_t; // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
 static constexpr size_t BuffNATIVE_PIXEL_SIZE = 2; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
-static constexpr size_t STORE_FN_PIXEL_SIZE = 1;   // TODO find out why it is != BuffNATIVE_PIXEL_SIZE
+static constexpr size_t STORE_FN_PIXEL_SIZE = 1; // TODO find out why it is != BuffNATIVE_PIXEL_SIZE
 
 static constexpr size_t buffROWS = ST7789V_BUFF_ROWS;
 
@@ -91,9 +91,9 @@ inline uint32_t color_from_native(uint32_t clr) {
 }
 
 // TDispBuffer configuration
-static constexpr size_t FontMaxBitLen = 4;         // used in mask and buffer size
-using BuffDATA_TYPE = uint32_t;                    // type of buffer internally used in TDispBuffer
-using BuffPTR_TYPE = uint8_t;                      // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
+static constexpr size_t FontMaxBitLen = 4; // used in mask and buffer size
+using BuffDATA_TYPE = uint32_t; // type of buffer internally used in TDispBuffer
+using BuffPTR_TYPE = uint8_t; // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
 static constexpr size_t BuffNATIVE_PIXEL_SIZE = 3; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
 static constexpr size_t STORE_FN_PIXEL_SIZE = 3;
 static constexpr size_t buffROWS = ILI9488_BUFF_ROWS;
@@ -157,12 +157,12 @@ inline uint32_t color_from_native(uint32_t clr) {
 }
 
 // TDispBuffer configuration
-static constexpr size_t FontMaxBitLen = 8;         // used in mask and buffer size
-using BuffDATA_TYPE = uint32_t;                    // type of buffer internally used in TDispBuffer
-using BuffPTR_TYPE = uint32_t;                     // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
+static constexpr size_t FontMaxBitLen = 8; // used in mask and buffer size
+using BuffDATA_TYPE = uint32_t; // type of buffer internally used in TDispBuffer
+using BuffPTR_TYPE = uint32_t; // type of buffer internally used pointer (does not need to match BuffDATA_TYPE)
 static constexpr size_t BuffNATIVE_PIXEL_SIZE = 4; // bytes per pixel (can be same or smaller than size of BuffDATA_TYPE)
-static constexpr size_t STORE_FN_PIXEL_SIZE = 1;   // TODO find out why it is != BuffNATIVE_PIXEL_SIZE
-static constexpr size_t buffROWS = 256;            // TODO mock display has this value variable
+static constexpr size_t STORE_FN_PIXEL_SIZE = 1; // TODO find out why it is != BuffNATIVE_PIXEL_SIZE
+static constexpr size_t buffROWS = 256; // TODO mock display has this value variable
 
 uint8_t *display_ex_borrow_buffer() { return MockDisplay::Instance().getBuff(); }
 
@@ -202,7 +202,7 @@ static inline void fill_rect_colorFormatNative(uint16_t rect_x, uint16_t rect_y,
 
 // end mock_display specific variables objects and function aliases
 /*****************************************************************************/
-#endif                                                       // USE_MOCK_DISPLAY
+#endif // USE_MOCK_DISPLAY
 
 static constexpr size_t BuffAlphaLen = (1 << FontMaxBitLen); // size of buffer for alpha channel 4bit font need 2^4 == 16 etc
 
@@ -281,25 +281,25 @@ bool display_ex_draw_char(point_ui16_t pt, uint8_t charX, uint8_t charY, const f
 }
 
 void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, uint8_t charX, uint8_t charY, const font_t *pf, color_t clr_bg, color_t clr_fg) {
-    const uint16_t char_w = pf->w;                                          // char width
-    const uint16_t char_h = pf->h;                                          // char height
-    const uint8_t bpr = pf->bpr;                                            // bytes per row
-    const uint16_t bpc = bpr * char_h;                                      // bytes per char
-    const uint8_t bpp = 8 * bpr / char_w;                                   // bits per pixel
-    const uint8_t ppb = 8 / bpp;                                            // pixels per byte
+    const uint16_t char_w = pf->w; // char width
+    const uint16_t char_h = pf->h; // char height
+    const uint8_t bpr = pf->bpr; // bytes per row
+    const uint16_t bpc = bpr * char_h; // bytes per char
+    const uint8_t bpp = 8 * bpr / char_w; // bits per pixel
+    const uint8_t ppb = 8 / bpp; // pixels per byte
     const uint8_t pms = std::min(size_t((1 << bpp) - 1), BuffAlphaLen - 1); // pixel mask, cannot be bigger than array to store alpha channel combinations
 
-    uint8_t *pch;                                                           // character data pointer
-    uint8_t crd = 0;                                                        // current row byte data
-    uint8_t rb;                                                             // row byte
-    uint8_t *pc;                                                            // character data row pointer
+    uint8_t *pch; // character data pointer
+    uint8_t crd = 0; // current row byte data
+    uint8_t rb; // row byte
+    uint8_t *pc; // character data row pointer
 
     const font_flags flags(pf->flg);
 
     DispBuffer buff(pms, clr_bg, clr_fg);
 
     uint32_t chr = charY * 16 + charX; // compute character index in font
-    uint32_t buffer_offset = 0;        // buffer byte offset
+    uint32_t buffer_offset = 0; // buffer byte offset
 
     pch = (uint8_t *)(pf->pcs) + ((chr /*- pf->asc_min*/) * bpc);
 
@@ -336,10 +336,10 @@ void display_ex_draw_rect(Rect16 rc, color_t clr) {
     point_i16_t pt1 = { int16_t(rc.Left() + rc.Width() - 1), rc.Top() };
     point_i16_t pt2 = { rc.Left(), int16_t(rc.Top() + rc.Height() - 1) };
 
-    display_ex_fill_rect(Rect16(pt0, rc.Width(), 1), clr);  // top
+    display_ex_fill_rect(Rect16(pt0, rc.Width(), 1), clr); // top
     display_ex_fill_rect(Rect16(pt0, 1, rc.Height()), clr); // left
     display_ex_fill_rect(Rect16(pt1, 1, rc.Height()), clr); // right
-    display_ex_fill_rect(Rect16(pt2, rc.Width(), 1), clr);  // bottom
+    display_ex_fill_rect(Rect16(pt2, rc.Width(), 1), clr); // bottom
 }
 
 void display_ex_fill_rect(Rect16 rc, color_t clr) {
@@ -360,8 +360,8 @@ void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     const int dy = pt1.y - pt0.y; // Y-axis dimension
     int cx = std::abs(dx);
     int cy = std::abs(dy);
-    const int adx = cx;             // absolute difference in x ( = width - 1)
-    const int ady = cy;             // absolute difference in y ( = height - 1)
+    const int adx = cx; // absolute difference in x ( = width - 1)
+    const int ady = cy; // absolute difference in y ( = height - 1)
 
     if ((adx == 0) || (ady == 0)) { // orthogonal line
         fill_rect_colorFormatNative(std::min(pt0.x, pt1.x), std::min(pt0.y, pt1.y), adx + 1, ady + 1, native_color);
@@ -371,7 +371,7 @@ void display_ex_draw_line(point_ui16_t pt0, point_ui16_t pt1, color_t clr) {
     const int sx = std::signbit(dx) ? -1 : 1; // X-axis direction, positive when left-to-right
     const int sy = std::signbit(dy) ? -1 : 1; // Y-axis direction, positive when bottom-to-top
 
-    if (adx > ady) {                          // likely vertical line
+    if (adx > ady) { // likely vertical line
         for (n = adx; n > 0; --n) {
             set_pixel_colorFormatNative(pt0.x, pt0.y, native_color);
             if ((cx -= cy) <= 0) {

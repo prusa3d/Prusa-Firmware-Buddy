@@ -17,6 +17,10 @@ inline ErrorCode &operator|=(ErrorCode &a, ErrorCode b) {
     return a = (ErrorCode)((uint16_t)a | (uint16_t)b);
 }
 
+inline ErrorCode operator<<(ErrorCode a, uint8_t b) {
+    return a = (ErrorCode)((uint16_t)a << b);
+}
+
 static ErrorCode TMC2130ToErrorCode(const hal::tmc2130::ErrorFlags &ef) {
     ErrorCode e = ErrorCode::RUNNING;
 
@@ -39,25 +43,17 @@ static ErrorCode TMC2130ToErrorCode(const hal::tmc2130::ErrorFlags &ef) {
     return e;
 }
 
-static ErrorCode __attribute__((noinline)) AddErrorAxisBit(ErrorCode ec, uint8_t tmcIndex) {
-    switch (tmcIndex) {
-    case config::Axis::Pulley:
-        ec |= ErrorCode::TMC_PULLEY_BIT;
-        break;
-    case config::Axis::Selector:
-        ec |= ErrorCode::TMC_SELECTOR_BIT;
-        break;
-    case config::Axis::Idler:
-        ec |= ErrorCode::TMC_IDLER_BIT;
-        break;
-    default:
-        break;
-    }
-    return ec;
+ErrorCode __attribute__((noinline)) AddErrorAxisBit(ErrorCode ec, uint8_t axis) {
+    // From now on, we rely on specific ErrorCode bitmask values - that allowed some important optimizations.
+    // In case someone fiddles with the bits, the build must fail.
+    static_assert((uint16_t)ErrorCode::TMC_PULLEY_BIT == 0x0040);
+    static_assert((uint16_t)ErrorCode::TMC_SELECTOR_BIT == 0x0080);
+    static_assert((uint16_t)ErrorCode::TMC_IDLER_BIT == 0x0100);
+    return ec |= (ErrorCode::TMC_PULLEY_BIT << axis);
 }
 
-ErrorCode CheckMovable(mm::MovableBase &m) {
-    switch (m.State()) {
+ErrorCode CheckMovable(const mm::MovableBase &m) {
+    switch (m.State() & (~mm::MovableBase::OnHold)) { // clear the on-hold bit from the state check
     case mm::MovableBase::TMCFailed:
         return AddErrorAxisBit(TMC2130ToErrorCode(m.TMCErrorFlags()), m.Axis());
     case mm::MovableBase::HomingFailed:
@@ -84,12 +80,14 @@ bool CommandBase::WaitForOneModuleErrorRecovery(ErrorCode ec, modules::motion::M
             errorBeforeModuleFailed = error;
             error = ec;
             state = ProgressCode::ERRWaitingForUser; // such a situation always requires user's attention -> let the printer display an error screen
+            HoldIdlerSelector();
         }
 
         // are we already recovering an error - that would mean we got another one
         if (recoveringMovableErrorAxisMask) {
             error = ec;
             state = ProgressCode::ERRWaitingForUser; // such a situation always requires user's attention -> let the printer display an error screen
+            HoldIdlerSelector();
         }
 
         switch (state) {
@@ -99,6 +97,7 @@ bool CommandBase::WaitForOneModuleErrorRecovery(ErrorCode ec, modules::motion::M
                 mui::Event ev = mui::userInput.ConsumeEvent();
                 if (ev == mui::Event::Middle) {
                     recoveringMovableErrorAxisMask |= axisMask;
+                    ResumeIdlerSelector();
                     m.PlanHome(); // force initiate a new homing attempt
                     state = ProgressCode::Homing;
                     error = ErrorCode::RUNNING;

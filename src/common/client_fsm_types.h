@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-#include <option/development_items.h>
-
 #ifdef __cplusplus
 // C++ checks enum classes
 
@@ -14,6 +12,7 @@ enum class ClientFSM : uint8_t {
     Load_unload,
     Preheat,
     Selftest,
+    ESP,
     Printing, // not a dialog
     CrashRecovery,
     QuickPause,
@@ -35,7 +34,8 @@ enum class LoadUnloadMode : uint8_t {
     Load,
     Unload,
     Purge,
-    FilamentStuck
+    FilamentStuck,
+    Test
 };
 
 enum class PreheatMode : uint8_t {
@@ -64,7 +64,7 @@ enum class WarningType : uint32_t {
     HeatersTimeout,
     HotendTempDiscrepancy,
     NozzleTimeout,
-    #if DEVELOPMENT_ITEMS()
+    #if _DEBUG
     SteppersTimeout,
     #endif
     USBFlashDiskError,
@@ -82,7 +82,7 @@ using fsm_cb_t = void (*)(uint32_t, uint16_t); // create/destroy/change finite s
 using message_cb_t = void (*)(const char *);
 using warning_cb_t = void (*)(WarningType);
 using startup_cb_t = void (*)(void);
-#else  // !__cplusplus
+#else // !__cplusplus
 // C
 typedef void (*fsm_cb_t)(uint32_t, uint16_t); // create/destroy/change finite state machine
 typedef void (*message_cb_t)(const char *);

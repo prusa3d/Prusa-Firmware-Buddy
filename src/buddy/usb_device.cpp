@@ -7,6 +7,7 @@
 #include "otp.hpp"
 #include "buddy/priorities_config.h"
 #include <ccm_thread.hpp>
+#include <config_store/store_instance.hpp>
 
 LOG_COMPONENT_DEF(USBDevice, LOG_SEVERITY_INFO);
 
@@ -123,10 +124,11 @@ int usb_device_log(const char *fmt, ...) {
     int length = vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
 
+    length = std::min<int>(length, sizeof(buffer) - 1);
     if (length < 0) {
         log_error(USBDevice, "log encoding issue");
     } else if (length >= 1) {
-        buffer[length - 1] = 0; // remove newline
+        buffer[length - 1] = 0; // remove newline (or last character if the print was clipped, but that's acceptable)
         log_info(USBDevice, "%s", buffer);
     }
 
@@ -174,10 +176,10 @@ uint8_t const *tud_descriptor_configuration_cb([[maybe_unused]] uint8_t index) {
 // Array of pointer to string descriptors
 char const *string_desc_arr[] = {
     (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
-    USBD_MANUFACTURER_STRING,      // 1: Manufacturer
-    USBD_PRODUCT_STRING_FS,        // 2: Product
-    serial_nr.begin(),             // 3: Serials, should use chip ID
-    "CDC",                         // 4: CDC Interface
+    USBD_MANUFACTURER_STRING, // 1: Manufacturer
+    USBD_PRODUCT_STRING_FS, // 2: Product
+    serial_nr.begin(), // 3: Serials, should use chip ID
+    "CDC", // 4: CDC Interface
 };
 
 // Invoked when received GET STRING DESCRIPTOR request

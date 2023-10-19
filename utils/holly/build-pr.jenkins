@@ -86,20 +86,31 @@ pipeline {
                                 def commit_nr = sh(script: 'git rev-list HEAD --count', returnStdout: true).trim()
                                 def short_suffix
                                 def full_suffix
-                                def dev_items = "no"
+                                def dev_items
                                 if (env.CHANGE_ID) {
                                     // This is a PR build
                                     short_suffix = "-BETA+${commit_nr}"
                                     full_suffix = "${short_suffix}.PR${env.CHANGE_ID}.B${env.BUILD_NUMBER}"
+                                    dev_items = "yes"
                                 } else if (env.BRANCH_NAME.startsWith("RELEASE-")) {
                                     // This is an RC build
                                     short_suffix = "-RC+${commit_nr}"
                                     full_suffix = "${short_suffix}.B${env.BUILD_NUMBER}"
+                                    dev_items = "no"
                                 } else {
                                     // This is build of an ordinary branch (not a release branch)
                                     short_suffix = "-BETA+${commit_nr}"
                                     def branch_spec = env.BRANCH_NAME.replaceAll("_", "-")
                                     full_suffix = "${short_suffix}.BRANCH-${branch_spec}.B${env.BUILD_NUMBER}"
+                                    dev_items = "no"
+                                }
+
+                                if (env.BRANCH_NAME == "xl") {
+                                    dev_items = "no"
+                                }
+
+                                if (env.BRANCH_NAME == "mk4-release") {
+                                    dev_items = "no"
                                 }
 
                                 if (params.VERSION_SUFFIX != '<default>') {
@@ -189,6 +200,49 @@ pipeline {
                     }
                 }
 
+                stage('Integration Tests') {
+                    agent {
+                        dockerfile {
+                            label 'integrationtests'
+                            filename 'utils/holly/IntegrationTestsDockerfile'
+                            additionalBuildArgs '-t it-prusa-firmware-buddy'
+                        }
+                    }
+                    steps {
+                        script {
+                            Exception caughtException = null
+
+                            timeout(time: 30, unit: "MINUTES") {
+                                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                                    try {
+                                        unstash "mk4,release,noboot"
+                                        sh """
+                                        ln -fs /work/.dependencies
+                                        ln -fs /work/.venv
+                                        export EASYOCR_MODULE_PATH=./easyocr
+                                        . .venv/bin/activate
+                                        python3 utils/bootstrap.py
+                                        python3 -m pytest tests/integration --firmware build/mk4_release_noboot/firmware.bin --log-cli-level info --log-cli-format="%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s" --log-cli-date-format="%Y-%m-%d %H:%M:%S" | grep -v "Bus unhandled low duration"
+                                        """
+                                    } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e) {
+                                        error "Caught ${e.toString()}"
+                                    } catch (Throwable e) {
+                                        caughtException = e
+                                    }
+                                }
+                            }
+
+                            if (caughtException) {
+                                error caughtException.message
+                            }
+                        }
+                    }
+                    post {
+                        failure {
+                            archiveArtifacts artifacts: '/tmp/pytest-of-root'
+                        }
+                    }
+                }
             }
         }
     }

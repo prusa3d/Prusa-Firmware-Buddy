@@ -464,7 +464,7 @@ static USBH_StatusTypeDef USBH_MSC_Process(USBH_HandleTypeDef *phost)
                   (MSC_Handle->unit[MSC_Handle->current_lun].sense.key == SCSI_SENSE_KEY_NOT_READY))
               {
 
-                if ((phost->Timer - MSC_Handle->timer) < 10000U)
+                if ((phost->Timer - MSC_Handle->timer) < USBH_MSC_IO_TIMEOUT)
                 {
                   MSC_Handle->unit[MSC_Handle->current_lun].state = MSC_TEST_UNIT_READY;
                   break;
@@ -587,13 +587,14 @@ static USBH_StatusTypeDef USBH_MSC_RdWrProcess(USBH_HandleTypeDef *phost, uint8_
           error = USBH_FAIL;
         }
       }
-
+#if (USBH_USE_MSC_CLASS_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_CLASS_EVENT;
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
       (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       break;
@@ -618,13 +619,14 @@ static USBH_StatusTypeDef USBH_MSC_RdWrProcess(USBH_HandleTypeDef *phost, uint8_
           error = USBH_FAIL;
         }
       }
-
+#if (USBH_USE_MSC_CLASS_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_CLASS_EVENT;
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
       (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       break;
@@ -655,12 +657,14 @@ static USBH_StatusTypeDef USBH_MSC_RdWrProcess(USBH_HandleTypeDef *phost, uint8_
         }
       }
 
+#if (USBH_USE_MSC_CLASS_EVENTS == 1U)
 #if (USBH_USE_OS == 1U)
       phost->os_msg = (uint32_t)USBH_CLASS_EVENT;
 #if (osCMSIS < 0x20000U)
       (void)osMessagePut(phost->os_event, phost->os_msg, 0U);
 #else
       (void)osMessageQueuePut(phost->os_event, &phost->os_msg, 0U, 0U);
+#endif
 #endif
 #endif
       break;
@@ -794,7 +798,13 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
 
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
-    if (((phost->Timer - timeout) > (10000U * length)) || (phost->device.is_connected == 0U))
+    if (USBH_LL_GetURBState(phost, MSC_Handle->OutPipe) != USBH_URB_DONE ||
+        USBH_LL_GetURBState(phost, MSC_Handle->InPipe) != USBH_URB_DONE)
+    {
+      ulTaskNotifyTake(pdFALSE, 500 / portTICK_PERIOD_MS);
+    }
+
+    if (((phost->Timer - timeout) > (USBH_MSC_IO_TIMEOUT * length)) || (phost->device.is_connected == 0U))
     {
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;
@@ -840,7 +850,13 @@ USBH_StatusTypeDef USBH_MSC_Write(USBH_HandleTypeDef *phost,
   timeout = phost->Timer;
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
-    if (((phost->Timer - timeout) > (10000U * length)) || (phost->device.is_connected == 0U))
+    if (USBH_LL_GetURBState(phost, MSC_Handle->OutPipe) != USBH_URB_DONE ||
+        USBH_LL_GetURBState(phost, MSC_Handle->InPipe) != USBH_URB_DONE)
+    {
+      ulTaskNotifyTake(pdFALSE, 500 / portTICK_PERIOD_MS);
+    }
+
+    if (((phost->Timer - timeout) > (USBH_MSC_IO_TIMEOUT * length)) || (phost->device.is_connected == 0U))
     {
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;

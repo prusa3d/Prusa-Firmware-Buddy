@@ -6,6 +6,7 @@
     #include "mmu2/error_codes.h"
     #include "mmu2/progress_codes.h"
     #include "mmu2/buttons.h"
+    #include "mmu2/registers.h"
     #include "mmu2_protocol.h"
 
 // #include <array> std array is not available on AVR ... we need to "fake" it
@@ -34,6 +35,7 @@ public:
     #undef CRC
     #include "../../../../../../Prusa-Firmware-MMU/src/modules/protocol.h"
     #include "buttons.h"
+    #include "registers.h"
 #endif
 
 #include "mmu2_serial.h"
@@ -50,30 +52,27 @@ class ProtocolLogic;
 /// ProtocolLogic stepping statuses
 enum StepStatus : uint_fast8_t {
     Processing = 0,
-    MessageReady,         ///< a message has been successfully decoded from the received bytes
-    Finished,             ///< Scope finished successfully
-    Interrupted,          ///< received "Finished" message related to a different command than originally issued (most likely the MMU restarted while doing something)
+    MessageReady, ///< a message has been successfully decoded from the received bytes
+    Finished, ///< Scope finished successfully
+    Interrupted, ///< received "Finished" message related to a different command than originally issued (most likely the MMU restarted while doing something)
     CommunicationTimeout, ///< the MMU failed to respond to a request within a specified time frame
-    ProtocolError,        ///< bytes read from the MMU didn't form a valid response
-    CommandRejected,      ///< the MMU rejected the command due to some other command in progress, may be the user is operating the MMU locally (button commands)
-    CommandError,         ///< the command in progress stopped due to unrecoverable error, user interaction required
-    VersionMismatch,      ///< the MMU reports its firmware version incompatible with our implementation
-    PrinterError,         ///< printer's explicit error - MMU is fine, but the printer was unable to complete the requested operation
+    ProtocolError, ///< bytes read from the MMU didn't form a valid response
+    CommandRejected, ///< the MMU rejected the command due to some other command in progress, may be the user is operating the MMU locally (button commands)
+    CommandError, ///< the command in progress stopped due to unrecoverable error, user interaction required
+    VersionMismatch, ///< the MMU reports its firmware version incompatible with our implementation
+    PrinterError, ///< printer's explicit error - MMU is fine, but the printer was unable to complete the requested operation
     CommunicationRecovered,
-    ButtonPushed,         ///< The MMU reported the user pushed one of its three buttons.
+    ButtonPushed, ///< The MMU reported the user pushed one of its three buttons.
 };
 
-inline constexpr uint32_t linkLayerTimeout = 2000;                 ///< default link layer communication timeout
+inline constexpr uint32_t linkLayerTimeout = 2000; ///< default link layer communication timeout
 inline constexpr uint32_t dataLayerTimeout = linkLayerTimeout * 3; ///< data layer communication timeout
-inline constexpr uint32_t heartBeatPeriod = linkLayerTimeout / 2;  ///< period of heart beat messages (Q0)
+inline constexpr uint32_t heartBeatPeriod = linkLayerTimeout / 2; ///< period of heart beat messages (Q0)
 
 static_assert(heartBeatPeriod < linkLayerTimeout && linkLayerTimeout < dataLayerTimeout, "Incorrect ordering of timeouts");
 
 ///< Filter of short consecutive drop outs which are recovered instantly
 class DropOutFilter {
-    StepStatus cause;
-    uint8_t occurrences;
-
 public:
     static constexpr uint8_t maxOccurrences = 10; // ideally set this to >8 seconds -> 12x heartBeatPeriod
     static_assert(maxOccurrences > 1, "we should really silently ignore at least 1 comm drop out if recovered immediately afterwards");
@@ -87,6 +86,10 @@ public:
 
     /// Rearms the object for further processing - basically call this once the MMU responds with something meaningful (e.g. S0 A2)
     inline void Reset() { occurrences = maxOccurrences; }
+
+private:
+    StepStatus cause;
+    uint8_t occurrences = maxOccurrences;
 };
 
 /// Logic layer of the MMU vs. printer communication protocol
@@ -224,9 +227,9 @@ private:
     ErrorCode explicitPrinterError;
 
     enum class State : uint_fast8_t {
-        Stopped,      ///< stopped for whatever reason
+        Stopped, ///< stopped for whatever reason
         InitSequence, ///< initial sequence running
-        Running       ///< normal operation - Idle + Command processing
+        Running ///< normal operation - Idle + Command processing
     };
 
     enum class Scope : uint_fast8_t {
@@ -342,44 +345,47 @@ private:
     /// Activate the planned state once the immediate response to a sent request arrived
     bool ActivatePlannedRequest();
 
-    uint32_t lastUARTActivityMs;               ///< timestamp - last ms when something occurred on the UART
-    DropOutFilter dataTO;                      ///< Filter of short consecutive drop outs which are recovered instantly
+    uint32_t lastUARTActivityMs; ///< timestamp - last ms when something occurred on the UART
+    DropOutFilter dataTO; ///< Filter of short consecutive drop outs which are recovered instantly
 
-    ResponseMsg rsp;                           ///< decoded response message from the MMU protocol
+    ResponseMsg rsp; ///< decoded response message from the MMU protocol
 
-    State state;                               ///< internal state of ProtocolLogic
+    State state; ///< internal state of ProtocolLogic
 
-    Protocol protocol;                         ///< protocol codec
+    Protocol protocol; ///< protocol codec
 
     std::array<uint8_t, 16> lastReceivedBytes; ///< remembers the last few bytes of incoming communication for diagnostic purposes
     uint8_t lrb;
 
-    MMU2Serial *uart;                           ///< UART interface
+    MMU2Serial *uart; ///< UART interface
 
-    ErrorCode errorCode;                        ///< last received error code from the MMU
-    ProgressCode progressCode;                  ///< last received progress code from the MMU
-    Buttons buttonCode;                         ///< Last received button from the MMU.
+    ErrorCode errorCode; ///< last received error code from the MMU
+    ProgressCode progressCode; ///< last received progress code from the MMU
+    Buttons buttonCode; ///< Last received button from the MMU.
 
-    uint8_t lastFSensor;                        ///< last state of filament sensor
+    uint8_t lastFSensor; ///< last state of filament sensor
 
-    uint8_t txbuff[Protocol::MaxRequestSize()]; ///< Static transmit buffer (cannot be on stack as DMA cannot be used from CCMRAM)
+#ifndef __AVR__
+    uint8_t txbuff[Protocol::MaxRequestSize()]; ///< In Buddy FW - a static transmit buffer needs to exist as DMA cannot be used from CCMRAM.
+                                                ///< On MK3/S/+ the transmit buffer is allocated on the stack without restrictions
+#endif
 
     // 8bit registers
     static constexpr uint8_t regs8Count = 3;
     static_assert(regs8Count > 0); // code is not ready for empty lists of registers
-    static const uint8_t regs8Addrs[regs8Count] PROGMEM;
+    static const Register regs8Addrs[regs8Count] PROGMEM;
     uint8_t regs8[regs8Count] = { 0, 0, 0 };
 
     // 16bit registers
     static constexpr uint8_t regs16Count = 2;
     static_assert(regs16Count > 0); // code is not ready for empty lists of registers
-    static const uint8_t regs16Addrs[regs16Count] PROGMEM;
+    static const Register regs16Addrs[regs16Count] PROGMEM;
     uint16_t regs16[regs16Count] = { 0, 0 };
 
     // 8bit init values to be sent to the MMU after line up
     static constexpr uint8_t initRegs8Count = 2;
     static_assert(initRegs8Count > 0); // code is not ready for empty lists of registers
-    static const uint8_t initRegs8Addrs[initRegs8Count] PROGMEM;
+    static const Register initRegs8Addrs[initRegs8Count] PROGMEM;
     uint8_t initRegs8[initRegs8Count];
 
     uint8_t regIndex;

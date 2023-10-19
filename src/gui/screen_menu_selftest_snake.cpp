@@ -188,7 +188,7 @@ void continue_snake() {
         || !has_submenu(snake_config.last_action)
         || snake_config.last_tool == get_last_enabled_tool()) { // singletool or wasn't submenu or was last in a submenu
         do_snake(get_next_action(snake_config.last_action));
-    } else {                                                    // current submenu not yet finished
+    } else { // current submenu not yet finished
         do_snake(snake_config.last_action, get_next_tool(snake_config.last_tool));
     }
 }
@@ -320,7 +320,7 @@ void do_menu_event([[maybe_unused]] window_t *sender, GUI_event_t event, [[maybe
 
 bool is_menu_draw_enabled() {
     return !snake_config.in_progress // don't draw if snake is ongoing
-        || querying_user;            // always draw if msgbox is being shown
+        || querying_user; // always draw if msgbox is being shown
 }
 } // namespace SelftestSnake
 
@@ -347,7 +347,7 @@ ScreenMenuSTSWizard::ScreenMenuSTSWizard()
 
 void ScreenMenuSTSWizard::draw() {
     if ((draw_enabled && !snake_config.in_progress) // don't draw if starting/ending or snake in progress
-        || querying_user) {                         // but always draw if asking user
+        || querying_user) { // but always draw if asking user
         window_frame_t::draw();
     }
 }

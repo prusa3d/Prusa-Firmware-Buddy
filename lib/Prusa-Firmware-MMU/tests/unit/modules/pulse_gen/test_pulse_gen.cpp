@@ -1,10 +1,8 @@
 #include "catch2/catch_test_macros.hpp"
-#include "catch2/matchers/catch_matchers_vector.hpp"
 #include "pulse_gen.h"
 #include "../pins.h"
 #include <stdio.h>
 
-using Catch::Matchers::Equals;
 using namespace modules::pulse_gen;
 using hal::gpio::Level;
 using hal::gpio::ReadPin;

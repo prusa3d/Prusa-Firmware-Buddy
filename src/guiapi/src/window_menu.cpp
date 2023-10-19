@@ -68,7 +68,7 @@ bool WindowMenu::moveToNextVisibleItem(int moveIndex) {
 
     int new_index = (moveIndex >= 0) ? std::min(old_index + moveIndex, GetCount() - 1) : std::max(old_index + moveIndex, 0);
     if (new_index == old_index) // no move required
-        return false;           // TODO validate this false
+        return false; // TODO validate this false
 
     /// sets new cursor position to a visible item, also invalidates items at old and new index
     if (!SetIndex(new_index))

@@ -70,6 +70,7 @@ protected:
     virtual void PlanHomingMoveBack() override;
     virtual bool FinishHomingAndPlanMoveToParkPos() override;
     virtual void FinishMove() override;
+    virtual bool StallGuardAllowed(bool forward) const override;
 
 private:
     enum class Operation : uint8_t {

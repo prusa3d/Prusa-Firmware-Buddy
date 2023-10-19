@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 #include "FreeRTOSConfig.h" // for configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
-#include "cmsis_os.h"       // for osPriorityXXX
+#include "cmsis_os.h" // for osPriorityXXX
 #ifdef __cplusplus
 }
 #endif
@@ -40,7 +40,7 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
      * Task priorities
      *************************************************/
     #define TASK_PRIORITY_PUPPY_TASK                 osPriorityRealtime
-    #define TASK_PRIORITY_USB_DEVICE                 osPriorityRealtime
+    #define TASK_PRIORITY_USB_DEVICE                 osPriorityNormal
     #define TASK_PRIORITY_AC_FAULT                   osPriorityRealtime
     #define TASK_PRIORITY_ESP                        osPriorityRealtime
     #define TASK_PRIORITY_DEFAULT_TASK               osPriorityHigh
@@ -48,6 +48,7 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_MEDIA_PREFETCH             osPriorityHigh
     #define TASK_PRIORITY_METRIC_SYSTEM              osPriorityAboveNormal
     #define TASK_PRIORITY_USB_HOST                   osPriorityNormal
+    #define TASK_PRIORITY_USB_MSC_WORKER             osPriorityRealtime
     #define TASK_PRIORITY_DISPLAY_TASK               osPriorityNormal
     #define TASK_PRIORITY_MEASUREMENT_TASK           osPriorityNormal
     #define TASK_PRIORITY_ESP_UPDATE                 osPriorityNormal

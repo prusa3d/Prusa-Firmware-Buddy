@@ -29,3 +29,9 @@ bool PartialFile::has_valid_tail(size_t bytes) const {
 bool PartialFile::sync() {
     return true;
 }
+
+PartialFile::State PartialFile::get_state() const {
+    return state;
+}
+
+void PartialFile::reset_error() {}

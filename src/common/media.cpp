@@ -18,6 +18,7 @@
 #include "metric.h"
 #include <errno.h>
 #include "gcode_reader.hpp"
+#include "gcode_info.hpp"
 #include <ccm_thread.hpp>
 #include <transfers/transfer.hpp>
 #include <algorithm>
@@ -31,9 +32,9 @@ LOG_COMPONENT_REF(MarlinServer);
 
 #ifdef REENUMERATE_USB
 
-extern USBH_HandleTypeDef hUsbHostHS;                         // UsbHost handle
+extern USBH_HandleTypeDef hUsbHostHS; // UsbHost handle
 
-static const constexpr uint8_t USBHOST_REENUM_DELAY = 100;    // pool delay [ms]
+static const constexpr uint8_t USBHOST_REENUM_DELAY = 100; // pool delay [ms]
 static const constexpr uint16_t USBHOST_REENUM_TIMEOUT = 500; // state-hang timeout [ms]
 
 // Re-enumerate UsbHost in case that it hangs in enumeration state (HOST_ENUMERATION,ENUM_IDLE)
@@ -42,17 +43,17 @@ static const constexpr uint16_t USBHOST_REENUM_TIMEOUT = 500; // state-hang time
 // state is checked every 100ms, timeout for re-enumeration is 500ms
 // TODO: maybe we will change condition for states, because it can hang also in different state
 static void _usbhost_reenum(void) {
-    static uint32_t timer = 0;                   // static timer variable
-    uint32_t tick = HAL_GetTick();               // read tick
+    static uint32_t timer = 0; // static timer variable
+    uint32_t tick = HAL_GetTick(); // read tick
     if ((tick - timer) > USBHOST_REENUM_DELAY) { // every 100ms
         // timer is valid, UsbHost is in enumeration state
         if ((timer) && (hUsbHostHS.gState == HOST_ENUMERATION) && (hUsbHostHS.EnumState == ENUM_IDLE)) {
             // longer than 500ms
             if ((tick - timer) > USBHOST_REENUM_TIMEOUT) {
                 log_info(USBHost, "USB host reenumerating"); // trace
-                USBH_ReEnumerate(&hUsbHostHS);               // re-enumerate UsbHost
+                USBH_ReEnumerate(&hUsbHostHS); // re-enumerate UsbHost
             }
-        } else                                               // otherwise update timer
+        } else // otherwise update timer
             timer = tick;
     }
 }
@@ -68,8 +69,8 @@ static volatile media_error_t media_error = media_error_OK;
 static media_print_state_t media_print_state = media_print_state_NONE;
 static AnyGcodeFormatReader media_print_file;
 static uint32_t media_print_size_estimate = 0; ///< Estimated uncompressed G-code size in bytes
-static uint32_t media_current_position = 0;    // Current position in the file
-static uint32_t media_gcode_position = 0;      // Beginning of the current G-Code
+static uint32_t media_current_position = 0; // Current position in the file
+static uint32_t media_gcode_position = 0; // Beginning of the current G-Code
 /// Cache of PrusaPackGcodeReader that allows to resume print quickly without long searches for correct block
 static PrusaPackGcodeReader::stream_restore_info_t media_stream_restore_info;
 
@@ -90,9 +91,6 @@ media_state_t media_get_state(void) {
     return media_state;
 }
 
-#define PREFETCH_SIGNAL_START 1
-#define PREFETCH_SIGNAL_STOP  2
-#define PREFETCH_SIGNAL_FETCH 4
 // These buffers are HUGE. We need to rework the prefetcher logic
 // to be more efficient and add compression.
 #define FILE_BUFF_SIZE 5120
@@ -101,14 +99,13 @@ static char *file_buff;
 static uint32_t file_buff_level;
 static size_t back_buff_level = 0;
 static uint32_t file_buff_pos;
-static osThreadId prefetch_thread_id;
 static GCodeFilter::State prefetch_state;
 osMutexDef(prefetch_mutex);
-osMutexId prefetch_mutex_id;
+static osMutexId prefetch_mutex_id;
 
 static metric_t metric_prefetched_bytes = METRIC("media_prefetched", METRIC_VALUE_INTEGER, 1000, METRIC_HANDLER_ENABLE_ALL);
 
-static void media_prefetch(const void *) {
+void media_prefetch(const void *) {
     metric_register(&metric_prefetched_bytes);
 
     for (;;) {
@@ -121,7 +118,26 @@ static void media_prefetch(const void *) {
 
         file_buff_level = file_buff_pos = 0;
 
-        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH, osWaitForever);
+        event = osSignalWait(PREFETCH_SIGNAL_START | PREFETCH_SIGNAL_STOP | PREFETCH_SIGNAL_FETCH | PREFETCH_SIGNAL_GCODE_INFO_INIT | PREFETCH_SIGNAL_GCODE_INFO_STOP, osWaitForever);
+        if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_INIT) {
+            auto &gcode_info = GCodeInfo::getInstance();
+            if (!gcode_info.start_load()) {
+                continue;
+            }
+            bool load_gcode = true;
+            while (!gcode_info.check_valid_for_print()) {
+                event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 1000);
+                if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
+                    gcode_info.end_load();
+                    load_gcode = false;
+                    break;
+                }
+            }
+            if (load_gcode) {
+                gcode_info.load();
+                gcode_info.end_load();
+            }
+        }
         if ((event.value.signals & PREFETCH_SIGNAL_START) == 0) {
             continue;
         }
@@ -152,7 +168,7 @@ static void media_prefetch(const void *) {
             osMutexWait(prefetch_mutex_id, osWaitForever);
             if (file_buff_pos == file_buff_level) { // file buffer depleted
                 prefetch_state = bb_state;
-                if (back_buff_level > 0) {          // swap to back buffer
+                if (back_buff_level > 0) { // swap to back buffer
                     if (file_buff == prefetch_buff[0]) {
                         file_buff = prefetch_buff[1];
                         back_buff = prefetch_buff[0];
@@ -196,7 +212,6 @@ static void media_prefetch(const void *) {
                     bb_state = GCodeFilter::State::Ok;
                 } else if (read_res == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE) {
                     bb_state = GCodeFilter::State::NotDownloaded;
-                    rerun_loop = true;
                     log_warning(MarlinServer, "Media prefetch: data not yet downloaded");
                 } else if (read_res == IGcodeReader::Result_t::RESULT_EOF) {
                     bb_state = GCodeFilter::State::Eof;
@@ -221,7 +236,6 @@ static void media_prefetch(const void *) {
         }
     }
 }
-osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 580);
 
 void media_print_start__prepare(const char *sfnFilePath) {
     if (sfnFilePath) {
@@ -239,10 +253,9 @@ void media_print_start(const bool prefetch_start) {
         return;
     }
 
-    if (!prefetch_thread_id) {
+    if (!prefetch_mutex_id) {
         prefetch_mutex_id = osMutexCreate(osMutex(prefetch_mutex));
-        prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
-        // sanity check
+        //  sanity check
     }
 
     if (!prefetch_start) {

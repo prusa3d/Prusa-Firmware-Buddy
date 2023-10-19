@@ -194,6 +194,14 @@
 #endif
 
 /**
+ * Tool mapping and spool join - adopted from XL's toolchange, reimplemented for MMU2
+ */
+#if HAS_MMU2()
+#define PRUSA_TOOL_MAPPING
+#define PRUSA_SPOOL_JOIN
+#endif
+
+/**
  *  Compatibility mode with gcode's slided for the MK3
  *
  *  When switched on and the compatibility mode is turned on at runtime,
@@ -958,7 +966,7 @@
 #define Z_PROBE_SPEED_SLOW 70
 
 // [ms] delay before first Z probe for taring
-#define Z_FIRST_PROBE_DELAY 250
+#define Z_FIRST_PROBE_DELAY 300
 
 #if ENABLED(NOZZLE_LOAD_CELL)
   // Enable G29 P9 for nozzle cleanup

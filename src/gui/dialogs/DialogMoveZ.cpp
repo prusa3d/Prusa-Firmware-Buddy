@@ -18,7 +18,7 @@ DialogMoveZ::DialogMoveZ()
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
     , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
-#else  /*PRINTER_TYPE*/
+#else /*PRINTER_TYPE*/
     , rightText(this, rightText_rc, is_multiline::no, is_closed_on_click_t::no, _(upTextContent))
     , leftText(this, leftText_rc, is_multiline::no, is_closed_on_click_t::no, _(downTextContent))
 #endif /*PRINTER_TYPE*/
@@ -84,9 +84,9 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         numb.SetValue(value);
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
         arrows.SetState(WindowArrows::State_t::up);
-#else                                            /*PRINTER_TYPE*/
+#else /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::down);
-#endif                                           /*PRINTER_TYPE*/
+#endif /*PRINTER_TYPE*/
         return;
     }
     case GUI_event_t::ENC_UP: {
@@ -95,9 +95,9 @@ void DialogMoveZ::windowEvent(EventLock, [[maybe_unused]] window_t *sender, GUI_
         numb.SetValue(value);
 #if (PRINTER_IS_PRUSA_XL || PRINTER_IS_PRUSA_iX) // XL moves bed down while Z goes up
         arrows.SetState(WindowArrows::State_t::down);
-#else                                            /*PRINTER_TYPE*/
+#else /*PRINTER_TYPE*/
         arrows.SetState(WindowArrows::State_t::up);
-#endif                                           /*PRINTER_TYPE*/
+#endif /*PRINTER_TYPE*/
         return;
     }
     case GUI_event_t::LOOP: {

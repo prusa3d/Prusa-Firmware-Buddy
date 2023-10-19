@@ -18,25 +18,25 @@
 #include <option/has_dwarf.h>
 #include <ccm_thread.hpp>
 #include "bsod_gui.hpp"
+#include "gui_bootstrap_screen.hpp"
 
 LOG_COMPONENT_DEF(Puppies, LOG_SEVERITY_DEBUG);
 
 namespace buddy::puppies {
 
 osThreadId puppy_task_handle;
-osMutexDef(bootstrap_progress_lock);
-osMutexId bootstrap_progress_lock_id;
-std::optional<PuppyBootstrap::Progress> bootstrap_progress;
+
 std::atomic<bool> stop_request = false; // when this is set to true, puppy task will gracefully stop its execution
 
-static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::BootstrapResult minimal_config) {
+static PuppyBootstrap::BootstrapResult bootstrap_puppies(PuppyBootstrap::BootstrapResult minimal_config, bool first_run) {
     // boostrap first
     log_info(Puppies, "Starting bootstrap");
-    PuppyBootstrap puppy_bootstrap(PuppyModbus::share_buffer(), [](PuppyBootstrap::Progress progress) {
+    PuppyBootstrap puppy_bootstrap(PuppyModbus::share_buffer(), [first_run](PuppyBootstrap::Progress progress) {
         log_info(Puppies, "Bootstrap stage: %s", progress.description());
-        osMutexWait(bootstrap_progress_lock_id, osWaitForever);
-        bootstrap_progress = progress;
-        osMutexRelease(bootstrap_progress_lock_id);
+        if (first_run) {
+            // report progress to gui bootstrap screen only if first run - if this is puppy recoverery, there is no bootstrap screen anymore
+            gui_bootstrap_screen_set_state(progress.percent_done, progress.description());
+        }
     });
     return puppy_bootstrap.run(minimal_config);
 }
@@ -77,17 +77,6 @@ static void verify_puppies_running() {
             fatal_error(ErrCode::ERR_SYSTEM_PUPPY_RUN_TIMEOUT);
         }
     } while (true);
-}
-
-std::optional<PuppyBootstrap::Progress> get_bootstrap_progress() {
-    if (!bootstrap_progress_lock_id) {
-        return std::nullopt;
-    }
-
-    osMutexWait(bootstrap_progress_lock_id, osWaitForever);
-    auto progress = bootstrap_progress;
-    osMutexRelease(bootstrap_progress_lock_id);
-    return progress;
 }
 
 static void puppy_task_loop() {
@@ -168,7 +157,7 @@ static void puppy_task_loop() {
 #if ENABLED(PRUSA_TOOLCHANGER)
         } while (!worked && slow_stage != orig_stage); // End if we did some work or if no stage has anything to do
 #endif
-        osDelay(worked ? 1 : 2);                       // Longer delay if we did no work
+        osDelay(worked ? 1 : 2); // Longer delay if we did no work
     }
 }
 
@@ -189,7 +178,6 @@ static bool puppy_initial_scan() {
 }
 
 static void puppy_task_body([[maybe_unused]] void const *argument) {
-    TaskDeps::wait(TaskDeps::Tasks::puppy_start);
 
 #if BOARD_VER_HIGHER_OR_EQUAL_TO(0, 5, 0)
     // This is temporary, remove once everyone has compatible hardware.
@@ -210,16 +198,14 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
     #endif
 #endif
 
-#if ENABLED(PRUSA_TOOLCHANGER)
-    bool toolchanger_first_run = true;
-#endif
+    bool first_run = true;
 
     // by default, we want one modular bed and one dwarf
     PuppyBootstrap::BootstrapResult minimal_puppy_config = PuppyBootstrap::MINIMAL_PUPPY_CONFIG;
 
     do {
         // reset and flash the puppies
-        auto bootstrap_result = bootstrap_puppies(minimal_puppy_config);
+        auto bootstrap_result = bootstrap_puppies(minimal_puppy_config, first_run);
         // once some puppies are detected, consider this minimal puppy config (do no allow disconnection of puppy while running)
         minimal_puppy_config = bootstrap_result;
 
@@ -242,14 +228,14 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 
 #if ENABLED(PRUSA_TOOLCHANGER)
             // select active tool (previously active tool, or first one when starting)
-            if (!prusa_toolchanger.init(toolchanger_first_run)) {
+            if (!prusa_toolchanger.init(first_run)) {
                 log_error(Puppies, "Unable to select tool, retrying");
                 break;
             }
-            toolchanger_first_run = false;
 #endif
 
             TaskDeps::provide(TaskDeps::Dependency::puppies_ready);
+            first_run = false;
             log_info(Puppies, "Puppies are ready");
 
             TaskDeps::wait(TaskDeps::Tasks::puppy_run);
@@ -272,7 +258,6 @@ static void puppy_task_body([[maybe_unused]] void const *argument) {
 }
 
 void start_puppy_task() {
-    bootstrap_progress_lock_id = osMutexCreate(osMutex(bootstrap_progress_lock));
 
     osThreadCCMDef(puppies, puppy_task_body, TASK_PRIORITY_PUPPY_TASK, 0, 512);
     puppy_task_handle = osThreadCreate(osThread(puppies), NULL);

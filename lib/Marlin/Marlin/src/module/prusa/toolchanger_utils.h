@@ -14,15 +14,15 @@ struct PrusaToolInfo {
 class PrusaToolChangerUtils {
 public:
     static constexpr uint8_t MARLIN_NO_TOOL_PICKED = EXTRUDERS - 1;
-    static constexpr auto PARKING_CURRENT_MA = 950;               ///< Higher motor current on the lock and unlock moves
-    static constexpr auto PARKING_STALL_SENSITIVITY = 4;          ///< Stall sensitivity used when PARKING_CURRENT_MA is used
-    static constexpr auto PARKING_FINAL_MAX_SPEED = 375.f;        ///< Maximum speed (mm/s) for parking
-    static constexpr auto SLOW_ACCELERATION_MM_S2 = 400;          ///< Acceleration for parking and picking
-    static constexpr auto FORCE_MOVE_MM_S = 30;                   ///< Not used here, feedrate for locking and unlocking the toolchange clamps
-    static constexpr auto SLOW_MOVE_MM_S = 60;                    ///< Feedrate for tool picking and parking
-    static constexpr auto Z_HOP_FEEDRATE_MM_S = 10.0f;            ///< Feedrate for z hop
-    static constexpr auto TRAVEL_MOVE_MM_S = 400;                 ///< Feedrate for moves around dock
-    static constexpr uint32_t WAIT_TIME_TOOL_SELECT = 3000;       ///< Max wait for puppytask tool switch [ms], needs a lot of time if there is a hiccup in puppy communication
+    static constexpr auto PARKING_CURRENT_MA = 950; ///< Higher motor current on the lock and unlock moves
+    static constexpr auto PARKING_STALL_SENSITIVITY = 4; ///< Stall sensitivity used when PARKING_CURRENT_MA is used
+    static constexpr auto PARKING_FINAL_MAX_SPEED = 300.f; ///< Maximum speed (mm/s) for parking
+    static constexpr auto SLOW_ACCELERATION_MM_S2 = 400; ///< Acceleration for parking and picking
+    static constexpr auto FORCE_MOVE_MM_S = 30; ///< Not used here, feedrate for locking and unlocking the toolchange clamps
+    static constexpr auto SLOW_MOVE_MM_S = 60; ///< Feedrate for tool picking and parking
+    static constexpr auto Z_HOP_FEEDRATE_MM_S = 10.0f; ///< Feedrate for z hop
+    static constexpr auto TRAVEL_MOVE_MM_S = 400.f; ///< Feedrate for moves around dock
+    static constexpr uint32_t WAIT_TIME_TOOL_SELECT = 3000; ///< Max wait for puppytask tool switch [ms], needs a lot of time if there is a hiccup in puppy communication
     static constexpr uint32_t WAIT_TIME_TOOL_PARKED_PICKED = 200; ///< Max wait for cheese to detect magnet [ms]
     static constexpr auto SAFE_Y_WITH_TOOL = 360.0f;
     static constexpr auto SAFE_Y_WITHOUT_TOOL = 425.0f;
@@ -31,14 +31,14 @@ public:
     static constexpr auto DOCK_DEFAULT_Y_MM = 455.0f;
     static constexpr auto DOCK_INVALID_OFFSET_MM = 6; // TODO: Tighten this once 5mm smaller XLs are phased out
     static constexpr auto PURGE_Y_POSITION = 380.0f;
-    static constexpr auto DOCK_WIGGLE_OFFSET = 0.5f;  ///< Relative offset from intended position when wiggling the tool to detect magnet [mm]
-    static constexpr auto PARK_X_OFFSET_1 = -10.0f;   ///< Offset from dock_x when tool can be moved into the dock [mm]
-    static constexpr auto PARK_X_OFFSET_2 = -9.0f;    ///< Offset from dock_x when tool is being unlocked [mm]
-    static constexpr auto PARK_X_OFFSET_3 = +0.5f;    ///< Offset from dock_x when tool is fully unlocked [mm]
-    static constexpr auto PICK_Y_OFFSET = -5.0f;      ///< Offset from dock_y before head touches the parked dwarf [mm]
-    static constexpr auto PICK_X_OFFSET_1 = -11.8f;   ///< Offset from dock_x when tool is being locked [mm]
-    static constexpr auto PICK_X_OFFSET_2 = -12.8f;   ///< Offset from dock_x when tool is fully locked [mm]
-    static constexpr auto PICK_X_OFFSET_3 = -9.9f;    ///< Offset from dock_x when tool can be pulled from the dock area [mm]
+    static constexpr auto DOCK_WIGGLE_OFFSET = 0.5f; ///< Relative offset from intended position when wiggling the tool to detect magnet [mm]
+    static constexpr auto PARK_X_OFFSET_1 = -10.0f; ///< Offset from dock_x when tool can be moved into the dock [mm]
+    static constexpr auto PARK_X_OFFSET_2 = -9.0f; ///< Offset from dock_x when tool is being unlocked [mm]
+    static constexpr auto PARK_X_OFFSET_3 = +0.5f; ///< Offset from dock_x when tool is fully unlocked [mm]
+    static constexpr auto PICK_Y_OFFSET = -5.0f; ///< Offset from dock_y before head touches the parked dwarf [mm]
+    static constexpr auto PICK_X_OFFSET_1 = -11.8f; ///< Offset from dock_x when tool is being locked [mm]
+    static constexpr auto PICK_X_OFFSET_2 = -12.8f; ///< Offset from dock_x when tool is fully locked [mm]
+    static constexpr auto PICK_X_OFFSET_3 = -9.9f; ///< Offset from dock_x when tool can be pulled from the dock area [mm]
 
     PrusaToolChangerUtils();
 
@@ -104,6 +104,11 @@ public:
         return toolchanger_enabled;
     }
 
+    ///@return True if at least one dwarf is connected through splitter.
+    inline bool is_splitter_enabled() {
+        return is_tool_enabled(2) || is_tool_enabled(3) || is_tool_enabled(4) || is_tool_enabled(5);
+    }
+
     inline bool is_tool_enabled(uint8_t tool) {
         assert(tool < buddy::puppies::dwarfs.size());
         return buddy::puppies::dwarfs[tool].is_enabled();
@@ -132,8 +137,8 @@ public:
     void expand_first_dock_position(); // TODO: Is this still needed/wanted ?
 
 protected:
-    std::atomic<bool> force_toolchange_gcode = false;              ///< after reset force toolchange to init marlin tool variables
-    std::atomic<bool> request_toolchange = false;                  ///< when true, toolchange was requested and will be executed in puppytask
+    std::atomic<bool> force_toolchange_gcode = false; ///< after reset force toolchange to init marlin tool variables
+    std::atomic<bool> request_toolchange = false; ///< when true, toolchange was requested and will be executed in puppytask
     std::atomic<buddy::puppies::Dwarf *> request_toolchange_dwarf; ///< when request_toolchange=true, this specifies what tool will be changed to
 
     /**
@@ -151,7 +156,7 @@ protected:
     bool toolchanger_enabled = false;
 
     std::atomic<buddy::puppies::Dwarf *> picked_dwarf = nullptr; ///< what tool was physically detected as picked
-    std::atomic<bool> picked_update = false;                     ///< Set true each time picked_dwarf is updated
+    std::atomic<bool> picked_update = false; ///< Set true each time picked_dwarf is updated
     std::atomic<buddy::puppies::Dwarf *> active_dwarf = nullptr; ///< what tool is active in puppytask
 
     std::array<PrusaToolInfo, EXTRUDERS> tool_info;
@@ -193,10 +198,11 @@ protected:
      * This is important for powerpanic which stores the original values and not temporary values used while changing tools.
      */
     class ConfRestorer {
-        float sampled_travel_acceleration;   ///< Copy of planner.settings.travel_acceleration
-        feedRate_t sampled_feedrate_mm_s;    ///< Copy of feedrate_mm_s
+        xyze_pos_t sampled_jerk; ///< Copy of planner.planner.max_jerk
+        float sampled_travel_acceleration; ///< Copy of planner.settings.travel_acceleration
+        feedRate_t sampled_feedrate_mm_s; ///< Copy of feedrate_mm_s
         int16_t sampled_feedrate_percentage; ///< Copy of feedrate_percentage
-        std::atomic<bool> sampled;           ///< True if configuration is stored
+        std::atomic<bool> sampled; ///< True if configuration is stored
 
     public:
         ConfRestorer()
@@ -211,6 +217,7 @@ protected:
          * @brief Restore planner feedrate and acceleration.
          */
         void restore() {
+            restore_jerk();
             restore_acceleration();
             restore_feedrate();
         }
@@ -231,6 +238,11 @@ protected:
          * @brief Restore and clear planner feedrate and acceleration.
          */
         void restore_clear();
+
+        /**
+         * @brief Restore planner jerk.
+         */
+        void restore_jerk();
 
         /**
          * @brief Restore planner acceleration.

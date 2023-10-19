@@ -315,6 +315,12 @@ def overwrite_file_header():
     })
 
 
+def create_folder_header():
+    return keyworded_header({
+        '?1': 'CreateFolder',
+    })
+
+
 def auth_value(name):
     auto = Automaton()
     start = auto.start()

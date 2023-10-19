@@ -111,7 +111,7 @@ LOG_COMPONENT_DEF(MarlinServer, LOG_SEVERITY_INFO);
 // external variables from marlin_client
 
 namespace marlin_client {
-extern osThreadId marlin_client_task[MARLIN_MAX_CLIENTS];    // task handles
+extern osThreadId marlin_client_task[MARLIN_MAX_CLIENTS]; // task handles
 extern osMessageQId marlin_client_queue[MARLIN_MAX_CLIENTS]; // input queue handles (uint32_t)
 } // namespace marlin_client
 
@@ -120,37 +120,37 @@ namespace marlin_server {
 namespace {
 
     struct server_t {
-        EventMask notify_events[MARLIN_MAX_CLIENTS];   // event notification mask - message filter
-        EventMask notify_changes[MARLIN_MAX_CLIENTS];  // variable change notification mask - message filter
-        EventMask client_events[MARLIN_MAX_CLIENTS];   // client event mask - unsent messages
+        EventMask notify_events[MARLIN_MAX_CLIENTS]; // event notification mask - message filter
+        EventMask notify_changes[MARLIN_MAX_CLIENTS]; // variable change notification mask - message filter
+        EventMask client_events[MARLIN_MAX_CLIENTS]; // client event mask - unsent messages
         variant8_t event_messages[MARLIN_MAX_CLIENTS]; // last Event::Message for clients, cannot use cvariant, destructor would free memory
-        State print_state;                             // printing state (printing, paused, ...)
-#if ENABLED(CRASH_RECOVERY)                            //
-        bool aborting_did_crash_trigger = false;       // To remember crash_s state when aborting
-#endif                                                 /*ENABLED(CRASH_RECOVERY)*/
-        uint32_t paused_ticks;                         // tick count in moment when printing paused
-        resume_state_t resume;                         // resume data (state before pausing)
-        bool enable_nozzle_temp_timeout;               // enables nozzle temperature timeout in print pause
+        State print_state; // printing state (printing, paused, ...)
+#if ENABLED(CRASH_RECOVERY) //
+        bool aborting_did_crash_trigger = false; // To remember crash_s state when aborting
+#endif /*ENABLED(CRASH_RECOVERY)*/
+        uint32_t paused_ticks; // tick count in moment when printing paused
+        resume_state_t resume; // resume data (state before pausing)
+        bool enable_nozzle_temp_timeout; // enables nozzle temperature timeout in print pause
         struct {
             uint32_t usr32;
             uint16_t usr16;
         } last_mesh_evt;
         uint32_t warning_type;
         int request_len;
-        uint32_t last_update;   // last update tick count
-        uint32_t command;       // actually running command
+        uint32_t last_update; // last update tick count
+        uint32_t command; // actually running command
         uint32_t command_begin; // variable for notification
-        uint32_t command_end;   // variable for notification
+        uint32_t command_end; // variable for notification
         uint32_t knob_click_counter;
         uint32_t knob_move_counter;
-        uint16_t flags;      // server flags (MARLIN_SFLG)
+        uint16_t flags; // server flags (MARLIN_SFLG)
         char request[MARLIN_MAX_REQUEST];
-        uint8_t idle_cnt;    // idle call counter
+        uint8_t idle_cnt; // idle call counter
         uint8_t pqueue_head; // copy of planner.block_buffer_head
         uint8_t pqueue_tail; // copy of planner.block_buffer_tail
-        uint8_t pqueue;      // calculated number of records in planner queue
-        uint8_t gqueue;      // copy of queue.length - number of commands in gcode queue
-                             // Motion_Parameters motion_param;
+        uint8_t pqueue; // calculated number of records in planner queue
+        uint8_t gqueue; // copy of queue.length - number of commands in gcode queue
+                        // Motion_Parameters motion_param;
 
 #if ENABLED(AXIS_MEASURE)
         /// length of axes measured after crash
@@ -172,6 +172,14 @@ namespace {
         Crash
     };
 
+    /**
+     * @brief Pauses reading from a file, stops watch, saves temperatures, disables fan.
+     * Does not change server.print_state. You need to set that manually.
+     * @param type pause type used for different media_print pause
+     * @param resume_pos position to resume from, used only in Pause_Type::Crash
+     */
+    void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos = UINT32_MAX);
+
     fsm::QueueWrapper<MARLIN_MAX_CLIENTS> fsm_event_queues;
 
     template <WarningType p_warning, bool p_disableHotend>
@@ -184,7 +192,8 @@ namespace {
             if (!condition && !m_failed) {
                 set_warning(p_warning);
                 if (server.print_state == State::Printing) {
-                    server.print_state = State::Pausing_Begin;
+                    pause_print(); // Must store current hotend temperatures before they are set to 0
+                    server.print_state = State::Pausing_WaitIdle;
                 }
                 if (p_disableHotend) {
                     HOTEND_LOOP() {
@@ -238,13 +247,39 @@ namespace {
 #endif
     HotendErrorChecker hotendErrorChecker;
 
+    void pause_print(Pause_Type type, uint32_t resume_pos) {
+        switch (type) {
+        case Pause_Type::Crash:
+            media_print_quick_stop(resume_pos);
+            break;
+        case Pause_Type::Repeat_Last_Code:
+            media_print_pause(true);
+            break;
+        default:
+            media_print_pause(false);
+        }
+
+        print_job_timer.pause();
+        HOTEND_LOOP() {
+            server.resume.nozzle_temp[e] = marlin_vars()->hotend(e).target_nozzle; // save nozzle target temp
+        }
+        server.resume.nozzle_temp_paused = true;
+        server.resume.fan_speed = marlin_vars()->print_fan_speed; // save fan speed
+        server.resume.print_speed = marlin_vars()->print_speed;
+#if FAN_COUNT > 0
+        if (hotendErrorChecker.runFullFan())
+            thermalManager.set_fan_speed(0, 255);
+        else
+            thermalManager.set_fan_speed(0, 0); // disable print fan
+#endif
+    }
 } // end anonymous namespace
 
 //-----------------------------------------------------------------------------
 // variables
 
-osThreadId server_task = 0;         // task handle
-osMessageQId server_queue = 0;      // input queue (uint8_t)
+osThreadId server_task = 0; // task handle
+osMessageQId server_queue = 0; // input queue (uint8_t)
 osSemaphoreId server_semaphore = 0; // semaphore handle
 
 #ifdef DEBUG_FSENSOR_IN_HEADER
@@ -257,9 +292,9 @@ void _add_status_msg(const char *const popup_msg) {
     for (size_t i = 0; i < MARLIN_MAX_CLIENTS; ++i) {
         variant8_t *pvar = &(server.event_messages[i]);
         variant8_set_type(pvar, VARIANT8_PCHAR);
-        variant8_done(&pvar);                                               // destroy unsent message - free dynamic memory
+        variant8_done(&pvar); // destroy unsent message - free dynamic memory
         server.event_messages[i] = variant8_pchar((char *)popup_msg, 0, 1); // variant malloc - detached on send
-        variant8_set_type(&(server.event_messages[i]), VARIANT8_USER);      // set user type so client can recognize it as event
+        variant8_set_type(&(server.event_messages[i]), VARIANT8_USER); // set user type so client can recognize it as event
         variant8_set_usr8(&(server.event_messages[i]), ftrstd::to_underlying(Event::Message));
     }
 }
@@ -291,7 +326,7 @@ void init(void) {
     server.flags = MARLIN_SFLG_STARTED;
     for (i = 0; i < MARLIN_MAX_CLIENTS; i++) {
         server.notify_events[i] = make_mask(Event::Acknowledge) | make_mask(Event::Startup) | make_mask(Event::StartProcessing); // by default only ack, startup and processing
-        server.notify_changes[i] = 0;                                                                                            // by default nothing
+        server.notify_changes[i] = 0; // by default nothing
     }
     server_task = osThreadGetId();
     server.enable_nozzle_temp_timeout = true;
@@ -800,34 +835,6 @@ void print_pause(void) {
     }
 }
 
-/// Pauses reading from a file, stops watch, saves temperatures, disables fan
-static void pause_print(Pause_Type type = Pause_Type::Pause, uint32_t resume_pos = UINT32_MAX) {
-    switch (type) {
-    case Pause_Type::Crash:
-        media_print_quick_stop(resume_pos);
-        break;
-    case Pause_Type::Repeat_Last_Code:
-        media_print_pause(true);
-        break;
-    default:
-        media_print_pause(false);
-    }
-
-    print_job_timer.pause();
-    HOTEND_LOOP() {
-        server.resume.nozzle_temp[e] = marlin_vars()->hotend(e).target_nozzle; // save nozzle target temp
-    }
-    server.resume.nozzle_temp_paused = true;
-    server.resume.fan_speed = marlin_vars()->print_fan_speed; // save fan speed
-    server.resume.print_speed = marlin_vars()->print_speed;
-#if FAN_COUNT > 0
-    if (hotendErrorChecker.runFullFan())
-        thermalManager.set_fan_speed(0, 255);
-    else
-        thermalManager.set_fan_speed(0, 0); // disable print fan
-#endif
-}
-
 /**
  * @brief Restore paused nozzle temperature to enable filament change
  */
@@ -863,7 +870,7 @@ static void measure_axes_and_home() {
  */
 static void prepare_tool_pickup() {
     prusa_toolchanger.crash_deselect_dwarf(); // Deselect dwarf as if all were parked
-    disable_XY();                             // Let user move the carriage
+    disable_XY(); // Let user move the carriage
 
     // Disable heaters
     HOTEND_LOOP() {
@@ -915,7 +922,7 @@ static void crash_recovery_begin_axis_measure() {
     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::running, SelftestSubtestState_t::undef);
     FSM_CREATE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::check_X, cr_fsm.Serialize()); // check axes first
 }
-    #endif                                                                                          /*ENABLED(AXIS_MEASURE)*/
+    #endif /*ENABLED(AXIS_MEASURE)*/
 
 /**
  * @brief Part of crash recovery begin when it is a regular crash.
@@ -1016,7 +1023,7 @@ void powerpanic_finish_toolcrash() {
     server.print_state = State::CrashRecovery_ToolchangePowerPanic;
 }
     #endif /*HAS_TOOLCHANGER()*/
-#endif     /*ENABLED(POWER_PANIC)*/
+#endif /*ENABLED(POWER_PANIC)*/
 
 #if ENABLED(AXIS_MEASURE)
 enum class Axis_length_t {
@@ -1091,7 +1098,7 @@ bool heatbreak_fan_check() {
     if (marlin_vars()->fan_check_enabled
 #if HAS_TOOLCHANGER()
         && prusa_toolchanger.is_any_tool_active() // Nothing to check
-#endif                                            /*HAS_TOOLCHANGER()*/
+#endif /*HAS_TOOLCHANGER()*/
     ) {
         // Allow fan check only if fan had time to build up RPM (after CFanClt::rpm_stabilization)
         // CFanClt error states are checked in the end of each _server_print_loop()
@@ -1119,6 +1126,15 @@ static void resuming_reheating() {
     if (heatbreak_fan_check()) {
         server.print_state = State::Paused;
         return;
+    }
+
+    // Check if nozzles are being reheated
+    HOTEND_LOOP() {
+        if (thermalManager.degTargetHotend(e) == 0 && server.resume.nozzle_temp[e] > 0) {
+            // Stopped reheating, can happen if there is an error during reheating
+            server.print_state = State::Paused;
+            return;
+        }
     }
 
     if (!print_reheat_ready())
@@ -1214,7 +1230,17 @@ static void _server_print_loop(void) {
                 }
             }
 #endif /*HAS_TOOLCHANGER()*/
-
+#if HAS_MMU2()
+            if (MMU2::mmu2.Enabled() && GCodeInfo::getInstance().is_singletool_gcode() && MMU2::mmu2.get_current_tool() == MMU2::FILAMENT_UNKNOWN) {
+                // POC: Handle singletool G-code which doesn't have T commands in it
+                // In case we don't have other filament loaded!
+                // Unfortunately we don't have the nozzle heated, an ugly workaround is to enqueue an M109 :(
+                enqueue_gcode("M109 S215"); // speculatively, use PLA temp for MMU prints, anything else is highly unprobable at this stage
+                enqueue_gcode("T0"); // tool change T0 (can be remapped to anything)
+                enqueue_gcode("G92 E0");
+                enqueue_gcode("G1 E67 F6000"); // push filament into the nozzle - load distance from fsensor into nozzle tuned (hardcoded) for now
+            }
+#endif
             break;
         }
 
@@ -1249,7 +1275,7 @@ static void _server_print_loop(void) {
         probe_offset.z = 0;
         SteelSheets::SetZOffset(probe_offset.z); // This updates marlin_vers()->z_offset
 
-#endif                                           // HAS_LOADCELL()
+#endif // HAS_LOADCELL()
 
         media_print_start(true);
 
@@ -1384,7 +1410,7 @@ static void _server_print_loop(void) {
         if (crash_s.is_toolchange_in_progress()) {
             break; // Wait for toolchange to end
         }
-#endif             /*ENABLED(CRASH_RECOVERY)*/
+#endif /*ENABLED(CRASH_RECOVERY)*/
         if (Cmd(server.command) == Cmd::G28) {
             break; // Wait for homing to end
         }
@@ -1408,7 +1434,7 @@ static void _server_print_loop(void) {
         crash_s.write_stat_to_eeprom();
         server.aborting_did_crash_trigger = crash_s.did_trigger(); // Remember as it is cleared by crash_s.reset()
         crash_s.reset();
-#endif                                                             // ENABLED(CRASH_RECOVERY)
+#endif // ENABLED(CRASH_RECOVERY)
 
         server.print_state = State::Aborting_WaitIdle;
         break;
@@ -1425,7 +1451,7 @@ static void _server_print_loop(void) {
         if (axes_need_homing()
 #if ENABLED(CRASH_RECOVERY)
             || server.aborting_did_crash_trigger
-#endif                   /*ENABLED(CRASH_RECOVERY)*/
+#endif /*ENABLED(CRASH_RECOVERY)*/
         )
             lift_head(); // It would be dangerous to move XY
         else {
@@ -1548,18 +1574,18 @@ static void _server_print_loop(void) {
                 break; // Skip crash recovery and go directly to toolchange
             }
         }
-    #endif                                                      /*HAS_TOOLCHANGER()*/
+    #endif /*HAS_TOOLCHANGER()*/
 
         else if (crash_s.get_state() == Crash_s::REPEAT_WAIT) { // REPEAT_WAIT could be toolfall, but it was handled above
             crash_recovery_begin_home();
-            break;                                              // Skip crash recovery and go directly to homing
+            break; // Skip crash recovery and go directly to homing
         }
 
     #if ENABLED(AXIS_MEASURE)
         else if (crash_s.is_repeated_crash()) {
             crash_recovery_begin_axis_measure();
         }
-    #endif     /*ENABLED(AXIS_MEASURE)*/
+    #endif /*ENABLED(AXIS_MEASURE)*/
 
         else { // All toolfalls, crashes and homing fails are handled above, only regular crash remains
             crash_recovery_begin_crash();
@@ -1581,7 +1607,7 @@ static void _server_print_loop(void) {
         // server.resume.nozzle_temp is already configured by powerpanic
         server.resume.nozzle_temp_paused = true; // Nozzle temperatures are stored in server.resume
         endstops.enable_globally(false);
-        crash_recovery_begin_toolchange();       // Also sets server.print_state
+        crash_recovery_begin_toolchange(); // Also sets server.print_state
         break;
     }
     #endif /*HAS_TOOLCHANGER()*/
@@ -1635,7 +1661,7 @@ static void _server_print_loop(void) {
 
             // Pickup lost tool
             tool_return_t return_type = tool_return_t::no_return; // If it continues with replay, no need to return
-            xyz_pos_t return_pos = current_position;              //                              return Z to current Z
+            xyz_pos_t return_pos = current_position; //                              return Z to current Z
             if (crash_s.get_state() == Crash_s::REPEAT_WAIT) {
                 // After toolcrash, return to what was requested before the crash
                 return_pos = prusa_toolchanger.get_precrash().return_pos;
@@ -1675,18 +1701,18 @@ static void _server_print_loop(void) {
 
         if (axis_unhomed_error(_BV(X_AXIS) | _BV(Y_AXIS)
                 | (crash_s.is_homefail_z() ? _BV(Z_AXIS) : 0))) { // Needs homing
-            TemporaryBedLevelingState tbs(false);                 // Disable for the additional homing, keep previous state after homing
+            TemporaryBedLevelingState tbs(false); // Disable for the additional homing, keep previous state after homing
             if (!GcodeSuite::G28_no_parser(false, false, 0, false, true, true, crash_s.is_homefail_z())) {
                 // Unsuccesfull rehome
                 set_axis_is_not_at_home(X_AXIS);
                 set_axis_is_not_at_home(Y_AXIS);
-                crash_s.count_crash();                                                                                // Count as another crash
+                crash_s.count_crash(); // Count as another crash
 
-                if (crash_s.is_repeated_crash()) {                                                                    // Cannot home repeatedly
-                    disable_XY();                                                                                     // Let user move the carriage
+                if (crash_s.is_repeated_crash()) { // Cannot home repeatedly
+                    disable_XY(); // Let user move the carriage
                     Crash_recovery_fsm cr_fsm(SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
                     FSM_CHANGE_WITH_DATA__LOGGING(CrashRecovery, PhasesCrashRecovery::home_fail, cr_fsm.Serialize()); // Retry screen
-                    server.print_state = State::CrashRecovery_HOMEFAIL;                                               // Ask to retry
+                    server.print_state = State::CrashRecovery_HOMEFAIL; // Ask to retry
                 }
                 break;
             }
@@ -1913,7 +1939,7 @@ void unpark_head_XY(void) {
     current_position.y = server.resume.pos.y;
     NOMORE(current_position.y, Y_BED_SIZE); // Prevent crashing into parked tools
     line_to_current_position(NOZZLE_PARK_XY_FEEDRATE);
-#endif                                      // NOZZLE_PARK_FEATURE
+#endif // NOZZLE_PARK_FEATURE
 }
 
 void unpark_head_ZE(void) {
@@ -1931,7 +1957,7 @@ void unpark_head_ZE(void) {
     // Undo E retract
     plan_move_by(PAUSE_PARK_RETRACT_FEEDRATE, 0, 0, 0, server.resume.pos.e - current_position.e);
     #endif // ENABLED(ADVANCED_PAUSE_FEATURE)
-#endif     // NOZZLE_PARK_FEATURE
+#endif // NOZZLE_PARK_FEATURE
 }
 
 bool all_axes_homed(void) {
@@ -1949,7 +1975,7 @@ int get_exclusive_mode(void) {
 void set_exclusive_mode(int exclusive) {
     if (exclusive) {
         SerialUSB.setIsWriteOnly(true);
-        server.flags |= MARLIN_SFLG_EXCMODE;  // enter exclusive mode
+        server.flags |= MARLIN_SFLG_EXCMODE; // enter exclusive mode
     } else {
         server.flags &= ~MARLIN_SFLG_EXCMODE; // exit exclusive mode
         SerialUSB.setIsWriteOnly(false);
@@ -2199,9 +2225,9 @@ static void _server_update_vars() {
     }
 
 #if ENABLED(CANCEL_OBJECTS)
-    marlin_vars()->cancel_object_mask = cancelable.canceled;      // Canceled objects
+    marlin_vars()->cancel_object_mask = cancelable.canceled; // Canceled objects
     marlin_vars()->cancel_object_count = cancelable.object_count; // Total number of objects
-#endif                                                            /*ENABLED(CANCEL_OBJECTS)*/
+#endif /*ENABLED(CANCEL_OBJECTS)*/
 
     marlin_vars()->temp_bed = thermalManager.degBed();
     marlin_vars()->target_bed = thermalManager.degTargetBed();
@@ -2309,6 +2335,31 @@ bool _process_server_valid_request(const char *request, int client_id) {
         do_babystep_Z(offs);
         return true;
     }
+#if ENABLED(CANCEL_OBJECTS)
+    case Msg::CancelObjectID: {
+        int obj_id;
+        if (sscanf(data, "%d", &obj_id) != 1)
+            return false;
+
+        cancelable.cancel_object(obj_id);
+        return true;
+    }
+    case Msg::UncancelObjectID: {
+        int obj_id;
+        if (sscanf(data, "%d", &obj_id) != 1)
+            return false;
+        cancelable.uncancel_object(obj_id);
+        return true;
+    }
+    case Msg::CancelCurrentObject:
+        cancelable.cancel_active_object();
+        return true;
+#else
+    case Msg::CancelObjectID:
+    case Msg::UncancelObjectID:
+    case Msg::CancelCurrentObject:
+        return false;
+#endif
     case Msg::ConfigSave:
         settings_save();
         return true;
@@ -2602,7 +2653,7 @@ void marlin_msg_to_str(const marlin_server::Msg id, char *str) {
 
 } // namespace marlin_server
 
-#if DEVELOPMENT_ITEMS() && PRINTER_IS_PRUSA_XL
+#if _DEBUG && PRINTER_IS_PRUSA_XL
 /// @note Hacky link for Marlin.cpp used for development.
 /// @todo Remove when stepper timeout screen is solved properly.
 void marlin_server_steppers_timeout_warning() {
@@ -2703,7 +2754,7 @@ void onStatusChanged(const char *const msg) {
     _log_event(LOG_SEVERITY_INFO, &LOG_COMPONENT(MarlinServer), "ExtUI: onStatusChanged: %s", msg);
     _send_notify_event(Event::StatusChanged, 0, 0); // this includes MMU:P progress messages - just plain textual information
     if (msg != nullptr && strcmp(msg, "Prusa-mini Ready.") == 0) {
-    }                                               // TODO
+    } // TODO
     else if (strcmp(msg, "TMC CONNECTION ERROR") == 0) {
         _send_notify_event(Event::Error, MARLIN_ERR_TMCDriverError, 0);
     } else {
