@@ -477,6 +477,8 @@ bool Transfer::cleanup_transfers() {
         switch (next_in_index(index, transfer_path)) {
         case IndexIter::Ok: {
             struct stat st;
+            // Without this we would report LFN to connect in FILE_CHANGED event, which is not allowed.
+            get_SFN_path(transfer_path.get_buffer());
             // check the existence of the download file
             bool backup_file_found = stat_retry(transfer_path.as_backup(), &st) == 0 && S_ISREG(st.st_mode);
             bool backup_is_empty = backup_file_found && st.st_size == 0;
