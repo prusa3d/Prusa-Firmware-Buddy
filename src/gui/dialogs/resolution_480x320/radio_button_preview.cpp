@@ -57,6 +57,7 @@ void RadioButtonPreview::unconditionalDraw() {
         if (ClientResponses::GetResponse(PhasesPrintPreview::main_dialog, i) == Response::Continue) {
             if (tools_mapping::is_tool_mapping_possible()) {
                 label.SetText(_("Continue")); // replace print with continue if tools mapping will show
+                icon.SetRes(res_offset ? &img::mapping_80x80_focused : &img::mapping_80x80); // replace icon with tools mapping one
             }
         }
 
