@@ -27,6 +27,7 @@ enum class Response : uint8_t {
     Continue,
     Cooldown,
     Disable,
+    Filament,
     Filament_removed,
     Finish,
     FLEX,
@@ -69,7 +70,8 @@ enum class Response : uint8_t {
     Heatup,
     PA,
     PRINT,
-    _last = PRINT,
+    _count,
+    _last = _count - 1,
 };
 
 inline constexpr Response ResponseNone = Response::_none;

@@ -455,7 +455,7 @@ class ClientResponses {
         { Response::Abort }, // wrong_printer_abort
         { Response::Yes, Response::No, Response::FS_disable }, // filament_not_inserted
         { Response::Yes, Response::No }, // mmu_filament_inserted
-        { Response::Back, Response::Change, Response::PRINT }, // tools_mapping
+        { Response::Back, Response::Filament, Response::PRINT }, // tools_mapping
         {
 #if !PRINTER_IS_PRUSA_XL
             Response::Change,

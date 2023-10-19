@@ -12,7 +12,7 @@
  * order and count must match to enum class Response in general_response.hpp!
  * TODO make some automatic checks names vs enum
  */
-const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnResponse::texts_and_icons {
+const std::array<BtnResource, ftrstd::to_underlying(Response::_count)> BtnResponse::texts_and_icons {
     std::make_pair( "",                     nullptr ),                  // _none
     std::make_pair( N_("ABORT"),            &img::disconnect_48x48 ),   // Abort
     std::make_pair( N_("ABORT"),            &img::disconnect_48x48 ),   // Abort_invalidate_test
@@ -26,6 +26,7 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( N_("CONTINUE"),         &img::resume_48x48 ),       // Continue
     std::make_pair( N_("COOLDOWN"),         nullptr ),                  // Cooldown
     std::make_pair( N_("DISABLE"),          nullptr ),                  // Disable
+    std::make_pair( N_("FILAMENT"),         nullptr ),                  // Filament
     std::make_pair( N_("FILAMENT REMOVED"), nullptr ),                  // Filament_removed
     std::make_pair( N_("FINISH"),           nullptr ),                  // Finish
     std::make_pair( "FLEX",                 &img::spool_58x58 ),        // FLEX filament, do not translate
@@ -60,7 +61,7 @@ const std::array<BtnResource, static_cast<size_t>(Response::_last) + 1> BtnRespo
     std::make_pair( N_("QUIT"),             nullptr ),                  // QUIT
     std::make_pair( N_("REHEAT"),           &img::preheat_58x58 ),      // Reheat
     std::make_pair( N_("REPLACE"),          nullptr),                   // Replace
-    std::make_pair( N_("REMOVE"),          nullptr),                   // Remove
+    std::make_pair( N_("REMOVE"),           nullptr),                   // Remove
     std::make_pair( N_("RESTART"),          &img::restart_58x58 ),      // Restart
     std::make_pair( N_("RESUME"),           &img::resume_48x48 ),       // Resume
     std::make_pair( N_("RETRY"),            &img::back_32x32 ),         // Retry
