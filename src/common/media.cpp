@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include "timing.h"
 #include "metric.h"
+#include "tasks.hpp"
 #include <errno.h>
 #include "gcode_reader.hpp"
 #include "gcode_info.hpp"
@@ -108,6 +109,7 @@ static metric_t metric_prefetched_bytes = METRIC("media_prefetched", METRIC_VALU
 void media_prefetch(const void *) {
     metric_register(&metric_prefetched_bytes);
 
+    TaskDeps::provide(TaskDeps::Dependency::media_prefetch_ready);
     for (;;) {
         char *back_buff = prefetch_buff[0];
         GCodeFilter::State bb_state = GCodeFilter::State::Ok;

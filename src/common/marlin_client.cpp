@@ -16,6 +16,7 @@
 #include "bsod_gui.hpp"
 #include "utility_extensions.hpp"
 #include "variant8.h"
+#include "tasks.hpp"
 
 #if HAS_SELFTEST()
     #include <selftest_types.hpp>
@@ -64,7 +65,6 @@ uint8_t marlin_clients = 0; // number of connected clients
 //-----------------------------------------------------------------------------
 // forward declarations of private functions
 
-static void _wait_server_started();
 static void _send_request_to_server(uint8_t client_id, const char *request);
 static uint32_t _wait_ack_from_server_with_callback(uint8_t client_id, void (*cb)());
 static void _process_client_message(marlin_client_t *client, variant8_t msg);
@@ -76,7 +76,7 @@ static marlin_client_t *_client_ptr();
 void init() {
     int client_id;
     marlin_client_t *client = 0;
-    _wait_server_started();
+    TaskDeps::wait(TaskDeps::Tasks::marlin_client);
     osSemaphoreWait(server_semaphore, osWaitForever);
     for (client_id = 0; client_id < MARLIN_MAX_CLIENTS; client_id++)
         if (marlin_client_task[client_id] == 0)
@@ -541,12 +541,6 @@ bool is_idle() {
 
 //-----------------------------------------------------------------------------
 // private functions
-
-// wait while server not started (called from client thread in marlin_client_init)
-static void _wait_server_started() {
-    while (server_task == 0)
-        osDelay(1);
-}
 
 // send request to server (called from client thread), infinite timeout
 static void _send_request_to_server(uint8_t client_id, const char *request) {

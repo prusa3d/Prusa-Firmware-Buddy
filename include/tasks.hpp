@@ -26,6 +26,7 @@ enum class Dependency {
     default_task_ready,
     esp_flashed,
     networking_ready,
+    media_prefetch_ready,
     usb_and_temp_ready, ///< Check autoprint and powerpanic state
 #ifdef USE_ASYNCIO
     async_io_ready,
@@ -52,10 +53,13 @@ constexpr dependency_t make(std::same_as<Dependency> auto... dependencies) {
 /// Definitions of dependencies for different tasks/components
 namespace Tasks {
     inline constexpr dependency_t default_start = make(
+        Dependency::media_prefetch_ready
 #if HAS_PUPPIES()
+        ,
         Dependency::puppies_ready
 #endif
     );
+    inline constexpr dependency_t marlin_client = make(Dependency::default_task_ready);
     inline constexpr dependency_t puppy_run = make(Dependency::default_task_ready);
     inline constexpr dependency_t espif = make(Dependency::esp_flashed);
     inline constexpr dependency_t bootstrap_done = make(

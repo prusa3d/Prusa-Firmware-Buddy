@@ -380,6 +380,9 @@ extern "C" void main_cpp(void) {
     espif_init_hw();
 #endif
 
+    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 768);
+    prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
+
     osThreadCCMDef(defaultTask, StartDefaultTask, TASK_PRIORITY_DEFAULT_TASK, 0, 1024);
     defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
@@ -416,8 +419,6 @@ extern "C" void main_cpp(void) {
     connectTaskHandle = osThreadCreate(osThread(connectTask), NULL);
 #endif
 
-    osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 768);
-    prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
     if constexpr (option::filament_sensor != option::FilamentSensor::no) {
         /* definition and creation of measurementTask */
         osThreadCCMDef(measurementTask, StartMeasurementTask, TASK_PRIORITY_MEASUREMENT_TASK, 0, 512);
