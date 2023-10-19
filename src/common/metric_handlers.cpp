@@ -22,7 +22,7 @@ static int textprotocol_append_escaped(char *buffer, int buffer_len, char *val) 
     int appended = 0;
     while (*val != 0 && buffer_len > 0) {
         char ch = *(val++);
-        if (ch == '"') {
+        if (ch == '"' || ch == '\\') {
             if (buffer_len < 2)
                 break;
             buffer[0] = '\\';
