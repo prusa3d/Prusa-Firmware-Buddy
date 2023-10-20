@@ -55,7 +55,13 @@ void wui_generate_password(char *password, uint32_t length) {
     uint32_t i = 0;
 
     while (i < length - 1) {
-        password[i++] = charset[rand_u() % charset_length];
+        uint32_t random = 0;
+        if (!rand_u_secure(&random)) {
+            // Failure in RNG, reset the password to „login disabled“.
+            password[0] = 0;
+            return;
+        }
+        password[i++] = charset[random % charset_length];
     }
     password[i] = 0;
 }

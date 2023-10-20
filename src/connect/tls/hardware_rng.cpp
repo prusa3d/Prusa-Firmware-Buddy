@@ -11,7 +11,9 @@ int mbedtls_hardware_poll([[maybe_unused]] void *Data, unsigned char *Output, si
     *oLen = 0;
 
     while (bytesWritten < Len) {
-        randomValue = rand_u();
+        if (!rand_u_secure(&randomValue)) {
+            return 1;
+        }
         size_t bytes_left = Len - bytesWritten;
         size_t to_write = (bytes_left > sizeof randomValue) ? sizeof randomValue : bytes_left;
         memcpy((Output + bytesWritten), (const char *)&randomValue, to_write);

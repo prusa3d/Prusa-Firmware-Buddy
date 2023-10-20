@@ -9,17 +9,13 @@
 static FreeRTOS_Mutex rand_strong_mutex;
 
 RAND_DECL uint32_t rand_u() {
-    uint32_t result = 0;
-    HAL_StatusTypeDef retval;
+    uint32_t out;
 
-    {
-        const std::lock_guard _lg(rand_strong_mutex);
-        retval = HAL_RNG_GenerateRandomNumber(&hrng, &result);
-    }
-
-    // RNG could theoretically fail, check for it
-    // This should theoretically never happen. But if it does...
-    if (retval != HAL_OK) {
+    if (rand_u_secure(&out)) {
+        return out;
+    } else {
+        // RNG could theoretically fail, check for it
+        // This should theoretically never happen. But if it does...
 #if DEVELOPER_MODE()
         // Dev build -> make the devs know RNG failed
         bsod("HAL RNG failed.");
@@ -30,8 +26,17 @@ RAND_DECL uint32_t rand_u() {
         return rng_ctx;
 #endif
     }
+}
 
-    return result;
+RAND_DECL bool rand_u_secure(uint32_t *result) {
+    HAL_StatusTypeDef retval;
+
+    {
+        const std::lock_guard _lg(rand_strong_mutex);
+        retval = HAL_RNG_GenerateRandomNumber(&hrng, result);
+    }
+
+    return retval == HAL_OK;
 }
 
 /// Replacement of the original std::rand that was using a software RNG and dynamic allocation

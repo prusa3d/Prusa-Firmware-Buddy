@@ -222,6 +222,11 @@ Step RequestParser::step(string_view input, bool terminated_by_client, uint8_t *
     }
 
     api_key = server->get_password();
+    if (api_key && api_key[0] == '\0') {
+        // An empty password means "login disabled".
+        // (can be a result of generator failure)
+        api_key = nullptr;
+    }
     const auto [result, consumed] = consume(input);
     api_key = nullptr;
 
@@ -324,7 +329,9 @@ std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser
 }
 std::optional<std::variant<StatusPage, UnauthenticatedStatusPage>> RequestParser::authenticated_status(const DigestAuthParams &params) const {
     if (nonce_random == 0) {
-        nonce_random = rand_u();
+        if (!rand_u_secure(&nonce_random)) {
+            return StatusPage(Status::InternalServerError, status_page_handling(), accepts_json);
+        }
     }
     if (nonce_valid(params.recieved_nonce)) {
         if (check_digest_auth(params.recieved_nonce)) {
@@ -376,7 +383,12 @@ namespace {
 bool RequestParser::check_digest_auth(uint64_t nonce_to_use) const {
     if (auto digest_params = get_if<DigestAuthParams>(&auth_status)) {
 
-        auto hash_a1 = md5_hash(PRUSA_LINK_USERNAME, ":", AUTH_REALM, ":", server->get_password());
+        const char *pass = server->get_password();
+        if (pass == nullptr || pass[0] == '\0') {
+            // Login disabled
+            return false;
+        }
+        auto hash_a1 = md5_hash(PRUSA_LINK_USERNAME, ":", AUTH_REALM, ":", pass);
         auto hash_a2 = md5_hash(to_str(method), ":", uri());
 
         char ha1[MD5_HEX_SIZE];
