@@ -129,24 +129,22 @@ void media_prefetch(const void *) {
             }
 
             const bool should_load_gcode = [&] {
-                // Verify the file CRC
-                if (!gcode_info.verify_file()) {
-                    return false;
-                }
-
                 // Wait for gcode to be valid
-                while (true) {
-                    if (gcode_info.check_valid_for_print())
-                        break;
-
-                    if (gcode_info.has_error())
+                while (!gcode_info.check_valid_for_print()) {
+                    if (gcode_info.has_error()) {
                         return false;
+                    }
 
                     // Check for signal to stop loading (for example Quit button during the Downloading screen)
                     event = osSignalWait(PREFETCH_SIGNAL_GCODE_INFO_STOP, 500);
                     if (event.value.signals & PREFETCH_SIGNAL_GCODE_INFO_STOP) {
                         return false;
                     }
+                }
+
+                // Verify the file CRC
+                if (!gcode_info.verify_file()) {
+                    return false;
                 }
 
                 return true;

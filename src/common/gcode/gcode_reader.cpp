@@ -348,7 +348,7 @@ PrusaPackGcodeReader::PrusaPackGcodeReader(FILE &f, const struct stat &stat_info
 
 bool PrusaPackGcodeReader::read_and_check_header() {
     if (!range_valid(0, sizeof(file_header))) {
-        set_error(N_("Invalid BGCODE file header"));
+        // Do not set error, the file is not downloaded enough yet
         return false;
     }
 
