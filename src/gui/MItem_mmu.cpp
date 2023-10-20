@@ -18,7 +18,11 @@
 /**********************************************************************************************/
 // MI_MMU_LOAD_FILAMENT
 MI_MMU_PRELOAD::MI_MMU_PRELOAD()
-    : WI_LABEL_t(_(label), nullptr, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
+    : WI_LABEL_t(_(label), nullptr,
+        // enable the PreLoad menu only if there is no filament already loaded
+        FSensors_instance().WhereIsFilament() == MMU2::FilamentState::AT_FSENSOR ? is_enabled_t::no : is_enabled_t::yes,
+        is_hidden_t::no,
+        expands_t::yes) {
 }
 void MI_MMU_PRELOAD::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuMMUPreloadToMMU>);
