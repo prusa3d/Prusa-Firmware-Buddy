@@ -75,7 +75,7 @@ function(pack_firmware target fw_version build_number printer_type signing_key)
     COMMAND echo "" # visually separate the output
     COMMAND
       "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/utils/pack_fw.py" --version="${fw_version}"
-      --printer-type "${printer_type}" --printer-version "1" ${sign_opts} "${bin_firmware_path}"
+      --printer-type "${printer_type}" --printer-version "1" --printer-subversion "0" ${sign_opts} "${bin_firmware_path}"
       --build-number "${build_number}"
     )
 endfunction()
