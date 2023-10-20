@@ -49,6 +49,7 @@ class TextProtocolParser:
         for match in re.finditer(TextProtocolParser.point_re, text):
             timediff, metric_name, flag, value = match.group(1), match.group(
                 2), match.group(3), match.group(4)
+
             value, tags = self.parse_value(value, flag)
             yield Point(int(timediff), metric_name, value, tags)
 
@@ -77,6 +78,8 @@ class TextProtocolParser:
 
 
 class LineProtocolParser:
+    valid_metric_name_re = re.compile(r'^[a-zA-Z_0-9]+$')
+
     def __init__(self, version):
         self.version = version
         assert self.version in [2, 3]
@@ -88,14 +91,27 @@ class LineProtocolParser:
             except LineFormatError as e:
                 logger.warning('received invalid line: %r', line)
                 continue
+
             fields = data['fields']
             if len(fields) == 1 and 'v' in fields:
                 fields = dict(value=fields['v'])
-            if 'value' in fields and fields['value'] == float('nan'):
-                logger.info('skipping NaN value of %s', data['measurement'])
+
+            metric_name = data['measurement']
+            if LineProtocolParser.valid_metric_name_re.match(
+                    metric_name) is None:
+                logger.warning("Invalid metric name %r", metric_name)
+                yield Point(
+                    int(data['time']), "metric_error",
+                    dict(error_type="parse",
+                         metric_name=metric_name,
+                         message=text), dict())
                 continue
-            yield Point(int(data['time']), data['measurement'], fields,
-                        data['tags'])
+
+            if 'value' in fields and fields['value'] == float('nan'):
+                logger.info('skipping NaN value of %s', metric_name)
+                continue
+
+            yield Point(int(data['time']), metric_name, fields, data['tags'])
 
 
 class SyslogHandlerClient(asyncio.DatagramProtocol):
