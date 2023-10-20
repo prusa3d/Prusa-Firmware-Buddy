@@ -251,12 +251,13 @@ public:
         }
 
         // Note: Both lengths are before decryption.
-        phase_payload.emplace<Splice>(this, resp.content_length.value());
+        size_t len = resp.content_length.value();
+        phase_payload.emplace<Splice>(this, len);
         phase = Phase::Body;
 #ifdef UNITTESTS
         assert(0); // Unimplemented here, see the note about dependency hell
 #else
-        httpd_instance()->inject_transfer(conn, data, position, &get<Splice>(phase_payload), resp.content_length.value());
+        httpd_instance()->inject_transfer(conn, data, position, &get<Splice>(phase_payload), len);
 #endif
 
         return ERR_OK;
