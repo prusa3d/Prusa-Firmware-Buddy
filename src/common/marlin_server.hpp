@@ -91,6 +91,7 @@ void settings_load();
 // direct call of settings.reset()
 void settings_reset();
 
+// Start serial print (issue when gcodes start comming via serial line)
 void serial_print_start();
 
 // direct print file with SFM format

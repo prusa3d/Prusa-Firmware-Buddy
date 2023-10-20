@@ -125,7 +125,7 @@ namespace {
         EventMask client_events[MARLIN_MAX_CLIENTS]; // client event mask - unsent messages
         variant8_t event_messages[MARLIN_MAX_CLIENTS]; // last Event::Message for clients, cannot use cvariant, destructor would free memory
         State print_state; // printing state (printing, paused, ...)
-        bool print_is_serial;
+        bool print_is_serial = false; //< When true, current print is not from USB, but sent via gcode commands.
 #if ENABLED(CRASH_RECOVERY) //
         bool aborting_did_crash_trigger = false; // To remember crash_s state when aborting
 #endif /*ENABLED(CRASH_RECOVERY)*/

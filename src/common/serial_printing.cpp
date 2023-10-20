@@ -1,4 +1,5 @@
 #include <serial_printing.hpp>
+#include <state/printer_state.hpp>
 
 uint32_t SerialPrinting::last_serial_indicator_ms = 0;
 
@@ -42,18 +43,40 @@ void remove_N_prefix(const char *&command) {
         ++command;
         while (*command != ' ') {
             ++command;
+            if (*command == '\0')
+                return;
         }
         ++command;
     }
 }
 bool print_indicating_gcode(const char *command) {
-    return *command == 'G' || strncmp(command, "M109", 4) == 0 || strncmp(command, "M190", 4) == 0;
+    if (*command == '\0')
+        return false;
+    if (*command == 'G') {
+        return true;
+    } else if (*command == 'M') {
+        int num = atoi(command + 1);
+        switch (num) {
+        case 73:
+        case 74:
+        case 109:
+        case 190:
+            return true;
+            break;
+        default:
+            return false;
+            break;
+        }
+    }
+    return false;
 }
 
 void SerialPrinting::serial_command_hook(const char *command) {
-    // if marlin server already printing on USB, queue command but don't enter serial printing state
-    if (!marlin_server::printer_idle())
+    // if marlin server already printing, or is not able to start print, do not enter serial printing state
+    // command will be still queued for execution regardless of this.
+    if (!printer_state::remote_print_ready(true)) {
         return;
+    }
 
     remove_N_prefix(command);
     if (print_indicating_gcode(command)) {
