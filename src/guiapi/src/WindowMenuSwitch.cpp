@@ -119,7 +119,11 @@ Rect16::Width_t IWiSwitch::calculateExtensionWidth(Items_t items, int32_t idx) {
 
 void IWiSwitch::changeExtentionWidth() {
     if (items.type == Items_t::type_t::text) {
-        extension_width = calculateExtensionWidth_text(items, index);
+        Rect16::Width_t new_extension_width = calculateExtensionWidth_text(items, index);
+        if (extension_width != new_extension_width) {
+            extension_width = new_extension_width;
+            Invalidate();
+        }
     }
 }
 
