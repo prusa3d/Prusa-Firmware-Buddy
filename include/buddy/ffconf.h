@@ -249,7 +249,7 @@
 
 #include "cmsis_os.h" // O/S definitions
 #define FF_FS_REENTRANT 1
-#define FF_FS_TIMEOUT   1000
+#define FF_FS_TIMEOUT   portMAX_DELAY
 #define FF_SYNC_t       osSemaphoreId
 /* The option FF_FS_REENTRANT switches the re-entrancy (thread safe) of the FatFs
 /  module itself. Note that regardless of this option, file access to different
