@@ -17,89 +17,23 @@ struct move_segment_step_generator_t;
 
 #include "common.hpp"
 #include "lut.hpp"
+#include "../input_shaper/input_shaper.hpp"
+#include <libs/circularqueue.h>
 
 namespace phase_stepping {
-
-/**
-  * Very simple and efficient implementation of 2-element queue of T
-  **/
-template < typename T >
-class TwoOf {
-public:
-    TwoOf(): _items({{}, {}}), _active(0) {};
-
-    int size() const {
-        return int(_items[0].has_value()) + int(_items[1].has_value());
-    }
-
-    bool empty() const {
-        return !_items[0].has_value() && !_items[1].has_value();
-    }
-
-    bool full() const {
-        return _items[0].has_value() && _items[1].has_value();
-    }
-
-    const T& front() const {
-        assert(!empty());
-
-        return *_items[_active];
-    }
-
-    const T& back() const {
-        assert(!empty());
-
-        int next_idx = _next_idx();
-        if (_items[ next_idx ].has_value())
-            return *_items[next_idx];
-        return *_items[_active];
-    }
-
-    T pop() {
-        assert(!empty());
-
-        T val = *_items[_active];
-        _items[_active].reset();
-        _active = _next_idx();
-        return val;
-    }
-
-    void push(T t) {
-        assert(!full());
-
-        if (!_items[ _active ].has_value())
-            _items[_active] = std::move(t);
-        else
-            _items[_next_idx()] = std::move(t);
-    }
-
-    template < typename... Args >
-    void emplace(Args... args) {
-        assert(!full());
-
-        if (!_items[ _active ].has_value())
-            _items[_active].emplace(std::forward<Args>(args)...);
-        else
-            _items[_next_idx()].emplace(std::forward<Args>(args)...);
-    }
-private:
-    unsigned _next_idx() const {
-        return (_active + 1) % 2;
-    }
-
-    std::array< std::optional< T >, 2 > _items;
-    unsigned                            _active;
-};
 
 struct MoveTarget {
     MoveTarget() = default;
     MoveTarget(float position);
     MoveTarget(const move_t& move, int axis);
+    MoveTarget(const input_shaper_state_t& is_state);
 
     float initial_pos  = 0;
     float half_accel   = 0;
     float start_v      = 0;
     uint32_t duration  = 0; // Movement duration in us
+
+    float target_position() const;
 };
 
 struct AxisState {
@@ -115,8 +49,11 @@ struct AxisState {
     int               zero_rotor_phase = 0; // Rotor phase for position 0
     int               last_phase       = 0; // Last known rotor phase
     float             last_position    = 0.f;
-    TwoOf<MoveTarget> pending_targets;      // 2 element queue of pre-processed elements
-    move_t *          last_processed_move = nullptr;
+
+    CircularQueue<MoveTarget, 16> pending_targets;      // 16 element queue of pre-processed elements
+
+    const move_t *    last_processed_move = nullptr;
+    double            last_processed_event_time = 0;
 
     uint32_t                  initial_time = 0; // Initial timestamp when the movement start
     std::optional<MoveTarget> target;           // Current target to move
@@ -155,19 +92,44 @@ void enable_phase_stepping(AxisEnum axis_num);
 void disable_phase_stepping(AxisEnum axis_num);
 
 /**
- * Public interface for PreciseStepping - given a move and other states, setup
- * given axis generator with the move.
+ * Kill immediately all motion on phase-stepped axes. Doesn't perform any
+ * ramp-down.
  **/
-void init_step_generator(
+void stop_immediately();
+
+/**
+ * Public interface for PreciseStepping - given a move and other states, setup
+ * given axis generator with the move in classical mode.
+ **/
+void init_step_generator_classic(
     const move_t &move,
     move_segment_step_generator_t &step_generator,
     step_generator_state_t &step_generator_state);
 
 /**
- * Public interface pro PreciseStepping - build next step event
+ * Public interface for PreciseStepping - given a move and other states, setup
+ * given axis generator with the move in input_shaping mode
+ **/
+void init_step_generator_input_shaping(
+    const move_t &move,
+    input_shaper_step_generator_t &step_generator,
+    step_generator_state_t &step_generator_state);
+
+
+/**
+ * Public interface pro PreciseStepping - build next step event using classical
+ * step generator
  */
-step_event_info_t next_step_event(
+step_event_info_t next_step_event_classic(
     move_segment_step_generator_t &step_generator,
+    step_generator_state_t &step_generator_state);
+
+/**
+ * Public interface pro PreciseStepping - build next step event using input
+ * shaping step generator step generator
+ */
+step_event_info_t next_step_event_input_shaping(
+    input_shaper_step_generator_t &step_generator,
     step_generator_state_t &step_generator_state);
 
 /**
@@ -190,6 +152,11 @@ int32_t pos_to_phase(int axis, float position);
  * Given position, compute step equivalent
  **/
 int32_t pos_to_steps(int axis, float position);
+
+/**
+ * Given position, compute planner msteps equivalent
+ **/
+int32_t pos_to_msteps(int axis, float position);
 
 /**
  * Given axis state and time in µs ticks from movement start, compute axis
@@ -216,6 +183,10 @@ float extract_physical_position(AxisEnum axis, const Pos& pos) {
     #endif
 }
 
+/**
+ * Compute the smallest difference between motor phases.
+ */
+int phase_difference(int a, int b);
 
 /**
  * This array keeps axis state (and LUT tables) for each axis

@@ -526,6 +526,22 @@ class Stepper {
       static uint16_t get_LA_steps() { return LA_current_adv_steps; }
     #endif
 
+    static long get_axis_steps(const AxisEnum a) {
+      return count_position[a];
+    }
+
+    static long get_axis_steps_from_startup(const AxisEnum a) {
+      return count_position_from_startup[a];
+    }
+
+    static void set_axis_steps(const AxisEnum a, long steps_made) {
+      count_position[a] = steps_made;
+    }
+
+    static void set_axis_steps_from_startup(const AxisEnum a, long steps_made) {
+      count_position_from_startup[a] = steps_made;
+    }
+
 private:
 
     // Set the current position in steps
@@ -628,14 +644,6 @@ private:
 #endif
 
     friend class PreciseStepping;
-#ifdef PHASE_STEPPING
-    friend void ::phase_stepping::handle_periodic_refresh();
-    friend void ::phase_stepping::init_step_generator(
-      const move_t &move,
-      move_segment_step_generator_t &step_generator,
-      step_generator_state_t &step_generator_state
-    );
-#endif
 };
 
 extern Stepper stepper;

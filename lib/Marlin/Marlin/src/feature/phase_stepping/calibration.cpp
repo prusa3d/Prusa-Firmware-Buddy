@@ -190,9 +190,19 @@ static int get_motor_steps(AxisEnum axis) {
 }
 
 static float rev_to_mm(AxisEnum axis, float revs) {
-    static constexpr int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
-    static constexpr int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
-    return revs * get_motor_steps(axis) * MICROSTEPS[axis] / STEPS_PER_UNIT[axis];
+    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+        static_assert(SUPPORTED_AXIS_COUNT <= 3);
+
+        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+        int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
+
+        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+            ret[i] = float(MICROSTEPS[i]) / float(STEPS_PER_UNIT[i]);
+        }
+        return ret;
+    }();
+    return revs * get_motor_steps(axis) * FACTORS[axis];
 }
 
 static void wait_for_movement_start(phase_stepping::AxisState& axis_state) {

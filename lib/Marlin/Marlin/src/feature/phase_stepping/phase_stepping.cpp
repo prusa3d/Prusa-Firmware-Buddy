@@ -42,29 +42,37 @@ MoveTarget::MoveTarget(const move_t& move, int axis) {
     duration = move.move_t * 1'000'000;
 }
 
+MoveTarget::MoveTarget(const input_shaper_state_t& is_state) :
+    initial_pos(is_state.start_pos),
+    half_accel(is_state.half_accel),
+    start_v(is_state.start_v),
+    duration(1'000'000 * (is_state.nearest_next_change - is_state.print_time))
+{}
+
+float MoveTarget::target_position() const {
+    float epoch = duration / 1000000.f;
+    return initial_pos + start_v * epoch + half_accel * epoch * epoch;
+}
+
 void phase_stepping::init() {
     phase_stepping::axis_states[0].reset(new AxisState(AxisEnum::X_AXIS));
     phase_stepping::axis_states[1].reset(new AxisState(AxisEnum::Y_AXIS));
 }
 
-void phase_stepping::init_step_generator(
-    const move_t &cmove,
+static void init_step_generator_internal(
+    const move_t &move,
     move_segment_step_generator_t &step_generator,
-    step_generator_state_t &step_generator_state)
+    step_generator_state_t &/*step_generator_state*/)
 {
     auto& axis_state = *step_generator.phase_step_state;
-    auto& move = const_cast< move_t& >(cmove); // Meeh, hacky! TBA: Reconsider changing contract
-    axis_state.active = false;
-
     const uint8_t axis = step_generator.axis;
-    step_generator_state.step_generator[axis] = &step_generator;
-    step_generator_state.next_step_func[axis] = (generator_next_step_f)next_step_event;
+
+    assert(axis_state.pending_targets.isEmpty());
 
     axis_state.initial_time = ticks_us();
 
-    axis_state.target = MoveTarget(move, axis);
-
-    // Adjust rotor phase such that we virtually move, we don't move physically
+    // Adjust rotor phase such that when we virtually move, we don't move
+    // physically
     float last_target_position = axis_state.last_position;
     float new_start_position = axis_state.inverted
         ? axis_state.target->initial_pos
@@ -76,13 +84,52 @@ void phase_stepping::init_step_generator(
 
     axis_state.last_position = new_start_position;
     axis_state.last_processed_move = &move;
-    axis_state.initial_count_position = Stepper::count_position[axis];
-    axis_state.initial_count_position_from_startup = Stepper::count_position_from_startup[axis];
+    axis_state.last_processed_event_time = move.print_time;
+
+    int32_t initial_steps_made = pos_to_steps(AxisEnum(axis), new_start_position);
+    axis_state.initial_count_position = Stepper::get_axis_steps(AxisEnum(axis)) - initial_steps_made;
+    axis_state.initial_count_position_from_startup = Stepper::get_axis_steps_from_startup(AxisEnum(axis)) - initial_steps_made;
 
     axis_state.active = true;
 }
 
-step_event_info_t phase_stepping::next_step_event(
+void phase_stepping::init_step_generator_classic(
+    const move_t &move,
+    move_segment_step_generator_t &step_generator,
+    step_generator_state_t &step_generator_state)
+{
+    auto& axis_state = *step_generator.phase_step_state;
+    axis_state.active = false;
+
+    const uint8_t axis = step_generator.axis;
+    axis_state.target = MoveTarget(move, axis);
+    step_generator_state.step_generator[axis] = &step_generator;
+    step_generator_state.next_step_func[axis] = (generator_next_step_f)next_step_event_classic;
+
+    init_step_generator_internal(move, step_generator, step_generator_state);
+}
+
+void phase_stepping::init_step_generator_input_shaping(
+    const move_t &move,
+    input_shaper_step_generator_t &step_generator,
+    step_generator_state_t &step_generator_state)
+{
+    auto& axis_state = *step_generator.phase_step_state;
+    axis_state.active = false;
+
+    // Inherit input shaper initialization...
+    input_shaper_step_generator_init(move, step_generator, step_generator_state);
+    axis_state.target = MoveTarget(*step_generator.is_state);
+
+    // ...and then override next_step_func with phase stepping one
+    const uint8_t axis = step_generator.axis;
+    step_generator_state.step_generator[axis] = &step_generator;
+    step_generator_state.next_step_func[axis] = (generator_next_step_f)next_step_event_input_shaping;
+
+    init_step_generator_internal(move, step_generator, step_generator_state);
+}
+
+step_event_info_t phase_stepping::next_step_event_classic(
     move_segment_step_generator_t& step_generator,
     step_generator_state_t &/*step_generator_state*/)
 {
@@ -92,23 +139,80 @@ step_event_info_t phase_stepping::next_step_event(
 
     move_t *next_move = PreciseStepping::move_segment_queue_next_move(*axis_state.last_processed_move);
     StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
-    if (axis_state.pending_targets.full()) {
+    if (axis_state.pending_targets.isFull()) {
         status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
     }
     else if (next_move != nullptr) {
         // PreciseStepping generates and infinite move segment on motion stop.
         // We cannot enqueue such segment
         if (!is_ending_empty_move(*next_move)) {
-            axis_state.pending_targets.emplace(*next_move, axis_state.axis_index);
+            uint8_t axis = axis_state.axis_index;
+
+            auto new_target = MoveTarget(*next_move, axis);
+            float target_pos = new_target.target_position();
+            if (axis_state.inverted)
+                target_pos = -target_pos;
+            int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
+            PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
+
+            axis_state.pending_targets.enqueue(new_target);
+
             status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_VALID;
+            axis_state.last_processed_event_time = next_move->print_time + next_move->move_t;
+        } else {
+            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
         }
         axis_state.last_processed_move = next_move;
     }
-
-
-    move_t& last_move = *axis_state.last_processed_move;
     return step_event_info_t{
-        .time = last_move.print_time + last_move.move_t,
+        .time = axis_state.last_processed_event_time,
+        .flags = static_cast<StepEventFlag_t>(STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis),
+        .status = status
+    };
+}
+
+static bool has_ending_segment(const input_shaper_state_t& is_state) {
+    return is_state.nearest_next_change - is_state.print_time >= 1000000.;
+}
+
+step_event_info_t phase_stepping::next_step_event_input_shaping(
+    input_shaper_step_generator_t& step_generator,
+    step_generator_state_t &/*step_generator_state*/)
+{
+    AxisState& axis_state = *step_generator.phase_step_state;
+
+    StepEventInfoStatus status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_INVALID;
+    if (axis_state.pending_targets.isFull()) {
+        status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
+    }
+    else {
+        bool generated_new = input_shaper_state_update(*step_generator.is_state, step_generator.axis);
+        if (generated_new && !has_ending_segment(*step_generator.is_state)) {
+            uint8_t axis = axis_state.axis_index;
+
+            auto new_target = MoveTarget(*step_generator.is_state);
+            float target_pos = new_target.target_position();
+            if (axis_state.inverted)
+                target_pos = -target_pos;
+            int32_t target_steps = pos_to_steps(AxisEnum(axis), target_pos);
+            PreciseStepping::step_generator_state.current_distance[axis] = target_steps;
+
+            axis_state.active = false;
+            axis_state.pending_targets.enqueue(new_target);
+            axis_state.active = true;
+            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_GENERATED_VALID;
+        }
+        if (has_ending_segment(*step_generator.is_state) && !axis_state.pending_targets.isEmpty()) {
+            // When the move target queue is not empty, we cannot yield final step
+            status = StepEventInfoStatus::STEP_EVENT_INFO_STATUS_PENDING;
+        } else {
+            axis_state.last_processed_event_time = step_generator.is_state->nearest_next_change;
+        }
+        PreciseStepping::move_segment_processed_handler();
+    }
+
+    return step_event_info_t{
+        .time = axis_state.last_processed_event_time,
         .flags = static_cast<StepEventFlag_t>(STEP_EVENT_FLAG_X_ACTIVE << step_generator.axis),
         .status = status
     };
@@ -138,6 +242,7 @@ void phase_stepping::enable_phase_stepping(AxisEnum axis_num) {
     // segment to come will be move segment to zero, let's prepare for that.
     axis_state.zero_rotor_phase = current_phase;
     axis_state.last_phase = current_phase;
+    axis_state.last_position = 0;
     axis_state.target = MoveTarget(0);
 
     // Read axis configuration and cache it so we can access it fast
@@ -210,6 +315,25 @@ void phase_stepping::enable(AxisEnum axis_num, bool enable) {
         phase_stepping::disable_phase_stepping(axis_num);
 }
 
+void phase_stepping::stop_immediately() {
+    for (auto& axis_state : axis_states) {
+        bool was_active = axis_state->active;
+        axis_state->active = false;
+
+        axis_state->target.reset();
+        while (!axis_state->pending_targets.isEmpty())
+            axis_state->pending_targets.dequeue();
+
+        axis_state->active = was_active;
+    }
+}
+
+int phase_stepping::phase_difference(int a, int b) {
+    int direct_diff = (a - b + MOTOR_PERIOD) % MOTOR_PERIOD;
+    int cyclic_diff = MOTOR_PERIOD - direct_diff;
+    return std::min(direct_diff, cyclic_diff);
+}
+
 __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh() {
     // This routine is extremely time sensitive and it should be as fast as
     // possible.
@@ -244,9 +368,9 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
             axis_state.target.reset();
         }
 
-        if (!axis_state.pending_targets.empty()) {
+        if (!axis_state.pending_targets.isEmpty()) {
             // Pull new movement
-            axis_state.target = axis_state.pending_targets.pop();
+            axis_state.target = axis_state.pending_targets.dequeue();
             // Time overshoots accounts for the lost time in the previous state
             axis_state.initial_time = now - time_overshoot;
             move_epoch = time_overshoot;
@@ -262,21 +386,24 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         position = -position;
         speed = -speed;
     }
-    axis_state.last_phase = normalize_motor_phase(pos_to_phase(axis_num_to_refresh, position) + axis_state.zero_rotor_phase);
+
+    int new_phase = normalize_motor_phase(pos_to_phase(axis_num_to_refresh, position) + axis_state.zero_rotor_phase);
+    assert(phase_difference(axis_state.last_phase, new_phase) < 256);
 
     // Report movement to Stepper
     int32_t steps_made = pos_to_steps(position, axis_num_to_refresh);
-    Stepper::count_position[axis_num_to_refresh] =
-        axis_state.initial_count_position + steps_made;
-    Stepper::count_position_from_startup[axis_num_to_refresh] =
-        axis_state.initial_count_position_from_startup + steps_made;
+    Stepper::set_axis_steps(AxisEnum(axis_num_to_refresh),
+        axis_state.initial_count_position + steps_made);
+    Stepper::set_axis_steps_from_startup(AxisEnum(axis_num_to_refresh),
+        axis_state.initial_count_position_from_startup + steps_made);
 
     const auto& current_lut = speed > 0
         ? axis_state.forward_current
         : axis_state.backward_current;
-    auto [a, b] = current_lut.get_current(axis_state.last_phase);
+    auto [a, b] = current_lut.get_current(new_phase);
 
     axis_state.last_position = position;
+    axis_state.last_phase = new_phase;
 
     auto ret = spi::set_xdirect(axis_num_to_refresh, a, b);
     if (ret == HAL_OK)
@@ -322,6 +449,21 @@ __attribute__((optimize("-Ofast"))) int32_t phase_stepping::pos_to_steps(int axi
         std::array< float, SUPPORTED_AXIS_COUNT > ret;
         for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
             ret[i] = float(STEPS_PER_UNIT[i]);
+        }
+        return ret;
+    }();
+    return position * FACTORS[axis];
+}
+
+__attribute__((optimize("-Ofast"))) int32_t pos_to_msteps(int axis, float position) {
+    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+        static_assert(SUPPORTED_AXIS_COUNT <= 3);
+
+        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+
+        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+            ret[i] = float(STEPS_PER_UNIT[i]) / PLANNER_STEPS_MULTIPLIER;
         }
         return ret;
     }();

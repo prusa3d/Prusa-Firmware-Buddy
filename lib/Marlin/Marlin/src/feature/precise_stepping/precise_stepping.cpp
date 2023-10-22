@@ -449,7 +449,8 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
 
     // Sorting buffer isn't fulfilled for all active axis, so we need to fulfill.
     // So we don't have anything to put into step_event_buffer.
-    if (step_state.step_events[old_nearest_step_event_idx].status == STEP_EVENT_INFO_STATUS_GENERATED_VALID) {
+    auto step_status = step_state.step_events[old_nearest_step_event_idx].status;
+    if (step_status == STEP_EVENT_INFO_STATUS_GENERATED_VALID || step_status == STEP_EVENT_INFO_STATUS_PENDING) {
         const double step_time_absolute = step_state.step_events[old_nearest_step_event_idx].time;
         const double step_time_relative = step_time_absolute - step_state.previous_step_time;
 
@@ -469,6 +470,9 @@ bool generate_next_step_event(step_event_i32_t &step_event, step_generator_state
             step_event.flags |= STEP_EVENT_FLAG_BEGINNING_OF_MOVE_SEGMENT;
             --step_state.left_insert_start_of_move_segment;
         }
+
+        if (step_status == STEP_EVENT_INFO_STATUS_PENDING)
+            step_event.flags |= STEP_EVENT_WAITING;
 
         step_state.previous_step_time = step_time_absolute;
     } else {
@@ -552,13 +556,21 @@ void PreciseStepping::reset_from_halt(bool preserve_step_fraction) {
     PreciseStepping::flags = 0;
 
     if (preserve_step_fraction) {
+        bool is_phase_stepping_enabled = physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X | PHASE_STEPPING_GENERATOR_Y);
+
+        if (!is_phase_stepping_enabled) {
 #ifdef COREXY
-        total_start_pos_msteps.x -= (step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
-        total_start_pos_msteps.y -= (step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
+            total_start_pos_msteps.x -= (step_generator_state.current_distance.a + step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
+            total_start_pos_msteps.y -= (step_generator_state.current_distance.a - step_generator_state.current_distance.b) * PLANNER_STEPS_MULTIPLIER / 2;
 #else
-        total_start_pos_msteps.x -= step_generator_state.current_distance.x * PLANNER_STEPS_MULTIPLIER;
-        total_start_pos_msteps.y -= step_generator_state.current_distance.y * PLANNER_STEPS_MULTIPLIER;
+            total_start_pos_msteps.x -= step_generator_state.current_distance.x * PLANNER_STEPS_MULTIPLIER;
+            total_start_pos_msteps.y -= step_generator_state.current_distance.y * PLANNER_STEPS_MULTIPLIER;
 #endif
+        } else {
+            // Phase stepping is always precise, there are no fractional steps
+            // to preserve
+            total_start_pos_msteps.x = total_start_pos_msteps.y = 0;
+        }
 
         total_start_pos_msteps.z -= step_generator_state.current_distance.z * PLANNER_STEPS_MULTIPLIER;
         // Because of pressure advance, the amount of material in total_start_pos_msteps doesn't have to equal to step_generator_state.current_distance.e.
@@ -1065,6 +1077,11 @@ StepGeneratorStatus PreciseStepping::process_one_move_segment_from_queue() {
             // accumulate into or flush the buffered step
             if (new_step_event.flags) {
                 // a new step event was produced
+                if (new_step_event.flags & STEP_EVENT_WAITING) {
+                    // The step generator that should move is waiting for external event,
+                    // no more work should be done here
+                    break;
+                }
                 if (!step_generator_state.buffered_step.flags) {
                     // no previous buffer: replace
                     step_generator_state.buffered_step = new_step_event;
@@ -1194,19 +1211,17 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
 
     LOOP_XYZ(i) {
 #ifdef ADVANCED_STEP_GENERATORS
-        if (false && physical_axis_step_generator_types & (INPUT_SHAPER_STEP_GENERATOR_X << i)) { // TBA temp IS disable
-            input_shaper_step_generator_init(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
+        if (physical_axis_step_generator_types & (INPUT_SHAPER_STEP_GENERATOR_X << i)) {
+            if (physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X << i))
+                phase_stepping::init_step_generator_input_shaping(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
+            else
+                input_shaper_step_generator_init(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
         } else {
-    #ifdef PHASE_STEPPING
-
             if (physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X << i)) {
-                phase_stepping::init_step_generator(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
+                phase_stepping::init_step_generator_classic(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
             } else {
                 classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
             }
-    #else
-            classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
-    #endif
         }
 #else
         classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
@@ -1241,6 +1256,9 @@ void PreciseStepping::reset_queues() {
     // reset internal state and queues
     step_event_queue_clear();
     move_segment_queue_clear();
+#ifdef PHASE_STEPPING
+    phase_stepping::stop_immediately();
+#endif
     reset_from_halt(false);
 
     // at this point the planner might still have queued extra moves, flush them

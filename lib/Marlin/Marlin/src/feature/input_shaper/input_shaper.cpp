@@ -365,7 +365,7 @@ bool logical_axis_input_shaper_t::update(const input_shaper_state_t &axis_is) {
 // that processing multiple time events at once could cause that very close time event could be skipped. That
 // could lead to incorrect step timing.
 // Returns true if input_shaper_state was updated and false otherwise.
-static bool input_shaper_state_update(input_shaper_state_t &is_state, const int axis) {
+bool input_shaper_state_update(input_shaper_state_t &is_state, const int axis) {
 #ifdef COREXY
     bool x_updated = false;
     bool y_updated = false;
