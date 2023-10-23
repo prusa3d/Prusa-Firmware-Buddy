@@ -46,22 +46,10 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used = snprintf(buffer, buffer_len, "%s ", point->metric->name);
     }
 
-    if (buffer_used >= buffer_len) {
-        return buffer_len;
-    }
-
     if (point->metric->type == METRIC_VALUE_CUSTOM) {
     } else if (point->error) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"");
-        if (buffer_used >= buffer_len) {
-            return buffer_len;
-        }
-
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->error_msg);
-        if (buffer_used >= buffer_len) {
-            return buffer_len;
-        }
-
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
     } else if (point->metric->type == METRIC_VALUE_FLOAT) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%f", (double)point->value_float);
@@ -69,15 +57,7 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%ii", point->value_int);
     } else if (point->metric->type == METRIC_VALUE_STRING) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=\"");
-        if (buffer_used >= buffer_len) {
-            return buffer_len;
-        }
-
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->value_str);
-        if (buffer_used >= buffer_len) {
-            return buffer_len;
-        }
-
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
     } else if (point->metric->type == METRIC_VALUE_EVENT) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=T");
@@ -85,12 +65,8 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"Unknown value type\"");
     }
 
-    if (buffer_used >= buffer_len) {
-        return buffer_len;
-    }
-
     buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, " %i\n", timestamp_diff);
-    return std::min(buffer_used, buffer_len);
+    return buffer_used;
 }
 
 //
