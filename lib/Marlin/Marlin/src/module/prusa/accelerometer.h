@@ -21,7 +21,8 @@ public:
     #else
     struct Acceleration {
         float val[3];
-        bool corrupted;
+        bool buffer_overflow;
+        bool sample_overrun;
     };
     #endif
 
@@ -35,6 +36,7 @@ public:
         corrupted_dwarf_overflow, // Data not consistent, sample missed on dwarf
         corrupted_transmission_error, // Data not consistent, sample possibly lost in transfer
     #endif
+        corrupted_sample_overrun, // Data not consistent, sample overrun
     };
 
     PrusaAccelerometer();

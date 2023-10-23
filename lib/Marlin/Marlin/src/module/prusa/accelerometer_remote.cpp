@@ -64,6 +64,7 @@ PrusaAccelerometer::~PrusaAccelerometer() {
         case Error::communication:
         case Error::corrupted_buddy_overflow:
         case Error::corrupted_dwarf_overflow:
+        case Error::corrupted_sample_overrun:
         case Error::corrupted_transmission_error: {
             buddy::puppies::Dwarf *dwarf = prusa_toolchanger.get_marlin_picked_tool();
             if (!dwarf)
@@ -93,8 +94,11 @@ int PrusaAccelerometer::get_sample(Acceleration &acceleration) {
     bool ret_val = m_sample_buffer.ConsumeFirst(sample);
     if (ret_val) {
         acceleration = AccelerometerUtils::unpack_sample(sample);
-        if (acceleration.corrupted) {
+        if (acceleration.buffer_overflow) {
             mark_corrupted(Error::corrupted_dwarf_overflow);
+        }
+        if (acceleration.sample_overrun) {
+            mark_corrupted(Error::corrupted_sample_overrun);
         }
     }
     return ret_val;
@@ -108,7 +112,10 @@ void PrusaAccelerometer::put_sample(common::puppies::fifo::AccelerometerXyzSampl
     }
 }
 void PrusaAccelerometer::mark_corrupted(const Error error) {
-    assert(error == Error::corrupted_dwarf_overflow || error == Error::corrupted_buddy_overflow || error == Error::corrupted_transmission_error);
+    assert(error == Error::corrupted_dwarf_overflow
+        || error == Error::corrupted_buddy_overflow
+        || error == Error::corrupted_transmission_error
+        || error == Error::corrupted_sample_overrun);
     m_error = error;
 }
 PrusaAccelerometer::Error PrusaAccelerometer::m_error = Error::none;

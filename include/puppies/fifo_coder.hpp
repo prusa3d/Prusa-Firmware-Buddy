@@ -91,6 +91,7 @@ struct AccelerometerRecord {
         };
         int16_t raw[3];
     };
-    bool corrupted = false;
+    bool buffer_overflow = false;
+    bool sample_overrun = false;
 };
 } // namespace dwarf::accelerometer

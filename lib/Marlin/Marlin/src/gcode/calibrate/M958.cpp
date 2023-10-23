@@ -356,6 +356,7 @@ static
         case PrusaAccelerometer::Error::corrupted_transmission_error:
         case PrusaAccelerometer::Error::corrupted_dwarf_overflow:
     #endif
+        case PrusaAccelerometer::Error::corrupted_sample_overrun:
         case PrusaAccelerometer::Error::corrupted_buddy_overflow:
             SERIAL_ERROR_MSG("corrupted");
             break;

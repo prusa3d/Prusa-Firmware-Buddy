@@ -215,7 +215,8 @@ void dwarf::accelerometer::irq() {
     // Get sample and store sample
     AccelerometerRecord record;
     record.timestamp = ticks_us();
-    record.corrupted = overflown_count > 0 || status.zyxor;
+    record.buffer_overflow = overflown_count > 0;
+    record.sample_overrun = status.zyxor;
     lis2dh12_acceleration_raw_get(&dev_ctx, record.raw);
     if (!sample_buffer.push_back_DontRewrite(record)) {
         overflown_count++;
@@ -236,7 +237,7 @@ void dwarf::accelerometer::accelerometer_loop() {
 bool dwarf::accelerometer::accelerometer_get_sample(AccelerometerRecord &sample) {
     bool ret = sample_buffer.ConsumeFirst(sample);
     // Mark all outgoing packets as corrupted when there is an overflow
-    sample.corrupted = overflown_count > 0;
+    sample.buffer_overflow = overflown_count > 0;
     return ret;
 }
 
