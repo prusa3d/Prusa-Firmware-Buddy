@@ -901,8 +901,8 @@ AnyGcodeFormatReader &AnyGcodeFormatReader::operator=(AnyGcodeFormatReader &&oth
 }
 
 void AnyGcodeFormatReader::close() {
+    ptr = nullptr; // Need to be reset first, so it doesn't point to invalid memory
     storage.emplace<std::monostate>();
-    ptr = nullptr;
 }
 
 IGcodeReader *AnyGcodeFormatReader::open(const char *filename) {

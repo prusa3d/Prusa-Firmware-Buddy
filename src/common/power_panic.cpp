@@ -1183,7 +1183,7 @@ void ac_fault_isr() {
 #endif
 
     // stop & disable endstops
-    media_print_quick_stop(GCodeQueue::SDPOS_INVALID);
+    media_print_quick_stop_powerpanic();
     endstops.enable_globally(false);
 
     // will continue in the main loop

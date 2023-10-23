@@ -317,6 +317,16 @@ void media_print_quick_stop(uint32_t pos) {
     }
 }
 
+void media_print_quick_stop_powerpanic() {
+    skip_gcode = false;
+    media_print_state = media_print_state_PAUSED;
+    media_reset_position = GCodeQueue::SDPOS_INVALID;
+    queue.clear();
+    if (auto info = media_print_file.get_restore_info_from_ISR(); info.has_value()) {
+        media_stream_restore_info = info.value();
+    }
+}
+
 void media_print_pause(bool repeat_last = false) {
     if (media_print_state != media_print_state_PRINTING)
         return;

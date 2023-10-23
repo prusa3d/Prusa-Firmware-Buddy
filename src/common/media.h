@@ -50,8 +50,13 @@ extern void media_print_resume(void);
 
 /// Stop adding new commands immediately and pause the reading
 /// \param pos position in the file where the print should be resumed
-/// media_print_quick_stop is safe to use within an ISR
 extern void media_print_quick_stop(uint32_t pos);
+
+/**
+ * @brief Stop adding new commands immediately and pause the reading.
+ * This function is not thread safe and can only be used from powerpanic.
+ */
+extern void media_print_quick_stop_powerpanic();
 
 extern media_print_state_t media_print_get_state(void);
 
