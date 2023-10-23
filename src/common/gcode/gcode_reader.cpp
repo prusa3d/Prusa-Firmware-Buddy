@@ -250,11 +250,14 @@ IGcodeReader::Result_t PlainGcodeReader::stream_getc_thumbnail_impl(char &out) {
 }
 
 PlainGcodeReader::Result_t PlainGcodeReader::stream_get_block(char *out_data, size_t &size) {
-    if (output_type != output_type_t::gcode)
+    if (output_type != output_type_t::gcode) {
+        size = 0;
         return Result_t::RESULT_ERROR;
+    }
 
     long pos = ftell(file);
     if (!range_valid(pos, pos + size)) {
+        size = 0;
         return Result_t::RESULT_OUT_OF_RANGE;
     }
 
@@ -266,6 +269,7 @@ PlainGcodeReader::Result_t PlainGcodeReader::stream_get_block(char *out_data, si
         size = res;
         return Result_t::RESULT_EOF;
     } else {
+        size = 0;
         if (ferror(file) && errno == EAGAIN) {
             return Result_t::RESULT_TIMEOUT;
         }

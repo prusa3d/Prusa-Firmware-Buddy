@@ -90,7 +90,9 @@ public:
     virtual Result_t stream_get_line(GcodeBuffer &buffer);
 
     /**
-     * @brief Get block of data with specified size
+     * @brief Get block of data with specified size.
+     * @param out_data buffer where data will be stored
+     * @param size input size to get, output size really gotten, must be set to 0 on error
      */
     virtual Result_t stream_get_block(char *out_data, size_t &size) = 0;
 
