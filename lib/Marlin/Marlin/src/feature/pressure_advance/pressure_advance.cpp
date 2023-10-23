@@ -352,9 +352,15 @@ void pressure_advance_reset_position(pressure_advance_step_generator_t &step_gen
         step_generator.pa_state->buffer.data[buffer_idx] += axis_diff;
 
     // Because this function is called when the next step position isn't within the interval (prev_position, next_position),
-    // we don't have to care about numeric issues.
-    step_generator.pa_state->prev_position += axis_diff;
-    step_generator.pa_state->next_position = pressure_advance_apply_filter(*step_generator.pa_state, PressureAdvance::pressure_advance_params);
+    // we don't have to care about numeric issues. We have to only ensure that when prev_position and next_position are equal,
+    // then after resetting, they will also equal.
+    float new_next_position = pressure_advance_apply_filter(*step_generator.pa_state, PressureAdvance::pressure_advance_params);
+    if (step_generator.pa_state->prev_position == step_generator.pa_state->next_position)
+        step_generator.pa_state->prev_position = new_next_position;
+    else
+        step_generator.pa_state->prev_position += axis_diff;
+
+    step_generator.pa_state->next_position = new_next_position;
 
     // Because the pressure advance adds additional steps and there is a delay between the current move segment
     // and current_distance, we need to recalculate current_distance instead of just resetting to zero.
@@ -394,6 +400,13 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
                 // So we never step into this branch when current_move is pointing to the ending empty move segment.
                 assert(!is_ending_empty_move(*step_generator.pa_state->current_move));
 
+                // We have to update start_post before we reset the pressure advance position because
+                // we are using it during the resetting position.
+                if (is_pressure_advance_active(*next_move))
+                    step_generator.pa_state->start_pos = float(get_move_start_pos(*next_move, step_generator.axis)) + float(get_move_start_v(*next_move, step_generator.axis)) * PressureAdvance::pressure_advance_params.pressure_advance_value;
+                else
+                    step_generator.pa_state->start_pos = float(get_move_start_pos(*next_move, step_generator.axis));
+
                 // Apply reset of position on the pressure advance data structure and adjust position in steps (current_distance).
                 if (next_move->flags & (MOVE_FLAG_RESET_POSITION_X << step_generator.axis))
                     pressure_advance_reset_position(step_generator, step_generator_state, *next_move);
@@ -401,11 +414,6 @@ step_event_info_t pressure_advance_step_generator_next_step_event(pressure_advan
                 --step_generator.pa_state->current_move->reference_cnt;
                 step_generator.pa_state->current_move = next_move;
                 ++step_generator.pa_state->current_move->reference_cnt;
-
-                if (is_pressure_advance_active(*next_move))
-                    step_generator.pa_state->start_pos = float(get_move_start_pos(*next_move, step_generator.axis)) + float(get_move_start_v(*next_move, step_generator.axis)) * PressureAdvance::pressure_advance_params.pressure_advance_value;
-                else
-                    step_generator.pa_state->start_pos = float(get_move_start_pos(*next_move, step_generator.axis));
 
                 step_generator.pa_state->local_sample_idx = 0;
                 step_generator.pa_state->local_sample_time_left = std::max(float((step_generator.pa_state->total_sample_idx * PressureAdvance::pressure_advance_params.sampling_rate) - step_generator.pa_state->current_move->print_time), 0.f);
