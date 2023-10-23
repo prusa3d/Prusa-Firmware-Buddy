@@ -219,7 +219,7 @@ void window_file_list_t::inc(int dif) {
 
     // can not use Invalidate, it would cause redraw of background
     valid_items.fill(false);
-    activeItem.clrFocus();
+    activeItem.clear_focus();
     selectNewItem();
     super::invalidate(GetRect());
 }
@@ -266,7 +266,7 @@ void window_file_list_t::roll_screen(int dif) {
 
     // can not use Invalidate, it would cause redraw of background
     valid_items.fill(false);
-    activeItem.clrFocus();
+    activeItem.clear_focus();
     selectNewItem();
     super::invalidate(GetRect());
 }
@@ -280,17 +280,13 @@ void window_file_list_t::selectNewItem() {
     const int maxi = std::min(count, std::min(visible_slots, ldv_visible_files));
 
     if (index >= 0 && index < maxi) {
-        activeItem.setFocus();
+        activeItem.move_focus();
         activeItem.SetLabel(itemText(index));
         activeItem.SetIconId(itemIcon(index));
         activeItem.InitRollIfNeeded(itemRect(index));
     }
 
-    if (is_return_item(index)) {
-        return_item.setFocus();
-    } else {
-        return_item.clrFocus();
-    }
+    return_item.set_is_focused(is_return_item(index));
 }
 
 void window_file_list_t::SetRoot(char *rootPath) {
@@ -300,7 +296,7 @@ void window_file_list_t::SetRoot(char *rootPath) {
 void window_file_list_t::invalidate(Rect16 validation_rect) {
     valid_items.fill(false); // TODO respect validation_rect
     entire_window_invalid = true;
-    activeItem.clrFocus();
+    activeItem.clear_focus();
     selectNewItem();
     activeItem.Roll(); // first call causes additional invalidation, it does not matter here, but would flicker in case it was not called
     super::invalidate(validation_rect);

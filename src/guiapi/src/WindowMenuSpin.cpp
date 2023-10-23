@@ -14,10 +14,10 @@ IWiSpin::IWiSpin(SpinType val, string_view_utf8 label, const img::Resource *id_i
 }
 
 void IWiSpin::click(IWindowMenu & /*window_menu*/) {
-    if (selected == is_selected_t::yes) {
+    if (is_edited()) {
         OnClick();
     }
-    selected = (selected == is_selected_t::yes) ? is_selected_t::no : is_selected_t::yes;
+    toggle_edit_mode();
 }
 
 /**
@@ -64,7 +64,7 @@ void IWiSpin::changeExtentionWidth(size_t unit_len, unichar uchar, size_t width)
 void IWiSpin::printExtension(Rect16 extension_rect, color_t color_text, color_t color_back, [[maybe_unused]] ropfn raster_op) const {
 
     string_view_utf8 spin_txt = string_view_utf8::MakeRAM((const uint8_t *)spin_text_buff.data());
-    const color_t cl_txt = IsSelected() ? COLOR_ORANGE : color_text;
+    const color_t cl_txt = is_edited() ? COLOR_ORANGE : color_text;
     const Align_t align = Align_t::RightTop(); // This have to be aligned this way and set up with padding, because number and units have different fonts
     padding_ui8_t extension_padding = Padding;
     if constexpr (GuiDefaults::MenuSpinHasUnits) {

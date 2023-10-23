@@ -37,6 +37,7 @@ public:
     virtual window_t *GetFirstPopUp() const override;
     virtual window_t *GetLastPopUp() const override;
 
+    /// Restores state from the provided variant
     virtual void InitState([[maybe_unused]] screen_init_variant var) {}
     virtual screen_init_variant GetCurrentState() const { return screen_init_variant(); }
 

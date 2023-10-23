@@ -53,6 +53,12 @@ void DialogHandler::open(ClientFSM fsm_type, fsm::BaseData data) {
     if (ptr)
         return; // the dialog is already opened, not an error (TODO really?)
 
+    {
+        auto screen = Screens::Access()->Get();
+        assert(screen);
+        underlying_screen_state_ = screen->GetCurrentState();
+    }
+
     // todo get_scr_printing_serial() is no dialog but screen ... change to dialog?
     //  only ptr = dialog_creators[dialog](data); should remain
     switch (fsm_type) {
@@ -110,6 +116,14 @@ void DialogHandler::close(ClientFSM fsm_type) {
     default:
         break;
     }
+
+    // Attempt to restore underlying screen state
+    if (ptr) {
+        auto screen = Screens::Access()->Get();
+        assert(screen);
+        screen->InitState(underlying_screen_state_);
+    }
+
     ptr = nullptr; // destroy current dialog
 }
 

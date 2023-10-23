@@ -16,10 +16,6 @@ enum class is_hidden_t : uint8_t { no,
     dev };
 enum class is_enabled_t : bool { no,
     yes };
-enum class is_focused_t : bool { no,
-    yes };
-enum class is_selected_t : bool { no,
-    yes };
 enum class expands_t : bool { no,
     yes };
 enum class is_closed_on_click_t : bool { no,

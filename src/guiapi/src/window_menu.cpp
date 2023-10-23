@@ -50,21 +50,23 @@ uint8_t WindowMenu::GetCount() const {
 IWindowMenuItem *WindowMenu::GetItem(uint8_t index) const {
     if (!pContainer)
         return nullptr;
+
     return pContainer->GetItemByVisibleIndex(index);
 }
 
-IWindowMenuItem *WindowMenu::GetActiveItem() const {
-    if (!pContainer)
-        return nullptr;
-    return pContainer->GetFocused();
-}
-
 bool WindowMenu::moveToNextVisibleItem(int moveIndex) {
-    std::optional<size_t> opt_old_index = GetIndex();
-    if (!opt_old_index)
-        return false; // no item can be focused (container does not exist, or does not have visible items)
+    int old_index;
 
-    int old_index = *opt_old_index;
+    if (std::optional<size_t> opt_old_index = GetIndex()) {
+        old_index = *opt_old_index;
+
+    } else if (GetItem(0)) {
+        // No item selected - select first item
+        old_index = -1;
+
+    } else {
+        return false; // no item can be focused (container does not exist, or does not have visible items)
+    }
 
     int new_index = (moveIndex >= 0) ? std::min(old_index + moveIndex, GetCount() - 1) : std::max(old_index + moveIndex, 0);
     if (new_index == old_index) // no move required
@@ -138,7 +140,7 @@ bool WindowMenu::playEncoderSound(bool changed) {
 }
 
 void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] window_t *sender, GUI_event_t event, void *param) {
-    IWindowMenuItem *item = GetActiveItem();
+    IWindowMenuItem *item = IWindowMenuItem::focused_item();
     if (!item)
         return;
     const int value = int(param);
@@ -147,14 +149,14 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
         item->Click(*this);
         break;
     case GUI_event_t::ENC_DN:
-        if (item->IsSelected()) {
+        if (item->is_edited()) {
             playEncoderSound(item->Decrement(value));
         } else {
             Decrement(value);
         }
         break;
     case GUI_event_t::ENC_UP:
-        if (item->IsSelected()) {
+        if (item->is_edited()) {
             playEncoderSound(item->Increment(value));
         } else {
             Increment(value);
@@ -180,11 +182,11 @@ void WindowMenu::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]] wi
             Increment(dif);
 
         // do touched items action
-        if (GetActiveItem()) {
+        if (auto item = IWindowMenuItem::focused_item()) {
             std::optional<Rect16> rc = getItemRC(*slot);
             if (rc) {
                 point_ui16_t relative_touch_point = { un.point.x, un.point.y };
-                GetActiveItem()->Touch(*this, relative_touch_point);
+                item->Touch(*this, relative_touch_point);
             }
         }
     } break;
@@ -319,7 +321,7 @@ void WindowMenu::draw() {
 
     bool setChildrenInvalid = IsInvalid(); // if background is invalid all items must be redrawn
 
-    if (!GetActiveItem())
+    if (!IWindowMenuItem::focused_item())
         return;
 
     size_t drawn_cnt = 0;

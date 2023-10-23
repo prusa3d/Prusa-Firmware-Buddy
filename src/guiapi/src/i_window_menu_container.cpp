@@ -71,21 +71,19 @@ bool IWinMenuContainer::SetIndex(uint8_t visible_index) {
     if (!to_be_focused)
         return false;
 
-    if (currently_focused == to_be_focused) // OK, nothing to do
+    if (IWindowMenuItem::focused_item() == to_be_focused) // OK, nothing to do
         return true;
 
-    if (currently_focused)
-        currently_focused->clrFocus(); // remove focus from old item
-    to_be_focused->setFocus(); // set focus on new item
-
-    // store currently focused index
-    currently_focused = to_be_focused;
+    to_be_focused->move_focus();
     return true;
 }
 
 std::optional<size_t> IWinMenuContainer::GetFocusedIndex() const {
-    if (!currently_focused)
+    IWindowMenuItem *currently_focused = IWindowMenuItem::focused_item();
+
+    if (!currently_focused) {
         return std::nullopt;
+    }
 
     return GetVisibleIndex(*currently_focused);
 }
@@ -110,7 +108,7 @@ bool IWinMenuContainer::Hide(IWindowMenuItem &item) {
     if (!GetVisibleIndex(item))
         return true; // already hidden
 
-    if (&item == currently_focused)
+    if (item.is_focused())
         return false; // cannot hide focused item
 
     item.hide();
@@ -132,30 +130,30 @@ bool IWinMenuContainer::SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &
             return false; // there must be no visible item between swapped items
     }
 
-    IWindowMenuItem *visible = nullptr;
-    IWindowMenuItem *hidden = nullptr;
+    IWindowMenuItem *visible_item = nullptr;
+    IWindowMenuItem *hidden_item = nullptr;
 
-    item0.IsHidden() ? hidden = &item0 : visible = &item0;
-    item1.IsHidden() ? hidden = &item1 : visible = &item1;
+    (item0.IsHidden() ? hidden_item : visible_item) = &item0;
+    (item1.IsHidden() ? hidden_item : visible_item) = &item1;
 
-    if (!visible || !hidden) {
+    if (!visible_item || !hidden_item) {
         return false; // both visible and hidden must be assigned
     }
 
-    bool dev = visible->IsDevOnly();
-    bool focus = visible == currently_focused;
+    bool is_dev_only = visible_item->IsDevOnly();
+    bool should_transfer_focus = visible_item->is_focused();
 
     // clear focus
-    visible->clrFocus();
+    visible_item->clear_focus();
 
     // swap visibility
-    visible->hide();
-    dev ? hidden->showDevOnly() : hidden->show();
+    visible_item->hide();
+    is_dev_only ? hidden_item->showDevOnly() : hidden_item->show();
 
     // set focus to formal hidden
-    if (focus) {
-        hidden->setFocus();
-        currently_focused = hidden;
+    if (should_transfer_focus) {
+        hidden_item->move_focus();
     }
+
     return true;
 }

@@ -40,7 +40,7 @@ public:
 class MI_AXIS_Z : public MI_AXIS<Z_AXIS> {
 
 protected:
-    void click(IWindowMenu &window_menu) override;
+    bool try_exit_edit_mode() override;
 };
 
 class MI_AXIS_E : public MI_AXIS<E_AXIS> {

@@ -38,7 +38,6 @@ public:
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1) { return menu.SwapVisibility(item0, item1); }
 
     IWindowMenuItem *GetItem(uint8_t index) const { return menu.GetItem(index); }
-    IWindowMenuItem *GetActiveItem() const { return menu.GetActiveItem(); }
     bool SetActiveItem(IWindowMenuItem &item) { return menu.SetActiveItem(item); }
 
 protected:

@@ -7,6 +7,9 @@
 #include "gui_invalidate.hpp"
 #include "img_resources.hpp"
 
+static IWindowMenuItem *focused_menu_item = nullptr;
+static bool focused_menu_item_edited = false;
+
 static_assert(sizeof(IWindowMenuItem) <= sizeof(string_view_utf8) + sizeof(txtroll_t) + sizeof(font_t) + sizeof(int), "error inefficient size of IWindowMenuItem");
 
 IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
@@ -20,6 +23,89 @@ IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, Rect16::Width_t extensi
     , show_disabled_extension(show_disabled_extension_t::yes)
     , extension_width(extension_width_)
     , id_icon(id_icon) {
+}
+
+IWindowMenuItem::~IWindowMenuItem() {
+    if (focused_menu_item == this) {
+        focused_menu_item = nullptr;
+        focused_menu_item_edited = false;
+    }
+}
+
+bool IWindowMenuItem::is_edited() const {
+    return is_focused() && focused_menu_item_edited;
+}
+
+bool IWindowMenuItem::set_is_edited(bool set) {
+    if (set == is_edited()) {
+        return true;
+    }
+
+    if (set && !IsEnabled()) {
+        return false;
+    }
+
+    // If there is an other item currently being edited, we have to exit the edit mode
+    if (focused_menu_item_edited && !focused_menu_item->try_exit_edit_mode()) {
+        return false;
+    }
+
+    // Trying to edit an item -> must also set focus
+    if (set) {
+        set_is_focused(true);
+    }
+
+    focused_menu_item_edited = set;
+
+    // Redraw the extension, which will probably change colour or something when edit mode changes
+    InValidateExtension();
+
+    return true;
+}
+
+IWindowMenuItem *IWindowMenuItem::edited_item() {
+    return focused_menu_item_edited ? focused_menu_item : nullptr;
+}
+
+bool IWindowMenuItem::is_focused() const {
+    return focused_menu_item == this;
+}
+
+bool IWindowMenuItem::set_is_focused(bool set) {
+    if (set == is_focused()) {
+        return true;
+    }
+
+    // Changing focus - we have to cancel edit mode for previously edited item
+    if (focused_menu_item_edited && !focused_menu_item->set_is_edited(false)) {
+        return false;
+    }
+
+    // Redraw previously focused menu item
+    if (focused_menu_item) {
+        focused_menu_item->Invalidate();
+    }
+
+    if (set) {
+        if (IsHidden()) {
+            show();
+        }
+
+        focused_menu_item = this;
+        roll.Deinit();
+
+    } else {
+        focused_menu_item = nullptr;
+        roll.Stop();
+    }
+
+    Invalidate();
+
+    return true;
+}
+
+IWindowMenuItem *IWindowMenuItem::focused_item() {
+    return focused_menu_item;
 }
 
 void IWindowMenuItem::setLabelFont(font_t *src) {
@@ -175,21 +261,6 @@ void IWindowMenuItem::Touch(IWindowMenu &window_menu, point_ui16_t relative_touc
 
 void IWindowMenuItem::touch(IWindowMenu &window_menu, [[maybe_unused]] point_ui16_t relative_touch_point) {
     click(window_menu);
-}
-
-void IWindowMenuItem::setFocus() {
-    if (IsHidden()) {
-        show();
-    }
-    focused = is_focused_t::yes;
-    roll.Deinit();
-    Invalidate();
-}
-
-void IWindowMenuItem::clrFocus() {
-    focused = is_focused_t::no;
-    roll.Stop();
-    Invalidate();
 }
 
 // Reinits text rolling in case of focus/defocus/click

@@ -40,11 +40,9 @@ void I_MI_AXIS::finish_move() {
     marlin_client::move_axis(GetVal(), MenuVars::GetManualFeedrate()[axis_index], axis_index);
 }
 
-void MI_AXIS_Z::click(IWindowMenu &window_menu) {
-    // Continue this function only when we're unselecting the spinner
-    if (selected == is_selected_t::no || is_move_finished()) {
-        MI_AXIS<Z_AXIS>::click(window_menu);
-        return;
+bool MI_AXIS_Z::try_exit_edit_mode() {
+    if (is_move_finished()) {
+        return true;
     }
 
     // Show question message box
@@ -63,7 +61,7 @@ void MI_AXIS_Z::click(IWindowMenu &window_menu) {
         SetVal(last_queued_pos);
     }
 
-    MI_AXIS<Z_AXIS>::click(window_menu);
+    return true;
 }
 
 void MI_AXIS_E::OnClick() {

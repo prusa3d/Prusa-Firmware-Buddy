@@ -29,4 +29,8 @@ public:
 
     bool IsOpen(ClientFSM fsm) const;
     bool IsAnyOpen() const;
+
+private:
+    /// When a dialog is opened, underlying screen state is saved. It then gets restored on dialog close
+    screen_init_variant underlying_screen_state_;
 };

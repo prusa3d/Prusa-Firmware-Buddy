@@ -67,7 +67,7 @@ void WI_LAMBDA_SPIN::printExtension(Rect16 extension_rect, color_t color_text, c
 
     // Draw switch
     render_text_align(getSwitchRect(extension_rect), stringView, GuiDefaults::FontMenuItems, color_back,
-        (IsFocused() && IsEnabled() && IsSelected()) ? GuiDefaults::ColorSelected : color_text,
+        (IsFocused() && IsEnabled() && is_edited()) ? GuiDefaults::ColorSelected : color_text,
         padding_ui8(0, 4, 0, 0), Align_t::Center(), false);
 
     // Draw brackets
@@ -87,10 +87,10 @@ void WI_LAMBDA_SPIN::printExtension(Rect16 extension_rect, color_t color_text, c
  * @param window_menu reference to menu where this item is shown
  */
 void WI_LAMBDA_SPIN::click([[maybe_unused]] IWindowMenu &window_menu) {
-    if (selected == is_selected_t::yes) {
+    if (is_edited()) {
         OnClick(); // User overridable callback when item selection is confirmed
     }
-    selected = selected == is_selected_t::yes ? is_selected_t::no : is_selected_t::yes;
+    toggle_edit_mode();
 }
 
 /**

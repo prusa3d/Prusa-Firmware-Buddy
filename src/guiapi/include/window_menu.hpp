@@ -78,7 +78,7 @@ public:
     /// \returns number of all menu items including hidden ones
     uint8_t GetCount() const; // count of all visible items in container
     IWindowMenuItem *GetItem(uint8_t index) const; // nth visible item in container
-    IWindowMenuItem *GetActiveItem() const; // focused item
+
     bool SetActiveItem(IWindowMenuItem &item) {
         std::optional<size_t> index = GetIndex(item);
         if (!index)
