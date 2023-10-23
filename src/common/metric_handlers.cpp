@@ -27,7 +27,7 @@ static void textprotocol_append_point(StringBuilder &sb, metric_point_t *point, 
         sb.append_char('"');
 
         while (char ch = *str++) {
-            if (ch == '"' || ch == '\\') {
+            if (ch == '"') {
                 sb.append_char('\\');
             }
 
