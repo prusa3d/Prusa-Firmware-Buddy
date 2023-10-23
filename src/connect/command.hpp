@@ -41,7 +41,7 @@ struct CancelPrinterReady {};
 // This command actually implements both the START_CONNECT_DOWNLOAD and
 // START_ENCRYPTED_DOWNLOAD. The reason is, for us, the commands are really
 // similar and we reuse a lot of code for it.
-struct StartConnectDownload {
+struct StartEncryptedDownload {
     SharedPath path;
     // Port override.
     std::optional<uint16_t> port;
@@ -49,6 +49,7 @@ struct StartConnectDownload {
     static constexpr size_t BLOCK_SIZE = 16;
     using Block = std::array<uint8_t, BLOCK_SIZE>;
     Block key;
+    // Legacy name (in the json too!) from times we used AES-CBC. With AES-CTR, it is used an nonce.
     Block iv;
     // Fatfs can't do bigger than 4GB files anyway, right?
     uint32_t orig_size;
@@ -64,7 +65,7 @@ struct CreateFolder {
 };
 struct StopTransfer {};
 
-using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartConnectDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer>;
+using CommandData = std::variant<UnknownCommand, BrokenCommand, GcodeTooLarge, ProcessingOtherCommand, ProcessingThisCommand, Gcode, SendInfo, SendJobInfo, SendFileInfo, SendTransferInfo, PausePrint, ResumePrint, StopPrint, StartPrint, SetPrinterReady, CancelPrinterReady, StartEncryptedDownload, DeleteFile, DeleteFolder, CreateFolder, StopTransfer>;
 
 struct Command {
     CommandId id;

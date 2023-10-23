@@ -134,7 +134,7 @@ private:
     void command(const Command &, const StartPrint &);
     void command(const Command &, const CancelPrinterReady &);
     void command(const Command &, const SetPrinterReady &);
-    void command(const Command &, const StartConnectDownload &);
+    void command(const Command &, const StartEncryptedDownload &);
     void command(const Command &, const DeleteFile &);
     void command(const Command &, const DeleteFolder &);
     void command(const Command &, const CreateFolder &);

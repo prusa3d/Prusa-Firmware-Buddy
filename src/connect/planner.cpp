@@ -158,7 +158,7 @@ namespace {
     constexpr const char *const enc_suffix = "/raw";
     const size_t enc_prefix_len = strlen(enc_prefix);
     const size_t enc_suffix_len = strlen(enc_suffix);
-    const size_t iv_len = 2 /* Binary->hex conversion*/ * StartConnectDownload::BLOCK_SIZE;
+    const size_t iv_len = 2 /* Binary->hex conversion*/ * StartEncryptedDownload::BLOCK_SIZE;
     const size_t enc_url_len = enc_prefix_len + enc_suffix_len + iv_len + 1;
 
     void make_enc_url(char *buffer /* assumed to be at least enc_url_len large */, const Decryptor::Block &iv) {
@@ -172,7 +172,7 @@ namespace {
         strcat(buffer, enc_suffix);
     }
 
-    Transfer::BeginResult init_transfer(Printer &, const Printer::Config &config, const StartConnectDownload &download) {
+    Transfer::BeginResult init_transfer(Printer &, const Printer::Config &config, const StartEncryptedDownload &download) {
         const char *dpath = download.path.path();
         if (!path_allowed(dpath)) {
             return Storage { "Not allowed outside /usb" };
@@ -579,7 +579,7 @@ void Planner::command(const Command &, const ProcessingThisCommand &) {
     assert(0);
 }
 
-void Planner::command(const Command &command, const StartConnectDownload &download) {
+void Planner::command(const Command &command, const StartEncryptedDownload &download) {
     // Get the config (we need it for the connection); don't reset the "changed" flag.
     auto [config, config_changed] = printer.config(false);
     if (config_changed) {
