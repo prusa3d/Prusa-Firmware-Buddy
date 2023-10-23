@@ -13,7 +13,6 @@
 #include <config_store/store_instance.hpp>
 #include <atomic>
 #include <algorithm>
-#include <algorithm>
 #include <inttypes.h>
 
 #define TEXTPROTOCOL_POINT_MAXLEN 63
@@ -41,34 +40,43 @@ static int textprotocol_append_escaped(char *buffer, int buffer_len, char *val) 
     return appended;
 }
 
+static int append_format(char *buffer, int buffer_len, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int length = vsnprintf(buffer, std::max(buffer_len, 0), format, args);
+    assert(length >= 0 && "unexpected snprintf encoding error");
+    va_end(args);
+    return length;
+}
+
 static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_t *point, int timestamp_diff) {
     int buffer_used;
     if (point->metric->type == METRIC_VALUE_CUSTOM) {
-        buffer_used = snprintf(buffer, buffer_len, "%s%s", point->metric->name, point->value_custom);
+        buffer_used = append_format(buffer, buffer_len, "%s%s", point->metric->name, point->value_custom);
     } else {
-        buffer_used = snprintf(buffer, buffer_len, "%s ", point->metric->name);
+        buffer_used = append_format(buffer, buffer_len, "%s ", point->metric->name);
     }
 
     if (point->metric->type == METRIC_VALUE_CUSTOM) {
     } else if (point->error) {
-        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"");
+        buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "error=\"");
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->error_msg);
-        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
+        buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "\"");
     } else if (point->metric->type == METRIC_VALUE_FLOAT) {
-        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%f", (double)point->value_float);
+        buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "v=%f", (double)point->value_float);
     } else if (point->metric->type == METRIC_VALUE_INTEGER) {
-        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%ii", point->value_int);
+        buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "v=%ii", point->value_int);
     } else if (point->metric->type == METRIC_VALUE_STRING) {
-        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=\"");
+        buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "v=\"");
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->value_str);
-        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
+        buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "\"");
     } else if (point->metric->type == METRIC_VALUE_EVENT) {
-        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=T");
+        buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "v=T");
     } else {
-        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"Unknown value type\"");
+        buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "error=\"Unknown value type\"");
     }
 
-    buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, " %i\n", timestamp_diff);
+    buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, " %i\n", timestamp_diff);
     return buffer_used;
 }
 
