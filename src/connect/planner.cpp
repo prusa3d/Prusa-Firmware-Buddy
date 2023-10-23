@@ -187,15 +187,11 @@ namespace {
         char *path = nullptr;
         unique_ptr<Download::EncryptionInfo> encryption;
 
-        auto get_headers = [&](size_t, HeaderOut *) -> size_t {
-            return 0;
-        };
-
         path = reinterpret_cast<char *>(alloca(enc_url_len));
         make_enc_url(path, download.iv);
         encryption = make_unique<Download::EncryptionInfo>(download.key, download.iv, download.orig_size);
 
-        auto request = Download::Request(host, port, path, get_headers, std::move(encryption));
+        auto request = Download::Request(host, port, path, std::move(encryption));
 
         return Transfer::begin(dpath, request);
     }

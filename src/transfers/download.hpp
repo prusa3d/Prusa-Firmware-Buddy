@@ -87,14 +87,12 @@ public:
         const char *host;
         uint16_t port;
         const char *url_path;
-        ExtraHeaders extra_headers;
         std::shared_ptr<EncryptionInfo> encryption;
 
-        Request(const char *host, uint16_t port, const char *url_path, ExtraHeaders extra_headers, std::unique_ptr<EncryptionInfo> &&encryption)
+        Request(const char *host, uint16_t port, const char *url_path, std::unique_ptr<EncryptionInfo> &&encryption)
             : host(host)
             , port(port)
             , url_path(url_path)
-            , extra_headers(extra_headers)
             , encryption(std::move(encryption)) {}
     };
 
