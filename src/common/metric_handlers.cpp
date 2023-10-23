@@ -46,21 +46,22 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used = snprintf(buffer, buffer_len, "%s ", point->metric->name);
     }
 
-    // If we've clipped already, we don't need to continue further with snprintf
-    // Same logic applies for the same checks further in this function
-    if (buffer_used >= buffer_len) {
+    // Note this check (and all occurrences of the same below) won't catch if
+    // the trailing '\0' was not written by snprintf due to being at the end of
+    // the buffer. In this case it's ok, the buffer_used is what needs to be correct.
+    if (buffer_used > buffer_len) {
         return buffer_used;
     }
 
     if (point->metric->type == METRIC_VALUE_CUSTOM) {
     } else if (point->error) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"");
-        if (buffer_used >= buffer_len) {
+        if (buffer_used > buffer_len) {
             return buffer_used;
         }
 
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->error_msg);
-        if (buffer_used >= buffer_len) {
+        if (buffer_used > buffer_len) {
             return buffer_used;
         }
 
@@ -71,12 +72,12 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%ii", point->value_int);
     } else if (point->metric->type == METRIC_VALUE_STRING) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=\"");
-        if (buffer_used >= buffer_len) {
+        if (buffer_used > buffer_len) {
             return buffer_used;
         }
 
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->value_str);
-        if (buffer_used >= buffer_len) {
+        if (buffer_used > buffer_len) {
             return buffer_used;
         }
 
@@ -87,7 +88,7 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"Unknown value type\"");
     }
 
-    if (buffer_used >= buffer_len) {
+    if (buffer_used > buffer_len) {
         return buffer_used;
     }
 
@@ -164,7 +165,7 @@ public:
         size_t buffer_used_for_metric = textprotocol_append_point(
             buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
 
-        if (buffer_used_for_metric >= sizeof(buffer) - buffer_used) {
+        if (buffer_used_for_metric > sizeof(buffer) - buffer_used) {
             // last metric didn't fit, send the buffer without it
             buffer[buffer_used] = '\0';
             send_buffer();
@@ -173,7 +174,7 @@ public:
             buffer_used_for_metric = textprotocol_append_point(
                 buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
 
-            if (buffer_used_for_metric >= sizeof(buffer) - buffer_used) {
+            if (buffer_used_for_metric > sizeof(buffer) - buffer_used) {
                 // doesn't even fit again, discard
                 buffer[buffer_used] = '\0';
                 return;
