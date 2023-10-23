@@ -55,6 +55,11 @@ bool filament_gcodes::load_unload([[maybe_unused]] LoadUnloadMode type, filament
 void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const std::optional<float> &fast_load_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, int8_t mmu_slot, std::optional<filament::Colour> color_to_be_loaded) {
     InProgress progress;
 
+    marlin_server::DisableNozzleTimeout disableNozzleTimeout;
+    if (marlin_server::printer_paused()) {
+        marlin_server::unpause_nozzle(target_extruder);
+    }
+
     if (op_preheat) {
         if (filament_to_be_loaded == filament::Type::NONE) {
             PreheatData data(!fast_load_length.has_value() || fast_load_length > 0.F ? PreheatMode::Load : PreheatMode::Purge, *op_preheat);
@@ -102,6 +107,11 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
 
 void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded) {
     InProgress progress;
+
+    marlin_server::DisableNozzleTimeout disableNozzleTimeout;
+    if (marlin_server::printer_paused()) {
+        marlin_server::unpause_nozzle(target_extruder);
+    }
 
     if (op_preheat) {
         PreheatData data(PreheatMode::Unload, *op_preheat); // TODO do I need PreheatMode::Unload_askUnloaded
