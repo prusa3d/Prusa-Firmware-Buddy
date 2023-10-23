@@ -13,6 +13,10 @@ uint32_t rand_u() {
     return 0xaaaaaaaa;
 }
 
+uint32_t rand_u_sw() {
+    return 0xaaaaaaaa;
+}
+
 #ifdef __cplusplus
 }
 #endif

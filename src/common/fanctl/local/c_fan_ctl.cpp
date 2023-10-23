@@ -70,7 +70,7 @@ int8_t CFanCtlPWM::tick() {
                 }
                 break;
             case random:
-                pha = pha_max * rand_f();
+                pha = pha_max * rand_f_from_u(rand_u_sw());
                 break;
             }
 #endif
