@@ -5,7 +5,6 @@
 #include "log.h"
 #include "metric_handlers.h"
 #include "stm32f4xx_hal.h"
-#include "str_utils.hpp"
 #include "timing.h"
 #include "syslog.h"
 #include "otp.hpp"
@@ -17,73 +16,83 @@
 #define TEXTPROTOCOL_POINT_MAXLEN 63
 #define BUFFER_OLD_MS             1000 // after how many ms we flush the buffer
 
+static int textprotocol_append_escaped(char *buffer, int buffer_len, char *val) {
+    int appended = 0;
+    while (*val != 0 && buffer_len > 0) {
+        char ch = *(val++);
+        if (ch == '"') {
+            if (buffer_len < 2)
+                break;
+            buffer[0] = '\\';
+            buffer[1] = ch;
+            appended += 2;
+            buffer += 2;
+            buffer_len -= 2;
+        } else {
+            buffer[0] = ch;
+            buffer_len -= 1;
+            buffer += 1;
+            appended += 1;
+        }
+    }
+    return appended;
+}
+
 /// Used for indexing METRIC_VALUE_LOG entries. Should be called from a single thread, so we don't need to make this atomic.
 static uint32_t metric_log_index_counter = 0;
 
-static void textprotocol_append_point(StringBuilder &sb, metric_point_t *point, int timestamp_diff) {
-    sb.append_string(point->metric->name);
+static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_t *point, int timestamp_diff) {
+// If we've clipped already, we don't need to continue further with snprintf
+// Same logic applies for the same checks further in this function
+#define CHECK_BUFFER_END           \
+    if (buffer_used >= buffer_len) \
+    return buffer_used
 
-    const auto append_string_escaped = [&](const char *str) {
-        sb.append_char('"');
+    int buffer_used = snprintf(buffer, buffer_len, "%s", point->metric->name);
+    CHECK_BUFFER_END;
 
-        while (char ch = *str++) {
-            if (ch == '"') {
-                sb.append_char('\\');
-            }
-
-            sb.append_char(ch);
-        }
-
-        sb.append_char('"');
-    };
-
-    int type = point->metric->type;
-
-    if (point->error && point->metric->type != METRIC_VALUE_CUSTOM) {
-        type = -1;
+    if (point->metric->type == METRIC_VALUE_CUSTOM) {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "%s", point->value_str_log_custom);
+    } else if (point->metric->type == METRIC_VALUE_LOG) {
+        // Log -> we need to add a tag with an unique value each time to prevent the values from being overriden
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, ",_seq=%lu ", metric_log_index_counter++);
+    } else {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, " ");
     }
+    CHECK_BUFFER_END;
 
-    switch (type) {
+    if (point->metric->type == METRIC_VALUE_CUSTOM) {
+    } else if (point->error) {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"");
+        CHECK_BUFFER_END;
 
-    case METRIC_VALUE_CUSTOM:
-        sb.append_string(point->value_stream);
-        break;
+        buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->error_msg);
+        CHECK_BUFFER_END;
 
-    case METRIC_VALUE_FLOAT:
-        sb.append_printf(" v=%f", double(point->value_float));
-        break;
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
+    } else if (point->metric->type == METRIC_VALUE_FLOAT) {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%f", (double)point->value_float);
+    } else if (point->metric->type == METRIC_VALUE_INTEGER) {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%ii", point->value_int);
+    } else if (point->metric->type == METRIC_VALUE_STRING || point->metric->type == METRIC_VALUE_LOG) {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=\"");
+        CHECK_BUFFER_END;
 
-    case METRIC_VALUE_INTEGER:
-        sb.append_printf(" v=%ii", point->value_int);
-        break;
+        buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->value_str_log_custom);
+        CHECK_BUFFER_END;
 
-    case METRIC_VALUE_LOG:
-        // Log - add _seq tag
-        sb.append_printf(",_seq=%lu", metric_log_index_counter++);
-        [[fallthrough]];
-
-    case METRIC_VALUE_STRING: {
-        sb.append_string(" v=");
-        append_string_escaped(point->value_stream);
-        break;
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
+    } else if (point->metric->type == METRIC_VALUE_EVENT) {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=T");
+    } else {
+        buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"Unknown value type\"");
     }
+    CHECK_BUFFER_END;
 
-    case METRIC_VALUE_EVENT:
-        sb.append_string(" v=T");
-        break;
+    buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, " %i\n", timestamp_diff);
+    return buffer_used;
 
-        // Custom value for error
-    case -1:
-        sb.append_string(" error=");
-        append_string_escaped(point->value_stream);
-        break;
-
-    default:
-        sb.append_string(" error=\"Unknown value type\"");
-        break;
-    }
-
-    sb.append_printf(" %i\n", timestamp_diff);
+#undef CHECK_BUFFER_END
 }
 
 //
@@ -105,9 +114,9 @@ static void uart_handler(metric_point_t *point) {
     int timestamp_diff = point->timestamp - last_reported_timestamp;
     last_reported_timestamp = point->timestamp;
 
-    ArrayStringBuilder<TEXTPROTOCOL_POINT_MAXLEN + 1> sb;
-    textprotocol_append_point(sb, point, timestamp_diff);
-    uart_send_line(sb.str());
+    char line[TEXTPROTOCOL_POINT_MAXLEN + 1];
+    textprotocol_append_point(line, sizeof(line), point, timestamp_diff);
+    uart_send_line(line);
 }
 
 metric_handler_t metric_handler_uart = {
@@ -146,41 +155,38 @@ namespace {
 class MetricsBuffer {
 public:
     void append(metric_point_t *point) {
-        if (!buffer_header_size) {
+        if (!buffer_has_header) {
             init_buffer();
         }
 
         int timestamp_diff = ticks_diff(point->timestamp, buffer_reference_timestamp);
 
-        while (true) {
-            StringBuilder builder(buffer, buffer_used);
-            textprotocol_append_point(builder, point, timestamp_diff);
+        size_t buffer_used_for_metric = textprotocol_append_point(
+            buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
 
-            // We've successfully appended the metric to the buffer -> finish
-            if (builder.is_ok()) {
-                buffer_used += builder.char_count();
-                break;
-            }
-
-            // We've cropped over the buffer -> 'remove' the built message by replacing the first character with \0
+        if (buffer_used_for_metric >= sizeof(buffer) - buffer_used) {
+            // last metric didn't fit, send the buffer without it
             buffer[buffer_used] = '\0';
+            send_buffer();
 
-            // If there was anything else in the buffer than header, we send the buffer (make more space) and try again
-            if (buffer_used != buffer_header_size) {
-                send_buffer();
-                continue;
+            // add the metric again to a fresh buffer
+            buffer_used_for_metric = textprotocol_append_point(
+                buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
 
-            } else {
-                // Otherwise we have to throw the metric out
-                break;
+            if (buffer_used_for_metric >= sizeof(buffer) - buffer_used) {
+                // doesn't even fit again, discard
+                buffer[buffer_used] = '\0';
+                return;
             }
         }
 
-        const bool buffer_almost_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
-        const bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_reference_timestamp) > BUFFER_OLD_MS;
+        buffer_used += buffer_used_for_metric;
+
+        bool buffer_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
+        bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_reference_timestamp) > BUFFER_OLD_MS;
 
         // send the buffer if it's (almost) full or old enough
-        if (buffer_almost_full || buffer_becoming_old) {
+        if (buffer_full || buffer_becoming_old) {
             send_buffer();
         }
     }
@@ -195,12 +201,12 @@ private:
 
         // What the.. format? Checkout RFC5425 (The Syslog Protocol)
         // https://tools.ietf.org/html/rfc5424
-        buffer_header_size = snprintf(
+        buffer_used = snprintf(
             buffer, sizeof(buffer),
             "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=3 ",
             facility * 8 + severity, otp_get_mac_address_str().data(), appname, message_id++, buffer_reference_timestamp);
 
-        buffer_used = buffer_header_size;
+        buffer_has_header = true;
     }
 
     void send_buffer() {
@@ -234,9 +240,9 @@ private:
 
     int message_id { 0 };
     uint32_t buffer_reference_timestamp { 0 };
+    bool buffer_has_header { false };
     char buffer[1024];
-    size_t buffer_used = 0;
-    size_t buffer_header_size = 0;
+    size_t buffer_used { 0 };
 };
 
 } // namespace
