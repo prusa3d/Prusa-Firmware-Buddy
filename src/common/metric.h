@@ -85,7 +85,7 @@ typedef struct metric_s {
     struct metric_s *next;
 
     /// Internal. Use at your own risk.
-    uint32_t _last_update_timestamp;
+    uint32_t _last_update_timestamp_ms;
 
     /// Internal. Use at your own risk.
     ///
@@ -162,31 +162,31 @@ void metric_system_init(metric_handler_t *handlers[]);
 void metric_register(metric_t *metric);
 
 /// Record a float (metric.type has to be METRIC_VALUE_FLOAT)
-#define metric_record_float(metric, value) metric_record_float_at_time(metric, ticks_ms(), value)
+#define metric_record_float(metric, value) metric_record_float_at_time(metric, ticks_us(), value)
 
 /// Record a float with given timestamp (metric.type has to be METRIC_VALUE_FLOAT)
 void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float value);
 
 /// Record an integer (metric.type has to be METRIC_VALUE_INTEGER)
-#define metric_record_integer(metric, value) metric_record_integer_at_time(metric, ticks_ms(), value)
+#define metric_record_integer(metric, value) metric_record_integer_at_time(metric, ticks_us(), value)
 
 /// Record an integer with given timestamp (metric.type has to be METRIC_VALUE_INTEGER)
 void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value);
 
 /// Record a string (metric.type has to be METRIC_VALUE_STRING)
-#define metric_record_string(metric, fmt, ...) metric_record_string_at_time(metric, ticks_ms(), fmt, ##__VA_ARGS__)
+#define metric_record_string(metric, fmt, ...) metric_record_string_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
 
 /// Record a string with given timestamp (metric.type has to be METRIC_VALUE_STRING)
 void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Record an event (metric.type has to be METRIC_VALUE_EVENT)
-#define metric_record_event(metric) metric_record_event_at_time(metric, ticks_ms())
+#define metric_record_event(metric) metric_record_event_at_time(metric, ticks_us())
 
 /// Record an event with given timestamp (metric.type has to be METRIC_VALUE_EVENT)
 void metric_record_event_at_time(metric_t *metric, uint32_t timestamp);
 
 /// Record a custom event (metric.type has to be METRIC_VALUE_CUSTOM)
-#define metric_record_custom(metric, fmt, ...) metric_record_custom_at_time(metric, ticks_ms(), fmt, ##__VA_ARGS__)
+#define metric_record_custom(metric, fmt, ...) metric_record_custom_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
 
 /// Record a custom event with given timestamp (metric.type has to be METRIC_VALUE_CUSTOM)
 void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);

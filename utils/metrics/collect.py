@@ -82,7 +82,7 @@ class LineProtocolParser:
 
     def __init__(self, version):
         self.version = version
-        assert self.version in [2, 3]
+        assert self.version in [2, 3, 4]
 
     def parse(self, text):
         for line in text.splitlines():
@@ -113,12 +113,24 @@ class LineProtocolParser:
 
             yield Point(int(data['time']), metric_name, fields, data['tags'])
 
+    def make_timedelta(self, timestamp):
+        if self.version < 4:
+            return timedelta(milliseconds=int(timestamp))
+        else:
+            return timedelta(microseconds=int(timestamp))
+
 
 class SyslogHandlerClient(asyncio.DatagramProtocol):
     syslog_msg_re = re.compile(
         r'<(?P<PRI>\d+)>1\s+(?P<TM>\S+)\s+(?P<HOST>\S+)'
         r'\s+(?P<APP>\S+)\s+(?P<PROCID>\S+)\s+(?P<SD>\S+)'
         r'\s+(?P<MSGID>\S+)\s+(?P<MSG>.*)', re.MULTILINE | re.DOTALL)
+
+    parsers = {
+        2: LineProtocolParser(version=2),
+        3: LineProtocolParser(version=3),
+        4: LineProtocolParser(version=4),
+    }
 
     class RemotePrinter:
         def __init__(self, mac_address):
@@ -187,22 +199,18 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
     def process_message(self, printer, headerdict, serialized_points,
                         data_size):
         version = int(headerdict.get('v', 1))
-        if version < 2:
-            points = list(self.parser_v1.parse(serialized_points))
-        elif version == 2:
-            points = list(self.parser_v2.parse(serialized_points))
-        elif version == 3:
-            points = list(self.parser_v3.parse(serialized_points))
-        else:
-            return  # unsupported version
-
+        if version not in self.parsers:
+            logging.warning('received unsupported version %s', version)
+            return
+        parser = self.parsers[version]
+        points = list(parser.parse(serialized_points))
         msgid = int(headerdict['msg'])
         printer.register_received_message(msgid)
         self.handle_fn(
             Point(datetime.now(tz=timezone.utc), 'udp_datagram',
                   dict(size=8 + data_size, points=len(points)),
                   dict(mac_address=printer.mac_address)))
-        msgdelta = timedelta(milliseconds=int(headerdict['tm']))
+        msgdelta = parser.make_timedelta(int(headerdict['tm']))
         if printer.last_received_msgid is None:
             printer.session_start_time = datetime.now(
                 tz=timezone.utc) - msgdelta
@@ -218,12 +226,12 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
             try:
                 if version <= 2:
                     # timestamp in v2 is relative to the previous point
-                    timestamp += timedelta(milliseconds=point.timestamp)
+                    timestamp += parser.make_timedelta(point.timestamp)
                     point.timestamp = timestamp
-                elif version == 3:
+                elif version in (3, 4):
                     # timestamp in v3 is relative to the first point in the message
-                    point.timestamp = timestamp + timedelta(
-                        milliseconds=point.timestamp)
+                    point.timestamp = timestamp + parser.make_timedelta(
+                        point.timestamp)
             except OverflowError:
                 logging.info(
                     'failed to increment timestamp %d by %d ms (mac address %s)',
@@ -237,9 +245,6 @@ class SyslogHandlerClient(asyncio.DatagramProtocol):
         self.host, self.port = syslog_address
         self.handle_fn = handle_fn
         self.tags = self.get_session_tags()
-        self.parser_v1 = TextProtocolParser()
-        self.parser_v2 = LineProtocolParser(version=2)
-        self.parser_v3 = LineProtocolParser(version=3)
         self.printers = dict()
 
     def get_session_tags(self):
@@ -309,7 +314,7 @@ class SerialHandlerClient:
                         point.timestamp = datetime.utcnow()
                     else:
                         point.timestamp = self.last_point_datetime + timedelta(
-                            milliseconds=point.timediff)
+                            microseconds=point.timediff)
                     point.tags = dict(**point.tags, **self.tags)
                     self.handle_fn(point)
             except Exception as e:

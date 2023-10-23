@@ -80,13 +80,13 @@ static void metric_system_task_run(const void *) {
 
 static bool check_min_interval(metric_t *metric, uint32_t timestamp) {
     if (metric->min_interval_ms)
-        return ticks_diff(timestamp, metric->_last_update_timestamp) >= (int32_t)metric->min_interval_ms;
+        return ticks_diff(timestamp, metric->_last_update_timestamp_ms) >= (int32_t)metric->min_interval_ms;
     else
         return true;
 }
 
 static void update_min_interval(metric_t *metric) {
-    metric->_last_update_timestamp = ticks_ms();
+    metric->_last_update_timestamp_ms = ticks_ms();
 }
 
 static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timestamp, metric_value_type_t type) {
@@ -184,7 +184,7 @@ void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int val
 
 void metric_record_error(metric_t *metric, const char *fmt, ...) {
     // TODO: we might want separate throttling for errors
-    metric_point_t *recording = point_check_and_prepare(metric, ticks_ms(), metric->type);
+    metric_point_t *recording = point_check_and_prepare(metric, ticks_us(), metric->type);
     if (!recording)
         return;
     recording->error = true;
@@ -204,5 +204,5 @@ void metric_disable_for_handler(metric_t *metric, metric_handler_t *handler) {
 }
 
 bool metric_record_is_due(metric_t *metric) {
-    return check_min_interval(metric, ticks_ms());
+    return check_min_interval(metric, ticks_us());
 }

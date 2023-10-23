@@ -12,6 +12,9 @@
 #include <option/development_items.h>
 #include <config_store/store_instance.hpp>
 #include <atomic>
+#include <algorithm>
+#include <algorithm>
+#include <inttypes.h>
 
 #define TEXTPROTOCOL_POINT_MAXLEN 63
 #define BUFFER_OLD_MS             1000 // after how many ms we flush the buffer
@@ -124,7 +127,7 @@ void metric_handlers_init() {
     }
 }
 
-static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp) {
+static int syslog_message_init(char *buffer, int buffer_len, int64_t timestamp) {
     static int message_id = 0;
     const int facility = 1; // user level message
     const int severity = 6; // informational
@@ -134,7 +137,7 @@ static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp)
     // https://tools.ietf.org/html/rfc5424
     return snprintf(
         buffer, buffer_len,
-        "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=3 ",
+        "<%i>1 - %s %s - - - msg=%i,tm=%" PRId64 ",v=4 ",
         facility * 8 + severity, otp_get_mac_address_str().data(), appname, message_id++, timestamp);
 }
 
@@ -145,8 +148,9 @@ static void syslog_handler(metric_point_t *point) {
     static unsigned int buffer_used = 0;
 
     if (!buffer_has_header) {
-        buffer_reference_timestamp = ticks_ms();
-        buffer_used = syslog_message_init(buffer, sizeof(buffer), buffer_reference_timestamp);
+        int64_t absolute_timestamp_us = get_timestamp_us();
+        buffer_reference_timestamp = static_cast<uint32_t>(absolute_timestamp_us);
+        buffer_used = syslog_message_init(buffer, sizeof(buffer), absolute_timestamp_us);
         buffer_has_header = true;
     }
 
@@ -155,7 +159,7 @@ static void syslog_handler(metric_point_t *point) {
         buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
 
     bool buffer_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
-    bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_reference_timestamp) > BUFFER_OLD_MS;
+    bool buffer_becoming_old = ticks_diff(ticks_us(), buffer_reference_timestamp) > (BUFFER_OLD_MS * 1000);
 
     // send the buffer if it's full or old enough
     if (buffer_full || buffer_becoming_old) {
