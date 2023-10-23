@@ -145,13 +145,24 @@ void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float val
     point_enqueue(recording);
 }
 
-void metric_record_str_log_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
-    metric_point_t *recording = point_check_and_prepare(metric, timestamp, metric->type);
+void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+    metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_STRING);
     if (!recording)
         return;
     va_list args;
     va_start(args, fmt);
-    vsnprintf(recording->value_str_log_custom, sizeof(recording->value_str_log_custom), fmt, args);
+    vsnprintf(recording->value_str, sizeof(recording->value_str), fmt, args);
+    va_end(args);
+    point_enqueue(recording);
+}
+
+void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...) {
+    metric_point_t *recording = point_check_and_prepare(metric, timestamp, METRIC_VALUE_CUSTOM);
+    if (!recording)
+        return;
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(recording->value_custom, sizeof(recording->value_custom), fmt, args);
     va_end(args);
     point_enqueue(recording);
 }
