@@ -46,23 +46,20 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used = snprintf(buffer, buffer_len, "%s ", point->metric->name);
     }
 
-    // Note this check (and all occurrences of the same below) won't catch if
-    // the trailing '\0' was not written by snprintf due to being at the end of
-    // the buffer. In this case it's ok, the buffer_used is what needs to be correct.
-    if (buffer_used > buffer_len) {
-        return buffer_used;
+    if (buffer_used >= buffer_len) {
+        return buffer_len;
     }
 
     if (point->metric->type == METRIC_VALUE_CUSTOM) {
     } else if (point->error) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"");
-        if (buffer_used > buffer_len) {
-            return buffer_used;
+        if (buffer_used >= buffer_len) {
+            return buffer_len;
         }
 
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->error_msg);
-        if (buffer_used > buffer_len) {
-            return buffer_used;
+        if (buffer_used >= buffer_len) {
+            return buffer_len;
         }
 
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
@@ -72,13 +69,13 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=%ii", point->value_int);
     } else if (point->metric->type == METRIC_VALUE_STRING) {
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "v=\"");
-        if (buffer_used > buffer_len) {
-            return buffer_used;
+        if (buffer_used >= buffer_len) {
+            return buffer_len;
         }
 
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->value_str);
-        if (buffer_used > buffer_len) {
-            return buffer_used;
+        if (buffer_used >= buffer_len) {
+            return buffer_len;
         }
 
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "\"");
@@ -88,12 +85,12 @@ static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_
         buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, "error=\"Unknown value type\"");
     }
 
-    if (buffer_used > buffer_len) {
-        return buffer_used;
+    if (buffer_used >= buffer_len) {
+        return buffer_len;
     }
 
     buffer_used += snprintf(buffer + buffer_used, buffer_len - buffer_used, " %i\n", timestamp_diff);
-    return buffer_used;
+    return std::min(buffer_used, buffer_len);
 }
 
 //
@@ -151,66 +148,41 @@ void metric_handlers_init() {
     }
 }
 
-namespace {
+static int syslog_message_init(char *buffer, int buffer_len, uint32_t timestamp) {
+    static int message_id = 0;
+    const int facility = 1; // user level message
+    const int severity = 6; // informational
+    const char *appname = "buddy";
 
-class MetricsBuffer {
-public:
-    void append(metric_point_t *point) {
-        if (!buffer_has_header) {
-            init_buffer();
-        }
+    // What the.. format? Checkout RFC5425 (The Syslog Protocol)
+    // https://tools.ietf.org/html/rfc5424
+    return snprintf(
+        buffer, buffer_len,
+        "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=3 ",
+        facility * 8 + severity, otp_get_mac_address_str().data(), appname, message_id++, timestamp);
+}
 
-        int timestamp_diff = ticks_diff(point->timestamp, buffer_reference_timestamp);
+static void syslog_handler(metric_point_t *point) {
+    static uint32_t buffer_reference_timestamp = 0;
+    static char buffer_has_header = false;
+    static char buffer[1024];
+    static unsigned int buffer_used = 0;
 
-        size_t buffer_used_for_metric = textprotocol_append_point(
-            buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
-
-        if (buffer_used_for_metric > sizeof(buffer) - buffer_used) {
-            // last metric didn't fit, send the buffer without it
-            buffer[buffer_used] = '\0';
-            send_buffer();
-
-            // add the metric again to a fresh buffer
-            buffer_used_for_metric = textprotocol_append_point(
-                buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
-
-            if (buffer_used_for_metric > sizeof(buffer) - buffer_used) {
-                // doesn't even fit again, discard
-                buffer[buffer_used] = '\0';
-                return;
-            }
-        }
-
-        buffer_used += buffer_used_for_metric;
-
-        bool buffer_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
-        bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_reference_timestamp) > BUFFER_OLD_MS;
-
-        // send the buffer if it's (almost) full or old enough
-        if (buffer_full || buffer_becoming_old) {
-            send_buffer();
-        }
-    }
-
-private:
-    void init_buffer() {
-        const int facility = 1; // user level message
-        const int severity = 6; // informational
-        const char *appname = "buddy";
-
+    if (!buffer_has_header) {
         buffer_reference_timestamp = ticks_ms();
-
-        // What the.. format? Checkout RFC5425 (The Syslog Protocol)
-        // https://tools.ietf.org/html/rfc5424
-        buffer_used = snprintf(
-            buffer, sizeof(buffer),
-            "<%i>1 - %s %s - - - msg=%i,tm=%lu,v=3 ",
-            facility * 8 + severity, otp_get_mac_address_str().data(), appname, message_id++, buffer_reference_timestamp);
-
+        buffer_used = syslog_message_init(buffer, sizeof(buffer), buffer_reference_timestamp);
         buffer_has_header = true;
     }
 
-    void send_buffer() {
+    int timestamp_diff = ticks_diff(point->timestamp, buffer_reference_timestamp);
+    buffer_used += textprotocol_append_point(
+        buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
+
+    bool buffer_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
+    bool buffer_becoming_old = ticks_diff(ticks_ms(), buffer_reference_timestamp) > BUFFER_OLD_MS;
+
+    // send the buffer if it's full or old enough
+    if (buffer_full || buffer_becoming_old) {
         // is the socket ready?
         bool open = syslog_transport_check_is_open(&syslog_transport);
 
@@ -236,22 +208,9 @@ private:
                 syslog_transport_close(&syslog_transport);
         }
 
-        init_buffer();
+        buffer_used = 0;
+        buffer_has_header = false;
     }
-
-    int message_id { 0 };
-    uint32_t buffer_reference_timestamp { 0 };
-    bool buffer_has_header { false };
-    char buffer[1024];
-    size_t buffer_used { 0 };
-};
-
-} // namespace
-
-static MetricsBuffer metrics_buffer;
-
-static void syslog_handler(metric_point_t *point) {
-    metrics_buffer.append(point);
 }
 
 void metric_handler_syslog_configure(const char *ip, uint16_t port) {
