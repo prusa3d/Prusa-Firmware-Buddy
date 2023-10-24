@@ -215,9 +215,8 @@ void window_t::SetBackColor(const color_scheme &clr) {
 }
 
 window_t::window_t(window_t *parent, Rect16 rect, win_type_t type, is_closed_on_click_t close)
-    : parent(parent)
-    , next(nullptr)
-    , rect(rect)
+    : rect(rect)
+    , parent(parent)
     , flags(0)
     , color_back(GuiDefaults::ColorBack) {
     flags.type = uint8_t(type);
@@ -322,7 +321,7 @@ window_t *window_t::GetPrev() const {
 
 window_t *window_t::GetNextEnabled() const {
     if (next)
-        return (next->IsEnabled()) ? next : next->GetNextEnabled();
+        return (next->IsEnabled()) ? next.ptr() : next->GetNextEnabled();
     return nullptr;
 }
 

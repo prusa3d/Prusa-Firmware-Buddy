@@ -7,21 +7,21 @@
 #include "window_filter.hpp"
 
 class window_frame_t : public AddSuperWindow<window_t> {
-    window_t *captured_normal_window; // might need to move it in window frame after menu refactoring
-
     // stored rect to print in draw method (exept when enetire screen is invalid)
     // hiding, or unregistration of window sets it
     Rect16 invalid_area;
 
+    CompactRAMPointer<window_t> captured_normal_window; // might need to move it in window frame after menu refactoring
+
 protected:
-    window_t *first_normal;
-    window_t *last_normal;
+    CompactRAMPointer<window_t> first_normal;
+    CompactRAMPointer<window_t> last_normal;
 
     window_t *getFirstNormal() const;
     window_t *getLastNormal() const;
 
-    void registerAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
-    void unregisterAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast);
+    void registerAnySubWin(window_t &win, CompactRAMPointer<window_t> &pFirst, CompactRAMPointer<window_t> &pLast);
+    void unregisterAnySubWin(window_t &win, CompactRAMPointer<window_t> &pFirst, CompactRAMPointer<window_t> &pLast);
 
     void colorConflictBackgroundToRed(window_t &win);
     void clearAllHiddenBehindDialogFlags();

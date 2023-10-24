@@ -8,12 +8,14 @@
 #include "align.hpp"
 #include "color_scheme.hpp"
 #include "gui_time.hpp" // not needed here, but will save lot of includes
+#include "compact_pointer.hpp"
 // !!! all windows should use gui::GetTick() to access tick value!!!
 
 class window_t {
-    window_t *parent;
-    window_t *next;
     Rect16 rect; // (8 bytes) display rectangle
+    CompactRAMPointer<window_t> parent;
+    CompactRAMPointer<window_t> next;
+
 protected:
     WindowFlags flags;
 

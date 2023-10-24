@@ -81,7 +81,7 @@ bool window_frame_t::registerSubWin(window_t &win) {
     return true;
 }
 
-void window_frame_t::registerAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast) {
+void window_frame_t::registerAnySubWin(window_t &win, CompactRAMPointer<window_t> &pFirst, CompactRAMPointer<window_t> &pLast) {
     if ((!pFirst) || (!pLast)) {
         pFirst = pLast = &win;
     } else {
@@ -128,7 +128,7 @@ void window_frame_t::unregisterSubWin(window_t &win) {
         unregisterAnySubWin(win, first_normal, last_normal);
 }
 
-void window_frame_t::unregisterAnySubWin(window_t &win, window_t *&pFirst, window_t *&pLast) {
+void window_frame_t::unregisterAnySubWin(window_t &win, CompactRAMPointer<window_t> &pFirst, CompactRAMPointer<window_t> &pLast) {
     if ((!pFirst) || (!pLast))
         return;
 
@@ -473,7 +473,7 @@ window_t *window_frame_t::getCapturedNormalWin() const {
 }
 
 bool window_frame_t::IsChildCaptured() const {
-    return captured_normal_window != nullptr;
+    return captured_normal_window;
 }
 
 bool window_frame_t::CaptureNormalWindow(window_t &win) {
