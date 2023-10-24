@@ -176,3 +176,71 @@ void window_vertical_progress_t::unconditionalDraw() {
         display::FillRect(rc, color_progress);
     }
 }
+
+WindowProgressCircles::WindowProgressCircles(window_t *parent, Rect16 rect, uint8_t max_circles_)
+    : AddSuperWindow<window_t>(parent, rect)
+    , max_circles(max_circles_) {
+    assert(max_circles > 0);
+    assert(rect.Width() >= (rect.Height() - 1) * max_circles);
+}
+
+void WindowProgressCircles::unconditionalDraw() {
+    assert(!flags.has_round_corners); // Not implemented
+
+    window_t::unconditionalDraw(); // draws background
+
+    const auto &drawn_rect { GetRect() };
+    const auto delimiter = (drawn_rect.Width() - max_circles * (drawn_rect.Height())) / (max_circles);
+    int16_t current_x { static_cast<int16_t>(drawn_rect.Left() + delimiter / 2) };
+
+    for (size_t i = 0; i < max_circles; ++i) {
+        Rect16 circle_to_draw {
+            current_x,
+            drawn_rect.Top(),
+            static_cast<Rect16::Width_t>(drawn_rect.Height()),
+            static_cast<Rect16::Height_t>(drawn_rect.Height()),
+        };
+        const color_t color = i == current_index || (!one_circle_mode && i < current_index) ? color_on : color_off;
+
+        const auto corner_radius =
+            [&]() {
+                if (circle_to_draw.Height() <= 8) {
+                    return circle_to_draw.Height() * 80 / 100;
+                } else if (circle_to_draw.Height() < 15) {
+                    return circle_to_draw.Height() * 70 / 100;
+                } else if (circle_to_draw.Height() < 25) {
+                    return circle_to_draw.Height() * 60 / 100;
+                } else {
+                    return circle_to_draw.Height() * 52 / 100;
+                }
+            }();
+
+        // We don't have a simple way of drawing circle on the screen, but drawing rounded rectangle with the magic constant (found experimentally) produces 'good enough' circles
+        display::DrawRoundedRect(circle_to_draw, GetBackColor(), color, corner_radius, MIC_ALL_CORNERS);
+
+        current_x += drawn_rect.Height() + delimiter;
+    }
+}
+
+void WindowProgressCircles::set_index(uint8_t new_index) {
+    if (current_index == new_index) {
+        return;
+    }
+    current_index = new_index;
+    Invalidate();
+}
+
+void WindowProgressCircles::set_on_color(color_t clr) {
+    color_on = clr;
+    Invalidate();
+}
+
+void WindowProgressCircles::set_off_color(color_t clr) {
+    color_off = clr;
+    Invalidate();
+}
+
+void WindowProgressCircles::set_one_circle_mode(bool new_mode) {
+    one_circle_mode = new_mode;
+    Invalidate();
+}
