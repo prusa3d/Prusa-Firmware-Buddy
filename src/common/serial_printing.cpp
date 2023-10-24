@@ -42,9 +42,9 @@ void remove_N_prefix(const char *&command) {
     if (*command == 'N') {
         ++command;
         while (*command != ' ') {
-            ++command;
             if (*command == '\0')
                 return;
+            ++command;
         }
         ++command;
     }
