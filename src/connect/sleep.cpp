@@ -15,8 +15,8 @@ namespace connect_client {
 
 namespace {
 
-    // Wait half a second between config retries and similar.
-    const constexpr uint32_t IDLE_WAIT = 500;
+    // Wait a quarter of second between config retries and similar.
+    const constexpr uint32_t IDLE_WAIT = 250;
 
     const constexpr uint32_t COMMAND_LATER_TIME = 100;
 
@@ -125,6 +125,9 @@ void Sleep::perform(Printer &printer, Planner &planner) {
 
             switch (auto result = download->step(printer.is_printing()); result) {
             case Transfer::State::Downloading:
+                // Avoid busy-looping & hogging the CPU during downloading.
+                sleep_raw(max_step_time);
+                [[fallthrough]];
             case Transfer::State::Retrying:
                 // Go for another iteration (now or during next sleep).
                 break;
