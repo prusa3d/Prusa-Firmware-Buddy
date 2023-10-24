@@ -238,6 +238,8 @@ private:
 
         virtual void release();
         virtual bool step() = 0;
+        // Call step as long as you can, to make all forward progress as possible.
+        void forward_progress();
         virtual bool want_read() const = 0;
         virtual bool want_write() const = 0;
         virtual bool take_pbuf(pbuf *data) = 0;

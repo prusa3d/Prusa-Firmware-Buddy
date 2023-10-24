@@ -99,6 +99,11 @@ void Server::Slot::release() {
     conn = nullptr;
 }
 
+void Server::Slot::forward_progress() {
+    while (step()) {
+    }
+}
+
 void Server::ConnectionSlot::release() {
     state = Idle();
     release_partial();
@@ -162,8 +167,7 @@ void Server::inject_transfer(altcp_pcb *conn, pbuf *data, uint16_t data_offset, 
         dest->pbuf_processed = data_offset;
     }
 
-    while (transfer_slot.step()) {
-    }
+    transfer_slot.forward_progress();
 }
 
 void Server::ConnectionSlot::step(string_view input, uint8_t *output, size_t out_size) {
@@ -461,8 +465,7 @@ err_t Server::idle_conn_wrap(void *slot, altcp_pcb *conn) {
         // still need a last-resort "resurrect" for such case, which we do
         // here.
         TransferSlot *ts = static_cast<TransferSlot *>(slot);
-        while (ts->step()) {
-        }
+        ts->forward_progress();
 
         if (ts->pbuf_queue_size > 0) {
             // We want to prevent the connection from timing out just because
@@ -577,8 +580,7 @@ err_t Server::received_wrap(void *raw_slot, struct altcp_pcb *conn, pbuf *data, 
          * Any freeing of the pbuf happens in there (or maybe even later on in
          * case of async processing), as does the altcp_recved
          */
-        while (slot->step()) {
-        }
+        slot->forward_progress();
 
         return ERR_OK;
     } else {
@@ -630,8 +632,7 @@ void Server::step() {
         }
     }
 
-    while (transfer_slot.step()) {
-    }
+    transfer_slot.forward_progress();
 }
 
 bool Server::is_active_slot(void *slot) {
@@ -886,8 +887,7 @@ bool Server::TransferSlot::take_pbuf(pbuf *data) {
     if (pbuf_queue_size >= PbufQueueMax) {
         // Try to make room for the incoming pbuf in the queue.
         // (Further attempts will be done in the step just after this, to submit this pbuf)
-        while (step()) {
-        }
+        forward_progress();
     }
 
     if (pbuf_queue_size >= PbufQueueMax) {
@@ -958,8 +958,7 @@ void Server::TransferSlot::segment_written(void *arg) {
     assert(arg != nullptr);
     TransferSlot *slot = static_cast<TransferSlot *>(arg);
     assert(slot->get_slot_type() == SlotType::TransferSlot);
-    while (slot->step()) {
-    }
+    slot->forward_progress();
 }
 
 void Server::TransferSlot::send_segment_written(void *arg) {
