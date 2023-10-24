@@ -1040,7 +1040,7 @@ float probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_
   {
       int logical_x = LOGICAL_X_POSITION(rx);
       int logical_y = LOGICAL_Y_POSITION(ry);
-      metric_record_custom(&metric_probe_z, ",x=%i,y=%i v=%.3f", logical_x, logical_y, (double)measured_z);
+      metric_record_custom(&metric_probe_z, " x=%i,y=%i,v=%.3f", logical_x, logical_y, (double)measured_z);
   }
 
   feedrate_mm_s = old_feedrate_mm_s;
