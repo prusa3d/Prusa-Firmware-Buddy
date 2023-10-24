@@ -155,18 +155,31 @@ static void syslog_handler(metric_point_t *point) {
     static char buffer[1024];
     static unsigned int buffer_used = 0;
 
-    if (!buffer_has_header) {
+    auto init_header = [&]() {
         int64_t absolute_timestamp_us = get_timestamp_us();
         buffer_reference_timestamp = static_cast<uint32_t>(absolute_timestamp_us);
         buffer_used = syslog_message_init(buffer, sizeof(buffer), absolute_timestamp_us);
         buffer_has_header = true;
+    };
+
+    auto append_point = [&]() {
+        int timestamp_diff = ticks_diff(point->timestamp, buffer_reference_timestamp);
+        int buffer_used_by_point = textprotocol_append_point(
+            buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
+        if (buffer_used + buffer_used_by_point < sizeof(buffer)) {
+            buffer_used += buffer_used_by_point;
+            return true;
+        } else {
+            buffer[buffer_used] = '\0'; // drop the incomplete point from the buffer
+            return false;
+        }
+    };
+
+    if (!buffer_has_header) {
+        init_header();
     }
-
-    int timestamp_diff = ticks_diff(point->timestamp, buffer_reference_timestamp);
-    buffer_used += textprotocol_append_point(
-        buffer + buffer_used, sizeof(buffer) - buffer_used, point, timestamp_diff);
-
-    bool buffer_full = buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer);
+    bool point_fit = append_point();
+    bool buffer_full = (buffer_used + TEXTPROTOCOL_POINT_MAXLEN > sizeof(buffer)) || !point_fit;
     bool buffer_becoming_old = ticks_diff(ticks_us(), buffer_reference_timestamp) > (BUFFER_OLD_MS * 1000);
 
     // send the buffer if it's full or old enough
@@ -198,6 +211,13 @@ static void syslog_handler(metric_point_t *point) {
 
         buffer_used = 0;
         buffer_has_header = false;
+    }
+
+    if (!point_fit) {
+        init_header();
+        if (!append_point()) {
+            assert(false && "point should always fit in a new buffer");
+        }
     }
 }
 
