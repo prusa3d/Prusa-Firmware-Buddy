@@ -93,29 +93,28 @@ GCodeInfo::GCodeInfo()
     , gcode_file_name(nullptr) {
 }
 
-bool GCodeInfo::start_load() {
+bool GCodeInfo::start_load(AnyGcodeFormatReader &file_reader) {
     reset_info();
 
-    file_reader = std::make_unique<AnyGcodeFormatReader>(gcode_file_path);
-    if (file_reader->is_open()) {
+    file_reader.open(gcode_file_path);
+    if (file_reader.is_open()) {
         start_load_result_ = StartLoadResult::Started;
-        check_valid_for_print(); // This only updates is_valid, will change over the prefetch change
+        check_valid_for_print(file_reader); // This only updates is_valid, will change over the prefetch change
         return true;
 
     } else {
-        file_reader.reset();
         start_load_result_ = StartLoadResult::Failed;
         return false;
     }
 }
 
-void GCodeInfo::end_load() {
-    file_reader.reset();
+void GCodeInfo::end_load(AnyGcodeFormatReader &file_reader) {
+    file_reader.close();
 }
 
-bool GCodeInfo::check_valid_for_print() {
-    assert(file_reader);
-    auto &reader = *file_reader->get();
+bool GCodeInfo::check_valid_for_print(AnyGcodeFormatReader &file_reader) {
+    assert(file_reader.is_open());
+    auto &reader = *file_reader.get();
 
     transfers::Transfer::Path path(GetGcodeFilepath());
     reader.update_validity(path);
@@ -128,14 +127,14 @@ bool GCodeInfo::check_valid_for_print() {
     return is_printable_;
 }
 
-bool GCodeInfo::verify_file() {
-    assert(file_reader);
+bool GCodeInfo::verify_file(AnyGcodeFormatReader &file_reader) {
+    assert(file_reader.is_open());
 
     log_info(Buddy, "Starting file verify...");
 
     // TODO: enable CRC verification, but now its disabled because it takes ages due to slow USB read and suboptimal implementation
     // For now we're only doing quick verification
-    if (auto result = file_reader->get()->verify_file(IGcodeReader::FileVerificationLevel::quick); !result) {
+    if (auto result = file_reader.get()->verify_file(IGcodeReader::FileVerificationLevel::quick); !result) {
         error_str_ = result.error_str;
         log_info(Buddy, "File verify FAIL: %s", result.error_str);
         return false;
@@ -145,14 +144,14 @@ bool GCodeInfo::verify_file() {
     return true;
 }
 
-void GCodeInfo::load() {
-    assert(file_reader); // assert file is open
+void GCodeInfo::load(AnyGcodeFormatReader &file_reader) {
+    assert(file_reader.is_open()); // assert file is open
 
-    has_preview_thumbnail_ = hasThumbnail(*file_reader->get(), GuiDefaults::PreviewThumbnailRect.Size());
-    has_progress_thumbnail_ = hasThumbnail(*file_reader->get(), GuiDefaults::ProgressThumbnailRect.Size());
+    has_preview_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::PreviewThumbnailRect.Size());
+    has_progress_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::ProgressThumbnailRect.Size());
 
     // scan info G-codes and comments
-    PreviewInit();
+    PreviewInit(*file_reader.get());
     is_loaded_ = true;
 }
 
@@ -529,12 +528,11 @@ void GCodeInfo::parse_comment(GcodeBuffer::String comment) {
     }
 }
 
-void GCodeInfo::PreviewInit() {
+void GCodeInfo::PreviewInit(IGcodeReader &reader) {
     valid_printer_settings = ValidPrinterSettings(); // reset to valid state
     per_extruder_info = {}; // Reset extruder info
 
     GcodeBuffer buffer;
-    auto &reader = *file_reader->get();
 
     // parse metadata
     if (reader.stream_metadata_start()) {

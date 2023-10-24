@@ -50,9 +50,8 @@ public:
      * @brief Initialize GCodeInfo.
      * This must be called after GCodeInfo has valid file path,
      *   after GCodeInfo::Init() has been inited with gui_media_SFN_path and that has been updated.
-     * @return true if thumbnail is available
      */
-    bool init_gcode_info();
+    void init_gcode_info();
 
     void Pause();
     void Resume();

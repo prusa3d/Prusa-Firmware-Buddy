@@ -374,6 +374,7 @@ extern "C" void main_cpp(void) {
     espif_init_hw();
 #endif
 
+    media_prefetch_init();
     osThreadCCMDef(media_prefetch, media_prefetch, TASK_PRIORITY_MEDIA_PREFETCH, 0, 768);
     prefetch_thread_id = osThreadCreate(osThread(media_prefetch), nullptr);
 

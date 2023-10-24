@@ -157,8 +157,6 @@ public:
     using GCodePerExtruderInfo = std::array<ExtruderInfo, EXTRUDERS>;
 
 private:
-    std::unique_ptr<AnyGcodeFormatReader> file_reader;
-
     uint32_t printer_model_code; ///< model code (see printer_model2code())
 
     // atomic flags to signal to other thread, the progress of gcode loading
@@ -244,26 +242,32 @@ public:
     const char *GetGcodeFilepath();
 
     /**
-     * @brief Start loading of gcode (open file)
+     * @brief Start loading of gcode (open file).
+     * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
      */
-    bool start_load();
+    bool start_load(AnyGcodeFormatReader &file_reader);
 
     /**
-     * @brief End loading of gcode (close file)
+     * @brief End loading of gcode (close file).
+     * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
      */
-    void end_load();
+    void end_load(AnyGcodeFormatReader &file_reader);
 
     /**
-     * @brief Check if file is ready for print
+     * @brief Check if file is ready for print.
+     * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
      */
-    bool check_valid_for_print();
-
-    /// Checks validity of the file (possibly CRC and such). Returns if the file is valid.
-    /// Updates error_str if the file is not valid.
-    bool verify_file();
+    bool check_valid_for_print(AnyGcodeFormatReader &file_reader);
 
     /**
-     * @brief Check the printable flag
+     * @brief Checks validity of the file (possibly CRC and such).
+     * Returns if the file is valid. Updates error_str if the file is not valid.
+     * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
+     */
+    bool verify_file(AnyGcodeFormatReader &file_reader);
+
+    /**
+     * @brief Check the printable flag.
      *
      * To be used concurently to `check_valid_for_print`,
      * which does the real checking
@@ -271,7 +275,7 @@ public:
     bool can_be_printed() { return is_printable_; }
 
     /**
-     * @brief Check the result of starting the load
+     * @brief Check the result of starting the load.
      *
      * To be used concurently to `start_load`,
      * which does the starting.
@@ -279,10 +283,11 @@ public:
     StartLoadResult start_load_result() { return start_load_result_; }
 
     /**
-     * @brief Sets up gcode file and sets up info member variables for print preview
+     * @brief Sets up gcode file and sets up info member variables for print preview.
      * @note start_load and end_load shall be called before&after
+     * @param file_reader gcode file reader, it cannot be accessed by other threads at the same time
      */
-    void load();
+    void load(AnyGcodeFormatReader &file_reader);
 
     /** Evaluates tool compatibility*/
     void EvaluateToolsValid();
@@ -295,8 +300,9 @@ private:
     /**
      * @brief Parse G-code file for comments and info codes.
      * This cannot be run from Marlin thread, because it takes too long for watchdog.
+     * @param[in] reader - gcode file reader reference
      */
-    void PreviewInit();
+    void PreviewInit(IGcodeReader &reader);
 
     /** Iterate over items separated by some delimeter character */
     std::optional<std::span<char>> iterate_items(std::span<char> &buffer, char separator);

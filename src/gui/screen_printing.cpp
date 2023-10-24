@@ -189,9 +189,6 @@ screen_printing_data_t::screen_printing_data_t()
     w_etime_label.set_font(resource_font(IDR_FNT_SMALL));
 
 #if defined(USE_ILI9488)
-    /// @note Initialize GCodeInfo of print progress.
-    ///   This needs to be done after gui_media_SFN_path is updated.
-    ///   This can take time if GCodeInfo was not yet inited, after powerpanic and such.
     print_progress.init_gcode_info();
 #endif /*USE_ILI9488*/
 
