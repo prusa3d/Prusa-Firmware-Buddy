@@ -60,7 +60,7 @@ extern "C" int64_t get_timestamp_us() {
     uint32_t sec, subsec;
     sample_timer(sec, subsec);
 
-    return static_cast<int64_t>(sec) * static_cast<int64_t>(billion) + (subsec / TIM_BASE_CLK_MHZ);
+    return static_cast<int64_t>(sec) * static_cast<int64_t>(million) + (subsec / TIM_BASE_CLK_MHZ);
 }
 
 extern "C" timestamp_t get_timestamp() {
