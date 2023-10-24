@@ -192,7 +192,7 @@ extern "C" {
 #define USBH_MAX_ERROR_COUNT                               0x50U
 
 #if (USBH_USE_OS == 1U)
-#define MSGQUEUE_OBJECTS                                   0x10U
+#define MSGQUEUE_OBJECTS                                   0x30U
 #endif
 
 
@@ -489,7 +489,7 @@ typedef struct _USBH_HandleTypeDef
 #endif
   uint32_t              os_msg;
 #endif
-
+  bool                  stealth_reset;
 } USBH_HandleTypeDef;
 
 

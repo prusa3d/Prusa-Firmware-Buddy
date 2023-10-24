@@ -48,7 +48,8 @@ static_assert(configLIBRARY_LOWEST_INTERRUPT_PRIORITY == 15);
     #define TASK_PRIORITY_MEDIA_PREFETCH             osPriorityHigh
     #define TASK_PRIORITY_METRIC_SYSTEM              osPriorityAboveNormal
     #define TASK_PRIORITY_USB_HOST                   osPriorityNormal
-    #define TASK_PRIORITY_USB_MSC_WORKER             osPriorityRealtime
+    #define TASK_PRIORITY_USB_MSC_WORKER_HIGH        osPriorityRealtime
+    #define TASK_PRIORITY_USB_MSC_WORKER_LOW         osPriorityNormal
     #define TASK_PRIORITY_DISPLAY_TASK               osPriorityNormal
     #define TASK_PRIORITY_MEASUREMENT_TASK           osPriorityNormal
     #define TASK_PRIORITY_ESP_UPDATE                 osPriorityNormal
