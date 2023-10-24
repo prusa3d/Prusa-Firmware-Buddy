@@ -1350,7 +1350,8 @@ static void _server_print_loop(void) {
         crash_s.reset();
         crash_s.reset_crash_counter();
         endstops.enable_globally(true);
-        crash_s.set_state(Crash_s::PRINTING);
+        // Crash Detection is disabled during serial printing, because it does not work
+        // crash_s.set_state(Crash_s::PRINTING);
 #endif // ENABLED(CRASH_RECOVERY)
 #if ENABLED(CANCEL_OBJECTS)
         cancelable.reset();
@@ -1455,7 +1456,9 @@ static void _server_print_loop(void) {
         } else {
             // UnparkHead can be called after a pause, in which case crash handling should already
             // be active and we don't need to change any other setting
-            assert(crash_s.get_state() == Crash_s::PRINTING);
+
+            // Crash Detection is disabled during serial printing, because it does not work
+            assert(server.print_is_serial || crash_s.get_state() == Crash_s::PRINTING);
         }
 #endif
 #if HAS_BED_PROBE || HAS_LOADCELL() && ENABLED(PROBE_CLEANUP_SUPPORT)
