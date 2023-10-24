@@ -97,6 +97,11 @@ class LineProtocolParser:
                 fields = dict(value=fields['v'])
 
             metric_name = data['measurement']
+
+            if self.version == 3 and '_seq' in data['tags']:
+                # ignore metric_record_log metrics which were for a few weeks part of the firmware & were overflowing the database
+                continue
+
             if LineProtocolParser.valid_metric_name_re.match(
                     metric_name) is None:
                 logger.warning("Invalid metric name %r", metric_name)
