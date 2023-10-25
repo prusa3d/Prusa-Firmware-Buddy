@@ -108,7 +108,8 @@ typedef struct {
     /// The metric for which the value was recorded.
     metric_t *metric;
 
-    /// Timestamp of the metric in us
+    /// Timestamp of the metric in us.
+    /// Oveflows and we are fine with it. Measures the interval between metric transfers only.
     uint32_t timestamp;
 
     /// Is it an error message?
