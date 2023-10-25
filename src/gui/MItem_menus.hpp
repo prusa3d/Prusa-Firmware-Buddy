@@ -461,16 +461,6 @@ protected:
     virtual void click(IWindowMenu &windowMenu) override;
 };
 
-class MI_CALIBRATE : public WI_LABEL_t {
-    static constexpr const char *const label = N_("Calibrate");
-
-public:
-    MI_CALIBRATE();
-
-protected:
-    virtual void click(IWindowMenu &windowMenu) override;
-};
-
 class MI_PICK_PARK_TOOL : public WI_LABEL_t {
     static constexpr const char *const label = N_("Pick/Park Tool");
 

@@ -44,9 +44,9 @@ target_sources(
           screen_hardfault.cpp
           screen_home.cpp
           screen_menu.cpp
-          screen_menu_calibration.cpp
           screen_menu_cancel_object.cpp
           screen_menu_connect.cpp
+          screen_menu_control.cpp
           screen_menu_eeprom.cpp
           screen_menu_eeprom_diagnostics.cpp
           screen_menu_error_test.cpp
@@ -98,10 +98,6 @@ target_sources(
   )
 if(PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)
   target_sources(firmware PRIVATE screen_crash_recovery.cpp)
-endif()
-
-if(HAS_CONTROL_MENU)
-  target_sources(firmware PRIVATE screen_menu_control.cpp)
 endif()
 
 if(HAS_SERIAL_PRINT)

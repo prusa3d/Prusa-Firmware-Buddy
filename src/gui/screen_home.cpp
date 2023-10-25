@@ -36,7 +36,6 @@
 #include "netdev.h"
 #include "ini.h"
 
-#include <option/has_control_menu.h>
 #include <option/has_loadcell.h>
 #include <option/developer_mode.h>
 #include <option/development_items.h>
@@ -44,11 +43,8 @@
 #include <option/has_mmu2.h>
 
 #include "screen_menu_settings.hpp"
-#include "screen_menu_calibration.hpp"
 #include "screen_menu_filament.hpp"
-#if HAS_CONTROL_MENU()
-    #include "screen_menu_control.hpp"
-#endif
+#include "screen_menu_control.hpp"
 
 #if HAS_MMU2()
     #include "screen_menu_filament_mmu.hpp"
@@ -56,7 +52,6 @@
 
 #include <crash_dump/crash_dump_handlers.hpp>
 #include "box_unfinished_selftest.hpp"
-#include <option/has_control_menu.h>
 #include <transfers/transfer_file_check.hpp>
 
 // TODO remove netdev_is_enabled after it is defined
@@ -135,11 +130,7 @@ const char *labels[] = {
     N_("Print"),
     N_("Preheat"),
     N_("Filament"),
-#if HAS_CONTROL_MENU()
     N_("Control"),
-#else
-    N_("Calibrate"),
-#endif
     N_("Settings"),
     N_("Info"),
     N_("No USB") // label variant for first button
@@ -173,11 +164,7 @@ screen_home_data_t::screen_home_data_t()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<screen_filebrowser_data_t>); } },
         { this, Rect16(), nullptr, []() { marlin_client::gcode_printf("M1700 T-1"); } },
         { this, Rect16(), nullptr, FilamentBtn_cb },
-#if HAS_CONTROL_MENU()
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuControl>); } },
-#else
-        { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCalibration>); } },
-#endif
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuSettings>); } },
         { this, Rect16(), nullptr, []() { Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuInfo>); }}
     },

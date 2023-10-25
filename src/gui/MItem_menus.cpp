@@ -570,15 +570,6 @@ void MI_TRIGGER_POWER_PANIC::click([[maybe_unused]] IWindowMenu &windowMenu) {
     power_panic::ac_fault_isr();
 }
 
-/*****************************************************************************/
-MI_CALIBRATE::MI_CALIBRATE()
-    : WI_LABEL_t(_(label), &img::calibrate_white_16x16, is_enabled_t::yes, is_hidden_t::no, expands_t::yes) {
-}
-
-void MI_CALIBRATE::click(IWindowMenu & /*window_menu*/) {
-    Screens::Access()->Open(ScreenFactory::Screen<ScreenMenuCalibration>);
-}
-
 #if ENABLED(PRUSA_TOOLCHANGER)
 /*****************************************************************************/
 MI_PICK_PARK_TOOL::MI_PICK_PARK_TOOL()
