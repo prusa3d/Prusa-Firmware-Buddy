@@ -10,8 +10,6 @@
 static IWindowMenuItem *focused_menu_item = nullptr;
 static bool focused_menu_item_edited = false;
 
-static_assert(sizeof(IWindowMenuItem) <= sizeof(string_view_utf8) + sizeof(txtroll_t) + sizeof(font_t) + sizeof(int), "error inefficient size of IWindowMenuItem");
-
 IWindowMenuItem::IWindowMenuItem(string_view_utf8 label, const img::Resource *id_icon, is_enabled_t enabled, is_hidden_t hidden, expands_t expands)
     : IWindowMenuItem(label, expands == expands_t::yes ? expand_icon_width : Rect16::Width_t(0), id_icon, enabled, hidden) {
 }

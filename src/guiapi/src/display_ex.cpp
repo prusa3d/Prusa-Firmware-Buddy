@@ -7,7 +7,6 @@
 #include "guiconfig.h" //USE_ST7789 USE_ILI9488
 #include <img_resources.hpp>
 #include "display_math_helper.h"
-#include "font_flags.hpp"
 #include <bsod.h>
 
 #ifdef USE_ST7789
@@ -292,10 +291,7 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
 
     uint8_t *pch; // character data pointer
     uint8_t crd = 0; // current row byte data
-    uint8_t rb; // row byte
     uint8_t *pc; // character data row pointer
-
-    const font_flags flags(pf->flg);
 
     DispBuffer buff(pms, clr_bg, clr_fg);
 
@@ -311,20 +307,10 @@ void display_ex_store_char_in_buffer(uint16_t char_cnt, uint16_t curr_char_idx, 
         buffer_offset = j * char_cnt * char_w * pixel_size + curr_char_idx * char_w * pixel_size;
         for (uint16_t i = 0; i < char_w; i++) {
             if ((i % ppb) == 0) {
-                if (flags.swap == is_swap::yes) {
-                    rb = (i / ppb) ^ 1;
-                    crd = pch[rb + j * bpr];
-                } else {
-                    crd = *(pc++);
-                }
+                crd = *(pc++);
             }
-            if (flags.lsb == fnt_lsb::yes) {
-                buff.OffsetInsert(crd & pms, buffer_offset + i * pixel_size);
-                crd >>= bpp;
-            } else {
-                buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i * pixel_size);
-                crd <<= bpp;
-            }
+            buff.OffsetInsert(crd >> (8 - bpp), buffer_offset + i * pixel_size);
+            crd <<= bpp;
         }
     }
 }
