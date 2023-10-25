@@ -10,7 +10,6 @@
 #include "ScreenFactory.hpp"
 #include "window_file_list.hpp"
 #include "window_header.hpp"
-#include "window_temp_graph.hpp"
 #include "window_dlg_wait.hpp"
 #include "window_dlg_popup.hpp"
 #include "window_dlg_strong_warning.hpp"

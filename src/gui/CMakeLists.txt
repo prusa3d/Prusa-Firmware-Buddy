@@ -94,7 +94,6 @@ target_sources(
           window_header.cpp
           window_msgbox_wrong_printer.cpp
           window_print_progress.cpp
-          window_temp_graph.cpp
           window_thumbnail.cpp
   )
 if(PRINTER IN_LIST PRINTERS_WITH_CRASH_DETECTION)

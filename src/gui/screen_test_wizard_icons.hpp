@@ -3,7 +3,6 @@
 #include "gui.hpp"
 #include "window_text.hpp"
 #include "window_icon.hpp"
-#include "window_temp_graph.hpp"
 #include "screen.hpp"
 
 struct screen_test_wizard_icons : public AddSuperWindow<screen_t> {
