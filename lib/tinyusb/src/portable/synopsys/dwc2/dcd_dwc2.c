@@ -606,6 +606,13 @@ void dcd_disconnect(uint8_t rhport)
   dwc2->dctl |= DCTL_SDIS;
 }
 
+bool dcd_connected(uint8_t rhport)
+{
+  (void) rhport;
+  dwc2_regs_t * dwc2 = DWC2_REG(rhport);
+  return !(dwc2->dctl & DCTL_SDIS);
+}
+
 // Be advised: audio, video and possibly other iso-ep classes use dcd_sof_enable() to enable/disable its corresponding ISR on purpose!
 void dcd_sof_enable(uint8_t rhport, bool en)
 {

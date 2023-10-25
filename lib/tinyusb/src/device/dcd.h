@@ -146,6 +146,9 @@ void dcd_connect(uint8_t rhport) TU_ATTR_WEAK;
 // Disconnect by disabling internal pull-up resistor on D+/D-
 void dcd_disconnect(uint8_t rhport) TU_ATTR_WEAK;
 
+// Return connection status by internal pull-up resistor on D+/D-
+bool dcd_connected(uint8_t rhport);
+
 // Enable/Disable Start-of-frame interrupt. Default is disabled
 void dcd_sof_enable(uint8_t rhport, bool en);
 
