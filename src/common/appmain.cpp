@@ -27,7 +27,6 @@
 #include "bsod.h"
 #include "safe_state.h"
 #include "crc32.h"
-#include "fusb303.hpp"
 #include <crash_dump/dump.hpp>
 #include "hwio_pindef.h"
 #include <Arduino.h>
