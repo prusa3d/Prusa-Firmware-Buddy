@@ -85,7 +85,7 @@ typedef struct metric_s {
     struct metric_s *next;
 
     /// Internal. Use at your own risk.
-    uint32_t _last_update_timestamp_ms;
+    uint32_t _last_update_timestamp;
 
     /// Internal. Use at your own risk.
     ///

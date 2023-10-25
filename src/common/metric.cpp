@@ -80,13 +80,13 @@ static void metric_system_task_run(const void *) {
 
 static bool check_min_interval(metric_t *metric, uint32_t timestamp) {
     if (metric->min_interval_ms)
-        return ticks_diff(timestamp, metric->_last_update_timestamp_ms) >= (int32_t)metric->min_interval_ms;
+        return ticks_diff(timestamp, metric->_last_update_timestamp) >= 1000 * (int32_t)metric->min_interval_ms;
     else
         return true;
 }
 
 static void update_min_interval(metric_t *metric) {
-    metric->_last_update_timestamp_ms = ticks_ms();
+    metric->_last_update_timestamp = ticks_us();
 }
 
 static metric_point_t *point_check_and_prepare(metric_t *metric, uint32_t timestamp, metric_value_type_t type) {
