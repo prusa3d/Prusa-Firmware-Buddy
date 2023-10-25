@@ -415,7 +415,7 @@ int cycle(void) {
 
 #if HAS_TOOLCHANGER()
     // Check if tool didn't fall off
-    prusa_toolchanger.loop(!printer_idle());
+    prusa_toolchanger.loop(!printer_idle(), printer_paused());
 #endif /*HAS_TOOLCHANGER()*/
 
     int count = 0;

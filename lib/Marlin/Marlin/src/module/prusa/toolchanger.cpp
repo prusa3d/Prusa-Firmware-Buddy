@@ -516,7 +516,7 @@ bool PrusaToolChanger::purge_tool(Dwarf &dwarf) {
     return true;
 }
 
-void PrusaToolChanger::loop(bool printing) {
+void PrusaToolChanger::loop(bool printing, bool paused) {
     // WARNING: called from default(marlin) task
 
     if (block_tool_check.load() // This function can be blocked
@@ -533,7 +533,7 @@ void PrusaToolChanger::loop(bool printing) {
         // Automatically change tool
         if (force_toolchange_gcode.load() // Force toolchange after reset to force all marlin tool variables
             || ((picked != active) // When user parked or picked manually
-                && (printing == false) // Only if not printing
+                && (printing == false) && (paused == false) // Only if not printing and not in pause
                 && (queue.has_commands_queued() == false) && (planner.processing() == false))) { // And nothing is in queue
             force_toolchange_gcode = false;
 
