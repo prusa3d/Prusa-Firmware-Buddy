@@ -208,6 +208,12 @@ std::variant<Transfer::Error, Transfer::Complete, PartialFile::State> Transfer::
         // as a complete "partial" file). But in this case, we better double-check.
         if (errno == ENOENT || errno == ENOTDIR) {
             return Complete {};
+
+        } else if (errno == EBUSY) {
+            // Busy - something else might be accessing the file. In that case, we don't throw the error, but report that nothing is available.
+            // The function should try again later and when we should be able to get to the file.
+            return PartialFile::State {};
+
         } else {
             return Error {};
         }
