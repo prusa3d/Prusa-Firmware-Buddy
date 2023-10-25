@@ -26,8 +26,7 @@
 ScreenPrintPreview::ScreenPrintPreview()
     : gcode(GCodeInfo::getInstance())
     , gcode_description(this)
-    , thumbnail(this, GuiDefaults::PreviewThumbnailRect)
-    , phase(PhasesPrintPreview::_last) {
+    , thumbnail(this, GuiDefaults::PreviewThumbnailRect) {
 
     super::ClrMenuTimeoutClose();
 

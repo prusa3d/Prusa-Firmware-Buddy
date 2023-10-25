@@ -28,7 +28,8 @@ class ScreenPrintPreview : public ScreenPrintPreviewBase {
     GCodeInfoWithDescription gcode_description; // cannot be first
     WindowPreviewThumbnail thumbnail; // draws preview image
 
-    PhasesPrintPreview phase;
+    // Set to invalid value by default so that the Change() always triggers on the first call.
+    PhasesPrintPreview phase = static_cast<PhasesPrintPreview>(-1);
 
     using UniquePtrBox = static_unique_ptr<AddSuperWindow<MsgBoxIconned>>;
     UniquePtrBox pMsgbox;
