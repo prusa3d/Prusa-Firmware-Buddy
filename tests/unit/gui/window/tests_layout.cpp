@@ -17,7 +17,7 @@ uint8_t font_dot_data[] = {
 };
 
 // 1 px font
-font_t font_dot = { 1, 1, 1, 0, (uint16_t *)font_dot_data, '0', '1' };
+font_t font_dot = { 1, 1, 1, (uint16_t *)font_dot_data, '0', '1' };
 
 // 4 bit resolution 2 px per row .. 1 byte per row
 uint8_t font_2dot_data[] = {
@@ -31,7 +31,7 @@ uint8_t font_2dot_data[] = {
 };
 
 // 2x2 px font
-font_t font_2dot = { 2, 2, 1, 0, (uint16_t *)font_2dot_data, '0', '1' };
+font_t font_2dot = { 2, 2, 1, (uint16_t *)font_2dot_data, '0', '1' };
 
 // to be binded - static for easier debug
 static TMockDisplay<240, 320, 16> MockDispBasic;
