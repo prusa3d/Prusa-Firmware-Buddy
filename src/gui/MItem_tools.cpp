@@ -779,35 +779,35 @@ void MI_SET_READY::click([[maybe_unused]] IWindowMenu &window_menu) {
 // INPUT SHAPER
 
 static bool input_shaper_x_enabled() {
-    return config_store().input_shaper_axis_x_enabled.get();
+    return input_shaper::current_config().axis[X_AXIS].has_value();
 }
 
 static bool input_shaper_y_enabled() {
-    return config_store().input_shaper_axis_y_enabled.get();
+    return input_shaper::current_config().axis[Y_AXIS].has_value();
 }
 
 static int32_t input_shaper_x_type() {
-    const auto axis_x = config_store().input_shaper_axis_x_config.get();
-    return static_cast<int32_t>(axis_x.type);
+    const auto axis_x = input_shaper::current_config().axis[X_AXIS];
+    return static_cast<int32_t>(axis_x->type);
 }
 
 static int32_t input_shaper_y_type() {
-    const auto axis_y = config_store().input_shaper_axis_y_config.get();
-    return static_cast<int32_t>(axis_y.type);
+    const auto axis_y = input_shaper::current_config().axis[Y_AXIS];
+    return static_cast<int32_t>(axis_y->type);
 }
 
 static uint32_t input_shaper_x_frequency() {
-    const auto axis_x = config_store().input_shaper_axis_x_config.get();
-    return static_cast<int32_t>(axis_x.frequency);
+    const auto axis_x = input_shaper::current_config().axis[X_AXIS];
+    return static_cast<int32_t>(axis_x->frequency);
 }
 
 static uint32_t input_shaper_y_frequency() {
-    const auto axis_y = config_store().input_shaper_axis_y_config.get();
-    return static_cast<int32_t>(axis_y.frequency);
+    const auto axis_y = input_shaper::current_config().axis[Y_AXIS];
+    return static_cast<int32_t>(axis_y->frequency);
 }
 
 static bool input_shaper_y_weight_compensation() {
-    return config_store().input_shaper_weight_adjust_y_enabled.get();
+    return input_shaper::current_config().weight_adjust_y.has_value();
 }
 
 MI_IS_X_ONOFF::MI_IS_X_ONOFF()
