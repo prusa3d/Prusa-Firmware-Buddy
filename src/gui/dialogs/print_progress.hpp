@@ -26,10 +26,15 @@ class PrintProgress : public AddSuperWindow<DialogTimed> {
 
     window_text_t estime_label;
     window_text_t estime_value;
+#if defined(USE_ILI9488)
+    window_text_t middle_col_label;
+    window_text_t middle_col_value;
+#endif
     window_text_t info_text;
-    WindowPrintVerticalProgress progress_bar;
+    WindowPrintProgress progress_bar;
     WindowNumbPrintProgress progress_num;
     WindowProgressThumbnail thumbnail;
+    window_icon_t more_icon; // icon suggesting that there's more to be seen if user 'clicks'
 
     GCodeInfo &gcode_info;
     PrintTime print_time;
@@ -39,6 +44,9 @@ class PrintProgress : public AddSuperWindow<DialogTimed> {
     void UpdateTexts();
     void updateEsTime();
     uint16_t getTime();
+
+    void show_col_text_fields();
+    void hide_col_text_fields();
 
 protected:
     virtual void updateLoop(visibility_changed_t visibility_changed) override;
