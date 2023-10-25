@@ -361,6 +361,8 @@ bool tud_disconnect(void)
 {
   TU_VERIFY(dcd_disconnect);
   dcd_disconnect(_usbd_rhport);
+  if (_usbd_dev.connected)
+      dcd_event_bus_signal(0, DCD_EVENT_UNPLUGGED, false);
   return true;
 }
 
