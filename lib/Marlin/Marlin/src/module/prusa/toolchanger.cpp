@@ -14,6 +14,7 @@
     #include <marlin_server.hpp>
     #include <cmath_ext.h>
     #include <odometer.hpp>
+    #include <pause_stubbed.hpp>
     #include "module/temperature.h" // for fan control
 
     #if ENABLED(CRASH_RECOVERY)
@@ -543,10 +544,9 @@ void PrusaToolChanger::loop(bool printing) {
         // Check that all tools are where they should be
         if (printing // Only while printing
     #if ENABLED(CRASH_RECOVERY)
-                     // Do not check during crash recovery
-            && (crash_s.get_state() == Crash_s::PRINTING)
+            && (crash_s.get_state() == Crash_s::PRINTING) // Do not check during crash recovery
     #endif /*ENABLED(CRASH_RECOVERY)*/
-        ) {
+            && !Pause::Instance().get_mode().has_value()) { // Do not check during filament change
             bool all_good = true;
             if (picked != active) {
                 tool_check_fails++; // Tool switched
