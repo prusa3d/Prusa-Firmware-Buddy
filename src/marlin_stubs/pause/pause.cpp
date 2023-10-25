@@ -459,8 +459,6 @@ void Pause::loop_load_not_blocking([[maybe_unused]] Response response) {
         set(LoadPhases_t::load_in_gear);
         break;
     case LoadPhases_t::load_in_gear: // slow load
-        setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
-        do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
         config_store().set_filament_type(settings.GetExtruder(), filament::get_type_to_load());
         set(LoadPhases_t::wait_temp);
         break;
