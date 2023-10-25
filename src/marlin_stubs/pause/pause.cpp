@@ -303,7 +303,8 @@ void Pause::do_e_move_notify_progress_hotextrude(const float &length, const feed
 
 void Pause::plan_e_move(const float &length, const feedRate_t &fr_mm_s) {
     current_position.e += length / planner.e_factor[active_extruder];
-    while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
+    while (!planner.buffer_line(current_position, fr_mm_s, active_extruder)
+        && !planner.draining()) {
         delay(50);
     }
 }
@@ -312,7 +313,8 @@ void Pause::plan_e_move_notify_progress(const float &length, const feedRate_t &f
     const float actual_e = current_position.e;
     current_position.e += length / planner.e_factor[active_extruder];
     PauseFsmNotifier N(*this, actual_e, current_position.e, progress_min, progress_max, marlin_vars()->native_pos[MARLIN_VAR_INDEX_E]);
-    while (!settings.do_stop && !planner.buffer_line(current_position, fr_mm_s, active_extruder)) {
+    while (!settings.do_stop && !planner.buffer_line(current_position, fr_mm_s, active_extruder)
+        && !planner.draining()) {
         check_user_stop();
         delay(50);
     }
