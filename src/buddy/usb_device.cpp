@@ -225,6 +225,6 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, [[maybe_unused]] uint16_
 void tud_suspend_cb(bool /*remote_wakeup_en*/) {
     // Reset CDC device already on suspend (not just on disconnect) in order to set the internal
     // non-blocking overwrite mode normally set via cdcd_init(). On resume a CDC setup event is
-    // expected, reconfiguring the port to regular state.
+    // received that will reconfigure the port to regular state.
     cdcd_reset(0);
 }
