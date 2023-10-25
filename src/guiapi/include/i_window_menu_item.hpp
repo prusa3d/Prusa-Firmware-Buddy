@@ -98,8 +98,12 @@ public:
 
     /// Moves focus to the current menu item
     inline bool move_focus() {
-        return set_is_focused(true);
+        return move_focus(this);
     }
+
+    /// Moves focus to the specified menu item (which can be null)
+    static bool move_focus(IWindowMenuItem *target);
+
     inline bool clear_focus() {
         return set_is_focused(false);
     }

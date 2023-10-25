@@ -76,30 +76,31 @@ bool IWindowMenuItem::set_is_focused(bool set) {
         return true;
     }
 
+    return move_focus(set ? this : nullptr);
+}
+
+bool IWindowMenuItem::move_focus(IWindowMenuItem *target) {
     // Changing focus - we have to cancel edit mode for previously edited item
     if (focused_menu_item_edited && !focused_menu_item->set_is_edited(false)) {
         return false;
     }
 
     // Redraw previously focused menu item
-    if (focused_menu_item) {
-        focused_menu_item->Invalidate();
+    if (auto *i = focused_menu_item) {
+        i->roll.Stop();
+        i->Invalidate();
     }
 
-    if (set) {
-        if (IsHidden()) {
-            show();
+    focused_menu_item = target;
+
+    if (auto *i = focused_menu_item) {
+        if (i->IsHidden()) {
+            i->show();
         }
 
-        focused_menu_item = this;
-        roll.Deinit();
-
-    } else {
-        focused_menu_item = nullptr;
-        roll.Stop();
+        i->Invalidate();
+        i->roll.Deinit();
     }
-
-    Invalidate();
 
     return true;
 }

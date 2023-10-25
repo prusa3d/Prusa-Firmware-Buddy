@@ -279,14 +279,15 @@ void window_file_list_t::selectNewItem() {
     const int ldv_visible_files = ldv.VisibleFilesCount();
     const int maxi = std::min(count, std::min(visible_slots, ldv_visible_files));
 
-    if (index >= 0 && index < maxi) {
+    if (is_return_item(index)) {
+        return_item.move_focus();
+
+    } else if (index >= 0 && index < maxi) {
         activeItem.move_focus();
         activeItem.SetLabel(itemText(index));
         activeItem.SetIconId(itemIcon(index));
         activeItem.InitRollIfNeeded(itemRect(index));
     }
-
-    return_item.set_is_focused(is_return_item(index));
 }
 
 void window_file_list_t::SetRoot(char *rootPath) {
