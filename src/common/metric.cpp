@@ -162,8 +162,14 @@ void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const ch
         return;
     va_list args;
     va_start(args, fmt);
-    vsnprintf(recording->value_custom, sizeof(recording->value_custom), fmt, args);
+    int length = vsnprintf(recording->value_custom, sizeof(recording->value_custom), fmt, args);
     va_end(args);
+
+    if ((size_t)length >= sizeof(recording->value_custom)) {
+        recording->error = true;
+        strcpy(recording->value_custom, "value too long");
+    }
+
     point_enqueue(recording);
 }
 
