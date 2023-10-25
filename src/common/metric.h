@@ -101,6 +101,9 @@ typedef struct metric_s {
 ///
 /// Do not create this manually. It is created automatically
 /// by metric_record_* functions and passed to handlers.
+///
+/// This is an internal short-lived object with the purpose of transfering
+/// a recording of a metric from one task to another.
 typedef struct {
     /// The metric for which the value was recorded.
     metric_t *metric;
@@ -174,9 +177,13 @@ void metric_record_float_at_time(metric_t *metric, uint32_t timestamp, float val
 void metric_record_integer_at_time(metric_t *metric, uint32_t timestamp, int value);
 
 /// Record a string (metric.type has to be METRIC_VALUE_STRING)
+///
+/// The string is automatically truncated to the length of metric_point_t.value_str buffer size.
 #define metric_record_string(metric, fmt, ...) metric_record_string_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
 
 /// Record a string with given timestamp (metric.type has to be METRIC_VALUE_STRING)
+///
+/// The string is automatically truncated to the length of metric_point_t.value_str buffer size.
 void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Record an event (metric.type has to be METRIC_VALUE_EVENT)
@@ -186,9 +193,21 @@ void metric_record_string_at_time(metric_t *metric, uint32_t timestamp, const ch
 void metric_record_event_at_time(metric_t *metric, uint32_t timestamp);
 
 /// Record a custom event (metric.type has to be METRIC_VALUE_CUSTOM)
+///
+/// This is a lower-level function. Improper use can lead to terible things.
+/// And nobody wants that, so use only if you know what you are doing.
+///
+/// A metric error (datapoint with error=<message>) is recorded in case the resulting
+/// string does not fit the internal buffers.
 #define metric_record_custom(metric, fmt, ...) metric_record_custom_at_time(metric, ticks_us(), fmt, ##__VA_ARGS__)
 
 /// Record a custom event with given timestamp (metric.type has to be METRIC_VALUE_CUSTOM)
+///
+/// This is a lower-level function. Improper use can lead to terible things.
+/// And nobody wants that, so use only if you know what you are doing.
+///
+/// A metric error (datapoint with error=<message>) is recorded in case the resulting
+/// string does not fit the internal buffers.
 void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const char *fmt, ...);
 
 /// Records an error for a given metric.

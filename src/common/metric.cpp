@@ -79,6 +79,8 @@ static void metric_system_task_run(const void *) {
 }
 
 static bool check_min_interval(metric_t *metric, uint32_t timestamp) {
+    // this will periodically trigger a false positive, as the timestamp is in us and is gonna wrap
+    // but retransmitting isn't a bad thing, so let's call it a feature, not a bug
     if (metric->min_interval_ms)
         return ticks_diff(timestamp, metric->_last_update_timestamp_ms) >= (int32_t)metric->min_interval_ms;
     else
