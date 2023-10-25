@@ -38,7 +38,7 @@ extern "C" {
 
 #define USBH_MSC_TRANSFER_SIZE 512
 
-#define USBH_MSC_IO_TIMEOUT 10000U
+#define USBH_MSC_IO_TIMEOUT (42 * 1000)
 
 /****************************************/
 /* #define for FS and HS identification */
