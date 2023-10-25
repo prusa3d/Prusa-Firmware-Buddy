@@ -5,7 +5,7 @@
 #include "config_features.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "usb_device.h"
+#include "usb_device.hpp"
 #include "usb_host.h"
 #include "buffered_serial.hpp"
 #include "bsod.h"

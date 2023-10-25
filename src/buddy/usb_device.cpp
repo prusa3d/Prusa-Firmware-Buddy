@@ -2,7 +2,7 @@
 #include "stm32f4xx_hal.h"
 #include "tusb.h"
 #include "main.h"
-#include "usb_device.h"
+#include "usb_device.hpp"
 #include "log.h"
 #include "otp.hpp"
 #include "buddy/priorities_config.h"

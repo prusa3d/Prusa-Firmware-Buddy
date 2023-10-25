@@ -1,5 +1,5 @@
 #include <inttypes.h>
-#include "usb_device.h"
+#include "usb_device.hpp"
 #include "usbh_msc.h"
 #include "log.h"
 #include "littlefs_internal.h"
