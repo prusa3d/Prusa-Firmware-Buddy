@@ -34,7 +34,23 @@ struct GuiDefaults {
     static constexpr size_t HeaderItemHeight { 16 };
     static constexpr size_t HeaderHeight { HeaderItemHeight + HeaderPadding.top + HeaderPadding.bottom };
     static constexpr Rect16 PreviewThumbnailRect = { 10, HeaderHeight + 12, 220, 124 };
-    static constexpr Rect16 ProgressThumbnailRect = { 0, 0, 200, 240 };
+
+    static constexpr size_t SlicerProgressImgWidth { 240 }; // Cannot be changed without consulting slicer
+    static constexpr size_t OldSlicerProgressImgWidth { 200 }; // Cannot be changed, also supported progress img width
+    static constexpr size_t SlicerProgressImgHeight { 240 }; // Cannot be changed without consulting slicer
+
+    static constexpr size_t ProgressTextHeight { 70 };
+    static constexpr size_t ProgressTextTopOffset { 10 };
+    static constexpr size_t ProgressBarHeight { 10 };
+
+    static constexpr size_t ProgressThumbnailWidth { ScreenWidth };
+    static constexpr size_t ProgressThumbnailHeight { ScreenHeight - ProgressTextHeight - ProgressBarHeight };
+
+    static_assert(SlicerProgressImgWidth == ProgressThumbnailWidth);
+    static_assert(SlicerProgressImgHeight == ProgressThumbnailHeight);
+
+    static constexpr Rect16 ProgressThumbnailRect = { 0, 0, ProgressThumbnailWidth, ProgressThumbnailHeight };
+
     static constexpr uint8_t ButtonHeight = 30; // default button height
     static constexpr uint8_t ButtonSpacing = 6; // default button spacing
     static constexpr uint8_t ButtonIconSize = 64;
@@ -49,7 +65,22 @@ struct GuiDefaults {
     static constexpr size_t HeaderItemHeight { 16 };
     static constexpr size_t HeaderHeight { HeaderItemHeight + HeaderPadding.top + HeaderPadding.bottom };
     static constexpr Rect16 PreviewThumbnailRect = { 30, HeaderHeight + 50, 313, 173 };
-    static constexpr Rect16 ProgressThumbnailRect = { 0, 0, 440, 240 };
+
+    static constexpr size_t SlicerProgressImgWidth { 480 }; // Cannot be changed without consulting slicer
+    static constexpr size_t OldSlicerProgressImgWidth { 440 }; // Cannot be changed, also supported progress img width
+    static constexpr size_t SlicerProgressImgHeight { 240 }; // Cannot be changed without consulting slicer
+
+    static constexpr size_t ProgressTextHeight { 70 };
+    static constexpr size_t ProgressTextTopOffset { 10 };
+    static constexpr size_t ProgressBarHeight { 10 };
+
+    static constexpr size_t ProgressThumbnailWidth { ScreenWidth };
+    static constexpr size_t ProgressThumbnailHeight { ScreenHeight - ProgressTextHeight - ProgressBarHeight };
+
+    static_assert(SlicerProgressImgWidth == ProgressThumbnailWidth);
+    static_assert(SlicerProgressImgHeight == ProgressThumbnailHeight);
+
+    static constexpr Rect16 ProgressThumbnailRect = { 0, 0, ProgressThumbnailWidth, ProgressThumbnailHeight };
     static constexpr uint8_t ButtonHeight = 32; // default button height
     static constexpr uint8_t ButtonSpacing = 6; // default button spacing
     static constexpr uint8_t ButtonIconSize = 80;

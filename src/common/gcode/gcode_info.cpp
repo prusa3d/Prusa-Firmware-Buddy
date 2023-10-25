@@ -149,6 +149,9 @@ void GCodeInfo::load(AnyGcodeFormatReader &file_reader) {
 
     has_preview_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::PreviewThumbnailRect.Size());
     has_progress_thumbnail_ = hasThumbnail(*file_reader.get(), GuiDefaults::ProgressThumbnailRect.Size());
+    if (!has_progress_thumbnail_) {
+        has_progress_thumbnail_ = hasThumbnail(*file_reader.get(), { GuiDefaults::OldSlicerProgressImgWidth, GuiDefaults::ProgressThumbnailRect.Height() });
+    }
 
     // scan info G-codes and comments
     PreviewInit(*file_reader.get());
