@@ -369,7 +369,7 @@ struct CurrentStore : public journal::CurrentStoreConfig<journal::Backend, backe
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_x_default, journal::hash("Input Shaper Axis X Config")> input_shaper_axis_x_config;
     StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Axis Y Enabled")> input_shaper_axis_y_enabled;
     StoreItem<input_shaper::AxisConfig, input_shaper::axis_y_default, journal::hash("Input Shaper Axis Y Config")> input_shaper_axis_y_config;
-    StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
+    StoreItem<bool, input_shaper::weight_adjust_enabled_default, journal::hash("Input Shaper Weight Adjust Y Enabled V2")> input_shaper_weight_adjust_y_enabled;
     StoreItem<input_shaper::WeightAdjustConfig, input_shaper::weight_adjust_y_default, journal::hash("Input Shaper Weight Adjust Y Config")> input_shaper_weight_adjust_y_config;
 
     input_shaper::Config get_input_shaper_config();
@@ -391,6 +391,9 @@ struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend>
 
     // An item was added to the middle of the footer enum and it caused eeprom corruption. This store footer item  was deleted and a new one is created without migration so as to force default footer value onto everyone, which is better than 'random values' (especially on mini where it could cause duplicated items shown). Default value was removed since we no longer need to keep it
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Footer Setting")> footer_setting_v1;
+
+    // There was wrong default value for XL, so V2 version was introduced to reset it to proper default value
+    StoreItem<bool, input_shaper::weight_adjust_enabled_default, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
 };
 
 } // namespace config_store_ns
