@@ -27,6 +27,7 @@
 #include "bsod.h"
 #include "safe_state.h"
 #include "crc32.h"
+#include "usb_device.hpp"
 #include <crash_dump/dump.hpp>
 #include "hwio_pindef.h"
 #include <Arduino.h>
@@ -35,7 +36,6 @@
 #include "main.h"
 #include "config_buddy_2209_02.h"
 #include "timing.h"
-#include "tusb.h"
 #include "tasks.hpp"
 #include "Marlin/src/module/planner.h"
 #include <option/filament_sensor.h>
@@ -164,45 +164,6 @@ void app_setup(void) {
 #endif
 }
 
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-bool USBCDC_need_reset = false;
-
-enum class reset_usb_fs_t {
-    IDLE,
-    START,
-    END
-};
-
-reset_usb_fs_t reset_usb_fs = reset_usb_fs_t::IDLE;
-
-void check_usbc_connection() {
-    static uint32_t last_USBC_update = 0;
-    if (ticks_s() - last_USBC_update > 1) {
-        switch (buddy::hw::FUSB302B::ReadSTATUS0Reg()) {
-        case buddy::hw::FUSB302B::VBUS_state::not_detected: // VBUS not detected
-            reset_usb_fs = reset_usb_fs_t::START;
-            break;
-        case buddy::hw::FUSB302B::VBUS_state::detected: // VBUS detected
-            break;
-        }
-
-        switch (reset_usb_fs) {
-        case reset_usb_fs_t::IDLE:
-            break;
-        case reset_usb_fs_t::START:
-            tud_disconnect();
-            reset_usb_fs = reset_usb_fs_t::END;
-            return;
-        case reset_usb_fs_t::END:
-            tud_connect();
-            reset_usb_fs = reset_usb_fs_t::IDLE;
-            break;
-        }
-
-        last_USBC_update = ticks_s();
-    }
-}
-#endif
 void app_idle(void) {
     buddy::metrics::RecordMarlinVariables();
     buddy::metrics::RecordRuntimeStats();
@@ -247,9 +208,7 @@ void app_run(void) {
             loop();
         }
         marlin_server::loop();
-#if (BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY)
-        check_usbc_connection();
-#endif
+        check_usb_connection();
     }
 }
 
