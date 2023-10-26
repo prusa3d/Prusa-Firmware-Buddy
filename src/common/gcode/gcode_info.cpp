@@ -330,6 +330,13 @@ void GCodeInfo::parse_m555(GcodeBuffer::String cmd) {
 }
 
 void GCodeInfo::parse_m862(GcodeBuffer::String cmd) {
+    {
+        // format is M862.x, so remove dot
+        char dot = cmd.pop_front();
+        if (dot != '.')
+            return;
+    }
+
     char subcode = cmd.pop_front();
     cmd.skip_ws();
 

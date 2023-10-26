@@ -35,7 +35,10 @@ GcodeBuffer::String GcodeBuffer::String::get_string() {
 
 bool GcodeBuffer::String::skip_gcode(const char *gcode_str) {
     for (auto it = begin;; ++it, ++gcode_str) {
-        if (*gcode_str == '\0' && (it == end || isspace(*it))) {
+        if (*gcode_str == '\0') {
+            // We matched for example M2, but actual gcode number contiunues (for example M22) => don't match in that case
+            if (*it >= '0' && *it <= '9')
+                return false;
             begin = it;
             skip_ws();
             return true;
