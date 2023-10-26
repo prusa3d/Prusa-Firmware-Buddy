@@ -139,6 +139,4 @@ set_target_properties(nhttp_tests PROPERTIES CXX_STANDARD 20)
 
 target_link_libraries(nhttp_tests bgcode_core mbedTLS)
 
-add_definitions(-DUNITTESTS)
-
 add_catch_test(nhttp_tests)

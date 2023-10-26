@@ -26,7 +26,7 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/Middlewares/Third_Party/mbedtls/include
           ${CMAKE_SOURCE_DIR}/tests/stubs ${CMAKE_SOURCE_DIR}/include/usb_host
   )
-add_definitions(-DUNITTESTS -DDATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
+add_definitions(-DDATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 

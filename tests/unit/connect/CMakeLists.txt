@@ -98,7 +98,7 @@ target_include_directories(
           ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
 target_link_libraries(connect_tests mbedTLS bgcode_core)
-add_definitions(-DUNITTESTS -DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0)
+add_definitions(-DPRINTER_VERSION=3 -DPRINTER_SUBVERSION=0)
 
 file(GLOB AUTOMATA_GENERATORS ${PROJECT_ROOT_DIR}/utils/gen-automata/*.py)
 
@@ -203,7 +203,6 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/lib/libbgcode/src/LibBGCode
           ${CMAKE_BINARY_DIR}/lib/libbgcode/src/
   )
-add_definitions(-DUNITTESTS)
 add_dependencies(connect_planner_tests generate-httpc-automata-tests-connect)
 
 add_executable(

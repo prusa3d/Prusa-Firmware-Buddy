@@ -7,8 +7,6 @@ add_subdirectory(utils)
 add_subdirectory(filament_sensor)
 add_subdirectory(codepage)
 
-add_definitions(-DUNITTESTS)
-
 add_executable(
   support_utils_tests ${CMAKE_CURRENT_SOURCE_DIR}/support_utils_lib_test.cpp
                       ${CMAKE_SOURCE_DIR}/src/common/support_utils_lib.cpp

@@ -23,7 +23,6 @@ target_include_directories(
           ${CMAKE_SOURCE_DIR}/include/usb_host
   )
 
-add_definitions(-DUNITTESTS)
 target_link_libraries(gcode_reader_test mbedTLS bgcode_core)
 
 file(
