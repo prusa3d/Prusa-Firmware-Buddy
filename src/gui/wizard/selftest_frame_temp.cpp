@@ -25,6 +25,9 @@ constexpr size_t row_noz_2 = row_noz_1 + WizardDefaults::progress_row_h;
 constexpr size_t row_noz_3 = row_noz_2 + row_h;
 // heatbreak
 constexpr size_t row_heatbreak = row_noz_3 + row_h;
+
+constexpr size_t row_info = row_heatbreak + row_h + GuiDefaults::FramePadding;
+
 // bed
 constexpr size_t row_bed_0 = row_heatbreak + row_h + 16;
 constexpr size_t row_bed_1 = row_bed_0 + row_h;
@@ -41,6 +44,8 @@ constexpr Rect16 top_row_1_text_rect { col_0, row_noz_3, text_w, txt_h };
 constexpr Rect16 top_row_1_icon_rect { col_1, row_noz_3, reference_icon.w, reference_icon.h }; // valid for one icon
 constexpr Rect16 heatbreak_text_rect { col_0, row_heatbreak, text_w, txt_h };
 
+constexpr Rect16 info_text_rect { col_0, row_info, text_w, txt_h * 4 };
+
 constexpr Rect16 bottom_label_rect { col_0, row_bed_0, WizardDefaults::X_space, txt_h };
 constexpr Rect16 bottom_progress_rect { WizardDefaults::progress_LR_margin, row_bed_1, WizardDefaults::progress_width, WizardDefaults::progress_h };
 constexpr Rect16 bottom_row_0_text_rect { col_0, row_bed_2, text_w, txt_h };
@@ -53,7 +58,10 @@ constexpr const char *en_text_bed = N_("Heatbed heater check");
 constexpr const char *en_text_prep = N_("Preparing");
 constexpr const char *en_text_heat = N_("Heater testing");
 constexpr const char *en_text_heatbreak = N_("Heatbreak status");
+// dialog is for non-XL printers
 constexpr const char *en_text_dialog_noz_disabled = N_("The heater test will be skipped because the hotend fan check did not pass. You may continue, but be sure to resolve this issue before your next print.");
+// info text without a dialog is for XL
+constexpr const char *en_text_info_noz_disabled = N_("Some nozzle heater checks were disabled due to their hotend fan checks not having passed.");
 } // namespace
 
 ScreenSelftestTemp::hotend_result_t ScreenSelftestTemp::make_hotend_result_row(size_t index) {
@@ -116,6 +124,7 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
     // heatbreak
     , text_heatbreak(&test_frame, heatbreak_text_rect, is_multiline::no, is_closed_on_click_t::no, _(en_text_heatbreak))
 #endif
+    , text_info(&test_frame, info_text_rect, is_multiline::yes)
     , text_dialog(this, GetRect() + Rect16::X_t(WizardDefaults::MarginLeft) + Rect16::Y_t(GuiDefaults::FramePadding) - Rect16::H_t(80) - Rect16::W_t(2 * WizardDefaults::MarginLeft), is_multiline::yes, is_closed_on_click_t::no, _(en_text_dialog_noz_disabled))
     // results
     , hotend_results(make_hotend_result_array(std::make_index_sequence<HOTENDS>())) {
@@ -239,15 +248,24 @@ ScreenSelftestTemp::ScreenSelftestTemp(window_t *parent, PhasesSelftest ph, fsm:
 void ScreenSelftestTemp::change() {
     switch (phase_current) {
     case PhasesSelftest::HeatersDisabledDialog:
+#if !PRINTER_IS_PRUSA_XL
         test_frame.Hide();
         text_dialog.Show();
         radio.Show();
 
         break;
+        // fall through for XL
+#endif
     case PhasesSelftest::Heaters: {
         text_dialog.Hide();
         test_frame.Show();
         radio.Hide();
+
+#if PRINTER_IS_PRUSA_XL
+        if (phase_current == PhasesSelftest::HeatersDisabledDialog) {
+            text_info.SetText(_(en_text_info_noz_disabled));
+        }
+#endif
 
         SelftestHeaters_t dt;
         if (FSMExtendedDataManager::get(dt)) {

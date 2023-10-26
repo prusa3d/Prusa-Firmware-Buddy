@@ -63,6 +63,11 @@ LoopResult CSelftestPart_Heater::stateShowSkippedDialog() {
         return LoopResult::RunNext;
     }
 
+#if PRINTER_IS_PRUSA_XL
+    // For XL, we don't show a dialog, only an info text, and we skip the test outright
+    return LoopResult::Abort;
+#endif
+
     if (state_machine.GetButtonPressed() == Response::Ok) {
         return LoopResult::Abort;
     }
@@ -81,7 +86,9 @@ LoopResult CSelftestPart_Heater::stateSetup() {
     }
 #endif
 
+#if !PRINTER_IS_PRUSA_XL
     IPartHandler::SetFsmPhase(PhasesSelftest::Heaters);
+#endif
 
     // looked into marlin and it seems all PID values are used as numerator
     // switch regulator into on/off mode

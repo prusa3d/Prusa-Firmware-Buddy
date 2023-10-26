@@ -29,6 +29,8 @@ class ScreenSelftestTemp : public AddSuperWindow<SelftestFrameWithRadio> {
     window_text_t text_heatbreak;
 #endif
 
+    window_text_t text_info;
+
     window_text_t text_dialog;
 
     // result per each HOTEND
