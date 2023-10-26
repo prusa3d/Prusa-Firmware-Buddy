@@ -95,7 +95,9 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
         if (pNozzles[i] == nullptr) {
             auto pNoz = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(config_nozzle[i],
                 resultHeaters.noz[i],
-                &CSelftestPart_Heater::stateStart,
+                &CSelftestPart_Heater::stateCheckHbrPassed,
+                &CSelftestPart_Heater::stateShowSkippedDialog,
+                &CSelftestPart_Heater::stateSetup,
                 &CSelftestPart_Heater::stateTakeControlOverFans, &CSelftestPart_Heater::stateFansActivate,
                 &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
                 &CSelftestPart_Heater::stateFansDeactivate,
@@ -126,6 +128,22 @@ void phaseHeaters_noz_ena(std::array<IPartHandler *, HOTENDS> &pNozzles, const s
 }
 
 void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed) {
+    // Hack: only if we're running both bed and nozzle test together
+    // NOTE: yes, terrible, depends on enabling nozzle test first and bed test second
+    if (resultHeaters.tested_parts & to_one_hot(SelftestHeaters_t::TestedParts::noz)) {
+        // if heatbreak fan hasn't passed, we can't run the nozzle heater
+        // check. The decision was to skip heaters check altogether and instead
+        // show a dialog saying why we're skipping it. The heater check runs
+        // two selftests in parallel: bed & nozzle. If we're showing the
+        // dialog, we disable the bed check here (well, we skip enabling it),
+        // as the nozzle selftest takes care of showing the dialog and this one
+        // running in parallel would just make a mess.
+        SelftestTool tool_res = config_store().selftest_result.get().tools[0];
+        if (tool_res.heatBreakFan != TestResult_Passed || tool_res.fansSwitched != TestResult_Passed) {
+            return;
+        }
+    }
+
     // reset result
     resultHeaters.bed = SelftestHeater_t(0, SelftestSubtestState_t::undef, SelftestSubtestState_t::undef);
     resultHeaters.tested_parts |= to_one_hot(SelftestHeaters_t::TestedParts::bed);
@@ -135,7 +153,7 @@ void phaseHeaters_bed_ena(IPartHandler *&pBed, const HeaterConfig_t &config_bed)
         auto pBed_ = selftest::Factory::CreateDynamical<CSelftestPart_Heater>(
             config_bed,
             resultHeaters.bed,
-            &CSelftestPart_Heater::stateStart,
+            &CSelftestPart_Heater::stateSetup,
             &CSelftestPart_Heater::stateCooldownInit, &CSelftestPart_Heater::stateCooldown,
             &CSelftestPart_Heater::stateTargetTemp, &CSelftestPart_Heater::stateWait,
             &CSelftestPart_Heater::stateMeasure

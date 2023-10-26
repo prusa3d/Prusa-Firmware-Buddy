@@ -33,6 +33,10 @@ private:
     bool enable_cooldown;
     LogTimer log;
 
+    // a flag indicating that the nozzle heater test should be skipped due to
+    // the hotend fan test not having passed
+    bool nozzle_test_skipped = false;
+
     // Power check related stuff
     PowerCheck check;
     bool power_check_passed = false;
@@ -48,7 +52,16 @@ public:
         SelftestHeater_t &result);
     ~CSelftestPart_Heater();
 
-    LoopResult stateStart();
+    /// Checks that hotend fan test passed for the tool that is being tested.
+    /// Changes FSM state if it hasn't, which shows a dialog on non-XL printers
+    /// and a notice on XL (on which only the failed tools are skipped and the
+    /// rest is tested).
+    LoopResult stateCheckHbrPassed();
+    /// Handles the button response on non-XL printers or aborts outright on
+    /// XL. If the hotend fan test passed, just continues to next state.
+    LoopResult stateShowSkippedDialog();
+    /// Sets up the heater test.
+    LoopResult stateSetup();
     LoopResult stateTakeControlOverFans(); // also enters fan selftest mode
     LoopResult stateFansActivate();
     LoopResult stateCooldownInit();

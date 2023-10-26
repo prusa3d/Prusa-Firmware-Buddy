@@ -219,7 +219,8 @@ enum class PhasesSelftest : uint16_t {
 
     _first_Heaters,
     Heaters = _first_Heaters,
-    _last_Heaters = Heaters,
+    HeatersDisabledDialog,
+    _last_Heaters = HeatersDisabledDialog,
 
     _first_SpecifyHotEnd,
     SpecifyHotEnd = _first_SpecifyHotEnd,
@@ -515,6 +516,7 @@ class ClientResponses {
         {}, // Axis
 
         {}, // Heaters
+        { Response::Ok }, // HeatersDisabledDialog
 
         { Response::Adjust, Response::Skip }, // SpecifyHotEnd
         { Response::Yes, Response::No }, // SpecifyHotEnd_sock

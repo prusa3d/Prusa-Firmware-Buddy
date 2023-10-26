@@ -325,9 +325,10 @@ void CSelftest::Loop() {
     case stsHeaters_noz_ena:
         selftest::phaseHeaters_noz_ena(pNozzles, Config_HeaterNozzle);
         break;
-    case stsHeaters_bed_ena:
+    case stsHeaters_bed_ena: {
         selftest::phaseHeaters_bed_ena(pBed, Config_HeaterBed);
         break;
+    }
     case stsHeaters:
         if (selftest::phaseHeaters(pNozzles, &pBed))
             return;
@@ -337,7 +338,7 @@ void CSelftest::Loop() {
             return;
         break;
     case stsHotEndSock:
-        if (m_result.tools[0].nozzle != TestResult_Passed) {
+        if (m_result.tools[0].nozzle == TestResult_Failed) {
             if (phase_hot_end_sock(pSock, sock_config)) {
                 return;
             }

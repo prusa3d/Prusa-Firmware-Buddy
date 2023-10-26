@@ -49,7 +49,28 @@ uint32_t CSelftestPart_Heater::estimate(const HeaterConfig_t &config) {
     return config.heat_time_ms;
 }
 
-LoopResult CSelftestPart_Heater::stateStart() {
+LoopResult CSelftestPart_Heater::stateCheckHbrPassed() {
+    SelftestResult eeres = config_store().selftest_result.get();
+    if (eeres.tools[m_config.tool_nr].heatBreakFan != TestResult_Passed || eeres.tools[m_config.tool_nr].fansSwitched != TestResult_Passed) {
+        IPartHandler::SetFsmPhase(PhasesSelftest::HeatersDisabledDialog);
+        nozzle_test_skipped = true;
+    }
+    return LoopResult::RunNext;
+}
+
+LoopResult CSelftestPart_Heater::stateShowSkippedDialog() {
+    if (!nozzle_test_skipped) {
+        return LoopResult::RunNext;
+    }
+
+    if (state_machine.GetButtonPressed() == Response::Ok) {
+        return LoopResult::Abort;
+    }
+
+    return LoopResult::RunCurrent;
+}
+
+LoopResult CSelftestPart_Heater::stateSetup() {
 #if HAS_TOOLCHANGER()
     // if this tool is not enabled, end this test immediately and set result to undefined
     if (!prusa_toolchanger.is_tool_enabled(m_config.tool_nr)) {
@@ -59,6 +80,8 @@ LoopResult CSelftestPart_Heater::stateStart() {
         return LoopResult::Abort;
     }
 #endif
+
+    IPartHandler::SetFsmPhase(PhasesSelftest::Heaters);
 
     // looked into marlin and it seems all PID values are used as numerator
     // switch regulator into on/off mode

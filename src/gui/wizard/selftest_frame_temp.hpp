@@ -6,8 +6,11 @@
 #include "status_footer.hpp"
 #include <option/has_heatbreak_temp.h>
 
-class ScreenSelftestTemp : public AddSuperWindow<SelftestFrame> {
+class ScreenSelftestTemp : public AddSuperWindow<SelftestFrameWithRadio> {
     FooterLine footer;
+
+    window_frame_t test_frame;
+
     // noz
     window_text_t text_noz;
     window_wizard_progress_t progress_noz;
@@ -25,6 +28,9 @@ class ScreenSelftestTemp : public AddSuperWindow<SelftestFrame> {
     // heatbreak
     window_text_t text_heatbreak;
 #endif
+
+    window_text_t text_dialog;
+
     // result per each HOTEND
     struct hotend_result_t {
         WindowIcon_OkNg icon_noz_prep;
