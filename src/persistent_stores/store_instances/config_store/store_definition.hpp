@@ -393,7 +393,7 @@ struct DeprecatedStore : public journal::DeprecatedStoreConfig<journal::Backend>
     StoreItem<uint32_t, defaults::uint32_t_zero, journal::hash("Footer Setting")> footer_setting_v1;
 
     // There was wrong default value for XL, so V2 version was introduced to reset it to proper default value
-    StoreItem<bool, input_shaper::weight_adjust_enabled_default, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
+    StoreItem<bool, defaults::bool_true, journal::hash("Input Shaper Weight Adjust Y Enabled")> input_shaper_weight_adjust_y_enabled;
 };
 
 } // namespace config_store_ns
