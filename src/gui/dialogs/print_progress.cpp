@@ -25,6 +25,7 @@ PrintProgress::PrintProgress(window_t *parent)
     , estime_label(this, Rect16(22, 260, 140, 16), is_multiline::no)
     , estime_value(this, Rect16(22, 280, 200, 22), is_multiline::no)
     , info_text(this, Rect16(22, 265, 300, 30), is_multiline::no)
+    , info_subtitle_text(this, Rect16(22, 295, 300, 30), is_multiline::no)
     , input_shaper_text(this, Rect16(Width() - 200, Height() - 20, 195, 16), is_multiline::no)
     , progress_bar(this, Rect16(Width() - (Width() - GuiDefaults::ProgressThumbnailRect.Width()), 0, Width() - GuiDefaults::ProgressThumbnailRect.Width(), GuiDefaults::ProgressThumbnailRect.Height()))
     , progress_num(this, Rect16(Width() - 145, GuiDefaults::ProgressThumbnailRect.Height() + 5, 130, Height() - GuiDefaults::ProgressThumbnailRect.Height() - 25))
@@ -38,6 +39,11 @@ PrintProgress::PrintProgress(window_t *parent)
     info_text.SetAlignment(Align_t::LeftCenter());
     info_text.SetText(_(finish_print_text));
     info_text.Hide();
+
+    info_subtitle_text.set_font(resource_font(IDR_FNT_SMALL));
+    info_subtitle_text.SetPadding({ 0, 0, 0, 0 });
+    info_subtitle_text.SetAlignment(Align_t::LeftCenter());
+    info_subtitle_text.Hide();
 
     input_shaper_text.set_font(resource_font(IDR_FNT_SMALL));
     input_shaper_text.SetAlignment(Align_t::RightTop());
@@ -90,6 +96,8 @@ void PrintProgress::UpdateTexts() {
         estime_value.Hide();
         info_text.SetText(_(stop_print_text));
         info_text.Show();
+        PrintProgress::updateEsTime();
+        info_subtitle_text.Show();
         mode = ProgressMode_t::END_PREVIEW;
         break;
     case ProgressMode_t::FINISHED_INIT:
@@ -97,6 +105,8 @@ void PrintProgress::UpdateTexts() {
         estime_value.Hide();
         info_text.SetText(_(finish_print_text));
         info_text.Show();
+        PrintProgress::updateEsTime();
+        info_subtitle_text.Show();
         thumbnail.redrawWhole(); // thumbnaill will be invalidated by hiding estime_label above, we need to force it to redraw entirely
         thumbnail.Invalidate();
         mode = ProgressMode_t::END_PREVIEW;
@@ -122,7 +132,7 @@ void PrintProgress::updateLoop(visibility_changed_t visibility_changed) {
 }
 
 void PrintProgress::updateEsTime() {
-    PT_t time_format = print_time.update_loop(time_end_format, &estime_value); // cannot return init
+    PT_t time_format = print_time.update_loop(time_end_format, &estime_value, &info_subtitle_text); // cannot return init
 
     if (time_format != time_end_format) {
         switch (time_format) {
