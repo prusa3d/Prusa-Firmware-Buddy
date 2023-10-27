@@ -279,6 +279,7 @@ void media_prefetch(const void *) {
                     });
 
                     media_print_file->get()->update_validity(path);
+                    back_buff_level = FILE_BUFF_SIZE;
                     second_read_res = media_print_file->get()->stream_get_block(back_buff, back_buff_level);
                 }
                 xSemaphoreGive(prefetch_mutex_file_reader);
