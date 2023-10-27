@@ -279,6 +279,14 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
         set_status_led(dwarf_shared::StatusLed::Mode::pulse_w, r, g, b);
     }
 
+    /**
+     * @brief Set dwarf heater PID values.
+     * @param p format as Temperature::temp_hotend[0].pid.Kp
+     * @param i format as Temperature::temp_hotend[0].pid.Ki
+     * @param d format as Temperature::temp_hotend[0].pid.Kd
+     */
+    void set_pid(float p, float i, float d);
+
     float get_heatbreak_temp();
     uint16_t get_heatbreak_fan_pwr();
 
@@ -339,6 +347,12 @@ void ToolsMappingBody::windowEvent(EventLock, [[maybe_unused]] window_t *sender,
 
         /// Dwarf status LED control, for encoding see dwarf_shared::StatusLed
         uint16_t status_led[dwarf_shared::StatusLed::REG_SIZE] {};
+
+        struct __attribute__((packed)) {
+            float p {};
+            float i {};
+            float d {};
+        } pid;
     };
     ModbusHoldingRegisterBlock<GENERAL_WRITE_REQUEST, GeneralWrite_t> GeneralWrite;
 

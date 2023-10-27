@@ -933,6 +933,12 @@ public:
           #if ENABLED(PID_EXTRUSION_SCALING)
             last_e_position = 0;
           #endif
+          #if ENABLED(PRUSA_TOOLCHANGER)
+            // Set all dwarfs with PID parameters of the first hotend
+            HOTEND_LOOP() {
+              buddy::puppies::dwarfs[e].set_pid(Temperature::temp_hotend[0].pid.Kp, Temperature::temp_hotend[0].pid.Ki, Temperature::temp_hotend[0].pid.Kd);
+            }
+          #endif /*HAS_DWARF()*/
         }
       #endif
 

@@ -557,6 +557,14 @@ void Dwarf::set_status_led(dwarf_shared::StatusLed::Mode mode, uint8_t r, uint8_
     GeneralWrite.dirty = true;
 }
 
+void Dwarf::set_pid(float p, float i, float d) {
+    // Set the float with one write so it is consistent
+    GeneralWrite.value.pid.p = p;
+    GeneralWrite.value.pid.i = i;
+    GeneralWrite.value.pid.d = d;
+    GeneralWrite.dirty = true;
+}
+
 void Dwarf::handle_dwarf_fault() {
     // fault is expected when this method is called
     assert(RegisterGeneralStatus.value.FaultStatus != dwarf_shared::errors::FaultStatusMask::NO_FAULT);

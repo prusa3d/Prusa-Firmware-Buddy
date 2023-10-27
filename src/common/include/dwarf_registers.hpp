@@ -82,6 +82,8 @@ enum class SystemHoldingRegister : uint16_t {
     led_pwm = 0xE004, // 8 MSb PWM when selected, 8 LSb PWM when not selected [0 - 0xff]
     status_color_start = 0xE005, // 8 MSb Green [0 - 0xff], 8 LSb Red [0 - 0xff]
     status_color_end = 0xE006, // 8 MSb status_led_mode, 8 LSb Blue [0 - 0xff]
+    pid_start = 0xE007, // P, I and D float values
+    pid_end = 0xE00C,
 
     tmc_read_request = 0xE020,
     tmc_write_request_address = 0xE021,
