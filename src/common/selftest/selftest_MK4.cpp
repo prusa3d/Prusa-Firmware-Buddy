@@ -233,12 +233,8 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmWait_loadcell));
     if (m_Mask & stmZAxis)
         m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmMoveZup)); // if Z is calibrated, move it up
-    if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
-    if (m_Mask & stmFullSelftest)
-        m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
-
-    // TODO stmFullSelftest does not mean full selftest some refactoring would be nice
+    m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStart)); // any selftest state will trigger selftest additional init
+    m_Mask = (SelftestMask_t)(m_Mask | uint64_t(stmSelftestStop)); // any selftest state will trigger selftest additional deinit
 
     uint32_t full_test_check_mask = stmFans | stmXYZAxis | stmHeaters | stmLoadcell | stmFSensor;
     if ((full_test_check_mask & test_mask) == full_test_check_mask) {
@@ -249,10 +245,6 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     if (m_Mask & stsXAxisWithMotorDetection) {
         m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsXAxis)));
     }
-
-    // dont show message about footer and do not wait response
-    m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
-    m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo_wait_user)));
 
     m_State = stsStart;
     return true;
@@ -269,29 +261,8 @@ void CSelftest::Loop() {
     case stsStart:
         phaseStart();
         break;
-    case stsPrologueAskRun:
-        FSM_CHANGE__LOGGING(Selftest, GuiDefaults::ShowDevelopmentTools ? PhasesSelftest::WizardPrologue_ask_run_dev : PhasesSelftest::WizardPrologue_ask_run);
-        break;
-    case stsPrologueAskRun_wait_user:
-        if (phaseWaitUser(GuiDefaults::ShowDevelopmentTools ? PhasesSelftest::WizardPrologue_ask_run_dev : PhasesSelftest::WizardPrologue_ask_run))
-            return;
-        break;
     case stsSelftestStart:
         phaseSelftestStart();
-        break;
-    case stsPrologueInfo:
-        FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardPrologue_info);
-        break;
-    case stsPrologueInfo_wait_user:
-        if (phaseWaitUser(PhasesSelftest::WizardPrologue_info))
-            return;
-        break;
-    case stsPrologueInfoDetailed:
-        FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardPrologue_info_detailed);
-        break;
-    case stsPrologueInfoDetailed_wait_user:
-        if (phaseWaitUser(PhasesSelftest::WizardPrologue_info_detailed))
-            return;
         break;
     case stsFans:
         if (selftest::phaseFans(pFans, fans_configs))
@@ -397,35 +368,6 @@ void CSelftest::Loop() {
     case stsDidSelftestPass:
         phaseDidSelftestPass();
         break;
-    case stsEpilogue_nok:
-        if (SelftestResult_Failed(m_result)) {
-            FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_nok);
-        }
-        break;
-    case stsEpilogue_nok_wait_user:
-        if (SelftestResult_Failed(m_result)) {
-            if (phaseWaitUser(PhasesSelftest::WizardEpilogue_nok))
-                return;
-        }
-        break;
-    case stsShow_result:
-        phaseShowResult();
-        break;
-    case stsResult_wait_user:
-        if (phaseWaitUser(PhasesSelftest::Result))
-            return;
-        break;
-    case stsEpilogue_ok:
-        if (SelftestResult_Passed_All(m_result)) {
-            FSM_CHANGE__LOGGING(Selftest, PhasesSelftest::WizardEpilogue_ok);
-        }
-        break;
-    case stsEpilogue_ok_wait_user:
-        if (SelftestResult_Passed_All(m_result)) {
-            if (phaseWaitUser(PhasesSelftest::WizardEpilogue_ok))
-                return;
-        }
-        break;
     case stsFinish:
         phaseFinish();
         break;
@@ -451,19 +393,6 @@ void CSelftest::phaseDidSelftestPass() {
         config_store().run_xyz_calib.set(false); // clear XYZ calib flag
         config_store().run_first_layer.set(false); // clear first layer flag
     }
-}
-
-bool CSelftest::phaseWaitUser(PhasesSelftest phase) {
-    const Response response = marlin_server::ClientResponseHandler::GetResponseFromPhase(phase);
-    if (response == Response::Abort || response == Response::Cancel)
-        Abort();
-    if (response == Response::Ignore) {
-        config_store().run_selftest.set(false); // clear selftest flag
-        config_store().run_xyz_calib.set(false); // clear XYZ calib flag
-        config_store().run_first_layer.set(false); // clear first layer flag
-        Abort();
-    }
-    return response == Response::_none;
 }
 
 bool CSelftest::Abort() {

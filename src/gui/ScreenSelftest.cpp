@@ -8,6 +8,7 @@
 #include "ScreenHandler.hpp"
 #include "img_resources.hpp"
 #include "marlin_client.hpp"
+#include <option/has_selftest_snake.h>
 
 static_unique_ptr<SelftestFrame> ScreenSelftest::creator_prologue(ScreenSelftest &rThs, PhasesSelftest phase, fsm::PhaseData data) {
     return rThs.makePtr<SelftestFrameWizardPrologue>(&rThs, phase, data);
@@ -258,6 +259,7 @@ void ScreenSelftest::InitState(screen_init_variant var) {
     auto val = var.GetSelftestMask();
     if (val) {
         marlin_client::test_start(*val);
+#if !HAS_SELFTEST_SNAKE()
         // check mask if contains wizard prologue
         // it is simplified method, but should work correctly for meaningfull use
         if ((*val) & stmWizardPrologue) {
@@ -265,5 +267,6 @@ void ScreenSelftest::InitState(screen_init_variant var) {
             header.SetText(_(en_wizard));
         }
         // no need for else, selftest is default
+#endif
     }
 }

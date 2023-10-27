@@ -15,13 +15,7 @@
 typedef enum {
     stsIdle,
     stsStart,
-    stsPrologueAskRun,
-    stsPrologueAskRun_wait_user,
     stsSelftestStart,
-    stsPrologueInfo,
-    stsPrologueInfo_wait_user,
-    stsPrologueInfoDetailed,
-    stsPrologueInfoDetailed_wait_user,
     stsFans,
     stsWait_fans,
     stsLoadcell,
@@ -44,12 +38,6 @@ typedef enum {
     stsNet_status,
     stsSelftestStop,
     stsDidSelftestPass,
-    stsEpilogue_nok,
-    stsEpilogue_nok_wait_user,
-    stsShow_result,
-    stsResult_wait_user,
-    stsEpilogue_ok,
-    stsEpilogue_ok_wait_user,
     stsFinish,
     stsFinished,
     stsAborted,
@@ -83,12 +71,7 @@ enum SelftestMask_t : uint64_t {
     stmGears = to_one_hot(stsGears),
     stmSelftestStart = to_one_hot(stsSelftestStart),
     stmSelftestStop = to_one_hot(stsSelftestStop),
-    stmNet_status = to_one_hot(stsNet_status),
-    stmShow_result = to_one_hot(stsShow_result) | to_one_hot(stsResult_wait_user),
-    stmFullSelftest = stmFans | stmLoadcell | stmXYZAxis | stmHeaters | stmGears | stmFSensor | stmNet_status | stmShow_result | to_one_hot(stsDidSelftestPass),
-    stmWizardPrologue = to_one_hot(stsPrologueAskRun) | to_one_hot(stsPrologueAskRun_wait_user) | to_one_hot(stsPrologueInfo) | to_one_hot(stsPrologueInfo_wait_user) | to_one_hot(stsPrologueInfoDetailed) | to_one_hot(stsPrologueInfoDetailed_wait_user),
-    stmEpilogue = to_one_hot(stsEpilogue_nok) | to_one_hot(stsEpilogue_nok_wait_user) | to_one_hot(stsEpilogue_ok) | to_one_hot(stsEpilogue_ok_wait_user),
-    stmWizard = stmFullSelftest | stmWizardPrologue | stmEpilogue,
+    stmNet_status = to_one_hot(stsNet_status)
 };
 
 // class representing whole self-test
@@ -108,7 +91,6 @@ protected:
     void restoreAfterSelftest();
     virtual void next() override;
     void phaseShowResult();
-    bool phaseWaitUser(PhasesSelftest phase);
     void phaseDidSelftestPass();
 
 protected:
