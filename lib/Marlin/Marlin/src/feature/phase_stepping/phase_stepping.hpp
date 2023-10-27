@@ -159,6 +159,25 @@ int32_t pos_to_steps(int axis, float position);
 int32_t pos_to_msteps(int axis, float position);
 
 /**
+ * Given position or speed in length unit, return it in revolution units
+ **/
+float mm_to_rev(int motor, float mm);
+
+/**
+ * Return a motor step count for given axis
+ **/
+constexpr int get_motor_steps(AxisEnum axis)  {
+    if (axis == AxisEnum::X_AXIS || axis == AxisEnum::Y_AXIS) {
+        #ifdef HAS_LDO_400_STEP
+            return 400;
+        #else
+            return 200;
+        #endif
+    }
+    return 200;
+}
+
+/**
  * Given axis state and time in µs ticks from movement start, compute axis
  * speed and position.
  */

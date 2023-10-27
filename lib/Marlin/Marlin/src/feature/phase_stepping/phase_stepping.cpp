@@ -328,6 +328,24 @@ void phase_stepping::stop_immediately() {
     }
 }
 
+// Given axis and speed, return current adjustment expressed as range <0, 255>
+static int current_adjustment(int /*axis*/, float speed) {
+    speed = std::abs(speed);
+    #if PRINTER_IS_PRUSA_XL
+        float BREAKPOINT = 4.7f;
+        float ENDPOINT = 8.f;
+        int   ENDPOINT_REDUCTION = 100;
+
+        if (speed < BREAKPOINT)
+            return 255;
+        if (speed > ENDPOINT)
+            return ENDPOINT_REDUCTION;
+        return 255 - (speed - BREAKPOINT) * (255 - ENDPOINT_REDUCTION) / (ENDPOINT - BREAKPOINT);
+    #endif
+
+    bsod("Unsupported printer");
+}
+
 int phase_stepping::phase_difference(int a, int b) {
     int direct_diff = (a - b + MOTOR_PERIOD) % MOTOR_PERIOD;
     int cyclic_diff = MOTOR_PERIOD - direct_diff;
@@ -401,6 +419,9 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         ? axis_state.forward_current
         : axis_state.backward_current;
     auto [a, b] = current_lut.get_current(new_phase);
+    int c_adj = current_adjustment(axis_num_to_refresh, mm_to_rev(axis_num_to_refresh, speed));
+    a = a * c_adj / 255;
+    b = b * c_adj / 255;
 
     axis_state.last_position = position;
     axis_state.last_phase = new_phase;
@@ -468,6 +489,22 @@ __attribute__((optimize("-Ofast"))) int32_t pos_to_msteps(int axis, float positi
         return ret;
     }();
     return position * FACTORS[axis];
+}
+
+__attribute__((optimize("-Ofast"))) float  phase_stepping::mm_to_rev(int motor, float mm) {
+    static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
+        static_assert(SUPPORTED_AXIS_COUNT <= 3);
+
+        int STEPS_PER_UNIT[] = DEFAULT_AXIS_STEPS_PER_UNIT;
+        int MICROSTEPS[] = { X_MICROSTEPS, Y_MICROSTEPS, Z_MICROSTEPS };
+
+        std::array< float, SUPPORTED_AXIS_COUNT > ret;
+        for (int i = 0; i != SUPPORTED_AXIS_COUNT; i++) {
+            ret[i] = 1.f / (get_motor_steps(AxisEnum(i)) * float(MICROSTEPS[i]) / float(STEPS_PER_UNIT[i]));
+        }
+        return ret;
+    }();
+    return mm * FACTORS[motor];
 }
 
 __attribute__((optimize("-Ofast"))) std::tuple<float, float> phase_stepping::axis_position(const AxisState& axis_state, uint32_t move_epoch) {

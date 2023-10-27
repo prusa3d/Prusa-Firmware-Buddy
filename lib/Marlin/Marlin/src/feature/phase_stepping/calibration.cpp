@@ -178,17 +178,6 @@ static std::tuple<float, float> physical_to_logical(float x, float y) {
     #endif
 }
 
-static int get_motor_steps(AxisEnum axis) {
-    if (axis == AxisEnum::X_AXIS || axis == AxisEnum::Y_AXIS) {
-        #ifdef HAS_LDO_400_STEP
-            return 400;
-        #else
-            return 200;
-        #endif
-    }
-    return 200;
-}
-
 static float rev_to_mm(AxisEnum axis, float revs) {
     static constinit std::array< float, SUPPORTED_AXIS_COUNT > FACTORS = []() consteval {
         static_assert(SUPPORTED_AXIS_COUNT <= 3);
