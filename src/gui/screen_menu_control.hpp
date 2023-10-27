@@ -9,6 +9,7 @@
 #include <option/filament_sensor.h>
 #include <option/has_toolchanger.h>
 #include <option/has_selftest.h>
+#include <option/has_selftest_snake.h>
 #include <option/has_mmu2.h>
 #include <printers.h>
 #include "MItem_basic_selftest.hpp"
@@ -23,7 +24,7 @@ using ScreenMenuControlSpec = ScreenMenu<EFooter::On, MI_RETURN,
     MI_SET_READY,
     MI_DISABLE_STEP,
     MI_LIVE_ADJUST_Z,
-#if PRINTER_IS_PRUSA_XL
+#if HAS_SELFTEST_SNAKE()
     MI_SELFTEST_SNAKE
 #else
     MI_CALIB_FIRST

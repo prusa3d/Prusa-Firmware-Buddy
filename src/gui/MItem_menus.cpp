@@ -591,7 +591,7 @@ void MI_CALIBRATE_DOCK::click(IWindowMenu & /*window_menu*/) {
 }
 #endif
 
-#if PRINTER_IS_PRUSA_XL
+#if HAS_SELFTEST_SNAKE()
 /**********************************************************************************************/
 // MI_SELFTEST_SNAKE
 
