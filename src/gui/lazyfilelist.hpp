@@ -12,7 +12,7 @@
 /// - 8KB less RAM consumption
 /// - unlimited number of dir entries supported
 /// - start from a given filename to be displayed first - support for restoring file browser's exact content when returning from One Click Print
-template <size_t WINDOW_SIZE>
+template <int WINDOW_SIZE>
 class LazyDirView : public FileSort {
 public:
     LazyDirView() {
@@ -38,13 +38,16 @@ public:
     }
 
     /// @return total number of files/entries in a directory
-    size_t TotalFilesCount() const { return totalFiles; }
+    int TotalFilesCount() const { return totalFiles; }
 
     /// @return number of visible files/entries in a directory supported by this instance
-    size_t WindowSize() const { return WINDOW_SIZE; }
+    int WindowSize() const { return WINDOW_SIZE; }
 
     /// @return number of currently visible files in the window
-    size_t VisibleFilesCount() const { return totalFiles - windowStartingFrom; }
+    int VisibleFilesCount() const { return totalFiles - windowStartingFrom; }
+
+    /// Returns current window offset
+    int window_offset() const { return windowStartingFrom; }
 
     /// Initial population of the window + sorting is a normal insert sort algorithm with one run through the directory.
     /// Much of the comparison is done in RAM while avoiding slower USB interface as much possible.
@@ -131,6 +134,38 @@ public:
         }
     }
 
+    /// Sets window offset to the specified position.
+    /// Not particularly iefficient implementation.
+    /// \returns actual offset set
+    int set_window_offset(int target) {
+        move_window_by(target - window_offset());
+        return window_offset();
+    }
+
+    /// Moves the window by $amount items (>0 -> down, <= -> up).
+    /// This is not a particularly efficient implementation, TODO better
+    /// \returns amount of items actually moved.
+    int move_window_by(int amount) {
+        int remaining = amount;
+        while (remaining > 0) {
+            if (!MoveDown()) {
+                break;
+            }
+
+            remaining--;
+        }
+
+        while (remaining < 0) {
+            if (!MoveUp()) {
+                break;
+            }
+
+            remaining++;
+        }
+
+        return amount - remaining;
+    }
+
     /// This is what a user does with the knob - moves the window by 1 item up or down if the cursor is at the top end.
     /// It rotates the items downwards (to the right) and computes the new top missing entry
     /// by iterating through the directory's content (which is reading one or more FAT sectors).
@@ -166,7 +201,7 @@ public:
     /// A similar operation like MoveUp, but moves the window down by 1 item.
     /// @return true if the window was actually moved
     bool MoveDown() {
-        if (totalFiles <= windowStartingFrom + WINDOW_SIZE + 1) {
+        if (windowStartingFrom >= totalFiles - WINDOW_SIZE - 1) {
             return false; // no more files
         }
         std::rotate(files.begin(), files.begin() + 1, files.end());
@@ -191,7 +226,7 @@ private:
 #endif
 
     std::array<Entry, WINDOW_SIZE> files; ///< roughly WINDOW_SIZE * 100B, can be placed in CCMRAM if needed. For MINI it is only 9 entries -> only 900B
-    size_t totalFiles; ///< total number of entries in the directory
+    int totalFiles; ///< total number of entries in the directory
     int windowStartingFrom; ///< from which entry index the window starts (e.g. from the 3rd file in dir).
                             ///< intentionally int, because -1 means ".."
     char sfnPath[FILE_PATH_BUFFER_LEN]; ///< current directory path - @@TODO this may not be enough - needs checking

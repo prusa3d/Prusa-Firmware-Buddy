@@ -1,7 +1,7 @@
 #include "i_window_menu_container.hpp"
 
 IWinMenuContainer::Node IWinMenuContainer::FindFirstVisible() const {
-    for (size_t i = 0; i < GetRawCount(); ++i) {
+    for (int i = 0; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);
         if (!item)
             return Node::Empty();
@@ -17,7 +17,7 @@ IWinMenuContainer::Node IWinMenuContainer::FindNextVisible(Node prev) const {
     if (!prev.HasValue())
         return Node::Empty();
 
-    for (size_t i = prev.raw_index + 1; i < GetRawCount(); ++i) {
+    for (int i = prev.raw_index + 1; i < GetRawCount(); ++i) {
         IWindowMenuItem *item = GetItemByRawIndex(i);
         if (!item)
             return Node::Empty();
@@ -29,7 +29,7 @@ IWinMenuContainer::Node IWinMenuContainer::FindNextVisible(Node prev) const {
     return Node::Empty();
 }
 
-IWindowMenuItem *IWinMenuContainer::GetItemByVisibleIndex(size_t pos) const {
+IWindowMenuItem *IWinMenuContainer::GetItemByVisibleIndex(int pos) const {
     for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
         if (i.visible_index == pos)
             return i.item; // found it
@@ -37,7 +37,7 @@ IWindowMenuItem *IWinMenuContainer::GetItemByVisibleIndex(size_t pos) const {
     return nullptr;
 }
 
-std::optional<size_t> IWinMenuContainer::GetVisibleIndex(IWindowMenuItem &item) const {
+std::optional<int> IWinMenuContainer::GetVisibleIndex(IWindowMenuItem &item) const {
     for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
         if (i.item == &item)
             return i.visible_index; // found it
@@ -45,8 +45,8 @@ std::optional<size_t> IWinMenuContainer::GetVisibleIndex(IWindowMenuItem &item) 
     return std::nullopt;
 }
 
-size_t IWinMenuContainer::GetVisibleCount() const {
-    size_t ret = 0;
+int IWinMenuContainer::GetVisibleCount() const {
+    int ret = 0;
     for (Node i = FindFirstVisible(); i.HasValue(); i = FindNextVisible(i)) {
         ret = i.visible_index + 1;
     }
@@ -54,7 +54,7 @@ size_t IWinMenuContainer::GetVisibleCount() const {
 }
 
 IWindowMenuItem *IWinMenuContainer::GetVisibleItemWithOffset(IWindowMenuItem &item, int offset) const {
-    std::optional<size_t> index = GetVisibleIndex(item);
+    std::optional<int> index = GetVisibleIndex(item);
     if (!index)
         return nullptr;
     int new_index = int(*index) + offset;
@@ -63,22 +63,15 @@ IWindowMenuItem *IWinMenuContainer::GetVisibleItemWithOffset(IWindowMenuItem &it
     return GetItemByVisibleIndex(new_index);
 }
 
-bool IWinMenuContainer::SetIndex(uint8_t visible_index) {
-    if (visible_index >= GetVisibleCount())
-        return false;
+bool IWinMenuContainer::SetIndex(int visible_index) {
+    if (IWindowMenuItem *item = GetItemByVisibleIndex(visible_index)) {
+        return item->move_focus();
+    }
 
-    IWindowMenuItem *to_be_focused = GetItemByVisibleIndex(visible_index);
-    if (!to_be_focused)
-        return false;
-
-    if (IWindowMenuItem::focused_item() == to_be_focused) // OK, nothing to do
-        return true;
-
-    to_be_focused->move_focus();
-    return true;
+    return false;
 }
 
-std::optional<size_t> IWinMenuContainer::GetFocusedIndex() const {
+std::optional<int> IWinMenuContainer::GetFocusedIndex() const {
     IWindowMenuItem *currently_focused = IWindowMenuItem::focused_item();
 
     if (!currently_focused) {

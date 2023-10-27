@@ -31,7 +31,10 @@ protected:
     WinMenuContainer<T...> container;
 
 public:
-    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr);
+    ScreenMenu(string_view_utf8 label, window_t *parent = nullptr)
+        : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
+        menu.BindContainer(container);
+    }
 
     // compile time access by index
     template <std::size_t I>
@@ -69,9 +72,3 @@ public:
     }
     // ShowDevOnly intentionally not supported, can be set only in ctor
 };
-
-template <EFooter FOOTER, class... T>
-ScreenMenu<FOOTER, T...>::ScreenMenu(string_view_utf8 label, window_t *parent)
-    : AddSuperWindow<IScreenMenu>(parent, label, FOOTER) {
-    menu.BindContainer(container);
-}

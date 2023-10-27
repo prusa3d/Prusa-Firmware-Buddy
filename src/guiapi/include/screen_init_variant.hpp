@@ -23,8 +23,8 @@ public:
     };
 
     struct menu_t {
-        uint8_t index;
-        uint8_t top_index;
+        uint8_t focused_index;
+        uint8_t scroll_offset;
     };
 
     constexpr screen_init_variant()

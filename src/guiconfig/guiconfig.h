@@ -10,15 +10,12 @@
 #if BOARD_IS_XBUDDY || BOARD_IS_XLBUDDY
     #define USE_ILI9488
     #define MENU_HAS_SCROLLBAR true
-    #define MENU_HAS_BUTTONS   true
 #elif BOARD_IS_BUDDY
     #define USE_ST7789
     #define MENU_HAS_SCROLLBAR false
-    #define MENU_HAS_BUTTONS   false
 #else
     #define USE_MOCK_DISPLAY
     #define MENU_HAS_SCROLLBAR false
-    #define MENU_HAS_BUTTONS   false
 #endif
 
 //--------------------------------------

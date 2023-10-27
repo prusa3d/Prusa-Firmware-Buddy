@@ -8,6 +8,8 @@
 #pragma once
 
 #include <stdbool.h>
+#include <bitset>
+
 #include "filename_defs.h"
 #include "window.hpp"
 #include "display_helper.h"
@@ -44,27 +46,26 @@ protected:
     virtual void click([[maybe_unused]] IWindowMenu &window_menu) {}
 };
 
-class window_file_list_t : public AddSuperWindow<window_aligned_t> {
+class window_file_list_t : public AddSuperWindow<IWindowMenu> {
+
 public:
-    static constexpr padding_ui8_t padding = GuiDefaults::MenuPaddingItems;
-    static constexpr Rect16::Height_t font_h = 19; // fonts are not constexpr
-    static constexpr Rect16::Height_t item_height = font_h + padding.top + padding.bottom;
+    static constexpr int max_max_items_on_screen = GuiDefaults::FileBrowserRect.Height() / item_height();
+    using LDV = LazyDirView<max_max_items_on_screen>;
 
-    static constexpr size_t LazyDirViewSize = GuiDefaults::FileBrowserRect.Height() / item_height;
-    using LDV = LazyDirView<LazyDirViewSize>;
+public:
+    inline int item_count() const final {
+        return item_count_;
+    }
 
-protected:
-    LDV ldv;
-    static char *root; // this is a Short-File-Name path to the root of the dialog
+public: // Scroll stuff
+    void set_scroll_offset(int set) final;
 
-    color_t color_text;
-    font_t *font;
+public: // Focus stuff
+    std::optional<int> focused_item_index() const final;
 
-    int count; // total number of files/entries in a dir
-    int index; // selected index - cursor position within the visible items
+    bool move_focus_to_index(std::optional<int> index) final;
 
-    std::array<bool, LazyDirViewSize> valid_items;
-    bool entire_window_invalid;
+    [[nodiscard]] bool is_return_slot(const int slot) const;
 
 public:
     // TODO private
@@ -73,7 +74,6 @@ public:
     window_file_list_t(window_t *parent, Rect16 rc); // height is calculated from LazyDirViewSize
     void Load(WF_Sort_t sort, const char *sfnAtCursor, const char *topSFN);
 
-    void SetItemIndex(int index);
     const char *TopItemSFN();
     const char *CurrentLFN(bool *isFile = nullptr) const;
     const char *CurrentSFN(bool *isFile = nullptr) const;
@@ -82,25 +82,35 @@ public:
     /// @return true if path is either empty or contains just a "/"
     static bool IsPathRoot(const char *path);
 
-    void RollUp();
-    void RollDown();
-
 protected:
     virtual void windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) override;
+
     virtual void invalidate(Rect16 validation_rect) override;
+    void invalidate_slot(std::optional<int> slot);
+    void invalidate_all_slots();
+
     virtual void validate(Rect16 validation_rect) override;
 
-    void invalidateItem(int index); // invalidate one item in list
     virtual void unconditionalDraw() override;
-    void inc(int dif); ///< negative values move cursor in opposite direction
-    void roll_screen(int dif); ///< negative values move cursor in opposite direction
-    void selectNewItem(); // sets focus and activates text rolling
-    Rect16 itemRect(int index) const; // get rectangle of item with target index
-    string_view_utf8 itemText(int index) const;
-    const img::Resource *itemIcon(int index) const;
-    FL_LABEL activeItem; ///< used for text rolling
-    MI_RETURN return_item; ///< used for return item
+    string_view_utf8 itemText(int slot) const;
+    const img::Resource *itemIcon(int slot) const;
 
-private:
-    [[nodiscard]] bool is_return_item(const int index) const;
+protected:
+    LDV ldv;
+    static char *root; // this is a Short-File-Name path to the root of the dialog
+
+    color_t color_text = GuiDefaults::ColorText;
+    font_t *font;
+
+    int item_count_; ///< total number of files/entries in a dir
+    std::optional<int> focused_index_; // selected index - cursor position within the visible items
+
+    std::bitset<max_max_items_on_screen> valid_slots;
+
+    /// We usually want to avoid painting background, because it fills the whole menu rect, which is very inefficient.
+    bool should_paint_background = true;
+
+protected:
+    FL_LABEL focused_item_delegate; ///< used for text rolling
+    MI_RETURN return_item_delegate; ///< used for return item
 };

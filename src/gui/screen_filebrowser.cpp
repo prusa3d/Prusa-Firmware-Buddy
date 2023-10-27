@@ -42,10 +42,10 @@ void screen_filebrowser_data_t::windowEvent(EventLock /*has private ctor*/, [[ma
         WindowFileBrowser::event_conversion_union un;
         un.pvoid = param;
         switch (un.action) {
-        case WindowFileBrowser::event_conversion_union::Action::GoHome:
+        case WindowFileBrowser::event_conversion_union::Action::go_home:
             goHome();
             return;
-        case WindowFileBrowser::event_conversion_union::Action::FileSelected:
+        case WindowFileBrowser::event_conversion_union::Action::file_selected:
             printTheFile();
             return;
         }

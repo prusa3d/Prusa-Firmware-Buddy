@@ -161,9 +161,6 @@ struct GuiDefaults {
     static constexpr padding_ui8_t MenuPadding = padding_ui8_t({ 5, 0, 5, 0 });
     static constexpr size_t MenuItemDelimeterHeight = MenuLinesBetweenItems ? 1 : 0;
 
-    static constexpr Rect16::Width_t MenuIcon_w = MENU_HAS_BUTTONS ? 64 : 0;
-    static constexpr Rect16::Height_t MenuIcon_h = MENU_HAS_BUTTONS ? 64 : 0;
-
 #if defined(USE_ST7789) || defined(USE_MOCK_DISPLAY)
     static constexpr padding_ui8_t FileBrowserPadding = padding_ui8_t({ 0, 0, 0, 0 });
 #elif defined(USE_ILI9488)

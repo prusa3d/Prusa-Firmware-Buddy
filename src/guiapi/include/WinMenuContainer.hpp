@@ -38,19 +38,19 @@ public:
         return std::get<TYPE>(menu_items);
     }
 
-    virtual size_t GetRawCount() const override {
+    virtual int GetRawCount() const override {
         return std::tuple_size<std::tuple<T...>>::value;
     }
 
-    virtual IWindowMenuItem *GetItemByRawIndex(size_t pos) const override {
+    virtual IWindowMenuItem *GetItemByRawIndex(int pos) const override {
         if (pos > GetRawCount())
             return nullptr;
         else
             return get_ptr_for_index((int)pos, menu_items);
     }
 
-    virtual size_t GetRawIndex(IWindowMenuItem &item) const override {
-        size_t pos = 0;
+    virtual int GetRawIndex(IWindowMenuItem &item) const override {
+        int pos = 0;
         for (; pos < GetRawCount(); ++pos) {
             if (GetItemByRawIndex(pos) == &item)
                 break;

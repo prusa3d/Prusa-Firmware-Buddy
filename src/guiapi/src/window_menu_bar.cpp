@@ -4,7 +4,7 @@
 
 #include "window_menu_bar.hpp"
 
-MenuScrollbar::MenuScrollbar(window_t *parent, Rect16 rect, WindowMenu &menu)
+MenuScrollbar::MenuScrollbar(window_t *parent, Rect16 rect, IWindowMenu &menu)
     : AddSuperWindow<window_t>(parent, rect)
     , menu(menu) {}
 
@@ -37,9 +37,9 @@ void MenuScrollbar::windowEvent(EventLock /*has private ctor*/, [[maybe_unused]]
 
     case GUI_event_t::LOOP: {
         const State new_state {
-            .max_items_on_screen = menu.GetMaxItemsOnScreen(),
-            .item_count = menu.GetCount(),
-            .scroll_offset = menu.GetIndexOfFirst(),
+            .max_items_on_screen = menu.max_items_on_screen_count(),
+            .item_count = menu.item_count(),
+            .scroll_offset = menu.scroll_offset(),
         };
         if (state != new_state) {
             state = new_state;

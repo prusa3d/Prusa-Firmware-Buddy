@@ -18,43 +18,26 @@
 // use template instead IWinMenuContainer *pContainer;
 // I want same methods for IWinMenuContainer as std::array<IWindowMenuItem *, N>  .. need to add iterators
 class WindowMenu : public AddSuperWindow<IWindowMenu> {
-    uint8_t index_of_first; /// container index of first item on screen
-    uint8_t max_items_on_screen;
+
+private:
     uint8_t visible_count_at_last_draw; // to redraw last item, if it was hidden, has no effect in case entire window is invalid
     IWinMenuContainer *pContainer;
 
-    std::optional<Rect16> getItemRC(size_t position_on_screen) const;
-    void setIndex(uint8_t index); // for ctor (cannot fail)
     /// Prints single item in the menu
     void printItem(IWindowMenuItem &item, Rect16 rc);
-    /// Searches for next visible item
-    /// Repeats search for \param steps times
-    /// Negative value searches in backward direction
-    /// \returns false if end of item list reached before all steps consumed
-    bool moveToNextVisibleItem(int moveIndex);
-    /// Moves menu so the cursor is on the screen
-    /// \returns true if menu was moved
-    bool updateTopIndex_IsRedrawNeeded();
-    /// Moves menu so the cursor is on the screen and invalidates if moved
-    /// \returns true if menu was moved
-    bool updateTopIndex();
+
     /// Plays proper sound according to item/value changed
     /// \returns input
     bool playEncoderSound(bool changed);
 
-    using roll_fn = std::optional<uint8_t> (WindowMenu::*)() const;
-    std::optional<uint8_t> calc_up_index() const;
-    std::optional<uint8_t> calc_down_index() const;
+    void set_scroll_offset(int set) final;
 
-    bool roll(roll_fn fn);
-
-    std::optional<size_t> slotFromCoord(point_ui16_t point);
-    IWindowMenuItem *itemFromSlot(size_t slot);
+    IWindowMenuItem *itemFromSlot(int slot);
 
     struct Node {
         IWindowMenuItem *item;
-        size_t current_slot;
-        size_t index;
+        int current_slot;
+        int index;
 
         bool HasValue() { return item; }
         static constexpr Node Empty() { return { nullptr, 0, 0 }; }
@@ -64,27 +47,36 @@ class WindowMenu : public AddSuperWindow<IWindowMenu> {
     Node findNext(Node prev);
 
 public:
-    static Rect16::Height_t ItemHeight();
+    WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer);
+    void BindContainer(IWinMenuContainer &cont);
 
-    WindowMenu(window_t *parent, Rect16 rect, IWinMenuContainer *pContainer, uint8_t index = 0);
-    void BindContainer(IWinMenuContainer &cont, uint8_t index = 0);
+    /// Ugly legacy function REMOVEME
+    inline void Increment(int amount) {
+        move_focus_by(amount, YNPlaySound::yes);
+    }
 
-    bool SetIndex(uint8_t index); // must check container
-    void Increment(int dif);
-    void Decrement(int dif) { Increment(-dif); }
-    std::optional<size_t> GetIndex() const;
+    /// Ugly legacy function REMOVEME
+    inline void Decrement(int amount) {
+        move_focus_by(-amount, YNPlaySound::yes);
+    }
+
+    std::optional<int> focused_item_index() const final;
+
+    bool move_focus_to_index(std::optional<int> index) final;
+
     /// \returns visible index of item
-    std::optional<size_t> GetIndex(IWindowMenuItem &item) const;
-    /// \returns number of all menu items including hidden ones
-    uint8_t GetCount() const; // count of all visible items in container
-    IWindowMenuItem *GetItem(uint8_t index) const; // nth visible item in container
+    std::optional<int> GetIndex(IWindowMenuItem &item) const;
+
+    int item_count() const final;
+
+    IWindowMenuItem *GetItem(int index) const; // nth visible item in container
 
     bool SetActiveItem(IWindowMenuItem &item) {
-        std::optional<size_t> index = GetIndex(item);
+        const auto index = GetIndex(item);
         if (!index)
             return false;
 
-        return SetIndex(*index);
+        return move_focus_to_index(*index);
     }
 
     void InitState(screen_init_variant::menu_t var);
@@ -93,12 +85,6 @@ public:
     void Show(IWindowMenuItem &item);
     bool Hide(IWindowMenuItem &item);
     bool SwapVisibility(IWindowMenuItem &item0, IWindowMenuItem &item1);
-
-    uint8_t GetMaxItemsOnScreen() const { return max_items_on_screen; }
-    uint8_t GetIndexOfFirst() const { return index_of_first; }
-
-    void RollUp();
-    void RollDown();
 
 protected:
     virtual void draw() override;

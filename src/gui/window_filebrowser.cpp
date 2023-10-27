@@ -4,6 +4,7 @@
 
 #include "window_filebrowser.hpp"
 #include "log.h"
+#include "sound.hpp"
 #include <transfers/transfer.hpp>
 #include <algorithm>
 
@@ -19,6 +20,9 @@ LOG_COMPONENT_REF(GUI);
 constexpr unsigned int SFN_len = 13;
 static char firstVisibleSFN[SFN_len];
 char WindowFileBrowser::root[FILE_PATH_BUFFER_LEN] = "/usb";
+
+static constexpr char dirUp[] = "..";
+static constexpr char slash = '/';
 
 WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *media_SFN_path)
     : AddSuperWindow<window_file_list_t>(parent, rect) {
@@ -39,7 +43,8 @@ WindowFileBrowser::WindowFileBrowser(window_t *parent, Rect16 rect, const char *
     }
     // Moreover - the next characters after c contain the filename, which I want to start my cursor at!
     Load(GuiFileSort::Get(), c + 1, firstVisibleSFN);
-    // SetItemIndex(1); // this is automatically done in the window file list
+
+    // scroll offset/current item is automatically set by IWindowMenu
 }
 
 void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *sender, GUI_event_t event, void *param) {
@@ -47,91 +52,20 @@ void WindowFileBrowser::windowEvent(EventLock /*has private ctor*/, window_t *se
     switch (event) {
 
     case GUI_event_t::CLICK:
-        break;
-    case GUI_event_t::TOUCH: {
-        ::event_conversion_union un;
-        un.pvoid = param;
-        if (itemRect(index).Contain(un.point))
-            break;
+        handle_click();
+        return;
 
-        const int visible_slots = LazyDirViewSize;
-        const int ldv_visible_files = ldv.VisibleFilesCount();
-        const int maxi = std::min(count, std::min(visible_slots, ldv_visible_files));
-
-        for (int i = 0; i < maxi; i++) {
-            if (itemRect(i).Contain(un.point)) {
-
-                invalidateItem(index); // invalidate flag of old item
-                index = i;
-                invalidateItem(index); // invalidate flag of new item
-                selectNewItem();
-                break;
-            }
+    case GUI_event_t::TOUCH:
+        if (move_focus_touch_click(param)) {
+            handle_click();
         }
-    } break;
+        return;
+
     default:
-        SuperWindowEvent(sender, event, param);
-        return;
+        break;
     }
 
-    if (file_selected) {
-        return;
-    }
-
-    static const char dirUp[] = "..";
-    static const char slash = '/';
-
-    bool currentIsFile;
-    const char *currentSFN = CurrentSFN(&currentIsFile);
-
-    if (!strcmp(currentSFN, dirUp) && window_file_list_t::IsPathRoot(sfn_path)) {
-        file_selected = true;
-        event_conversion_union un;
-        un.action = event_conversion_union::Action::GoHome;
-        GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
-        return;
-    }
-
-    size_t sfnPathLen = strlen(sfn_path);
-    if ((sfnPathLen + strlen(currentSFN) + 1) >= MAXPATHNAMELENGTH) {
-        log_error(GUI, "Path too long");
-        SuperWindowEvent(sender, event, param);
-        return;
-    }
-
-    if (!currentIsFile) { // directory selected
-        if (strcmp(currentSFN, dirUp)) { // not same -> not ..
-            // append the dir name at the end of sfnPath
-            if (sfn_path[sfnPathLen - 1] != slash) {
-                sfn_path[sfnPathLen++] = slash;
-            }
-            strlcpy(sfn_path + sfnPathLen, currentSFN, FILE_PATH_BUFFER_LEN - sfnPathLen);
-        } else {
-            char *last = strrchr(sfn_path, slash);
-            if (last == sfn_path) {
-                // reached top level dir - ensure it only contains a slash
-                sfn_path[0] = slash;
-                sfn_path[1] = 0;
-            } else {
-                *last = '\0'; // truncate the string after the last "/"
-            }
-        }
-
-        Load(GuiFileSort::Get(), nullptr, nullptr);
-
-        // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
-        // However, the text is not visible on the screen yet...
-        // header.SetText(strrchr(sfn_path, '/'));
-
-    } else { // print the file
-        file_selected = true;
-        if (GetParent()) {
-            event_conversion_union un;
-            un.action = event_conversion_union::Action::FileSelected;
-            GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
-        }
-        return;
-    }
+    SuperWindowEvent(sender, event, param);
 }
 
 void WindowFileBrowser::CopyRootTo(char *path) {
@@ -148,4 +82,93 @@ void WindowFileBrowser::SaveTopSFN() {
 
 int WindowFileBrowser::WriteNameToPrint(char *buff, size_t sz) {
     return snprintf(buff, sz, "%s/%s", sfn_path, CurrentSFN());
+}
+
+void WindowFileBrowser::handle_click() {
+    const auto focused_slot_opt = this->focused_slot();
+
+    // No item focused -> do nothign
+    if (!focused_slot_opt) {
+        return;
+    }
+
+    const auto focused_slot = *focused_slot_opt;
+
+    // Return button -> signal to parent
+    if (is_return_slot(focused_slot)) {
+        log_debug(GUI, "Clicked on return slot");
+        go_up();
+        return;
+    }
+
+    bool is_item_file;
+    const char *currentSFN = CurrentSFN(&is_item_file);
+    log_debug(GUI, "Clicked on item: %s", currentSFN);
+
+    size_t sfn_path_len = strlen(sfn_path);
+    if ((sfn_path_len + strlen(currentSFN) + 1) >= MAXPATHNAMELENGTH) {
+        log_error(GUI, "Path too long");
+        return;
+    }
+
+    // Item is directory -> open the directory, do not report to the parent
+    if (!is_item_file) {
+        // We've selected a subdirectory (filename != "..") -> open the dir
+        if (strcmp(currentSFN, dirUp)) {
+            // append the dir name at the end of sfnPath
+            if (sfn_path[sfn_path_len - 1] != slash) {
+                sfn_path[sfn_path_len++] = slash;
+            }
+
+            strlcpy(sfn_path + sfn_path_len, currentSFN, FILE_PATH_BUFFER_LEN - sfn_path_len);
+
+            Load(GuiFileSort::Get(), nullptr, nullptr);
+        }
+
+        // We've selected ".." and are not in the top level dir (sfn_path contains '/') -> remove the directory
+        else {
+            go_up();
+        }
+    }
+
+    // Item is a file -> report file click to the parent
+    else if (auto parent = GetParent()) {
+        event_conversion_union un {
+            .action = event_conversion_union::Action::file_selected,
+        };
+        parent->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
+    }
+}
+
+void WindowFileBrowser::go_up() {
+    char *last_slash_char = strrchr(sfn_path, '/');
+
+    // We're in the root -> signal to parent
+    if (!last_slash_char || IsPathRoot(sfn_path)) {
+        event_conversion_union un {
+            .action = event_conversion_union::Action::go_home,
+        };
+        GetParent()->WindowEvent(this, GUI_event_t::CHILD_CLICK, un.pvoid);
+        return;
+    }
+
+    char previous_dir_sfn[FILE_PATH_BUFFER_LEN];
+    strlcpy(previous_dir_sfn, last_slash_char + 1, sizeof(previous_dir_sfn));
+
+    // We are in the top level directory (sfn_path == "/something", last_slash_char is the first char in the path)
+    // -> make the string into "/"
+    if (last_slash_char == sfn_path) {
+        sfn_path[1] = '\0';
+    }
+
+    // We're not in the top level directory (sfn_path = "/abc/def" -> cut the string after the last '/')
+    else {
+        *last_slash_char = '\0';
+    }
+
+    Load(GuiFileSort::Get(), previous_dir_sfn, previous_dir_sfn);
+
+    // @@TODO we want to print the LFN of the dir name, which is very hard to do right now
+    // However, the text is not visible on the screen yet...
+    // header.SetText(strrchr(sfn_path, '/'));
 }
