@@ -533,7 +533,17 @@ else()
   set(HAS_PUPPIES_BOOTLOADER NO)
 endif()
 define_boolean_option(HAS_PUPPIES_BOOTLOADER ${HAS_PUPPIES_BOOTLOADER})
-define_boolean_option(PUPPY_FLASH_FW ${HAS_PUPPIES_BOOTLOADER})
+
+set(PUPPY_SKIP_FLASH_FW
+    "OFF"
+    CACHE BOOL "Disable flashing puppies to debug puppy with bootloader."
+    )
+if(${HAS_PUPPIES_BOOTLOADER} AND NOT ${PUPPY_SKIP_FLASH_FW})
+  set(PUPPY_FLASH_FW YES)
+else()
+  set(PUPPY_FLASH_FW NO)
+endif()
+define_boolean_option(PUPPY_FLASH_FW ${PUPPY_FLASH_FW})
 
 if(${PRINTER} IN_LIST PRINTERS_WITH_TOOLCHANGER)
   set(HAS_TOOLCHANGER YES)

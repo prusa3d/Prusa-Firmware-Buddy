@@ -135,6 +135,7 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
 
     auto fingerprint_wait_start = ticks_ms();
 
+    #if PUPPY_FLASH_FW()
     // Precompute firmware fingerprints
     { // Modular bed
         unique_file_ptr fw_file = get_firmware(MODULARBED);
@@ -142,27 +143,35 @@ PuppyBootstrap::BootstrapResult PuppyBootstrap::run(PuppyBootstrap::BootstrapRes
         calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::MODULAR_BED), fingerprints.get_salt(Dock::MODULAR_BED));
     }
     { // Dwarf
-    #if HAS_DWARF()
+        #if HAS_DWARF()
         unique_file_ptr fw_file = get_firmware(DWARF);
         off_t fw_size = get_firmware_size(DWARF);
         calculate_fingerprint(fw_file, fw_size, fingerprints.get_fingerprint(Dock::DWARF_1), fingerprints.get_salt(Dock::DWARF_1));
         for (Dock dock = Dock::DWARF_1; dock <= Dock::LAST; dock = dock + 1) {
             fingerprints.get_fingerprint(dock) = fingerprints.get_fingerprint(Dock::DWARF_1); // Copy fingerprint to all dwarfs
         }
-    #endif
+        #endif
     }
+    #endif /* PUPPY_FLASH_FW() */
 
     // Check puppies if they finished fingerprint calculations
     for (Dock dock = Dock::FIRST; dock <= Dock::LAST; dock = dock + 1) {
         if (!result.is_dock_occupied(dock)) {
             // puppy not detected here, nothing to check
-            dock = dock + 1; // Check next puppy
             continue;
         }
 
         auto address = get_boot_address_for_dock(dock);
         flasher.set_address(address);
         wait_for_fingerprint(fingerprint_wait_start);
+
+    #if !PUPPY_FLASH_FW()
+        // Get fingerprint from puppies to start the app
+        BootloaderProtocol::status_t result = flasher.get_fingerprint(fingerprints.get_fingerprint(dock));
+        if (result != BootloaderProtocol::COMMAND_OK) {
+            fatal_error(ErrCode::ERR_SYSTEM_PUPPY_FINGERPRINT_MISMATCH);
+        }
+    #endif /* !PUPPY_FLASH_FW() */
     }
 
     // Check fingerprints and flash firmware

@@ -105,6 +105,15 @@ With the XL, the situation gets a bit more complex. The firmware of XLBuddy cont
     - With the `ENABLE_PUPPY_BOOTLOAD` set to false, the project will disable Puppy flashing & interaction with Puppy bootloaders.
     - It is up to you to flash the correct firmware to the puppies (noboot variant).
 
+5. Keep bootloaders but do not write firmware on boot.
+    ```
+    -DPUPPY_SKIP_FLASH_FW=YES
+    ```
+    - With the `PUPPY_SKIP_FLASH_FW` set to true, the project will disable Puppy flashing on boot.
+    - You can keep other puppies that are not debugged in the same state as before.
+    - Use puppy build config with bootloaders (e.g. `xl-dwarf_debug_boot`) on one or more puppies.
+    - Recommend breakpoint at the end of `puppy_task_body()` to prevent buddy from resetting the puppy immediately when puppy stops on breakpoint.
+
 See /ProjectOptions.cmake for more information about those cache variables.
 
 #### Running tests
