@@ -51,13 +51,13 @@ static int append_format(char *buffer, int buffer_len, const char *format, ...) 
 
 static int textprotocol_append_point(char *buffer, int buffer_len, metric_point_t *point, int timestamp_diff) {
     int buffer_used;
-    if (point->metric->type == METRIC_VALUE_CUSTOM) {
+    if (point->metric->type == METRIC_VALUE_CUSTOM && !point->error) {
         buffer_used = append_format(buffer, buffer_len, "%s%s", point->metric->name, point->value_custom);
     } else {
         buffer_used = append_format(buffer, buffer_len, "%s ", point->metric->name);
     }
 
-    if (point->metric->type == METRIC_VALUE_CUSTOM) {
+    if (point->metric->type == METRIC_VALUE_CUSTOM && !point->error) {
     } else if (point->error) {
         buffer_used += append_format(buffer + buffer_used, buffer_len - buffer_used, "error=\"");
         buffer_used += textprotocol_append_escaped(buffer + buffer_used, buffer_len - buffer_used, point->error_msg);

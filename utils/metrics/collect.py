@@ -88,8 +88,9 @@ class LineProtocolParser:
         for line in text.splitlines():
             try:
                 data = parse_line(line)
-            except LineFormatError as e:
-                logger.warning('received invalid line: %r', line)
+            except LineFormatError:
+                if self.version >= 4 and 'value too long' not in line:
+                    logger.warning('received invalid line: %r', line)
                 continue
 
             fields = data['fields']

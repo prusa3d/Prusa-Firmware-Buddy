@@ -167,7 +167,7 @@ void metric_record_custom_at_time(metric_t *metric, uint32_t timestamp, const ch
 
     if ((size_t)length >= sizeof(recording->value_custom)) {
         recording->error = true;
-        strcpy(recording->value_custom, "value too long");
+        strcpy(recording->error_msg, "value too long");
     }
 
     point_enqueue(recording);
