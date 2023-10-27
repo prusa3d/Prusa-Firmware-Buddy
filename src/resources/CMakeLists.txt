@@ -83,7 +83,7 @@ endif()
 # /web directory
 add_gzip_resource("web/favicon.ico" "/web/favicon.ico")
 add_gzip_resource("web/index.html" "/web/index.html")
-add_gzip_resource("web/main.bf4381d9e5ab54702172.js" "/web/main.bf4381d9e5ab54702172.js")
+add_gzip_resource("web/main.2812ca58adec020e163e.js" "/web/main.2812ca58adec020e163e.js")
 add_gzip_resource("web/main.71c989a4a290e5c10892.css" "/web/main.71c989a4a290e5c10892.css")
 
 # non-packed images, set the list of images to process
