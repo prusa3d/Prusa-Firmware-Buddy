@@ -14,7 +14,7 @@
 
 namespace selftest {
 
-bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate separate, [[maybe_unused]] FullSelftest full_selftest) {
+bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate separate, [[maybe_unused]] Detect200StepMotors detect_200_step_motors) {
     static SelftestSingleAxis_t staticResults[axis_count];
 
     // validity check
@@ -61,7 +61,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
 #if PRINTER_IS_PRUSA_MK4
             // We have MK4 and it is full selftest (not a stand alone axis test)
             // in this case we need to run a test with motor detection
-            if (full_selftest == FullSelftest::yes) {
+            if (detect_200_step_motors == Detect200StepMotors::yes) {
                 // clang-format off
         m_pAxis = selftest::Factory::CreateDynamical<CSelftestPart_Axis>(config_axis, staticResults[config_axis.axis],
             &CSelftestPart_Axis::stateSwitchTo400step,
@@ -84,7 +84,7 @@ bool phaseAxis(IPartHandler *&m_pAxis, const AxisConfig_t &config_axis, Separate
                 // clang-format on
                 break;
             }
-            [[fallthrough]]; // FullSelftest::no
+            [[fallthrough]]; // Detect200StepMotors::no
                              // We have MK4 and it is a stand alone axis test
                              // in this case we need to run the same type of test as Y axis have
 

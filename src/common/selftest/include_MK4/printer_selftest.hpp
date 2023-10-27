@@ -28,6 +28,7 @@ typedef enum {
     stsWait_loadcell,
     stsZcalib,
     stsXAxis,
+    stsXAxisWithMotorDetection,
     stsYAxis,
     stsZAxis, // could not be first, printer can't home at front edges without steelsheet on
     stsMoveZup,
@@ -70,6 +71,7 @@ enum SelftestMask_t : uint64_t {
     stmZAxis = to_one_hot(stsZAxis),
     stmMoveZup = to_one_hot(stsMoveZup),
     stmXYAxis = stmXAxis | stmYAxis,
+    stmXYAxisWithMotorDetection = to_one_hot(stsXAxisWithMotorDetection) | stmYAxis,
     stmXYZAxis = stmXAxis | stmYAxis | stmZAxis,
     stmWait_axes = to_one_hot(stsWait_axes),
     stmHeaters_noz = to_one_hot(stsHeaters) | to_one_hot(stsHeaters_noz_ena) | to_one_hot(stsHotEndSock),
@@ -124,5 +126,4 @@ protected:
     selftest::IPartHandler *pGearsCalib;
 
     SelftestResult m_result;
-    bool full_selftest = false; // Wizard or a "Full Selftest" from the menu == not a stand alone axis test
 };

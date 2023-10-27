@@ -241,7 +241,14 @@ bool CSelftest::Start(const uint64_t test_mask, [[maybe_unused]] const uint8_t t
     // TODO stmFullSelftest does not mean full selftest some refactoring would be nice
 
     uint32_t full_test_check_mask = stmFans | stmXYZAxis | stmHeaters | stmLoadcell | stmFSensor;
-    full_selftest = (full_test_check_mask & test_mask) == full_test_check_mask;
+    if ((full_test_check_mask & test_mask) == full_test_check_mask) {
+        m_Mask = (SelftestMask_t)(m_Mask | to_one_hot(stsXAxisWithMotorDetection));
+    }
+
+    // cannot have both stsXAxisWithMotorDetection and stsXAxis
+    if (m_Mask & stsXAxisWithMotorDetection) {
+        m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsXAxis)));
+    }
 
     // dont show message about footer and do not wait response
     m_Mask = (SelftestMask_t)(m_Mask & (~(uint64_t(1) << stsPrologueInfo)));
@@ -316,18 +323,22 @@ void CSelftest::Loop() {
         break;
     }
     case stsXAxis: {
-        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no, full_selftest ? FullSelftest::yes : FullSelftest::no))
+        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no))
             return;
-        // Y is not skipped even if X fails
+        break;
+    }
+    case stsXAxisWithMotorDetection: {
+        if (selftest::phaseAxis(pXAxis, Config_XAxis, Separate::no, Detect200StepMotors::yes))
+            return;
         break;
     }
     case stsYAxis: {
-        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::no, full_selftest ? FullSelftest::yes : FullSelftest::no))
+        if (selftest::phaseAxis(pYAxis, Config_YAxis, Separate::no))
             return;
         break;
     }
     case stsZAxis: {
-        if (selftest::phaseAxis(pZAxis, Config_ZAxis, Separate::no, full_selftest ? FullSelftest::yes : FullSelftest::no))
+        if (selftest::phaseAxis(pZAxis, Config_ZAxis, Separate::no))
             return;
         break;
     }
