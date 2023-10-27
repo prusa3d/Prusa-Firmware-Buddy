@@ -131,26 +131,19 @@ void window_t::SetFocus() {
     gui_invalidate();
 }
 
-void window_t::Show() {
-    if (!flags.visible) {
-        flags.visible = true;
-        // cannot invalidate when is hidden by dialog - could flicker
-        if (!flags.hidden_behind_dialog)
-            Invalidate();
-
-        notifyVisibilityChange();
+void window_t::set_visible(bool set) {
+    if (flags.visible == set) {
+        return;
     }
-}
 
-void window_t::Hide() {
-    if (flags.visible) {
-        flags.visible = false;
-        // cannot invalidate when is hidden by dialog - could flicker
-        if (!flags.hidden_behind_dialog)
-            Invalidate();
+    flags.visible = set;
 
-        notifyVisibilityChange();
+    // cannot invalidate when is hidden by dialog - could flicker
+    if (!flags.hidden_behind_dialog) {
+        Invalidate();
     }
+
+    notifyVisibilityChange();
 }
 
 void window_t::notifyVisibilityChange() {

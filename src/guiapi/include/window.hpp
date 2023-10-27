@@ -91,8 +91,15 @@ public:
     void SetFocus();
     void Enable();
     void Disable();
-    void Show();
-    void Hide();
+
+    void set_visible(bool set);
+    inline void Show() {
+        set_visible(true);
+    }
+    inline void Hide() {
+        set_visible(false);
+    }
+
     void Shadow();
     void Unshadow();
     void HideBehindDialog();
