@@ -224,6 +224,11 @@ void media_prefetch(const void *) {
 
         if ((first_read_res == IGcodeReader::Result_t::RESULT_OK || first_read_res == IGcodeReader::Result_t::RESULT_EOF) && back_buff_level > 0) { // read anything, or EOF happened
             bb_state = GCodeFilter::State::Ok;
+        } else if (first_read_res == IGcodeReader::Result_t::RESULT_OUT_OF_RANGE) {
+            bb_state = GCodeFilter::State::NotDownloaded;
+            log_warning(MarlinServer, "Media prefetch: data not yet downloaded");
+            osSignalWait(PREFETCH_SIGNAL_STOP, osWaitForever);
+            continue;
         } else {
             prefetch_state = GCodeFilter::State::Error;
             log_info(MarlinServer, "Media prefetch: stopped by error");
