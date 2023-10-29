@@ -248,10 +248,32 @@
             "request": "launch",
         },
         {
-            "name": "GDB (QEMU)",
+            "name": "GDB - Buddy (QEMU)",
             "type": "gdb",
             "request": "attach",
             "executable": "${workspaceRoot}/build-vscode-buddy/firmware",
+            "target": ":1234",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin/arm-none-eabi-gdb",
+            "autorun": []
+        },
+        {
+            "name": "GDB - Dwarf (QEMU)",
+            "type": "gdb",
+            "request": "attach",
+            "executable": "${workspaceRoot}/build-vscode-dwarf/firmware",
+            "target": ":1234",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceRoot}/.dependencies/gcc-arm-none-eabi-13.2.1/bin/arm-none-eabi-gdb",
+            "autorun": []
+        },
+        {
+            "name": "GDB - ModularBed (QEMU)",
+            "type": "gdb",
+            "request": "attach",
+            "executable": "${workspaceRoot}/build-vscode-modularbed/firmware",
             "target": ":1234",
             "remote": true,
             "cwd": "${workspaceRoot}",
