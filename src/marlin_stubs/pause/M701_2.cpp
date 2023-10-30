@@ -104,6 +104,7 @@ void filament_gcodes::M701_no_parser(filament::Type filament_to_be_loaded, const
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
     }
+    planner.set_e_position_mm((destination.e = current_position.e = current_position_tmp.e));
 }
 
 void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z_min_pos, std::optional<RetAndCool_t> op_preheat, uint8_t target_extruder, bool ask_unloaded) {
@@ -148,6 +149,7 @@ void filament_gcodes::M702_no_parser(std::optional<float> unload_length, float z
     } else {
         M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
     }
+    planner.set_e_position_mm((destination.e = current_position.e = current_position_tmp.e));
 }
 
 namespace PreheatStatus {
@@ -210,6 +212,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         settings.SetExtruder(target_extruder);
         settings.SetFastLoadLength(fast_load_length);
         settings.SetRetractLength(0.f);
+        float e_pos_to_restore = current_position.e;
 
         // catch filament in gear and then ask for temp
         if (!Pause::Instance().LoadToGear(settings) || FSensors_instance().GetCurrentExtruder() == fsensor_t::NoFilament) {
@@ -248,6 +251,7 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
                 M70X_process_user_response(PreheatStatus::Result::DidNotFinish, target_extruder);
             }
         }
+        planner.set_e_position_mm((destination.e = current_position.e = e_pos_to_restore));
     }
 
     FSensors_instance().ClrAutoloadSent();
