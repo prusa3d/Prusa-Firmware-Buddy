@@ -82,6 +82,8 @@ void MI_TEST_FANS::click(IWindowMenu & /*window_menu*/) {
     marlin_client::test_start(stmFans);
 }
 
+// XL does not support all axis at once
+#if !PRINTER_IS_PRUSA_XL
 /*****************************************************************************/
 // MI_TEST_XYZ
 MI_TEST_XYZ::MI_TEST_XYZ()
@@ -92,6 +94,7 @@ void MI_TEST_XYZ::click(IWindowMenu & /*window_menu*/) {
     Screens::Access()->Open(ScreenFactory::Screen<ScreenSelftest>);
     marlin_client::test_start(stmXYZAxis);
 }
+#endif
 
 /*****************************************************************************/
 // MI_TEST_X

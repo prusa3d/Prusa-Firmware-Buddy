@@ -261,7 +261,7 @@ void ScreenSelftest::InitState(screen_init_variant var) {
         marlin_client::test_start(*val);
 #if !HAS_SELFTEST_SNAKE()
         // check mask if contains wizard prologue
-        // it is simplified method, but should work correctly for meaningfull use
+        // it is simplified method, but should work correctly for meaningful use
         if ((*val) & stmWizardPrologue) {
             header.SetIcon(&img::wizard_16x16);
             header.SetText(_(en_wizard));
