@@ -118,6 +118,7 @@ USBH_ClassTypeDef  USBH_msc =
   NULL,
 };
 
+uint32_t ticks_ms();
 
 /**
   * @}
@@ -794,7 +795,7 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
 
   (void)USBH_MSC_SCSI_Read(phost, lun, address, pbuf, length);
 
-  timeout = phost->Timer;
+  timeout = ticks_ms();
 
   while (USBH_MSC_RdWrProcess(phost, lun) == USBH_BUSY)
   {
@@ -804,7 +805,7 @@ USBH_StatusTypeDef USBH_MSC_Read(USBH_HandleTypeDef *phost,
       ulTaskNotifyTake(pdFALSE, 500 / portTICK_PERIOD_MS);
     }
 
-    if (((phost->Timer - timeout) > (USBH_MSC_IO_TIMEOUT * length)) || (phost->device.is_connected == 0U))
+    if (((ticks_ms() - timeout) > (USBH_MSC_IO_TIMEOUT * length)) || (phost->device.is_connected == 0U))
     {
       MSC_Handle->state = MSC_IDLE;
       return USBH_FAIL;
