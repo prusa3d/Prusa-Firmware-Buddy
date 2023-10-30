@@ -178,7 +178,7 @@ public:
     }
     void Disable() {
         // cannot disable focused item
-        if (is_focused() && enabled != is_enabled_t::no) {
+        if (!is_focused() && enabled != is_enabled_t::no) {
             enabled = is_enabled_t::no;
             Invalidate();
         }
