@@ -210,7 +210,7 @@ bool Transfer::restart_download() {
     // make sure we don't hold the file actually open so the next open can
     // succeed.
     partial_file->release_file();
-    if (auto open_result = PartialFile::open(path.as_partial(), old_state); holds_alternative<PartialFile::Ptr>(open_result)) {
+    if (auto open_result = PartialFile::open(path.as_partial(), old_state, true); holds_alternative<PartialFile::Ptr>(open_result)) {
         auto new_file = move(get<PartialFile::Ptr>(open_result));
         if (new_file->final_size() != check_size) {
             return false;
@@ -340,7 +340,7 @@ Transfer::RecoverResult Transfer::recover(const char *destination_path) {
     // reopen the partial file
     PartialFile::Ptr partial_file = nullptr;
     {
-        auto partial_file_result = PartialFile::open(path.as_partial(), partial_file_state);
+        auto partial_file_result = PartialFile::open(path.as_partial(), partial_file_state, true);
         if (auto *err = get_if<const char *>(&partial_file_result); err != nullptr) {
             log_error(transfers, "Failed to open partial file: %s", *err);
             return Storage { *err };

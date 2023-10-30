@@ -70,8 +70,8 @@ variant<const char *, PartialFile::Ptr> PartialFile::create(const char *path, si
     return PartialFile::convert(path, std::move(file), State());
 }
 
-variant<const char *, PartialFile::Ptr> PartialFile::open(const char *path, State state) {
-    unique_file_ptr file(fopen(path, "rb+"));
+variant<const char *, PartialFile::Ptr> PartialFile::open(const char *path, State state, bool ignore_opened) {
+    unique_file_ptr file(fopen(path, ignore_opened ? "rb" : "rb+"));
 
     if (!file) {
         return "Failed to open file";

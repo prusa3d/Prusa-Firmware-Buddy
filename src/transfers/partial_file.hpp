@@ -202,7 +202,10 @@ public:
     /// Open existing partial file
     ///
     /// state.total_size is updated according to what is found on the disk and overwritten.
-    static std::variant<const char *, PartialFile::Ptr> open(const char *path, State state);
+    ///
+    /// * ignore_opened: If set to true, it'll open the file (for writing) even
+    ///   if there's a reader somewhere else.
+    static std::variant<const char *, PartialFile::Ptr> open(const char *path, State state, bool ignore_opened);
 
     /// Convert an open FILE * into this.
     ///
