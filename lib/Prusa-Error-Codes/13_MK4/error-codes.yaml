@@ -208,6 +208,13 @@ Errors:
   id: "ACF_AT_INIT"
   approved: false
 
+# CONNECTIVITY   xx4xx
+
+- code: "13401"
+  title: "CONNECT REGISTRATION FAILED"
+  text: "Registration to Prusa Connect failed due to:"
+  id: "CONNECT_REGISTRATION_FAILED"
+  approved: true
 # SYSTEM         xx5xx
 
 # XX501-XX503 reserved
@@ -316,6 +323,12 @@ Errors:
   id: "ESP_NOT_CONNECTED"
   approved: false
   
+- code: "13601"
+  title: ""
+  text: "This error code is not found\nin our database.\nContact the support."
+  id: "UNKNOWN_ERROR_CODE"
+  approved: true
+
 - code: "13602"
   title: ""
   text: "USB drive not\nconnected! Please\ninsert a USB drive\nwith a valid\nfirmware file."
@@ -357,6 +370,12 @@ Errors:
   id: "FW_IN_INTERNAL_FLASH_CORRUPTED"
   approved: true
   
+- code: "13609"
+  title: ""
+  text: "Firmware and hardware versions do\nnot match. Make sure you have\nthe right firmware file for\nyour printer."
+  id: "HW_VERSION_ERR"
+  approved: true
+
 - code: "13610"
   title: ""
   text: "Firmware/printer\ntypes do not match.\nMake sure you have\nthe right firmware\nfile for your\nprinter model."

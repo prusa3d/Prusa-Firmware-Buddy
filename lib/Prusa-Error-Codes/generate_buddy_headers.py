@@ -31,6 +31,12 @@ namespace MMU2 {{
 
 inline constexpr uint8_t ERR_MMU_CODE = {printer_code};
 
+enum class ErrType : uint8_t {{
+    ERROR = 0,
+    WARNING,
+    USER_ACTION
+}};
+
 enum class ErrCode : uint16_t {{
     ERR_UNDEF = 0,
     {enum_items}
@@ -43,6 +49,7 @@ struct MMUErrDesc {{
     // 16 bit
     ErrCode err_code;
     std::array<ButtonOperations, 3> buttons;
+    ErrType type;
 }};
 
 }}  // namespace MMU2
@@ -137,16 +144,21 @@ def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
                 if len(btns) == 2:
                     btns.append("ButtonOperations::NoOperation")
 
-                btns_text = f",\n                    {{{', '.join(btns)}}}"
+                mmu_extra_text = f",\n        {{{', '.join(btns)}}}"
+
+                if "type" not in err:
+                    err["type"] = "ERROR"
+
+                mmu_extra_text += f",\n        ErrType::{err['type']}"
             else:
-                btns_text = ""
+                mmu_extra_text = ""
 
             err_dict[err_code] = {
                 "id": err_id,
                 "code": err_code,
                 "title": err["title"],
                 "text": err["text"].replace("\n", "\\n"),
-                "btns": btns_text
+                "mmu_extra_text": mmu_extra_text
             }
 
     os.makedirs(header_file_name.parent, exist_ok=True)
@@ -157,7 +169,7 @@ def generate_header_file(yaml_file_name, header_file_name, mmu, list, includes):
     {{
         N_("{err['title']}"),
         N_("{err['text']}"),
-        ErrCode::{err['id']}{err['btns']}
+        ErrCode::{err['id']}{err['mmu_extra_text']}
     }}""" for err in err_dict.values())
 
     include_items = "\n".join([f"#include <{item}>" for item in includes])

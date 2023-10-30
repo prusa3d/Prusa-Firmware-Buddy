@@ -28,6 +28,7 @@ Errors:
   action: [Retry]
   id: "FINDA_DIDNT_TRIGGER"
   approved: true
+  type: WARNING
 
 - code: "04102"
   title: "FINDA FILAM. STUCK"
@@ -114,6 +115,7 @@ Errors:
   action: [Continue,ResetMMU]
   id: "WARNING_TMC_PULLEY_TOO_HOT"
   approved: true
+  type: ERROR
 
 - code: "04211"
   title: "WARNING TMC TOO HOT"
@@ -284,6 +286,14 @@ Errors:
   id: "MCU_POWER_ERROR"
   approved: true
 
+- code: "04307"
+  title: "MMU MCU UNDERPOWER"
+  text: "MMU MCU detected a 5V undervoltage. There might be an issue with the electronics. Check the wiring and connectors"
+  text_short: "More details online."
+  action: [ResetMMU]
+  id: "MCU_UNDERVOLTAGE_VCC"
+  approved: true
+
 # CONNECTIVITY
 - code: "04401"
   title: "MMU NOT RESPONDING"
@@ -324,7 +334,7 @@ Errors:
 - code: "04504"
   title: "MMU FW UPDATE NEEDED"
   text: "The MMU firmware version is incompatible with the printer's FW. Update to compatible version."
-  text_short: "MMU FW version is incompatible with printer FW.Update to version 3.0.0."
+  text_short: "MMU FW version is incompatible with printer FW.Update to version 3.0.1."
   action: [ResetMMU,DisableMMU]
   id: "FW_UPDATE_NEEDED"
   approved: true
@@ -349,6 +359,7 @@ Errors:
   action: [Continue]
   id: "FILAMENT_EJECTED"
   approved: true
+  type: USER_ACTION
 
 - code: "04900"
   title: "UNKNOWN ERROR"
