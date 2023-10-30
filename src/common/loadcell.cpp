@@ -169,12 +169,11 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
 
     // sample timestamp
     int32_t ticks_us_from_now = ticks_diff(time_us, ticks_us());
-    int32_t ticks_ms_from_now = ticks_us_from_now / 1000;
-    uint32_t timestamp_ms = ticks_ms() + ticks_ms_from_now;
-    last_sample_time = timestamp_ms;
+    uint32_t timestamp_us = ticks_us() + ticks_us_from_now;
+    last_sample_time = timestamp_us;
 
-    metric_record_custom_at_time(&metric_loadcell, timestamp_ms, " r=%ii,o=%ii,s=%0.4f", loadcellRaw, offset, (double)scale);
-    metric_record_integer_at_time(&metric_loadcell_age, timestamp_ms, ticks_us_from_now);
+    metric_record_custom_at_time(&metric_loadcell, timestamp_us, " r=%ii,o=%ii,s=%0.4f", loadcellRaw, offset, (double)scale);
+    metric_record_integer_at_time(&metric_loadcell_age, timestamp_us, ticks_us_from_now);
 
     // filtered loads
     const float tared_z_load = get_tared_z_load();
@@ -184,10 +183,10 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
     }
 
     const float filtered_z_load = get_filtered_z_load();
-    metric_record_float_at_time(&metric_loadcell_hp, timestamp_ms, filtered_z_load);
+    metric_record_float_at_time(&metric_loadcell_hp, timestamp_us, filtered_z_load);
 
     const float filtered_xy_load = get_filtered_xy();
-    metric_record_float_at_time(&metric_loadcell_xy, timestamp_ms, filtered_xy_load);
+    metric_record_float_at_time(&metric_loadcell_xy, timestamp_us, filtered_xy_load);
 
     if (tareCount != 0) {
         // Undergoing tare process, only use valid samples
@@ -263,8 +262,8 @@ void Loadcell::ProcessSample(int32_t loadcellRaw, uint32_t time_us) {
 }
 
 void Loadcell::HomingSafetyCheck() const {
-    static constexpr uint32_t MAX_LOADCELL_DATA_AGE_WHEN_HOMING = 100;
-    if (ticks_ms() - last_sample_time > MAX_LOADCELL_DATA_AGE_WHEN_HOMING) {
+    static constexpr uint32_t MAX_LOADCELL_DATA_AGE_WHEN_HOMING_US = 100000;
+    if (ticks_us() - last_sample_time > MAX_LOADCELL_DATA_AGE_WHEN_HOMING_US) {
         fatal_error(ErrCode::ERR_ELECTRO_HOMING_ERROR_Z);
     }
 }
