@@ -8,10 +8,12 @@
     #include "usbh_msc.h"
 #endif
 
-#define USBH_MSC_READAHEAD
-// #ifdef _DEBUG
-#define USBH_MSC_READAHEAD_STATISTICS
+#if !PRINTER_IS_PRUSA_MINI /* MINI doesn't have enough RAM, sorry MINI */
+    #define USBH_MSC_READAHEAD
+    // #ifdef _DEBUG
+    #define USBH_MSC_READAHEAD_STATISTICS
 // #endif
+#endif /* !PRINTER_IS_PRUSA_MINI */
 
 // Task handle of the process for executing the r/w MSC operations
 extern osThreadId USBH_MSC_WorkerTaskHandle;
