@@ -142,16 +142,20 @@ static consteval HeaterConfig_t make_nozzle_config(const char *name) {
         .refKd = Temperature::temp_hotend[index].pid.Kd,
         .heatbreak_fan_fnc = Fans::heat_break,
         .print_fan_fnc = Fans::print,
-        .heat_time_ms = 70000,
-        .start_temp = 40,
-        .undercool_temp = 37,
+        .heat_time_ms = 42000,
+        .start_temp = 80,
+        .undercool_temp = 75,
         .target_temp = 290,
-        .heat_min_temp = 180,
-        .heat_max_temp = 230,
+        /**
+         * @note Resulting temperature after nozzle heater test is set by the internal model control that is used in Dwarf.
+         * @todo Completely retune the PID in dwarf.
+         */
+        .heat_min_temp = 155,
+        .heat_max_temp = 245,
         .heatbreak_min_temp = 10,
         .heatbreak_max_temp = 45,
-        .heater_load_stable_ms = 3000,
-        .heater_full_load_min_W = 20,
+        .heater_load_stable_ms = 1000,
+        .heater_full_load_min_W = 20, // 35 W +- 43%
         .heater_full_load_max_W = 50,
         .pwm_100percent_equivalent_value = 127,
         .min_pwm_to_measure = 26

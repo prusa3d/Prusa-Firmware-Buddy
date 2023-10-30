@@ -250,23 +250,32 @@ void CSelftestPart_Heater::single_check_callback() {
     float voltage;
     float current;
     uint32_t pwm;
+    float power;
 
     if (m_config.type == heater_type_t::Nozzle) {
-        current = advancedpower.get_nozzle_current(m_config.tool_nr);
+        current = advancedpower.get_nozzle_current(m_config.tool_nr); // This will either give 1.5 A or 0 depending if PWM is on or off
         voltage = advancedpower.get_nozzle_voltage(m_config.tool_nr);
         pwm = advancedpower.get_nozzle_pwm(m_config.tool_nr);
+        power = current * voltage;
+
+        /**
+         * @note No averaging here.
+         * The internal model control in Dwarf is from MINI.
+         * It will turn off the output once in a while to follow a curve.
+         * @todo Completely retune the PID in dwarf.
+         */
     } else {
         voltage = 24; // Modular bed does not measure this
         current = advancedpower.get_bed_current();
         pwm = thermalManager.temp_bed.soft_pwm_amount;
-    }
-    float power = current * voltage;
+        power = current * voltage;
 
-    // Filter both power and pwm using floating average to filter out sudden changes
-    power_avg = (power_avg * 99 + power) / 100;
-    pwm_avg = (pwm_avg * 99 + pwm) / 100;
-    power = power_avg;
-    pwm = pwm_avg;
+        // Filter both power and pwm using floating average to filter out sudden changes
+        power_avg = (power_avg * 99 + power) / 100;
+        pwm_avg = (pwm_avg * 99 + pwm) / 100;
+        power = power_avg;
+        pwm = pwm_avg;
+    }
 
     LogDebugTimed(
         check_log,
