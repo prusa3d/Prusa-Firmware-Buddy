@@ -55,6 +55,11 @@
 #endif
 #endif
 
+#include <device/board.h>
+#if BOARD_IS_XBUDDY
+  #include <hw_configuration.hpp>
+#endif
+
 static constexpr uint32_t TMC2130_INT_OSC_FREQ = 12650000;
 static constexpr uint32_t TMC2130_EXT_OSC_FREQ = 16000000;
 
