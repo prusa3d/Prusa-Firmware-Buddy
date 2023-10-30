@@ -72,6 +72,7 @@
 #endif
 #include "safe_state.h"
 #include "gcode_reader.hpp"
+#include "wdt.h"
 
 // External thread handles required for suspension
 extern osThreadId defaultTaskHandle;
@@ -989,8 +990,12 @@ void panic_loop() {
         }
 
         // power panic is handled, stop execution of main thread, and wait here until CPU dies
-        while ((ticks_ms() - state_buf.fault_stamp) < POWER_PANIC_HOLD_RST_MS) {
+        // Wait time is longer then WDG period, so we'll refresh watchdog few times to avoid dying of dog bites
+        for (unsigned int s = 0; s < POWER_PANIC_HOLD_RST_S; s++) {
+            osDelay(1000);
+            wdt_iwdg_refresh();
         }
+
         sys_reset();
 
     case PPState::Inactive:
