@@ -17,7 +17,12 @@ osThreadCCMDef(metric_system_task, metric_system_task_run, TASK_PRIORITY_METRIC_
 static osThreadId metric_system_task;
 
 // queue definition
-osMailQDef(metric_system_queue, 100, metric_point_t);
+#if PRINTER_IS_PRUSA_MINI
+static constexpr const size_t metric_system_queue_size = 50; ///< Not enough RAM, smaller buffer for metrics, sorry Mini
+#else
+static constexpr const size_t metric_system_queue_size = 100; ///< Size of metrics buffer
+#endif /* PRINTER_IS_PRUSA_MINI */
+osMailQDef(metric_system_queue, metric_system_queue_size, metric_point_t);
 static osMessageQId metric_system_queue;
 
 // internal variables
