@@ -24,6 +24,10 @@ struct pressure_advance_state_t;
 struct input_shaper_state_t;
 struct input_shaper_pulses_t;
 
+namespace phase_stepping {
+struct AxisState;
+}
+
 typedef uint32_t MoveFlag_t;
 enum MoveFlag : MoveFlag_t {
     MOVE_FLAG_ACCELERATION_PHASE = _BV(0),
@@ -169,7 +173,11 @@ enum StepGeneratorType : uint8_t {
     INPUT_SHAPER_STEP_GENERATOR_Y = _BV(1),
     INPUT_SHAPER_STEP_GENERATOR_Z = _BV(2),
 
-    PRESSURE_ADVANCE_STEP_GENERATOR_E = _BV(3)
+    PRESSURE_ADVANCE_STEP_GENERATOR_E = _BV(3),
+
+    PHASE_STEPPING_GENERATOR_X = _BV(4),
+    PHASE_STEPPING_GENERATOR_Y = _BV(5),
+    PHASE_STEPPING_GENERATOR_Z = _BV(6)
 };
 
 enum StepEventInfoStatus : uint8_t {
@@ -200,6 +208,12 @@ typedef struct move_segment_step_generator_t : basic_step_generator_t {
     float accel = 0.f;
     float start_pos = 0.f;
     bool step_dir = false;
+
+    // We don't use inheritance on purpose – phase stepping is to some degree
+    // orthogonal to classical and advanced step generators
+#ifdef PHASE_STEPPING
+    phase_stepping::AxisState *phase_step_state = nullptr;
+#endif
 } move_segment_step_generator_t;
 
 struct step_generator_state_t;

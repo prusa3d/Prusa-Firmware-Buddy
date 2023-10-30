@@ -16,6 +16,11 @@
 #include "data_exchange.hpp"
 #include <option/buddy_enable_wui.h>
 
+#ifdef PHASE_STEPPING
+    #include <feature/phase_stepping/phase_stepping.hpp>
+    #include <feature/phase_stepping/quick_tmc_spi.hpp>
+#endif
+
 #ifdef BUDDY_ENABLE_WUI
     #include "espif.h"
 #endif
@@ -226,6 +231,28 @@ void DMA1_Stream3_IRQHandler(void) {
 #endif
 
 /**
+ * @brief This function handles TIM8 trigger and commutation interrupts and TIM13 global interrupt.
+ */
+void TIM8_UP_TIM13_IRQHandler(void) {
+    // We avoid slow HAL handling on purpose as phase stepping is invoked
+    // frequently and every microsecond saves about 4 % of CPU load. That is:
+    // - we don't use traceISR_ENTER()/EXIT() as it takes 1.2 µs
+    // - we don't use HAL handler: HAL_TIM_IRQHandler(&htim13) as it takes 3 µs
+    // - we avoid indirect access to peripheral registers via handle as it takes
+    //   0.4 µs
+#ifdef PHASE_STEPPING
+    if (TIM13->SR & TIM_FLAG_CC1) {
+        TIM13->SR &= ~TIM_FLAG_CC1;
+        phase_stepping::spi::finish_transmission();
+    }
+    if (TIM13->SR & TIM_FLAG_UPDATE) {
+        TIM13->SR &= ~TIM_FLAG_UPDATE;
+        phase_stepping::handle_periodic_refresh();
+    }
+#endif
+}
+
+/**
  * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.
  */
 void TIM8_TRG_COM_TIM14_IRQHandler(void) {
@@ -342,6 +369,15 @@ void OTG_FS_IRQHandler(void) {
 void OTG_HS_IRQHandler(void) {
     traceISR_ENTER();
     HAL_HCD_IRQHandler(&hhcd_USB_OTG_HS);
+    traceISR_EXIT();
+}
+
+/**
+ * @brief This function handles SPI3 global interrupt.
+ */
+void SPI3_IRQHandler(void) {
+    traceISR_ENTER();
+    HAL_SPI_IRQHandler(&hspi3);
     traceISR_EXIT();
 }
 }

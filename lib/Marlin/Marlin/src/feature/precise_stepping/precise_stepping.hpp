@@ -306,3 +306,8 @@ private:
 void classic_step_generator_init(const move_t &move, classic_step_generator_t &step_generator, step_generator_state_t &step_generator_state);
 
 FORCE_INLINE void classic_step_generator_update(classic_step_generator_t &step_generator);
+
+// Common functions:
+float get_move_axis_r(const move_t &move, const int axis);
+void mark_ownership(move_t &move);
+void discard_ownership(move_t &move);

@@ -8,6 +8,7 @@
 #include "precise_stepping.hpp"
 #include "../input_shaper/input_shaper.hpp"
 #include "../pressure_advance/pressure_advance.hpp"
+#include "../phase_stepping/phase_stepping.hpp"
 #include "internal.hpp"
 
 #include "../../module/planner.h"
@@ -18,6 +19,9 @@
 
 #include <timing_precise.hpp>
 #include <timing.h>
+
+#include "log.h"
+LOG_COMPONENT_DEF(PreciseStepping, LOG_SEVERITY_DEBUG);
 
 #if defined(ISR_DEADLINE_DEBUGGING) || defined(ISR_EVENT_DEBUGGING)
     #include <sound.hpp>
@@ -300,7 +304,7 @@ FORCE_INLINE float calc_time_for_distance(const classic_step_generator_t &step_g
     return std::max(calc_time_for_distance(step_generator.start_v, step_generator.accel, distance, step_generator.step_dir), 0.f);
 }
 
-FORCE_INLINE float get_move_axis_r(const move_t &move, const int axis) {
+float get_move_axis_r(const move_t &move, const int axis) {
 #ifdef COREXY
     if (axis == A_AXIS) {
         return float(move.axes_r[X_AXIS]) + float(move.axes_r[Y_AXIS]);
@@ -518,10 +522,17 @@ void PreciseStepping::init() {
     Stepper::count_direction.y = (Stepper::last_direction_bits & STEP_EVENT_FLAG_Y_DIR) ? -1 : 1;
     Stepper::count_direction.z = (Stepper::last_direction_bits & STEP_EVENT_FLAG_Z_DIR) ? -1 : 1;
     Stepper::count_direction.e = (Stepper::last_direction_bits & STEP_EVENT_FLAG_E_DIR) ? -1 : 1;
-
+#if PHASE_STEPPING
+    LOOP_XYZ(i) {
+        PreciseStepping::step_generators_pool.classic_step_generator[i].phase_step_state = &phase_stepping::axis_states[i];
+    }
+#endif
 #ifdef ADVANCED_STEP_GENERATORS
     LOOP_XYZ(i) {
         PreciseStepping::step_generators_pool.input_shaper_step_generator[i].is_state = &InputShaper::is_state[i];
+    #if PHASE_STEPPING
+        PreciseStepping::step_generators_pool.input_shaper_step_generator[i].phase_step_state = &phase_stepping::axis_states[i];
+    #endif
     }
     PreciseStepping::step_generators_pool.pressure_advance_step_generator_e.pa_state = &PressureAdvance::pressure_advance_state;
 #endif
@@ -1183,10 +1194,19 @@ void PreciseStepping::step_generator_state_init(const move_t &move) {
 
     LOOP_XYZ(i) {
 #ifdef ADVANCED_STEP_GENERATORS
-        if (physical_axis_step_generator_types & (INPUT_SHAPER_STEP_GENERATOR_X << i)) {
+        if (false && physical_axis_step_generator_types & (INPUT_SHAPER_STEP_GENERATOR_X << i)) { // TBA temp IS disable
             input_shaper_step_generator_init(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
         } else {
+    #ifdef PHASE_STEPPING
+
+            if (physical_axis_step_generator_types & (PHASE_STEPPING_GENERATOR_X << i)) {
+                phase_stepping::init_step_generator(move, step_generators_pool.input_shaper_step_generator[i], step_generator_state);
+            } else {
+                classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
+            }
+    #else
             classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
+    #endif
         }
 #else
         classic_step_generator_init(move, step_generators_pool.classic_step_generator[i], step_generator_state);
@@ -1236,4 +1256,13 @@ void PreciseStepping::reset_queues() {
     if (was_enabled) {
         stepper.wake_up();
     }
+}
+
+void mark_ownership(move_t &move) {
+    move.reference_cnt++;
+}
+
+void discard_ownership(move_t &move) {
+    move.reference_cnt--;
+    PreciseStepping::move_segment_processed_handler();
 }

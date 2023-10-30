@@ -904,6 +904,15 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 959: M959(); break;
       #endif
 
+      #if ENABLED(PHASE_STEPPING)
+        case 970: M970(); break;
+        case 971: M971(); break;
+        case 972: M972(); break;
+        case 973: M973(); break;
+        case 974: M974(); break;
+        case 975: M975(); break;
+      #endif
+
       #if ENABLED(Z_STEPPER_AUTO_ALIGN)
         case 422: M422(); break;                                  // M422: Set Z Stepper automatic alignment position using probe
       #endif

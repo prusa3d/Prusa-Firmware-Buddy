@@ -1165,6 +1165,15 @@
 //#define DIRECT_STEPPING
 
 /**
+ * Phase Stepping
+ *
+ * Phase stepping introduces the ability to use an arbitrary current waveform
+ * for motor control. With suitable waveform, we can eliminate most of motor
+ * noise and also remove VFA
+ */
+ #define PHASE_STEPPING 1
+
+/**
  * G38 Probe Target
  *
  * This option adds G38.2 and G38.3 (probe towards target)

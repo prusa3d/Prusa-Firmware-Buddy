@@ -58,6 +58,8 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/feature/input_shaper/input_shaper.cpp
             Marlin/Marlin/src/feature/input_shaper/input_shaper_config.cpp
             Marlin/Marlin/src/feature/joystick.cpp
+            Marlin/Marlin/src/feature/phase_stepping/phase_stepping.cpp
+            Marlin/Marlin/src/feature/phase_stepping/quick_tmc_spi.cpp
             Marlin/Marlin/src/feature/power.cpp
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance.cpp
             Marlin/Marlin/src/feature/pressure_advance/pressure_advance_config.cpp
@@ -111,6 +113,7 @@ if(BOARD MATCHES ".*BUDDY")
             Marlin/Marlin/src/gcode/feature/input_shaper/M74.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M556.cpp
             Marlin/Marlin/src/gcode/feature/modular_bed/M557.cpp
+            Marlin/Marlin/src/gcode/feature/phase_stepping/M970-M975.cpp
             Marlin/Marlin/src/gcode/feature/pressure_advance/M572.cpp
             Marlin/Marlin/src/gcode/feature/print_area/M555.cpp
             Marlin/Marlin/src/gcode/feature/runout/M412.cpp

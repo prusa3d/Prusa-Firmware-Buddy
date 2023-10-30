@@ -422,6 +422,9 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi) {
         }
 
         __HAL_LINKDMA(hspi, hdmatx, hdma_spi3_tx);
+
+        HAL_NVIC_SetPriority(SPI3_IRQn, ISR_PRIORITY_DEFAULT, 0);
+        HAL_NVIC_EnableIRQ(SPI3_IRQn);
     } else if (hspi->Instance == SPI4) {
         /* Peripheral clock enable */
         __HAL_RCC_SPI4_CLK_ENABLE();
@@ -705,6 +708,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef *hspi) {
         /* SPI3 DMA DeInit */
         HAL_DMA_DeInit(hspi->hdmarx);
         HAL_DMA_DeInit(hspi->hdmatx);
+
+        HAL_NVIC_DisableIRQ(SPI3_IRQn);
     } else if (hspi->Instance == SPI4) {
         /* Peripheral clock disable */
         __HAL_RCC_SPI4_CLK_DISABLE();
@@ -795,6 +800,12 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base) {
     } else if (htim_base->Instance == TIM3) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM3_CLK_ENABLE();
+    } else if (htim_base->Instance == TIM13) {
+        /* Peripheral clock enable */
+        __HAL_RCC_TIM13_CLK_ENABLE();
+
+        HAL_NVIC_SetPriority(TIM8_UP_TIM13_IRQn, ISR_PRIORITY_STEP_TIMER, 1);
+        HAL_NVIC_EnableIRQ(TIM8_UP_TIM13_IRQn);
     } else if (htim_base->Instance == TIM14) {
         /* Peripheral clock enable */
         __HAL_RCC_TIM14_CLK_ENABLE();
@@ -853,6 +864,9 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim_base) {
     } else if (htim_base->Instance == TIM3) {
         /* Peripheral clock disable */
         __HAL_RCC_TIM3_CLK_DISABLE();
+    } else if (htim_base->Instance == TIM13) {
+        __HAL_RCC_TIM13_CLK_DISABLE();
+        HAL_NVIC_DisableIRQ(TIM8_UP_TIM13_IRQn);
     } else if (htim_base->Instance == TIM14) {
         /* Peripheral clock disable */
         __HAL_RCC_TIM14_CLK_DISABLE();

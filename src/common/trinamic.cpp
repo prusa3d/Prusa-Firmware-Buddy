@@ -11,6 +11,8 @@
 #include <device/board.h>
 #include <config_store/store_instance.hpp>
 
+#include <atomic>
+
 using namespace buddy::hw;
 #if HAS_DRIVER(TMC2130)
 static TMC2130Stepper *pStep[4] = { nullptr, nullptr, nullptr, nullptr };
@@ -91,8 +93,20 @@ tmc_reg_t tmc_reg_map[] = {
     { NULL, 0x00, false, false },
 };
 
+// With phase stepping, mutex is not an ideal synchronization mechanism as
+// high-priority ISR cannot safely take it. Since phase-stepping doesn't mind
+// missing transfers much, we can use atomic variable for storing the current owner.
+
 osMutexDef(tmc_mutex);
 osMutexId tmc_mutex_id;
+
+enum class BusOwner {
+    NOBODY = 0,
+    TASK = 1,
+    ISR = 2
+};
+
+std::atomic<BusOwner> tmc_bus_owner = BusOwner::NOBODY;
 
 extern "C" {
 
@@ -237,7 +251,16 @@ void init_tmc_bare_minimum(void) {
 ///
 /// This implements a weak symbol declared within the TMCStepper library
 bool tmc_serial_lock_acquire(void) {
-    return osMutexWait(tmc_mutex_id, osWaitForever) == osOK;
+    auto res = osMutexWait(tmc_mutex_id, osWaitForever) == osOK;
+    // We have taken the mutex, now let's try to take over the lock from ISR in
+    // busy waiting. We will wait at most one period of phase stepping (~25 µs)
+    BusOwner owner = BusOwner::NOBODY;
+    while (!tmc_bus_owner.compare_exchange_weak(owner, BusOwner::TASK,
+        std::memory_order_relaxed,
+        std::memory_order_relaxed)) {
+        owner = BusOwner::NOBODY;
+    }
+    return res;
 }
 
 /// Release lock for mutual exclusive access to the trinamic's serial port
@@ -245,6 +268,22 @@ bool tmc_serial_lock_acquire(void) {
 /// This implements a weak symbol declared within the TMCStepper library
 void tmc_serial_lock_release(void) {
     osMutexRelease(tmc_mutex_id);
+    tmc_bus_owner.store(BusOwner::NOBODY);
+}
+
+bool tmc_serial_lock_acquire_isr(void) {
+    BusOwner owner = BusOwner::NOBODY;
+    return tmc_bus_owner.compare_exchange_weak(owner, BusOwner::ISR,
+        std::memory_order_relaxed,
+        std::memory_order_relaxed);
+}
+
+void tmc_serial_lock_release_isr(void) {
+    tmc_bus_owner.store(BusOwner::NOBODY);
+}
+
+bool tmc_serial_lock_held_by_isr(void) {
+    return tmc_bus_owner.load() == BusOwner::ISR;
 }
 
 /// Called when an error occurs when communicating with the TMC over serial

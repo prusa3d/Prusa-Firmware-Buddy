@@ -82,6 +82,7 @@ DMA_HandleTypeDef hdma_adc3;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim13;
 TIM_HandleTypeDef htim14;
 
 //
@@ -756,7 +757,7 @@ void hw_spi3_init() {
 #if (BOARD_IS_BUDDY)
     hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
 #else
-    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
 #endif
     hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
     hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -953,6 +954,29 @@ void hw_tim3_init() {
     }
 
     HAL_TIM_MspPostInit(&htim3);
+}
+
+void hw_tim13_init() {
+    htim13.Instance = TIM13;
+    htim13.Init.Prescaler = 0;
+    htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim13.Init.Period = 2100; // Source clock: 84Mhz; resulting 40 kHz
+    htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    htim13.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+    if (HAL_TIM_Base_Init(&htim13) != HAL_OK) {
+        Error_Handler();
+    }
+
+    TIM_OC_InitTypeDef sConfigOC {};
+    sConfigOC.OCMode = TIM_OCMODE_ACTIVE;
+    sConfigOC.Pulse = 1600; // This time is fine-tuned such that the CS rising edge goes up after the transmission is finished
+    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+
+    if (HAL_TIM_OC_ConfigChannel(&htim13, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 void hw_tim14_init() {

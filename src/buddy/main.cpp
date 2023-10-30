@@ -77,6 +77,10 @@
     #include "hw_configuration.hpp"
 #endif
 
+#if PHASE_STEPPING
+    #include <feature/phase_stepping/phase_stepping.hpp>
+#endif
+
 using namespace crash_dump;
 
 LOG_COMPONENT_REF(Buddy);
@@ -234,6 +238,11 @@ extern "C" void main_cpp(void) {
 #if BOARD_IS_BUDDY || BOARD_IS_XBUDDY
     hw_tim1_init();
 #endif
+
+#ifdef PHASE_STEPPING
+    hw_tim13_init();
+#endif
+
     hw_tim14_init();
 
     SPI_INIT(flash);
@@ -599,6 +608,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     } else if (htim->Instance == TICK_TIMER) {
         app_tick_timer_overflow();
     }
+#if PHASE_STEPPING
+    else if (htim->Instance == TIM13) {
+        phase_stepping::handle_periodic_refresh();
+    }
+#endif
 }
 
 /**
