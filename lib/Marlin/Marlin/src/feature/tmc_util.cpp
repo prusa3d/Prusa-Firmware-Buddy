@@ -55,17 +55,30 @@
 #endif
 #endif
 
-static inline uint32_t get_tmc_freq() {
-  #if PRINTER_IS_PRUSA_MK4
-    return buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? 16000000 : 12650000;
-  #else
-    return 12650000;
-  #endif
+static constexpr uint32_t TMC2130_INT_OSC_FREQ = 12650000;
+static constexpr uint32_t TMC2130_EXT_OSC_FREQ = 16000000;
+
+static inline uint32_t get_tmc_freq(AxisEnum axis_id) {
+  switch (axis_id) {
+  case X_AXIS:
+  case Y_AXIS:
+  case Z_AXIS:
+#if BOARD_IS_XBUDDY
+    return buddy::hw::Configuration::Instance().has_trinamic_oscillators() ? TMC2130_EXT_OSC_FREQ : TMC2130_INT_OSC_FREQ;
+#elif BOARD_IS_XLBUDDY
+    return TMC2130_EXT_OSC_FREQ;
+#else
+    return TMC2130_INT_OSC_FREQ;
+#endif
+
+  default:
+    return TMC2130_INT_OSC_FREQ;
+  }
 }
 
 // The conversion between period and feedrate is symmetric, use a shared
 // implementation and just do a cast from float to uint32_t when needed.
-static float period_feedrate_conversion(uint16_t msteps, const float value, const uint32_t steps_per_mm) {
+static float period_feedrate_conversion(AxisEnum axis_id, uint16_t msteps, const float value, const uint32_t steps_per_mm) {
   if (value == 0) {
       return std::numeric_limits<float>::infinity();
   }
@@ -74,15 +87,15 @@ static float period_feedrate_conversion(uint16_t msteps, const float value, cons
   }
   msteps = std::max<uint16_t>(1, msteps); // 0 msteps is infact 1
 
-  return get_tmc_freq() * msteps / (256.f * value * steps_per_mm);
+  return get_tmc_freq(axis_id) * msteps / (256.f * value * steps_per_mm);
 }
 
-float tmc_period_to_feedrate(uint16_t msteps, const uint32_t period, const uint32_t steps_per_mm) {
-  return period_feedrate_conversion(msteps, period, steps_per_mm);
+float tmc_period_to_feedrate(AxisEnum axis_id, uint16_t msteps, const uint32_t period, const uint32_t steps_per_mm) {
+  return period_feedrate_conversion(axis_id, msteps, period, steps_per_mm);
 }
 
-uint32_t tmc_feedrate_to_period(uint16_t msteps, const float feedrate, const uint32_t steps_per_mm) {
-  return static_cast<uint32_t>(period_feedrate_conversion(msteps, feedrate, steps_per_mm));
+uint32_t tmc_feedrate_to_period(AxisEnum axis_id, uint16_t msteps, const float feedrate, const uint32_t steps_per_mm) {
+  return static_cast<uint32_t>(period_feedrate_conversion(axis_id, msteps, feedrate, steps_per_mm));
 }
 
 /**

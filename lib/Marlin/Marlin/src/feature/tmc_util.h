@@ -64,7 +64,7 @@
  * @param steps_per_mm Axis steps per mm
  * @return Feedrate in mm/s
  */
-float tmc_period_to_feedrate(uint16_t msteps, const uint32_t period, const uint32_t steps_per_mm);
+float tmc_period_to_feedrate(AxisEnum axis_id, uint16_t msteps, const uint32_t period, const uint32_t steps_per_mm);
 
 /**
  * @brief Return the TMC period value for a given feedrate `feedrate`.
@@ -73,7 +73,7 @@ float tmc_period_to_feedrate(uint16_t msteps, const uint32_t period, const uint3
  * @param steps_per_mm Axis steps per mm
  * @return TMC period value
  */
-uint32_t tmc_feedrate_to_period(uint16_t msteps, const float feedrate, const uint32_t steps_per_mm);
+uint32_t tmc_feedrate_to_period(AxisEnum axis_id, uint16_t msteps, const float feedrate, const uint32_t steps_per_mm);
 
 class TMCStorage {
   protected:
@@ -165,10 +165,10 @@ class TMCMarlinBase : public TMC, public TMCStorage {
     #endif
     #if ENABLED(HYBRID_THRESHOLD)
       uint32_t get_pwm_thrs() {
-        return tmc_feedrate_to_period(this->microsteps(), this->TPWMTHRS(), planner.settings.axis_steps_per_mm[axis_id]);
+        return tmc_feedrate_to_period(axis_id, this->microsteps(), this->TPWMTHRS(), planner.settings.axis_steps_per_mm[axis_id]);
       }
       void set_pwm_thrs(const uint32_t thrs) {
-        TMC::TPWMTHRS(tmc_feedrate_to_period(this->microsteps(), thrs, planner.settings.axis_steps_per_mm[axis_id]));
+        TMC::TPWMTHRS(tmc_feedrate_to_period(axis_id, this->microsteps(), thrs, planner.settings.axis_steps_per_mm[axis_id]));
         #if HAS_LCD_MENU
           this->stored.hybrid_thrs = thrs;
         #endif

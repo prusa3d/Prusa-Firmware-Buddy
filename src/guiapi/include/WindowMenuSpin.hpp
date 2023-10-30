@@ -169,7 +169,7 @@ public: // todo private
 
 protected:
     void printSpinToBuffer() {
-        float display = tmc_period_to_feedrate(get_microsteps_x(), get_val<int>(), get_steps_per_unit_x());
+        float display = tmc_period_to_feedrate(X_AXIS, get_microsteps_x(), get_val<int>(), get_steps_per_unit_x());
         int chars = snprintf(spin_text_buff.data(), spin_text_buff.size(), "%f", double(display));
         changeExtentionWidth(0, 0, std::min<int>(chars, spin_text_buff.size() - 1));
     }
