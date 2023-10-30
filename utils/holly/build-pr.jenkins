@@ -11,6 +11,37 @@ pipeline {
     }
 
     stages {
+        stage('Create Git Tag') {
+            agent any
+            steps {
+                script {
+                    base_url = "https://holly.prusa3d.com/job/Prusa-Firmware-Buddy-Private/job/Multibranch/job"
+                    if (env.CHANGE_ID) {
+                        // This is a PR build
+                        tag_name = "build/PR${env.CHANGE_ID}/B${env.BUILD_NUMBER}"
+                        url = "${base_url}/PR-${env.CHANGE_ID}/${env.BUILD_NUMBER}/"
+                    } else {
+                        // This is a build of a branch / tag
+                        tag_name = "build/${env.BRANCH_NAME}/B${env.BUILD_NUMBER}"
+                        url = "${base_url}/${env.BRANCH_NAME}/${env.BUILD_NUMBER}/"
+                    }
+                    message = "${tag_name}\n\nBuilt by Holly at ${url}"
+                    sshagent(credentials: ['prusa_holly']) {
+                        sh """
+                            export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+                            git tag -af "${tag_name}" -m "${message}"
+                            git push origin "${tag_name}"
+                        """
+                    }
+                }
+            }
+            post {
+                cleanup {
+                    deleteDir()
+                }
+            }
+        }
+
         stage('Check Formatting') {
             agent {
                 dockerfile {
