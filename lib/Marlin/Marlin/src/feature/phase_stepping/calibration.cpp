@@ -194,31 +194,39 @@ static float rev_to_mm(AxisEnum axis, float revs) {
     return revs * get_motor_steps(axis) * FACTORS[axis];
 }
 
-static void wait_for_movement_start(phase_stepping::AxisState& axis_state) {
-    while (!axis_state.target.has_value()) {
-        idle(true);
+// Wait for a state of a given axis specified by a predicate. Returns true on
+// success, false on timeout
+template <typename Pred>
+static bool wait_for_movement_state(phase_stepping::AxisState& axis_state,
+    int timeout_ms, Pred pred)
+{
+    auto start_time = ticks_ms();
+    while (!(pred(axis_state))) {
+        if (ticks_diff(ticks_ms(), start_time) > timeout_ms)
+            return false;
+        osDelay(1);
     }
+    return true;
 }
 
-static void wait_for_accel_end(phase_stepping::AxisState& axis_state) {
-    if (!axis_state.target.has_value())
-        return;
-    while (axis_state.target->half_accel != 0) {
-        idle(false);
-    }
+// Wait for movement start of a given axis. Returns true on success, false on
+// timeout
+static bool wait_for_movement_start(phase_stepping::AxisState& axis_state,
+    int timeout_ms = 1000)
+{
+    return wait_for_movement_state(axis_state, timeout_ms, [](phase_stepping::AxisState& s){
+        return s.is_moving.load();
+    });
 }
 
-static void wait_for_zero_phase(phase_stepping::AxisState& axis_state) {
-    if (!axis_state.target)
-        return;
-    // We busy wait as the process should be fairly quick
-    if (axis_state.target->start_v > 0) {
-        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) <= phase_stepping::MOTOR_PERIOD / 4);
-        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) >= phase_stepping::MOTOR_PERIOD / 4);
-    } else {
-        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) >= 3 * phase_stepping::MOTOR_PERIOD / 4);
-        while(phase_stepping::normalize_motor_phase(axis_state.last_phase) <= 3 * phase_stepping::MOTOR_PERIOD / 4);
-    }
+// Wait for end of acceleration phase of a given axis. Returns true on success,
+// false on timeout
+static bool wait_for_accel_end(phase_stepping::AxisState& axis_state,
+    int timeout_ms = 1000)
+{
+    return wait_for_movement_state(axis_state, timeout_ms, [](phase_stepping::AxisState& s){
+        return s.is_cruising.load();
+    });
 }
 
 // Computes a pseudo-projection of one vector to another. The length of
@@ -317,7 +325,6 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
     Planner::synchronize();
 
     phase_stepping::AxisState &axis_state = *phase_stepping::axis_states[axis];
-    std::optional<phase_stepping::MoveTarget>& axis_target = axis_state.target;
 
     // Find move target that corresponds to given number of revs
     auto [measurement_revs, vibration_delay] = sample_capture_revs(revs, speed);
@@ -338,19 +345,24 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
 
     plan_move_by(feedrate_mms, d_x, d_y);
 
-    wait_for_movement_start(axis_state);
-    wait_for_accel_end(axis_state);
+    bool success;
+    success = wait_for_movement_start(axis_state);
+    if (!success)
+        return 0;
+    success = wait_for_accel_end(axis_state);
+    if (!success)
+        return 0;
+
     delay(vibration_delay * 1000);
-    wait_for_zero_phase(axis_state);
 
     int counter = 0;
     PrusaAccelerometer accelerometer;
     if (accelerometer.get_error() != PrusaAccelerometer::Error::none) {
-        log_debug(PhaseStepping, "Cannot initialize ACC %d", accelerometer.get_error());
+        log_debug(PhaseStepping, "Cannot initialize accelerometer %d", accelerometer.get_error());
         return 0;
     }
     accelerometer.clear();
-    while (axis_target.has_value() && axis_target->half_accel == 0) {
+    while (axis_state.is_cruising.load()) {
         counter++;
         PrusaAccelerometer::Acceleration sample;
         int has_new_sample = accelerometer.get_sample(sample);
@@ -359,8 +371,8 @@ float phase_stepping::capture_samples(AxisEnum axis, float speed, float revs,
         }
     }
     if (accelerometer.get_error() != PrusaAccelerometer::Error::none) {
-        log_debug(PhaseStepping, "Reading failed ACC %d", accelerometer.get_error());
-        // return 0; // TBA: Uncomment me!
+        log_debug(PhaseStepping, "Accelerometer reading failed %d", accelerometer.get_error());
+        return 0;
     }
     return accelerometer.get_sampling_rate();
 }
@@ -373,7 +385,8 @@ std::optional<std::vector<float>> phase_stepping::analyze_resonance(AxisEnum axi
     std::vector<float> signal;
     signal.reserve(expected_max_sample_count);
     float sampling_freq = capture_samples(axis, speed, revs, [&](const auto& sample) {
-        signal.push_back(project_to_axis(axis, sample));
+        if (signal.size() < signal.capacity())
+            signal.push_back(project_to_axis(axis, sample));
     });
 
     log_debug(PhaseStepping, "Sampling freq: %f", sampling_freq);

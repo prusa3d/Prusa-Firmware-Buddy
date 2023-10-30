@@ -58,6 +58,9 @@ struct AxisState {
     uint32_t                  initial_time = 0; // Initial timestamp when the movement start
     std::optional<MoveTarget> target;           // Current target to move
 
+    std::atomic<bool> is_moving   = false;
+    std::atomic<bool> is_cruising = false;
+
     int32_t initial_count_position = 0; // Value for updating Stepper::count_position
     int32_t initial_count_position_from_startup = 0; // Value for updating Stepper::count_position_from_startup
 

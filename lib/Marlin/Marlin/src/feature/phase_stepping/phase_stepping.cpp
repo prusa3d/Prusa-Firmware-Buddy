@@ -389,10 +389,19 @@ __attribute__((optimize("-Ofast"))) void phase_stepping::handle_periodic_refresh
         if (!axis_state.pending_targets.isEmpty()) {
             // Pull new movement
             axis_state.target = axis_state.pending_targets.dequeue();
+
+            axis_state.is_cruising =
+                axis_state.target->half_accel == 0 &&
+                axis_state.target->duration > 10'000;
+            axis_state.is_moving = true;
+
             // Time overshoots accounts for the lost time in the previous state
             axis_state.initial_time = now - time_overshoot;
             move_epoch = time_overshoot;
         } else {
+            // No new movement
+            axis_state.is_cruising = false;
+            axis_state.is_moving = false;
             break;
         }
     }
