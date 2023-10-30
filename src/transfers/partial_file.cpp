@@ -37,7 +37,9 @@ PartialFile::~PartialFile() {
     discard_current_sector();
     // synchronization is required due to the validity of callback pointers
     sector_pool.sync(0, true);
-    close(file_lock);
+    if (file_lock != -1) {
+        close(file_lock);
+    }
 }
 
 variant<const char *, PartialFile::Ptr> PartialFile::create(const char *path, size_t size) {
@@ -447,10 +449,15 @@ bool PartialFile::SectorPool::sync(uint32_t avoid, bool force) {
     return block == acquired;
 }
 
-void PartialFile::reset_error() {
+void PartialFile::release_file() {
+    // Flush everything so we won't try writing through this later.
     discard_current_sector();
     sector_pool.sync(0, true);
-    write_error = false;
+    // Prevent any future attempts to write here.
+    write_error = true;
+    // And release the lock.
+    close(file_lock);
+    file_lock = -1;
 }
 
 uint32_t PartialFile::SectorPool::get_available_slot() const {

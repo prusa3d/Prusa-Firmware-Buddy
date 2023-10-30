@@ -34,4 +34,4 @@ PartialFile::State PartialFile::get_state() const {
     return state;
 }
 
-void PartialFile::reset_error() {}
+void PartialFile::release_file() {}

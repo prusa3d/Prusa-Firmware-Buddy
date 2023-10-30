@@ -244,8 +244,10 @@ public:
     /// Flush the current sector to the USB drive
     bool sync();
 
-    /// Resets the content of current sector (if any) and resets the write error flag.
-    void reset_error();
+    /// "Close" the file while still preserving the state and size.
+    ///
+    /// No further writes will succeed or be made and the file lock is released.
+    void release_file();
 
     /// Get the final size of the file
     size_t final_size() const { return get_state().total_size; }
