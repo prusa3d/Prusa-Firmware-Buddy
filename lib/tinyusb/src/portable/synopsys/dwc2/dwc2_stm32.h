@@ -136,6 +136,12 @@ static inline void dwc2_dcd_int_enable(uint8_t rhport)
 }
 
 TU_ATTR_ALWAYS_INLINE
+static inline bool dwc2_dcd_int_enabled (uint8_t rhport)
+{
+  return NVIC_GetEnableIRQ((IRQn_Type)_dwc2_controller[rhport].irqnum);
+}
+
+TU_ATTR_ALWAYS_INLINE
 static inline void dwc2_dcd_int_disable (uint8_t rhport)
 {
   NVIC_DisableIRQ((IRQn_Type)_dwc2_controller[rhport].irqnum);
